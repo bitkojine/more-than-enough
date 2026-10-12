@@ -84,6 +84,11 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 - After each minor (or any notable) change, bump `MTE_VERSION` in
   `version.js`, update `CHANGELOG.md`, and commit.
 
+Deploys cache-bust automatically: the Pages workflow appends a content-hash
+`?v=` to `style.css`, `version.js`, `core.js` and `game.js` while staging the
+site, so GitHub Pages' 10-minute cache can't serve a stale build to returning
+players. You don't need to change asset URLs by hand — just push.
+
 The project is under git — commit early, commit often:
 
 ## Core loop

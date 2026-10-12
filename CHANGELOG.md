@@ -6,6 +6,16 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.5] - 2026-10-12
+
+### Fixed
+- **New deploys go live immediately.** GitHub Pages caches every file for 10
+  minutes and won't let us set response headers, so returning players could
+  keep an old game build after a push. The Pages workflow now appends a
+  content-hash `?v=` to each asset reference while staging, so changed files
+  get new URLs that browsers must refetch. The repository's `index.html` stays
+  clean; stamping happens only in the deployed copy.
+
 ## [0.13.4] - 2026-10-12
 
 ### Changed
