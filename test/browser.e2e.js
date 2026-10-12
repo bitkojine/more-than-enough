@@ -208,6 +208,9 @@ async function main() {
   ok(goalTxt && goalTxt.length > 3, 'goal banner shows: ' + goalTxt);
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
+  var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
+  var ov = JSON.parse(overlap);
+  ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');
 
   // canvas actually painted
   var painted = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var set={};var n=0;for(var i=0;i<d.length;i+=40000){var k=d[i]+","+d[i+1]+","+d[i+2];if(!set[k]){set[k]=1;n++;}}return n;})()');
@@ -271,9 +274,11 @@ async function main() {
   var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   await evalJS('MTE_GAME.addRes("wood",80)');
   await sleep(150);
-  await evalJS('document.getElementById("btnBuild").click()');
+  var buildBtn = await rect('#btnBuild');
+  await tap(buildBtn.x, buildBtn.y);
   await sleep(300);
-  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'build sheet opened');
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'build sheet opened via touch tap');
+  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'Build tab is highlighted when opened via the button');
   var placeReady = await evalJS('(function(){var b=document.querySelector(".row button[data-id=lumber]");return b?!b.disabled:false;})()');
   ok(placeReady, 'Lumber Camp can be placed on the current tile');
   await evalJS('document.querySelector(".row button[data-id=lumber]").click()');
@@ -282,6 +287,22 @@ async function main() {
   eq(b3.ext, 1, 'lumber camp constructed');
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(200);
+
+  console.log('\n== BUILD / UPGRADE buttons switch tabs ==');
+  var upBtn = await rect('#btnUpgrade');
+  await tap(upBtn.x, upBtn.y);
+  await sleep(250);
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
+  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  await key('keyDown', 'b', 'KeyB', 66);
+  await key('keyUp', 'b', 'KeyB', 66);
+  await sleep(300);
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'B key keeps the sheet open while switching tabs');
+  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'B key switches an open sheet to the Build tab');
+  await key('keyDown', 'b', 'KeyB', 66);
+  await key('keyUp', 'b', 'KeyB', 66);
+  await sleep(300);
+  ok(!(await evalJS('document.getElementById("sheet").classList.contains("open")')), 'B key closes the sheet when Build is already active');
 
   console.log('\n== Automation produces over time ==');
   await sleep(2500);

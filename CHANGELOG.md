@@ -6,6 +6,27 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.8.1] - 2026-10-12
+
+### Fixed
+- **Version badge no longer covers the HUD**: the `byrforr · vX.Y.Z` pill was an
+  absolutely-positioned layer above the resource chips and goal banner, so on
+  narrow screens it painted right on top of them. It now lives inside the HUD
+  column (still top-right), and the chips/goal stack cleanly underneath.
+- **BUILD actually opens the Build tab**: the bottom buttons left the tab
+  header highlight stale (Build content but "Upgrades" lit), and pressing
+  BUILD while the sheet was open on another tab closed it instead of switching.
+  Both buttons now open the sheet, switch to their tab if another is showing,
+  and close only when their own tab is already active (keyboard `B` / `U` / `C`
+  behave the same). The active tab highlight is now always correct.
+
+### Tests
+- Browser e2e: verifies the version badge doesn't intersect the goal banner or
+  resource chips; drives the BUILD button with a real touch tap (not just
+  `.click()`) and asserts the Build tab is highlighted; keyboard `B` switches
+  an open sheet to Build and closes it only when Build is already active.
+- Browser e2e now at 49 checks.
+
 ## [0.8.0] - 2026-10-12
 
 ### Added

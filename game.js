@@ -437,8 +437,8 @@
     }
     if (e.key === 'Escape' && sheetOpen) closeSheet();
     var k = e.key.toLowerCase();
-    if (k === 'b') { sheetOpen ? closeSheet() : openSheet('build'); }
-    if (k === 'u' || k === 'c') { sheetOpen ? closeSheet() : openSheet('upgrades'); }
+    if (k === 'b') { toggleTab('build'); }
+    if (k === 'u' || k === 'c') { toggleTab('upgrades'); }
   });
   window.addEventListener('keyup', function (e) {
     keys[e.key.toLowerCase()] = false;
@@ -629,10 +629,9 @@
 
   function openSheet(tab) {
     sheetOpen = true;
-    currentTab = tab || currentTab;
     elSheet.classList.add('open');
     elSheet.setAttribute('aria-hidden', 'false');
-    renderSheet();
+    setTab(tab || currentTab);
   }
 
   function closeSheet() {
@@ -640,6 +639,14 @@
     elSheet.classList.remove('open');
     elSheet.setAttribute('aria-hidden', 'true');
     actDown = false;
+  }
+
+  // BUILD / UPGRADE buttons and shortcuts: open the sheet, switch to the tab
+  // if it's open on another one, or close it when the tab is already shown.
+  function toggleTab(tab) {
+    if (!sheetOpen) { openSheet(tab); return; }
+    if (currentTab === tab) closeSheet();
+    else setTab(tab);
   }
 
   function setTab(tab) {
@@ -908,14 +915,14 @@
   elAction.addEventListener('pointercancel', releaseAction);
   elAction.addEventListener('pointerleave', function () { actDown = false; });
 
-  elBuild.addEventListener('click', function () {
-    initAudio();
-    sheetOpen ? closeSheet() : openSheet('build');
-  });
-  elUpgrade.addEventListener('click', function () {
-    initAudio();
-    sheetOpen ? closeSheet() : openSheet('upgrades');
-  });
+  function bindTabButton(el, tab) {
+    el.addEventListener('click', function () {
+      initAudio();
+      toggleTab(tab);
+    });
+  }
+  bindTabButton(elBuild, 'build');
+  bindTabButton(elUpgrade, 'upgrades');
   elClose.addEventListener('click', closeSheet);
   for (var ti = 0; ti < tabs.length; ti++) {
     tabs[ti].addEventListener('click', function (e) { setTab(e.currentTarget.dataset.tab); });

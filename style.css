@@ -46,10 +46,7 @@ canvas#game {
 }
 
 #version {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 7px);
-  right: 10px;
-  z-index: 11;
+  align-self: flex-end;
   pointer-events: none;
   font-size: 10px;
   font-weight: 700;
