@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.18.2] - 2026-10-12
+
+### Fixed
+- Use underground tunnels for movement collision, so carved passages become
+  walkable while solid mine tiles block movement. Underground travel no longer
+  depends on the forest terrain beneath the player.
+- Keep the surface water speed modifier from affecting movement underground.
+- Explain tunnel movement in the mine tutorial and depth goal.
+
 ## [0.18.1] - 2026-10-12
 
 ### Changed

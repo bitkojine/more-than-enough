@@ -992,6 +992,10 @@
   /* --------------------------------------------------------------- move */
 
   function pointWalkable(s, x, y) {
+    if (s.mine && s.mine.active) {
+      var tile = mineTile(s, Math.floor(x), Math.floor(y));
+      return tile === MINE_T.TUNNEL || tile === MINE_T.SHAFT_OPEN;
+    }
     return walkable(s.world, Math.floor(x), Math.floor(y));
   }
 
@@ -1007,7 +1011,7 @@
     if (len < 0.0001) return false;
     dx /= len; dy /= len;
     var speed = BASE_SPEED * moveMult(s) * nomadMult(s);
-    if (tileType(s.world, Math.floor(s.player.x), Math.floor(s.player.y)) === T.WATER) speed *= WATER_SPEED;
+    if (!s.mine.active && tileType(s.world, Math.floor(s.player.x), Math.floor(s.player.y)) === T.WATER) speed *= WATER_SPEED;
     var moved = false;
     var nx = s.player.x + dx * speed * dt;
     if (canStand(s, nx, s.player.y)) { s.player.x = nx; moved = true; }

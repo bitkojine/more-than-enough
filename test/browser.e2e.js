@@ -248,6 +248,10 @@ async function main() {
   var ms = JSON.parse(mineSpot);
   await tap(ms.sx, ms.sy);
   ok(await evalJS('Object.keys(MTE_GAME.getState().mine.carved).length > 0'), 'tapping a nearby tile uses the same Gather action to dig');
+  var minePos = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:p.x,y:p.y});})()'));
+  await drag(195, 422, 195 + ms.x * 80, 422 + ms.y * 80, 5, 35);
+  var minePosAfter = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:p.x,y:p.y});})()'));
+  ok((minePosAfter.x-minePos.x)*ms.x + (minePosAfter.y-minePos.y)*ms.y > 0.05, 'same thumb joystick moves into the freshly dug underground tunnel');
   eq(await evalJS('MTE_GAME.getState().mine.depth'), 0, 'digging an ordinary lower tile does not change layers');
   var shaftSpot = await evalJS('(function(){var s=MTE_GAME.getState(),p=MTE_GAME.core.mineShaft(s);MTE_GAME.setPlayer(p.x+.5,p.y+.5);return JSON.stringify({x:p.x,y:p.y,sx:innerWidth/2,sy:innerHeight/2});})()');
   var ss = JSON.parse(shaftSpot);

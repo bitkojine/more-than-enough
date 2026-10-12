@@ -1020,7 +1020,7 @@
       var rr = RESOURCES[j];
       chipEls[rr].rate.textContent = rates[rr] > 0.01 ? '+' + fmt1(rates[rr]) + '/s' : '';
     }
-    elGoal.textContent = state.mine.active ? ('Depth ' + (state.mine.depth + 1) + ' · find a vein, then surface with your haul') : currentGoalText();
+    elGoal.textContent = state.mine.active ? ('Depth ' + (state.mine.depth + 1) + ' · dig tunnels, gather, then choose your next shaft') : currentGoalText();
     var bu = beyondUnlocked();
     if (bu !== lastBeyondUnlocked) {
       lastBeyondUnlocked = bu;

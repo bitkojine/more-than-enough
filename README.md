@@ -49,7 +49,8 @@ on the Pages site, saves live in that browser for that origin).
   control: tap nearby rock to dig, or hold Gather and trace across nearby rock
   to preview and sweep it. Each layer has a marked shaft: dig it open, then
   tap its hatch when you choose to go deeper. Digging any other tile never
-  changes layers. Tap **SURFACE** to return to your forest position.
+  changes layers. Only open tunnels are walkable underground, so carve a route
+  to the hatch. Tap **SURFACE** to return to your forest position.
   Underground finds go into your usual inventory, so the forest gathering,
   building, and upgrade loop remains the center of the game.
 - **BUILD** places extractors on matching deposits (Lumber Camp on forest,

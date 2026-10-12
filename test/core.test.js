@@ -475,12 +475,20 @@ var mineRun = C.createState(31415);
 var forestX = mineRun.player.x, forestY = mineRun.player.y;
 eq(C.enterMine(mineRun), true, 'enter mine from the forest');
 eq(C.mineTile(mineRun, 0, 0), C.MINE_T.TUNNEL, 'mine entrance starts open');
+var undergroundX = mineRun.player.x;
+C.move(mineRun, 1, 0, 0.2);
+eq(mineRun.player.x, undergroundX, 'solid mine tiles block underground movement');
+ok(C.digMine(mineRun, 1, 0), 'digging the neighboring tile opens a tunnel');
+var mineX = mineRun.player.x;
+C.move(mineRun, 1, 0, 0.2);
+ok(mineRun.player.x > mineX, 'player can move into a carved underground tunnel');
+mineRun.player.x = 0.5; mineRun.player.y = 0.5;
 var shaft = C.mineShaft(mineRun);
 eq(C.mineTile(mineRun, shaft.x, shaft.y), C.MINE_T.SHAFT, 'each layer has a marked downward shaft');
 eq(C.descendMine(mineRun, shaft.x, shaft.y), false, 'a closed shaft cannot be used');
 var digTarget = null;
 for (var my = -1; my <= 1 && !digTarget; my++) for (var mx = -1; mx <= 1 && !digTarget; mx++) {
-  if ((mx || my) && C.mineTile(mineRun, mx, my) !== C.MINE_T.BEDROCK && C.mineTile(mineRun, mx, my) !== C.MINE_T.SHAFT) digTarget = { x: mx, y: my };
+  if ((mx || my) && C.mineTile(mineRun, mx, my) !== C.MINE_T.BEDROCK && C.mineTile(mineRun, mx, my) !== C.MINE_T.SHAFT && C.mineTile(mineRun, mx, my) !== C.MINE_T.TUNNEL) digTarget = { x: mx, y: my };
 }
 ok(!!C.digMine(mineRun, digTarget.x, digTarget.y), 'nearby geology can be dug');
 eq(mineRun.mine.depth, 0, 'ordinary digging never drops to the next layer');
