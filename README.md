@@ -7,8 +7,13 @@ Abundance Engine.
 
 ## How to launch
 
-The game is plain HTML/CSS/JS with zero dependencies. Serve the folder and open
-`index.html`:
+**Play it live:** the game is deployed to GitHub Pages — every push to `main`
+rebuilds it automatically:
+
+**https://bitkojine.github.io/more-than-enough/**
+
+Or serve the folder yourself — the game is plain HTML/CSS/JS with zero
+dependencies, so `index.html` just needs a static host:
 
 ```sh
 cd newgame-2026-10-12
@@ -16,7 +21,8 @@ python3 -m http.server 8000
 ```
 
 Then open **http://localhost:8000** (or your machine's LAN IP) in Mobile Safari
-or any browser. Progress saves automatically to `localStorage`.
+or any browser. Progress saves automatically to `localStorage` (per browser —
+on the Pages site, saves live in that browser for that origin).
 
 > Safari may restrict `localStorage` on `file://` pages, so use the local
 > server (or any static host) rather than double-clicking the file.

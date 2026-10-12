@@ -6,6 +6,17 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.9.2] - 2026-10-12
+
+### Deployment
+- **Live on GitHub Pages**: the game is deployed automatically on every push to
+  `main` (`.github/workflows/pages.yml`) at
+  https://bitkojine.github.io/more-than-enough/. The deploy is build-free — the
+  site is the five static files (`index.html`, `style.css`, `version.js`,
+  `core.js`, `game.js`) — and saves keep working because they live in the
+  browser's `localStorage` for that origin. Tests, scripts and `structurizr/`
+  are not published.
+
 ## [0.9.1] - 2026-10-12
 
 ### Docs

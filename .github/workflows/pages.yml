@@ -1,0 +1,44 @@
+# Build-free deploy of the game to GitHub Pages.
+# The whole game is five static files (index.html, style.css, version.js,
+# core.js, game.js) — no build step, no Node, nothing else is published.
+# Runs on every push to main and on demand (workflow_dispatch).
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage the game files
+        run: |
+          mkdir -p site
+          cp index.html style.css version.js core.js game.js site/
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
