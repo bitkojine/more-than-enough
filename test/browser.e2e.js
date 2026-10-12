@@ -267,6 +267,25 @@ async function main() {
   await sleep(1000);
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'flyers arrive and clear within ~1s');
 
+  /* --------------------------------- SPACE hold must gather at the cd rate */
+  console.log('\n== Hold SPACE gathers at GATHER_CD (no key-repeat turbo) ==');
+  var spotK = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&s.world.rich[i]>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  ok(!!spotK, 'standing on a fresh rich forest tile for the SPACE test (' + spotK + ')');
+  await sleep(150);
+  var kg0 = await evalJS('MTE_GAME.getState().stats.gathers');
+  await key('keyDown', ' ', 'Space', 32); // one physical press
+  await sleep(60);
+  var kg1 = await evalJS('MTE_GAME.getState().stats.gathers');
+  eq(kg1, kg0 + 1, 'one SPACE press gathers exactly once (no double action)');
+  for (var rep = 0; rep < 15; rep++) { // OS key-repeat storm
+    await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32, nativeVirtualKeyCode: 32, autoRepeat: true }, session);
+  }
+  await sleep(60); // still inside one GATHER_CD (0.25s) window
+  var kg2 = await evalJS('MTE_GAME.getState().stats.gathers');
+  ok(kg2 - kg1 <= 2, '15 repeat keydowns did not turbo-gather (gathers ' + kg1 + ' -> ' + kg2 + ')');
+  await key('keyUp', ' ', 'Space', 32);
+  await sleep(100);
+
   /* ----------------------------------------------------------- upgrade */
   console.log('\n== Upgrade (craft an Axe) ==');
   var woodNow = g1.inv.wood;

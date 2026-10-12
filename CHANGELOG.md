@@ -6,6 +6,16 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.9.4] - 2026-10-12
+
+### Fixed
+- **Holding SPACE/Enter no longer turbo-collects**: OS keyboard auto-repeat was
+  firing the action on every repeated `keydown`, bypassing the 0.25s `GATHER_CD`
+  hold gate (the touch button was unaffected), and the first press could act
+  twice. The keyboard path now matches the touch path: one action per physical
+  press, then repeats only via the cooldown-gated loop — one press = one action.
+  Regression-covered by the browser e2e suite (+3 SPACE-hold checks).
+
 ## [0.9.3] - 2026-10-12
 
 ### Refactor

@@ -433,7 +433,13 @@
     initAudio();
     keys[e.key.toLowerCase()] = true;
     if (e.key === ' ' || e.key === 'Enter') {
-      if (!sheetOpen) { actDown = true; doAction(); }
+      if (!sheetOpen) {
+        actDown = true;
+        // One action per physical press; ignore OS autorepeat (e.repeat) —
+        // holding is driven by the cooldown-gated loop in update() like the
+        // touch button, so repeats can't fire doAction() without GATHER_CD.
+        if (!e.repeat && doAction()) actionCd = GATHER_CD;
+      }
       e.preventDefault();
     }
     if (e.key === 'Escape' && sheetOpen) closeSheet();
