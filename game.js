@@ -1299,7 +1299,7 @@
   /* --------------------------------------------------------------- boot */
 
   function boot() {
-    document.getElementById('version').textContent = 'v' + (window.MTE_VERSION || '0.0.0');
+    document.getElementById('verText').textContent = 'v' + (window.MTE_VERSION || '0.0.0');
     resize();
     buildChips();
     state = load();

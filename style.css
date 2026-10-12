@@ -60,6 +60,16 @@ canvas#game {
   padding: 3px 8px;
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
+#version #brand {
+  color: #e8d9a8;
+  letter-spacing: 0.12em;
+  font-size: 9px;
+}
+#version span + span::before {
+  content: '\00B7';
+  margin: 0 5px;
+  color: rgba(150, 165, 148, 0.6);
+}
 
 #resources {
   display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;

@@ -6,6 +6,12 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.6.0] - 2026-10-12
+
+### Added
+- **Studio branding**: the HUD badge now reads `byrforr · v0.6.0` — the
+  byrforr game studio mark sits next to the SemVer version.
+
 ## [0.5.0] - 2026-10-12
 
 ### Added

@@ -44,9 +44,9 @@ or any browser. Progress saves automatically to `localStorage`.
 
 ## Versioning
 
-The HUD badge in the top-right shows the exact version you're playing
-(`vX.Y.Z`, SemVer). The single source of truth is `version.js`; see
-`CHANGELOG.md` for the history.
+The HUD badge in the top-right shows the studio and exact version you're
+playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
+`version.js`; see `CHANGELOG.md` for the history.
 
 - **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long
   road; there is no rush to get there.
