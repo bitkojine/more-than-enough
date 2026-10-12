@@ -149,7 +149,7 @@ automation handles what you've mastered and exploration reveals what you haven't
 ## Tests
 
 ```sh
-npm test            # node --test test/unit/ — world layers, actions, economy, saves, bot playthroughs
+npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 ```
 
