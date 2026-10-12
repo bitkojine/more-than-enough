@@ -6,6 +6,12 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.8] - 2026-10-12
+
+### Changed
+- **Boy Scout cleanup.** Removed unused Trail gesture state and a dead pointer
+  movement branch; simplified Trail coordinate conversion. No behavior change.
+
 ## [0.13.7] - 2026-10-12
 
 ### Changed

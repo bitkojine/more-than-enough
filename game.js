@@ -56,8 +56,6 @@
   var keys = {};
   var moveTarget = null;
   var trail = null;
-  var trailArmTimer = null;
-  var actionPointerId = null, actionStartX = 0, actionStartY = 0, actionStartTime = 0;
   var stall = 0;
   var actDown = false;
   var actionCd = 0;
@@ -531,8 +529,7 @@
 
   function trailPoint(e) {
     var p = canvasPoint(e);
-    var w = screenToWorld(p.x, p.y);
-    return { x: w.x, y: w.y };
+    return screenToWorld(p.x, p.y);
   }
 
   function finishTrail() {
@@ -583,17 +580,6 @@
       if (!prior || Math.abs(prior.x - point.x) + Math.abs(prior.y - point.y) > 0.12) trail.points.push(point);
       e.preventDefault();
       return;
-    }
-    if (actDown && trailArmTimer && e.pointerId === actionPointerId) {
-      var btn = elAction.getBoundingClientRect();
-      var movedFromButton = Math.hypot(e.clientX - actionStartX, e.clientY - actionStartY);
-      if (movedFromButton > 28 || performance.now() - actionStartTime >= 450) beginTrail(e);
-      if (trail && trail.id === e.pointerId) {
-        var firstPoint = trailPoint(e);
-        trail.points.push(firstPoint);
-        e.preventDefault();
-        return;
-      }
     }
     if (sheetOpen || !joy.active || e.pointerId !== joy.id) return;
     var p = canvasPoint(e);
@@ -1299,8 +1285,6 @@
     initAudio();
     e.preventDefault();
     actDown = true;
-    actionPointerId = e.pointerId;
-    actionStartX = e.clientX; actionStartY = e.clientY; actionStartTime = performance.now();
     // Let the immediate gather register; the same pointer can then leave the
     // button and trace a sweep while held, without needing another finger.
     if (context().type !== 'none' && actionCd <= 0) {
@@ -1319,7 +1303,7 @@
   elAction.addEventListener('pointerup', releaseAction);
   elAction.addEventListener('pointercancel', releaseAction);
   elAction.addEventListener('pointerleave', function (e) {
-    if (actDown && !trail && actionPointerId === e.pointerId) beginTrail(e);
+    if (actDown && !trail) beginTrail(e);
   });
   window.addEventListener('pointerup', function (e) {
     if (trail && trail.id === e.pointerId && actDown) {
