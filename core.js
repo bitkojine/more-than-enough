@@ -206,7 +206,7 @@
   }
 
   function flowWater(run, sx, sy, limit) {
-    var queue = [{ x: sx, y: sy, depth: 0 }], seen = {};
+    var queue = [{ x: sx, y: sy }], seen = {};
     while (queue.length && limit > 0) {
       var p = queue.shift(), k = key(p.x, p.y);
       if (seen[k] || !isOpen(run, p.x, p.y)) continue;
@@ -214,7 +214,7 @@
       var dirs = [[0,1],[1,0],[-1,0],[0,-1]];
       for (var i = 0; i < dirs.length; i++) {
         var nx = p.x + dirs[i][0], ny = p.y + dirs[i][1];
-        if (!seen[key(nx, ny)] && isOpen(run, nx, ny)) queue.push({ x: nx, y: ny, depth: p.depth + 1 });
+        if (!seen[key(nx, ny)] && isOpen(run, nx, ny)) queue.push({ x: nx, y: ny });
       }
     }
   }

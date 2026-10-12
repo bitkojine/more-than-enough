@@ -46,6 +46,7 @@ var water;
 for (var wy=1;wy<80&&!water;wy++) for(var wx=-20;wx<21;wx++) if(C.tileAt(flood,wx,wy).kind===C.TILE.WATER){water={x:wx,y:wy};break;}
 if(water){ flood.run.x=water.x+.5;flood.run.y=water.y-.5;var wp=C.planDrill(flood,water.x,water.y);for(var wi=0;wi<wp.length;wi++){var wr=C.drillStep(flood,wp,wi);if(wr.done||wr.blocked)break;} }
 assert.ok(water, 'procedural pressure-water pockets exist');
+assert.equal(flood.run.wet[water.x+','+water.y],true,'opening a water pocket floods its tile');
 
 var blast = C.createState(10); blast.run.charges=1;
 var b=C.blast(blast,2,2); assert.equal(b.ok,true,'charges reshape terrain'); assert.equal(blast.run.charges,0,'charge consumed');

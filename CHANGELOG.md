@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.2] - 2026-10-12
+
+### Changed
+- Removed unused depth metadata from the water-flow queue and asserted that
+  opened water pockets become wet. No gameplay behavior change.
+
 ## [0.17.1] - 2026-10-12
 
 ### Fixed
