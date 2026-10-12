@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.18.0] - 2026-10-12
+
+### Added
+- Added an underground expedition to the existing forest world. The forest
+  gathering, building, upgrades, and progression remain the main game loop.
+- Reused the surface movement and Gather controls underground: tap nearby rock
+  to dig, or hold Gather and trace to preview and sweep nearby rock. Underground
+  finds join the shared inventory, and Surface returns to the saved forest spot.
+- Updated the first-run controls tour and gameplay guide to explain the mine.
+
+### Fixed
+- Keep the Gather hold active underground until a tile is targeted, so the
+  existing one-thumb trace gesture can start from the Gather button.
+- Removed a duplicate underground trail highlight pass.
+
 ## [0.17.3] - 2026-10-12
 
 ### Fixed

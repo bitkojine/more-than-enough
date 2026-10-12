@@ -1,17 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<meta name="theme-color" content="#08151c"><title>DEEPER — an endless mining expedition</title>
-<link rel="icon" href="data:,"><link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<title>More Than Enough</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#05070a" />
+<meta name="format-detection" content="telephone=no" />
+<link rel="icon" href="data:," />
+<!-- The deploy workflow appends a content-hash ?v= to these asset URLs so
+     GitHub Pages' 10-minute cache can't serve a stale build. Keep the plain
+     filenames here; the stamping happens only in the staged site/. -->
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<canvas id="game" aria-label="Underground mine. Hold a tile to drill; drag the joystick to move."></canvas>
-<header id="hud"><div class="brand"><b>DEEPER</b><span id="version"></span></div><div id="stats"></div><div id="prompt" aria-live="polite"></div></header>
-<div id="joystick" aria-label="Movement joystick"><i></i><span>MOVE</span></div>
-<nav id="dock" aria-label="Expedition controls"><button id="beacon">BEACON <small id="fuel">0 fuel</small></button><button id="charge">CHARGE <small id="charges">0 packed</small></button><button id="hubButton">HUB</button></nav>
-<section id="hub" class="overlay" hidden><div class="card"><div class="eyebrow">SURFACE STATION</div><h1 id="hubTitle">Prepare to dive</h1><p id="outcome"></p><div id="bank"></div><div class="actions"><button id="dive" class="primary">START DIVE</button><button data-upgrade="hull">HULL PLATING</button><button data-upgrade="engine">THRUSTER</button><button data-upgrade="cargo">CARGO WINCH</button><button data-upgrade="salvage">SALVAGE RIG</button><button id="craft">CRAFT CHARGE · 5 SCRAP + 2 COPPER</button></div><div id="hubRooms"></div><p class="story">Every depth rolls a new terrain mix. Find fuel, open pressure pockets, flood tunnels, and decide how much trouble you can survive.</p><button id="help">HOW TO PLAY</button></div></section>
-<section id="tutorial" class="overlay" hidden><div class="card"><div class="eyebrow">ONE THUMB IS ENOUGH</div><h1>Your first dive</h1><ol><li><b>Move:</b> drag the joystick with your thumb through open tunnels.</li><li><b>Dig:</b> press and hold any visible tile. The glowing route previews known finds and hazards. Lift your thumb to stop.</li><li><b>Fuel:</b> hard rock spends fuel; fuel also powers the beacon. Its first find is never guaranteed.</li><li><b>Experiment:</b> hold CHARGE and drag to place a blast. Gas can chain; water floods connected tunnels and can reveal habitats.</li><li><b>Extract:</b> the beacon needs one fuel. It saves 20% of your loose cargo. Pressure and hazards can destroy the ship.</li></ol><button id="tutorialDone" class="primary">LET'S DIVE</button></div></section>
-<div id="toast" role="status" aria-live="polite"></div>
-<script src="version.js"></script><script src="core.js"></script><script src="game.js"></script>
-</body></html>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
+    <div id="resources"></div>
+    <div id="goal" aria-live="polite">Loading&hellip;</div>
+  </div>
+
+  <div id="controls" role="group" aria-label="Thumb controls">
+    <div id="zoomControls" aria-label="Map zoom">
+      <button id="btnZoomOut" type="button" aria-label="Zoom out">&minus;</button>
+      <span id="zoomLevel" aria-live="polite">100%</span>
+      <button id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+    </div>
+    <div id="thumbDock">
+      <button id="btnBuild" class="btn" type="button" aria-label="Build extractor">
+        <span class="big">&#127957;</span><span class="cap">BUILD</span>
+      </button>
+      <button id="btnUpgrade" class="btn" type="button" aria-label="Upgrades">
+        <span class="big">&#128295;</span><span class="cap">UPGRADE</span>
+      </button>
+      <button id="btnMine" class="btn" type="button" aria-label="Descend into the mine">
+        <span class="big" id="mineIcon">&#9935;</span><span class="cap" id="mineLabel">MINE</span>
+      </button>
+      <button id="btnAction" class="btn" type="button" aria-label="Gather">
+        <span class="big" id="actionIcon">&#129296;</span><span class="cap" id="actionLabel">GATHER</span>
+      </button>
+      <div id="trailHint" aria-hidden="true">Draw anywhere · green tiles will sweep</div>
+    </div>
+  </div>
+
+  <section id="tutorial" aria-labelledby="tutorialTitle" hidden>
+    <div id="tutorialHead">
+      <div><strong id="tutorialTitle">One thumb is all you need</strong><span>Quick controls tour</span></div>
+      <button id="tutorialClose" type="button" aria-label="Close controls tutorial">&times;</button>
+    </div>
+    <ul>
+      <li><b>Move:</b> drag anywhere on the world. Tap a spot to walk there.</li>
+      <li><b>Gather / Collect:</b> hold the big button, or tap a resource tile. Near stored extractor goods, it becomes Collect.</li>
+      <li><b>Trail:</b> hold Gather, then draw freely across the world. Green tiles show exactly what the sweep will gather; release to sweep them.</li>
+      <li><b>Build / Upgrade:</b> open a panel from the dock, choose an option, then tap Done.</li>
+      <li><b>Zoom:</b> tap − or +. Pinch zoom is optional.</li>
+      <li><b>Mine:</b> tap MINE to descend beneath the forest. Keep using GATHER: tap nearby rock to dig; hold GATHER and draw across nearby rock to preview and sweep it. Movement stays the same below.</li>
+    </ul>
+    <button id="tutorialDone" type="button">Got it</button>
+  </section>
+
+  <div id="sheet" aria-hidden="true">
+    <div id="sheetGrab" aria-hidden="true"><span></span></div>
+    <div id="sheetHead">
+      <div id="sheetTitle">Upgrades</div>
+    </div>
+    <div id="sheetBody"></div>
+    <div id="sheetFoot">
+      <div id="sheetNav">
+        <div id="tabs">
+          <button class="tab active" type="button" data-tab="upgrades">Upgrades</button>
+          <button class="tab" type="button" data-tab="build">Build</button>
+          <button class="tab" id="tabBeyond" type="button" data-tab="beyond">Beyond</button>
+        </div>
+        <button id="btnClose" type="button" aria-label="Done">Done</button>
+      </div>
+      <div id="sheetUtilities">
+        <button id="btnHelp" type="button">Controls help</button>
+        <button id="btnReset" type="button">Reset world</button>
+        <button id="btnMute" type="button">Sound: on</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script src="version.js"></script>
+  <script src="core.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

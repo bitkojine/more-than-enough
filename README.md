@@ -1,66 +1,144 @@
-# DEEPER
+# MORE THAN ENOUGH
 
-A one-thumb expedition game about digging down until the mine pushes back. Each
-dive builds a connected tunnel through endlessly generated layers. Find fuel,
-open pressure pockets, flood passages, haul what you can, and decide when to
-extract.
+A small, complete, mobile-first browser game about turning a hostile wilderness
+into an absurd surplus. Explore an endless, ever-different world, gather wood /
+stone / ore / crystal, craft better tools, automate with extractors, and chase
+the Abundance Engine.
 
-## Play
+## How to launch
 
-The game is deployed to GitHub Pages: **https://bitkojine.github.io/more-than-enough/**
+**Play it live:** the game is deployed to GitHub Pages — every push to `main`
+rebuilds it automatically:
 
-Or run it locally with any static server:
+**https://bitkojine.github.io/more-than-enough/**
+
+Or serve the folder yourself — the game is plain HTML/CSS/JS with zero
+dependencies, so `index.html` just needs a static host:
 
 ```sh
+cd newgame-2026-10-12
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000` in Safari or another modern browser. Progress saves
-automatically in local storage for that browser and site.
+Then open **http://localhost:8000** (or your machine's LAN IP) in Mobile Safari
+or any browser. Progress saves automatically to `localStorage` (per browser —
+on the Pages site, saves live in that browser for that origin).
 
-## Controls
+> Safari may restrict `localStorage` on `file://` pages, so use the local
+> server (or any static host) rather than double-clicking the file.
 
-- Drag the bottom-right joystick to move through open tunnels.
-- Press and hold any visible tile to preview and drill a connected route. Known
-  resources and hazards are marked along the route; lifting your thumb stops it.
-- Hard rock consumes fuel. Fuel also powers the extraction beacon.
-- Hold **Charge** and drag to aim; release to blast and reshape terrain.
-- Activate **Beacon** when you have fuel to extract. It keeps 20% of loose cargo.
-- Pressure rises with depth and spikes around hazards. If the hull fails, the dive
-  and unbanked haul are lost.
+## How to play
 
-The first-visit guide covers these controls and the fuel tradeoff. Choose each
-target yourself, explore the procedural layers, and watch the consequences.
+- New players see a one-thumb controls tour on their first visit. Dismiss it
+  with **Got it** and reopen it anytime from **Controls help** in the sheet.
+- **One-thumb play:** drag anywhere to move (a virtual stick follows your thumb),
+  or tap a spot to walk there. The bottom-right thumb dock keeps **GATHER / COLLECT**,
+  **BUILD**, **UPGRADE**, and single-thumb zoom controls together within reach.
+  On desktop, use **WASD / arrows** and the mouse wheel.
+- Use the **− / + buttons in the thumb dock** to zoom out or in; optional
+  two-finger pinch and desktop mouse wheel work too. The camera stays on you,
+  and zoom is bounded so you can always see the world clearly.
+- The big **GATHER** button is contextual: hold it to keep gathering, or tap a
+  resource tile directly. It becomes **COLLECT** when an extractor nearby has
+  output ready.
+- **Trail gather:** keep holding GATHER as you drag off its button. Follow the
+  glowing cyan trace over a nearby resource; it lights green when targeted.
+  Release to sweep the resource.
+- **Go below:** tap **MINE** in the same dock to enter the underground layers.
+  Movement keeps the same drag-anywhere joystick and Gather stays the same
+  control: tap nearby rock to dig, or hold Gather and trace across nearby rock
+  to preview and sweep it. Tap **SURFACE** to return to your forest position.
+  Underground finds go into your usual inventory, so the forest gathering,
+  building, and upgrade loop remains the center of the game.
+- **BUILD** places extractors on matching deposits (Lumber Camp on forest,
+  Quarry on stone, Mine on ore, Resonator on crystal) and, once you craft the
+  blueprints, converter buildings on any land tile.
+- **UPGRADE** opens the **Progression map**: families (Tools, Refineries,
+  Abundance Engine, Unlocks & Blueprints) shown as a rail of node dots that
+  expands to the buy rows. Spend resources there on better tools and boots,
+  Overclock, the repeatable **Abundance Engine**, per-resource **refinery
+  chains** (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks
+  including the converter blueprints.
+- The **Beyond** tab always shows the prestige loop: gather 20,000 resources in
+  one world to unlock **Embark** on a New World. The requirement resets after
+  each Embark; the Insight reward still grows with your lifetime gathered total.
+  Spend **Insight** on perks between worlds.
+- Swipe the sheet's **grab handle down** to close it.
+- The world follows a **day/night cycle** (240s). By day it's bright and calm;
+  at night your **flashlight turns on automatically**, keeping a pool of light
+  around you so you can always see — and keep working — after dark.
+- **Logistics** (an Unlocks upgrade) auto-collects from extractors *near* you:
+  while you're within ~3 tiles each camp's output flows straight into your
+  packs, but walk away and it just accumulates until you come back. Gathered
+  wood, stone, ore and crystal visibly **fly to you** as the count ticks up.
+- A goal banner points you at the next milestone, and a faint compass arrow
+  helps you find the next undiscovered resource.
+- **Water is swimmable**: wade in and you'll ride a little raft across seas,
+  and the world is beyond **endless** — no edge, no wall, no wrap. Keep walking
+  and it generates ahead of you, differently every world.
+- Past Abundance there's a whole late game: Blueprint-gated converter
+  buildings (any land tile), per-resource refinery chains, repeatable
+  Abundance Engine levels, and the **Beyond** tab — always visible, locked
+  until your first Embark is within reach — where you spend Insight on perks
+  and **Embark** on a New World that keeps your lifetime score.
 
-## Surface progression
+## Versioning
 
-An extraction returns you to the surface station. Banked resources buy hull,
-thruster, cargo, and salvage upgrades. Build station rooms as you discover more
-of the mine, or craft basic charges from scrap and copper. Failed dives preserve
-permanent upgrades and the bank, but lose loose cargo and discoveries from that
-run.
+The HUD badge in the top-right shows the studio and exact version you're
+playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
+`version.js`; see `CHANGELOG.md` for the history.
 
-Layer lengths and terrain combinations vary. Each layer contains a guaranteed
-resource vein and a route deeper; milestone layers can reveal ruins. Procedural
-pressure pockets and brine chambers let players reshape tunnels and uncover
-habitats.
+- **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long
+  road; there is no rush to get there.
+- PATCH bumps = bug fixes, never break saves.
+- MINOR bumps = new features. They may change the save format; **0.10.0 (the
+  endless world) discards pre-0.10.0 saves** and starts a fresh world. Earlier
+  minor bumps migrated saves forward automatically (e.g. `v1` → `v2`).
+- After each minor (or any notable) change, bump `MTE_VERSION` in
+  `version.js`, update `CHANGELOG.md`, and commit.
 
-## Versioning and deploy
+Deploys cache-bust automatically: the Pages workflow appends a content-hash
+`?v=` to `style.css`, `version.js`, `core.js` and `game.js` while staging the
+site, so GitHub Pages' 10-minute cache can't serve a stale build to returning
+players. You don't need to change asset URLs by hand — just push.
 
-The version is in `version.js`; release notes live in `CHANGELOG.md`. This
-gameplay-loop replacement is **0.17.0** and resets older local saves. Pushes to
-`main` deploy through GitHub Pages. The workflow hashes asset URLs while staging
-the site, so browsers receive cache-busted versions automatically.
+The project is under git — commit early, commit often:
 
-## Development
+## Core loop
 
-- `core.js` — deterministic terrain, mine simulation, and save/load.
-- `game.js` — rendering, thumb controls, hub UI, and persistence.
-- `index.html`, `style.css` — page and mobile-first interface.
-- `test/core.test.js` — simulation checks.
-- `test/browser.e2e.js` — browser-driven gameplay checks.
+Explore → gather → craft → explore farther → automate → scale → chase the next
+bottleneck. The map is infinite and fully random — wood, stone, ore and crystal
+are spread evenly with no distance ramp, so every direction is worth walking.
+Wood and stone regrow near where you stand; **ore and crystal never regrow**, so
+automation handles what you've mastered and exploration reveals what you haven't.
+
+## Files
+
+- `core.js` — endless chunked world generation, economy, simulation, save/load (no DOM)
+- `game.js` — rendering, input (touch + keyboard), UI, persistence
+- `index.html`, `style.css` — shell and mobile-first styling
+- `docs/progression-map.md` — design spec for the Progression map
+- `test/core.test.js` — Node simulation tests
+- `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
+  page, drives touch/keyboard/DOM, checks persistence)
+- `structurizr/` — architecture as code: the C4 model
+  ([`workspace.dsl`](structurizr/workspace.dsl)) is the single source of truth,
+  with committed [Mermaid diagrams](structurizr/diagrams/) rendered straight
+  from it. See [`structurizr/README.md`](structurizr/README.md) for the model,
+  the production-split invariant (`core.js` = pure simulation, `game.js` =
+  presentation), and the validate/re-export workflow for agents.
+
+## Tests
 
 ```sh
-node test/core.test.js
-node test/browser.e2e.js
+node test/core.test.js      # infinite worldgen, gathering, crafting, automation, movement, persistence, bot playthroughs
+node test/browser.e2e.js    # real Chrome: boot, render, keyboard+touch movement, gather, upgrade, build, reload-save
 ```
+
+On macOS, run the browser E2E command from Terminal or approve unsandboxed
+execution when prompted. Chrome aborts during macOS app registration when
+launched inside the Codex seatbelt sandbox; the test detects that case and
+stops before opening Chrome.
+
+The browser test launches its own local server and headless Chrome and cleans up
+after itself.
