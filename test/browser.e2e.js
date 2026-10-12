@@ -209,10 +209,17 @@ async function main() {
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 3, 'gather, build and upgrade share the thumb dock');
-  await evalJS('document.getElementById("btnZoomIn").click()');
+  ok(!(await evalJS('document.getElementById("tutorial").hidden')), 'first visit opens the controls tutorial');
+  ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("Trail") >= 0'), 'tutorial explains Trail alongside the other controls');
+  await tap((await rect('#tutorialDone')).x, (await rect('#tutorialDone')).y);
+  ok(await evalJS('document.getElementById("tutorial").hidden'), 'Got it dismisses the tutorial');
+  eq(await evalJS('localStorage.getItem("more-than-enough-controls-tutorial-seen-v1")'), '1', 'tutorial dismissal is remembered');
+  var zoomIn = await rect('#btnZoomIn');
+  await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');
   eq(await evalJS('document.getElementById("zoomLevel").textContent'), '125%', 'zoom level is shown beside the thumb controls');
-  await evalJS('document.getElementById("btnZoomOut").click()');
+  var zoomOut = await rect('#btnZoomOut');
+  await tap(zoomOut.x, zoomOut.y);
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
@@ -246,11 +253,19 @@ async function main() {
   await sleep(150);
   var a2 = JSON.parse(await stateSummary());
   ok(Math.abs(a2.x - b2.x) + Math.abs(a2.y - b2.y) > 0.3, 'player moved with touch joystick (' + b2.x + ',' + b2.y + ' -> ' + a2.x + ',' + a2.y + ')');
+  await drag(90, 500, 135, 465, 5, 45);
+  await sleep(150);
+  var tapWalkStart = JSON.parse(await stateSummary());
+  await tap(245, 430);
+  await sleep(700);
+  var tapWalkEnd = JSON.parse(await stateSummary());
+  ok(Math.abs(tapWalkEnd.x - tapWalkStart.x) + Math.abs(tapWalkEnd.y - tapWalkStart.y) > 0.25, 'tapping a world destination starts walking');
 
   /* ------------------------------------------------------------ gather */
   console.log('\n== Gathering (touch the action button) ==');
   var spot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spot, 'found a rich forest tile to stand on (' + spot + ')');
+  await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();MTE_GAME.core.setTileRich(s.world,p[0],p[1],200);})()');
   await sleep(150);
   var act = await rect('#btnAction');
   ok(act && act.w > 60, 'action button is a comfortable tap target (' + (act && act.w) + 'px)');
@@ -259,6 +274,25 @@ async function main() {
   await sleep(200);
   var g1 = JSON.parse(await stateSummary());
   ok(g1.inv.wood > g0.inv.wood, 'holding GATHER collected wood (' + g0.inv.wood + ' -> ' + g1.inv.wood + ')');
+  var trailStartInv = g1.inv.wood;
+  var trailStart = await rect('#btnAction');
+  await touch('touchStart', [{ x: trailStart.x, y: trailStart.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+  for (var trailStep = 1; trailStep <= 8; trailStep++) {
+    await touch('touchMove', [{ x: trailStart.x + (195 - trailStart.x) * trailStep / 8, y: trailStart.y + (422 - trailStart.y) * trailStep / 8, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+    await sleep(20);
+  }
+  ok(await evalJS('document.getElementById("trailHint").textContent.indexOf("release to sweep") >= 0'), 'Trail shows a release cue after its trace locks onto a gatherable tile');
+  var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=615;yy<=645;yy+=2)for(var xx=245;xx<=265;xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
+  ok(trailGlow, 'live Trail stroke paints visibly on the map');
+  await touch('touchEnd', []);
+  await sleep(180);
+  var trailEndInv = JSON.parse(await stateSummary()).inv.wood;
+  ok(trailEndInv > trailStartInv + 1, 'releasing a locked Trail gathers the highlighted resource (' + trailStartInv + ' -> ' + trailEndInv + ')');
+  var tapGatherBefore = trailEndInv;
+  await tap(195, 422);
+  await sleep(150);
+  var tapGatherAfter = JSON.parse(await stateSummary()).inv.wood;
+  ok(tapGatherAfter > tapGatherBefore, 'tapping a resource tile gathers it directly');
   var s1 = await shot('02-gathered.png');
   console.log(await asciiArt(evalJS));
   var contrast = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var n=0,sum=0,sum2=0;for(var i=0;i<d.length;i+=160){var l=(d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11)/255;sum+=l;sum2+=l*l;n++;}var m=sum/n;return JSON.stringify({mean:+m.toFixed(3),std:+Math.sqrt(sum2/n-m*m).toFixed(3)});})()');
@@ -299,16 +333,19 @@ async function main() {
   /* ----------------------------------------------------------- upgrade */
   console.log('\n== Upgrade (craft an Axe) ==');
   var woodNow = g1.inv.wood;
-  await evalJS('document.getElementById("btnUpgrade").click()');
+  var upgradeControl = await rect('#btnUpgrade');
+  await tap(upgradeControl.x, upgradeControl.y);
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened');
   var axeCraft = await evalJS('(function(){var b=document.querySelector(".row button[data-id=axe]");return b?{disabled:b.disabled}:"missing";})()');
   if (woodNow < 6) { await evalJS('MTE_GAME.addRes("wood",20)'); await sleep(150); }
-  await evalJS('document.querySelector(".row button[data-id=axe]").click()');
+  var axeButton = await rect('.row button[data-id=axe]');
+  await tap(axeButton.x, axeButton.y);
   await sleep(200);
   var u1 = JSON.parse(await stateSummary());
   eq(u1.tools.axe, 2, 'axe upgraded to level 2');
-  await evalJS('document.getElementById("btnClose").click()');
+  var doneButton = await rect('#btnClose');
+  await tap(doneButton.x, doneButton.y);
   await sleep(200);
 
   /* ------------------------------------------------------------ build */
@@ -323,11 +360,24 @@ async function main() {
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'Build tab is highlighted when opened via the button');
   var placeReady = await evalJS('(function(){var b=document.querySelector(".row button[data-id=lumber]");return b?!b.disabled:false;})()');
   ok(placeReady, 'Lumber Camp can be placed on the current tile');
-  await evalJS('document.querySelector(".row button[data-id=lumber]").click()');
+  var lumberButton = await rect('.row button[data-id=lumber]');
+  await tap(lumberButton.x, lumberButton.y);
   await sleep(250);
   var b3 = JSON.parse(await stateSummary());
   eq(b3.ext, 1, 'lumber camp constructed');
-  await evalJS('document.getElementById("btnClose").click()');
+  var camp = await evalJS('(function(){var e=MTE_GAME.getState().extractors[0];e.buffer=8;MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);return e.x+","+e.y;})()');
+  await sleep(400);
+  ok(await evalJS('document.getElementById("actionLabel").textContent.indexOf("COLLECT") === 0'), 'Gather control changes to Collect near stored extractor goods (' + camp + ')');
+  doneButton = await rect('#btnClose');
+  await tap(doneButton.x, doneButton.y);
+  await sleep(250);
+  var collectBefore = JSON.parse(await stateSummary()).inv.wood;
+  var collectButton = await rect('#btnAction');
+  await tap(collectButton.x, collectButton.y);
+  await sleep(200);
+  var collectAfter = JSON.parse(await stateSummary());
+  ok(collectAfter.inv.wood > collectBefore, 'one-thumb Collect action drains nearby stored goods');
+  ok(collectAfter.buf[0] < 4, 'Collect drains the nearby buffer while production continues (' + collectAfter.buf[0].toFixed(2) + ' remains)');
   await sleep(200);
 
   console.log('\n== BUILD / UPGRADE buttons switch tabs ==');
@@ -336,15 +386,30 @@ async function main() {
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  var muteButton = await rect('#btnMute');
+  await tap(muteButton.x, muteButton.y);
+  eq(await evalJS('document.getElementById("btnMute").textContent'), 'Sound: off', 'Sound control mutes with one tap');
+  muteButton = await rect('#btnMute');
+  await tap(muteButton.x, muteButton.y);
+  eq(await evalJS('document.getElementById("btnMute").textContent'), 'Sound: on', 'Sound control unmutes with one tap');
+  var helpButton = await rect('#btnHelp');
+  await tap(helpButton.x, helpButton.y);
+  ok(await evalJS('document.getElementById("tutorial").hidden === false && !document.getElementById("sheet").classList.contains("open")'), 'Controls help reopens the tutorial and returns to the game');
+  var helpDone = await rect('#tutorialDone');
+  await tap(helpDone.x, helpDone.y);
+  upBtn = await rect('#btnUpgrade');
+  await tap(upBtn.x, upBtn.y);
+  await sleep(250);
   var audioState = await evalJS('MTE_GAME.audioState()');
   console.log('  audio state after gestures: ' + audioState);
   ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
   ok(!(await evalJS('document.getElementById("tabBeyond").hidden')), 'Beyond tab is visible from the start');
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 5, 'Progression map shows five family headers (4 world + legacy)');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
-  await sleep(200);
-  ok(await evalJS('document.querySelector("#sheetBody").textContent.indexOf("A New World Awaits") >= 0'), 'Beyond shows a locked preview before the loop is reachable');
-  await evalJS('document.querySelector(".tab[data-tab=upgrades]").click()');
+  var beyondPreviewReady = await waitFor('document.querySelector("#sheetTitle").textContent === "Beyond" && document.querySelector("#sheetBody").textContent.indexOf("A New World Awaits") >= 0', 3000);
+  ok(beyondPreviewReady, 'Beyond shows a locked preview before the loop is reachable');
+  var upgradesTab = await rect('.tab[data-tab=upgrades]');
+  await tap(upgradesTab.x, upgradesTab.y);
   await sleep(200);
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
@@ -367,6 +432,7 @@ async function main() {
   var pre = JSON.parse(await stateSummary());
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   var post = JSON.parse(await stateSummary());
+  ok(await evalJS('document.getElementById("tutorial").hidden'), 'dismissed tutorial stays closed after reload');
   eq(post.tools.axe, pre.tools.axe, 'axe level survives reload');
   eq(post.ext, pre.ext, 'extractor survives reload');
   eq(Math.floor(post.inv.ore), Math.floor(pre.inv.ore), 'ore inventory survives reload');
@@ -499,10 +565,18 @@ async function main() {
 
   /* ----------------------------- reset button starts a clean world */
   console.log('\n== Reset button starts a clean world ==');
+  await evalJS('MTE_GAME.flyers().length = 0');
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
   await evalJS('MTE_GAME.getState().inv.wood = 999999');
-  await evalJS('document.getElementById("btnReset").click()');
+  var resetSheetOpen = await evalJS('document.getElementById("sheet").classList.contains("open")');
+  if (!resetSheetOpen) {
+    var resetSheetButton = await rect('#btnUpgrade');
+    await tap(resetSheetButton.x, resetSheetButton.y);
+    await sleep(250);
+  }
+  var resetButton = await rect('#btnReset');
+  await tap(resetButton.x, resetButton.y);
   await sleep(300);
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
   ok(await evalJS('MTE_GAME.getState().inv.wood') < 999999, 'reset wipes inventory into a fresh world');

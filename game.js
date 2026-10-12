@@ -62,6 +62,7 @@
   var keys = {};
   var moveTarget = null;
   var trail = null;
+  var actionPointerId = null;
   var stall = 0;
   var actDown = false;
   var actionCd = 0;
@@ -588,6 +589,11 @@
       return;
     }
 
+    if (actDown && !trail && e.pointerId === actionPointerId) {
+      var buttonRect = elAction.getBoundingClientRect();
+      if (e.clientX < buttonRect.left || e.clientX > buttonRect.right || e.clientY < buttonRect.top || e.clientY > buttonRect.bottom) beginTrail(e);
+    }
+
     if (trail && trail.id === e.pointerId) {
       var point = trailPoint(e);
       var prior = trail.points[trail.points.length - 1];
@@ -678,7 +684,9 @@
   }
 
   canvas.addEventListener('pointerdown', onPointerDown, { passive: false });
-  canvas.addEventListener('pointermove', onPointerMove, { passive: false });
+  // Touch input may stay implicitly captured by Gather; listen at the window
+  // so the same thumb can drag from the button onto the map.
+  window.addEventListener('pointermove', onPointerMove, { capture: true, passive: false });
   canvas.addEventListener('pointerup', onPointerUp, { passive: false });
   canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
   canvas.addEventListener('wheel', function (e) {
@@ -1319,6 +1327,7 @@
     initAudio();
     e.preventDefault();
     actDown = true;
+    actionPointerId = e.pointerId;
     // Let the immediate gather register; the same pointer can then leave the
     // button and trace a sweep while held, without needing another finger.
     if (context().type !== 'none' && actionCd <= 0) {
@@ -1327,6 +1336,7 @@
   });
   function releaseAction(e) {
     actDown = false;
+    actionPointerId = null;
     if (trail && trail.id === e.pointerId) {
       // Require the pointer to leave Gather before interpreting its path as a sweep.
       if (trail.leftButton && trail.points.length >= 2) finishTrail();
@@ -1342,6 +1352,7 @@
   window.addEventListener('pointerup', function (e) {
     if (trail && trail.id === e.pointerId && actDown) {
       actDown = false;
+      actionPointerId = null;
       finishTrail();
     }
   }, true);
