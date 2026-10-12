@@ -1,0 +1,45 @@
+%% Generated from structurizr/workspace.dsl — do not edit; run: node structurizr/scripts/structurizr.mjs mermaid
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Game Loop (one frame)"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 3 ["MORE THAN ENOUGH"]
+      style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 11 ["Simulation Core"]
+        style 11 fill:#ffffff,stroke:#2c5728,color:#2c5728
+
+        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a base64 save (rich +<br />explored maps; format v2 with<br />v1 migration). state.events<br />is transient and NEVER<br />serialized.</div>"]
+        style 13 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        14["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt) - the heart of<br />the tick: extractor<br />production into buffers,<br />range-limited logistics<br />auto-collect, abundance<br />trickle, world regrowth<br />(REGROW_INTERVAL 0.5s), time<br />+ stats. Called once per<br />frame by the app and by every<br />test.</div>"]
+        style 14 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        17["<div style='font-weight: bold'>Logistics and Auto-Collect</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>When unlocked, step() drains<br />whole units from any<br />extractor within<br />AUTO_COLLECT_RANGE (3.0<br />tiles) of the player and<br />pushes a transient {res, amt,<br />x, y} event so the UI can<br />animate the flow. Walking<br />away stops collection:<br />buffers just fill and cap<br />until you return.</div>"]
+        style 17 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      end
+
+      subgraph 4 ["Web Application"]
+        style 4 fill:#ffffff,stroke:#7b5215,color:#7b5215
+
+        5["<div style='font-weight: bold'>Input and Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Keyboard (WASD/arrows +<br />Space/B/U/C), touch joystick,<br />tap-to-walk, and the<br />contextual action button.<br />doAction() picks COLLECT when<br />an extractor is in manual<br />range, otherwise GATHER;<br />holding repeats every<br />GATHER_CD (0.25s).</div>"]
+        style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        6["<div style='font-weight: bold'>Canvas Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>drawTile/highlights/extractors/player,<br />particles, floats, and<br />flyers; camera follow; then<br />the day/night lighting pass<br />(applyLighting + auto<br />flashlight pool) so the glow<br />covers the flyers. Tiles are<br />drawn only for the visible<br />viewport.</div>"]
+        style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        7["<div style='font-weight: bold'>Visual Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>particles/floats/flyers<br />arrays; spawnGatherFX /<br />spawnBuildFX / spawnFlyers<br />(homing ease-in resource<br />sprites, 1-7 capped,<br />staggered launch) and<br />popFlyer. Drains core<br />state.events into flyers each<br />frame so logistics<br />auto-collect animates too.</div>"]
+        style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        8["<div style='font-weight: bold'>HUD, Sheets and Goals</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Resource chips, goal banner +<br />compass hint arrow,<br />upgrade/build/beyond tabs,<br />action button, toasts.<br />checkGoals() advances the<br />goal index with a fanfare<br />flash; updateHud refreshes<br />DOM chips.</div>"]
+        style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
+      end
+
+    end
+
+    5-. "<div>1. Calls step(state, dt)<br />every frame</div><div style='font-size: 70%'></div>" .->14
+    14-. "<div>2. Auto-collects units within<br />3 tiles</div><div style='font-size: 70%'></div>" .->17
+    17-. "<div>3. Pushes {res, amt, x, y}<br />events</div><div style='font-size: 70%'></div>" .->13
+    5-. "<div>4. doGather/doCollect spawn<br />flyers</div><div style='font-size: 70%'></div>" .->7
+    7-. "<div>5. Drains events into flyers</div><div style='font-size: 70%'></div>" .->13
+    7-. "<div>6. Draws flyers before the<br />night pass</div><div style='font-size: 70%'></div>" .->6
+    6-. "<div>7. Refreshes HUD when the<br />world changes</div><div style='font-size: 70%'></div>" .->8
+
+  end

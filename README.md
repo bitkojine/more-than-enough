@@ -85,6 +85,12 @@ haven't.
 - `test/core.test.js` — Node simulation tests
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
+- `structurizr/` — architecture as code: the C4 model
+  ([`workspace.dsl`](structurizr/workspace.dsl)) is the single source of truth,
+  with committed [Mermaid diagrams](structurizr/diagrams/) rendered straight
+  from it. See [`structurizr/README.md`](structurizr/README.md) for the model,
+  the production-split invariant (`core.js` = pure simulation, `game.js` =
+  presentation), and the validate/re-export workflow for agents.
 
 ## Tests
 

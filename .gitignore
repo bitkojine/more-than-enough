@@ -1,2 +1,5 @@
 .DS_Store
 *.log
+
+# Regenerated on demand via structurizr/scripts/structurizr.mjs json (the DSL is the source of truth)
+structurizr/workspace.json

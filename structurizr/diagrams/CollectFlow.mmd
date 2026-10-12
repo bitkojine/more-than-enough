@@ -1,0 +1,39 @@
+%% Generated from structurizr/workspace.dsl — do not edit; run: node structurizr/scripts/structurizr.mjs mermaid
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Manual Collect / Gather"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 3 ["MORE THAN ENOUGH"]
+      style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 11 ["Simulation Core"]
+        style 11 fill:#ffffff,stroke:#2c5728,color:#2c5728
+
+        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a base64 save (rich +<br />explored maps; format v2 with<br />v1 migration). state.events<br />is transient and NEVER<br />serialized.</div>"]
+        style 13 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        15["<div style='font-weight: bold'>Gathering and Collection</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Manual actions: gather() from<br />a tile within GATHER_RANGE<br />(1.65) using axe/pickaxe<br />multipliers; collect() drains<br />extractor buffers within<br />COLLECT_RANGE (1.7).<br />gatherTarget/collectTarget<br />report what is actionable for<br />the UI.</div>"]
+        style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      end
+
+      subgraph 4 ["Web Application"]
+        style 4 fill:#ffffff,stroke:#7b5215,color:#7b5215
+
+        10["<div style='font-weight: bold'>Save Glue and Test Hook</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>save()/load() to localStorage<br />through Core<br />serialize/deserialize (save<br />on world change and every<br />~3s); version badge;<br />window.MTE_GAME hook exposing<br />state reads/mutations that<br />the browser e2e suite drives.</div>"]
+        style 10 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        5["<div style='font-weight: bold'>Input and Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Keyboard (WASD/arrows +<br />Space/B/U/C), touch joystick,<br />tap-to-walk, and the<br />contextual action button.<br />doAction() picks COLLECT when<br />an extractor is in manual<br />range, otherwise GATHER;<br />holding repeats every<br />GATHER_CD (0.25s).</div>"]
+        style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        7["<div style='font-weight: bold'>Visual Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>particles/floats/flyers<br />arrays; spawnGatherFX /<br />spawnBuildFX / spawnFlyers<br />(homing ease-in resource<br />sprites, 1-7 capped,<br />staggered launch) and<br />popFlyer. Drains core<br />state.events into flyers each<br />frame so logistics<br />auto-collect animates too.</div>"]
+        style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
+      end
+
+    end
+
+    5-. "<div>1. gather() within range<br />(collect() for COLLECT)</div><div style='font-size: 70%'></div>" .->15
+    15-. "<div>2. Credits inventory + stats</div><div style='font-size: 70%'></div>" .->13
+    5-. "<div>3. spawnGatherFX +<br />spawnFlyers from the source<br />tile</div><div style='font-size: 70%'></div>" .->7
+    7-. "<div>4. onWorldChanged() schedules<br />a save</div><div style='font-size: 70%'></div>" .->10
+    10-. "<div>5. serialize(state) to<br />localStorage</div><div style='font-size: 70%'></div>" .->13
+
+  end

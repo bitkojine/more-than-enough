@@ -6,6 +6,20 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.9.1] - 2026-10-12
+
+### Docs
+- **Architecture as code**: the repo now ships a Structurizr C4 model in
+  `structurizr/workspace.dsl` — the single source of truth for how the game is
+  built, with committed [Mermaid diagrams](structurizr/diagrams/) (plus
+  PlantUML) generated from it, file/function references on every component so
+  agents can jump straight to the code, and the core invariant documented
+  (`core.js` = pure deterministic simulation, `game.js` = presentation only).
+- **Local-first tooling**: `structurizr/scripts/structurizr.mjs` validates and
+  exports the workspace using the official Structurizr CLI via Docker (no
+  network, no Java), falling back to the public Structurizr MCP server only
+  when Docker is unavailable. See `structurizr/README.md`.
+
 ## [0.9.0] - 2026-10-12
 
 ### Added

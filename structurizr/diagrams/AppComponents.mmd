@@ -1,0 +1,42 @@
+%% Generated from structurizr/workspace.dsl — do not edit; run: node structurizr/scripts/structurizr.mjs mermaid
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Web Application - Components"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 3 ["MORE THAN ENOUGH"]
+      style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 4 ["Web Application"]
+        style 4 fill:#ffffff,stroke:#7b5215,color:#7b5215
+
+        10["<div style='font-weight: bold'>Save Glue and Test Hook</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>save()/load() to localStorage<br />through Core<br />serialize/deserialize (save<br />on world change and every<br />~3s); version badge;<br />window.MTE_GAME hook exposing<br />state reads/mutations that<br />the browser e2e suite drives.</div>"]
+        style 10 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        5["<div style='font-weight: bold'>Input and Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Keyboard (WASD/arrows +<br />Space/B/U/C), touch joystick,<br />tap-to-walk, and the<br />contextual action button.<br />doAction() picks COLLECT when<br />an extractor is in manual<br />range, otherwise GATHER;<br />holding repeats every<br />GATHER_CD (0.25s).</div>"]
+        style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        6["<div style='font-weight: bold'>Canvas Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>drawTile/highlights/extractors/player,<br />particles, floats, and<br />flyers; camera follow; then<br />the day/night lighting pass<br />(applyLighting + auto<br />flashlight pool) so the glow<br />covers the flyers. Tiles are<br />drawn only for the visible<br />viewport.</div>"]
+        style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        7["<div style='font-weight: bold'>Visual Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>particles/floats/flyers<br />arrays; spawnGatherFX /<br />spawnBuildFX / spawnFlyers<br />(homing ease-in resource<br />sprites, 1-7 capped,<br />staggered launch) and<br />popFlyer. Drains core<br />state.events into flyers each<br />frame so logistics<br />auto-collect animates too.</div>"]
+        style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        8["<div style='font-weight: bold'>HUD, Sheets and Goals</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Resource chips, goal banner +<br />compass hint arrow,<br />upgrade/build/beyond tabs,<br />action button, toasts.<br />checkGoals() advances the<br />goal index with a fanfare<br />flash; updateHud refreshes<br />DOM chips.</div>"]
+        style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        9["<div style='font-weight: bold'>Audio</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Tiny WebAudio synth (unlocked<br />on first pointer/key):<br />gather/collect/build/fanfare<br />sounds with per-resource<br />pitches.</div>"]
+        style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
+      end
+
+      11["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript (ES5, browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Pure, DOM-free game engine<br />(core.js). All rules are<br />deterministic (seeded<br />mulberry32 PRNG), state is a<br />plain serializable object,<br />and there is no<br />date/random/draw code: the<br />module runs identically in<br />the browser and under Node<br />(module.exports) so tests can<br />step it directly.</div>"]
+      style 11 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+    end
+
+    5-. "<div>Reads<br />gatherTarget/collectTarget<br />each frame</div><div style='font-size: 70%'></div>" .->11
+    6-. "<div>Reads the world/player each<br />frame for drawing</div><div style='font-size: 70%'></div>" .->11
+    8-. "<div>Reads economy/goals for<br />display</div><div style='font-size: 70%'></div>" .->11
+    5-. "<div>Spawns flyers/FX when the<br />player gathers or collects</div><div style='font-size: 70%'></div>" .->7
+    7-. "<div>Drains transient state.events<br />into flyers each frame</div><div style='font-size: 70%'></div>" .->11
+    7-. "<div>Flyers are drawn before the<br />night lighting pass</div><div style='font-size: 70%'></div>" .->6
+    7-. "<div>Schedules a save when the<br />world changes</div><div style='font-size: 70%'></div>" .->10
+    6-. "<div>Refreshes the HUD whenever<br />the world changes</div><div style='font-size: 70%'></div>" .->8
+    10-. "<div>serialize(state)/deserialize(save)<br />for persistence</div><div style='font-size: 70%'></div>" .->11
+
+  end

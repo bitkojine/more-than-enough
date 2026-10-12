@@ -1,0 +1,53 @@
+%% Generated from structurizr/workspace.dsl — do not edit; run: node structurizr/scripts/structurizr.mjs mermaid
+graph LR
+  linkStyle default fill:#ffffff
+
+  subgraph diagram ["Simulation Core - Components"]
+    style diagram fill:#ffffff,stroke:#ffffff
+
+    subgraph 3 ["MORE THAN ENOUGH"]
+      style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
+
+      subgraph 11 ["Simulation Core"]
+        style 11 fill:#ffffff,stroke:#2c5728,color:#2c5728
+
+        12["<div style='font-weight: bold'>World Generation</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Seeded 96x96 world: terrain<br />via valueNoise/fbm octaves,<br />tile types (T), resource<br />richness (rich/max, richer<br />farther out), forest<br />clusters, flood-fill<br />landmasses. Deterministic per<br />seed; rich depletes as you<br />gather.</div>"]
+        style 12 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a base64 save (rich +<br />explored maps; format v2 with<br />v1 migration). state.events<br />is transient and NEVER<br />serialized.</div>"]
+        style 13 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        14["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt) - the heart of<br />the tick: extractor<br />production into buffers,<br />range-limited logistics<br />auto-collect, abundance<br />trickle, world regrowth<br />(REGROW_INTERVAL 0.5s), time<br />+ stats. Called once per<br />frame by the app and by every<br />test.</div>"]
+        style 14 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        15["<div style='font-weight: bold'>Gathering and Collection</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Manual actions: gather() from<br />a tile within GATHER_RANGE<br />(1.65) using axe/pickaxe<br />multipliers; collect() drains<br />extractor buffers within<br />COLLECT_RANGE (1.7).<br />gatherTarget/collectTarget<br />report what is actionable for<br />the UI.</div>"]
+        style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        16["<div style='font-weight: bold'>Extractors and Building</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>place()/buildTarget()/occupied();<br />EXTRACTORS catalog (rates,<br />buffer caps, base costs,<br />required deposit tile or<br />any-land blueprint-gated<br />converters); extractor cost<br />scaling; blueprint unlocks<br />gate<br />foundry/brickyard/sapling/observatory.</div>"]
+        style 16 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        17["<div style='font-weight: bold'>Logistics and Auto-Collect</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>When unlocked, step() drains<br />whole units from any<br />extractor within<br />AUTO_COLLECT_RANGE (3.0<br />tiles) of the player and<br />pushes a transient {res, amt,<br />x, y} event so the UI can<br />animate the flow. Walking<br />away stops collection:<br />buffers just fill and cap<br />until you return.</div>"]
+        style 17 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        18["<div style='font-weight: bold'>Tools, Upgrades and Unlocks</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>TOOLS level table<br />(axe/pickaxe/boots/overclock),<br />UNLOCKS (logistics,<br />blueprints, abundance<br />engine),<br />buyUpgrade/upgradeInfo,<br />canAfford/pay/costText.<br />overclockMult multiplies ALL<br />extractor production.</div>"]
+        style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        19["<div style='font-weight: bold'>Refineries and Abundance</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Per-resource chains<br />(RES_UPGRADES:<br />Silviculture/Masonry/Metallurgy/Crystallurgy),<br />repeatable Abundance Engine<br />levels + trickle,<br />EXTRACTOR_GROWTH 1.65;<br />resProdMult folds overclock +<br />refinery + abundance + legacy<br />multipliers together.</div>"]
+        style 19 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        20["<div style='font-weight: bold'>Prestige and Perks</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Embark resets the world and<br />banks Insight (gated by<br />EMBARK_MIN_TOTAL 20000<br />lifetime resources); perks<br />legacy/nomad/memory/heirloom/cartographer;<br />legacyMult (x1.25/level) and<br />nomadMult scale production<br />and movement.</div>"]
+        style 20 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        21["<div style='font-weight: bold'>Goals, Stats and Clock</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>GOALS list + goalIndex<br />progression; stats counters<br />(wood/stone/ore/crystal/gathers/collected/playedMs);<br />the day/night clock (pure<br />daylight() over DAY_LENGTH<br />240s); exploration radius<br />(EXPLORE_RADIUS 6) and<br />movement physics (BASE_SPEED<br />3.7, move, canStand, onWater,<br />boots speed).</div>"]
+        style 21 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      end
+
+      4["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html + style.css +<br />game.js). Owns the DOM, the<br />canvas renderer, input<br />(keyboard + touch joystick),<br />audio, HUD/sheets, and<br />localStorage save glue. Reads<br />state from the Simulation<br />Core every frame and only<br />touches rules through the<br />public Core API.</div>"]
+      style 4 fill:#b0761f,stroke:#7b5215,color:#ffffff
+    end
+
+    4-. "<div>Reads<br />gatherTarget/collectTarget<br />each frame</div><div style='font-size: 70%'></div>" .->13
+    4-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->14
+    4-. "<div>gather()/collect() for the<br />manual action button</div><div style='font-size: 70%'></div>" .->15
+    14-. "<div>Drives the range-limited<br />auto-collect branch</div><div style='font-size: 70%'></div>" .->17
+    14-. "<div>Mutates buffers/stats/time<br />each tick</div><div style='font-size: 70%'></div>" .->13
+    17-. "<div>Pushes transient {res, amt,<br />x, y} events</div><div style='font-size: 70%'></div>" .->13
+    15-. "<div>Credits inventory + stats</div><div style='font-size: 70%'></div>" .->13
+    16-. "<div>Builds extractors on the<br />shared state</div><div style='font-size: 70%'></div>" .->13
+    18-. "<div>Applies upgrades/unlocks</div><div style='font-size: 70%'></div>" .->13
+    19-. "<div>Applies refinery/abundance<br />levels</div><div style='font-size: 70%'></div>" .->13
+    20-. "<div>Resets and reshapes the state<br />on embark</div><div style='font-size: 70%'></div>" .->13
+    21-. "<div>Writes<br />goals/stats/exploration</div><div style='font-size: 70%'></div>" .->13
+
+  end
