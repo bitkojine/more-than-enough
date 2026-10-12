@@ -10,9 +10,9 @@
 <meta name="theme-color" content="#05070a" />
 <meta name="format-detection" content="telephone=no" />
 <link rel="icon" href="data:," />
-<!-- The deploy workflow appends a content-hash ?v= to these asset URLs so
-     GitHub Pages' 10-minute cache can't serve a stale build. Keep the plain
-     filenames here; the stamping happens only in the staged site/. -->
+<!-- scripts/stage-site.sh stamps a build hash onto every asset URL (here and
+     in each module import) so GitHub Pages' 10-minute cache can't serve a
+     stale build. Keep plain paths in the source. -->
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -88,8 +88,6 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
 
-  <script src="version.js"></script>
-  <script src="core.js"></script>
-  <script src="game.js"></script>
+  <script type="module" src="src/game/main.js"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@ The system architecture of MORE THAN ENOUGH lives in
 DSL](https://docs.structurizr.com/dsl). Every diagram in this repo is *derived*
 from that single file, so the diagrams can never drift from each other — and both
 the model and the diagrams point back at the code, so an agent can jump from "the
-Logistics and Auto-Collect component" straight to `core.js: step()`.
+Simulation Step component" straight to `src/core/sim.js`.
 
 **This file is the single source of truth for how the game is built.**
 Update it whenever you change how the game is put together, then re-export the
@@ -16,45 +16,44 @@ diagrams (see [Tools](#tools)) and commit the regenerated files together.
 ## The one fact that matters: the production split
 
 MORE THAN ENOUGH is a plain static web app with **zero dependencies** — there is
-no server, no build step, no framework. The interesting architecture is the split
-inside the browser tab:
+no server, no build step, no framework. The browser loads native JavaScript
+modules from `src/`, and the interesting architecture is the split between two
+folders:
 
-- **`core.js` — Simulation Core.** A *pure, DOM-free, deterministic,
-  serializable* simulation module. `step()` never touches `Date.now()`,
-  `Math.random()`, or the DOM; `dt` is clamped to 0.25s; state is a plain object
-  that `serialize()`/`deserialize()` convert to a base64 save. *The same file
-  runs in the browser **and** under Node* (`module.exports`), which is exactly
-  why `test/core.test.js` can step the whole game directly without a browser.
-- **`game.js` — Web Application.** Presentation and input glue: DOM, canvas
-  renderer, keyboard/touch input, audio, HUD, localStorage save glue. It reads
-  state from the Core every frame and **only ever drives rules through the
-  public Core API** (`gather()`, `collect()`, `place()`, `buyUpgrade()`,
-  `step()`, …).
+- **`src/core/` — Simulation Core.** The game rules, *pure, DOM-free and
+  deterministic*: no DOM, no `Date.now()`, no `Math.random()`. Every position is
+  `(x, y, z)` — the forest is `z = 0`, mine layers are below — and every range
+  check is per layer. State is a plain object that `serialize()`/`deserialize()`
+  turn into a JSON save. The same modules run in the browser **and** under Node,
+  which is why `test/unit/` can step the whole game without a browser.
+- **`src/game/` — Web Application.** Presentation and input: DOM, canvas
+  renderer, camera, touch/keyboard input, audio, HUD and sheets, localStorage.
+  It reads state every frame and **only changes it through the Core's exports**
+  (`harvestAt()`, `collect()`, `place()`, `buy()`, `step()`, …).
 
-If you are about to put a rule (world-gen, economy, unlocks, day/night) in
-`game.js` or `index.html`, stop: **rules live in `core.js`**. UI concerns live in
-`game.js`. Tests never reimplement rules; they drive the Core (Node suite) or the
-real game via `window.MTE_GAME` (browser e2e suite).
+If you are about to put a rule (world generation, economy, unlocks, layers,
+day/night) in `src/game/` or `index.html`, stop: **rules live in `src/core/`**.
+Tests never reimplement rules; they drive the Core (`test/unit/`) or the real
+game via `window.MTE_GAME` (`test/browser.e2e.js`).
 
 ## What's modeled
 
 - **People** — Player, Developer.
 - **Software systems** — **MORE THAN ENOUGH** (the game) and **Development
   Tooling** (the two test harnesses).
-- **Containers** — Web Application (`app`), Simulation Core (`core`), Core Test
-  Suite (`coreTests`), Browser E2E Harness (`e2e`).
-- **Components** — 10 in the Core (world gen, state/saves, simulation step,
-  gathering, extractors, logistics, upgrades, refineries/abundance, prestige,
-  goals/stats/clock) and 6 in the app (input, renderer, FX, HUD, audio, save
-  glue). Every component carries a `ref` (or `files`) property pointing at the
-  exact functions in `core.js` / `game.js`, and the Core carries an `invariant`
-  property restating the pure-deterministic rule.
+- **Containers** — Web Application (`app`), Simulation Core (`core`), Unit
+  Tests (`coreTests`), Browser E2E Harness (`e2e`).
+- **Components** — 5 in the Core (layered world, state/saves, simulation step,
+  actions, economy/upgrades) and 9 in the app (main loop, input, controller,
+  camera, renderer, effects, HUD/sheet, audio, storage). Every component
+  carries a `ref` (or `files`) property pointing at its modules, and the Core
+  carries an `invariant` property restating the pure-deterministic rule.
 - **Relationships** — defined at model level with full hierarchical paths
   (`mte.app.input -> mte.core.step`); container-level relationships plus the
   component-level reads/drives/mutations that make the component and dynamic
   views legible.
-- **Deployment** — one environment, "Local Development": the game as static
-  files in a browser tab, the Core Test Suite on Node, and the e2e harness in
+- **Deployment** — one environment, "Production": the game in a browser tab,
+  the staged static files on GitHub Pages, and the test suites on Node and
   headless Chrome (CDP).
 
 ### Diagram index (`structurizr/diagrams/`)
@@ -63,11 +62,11 @@ real game via `window.MTE_GAME` (browser e2e suite).
 | --- | --- | --- |
 | System Context | `SystemContext` | Player & Developer vs the two software systems |
 | Containers | `Containers` | Web Application + Simulation Core + the two test harnesses |
-| Core components | `CoreComponents` | The 10 Core components and the state-hub fan-in |
-| App components | `AppComponents` | The 6 browser-side components |
-| Game Loop | `GameLoop` | One frame of `step()` — numbered 1→7 sequence |
-| Collect Flow | `CollectFlow` | Manual gather/collect → FX → save path |
-| Deployment | `Deployment` | Browser tab (app+core), static host, Node + headless Chrome |
+| Core components | `CoreComponents` | The 5 Core components |
+| App components | `AppComponents` | The 9 browser-side components |
+| Game Loop | `GameLoop` | One frame: steer, act, `step()`, render |
+| Collect Flow | `CollectFlow` | A tap that gathers or digs → effects → save |
+| Deployment | `Deployment` | Browser tab (app+core), GitHub Pages, Node + headless Chrome |
 
 Mermaid diagrams render natively on GitHub; the `.puml` files are for
 PlantUML-based tooling. Both are regenerated from the same DSL — re-export both
@@ -124,7 +123,7 @@ node structurizr/scripts/structurizr.mjs validate`).
 
 - **SPICE**: the DSL is the **S**ingle source of truth, **P**ointers
   (`ref`/`files`) must stay accurate — update them when code moves — and the
-  **I**nvariant that `core.js` is pure/deterministic is stated in the model.
+  **I**nvariant that `src/core/` is pure/deterministic is stated in the model.
 - **Component relationships live at model level** with full hierarchical paths
   (`mte.app.input -> mte.core.step`). `->` inside a component body only resolves
   same-scope elements on the DSL parser, so don't put cross-container arrows there.

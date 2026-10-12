@@ -8,38 +8,37 @@ graph LR
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      subgraph 11 ["Simulation Core"]
-        style 11 fill:#ffffff,stroke:#2c5728,color:#2c5728
+      subgraph 14 ["Simulation Core"]
+        style 14 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a JSON save (format v3:<br />sparse richness deltas +<br />per-chunk fog bitmasks; older<br />v1/v2 saves are intentionally<br />discarded and the world<br />starts fresh). state.events<br />is transient and NEVER<br />serialized.</div>"]
-        style 13 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        14["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt) - the heart of<br />the tick: extractor<br />production into buffers,<br />range-limited logistics<br />auto-collect, abundance<br />trickle, world regrowth<br />(REGROW_INTERVAL 0.5s, only<br />tiles near the player), time<br />+ stats. Called once per<br />frame by the app and by every<br />test.</div>"]
-        style 14 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        17["<div style='font-weight: bold'>Logistics and Auto-Collect</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>When unlocked, step() drains<br />whole units from any<br />extractor within<br />AUTO_COLLECT_RANGE (3.0<br />tiles) of the player and<br />pushes a transient {res, amt,<br />x, y} event so the UI can<br />animate the flow. Walking<br />away stops collection:<br />buffers just fill and cap<br />until you return.</div>"]
+        15["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods) and surface<br />fog live outside the cache.</div>"]
+        style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        17["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt): extractor<br />production, range-limited<br />logistics auto-collect on the<br />player's layer, the abundance<br />trickle, and hash-seeded<br />regrowth near the player.<br />Also movement, fog reveal and<br />the day/night curve.</div>"]
         style 17 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        18["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus entering, leaving and<br />descending through the mine<br />layers. All work on the<br />player's own layer.</div>"]
+        style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
       subgraph 4 ["Web Application"]
         style 4 fill:#ffffff,stroke:#7b5215,color:#7b5215
 
-        5["<div style='font-weight: bold'>Input and Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Keyboard (WASD/arrows +<br />Space/B/U/C), touch joystick,<br />two-finger pinch zoom (mouse<br />wheel on desktop),<br />tap-to-walk, and the<br />contextual action button.<br />doAction() picks COLLECT when<br />an extractor is in manual<br />range, otherwise GATHER;<br />holding repeats every<br />GATHER_CD (0.25s).</div>"]
+        5["<div style='font-weight: bold'>Main Loop</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Wires the modules together<br />and owns the current state<br />(game.state, replaced on<br />embark/reset). Each frame:<br />steer the player, Core<br />step(), turn logistics events<br />into flyers, reveal fog on<br />tile change, repeat the held<br />action, update effects, run<br />the save/goal/HUD/compass<br />timers, then render. Exposes<br />window.MTE_GAME for the<br />browser tests.</div>"]
         style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        6["<div style='font-weight: bold'>Canvas Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>drawTile/highlights/extractors/player,<br />particles, floats, and<br />flyers; camera follow; then<br />the day/night lighting pass<br />(applyLighting + auto<br />flashlight pool) so the glow<br />covers the flyers. Tiles are<br />drawn only for the visible<br />viewport, and once<br />pinch-zoomed past LOD_PX it<br />switches to downsampled<br />blocks so far zoom stays<br />cheap. Tile highlights clamp<br />their geometry so a sub-pixel<br />tile at far zoom never draws<br />a negative-sized shape.</div>"]
-        style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        7["<div style='font-weight: bold'>Visual Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>particles/floats/flyers<br />arrays; spawnGatherFX /<br />spawnBuildFX / spawnFlyers<br />(homing ease-in resource<br />sprites, 1-7 capped,<br />staggered launch) and<br />popFlyer. Drains core<br />state.events into flyers each<br />frame so logistics<br />auto-collect animates too.</div>"]
+        7["<div style='font-weight: bold'>Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Applies intents to the game:<br />tap (descend, harvest,<br />collect, or walk there), the<br />held action (collect, else<br />harvest), Trail sweeps,<br />entering/leaving the mine,<br />buying, building, embarking,<br />resetting. Each calls the<br />Core, then triggers effects,<br />sound, HUD and a save.</div>"]
         style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        8["<div style='font-weight: bold'>HUD, Sheets and Goals</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Resource chips, goal banner +<br />compass hint arrow,<br />upgrade/build/beyond tabs,<br />action button, toasts. The<br />Upgrades tab is a Progression<br />map: PATH_FAMILIES render as<br />family rails (dots + counts)<br />that expand to the buy rows<br />via pathProgress, and the<br />Beyond tab is always visible<br />(a locked preview until<br />Embark is reachable).<br />checkGoals() advances the<br />goal index with a fanfare<br />flash; updateHud refreshes<br />DOM chips.</div>"]
+        8["<div style='font-weight: bold'>Camera</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Maps world (x, y, z) to<br />screen pixels and back<br />(project/unproject), with<br />zoom and the visible tile<br />range. The single seam for a<br />future tilted 2.5D view.</div>"]
         style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer (per tile, or<br />level-of-detail blocks when<br />zoomed far out), highlights,<br />the Trail, extractors,<br />particles, the player,<br />floating text, flyers,<br />day/night lighting, joystick,<br />compass hint and prompts.</div>"]
+        style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
       end
 
     end
 
-    5-. "<div>1. Calls step(state, dt)<br />every frame</div><div style='font-size: 70%'></div>" .->14
-    14-. "<div>2. Auto-collects units within<br />3 tiles</div><div style='font-size: 70%'></div>" .->17
-    17-. "<div>3. Pushes {res, amt, x, y}<br />events</div><div style='font-size: 70%'></div>" .->13
-    5-. "<div>4. doGather/doCollect spawn<br />flyers</div><div style='font-size: 70%'></div>" .->7
-    7-. "<div>5. Drains events into flyers</div><div style='font-size: 70%'></div>" .->13
-    7-. "<div>6. Draws flyers before the<br />night pass</div><div style='font-size: 70%'></div>" .->6
-    6-. "<div>7. Refreshes HUD when the<br />world changes</div><div style='font-size: 70%'></div>" .->8
+    5-. "<div>1. Steers and repeats the<br />held action each frame</div><div style='font-size: 70%'></div>" .->7
+    7-. "<div>2. harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->18
+    5-. "<div>3. Calls step(state, dt)<br />every frame</div><div style='font-size: 70%'></div>" .->17
+    17-. "<div>4. Regrows tiles; reveals fog</div><div style='font-size: 70%'></div>" .->15
+    5-. "<div>5. Renders each frame</div><div style='font-size: 70%'></div>" .->9
+    9-. "<div>6. Projects every draw</div><div style='font-size: 70%'></div>" .->8
 
   end

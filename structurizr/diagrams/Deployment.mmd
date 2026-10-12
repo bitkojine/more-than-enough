@@ -5,44 +5,44 @@ graph LR
   subgraph diagram ["Deployment"]
     style diagram fill:#ffffff,stroke:#ffffff
 
-    subgraph 67 ["Browser"]
-      style 67 fill:#ffffff,stroke:#575757,color:#ffffff
+    subgraph 66 ["Browser"]
+      style 66 fill:#ffffff,stroke:#575757,color:#ffffff
 
-      subgraph 68 ["Browser tab"]
-        style 68 fill:#ffffff,stroke:#575757,color:#ffffff
+      subgraph 67 ["Browser tab"]
+        style 67 fill:#ffffff,stroke:#575757,color:#ffffff
 
-        69["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html + style.css +<br />game.js). Owns the DOM, the<br />canvas renderer, input<br />(keyboard + touch joystick +<br />pinch zoom), audio,<br />HUD/sheets, and localStorage<br />save glue. Reads state from<br />the Simulation Core every<br />frame and only touches rules<br />through the public Core API.</div>"]
-        style 69 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        70["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript (ES5, browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Pure, DOM-free game engine<br />(core.js). All rules are<br />deterministic (terrain is a<br />pure positional hash of (x,<br />y, seed) — no shared RNG<br />stream — so chunk generation<br />is order-independent), state<br />is a plain serializable<br />object, and there is no<br />date/random/draw code: the<br />module runs identically in<br />the browser and under Node<br />(module.exports) so tests can<br />step it directly.</div>"]
-        style 70 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        68["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html, style.css,<br />src/game/). Owns the DOM, the<br />canvas, input, audio, HUD and<br />sheets, and localStorage.<br />Reads state from the<br />Simulation Core every frame<br />and changes it only through<br />the Core's exports.</div>"]
+        style 68 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        69["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
+        style 69 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
     end
 
-    subgraph 73 ["Static Host"]
-      style 73 fill:#ffffff,stroke:#575757,color:#ffffff
+    subgraph 72 ["GitHub Pages"]
+      style 72 fill:#ffffff,stroke:#575757,color:#ffffff
 
-      74["<div style='font-weight: bold'>Static Files</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node]</div><div style='font-size: 80%; margin-top:10px'>Serves index.html, style.css,<br />version.js, core.js and<br />game.js over HTTP(S).</div>"]
-      style 74 fill:#ffffff,stroke:#444444,color:#444444
+      73["<div style='font-weight: bold'>Static Files</div><div style='font-size: 70%; margin-top: 0px'>[Infrastructure Node]</div><div style='font-size: 80%; margin-top:10px'>Serves the staged site over<br />HTTPS.</div>"]
+      style 73 fill:#ffffff,stroke:#444444,color:#444444
     end
 
-    subgraph 75 ["Node.js 18+"]
-      style 75 fill:#ffffff,stroke:#575757,color:#ffffff
+    subgraph 74 ["Node.js 20+"]
+      style 74 fill:#ffffff,stroke:#575757,color:#ffffff
 
-      76["<div style='font-weight: bold'>Core Test Suite</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 18+]</div><div style='font-size: 80%; margin-top:10px'>Node checks<br />(test/core.test.js) driving<br />the Simulation Core directly:<br />187 checks covering infinite<br />world gen, economy, logistics<br />range, progression-map<br />resolvers (family registry as<br />single source of truth + node<br />states), save/load/wipe,<br />day/night, and full bot<br />playthroughs<br />(runBot/runFullBot with real<br />pathfinding + gathering).</div>"]
-      style 76 fill:#8a4f2b,stroke:#60371e,color:#ffffff
-      subgraph 78 ["Headless Chrome"]
-        style 78 fill:#ffffff,stroke:#575757,color:#ffffff
+      75["<div style='font-weight: bold'>Unit Tests</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 20+]</div><div style='font-size: 80%; margin-top:10px'>node:test suites driving the<br />Simulation Core directly:<br />world generation and layers,<br />actions, economy and the<br />progression map, prestige,<br />underground travel and<br />cross-layer regressions,<br />saves and migration, and bot<br />playthroughs with real<br />pathfinding.</div>"]
+      style 75 fill:#8a4f2b,stroke:#60371e,color:#ffffff
+      subgraph 77 ["Headless Chrome"]
+        style 77 fill:#ffffff,stroke:#575757,color:#ffffff
 
-        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): 82 checks<br />covering flyer visuals, the<br />Progression map (family<br />headers, always-visible<br />Beyond + its locked preview),<br />audio unlock on the first<br />gesture, fog reveal in the<br />endless world, persistence<br />across reload, the day/night<br />flashlight, range-limited<br />logistics, pinch-to-zoom<br />(in/out, clamps, far-zoom<br />LOD), and max-zoom robustness<br />(a highlighted tile can never<br />crash the render loop).</div>"]
-        style 79 fill:#8a4f2b,stroke:#60371e,color:#ffffff
+        78["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />and headless Chrome and<br />drives the real game through<br />the DevTools Protocol (touch,<br />keys, DOM clicks,<br />screenshots).</div>"]
+        style 78 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       end
 
     end
 
-    70-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->69
-    69-. "<div>Drives<br />moves/gathers/builds/upgrades<br />and reads state every frame</div><div style='font-size: 70%'></div>" .->70
-    76-. "<div>Requires core.js via<br />module.exports and steps it<br />directly</div><div style='font-size: 70%'></div>" .->70
-    79-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->69
+    69-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->68
+    68-. "<div>Drives actions and step();<br />reads state every frame</div><div style='font-size: 70%'></div>" .->69
+    75-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->69
+    78-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->68
 
   end

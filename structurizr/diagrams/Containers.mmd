@@ -7,22 +7,22 @@ graph LR
 
     1["<div style='font-weight: bold'>Player</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Plays the game on a phone or<br />desktop browser.</div>"]
     style 1 fill:#08427b,stroke:#052e56,color:#ffffff
-    22["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses that verify<br />the game locally and in CI.<br />Both suites are plain Node<br />scripts with zero<br />dependencies.</div>"]
-    style 22 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
+    20["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses and the deploy<br />pipeline. Zero dependencies.</div>"]
+    style 20 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
 
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      11["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript (ES5, browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Pure, DOM-free game engine<br />(core.js). All rules are<br />deterministic (terrain is a<br />pure positional hash of (x,<br />y, seed) — no shared RNG<br />stream — so chunk generation<br />is order-independent), state<br />is a plain serializable<br />object, and there is no<br />date/random/draw code: the<br />module runs identically in<br />the browser and under Node<br />(module.exports) so tests can<br />step it directly.</div>"]
-      style 11 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-      4["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html + style.css +<br />game.js). Owns the DOM, the<br />canvas renderer, input<br />(keyboard + touch joystick +<br />pinch zoom), audio,<br />HUD/sheets, and localStorage<br />save glue. Reads state from<br />the Simulation Core every<br />frame and only touches rules<br />through the public Core API.</div>"]
+      14["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
+      style 14 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      4["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html, style.css,<br />src/game/). Owns the DOM, the<br />canvas, input, audio, HUD and<br />sheets, and localStorage.<br />Reads state from the<br />Simulation Core every frame<br />and changes it only through<br />the Core's exports.</div>"]
       style 4 fill:#b0761f,stroke:#7b5215,color:#ffffff
     end
 
     1-. "<div>Plays in a mobile/desktop<br />browser</div><div style='font-size: 70%'></div>" .->4
-    4-. "<div>Drives<br />moves/gathers/builds/upgrades<br />and reads state every frame</div><div style='font-size: 70%'></div>" .->11
-    11-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->4
-    22-. "<div>Requires core.js via<br />module.exports and steps it<br />directly</div><div style='font-size: 70%'></div>" .->11
-    22-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
+    4-. "<div>Drives actions and step();<br />reads state every frame</div><div style='font-size: 70%'></div>" .->14
+    14-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->4
+    20-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->14
+    20-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
 
   end

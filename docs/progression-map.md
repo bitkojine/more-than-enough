@@ -106,7 +106,7 @@ LEGACY
 - Collapsed families show a **count** (`4/10`) and stop rendering individual
   dots beyond a small budget (see §9).
 - Tapping a family expands to its current per-node rows (the existing
-  `Core.upgradeInfo` / `Core.resUpgradeInfo` data), each with its buy button.
+  `UPGRADES` registry data), each with its buy button.
 
 ### 5.2 Node states
 
@@ -133,38 +133,38 @@ Every node resolves to exactly one state:
 - Add a single, clearly-labelled **"More to come"** capstone row rather than
   scattering misleading placeholders.
 
-## 6. Data model (core.js)
+## 6. Data model (src/core/upgrades.js)
 
 Presentation must read from data, not hard-coded indices.
 
-1. A declarative **family registry**, `PATHS` (shipped as `PATH_FAMILIES`), in
-   `core.js`. Each family also carries its ordered `nodes` refs, which are the
-   **single source of truth** for both the resolver and the renderer (so rails
-   and rows can never drift apart):
+1. **One upgrade registry**, `UPGRADES`: every purchase (tools, refinery
+   chains, the Abundance Engine, unlocks and blueprints, perks) has the same
+   shape — `family`, `kind`, `name`, `icon`, `level(s)`, `max` (Infinity for
+   repeatables), `cost(s, level)`, `currency` (`inv` or `insight`) and
+   `apply(s)`. Buying (`buy(s, id)`), the map and the sheet rows all go through it.
+2. **The family list**, `PATH_FAMILIES`, in display order. Each family's
+   `nodes` are derived from the registry, so rails and rows can never drift apart:
    ```js
-   var PATH_FAMILIES = [
-     { id:'tools',     layer:'world',  name:'Tools',                icon:'🧰', nodes:['axe','pickaxe','boots','overclock'] },
-     { id:'refining',  layer:'world',  name:'Refineries',           icon:'⛏️', nodes:RESOURCES.slice() },
-     { id:'abundance', layer:'world',  name:'Abundance Engine',     icon:'✨', nodes:['abundance'] },
-     { id:'unlocks',   layer:'world',  name:'Unlocks & Blueprints', icon:'📜', nodes:['logistics','sapling','brickyard','foundry','observatory'] },
-     { id:'perks',     layer:'legacy', name:'Perks',                icon:'🎟️', nodes:Object.keys(PERKS) }
+   PATH_FAMILIES = [
+     { id: 'tools',     layer: 'world',  name: 'Tools',                nodes: ['axe', 'pickaxe', 'boots', 'overclock'] },
+     { id: 'refining',  layer: 'world',  name: 'Refineries',           nodes: ['wood', 'stone', 'ore', 'crystal'] },
+     { id: 'abundance', layer: 'world',  name: 'Abundance Engine',     nodes: ['abundance'] },
+     { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', nodes: ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'] },
+     { id: 'perks',     layer: 'legacy', name: 'Perks',                nodes: ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'] }
    ];
    ```
-2. Resolvers: `pathNode(s, familyId, ref)` → a node record
-   (`{kind, name, icon, level, max, canBuy, cost, state}`), `pathNodes(s,
-   familyId)` → the family's nodes, and `pathProgress(s, familyId)` →
-   `{owned, total, canBuy, allOwned, nodes}`. These reuse
-   `upgradeInfo` / `resUpgradeInfo` / `resUpgradeMul` / `perkOwned` /
-   `perkCost` / `canAfford` — no new economy logic.
-3. Export `PATH_FAMILIES`, `pathNode`, `pathNodes`, `pathProgress` for `game.js`.
-4. Keep `core.js` DOM-free (existing invariant).
+3. Resolvers: `pathNode(s, id)` → `{key, kind, name, icon, level, max, canBuy,
+   cost, state}` and `pathProgress(s, familyId)` → `{owned, total, canBuy,
+   allOwned, nodes}`. Node state comes from one rule for every kind: `owned`
+   when `level >= max`, else `ready` if affordable, else `partial` or `saving`.
+4. Keep `src/core/` DOM-free (existing invariant).
 
 ## 7. Interaction & accessibility
 
 - Whole family row and each node are **tap targets ≥ 44px** tall
   (matches existing `.row .buy` min-height).
 - Tap a family → expand/collapse. Tap **ready/saving** node → the existing buy
-  path (`data-kind`, `elSheetBody` delegated click handler). Tap **owned** →
+  path (`data-kind`, the sheet body's delegated click handler). Tap **owned** →
   informational only. Tap **sealed/unknown** → toast with the requirement/hint.
 - Keyboard: the sheet already supports `b` / `u` tabs; add `p` (or reuse `u`)
   and keep the first focusable node reachable.
@@ -213,16 +213,16 @@ player.
 ## 11. Phased plan
 
 - **Phase 0 — spec sign-off.** ✅ Decisions locked (§12).
-- **Phase 1 — read-only map.** ✅ `PATHS`/`pathNode`/`pathNodes`/`pathProgress`
-  in `core.js`; overview rails render in `renderProgression()`.
+- **Phase 1 — read-only map.** ✅ `PATH_FAMILIES`/`pathNode`/`pathProgress`
+  in `src/core/upgrades.js`; overview rails render in `src/game/sheet.js`.
 - **Phase 2 — unify.** ✅ Progression is the Upgrades tab's content; expandable
   families expose the existing buy rows (default: Tools open).
 - **Phase 3 — horizons.** ⏳ Capped `unknown` nodes + a "More to come" capstone.
   The Beyond locked preview (§10) shipped early with Phase 2.
 - **Phase 4 — polish.** ⏳ Motion on unlock and the a11y pass remain; ✅
-  `core.test.js` coverage for the resolvers landed, including the
-  registry↔resolver invariant (declared `nodes` must match what `pathNodes()`
-  returns, in order).
+  unit coverage for the resolvers landed (`test/unit/economy.test.js`),
+  including the registry↔resolver invariant (each family's `nodes` match what
+  `pathProgress()` returns, in order).
 
 Each phase is independently shippable and save-compatible (no format change:
 the map is derived from existing state).

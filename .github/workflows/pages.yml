@@ -1,27 +1,44 @@
-# Build-free deploy of the game to GitHub Pages.
-# The whole game is five static files (index.html, style.css, version.js,
-# core.js, game.js) — no build step, no Node, nothing else is published.
-# Runs on every push to main and on demand (workflow_dispatch).
+# Test, then deploy the game to GitHub Pages. No build step: scripts/stage-site.sh
+# copies the static files and stamps a cache-busting hash onto asset URLs.
+# Runs on every push to main, on pull requests (tests only), and on demand.
 
-name: Deploy to GitHub Pages
+name: Test and deploy
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  test:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Unit tests
+        run: npm test
+
+  deploy:
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -29,21 +46,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Stage the game files (cache-busted)
-        run: |
-          mkdir -p site
-          cp index.html style.css version.js core.js game.js site/
-          # GitHub Pages caches every file for 10 minutes and won't let us set
-          # response headers, so returning visitors can be served a stale build.
-          # Give each asset a content-hash query so a changed file becomes a new
-          # URL that the browser must refetch. The repo's index.html stays clean.
-          cd site
-          for f in style.css version.js core.js game.js; do
-            v=$(sha1sum "$f" | cut -c1-10)
-            sed -i "s|\"$f\"|\"$f?v=$v\"|g" index.html
-          done
-          echo "Cache-busted asset references:"
-          grep -E 'href="style|src="(version|core|game)' index.html || true
+      - name: Stage the site (cache-busted)
+        run: sh scripts/stage-site.sh site
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

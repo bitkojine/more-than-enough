@@ -84,17 +84,17 @@ hide stereotype
 </style>
 
 person "==Player\n<size:16>[Person]</size>\n\nPlays the game on a phone or desktop browser." <<Element-RWxlbWVudCxQZXJzb24=>> as Player
-rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harnesses that verify the game locally and in CI. Both suites are plain Node scripts with zero dependencies." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw==>> as DevelopmentTooling
+rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harnesses and the deploy pipeline. Zero dependencies." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw==>> as DevelopmentTooling
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
-  rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
-  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick + pinch zoom), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
+  rectangle "==Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>\n\nThe game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
+  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
 }
 
 Player --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Plays in a mobile/desktop browser"
-MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Drives moves/gathers/builds/upgrades and reads state every frame"
+MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
 MORETHANENOUGH.SimulationCore --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
-DevelopmentTooling --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Requires core.js via module.exports and steps it directly"
+DevelopmentTooling --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
 DevelopmentTooling --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
 
 @enduml

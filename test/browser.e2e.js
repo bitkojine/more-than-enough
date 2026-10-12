@@ -1,18 +1,18 @@
 /* End-to-end test: launches a static server + headless Chrome, then drives the
  * real game through the DevTools Protocol (touch input, keyboard, DOM clicks),
  * verifying gameplay and persistence through the shipped code paths. */
-'use strict';
+import cp from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
-var cp = require('child_process');
-var fs = require('fs');
-var os = require('os');
-var path = require('path');
-
-var ROOT = path.resolve(__dirname, '..');
+var ROOT = path.resolve(import.meta.dirname, '..');
 var PORT = 8200 + Math.floor(Math.random() * 400);
 var CDP_PORT = 9400 + Math.floor(Math.random() * 400);
 var SHOT_DIR = process.env.MTE_SHOT_DIR || path.join(os.tmpdir(), 'mte-shots');
-var CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+var CHROME = process.env.CHROME_PATH || (process.platform === 'darwin'
+  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  : 'google-chrome');
 
 if (process.platform === 'darwin' && process.env.CODEX_SANDBOX === 'seatbelt') {
   console.error('Browser E2E needs to run outside the macOS Codex sandbox. Chrome aborts during macOS app registration inside the sandbox; rerun this command in Terminal or approve unsandboxed execution.');
@@ -241,27 +241,37 @@ async function main() {
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
-  ok(await evalJS('MTE_GAME.getState().mine.active'), 'mine button descends from the forest');
+  eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'mine button drops to the layer beneath the forest');
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'SURFACE', 'mine button becomes the return control underground');
-  await sleep(120); // let the camera recenter on the mine entrance
-  var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var i=0;i<4;i++){var x=[1,0,-1,0][i],y=[0,1,0,-1][i];if(c.mineTile(s,x,y)!==c.MINE_T.BEDROCK){return JSON.stringify({x:x,y:y,sx:innerWidth/2+(x+.5-s.player.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-s.player.y)*MTE_GAME.tilePx()});}}return null;})()');
+  await sleep(120); // let the camera settle on the new layer
+  var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
   var ms = JSON.parse(mineSpot);
   await tap(ms.sx, ms.sy);
-  ok(await evalJS('Object.keys(MTE_GAME.getState().mine.carved).length > 0'), 'tapping a nearby tile uses the same Gather action to dig');
-  var minePos = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:p.x,y:p.y});})()'));
-  await drag(195, 422, 195 + ms.x * 80, 422 + ms.y * 80, 5, 35);
-  var minePosAfter = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:p.x,y:p.y});})()'));
-  ok((minePosAfter.x-minePos.x)*ms.x + (minePosAfter.y-minePos.y)*ms.y > 0.05, 'same thumb joystick moves into the freshly dug underground tunnel');
-  eq(await evalJS('MTE_GAME.getState().mine.depth'), 0, 'digging an ordinary lower tile does not change layers');
-  var shaftSpot = await evalJS('(function(){var s=MTE_GAME.getState(),p=MTE_GAME.core.mineShaft(s);MTE_GAME.setPlayer(p.x+.5,p.y+.5);return JSON.stringify({x:p.x,y:p.y,sx:innerWidth/2,sy:innerHeight/2});})()');
-  var ss = JSON.parse(shaftSpot);
-  await tap(ss.sx, ss.sy);
-  eq(await evalJS('MTE_GAME.getState().mine.depth'), 0, 'uncovering the marked shaft does not descend automatically');
-  ok(await evalJS('MTE_GAME.getState().mine.shaftOpen'), 'the marked shaft opens after a separate dig');
-  await tap(ss.sx, ss.sy);
-  eq(await evalJS('MTE_GAME.getState().mine.depth'), 1, 'a deliberate second tap enters the next layer');
+  eq(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + ms.x + ',' + ms.y + ',-1)===c.T.TUNNEL;})()'), true, 'tapping a nearby tile uses the same Gather action to dig');
+  var minePos = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  await drag(195, 422, 195 + ms.dx * 80, 422 + ms.dy * 80, 5, 35);
+  var minePosAfter = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  ok((minePosAfter.x - minePos.x) * ms.dx + (minePosAfter.y - minePos.y) * ms.dy > 0.05, 'same thumb joystick moves into the freshly dug underground tunnel');
+  eq(minePosAfter.z, -1, 'digging an ordinary tile does not change layers');
+  var shaftSpot = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,40,function(x,y){return c.tileAt(s.world,x,y,-1)===c.T.SHAFT;});c.setRichness(s.world,t.x+1,t.y,-1,0);MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);return JSON.stringify({x:t.x,y:t.y,sx:innerWidth/2-MTE_GAME.tilePx(),sy:innerHeight/2});})()'));
+  await sleep(120);
+  var shaftOpen = '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + shaftSpot.x + ',' + shaftSpot.y + ',-1)===c.T.SHAFT_OPEN;})()';
+  await tap(shaftSpot.sx, shaftSpot.sy);
+  eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'uncovering the marked shaft does not descend automatically');
+  ok(await evalJS(shaftOpen), 'the marked shaft opens after a separate dig');
+  await tap(shaftSpot.sx, shaftSpot.sy);
+  eq(await evalJS('MTE_GAME.getState().player.z'), -2, 'a deliberate second tap drops to the next layer');
+  eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y);})()'), shaftSpot.x + ',' + shaftSpot.y, 'the next layer is directly beneath the shaft');
+  // Holding Gather with nothing to dig must not stall the rest of the frame:
+  // the clock, effects and the 3-second autosave all keep running.
+  await evalJS('localStorage.removeItem("more-than-enough-save")');
+  var heldClock = await evalJS('MTE_GAME.getState().time');
+  var holdBtn = await rect('#btnAction');
+  await hold(holdBtn.x, holdBtn.y, 3600);
+  ok(await evalJS('MTE_GAME.getState().time') > heldClock + 3, 'the game clock runs while Gather is held underground');
+  ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
-  ok(!(await evalJS('MTE_GAME.getState().mine.active')), 'surface button returns to the forest');
+  eq(await evalJS('MTE_GAME.getState().player.z'), 0, 'surface button returns to the forest');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
   ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');
@@ -277,7 +287,7 @@ async function main() {
   console.log('\n== Movement (keyboard) ==');
   // Teleport to an open tile so the world is endless but this test isn't foiled
   // by a rock/water tile that happens to sit next to the random spawn.
-  await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;function ok(x,y){return c.walkable(s.world,x,y);}for(var r=0;r<80;r++){for(var dy=-r;dy<=r;dy++){for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(ok(dx,dy)&&ok(dx+1,dy)&&ok(dx-1,dy)&&ok(dx,dy+1)&&ok(dx,dy-1)){MTE_GAME.setPlayer(dx+0.5,dy+0.5);return;}}}}})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;function ok(x,y){return c.walkable(s.world,x,y,0);}for(var r=0;r<80;r++){for(var dy=-r;dy<=r;dy++){for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(ok(dx,dy)&&ok(dx+1,dy)&&ok(dx-1,dy)&&ok(dx,dy+1)&&ok(dx,dy-1)){MTE_GAME.setPlayer(dx+0.5,dy+0.5);return;}}}}})()');
   await sleep(150);
   var before = JSON.parse(await stateSummary());
   await key('keyDown', 'd', 'KeyD', 68);
@@ -297,16 +307,18 @@ async function main() {
   await drag(90, 500, 135, 465, 5, 45);
   await sleep(150);
   var tapWalkStart = JSON.parse(await stateSummary());
-  await tap(245, 430);
+  // Tap a walkable tile beyond reach, so the tap means "walk there", not "gather".
+  var dest = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,u=MTE_GAME.tilePx();var dirs=[[3,0],[-3,0],[0,3],[0,-3],[2,2],[-2,2],[2,-2],[-2,-2]];for(var i=0;i<dirs.length;i++){var x=Math.floor(p.x)+dirs[i][0],y=Math.floor(p.y)+dirs[i][1];if(c.walkable(s.world,x,y,0)&&!c.TILE_INFO[c.tileAt(s.world,x,y,0)].harvest)return JSON.stringify({sx:innerWidth/2+(x+.5-p.x)*u,sy:innerHeight/2+(y+.5-p.y)*u});}return JSON.stringify({sx:innerWidth/2+3*u,sy:innerHeight/2});})()'));
+  await tap(dest.sx, dest.sy);
   await sleep(700);
   var tapWalkEnd = JSON.parse(await stateSummary());
   ok(Math.abs(tapWalkEnd.x - tapWalkStart.x) + Math.abs(tapWalkEnd.y - tapWalkStart.y) > 0.25, 'tapping a world destination starts walking');
 
   /* ------------------------------------------------------------ gather */
   console.log('\n== Gathering (touch the action button) ==');
-  var spot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spot, 'found a rich forest tile to stand on (' + spot + ')');
-  await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();MTE_GAME.core.setTileRich(s.world,p[0],p[1],200);})()');
+  await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();MTE_GAME.core.setRichness(s.world,p[0],p[1],0,200);})()');
   await sleep(150);
   var act = await rect('#btnAction');
   ok(act && act.w > 60, 'action button is a comfortable tap target (' + (act && act.w) + 'px)');
@@ -341,7 +353,7 @@ async function main() {
 
   /* -------------------------------------------- items fly to the player */
   console.log('\n== Items fly to the player when gathering ==');
-  var spotF = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spotF = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotF, 'moved onto a fresh rich forest tile for the flyer test (' + spotF + ')');
   await sleep(150);
   var actF = await rect('#btnAction');
@@ -354,7 +366,7 @@ async function main() {
 
   /* --------------------------------- SPACE hold must gather at the cd rate */
   console.log('\n== Hold SPACE gathers at GATHER_CD (no key-repeat turbo) ==');
-  var spotK = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spotK = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotK, 'standing on a fresh rich forest tile for the SPACE test (' + spotK + ')');
   await sleep(150);
   var kg0 = await evalJS('MTE_GAME.getState().stats.gathers');
@@ -391,7 +403,7 @@ async function main() {
 
   /* ------------------------------------------------------------ build */
   console.log('\n== Build extractor (touch Place) ==');
-  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   await evalJS('MTE_GAME.addRes("wood",80)');
   await sleep(150);
   var buildBtn = await rect('#btnBuild');
@@ -485,7 +497,7 @@ async function main() {
 
   /* --------------------------------------------------- exploration aid */
   console.log('\n== Endless world: resources everywhere + fog reveal ==');
-  var exploreInfo = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;var ore=0,crystal=0;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){var t=c.tileType(s.world,x,y);if(t===3)ore++;if(t===4)crystal++;}var px=Math.floor(s.player.x),py=Math.floor(s.player.y);return JSON.stringify({ore:ore,crystal:crystal,here:c.isExplored(s.world,px,py),far:c.isExplored(s.world,px+300,py+300),farTile:typeof c.tileType(s.world,420000,-420000)});})()');
+  var exploreInfo = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;var ore=0,crystal=0;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){var t=c.tileAt(s.world,x,y,0);if(t===3)ore++;if(t===4)crystal++;}var px=Math.floor(s.player.x),py=Math.floor(s.player.y);return JSON.stringify({ore:ore,crystal:crystal,here:c.isExplored(s.world,px,py,0),far:c.isExplored(s.world,px+300,py+300,0),farTile:typeof c.tileAt(s.world,420000,-420000,0)});})()');
   var ri = JSON.parse(exploreInfo);
   console.log('  near origin: ore=' + ri.ore + ' crystal=' + ri.crystal + '  fog(here/far)=' + ri.here + '/' + ri.far);
   ok(ri.ore > 30 && ri.crystal > 3, 'ore and crystal occur near the origin');
@@ -569,7 +581,7 @@ async function main() {
 
   /* ------------------------------------- logistics auto-collect is ranged */
   console.log('\n== Logistics auto-collect needs range ==');
-  await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"lumber",res:"wood",x:Math.floor(s.player.x),y:Math.floor(s.player.y),buffer:10,t:0};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"lumber",res:"wood",x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:10};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
   await sleep(300);
   var lg0 = JSON.parse(await stateSummary());
   ok(lg0.inv.wood >= 10, 'standing by the extractor auto-collects its buffer (' + lg0.inv.wood + ')');
@@ -660,7 +672,7 @@ async function main() {
 
   // Far zoom-out stays cheap and keeps painting varied terrain. Reveal a wide
   // area first so the downsampled blocks have real terrain to sample.
-  await evalJS('MTE_GAME.core.updateExplored(MTE_GAME.getState(), 120)');
+  await evalJS('MTE_GAME.core.revealAround(MTE_GAME.getState(), 120)');
   await evalJS('MTE_GAME.setZoom(0.08)');
   await sleep(300);
   var farTp = await evalJS('MTE_GAME.tilePx()');
@@ -681,7 +693,7 @@ async function main() {
   /* ---------------------- tile highlight must survive max zoom-out */
   console.log('\n== Tile highlight at max zoom-out ==');
   var errBase = pageErrors.length;
-  var hSpot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>0){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var hSpot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>0){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!hSpot, 'stood on a gatherable tile for the highlight test (' + hSpot + ')');
   await evalJS('MTE_GAME.setZoom(0.0001)'); // all the way out: tiles ~3px
   await sleep(250);

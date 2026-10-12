@@ -1,6 +1,6 @@
 ' Generated from structurizr/workspace.dsl - do not edit; run: node structurizr/scripts/structurizr.mjs plantuml
 @startuml
-title <size:24>Manual Collect / Gather</size>
+title <size:24>Tap to gather or dig</size>
 
 set separator none
 left to right direction
@@ -82,23 +82,24 @@ hide stereotype
 </style>
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
-  rectangle "Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>" <<Boundary-U2ltdWxhdGlvbiBDb3Jl>> {
-    rectangle "==State and Saves\n<size:16>[Component: JavaScript]</size>\n\ncreateState() builds the canonical state object; serialize/deserialize convert it to a JSON save (format v3: sparse richness deltas + per-chunk fog bitmasks; older v1/v2 saves are intentionally discarded and the world starts fresh). state.events is transient and NEVER serialized." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.StateandSaves
-    rectangle "==Gathering and Collection\n<size:16>[Component: JavaScript]</size>\n\nManual actions: gather() from a tile within GATHER_RANGE (1.65) using axe/pickaxe multipliers; collect() drains extractor buffers within COLLECT_RANGE (1.7). gatherTarget/collectTarget report what is actionable for the UI." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.GatheringandCollection
+  rectangle "Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>" <<Boundary-U2ltdWxhdGlvbiBDb3Jl>> {
+    rectangle "==Layered World\n<size:16>[Component: JavaScript]</size>\n\nCoordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods) and surface fog live outside the cache." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.LayeredWorld
+    rectangle "==Actions\n<size:16>[Component: JavaScript]</size>\n\nHarvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus entering, leaving and descending through the mine layers. All work on the player's own layer." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.Actions
   }
 
-  rectangle "Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>" <<Boundary-V2ViIEFwcGxpY2F0aW9u>> {
-    rectangle "==Save Glue and Test Hook\n<size:16>[Component: JavaScript + localStorage]</size>\n\nsave()/load() to localStorage through Core serialize/deserialize (save on world change and every ~3s); version badge; window.MTE_GAME hook exposing state reads/mutations that the browser e2e suite drives." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.SaveGlueandTestHook
-    rectangle "==Input and Actions\n<size:16>[Component: JavaScript]</size>\n\nKeyboard (WASD/arrows + Space/B/U/C), touch joystick, two-finger pinch zoom (mouse wheel on desktop), tap-to-walk, and the contextual action button. doAction() picks COLLECT when an extractor is in manual range, otherwise GATHER; holding repeats every GATHER_CD (0.25s)." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.InputandActions
-    rectangle "==Visual Effects\n<size:16>[Component: JavaScript]</size>\n\nparticles/floats/flyers arrays; spawnGatherFX / spawnBuildFX / spawnFlyers (homing ease-in resource sprites, 1-7 capped, staggered launch) and popFlyer. Drains core state.events into flyers each frame so logistics auto-collect animates too." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.VisualEffects
+  rectangle "Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>" <<Boundary-V2ViIEFwcGxpY2F0aW9u>> {
+    rectangle "==Effects\n<size:16>[Component: JavaScript]</size>\n\nParticles, floating text and flyers (resources homing into the pack), with budgets and a flyer lifetime so bursts stay cheap." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Effects
+    rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load (migrating the legacy key), save, clear, and the tutorial-seen flag." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
+    rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
+    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, entering/leaving the mine, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
   }
 
 }
 
-MORETHANENOUGH.WebApplication.InputandActions --> MORETHANENOUGH.SimulationCore.GatheringandCollection <<Relationship-UmVsYXRpb25zaGlw>> : "1: gather() within range (collect() for COLLECT)"
-MORETHANENOUGH.SimulationCore.GatheringandCollection --> MORETHANENOUGH.SimulationCore.StateandSaves <<Relationship-UmVsYXRpb25zaGlw>> : "2: Credits inventory + stats"
-MORETHANENOUGH.WebApplication.InputandActions --> MORETHANENOUGH.WebApplication.VisualEffects <<Relationship-UmVsYXRpb25zaGlw>> : "3: spawnGatherFX + spawnFlyers from the source tile"
-MORETHANENOUGH.WebApplication.VisualEffects --> MORETHANENOUGH.WebApplication.SaveGlueandTestHook <<Relationship-UmVsYXRpb25zaGlw>> : "4: onWorldChanged() schedules a save"
-MORETHANENOUGH.WebApplication.SaveGlueandTestHook --> MORETHANENOUGH.SimulationCore.StateandSaves <<Relationship-UmVsYXRpb25zaGlw>> : "5: serialize(state) to localStorage"
+MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "1: Taps, held action, Trail strokes"
+MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "2: harvest, collect, place, enter/leave/descend"
+MORETHANENOUGH.SimulationCore.Actions --> MORETHANENOUGH.SimulationCore.LayeredWorld <<Relationship-UmVsYXRpb25zaGlw>> : "3: Edits richness (gathering, digging)"
+MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.WebApplication.Effects <<Relationship-UmVsYXRpb25zaGlw>> : "4: Spawns effects"
+MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.WebApplication.Storage <<Relationship-UmVsYXRpb25zaGlw>> : "5: Schedules saves"
 
 @enduml

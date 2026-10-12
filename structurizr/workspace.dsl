@@ -1,4 +1,4 @@
-workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. This file is the single source of truth for the system architecture: update it whenever you change how the game is built, then re-export the diagrams (node structurizr/scripts/structurizr.mjs mermaid). File/function references are kept on every element so agents can jump straight to the code (see structurizr/README.md)." {
+workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. This file is the single source of truth for the system architecture: update it whenever you change how the game is built, then re-export the diagrams (node structurizr/scripts/structurizr.mjs mermaid). File references are kept on every element so agents can jump straight to the code (see structurizr/README.md)." {
 
     !identifiers hierarchical
 
@@ -9,149 +9,135 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dev = person "Developer" "Builds and maintains the game and its test suites."
 
         // -------------------------------------------- the game (system)
-        mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore a seeded world, gather wood/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JS." {
+        mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather wood/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." {
             tags "Game"
 
-            app = container "Web Application" "The presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick + pinch zoom), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." "HTML/CSS/JavaScript" {
+            app = container "Web Application" "The presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." "HTML/CSS/JavaScript modules" {
                 tags "Presentation"
                 properties {
-                    "files" "index.html, style.css, game.js"
+                    "files" "index.html, style.css, src/game/"
                 }
 
-                input = component "Input and Actions" "Keyboard (WASD/arrows + Space/B/U/C), touch joystick, two-finger pinch zoom (mouse wheel on desktop), tap-to-walk, and the contextual action button. doAction() picks COLLECT when an extractor is in manual range, otherwise GATHER; holding repeats every GATHER_CD (0.25s)." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/goal/HUD/compass timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: doAction, doGather, doCollect, setZoom (pinch + wheel), the actDown loop in update()"
+                        "ref" "src/game/main.js"
                     }
                 }
 
-                render = component "Canvas Renderer" "drawTile/highlights/extractors/player, particles, floats, and flyers; camera follow; then the day/night lighting pass (applyLighting + auto flashlight pool) so the glow covers the flyers. Tiles are drawn only for the visible viewport, and once pinch-zoomed past LOD_PX it switches to downsampled blocks so far zoom stays cheap. Tile highlights clamp their geometry so a sub-pixel tile at far zoom never draws a negative-sized shape." "JavaScript" {
+                input = component "Input" "Raw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: render(), draw*, drawBlock(), strokeTileHighlight(), setZoom(), applyLighting(), FLASHLIGHT_* constants"
+                        "ref" "src/game/input.js"
                     }
                 }
 
-                fx = component "Visual Effects" "particles/floats/flyers arrays; spawnGatherFX / spawnBuildFX / spawnFlyers (homing ease-in resource sprites, 1-7 capped, staggered launch) and popFlyer. Drains core state.events into flyers each frame so logistics auto-collect animates too." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, entering/leaving the mine, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: spawnFlyers, popFlyer, drawFlyers, update() events drain"
+                        "ref" "src/game/controller.js"
                     }
                 }
 
-                ui = component "HUD, Sheets and Goals" "Resource chips, goal banner + compass hint arrow, upgrade/build/beyond tabs, action button, toasts. The Upgrades tab is a Progression map: PATH_FAMILIES render as family rails (dots + counts) that expand to the buy rows via pathProgress, and the Beyond tab is always visible (a locked preview until Embark is reachable). checkGoals() advances the goal index with a fanfare flash; updateHud refreshes DOM chips." "JavaScript" {
+                camera = component "Camera" "Maps world (x, y, z) to screen pixels and back (project/unproject), with zoom and the visible tile range. The single seam for a future tilted 2.5D view." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: updateHud, renderSheet, renderProgression, renderBeyond, checkGoals, updateHint"
+                        "ref" "src/game/camera.js"
                     }
                 }
 
-                audio = component "Audio" "Tiny WebAudio synth. Unlocked from ANY gesture (pointer/touch/mouse/key/click, plus focus/visibility) with a silent-buffer unlock so sound starts on the first interaction; per-material gather voices (wood knock, stone crack, ore clang, crystal bell) plus collect/build/fanfare and an extractor hum drone." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer (per tile, or level-of-detail blocks when zoomed far out), highlights, the Trail, extractors, particles, the player, floating text, flyers, day/night lighting, joystick, compass hint and prompts." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: initAudio, unlockAudio, gatherSound, impact, collectSound, fanfare"
+                        "ref" "src/game/render/"
                     }
                 }
 
-                sav = component "Save Glue and Test Hook" "save()/load() to localStorage through Core serialize/deserialize (save on world change and every ~3s); version badge; window.MTE_GAME hook exposing state reads/mutations that the browser e2e suite drives." "JavaScript + localStorage" {
+                fx = component "Effects" "Particles, floating text and flyers (resources homing into the pack), with budgets and a flyer lifetime so bursts stay cheap." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: save, load, boot(), MTE_GAME"
+                        "ref" "src/game/effects.js"
+                    }
+                }
+
+                ui = component "HUD and Sheet" "Resource chips and rates, goal banner, the contextual thumb buttons, toasts, the controls tutorial, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond (locked preview until Embark is reachable)." "JavaScript" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/hud.js, src/game/sheet.js"
+                    }
+                }
+
+                audio = component "Audio" "A small WebAudio synth unlocked by the first gesture: per-material gather voices, collect/build/upgrade/fanfare cues and an extractor hum. Takes parameters, never reads game state." "JavaScript" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/audio.js"
+                    }
+                }
+
+                sav = component "Storage" "Guarded localStorage: load (migrating the legacy key), save, clear, and the tutorial-seen flag." "JavaScript + localStorage" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/storage.js"
                     }
                 }
             }
 
-            core = container "Simulation Core" "Pure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." "JavaScript (ES5, browser + Node)" {
+            core = container "Simulation Core" "The game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." "JavaScript modules (browser + Node)" {
                 tags "Core Engine"
                 properties {
-                    "files" "core.js"
-                    "invariant" "no DOM, no Date.now, no Math.random in step(); serializable state; dt clamped to 0.25s"
+                    "files" "src/core/"
+                    "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                world = component "World Generation (infinite)" "Endless, chunked world: terrain is a pure function of (x, y, seed) via valueNoise/fbm octaves, streamed in lazily in 16x16 chunks and LRU-cached, so there are no bounds, edges or wrapping. Tile types (T) and resource richness (rich/max, uniformly random with no distance ramp) are generated per chunk; sparse per-tile edits (mods) and per-chunk fog bitmasks (explored) live outside the cache so they persist. FindSpawn picks a random walkable birth tile near (0,0); nothing is sculpted." "JavaScript" {
+                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods) and surface fog live outside the cache." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: createWorld, getChunk, generateChunk, valueNoise, fbm, tileType, tileRich, findSpawn, snapshot, T"
+                        "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js"
                     }
                 }
 
-                state = component "State and Saves" "createState() builds the canonical state object; serialize/deserialize convert it to a JSON save (format v3: sparse richness deltas + per-chunk fog bitmasks; older v1/v2 saves are intentionally discarded and the world starts fresh). state.events is transient and NEVER serialized." "JavaScript" {
+                state = component "State and Saves" "createState() builds the state; serialize/deserialize write and validate a JSON save (format v4, with a v3 migration). state.events is transient and never saved." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: createState, serialize, deserialize, bytesToB64/b64ToBytes"
+                        "ref" "src/core/state.js, save.js"
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt) - the heart of the tick: extractor production into buffers, range-limited logistics auto-collect, abundance trickle, world regrowth (REGROW_INTERVAL 0.5s, only tiles near the player), time + stats. Called once per frame by the app and by every test." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): extractor production, range-limited logistics auto-collect on the player's layer, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: step(), REGROW_INTERVAL, resProdMult"
+                        "ref" "src/core/sim.js"
                     }
                 }
 
-                gather = component "Gathering and Collection" "Manual actions: gather() from a tile within GATHER_RANGE (1.65) using axe/pickaxe multipliers; collect() drains extractor buffers within COLLECT_RANGE (1.7). gatherTarget/collectTarget report what is actionable for the UI." "JavaScript" {
+                actions = component "Actions" "Harvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus entering, leaving and descending through the mine layers. All work on the player's own layer." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: gather, gatherYield, gatherTarget, collect, collectTarget"
+                        "ref" "src/core/actions.js, underground.js"
                     }
                 }
 
-                build = component "Extractors and Building" "place()/buildTarget()/occupied(); EXTRACTORS catalog (rates, buffer caps, base costs, required deposit tile or any-land blueprint-gated converters); extractor cost scaling; blueprint unlocks gate foundry/brickyard/sapling/observatory." "JavaScript" {
+                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share. Also embark/prestige and the goal track." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: place, buildTarget, EXTRACTORS, extractorCost, hasExtractor"
-                    }
-                }
-
-                logistics = component "Logistics and Auto-Collect" "When unlocked, step() drains whole units from any extractor within AUTO_COLLECT_RANGE (3.0 tiles) of the player and pushes a transient {res, amt, x, y} event so the UI can animate the flow. Walking away stops collection: buffers just fill and cap until you return." "JavaScript" {
-                    tags "Core Engine"
-                    properties {
-                        "ref" "core.js: step() logistics branch, AUTO_COLLECT_RANGE, state.events"
-                    }
-                }
-
-                tech = component "Tools, Upgrades and Unlocks" "TOOLS level table (axe/pickaxe/boots/overclock), UNLOCKS (logistics, blueprints, abundance engine), buyUpgrade/upgradeInfo, canAfford/pay/costText. The Progression map (PATH_FAMILIES + pathNode/pathNodes/pathProgress) is a pure, DOM-free lens over these. overclockMult multiplies ALL extractor production." "JavaScript" {
-                    tags "Core Engine"
-                    properties {
-                        "ref" "core.js: TOOLS, UNLOCKS, PATH_FAMILIES, pathProgress, buyUpgrade, overclockMult, moveMult"
-                    }
-                }
-
-                refinery = component "Refineries and Abundance" "Per-resource chains (RES_UPGRADES: Silviculture/Masonry/Metallurgy/Crystallurgy), repeatable Abundance Engine levels + trickle, EXTRACTOR_GROWTH 1.65; resProdMult folds overclock + refinery + abundance + legacy multipliers together." "JavaScript" {
-                    tags "Core Engine"
-                    properties {
-                        "ref" "core.js: RES_UPGRADES, buyResUpgrade, resProdMult, abundanceMult/abundanceTrickle"
-                    }
-                }
-
-                prestige = component "Prestige and Perks" "Embark resets the world and banks Insight (gated by EMBARK_MIN_TOTAL 20000 lifetime resources); perks legacy/nomad/memory/heirloom/cartographer; legacyMult (x1.25/level) and nomadMult scale production and movement." "JavaScript" {
-                    tags "Core Engine"
-                    properties {
-                        "ref" "core.js: embark, canEmbark, lifetimeTotal, PERKS, legacyMult, nomadMult"
-                    }
-                }
-
-                goals = component "Goals, Stats and Clock" "GOALS list + goalIndex progression; stats counters (wood/stone/ore/crystal/gathers/collected/playedMs); the day/night clock (pure daylight() over DAY_LENGTH 240s); exploration radius (EXPLORE_RADIUS 6) and movement physics (BASE_SPEED 3.7, move, canStand, onWater, boots speed)." "JavaScript" {
-                    tags "Core Engine"
-                    properties {
-                        "ref" "core.js: GOALS, stats, daylight, move, updateExplored"
+                        "ref" "src/core/content.js, economy.js, upgrades.js, goals.js, state.js"
                     }
                 }
             }
         }
 
         // ------------------------------------------ dev tooling (system)
-        tools = softwareSystem "Development Tooling" "Test harnesses that verify the game locally and in CI. Both suites are plain Node scripts with zero dependencies." {
+        tools = softwareSystem "Development Tooling" "Test harnesses and the deploy pipeline. Zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 187 checks covering infinite world gen, economy, logistics range, progression-map resolvers (family registry as single source of truth + node states), save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
+            coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." "Node.js 20+" {
                 tags "Tooling, Test"
                 properties {
-                    "file" "test/core.test.js"
+                    "file" "test/unit/"
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 82 checks covering flyer visuals, the Progression map (family headers, always-visible Beyond + its locked preview), audio unlock on the first gesture, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"
@@ -160,45 +146,38 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------------ relationships
-        // people <-> systems
         player -> mte.app "Plays in a mobile/desktop browser"
         dev -> tools.coreTests "Runs and extends"
         dev -> tools.e2e "Runs and extends"
 
-        // containers
-        mte.app -> mte.core "Drives moves/gathers/builds/upgrades and reads state every frame"
+        mte.app -> mte.core "Drives actions and step(); reads state every frame"
         mte.core -> mte.app "Returns state; emits transient events on auto-collect"
-        tools.coreTests -> mte.core "Requires core.js via module.exports and steps it directly"
+        tools.coreTests -> mte.core "Imports src/core/index.js and steps it directly"
         tools.e2e -> mte.app "Loads index.html; asserts through window.MTE_GAME"
 
-        // app components -> core (reads/drives)
-        mte.app.input -> mte.core.state "Reads gatherTarget/collectTarget each frame"
-        mte.app.input -> mte.core.step "Calls step(state, dt) every frame"
-        mte.app.input -> mte.core.gather "gather()/collect() for the manual action button"
-        mte.app.render -> mte.core.state "Reads the world/player each frame for drawing"
-        mte.app.ui -> mte.core.state "Reads economy/goals for display"
+        mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
+        mte.app.input -> mte.app.camera "Unprojects pointers; zooms"
+        mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
+        mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
+        mte.app.main -> mte.app.render "Renders each frame"
+        mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+        mte.app.controller -> mte.core.economy "buy, embark"
+        mte.app.controller -> mte.app.fx "Spawns effects"
+        mte.app.controller -> mte.app.audio "Plays cues"
+        mte.app.controller -> mte.app.ui "Updates the HUD; toasts"
+        mte.app.controller -> mte.app.sav "Schedules saves"
+        mte.app.render -> mte.app.camera "Projects every draw"
+        mte.app.render -> mte.core.world "Reads tiles of the camera's layer"
+        mte.app.ui -> mte.core.economy "Reads the upgrade registry and costs"
+        mte.app.sav -> mte.core.state "serialize/deserialize"
 
-        // core components -> state (mutations)
-        mte.core.step -> mte.core.logistics "Drives the range-limited auto-collect branch"
-        mte.core.step -> mte.core.state "Mutates buffers/stats/time each tick"
-        mte.core.logistics -> mte.core.state "Pushes transient {res, amt, x, y} events"
-        mte.core.gather -> mte.core.state "Credits inventory + stats"
-        mte.core.build -> mte.core.state "Builds extractors on the shared state"
-        mte.core.tech -> mte.core.state "Applies upgrades/unlocks"
-        mte.core.refinery -> mte.core.state "Applies refinery/abundance levels"
-        mte.core.prestige -> mte.core.state "Resets and reshapes the state on embark"
-        mte.core.goals -> mte.core.state "Writes goals/stats/exploration"
-
-        // app-internal flows (also feed the dynamic views)
-        mte.app.input -> mte.app.fx "Spawns flyers/FX when the player gathers or collects"
-        mte.app.fx -> mte.core.state "Drains transient state.events into flyers each frame"
-        mte.app.fx -> mte.app.render "Flyers are drawn before the night lighting pass"
-        mte.app.fx -> mte.app.sav "Schedules a save when the world changes"
-        mte.app.render -> mte.app.ui "Refreshes the HUD whenever the world changes"
-        mte.app.sav -> mte.core.state "serialize(state)/deserialize(save) for persistence"
+        mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
+        mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
+        mte.core.actions -> mte.core.economy "Yields and costs"
+        mte.core.state -> mte.core.world "Creates the world; saves its edits"
 
         // ------------------------------------------ deployment
-        deploymentEnvironment "Local Development" {
+        deploymentEnvironment "Production" {
 
             deploymentNode "Browser" "Mobile Safari or desktop Chrome." {
                 deploymentNode "Browser tab" "Runs the single-page game." {
@@ -207,13 +186,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            deploymentNode "Static Host" "Any static file server (python3 -m http.server, GitHub Pages, S3). No server-side logic." {
-                infrastructureNode "Static Files" "Serves index.html, style.css, version.js, core.js and game.js over HTTP(S)."
+            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies index.html, style.css and src/ and stamps a content hash onto every asset URL and module import." {
+                infrastructureNode "Static Files" "Serves the staged site over HTTPS."
             }
 
-            deploymentNode "Node.js 18+" "Developer machine / CI runner." {
+            deploymentNode "Node.js 20+" "Developer machine / CI runner." {
                 containerInstance tools.coreTests
-                deploymentNode "Headless Chrome" "Launched by the e2e harness via CDP (--headless=new, test profile)." {
+                deploymentNode "Headless Chrome" "Launched by the e2e harness via CDP." {
                     containerInstance tools.e2e
                 }
             }
@@ -250,27 +229,26 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
 
         dynamic mte.app "GameLoop" {
             title "Game Loop (one frame)"
-            mte.app.input -> mte.core.step "Calls step(state, dt) every frame"
-            mte.core.step -> mte.core.logistics "Auto-collects units within 3 tiles"
-            mte.core.logistics -> mte.core.state "Pushes {res, amt, x, y} events"
-            mte.app.input -> mte.app.fx "doGather/doCollect spawn flyers"
-            mte.app.fx -> mte.core.state "Drains events into flyers"
-            mte.app.fx -> mte.app.render "Draws flyers before the night pass"
-            mte.app.render -> mte.app.ui "Refreshes HUD when the world changes"
+            mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
+            mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+            mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
+            mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
+            mte.app.main -> mte.app.render "Renders each frame"
+            mte.app.render -> mte.app.camera "Projects every draw"
             autoLayout
         }
 
         dynamic mte.app "CollectFlow" {
-            title "Manual Collect / Gather"
-            mte.app.input -> mte.core.gather "gather() within range (collect() for COLLECT)"
-            mte.core.gather -> mte.core.state "Credits inventory + stats"
-            mte.app.input -> mte.app.fx "spawnGatherFX + spawnFlyers from the source tile"
-            mte.app.fx -> mte.app.sav "onWorldChanged() schedules a save"
-            mte.app.sav -> mte.core.state "serialize(state) to localStorage"
+            title "Tap to gather or dig"
+            mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
+            mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+            mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
+            mte.app.controller -> mte.app.fx "Spawns effects"
+            mte.app.controller -> mte.app.sav "Schedules saves"
             autoLayout
         }
 
-        deployment * "Local Development" "Deployment" {
+        deployment * "Production" "Deployment" {
             title "Deployment"
             include *
             autoLayout

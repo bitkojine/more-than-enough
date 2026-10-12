@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.19.0] - 2026-10-13
+
+### Changed
+- The world is now layered in one `(x, y, z)` coordinate system: the forest is
+  `z = 0` and each mine layer sits directly beneath it. Entering the mine drops
+  you into the rock under where you stand; each 16×16 area of a layer hides one
+  shaft, and descending lands you directly below it. Tunnels you dig stay put.
+- Tapping any reachable resource tile gathers it (previously only the nearest
+  one did), and tapping elsewhere underground walks there.
+- Rebuilt the code as ES modules: game rules in `src/core/` (pure,
+  deterministic, Node-testable) and the browser layer in `src/game/`. Every
+  purchase goes through one upgrade registry, and all drawing goes through a
+  single camera projection.
+- Unit tests moved to `node:test` (`npm test`); CI runs them before deploying.
+
+### Fixed
+- Holding Gather underground with nothing to dig no longer freezes autosave,
+  effects, toasts and goal checks for as long as the button is held.
+- While underground, the forest no longer reacts to your mine position:
+  Logistics stopped collecting from surface camps near the world origin, fog and
+  ore/crystal discovery stopped being revealed there, and regrowth no longer
+  happens around it.
+- Descending now requires standing within reach of the open shaft.
+- Regrowth is deterministic (no `Math.random` in the simulation).
+- An unreadable save now shows a notice instead of silently starting over.
+
+### Saves
+- Save format v4. v3 saves migrate automatically; a game saved inside the old
+  mine resumes at its forest entrance, at the same depth.
+
 ## [0.18.2] - 2026-10-12
 
 ### Fixed
