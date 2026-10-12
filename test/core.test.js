@@ -143,6 +143,10 @@ eq(res1.res, 'wood', 'gather returns wood');
 eq(res1.amount, 1, 'level-1 axe yields 1');
 eq(g.inv.wood, 1, 'wood added to inventory');
 eq(richAt(g, tgt.x, tgt.y), rich0 - 1, 'deposit decremented');
+var directGather = C.gatherAt(g, tgt.x, tgt.y);
+eq(directGather.x, tgt.x, 'sweep gathers the traced resource tile directly');
+eq(richAt(g, tgt.x, tgt.y), rich0 - 2, 'direct sweep decrements its selected deposit');
+eq(C.gatherAt(g, tgt.x + 10, tgt.y), null, 'direct sweep cannot gather outside reach');
 
 // upgrade the axe and check yield scaling
 g.inv.wood = 1000;

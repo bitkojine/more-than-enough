@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.16.0] - 2026-10-12
+
+### Added
+- **Freeform Trail sweep.** Hold Gather and draw anywhere across the world.
+  Gatherable tiles within reach that the stroke crosses are highlighted green;
+  releasing gathers those exact tiles. The controls tutorial explains the preview.
+- **Safe browser-test startup on macOS.** The E2E runner now refuses to launch
+  Chrome inside the Codex seatbelt sandbox, where macOS aborts during app
+  registration and opens a crash dialog. Outside the sandbox, failed Chrome
+  startup reports its exit status and captured diagnostic output.
+
+
 ## [0.15.2] - 2026-10-12
 
 ### Changed

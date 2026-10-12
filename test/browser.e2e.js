@@ -14,6 +14,11 @@ var CDP_PORT = 9400 + Math.floor(Math.random() * 400);
 var SHOT_DIR = process.env.MTE_SHOT_DIR || path.join(os.tmpdir(), 'mte-shots');
 var CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
+if (process.platform === 'darwin' && process.env.CODEX_SANDBOX === 'seatbelt') {
+  console.error('Browser E2E needs to run outside the macOS Codex sandbox. Chrome aborts during macOS app registration inside the sandbox; rerun this command in Terminal or approve unsandboxed execution.');
+  process.exit(2);
+}
+
 var failures = 0, checks = 0;
 function ok(cond, msg) { checks++; if (!cond) { failures++; console.log('  FAIL: ' + msg); } else { console.log('  ok: ' + msg); } }
 function eq(a, b, msg) { ok(a === b, msg + ' (got ' + JSON.stringify(a) + ', expected ' + JSON.stringify(b) + ')'); }
@@ -94,7 +99,11 @@ async function main() {
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     '--remote-debugging-port=' + CDP_PORT, '--user-data-dir=' + profile, 'about:blank'
-  ], { stdio: 'ignore', detached: true });
+  ], { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
+  var chromeStderr = '';
+  chrome.stderr.on('data', function (chunk) {
+    chromeStderr = (chromeStderr + chunk.toString()).slice(-4000);
+  });
 
   function cleanup() {
     try { process.kill(-chrome.pid, 'SIGKILL'); } catch (e) { }
@@ -107,9 +116,17 @@ async function main() {
 
   var version = null;
   for (var i = 0; i < 60; i++) {
+    if (chrome.exitCode !== null || chrome.signalCode) {
+      var details = chromeStderr.trim();
+      console.error('Chrome exited before its DevTools endpoint was ready (' + (chrome.signalCode || 'exit ' + chrome.exitCode) + ').' + (details ? '\n' + details : ''));
+      process.exit(2);
+    }
     try { version = await httpJson('http://127.0.0.1:' + CDP_PORT + '/json/version'); break; } catch (e) { await sleep(250); }
   }
-  if (!version) { console.log('Could not start Chrome'); process.exit(2); }
+  if (!version) {
+    console.error('Chrome did not expose its DevTools endpoint within 15 seconds.' + (chromeStderr.trim() ? '\n' + chromeStderr.trim() : ''));
+    process.exit(2);
+  }
 
   var cdp = new CDP(version.webSocketDebuggerUrl);
   await cdp.ready();
@@ -281,13 +298,13 @@ async function main() {
     await touch('touchMove', [{ x: trailStart.x + (195 - trailStart.x) * trailStep / 8, y: trailStart.y + (422 - trailStart.y) * trailStep / 8, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
     await sleep(20);
   }
-  ok(await evalJS('document.getElementById("trailHint").textContent.indexOf("release to sweep") >= 0'), 'Trail shows a release cue after its trace locks onto a gatherable tile');
+  ok(await evalJS('document.getElementById("trailHint").textContent.indexOf("green tile") >= 0 && document.getElementById("trailHint").textContent.indexOf("release to sweep") >= 0'), 'Trail counts the green resource tiles its freeform trace will sweep');
   var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=615;yy<=645;yy+=2)for(var xx=245;xx<=265;xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
   ok(trailGlow, 'live Trail stroke paints visibly on the map');
   await touch('touchEnd', []);
   await sleep(180);
   var trailEndInv = JSON.parse(await stateSummary()).inv.wood;
-  ok(trailEndInv > trailStartInv + 1, 'releasing a locked Trail gathers the highlighted resource (' + trailStartInv + ' -> ' + trailEndInv + ')');
+  ok(trailEndInv > trailStartInv + 1, 'releasing a Trail gathers its highlighted resource tiles (' + trailStartInv + ' -> ' + trailEndInv + ')');
   var tapGatherBefore = trailEndInv;
   await tap(195, 422);
   await sleep(150);

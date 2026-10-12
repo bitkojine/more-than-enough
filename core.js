@@ -542,16 +542,25 @@
     return best;
   }
 
+  function gatherAt(s, x, y) {
+    var tx = Math.floor(x), ty = Math.floor(y);
+    var type = tileType(s.world, tx, ty);
+    var res = TILE_RESOURCE[type];
+    if (!res || tileRich(s.world, tx, ty) <= 0) return null;
+    var dx = tx + 0.5 - s.player.x, dy = ty + 0.5 - s.player.y;
+    if (dx * dx + dy * dy > GATHER_RANGE * GATHER_RANGE) return null;
+    var amount = gatherYield(s, res);
+    var cur = tileRich(s.world, tx, ty) - 1;
+    setTileRich(s.world, tx, ty, cur < 0 ? 0 : cur);
+    s.inv[res] += amount;
+    s.stats[res] += amount;
+    s.stats.gathers += 1;
+    return { res: res, amount: amount, x: tx, y: ty };
+  }
+
   function gather(s) {
     var tgt = gatherTarget(s);
-    if (!tgt) return null;
-    var amount = gatherYield(s, tgt.res);
-    var cur = tileRich(s.world, tgt.x, tgt.y) - 1;
-    setTileRich(s.world, tgt.x, tgt.y, cur < 0 ? 0 : cur);
-    s.inv[tgt.res] += amount;
-    s.stats[tgt.res] += amount;
-    s.stats.gathers += 1;
-    return { res: tgt.res, amount: amount, x: tgt.x, y: tgt.y };
+    return tgt ? gatherAt(s, tgt.x, tgt.y) : null;
   }
 
   /* ------------------------------------------------------------ collect */
@@ -1071,7 +1080,7 @@
     tileRich: tileRich, tileMax: tileMax, setTileRich: setTileRich,
     isExplored: isExplored, markExplored: markExplored,
     createState: createState, updateExplored: updateExplored,
-    gatherTarget: gatherTarget, gather: gather, gatherYield: gatherYield,
+    gatherTarget: gatherTarget, gather: gather, gatherAt: gatherAt, gatherYield: gatherYield,
     collectTarget: collectTarget, collect: collect,
     buildTarget: buildTarget, place: place, occupied: occupied,
     upgradeInfo: upgradeInfo, buyUpgrade: buyUpgrade, canAfford: canAfford, pay: pay, costText: costText,

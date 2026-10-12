@@ -129,5 +129,10 @@ node test/core.test.js      # infinite worldgen, gathering, crafting, automation
 node test/browser.e2e.js    # real Chrome: boot, render, keyboard+touch movement, gather, upgrade, build, reload-save
 ```
 
+On macOS, run the browser E2E command from Terminal or approve unsandboxed
+execution when prompted. Chrome aborts during macOS app registration when
+launched inside the Codex seatbelt sandbox; the test detects that case and
+stops before opening Chrome.
+
 The browser test launches its own local server and headless Chrome and cleans up
 after itself.

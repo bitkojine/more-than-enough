@@ -535,7 +535,7 @@
   function beginTrail(e) {
     if (!actDown || trail || sheetOpen) return;
     trail = { id: e.pointerId, points: [], leftButton: false };
-    elTrailHint.textContent = 'Trace over a glowing resource tile';
+    elTrailHint.textContent = 'Draw anywhere · green tiles will sweep';
     elTrailHint.classList.add('active');
     var p = canvasPoint(e);
     joy.active = false; joy.x = 0; joy.y = 0;
@@ -551,31 +551,24 @@
 
   function finishTrail() {
     if (!trail) return;
-    var points = trail.points;
+    var targets = trailTargets();
     trail = null;
     elTrailHint.classList.remove('active');
-    if (points.length < 5) return;
+    if (targets.length === 0) { toast('No green tiles crossed'); return; }
     var gathered = 0;
-    var lastKey = '';
-    for (var i = 0; i < points.length; i++) {
-      var tx = Math.floor(points[i].x), ty = Math.floor(points[i].y);
-      var key = tx + ',' + ty;
-      if (key === lastKey) continue;
-      lastKey = key;
-      var target = Core.gatherTarget(state);
-      if (!target || target.x !== tx || target.y !== ty) continue;
-      var result = Core.gather(state);
+    for (var i = 0; i < targets.length; i++) {
+      var result = Core.gatherAt(state, targets[i].x, targets[i].y);
       if (result && result.amount > 0) {
         gathered += result.amount;
         gatherSound(result.res, result.amount);
-        spawnFlyers(tx, ty, result.res, result.amount);
+        spawnFlyers(result.x, result.y, result.res, result.amount);
       }
     }
     if (gathered > 0) {
       floatText('Trail +' + fmt(gathered), '#b8ec9a');
       onWorldChanged();
       toast('Trail gathered ' + fmt(gathered) + ' resources');
-    } else toast('Trace across resource tiles within reach');
+    } else toast('Draw across green tiles to sweep them');
   }
 
   function pointerOutsideActionButton(e) {
@@ -627,20 +620,39 @@
     e.preventDefault();
   }
 
-  function trailCrossesGatherTarget() {
-    if (!trail || !trail.leftButton) return false;
-    var target = Core.gatherTarget(state);
-    if (!target) return false;
-    for (var i = 0; i < trail.points.length; i++) {
-      if (Math.floor(trail.points[i].x) === target.x && Math.floor(trail.points[i].y) === target.y) return true;
+  function trailTargets() {
+    if (!trail || !trail.leftButton || !trail.points.length) return [];
+    var px = state.player.x, py = state.player.y;
+    var reach = Core.GATHER_RANGE * Core.GATHER_RANGE;
+    var targets = [];
+    for (var y = Math.floor(py) - 2; y <= Math.floor(py) + 2; y++) {
+      for (var x = Math.floor(px) - 2; x <= Math.floor(px) + 2; x++) {
+        var type = Core.tileType(state.world, x, y);
+        if (!Core.TILE_RESOURCE[type] || Core.tileRich(state.world, x, y) <= 0) continue;
+        var cx = x + 0.5, cy = y + 0.5;
+        var dx = cx - px, dy = cy - py;
+        if (dx * dx + dy * dy > reach) continue;
+        for (var i = 0; i < trail.points.length; i++) {
+          var a = trail.points[i], b = trail.points[Math.min(i + 1, trail.points.length - 1)];
+          var sx = b.x - a.x, sy = b.y - a.y;
+          var len2 = sx * sx + sy * sy;
+          var t = len2 ? Math.max(0, Math.min(1, ((cx - a.x) * sx + (cy - a.y) * sy) / len2)) : 0;
+          var ox = cx - (a.x + t * sx), oy = cy - (a.y + t * sy);
+          if (ox * ox + oy * oy <= 0.6 * 0.6) {
+            targets.push({ x: x, y: y, res: Core.TILE_RESOURCE[type] });
+            break;
+          }
+        }
+      }
     }
-    return false;
+    return targets;
   }
 
   function updateTrailHint() {
-    elTrailHint.textContent = trailCrossesGatherTarget()
-      ? 'Resource locked on · release to sweep'
-      : 'Trace over a glowing resource tile';
+    var count = trailTargets().length;
+    elTrailHint.textContent = count
+      ? count + (count === 1 ? ' green tile · release to sweep' : ' green tiles · release to sweep')
+      : 'Draw anywhere · green tiles will sweep';
   }
 
   function onPointerUp(e) {
@@ -1906,13 +1918,13 @@
   function drawTrailPreview() {
     if (!trail || !trail.points.length) return;
     var points = trail.points;
-    var target = trailCrossesGatherTarget() ? Core.gatherTarget(state) : null;
+    var targets = trailTargets();
     ctx.save();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = target ? 'rgba(157,255,117,0.95)' : 'rgba(120,232,255,0.88)';
+    ctx.strokeStyle = targets.length ? 'rgba(157,255,117,0.95)' : 'rgba(120,232,255,0.88)';
     ctx.lineWidth = Math.max(5, Math.min(12, tilePx * 0.18));
-    ctx.shadowColor = target ? 'rgba(143,255,88,0.9)' : 'rgba(88,215,255,0.85)';
+    ctx.shadowColor = targets.length ? 'rgba(143,255,88,0.9)' : 'rgba(88,215,255,0.85)';
     ctx.shadowBlur = 18;
     ctx.beginPath();
     for (var i = 0; i < points.length; i++) {
@@ -1923,11 +1935,12 @@
     }
     ctx.stroke();
     var end = points[points.length - 1];
-    ctx.fillStyle = target ? '#caff9b' : '#b9f3ff';
+    ctx.fillStyle = targets.length ? '#caff9b' : '#b9f3ff';
     ctx.beginPath();
     ctx.arc(end.x * tilePx - camX, end.y * tilePx - camY, Math.max(7, tilePx * 0.17), 0, 6.283);
     ctx.fill();
-    if (target) {
+    for (var j = 0; j < targets.length; j++) {
+      var target = targets[j];
       ctx.fillStyle = 'rgba(149,255,104,0.25)';
       roundRect(target.x * tilePx - camX + 2, target.y * tilePx - camY + 2, tilePx - 4, tilePx - 4, Math.min(9, tilePx * 0.2));
       ctx.fill();
