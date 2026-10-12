@@ -18,6 +18,7 @@ html, body {
   background: #05070a;
   overscroll-behavior: none;
   touch-action: none;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
   -webkit-user-select: none; user-select: none;
   -webkit-touch-callout: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -80,9 +81,9 @@ canvas#game {
   background: var(--panel);
   border: 1px solid var(--panel-line);
   border-radius: 13px;
-  padding: 5px 8px;
+  padding: 5px 9px;
   display: flex; align-items: center; gap: 5px;
-  min-width: 74px;
+  min-width: 78px;
   -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
   box-shadow: 0 2px 10px rgba(0,0,0,0.35);
 }
@@ -93,10 +94,10 @@ canvas#game {
   font-variant-numeric: tabular-nums;
 }
 .chip .lbl {
-  font-size: 9px; color: var(--ink-dim);
-  text-transform: uppercase; letter-spacing: 0.05em;
+  font-size: 10px; color: var(--ink-dim);
+  text-transform: uppercase; letter-spacing: 0.04em;
 }
-.chip .rate { font-size: 10px; color: var(--green); font-weight: 700; margin-left: 1px; }
+.chip .rate { font-size: 10.5px; color: var(--green); font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
 
 #goal {
   pointer-events: none;
@@ -129,7 +130,7 @@ canvas#game {
   gap: 0; line-height: 1;
   padding: 0;
   pointer-events: auto;
-  touch-action: none;
+  touch-action: manipulation;
   -webkit-user-select: none; user-select: none;
   box-shadow: 0 4px 16px rgba(0,0,0,0.45);
   transition: transform .08s ease, background .12s ease;
@@ -140,7 +141,13 @@ canvas#game {
   font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em;
   color: #b9c8b6; margin-top: 3px;
 }
-.btn.ready { border-color: rgba(127, 208, 122, 0.5); }
+.btn.ready { border-color: rgba(127, 208, 122, 0.5); animation: readyPulse 1.6s ease-in-out infinite; }
+.btn.ready:active { animation: none; }
+
+@keyframes readyPulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 0 rgba(127,208,122,0.28); }
+  50% { box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 7px rgba(127,208,122,0); }
+}
 
 #btnAction {
   right: 14px;
@@ -181,6 +188,20 @@ canvas#game {
 }
 #sheet.open { transform: translateY(0); }
 
+#sheetGrab {
+  flex: 0 0 auto;
+  height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: grab;
+  touch-action: none;
+}
+#sheetGrab span {
+  width: 40px; height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+}
+#sheetGrab:active span { background: rgba(255, 255, 255, 0.4); }
+
 #sheetHead {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 10px 8px;
@@ -190,21 +211,23 @@ canvas#game {
 #tabs { display: flex; gap: 6px; flex: 1; }
 .tab {
   flex: 1;
-  min-height: 42px;
+  min-height: 44px;
   border-radius: 11px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.04);
   color: var(--ink-dim);
   font-size: 14px; font-weight: 800;
+  touch-action: manipulation;
 }
 .tab.active { color: var(--ink); background: rgba(80, 130, 90, 0.35); border-color: rgba(127,208,122,0.5); }
 
 #btnClose {
-  width: 42px; height: 42px;
-  border-radius: 11px;
+  width: 44px; height: 44px;
+  border-radius: 12px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.05);
   color: var(--ink); font-size: 24px; line-height: 1;
+  touch-action: manipulation;
 }
 
 #sheetBody {
@@ -224,6 +247,14 @@ canvas#game {
 .row .ic { font-size: 24px; width: 30px; text-align: center; flex: 0 0 auto; }
 .row .main { flex: 1 1 auto; min-width: 0; }
 .row .nm { font-size: 15px; font-weight: 800; color: var(--ink); }
+.row .nm .tag {
+  font-size: 10px; font-weight: 700; color: var(--ink-dim);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--panel-line);
+  border-radius: 999px;
+  padding: 1px 6px; margin-left: 4px;
+  vertical-align: 1px;
+}
 .row .sub { font-size: 11.5px; color: var(--ink-dim); margin-top: 2px; }
 .row .sub .cost { color: #e8d59a; }
 .row .sub .ok { color: var(--green); }
@@ -256,12 +287,13 @@ canvas#game {
 }
 #sheetFoot button {
   flex: 1;
-  min-height: 42px;
-  border-radius: 11px;
+  min-height: 44px;
+  border-radius: 12px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.04);
   color: var(--ink-dim);
   font-size: 13px; font-weight: 700;
+  touch-action: manipulation;
 }
 
 /* --------------------------------------------------------------- toast */
@@ -286,4 +318,20 @@ canvas#game {
   #hud { padding-top: 12px; }
   #goal { font-size: 14px; }
   .chip { min-width: 92px; }
+}
+
+/* Keyboard users get a clear focus ring; touch users never see it. */
+:focus-visible { outline: 2px solid rgba(127, 208, 122, 0.85); outline-offset: 2px; }
+
+/* Short screens (landscape phones): keep the map visible and controls reachable. */
+@media (max-height: 500px) {
+  #sheet { max-height: 84vh; }
+  #btnAction { width: 80px; height: 80px; }
+  #btnBuild { width: 58px; height: 58px; right: 104px; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
+  #btnUpgrade { width: 58px; height: 58px; right: 22px; bottom: calc(env(safe-area-inset-bottom, 0px) + 106px); }
+}
+
+/* Respect the OS "reduce motion" setting. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }

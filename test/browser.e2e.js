@@ -311,6 +311,74 @@ async function main() {
   ok(ri.minOreDist > 4 && ri.minOreDist < 40, 'ore requires venturing out');
   ok(ri.farAvg > ri.nearAvg, 'deposits are richer farther from spawn');
 
+  /* -------------------------------------------------- late-game UI */
+  console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
+  await evalJS('MTE_GAME.addRes("wood",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
+  await evalJS('document.getElementById("btnUpgrade").click()');
+  await sleep(300);
+  var resupRows = await evalJS('document.querySelectorAll("#sheetBody button[data-kind=resup]").length');
+  eq(resupRows, 4, 'four refinery-chain rows rendered');
+  ok(await evalJS('!!document.querySelector("#sheetBody button[data-id=abundance]")'), 'Abundance Engine row is levelable');
+  var woodBefore = await evalJS('MTE_GAME.getState().resUp.wood');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=resup][data-id=wood]").click()');
+  await sleep(200);
+  eq(await evalJS('MTE_GAME.getState().resUp.wood'), woodBefore + 1, 'clicking Refine advances the wood chain');
+  var abBefore = await evalJS('MTE_GAME.getState().abundanceLv');
+  await evalJS('document.querySelector("#sheetBody button[data-id=abundance]").click()');
+  await sleep(200);
+  eq(await evalJS('MTE_GAME.getState().abundanceLv'), abBefore + 1, 'Abundance Engine levels up on click');
+  await evalJS('document.getElementById("btnClose").click()');
+  await sleep(200);
+
+  await evalJS('document.getElementById("btnBuild").click()');
+  await sleep(300);
+  var foundryLocked = await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-id=foundry]");return b?{disabled:b.disabled,text:b.textContent}:null;})()');
+  ok(foundryLocked && foundryLocked.disabled, 'Foundry converter is locked until its blueprint is crafted');
+  await evalJS('document.getElementById("btnClose").click()');
+  await evalJS('document.getElementById("btnUpgrade").click()');
+  await sleep(250);
+  await evalJS('document.querySelector("#sheetBody button[data-kind=unlock][data-id=foundry]").click()');
+  await sleep(200);
+  ok(await evalJS('!!MTE_GAME.getState().unlocks.foundry'), 'Foundry blueprint unlocked from Upgrades');
+  await evalJS('document.getElementById("btnClose").click()');
+  await evalJS('MTE_GAME.setPlayer(48.5,48.5)');
+  await sleep(200);
+  await evalJS('document.getElementById("btnBuild").click()');
+  await sleep(250);
+  var extBefore = await evalJS('MTE_GAME.getState().extractors.length');
+  var canPlace = await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-id=foundry]");return b?!b.disabled:false;})()');
+  ok(canPlace, 'Foundry becomes place-able after unlock');
+  await evalJS('document.querySelector("#sheetBody button[data-id=foundry]").click()');
+  await sleep(250);
+  ok(await evalJS('MTE_GAME.getState().extractors.length') > extBefore, 'Foundry converter placed on open land');
+  await evalJS('document.getElementById("btnClose").click()');
+  await sleep(200);
+
+  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.wood=19000;s.stats.stone=1000;})()');
+  await sleep(500);
+  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'Beyond tab reveals once embark is within reach');
+  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+  await sleep(250);
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');
+  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled at 20k lifetime');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
+  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+  await sleep(200);
+  var legacyBefore = await evalJS('MTE_GAME.getState().perks.legacy');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=perk][data-id=legacy]").click()');
+  await sleep(150);
+  eq(await evalJS('MTE_GAME.getState().perks.legacy'), legacyBefore + 1, 'buying Legacy raises the perk level');
+  console.log('  screenshot: ' + await shot('04-beyond.png'));
+
+  await evalJS('window.confirm = function(){return true;}');
+  var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
+  await sleep(400);
+  var afterEmbark = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'));
+  eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
+  eq(afterEmbark.ext, 0, 'embark resets extractors');
+  ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
+
   /* ------------------------------------------------------------- errors */
   console.log('\n== Runtime errors ==');
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));

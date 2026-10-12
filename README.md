@@ -29,10 +29,15 @@ or any browser. Progress saves automatically to `localStorage`.
   resource tile directly. It becomes **COLLECT** when an extractor nearby has
   output ready.
 - **BUILD** places extractors on matching deposits (Lumber Camp on forest,
-  Quarry on stone, Mine on ore, Resonator on crystal).
-- **UPGRADE** spends resources on better tools, boots, overclocking, and two
-  unlocks: **Logistics** (extractors collect themselves) and the
-  **Abundance Engine** (+2/s of everything, forever).
+  Quarry on stone, Mine on ore, Resonator on crystal) and, once you craft the
+  blueprints, converter buildings on any land tile.
+- **UPGRADE** spends resources on better tools and boots, Overclock, the
+  repeatable **Abundance Engine**, per-resource **refinery chains**
+  (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks including the
+  converter blueprints.
+- The **Beyond** tab (once you're near your first embark) holds the prestige
+  loop: spend **Insight** on perks and **Embark** on a New World.
+- Swipe the sheet's **grab handle down** to close it.
 - A goal banner points you at the next milestone, and a faint compass arrow
   helps you find the next undiscovered resource.
 - **Water is swimable**: wade in and you'll ride a little raft to reach far

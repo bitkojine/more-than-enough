@@ -8,6 +8,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#05070a" />
+<meta name="format-detection" content="telephone=no" />
 <link rel="icon" href="data:," />
 <link rel="stylesheet" href="style.css" />
 </head>
@@ -16,7 +17,7 @@
 
   <div id="hud">
     <div id="resources"></div>
-    <div id="goal">Loading&hellip;</div>
+    <div id="goal" aria-live="polite">Loading&hellip;</div>
   </div>
 
   <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
@@ -34,10 +35,12 @@
   </div>
 
   <div id="sheet" aria-hidden="true">
+    <div id="sheetGrab" aria-hidden="true"><span></span></div>
     <div id="sheetHead">
       <div id="tabs">
         <button class="tab active" type="button" data-tab="upgrades">Upgrades</button>
         <button class="tab" type="button" data-tab="build">Build</button>
+        <button class="tab" id="tabBeyond" type="button" data-tab="beyond" hidden>Beyond</button>
       </div>
       <button id="btnClose" type="button" aria-label="Close">&times;</button>
     </div>
@@ -48,7 +51,7 @@
     </div>
   </div>
 
-  <div id="toast"></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 
   <script src="version.js"></script>
   <script src="core.js"></script>

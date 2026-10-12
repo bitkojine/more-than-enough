@@ -6,6 +6,33 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.7.0] - 2026-10-12
+
+### Added
+- **Late-game UI is now wired up** (the economy existed since 0.4.0 but had no
+  screen): the Upgrades tab shows the Abundance Engine as a repeatable,
+  levelable row plus the four refinery chains (Silviculture / Masonry /
+  Metallurgy / Crystallurgy); the Build tab lists the converter buildings
+  (Sapling Grove / Brickyard / Foundry / Observatory) with blueprint-locked
+  states; and a new **Beyond** tab exposes Insight, the five perks, and the
+  Embark (prestige) flow. The Beyond tab reveals itself once an embark is in
+  reach, so new players aren't overwhelmed.
+- HUD production rates now reflect real multipliers (refinery chains,
+  Overclock, Abundance, Legacy) instead of a fixed +2/s.
+
+### Changed — mobile-first UX pass
+- Bottom sheet gains a grab handle you can **swipe down to dismiss**.
+- Respects **prefers-reduced-motion**; visible **focus rings** for keyboard
+  users; `format-detection` and text-size-adjust hardening.
+- Larger touch targets (tabs/close/footer ≥44px), `touch-action: manipulation`
+  to remove tap delay, bigger chip labels, tabular numerals, and a gentle pulse
+  on the ready action button.
+- Landscape-phone layout tweaks; cost labels use compact k/M/B notation.
+
+### Tests
+- Browser e2e grew to 38 checks, now covering refinery purchases, converter
+  blueprint gating + placement, the Beyond tab, perk purchase, and embark.
+
 ## [0.6.0] - 2026-10-12
 
 ### Added

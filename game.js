@@ -29,6 +29,8 @@
   var elReset = document.getElementById('btnReset');
   var elMute = document.getElementById('btnMute');
   var elToast = document.getElementById('toast');
+  var elSheetGrab = document.getElementById('sheetGrab');
+  var elTabBeyond = document.getElementById('tabBeyond');
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
 
   /* ----------------------------------------------------------- state */
@@ -70,6 +72,16 @@
   }
 
   function fmt1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+
+  // Multipliers read best as "2.5" when small and "26.0k" when large.
+  function fmtMult(m) {
+    if (m >= 1000) return fmt(m);
+    return String(Math.round(m * 100) / 100);
+  }
+
+  function floatText(text, color) {
+    floats.push({ x: state.player.x, y: state.player.y - 0.4, vy: -1.1, life: 1.0, max: 1.0, text: text, color: color });
+  }
 
   function tv(x, y, s) {
     var h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 2246822519)) | 0;
@@ -550,15 +562,23 @@
   }
 
   function productionRates() {
-    var oc = Core.overclockMult(state);
     var rates = { wood: 0, stone: 0, ore: 0, crystal: 0 };
-    if (state.unlocks.abundance) { for (var i = 0; i < RESOURCES.length; i++) rates[RESOURCES[i]] += 2; }
     for (var j = 0; j < state.extractors.length; j++) {
       var e = state.extractors[j];
-      rates[e.res] += EXTRACTORS[e.key].rate * oc;
+      rates[e.res] += EXTRACTORS[e.key].rate * Core.resProdMult(state, e.res);
+    }
+    for (var i = 0; i < RESOURCES.length; i++) {
+      rates[RESOURCES[i]] += Core.abundanceTrickle(state, RESOURCES[i]);
     }
     return rates;
   }
+
+  // The Beyond tab is revealed once the player is close to (or past) their
+  // first embark, so brand-new players aren't overwhelmed.
+  function beyondUnlocked() {
+    return (state.insight || 0) > 0 || (state.prestiges || 0) > 0 || Core.canEmbark(state);
+  }
+  var lastBeyondUnlocked = false;
 
   function updateHud() {
     if (!state) return;
@@ -572,6 +592,12 @@
       chipEls[rr].rate.textContent = rates[rr] > 0.01 ? '+' + fmt1(rates[rr]) + '/s' : '';
     }
     elGoal.textContent = currentGoalText();
+    var bu = beyondUnlocked();
+    if (bu !== lastBeyondUnlocked) {
+      lastBeyondUnlocked = bu;
+      if (elTabBeyond) elTabBeyond.hidden = !bu;
+      if (!bu && currentTab === 'beyond') setTab('upgrades');
+    }
   }
 
   function updateActionButton() {
@@ -624,13 +650,14 @@
 
   function costHtml(cost) {
     var parts = [];
-    for (var r in cost) parts.push(cost[r] + ' ' + RESOURCE_ICON[r]);
+    for (var r in cost) parts.push(fmt(cost[r]) + ' ' + RESOURCE_ICON[r]);
     return parts.join(' ');
   }
 
   function renderSheet() {
     if (currentTab === 'upgrades') renderUpgrades();
-    else renderBuild();
+    else if (currentTab === 'build') renderBuild();
+    else renderBeyond();
   }
 
   function renderUpgrades() {
@@ -650,7 +677,7 @@
         if (nx.yield !== undefined) effect = 'yield ' + def.levels[lv - 1].yield + ' \u2192 <span class="ok">' + nx.yield + '</span>';
         else if (nx.mult !== undefined) {
           var cur = def.levels[lv - 1].mult;
-          effect = (id === 'boots' ? 'speed ' : 'output ') + cur + '\u00D7 \u2192 <span class="ok">' + nx.mult + '\u00D7</span>';
+          effect = (id === 'boots' ? 'speed ' : 'output ') + '&times;' + cur + ' \u2192 <span class="ok">&times;' + nx.mult + '</span>';
         }
         described = 'Level ' + lv + ' / ' + info.max + ' &middot; ' + effect + '<br><span class="' + (Core.canAfford(state.inv, info.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(info.cost) + '</span>';
       }
@@ -660,8 +687,39 @@
       html += row(def.icon, def.name, described, btn);
     }
 
-    html += '<div class="section">Unlocks</div>';
-    var unlockIds = ['logistics', 'abundance'];
+    // Abundance Engine — repeatable levels: +1/s passive, refineries ×1.5 each.
+    var ablv = state.abundanceLv || 0;
+    var acost = Core.abundanceCost(state);
+    var aafford = Core.canAfford(state.inv, acost);
+    var adesc = 'Level ' + ablv + ' &middot; +' + ablv + '/s of each resource';
+    if (ablv > 0) adesc += ' &middot; extractors &times;' + fmtMult(Core.abundanceMult(state));
+    adesc += '<br><span class="' + (aafford ? 'ok' : 'bad') + '">Cost: ' + costHtml(acost) + '</span>';
+    var abtn = '<button class="buy" data-kind="unlock" data-id="abundance"' + (aafford ? '' : ' disabled') + '>' + (ablv === 0 ? 'Build' : 'Level ' + (ablv + 1)) + '</button>';
+    html += '<div class="section">Abundance Engine</div>';
+    html += row(UNLOCKS.abundance.icon, UNLOCKS.abundance.name, adesc, abtn);
+
+    // Refinery chains — each level multiplies ALL production of one resource.
+    html += '<div class="section">Refinery Chains</div>';
+    for (var ri = 0; ri < RESOURCES.length; ri++) {
+      var rr = RESOURCES[ri];
+      var names = Core.RES_UPGRADE_NAMES[rr];
+      var rinfo = Core.resUpgradeInfo(state, rr);
+      var rsub;
+      if (rinfo.maxed) {
+        rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(Core.resUpgradeMul(state, rr)) + ' &mdash; MAX';
+      } else {
+        var curM = Core.resUpgradeMul(state, rr);
+        rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(curM) + ' \u2192 <span class="ok">&times;' + fmtMult(curM * rinfo.next.mult) + '</span>';
+        rsub += '<br><span class="' + (Core.canAfford(state.inv, rinfo.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(rinfo.cost) + '</span>';
+      }
+      var rbtn = rinfo.maxed
+        ? '<button class="buy max" disabled>MAX</button>'
+        : '<button class="buy" data-kind="resup" data-id="' + rr + '"' + (Core.canAfford(state.inv, rinfo.cost) ? '' : ' disabled') + '>Refine</button>';
+      html += row(names.icon, names.name + ' <span class="tag">' + RESOURCE_ICON[rr] + '</span>', rsub, rbtn);
+    }
+
+    html += '<div class="section">Unlocks &amp; Blueprints</div>';
+    var unlockIds = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
     for (var j = 0; j < unlockIds.length; j++) {
       var uid = unlockIds[j];
       var ud = UNLOCKS[uid];
@@ -679,25 +737,106 @@
 
   function renderBuild() {
     var html = '<div class="section">Extractors</div>';
-    var ids = ['lumber', 'quarry', 'mine', 'resonator'];
-    var oc = Core.overclockMult(state);
-    for (var i = 0; i < ids.length; i++) {
-      var id = ids[i];
+    var deposits = ['lumber', 'quarry', 'mine', 'resonator'];
+    var terrainName = { lumber: 'forest', quarry: 'stone', mine: 'ore', resonator: 'crystal' };
+    for (var i = 0; i < deposits.length; i++) {
+      var id = deposits[i];
       var def = EXTRACTORS[id];
       var count = Core.extractorCount(state, id);
       var cost = Core.extractorCost(state, id);
       var tgt = Core.buildTarget(state, id);
       var afford = Core.canAfford(state.inv, cost);
-      var rate = def.rate * oc;
-      var terrain = ['Forest', 'Stone', 'Ore', 'Crystal'][i];
+      var rate = def.rate * Core.resProdMult(state, def.res);
+      var terrain = terrainName[id];
       var sub;
-      if (!tgt) sub = '<span class="bad">Stand on / next to a ' + terrain + ' tile</span>';
-      else if (!afford) sub = 'On ' + terrain + ' \u00B7 +' + fmt1(rate) + ' ' + RESOURCE_ICON[def.res] + '/s<br><span class="bad">Cost: ' + costHtml(cost) + '</span>';
-      else sub = 'On ' + terrain + ' \u00B7 +' + fmt1(rate) + ' ' + RESOURCE_ICON[def.res] + '/s<br><span class="ok">Cost: ' + costHtml(cost) + '</span>';
+      if (!tgt) sub = '<span class="bad">Stand on / next to ' + terrain + '</span>';
+      else if (!afford) sub = 'On ' + terrain + ' &middot; +' + fmt1(rate) + ' ' + RESOURCE_ICON[def.res] + '/s<br><span class="bad">Cost: ' + costHtml(cost) + '</span>';
+      else sub = 'On ' + terrain + ' &middot; +' + fmt1(rate) + ' ' + RESOURCE_ICON[def.res] + '/s<br><span class="ok">Cost: ' + costHtml(cost) + '</span>';
       var btn = '<button class="buy" data-kind="build" data-id="' + id + '"' + (tgt && afford ? '' : ' disabled') + '>Place</button>';
-      html += row(def.icon, def.name + (count ? ' <span style="color:#8fd08a;font-size:12px">\u00D7' + count + '</span>' : ''), sub, btn);
+      html += row(def.icon, def.name + (count ? ' <span class="tag">\u00D7' + count + '</span>' : ''), sub, btn);
+    }
+
+    html += '<div class="section">Converters &middot; any land</div>';
+    var converts = ['sapling', 'brickyard', 'foundry', 'observatory'];
+    for (var c = 0; c < converts.length; c++) {
+      var cid = converts[c];
+      var cdef = EXTRACTORS[cid];
+      var locked = cdef.unlock && !state.unlocks[cdef.unlock];
+      var ccount = Core.extractorCount(state, cid);
+      var ccost = Core.extractorCost(state, cid);
+      var cafford = Core.canAfford(state.inv, ccost);
+      var csub;
+      if (locked) {
+        var bp = UNLOCKS[cdef.unlock];
+        csub = '<span class="bad">Locked \u2014 craft ' + (bp ? bp.name : 'a blueprint') + '</span>';
+      } else {
+        var ctgt = Core.buildTarget(state, cid);
+        var stat = 'On any land &middot; +' + fmt1(cdef.rate * Core.resProdMult(state, cdef.res)) + ' ' + RESOURCE_ICON[cdef.res] + '/s';
+        if (!ctgt) csub = stat + '<br><span class="bad">No open land around you</span>';
+        else csub = stat + '<br><span class="' + (cafford ? 'ok' : 'bad') + '">Cost: ' + costHtml(ccost) + '</span>';
+      }
+      var cbtn = locked
+        ? '<button class="buy" data-kind="build" data-id="' + cid + '" disabled>Locked</button>'
+        : '<button class="buy" data-kind="build" data-id="' + cid + '"' + (cafford && Core.buildTarget(state, cid) ? '' : ' disabled') + '>Place</button>';
+      html += row(cdef.icon, cdef.name + (ccount ? ' <span class="tag">\u00D7' + ccount + '</span>' : ''), csub, cbtn);
+    }
+
+    elSheetBody.innerHTML = html;
+  }
+
+  function renderBeyond() {
+    var gain = Core.embarkGain(state);
+    var lifetime = Math.floor((state.totalEver || 0) + Core.sumStats(state));
+
+    var html = '<div class="section">Insight</div>';
+    html += row('\u2728', fmt(state.insight || 0) + ' Insight',
+      'Prestiges: ' + (state.prestiges || 0) + ' &middot; Lifetime gathered: ' + fmt(lifetime), '');
+
+    html += '<div class="section">New World</div>';
+    var can = Core.canEmbark(state);
+    var esub = can
+      ? 'Reset the world, inventory and upgrades. Keep Insight &amp; perks, and gain <span class="ok">+' + fmt(gain) + '</span> Insight.'
+      : 'Reach ' + fmt(Core.EMBARK_MIN_TOTAL) + ' lifetime resources. Currently ' + fmt(lifetime) + '.';
+    var ebtn = '<button class="buy" data-kind="embark"' + (can ? '' : ' disabled') + '>' + (can ? 'Embark +' + fmt(gain) : 'Embark') + '</button>';
+    html += row('\uD83C\uDF0D', 'Embark', esub, ebtn);
+
+    html += '<div class="section">Perks</div>';
+    var keys = ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'];
+    for (var i = 0; i < keys.length; i++) {
+      var k = keys[i];
+      var d = Core.PERKS[k];
+      var owned = Core.perkOwned(state, k);
+      var cost = Core.perkCost(state, k);
+      var maxed = !d.repeat && owned;
+      var psub = d.desc + '<br>' + (maxed ? '<span class="ok">Active</span>'
+        : '<span class="' + ((state.insight || 0) >= cost ? 'ok' : 'bad') + '">' + cost + ' Insight</span>');
+      var pbtn = maxed
+        ? '<button class="buy max" disabled>OWNED</button>'
+        : '<button class="buy" data-kind="perk" data-id="' + k + '"' + ((state.insight || 0) >= cost ? '' : ' disabled') + '>' + (d.repeat && owned ? 'Level ' + (owned + 1) : 'Buy') + '</button>';
+      var tag = owned ? ' <span class="tag">' + (d.repeat ? 'Lv ' + owned : 'Owned') + '</span>' : '';
+      html += row(d.icon, d.name + tag, psub, pbtn);
     }
     elSheetBody.innerHTML = html;
+  }
+
+  function doEmbark() {
+    if (!Core.canEmbark(state)) {
+      toast('Reach ' + fmt(Core.EMBARK_MIN_TOTAL) + ' lifetime resources first');
+      return;
+    }
+    var gain = Core.embarkGain(state);
+    if (!window.confirm('Embark on a new world?\n\nYour world, inventory, extractors and upgrades reset. You keep Insight and perks, and gain ' + gain + ' Insight.')) return;
+    var res = Core.embark(state);
+    if (!res.ok) { toast(res.reason || 'Cannot embark'); return; }
+    state = res.state;
+    lastTileX = -1; lastTileY = -1;
+    particles = []; floats = []; moveTarget = null; hintDir = null; stall = 0;
+    actDown = false; lastBeyondUnlocked = false;
+    closeSheet();
+    updateHud(); updateHint(); save(true);
+    try { initAudio(); } catch (e) { /* audio optional */ }
+    fanfare();
+    toast('New world \u2014 gained ' + res.gained + ' Insight');
   }
 
   function row(icon, name, sub, button) {
@@ -715,9 +854,26 @@
       if (res.ok) {
         upgradeSound();
         updateDrone();
-        floats.push({ x: state.player.x, y: state.player.y - 0.4, vy: -1.1, life: 1.0, max: 1.0, text: '\u2726 UPGRADE', color: '#9fe08a' });
+        floatText('\u2726 UPGRADE', '#9fe08a');
       } else {
         toast(res.reason || 'Cannot craft');
+      }
+    } else if (kind === 'resup') {
+      var rr = Core.buyResUpgrade(state, id);
+      if (rr.ok) {
+        upgradeSound();
+        updateDrone();
+        floatText('\u2726 REFINE', '#9fe08a');
+      } else {
+        toast(rr.reason || 'Cannot refine');
+      }
+    } else if (kind === 'perk') {
+      var pk = Core.buyPerk(state, id);
+      if (pk.ok) {
+        upgradeSound();
+        floatText('\u2726 PERK', '#cbb0f0');
+      } else {
+        toast(pk.reason || 'Cannot buy perk');
       }
     } else if (kind === 'build') {
       var pr = Core.place(state, id);
@@ -729,6 +885,9 @@
       } else {
         toast(pr.reason || 'Cannot build');
       }
+    } else if (kind === 'embark') {
+      doEmbark();
+      return;
     }
     onWorldChanged();
     checkGoals();
@@ -761,6 +920,31 @@
   for (var ti = 0; ti < tabs.length; ti++) {
     tabs[ti].addEventListener('click', function (e) { setTab(e.currentTarget.dataset.tab); });
   }
+
+  // Swipe the sheet down (from its grab handle) to dismiss it.
+  (function () {
+    var dragging = false, startY = 0, dy = 0;
+    elSheetGrab.addEventListener('pointerdown', function (e) {
+      dragging = true; startY = e.clientY; dy = 0;
+      if (elSheetGrab.setPointerCapture) elSheetGrab.setPointerCapture(e.pointerId);
+      elSheet.style.transition = 'none';
+      e.preventDefault();
+    });
+    elSheetGrab.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      dy = Math.max(0, e.clientY - startY);
+      elSheet.style.transform = 'translateY(' + dy + 'px)';
+    });
+    function endDrag() {
+      if (!dragging) return;
+      dragging = false;
+      elSheet.style.transition = '';
+      elSheet.style.transform = '';
+      if (dy > 80) closeSheet();
+    }
+    elSheetGrab.addEventListener('pointerup', endDrag);
+    elSheetGrab.addEventListener('pointercancel', endDrag);
+  })();
 
   elReset.addEventListener('click', function () {
     if (!window.confirm('Start a brand new world? Current progress will be lost.')) return;
