@@ -38,7 +38,13 @@
   var elZoomOut = document.getElementById('btnZoomOut');
   var elZoomIn = document.getElementById('btnZoomIn');
   var elTrailHint = document.getElementById('trailHint');
+  var elTutorial = document.getElementById('tutorial');
+  var elTutorialClose = document.getElementById('tutorialClose');
+  var elTutorialDone = document.getElementById('tutorialDone');
+  var elHelp = document.getElementById('btnHelp');
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+
+  var TUTORIAL_KEY = 'more-than-enough-controls-tutorial-seen-v1';
 
   /* ----------------------------------------------------------- state */
 
@@ -141,6 +147,15 @@
     elToast.textContent = msg;
     elToast.classList.add('show');
     toastT = 1.6;
+  }
+
+  function closeTutorial() {
+    elTutorial.hidden = true;
+    try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch (e) { /* private mode */ }
+  }
+
+  function openTutorial() {
+    elTutorial.hidden = false;
   }
 
   var PAL = {};
@@ -1365,6 +1380,13 @@
     elMute.textContent = 'Sound: ' + (muted ? 'off' : 'on');
   });
 
+  elTutorialClose.addEventListener('click', closeTutorial);
+  elTutorialDone.addEventListener('click', closeTutorial);
+  elHelp.addEventListener('click', function () {
+    closeSheet();
+    openTutorial();
+  });
+
   /* -------------------------------------------------------------- save */
 
   function save(force) {
@@ -1382,6 +1404,12 @@
       if (s) return s;
     }
     return Core.createState((Math.random() * 4294967295) >>> 0);
+  }
+
+  function showTutorialForFirstVisit() {
+    var seen = false;
+    try { seen = localStorage.getItem(TUTORIAL_KEY) === '1'; } catch (e) { /* private mode */ }
+    if (!seen) openTutorial();
   }
 
   window.addEventListener('pagehide', function () { save(true); });
@@ -2063,6 +2091,7 @@
 
   function boot() {
     document.getElementById('verText').textContent = 'v' + (window.MTE_VERSION || '0.0.0');
+    showTutorialForFirstVisit();
     resize();
     buildChips();
     state = load();

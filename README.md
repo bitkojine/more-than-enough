@@ -29,6 +29,8 @@ on the Pages site, saves live in that browser for that origin).
 
 ## How to play
 
+- New players see a one-thumb controls tour on their first visit. Dismiss it
+  with **Got it** and reopen it anytime from **Controls help** in the sheet.
 - **One-thumb play:** drag anywhere to move (a virtual stick follows your thumb),
   or tap a spot to walk there. The bottom-right thumb dock keeps **GATHER / COLLECT**,
   **BUILD**, **UPGRADE**, and single-thumb zoom controls together within reach.

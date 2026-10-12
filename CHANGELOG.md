@@ -6,6 +6,13 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.14.0] - 2026-10-12
+
+### Added
+- **New-player controls tutorial.** First-time players get a one-thumb tour
+  covering movement, Gather/Collect, Trail, Build, Upgrade, and zoom. It can be
+  dismissed and reopened from Controls help in the sheet.
+
 ## [0.13.8] - 2026-10-12
 
 ### Changed
