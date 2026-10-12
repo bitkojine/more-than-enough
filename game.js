@@ -37,11 +37,15 @@
 
   var state = null;
   var W = 0, H = 0, dprMax = 2, tilePx = 48;
+  var baseTilePx = 48; // the 1x tile size for the current viewport
+  var zoom = 1;        // user pinch/wheel zoom multiplier (tilePx = baseTilePx * zoom)
   var camX = 0, camY = 0;
   var particles = [];
   var floats = [];
   var flyers = []; // gathered items homing in on the player
   var joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0 };
+  var pointers = {};                               // pointerId -> {x, y}, for pinch
+  var pinch = { active: false, dist: 0, zoom: 1 }; // two-finger pinch-zoom state
   var keys = {};
   var moveTarget = null;
   var stall = 0;
@@ -68,6 +72,13 @@
   var MAX_PARTICLES = 160;
   var MAX_FLYERS = 40;
   var FLYER_LIFE = 0.8; // seconds before a flyer force-lands
+
+  // Pinch-to-zoom. Zooming out is effectively unlimited: once tiles get smaller
+  // than LOD_PX the renderer switches to downsampled blocks, so the per-frame
+  // draw count stays bounded however far out you pinch.
+  var ZOOM_MAX = 3;    // 3x in
+  var MIN_TILE_PX = 3; // floor on tile size — the practical zoom-out limit
+  var LOD_PX = 10;     // below this tile size, draw level-of-detail blocks
 
   /* ----------------------------------------------------------- utils */
 
@@ -368,12 +379,47 @@
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
+  /* Two-finger pinch zoom (and mouse-wheel zoom). The camera always stays on the
+     player, so zoom simply scales tilePx around the player. */
+  function pointerCount() {
+    var n = 0;
+    for (var k in pointers) n++;
+    return n;
+  }
+
+  function pinchDistance() {
+    var ids = Object.keys(pointers);
+    if (ids.length < 2) return 0;
+    var a = pointers[ids[0]], b = pointers[ids[1]];
+    var dx = a.x - b.x, dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function setZoom(z) {
+    if (!(z > 0)) return;
+    var min = MIN_TILE_PX / baseTilePx;
+    if (z < min) z = min;
+    if (z > ZOOM_MAX) z = ZOOM_MAX;
+    zoom = z;
+    tilePx = baseTilePx * zoom;
+  }
+
   function onPointerDown(e) {
     initAudio();
     if (sheetOpen) return;
     if (e.button !== undefined && e.button !== 0) return;
     canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
     var p = canvasPoint(e);
+    pointers[e.pointerId] = { x: p.x, y: p.y };
+
+    if (pinch.active || pointerCount() >= 2) {
+      // A second finger means pinch-zoom, not a joystick drag.
+      joy.active = false; joy.x = 0; joy.y = 0;
+      if (!pinch.active) { pinch.active = true; pinch.dist = pinchDistance() || 1; pinch.zoom = zoom; }
+      e.preventDefault();
+      return;
+    }
+
     joy.active = true; joy.id = e.pointerId;
     joy.ox = p.x; joy.oy = p.y; joy.x = 0; joy.y = 0;
     joy.moved = 0; joy.t = performance.now();
@@ -381,6 +427,16 @@
   }
 
   function onPointerMove(e) {
+    var tracked = pointers[e.pointerId];
+    if (tracked) { var pp = canvasPoint(e); tracked.x = pp.x; tracked.y = pp.y; }
+
+    if (pinch.active) {
+      var d = pinchDistance();
+      if (d > 1) setZoom(pinch.zoom * (d / pinch.dist));
+      e.preventDefault();
+      return;
+    }
+
     if (sheetOpen || !joy.active || e.pointerId !== joy.id) return;
     var p = canvasPoint(e);
     var dx = p.x - joy.ox, dy = p.y - joy.oy;
@@ -402,6 +458,14 @@
   }
 
   function onPointerUp(e) {
+    if (pointers[e.pointerId]) delete pointers[e.pointerId];
+
+    if (pinch.active) {
+      if (pointerCount() < 2) pinch.active = false; // ignore the leftover finger
+      e.preventDefault();
+      return;
+    }
+
     if (!joy.active || e.pointerId !== joy.id) return;
     var wasTap = joy.moved < 14 && (performance.now() - joy.t) < 320;
     joy.active = false; joy.x = 0; joy.y = 0;
@@ -434,6 +498,11 @@
   canvas.addEventListener('pointermove', onPointerMove, { passive: false });
   canvas.addEventListener('pointerup', onPointerUp, { passive: false });
   canvas.addEventListener('pointercancel', onPointerUp, { passive: false });
+  canvas.addEventListener('wheel', function (e) {
+    if (sheetOpen) return;
+    e.preventDefault();
+    setZoom(zoom * Math.pow(1.0015, -e.deltaY));
+  }, { passive: false });
 
   window.addEventListener('keydown', function (e) {
     initAudio();
@@ -1071,7 +1140,8 @@
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(dprMax, 0, 0, dprMax, 0, 0);
-    tilePx = Math.max(34, Math.min(64, Math.min(W / 7.2, H / 11)));
+    baseTilePx = Math.max(34, Math.min(64, Math.min(W / 7.2, H / 11)));
+    setZoom(zoom); // keep the player's zoom across resizes, re-clamped
   }
   window.addEventListener('resize', resize);
   window.addEventListener('orientationchange', function () { setTimeout(resize, 120); });
@@ -1257,6 +1327,17 @@
     }
   }
 
+  // Far-zoom terrain: one flat block per `step` tiles, sampled at the block
+  // centre. No per-tile detail — that's the point; it keeps far zoom cheap.
+  function drawBlock(bx, by, step, ps) {
+    var tx = bx * step + (step >> 1);
+    var ty = by * step + (step >> 1);
+    var sx = bx * ps - camX, sy = by * ps - camY;
+    if (!Core.isExplored(state.world, tx, ty)) { ctx.fillStyle = '#04060a'; ctx.fillRect(sx, sy, ps + 1, ps + 1); return; }
+    ctx.fillStyle = shade(PAL[Core.tileType(state.world, tx, ty)], tv(tx, ty, 7));
+    ctx.fillRect(sx, sy, ps + 1, ps + 1);
+  }
+
   function drawGrass(sx, sy, u, x, y) {
     if (tv(x, y, 101) < 0.45) return;
     ctx.strokeStyle = 'rgba(150,185,110,0.35)';
@@ -1370,7 +1451,7 @@
   function drawPlayer() {
     var sx = state.player.x * tilePx - camX;
     var sy = state.player.y * tilePx - camY;
-    var r = tilePx * 0.27;
+    var r = Math.max(3, tilePx * 0.27); // stay visible when zoomed far out
     var bob = 0;
     if (Core.onWater(state)) {
       bob = Math.sin(state.time * 2.6 + state.player.x * 7.3) * tilePx * 0.04;
@@ -1617,7 +1698,8 @@
       var px = state.player.x * tilePx - camX;
       var py = state.player.y * tilePx - camY;
       var pool = Math.max(W, H) * 0.8;
-      var lit = Math.min(pool, tilePx * FLASHLIGHT_RADIUS);
+      // Keep the pool usable when zoomed far out, where tilePx * radius is tiny.
+      var lit = Math.min(pool, Math.max(tilePx * FLASHLIGHT_RADIUS, Math.min(W, H) * 0.28));
       var mid = lit + (pool - lit) * FLASHLIGHT_FALLOFF;
       var g = ctx.createRadialGradient(px, py, 0, px, py, pool);
       g.addColorStop(0, 'rgba(4,8,16,0)');
@@ -1644,13 +1726,20 @@
     ctx.fillRect(0, 0, W, H);
 
     // Endless world: draw whatever the (possibly negative) camera can see, with
-    // a one-tile margin so no seam shows at the edges.
-    var x0 = Math.floor(camX / tilePx) - 1;
-    var y0 = Math.floor(camY / tilePx) - 1;
-    var x1 = Math.ceil((camX + W) / tilePx) + 1;
-    var y1 = Math.ceil((camY + H) / tilePx) + 1;
-    for (var y = y0; y <= y1; y++) {
-      for (var x = x0; x <= x1; x++) drawTile(x, y, tilePx);
+    // a one-tile margin so no seam shows at the edges. When zoomed out past
+    // LOD_PX we sample one tile per block instead of every tile, so the draw
+    // count stays roughly constant however far the player pinches out.
+    var step = Math.max(1, Math.ceil(LOD_PX / tilePx));
+    var ps = tilePx * step;
+    var x0 = Math.floor(camX / ps) - 1;
+    var y0 = Math.floor(camY / ps) - 1;
+    var x1 = Math.ceil((camX + W) / ps) + 1;
+    var y1 = Math.ceil((camY + H) / ps) + 1;
+    for (var by = y0; by <= y1; by++) {
+      for (var bx = x0; bx <= x1; bx++) {
+        if (step === 1) drawTile(bx, by, tilePx);
+        else drawBlock(bx, by, step, ps);
+      }
     }
 
     drawHighlights();
@@ -1700,6 +1789,9 @@
     setPlayer: function (x, y) { state.player.x = x; state.player.y = y; lastTileX = -1; lastTileY = -1; },
     addRes: function (r, n) { state.inv[r] = (state.inv[r] || 0) + n; updateHud(); },
     flyers: function () { return flyers; },
+    zoom: function () { return zoom; },
+    tilePx: function () { return tilePx; },
+    setZoom: function (z) { setZoom(z); },
     core: Core
   };
 

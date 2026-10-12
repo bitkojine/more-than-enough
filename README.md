@@ -31,6 +31,10 @@ on the Pages site, saves live in that browser for that origin).
 
 - **DRAG anywhere** on the map to move (a virtual stick follows your thumb),
   or use **WASD / arrows** on desktop. Tapping a spot walks you there.
+- **PINCH with two fingers** to zoom out and take in more of the world, and
+  pinch back in to get close — the camera stays on you either way. On desktop,
+  scroll the mouse wheel. Zoom is bounded so it always stays smooth: 3x in, and
+  far enough out to see a whole explored region at once.
 - The big **GATHER** button is contextual: hold it to keep gathering, or tap a
   resource tile directly. It becomes **COLLECT** when an extractor nearby has
   output ready.

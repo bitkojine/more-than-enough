@@ -12,23 +12,23 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore a seeded world, gather wood/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JS." {
             tags "Game"
 
-            app = container "Web Application" "The presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." "HTML/CSS/JavaScript" {
+            app = container "Web Application" "The presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick + pinch zoom), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." "HTML/CSS/JavaScript" {
                 tags "Presentation"
                 properties {
                     "files" "index.html, style.css, game.js"
                 }
 
-                input = component "Input and Actions" "Keyboard (WASD/arrows + Space/B/U/C), touch joystick, tap-to-walk, and the contextual action button. doAction() picks COLLECT when an extractor is in manual range, otherwise GATHER; holding repeats every GATHER_CD (0.25s)." "JavaScript" {
+                input = component "Input and Actions" "Keyboard (WASD/arrows + Space/B/U/C), touch joystick, two-finger pinch zoom (mouse wheel on desktop), tap-to-walk, and the contextual action button. doAction() picks COLLECT when an extractor is in manual range, otherwise GATHER; holding repeats every GATHER_CD (0.25s)." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "game.js: doAction, doGather, doCollect, the actDown loop in update()"
                     }
                 }
 
-                render = component "Canvas Renderer" "drawTile/highlights/extractors/player, particles, floats, and flyers; camera follow; then the day/night lighting pass (applyLighting + auto flashlight pool) so the glow covers the flyers. Tiles are drawn only for the visible viewport." "JavaScript" {
+                render = component "Canvas Renderer" "drawTile/highlights/extractors/player, particles, floats, and flyers; camera follow; then the day/night lighting pass (applyLighting + auto flashlight pool) so the glow covers the flyers. Tiles are drawn only for the visible viewport, and once pinch-zoomed past LOD_PX it switches to downsampled blocks so far zoom stays cheap." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: render(), draw*, applyLighting(), FLASHLIGHT_* constants"
+                        "ref" "game.js: render(), draw*, drawBlock(), setZoom(), applyLighting(), FLASHLIGHT_* constants"
                     }
                 }
 
@@ -151,7 +151,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): covers flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, and range-limited logistics." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): covers flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, and pinch-to-zoom (in/out, clamps, far-zoom LOD)." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"

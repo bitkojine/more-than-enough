@@ -88,7 +88,7 @@ rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harn
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
   rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
-  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
+  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick + pinch zoom), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
 }
 
 Player --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Plays in a mobile/desktop browser"

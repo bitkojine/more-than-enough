@@ -84,7 +84,7 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
     rectangle "==Goals, Stats and Clock\n<size:16>[Component: JavaScript]</size>\n\nGOALS list + goalIndex progression; stats counters (wood/stone/ore/crystal/gathers/collected/playedMs); the day/night clock (pure daylight() over DAY_LENGTH 240s); exploration radius (EXPLORE_RADIUS 6) and movement physics (BASE_SPEED 3.7, move, canStand, onWater, boots speed)." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.GoalsStatsandClock
   }
 
-  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
+  rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick + pinch zoom), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
 }
 
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.StateandSaves <<Relationship-UmVsYXRpb25zaGlw>> : "Reads gatherTarget/collectTarget each frame"

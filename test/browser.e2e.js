@@ -488,6 +488,62 @@ async function main() {
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
   ok(await evalJS('MTE_GAME.getState().inv.wood') < 999999, 'reset wipes inventory into a fresh world');
 
+  /* ---------------------------------------------------- pinch to zoom */
+  console.log('\n== Pinch to zoom with two fingers ==');
+  await evalJS('MTE_GAME.setZoom(1)');
+  await sleep(150);
+  var tp0 = await evalJS('MTE_GAME.tilePx()');
+  eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100) / 100, 1, 'zoom starts at 1x (tile ' + Math.round(tp0) + 'px)');
+  var prePinch = JSON.parse(await stateSummary());
+
+  // Two fingers spread apart => zoom in (bigger tiles).
+  await touch('touchStart', [
+    { x: 195, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 1 },
+    { x: 255, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 2 }
+  ]);
+  await sleep(60);
+  await touch('touchMove', [
+    { x: 110, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 1 },
+    { x: 340, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 2 }
+  ]);
+  await sleep(150);
+  var tpIn = await evalJS('MTE_GAME.tilePx()');
+  ok(tpIn > tp0 * 1.5, 'pinching apart zooms in (' + Math.round(tp0) + ' -> ' + Math.round(tpIn) + 'px)');
+
+  // Squeeze the fingers together => zoom out, a long way.
+  await touch('touchMove', [
+    { x: 222, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 1 },
+    { x: 228, y: 320, radiusX: 5, radiusY: 5, force: 1, id: 2 }
+  ]);
+  await sleep(150);
+  var tpOut = await evalJS('MTE_GAME.tilePx()');
+  ok(tpOut < tp0, 'pinching together zooms out (' + Math.round(tpIn) + ' -> ' + tpOut.toFixed(1) + 'px)');
+  await touch('touchEnd', []);
+  await sleep(200);
+
+  var postPinch = JSON.parse(await stateSummary());
+  ok(postPinch.x === prePinch.x && postPinch.y === prePinch.y, 'pinching never moves the player');
+
+  // Far zoom-out stays cheap and keeps painting varied terrain. Reveal a wide
+  // area first so the downsampled blocks have real terrain to sample.
+  await evalJS('MTE_GAME.core.updateExplored(MTE_GAME.getState(), 120)');
+  await evalJS('MTE_GAME.setZoom(0.08)');
+  await sleep(300);
+  var farTp = await evalJS('MTE_GAME.tilePx()');
+  ok(farTp <= 4.5, 'can zoom far out to tiny tiles (' + farTp.toFixed(2) + 'px each)');
+  var far = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var seen={},lit=0;for(var i=0;i<d.length;i+=1600){var r=d[i],gg=d[i+1],b=d[i+2];if(r+gg+b>30){seen[(r>>4)+","+(gg>>4)+","+(b>>4)]=1;lit++;}}return JSON.stringify({colors:Object.keys(seen).length,lit:lit});})()'));
+  ok(far.lit > 0, 'world still renders when zoomed far out');
+  ok(far.colors >= 3, 'far zoom draws varied terrain, not one flat fill (' + far.colors + ' block colours)');
+  console.log('  screenshot: ' + await shot('06-zoom-out.png'));
+
+  // Zoom is clamped to a sane range at both ends.
+  await evalJS('MTE_GAME.setZoom(999)');
+  ok(await evalJS('MTE_GAME.zoom()') <= 3, 'zoom-in is capped at 3x');
+  await evalJS('MTE_GAME.setZoom(0.0001)');
+  ok(await evalJS('MTE_GAME.tilePx()') >= 3, 'zoom-out cannot shrink tiles below the floor');
+  await evalJS('MTE_GAME.setZoom(1)');
+  await sleep(120);
+
   /* ------------------------------------------------------------- errors */
   console.log('\n== Runtime errors ==');
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));

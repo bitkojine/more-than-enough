@@ -6,6 +6,25 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.11.0] - 2026-10-12
+
+### Added
+- **Pinch to zoom**. Squeeze or spread two fingers on the map to zoom out and
+  back in — far enough out to take in a whole explored region at once — with
+  the camera staying centred on the player. Mouse-wheel zoom works on desktop,
+  and the zoom level survives window resizes.
+- **Level-of-detail far rendering**: once tiles shrink below `LOD_PX` (10px),
+  the renderer draws downsampled blocks (sampled at each block's centre)
+  instead of every tile, so the per-frame draw count stays bounded however far
+  out you pinch. Zoom is clamped to `ZOOM_MAX` (3x) in
+  and a `MIN_TILE_PX` (3px) floor out, and the night flashlight pool and the
+  player sprite get matching floors so they stay visible when zoomed far out.
+
+### Testing
+- Browser e2e +9 checks (75 total, up from 66): a two-finger pinch zooms in then
+  out, a pinch never moves the player, far zoom still renders *varied* terrain
+  (not one flat fill), and both zoom clamps hold.
+
 ## [0.10.1] - 2026-10-12
 
 ### Fixed
