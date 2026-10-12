@@ -479,7 +479,7 @@
     var first = true;
     for (var r in gained) {
       if (gained[r] <= 0) continue;
-      floats.push({ x: state.player.x, y: state.player.y - 0.4, vy: -1.1, life: 1.0, max: 1.0, text: '+' + fmt(gained[r]) + ' ' + RESOURCE_ICON[r], color: RES_COLOR[r] });
+      floatText('+' + fmt(gained[r]) + ' ' + RESOURCE_ICON[r], RES_COLOR[r]);
       if (first) { collectSound(); first = false; }
     }
     onWorldChanged();

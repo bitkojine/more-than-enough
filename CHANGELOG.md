@@ -6,6 +6,14 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.9.3] - 2026-10-12
+
+### Refactor
+- **DRY the collect float text**: the gather/collect reward floats now reuse the
+  existing `floatText()` helper instead of duplicating its object literal —
+  identical output, one less copy of the same code. No behavior change (both
+  suites green).
+
 ## [0.9.2] - 2026-10-12
 
 ### Deployment
