@@ -1,9 +1,9 @@
 # MORE THAN ENOUGH
 
 A small, complete, mobile-first browser game about turning a hostile wilderness
-into an absurd surplus. Explore a seeded world, gather wood / stone / ore /
-crystal, craft better tools, automate with extractors, and chase the
-Abundance Engine.
+into an absurd surplus. Explore an endless, ever-different world, gather wood /
+stone / ore / crystal, craft better tools, automate with extractors, and chase
+the Abundance Engine.
 
 ## How to launch
 
@@ -53,8 +53,9 @@ on the Pages site, saves live in that browser for that origin).
   wood, stone, ore and crystal visibly **fly to you** as the count ticks up.
 - A goal banner points you at the next milestone, and a faint compass arrow
   helps you find the next undiscovered resource.
-- **Water is swimable**: wade in and you'll ride a little raft to reach far
-  islands — ore and crystal-rich lands were never closer.
+- **Water is swimmable**: wade in and you'll ride a little raft across seas,
+  and the world is beyond **endless** — no edge, no wall, no wrap. Keep walking
+  and it generates ahead of you, differently every world.
 - Past Abundance there's a whole late game: Blueprint-gated converter
   buildings (any land tile), per-resource refinery chains, repeatable
   Abundance Engine levels, and the **Beyond** tab — spend Insight on perks
@@ -69,8 +70,9 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 - **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long
   road; there is no rush to get there.
 - PATCH bumps = bug fixes, never break saves.
-- MINOR bumps = new features; saves migrate forward automatically
-  (save format `v1` → `v2` already happens).
+- MINOR bumps = new features. They may change the save format; **0.10.0 (the
+  endless world) discards pre-0.10.0 saves** and starts a fresh world. Earlier
+  minor bumps migrated saves forward automatically (e.g. `v1` → `v2`).
 - After each minor (or any notable) change, bump `MTE_VERSION` in
   `version.js`, update `CHANGELOG.md`, and commit.
 
@@ -79,13 +81,14 @@ The project is under git — commit early, commit often:
 ## Core loop
 
 Explore → gather → craft → explore farther → automate → scale → chase the next
-bottleneck. Wood and stone regrow near base; **ore and crystal are finite**, so
-automation handles what you've mastered and exploration reveals what you
-haven't.
+bottleneck. The map is infinite and fully random — wood, stone, ore and crystal
+are spread evenly with no distance ramp, so every direction is worth walking.
+Wood and stone regrow near where you stand; **ore and crystal never regrow**, so
+automation handles what you've mastered and exploration reveals what you haven't.
 
 ## Files
 
-- `core.js` — seeded world generation, economy, simulation, save/load (no DOM)
+- `core.js` — endless chunked world generation, economy, simulation, save/load (no DOM)
 - `game.js` — rendering, input (touch + keyboard), UI, persistence
 - `index.html`, `style.css` — shell and mobile-first styling
 - `test/core.test.js` — Node simulation tests
@@ -101,7 +104,7 @@ haven't.
 ## Tests
 
 ```sh
-node test/core.test.js      # worldgen, gathering, crafting, automation, movement, persistence, bot playthroughs
+node test/core.test.js      # infinite worldgen, gathering, crafting, automation, movement, persistence, bot playthroughs
 node test/browser.e2e.js    # real Chrome: boot, render, keyboard+touch movement, gather, upgrade, build, reload-save
 ```
 

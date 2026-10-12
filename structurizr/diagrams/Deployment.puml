@@ -86,7 +86,7 @@ hide stereotype
 rectangle "Browser\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as LocalDevelopment.Browser {
   rectangle "Browser tab\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as LocalDevelopment.Browser.Browsertab {
     rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript]</size>\n\nThe presentation layer (index.html + style.css + game.js). Owns the DOM, the canvas renderer, input (keyboard + touch joystick), audio, HUD/sheets, and localStorage save glue. Reads state from the Simulation Core every frame and only touches rules through the public Core API." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as LocalDevelopment.Browser.Browsertab.WebApplication_1
-    rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (seeded mulberry32 PRNG), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as LocalDevelopment.Browser.Browsertab.SimulationCore_1
+    rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as LocalDevelopment.Browser.Browsertab.SimulationCore_1
   }
 
 }
@@ -96,9 +96,9 @@ rectangle "Static Host\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxl
 }
 
 rectangle "Node.js 18+\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as LocalDevelopment.Nodejs18 {
-  rectangle "==Core Test Suite\n<size:16>[Container: Node.js 18+]</size>\n\nNode checks (test/core.test.js) driving the Simulation Core directly: 150 checks covering world gen, economy, logistics range, save/load/migration, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as LocalDevelopment.Nodejs18.CoreTestSuite_1
+  rectangle "==Core Test Suite\n<size:16>[Container: Node.js 18+]</size>\n\nNode checks (test/core.test.js) driving the Simulation Core directly: 151 checks covering infinite world gen, economy, logistics range, save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as LocalDevelopment.Nodejs18.CoreTestSuite_1
   rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as LocalDevelopment.Nodejs18.HeadlessChrome {
-    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 57 checks including flyer visuals, persistence across reload, the day/night flashlight, and range-limited logistics." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as LocalDevelopment.Nodejs18.HeadlessChrome.BrowserE2EHarness_1
+    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): covers flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, and range-limited logistics." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as LocalDevelopment.Nodejs18.HeadlessChrome.BrowserE2EHarness_1
   }
 
 }

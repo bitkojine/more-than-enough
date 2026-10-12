@@ -13,7 +13,7 @@ graph LR
 
         69["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html + style.css +<br />game.js). Owns the DOM, the<br />canvas renderer, input<br />(keyboard + touch joystick),<br />audio, HUD/sheets, and<br />localStorage save glue. Reads<br />state from the Simulation<br />Core every frame and only<br />touches rules through the<br />public Core API.</div>"]
         style 69 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        70["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript (ES5, browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Pure, DOM-free game engine<br />(core.js). All rules are<br />deterministic (seeded<br />mulberry32 PRNG), state is a<br />plain serializable object,<br />and there is no<br />date/random/draw code: the<br />module runs identically in<br />the browser and under Node<br />(module.exports) so tests can<br />step it directly.</div>"]
+        70["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript (ES5, browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Pure, DOM-free game engine<br />(core.js). All rules are<br />deterministic (terrain is a<br />pure positional hash of (x,<br />y, seed) — no shared RNG<br />stream — so chunk generation<br />is order-independent), state<br />is a plain serializable<br />object, and there is no<br />date/random/draw code: the<br />module runs identically in<br />the browser and under Node<br />(module.exports) so tests can<br />step it directly.</div>"]
         style 70 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
@@ -29,12 +29,12 @@ graph LR
     subgraph 75 ["Node.js 18+"]
       style 75 fill:#ffffff,stroke:#575757,color:#ffffff
 
-      76["<div style='font-weight: bold'>Core Test Suite</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 18+]</div><div style='font-size: 80%; margin-top:10px'>Node checks<br />(test/core.test.js) driving<br />the Simulation Core directly:<br />150 checks covering world<br />gen, economy, logistics<br />range, save/load/migration,<br />day/night, and full bot<br />playthroughs<br />(runBot/runFullBot with real<br />pathfinding + gathering).</div>"]
+      76["<div style='font-weight: bold'>Core Test Suite</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 18+]</div><div style='font-size: 80%; margin-top:10px'>Node checks<br />(test/core.test.js) driving<br />the Simulation Core directly:<br />151 checks covering infinite<br />world gen, economy, logistics<br />range, save/load/wipe,<br />day/night, and full bot<br />playthroughs<br />(runBot/runFullBot with real<br />pathfinding + gathering).</div>"]
       style 76 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       subgraph 78 ["Headless Chrome"]
         style 78 fill:#ffffff,stroke:#575757,color:#ffffff
 
-        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): 57 checks<br />including flyer visuals,<br />persistence across reload,<br />the day/night flashlight, and<br />range-limited logistics.</div>"]
+        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): covers flyer<br />visuals, fog reveal in the<br />endless world, persistence<br />across reload, the day/night<br />flashlight, and range-limited<br />logistics.</div>"]
         style 79 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       end
 

@@ -61,28 +61,28 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            core = container "Simulation Core" "Pure, DOM-free game engine (core.js). All rules are deterministic (seeded mulberry32 PRNG), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." "JavaScript (ES5, browser + Node)" {
+            core = container "Simulation Core" "Pure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." "JavaScript (ES5, browser + Node)" {
                 tags "Core Engine"
                 properties {
                     "files" "core.js"
                     "invariant" "no DOM, no Date.now, no Math.random in step(); serializable state; dt clamped to 0.25s"
                 }
 
-                world = component "World Generation" "Seeded 96x96 world: terrain via valueNoise/fbm octaves, tile types (T), resource richness (rich/max, richer farther out), forest clusters, flood-fill landmasses. Deterministic per seed; rich depletes as you gather." "JavaScript" {
+                world = component "World Generation (infinite)" "Endless, chunked world: terrain is a pure function of (x, y, seed) via valueNoise/fbm octaves, streamed in lazily in 16x16 chunks and LRU-cached, so there are no bounds, edges or wrapping. Tile types (T) and resource richness (rich/max, uniformly random with no distance ramp) are generated per chunk; sparse per-tile edits (mods) and per-chunk fog bitmasks (explored) live outside the cache so they persist. FindSpawn picks a random walkable birth tile near (0,0); nothing is sculpted." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: generateWorld, valueNoise, fbm, floodFill, T"
+                        "ref" "core.js: createWorld, getChunk, generateChunk, valueNoise, fbm, tileType, tileRich, findSpawn, snapshot, T"
                     }
                 }
 
-                state = component "State and Saves" "createState() builds the canonical state object; serialize/deserialize convert it to a base64 save (rich + explored maps; format v2 with v1 migration). state.events is transient and NEVER serialized." "JavaScript" {
+                state = component "State and Saves" "createState() builds the canonical state object; serialize/deserialize convert it to a JSON save (format v3: sparse richness deltas + per-chunk fog bitmasks; older v1/v2 saves are intentionally discarded and the world starts fresh). state.events is transient and NEVER serialized." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "core.js: createState, serialize, deserialize, bytesToB64/b64ToBytes"
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt) - the heart of the tick: extractor production into buffers, range-limited logistics auto-collect, abundance trickle, world regrowth (REGROW_INTERVAL 0.5s), time + stats. Called once per frame by the app and by every test." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt) - the heart of the tick: extractor production into buffers, range-limited logistics auto-collect, abundance trickle, world regrowth (REGROW_INTERVAL 0.5s, only tiles near the player), time + stats. Called once per frame by the app and by every test." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "core.js: step(), REGROW_INTERVAL, resProdMult"
@@ -144,14 +144,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools = softwareSystem "Development Tooling" "Test harnesses that verify the game locally and in CI. Both suites are plain Node scripts with zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 150 checks covering world gen, economy, logistics range, save/load/migration, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
+            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 151 checks covering infinite world gen, economy, logistics range, save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/core.test.js"
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 57 checks including flyer visuals, persistence across reload, the day/night flashlight, and range-limited logistics." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): covers flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, and range-limited logistics." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"

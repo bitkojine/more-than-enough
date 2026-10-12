@@ -80,7 +80,7 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
     rectangle "==Audio\n<size:16>[Component: JavaScript]</size>\n\nTiny WebAudio synth (unlocked on first pointer/key): gather/collect/build/fanfare sounds with per-resource pitches." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Audio
   }
 
-  rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (seeded mulberry32 PRNG), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
+  rectangle "==Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>\n\nPure, DOM-free game engine (core.js). All rules are deterministic (terrain is a pure positional hash of (x, y, seed) — no shared RNG stream — so chunk generation is order-independent), state is a plain serializable object, and there is no date/random/draw code: the module runs identically in the browser and under Node (module.exports) so tests can step it directly." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
 }
 
 MORETHANENOUGH.WebApplication.InputandActions --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Reads gatherTarget/collectTarget each frame"

@@ -221,6 +221,10 @@ async function main() {
 
   /* --------------------------------------------------------- movement */
   console.log('\n== Movement (keyboard) ==');
+  // Teleport to an open tile so the world is endless but this test isn't foiled
+  // by a rock/water tile that happens to sit next to the random spawn.
+  await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;function ok(x,y){return c.walkable(s.world,x,y);}for(var r=0;r<80;r++){for(var dy=-r;dy<=r;dy++){for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(ok(dx,dy)&&ok(dx+1,dy)&&ok(dx-1,dy)&&ok(dx,dy+1)&&ok(dx,dy-1)){MTE_GAME.setPlayer(dx+0.5,dy+0.5);return;}}}}})()');
+  await sleep(150);
   var before = JSON.parse(await stateSummary());
   await key('keyDown', 'd', 'KeyD', 68);
   await sleep(700);
@@ -239,7 +243,7 @@ async function main() {
 
   /* ------------------------------------------------------------ gather */
   console.log('\n== Gathering (touch the action button) ==');
-  var spot = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&s.world.rich[i]>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spot, 'found a rich forest tile to stand on (' + spot + ')');
   await sleep(150);
   var act = await rect('#btnAction');
@@ -256,7 +260,7 @@ async function main() {
 
   /* -------------------------------------------- items fly to the player */
   console.log('\n== Items fly to the player when gathering ==');
-  var spotF = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&s.world.rich[i]>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spotF = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotF, 'moved onto a fresh rich forest tile for the flyer test (' + spotF + ')');
   await sleep(150);
   var actF = await rect('#btnAction');
@@ -269,7 +273,7 @@ async function main() {
 
   /* --------------------------------- SPACE hold must gather at the cd rate */
   console.log('\n== Hold SPACE gathers at GATHER_CD (no key-repeat turbo) ==');
-  var spotK = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&s.world.rich[i]>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spotK = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotK, 'standing on a fresh rich forest tile for the SPACE test (' + spotK + ')');
   await sleep(150);
   var kg0 = await evalJS('MTE_GAME.getState().stats.gathers');
@@ -303,7 +307,7 @@ async function main() {
 
   /* ------------------------------------------------------------ build */
   console.log('\n== Build extractor (touch Place) ==');
-  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   await evalJS('MTE_GAME.addRes("wood",80)');
   await sleep(150);
   var buildBtn = await rect('#btnBuild');
@@ -357,12 +361,13 @@ async function main() {
   console.log('  screenshot: ' + s3);
 
   /* --------------------------------------------------- exploration aid */
-  console.log('\n== Exploration: ore is reachable and richer farther out ==');
-  var reachInfo = await evalJS('(function(){var s=MTE_GAME.getState();var cx=48,cy=48;var nearOre=null,minD=1e9;for(var y=0;y<96;y++)for(var x=0;x<96;x++){if(s.world.type[y*96+x]===3){var d=Math.hypot(x-cx,y-cy);if(d<minD){minD=d;nearOre=[x,y];}}}var F=[];for(var y2=0;y2<96;y2++)for(var x2=0;x2<96;x2++){var i2=y2*96+x2;if(s.world.type[i2]===1){var d2=Math.hypot(x2-cx,y2-cy);F.push([d2,s.world.max[i2]]);}}F.sort(function(a,b){return a[0]-b[0];});var nearAvg=F.slice(0,20).reduce(function(a,c){return a+c[1];},0)/20;var farAvg=F.slice(-20).reduce(function(a,c){return a+c[1];},0)/20;return JSON.stringify({minOreDist:+minD.toFixed(1),nearAvg:+nearAvg.toFixed(1),farAvg:+farAvg.toFixed(1)});})()');
-  var ri = JSON.parse(reachInfo);
-  console.log('  nearest ore ' + ri.minOreDist + ' tiles; forest richness near=' + ri.nearAvg + ' far=' + ri.farAvg);
-  ok(ri.minOreDist > 4 && ri.minOreDist < 40, 'ore requires venturing out');
-  ok(ri.farAvg > ri.nearAvg, 'deposits are richer farther from spawn');
+  console.log('\n== Endless world: resources everywhere + fog reveal ==');
+  var exploreInfo = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;var ore=0,crystal=0;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){var t=c.tileType(s.world,x,y);if(t===3)ore++;if(t===4)crystal++;}var px=Math.floor(s.player.x),py=Math.floor(s.player.y);return JSON.stringify({ore:ore,crystal:crystal,here:c.isExplored(s.world,px,py),far:c.isExplored(s.world,px+300,py+300),farTile:typeof c.tileType(s.world,420000,-420000)});})()');
+  var ri = JSON.parse(exploreInfo);
+  console.log('  near origin: ore=' + ri.ore + ' crystal=' + ri.crystal + '  fog(here/far)=' + ri.here + '/' + ri.far);
+  ok(ri.ore > 30 && ri.crystal > 3, 'ore and crystal occur near the origin');
+  ok(ri.here && !ri.far, 'fog is revealed around the player but not far away');
+  ok(ri.farTile === 'number', 'terrain exists thousands of tiles from the origin');
 
   /* -------------------------------------------------- late-game UI */
   console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
@@ -394,7 +399,6 @@ async function main() {
   await sleep(200);
   ok(await evalJS('!!MTE_GAME.getState().unlocks.foundry'), 'Foundry blueprint unlocked from Upgrades');
   await evalJS('document.getElementById("btnClose").click()');
-  await evalJS('MTE_GAME.setPlayer(48.5,48.5)');
   await sleep(200);
   await evalJS('document.getElementById("btnBuild").click()');
   await sleep(250);
@@ -438,7 +442,7 @@ async function main() {
   await sleep(300);
   var lg0 = JSON.parse(await stateSummary());
   ok(lg0.inv.wood >= 10, 'standing by the extractor auto-collects its buffer (' + lg0.inv.wood + ')');
-  await evalJS('MTE_GAME.setPlayer(90.5, 90.5)');
+  await evalJS('(function(){var s=MTE_GAME.getState();MTE_GAME.setPlayer(s.player.x+80,s.player.y+80);})()');
   await sleep(200);
   var lg1 = JSON.parse(await stateSummary());
   await sleep(1200);
@@ -446,7 +450,7 @@ async function main() {
   eq(lg2.inv.wood, lg1.inv.wood, 'walking far away stops auto-collect (inv holds at ' + lg1.inv.wood + ')');
   ok(lg2.buf[0] > lg1.buf[0], 'far extractor keeps producing into its buffer (' + lg1.buf[0] + ' -> ' + lg2.buf[0] + ')');
   // walking back re-engages it (and parks the player mid-world for the night test)
-  await evalJS('MTE_GAME.setPlayer(48.5, 50.5)');
+  await evalJS('(function(){var s=MTE_GAME.getState();var e=s.extractors[0];MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);})()');
   await sleep(300);
   var lg3 = JSON.parse(await stateSummary());
   ok(lg3.inv.wood > lg2.inv.wood, 'walking back re-enables auto-collect (' + lg2.inv.wood + ' -> ' + lg3.inv.wood + ')');

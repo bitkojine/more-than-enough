@@ -10,7 +10,7 @@
   var TOOLS = Core.TOOLS;
   var EXTRACTORS = Core.EXTRACTORS;
   var UNLOCKS = Core.UNLOCKS;
-  var SAVE_KEY = 'more-than-enough-v1';
+  var SAVE_KEY = 'more-than-enough-v3';
 
   /* ------------------------------------------------------------- dom */
 
@@ -408,7 +408,6 @@
   function tapAt(sx, sy) {
     var w = screenToWorld(sx, sy);
     var tx = Math.floor(w.x), ty = Math.floor(w.y);
-    if (!Core.inBounds(tx, ty)) return;
     // gather if the tile is in range
     var g = Core.gatherTarget(state);
     if (g && g.x === tx && g.y === ty) { doGather(); return; }
@@ -1176,40 +1175,42 @@
 
   function updateHint() {
     if (state.discovered.ore && state.discovered.crystal) { hintDir = null; return; }
-    var want, pred;
-    if (!state.discovered.ore) { want = T.ORE; }
-    else { want = T.CRYSTAL; }
-    var best = null, bestD = Infinity;
-    var px = state.player.x, py = state.player.y;
-    for (var y = 0; y < Core.WORLD_SIZE; y++) {
-      for (var x = 0; x < Core.WORLD_SIZE; x++) {
-        if (state.world.type[Core.idx(x, y)] !== want) continue;
-        var dx = x + 0.5 - px, dy = y + 0.5 - py;
-        var d = dx * dx + dy * dy;
-        if (d < bestD) { bestD = d; best = { x: x + 0.5, y: y + 0.5 }; }
+    var want = state.discovered.ore ? T.CRYSTAL : T.ORE;
+    var px = Math.floor(state.player.x), py = Math.floor(state.player.y);
+    // Ring search outward, stopping at the first ring that holds the resource —
+    // cost is bounded no matter how far the player has travelled.
+    for (var r = 1; r <= 200; r++) {
+      var best = null, bestD = Infinity;
+      for (var dy = -r; dy <= r; dy++) {
+        for (var dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          var x = px + dx, y = py + dy;
+          if (Core.tileType(state.world, x, y) !== want) continue;
+          var ddx = x + 0.5 - state.player.x, ddy = y + 0.5 - state.player.y;
+          var d = ddx * ddx + ddy * ddy;
+          if (d < bestD) { bestD = d; best = { x: x + 0.5, y: y + 0.5 }; }
+        }
       }
+      if (best) { hintDir = { x: best.x - state.player.x, y: best.y - state.player.y }; return; }
     }
-    hintDir = best ? { x: best.x - px, y: best.y - py } : null;
+    hintDir = null;
   }
 
   /* ------------------------------------------------------------- render */
 
   function updateCamera() {
-    var worldPx = Core.WORLD_SIZE * tilePx;
+    // The world is endless: always keep the player centred, no clamping.
     camX = state.player.x * tilePx - W / 2;
     camY = state.player.y * tilePx - H / 2;
-    if (worldPx > W) camX = Math.max(0, Math.min(worldPx - W, camX)); else camX = (worldPx - W) / 2;
-    if (worldPx > H) camY = Math.max(0, Math.min(worldPx - H, camY)); else camY = (worldPx - H) / 2;
   }
 
   function drawTile(x, y, u) {
-    var i = Core.idx(x, y);
     var sx = x * u - camX, sy = y * u - camY;
-    if (!state.explored[i]) { ctx.fillStyle = '#04060a'; ctx.fillRect(sx, sy, u + 1, u + 1); return; }
-    var t = state.world.type[i];
+    if (!Core.isExplored(state.world, x, y)) { ctx.fillStyle = '#04060a'; ctx.fillRect(sx, sy, u + 1, u + 1); return; }
+    var t = Core.tileType(state.world, x, y);
     ctx.fillStyle = shade(PAL[t], tv(x, y, 7));
     ctx.fillRect(sx, sy, u + 1, u + 1);
-    var depleted = state.world.rich[i] <= 0;
+    var depleted = Core.tileRich(state.world, x, y) <= 0;
 
     if (t === T.FOREST) {
       if (depleted) { drawStump(sx, sy, u, x, y); }
@@ -1615,10 +1616,12 @@
     ctx.fillStyle = '#04060a';
     ctx.fillRect(0, 0, W, H);
 
-    var x0 = Math.max(0, Math.floor(camX / tilePx));
-    var y0 = Math.max(0, Math.floor(camY / tilePx));
-    var x1 = Math.min(Core.WORLD_SIZE - 1, Math.ceil((camX + W) / tilePx));
-    var y1 = Math.min(Core.WORLD_SIZE - 1, Math.ceil((camY + H) / tilePx));
+    // Endless world: draw whatever the (possibly negative) camera can see, with
+    // a one-tile margin so no seam shows at the edges.
+    var x0 = Math.floor(camX / tilePx) - 1;
+    var y0 = Math.floor(camY / tilePx) - 1;
+    var x1 = Math.ceil((camX + W) / tilePx) + 1;
+    var y1 = Math.ceil((camY + H) / tilePx) + 1;
     for (var y = y0; y <= y1; y++) {
       for (var x = x0; x <= x1; x++) drawTile(x, y, tilePx);
     }

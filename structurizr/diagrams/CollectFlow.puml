@@ -83,7 +83,7 @@ hide stereotype
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
   rectangle "Simulation Core\n<size:16>[Container: JavaScript (ES5, browser + Node)]</size>" <<Boundary-U2ltdWxhdGlvbiBDb3Jl>> {
-    rectangle "==State and Saves\n<size:16>[Component: JavaScript]</size>\n\ncreateState() builds the canonical state object; serialize/deserialize convert it to a base64 save (rich + explored maps; format v2 with v1 migration). state.events is transient and NEVER serialized." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.StateandSaves
+    rectangle "==State and Saves\n<size:16>[Component: JavaScript]</size>\n\ncreateState() builds the canonical state object; serialize/deserialize convert it to a JSON save (format v3: sparse richness deltas + per-chunk fog bitmasks; older v1/v2 saves are intentionally discarded and the world starts fresh). state.events is transient and NEVER serialized." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.StateandSaves
     rectangle "==Gathering and Collection\n<size:16>[Component: JavaScript]</size>\n\nManual actions: gather() from a tile within GATHER_RANGE (1.65) using axe/pickaxe multipliers; collect() drains extractor buffers within COLLECT_RANGE (1.7). gatherTarget/collectTarget report what is actionable for the UI." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.GatheringandCollection
   }
 

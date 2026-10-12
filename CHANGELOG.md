@@ -3,8 +3,46 @@
 All notable changes to MORE THAN ENOUGH, following [SemVer](https://semver.org/).
 
 We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
-versions (saves migrate forward automatically). Patch bumps (0.4.1) are
-bug fixes only and never break saves.
+versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
+bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
+
+## [0.10.0] - 2026-10-12
+
+### Added
+- **The world never ends**: the map is now procedurally generated in 16×16
+  chunks, streamed in lazily and cached as you walk, so there is no
+  edge, no wall and no wrapping — walk in any direction forever. Terrain is a
+  pure function of `(x, y, seed)` (positional hashing, no shared RNG stream), so
+  any tile can be read in any order and always matches. New helpers:
+  `createWorld`, `getChunk`, `tileType`, `tileRich`, `snapshot`.
+
+### Changed
+- **Every world is different and fully random**. Birth is now a random walkable
+  tile near the origin. The starter clearing, guaranteed starter resources, the
+  distance-from-spawn richness ramp and the ore/crystal distance gates are all
+  gone — wood, stone, ore and crystal are uniformly distributed everywhere.
+- **Fog of war is sparse and persisted per chunk** as a bitmask; a chunk's
+  explored bits survive even when its terrain is evicted from the cache.
+- **Regrowth is local**: only forest/stone tiles near the player (within 20
+  tiles) regrow, instead of scanning the whole map every 0.5s.
+- **Renderer, camera, input and the compass hint are unbounded**: tiles are
+  drawn for whatever the camera sees (including negative coordinates), the
+  camera always centres the player, and the hint does a bounded ring search.
+
+### Changed (save format v3)
+- Saves now store the seed plus **sparse per-tile richness deltas** and
+  **per-chunk fog bitmasks** (JSON), instead of whole-world base64 blobs.
+  **Existing saves (v1/v2) are intentionally discarded** on load and the game
+  starts a fresh world. The localStorage key is bumped to
+  `more-than-enough-v3`.
+
+### Testing
+- Core suite reworked for the infinite model (151 checks): determinism and
+  order-independence, seam-free chunk reads, arbitrary/negative coordinates,
+  sparse save round-trips (including far-from-origin edits), and bot
+  playthroughs with bounded pathfinding. Browser e2e updated to read through the
+  new accessors, assert fog reveal in the endless world, and use
+  player-relative coordinates.
 
 ## [0.9.4] - 2026-10-12
 

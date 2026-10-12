@@ -4,7 +4,15 @@
 (function (global) {
   'use strict';
 
-  var WORLD_SIZE = 96;
+  // The world is infinite: terrain is generated lazily in fixed-size chunks and
+  // cached. Only edits (gathered/regrown richness) and revealed fog are saved.
+  var CHUNK_SIZE = 16;
+  var CHUNK_TILES = CHUNK_SIZE * CHUNK_SIZE;
+  var MASK_BYTES = CHUNK_TILES >> 3;   // fog bitmask, one bit per tile
+  var MAX_CACHED_CHUNKS = 512;
+  var REGROW_RADIUS = 20;              // only tiles near the player regrow
+  var SPAWN_SEARCH_RADIUS = 200;       // how far we look for a walkable spawn
+
   var EXPLORE_RADIUS = 6;
   var GATHER_RANGE = 1.65;
   var COLLECT_RANGE = 1.7;
@@ -29,15 +37,6 @@
   TILE_RESOURCE[T.CRYSTAL] = 'crystal';
 
   /* ---------------------------------------------------------------- noise */
-
-  function mulberry32(a) {
-    return function () {
-      a |= 0; a = (a + 0x6D2B79F5) | 0;
-      var t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
 
   function hash2(x, y, seed) {
     var h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(seed | 0, 2246822519);
@@ -71,123 +70,158 @@
 
   /* --------------------------------------------------------------- world */
 
-  function idx(x, y) { return y * WORLD_SIZE + x; }
-  function inBounds(x, y) { return x >= 0 && y >= 0 && x < WORLD_SIZE && y < WORLD_SIZE; }
-  function tileType(world, x, y) { return inBounds(x, y) ? world.type[idx(x, y)] : T.ROCK; }
-  function isWalkableType(t) { return t !== T.ROCK; } // water is swimmable now
-  function walkable(world, x, y) { return isWalkableType(tileType(world, x, y)); }
+  // Numeric packers for tile/chunk coordinates. Valid for |coord| < 2^20,
+  // which is astronomically more world than anyone will walk.
+  var PACK_OFF = 1 << 20;
+  var PACK_SPAN = 1 << 21;
+  function packKey(a, b) { return (a + PACK_OFF) * PACK_SPAN + (b + PACK_OFF); }
+  function tileKey(x, y) { return packKey(x, y); }
+  function chunkKey(cx, cy) { return packKey(cx, cy); }
+  function chunkCoord(v) { return Math.floor(v / CHUNK_SIZE); }
 
-  function generateWorld(seed) {
+  function createWorld(seed) {
     seed = (seed >>> 0) || 1;
-    var S = WORLD_SIZE, N = S * S;
-    var type = new Uint8Array(N);
-    var rich = new Uint8Array(N);
-    var max = new Uint8Array(N);
-    var cx = Math.floor(S / 2), cy = Math.floor(S / 2);
-    var rnd = mulberry32((seed ^ 0x9E3779B9) >>> 0);
-
-    for (var y = 0; y < S; y++) {
-      for (var x = 0; x < S; x++) {
-        var i = idx(x, y);
-        var dx = x - cx, dy = y - cy;
-        var dist = Math.sqrt(dx * dx + dy * dy);
-        var nElev = fbm(x * 0.06, y * 0.06, seed + 11, 4);
-        var nMoist = fbm(x * 0.055, y * 0.055, seed + 23, 4);
-        var nRock = fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3);
-        var nOre = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
-
-        var t = T.GRASS;
-        if (dist <= 3) {
-          t = T.GRASS;
-        } else if (nElev < 0.28) {
-          t = T.WATER;
-        } else if (nElev > 0.79) {
-          t = T.ROCK;
-        } else if (dist > 20 && nOre > 0.775) {
-          t = T.CRYSTAL;
-        } else if (dist > 11 && nOre > 0.675) {
-          t = T.ORE;
-        } else if (nRock > 0.605) {
-          t = T.STONE;
-        } else if (nMoist > 0.505) {
-          t = T.FOREST;
-        }
-        type[i] = t;
-      }
-    }
-
-    // Guaranteed starter resources in the clearing ring (near spawn).
-    var starters = [
-      [cx + 3, cy - 1, T.FOREST], [cx + 3, cy + 1, T.FOREST],
-      [cx + 2, cy + 2, T.FOREST], [cx - 3, cy + 2, T.FOREST],
-      [cx - 2, cy - 3, T.FOREST], [cx + 4, cy - 2, T.FOREST],
-      [cx - 3, cy - 1, T.STONE], [cx - 3, cy + 1, T.STONE],
-      [cx + 2, cy - 3, T.STONE], [cx - 4, cy + 3, T.STONE]
-    ];
-    for (var s = 0; s < starters.length; s++) {
-      if (inBounds(starters[s][0], starters[s][1])) type[idx(starters[s][0], starters[s][1])] = starters[s][2];
-    }
-
-    // Richness scales with distance from spawn.
-    for (var yy = 0; yy < S; yy++) {
-      for (var xx = 0; xx < S; xx++) {
-        var ii = idx(xx, yy);
-        var tt = type[ii];
-        var ddx = xx - cx, ddy = yy - cy;
-        var dd = Math.sqrt(ddx * ddx + ddy * ddy);
-        var dn = Math.min(1, dd / 38);
-        var base = 0;
-        if (tt === T.FOREST) base = 3 + dn * 13 + rnd() * 2;
-        else if (tt === T.STONE) base = 3 + dn * 9 + rnd() * 1.5;
-        else if (tt === T.ORE) base = 2 + dn * 8 + rnd() * 1.5;
-        else if (tt === T.CRYSTAL) base = 1 + dn * 3 + rnd() * 1.2;
-        else continue;
-        var v = Math.max(1, Math.min(30, Math.round(base)));
-        rich[ii] = v; max[ii] = v;
-      }
-    }
-
-    // Guarantee the world is broadly reachable: if obstacles enclose the spawn,
-    // carve a few wandering trails outward.
-    var reach = floodFill(type, cx, cy);
-    var reachCount = 0;
-    for (var k = 0; k < reach.length; k++) if (reach[k]) reachCount++;
-    if (reachCount < N * 0.6) {
-      var dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
-      for (var d = 0; d < dirs.length; d++) {
-        var px = cx, py = cy;
-        for (var step = 0; step < S; step++) {
-          px += dirs[d][0]; py += dirs[d][1];
-          if (!inBounds(px, py)) break;
-          var pi = idx(px, py);
-          if (type[pi] === T.WATER || type[pi] === T.ROCK) type[pi] = T.GRASS;
-        }
-      }
-    }
-
-    return { size: S, type: type, rich: rich, max: max };
+    return {
+      seed: seed,
+      chunkSize: CHUNK_SIZE,
+      chunks: new Map(),   // chunkKey -> { cx, cy, type, rich, max }
+      mods: new Map(),     // tileKey  -> absolute richness (only when != baseline)
+      explored: new Map()  // chunkKey -> Uint8Array fog bitmask (+1 bit per tile)
+    };
   }
 
-  function floodFill(type, sx, sy) {
-    var N = WORLD_SIZE * WORLD_SIZE;
-    var seen = new Uint8Array(N);
-    var stack = [idx(sx, sy)];
-    seen[stack[0]] = 1;
-    while (stack.length) {
-      var i = stack.pop();
-      var x = i % WORLD_SIZE, y = (i - x) / WORLD_SIZE;
-      var nb = [[x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]];
-      for (var n = 0; n < 4; n++) {
-        var nx = nb[n][0], ny = nb[n][1];
-        if (!inBounds(nx, ny)) continue;
-        var ni = idx(nx, ny);
-        if (seen[ni]) continue;
-        if (!isWalkableType(type[ni])) continue;
-        seen[ni] = 1;
-        stack.push(ni);
+  // Pure, order-independent generation of one chunk. Every per-tile value is a
+  // function of (x, y, seed) only — no shared RNG stream — so chunks can be
+  // generated in any order and always match.
+  function generateChunk(w, cx, cy) {
+    var type = new Uint8Array(CHUNK_TILES);
+    var rich = new Uint8Array(CHUNK_TILES);
+    var max = new Uint8Array(CHUNK_TILES);
+    var ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
+    for (var ly = 0; ly < CHUNK_SIZE; ly++) {
+      for (var lx = 0; lx < CHUNK_SIZE; lx++) {
+        var x = ox + lx, y = oy + ly, i = ly * CHUNK_SIZE + lx;
+        var nElev = fbm(x * 0.06, y * 0.06, w.seed + 11, 4);
+        var nMoist = fbm(x * 0.055, y * 0.055, w.seed + 23, 4);
+        var nRock = fbm(x * 0.075 + 17, y * 0.075 + 31, w.seed + 37, 3);
+        var nOre = fbm(x * 0.09 + 53, y * 0.09 + 71, w.seed + 53, 3);
+
+        // No distance-from-spawn logic: the whole plane is equally random.
+        var t = T.GRASS;
+        if (nElev < 0.28) t = T.WATER;
+        else if (nElev > 0.79) t = T.ROCK;
+        else if (nOre > 0.775) t = T.CRYSTAL;
+        else if (nOre > 0.675) t = T.ORE;
+        else if (nRock > 0.605) t = T.STONE;
+        else if (nMoist > 0.505) t = T.FOREST;
+        type[i] = t;
+
+        var base = 0;
+        if (t === T.FOREST) base = 5 + hash2(x, y, w.seed + 101) * 9;
+        else if (t === T.STONE) base = 4 + hash2(x, y, w.seed + 102) * 6;
+        else if (t === T.ORE) base = 3 + hash2(x, y, w.seed + 103) * 6;
+        else if (t === T.CRYSTAL) base = 1 + hash2(x, y, w.seed + 104) * 3;
+        if (base > 0) {
+          var v = Math.max(1, Math.min(30, Math.round(base)));
+          rich[i] = v; max[i] = v;
+        }
       }
     }
-    return seen;
+    return { cx: cx, cy: cy, type: type, rich: rich, max: max };
+  }
+
+  function getChunk(w, cx, cy) {
+    var k = chunkKey(cx, cy);
+    var c = w.chunks.get(k);
+    if (c) return c;
+    if (w.chunks.size >= MAX_CACHED_CHUNKS) {
+      var oldest = w.chunks.keys().next().value;
+      w.chunks.delete(oldest);
+    }
+    c = generateChunk(w, cx, cy);
+    w.chunks.set(k, c);
+    return c;
+  }
+
+  function localIndex(x, cx, y, cy) {
+    return (y - cy * CHUNK_SIZE) * CHUNK_SIZE + (x - cx * CHUNK_SIZE);
+  }
+
+  function tileType(w, x, y) {
+    var cx = chunkCoord(x), cy = chunkCoord(y);
+    return getChunk(w, cx, cy).type[localIndex(x, cx, y, cy)];
+  }
+  function isWalkableType(t) { return t !== T.ROCK; } // water is swimmable
+  function walkable(w, x, y) { return isWalkableType(tileType(w, x, y)); }
+
+  function baselineRich(w, x, y) {
+    var cx = chunkCoord(x), cy = chunkCoord(y);
+    return getChunk(w, cx, cy).rich[localIndex(x, cx, y, cy)];
+  }
+  function baselineMax(w, x, y) {
+    var cx = chunkCoord(x), cy = chunkCoord(y);
+    return getChunk(w, cx, cy).max[localIndex(x, cx, y, cy)];
+  }
+  function tileRich(w, x, y) {
+    var m = w.mods.get(tileKey(x, y));
+    return m === undefined ? baselineRich(w, x, y) : m;
+  }
+  function tileMax(w, x, y) { return baselineMax(w, x, y); }
+  function setTileRich(w, x, y, v) {
+    // Keep the delta map minimal: drop entries that match the generated baseline.
+    if (v === baselineRich(w, x, y)) w.mods.delete(tileKey(x, y));
+    else w.mods.set(tileKey(x, y), v);
+  }
+
+  function isExplored(w, x, y) {
+    var cx = chunkCoord(x), cy = chunkCoord(y);
+    var m = w.explored.get(chunkKey(cx, cy));
+    if (!m) return false;
+    var li = localIndex(x, cx, y, cy);
+    return (m[li >> 3] & (1 << (li & 7))) !== 0;
+  }
+  function markExplored(w, x, y) {
+    var cx = chunkCoord(x), cy = chunkCoord(y);
+    var k = chunkKey(cx, cy);
+    var m = w.explored.get(k);
+    if (!m) { m = new Uint8Array(MASK_BYTES); w.explored.set(k, m); }
+    var li = localIndex(x, cx, y, cy);
+    m[li >> 3] |= (1 << (li & 7));
+  }
+
+  // Fully random birth: pick the nearest non-rock tile (prefer dry land). No
+  // terrain is sculpted and no resources are guaranteed.
+  function findSpawn(w) {
+    for (var r = 0; r <= SPAWN_SEARCH_RADIUS; r++) {
+      var water = null;
+      for (var dy = -r; dy <= r; dy++) {
+        for (var dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          var t = tileType(w, dx, dy);
+          if (t === T.ROCK) continue;
+          if (t === T.WATER) { if (!water) water = { x: dx, y: dy }; continue; }
+          return { x: dx, y: dy };
+        }
+      }
+      if (water) return water;
+    }
+    return { x: 0, y: 0 };
+  }
+
+  // Materialise a finite rectangle — handy for tests and tooling.
+  function snapshot(w, x0, y0, width, height) {
+    var type = new Uint8Array(width * height);
+    var rich = new Uint8Array(width * height);
+    var max = new Uint8Array(width * height);
+    for (var y = 0; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var i = y * width + x, wx = x0 + x, wy = y0 + y;
+        type[i] = tileType(w, wx, wy);
+        rich[i] = tileRich(w, wx, wy);
+        max[i] = tileMax(w, wx, wy);
+      }
+    }
+    return { x0: x0, y0: y0, width: width, height: height, type: type, rich: rich, max: max };
   }
 
   /* ------------------------------------------------------------- economy */
@@ -443,12 +477,12 @@
 
   function createState(seed) {
     seed = (seed >>> 0) || 1;
-    var world = generateWorld(seed);
+    var world = createWorld(seed);
+    var spawn = findSpawn(world);
     var s = {
       seed: seed,
       world: world,
-      explored: new Uint8Array(WORLD_SIZE * WORLD_SIZE),
-      player: { x: WORLD_SIZE / 2 + 0.5, y: WORLD_SIZE / 2 + 2.5 },
+      player: { x: spawn.x + 0.5, y: spawn.y + 0.5 },
       inv: { wood: 0, stone: 0, ore: 0, crystal: 0 },
       tools: { axe: 1, pickaxe: 1, boots: 1, overclock: 1 },
       unlocks: { logistics: false, abundance: false, sapling: false, brickyard: false, foundry: false, observatory: false },
@@ -477,13 +511,10 @@
     var r2 = radius * radius;
     for (var y = py - r; y <= py + r; y++) {
       for (var x = px - r; x <= px + r; x++) {
-        if (!inBounds(x, y)) continue;
         var dx = x + 0.5 - s.player.x, dy = y + 0.5 - s.player.y;
         if (dx * dx + dy * dy > r2) continue;
-        var i = idx(x, y);
-        if (s.explored[i]) continue;
-        s.explored[i] = 1;
-        var t = s.world.type[i];
+        markExplored(s.world, x, y);
+        var t = tileType(s.world, x, y);
         if (t === T.ORE) s.discovered.ore = true;
         if (t === T.CRYSTAL) s.discovered.crystal = true;
       }
@@ -493,19 +524,19 @@
   /* -------------------------------------------------------------- gather */
 
   function gatherTarget(s) {
+    var w = s.world;
     var px = s.player.x, py = s.player.y;
     var cx = Math.floor(px), cy = Math.floor(py);
     var best = null, bestD = Infinity;
     for (var y = cy - 2; y <= cy + 2; y++) {
       for (var x = cx - 2; x <= cx + 2; x++) {
-        if (!inBounds(x, y)) continue;
-        var i = idx(x, y);
-        var res = TILE_RESOURCE[s.world.type[i]];
-        if (!res || s.world.rich[i] <= 0) continue;
+        var t = tileType(w, x, y);
+        var res = TILE_RESOURCE[t];
+        if (!res || tileRich(w, x, y) <= 0) continue;
         var dx = x + 0.5 - px, dy = y + 0.5 - py;
         var d = Math.sqrt(dx * dx + dy * dy);
         if (d > GATHER_RANGE) continue;
-        if (d < bestD) { bestD = d; best = { x: x, y: y, i: i, res: res, type: s.world.type[i], dist: d }; }
+        if (d < bestD) { bestD = d; best = { x: x, y: y, res: res, type: t, dist: d }; }
       }
     }
     return best;
@@ -515,8 +546,8 @@
     var tgt = gatherTarget(s);
     if (!tgt) return null;
     var amount = gatherYield(s, tgt.res);
-    s.world.rich[tgt.i] -= 1;
-    if (s.world.rich[tgt.i] < 0) s.world.rich[tgt.i] = 0;
+    var cur = tileRich(s.world, tgt.x, tgt.y) - 1;
+    setTileRich(s.world, tgt.x, tgt.y, cur < 0 ? 0 : cur);
     s.inv[tgt.res] += amount;
     s.stats[tgt.res] += amount;
     s.stats.gathers += 1;
@@ -562,24 +593,23 @@
   function buildTarget(s, key) {
     var def = EXTRACTORS[key];
     if (!def) return null;
+    var w = s.world;
     var px = s.player.x, py = s.player.y;
     var cx = Math.floor(px), cy = Math.floor(py);
     var best = null, bestD = Infinity;
     for (var y = cy - 1; y <= cy + 1; y++) {
       for (var x = cx - 1; x <= cx + 1; x++) {
-        if (!inBounds(x, y)) continue;
-        var i = idx(x, y);
+        var t = tileType(w, x, y);
         if (def.tile === null) {
-          var lt = s.world.type[i];
-          if (lt === T.WATER || !isWalkableType(lt)) continue; // no building at sea
-        } else if (s.world.type[i] !== def.tile) {
+          if (t === T.WATER || !isWalkableType(t)) continue; // no building at sea
+        } else if (t !== def.tile) {
           continue;
         }
         if (occupied(s, x, y)) continue;
         var dx = x + 0.5 - px, dy = y + 0.5 - py;
         var d = Math.sqrt(dx * dx + dy * dy);
         if (d > 1.65) continue;
-        if (d < bestD) { bestD = d; best = { x: x, y: y, i: i }; }
+        if (d < bestD) { bestD = d; best = { x: x, y: y }; }
       }
     }
     return best;
@@ -759,10 +789,15 @@
 
   function regrow(s) {
     var w = s.world;
-    for (var i = 0; i < w.type.length; i++) {
-      var t = w.type[i];
-      if ((t === T.FOREST || t === T.STONE) && w.rich[i] < w.max[i]) {
-        if (Math.random() < REGROW_CHANCE) w.rich[i]++;
+    var px = Math.floor(s.player.x), py = Math.floor(s.player.y);
+    for (var y = py - REGROW_RADIUS; y <= py + REGROW_RADIUS; y++) {
+      for (var x = px - REGROW_RADIUS; x <= px + REGROW_RADIUS; x++) {
+        var t = tileType(w, x, y);
+        if (t !== T.FOREST && t !== T.STONE) continue;
+        var cur = tileRich(w, x, y);
+        if (cur < baselineMax(w, x, y) && Math.random() < REGROW_CHANCE) {
+          setTileRich(w, x, y, cur + 1);
+        }
       }
     }
   }
@@ -791,10 +826,6 @@
     if (canStand(s, nx, s.player.y)) { s.player.x = nx; moved = true; }
     var ny = s.player.y + dy * speed * dt;
     if (canStand(s, s.player.x, ny)) { s.player.y = ny; moved = true; }
-    if (s.player.x < 0.5) s.player.x = 0.5;
-    if (s.player.y < 0.5) s.player.y = 0.5;
-    if (s.player.x > WORLD_SIZE - 0.5) s.player.x = WORLD_SIZE - 0.5;
-    if (s.player.y > WORLD_SIZE - 0.5) s.player.y = WORLD_SIZE - 0.5;
     return moved;
   }
 
@@ -849,11 +880,15 @@
   }
 
   function serialize(s) {
+    var mods = [];
+    s.world.mods.forEach(function (v, k) { mods.push([k, v]); });
+    var explored = [];
+    s.world.explored.forEach(function (m, k) { explored.push([k, bytesToB64(m)]); });
     return JSON.stringify({
-      v: 2,
+      v: 3,
       seed: s.seed,
-      rich: bytesToB64(s.world.rich),
-      explored: bytesToB64(s.explored),
+      mods: mods,
+      explored: explored,
       player: { x: +s.player.x.toFixed(3), y: +s.player.y.toFixed(3) },
       inv: s.inv, tools: s.tools, unlocks: s.unlocks,
       resUp: s.resUp, abundanceLv: s.abundanceLv,
@@ -868,19 +903,25 @@
   function deserialize(str) {
     try {
       var d = JSON.parse(str);
-      if (!d || (d.v !== 1 && d.v !== 2)) return null;
+      if (!d || d.v !== 3) return null; // older formats are intentionally discarded
       var s = createState(d.seed);
-      var rich = b64ToBytes(d.rich);
-      if (rich.length === s.world.rich.length) s.world.rich.set(rich);
-      var ex = b64ToBytes(d.explored);
-      if (ex.length === s.explored.length) s.explored.set(ex);
+      s.world.mods = new Map();
+      if (Array.isArray(d.mods)) {
+        for (var i = 0; i < d.mods.length; i++) s.world.mods.set(d.mods[i][0], d.mods[i][1]);
+      }
+      s.world.explored = new Map();
+      if (Array.isArray(d.explored)) {
+        for (var j = 0; j < d.explored.length; j++) {
+          var mask = b64ToBytes(d.explored[j][1]);
+          if (mask.length === MASK_BYTES) s.world.explored.set(d.explored[j][0], mask);
+        }
+      }
       if (d.player) { s.player.x = d.player.x; s.player.y = d.player.y; }
       if (d.inv) for (var r in s.inv) if (typeof d.inv[r] === 'number') s.inv[r] = d.inv[r];
       if (d.tools) for (var t in s.tools) if (typeof d.tools[t] === 'number') s.tools[t] = d.tools[t];
       if (d.unlocks) for (var u in s.unlocks) s.unlocks[u] = !!d.unlocks[u];
       if (d.resUp) for (var rp in s.resUp) if (typeof d.resUp[rp] === 'number') s.resUp[rp] = d.resUp[rp];
       if (typeof d.abundanceLv === 'number') s.abundanceLv = d.abundanceLv;
-      else if (s.unlocks.abundance) s.abundanceLv = 1; // v1 migration: owning it = level 1
       if (typeof d.insight === 'number') s.insight = d.insight;
       if (typeof d.prestiges === 'number') s.prestiges = d.prestiges;
       if (typeof d.totalEver === 'number') s.totalEver = d.totalEver;
@@ -893,8 +934,8 @@
       }
       if (Array.isArray(d.extractors)) {
         s.extractors = [];
-        for (var i = 0; i < d.extractors.length; i++) {
-          var e = d.extractors[i];
+        for (var k = 0; k < d.extractors.length; k++) {
+          var e = d.extractors[k];
           if (!EXTRACTORS[e.k]) continue;
           s.extractors.push({ key: e.k, res: EXTRACTORS[e.k].res, x: e.x, y: e.y, buffer: e.b || 0, t: 0 });
         }
@@ -912,15 +953,18 @@
   /* ---------------------------------------------------------------- export */
 
   var Core = {
-    WORLD_SIZE: WORLD_SIZE, T: T, RESOURCES: RESOURCES,
+    T: T, RESOURCES: RESOURCES,
     RESOURCE_LABEL: RESOURCE_LABEL, RESOURCE_ICON: RESOURCE_ICON, TILE_RESOURCE: TILE_RESOURCE,
     TOOLS: TOOLS, EXTRACTORS: EXTRACTORS, UNLOCKS: UNLOCKS, GOALS: GOALS,
     GATHER_RANGE: GATHER_RANGE, COLLECT_RANGE: COLLECT_RANGE, AUTO_COLLECT_RANGE: AUTO_COLLECT_RANGE,
     BASE_SPEED: BASE_SPEED, WATER_SPEED: WATER_SPEED,
     EXPLORE_RADIUS: EXPLORE_RADIUS, DAY_LENGTH: DAY_LENGTH, daylight: daylight,
     EXTRACTOR_GROWTH: EXTRACTOR_GROWTH,
-    idx: idx, inBounds: inBounds, tileType: tileType, walkable: walkable,
-    generateWorld: generateWorld, floodFill: floodFill,
+    CHUNK_SIZE: CHUNK_SIZE,
+    createWorld: createWorld, getChunk: getChunk, findSpawn: findSpawn, snapshot: snapshot,
+    tileType: tileType, walkable: walkable,
+    tileRich: tileRich, tileMax: tileMax, setTileRich: setTileRich,
+    isExplored: isExplored, markExplored: markExplored,
     createState: createState, updateExplored: updateExplored,
     gatherTarget: gatherTarget, gather: gather, gatherYield: gatherYield,
     collectTarget: collectTarget, collect: collect,

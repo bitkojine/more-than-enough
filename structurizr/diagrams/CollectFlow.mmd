@@ -11,7 +11,7 @@ graph LR
       subgraph 11 ["Simulation Core"]
         style 11 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a base64 save (rich +<br />explored maps; format v2 with<br />v1 migration). state.events<br />is transient and NEVER<br />serialized.</div>"]
+        13["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />canonical state object;<br />serialize/deserialize convert<br />it to a JSON save (format v3:<br />sparse richness deltas +<br />per-chunk fog bitmasks; older<br />v1/v2 saves are intentionally<br />discarded and the world<br />starts fresh). state.events<br />is transient and NEVER<br />serialized.</div>"]
         style 13 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
         15["<div style='font-weight: bold'>Gathering and Collection</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Manual actions: gather() from<br />a tile within GATHER_RANGE<br />(1.65) using axe/pickaxe<br />multipliers; collect() drains<br />extractor buffers within<br />COLLECT_RANGE (1.7).<br />gatherTarget/collectTarget<br />report what is actionable for<br />the UI.</div>"]
         style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
