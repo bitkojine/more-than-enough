@@ -744,12 +744,26 @@
   // screen. Purely derived from existing state, so it never changes the save
   // format: the map is a lens over data the game already keeps.
   var PATH_FAMILIES = [
-    { id: 'tools',     layer: 'world',  name: 'Tools',                icon: '\uD83E\uDDF0' },
-    { id: 'refining',  layer: 'world',  name: 'Refineries',           icon: '\u26CF\uFE0F' },
-    { id: 'abundance', layer: 'world',  name: 'Abundance Engine',     icon: '\u2728' },
-    { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', icon: '\uD83D\uDCDC' },
-    { id: 'perks',     layer: 'legacy', name: 'Perks',                icon: '\uD83D\uDD70\uFE0F' }
+    { id: 'tools',     layer: 'world',  name: 'Tools',                icon: '\uD83E\uDDF0',
+      nodes: ['axe', 'pickaxe', 'boots', 'overclock'] },
+    { id: 'refining',  layer: 'world',  name: 'Refineries',           icon: '\u26CF\uFE0F',
+      nodes: RESOURCES.slice() },
+    { id: 'abundance', layer: 'world',  name: 'Abundance Engine',     icon: '\u2728',
+      nodes: ['abundance'] },
+    { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', icon: '\uD83D\uDCDC',
+      nodes: ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'] },
+    { id: 'perks',     layer: 'legacy', name: 'Perks',                icon: '\uD83D\uDD70\uFE0F',
+      nodes: Object.keys(PERKS) }
   ];
+
+  // The declared `nodes` on a family are the single source of truth for both the
+  // resolver below and the renderer, so the two can never drift apart.
+  function pathFamily(familyId) {
+    for (var i = 0; i < PATH_FAMILIES.length; i++) {
+      if (PATH_FAMILIES[i].id === familyId) return PATH_FAMILIES[i];
+    }
+    return null;
+  }
 
   // owned = fully bought; ready = a next level exists and is affordable now;
   // partial = some progress but the next level is not affordable yet;
@@ -803,20 +817,10 @@
   }
 
   function pathNodes(s, familyId) {
-    var out = [], i;
-    if (familyId === 'tools') {
-      var tids = ['axe', 'pickaxe', 'boots', 'overclock'];
-      for (i = 0; i < tids.length; i++) out.push(pathNode(s, familyId, tids[i]));
-    } else if (familyId === 'refining') {
-      for (i = 0; i < RESOURCES.length; i++) out.push(pathNode(s, familyId, RESOURCES[i]));
-    } else if (familyId === 'abundance') {
-      out.push(pathNode(s, familyId, 'abundance'));
-    } else if (familyId === 'unlocks') {
-      var uids = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
-      for (i = 0; i < uids.length; i++) out.push(pathNode(s, familyId, uids[i]));
-    } else if (familyId === 'perks') {
-      for (var k in PERKS) if (PERKS.hasOwnProperty(k)) out.push(pathNode(s, familyId, k));
-    }
+    var fam = pathFamily(familyId);
+    if (!fam) return [];
+    var out = [];
+    for (var i = 0; i < fam.nodes.length; i++) out.push(pathNode(s, familyId, fam.nodes[i]));
     return out;
   }
 

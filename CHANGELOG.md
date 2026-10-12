@@ -6,6 +6,21 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.1] - 2026-10-12
+
+### Changed (internal — Boy Scout cleanup, no behavior change)
+- The progression map's node lists (tools, refineries, unlocks) and its perk
+  order were duplicated between `core.js` and `game.js`. They now live once on
+  `PATH_FAMILIES[].nodes`, and both `pathNodes()` and the renderer read from
+  that — so a family's rails and its rows can never disagree.
+- `renderBeyond()` no longer computes the embark gain on the locked branch,
+  where it was unused.
+
+### Testing
+- `core.test.js` +13 checks (185 total): the registry's declared refs must match
+  what `pathNodes()` returns for every family (length + order), the
+  `RESOURCES`/`PERKS` mirrors, and the unknown-family case.
+
 ## [0.13.0] - 2026-10-12
 
 ### Fixed

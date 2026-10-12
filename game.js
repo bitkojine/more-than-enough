@@ -55,6 +55,7 @@
   var sheetOpen = false;
   var currentTab = 'upgrades';
   var expandedFamilies = { tools: true }; // Progression map: which families show their buy rows
+  var PERK_KEYS = Object.keys(Core.PERKS); // single source of truth for perk order
   var saveAcc = 0, goalAcc = 0, hudAcc = 0, hintAcc = 0;
   var goalFlashT = 0;
   var hintDir = null;
@@ -908,22 +909,22 @@
       + '<span class="chev" aria-hidden="true">' + (open ? '\u25BE' : '\u25B8') + '</span>'
       + '</button>';
     if (!open) return head;
-    return head + '<div class="familyBody">' + familyRows(fam.id) + '</div>';
+    return head + '<div class="familyBody">' + familyRows(fam) + '</div>';
   }
 
-  function familyRows(famId) {
-    var html = '', i;
-    if (famId === 'tools') {
-      var tids = ['axe', 'pickaxe', 'boots', 'overclock'];
-      for (i = 0; i < tids.length; i++) html += toolRow(tids[i]);
-    } else if (famId === 'refining') {
-      for (i = 0; i < RESOURCES.length; i++) html += resupRow(RESOURCES[i]);
-    } else if (famId === 'abundance') {
-      html += abundanceRow();
-    } else if (famId === 'unlocks') {
-      var uids = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
-      for (i = 0; i < uids.length; i++) html += unlockRow(uids[i]);
-    }
+  // Each family's refs come from the core registry (fam.nodes), so the map's
+  // rows and its rails always agree on what a family contains.
+  function familyRow(famId, ref) {
+    if (famId === 'tools') return toolRow(ref);
+    if (famId === 'refining') return resupRow(ref);
+    if (famId === 'abundance') return abundanceRow();
+    if (famId === 'unlocks') return unlockRow(ref);
+    return '';
+  }
+
+  function familyRows(fam) {
+    var html = '';
+    for (var i = 0; i < fam.nodes.length; i++) html += familyRow(fam.id, fam.nodes[i]);
     return html;
   }
 
@@ -1068,9 +1069,8 @@
       'Keep gathering \u2014 Embark unlocks after your first big haul. Lifetime gathered: <span class="ok">' + fmt(lifetime) + '</span>.',
       '<button class="buy max" disabled>Sealed</button>');
     html += '<div class="section">Perks</div>';
-    var keys = ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'];
-    for (var i = 0; i < keys.length; i++) {
-      var d = Core.PERKS[keys[i]];
+    for (var i = 0; i < PERK_KEYS.length; i++) {
+      var d = Core.PERKS[PERK_KEYS[i]];
       html += row(d.icon, d.name,
         d.desc + '<br><span class="bad">Unlocks after your first Embark</span>',
         '<button class="buy max" disabled>Locked</button>');
@@ -1079,11 +1079,11 @@
   }
 
   function renderBeyond() {
-    var gain = Core.embarkGain(state);
     var lifetime = Math.floor((state.totalEver || 0) + Core.sumStats(state));
 
     if (!beyondUnlocked()) { renderBeyondLocked(lifetime); return; }
 
+    var gain = Core.embarkGain(state);
     var html = '<div class="section">Insight</div>';
     html += row('\u2728', fmt(state.insight || 0) + ' Insight',
       'Prestiges: ' + (state.prestiges || 0) + ' &middot; Lifetime gathered: ' + fmt(lifetime), '');
@@ -1097,9 +1097,8 @@
     html += row('\uD83C\uDF0D', 'Embark', esub, ebtn);
 
     html += '<div class="section">Perks</div>';
-    var keys = ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'];
-    for (var i = 0; i < keys.length; i++) {
-      var k = keys[i];
+    for (var i = 0; i < PERK_KEYS.length; i++) {
+      var k = PERK_KEYS[i];
       var d = Core.PERKS[k];
       var owned = Core.perkOwned(state, k);
       var cost = Core.perkCost(state, k);

@@ -369,6 +369,19 @@ eq(C.exploreRadius(f2), C.EXPLORE_RADIUS + 2, 'Cartographer widens fog');
 section('Progression map (families, node states, progress)');
 var pm = C.createState(12345);
 eq(C.PATH_FAMILIES.length, 5, 'five families in the registry');
+eq(C.pathNodes(pm, 'nope').length, 0, 'an unknown family resolves to no nodes');
+// The registry's declared refs must match what the resolver returns, so the
+// map's rails and its rows can never drift apart.
+for (var fi = 0; fi < C.PATH_FAMILIES.length; fi++) {
+  var fam = C.PATH_FAMILIES[fi];
+  var famNodes = C.pathNodes(pm, fam.id);
+  eq(famNodes.length, fam.nodes.length, fam.id + ': one resolved node per declared ref');
+  var keysOk = true;
+  for (var ni = 0; ni < fam.nodes.length; ni++) if (famNodes[ni].key !== fam.nodes[ni]) keysOk = false;
+  eq(keysOk, true, fam.id + ': resolved node keys match the registry order');
+}
+eq(C.PATH_FAMILIES[1].nodes.join(','), C.RESOURCES.join(','), 'refining refs mirror RESOURCES');
+eq(C.PATH_FAMILIES[4].nodes.join(','), Object.keys(C.PERKS).join(','), 'perk refs mirror PERKS order');
 var toolNodes = C.pathNodes(pm, 'tools');
 eq(toolNodes.length, 4, 'tools family has four nodes');
 eq(toolNodes[0].state, 'saving', 'a fresh, unaffordable tool reads saving');

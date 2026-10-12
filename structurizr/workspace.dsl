@@ -144,7 +144,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools = softwareSystem "Development Tooling" "Test harnesses that verify the game locally and in CI. Both suites are plain Node scripts with zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 172 checks covering infinite world gen, economy, logistics range, progression-map resolvers (family registry + node states), save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
+            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 185 checks covering infinite world gen, economy, logistics range, progression-map resolvers (family registry as single source of truth + node states), save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/core.test.js"
