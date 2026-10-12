@@ -534,10 +534,11 @@
   function beginTrail(e) {
     if (!actDown || trail || sheetOpen) return;
     trail = { id: e.pointerId, points: [], leftButton: false };
+    elTrailHint.textContent = 'Trace over a glowing resource tile';
     elTrailHint.classList.add('active');
     var p = canvasPoint(e);
     joy.active = false; joy.x = 0; joy.y = 0;
-    trail.points.push(screenToWorld(p.x, p.y));
+    trail.points.push(trailPoint(e));
     pointers[e.pointerId] = { x: p.x, y: p.y };
     if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
   }
@@ -593,6 +594,7 @@
       var actionRect = elAction.getBoundingClientRect();
       if (e.clientX < actionRect.left || e.clientX > actionRect.right || e.clientY < actionRect.top || e.clientY > actionRect.bottom) trail.leftButton = true;
       if (!prior || Math.abs(prior.x - point.x) + Math.abs(prior.y - point.y) > 0.12) trail.points.push(point);
+      updateTrailHint();
       e.preventDefault();
       return;
     }
@@ -616,9 +618,26 @@
     e.preventDefault();
   }
 
+  function trailCrossesGatherTarget() {
+    if (!trail || !trail.leftButton) return false;
+    var target = Core.gatherTarget(state);
+    if (!target) return false;
+    for (var i = 0; i < trail.points.length; i++) {
+      if (Math.floor(trail.points[i].x) === target.x && Math.floor(trail.points[i].y) === target.y) return true;
+    }
+    return false;
+  }
+
+  function updateTrailHint() {
+    elTrailHint.textContent = trailCrossesGatherTarget()
+      ? 'Resource locked on · release to sweep'
+      : 'Trace over a glowing resource tile';
+  }
+
   function onPointerUp(e) {
     if (trail && trail.id === e.pointerId) {
       finishTrail();
+      delete pointers[e.pointerId];
       e.preventDefault();
       return;
     }
@@ -1380,8 +1399,9 @@
     elMute.textContent = 'Sound: ' + (muted ? 'off' : 'on');
   });
 
-  elTutorialClose.addEventListener('click', closeTutorial);
-  elTutorialDone.addEventListener('click', closeTutorial);
+  [elTutorialClose, elTutorialDone].forEach(function (button) {
+    button.addEventListener('click', closeTutorial);
+  });
   elHelp.addEventListener('click', function () {
     closeSheet();
     openTutorial();
@@ -1869,6 +1889,39 @@
     }
   }
 
+  function drawTrailPreview() {
+    if (!trail || !trail.points.length) return;
+    var points = trail.points;
+    var target = trailCrossesGatherTarget() ? Core.gatherTarget(state) : null;
+    ctx.save();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = target ? 'rgba(157,255,117,0.95)' : 'rgba(120,232,255,0.88)';
+    ctx.lineWidth = Math.max(5, Math.min(12, tilePx * 0.18));
+    ctx.shadowColor = target ? 'rgba(143,255,88,0.9)' : 'rgba(88,215,255,0.85)';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    for (var i = 0; i < points.length; i++) {
+      var sx = points[i].x * tilePx - camX;
+      var sy = points[i].y * tilePx - camY;
+      if (i === 0) ctx.moveTo(sx, sy);
+      else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+    var end = points[points.length - 1];
+    ctx.fillStyle = target ? '#caff9b' : '#b9f3ff';
+    ctx.beginPath();
+    ctx.arc(end.x * tilePx - camX, end.y * tilePx - camY, Math.max(7, tilePx * 0.17), 0, 6.283);
+    ctx.fill();
+    if (target) {
+      ctx.fillStyle = 'rgba(149,255,104,0.25)';
+      roundRect(target.x * tilePx - camX + 2, target.y * tilePx - camY + 2, tilePx - 4, tilePx - 4, Math.min(9, tilePx * 0.2));
+      ctx.fill();
+      strokeTileHighlight(target.x, target.y, 'rgba(190,255,130,1)');
+    }
+    ctx.restore();
+  }
+
   function drawParticles() {
     for (var i = 0; i < particles.length; i++) {
       var p = particles[i];
@@ -2063,6 +2116,7 @@
     }
 
     drawHighlights();
+    drawTrailPreview();
     drawExtractors();
     drawParticles();
     drawPlayer();

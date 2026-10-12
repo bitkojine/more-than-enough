@@ -41,6 +41,9 @@ on the Pages site, saves live in that browser for that origin).
 - The big **GATHER** button is contextual: hold it to keep gathering, or tap a
   resource tile directly. It becomes **COLLECT** when an extractor nearby has
   output ready.
+- **Trail gather:** keep holding GATHER as you drag off its button. Follow the
+  glowing cyan trace over a nearby resource; it lights green when targeted.
+  Release to sweep the resource.
 - **BUILD** places extractors on matching deposits (Lumber Camp on forest,
   Quarry on stone, Mine on ore, Resonator on crystal) and, once you craft the
   blueprints, converter buildings on any land tile.
