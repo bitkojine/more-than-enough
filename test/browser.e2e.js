@@ -428,6 +428,10 @@ async function main() {
   console.log('  screenshot: ' + await shot('04-beyond.png'));
 
   await evalJS('window.confirm = function(){return true;}');
+  // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
+  // world's resource sprites across the screen.
+  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
+  eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before embarking');
   var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
   await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
   await sleep(400);
@@ -435,6 +439,7 @@ async function main() {
   eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
   eq(afterEmbark.ext, 0, 'embark resets extractors');
   ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
+  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
 
   /* ------------------------------------- logistics auto-collect is ranged */
   console.log('\n== Logistics auto-collect needs range ==');
@@ -472,6 +477,16 @@ async function main() {
   var dayLum = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'));
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
+
+  /* ----------------------------- reset button starts a clean world */
+  console.log('\n== Reset button starts a clean world ==');
+  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
+  eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
+  await evalJS('MTE_GAME.getState().inv.wood = 999999');
+  await evalJS('document.getElementById("btnReset").click()');
+  await sleep(300);
+  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
+  ok(await evalJS('MTE_GAME.getState().inv.wood') < 999999, 'reset wipes inventory into a fresh world');
 
   /* ------------------------------------------------------------- errors */
   console.log('\n== Runtime errors ==');

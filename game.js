@@ -62,6 +62,13 @@
 
   var GATHER_CD = 0.25;
 
+  // Effect budgets. Gathered resources zip to the player as "flyers"; without a
+  // lifetime a fast flyer can overshoot and orbit the player forever, so sprites
+  // pile up and cascade into endless pop particles. These caps keep bursts cheap.
+  var MAX_PARTICLES = 160;
+  var MAX_FLYERS = 40;
+  var FLYER_LIFE = 0.8; // seconds before a flyer force-lands
+
   /* ----------------------------------------------------------- utils */
 
   function fmt(n) {
@@ -498,17 +505,31 @@
 
   /* ---------------------------------------------------------- effects */
 
+  // Every transient effect goes through these so the budgets above are always
+  // enforced, and clearEffects() can wipe them all in one place on a new world.
+  function addParticle(p) { if (particles.length < MAX_PARTICLES) particles.push(p); }
+  function addFlyer(f) { if (flyers.length < MAX_FLYERS) flyers.push(f); }
+
+  function clearEffects() {
+    particles.length = 0;
+    floats.length = 0;
+    flyers.length = 0;
+    moveTarget = null;
+    hintDir = null;
+    stall = 0;
+  }
+
   function spawnGatherFX(tx, ty, res, amount) {
     var col = RES_COLOR[res];
-    for (var i = 0; i < 7; i++) {
+    for (var i = 0; i < 6; i++) {
       var a = Math.random() * Math.PI * 2;
       var sp = 1.2 + Math.random() * 2.2;
-      particles.push({
+      addParticle({
         x: tx + 0.5 + (Math.random() - 0.5) * 0.5,
         y: ty + 0.5 + (Math.random() - 0.5) * 0.5,
         vx: Math.cos(a) * sp * 0.6,
         vy: Math.sin(a) * sp * 0.6 - 1.4,
-        life: 0.55 + Math.random() * 0.3, max: 0.85,
+        life: 0.45 + Math.random() * 0.25, max: 0.7,
         size: 1.6 + Math.random() * 2.2,
         color: col
       });
@@ -523,7 +544,7 @@
   function spawnFlyers(tx, ty, res, amount) {
     var n = Math.max(1, Math.min(7, Math.ceil(amount * 0.35)));
     for (var i = 0; i < n; i++) {
-      flyers.push({
+      addFlyer({
         x: tx + 0.5 + (Math.random() - 0.5) * 0.5,
         y: ty + 0.5 + (Math.random() - 0.5) * 0.5,
         res: res,
@@ -537,13 +558,13 @@
 
   function popFlyer(fy) {
     var col = RES_COLOR[fy.res];
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < 3; i++) {
       var a = Math.random() * Math.PI * 2;
-      particles.push({
+      addParticle({
         x: state.player.x, y: state.player.y - 0.2,
         vx: Math.cos(a) * (1 + Math.random() * 1.8),
         vy: Math.sin(a) * (1 + Math.random() * 1.8) - 0.7,
-        life: 0.28 + Math.random() * 0.22, max: 0.5,
+        life: 0.22 + Math.random() * 0.18, max: 0.4,
         size: 1.2 + Math.random() * 1.6,
         color: col
       });
@@ -554,7 +575,7 @@
     var col = '#9fe08a';
     for (var i = 0; i < 14; i++) {
       var a = Math.random() * Math.PI * 2;
-      particles.push({
+      addParticle({
         x: tx + 0.5, y: ty + 0.5,
         vx: Math.cos(a) * 2, vy: Math.sin(a) * 2 - 1,
         life: 0.6 + Math.random() * 0.4, max: 1.0,
@@ -885,7 +906,7 @@
     if (!res.ok) { toast(res.reason || 'Cannot embark'); return; }
     state = res.state;
     lastTileX = -1; lastTileY = -1;
-    particles = []; floats = []; moveTarget = null; hintDir = null; stall = 0;
+    clearEffects();
     actDown = false; lastBeyondUnlocked = false;
     closeSheet();
     updateHud(); updateHint(); save(true);
@@ -1005,7 +1026,8 @@
     if (!window.confirm('Start a brand new world? Current progress will be lost.')) return;
     try { localStorage.removeItem(SAVE_KEY); } catch (e) { }
     state = Core.createState((Math.random() * 4294967295) >>> 0);
-    particles = []; floats = []; moveTarget = null; hintDir = null;
+    lastTileX = -1; lastTileY = -1;
+    clearEffects();
     closeSheet(); updateHud(); save(true);
     toast('New world generated');
   });
@@ -1118,7 +1140,7 @@
 
     // boat wake: little ripples while swimming
     if (moved && Core.onWater(state) && Math.random() < 0.35) {
-      particles.push({
+      addParticle({
         x: state.player.x - moveDirX * 0.4, y: state.player.y - moveDirY * 0.4,
         vx: -moveDirX * 0.3 + (Math.random() - 0.5) * 0.8,
         vy: -moveDirY * 0.3 + (Math.random() - 0.5) * 0.8 - 0.25,
@@ -1143,21 +1165,26 @@
       fl.y += fl.vy * dt; fl.vy *= 0.96;
     }
 
-    // flyers: ease-in homing toward the player, with a tiny wobble
+    // flyers: ease-in homing toward the player, with a tiny wobble. A life cap
+    // plus a distance-travelled arrival check guarantees each one lands quickly
+    // instead of overshooting and orbiting the player forever.
     for (var fl2 = flyers.length - 1; fl2 >= 0; fl2--) {
       var fy = flyers[fl2];
       fy.t += dt;
       if (fy.t < fy.delay) continue;
+      if (fy.t >= FLYER_LIFE) { popFlyer(fy); flyers.splice(fl2, 1); continue; }
       var fdx = state.player.x - fy.x, fdy = state.player.y - fy.y;
-      var fd = Math.sqrt(fdx * fdx + fdy * fdy);
-      if (fd < 0.15) { popFlyer(fy); flyers.splice(fl2, 1); continue; }
+      var fd = Math.sqrt(fdx * fdx + fdy * fdy) || 0.0001;
       fy.vx += (fdx / fd) * 26 * dt;
       fy.vy += (fdy / fd) * 26 * dt;
       var wob = Math.sin(fy.t * 20 + fy.seed) * 2.6;
       fy.vx += (-fdy / fd) * wob * dt;
       fy.vy += (fdx / fd) * wob * dt;
       var vm = Math.hypot(fy.vx, fy.vy);
-      if (vm > 10) { fy.vx = fy.vx / vm * 10; fy.vy = fy.vy / vm * 10; }
+      if (vm > 10) { fy.vx = fy.vx / vm * 10; fy.vy = fy.vy / vm * 10; vm = 10; }
+      // Land once the player is within this frame's travel (+ a small grace), so
+      // a fast flyer can never step past the player and circle back.
+      if (fd <= vm * dt + 0.2) { popFlyer(fy); flyers.splice(fl2, 1); continue; }
       fy.x += fy.vx * dt;
       fy.y += fy.vy * dt;
     }

@@ -6,6 +6,31 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.10.1] - 2026-10-12
+
+### Fixed
+- **Floating resource sprites no longer linger or pile up**. A gathered item's
+  flyer had no lifetime and a very small arrival radius, so a fast one could
+  overshoot the player and orbit forever — under heavy gathering the sprites (and
+  the pop-particles they spawn) accumulated unbounded, covering the screen and
+  tanking the framerate. Flyers now force-land after `FLYER_LIFE` (0.8s) and land
+  as soon as the player is within one frame's travel, so each one always resolves.
+- **A fresh world no longer drags the old world's effects across the screen**.
+  Embarking and the "Reset world" button cleared particles and floats but not
+  flyers, so leftover resource sprites homed in from the previous world's
+  coordinates. Both paths now call a shared `clearEffects()` that empties every
+  transient effect (particles, floats, flyers) and clears `moveTarget`/`hintDir`.
+
+### Changed
+- **Bounded effect budgets** (`MAX_PARTICLES`, `MAX_FLYERS`): every particle/flyer
+  now spawns through `addParticle()`/`addFlyer()`, and gather/pop particles were
+  trimmed (fewer, shorter-lived) so a resource burst stays cheap.
+
+### Testing
+- Browser e2e +5 checks: a leftover flyer is injected, then the suite asserts both
+  **embark** and **reset** clear it, and that reset yields a fresh world (66 checks
+  total, up from 61).
+
 ## [0.10.0] - 2026-10-12
 
 ### Added
