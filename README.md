@@ -29,12 +29,13 @@ on the Pages site, saves live in that browser for that origin).
 
 ## How to play
 
-- **DRAG anywhere** on the map to move (a virtual stick follows your thumb),
-  or use **WASD / arrows** on desktop. Tapping a spot walks you there.
-- **PINCH with two fingers** to zoom out and take in more of the world, and
-  pinch back in to get close — the camera stays on you either way. On desktop,
-  scroll the mouse wheel. Zoom is bounded so it always stays smooth: 3x in, and
-  far enough out to see a whole explored region at once.
+- **One-thumb play:** drag anywhere to move (a virtual stick follows your thumb),
+  or tap a spot to walk there. The bottom-right thumb dock keeps **GATHER / COLLECT**,
+  **BUILD**, **UPGRADE**, and single-thumb zoom controls together within reach.
+  On desktop, use **WASD / arrows** and the mouse wheel.
+- Use the **− / + buttons in the thumb dock** to zoom out or in; optional
+  two-finger pinch and desktop mouse wheel work too. The camera stays on you,
+  and zoom is bounded so you can always see the world clearly.
 - The big **GATHER** button is contextual: hold it to keep gathering, or tap a
   resource tile directly. It becomes **COLLECT** when an extractor nearby has
   output ready.

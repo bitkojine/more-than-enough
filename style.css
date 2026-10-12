@@ -116,6 +116,16 @@ canvas#game {
 
 #controls { position: absolute; inset: 0; pointer-events: none; z-index: 12; }
 
+/* One-hand play: every persistent control stays in a compact right-thumb zone.
+   Movement and map taps remain available across the rest of the canvas. */
+#thumbDock {
+  position: absolute;
+  right: 12px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  display: flex; align-items: flex-end; gap: 8px;
+  pointer-events: auto;
+}
+
 .btn {
   position: absolute;
   border-radius: 50%;
@@ -147,9 +157,8 @@ canvas#game {
 }
 
 #btnAction {
-  right: 14px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
-  width: 94px; height: 94px;
+  position: relative;
+  width: 84px; height: 84px;
   background: radial-gradient(circle at 50% 35%, rgba(74, 128, 84, 0.92), rgba(24, 40, 30, 0.92));
   border-color: rgba(150, 230, 150, 0.45);
 }
@@ -158,21 +167,47 @@ canvas#game {
 #btnAction.disabled { opacity: 0.5; }
 
 #btnBuild {
-  right: 120px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
-  width: 66px; height: 66px;
+  position: relative;
+  width: 60px; height: 60px;
 }
 #btnUpgrade {
-  right: 26px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 124px);
-  width: 66px; height: 66px;
+  position: relative;
+  width: 60px; height: 60px;
+}
+
+#zoomControls {
+  position: absolute;
+  right: 14px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 106px);
+  height: 42px;
+  display: flex; align-items: center; justify-content: center; gap: 3px;
+  padding: 3px;
+  border: 1px solid rgba(255,255,255,0.13);
+  border-radius: 999px;
+  background: rgba(12,17,14,0.82);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.36);
+  pointer-events: auto;
+}
+#zoomControls button {
+  width: 36px; height: 34px; padding: 0;
+  border: 0; border-radius: 999px;
+  background: rgba(255,255,255,0.07); color: var(--ink);
+  font: 700 22px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  touch-action: manipulation;
+}
+#zoomControls button:active { background: rgba(80,130,90,0.5); }
+#zoomLevel {
+  min-width: 38px; text-align: center;
+  color: var(--ink-dim); font-size: 10px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------------------------------------------------------------- sheet */
 
 #sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
-  max-height: 64vh;
+  max-height: min(76vh, 720px);
   background: var(--panel);
   border-top-left-radius: 20px; border-top-right-radius: 20px;
   border-top: 1px solid var(--panel-line);
@@ -180,7 +215,6 @@ canvas#game {
   transition: transform .22s ease;
   display: flex; flex-direction: column;
   z-index: 30;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
   box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
 }
 #sheet.open { transform: translateY(0); }
@@ -200,30 +234,30 @@ canvas#game {
 #sheetGrab:active span { background: rgba(255, 255, 255, 0.4); }
 
 #sheetHead {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 10px 8px;
-  border-bottom: 1px solid var(--panel-line);
+  display: flex; align-items: center; justify-content: center;
+  min-height: 34px; padding: 2px 12px 6px;
   flex: 0 0 auto;
 }
-#tabs { display: flex; gap: 6px; flex: 1; }
+#sheetTitle { font-size: 13px; font-weight: 800; letter-spacing: 0.03em; color: var(--ink-dim); }
+#tabs { display: flex; gap: 6px; flex: 1; min-width: 0; }
 .tab {
   flex: 1;
-  min-height: 44px;
+  min-width: 0; min-height: 52px;
   border-radius: 11px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.04);
   color: var(--ink-dim);
-  font-size: 14px; font-weight: 800;
+  font-size: 13px; font-weight: 800;
   touch-action: manipulation;
 }
 .tab.active { color: var(--ink); background: rgba(80, 130, 90, 0.35); border-color: rgba(127,208,122,0.5); }
 
 #btnClose {
-  width: 44px; height: 44px;
+  flex: 0 0 62px; min-width: 62px; height: 52px;
   border-radius: 12px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.05);
-  color: var(--ink); font-size: 24px; line-height: 1;
+  color: var(--ink); font-size: 13px; font-weight: 800;
   touch-action: manipulation;
 }
 
@@ -258,7 +292,7 @@ canvas#game {
 .row .sub .bad { color: #e08a7a; }
 .row .buy {
   flex: 0 0 auto;
-  min-width: 84px; min-height: 46px;
+  min-width: 92px; min-height: 52px;
   border-radius: 12px;
   border: 1px solid rgba(127,208,122,0.45);
   background: rgba(60, 120, 80, 0.38);
@@ -319,13 +353,15 @@ canvas#game {
 
 #sheetFoot {
   flex: 0 0 auto;
-  display: flex; gap: 8px;
-  padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 8px);
+  display: flex; flex-direction: column; gap: 7px;
+  padding: 7px 10px calc(env(safe-area-inset-bottom, 0px) + 7px);
   border-top: 1px solid var(--panel-line);
 }
-#sheetFoot button {
+#sheetNav { display: flex; align-items: stretch; gap: 7px; }
+#sheetUtilities { display: flex; gap: 7px; }
+#sheetUtilities button {
   flex: 1;
-  min-height: 44px;
+  min-height: 46px;
   border-radius: 12px;
   border: 1px solid var(--panel-line);
   background: rgba(255,255,255,0.04);
@@ -363,10 +399,19 @@ canvas#game {
 
 /* Short screens (landscape phones): keep the map visible and controls reachable. */
 @media (max-height: 500px) {
-  #sheet { max-height: 84vh; }
-  #btnAction { width: 80px; height: 80px; }
-  #btnBuild { width: 58px; height: 58px; right: 104px; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); }
-  #btnUpgrade { width: 58px; height: 58px; right: 22px; bottom: calc(env(safe-area-inset-bottom, 0px) + 106px); }
+  #sheet { max-height: 86vh; }
+  #thumbDock { right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); gap: 6px; }
+  #btnAction { width: 72px; height: 72px; }
+  #btnBuild, #btnUpgrade { width: 52px; height: 52px; }
+  #zoomControls { right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); transform: scale(.9); transform-origin: bottom right; }
+  #sheetFoot { gap: 5px; padding-top: 5px; }
+  .tab, #btnClose { min-height: 46px; height: 46px; }
+  #sheetUtilities button { min-height: 40px; }
+}
+
+@supports (height: 100dvh) {
+  #sheet { max-height: min(76dvh, 720px); }
+  @media (max-height: 500px) { #sheet { max-height: 86dvh; } }
 }
 
 /* Respect the OS "reduce motion" setting. */

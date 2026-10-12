@@ -33,6 +33,10 @@
   var elMute = document.getElementById('btnMute');
   var elToast = document.getElementById('toast');
   var elSheetGrab = document.getElementById('sheetGrab');
+  var elSheetTitle = document.getElementById('sheetTitle');
+  var elZoomLevel = document.getElementById('zoomLevel');
+  var elZoomOut = document.getElementById('btnZoomOut');
+  var elZoomIn = document.getElementById('btnZoomIn');
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
 
   /* ----------------------------------------------------------- state */
@@ -462,8 +466,8 @@
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
-  /* Two-finger pinch zoom (and mouse-wheel zoom). The camera always stays on the
-     player, so zoom simply scales tilePx around the player. */
+  /* Pinch, wheel, and thumb-button zoom. The camera stays on the player, so
+     zoom simply scales tilePx around the player. */
   function pointerCount() {
     var n = 0;
     for (var k in pointers) n++;
@@ -485,6 +489,7 @@
     if (z > ZOOM_MAX) z = ZOOM_MAX;
     zoom = z;
     tilePx = baseTilePx * zoom;
+    if (elZoomLevel) elZoomLevel.textContent = Math.round(zoom * 100) + '%';
   }
 
   function onPointerDown(e) {
@@ -586,6 +591,10 @@
     e.preventDefault();
     setZoom(zoom * Math.pow(1.0015, -e.deltaY));
   }, { passive: false });
+
+  // Single-thumb zoom controls complement pinch zoom for one-handed play.
+  elZoomOut.addEventListener('click', function () { initAudio(); setZoom(zoom / 1.25); });
+  elZoomIn.addEventListener('click', function () { initAudio(); setZoom(zoom * 1.25); });
 
   window.addEventListener('keydown', function (e) {
     initAudio();
@@ -831,7 +840,11 @@
       ic = RESOURCE_ICON[c.res]; label = 'GATHER +' + fmt(c.amount); ready = true; disabled = false;
     }
     if (ic !== lastCtxIcon) { elActionIcon.textContent = ic; lastCtxIcon = ic; }
-    if (label !== lastCtxLabel) { elActionLabel.textContent = label; lastCtxLabel = label; }
+    if (label !== lastCtxLabel) {
+      elActionLabel.textContent = label;
+      elAction.setAttribute('aria-label', label);
+      lastCtxLabel = label;
+    }
     if (ready !== lastCtxReady) {
       elAction.classList.toggle('ready', ready);
       elAction.classList.toggle('disabled', disabled);
@@ -873,6 +886,7 @@
 
   function setTab(tab) {
     currentTab = tab;
+    elSheetTitle.textContent = tab === 'build' ? 'Build' : (tab === 'beyond' ? 'Beyond' : 'Upgrades');
     for (var i = 0; i < tabs.length; i++) tabs[i].classList.toggle('active', tabs[i].dataset.tab === tab);
     renderSheet();
   }

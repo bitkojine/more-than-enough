@@ -208,6 +208,12 @@ async function main() {
   ok(goalTxt && goalTxt.length > 3, 'goal banner shows: ' + goalTxt);
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
+  eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 3, 'gather, build and upgrade share the thumb dock');
+  await evalJS('document.getElementById("btnZoomIn").click()');
+  eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');
+  eq(await evalJS('document.getElementById("zoomLevel").textContent'), '125%', 'zoom level is shown beside the thumb controls');
+  await evalJS('document.getElementById("btnZoomOut").click()');
+  eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
   ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');

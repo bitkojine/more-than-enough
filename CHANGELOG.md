@@ -6,6 +6,13 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.7] - 2026-10-12
+
+### Changed
+- **One-thumb mobile controls.** Gather, Build, Upgrade, and one-thumb zoom
+  now sit together in a bottom-right dock. Sheet tabs, Done, Reset, and Sound
+  are grouped at the bottom of the sheet for easier reach.
+
 ## [0.13.6] - 2026-10-12
 
 ### Fixed
