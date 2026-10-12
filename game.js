@@ -11,6 +11,9 @@
   var EXTRACTORS = Core.EXTRACTORS;
   var UNLOCKS = Core.UNLOCKS;
   var SAVE_KEY = 'more-than-enough-v3';
+  // Extractor display/build order, shared by the Build sheet and the build
+  // highlights so the two can never drift apart.
+  var EXTRACTOR_ORDER = ['lumber', 'quarry', 'mine', 'resonator'];
 
   /* ------------------------------------------------------------- dom */
 
@@ -1014,7 +1017,7 @@
 
   function renderBuild() {
     var html = '<div class="section">Extractors</div>';
-    var deposits = ['lumber', 'quarry', 'mine', 'resonator'];
+    var deposits = EXTRACTOR_ORDER;
     var terrainName = { lumber: 'forest', quarry: 'stone', mine: 'ore', resonator: 'crystal' };
     for (var i = 0; i < deposits.length; i++) {
       var id = deposits[i];
@@ -1611,39 +1614,69 @@
     ctx.fill();
   }
 
+  // A proper boat: the hull, mast and sail are drawn large so the silhouette
+  // reads as a ship rather than a raft, and the character is rendered tiny on
+  // the deck (see drawPlayer) so the scale difference sells it.
+  function drawShip(sx, sy, half) {
+    var wd = half * 0.52;                 // half-width of the hull
+    // shadow on the water
+    ctx.fillStyle = 'rgba(12,24,34,0.42)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + wd * 0.7, half * 1.05, wd * 0.72, 0, 0, 6.283); ctx.fill();
+    // hull: pointed bow to the right, rounded stern to the left
+    ctx.fillStyle = '#7a5230';
+    ctx.beginPath();
+    ctx.moveTo(sx + half, sy);
+    ctx.quadraticCurveTo(sx + half * 0.2, sy - wd, sx - half * 0.8, sy - wd);
+    ctx.quadraticCurveTo(sx - half, sy - wd * 0.6, sx - half, sy);
+    ctx.quadraticCurveTo(sx - half, sy + wd * 0.6, sx - half * 0.8, sy + wd);
+    ctx.quadraticCurveTo(sx + half * 0.2, sy + wd, sx + half, sy);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#5a3a1e';
+    ctx.lineWidth = Math.max(1.5, half * 0.09);
+    ctx.stroke();
+    // deck
+    ctx.fillStyle = '#9a6d42';
+    ctx.beginPath(); ctx.ellipse(sx - half * 0.08, sy, half * 0.68, wd * 0.62, 0, 0, 6.283); ctx.fill();
+    // planks
+    ctx.strokeStyle = 'rgba(255,225,180,0.35)';
+    ctx.lineWidth = Math.max(1, half * 0.05);
+    for (var p = -1; p <= 1; p++) {
+      ctx.beginPath();
+      ctx.moveTo(sx - half * 0.68, sy + wd * 0.28 * p);
+      ctx.lineTo(sx + half * 0.5, sy + wd * 0.28 * p);
+      ctx.stroke();
+    }
+    // mast
+    ctx.strokeStyle = '#5a3a1e';
+    ctx.lineWidth = Math.max(1.5, half * 0.08);
+    ctx.beginPath();
+    ctx.moveTo(sx - half * 0.08, sy - wd * 0.1);
+    ctx.lineTo(sx - half * 0.08, sy - half * 0.85);
+    ctx.stroke();
+    // sail
+    ctx.fillStyle = '#ece7d4';
+    ctx.beginPath();
+    ctx.moveTo(sx - half * 0.06, sy - half * 0.8);
+    ctx.quadraticCurveTo(sx + half * 0.7, sy - half * 0.58, sx + half * 0.55, sy - wd * 0.45);
+    ctx.quadraticCurveTo(sx + half * 0.12, sy - wd * 0.32, sx - half * 0.06, sy - wd * 0.18);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(90,58,30,0.5)';
+    ctx.lineWidth = Math.max(1, half * 0.04);
+    ctx.stroke();
+  }
+
   function drawPlayer() {
     var sx = state.player.x * tilePx - camX;
     var sy = state.player.y * tilePx - camY;
-    var r = Math.max(3, tilePx * 0.27); // stay visible when zoomed far out
+    var onWater = Core.onWater(state);
     var bob = 0;
-    if (Core.onWater(state)) {
+    if (onWater) {
       bob = Math.sin(state.time * 2.6 + state.player.x * 7.3) * tilePx * 0.04;
-      // raft shadow
-      ctx.fillStyle = 'rgba(12,24,34,0.4)';
-      ctx.beginPath(); ctx.ellipse(sx, sy + bob + r * 1.0, r * 1.5, r * 0.4, 0, 0, 6.283); ctx.fill();
-      // hull
-      ctx.fillStyle = '#7a5230';
-      ctx.beginPath(); ctx.ellipse(sx, sy + bob, r * 1.35, r * 0.6, 0, 0, 6.283); ctx.fill();
-      ctx.strokeStyle = '#5a3a1e';
-      ctx.lineWidth = Math.max(1.5, r * 0.1);
-      ctx.beginPath(); ctx.ellipse(sx, sy + bob, r * 1.35, r * 0.6, 0, 0, 6.283); ctx.stroke();
-      // planks
-      ctx.strokeStyle = 'rgba(255,225,180,0.4)';
-      ctx.lineWidth = Math.max(1, r * 0.07);
-      for (var p = -1; p <= 1; p++) {
-        ctx.beginPath();
-        ctx.moveTo(sx - r * 1.1, sy + bob + r * 0.2 * p);
-        ctx.lineTo(sx + r * 1.1, sy + bob + r * 0.2 * p);
-        ctx.stroke();
-      }
-      // little sail
-      ctx.fillStyle = '#ece7d4';
-      ctx.beginPath();
-      ctx.moveTo(sx + r * 0.5, sy + bob - r * 0.25);
-      ctx.lineTo(sx + r * 0.62, sy + bob - r * 0.85);
-      ctx.lineTo(sx + r * 1.1, sy + bob - r * 0.6);
-      ctx.closePath(); ctx.fill();
+      drawShip(sx, sy + bob, Math.max(9, tilePx * 0.95));
     }
+    // On land the character is its usual size. At sea it's drawn tiny on the
+    // deck so the big ship clearly reads as a ship.
+    var r = onWater ? Math.max(2, tilePx * 0.1) : Math.max(3, tilePx * 0.27);
     var py = sy + bob;
     ctx.fillStyle = 'rgba(0,0,0,0.42)';
     ctx.beginPath(); ctx.ellipse(sx, py + r * 0.8, r * 1.05, r * 0.45, 0, 0, 6.283); ctx.fill();
@@ -1707,7 +1740,7 @@
     var g = Core.gatherTarget(state);
     if (g) strokeTileHighlight(g.x, g.y, 'rgba(200,255,180,0.5)');
     if (sheetOpen && currentTab === 'build') {
-      var ids = ['lumber', 'quarry', 'mine', 'resonator'];
+      var ids = EXTRACTOR_ORDER;
       for (var i = 0; i < ids.length; i++) {
         var t = Core.buildTarget(state, ids[i]);
         if (t) strokeTileHighlight(t.x, t.y, 'rgba(140,220,255,0.6)');

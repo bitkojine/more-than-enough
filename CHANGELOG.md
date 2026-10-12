@@ -6,6 +6,19 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.4] - 2026-10-12
+
+### Changed
+- **Ships read as ships.** The water vessel is now drawn much larger — a proper
+  hull with a pointed bow, deck planks, mast and a broad sail — while the
+  character shrinks to a tiny figure on the deck. The scale contrast makes it
+  obvious you're sailing a ship, not paddling a raft.
+
+### Changed (internal — Boy Scout cleanup, no behavior change)
+- Single-sourced the extractor display/build order as `EXTRACTOR_ORDER` in
+  `game.js`. The list `['lumber','quarry','mine','resonator']` was duplicated
+  between `renderBuild()` and `drawHighlights()`, where it could silently drift.
+
 ## [0.13.3] - 2026-10-12
 
 ### Docs
