@@ -1786,11 +1786,6 @@
   // centre. No per-tile detail — that's the point; it keeps far zoom cheap.
   function drawBlock(bx, by, step, ps) {
     if (state.mine.active) { ctx.fillStyle = '#29251e'; ctx.fillRect(bx*ps-camX,by*ps-camY,ps+1,ps+1); return; }
-    if (state.mine.active) {
-      ctx.fillStyle = '#29251e';
-      ctx.fillRect(bx * ps - camX, by * ps - camY, ps + 1, ps + 1);
-      return;
-    }
     var tx = bx * step + (step >> 1);
     var ty = by * step + (step >> 1);
     var sx = bx * ps - camX, sy = by * ps - camY;
