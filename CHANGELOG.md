@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2] - 2026-10-12
+
+### Changed
+- **Trail input cleanup.** Centralized the Gather button boundary check used by
+  the Trail gesture handler. No behavior change.
+
+
 All notable changes to MORE THAN ENOUGH, following [SemVer](https://semver.org/).
 
 We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor

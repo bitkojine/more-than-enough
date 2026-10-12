@@ -578,6 +578,11 @@
     } else toast('Trace across resource tiles within reach');
   }
 
+  function pointerOutsideActionButton(e) {
+    var bounds = elAction.getBoundingClientRect();
+    return e.clientX < bounds.left || e.clientX > bounds.right || e.clientY < bounds.top || e.clientY > bounds.bottom;
+  }
+
   function onPointerMove(e) {
     var tracked = pointers[e.pointerId];
     if (tracked) { var pp = canvasPoint(e); tracked.x = pp.x; tracked.y = pp.y; }
@@ -590,15 +595,13 @@
     }
 
     if (actDown && !trail && e.pointerId === actionPointerId) {
-      var buttonRect = elAction.getBoundingClientRect();
-      if (e.clientX < buttonRect.left || e.clientX > buttonRect.right || e.clientY < buttonRect.top || e.clientY > buttonRect.bottom) beginTrail(e);
+      if (pointerOutsideActionButton(e)) beginTrail(e);
     }
 
     if (trail && trail.id === e.pointerId) {
       var point = trailPoint(e);
       var prior = trail.points[trail.points.length - 1];
-      var actionRect = elAction.getBoundingClientRect();
-      if (e.clientX < actionRect.left || e.clientX > actionRect.right || e.clientY < actionRect.top || e.clientY > actionRect.bottom) trail.leftButton = true;
+      if (pointerOutsideActionButton(e)) trail.leftButton = true;
       if (!prior || Math.abs(prior.x - point.x) + Math.abs(prior.y - point.y) > 0.12) trail.points.push(point);
       updateTrailHint();
       e.preventDefault();
