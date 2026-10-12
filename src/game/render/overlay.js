@@ -1,5 +1,5 @@
 /* Everything drawn over the world: target highlights, the Trail stroke, day
- * and night lighting, the joystick, the compass hint and first-run prompts. */
+ * and night lighting, and the joystick. */
 
 import * as Core from '../../core/index.js';
 import { roundRect } from './terrain.js';
@@ -107,51 +107,10 @@ export function drawLighting(ctx, cam, s) {
 
 export function drawJoystick(ctx, cam, view) {
   const joy = view.joy;
-  if (!joy.active && !view.hasMoved) {
-    const x = cam.width * 0.24, y = cam.height * 0.76;
-    ctx.strokeStyle = 'rgba(190,220,190,0.30)';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(x, y, 42, 0, TAU); ctx.stroke();
-    ctx.fillStyle = 'rgba(210,235,210,0.55)';
-    ctx.font = '700 12px -apple-system, sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('DRAG TO MOVE', x, y);
-  }
-  if (joy.active) {
-    ctx.strokeStyle = 'rgba(190,220,190,0.35)';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 62, 0, TAU); ctx.stroke();
-    ctx.fillStyle = 'rgba(120,190,130,0.55)';
-    ctx.beginPath(); ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU); ctx.fill();
-  }
-}
-
-// A faint arrow at the edge of view pointing toward the next resource to find.
-export function drawHint(ctx, cam, view) {
-  const dir = view.hintDir;
-  if (!dir) return;
-  const mag = Math.hypot(dir.x, dir.y);
-  if (mag < 2) return;
-  const ax = dir.x / mag, ay = dir.y / mag;
-  const radius = Math.min(cam.width, cam.height) * 0.34;
-  ctx.save();
-  ctx.translate(cam.width / 2 + ax * radius, cam.height / 2 + ay * radius);
-  ctx.rotate(Math.atan2(ay, ax));
-  ctx.fillStyle = 'rgba(230,180,90,0.85)';
-  ctx.beginPath();
-  ctx.moveTo(16, 0); ctx.lineTo(-8, -10); ctx.lineTo(-8, 10); ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
-export function drawPrompt(ctx, cam, message) {
-  if (!message) return;
-  ctx.font = '700 13px -apple-system, sans-serif';
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const w = ctx.measureText(message).width + 26;
-  ctx.fillStyle = 'rgba(10,14,12,0.74)';
-  roundRect(ctx, cam.width / 2 - w / 2, cam.height - 172, w, 30, 15);
-  ctx.fill();
-  ctx.fillStyle = '#cfe8cc';
-  ctx.fillText(message, cam.width / 2, cam.height - 157);
+  if (!joy.active) return;
+  ctx.strokeStyle = 'rgba(190,220,190,0.35)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 62, 0, TAU); ctx.stroke();
+  ctx.fillStyle = 'rgba(120,190,130,0.55)';
+  ctx.beginPath(); ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU); ctx.fill();
 }

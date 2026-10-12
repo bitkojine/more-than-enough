@@ -1,12 +1,14 @@
 /* The bottom sheet: Upgrades (the progression map), Build, and Beyond. It
- * renders from state and reports what the player picked through `actions`. */
+ * renders from state and reports what the player picked through `actions`.
+ * Rows carry names, levels, numbers and prices only; what things do is for
+ * the player to discover (or read in the wiki). */
 
 import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtMult, esc } from './format.js';
 
 const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond' };
-const TERRAIN = { [Core.T.FOREST]: 'forest', [Core.T.STONE]: 'stone', [Core.T.ORE]: 'ore', [Core.T.CRYSTAL]: 'crystal' };
 const PERK_FAMILY = Core.pathFamily('perks');
+const INSIGHT = '✨';
 
 const icon = (res) => Core.RESOURCE_ICON[res];
 
@@ -14,8 +16,8 @@ function costHtml(cost) {
   return Object.keys(cost).map((r) => fmt(cost[r]) + ' ' + icon(r)).join(' ');
 }
 
-function costLine(cost, affordable) {
-  return `<span class="${affordable ? 'ok' : 'bad'}">Cost: ${costHtml(cost)}</span>`;
+function priceTag(text, affordable) {
+  return `<span class="${affordable ? 'ok' : 'bad'}">${text}</span>`;
 }
 
 function row(rowIcon, name, sub, button) {
@@ -23,66 +25,57 @@ function row(rowIcon, name, sub, button) {
     `<div class="main"><div class="nm">${name}</div><div class="sub">${sub}</div></div>${button}</div>`;
 }
 
-function button(attrs, label, enabled, extraClass = '') {
-  return `<button class="buy${extraClass}" ${attrs}${enabled ? '' : ' disabled'}>${label}</button>`;
+function button(attrs, label, enabled) {
+  return `<button class="buy" ${attrs}${enabled ? '' : ' disabled'}>${label}</button>`;
 }
 
 const doneButton = (label) => `<button class="buy max" disabled>${label}</button>`;
+const arrow = (from, to) => `${from} → <span class="ok">${to}</span>`;
 
 /* ------------------------------------------------------ upgrade rows */
 
-// What the next purchase of each kind of upgrade does, and its button label.
+// The numbers for each kind of upgrade, and its button label.
 const DESCRIBE = {
   tool(s, id) {
     const levels = Core.TOOLS[id].levels;
     const lv = s.tools[id];
-    const head = `Level ${lv} / ${levels.length}`;
-    if (lv >= levels.length) return { sub: head + ' — MAX' };
+    const head = `Lv ${lv}/${levels.length}`;
+    if (lv >= levels.length) return { sub: head };
     const cur = levels[lv - 1], next = levels[lv];
-    const effect = next.yield !== undefined
-      ? `yield ${cur.yield} → <span class="ok">${next.yield}</span>`
-      : `${id === 'boots' ? 'speed' : 'output'} &times;${cur.mult} → <span class="ok">&times;${next.mult}</span>`;
+    const effect = next.yield !== undefined ? arrow(cur.yield, next.yield) : arrow('&times;' + cur.mult, '&times;' + next.mult);
     return { sub: `${head} &middot; ${effect}`, label: 'Craft' };
   },
   resup(s, res) {
-    const max = Core.REFINERIES[res].levels.length;
+    const levels = Core.REFINERIES[res].levels;
     const lv = s.resUp[res];
     const mult = Core.refineryMult(s, res);
-    const head = `Level ${lv} / ${max} &middot; &times;${fmtMult(mult)}`;
-    if (lv >= max) return { sub: head + ' &mdash; MAX' };
-    const next = mult * Core.REFINERIES[res].levels[lv].mult;
-    return { sub: `${head} → <span class="ok">&times;${fmtMult(next)}</span>`, label: 'Refine' };
+    const head = `Lv ${lv}/${levels.length}`;
+    if (lv >= levels.length) return { sub: `${head} &middot; &times;${fmtMult(mult)}` };
+    return { sub: `${head} &middot; ${arrow('&times;' + fmtMult(mult), '&times;' + fmtMult(mult * levels[lv].mult))}`, label: 'Refine' };
   },
   abundance(s) {
     const lv = s.abundanceLv;
-    let sub = `Level ${lv} &middot; +${lv}/s of each resource`;
-    if (lv > 0) sub += ` &middot; extractors &times;${fmtMult(Core.abundanceMult(s))}`;
-    return { sub, label: lv === 0 ? 'Build' : 'Level ' + (lv + 1) };
+    return { sub: `Lv ${lv} &middot; +${lv}/s &middot; &times;${fmtMult(Core.abundanceMult(s))}`, label: lv === 0 ? 'Build' : 'Lv ' + (lv + 1) };
   },
-  unlock(s, id) {
-    const desc = esc(Core.UPGRADES[id].desc);
-    return s.unlocks[id] ? { sub: '<span class="ok">Active</span> &middot; ' + desc } : { sub: desc, label: 'Unlock' };
+  unlock() {
+    return { sub: '', label: 'Unlock' };
   },
   perk(s, id) {
     const lv = s.perks[id];
     const repeat = Core.PERKS[id].repeat;
-    return { sub: esc(Core.UPGRADES[id].desc), label: repeat && lv ? 'Level ' + (lv + 1) : 'Buy', tag: lv ? (repeat ? 'Lv ' + lv : 'Owned') : '' };
+    return { sub: repeat && lv ? 'Lv ' + lv : '', label: repeat && lv ? 'Lv ' + (lv + 1) : 'Buy' };
   }
 };
 
 function upgradeRow(s, id) {
   const u = Core.UPGRADES[id];
   const d = DESCRIBE[u.kind](s, id);
-  let name = esc(u.name);
-  if (u.kind === 'resup') name += ` <span class="tag">${icon(id)}</span>`;
-  if (d.tag) name += ` <span class="tag">${d.tag}</span>`;
+  const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
   const cost = Core.upgradeCost(s, id);
-  if (cost === null) return row(u.icon, name, u.kind === 'perk' ? d.sub + '<br><span class="ok">Active</span>' : d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
+  if (cost === null) return row(u.icon, name, d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
   const affordable = Core.canBuy(s, id);
-  const price = u.currency === 'insight'
-    ? `<span class="${affordable ? 'ok' : 'bad'}">${cost} Insight</span>`
-    : costLine(cost, affordable);
-  return row(u.icon, name, d.sub + '<br>' + price, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
+  const price = priceTag(u.currency === 'insight' ? cost + ' ' + INSIGHT : costHtml(cost), affordable);
+  return row(u.icon, name, d.sub ? d.sub + '<br>' + price : price, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
 }
 
 /* ----------------------------------------------------------- the sheet */
@@ -108,15 +101,15 @@ export function createSheet(el, { getState, actions }) {
   }
 
   function renderUpgrades(s) {
-    let html = '<div class="section">This World</div>';
+    let html = '<div class="section">World</div>';
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
       const isOpen = !!expanded[f.id];
       const count = f.id === 'abundance' ? () => 'Lv ' + s.abundanceLv : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.icon, count, { expandable: true, open: isOpen });
       if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
     }
-    html += '<div class="section">Legacy &middot; kept across Embark</div>';
-    html += familyHead('perks', 'Perks & Insight', PERK_FAMILY.icon, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
+    html += '<div class="section">Legacy</div>';
+    html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.icon, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
     return html;
   }
 
@@ -125,49 +118,36 @@ export function createSheet(el, { getState, actions }) {
     const count = Core.extractorCount(s, key);
     const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
     const place = (enabled, label = 'Place') => button(`data-kind="build" data-id="${key}"`, label, enabled);
-    if (def.unlock && !s.unlocks[def.unlock]) {
-      return row(def.icon, name, `<span class="bad">Locked — craft ${esc(Core.UNLOCKS[def.unlock].name)}</span>`, place(false, 'Locked'));
-    }
-    const where = def.tile === null ? 'On any land' : 'On ' + TERRAIN[def.tile];
-    const stat = `${where} &middot; +${fmt1(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
+    if (def.unlock && !s.unlocks[def.unlock]) return row(def.icon, name, '', place(false, 'Locked'));
+    const rate = `+${fmt1(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const spot = Core.buildTarget(s, key);
-    if (!spot) {
-      const why = def.tile === null ? stat + '<br><span class="bad">No open land around you</span>' : `<span class="bad">Stand on / next to ${TERRAIN[def.tile]}</span>`;
-      return row(def.icon, name, why, place(false));
-    }
-    return row(def.icon, name, stat + '<br>' + costLine(cost, affordable), place(affordable));
+    return row(def.icon, name, rate + '<br>' + priceTag(costHtml(cost), affordable && !!spot), place(affordable && !!spot));
   }
 
   function renderBuild(s) {
     return '<div class="section">Extractors</div>' + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
-      '<div class="section">Converters &middot; any land</div>' + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('');
+      '<div class="section">Converters</div>' + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('');
   }
 
-  // Before the prestige loop is reachable, Beyond previews it sealed, so new
-  // players can see the horizon without a wall of controls.
+  // Until the prestige loop is reachable, Beyond shows it locked: the names
+  // and the progress number, nothing more.
   const beyondUnlocked = (s) => s.insight > 0 || s.prestiges > 0 || Core.canEmbark(s);
 
   function renderBeyond(s) {
-    const thisWorld = fmt(Core.worldTotal(s));
-    const goal = fmt(Core.EMBARK_MIN_TOTAL);
-    if (!beyondUnlocked(s)) {
-      return '<div class="section">Legacy</div>' +
-        row('\u{1F30D}', 'A New World Awaits', `Gather ${goal} resources in one world to unlock Embark. This world: <span class="ok">${thisWorld}</span>.`, doneButton('Sealed')) +
-        '<div class="section">Perks</div>' +
-        PERK_FAMILY.nodes.map((id) => row(Core.PERKS[id].icon, esc(Core.PERKS[id].name),
-          esc(Core.PERKS[id].desc) + '<br><span class="bad">Unlocks after your first Embark</span>', doneButton('Locked'))).join('');
-    }
     const can = Core.canEmbark(s);
-    const gain = fmt(Core.embarkGain(s));
+    const progress = `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
+    const embark = row('\u{1F30D}', 'Embark', can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + INSIGHT, true) : progress,
+      button('data-kind="embark"', 'Embark', can));
+    if (!beyondUnlocked(s)) {
+      return '<div class="section">Legacy</div>' + embark +
+        '<div class="section">Perks</div>' +
+        PERK_FAMILY.nodes.map((id) => row(Core.PERKS[id].icon, esc(Core.PERKS[id].name), '', doneButton('Locked'))).join('');
+    }
     return '<div class="section">Insight</div>' +
-      row('✨', fmt(s.insight) + ' Insight', `Prestiges: ${s.prestiges} &middot; Lifetime gathered: ${fmt(Core.lifetimeTotal(s))}`, '') +
-      '<div class="section">New World</div>' +
-      row('\u{1F30D}', 'Embark',
-        can ? `Reset the world, inventory and upgrades. Keep Insight &amp; perks, and gain <span class="ok">+${gain}</span> Insight.`
-          : `Gather ${goal} resources in this world. Currently ${thisWorld}.`,
-        button('data-kind="embark"', can ? 'Embark +' + gain : 'Embark', can)) +
+      row(INSIGHT, fmt(s.insight), `Embarks ${s.prestiges} &middot; Lifetime ${fmt(Core.lifetimeTotal(s))}`, '') +
+      '<div class="section">New World</div>' + embark +
       '<div class="section">Perks</div>' + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
   }
 

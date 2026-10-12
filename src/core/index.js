@@ -4,7 +4,7 @@
 
 export * from './coords.js';
 export { hash2 } from './noise.js';
-export { shaftInChunk } from './terrain.js';
+export { shaftInChunk, GEOLOGY, DEPOSIT } from './terrain.js';
 export * from './tiles.js';
 export * from './world.js';
 export * from './content.js';

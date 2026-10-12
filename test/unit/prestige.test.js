@@ -66,10 +66,9 @@ test('one-shot perks carry their bonus into the next world', () => {
   assert.ok(C.isExplored(next.world, Math.floor(next.player.x) + 7, Math.floor(next.player.y), 0), 'the wider reveal applies at once');
 });
 
-test('goals advance in order and report the next milestone', () => {
+test('milestones complete in order', () => {
   const s = C.createState(1);
   assert.equal(C.advanceGoals(s), false);
-  assert.equal(C.currentGoal(s), C.GOALS[0].text);
   s.stats.wood = 1;
   s.tools.axe = 2;
   assert.equal(C.advanceGoals(s), true);

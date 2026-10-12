@@ -8,13 +8,13 @@ graph LR
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      subgraph 14 ["Simulation Core"]
-        style 14 fill:#ffffff,stroke:#2c5728,color:#2c5728
+      subgraph 15 ["Simulation Core"]
+        style 15 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        15["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods) and surface<br />fog live outside the cache.</div>"]
-        style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        18["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus entering, leaving and<br />descending through the mine<br />layers. All work on the<br />player's own layer.</div>"]
-        style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        16["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods) and surface<br />fog live outside the cache.</div>"]
+        style 16 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        19["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus entering, leaving and<br />descending through the mine<br />layers. All work on the<br />player's own layer.</div>"]
+        style 19 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
       subgraph 4 ["Web Application"]
@@ -22,7 +22,7 @@ graph LR
 
         10["<div style='font-weight: bold'>Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Particles, floating text and<br />flyers (resources homing into<br />the pack), with budgets and a<br />flyer lifetime so bursts stay<br />cheap.</div>"]
         style 10 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        13["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load<br />(migrating the legacy key),<br />save, clear, and the<br />tutorial-seen flag.</div>"]
+        13["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load<br />(migrating the legacy key),<br />save and clear.</div>"]
         style 13 fill:#b0761f,stroke:#7b5215,color:#ffffff
         6["<div style='font-weight: bold'>Input</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Raw touch/mouse/keyboard to<br />intents: drag-anywhere<br />joystick, tap, hold Gather<br />(button or Space), the Trail<br />stroke (hold Gather and<br />draw), pinch/wheel/button<br />zoom, and sheet shortcuts.<br />Holds no game state; calls<br />the handlers it is given.</div>"]
         style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
@@ -33,8 +33,8 @@ graph LR
     end
 
     6-. "<div>1. Taps, held action, Trail<br />strokes</div><div style='font-size: 70%'></div>" .->7
-    7-. "<div>2. harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->18
-    18-. "<div>3. Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->15
+    7-. "<div>2. harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->19
+    19-. "<div>3. Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->16
     7-. "<div>4. Spawns effects</div><div style='font-size: 70%'></div>" .->10
     7-. "<div>5. Schedules saves</div><div style='font-size: 70%'></div>" .->13
 

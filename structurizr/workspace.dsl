@@ -18,7 +18,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "files" "index.html, style.css, src/game/"
                 }
 
-                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/goal/HUD/compass timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/main.js"
@@ -46,7 +46,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer (per tile, or level-of-detail blocks when zoomed far out), highlights, the Trail, extractors, particles, the player, floating text, flyers, day/night lighting, joystick, compass hint and prompts." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer (per tile, or level-of-detail blocks when zoomed far out), highlights, the Trail, extractors, particles, the player, floating text, flyers, day/night lighting and the joystick. Never text to read." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"
@@ -60,7 +60,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                ui = component "HUD and Sheet" "Resource chips and rates, goal banner, the contextual thumb buttons, toasts, the controls tutorial, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond (locked preview until Embark is reachable)." "JavaScript" {
+                ui = component "HUD and Sheet" "Resource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/hud.js, src/game/sheet.js"
@@ -74,11 +74,18 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                sav = component "Storage" "Guarded localStorage: load (migrating the legacy key), save, clear, and the tutorial-seen flag." "JavaScript + localStorage" {
+                sav = component "Storage" "Guarded localStorage: load (migrating the legacy key), save and clear." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/storage.js"
                     }
+                }
+            }
+
+            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game." "HTML/CSS/JavaScript modules" {
+                tags "Presentation"
+                properties {
+                    "files" "wiki/"
                 }
             }
 
@@ -147,6 +154,9 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
 
         // ------------------------------------------ relationships
         player -> mte.app "Plays in a mobile/desktop browser"
+        player -> mte.wiki "Looks things up"
+        mte.app -> mte.wiki "Links to"
+        mte.wiki -> mte.core "Renders tables from content and tuning"
         dev -> tools.coreTests "Runs and extends"
         dev -> tools.e2e "Runs and extends"
 
@@ -164,7 +174,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.controller -> mte.core.economy "buy, embark"
         mte.app.controller -> mte.app.fx "Spawns effects"
         mte.app.controller -> mte.app.audio "Plays cues"
-        mte.app.controller -> mte.app.ui "Updates the HUD; toasts"
+        mte.app.controller -> mte.app.ui "Updates the HUD"
         mte.app.controller -> mte.app.sav "Schedules saves"
         mte.app.render -> mte.app.camera "Projects every draw"
         mte.app.render -> mte.core.world "Reads tiles of the camera's layer"
@@ -182,11 +192,12 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
             deploymentNode "Browser" "Mobile Safari or desktop Chrome." {
                 deploymentNode "Browser tab" "Runs the single-page game." {
                     containerInstance mte.app
+                    containerInstance mte.wiki
                     containerInstance mte.core
                 }
             }
 
-            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies index.html, style.css and src/ and stamps a content hash onto every asset URL and module import." {
+            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
                 infrastructureNode "Static Files" "Serves the staged site over HTTPS."
             }
 

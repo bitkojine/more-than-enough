@@ -21,7 +21,7 @@
   <div id="hud">
     <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
     <div id="resources"></div>
-    <div id="goal" aria-live="polite">Loading&hellip;</div>
+    <div id="depth" aria-live="polite" hidden></div>
   </div>
 
   <div id="controls" role="group" aria-label="Thumb controls">
@@ -43,25 +43,8 @@
       <button id="btnAction" class="btn" type="button" aria-label="Gather">
         <span class="big" id="actionIcon">&#129296;</span><span class="cap" id="actionLabel">GATHER</span>
       </button>
-      <div id="trailHint" aria-hidden="true">Draw anywhere · green tiles will sweep</div>
     </div>
   </div>
-
-  <section id="tutorial" aria-labelledby="tutorialTitle" hidden>
-    <div id="tutorialHead">
-      <div><strong id="tutorialTitle">One thumb is all you need</strong><span>Quick controls tour</span></div>
-      <button id="tutorialClose" type="button" aria-label="Close controls tutorial">&times;</button>
-    </div>
-    <ul>
-      <li><b>Move:</b> drag anywhere on the world. Tap a spot to walk there.</li>
-      <li><b>Gather / Collect:</b> hold the big button, or tap a resource tile. Near stored extractor goods, it becomes Collect.</li>
-      <li><b>Trail:</b> hold Gather, then draw freely across the world. Green tiles show exactly what the sweep will gather; release to sweep them.</li>
-      <li><b>Build / Upgrade:</b> open a panel from the dock, choose an option, then tap Done.</li>
-      <li><b>Zoom:</b> tap − or +. Pinch zoom is optional.</li>
-      <li><b>Mine:</b> tap MINE to enter below the forest. Move with the same joystick, but only through open tunnels. Use GATHER to tap or trace-dig nearby rock into a path. Each layer has a marked shaft: dig it open, then tap its hatch when you are ready to descend.</li>
-    </ul>
-    <button id="tutorialDone" type="button">Got it</button>
-  </section>
 
   <div id="sheet" aria-hidden="true">
     <div id="sheetGrab" aria-hidden="true"><span></span></div>
@@ -79,7 +62,7 @@
         <button id="btnClose" type="button" aria-label="Done">Done</button>
       </div>
       <div id="sheetUtilities">
-        <button id="btnHelp" type="button">Controls help</button>
+        <a id="wikiLink" href="wiki/" target="_blank" rel="noopener">Wiki</a>
         <button id="btnReset" type="button">Reset world</button>
         <button id="btnMute" type="button">Sound: on</button>
       </div>

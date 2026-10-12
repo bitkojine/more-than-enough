@@ -41,8 +41,8 @@ game via `window.MTE_GAME` (`test/browser.e2e.js`).
 - **People** — Player, Developer.
 - **Software systems** — **MORE THAN ENOUGH** (the game) and **Development
   Tooling** (the two test harnesses).
-- **Containers** — Web Application (`app`), Simulation Core (`core`), Unit
-  Tests (`coreTests`), Browser E2E Harness (`e2e`).
+- **Containers** — Web Application (`app`), Wiki (`wiki`), Simulation Core
+  (`core`), Unit Tests (`coreTests`), Browser E2E Harness (`e2e`).
 - **Components** — 5 in the Core (layered world, state/saves, simulation step,
   actions, economy/upgrades) and 9 in the app (main loop, input, controller,
   camera, renderer, effects, HUD/sheet, audio, storage). Every component
@@ -61,7 +61,7 @@ game via `window.MTE_GAME` (`test/browser.e2e.js`).
 | View | File (.mmd / .puml) | Shows |
 | --- | --- | --- |
 | System Context | `SystemContext` | Player & Developer vs the two software systems |
-| Containers | `Containers` | Web Application + Simulation Core + the two test harnesses |
+| Containers | `Containers` | Web Application, Wiki and Simulation Core, plus the two test harnesses |
 | Core components | `CoreComponents` | The 5 Core components |
 | App components | `AppComponents` | The 9 browser-side components |
 | Game Loop | `GameLoop` | One frame: steer, act, `step()`, render |

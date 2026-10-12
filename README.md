@@ -30,63 +30,18 @@ on the Pages site, saves live in that browser for that origin).
 
 ## How to play
 
-- New players see a one-thumb controls tour on their first visit. Dismiss it
-  with **Got it** and reopen it anytime from **Controls help** in the sheet.
-- **One-thumb play:** drag anywhere to move (a virtual stick follows your thumb),
-  or tap a spot to walk there. The bottom-right thumb dock keeps **GATHER / COLLECT**,
-  **BUILD**, **UPGRADE**, and single-thumb zoom controls together within reach.
-  On desktop, use **WASD / arrows** and the mouse wheel.
-- Use the **− / + buttons in the thumb dock** to zoom out or in; optional
-  two-finger pinch and desktop mouse wheel work too. The camera stays on you,
-  and zoom is bounded so you can always see the world clearly.
-- The big **GATHER** button is contextual: hold it to keep gathering, or tap a
-  resource tile directly. It becomes **COLLECT** when an extractor nearby has
-  output ready.
-- **Trail gather:** keep holding GATHER as you drag off its button. Follow the
-  glowing cyan trace over a nearby resource; it lights green when targeted.
-  Release to sweep the resource.
-- **Go below:** tap **MINE** in the same dock to drop into the rock directly
-  beneath where you stand (back to the deepest layer you've reached). Movement
-  keeps the same drag-anywhere joystick and Gather stays the same control: tap
-  nearby rock to dig, or hold Gather and trace across nearby rock to preview and
-  sweep it. Every 16×16 area of each layer hides one marked shaft: dig it open,
-  then tap its hatch when you choose to go deeper, and you land directly below
-  it. Digging any other tile never changes layers. Only open tunnels are
-  walkable underground, so carve a route to the hatch; your tunnels stay where
-  you dug them. Tap **SURFACE** to return to your forest position.
-  Underground finds go into your usual inventory, so the forest gathering,
-  building, and upgrade loop remains the center of the game.
-- **BUILD** places extractors on matching deposits (Lumber Camp on forest,
-  Quarry on stone, Mine on ore, Resonator on crystal) and, once you craft the
-  blueprints, converter buildings on any land tile.
-- **UPGRADE** opens the **Progression map**: families (Tools, Refineries,
-  Abundance Engine, Unlocks & Blueprints) shown as a rail of node dots that
-  expands to the buy rows. Spend resources there on better tools and boots,
-  Overclock, the repeatable **Abundance Engine**, per-resource **refinery
-  chains** (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks
-  including the converter blueprints.
-- The **Beyond** tab always shows the prestige loop: gather 20,000 resources in
-  one world to unlock **Embark** on a New World. The requirement resets after
-  each Embark; the Insight reward still grows with your lifetime gathered total.
-  Spend **Insight** on perks between worlds.
-- Swipe the sheet's **grab handle down** to close it.
-- The world follows a **day/night cycle** (240s). By day it's bright and calm;
-  at night your **flashlight turns on automatically**, keeping a pool of light
-  around you so you can always see — and keep working — after dark.
-- **Logistics** (an Unlocks upgrade) auto-collects from extractors *near* you:
-  while you're within ~3 tiles each camp's output flows straight into your
-  packs, but walk away and it just accumulates until you come back. Gathered
-  wood, stone, ore and crystal visibly **fly to you** as the count ticks up.
-- A goal banner points you at the next milestone, and a faint compass arrow
-  helps you find the next undiscovered resource.
-- **Water is swimmable**: wade in and you'll ride a little raft across seas,
-  and the world is beyond **endless** — no edge, no wall, no wrap. Keep walking
-  and it generates ahead of you, differently every world.
-- Past Abundance there's a whole late game: Blueprint-gated converter
-  buildings (any land tile), per-resource refinery chains, repeatable
-  Abundance Engine levels, and the **Beyond** tab — always visible, locked
-  until your first Embark is within reach — where you spend Insight on perks
-  and **Embark** on a New World that keeps your lifetime score.
+Figure it out by playing. The game never explains itself: there's no tutorial,
+no prompts and no instructions on screen.
+
+Everything is documented in the **[wiki](https://bitkojine.github.io/more-than-enough/wiki/)**
+(`wiki/` in this repo, linked from the sheet in-game): controls, the world, the
+mine, buildings, every upgrade table, the prestige loop and the milestones. Its
+tables and figures are read live from `src/core/`, so they always match the
+game they ship with.
+
+**Design rule:** nothing to read in-game, ever. Labels, names, numbers and
+prices are fine; sentences that teach belong in the wiki. When you add or
+change a mechanic, update the wiki article that covers it.
 
 ## Versioning
 
@@ -111,14 +66,6 @@ You don't need to change asset URLs by hand — just push.
 
 The project is under git — commit early, commit often:
 
-## Core loop
-
-Explore → gather → craft → explore farther → automate → scale → chase the next
-bottleneck. The map is infinite and fully random — wood, stone, ore and crystal
-are spread evenly with no distance ramp, so every direction is worth walking.
-Wood and stone regrow near where you stand; **ore and crystal never regrow**, so
-automation handles what you've mastered and exploration reveals what you haven't.
-
 ## Files
 
 - `src/core/` — the game rules: pure, deterministic, no DOM (runs in Node too)
@@ -134,11 +81,12 @@ automation handles what you've mastered and exploration reveals what you haven't
   - `input.js`, `camera.js` — touch/keyboard to intents; world ↔ screen (the seam for a tilted view)
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`
 - `index.html`, `style.css` — shell and mobile-first styling
+- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core)
 - `docs/progression-map.md` — design spec for the Progression map
 - `test/unit/` — Node `node:test` suites for the core
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
-- `scripts/stage-site.sh` — stages the deployable site with cache-busted URLs
+- `scripts/stage-site.sh` — stages the deployable site (game + wiki) with cache-busted URLs
 - `structurizr/` — architecture as code: the C4 model
   ([`workspace.dsl`](structurizr/workspace.dsl)) is the single source of truth,
   with committed [Mermaid diagrams](structurizr/diagrams/) rendered straight

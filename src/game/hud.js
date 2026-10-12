@@ -1,11 +1,11 @@
-/* The heads-up display: resource chips, goal banner, the contextual thumb
- * buttons, toasts and the controls tutorial. */
+/* The heads-up display: resource chips, the depth marker, the contextual
+ * thumb buttons and status toasts. The game never explains itself in text;
+ * everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
 import { fmt, fmt1 } from './format.js';
-import { tutorialSeen, markTutorialSeen } from './storage.js';
 
-const TOAST_SECONDS = 1.6;
+const TOAST_SECONDS = 2.4;
 
 export function createHud(el) {
   const chips = {};
@@ -15,43 +15,30 @@ export function createHud(el) {
   for (const r of Core.RESOURCES) {
     const chip = document.createElement('div');
     chip.className = 'chip';
+    chip.setAttribute('aria-label', Core.RESOURCE_LABEL[r]);
     chip.innerHTML = `<span class="ic">${Core.RESOURCE_ICON[r]}</span>` +
-      `<span class="col"><span class="val">0</span><span class="lbl">${Core.RESOURCE_LABEL[r]}</span></span>` +
-      '<span class="rate"></span>';
+      '<span class="col"><span class="val">0</span></span><span class="rate"></span>';
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
   }
-
-  function openTutorial() { el.tutorial.hidden = false; }
-  function closeTutorial() { el.tutorial.hidden = true; markTutorialSeen(); }
-  el.tutorialClose.addEventListener('click', closeTutorial);
-  el.tutorialDone.addEventListener('click', closeTutorial);
-  if (!tutorialSeen()) openTutorial();
 
   function setText(node, text) {
     if (node.textContent !== text) node.textContent = text;
   }
 
   return {
-    openTutorial,
-
     update(s) {
       const rates = Core.productionRates(s);
       for (const r of Core.RESOURCES) {
         setText(chips[r].val, fmt(s.inv[r]));
         setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmt1(rates[r]) + '/s' : '');
       }
-      setText(el.goal, Core.isUnderground(s)
-        ? 'Depth ' + (Core.SURFACE - s.player.z) + ' · dig tunnels, gather, then choose your next shaft'
-        : Core.currentGoal(s));
+      const below = Core.isUnderground(s);
+      el.depth.hidden = !below;
+      if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
     },
 
-    flashGoal() {
-      el.goal.classList.add('flash');
-      setTimeout(() => el.goal.classList.remove('flash'), 700);
-    },
-
-    // The big button names what holding it will do right now.
+    // The big button shows what holding it will do right now.
     updateButtons(s) {
       let icon = '—', label = 'EXPLORE', ready = false;
       const collect = Core.collectTarget(s);
@@ -75,30 +62,14 @@ export function createHud(el) {
       const below = Core.isUnderground(s);
       setText(el.mineIcon, below ? '⬆️' : '⛏️');
       setText(el.mineLabel, below ? 'SURFACE' : 'MINE');
-      el.mine.setAttribute('aria-label', below ? 'Return to the forest' : 'Descend into the mine');
-    },
-
-    trailHint(count, underground) {
-      el.trailHint.classList.add('active');
-      if (underground) {
-        el.trailHint.textContent = count
-          ? count + (count === 1 ? ' rock tile' : ' rock tiles') + ' · release to dig'
-          : 'Draw across nearby rock to preview';
-      } else {
-        el.trailHint.textContent = count
-          ? count + (count === 1 ? ' green tile' : ' green tiles') + ' · release to sweep'
-          : 'Draw anywhere · green tiles will sweep';
-      }
-    },
-
-    hideTrailHint() {
-      el.trailHint.classList.remove('active');
+      el.mine.setAttribute('aria-label', below ? 'Return to the surface' : 'Go down into the mine');
     },
 
     zoom(z) {
       setText(el.zoomLevel, Math.round(z * 100) + '%');
     },
 
+    // Status only (e.g. a save that couldn't be read), never instructions.
     toast(msg) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');

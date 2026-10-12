@@ -90,27 +90,20 @@ canvas#game {
   font-size: 15px; font-weight: 800; color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
-.chip .lbl {
-  font-size: 10px; color: var(--ink-dim);
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
 .chip .rate { font-size: 10.5px; color: var(--green); font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
 
-#goal {
+#depth {
   pointer-events: none;
   background: var(--panel);
-  border: 1px solid rgba(127, 208, 122, 0.28);
+  border: 1px solid rgba(225, 181, 105, 0.35);
   border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 12.5px; font-weight: 600;
-  color: #d5ecd0;
-  max-width: 96%;
-  text-align: center;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding: 4px 12px;
+  font-size: 13px; font-weight: 800;
+  color: #ecd3a4;
+  font-variant-numeric: tabular-nums;
   box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-  transition: transform .18s ease, opacity .18s ease;
 }
-#goal.flash { transform: scale(1.06); color: #b6ff9e; border-color: rgba(150,255,140,0.6); }
+#depth[hidden] { display: none; }
 
 /* -------------------------------------------------------------- buttons */
 
@@ -124,60 +117,6 @@ canvas#game {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   display: flex; align-items: flex-end; gap: 8px;
   pointer-events: auto;
-}
-#trailHint {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  width: 190px;
-  margin-bottom: 8px;
-  padding: 8px 10px;
-  border: 1px solid rgba(190,230,155,0.3);
-  border-radius: 12px;
-  background: rgba(12,17,14,0.9);
-  color: var(--ink);
-  font-size: 11px; line-height: 1.35; font-weight: 700; text-align: center;
-  opacity: 0; transform: translateY(5px); transition: opacity .15s, transform .15s;
-  pointer-events: none;
-}
-#trailHint.active { opacity: 1; transform: translateY(0); }
-
-#tutorial {
-  position: absolute; z-index: 25;
-  left: 50%; top: 50%; bottom: auto;
-  max-height: calc(100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
-  overflow-y: auto;
-  width: min(420px, calc(100% - 28px));
-  padding: 14px;
-  border: 1px solid rgba(127,208,122,0.38);
-  border-radius: 18px;
-  background: rgba(12,17,14,0.96);
-  color: var(--ink);
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55);
-  transform: translate(-50%, -50%);
-}
-#tutorial[hidden] { display: none; }
-#tutorialHead { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-#tutorialHead strong { display: block; font-size: 16px; }
-#tutorialHead span { display: block; margin-top: 3px; color: var(--ink-dim); font-size: 11px; }
-#tutorialClose {
-  flex: 0 0 40px; width: 40px; height: 40px; margin: -5px -5px 0 0;
-  border: 1px solid var(--panel-line); border-radius: 12px;
-  background: rgba(255,255,255,0.05); color: var(--ink); font-size: 22px;
-}
-#tutorial ul { display: grid; gap: 8px; margin: 12px 0; padding-left: 18px; color: #dce5d9; font-size: 12px; line-height: 1.42; }
-#tutorial li::marker { color: var(--green); }
-#tutorial li b { color: #b9e6af; }
-#tutorialDone {
-  width: 100%; min-height: 46px;
-  border: 1px solid rgba(127,208,122,0.48); border-radius: 12px;
-  background: rgba(60,120,80,0.38); color: var(--ink); font-weight: 800;
-}
-@media (max-height: 540px) {
-  #tutorial { padding: 10px 12px; }
-  #tutorial ul { gap: 5px; margin: 7px 0; font-size: 11px; }
-  #tutorialHead strong { font-size: 14px; }
-  #tutorialDone { min-height: 40px; }
 }
 
 .btn {
@@ -418,8 +357,11 @@ canvas#game {
 }
 #sheetNav { display: flex; align-items: stretch; gap: 7px; }
 #sheetUtilities { display: flex; gap: 7px; }
-#sheetUtilities button {
+#sheetUtilities button,
+#sheetUtilities a {
   flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  text-decoration: none;
   min-height: 46px;
   border-radius: 12px;
   border: 1px solid var(--panel-line);
@@ -428,7 +370,7 @@ canvas#game {
   font-size: 13px; font-weight: 700;
   touch-action: manipulation;
 }
-#sheetUtilities #btnHelp { flex: 1.25; }
+
 
 /* --------------------------------------------------------------- toast */
 
@@ -450,7 +392,7 @@ canvas#game {
 
 @media (min-width: 700px) {
   #hud { padding-top: 12px; }
-  #goal { font-size: 14px; }
+  #depth { font-size: 14px; }
   .chip { min-width: 92px; }
 }
 
@@ -466,7 +408,7 @@ canvas#game {
   #zoomControls { right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); transform: scale(.9); transform-origin: bottom right; }
   #sheetFoot { gap: 5px; padding-top: 5px; }
   .tab, #btnClose { min-height: 46px; height: 46px; }
-  #sheetUtilities button { min-height: 40px; }
+  #sheetUtilities button, #sheetUtilities a { min-height: 40px; }
 }
 
 @supports (height: 100dvh) {

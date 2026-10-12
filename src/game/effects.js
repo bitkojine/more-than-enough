@@ -65,6 +65,11 @@ export function createEffects() {
     burst(tx + 0.5, ty + 0.5, 5, [0.8, 1.4], 0.8, [0.3, 0.2], [1.4, 1.6], '#86735c');
   }
 
+  // A milestone: a golden ring of sparks around the player.
+  function celebrate(x, y) {
+    burst(x, y - 0.2, 24, [2.4, 1.6], 1.6, [0.7, 0.5], [2, 2.4], '#ffd166');
+  }
+
   function built(tx, ty) {
     burst(tx + 0.5, ty + 0.5, 14, [2, 0], 1, [0.6, 0.4], [2, 2], '#9fe08a');
   }
@@ -126,5 +131,5 @@ export function createEffects() {
     }
   }
 
-  return { particles, floats, flyers, gathered, flyersFrom, text, dug, built, wake, clear, update };
+  return { particles, floats, flyers, gathered, flyersFrom, text, dug, built, celebrate, wake, clear, update };
 }

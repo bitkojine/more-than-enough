@@ -15,7 +15,6 @@ import { render } from './render/renderer.js';
 import { loadGame, saveGame } from './storage.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
-const HINT_RANGE = 200;     // tiles the compass searches for undiscovered resources
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 
 const el = findElements();
@@ -42,7 +41,6 @@ const game = {
     input.release();
     sheet.close();
     lastTileKey = -1;
-    hintDir = null;
     hud.update(next);
     game.saveNow();
   }
@@ -63,7 +61,6 @@ const input = createInput({
     blocked: () => sheet.isOpen,
     tap: controller.tap,
     actionPressed: controller.press,
-    trailChanged: (trail) => hud.trailHint(trailTargets(trail).length, Core.isUnderground(game.state)),
     trailEnded: controller.trailEnded,
     zoomed: () => hud.zoom(cam.zoom),
     command: (cmd) => (cmd === 'close' ? sheet.close() : sheet.toggle(cmd))
@@ -74,25 +71,10 @@ el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.mine.addEventListener('click', controller.toggleMine);
 el.reset.addEventListener('click', controller.reset);
-el.help.addEventListener('click', () => { sheet.close(); hud.openTutorial(); });
 el.mute.addEventListener('click', () => {
   audio.muted = !audio.muted;
   el.mute.textContent = 'Sound: ' + (audio.muted ? 'off' : 'on');
 });
-
-/* ----------------------------------------------------------- compass */
-
-let hintDir = null;
-
-// Points toward the nearest ore until it's discovered, then crystal.
-function updateHint() {
-  const s = game.state, p = s.player;
-  hintDir = null;
-  if (Core.isUnderground(s) || (s.discovered.ore && s.discovered.crystal)) return;
-  const want = s.discovered.ore ? Core.T.CRYSTAL : Core.T.ORE;
-  const t = Core.nearestTile(p.x, p.y, HINT_RANGE, (x, y) => Core.tileAt(s.world, x, y, Core.SURFACE) === want);
-  if (t) hintDir = { x: t.x + 0.5 - p.x, y: t.y + 0.5 - p.y };
-}
 
 /* -------------------------------------------------------------- loop */
 
@@ -100,8 +82,7 @@ function updateHint() {
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
   { every: 0.4, run: () => controller.checkGoals() },
-  { every: 0.25, run: () => { hud.update(game.state); audio.drone(game.state.extractors.length, Core.overclockMult(game.state)); } },
-  { every: 0.5, run: updateHint }
+  { every: 0.25, run: () => { hud.update(game.state); audio.drone(game.state.extractors.length, Core.overclockMult(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;
@@ -148,11 +129,7 @@ function view() {
     trail: input.trail,
     trailTargets: trailTargets(input.trail),
     underground,
-    joy: input.joy,
-    hasMoved: controller.hasMoved,
-    hintDir: s.stats.gathers >= 3 ? hintDir : null,
-    prompt: !controller.hasMoved ? 'Drag anywhere to move'
-      : s.stats.gathers === 0 ? 'Hold GATHER (or tap a resource tile)' : null
+    joy: input.joy
   };
 }
 
@@ -180,7 +157,6 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) game.
 resize();
 hud.update(game.state);
 hud.updateButtons(game.state);
-updateHint();
 if (loaded.lost) hud.toast('Your old save could not be loaded — starting a new world');
 requestAnimationFrame(frame);
 

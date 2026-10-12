@@ -4,7 +4,7 @@
  *   drag anywhere            virtual joystick (moveVector)
  *   tap the map              handlers.tap(screenX, screenY)
  *   hold Gather / Space      `held` (the main loop repeats the action)
- *   hold Gather, drag off    a Trail: handlers.trailChanged / trailEnded
+ *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
  *   two fingers, wheel, +/-  zoom
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close') */
 
@@ -74,7 +74,6 @@ export function createInput({ canvas, cam, el, handlers }) {
     joy.active = false; joy.x = 0; joy.y = 0;
     pointers.set(e.pointerId, canvasPoint(e));
     capture(canvas, e);
-    handlers.trailChanged(input.trail);
   }
 
   function extendTrail(e) {
@@ -83,7 +82,6 @@ export function createInput({ canvas, cam, el, handlers }) {
     const last = t.points[t.points.length - 1];
     if (outsideActionButton(e)) t.leftButton = true;
     if (Math.abs(last.x - p.x) + Math.abs(last.y - p.y) > TRAIL_MIN_STEP) t.points.push(p);
-    handlers.trailChanged(t);
   }
 
   // A Trail only counts once the finger has left the Gather button and drawn

@@ -5,7 +5,6 @@ import { serialize, deserialize, createState } from '../core/index.js';
 
 const SAVE_KEY = 'more-than-enough-save';
 const LEGACY_SAVE_KEYS = ['more-than-enough-v3'];
-const TUTORIAL_KEY = 'more-than-enough-controls-tutorial-seen-v1';
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -46,12 +45,4 @@ export function loadGame() {
 export function clearSave() {
   remove(SAVE_KEY);
   LEGACY_SAVE_KEYS.forEach(remove);
-}
-
-export function tutorialSeen() {
-  return read(TUTORIAL_KEY) === '1';
-}
-
-export function markTutorialSeen() {
-  write(TUTORIAL_KEY, '1');
 }

@@ -87,11 +87,15 @@ person "==Player\n<size:16>[Person]</size>\n\nPlays the game on a phone or deskt
 rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harnesses and the deploy pipeline. Zero dependencies." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw==>> as DevelopmentTooling
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
+  rectangle "==Wiki\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.Wiki
   rectangle "==Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>\n\nThe game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
   rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
 }
 
 Player --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Plays in a mobile/desktop browser"
+Player --> MORETHANENOUGH.Wiki <<Relationship-UmVsYXRpb25zaGlw>> : "Looks things up"
+MORETHANENOUGH.WebApplication --> MORETHANENOUGH.Wiki <<Relationship-UmVsYXRpb25zaGlw>> : "Links to"
+MORETHANENOUGH.Wiki --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Renders tables from content and tuning"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
 MORETHANENOUGH.SimulationCore --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
 DevelopmentTooling --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"

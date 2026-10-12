@@ -13,13 +13,13 @@ graph LR
 
         10["<div style='font-weight: bold'>Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Particles, floating text and<br />flyers (resources homing into<br />the pack), with budgets and a<br />flyer lifetime so bursts stay<br />cheap.</div>"]
         style 10 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        11["<div style='font-weight: bold'>HUD and Sheet</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Resource chips and rates,<br />goal banner, the contextual<br />thumb buttons, toasts, the<br />controls tutorial, and the<br />bottom sheet: the Progression<br />map (family rails over the<br />upgrade registry), Build, and<br />Beyond (locked preview until<br />Embark is reachable).</div>"]
+        11["<div style='font-weight: bold'>HUD and Sheet</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Resource chips and rates, the<br />depth marker, the contextual<br />thumb buttons, and the bottom<br />sheet: the Progression map<br />(family rails over the<br />upgrade registry), Build, and<br />Beyond. Shows names, levels,<br />numbers and prices only; no<br />instructions (those live in<br />the wiki).</div>"]
         style 11 fill:#b0761f,stroke:#7b5215,color:#ffffff
         12["<div style='font-weight: bold'>Audio</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>A small WebAudio synth<br />unlocked by the first<br />gesture: per-material gather<br />voices,<br />collect/build/upgrade/fanfare<br />cues and an extractor hum.<br />Takes parameters, never reads<br />game state.</div>"]
         style 12 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        13["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load<br />(migrating the legacy key),<br />save, clear, and the<br />tutorial-seen flag.</div>"]
+        13["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load<br />(migrating the legacy key),<br />save and clear.</div>"]
         style 13 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        5["<div style='font-weight: bold'>Main Loop</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Wires the modules together<br />and owns the current state<br />(game.state, replaced on<br />embark/reset). Each frame:<br />steer the player, Core<br />step(), turn logistics events<br />into flyers, reveal fog on<br />tile change, repeat the held<br />action, update effects, run<br />the save/goal/HUD/compass<br />timers, then render. Exposes<br />window.MTE_GAME for the<br />browser tests.</div>"]
+        5["<div style='font-weight: bold'>Main Loop</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Wires the modules together<br />and owns the current state<br />(game.state, replaced on<br />embark/reset). Each frame:<br />steer the player, Core<br />step(), turn logistics events<br />into flyers, reveal fog on<br />tile change, repeat the held<br />action, update effects, run<br />the save/milestone/HUD<br />timers, then render. Exposes<br />window.MTE_GAME for the<br />browser tests.</div>"]
         style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
         6["<div style='font-weight: bold'>Input</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Raw touch/mouse/keyboard to<br />intents: drag-anywhere<br />joystick, tap, hold Gather<br />(button or Space), the Trail<br />stroke (hold Gather and<br />draw), pinch/wheel/button<br />zoom, and sheet shortcuts.<br />Holds no game state; calls<br />the handlers it is given.</div>"]
         style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
@@ -27,27 +27,27 @@ graph LR
         style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
         8["<div style='font-weight: bold'>Camera</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Maps world (x, y, z) to<br />screen pixels and back<br />(project/unproject), with<br />zoom and the visible tile<br />range. The single seam for a<br />future tilted 2.5D view.</div>"]
         style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer (per tile, or<br />level-of-detail blocks when<br />zoomed far out), highlights,<br />the Trail, extractors,<br />particles, the player,<br />floating text, flyers,<br />day/night lighting, joystick,<br />compass hint and prompts.</div>"]
+        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer (per tile, or<br />level-of-detail blocks when<br />zoomed far out), highlights,<br />the Trail, extractors,<br />particles, the player,<br />floating text, flyers,<br />day/night lighting and the<br />joystick. Never text to read.</div>"]
         style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
       end
 
-      14["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
-      style 14 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      15["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
+      style 15 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
     end
 
     6-. "<div>Taps, held action, Trail<br />strokes</div><div style='font-size: 70%'></div>" .->7
     6-. "<div>Unprojects pointers; zooms</div><div style='font-size: 70%'></div>" .->8
     5-. "<div>Steers and repeats the held<br />action each frame</div><div style='font-size: 70%'></div>" .->7
-    5-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->14
+    5-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->15
     5-. "<div>Renders each frame</div><div style='font-size: 70%'></div>" .->9
-    7-. "<div>harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->14
+    7-. "<div>harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->15
     7-. "<div>Spawns effects</div><div style='font-size: 70%'></div>" .->10
     7-. "<div>Plays cues</div><div style='font-size: 70%'></div>" .->12
-    7-. "<div>Updates the HUD; toasts</div><div style='font-size: 70%'></div>" .->11
+    7-. "<div>Updates the HUD</div><div style='font-size: 70%'></div>" .->11
     7-. "<div>Schedules saves</div><div style='font-size: 70%'></div>" .->13
     9-. "<div>Projects every draw</div><div style='font-size: 70%'></div>" .->8
-    9-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->14
-    11-. "<div>Reads the upgrade registry<br />and costs</div><div style='font-size: 70%'></div>" .->14
-    13-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->14
+    9-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->15
+    11-. "<div>Reads the upgrade registry<br />and costs</div><div style='font-size: 70%'></div>" .->15
+    13-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->15
 
   end

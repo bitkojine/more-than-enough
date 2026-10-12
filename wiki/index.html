@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e0b" />
+<title>More Than Enough Wiki</title>
+<meta name="description" content="Everything about MORE THAN ENOUGH: controls, the world, the mine, buildings, upgrades and the prestige loop." />
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="wiki.css" />
+</head>
+<body>
+<div class="layout">
+  <nav aria-label="Wiki">
+    <a class="brand" href="#home">MORE THAN ENOUGH</a>
+    <div class="version"></div>
+    <input id="search" type="search" placeholder="Search the wiki" aria-label="Search the wiki" />
+    <ul id="toc"></ul>
+    <a class="play" href="../">&#9654; Play the game</a>
+  </nav>
+
+  <main>
+
+    <article id="home" data-title="Home">
+      <h1>More Than Enough Wiki</h1>
+      <p class="lede">The game tells you nothing. Poke at it, find out, and come here when you want the details.</p>
+      <p>MORE THAN ENOUGH is about turning a hostile wilderness into an absurd surplus. You start with nothing in an endless,
+        randomly generated forest. Gather wood, stone, ore and crystal, craft better tools, put up buildings that work while
+        you're away, dig into the rock below, and keep going until there's more than enough. Then start over in a new world, a
+        little stronger.</p>
+      <div class="note">Every number in this wiki is read live from the game's own code, so the tables always match the version
+        you're playing.</div>
+      <ul class="cards">
+        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, keyboard.</span></a></li>
+        <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
+        <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
+        <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
+        <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, digging and shafts.</span></a></li>
+        <li><a href="#buildings"><strong>Buildings</strong><span>Extractors, converters, collecting, Logistics.</span></a></li>
+        <li><a href="#upgrades"><strong>Upgrades</strong><span>Tools, refineries, unlocks, the Abundance Engine.</span></a></li>
+        <li><a href="#beyond"><strong>Beyond</strong><span>Embarking to a new world, Insight and perks.</span></a></li>
+        <li><a href="#milestones"><strong>Milestones</strong><span>The path most players end up taking.</span></a></li>
+        <li><a href="#saving"><strong>Saving</strong><span>Where your progress lives.</span></a></li>
+      </ul>
+    </article>
+
+    <article id="controls" data-title="Controls" hidden>
+      <h1>Controls</h1>
+      <p class="lede">Everything is reachable with one thumb. A keyboard works too.</p>
+
+      <h2>Moving</h2>
+      <p>Put a finger down <strong>anywhere on the map</strong> and drag: a virtual joystick appears under your thumb and follows
+        it. Or <strong>tap a spot</strong> and you walk there in a straight line, stopping if something blocks the way.</p>
+      <p>You walk at <span data-k="BASE_SPEED"></span> tiles per second, faster with better Boots and the Nomad perk, and slower in
+        water.</p>
+
+      <h2>Gather</h2>
+      <p>The big round button in the bottom-right corner is <strong>Gather</strong>. Hold it to keep working, about four times a
+        second. Each press does the most useful thing within reach:</p>
+      <ul>
+        <li>If a building near you has goods waiting, it <strong>collects</strong> them (the button reads <em>COLLECT</em>).</li>
+        <li>Otherwise it works the <strong>nearest deposit</strong> you're standing among (the button reads <em>GATHER +n</em>,
+          where n is what one swing yields). The tile it will work has a faint green outline.</li>
+        <li>With nothing in reach, the button dims and reads <em>EXPLORE</em>.</li>
+      </ul>
+      <p>You can also <strong>tap a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
+        collected. Reach is <span data-k="REACH"></span> tiles from you to the tile's centre.</p>
+
+      <h2>Trails</h2>
+      <p>Hold Gather, then <strong>slide your thumb off the button</strong> onto the map and draw. Every resource tile within reach
+        that your stroke passes over lights up green. Let go and each one is gathered once. It's the fastest way to clear a
+        patch around you. Underground the same stroke digs, and glows amber.</p>
+      <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
+
+      <h2>Zoom</h2>
+      <p>Use the <strong>&minus; / +</strong> buttons above the thumb buttons, pinch with two fingers, or scroll a mouse wheel.
+        You can zoom in to 3&times; and out until tiles are just a few pixels wide.</p>
+
+      <h2>The other buttons</h2>
+      <ul>
+        <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
+        <li><strong>UPGRADE</strong> opens the sheet on the Upgrades tab. See <a href="#upgrades">Upgrades</a>.</li>
+        <li><strong>MINE</strong> takes you underground; down there it becomes <strong>SURFACE</strong>. See <a href="#mine">The mine</a>.</li>
+      </ul>
+      <p>Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
+
+      <h2>Keyboard</h2>
+      <div class="table"><table>
+        <thead><tr><th>Key</th><th>Does</th></tr></thead>
+        <tbody>
+          <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrows</td><td>Move</td></tr>
+          <tr><td><kbd>Space</kbd> or <kbd>Enter</kbd></td><td>Gather (hold to repeat)</td></tr>
+          <tr><td><kbd>B</kbd></td><td>Build tab</td></tr>
+          <tr><td><kbd>U</kbd> or <kbd>C</kbd></td><td>Upgrades tab</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
+        </tbody>
+      </table></div>
+    </article>
+
+    <article id="screen" data-title="The screen" hidden>
+      <h1>The screen</h1>
+      <p class="lede">There's no text to read in the game. Here's what everything you see means.</p>
+
+      <h2>Resource counters</h2>
+      <p>The four chips at the top are what you're carrying: 🪵 wood, 🪨 stone, ⛏️ ore and 💠 crystal. A green
+        <em>+n/s</em> under a count is your income from buildings and the Abundance Engine, assuming you're there to pick it up.</p>
+
+      <h2>Depth marker</h2>
+      <p>Underground, a small <strong>▼ n</strong> marker under the counters shows which layer you're on: 1 is just below the forest.</p>
+
+      <h2>On the map</h2>
+      <ul>
+        <li><strong>Faint green outline</strong>: the tile Gather will work next.</li>
+        <li><strong>Blue outlines</strong> (while the Build tab is open): where each kind of building would go.</li>
+        <li><strong>A ring around a building</strong> fills green as goods pile up and turns gold when it's full. A full building stops working until you collect.</li>
+        <li><strong>Little sprites flying to you</strong>: resources heading into your packs.</li>
+        <li><strong>A golden burst of sparks</strong> and a fanfare: you've reached a <a href="#milestones">milestone</a>.</li>
+        <li><strong>Darkness</strong> after dusk, with a pool of lamplight around you. See <a href="#world">The world</a>.</li>
+        <li><strong>Black</strong>: fog. You haven't been there yet.</li>
+      </ul>
+
+      <h2>The sheet</h2>
+      <p>BUILD and UPGRADE open a sheet with three tabs: <strong>Upgrades</strong>, <strong>Build</strong> and <strong>Beyond</strong>.
+        Prices show in green when you can afford them and red when you can't. In Upgrades, each family has a row of dots: an empty
+        dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed.</p>
+      <p>The bottom of the sheet holds <strong>Wiki</strong> (this page), <strong>Reset world</strong> (starts over, after asking),
+        and <strong>Sound</strong>.</p>
+    </article>
+
+    <article id="world" data-title="The world" hidden>
+      <h1>The world</h1>
+      <p class="lede">Endless in every direction, different every time, and it goes down as well as out.</p>
+
+      <h2>Layout</h2>
+      <p>Each world comes from a random seed and has no edges: keep walking and it keeps going. Resources are spread evenly
+        everywhere with no richer zones far from the start, so every direction is worth exploring. You begin on the dry land
+        nearest the world's centre.</p>
+      <p>The world has <strong>layers</strong>. The forest you start in is the surface; the mine is a stack of layers directly
+        beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
+
+      <h2>Surface tiles</h2>
+      <div data-table="surface"></div>
+      <p>Richness is how many swings a deposit takes before it's exhausted. Each tile rolls its own value in that range.</p>
+
+      <h2>Fog</h2>
+      <p>The surface starts black. Everything within <span data-k="EXPLORE_RADIUS"></span> tiles of you is revealed as you walk,
+        and stays revealed. The Cartographer perk widens this by 2. The mine has no fog.</p>
+
+      <h2>Water</h2>
+      <p>You can swim anywhere there's water, at <span data-k="SWIM_SPEED" data-f="pct"></span> of your walking speed. You'll be
+        riding a little boat. Nothing can be built on water.</p>
+
+      <h2>Regrowth</h2>
+      <p>Forest and stone grow back; ore and crystal never do. Every <span data-k="REGROW_INTERVAL"></span> seconds, each depleted
+        forest or stone tile within <span data-k="REGROW_RADIUS"></span> tiles of you has a
+        <span data-k="REGROW_CHANCE" data-f="pct"></span> chance to regain one point of richness, up to where it started. Tiles far
+        from you don't regrow, so a cleared patch only comes back while you're nearby.</p>
+
+      <h2>Day and night</h2>
+      <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
+        After dusk the world fades into darkness, except for a pool of lamplight around you, so you can always keep working.
+        Nothing else changes at night.</p>
+    </article>
+
+    <article id="gathering" data-title="Gathering" hidden>
+      <h1>Gathering</h1>
+      <p class="lede">Four resources, two tools, and deposits that run dry.</p>
+
+      <h2>Resources</h2>
+      <ul>
+        <li><strong>🪵 Wood</strong> from forest, and from fossils in the deep mine. Uses the Axe.</li>
+        <li><strong>🪨 Stone</strong> from stone deposits and stone seams. Uses the Pickaxe.</li>
+        <li><strong>⛏️ Ore</strong> from ore deposits and ore seams. Uses the Pickaxe. Never regrows on the surface.</li>
+        <li><strong>💠 Crystal</strong> from crystal deposits and, from layer 3 down, crystal seams. Uses the Pickaxe. Rare, and never regrows on the surface.</li>
+      </ul>
+
+      <h2>Yield and richness</h2>
+      <p>Each swing gives you as much as your tool's level allows (1 at the start, up to 32), but always takes exactly
+        <strong>one</strong> point of richness from the tile. Better tools don't use up deposits faster; they get more out of
+        each one. A forest at zero richness turns into a stump until it regrows.</p>
+      <p>See <a href="#upgrades">Upgrades</a> for the full tool tables.</p>
+
+      <h2>Finding ore and crystal</h2>
+      <p>Ore and crystal show up as rocks flecked with orange, and as pale blue crystal clusters. They're scattered everywhere,
+        but crystal is rare. If none is near, walk in a straight line; the fog hides a lot.</p>
+    </article>
+
+    <article id="mine" data-title="The mine" hidden>
+      <h1>The mine</h1>
+      <p class="lede">Solid rock under the forest, as deep as you care to dig.</p>
+
+      <h2>Going down and back up</h2>
+      <p>Tap <strong>MINE</strong> and you drop straight down into the rock beneath where you're standing, into a one-tile
+        chamber. You arrive on the <strong>deepest layer you've reached so far</strong>, so you never have to redo the climb.
+        Tap <strong>SURFACE</strong> to ride back up to the forest spot you left from.</p>
+
+      <h2>Digging</h2>
+      <p>Underground, everything is solid and you can only walk through tunnels you dig. Dig a tile by <strong>tapping</strong> it
+        within reach, or with a <strong>Trail</strong> across nearby rock. Holding Gather on its own never digs, so you never
+        carve tunnels by accident.</p>
+      <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Axe or Pickaxe level. Tunnels
+        stay where you dug them, on every layer.</p>
+      <div data-table="underground"></div>
+
+      <h2>What's down there</h2>
+      <p>Deeper layers hold more kinds of rock:</p>
+      <div data-table="geology"></div>
+
+      <h2>Shafts</h2>
+      <p>Every <span data-k="CHUNK_SIZE"></span>&times;<span data-k="CHUNK_SIZE"></span> area of each layer hides exactly one
+        <strong>shaft</strong>, a marked hatch at least two tiles in from the area's edge. Dig your way to it and dig it once to
+        open it. Opening it doesn't drop you; when you're ready, <strong>tap the open shaft</strong> from within reach and you
+        fall to the layer below, landing directly underneath it.</p>
+      <p>Layers line up exactly: the tile at a given spot on layer 3 is directly below the same spot on layer 2 and on the
+        forest.</p>
+
+      <h2>Rules underground</h2>
+      <ul>
+        <li>Nothing can be built underground.</li>
+        <li>Logistics only collects from buildings on the layer you're on, so your surface camps simply fill up while you're below.</li>
+        <li>Nothing regrows underground, and there's no fog.</li>
+        <li>Day and night carry on as usual.</li>
+      </ul>
+    </article>
+
+    <article id="buildings" data-title="Buildings" hidden>
+      <h1>Buildings</h1>
+      <p class="lede">Make the world work for you.</p>
+
+      <h2>Placing</h2>
+      <p>Open <strong>BUILD</strong>, stand next to the right kind of tile, and tap <strong>Place</strong>. The building goes on the
+        nearest suitable free tile within reach; blue outlines on the map show where. Each building you already own of a kind
+        makes the next one of that kind cost &times;<span data-k="EXTRACTOR_GROWTH"></span> more.</p>
+
+      <h2>Extractors</h2>
+      <p>Extractors stand on a matching deposit and produce its resource forever. They don't use the deposit up.</p>
+      <div data-table="extractors"></div>
+
+      <h2>Converters</h2>
+      <p>Converters make a resource out of nothing on any open land: grass or any surface deposit, but not water or mountain.
+        Each needs its blueprint from the Unlocks family in <a href="#upgrades">Upgrades</a> first.</p>
+      <div data-table="converters"></div>
+
+      <h2>Output</h2>
+      <p>A building's real rate is its base rate multiplied by Overclock, its resource's refinery chain, the Abundance Engine and
+        the Legacy perk. The Build tab shows the current figure for each.</p>
+      <p>Goods pile up inside the building until it's full ("Holds" above), then it stops. Nothing is lost; it just waits.</p>
+
+      <h2>Collecting</h2>
+      <p>Stand within <span data-k="COLLECT_RANGE"></span> tiles of a building and press Gather (it reads <em>COLLECT</em>) or tap
+        the building. You take every whole unit from every building in that range at once.</p>
+
+      <h2>Logistics</h2>
+      <p>Once you unlock <strong>Logistics</strong>, every building within <span data-k="AUTO_COLLECT_RANGE"></span> tiles of you
+        sends its goods straight into your packs as they're made. Walk away and they fill up again. The trick is to cluster
+        buildings into a base and work from the middle of it.</p>
+    </article>
+
+    <article id="upgrades" data-title="Upgrades" hidden>
+      <h1>Upgrades</h1>
+      <p class="lede">Everything in the Upgrades tab, level by level.</p>
+
+      <h2>Tools</h2>
+      <p>Your Axe and Pickaxe set how much each swing yields. Boots set your speed. Overclock multiplies every building's output.</p>
+      <div data-table="tools"></div>
+
+      <h2>Unlocks and blueprints</h2>
+      <p>One-time purchases.</p>
+      <div data-table="unlocks"></div>
+
+      <h2>Refineries</h2>
+      <p>Each resource has a chain of ten refinery levels. Every level multiplies <strong>all</strong> production of that resource,
+        from extractors and converters alike, and the levels compound.</p>
+      <div data-table="refineries"></div>
+
+      <h2>The Abundance Engine</h2>
+      <p>A repeatable late-game build. Every level gives you a steady trickle of every resource, wherever you are, and multiplies
+        all building output by <span data-k="ABUNDANCE.prodMult"></span>. Each level costs
+        &times;<span data-k="ABUNDANCE.growth"></span> more than the last. Your first few levels:</p>
+      <div data-table="abundance"></div>
+    </article>
+
+    <article id="beyond" data-title="Beyond" hidden>
+      <h1>Beyond</h1>
+      <p class="lede">Start over in a new world, a little stronger each time.</p>
+
+      <h2>Embarking</h2>
+      <p>Once you've taken in <span data-k="EMBARK_MIN_TOTAL"></span> resources in your current world, the
+        <strong>Embark</strong> button in the Beyond tab lights up. Everything that reaches your packs counts: gathering, digging,
+        collecting, Logistics and the Abundance trickle.</p>
+      <p>Embarking throws you into a brand new random world. You lose the old world, your inventory, tools, buildings, unlocks,
+        refineries, the Abundance Engine and your milestone progress. You keep your Insight, your perks and your lifetime total.</p>
+
+      <h2>Insight</h2>
+      <p>Each Embark pays out Insight based on everything you've ever gathered, across all worlds:</p>
+      <p><strong>Insight gained = floor(&radic;(lifetime total &divide; 2,000))</strong></p>
+      <p>So 20,000 lifetime gives 3, 80,000 gives 6, and 200,000 gives 10. Insight is spent on perks and never resets. The
+        requirement to embark only counts the current world, so you can't embark again right away on old progress.</p>
+
+      <h2>Perks</h2>
+      <div data-table="perks"></div>
+      <p>Legacy multiplies all building output and the Abundance trickle by 1.25 per level, compounding. Memory, Heirloom and
+        Cartographer take effect from the next world you start.</p>
+    </article>
+
+    <article id="milestones" data-title="Milestones" hidden>
+      <h1>Milestones</h1>
+      <p class="lede">The game quietly tracks these in order and celebrates each one with a burst of sparks and a fanfare.
+        Spoilers, if you'd rather find your own way.</p>
+      <div data-table="milestones"></div>
+      <p>Milestones are checked in order, so one only counts once everything before it is done. They start over when you embark.</p>
+    </article>
+
+    <article id="saving" data-title="Saving" hidden>
+      <h1>Saving</h1>
+      <p class="lede">Automatic, and kept in your browser.</p>
+      <ul>
+        <li>The game saves every few seconds, right after anything important, and when you leave the page.</li>
+        <li>Saves live in your browser's local storage on this site. They don't follow you to another browser or device, and a
+          private or incognito window may forget them when it closes.</li>
+        <li>Clearing site data for the game deletes your save.</li>
+        <li><strong>Reset world</strong> at the bottom of the sheet starts a fresh world. It asks first, and it can't be undone.</li>
+        <li>Saves from older versions of the game are upgraded automatically. If a save can't be read, the game tells you and
+          starts a new world.</li>
+      </ul>
+    </article>
+
+  </main>
+</div>
+<script type="module" src="wiki.js"></script>
+</body>
+</html>

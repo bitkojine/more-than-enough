@@ -175,6 +175,11 @@ async function main() {
     await sleep(400);
   }
 
+  async function navigate2(url) {
+    await cdp.send('Page.navigate', { url: url }, session);
+    await sleep(600);
+  }
+
   async function touch(type, points) {
     await cdp.send('Input.dispatchTouchEvent', { type: type, touchPoints: points }, session);
   }
@@ -221,17 +226,13 @@ async function main() {
   await evalJS('localStorage.clear()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await evalJS('!!window.MTE_GAME'), 'game booted');
-  var goalTxt = await evalJS('document.getElementById("goal").textContent');
-  ok(goalTxt && goalTxt.length > 3, 'goal banner shows: ' + goalTxt);
+  // No hand-holding: nothing to read on screen, no tutorial, no prompts.
+  ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
+  ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
+  eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 4, 'gather, build, upgrade and mine share the thumb dock');
-  ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("marked shaft") >= 0 && document.getElementById("tutorial").textContent.indexOf("tap its hatch") >= 0'), 'tutorial explains how to choose when to descend');
-  ok(!(await evalJS('document.getElementById("tutorial").hidden')), 'first visit opens the controls tutorial');
-  ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("Trail") >= 0'), 'tutorial explains Trail alongside the other controls');
-  await tap((await rect('#tutorialDone')).x, (await rect('#tutorialDone')).y);
-  ok(await evalJS('document.getElementById("tutorial").hidden'), 'Got it dismisses the tutorial');
-  eq(await evalJS('localStorage.getItem("more-than-enough-controls-tutorial-seen-v1")'), '1', 'tutorial dismissal is remembered');
   var zoomIn = await rect('#btnZoomIn');
   await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');
@@ -242,6 +243,7 @@ async function main() {
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'mine button drops to the layer beneath the forest');
+  eq(await evalJS('document.getElementById("depth").hidden ? "" : document.getElementById("depth").textContent'), '\u25BC 1', 'the depth marker shows layer 1');
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'SURFACE', 'mine button becomes the return control underground');
   await sleep(120); // let the camera settle on the new layer
   var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
@@ -272,7 +274,7 @@ async function main() {
   ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), 0, 'surface button returns to the forest');
-  var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
+  var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("depth"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
   ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');
 
@@ -334,7 +336,6 @@ async function main() {
     await touch('touchMove', [{ x: trailStart.x + (195 - trailStart.x) * trailStep / 8, y: trailStart.y + (422 - trailStart.y) * trailStep / 8, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
     await sleep(20);
   }
-  ok(await evalJS('document.getElementById("trailHint").textContent.indexOf("green tile") >= 0 && document.getElementById("trailHint").textContent.indexOf("release to sweep") >= 0'), 'Trail counts the green resource tiles its freeform trace will sweep');
   var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=615;yy<=645;yy+=2)for(var xx=245;xx<=265;xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
   ok(trailGlow, 'live Trail stroke paints visibly on the map');
   await touch('touchEnd', []);
@@ -445,22 +446,16 @@ async function main() {
   muteButton = await rect('#btnMute');
   await tap(muteButton.x, muteButton.y);
   eq(await evalJS('document.getElementById("btnMute").textContent'), 'Sound: on', 'Sound control unmutes with one tap');
-  var helpButton = await rect('#btnHelp');
-  await tap(helpButton.x, helpButton.y);
-  ok(await evalJS('document.getElementById("tutorial").hidden === false && !document.getElementById("sheet").classList.contains("open")'), 'Controls help reopens the tutorial and returns to the game');
-  var helpDone = await rect('#tutorialDone');
-  await tap(helpDone.x, helpDone.y);
-  upBtn = await rect('#btnUpgrade');
-  await tap(upBtn.x, upBtn.y);
-  await sleep(250);
+  eq(await evalJS('document.getElementById("wikiLink").getAttribute("href")'), 'wiki/', 'the sheet links to the wiki');
+  eq(await evalJS('document.getElementById("wikiLink").target'), '_blank', 'the wiki opens outside the game');
   var audioState = await evalJS('MTE_GAME.audioState()');
   console.log('  audio state after gestures: ' + audioState);
   ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
   ok(!(await evalJS('document.getElementById("tabBeyond").hidden')), 'Beyond tab is visible from the start');
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 5, 'Progression map shows five family headers (4 world + legacy)');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
-  var beyondPreviewReady = await waitFor('document.querySelector("#sheetTitle").textContent === "Beyond" && document.querySelector("#sheetBody").textContent.indexOf("A New World Awaits") >= 0', 3000);
-  ok(beyondPreviewReady, 'Beyond shows a locked preview before the loop is reachable');
+  var beyondPreviewReady = await waitFor('document.querySelector("#sheetTitle").textContent === "Beyond" && document.querySelector("#sheetBody button[data-kind=embark]").disabled && document.querySelectorAll("#sheetBody button.max").length === 5', 3000);
+  ok(beyondPreviewReady, 'Beyond shows Embark and the perks locked before the loop is reachable');
   var upgradesTab = await rect('.tab[data-tab=upgrades]');
   await tap(upgradesTab.x, upgradesTab.y);
   await sleep(200);
@@ -485,7 +480,6 @@ async function main() {
   var pre = JSON.parse(await stateSummary());
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   var post = JSON.parse(await stateSummary());
-  ok(await evalJS('document.getElementById("tutorial").hidden'), 'dismissed tutorial stays closed after reload');
   eq(post.tools.axe, pre.tools.axe, 'axe level survives reload');
   eq(post.ext, pre.ext, 'extractor survives reload');
   eq(Math.floor(post.inv.ore), Math.floor(pre.inv.ore), 'ore inventory survives reload');
@@ -705,6 +699,14 @@ async function main() {
   await sleep(120);
 
   /* ------------------------------------------------------------- errors */
+  /* --------------------------------------------------------------- wiki */
+  console.log('\n== Wiki ==');
+  await navigate2('http://127.0.0.1:' + PORT + '/wiki/#mine');
+  ok(await waitFor('document.querySelectorAll("[data-table] table").length > 10', 4000), 'the wiki renders its tables from the game data');
+  eq(await evalJS('[...document.querySelectorAll("article")].filter(function(a){return !a.hidden;}).map(function(a){return a.id;}).join()'), 'mine', 'wiki links open the right article');
+  eq(await evalJS('[...document.querySelectorAll("[data-k]")].filter(function(n){return !/^[0-9]/.test(n.textContent);}).length'), 0, 'every figure in the wiki resolves to a number');
+  ok(await evalJS('document.querySelector(".version").textContent.indexOf(".") > 0'), 'the wiki states the game version it documents');
+
   console.log('\n== Runtime errors ==');
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));
 

@@ -1,10 +1,10 @@
 /* One frame, back to front. `view` carries the UI state the picture depends on
- * (targets, the Trail, the joystick, hints) so drawing never reaches into
- * input or the sheet. */
+ * (targets, the Trail, the joystick) so drawing never reaches into input or
+ * the sheet. Nothing drawn here is text to read. */
 
 import { drawTerrain } from './terrain.js';
 import { drawExtractors, drawPlayer, drawParticles, drawFloats, drawFlyers } from './sprites.js';
-import { drawHighlights, drawTrail, drawLighting, drawJoystick, drawHint, drawPrompt } from './overlay.js';
+import { drawHighlights, drawTrail, drawLighting, drawJoystick } from './overlay.js';
 
 const BACKDROP = '#04060a';
 
@@ -24,6 +24,4 @@ export function render(cam, s, fx, view) {
   drawFlyers(ctx, cam, fx);
   drawLighting(ctx, cam, s);
   drawJoystick(ctx, cam, view);
-  drawHint(ctx, cam, view);
-  drawPrompt(ctx, cam, view.prompt);
 }

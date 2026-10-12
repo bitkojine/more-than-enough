@@ -1,5 +1,6 @@
 /* The player's intents, applied to the game: each one calls the core and then
- * gives feedback (effects, sound, HUD, toasts) and schedules a save. */
+ * gives feedback (effects, sound, HUD) and schedules a save. Feedback is
+ * visual and audible only; the game never explains itself in text. */
 
 import * as Core from '../core/index.js';
 import { fmt } from './format.js';
@@ -10,8 +11,6 @@ const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
-const BUY_LABEL = { resup: ['✦ REFINE', '#9fe08a'], perk: ['✦ PERK', '#cbb0f0'] };
-
 export function createController({ game, cam, fx, audio, hud }) {
   let cooldown = 0;
   let walkTo = null;
@@ -20,28 +19,28 @@ export function createController({ game, cam, fx, audio, hud }) {
   const state = () => game.state;
   const player = () => game.state.player;
   const say = (text, color) => fx.text(player().x, player().y - 0.4, text, color);
+  const toolLevel = (res) => state().tools[res === 'wood' ? 'axe' : 'pickaxe'];
 
   function changed() {
     hud.update(state());
     game.saveSoon();
   }
 
+  // Milestones are celebrated, never announced: a burst and a fanfare.
   function checkGoals() {
     if (!Core.advanceGoals(state())) return;
-    hud.flashGoal();
+    fx.celebrate(player().x, player().y);
     audio.fanfare();
-    hud.update(state());
   }
 
   function harvested(r) {
     if (r.res) {
       fx.gathered(r.x, r.y, r.res, r.amount);
-      audio.gather(r.res, r.amount, state().tools[r.res === 'wood' ? 'axe' : 'pickaxe']);
+      audio.gather(r.res, r.amount, toolLevel(r.res));
     } else {
       fx.dug(r.x, r.y);
       audio.dig();
     }
-    if (r.now === Core.T.SHAFT_OPEN) hud.toast('Way down uncovered · tap the marked hatch to descend');
   }
 
   function collectNearby() {
@@ -65,10 +64,9 @@ export function createController({ game, cam, fx, audio, hud }) {
     return true;
   }
 
-  function layerChanged(message) {
+  function layerChanged() {
     fx.clear();
     walkTo = null;
-    hud.toast(message);
     hud.update(state());
     hud.updateButtons(state());
     game.saveNow();
@@ -76,13 +74,12 @@ export function createController({ game, cam, fx, audio, hud }) {
 
   function descend(x, y) {
     if (!Core.descendAt(state(), x, y)) return false;
-    layerChanged('Down to layer ' + (Core.SURFACE - player().z));
+    layerChanged();
     return true;
   }
 
   const controller = {
     facing: { x: 0, y: 1 },
-    hasMoved: false,
     checkGoals,
 
     // Moves by the input vector, or else toward a tapped destination.
@@ -107,7 +104,6 @@ export function createController({ game, cam, fx, audio, hud }) {
         stalled = moved ? 0 : stalled + dt;
         if (stalled > STALL_SECONDS) walkTo = null;
       }
-      if (moved) controller.hasMoved = true;
       return moved;
     },
 
@@ -138,7 +134,6 @@ export function createController({ game, cam, fx, audio, hud }) {
 
     // A finished Trail stroke (world points), or null if it was abandoned.
     trailEnded(points) {
-      hud.hideTrailHint();
       if (!points) return;
       const s = state();
       const below = Core.isUnderground(s);
@@ -150,38 +145,28 @@ export function createController({ game, cam, fx, audio, hud }) {
         gathered += r.amount;
         if (below) harvested(r);
         else if (r.amount > 0) {
-          audio.gather(r.res, r.amount, s.tools[r.res === 'wood' ? 'axe' : 'pickaxe']);
+          audio.gather(r.res, r.amount, toolLevel(r.res));
           fx.flyersFrom(r.x, r.y, r.res, r.amount);
         }
       }
-      if (count) changed();
-      if (below) hud.toast(count ? 'Trail dug ' + count + (count === 1 ? ' tile' : ' tiles') : 'Draw across nearby rock to dig');
-      else if (!count) hud.toast('No green tiles crossed');
-      else {
-        say('Trail +' + fmt(gathered), '#b8ec9a');
-        hud.toast('Trail gathered ' + fmt(gathered) + ' resources');
-      }
+      if (!count) return;
+      if (gathered > 0) say('+' + fmt(gathered), '#b8ec9a');
+      changed();
     },
 
     toggleMine() {
       const s = state();
-      if (Core.isUnderground(s)) {
-        Core.leaveMine(s);
-        layerChanged('Back in the forest');
-      } else {
-        Core.enterMine(s);
-        layerChanged('Layer ' + (Core.SURFACE - s.player.z) + ' · dig through the rock to find a shaft');
-      }
+      if (Core.isUnderground(s)) Core.leaveMine(s);
+      else Core.enterMine(s);
+      layerChanged();
     },
 
     buy(id) {
       const s = state();
-      const res = Core.buy(s, id);
-      if (!res.ok) { hud.toast(res.reason); return; }
-      const [label, color] = BUY_LABEL[Core.UPGRADES[id].kind] || ['✦ UPGRADE', '#9fe08a'];
+      if (!Core.buy(s, id).ok) return;
       audio.upgrade();
       audio.drone(s.extractors.length, Core.overclockMult(s));
-      say(label, color);
+      say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
       changed();
       checkGoals();
     },
@@ -189,7 +174,7 @@ export function createController({ game, cam, fx, audio, hud }) {
     place(key) {
       const s = state();
       const res = Core.place(s, key);
-      if (!res.ok) { hud.toast(res.reason); return; }
+      if (!res.ok) return;
       fx.built(res.x, res.y);
       audio.build();
       audio.drone(s.extractors.length, Core.overclockMult(s));
@@ -197,22 +182,21 @@ export function createController({ game, cam, fx, audio, hud }) {
       checkGoals();
     },
 
+    // Embark and reset destroy a world, so they ask first.
     embark() {
       const s = state();
-      if (!Core.canEmbark(s)) { hud.toast('Gather ' + fmt(Core.EMBARK_MIN_TOTAL) + ' resources in this world first'); return; }
-      const gain = Core.embarkGain(s);
-      if (!window.confirm('Embark on a new world?\n\nYour world, inventory, extractors and upgrades reset. You keep Insight and perks, and gain ' + gain + ' Insight.')) return;
+      if (!Core.canEmbark(s)) return;
+      if (!window.confirm('Embark? This world resets. +' + Core.embarkGain(s) + ' Insight.')) return;
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();
-      hud.toast('New world — gained ' + res.gained + ' Insight');
+      say('+' + res.gained + ' ✨', '#cbb0f0');
     },
 
     reset() {
-      if (!window.confirm('Start a brand new world? Current progress will be lost.')) return;
+      if (!window.confirm('Start a new world? All progress is lost.')) return;
       clearSave();
       game.replace(Core.createState(randomSeed()));
-      hud.toast('New world generated');
     },
 
     // Forget per-world intents when the world itself is replaced.

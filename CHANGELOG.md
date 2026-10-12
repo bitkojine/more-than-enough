@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.20.0] - 2026-10-13
+
+### Added
+- A player wiki at `/wiki/`, linked from the sheet: controls, the screen, the
+  world, gathering, the mine, buildings, upgrades, Beyond, milestones and
+  saving. Its tables and figures are read live from the game's core, so they
+  always match the version that ships with them.
+
+### Changed
+- No hand-holding: the game no longer explains itself. Removed the controls
+  tutorial, the goal banner, on-map prompts, the Trail hint, the compass arrow,
+  instructional toasts and descriptive text in the sheet. The sheet shows
+  names, levels, numbers and prices only. Milestones are celebrated with a
+  burst of sparks and a fanfare instead of being announced.
+- Underground, a small `▼ n` marker shows the current layer.
+- Underground rock shares now live in one exported table (`GEOLOGY`); the
+  generated layers are unchanged.
+
 ## [0.19.0] - 2026-10-13
 
 ### Changed

@@ -29,7 +29,7 @@ function surfaceType(seed, x, y) {
 }
 
 // Starting richness for each surface deposit: base + random spread.
-const DEPOSIT = [];
+export const DEPOSIT = [];
 DEPOSIT[T.FOREST] = { base: 5, spread: 9, salt: 101 };
 DEPOSIT[T.STONE] = { base: 4, spread: 6, salt: 102 };
 DEPOSIT[T.ORE] = { base: 3, spread: 6, salt: 103 };
@@ -51,17 +51,23 @@ function generateSurface(seed, cx, cy) {
   return { type, rich };
 }
 
-// Geology below the forest. Deeper layers add crystal (from depth 2) and fossils
-// (from depth 3). Every underground tile starts solid with richness 1; digging
-// it to zero clears it into a tunnel.
-function undergroundType(seed, x, y, depth) {
+// Geology below the forest. Each tile draws h in [0, 1) and takes the first
+// band with h < below. A band only appears from layer `from` down (layer 1 is
+// z = -1); above that its share is plain soil. Everything else is soil. Every
+// underground tile starts solid with richness 1; digging it to zero clears it.
+export const GEOLOGY = [
+  { type: T.BEDROCK, below: 0.13, from: 1 },
+  { type: T.STONE_SEAM, below: 0.27, from: 1 },
+  { type: T.ORE_SEAM, below: 0.34, from: 1 },
+  { type: T.CRYSTAL_SEAM, below: 0.37, from: 3 },
+  { type: T.FOSSIL, below: 0.43, from: 4 }
+];
+
+function undergroundType(seed, x, y, layer) {
+  const depth = layer - 1;
   const h = hash2(x + depth * 977, y - depth * 613, seed + depth * 7919);
-  if (h < 0.13) return T.BEDROCK;
-  if (h < 0.27) return T.STONE_SEAM;
-  if (h < 0.34) return T.ORE_SEAM;
-  if (h < 0.37 && depth > 1) return T.CRYSTAL_SEAM;
-  if (h < 0.43 && depth > 2) return T.FOSSIL;
-  return T.SOIL;
+  const band = GEOLOGY.find((g) => h < g.below);
+  return band && layer >= band.from ? band.type : T.SOIL;
 }
 
 // Each underground chunk hides one shaft down to the next layer, kept two tiles
@@ -77,11 +83,11 @@ export function shaftInChunk(seed, cx, cy, cz) {
 function generateUnderground(seed, cx, cy, cz) {
   const type = new Uint8Array(CHUNK_TILES);
   const rich = new Uint8Array(CHUNK_TILES).fill(1);
-  const depth = SURFACE - cz - 1; // 0 for the first layer below the forest
+  const layer = SURFACE - cz; // 1 for the first layer below the forest
   const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
   for (let ly = 0; ly < CHUNK_SIZE; ly++) {
     for (let lx = 0; lx < CHUNK_SIZE; lx++) {
-      type[ly * CHUNK_SIZE + lx] = undergroundType(seed, ox + lx, oy + ly, depth);
+      type[ly * CHUNK_SIZE + lx] = undergroundType(seed, ox + lx, oy + ly, layer);
     }
   }
   const shaft = shaftInChunk(seed, cx, cy, cz);

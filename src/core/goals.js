@@ -1,4 +1,5 @@
-/* The milestone track shown in the goal banner. */
+/* Milestones. The game celebrates each one when it happens but never says
+ * what comes next; the list itself is documented in the wiki. */
 
 import { EMBARK_MIN_TOTAL } from './content.js';
 import { extractorCount } from './economy.js';
@@ -42,8 +43,4 @@ export function advanceGoals(s) {
   const start = s.goalIndex;
   while (s.goalIndex < GOALS.length && GOALS[s.goalIndex].done(s)) s.goalIndex++;
   return s.goalIndex > start;
-}
-
-export function currentGoal(s) {
-  return GOALS[Math.min(s.goalIndex, GOALS.length - 1)].text;
 }
