@@ -1066,10 +1066,10 @@
 
   // Locked Beyond: preview the prestige loop — the Embark goal plus the five
   // perks, sealed — so the horizon is visible before the loop is reachable.
-  function renderBeyondLocked(lifetime) {
+  function renderBeyondLocked(runGathered) {
     var html = '<div class="section">Legacy</div>';
     html += row('\uD83C\uDF0D', 'A New World Awaits',
-      'Keep gathering \u2014 Embark unlocks after your first big haul. Lifetime gathered: <span class="ok">' + fmt(lifetime) + '</span>.',
+      'Gather ' + fmt(Core.EMBARK_MIN_TOTAL) + ' resources in one world to unlock Embark. This world: <span class="ok">' + fmt(runGathered) + '</span>.',
       '<button class="buy max" disabled>Sealed</button>');
     html += '<div class="section">Perks</div>';
     for (var i = 0; i < PERK_KEYS.length; i++) {
@@ -1083,8 +1083,9 @@
 
   function renderBeyond() {
     var lifetime = Math.floor(Core.lifetimeTotal(state));
+    var runGathered = Math.floor(Core.sumStats(state));
 
-    if (!beyondUnlocked()) { renderBeyondLocked(lifetime); return; }
+    if (!beyondUnlocked()) { renderBeyondLocked(runGathered); return; }
 
     var gain = Core.embarkGain(state);
     var insight = state.insight || 0;
@@ -1096,7 +1097,7 @@
     var can = Core.canEmbark(state);
     var esub = can
       ? 'Reset the world, inventory and upgrades. Keep Insight &amp; perks, and gain <span class="ok">+' + fmt(gain) + '</span> Insight.'
-      : 'Reach ' + fmt(Core.EMBARK_MIN_TOTAL) + ' lifetime resources. Currently ' + fmt(lifetime) + '.';
+      : 'Gather ' + fmt(Core.EMBARK_MIN_TOTAL) + ' resources in this world. Currently ' + fmt(runGathered) + '.';
     var ebtn = '<button class="buy" data-kind="embark"' + (can ? '' : ' disabled') + '>' + (can ? 'Embark +' + fmt(gain) : 'Embark') + '</button>';
     html += row('\uD83C\uDF0D', 'Embark', esub, ebtn);
 
@@ -1121,7 +1122,7 @@
 
   function doEmbark() {
     if (!Core.canEmbark(state)) {
-      toast('Reach ' + fmt(Core.EMBARK_MIN_TOTAL) + ' lifetime resources first');
+      toast('Gather ' + fmt(Core.EMBARK_MIN_TOTAL) + ' resources in this world first');
       return;
     }
     var gain = Core.embarkGain(state);

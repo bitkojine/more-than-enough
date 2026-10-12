@@ -196,14 +196,19 @@ Reuse the existing design language; add minimal classes:
 
 Recommendation: stop hiding the horizon. Instead of a `hidden` tab, show
 **Beyond** from the start but in a *locked* state that states the requirement
-("Reach X lifetime resources, then Embark to start a New World"). This teaches
-the loop immediately without switching a tab out from under the player.
+("Gather 20,000 resources in one world, then Embark to start a New World").
+This teaches the loop immediately without switching a tab out from under the
+player.
 
 > **Decided (Q2):** the Beyond tab is **always visible**. When the loop isn't
 > available yet it renders a *locked preview* — the Embark goal plus the five
 > perks shown as sealed (name + description, no buy button) — instead of being
 > hidden. This teaches the loop from the first session without switching a tab
 > out from under the player.
+
+> **Embark threshold:** 20,000 resources must be gathered in the current world.
+> Lifetime gathered resources still determine the Insight reward, but carried
+> lifetime progress does not unlock another Embark immediately.
 
 ## 11. Phased plan
 

@@ -6,6 +6,13 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.6] - 2026-10-12
+
+### Fixed
+- **Embark requires progress in each world.** Players must gather 20,000
+  resources in the current world before embarking again. Insight rewards still
+  scale with lifetime gathered resources.
+
 ## [0.13.5] - 2026-10-12
 
 ### Fixed

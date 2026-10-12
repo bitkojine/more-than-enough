@@ -704,11 +704,13 @@
     return Math.floor(Math.sqrt(lifetimeTotal(s) / 2000));
   }
 
-  function canEmbark(s) { return embarkGain(s) >= 1; }
+  // A fresh world starts with lifetime progress carried over, so eligibility
+  // must use this world's gather total. Insight gain still rewards lifetime.
+  function canEmbark(s) { return sumStats(s) >= EMBARK_MIN_TOTAL; }
 
   function embark(s) {
     var gain = embarkGain(s);
-    if (gain < 1) return { ok: false, reason: 'Reach ' + EMBARK_MIN_TOTAL + ' lifetime resources first' };
+    if (!canEmbark(s)) return { ok: false, reason: 'Gather ' + EMBARK_MIN_TOTAL + ' resources in this world first' };
     var seed = ((Math.random() * 0xFFFFFF) | 0) + 1;
     var fresh = createState(seed);
     var p = s.perks || {};
@@ -961,7 +963,7 @@
     { text: '\u2699\uFE0F Sharpen ore production (Metallurgy I)', test: function (s) { return s.resUp.ore >= 1; } },
     { text: '\u2764\uFE0F\u200D\uD83D\uDD25 Push the Abundance Engine to IV', test: function (s) { return (s.abundanceLv || 0) >= 4; } },
     { text: '\uD83C\uDFD4\uFE0F Own 25 automated structures', test: function (s) { return s.extractors.length >= 25; } },
-    { text: '\uD83C\uDF05 The Long Road \u2014 ' + EMBARK_MIN_TOTAL.toLocaleString() + ' lifetime resources', test: function (s) { return lifetimeTotal(s) >= EMBARK_MIN_TOTAL; } },
+    { text: '\uD83C\uDF05 The Long Road \u2014 gather ' + EMBARK_MIN_TOTAL.toLocaleString() + ' resources in this world', test: function (s) { return sumStats(s) >= EMBARK_MIN_TOTAL; } },
     { text: '\u267E\uFE0F MORE THAN ENOUGH \u2014 expand forever', test: function () { return false; } }
   ];
 

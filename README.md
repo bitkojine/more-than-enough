@@ -47,9 +47,10 @@ on the Pages site, saves live in that browser for that origin).
   Overclock, the repeatable **Abundance Engine**, per-resource **refinery
   chains** (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks
   including the converter blueprints.
-- The **Beyond** tab always shows the prestige loop: until it's within reach
-  it's a locked preview (perks sealed), then it opens up — spend **Insight** on
-  perks and **Embark** on a New World.
+- The **Beyond** tab always shows the prestige loop: gather 20,000 resources in
+  one world to unlock **Embark** on a New World. The requirement resets after
+  each Embark; the Insight reward still grows with your lifetime gathered total.
+  Spend **Insight** on perks between worlds.
 - Swipe the sheet's **grab handle down** to close it.
 - The world follows a **day/night cycle** (240s). By day it's bright and calm;
   at night your **flashlight turns on automatically**, keeping a pool of light

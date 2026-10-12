@@ -429,7 +429,7 @@ async function main() {
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(250);
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');
-  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled at 20k lifetime');
+  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled at 20k gathered this world');
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(200);
@@ -451,6 +451,7 @@ async function main() {
   eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
   eq(afterEmbark.ext, 0, 'embark resets extractors');
   ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
+  ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'), 'carried lifetime progress cannot enable immediate re-embark');
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
 
   /* ------------------------------------- logistics auto-collect is ranged */
