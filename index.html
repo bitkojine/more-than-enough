@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>More Than Enough</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#05070a" />
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="hud">
+    <div id="resources"></div>
+    <div id="goal">Loading&hellip;</div>
+  </div>
+
+  <div id="version"></div>
+
+  <div id="controls">
+    <button id="btnUpgrade" class="btn" type="button" aria-label="Upgrades">
+      <span class="big">&#128295;</span><span class="cap">UPGRADE</span>
+    </button>
+    <button id="btnBuild" class="btn" type="button" aria-label="Build extractor">
+      <span class="big">&#127957;</span><span class="cap">BUILD</span>
+    </button>
+    <button id="btnAction" class="btn" type="button" aria-label="Gather">
+      <span class="big" id="actionIcon">&#129296;</span><span class="cap" id="actionLabel">GATHER</span>
+    </button>
+  </div>
+
+  <div id="sheet" aria-hidden="true">
+    <div id="sheetHead">
+      <div id="tabs">
+        <button class="tab active" type="button" data-tab="upgrades">Upgrades</button>
+        <button class="tab" type="button" data-tab="build">Build</button>
+      </div>
+      <button id="btnClose" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div id="sheetBody"></div>
+    <div id="sheetFoot">
+      <button id="btnReset" type="button">Reset world</button>
+      <button id="btnMute" type="button">Sound: on</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script src="version.js"></script>
+  <script src="core.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
