@@ -6,6 +6,17 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.8.2] - 2026-10-12
+
+### Fixed
+- **Flashlight is tighter so night actually feels dark**: the light pool
+  around the player was ~6 tiles wide with a long falloff — half the screen
+  stayed bright. The pool is now ~3 tiles (6 across) with a quick falloff and
+  deeper edge darkness, so everything beyond arm's reach dissolves into the
+  night while you can still comfortably gather at the player's feet. The
+  flashlight tuning moved out of the rendering code into named constants
+  (`FLASHLIGHT_RADIUS`, `FLASHLIGHT_FALLOFF`, `NIGHT_DARK_MID/EDGE`).
+
 ## [0.8.1] - 2026-10-12
 
 ### Fixed

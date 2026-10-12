@@ -1451,6 +1451,13 @@
     ctx.fillText(msg, W / 2, H - 157);
   }
 
+  /* Night-lighting tuning: how tight the flashlight pool is around the player
+   * and how quickly darkness closes in beyond it. */
+  var FLASHLIGHT_RADIUS = 3.0;   // bright pool radius, in tiles (tight = real night)
+  var FLASHLIGHT_FALLOFF = 0.14; // 0 = hard edge … 1 = falloff spreads to screen
+  var NIGHT_DARK_MID = 0.5;      // darkness where the falloff begins
+  var NIGHT_DARK_EDGE = 0.9;     // darkness at the screen edges
+
   /* Day/night lighting pass. The world palette stays moody, but daytime gets a
    * gentle warm lift and after dusk the scene fades into darkness — except for
    * the flashlight pooling around the player, which switches on automatically
@@ -1473,13 +1480,13 @@
       var px = state.player.x * tilePx - camX;
       var py = state.player.y * tilePx - camY;
       var pool = Math.max(W, H) * 0.8;
-      var lit = Math.min(pool, tilePx * 6); // bright inner pool (≈6 tiles)
-      var mid = lit + (pool - lit) * 0.28;  // soft falloff starts here
+      var lit = Math.min(pool, tilePx * FLASHLIGHT_RADIUS);
+      var mid = lit + (pool - lit) * FLASHLIGHT_FALLOFF;
       var g = ctx.createRadialGradient(px, py, 0, px, py, pool);
       g.addColorStop(0, 'rgba(4,8,16,0)');
       g.addColorStop(Math.min(1, lit / pool), 'rgba(4,8,16,0)');
-      g.addColorStop(Math.min(1, mid / pool), 'rgba(4,8,16,' + (night * 0.42).toFixed(3) + ')');
-      g.addColorStop(1, 'rgba(4,8,16,' + (night * 0.84).toFixed(3) + ')');
+      g.addColorStop(Math.min(1, mid / pool), 'rgba(4,8,16,' + (night * NIGHT_DARK_MID).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(4,8,16,' + (night * NIGHT_DARK_EDGE).toFixed(3) + ')');
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, W, H);
 
