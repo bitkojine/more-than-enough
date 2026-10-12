@@ -183,14 +183,33 @@ oc.player.x = 100.5; oc.player.y = 100.5;
 for (var s2 = 0; s2 < 100; s2++) C.step(oc, 0.1); // 10 s
 eq(Math.round(oc.extractors[0].buffer), Math.round(0.6 * 2 * 10), 'overclock doubles output');
 
-// logistics auto-collect
+// logistics auto-collect is range-limited
+eq(C.AUTO_COLLECT_RANGE, 3, 'auto-collect radius is 3 tiles');
 var log = C.createState(12345);
-log.extractors.push({ key: 'lumber', res: 'wood', x: 48, y: 50, buffer: 0, t: 0 });
+log.extractors.push({ key: 'lumber', res: 'wood', x: 48, y: 50, buffer: 12, t: 0 });
 log.unlocks.logistics = true;
+log.player.x = 100.5; log.player.y = 100.5; // far away: buffer piles up, nothing is taken
+for (var s3 = 0; s3 < 40; s3++) C.step(log, 0.1);
+eq(log.inv.wood, 0, 'far extractor does not auto-collect');
+eq(log.events.length, 0, 'far extractor emits no events');
+ok(log.extractors[0].buffer > 12, 'far extractor keeps filling its buffer (' + log.extractors[0].buffer.toFixed(1) + ')');
+// walk next to it -> the buffered units funnel in on the next step
+log.player.x = 48.5; log.player.y = 50.5;
+C.step(log, 0.1);
+ok(log.inv.wood >= 12, 'nearby extractor auto-collects what was buffered (' + log.inv.wood + ')');
+ok(log.extractors[0].buffer < 1, 'buffer drained by auto-collect');
+eq(log.events.length, 1, 'nearby auto-collect emits one event');
+var evt = log.events[0];
+eq(evt.res, 'wood', 'event carries the resource');
+eq(evt.amt, log.inv.wood, 'event amount matches the inventory gain');
+eq(evt.x, 48, 'event carries the extractor x');
+eq(evt.y, 50, 'event carries the extractor y');
+// walking away re-shields the camp immediately
+var woodAt = log.inv.wood;
 log.player.x = 100.5; log.player.y = 100.5;
-for (var s3 = 0; s3 < 100; s3++) C.step(log, 0.1);
-ok(log.inv.wood > 5, 'logistics auto-collects into inventory (' + log.inv.wood.toFixed(1) + ')');
-ok(log.extractors[0].buffer < 1, 'logistics keeps buffers empty');
+for (var s3b = 0; s3b < 40; s3b++) C.step(log, 0.1);
+eq(log.inv.wood, woodAt, 'walking away stops auto-collect at once');
+ok(log.extractors[0].buffer > 1, 'buffer builds up again while far away (' + log.extractors[0].buffer.toFixed(1) + ')');
 
 // abundance engine (level 1 = +1/s of everything, refineries ×1.5)
 var ab = C.createState(12345);
@@ -642,7 +661,33 @@ function runFullBot(seed) {
     C.place(s, 'resonator'); mark('resonator');
   }
 
-  while (t < 1800 && !s.unlocks.abundance) {
+  // Abundance costs a mountain of resources, and logistics now only reaches
+  // extractors near the player — so the bot camps each camp in turn: walk
+  // beside it, let auto-collect funnel its whole buffer into the packs, and
+  // only move on once that resource's quota is banked.
+  var quota = { wood: 1500, stone: 1500, ore: 750, crystal: 80 };
+  function findExt(res) {
+    for (var i = 0; i < s.extractors.length; i++) if (s.extractors[i].res === res) return s.extractors[i];
+    return null;
+  }
+  function campNear(e) {
+    return goStandOn(function (st, x, y) {
+      if (C.occupied(st, x, y)) return false;
+      if (!C.walkable(st.world, x, y)) return false;
+      var dx = x + 0.5 - (e.x + 0.5), dy = y + 0.5 - (e.y + 0.5);
+      return dx * dx + dy * dy <= 2.4 * 2.4;
+    });
+  }
+  while (t < 2350 && !s.unlocks.abundance) {
+    var want = null;
+    for (var rk in quota) { if (s.inv[rk] < quota[rk]) { want = rk; break; } }
+    if (want) {
+      var wx = findExt(want);
+      if (wx) {
+        var wdx = wx.x + 0.5 - s.player.x, wdy = wx.y + 0.5 - s.player.y;
+        if (wdx * wdx + wdy * wdy > 3.2 * 3.2) campNear(wx);
+      }
+    }
     C.step(s, 0.1); t += 0.1;
     if (C.canAfford(s.inv, C.UNLOCKS.abundance.cost)) { C.buyUpgrade(s, 'abundance'); mark('abundance'); break; }
   }

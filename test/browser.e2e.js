@@ -254,6 +254,19 @@ async function main() {
   var contrast = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var n=0,sum=0,sum2=0;for(var i=0;i<d.length;i+=160){var l=(d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11)/255;sum+=l;sum2+=l*l;n++;}var m=sum/n;return JSON.stringify({mean:+m.toFixed(3),std:+Math.sqrt(sum2/n-m*m).toFixed(3)});})()');
   console.log('  luminance ' + contrast);
 
+  /* -------------------------------------------- items fly to the player */
+  console.log('\n== Items fly to the player when gathering ==');
+  var spotF = await evalJS('(function(){var s=MTE_GAME.getState();for(var y=10;y<86;y++){for(var x=10;x<86;x++){var i=y*96+x;if(s.world.type[i]===1&&s.world.rich[i]>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  ok(!!spotF, 'moved onto a fresh rich forest tile for the flyer test (' + spotF + ')');
+  await sleep(150);
+  var actF = await rect('#btnAction');
+  await touch('touchStart', [{ x: actF.x, y: actF.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+  var sawFlyers = await waitFor('MTE_GAME.flyers().length > 0', 3000);
+  ok(sawFlyers, 'gathering spawns items that fly toward the player');
+  await touch('touchEnd', []);
+  await sleep(1000);
+  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'flyers arrive and clear within ~1s');
+
   /* ----------------------------------------------------------- upgrade */
   console.log('\n== Upgrade (craft an Axe) ==');
   var woodNow = g1.inv.wood;
@@ -399,6 +412,26 @@ async function main() {
   eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
   eq(afterEmbark.ext, 0, 'embark resets extractors');
   ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
+
+  /* ------------------------------------- logistics auto-collect is ranged */
+  console.log('\n== Logistics auto-collect needs range ==');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"lumber",res:"wood",x:Math.floor(s.player.x),y:Math.floor(s.player.y),buffer:10,t:0};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
+  await sleep(300);
+  var lg0 = JSON.parse(await stateSummary());
+  ok(lg0.inv.wood >= 10, 'standing by the extractor auto-collects its buffer (' + lg0.inv.wood + ')');
+  await evalJS('MTE_GAME.setPlayer(90.5, 90.5)');
+  await sleep(200);
+  var lg1 = JSON.parse(await stateSummary());
+  await sleep(1200);
+  var lg2 = JSON.parse(await stateSummary());
+  eq(lg2.inv.wood, lg1.inv.wood, 'walking far away stops auto-collect (inv holds at ' + lg1.inv.wood + ')');
+  ok(lg2.buf[0] > lg1.buf[0], 'far extractor keeps producing into its buffer (' + lg1.buf[0] + ' -> ' + lg2.buf[0] + ')');
+  // walking back re-engages it (and parks the player mid-world for the night test)
+  await evalJS('MTE_GAME.setPlayer(48.5, 50.5)');
+  await sleep(300);
+  var lg3 = JSON.parse(await stateSummary());
+  ok(lg3.inv.wood > lg2.inv.wood, 'walking back re-enables auto-collect (' + lg2.inv.wood + ' -> ' + lg3.inv.wood + ')');
+  ok(lg3.buf[0] < 1.0, 'buffer drains again when nearby (' + lg3.buf[0] + ')');
 
   /* ------------------------------------------------ day/night + light */
   console.log('\n== Day/night cycle & flashlight ==');

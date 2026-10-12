@@ -40,6 +40,7 @@
   var camX = 0, camY = 0;
   var particles = [];
   var floats = [];
+  var flyers = []; // gathered items homing in on the player
   var joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0 };
   var keys = {};
   var moveTarget = null;
@@ -465,8 +466,16 @@
   }
 
   function doCollect() {
+    var t = Core.collectTarget(state);
+    if (!t) return false;
+    // snapshot the sources before Core.collect drains them, so each extractor
+    // can feed a flyer animation from its own position
+    var sources = t.list.map(function (e) { return { x: e.x, y: e.y, res: e.res, amt: Math.floor(e.buffer) }; });
     var gained = Core.collect(state);
     if (!gained) return false;
+    for (var i = 0; i < sources.length; i++) {
+      if (sources[i].amt > 0) spawnFlyers(sources[i].x, sources[i].y, sources[i].res, sources[i].amt);
+    }
     var first = true;
     for (var r in gained) {
       if (gained[r] <= 0) continue;
@@ -500,6 +509,40 @@
       });
     }
     floats.push({ x: tx + 0.5, y: ty + 0.2, vy: -1.3, life: 0.9, max: 0.9, text: '+' + fmt(amount), color: col });
+    spawnFlyers(tx, ty, res, amount);
+  }
+
+  // A handful of little resource sprites that zip from the source to the
+  // player (used by both gathering and collecting so the inventory gain is
+  // always visible on screen).
+  function spawnFlyers(tx, ty, res, amount) {
+    var n = Math.max(1, Math.min(7, Math.ceil(amount * 0.35)));
+    for (var i = 0; i < n; i++) {
+      flyers.push({
+        x: tx + 0.5 + (Math.random() - 0.5) * 0.5,
+        y: ty + 0.5 + (Math.random() - 0.5) * 0.5,
+        res: res,
+        seed: Math.random() * Math.PI * 2,   // stagger/rotation flavour
+        delay: Math.random() * 0.16,          // tiny launch stagger
+        t: 0,
+        vx: 0, vy: 0
+      });
+    }
+  }
+
+  function popFlyer(fy) {
+    var col = RES_COLOR[fy.res];
+    for (var i = 0; i < 5; i++) {
+      var a = Math.random() * Math.PI * 2;
+      particles.push({
+        x: state.player.x, y: state.player.y - 0.2,
+        vx: Math.cos(a) * (1 + Math.random() * 1.8),
+        vy: Math.sin(a) * (1 + Math.random() * 1.8) - 0.7,
+        life: 0.28 + Math.random() * 0.22, max: 0.5,
+        size: 1.2 + Math.random() * 1.6,
+        color: col
+      });
+    }
   }
 
   function spawnBuildFX(tx, ty) {
@@ -1046,6 +1089,14 @@
 
     Core.step(state, dt);
 
+    // logistics auto-collect pushes transient events into the state each step;
+    // the game layer turns them into on-screen flyer animations
+    for (var ev = state.events.length - 1; ev >= 0; ev--) {
+      var evt = state.events[ev];
+      spawnFlyers(evt.x, evt.y, evt.res, evt.amt);
+      state.events.splice(ev, 1);
+    }
+
     // exploration reveal when the player changes tile
     var cx = Math.floor(state.player.x), cy = Math.floor(state.player.y);
     if (cx !== lastTileX || cy !== lastTileY) {
@@ -1085,6 +1136,25 @@
       fl.life -= dt;
       if (fl.life <= 0) { floats.splice(f, 1); continue; }
       fl.y += fl.vy * dt; fl.vy *= 0.96;
+    }
+
+    // flyers: ease-in homing toward the player, with a tiny wobble
+    for (var fl2 = flyers.length - 1; fl2 >= 0; fl2--) {
+      var fy = flyers[fl2];
+      fy.t += dt;
+      if (fy.t < fy.delay) continue;
+      var fdx = state.player.x - fy.x, fdy = state.player.y - fy.y;
+      var fd = Math.sqrt(fdx * fdx + fdy * fdy);
+      if (fd < 0.15) { popFlyer(fy); flyers.splice(fl2, 1); continue; }
+      fy.vx += (fdx / fd) * 26 * dt;
+      fy.vy += (fdy / fd) * 26 * dt;
+      var wob = Math.sin(fy.t * 20 + fy.seed) * 2.6;
+      fy.vx += (-fdy / fd) * wob * dt;
+      fy.vy += (fdx / fd) * wob * dt;
+      var vm = Math.hypot(fy.vx, fy.vy);
+      if (vm > 10) { fy.vx = fy.vx / vm * 10; fy.vy = fy.vy / vm * 10; }
+      fy.x += fy.vx * dt;
+      fy.y += fy.vy * dt;
     }
 
     // timers
@@ -1458,6 +1528,39 @@
   var NIGHT_DARK_MID = 0.5;      // darkness where the falloff begins
   var NIGHT_DARK_EDGE = 0.9;     // darkness at the screen edges
 
+  // Gathered items zip across the screen into the player's pack. Drawn right
+  // before the night pass so the flashlight glow falls over them too.
+  function drawFlyers() {
+    for (var i = 0; i < flyers.length; i++) {
+      var fy = flyers[i];
+      var sx = fy.x * tilePx - camX, sy = fy.y * tilePx - camY;
+      var col = RES_COLOR[fy.res];
+      ctx.globalAlpha = Math.min(1, 0.3 + fy.t * 2.5);
+      ctx.fillStyle = col;
+      if (fy.res === 'wood') {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(fy.t * 5 + fy.seed);
+        ctx.fillRect(-3.5, -1.4, 7, 2.8);
+        ctx.restore();
+      } else if (fy.res === 'crystal') {
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(fy.t * 4 + fy.seed);
+        ctx.beginPath();
+        ctx.moveTo(0, -4.2); ctx.lineTo(3.2, 0); ctx.lineTo(0, 4.2); ctx.lineTo(-3.2, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      } else {
+        ctx.beginPath();
+        ctx.arc(sx, sy, fy.res === 'ore' ? 3.4 : 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+  }
+
   /* Day/night lighting pass. The world palette stays moody, but daytime gets a
    * gentle warm lift and after dusk the scene fades into darkness — except for
    * the flashlight pooling around the player, which switches on automatically
@@ -1519,6 +1622,7 @@
     drawParticles();
     drawPlayer();
     drawFloats();
+    drawFlyers();
     applyLighting();
     drawJoystick();
     drawHintArrow();
@@ -1559,6 +1663,7 @@
     save: function () { save(true); },
     setPlayer: function (x, y) { state.player.x = x; state.player.y = y; lastTileX = -1; lastTileY = -1; },
     addRes: function (r, n) { state.inv[r] = (state.inv[r] || 0) + n; updateHud(); },
+    flyers: function () { return flyers; },
     core: Core
   };
 

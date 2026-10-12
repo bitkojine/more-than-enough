@@ -41,6 +41,10 @@ or any browser. Progress saves automatically to `localStorage`.
 - The world follows a **day/night cycle** (240s). By day it's bright and calm;
   at night your **flashlight turns on automatically**, keeping a pool of light
   around you so you can always see — and keep working — after dark.
+- **Logistics** (an Unlocks upgrade) auto-collects from extractors *near* you:
+  while you're within ~3 tiles each camp's output flows straight into your
+  packs, but walk away and it just accumulates until you come back. Gathered
+  wood, stone, ore and crystal visibly **fly to you** as the count ticks up.
 - A goal banner points you at the next milestone, and a faint compass arrow
   helps you find the next undiscovered resource.
 - **Water is swimable**: wade in and you'll ride a little raft to reach far

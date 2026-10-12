@@ -6,6 +6,39 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.9.0] - 2026-10-12
+
+### Added
+- **Items fly into your packs**: every gather and every collect now sends a
+  handful of little resource sprites zipping across the screen to the player —
+  log bars for wood, diamonds for crystal, round pebbles for stone/ore — with
+  an accelerating ease-in, a gentle wobble, and a small particle pop on
+  arrival. The rendering layer reads transient core events every frame, so the
+  same animation follows auto-collect (not just tap-to-collect).
+
+### Changed
+- **Logistics is range-limited**: it no longer vacuums every extractor on the
+  map. Auto-collect now draws from camps within 3 tiles of the player
+  (`AUTO_COLLECT_RANGE`, exposed on the core), so a base with a few spread-out
+  camps still feeds you — but walk away and output simply accumulates in the
+  buffers until you come back. Manual collection (standing next to a camp) is
+  unchanged. The core surfaces each auto-collect as a transient `state.events`
+  entry `{res, amt, x, y}` so the UI can react without polluting saves.
+
+### Tests
+- Core: rewrote the logistics test to assert far = no collect + no events,
+  adjacent = instant collect of the buffered whole units + one event carrying
+  resource/amount/position, and walk-away = immediate shield (`inv` frozen,
+  buffer refills). Asserts `AUTO_COLLECT_RANGE === 3`. The full-progression bot
+  now camps each extractor in turn so range-limited auto-collect keeps the
+  Abundance Engine funded, and still reaches it comfortably (~1226s on seed
+  12345).
+- Browser e2e: holding GATHER spawns flyers that arrive and clear within ~1s;
+  after embark, standing by an injected extractor auto-collects its buffer,
+  teleporting to a world corner stops it (inventory static while the buffer
+  grows), and walking back re-enables it.
+- Core now at **150 checks**; browser e2e at **57 checks**.
+
 ## [0.8.2] - 2026-10-12
 
 ### Fixed

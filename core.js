@@ -8,6 +8,10 @@
   var EXPLORE_RADIUS = 6;
   var GATHER_RANGE = 1.65;
   var COLLECT_RANGE = 1.7;
+  // Logistics auto-collects whole units from any extractor within this many
+  // tiles of the player. Wider than manual collection so a few camps packed in
+  // your base all feed you at once — but walk away and they just buffer up.
+  var AUTO_COLLECT_RANGE = 3.0;
   var BASE_SPEED = 3.7;
   var WATER_SPEED = 0.75; // swimming is a bit slower than walking
   var PLAYER_R = 0.3;
@@ -247,7 +251,7 @@
   };
 
   var UNLOCKS = {
-    logistics: { name: 'Logistics', icon: '\uD83D\uDE9A', desc: 'Extractors collect themselves', cost: { stone: 150, ore: 40 } },
+    logistics: { name: 'Logistics', icon: '\uD83D\uDE9A', desc: 'Camps near you auto-collect into your packs', cost: { stone: 150, ore: 40 } },
     abundance: { name: 'Abundance Engine', icon: '\u2728', desc: '+1/s of everything per level; refineries +50% per level', cost: { wood: 1500, stone: 1500, ore: 750, crystal: 80 } },
     sapling: { name: 'Blueprint: Sapling Grove', icon: '\uD83D\uDCDC', desc: 'Grow wood anywhere (any land tile)', cost: { wood: 150, stone: 40 } },
     brickyard: { name: 'Blueprint: Brickyard', icon: '\uD83D\uDCDC', desc: 'Shape stone anywhere (any land tile)', cost: { wood: 220, stone: 120 } },
@@ -459,7 +463,8 @@
       discovered: { ore: false, crystal: false },
       goalIndex: 0,
       time: 0,
-      regrowAcc: 0
+      regrowAcc: 0,
+      events: [] // transient (never saved): {res, amt, x, y} from auto-collect
     };
     updateExplored(s);
     return s;
@@ -721,10 +726,17 @@
       if (e.buffer < def.buffer) {
         e.buffer = Math.min(def.buffer, e.buffer + def.rate * resProdMult(s, e.res) * dt);
       }
-      if (s.unlocks.logistics && e.buffer > 0) {
-        var amt = Math.floor(e.buffer);
-        if (amt > 0) {
-          s.inv[e.res] += amt; s.stats[e.res] += amt; e.buffer -= amt;
+      // Logistics: whole units funnel into your inventory — but only from
+      // extractors close enough to physically haul. Far away they keep
+      // producing and capping their buffers, ready for when you walk back.
+      if (s.unlocks.logistics && e.buffer >= 1) {
+        var ax = e.x + 0.5 - s.player.x, ay = e.y + 0.5 - s.player.y;
+        if (ax * ax + ay * ay <= AUTO_COLLECT_RANGE * AUTO_COLLECT_RANGE) {
+          var amt = Math.floor(e.buffer);
+          if (amt > 0) {
+            s.inv[e.res] += amt; s.stats[e.res] += amt; e.buffer -= amt;
+            s.events.push({ res: e.res, amt: amt, x: e.x, y: e.y });
+          }
         }
       }
     }
@@ -798,7 +810,7 @@
     { text: '\uD83E\uDDED Explore outward to find ore', test: function (s) { return s.discovered.ore; } },
     { text: '\u26CF\uFE0F Build a Mine on an ore deposit', test: function (s) { return hasExtractor(s, 'mine'); } },
     { text: '\u2699\uFE0F Research Overclock II (30 stone, 4 ore)', test: function (s) { return s.tools.overclock >= 2; } },
-    { text: '\uD83D\uDE9A Unlock Logistics for hands-free collection', test: function (s) { return s.unlocks.logistics; } },
+    { text: '\uD83D\uDE9A Unlock Logistics (camps near you auto-collect)', test: function (s) { return s.unlocks.logistics; } },
     { text: '\uD83D\uDCA0 Discover crystal in the far wilds', test: function (s) { return s.discovered.crystal; } },
     { text: '\uD83D\uDCA0 Build a Resonator on a crystal deposit', test: function (s) { return hasExtractor(s, 'resonator'); } },
     { text: '\u2728 Build the Abundance Engine', test: function (s) { return s.unlocks.abundance; } },
@@ -903,7 +915,8 @@
     WORLD_SIZE: WORLD_SIZE, T: T, RESOURCES: RESOURCES,
     RESOURCE_LABEL: RESOURCE_LABEL, RESOURCE_ICON: RESOURCE_ICON, TILE_RESOURCE: TILE_RESOURCE,
     TOOLS: TOOLS, EXTRACTORS: EXTRACTORS, UNLOCKS: UNLOCKS, GOALS: GOALS,
-    GATHER_RANGE: GATHER_RANGE, COLLECT_RANGE: COLLECT_RANGE, BASE_SPEED: BASE_SPEED, WATER_SPEED: WATER_SPEED,
+    GATHER_RANGE: GATHER_RANGE, COLLECT_RANGE: COLLECT_RANGE, AUTO_COLLECT_RANGE: AUTO_COLLECT_RANGE,
+    BASE_SPEED: BASE_SPEED, WATER_SPEED: WATER_SPEED,
     EXPLORE_RADIUS: EXPLORE_RADIUS, DAY_LENGTH: DAY_LENGTH, daylight: daylight,
     EXTRACTOR_GROWTH: EXTRACTOR_GROWTH,
     idx: idx, inBounds: inBounds, tileType: tileType, walkable: walkable,
