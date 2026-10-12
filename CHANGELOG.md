@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.18.1] - 2026-10-12
+
+### Changed
+- Ordinary digging no longer drops into the next layer. Each layer now has a
+  marked shaft that must be dug open and tapped separately to descend.
+- Added distinct closed and open shaft visuals and clarified the tutorial.
+
+### Fixed
+- Preserve the player's time to explore and gather within each layer before
+  choosing to go deeper.
+
 ## [0.18.0] - 2026-10-12
 
 ### Added

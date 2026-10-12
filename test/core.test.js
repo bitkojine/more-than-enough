@@ -475,13 +475,21 @@ var mineRun = C.createState(31415);
 var forestX = mineRun.player.x, forestY = mineRun.player.y;
 eq(C.enterMine(mineRun), true, 'enter mine from the forest');
 eq(C.mineTile(mineRun, 0, 0), C.MINE_T.TUNNEL, 'mine entrance starts open');
+var shaft = C.mineShaft(mineRun);
+eq(C.mineTile(mineRun, shaft.x, shaft.y), C.MINE_T.SHAFT, 'each layer has a marked downward shaft');
+eq(C.descendMine(mineRun, shaft.x, shaft.y), false, 'a closed shaft cannot be used');
 var digTarget = null;
 for (var my = -1; my <= 1 && !digTarget; my++) for (var mx = -1; mx <= 1 && !digTarget; mx++) {
-  if ((mx || my) && C.mineTile(mineRun, mx, my) !== C.MINE_T.BEDROCK) digTarget = { x: mx, y: my };
+  if ((mx || my) && C.mineTile(mineRun, mx, my) !== C.MINE_T.BEDROCK && C.mineTile(mineRun, mx, my) !== C.MINE_T.SHAFT) digTarget = { x: mx, y: my };
 }
 ok(!!C.digMine(mineRun, digTarget.x, digTarget.y), 'nearby geology can be dug');
-if (digTarget.y >= 1) C.descendMine(mineRun);
-eq(mineRun.mine.depth, digTarget.y >= 1 ? 1 : 0, 'lower tile opens the next layer');
+eq(mineRun.mine.depth, 0, 'ordinary digging never drops to the next layer');
+mineRun.player.x = shaft.x + 0.5; mineRun.player.y = shaft.y + 0.5;
+ok(C.digMine(mineRun, shaft.x, shaft.y).shaftOpened, 'the marked shaft takes a deliberate dig to uncover');
+eq(C.mineTile(mineRun, shaft.x, shaft.y), C.MINE_T.SHAFT_OPEN, 'the opened shaft is visibly distinct');
+eq(C.descendMine(mineRun, shaft.x + 1, shaft.y), false, 'only the opened shaft tile can be used');
+eq(C.descendMine(mineRun, shaft.x, shaft.y), true, 'the player can deliberately use the open shaft');
+eq(mineRun.mine.depth, 1, 'using the shaft opens the next layer');
 eq(C.exitMine(mineRun), true, 'return to the forest');
 eq(mineRun.player.x, forestX, 'return restores forest position');
 
@@ -523,11 +531,12 @@ eq(C.tileRich(ps2.world, -5000, 4000), 1, 'far-from-origin edit preserved');
 ok(C.isExplored(ps2.world, 51, 47), 'explored fog preserved');
 ok(!C.isExplored(ps2.world, 5000, 5000), 'unexplored distance still fogged');
 var savedMine = C.createState(4242);
-C.enterMine(savedMine); savedMine.mine.depth = 4; savedMine.mine.carved['1,0'] = true;
+C.enterMine(savedMine); savedMine.mine.depth = 4; savedMine.mine.carved['1,0'] = true; savedMine.mine.shaftOpen = true;
 var restoredMine = C.deserialize(C.serialize(savedMine));
 eq(restoredMine.mine.active, true, 'active mine expedition persists');
 eq(restoredMine.mine.depth, 4, 'mine depth persists');
 eq(restoredMine.mine.surface.x, savedMine.mine.surface.x, 'mine return point persists');
+eq(restoredMine.mine.shaftOpen, true, 'opened shaft persists across saves');
 eq(C.deserialize('not json'), null, 'bad save returns null');
 
 /* ----------------------------------------------------------- bot run */

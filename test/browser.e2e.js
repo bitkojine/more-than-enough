@@ -226,7 +226,7 @@ async function main() {
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 4, 'gather, build, upgrade and mine share the thumb dock');
-  ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("hold GATHER and draw across nearby rock") >= 0'), 'tutorial explains that the forest Gather trail digs underground');
+  ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("marked shaft") >= 0 && document.getElementById("tutorial").textContent.indexOf("tap its hatch") >= 0'), 'tutorial explains how to choose when to descend');
   ok(!(await evalJS('document.getElementById("tutorial").hidden')), 'first visit opens the controls tutorial');
   ok(await evalJS('document.getElementById("tutorial").textContent.indexOf("Trail") >= 0'), 'tutorial explains Trail alongside the other controls');
   await tap((await rect('#tutorialDone')).x, (await rect('#tutorialDone')).y);
@@ -248,6 +248,14 @@ async function main() {
   var ms = JSON.parse(mineSpot);
   await tap(ms.sx, ms.sy);
   ok(await evalJS('Object.keys(MTE_GAME.getState().mine.carved).length > 0'), 'tapping a nearby tile uses the same Gather action to dig');
+  eq(await evalJS('MTE_GAME.getState().mine.depth'), 0, 'digging an ordinary lower tile does not change layers');
+  var shaftSpot = await evalJS('(function(){var s=MTE_GAME.getState(),p=MTE_GAME.core.mineShaft(s);MTE_GAME.setPlayer(p.x+.5,p.y+.5);return JSON.stringify({x:p.x,y:p.y,sx:innerWidth/2,sy:innerHeight/2});})()');
+  var ss = JSON.parse(shaftSpot);
+  await tap(ss.sx, ss.sy);
+  eq(await evalJS('MTE_GAME.getState().mine.depth'), 0, 'uncovering the marked shaft does not descend automatically');
+  ok(await evalJS('MTE_GAME.getState().mine.shaftOpen'), 'the marked shaft opens after a separate dig');
+  await tap(ss.sx, ss.sy);
+  eq(await evalJS('MTE_GAME.getState().mine.depth'), 1, 'a deliberate second tap enters the next layer');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   ok(!(await evalJS('MTE_GAME.getState().mine.active')), 'surface button returns to the forest');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("goal"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');

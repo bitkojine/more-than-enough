@@ -26,7 +26,7 @@
   var DAY_LENGTH = 240; // seconds of game time for one full day-night cycle
 
   var T = { GRASS: 0, FOREST: 1, STONE: 2, ORE: 3, CRYSTAL: 4, WATER: 5, ROCK: 6 };
-  var MINE_T = { TUNNEL: 0, SOIL: 1, STONE: 2, ORE: 3, CRYSTAL: 4, FOSSIL: 5, BEDROCK: 6 };
+  var MINE_T = { TUNNEL: 0, SOIL: 1, STONE: 2, ORE: 3, CRYSTAL: 4, FOSSIL: 5, BEDROCK: 6, SHAFT: 7, SHAFT_OPEN: 8 };
 
   var RESOURCES = ['wood', 'stone', 'ore', 'crystal'];
   var RESOURCE_LABEL = { wood: 'Wood', stone: 'Stone', ore: 'Ore', crystal: 'Crystal' };
@@ -501,16 +501,25 @@
       regrowAcc: 0,
       events: [] // transient (never saved): {res, amt, x, y} from auto-collect
     };
-    s.mine = { active: false, depth: 0, x: 0, y: 0, carved: {}, mined: {}, surface: { x: s.player.x, y: s.player.y } };
+    s.mine = { active: false, depth: 0, x: 0, y: 0, carved: {}, mined: {}, shaftOpen: false, surface: { x: s.player.x, y: s.player.y } };
     updateExplored(s);
     return s;
   }
 
   // A mine is an expedition within the forest world. Its geology is generated
   // from the original world seed and depth, while tunnels and finds persist.
+  function mineShaft(s) {
+    return {
+      x: Math.floor(hash2(s.mine.depth, 17, s.seed + 3701) * 7) - 3,
+      y: 5 + Math.floor(hash2(s.mine.depth, 29, s.seed + 7919) * 3)
+    };
+  }
+
   function mineTile(s, x, y) {
     var key = x + ',' + y;
     var mine = s.mine;
+    var shaft = mineShaft(s);
+    if (x === shaft.x && y === shaft.y) return mine.shaftOpen ? MINE_T.SHAFT_OPEN : MINE_T.SHAFT;
     if (mine.carved[key]) return MINE_T.TUNNEL;
     if (x === 0 && y === 0) return MINE_T.TUNNEL;
     var h = hash2(x + mine.depth * 977, y - mine.depth * 613, s.seed + mine.depth * 7919);
@@ -543,7 +552,11 @@
     var dx = tx + 0.5 - s.player.x, dy = ty + 0.5 - s.player.y;
     if (dx * dx + dy * dy > 1.7 * 1.7) return null;
     var type = mineTile(s, tx, ty);
-    if (type === MINE_T.BEDROCK || type === MINE_T.TUNNEL) return null;
+    if (type === MINE_T.BEDROCK || type === MINE_T.TUNNEL || type === MINE_T.SHAFT_OPEN) return null;
+    if (type === MINE_T.SHAFT) {
+      s.mine.shaftOpen = true;
+      return { type: type, res: null, amount: 0, x: tx, y: ty, shaftOpened: true };
+    }
     var key = tx + ',' + ty;
     s.mine.carved[key] = true;
     var res = type === MINE_T.STONE ? 'stone' : type === MINE_T.ORE ? 'ore' : type === MINE_T.CRYSTAL ? 'crystal' : type === MINE_T.FOSSIL ? 'wood' : null;
@@ -552,12 +565,14 @@
     return { type: type, res: res, amount: amount, x: tx, y: ty };
   }
 
-  function descendMine(s) {
-    if (!s.mine.active) return false;
+  function descendMine(s, x, y) {
+    var shaft = mineShaft(s);
+    if (!s.mine.active || !s.mine.shaftOpen || Math.floor(x) !== shaft.x || Math.floor(y) !== shaft.y) return false;
     s.mine.depth += 1;
     s.mine.x = 0; s.mine.y = 0;
     s.mine.carved = {};
     s.mine.carved['0,0'] = true;
+    s.mine.shaftOpen = false;
     s.player.x = 0.5; s.player.y = 0.5;
     return true;
   }
@@ -1123,6 +1138,7 @@
           x: +d.mine.x || 0, y: +d.mine.y || 0,
           carved: d.mine.carved && typeof d.mine.carved === 'object' ? d.mine.carved : {},
           mined: d.mine.mined && typeof d.mine.mined === 'object' ? d.mine.mined : {},
+          shaftOpen: !!d.mine.shaftOpen,
           surface: d.mine.surface && typeof d.mine.surface.x === 'number' && typeof d.mine.surface.y === 'number' ? d.mine.surface : { x: s.player.x, y: s.player.y }
         };
         if (s.mine.active) { s.player.x = 0.5 + s.mine.x; s.player.y = 0.5 + s.mine.y; }
@@ -1149,7 +1165,7 @@
     tileRich: tileRich, tileMax: tileMax, setTileRich: setTileRich,
     isExplored: isExplored, markExplored: markExplored,
     createState: createState, updateExplored: updateExplored,
-    mineTile: mineTile, enterMine: enterMine, exitMine: exitMine, digMine: digMine, descendMine: descendMine,
+    mineTile: mineTile, mineShaft: mineShaft, enterMine: enterMine, exitMine: exitMine, digMine: digMine, descendMine: descendMine,
     gatherTarget: gatherTarget, gather: gather, gatherAt: gatherAt, gatherYield: gatherYield,
     collectTarget: collectTarget, collect: collect,
     buildTarget: buildTarget, place: place, occupied: occupied,

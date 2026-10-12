@@ -638,7 +638,7 @@
       for (var my = Math.floor(state.player.y)-2; my <= Math.floor(state.player.y)+2; my++) {
         for (var mx = Math.floor(state.player.x)-2; mx <= Math.floor(state.player.x)+2; mx++) {
           var type = Core.mineTile(state, mx, my), dx = mx+.5-state.player.x, dy=my+.5-state.player.y;
-          if (type === Core.MINE_T.TUNNEL || type === Core.MINE_T.BEDROCK || dx*dx+dy*dy > Core.GATHER_RANGE*Core.GATHER_RANGE) continue;
+          if (type === Core.MINE_T.TUNNEL || type === Core.MINE_T.BEDROCK || type === Core.MINE_T.SHAFT || type === Core.MINE_T.SHAFT_OPEN || dx*dx+dy*dy > Core.GATHER_RANGE*Core.GATHER_RANGE) continue;
           var cx=mx+.5, cy=my+.5, crossed=false;
           for (var i=0;i<trail.points.length;i++) {
             var a=trail.points[i], b=trail.points[Math.min(i+1,trail.points.length-1)];
@@ -826,10 +826,19 @@
   var mineTarget = null;
   function doDigTarget() {
     if (!mineTarget) return false;
+    var tile = Core.mineTile(state, mineTarget.x, mineTarget.y);
+    if (tile === Core.MINE_T.SHAFT_OPEN) {
+      if (!Core.descendMine(state, mineTarget.x, mineTarget.y)) return false;
+      mineTarget = null;
+      clearEffects(); lastTileX = -1; lastTileY = -1;
+      toast('Down to layer ' + (state.mine.depth + 1));
+      updateHud(); updateActionButton(); save(true);
+      return true;
+    }
     var result = Core.digMine(state, mineTarget.x, mineTarget.y);
     if (!result) return false;
-    if (result.y >= 1 && Core.descendMine(state)) { mineTarget = null; toast('Down to layer ' + (state.mine.depth + 1)); }
-    spawnGatherFX(result.x, result.y, result.res || 'stone', result.amount || 0);
+    if (result.shaftOpened) toast('Way down uncovered · tap the marked hatch to descend');
+    else if (result.amount > 0) spawnGatherFX(result.x, result.y, result.res, result.amount);
     onWorldChanged();
     return true;
   }
@@ -1745,8 +1754,18 @@
 
   function drawMineTile(x, y, u, sx, sy) {
     var mt = Core.mineTile(state, x, y);
-    var colors = ['#29251e', '#59452f', '#55524b', '#744629', '#27566a', '#554b62', '#14171a'];
+    var colors = ['#29251e', '#59452f', '#55524b', '#744629', '#27566a', '#554b62', '#14171a', '#574b32', '#315747'];
     ctx.fillStyle = colors[mt]; ctx.fillRect(sx, sy, u + 1, u + 1);
+    if (mt === Core.MINE_T.SHAFT || mt === Core.MINE_T.SHAFT_OPEN) {
+      ctx.strokeStyle = mt === Core.MINE_T.SHAFT_OPEN ? '#a8efb3' : '#e4c77f';
+      ctx.lineWidth = Math.max(2, u * .07);
+      ctx.beginPath(); ctx.arc(sx + u*.5, sy + u*.5, u*.3, 0, 6.283); ctx.stroke();
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = 'bold ' + Math.max(12, u*.42) + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(mt === Core.MINE_T.SHAFT_OPEN ? '\u2193' : '\u2022', sx + u*.5, sy + u*.5);
+      return;
+    }
     if (mt === Core.MINE_T.TUNNEL) {
       ctx.fillStyle = 'rgba(225,181,105,0.1)'; ctx.fillRect(sx + u * .15, sy + u * .15, u * .7, u * .7);
       if (x === 0 && y === 0 && state.mine.depth > 0) {

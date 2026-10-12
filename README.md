@@ -47,7 +47,9 @@ on the Pages site, saves live in that browser for that origin).
 - **Go below:** tap **MINE** in the same dock to enter the underground layers.
   Movement keeps the same drag-anywhere joystick and Gather stays the same
   control: tap nearby rock to dig, or hold Gather and trace across nearby rock
-  to preview and sweep it. Tap **SURFACE** to return to your forest position.
+  to preview and sweep it. Each layer has a marked shaft: dig it open, then
+  tap its hatch when you choose to go deeper. Digging any other tile never
+  changes layers. Tap **SURFACE** to return to your forest position.
   Underground finds go into your usual inventory, so the forest gathering,
   building, and upgrade loop remains the center of the game.
 - **BUILD** places extractors on matching deposits (Lumber Camp on forest,
