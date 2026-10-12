@@ -6,6 +6,20 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.11.2] - 2026-10-12
+
+### Docs
+- **Structurizr model updated for 0.11.x.** The Canvas Renderer now documents the
+  LOD block rendering and the clamped tile-highlight geometry added in 0.11.0/0.11.1
+  (with its `strokeTileHighlight()` ref), Input names `setZoom()` (pinch + wheel),
+  and the Browser E2E Harness records its current 78 checks, including the
+  max-zoom robustness regression. All `.mmd`/`.puml` diagrams regenerated from the
+  DSL (which remains the single source of truth).
+- **Removed `PLAN-infinite-world.md`.** The 0.10.0 implementation plan is fully
+  done and referenced pre-infinite code (`WORLD_SIZE`, `idx`, `inBounds`,
+  `generateWorld`, `floodFill`) that no longer exists. The architecture it designed
+  lives on in `structurizr/workspace.dsl` and the 0.10.0 changelog entry.
+
 ## [0.11.1] - 2026-10-12
 
 ### Fixed

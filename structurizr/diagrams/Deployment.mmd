@@ -34,7 +34,7 @@ graph LR
       subgraph 78 ["Headless Chrome"]
         style 78 fill:#ffffff,stroke:#575757,color:#ffffff
 
-        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): covers flyer<br />visuals, fog reveal in the<br />endless world, persistence<br />across reload, the day/night<br />flashlight, range-limited<br />logistics, and pinch-to-zoom<br />(in/out, clamps, far-zoom<br />LOD).</div>"]
+        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): 78 checks<br />covering flyer visuals, fog<br />reveal in the endless world,<br />persistence across reload,<br />the day/night flashlight,<br />range-limited logistics,<br />pinch-to-zoom (in/out,<br />clamps, far-zoom LOD), and<br />max-zoom robustness (a<br />highlighted tile can never<br />crash the render loop).</div>"]
         style 79 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       end
 

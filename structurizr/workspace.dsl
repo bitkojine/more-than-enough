@@ -21,14 +21,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 input = component "Input and Actions" "Keyboard (WASD/arrows + Space/B/U/C), touch joystick, two-finger pinch zoom (mouse wheel on desktop), tap-to-walk, and the contextual action button. doAction() picks COLLECT when an extractor is in manual range, otherwise GATHER; holding repeats every GATHER_CD (0.25s)." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: doAction, doGather, doCollect, the actDown loop in update()"
+                        "ref" "game.js: doAction, doGather, doCollect, setZoom (pinch + wheel), the actDown loop in update()"
                     }
                 }
 
-                render = component "Canvas Renderer" "drawTile/highlights/extractors/player, particles, floats, and flyers; camera follow; then the day/night lighting pass (applyLighting + auto flashlight pool) so the glow covers the flyers. Tiles are drawn only for the visible viewport, and once pinch-zoomed past LOD_PX it switches to downsampled blocks so far zoom stays cheap." "JavaScript" {
+                render = component "Canvas Renderer" "drawTile/highlights/extractors/player, particles, floats, and flyers; camera follow; then the day/night lighting pass (applyLighting + auto flashlight pool) so the glow covers the flyers. Tiles are drawn only for the visible viewport, and once pinch-zoomed past LOD_PX it switches to downsampled blocks so far zoom stays cheap. Tile highlights clamp their geometry so a sub-pixel tile at far zoom never draws a negative-sized shape." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: render(), draw*, drawBlock(), setZoom(), applyLighting(), FLASHLIGHT_* constants"
+                        "ref" "game.js: render(), draw*, drawBlock(), strokeTileHighlight(), setZoom(), applyLighting(), FLASHLIGHT_* constants"
                     }
                 }
 
@@ -151,7 +151,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): covers flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, and pinch-to-zoom (in/out, clamps, far-zoom LOD)." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 78 checks covering flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"
