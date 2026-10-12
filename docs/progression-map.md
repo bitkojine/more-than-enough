@@ -138,14 +138,16 @@ Every node resolves to exactly one state:
 Presentation must read from data, not hard-coded indices.
 
 1. A declarative **family registry**, `PATHS` (shipped as `PATH_FAMILIES`), in
-   `core.js`:
+   `core.js`. Each family also carries its ordered `nodes` refs, which are the
+   **single source of truth** for both the resolver and the renderer (so rails
+   and rows can never drift apart):
    ```js
    var PATH_FAMILIES = [
-     { id:'tools',     layer:'world',  name:'Tools' },
-     { id:'refining',  layer:'world',  name:'Refineries' },
-     { id:'abundance', layer:'world',  name:'Abundance Engine' },
-     { id:'unlocks',   layer:'world',  name:'Unlocks & Blueprints' },
-     { id:'perks',     layer:'legacy', name:'Perks' }
+     { id:'tools',     layer:'world',  name:'Tools',                icon:'🧰', nodes:['axe','pickaxe','boots','overclock'] },
+     { id:'refining',  layer:'world',  name:'Refineries',           icon:'⛏️', nodes:RESOURCES.slice() },
+     { id:'abundance', layer:'world',  name:'Abundance Engine',     icon:'✨', nodes:['abundance'] },
+     { id:'unlocks',   layer:'world',  name:'Unlocks & Blueprints', icon:'📜', nodes:['logistics','sapling','brickyard','foundry','observatory'] },
+     { id:'perks',     layer:'legacy', name:'Perks',                icon:'🎟️', nodes:Object.keys(PERKS) }
    ];
    ```
 2. Resolvers: `pathNode(s, familyId, ref)` → a node record
@@ -212,8 +214,10 @@ the loop immediately without switching a tab out from under the player.
   families expose the existing buy rows (default: Tools open).
 - **Phase 3 — horizons.** ⏳ Capped `unknown` nodes + a "More to come" capstone.
   The Beyond locked preview (§10) shipped early with Phase 2.
-- **Phase 4 — polish.** ⏳ Motion on unlock, a11y pass, `core.test.js` coverage
-  for the resolvers.
+- **Phase 4 — polish.** ⏳ Motion on unlock and the a11y pass remain; ✅
+  `core.test.js` coverage for the resolvers landed, including the
+  registry↔resolver invariant (declared `nodes` must match what `pathNodes()`
+  returns, in order).
 
 Each phase is independently shippable and save-compatible (no format change:
 the map is derived from existing state).

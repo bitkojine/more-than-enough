@@ -6,6 +6,18 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.3] - 2026-10-12
+
+### Docs
+- **Structurizr model verified current.** Re-validated `workspace.dsl`, checked
+  that every `ref`/`files` pointer resolves to a live symbol in `core.js` /
+  `game.js`, and re-exported the Mermaid + PlantUML diagrams and the on-demand
+  `workspace.json` from the DSL (the tracked diagrams were already in sync).
+- Updated `docs/progression-map.md` to match the shipped code: the
+  `PATH_FAMILIES` snippet now shows the `icon` + `nodes` fields (the single
+  source of truth shared by the resolver and the renderer), and Phase 4 now
+  records that resolver coverage has landed.
+
 ## [0.13.2] - 2026-10-12
 
 ### Changed (internal — Boy Scout cleanup, no behavior change)
