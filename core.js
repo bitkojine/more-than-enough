@@ -693,8 +693,15 @@
     return n;
   }
 
+  // Lifetime resources ever gathered: carried-across-worlds total plus the
+  // current world's tallies. Single definition so the embark gain, the goal
+  // banner and the UI all agree on what "lifetime" means.
+  function lifetimeTotal(s) {
+    return (s.totalEver || 0) + sumStats(s);
+  }
+
   function embarkGain(s) {
-    return Math.floor(Math.sqrt((s.totalEver + sumStats(s)) / 2000));
+    return Math.floor(Math.sqrt(lifetimeTotal(s) / 2000));
   }
 
   function canEmbark(s) { return embarkGain(s) >= 1; }
@@ -954,7 +961,7 @@
     { text: '\u2699\uFE0F Sharpen ore production (Metallurgy I)', test: function (s) { return s.resUp.ore >= 1; } },
     { text: '\u2764\uFE0F\u200D\uD83D\uDD25 Push the Abundance Engine to IV', test: function (s) { return (s.abundanceLv || 0) >= 4; } },
     { text: '\uD83C\uDFD4\uFE0F Own 25 automated structures', test: function (s) { return s.extractors.length >= 25; } },
-    { text: '\uD83C\uDF05 The Long Road \u2014 ' + EMBARK_MIN_TOTAL.toLocaleString() + ' lifetime resources', test: function (s) { return s.totalEver + sumStats(s) >= EMBARK_MIN_TOTAL; } },
+    { text: '\uD83C\uDF05 The Long Road \u2014 ' + EMBARK_MIN_TOTAL.toLocaleString() + ' lifetime resources', test: function (s) { return lifetimeTotal(s) >= EMBARK_MIN_TOTAL; } },
     { text: '\u267E\uFE0F MORE THAN ENOUGH \u2014 expand forever', test: function () { return false; } }
   ];
 
@@ -1075,7 +1082,7 @@
     legacyMult: legacyMult, nomadMult: nomadMult, exploreRadius: exploreRadius,
     abundanceMult: abundanceMult, abundanceCost: abundanceCost,
     resProdMult: resProdMult, abundanceTrickle: abundanceTrickle,
-    sumStats: sumStats, embarkGain: embarkGain, canEmbark: canEmbark, embark: embark,
+    sumStats: sumStats, lifetimeTotal: lifetimeTotal, embarkGain: embarkGain, canEmbark: canEmbark, embark: embark,
     perkOwned: perkOwned, perkCost: perkCost, buyPerk: buyPerk,
     PATH_FAMILIES: PATH_FAMILIES, pathNode: pathNode, pathNodes: pathNodes, pathProgress: pathProgress,
     step: step, move: move,

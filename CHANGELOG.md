@@ -6,6 +6,20 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.2] - 2026-10-12
+
+### Changed (internal — Boy Scout cleanup, no behavior change)
+- **One definition of "lifetime resources."** `totalEver + sumStats(s)` was
+  recomputed inline in three places (the embark gain, the goal banner, and the
+  Beyond screen). Extracted `Core.lifetimeTotal(s)` and routed all three
+  through it, so they can't diverge.
+- `renderBeyond()` now reads `state.insight` once into a local and reuses it for
+  the Insight row and both perk button states (was read three times).
+
+### Testing
+- `core.test.js` +2 checks (187 total): lifetime total starts at 0, and equals
+  the carried total plus current-world tallies.
+
 ## [0.13.1] - 2026-10-12
 
 ### Changed (internal — Boy Scout cleanup, no behavior change)

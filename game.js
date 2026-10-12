@@ -1079,13 +1079,14 @@
   }
 
   function renderBeyond() {
-    var lifetime = Math.floor((state.totalEver || 0) + Core.sumStats(state));
+    var lifetime = Math.floor(Core.lifetimeTotal(state));
 
     if (!beyondUnlocked()) { renderBeyondLocked(lifetime); return; }
 
     var gain = Core.embarkGain(state);
+    var insight = state.insight || 0;
     var html = '<div class="section">Insight</div>';
-    html += row('\u2728', fmt(state.insight || 0) + ' Insight',
+    html += row('\u2728', fmt(insight) + ' Insight',
       'Prestiges: ' + (state.prestiges || 0) + ' &middot; Lifetime gathered: ' + fmt(lifetime), '');
 
     html += '<div class="section">New World</div>';
@@ -1103,11 +1104,12 @@
       var owned = Core.perkOwned(state, k);
       var cost = Core.perkCost(state, k);
       var maxed = !d.repeat && owned;
+      var afford = insight >= cost;
       var psub = d.desc + '<br>' + (maxed ? '<span class="ok">Active</span>'
-        : '<span class="' + ((state.insight || 0) >= cost ? 'ok' : 'bad') + '">' + cost + ' Insight</span>');
+        : '<span class="' + (afford ? 'ok' : 'bad') + '">' + cost + ' Insight</span>');
       var pbtn = maxed
         ? '<button class="buy max" disabled>OWNED</button>'
-        : '<button class="buy" data-kind="perk" data-id="' + k + '"' + ((state.insight || 0) >= cost ? '' : ' disabled') + '>' + (d.repeat && owned ? 'Level ' + (owned + 1) : 'Buy') + '</button>';
+        : '<button class="buy" data-kind="perk" data-id="' + k + '"' + (afford ? '' : ' disabled') + '>' + (d.repeat && owned ? 'Level ' + (owned + 1) : 'Buy') + '</button>';
       var tag = owned ? ' <span class="tag">' + (d.repeat ? 'Lv ' + owned : 'Owned') + '</span>' : '';
       html += row(d.icon, d.name + tag, psub, pbtn);
     }
