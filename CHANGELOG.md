@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.17.0] - 2026-10-12
+
+### Added
+- **Endless deep-mine expedition.** Replaced the surface gathering loop with
+  procedurally composed layers, connected tile-by-tile drilling, a surface hub,
+  pressure risk, cargo weight, shared fuel, extraction, and permanent upgrades.
+- **One-thumb mine controls.** Drag the bottom-right joystick to navigate; hold a
+  visible tile to preview and drill a route; drag a packed charge to aim a blast.
+- **Terrain reactions.** Pressure pockets can chain; water floods connected
+  tunnels, enables swimming routes, and can reveal lost creature habitats.
+- **Surface progression.** Successful extraction banks a small share of cargo;
+  the hub offers permanent ship upgrades, station rooms, and charge crafting.
+
+### Changed
+- Replaced the prior save schema; existing saves start a fresh dive.
+- Bumped the minor version for this new gameplay loop. Pages deploy continues to
+  hash asset URLs automatically for cache busting.
+
 ## [0.16.1] - 2026-10-12
 
 ### Changed
