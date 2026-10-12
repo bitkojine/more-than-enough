@@ -37,6 +37,7 @@
   var elZoomLevel = document.getElementById('zoomLevel');
   var elZoomOut = document.getElementById('btnZoomOut');
   var elZoomIn = document.getElementById('btnZoomIn');
+  var elTrailHint = document.getElementById('trailHint');
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
 
   /* ----------------------------------------------------------- state */
@@ -54,6 +55,9 @@
   var pinch = { active: false, dist: 0, zoom: 1 }; // two-finger pinch-zoom state
   var keys = {};
   var moveTarget = null;
+  var trail = null;
+  var trailArmTimer = null;
+  var actionPointerId = null, actionStartX = 0, actionStartY = 0, actionStartTime = 0;
   var stall = 0;
   var actDown = false;
   var actionCd = 0;
@@ -514,6 +518,52 @@
     e.preventDefault();
   }
 
+  function beginTrail(e) {
+    if (!actDown || trail || sheetOpen) return;
+    trail = { id: e.pointerId, points: [], leftButton: false };
+    elTrailHint.classList.add('active');
+    var p = canvasPoint(e);
+    joy.active = false; joy.x = 0; joy.y = 0;
+    trail.points.push(screenToWorld(p.x, p.y));
+    pointers[e.pointerId] = { x: p.x, y: p.y };
+    if (canvas.setPointerCapture) canvas.setPointerCapture(e.pointerId);
+  }
+
+  function trailPoint(e) {
+    var p = canvasPoint(e);
+    var w = screenToWorld(p.x, p.y);
+    return { x: w.x, y: w.y };
+  }
+
+  function finishTrail() {
+    if (!trail) return;
+    var points = trail.points;
+    trail = null;
+    elTrailHint.classList.remove('active');
+    if (points.length < 5) return;
+    var gathered = 0;
+    var lastKey = '';
+    for (var i = 0; i < points.length; i++) {
+      var tx = Math.floor(points[i].x), ty = Math.floor(points[i].y);
+      var key = tx + ',' + ty;
+      if (key === lastKey) continue;
+      lastKey = key;
+      var target = Core.gatherTarget(state);
+      if (!target || target.x !== tx || target.y !== ty) continue;
+      var result = Core.gather(state);
+      if (result && result.amount > 0) {
+        gathered += result.amount;
+        gatherSound(result.res, result.amount);
+        spawnFlyers(tx, ty, result.res, result.amount);
+      }
+    }
+    if (gathered > 0) {
+      floatText('Trail +' + fmt(gathered), '#b8ec9a');
+      onWorldChanged();
+      toast('Trail gathered ' + fmt(gathered) + ' resources');
+    } else toast('Trace across resource tiles within reach');
+  }
+
   function onPointerMove(e) {
     var tracked = pointers[e.pointerId];
     if (tracked) { var pp = canvasPoint(e); tracked.x = pp.x; tracked.y = pp.y; }
@@ -525,6 +575,26 @@
       return;
     }
 
+    if (trail && trail.id === e.pointerId) {
+      var point = trailPoint(e);
+      var prior = trail.points[trail.points.length - 1];
+      var actionRect = elAction.getBoundingClientRect();
+      if (e.clientX < actionRect.left || e.clientX > actionRect.right || e.clientY < actionRect.top || e.clientY > actionRect.bottom) trail.leftButton = true;
+      if (!prior || Math.abs(prior.x - point.x) + Math.abs(prior.y - point.y) > 0.12) trail.points.push(point);
+      e.preventDefault();
+      return;
+    }
+    if (actDown && trailArmTimer && e.pointerId === actionPointerId) {
+      var btn = elAction.getBoundingClientRect();
+      var movedFromButton = Math.hypot(e.clientX - actionStartX, e.clientY - actionStartY);
+      if (movedFromButton > 28 || performance.now() - actionStartTime >= 450) beginTrail(e);
+      if (trail && trail.id === e.pointerId) {
+        var firstPoint = trailPoint(e);
+        trail.points.push(firstPoint);
+        e.preventDefault();
+        return;
+      }
+    }
     if (sheetOpen || !joy.active || e.pointerId !== joy.id) return;
     var p = canvasPoint(e);
     var dx = p.x - joy.ox, dy = p.y - joy.oy;
@@ -546,6 +616,11 @@
   }
 
   function onPointerUp(e) {
+    if (trail && trail.id === e.pointerId) {
+      finishTrail();
+      e.preventDefault();
+      return;
+    }
     if (pointers[e.pointerId]) delete pointers[e.pointerId];
 
     if (pinch.active) {
@@ -1223,16 +1298,35 @@
   elAction.addEventListener('pointerdown', function (e) {
     initAudio();
     e.preventDefault();
-    elAction.setPointerCapture && elAction.setPointerCapture(e.pointerId);
     actDown = true;
+    actionPointerId = e.pointerId;
+    actionStartX = e.clientX; actionStartY = e.clientY; actionStartTime = performance.now();
+    // Let the immediate gather register; the same pointer can then leave the
+    // button and trace a sweep while held, without needing another finger.
     if (context().type !== 'none' && actionCd <= 0) {
       if (doAction()) actionCd = GATHER_CD;
     }
   });
-  function releaseAction(e) { actDown = false; e.preventDefault(); }
+  function releaseAction(e) {
+    actDown = false;
+    if (trail && trail.id === e.pointerId) {
+      // Require the pointer to leave Gather before interpreting its path as a sweep.
+      if (trail.leftButton && trail.points.length >= 2) finishTrail();
+      else { trail = null; elTrailHint.classList.remove('active'); }
+    }
+    e.preventDefault();
+  }
   elAction.addEventListener('pointerup', releaseAction);
   elAction.addEventListener('pointercancel', releaseAction);
-  elAction.addEventListener('pointerleave', function () { actDown = false; });
+  elAction.addEventListener('pointerleave', function (e) {
+    if (actDown && !trail && actionPointerId === e.pointerId) beginTrail(e);
+  });
+  window.addEventListener('pointerup', function (e) {
+    if (trail && trail.id === e.pointerId && actDown) {
+      actDown = false;
+      finishTrail();
+    }
+  }, true);
 
   function bindTabButton(el, tab) {
     el.addEventListener('click', function () {

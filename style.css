@@ -125,6 +125,22 @@ canvas#game {
   display: flex; align-items: flex-end; gap: 8px;
   pointer-events: auto;
 }
+#trailHint {
+  position: absolute;
+  right: 0;
+  bottom: 100%;
+  width: 190px;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(190,230,155,0.3);
+  border-radius: 12px;
+  background: rgba(12,17,14,0.9);
+  color: var(--ink);
+  font-size: 11px; line-height: 1.35; font-weight: 700; text-align: center;
+  opacity: 0; transform: translateY(5px); transition: opacity .15s, transform .15s;
+  pointer-events: none;
+}
+#trailHint.active { opacity: 1; transform: translateY(0); }
 
 .btn {
   position: absolute;

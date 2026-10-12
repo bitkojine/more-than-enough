@@ -12,6 +12,8 @@ bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below
 - **One-thumb mobile controls.** Gather, Build, Upgrade, and one-thumb zoom
   now sit together in a bottom-right dock. Sheet tabs, Done, Reset, and Sound
   are grouped at the bottom of the sheet for easier reach.
+- **Trail gather prototype.** Hold Gather and trace across nearby resource
+  tiles to gather the patch in one deliberate thumb gesture.
 
 ## [0.13.6] - 2026-10-12
 
