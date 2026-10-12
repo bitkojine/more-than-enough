@@ -10,6 +10,6 @@
     "stage": "sh scripts/stage-site.sh site"
   },
   "engines": {
-    "node": ">=20.11"
+    "node": ">=24"
   }
 }

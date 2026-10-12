@@ -130,7 +130,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools = softwareSystem "Development Tooling" "Test harnesses and the deploy pipeline. Zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." "Node.js 20+" {
+            coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." "Node.js LTS" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/unit/"
@@ -190,7 +190,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 infrastructureNode "Static Files" "Serves the staged site over HTTPS."
             }
 
-            deploymentNode "Node.js 20+" "Developer machine / CI runner." {
+            deploymentNode "Node.js LTS" "Developer machine / CI runner." {
                 containerInstance tools.coreTests
                 deploymentNode "Headless Chrome" "Launched by the e2e harness via CDP." {
                     containerInstance tools.e2e

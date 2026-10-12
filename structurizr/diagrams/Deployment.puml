@@ -95,17 +95,17 @@ rectangle "GitHub Pages\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWx
   rectangle "==Static Files\n<size:16>[Infrastructure Node]</size>\n\nServes the staged site over HTTPS." <<Element-RWxlbWVudA==>> as Production.GitHubPages.StaticFiles
 }
 
-rectangle "Node.js 20+\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Nodejs20 {
-  rectangle "==Unit Tests\n<size:16>[Container: Node.js 20+]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.Nodejs20.UnitTests_1
-  rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Nodejs20.HeadlessChrome {
-    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.Nodejs20.HeadlessChrome.BrowserE2EHarness_1
+rectangle "Node.js LTS\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS {
+  rectangle "==Unit Tests\n<size:16>[Container: Node.js LTS]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.UnitTests_1
+  rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS.HeadlessChrome {
+    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1
   }
 
 }
 
 Production.Browser.Browsertab.SimulationCore_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
 Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
-Production.Nodejs20.UnitTests_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
-Production.Nodejs20.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
+Production.NodejsLTS.UnitTests_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
+Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
 
 @enduml

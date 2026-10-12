@@ -153,6 +153,10 @@ npm test            # node:test over test/unit/ — world layers, actions, econo
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 ```
 
+Node: always the latest LTS, locally and in CI. `.nvmrc` says `lts/*`; CI
+reads it with `check-latest`, and locally `fnm` (or `nvm`) picks it up from the
+same file.
+
 CI runs `npm test` on every push and pull request, and only deploys `main`
 when it passes. The browser test looks for Chrome at the standard macOS path
 or `google-chrome` elsewhere; set `CHROME_PATH` to point it at another browser.
