@@ -29,6 +29,7 @@ async function main(){
     if(!await evaluate('!!window.DEEPER_GAME'))throw new Error('Game did not boot.');
     await evaluate('localStorage.clear()');await cdp('Page.reload');await sleep(500);
     check(await evaluate('!document.getElementById("tutorial").hidden'),'first-dive tutorial appears');
+    check(await evaluate('(function(){return ["#joystick span","#stats","#game"].every(function(s){var e=document.querySelector(s),c=getComputedStyle(e);return c.userSelect==="none"&&c.webkitUserSelect==="none";});})()'),'joystick label and map surfaces cannot be selected as text');
     async function point(selector){return evaluate('(function(){var r=document.querySelector('+JSON.stringify(selector)+').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()');}
     async function mouse(type,x,y,pressed){var event={type:type,x:x,y:y};if(type==='mouseMoved'){event.button='none';event.buttons=pressed?1:0;}else{event.button='left';event.clickCount=1;}return cdp('Input.dispatchMouseEvent',event);}
     async function tap(selector){var p=await point(selector);await mouse('mousePressed',p.x,p.y);await mouse('mouseReleased',p.x,p.y);await sleep(180);}

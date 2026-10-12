@@ -77,6 +77,7 @@
   }
   function drillStart(e) {
     if(state.run.status!=='diving'||e.target!==canvas) return;
+    e.preventDefault();
     var p=world(e.clientX,e.clientY); digPath=C.planDrill(state,p.x,p.y)||[]; digIndex=0; held=true; digClock=0;
     if(!digPath.length) say('Choose a tile beside your tunnel.'); else { canvas.setPointerCapture(e.pointerId); var known=digPath.filter(function(q){return q.known;}); if(known.length){var t=known[0]; say(t.kind==='vein'?'Route preview · '+C.RESOURCES[t.resource].name:t.kind==='gas'?'Route preview · pressure hazard':'Route preview · known terrain');} }
   }

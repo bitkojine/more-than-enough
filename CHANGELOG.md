@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.3] - 2026-10-12
+
+### Fixed
+- Prevent Safari and other touch browsers from selecting joystick labels or
+  game UI text while dragging the controls or map.
+
 ## [0.17.2] - 2026-10-12
 
 ### Changed
