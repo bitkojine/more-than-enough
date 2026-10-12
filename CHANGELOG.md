@@ -6,6 +6,28 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.11.1] - 2026-10-12
+
+### Fixed
+- **Zooming all the way out could freeze the game.** The gather/build tile
+  highlight was outlined with a fixed inset (`roundRect(sx + 2, sy + 2, tilePx - 4,
+  tilePx - 4, 6)`), which goes negative once tiles are smaller than 4px. Canvas
+  then received a negative `arcTo` radius and threw `IndexSizeError` **from inside
+  the render loop**, which permanently killed `requestAnimationFrame` — the
+  character vanished and neither movement nor zoom responded. The highlight now
+  clamps its inset/size (and skips when a tile is sub-pixel), and the shared
+  `roundRect` bails out on non-positive dimensions, so no caller can crash the
+  loop this way again.
+
+### Changed
+- Extracted the duplicated gather/build highlight outlines into one
+  `strokeTileHighlight()` helper (DRY).
+
+### Testing
+- Browser e2e +3 checks (78 total, up from 75): with a gatherable tile underfoot at
+  maximum zoom-out, no page errors are raised **and** the game clock keeps ticking
+  (proving the render loop is still alive).
+
 ## [0.11.0] - 2026-10-12
 
 ### Added

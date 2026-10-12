@@ -544,6 +544,20 @@ async function main() {
   await evalJS('MTE_GAME.setZoom(1)');
   await sleep(120);
 
+  /* ---------------------- tile highlight must survive max zoom-out */
+  console.log('\n== Tile highlight at max zoom-out ==');
+  var errBase = pageErrors.length;
+  var hSpot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileType(s.world,x,y)===1&&c.tileRich(s.world,x,y)>0){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  ok(!!hSpot, 'stood on a gatherable tile for the highlight test (' + hSpot + ')');
+  await evalJS('MTE_GAME.setZoom(0.0001)'); // all the way out: tiles ~3px
+  await sleep(250);
+  var hTime = await evalJS('MTE_GAME.getState().time');
+  await sleep(400);
+  eq(pageErrors.length, errBase, 'max zoom-out over a resource throws no render errors');
+  ok(await evalJS('MTE_GAME.getState().time') > hTime, 'render loop still alive at max zoom-out (clock still ticks)');
+  await evalJS('MTE_GAME.setZoom(1)');
+  await sleep(120);
+
   /* ------------------------------------------------------------- errors */
   console.log('\n== Runtime errors ==');
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));

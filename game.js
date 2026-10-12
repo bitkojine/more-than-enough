@@ -116,9 +116,9 @@
   }
 
   function roundRect(x, y, w, h, r) {
-    if (r > w / 2) r = w / 2;
-    if (r > h / 2) r = h / 2;
     ctx.beginPath();
+    if (w <= 0 || h <= 0) return; // nothing to draw (e.g. sub-pixel tiles when zoomed out)
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
     ctx.arcTo(x + w, y + h, x, y + h, r);
@@ -1528,23 +1528,26 @@
     }
   }
 
+  // Outline one tile. The inset is clamped so a sub-pixel tile when zoomed far
+  // out can't produce a negative size (which used to throw and stop the loop).
+  function strokeTileHighlight(tx, ty, color) {
+    var inset = Math.min(2, tilePx * 0.2);
+    var sz = tilePx - inset * 2;
+    if (sz <= 0) return;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1.5, tilePx * 0.05);
+    roundRect(tx * tilePx - camX + inset, ty * tilePx - camY + inset, sz, sz, Math.min(6, sz / 2));
+    ctx.stroke();
+  }
+
   function drawHighlights() {
     var g = Core.gatherTarget(state);
-    if (g) {
-      var sx = g.x * tilePx - camX, sy = g.y * tilePx - camY;
-      ctx.strokeStyle = 'rgba(200,255,180,0.5)';
-      ctx.lineWidth = Math.max(1.5, tilePx * 0.05);
-      roundRect(sx + 2, sy + 2, tilePx - 4, tilePx - 4, 6); ctx.stroke();
-    }
+    if (g) strokeTileHighlight(g.x, g.y, 'rgba(200,255,180,0.5)');
     if (sheetOpen && currentTab === 'build') {
       var ids = ['lumber', 'quarry', 'mine', 'resonator'];
       for (var i = 0; i < ids.length; i++) {
         var t = Core.buildTarget(state, ids[i]);
-        if (!t) continue;
-        var bx = t.x * tilePx - camX, by = t.y * tilePx - camY;
-        ctx.strokeStyle = 'rgba(140,220,255,0.6)';
-        ctx.lineWidth = Math.max(1.5, tilePx * 0.05);
-        roundRect(bx + 2, by + 2, tilePx - 4, tilePx - 4, 6); ctx.stroke();
+        if (t) strokeTileHighlight(t.x, t.y, 'rgba(140,220,255,0.6)');
       }
     }
   }
