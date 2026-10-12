@@ -6,6 +6,25 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions (saves migrate forward automatically). Patch bumps (0.4.1) are
 bug fixes only and never break saves.
 
+## [0.8.0] - 2026-10-12
+
+### Added
+- **Day/night cycle**: the world slowly cycles a 240s day-night loop (starting
+  at noon). Daytime gets a gentle warm lift, dusk fades through twilight, and
+  midnight falls deep and dark — the palette stays moody but no longer reads
+  "too dark" all day.
+- **Flashlight**: after dusk the player's light switches on automatically,
+  keeping a warm pool of visibility around them (about 6 tiles), so you can
+  always see, move and gather at night. The cycle is driven by game time, so
+  it persists across reloads exactly like your resources.
+
+### Tests
+- Core: new "Day/night cycle" section checks the daylight curve (noon,
+  midnight, dawn/dusk halflight, cycle repeat).
+- Browser e2e: forces midnight and verifies the flashlight pool renders — the
+  area around the player stays lit while the screen edges fall dark, and
+  returns to normal at noon.
+
 ## [0.7.0] - 2026-10-12
 
 ### Added

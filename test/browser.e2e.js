@@ -379,6 +379,23 @@ async function main() {
   eq(afterEmbark.ext, 0, 'embark resets extractors');
   ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
 
+  /* ------------------------------------------------ day/night + light */
+  console.log('\n== Day/night cycle & flashlight ==');
+  var di = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core;return JSON.stringify({len:c.DAY_LENGTH,noon:c.daylight(0),mid:c.daylight(c.DAY_LENGTH/2)});})()'));
+  ok(di.len > 0 && di.noon === 1 && Math.round(di.mid) === 0, 'daylight curve sane (cycle ' + di.len + 's, noon ' + di.noon + ', midnight ' + di.mid + ')');
+  await evalJS('MTE_GAME.getState().time = MTE_GAME.core.DAY_LENGTH / 2'); // force midnight
+  await sleep(300);
+  var nightShot = await shot('05-night.png');
+  ok(!!nightShot, 'night render screenshot: ' + nightShot);
+  var lum = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'));
+  console.log('  night luminance: center=' + lum.center + ' corner=' + lum.corner);
+  ok(lum.center > lum.corner + 0.08, 'flashlight pools light around the player at night (center ' + lum.center + ' vs corner ' + lum.corner + ')');
+  await evalJS('MTE_GAME.getState().time = 0'); // back to noon
+  await sleep(300);
+  var dayLum = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'));
+  console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
+  ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
+
   /* ------------------------------------------------------------- errors */
   console.log('\n== Runtime errors ==');
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));

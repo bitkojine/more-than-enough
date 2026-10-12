@@ -11,6 +11,7 @@
   var BASE_SPEED = 3.7;
   var WATER_SPEED = 0.75; // swimming is a bit slower than walking
   var PLAYER_R = 0.3;
+  var DAY_LENGTH = 240; // seconds of game time for one full day-night cycle
 
   var T = { GRASS: 0, FOREST: 1, STONE: 2, ORE: 3, CRYSTAL: 4, WATER: 5, ROCK: 6 };
 
@@ -426,6 +427,13 @@
   function abundanceTrickle(s, res) { return (s.abundanceLv || 0) * legacyMult(s); }
 
   function onWater(s) { return tileType(s.world, Math.floor(s.player.x), Math.floor(s.player.y)) === T.WATER; }
+
+  /* Day/night cycle: a pure function of game time so it persists with saves
+   * and the renderer just asks how bright it is right now.
+   *   daylight(t) = 1 at time 0 (noon) ... 0 at DAY_LENGTH/2 (midnight). */
+  function daylight(t) {
+    return 0.5 + 0.5 * Math.cos((t / DAY_LENGTH) * Math.PI * 2);
+  }
 
   /* --------------------------------------------------------------- state */
 
@@ -896,7 +904,7 @@
     RESOURCE_LABEL: RESOURCE_LABEL, RESOURCE_ICON: RESOURCE_ICON, TILE_RESOURCE: TILE_RESOURCE,
     TOOLS: TOOLS, EXTRACTORS: EXTRACTORS, UNLOCKS: UNLOCKS, GOALS: GOALS,
     GATHER_RANGE: GATHER_RANGE, COLLECT_RANGE: COLLECT_RANGE, BASE_SPEED: BASE_SPEED, WATER_SPEED: WATER_SPEED,
-    EXPLORE_RADIUS: EXPLORE_RADIUS,
+    EXPLORE_RADIUS: EXPLORE_RADIUS, DAY_LENGTH: DAY_LENGTH, daylight: daylight,
     EXTRACTOR_GROWTH: EXTRACTOR_GROWTH,
     idx: idx, inBounds: inBounds, tileType: tileType, walkable: walkable,
     generateWorld: generateWorld, floodFill: floodFill,

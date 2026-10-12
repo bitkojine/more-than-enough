@@ -352,6 +352,15 @@ var startX = mv2.player.x;
 C.move(mv2, 1, 0, 0.2);
 ok(mv2.player.x > startX || !C.canStand(mv2, mv2.player.x + 0.7, mv2.player.y), 'movement advances player on open ground');
 
+/* --------------------------------------------------------- day/night */
+section('Day/night cycle');
+eq(C.daylight(0), 1, 'cycle starts at noon');
+ok(Math.round(C.daylight(C.DAY_LENGTH / 2)) === 0, 'midnight is dark');
+var dawn = C.daylight(C.DAY_LENGTH / 4);
+ok(dawn > 0.4 && dawn < 0.6, 'dawn/dusk are half light (' + dawn.toFixed(2) + ')');
+eq(C.daylight(C.DAY_LENGTH), 1, 'cycle repeats after a full day');
+ok(C.daylight(C.DAY_LENGTH / 2 + 60) < C.daylight(C.DAY_LENGTH / 2 - 60), 'light falls into night and rises out of it');
+
 /* ---------------------------------------------------------- persistence */
 section('Persistence');
 var ps = C.createState(4242);

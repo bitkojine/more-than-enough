@@ -38,6 +38,9 @@ or any browser. Progress saves automatically to `localStorage`.
 - The **Beyond** tab (once you're near your first embark) holds the prestige
   loop: spend **Insight** on perks and **Embark** on a New World.
 - Swipe the sheet's **grab handle down** to close it.
+- The world follows a **day/night cycle** (240s). By day it's bright and calm;
+  at night your **flashlight turns on automatically**, keeping a pool of light
+  around you so you can always see — and keep working — after dark.
 - A goal banner points you at the next milestone, and a faint compass arrow
   helps you find the next undiscovered resource.
 - **Water is swimable**: wade in and you'll ride a little raft to reach far

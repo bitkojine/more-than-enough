@@ -1444,6 +1444,49 @@
     ctx.fillText(msg, W / 2, H - 157);
   }
 
+  /* Day/night lighting pass. The world palette stays moody, but daytime gets a
+   * gentle warm lift and after dusk the scene fades into darkness — except for
+   * the flashlight pooling around the player, which switches on automatically
+   * so you can always see (and keep gathering) after dark. */
+  function applyLighting() {
+    var dl = Core.daylight(state.time);
+
+    // Daytime lift: a soft screen-blend glow that fades out by twilight.
+    var glow = Math.max(0, (dl - 0.25) / 0.75) * 0.16;
+    if (glow > 0.001) {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = 'rgba(255,236,205,' + glow.toFixed(3) + ')';
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    // Night: darken everything except the flashlight pool at the player.
+    if (dl < 0.6) {
+      var night = Math.max(0, (0.6 - dl) / 0.6); // 0 = dusk … 1 = midnight
+      var px = state.player.x * tilePx - camX;
+      var py = state.player.y * tilePx - camY;
+      var pool = Math.max(W, H) * 0.8;
+      var lit = Math.min(pool, tilePx * 6); // bright inner pool (≈6 tiles)
+      var mid = lit + (pool - lit) * 0.28;  // soft falloff starts here
+      var g = ctx.createRadialGradient(px, py, 0, px, py, pool);
+      g.addColorStop(0, 'rgba(4,8,16,0)');
+      g.addColorStop(Math.min(1, lit / pool), 'rgba(4,8,16,0)');
+      g.addColorStop(Math.min(1, mid / pool), 'rgba(4,8,16,' + (night * 0.42).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(4,8,16,' + (night * 0.84).toFixed(3) + ')');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+
+      // Warm flashlight tint so the pool reads as lamplight, not just a hole.
+      ctx.globalCompositeOperation = 'lighter';
+      var warm = ctx.createRadialGradient(px, py, 0, px, py, lit);
+      warm.addColorStop(0, 'rgba(255,214,150,' + (night * 0.11).toFixed(3) + ')');
+      warm.addColorStop(1, 'rgba(255,214,150,0)');
+      ctx.fillStyle = warm;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+
   function render() {
     updateCamera();
     ctx.fillStyle = '#04060a';
@@ -1462,6 +1505,7 @@
     drawParticles();
     drawPlayer();
     drawFloats();
+    applyLighting();
     drawJoystick();
     drawHintArrow();
     drawTutorial();
