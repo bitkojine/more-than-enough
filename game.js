@@ -6,7 +6,7 @@
   var hud = document.getElementById('stats'), prompt = document.getElementById('prompt');
   var hub = document.getElementById('hub'), tutorial = document.getElementById('tutorial'), toast = document.getElementById('toast');
   var joyEl = document.getElementById('joystick'), joyDot = joyEl.querySelector('i');
-  var w = 0, h = 0, dpr = 1, tile = 42, held = false, digPath = [], digIndex = 0, digClock = 0;
+  var w = 0, h = 0, dpr = 1, tile = 42, held = false, digPath = [], digIndex = 0, digClock = 0, saveClock = 0;
   var chargeAim = false, joy = null, last = performance.now(), toastTimer = 0;
   try { state = C.deserialize(localStorage.getItem(key)) || C.createState(); } catch (_) { state = C.createState(); }
   document.getElementById('version').textContent = window.MTE_VERSION || '';
@@ -83,6 +83,7 @@
   function stopDrill() { held=false; digPath=[]; digIndex=0; }
   function tick(now) {
     var dt=Math.min(.1,(now-last)/1000); last=now; C.step(state,dt);
+    saveClock+=dt; if(saveClock>=2){saveClock=0;save();}
     if(joy && state.run.status==='diving') C.move(state,joy.dx,joy.dy,dt);
     if(held && digPath.length) { digClock+=dt; if(digClock>.22) {digClock=0; var res=C.drillStep(state,digPath,digIndex); if(res.message) say(res.message); if(res.blocked||res.done){stopDrill();} else {digIndex++;} save(); } }
     if(state.run.status!=='diving') persistOutcome();
@@ -101,7 +102,7 @@
   document.getElementById('dive').addEventListener('click',function(){C.startDive(state);hub.hidden=true;save();});
   document.getElementById('craft').addEventListener('click',function(){var r=C.craftCharge(state);say(r.message);save();});
   document.getElementById('help').addEventListener('click',function(){hub.hidden=true;tutorial.hidden=false;});
-  document.getElementById('tutorialDone').addEventListener('click',function(){tutorial.hidden=true;localStorage.setItem('deeper-tutorial-v1','1');if(state.run.status!=='diving'){C.startDive(state);save();}});
+  document.getElementById('tutorialDone').addEventListener('click',function(){tutorial.hidden=true;localStorage.setItem('deeper-tutorial-v1','1');if(state.run.status!=='diving'||!state.hub.dives)C.startDive(state);save();});
   if(!localStorage.getItem('deeper-tutorial-v1')) { tutorial.hidden=false; hub.hidden=true; }
   else if(state.run.status!=='diving') openHub(); else hub.hidden=true;
   window.DEEPER_GAME={core:C,getState:function(){return state;},summary:function(){return C.stateSummary(state);},drill:function(x,y){var p=C.planDrill(state,x,y)||[];return p.reduce(function(result,_,i){return C.drillStep(state,p,i);},{done:false});}};

@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.17.1] - 2026-10-12
+
+### Fixed
+- Autosave expedition movement and pressure every two seconds, and count the
+  guided first dive as a started expedition.
+
 ## [0.17.0] - 2026-10-12
 
 ### Added
