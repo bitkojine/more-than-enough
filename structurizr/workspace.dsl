@@ -46,10 +46,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                audio = component "Audio" "Tiny WebAudio synth (unlocked on first pointer/key): gather/collect/build/fanfare sounds with per-resource pitches." "JavaScript" {
+                audio = component "Audio" "Tiny WebAudio synth. Unlocked from ANY gesture (pointer/touch/mouse/key/click, plus focus/visibility) with a silent-buffer unlock so sound starts on the first interaction; per-material gather voices (wood knock, stone crack, ore clang, crystal bell) plus collect/build/fanfare and an extractor hum drone." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: initAudio, gatherSound, collectSound, fanfare"
+                        "ref" "game.js: initAudio, unlockAudio, gatherSound, impact, collectSound, fanfare"
                     }
                 }
 
@@ -151,7 +151,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 81 checks covering flyer visuals, the Progression map (family headers, always-visible Beyond + its locked preview), fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 82 checks covering flyer visuals, the Progression map (family headers, always-visible Beyond + its locked preview), audio unlock on the first gesture, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"

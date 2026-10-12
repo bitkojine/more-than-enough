@@ -330,6 +330,9 @@ async function main() {
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  var audioState = await evalJS('MTE_GAME.audioState()');
+  console.log('  audio state after gestures: ' + audioState);
+  ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
   ok(!(await evalJS('document.getElementById("tabBeyond").hidden')), 'Beyond tab is visible from the start');
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 5, 'Progression map shows five family headers (4 world + legacy)');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');

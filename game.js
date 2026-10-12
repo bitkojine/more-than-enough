@@ -156,6 +156,8 @@
   var audioMaster = null;
   var droneMix = null;          // automated hum level -> tremolo -> master
   var droneOscs = [null, null];
+  var audioUnlocked = false;    // true once the context reports "running"
+  var noiseBuffer = null;       // shared white-noise buffer for impact transients
   // Pentatonic keys the melody can drift into (all consonant, no wrong notes).
   var SCALES = [
     [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25], // C major
@@ -182,15 +184,36 @@
     }
   }
 
-  function initAudio() {
+  // Create/resume the AudioContext. Must be called from a real user gesture.
+  // Handles both "suspended" and Safari's "interrupted" state, and plays a
+  // one-frame silent buffer — the canonical trick that flips mobile Safari into
+  // "unlocked" even when resume() alone is ignored. Safe to call repeatedly.
+  function unlockAudio() {
     if (!audioCtx) {
       try {
         var AC = window.AudioContext || window.webkitAudioContext;
-        if (!AC) return;
+        if (!AC) return false;
         audioCtx = new AC();
-      } catch (e) { audioCtx = null; return; }
+      } catch (e) { audioCtx = null; return false; }
     }
-    if (audioCtx.state === 'suspended') audioCtx.resume().catch(function () { });
+    if (audioCtx.state !== 'running') {
+      try { audioCtx.resume().catch(function () { }); } catch (e) { /* keep going */ }
+    }
+    if (!audioUnlocked) {
+      try {
+        var b = audioCtx.createBuffer(1, 1, 22050);
+        var src = audioCtx.createBufferSource();
+        src.buffer = b;
+        src.connect(audioCtx.destination);
+        src.start(0);
+      } catch (e) { /* ignore */ }
+      if (audioCtx.state === 'running') audioUnlocked = true;
+    }
+    return true;
+  }
+
+  function initAudio() {
+    if (!unlockAudio()) return;
     if (audioMaster) return;
     try {
       audioMaster = audioCtx.createGain();
@@ -224,7 +247,7 @@
     } catch (e) { audioCtx = null; }
   }
 
-  function note(freq, dur, type, vol, harmony, delay) {
+  function note(freq, dur, type, vol, harmony, delay, bright) {
     if (!audioCtx || muted || !audioMaster) return;
     if (activeNotes > 26) return;
     activeNotes++;
@@ -232,7 +255,7 @@
       var t = audioCtx.currentTime + (delay || 0);
       var lp = audioCtx.createBiquadFilter();
       lp.type = 'lowpass';
-      lp.frequency.value = 2600 + Math.random() * 1200; // humanized cutoff
+      lp.frequency.value = (2600 + Math.random() * 1200) * (bright || 1); // humanized cutoff
       lp.Q.value = 0.6;
       var v = (vol || 0.1) * (0.82 + Math.random() * 0.36); // per-note dynamics
       var o = audioCtx.createOscillator();
@@ -259,6 +282,37 @@
     } catch (e) { activeNotes--; }
   }
 
+  // A short, filtered noise burst — the percussive "impact" transient that makes
+  // a hit read as wood / stone / ore / crystal instead of just a tone.
+  function impact(cutoff, dur, vol, q, delay) {
+    if (!audioCtx || muted || !audioMaster) return;
+    if (!noiseBuffer) {
+      try {
+        var len = Math.floor(audioCtx.sampleRate * 0.5);
+        noiseBuffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+        var d = noiseBuffer.getChannelData(0);
+        for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      } catch (e) { return; }
+    }
+    try {
+      var t = audioCtx.currentTime + (delay || 0);
+      var src = audioCtx.createBufferSource();
+      src.buffer = noiseBuffer;
+      var bp = audioCtx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = cutoff;
+      bp.Q.value = q || 1;
+      var g = audioCtx.createGain();
+      g.gain.setValueAtTime(Math.max(0.0001, vol), t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(bp); bp.connect(g); g.connect(audioMaster);
+      src.start(t); src.stop(t + dur + 0.02);
+    } catch (e) { /* ignore */ }
+  }
+
+  // Each material gets its own voice: wood knocks warmly, stone cracks dryly,
+  // ore rings metallic, crystal pings glassy. The pentatonic walk still picks
+  // the pitch (so the melody keeps evolving) and tool level thickens the tone.
   function gatherSound(res, amount) {
     if (!curScale) { curScale = pickScale(); noteStep = 0; }
     var lvl = res === 'wood' ? state.tools.axe : state.tools.pickaxe;
@@ -269,24 +323,37 @@
     noteStep = (noteStep + step + curScale.length) % curScale.length;
     if (old + step >= curScale.length) phraseEnd(); // phrase wrapped -> re-key
     var f = curScale[noteStep];
-    // occasional register surprise (octave hop) keeps it lively
-    var reg = Math.random();
-    if (reg < 0.1) f *= 2;
-    else if (reg < 0.16) f *= 0.5;
-    var vol = (0.09 + Math.min(0.04, amount * 0.0012)) * (0.85 + Math.random() * 0.3);
-    if (lvl >= 5) {
-      var harm = Math.random() < 0.6 ? 1.5 : (Math.random() < 0.5 ? 2 : 1.333); // fifth/oct/fourth
-      note(f, 0.17, 'triangle', vol, harm);
-      if (Math.random() < 0.5) { // occasional high sparkle
-        var s = f < 300 ? 4 : f < 600 ? 2 : 1.5;
-        note(f * s, 0.2, 'triangle', vol * 0.32, 0, 0.015);
-      }
-    } else if (lvl >= 3) {
-      var harm2 = Math.random() < 0.7 ? 1.5 : (Math.random() < 0.6 ? 2 : 1.333);
-      note(f, 0.14, 'triangle', vol, harm2);
-    } else {
-      note(f, 0.09, 'square', vol);
-      if (Math.random() < 0.12) note(f * 2, 0.08, 'square', vol * 0.5, 0, 0.012);
+    var vol = (0.085 + Math.min(0.04, amount * 0.0012)) * (0.85 + Math.random() * 0.3);
+    var h = Math.random(); // humanize
+
+    if (res === 'wood') {
+      // warm wooden knock: a round low body plus a soft, muffled thud
+      var wf = f * 0.5 * (1 + (h - 0.5) * 0.02);
+      note(wf, 0.15, 'sine', vol, 0, 0);
+      impact(280 + h * 90, 0.12, vol * 0.5, 1.1, 0);
+      if (lvl >= 4 && h < 0.5) note(wf * 1.5, 0.16, 'triangle', vol * 0.5, 0, 0.01);
+    } else if (res === 'stone') {
+      // dry rocky crack: a gritty noise hit with a dull low clack under it
+      impact(1300 + h * 400, 0.07, vol * 0.85, 1.7, 0);
+      impact(450 + h * 120, 0.11, vol * 0.45, 1.0, 0.004);
+      note(f, 0.09, 'triangle', vol * 0.6, 0, 0);
+      if (lvl >= 4 && h < 0.4) impact(2600, 0.04, vol * 0.3, 2.4, 0.01);
+    } else if (res === 'ore') {
+      // bright metallic clang: inharmonic partials that ring, then fade
+      var mf = 460 + h * 140;
+      note(mf, 0.34, 'square', vol * 0.7, 0, 0, 1.4);
+      note(mf * 2.37, 0.28, 'square', vol * 0.42, 0, 0.004, 1.8);
+      note(mf * 3.11, 0.22, 'triangle', vol * 0.3, 0, 0.007, 2.2);
+      impact(3200 + h * 600, 0.045, vol * 0.45, 2.6, 0);
+      if (lvl >= 4 && h < 0.5) note(mf * 4.5, 0.18, 'triangle', vol * 0.2, 0, 0.012, 2.4);
+    } else { // crystal
+      // glassy bell: a high ping with an octave shimmer and a long tail
+      var cf = (f < 520 ? f * 2 : f) * (1 + (h - 0.5) * 0.01);
+      note(cf, 0.5, 'sine', vol, 0, 0, 2);
+      note(cf * 2.01, 0.42, 'sine', vol * 0.5, 0, 0.008, 2.4);
+      note(cf * 3.0, 0.3, 'sine', vol * 0.24, 0, 0.016, 2.8);
+      impact(6500 + h * 800, 0.035, vol * 0.35, 3, 0);
+      if (lvl >= 4 && h < 0.5) note(cf * 4, 0.5, 'sine', vol * 0.18, 0, 0.03, 3);
     }
   }
 
@@ -367,6 +434,18 @@
     droneOscs[0].frequency.setTargetAtTime(root, t, 0.9);
     droneOscs[1].frequency.setTargetAtTime(root * (1.45 + Math.random() * 0.1), t, 0.9);
   }
+
+  // Unlock/resume audio from ANY real gesture — not only the controls that
+  // happen to call initAudio(). This is the fix for "no sound until I open a
+  // menu": the very first tap/drag/key now resumes the context immediately.
+  // Capture phase so it runs before handlers that preventDefault().
+  ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'touchend', 'click'].forEach(function (ev) {
+    window.addEventListener(ev, initAudio, { capture: true, passive: true });
+  });
+  // Browsers suspend the context when the tab hides or loses focus; nudge it
+  // back to running when we return (the next sound would otherwise be silent).
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) initAudio(); });
+  window.addEventListener('focus', initAudio);
 
   /* ------------------------------------------------------------ input */
 
@@ -1875,6 +1954,7 @@
     setPlayer: function (x, y) { state.player.x = x; state.player.y = y; lastTileX = -1; lastTileY = -1; },
     addRes: function (r, n) { state.inv[r] = (state.inv[r] || 0) + n; updateHud(); },
     flyers: function () { return flyers; },
+    audioState: function () { return audioCtx ? audioCtx.state : 'none'; },
     zoom: function () { return zoom; },
     tilePx: function () { return tilePx; },
     setZoom: function (z) { setZoom(z); },

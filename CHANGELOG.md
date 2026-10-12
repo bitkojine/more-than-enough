@@ -6,6 +6,29 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.13.0] - 2026-10-12
+
+### Fixed
+- **Sound now starts on the first gesture.** Audio was only unlocked by the
+  handlers that happened to call `initAudio()`, so a first drag on the world
+  could leave the `AudioContext` suspended until a menu was opened (the menu's
+  click resumed it). Every real gesture (pointer/touch/mouse/key/click, capture
+  phase) now unlocks and resumes it, a one-frame silent buffer satisfies mobile
+  Safari's unlock rule, and the context is nudged back to `running` when the tab
+  regains focus/visibility.
+
+### Added
+- **Each material has its own gathering voice.** Wood knocks warmly (round body
+  + muffled thud), stone cracks dryly (gritty noise + low clack), ore rings
+  metallic (inharmonic partials), and crystal pings glassy (high octave shimmer
+  with a long tail). The pentatonic pitch walk and tool-level thickening remain,
+  so it stays melodic and progresses. Adds a filtered-noise `impact()`
+  transient and an optional brightness control on `note()`.
+
+### Testing
+- Browser e2e +1 check (82 total): the audio context is created by the early
+  gestures.
+
 ## [0.12.0] - 2026-10-12
 
 ### Added
