@@ -82,6 +82,7 @@
   var lastCtxIcon = null, lastCtxLabel = null, lastCtxReady = null;
 
   var GATHER_CD = 0.25;
+  var TRAIL_SWEEP_RADIUS = 0.6; // resource tiles within this distance of the stroke are swept
 
   // Effect budgets. Gathered resources zip to the player as "flyers"; without a
   // lifetime a fast flyer can overshoot and orbit the player forever, so sprites
@@ -638,7 +639,7 @@
           var len2 = sx * sx + sy * sy;
           var t = len2 ? Math.max(0, Math.min(1, ((cx - a.x) * sx + (cy - a.y) * sy) / len2)) : 0;
           var ox = cx - (a.x + t * sx), oy = cy - (a.y + t * sy);
-          if (ox * ox + oy * oy <= 0.6 * 0.6) {
+          if (ox * ox + oy * oy <= TRAIL_SWEEP_RADIUS * TRAIL_SWEEP_RADIUS) {
             targets.push({ x: x, y: y, res: Core.TILE_RESOURCE[type] });
             break;
           }

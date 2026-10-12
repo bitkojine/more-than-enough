@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1] - 2026-10-12
+
+### Changed
+- **Trail sweep radius named.** Replaced the inline hit-radius value with a
+  descriptive constant. No behavior change.
+
+
 ## [0.16.0] - 2026-10-12
 
 ### Added
