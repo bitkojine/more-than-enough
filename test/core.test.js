@@ -365,6 +365,40 @@ eq(f2.unlocks.logistics, true, 'Memory perk carries Logistics');
 eq(f2.tools.axe, 2, 'Heirloom perk carries Axe II');
 eq(C.exploreRadius(f2), C.EXPLORE_RADIUS + 2, 'Cartographer widens fog');
 
+/* ------------------------------------------------ progression map */
+section('Progression map (families, node states, progress)');
+var pm = C.createState(12345);
+eq(C.PATH_FAMILIES.length, 5, 'five families in the registry');
+var toolNodes = C.pathNodes(pm, 'tools');
+eq(toolNodes.length, 4, 'tools family has four nodes');
+eq(toolNodes[0].state, 'saving', 'a fresh, unaffordable tool reads saving');
+pm.inv.wood = 100;
+eq(C.pathNode(pm, 'tools', 'axe').state, 'ready', 'affordable tool upgrade reads ready');
+eq(C.pathNode(pm, 'tools', 'axe').canBuy, true, 'affordable tool flags canBuy');
+eq(C.pathProgress(pm, 'tools').total, 4, 'four tool nodes tracked');
+eq(C.pathProgress(pm, 'tools').canBuy, true, 'tools family flags a ready node');
+pm.tools.axe = C.TOOLS.axe.levels.length;
+eq(C.pathNode(pm, 'tools', 'axe').state, 'owned', 'a maxed tool reads owned');
+eq(C.pathProgress(pm, 'tools').owned, 1, 'one tool now owned');
+eq(C.pathNodes(pm, 'refining').length, 4, 'refining tracks four resource chains');
+eq(C.pathNode(pm, 'refining', 'wood').max, C.RES_UPGRADES.wood.length, 'refinery node max = chain length');
+pm.resUp.wood = 2;
+eq(C.pathNode(pm, 'refining', 'wood').state, 'partial', 'part-progress, unaffordable refinery reads partial');
+eq(C.pathNode(pm, 'unlocks', 'logistics').state, 'saving', 'locked, unaffordable unlock reads saving');
+pm.unlocks.logistics = true;
+eq(C.pathNode(pm, 'unlocks', 'logistics').state, 'owned', 'owned unlock reads owned');
+var abNode = C.pathNode(pm, 'abundance', 'abundance');
+eq(abNode.max, Infinity, 'the Abundance Engine is repeatable');
+eq(abNode.state, 'saving', 'unaffordable abundance reads saving');
+var pkNodes = C.pathNodes(pm, 'perks');
+eq(pkNodes.length, 5, 'perks family has five nodes');
+eq(pkNodes[0].max, Infinity, 'Legacy is repeatable (Infinity max)');
+pm.insight = 1;
+eq(C.pathNode(pm, 'perks', 'legacy').state, 'ready', 'affordable perk reads ready');
+C.buyPerk(pm, 'legacy');
+eq(C.pathNode(pm, 'perks', 'legacy').state, 'partial', 'bought-but-unaffordable repeatable perk reads partial');
+eq(C.pathProgress(pm, 'perks').total, 5, 'five perks tracked');
+
 /* ------------------------------------------------------ save wipe */
 section('Save wipe (old formats discarded)');
 eq(C.deserialize(JSON.stringify({ v: 1, seed: 4242 })), null, 'v1 save is discarded');

@@ -39,10 +39,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                ui = component "HUD, Sheets and Goals" "Resource chips, goal banner + compass hint arrow, upgrade/build/beyond tabs, action button, toasts. checkGoals() advances the goal index with a fanfare flash; updateHud refreshes DOM chips." "JavaScript" {
+                ui = component "HUD, Sheets and Goals" "Resource chips, goal banner + compass hint arrow, upgrade/build/beyond tabs, action button, toasts. The Upgrades tab is a Progression map: PATH_FAMILIES render as family rails (dots + counts) that expand to the buy rows via pathProgress, and the Beyond tab is always visible (a locked preview until Embark is reachable). checkGoals() advances the goal index with a fanfare flash; updateHud refreshes DOM chips." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "game.js: updateHud, renderSheet, checkGoals, updateHint"
+                        "ref" "game.js: updateHud, renderSheet, renderProgression, renderBeyond, checkGoals, updateHint"
                     }
                 }
 
@@ -110,10 +110,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                tech = component "Tools, Upgrades and Unlocks" "TOOLS level table (axe/pickaxe/boots/overclock), UNLOCKS (logistics, blueprints, abundance engine), buyUpgrade/upgradeInfo, canAfford/pay/costText. overclockMult multiplies ALL extractor production." "JavaScript" {
+                tech = component "Tools, Upgrades and Unlocks" "TOOLS level table (axe/pickaxe/boots/overclock), UNLOCKS (logistics, blueprints, abundance engine), buyUpgrade/upgradeInfo, canAfford/pay/costText. The Progression map (PATH_FAMILIES + pathNode/pathNodes/pathProgress) is a pure, DOM-free lens over these. overclockMult multiplies ALL extractor production." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "core.js: TOOLS, UNLOCKS, buyUpgrade, overclockMult, moveMult"
+                        "ref" "core.js: TOOLS, UNLOCKS, PATH_FAMILIES, pathProgress, buyUpgrade, overclockMult, moveMult"
                     }
                 }
 
@@ -144,14 +144,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools = softwareSystem "Development Tooling" "Test harnesses that verify the game locally and in CI. Both suites are plain Node scripts with zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 151 checks covering infinite world gen, economy, logistics range, save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
+            coreTests = container "Core Test Suite" "Node checks (test/core.test.js) driving the Simulation Core directly: 172 checks covering infinite world gen, economy, logistics range, progression-map resolvers (family registry + node states), save/load/wipe, day/night, and full bot playthroughs (runBot/runFullBot with real pathfinding + gathering)." "Node.js 18+" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/core.test.js"
                 }
             }
 
-            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 78 checks covering flyer visuals, fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
+            e2e = container "Browser E2E Harness" "Spawns a local static server + headless Chrome and drives the REAL game through the DevTools Protocol (touch input, DOM clicks, screenshots): 81 checks covering flyer visuals, the Progression map (family headers, always-visible Beyond + its locked preview), fog reveal in the endless world, persistence across reload, the day/night flashlight, range-limited logistics, pinch-to-zoom (in/out, clamps, far-zoom LOD), and max-zoom robustness (a highlighted tile can never crash the render loop)." "Node.js + Headless Chrome + CDP" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/browser.e2e.js"

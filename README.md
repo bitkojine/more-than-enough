@@ -41,12 +41,15 @@ on the Pages site, saves live in that browser for that origin).
 - **BUILD** places extractors on matching deposits (Lumber Camp on forest,
   Quarry on stone, Mine on ore, Resonator on crystal) and, once you craft the
   blueprints, converter buildings on any land tile.
-- **UPGRADE** spends resources on better tools and boots, Overclock, the
-  repeatable **Abundance Engine**, per-resource **refinery chains**
-  (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks including the
-  converter blueprints.
-- The **Beyond** tab (once you're near your first embark) holds the prestige
-  loop: spend **Insight** on perks and **Embark** on a New World.
+- **UPGRADE** opens the **Progression map**: families (Tools, Refineries,
+  Abundance Engine, Unlocks & Blueprints) shown as a rail of node dots that
+  expands to the buy rows. Spend resources there on better tools and boots,
+  Overclock, the repeatable **Abundance Engine**, per-resource **refinery
+  chains** (Silviculture/Masonry/Metallurgy/Crystallurgy), and unlocks
+  including the converter blueprints.
+- The **Beyond** tab always shows the prestige loop: until it's within reach
+  it's a locked preview (perks sealed), then it opens up — spend **Insight** on
+  perks and **Embark** on a New World.
 - Swipe the sheet's **grab handle down** to close it.
 - The world follows a **day/night cycle** (240s). By day it's bright and calm;
   at night your **flashlight turns on automatically**, keeping a pool of light
@@ -62,7 +65,8 @@ on the Pages site, saves live in that browser for that origin).
   and it generates ahead of you, differently every world.
 - Past Abundance there's a whole late game: Blueprint-gated converter
   buildings (any land tile), per-resource refinery chains, repeatable
-  Abundance Engine levels, and the **Beyond** tab — spend Insight on perks
+  Abundance Engine levels, and the **Beyond** tab — always visible, locked
+  until your first Embark is within reach — where you spend Insight on perks
   and **Embark** on a New World that keeps your lifetime score.
 
 ## Versioning
@@ -95,6 +99,7 @@ automation handles what you've mastered and exploration reveals what you haven't
 - `core.js` — endless chunked world generation, economy, simulation, save/load (no DOM)
 - `game.js` — rendering, input (touch + keyboard), UI, persistence
 - `index.html`, `style.css` — shell and mobile-first styling
+- `docs/progression-map.md` — design spec for the Progression map
 - `test/core.test.js` — Node simulation tests
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)

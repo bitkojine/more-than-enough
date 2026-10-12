@@ -739,6 +739,98 @@
     return { ok: true, key: key, level: perkOwned(s, key) };
   }
 
+  /* ------------------------------------------------------- progression map */
+  // A declarative view of everything there is to unlock, for the Progression
+  // screen. Purely derived from existing state, so it never changes the save
+  // format: the map is a lens over data the game already keeps.
+  var PATH_FAMILIES = [
+    { id: 'tools',     layer: 'world',  name: 'Tools',                icon: '\uD83E\uDDF0' },
+    { id: 'refining',  layer: 'world',  name: 'Refineries',           icon: '\u26CF\uFE0F' },
+    { id: 'abundance', layer: 'world',  name: 'Abundance Engine',     icon: '\u2728' },
+    { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', icon: '\uD83D\uDCDC' },
+    { id: 'perks',     layer: 'legacy', name: 'Perks',                icon: '\uD83D\uDD70\uFE0F' }
+  ];
+
+  // owned = fully bought; ready = a next level exists and is affordable now;
+  // partial = some progress but the next level is not affordable yet;
+  // saving = nothing bought yet and the first level is not affordable.
+  function nodeStateOf(level, max, canBuy) {
+    if (level >= max) return 'owned';
+    if (canBuy) return 'ready';
+    return level > 0 ? 'partial' : 'saving';
+  }
+
+  function mkNode(key, kind, name, icon, level, max, canBuy, cost, state) {
+    return { key: key, kind: kind, name: name, icon: icon, level: level, max: max,
+             canBuy: !!canBuy, cost: cost || null, state: state };
+  }
+
+  // One node per system: a tool, a resource's refinery chain, the Abundance
+  // Engine, an unlock/blueprint, or a perk. `level`/`max` describe the current
+  // and final step (max may be Infinity for repeatables).
+  function pathNode(s, familyId, ref) {
+    if (familyId === 'tools') {
+      var t = TOOLS[ref], lv = s.tools[ref], max = t.levels.length;
+      var cost = lv < max ? t.levels[lv].cost : null;
+      var buy = !!cost && canAfford(s.inv, cost);
+      return mkNode(ref, 'tool', t.name, t.icon, lv, max, buy, cost, nodeStateOf(lv - 1, max - 1, buy));
+    }
+    if (familyId === 'refining') {
+      var chain = RES_UPGRADES[ref], lvl = resUpgradeLevel(s, ref), mx = chain.length;
+      var c2 = lvl < mx ? chain[lvl].cost : null;
+      var b2 = !!c2 && canAfford(s.inv, c2);
+      var nm = RES_UPGRADE_NAMES[ref];
+      return mkNode(ref, 'resup', nm.name, nm.icon, lvl, mx, b2, c2, nodeStateOf(lvl, mx, b2));
+    }
+    if (familyId === 'abundance') {
+      var alv = s.abundanceLv || 0, ac = abundanceCost(s), ab = canAfford(s.inv, ac);
+      return mkNode('abundance', 'abundance', UNLOCKS.abundance.name, UNLOCKS.abundance.icon,
+        alv, Infinity, ab, ac, alv > 0 && !ab ? 'partial' : (ab ? 'ready' : 'saving'));
+    }
+    if (familyId === 'unlocks') {
+      var owned = !!s.unlocks[ref], uc = UNLOCKS[ref].cost, ub = !owned && canAfford(s.inv, uc);
+      return mkNode(ref, 'unlock', UNLOCKS[ref].name, UNLOCKS[ref].icon, owned ? 1 : 0, 1, ub, uc,
+        nodeStateOf(owned ? 1 : 0, 1, ub));
+    }
+    if (familyId === 'perks') {
+      var d = PERKS[ref], lvp = perkOwned(s, ref), maxp = d.repeat ? Infinity : 1;
+      var pc = perkCost(s, ref);
+      var pb = !(!d.repeat && lvp) && (s.insight || 0) >= pc;
+      return mkNode(ref, 'perk', d.name, d.icon, lvp, maxp, pb, pc,
+        (!d.repeat && lvp) ? 'owned' : (pb ? 'ready' : (lvp > 0 ? 'partial' : 'saving')));
+    }
+    return null;
+  }
+
+  function pathNodes(s, familyId) {
+    var out = [], i;
+    if (familyId === 'tools') {
+      var tids = ['axe', 'pickaxe', 'boots', 'overclock'];
+      for (i = 0; i < tids.length; i++) out.push(pathNode(s, familyId, tids[i]));
+    } else if (familyId === 'refining') {
+      for (i = 0; i < RESOURCES.length; i++) out.push(pathNode(s, familyId, RESOURCES[i]));
+    } else if (familyId === 'abundance') {
+      out.push(pathNode(s, familyId, 'abundance'));
+    } else if (familyId === 'unlocks') {
+      var uids = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
+      for (i = 0; i < uids.length; i++) out.push(pathNode(s, familyId, uids[i]));
+    } else if (familyId === 'perks') {
+      for (var k in PERKS) if (PERKS.hasOwnProperty(k)) out.push(pathNode(s, familyId, k));
+    }
+    return out;
+  }
+
+  function pathProgress(s, familyId) {
+    var nodes = pathNodes(s, familyId);
+    var owned = 0, canBuy = false, allOwned = true;
+    for (var i = 0; i < nodes.length; i++) {
+      if (nodes[i].state === 'owned') owned++;
+      else allOwned = false;
+      if (nodes[i].canBuy) canBuy = true;
+    }
+    return { owned: owned, total: nodes.length, canBuy: canBuy, allOwned: allOwned, nodes: nodes };
+  }
+
   /* --------------------------------------------------------------- step */
 
   var REGROW_INTERVAL = 0.5;
@@ -981,6 +1073,7 @@
     resProdMult: resProdMult, abundanceTrickle: abundanceTrickle,
     sumStats: sumStats, embarkGain: embarkGain, canEmbark: canEmbark, embark: embark,
     perkOwned: perkOwned, perkCost: perkCost, buyPerk: buyPerk,
+    PATH_FAMILIES: PATH_FAMILIES, pathNode: pathNode, pathNodes: pathNodes, pathProgress: pathProgress,
     step: step, move: move,
     serialize: serialize, deserialize: deserialize,
     bytesToB64: bytesToB64, b64ToBytes: b64ToBytes

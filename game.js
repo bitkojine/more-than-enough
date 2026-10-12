@@ -30,7 +30,6 @@
   var elMute = document.getElementById('btnMute');
   var elToast = document.getElementById('toast');
   var elSheetGrab = document.getElementById('sheetGrab');
-  var elTabBeyond = document.getElementById('tabBeyond');
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab'));
 
   /* ----------------------------------------------------------- state */
@@ -55,6 +54,7 @@
   var hasMoved = false;
   var sheetOpen = false;
   var currentTab = 'upgrades';
+  var expandedFamilies = { tools: true }; // Progression map: which families show their buy rows
   var saveAcc = 0, goalAcc = 0, hudAcc = 0, hintAcc = 0;
   var goalFlashT = 0;
   var hintDir = null;
@@ -711,8 +711,10 @@
     return rates;
   }
 
-  // The Beyond tab is revealed once the player is close to (or past) their
-  // first embark, so brand-new players aren't overwhelmed.
+  // The Beyond tab is always visible now; `beyondUnlocked()` reports whether
+  // the prestige loop is actually reachable yet. While it is false the tab
+  // renders a locked preview instead of hiding, so new players can see the
+  // horizon without being dropped into a wall of controls.
   function beyondUnlocked() {
     return (state.insight || 0) > 0 || (state.prestiges || 0) > 0 || Core.canEmbark(state);
   }
@@ -733,8 +735,7 @@
     var bu = beyondUnlocked();
     if (bu !== lastBeyondUnlocked) {
       lastBeyondUnlocked = bu;
-      if (elTabBeyond) elTabBeyond.hidden = !bu;
-      if (!bu && currentTab === 'beyond') setTab('upgrades');
+      if (currentTab === 'beyond') renderSheet(); // reveal/lock the preview live
     }
   }
 
@@ -800,39 +801,77 @@
   }
 
   function renderSheet() {
-    if (currentTab === 'upgrades') renderUpgrades();
+    if (currentTab === 'upgrades') renderProgression();
     else if (currentTab === 'build') renderBuild();
     else renderBeyond();
   }
 
-  function renderUpgrades() {
-    var html = '<div class="section">Tools</div>';
-    var toolIds = ['axe', 'pickaxe', 'boots', 'overclock'];
-    for (var i = 0; i < toolIds.length; i++) {
-      var id = toolIds[i];
-      var def = TOOLS[id];
-      var info = Core.upgradeInfo(state, id);
-      var lv = state.tools[id];
-      var described;
-      if (info.maxed) {
-        described = 'Level ' + lv + ' / ' + info.max + ' \u2014 MAX';
-      } else {
-        var nx = info.next;
-        var effect = '';
-        if (nx.yield !== undefined) effect = 'yield ' + def.levels[lv - 1].yield + ' \u2192 <span class="ok">' + nx.yield + '</span>';
-        else if (nx.mult !== undefined) {
-          var cur = def.levels[lv - 1].mult;
-          effect = (id === 'boots' ? 'speed ' : 'output ') + '&times;' + cur + ' \u2192 <span class="ok">&times;' + nx.mult + '</span>';
-        }
-        described = 'Level ' + lv + ' / ' + info.max + ' &middot; ' + effect + '<br><span class="' + (Core.canAfford(state.inv, info.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(info.cost) + '</span>';
-      }
-      var btn = info.maxed
-        ? '<button class="buy max" disabled>MAX</button>'
-        : '<button class="buy" data-kind="tool" data-id="' + id + '"' + (Core.canAfford(state.inv, info.cost) ? '' : ' disabled') + '>Craft</button>';
-      html += row(def.icon, def.name, described, btn);
-    }
+  /* ---- Progression map: families shown as rails, expandable to buy rows ---- */
 
-    // Abundance Engine — repeatable levels: +1/s passive, refineries ×1.5 each.
+  function railDots(nodes) {
+    var h = '<span class="rail">';
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      h += '<span class="node ' + n.state + '" aria-hidden="true" title="' + n.name + '"></span>';
+    }
+    return h + '</span>';
+  }
+
+  function familyBlock(fam) {
+    var p = Core.pathProgress(state, fam.id);
+    var open = !!expandedFamilies[fam.id];
+    var countText = (fam.id === 'abundance') ? ('Lv ' + p.nodes[0].level) : (p.owned + '/' + p.total);
+    var head = '<button class="railHead' + (p.canBuy ? ' ready' : '') + '" type="button"'
+      + ' data-family="' + fam.id + '" aria-expanded="' + (open ? 'true' : 'false') + '">'
+      + '<span class="fh-ic">' + fam.icon + '</span>'
+      + '<span class="fh-main"><span class="fh-nm">' + fam.name + '</span>' + railDots(p.nodes) + '</span>'
+      + '<span class="fh-count">' + countText + '</span>'
+      + '<span class="chev" aria-hidden="true">' + (open ? '\u25BE' : '\u25B8') + '</span>'
+      + '</button>';
+    if (!open) return head;
+    return head + '<div class="familyBody">' + familyRows(fam.id) + '</div>';
+  }
+
+  function familyRows(famId) {
+    var html = '', i;
+    if (famId === 'tools') {
+      var tids = ['axe', 'pickaxe', 'boots', 'overclock'];
+      for (i = 0; i < tids.length; i++) html += toolRow(tids[i]);
+    } else if (famId === 'refining') {
+      for (i = 0; i < RESOURCES.length; i++) html += resupRow(RESOURCES[i]);
+    } else if (famId === 'abundance') {
+      html += abundanceRow();
+    } else if (famId === 'unlocks') {
+      var uids = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
+      for (i = 0; i < uids.length; i++) html += unlockRow(uids[i]);
+    }
+    return html;
+  }
+
+  function toolRow(id) {
+    var def = TOOLS[id];
+    var info = Core.upgradeInfo(state, id);
+    var lv = state.tools[id];
+    var described;
+    if (info.maxed) {
+      described = 'Level ' + lv + ' / ' + info.max + ' \u2014 MAX';
+    } else {
+      var nx = info.next;
+      var effect = '';
+      if (nx.yield !== undefined) effect = 'yield ' + def.levels[lv - 1].yield + ' \u2192 <span class="ok">' + nx.yield + '</span>';
+      else if (nx.mult !== undefined) {
+        var cur = def.levels[lv - 1].mult;
+        effect = (id === 'boots' ? 'speed ' : 'output ') + '&times;' + cur + ' \u2192 <span class="ok">&times;' + nx.mult + '</span>';
+      }
+      described = 'Level ' + lv + ' / ' + info.max + ' &middot; ' + effect + '<br><span class="' + (Core.canAfford(state.inv, info.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(info.cost) + '</span>';
+    }
+    var btn = info.maxed
+      ? '<button class="buy max" disabled>MAX</button>'
+      : '<button class="buy" data-kind="tool" data-id="' + id + '"' + (Core.canAfford(state.inv, info.cost) ? '' : ' disabled') + '>Craft</button>';
+    return row(def.icon, def.name, described, btn);
+  }
+
+  function abundanceRow() {
     var ablv = state.abundanceLv || 0;
     var acost = Core.abundanceCost(state);
     var aafford = Core.canAfford(state.inv, acost);
@@ -840,43 +879,56 @@
     if (ablv > 0) adesc += ' &middot; extractors &times;' + fmtMult(Core.abundanceMult(state));
     adesc += '<br><span class="' + (aafford ? 'ok' : 'bad') + '">Cost: ' + costHtml(acost) + '</span>';
     var abtn = '<button class="buy" data-kind="unlock" data-id="abundance"' + (aafford ? '' : ' disabled') + '>' + (ablv === 0 ? 'Build' : 'Level ' + (ablv + 1)) + '</button>';
-    html += '<div class="section">Abundance Engine</div>';
-    html += row(UNLOCKS.abundance.icon, UNLOCKS.abundance.name, adesc, abtn);
+    return row(UNLOCKS.abundance.icon, UNLOCKS.abundance.name, adesc, abtn);
+  }
 
-    // Refinery chains — each level multiplies ALL production of one resource.
-    html += '<div class="section">Refinery Chains</div>';
-    for (var ri = 0; ri < RESOURCES.length; ri++) {
-      var rr = RESOURCES[ri];
-      var names = Core.RES_UPGRADE_NAMES[rr];
-      var rinfo = Core.resUpgradeInfo(state, rr);
-      var rsub;
-      if (rinfo.maxed) {
-        rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(Core.resUpgradeMul(state, rr)) + ' &mdash; MAX';
-      } else {
-        var curM = Core.resUpgradeMul(state, rr);
-        rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(curM) + ' \u2192 <span class="ok">&times;' + fmtMult(curM * rinfo.next.mult) + '</span>';
-        rsub += '<br><span class="' + (Core.canAfford(state.inv, rinfo.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(rinfo.cost) + '</span>';
-      }
-      var rbtn = rinfo.maxed
-        ? '<button class="buy max" disabled>MAX</button>'
-        : '<button class="buy" data-kind="resup" data-id="' + rr + '"' + (Core.canAfford(state.inv, rinfo.cost) ? '' : ' disabled') + '>Refine</button>';
-      html += row(names.icon, names.name + ' <span class="tag">' + RESOURCE_ICON[rr] + '</span>', rsub, rbtn);
+  function resupRow(rr) {
+    var names = Core.RES_UPGRADE_NAMES[rr];
+    var rinfo = Core.resUpgradeInfo(state, rr);
+    var rsub;
+    if (rinfo.maxed) {
+      rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(Core.resUpgradeMul(state, rr)) + ' &mdash; MAX';
+    } else {
+      var curM = Core.resUpgradeMul(state, rr);
+      rsub = 'Level ' + rinfo.level + ' / ' + rinfo.max + ' &middot; &times;' + fmtMult(curM) + ' \u2192 <span class="ok">&times;' + fmtMult(curM * rinfo.next.mult) + '</span>';
+      rsub += '<br><span class="' + (Core.canAfford(state.inv, rinfo.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(rinfo.cost) + '</span>';
     }
+    var rbtn = rinfo.maxed
+      ? '<button class="buy max" disabled>MAX</button>'
+      : '<button class="buy" data-kind="resup" data-id="' + rr + '"' + (Core.canAfford(state.inv, rinfo.cost) ? '' : ' disabled') + '>Refine</button>';
+    return row(names.icon, names.name + ' <span class="tag">' + RESOURCE_ICON[rr] + '</span>', rsub, rbtn);
+  }
 
-    html += '<div class="section">Unlocks &amp; Blueprints</div>';
-    var unlockIds = ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'];
-    for (var j = 0; j < unlockIds.length; j++) {
-      var uid = unlockIds[j];
-      var ud = UNLOCKS[uid];
-      var uinfo = Core.upgradeInfo(state, uid);
-      var sub;
-      if (uinfo.unlocked) sub = '<span class="ok">Active</span> &middot; ' + ud.desc;
-      else sub = ud.desc + '<br><span class="' + (Core.canAfford(state.inv, ud.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(ud.cost) + '</span>';
-      var ubtn = uinfo.unlocked
-        ? '<button class="buy max" disabled>OWNED</button>'
-        : '<button class="buy" data-kind="unlock" data-id="' + uid + '"' + (Core.canAfford(state.inv, ud.cost) ? '' : ' disabled') + '>Unlock</button>';
-      html += row(ud.icon, ud.name, sub, ubtn);
+  function unlockRow(uid) {
+    var ud = UNLOCKS[uid];
+    var uinfo = Core.upgradeInfo(state, uid);
+    var sub;
+    if (uinfo.unlocked) sub = '<span class="ok">Active</span> &middot; ' + ud.desc;
+    else sub = ud.desc + '<br><span class="' + (Core.canAfford(state.inv, ud.cost) ? 'ok' : 'bad') + '">Cost: ' + costHtml(ud.cost) + '</span>';
+    var ubtn = uinfo.unlocked
+      ? '<button class="buy max" disabled>OWNED</button>'
+      : '<button class="buy" data-kind="unlock" data-id="' + uid + '"' + (Core.canAfford(state.inv, ud.cost) ? '' : ' disabled') + '>Unlock</button>';
+    return row(ud.icon, ud.name, sub, ubtn);
+  }
+
+  function legacyRow() {
+    var p = Core.pathProgress(state, 'perks');
+    return '<button class="railHead legacy" type="button" data-family="legacy">'
+      + '<span class="fh-ic">\uD83D\uDD70\uFE0F</span>'
+      + '<span class="fh-main"><span class="fh-nm">Perks &amp; Insight</span>' + railDots(p.nodes) + '</span>'
+      + '<span class="fh-count">' + p.owned + '/' + p.total + '</span>'
+      + '<span class="chev" aria-hidden="true">\u25B8</span>'
+      + '</button>';
+  }
+
+  function renderProgression() {
+    var html = '<div class="section">This World</div>';
+    for (var i = 0; i < Core.PATH_FAMILIES.length; i++) {
+      var fam = Core.PATH_FAMILIES[i];
+      if (fam.layer === 'world') html += familyBlock(fam);
     }
+    html += '<div class="section">Legacy &middot; kept across Embark</div>';
+    html += legacyRow();
     elSheetBody.innerHTML = html;
   }
 
@@ -929,9 +981,29 @@
     elSheetBody.innerHTML = html;
   }
 
+  // Locked Beyond: preview the prestige loop — the Embark goal plus the five
+  // perks, sealed — so the horizon is visible before the loop is reachable.
+  function renderBeyondLocked(lifetime) {
+    var html = '<div class="section">Legacy</div>';
+    html += row('\uD83C\uDF0D', 'A New World Awaits',
+      'Keep gathering \u2014 Embark unlocks after your first big haul. Lifetime gathered: <span class="ok">' + fmt(lifetime) + '</span>.',
+      '<button class="buy max" disabled>Sealed</button>');
+    html += '<div class="section">Perks</div>';
+    var keys = ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'];
+    for (var i = 0; i < keys.length; i++) {
+      var d = Core.PERKS[keys[i]];
+      html += row(d.icon, d.name,
+        d.desc + '<br><span class="bad">Unlocks after your first Embark</span>',
+        '<button class="buy max" disabled>Locked</button>');
+    }
+    elSheetBody.innerHTML = html;
+  }
+
   function renderBeyond() {
     var gain = Core.embarkGain(state);
     var lifetime = Math.floor((state.totalEver || 0) + Core.sumStats(state));
+
+    if (!beyondUnlocked()) { renderBeyondLocked(lifetime); return; }
 
     var html = '<div class="section">Insight</div>';
     html += row('\u2728', fmt(state.insight || 0) + ' Insight',
@@ -1036,6 +1108,17 @@
     }
     onWorldChanged();
     checkGoals();
+    renderSheet();
+  });
+
+  // Progression map: tapping a family header toggles its buy rows; the Legacy
+  // row jumps across to the Beyond tab.
+  elSheetBody.addEventListener('click', function (e) {
+    var head = e.target.closest ? e.target.closest('button[data-family]') : null;
+    if (!head) return;
+    var fam = head.dataset.family;
+    if (fam === 'legacy') { setTab('beyond'); return; }
+    expandedFamilies[fam] = !expandedFamilies[fam];
     renderSheet();
   });
 

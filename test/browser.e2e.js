@@ -330,6 +330,13 @@ async function main() {
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  ok(!(await evalJS('document.getElementById("tabBeyond").hidden')), 'Beyond tab is visible from the start');
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 5, 'Progression map shows five family headers (4 world + legacy)');
+  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+  await sleep(200);
+  ok(await evalJS('document.querySelector("#sheetBody").textContent.indexOf("A New World Awaits") >= 0'), 'Beyond shows a locked preview before the loop is reachable');
+  await evalJS('document.querySelector(".tab[data-tab=upgrades]").click()');
+  await sleep(200);
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
   await sleep(300);
@@ -374,6 +381,8 @@ async function main() {
   await evalJS('MTE_GAME.addRes("wood",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
   await evalJS('document.getElementById("btnUpgrade").click()');
   await sleep(300);
+  await evalJS('(function(){["refining","abundance","unlocks"].forEach(function(f){var b=document.querySelector("#sheetBody button[data-family="+f+"]");if(b)b.click();});})()');
+  await sleep(250);
   var resupRows = await evalJS('document.querySelectorAll("#sheetBody button[data-kind=resup]").length');
   eq(resupRows, 4, 'four refinery-chain rows rendered');
   ok(await evalJS('!!document.querySelector("#sheetBody button[data-id=abundance]")'), 'Abundance Engine row is levelable');
@@ -413,7 +422,7 @@ async function main() {
 
   await evalJS('(function(){var s=MTE_GAME.getState();s.stats.wood=19000;s.stats.stone=1000;})()');
   await sleep(500);
-  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'Beyond tab reveals once embark is within reach');
+  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'Beyond tab stays visible once embark is within reach too');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(250);
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');

@@ -6,6 +6,35 @@ We are pre-1.0.0: **0.x** — the API/save-format may evolve between minor
 versions. Patch bumps (0.4.1) are bug fixes only and never break saves; minor
 bumps may change the save format (0.10.0 discards pre-0.10.0 saves — see below).
 
+## [0.12.0] - 2026-10-12
+
+### Added
+- **Progression map.** The Upgrades tab is now a map of everything there is to
+  unlock, not a flat list. Each family (Tools, Refineries, Abundance Engine,
+  Unlocks & Blueprints, plus a Legacy link) renders a header with a rail of node
+  dots and a count, and expands to the existing buy rows. Tapping a header
+  toggles it; the Legacy row jumps across to the Beyond tab.
+  - New `core.js` API: `PATH_FAMILIES`, `pathNode`, `pathNodes`, `pathProgress`
+    — a pure lens over state the game already keeps, so **no save-format
+    change**. Node states: `owned` / `ready` / `partial` / `saving`.
+- **`docs/progression-map.md`** — the design spec, including the decision log
+  (Embark is the respec; Beyond always visible; the map replaces Upgrades).
+
+### Changed
+- **The Beyond tab is always visible.** It used to stay `hidden` until the
+  prestige loop was within reach; now it shows a **locked preview** — the Embark
+  goal plus the five perks, sealed (name + description, no buy button) — from the
+  first session, so the horizon is legible immediately. It switches to the full
+  Embark/perk view the moment the loop becomes reachable.
+
+### Testing
+- `core.test.js` +21 checks (172 total): family registry, node states
+  (`saving`/`ready`/`partial`/`owned`), repeatable `Infinity` max, and progress
+  counts.
+- Browser e2e +3 checks (81 total): the Beyond tab is visible from boot, the map
+  renders five family headers, and Beyond shows its locked preview before the
+  loop is reachable.
+
 ## [0.11.2] - 2026-10-12
 
 ### Docs

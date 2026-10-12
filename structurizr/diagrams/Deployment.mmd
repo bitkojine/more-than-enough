@@ -29,12 +29,12 @@ graph LR
     subgraph 75 ["Node.js 18+"]
       style 75 fill:#ffffff,stroke:#575757,color:#ffffff
 
-      76["<div style='font-weight: bold'>Core Test Suite</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 18+]</div><div style='font-size: 80%; margin-top:10px'>Node checks<br />(test/core.test.js) driving<br />the Simulation Core directly:<br />151 checks covering infinite<br />world gen, economy, logistics<br />range, save/load/wipe,<br />day/night, and full bot<br />playthroughs<br />(runBot/runFullBot with real<br />pathfinding + gathering).</div>"]
+      76["<div style='font-weight: bold'>Core Test Suite</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js 18+]</div><div style='font-size: 80%; margin-top:10px'>Node checks<br />(test/core.test.js) driving<br />the Simulation Core directly:<br />172 checks covering infinite<br />world gen, economy, logistics<br />range, progression-map<br />resolvers (family registry +<br />node states), save/load/wipe,<br />day/night, and full bot<br />playthroughs<br />(runBot/runFullBot with real<br />pathfinding + gathering).</div>"]
       style 76 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       subgraph 78 ["Headless Chrome"]
         style 78 fill:#ffffff,stroke:#575757,color:#ffffff
 
-        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): 78 checks<br />covering flyer visuals, fog<br />reveal in the endless world,<br />persistence across reload,<br />the day/night flashlight,<br />range-limited logistics,<br />pinch-to-zoom (in/out,<br />clamps, far-zoom LOD), and<br />max-zoom robustness (a<br />highlighted tile can never<br />crash the render loop).</div>"]
+        79["<div style='font-weight: bold'>Browser E2E Harness</div><div style='font-size: 70%; margin-top: 0px'>[Container: Node.js + Headless Chrome + CDP]</div><div style='font-size: 80%; margin-top:10px'>Spawns a local static server<br />+ headless Chrome and drives<br />the REAL game through the<br />DevTools Protocol (touch<br />input, DOM clicks,<br />screenshots): 81 checks<br />covering flyer visuals, the<br />Progression map (family<br />headers, always-visible<br />Beyond + its locked preview),<br />fog reveal in the endless<br />world, persistence across<br />reload, the day/night<br />flashlight, range-limited<br />logistics, pinch-to-zoom<br />(in/out, clamps, far-zoom<br />LOD), and max-zoom robustness<br />(a highlighted tile can never<br />crash the render loop).</div>"]
         style 79 fill:#8a4f2b,stroke:#60371e,color:#ffffff
       end
 
