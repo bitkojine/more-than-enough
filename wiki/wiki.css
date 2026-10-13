@@ -116,6 +116,33 @@ kbd {
 .cards strong { display: block; color: var(--gold); }
 .cards span { color: var(--ink-dim); font-size: 14px; }
 
+/* ---------------------------------------------------------------- ideas */
+
+.note-ideas { border-left-color: var(--gold); }
+.area-blurb { margin-top: 0; color: var(--ink-dim); }
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; padding: 0; list-style: none; }
+.idea {
+  padding: 12px 14px;
+  border: 1px dashed rgba(232, 217, 168, 0.28);
+  border-radius: 12px;
+  background: var(--panel);
+}
+.idea p { margin: 6px 0 0; font-size: 14.5px; }
+.idea .builds { color: var(--ink-dim); font-size: 13px; }
+.idea-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.idea-head strong { color: var(--gold); }
+.size {
+  flex: none;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em;
+  background: rgba(255, 255, 255, 0.06); color: var(--ink-dim);
+}
+.size-small { color: #9fe08a; }
+.size-medium { color: #e8d9a8; }
+.size-large { color: #f0a868; }
+.size-huge { color: #f08a8a; }
+
 /* --------------------------------------------------------------- tables */
 
 .table { overflow-x: auto; margin: 12px 0 20px; border: 1px solid var(--line); border-radius: 12px; }

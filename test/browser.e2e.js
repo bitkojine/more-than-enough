@@ -824,6 +824,9 @@ async function main() {
   eq(await evalJS('[...document.querySelectorAll("article")].filter(function(a){return !a.hidden;}).map(function(a){return a.id;}).join()'), 'mine', 'wiki links open the right article');
   eq(await evalJS('[...document.querySelectorAll("[data-k]")].filter(function(n){return !/^[0-9]/.test(n.textContent);}).length'), 0, 'every figure in the wiki resolves to a number');
   ok(await evalJS('document.querySelector(".version").textContent.indexOf(".") > 0'), 'the wiki states the game version it documents');
+  await evalJS('location.hash = "#ideas"');
+  ok(await waitFor('!document.getElementById("ideas").hidden && document.querySelectorAll("#ideas .idea").length >= 20', 2000), 'the wiki has an Ideas section full of ideas');
+  ok(await evalJS('document.querySelector("#ideas .note-ideas").textContent.indexOf("None of this is in the game") >= 0'), 'the Ideas section says plainly that none of it is in the game');
 
   console.log('\n== Runtime errors ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

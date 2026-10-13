@@ -2,6 +2,11 @@
 
 ## [0.23.0] - 2026-10-13
 
+### Added
+- A wiki **Ideas** page: a sketchbook of where the game could go next (how
+  things look, height and depth, mechanics, economy, and big swings), each
+  with a rough size and what it builds on. Clearly marked as not in the game.
+
 ### Changed
 - The known world is a plateau over the dark: unexplored tiles on every
   layer are empty darkness instead of flat fog or solid-looking rock.

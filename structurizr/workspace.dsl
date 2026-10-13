@@ -82,7 +82,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game." "HTML/CSS/JavaScript modules" {
+            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it." "HTML/CSS/JavaScript modules" {
                 tags "Presentation"
                 properties {
                     "files" "wiki/"

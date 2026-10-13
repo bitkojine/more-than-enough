@@ -3,6 +3,7 @@
 
 import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
+import { renderIdeas } from './ideas.js';
 
 const { T } = Core;
 const icon = (res) => Core.RESOURCE_ICON[res];
@@ -128,6 +129,7 @@ function fill() {
     const v = constant(node.dataset.k);
     node.textContent = node.dataset.f === 'pct' ? pct(v) : num(v);
   }
+  for (const node of document.querySelectorAll('[data-ideas]')) node.innerHTML = renderIdeas();
   document.querySelector('.version').textContent = 'for game v' + VERSION;
 }
 

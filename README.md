@@ -43,6 +43,10 @@ game they ship with.
 prices are fine; sentences that teach belong in the wiki. When you add or
 change a mechanic, update the wiki article that covers it.
 
+The wiki's **Ideas** page (`wiki/ideas.js`) is a sketchbook of directions the
+game could take: looks, mechanics, big swings. Add ideas freely; when one
+ships, move it out of Ideas and into the article that documents it.
+
 ## Versioning
 
 The HUD badge in the top-right shows the studio and exact version you're
@@ -82,7 +86,7 @@ The project is under git — commit early, commit often:
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`
 - `index.html`, `style.css` — shell and mobile-first styling
-- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core)
+- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core, `ideas.js` holds the Ideas sketchbook)
 - `docs/progression-map.md` — design spec for the Progression map
 - `test/unit/` — Node `node:test` suites for the core
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
