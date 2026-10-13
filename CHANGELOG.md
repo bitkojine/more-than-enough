@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.38.3] - 2026-10-13
+
+### Changed
+- **Holes show when zoomed out.** Pinched out, a hole was a dot too small to
+  see, so you couldn't tell where you could go up or down. Now every hole on
+  your layer keeps a mark of readable size, drawn over the dark: a dark pit
+  with its ladder going down, light with its ladder reaching up, or both for
+  a hole in a column.
+
 ## [0.38.2] - 2026-10-13
 
 ### Changed

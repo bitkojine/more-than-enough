@@ -10,7 +10,7 @@
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain } from './terrain.js';
+import { drawTerrain, drawFarHoles } from './terrain.js';
 import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawJoystick } from './overlay.js';
 
@@ -65,6 +65,7 @@ export function render(cam, s, fx, view, look) {
   drawFlyers(ctx, cam, look, fx);
   drawLighting(ctx, cam, s, look, lights);
   drawGlints(ctx, cam, s, look);
+  drawFarHoles(ctx, cam, s, look);
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

@@ -120,6 +120,46 @@ function drawThroughShaft(ctx, look, sx, sy, u, d, rise) {
   drawLadder(ctx, look, cx, tilted ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
 }
 
+// Zoomed out, a hole is too small to see, so each one on this layer gets a
+// mark that stays a readable size (drawn over the dark, so the mine's holes
+// show from afar): a dark pit with its ladder going down, light with its
+// ladder going up, or both for a hole in a column.
+const FAR_MARK_PX = 24;  // below this tile size, holes get marks
+const MARK_MIN = 12;     // a mark's least size, in px
+
+export function drawFarHoles(ctx, cam, s, look) {
+  const u = cam.tilePx;
+  if (u >= FAR_MARK_PX) return;
+  const z = cam.z, w = s.world, m = Math.max(MARK_MIN, u * 1.2);
+  const hole = look.color('mark.hole'), light = look.color('mark.skylight');
+  const ladder = look.pick('mark.ladder', 'image');
+  const seen = new Set();
+  for (const k of w.holes) {
+    const h = Core.unpackKey(k);
+    if (h.z !== z && h.z !== z + 1) continue; // in this floor, or this ceiling
+    const key = Core.packKey(h.x, h.y, z);
+    if (seen.has(key) || !Core.isExplored(w, h.x, h.y, z)) continue;
+    seen.add(key);
+    const c = cam.project(h.x + 0.5, h.y + 0.5);
+    if (c.x < -m || c.y < -m || c.x > cam.width + m || c.y > cam.height + m) continue;
+    const down = Core.holeBelow(w, h.x, h.y, z), up = Core.holeAbove(w, h.x, h.y, z);
+    if (up) {
+      const glow = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, m * 0.8);
+      glow.addColorStop(0, rgba(light, 0.9));
+      glow.addColorStop(1, rgba(light, 0));
+      ctx.fillStyle = glow;
+      ctx.fillRect(c.x - m, c.y - m, m * 2, m * 2);
+    }
+    if (down) {
+      ctx.fillStyle = rgba(hole, 0.95);
+      ctx.beginPath(); ctx.arc(c.x, c.y, m * (up ? 0.3 : 0.4), 0, TAU); ctx.fill();
+    }
+    // Up: the ladder reaches above the mark. Down: it sinks into it.
+    const lw = m * 0.3, lh = m * 0.8;
+    look.draw(ctx, ladder, c.x - lw / 2, up ? c.y - lh * 0.8 : c.y - lh / 2, lw, lh);
+  }
+}
+
 // A face picture repeated down a face `faceH` tall, one picture per layer of
 // height (`layerPx`), the last one cut short.
 function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
