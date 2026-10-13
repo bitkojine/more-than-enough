@@ -3,7 +3,9 @@
  *  - no function name is declared twice in a file: a later declaration
  *    silently replaces the earlier one (this once made the game silent);
  *  - no import cycles among the source modules;
- *  - the core stays pure: it never imports game (browser) code. */
+ *  - the core stays pure: it never imports game (browser) code;
+ *  - no merge-conflict markers are left in the code (several people push to
+ *    main at once, and the browser-only files have no other check). */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -30,6 +32,14 @@ function importsOf(file) {
   return [...src.matchAll(/^\s*(?:import|export)[^'"]*?from\s*['"](\.[^'"]+)['"]/gm)]
     .map((m) => normalize(join(dirname(file), m[1])));
 }
+
+test('no merge-conflict markers are left in the code', () => {
+  for (const file of [...SOURCES, ...jsFiles(join(ROOT, 'test'))]) {
+    const lines = readFileSync(file, 'utf8').split('\n');
+    const bad = lines.findIndex((l) => /^(<{7}|>{7}|={7})( |$)/.test(l));
+    assert.equal(bad, -1, `${rel(file)}:${bad + 1} has a merge-conflict marker`);
+  }
+});
 
 test('no function name is declared twice in the same file', () => {
   for (const file of SOURCES) {

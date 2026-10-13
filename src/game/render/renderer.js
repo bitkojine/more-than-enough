@@ -10,15 +10,9 @@
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-<<<<<<< HEAD
 import { drawTerrain, drawFarHoles } from './terrain.js';
-import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawFloats, drawFlyers } from './sprites.js';
-import { drawHighlights, drawTrail, drawLighting, drawGlints, drawJoystick } from './overlay.js';
-=======
-import { drawTerrain } from './terrain.js';
 import { drawExtractor, drawDigging, drawPlayer, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawJoystick } from './overlay.js';
->>>>>>> 1a39aa6 (v0.39.0: more to place in the mine: crystal lamps and marker flags)
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const FLICKER = 0.12;      // how much a flame's reach wavers, in tiles
@@ -75,11 +69,8 @@ export function render(cam, s, fx, view, look) {
   drawFlyers(ctx, cam, look, fx);
   drawLighting(ctx, cam, s, look, lights);
   drawGlints(ctx, cam, s, look);
-<<<<<<< HEAD
   drawFarHoles(ctx, cam, s, look);
-=======
   drawBeacons(ctx, cam, s, look, beacons);
->>>>>>> 1a39aa6 (v0.39.0: more to place in the mine: crystal lamps and marker flags)
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

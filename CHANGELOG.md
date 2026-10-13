@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1] - 2026-10-13
+
+### Fixed
+- **The game draws again.** v0.39.0 went out with a merge left half-done in
+  the renderer, so the page couldn't load its drawing code. A unit test now
+  fails on any merge-conflict marker left in the code.
+
 ## [0.39.0] - 2026-10-13
 
 ### Added
