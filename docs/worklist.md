@@ -75,7 +75,15 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## UI
 
-
+- [x] **Zoom reads as zoom.** (0.37.1) A magnifier and 1.25×, not a bare 125%; tap it for 1×.
+- [x] **Timings out of play.** (0.37.1) The perf panel is F3 or `?perf` only.
+- [x] **Pickups stay readable.** (0.37.2) Gains add up on one "+n" that lingers.
+- [x] **Buttons look pressable.** (0.38.2) Raised green when you can, flat dashed when you can't;
+      a dot on BUILD/UPGRADE when something in them is ready.
+- [x] **Gather by touching the map.** (0.40.0) Tap a far resource to walk over and gather it;
+      hold a finger still to keep gathering.
+- [x] **Drag direction.** (0.40.0) A Drag setting: walk that way, or pull the map.
+- [x] **Visible achievements.** (0.41.0) A trophy counter, an Awards tab, a bigger banner.
 - [x] **Explain the trail.** (explained in chat, 2026-10-13; its short reach is the open question) Explain and visualise how dragging from Gather to
       draw a trail on the map works now.
 - [ ] **Redesign the UI.** Take inventory of every UI page and redesign it all.
