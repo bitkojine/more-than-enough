@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.32.2] - 2026-10-13
+
+### Fixed
+- **Choosing the other tab's world takes one tap.** If the other tab was
+  still open, it kept saving while this one asked, and picking its world
+  adopted the save from when the question appeared, which the next save then
+  found out of date, so it asked again. The choice now takes the newest save
+  at the moment you pick, and the figures refresh while it asks.
+
 ## [0.32.1] - 2026-10-13
 
 ### Fixed

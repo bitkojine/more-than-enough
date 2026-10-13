@@ -85,11 +85,17 @@ const game = {
 
 // Another tab saved this world since this tab did: don't overwrite it, ask.
 const fork = createFork(el.fork);
+// The other tab may still be open and saving while this one asks, so the
+// choice shows (and takes) its newest save, not the one that started it:
+// adopting an older copy would only conflict again on the next save.
 function forked(raw) {
-  if (fork.open) return;
   input.release();
   fork.show(game.state, Core.deserialize(raw), {
-    keepOther: () => game.replace(adopt(raw)),
+    keepOther: () => {
+      const latest = adopt(savedElsewhere() || raw);
+      if (latest) game.replace(latest);
+      else location.reload(); // saved by a newer version of the game
+    },
     keepMine: () => game.saveNow(true),
     reload: () => location.reload()
   });

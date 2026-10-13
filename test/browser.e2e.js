@@ -614,17 +614,21 @@ async function main() {
   eq(await evalJS('MTE_GAME.getState().time'), pausedAt, 'the game waits while you choose');
   await evalJS('dispatchEvent(new Event("pagehide"))');
   ok(await evalJS('localStorage.getItem(' + KEY + ')') === otherRaw, 'closing the tab while it asks saves nothing');
+  // The other tab is still open and saves again while this one asks.
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=60;d.inv.wood=888888;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   var pickOther = await rect('#fork button[data-pick=other]');
   await tap(pickOther.x, pickOther.y);
   ok(await evalJS('document.getElementById("fork").hidden'), 'picking a world closes the choice');
-  eq(await evalJS('Math.floor(MTE_GAME.getState().inv.wood)'), 777777, "picking the other tab's world plays it here");
+  eq(await evalJS('Math.floor(MTE_GAME.getState().inv.wood)'), 888888, "picking the other tab's world plays its newest save here");
+  await evalJS('MTE_GAME.save()');
+  ok(await evalJS('document.getElementById("fork").hidden'), 'one tap is enough: the next save does not ask again');
   // And the other way: an older save appears; keeping this tab's overwrites it.
   await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time=1;d.inv.wood=5;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   await evalJS('MTE_GAME.save()');
   eq(await evalJS('document.querySelector("#fork button.ahead").dataset.pick'), 'mine', "this tab's world is marked when it's further along");
   var pickMine = await rect('#fork button[data-pick=mine]');
   await tap(pickMine.x, pickMine.y);
-  eq(await evalJS('JSON.parse(localStorage.getItem(' + KEY + ')).inv.wood'), 777777, "keeping this tab's world saves it over the older one");
+  eq(await evalJS('JSON.parse(localStorage.getItem(' + KEY + ')).inv.wood'), 888888, "keeping this tab's world saves it over the older one");
   await evalJS('MTE_GAME.save()');
   ok(await evalJS('document.getElementById("fork").hidden'), 'after choosing, saving carries on as normal');
 
