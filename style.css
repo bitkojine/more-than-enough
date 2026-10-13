@@ -114,6 +114,22 @@ canvas#game {
 }
 .chip .rate { font-size: 10.5px; color: var(--green); font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
 
+/* A milestone reached: a banner under the counters, a few seconds each. */
+#milestone {
+  pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  margin-top: 6px; padding: 8px 18px 9px; max-width: 88%;
+  background: linear-gradient(180deg, rgba(58, 44, 16, 0.96), rgba(28, 22, 10, 0.96));
+  border: 1px solid rgba(255, 209, 102, 0.6); border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 209, 102, 0.18);
+  text-align: center;
+  animation: milestone-in .35s cubic-bezier(.2, 1.4, .4, 1);
+}
+#milestone[hidden] { display: none; }
+#milestone small { font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #ffd166; }
+#milestone strong { font-size: 14.5px; color: #fff3d6; }
+@keyframes milestone-in { from { opacity: 0; transform: translateY(-10px) scale(.96); } to { opacity: 1; transform: none; } }
+
 #depth {
   pointer-events: none;
   background: var(--panel);

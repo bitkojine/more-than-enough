@@ -299,6 +299,7 @@ async function main() {
   ok(icons.n >= 6 && icons.bad.length === 0 && icons.name === 'More Than Enough' && icons.maskable, 'favicon, home-screen icon and manifest icons all load (' + JSON.stringify(icons) + ')');
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
+  ok(await evalJS('document.getElementById("milestone").hidden'), 'no milestone banner before one is reached');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
   eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
@@ -450,6 +451,10 @@ async function main() {
   ok(await heard(200) > 0.01, 'gathering in play is heard');
   var g1 = JSON.parse(await stateSummary());
   ok(g1.inv.wood > g0.inv.wood, 'holding GATHER collected wood (' + g0.inv.wood + ' -> ' + g1.inv.wood + ')');
+  // The first milestone (gather wood) is celebrated with a banner naming it.
+  ok(await waitFor('!document.getElementById("milestone").hidden && /wood/i.test(document.querySelector("#milestone strong").textContent)', 2000),
+    'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
+  console.log('  screenshot: ' + await shot('02a-milestone.png'));
   var trailStartInv = g1.inv.wood;
   var trailStart = await rect('#btnAction');
   await touch('touchStart', [{ x: trailStart.x, y: trailStart.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);

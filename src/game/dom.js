@@ -14,6 +14,7 @@ export function findElements() {
     perf: byId('perf'),
     resources: byId('resources'),
     depth: byId('depth'),
+    milestone: byId('milestone'),
     action: byId('btnAction'),
     actionIcon: byId('actionIcon'),
     actionLabel: byId('actionLabel'),

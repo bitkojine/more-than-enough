@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.35.0] - 2026-10-13
+
+### Added
+- **Milestone banners.** Reaching a milestone now also shows a banner under
+  the counters ("Milestone" and its name) for a few seconds, alongside the
+  sparks and fanfare. Several at once take turns. It only celebrates what
+  you've done; it never says what's next.
+
 ## [0.34.3] - 2026-10-13
 
 ### Changed

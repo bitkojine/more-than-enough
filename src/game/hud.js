@@ -6,6 +6,7 @@ import * as Core from '../core/index.js';
 import { fmt, fmt1 } from './format.js';
 
 const TOAST_SECONDS = 2.4;
+const MILESTONE_SECONDS = 3.5;
 
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
 // thing's picture from the current texture pack.
@@ -16,6 +17,20 @@ export function paintIcons(look, root = document) {
 export function createHud(el, look) {
   const chips = {};
   let toastLeft = 0;
+  const milestones = []; // reached, waiting to be shown
+  let milestoneLeft = 0;
+
+  function nextMilestone() {
+    const text = milestones.shift();
+    el.milestone.hidden = !text;
+    milestoneLeft = text ? MILESTONE_SECONDS : 0;
+    if (!text) return;
+    el.milestone.querySelector('strong').textContent = text;
+    // Restart the entrance animation for each one.
+    el.milestone.style.animation = 'none';
+    void el.milestone.offsetWidth;
+    el.milestone.style.animation = '';
+  }
   let lastAction = '';
 
   for (const r of Core.RESOURCES) {
@@ -92,6 +107,13 @@ export function createHud(el, look) {
     },
 
     // Status only (e.g. a save that couldn't be read), never instructions.
+    // A milestone reached: shown under the counters for MILESTONE_SECONDS;
+    // several in a row take turns.
+    milestone(text) {
+      milestones.push(text);
+      if (milestoneLeft <= 0) nextMilestone();
+    },
+
     toast(msg) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');
@@ -100,6 +122,7 @@ export function createHud(el, look) {
 
     tick(dt) {
       if (toastLeft > 0 && (toastLeft -= dt) <= 0) el.toast.classList.remove('show');
+      if (milestoneLeft > 0 && (milestoneLeft -= dt) <= 0) nextMilestone();
     }
   };
 }

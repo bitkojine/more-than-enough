@@ -86,5 +86,5 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **Favicon and app icon.** (0.34.1)
 - [x] **Home ground is sealed.** (0.34.3) No digging down from the stockpile area and
       no surfacing into it; deeper layers under it are fine.
-- [ ] **Milestones pop up.** Earning a milestone shows a congratulations
+- [x] **Milestones pop up.** (0.35.0) Earning a milestone shows a congratulations
       banner at the top of the screen, not just the sound.
