@@ -32,18 +32,6 @@ const FOOT = 0.6;           // where on a tile's depth standing things put their
 const TAU = Math.PI * 2;
 const TILE_LOOK = Core.TILE_KEY.map((k, t) => Core.tileLook(t));
 
-export function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  if (w <= 0 || h <= 0) return; // nothing to draw (e.g. sub-pixel tiles when zoomed out)
-  r = Math.max(0, Math.min(r, w / 2, h / 2));
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-
 /* ---------------------------------------------------------------- holes */
 
 // A hole in the floor. Tilted, you see down its far wall, in the dark of the

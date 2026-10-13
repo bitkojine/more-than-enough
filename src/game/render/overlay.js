@@ -2,9 +2,21 @@
  * and night lighting, and the joystick. */
 
 import * as Core from '../../core/index.js';
-import { roundRect } from './terrain.js';
 
 const TAU = Math.PI * 2;
+
+// A rounded-rectangle path (the caller fills or strokes it).
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  if (w <= 0 || h <= 0) return; // nothing to draw (e.g. sub-pixel tiles when zoomed out)
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
 
 // The rectangle of a tile's top on screen, inset by `inset` px.
 function topRect(cam, s, tx, ty, inset) {
