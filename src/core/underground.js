@@ -45,11 +45,13 @@ function fall(s, x, y) {
 }
 
 // From the forest: dig down where you stand (open ground, or an old hole).
-// Never through water, and never under a building: a way between layers never
-// shares a tile with one (see also buildableTile in actions.js).
+// Never through water or home ground, and never under a building: a way
+// between layers never shares a tile with one (see also buildableTile in
+// actions.js).
 export function canGoDown(s) {
   if (isUnderground(s)) return false;
   const { x, y } = feet(s);
+  if (TILE_INFO[tileAt(s.world, x, y, SURFACE)].sealed) return false;
   if (holeBelow(s.world, x, y, SURFACE)) return true;
   return !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].dig && !extractorAt(s, x, y, SURFACE);
 }
@@ -64,11 +66,13 @@ export function goDown(s) {
 
 // Climb to the layer above, through the hole you came down or a new one dug
 // through the ceiling. Bedrock can't be dug, you can't surface inside a
-// mountain or up into water, and never into a building.
+// mountain, into water, into a building or onto home ground. (Deeper down,
+// under home, is open rock like anywhere else.)
 export function canGoUp(s) {
   if (!isUnderground(s)) return false;
   const { x, y } = feet(s);
   const z = s.player.z + 1;
+  if (z === SURFACE && TILE_INFO[tileAt(s.world, x, y, z)].sealed) return false;
   if (holeBelow(s.world, x, y, z)) return true;
   if (extractorAt(s, x, y, z)) return false;
   const above = tileAt(s.world, x, y, z);

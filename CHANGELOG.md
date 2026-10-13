@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.34.3] - 2026-10-13
+
+### Changed
+- **Home ground is sealed.** You can't dig down from the stockpile's clearing
+  or come up onto it from below, so the stash's ground stays whole. Deeper
+  layers under it connect like anywhere else. Tiles say so with a new
+  `sealed` rule; home ground no longer has `dig`.
+
 ## [0.34.2] - 2026-10-13
 
 ### Changed

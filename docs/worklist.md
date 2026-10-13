@@ -75,10 +75,16 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## UI
 
-- [x] **Favicon and app icon.** (0.34.1) A favicon, a home-screen app icon, a web app
-      manifest: the game's branding wherever it shows up.
 
 - [ ] **Explain the trail.** Explain and visualise how dragging from Gather to
       draw a trail on the map works now.
 - [ ] **Redesign the UI.** Take inventory of every UI page and redesign it all.
       Mobile-first and modern.
+
+## Side quests
+
+- [x] **Favicon and app icon.** (0.34.1)
+- [x] **Home ground is sealed.** (0.34.3) No digging down from the stockpile area and
+      no surfacing into it; deeper layers under it are fine.
+- [ ] **Milestones pop up.** Earning a milestone shows a congratulations
+      banner at the top of the screen, not just the sound.

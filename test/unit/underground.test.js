@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, T, typeAt, findNear, standOn, run, lumberCamp } from './helpers.js';
+import { C, T, typeAt, findNear, standOn, run, lumberCamp, away } from './helpers.js';
 
 const { SURFACE } = C;
 
@@ -10,7 +10,7 @@ function neighbours(s) {
 }
 
 test('going down digs a hole at your feet and drops into a cleared chamber', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
   assert.equal(C.goDown(s), true);
   assert.equal(s.player.z, -1);
@@ -22,7 +22,7 @@ test('going down digs a hole at your feet and drops into a cleared chamber', () 
 });
 
 test('tunnels must be dug before they can be walked', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
   const start = { ...s.player };
@@ -36,7 +36,7 @@ test('tunnels must be dug before they can be walked', () => {
 });
 
 test('digging a seam yields its resource; soil and bedrock behave', () => {
-  const s = C.createState(5);
+  const s = away(C.createState(5));
   C.goDown(s);
   const seam = findNear(s, (st, x, y) => typeAt(st, x, y) === T.ORE_SEAM, 30);
   C.setRichness(s.world, seam.x, seam.y - 1, -1, 0); // open a spot beside it
@@ -51,14 +51,14 @@ test('digging a seam yields its resource; soil and bedrock behave', () => {
 });
 
 test('holding Gather never auto-digs; digging is a deliberate choice', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   assert.equal(C.harvestTarget(s), null);
   assert.equal(C.harvest(s), null);
 });
 
 test('a Trail digs the rock it crosses but never opens a shaft', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const p = s.player;
   const stroke = [{ x: p.x - 1.5, y: p.y }, { x: p.x + 1.5, y: p.y }];
@@ -68,7 +68,7 @@ test('a Trail digs the rock it crosses but never opens a shaft', () => {
 });
 
 test('shafts open with one dig and take the player down one layer', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x + 1, shaft.y, -1, 0);
@@ -84,7 +84,7 @@ test('shafts open with one dig and take the player down one layer', () => {
 });
 
 test('an open shaft must be within reach to use it', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x, shaft.y, -1, 0);
@@ -94,7 +94,7 @@ test('an open shaft must be within reach to use it', () => {
 });
 
 test('climbing up digs through the ceiling where you stand and leaves a hole', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x, shaft.y, -1, 0);
@@ -119,7 +119,7 @@ test('climbing up digs through the ceiling where you stand and leaves a hole', (
 });
 
 test('dropping into a dug column rides it to the bottom', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
   C.goDown(s);
   C.digHole(s.world, fx, fy, -1);
@@ -132,7 +132,7 @@ test('dropping into a dug column rides it to the bottom', () => {
 });
 
 test('landing on a closed shaft opens it but does not keep falling', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const w = s.world;
   const shaft = C.nearestTile(s.player.x, s.player.y, 80, (x, y) =>
     C.tileAt(w, x, y, -1) === T.SHAFT && C.TILE_INFO[C.tileAt(w, x, y, SURFACE)].land);
@@ -143,7 +143,7 @@ test('landing on a closed shaft opens it but does not keep falling', () => {
 });
 
 test('bedrock above and mountains above block climbing', () => {
-  const s = C.createState(5);
+  const s = away(C.createState(5));
   C.goDown(s);
   s.player.z = -2;
   const bed = C.nearestTile(s.player.x, s.player.y, 40, (x, y) => C.tileAt(s.world, x, y, -1) === T.BEDROCK);
@@ -161,7 +161,7 @@ test('bedrock above and mountains above block climbing', () => {
 });
 
 test('a hole is not gathered from or built on', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const forest = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOREST);
   standOn(s, forest);
   assert.ok(C.canHarvest(s, forest.x, forest.y));
@@ -170,7 +170,7 @@ test('a hole is not gathered from or built on', () => {
 });
 
 test('tunnels persist per layer and never leak onto the surface', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
   const surfaceBefore = C.tileAt(s.world, px, py, SURFACE);
   C.goDown(s);
@@ -184,7 +184,7 @@ test('tunnels persist per layer and never leak onto the surface', () => {
 /* Regressions: rules that must only apply on the player's own layer. */
 
 test('logistics does not collect from surface camps while underground', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
   s.unlocks.logistics = true;
   s.extractors.push(lumberCamp(px + 1, py, 20));
@@ -199,7 +199,8 @@ test('logistics does not collect from surface camps while underground', () => {
 });
 
 test('each layer has its own fog, lifted only close by underground', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
+  const found = { ...s.discovered };
   C.goDown(s);
   const p = s.player, px = Math.floor(p.x), py = Math.floor(p.y);
   C.revealAround(s);
@@ -207,11 +208,11 @@ test('each layer has its own fog, lifted only close by underground', () => {
   assert.ok(!C.isExplored(s.world, px + 6, py, -1), 'but not as far as on the surface');
   assert.ok(!C.isExplored(s.world, px + 40, py, SURFACE), 'and nothing on the surface');
   assert.equal(C.tileHeight(s.world, px + 6, py, -1), 0, 'unexplored rock gives nothing away');
-  assert.deepEqual(s.discovered, { ore: false, crystal: false }, 'surface discoveries are untouched');
+  assert.deepEqual(s.discovered, found, 'surface discoveries are untouched');
 });
 
 test('surface regrowth is unaffected by underground position', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const forest = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOREST);
   C.setRichness(s.world, forest.x, forest.y, SURFACE, 0);
   C.goDown(s);
@@ -221,7 +222,7 @@ test('surface regrowth is unaffected by underground position', () => {
 });
 
 test('extractors cannot be built underground', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   Object.assign(s.inv, { wood: 1e4, stone: 1e4, ore: 1e4 });
   s.unlocks.sapling = true;
   C.goDown(s);
@@ -229,7 +230,7 @@ test('extractors cannot be built underground', () => {
 });
 
 test('surface movement still swims and blocks on rock', () => {
-  const s = C.createState(12345);
+  const s = away(C.createState(12345));
   const rock = findNear(s, (st, x, y) => typeAt(st, x, y) === T.ROCK && C.walkable(st.world, x - 1, y, 0));
   s.player.x = rock.x - 0.5; s.player.y = rock.y + 0.5;
   C.move(s, 1, 0, 0.5);
@@ -244,7 +245,7 @@ test('surface movement still swims and blocks on rock', () => {
 });
 
 test('underground, pushing into rock drills it after a moment; bedrock and shafts hold', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   C.goDown(s);
   const progress = { x: 0, y: 0, t: 0 };
   const n = neighbours(s).find((t) => [T.SOIL, T.STONE_SEAM, T.ORE_SEAM].includes(typeAt(s, t.x, t.y)));
@@ -267,13 +268,13 @@ test('underground, pushing into rock drills it after a moment; bedrock and shaft
     for (let i = 0; i < 40; i++) assert.equal(C.drill(s, progress, 0, -1, 0.05), null, `${hard} holds`);
   }
   // Nothing drills on the surface.
-  const top = C.createState(31415);
+  const top = away(C.createState(31415));
   assert.equal(C.drillTarget(top, 1, 0), null);
 });
 
 test('no way between layers shares a tile with a building, and none opens in water', () => {
   // Down through a building: no.
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
   s.extractors.push({ key: 'sapling', res: 'wood', x: fx, y: fy, z: C.SURFACE, buffer: 0 });
   assert.equal(C.canGoDown(s), false, 'not under a building');
@@ -294,12 +295,12 @@ test('no way between layers shares a tile with a building, and none opens in wat
   C.setRichness(s.world, wet.x, wet.y, -1, 0);
   standOn(s, wet);
   assert.equal(C.canGoUp(s), false, 'not up into water');
-  const swim = C.createState(31415);
+  const swim = away(C.createState(31415));
   standOn(swim, wet);
   assert.equal(C.canGoDown(swim), false, 'not down from water');
 
   // And no building on a tile with a hole in its floor or ceiling.
-  const b = C.createState(31415);
+  const b = away(C.createState(31415));
   b.inv.wood = 1e6; b.inv.stone = 1e6; b.inv.ore = 1e6; b.unlocks.sapling = true;
   C.goDown(b);
   const hx = Math.floor(b.player.x), hy = Math.floor(b.player.y);
@@ -309,7 +310,7 @@ test('no way between layers shares a tile with a building, and none opens in wat
 });
 
 test('a new hole takes work; an old one is a way straight through', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   assert.equal(C.startDig(s), 'digging');
   assert.equal(s.player.z, C.SURFACE, 'not through yet');
   const steps = Math.ceil(C.holeTime(s) / 0.1);
@@ -325,7 +326,7 @@ test('a new hole takes work; an old one is a way straight through', () => {
   assert.equal(s.player.z, -1);
 
   // Walking off the spot stops the dig.
-  const t = C.createState(31415);
+  const t = away(C.createState(31415));
   C.startDig(t);
   C.digOn(t, 0.5);
   t.player.x += 1;
@@ -334,13 +335,13 @@ test('a new hole takes work; an old one is a way straight through', () => {
   assert.equal(t.player.z, C.SURFACE);
 
   // A better Pickaxe digs faster.
-  const fast = C.createState(31415);
+  const fast = away(C.createState(31415));
   fast.tools.pickaxe = 6;
   assert.ok(C.holeTime(fast) < C.holeTime(t) / 2);
 });
 
 test('torches: placed underground on open floor, one per tile, paid in wood, and saved', () => {
-  const s = C.createState(31415);
+  const s = away(C.createState(31415));
   assert.equal(C.canPlaceTorch(s), false, 'not on the surface');
   assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
   C.goDown(s);
@@ -352,7 +353,23 @@ test('torches: placed underground on open floor, one per tile, paid in wood, and
   assert.equal(C.canPlaceTorch(s), false, 'one per tile');
   const back = C.deserialize(C.serialize(s));
   assert.deepEqual([...back.world.torches], [...s.world.torches], 'torches are saved');
-  const night = C.createState(1);
+  const night = away(C.createState(1));
   night.time = C.DAY_LENGTH / 2;
   assert.equal(C.needsLantern(night), true, 'and at night');
+});
+
+test('home ground is sealed: no way down from it, none up into it; deeper is open rock', () => {
+  const s = C.createState(31415);
+  const h = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
+  assert.equal(typeAt(s, h.x, h.y), T.HOME, 'every world starts on home ground');
+  assert.equal(C.canGoDown(s), false, 'no digging down from home ground');
+  assert.equal(C.startDig(s), null);
+  // Underground, under home: no surfacing into it...
+  s.player.z = -1;
+  C.setRichness(s.world, h.x, h.y, -1, 0);
+  assert.equal(C.canGoUp(s), false, 'no coming up onto home ground');
+  // ...but between deeper layers it's rock like anywhere else.
+  s.player.z = -2;
+  C.setRichness(s.world, h.x, h.y, -2, 0);
+  if (typeAt(s, h.x, h.y, -1) !== T.BEDROCK) assert.equal(C.canGoUp(s), true, 'under home, deeper layers connect as usual');
 });

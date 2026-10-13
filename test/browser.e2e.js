@@ -328,7 +328,10 @@ async function main() {
   var zoomOut = await rect('#btnZoomOut');
   await tap(zoomOut.x, zoomOut.y);
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
-  var entry = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:Math.floor(p.x),y:Math.floor(p.y)});})()'));
+  // Home ground is kept for the stockpile: no hole there. Step out of it first.
+  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'MINE is off on home ground');
+  var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return !!c.TILE_INFO[c.tileAt(s.world,x,y,0)].dig;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
+  await sleep(300);
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
   // A new hole takes work: the button fills while you dig, then you drop.

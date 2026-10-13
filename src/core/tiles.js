@@ -4,6 +4,8 @@
  *   walk     the player can stand on it
  *   land     open surface ground where converters can be built
  *   dig      surface ground you can dig a hole down through
+ *   sealed   no way between layers ever opens here, from above or below
+ *            (home ground: kept for the stockpile)
  *   swim     walkable, but slow (water)
  *   harvest  the Gather action works it, lowering its richness by one
  *   solid    a harvestable tile you cannot stand on (underground rock); it must
@@ -65,7 +67,7 @@ TILE_INFO[T.FOSSIL] = { harvest: true, solid: true, res: 'wood', cleared: T.TUNN
 TILE_INFO[T.BEDROCK] = { cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.SHAFT] = { harvest: true, solid: true, sweep: false, cleared: T.SHAFT_OPEN, height: 1 };
 TILE_INFO[T.SHAFT_OPEN] = { walk: true, descend: true };
-TILE_INFO[T.HOME] = { walk: true, dig: true, yard: 0 };
+TILE_INFO[T.HOME] = { walk: true, sealed: true, yard: 0 };
 
 // The lowest and highest a tile's top can sit above its layer's floor.
 export const RELIEF_MIN = Math.min(...TILE_INFO.map((i) => (i.height || 0) - (i.rough || 0) / 2));

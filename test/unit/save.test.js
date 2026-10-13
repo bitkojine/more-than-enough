@@ -1,11 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, lumberCamp, run } from './helpers.js';
+import { C, lumberCamp, run, away } from './helpers.js';
 
 const roundTrip = (s) => C.deserialize(C.serialize(s));
 
 test('a save restores the world, the economy and the player', () => {
-  const s = C.createState(4242);
+  const s = away(C.createState(4242));
   Object.assign(s.inv, { wood: 123, ore: 7 });
   s.tools.axe = 3; s.tools.overclock = 2;
   s.unlocks.logistics = true;
@@ -38,7 +38,7 @@ test('a save restores the world, the economy and the player', () => {
 });
 
 test('an underground expedition survives a reload, holes and mine fog included', () => {
-  const s = C.createState(4242);
+  const s = away(C.createState(4242));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
   C.goDown(s);
   C.revealAround(s);
@@ -53,7 +53,7 @@ test('an underground expedition survives a reload, holes and mine fog included',
 });
 
 test('a reloaded save keeps producing', () => {
-  const s = C.createState(12345);
+  const s = away(C.createState(12345));
   s.unlocks.logistics = true;
   s.extractors.push(lumberCamp(Math.floor(s.player.x) - 2, Math.floor(s.player.y)));
   run(s, 10);

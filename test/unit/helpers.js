@@ -82,3 +82,12 @@ export function master(s) {
   s.abundanceLv = C.EMBARK_ABUNDANCE;
   return s;
 }
+
+// The player moved to the nearest diggable ground outside home (home ground
+// is sealed: no holes there), with the view revealed around them.
+export function away(s) {
+  const t = C.nearestTile(s.player.x, s.player.y, 60, (x, y) => !!C.TILE_INFO[C.tileAt(s.world, x, y, C.SURFACE)].dig);
+  standOn(s, t);
+  C.revealAround(s);
+  return s;
+}
