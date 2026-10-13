@@ -1,6 +1,7 @@
 /* The world: an endless stack of layers, generated lazily in chunks and cached.
- * Only player edits are stored — richness changes (`mods`) and revealed fog
- * (`explored`) — so a save stays small however far anyone walks or digs. */
+ * Only player edits are stored — richness changes (`mods`), revealed fog
+ * (`explored`) and holes between layers (`holes`) — so a save stays small
+ * however far anyone walks or digs. */
 
 import { CHUNK_SIZE, SURFACE, packKey, chunkCoord, chunkIndex } from './coords.js';
 import { generateChunk } from './terrain.js';
@@ -18,11 +19,12 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  * @property {Map<number, {type: Uint8Array, rich: Uint8Array}>} chunks  generated-chunk cache (LRU)
  * @property {Map<number, number>} mods      tile key -> richness, only where it differs from generation
  * @property {Map<number, Uint8Array>} explored  chunk key -> fog bitmask
+ * @property {Set<number>} holes             tile keys (x, y, z) with a hole in layer z's floor
  */
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), holes: new Set(), hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -71,12 +73,31 @@ export function walkable(w, x, y, z) {
 }
 
 // How far the tile's top stands above its layer's floor, in layers. Unexplored
-// surface reads as flat, so the fog never gives away the shape of the land.
+// tiles never give away their shape: the surface reads as flat ground and
+// underground as solid rock.
 export function tileHeight(w, x, y, z) {
-  if (z === SURFACE && !isExplored(w, x, y, z)) return 0;
+  if (!isExplored(w, x, y, z)) return z === SURFACE ? 0 : 1;
   const info = TILE_INFO[tileAt(w, x, y, z)];
   if (!info.rough) return info.height || 0;
   return info.height + (hash2(x, y, w.seed + ROUGH_SALT + z) - 0.5) * info.rough;
+}
+
+/* -------------------------------------------------------------- holes */
+
+// A hole in the floor of layer z at (x, y) leads down to the same spot on
+// z - 1. Open shafts are holes by nature; the rest are dug by the player
+// going down from the surface or climbing up through a ceiling.
+export function holeBelow(w, x, y, z) {
+  return w.holes.has(packKey(x, y, z)) || !!TILE_INFO[tileAt(w, x, y, z)].descend;
+}
+
+// A hole in the ceiling: light from the layer above.
+export function holeAbove(w, x, y, z) {
+  return z < SURFACE && holeBelow(w, x, y, z + 1);
+}
+
+export function digHole(w, x, y, z) {
+  w.holes.add(packKey(x, y, z));
 }
 
 /* ---------------------------------------------------------------- fog */

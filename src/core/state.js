@@ -33,8 +33,7 @@ import { revealAround } from './sim.js';
  * @property {{ore: boolean, crystal: boolean}} discovered
  * @property {number} goalIndex
  * @property {number} time                         game seconds
- * @property {{deepest: number, entry: {x: number, y: number} | null}} underground
- *           deepest layer reached, and the surface spot to return to while below
+ * @property {{deepest: number}} underground     the deepest layer reached so far
  * @property {Array<{res: string, amt: number, x: number, y: number, z: number}>} events
  *           transient (never saved): auto-collections for the UI to animate
  */
@@ -65,7 +64,7 @@ export function createState(seed) {
     discovered: { ore: false, crystal: false },
     goalIndex: 0,
     time: 0,
-    underground: { deepest: SURFACE - 1, entry: null },
+    underground: { deepest: SURFACE },
     events: []
   };
   revealAround(s);

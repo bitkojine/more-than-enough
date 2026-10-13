@@ -4,7 +4,6 @@
 import { serialize, deserialize, createState } from '../core/index.js';
 
 const SAVE_KEY = 'more-than-enough-save';
-const LEGACY_SAVE_KEYS = ['more-than-enough-v3'];
 const VIEW_KEY = 'more-than-enough-view';
 
 function read(key) {
@@ -32,18 +31,10 @@ export function saveGame(state) {
 // Loads the saved game, or starts a new world. `lost` is true when a save
 // existed but could not be read, so the player can be told.
 export function loadGame() {
-  for (const key of [SAVE_KEY, ...LEGACY_SAVE_KEYS]) {
-    const raw = read(key);
-    if (!raw) continue;
-    const state = deserialize(raw);
-    if (state) {
-      // Move an old save to the current key, keeping the old one if that fails.
-      if (key !== SAVE_KEY && !saveGame(state)) remove(key);
-      return { state, lost: false };
-    }
-    return { state: createState(randomSeed()), lost: true };
-  }
-  return { state: createState(randomSeed()), lost: false };
+  const raw = read(SAVE_KEY);
+  if (!raw) return { state: createState(randomSeed()), lost: false };
+  const state = deserialize(raw);
+  return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
 }
 
 // The viewer's zoom, tilt and whether the performance panel is open: a
@@ -63,5 +54,4 @@ export function saveView(cam, perf) {
 
 export function clearSave() {
   remove(SAVE_KEY);
-  LEGACY_SAVE_KEYS.forEach(remove);
 }

@@ -3,7 +3,7 @@
 
 import { tileDist2 } from './coords.js';
 import { TILE_INFO } from './tiles.js';
-import { tileAt, richness, setRichness } from './world.js';
+import { tileAt, richness, setRichness, holeBelow } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost } from './economy.js';
 
@@ -19,6 +19,7 @@ export function canHarvest(s, x, y) {
   const z = s.player.z;
   return !!TILE_INFO[tileAt(s.world, x, y, z)].harvest &&
     richness(s.world, x, y, z) > 0 &&
+    !holeBelow(s.world, x, y, z) &&
     tileDist2(s.player, x, y, z) <= REACH2;
 }
 
@@ -126,7 +127,7 @@ export function extractorAt(s, x, y, z) {
 function buildableTile(s, def, x, y) {
   const type = tileAt(s.world, x, y, s.player.z);
   const fits = def.tile === null ? !!TILE_INFO[type].land : type === def.tile;
-  return fits && !extractorAt(s, x, y, s.player.z);
+  return fits && !extractorAt(s, x, y, s.player.z) && !holeBelow(s.world, x, y, s.player.z);
 }
 
 // The nearest free tile in reach where extractor `key` could stand.

@@ -11,11 +11,11 @@ graph LR
       subgraph 15 ["Simulation Core"]
         style 15 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        16["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods) and surface<br />fog live outside the cache.</div>"]
+        16["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods), per-layer<br />fog and the holes between<br />layers live outside the<br />cache.</div>"]
         style 16 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
         18["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt): extractor<br />production, range-limited<br />logistics auto-collect on the<br />player's layer, the abundance<br />trickle, and hash-seeded<br />regrowth near the player.<br />Also movement, fog reveal and<br />the day/night curve.</div>"]
         style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        19["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus entering, leaving and<br />descending through the mine<br />layers. All work on the<br />player's own layer.</div>"]
+        19["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus travel between layers<br />through holes (dig down from<br />the forest, climb up through<br />the ceiling, drop through<br />holes and shafts). All work<br />on the player's own layer.</div>"]
         style 19 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
@@ -24,18 +24,18 @@ graph LR
 
         5["<div style='font-weight: bold'>Main Loop</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Wires the modules together<br />and owns the current state<br />(game.state, replaced on<br />embark/reset). Each frame:<br />steer the player, Core<br />step(), turn logistics events<br />into flyers, reveal fog on<br />tile change, repeat the held<br />action, update effects, run<br />the save/milestone/HUD<br />timers, then render. Exposes<br />window.MTE_GAME for the<br />browser tests.</div>"]
         style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        7["<div style='font-weight: bold'>Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Applies intents to the game:<br />tap (descend, harvest,<br />collect, or walk there), the<br />held action (collect, else<br />harvest), Trail sweeps,<br />entering/leaving the mine,<br />buying, building, embarking,<br />resetting. Each calls the<br />Core, then triggers effects,<br />sound, HUD and a save.</div>"]
+        7["<div style='font-weight: bold'>Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Applies intents to the game:<br />tap (descend, harvest,<br />collect, or walk there), the<br />held action (collect, else<br />harvest), Trail sweeps, going<br />down and up between layers,<br />buying, building, embarking,<br />resetting. Each calls the<br />Core, then triggers effects,<br />sound, HUD and a save.</div>"]
         style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
         8["<div style='font-weight: bold'>Camera</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Maps world (x, y, height) to<br />screen pixels and back<br />(project/unproject) with zoom<br />and a tilt from top-down to<br />2.5D; picking hits the top or<br />face you see. Also the<br />visible tile range.</div>"]
         style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer row by row<br />(tops and south faces, or<br />level-of-detail blocks when<br />zoomed far out) with<br />highlights, extractors and<br />the player drawn in their<br />row, then the Trail,<br />particles, floating text,<br />flyers, day/night lighting<br />and the joystick. Never text<br />to read.</div>"]
+        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer row by row<br />(tops and south faces, or<br />level-of-detail blocks when<br />zoomed far out) with<br />highlights, extractors and<br />the player drawn in their<br />row; tilted, a cutaway of<br />every layer at the cut row<br />(strata); then the Trail,<br />particles, floating text,<br />flyers, day/night lighting<br />and the joystick. Never text<br />to read.</div>"]
         style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
       end
 
     end
 
     5-. "<div>1. Steers and repeats the<br />held action each frame</div><div style='font-size: 70%'></div>" .->7
-    7-. "<div>2. harvest, collect, place,<br />enter/leave/descend</div><div style='font-size: 70%'></div>" .->19
+    7-. "<div>2. harvest, collect, place,<br />go down/up, descend</div><div style='font-size: 70%'></div>" .->19
     5-. "<div>3. Calls step(state, dt)<br />every frame</div><div style='font-size: 70%'></div>" .->18
     18-. "<div>4. Regrows tiles; reveals fog</div><div style='font-size: 70%'></div>" .->16
     5-. "<div>5. Renders each frame</div><div style='font-size: 70%'></div>" .->9

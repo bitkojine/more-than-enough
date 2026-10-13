@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.22.0] - 2026-10-13
+
+### Added
+- Holes between layers. MINE digs a hole at your feet and drops you into
+  the layer below; underground the button becomes UP and climbs through the
+  hole you came down, or digs a new one through the ceiling. From above a
+  hole is a dark pit (tap it to drop through); from below it's a pool of
+  light, and a beam when tilted. Stacked holes form a column you fall all
+  the way down. Holes can't be gathered from or built on.
+- Fog underground: every layer starts unexplored and is revealed within
+  `MINE_EXPLORE_RADIUS` tiles of you; unseen rock reads as solid.
+- Cutaway: tilted, the world is cut open a few rows in front of you and every
+  layer shows as a band on the cut, lit where explored, dim where visited,
+  dark where unreached, all the way down; underground the layers above show
+  faintly up to the forest floor. Holes show as bright gaps between bands.
+
+### Changed
+- No more teleporting between the forest and the mine: the old "ride to the
+  deepest layer" and "return to where you entered" are gone.
+- Save format v5. No migrations during active development: older saves are
+  rejected (the game says so) and a new world starts. Removed the v3/v4
+  migrations and the legacy save key.
+
 ## [0.21.0] - 2026-10-13
 
 ### Added

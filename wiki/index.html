@@ -35,7 +35,7 @@
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
-        <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, digging and shafts.</span></a></li>
+        <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, holes, digging and shafts.</span></a></li>
         <li><a href="#buildings"><strong>Buildings</strong><span>Extractors, converters, collecting, Logistics.</span></a></li>
         <li><a href="#upgrades"><strong>Upgrades</strong><span>Tools, refineries, unlocks, the Abundance Engine.</span></a></li>
         <li><a href="#beyond"><strong>Beyond</strong><span>Embarking to a new world, Insight and perks.</span></a></li>
@@ -91,7 +91,8 @@
       <ul>
         <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
         <li><strong>UPGRADE</strong> opens the sheet on the Upgrades tab. See <a href="#upgrades">Upgrades</a>.</li>
-        <li><strong>MINE</strong> takes you underground; down there it becomes <strong>SURFACE</strong>. See <a href="#mine">The mine</a>.</li>
+        <li><strong>MINE</strong> digs a hole where you stand and drops you into the layer below; underground it becomes
+          <strong>UP</strong>, which climbs to the layer above. It dims where you can't. See <a href="#mine">The mine</a>.</li>
       </ul>
       <p>Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
 
@@ -224,10 +225,28 @@
       <h1>The mine</h1>
       <p class="lede">Solid rock under the forest, as deep as you care to dig.</p>
 
-      <h2>Going down and back up</h2>
-      <p>Tap <strong>MINE</strong> and you drop straight down into the rock beneath where you're standing, into a one-tile
-        chamber. You arrive on the <strong>deepest layer you've reached so far</strong>, so you never have to redo the climb.
-        Tap <strong>SURFACE</strong> to ride back up to the forest spot you left from.</p>
+      <h2>Holes: going down and back up</h2>
+      <p>Every way between layers is a <strong>hole</strong> you can see, so it's always clear where you went deeper and where
+        you came back up.</p>
+      <ul>
+        <li><strong>MINE</strong>, in the forest, digs a hole at your feet and drops you into a one-tile chamber in the rock
+          directly below. It works on open ground, not in water.</li>
+        <li><strong>UP</strong>, underground, climbs to the layer above through the hole you came down, or digs a new one
+          through the ceiling where you stand. You can't dig up through bedrock, or come up inside a mountain.</li>
+        <li>From above, a hole is a dark pit in the floor; <strong>tap it</strong> within reach to drop through. From below, it's
+          a pool of light falling through the ceiling, and a beam when the view is tilted.</li>
+        <li>Holes stacked on top of each other make a column: drop into the top one and you fall all the way to the bottom.</li>
+        <li>You can't gather from or build on a tile with a hole in it.</li>
+      </ul>
+
+      <h2>Seeing in the dark</h2>
+      <p>Each layer starts unexplored, just like the forest: unseen rock is dark and reads as solid. Underground you see the
+        rock within <span data-k="MINE_EXPLORE_RADIUS"></span> tiles of you, and it stays revealed. Shafts are hidden until
+        you get close.</p>
+      <p>Tilt the view (see <a href="#controls">Controls</a>) and the world is cut open a few rows in front of you, showing
+        every layer as a band on the cut: what you've explored is lit, layers you've been down to are dim, and layers nobody
+        has reached are dark, all the way down. Underground, the layers above you show faintly over the cut, up to the
+        forest floor. A bright gap between two bands is a hole.</p>
 
       <h2>Digging</h2>
       <p>Underground, everything is solid and you can only walk through tunnels you dig. Dig a tile by <strong>tapping</strong> it
@@ -245,7 +264,7 @@
       <p>Every <span data-k="CHUNK_SIZE"></span>&times;<span data-k="CHUNK_SIZE"></span> area of each layer hides exactly one
         <strong>shaft</strong>, a marked hatch at least two tiles in from the area's edge. Dig your way to it and dig it once to
         open it. Opening it doesn't drop you; when you're ready, <strong>tap the open shaft</strong> from within reach and you
-        fall to the layer below, landing directly underneath it.</p>
+        fall to the layer below, landing directly underneath it. Shafts are the only way deeper than you've been.</p>
       <p>Layers line up exactly: the tile at a given spot on layer 3 is directly below the same spot on layer 2 and on the
         forest.</p>
 
@@ -253,7 +272,7 @@
       <ul>
         <li>Nothing can be built underground.</li>
         <li>Logistics only collects from buildings on the layer you're on, so your surface camps simply fill up while you're below.</li>
-        <li>Nothing regrows underground, and there's no fog.</li>
+        <li>Nothing regrows underground.</li>
         <li>Day and night carry on as usual.</li>
       </ul>
     </article>
@@ -355,8 +374,8 @@
           private or incognito window may forget them when it closes.</li>
         <li>Clearing site data for the game deletes your save.</li>
         <li><strong>Reset world</strong> at the bottom of the sheet starts a fresh world. It asks first, and it can't be undone.</li>
-        <li>Saves from older versions of the game are upgraded automatically. If a save can't be read, the game tells you and
-          starts a new world.</li>
+        <li>While the game is in active development, a new version may not read older saves. If a save can't be read, the
+          game tells you and starts a new world.</li>
       </ul>
     </article>
 

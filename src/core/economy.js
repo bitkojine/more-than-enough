@@ -1,6 +1,6 @@
 /* Costs, yields and production multipliers. */
 
-import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS } from './content.js';
+import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS } from './content.js';
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
 
 /* -------------------------------------------------------------- costs */
@@ -46,7 +46,9 @@ export function speedMult(s) {
   return toolStat(s, 'boots').mult * (1 + 0.2 * s.perks.nomad);
 }
 
-export function exploreRadius(s) {
+// How far around the player the fog lifts on layer z.
+export function exploreRadius(s, z = s.player.z) {
+  if (z < 0) return MINE_EXPLORE_RADIUS + (s.perks.cartographer ? 1 : 0);
   return EXPLORE_RADIUS + (s.perks.cartographer ? 2 : 0);
 }
 

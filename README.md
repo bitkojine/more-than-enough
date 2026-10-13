@@ -52,9 +52,10 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 - **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long
   road; there is no rush to get there.
 - PATCH bumps = bug fixes, never break saves.
-- MINOR bumps = new features. They may change the save format, with a
-  migration in `src/core/save.js` (0.19.0 migrates `v3` saves to `v4`).
-  **0.10.0 (the endless world) discarded pre-0.10.0 saves.**
+- MINOR bumps = new features. They may change the save format. During
+  active development there are **no save migrations**: bump `SAVE_VERSION`
+  in `src/core/save.js` and older saves are rejected (the player is told)
+  and a new world starts.
 - After each minor (or any notable) change, bump `VERSION` in
   `src/version.js`, update `CHANGELOG.md`, and commit.
 
@@ -75,7 +76,7 @@ The project is under git — commit early, commit often:
   - `content.js` — every tuning number and content table (tools, extractors, refineries, perks)
   - `economy.js`, `upgrades.js` — costs, multipliers, and the single registry of everything you can buy
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
-  - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and migration
+  - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see

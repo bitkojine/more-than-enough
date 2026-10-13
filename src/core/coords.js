@@ -31,11 +31,6 @@ export function unpackKey(key) {
   return { x, y, z };
 }
 
-// Save format v3 packed only (x, y) on the surface; this lifts such a key to z = 0.
-export function liftSurfaceKey(key2d) {
-  return Z_OFFSET * XY_SPAN * XY_SPAN + key2d;
-}
-
 export function chunkCoord(v) {
   return Math.floor(v / CHUNK_SIZE);
 }

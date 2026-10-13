@@ -5,10 +5,13 @@
  *
  * Terrain is drawn a row at a time from north to south; whatever stands in a
  * row (target outlines, buildings, the player) is drawn right after it, so
- * blocks nearer the viewer cover it when the view is tilted. */
+ * blocks nearer the viewer cover it when the view is tilted. Tilted far
+ * enough, the world is cut open in front of the player to show the layers
+ * (strata.js). */
 
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain } from './terrain.js';
+import { drawTerrain, cutawayRow } from './terrain.js';
+import { drawStrata } from './strata.js';
 import { drawExtractor, drawPlayer, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawJoystick } from './overlay.js';
 
@@ -29,12 +32,14 @@ export function render(cam, s, fx, view) {
   }
   const playerRow = Math.floor(s.player.y);
 
+  const cut = cutawayRow(cam, s);
   const tiles = drawTerrain(ctx, cam, s, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, e);
     if (y === playerRow) drawPlayer(ctx, cam, s, view.facing);
-  });
+  }, cut);
+  if (cut !== null) drawStrata(ctx, cam, s, cut);
   // Tilted, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     ctx.globalAlpha = XRAY_ALPHA;

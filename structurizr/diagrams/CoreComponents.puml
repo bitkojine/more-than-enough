@@ -72,10 +72,10 @@ hide stereotype
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
   rectangle "Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>" <<Boundary-U2ltdWxhdGlvbiBDb3Jl>> {
-    rectangle "==Layered World\n<size:16>[Component: JavaScript]</size>\n\nCoordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods) and surface fog live outside the cache." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.LayeredWorld
-    rectangle "==State and Saves\n<size:16>[Component: JavaScript]</size>\n\ncreateState() builds the state; serialize/deserialize write and validate a JSON save (format v4, with a v3 migration). state.events is transient and never saved." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.StateandSaves
+    rectangle "==Layered World\n<size:16>[Component: JavaScript]</size>\n\nCoordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.LayeredWorld
+    rectangle "==State and Saves\n<size:16>[Component: JavaScript]</size>\n\ncreateState() builds the state; serialize/deserialize write and validate a JSON save (format v5; other versions are rejected). state.events is transient and never saved." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.StateandSaves
     rectangle "==Simulation Step\n<size:16>[Component: JavaScript]</size>\n\nstep(s, dt): extractor production, range-limited logistics auto-collect on the player's layer, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.SimulationStep
-    rectangle "==Actions\n<size:16>[Component: JavaScript]</size>\n\nHarvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus entering, leaving and descending through the mine layers. All work on the player's own layer." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.Actions
+    rectangle "==Actions\n<size:16>[Component: JavaScript]</size>\n\nHarvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus travel between layers through holes (dig down from the forest, climb up through the ceiling, drop through holes and shafts). All work on the player's own layer." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.Actions
     rectangle "==Economy and Upgrades\n<size:16>[Component: JavaScript]</size>\n\nContent tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share. Also embark/prestige and the goal track." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.EconomyandUpgrades
   }
 
@@ -83,7 +83,7 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
 }
 
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.SimulationStep <<Relationship-UmVsYXRpb25zaGlw>> : "Calls step(state, dt) every frame"
-MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "harvest, collect, place, enter/leave/descend"
+MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "harvest, collect, place, go down/up, descend"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.EconomyandUpgrades <<Relationship-UmVsYXRpb25zaGlw>> : "buy, embark"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.LayeredWorld <<Relationship-UmVsYXRpb25zaGlw>> : "Reads tiles of the camera's layer"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore.StateandSaves <<Relationship-UmVsYXRpb25zaGlw>> : "serialize/deserialize"

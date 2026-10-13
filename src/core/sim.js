@@ -108,13 +108,13 @@ export function move(s, dx, dy, dt) {
 // which drives the early goals and the compass hint.
 export function revealAround(s, radius = exploreRadius(s)) {
   const p = s.player;
-  if (p.z !== SURFACE) return;
   const w = s.world, r = Math.ceil(radius), r2 = radius * radius;
   const px = Math.floor(p.x), py = Math.floor(p.y);
   for (let y = py - r; y <= py + r; y++) {
     for (let x = px - r; x <= px + r; x++) {
-      if (tileDist2(p, x, y, SURFACE) > r2) continue;
-      markExplored(w, x, y, SURFACE);
+      if (tileDist2(p, x, y, p.z) > r2) continue;
+      markExplored(w, x, y, p.z);
+      if (p.z !== SURFACE) continue;
       const t = tileAt(w, x, y, SURFACE);
       if (t === T.ORE) s.discovered.ore = true;
       if (t === T.CRYSTAL) s.discovered.crystal = true;

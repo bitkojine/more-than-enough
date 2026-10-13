@@ -97,7 +97,7 @@ rectangle "GitHub Pages\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWx
 }
 
 rectangle "Node.js LTS\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS {
-  rectangle "==Unit Tests\n<size:16>[Container: Node.js LTS]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.UnitTests_1
+  rectangle "==Unit Tests\n<size:16>[Container: Node.js LTS]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.UnitTests_1
   rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS.HeadlessChrome {
     rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1
   }

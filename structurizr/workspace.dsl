@@ -32,7 +32,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, entering/leaving the mine, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/controller.js"
@@ -46,7 +46,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row, then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Never text to read." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row; tilted, a cutaway of every layer at the cut row (strata); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Never text to read." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"
@@ -74,7 +74,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                sav = component "Storage" "Guarded localStorage: load (migrating the legacy key), save and clear." "JavaScript + localStorage" {
+                sav = component "Storage" "Guarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/storage.js"
@@ -96,14 +96,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods) and surface fog live outside the cache." "JavaScript" {
+                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js"
                     }
                 }
 
-                state = component "State and Saves" "createState() builds the state; serialize/deserialize write and validate a JSON save (format v4, with a v3 migration). state.events is transient and never saved." "JavaScript" {
+                state = component "State and Saves" "createState() builds the state; serialize/deserialize write and validate a JSON save (format v5; other versions are rejected). state.events is transient and never saved." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/state.js, save.js"
@@ -117,7 +117,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                actions = component "Actions" "Harvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus entering, leaving and descending through the mine layers. All work on the player's own layer." "JavaScript" {
+                actions = component "Actions" "Harvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus travel between layers through holes (dig down from the forest, climb up through the ceiling, drop through holes and shafts). All work on the player's own layer." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/actions.js, underground.js"
@@ -137,7 +137,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools = softwareSystem "Development Tooling" "Test harnesses and the deploy pipeline. Zero dependencies." {
             tags "Tooling"
 
-            coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and migration, and bot playthroughs with real pathfinding." "Node.js LTS" {
+            coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." "Node.js LTS" {
                 tags "Tooling, Test"
                 properties {
                     "file" "test/unit/"
@@ -170,7 +170,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
         mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
         mte.app.main -> mte.app.render "Renders each frame"
-        mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+        mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
         mte.app.controller -> mte.core.economy "buy, embark"
         mte.app.controller -> mte.app.fx "Spawns effects"
         mte.app.controller -> mte.app.audio "Plays cues"
@@ -241,7 +241,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dynamic mte.app "GameLoop" {
             title "Game Loop (one frame)"
             mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
-            mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+            mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
             mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
             mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
             mte.app.main -> mte.app.render "Renders each frame"
@@ -252,7 +252,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dynamic mte.app "CollectFlow" {
             title "Tap to gather or dig"
             mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
-            mte.app.controller -> mte.core.actions "harvest, collect, place, enter/leave/descend"
+            mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
             mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
             mte.app.controller -> mte.app.fx "Spawns effects"
             mte.app.controller -> mte.app.sav "Schedules saves"

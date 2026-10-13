@@ -61,8 +61,9 @@ export function createHud(el) {
       }
       const below = Core.isUnderground(s);
       setText(el.mineIcon, below ? '⬆️' : '⛏️');
-      setText(el.mineLabel, below ? 'SURFACE' : 'MINE');
-      el.mine.setAttribute('aria-label', below ? 'Return to the surface' : 'Go down into the mine');
+      setText(el.mineLabel, below ? 'UP' : 'MINE');
+      el.mine.setAttribute('aria-label', below ? 'Climb up a layer' : 'Dig down into the mine');
+      el.mine.classList.toggle('disabled', !(below ? Core.canGoUp(s) : Core.canGoDown(s)));
     },
 
     view(cam) {

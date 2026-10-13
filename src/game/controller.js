@@ -154,11 +154,13 @@ export function createController({ game, cam, fx, audio, hud }) {
       changed();
     },
 
+    // The layer button: dig down from the forest, or climb up from below.
     toggleMine() {
       const s = state();
-      if (Core.isUnderground(s)) Core.leaveMine(s);
-      else Core.enterMine(s);
+      const went = Core.isUnderground(s) ? Core.goUp(s) : Core.goDown(s);
+      if (!went) return;
       layerChanged();
+      fx.dug(Math.floor(s.player.x), Math.floor(s.player.y)); // dust where you broke through
     },
 
     buy(id) {

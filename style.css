@@ -179,7 +179,7 @@ canvas#game {
 }
 #btnAction .big { font-size: 30px; }
 #btnAction .cap { font-size: 11px; color: #daf5d4; }
-#btnAction.disabled { opacity: 0.5; }
+#btnAction.disabled, #btnMine.disabled { opacity: 0.5; }
 
 #btnBuild {
   position: relative;
