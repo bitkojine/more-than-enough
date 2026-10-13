@@ -116,10 +116,14 @@ test('extractors fill their buffer up to its cap and can be collected nearby', (
   assert.ok(e.buffer < 1);
 });
 
-test('converters need their blueprint and build on any dry land', () => {
+test('converters need their blueprint and build on any dry land, not home ground', () => {
   const s = C.createState(12345);
-  standOn(s, findNear(s, (st, x, y) => C.walkable(st.world, x, y, 0) && typeAt(st, x, y) !== T.WATER));
   Object.assign(s.inv, { wood: 1e4, stone: 1e4, ore: 1e4 });
+  s.unlocks.foundry = true;
+  assert.equal(typeAt(s, Math.floor(s.player.x), Math.floor(s.player.y)), T.HOME, 'every world starts on home ground');
+  assert.equal(C.place(s, 'foundry').ok, false, 'home ground is kept for the stockpile');
+  s.unlocks.foundry = false;
+  standOn(s, findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].land));
   assert.equal(C.place(s, 'foundry').ok, false);
   s.unlocks.foundry = true;
   assert.equal(C.place(s, 'foundry').ok, true);

@@ -10,6 +10,11 @@
    "face": "faces/turf.svg",
    "stand": [null, null, null, null, null, null, "props/tuft.svg", "props/tuft.svg", "props/flowers.svg"]
   },
+  "tile.home": {
+   "color": "#a8875c",
+   "top": ["ground/home-1.svg", "ground/home-2.svg"],
+   "face": "faces/earth.svg"
+  },
   "tile.forest": {
    "color": "#3a5a2c",
    "top": ["ground/forest-1.svg", "ground/forest-2.svg"],

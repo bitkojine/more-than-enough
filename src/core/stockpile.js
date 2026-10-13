@@ -8,12 +8,11 @@
  * tells you the order of magnitude.
  *
  * The yard is only a picture of the inventory: nothing is carried there, and
- * piles never get in the way of walking or gathering. It spirals out from home
- * (where the world started) over ground you have explored, biggest piles in
- * the middle. It takes open grass first and spreads over deposits (covering
- * their trees and boulders) only when that is much closer; it never covers
- * water, rock, holes or buildings. Pure: the same state always gives the same
- * yard. */
+ * piles never get in the way of walking or gathering. It fills the home
+ * clearing every world starts in (home ground, see terrain.js), biggest piles
+ * in the middle, and once that is full spills onto open grass around it. It
+ * never stands on anything you can gather, nor on water, mountains, holes or
+ * buildings. Pure: the same state always gives the same yard. */
 
 import { SURFACE } from './coords.js';
 import { RESOURCES, TILE_INFO } from './tiles.js';

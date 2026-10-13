@@ -8,17 +8,21 @@ import { hash2, fbm } from './noise.js';
 import { T } from './tiles.js';
 
 const MAX_RICHNESS = 30;
+// Every world starts in a round clearing of home ground at the origin, where
+// your stockpile is kept (see stockpile.js).
+export const HOME_RADIUS = 5.5;
 
 export function generateChunk(seed, cx, cy, cz) {
   return cz === SURFACE ? generateSurface(seed, cx, cy) : generateUnderground(seed, cx, cy, cz);
 }
 
 function surfaceType(seed, x, y) {
+  if (x * x + y * y <= HOME_RADIUS * HOME_RADIUS) return T.HOME;
   const elevation = fbm(x * 0.06, y * 0.06, seed + 11, 4);
   const moisture = fbm(x * 0.055, y * 0.055, seed + 23, 4);
   const rock = fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3);
   const ore = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
-  // No distance-from-spawn logic: the whole plane is equally random.
+  // Past the home clearing, the whole plane is equally random.
   if (elevation < 0.28) return T.WATER;
   if (elevation > 0.79) return T.ROCK;
   if (ore > 0.775) return T.CRYSTAL;

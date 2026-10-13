@@ -37,7 +37,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## Stockpile
 
-- [ ] **A home zone.** The stash needs its own zone, so it doesn't cover
+- [x] **A home zone.** (0.30.0) The stash needs its own zone, so it doesn't cover
       resources you can still gather from in the middle of the forest.
 - [ ] **A stable stash.** Piles shouldn't jump around and merge so often as you
       gather. Reorder once in a while, so the stash looks settled.

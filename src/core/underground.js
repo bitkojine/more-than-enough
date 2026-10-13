@@ -40,7 +40,7 @@ function fall(s, x, y) {
 export function canGoDown(s) {
   if (isUnderground(s)) return false;
   const { x, y } = feet(s);
-  return holeBelow(s.world, x, y, SURFACE) || !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].land;
+  return holeBelow(s.world, x, y, SURFACE) || !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].dig;
 }
 
 export function goDown(s) {

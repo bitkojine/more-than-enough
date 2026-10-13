@@ -186,7 +186,7 @@
       <h2>Layout</h2>
       <p>Each world comes from a random seed and has no edges: keep walking and it keeps going. Resources are spread evenly
         everywhere with no richer zones far from the start, so every direction is worth exploring. You begin on the dry land
-        nearest the world's centre.</p>
+        nearest the world's centre, in a clearing of home ground kept for your <a href="#stockpile">stockpile</a>.</p>
       <p>The world has <strong>layers</strong>. The forest you start in is the surface; the mine is a stack of layers directly
         beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
 
@@ -330,7 +330,8 @@
     <article id="stockpile" data-title="The stockpile" hidden>
       <h1>The stockpile</h1>
       <p class="lede">Everything you own stands on the ground around home, and the more you have, the further it spreads.</p>
-      <p>Home is where the world started you. Your stockpile spirals out from there: the biggest piles in the middle, smaller
+      <p>Every world starts you in a round clearing of <strong>home ground</strong>, packed earth where nothing grows and
+        nothing can be gathered. It's where your stockpile is kept. It spirals out from the middle: the biggest piles in the middle, smaller
         ones further out. It's a picture of what's in your packs, not a store: nothing has to be carried there, you can walk
         straight through it, and spending something anywhere takes it off the piles at once. New piles grow out of the
         ground; piles that go vanish in a puff.</p>
@@ -347,8 +348,8 @@
       <h2>Where it goes</h2>
       <ul>
         <li>Only on ground you've explored; explore around home and the yard has more room.</li>
-        <li>Open grass first. If grass is much further away than the nearest forest, stone, ore or crystal, piles stand on
-          those instead (covering their trees and boulders; you can still gather there).</li>
+        <li>Home ground first. Once that's full, piles spill onto open grass around it.</li>
+        <li>Never on anything you can gather (forest, stone, ore, crystal), so a pile never hides a resource.</li>
         <li>Never on water, mountains, holes or buildings, and never more than <span data-k="YARD_RADIUS"></span> tiles from
           home. If it runs out of room, the smallest piles wait for more ground.</li>
         <li>Zoomed far out, each pile is a dot of its resource's colour.</li>

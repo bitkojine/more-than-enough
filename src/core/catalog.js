@@ -67,8 +67,8 @@ function tileDoes(t) {
   if (t === T.BEDROCK) out.push('Cannot be dug.');
   if (t === T.TUNNEL) out.push('Dug-out space in the mine.');
   if (info.height >= 1) out.push('Stands a full layer tall.');
-  if (info.yard === 0) out.push('Your stockpile spreads over it first.');
-  else if (info.yard > 0) out.push('Your stockpile covers it when there is no open ground nearer.');
+  if (t === T.HOME) out.push('The clearing every world starts in, kept for your stockpile.');
+  else if (info.yard > 0) out.push('Your stockpile spills onto it once home ground is full.');
   return out.join(' ');
 }
 

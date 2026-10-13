@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.30.0] - 2026-10-13
+
+### Added
+- **Home ground.** Every world starts you in a round clearing of packed earth
+  where nothing grows and nothing can be gathered: it's where your stockpile
+  is kept. The stockpile fills it first, then spills onto open grass around
+  it, and it never stands on anything you can gather, so a pile never hides
+  a resource you could still work. Converters can't be built on it (it's
+  kept for the stockpile); you can still dig down through it.
+- Surface tiles say explicitly whether you can dig down through them (the
+  `dig` rule), instead of borrowing the converters' `land` rule.
+
 ## [0.29.0] - 2026-10-13
 
 ### Changed

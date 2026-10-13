@@ -67,8 +67,8 @@ test('yard: biggest piles nearest home, and the same state gives the same yard',
   assert.deepEqual(C.yardLayout(s, memo), C.yardLayout(s), '...even when reused');
 });
 
-test('yard: open grass first, never water, rock, holes, buildings or the unexplored', () => {
-  const s = yardWorld({ wood: 999 }, 30);
+test('yard: home ground first, never on anything you can gather, water, rock, holes, buildings or the unexplored', () => {
+  const s = yardWorld({ wood: 9999, stone: 9999, ore: 9999, crystal: 9999 }, 30);
   const h = C.home(s);
   C.digHole(s.world, h.x, h.y, C.SURFACE);
   s.extractors.push({ key: 'sapling', x: h.x + 1, y: h.y, z: C.SURFACE, buffer: 0 });
@@ -76,18 +76,19 @@ test('yard: open grass first, never water, rock, holes, buildings or the unexplo
   for (const p of yard) {
     const t = C.tileAt(s.world, p.x, p.y, C.SURFACE);
     assert.ok(t !== T.WATER && t !== T.ROCK, 'not on water or rock');
+    assert.ok(!C.TILE_INFO[t].harvest, `never hides a resource (${C.TILE_NAME[t]} at ${p.x},${p.y})`);
     assert.ok(!(p.x === h.x && p.y === h.y), 'not on the hole');
     assert.ok(!(p.x === h.x + 1 && p.y === h.y), 'not on the building');
   }
-  // Grass is preferred: no deposit is covered while grass that costs less
-  // (its ring, against the deposit's ring plus its avoidance) is left free.
+  // Home ground is preferred: no grass is used while home ground that costs
+  // less (its ring, against the grass's ring plus its avoidance) is left free.
   const ringOf = (x, y) => Math.max(Math.abs(x - h.x), Math.abs(y - h.y));
   const used = new Set(yard.map((p) => p.x + ',' + p.y));
   const worst = Math.max(...yard.map((p) => ringOf(p.x, p.y) + C.yardCost(s.world, p.x, p.y)));
   for (let y = h.y - 30; y <= h.y + 30; y++) {
     for (let x = h.x - 30; x <= h.x + 30; x++) {
       if (C.yardCost(s.world, x, y) === 0 && ringOf(x, y) < worst && !(x === h.x + 1 && y === h.y)) {
-        assert.ok(used.has(x + ',' + y), `free grass at ${x},${y} (ring ${ringOf(x, y)}) beats a deposit costing ${worst}`);
+        assert.ok(used.has(x + ',' + y), `free home ground at ${x},${y} (ring ${ringOf(x, y)}) beats grass costing ${worst}`);
       }
     }
   }
