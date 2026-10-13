@@ -88,3 +88,4 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       no surfacing into it; deeper layers under it are fine.
 - [x] **Milestones pop up.** (0.35.0) Earning a milestone shows a congratulations
       banner at the top of the screen, not just the sound.
+- [x] **Play button in the wiki.** Easy to spot on mobile and desktop. (0.36.1)

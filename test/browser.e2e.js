@@ -504,12 +504,16 @@ async function main() {
   await sleep(60);
   var kg1 = await evalJS('MTE_GAME.getState().stats.gathers');
   eq(kg1, kg0 + 1, 'one SPACE press gathers exactly once (no double action)');
+  var stormT0 = await evalJS('MTE_GAME.getState().time');
   for (var rep = 0; rep < 15; rep++) { // OS key-repeat storm
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32, nativeVirtualKeyCode: 32, autoRepeat: true }, session);
   }
-  await sleep(60); // still inside one GATHER_CD (0.25s) window
+  await sleep(60);
   var kg2 = await evalJS('MTE_GAME.getState().stats.gathers');
-  ok(kg2 - kg1 <= 2, '15 repeat keydowns did not turbo-gather (gathers ' + kg1 + ' -> ' + kg2 + ')');
+  // Holding paces gathers at one per 0.25 s of game time, however many repeat
+  // events arrive: allow exactly that (the storm takes longer on a busy machine).
+  var stormSecs = await evalJS('MTE_GAME.getState().time') - stormT0;
+  ok(kg2 - kg1 <= Math.ceil(stormSecs / 0.25) + 1, '15 repeat keydowns did not turbo-gather (gathers ' + kg1 + ' -> ' + kg2 + ' in ' + stormSecs.toFixed(2) + ' s)');
   await key('keyUp', ' ', 'Space', 32);
   await sleep(100);
 
@@ -1034,6 +1038,9 @@ async function main() {
   eq(await evalJS('[...document.querySelectorAll("article")].filter(function(a){return !a.hidden;}).map(function(a){return a.id;}).join()'), 'mine', 'wiki links open the right article');
   eq(await evalJS('[...document.querySelectorAll("[data-k]")].filter(function(n){return !/^[0-9]/.test(n.textContent);}).length'), 0, 'every figure in the wiki resolves to a number');
   ok(await evalJS('document.querySelector(".version").textContent.indexOf(".") > 0'), 'the wiki states the game version it documents');
+  // From any page of the wiki, the game is one tap away, and on a phone the
+  // button is on screen without scrolling.
+  ok(await evalJS('(function(){var a=document.querySelector("a.play"),r=a.getBoundingClientRect();return new URL(a.href).pathname.replace(/index\\.html$/,"")==="/"&&r.width>100&&r.top>=0&&r.bottom<=innerHeight;})()'), 'a big Play the game button is on screen in the wiki');
   await evalJS('location.hash = "#ideas"');
   ok(await waitFor('!document.getElementById("ideas").hidden && document.querySelectorAll("#ideas .idea").length >= 20', 2000), 'the wiki has an Ideas section full of ideas');
   ok(await evalJS('document.querySelector("#ideas .note-ideas").textContent.indexOf("None of this is in the game") >= 0'), 'the Ideas section says plainly that none of it is in the game');

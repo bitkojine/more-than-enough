@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.36.1] - 2026-10-13
+
+### Changed
+- **Easy to get from the wiki into the game.** A big green "Play the game"
+  button sits at the top of the wiki's sidebar on desktop and floats in the
+  corner on phones, on every page, and the wiki's home page has its own
+  "Play now" button. The wiki shows the game's icon by its name.
+- The key-repeat browser test measures the time that actually passed instead
+  of assuming it, so a busy machine doesn't fail it.
+
 ## [0.36.0] - 2026-10-13
 
 ### Added
