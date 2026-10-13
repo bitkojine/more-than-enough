@@ -121,3 +121,22 @@ test('progression nodes report saving, ready, partial and owned', () => {
   C.buy(s, 'legacy');
   assert.equal(C.pathNode(s, 'legacy').state, 'partial');
 });
+
+test('a building shows waiting output only when nothing hauls it in', () => {
+  const s = C.createState(3);
+  const e = { key: 'lumber', res: 'wood', x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z, buffer: 0.6 };
+  s.extractors.push(e);
+  assert.equal(C.holdsOutput(s, e), false, 'less than a unit is not worth collecting yet');
+  e.buffer = 3;
+  assert.equal(C.holdsOutput(s, e), true, 'without Logistics, output waits');
+  s.unlocks.logistics = true;
+  assert.equal(C.holdsOutput(s, e), false, 'in Logistics reach, it is hauled in as made');
+  // Many frames of production in reach: it never shows as waiting.
+  for (let i = 0; i < 600; i++) {
+    C.step(s, 1 / 60);
+    assert.equal(C.holdsOutput(s, e), false, `frame ${i}`);
+  }
+  e.x += 1000;
+  e.buffer = 3;
+  assert.equal(C.holdsOutput(s, e), true, 'out of reach, it waits again');
+});

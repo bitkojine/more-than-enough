@@ -35,8 +35,20 @@ export function step(s, dt) {
   if (nextTick !== regrowTick) regrow(s, nextTick);
 }
 
+const REACH2 = AUTO_COLLECT_RANGE * AUTO_COLLECT_RANGE;
+
+// Whether Logistics hauls this building's output in as it's made.
+export function autoCollected(s, e) {
+  return s.unlocks.logistics && tileDist2(s.player, e.x, e.y, e.z) <= REACH2;
+}
+
+// Whether a building holds output that waits for you to collect it (a whole
+// unit or more, and nothing is hauling it in).
+export function holdsOutput(s, e) {
+  return e.buffer >= 1 && !autoCollected(s, e);
+}
+
 function produce(s, dt) {
-  const reach2 = AUTO_COLLECT_RANGE * AUTO_COLLECT_RANGE;
   for (const e of s.extractors) {
     const def = EXTRACTORS[e.key];
     if (e.buffer < def.buffer) {
@@ -45,7 +57,7 @@ function produce(s, dt) {
     // Logistics: whole units funnel into your packs, but only from extractors
     // close enough to haul from (on your layer). Far away they keep producing
     // and fill their buffers, ready for when you walk back.
-    if (s.unlocks.logistics && e.buffer >= 1 && tileDist2(s.player, e.x, e.y, e.z) <= reach2) {
+    if (e.buffer >= 1 && autoCollected(s, e)) {
       const amt = Math.floor(e.buffer);
       s.inv[e.res] += amt;
       s.stats[e.res] += amt;

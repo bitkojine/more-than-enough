@@ -29,13 +29,15 @@ export function drawExtractor(ctx, cam, s, look, e) {
   shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
   const def = Core.EXTRACTORS[e.key];
-  if (e.buffer < 0.5) return;
+  // Only output that waits for you: what Logistics hauls in as it's made
+  // never shows (a dial for it would blink on and off many times a second).
+  if (!Core.holdsOutput(s, e)) return;
   const p = Math.min(1, e.buffer / def.buffer);
   const r = Math.max(4, u * 0.13);
   const cx = ground.x + pic.units * u * 0.32, cy = ground.y - h - r * 0.2;
   ctx.fillStyle = 'rgba(10,12,14,0.72)';
   ctx.beginPath(); ctx.arc(cx, cy, r + 2, 0, TAU); ctx.fill();
-  ctx.fillStyle = p >= 1 ? '#ffd166' : '#7fd07a';
+  ctx.fillStyle = look.color(p >= 1 ? 'color.dialFull' : 'color.dial');
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * TAU); ctx.closePath(); ctx.fill();
 }
 

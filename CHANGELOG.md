@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.26.1] - 2026-10-13
+
+### Fixed
+- **No more flickering dials.** The dial over a building showed at half a
+  unit of output and vanished when Logistics hauled it in, so with
+  auto-collect it blinked many times a second. It now shows only output
+  that waits for you (a whole unit or more, with nothing hauling it in).
+- The dial's colours come from the texture pack (`color.dial`,
+  `color.dialFull`), like everything else.
+
 ## [0.26.0] - 2026-10-13
 
 ### Fixed

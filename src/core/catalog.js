@@ -125,7 +125,9 @@ const COLORS = {
   unknown: ['Unknown layer', 'Layers in a cliff you have never been down to.'],
   visited: ['Visited layer', 'Layers in a cliff you have been down to but not seen here.'],
   cavity: ['Dug space', 'Open space in a cliff where you dug.'],
-  edge: ['Edge of the known', 'The light lip along edges facing the dark.']
+  edge: ['Edge of the known', 'The light lip along edges facing the dark.'],
+  dial: ['Output dial', 'The dial over a building holding output you have to collect, filling as it holds more.'],
+  dialFull: ['Full dial', 'The dial over a building that is full and has stopped working until you collect.']
 };
 for (const key of Object.keys(COLORS)) add('color', key, COLORS[key][0], COLORS[key][1], req('color'));
 

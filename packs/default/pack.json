@@ -274,6 +274,12 @@
   },
   "color.edge": {
    "color": "#f0e2b6"
+  },
+  "color.dial": {
+   "color": "#7fd07a"
+  },
+  "color.dialFull": {
+   "color": "#ffd166"
   }
  }
 }

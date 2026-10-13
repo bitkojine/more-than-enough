@@ -15,7 +15,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       progress in one and close it, then go back to the older tab: does the old
       state overwrite the newer save? If so, warn before loading an older state
       and offer to keep the most advanced one.
-- [ ] **Flickering progress rings.** The rings next to buildings flicker when
+- [x] **Flickering progress rings.** (0.26.1) The rings next to buildings flicker when
       you collect fast (auto-collect). Drop the "empty" visual state.
 - [ ] **Tap the world to close menus.** Clicking past a menu onto the game
       world should close the menu.
