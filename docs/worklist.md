@@ -9,9 +9,9 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## Bugs
 
-- [x] **Sound must always work.** (0.25.1) Sometimes sounds don't start until you touch
+- [x] **Sound must always work.** (0.25.1, silent by mistake; fixed and tested in 0.26.0) Sometimes sounds don't start until you touch
       the UI. They should play from the start, all the time.
-- [ ] **Two tabs, one save.** Two tabs with the same save fork it. Make
+- [x] **Two tabs, one save.** (0.26.0) Two tabs with the same save fork it. Make
       progress in one and close it, then go back to the older tab: does the old
       state overwrite the newer save? If so, warn before loading an older state
       and offer to keep the most advanced one.

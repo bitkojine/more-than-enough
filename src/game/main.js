@@ -16,7 +16,8 @@ import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
-import { loadGame, saveGame, loadView, saveView } from './storage.js';
+import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
+import { createFork } from './fork.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
@@ -52,9 +53,12 @@ let saveError = null;
 const game = {
   state: loaded.state,
   saveSoon() { saveDue = true; },
-  saveNow() {
+  saveNow(force = false) {
     saveDue = false;
-    const err = saveGame(game.state);
+    if (fork.open) return; // the player hasn't picked a world yet
+    const r = saveGame(game.state, force);
+    if (r && r.conflict) return forked(r.conflict);
+    const err = r && r.error;
     // Say so the moment saving starts failing (and again if it recovers and
     // fails later), so progress is never lost silently.
     if (err && !saveError) {
@@ -76,6 +80,23 @@ const game = {
     game.saveNow();
   }
 };
+
+// Another tab saved this world since this tab did: don't overwrite it, ask.
+const fork = createFork(el.fork);
+function forked(raw) {
+  if (fork.open) return;
+  input.release();
+  fork.show(game.state, Core.deserialize(raw), {
+    keepOther: () => game.replace(adopt(raw)),
+    keepMine: () => game.saveNow(true),
+    reload: () => location.reload()
+  });
+}
+function checkFork() {
+  const raw = !document.hidden && savedElsewhere();
+  if (raw) forked(raw);
+}
+onSavedElsewhere(checkFork);
 
 const controller = createController({ game, cam, fx, audio, hud, look });
 
@@ -195,7 +216,7 @@ function frame(now) {
   last = now;
   try {
     const t0 = performance.now();
-    if (!document.hidden) update(dt);
+    if (!document.hidden && !fork.open) update(dt);
     cam.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
@@ -220,7 +241,7 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 window.addEventListener('pagehide', () => game.saveNow());
-document.addEventListener('visibilitychange', () => { if (document.hidden) game.saveNow(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) game.saveNow(); else checkFork(); });
 
 const savedView = loadView();
 cam.setZoom(savedView.zoom);
@@ -246,6 +267,7 @@ window.MTE_GAME = {
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
   flyers: () => fx.flyers,
   audioState: () => audio.state(),
+  audio,
   zoom: () => cam.zoom,
   tilePx: () => cam.tilePx,
   setZoom(z) { cam.setZoom(z); hud.view(cam); },

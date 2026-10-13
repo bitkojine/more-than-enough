@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.26.0] - 2026-10-13
+
+### Fixed
+- **Sound plays again.** 0.25.1 made the game silent: setting up the sound
+  shared a name with the build sound, so the output was never connected.
+  The browser tests now listen to what actually comes out (every sound must
+  register on an output meter, mute must silence it), instead of only
+  checking that audio was switched on.
+
+### Added
+- **Two tabs can't roll your progress back.** All tabs share one save. If
+  another tab saved since this one did, this tab no longer overwrites it: it
+  pauses and asks which world to keep, the other tab's or its own, showing
+  time played and amount gathered and marking the one further along. Closing
+  a tab while it asks saves nothing. If the other tab ran a newer version of
+  the game, the choice is to reload into it.
+
 ## [0.25.1] - 2026-10-13
 
 ### Fixed

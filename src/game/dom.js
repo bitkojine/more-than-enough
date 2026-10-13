@@ -39,6 +39,7 @@ export function findElements() {
     packName: byId('packName'),
     texturesDefault: byId('btnTexturesDefault'),
     packFile: byId('packFile'),
-    packReport: byId('packReport')
+    packReport: byId('packReport'),
+    fork: byId('fork')
   };
 }

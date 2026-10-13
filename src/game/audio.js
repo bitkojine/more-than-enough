@@ -19,6 +19,7 @@ const pick = (list) => list[(rand() * list.length) | 0];
 export function createAudio() {
   let ctx = null;
   let master = null;
+  let meter = null;             // analyser on the output
   let droneMix = null;          // automated hum level -> tremolo -> master
   const droneOscs = [null, null];
   let noise = null;             // shared white-noise buffer for impact transients
@@ -81,15 +82,20 @@ export function createAudio() {
 
   function init() {
     if (!unlock() || master) return;
-    build();
+    wire();
   }
 
   // The output chain and the operation hum.
-  function build() {
+  function wire() {
     try {
       master = ctx.createGain();
       master.gain.value = 0.85;
       master.connect(ctx.destination);
+      // A meter on the output, so tests (and the perf panel) can tell that
+      // sound really comes out, not just that the context runs.
+      meter = ctx.createAnalyser();
+      meter.fftSize = 2048;
+      master.connect(meter);
       // Operation hum: droneMix holds the automated level, then a slow tremolo
       // LFO makes it breathe; inaudible until extractors exist.
       droneMix = ctx.createGain();
@@ -299,12 +305,21 @@ export function createAudio() {
   document.addEventListener('visibilitychange', nudge);
   window.addEventListener('focus', nudge);
   setInterval(nudge, 1000);
-  if (create()) { build(); nudge(); }
+  if (create()) { wire(); nudge(); }
 
   return {
     init, gather, dig, collect, upgrade, build, fanfare, drone,
     get muted() { return muted; },
     set muted(v) { muted = v; },
-    state: () => (ctx ? ctx.state : 'none')
+    state: () => (ctx ? ctx.state : 'none'),
+    // The loudest sample in the last ~40ms of output (0 = silence).
+    level() {
+      if (!meter) return 0;
+      const buf = new Float32Array(meter.fftSize);
+      meter.getFloatTimeDomainData(buf);
+      let peak = 0;
+      for (const v of buf) peak = Math.max(peak, Math.abs(v));
+      return peak;
+    }
   };
 }

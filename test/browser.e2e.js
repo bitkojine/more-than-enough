@@ -258,6 +258,22 @@ async function main() {
     return evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({x:+s.player.x.toFixed(2),y:+s.player.y.toFixed(2),inv:s.inv,tools:s.tools,unlocks:s.unlocks,ext:s.extractors.length,goal:s.goalIndex,buf:s.extractors.map(function(e){return +e.buffer.toFixed(2);})});})()');
   }
 
+  // Sound: watch the game's output meter for a while and return the loudest
+  // sample heard (0 = silence). Chrome runs with --mute-audio, which silences
+  // the speakers but not the audio graph, so this measures real output.
+  function startListening() {
+    return evalJS('(function(){window.__peak=0;clearInterval(window.__listen);window.__listen=setInterval(function(){window.__peak=Math.max(window.__peak,MTE_GAME.audio.level());},8);})()');
+  }
+  async function heard(ms) {
+    await sleep(ms);
+    return evalJS('(function(){clearInterval(window.__listen);return window.__peak;})()');
+  }
+  async function loudness(call) {
+    await startListening();
+    await evalJS(call);
+    return heard(400);
+  }
+
   var results = {};
 
   /* ------------------------------------------------------------- boot */
@@ -284,6 +300,18 @@ async function main() {
   ok(await evalJS('MTE_GAME.audioState()') !== 'none', 'the audio context exists before any gesture');
   await drag(80, 600, 140, 600, 4, 30);
   ok(await waitFor('MTE_GAME.audioState() === "running"', 1500), 'a drag on the map is enough to start the sound (state: ' + await evalJS('MTE_GAME.audioState()') + ')');
+  // Every sound must actually come out of the speakers, not just be "on".
+  var SOUNDS = ['gather("wood",1,1)', 'gather("stone",1,1)', 'gather("ore",1,1)', 'gather("crystal",1,1)', 'dig()', 'collect()', 'upgrade()', 'build()', 'fanfare()'];
+  for (var si = 0; si < SOUNDS.length; si++) {
+    var peak = await loudness('MTE_GAME.audio.' + SOUNDS[si]);
+    ok(peak > 0.004, 'the ' + SOUNDS[si].replace(/\(.*/, '') + ' sound is heard' + (SOUNDS[si].indexOf('gather') === 0 ? ' (' + SOUNDS[si].split('"')[1] + ')' : '') + ' (peak ' + peak.toFixed(3) + ')');
+  }
+  await sleep(800); // let the last notes ring out
+  await startListening();
+  ok(await heard(300) < 0.002, 'and between sounds it is quiet');
+  await evalJS('MTE_GAME.audio.muted = true');
+  ok(await loudness('MTE_GAME.audio.collect()') < 0.005, 'muted, nothing is heard');
+  await evalJS('MTE_GAME.audio.muted = false');
   var zoomIn = await rect('#btnZoomIn');
   await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');
@@ -383,8 +411,9 @@ async function main() {
   var act = await rect('#btnAction');
   ok(act && act.w > 60, 'action button is a comfortable tap target (' + (act && act.w) + 'px)');
   var g0 = JSON.parse(await stateSummary());
+  await startListening();
   await hold(act.x, act.y, 2200); // hold to auto-repeat gather
-  await sleep(200);
+  ok(await heard(200) > 0.01, 'gathering in play is heard');
   var g1 = JSON.parse(await stateSummary());
   ok(g1.inv.wood > g0.inv.wood, 'holding GATHER collected wood (' + g0.inv.wood + ' -> ' + g1.inv.wood + ')');
   var trailStartInv = g1.inv.wood;
@@ -543,6 +572,37 @@ async function main() {
   eq(Math.floor(post.inv.ore), Math.floor(pre.inv.ore), 'ore inventory survives reload');
   eq(post.seed === undefined ? undefined : post.seed, undefined, 'seed key shape ok'); // no-op guard
   ok(Math.abs(post.x - pre.x) < 0.05 && Math.abs(post.y - pre.y) < 0.05, 'player position survives reload');
+
+  console.log('\n== Two tabs, one save ==');
+  // Another tab saves a world further along. This tab must not overwrite it
+  // on its next save: it pauses and asks which world to keep.
+  var KEY = '"more-than-enough-save"';
+  await evalJS('MTE_GAME.save()');
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=7200;d.stats.wood+=500000;d.inv.wood=777777;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
+  var otherRaw = await evalJS('localStorage.getItem(' + KEY + ')');
+  await evalJS('MTE_GAME.save()');
+  ok(await evalJS('!document.getElementById("fork").hidden'), 'saving after another tab did shows the choice instead');
+  ok(await evalJS('localStorage.getItem(' + KEY + ')') === otherRaw, "the other tab's save is untouched");
+  console.log('  screenshot: ' + await shot('03-two-tabs.png'));
+  eq(await evalJS('document.querySelector("#fork button.ahead").dataset.pick'), 'other', "the other tab's world is marked as further along");
+  var pausedAt = await evalJS('MTE_GAME.getState().time');
+  await sleep(300);
+  eq(await evalJS('MTE_GAME.getState().time'), pausedAt, 'the game waits while you choose');
+  await evalJS('dispatchEvent(new Event("pagehide"))');
+  ok(await evalJS('localStorage.getItem(' + KEY + ')') === otherRaw, 'closing the tab while it asks saves nothing');
+  var pickOther = await rect('#fork button[data-pick=other]');
+  await tap(pickOther.x, pickOther.y);
+  ok(await evalJS('document.getElementById("fork").hidden'), 'picking a world closes the choice');
+  eq(await evalJS('Math.floor(MTE_GAME.getState().inv.wood)'), 777777, "picking the other tab's world plays it here");
+  // And the other way: an older save appears; keeping this tab's overwrites it.
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time=1;d.inv.wood=5;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
+  await evalJS('MTE_GAME.save()');
+  eq(await evalJS('document.querySelector("#fork button.ahead").dataset.pick'), 'mine', "this tab's world is marked when it's further along");
+  var pickMine = await rect('#fork button[data-pick=mine]');
+  await tap(pickMine.x, pickMine.y);
+  eq(await evalJS('JSON.parse(localStorage.getItem(' + KEY + ')).inv.wood'), 777777, "keeping this tab's world saves it over the older one");
+  await evalJS('MTE_GAME.save()');
+  ok(await evalJS('document.getElementById("fork").hidden'), 'after choosing, saving carries on as normal');
 
   var s3 = await shot('03-reloaded.png');
   console.log('  screenshot: ' + s3);
