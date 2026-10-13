@@ -21,7 +21,6 @@ export function createAudio() {
   let master = null;
   let droneMix = null;          // automated hum level -> tremolo -> master
   const droneOscs = [null, null];
-  let unlocked = false;         // true once the context reports "running"
   let noise = null;             // shared white-noise buffer for impact transients
   let muted = false;
   let scale = null;
@@ -43,33 +42,50 @@ export function createAudio() {
     }
   }
 
-  // Create/resume the AudioContext; must run inside a real user gesture.
-  // Handles "suspended" and Safari's "interrupted" state, and plays a one-frame
-  // silent buffer, the trick that unlocks mobile Safari when resume() alone is
-  // ignored. Safe to call repeatedly.
+  // Browsers only let sound start after the player has done something on the
+  // page, and some count only certain things (iOS Safari: a tap, not a drag).
+  // So the context is made at load (it plays at once where the browser
+  // allows it), every kind of press tries to wake it, and once the page has
+  // had any gesture at all it is nudged back whenever it stalls (tab hidden,
+  // a phone call, the OS taking the audio). Safe to call repeatedly.
+  function create() {
+    if (ctx) return true;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return false;
+    try { ctx = new AC(); } catch { ctx = null; return false; }
+    ctx.onstatechange = () => { if (ctx.state !== 'running') nudge(); };
+    return true;
+  }
+
+  // Resume, with no gesture to hand: works once the page has had one.
+  function nudge() {
+    if (!ctx || ctx.state === 'running' || document.hidden) return;
+    try { ctx.resume().catch(() => {}); } catch { /* the next gesture will */ }
+  }
+
+  // Inside a gesture: resume, plus a one-sample silent buffer, the trick that
+  // wakes mobile Safari when resume() alone is ignored.
   function unlock() {
-    if (!ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return false;
-      try { ctx = new AC(); } catch { ctx = null; return false; }
-    }
+    if (!create()) return false;
     if (ctx.state !== 'running') {
       try { ctx.resume().catch(() => {}); } catch { /* keep going */ }
-    }
-    if (!unlocked) {
       try {
         const src = ctx.createBufferSource();
         src.buffer = ctx.createBuffer(1, 1, 22050);
         src.connect(ctx.destination);
         src.start(0);
       } catch { /* ignore */ }
-      if (ctx.state === 'running') unlocked = true;
     }
     return true;
   }
 
   function init() {
     if (!unlock() || master) return;
+    build();
+  }
+
+  // The output chain and the operation hum.
+  function build() {
     try {
       master = ctx.createGain();
       master.gain.value = 0.85;
@@ -104,7 +120,9 @@ export function createAudio() {
     } catch { ctx = null; master = null; }
   }
 
-  const live = () => ctx && master && !muted;
+  // Only while the clock runs: notes queued on a stalled context would all
+  // burst out at once when it resumes.
+  const live = () => ctx && master && !muted && ctx.state === 'running';
 
   function note(freq, dur, type, vol, harmony, delay, bright) {
     if (!live() || voices > MAX_VOICES) return;
@@ -271,15 +289,17 @@ export function createAudio() {
     droneOscs[1].frequency.setTargetAtTime(root * (1.45 + rand() * 0.1), t, 0.9);
   }
 
-  // Unlock from ANY real gesture, not only controls that make sound, so the
-  // very first tap, drag or key resumes the context. Capture phase so it runs
-  // before handlers that call preventDefault().
-  for (const ev of ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'touchend', 'click']) {
+  // Every kind of press, in the capture phase so it runs before handlers
+  // that call preventDefault(). (Which of these count as a gesture differs by
+  // browser: pointerup and touchend are the ones a tap on a phone gives.)
+  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'keydown', 'click']) {
     window.addEventListener(ev, init, { capture: true, passive: true });
   }
-  // Browsers suspend the context when the tab hides; nudge it back on return.
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) init(); });
-  window.addEventListener('focus', init);
+  // Back to the tab, or anything else stalled it: try again.
+  document.addEventListener('visibilitychange', nudge);
+  window.addEventListener('focus', nudge);
+  setInterval(nudge, 1000);
+  if (create()) { build(); nudge(); }
 
   return {
     init, gather, dig, collect, upgrade, build, fanfare, drone,

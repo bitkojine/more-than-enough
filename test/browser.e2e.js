@@ -279,6 +279,11 @@ async function main() {
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 4, 'gather, build, upgrade and mine share the thumb dock');
+  // Sound: the context exists from load, and the first gesture of any kind
+  // gets it running (it used to wait for certain controls).
+  ok(await evalJS('MTE_GAME.audioState()') !== 'none', 'the audio context exists before any gesture');
+  await drag(80, 600, 140, 600, 4, 30);
+  ok(await waitFor('MTE_GAME.audioState() === "running"', 1500), 'a drag on the map is enough to start the sound (state: ' + await evalJS('MTE_GAME.audioState()') + ')');
   var zoomIn = await rect('#btnZoomIn');
   await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');

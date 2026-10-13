@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.25.1] - 2026-10-13
+
+### Fixed
+- **Sound starts as soon as the browser allows it.** The audio used to be
+  set up only on certain presses, so a session that began with dragging could
+  stay silent until you touched a button. Now it's made at load (playing at
+  once where the browser permits), every kind of press wakes it, and it is
+  nudged back by itself after the tab was hidden or the system took the
+  audio. Notes are no longer queued while it's stalled, so nothing bursts
+  out at once when it wakes.
+
 ## [0.25.0] - 2026-10-13
 
 ### Added
