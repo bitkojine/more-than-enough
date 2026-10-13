@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamera, MIN_TILT } from '../../src/game/camera.js';
+import { DEFAULT_TILE } from '../../src/core/catalog.js';
 
 // A camera on a 400x400 screen with 40px tiles, looking at (0, 0) on layer z.
 function camera(tilt, relief = () => 0, z = 0) {
@@ -47,7 +48,10 @@ test('tilted picking hits the top or south face you can see', () => {
   const cam = camera(1, (x, y) => (x === 0 && y === 0 ? 1 : 0));
   assert.deepEqual(tileUnder(cam, 0.5, 0.5, 1), [0, 0], 'the wall top picks the wall');
   assert.deepEqual(tileUnder(cam, 0.5, 0.5, 0), [0, 0], 'the floor point behind its face lands on the face');
-  assert.deepEqual(tileUnder(cam, 0.5, -0.9, 0), [0, -1], 'floor peeking out behind the wall top picks that floor');
+  // The wall top hides the floor up to risePx/depthPx rows behind it; just
+  // past that, the floor peeks out again.
+  const behind = -cam.risePx / cam.depthPx - 0.2;
+  assert.deepEqual(tileUnder(cam, 0.5, behind, 0), [0, Math.floor(behind)], 'floor peeking out behind the wall top picks that floor');
   assert.deepEqual(tileUnder(cam, 0.5, 1.5, 0), [0, 1], 'floor in front of the wall picks that floor');
   assert.deepEqual(tileUnder(cam, 1.5, 0.5, 0), [1, 0], 'floor beside the wall picks that floor');
   const face = cam.unproject(cam.project(0.5, 1, 0.5).x, cam.project(0.5, 1, 0.5).y);
@@ -70,4 +74,12 @@ test('tilt eases toward its target and is clamped', () => {
   assert.equal(cam.tilt, 1);
   cam.setTilt(-1, true);
   assert.equal(cam.tilt, MIN_TILT);
+});
+
+test('a layer stands taller than the wanderer, so tunnels and cliffs read to scale', async () => {
+  const { readFileSync } = await import('node:fs');
+  const svg = readFileSync(new URL('../../packs/default/characters/wanderer.svg', import.meta.url), 'utf8');
+  const tall = Number(svg.match(/height="([\d.]+)"/)[1]) / DEFAULT_TILE; // in tiles, as drawn
+  const cam = camera(1);
+  assert.ok(cam.risePx / cam.tilePx > tall * 1.15, `a layer (${(cam.risePx / cam.tilePx).toFixed(2)} tiles) fits the wanderer (${tall.toFixed(2)}) with headroom`);
 });

@@ -46,7 +46,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## Underground
 
-- [ ] **Taller layers.** Underground layers are shorter than the player
+- [x] **Taller layers.** (0.31.2) Underground layers are shorter than the player
       character, and so are the cliff faces seen from the forest edge. Make
       every layer at least tall enough for the player.
 - [ ] **Drill as you walk.** Walking into a wall should mine it, so you never

@@ -17,7 +17,11 @@ const ZOOM_MAX = 3;          // 3x in
 const MIN_TILE_PX = 3;       // floor on tile size: the practical zoom-out limit
 const MAX_PITCH = 0.9;       // radians from straight down at full tilt (~52°)
 export const MIN_TILT = 0.25;  // the flattest the view gets (~13°)
-const LAYER_HEIGHT = 0.6;    // one layer's height, in tile lengths
+// One layer's height, in tile lengths. The wanderer stands just under a tile
+// tall (0.94 in the default pack), so a layer has to be well over that: at full
+// tilt a layer shows 1.5 x sin(MAX_PITCH) = 1.17 tiles of wall, the wanderer
+// plus headroom, and a dug tunnel reads as a space you can walk in.
+const LAYER_HEIGHT = 1.5;
 // Below this much lift per layer the view counts as flat and heights are ignored.
 export const FLAT_RISE_PX = 0.5;
 const TILT_EASE = 9;         // how quickly the view swings to a new tilt, per second

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.31.2] - 2026-10-13
+
+### Changed
+- **Layers to scale.** A layer was 0.6 tiles high, shorter than the wanderer
+  standing in it. It's now 1.5 tiles, so at full tilt a tunnel wall shows
+  1.17 tiles: the wanderer (0.94) plus headroom. Cliffs seen from the forest
+  edge grow with it. A test checks the layer against the wanderer picture's
+  real height.
+
 ## [0.31.1] - 2026-10-13
 
 ### Changed
