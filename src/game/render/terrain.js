@@ -22,6 +22,10 @@ const LOD_PX = 10;          // below this tile size, draw level-of-detail blocks
 const FOG = '#04060a';
 const UNSEEN_ROCK = '#100d0b';      // underground you haven't seen: solid, dark
 const UNSEEN_FACE = '#0a0807';
+
+// What an unseen tile looks like: fog on the surface, dark rock below.
+const unseenTop = (z) => (z === Core.SURFACE ? FOG : UNSEEN_ROCK);
+const unseenFace = (z) => (z === Core.SURFACE ? FOG : UNSEEN_FACE);
 const CUTAWAY_TILT = 0.3;           // the world opens up from this much tilt
 const CUT_AT = 0.7;                 // the cut sits this far down the screen
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
@@ -268,14 +272,14 @@ function drawTile(ctx, cam, s, x, y, z, cut) {
   const tilted = cam.risePx > FLAT_RISE_PX;
   const h = tilted ? Core.tileHeight(w, x, y, z) : 0;
   const { x: sx, y: sy } = cam.project(x, y, z + h);
-  const unseen = z === Core.SURFACE ? FOG : UNSEEN_ROCK;
+  const unseen = unseenTop(z);
   const color = t < 0 ? unseen : BASE_COLOR[t];
 
   // The south face, down to the top of the tile in front, lit along its rim.
   const front = !tilted ? h : cut ? 0 : Core.tileHeight(w, x, y + 1, z);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
-    ctx.fillStyle = t < 0 ? (z === Core.SURFACE ? FOG : UNSEEN_FACE)
+    ctx.fillStyle = t < 0 ? unseenFace(z)
       : FACE_COLOR[t] ? shade(FACE_COLOR[t], tv(x, y, 8)) : shade(color, tv(x, y, 8), FACE_DIM);
     ctx.fillRect(sx, sy + d, u + 1, faceH + 1);
     if (t >= 0) {
@@ -314,7 +318,7 @@ function drawBlock(ctx, cam, s, bx, by, z, step) {
   const tx = bx * step + (step >> 1), ty = by * step + (step >> 1);
   const t = tileLook(s.world, tx, ty, z);
   const p = cam.project(bx * step, by * step);
-  ctx.fillStyle = t < 0 ? (z === Core.SURFACE ? FOG : UNSEEN_ROCK) : shade(BASE_COLOR[t], tv(tx, ty, 7));
+  ctx.fillStyle = t < 0 ? unseenTop(z) : shade(BASE_COLOR[t], tv(tx, ty, 7));
   ctx.fillRect(p.x, p.y, cam.tilePx * step + 1, cam.depthPx * step + 1);
 }
 

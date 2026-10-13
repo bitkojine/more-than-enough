@@ -65,7 +65,8 @@ export function deserialize(str) {
       if (isInt(k) && isValidFogMask(mask)) w.explored.set(k, mask);
     } catch { /* skip a corrupt mask */ }
   }
-  w.holes = new Set((d.holes || []).filter((k) => isInt(k) && unpackKey(k).z <= SURFACE && unpackKey(k).z > Z_MIN));
+  const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
+  w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };
