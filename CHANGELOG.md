@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.33.0] - 2026-10-13
+
+### Changed
+- **A new hole takes work.** MINE (and UP through solid ceiling) no longer
+  opens a hole at once: you dig for 2.5 seconds with the first Pickaxe
+  (divided by the square root of its level, about 1 s at level 6), with a
+  shovelful of dust and a thud every 0.4 s, a ring filling around the button
+  and the pit opening at your feet. Step off the spot and you stop. Going
+  through a hole that's already there is still instant.
+
 ## [0.32.2] - 2026-10-13
 
 ### Fixed

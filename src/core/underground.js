@@ -2,7 +2,12 @@
  * every way between layers is a hole you can see: going down from the forest
  * digs one at your feet, climbing up digs one through the ceiling, and opened
  * shafts lead deeper. Dropping into a hole that sits on another hole keeps
- * falling, so a dug column rides straight to its bottom. */
+ * falling, so a dug column rides straight to its bottom.
+ *
+ * A new hole takes work: startDig() begins it, and digOn() keeps at it while
+ * you stay on the spot, for holeTime() seconds (quicker with a better
+ * Pickaxe). A hole that's already there is a way straight through.
+ * goDown()/goUp() are the moment of breaking through. */
 
 import { SURFACE, Z_MIN, tileDist2 } from './coords.js';
 import { TILE_INFO, T } from './tiles.js';
@@ -90,4 +95,61 @@ export function descendAt(s, x, y) {
   if (!canDescendAt(s, x, y)) return false;
   fall(s, x, y);
   return true;
+}
+
+/* -------------------------------------------------------- digging a hole */
+
+export const HOLE_TIME = 2.5; // seconds to dig a new hole with the first Pickaxe
+
+// How long a new hole takes: HOLE_TIME, divided by the square root of the
+// Pickaxe level (level 6 digs in about a second).
+export function holeTime(s) {
+  return HOLE_TIME / Math.sqrt(s.tools.pickaxe);
+}
+
+// Whether there's already a hole to go through where you stand.
+function holeHere(s) {
+  const { x, y } = feet(s);
+  return holeBelow(s.world, x, y, isUnderground(s) ? s.player.z + 1 : SURFACE);
+}
+
+const canGo = (s) => (isUnderground(s) ? canGoUp(s) : canGoDown(s));
+
+/**
+ * The layer button: go through a hole that's there, or start digging one.
+ * @returns {'moved' | 'digging' | null}  null when there's no way here
+ */
+export function startDig(s) {
+  if (s.digging) return 'digging';
+  if (!canGo(s)) return null;
+  if (holeHere(s)) {
+    if (isUnderground(s)) goUp(s); else goDown(s);
+    return 'moved';
+  }
+  const { x, y } = feet(s);
+  s.digging = { x, y, z: s.player.z, up: isUnderground(s), t: 0 };
+  return 'digging';
+}
+
+/**
+ * Keeps digging for dt seconds. Stepping off the spot (or anything that
+ * makes the way impossible) stops it. Returns true when you break through.
+ */
+export function digOn(s, dt) {
+  const d = s.digging;
+  if (!d) return false;
+  const { x, y } = feet(s);
+  if (x !== d.x || y !== d.y || s.player.z !== d.z || !canGo(s)) {
+    s.digging = null;
+    return false;
+  }
+  d.t += dt;
+  if (d.t < holeTime(s)) return false;
+  s.digging = null;
+  return d.up ? goUp(s) : goDown(s);
+}
+
+// How far the hole being dug is, 0..1 (0 when not digging).
+export function digProgress(s) {
+  return s.digging ? Math.min(1, s.digging.t / holeTime(s)) : 0;
 }

@@ -9,12 +9,14 @@ import { clearSave, randomSeed } from './storage.js';
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
+const DIG_BEAT = 0.4;         // seconds between shovelfuls while digging a hole
 
 export function createController({ game, cam, fx, audio, hud, look }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
   const drilling = { x: 0, y: 0, t: 0 }; // progress into the wall you're pushing
+  let dustIn = 0;                          // seconds to the next shovelful while digging a hole
 
   const state = () => game.state;
   const player = () => game.state.player;
@@ -72,6 +74,12 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     game.saveNow();
   }
 
+  function brokeThrough() {
+    layerChanged();
+    const p = player();
+    fx.dug(Math.floor(p.x), Math.floor(p.y)); // dust where you came through
+  }
+
   function descend(x, y) {
     if (!Core.descendAt(state(), x, y)) return false;
     layerChanged();
@@ -116,6 +124,16 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     },
 
     tick(dt, holding) {
+      const s = state();
+      if (s.digging) {
+        // A shovelful of dust and a thud every so often while you dig.
+        if ((dustIn -= dt) <= 0) {
+          dustIn = DIG_BEAT;
+          fx.dug(s.digging.x, s.digging.y);
+          audio.dig();
+        }
+        if (Core.digOn(s, dt)) brokeThrough();
+      }
       cooldown -= dt;
       if (holding && cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
     },
@@ -157,13 +175,10 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       changed();
     },
 
-    // The layer button: dig down from the forest, or climb up from below.
+    // The layer button: through a hole that's there, or start digging one
+    // (it takes a while; see tick()).
     toggleMine() {
-      const s = state();
-      const went = Core.isUnderground(s) ? Core.goUp(s) : Core.goDown(s);
-      if (!went) return;
-      layerChanged();
-      fx.dug(Math.floor(s.player.x), Math.floor(s.player.y)); // dust where you broke through
+      if (Core.startDig(state()) === 'moved') brokeThrough();
     },
 
     buy(id) {
@@ -208,6 +223,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     forget() {
       walkTo = null;
       cooldown = 0;
+      dustIn = 0;
     }
   };
   return controller;

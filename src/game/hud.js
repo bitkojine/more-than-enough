@@ -82,6 +82,8 @@ export function createHud(el, look) {
       setText(el.mineLabel, below ? 'UP' : 'MINE');
       el.mine.setAttribute('aria-label', below ? 'Climb up a layer' : 'Dig down into the mine');
       el.mine.classList.toggle('disabled', !(below ? Core.canGoUp(s) : Core.canGoDown(s)));
+      el.mine.classList.toggle('digging', !!s.digging);
+      el.mine.style.setProperty('--dig', Core.digProgress(s).toFixed(3));
     },
 
     view(cam) {

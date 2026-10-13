@@ -325,7 +325,13 @@ async function main() {
   var entry = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify({x:Math.floor(p.x),y:Math.floor(p.y)});})()'));
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
-  eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'mine button drops to the layer beneath the forest');
+  // A new hole takes work: the button fills while you dig, then you drop.
+  await sleep(300);
+  ok(await evalJS('MTE_GAME.getState().player.z === 0 && document.getElementById("btnMine").classList.contains("digging")'), 'MINE starts digging a hole; it takes a while');
+  await sleep(900);
+  console.log('  screenshot: ' + await shot('02b-digging.png'));
+  var holeSecs = await evalJS('MTE_GAME.core.holeTime(MTE_GAME.getState())');
+  ok(await waitFor('MTE_GAME.getState().player.z === -1', holeSecs * 1000 + 1500), 'mine button drops to the layer beneath the forest once the hole is dug (' + holeSecs.toFixed(1) + ' s)');
   ok(await evalJS('MTE_GAME.core.holeBelow(MTE_GAME.getState().world,' + entry.x + ',' + entry.y + ',0)'), 'going down leaves a hole in the forest floor');
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.isExplored(s.world,' + (entry.x + 1) + ',' + entry.y + ',-1)&&!c.isExplored(s.world,' + (entry.x + 8) + ',' + entry.y + ',-1);})()', 1000), 'underground, only the rock close by is revealed');
   eq(await evalJS('document.getElementById("depth").hidden ? "" : document.getElementById("depth").textContent'), '\u25BC 1', 'the depth marker shows layer 1');
@@ -882,7 +888,7 @@ async function main() {
   // Underground, tilted: a tap on the top of a wall digs that wall.
   await evalJS('MTE_GAME.setTilt(1)');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
-  ok(await waitFor('MTE_GAME.getState().player.z < 0', 2000), 'went down into the mine with the view tilted');
+  ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down into the mine with the view tilted');
   // The camera moves to the new layer when it next draws: wait for a frame so
   // the wall's screen position below is projected from where it is now shown.
   await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');

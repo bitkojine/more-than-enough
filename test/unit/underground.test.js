@@ -307,3 +307,34 @@ test('no way between layers shares a tile with a building, and none opens in wat
   const spot = C.buildTarget(b, 'sapling');
   assert.ok(!spot || spot.x !== hx || spot.y !== hy, 'not under the hole you came down');
 });
+
+test('a new hole takes work; an old one is a way straight through', () => {
+  const s = C.createState(31415);
+  assert.equal(C.startDig(s), 'digging');
+  assert.equal(s.player.z, C.SURFACE, 'not through yet');
+  const steps = Math.ceil(C.holeTime(s) / 0.1);
+  for (let i = 0; i < steps - 1; i++) assert.equal(C.digOn(s, 0.1), false);
+  assert.ok(C.digProgress(s) > 0.9);
+  assert.equal(C.digOn(s, 0.1), true, 'breaks through after holeTime');
+  assert.equal(s.player.z, -1);
+  assert.equal(s.digging, null);
+  // Back up through that hole, and down again: no digging.
+  assert.equal(C.startDig(s), 'moved');
+  assert.equal(s.player.z, C.SURFACE);
+  assert.equal(C.startDig(s), 'moved');
+  assert.equal(s.player.z, -1);
+
+  // Walking off the spot stops the dig.
+  const t = C.createState(31415);
+  C.startDig(t);
+  C.digOn(t, 0.5);
+  t.player.x += 1;
+  assert.equal(C.digOn(t, 5), false);
+  assert.equal(t.digging, null, 'stepping away gives up');
+  assert.equal(t.player.z, C.SURFACE);
+
+  // A better Pickaxe digs faster.
+  const fast = C.createState(31415);
+  fast.tools.pickaxe = 6;
+  assert.ok(C.holeTime(fast) < C.holeTime(t) / 2);
+});
