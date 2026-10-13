@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.36.4] - 2026-10-13
+
+### Fixed
+- **Opening Safari's Share menu no longer shows "The game broke".** On iPhone,
+  Safari runs its own and share extensions' scripts inside the page when the
+  Share sheet opens. When one of those threw, the browser reported it to the
+  game only as "Script error." (it hides other sites' errors), and the game
+  took it for its own crash. Errors from scripts that aren't the game are now
+  logged to the console and play goes on.
+- **The crash report says what broke.** It now gives the error's kind and
+  message (Safari's stack trace leaves both out), the file, line and column,
+  the stack, and the game version, time and browser at the top, so a report
+  can be acted on.
+
 ## [0.36.3] - 2026-10-13
 
 ### Fixed

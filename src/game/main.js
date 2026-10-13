@@ -24,6 +24,7 @@ const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 
 const el = findElements();
 el.verText.textContent = 'v' + VERSION;
+window.MTE_VERSION = VERSION;  // for the crash report
 
 // Nothing is drawn until the default texture pack is in. If it can't load,
 // that's a crash: say exactly what broke.
@@ -234,7 +235,7 @@ function frame(now) {
     perf.tick(dt);
   } catch (err) {
     // Stop here and show what broke, rather than throwing every frame.
-    window.MTE_CRASH(err.stack || String(err));
+    window.MTE_CRASH(err);
     return;
   }
   requestAnimationFrame(frame);

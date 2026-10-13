@@ -23,21 +23,47 @@
   // Fail loud: anything that breaks the game (an exception, a module that
   // failed to load) is shown on screen with what broke, never a frozen map.
   (function () {
+    // Everything we know about an error: its kind and message (Safari's
+    // stack leaves both out), where it was thrown, and the stack.
+    function describe(err, where) {
+      if (!err || typeof err !== 'object') return String(err) + (where ? '\n  at ' + where : '');
+      var head = (err.name || 'Error') + ': ' + (err.message || '(no message)');
+      var stack = String(err.stack || '');
+      if (stack.indexOf(head) === 0) stack = stack.slice(head.length).replace(/^\n/, '');
+      return head + (stack ? '\n' + stack : where ? '\n  at ' + where : '');
+    }
+    var shown = false;
     function crash(what) {
       var box = document.getElementById('crash');
       if (!box) return document.addEventListener('DOMContentLoaded', function () { crash(what); });
+      var text = typeof what === 'string' ? what : describe(what);
+      var pre = box.querySelector('pre');
+      if (!shown) {
+        shown = true;
+        pre.textContent = 'Game v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
+      }
       box.hidden = false;
-      box.querySelector('pre').textContent += what + '\n\n';
-      if (window.console) console.error('[MTE crash] ' + what);
+      pre.textContent += text + '\n\n';
+      if (window.console) console.error('[MTE crash] ' + text);
     }
     window.MTE_CRASH = crash;
+    function ours(url) { return !url || url.indexOf(location.origin + '/') === 0; }
     window.addEventListener('error', function (e) {
       var el = e.target;
-      if (el && el !== window && (el.src || el.href)) crash('Failed to load ' + (el.src || el.href));
-      else crash((e.error && e.error.stack) || e.message);
+      if (el && el !== window && (el.src || el.href)) return crash('Failed to load ' + (el.src || el.href));
+      // An error the browser hides from us ("Script error.", no error object)
+      // or one from another origin was thrown by code that isn't the game:
+      // iOS Safari runs its own and share extensions' scripts in the page when
+      // the Share sheet opens. Note it and keep playing.
+      if (e.error == null || !ours(e.filename)) {
+        if (window.console) console.warn('[MTE] ignored an error from a script that is not the game: ' +
+          (e.message || '(no message)') + (e.filename ? ' at ' + e.filename + ':' + e.lineno + ':' + e.colno : ''));
+        return;
+      }
+      crash(describe(e.error, e.filename && e.filename + ':' + e.lineno + ':' + e.colno));
     }, true);
     window.addEventListener('unhandledrejection', function (e) {
-      crash('Unhandled rejection: ' + ((e.reason && e.reason.stack) || e.reason));
+      crash('Unhandled promise rejection: ' + describe(e.reason));
     });
   })();
 </script>

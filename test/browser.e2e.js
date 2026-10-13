@@ -1122,9 +1122,17 @@ async function main() {
   await evalJS('(function(){var real=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException("full","QuotaExceededError");};MTE_GAME.save();Storage.prototype.setItem=real;})()');
   ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'a save that fails says so');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
+  // What iOS Safari reports when the Share sheet's own scripts throw in the
+  // page: a hidden cross-origin error. It isn't the game's, so play goes on.
+  await evalJS('dispatchEvent(new ErrorEvent("error", { message: "Script error." }))');
+  await evalJS('dispatchEvent(new ErrorEvent("error", { message: "e2e: foreign", filename: "https://example.com/x.js", lineno: 1, error: new Error("e2e: foreign") }))');
+  await sleep(100);
+  eq(await evalJS('document.getElementById("crash").hidden'), true, 'an error from a script that is not the game (Share sheet, extensions) does not stop the game');
   await evalJS('setTimeout(function(){ throw new Error("e2e: deliberate break"); })');
   ok(await waitFor('!document.getElementById("crash").hidden', 2000), 'an uncaught error shows the crash report');
-  ok((await evalJS('document.querySelector("#crash pre").textContent')).indexOf('deliberate break') >= 0, 'the crash report says what broke');
+  var report = await evalJS('document.querySelector("#crash pre").textContent');
+  ok(report.indexOf('Error: e2e: deliberate break') >= 0, 'the crash report says what broke');
+  ok(report.indexOf('Game v') === 0 && report.indexOf(await evalJS('navigator.userAgent')) > 0, 'the crash report names the game version and the browser');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('deliberate break') < 0; });
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));
 

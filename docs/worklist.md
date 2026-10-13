@@ -93,3 +93,6 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       "Gather wood from the forest". (0.36.2)
 - [x] **Right icon in Safari Favorites.** (0.36.3) It showed another bitkojine.github.io
       project's icon; icon URLs are now cache-busted per deploy.
+- [x] **Share menu doesn't break the game.** (0.36.4) Safari's Share sheet runs its own
+      scripts in the page; their hidden "Script error." is no longer taken for a crash, and
+      a real crash report names the error, where it was thrown, the version and browser.
