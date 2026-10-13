@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.41.0] - 2026-10-13
+
+### Added
+- **Milestones are easy to see.** A trophy in the top-left corner counts the
+  milestones you've reached and glows after a new one until you look; tap it
+  for the new **Awards** tab, which lists every milestone reached, newest
+  first, and how many are left (which ones stays for you to find). The
+  milestone banner is bigger, has a trophy, says which one of how many it is
+  ("Milestone 3 of 27"), pops in, and stays up for 6 seconds instead of 3.5.
+
 ## [0.40.0] - 2026-10-13
 
 ### Added

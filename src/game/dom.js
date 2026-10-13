@@ -16,6 +16,8 @@ export function findElements() {
     depth: byId('depth'),
     depthGauge: byId('depthGauge'),
     milestone: byId('milestone'),
+    awards: byId('btnAwards'),
+    awardCount: byId('awardCount'),
     action: byId('btnAction'),
     actionIcon: byId('actionIcon'),
     actionLabel: byId('actionLabel'),

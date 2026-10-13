@@ -474,6 +474,18 @@ async function main() {
   ok(await waitFor('!document.getElementById("milestone").hidden && /wood/i.test(document.querySelector("#milestone strong").textContent)', 2000),
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
+  ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
+  ok(await waitFor('document.getElementById("awardCount").textContent === "1"', 1000), 'the trophy counter counts the milestone');
+  ok(await evalJS('document.getElementById("btnAwards").classList.contains("new")'), 'and glows until the awards are looked at');
+  ok(await evalJS('(function(){function r(e){return e.getBoundingClientRect();}var a=r(document.getElementById("btnAwards"));return [].slice.call(document.querySelectorAll("#resources .chip, #version")).every(function(e){var c=r(e);return a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top;});})()'), 'the trophy counter overlaps nothing');
+  var awardsBtn = await rect('#btnAwards');
+  await tap(awardsBtn.x, awardsBtn.y);
+  await sleep(300);
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Awards" && /wood/i.test(document.getElementById("sheetBody").textContent)'), 'tapping it lists the milestones reached');
+  ok(await evalJS('!document.getElementById("btnAwards").classList.contains("new")'), 'and the glow stops once seen');
+  console.log('  screenshot: ' + await shot('02b-awards.png'));
+  await evalJS('document.getElementById("btnClose").click()');
+  await sleep(250);
   var trailStartInv = g1.inv.wood;
   var trailStart = await rect('#btnAction');
   await touch('touchStart', [{ x: trailStart.x, y: trailStart.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);

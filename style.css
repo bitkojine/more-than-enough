@@ -109,11 +109,37 @@ canvas#game {
 }
 .chip .rate { font-size: 10.5px; color: var(--green); font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
 
-/* A milestone reached: a banner under the counters, a few seconds each. */
+/* Milestones reached: a trophy and a count in the top-left corner. It glows
+   after a new one until the Awards are opened. */
+#btnAwards {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 6px); left: 8px;
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 4px;
+  height: 26px; padding: 0 10px 0 7px;
+  border: 1px solid rgba(255, 209, 102, 0.45); border-radius: 999px;
+  background: rgba(30, 24, 10, 0.78);
+  color: #ffd166; font: 800 12.5px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  touch-action: manipulation; cursor: pointer;
+}
+#btnAwards .trophy { width: 15px; height: 15px; }
+#btnAwards.new { animation: awardGlow 1.4s ease-in-out infinite; background: rgba(70, 52, 14, 0.92); }
+@keyframes awardGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55); }
+  50% { box-shadow: 0 0 0 7px rgba(255, 209, 102, 0); }
+}
+.trophy { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; }
+.row .ic .trophy { width: 28px; height: 28px; color: #ffd166; }
+.awardsLeft .trophy { opacity: 0.35; color: var(--ink-dim) !important; }
+
+/* A milestone reached: a banner under the counters, a few seconds each. It
+   lets taps through to the map; the trophy counter lists them all. */
 #milestone {
   pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  margin-top: 6px; padding: 8px 18px 9px; max-width: 88%;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  margin-top: 8px; padding: 10px 22px 12px; max-width: 90%;
   background: linear-gradient(180deg, rgba(58, 44, 16, 0.96), rgba(28, 22, 10, 0.96));
   border: 1px solid rgba(255, 209, 102, 0.6); border-radius: 14px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 209, 102, 0.18);
@@ -121,9 +147,10 @@ canvas#game {
   animation: milestone-in .35s cubic-bezier(.2, 1.4, .4, 1);
 }
 #milestone[hidden] { display: none; }
-#milestone small { font-size: 10.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #ffd166; }
-#milestone strong { font-size: 14.5px; color: #fff3d6; }
-@keyframes milestone-in { from { opacity: 0; transform: translateY(-10px) scale(.96); } to { opacity: 1; transform: none; } }
+#milestone .trophy { width: 30px; height: 30px; color: #ffd166; filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6)); }
+#milestone small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #ffd166; }
+#milestone strong { font-size: 17px; line-height: 1.25; color: #fff3d6; }
+@keyframes milestone-in { from { opacity: 0; transform: translateY(-14px) scale(.85); } 60% { transform: scale(1.06); } to { opacity: 1; transform: none; } }
 
 #depth {
   pointer-events: none;

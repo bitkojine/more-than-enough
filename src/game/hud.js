@@ -6,7 +6,7 @@ import * as Core from '../core/index.js';
 import { fmt, fmt1 } from './format.js';
 
 const TOAST_SECONDS = 2.4;
-const MILESTONE_SECONDS = 3.5;
+const MILESTONE_SECONDS = 6;
 const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
@@ -30,11 +30,12 @@ export function createHud(el, look) {
   let milestoneLeft = 0;
 
   function nextMilestone() {
-    const text = milestones.shift();
-    el.milestone.hidden = !text;
-    milestoneLeft = text ? MILESTONE_SECONDS : 0;
-    if (!text) return;
-    el.milestone.querySelector('strong').textContent = text;
+    const next = milestones.shift();
+    el.milestone.hidden = !next;
+    milestoneLeft = next ? MILESTONE_SECONDS : 0;
+    if (!next) return;
+    el.milestone.querySelector('strong').textContent = next.text;
+    el.milestone.querySelector('.of').textContent = next.number + ' of ' + (Core.GOALS.length - 1);
     // Restart the entrance animation for each one.
     el.milestone.style.animation = 'none';
     void el.milestone.offsetWidth;
@@ -105,6 +106,7 @@ export function createHud(el, look) {
         const def = Core.EXTRACTORS[k];
         return (!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k)) && !!Core.buildTarget(s, k);
       }));
+      setText(el.awardCount, String(s.goalIndex));
       const below = Core.isUnderground(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
@@ -153,11 +155,18 @@ export function createHud(el, look) {
     },
 
     // Status only (e.g. a save that couldn't be read), never instructions.
-    // A milestone reached: shown under the counters for MILESTONE_SECONDS;
-    // several in a row take turns.
-    milestone(text) {
-      milestones.push(text);
+    // A milestone reached (the `number`th): a banner under the counters for
+    // MILESTONE_SECONDS, several in a row taking turns, and the trophy
+    // counter glows until the Awards are looked at.
+    milestone(text, number) {
+      milestones.push({ text, number });
+      el.awards.classList.add('new');
       if (milestoneLeft <= 0) nextMilestone();
+    },
+
+    // The Awards were looked at.
+    awardsSeen() {
+      el.awards.classList.remove('new');
     },
 
     toast(msg) {

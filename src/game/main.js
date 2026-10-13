@@ -115,6 +115,7 @@ const controller = createController({ game, cam, fx, audio, hud, look });
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
+  onTab: (tab) => { if (tab === 'awards') hud.awardsSeen(); },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
 
@@ -146,6 +147,7 @@ const input = createInput({
 
 el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
+el.awards.addEventListener('click', () => sheet.toggle('awards'));
 el.mine.addEventListener('click', controller.toggleMine);
 el.reset.addEventListener('click', controller.reset);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,

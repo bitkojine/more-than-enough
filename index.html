@@ -73,11 +73,12 @@
 
   <div id="hud">
     <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
+    <button id="btnAwards" type="button" aria-label="Milestones reached"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
     <pre id="perf" aria-live="off" hidden></pre>
     <div id="resources"></div>
     <div id="depth" aria-live="polite" hidden></div>
     <div id="depthGauge" aria-hidden="true" hidden></div>
-    <div id="milestone" role="status" aria-live="polite" hidden><small>Milestone</small><strong></strong></div>
+    <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small>Milestone <span class="of"></span></small><strong></strong></div>
   </div>
 
   <div id="controls" role="group" aria-label="Thumb controls">
@@ -119,6 +120,7 @@
           <button class="tab active" type="button" data-tab="upgrades">Upgrades</button>
           <button class="tab" type="button" data-tab="build">Build</button>
           <button class="tab" id="tabBeyond" type="button" data-tab="beyond">Beyond</button>
+          <button class="tab" type="button" data-tab="awards">Awards</button>
         </div>
         <button id="btnClose" type="button" aria-label="Done">Done</button>
       </div>

@@ -7,7 +7,8 @@ import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 
-const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond' };
+const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond', awards: 'Awards' };
+const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
 // Set by createSheet: pictures come from the current texture pack.
@@ -102,7 +103,7 @@ const beyondUnlocked = (s) => s.insight > 0 || s.prestiges > 0 || Core.worldMast
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions, look: currentLook }) {
+export function createSheet(el, { getState, actions, look: currentLook, onTab = () => {} }) {
   look = currentLook;
   let open = false;
   let tab = 'upgrades';
@@ -181,7 +182,17 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
       '<div class="section">Perks</div>' + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
   }
 
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond };
+  // Milestones reached, newest first, and how many are still out there.
+  // Which ones are left is for the player to find (or the wiki to tell).
+  function renderAwards(s) {
+    const total = Core.GOALS.length - 1; // the last one goes on forever
+    let html = `<div class="section">Milestones ${s.goalIndex} / ${total}</div>`;
+    for (let i = s.goalIndex - 1; i >= 0; i--) html += row(TROPHY, esc(Core.GOALS[i].text), 'Milestone ' + (i + 1), '');
+    if (s.goalIndex < total) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${total - s.goalIndex} more to reach</div></div></div>`;
+    return html;
+  }
+
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards };
 
   function render() {
     el.sheetBody.innerHTML = RENDER[tab](getState());
@@ -218,6 +229,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     el.sheetTitle.textContent = TITLES[tab];
     for (const t of el.tabs) t.classList.toggle('active', t.dataset.tab === tab);
     render();
+    onTab(tab);
   }
 
   function show(next) {
