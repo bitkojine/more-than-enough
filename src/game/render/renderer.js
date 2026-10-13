@@ -45,7 +45,7 @@ export function render(cam, s, fx, view, look) {
     lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: TORCH_LIGHT + flicker, color: look.color('mark.torch') });
   }
 
-  const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard }, (y) => {
+  const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);

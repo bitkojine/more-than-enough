@@ -37,6 +37,7 @@ function tileNotes(t) {
   else if (info.solid) notes.push('Solid until dug');
   else notes.push('Impassable');
   if (info.res) notes.push('yields ' + icon(info.res) + ' ' + Core.RESOURCE_LABEL[info.res]);
+  else if (info.harvest && info.sweep !== false) notes.push('holds nothing: digging it only clears the way');
   if (info.regrows) notes.push('regrows');
   else if (info.harvest && !info.solid) notes.push('never regrows');
   if (info.land) notes.push('converters can stand here');

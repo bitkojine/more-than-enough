@@ -209,7 +209,8 @@
 
       <h2>Surface tiles</h2>
       <div data-table="surface"></div>
-      <p>Richness is how many swings a deposit takes before it's exhausted. Each tile rolls its own value in that range.</p>
+      <p>Richness is how many swings a deposit takes before it's exhausted. Each tile rolls its own value in that range. Boulders,
+        ore rocks and crystals shake and shed chips with every swing, and shrink as they run down.</p>
 
       <h2>Fog</h2>
       <p>The world you know is a plateau high over the dark. Everything within <span data-k="EXPLORE_RADIUS"></span> tiles of
@@ -306,8 +307,9 @@
         seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>tapping</strong>
         it within reach, or with a <strong>Trail</strong> across nearby rock. Bedrock never gives, and a shaft only opens to a
         deliberate tap. Holding Gather on its own never digs.</p>
-      <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Axe or Pickaxe level. Tunnels
-        stay where you dug them, on every layer.</p>
+      <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Axe or Pickaxe level. Plain
+        soil holds nothing: its dirt is tossed aside with a <em>+0</em>, and digging it only clears the way. Tunnels stay
+        where you dug them, on every layer.</p>
       <div data-table="underground"></div>
 
       <h2>What's down there</h2>
@@ -535,7 +537,8 @@
           is tilted. One picture is one layer of height and repeats down taller faces.</li>
         <li><code>stand</code>: what you gather from the tile, standing on it, like trees and boulders. Only tiles you can gather
           have it: nothing in the game is decoration you can't pick up, so a pack can't put props on grass, water or tunnels.
-          Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.</li>
+          Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.
+          Stone, ore and crystal wear down as they're mined: drawn smaller the less is left, to half size before they run out.</li>
         <li><code>cut</code>: what stands on a gathering tile once it's worked out (a stump, pebbles).</li>
         <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
         <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>

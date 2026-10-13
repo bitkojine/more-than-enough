@@ -34,6 +34,11 @@ const PILE_FILL = 0.95;     // how much of its square's width a big pile fills
 const STAND_MARGIN = 3;     // columns past each side of the screen whose standing things are drawn
 const TAU = Math.PI * 2;
 const TILE_LOOK = Core.TILE_KEY.map((k, t) => Core.tileLook(t));
+// Deposits whose rocks wear down as they're mined: drawn smaller the less is
+// left in them, down to MINED_MIN of full size before they're worked out.
+const WEARS = new Set([Core.T.STONE, Core.T.ORE, Core.T.CRYSTAL]);
+const MINED_MIN = 0.5;
+const SHAKE = 0.05;         // how far a struck rock or tree jolts, in tiles
 
 // A tile's picture for `slot`. Forests come in kinds by region (see
 // Core.forestKind), each with its own trees and maybe its own ground; what a
@@ -247,9 +252,9 @@ function drawPile(ctx, cam, s, look, yard, p) {
   look.stand(ctx, pic, fx, fy, size);
 }
 
-// Whatever stands on tile (x, y): a stockpile pile, else its stand picture,
-// or its cut picture once worked out. Holes and built tiles have nothing else
-// standing on them.
+// Whatever stands on tile (x, y): a stockpile pile, else its stand picture
+// (worn smaller as a rock is mined, shaking when struck), or its cut picture
+// once worked out. Holes and built tiles have nothing else standing on them.
 function drawStand(ctx, cam, s, look, ground, x, y, z) {
   const w = s.world;
   if (!Core.isExplored(w, x, y, z)) return;
@@ -260,16 +265,18 @@ function drawStand(ctx, cam, s, look, ground, x, y, z) {
   if (Core.holeBelow(w, x, y, z) || ground.built.has(key)) return;
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
-  const slot = Core.LOOK[id].slots.cut !== undefined && Core.richness(w, x, y, z) <= 0 ? 'cut' : 'stand';
+  const left = Core.richness(w, x, y, z);
+  const slot = Core.LOOK[id].slots.cut !== undefined && left <= 0 ? 'cut' : 'stand';
   const pic = pickFor(look, w, t, slot, x, y, s.time);
   if (!pic) return;
   const u = cam.tilePx, d = cam.depthPx;
   const { sx, sy } = tileTop(cam, w, x, y, z);
-  const fx = sx + u / 2, fy = sy + d * FOOT;
-  const r = Math.min(u * 0.45, pic.units * u * 0.42);
+  const size = slot === 'stand' && WEARS.has(t) ? u * (MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z))) : u;
+  const fx = sx + u / 2 + ground.shake(key) * SHAKE * u, fy = sy + d * FOOT;
+  const r = Math.min(u * 0.45, pic.units * size * 0.42);
   ctx.fillStyle = SHADOW;
   ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
-  look.stand(ctx, pic, fx, fy, u, tv(x, y, 17) < 0.5);
+  look.stand(ctx, pic, fx, fy, size, tv(x, y, 17) < 0.5);
 }
 
 // One flat block per `step` x `step` tiles, coloured by the tile at its centre.
@@ -299,7 +306,8 @@ const lodStep = (cam) => Math.max(1, Math.ceil(LOD_PX / cam.tilePx));
 
 // Draws the visible terrain and calls onRow(y) after each row of tiles.
 // `ground` holds what else stands on tiles: `built` (packed keys of tiles with
-// buildings) and the stockpile `yard`. Returns how many tiles (or far-zoom
+// buildings), the stockpile `yard`, and `shake(key)`, how far a struck tile's
+// rock or tree is jolted (-1..1). Returns how many tiles (or far-zoom
 // blocks) it drew.
 export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   const z = cam.z;

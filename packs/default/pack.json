@@ -54,7 +54,7 @@
    "cut": "props/ore-rock-cut.svg"
   },
   "tile.crystal": {
-   "color": "#3b4668",
+   "color": "#5b4a5c",
    "top": "ground/crystal.svg",
    "face": "faces/crystal.svg",
    "stand": ["props/crystals.svg", "props/crystals-2.svg"],
@@ -92,7 +92,7 @@
    "face": "faces/earth.svg"
   },
   "tile.stone-seam": {
-   "color": "#8a8a84",
+   "color": "#7a7a74",
    "top": "ground/stone-seam.svg",
    "face": "faces/rock.svg"
   },
@@ -102,7 +102,7 @@
    "face": "faces/ore.svg"
   },
   "tile.crystal-seam": {
-   "color": "#2e6b80",
+   "color": "#5a3550",
    "top": "ground/crystal-seam.svg",
    "face": "faces/crystal.svg"
   },
@@ -139,7 +139,7 @@
   },
   "resource.crystal": {
    "icon": "icons/crystal.svg",
-   "color": "#7fe8ff"
+   "color": "#ff7ac8"
   },
   "resource.insight": {
    "icon": "icons/insight.svg",

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.38.1] - 2026-10-13
+
+### Changed
+- **Gems no longer look like water.** Crystal was icy cyan on blue-grey
+  ground, the same colours as the lakes. Crystals, their seams, piles, icon
+  and the Resonator are now rose-pink gems on dusky mauve rock.
+- **Rocks look mined.** A boulder, ore rock or crystal cluster looked the
+  same from its first swing to its last. Every swing now shakes what it hits
+  (trees too) and knocks chips off it, and stone, ore and crystal shrink as
+  the deposit runs down, to half size before it's worked out.
+- **What you see is what you get.** The stone icon was a cut block while
+  stone in the world was round boulders, and ore rocks only had a thin
+  orange vein. Boulders, pebbles and stone seams are now the same faceted
+  grey rock as the stone icon; ore rocks are studded with the ore icon's
+  nuggets; crystal clusters are made of the crystal icon's gem.
+- **Digging dirt says it holds nothing.** Digging plain soil underground used
+  to give no sign why nothing came of it. Its clods are now tossed aside with
+  a dim +0, and the wiki says soil only clears the way.
+
 ## [0.38.0] - 2026-10-13
 
 ### Added

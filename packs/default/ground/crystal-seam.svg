@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2e6b80"/>
-<path d="M30 6c12-3 26 1 26 7s-14 10-22 8-14-12-4-15z" fill="#346f86"/>
-<path d="M4 40c9-3 20 0 20 6s-11 9-17 7-11-10-3-13z" fill="#285e71"/>
-<g stroke="#174652" stroke-width="2" stroke-linejoin="round">
-<path d="M14 18l5-8 5 8-5 10z" fill="#8ff0ff"/><path d="M42 36l4-7 4 7-4 9z" fill="#7fe3f5"/><path d="M28 50l3-5 3 5-3 6z" fill="#8ff0ff"/></g>
-<g fill="#e6fdff"><path d="M18 14l1-2 1 2-1 3z"/><path d="M45 33l1-2 1 2-1 3z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#5a3550"/>
+<path d="M30 6c12-3 26 1 26 7s-14 10-22 8-14-12-4-15z" fill="#633a59"/>
+<path d="M4 40c9-3 20 0 20 6s-11 9-17 7-11-10-3-13z" fill="#4e2e46"/>
+<g stroke="#3a1f33" stroke-width="2" stroke-linejoin="round">
+<path d="M14 18l5-8 5 8-5 10z" fill="#ff9ad4"/><path d="M42 36l4-7 4 7-4 9z" fill="#f27cc0"/><path d="M28 50l3-5 3 5-3 6z" fill="#ff9ad4"/></g>
+<g fill="#fff0f8"><path d="M18 14l1-2 1 2-1 3z"/><path d="M45 33l1-2 1 2-1 3z"/></g></svg>

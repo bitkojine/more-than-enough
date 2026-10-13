@@ -39,17 +39,24 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     audio.fanfare();
   }
 
+  // Every swing shakes what it hit and knocks chips off it. Plain dirt holds
+  // nothing: its clods are tossed aside and it says +0, so digging through it
+  // reads as clearing the way, not as gathering that failed.
   function harvested(r) {
+    fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
     if (r.found) {
       fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
       audio.collect();
-    } else if (r.res) {
+      return;
+    }
+    if (r.res) {
       fx.gathered(r.x, r.y, r.res, r.amount);
       audio.gather(r.res, r.amount, toolLevel(r.res));
-    } else {
-      fx.dug(r.x, r.y);
-      audio.dig();
+      return;
     }
+    fx.dug(r.x, r.y);
+    if (r.type === Core.T.SOIL) fx.tossed(r.x, r.y, look.color(Core.tileLook(r.type)));
+    audio.dig();
   }
 
   function collectNearby() {
@@ -173,6 +180,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
         count++;
         if (below) harvested(r);
         else if (r.amount > 0) {
+          fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
           gathered[r.res] = (gathered[r.res] || 0) + r.amount;
           audio.gather(r.res, r.amount, toolLevel(r.res));
           fx.flyersFrom(r.x, r.y, r.res, r.amount);

@@ -1,6 +1,6 @@
-/* Short-lived visual effects in world space: particles, floating text, and the
- * "flyers" that carry what you gather off to the stockpile, so you see where
- * it goes. All effects belong to the layer they were spawned on; changing
+/* Short-lived visual effects in world space: particles, floating text, the
+ * shake of a struck rock or tree, and the "flyers" that carry what you gather
+ * off to the stockpile, so you see where it goes. All effects belong to the layer they were spawned on; changing
  * layers clears them. */
 
 import { resourceLook } from '../core/index.js';
@@ -13,6 +13,7 @@ const FLYER_SPEED = 12;            // tiles per second, on average
 const FLYER_TIME = [0.45, 1.6];    // shortest and longest flight, in seconds
 const TALLY_LIFE = 2.4;            // seconds a "+n" stays up after its last gain
 const TALLY_MERGE = 1.6;           // gains this soon after the last one add to it
+const HIT_TIME = 0.28;             // how long a struck rock or tree shakes, in seconds
 
 const rand = Math.random;
 const TAU = Math.PI * 2;
@@ -27,6 +28,19 @@ export function createEffects(look, landing) {
   const particles = [];
   const floats = [];
   const flyers = [];
+  const hits = new Map();          // packed tile key -> seconds of shaking left
+
+  // A tile was struck: what stands on it shakes, and chips of it fly.
+  function hit(key, tx, ty, color) {
+    hits.set(key, HIT_TIME);
+    burst(tx + 0.5, ty + 0.45, 7, [1.4, 1.8], 1.6, [0.35, 0.25], [1.6, 2.2], color);
+  }
+
+  // How far a struck tile is shaken right now, -1..1 (0 when still).
+  function shake(key) {
+    const left = hits.get(key);
+    return left ? Math.sin(left * 70) * (left / HIT_TIME) : 0;
+  }
 
   function addParticle(p) { if (particles.length < MAX_PARTICLES) particles.push(p); }
 
@@ -110,6 +124,19 @@ export function createEffects(look, landing) {
     burst(tx + 0.5, ty + 0.5, 5, [0.8, 1.4], 0.8, [0.3, 0.2], [1.4, 1.6], '#86735c');
   }
 
+  // Dirt dug out of the way: clods thrown to either side that fall and
+  // vanish (nothing flies to the stockpile), and a dim +0.
+  function tossed(tx, ty, color) {
+    for (let i = 0; i < 6; i++) {
+      const side = i % 2 ? 1 : -1;
+      addParticle({
+        x: tx + 0.5, y: ty + 0.4, vx: side * (1.6 + rand() * 1.4), vy: -2.2 - rand() * 1.2,
+        life: 0.55 + rand() * 0.2, max: 0.75, size: 2.6 + rand() * 1.8, color
+      });
+    }
+    text(tx + 0.5, ty + 0.2, '+0', '#a99a86', null, -0.9, 0.8);
+  }
+
   // A milestone: a golden ring of sparks around the player.
   function celebrate(x, y) {
     burst(x, y - 0.2, 24, [2.4, 1.6], 1.6, [0.7, 0.5], [2, 2.4], '#ffd166');
@@ -135,11 +162,15 @@ export function createEffects(look, landing) {
 
   function clear() {
     particles.length = 0;
+    hits.clear();
     floats.length = 0;
     flyers.length = 0;
   }
 
   function update(dt) {
+    for (const [key, left] of hits) {
+      if (left <= dt) hits.delete(key); else hits.set(key, left - dt);
+    }
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
       p.life -= dt;
@@ -173,5 +204,5 @@ export function createEffects(look, landing) {
     }
   }
 
-  return { particles, floats, flyers, gathered, flyersFrom, text, tally, found, dug, built, poof, celebrate, wake, clear, update };
+  return { particles, floats, flyers, gathered, hit, shake, flyersFrom, text, tally, found, dug, tossed, built, poof, celebrate, wake, clear, update };
 }
