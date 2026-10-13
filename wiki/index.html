@@ -498,8 +498,9 @@
           straight from above. Neighbouring tiles touch, so keep edges plain if you don't want a grid.</li>
         <li><code>face</code>: the front of a raised tile (mountains, walls in the mine, the shore above water), seen when the view
           is tilted. One picture is one layer of height and repeats down taller faces.</li>
-        <li><code>stand</code>: something standing on the tile, like trees and boulders. Drawn upright with its bottom centre on
-          the middle of the tile; it never squashes and may stick out over its neighbours.</li>
+        <li><code>stand</code>: what you gather from the tile, standing on it, like trees and boulders. Only tiles you can gather
+          have it: nothing in the game is decoration you can't pick up, so a pack can't put props on grass, water or tunnels.
+          Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.</li>
         <li><code>cut</code>: what stands on a gathering tile once it's worked out (a stump, pebbles).</li>
         <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
         <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
@@ -518,7 +519,7 @@
       <p>Where a slot takes a picture, it can also take:</p>
       <ul>
         <li>a <strong>list of variants</strong>: each tile picks one, always the same one for the same spot. <code>null</code> in the
-          list means nothing there, so <code>["tuft.png", null, null, null]</code> puts a tuft on about a quarter of the tiles;</li>
+          list means nothing there, so <code>["oak.png", null, null, null]</code> puts an oak on about a quarter of the forest;</li>
         <li>an <strong>animation</strong>: <code>{ "frames": [...], "fps": 2 }</code>. Ground animations start at a different frame
           on each tile so water shimmers. For the wanderer the first frame is standing still and the rest loop while walking.</li>
       </ul>
