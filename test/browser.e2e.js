@@ -325,10 +325,14 @@ async function main() {
   var zoomIn = await rect('#btnZoomIn');
   await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');
-  eq(await evalJS('document.getElementById("zoomLevel").textContent'), '125%', 'zoom level is shown beside the thumb controls');
+  eq(await evalJS('document.getElementById("zoomText").textContent'), '1.25×', 'zoom level is shown beside the thumb controls, as a magnification');
   var zoomOut = await rect('#btnZoomOut');
   await tap(zoomOut.x, zoomOut.y);
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
+  await tap(zoomIn.x, zoomIn.y); await tap(zoomIn.x, zoomIn.y);
+  var zoomReadout = await rect('#zoomLevel');
+  await tap(zoomReadout.x, zoomReadout.y);
+  eq(await evalJS('MTE_GAME.zoom()'), 1, 'tapping the zoom readout goes back to 1x');
   // Home ground is kept for the stockpile: no hole there. Step out of it first.
   ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'the layer button is off on home ground');
   var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return !!c.TILE_INFO[c.tileAt(s.world,x,y,0)].dig;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
@@ -945,12 +949,14 @@ async function main() {
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'the performance panel starts closed');
   var badge = await rect('#version');
   await tap(badge.x, badge.y);
-  ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'tapping the version badge opens the panel, showing FPS');
+  await sleep(200);
+  eq(await evalJS('document.getElementById("perf").hidden'), true, 'tapping the version badge does not open it: it is not for play');
+  await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
+  ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'F3 opens the panel, showing FPS');
   var perfText = await evalJS('document.getElementById("perf").textContent');
   ok(['frame', 'logic', 'draw', 'tiles', 'screen', 'canvas'].every(function (k) { return perfText.indexOf(k) >= 0; }), 'the panel shows frame time, logic, draw, tiles, screen and canvas');
   var snap = await evalJS('MTE_GAME.perf()');
   ok(snap.fps > 0 && snap.tiles > 0 && snap.drawMs > 0, 'the figures are live (' + Math.round(snap.fps) + ' fps, ' + snap.tiles + ' tiles, draw ' + snap.drawMs.toFixed(2) + ' ms)');
-  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-view")).perf'), true, 'the open panel is remembered for next time');
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'F3 closes it again');
 

@@ -138,7 +138,10 @@ export function createHud(el, look) {
     },
 
     view(cam) {
-      setText(el.zoomLevel, Math.round(cam.zoom * 100) + '%');
+      // Zoom as a magnification (1×, 1.25×, 0.64×), beside a magnifier.
+      const zoom = +cam.zoom.toFixed(2) + '×';
+      setText(el.zoomText, zoom);
+      el.zoomLevel.setAttribute('aria-label', 'Zoom ' + zoom + ', tap to reset');
       el.tilt.setAttribute('aria-pressed', String(cam.tiltTarget > 0.5));
     },
 

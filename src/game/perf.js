@@ -1,6 +1,6 @@
 /* The performance panel: how well the game runs on this device, on any device.
- * Tap the version badge (or press F3) to show it. Numbers and short labels
- * only; what they mean is in the wiki.
+ * A tool for tuning, kept out of play: press F3, or add ?perf to the address
+ * (on a phone). Numbers and short labels only; what they mean is in the wiki.
  *
  * Every frame reports its interval and how long the game logic and the
  * drawing took. The panel shows the last WINDOW frames, refreshed a few times
@@ -59,7 +59,6 @@ export function createPerf(el, canvas, audio) {
     toggle(show = !perf.visible) {
       perf.visible = show;
       el.perf.hidden = !show;
-      el.version.setAttribute('aria-pressed', String(show));
       refreshIn = 0;
     },
 

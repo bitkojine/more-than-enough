@@ -133,23 +133,15 @@ const input = createInput({
     tap: controller.tap,
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,
-    viewChanged: () => { hud.view(cam); saveView(cam, perf); },
+    viewChanged: () => { hud.view(cam); saveView(cam); },
     command(cmd) {
-      if (cmd === 'perf') togglePerf();
+      if (cmd === 'perf') perf.toggle();
       else if (cmd === 'close') sheet.close();
       else sheet.toggle(cmd);
     }
   }
 });
 
-function togglePerf() {
-  perf.toggle();
-  saveView(cam, perf);
-}
-el.version.addEventListener('click', togglePerf);
-el.version.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); togglePerf(); }
-});
 
 el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
@@ -264,7 +256,9 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) game.
 const savedView = loadView();
 cam.setZoom(savedView.zoom);
 cam.setTilt(savedView.tilt, true);
-perf.toggle(savedView.perf);
+// The performance panel is for whoever is tuning the game, not for play:
+// F3 toggles it, and ?perf in the address opens it (for phones).
+perf.toggle(new URLSearchParams(location.search).has('perf'));
 resize();
 hud.repaint();
 await textures.restore();

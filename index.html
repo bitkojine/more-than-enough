@@ -72,7 +72,7 @@
   <canvas id="game"></canvas>
 
   <div id="hud">
-    <div id="version" role="button" tabindex="0" aria-label="Performance" aria-pressed="false"><span id="brand">byrforr</span><span id="verText"></span></div>
+    <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
     <pre id="perf" aria-live="off" hidden></pre>
     <div id="resources"></div>
     <div id="depth" aria-live="polite" hidden></div>
@@ -83,7 +83,9 @@
   <div id="controls" role="group" aria-label="Thumb controls">
     <div id="zoomControls" aria-label="Map zoom">
       <button id="btnZoomOut" type="button" aria-label="Zoom out">&minus;</button>
-      <span id="zoomLevel" aria-live="polite">100%</span>
+      <button id="zoomLevel" type="button" aria-label="Zoom 1×, tap to reset">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" /><path d="M14.5 14.5 L20 20" /></svg><span id="zoomText">1×</span>
+      </button>
       <button id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
       <button id="btnTilt" type="button" aria-label="Tilt the view" aria-pressed="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17 L9 8 H21 L15 17 Z" /><path d="M3 17 V20 H15 V17 M15 20 L21 11 V8" /></svg>

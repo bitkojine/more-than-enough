@@ -27,6 +27,7 @@ export function findElements() {
     zoomIn: byId('btnZoomIn'),
     zoomOut: byId('btnZoomOut'),
     zoomLevel: byId('zoomLevel'),
+    zoomText: byId('zoomText'),
     tilt: byId('btnTilt'),
     sheet: byId('sheet'),
     sheetGrab: byId('sheetGrab'),

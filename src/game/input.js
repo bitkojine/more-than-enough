@@ -5,7 +5,7 @@
  *   tap the map              handlers.tap(screenX, screenY)
  *   hold Gather / Space      `held` (the main loop repeats the action)
  *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
- *   two fingers, wheel, +/-  zoom
+ *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x)
  *   two fingers up/down      tilt (also Shift + wheel, T, the tilt button)
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close')
  *   F3                       handlers.command('perf') */
@@ -229,6 +229,7 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   el.zoomOut.addEventListener('click', () => { cam.setZoom(cam.zoom / 1.25); handlers.viewChanged(); });
   el.zoomIn.addEventListener('click', () => { cam.setZoom(cam.zoom * 1.25); handlers.viewChanged(); });
+  el.zoomLevel.addEventListener('click', () => { cam.setZoom(1); handlers.viewChanged(); });
   el.tilt.addEventListener('click', toggleTilt);
 
   /* ---------------------------------------------------------- keyboard */

@@ -74,19 +74,18 @@ export function loadGame() {
   return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
 }
 
-// The viewer's zoom, tilt and whether the performance panel is open: a
-// convenience for this browser, not game state.
+// The viewer's zoom and tilt: a convenience for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
-    return { zoom: Number(v.zoom) || 1, tilt: Number(v.tilt) || 0, perf: v.perf === true };
+    return { zoom: Number(v.zoom) || 1, tilt: Number(v.tilt) || 0 };
   } catch {
-    return { zoom: 1, tilt: 0, perf: false };
+    return { zoom: 1, tilt: 0 };
   }
 }
 
-export function saveView(cam, perf) {
-  write(VIEW_KEY, JSON.stringify({ zoom: cam.zoom, tilt: cam.tiltTarget, perf: perf.visible }));
+export function saveView(cam) {
+  write(VIEW_KEY, JSON.stringify({ zoom: cam.zoom, tilt: cam.tiltTarget }));
 }
 
 export function clearSave() {

@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.37.1] - 2026-10-13
+
+### Changed
+- **The zoom readout reads as zoom.** It showed a bare "100%" that players
+  didn't recognise. It now shows a magnifier and the magnification (1×,
+  1.25×, 0.64×), and tapping it goes back to 1×.
+- **The performance panel is out of play.** Tapping the version badge used to
+  open a panel of frame timings ("logic", "draw", milliseconds) that players
+  opened by accident, and it stayed open. The badge is just a label now: press
+  F3, or open the game with `?perf` in the address on a phone, and the panel
+  is no longer remembered between visits.
+
 ## [0.37.0] - 2026-10-13
 
 ### Added
