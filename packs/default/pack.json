@@ -191,6 +191,9 @@
   "mark.skylight": {
    "color": "#ffe9b8"
   },
+  "mark.ladder": {
+   "image": "props/ladder.svg"
+  },
   "mark.torch": {
    "image": "props/torch.svg",
    "color": "#ffb455"

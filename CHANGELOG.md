@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.36.6] - 2026-10-13
+
+### Changed
+- **Holes stacked in a column read clearly.** A hole with another hole above
+  it used to show only its dark pit, hiding the light from the ceiling, so in
+  a column dug straight up or down you couldn't tell a way down from a way
+  up. Every hole now has a ladder in it (a new `mark.ladder` picture): a
+  plain pit shows it going down, a skylight shows it standing in the light up
+  to the opening, and a hole in a column shows both: the pit ringed with light
+  pouring into it and the ladder running on up into the beam.
+
 ## [0.36.5] - 2026-10-13
 
 ### Changed

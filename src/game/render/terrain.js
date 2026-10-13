@@ -47,32 +47,71 @@ function pickFor(look, w, t, slot, x, y, time) {
 
 /* ---------------------------------------------------------------- holes */
 
-// A hole in the floor. Tilted, you see down its far wall, in the dark of the
-// hole's colour.
-function drawPit(ctx, look, sx, sy, u, d, rise) {
-  look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
-  if (rise > FLAT_RISE_PX) {
-    ctx.fillStyle = rgba(look.color('mark.hole'), 0.85);
-    ctx.fillRect(sx + u * 0.2, sy + d * 0.2, u * 0.6, Math.min(d * 0.6, rise * 0.9));
-  }
+// Every hole has a ladder in it. A pit shows it going down, a skylight shows
+// it going up into the light, and a hole with another hole above it (part of
+// a column dug straight up or down) shows both: light pouring down into the
+// pit past the ladder, so a way on down never hides the way back up.
+
+const LADDER_W = 0.24; // a ladder's width, in tiles
+
+// The ladder from screen height `top` down to `bottom`, centred on cx.
+function drawLadder(ctx, look, cx, top, bottom, u) {
+  if (bottom - top < 2) return;
+  look.draw(ctx, look.pick('mark.ladder', 'image'), cx - u * LADDER_W / 2, top, u * LADDER_W, bottom - top);
 }
 
-// A hole in the ceiling: light from the layer above pooling on the floor, and
-// when tilted a shaft of it falling from the opening.
-function drawSkylight(ctx, look, sx, sy, u, g, rise) {
-  const light = look.color('mark.skylight');
-  const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
+// A hole in the floor, with its ladder leaning on the far wall. Tilted, you
+// see down that wall, in the dark of the hole's colour.
+function drawPit(ctx, look, sx, sy, u, d, rise) {
+  look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
+  const wall = rise > FLAT_RISE_PX ? Math.min(d * 0.6, rise * 0.9) : 0;
+  if (wall) {
+    ctx.fillStyle = rgba(look.color('mark.hole'), 0.85);
+    ctx.fillRect(sx + u * 0.2, sy + d * 0.2, u * 0.6, wall);
+  }
+  drawLadder(ctx, look, sx + u / 2, sy + d * 0.1, sy + d * 0.2 + Math.max(wall, d * 0.55), u);
+}
+
+// Light from the layer above pooling on the floor around (cx, cy).
+function drawPool(ctx, light, cx, cy, u, g, alpha) {
   const pool = ctx.createRadialGradient(cx, cy, 0, cx, cy, u * 0.8);
-  pool.addColorStop(0, rgba(light, 0.45));
+  pool.addColorStop(0, rgba(light, alpha));
   pool.addColorStop(1, rgba(light, 0));
   ctx.fillStyle = pool;
-  ctx.fillRect(sx - u * 0.3, sy - u * 0.3 * g, u * 1.6, u * 1.6 * g);
-  if (rise <= FLAT_RISE_PX) return;
+  ctx.fillRect(cx - u * 0.8, cy - u * 0.8 * g, u * 1.6, u * 1.6 * g);
+}
+
+// When tilted, the shaft of light falling from the opening above down to cy.
+function drawBeam(ctx, light, sx, cy, u, rise) {
   const beam = ctx.createLinearGradient(0, cy - rise, 0, cy);
   beam.addColorStop(0, rgba(light, 0.3));
   beam.addColorStop(1, rgba(light, 0.05));
   ctx.fillStyle = beam;
   ctx.fillRect(sx + u * 0.18, cy - rise, u * 0.64, rise);
+}
+
+// A hole in the ceiling: light from the layer above pooling on the floor, and
+// the ladder standing in it, up to the opening when tilted.
+function drawSkylight(ctx, look, sx, sy, u, g, rise) {
+  const light = look.color('mark.skylight');
+  const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
+  drawPool(ctx, light, cx, cy, u, g, 0.45);
+  const tilted = rise > FLAT_RISE_PX;
+  if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
+  drawLadder(ctx, look, cx, tilted ? cy - rise : sy + u * g * 0.1, sy + u * g * 0.85, u);
+}
+
+// A hole with a hole above it: the pit, ringed with the light falling into
+// it, a glow down its middle, and the ladder running on up into the beam.
+function drawThroughShaft(ctx, look, sx, sy, u, d, rise) {
+  const light = look.color('mark.skylight'), g = d / u;
+  const cx = sx + u * 0.5, cy = sy + d * 0.5;
+  drawPool(ctx, light, cx, cy, u, g, 0.5);
+  look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
+  drawPool(ctx, light, cx, cy, u * 0.4, g, 0.35);
+  const tilted = rise > FLAT_RISE_PX;
+  if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
+  drawLadder(ctx, look, cx, tilted ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
 }
 
 // A face picture repeated down a face `faceH` tall, one picture per layer of
@@ -144,8 +183,10 @@ function drawTile(ctx, cam, s, look, x, y, z) {
     ctx.fillStyle = CONTACT;
     ctx.fillRect(sx, sy, u + 1, d * 0.2);
   }
-  if (Core.holeBelow(w, x, y, z)) return drawPit(ctx, look, sx, sy, u, d, cam.risePx);
-  if (z !== Core.SURFACE && Core.holeAbove(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
+  const down = Core.holeBelow(w, x, y, z), up = Core.holeAbove(w, x, y, z);
+  if (down && up) drawThroughShaft(ctx, look, sx, sy, u, d, cam.risePx);
+  else if (down) drawPit(ctx, look, sx, sy, u, d, cam.risePx);
+  else if (up) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
 }
 
 // A stockpile pile standing in the middle of its square of tiles, as big as

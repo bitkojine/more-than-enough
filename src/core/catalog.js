@@ -42,7 +42,7 @@ export const LOOK_GROUPS = [
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
   { id: 'character', name: 'The wanderer', blurb: 'You, your lantern and your boat.' },
-  { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers, the light through them, and torches.' },
+  { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers, their ladders, the light through them, and torches.' },
   { id: 'ui', name: 'Buttons', blurb: 'The thumb buttons and the sheet.' },
   { id: 'tool', name: 'Tools', blurb: 'Upgrades you craft.' },
   { id: 'refinery', name: 'Refineries', blurb: 'Upgrades that multiply one resource.' },
@@ -113,6 +113,7 @@ add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and
 
 add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below. The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
+add('mark', 'ladder', 'Ladder', 'Stands in every hole between layers: down into the pit from above, up into the light from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
 add('mark', 'torch', 'Torch', 'A torch you placed in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
 
 const UI = {
