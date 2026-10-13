@@ -41,7 +41,8 @@ const cam = createCamera(el.canvas);
 cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 audio.wakeOn(el.canvas);
-const fx = createEffects(look);
+// What you gather flies to its pile in the yard (yard is made just below).
+const fx = createEffects(look, (res) => yard.landing(res));
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
 const perf = createPerf(el, el.canvas, audio);
@@ -183,7 +184,7 @@ function update(dt) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
   }
-  fx.update(dt, s.player);
+  fx.update(dt);
 
   if (saveDue) game.saveNow();
   for (const t of timers) {

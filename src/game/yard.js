@@ -19,6 +19,7 @@ export function createYard({ fx, look }) {
   let covered = new Set(); // packed keys of every tile under a pile
   let wait = 0;
   let tidyIn = TIDY_EVERY;
+  let middle = { x: 0.5, y: 0.5 }; // the middle of home ground
   const memo = {}; // the ground the yard stands on, kept between layouts
 
   // Everything the layout depends on.
@@ -27,6 +28,8 @@ export function createYard({ fx, look }) {
 
   // `fresh` lays the yard out tidily; otherwise it settles around what stands.
   function refresh(s, quiet, fresh) {
+    const h = Core.home(s);
+    middle = { x: h.x + 0.5, y: h.y + 0.5 };
     const next = new Map();
     const under = new Set();
     const layout = fresh ? Core.yardLayout(s, memo) : Core.yardSettle(s, [...piles.values()], memo);
@@ -75,6 +78,14 @@ export function createYard({ fx, look }) {
     growth(p, time) {
       const t = Math.min(1, (time - p.born) / GROW_TIME);
       return t < 1 ? 1 - (1 - t) * (1 - t) : 1;
+    },
+
+    // Where a newly gathered `res` lands: the middle of its smallest pile
+    // (where single units go), or the middle of home before it has one.
+    landing(res) {
+      let best = null;
+      for (const p of piles.values()) if (p.res === res && (!best || p.tier < best.tier)) best = p;
+      return best ? { x: best.x + best.span / 2, y: best.y + best.span / 2 } : middle;
     },
 
     get piles() { return piles; },

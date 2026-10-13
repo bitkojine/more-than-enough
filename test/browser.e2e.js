@@ -443,17 +443,20 @@ async function main() {
   console.log('  luminance ' + contrast);
 
   /* -------------------------------------------- items fly to the player */
-  console.log('\n== Items fly to the player when gathering ==');
+  console.log('\n== Gathered items fly to the stockpile ==');
   var spotF = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotF, 'moved onto a fresh rich forest tile for the flyer test (' + spotF + ')');
   await sleep(150);
   var actF = await rect('#btnAction');
   await touch('touchStart', [{ x: actF.x, y: actF.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
   var sawFlyers = await waitFor('MTE_GAME.flyers().length > 0', 3000);
-  ok(sawFlyers, 'gathering spawns items that fly toward the player');
+  ok(sawFlyers, 'gathering sends items flying');
+  // They head for the yard (a pile of their resource, or home), not the player.
+  ok(await evalJS('(function(){var s=MTE_GAME.getState(),h=MTE_GAME.core.home(s);return MTE_GAME.flyers().every(function(f){var toYard=Math.max(Math.abs(f.x1-h.x),Math.abs(f.y1-h.y))<=MTE_GAME.core.YARD_RADIUS+1,toPlayer=Math.hypot(f.x1-s.player.x,f.y1-s.player.y)<0.6;return toYard&&!toPlayer;});})()'),
+    'they fly to the stockpile, not to the player (' + await evalJS('JSON.stringify(MTE_GAME.flyers().slice(0,2).map(function(f){return [+f.x1.toFixed(1),+f.y1.toFixed(1)];}))') + ')');
   await touch('touchEnd', []);
-  await sleep(1000);
-  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'flyers arrive and clear within ~1s');
+  await sleep(2000);
+  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'flyers land and clear within 2 s');
 
   /* --------------------------------- SPACE hold must gather at the cd rate */
   console.log('\n== Hold SPACE gathers at GATHER_CD (no key-repeat turbo) ==');

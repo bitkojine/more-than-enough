@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.31.1] - 2026-10-13
+
+### Changed
+- **Gathered goods fly to the stockpile.** What you gather (and what
+  buildings hand over) now arcs from where it came from to its pile in the
+  yard (the smallest pile of that resource, where single units land), and
+  lands there, instead of flying to you. From far away they head off screen
+  toward home.
+
 ## [0.31.0] - 2026-10-13
 
 ### Changed
