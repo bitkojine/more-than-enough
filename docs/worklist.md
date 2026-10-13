@@ -76,7 +76,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 ## UI
 
 
-- [ ] **Explain the trail.** Explain and visualise how dragging from Gather to
+- [x] **Explain the trail.** (explained in chat, 2026-10-13; its short reach is the open question) Explain and visualise how dragging from Gather to
       draw a trail on the map works now.
 - [ ] **Redesign the UI.** Take inventory of every UI page and redesign it all.
       Mobile-first and modern.
