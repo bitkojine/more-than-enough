@@ -66,7 +66,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       everything shown must be collectible, or not shown at all.
 - [ ] **Many kinds of trees.** Different forests, and different trees within a
       forest, like real nature. Not just biomes.
-- [ ] **A boat to scale.** The sail sits too low. Size the boat and all its
+- [x] **A boat to scale.** (0.35.1) The sail sits too low. Size the boat and all its
       parts against the wanderer.
 - [ ] **Mobs.** Add mobs to discover and learn from, drawn from the
       angels-and-demons tarot matrix (72 day angels of the Shem HaMephorash, 72

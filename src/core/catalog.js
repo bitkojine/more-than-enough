@@ -29,6 +29,7 @@ import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES } from './cont
 import { PATH_FAMILIES } from './upgrades.js';
 
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
+export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
 export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
 export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers'];
 
@@ -101,7 +102,7 @@ for (const key of Object.keys(EXTRACTORS)) {
 
 add('character', 'wanderer', 'Wanderer', 'You. Drawn facing right and mirrored to walk left. As an animation, the first frame is standing still and the rest loop while you walk.', req('image'));
 add('character', 'lantern', 'Lantern', 'Carried at night and underground, drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. It is what lights the way; the colour is its light.', req('image', 'color'));
-add('character', 'boat', 'Boat', 'Carries you over water. Drawn facing right; you stand on it 30% of its height up from the bottom.', req('image'));
+add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and to the same scale as the wanderer (who stands in it at full size, ${Math.round(BOAT_DECK * 100)}% of its height up from the bottom), so make the mast taller than them.`, req('image'));
 
 add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below. The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));

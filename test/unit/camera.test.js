@@ -83,3 +83,11 @@ test('a layer stands taller than the wanderer, so tunnels and cliffs read to sca
   const cam = camera(1);
   assert.ok(cam.risePx / cam.tilePx > tall * 1.15, `a layer (${(cam.risePx / cam.tilePx).toFixed(2)} tiles) fits the wanderer (${tall.toFixed(2)}) with headroom`);
 });
+
+test('the boat is to scale: its mast stands above the wanderer standing on its deck', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { BOAT_DECK } = await import('../../src/core/catalog.js');
+  const size = (f) => Number(readFileSync(new URL('../../packs/default/characters/' + f, import.meta.url), 'utf8').match(/height="([\d.]+)"/)[1]);
+  const aboveDeck = size('boat.svg') * (1 - BOAT_DECK);
+  assert.ok(aboveDeck > size('wanderer.svg') * 1.3, `mast and sail (${aboveDeck}) tower over the wanderer (${size('wanderer.svg')})`);
+});

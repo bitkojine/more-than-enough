@@ -12,8 +12,9 @@ const groundAt = (cam, s, x, y) => cam.z + Core.tileHeight(s.world, Math.floor(x
 
 const FOOT = 0.6;           // where on a tile's depth standing things put their feet
 const SHADOW = 'rgba(0,0,0,0.38)';
-const BOAT_DECK = 0.3;      // how far up the boat picture the wanderer stands (see the catalog)
-const IN_BOAT = 0.8;        // the wanderer's size in the boat
+// The wanderer stands on the boat's deck at full size, so the boat (its hull
+// and mast) is drawn to the same scale as them.
+const BOAT_DECK = Core.BOAT_DECK;
 
 function shadow(ctx, cam, x, y, r) {
   ctx.fillStyle = SHADOW;
@@ -83,7 +84,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
     const boat = look.pick('character.boat', 'image');
     shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
     const bh = look.stand(ctx, boat, sx, sy + bob, u, flip);
-    figure(sy + bob - bh * BOAT_DECK, u * IN_BOAT);
+    figure(sy + bob - bh * BOAT_DECK, u);
     return;
   }
   shadow(ctx, cam, sx, sy, body.units * u * 0.42);

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.35.1] - 2026-10-13
+
+### Changed
+- **A boat to scale.** The wanderer now stands in the boat at full size (they
+  were shrunk to 80%), and the boat is redrawn around them: a hull about a
+  body and a half long, and a mast and sail reaching well above their head
+  (the old mast barely cleared it). A test checks the mast against the
+  wanderer picture's height. Packs: the deck is now 16% up the boat picture.
+
 ## [0.35.0] - 2026-10-13
 
 ### Added
