@@ -62,7 +62,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 - [x] **The lantern only when needed.** (0.34.0) The wanderer holds the lantern only at
       night or underground.
-- [ ] **No decoration you can't collect.** Mushrooms, grass blades, flowers:
+- [x] **No decoration you can't collect.** (0.34.2) Mushrooms, grass blades, flowers:
       everything shown must be collectible, or not shown at all.
 - [ ] **Many kinds of trees.** Different forests, and different trees within a
       forest, like real nature. Not just biomes.

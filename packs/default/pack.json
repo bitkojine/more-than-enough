@@ -7,8 +7,7 @@
   "tile.grass": {
    "color": "#56803a",
    "top": ["ground/grass-1.svg", "ground/grass-2.svg", "ground/grass-3.svg"],
-   "face": "faces/turf.svg",
-   "stand": [null, null, null, null, null, null, "props/tuft.svg", "props/tuft.svg", "props/flowers.svg"]
+   "face": "faces/turf.svg"
   },
   "tile.home": {
    "color": "#a8875c",
@@ -48,8 +47,7 @@
    "top": {
     "frames": ["ground/water-1.svg", "ground/water-2.svg", "ground/water-3.svg"],
     "fps": 1.5
-   },
-   "stand": [null, null, null, null, null, null, null, null, null, null, null, "props/reeds.svg"]
+   }
   },
   "tile.mountain": {
    "color": "#6c737b",
@@ -58,8 +56,7 @@
   },
   "tile.tunnel": {
    "color": "#5a4836",
-   "top": "ground/tunnel.svg",
-   "stand": [null, null, null, null, null, null, null, null, null, "props/mushrooms.svg"]
+   "top": "ground/tunnel.svg"
   },
   "tile.soil": {
    "color": "#85603c",

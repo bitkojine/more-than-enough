@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.34.2] - 2026-10-13
+
+### Changed
+- **Nothing shown that you can't collect.** Grass tufts and flowers, reeds in
+  the water and mushrooms in the tunnels are gone, and grass no longer has
+  blades or flowers painted on it. The rule is enforced for every texture
+  pack: only tiles you can gather (forest, stone, ore, crystal) may have a
+  `stand` picture; a pack that puts one on any other ground is rejected,
+  naming it.
+
 ## [0.34.1] - 2026-10-13
 
 ### Added

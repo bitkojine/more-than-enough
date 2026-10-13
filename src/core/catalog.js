@@ -8,7 +8,8 @@
  *          as the view tilts)
  *   face   the front of a raised tile, seen when tilted; one image is one
  *          layer tall and repeats down taller faces
- *   stand  something standing up on the tile (trees, boulders), bottom
+ *   stand  something standing up on a tile you can gather (trees, boulders): never on
+ *          other ground, so nothing shown is decoration you can't pick up; bottom
  *          centre on the tile's centre; it never squashes
  *   cut    what stands there once the tile has been worked out
  *   image  a thing standing on the map (buildings, the wanderer, the boat);
@@ -75,7 +76,9 @@ function tileDoes(t) {
 function tileSlots(t) {
   const info = TILE_INFO[t];
   const workable = info.harvest && !info.solid; // surface deposits can be worked out
-  return { ...req('color', 'top'), ...opt('face', 'stand'), ...(workable ? opt('cut') : {}) };
+  // Only what you can gather stands up on a tile: anything standing on
+  // ground you can't gather would be decoration you can't pick up.
+  return { ...req('color', 'top'), ...opt('face'), ...(workable ? opt('stand', 'cut') : {}) };
 }
 
 const things = [];

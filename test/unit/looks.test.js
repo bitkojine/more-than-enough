@@ -82,7 +82,8 @@ test('pack: pictures can be paths, inline SVG, data: or https: URLs; variants an
     assert.ok(!isPicture(bad), String(bad));
   }
   assert.deepEqual(validatePack(minimal({
-    'tile.grass': { top: ['a.png', 'b.png'], stand: ['tuft.png', null, null] },
+    'tile.grass': { top: ['a.png', 'b.png'] },
+    'tile.forest': { stand: ['pine.png', null, null] },
     'tile.water': { top: { frames: ['w1.png', 'w2.png'], fps: 2 } }
   })), []);
 });
@@ -93,7 +94,8 @@ test('pack: every problem is reported, naming the thing and slot', () => {
     looks: {
       'tile.gras': { top: 'g.png' },
       'tile.water': { icon: 'w.png', color: 'blue', top: { frames: [], fps: 0, speed: 1 } },
-      'tile.grass': { stand: [null, null], top: 'grass.txt' },
+      'tile.grass': { stand: 'tuft.png', top: 'grass.txt' },
+      'tile.forest': { stand: [null, null] },
       'resource.wood': 'wood.png'
     }
   });
@@ -101,7 +103,7 @@ test('pack: every problem is reported, naming the thing and slot', () => {
     'Unknown top-level key "extra"', '"format" must be 1', '"name" is missing',
     'tile.gras: no such thing', 'tile.water icon: Water has no "icon"', 'tile.water color: must be a colour',
     'tile.water top: unknown key "speed"', 'tile.water top: "frames" must be a list', 'tile.water top: "fps" must be',
-    'tile.grass stand: every variant is empty', 'tile.grass top: "grass.txt" is not a picture', 'resource.wood: must be an object'
+    'tile.grass stand: Grass has no "stand"', 'tile.forest stand: every variant is empty', 'tile.grass top: "grass.txt" is not a picture', 'resource.wood: must be an object'
   ];
   for (const e of expect) assert.ok(problems.some((p) => p.startsWith(e)), `reports: ${e}\n got: ${problems.join('\n')}`);
   assert.equal(problems.length, expect.length, problems.join('\n'));
