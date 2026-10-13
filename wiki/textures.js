@@ -26,6 +26,9 @@ export function pictureUrl(id, slot = 'icon') {
   return first ? PACK_DIR + first : '';
 }
 
+// A thing's colour in the default pack.
+export const colorOf = (id) => slotOf(id, 'color');
+
 // The URL of a stockpile pile's picture for 10^tier of a resource.
 export function tierUrl(res, tier) {
   const list = pack.looks['pile.' + res].tiers;

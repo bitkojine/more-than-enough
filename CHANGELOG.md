@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.1] - 2026-10-13
+
+### Changed
+- **Readable prices in the wiki.** Every amount sits in its own pill with its
+  resource's picture first and is tinted in that resource's colour, so it's
+  clear which number belongs to which resource.
+
 ## [0.27.0] - 2026-10-13
 
 ### Added

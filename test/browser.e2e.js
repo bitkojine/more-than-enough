@@ -994,6 +994,8 @@ async function main() {
   ok(await waitFor('document.querySelectorAll("#things .thing").length === ' + things, 3000), 'Everything in the game lists every thing in the catalog (' + things + ')');
   ok(await waitFor('[...document.querySelectorAll("#things .thing")].every(function(t){return t.querySelector("img, .swatch");})', 2000), 'each one shows its default picture or colour');
   ok(await waitFor('[...document.querySelectorAll("#things img")].every(function(i){return i.complete && i.naturalWidth > 0;})', 6000), 'every picture in the list loads');
+  // Prices: every amount sits in one pill with its resource's picture.
+  ok(await evalJS('(function(){var a=[...document.querySelectorAll(".cost .amt")];return a.length>50&&a.every(function(p){return p.querySelectorAll("img").length===1&&/^[0-9,]+$/.test(p.querySelector(".n").textContent);});})()'), 'each price pairs every amount with its resource in one pill');
   // Search lists every mention, not just which articles mention it.
   await evalJS('(function(){var b=document.getElementById("search");b.value="overclock";b.dispatchEvent(new Event("input"));})()');
   ok(await waitFor('!document.getElementById("results").hidden && document.querySelectorAll("#results .hits li").length >= 4', 2000),

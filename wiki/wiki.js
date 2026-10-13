@@ -4,7 +4,7 @@
 import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
-import { loadDefaultPack, pic, tierUrl, renderThings, wireDownload } from './textures.js';
+import { loadDefaultPack, pic, colorOf, tierUrl, renderThings, wireDownload } from './textures.js';
 import { find, renderResults, passages, mark, unmark } from './search.js';
 
 const { T, TILE_NAME } = Core;
@@ -14,8 +14,11 @@ const tileName = (t) => pic(Core.tileLook(t), 'top') + ' ' + TILE_NAME[t];
 const num = (n) => (Number.isInteger(n) ? n.toLocaleString('en-US') : String(Math.round(n * 1000) / 1000));
 const pct = (f) => Math.round(f * 100) + '%';
 
+// A price: one pill per resource, picture first, so each amount clearly
+// belongs to its resource.
 function costText(cost) {
-  return Object.keys(cost).map((r) => num(cost[r]) + ' ' + icon(r)).join(' ');
+  return '<span class="cost">' + Object.keys(cost).map((r) =>
+    `<span class="amt" style="--res:${colorOf(Core.resourceLook(r))}">${icon(r)}<span class="n">${num(cost[r])}</span></span>`).join('') + '</span>';
 }
 
 function table(headers, rows, numeric = []) {

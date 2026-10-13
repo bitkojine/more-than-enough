@@ -232,3 +232,16 @@ mark { padding: 0 2px; border-radius: 3px; background: rgba(232, 217, 168, 0.85)
 .flash { animation: flash 2.4s ease-out; border-radius: 6px; }
 @keyframes flash { 0%, 30% { background: rgba(127, 208, 122, 0.28); } 100% { background: transparent; } }
 @media (max-width: 760px) { body.searching #toc { display: none; } }
+
+/* --------------------------------------------------------------- prices */
+
+/* One pill per resource: its picture, then its amount. */
+.cost { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: middle; }
+.amt {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 9px 1px 4px;
+  border: 1px solid color-mix(in srgb, var(--res, #fff) 50%, transparent); border-radius: 999px;
+  background: color-mix(in srgb, var(--res, #fff) 10%, transparent);
+  white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.amt .pic { width: 1.25em; height: 1.25em; vertical-align: 0; }
