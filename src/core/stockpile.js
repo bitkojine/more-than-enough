@@ -83,14 +83,18 @@ export function yardGround(s, R) {
   return { home: h, R, side, avoid, order: order.map((o) => o.i) };
 }
 
-// Every pile in the yard: [{ x, y, span, res, tier }], (x, y) being the
-// north-west tile of its span x span square. Biggest tiers nearest home,
+/**
+ * @typedef {object} Pile
+ * @property {number} x      north-west tile of its square
+ * @property {number} y
+ * @property {number} span   side of its square, in tiles
+ * @property {string} res
+ * @property {number} tier   power of ten it stands for
+ */
+
+// The piles the inventory calls for (without places): biggest tiers first,
 // resources taking turns within a tier.
-//
-// Reading the ground is the slow part and doesn't change as amounts do, so
-// callers can pass a `memo` object to keep it between calls; it is re-read
-// when the world, its fog, holes or buildings change.
-export function yardLayout(s, memo = null) {
+function yardWant(s) {
   const want = [];
   const lists = RESOURCES.map((r) => ({ res: r, tiers: pileTiers(s.inv[r]) }));
   const top = Math.max(-1, ...lists.map((l) => (l.tiers.length ? l.tiers[0] : -1)));
@@ -100,40 +104,104 @@ export function yardLayout(s, memo = null) {
       lists.forEach((l, i) => { if (k < counts[i]) want.push({ res: l.res, tier, span: pileSpan(tier) }); });
     }
   }
-  if (!want.length) return [];
+  return want;
+}
 
+// The ground for `want` piles. Reading the ground is the slow part and
+// doesn't change as amounts do, so callers can pass a `memo` object to keep
+// it between calls; it is re-read when the world, its fog, holes or
+// buildings change.
+function groundFor(s, want, memo) {
   const area = want.reduce((n, p) => n + p.span * p.span, 0);
   const R = Math.min(YARD_RADIUS, Math.ceil(Math.sqrt(area) * 1.5) + 6);
   const key = s.world.revealed + '|' + s.world.holes.size + '|' + s.extractors.length;
-  let g = memo && memo.world === s.world && memo.key === key && memo.ground.R >= R ? memo.ground : null;
-  if (!g) {
-    g = yardGround(s, Math.max(R, memo && memo.world === s.world ? memo.ground.R : 0));
-    if (memo) Object.assign(memo, { world: s.world, key, ground: g });
-  }
-  const { side, avoid, order } = g;
+  if (memo && memo.world === s.world && memo.key === key && memo.ground.R >= R) return memo.ground;
+  const g = yardGround(s, Math.max(R, memo && memo.world === s.world ? memo.ground.R : 0));
+  if (memo) Object.assign(memo, { world: s.world, key, ground: g });
+  return g;
+}
 
-  const used = new Uint8Array(side * side);
-  const fits = (gx, gy, span) => {
-    if (gx < 0 || gy < 0 || gx + span > side || gy + span > side) return false;
-    for (let y = gy; y < gy + span; y++) {
-      for (let x = gx; x < gx + span; x++) if (used[y * side + x] || avoid[y * side + x] < 0) return false;
-    }
-    return true;
-  };
+// Places piles on ground `g`, each on the first free spot in order of
+// preference, around what `used` already holds. Returns the placed piles.
+function place(g, want, used) {
+  const { side, order } = g;
   const out = [];
   let next = 0; // single tiles only ever move further out
   for (const p of want) {
     const half = (p.span - 1) >> 1;
     for (let k = p.span === 1 ? next : 0; k < order.length; k++) {
       const gx = (order[k] % side) - half, gy = Math.floor(order[k] / side) - half;
-      if (!fits(gx, gy, p.span)) continue;
-      for (let y = gy; y < gy + p.span; y++) used.fill(1, y * side + gx, y * side + gx + p.span);
+      if (!fits(g, used, gx, gy, p.span)) continue;
+      claim(g, used, gx, gy, p.span);
       out.push({ x: g.home.x - g.R + gx, y: g.home.y - g.R + gy, ...p });
       if (p.span === 1) next = k + 1;
       break;
     }
   }
   return out;
+}
+
+function claim(g, used, gx, gy, span) {
+  for (let y = gy; y < gy + span; y++) used.fill(1, y * g.side + gx, y * g.side + gx + span);
+}
+
+/**
+ * Every pile in the yard, tidily laid out: biggest tiers nearest home.
+ * @param {object} s  game state
+ * @param {object} [memo]  kept between calls to skip re-reading the ground
+ * @returns {Pile[]}
+ */
+export function yardLayout(s, memo = null) {
+  const want = yardWant(s);
+  if (!want.length) return [];
+  const g = groundFor(s, want, memo);
+  return place(g, want, new Uint8Array(g.side * g.side));
+}
+
+/**
+ * The yard after amounts change, disturbing as little as possible: piles
+ * still called for stay exactly where they are, piles no longer called for
+ * go (the furthest out first), and new ones take the best free spots. Over
+ * time this drifts from the tidy layout; yardLayout() tidies it.
+ * @param {object} s  game state
+ * @param {Pile[]} current  the yard as it stands
+ * @param {object} [memo]
+ * @returns {Pile[]}
+ */
+export function yardSettle(s, current, memo = null) {
+  const want = yardWant(s);
+  if (!want.length) return [];
+  const g = groundFor(s, want, memo);
+  const used = new Uint8Array(g.side * g.side);
+  const ox = g.home.x - g.R, oy = g.home.y - g.R;
+  // How many of each kind of pile are still called for.
+  const need = new Map();
+  for (const p of want) need.set(p.res + p.tier, (need.get(p.res + p.tier) || 0) + 1);
+  const ring = (p) => Math.max(Math.abs(p.x - g.home.x), Math.abs(p.y - g.home.y));
+  const kept = [];
+  for (const p of [...current].sort((a, b) => ring(a) - ring(b))) {
+    const k = p.res + p.tier, gx = p.x - ox, gy = p.y - oy;
+    if (!need.get(k) || !fits(g, used, gx, gy, p.span)) continue;
+    need.set(k, need.get(k) - 1);
+    claim(g, used, gx, gy, p.span);
+    kept.push(p);
+  }
+  const missing = want.filter((p) => {
+    const k = p.res + p.tier;
+    if (!need.get(k)) return false;
+    need.set(k, need.get(k) - 1);
+    return true;
+  });
+  return kept.concat(place(g, missing, used));
+}
+
+// Whether a span x span square at grid (gx, gy) is free yard ground.
+function fits(g, used, gx, gy, span) {
+  if (gx < 0 || gy < 0 || gx + span > g.side || gy + span > g.side) return false;
+  for (let y = gy; y < gy + span; y++) {
+    for (let x = gx; x < gx + span; x++) if (used[y * g.side + x] || g.avoid[y * g.side + x] < 0) return false;
+  }
+  return true;
 }
 
 // The tiles at distance r (Chebyshev) from the centre, clockwise from north.

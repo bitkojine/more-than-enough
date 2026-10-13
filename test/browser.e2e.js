@@ -962,7 +962,7 @@ async function main() {
   await evalJS('document.getElementById("btnTexturesDefault").click()');
   ok(await waitFor('MTE_GAME.look.name === "Lanternlight" && document.getElementById("btnTexturesDefault").hidden', 2000), '"Default textures" goes back to Lanternlight');
   await navigate('http://127.0.0.1:' + PORT + '/');
-  ok(await waitFor('window.MTE_GAME && MTE_GAME.look.name === "Lanternlight"', 3000), 'and the old pack is forgotten');
+  ok(await waitFor('window.MTE_GAME && MTE_GAME.look.name === "Lanternlight"', 3000), 'and the old pack is forgotten (' + await evalJS('window.MTE_GAME ? MTE_GAME.look.name : "no game"') + ')');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Texture pack not used') < 0; });
 
   /* ---------------------------------------------------------- stockpile */

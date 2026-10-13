@@ -308,6 +308,14 @@ export function createAudio() {
   for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'keydown', 'click']) {
     window.addEventListener(ev, init, { capture: true, passive: true });
   }
+
+  // iOS Safari only counts a tap as a gesture if it ends in a click, and only
+  // sends clicks to elements it thinks are clickable: buttons, links, or ones
+  // with a click handler of their own (a handler on the window doesn't
+  // count). So surfaces that are tapped but aren't buttons (the map) get one.
+  function wakeOn(el) {
+    el.addEventListener('click', init);
+  }
   // Back to the tab, or anything else stalled it: try again.
   document.addEventListener('visibilitychange', nudge);
   window.addEventListener('focus', nudge);
@@ -315,7 +323,7 @@ export function createAudio() {
   if (create()) { wire(); nudge(); }
 
   return {
-    init, gather, dig, collect, upgrade, build, fanfare, drone,
+    init, wakeOn, gather, dig, collect, upgrade, build, fanfare, drone,
     get muted() { return muted; },
     set muted(v) { muted = v; },
     state: () => (ctx ? ctx.state : 'none'),

@@ -153,7 +153,8 @@
         <a href="#textures">Texture packs</a>).</p>
       <p>Sound plays as soon as your browser lets a page make sound. Some allow it straight away. Most wait until you've
         touched or clicked the page once, and on an iPhone that has to be a tap, since a drag doesn't count. After that,
-        sound comes back by itself when you return to the tab or a call ends.</p>
+        sound comes back by itself when you return to the tab or a call ends. (Drags never count in Safari, so if you only steer
+        after loading the page, it stays quiet until your first tap.)</p>
 
       <h2>Performance panel</h2>
       <p>Tap the <strong>version badge</strong> in the top corner (or press <kbd>F3</kbd>) to see how well the game runs on your
@@ -352,6 +353,9 @@
         <li>Never on anything you can gather (forest, stone, ore, crystal), so a pile never hides a resource.</li>
         <li>Never on water, mountains, holes or buildings, and never more than <span data-k="YARD_RADIUS"></span> tiles from
           home. If it runs out of room, the smallest piles wait for more ground.</li>
+        <li>The yard stays put while you gather. Piles that are still needed never move, new piles take the best free spot,
+          and only the piles that go (spent, or ten merged into one bigger pile) disappear. About every
+          minute and a half the yard tidies itself, biggest piles back in the middle.</li>
         <li>Zoomed far out, each pile is a dot of its resource's colour.</li>
       </ul>
       <p>What every kind of pile looks like comes from the texture pack (the <code>tiers</code> slot of

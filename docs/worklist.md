@@ -39,7 +39,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 - [x] **A home zone.** (0.30.0) The stash needs its own zone, so it doesn't cover
       resources you can still gather from in the middle of the forest.
-- [ ] **A stable stash.** Piles shouldn't jump around and merge so often as you
+- [x] **A stable stash.** (0.31.0) Piles shouldn't jump around and merge so often as you
       gather. Reorder once in a while, so the stash looks settled.
 - [ ] **Gathered stuff flies to the stockpile.** Collected resources should fly
       to the stockpile and settle there, not to the player.

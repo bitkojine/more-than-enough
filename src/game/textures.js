@@ -74,9 +74,11 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
     el.packFile.value = '';
     if (files.length) fromFiles(files).catch((err) => report([err.stack || String(err)]));
   });
+  // Forget first, then switch: the game shows the default pack only once a
+  // reload would too.
   el.texturesDefault.addEventListener('click', async () => {
-    apply(null);
     const gone = await forgetPack();
+    apply(null);
     toast(gone.error ? `Textures: ${look.name} (couldn't forget the old pack: ${gone.error.name})` : 'Textures: ' + look.name);
   });
   el.packReport.querySelector('button').addEventListener('click', () => { el.packReport.hidden = true; });

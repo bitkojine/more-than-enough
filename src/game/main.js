@@ -40,6 +40,7 @@ look.use(defaultPack);
 const cam = createCamera(el.canvas);
 cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
+audio.wakeOn(el.canvas);
 const fx = createEffects(look);
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);

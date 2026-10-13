@@ -96,3 +96,48 @@ test('yard: home ground first, never on anything you can gather, water, rock, ho
   Object.assign(fresh.inv, { wood: 999 });
   for (const p of C.yardLayout(fresh)) assert.ok(C.isExplored(fresh.world, p.x, p.y, C.SURFACE), 'only explored ground');
 });
+
+test('yard: as amounts change, piles that stay called for never move', () => {
+  const s = yardWorld({ wood: 3452, stone: 871, ore: 46, crystal: 7 });
+  const memo = {};
+  let yard = C.yardLayout(s, memo);
+  const at = (p) => p.res + p.tier + '@' + p.x + ',' + p.y;
+  for (const [res, add] of [['wood', 1], ['stone', 9], ['ore', 954], ['wood', 6548], ['crystal', -5], ['stone', -871]]) {
+    const before = new Set(yard.map(at));
+    s.inv[res] += add;
+    const next = C.yardSettle(s, yard, memo);
+    // Same piles as a fresh layout would have, kind for kind...
+    const kinds = (list) => list.map((p) => p.res + p.tier).sort().join();
+    assert.equal(kinds(next), kinds(C.yardLayout(s)), `${res} ${add}: the right piles`);
+    // ...and every kind that was there and still is keeps its spots.
+    const stays = new Map();
+    for (const p of next) stays.set(p.res + p.tier, (stays.get(p.res + p.tier) || 0) + 1);
+    const moved = [...before].filter((k) => {
+      const kind = k.split('@')[0];
+      return stays.get(kind) && !next.some((p) => at(p) === k);
+    });
+    for (const k of moved) {
+      const kind = k.split('@')[0];
+      const had = [...before].filter((b) => b.split('@')[0] === kind).length;
+      assert.ok(stays.get(kind) < had, `${k} moved though its kind kept ${stays.get(kind)} of ${had}`);
+    }
+    const seen = new Set();
+    for (const p of next) {
+      for (let y = p.y; y < p.y + p.span; y++) for (let x = p.x; x < p.x + p.span; x++) {
+        assert.ok(!seen.has(x + ',' + y), 'no two piles share a tile');
+        seen.add(x + ',' + y);
+      }
+    }
+    yard = next;
+  }
+});
+
+test('yard: a pile on ground that stops being yard (a hole dug there) moves', () => {
+  const s = yardWorld({ wood: 5 });
+  const yard = C.yardLayout(s, {});
+  const p = yard[0];
+  C.digHole(s.world, p.x, p.y, C.SURFACE);
+  const next = C.yardSettle(s, yard, {});
+  assert.equal(next.length, 5);
+  assert.ok(!next.some((q) => q.x === p.x && q.y === p.y), 'nothing stands over the hole');
+});

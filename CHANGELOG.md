@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.31.0] - 2026-10-13
+
+### Changed
+- **A stable stash.** The stockpile no longer re-lays itself whenever an
+  amount changes. Piles that are still needed stay exactly where they are,
+  new ones take the best free spot, and only piles that go (spent, or ten
+  merged into one) disappear. About every 90 seconds the yard tidies itself,
+  biggest piles back in the middle.
+
+### Fixed
+- **Sound after a reload on iPhone, for real this time.** Tested in iOS
+  Safari (simulator): after a reload, tapping the map didn't start the sound,
+  because Safari only sends a click (its proof of a gesture) to elements it
+  considers clickable, and the map wasn't one. The map now is, so the first
+  tap anywhere starts the sound. A drag alone still doesn't (Safari's rule).
+- "Default textures" switched the look before forgetting the saved pack, so
+  a quick reload could bring the old pack back. It now forgets first.
+
 ## [0.30.0] - 2026-10-13
 
 ### Added
