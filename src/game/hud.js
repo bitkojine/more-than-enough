@@ -98,6 +98,13 @@ export function createHud(el, look) {
         setText(chips[r].val, fmt(s.inv[r]));
         setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmt1(rates[r]) + '/s' : '');
       }
+      // A dot on BUILD and UPGRADE when there's something in there you can
+      // do right now, so the sheet is worth opening.
+      el.upgrade.classList.toggle('has', Core.PATH_FAMILIES.some((f) => f.layer === 'world' && Core.pathProgress(s, f.id).canBuy));
+      el.build.classList.toggle('has', [...Core.DEPOSIT_EXTRACTORS, ...Core.CONVERTERS].some((k) => {
+        const def = Core.EXTRACTORS[k];
+        return (!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k)) && !!Core.buildTarget(s, k);
+      }));
       const below = Core.isUnderground(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));

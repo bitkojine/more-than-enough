@@ -192,6 +192,13 @@ canvas#game {
   font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em;
   color: #b9c8b6; margin-top: 3px;
 }
+/* Something in the sheet you can buy or place right now. */
+.btn.has::before {
+  content: ""; position: absolute; top: 3px; right: 3px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: #7fe06e; border: 2px solid #0c140e;
+  box-shadow: 0 0 8px rgba(127, 224, 110, 0.8);
+}
 .btn.ready { border-color: rgba(127, 208, 122, 0.5); animation: readyPulse 1.6s ease-in-out infinite; }
 .btn.ready:active { animation: none; }
 
@@ -379,19 +386,31 @@ canvas#game {
   flex: 0 0 auto;
   min-width: 92px; min-height: 52px;
   border-radius: 12px;
-  border: 1px solid rgba(127,208,122,0.45);
-  background: rgba(60, 120, 80, 0.38);
-  color: #e2f7dc;
-  font-weight: 800; font-size: 13px;
-  padding: 0 10px;
+  padding: 0 12px;
+  font: 800 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  touch-action: manipulation;
+  cursor: pointer;
 }
+/* One you can press looks like a real button: solid, raised, glowing. */
+.row .buy:not(:disabled) {
+  border: 1px solid #a4ec92;
+  background: linear-gradient(180deg, #6fcf62, #3f9a45);
+  color: #08200b;
+  box-shadow: 0 4px 0 #24652c, 0 6px 14px rgba(80, 200, 90, 0.28);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  transition: transform .06s ease, box-shadow .06s ease;
+}
+.row .buy:not(:disabled):active { transform: translateY(2px); box-shadow: 0 0 0 #24652c, 0 2px 6px rgba(80, 200, 90, 0.2); }
+/* One you can't press yet is flat and outlined, like a label. */
 .row .buy:disabled {
-  opacity: 0.38;
-  border-color: rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.05);
-  color: var(--ink-dim);
+  border: 1px dashed rgba(255,255,255,0.18);
+  background: transparent;
+  color: rgba(147, 162, 145, 0.75);
+  cursor: default;
 }
-.row .buy.max { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.05); color: var(--ink-dim); opacity: 1; }
+.row .buy.max { border: 1px solid transparent; background: rgba(255,255,255,0.04); color: var(--ink-dim); }
 .row.locked { opacity: 0.6; }
 .section { padding: 10px 12px 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); }
 
@@ -410,12 +429,18 @@ canvas#game {
   cursor: pointer; touch-action: manipulation;
 }
 .railHead.ready { background: rgba(60, 120, 80, 0.14); }
+.railHead:active { background: rgba(255,255,255,0.06); }
 .railHead .fh-ic { width: 28px; height: 28px; flex: 0 0 auto; }
 .railHead .fh-ic .ico { width: 28px; height: 28px; }
 .railHead .fh-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .railHead .fh-nm { font-size: 14px; font-weight: 800; color: var(--ink); }
 .railHead .fh-count { flex: 0 0 auto; font-size: 11.5px; font-weight: 700; color: var(--ink-dim); }
-.railHead .chev { flex: 0 0 auto; color: var(--ink-dim); font-size: 12px; }
+.railHead .chev {
+  flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 50%; border: 1px solid var(--panel-line); background: rgba(255,255,255,0.05);
+  color: var(--ink); font-size: 13px;
+}
+.railHead.ready .chev { border-color: rgba(127,208,122,0.6); color: var(--green); }
 
 /* One dot per system in the family: filled = maxed, half = in progress,
    ringed = a next level is affordable, hollow = not started. */

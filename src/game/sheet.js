@@ -106,7 +106,9 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
   look = currentLook;
   let open = false;
   let tab = 'upgrades';
-  const expanded = { tools: true }; // progression families showing their buy rows
+  // Progression families showing their buy rows. One the player hasn't
+  // opened or closed opens by itself while it has something to buy.
+  const expanded = { tools: true };
   const beyondTab = el.tabs.find((t) => t.dataset.tab === 'beyond');
   let beyondShownUnlocked = beyondUnlocked(getState());
   beyondTab.hidden = !beyondShownUnlocked;
@@ -128,7 +130,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
   function renderUpgrades(s) {
     let html = '<div class="section">World</div>';
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
-      const isOpen = !!expanded[f.id];
+      const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
       const count = f.id === 'abundance' ? () => 'Lv ' + s.abundanceLv : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
       if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
@@ -243,7 +245,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     const { kind, id, family } = target.dataset;
     if (family) {
       if (family === 'legacy') setTab('beyond');
-      else { expanded[family] = !expanded[family]; render(); }
+      else { expanded[family] = target.getAttribute('aria-expanded') !== 'true'; render(); }
       return;
     }
     if (kind === 'build') actions.place(id);

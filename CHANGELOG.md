@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.38.2] - 2026-10-13
+
+### Changed
+- **Buttons you can press look like buttons.** Craft, Place, Refine and the
+  rest were pale tints that didn't read as pressable. One you can press now is
+  solid bright green and raised, and sinks when tapped; one you can't afford
+  yet is flat with a dashed outline.
+- **A dot says when a menu is worth opening.** BUILD and UPGRADE wear a green
+  dot while there's something in them you can place or buy right now.
+- **Upgrade families open by themselves** while they have something to buy
+  (unless you've opened or closed one yourself), and their open/close arrow
+  is a clear round button.
+
 ## [0.38.1] - 2026-10-13
 
 ### Changed

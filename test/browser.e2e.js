@@ -540,6 +540,9 @@ async function main() {
     'a price shows how much more of each resource is needed (' + await evalJS('[...document.querySelector(".row button[data-id=axe]").closest(".row").querySelectorAll(".amt")].map(function(a){return a.className+":"+a.textContent;}).join(" ")') + ')');
   await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe");for(var r in c)s.inv[r]=c[r];})()');
   ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=axe]").closest(".row");return row.querySelector(".price.ready")&&!row.querySelector(".amt.need");})()', 2000), 'once you have it all, the price shows what it costs');
+  ok(await waitFor('document.getElementById("btnUpgrade").classList.contains("has")', 2000), 'UPGRADE wears a dot while something in it can be bought');
+  ok(await evalJS('/gradient/.test(getComputedStyle(document.querySelector(".row button[data-id=axe]")).backgroundImage)'), 'a button you can press looks raised and solid');
+  console.log('  screenshot: ' + await shot('02c-upgrades.png'));
   await evalJS('Object.assign(MTE_GAME.getState().inv,' + savedInv + ')');
   if (woodNow < 6) { await evalJS('MTE_GAME.addRes("wood",20)'); await sleep(150); }
   var axeButton = await rect('.row button[data-id=axe]');
@@ -687,8 +690,11 @@ async function main() {
   await evalJS('MTE_GAME.addRes("wood",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
   await evalJS('document.getElementById("btnUpgrade").click()');
   await sleep(300);
-  await evalJS('(function(){["refining","abundance","unlocks"].forEach(function(f){var b=document.querySelector("#sheetBody button[data-family="+f+"]");if(b)b.click();});})()');
-  await sleep(250);
+  ok(await evalJS('["refining","abundance","unlocks"].every(function(f){var b=document.querySelector("#sheetBody button[data-family="+f+"]");return b&&b.getAttribute("aria-expanded")==="true";})'),
+    'families with something to buy open by themselves');
+  await evalJS('document.querySelector("#sheetBody button[data-family=unlocks]").click()');
+  eq(await evalJS('document.querySelector("#sheetBody button[data-family=unlocks]").getAttribute("aria-expanded")'), 'false', 'and tapping one closes it');
+  await evalJS('document.querySelector("#sheetBody button[data-family=unlocks]").click()');
   var resupRows = await evalJS('document.querySelectorAll("#sheetBody button[data-kind=resup]").length');
   eq(resupRows, 4, 'four refinery-chain rows rendered');
   ok(await evalJS('!!document.querySelector("#sheetBody button[data-id=abundance]")'), 'Abundance Engine row is levelable');
