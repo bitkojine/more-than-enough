@@ -6,18 +6,22 @@
  *   hold Gather / Space      `held` (the main loop repeats the action)
  *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
  *   two fingers, wheel, +/-  zoom
- *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close') */
+ *   two fingers up/down      tilt (also Shift + wheel, T, the tilt button)
+ *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close')
+ *   F3                       handlers.command('perf') */
 
 const JOY_MAX = 74;          // px from the stick origin to full speed
 const JOY_DEAD = 12;         // px of slack before the stick engages
 const TAP_MAX_MOVE = 14;     // px a tap may wander
 const TAP_MAX_MS = 320;
 const TRAIL_MIN_STEP = 0.12; // tiles between recorded Trail points
+const GESTURE_DECIDE = 10;   // px two fingers move before it counts as zoom or tilt
+const TILT_DRAG_PX = 220;    // two-finger drag that swings from flat to full tilt
 
 export function createInput({ canvas, cam, el, handlers }) {
   const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0 };
   const pointers = new Map();                     // pointerId -> {x, y}, for pinch
-  const pinch = { active: false, dist: 0, zoom: 1 };
+  const pinch = { active: false, mode: null, dist: 0, zoom: 1, midY: 0, tilt: 0 };
   let keys = {};
   let actionPointerId = null;
 
@@ -61,6 +65,16 @@ export function createInput({ canvas, cam, el, handlers }) {
     return b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
   }
 
+  function pinchMidY() {
+    const [a, b] = [...pointers.values()];
+    return b ? (a.y + b.y) / 2 : a.y;
+  }
+
+  function toggleTilt() {
+    cam.setTilt(cam.tiltTarget > 0.5 ? 0 : 1);
+    handlers.viewChanged();
+  }
+
   function outsideActionButton(e) {
     const b = el.action.getBoundingClientRect();
     return e.clientX < b.left || e.clientX > b.right || e.clientY < b.top || e.clientY > b.bottom;
@@ -102,9 +116,11 @@ export function createInput({ canvas, cam, el, handlers }) {
     pointers.set(e.pointerId, canvasPoint(e));
     e.preventDefault();
     if (pinch.active || pointers.size >= 2) {
-      // A second finger means pinch-zoom, not a joystick drag.
+      // A second finger means zoom or tilt, not a joystick drag.
       joy.active = false; joy.x = 0; joy.y = 0;
-      if (!pinch.active) Object.assign(pinch, { active: true, dist: pinchDistance() || 1, zoom: cam.zoom });
+      if (!pinch.active) {
+        Object.assign(pinch, { active: true, mode: null, dist: pinchDistance() || 1, zoom: cam.zoom, midY: pinchMidY(), tilt: cam.tilt });
+      }
       return;
     }
     const p = canvasPoint(e);
@@ -114,10 +130,18 @@ export function createInput({ canvas, cam, el, handlers }) {
   function onMove(e) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPoint(e));
     if (pinch.active) {
-      const d = pinchDistance();
-      if (d > 1) cam.setZoom(pinch.zoom * (d / pinch.dist));
-      handlers.zoomed();
       e.preventDefault();
+      if (pointers.size < 2) return;
+      const d = pinchDistance(), dy = pinchMidY() - pinch.midY;
+      // Fingers spreading means zoom; both sliding up or down means tilt.
+      if (!pinch.mode) {
+        const spread = Math.abs(d - pinch.dist);
+        if (Math.max(spread, Math.abs(dy)) < GESTURE_DECIDE) return;
+        pinch.mode = spread > Math.abs(dy) ? 'zoom' : 'tilt';
+      }
+      if (pinch.mode === 'zoom' && d > 1) cam.setZoom(pinch.zoom * (d / pinch.dist));
+      if (pinch.mode === 'tilt') cam.setTilt(pinch.tilt - dy / TILT_DRAG_PX, true);
+      handlers.viewChanged();
       return;
     }
     if (input.held && !input.trail && e.pointerId === actionPointerId && outsideActionButton(e)) beginTrail(e);
@@ -172,8 +196,9 @@ export function createInput({ canvas, cam, el, handlers }) {
   canvas.addEventListener('wheel', (e) => {
     if (handlers.blocked()) return;
     e.preventDefault();
-    cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
-    handlers.zoomed();
+    if (e.shiftKey) cam.setTilt(cam.tiltTarget - (e.deltaY || e.deltaX) / 600, true);
+    else cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
+    handlers.viewChanged();
   }, { passive: false });
 
   /* ------------------------------------------------------ Gather button */
@@ -195,10 +220,11 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (input.held && !input.trail && e.pointerId === actionPointerId) beginTrail(e);
   });
 
-  /* -------------------------------------------------------------- zoom */
+  /* ------------------------------------------------------ zoom and tilt */
 
-  el.zoomOut.addEventListener('click', () => { cam.setZoom(cam.zoom / 1.25); handlers.zoomed(); });
-  el.zoomIn.addEventListener('click', () => { cam.setZoom(cam.zoom * 1.25); handlers.zoomed(); });
+  el.zoomOut.addEventListener('click', () => { cam.setZoom(cam.zoom / 1.25); handlers.viewChanged(); });
+  el.zoomIn.addEventListener('click', () => { cam.setZoom(cam.zoom * 1.25); handlers.viewChanged(); });
+  el.tilt.addEventListener('click', toggleTilt);
 
   /* ---------------------------------------------------------- keyboard */
 
@@ -217,6 +243,8 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (k === 'escape') handlers.command('close');
     if (k === 'b') handlers.command('build');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
+    if (k === 't' && !e.repeat && !handlers.blocked()) toggleTilt();
+    if (e.key === 'F3') { e.preventDefault(); if (!e.repeat) handlers.command('perf'); }
   });
   window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;

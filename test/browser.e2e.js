@@ -19,8 +19,30 @@ if (process.platform === 'darwin' && process.env.CODEX_SANDBOX === 'seatbelt') {
   process.exit(2);
 }
 
+var CDP_TIMEOUT_MS = 15000;  // any single DevTools call
+var STALL_MS = 60000;        // no output at all for this long means the run is stuck
+
 var failures = 0, checks = 0;
 function ok(cond, msg) { checks++; if (!cond) { failures++; console.log('  FAIL: ' + msg); } else { console.log('  ok: ' + msg); } }
+
+/* Fail loud: a run that hangs must say where. Every line we print is progress;
+ * the watchdog names the section and the last line if progress stops. */
+var section = '(starting)', lastLine = '', lastProgress = Date.now();
+var print = console.log;
+console.log = function () {
+  var line = Array.prototype.join.call(arguments, ' ');
+  if (/^\n?== /.test(line)) section = line.trim();
+  lastLine = line.trim();
+  lastProgress = Date.now();
+  print.apply(console, arguments);
+};
+function die(code, why) {
+  console.error('\nE2E ' + why + '\n  section: ' + section + '\n  last output: ' + (lastLine || '(none)'));
+  process.exit(code);
+}
+setInterval(function () {
+  if (Date.now() - lastProgress > STALL_MS) die(3, 'STALLED: no progress for ' + STALL_MS / 1000 + 's');
+}, 1000).unref();
 function eq(a, b, msg) { ok(a === b, msg + ' (got ' + JSON.stringify(a) + ', expected ' + JSON.stringify(b) + ')'); }
 function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
@@ -58,7 +80,16 @@ CDP.prototype.send = function (method, params, sessionId) {
   if (sessionId) payload.sessionId = sessionId;
   this.ws.send(JSON.stringify(payload));
   var self = this;
-  return new Promise(function (res, rej) { self.pending.set(id, { res: res, rej: rej }); });
+  return new Promise(function (res, rej) {
+    var timer = setTimeout(function () {
+      self.pending.delete(id);
+      rej(new Error('Chrome did not answer ' + method + ' within ' + CDP_TIMEOUT_MS / 1000 + 's (page hung or browser starved)'));
+    }, CDP_TIMEOUT_MS);
+    self.pending.set(id, {
+      res: function (v) { clearTimeout(timer); res(v); },
+      rej: function (e) { clearTimeout(timer); rej(e); }
+    });
+  });
 };
 CDP.prototype.on = function (fn) { this.handlers.push(fn); };
 CDP.prototype.close = function () { try { this.ws.close(); } catch (e) { } };
@@ -86,8 +117,9 @@ async function asciiArt(evalJS) {
 async function main() {
   fs.mkdirSync(SHOT_DIR, { recursive: true });
 
-  // Clear any stale headless browsers we launched previously.
-  try { cp.execSync('pkill -f "mte-chrome-" >/dev/null 2>&1 || true'); } catch (e) { }
+  // Clear any stale headless browsers we launched previously; they eat the CPU
+  // and starve this run's frames. ([m] keeps pkill from matching its own shell.)
+  try { cp.execSync('pkill -f "[m]te-chrome-" >/dev/null 2>&1 || true'); } catch (e) { }
 
   // static server
   var server = cp.spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
@@ -113,6 +145,10 @@ async function main() {
     try { server.kill('SIGKILL'); } catch (e) { }
   }
   process.on('exit', cleanup);
+  // Killed or interrupted: still take Chrome down with us, and say so.
+  ['SIGINT', 'SIGTERM', 'SIGHUP'].forEach(function (sig) {
+    process.on(sig, function () { die(130, 'INTERRUPTED by ' + sig); });
+  });
 
   var version = null;
   for (var i = 0; i < 60; i++) {
@@ -152,6 +188,10 @@ async function main() {
     width: 390, height: 844, deviceScaleFactor: 3, mobile: true
   }, session);
   await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 }, session);
+  // Keep the page treated as the focused, front tab: a backgrounded headless
+  // tab stops producing frames, which freezes the game and hangs touch input.
+  await cdp.send('Emulation.setFocusEmulationEnabled', { enabled: true }, session);
+  await cdp.send('Page.bringToFront', {}, session);
 
   var evalJS = async function (expr) {
     var r = await cdp.send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true }, session);
@@ -226,6 +266,12 @@ async function main() {
   await evalJS('localStorage.clear()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await evalJS('!!window.MTE_GAME'), 'game booted');
+  // Movement and timing checks assume the game runs in real time. If the
+  // machine is starved, say so here rather than as odd failures later.
+  var pace = JSON.parse(await evalJS('new Promise(function(done){var t0=MTE_GAME.getState().time,n=0,w0=performance.now();' +
+    '(function f(){n++;if(performance.now()-w0<1000)requestAnimationFrame(f);else done(JSON.stringify({fps:n,sim:MTE_GAME.getState().time-t0}));})();})'));
+  ok(pace.fps >= 20 && pace.sim >= 0.8, 'the game runs in real time (' + pace.fps + ' fps, ' + pace.sim.toFixed(2) + 's of game time per second)' +
+    (pace.fps < 20 ? ' — FRAMES ARE STARVED: close other headless browsers or heavy apps; timing checks below will fail' : ''));
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
@@ -287,9 +333,9 @@ async function main() {
 
   /* --------------------------------------------------------- movement */
   console.log('\n== Movement (keyboard) ==');
-  // Teleport to an open tile so the world is endless but this test isn't foiled
-  // by a rock/water tile that happens to sit next to the random spawn.
-  await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;function ok(x,y){return c.walkable(s.world,x,y,0);}for(var r=0;r<80;r++){for(var dy=-r;dy<=r;dy++){for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(ok(dx,dy)&&ok(dx+1,dy)&&ok(dx-1,dy)&&ok(dx,dy+1)&&ok(dx,dy-1)){MTE_GAME.setPlayer(dx+0.5,dy+0.5);return;}}}}})()');
+  // Teleport to an open stretch (three clear tiles to the right) so a rock or
+  // water tile near the random spawn can't stop the walk early.
+  await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;function ok(x,y){return c.walkable(s.world,x,y,0);}for(var r=0;r<80;r++){for(var dy=-r;dy<=r;dy++){for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;if(ok(dx,dy)&&ok(dx+1,dy)&&ok(dx+2,dy)&&ok(dx+3,dy)&&ok(dx-1,dy)&&ok(dx,dy+1)&&ok(dx,dy-1)){MTE_GAME.setPlayer(dx+0.5,dy+0.5);return;}}}}})()');
   await sleep(150);
   var before = JSON.parse(await stateSummary());
   await key('keyDown', 'd', 'KeyD', 68);
@@ -297,7 +343,8 @@ async function main() {
   await key('keyUp', 'd', 'KeyD', 68);
   await sleep(150);
   var after = JSON.parse(await stateSummary());
-  ok(after.x > before.x + 0.5, 'player moved right with keyboard (' + before.x + ' -> ' + after.x + ')');
+  ok(after.x > before.x + 0.5, 'player moved right with keyboard (' + before.x + ' -> ' + after.x + ')' +
+    (after.x > before.x + 0.5 ? '' : ' — page: ' + await evalJS('JSON.stringify({visibility:document.visibilityState,focus:document.hasFocus(),time:MTE_GAME.getState().time})')));
 
   console.log('\n== Movement (touch joystick drag) ==');
   var b2 = JSON.parse(await stateSummary());
@@ -699,6 +746,66 @@ async function main() {
   await sleep(120);
 
   /* ------------------------------------------------------------- errors */
+  /* ------------------------------------------------------ tilt the view */
+  console.log('\n== Tilt the view ==');
+  errBase = pageErrors.length;
+  eq(await evalJS('MTE_GAME.tilt()'), 0, 'the view starts flat');
+  var tiltBtn = await rect('#btnTilt');
+  await tap(tiltBtn.x, tiltBtn.y);
+  ok(await waitFor('MTE_GAME.tilt() > 0.98', 2000), 'the tilt button swings the view to full tilt');
+  eq(await evalJS('document.getElementById("btnTilt").getAttribute("aria-pressed")'), 'true', 'the tilt button shows it is on');
+  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-view")).tilt'), 1, 'the tilt is remembered for next time');
+
+  // Two fingers sliding down together tilt back toward flat, without zooming.
+  var zoomBefore = await evalJS('MTE_GAME.zoom()');
+  await touch('touchStart', [
+    { x: 180, y: 300, radiusX: 5, radiusY: 5, force: 1, id: 1 },
+    { x: 270, y: 300, radiusX: 5, radiusY: 5, force: 1, id: 2 }
+  ]);
+  for (var ty = 320; ty <= 400; ty += 20) {
+    await touch('touchMove', [
+      { x: 180, y: ty, radiusX: 5, radiusY: 5, force: 1, id: 1 },
+      { x: 270, y: ty, radiusX: 5, radiusY: 5, force: 1, id: 2 }
+    ]);
+    await sleep(30);
+  }
+  await touch('touchEnd', []);
+  await sleep(100);
+  var tiltAfterDrag = await evalJS('MTE_GAME.tilt()');
+  ok(tiltAfterDrag > 0.3 && tiltAfterDrag < 0.8, 'a two-finger drag down eases the tilt (' + tiltAfterDrag.toFixed(2) + ')');
+  eq(await evalJS('MTE_GAME.zoom()'), zoomBefore, 'tilting with two fingers leaves the zoom alone');
+
+  // Underground, tilted: a tap on the top of a wall digs that wall.
+  await evalJS('MTE_GAME.setTilt(1)');
+  mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
+  ok(await waitFor('MTE_GAME.getState().player.z < 0', 2000), 'went down into the mine with the view tilted');
+  var wall = JSON.parse(await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),p=s.player,x=Math.floor(p.x),y=Math.floor(p.y)-1;' +
+    'C.setRichness(s.world,x,y,p.z,1);var h=C.tileHeight(s.world,x,y,p.z);var sp=G.project(x+0.5,y+0.4,p.z+h);' +
+    'return JSON.stringify({x:x,y:y,z:p.z,h:h,sx:sp.x,sy:sp.y,solid:!!C.TILE_INFO[C.tileAt(s.world,x,y,p.z)].solid});})()'));
+  ok(wall.solid && wall.h === 1, 'the rock north of the player stands a full layer tall');
+  await tap(wall.sx, wall.sy);
+  ok(await waitFor('MTE_GAME.core.richness(MTE_GAME.getState().world,' + wall.x + ',' + wall.y + ',' + wall.z + ') === 0', 1500), 'tapping the top of a wall, tilted, digs that wall');
+  console.log('  screenshot: ' + await shot('07-tilted-mine.png'));
+  mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
+  ok(await waitFor('MTE_GAME.getState().player.z === 0', 2000), 'back up on the surface');
+  console.log('  screenshot: ' + await shot('08-tilted-surface.png'));
+  eq(pageErrors.length, errBase, 'tilting throws no render errors');
+  await evalJS('MTE_GAME.setTilt(0)');
+
+  /* ------------------------------------------------- performance panel */
+  console.log('\n== Performance panel ==');
+  eq(await evalJS('document.getElementById("perf").hidden'), true, 'the performance panel starts closed');
+  var badge = await rect('#version');
+  await tap(badge.x, badge.y);
+  ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'tapping the version badge opens the panel, showing FPS');
+  var perfText = await evalJS('document.getElementById("perf").textContent');
+  ok(['frame', 'logic', 'draw', 'tiles', 'screen', 'canvas'].every(function (k) { return perfText.indexOf(k) >= 0; }), 'the panel shows frame time, logic, draw, tiles, screen and canvas');
+  var snap = await evalJS('MTE_GAME.perf()');
+  ok(snap.fps > 0 && snap.tiles > 0 && snap.drawMs > 0, 'the figures are live (' + Math.round(snap.fps) + ' fps, ' + snap.tiles + ' tiles, draw ' + snap.drawMs.toFixed(2) + ' ms)');
+  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-view")).perf'), true, 'the open panel is remembered for next time');
+  await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
+  eq(await evalJS('document.getElementById("perf").hidden'), true, 'F3 closes it again');
+
   /* --------------------------------------------------------------- wiki */
   console.log('\n== Wiki ==');
   await navigate2('http://127.0.0.1:' + PORT + '/wiki/#mine');
@@ -708,6 +815,15 @@ async function main() {
   ok(await evalJS('document.querySelector(".version").textContent.indexOf(".") > 0'), 'the wiki states the game version it documents');
 
   console.log('\n== Runtime errors ==');
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  eq(await evalJS('document.getElementById("crash").hidden'), true, 'the crash report stays hidden while nothing is broken');
+  await evalJS('(function(){var real=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException("full","QuotaExceededError");};MTE_GAME.save();Storage.prototype.setItem=real;})()');
+  ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'a save that fails says so');
+  pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
+  await evalJS('setTimeout(function(){ throw new Error("e2e: deliberate break"); })');
+  ok(await waitFor('!document.getElementById("crash").hidden', 2000), 'an uncaught error shows the crash report');
+  ok((await evalJS('document.querySelector("#crash pre").textContent')).indexOf('deliberate break') >= 0, 'the crash report says what broke');
+  pageErrors = pageErrors.filter(function (e) { return e.indexOf('deliberate break') < 0; });
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));
 
   /* ------------------------------------------------------------- done */
@@ -721,6 +837,5 @@ async function main() {
 }
 
 main().catch(function (e) {
-  console.error('E2E ERROR: ' + (e && e.stack || e));
-  process.exit(2);
+  die(2, 'ERROR: ' + (e && e.stack || e));
 });

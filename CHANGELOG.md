@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.21.0] - 2026-10-13
+
+### Added
+- Tilt: the view swings from straight down to an angled 2.5D view. Use the
+  tilt button beside zoom, a two-finger vertical drag, `T`, or Shift + scroll.
+  Zoom and tilt are remembered per browser.
+- Tiles have height (`TILE_INFO.height`, `tileHeight()`): undug rock stands a
+  full layer tall around tunnels, mountains rise as uneven cliffs, and water
+  sits below the bank. Tilted, south faces show, with rim light and contact
+  shade.
+- Tilted, taps and Trails pick the block you actually see (its top or its
+  face), and the player shows faintly through walls in front.
+- A performance panel on every device: tap the version badge (or press F3)
+  for FPS, frame time and worst frame, logic and draw time, tiles drawn,
+  screen and canvas size, and cores, memory and heap where the browser
+  reports them.
+- Fail loud: an error in the game stops it and shows what broke on screen
+  (also for modules that fail to load), and a save that fails says so
+  instead of losing progress silently. An old save is only removed after it
+  was moved successfully.
+- Browser tests fail loud too: every DevTools call times out naming what it
+  waited for, a watchdog names the section a stalled run is stuck in, Chrome
+  is cleaned up when the run is interrupted, and a boot check reports when
+  the machine is too starved for the timing checks.
+
+### Fixed
+- Browser tests froze under Chrome 155 headless: the test tab is now kept
+  focused so it keeps producing frames. The keyboard walk test now starts on
+  a clear stretch of ground.
+
+### Changed
+- The camera projects `(x, y, height)` with a pitch; terrain draws row by row,
+  back to front, with buildings and the player drawn in their row so nearer
+  blocks cover them. The flat view looks the same as before.
+
 ## [0.20.0] - 2026-10-13
 
 ### Added

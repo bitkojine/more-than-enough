@@ -65,8 +65,9 @@ export function createHud(el) {
       el.mine.setAttribute('aria-label', below ? 'Return to the surface' : 'Go down into the mine');
     },
 
-    zoom(z) {
-      setText(el.zoomLevel, Math.round(z * 100) + '%');
+    view(cam) {
+      setText(el.zoomLevel, Math.round(cam.zoom * 100) + '%');
+      el.tilt.setAttribute('aria-pressed', String(cam.tiltTarget > 0.5));
     },
 
     // Status only (e.g. a save that couldn't be read), never instructions.

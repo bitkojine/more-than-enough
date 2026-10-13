@@ -4,11 +4,13 @@
 
 import { CHUNK_SIZE, SURFACE, packKey, chunkCoord, chunkIndex } from './coords.js';
 import { generateChunk } from './terrain.js';
+import { hash2 } from './noise.js';
 import { TILE_INFO, T } from './tiles.js';
 
 const MAX_CACHED_CHUNKS = 512;
 const FOG_BYTES = (CHUNK_SIZE * CHUNK_SIZE) >> 3; // one bit per tile
 const SPAWN_SEARCH_RADIUS = 200;
+const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
 
 /**
  * @typedef {object} World
@@ -66,6 +68,15 @@ export function tileAt(w, x, y, z) {
 
 export function walkable(w, x, y, z) {
   return !!TILE_INFO[tileAt(w, x, y, z)].walk;
+}
+
+// How far the tile's top stands above its layer's floor, in layers. Unexplored
+// surface reads as flat, so the fog never gives away the shape of the land.
+export function tileHeight(w, x, y, z) {
+  if (z === SURFACE && !isExplored(w, x, y, z)) return 0;
+  const info = TILE_INFO[tileAt(w, x, y, z)];
+  if (!info.rough) return info.height || 0;
+  return info.height + (hash2(x, y, w.seed + ROUGH_SALT + z) - 0.5) * info.rough;
 }
 
 /* ---------------------------------------------------------------- fog */

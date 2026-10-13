@@ -106,3 +106,23 @@ test('fog is tracked per tile and per layer', () => {
   assert.ok(!C.isExplored(w, -16, 33, SURFACE));
   assert.ok(!C.isExplored(w, -17, 33, -1));
 });
+
+test('tile heights: walls and mountains stand up, water sits low, fog is flat', () => {
+  const s = C.createState(4242);
+  const w = s.world;
+  const solid = C.nearestTile(0, 0, 40, (x, y) => C.TILE_INFO[C.tileAt(w, x, y, -1)].solid);
+  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 1, 'underground rock reaches the layer above');
+  C.setRichness(w, solid.x, solid.y, -1, 0);
+  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 0, 'a dug tile is open floor');
+
+  const rock = C.nearestTile(0, 0, 300, (x, y) => C.tileAt(w, x, y, SURFACE) === T.ROCK);
+  assert.equal(C.tileHeight(w, rock.x, rock.y, SURFACE), 0, 'unexplored land hides its shape');
+  C.markExplored(w, rock.x, rock.y, SURFACE);
+  const h = C.tileHeight(w, rock.x, rock.y, SURFACE);
+  assert.ok(h >= C.RELIEF_MIN && h <= C.RELIEF_MAX && h > 0.5, 'a mountain is tall, within the relief bounds (' + h + ')');
+  assert.equal(C.tileHeight(w, rock.x, rock.y, SURFACE), h, 'and keeps its height');
+
+  const water = C.nearestTile(0, 0, 300, (x, y) => C.tileAt(w, x, y, SURFACE) === T.WATER);
+  C.markExplored(w, water.x, water.y, SURFACE);
+  assert.ok(C.tileHeight(w, water.x, water.y, SURFACE) < 0, 'water sits below the ground');
+});

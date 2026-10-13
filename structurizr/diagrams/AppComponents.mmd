@@ -25,9 +25,9 @@ graph LR
         style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
         7["<div style='font-weight: bold'>Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Applies intents to the game:<br />tap (descend, harvest,<br />collect, or walk there), the<br />held action (collect, else<br />harvest), Trail sweeps,<br />entering/leaving the mine,<br />buying, building, embarking,<br />resetting. Each calls the<br />Core, then triggers effects,<br />sound, HUD and a save.</div>"]
         style 7 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        8["<div style='font-weight: bold'>Camera</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Maps world (x, y, z) to<br />screen pixels and back<br />(project/unproject), with<br />zoom and the visible tile<br />range. The single seam for a<br />future tilted 2.5D view.</div>"]
+        8["<div style='font-weight: bold'>Camera</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Maps world (x, y, height) to<br />screen pixels and back<br />(project/unproject) with zoom<br />and a tilt from top-down to<br />2.5D; picking hits the top or<br />face you see. Also the<br />visible tile range.</div>"]
         style 8 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer (per tile, or<br />level-of-detail blocks when<br />zoomed far out), highlights,<br />the Trail, extractors,<br />particles, the player,<br />floating text, flyers,<br />day/night lighting and the<br />joystick. Never text to read.</div>"]
+        9["<div style='font-weight: bold'>Renderer</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Draws one frame back to<br />front: terrain for the<br />camera's layer row by row<br />(tops and south faces, or<br />level-of-detail blocks when<br />zoomed far out) with<br />highlights, extractors and<br />the player drawn in their<br />row, then the Trail,<br />particles, floating text,<br />flyers, day/night lighting<br />and the joystick. Never text<br />to read.</div>"]
         style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
       end
 
@@ -36,7 +36,7 @@ graph LR
     end
 
     6-. "<div>Taps, held action, Trail<br />strokes</div><div style='font-size: 70%'></div>" .->7
-    6-. "<div>Unprojects pointers; zooms</div><div style='font-size: 70%'></div>" .->8
+    6-. "<div>Unprojects pointers; zooms<br />and tilts</div><div style='font-size: 70%'></div>" .->8
     5-. "<div>Steers and repeats the held<br />action each frame</div><div style='font-size: 70%'></div>" .->7
     5-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->15
     5-. "<div>Renders each frame</div><div style='font-size: 70%'></div>" .->9

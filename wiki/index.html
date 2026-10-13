@@ -31,7 +31,7 @@
       <div class="note">Every number in this wiki is read live from the game's own code, so the tables always match the version
         you're playing.</div>
       <ul class="cards">
-        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, keyboard.</span></a></li>
+        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, tilt, keyboard.</span></a></li>
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
@@ -76,6 +76,17 @@
       <p>Use the <strong>&minus; / +</strong> buttons above the thumb buttons, pinch with two fingers, or scroll a mouse wheel.
         You can zoom in to 3&times; and out until tiles are just a few pixels wide.</p>
 
+      <h2>Tilt</h2>
+      <p>The view can tilt from straight down to an angled, 2.5D look, where things have height. Mountains rise as cliffs,
+        water sits below the bank, and underground the rock you haven't dug stands a full layer tall around your tunnels.</p>
+      <ul>
+        <li>The <strong>tilt button</strong> (the slanted square beside the zoom buttons) swings between flat and fully tilted.</li>
+        <li>On touch, <strong>slide two fingers up or down together</strong> to tilt by any amount. Spreading them still zooms.</li>
+        <li>On a computer, press <kbd>T</kbd>, or hold <kbd>Shift</kbd> and scroll.</li>
+      </ul>
+      <p>Tilted, a tap picks whatever block you can see at that spot, so tapping the top of a wall digs that wall.
+        If a wall stands in front of you, you show through it faintly. Your zoom and tilt are remembered in this browser.</p>
+
       <h2>The other buttons</h2>
       <ul>
         <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
@@ -90,6 +101,9 @@
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrows</td><td>Move</td></tr>
           <tr><td><kbd>Space</kbd> or <kbd>Enter</kbd></td><td>Gather (hold to repeat)</td></tr>
+          <tr><td><kbd>T</kbd></td><td>Tilt the view, or flatten it</td></tr>
+          <tr><td><kbd>F3</kbd></td><td>Show or hide the performance panel</td></tr>
+          <tr><td><kbd>Shift</kbd> + scroll</td><td>Tilt by any amount</td></tr>
           <tr><td><kbd>B</kbd></td><td>Build tab</td></tr>
           <tr><td><kbd>U</kbd> or <kbd>C</kbd></td><td>Upgrades tab</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
@@ -125,6 +139,27 @@
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed.</p>
       <p>The bottom of the sheet holds <strong>Wiki</strong> (this page), <strong>Reset world</strong> (starts over, after asking),
         and <strong>Sound</strong>.</p>
+
+      <h2>Performance panel</h2>
+      <p>Tap the <strong>version badge</strong> in the top corner (or press <kbd>F3</kbd>) to see how well the game runs on your
+        device, phone or computer alike. Tap it again to hide it. Its left edge is green at 55 fps or more, yellow from 30, red below.
+        It stays open next time if you leave it open.</p>
+      <div class="table"><table>
+        <thead><tr><th>Line</th><th>Means</th></tr></thead>
+        <tbody>
+          <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
+          <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
+          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, regrowth.</td></tr>
+          <tr><td>draw</td><td>Time per frame spent drawing the map. Tilting and zooming out raise it.</td></tr>
+          <tr><td>tiles</td><td>Tiles drawn this frame (blocks, when zoomed far out).</td></tr>
+          <tr><td>screen / canvas</td><td>Your screen size and pixel density, and the size the map is drawn at.</td></tr>
+          <tr><td>cores, memory, heap</td><td>Your device's processor cores and memory, and the game's memory use, where the browser reports them.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2>If something breaks</h2>
+      <p>If the game hits an error it stops and shows a red <strong>The game broke</strong> panel saying what went wrong, with a
+        Reload button. If saving stops working (storage full or blocked), a message says so straight away.</p>
     </article>
 
     <article id="world" data-title="The world" hidden>

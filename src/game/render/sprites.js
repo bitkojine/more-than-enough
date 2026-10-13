@@ -1,5 +1,6 @@
 /* Things standing on the terrain: extractors, the player (and their boat),
- * and the transient effects. */
+ * and the transient effects. Standing things keep their height as the view
+ * tilts and rise off the ground by `lift`; their shadows flatten. */
 
 import * as Core from '../../core/index.js';
 import { roundRect } from './terrain.js';
@@ -7,34 +8,36 @@ import { RES_COLOR } from '../effects.js';
 
 const TAU = Math.PI * 2;
 
-export function drawExtractors(ctx, cam, s) {
+// Height of the ground under (x, y) in the camera's layer, as absolute height.
+const groundAt = (cam, s, x, y) => cam.z + Core.tileHeight(s.world, Math.floor(x), Math.floor(y), cam.z);
+
+export function drawExtractor(ctx, cam, s, e) {
   const u = cam.tilePx;
-  for (const e of s.extractors) {
-    if (e.z !== cam.z) continue;
-    const { x: sx, y: sy } = cam.project(e.x + 0.5, e.y + 0.5);
-    if (sx < -u || sy < -u || sx > cam.width + u || sy > cam.height + u) continue;
-    const size = u * 0.74;
-    const def = Core.EXTRACTORS[e.key];
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    roundRect(ctx, sx - size / 2, sy - size / 2 + size * 0.12, size, size, 8); ctx.fill();
-    ctx.fillStyle = '#1e2822';
-    roundRect(ctx, sx - size / 2, sy - size / 2, size, size, 8); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-    ctx.lineWidth = Math.max(1, size * 0.045);
+  const ground = cam.project(e.x + 0.5, e.y + 0.5, groundAt(cam, s, e.x, e.y));
+  if (ground.x < -u || ground.y < -u * 2 || ground.x > cam.width + u || ground.y > cam.height + u * 2) return;
+  const size = u * 0.74;
+  const g = cam.depthPx / u;
+  const sx = ground.x, sy = ground.y - size * 0.5 * Math.sin(cam.pitch());
+  const def = Core.EXTRACTORS[e.key];
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  roundRect(ctx, sx - size / 2, ground.y - size / 2 * g + size * 0.12, size, size * g, 8); ctx.fill();
+  ctx.fillStyle = '#1e2822';
+  roundRect(ctx, sx - size / 2, sy - size / 2, size, size, 8); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,0.16)';
+  ctx.lineWidth = Math.max(1, size * 0.045);
+  ctx.stroke();
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = Math.round(size * 0.56) + 'px -apple-system, sans-serif';
+  ctx.fillText(def.icon, sx, sy + size * 0.03);
+  if (e.buffer >= 0.5) { // fill ring: gold when full
+    const p = Math.min(1, e.buffer / def.buffer);
+    ctx.beginPath();
+    ctx.arc(sx, sy, size * 0.66, -Math.PI / 2, -Math.PI / 2 + p * TAU);
+    ctx.strokeStyle = p >= 1 ? '#ffd166' : '#7fd07a';
+    ctx.lineWidth = Math.max(2, size * 0.11);
+    ctx.lineCap = 'round';
     ctx.stroke();
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.font = Math.round(size * 0.56) + 'px -apple-system, sans-serif';
-    ctx.fillText(def.icon, sx, sy + size * 0.03);
-    if (e.buffer >= 0.5) { // fill ring: gold when full
-      const p = Math.min(1, e.buffer / def.buffer);
-      ctx.beginPath();
-      ctx.arc(sx, sy, size * 0.66, -Math.PI / 2, -Math.PI / 2 + p * TAU);
-      ctx.strokeStyle = p >= 1 ? '#ffd166' : '#7fd07a';
-      ctx.lineWidth = Math.max(2, size * 0.11);
-      ctx.lineCap = 'round';
-      ctx.stroke();
-      ctx.lineCap = 'butt';
-    }
+    ctx.lineCap = 'butt';
   }
 }
 
@@ -87,17 +90,20 @@ function drawShip(ctx, sx, sy, half) {
 
 export function drawPlayer(ctx, cam, s, facing) {
   const u = cam.tilePx;
-  const { x: sx, y: sy } = cam.project(s.player.x, s.player.y);
+  const p = s.player;
+  const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   const afloat = Core.onWater(s);
+  const lean = Math.sin(cam.pitch());
   let bob = 0;
   if (afloat) {
-    bob = Math.sin(s.time * 2.6 + s.player.x * 7.3) * u * 0.04;
+    bob = Math.sin(s.time * 2.6 + p.x * 7.3) * u * 0.04;
     drawShip(ctx, sx, sy + bob, Math.max(9, u * 0.95));
   }
   const r = afloat ? Math.max(2, u * 0.1) : Math.max(3, u * 0.27);
-  const py = sy + bob;
+  // Standing on the ground: the shadow stays put, the body rises as you tilt.
   ctx.fillStyle = 'rgba(0,0,0,0.42)';
-  ctx.beginPath(); ctx.ellipse(sx, py + r * 0.8, r * 1.05, r * 0.45, 0, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx, sy + bob + r * 0.8 * (1 - lean), r * 1.05, r * 0.45, 0, 0, TAU); ctx.fill();
+  const py = sy + bob - r * lean;
   const g = ctx.createRadialGradient(sx - r * 0.3, py - r * 0.4, r * 0.1, sx, py, r);
   g.addColorStop(0, '#fdf4d8');
   g.addColorStop(1, '#d9b877');

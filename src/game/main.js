@@ -11,8 +11,9 @@ import { createHud } from './hud.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createController } from './controller.js';
+import { createPerf } from './perf.js';
 import { render } from './render/renderer.js';
-import { loadGame, saveGame } from './storage.js';
+import { loadGame, saveGame, loadView, saveView } from './storage.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
@@ -21,18 +22,31 @@ const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 
 const cam = createCamera(el.canvas);
+cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 const fx = createEffects();
 const hud = createHud(el);
+const perf = createPerf(el, el.canvas);
 
 const loaded = loadGame();
 let saveDue = false;
+let saveError = null;
 
 // The one place the current state lives. Everything else reads game.state.
 const game = {
   state: loaded.state,
   saveSoon() { saveDue = true; },
-  saveNow() { saveDue = false; saveGame(game.state); },
+  saveNow() {
+    saveDue = false;
+    const err = saveGame(game.state);
+    // Say so the moment saving starts failing (and again if it recovers and
+    // fails later), so progress is never lost silently.
+    if (err && !saveError) {
+      console.error('Saving failed:', err);
+      hud.toast('Saving failed — progress is not being kept (' + (err.name || 'error') + ')');
+    }
+    saveError = err;
+  },
   // Swaps in a different world (embark, reset).
   replace(next) {
     game.state = next;
@@ -62,9 +76,22 @@ const input = createInput({
     tap: controller.tap,
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,
-    zoomed: () => hud.zoom(cam.zoom),
-    command: (cmd) => (cmd === 'close' ? sheet.close() : sheet.toggle(cmd))
+    viewChanged: () => { hud.view(cam); saveView(cam, perf); },
+    command(cmd) {
+      if (cmd === 'perf') togglePerf();
+      else if (cmd === 'close') sheet.close();
+      else sheet.toggle(cmd);
+    }
   }
+});
+
+function togglePerf() {
+  perf.toggle();
+  saveView(cam, perf);
+}
+el.version.addEventListener('click', togglePerf);
+el.version.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); togglePerf(); }
 });
 
 el.build.addEventListener('click', () => sheet.toggle('build'));
@@ -135,10 +162,22 @@ function view() {
 
 let last = 0;
 function frame(now) {
-  const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+  const intervalMs = last ? now - last : 0;
+  const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
   last = now;
-  if (!document.hidden) update(dt);
-  render(cam, game.state, fx, view());
+  try {
+    const t0 = performance.now();
+    if (!document.hidden) update(dt);
+    cam.tick(dt);
+    const t1 = performance.now();
+    const stats = render(cam, game.state, fx, view());
+    if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
+    perf.tick(dt);
+  } catch (err) {
+    // Stop here and show what broke, rather than throwing every frame.
+    window.MTE_CRASH(err.stack || String(err));
+    return;
+  }
   requestAnimationFrame(frame);
 }
 
@@ -146,7 +185,7 @@ function frame(now) {
 
 function resize() {
   cam.resize();
-  hud.zoom(cam.zoom);
+  hud.view(cam);
 }
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
@@ -154,6 +193,10 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 window.addEventListener('pagehide', () => game.saveNow());
 document.addEventListener('visibilitychange', () => { if (document.hidden) game.saveNow(); });
 
+const savedView = loadView();
+cam.setZoom(savedView.zoom);
+cam.setTilt(savedView.tilt, true);
+perf.toggle(savedView.perf);
 resize();
 hud.update(game.state);
 hud.updateButtons(game.state);
@@ -171,5 +214,11 @@ window.MTE_GAME = {
   audioState: () => audio.state(),
   zoom: () => cam.zoom,
   tilePx: () => cam.tilePx,
-  setZoom(z) { cam.setZoom(z); hud.zoom(cam.zoom); }
+  setZoom(z) { cam.setZoom(z); hud.view(cam); },
+  tilt: () => cam.tilt,
+  perf: () => perf.snapshot(),
+  perfVisible: () => perf.visible,
+  setTilt(t) { cam.setTilt(t, true); hud.view(cam); },
+  project: (x, y, h) => cam.project(x, y, h),
+  unproject: (sx, sy) => cam.unproject(sx, sy)
 };

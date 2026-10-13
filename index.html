@@ -14,12 +14,35 @@
      in each module import) so GitHub Pages' 10-minute cache can't serve a
      stale build. Keep plain paths in the source. -->
 <link rel="stylesheet" href="style.css" />
+<script>
+  // Fail loud: anything that breaks the game (an exception, a module that
+  // failed to load) is shown on screen with what broke, never a frozen map.
+  (function () {
+    function crash(what) {
+      var box = document.getElementById('crash');
+      if (!box) return document.addEventListener('DOMContentLoaded', function () { crash(what); });
+      box.hidden = false;
+      box.querySelector('pre').textContent += what + '\n\n';
+      if (window.console) console.error('[MTE crash] ' + what);
+    }
+    window.MTE_CRASH = crash;
+    window.addEventListener('error', function (e) {
+      var el = e.target;
+      if (el && el !== window && (el.src || el.href)) crash('Failed to load ' + (el.src || el.href));
+      else crash((e.error && e.error.stack) || e.message);
+    }, true);
+    window.addEventListener('unhandledrejection', function (e) {
+      crash('Unhandled rejection: ' + ((e.reason && e.reason.stack) || e.reason));
+    });
+  })();
+</script>
 </head>
 <body>
   <canvas id="game"></canvas>
 
   <div id="hud">
-    <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
+    <div id="version" role="button" tabindex="0" aria-label="Performance" aria-pressed="false"><span id="brand">byrforr</span><span id="verText"></span></div>
+    <pre id="perf" aria-live="off" hidden></pre>
     <div id="resources"></div>
     <div id="depth" aria-live="polite" hidden></div>
   </div>
@@ -29,6 +52,9 @@
       <button id="btnZoomOut" type="button" aria-label="Zoom out">&minus;</button>
       <span id="zoomLevel" aria-live="polite">100%</span>
       <button id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
+      <button id="btnTilt" type="button" aria-label="Tilt the view" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17 L9 8 H21 L15 17 Z" /><path d="M3 17 V20 H15 V17 M15 20 L21 11 V8" /></svg>
+      </button>
     </div>
     <div id="thumbDock">
       <button id="btnBuild" class="btn" type="button" aria-label="Build extractor">
@@ -70,6 +96,11 @@
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
+  <div id="crash" role="alert" hidden>
+    <strong>The game broke</strong>
+    <pre></pre>
+    <button type="button" onclick="location.reload()">Reload</button>
+  </div>
 
   <script type="module" src="src/game/main.js"></script>
 </body>

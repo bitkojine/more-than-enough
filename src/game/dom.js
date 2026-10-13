@@ -9,7 +9,9 @@ const byId = (id) => {
 export function findElements() {
   return {
     canvas: byId('game'),
+    version: byId('version'),
     verText: byId('verText'),
+    perf: byId('perf'),
     resources: byId('resources'),
     depth: byId('depth'),
     action: byId('btnAction'),
@@ -23,6 +25,7 @@ export function findElements() {
     zoomIn: byId('btnZoomIn'),
     zoomOut: byId('btnZoomOut'),
     zoomLevel: byId('zoomLevel'),
+    tilt: byId('btnTilt'),
     sheet: byId('sheet'),
     sheetGrab: byId('sheetGrab'),
     sheetTitle: byId('sheetTitle'),

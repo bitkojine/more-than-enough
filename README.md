@@ -78,7 +78,7 @@ The project is under git — commit early, commit often:
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and migration
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
-  - `input.js`, `camera.js` — touch/keyboard to intents; world ↔ screen (the seam for a tilted view)
+  - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`
 - `index.html`, `style.css` — shell and mobile-first styling
 - `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core)

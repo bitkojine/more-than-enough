@@ -6,28 +6,36 @@ import { roundRect } from './terrain.js';
 
 const TAU = Math.PI * 2;
 
-// Outline one tile. The inset is clamped so a sub-pixel tile when zoomed far
-// out can't produce a negative size.
-function outlineTile(ctx, cam, tx, ty, color) {
-  const u = cam.tilePx;
-  const inset = Math.min(2, u * 0.2);
-  const size = u - inset * 2;
-  if (size <= 0) return;
-  const p = cam.project(tx, ty);
+// The rectangle of a tile's top on screen, inset by `inset` px.
+function topRect(cam, s, tx, ty, inset) {
+  const h = cam.z + Core.tileHeight(s.world, tx, ty, cam.z);
+  const p = cam.project(tx, ty, h);
+  const g = cam.depthPx / cam.tilePx;
+  return { x: p.x + inset, y: p.y + inset * g, w: cam.tilePx - inset * 2, h: cam.depthPx - inset * 2 * g };
+}
+
+// Outline one tile's top. The inset is clamped so a sub-pixel tile when
+// zoomed far out can't produce a negative size.
+function outlineTile(ctx, cam, s, tx, ty, color) {
+  const r = topRect(cam, s, tx, ty, Math.min(2, cam.tilePx * 0.2));
+  if (r.w <= 0 || r.h <= 0) return;
   ctx.strokeStyle = color;
-  ctx.lineWidth = Math.max(1.5, u * 0.05);
-  roundRect(ctx, p.x + inset, p.y + inset, size, size, Math.min(6, size / 2));
+  ctx.lineWidth = Math.max(1.5, cam.tilePx * 0.05);
+  roundRect(ctx, r.x, r.y, r.w, r.h, Math.min(6, r.h / 2));
   ctx.stroke();
 }
 
-export function drawHighlights(ctx, cam, view) {
-  if (view.harvestTarget) outlineTile(ctx, cam, view.harvestTarget.x, view.harvestTarget.y, 'rgba(200,255,180,0.5)');
-  for (const t of view.buildTargets) outlineTile(ctx, cam, t.x, t.y, 'rgba(140,220,255,0.6)');
+// Target outlines for the tiles in row y (drawn with that row, so blocks in
+// front still cover them).
+export function drawHighlights(ctx, cam, s, view, y) {
+  const t = view.harvestTarget;
+  if (t && t.y === y) outlineTile(ctx, cam, s, t.x, t.y, 'rgba(200,255,180,0.5)');
+  for (const b of view.buildTargets) if (b.y === y) outlineTile(ctx, cam, s, b.x, b.y, 'rgba(140,220,255,0.6)');
 }
 
 // The live Trail: a glowing stroke that turns green (amber underground) once it
 // crosses tiles the sweep will take, with those tiles filled in.
-export function drawTrail(ctx, cam, view) {
+export function drawTrail(ctx, cam, s, view) {
   const trail = view.trail;
   if (!trail || !trail.points.length) return;
   const hits = view.trailTargets.length > 0;
@@ -41,23 +49,24 @@ export function drawTrail(ctx, cam, view) {
   ctx.lineWidth = Math.max(5, Math.min(12, u * 0.18));
   ctx.shadowBlur = 18;
   ctx.beginPath();
+  const at = (pt) => cam.project(pt.x, pt.y, cam.z + (pt.h || 0));
   trail.points.forEach((pt, i) => {
-    const p = cam.project(pt.x, pt.y);
+    const p = at(pt);
     if (i === 0) ctx.moveTo(p.x, p.y);
     else ctx.lineTo(p.x, p.y);
   });
   ctx.stroke();
-  const end = cam.project(trail.points[trail.points.length - 1].x, trail.points[trail.points.length - 1].y);
+  const end = at(trail.points[trail.points.length - 1]);
   ctx.fillStyle = hits ? (dig ? '#ffe0a8' : '#caff9b') : '#b9f3ff';
   ctx.beginPath();
   ctx.arc(end.x, end.y, Math.max(7, u * 0.17), 0, TAU);
   ctx.fill();
   for (const t of view.trailTargets) {
-    const p = cam.project(t.x, t.y);
+    const r = topRect(cam, s, t.x, t.y, 2);
     ctx.fillStyle = dig ? 'rgba(255,205,125,0.25)' : 'rgba(149,255,104,0.25)';
-    roundRect(ctx, p.x + 2, p.y + 2, u - 4, u - 4, Math.min(9, u * 0.2));
+    roundRect(ctx, r.x, r.y, r.w, r.h, Math.min(9, u * 0.2));
     ctx.fill();
-    outlineTile(ctx, cam, t.x, t.y, dig ? 'rgba(255,215,140,1)' : 'rgba(190,255,130,1)');
+    outlineTile(ctx, cam, s, t.x, t.y, dig ? 'rgba(255,215,140,1)' : 'rgba(190,255,130,1)');
   }
   ctx.restore();
 }

@@ -39,14 +39,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                camera = component "Camera" "Maps world (x, y, z) to screen pixels and back (project/unproject), with zoom and the visible tile range. The single seam for a future tilted 2.5D view." "JavaScript" {
+                camera = component "Camera" "Maps world (x, y, height) to screen pixels and back (project/unproject) with zoom and a tilt from top-down to 2.5D; picking hits the top or face you see. Also the visible tile range." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/camera.js"
                     }
                 }
 
-                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer (per tile, or level-of-detail blocks when zoomed far out), highlights, the Trail, extractors, particles, the player, floating text, flyers, day/night lighting and the joystick. Never text to read." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row, then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Never text to read." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"
@@ -166,7 +166,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools.e2e -> mte.app "Loads index.html; asserts through window.MTE_GAME"
 
         mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
-        mte.app.input -> mte.app.camera "Unprojects pointers; zooms"
+        mte.app.input -> mte.app.camera "Unprojects pointers; zooms and tilts"
         mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
         mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
         mte.app.main -> mte.app.render "Renders each frame"

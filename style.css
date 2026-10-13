@@ -47,7 +47,9 @@ canvas#game {
 
 #version {
   align-self: flex-end;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -58,6 +60,26 @@ canvas#game {
   padding: 3px 8px;
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
+#version[aria-pressed="true"] { border-color: rgba(127, 208, 122, 0.55); }
+
+/* Performance panel: tap the version badge, or F3. */
+#perf {
+  align-self: flex-end;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid #7fd07a;
+  border-radius: 8px;
+  background: rgba(8, 12, 10, 0.82);
+  color: #d6e4d3;
+  font: 10.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre;
+  pointer-events: none;
+}
+#perf[hidden] { display: none; }
+#perf[data-grade="ok"] { border-left-color: #ffd166; }
+#perf[data-grade="bad"] { border-left-color: #ff5a5a; }
+
 #version #brand {
   color: #e8d9a8;
   letter-spacing: 0.12em;
@@ -195,6 +217,9 @@ canvas#game {
   touch-action: manipulation;
 }
 #zoomControls button:active { background: rgba(80,130,90,0.5); }
+#btnTilt { display: grid; place-items: center; }
+#btnTilt svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+#btnTilt[aria-pressed="true"] { background: rgba(80,130,90,0.45); color: #caff9b; }
 #zoomLevel {
   min-width: 38px; text-align: center;
   color: var(--ink-dim); font-size: 10px; font-weight: 800;
@@ -389,6 +414,27 @@ canvas#game {
   text-align: center;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+/* Fail loud: the crash report covers the game so nothing broken looks fine. */
+#crash {
+  position: fixed; inset: 12px; z-index: 100;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px;
+  border: 2px solid #ff5a5a; border-radius: 14px;
+  background: rgba(30, 6, 6, 0.96); color: #ffd9d9;
+}
+#crash[hidden] { display: none; }
+#crash strong { color: #ff7b7b; font-size: 18px; }
+#crash pre {
+  flex: 1; margin: 0; overflow: auto;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  white-space: pre-wrap; word-break: break-word;
+}
+#crash button {
+  align-self: flex-start; padding: 8px 16px;
+  border: 1px solid #ff7b7b; border-radius: 10px;
+  background: transparent; color: inherit; font: inherit; font-weight: 700;
+}
 
 @media (min-width: 700px) {
   #hud { padding-top: 12px; }
