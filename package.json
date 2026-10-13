@@ -1,6 +1,7 @@
 {
   "name": "more-than-enough",
   "private": true,
+  "license": "MIT",
   "description": "A mobile-first browser game about turning a hostile wilderness into an absurd surplus.",
   "type": "module",
   "scripts": {

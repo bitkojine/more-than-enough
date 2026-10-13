@@ -142,3 +142,7 @@ stops before opening Chrome.
 
 The browser test launches its own local server and headless Chrome and cleans up
 after itself.
+
+## License
+
+MIT, see [LICENSE](LICENSE). Fork it, change it, ship your own version.
