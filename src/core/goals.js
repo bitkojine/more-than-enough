@@ -8,7 +8,7 @@ import { canEmbark } from './state.js';
 const has = (key) => (s) => extractorCount(s, key) > 0;
 
 export const GOALS = [
-  { text: 'Gather wood from the forest', done: (s) => s.stats.wood > 0 },
+  { text: 'Gather wood from the forest', done: (s) => s.stats.forestWood > 0 },
   { text: 'Craft an Axe upgrade (6 wood)', done: (s) => s.tools.axe >= 2 },
   { text: 'Gather stone from a stone deposit', done: (s) => s.stats.stone > 0 },
   { text: 'Craft a Pickaxe upgrade (10 wood, 6 stone)', done: (s) => s.tools.pickaxe >= 2 },

@@ -63,7 +63,7 @@ export function createState(seed) {
     totalEver: 0,
     perks: Object.fromEntries(Object.keys(PERKS).map((k) => [k, 0])),
     extractors: [],
-    stats: { ...perResource(0), gathers: 0, collected: 0, built: 0, playedMs: 0 },
+    stats: { ...perResource(0), forestWood: 0, gathers: 0, collected: 0, built: 0, playedMs: 0 },
     discovered: { ore: false, crystal: false },
     goalIndex: 0,
     time: 0,

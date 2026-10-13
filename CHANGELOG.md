@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.2] - 2026-10-13
+
+### Fixed
+- **"Gather wood from the forest" waits for a forest.** Wood dug out of a
+  fossil deep underground no longer earns the first milestone; it completes
+  the first time you gather wood from a forest tile.
+
 ## [0.36.1] - 2026-10-13
 
 ### Changed

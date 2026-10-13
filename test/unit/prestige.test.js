@@ -93,7 +93,7 @@ test('one-shot perks carry their bonus into the next world', () => {
 test('milestones complete in order', () => {
   const s = C.createState(1);
   assert.equal(C.advanceGoals(s), false);
-  s.stats.wood = 1;
+  s.stats.forestWood = 1;
   s.tools.axe = 2;
   assert.equal(C.advanceGoals(s), true);
   assert.equal(s.goalIndex, 2);

@@ -2,7 +2,7 @@
  * and build. Every action works on the player's own layer. */
 
 import { tileDist2 } from './coords.js';
-import { TILE_INFO } from './tiles.js';
+import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, holeAbove } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost } from './economy.js';
@@ -61,6 +61,8 @@ export function harvestAt(s, x, y) {
     s.inv[res] += amount;
     s.stats[res] += amount;
   }
+  // Wood also comes from fossils deep underground; the first milestone wants a forest.
+  if (type === T.FOREST) s.stats.forestWood += amount;
   s.stats.gathers += 1;
   return { x, y, z, type, res, amount, now: tileAt(s.world, x, y, z) };
 }

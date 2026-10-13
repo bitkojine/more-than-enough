@@ -135,3 +135,19 @@ test('converters need their blueprint and build on any dry land, not home ground
   run(s, 300);
   assert.ok(s.extractors[0].buffer <= C.EXTRACTORS.foundry.buffer + 1e-9);
 });
+
+test('wood from a fossil underground does not count as gathering from the forest', () => {
+  const s = C.createState(77);
+  s.player.z = -4;
+  const fossil = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOSSIL && richAt(st, x, y) > 0);
+  standOn(s, fossil);
+  assert.equal(C.harvestAt(s, fossil.x, fossil.y).res, 'wood');
+  assert.equal(s.stats.wood, 1);
+  assert.equal(C.advanceGoals(s), false, 'the forest milestone waits for a forest');
+
+  s.player.z = C.SURFACE;
+  standOn(s, findNear(s, forest));
+  C.harvest(s);
+  assert.equal(C.advanceGoals(s), true);
+  assert.equal(s.goalIndex, 1);
+});
