@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.38.0] - 2026-10-13
+
+### Added
+- **Finds to dig toward.** Every 16×16 area of each mine layer now hides up
+  to three finds in the rock: **buried caches** (wood, stone and ore) on every
+  layer, and **geodes** (stone and crystal) from layer 2 down. They glint in
+  the dark from up to 9 tiles away, even through rock you haven't uncovered,
+  so there's always something close to head for. One dig breaks a find open
+  and pays it all at once, scaled by the layer and your tools, with a burst of
+  sparks and the haul held on screen long enough to read. New `tile.cache`
+  and `tile.geode` looks; the wiki's Underground page has a Finds section.
+
 ## [0.37.3] - 2026-10-13
 
 ### Changed

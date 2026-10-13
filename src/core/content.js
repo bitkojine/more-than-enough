@@ -28,6 +28,21 @@ export const EMBARK_MIN_TOTAL = 1000000;
 export const EMBARK_ABUNDANCE = 5;
 export const TORCH_COST = { wood: 3 };     // a torch for the tunnels
 
+/* -------------------------------------------------------------- finds */
+
+// Things hidden in the rock, a few to every 16x16 area of each layer, that
+// glint in the dark from GLINT_RANGE tiles away so there is always something
+// close to dig toward. Digging one out pays its loot at once: each amount is
+// multiplied by the layer number and by your Axe or Pickaxe yield for that
+// resource, so deeper finds and better tools pay more. A find shows from
+// layer `from` down.
+export const FINDS_PER_CHUNK = 3;
+export const GLINT_RANGE = 9;
+export const FINDS = {
+  [T.CACHE]: { name: 'Buried cache', loot: { wood: 8, stone: 6, ore: 2 }, from: 1 },
+  [T.GEODE]: { name: 'Geode', loot: { stone: 4, crystal: 1 }, from: 2 }
+};
+
 /* -------------------------------------------------------------- tools */
 
 // Level 1 is what you start with; each later level has a cost.

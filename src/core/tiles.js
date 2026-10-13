@@ -18,6 +18,8 @@
  *   height   how far its top stands above the layer's floor, in layers: walls
  *            and mountains reach the layer above, water sits a little low
  *   rough    how much the height varies from tile to tile (mountain peaks)
+ *   find     a find hidden in the rock (see FINDS): digging it out pays its
+ *            loot all at once, and it glints in the dark from a way off
  *   yard     the stockpile can stand on it; the number is how many tiles
  *            further out it would rather go to avoid it (0 = home ground,
  *            used first). Without it, no piles stand there: never on
@@ -34,7 +36,9 @@ export const T = {
   TUNNEL: 7, SOIL: 8, STONE_SEAM: 9, ORE_SEAM: 10, CRYSTAL_SEAM: 11, FOSSIL: 12,
   BEDROCK: 13, SHAFT: 14, SHAFT_OPEN: 15,
   // surface again: the clearing every world starts in
-  HOME: 16
+  HOME: 16,
+  // underground finds
+  CACHE: 17, GEODE: 18
 };
 
 // Each type's name, and the key a texture pack knows it by (look id "tile.<key>").
@@ -47,7 +51,7 @@ export const TILE_KEY = [];
   [T.STONE_SEAM, 'stone-seam', 'Stone seam'], [T.ORE_SEAM, 'ore-seam', 'Ore seam'],
   [T.CRYSTAL_SEAM, 'crystal-seam', 'Crystal seam'], [T.FOSSIL, 'fossil', 'Fossil'],
   [T.BEDROCK, 'bedrock', 'Bedrock'], [T.SHAFT, 'shaft', 'Shaft'], [T.SHAFT_OPEN, 'shaft-open', 'Open shaft'],
-  [T.HOME, 'home', 'Home ground']
+  [T.HOME, 'home', 'Home ground'], [T.CACHE, 'cache', 'Buried cache'], [T.GEODE, 'geode', 'Geode']
 ].forEach(([t, key, name]) => { TILE_KEY[t] = key; TILE_NAME[t] = name; });
 
 export const TILE_INFO = [];
@@ -68,6 +72,8 @@ TILE_INFO[T.BEDROCK] = { cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.SHAFT] = { harvest: true, solid: true, sweep: false, cleared: T.SHAFT_OPEN, height: 1 };
 TILE_INFO[T.SHAFT_OPEN] = { walk: true, descend: true };
 TILE_INFO[T.HOME] = { walk: true, sealed: true, yard: 0 };
+TILE_INFO[T.CACHE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL, height: 1 };
+TILE_INFO[T.GEODE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL, height: 1 };
 
 // The lowest and highest a tile's top can sit above its layer's floor.
 export const RELIEF_MIN = Math.min(...TILE_INFO.map((i) => (i.height || 0) - (i.rough || 0) / 2));

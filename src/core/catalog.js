@@ -25,7 +25,7 @@
  * the wiki can list it. */
 
 import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL } from './tiles.js';
-import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES } from './content.js';
+import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS } from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
 
@@ -64,6 +64,10 @@ function tileDoes(t) {
   else if (info.solid) out.push('Solid rock until you dig it out.');
   else out.push('Impassable.');
   if (info.res) out.push(`Gathering it yields ${RESOURCE_LABEL[info.res].toLowerCase()}.`);
+  if (info.find) {
+    const loot = Object.keys(FINDS[t].loot).map((r) => RESOURCE_LABEL[r].toLowerCase()).join(', ');
+    out.push(`A find: one dig pays out ${loot} all at once, more on deeper layers and with better tools. It glints in the dark from a way off.`);
+  }
   if (info.regrows) out.push('Grows back near you.');
   if (info.land) out.push('Converters can be built on it.');
   if (info.descend) out.push('A way down to the layer below.');

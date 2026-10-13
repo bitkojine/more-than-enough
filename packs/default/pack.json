@@ -76,6 +76,16 @@
    "color": "#5a4836",
    "top": "ground/tunnel.svg"
   },
+  "tile.cache": {
+   "color": "#f2c94c",
+   "top": "ground/cache.svg",
+   "face": "faces/earth.svg"
+  },
+  "tile.geode": {
+   "color": "#c39bff",
+   "top": "ground/geode.svg",
+   "face": "faces/bedrock.svg"
+  },
   "tile.soil": {
    "color": "#85603c",
    "top": "ground/soil.svg",

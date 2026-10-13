@@ -387,3 +387,51 @@ test('home ground is sealed: no way down from it, none up into it; deeper is ope
   C.setRichness(s.world, h.x, h.y, -2, 0);
   if (typeAt(s, h.x, h.y, -1) !== T.BEDROCK) assert.equal(C.canGoUp(s), true, 'under home, deeper layers connect as usual');
 });
+
+test('finds: a few in every underground chunk, never on the shaft; geodes only from layer 2', () => {
+  const seed = 31415;
+  let geodesOn1 = 0, geodesDeeper = 0;
+  for (let cx = -3; cx <= 3; cx++) {
+    for (let cy = -3; cy <= 3; cy++) {
+      for (const z of [-1, -2, -4]) {
+        const finds = C.findsInChunk(seed, cx, cy, z);
+        assert.ok(finds.length >= 1 && finds.length <= C.FINDS_PER_CHUNK);
+        const shaft = C.shaftInChunk(seed, cx, cy, z);
+        const w = C.createWorld(seed);
+        for (const f of finds) {
+          assert.ok(!(f.x === shaft.x && f.y === shaft.y), 'never on the shaft');
+          assert.equal(C.chunkCoord(f.x), cx);
+          assert.equal(C.chunkCoord(f.y), cy);
+          assert.equal(C.tileAt(w, f.x, f.y, z), f.type, 'generated into the rock');
+          if (f.type === T.GEODE) { if (z === -1) geodesOn1++; else geodesDeeper++; }
+        }
+      }
+    }
+  }
+  assert.equal(geodesOn1, 0);
+  assert.ok(geodesDeeper > 0);
+});
+
+test('digging out a find pays its loot at once, scaled by layer and tool, and it glints until then', () => {
+  const s = away(C.createState(31415));
+  C.goDown(s);
+  const near = C.findsNear(s, 40);
+  assert.ok(near.length > 0, 'something to head toward');
+  const f = near[0];
+  C.setRichness(s.world, f.x + 1, f.y, s.player.z, 0); // a spot to stand beside it
+  s.player.x = f.x + 1.5; s.player.y = f.y + 0.5;
+  s.tools.pickaxe = 2; s.tools.axe = 3;
+  const before = { ...s.inv };
+  const r = C.harvestAt(s, f.x, f.y);
+  assert.ok(r && r.found, 'a find pays out');
+  const layer = C.SURFACE - s.player.z;
+  for (const res of Object.keys(C.FINDS[f.type].loot)) {
+    const want = C.FINDS[f.type].loot[res] * layer * C.gatherYield(s, res);
+    assert.equal(r.found[res], want);
+    assert.equal(s.inv[res] - before[res], want);
+  }
+  assert.equal(s.stats.finds, 1);
+  assert.equal(C.tileAt(s.world, f.x, f.y, s.player.z), T.TUNNEL, 'leaves open tunnel');
+  assert.ok(!C.findsNear(s, 40).some((g) => g.x === f.x && g.y === f.y), 'and stops glinting');
+  assert.deepEqual(C.findsNear(away(C.createState(1))), [], 'nothing glints on the surface');
+});

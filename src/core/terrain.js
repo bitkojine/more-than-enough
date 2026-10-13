@@ -6,6 +6,7 @@
 import { CHUNK_SIZE, CHUNK_TILES, SURFACE } from './coords.js';
 import { hash2, fbm } from './noise.js';
 import { T } from './tiles.js';
+import { FINDS, FINDS_PER_CHUNK } from './content.js';
 
 const MAX_RICHNESS = 30;
 // Every world starts in a round clearing of home ground at the origin, where
@@ -104,6 +105,24 @@ export function shaftInChunk(seed, cx, cy, cz) {
   };
 }
 
+// The finds hidden in a chunk: FINDS_PER_CHUNK spots (never on its shaft),
+// each a geode where the layer is deep enough and the dice say so, else a
+// buried cache. Returns [{x, y, type}].
+export function findsInChunk(seed, cx, cy, cz) {
+  const layer = SURFACE - cz;
+  const shaft = shaftInChunk(seed, cx, cy, cz);
+  const out = [];
+  for (let i = 0; i < FINDS_PER_CHUNK; i++) {
+    const salt = seed + 4241 + i * 97 + cz * 53;
+    const x = cx * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt) * CHUNK_SIZE);
+    const y = cy * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt + 11) * CHUNK_SIZE);
+    if ((x === shaft.x && y === shaft.y) || out.some((f) => f.x === x && f.y === y)) continue;
+    const geode = layer >= FINDS[T.GEODE].from && hash2(cx, cy, salt + 23) < 0.4;
+    out.push({ x, y, type: geode ? T.GEODE : T.CACHE });
+  }
+  return out;
+}
+
 function generateUnderground(seed, cx, cy, cz) {
   const type = new Uint8Array(CHUNK_TILES);
   const rich = new Uint8Array(CHUNK_TILES).fill(1);
@@ -116,5 +135,6 @@ function generateUnderground(seed, cx, cy, cz) {
   }
   const shaft = shaftInChunk(seed, cx, cy, cz);
   type[(shaft.y - oy) * CHUNK_SIZE + (shaft.x - ox)] = T.SHAFT;
+  for (const f of findsInChunk(seed, cx, cy, cz)) type[(f.y - oy) * CHUNK_SIZE + (f.x - ox)] = f.type;
   return { type, rich };
 }

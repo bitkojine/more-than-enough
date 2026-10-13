@@ -44,12 +44,13 @@ function tileNotes(t) {
   else if (info.yard !== undefined) notes.push('your stockpile spills onto it');
   if (info.descend) notes.push('drop to the layer below');
   if (t === T.SHAFT) notes.push('one dig opens it');
+  if (info.find) notes.push('a find: glints in the dark, one dig pays its loot (see Finds)');
   if (t === T.BEDROCK) notes.push('cannot be dug');
   return notes.join(' · ');
 }
 
 const surfaceTiles = [T.HOME, T.GRASS, T.FOREST, T.STONE, T.ORE, T.CRYSTAL, T.WATER, T.ROCK];
-const undergroundTiles = [T.SOIL, T.STONE_SEAM, T.ORE_SEAM, T.CRYSTAL_SEAM, T.FOSSIL, T.BEDROCK, T.SHAFT, T.SHAFT_OPEN, T.TUNNEL];
+const undergroundTiles = [T.SOIL, T.STONE_SEAM, T.ORE_SEAM, T.CRYSTAL_SEAM, T.FOSSIL, T.BEDROCK, T.CACHE, T.GEODE, T.SHAFT, T.SHAFT_OPEN, T.TUNNEL];
 
 /* -------------------------------------------------------------- tables */
 
@@ -71,6 +72,12 @@ const TABLES = {
     rows.push([tileName(T.SOIL), pct(1 - prev) + ' + any band not yet unlocked', 'every layer']);
     return table(['Tile', 'Share of tiles', 'Found on'], rows, [1]);
   },
+
+  finds: () => table(['Find', 'Loot on layer 1, per point of tool yield', 'Found on'],
+    Object.keys(Core.FINDS).map((t) => {
+      const f = Core.FINDS[t];
+      return [tileName(+t), Object.keys(f.loot).map((r) => f.loot[r] + ' ' + icon(r)).join(' '), f.from === 1 ? 'every layer' : `layer ${f.from} and deeper`];
+    })),
 
   tools: () => Object.keys(Core.TOOLS).map((id) => {
     const tool = Core.TOOLS[id];

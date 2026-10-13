@@ -1,5 +1,5 @@
 /* Everything drawn over the world: target highlights, the Trail stroke, day
- * and night lighting, and the joystick. */
+ * and night lighting, finds glinting in the dark, and the joystick. */
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
@@ -180,6 +180,44 @@ export function drawLighting(ctx, cam, s, look, lights) {
     ctx.fillRect(l.sx - l.pr, l.sy - l.pr, l.pr * 2, l.pr * 2);
   }
   ctx.globalCompositeOperation = 'source-over';
+}
+
+/* Finds glinting in the dark: a twinkle over each find still in the rock
+ * within range, drawn over the dark (and over ground you haven't uncovered)
+ * so there's always something close to dig toward. Fainter further off. */
+const GLINT_SIZE = 0.2;   // the twinkle's arm, in tiles
+
+// A four-pointed twinkle of arm r at (x, y).
+function star(ctx, x, y, r, color) {
+  const k = r * 0.22;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y - r); ctx.lineTo(x + k, y - k); ctx.lineTo(x + r, y); ctx.lineTo(x + k, y + k);
+  ctx.lineTo(x, y + r); ctx.lineTo(x - k, y + k); ctx.lineTo(x - r, y); ctx.lineTo(x - k, y - k);
+  ctx.closePath(); ctx.fill();
+}
+
+export function drawGlints(ctx, cam, s, look) {
+  if (cam.z >= Core.SURFACE) return;
+  const u = cam.tilePx;
+  for (const f of Core.findsNear(s)) {
+    const seed = f.x * 7.31 + f.y * 3.17;
+    const tw = 0.5 + 0.5 * Math.sin(s.time * 3.2 + seed);
+    const near = 1 - 0.55 * (f.d / Core.GLINT_RANGE);
+    const p = cam.project(f.x + 0.5, f.y + 0.45, cam.z + 1);
+    const r = Math.max(4, u * GLINT_SIZE) * (0.7 + 0.5 * tw);
+    if (p.x < -r || p.y < -r || p.x > cam.width + r || p.y > cam.height + r) continue;
+    const color = look.color(Core.tileLook(f.type));
+    const halo = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.6);
+    halo.addColorStop(0, rgba(color, 0.55 * near * (0.5 + 0.5 * tw)));
+    halo.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = halo;
+    ctx.fillRect(p.x - r * 1.6, p.y - r * 1.6, r * 3.2, r * 3.2);
+    ctx.globalAlpha = near * (0.45 + 0.55 * tw);
+    star(ctx, p.x, p.y, r, color);
+    star(ctx, p.x, p.y, r * 0.5, '#fffbe8');
+    ctx.globalAlpha = 1;
+  }
 }
 
 export function drawJoystick(ctx, cam, view) {

@@ -96,6 +96,16 @@ export function createEffects(look, landing) {
     flyersFrom(tx, ty, res, amount);
   }
 
+  // A find dug out: a burst of its colour, and what it paid, stacked and
+  // held a while so it can be read.
+  function found(tx, ty, color, gained) {
+    burst(tx + 0.5, ty + 0.4, 22, [2.2, 1.6], 1.4, [0.6, 0.5], [2, 2.4], color);
+    Object.keys(gained).forEach((res, i) => {
+      text(tx + 0.5, ty - 0.3 - i * 0.55, '+' + fmt(gained[res]), resColor(res), resourceLook(res), -0.6, TALLY_LIFE + 0.8);
+      flyersFrom(tx, ty, res, gained[res]);
+    });
+  }
+
   function dug(tx, ty) {
     burst(tx + 0.5, ty + 0.5, 5, [0.8, 1.4], 0.8, [0.3, 0.2], [1.4, 1.6], '#86735c');
   }
@@ -163,5 +173,5 @@ export function createEffects(look, landing) {
     }
   }
 
-  return { particles, floats, flyers, gathered, flyersFrom, text, tally, dug, built, poof, celebrate, wake, clear, update };
+  return { particles, floats, flyers, gathered, flyersFrom, text, tally, found, dug, built, poof, celebrate, wake, clear, update };
 }

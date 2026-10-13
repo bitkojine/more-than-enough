@@ -12,7 +12,7 @@ import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain } from './terrain.js';
 import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawFloats, drawFlyers } from './sprites.js';
-import { drawHighlights, drawTrail, drawLighting, drawJoystick } from './overlay.js';
+import { drawHighlights, drawTrail, drawLighting, drawGlints, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const TORCH_LIGHT = 4.5;   // how far a torch lights, in tiles: well past the lantern
@@ -64,6 +64,7 @@ export function render(cam, s, fx, view, look) {
   drawFloats(ctx, cam, look, fx);
   drawFlyers(ctx, cam, look, fx);
   drawLighting(ctx, cam, s, look, lights);
+  drawGlints(ctx, cam, s, look);
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

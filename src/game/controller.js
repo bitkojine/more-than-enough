@@ -40,7 +40,10 @@ export function createController({ game, cam, fx, audio, hud, look }) {
   }
 
   function harvested(r) {
-    if (r.res) {
+    if (r.found) {
+      fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
+      audio.collect();
+    } else if (r.res) {
       fx.gathered(r.x, r.y, r.res, r.amount);
       audio.gather(r.res, r.amount, toolLevel(r.res));
     } else {

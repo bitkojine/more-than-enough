@@ -1,10 +1,10 @@
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
-import { tileDist2 } from './coords.js';
+import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, holeAbove } from './world.js';
-import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE } from './content.js';
+import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost } from './economy.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
@@ -46,9 +46,18 @@ export function harvestTarget(s) {
   return null;
 }
 
+// What digging out a find of `type` on layer z pays right now (see FINDS).
+export function findLoot(s, type, z) {
+  const layer = SURFACE - z, out = {};
+  const loot = FINDS[type].loot;
+  for (const r of Object.keys(loot)) out[r] = loot[r] * layer * gatherYield(s, r);
+  return out;
+}
+
 // Works tile (x, y) once: richness drops by one and its resource (if any) goes
 // into the packs. Solid tiles clear into their `cleared` type at zero, which is
-// how tunnels are dug and shafts are opened. Returns null if out of reach.
+// how tunnels are dug and shafts are opened; a find pays out its loot as
+// `found` ({res: amount}). Returns null if out of reach.
 export function harvestAt(s, x, y) {
   x = Math.floor(x); y = Math.floor(y);
   if (!canHarvest(s, x, y)) return null;
@@ -64,7 +73,16 @@ export function harvestAt(s, x, y) {
   // Wood also comes from fossils deep underground; the first milestone wants a forest.
   if (type === T.FOREST) s.stats.forestWood += amount;
   s.stats.gathers += 1;
-  return { x, y, z, type, res, amount, now: tileAt(s.world, x, y, z) };
+  let found = null;
+  if (TILE_INFO[type].find) {
+    found = findLoot(s, type, z);
+    for (const r of Object.keys(found)) {
+      s.inv[r] += found[r];
+      s.stats[r] += found[r];
+    }
+    s.stats.finds += 1;
+  }
+  return { x, y, z, type, res, amount, found, now: tileAt(s.world, x, y, z) };
 }
 
 export function harvest(s) {

@@ -9,10 +9,11 @@
  * Pickaxe). A hole that's already there is a way straight through.
  * goDown()/goUp() are the moment of breaking through. */
 
-import { SURFACE, Z_MIN, tileDist2, packKey } from './coords.js';
+import { SURFACE, Z_MIN, tileDist2, packKey, chunkCoord } from './coords.js';
 import { TILE_INFO, T } from './tiles.js';
 import { tileAt, setRichness, holeBelow, digHole } from './world.js';
-import { REACH, TORCH_COST } from './content.js';
+import { REACH, TORCH_COST, GLINT_RANGE } from './content.js';
+import { findsInChunk } from './terrain.js';
 import { extractorAt } from './actions.js';
 import { daylight } from './sim.js';
 import { canAfford, pay } from './economy.js';
@@ -193,4 +194,25 @@ export function placeTorch(s) {
   const { x, y } = feet(s);
   s.world.torches.add(packKey(x, y, s.player.z));
   return { ok: true, x, y };
+}
+
+/* ----------------------------------------------------------------- finds */
+
+// Finds still in the rock within GLINT_RANGE of the player, on their layer,
+// explored or not: they glint in the dark so there's always something close
+// to dig toward. Returns [{x, y, type, d}], d the distance in tiles.
+export function findsNear(s, range = GLINT_RANGE) {
+  if (!isUnderground(s)) return [];
+  const p = s.player, out = [];
+  const c0x = chunkCoord(Math.floor(p.x - range)), c1x = chunkCoord(Math.floor(p.x + range));
+  const c0y = chunkCoord(Math.floor(p.y - range)), c1y = chunkCoord(Math.floor(p.y + range));
+  for (let cy = c0y; cy <= c1y; cy++) {
+    for (let cx = c0x; cx <= c1x; cx++) {
+      for (const f of findsInChunk(s.world.seed, cx, cy, p.z)) {
+        const d = Math.sqrt(tileDist2(p, f.x, f.y, p.z));
+        if (d <= range && tileAt(s.world, f.x, f.y, p.z) === f.type) out.push({ ...f, d });
+      }
+    }
+  }
+  return out;
 }
