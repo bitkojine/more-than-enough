@@ -16,6 +16,7 @@ import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
+import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
@@ -41,7 +42,7 @@ look.use(defaultPack);
 
 const cam = createCamera(el.canvas);
 const descent = createDescent(el.canvas);
-cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
+cam.relief = (x, y) => groundHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 audio.wakeOn(el.canvas);
 // What you gather flies to its pile in the yard (yard is made just below).

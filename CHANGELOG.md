@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.37.3] - 2026-10-13
+
+### Changed
+- **Digging carves; it never builds walls.** The mine used to float over the
+  dark like the forest, so every tile you dug revealed new rock standing up
+  around you, as if you were putting up walls. Now the mine is drawn as one
+  mass of rock: rock you haven't seen is a dark block, rock you have seen is
+  a shade darker than the floors you dug, and no cliffs fall away at the edge
+  of what you know. Tunnels read as cut down into the rock.
+
 ## [0.37.2] - 2026-10-13
 
 ### Changed

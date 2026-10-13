@@ -6,10 +6,11 @@
  * After each row the caller draws whatever stands in it (the player,
  * buildings), which lets walls hide what is behind them when tilted.
  *
- * Unexplored tiles are not drawn at all: the known world is a plateau over
- * the dark. Where explored ground has darkness in front of it, its edge drops
- * as a cliff showing the layers below (strata.js); other edges over the dark
- * catch a light lip.
+ * In the forest, unexplored tiles are not drawn at all: the known world is a
+ * plateau over the dark. Where explored ground has darkness in front of it,
+ * its edge drops as a cliff showing the layers below (strata.js); other edges
+ * over the dark catch a light lip. In the mine, unexplored tiles are dark rock
+ * (see drawUnseenRock).
  *
  * What everything looks like comes from the texture pack (look.js): a tile's
  * top picture is stretched over its top face (`u` wide, `g * u` deep, where g
@@ -137,6 +138,35 @@ function drawLips(ctx, look, w, x, y, z, sx, sy, u, d) {
   if (!Core.isExplored(w, x + 1, y, z)) ctx.fillRect(sx + u - lip, sy, lip, d);
 }
 
+/* Underground, everything is rock until you dig it out, seen or not. So the
+ * mine is drawn as one mass of rock with your tunnels cut down into it: rock
+ * you haven't seen is a dark block (not a drop into nothing), rock you have
+ * seen is a little darker than the floors you dug, and no cliffs fall away at
+ * the edge of what you know. Digging carves a space out; nothing goes up. */
+const UNSEEN_DIM = 0.4;  // rock you haven't seen, against the colour of the unknown
+const ROCK_SHADE = 0.45; // how much darker the top of seen rock is than open floor
+
+// How high tile (x, y) stands for drawing (and tapping): its height, or a
+// full layer for rock in the mine you haven't seen yet.
+export function groundHeight(w, x, y, z) {
+  return z < Core.SURFACE && !Core.isExplored(w, x, y, z) ? 1 : Core.tileHeight(w, x, y, z);
+}
+
+// An unseen tile of the mine: a dark block of rock.
+function drawUnseenRock(ctx, cam, look, w, x, y, z) {
+  const u = cam.tilePx, d = cam.depthPx;
+  const tilted = cam.risePx > FLAT_RISE_PX;
+  const p = cam.project(x, y, z + (tilted ? 1 : 0));
+  const rock = look.color('color.unknown');
+  const front = tilted ? groundHeight(w, x, y + 1, z) : 1;
+  if (front < 1) {
+    ctx.fillStyle = shade(rock, tv(x, y, 8), UNSEEN_DIM * FACE_DIM);
+    ctx.fillRect(p.x, p.y + d, u + 1, (1 - front) * cam.risePx + 1);
+  }
+  ctx.fillStyle = shade(rock, tv(x, y, 7), UNSEEN_DIM);
+  ctx.fillRect(p.x, p.y, u + 1, d + 1);
+}
+
 // Where tile (x, y)'s top sits on screen, and its height.
 function tileTop(cam, w, x, y, z) {
   // Flat (or nearly), height moves nothing on screen: skip looking it up.
@@ -148,7 +178,12 @@ function tileTop(cam, w, x, y, z) {
 // The ground of one tile: cliff, south face, top, and any hole or skylight.
 function drawTile(ctx, cam, s, look, x, y, z) {
   const w = s.world, u = cam.tilePx, d = cam.depthPx, g = d / u;
-  if (!Core.isExplored(w, x, y, z)) return; // the dark below the known world
+  const under = z < Core.SURFACE;
+  if (!Core.isExplored(w, x, y, z)) {
+    // In the forest, the dark below the known world; in the mine, rock.
+    if (under) drawUnseenRock(ctx, cam, look, w, x, y, z);
+    return;
+  }
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
   const tilted = cam.risePx > FLAT_RISE_PX;
@@ -156,9 +191,10 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   const color = look.color(id);
 
   // The south face, down to the top of the tile in front, lit along its rim.
-  // With the dark in front, it runs down to the floor and the cliff carries on.
-  const edge = tilted && !Core.isExplored(w, x, y + 1, z);
-  const front = !tilted || edge ? Math.min(h, 0) : Core.tileHeight(w, x, y + 1, z);
+  // In the forest, with the dark in front, it runs down to the floor and the
+  // cliff carries on.
+  const edge = tilted && !under && !Core.isExplored(w, x, y + 1, z);
+  const front = !tilted || edge ? Math.min(h, 0) : groundHeight(w, x, y + 1, z);
   if (edge) drawCliff(ctx, cam, s, look, x, y, z);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
@@ -177,9 +213,12 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   else { ctx.fillStyle = color; ctx.fillRect(sx, sy, u + 1, d + 1); }
   ctx.fillStyle = `rgba(0,0,0,${(tv(x, y, 7) * VARIATION).toFixed(3)})`;
   ctx.fillRect(sx, sy, u + 1, d + 1);
-  drawLips(ctx, look, w, x, y, z, sx, sy, u, d);
+  if (under && !Core.TILE_INFO[t].walk) {
+    ctx.fillStyle = `rgba(0,0,0,${ROCK_SHADE})`;
+    ctx.fillRect(sx, sy, u + 1, d + 1);
+  } else if (!under) drawLips(ctx, look, w, x, y, z, sx, sy, u, d);
   // A taller block behind casts a little shade on this top's far edge.
-  if (tilted && Core.tileHeight(w, x, y - 1, z) > h + 0.05) {
+  if (tilted && groundHeight(w, x, y - 1, z) > h + 0.05) {
     ctx.fillStyle = CONTACT;
     ctx.fillRect(sx, sy, u + 1, d * 0.2);
   }
