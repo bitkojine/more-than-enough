@@ -994,6 +994,24 @@ async function main() {
   ok(await waitFor('document.querySelectorAll("#things .thing").length === ' + things, 3000), 'Everything in the game lists every thing in the catalog (' + things + ')');
   ok(await waitFor('[...document.querySelectorAll("#things .thing")].every(function(t){return t.querySelector("img, .swatch");})', 2000), 'each one shows its default picture or colour');
   ok(await waitFor('[...document.querySelectorAll("#things img")].every(function(i){return i.complete && i.naturalWidth > 0;})', 6000), 'every picture in the list loads');
+  // Search lists every mention, not just which articles mention it.
+  await evalJS('(function(){var b=document.getElementById("search");b.value="overclock";b.dispatchEvent(new Event("input"));})()');
+  ok(await waitFor('!document.getElementById("results").hidden && document.querySelectorAll("#results .hits li").length >= 4', 2000),
+    'searching "overclock" lists each passage that mentions it (' + await evalJS('document.querySelectorAll("#results .hits li").length') + ')');
+  ok(await evalJS('[...document.querySelectorAll("#results .hits li")].every(function(l){return /overclock/i.test(l.querySelector("mark").textContent);})'), 'each result marks the word');
+  eq(await evalJS('location.hash'), '#search/overclock', 'the search has its own address');
+  ok(await evalJS('document.querySelectorAll("article:not([hidden])").length === 0'), 'results replace the article');
+  var hitHref = await evalJS('document.querySelector("#results .hits a").getAttribute("href")');
+  await evalJS('document.querySelector("#results .hits a").click()');
+  ok(await waitFor('!document.getElementById("' + hitHref.slice(1).split('/')[0] + '").hidden && document.querySelector(".flash") && document.querySelector("mark.found")', 2000), 'a result opens its article at the passage, with the word marked');
+  await evalJS('history.back()');
+  ok(await waitFor('!document.getElementById("results").hidden', 2000), 'Back returns to the results');
+  await evalJS('(function(){var b=document.getElementById("search");b.value="wood stone";b.dispatchEvent(new Event("input"));})()');
+  ok(await waitFor('document.querySelectorAll("#results .hits li").length > 3', 2000), 'pictures count by name: costs in wood and stone are found');
+  await evalJS('(function(){var b=document.getElementById("search");b.value="zzqx";b.dispatchEvent(new Event("input"));})()');
+  ok(await waitFor('/Not mentioned/.test(document.getElementById("results").textContent)', 2000), 'a word the wiki never uses says so');
+  await evalJS('(function(){var b=document.getElementById("search");b.value="";b.dispatchEvent(new Event("input"));})()');
+  ok(await waitFor('document.getElementById("results").hidden && !document.getElementById("home").hidden && document.querySelectorAll("#toc li:not([hidden])").length === document.querySelectorAll("article").length', 2000), 'clearing the search returns to the wiki');
   await evalJS('location.hash = "#textures"');
   var bundled = await evalJS('import("/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
   ok(bundled.n === things && bundled.svg && !bundled.paths, 'the default pack downloads as one file with every picture inside it');

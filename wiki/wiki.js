@@ -5,10 +5,11 @@ import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
 import { loadDefaultPack, pic, tierUrl, renderThings, wireDownload } from './textures.js';
+import { find, renderResults, passages, mark, unmark } from './search.js';
 
 const { T, TILE_NAME } = Core;
 // Pictures come from the default texture pack.
-const icon = (res) => pic(Core.resourceLook(res));
+const icon = (res) => pic(Core.resourceLook(res), 'icon', 'pic', Core.RESOURCE_LABEL[res]);
 const tileName = (t) => pic(Core.tileLook(t), 'top') + ' ' + TILE_NAME[t];
 const num = (n) => (Number.isInteger(n) ? n.toLocaleString('en-US') : String(Math.round(n * 1000) / 1000));
 const pct = (f) => Math.round(f * 100) + '%';
@@ -146,35 +147,82 @@ async function fill() {
 
 /* ------------------------------------------------------------- routing */
 
+// Addresses: #article, #article/n (the n-th passage of an article, from a
+// search result) and #search/words.
 const articles = [...document.querySelectorAll('article')];
 const toc = document.getElementById('toc');
+const results = document.getElementById('results');
+const search = document.getElementById('search');
 toc.innerHTML = articles.map((a) => `<li><a href="#${a.id}">${a.dataset.title}</a></li>`).join('');
 
+function route() {
+  const hash = decodeURIComponent(location.hash.slice(1));
+  if (hash.startsWith('search/')) return { query: hash.slice(7) };
+  const [id, n] = hash.split('/');
+  return { article: articles.find((a) => a.id === id) || articles[0], passage: n === undefined ? -1 : Number(n) };
+}
+
 function show() {
-  const id = location.hash.slice(1);
-  const current = articles.find((a) => a.id === id) || articles[0];
+  const r = route();
+  for (const a of articles) unmark(a);
+  document.body.classList.toggle('searching', r.query !== undefined);
+  if (r.query !== undefined) {
+    if (search.value !== r.query) search.value = r.query;
+    for (const a of articles) a.hidden = true;
+    results.hidden = false;
+    results.innerHTML = renderResults(find(articles, r.query), r.query);
+    filterToc(r.query);
+    document.title = 'Search – More Than Enough Wiki';
+    return;
+  }
+  const current = r.article;
+  results.hidden = true;
   for (const a of articles) a.hidden = a !== current;
   for (const link of toc.querySelectorAll('a')) {
     if (link.getAttribute('href') === '#' + current.id) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
   document.title = (current === articles[0] ? '' : current.dataset.title + ' – ') + 'More Than Enough Wiki';
-  window.scrollTo(0, 0);
+  // Came from a search: mark the words in the article and go to the spot.
+  const spot = r.passage >= 0 && passages(current)[r.passage];
+  if (spot) {
+    if (search.value.trim()) mark(current, search.value);
+    spot.classList.remove('flash');
+    void spot.offsetWidth; // restart the flash
+    spot.classList.add('flash');
+    spot.scrollIntoView({ block: 'center' });
+  } else {
+    window.scrollTo(0, 0);
+  }
 }
 
-// The search box filters the article list by title and text.
-document.getElementById('search').addEventListener('input', (e) => {
-  const q = e.target.value.trim().toLowerCase();
-  articles.forEach((a, i) => {
-    const hit = !q || a.dataset.title.toLowerCase().includes(q) || a.textContent.toLowerCase().includes(q);
-    toc.children[i].hidden = !hit;
-  });
+// The article list shows only articles that mention the words.
+function filterToc(q) {
+  const hits = new Set(find(articles, q).map((g) => g.article));
+  articles.forEach((a, i) => { toc.children[i].hidden = !!q.trim() && !hits.has(a); });
+}
+
+// Typing searches (the address follows, so Back returns to the results);
+// clearing the box returns to the article list.
+search.addEventListener('input', () => {
+  const q = search.value;
+  if (q.trim()) {
+    const already = route().query !== undefined;
+    history[already ? 'replaceState' : 'pushState'](null, '', '#search/' + encodeURIComponent(q));
+  } else {
+    filterToc('');
+    history.replaceState(null, '', '#home');
+  }
+  show();
 });
 
 window.addEventListener('hashchange', show);
 show();
 // Fail loud: if the wiki can't fill itself in, say so at the top of the page.
-fill().then(() => { document.body.dataset.filled = 'true'; }, (err) => {
+fill().then(() => {
+  document.body.dataset.filled = 'true';
+  if (route().query !== undefined || route().passage >= 0) show(); // tables are in now
+}, (err) => {
   document.querySelector('main').insertAdjacentHTML('afterbegin', `<div class="note error">The wiki couldn't load its tables: ${err.message}</div>`);
   throw err;
 });

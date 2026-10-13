@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.27.0] - 2026-10-13
+
+### Added
+- **Wiki search finds every mention.** Typing in the search box lists each
+  passage that mentions the words (paragraphs, list items, table rows,
+  catalog cards), grouped by article with its section, the words marked.
+  A result opens the article at that spot, with the words marked
+  throughout. Searches have their own address (`#search/overclock`), so
+  Back returns to the results. Pictures count by name, so "wood" finds a
+  cost shown as a log.
+- The wiki explains Overclock properly: it doubles what every building
+  makes, per level, wherever the buildings are.
+
 ## [0.26.3] - 2026-10-13
 
 ### Fixed

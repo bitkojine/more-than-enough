@@ -60,7 +60,7 @@ export const TOOLS = {
     ]
   },
   overclock: {
-    name: 'Overclock', desc: 'All extractor output',
+    name: 'Overclock', desc: 'Multiplies what every building makes',
     levels: [
       { mult: 1 },
       { mult: 2, cost: { stone: 30, ore: 4 } },

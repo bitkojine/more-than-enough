@@ -22,7 +22,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## Wiki
 
-- [ ] **Find every mention.** Searching a term (e.g. "overclock") should show
+- [x] **Find every mention.** (0.27.0) Searching a term (e.g. "overclock") should show
       everywhere the wiki mentions or uses it.
 - [ ] **Readable costs.** It's unclear which icon belongs to which number.
       Group each amount with its resource visually.

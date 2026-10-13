@@ -32,10 +32,11 @@ export function tierUrl(res, tier) {
   return PACK_DIR + list[Math.min(tier, list.length - 1)];
 }
 
-// An inline <img> of a thing's picture, sized like text.
-export function pic(id, slot = 'icon', cls = 'pic') {
+// An inline <img> of a thing's picture, sized like text. Give it `alt` when
+// the picture stands for a word (a resource in a cost), not beside one.
+export function pic(id, slot = 'icon', cls = 'pic', alt = '') {
   const url = pictureUrl(id, slot);
-  return url ? `<img class="${cls}" src="${url}" alt="" loading="lazy">` : '';
+  return url ? `<img class="${cls}" src="${url}" alt="${esc(alt)}" loading="lazy">` : '';
 }
 
 /* --------------------------------------------- everything in the game */
