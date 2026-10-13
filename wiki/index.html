@@ -37,6 +37,7 @@
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
         <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, holes, digging and shafts.</span></a></li>
         <li><a href="#buildings"><strong>Buildings</strong><span>Extractors, converters, collecting, Logistics.</span></a></li>
+        <li><a href="#stockpile"><strong>The stockpile</strong><span>Everything you own, piled up around home.</span></a></li>
         <li><a href="#upgrades"><strong>Upgrades</strong><span>Tools, refineries, unlocks, the Abundance Engine.</span></a></li>
         <li><a href="#beyond"><strong>Beyond</strong><span>Embarking to a new world, Insight and perks.</span></a></li>
         <li><a href="#milestones"><strong>Milestones</strong><span>The path most players end up taking.</span></a></li>
@@ -315,6 +316,36 @@
         buildings into a base and work from the middle of it.</p>
     </article>
 
+    <article id="stockpile" data-title="The stockpile" hidden>
+      <h1>The stockpile</h1>
+      <p class="lede">Everything you own stands on the ground around home, and the more you have, the further it spreads.</p>
+      <p>Home is where the world started you. Your stockpile spirals out from there: the biggest piles in the middle, smaller
+        ones further out. It's a picture of what's in your packs, not a store: nothing has to be carried there, you can walk
+        straight through it, and spending something anywhere takes it off the piles at once. New piles grow out of the
+        ground; piles that go vanish in a puff.</p>
+
+      <h2>Reading it</h2>
+      <p>Each power of ten has its own kind of pile, and each digit of what you own is how many of that kind there are. It
+        reads like an abacus: 3,452 wood is 3 carts, 4 log piles, 5 bundles and 2 single logs. Ten of a pile become one of the
+        next, so the yard grows with the number of digits, not the number itself, and a glance at the biggest piles tells you
+        how rich you are.</p>
+      <div data-table="piles"></div>
+      <p>Piles of ten million (10<sup>7</sup>) and more need room: each covers a square of ground, one tile wider for every
+        further power of ten. A hundred billion of something is a district of its own. With enough, the stockpile covers the map.</p>
+
+      <h2>Where it goes</h2>
+      <ul>
+        <li>Only on ground you've explored; explore around home and the yard has more room.</li>
+        <li>Open grass first. If grass is much further away than the nearest forest, stone, ore or crystal, piles stand on
+          those instead (covering their trees and boulders; you can still gather there).</li>
+        <li>Never on water, mountains, holes or buildings, and never more than <span data-k="YARD_RADIUS"></span> tiles from
+          home. If it runs out of room, the smallest piles wait for more ground.</li>
+        <li>Zoomed far out, each pile is a dot of its resource's colour.</li>
+      </ul>
+      <p>What every kind of pile looks like comes from the texture pack (the <code>tiers</code> slot of
+        piles in <a href="#things">Everything in the game</a>).</p>
+    </article>
+
     <article id="upgrades" data-title="Upgrades" hidden>
       <h1>Upgrades</h1>
       <p class="lede">Everything in the Upgrades tab, level by level.</p>
@@ -437,6 +468,9 @@
         <li><code>cut</code>: what stands on a gathering tile once it's worked out (a stump, pebbles).</li>
         <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
         <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
+        <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is
+          one of the resource, the next ten, then a hundred, and so on. Past the end of your list the last picture stands in.
+          Draw them standing, about one tile wide; from ten million up the game draws them across their square of ground.</li>
       </ul>
 
       <h2>Pictures</h2>

@@ -115,6 +115,18 @@
    "icon": "icons/insight.svg",
    "color": "#c9a6ff"
   },
+  "pile.wood": {
+   "tiers": ["piles/wood-0.svg", "piles/wood-1.svg", "piles/wood-2.svg", "piles/wood-3.svg", "piles/wood-4.svg", "piles/wood-5.svg", "piles/wood-6.svg"]
+  },
+  "pile.stone": {
+   "tiers": ["piles/stone-0.svg", "piles/stone-1.svg", "piles/stone-2.svg", "piles/stone-3.svg", "piles/stone-4.svg", "piles/stone-5.svg", "piles/stone-6.svg"]
+  },
+  "pile.ore": {
+   "tiers": ["piles/ore-0.svg", "piles/ore-1.svg", "piles/ore-2.svg", "piles/ore-3.svg", "piles/ore-4.svg", "piles/ore-5.svg", "piles/ore-6.svg"]
+  },
+  "pile.crystal": {
+   "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg"]
+  },
   "building.lumber": {
    "image": "buildings/lumber.svg"
   },

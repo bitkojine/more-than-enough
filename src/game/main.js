@@ -14,6 +14,7 @@ import { createController } from './controller.js';
 import { createPerf } from './perf.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
+import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
 import { loadGame, saveGame, loadView, saveView } from './storage.js';
 
@@ -39,6 +40,7 @@ const cam = createCamera(el.canvas);
 cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 const fx = createEffects(look);
+const yard = createYard({ fx, look });
 const hud = createHud(el, look);
 const perf = createPerf(el, el.canvas);
 
@@ -65,6 +67,7 @@ const game = {
   replace(next) {
     game.state = next;
     fx.clear();
+    yard.reset();
     controller.forget();
     input.release();
     sheet.close();
@@ -174,6 +177,7 @@ function view() {
   return {
     facing: controller.facing,
     moving,
+    yard,
     harvestTarget: Core.harvestTarget(s),
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
@@ -193,6 +197,7 @@ function frame(now) {
     const t0 = performance.now();
     if (!document.hidden) update(dt);
     cam.tick(dt);
+    yard.update(game.state, dt);
     const t1 = performance.now();
     const stats = render(cam, game.state, fx, view(), look);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
@@ -234,6 +239,7 @@ window.MTE_GAME = {
   core: Core,
   look,
   textures,
+  yard,
   getState: () => game.state,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },

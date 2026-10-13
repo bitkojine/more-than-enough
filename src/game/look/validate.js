@@ -13,6 +13,8 @@
  *
  * An image value is one picture, a list of variants (one is picked per tile;
  * null means nothing there), or { "frames": [...], "fps": n } to animate.
+ * The stockpile's "tiers" slot is a list of pictures (no nulls), one per
+ * power of ten, smallest first.
  * A picture is a path next to pack.json, inline "<svg ...>" markup, a
  * data:image/... URL or an https:// URL. */
 
@@ -71,6 +73,9 @@ export function validatePack(pack, { complete = false } = {}) {
       const where = `${id} ${slot}`;
       if (!(slot in thing.slots)) problems.push(`${where}: ${thing.name} has no "${slot}" (it has ${Object.keys(thing.slots).join(', ')})`);
       else if (slot === 'color') { if (!COLOR.test(entry[slot])) problems.push(`${where}: must be a colour like "#4a7a33"`); }
+      else if (slot === 'tiers' && !(Array.isArray(entry[slot]) && entry[slot].length && !entry[slot].includes(null))) {
+        problems.push(`${where}: must be a list of pictures, one per power of ten, smallest first`);
+      }
       else checkImage(entry[slot], where, problems);
     }
   }

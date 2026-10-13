@@ -885,6 +885,25 @@ async function main() {
   ok(await waitFor('window.MTE_GAME && MTE_GAME.look.name === "Lanternlight"', 3000), 'and the old pack is forgotten');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Texture pack not used') < 0; });
 
+  /* ---------------------------------------------------------- stockpile */
+  console.log('\n== Stockpile ==');
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  // Explore around home and set a known inventory: 3,452 wood is 3+4+5+2 piles.
+  await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),h=C.home(s);s.player.z=0;G.setPlayer(h.x+0.5,h.y+0.5);' +
+    'for(var y=-16;y<=16;y++)for(var x=-16;x<=16;x++)C.markExplored(s.world,h.x+x,h.y+y,0);' +
+    's.inv.wood=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);G.setTilt(0.6);})()');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 14', 3000), 'what you own stands around home: 3,452 wood is 14 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
+  var tiers = await evalJS('[...MTE_GAME.yard.piles.values()].map(function(p){return p.tier;}).sort().join("")');
+  eq(tiers, '00111112222333', 'one pile per unit of each digit: 2 logs, 5 bundles, 4 piles, 3 carts');
+  console.log('  screenshot: ' + await shot('09-stockpile.png'));
+  await evalJS('MTE_GAME.getState().inv.wood = 3000');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 3', 2000), 'spending takes piles away (3,000 wood is 3 carts)');
+  await evalJS('MTE_GAME.getState().inv.stone = 12345678');
+  ok(await waitFor('[...MTE_GAME.yard.piles.values()].some(function(p){return p.res==="stone"&&p.tier===7&&p.span===2;})', 2000),
+    'ten million of something takes a 2 x 2 square of ground');
+  ok(await evalJS('MTE_GAME.yard.covered.size > MTE_GAME.yard.piles.size'), 'big piles cover the tiles around them');
+  eq(await evalJS('document.getElementById("crash").hidden'), true, 'the yard draws without errors');
+
   /* --------------------------------------------------------------- wiki */
   console.log('\n== Wiki ==');
   await navigate2('http://127.0.0.1:' + PORT + '/wiki/#mine');
@@ -895,6 +914,9 @@ async function main() {
   await evalJS('location.hash = "#ideas"');
   ok(await waitFor('!document.getElementById("ideas").hidden && document.querySelectorAll("#ideas .idea").length >= 20', 2000), 'the wiki has an Ideas section full of ideas');
   ok(await evalJS('document.querySelector("#ideas .note-ideas").textContent.indexOf("None of this is in the game") >= 0'), 'the Ideas section says plainly that none of it is in the game');
+  await evalJS('location.hash = "#stockpile"');
+  ok(await waitFor('document.querySelectorAll("#stockpile img.pile").length >= 4 * 10 && [...document.querySelectorAll("#stockpile img.pile")].every(function(i){return i.complete && i.naturalWidth > 0;})', 4000),
+    'the Stockpile article shows every kind of pile for every resource');
   await evalJS('location.hash = "#things"');
   var things = await evalJS('import("/src/core/index.js").then(function(C){return C.LOOKS.length;})');
   ok(await waitFor('document.querySelectorAll("#things .thing").length === ' + things, 3000), 'Everything in the game lists every thing in the catalog (' + things + ')');

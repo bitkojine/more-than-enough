@@ -14,6 +14,10 @@
  *   image  a thing standing on the map (buildings, the wanderer, the boat);
  *          also its picture in the sheet
  *   icon   a square picture for the buttons, counters and lists
+ *   tiers  the stockpile's piles, smallest first: picture k stands for
+ *          10^k of the resource (past the last, the last stands in). Drawn
+ *          one tile wide; piles of 10^7 and more cover a square of tiles
+ *          (see pileSpan) and their picture is drawn that many tiles wide.
  *
  * Required slots must be in the default pack; a player's pack can fill any
  * subset and the default fills the rest. Everything here is plain data so
@@ -25,12 +29,13 @@ import { PATH_FAMILIES } from './upgrades.js';
 
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
-export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon'];
+export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers'];
 
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
   { id: 'tile', name: 'Ground', blurb: 'Every kind of tile, on the surface and in the mine.' },
   { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
+  { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
   { id: 'character', name: 'The wanderer', blurb: 'You, and your boat.' },
   { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers and the light through them.' },
@@ -62,6 +67,8 @@ function tileDoes(t) {
   if (t === T.BEDROCK) out.push('Cannot be dug.');
   if (t === T.TUNNEL) out.push('Dug-out space in the mine.');
   if (info.height >= 1) out.push('Stands a full layer tall.');
+  if (info.yard === 0) out.push('Your stockpile spreads over it first.');
+  else if (info.yard > 0) out.push('Your stockpile covers it when there is no open ground nearer.');
   return out.join(' ');
 }
 
@@ -78,6 +85,10 @@ for (let t = 0; t < TILE_KEY.length; t++) add('tile', TILE_KEY[t], TILE_NAME[t],
 
 for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], `A resource. Counted at the top of the screen.`, req('icon', 'color'));
 add('resource', 'insight', 'Insight', 'Earned by embarking to a new world; spent on perks.', req('icon', 'color'));
+
+for (const r of RESOURCES) {
+  add('pile', r, `${RESOURCE_LABEL[r]} piles`, `Your ${RESOURCE_LABEL[r].toLowerCase()} in the stockpile: one pile for each unit of each digit you own, bigger piles for bigger powers of ten.`, req('tiers'));
+}
 
 for (const key of Object.keys(EXTRACTORS)) {
   const e = EXTRACTORS[key];

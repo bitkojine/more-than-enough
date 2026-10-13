@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.25.0] - 2026-10-13
+
+### Added
+- **The stockpile.** Everything you own stands on the ground around home
+  (where the world started you), on a logarithmic scale read like an abacus:
+  each power of ten is its own kind of pile and each digit is how many of
+  that kind there are, so 3,452 wood is 3 carts, 4 log piles, 5 bundles and
+  2 logs. Biggest piles in the middle; new piles grow out of the ground and
+  spent ones vanish in a puff. From ten million up a pile covers a square of
+  ground one tile wider per power of ten, so a big enough surplus covers the
+  map. It only shows what you have: nothing is hauled, nothing is blocked.
+- The yard spreads over explored ground: open grass first, then forest,
+  stone, ore or crystal (covering their trees and boulders) when grass is
+  much further; never water, mountains, holes or buildings. Zoomed far out,
+  piles are dots of their resource's colour.
+- Lanternlight draws seven kinds of pile per resource (a log up to a lumber
+  hall, a block up to a stone keep, a nugget up to a copper-domed vault, a
+  shard up to a crystal spire). Texture packs set them with the new `tiers`
+  slot of `pile.<resource>`.
+- Wiki: **The stockpile**, with every kind of pile pictured.
+
 ## [0.24.0] - 2026-10-13
 
 ### Added

@@ -163,6 +163,13 @@ export function createLook() {
       return e.pics[Math.floor(t * e.fps + hash2(x, y, 913) * n) % n];
     },
 
+    // The pile picture for 10^tier of a resource (past the pack's last
+    // picture, the last one; the game makes it bigger as the pile's footprint grows).
+    tier(id, tier) {
+      const pics = entry(id, 'tiers').pics;
+      return pics[Math.min(tier, pics.length - 1)];
+    },
+
     // Every frame of (id, slot), for things that animate on their own clock.
     frames(id, slot) {
       const e = entry(id, slot);

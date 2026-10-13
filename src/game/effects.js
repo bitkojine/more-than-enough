@@ -73,6 +73,11 @@ export function createEffects(look) {
     burst(x, y - 0.2, 24, [2.4, 1.6], 1.6, [0.7, 0.5], [2, 2.4], '#ffd166');
   }
 
+  // A stockpile pile going away: a puff of its resource's colour.
+  function poof(x, y, color) {
+    burst(x, y - 0.1, 8, [0.8, 1.2], 0.9, [0.3, 0.25], [1.6, 2], color);
+  }
+
   function built(tx, ty) {
     burst(tx + 0.5, ty + 0.5, 14, [2, 0], 1, [0.6, 0.4], [2, 2], '#9fe08a');
   }
@@ -134,5 +139,5 @@ export function createEffects(look) {
     }
   }
 
-  return { particles, floats, flyers, gathered, flyersFrom, text, dug, built, celebrate, wake, clear, update };
+  return { particles, floats, flyers, gathered, flyersFrom, text, dug, built, poof, celebrate, wake, clear, update };
 }

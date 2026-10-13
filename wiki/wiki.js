@@ -4,7 +4,7 @@
 import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
-import { loadDefaultPack, pic, renderThings, wireDownload } from './textures.js';
+import { loadDefaultPack, pic, tierUrl, renderThings, wireDownload } from './textures.js';
 
 const { T, TILE_NAME } = Core;
 // Pictures come from the default texture pack.
@@ -109,6 +109,18 @@ const TABLES = {
       const p = Core.PERKS[k];
       return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.repeat ? `${p.base}, then +1 per level owned` : `${p.base} (once)`];
     })),
+
+  // One row per power of ten: the pile for each resource, and its footprint.
+  piles: () => {
+    const rows = [];
+    for (let tier = 0; tier <= Core.SPAN_FROM + 2; tier++) {
+      const span = Core.pileSpan(tier);
+      rows.push([num(Math.pow(Core.PILE_BASE, tier)),
+        ...Core.RESOURCES.map((r) => `<img class="pile" src="${tierUrl(r, tier)}" alt="${Core.RESOURCE_LABEL[r]}, ${num(Math.pow(10, tier))}" loading="lazy">`),
+        span === 1 ? '1 tile' : `${span} × ${span} tiles`]);
+    }
+    return table(['Each pile is', ...Core.RESOURCES.map(icon), 'Ground'], rows, [0]);
+  },
 
   milestones: () => '<ol>' + Core.GOALS.map((g) => `<li>${g.text}</li>`).join('') + '</ol>'
 };

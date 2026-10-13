@@ -98,11 +98,13 @@ The project is under git — commit early, commit often:
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
+  - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of each digit)
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
+  - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
 - `index.html`, `style.css` — shell and mobile-first styling
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
 - `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)

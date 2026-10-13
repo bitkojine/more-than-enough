@@ -19,12 +19,13 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  * @property {Map<number, {type: Uint8Array, rich: Uint8Array}>} chunks  generated-chunk cache (LRU)
  * @property {Map<number, number>} mods      tile key -> richness, only where it differs from generation
  * @property {Map<number, Uint8Array>} explored  chunk key -> fog bitmask
+ * @property {number} revealed  tiles explored since the world was created or loaded (a change counter, not saved)
  * @property {Set<number>} holes             tile keys (x, y, z) with a hole in layer z's floor
  */
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), holes: new Set(), hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -116,7 +117,10 @@ export function markExplored(w, x, y, z) {
     w.explored.set(key, mask);
   }
   const i = chunkIndex(x, y);
-  mask[i >> 3] |= 1 << (i & 7);
+  const bit = 1 << (i & 7);
+  if (mask[i >> 3] & bit) return;
+  mask[i >> 3] |= bit;
+  w.revealed++;
 }
 
 export function isValidFogMask(mask) {

@@ -8,13 +8,13 @@ graph LR
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      subgraph 17 ["Simulation Core"]
-        style 17 fill:#ffffff,stroke:#2c5728,color:#2c5728
+      subgraph 18 ["Simulation Core"]
+        style 18 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        18["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods), per-layer<br />fog and the holes between<br />layers live outside the<br />cache.</div>"]
-        style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        21["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus travel between layers<br />through holes (dig down from<br />the forest, climb up through<br />the ceiling, drop through<br />holes and shafts). All work<br />on the player's own layer.</div>"]
-        style 21 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        19["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods), per-layer<br />fog and the holes between<br />layers live outside the<br />cache.</div>"]
+        style 19 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        22["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus travel between layers<br />through holes (dig down from<br />the forest, climb up through<br />the ceiling, drop through<br />holes and shafts). All work<br />on the player's own layer.</div>"]
+        style 22 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
       subgraph 4 ["Web Application"]
@@ -22,8 +22,8 @@ graph LR
 
         10["<div style='font-weight: bold'>Effects</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Particles, floating text and<br />flyers (resources homing into<br />the pack), with budgets and a<br />flyer lifetime so bursts stay<br />cheap.</div>"]
         style 10 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        14["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load,<br />save (reporting failures) and<br />clear, plus per-browser view<br />settings.</div>"]
-        style 14 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        15["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load,<br />save (reporting failures) and<br />clear, plus per-browser view<br />settings.</div>"]
+        style 15 fill:#b0761f,stroke:#7b5215,color:#ffffff
         6["<div style='font-weight: bold'>Input</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Raw touch/mouse/keyboard to<br />intents: drag-anywhere<br />joystick, tap, hold Gather<br />(button or Space), the Trail<br />stroke (hold Gather and<br />draw), pinch/wheel/button<br />zoom, and sheet shortcuts.<br />Holds no game state; calls<br />the handlers it is given.</div>"]
         style 6 fill:#b0761f,stroke:#7b5215,color:#ffffff
         7["<div style='font-weight: bold'>Controller</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Applies intents to the game:<br />tap (descend, harvest,<br />collect, or walk there), the<br />held action (collect, else<br />harvest), Trail sweeps, going<br />down and up between layers,<br />buying, building, embarking,<br />resetting. Each calls the<br />Core, then triggers effects,<br />sound, HUD and a save.</div>"]
@@ -33,9 +33,9 @@ graph LR
     end
 
     6-. "<div>1. Taps, held action, Trail<br />strokes</div><div style='font-size: 70%'></div>" .->7
-    7-. "<div>2. harvest, collect, place,<br />go down/up, descend</div><div style='font-size: 70%'></div>" .->21
-    21-. "<div>3. Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->18
+    7-. "<div>2. harvest, collect, place,<br />go down/up, descend</div><div style='font-size: 70%'></div>" .->22
+    22-. "<div>3. Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->19
     7-. "<div>4. Spawns effects</div><div style='font-size: 70%'></div>" .->10
-    7-. "<div>5. Schedules saves</div><div style='font-size: 70%'></div>" .->14
+    7-. "<div>5. Schedules saves</div><div style='font-size: 70%'></div>" .->15
 
   end

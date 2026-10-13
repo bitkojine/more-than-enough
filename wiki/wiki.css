@@ -198,6 +198,9 @@ h3 .pic { width: 1.6em; height: 1.6em; }
 .thing-slots { color: var(--ink-dim); font-size: 13px; }
 code.req { font-weight: 800; color: var(--ink); }
 
+/* Stockpile piles in the tiers table. */
+img.pile { height: 44px; max-width: 70px; object-fit: contain; vertical-align: bottom; }
+
 .button {
   padding: 10px 16px; border-radius: 10px; border: 1px solid rgba(127,208,122,0.5);
   background: rgba(127,208,122,0.12); color: var(--ink); font: inherit; font-weight: 700; cursor: pointer;
@@ -206,3 +209,4 @@ code.req { font-weight: 800; color: var(--ink); }
 .error { color: #ff9b8a; }
 .note.error { border-left-color: #ff5a5a; }
 pre { overflow-x: auto; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--line); font-size: 13px; }
+.thumb-tiers { width: 30px; height: 30px; }

@@ -19,8 +19,10 @@ graph LR
         style 12 fill:#b0761f,stroke:#7b5215,color:#ffffff
         13["<div style='font-weight: bold'>Look and Texture Packs</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + IndexedDB]</div><div style='font-size: 80%; margin-top:10px'>What everything looks like:<br />the default pack<br />(packs/default/) with the<br />player's pack laid over it<br />slot by slot. Validates packs<br />against the Catalog and<br />refuses any with a problem<br />(listing each by thing and<br />slot), loads and rasterises<br />pictures per size, picks<br />variants and animation<br />frames, and remembers the<br />player's pack in IndexedDB.<br />Drawing code and the HUD ask<br />it for colours and pictures<br />by thing id.</div>"]
         style 13 fill:#b0761f,stroke:#7b5215,color:#ffffff
-        14["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load,<br />save (reporting failures) and<br />clear, plus per-browser view<br />settings.</div>"]
+        14["<div style='font-weight: bold'>Yard</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Keeps the stockpile's layout<br />in step with the inventory<br />(at most five times a second,<br />reusing the ground grid),<br />tracks which tiles big piles<br />cover, and makes changes<br />visible: new piles grow in,<br />gone piles puff.</div>"]
         style 14 fill:#b0761f,stroke:#7b5215,color:#ffffff
+        15["<div style='font-weight: bold'>Storage</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript + localStorage]</div><div style='font-size: 80%; margin-top:10px'>Guarded localStorage: load,<br />save (reporting failures) and<br />clear, plus per-browser view<br />settings.</div>"]
+        style 15 fill:#b0761f,stroke:#7b5215,color:#ffffff
         5["<div style='font-weight: bold'>Main Loop</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Wires the modules together<br />and owns the current state<br />(game.state, replaced on<br />embark/reset). Each frame:<br />steer the player, Core<br />step(), turn logistics events<br />into flyers, reveal fog on<br />tile change, repeat the held<br />action, update effects, run<br />the save/milestone/HUD<br />timers, then render. Exposes<br />window.MTE_GAME for the<br />browser tests.</div>"]
         style 5 fill:#b0761f,stroke:#7b5215,color:#ffffff
         6["<div style='font-weight: bold'>Input</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Raw touch/mouse/keyboard to<br />intents: drag-anywhere<br />joystick, tap, hold Gather<br />(button or Space), the Trail<br />stroke (hold Gather and<br />draw), pinch/wheel/button<br />zoom, and sheet shortcuts.<br />Holds no game state; calls<br />the handlers it is given.</div>"]
@@ -33,29 +35,32 @@ graph LR
         style 9 fill:#b0761f,stroke:#7b5215,color:#ffffff
       end
 
-      15["<div style='font-weight: bold'>Default Texture Pack</div><div style='font-size: 70%; margin-top: 0px'>[Container: JSON + SVG]</div><div style='font-size: 80%; margin-top:10px'>Lanternlight<br />(packs/default/): pack.json<br />mapping every thing in the<br />Catalog to its SVG pictures<br />and colours. Required before<br />the game draws anything;<br />players' packs override any<br />part of it.</div>"]
-      style 15 fill:#b0761f,stroke:#7b5215,color:#ffffff
-      17["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
-      style 17 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      16["<div style='font-weight: bold'>Default Texture Pack</div><div style='font-size: 70%; margin-top: 0px'>[Container: JSON + SVG]</div><div style='font-size: 80%; margin-top:10px'>Lanternlight<br />(packs/default/): pack.json<br />mapping every thing in the<br />Catalog to its SVG pictures<br />and colours. Required before<br />the game draws anything;<br />players' packs override any<br />part of it.</div>"]
+      style 16 fill:#b0761f,stroke:#7b5215,color:#ffffff
+      18["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
+      style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
     end
 
     6-. "<div>Taps, held action, Trail<br />strokes</div><div style='font-size: 70%'></div>" .->7
     6-. "<div>Unprojects pointers; zooms<br />and tilts</div><div style='font-size: 70%'></div>" .->8
     5-. "<div>Steers and repeats the held<br />action each frame</div><div style='font-size: 70%'></div>" .->7
-    5-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->17
+    5-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->18
     5-. "<div>Renders each frame</div><div style='font-size: 70%'></div>" .->9
-    7-. "<div>harvest, collect, place, go<br />down/up, descend</div><div style='font-size: 70%'></div>" .->17
+    7-. "<div>harvest, collect, place, go<br />down/up, descend</div><div style='font-size: 70%'></div>" .->18
     7-. "<div>Spawns effects</div><div style='font-size: 70%'></div>" .->10
     7-. "<div>Plays cues</div><div style='font-size: 70%'></div>" .->12
     7-. "<div>Updates the HUD</div><div style='font-size: 70%'></div>" .->11
-    7-. "<div>Schedules saves</div><div style='font-size: 70%'></div>" .->14
+    7-. "<div>Schedules saves</div><div style='font-size: 70%'></div>" .->15
     9-. "<div>Projects every draw</div><div style='font-size: 70%'></div>" .->8
-    9-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->17
-    11-. "<div>Reads the upgrade registry<br />and costs</div><div style='font-size: 70%'></div>" .->17
-    14-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->17
+    9-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->18
+    11-. "<div>Reads the upgrade registry<br />and costs</div><div style='font-size: 70%'></div>" .->18
+    15-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->18
     9-. "<div>Colours and pictures by thing<br />id</div><div style='font-size: 70%'></div>" .->13
+    9-. "<div>Draws the piles</div><div style='font-size: 70%'></div>" .->14
+    14-. "<div>Lays out the yard</div><div style='font-size: 70%'></div>" .->18
+    14-. "<div>Puffs for vanished piles</div><div style='font-size: 70%'></div>" .->10
     11-. "<div>Icons by thing id</div><div style='font-size: 70%'></div>" .->13
-    13-. "<div>Validates packs against</div><div style='font-size: 70%'></div>" .->17
-    13-. "<div>Loads at boot</div><div style='font-size: 70%'></div>" .->15
+    13-. "<div>Validates packs against</div><div style='font-size: 70%'></div>" .->18
+    13-. "<div>Loads at boot</div><div style='font-size: 70%'></div>" .->16
 
   end

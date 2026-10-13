@@ -14,7 +14,10 @@
  *   descend  standing next to it lets the player drop to the layer below
  *   height   how far its top stands above the layer's floor, in layers: walls
  *            and mountains reach the layer above, water sits a little low
- *   rough    how much the height varies from tile to tile (mountain peaks) */
+ *   rough    how much the height varies from tile to tile (mountain peaks)
+ *   yard     the stockpile can spread over it; the number is how many tiles
+ *            further out it would rather go to avoid it (0 = open ground,
+ *            used first). Without it, no piles stand there */
 
 export const RESOURCES = ['wood', 'stone', 'ore', 'crystal'];
 export const RESOURCE_LABEL = { wood: 'Wood', stone: 'Stone', ore: 'Ore', crystal: 'Crystal' };
@@ -41,11 +44,11 @@ export const TILE_KEY = [];
 ].forEach(([t, key, name]) => { TILE_KEY[t] = key; TILE_NAME[t] = name; });
 
 export const TILE_INFO = [];
-TILE_INFO[T.GRASS] = { walk: true, land: true };
-TILE_INFO[T.FOREST] = { walk: true, land: true, harvest: true, res: 'wood', regrows: true };
-TILE_INFO[T.STONE] = { walk: true, land: true, harvest: true, res: 'stone', regrows: true };
-TILE_INFO[T.ORE] = { walk: true, land: true, harvest: true, res: 'ore' };
-TILE_INFO[T.CRYSTAL] = { walk: true, land: true, harvest: true, res: 'crystal' };
+TILE_INFO[T.GRASS] = { walk: true, land: true, yard: 0 };
+TILE_INFO[T.FOREST] = { walk: true, land: true, harvest: true, res: 'wood', regrows: true, yard: 4 };
+TILE_INFO[T.STONE] = { walk: true, land: true, harvest: true, res: 'stone', regrows: true, yard: 4 };
+TILE_INFO[T.ORE] = { walk: true, land: true, harvest: true, res: 'ore', yard: 4 };
+TILE_INFO[T.CRYSTAL] = { walk: true, land: true, harvest: true, res: 'crystal', yard: 4 };
 TILE_INFO[T.WATER] = { walk: true, swim: true, height: -0.15 };
 TILE_INFO[T.ROCK] = { height: 1, rough: 0.6 };
 TILE_INFO[T.TUNNEL] = { walk: true };

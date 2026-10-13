@@ -26,6 +26,12 @@ export function pictureUrl(id, slot = 'icon') {
   return first ? PACK_DIR + first : '';
 }
 
+// The URL of a stockpile pile's picture for 10^tier of a resource.
+export function tierUrl(res, tier) {
+  const list = pack.looks['pile.' + res].tiers;
+  return PACK_DIR + list[Math.min(tier, list.length - 1)];
+}
+
 // An inline <img> of a thing's picture, sized like text.
 export function pic(id, slot = 'icon', cls = 'pic') {
   const url = pictureUrl(id, slot);
@@ -34,7 +40,7 @@ export function pic(id, slot = 'icon', cls = 'pic') {
 
 /* --------------------------------------------- everything in the game */
 
-const SLOT_ORDER = ['top', 'stand', 'cut', 'face', 'image', 'icon'];
+const SLOT_ORDER = ['top', 'stand', 'cut', 'face', 'image', 'icon', 'tiers'];
 
 // What the default pack shows for a thing: each picture slot's pictures
 // (every variant and frame) and its colour.

@@ -81,6 +81,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
+                yard = component "Yard" "Keeps the stockpile's layout in step with the inventory (at most five times a second, reusing the ground grid), tracks which tiles big piles cover, and makes changes visible: new piles grow in, gone piles puff." "JavaScript" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/yard.js"
+                    }
+                }
+
                 sav = component "Storage" "Guarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
@@ -135,6 +142,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/actions.js, underground.js"
+                    }
+                }
+
+                stockpile = component "Stockpile" "What you own as piles around home, on a logarithmic scale: one pile per unit of each digit, each power of ten its own kind, biggest nearest home; from 10^7 a pile covers a square of tiles one wider per power. Laid out over explored ground (grass first) by a cost-ordered spiral; the ground grid can be memoized between layouts. Pure: only a picture of the inventory." "JavaScript" {
+                    tags "Core Engine"
+                    properties {
+                        "ref" "src/core/stockpile.js"
                     }
                 }
 
@@ -202,6 +216,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.ui -> mte.core.economy "Reads the upgrade registry and costs"
         mte.app.sav -> mte.core.state "serialize/deserialize"
         mte.app.render -> mte.app.look "Colours and pictures by thing id"
+        mte.app.render -> mte.app.yard "Draws the piles"
+        mte.app.yard -> mte.core.stockpile "Lays out the yard"
+        mte.app.yard -> mte.app.fx "Puffs for vanished piles"
+        mte.core.stockpile -> mte.core.world "Reads ground, fog and holes around home"
         mte.app.ui -> mte.app.look "Icons by thing id"
         mte.app.look -> mte.core.catalog "Validates packs against"
         mte.app.look -> mte.packs "Loads at boot"

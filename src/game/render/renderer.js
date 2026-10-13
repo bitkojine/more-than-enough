@@ -32,7 +32,7 @@ export function render(cam, s, fx, view, look) {
   }
   const playerRow = Math.floor(s.player.y);
 
-  const tiles = drawTerrain(ctx, cam, s, look, built, (y) => {
+  const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);

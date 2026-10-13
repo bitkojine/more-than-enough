@@ -29,6 +29,8 @@ const CONTACT = 'rgba(0,0,0,0.28)';     // shade at the foot of a taller block
 const SHADOW = 'rgba(0,0,0,0.28)';      // under things standing on the ground
 const VARIATION = 0.035;    // up to this much darker, per tile, so ground doesn't look like a grid
 const FOOT = 0.6;           // where on a tile's depth standing things put their feet
+const PILE_FILL = 0.95;     // how much of its square's width a big pile fills
+const STAND_MARGIN = 3;     // columns past each side of the screen whose standing things are drawn
 const TAU = Math.PI * 2;
 const TILE_LOOK = Core.TILE_KEY.map((k, t) => Core.tileLook(t));
 
@@ -135,11 +137,36 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   if (z !== Core.SURFACE && Core.holeAbove(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
 }
 
-// Whatever stands on tile (x, y): its stand picture, or its cut picture once
-// worked out. Holes and built tiles have nothing else standing on them.
-function drawStand(ctx, cam, s, look, built, x, y, z) {
+// A stockpile pile standing in the middle of its square of tiles, as big as
+// the square, growing in if it's new.
+function drawPile(ctx, cam, s, look, yard, p) {
+  const u = cam.tilePx, d = cam.depthPx;
+  const front = p.y + p.span - 1;
+  const h = cam.risePx > FLAT_RISE_PX ? Core.tileHeight(s.world, p.x + (p.span >> 1), front, Core.SURFACE) : 0;
+  const foot = cam.project(p.x + p.span / 2, front + FOOT, Core.SURFACE + h);
+  const pic = look.tier('pile.' + p.res, p.tier);
+  // One tile: the picture's own size. A square: fitted to the square's width.
+  const fit = p.span === 1 ? 1 : (p.span * PILE_FILL) / pic.units;
+  const size = u * fit * yard.growth(p, s.time);
+  if (size < 1) return;
+  const fx = foot.x, fy = foot.y;
+  const r = Math.min(u * 0.48 * p.span, pic.units * size * 0.45);
+  ctx.fillStyle = SHADOW;
+  ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
+  look.stand(ctx, pic, fx, fy, size);
+}
+
+// Whatever stands on tile (x, y): a stockpile pile, else its stand picture,
+// or its cut picture once worked out. Holes and built tiles have nothing else
+// standing on them.
+function drawStand(ctx, cam, s, look, ground, x, y, z) {
   const w = s.world;
-  if (!Core.isExplored(w, x, y, z) || Core.holeBelow(w, x, y, z) || built.has(Core.packKey(x, y, z))) return;
+  if (!Core.isExplored(w, x, y, z)) return;
+  const key = Core.packKey(x, y, z);
+  const pile = z === Core.SURFACE && ground.yard.piles.get(key);
+  if (pile) return drawPile(ctx, cam, s, look, ground.yard, pile);
+  if (z === Core.SURFACE && ground.yard.covered.has(key)) return; // under a big pile
+  if (Core.holeBelow(w, x, y, z) || ground.built.has(key)) return;
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
   const slot = Core.LOOK[id].slots.cut !== undefined && Core.richness(w, x, y, z) <= 0 ? 'cut' : 'stand';
@@ -164,12 +191,26 @@ function drawBlock(ctx, cam, s, look, bx, by, z, step) {
   ctx.fillRect(p.x, p.y, cam.tilePx * step + 1, cam.depthPx * step + 1);
 }
 
+// Zoomed far out, each stockpile pile is a dot of its resource's colour
+// (bigger for bigger piles), so the yard reads as a patch spreading over the map.
+function drawFarPiles(ctx, cam, s, look, yard, v) {
+  const u = cam.tilePx;
+  for (const p of yard.piles.values()) {
+    if (p.x + p.span < v.x0 || p.x > v.x1 || p.y + p.span < v.y0 || p.y > v.y1) continue;
+    const size = Math.max(1.5, u * (p.span - 1 + Math.min(1, 0.5 + p.tier * 0.08)));
+    const c = cam.project(p.x + p.span / 2, p.y + p.span / 2);
+    ctx.fillStyle = look.color(Core.resourceLook(p.res));
+    ctx.fillRect(c.x - size / 2, c.y - size / 2, size, size);
+  }
+}
+
 const lodStep = (cam) => Math.max(1, Math.ceil(LOD_PX / cam.tilePx));
 
 // Draws the visible terrain and calls onRow(y) after each row of tiles.
-// `built` holds the packed keys of tiles with buildings. Returns how many
-// tiles (or far-zoom blocks) it drew.
-export function drawTerrain(ctx, cam, s, look, built, onRow) {
+// `ground` holds what else stands on tiles: `built` (packed keys of tiles with
+// buildings) and the stockpile `yard`. Returns how many tiles (or far-zoom
+// blocks) it drew.
+export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   const z = cam.z;
   const v = cam.visibleTiles();
   const step = lodStep(cam);
@@ -178,7 +219,8 @@ export function drawTerrain(ctx, cam, s, look, built, onRow) {
     const y0 = v.y0 - Math.ceil(cliffDepthPx(cam) / cam.depthPx);
     for (let y = y0; y <= v.y1; y++) {
       for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, look, x, y, z);
-      for (let x = v.x0 - 1; x <= v.x1 + 1; x++) drawStand(ctx, cam, s, look, built, x, y, z);
+      // A little past the sides: trees lean and big piles are wide.
+      for (let x = v.x0 - STAND_MARGIN; x <= v.x1 + STAND_MARGIN; x++) drawStand(ctx, cam, s, look, ground, x, y, z);
       onRow(y);
     }
     return (v.y1 - y0 + 1) * (v.x1 - v.x0 + 1);
@@ -189,6 +231,7 @@ export function drawTerrain(ctx, cam, s, look, built, onRow) {
   for (let by = by0; by <= by1; by++) {
     for (let bx = bx0; bx <= bx1; bx++) drawBlock(ctx, cam, s, look, bx, by, z, step);
   }
+  if (z === Core.SURFACE) drawFarPiles(ctx, cam, s, look, ground.yard, v);
   for (let y = v.y0; y <= v.y1; y++) onRow(y);
   return (by1 - by0 + 1) * (bx1 - bx0 + 1);
 }
