@@ -51,9 +51,9 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       every layer at least tall enough for the player.
 - [x] **Drill as you walk.** (0.32.0) Walking into a wall should mine it, so you never
       have to take your thumb off the joystick to tap each block.
-- [ ] **No holes under buildings.** You can't dig down or up through a tile
+- [x] **No holes under buildings.** (0.32.1) You can't dig down or up through a tile
       that has a building. No entry or exit shares a tile with a building.
-- [ ] **No holes in water.** Never dig down or up where there's water.
+- [x] **No holes in water.** (0.32.1) Never dig down or up where there's water.
 - [ ] **Digging takes work.** Making a hole should take more steps, at least
       time, so holes aren't everywhere.
 - [ ] **Dark tunnels.** Tunnels are always dark unless you light them.

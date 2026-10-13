@@ -187,8 +187,8 @@ test('logistics does not collect from surface camps while underground', () => {
   const s = C.createState(31415);
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
   s.unlocks.logistics = true;
-  s.extractors.push(lumberCamp(px, py, 20));
-  C.goDown(s); // standing right beneath the camp
+  s.extractors.push(lumberCamp(px + 1, py, 20));
+  C.goDown(s); // right beside the camp, a layer below (never under it)
   run(s, 2);
   assert.equal(s.inv.wood, 0);
   assert.equal(s.events.length, 0);
@@ -269,4 +269,41 @@ test('underground, pushing into rock drills it after a moment; bedrock and shaft
   // Nothing drills on the surface.
   const top = C.createState(31415);
   assert.equal(C.drillTarget(top, 1, 0), null);
+});
+
+test('no way between layers shares a tile with a building, and none opens in water', () => {
+  // Down through a building: no.
+  const s = C.createState(31415);
+  const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
+  s.extractors.push({ key: 'sapling', res: 'wood', x: fx, y: fy, z: C.SURFACE, buffer: 0 });
+  assert.equal(C.canGoDown(s), false, 'not under a building');
+  s.extractors.length = 0;
+  assert.equal(C.canGoDown(s), true);
+
+  // Up into a building: no.
+  C.goDown(s);
+  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
+  C.harvestAt(s, n.x, n.y);
+  standOn(s, n);
+  s.extractors.push({ key: 'sapling', res: 'wood', x: n.x, y: n.y, z: C.SURFACE, buffer: 0 });
+  assert.equal(C.canGoUp(s), false, 'not up into a building');
+  s.extractors.length = 0;
+
+  // Up into water: no; and never down from water.
+  const wet = C.nearestTile(s.player.x, s.player.y, 120, (x, y) => C.tileAt(s.world, x, y, C.SURFACE) === T.WATER);
+  C.setRichness(s.world, wet.x, wet.y, -1, 0);
+  standOn(s, wet);
+  assert.equal(C.canGoUp(s), false, 'not up into water');
+  const swim = C.createState(31415);
+  standOn(swim, wet);
+  assert.equal(C.canGoDown(swim), false, 'not down from water');
+
+  // And no building on a tile with a hole in its floor or ceiling.
+  const b = C.createState(31415);
+  b.inv.wood = 1e6; b.inv.stone = 1e6; b.inv.ore = 1e6; b.unlocks.sapling = true;
+  C.goDown(b);
+  const hx = Math.floor(b.player.x), hy = Math.floor(b.player.y);
+  assert.ok(C.holeAbove(b.world, hx, hy, b.player.z));
+  const spot = C.buildTarget(b, 'sapling');
+  assert.ok(!spot || spot.x !== hx || spot.y !== hy, 'not under the hole you came down');
 });

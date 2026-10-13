@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.32.1] - 2026-10-13
+
+### Fixed
+- **No holes under buildings.** You can't dig down under a building or up
+  into one, and you can't build under a hole in the ceiling (building on a
+  hole was already ruled out), so a way between layers never shares a tile
+  with a building.
+- **No holes in water.** Digging up from below can no longer come out in
+  water (digging down from water was already impossible).
+
 ## [0.32.0] - 2026-10-13
 
 ### Added
