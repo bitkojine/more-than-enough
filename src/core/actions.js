@@ -14,13 +14,17 @@ const REACH2 = REACH * REACH;
 
 /* ------------------------------------------------------------- harvest */
 
-// A tile on the player's layer that Gather could work right now.
-export function canHarvest(s, x, y) {
+// A tile on the player's layer that has something to gather, near or far.
+export function harvestable(s, x, y) {
   const z = s.player.z;
   return !!TILE_INFO[tileAt(s.world, x, y, z)].harvest &&
     richness(s.world, x, y, z) > 0 &&
-    !holeBelow(s.world, x, y, z) &&
-    tileDist2(s.player, x, y, z) <= REACH2;
+    !holeBelow(s.world, x, y, z);
+}
+
+// A tile on the player's layer that Gather could work right now.
+export function canHarvest(s, x, y) {
+  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2;
 }
 
 // Tiles within reach of the player, nearest first.

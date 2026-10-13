@@ -435,6 +435,17 @@ async function main() {
   await sleep(150);
   var a2 = JSON.parse(await stateSummary());
   ok(Math.abs(a2.x - b2.x) + Math.abs(a2.y - b2.y) > 0.3, 'player moved with touch joystick (' + b2.x + ',' + b2.y + ' -> ' + a2.x + ',' + a2.y + ')');
+  // The Drag setting flips it: you walk away from the finger, pulling the map.
+  await evalJS('document.getElementById("btnDrag").click()');
+  eq(await evalJS('document.getElementById("dragMode").textContent'), 'pull the map', 'the Drag setting switches to pulling the map');
+  var b3 = JSON.parse(await stateSummary());
+  await drag(120, 420, 220, 420, 5, 60);
+  await sleep(150);
+  var a3 = JSON.parse(await stateSummary());
+  ok(a3.x < b3.x - 0.2, 'pulling the map right walks you left (' + b3.x + ' -> ' + a3.x + ')');
+  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-view")).invertDrag'), true, 'the Drag setting is remembered');
+  await evalJS('document.getElementById("btnDrag").click()');
+  eq(await evalJS('document.getElementById("dragMode").textContent'), 'walk that way', 'and switches back');
   await drag(90, 500, 135, 465, 5, 45);
   await sleep(150);
   var tapWalkStart = JSON.parse(await stateSummary());
@@ -481,6 +492,20 @@ async function main() {
   await sleep(150);
   var tapGatherAfter = JSON.parse(await stateSummary()).inv.wood;
   ok(tapGatherAfter > tapGatherBefore, 'tapping a resource tile gathers it directly');
+  await hold(195, 422, 1400);
+  var holdGatherAfter = JSON.parse(await stateSummary()).inv.wood;
+  ok(holdGatherAfter >= tapGatherAfter + 2, 'holding a finger still on a resource keeps gathering it (' + tapGatherAfter + ' -> ' + holdGatherAfter + ')');
+  // A resource out of reach: the tap walks there and gathers it on arrival.
+  var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3)continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
+  ok(!!far, 'found a tree across open ground');
+  if (far) {
+    await sleep(200);
+    var farAt = await evalJS('JSON.stringify(MTE_GAME.project(' + (far.x + 0.5) + ',' + (far.y + 0.5) + '))');
+    farAt = JSON.parse(farAt);
+    var farBefore = JSON.parse(await stateSummary());
+    await tap(farAt.x, farAt.y);
+    ok(await waitFor('MTE_GAME.getState().inv.wood > ' + farBefore.inv.wood, 3000), 'tapping a tree out of reach walks there and gathers it');
+  }
   var s1 = await shot('02-gathered.png');
   console.log(await asciiArt(evalJS));
   var contrast = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var n=0,sum=0,sum2=0;for(var i=0;i<d.length;i+=160){var l=(d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11)/255;sum+=l;sum2+=l*l;n++;}var m=sum/n;return JSON.stringify({mean:+m.toFixed(3),std:+Math.sqrt(sum2/n-m*m).toFixed(3)});})()');

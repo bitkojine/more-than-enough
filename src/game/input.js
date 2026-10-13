@@ -1,8 +1,10 @@
 /* Touch, mouse and keyboard. Turns raw events into intents, and hands them to
  * the handlers it was given. It never touches game state itself.
  *
- *   drag anywhere            virtual joystick (moveVector)
+ *   drag anywhere            virtual joystick (moveVector); `invert` pulls
+ *                            the map instead (you walk against the drag)
  *   tap the map              handlers.tap(screenX, screenY)
+ *   hold still on the map    holdPoint() (the main loop works that tile)
  *   hold Gather / Space      `held` (the main loop repeats the action)
  *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
  *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x)
@@ -29,15 +31,23 @@ export function createInput({ canvas, cam, el, handlers }) {
     joy,
     held: false,   // Gather is held down (button or key)
     trail: null,   // { id, points: [{x, y}] in world space, leftButton }
+    invert: false, // drag pulls the map: you walk the other way from the finger
 
     // Desired movement direction, length 0..1. The joystick wins over keys.
     moveVector() {
-      if (joy.active && (joy.x || joy.y)) return { x: joy.x, y: joy.y };
+      if (joy.active && (joy.x || joy.y)) return input.invert ? { x: -joy.x, y: -joy.y } : { x: joy.x, y: joy.y };
       if (handlers.blocked()) return { x: 0, y: 0 };
       const x = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
       const y = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
       const len = Math.hypot(x, y);
       return len > 1 ? { x: x / len, y: y / len } : { x, y };
+    },
+
+    // Where a finger has been held still on the map for longer than a tap,
+    // in screen pixels, or null.
+    holdPoint() {
+      if (!joy.active || joy.moved >= TAP_MAX_MOVE || performance.now() - joy.t < TAP_MAX_MS || handlers.blocked()) return null;
+      return { x: joy.ox, y: joy.oy };
     },
 
     release() {

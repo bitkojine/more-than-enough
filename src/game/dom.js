@@ -37,6 +37,8 @@ export function findElements() {
     close: byId('btnClose'),
     reset: byId('btnReset'),
     mute: byId('btnMute'),
+    drag: byId('btnDrag'),
+    dragMode: byId('dragMode'),
     toast: byId('toast'),
     textures: byId('btnTextures'),
     packName: byId('packName'),

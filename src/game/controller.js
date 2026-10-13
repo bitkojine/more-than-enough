@@ -69,6 +69,27 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     return true;
   }
 
+  // Works tile (tx, ty) if it's in reach: gather it, or collect the building
+  // on it. Returns true if something was done.
+  function workAt(tx, ty) {
+    const r = Core.harvestAt(state(), tx, ty);
+    if (r) { harvested(r); changed(); return true; }
+    const near = Core.collectTarget(state());
+    return !!near && near.list.some((e) => e.x === tx && e.y === ty) && collectNearby();
+  }
+
+  // Something to gather or collect on (tx, ty), wherever it is.
+  function workable(tx, ty) {
+    const s = state();
+    return Core.harvestable(s, tx, ty) || s.extractors.some((e) => e.x === tx && e.y === ty && e.z === s.player.z && e.buffer >= 1);
+  }
+
+  // Walk to (tx, ty); with `work`, work it once it's in reach.
+  function walkToward(tx, ty, work) {
+    walkTo = { x: tx + 0.5, y: ty + 0.5, work: work ? { x: tx, y: ty } : null };
+    stalled = 0;
+  }
+
   // What Gather does right now: empty nearby extractors, else work the
   // nearest deposit. Underground there is no automatic target.
   function act() {
@@ -118,7 +139,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
         if (dug) { harvested(dug); changed(); }
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
-        if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;
+        // Walking to something tapped: work it as soon as it's in reach.
+        if (walkTo.work && workAt(walkTo.work.x, walkTo.work.y)) walkTo = null;
+        else if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;
         else {
           Core.move(state(), dx, dy, dt);
           controller.facing = { x: dx, y: dy };
@@ -137,7 +160,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       if (cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
     },
 
-    tick(dt, holding) {
+    // `holdAt`: a finger held still on the map (screen point), or null. It
+    // works that tile over and over, like holding Gather.
+    tick(dt, holding, holdAt) {
       const s = state();
       if (s.digging) {
         // A shovelful of dust and a thud every so often while you dig.
@@ -150,21 +175,22 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       }
       cooldown -= dt;
       if (holding && cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
+      if (holdAt && cooldown <= 0) {
+        const w = cam.unproject(holdAt.x, holdAt.y);
+        const tx = Math.floor(w.x), ty = Math.floor(w.y);
+        if (workAt(tx, ty)) cooldown = GATHER_COOLDOWN;
+        else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
+      }
     },
 
-    // A tap on the map acts on that tile if it can (descend, harvest, collect),
-    // otherwise walks there.
+    // A tap on the map acts on that tile if it can (descend, harvest, collect).
+    // Otherwise it walks there, and gathers or collects on arrival if there's
+    // something to work: tapping a tree across the clearing goes and chops it.
     tap(sx, sy) {
-      const s = state();
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
-      if (descend(tx, ty)) return;
-      const r = Core.harvestAt(s, tx, ty);
-      if (r) { harvested(r); changed(); return; }
-      const near = Core.collectTarget(s);
-      if (near && near.list.some((e) => e.x === tx && e.y === ty)) { collectNearby(); return; }
-      walkTo = { x: tx + 0.5, y: ty + 0.5 };
-      stalled = 0;
+      if (descend(tx, ty) || workAt(tx, ty)) return;
+      walkToward(tx, ty, workable(tx, ty));
     },
 
     // A finished Trail stroke (world points), or null if it was abandoned.

@@ -74,18 +74,19 @@ export function loadGame() {
   return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
 }
 
-// The viewer's zoom and tilt: a convenience for this browser, not game state.
+// The viewer's zoom, tilt and drag direction: conveniences for this browser,
+// not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
-    return { zoom: Number(v.zoom) || 1, tilt: Number(v.tilt) || 0 };
+    return { zoom: Number(v.zoom) || 1, tilt: Number(v.tilt) || 0, invertDrag: v.invertDrag === true };
   } catch {
-    return { zoom: 1, tilt: 0 };
+    return { zoom: 1, tilt: 0, invertDrag: false };
   }
 }
 
-export function saveView(cam) {
-  write(VIEW_KEY, JSON.stringify({ zoom: cam.zoom, tilt: cam.tiltTarget }));
+export function saveView(cam, invertDrag) {
+  write(VIEW_KEY, JSON.stringify({ zoom: cam.zoom, tilt: cam.tiltTarget, invertDrag }));
 }
 
 export function clearSave() {

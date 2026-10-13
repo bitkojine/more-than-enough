@@ -134,7 +134,7 @@ const input = createInput({
     tap: controller.tap,
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,
-    viewChanged: () => { hud.view(cam); saveView(cam); },
+    viewChanged: () => { hud.view(cam); saveView(cam, input.invert); },
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'close') sheet.close();
@@ -148,6 +148,14 @@ el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.mine.addEventListener('click', controller.toggleMine);
 el.reset.addEventListener('click', controller.reset);
+// Which way a drag moves you: toward the finger (a joystick), or away from it,
+// pulling the map along like scrolling.
+function setDrag(invert) {
+  input.invert = invert;
+  el.dragMode.textContent = invert ? 'pull the map' : 'walk that way';
+  el.drag.setAttribute('aria-pressed', String(invert));
+}
+el.drag.addEventListener('click', () => { setDrag(!input.invert); saveView(cam, input.invert); });
 el.mute.addEventListener('click', () => {
   audio.muted = !audio.muted;
   el.mute.textContent = 'Sound: ' + (audio.muted ? 'off' : 'on');
@@ -181,7 +189,7 @@ function update(dt) {
     Core.revealAround(s);
   }
 
-  controller.tick(dt, input.held && !input.trail);
+  controller.tick(dt, input.held && !input.trail, input.holdPoint());
   if (moved && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
@@ -257,6 +265,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) game.
 const savedView = loadView();
 cam.setZoom(savedView.zoom);
 cam.setTilt(savedView.tilt, true);
+setDrag(savedView.invertDrag);
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 toggles it, and ?perf in the address opens it (for phones).
 perf.toggle(new URLSearchParams(location.search).has('perf'));

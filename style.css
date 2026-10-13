@@ -469,13 +469,13 @@ canvas#game {
   border-top: 1px solid var(--panel-line);
 }
 #sheetNav { display: flex; align-items: stretch; gap: 7px; }
-#sheetUtilities { display: flex; gap: 7px; }
+#sheetUtilities { display: flex; flex-wrap: wrap; gap: 7px; }
 #sheetUtilities [hidden] { display: none; }
 #sheetUtilities .twoLine { flex-direction: column; line-height: 1.15; }
 #sheetUtilities .twoLine small { font-size: 10.5px; font-weight: 600; opacity: 0.75; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #sheetUtilities button,
 #sheetUtilities a {
-  flex: 1;
+  flex: 1 1 28%;
   display: flex; align-items: center; justify-content: center;
   text-decoration: none;
   min-height: 46px;

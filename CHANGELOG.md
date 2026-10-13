@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.40.0] - 2026-10-13
+
+### Added
+- **Gather by touching the map.** Players reach for the resources on the map,
+  not the Gather button, so the map now does it all: tap a tree or rock out
+  of reach and you walk over and gather it when you get there (a building
+  with goods waiting is collected the same way), and hold a finger still on a
+  tile to keep working it, like holding Gather.
+- **A Drag setting for which way dragging moves you.** At the bottom of the
+  sheet, Drag switches between *walk that way* (the joystick, as before) and
+  *pull the map*, where the map follows your finger like scrolling and you
+  walk the other way. It's remembered in this browser.
+
 ## [0.39.1] - 2026-10-13
 
 ### Fixed
