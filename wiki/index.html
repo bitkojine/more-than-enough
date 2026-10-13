@@ -100,8 +100,10 @@
       <ul>
         <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
         <li><strong>UPGRADE</strong> opens the sheet on the Upgrades tab. See <a href="#upgrades">Upgrades</a>.</li>
-        <li><strong>MINE</strong> digs a hole where you stand and drops you into the layer below; underground it becomes
-          <strong>UP</strong>, which climbs to the layer above. It dims where you can't. See <a href="#mine">The mine</a>.</li>
+        <li>The <strong>layer button</strong> takes you between layers and says how: <strong>DIG DOWN</strong> digs a new hole
+          where you stand, <strong>CLIMB DOWN</strong> goes down a hole that's already there, and underground
+          <strong>DIG UP</strong> and <strong>CLIMB UP</strong> do the same through the ceiling. It dims where you can't. See
+          <a href="#mine">The mine</a>.</li>
       </ul>
       <p>Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
 
@@ -262,13 +264,14 @@
       <p>Every way between layers is a <strong>hole</strong> you can see, so it's always clear where you went deeper and where
         you came back up.</p>
       <ul>
-        <li><strong>MINE</strong>, in the forest, digs a hole at your feet and drops you into a one-tile chamber in the rock
+        <li><strong>DIG DOWN</strong>, in the forest, digs a hole at your feet and drops you into a one-tile chamber in the rock
           directly below. It works on open ground, not in water. A new hole takes work: you dig for
           <span data-k="HOLE_TIME"></span> seconds with the first Pickaxe (quicker with better ones: the time is divided by the
           square root of its level), while a ring fills around the button and the pit opens at your feet. Step off the spot
-          and you stop. Through a hole that's already there, you go at once.</li>
-        <li><strong>UP</strong>, underground, climbs to the layer above through the hole you came down, or digs a new one
-          through the ceiling where you stand (a new one takes the same work as digging down). You can't dig up through bedrock, or come up inside a mountain or into water.</li>
+          and you stop. Standing on a hole that's already there, the button says <strong>CLIMB DOWN</strong> and you go at once.</li>
+        <li>Underground the button goes up: <strong>CLIMB UP</strong> under a hole in the ceiling (the one you came down, say),
+          <strong>DIG UP</strong> anywhere else, which digs a new one through the ceiling where you stand (it takes the same
+          work as digging down). You can't dig up through bedrock, or come up inside a mountain or into water.</li>
         <li><strong>Home ground</strong> is sealed: you can't dig down from it, or come up onto it from below, so the stockpile's
           ground stays whole. Deeper down, under home, the rock is like anywhere else.</li>
         <li>A way between layers never shares a tile with a building: you can't dig down under one or up into one, and you

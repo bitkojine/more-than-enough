@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.36.5] - 2026-10-13
+
+### Changed
+- **The layer button says what it will do.** It used to read MINE in the
+  forest and UP underground, whatever was there. Now it reads DIG DOWN on
+  open ground, CLIMB DOWN when you stand on a hole that's already there, and
+  underground CLIMB UP under a hole in the ceiling or DIG UP where it will dig
+  a new one, each with its own icon. The wiki describes the four.
+
 ## [0.36.4] - 2026-10-13
 
 ### Fixed

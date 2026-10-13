@@ -207,6 +207,12 @@
   "ui.climb": {
    "icon": "icons/climb.svg"
   },
+  "ui.digUp": {
+   "icon": "icons/dig-up.svg"
+  },
+  "ui.climbDown": {
+   "icon": "icons/climb-down.svg"
+  },
   "ui.gather": {
    "icon": "icons/gather.svg"
   },

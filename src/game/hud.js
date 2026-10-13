@@ -8,6 +8,14 @@ import { fmt, fmt1 } from './format.js';
 const TOAST_SECONDS = 2.4;
 const MILESTONE_SECONDS = 3.5;
 
+// The layer button, by what it will do: [icon, label, aria-label].
+const LAYER_BUTTON = {
+  digDown: ['ui.dig', 'DIG DOWN', 'Dig a hole down'],
+  climbDown: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the hole'],
+  digUp: ['ui.digUp', 'DIG UP', 'Dig a hole up'],
+  climbUp: ['ui.climb', 'CLIMB UP', 'Climb up the hole']
+};
+
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
 // thing's picture from the current texture pack.
 export function paintIcons(look, root = document) {
@@ -92,11 +100,14 @@ export function createHud(el, look) {
         el.action.classList.toggle('ready', ready);
         el.action.classList.toggle('disabled', !ready);
       }
-      const below = Core.isUnderground(s);
-      setIcon(el.mineIcon, below ? 'ui.climb' : 'ui.dig');
-      setText(el.mineLabel, below ? 'UP' : 'MINE');
-      el.mine.setAttribute('aria-label', below ? 'Climb up a layer' : 'Dig down into the mine');
-      el.mine.classList.toggle('disabled', !(below ? Core.canGoUp(s) : Core.canGoDown(s)));
+      // The layer button says what it will do: climb through a hole that's
+      // there, or dig a new one; down from the forest, up from below.
+      const way = Core.layerWay(s);
+      const [mineIcon, mineLabel, mineAria] = LAYER_BUTTON[(way.through ? 'climb' : 'dig') + (way.up ? 'Up' : 'Down')];
+      setIcon(el.mineIcon, mineIcon);
+      setText(el.mineLabel, mineLabel);
+      el.mine.setAttribute('aria-label', mineAria);
+      el.mine.classList.toggle('disabled', !way.ok);
       el.mine.classList.toggle('digging', !!s.digging);
       el.mine.style.setProperty('--dig', Core.digProgress(s).toFixed(3));
     },

@@ -122,6 +122,16 @@ function holeHere(s) {
 const canGo = (s) => (isUnderground(s) ? canGoUp(s) : canGoDown(s));
 
 /**
+ * What the layer button would do right now, so it can say so: climb through
+ * a hole that's there, or dig a new one. In the forest the way is down;
+ * underground it's up (a hole in the floor is tapped to drop through).
+ * @returns {{up: boolean, through: boolean, ok: boolean}}
+ */
+export function layerWay(s) {
+  return { up: isUnderground(s), through: holeHere(s), ok: canGo(s) };
+}
+
+/**
  * The layer button: go through a hole that's there, or start digging one.
  * @returns {'moved' | 'digging' | null}  null when there's no way here
  */

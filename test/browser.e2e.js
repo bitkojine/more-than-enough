@@ -330,14 +330,15 @@ async function main() {
   await tap(zoomOut.x, zoomOut.y);
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'thumb zoom-out control restores default zoom');
   // Home ground is kept for the stockpile: no hole there. Step out of it first.
-  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'MINE is off on home ground');
+  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'the layer button is off on home ground');
   var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return !!c.TILE_INFO[c.tileAt(s.world,x,y,0)].dig;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
   await sleep(300);
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'DIG DOWN', 'on open ground, the layer button digs down');
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
   // A new hole takes work: the button fills while you dig, then you drop.
   await sleep(300);
-  ok(await evalJS('MTE_GAME.getState().player.z === 0 && document.getElementById("btnMine").classList.contains("digging")'), 'MINE starts digging a hole; it takes a while');
+  ok(await evalJS('MTE_GAME.getState().player.z === 0 && document.getElementById("btnMine").classList.contains("digging")'), 'DIG DOWN starts digging a hole; it takes a while');
   await sleep(900);
   console.log('  screenshot: ' + await shot('02b-digging.png'));
   var holeSecs = await evalJS('MTE_GAME.core.holeTime(MTE_GAME.getState())');
@@ -345,7 +346,7 @@ async function main() {
   ok(await evalJS('MTE_GAME.core.holeBelow(MTE_GAME.getState().world,' + entry.x + ',' + entry.y + ',0)'), 'going down leaves a hole in the forest floor');
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.isExplored(s.world,' + (entry.x + 1) + ',' + entry.y + ',-1)&&!c.isExplored(s.world,' + (entry.x + 8) + ',' + entry.y + ',-1);})()', 1000), 'underground, only the rock close by is revealed');
   eq(await evalJS('document.getElementById("depth").hidden ? "" : document.getElementById("depth").textContent'), '\u25BC 1', 'the depth marker shows layer 1');
-  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'UP', 'mine button becomes the climb-up control underground');
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB UP', 'under the hole you came down, the layer button climbs up');
   await sleep(120); // let the camera settle on the new layer
   var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
   var ms = JSON.parse(mineSpot);
@@ -390,10 +391,12 @@ async function main() {
   ok(await evalJS('MTE_GAME.getState().time') > heldClock + 3, 'the game clock runs while Gather is held underground');
   ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
-  eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'UP climbs back through the shaft you came down');
+  eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'CLIMB UP climbs back through the shaft you came down');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
   await tap(mineBtn.x, mineBtn.y);
-  eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'UP under the first hole comes out where you went down');
+  eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'CLIMB UP under the first hole comes out where you went down');
+  await sleep(200);
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'standing on that hole, the layer button climbs down');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("depth"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
   ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');

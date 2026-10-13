@@ -309,6 +309,20 @@ test('no way between layers shares a tile with a building, and none opens in wat
   assert.ok(!spot || spot.x !== hx || spot.y !== hy, 'not under the hole you came down');
 });
 
+test('the layer button knows whether it will dig a new hole or climb an old one', () => {
+  const s = away(C.createState(31415));
+  assert.deepEqual(C.layerWay(s), { up: false, through: false, ok: true }, 'dig down');
+  C.goDown(s);
+  assert.deepEqual(C.layerWay(s), { up: true, through: true, ok: true }, 'climb up the hole you came down');
+  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
+  C.harvestAt(s, n.x, n.y);
+  standOn(s, n);
+  assert.equal(C.layerWay(s).through, false, 'a fresh tunnel tile: dig up');
+  standOn(s, { x: n.x - n.dx, y: n.y - n.dy });
+  C.goUp(s);
+  assert.deepEqual(C.layerWay(s), { up: false, through: true, ok: true }, 'back on the forest hole: climb down');
+});
+
 test('a new hole takes work; an old one is a way straight through', () => {
   const s = away(C.createState(31415));
   assert.equal(C.startDig(s), 'digging');

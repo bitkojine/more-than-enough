@@ -118,8 +118,10 @@ add('mark', 'torch', 'Torch', 'A torch you placed in a tunnel. It lights the tun
 const UI = {
   build: ['Build', 'Opens the Build sheet.'],
   upgrade: ['Upgrade', 'Opens the Upgrades sheet.'],
-  dig: ['Dig down', 'Digs a hole at your feet and drops into the mine.'],
-  climb: ['Climb up', 'Climbs to the layer above.'],
+  dig: ['Dig down', 'Digs a new hole at your feet and drops into the mine.'],
+  climbDown: ['Climb down', 'Climbs down the hole you stand on.'],
+  digUp: ['Dig up', 'Digs a new hole through the ceiling, up to the layer above.'],
+  climb: ['Climb up', 'Climbs up through the hole above you.'],
   gather: ['Gather', 'Works whatever is in reach (shown when nothing is).'],
   collect: ['Collect', 'Empties nearby buildings into your pack.'],
   embark: ['Embark', 'Leaves this world for a new one.']
