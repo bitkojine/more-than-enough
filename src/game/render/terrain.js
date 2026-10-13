@@ -6,9 +6,10 @@
  * After each row the caller draws whatever stands in it (the player,
  * buildings), which lets walls hide what is behind them when tilted.
  *
- * Tilted far enough, the world is cut open a few rows in front of the player
- * (see cutawayRow and strata.js): rows past the cut aren't drawn, and walls on
- * the cut show their face right down to the floor.
+ * Unexplored tiles are not drawn at all: the known world is a plateau over
+ * the dark. Where explored ground has darkness in front of it, its edge drops
+ * as a cliff showing the layers below (strata.js); other edges over the dark
+ * catch a light lip.
  *
  * Decoration takes the top face's rectangle: `u` wide and `g * u` deep, where
  * g shrinks as the view tilts. Things lying on the ground scale by g; things
@@ -16,55 +17,21 @@
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
+import { BASE_COLOR, shade, tv } from './palette.js';
+import { drawCliff, cliffDepthPx } from './strata.js';
 
 const { T } = Core;
 const LOD_PX = 10;          // below this tile size, draw level-of-detail blocks
-const FOG = '#04060a';
-const UNSEEN_ROCK = '#100d0b';      // underground you haven't seen: solid, dark
-const UNSEEN_FACE = '#0a0807';
-
-// What an unseen tile looks like: fog on the surface, dark rock below.
-const unseenTop = (z) => (z === Core.SURFACE ? FOG : UNSEEN_ROCK);
-const unseenFace = (z) => (z === Core.SURFACE ? FOG : UNSEEN_FACE);
-const CUTAWAY_TILT = 0.3;           // the world opens up from this much tilt
-const CUT_AT = 0.7;                 // the cut sits this far down the screen
+const LIP = 'rgba(232,222,186,0.22)';   // the edge of the known world, over the dark
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
 const RIM = 'rgba(255,255,255,0.09)';   // light catching a block's top edge
 const CONTACT = 'rgba(0,0,0,0.28)';     // shade at the foot of a taller block
 const TAU = Math.PI * 2;
 
-// Stable per-tile variation for decoration.
-export const tv = (x, y, salt) => Core.hash2(x, y, salt);
-
-export const BASE_COLOR = [];
-BASE_COLOR[T.GRASS] = '#243018';
-BASE_COLOR[T.FOREST] = '#0e1a0c';
-BASE_COLOR[T.STONE] = '#34372e';
-BASE_COLOR[T.ORE] = '#34372e';
-BASE_COLOR[T.CRYSTAL] = '#141d30';
-BASE_COLOR[T.WATER] = '#0e2138';
-BASE_COLOR[T.ROCK] = '#0b0e11';
-BASE_COLOR[T.TUNNEL] = '#29251e';
-BASE_COLOR[T.SOIL] = '#59452f';
-BASE_COLOR[T.STONE_SEAM] = '#55524b';
-BASE_COLOR[T.ORE_SEAM] = '#744629';
-BASE_COLOR[T.CRYSTAL_SEAM] = '#27566a';
-BASE_COLOR[T.FOSSIL] = '#554b62';
-BASE_COLOR[T.BEDROCK] = '#14171a';
-BASE_COLOR[T.SHAFT] = '#574b32';
-BASE_COLOR[T.SHAFT_OPEN] = '#315747';
-
 // South faces that shouldn't just be a darker top (dark rock needs lifting).
 const FACE_COLOR = [];
 FACE_COLOR[T.ROCK] = '#1d2328';
 FACE_COLOR[T.BEDROCK] = '#24282c';
-
-// Slight brightness variation so flat ground doesn't look like a grid.
-export function shade(hex, f, dim = 1) {
-  const m = (0.84 + f * 0.34) * dim;
-  const c = (i) => Math.round(parseInt(hex.slice(i, i + 2), 16) * m);
-  return `rgb(${c(1)},${c(3)},${c(5)})`;
-}
 
 export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -258,39 +225,42 @@ function drawUnderground(ctx, sx, sy, u, g, t) {
 
 // A tile's look: its type, or fog for unexplored surface.
 // A tile's look: its type, or -1 where it hasn't been seen yet.
-function tileLook(w, x, y, z) {
-  if (!Core.isExplored(w, x, y, z)) return -1;
-  return Core.tileAt(w, x, y, z);
+// Light lips on the edges of tile (x, y) that face the dark to the north,
+// west and east (the south edge is a cliff when tilted).
+function drawLips(ctx, w, x, y, z, sx, sy, u, d) {
+  const lip = Math.max(1, u * 0.04);
+  ctx.fillStyle = LIP;
+  if (!Core.isExplored(w, x, y - 1, z)) ctx.fillRect(sx, sy, u, lip);
+  if (!Core.isExplored(w, x - 1, y, z)) ctx.fillRect(sx, sy, lip, d);
+  if (!Core.isExplored(w, x + 1, y, z)) ctx.fillRect(sx + u - lip, sy, lip, d);
 }
 
-// `cut` marks the row the world is cut open at: faces there run right down to
-// the layer's floor, where the strata below begin.
-function drawTile(ctx, cam, s, x, y, z, cut) {
+function drawTile(ctx, cam, s, x, y, z) {
   const w = s.world, u = cam.tilePx, d = cam.depthPx, g = d / u;
-  const t = tileLook(w, x, y, z);
+  if (!Core.isExplored(w, x, y, z)) return; // the dark below the known world
+  const t = Core.tileAt(w, x, y, z);
   // Flat (or nearly), height moves nothing on screen: skip looking it up.
   const tilted = cam.risePx > FLAT_RISE_PX;
   const h = tilted ? Core.tileHeight(w, x, y, z) : 0;
   const { x: sx, y: sy } = cam.project(x, y, z + h);
-  const unseen = unseenTop(z);
-  const color = t < 0 ? unseen : BASE_COLOR[t];
+  const color = BASE_COLOR[t];
 
   // The south face, down to the top of the tile in front, lit along its rim.
-  const front = !tilted ? h : cut ? 0 : Core.tileHeight(w, x, y + 1, z);
+  // With the dark in front, it runs down to the floor and the cliff carries on.
+  const edge = tilted && !Core.isExplored(w, x, y + 1, z);
+  const front = !tilted || edge ? Math.min(h, 0) : Core.tileHeight(w, x, y + 1, z);
+  if (edge) drawCliff(ctx, cam, s, x, y, z);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
-    ctx.fillStyle = t < 0 ? unseenFace(z)
-      : FACE_COLOR[t] ? shade(FACE_COLOR[t], tv(x, y, 8)) : shade(color, tv(x, y, 8), FACE_DIM);
+    ctx.fillStyle = FACE_COLOR[t] ? shade(FACE_COLOR[t], tv(x, y, 8)) : shade(color, tv(x, y, 8), FACE_DIM);
     ctx.fillRect(sx, sy + d, u + 1, faceH + 1);
-    if (t >= 0) {
-      ctx.fillStyle = RIM;
-      ctx.fillRect(sx, sy + d, u + 1, Math.min(faceH, Math.max(1, u * 0.035)));
-    }
+    ctx.fillStyle = RIM;
+    ctx.fillRect(sx, sy + d, u + 1, Math.min(faceH, Math.max(1, u * 0.035)));
   }
 
-  ctx.fillStyle = t < 0 ? unseen : shade(color, tv(x, y, 7));
+  ctx.fillStyle = shade(color, tv(x, y, 7));
   ctx.fillRect(sx, sy, u + 1, d + 1);
-  if (t < 0) return;
+  drawLips(ctx, w, x, y, z, sx, sy, u, d);
   // A taller block behind casts a little shade on this top's far edge.
   if (tilted && Core.tileHeight(w, x, y - 1, z) > h + 0.05) {
     ctx.fillStyle = CONTACT;
@@ -316,35 +286,29 @@ function drawTile(ctx, cam, s, x, y, z, cut) {
 // One flat block per `step` x `step` tiles, coloured by the tile at its centre.
 function drawBlock(ctx, cam, s, bx, by, z, step) {
   const tx = bx * step + (step >> 1), ty = by * step + (step >> 1);
-  const t = tileLook(s.world, tx, ty, z);
+  if (!Core.isExplored(s.world, tx, ty, z)) return;
+  const t = Core.tileAt(s.world, tx, ty, z);
   const p = cam.project(bx * step, by * step);
-  ctx.fillStyle = t < 0 ? unseenTop(z) : shade(BASE_COLOR[t], tv(tx, ty, 7));
+  ctx.fillStyle = shade(BASE_COLOR[t], tv(tx, ty, 7));
   ctx.fillRect(p.x, p.y, cam.tilePx * step + 1, cam.depthPx * step + 1);
 }
 
 const lodStep = (cam) => Math.max(1, Math.ceil(LOD_PX / cam.tilePx));
 
-// The row the world is cut open at when tilted (rows south of it are cut
-// away to show the layers), or null when the whole layer is drawn.
-export function cutawayRow(cam, s) {
-  if (cam.tilt < CUTAWAY_TILT || lodStep(cam) > 1) return null;
-  const ahead = Math.floor((cam.height * CUT_AT - cam.height / 2) / cam.depthPx);
-  return Math.floor(s.player.y) + Math.max(2, ahead);
-}
-
-// Draws the visible terrain (up to the cut, if any) and calls onRow(y) after
-// each row of tiles. Returns how many tiles (or far-zoom blocks) it drew.
-export function drawTerrain(ctx, cam, s, onRow, cut = null) {
+// Draws the visible terrain and calls onRow(y) after each row of tiles.
+// Returns how many tiles (or far-zoom blocks) it drew.
+export function drawTerrain(ctx, cam, s, onRow) {
   const z = cam.z;
   const v = cam.visibleTiles();
   const step = lodStep(cam);
   if (step === 1) {
-    const last = cut === null ? v.y1 : Math.min(v.y1, cut);
-    for (let y = v.y0; y <= last; y++) {
-      for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, x, y, z, y === cut);
+    // Start high enough that cliffs hanging down from rows above the screen show.
+    const y0 = v.y0 - Math.ceil(cliffDepthPx(cam) / cam.depthPx);
+    for (let y = y0; y <= v.y1; y++) {
+      for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, x, y, z);
       onRow(y);
     }
-    return (last - v.y0 + 1) * (v.x1 - v.x0 + 1);
+    return (v.y1 - y0 + 1) * (v.x1 - v.x0 + 1);
   }
   // Zoomed far out: flat blocks, no relief, then everything standing on them.
   const by0 = Math.floor(v.y0 / step), by1 = Math.ceil(v.y1 / step);

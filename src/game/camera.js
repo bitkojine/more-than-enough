@@ -3,8 +3,9 @@
  * Every draw call goes through project() and every pointer goes through
  * unproject(), so this is the one place that decides how the world is viewed.
  *
- * The view looks north and can tilt from straight down (tilt 0) to an angled
- * 2.5D view (tilt 1). There is no turning, so a tile's top always projects to
+ * The view looks north and tilts from a slight angle (MIN_TILT, never quite
+ * straight down, so the edges of the known world always read as cliffs) to an
+ * angled 2.5D view (tilt 1). There is no turning, so a tile's top always projects to
  * an axis-aligned rectangle: x maps straight across, a row of tiles is
  * foreshortened to `depthPx` tall, and height lifts things by `risePx` per
  * layer. Heights are absolute: the surface floor is 0, layer -1's floor is -1,
@@ -15,6 +16,7 @@ import { RELIEF_MIN, RELIEF_MAX } from '../core/index.js';
 const ZOOM_MAX = 3;          // 3x in
 const MIN_TILE_PX = 3;       // floor on tile size: the practical zoom-out limit
 const MAX_PITCH = 0.9;       // radians from straight down at full tilt (~52°)
+export const MIN_TILT = 0.25;  // the flattest the view gets (~13°)
 const LAYER_HEIGHT = 0.6;    // one layer's height, in tile lengths
 // Below this much lift per layer the view counts as flat and heights are ignored.
 export const FLAT_RISE_PX = 0.5;
@@ -31,8 +33,8 @@ export function createCamera(canvas) {
     tilePx: 48,          // tile width in CSS pixels
     depthPx: 48,         // a tile's on-screen depth (north to south)
     risePx: 0,           // on-screen lift per layer of height
-    tilt: 0,             // 0 = straight down ... 1 = fully tilted
-    tiltTarget: 0,
+    tilt: MIN_TILT,      // MIN_TILT = slight angle ... 1 = fully tilted
+    tiltTarget: MIN_TILT,
     x: 0, y: 0, z: 0,    // the world point at the centre of the screen
     // (x, y) -> height of that tile's top above the floor of layer cam.z.
     // Set by the game; picking uses it to hit the face you actually see.
@@ -61,8 +63,7 @@ export function createCamera(canvas) {
     // Aim for a tilt; the view swings there over the next frames. `now` jumps
     // straight there (a gesture that tracks the fingers).
     setTilt(t, now = false) {
-      if (!(t >= 0)) t = 0;
-      cam.tiltTarget = Math.min(1, t);
+      cam.tiltTarget = t >= MIN_TILT ? Math.min(1, t) : MIN_TILT;
       if (now) { cam.tilt = cam.tiltTarget; shape(); }
     },
 

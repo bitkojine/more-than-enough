@@ -206,7 +206,7 @@ test('each layer has its own fog, lifted only close by underground', () => {
   assert.ok(C.isExplored(s.world, px + 2, py, -1), 'rock right beside you is revealed');
   assert.ok(!C.isExplored(s.world, px + 6, py, -1), 'but not as far as on the surface');
   assert.ok(!C.isExplored(s.world, px + 40, py, SURFACE), 'and nothing on the surface');
-  assert.equal(C.tileHeight(s.world, px + 6, py, -1), 1, 'unexplored rock reads as solid');
+  assert.equal(C.tileHeight(s.world, px + 6, py, -1), 0, 'unexplored rock gives nothing away');
   assert.deepEqual(s.discovered, { ore: false, crystal: false }, 'surface discoveries are untouched');
 });
 

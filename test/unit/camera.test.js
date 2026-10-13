@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createCamera } from '../../src/game/camera.js';
+import { createCamera, MIN_TILT } from '../../src/game/camera.js';
 
 // A camera on a 400x400 screen with 40px tiles, looking at (0, 0) on layer z.
 function camera(tilt, relief = () => 0, z = 0) {
@@ -19,9 +19,10 @@ const tileUnder = (cam, x, y, h) => {
   return [Math.floor(w.x), Math.floor(w.y)];
 };
 
-test('flat, project and unproject are inverses on the floor', () => {
+test('at its flattest the view still leans, and project/unproject are inverses on the floor', () => {
   const cam = camera(0);
-  assert.equal(cam.risePx, 0, 'height lifts nothing when looking straight down');
+  assert.equal(cam.tilt, MIN_TILT, 'never quite straight down');
+  assert.ok(cam.risePx > 0, 'so height always shows a little');
   for (const [x, y] of [[0, 0], [2.25, -3.5], [-4.9, 4.1]]) {
     const p = cam.project(x, y);
     const w = cam.unproject(p.x, p.y);
@@ -68,5 +69,5 @@ test('tilt eases toward its target and is clamped', () => {
   for (let i = 0; i < 200; i++) cam.tick(0.016);
   assert.equal(cam.tilt, 1);
   cam.setTilt(-1, true);
-  assert.equal(cam.tilt, 0);
+  assert.equal(cam.tilt, MIN_TILT);
 });

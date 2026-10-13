@@ -111,10 +111,10 @@ test('tile heights: walls and mountains stand up, water sits low, fog is flat', 
   const s = C.createState(4242);
   const w = s.world;
   const solid = C.nearestTile(0, 0, 40, (x, y) => C.TILE_INFO[C.tileAt(w, x, y, -1)].solid);
-  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 1, 'underground rock reaches the layer above');
-  C.setRichness(w, solid.x, solid.y, -1, 0);
-  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 1, 'unseen, even a dug tile reads as rock');
+  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 0, 'unseen rock gives nothing away');
   C.markExplored(w, solid.x, solid.y, -1);
+  assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 1, 'seen, underground rock reaches the layer above');
+  C.setRichness(w, solid.x, solid.y, -1, 0);
   assert.equal(C.tileHeight(w, solid.x, solid.y, -1), 0, 'once seen, a dug tile is open floor');
 
   const rock = C.nearestTile(0, 0, 300, (x, y) => C.tileAt(w, x, y, SURFACE) === T.ROCK);

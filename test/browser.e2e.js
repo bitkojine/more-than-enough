@@ -755,7 +755,8 @@ async function main() {
   /* ------------------------------------------------------ tilt the view */
   console.log('\n== Tilt the view ==');
   errBase = pageErrors.length;
-  eq(await evalJS('MTE_GAME.tilt()'), 0, 'the view starts flat');
+  var startTilt = await evalJS('MTE_GAME.tilt()');
+  ok(startTilt > 0 && startTilt < 0.5, 'the view starts at a slight angle, never flat (' + startTilt + ')');
   var tiltBtn = await rect('#btnTilt');
   await tap(tiltBtn.x, tiltBtn.y);
   ok(await waitFor('MTE_GAME.tilt() > 0.98', 2000), 'the tilt button swings the view to full tilt');
@@ -792,7 +793,9 @@ async function main() {
     'return JSON.stringify({x:x,y:y,z:p.z,h:h,sx:sp.x,sy:sp.y,solid:true,type:t});}return JSON.stringify({solid:false});})()'));
   ok(wall.solid && wall.h === 1, 'rock beside the player stands a full layer tall (' + JSON.stringify(wall) + ')');
   await tap(wall.sx, wall.sy);
-  ok(await waitFor('MTE_GAME.core.richness(MTE_GAME.getState().world,' + wall.x + ',' + wall.y + ',' + wall.z + ') === 0', 1500), 'tapping the top of a wall, tilted, digs that wall');
+  var dugWall = await waitFor('MTE_GAME.core.richness(MTE_GAME.getState().world,' + wall.x + ',' + wall.y + ',' + wall.z + ') === 0', 1500);
+  ok(dugWall, 'tapping the top of a wall, tilted, digs that wall' + (dugWall ? '' : ' — tap picked ' +
+    await evalJS('JSON.stringify({pick:MTE_GAME.unproject(' + wall.sx + ',' + wall.sy + '),player:MTE_GAME.getState().player,tilt:MTE_GAME.tilt()})')));
   console.log('  screenshot: ' + await shot('07-tilted-mine.png'));
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   ok(await waitFor('MTE_GAME.getState().player.z === 0', 2000), 'back up on the surface');

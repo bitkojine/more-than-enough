@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.23.0] - 2026-10-13
+
+### Changed
+- The known world is a plateau over the dark: unexplored tiles on every
+  layer are empty darkness instead of flat fog or solid-looking rock.
+  Explored ground with darkness in front of it drops as a cliff showing the
+  layers beneath, fading out `CLIFF_LAYERS` down; the cliff shows what
+  you've found (seen rock lit, visited layers dim, the rest dark bands, holes
+  as bright gaps). Edges facing away catch a pale lip. Exploring covers old
+  cliffs with new ground.
+- The view always leans a little (`MIN_TILT`), so edges always read as
+  cliffs; the tilt button swings between that and full tilt.
+- Removed the cutaway slice in front of the player; cliffs replace it.
+- Unexplored tiles read as flat for picking on every layer.
+
 ## [0.22.0] - 2026-10-13
 
 ### Added

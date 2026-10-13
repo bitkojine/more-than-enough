@@ -72,11 +72,10 @@ export function walkable(w, x, y, z) {
   return !!TILE_INFO[tileAt(w, x, y, z)].walk;
 }
 
-// How far the tile's top stands above its layer's floor, in layers. Unexplored
-// tiles never give away their shape: the surface reads as flat ground and
-// underground as solid rock.
+// How far the tile's top stands above its layer's floor, in layers.
+// Unexplored tiles never give away their shape: they read as flat.
 export function tileHeight(w, x, y, z) {
-  if (!isExplored(w, x, y, z)) return z === SURFACE ? 0 : 1;
+  if (!isExplored(w, x, y, z)) return 0;
   const info = TILE_INFO[tileAt(w, x, y, z)];
   if (!info.rough) return info.height || 0;
   return info.height + (hash2(x, y, w.seed + ROUGH_SALT + z) - 0.5) * info.rough;
