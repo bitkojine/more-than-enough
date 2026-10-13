@@ -291,6 +291,12 @@ async function main() {
     '(function f(){n++;if(performance.now()-w0<1000)requestAnimationFrame(f);else done(JSON.stringify({fps:n,sim:MTE_GAME.getState().time-t0}));})();})'));
   ok(pace.fps >= 20 && pace.sim >= 0.8, 'the game runs in real time (' + pace.fps + ' fps, ' + pace.sim.toFixed(2) + 's of game time per second)' +
     (pace.fps < 20 ? ' — FRAMES ARE STARVED: close other headless browsers or heavy apps; timing checks below will fail' : ''));
+  // Branding: a favicon, a home-screen icon and a manifest, all of which load.
+  var icons = JSON.parse(await evalJS('(async function(){var links=[...document.querySelectorAll("link[rel~=icon],link[rel=apple-touch-icon]")].map(function(l){return l.href;});' +
+    'var m=await fetch(document.querySelector("link[rel=manifest]").href).then(function(r){return r.json();});' +
+    'var all=links.concat(m.icons.map(function(i){return new URL(i.src,document.querySelector("link[rel=manifest]").href).href;}));' +
+    'var bad=[];for(var u of all){var r=await fetch(u);if(!r.ok)bad.push(u);}return JSON.stringify({n:all.length,bad:bad,name:m.name,maskable:m.icons.some(function(i){return i.purpose==="maskable";})});})()'));
+  ok(icons.n >= 6 && icons.bad.length === 0 && icons.name === 'More Than Enough' && icons.maskable, 'favicon, home-screen icon and manifest icons all load (' + JSON.stringify(icons) + ')');
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');

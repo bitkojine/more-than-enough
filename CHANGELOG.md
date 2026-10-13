@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.34.1] - 2026-10-13
+
+### Added
+- **An icon.** A stacked log pile topped with a crystal, in lantern light:
+  the favicon (SVG, with a PNG fallback) for the game and the wiki, the
+  home-screen icon on iPhone, and a web app manifest with regular and
+  maskable icons, so the game can be added to a home screen and opens full
+  screen as "Enough". `scripts/icons.sh` renders the PNGs from the SVGs.
+
 ## [0.34.0] - 2026-10-13
 
 ### Added

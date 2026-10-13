@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c3a26"/><stop offset="1" stop-color="#0b1610"/></linearGradient>
+  <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd166" stop-opacity=".55"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<circle cx="256" cy="268" r="200" fill="url(#glow)"/>
+<g stroke="#1d1712" stroke-width="12" stroke-linejoin="round">
+  <!-- three logs below, two above: ends facing you -->
+  <g fill="#c98f52">
+    <circle cx="146" cy="352" r="56"/><circle cx="256" cy="352" r="56"/><circle cx="366" cy="352" r="56"/>
+    <circle cx="201" cy="258" r="56"/><circle cx="311" cy="258" r="56"/>
+  </g>
+</g>
+<g fill="none" stroke="#8a5a30" stroke-width="7">
+  <circle cx="146" cy="352" r="30"/><circle cx="256" cy="352" r="30"/><circle cx="366" cy="352" r="30"/>
+  <circle cx="201" cy="258" r="30"/><circle cx="311" cy="258" r="30"/>
+</g>
+<g fill="#8a5a30"><circle cx="146" cy="352" r="9"/><circle cx="256" cy="352" r="9"/><circle cx="366" cy="352" r="9"/><circle cx="201" cy="258" r="9"/><circle cx="311" cy="258" r="9"/></g>
+<!-- a crystal on top: more than enough -->
+<path d="M256 70l44 70-44 66-44-66z" fill="#7fe8ff" stroke="#1d1712" stroke-width="12" stroke-linejoin="round"/>
+<path d="M256 70l44 70-44 66z" fill="#4fc3e8"/>
+<path d="M256 70l-20 70 20 66" fill="none" stroke="#d8fbff" stroke-width="6" stroke-linecap="round"/>
+<path d="M256 70l44 70-44 66-44-66z" fill="none" stroke="#1d1712" stroke-width="12" stroke-linejoin="round"/>
+</svg>

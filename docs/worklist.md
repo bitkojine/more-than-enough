@@ -75,7 +75,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 ## UI
 
-- [ ] **Favicon and app icon.** A favicon, a home-screen app icon, a web app
+- [x] **Favicon and app icon.** (0.34.1) A favicon, a home-screen app icon, a web app
       manifest: the game's branding wherever it shows up.
 
 - [ ] **Explain the trail.** Explain and visualise how dragging from Gather to

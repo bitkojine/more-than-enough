@@ -143,6 +143,14 @@ stops before opening Chrome.
 The browser test launches its own local server and headless Chrome and cleans up
 after itself.
 
+## Icons
+
+`icons/icon.svg` is the favicon and the app icon; `icons/icon-full.svg` is the
+same art edge to edge for iOS and Android, which crop icons to their own
+shape. `sh scripts/icons.sh` renders the PNGs from them (needs `rsvg-convert`).
+`manifest.webmanifest` lets the game be added to a home screen and open
+full screen.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). Fork it, change it, ship your own version.
