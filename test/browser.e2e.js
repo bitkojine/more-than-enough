@@ -346,6 +346,7 @@ async function main() {
   ok(await evalJS('MTE_GAME.core.holeBelow(MTE_GAME.getState().world,' + entry.x + ',' + entry.y + ',0)'), 'going down leaves a hole in the forest floor');
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.isExplored(s.world,' + (entry.x + 1) + ',' + entry.y + ',-1)&&!c.isExplored(s.world,' + (entry.x + 8) + ',' + entry.y + ',-1);})()', 1000), 'underground, only the rock close by is revealed');
   eq(await evalJS('document.getElementById("depth").hidden ? "" : document.getElementById("depth").textContent'), '\u25BC 1', 'the depth marker shows layer 1');
+  eq(await evalJS('[].map.call(document.querySelectorAll("#depthGauge i"),function(i){return i.className||"-";}).join(" ")'), 'surface here deeper', 'the depth gauge shows the forest, you a layer under it, and deeper still');
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB UP', 'under the hole you came down, the layer button climbs up');
   await sleep(120); // let the camera settle on the new layer
   var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');

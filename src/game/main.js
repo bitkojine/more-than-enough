@@ -16,6 +16,7 @@ import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
+import { createDescent } from './render/descent.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 
@@ -39,6 +40,7 @@ try {
 look.use(defaultPack);
 
 const cam = createCamera(el.canvas);
+const descent = createDescent(el.canvas);
 cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 audio.wakeOn(el.canvas);
@@ -220,6 +222,7 @@ function view() {
 }
 
 let last = 0;
+let shownState = null, shownZ = 0; // the world and layer the last frame showed
 function frame(now) {
   const intervalMs = last ? now - last : 0;
   const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
@@ -230,7 +233,12 @@ function frame(now) {
     cam.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
+    // Changed layers in this world since the last frame: show the trip.
+    const z = game.state.player.z;
+    if (game.state === shownState && z !== shownZ) descent.start(shownZ, z);
+    shownState = game.state; shownZ = z;
     const stats = render(cam, game.state, fx, view(), look);
+    descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
     perf.tick(dt);
   } catch (err) {

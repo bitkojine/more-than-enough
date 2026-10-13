@@ -7,6 +7,7 @@ import { fmt, fmt1 } from './format.js';
 
 const TOAST_SECONDS = 2.4;
 const MILESTONE_SECONDS = 3.5;
+const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
 const LAYER_BUTTON = {
@@ -40,6 +41,29 @@ export function createHud(el, look) {
     el.milestone.style.animation = '';
   }
   let lastAction = '';
+
+  // The depth gauge: one bar per layer from the forest down to the deepest
+  // you've been, plus one for deeper still; at most GAUGE_BARS, kept around you.
+  let lastGauge = '';
+  function updateGauge(s) {
+    const deepest = s.underground.deepest, z = s.player.z;
+    const key = deepest < Core.SURFACE ? deepest + ',' + z : '';
+    if (key === lastGauge) return;
+    lastGauge = key;
+    el.depthGauge.hidden = !key;
+    if (!key) return;
+    let top = Core.SURFACE, bottom = Math.max(Core.Z_MIN, deepest - 1);
+    if (top - bottom + 1 > GAUGE_BARS) {
+      top = Math.min(Core.SURFACE, z + (GAUGE_BARS >> 1));
+      bottom = top - GAUGE_BARS + 1;
+    }
+    let html = '';
+    for (let k = top; k >= bottom; k--) {
+      const cls = k === z ? 'here' : k === Core.SURFACE ? 'surface' : k < deepest ? 'deeper' : '';
+      html += cls ? `<i class="${cls}"></i>` : '<i></i>';
+    }
+    el.depthGauge.innerHTML = html;
+  }
 
   for (const r of Core.RESOURCES) {
     const chip = document.createElement('div');
@@ -77,6 +101,7 @@ export function createHud(el, look) {
       const below = Core.isUnderground(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
+      updateGauge(s);
     },
 
     // The big button shows what holding it will do right now.

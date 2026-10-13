@@ -143,6 +143,24 @@ canvas#game {
 }
 #depth[hidden] { display: none; }
 
+/* The layers as a column down the left edge: the forest on top, every layer
+   you've been down to, a dashed one for deeper still, and you lit. Going down
+   moves the light down, so the mine reads as a stack, not rooms. */
+#depthGauge {
+  position: fixed; left: calc(env(safe-area-inset-left, 0px) + 8px);
+  top: calc(env(safe-area-inset-top, 0px) + 150px);
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 4px; border-radius: 7px;
+  background: rgba(10, 14, 12, 0.55);
+  border: 1px solid rgba(225, 181, 105, 0.25);
+  pointer-events: none;
+}
+#depthGauge[hidden] { display: none; }
+#depthGauge i { display: block; width: 14px; height: 9px; border-radius: 2px; background: #5e4a36; }
+#depthGauge i.surface { background: #56803a; }
+#depthGauge i.deeper { background: none; border: 1px dashed rgba(236, 211, 164, 0.35); }
+#depthGauge i.here { background: #ffd28a; box-shadow: 0 0 6px rgba(255, 210, 138, 0.8); }
+
 /* -------------------------------------------------------------- buttons */
 
 #controls { position: absolute; inset: 0; pointer-events: none; z-index: 12; }

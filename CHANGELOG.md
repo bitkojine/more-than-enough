@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.37.0] - 2026-10-13
+
+### Added
+- **You see yourself go deeper.** Going between layers used to cut straight
+  to the new one, like walking into another room. Now the layer you left
+  slides away, the rock you pass goes by (one slab per layer, with the shaft
+  and its ladder down the middle) and the new layer slides in: up past you
+  going down, down past you climbing up.
+- **A depth gauge.** Once you've been down, a column on the left edge shows
+  the layers as a stack: the forest on top, every layer you've reached, a
+  dashed one for deeper still, and yours lit.
 ## [0.36.7] - 2026-10-13
 
 ### Changed
