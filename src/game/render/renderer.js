@@ -11,10 +11,11 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain } from './terrain.js';
-import { drawExtractor, drawDigging, drawPlayer, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
+const TORCH_LIGHT = 3.5;   // how far a torch lights, in tiles
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
@@ -31,11 +32,23 @@ export function render(cam, s, fx, view, look) {
     if (row) row.push(e); else byRow.set(e.y, [e]);
   }
   const playerRow = Math.floor(s.player.y);
+  // Torches on this layer, by row, and as lights.
+  const torchRows = new Map();
+  const lights = [];
+  for (const k of s.world.torches) {
+    const t = Core.unpackKey(k);
+    if (t.z !== cam.z) continue;
+    const row = torchRows.get(t.y);
+    if (row) row.push(t.x); else torchRows.set(t.y, [t.x]);
+    lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: TORCH_LIGHT, color: look.color('mark.torch') });
+  }
 
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
+    const torches = torchRows.get(y);
+    if (torches) for (const x of torches) drawTorch(ctx, cam, s, look, x, y);
     if (y === playerRow) { drawDigging(ctx, cam, s, look); drawPlayer(ctx, cam, s, look, view); }
   });
   // Tilted, a wall in front can hide the player: show them faintly through it.
@@ -48,7 +61,7 @@ export function render(cam, s, fx, view, look) {
   drawParticles(ctx, cam, fx);
   drawFloats(ctx, cam, look, fx);
   drawFlyers(ctx, cam, look, fx);
-  drawLighting(ctx, cam, s);
+  drawLighting(ctx, cam, s, look, lights);
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

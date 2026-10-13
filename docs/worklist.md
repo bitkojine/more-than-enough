@@ -56,11 +56,11 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **No holes in water.** (0.32.1) Never dig down or up where there's water.
 - [x] **Digging takes work.** (0.33.0) Making a hole should take more steps, at least
       time, so holes aren't everywhere.
-- [ ] **Dark tunnels.** Tunnels are always dark unless you light them.
+- [x] **Dark tunnels.** (0.34.0) Tunnels are always dark unless you light them.
 
 ## The world and its look
 
-- [ ] **The lantern only when needed.** The wanderer holds the lantern only at
+- [x] **The lantern only when needed.** (0.34.0) The wanderer holds the lantern only at
       night or underground.
 - [ ] **No decoration you can't collect.** Mushrooms, grass blades, flowers:
       everything shown must be collectible, or not shown at all.
@@ -74,6 +74,9 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       36 decans). Tie them to the day/night cycle.
 
 ## UI
+
+- [ ] **Favicon and app icon.** A favicon, a home-screen app icon, a web app
+      manifest: the game's branding wherever it shows up.
 
 - [ ] **Explain the trail.** Explain and visualise how dragging from Gather to
       draw a trail on the map works now.

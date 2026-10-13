@@ -338,3 +338,21 @@ test('a new hole takes work; an old one is a way straight through', () => {
   fast.tools.pickaxe = 6;
   assert.ok(C.holeTime(fast) < C.holeTime(t) / 2);
 });
+
+test('torches: placed underground on open floor, one per tile, paid in wood, and saved', () => {
+  const s = C.createState(31415);
+  assert.equal(C.canPlaceTorch(s), false, 'not on the surface');
+  assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
+  C.goDown(s);
+  assert.equal(C.needsLantern(s), true, 'the lantern comes out underground');
+  assert.equal(C.placeTorch(s).ok, false, 'needs wood');
+  s.inv.wood = 10;
+  assert.equal(C.placeTorch(s).ok, true);
+  assert.equal(s.inv.wood, 10 - C.TORCH_COST.wood);
+  assert.equal(C.canPlaceTorch(s), false, 'one per tile');
+  const back = C.deserialize(C.serialize(s));
+  assert.deepEqual([...back.world.torches], [...s.world.torches], 'torches are saved');
+  const night = C.createState(1);
+  night.time = C.DAY_LENGTH / 2;
+  assert.equal(C.needsLantern(night), true, 'and at night');
+});

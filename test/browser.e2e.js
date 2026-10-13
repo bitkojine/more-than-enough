@@ -356,6 +356,12 @@ async function main() {
     await touch('touchEnd', []);
     ok(drilled, 'holding the stick against a wall drills through it');
   }
+  // Torches: the Build sheet places one where you stand, for wood.
+  await evalJS('MTE_GAME.addRes("wood", 10); document.getElementById("btnBuild").click()');
+  ok(await waitFor('!!document.querySelector("#sheetBody button[data-kind=torch]:not([disabled])")', 1500), 'underground, the Build sheet offers a torch');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=torch]").click()');
+  eq(await evalJS('MTE_GAME.getState().world.torches.size'), 1, 'placing a torch leaves it in the tunnel');
+  await evalJS('document.getElementById("btnClose").click()');
   var shaftSpot = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,40,function(x,y){return c.tileAt(s.world,x,y,-1)===c.T.SHAFT;});c.setRichness(s.world,t.x+1,t.y,-1,0);MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);return JSON.stringify({x:t.x,y:t.y,sx:innerWidth/2-MTE_GAME.tilePx(),sy:innerHeight/2});})()'));
   await sleep(120);
   var shaftOpen = '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + shaftSpot.x + ',' + shaftSpot.y + ',-1)===c.T.SHAFT_OPEN;})()';

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.34.0] - 2026-10-13
+
+### Added
+- **Dark tunnels.** Underground it's always dark, at any time of day, except
+  for your lantern's pool, light falling through holes in the ceiling (from
+  the forest, it fades at night) and torches.
+- **Torches.** Place one where you stand in a tunnel from the Build sheet's
+  new Light section (3 wood). It lights the tunnel around it for good and is
+  saved with the world. Texture packs draw it as `mark.torch` (picture and
+  light colour).
+- **The lantern only when it's needed.** The wanderer carries the lantern at
+  night and underground, and puts it away by day. It's its own picture now
+  (`character.lantern`, with a light colour), drawn over the wanderer.
+
+### Changed
+- Light and dark are drawn as one low-resolution mask with every light cut
+  out of it, so any number of lights cost about the same.
+
 ## [0.33.0] - 2026-10-13
 
 ### Changed

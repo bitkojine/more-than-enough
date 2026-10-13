@@ -191,6 +191,15 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       checkGoals();
     },
 
+    placeTorch() {
+      const s = state();
+      const res = Core.placeTorch(s);
+      if (!res.ok) return;
+      fx.built(res.x, res.y);
+      audio.build();
+      changed();
+    },
+
     place(key) {
       const s = state();
       const res = Core.place(s, key);

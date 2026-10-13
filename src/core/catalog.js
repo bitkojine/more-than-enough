@@ -37,8 +37,8 @@ export const LOOK_GROUPS = [
   { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
-  { id: 'character', name: 'The wanderer', blurb: 'You, and your boat.' },
-  { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers and the light through them.' },
+  { id: 'character', name: 'The wanderer', blurb: 'You, your lantern and your boat.' },
+  { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers, the light through them, and torches.' },
   { id: 'ui', name: 'Buttons', blurb: 'The thumb buttons and the sheet.' },
   { id: 'tool', name: 'Tools', blurb: 'Upgrades you craft.' },
   { id: 'refinery', name: 'Refineries', blurb: 'Upgrades that multiply one resource.' },
@@ -97,10 +97,12 @@ for (const key of Object.keys(EXTRACTORS)) {
 }
 
 add('character', 'wanderer', 'Wanderer', 'You. Drawn facing right and mirrored to walk left. As an animation, the first frame is standing still and the rest loop while you walk.', req('image'));
+add('character', 'lantern', 'Lantern', 'Carried at night and underground, drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. It is what lights the way; the colour is its light.', req('image', 'color'));
 add('character', 'boat', 'Boat', 'Carries you over water. Drawn facing right; you stand on it 30% of its height up from the bottom.', req('image'));
 
 add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below. The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
+add('mark', 'torch', 'Torch', 'A torch you placed in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
 
 const UI = {
   build: ['Build', 'Opens the Build sheet.'],

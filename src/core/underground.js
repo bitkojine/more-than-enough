@@ -9,11 +9,13 @@
  * Pickaxe). A hole that's already there is a way straight through.
  * goDown()/goUp() are the moment of breaking through. */
 
-import { SURFACE, Z_MIN, tileDist2 } from './coords.js';
+import { SURFACE, Z_MIN, tileDist2, packKey } from './coords.js';
 import { TILE_INFO, T } from './tiles.js';
 import { tileAt, setRichness, holeBelow, digHole } from './world.js';
-import { REACH } from './content.js';
+import { REACH, TORCH_COST } from './content.js';
 import { extractorAt } from './actions.js';
+import { daylight } from './sim.js';
+import { canAfford, pay } from './economy.js';
 
 export function isUnderground(s) {
   return s.player.z < SURFACE;
@@ -152,4 +154,29 @@ export function digOn(s, dt) {
 // How far the hole being dug is, 0..1 (0 when not digging).
 export function digProgress(s) {
   return s.digging ? Math.min(1, s.digging.t / holeTime(s)) : 0;
+}
+
+/* ----------------------------------------------------------------- light */
+
+// Underground is dark; so is the forest at night. The wanderer only carries
+// the lantern then (and it is what lights the way).
+export function needsLantern(s) {
+  return isUnderground(s) || daylight(s.time) < 0.6;
+}
+
+// A torch lights the tunnel around it for good. One per tile, on open tunnel
+// floor where you stand.
+export function canPlaceTorch(s) {
+  if (!isUnderground(s)) return false;
+  const { x, y } = feet(s);
+  return !s.world.torches.has(packKey(x, y, s.player.z)) && !!TILE_INFO[tileAt(s.world, x, y, s.player.z)].walk;
+}
+
+/** @returns {{ok: true, x: number, y: number} | {ok: false}} */
+export function placeTorch(s) {
+  if (!canPlaceTorch(s) || !canAfford(s.inv, TORCH_COST)) return { ok: false };
+  pay(s.inv, TORCH_COST);
+  const { x, y } = feet(s);
+  s.world.torches.add(packKey(x, y, s.player.z));
+  return { ok: true, x, y };
 }

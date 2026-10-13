@@ -72,17 +72,30 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const walk = look.frames('character.wanderer', 'image');
   const frame = view.moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
   const body = walk.pics[frame];
+  // The lantern only comes out when it's needed: at night and underground.
+  const lantern = Core.needsLantern(s) ? look.pick('character.lantern', 'image') : null;
+  const figure = (fy, size) => {
+    look.stand(ctx, body, sx, fy, size, flip);
+    if (lantern) look.stand(ctx, lantern, sx, fy, size * body.units / lantern.units, flip);
+  };
   if (Core.onWater(s)) {
     const bob = Math.sin(s.time * 2.6 + p.x * 7.3) * u * 0.04;
     const boat = look.pick('character.boat', 'image');
     shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
     const bh = look.stand(ctx, boat, sx, sy + bob, u, flip);
-    look.stand(ctx, body, sx, sy + bob - bh * BOAT_DECK, u * IN_BOAT, flip);
+    figure(sy + bob - bh * BOAT_DECK, u * IN_BOAT);
     return;
   }
   shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = view.moving ? Math.abs(Math.sin(s.time * 12)) * u * 0.03 : 0;
-  look.stand(ctx, body, sx, sy - step, u, flip);
+  figure(sy - step, u);
+}
+
+// A torch standing in a tunnel.
+export function drawTorch(ctx, cam, s, look, x, y) {
+  const u = cam.tilePx;
+  const at = cam.project(x + 0.5, y + FOOT, groundAt(cam, s, x, y));
+  look.stand(ctx, look.pick('mark.torch', 'image', x, y, s.time), at.x, at.y, u);
 }
 
 export function drawParticles(ctx, cam, fx) {

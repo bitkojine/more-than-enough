@@ -26,6 +26,7 @@ export const EXTRACTOR_GROWTH = 1.65; // each extra extractor of a kind costs th
 // much gathered in the world.
 export const EMBARK_MIN_TOTAL = 1000000;
 export const EMBARK_ABUNDANCE = 5;
+export const TORCH_COST = { wood: 3 };     // a torch for the tunnels
 
 /* -------------------------------------------------------------- tools */
 

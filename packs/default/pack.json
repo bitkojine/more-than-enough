@@ -162,6 +162,10 @@
     "fps": 8
    }
   },
+  "character.lantern": {
+   "image": "characters/lantern.svg",
+   "color": "#ffd28a"
+  },
   "character.boat": {
    "image": "characters/boat.svg"
   },
@@ -171,6 +175,10 @@
   },
   "mark.skylight": {
    "color": "#ffe9b8"
+  },
+  "mark.torch": {
+   "image": "props/torch.svg",
+   "color": "#ffb455"
   },
   "ui.build": {
    "icon": "icons/build.svg"

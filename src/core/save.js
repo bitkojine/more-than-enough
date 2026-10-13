@@ -27,6 +27,7 @@ export function serialize(s) {
     mods: [...s.world.mods],
     explored: [...s.world.explored].map(([k, mask]) => [k, bytesToB64(mask)]),
     holes: [...s.world.holes],
+    torches: [...s.world.torches],
     player: { x: +s.player.x.toFixed(3), y: +s.player.y.toFixed(3), z: s.player.z },
     inv: s.inv, tools: s.tools, unlocks: s.unlocks, resUp: s.resUp,
     abundanceLv: s.abundanceLv, insight: s.insight, prestiges: s.prestiges, totalEver: s.totalEver,
@@ -67,6 +68,7 @@ export function deserialize(str) {
   }
   const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
   w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
+  w.torches = new Set((d.torches || []).filter((k) => isInt(k) && unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };

@@ -2,6 +2,7 @@
  * and night lighting, and the joystick. */
 
 import * as Core from '../../core/index.js';
+import { rgba } from './palette.js';
 
 const TAU = Math.PI * 2;
 
@@ -83,46 +84,91 @@ export function drawTrail(ctx, cam, s, view) {
   ctx.restore();
 }
 
-/* Night lighting tuning: how tight the flashlight pool is around the player
- * and how quickly darkness closes in beyond it. */
-const FLASHLIGHT_RADIUS = 3.0;   // bright pool radius, in tiles
-const FLASHLIGHT_FALLOFF = 0.14; // 0 = hard edge ... 1 = falloff spreads to screen
-const NIGHT_DARK_MID = 0.5;      // darkness where the falloff begins
-const NIGHT_DARK_EDGE = 0.9;     // darkness at the screen edges
+/* Light and dark. Underground it is always dark; on the surface it gets dark
+ * at night. What lights the dark: the wanderer's lantern (carried only then),
+ * torches you placed, and daylight falling through holes in the ceiling. The
+ * dark is drawn as one mask at low resolution with every light cut out of it,
+ * then each light adds a warm tint of its own colour. */
+const LANTERN_LIGHT = 3.0;      // how far the lantern lights, in tiles
+const SKYLIGHT_LIGHT = 2.0;     // how far light falling through a hole spreads
+const UNDERGROUND_DARK = 0.94;  // how dark the mine is away from any light
+const NIGHT_DARK = 0.9;         // how dark the forest gets at midnight
+const MASK_SCALE = 0.25;        // the dark mask's resolution against the screen
+const TINT = 0.12;              // how warm a light's pool is
 
-// By day a gentle warm lift; after dusk the scene fades to dark except for a
-// flashlight pool around the player, so you can always keep working.
-export function drawLighting(ctx, cam, s) {
+let mask = null;
+
+/**
+ * @param {Array<{x: number, y: number, r: number, color: string, strength?: number}>} lights
+ *   lights on this layer besides the lantern and skylights (torches), in tiles
+ */
+export function drawLighting(ctx, cam, s, look, lights) {
   const { width: W, height: H } = cam;
   const dl = Core.daylight(s.time);
-  const glow = Math.max(0, (dl - 0.25) / 0.75) * 0.16;
-  if (glow > 0.001) {
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = `rgba(255,236,205,${glow.toFixed(3)})`;
-    ctx.fillRect(0, 0, W, H);
-    ctx.globalCompositeOperation = 'source-over';
+  const under = cam.z < Core.SURFACE;
+  if (!under) {
+    // By day a gentle warm lift.
+    const glow = Math.max(0, (dl - 0.25) / 0.75) * 0.16;
+    if (glow > 0.001) {
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = `rgba(255,236,205,${glow.toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
   }
-  if (dl >= 0.6) return;
-  const night = (0.6 - dl) / 0.6; // 0 = dusk ... 1 = midnight
-  const { x: px, y: py } = cam.project(s.player.x, s.player.y);
-  const pool = Math.max(W, H) * 0.8;
-  // Keep the pool usable when zoomed far out, where tilePx * radius is tiny.
-  const lit = Math.min(pool, Math.max(cam.tilePx * FLASHLIGHT_RADIUS, Math.min(W, H) * 0.28));
-  const mid = lit + (pool - lit) * FLASHLIGHT_FALLOFF;
-  const dark = ctx.createRadialGradient(px, py, 0, px, py, pool);
-  dark.addColorStop(0, 'rgba(4,8,16,0)');
-  dark.addColorStop(Math.min(1, lit / pool), 'rgba(4,8,16,0)');
-  dark.addColorStop(Math.min(1, mid / pool), `rgba(4,8,16,${(night * NIGHT_DARK_MID).toFixed(3)})`);
-  dark.addColorStop(1, `rgba(4,8,16,${(night * NIGHT_DARK_EDGE).toFixed(3)})`);
-  ctx.fillStyle = dark;
-  ctx.fillRect(0, 0, W, H);
-  // A warm tint so the pool reads as lamplight, not just a hole.
+  const dark = under ? UNDERGROUND_DARK : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
+  if (dark < 0.01) return;
+
+  const all = lights.slice();
+  if (Core.needsLantern(s)) {
+    // Kept usable when zoomed far out, where tiles are tiny.
+    all.push({ x: s.player.x, y: s.player.y, r: LANTERN_LIGHT, color: look.color('character.lantern'), min: Math.min(W, H) * 0.28 });
+  }
+  if (under) {
+    const sky = look.color('mark.skylight');
+    const strength = cam.z + 1 === Core.SURFACE ? 0.35 + 0.65 * dl : 0.4;
+    for (const k of s.world.holes) {
+      const t = Core.unpackKey(k);
+      if (t.z === cam.z + 1) all.push({ x: t.x + 0.5, y: t.y + 0.5, r: SKYLIGHT_LIGHT, color: sky, strength });
+    }
+  }
+
+  const mw = Math.max(1, Math.ceil(W * MASK_SCALE)), mh = Math.max(1, Math.ceil(H * MASK_SCALE));
+  if (!mask) mask = document.createElement('canvas');
+  if (mask.width !== mw || mask.height !== mh) { mask.width = mw; mask.height = mh; }
+  const m = mask.getContext('2d');
+  m.globalCompositeOperation = 'source-over';
+  m.clearRect(0, 0, mw, mh);
+  m.fillStyle = `rgba(4,8,16,${dark.toFixed(3)})`;
+  m.fillRect(0, 0, mw, mh);
+  m.globalCompositeOperation = 'destination-out';
+  const pools = [];
+  for (const l of all) {
+    const p = cam.project(l.x, l.y);
+    const r = Math.max(l.r * cam.tilePx, l.min || 0);
+    if (p.x < -r || p.y < -r || p.x > W + r || p.y > H + r) continue;
+    pools.push({ ...l, sx: p.x, sy: p.y, pr: r });
+    const cx = p.x * MASK_SCALE, cy = p.y * MASK_SCALE, mr = r * MASK_SCALE;
+    const a = l.strength === undefined ? 1 : l.strength;
+    const g = m.createRadialGradient(cx, cy, 0, cx, cy, mr);
+    g.addColorStop(0, `rgba(0,0,0,${a})`);
+    g.addColorStop(0.5, `rgba(0,0,0,${a})`);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    m.fillStyle = g;
+    m.fillRect(cx - mr, cy - mr, mr * 2, mr * 2);
+  }
+  m.globalCompositeOperation = 'source-over';
+  ctx.drawImage(mask, 0, 0, W, H);
+
+  // Warm pools, so light reads as light, not just a gap in the dark.
   ctx.globalCompositeOperation = 'lighter';
-  const warm = ctx.createRadialGradient(px, py, 0, px, py, lit);
-  warm.addColorStop(0, `rgba(255,214,150,${(night * 0.11).toFixed(3)})`);
-  warm.addColorStop(1, 'rgba(255,214,150,0)');
-  ctx.fillStyle = warm;
-  ctx.fillRect(0, 0, W, H);
+  for (const l of pools) {
+    const g = ctx.createRadialGradient(l.sx, l.sy, 0, l.sx, l.sy, l.pr);
+    g.addColorStop(0, rgba(l.color, (TINT * dark).toFixed(3)));
+    g.addColorStop(1, rgba(l.color, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(l.sx - l.pr, l.sy - l.pr, l.pr * 2, l.pr * 2);
+  }
   ctx.globalCompositeOperation = 'source-over';
 }
 
