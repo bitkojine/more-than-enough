@@ -34,6 +34,17 @@ const STAND_MARGIN = 3;     // columns past each side of the screen whose standi
 const TAU = Math.PI * 2;
 const TILE_LOOK = Core.TILE_KEY.map((k, t) => Core.tileLook(t));
 
+// A tile's picture for `slot`. Forests come in kinds by region (see
+// Core.forestKind), each with its own trees and maybe its own ground; what a
+// kind leaves out comes from tile.forest.
+function pickFor(look, w, t, slot, x, y, time) {
+  if (t === Core.T.FOREST) {
+    const pic = look.pick(Core.forestLook(w.seed, x, y), slot, x, y, time);
+    if (pic) return pic;
+  }
+  return look.pick(TILE_LOOK[t], slot, x, y, time);
+}
+
 /* ---------------------------------------------------------------- holes */
 
 // A hole in the floor. Tilted, you see down its far wall, in the dark of the
@@ -122,7 +133,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
     ctx.fillRect(sx, sy + d, u + 1, Math.min(faceH, Math.max(1, u * 0.035)));
   }
 
-  const top = look.pick(id, 'top', x, y, s.time);
+  const top = pickFor(look, w, t, 'top', x, y, s.time);
   if (top) look.draw(ctx, top, sx, sy, u + 1, d + 1);
   else { ctx.fillStyle = color; ctx.fillRect(sx, sy, u + 1, d + 1); }
   ctx.fillStyle = `rgba(0,0,0,${(tv(x, y, 7) * VARIATION).toFixed(3)})`;
@@ -170,7 +181,7 @@ function drawStand(ctx, cam, s, look, ground, x, y, z) {
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
   const slot = Core.LOOK[id].slots.cut !== undefined && Core.richness(w, x, y, z) <= 0 ? 'cut' : 'stand';
-  const pic = look.pick(id, slot, x, y, s.time);
+  const pic = pickFor(look, w, t, slot, x, y, s.time);
   if (!pic) return;
   const u = cam.tilePx, d = cam.depthPx;
   const { sx, sy } = tileTop(cam, w, x, y, z);

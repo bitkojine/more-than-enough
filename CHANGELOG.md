@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.36.0] - 2026-10-13
+
+### Added
+- **Many kinds of forest.** Forests now differ by region: pinewood (pines and
+  spruce, on a dark needle floor) in cold country, birch groves in wet mild
+  country, oak woods with the odd apple tree in warm wet country, maple woods
+  in red and gold in warm dry country, and mixed wood where they meet. Each
+  mixes its own trees, so trees vary within a forest as well. New trees:
+  spruce, birch, oak, maple (red and gold); the old fruit tree is now the
+  apple tree. All forests still yield wood the same way.
+- Texture packs: each kind is its own thing (`forest.pinewood`,
+  `forest.birchwood`, `forest.oakwood`, `forest.maplewood`,
+  `forest.mixedwood`) with its trees (`stand`) and optionally its own ground
+  (`top`) and stumps (`cut`); anything left out comes from `tile.forest`.
+
 ## [0.35.1] - 2026-10-13
 
 ### Changed

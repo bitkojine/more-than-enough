@@ -27,6 +27,7 @@
 import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL } from './tiles.js';
 import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES } from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
+import { FOREST_KINDS, forestKind } from './terrain.js';
 
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
@@ -36,6 +37,7 @@ export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', '
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
   { id: 'tile', name: 'Ground', blurb: 'Every kind of tile, on the surface and in the mine.' },
+  { id: 'forest', name: 'Forests', blurb: 'Kinds of forest, by region: each grows its own mix of trees. They all yield wood alike.' },
   { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
@@ -86,6 +88,11 @@ const things = [];
 const add = (group, key, name, does, slots) => things.push({ id: `${group}.${key}`, group, key, name, does, slots });
 
 for (let t = 0; t < TILE_KEY.length; t++) add('tile', TILE_KEY[t], TILE_NAME[t], tileDoes(t), tileSlots(t));
+// A forest kind's trees (stand) and stumps (cut), and optionally its own
+// ground (top); anything it leaves out comes from tile.forest.
+for (const key of Object.keys(FOREST_KINDS)) {
+  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Yields wood like any forest.', { ...req('stand'), ...opt('top', 'cut') });
+}
 
 for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], `A resource. Counted at the top of the screen.`, req('icon', 'color'));
 add('resource', 'insight', 'Insight', 'Earned by embarking to a new world; spent on perks.', req('icon', 'color'));
@@ -143,3 +150,4 @@ export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));
 // The look id for a tile type and for a resource.
 export const tileLook = (t) => 'tile.' + TILE_KEY[t];
 export const resourceLook = (r) => 'resource.' + r;
+export const forestLook = (seed, x, y) => 'forest.' + forestKind(seed, x, y);

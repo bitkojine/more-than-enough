@@ -18,8 +18,26 @@
    "color": "#3a5a2c",
    "top": ["ground/forest-1.svg", "ground/forest-2.svg"],
    "face": "faces/turf.svg",
-   "stand": ["props/pine.svg", "props/pine.svg", "props/pines.svg", "props/oak.svg"],
    "cut": "props/stump.svg"
+  },
+  "forest.pinewood": {
+   "top": "ground/forest-pine.svg",
+   "stand": ["props/pine.svg", "props/pine.svg", "props/pine.svg", "props/pines.svg", "props/pines.svg", "props/spruce.svg", "props/spruce.svg"]
+  },
+  "forest.birchwood": {
+   "top": "ground/forest-birch.svg",
+   "stand": ["props/birch.svg", "props/birch.svg", "props/birch.svg", "props/birch.svg", "props/pine.svg"],
+   "cut": "props/birch-stump.svg"
+  },
+  "forest.oakwood": {
+   "stand": ["props/oak.svg", "props/oak.svg", "props/oak.svg", "props/apple.svg", "props/birch.svg"]
+  },
+  "forest.maplewood": {
+   "top": "ground/forest-maple.svg",
+   "stand": ["props/maple.svg", "props/maple.svg", "props/maple-gold.svg", "props/maple-gold.svg", "props/oak.svg"]
+  },
+  "forest.mixedwood": {
+   "stand": ["props/pine.svg", "props/spruce.svg", "props/birch.svg", "props/oak.svg", "props/apple.svg", "props/maple.svg", "props/pines.svg"]
   },
   "tile.stone": {
    "color": "#747a70",

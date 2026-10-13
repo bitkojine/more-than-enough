@@ -32,6 +32,26 @@ function surfaceType(seed, x, y) {
   return T.GRASS;
 }
 
+// Forests come in kinds, by region: what grows there changes how a forest
+// looks, never what it yields. Two slow noises stand for cold..warm and
+// dry..wet: cold land grows pinewood; warm land oak (wet) or maple (dry);
+// in between, birch where it's wet and mixed wood elsewhere.
+export const FOREST_KINDS = {
+  pinewood: { name: 'Pinewood', does: 'Cold country: pines and spruce, close and dark.' },
+  birchwood: { name: 'Birch grove', does: 'Wet, mild country: pale birches, a pine here and there.' },
+  oakwood: { name: 'Oak wood', does: 'Warm, wet country: broad oaks and the odd apple tree.' },
+  maplewood: { name: 'Maple wood', does: 'Warm, dry country: maples in autumn colours.' },
+  mixedwood: { name: 'Mixed wood', does: 'Where the others meet: a little of everything.' }
+};
+
+export function forestKind(seed, x, y) {
+  const warm = fbm(x * 0.022, y * 0.022, seed + 61, 3);
+  const wet = fbm(x * 0.026 + 40, y * 0.026 - 17, seed + 67, 3);
+  if (warm < 0.43) return 'pinewood';
+  if (warm > 0.59) return wet > 0.5 ? 'oakwood' : 'maplewood';
+  return wet > 0.55 ? 'birchwood' : 'mixedwood';
+}
+
 // Starting richness for each surface deposit: base + random spread.
 export const DEPOSIT = [];
 DEPOSIT[T.FOREST] = { base: 5, spread: 9, salt: 101 };

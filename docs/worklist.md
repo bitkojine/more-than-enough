@@ -64,7 +64,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       night or underground.
 - [x] **No decoration you can't collect.** (0.34.2) Mushrooms, grass blades, flowers:
       everything shown must be collectible, or not shown at all.
-- [ ] **Many kinds of trees.** Different forests, and different trees within a
+- [x] **Many kinds of trees.** (0.36.0) Different forests, and different trees within a
       forest, like real nature. Not just biomes.
 - [x] **A boat to scale.** (0.35.1) The sail sits too low. Size the boat and all its
       parts against the wanderer.
