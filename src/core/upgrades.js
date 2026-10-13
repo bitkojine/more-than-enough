@@ -22,7 +22,7 @@ function define(u) {
 for (const id of Object.keys(TOOLS)) {
   const tool = TOOLS[id];
   define({
-    id, family: 'tools', kind: 'tool', name: tool.name, icon: tool.icon, desc: tool.desc,
+    id, family: 'tools', kind: 'tool', name: tool.name, look: 'tool.' + id, desc: tool.desc,
     max: tool.levels.length - 1,
     level: (s) => s.tools[id] - 1,
     cost: (s, lv) => tool.levels[lv + 1].cost,
@@ -33,7 +33,7 @@ for (const id of Object.keys(TOOLS)) {
 for (const res of RESOURCES) {
   const chain = REFINERIES[res];
   define({
-    id: res, family: 'refining', kind: 'resup', name: chain.name, icon: chain.icon,
+    id: res, family: 'refining', kind: 'resup', name: chain.name, look: 'refinery.' + res,
     max: chain.levels.length,
     level: (s) => s.resUp[res],
     cost: (s, lv) => chain.levels[lv].cost,
@@ -42,7 +42,7 @@ for (const res of RESOURCES) {
 }
 
 define({
-  id: 'abundance', family: 'abundance', kind: 'abundance', name: ABUNDANCE.name, icon: ABUNDANCE.icon, desc: ABUNDANCE.desc,
+  id: 'abundance', family: 'abundance', kind: 'abundance', name: ABUNDANCE.name, look: 'engine.abundance', desc: ABUNDANCE.desc,
   max: Infinity,
   level: (s) => s.abundanceLv,
   cost: (s) => abundanceCost(s),
@@ -52,7 +52,7 @@ define({
 for (const id of Object.keys(UNLOCKS)) {
   const u = UNLOCKS[id];
   define({
-    id, family: 'unlocks', kind: 'unlock', name: u.name, icon: u.icon, desc: u.desc,
+    id, family: 'unlocks', kind: 'unlock', name: u.name, look: 'unlock.' + id, desc: u.desc,
     max: 1,
     level: (s) => (s.unlocks[id] ? 1 : 0),
     cost: () => u.cost,
@@ -63,7 +63,7 @@ for (const id of Object.keys(UNLOCKS)) {
 for (const id of Object.keys(PERKS)) {
   const p = PERKS[id];
   define({
-    id, family: 'perks', kind: 'perk', name: p.name, icon: p.icon, desc: p.desc, currency: 'insight',
+    id, family: 'perks', kind: 'perk', name: p.name, look: 'perk.' + id, desc: p.desc, currency: 'insight',
     max: p.repeat ? Infinity : 1,
     level: (s) => s.perks[id],
     cost: (s, lv) => p.base + (p.repeat ? lv : 0),
@@ -76,12 +76,12 @@ export const UPGRADES = REGISTRY;
 // The progression map's families, in display order. `layer` separates what a
 // world keeps from what survives an Embark.
 export const PATH_FAMILIES = [
-  { id: 'tools', layer: 'world', name: 'Tools', icon: '\u{1F9F0}' },
-  { id: 'refining', layer: 'world', name: 'Refineries', icon: '⛏️' },
-  { id: 'abundance', layer: 'world', name: 'Abundance Engine', icon: '✨' },
-  { id: 'unlocks', layer: 'world', name: 'Unlocks & Blueprints', icon: '\u{1F4DC}' },
-  { id: 'perks', layer: 'legacy', name: 'Perks', icon: '\u{1F570}️' }
-].map((f) => ({ ...f, nodes: Object.keys(REGISTRY).filter((id) => REGISTRY[id].family === f.id) }));
+  { id: 'tools', layer: 'world', name: 'Tools' },
+  { id: 'refining', layer: 'world', name: 'Refineries' },
+  { id: 'abundance', layer: 'world', name: 'Abundance Engine' },
+  { id: 'unlocks', layer: 'world', name: 'Unlocks & Blueprints' },
+  { id: 'perks', layer: 'legacy', name: 'Perks' }
+].map((f) => ({ ...f, look: 'path.' + f.id, nodes: Object.keys(REGISTRY).filter((id) => REGISTRY[id].family === f.id) }));
 
 /* --------------------------------------------------------------- buying */
 
@@ -132,7 +132,7 @@ export function pathNode(s, id) {
   if (level >= u.max) state = 'owned';
   else if (ready) state = 'ready';
   else state = level > 0 ? 'partial' : 'saving';
-  return { key: id, kind: u.kind, name: u.name, icon: u.icon, level, max: u.max, canBuy: ready, cost: upgradeCost(s, id), state };
+  return { key: id, kind: u.kind, name: u.name, look: 'unlock.' + id, level, max: u.max, canBuy: ready, cost: upgradeCost(s, id), state };
 }
 
 export function pathFamily(familyId) {

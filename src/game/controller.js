@@ -4,21 +4,20 @@
 
 import * as Core from '../core/index.js';
 import { fmt } from './format.js';
-import { RES_COLOR } from './effects.js';
 import { clearSave, randomSeed } from './storage.js';
 
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
-export function createController({ game, cam, fx, audio, hud }) {
+export function createController({ game, cam, fx, audio, hud, look }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
 
   const state = () => game.state;
   const player = () => game.state.player;
-  const say = (text, color) => fx.text(player().x, player().y - 0.4, text, color);
+  const say = (text, color, icon) => fx.text(player().x, player().y - 0.4, text, color, icon);
   const toolLevel = (res) => state().tools[res === 'wood' ? 'axe' : 'pickaxe'];
 
   function changed() {
@@ -47,7 +46,7 @@ export function createController({ game, cam, fx, audio, hud }) {
     const got = Core.collect(state());
     if (!got) return false;
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
-    for (const r of Object.keys(got.gained)) say('+' + fmt(got.gained[r]) + ' ' + Core.RESOURCE_ICON[r], RES_COLOR[r]);
+    for (const r of Object.keys(got.gained)) say('+' + fmt(got.gained[r]), look.color(Core.resourceLook(r)), Core.resourceLook(r));
     audio.collect();
     changed();
     return true;
@@ -192,7 +191,7 @@ export function createController({ game, cam, fx, audio, hud }) {
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();
-      say('+' + res.gained + ' ✨', '#cbb0f0');
+      say('+' + res.gained, look.color('resource.insight'), 'resource.insight');
     },
 
     reset() {

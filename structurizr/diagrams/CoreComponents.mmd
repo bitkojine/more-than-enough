@@ -8,33 +8,37 @@ graph LR
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      subgraph 15 ["Simulation Core"]
-        style 15 fill:#ffffff,stroke:#2c5728,color:#2c5728
+      subgraph 17 ["Simulation Core"]
+        style 17 fill:#ffffff,stroke:#2c5728,color:#2c5728
 
-        16["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods), per-layer<br />fog and the holes between<br />layers live outside the<br />cache.</div>"]
-        style 16 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        17["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />state; serialize/deserialize<br />write and validate a JSON<br />save (format v5; other<br />versions are rejected).<br />state.events is transient and<br />never saved.</div>"]
-        style 17 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        18["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt): extractor<br />production, range-limited<br />logistics auto-collect on the<br />player's layer, the abundance<br />trickle, and hash-seeded<br />regrowth near the player.<br />Also movement, fog reveal and<br />the day/night curve.</div>"]
+        18["<div style='font-weight: bold'>Layered World</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Coordinates and key packing<br />(x, y, z), tile rules as data<br />(TILE_INFO), and chunked<br />terrain: the forest surface<br />at z = 0 from noise octaves,<br />solid geology below with one<br />shaft per chunk. Chunks are<br />generated lazily and<br />LRU-cached; player edits<br />(richness mods), per-layer<br />fog and the holes between<br />layers live outside the<br />cache.</div>"]
         style 18 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        19["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus travel between layers<br />through holes (dig down from<br />the forest, climb up through<br />the ceiling, drop through<br />holes and shafts). All work<br />on the player's own layer.</div>"]
+        19["<div style='font-weight: bold'>State and Saves</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>createState() builds the<br />state; serialize/deserialize<br />write and validate a JSON<br />save (format v5; other<br />versions are rejected).<br />state.events is transient and<br />never saved.</div>"]
         style 19 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
-        20["<div style='font-weight: bold'>Economy and Upgrades</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Content tables, costs and<br />multipliers, and one registry<br />of every purchase (tools,<br />refineries, the Abundance<br />Engine, unlocks, perks) that<br />buying, the progression map<br />and the sheet all share. Also<br />embark/prestige and the goal<br />track.</div>"]
+        20["<div style='font-weight: bold'>Simulation Step</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>step(s, dt): extractor<br />production, range-limited<br />logistics auto-collect on the<br />player's layer, the abundance<br />trickle, and hash-seeded<br />regrowth near the player.<br />Also movement, fog reveal and<br />the day/night curve.</div>"]
         style 20 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        21["<div style='font-weight: bold'>Actions</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Harvest (gather deposits on<br />the surface, dig rock<br />underground), Trail sweep<br />targets, collect, and build;<br />plus travel between layers<br />through holes (dig down from<br />the forest, climb up through<br />the ceiling, drop through<br />holes and shafts). All work<br />on the player's own layer.</div>"]
+        style 21 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        22["<div style='font-weight: bold'>Catalog</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Everything that exists in the<br />game, by the id a texture<br />pack knows it by: tiles,<br />resources, buildings, the<br />wanderer, marks, buttons,<br />upgrades, perks and colours,<br />each with what it does and<br />the slots a pack can fill.<br />Built from the other content<br />tables, so a new tile or<br />upgrade can't go<br />undocumented.</div>"]
+        style 22 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+        23["<div style='font-weight: bold'>Economy and Upgrades</div><div style='font-size: 70%; margin-top: 0px'>[Component: JavaScript]</div><div style='font-size: 80%; margin-top:10px'>Content tables, costs and<br />multipliers, and one registry<br />of every purchase (tools,<br />refineries, the Abundance<br />Engine, unlocks, perks) that<br />buying, the progression map<br />and the sheet all share. Also<br />embark/prestige and the goal<br />track.</div>"]
+        style 23 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       end
 
       4["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html, style.css,<br />src/game/). Owns the DOM, the<br />canvas, input, audio, HUD and<br />sheets, and localStorage.<br />Reads state from the<br />Simulation Core every frame<br />and changes it only through<br />the Core's exports.</div>"]
       style 4 fill:#b0761f,stroke:#7b5215,color:#ffffff
     end
 
-    4-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->18
-    4-. "<div>harvest, collect, place, go<br />down/up, descend</div><div style='font-size: 70%'></div>" .->19
-    4-. "<div>buy, embark</div><div style='font-size: 70%'></div>" .->20
-    4-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->16
-    4-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->17
-    18-. "<div>Regrows tiles; reveals fog</div><div style='font-size: 70%'></div>" .->16
-    19-. "<div>Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->16
-    19-. "<div>Yields and costs</div><div style='font-size: 70%'></div>" .->20
-    17-. "<div>Creates the world; saves its<br />edits</div><div style='font-size: 70%'></div>" .->16
+    4-. "<div>Calls step(state, dt) every<br />frame</div><div style='font-size: 70%'></div>" .->20
+    4-. "<div>harvest, collect, place, go<br />down/up, descend</div><div style='font-size: 70%'></div>" .->21
+    4-. "<div>buy, embark</div><div style='font-size: 70%'></div>" .->23
+    4-. "<div>Reads tiles of the camera's<br />layer</div><div style='font-size: 70%'></div>" .->18
+    4-. "<div>serialize/deserialize</div><div style='font-size: 70%'></div>" .->19
+    4-. "<div>Validates packs against</div><div style='font-size: 70%'></div>" .->22
+    22-. "<div>Lists what the content tables<br />define</div><div style='font-size: 70%'></div>" .->23
+    20-. "<div>Regrows tiles; reveals fog</div><div style='font-size: 70%'></div>" .->18
+    21-. "<div>Edits richness (gathering,<br />digging)</div><div style='font-size: 70%'></div>" .->18
+    21-. "<div>Yields and costs</div><div style='font-size: 70%'></div>" .->23
+    19-. "<div>Creates the world; saves its<br />edits</div><div style='font-size: 70%'></div>" .->18
 
   end

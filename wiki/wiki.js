@@ -4,9 +4,12 @@
 import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
+import { loadDefaultPack, pic, renderThings, wireDownload } from './textures.js';
 
-const { T } = Core;
-const icon = (res) => Core.RESOURCE_ICON[res];
+const { T, TILE_NAME } = Core;
+// Pictures come from the default texture pack.
+const icon = (res) => pic(Core.resourceLook(res));
+const tileName = (t) => pic(Core.tileLook(t), 'top') + ' ' + TILE_NAME[t];
 const num = (n) => (Number.isInteger(n) ? n.toLocaleString('en-US') : String(Math.round(n * 1000) / 1000));
 const pct = (f) => Math.round(f * 100) + '%';
 
@@ -21,13 +24,6 @@ function table(headers, rows, numeric = []) {
 }
 
 /* --------------------------------------------------------------- tiles */
-
-const TILE_NAME = {
-  [T.GRASS]: 'Grass', [T.FOREST]: 'Forest', [T.STONE]: 'Stone', [T.ORE]: 'Ore', [T.CRYSTAL]: 'Crystal',
-  [T.WATER]: 'Water', [T.ROCK]: 'Mountain', [T.TUNNEL]: 'Tunnel', [T.SOIL]: 'Soil',
-  [T.STONE_SEAM]: 'Stone seam', [T.ORE_SEAM]: 'Ore seam', [T.CRYSTAL_SEAM]: 'Crystal seam',
-  [T.FOSSIL]: 'Fossil', [T.BEDROCK]: 'Bedrock', [T.SHAFT]: 'Shaft', [T.SHAFT_OPEN]: 'Open shaft'
-};
 
 function tileNotes(t) {
   const info = Core.TILE_INFO[t];
@@ -54,44 +50,44 @@ const undergroundTiles = [T.SOIL, T.STONE_SEAM, T.ORE_SEAM, T.CRYSTAL_SEAM, T.FO
 const TABLES = {
   surface: () => table(['Tile', 'Richness', 'Notes'], surfaceTiles.map((t) => {
     const d = Core.DEPOSIT[t];
-    return [TILE_NAME[t], d ? `${d.base}–${d.base + d.spread}` : '—', tileNotes(t)];
+    return [tileName(t), d ? `${d.base}–${d.base + d.spread}` : '—', tileNotes(t)];
   }), [1]),
 
-  underground: () => table(['Tile', 'Notes'], undergroundTiles.map((t) => [TILE_NAME[t], tileNotes(t)])),
+  underground: () => table(['Tile', 'Notes'], undergroundTiles.map((t) => [tileName(t), tileNotes(t)])),
 
   geology: () => {
     let prev = 0;
     const rows = Core.GEOLOGY.map((g) => {
       const share = g.below - prev;
       prev = g.below;
-      return [TILE_NAME[g.type], pct(share), g.from === 1 ? 'every layer' : `layer ${g.from} and deeper`];
+      return [tileName(g.type), pct(share), g.from === 1 ? 'every layer' : `layer ${g.from} and deeper`];
     });
-    rows.push([TILE_NAME[T.SOIL], pct(1 - prev) + ' + any band not yet unlocked', 'every layer']);
+    rows.push([tileName(T.SOIL), pct(1 - prev) + ' + any band not yet unlocked', 'every layer']);
     return table(['Tile', 'Share of tiles', 'Found on'], rows, [1]);
   },
 
   tools: () => Object.keys(Core.TOOLS).map((id) => {
     const tool = Core.TOOLS[id];
     const rows = tool.levels.map((lv, i) => [i + 1, lv.yield !== undefined ? lv.yield + ' per swing' : '×' + lv.mult, lv.cost ? costText(lv.cost) : 'starting tool']);
-    return `<h3>${tool.icon} ${tool.name}</h3><p>${tool.desc}.</p>` + table(['Level', 'Effect', 'Cost'], rows, [0, 1]);
+    return `<h3>${pic('tool.' + id)} ${tool.name}</h3><p>${tool.desc}.</p>` + table(['Level', 'Effect', 'Cost'], rows, [0, 1]);
   }).join(''),
 
   extractors: () => table(['Building', 'Stands on', 'Makes', 'Base rate', 'Holds', 'First one costs'],
     Core.DEPOSIT_EXTRACTORS.map((k) => {
       const e = Core.EXTRACTORS[k];
-      return [`${e.icon} ${e.name}`, TILE_NAME[e.tile], icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
+      return [`${pic('building.' + k, 'image')} ${e.name}`, tileName(e.tile), icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
     }), [3, 4]),
 
   converters: () => table(['Building', 'Needs', 'Makes', 'Base rate', 'Holds', 'First one costs'],
     Core.CONVERTERS.map((k) => {
       const e = Core.EXTRACTORS[k];
-      return [`${e.icon} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
+      return [`${pic('building.' + k, 'image')} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
     }), [3, 4]),
 
   unlocks: () => table(['Unlock', 'What it does', 'Cost'],
     Object.keys(Core.UNLOCKS).map((k) => {
       const u = Core.UNLOCKS[k];
-      return [`${u.icon} ${u.name}`, u.desc, costText(u.cost)];
+      return [`${pic('unlock.' + k)} ${u.name}`, u.desc, costText(u.cost)];
     })),
 
   abundance: () => table(['Level', 'Trickle', 'Production', 'Cost of this level'],
@@ -105,13 +101,13 @@ const TABLES = {
       total *= lv.mult;
       return [i + 1, '×' + lv.mult, '×' + num(total), costText(lv.cost)];
     });
-    return `<h3>${chain.icon} ${chain.name} ${icon(res)}</h3>` + table(['Level', 'Step', 'Total', 'Cost'], rows, [0, 1, 2]);
+    return `<h3>${pic('refinery.' + res)} ${chain.name} ${icon(res)}</h3>` + table(['Level', 'Step', 'Total', 'Cost'], rows, [0, 1, 2]);
   }).join(''),
 
   perks: () => table(['Perk', 'What it does', 'Cost in Insight'],
     Object.keys(Core.PERKS).map((k) => {
       const p = Core.PERKS[k];
-      return [`${p.icon} ${p.name}`, p.desc, p.repeat ? `${p.base}, then +1 per level owned` : `${p.base} (once)`];
+      return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.repeat ? `${p.base}, then +1 per level owned` : `${p.base} (once)`];
     })),
 
   milestones: () => '<ol>' + Core.GOALS.map((g) => `<li>${g.text}</li>`).join('') + '</ol>'
@@ -123,13 +119,16 @@ function constant(name) {
   return name.split('.').reduce((v, k) => v[k], Core);
 }
 
-function fill() {
+async function fill() {
+  await loadDefaultPack();
   for (const node of document.querySelectorAll('[data-table]')) node.innerHTML = TABLES[node.dataset.table]();
   for (const node of document.querySelectorAll('[data-k]')) {
     const v = constant(node.dataset.k);
     node.textContent = node.dataset.f === 'pct' ? pct(v) : num(v);
   }
   for (const node of document.querySelectorAll('[data-ideas]')) node.innerHTML = renderIdeas();
+  for (const node of document.querySelectorAll('[data-things]')) node.innerHTML = renderThings();
+  for (const node of document.querySelectorAll('[data-download-pack]')) wireDownload(node);
   document.querySelector('.version').textContent = 'for game v' + VERSION;
 }
 
@@ -161,5 +160,9 @@ document.getElementById('search').addEventListener('input', (e) => {
 });
 
 window.addEventListener('hashchange', show);
-fill();
 show();
+// Fail loud: if the wiki can't fill itself in, say so at the top of the page.
+fill().then(() => { document.body.dataset.filled = 'true'; }, (err) => {
+  document.querySelector('main').insertAdjacentHTML('afterbegin', `<div class="note error">The wiki couldn't load its tables: ${err.message}</div>`);
+  throw err;
+});

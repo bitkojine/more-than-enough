@@ -18,7 +18,6 @@
 
 export const RESOURCES = ['wood', 'stone', 'ore', 'crystal'];
 export const RESOURCE_LABEL = { wood: 'Wood', stone: 'Stone', ore: 'Ore', crystal: 'Crystal' };
-export const RESOURCE_ICON = { wood: '\u{1FAB5}', stone: '\u{1FAA8}', ore: '⛏️', crystal: '\u{1F4A0}' };
 
 // Values are stable: the surface ids match older saves and tests refer to them.
 export const T = {
@@ -28,6 +27,18 @@ export const T = {
   TUNNEL: 7, SOIL: 8, STONE_SEAM: 9, ORE_SEAM: 10, CRYSTAL_SEAM: 11, FOSSIL: 12,
   BEDROCK: 13, SHAFT: 14, SHAFT_OPEN: 15
 };
+
+// Each type's name, and the key a texture pack knows it by (look id "tile.<key>").
+export const TILE_NAME = [];
+export const TILE_KEY = [];
+[
+  [T.GRASS, 'grass', 'Grass'], [T.FOREST, 'forest', 'Forest'], [T.STONE, 'stone', 'Stone'],
+  [T.ORE, 'ore', 'Ore'], [T.CRYSTAL, 'crystal', 'Crystal'], [T.WATER, 'water', 'Water'],
+  [T.ROCK, 'mountain', 'Mountain'], [T.TUNNEL, 'tunnel', 'Tunnel'], [T.SOIL, 'soil', 'Soil'],
+  [T.STONE_SEAM, 'stone-seam', 'Stone seam'], [T.ORE_SEAM, 'ore-seam', 'Ore seam'],
+  [T.CRYSTAL_SEAM, 'crystal-seam', 'Crystal seam'], [T.FOSSIL, 'fossil', 'Fossil'],
+  [T.BEDROCK, 'bedrock', 'Bedrock'], [T.SHAFT, 'shaft', 'Shaft'], [T.SHAFT_OPEN, 'shaft-open', 'Open shaft']
+].forEach(([t, key, name]) => { TILE_KEY[t] = key; TILE_NAME[t] = name; });
 
 export const TILE_INFO = [];
 TILE_INFO[T.GRASS] = { walk: true, land: true };

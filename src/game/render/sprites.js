@@ -1,122 +1,65 @@
-/* Things standing on the terrain: extractors, the player (and their boat),
- * and the transient effects. Standing things keep their height as the view
- * tilts and rise off the ground by `lift`; their shadows flatten. */
+/* Things standing on the terrain: buildings, the wanderer (and their boat),
+ * and the transient effects, all drawn from the texture pack. Standing things
+ * keep their height as the view tilts; their shadows flatten. */
 
 import * as Core from '../../core/index.js';
-import { roundRect } from './terrain.js';
-import { RES_COLOR } from '../effects.js';
 
 const TAU = Math.PI * 2;
 
 // Height of the ground under (x, y) in the camera's layer, as absolute height.
 const groundAt = (cam, s, x, y) => cam.z + Core.tileHeight(s.world, Math.floor(x), Math.floor(y), cam.z);
 
-export function drawExtractor(ctx, cam, s, e) {
+const FOOT = 0.6;           // where on a tile's depth standing things put their feet
+const SHADOW = 'rgba(0,0,0,0.38)';
+const BOAT_DECK = 0.3;      // how far up the boat picture the wanderer stands (see the catalog)
+const IN_BOAT = 0.8;        // the wanderer's size in the boat
+
+function shadow(ctx, cam, x, y, r) {
+  ctx.fillStyle = SHADOW;
+  ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38 * (cam.depthPx / cam.tilePx), 0, 0, TAU); ctx.fill();
+}
+
+// A building: its picture standing on its tile, and a small dial over it
+// that fills as it holds output (gold when full).
+export function drawExtractor(ctx, cam, s, look, e) {
   const u = cam.tilePx;
-  const ground = cam.project(e.x + 0.5, e.y + 0.5, groundAt(cam, s, e.x, e.y));
-  if (ground.x < -u || ground.y < -u * 2 || ground.x > cam.width + u || ground.y > cam.height + u * 2) return;
-  const size = u * 0.74;
-  const g = cam.depthPx / u;
-  const sx = ground.x, sy = ground.y - size * 0.5 * Math.sin(cam.pitch());
+  const ground = cam.project(e.x + 0.5, e.y + FOOT, groundAt(cam, s, e.x, e.y));
+  if (ground.x < -u * 2 || ground.y < -u || ground.x > cam.width + u * 2 || ground.y > cam.height + u * 3) return;
+  const pic = look.pick('building.' + e.key, 'image');
+  shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
+  const h = look.stand(ctx, pic, ground.x, ground.y, u);
   const def = Core.EXTRACTORS[e.key];
-  ctx.fillStyle = 'rgba(0,0,0,0.4)';
-  roundRect(ctx, sx - size / 2, ground.y - size / 2 * g + size * 0.12, size, size * g, 8); ctx.fill();
-  ctx.fillStyle = '#1e2822';
-  roundRect(ctx, sx - size / 2, sy - size / 2, size, size, 8); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-  ctx.lineWidth = Math.max(1, size * 0.045);
-  ctx.stroke();
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.font = Math.round(size * 0.56) + 'px -apple-system, sans-serif';
-  ctx.fillText(def.icon, sx, sy + size * 0.03);
-  if (e.buffer >= 0.5) { // fill ring: gold when full
-    const p = Math.min(1, e.buffer / def.buffer);
-    ctx.beginPath();
-    ctx.arc(sx, sy, size * 0.66, -Math.PI / 2, -Math.PI / 2 + p * TAU);
-    ctx.strokeStyle = p >= 1 ? '#ffd166' : '#7fd07a';
-    ctx.lineWidth = Math.max(2, size * 0.11);
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    ctx.lineCap = 'butt';
-  }
+  if (e.buffer < 0.5) return;
+  const p = Math.min(1, e.buffer / def.buffer);
+  const r = Math.max(4, u * 0.13);
+  const cx = ground.x + pic.units * u * 0.32, cy = ground.y - h - r * 0.2;
+  ctx.fillStyle = 'rgba(10,12,14,0.72)';
+  ctx.beginPath(); ctx.arc(cx, cy, r + 2, 0, TAU); ctx.fill();
+  ctx.fillStyle = p >= 1 ? '#ffd166' : '#7fd07a';
+  ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * TAU); ctx.closePath(); ctx.fill();
 }
 
-// A proper boat: hull, mast and sail drawn large so the silhouette reads as a
-// ship, with the character tiny on deck to sell the scale.
-function drawShip(ctx, sx, sy, half) {
-  const wd = half * 0.52; // half-width of the hull
-  ctx.fillStyle = 'rgba(12,24,34,0.42)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + wd * 0.7, half * 1.05, wd * 0.72, 0, 0, TAU); ctx.fill();
-  // hull: pointed bow to the right, rounded stern to the left
-  ctx.fillStyle = '#7a5230';
-  ctx.beginPath();
-  ctx.moveTo(sx + half, sy);
-  ctx.quadraticCurveTo(sx + half * 0.2, sy - wd, sx - half * 0.8, sy - wd);
-  ctx.quadraticCurveTo(sx - half, sy - wd * 0.6, sx - half, sy);
-  ctx.quadraticCurveTo(sx - half, sy + wd * 0.6, sx - half * 0.8, sy + wd);
-  ctx.quadraticCurveTo(sx + half * 0.2, sy + wd, sx + half, sy);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#5a3a1e';
-  ctx.lineWidth = Math.max(1.5, half * 0.09);
-  ctx.stroke();
-  // deck and planks
-  ctx.fillStyle = '#9a6d42';
-  ctx.beginPath(); ctx.ellipse(sx - half * 0.08, sy, half * 0.68, wd * 0.62, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = 'rgba(255,225,180,0.35)';
-  ctx.lineWidth = Math.max(1, half * 0.05);
-  for (let p = -1; p <= 1; p++) {
-    ctx.beginPath();
-    ctx.moveTo(sx - half * 0.68, sy + wd * 0.28 * p);
-    ctx.lineTo(sx + half * 0.5, sy + wd * 0.28 * p);
-    ctx.stroke();
-  }
-  // mast and sail
-  ctx.strokeStyle = '#5a3a1e';
-  ctx.lineWidth = Math.max(1.5, half * 0.08);
-  ctx.beginPath();
-  ctx.moveTo(sx - half * 0.08, sy - wd * 0.1);
-  ctx.lineTo(sx - half * 0.08, sy - half * 0.85);
-  ctx.stroke();
-  ctx.fillStyle = '#ece7d4';
-  ctx.beginPath();
-  ctx.moveTo(sx - half * 0.06, sy - half * 0.8);
-  ctx.quadraticCurveTo(sx + half * 0.7, sy - half * 0.58, sx + half * 0.55, sy - wd * 0.45);
-  ctx.quadraticCurveTo(sx + half * 0.12, sy - wd * 0.32, sx - half * 0.06, sy - wd * 0.18);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = 'rgba(90,58,30,0.5)';
-  ctx.lineWidth = Math.max(1, half * 0.04);
-  ctx.stroke();
-}
-
-export function drawPlayer(ctx, cam, s, facing) {
+// The wanderer: facing the way they last walked, stepping through the walk
+// frames while moving. On water they ride the boat.
+export function drawPlayer(ctx, cam, s, look, view) {
   const u = cam.tilePx;
   const p = s.player;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
-  const afloat = Core.onWater(s);
-  const lean = Math.sin(cam.pitch());
-  let bob = 0;
-  if (afloat) {
-    bob = Math.sin(s.time * 2.6 + p.x * 7.3) * u * 0.04;
-    drawShip(ctx, sx, sy + bob, Math.max(9, u * 0.95));
+  const flip = view.facing.x < -0.01;
+  const walk = look.frames('character.wanderer', 'image');
+  const frame = view.moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
+  const body = walk.pics[frame];
+  if (Core.onWater(s)) {
+    const bob = Math.sin(s.time * 2.6 + p.x * 7.3) * u * 0.04;
+    const boat = look.pick('character.boat', 'image');
+    shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
+    const bh = look.stand(ctx, boat, sx, sy + bob, u, flip);
+    look.stand(ctx, body, sx, sy + bob - bh * BOAT_DECK, u * IN_BOAT, flip);
+    return;
   }
-  const r = afloat ? Math.max(2, u * 0.1) : Math.max(3, u * 0.27);
-  // Standing on the ground: the shadow stays put, the body rises as you tilt.
-  ctx.fillStyle = 'rgba(0,0,0,0.42)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + bob + r * 0.8 * (1 - lean), r * 1.05, r * 0.45, 0, 0, TAU); ctx.fill();
-  const py = sy + bob - r * lean;
-  const g = ctx.createRadialGradient(sx - r * 0.3, py - r * 0.4, r * 0.1, sx, py, r);
-  g.addColorStop(0, '#fdf4d8');
-  g.addColorStop(1, '#d9b877');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(sx, py, r, 0, TAU); ctx.fill();
-  ctx.lineWidth = Math.max(1.5, r * 0.14);
-  ctx.strokeStyle = '#5a4a2a';
-  ctx.stroke();
-  const len = Math.hypot(facing.x, facing.y) || 1;
-  ctx.fillStyle = '#8a6f3f';
-  ctx.beginPath();
-  ctx.arc(sx + (facing.x / len) * r * 0.6, py + (facing.y / len) * r * 0.6, r * 0.22, 0, TAU);
-  ctx.fill();
+  shadow(ctx, cam, sx, sy, body.units * u * 0.42);
+  const step = view.moving ? Math.abs(Math.sin(s.time * 12)) * u * 0.03 : 0;
+  look.stand(ctx, body, sx, sy - step, u, flip);
 }
 
 export function drawParticles(ctx, cam, fx) {
@@ -132,44 +75,35 @@ export function drawParticles(ctx, cam, fx) {
   ctx.globalAlpha = 1;
 }
 
-export function drawFloats(ctx, cam, fx) {
-  ctx.textAlign = 'center';
+// Floating numbers, with the icon of what they count after them.
+export function drawFloats(ctx, cam, look, fx) {
+  const size = Math.round(Math.max(12, cam.tilePx * 0.34));
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.font = '700 ' + Math.round(Math.max(12, cam.tilePx * 0.34)) + 'px -apple-system, sans-serif';
+  ctx.font = '700 ' + size + 'px -apple-system, sans-serif';
   ctx.lineWidth = 3;
   ctx.strokeStyle = 'rgba(0,0,0,0.6)';
   for (const f of fx.floats) {
     const { x, y } = cam.project(f.x, f.y);
+    const tw = ctx.measureText(f.text).width;
+    const iw = f.icon ? size * 1.15 : 0;
+    const left = x - (tw + iw) / 2;
     ctx.globalAlpha = Math.min(1, (f.life / f.max) * 1.6);
-    ctx.strokeText(f.text, x, y);
+    ctx.strokeText(f.text, left, y);
     ctx.fillStyle = f.color;
-    ctx.fillText(f.text, x, y);
+    ctx.fillText(f.text, left, y);
+    if (f.icon) look.draw(ctx, look.pick(f.icon, 'icon'), left + tw + size * 0.15, y - size / 2, size, size);
   }
   ctx.globalAlpha = 1;
 }
 
-// Gathered items zipping into the pack, each in its material's shape.
-export function drawFlyers(ctx, cam, fx) {
+// Gathered items zipping into the pack, as their resource's icon.
+export function drawFlyers(ctx, cam, look, fx) {
+  const size = Math.max(10, cam.tilePx * 0.3);
   for (const f of fx.flyers) {
     const { x, y } = cam.project(f.x, f.y);
     ctx.globalAlpha = Math.min(1, 0.3 + f.t * 2.5);
-    ctx.fillStyle = RES_COLOR[f.res];
-    if (f.res === 'wood' || f.res === 'crystal') {
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(f.t * (f.res === 'wood' ? 5 : 4) + f.seed);
-      if (f.res === 'wood') ctx.fillRect(-3.5, -1.4, 7, 2.8);
-      else {
-        ctx.beginPath();
-        ctx.moveTo(0, -4.2); ctx.lineTo(3.2, 0); ctx.lineTo(0, 4.2); ctx.lineTo(-3.2, 0);
-        ctx.closePath(); ctx.fill();
-      }
-      ctx.restore();
-    } else {
-      ctx.beginPath();
-      ctx.arc(x, y, f.res === 'ore' ? 3.4 : 3, 0, TAU);
-      ctx.fill();
-    }
+    look.draw(ctx, look.pick(Core.resourceLook(f.res), 'icon'), x - size / 2, y - size / 2, size, size);
   }
   ctx.globalAlpha = 1;
 }

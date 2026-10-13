@@ -5,12 +5,16 @@
 
 import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtMult, esc } from './format.js';
+import { iconHtml } from './look/look.js';
 
 const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond' };
 const PERK_FAMILY = Core.pathFamily('perks');
-const INSIGHT = '✨';
 
-const icon = (res) => Core.RESOURCE_ICON[res];
+// Set by createSheet: pictures come from the current texture pack.
+let look = null;
+const pic = (id, slot) => iconHtml(look, id, 'ico', slot);
+const icon = (res) => pic(Core.resourceLook(res));
+const insight = () => pic('resource.insight');
 
 function costHtml(cost) {
   return Object.keys(cost).map((r) => fmt(cost[r]) + ' ' + icon(r)).join(' ');
@@ -72,15 +76,16 @@ function upgradeRow(s, id) {
   const d = DESCRIBE[u.kind](s, id);
   const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
   const cost = Core.upgradeCost(s, id);
-  if (cost === null) return row(u.icon, name, d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
+  if (cost === null) return row(pic(u.look), name, d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
   const affordable = Core.canBuy(s, id);
-  const price = priceTag(u.currency === 'insight' ? cost + ' ' + INSIGHT : costHtml(cost), affordable);
-  return row(u.icon, name, d.sub ? d.sub + '<br>' + price : price, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
+  const price = priceTag(u.currency === 'insight' ? cost + ' ' + insight() : costHtml(cost), affordable);
+  return row(pic(u.look), name, d.sub ? d.sub + '<br>' + price : price, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
 }
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions }) {
+export function createSheet(el, { getState, actions, look: currentLook }) {
+  look = currentLook;
   let open = false;
   let tab = 'upgrades';
   const expanded = { tools: true }; // progression families showing their buy rows
@@ -90,11 +95,11 @@ export function createSheet(el, { getState, actions }) {
     return '<span class="rail">' + nodes.map((n) => `<span class="node ${n.state}" aria-hidden="true" title="${esc(n.name)}"></span>`).join('') + '</span>';
   }
 
-  function familyHead(familyId, name, famIcon, countText, extra) {
+  function familyHead(familyId, name, famLook, countText, extra) {
     const p = Core.pathProgress(getState(), familyId);
     return `<button class="railHead${p.canBuy ? ' ready' : ''}${extra.cls || ''}" type="button" data-family="${extra.target || familyId}"` +
       (extra.expandable ? ` aria-expanded="${extra.open}"` : '') + '>' +
-      `<span class="fh-ic">${famIcon}</span>` +
+      `<span class="fh-ic">${pic(famLook)}</span>` +
       `<span class="fh-main"><span class="fh-nm">${esc(name)}</span>${rail(p.nodes)}</span>` +
       `<span class="fh-count">${countText(p)}</span>` +
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
@@ -105,11 +110,11 @@ export function createSheet(el, { getState, actions }) {
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
       const isOpen = !!expanded[f.id];
       const count = f.id === 'abundance' ? () => 'Lv ' + s.abundanceLv : (p) => p.owned + '/' + p.total;
-      html += familyHead(f.id, f.name, f.icon, count, { expandable: true, open: isOpen });
+      html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
       if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
     }
     html += '<div class="section">Legacy</div>';
-    html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.icon, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
+    html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.look, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
     return html;
   }
 
@@ -118,12 +123,13 @@ export function createSheet(el, { getState, actions }) {
     const count = Core.extractorCount(s, key);
     const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
     const place = (enabled, label = 'Place') => button(`data-kind="build" data-id="${key}"`, label, enabled);
-    if (def.unlock && !s.unlocks[def.unlock]) return row(def.icon, name, '', place(false, 'Locked'));
+    const picture = pic('building.' + key, 'image');
+    if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, 'Locked'));
     const rate = `+${fmt1(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const spot = Core.buildTarget(s, key);
-    return row(def.icon, name, rate + '<br>' + priceTag(costHtml(cost), affordable && !!spot), place(affordable && !!spot));
+    return row(picture, name, rate + '<br>' + priceTag(costHtml(cost), affordable && !!spot), place(affordable && !!spot));
   }
 
   function renderBuild(s) {
@@ -138,15 +144,15 @@ export function createSheet(el, { getState, actions }) {
   function renderBeyond(s) {
     const can = Core.canEmbark(s);
     const progress = `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
-    const embark = row('\u{1F30D}', 'Embark', can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + INSIGHT, true) : progress,
+    const embark = row(pic('ui.embark'), 'Embark', can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
       button('data-kind="embark"', 'Embark', can));
     if (!beyondUnlocked(s)) {
       return '<div class="section">Legacy</div>' + embark +
         '<div class="section">Perks</div>' +
-        PERK_FAMILY.nodes.map((id) => row(Core.PERKS[id].icon, esc(Core.PERKS[id].name), '', doneButton('Locked'))).join('');
+        PERK_FAMILY.nodes.map((id) => row(pic('perk.' + id), esc(Core.PERKS[id].name), '', doneButton('Locked'))).join('');
     }
     return '<div class="section">Insight</div>' +
-      row(INSIGHT, fmt(s.insight), `Embarks ${s.prestiges} &middot; Lifetime ${fmt(Core.lifetimeTotal(s))}`, '') +
+      row(insight(), fmt(s.insight), `Embarks ${s.prestiges} &middot; Lifetime ${fmt(Core.lifetimeTotal(s))}`, '') +
       '<div class="section">New World</div>' + embark +
       '<div class="section">Perks</div>' + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
   }

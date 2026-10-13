@@ -2,7 +2,7 @@
  * "flyers" that carry gathered resources into the player's pack. All effects
  * belong to the layer they were spawned on; changing layers clears them. */
 
-export const RES_COLOR = { wood: '#d2a458', stone: '#c3c8bf', ore: '#e0903c', crystal: '#7fe8ff' };
+import { resourceLook } from '../core/index.js';
 
 // Budgets keep bursts cheap. Without a lifetime a fast flyer can overshoot and
 // orbit the player forever, piling up sprites and pop particles.
@@ -13,7 +13,9 @@ const FLYER_LIFE = 0.8; // seconds before a flyer force-lands
 const rand = Math.random;
 const TAU = Math.PI * 2;
 
-export function createEffects() {
+// `look` is the texture pack: sparks take their resource's colour from it.
+export function createEffects(look) {
+  const resColor = (res) => look.color(resourceLook(res));
   const particles = [];
   const floats = [];
   const flyers = [];
@@ -43,12 +45,13 @@ export function createEffects() {
     }
   }
 
-  function text(x, y, label, color, vy = -1.1, life = 1.0) {
-    floats.push({ x, y, vy, life, max: life, text: label, color });
+  // Floating text; `icon` (a look id) is drawn after it.
+  function text(x, y, label, color, icon = null, vy = -1.1, life = 1.0) {
+    floats.push({ x, y, vy, life, max: life, text: label, color, icon });
   }
 
   function gathered(tx, ty, res, amount) {
-    const color = RES_COLOR[res];
+    const color = resColor(res);
     for (let i = 0; i < 6; i++) {
       const a = rand() * TAU, sp = 1.2 + rand() * 2.2;
       addParticle({
@@ -57,7 +60,7 @@ export function createEffects() {
         life: 0.45 + rand() * 0.25, max: 0.7, size: 1.6 + rand() * 2.2, color
       });
     }
-    text(tx + 0.5, ty + 0.2, '+' + Math.floor(amount), color, -1.3, 0.9);
+    text(tx + 0.5, ty + 0.2, '+' + Math.floor(amount), color, resourceLook(res), -1.3, 0.9);
     flyersFrom(tx, ty, res, amount);
   }
 
@@ -122,7 +125,7 @@ export function createEffects() {
       let v = Math.hypot(f.vx, f.vy);
       if (v > 10) { f.vx *= 10 / v; f.vy *= 10 / v; v = 10; }
       if (f.t >= FLYER_LIFE || d <= v * dt + 0.2) {
-        burst(player.x, player.y - 0.2, 3, [1, 1.8], 0.7, [0.22, 0.18], [1.2, 1.6], RES_COLOR[f.res]);
+        burst(player.x, player.y - 0.2, 3, [1, 1.8], 0.7, [0.22, 0.18], [1.2, 1.6], resColor(f.res));
         flyers.splice(i, 1);
         continue;
       }

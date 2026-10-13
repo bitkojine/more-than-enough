@@ -28,7 +28,7 @@ export const EMBARK_MIN_TOTAL = 20000;
 // Level 1 is what you start with; each later level has a cost.
 export const TOOLS = {
   axe: {
-    name: 'Axe', icon: '\u{1FAB5}', desc: 'Wood gathered per swing',
+    name: 'Axe', desc: 'Wood gathered per swing',
     levels: [
       { yield: 1 },
       { yield: 2, cost: { wood: 6 } },
@@ -39,7 +39,7 @@ export const TOOLS = {
     ]
   },
   pickaxe: {
-    name: 'Pickaxe', icon: '⛏️', desc: 'Stone / ore / crystal per swing',
+    name: 'Pickaxe', desc: 'Stone / ore / crystal per swing',
     levels: [
       { yield: 1 },
       { yield: 2, cost: { wood: 10, stone: 6 } },
@@ -50,7 +50,7 @@ export const TOOLS = {
     ]
   },
   boots: {
-    name: 'Boots', icon: '\u{1F45F}', desc: 'Movement speed',
+    name: 'Boots', desc: 'Movement speed',
     levels: [
       { mult: 1.0 },
       { mult: 1.3, cost: { wood: 8 } },
@@ -60,7 +60,7 @@ export const TOOLS = {
     ]
   },
   overclock: {
-    name: 'Overclock', icon: '⚙️', desc: 'All extractor output',
+    name: 'Overclock', desc: 'All extractor output',
     levels: [
       { mult: 1 },
       { mult: 2, cost: { stone: 30, ore: 4 } },
@@ -77,14 +77,14 @@ export const TOOLS = {
 // Deposit extractors sit on a matching surface tile. Converters (tile: null)
 // need a blueprint and synthesize their resource on any open land.
 export const EXTRACTORS = {
-  lumber: { name: 'Lumber Camp', icon: '\u{1FAB5}', tile: T.FOREST, res: 'wood', rate: 0.6, buffer: 60, baseCost: { wood: 15 } },
-  quarry: { name: 'Quarry', icon: '\u{1FAA8}', tile: T.STONE, res: 'stone', rate: 0.45, buffer: 60, baseCost: { wood: 30, stone: 15 } },
-  mine: { name: 'Mine', icon: '⛏️', tile: T.ORE, res: 'ore', rate: 0.32, buffer: 50, baseCost: { stone: 45, ore: 12 } },
-  resonator: { name: 'Resonator', icon: '\u{1F4A0}', tile: T.CRYSTAL, res: 'crystal', rate: 0.09, buffer: 30, baseCost: { stone: 140, ore: 70, crystal: 6 } },
-  sapling: { name: 'Sapling Grove', icon: '\u{1F331}', tile: null, res: 'wood', rate: 0.5, buffer: 60, baseCost: { wood: 120, stone: 25 }, unlock: 'sapling' },
-  brickyard: { name: 'Brickyard', icon: '\u{1F9F1}', tile: null, res: 'stone', rate: 0.38, buffer: 60, baseCost: { wood: 150, stone: 90 }, unlock: 'brickyard' },
-  foundry: { name: 'Foundry', icon: '⚒️', tile: null, res: 'ore', rate: 0.3, buffer: 50, baseCost: { wood: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
-  observatory: { name: 'Observatory', icon: '\u{1F50D}', tile: null, res: 'crystal', rate: 0.11, buffer: 30, baseCost: { wood: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
+  lumber: { name: 'Lumber Camp', tile: T.FOREST, res: 'wood', rate: 0.6, buffer: 60, baseCost: { wood: 15 } },
+  quarry: { name: 'Quarry', tile: T.STONE, res: 'stone', rate: 0.45, buffer: 60, baseCost: { wood: 30, stone: 15 } },
+  mine: { name: 'Mine', tile: T.ORE, res: 'ore', rate: 0.32, buffer: 50, baseCost: { stone: 45, ore: 12 } },
+  resonator: { name: 'Resonator', tile: T.CRYSTAL, res: 'crystal', rate: 0.09, buffer: 30, baseCost: { stone: 140, ore: 70, crystal: 6 } },
+  sapling: { name: 'Sapling Grove', tile: null, res: 'wood', rate: 0.5, buffer: 60, baseCost: { wood: 120, stone: 25 }, unlock: 'sapling' },
+  brickyard: { name: 'Brickyard', tile: null, res: 'stone', rate: 0.38, buffer: 60, baseCost: { wood: 150, stone: 90 }, unlock: 'brickyard' },
+  foundry: { name: 'Foundry', tile: null, res: 'ore', rate: 0.3, buffer: 50, baseCost: { wood: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
+  observatory: { name: 'Observatory', tile: null, res: 'crystal', rate: 0.11, buffer: 30, baseCost: { wood: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
 };
 
 export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);
@@ -94,16 +94,16 @@ export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].ti
 
 // One-time purchases.
 export const UNLOCKS = {
-  logistics: { name: 'Logistics', icon: '\u{1F69A}', desc: 'Camps near you auto-collect into your packs', cost: { stone: 150, ore: 40 } },
-  sapling: { name: 'Blueprint: Sapling Grove', icon: '\u{1F4DC}', desc: 'Grow wood anywhere (any land tile)', cost: { wood: 150, stone: 40 } },
-  brickyard: { name: 'Blueprint: Brickyard', icon: '\u{1F4DC}', desc: 'Shape stone anywhere (any land tile)', cost: { wood: 220, stone: 120 } },
-  foundry: { name: 'Blueprint: Foundry', icon: '\u{1F4DC}', desc: 'Smelt ore anywhere (any land tile)', cost: { stone: 180, ore: 60 } },
-  observatory: { name: 'Blueprint: Observatory', icon: '\u{1F4DC}', desc: 'Focus the sky: crystal anywhere', cost: { stone: 340, ore: 150, crystal: 26 } }
+  logistics: { name: 'Logistics', desc: 'Camps near you auto-collect into your packs', cost: { stone: 150, ore: 40 } },
+  sapling: { name: 'Blueprint: Sapling Grove', desc: 'Grow wood anywhere (any land tile)', cost: { wood: 150, stone: 40 } },
+  brickyard: { name: 'Blueprint: Brickyard', desc: 'Shape stone anywhere (any land tile)', cost: { wood: 220, stone: 120 } },
+  foundry: { name: 'Blueprint: Foundry', desc: 'Smelt ore anywhere (any land tile)', cost: { stone: 180, ore: 60 } },
+  observatory: { name: 'Blueprint: Observatory', desc: 'Focus the sky: crystal anywhere', cost: { stone: 340, ore: 150, crystal: 26 } }
 };
 
 // Repeatable: every level adds +1/s of each resource and x1.5 to all production.
 export const ABUNDANCE = {
-  name: 'Abundance Engine', icon: '✨', desc: '+1/s of everything per level; refineries +50% per level',
+  name: 'Abundance Engine', desc: '+1/s of everything per level; refineries +50% per level',
   baseCost: { wood: 1500, stone: 1500, ore: 750, crystal: 80 },
   growth: 2.4,
   prodMult: 1.5
@@ -115,7 +115,7 @@ export const ABUNDANCE = {
 // extractors and converters alike. The multipliers compound.
 export const REFINERIES = {
   wood: {
-    name: 'Silviculture', icon: '\u{1FA9A}',
+    name: 'Silviculture',
     levels: [
       { mult: 2, cost: { wood: 60 } },
       { mult: 2, cost: { wood: 180, stone: 30 } },
@@ -130,7 +130,7 @@ export const REFINERIES = {
     ]
   },
   stone: {
-    name: 'Masonry', icon: '\u{1F9F1}',
+    name: 'Masonry',
     levels: [
       { mult: 2, cost: { wood: 60, stone: 40 } },
       { mult: 2, cost: { wood: 200, stone: 120 } },
@@ -145,7 +145,7 @@ export const REFINERIES = {
     ]
   },
   ore: {
-    name: 'Metallurgy', icon: '⚙️',
+    name: 'Metallurgy',
     levels: [
       { mult: 2, cost: { wood: 80, stone: 60 } },
       { mult: 2, cost: { wood: 260, stone: 180, ore: 10 } },
@@ -160,7 +160,7 @@ export const REFINERIES = {
     ]
   },
   crystal: {
-    name: 'Crystallurgy', icon: '\u{1F48E}',
+    name: 'Crystallurgy',
     levels: [
       { mult: 2, cost: { stone: 120, ore: 40 } },
       { mult: 2, cost: { stone: 400, ore: 140, crystal: 5 } },
@@ -181,9 +181,9 @@ export const REFINERIES = {
 // Permanent perks bought with Insight; they survive embarking to a new world.
 // Repeatable perks cost base + level; one-shots cost base.
 export const PERKS = {
-  legacy: { name: 'Legacy', icon: '\u{1F570}️', base: 1, repeat: true, desc: 'Every refinery +25% output per level' },
-  memory: { name: 'Memory', icon: '\u{1F5DD}️', base: 1, repeat: false, desc: 'Begin each new world with Logistics' },
-  heirloom: { name: 'Heirloom', icon: '\u{1FA93}', base: 1, repeat: false, desc: 'Begin each new world with Axe & Pickaxe II' },
-  cartographer: { name: 'Cartographer', icon: '\u{1F5FA}️', base: 2, repeat: false, desc: 'Fog clears wider (+2 tile radius)' },
-  nomad: { name: 'Nomad', icon: '\u{1F97E}', base: 2, repeat: true, desc: '+20% movement speed per level' }
+  legacy: { name: 'Legacy', base: 1, repeat: true, desc: 'Every refinery +25% output per level' },
+  memory: { name: 'Memory', base: 1, repeat: false, desc: 'Begin each new world with Logistics' },
+  heirloom: { name: 'Heirloom', base: 1, repeat: false, desc: 'Begin each new world with Axe & Pickaxe II' },
+  cartographer: { name: 'Cartographer', base: 2, repeat: false, desc: 'Fog clears wider (+2 tile radius)' },
+  nomad: { name: 'Nomad', base: 2, repeat: true, desc: '+20% movement speed per level' }
 };

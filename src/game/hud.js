@@ -7,7 +7,13 @@ import { fmt, fmt1 } from './format.js';
 
 const TOAST_SECONDS = 2.4;
 
-export function createHud(el) {
+// Every <img data-look="id" [data-slot="slot"]> on the page shows that
+// thing's picture from the current texture pack.
+export function paintIcons(look, root = document) {
+  for (const img of root.querySelectorAll('img[data-look]')) img.src = look.src(img.dataset.look, img.dataset.slot || 'icon');
+}
+
+export function createHud(el, look) {
   const chips = {};
   let toastLeft = 0;
   let lastAction = '';
@@ -16,7 +22,7 @@ export function createHud(el) {
     const chip = document.createElement('div');
     chip.className = 'chip';
     chip.setAttribute('aria-label', Core.RESOURCE_LABEL[r]);
-    chip.innerHTML = `<span class="ic">${Core.RESOURCE_ICON[r]}</span>` +
+    chip.innerHTML = `<img class="ic" data-look="${Core.resourceLook(r)}" alt="">` +
       '<span class="col"><span class="val">0</span></span><span class="rate"></span>';
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
@@ -26,7 +32,19 @@ export function createHud(el) {
     if (node.textContent !== text) node.textContent = text;
   }
 
+  function setIcon(img, id) {
+    const src = look.src(id);
+    if (img.getAttribute('src') !== src) img.src = src;
+    img.dataset.look = id;
+  }
+
   return {
+    // The texture pack changed: repaint every picture.
+    repaint() {
+      paintIcons(look);
+      lastAction = '';
+    },
+
     update(s) {
       const rates = Core.productionRates(s);
       for (const r of Core.RESOURCES) {
@@ -40,27 +58,27 @@ export function createHud(el) {
 
     // The big button shows what holding it will do right now.
     updateButtons(s) {
-      let icon = '—', label = 'EXPLORE', ready = false;
+      let icon = 'ui.gather', label = 'EXPLORE', ready = false;
       const collect = Core.collectTarget(s);
       const harvest = !collect && Core.harvestTarget(s);
       if (collect) {
-        icon = '\u{1F4E6}'; label = 'COLLECT ' + fmt(collect.total); ready = true;
+        icon = 'ui.collect'; label = 'COLLECT ' + fmt(collect.total); ready = true;
       } else if (harvest) {
-        icon = Core.RESOURCE_ICON[harvest.res]; label = 'GATHER +' + fmt(Core.gatherYield(s, harvest.res)); ready = true;
+        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = 'GATHER +' + fmt(Core.gatherYield(s, harvest.res)); ready = true;
       } else if (Core.isUnderground(s)) {
-        icon = '⛏️'; label = 'GATHER'; ready = true;
+        label = 'GATHER'; ready = true;
       }
       const key = icon + label + ready;
       if (key !== lastAction) {
         lastAction = key;
-        el.actionIcon.textContent = icon;
+        setIcon(el.actionIcon, icon);
         el.actionLabel.textContent = label;
         el.action.setAttribute('aria-label', label);
         el.action.classList.toggle('ready', ready);
         el.action.classList.toggle('disabled', !ready);
       }
       const below = Core.isUnderground(s);
-      setText(el.mineIcon, below ? '⬆️' : '⛏️');
+      setIcon(el.mineIcon, below ? 'ui.climb' : 'ui.dig');
       setText(el.mineLabel, below ? 'UP' : 'MINE');
       el.mine.setAttribute('aria-label', below ? 'Climb up a layer' : 'Dig down into the mine');
       el.mine.classList.toggle('disabled', !(below ? Core.canGoUp(s) : Core.canGoDown(s)));

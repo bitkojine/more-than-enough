@@ -1,0 +1,98 @@
+/* Texture packs in the game: the default pack shipped with it, and the
+ * player's own, picked from files (a pack.json, alone or with its pictures),
+ * remembered between visits and dropped again with "Default textures".
+ *
+ * Fail loud: a pack with any problem is not used, and every problem is
+ * listed on screen by thing and slot. A broken default pack is a crash. */
+
+import { loadPack, inlinePack } from './look/look.js';
+import { validatePack } from './look/validate.js';
+import { loadSavedPack, savePack, forgetPack } from './look/store.js';
+
+// The default pack, carrying this module's ?v= cache-busting hash.
+function defaultPackUrl() {
+  const url = new URL('../../packs/default/pack.json', import.meta.url);
+  url.search = new URL(import.meta.url).search;
+  return url.href;
+}
+
+// Loads the default pack; throws (naming every problem) if it is broken.
+export async function loadDefaultPack() {
+  const url = defaultPackUrl();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Default texture pack: ${url} answered ${res.status}`);
+  const { pack, problems } = await loadPack(await res.json(), { base: url, complete: true });
+  if (!pack) throw new Error('Default texture pack is broken:\n' + problems.join('\n'));
+  return pack;
+}
+
+export function createTextures({ el, look, defaultPack, changed, toast }) {
+  function label() {
+    el.packName.textContent = look.name;
+    el.texturesDefault.hidden = !look.custom;
+  }
+
+  function report(problems) {
+    console.error('Texture pack not used:\n' + problems.join('\n'));
+    const list = el.packReport.querySelector('ul');
+    list.innerHTML = '';
+    for (const p of problems) {
+      const li = document.createElement('li');
+      li.textContent = p;
+      list.appendChild(li);
+    }
+    el.packReport.hidden = false;
+  }
+
+  function apply(pack) {
+    look.use(defaultPack, pack);
+    label();
+    changed();
+  }
+
+  // Reads the picked files into a self-contained pack, or reports why not.
+  async function fromFiles(files) {
+    const jsons = files.filter((f) => /\.json$/i.test(f.name));
+    if (jsons.length !== 1) return report([jsons.length ? `Pick one pack.json, not ${jsons.length} (${jsons.map((f) => f.name).join(', ')})` : 'No .json file among the picked files: pick the pack.json (and its pictures)']);
+    let json;
+    try { json = JSON.parse(await jsons[0].text()); } catch (err) { return report([`${jsons[0].name} is not valid JSON: ${err.message}`]); }
+    // Check the pack itself before reading its pictures, so every problem in
+    // it is listed, not just the first missing file.
+    const invalid = validatePack(json);
+    if (invalid.length) return report(invalid);
+    try { json = await inlinePack(json, files); } catch (err) { return report([err.message]); }
+    const { pack, problems } = await loadPack(json);
+    if (!pack) return report(problems);
+    apply(pack);
+    const saved = await savePack(json);
+    toast(saved.error ? `Textures: ${pack.name} (this browser can't keep it: ${saved.error.name || saved.error})` : 'Textures: ' + pack.name);
+  }
+
+  el.textures.addEventListener('click', () => el.packFile.click());
+  el.packFile.addEventListener('change', () => {
+    const files = [...el.packFile.files];
+    el.packFile.value = '';
+    if (files.length) fromFiles(files).catch((err) => report([err.stack || String(err)]));
+  });
+  el.texturesDefault.addEventListener('click', async () => {
+    apply(null);
+    const gone = await forgetPack();
+    toast(gone.error ? `Textures: ${look.name} (couldn't forget the old pack: ${gone.error.name})` : 'Textures: ' + look.name);
+  });
+  el.packReport.querySelector('button').addEventListener('click', () => { el.packReport.hidden = true; });
+
+  return {
+    // Puts back the pack remembered from last time, if any.
+    async restore() {
+      label();
+      const saved = await loadSavedPack();
+      if (saved.error) return toast(`Your texture pack couldn't be read (${saved.error.name || saved.error})`);
+      if (!saved.value) return;
+      const { pack, problems } = await loadPack(saved.value);
+      if (pack) apply(pack);
+      else report(problems);
+    },
+    // For the browser tests: load picked files as if from the file picker.
+    fromFiles
+  };
+}

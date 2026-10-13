@@ -47,6 +47,22 @@ The wiki's **Ideas** page (`wiki/ideas.js`) is a sketchbook of directions the
 game could take: looks, mechanics, big swings. Add ideas freely; when one
 ships, move it out of Ideas and into the article that documents it.
 
+## Texture packs
+
+The game defines what exists and what it does; a **texture pack** defines what
+it looks like. `src/core/catalog.js` lists every thing in the game (tiles,
+resources, buildings, the wanderer, buttons, upgrades, colours) with the
+slots a pack can fill, and `packs/default/` (Lanternlight) draws all of it as
+hand-written SVG. Players load their own pack from the sheet (Textures); the
+format is documented in the wiki's **Texture packs** article, and **Everything
+in the game** lists the catalog with its default pictures.
+
+Drawing code never names a file or a colour: it asks the look
+(`src/game/look/`) for a thing's picture by id. When you add something that
+can be seen, add it to the catalog and draw it in the default pack; the unit
+tests fail until the default pack is complete, and flag pictures nothing uses.
+No emoji: every icon comes from the pack.
+
 ## Versioning
 
 The HUD badge in the top-right shows the studio and exact version you're
@@ -81,12 +97,15 @@ The project is under git — commit early, commit often:
   - `economy.js`, `upgrades.js` — costs, multipliers, and the single registry of everything you can buy
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
+  - `catalog.js` — everything that exists, by the id a texture pack uses for it
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`
+  - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
 - `index.html`, `style.css` — shell and mobile-first styling
-- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core, `ideas.js` holds the Ideas sketchbook)
+- `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
+- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
 - `docs/progression-map.md` — design spec for the Progression map
 - `test/unit/` — Node `node:test` suites for the core
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real

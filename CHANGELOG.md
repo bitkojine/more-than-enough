@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.24.0] - 2026-10-13
+
+### Added
+- **Texture packs.** The game defines what exists and what it does; a pack
+  defines what it looks like. Every visible thing (69 of them: tiles,
+  resources, buildings, the wanderer and boat, holes, buttons, upgrades,
+  perks, colours) has an id and slots (`color`, `top`, `face`, `stand`,
+  `cut`, `image`, `icon`) in a new catalog (`src/core/catalog.js`).
+  Pictures can be SVG/PNG/WebP/JPEG/GIF files, inline SVG, data: or https:
+  URLs, lists of variants (with `null` for nothing) or animations.
+- **Lanternlight**, the default pack: hand-drawn SVG for everything. Real
+  trees (pines, fruit trees), boulders, copper-veined ore rocks, crystal
+  clusters, grass tufts, flowers, reeds and cave mushrooms standing on the
+  ground; stumps and pebbles once worked out; textured ground, animated
+  water, rock and earth cliff faces; a sealed shaft hatch; eight distinct
+  buildings; a hooded wanderer with a lantern who walks; a sailing boat; and
+  a full set of icons in one style.
+- **Textures** in the sheet: load your own pack (a pack.json alone or with its
+  pictures). It's checked first; any problem means it isn't used and a panel
+  lists every problem by thing and slot. A good pack applies at once and is
+  remembered (IndexedDB); **Default textures** goes back.
+- Wiki: **Everything in the game** (every thing, what it does, its slots and
+  default pictures) and **Texture packs** (the format, slots, pictures, and a
+  download of the default pack as one self-contained file). Wiki tables show
+  pack pictures instead of emoji.
+
+### Changed
+- No emoji anywhere: counters, buttons, the sheet, floating numbers and
+  flyers all use pack icons. Milestone names lost their emoji.
+- Buildings stand on the map as pictures with a small fill dial over them,
+  instead of an emoji on a tile; trees and boulders under a building are
+  cleared.
+- Things standing on the ground are drawn after their whole row, so they can
+  lean over neighbours without being cut off.
+
+### Fixed
+- The intermittent browser test for tapping a wall while tilted: it measured
+  where the wall was on screen before the camera had drawn the new layer (so
+  the tap sometimes landed a row off), and expected one tap to clear a wall
+  that can take several. It now waits a frame and checks the tap dug in.
+
 ## [0.23.0] - 2026-10-13
 
 ### Added

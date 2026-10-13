@@ -74,6 +74,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
+                look = component "Look and Texture Packs" "What everything looks like: the default pack (packs/default/) with the player's pack laid over it slot by slot. Validates packs against the Catalog and refuses any with a problem (listing each by thing and slot), loads and rasterises pictures per size, picks variants and animation frames, and remembers the player's pack in IndexedDB. Drawing code and the HUD ask it for colours and pictures by thing id." "JavaScript + IndexedDB" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/look/, src/game/textures.js"
+                    }
+                }
+
                 sav = component "Storage" "Guarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
@@ -82,7 +89,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it." "HTML/CSS/JavaScript modules" {
+            packs = container "Default Texture Pack" "Lanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." "JSON + SVG" {
+                tags "Presentation"
+                properties {
+                    "files" "packs/default/"
+                }
+            }
+
+            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it. Everything in the game is listed from the Catalog with its default pictures, and the texture pack format is documented." "HTML/CSS/JavaScript modules" {
                 tags "Presentation"
                 properties {
                     "files" "wiki/"
@@ -121,6 +135,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/actions.js, underground.js"
+                    }
+                }
+
+                catalog = component "Catalog" "Everything that exists in the game, by the id a texture pack knows it by: tiles, resources, buildings, the wanderer, marks, buttons, upgrades, perks and colours, each with what it does and the slots a pack can fill. Built from the other content tables, so a new tile or upgrade can't go undocumented." "JavaScript" {
+                    tags "Core Engine"
+                    properties {
+                        "ref" "src/core/catalog.js"
                     }
                 }
 
@@ -180,6 +201,12 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.render -> mte.core.world "Reads tiles of the camera's layer"
         mte.app.ui -> mte.core.economy "Reads the upgrade registry and costs"
         mte.app.sav -> mte.core.state "serialize/deserialize"
+        mte.app.render -> mte.app.look "Colours and pictures by thing id"
+        mte.app.ui -> mte.app.look "Icons by thing id"
+        mte.app.look -> mte.core.catalog "Validates packs against"
+        mte.app.look -> mte.packs "Loads at boot"
+        mte.wiki -> mte.packs "Shows its pictures"
+        mte.core.catalog -> mte.core.economy "Lists what the content tables define"
 
         mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
         mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
@@ -193,11 +220,12 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 deploymentNode "Browser tab" "Runs the single-page game." {
                     containerInstance mte.app
                     containerInstance mte.wiki
+                    containerInstance mte.packs
                     containerInstance mte.core
                 }
             }
 
-            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
+            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/), the default texture pack (packs/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
                 infrastructureNode "Static Files" "Serves the staged site over HTTPS."
             }
 

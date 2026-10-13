@@ -40,6 +40,8 @@
         <li><a href="#upgrades"><strong>Upgrades</strong><span>Tools, refineries, unlocks, the Abundance Engine.</span></a></li>
         <li><a href="#beyond"><strong>Beyond</strong><span>Embarking to a new world, Insight and perks.</span></a></li>
         <li><a href="#milestones"><strong>Milestones</strong><span>The path most players end up taking.</span></a></li>
+        <li><a href="#things"><strong>Everything in the game</strong><span>Every tile, building and button, with its picture.</span></a></li>
+        <li><a href="#textures"><strong>Texture packs</strong><span>Make the game look the way you want.</span></a></li>
         <li><a href="#saving"><strong>Saving</strong><span>Where your progress lives.</span></a></li>
         <li><a href="#ideas"><strong>Ideas</strong><span>Not in the game: where it could go next.</span></a></li>
       </ul>
@@ -140,7 +142,8 @@
         Prices show in green when you can afford them and red when you can't. In Upgrades, each family has a row of dots: an empty
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed.</p>
       <p>The bottom of the sheet holds <strong>Wiki</strong> (this page), <strong>Reset world</strong> (starts over, after asking),
-        and <strong>Sound</strong>.</p>
+        <strong>Sound</strong> and <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
+        <a href="#textures">Texture packs</a>).</p>
 
       <h2>Performance panel</h2>
       <p>Tap the <strong>version badge</strong> in the top corner (or press <kbd>F3</kbd>) to see how well the game runs on your
@@ -365,6 +368,110 @@
         Spoilers, if you'd rather find your own way.</p>
       <div data-table="milestones"></div>
       <p>Milestones are checked in order, so one only counts once everything before it is done. They start over when you embark.</p>
+    </article>
+
+    <article id="things" data-title="Everything in the game" hidden>
+      <h1>Everything in the game</h1>
+      <p class="lede">Every thing you can see, what it is and what it does. The pictures are the default texture pack,
+        Lanternlight.</p>
+      <p>The game decides what exists and what it does; a <a href="#textures">texture pack</a> decides what it looks like. The
+        code next to each name is the id a pack uses for it, and the slots are the pictures and colours a pack can give it.
+        Slots in <code class="req">bold</code> are filled by every pack (the default fills them when yours doesn't).</p>
+      <div data-things></div>
+    </article>
+
+    <article id="textures" data-title="Texture packs" hidden>
+      <h1>Texture packs</h1>
+      <p class="lede">The game decides what exists and what it does. You decide what it looks like.</p>
+      <p>A texture pack is a <code>pack.json</code> file plus pictures. It can change the picture or colour of anything listed
+        in <a href="#things">Everything in the game</a>: every tile, tree, boulder, building, the wanderer and their boat, every
+        button and icon, and the colours of the dark and the cliffs. A pack can change as much or as little as you like;
+        anything it leaves out keeps the default look.</p>
+
+      <h2>Using a pack</h2>
+      <p>Open the sheet (BUILD or UPGRADE) and tap <strong>Textures</strong> at the bottom. Pick the pack's <code>pack.json</code>,
+        either on its own (if its pictures are inside it) or together with its picture files. The game checks the whole pack
+        first: if anything is wrong it isn't used, and a panel lists every problem, naming the thing and slot that broke. A pack
+        that works is used straight away and remembered in this browser. <strong>Default textures</strong> (shown while your pack is in use) goes back to Lanternlight.</p>
+
+      <h2>Start from the default</h2>
+      <p>The quickest way to make a pack is to copy the default one and change it.</p>
+      <p><button type="button" class="button" data-download-pack>Download Lanternlight as one file</button></p>
+      <p>That file has every picture written inside it as SVG markup, so it works on its own: edit it, change its
+        <code>name</code>, and pick it in the game. The same pack as separate files is in the game's source, in
+        <a href="https://github.com/bitkojine/more-than-enough/tree/main/packs/default"><code>packs/default/</code></a>.</p>
+
+      <h2>pack.json</h2>
+      <pre><code>{
+  "format": 1,
+  "name": "Autumn",
+  "author": "you",
+  "tile": 64,
+  "looks": {
+    "tile.grass":  { "color": "#b8873a", "top": ["grass-a.png", "grass-b.png"] },
+    "tile.forest": { "stand": ["maple.svg", "birch.svg", null], "cut": "stump.svg" },
+    "tile.water":  { "top": { "frames": ["water-1.png", "water-2.png"], "fps": 2 } },
+    "character.wanderer": { "image": "fox.png" },
+    "color.backdrop": { "color": "#0b0710" }
+  }
+}</code></pre>
+      <ul>
+        <li><code>format</code> is <span data-k="PACK_FORMAT"></span>, the pack format this version of the game reads.</li>
+        <li><code>name</code> is shown on the Textures button. <code>author</code> is optional.</li>
+        <li><code>tile</code> is how many pixels of your pictures make one tile (default <span data-k="DEFAULT_TILE"></span>).
+          A picture that many pixels wide is one tile wide on the map; twice as wide is two tiles.</li>
+        <li><code>pixelated</code>: <code>true</code> keeps pixel art crisp instead of smoothing it when scaled.</li>
+        <li><code>looks</code> maps thing ids to their slots.</li>
+      </ul>
+
+      <h2>Slots</h2>
+      <ul>
+        <li><code>color</code>: a colour like <code>"#4a7a33"</code>. Used far zoomed out, in cliffs, for sparks, and wherever
+          there's no picture.</li>
+        <li><code>top</code>: the ground. Stretched over the whole top of the tile, and squashed as the view tilts, so draw it
+          straight from above. Neighbouring tiles touch, so keep edges plain if you don't want a grid.</li>
+        <li><code>face</code>: the front of a raised tile (mountains, walls in the mine, the shore above water), seen when the view
+          is tilted. One picture is one layer of height and repeats down taller faces.</li>
+        <li><code>stand</code>: something standing on the tile, like trees and boulders. Drawn upright with its bottom centre on
+          the middle of the tile; it never squashes and may stick out over its neighbours.</li>
+        <li><code>cut</code>: what stands on a gathering tile once it's worked out (a stump, pebbles).</li>
+        <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
+        <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
+      </ul>
+
+      <h2>Pictures</h2>
+      <p>Each picture can be:</p>
+      <ul>
+        <li>a path next to <code>pack.json</code>: <code>.svg</code>, <code>.png</code>, <code>.webp</code>, <code>.jpg</code> or <code>.gif</code>;</li>
+        <li>SVG markup written straight into the JSON, starting <code>&lt;svg</code> (it needs <code>width</code> and <code>height</code>);</li>
+        <li>a <code>data:image/</code> URL, or an <code>https://</code> address.</li>
+      </ul>
+      <p>Where a slot takes a picture, it can also take:</p>
+      <ul>
+        <li>a <strong>list of variants</strong>: each tile picks one, always the same one for the same spot. <code>null</code> in the
+          list means nothing there, so <code>["tuft.png", null, null, null]</code> puts a tuft on about a quarter of the tiles;</li>
+        <li>an <strong>animation</strong>: <code>{ "frames": [...], "fps": 2 }</code>. Ground animations start at a different frame
+          on each tile so water shimmers. For the wanderer the first frame is standing still and the rest loop while walking.</li>
+      </ul>
+      <p>Draw standing things facing right; the game mirrors them. Leave the shadow out too: the game draws one under everything
+        that stands.</p>
+
+      <h2>What the game draws itself</h2>
+      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the lamplight
+        around you, target outlines and Trails, the dial over a building that fills as it holds output, the fading of cliffs into
+        the dark, and the floating numbers. Their colours come from the pack where it makes sense (a resource's colour tints its
+        sparks; the skylight's colour lights holes in the ceiling).</p>
+
+      <h2>When a pack is wrong</h2>
+      <p>Nothing is half-applied. The game lists every problem and keeps the look you had. Typical ones:</p>
+      <ul>
+        <li><code>tile.gras: no such thing in the game</code>: a typo in an id; check the list.</li>
+        <li><code>tile.water icon: Water has no "icon"</code>: that thing doesn't have that slot.</li>
+        <li><code>tile.grass top: "grass.png" was not among the files picked with the pack</code>: pick the pictures too, or
+          write them into the file.</li>
+        <li><code>character.boat image: the picture failed to load or decode</code>: the file isn't a picture the browser can read.</li>
+      </ul>
+      <p>If the default pack itself is broken, the game stops and says what broke rather than drawing a half-empty world.</p>
     </article>
 
     <article id="saving" data-title="Saving" hidden>

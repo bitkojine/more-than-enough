@@ -786,14 +786,20 @@ async function main() {
   await evalJS('MTE_GAME.setTilt(1)');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   ok(await waitFor('MTE_GAME.getState().player.z < 0', 2000), 'went down into the mine with the view tilted');
+  // The camera moves to the new layer when it next draws: wait for a frame so
+  // the wall's screen position below is projected from where it is now shown.
+  await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
   // A diggable wall beside the player (north first, so it stands in front of the row behind).
   var wall = JSON.parse(await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);' +
     'var near=[[0,-1],[1,0],[-1,0],[0,1]];for(var i=0;i<near.length;i++){var x=px+near[i][0],y=py+near[i][1],t=C.tileAt(s.world,x,y,p.z);' +
     'if(!C.TILE_INFO[t].solid||t===C.T.SHAFT)continue;C.markExplored(s.world,x,y,p.z);var h=C.tileHeight(s.world,x,y,p.z);var sp=G.project(x+0.5,y+0.4,p.z+h);' +
     'return JSON.stringify({x:x,y:y,z:p.z,h:h,sx:sp.x,sy:sp.y,solid:true,type:t});}return JSON.stringify({solid:false});})()'));
   ok(wall.solid && wall.h === 1, 'rock beside the player stands a full layer tall (' + JSON.stringify(wall) + ')');
+  // One tap is one swing: it digs into the wall (a rich seam takes several to clear).
+  var wallRich = 'MTE_GAME.core.richness(MTE_GAME.getState().world,' + wall.x + ',' + wall.y + ',' + wall.z + ')';
+  var richBefore = await evalJS(wallRich);
   await tap(wall.sx, wall.sy);
-  var dugWall = await waitFor('MTE_GAME.core.richness(MTE_GAME.getState().world,' + wall.x + ',' + wall.y + ',' + wall.z + ') === 0', 1500);
+  var dugWall = await waitFor(wallRich + ' === ' + (richBefore - 1), 1500);
   ok(dugWall, 'tapping the top of a wall, tilted, digs that wall' + (dugWall ? '' : ' — tap picked ' +
     await evalJS('JSON.stringify({pick:MTE_GAME.unproject(' + wall.sx + ',' + wall.sy + '),player:MTE_GAME.getState().player,tilt:MTE_GAME.tilt()})')));
   console.log('  screenshot: ' + await shot('07-tilted-mine.png'));
@@ -817,6 +823,68 @@ async function main() {
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'F3 closes it again');
 
+  /* ----------------------------------------------------------- textures */
+  console.log('\n== Texture packs ==');
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  eq(await evalJS('MTE_GAME.look.name'), 'Lanternlight', 'the game starts in the default texture pack');
+  ok(await waitFor('[...document.querySelectorAll("img[data-look]")].every(function(i){return i.complete && i.naturalWidth > 0;})', 3000),
+    'every picture on the HUD and buttons comes from the pack and has loaded');
+  eq(await evalJS('document.querySelectorAll("#resources .chip img.ic").length'), 4, 'each resource counter shows its pack icon');
+  ok(await evalJS('!/\\p{Extended_Pictographic}/u.test(document.getElementById("controls").textContent + document.getElementById("resources").textContent)'),
+    'no emoji left on the buttons or counters');
+  eq(await evalJS('document.getElementById("packName").textContent'), 'Lanternlight', 'the Textures button names the pack in use');
+  eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), true, '"Default textures" only shows while another pack is in use');
+  // The sheet's rows use the pack's pictures too.
+  await evalJS('document.getElementById("btnBuild").click()');
+  ok(await waitFor('document.querySelectorAll("#sheetBody .row .ic img").length >= 8', 2000), 'the Build sheet shows each building\'s picture');
+  await evalJS('document.getElementById("btnClose").click()');
+
+  // A pack picked as files: helpers build File objects in the page.
+  var pickPack = function (pack, extra) {
+    return evalJS('(function(){var files=[new File([' + JSON.stringify(JSON.stringify(pack)) + '],"pack.json",{type:"application/json"})];' +
+      (extra || []).map(function (f) { return 'files.push(new File([' + JSON.stringify(f.text) + '],' + JSON.stringify(f.name) + ',{type:"image/svg+xml"}));'; }).join('') +
+      'return MTE_GAME.textures.fromFiles(files).then(function(){return true;});})()');
+  };
+  var dot = function (fill) { return '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="' + fill + '"/></svg>'; };
+
+  await pickPack({ format: 1, name: 'Broken', looks: { 'tile.gras': { top: 'g.png' }, 'tile.water': { icon: 'w.png' }, 'color.backdrop': { color: 'black' } } });
+  ok(await waitFor('!document.getElementById("packReport").hidden', 2000), 'a broken pack opens the problem report');
+  var report = await evalJS('[...document.querySelectorAll("#packReport li")].map(function(li){return li.textContent;})');
+  ok(report.length === 3 && /^tile\.gras: no such thing/.test(report[0]) && /^tile\.water icon:/.test(report[1]) && /^color\.backdrop color:/.test(report[2]),
+    'the report lists every problem by thing and slot (' + report.join(' | ') + ')');
+  eq(await evalJS('MTE_GAME.look.name'), 'Lanternlight', 'a broken pack is not used at all');
+  await evalJS('document.querySelector("#packReport button").click()');
+  ok(await evalJS('document.getElementById("packReport").hidden'), 'the report closes');
+
+  await pickPack({ format: 1, name: 'Missing file', looks: { 'resource.wood': { icon: 'wood.svg' } } });
+  ok(await waitFor('/wood\\.svg" was not among the files picked/.test(document.getElementById("packReport").textContent)', 2000),
+    'a picture that wasn\'t picked with the pack is named in the report');
+  await evalJS('document.querySelector("#packReport button").click()');
+
+  var woodBefore = await evalJS('document.querySelector("#resources img.ic").src');
+  await pickPack({ format: 1, name: 'Test pack', looks: {
+    'resource.wood': { icon: 'wood.svg' },
+    'resource.stone': { icon: dot('#ff00ff') },
+    'color.backdrop': { color: '#123456' },
+    'tile.grass': { top: ['wood.svg', null], color: '#aa2200' }
+  } }, [{ name: 'wood.svg', text: dot('#00ff00') }]);
+  ok(await waitFor('MTE_GAME.look.name === "Test pack"', 3000), 'a good pack (a pack.json plus a picture file, and inline SVG) is used straight away');
+  eq(await evalJS('document.getElementById("packName").textContent'), 'Test pack', 'the Textures button shows its name');
+  ok(await evalJS('document.querySelector("#resources img.ic").src') !== woodBefore, 'the wood counter switches to the pack\'s picture');
+  eq(await evalJS('MTE_GAME.look.color("color.backdrop")'), '#123456', 'the pack\'s colours are used');
+  eq(await evalJS('MTE_GAME.look.color("tile.forest")'), '#3a5a2c', 'anything the pack leaves out keeps the default look');
+  eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), false, '"Default textures" appears');
+  ok(await waitFor('/^Textures: Test pack/.test(document.getElementById("toast").textContent)', 1000), 'a toast confirms the pack');
+  eq(await evalJS('document.getElementById("crash").hidden'), true, 'the map keeps drawing in the new pack');
+
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  ok(await waitFor('MTE_GAME.look.name === "Test pack"', 3000), 'the pack is remembered after a reload');
+  await evalJS('document.getElementById("btnTexturesDefault").click()');
+  ok(await waitFor('MTE_GAME.look.name === "Lanternlight" && document.getElementById("btnTexturesDefault").hidden', 2000), '"Default textures" goes back to Lanternlight');
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  ok(await waitFor('window.MTE_GAME && MTE_GAME.look.name === "Lanternlight"', 3000), 'and the old pack is forgotten');
+  pageErrors = pageErrors.filter(function (e) { return e.indexOf('Texture pack not used') < 0; });
+
   /* --------------------------------------------------------------- wiki */
   console.log('\n== Wiki ==');
   await navigate2('http://127.0.0.1:' + PORT + '/wiki/#mine');
@@ -827,6 +895,14 @@ async function main() {
   await evalJS('location.hash = "#ideas"');
   ok(await waitFor('!document.getElementById("ideas").hidden && document.querySelectorAll("#ideas .idea").length >= 20', 2000), 'the wiki has an Ideas section full of ideas');
   ok(await evalJS('document.querySelector("#ideas .note-ideas").textContent.indexOf("None of this is in the game") >= 0'), 'the Ideas section says plainly that none of it is in the game');
+  await evalJS('location.hash = "#things"');
+  var things = await evalJS('import("/src/core/index.js").then(function(C){return C.LOOKS.length;})');
+  ok(await waitFor('document.querySelectorAll("#things .thing").length === ' + things, 3000), 'Everything in the game lists every thing in the catalog (' + things + ')');
+  ok(await waitFor('[...document.querySelectorAll("#things .thing")].every(function(t){return t.querySelector("img, .swatch");})', 2000), 'each one shows its default picture or colour');
+  ok(await waitFor('[...document.querySelectorAll("#things img")].every(function(i){return i.complete && i.naturalWidth > 0;})', 6000), 'every picture in the list loads');
+  await evalJS('location.hash = "#textures"');
+  var bundled = await evalJS('import("/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
+  ok(bundled.n === things && bundled.svg && !bundled.paths, 'the default pack downloads as one file with every picture inside it');
 
   console.log('\n== Runtime errors ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

@@ -37,6 +37,18 @@ hide stereotype
     Shadowing: 0;
     MaximumWidth: 450;
   }
+  // Element,Container,Presentation
+  .Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u {
+    BackgroundColor: #b0761f;
+    LineColor: #7b5215;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
   // Relationship
   .Relationship-UmVsYXRpb25zaGlw {
     LineThickness: 2;
@@ -75,6 +87,7 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
     rectangle "==Effects\n<size:16>[Component: JavaScript]</size>\n\nParticles, floating text and flyers (resources homing into the pack), with budgets and a flyer lifetime so bursts stay cheap." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Effects
     rectangle "==HUD and Sheet\n<size:16>[Component: JavaScript]</size>\n\nResource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.HUDandSheet
     rectangle "==Audio\n<size:16>[Component: JavaScript]</size>\n\nA small WebAudio synth unlocked by the first gesture: per-material gather voices, collect/build/upgrade/fanfare cues and an extractor hum. Takes parameters, never reads game state." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Audio
+    rectangle "==Look and Texture Packs\n<size:16>[Component: JavaScript + IndexedDB]</size>\n\nWhat everything looks like: the default pack (packs/default/) with the player's pack laid over it slot by slot. Validates packs against the Catalog and refuses any with a problem (listing each by thing and slot), loads and rasterises pictures per size, picks variants and animation frames, and remembers the player's pack in IndexedDB. Drawing code and the HUD ask it for colours and pictures by thing id." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.LookandTexturePacks
     rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
     rectangle "==Main Loop\n<size:16>[Component: JavaScript]</size>\n\nWires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.MainLoop
     rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
@@ -83,6 +96,7 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
     rectangle "==Renderer\n<size:16>[Component: JavaScript]</size>\n\nDraws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row; unexplored tiles are left dark and explored edges drop as layered cliffs (strata); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Never text to read." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Renderer
   }
 
+  rectangle "==Default Texture Pack\n<size:16>[Container: JSON + SVG]</size>\n\nLanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.DefaultTexturePack
   rectangle "==Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>\n\nThe game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
 }
 
@@ -100,5 +114,9 @@ MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.Camera 
 MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Reads tiles of the camera's layer"
 MORETHANENOUGH.WebApplication.HUDandSheet --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Reads the upgrade registry and costs"
 MORETHANENOUGH.WebApplication.Storage --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "serialize/deserialize"
+MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.LookandTexturePacks <<Relationship-UmVsYXRpb25zaGlw>> : "Colours and pictures by thing id"
+MORETHANENOUGH.WebApplication.HUDandSheet --> MORETHANENOUGH.WebApplication.LookandTexturePacks <<Relationship-UmVsYXRpb25zaGlw>> : "Icons by thing id"
+MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Validates packs against"
+MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
 
 @enduml

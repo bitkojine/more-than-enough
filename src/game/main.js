@@ -12,6 +12,8 @@ import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createController } from './controller.js';
 import { createPerf } from './perf.js';
+import { createLook } from './look/look.js';
+import { createTextures, loadDefaultPack } from './textures.js';
 import { render } from './render/renderer.js';
 import { loadGame, saveGame, loadView, saveView } from './storage.js';
 
@@ -21,11 +23,23 @@ const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 
+// Nothing is drawn until the default texture pack is in. If it can't load,
+// that's a crash: say exactly what broke.
+const look = createLook();
+let defaultPack;
+try {
+  defaultPack = await loadDefaultPack();
+} catch (err) {
+  window.MTE_CRASH(err.message);
+  throw err;
+}
+look.use(defaultPack);
+
 const cam = createCamera(el.canvas);
 cam.relief = (x, y) => Core.tileHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
-const fx = createEffects();
-const hud = createHud(el);
+const fx = createEffects(look);
+const hud = createHud(el, look);
 const perf = createPerf(el, el.canvas);
 
 const loaded = loadGame();
@@ -60,11 +74,18 @@ const game = {
   }
 };
 
-const controller = createController({ game, cam, fx, audio, hud });
+const controller = createController({ game, cam, fx, audio, hud, look });
 
 const sheet = createSheet(el, {
   getState: () => game.state,
+  look,
   actions: { buy: controller.buy, place: controller.place, embark: controller.embark }
+});
+
+const textures = createTextures({
+  el, look, defaultPack,
+  changed: () => { hud.repaint(); sheet.render(); },
+  toast: hud.toast
 });
 
 const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : []);
@@ -113,10 +134,12 @@ const timers = [
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;
+let moving = false;
 
 function update(dt) {
   const s = game.state;
   const moved = controller.steer(dt, input.moveVector());
+  moving = moved;
   Core.step(s, dt);
 
   // Logistics reports auto-collections as events; show them as flyers.
@@ -150,6 +173,7 @@ function view() {
   const underground = Core.isUnderground(s);
   return {
     facing: controller.facing,
+    moving,
     harvestTarget: Core.harvestTarget(s),
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
@@ -170,7 +194,7 @@ function frame(now) {
     if (!document.hidden) update(dt);
     cam.tick(dt);
     const t1 = performance.now();
-    const stats = render(cam, game.state, fx, view());
+    const stats = render(cam, game.state, fx, view(), look);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
     perf.tick(dt);
   } catch (err) {
@@ -198,6 +222,8 @@ cam.setZoom(savedView.zoom);
 cam.setTilt(savedView.tilt, true);
 perf.toggle(savedView.perf);
 resize();
+hud.repaint();
+await textures.restore();
 hud.update(game.state);
 hud.updateButtons(game.state);
 if (loaded.lost) hud.toast('Your old save could not be loaded — starting a new world');
@@ -206,6 +232,8 @@ requestAnimationFrame(frame);
 // A small hook so the browser tests can inspect and adjust the real game.
 window.MTE_GAME = {
   core: Core,
+  look,
+  textures,
   getState: () => game.state,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },

@@ -20,11 +20,6 @@ export const SIZES = { small: 'Small', medium: 'Medium', large: 'Large', huge: '
 export const IDEAS = [
   /* ------------------------------------------------------------ look */
   {
-    title: 'A wanderer, not a ball', area: 'look', size: 'medium',
-    pitch: 'Replace the round token with a small hooded figure carrying a lantern, drawn upright so it reads at every tilt. It turns to face where it walks and swings its tool when it gathers.',
-    builds: 'The player sprite and the facing direction it already tracks.'
-  },
-  {
     title: 'Tools you can see', area: 'look', size: 'small',
     pitch: 'Each Axe and Pickaxe level changes what the wanderer holds: flint, bronze, iron, crystal. Progress shows on the character instead of only in the sheet.',
     builds: 'Tool levels in the upgrade registry.'
@@ -48,6 +43,22 @@ export const IDEAS = [
     title: 'Seasons', area: 'look', size: 'medium',
     pitch: 'Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge regrowth and swimming, but even purely visual it gives long sessions a sense of time.',
     builds: 'The day/night clock.'
+  },
+
+  {
+    title: 'Pack gallery', area: 'look', size: 'medium',
+    pitch: 'A page in the wiki where players share texture packs with a preview of each, and the game can load one straight from a link. Packs become something people trade, like mods.',
+    builds: 'Texture packs, the pack format and the one-file download.'
+  },
+  {
+    title: 'Sound packs', area: 'look', size: 'medium',
+    pitch: 'The same split for sound: the game defines every cue (each material\'s gather, collect, build, the fanfare, the hum), and a pack supplies the samples. A pixel-art pack could ship with chiptune bleeps.',
+    builds: 'The catalog and the audio cues.'
+  },
+  {
+    title: 'Packs that change with depth', area: 'look', size: 'small',
+    pitch: 'Let a pack give a thing a different picture per layer band, so stone looks warmer near the surface and colder deep down, without the game learning anything new.',
+    builds: 'Texture pack variants and the geology bands.'
   },
 
   /* ----------------------------------------------------------- depth */

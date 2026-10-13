@@ -1,0 +1,267 @@
+{
+ "format": 1,
+ "name": "Lanternlight",
+ "author": "byrforr",
+ "tile": 64,
+ "looks": {
+  "tile.grass": {
+   "color": "#56803a",
+   "top": ["ground/grass-1.svg", "ground/grass-2.svg", "ground/grass-3.svg"],
+   "face": "faces/turf.svg",
+   "stand": [null, null, null, null, null, null, "props/tuft.svg", "props/tuft.svg", "props/flowers.svg"]
+  },
+  "tile.forest": {
+   "color": "#3a5a2c",
+   "top": ["ground/forest-1.svg", "ground/forest-2.svg"],
+   "face": "faces/turf.svg",
+   "stand": ["props/pine.svg", "props/pine.svg", "props/pines.svg", "props/oak.svg"],
+   "cut": "props/stump.svg"
+  },
+  "tile.stone": {
+   "color": "#747a70",
+   "top": "ground/stone.svg",
+   "face": "faces/earth.svg",
+   "stand": ["props/boulder.svg", "props/boulders.svg"],
+   "cut": "props/pebbles.svg"
+  },
+  "tile.ore": {
+   "color": "#7a6450",
+   "top": "ground/ore.svg",
+   "face": "faces/ore.svg",
+   "stand": "props/ore-rock.svg",
+   "cut": "props/ore-rock-cut.svg"
+  },
+  "tile.crystal": {
+   "color": "#3b4668",
+   "top": "ground/crystal.svg",
+   "face": "faces/crystal.svg",
+   "stand": ["props/crystals.svg", "props/crystals-2.svg"],
+   "cut": "props/crystal-cut.svg"
+  },
+  "tile.water": {
+   "color": "#2f6a93",
+   "top": {
+    "frames": ["ground/water-1.svg", "ground/water-2.svg", "ground/water-3.svg"],
+    "fps": 1.5
+   },
+   "stand": [null, null, null, null, null, null, null, null, null, null, null, "props/reeds.svg"]
+  },
+  "tile.mountain": {
+   "color": "#6c737b",
+   "top": "ground/mountain.svg",
+   "face": "faces/rock.svg"
+  },
+  "tile.tunnel": {
+   "color": "#5a4836",
+   "top": "ground/tunnel.svg",
+   "stand": [null, null, null, null, null, null, null, null, null, "props/mushrooms.svg"]
+  },
+  "tile.soil": {
+   "color": "#85603c",
+   "top": "ground/soil.svg",
+   "face": "faces/earth.svg"
+  },
+  "tile.stone-seam": {
+   "color": "#8a8a84",
+   "top": "ground/stone-seam.svg",
+   "face": "faces/rock.svg"
+  },
+  "tile.ore-seam": {
+   "color": "#7d5636",
+   "top": "ground/ore-seam.svg",
+   "face": "faces/ore.svg"
+  },
+  "tile.crystal-seam": {
+   "color": "#2e6b80",
+   "top": "ground/crystal-seam.svg",
+   "face": "faces/crystal.svg"
+  },
+  "tile.fossil": {
+   "color": "#74688a",
+   "top": "ground/fossil.svg",
+   "face": "faces/fossil.svg"
+  },
+  "tile.bedrock": {
+   "color": "#2e3238",
+   "top": "ground/bedrock.svg",
+   "face": "faces/bedrock.svg"
+  },
+  "tile.shaft": {
+   "color": "#8a6236",
+   "top": "ground/shaft.svg",
+   "face": "faces/earth.svg"
+  },
+  "tile.shaft-open": {
+   "color": "#5a4836",
+   "top": "ground/shaft-open.svg"
+  },
+  "resource.wood": {
+   "icon": "icons/wood.svg",
+   "color": "#d9a05b"
+  },
+  "resource.stone": {
+   "icon": "icons/stone.svg",
+   "color": "#c7ccc4"
+  },
+  "resource.ore": {
+   "icon": "icons/ore.svg",
+   "color": "#ec8f3e"
+  },
+  "resource.crystal": {
+   "icon": "icons/crystal.svg",
+   "color": "#7fe8ff"
+  },
+  "resource.insight": {
+   "icon": "icons/insight.svg",
+   "color": "#c9a6ff"
+  },
+  "building.lumber": {
+   "image": "buildings/lumber.svg"
+  },
+  "building.quarry": {
+   "image": "buildings/quarry.svg"
+  },
+  "building.mine": {
+   "image": "buildings/mine.svg"
+  },
+  "building.resonator": {
+   "image": "buildings/resonator.svg"
+  },
+  "building.sapling": {
+   "image": "buildings/sapling.svg"
+  },
+  "building.brickyard": {
+   "image": "buildings/brickyard.svg"
+  },
+  "building.foundry": {
+   "image": "buildings/foundry.svg"
+  },
+  "building.observatory": {
+   "image": "buildings/observatory.svg"
+  },
+  "character.wanderer": {
+   "image": {
+    "frames": ["characters/wanderer.svg", "characters/wanderer-walk-1.svg", "characters/wanderer.svg", "characters/wanderer-walk-2.svg"],
+    "fps": 8
+   }
+  },
+  "character.boat": {
+   "image": "characters/boat.svg"
+  },
+  "mark.hole": {
+   "top": "ground/hole.svg",
+   "color": "#050302"
+  },
+  "mark.skylight": {
+   "color": "#ffe9b8"
+  },
+  "ui.build": {
+   "icon": "icons/build.svg"
+  },
+  "ui.upgrade": {
+   "icon": "icons/upgrade.svg"
+  },
+  "ui.dig": {
+   "icon": "icons/dig.svg"
+  },
+  "ui.climb": {
+   "icon": "icons/climb.svg"
+  },
+  "ui.gather": {
+   "icon": "icons/gather.svg"
+  },
+  "ui.collect": {
+   "icon": "icons/collect.svg"
+  },
+  "ui.embark": {
+   "icon": "icons/embark.svg"
+  },
+  "tool.axe": {
+   "icon": "icons/axe.svg"
+  },
+  "tool.pickaxe": {
+   "icon": "icons/pickaxe.svg"
+  },
+  "tool.boots": {
+   "icon": "icons/boots.svg"
+  },
+  "tool.overclock": {
+   "icon": "icons/overclock.svg"
+  },
+  "refinery.wood": {
+   "icon": "icons/silviculture.svg"
+  },
+  "refinery.stone": {
+   "icon": "icons/masonry.svg"
+  },
+  "refinery.ore": {
+   "icon": "icons/metallurgy.svg"
+  },
+  "refinery.crystal": {
+   "icon": "icons/crystallurgy.svg"
+  },
+  "engine.abundance": {
+   "icon": "icons/abundance.svg"
+  },
+  "unlock.logistics": {
+   "icon": "icons/logistics.svg"
+  },
+  "unlock.sapling": {
+   "icon": "icons/blueprint-sapling.svg"
+  },
+  "unlock.brickyard": {
+   "icon": "icons/blueprint-brickyard.svg"
+  },
+  "unlock.foundry": {
+   "icon": "icons/blueprint-foundry.svg"
+  },
+  "unlock.observatory": {
+   "icon": "icons/blueprint-observatory.svg"
+  },
+  "perk.legacy": {
+   "icon": "icons/legacy.svg"
+  },
+  "perk.memory": {
+   "icon": "icons/memory.svg"
+  },
+  "perk.heirloom": {
+   "icon": "icons/heirloom.svg"
+  },
+  "perk.cartographer": {
+   "icon": "icons/cartographer.svg"
+  },
+  "perk.nomad": {
+   "icon": "icons/nomad.svg"
+  },
+  "path.tools": {
+   "icon": "icons/toolbox.svg"
+  },
+  "path.refining": {
+   "icon": "icons/ingots.svg"
+  },
+  "path.abundance": {
+   "icon": "icons/abundance.svg"
+  },
+  "path.unlocks": {
+   "icon": "icons/scroll.svg"
+  },
+  "path.perks": {
+   "icon": "icons/constellation.svg"
+  },
+  "color.backdrop": {
+   "color": "#05070b"
+  },
+  "color.unknown": {
+   "color": "#2e241a"
+  },
+  "color.visited": {
+   "color": "#3d2f21"
+  },
+  "color.cavity": {
+   "color": "#17120e"
+  },
+  "color.edge": {
+   "color": "#f0e2b6"
+  }
+ }
+}

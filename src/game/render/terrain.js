@@ -11,27 +11,26 @@
  * as a cliff showing the layers below (strata.js); other edges over the dark
  * catch a light lip.
  *
- * Decoration takes the top face's rectangle: `u` wide and `g * u` deep, where
- * g shrinks as the view tilts. Things lying on the ground scale by g; things
- * standing up (trees, crystals, grass blades) keep their height. */
+ * What everything looks like comes from the texture pack (look.js): a tile's
+ * top picture is stretched over its top face (`u` wide, `g * u` deep, where g
+ * shrinks as the view tilts), its face picture repeats down its south face,
+ * and what stands on it (trees, boulders) is drawn upright after the whole
+ * row's ground, so it can lean over its neighbours without being cut off. */
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { BASE_COLOR, shade, tv } from './palette.js';
+import { shade, tv, rgba } from './palette.js';
 import { drawCliff, cliffDepthPx } from './strata.js';
 
-const { T } = Core;
 const LOD_PX = 10;          // below this tile size, draw level-of-detail blocks
-const LIP = 'rgba(232,222,186,0.22)';   // the edge of the known world, over the dark
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
 const RIM = 'rgba(255,255,255,0.09)';   // light catching a block's top edge
 const CONTACT = 'rgba(0,0,0,0.28)';     // shade at the foot of a taller block
+const SHADOW = 'rgba(0,0,0,0.28)';      // under things standing on the ground
+const VARIATION = 0.035;    // up to this much darker, per tile, so ground doesn't look like a grid
+const FOOT = 0.6;           // where on a tile's depth standing things put their feet
 const TAU = Math.PI * 2;
-
-// South faces that shouldn't just be a darker top (dark rock needs lifting).
-const FACE_COLOR = [];
-FACE_COLOR[T.ROCK] = '#1d2328';
-FACE_COLOR[T.BEDROCK] = '#24282c';
+const TILE_LOOK = Core.TILE_KEY.map((k, t) => Core.tileLook(t));
 
 export function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -45,259 +44,144 @@ export function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-/* ------------------------------------------------------------- surface */
-
-function drawGrass(ctx, sx, sy, u, g, x, y) {
-  if (tv(x, y, 101) < 0.45) return;
-  ctx.strokeStyle = 'rgba(150,185,110,0.35)';
-  ctx.lineWidth = Math.max(1, u * 0.03);
-  for (let k = 0; k < 2; k++) {
-    const gx = sx + u * (0.25 + 0.5 * tv(x, y, 102 + k));
-    const gy = sy + u * g * (0.4 + 0.4 * tv(x, y, 104 + k));
-    ctx.beginPath();
-    ctx.moveTo(gx, gy);
-    ctx.lineTo(gx + u * 0.03, gy - u * (0.08 + 0.05 * tv(x, y, 106 + k)));
-    ctx.stroke();
-  }
-}
-
-function drawTrees(ctx, sx, sy, u, g, x, y) {
-  const n = tv(x, y, 1) > 0.55 ? 2 : 1;
-  for (let k = 0; k < n; k++) {
-    const cx = sx + u * 0.5 + (tv(x, y, 2 + k) - 0.5) * u * 0.55;
-    const cy = sy + u * g * (0.52 + (tv(x, y, 9 + k) - 0.5) * 0.45);
-    const w = u * 0.42, h = u * 0.52;
-    ctx.fillStyle = 'rgba(0,0,0,0.30)';
-    ctx.beginPath(); ctx.ellipse(cx, cy + u * 0.13 * g, w * 0.5, u * 0.09 * g, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = k ? '#2c5634' : '#3a6b41';
-    ctx.beginPath(); ctx.moveTo(cx, cy - h); ctx.lineTo(cx - w / 2, cy + h * 0.32); ctx.lineTo(cx + w / 2, cy + h * 0.32); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#3f2d1e';
-    ctx.fillRect(cx - u * 0.04, cy + h * 0.3, u * 0.08, u * 0.12);
-  }
-}
-
-function drawStump(ctx, sx, sy, u, g) {
-  const cx = sx + u * 0.5, cy = sy + u * g * 0.55;
-  ctx.fillStyle = 'rgba(0,0,0,0.28)';
-  ctx.beginPath(); ctx.ellipse(cx, cy + u * 0.07 * g, u * 0.16, u * 0.07 * g, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#4a3826';
-  ctx.beginPath(); ctx.ellipse(cx, cy, u * 0.13, u * 0.13 * g, 0, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#6a5236';
-  ctx.beginPath(); ctx.ellipse(cx, cy - u * 0.01 * g, u * 0.07, u * 0.07 * g, 0, 0, TAU); ctx.fill();
-}
-
-function drawRocks(ctx, sx, sy, u, g, x, y, ore, depleted) {
-  for (let k = 0; k < (depleted ? 1 : 2); k++) {
-    const cx = sx + u * (0.3 + 0.4 * tv(x, y, 3 + k));
-    const cy = sy + u * g * (0.42 + 0.32 * tv(x, y, 5 + k));
-    const r = u * (depleted ? 0.13 : 0.19) * (0.85 + 0.35 * tv(x, y, 11 + k));
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.beginPath(); ctx.ellipse(cx, cy + r * 0.55 * g, r * 1.1, r * 0.4 * g, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#454a41';
-    ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.85, 0, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#737a6e';
-    ctx.beginPath(); ctx.ellipse(cx - r * 0.18, cy - r * 0.24, r * 0.62, r * 0.5, 0, 0, TAU); ctx.fill();
-  }
-  if (!ore || depleted) return;
-  for (let j = 0; j < 3; j++) {
-    const px = sx + u * (0.25 + 0.5 * tv(x, y, 21 + j));
-    const py = sy + u * g * (0.3 + 0.45 * tv(x, y, 31 + j));
-    ctx.fillStyle = '#e0903c';
-    ctx.beginPath(); ctx.arc(px, py, u * 0.055, 0, TAU); ctx.fill();
-    ctx.fillStyle = 'rgba(255,210,140,0.9)';
-    ctx.beginPath(); ctx.arc(px - u * 0.014, py - u * 0.014, u * 0.022, 0, TAU); ctx.fill();
-  }
-}
-
-function drawCrystal(ctx, sx, sy, u, g, x, y) {
-  for (let k = 0; k < 3; k++) {
-    const cx = sx + u * (0.28 + 0.44 * tv(x, y, 41 + k));
-    const cy = sy + u * g * (0.38 + 0.38 * tv(x, y, 51 + k));
-    const h = u * (0.16 + 0.13 * tv(x, y, 61 + k));
-    const diamond = (hw, hh) => {
-      ctx.beginPath();
-      ctx.moveTo(cx, cy - hh); ctx.lineTo(cx + hw, cy); ctx.lineTo(cx, cy + hh); ctx.lineTo(cx - hw, cy);
-      ctx.closePath(); ctx.fill();
-    };
-    ctx.fillStyle = 'rgba(110,220,255,0.14)'; // soft halo (cheap, no shadowBlur)
-    diamond(h * 0.75, h * 1.5);
-    ctx.fillStyle = k === 0 ? '#8fefff' : '#5cc4e0';
-    diamond(h * 0.45, h);
-  }
-}
-
-function drawWater(ctx, sx, sy, u, g, x, y, time) {
-  ctx.fillStyle = 'rgba(30,60,95,0.5)';
-  ctx.fillRect(sx, sy + u * g * 0.62, u + 1, u * g * 0.38);
-  ctx.strokeStyle = 'rgba(90,150,200,0.22)';
-  ctx.lineWidth = Math.max(1, u * 0.035);
-  for (let k = 0; k < 2; k++) {
-    const wy = sy + u * g * (0.32 + 0.34 * k + Math.sin((time + tv(x, y, 71 + k)) * 1.6) * 0.04);
-    ctx.beginPath();
-    ctx.moveTo(sx + u * 0.16, wy);
-    ctx.lineTo(sx + u * 0.55, wy);
-    ctx.stroke();
-  }
-}
-
-function drawMountain(ctx, sx, sy, u, g) {
-  ctx.fillStyle = '#1b2126';
-  roundRect(ctx, sx + u * 0.12, sy + u * g * 0.16, u * 0.76, u * g * 0.68, u * g * 0.16);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.05)';
-  roundRect(ctx, sx + u * 0.2, sy + u * g * 0.22, u * 0.5, u * g * 0.24, u * g * 0.1);
-  ctx.fill();
-}
-
-/* --------------------------------------------------------- underground */
-
-const SEAM_FLECK = { [T.STONE_SEAM]: '#86735c', [T.ORE_SEAM]: '#efa45c', [T.CRYSTAL_SEAM]: '#8fe9ff', [T.FOSSIL]: '#c3b0d8', [T.SOIL]: '#86735c' };
-
-// A closed shaft: a gold ring in the rock. Once opened it is a hole (drawPit).
-function drawShaft(ctx, sx, sy, u, g) {
-  const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
-  ctx.strokeStyle = '#e4c77f';
-  ctx.lineWidth = Math.max(2, u * 0.07);
-  ctx.beginPath(); ctx.ellipse(cx, cy, u * 0.3, u * 0.3 * g, 0, 0, TAU); ctx.stroke();
-  ctx.fillStyle = ctx.strokeStyle;
-  ctx.beginPath(); ctx.ellipse(cx, cy, u * 0.07, u * 0.07 * g, 0, 0, TAU); ctx.fill();
-}
-
 /* ---------------------------------------------------------------- holes */
 
-const PIT_RIM = '#4a3a28', PIT_DARK = '#030202', PIT_WALL = '#2a2017';
-
-// A hole in the floor: dug earth around a dark drop. Tilted, you see down its
-// far wall.
-function drawPit(ctx, sx, sy, u, g, rise) {
-  const inset = u * 0.14, lip = u * 0.05;
-  const x0 = sx + inset, y0 = sy + inset * g, w = u - inset * 2, h = (u - inset * 2) * g;
-  ctx.fillStyle = PIT_RIM;
-  roundRect(ctx, x0 - lip, y0 - lip * g, w + lip * 2, h + lip * 2 * g, u * 0.12 * g);
-  ctx.fill();
-  ctx.fillStyle = PIT_DARK;
-  ctx.fillRect(x0, y0, w, h);
+// A hole in the floor. Tilted, you see down its far wall, in the dark of the
+// hole's colour.
+function drawPit(ctx, look, sx, sy, u, d, rise) {
+  look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
   if (rise > FLAT_RISE_PX) {
-    ctx.fillStyle = PIT_WALL;
-    ctx.fillRect(x0, y0, w, Math.min(h, rise * 0.9));
+    ctx.fillStyle = rgba(look.color('mark.hole'), 0.85);
+    ctx.fillRect(sx + u * 0.2, sy + d * 0.2, u * 0.6, Math.min(d * 0.6, rise * 0.9));
   }
 }
 
-// A hole in the ceiling: daylight (or lamplight from the layer above) pooling
-// on the floor, and when tilted a shaft of it falling from the opening.
-function drawSkylight(ctx, sx, sy, u, g, rise) {
+// A hole in the ceiling: light from the layer above pooling on the floor, and
+// when tilted a shaft of it falling from the opening.
+function drawSkylight(ctx, look, sx, sy, u, g, rise) {
+  const light = look.color('mark.skylight');
   const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
   const pool = ctx.createRadialGradient(cx, cy, 0, cx, cy, u * 0.8);
-  pool.addColorStop(0, 'rgba(255,238,200,0.45)');
-  pool.addColorStop(1, 'rgba(255,238,200,0)');
+  pool.addColorStop(0, rgba(light, 0.45));
+  pool.addColorStop(1, rgba(light, 0));
   ctx.fillStyle = pool;
   ctx.fillRect(sx - u * 0.3, sy - u * 0.3 * g, u * 1.6, u * 1.6 * g);
   if (rise <= FLAT_RISE_PX) return;
   const beam = ctx.createLinearGradient(0, cy - rise, 0, cy);
-  beam.addColorStop(0, 'rgba(255,238,200,0.3)');
-  beam.addColorStop(1, 'rgba(255,238,200,0.05)');
+  beam.addColorStop(0, rgba(light, 0.3));
+  beam.addColorStop(1, rgba(light, 0.05));
   ctx.fillStyle = beam;
   ctx.fillRect(sx + u * 0.18, cy - rise, u * 0.64, rise);
 }
 
-function drawUnderground(ctx, sx, sy, u, g, t) {
-  if (t === T.SHAFT) return drawShaft(ctx, sx, sy, u, g);
-  if (t === T.TUNNEL) {
-    ctx.fillStyle = 'rgba(225,181,105,0.1)';
-    ctx.fillRect(sx + u * 0.15, sy + u * g * 0.15, u * 0.7, u * g * 0.7);
-    return;
+// A face picture repeated down a face `faceH` tall, one picture per layer of
+// height (`layerPx`), the last one cut short.
+function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
+  const step = Math.max(1, layerPx);
+  const bmp = look.bitmap(pic, u);
+  for (let off = 0; off < faceH; off += step) {
+    const part = Math.min(step, faceH - off);
+    ctx.drawImage(bmp, 0, 0, bmp.width, Math.max(1, bmp.height * part / step), sx, top + off, u + 1, part + 1);
   }
-  if (t === T.BEDROCK) {
-    ctx.strokeStyle = 'rgba(0,0,0,.35)';
-    ctx.lineWidth = Math.max(1, u * 0.07);
-    ctx.beginPath();
-    ctx.moveTo(sx + u * 0.2, sy + u * g * 0.2); ctx.lineTo(sx + u * 0.8, sy + u * g * 0.75);
-    ctx.moveTo(sx + u * 0.78, sy + u * g * 0.18); ctx.lineTo(sx + u * 0.28, sy + u * g * 0.82);
-    ctx.stroke();
-    return;
-  }
-  const r = u * (t === T.SOIL ? 0.09 : 0.2);
-  ctx.fillStyle = SEAM_FLECK[t];
-  ctx.beginPath(); ctx.ellipse(sx + u * 0.5, sy + u * g * 0.5, r, r * g, 0, 0, TAU); ctx.fill();
 }
 
 /* ---------------------------------------------------------------- tiles */
 
-// A tile's look: its type, or fog for unexplored surface.
-// A tile's look: its type, or -1 where it hasn't been seen yet.
 // Light lips on the edges of tile (x, y) that face the dark to the north,
 // west and east (the south edge is a cliff when tilted).
-function drawLips(ctx, w, x, y, z, sx, sy, u, d) {
+function drawLips(ctx, look, w, x, y, z, sx, sy, u, d) {
   const lip = Math.max(1, u * 0.04);
-  ctx.fillStyle = LIP;
+  ctx.fillStyle = rgba(look.color('color.edge'), 0.3);
   if (!Core.isExplored(w, x, y - 1, z)) ctx.fillRect(sx, sy, u, lip);
   if (!Core.isExplored(w, x - 1, y, z)) ctx.fillRect(sx, sy, lip, d);
   if (!Core.isExplored(w, x + 1, y, z)) ctx.fillRect(sx + u - lip, sy, lip, d);
 }
 
-function drawTile(ctx, cam, s, x, y, z) {
+// Where tile (x, y)'s top sits on screen, and its height.
+function tileTop(cam, w, x, y, z) {
+  // Flat (or nearly), height moves nothing on screen: skip looking it up.
+  const h = cam.risePx > FLAT_RISE_PX ? Core.tileHeight(w, x, y, z) : 0;
+  const p = cam.project(x, y, z + h);
+  return { h, sx: p.x, sy: p.y };
+}
+
+// The ground of one tile: cliff, south face, top, and any hole or skylight.
+function drawTile(ctx, cam, s, look, x, y, z) {
   const w = s.world, u = cam.tilePx, d = cam.depthPx, g = d / u;
   if (!Core.isExplored(w, x, y, z)) return; // the dark below the known world
   const t = Core.tileAt(w, x, y, z);
-  // Flat (or nearly), height moves nothing on screen: skip looking it up.
+  const id = TILE_LOOK[t];
   const tilted = cam.risePx > FLAT_RISE_PX;
-  const h = tilted ? Core.tileHeight(w, x, y, z) : 0;
-  const { x: sx, y: sy } = cam.project(x, y, z + h);
-  const color = BASE_COLOR[t];
+  const { h, sx, sy } = tileTop(cam, w, x, y, z);
+  const color = look.color(id);
 
   // The south face, down to the top of the tile in front, lit along its rim.
   // With the dark in front, it runs down to the floor and the cliff carries on.
   const edge = tilted && !Core.isExplored(w, x, y + 1, z);
   const front = !tilted || edge ? Math.min(h, 0) : Core.tileHeight(w, x, y + 1, z);
-  if (edge) drawCliff(ctx, cam, s, x, y, z);
+  if (edge) drawCliff(ctx, cam, s, look, x, y, z);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
-    ctx.fillStyle = FACE_COLOR[t] ? shade(FACE_COLOR[t], tv(x, y, 8)) : shade(color, tv(x, y, 8), FACE_DIM);
-    ctx.fillRect(sx, sy + d, u + 1, faceH + 1);
+    const face = look.pick(id, 'face', x, y, s.time);
+    if (face) drawFace(ctx, look, face, sx, sy + d, u, faceH, cam.risePx);
+    else {
+      ctx.fillStyle = shade(color, tv(x, y, 8), FACE_DIM);
+      ctx.fillRect(sx, sy + d, u + 1, faceH + 1);
+    }
     ctx.fillStyle = RIM;
     ctx.fillRect(sx, sy + d, u + 1, Math.min(faceH, Math.max(1, u * 0.035)));
   }
 
-  ctx.fillStyle = shade(color, tv(x, y, 7));
+  const top = look.pick(id, 'top', x, y, s.time);
+  if (top) look.draw(ctx, top, sx, sy, u + 1, d + 1);
+  else { ctx.fillStyle = color; ctx.fillRect(sx, sy, u + 1, d + 1); }
+  ctx.fillStyle = `rgba(0,0,0,${(tv(x, y, 7) * VARIATION).toFixed(3)})`;
   ctx.fillRect(sx, sy, u + 1, d + 1);
-  drawLips(ctx, w, x, y, z, sx, sy, u, d);
+  drawLips(ctx, look, w, x, y, z, sx, sy, u, d);
   // A taller block behind casts a little shade on this top's far edge.
   if (tilted && Core.tileHeight(w, x, y - 1, z) > h + 0.05) {
     ctx.fillStyle = CONTACT;
     ctx.fillRect(sx, sy, u + 1, d * 0.2);
   }
-  if (Core.holeBelow(w, x, y, z)) return drawPit(ctx, sx, sy, u, g, cam.risePx);
-  if (z !== Core.SURFACE) {
-    drawUnderground(ctx, sx, sy, u, g, t);
-    if (Core.holeAbove(w, x, y, z)) drawSkylight(ctx, sx, sy, u, g, cam.risePx);
-    return;
-  }
-  const depleted = Core.richness(w, x, y, z) <= 0;
-  if (t === T.FOREST && depleted) drawStump(ctx, sx, sy, u, g);
-  else if (t === T.FOREST) drawTrees(ctx, sx, sy, u, g, x, y);
-  else if (t === T.STONE) drawRocks(ctx, sx, sy, u, g, x, y, false, depleted);
-  else if (t === T.ORE) drawRocks(ctx, sx, sy, u, g, x, y, true, false);
-  else if (t === T.CRYSTAL) drawCrystal(ctx, sx, sy, u, g, x, y);
-  else if (t === T.WATER) drawWater(ctx, sx, sy, u, g, x, y, s.time);
-  else if (t === T.ROCK) drawMountain(ctx, sx, sy, u, g);
-  else drawGrass(ctx, sx, sy, u, g, x, y);
+  if (Core.holeBelow(w, x, y, z)) return drawPit(ctx, look, sx, sy, u, d, cam.risePx);
+  if (z !== Core.SURFACE && Core.holeAbove(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
+}
+
+// Whatever stands on tile (x, y): its stand picture, or its cut picture once
+// worked out. Holes and built tiles have nothing else standing on them.
+function drawStand(ctx, cam, s, look, built, x, y, z) {
+  const w = s.world;
+  if (!Core.isExplored(w, x, y, z) || Core.holeBelow(w, x, y, z) || built.has(Core.packKey(x, y, z))) return;
+  const t = Core.tileAt(w, x, y, z);
+  const id = TILE_LOOK[t];
+  const slot = Core.LOOK[id].slots.cut !== undefined && Core.richness(w, x, y, z) <= 0 ? 'cut' : 'stand';
+  const pic = look.pick(id, slot, x, y, s.time);
+  if (!pic) return;
+  const u = cam.tilePx, d = cam.depthPx;
+  const { sx, sy } = tileTop(cam, w, x, y, z);
+  const fx = sx + u / 2, fy = sy + d * FOOT;
+  const r = Math.min(u * 0.45, pic.units * u * 0.42);
+  ctx.fillStyle = SHADOW;
+  ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
+  look.stand(ctx, pic, fx, fy, u, tv(x, y, 17) < 0.5);
 }
 
 // One flat block per `step` x `step` tiles, coloured by the tile at its centre.
-function drawBlock(ctx, cam, s, bx, by, z, step) {
+function drawBlock(ctx, cam, s, look, bx, by, z, step) {
   const tx = bx * step + (step >> 1), ty = by * step + (step >> 1);
   if (!Core.isExplored(s.world, tx, ty, z)) return;
   const t = Core.tileAt(s.world, tx, ty, z);
   const p = cam.project(bx * step, by * step);
-  ctx.fillStyle = shade(BASE_COLOR[t], tv(tx, ty, 7));
+  ctx.fillStyle = shade(look.color(TILE_LOOK[t]), tv(tx, ty, 7));
   ctx.fillRect(p.x, p.y, cam.tilePx * step + 1, cam.depthPx * step + 1);
 }
 
 const lodStep = (cam) => Math.max(1, Math.ceil(LOD_PX / cam.tilePx));
 
 // Draws the visible terrain and calls onRow(y) after each row of tiles.
-// Returns how many tiles (or far-zoom blocks) it drew.
-export function drawTerrain(ctx, cam, s, onRow) {
+// `built` holds the packed keys of tiles with buildings. Returns how many
+// tiles (or far-zoom blocks) it drew.
+export function drawTerrain(ctx, cam, s, look, built, onRow) {
   const z = cam.z;
   const v = cam.visibleTiles();
   const step = lodStep(cam);
@@ -305,7 +189,8 @@ export function drawTerrain(ctx, cam, s, onRow) {
     // Start high enough that cliffs hanging down from rows above the screen show.
     const y0 = v.y0 - Math.ceil(cliffDepthPx(cam) / cam.depthPx);
     for (let y = y0; y <= v.y1; y++) {
-      for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, x, y, z);
+      for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, look, x, y, z);
+      for (let x = v.x0 - 1; x <= v.x1 + 1; x++) drawStand(ctx, cam, s, look, built, x, y, z);
       onRow(y);
     }
     return (v.y1 - y0 + 1) * (v.x1 - v.x0 + 1);
@@ -314,7 +199,7 @@ export function drawTerrain(ctx, cam, s, onRow) {
   const by0 = Math.floor(v.y0 / step), by1 = Math.ceil(v.y1 / step);
   const bx0 = Math.floor(v.x0 / step), bx1 = Math.ceil(v.x1 / step);
   for (let by = by0; by <= by1; by++) {
-    for (let bx = bx0; bx <= bx1; bx++) drawBlock(ctx, cam, s, bx, by, z, step);
+    for (let bx = bx0; bx <= bx1; bx++) drawBlock(ctx, cam, s, look, bx, by, z, step);
   }
   for (let y = v.y0; y <= v.y1; y++) onRow(y);
   return (by1 - by0 + 1) * (bx1 - bx0 + 1);

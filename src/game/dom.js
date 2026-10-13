@@ -34,6 +34,11 @@ export function findElements() {
     close: byId('btnClose'),
     reset: byId('btnReset'),
     mute: byId('btnMute'),
-    toast: byId('toast')
+    toast: byId('toast'),
+    textures: byId('btnTextures'),
+    packName: byId('packName'),
+    texturesDefault: byId('btnTexturesDefault'),
+    packFile: byId('packFile'),
+    packReport: byId('packReport')
   };
 }

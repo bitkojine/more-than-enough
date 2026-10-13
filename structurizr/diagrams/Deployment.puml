@@ -86,7 +86,8 @@ hide stereotype
 rectangle "Browser\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Browser {
   rectangle "Browser tab\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Browser.Browsertab {
     rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as Production.Browser.Browsertab.WebApplication_1
-    rectangle "==Wiki\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as Production.Browser.Browsertab.Wiki_1
+    rectangle "==Wiki\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it. Everything in the game is listed from the Catalog with its default pictures, and the texture pack format is documented." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as Production.Browser.Browsertab.Wiki_1
+    rectangle "==Default Texture Pack\n<size:16>[Container: JSON + SVG]</size>\n\nLanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as Production.Browser.Browsertab.DefaultTexturePack_1
     rectangle "==Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>\n\nThe game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as Production.Browser.Browsertab.SimulationCore_1
   }
 
@@ -104,11 +105,13 @@ rectangle "Node.js LTS\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxl
 
 }
 
+Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
 Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.Wiki_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Links to"
+Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.DefaultTexturePack_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
+Production.Browser.Browsertab.Wiki_1 --> Production.Browser.Browsertab.DefaultTexturePack_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Shows its pictures"
 Production.Browser.Browsertab.SimulationCore_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
 Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
 Production.Browser.Browsertab.Wiki_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Renders tables from content and tuning"
 Production.NodejsLTS.UnitTests_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
-Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
 
 @enduml

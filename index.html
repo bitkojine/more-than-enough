@@ -58,16 +58,16 @@
     </div>
     <div id="thumbDock">
       <button id="btnBuild" class="btn" type="button" aria-label="Build extractor">
-        <span class="big">&#127957;</span><span class="cap">BUILD</span>
+        <img class="big" data-look="ui.build" alt=""><span class="cap">BUILD</span>
       </button>
       <button id="btnUpgrade" class="btn" type="button" aria-label="Upgrades">
-        <span class="big">&#128295;</span><span class="cap">UPGRADE</span>
+        <img class="big" data-look="ui.upgrade" alt=""><span class="cap">UPGRADE</span>
       </button>
       <button id="btnMine" class="btn" type="button" aria-label="Descend into the mine">
-        <span class="big" id="mineIcon">&#9935;</span><span class="cap" id="mineLabel">MINE</span>
+        <img class="big" id="mineIcon" data-look="ui.dig" alt=""><span class="cap" id="mineLabel">MINE</span>
       </button>
       <button id="btnAction" class="btn" type="button" aria-label="Gather">
-        <span class="big" id="actionIcon">&#129296;</span><span class="cap" id="actionLabel">GATHER</span>
+        <img class="big" id="actionIcon" data-look="ui.gather" alt=""><span class="cap" id="actionLabel">GATHER</span>
       </button>
     </div>
   </div>
@@ -91,11 +91,19 @@
         <a id="wikiLink" href="wiki/" target="_blank" rel="noopener">Wiki</a>
         <button id="btnReset" type="button">Reset world</button>
         <button id="btnMute" type="button">Sound: on</button>
+        <button id="btnTextures" type="button" class="twoLine">Textures<small id="packName"></small></button>
+        <button id="btnTexturesDefault" type="button" hidden>Default textures</button>
+        <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
       </div>
     </div>
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
+  <div id="packReport" role="alert" hidden>
+    <strong>Texture pack not used</strong>
+    <ul></ul>
+    <button type="button">Close</button>
+  </div>
   <div id="crash" role="alert" hidden>
     <strong>The game broke</strong>
     <pre></pre>

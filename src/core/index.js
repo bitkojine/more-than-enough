@@ -16,3 +16,4 @@ export * from './actions.js';
 export * from './underground.js';
 export * from './goals.js';
 export * from './save.js';
+export * from './catalog.js';
