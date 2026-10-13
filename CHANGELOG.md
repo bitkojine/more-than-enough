@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.32.0] - 2026-10-13
+
+### Added
+- **Drill as you walk.** Underground, keep pushing the stick (or a direction
+  key) against a wall for 0.3 s and the tile in front of you is dug out, so
+  you can tunnel without taking your thumb off the stick. Bedrock never
+  gives, and a shaft still opens only to a deliberate tap.
+
 ## [0.31.2] - 2026-10-13
 
 ### Changed

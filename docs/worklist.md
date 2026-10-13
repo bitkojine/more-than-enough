@@ -49,7 +49,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **Taller layers.** (0.31.2) Underground layers are shorter than the player
       character, and so are the cliff faces seen from the forest edge. Make
       every layer at least tall enough for the player.
-- [ ] **Drill as you walk.** Walking into a wall should mine it, so you never
+- [x] **Drill as you walk.** (0.32.0) Walking into a wall should mine it, so you never
       have to take your thumb off the joystick to tap each block.
 - [ ] **No holes under buildings.** You can't dig down or up through a tile
       that has a building. No entry or exit shares a tile with a building.

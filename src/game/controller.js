@@ -14,6 +14,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
+  const drilling = { x: 0, y: 0, t: 0 }; // progress into the wall you're pushing
 
   const state = () => game.state;
   const player = () => game.state.player;
@@ -90,6 +91,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
         walkTo = null;
         Core.move(state(), dir.x, dir.y, dt);
         controller.facing = dir;
+        // Underground, pushing into rock digs it.
+        const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
+        if (dug) { harvested(dug); changed(); }
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;

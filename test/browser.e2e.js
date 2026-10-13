@@ -340,6 +340,16 @@ async function main() {
   var minePosAfter = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   ok((minePosAfter.x - minePos.x) * ms.dx + (minePosAfter.y - minePos.y) * ms.dy > 0.05, 'same thumb joystick moves into the freshly dug underground tunnel');
   eq(minePosAfter.z, -1, 'digging an ordinary tile does not change layers');
+  // Drill: holding the stick against a wall digs through it, no tapping.
+  var wall = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);MTE_GAME.setPlayer(px+0.5,py+0.5);var dirs=[[1,0],[-1,0],[0,1],[0,-1]];for(var i=0;i<4;i++){var x=px+dirs[i][0],y=py+dirs[i][1],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM||t===c.T.ORE_SEAM){return JSON.stringify({x:x,y:y,dx:dirs[i][0],dy:dirs[i][1]});}}return "null";})()'));
+  ok(!!wall, 'a diggable wall next to the wanderer');
+  if (wall) {
+    await touch('touchStart', [{ x: 195, y: 500, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+    await touch('touchMove', [{ x: 195 + wall.dx * 70, y: 500 + wall.dy * 70, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+    var drilled = await waitFor('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + wall.x + ',' + wall.y + ',-1)===c.T.TUNNEL;})()', 2000);
+    await touch('touchEnd', []);
+    ok(drilled, 'holding the stick against a wall drills through it');
+  }
   var shaftSpot = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,40,function(x,y){return c.tileAt(s.world,x,y,-1)===c.T.SHAFT;});c.setRichness(s.world,t.x+1,t.y,-1,0);MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);return JSON.stringify({x:t.x,y:t.y,sx:innerWidth/2-MTE_GAME.tilePx(),sy:innerHeight/2});})()'));
   await sleep(120);
   var shaftOpen = '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + shaftSpot.x + ',' + shaftSpot.y + ',-1)===c.T.SHAFT_OPEN;})()';

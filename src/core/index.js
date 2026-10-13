@@ -12,6 +12,7 @@ export * from './economy.js';
 export * from './upgrades.js';
 export * from './state.js';
 export * from './sim.js';
+export * from './drill.js';
 export * from './actions.js';
 export * from './underground.js';
 export * from './goals.js';

@@ -242,3 +242,31 @@ test('surface movement still swims and blocks on rock', () => {
   C.move(s, 1, 0, 0.2);
   assert.ok(s.player.x > x0, 'water is swimmable');
 });
+
+test('underground, pushing into rock drills it after a moment; bedrock and shafts hold', () => {
+  const s = C.createState(31415);
+  C.goDown(s);
+  const progress = { x: 0, y: 0, t: 0 };
+  const n = neighbours(s).find((t) => [T.SOIL, T.STONE_SEAM, T.ORE_SEAM].includes(typeAt(s, t.x, t.y)));
+  assert.ok(n, 'a diggable wall beside the chamber');
+  const steps = Math.floor(C.DRILL_TIME / 0.05) - 1;
+  for (let i = 0; i < steps; i++) assert.equal(C.drill(s, progress, n.dx, n.dy, 0.05), null, 'not yet');
+  assert.equal(C.drill(s, progress, 0, 0, 0.05), null);
+  assert.equal(progress.t, 0, 'letting go starts over');
+  let dug = null;
+  for (let i = 0; i < steps + 2 && !dug; i++) dug = C.drill(s, progress, n.dx, n.dy, 0.05);
+  assert.ok(dug && dug.x === n.x && dug.y === n.y, 'pushing long enough digs the tile ahead');
+  assert.equal(typeAt(s, n.x, n.y), T.TUNNEL);
+
+  // Bedrock and closed shafts never drill.
+  for (const hard of [T.BEDROCK, T.SHAFT]) {
+    const wall = findNear(s, (st, x, y) => typeAt(st, x, y) === hard, 40);
+    if (!wall) continue;
+    standOn(s, { x: wall.x, y: wall.y + 1 });
+    C.setRichness(s.world, wall.x, wall.y + 1, s.player.z, 0);
+    for (let i = 0; i < 40; i++) assert.equal(C.drill(s, progress, 0, -1, 0.05), null, `${hard} holds`);
+  }
+  // Nothing drills on the surface.
+  const top = C.createState(31415);
+  assert.equal(C.drillTarget(top, 1, 0), null);
+});
