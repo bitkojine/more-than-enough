@@ -117,7 +117,8 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen,
+    blocked: () => sheet.isOpen || fork.open,
+    dismiss: () => sheet.close(),
     tap: controller.tap,
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,

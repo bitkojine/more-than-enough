@@ -110,7 +110,13 @@ export function createInput({ canvas, cam, el, handlers }) {
   /* ---------------------------------------------------------- pointers */
 
   function onCanvasDown(e) {
-    if (handlers.blocked()) return;
+    // A menu is open: touching the world past it means "back to the game".
+    // The touch only closes the menu; it doesn't also steer or gather.
+    if (handlers.blocked()) {
+      e.preventDefault();
+      handlers.dismiss();
+      return;
+    }
     if (e.button !== undefined && e.button !== 0) return;
     capture(canvas, e);
     pointers.set(e.pointerId, canvasPoint(e));

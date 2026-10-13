@@ -485,9 +485,13 @@ async function main() {
   await sleep(200);
   var u1 = JSON.parse(await stateSummary());
   eq(u1.tools.axe, 2, 'axe upgraded to level 2');
-  var doneButton = await rect('#btnClose');
-  await tap(doneButton.x, doneButton.y);
-  await sleep(200);
+  // Tapping the world past the sheet closes it, and does nothing else.
+  var beforeTapOut = JSON.parse(await stateSummary());
+  await tap(195, 90);
+  await sleep(300);
+  ok(await evalJS('!document.getElementById("sheet").classList.contains("open")'), 'tapping the map past the sheet closes it');
+  var afterTapOut = JSON.parse(await stateSummary());
+  ok(afterTapOut.x === beforeTapOut.x && afterTapOut.y === beforeTapOut.y && afterTapOut.inv.wood === beforeTapOut.inv.wood, 'that tap only closes the sheet: no walking, no gathering');
 
   /* ------------------------------------------------------------ build */
   console.log('\n== Build extractor (touch Place) ==');
@@ -509,7 +513,7 @@ async function main() {
   var camp = await evalJS('(function(){var e=MTE_GAME.getState().extractors[0];e.buffer=8;MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);return e.x+","+e.y;})()');
   await sleep(400);
   ok(await evalJS('document.getElementById("actionLabel").textContent.indexOf("COLLECT") === 0'), 'Gather control changes to Collect near stored extractor goods (' + camp + ')');
-  doneButton = await rect('#btnClose');
+  var doneButton = await rect('#btnClose');
   await tap(doneButton.x, doneButton.y);
   await sleep(250);
   var collectBefore = JSON.parse(await stateSummary()).inv.wood;

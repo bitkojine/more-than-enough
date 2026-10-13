@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.26.2] - 2026-10-13
+
+### Changed
+- **Tap the world to close the sheet.** Touching the map past an open sheet
+  closes it, and that touch does nothing else (no walking, no gathering).
+
 ## [0.26.1] - 2026-10-13
 
 ### Fixed

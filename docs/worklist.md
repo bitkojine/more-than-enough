@@ -17,7 +17,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
       and offer to keep the most advanced one.
 - [x] **Flickering progress rings.** (0.26.1) The rings next to buildings flicker when
       you collect fast (auto-collect). Drop the "empty" visual state.
-- [ ] **Tap the world to close menus.** Clicking past a menu onto the game
+- [x] **Tap the world to close menus.** (0.26.2) Clicking past a menu onto the game
       world should close the menu.
 
 ## Wiki
