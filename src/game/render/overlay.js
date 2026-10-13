@@ -88,10 +88,15 @@ export function drawTrail(ctx, cam, s, view) {
  * at night. What lights the dark: the wanderer's lantern (carried only then),
  * torches you placed, and daylight falling through holes in the ceiling. The
  * dark is drawn as one mask at low resolution with every light cut out of it,
- * then each light adds a warm tint of its own colour. */
-const LANTERN_LIGHT = 3.0;      // how far the lantern lights, in tiles
+ * then each light adds a warm tint of its own colour.
+ *
+ * Down in the mine the lantern is only a small pool at your feet: the rock you
+ * have uncovered a few steps away sinks back into the dark, and it takes a
+ * torch to keep a stretch of tunnel lit. */
+const LANTERN_LIGHT = 3.0;      // how far the lantern lights the night forest, in tiles
+const MINE_LANTERN_LIGHT = 1.7; // how far it lights in the mine
 const SKYLIGHT_LIGHT = 2.0;     // how far light falling through a hole spreads
-const UNDERGROUND_DARK = 0.94;  // how dark the mine is away from any light
+const UNDERGROUND_DARK = 0.95;  // how dark the mine is away from any light
 const NIGHT_DARK = 0.9;         // how dark the forest gets at midnight
 const MASK_SCALE = 0.25;        // the dark mask's resolution against the screen
 const TINT = 0.12;              // how warm a light's pool is
@@ -100,7 +105,9 @@ let mask = null;
 
 /**
  * @param {Array<{x: number, y: number, r: number, color: string, strength?: number}>} lights
- *   lights on this layer besides the lantern and skylights (torches), in tiles
+ *   lights on this layer besides the lantern and skylights (torches), in tiles.
+ *   `core` (0..1, default 0.5) is how much of the radius is lit fully before
+ *   the light fades out.
  */
 export function drawLighting(ctx, cam, s, look, lights) {
   const { width: W, height: H } = cam;
@@ -122,7 +129,10 @@ export function drawLighting(ctx, cam, s, look, lights) {
   const all = lights.slice();
   if (Core.needsLantern(s)) {
     // Kept usable when zoomed far out, where tiles are tiny.
-    all.push({ x: s.player.x, y: s.player.y, r: LANTERN_LIGHT, color: look.color('character.lantern'), min: Math.min(W, H) * 0.28 });
+    all.push({
+      x: s.player.x, y: s.player.y, r: under ? MINE_LANTERN_LIGHT : LANTERN_LIGHT,
+      color: look.color('character.lantern'), min: Math.min(W, H) * (under ? 0.12 : 0.28), core: under ? 0.3 : 0.5
+    });
   }
   if (under) {
     const sky = look.color('mark.skylight');
@@ -152,7 +162,7 @@ export function drawLighting(ctx, cam, s, look, lights) {
     const a = l.strength === undefined ? 1 : l.strength;
     const g = m.createRadialGradient(cx, cy, 0, cx, cy, mr);
     g.addColorStop(0, `rgba(0,0,0,${a})`);
-    g.addColorStop(0.5, `rgba(0,0,0,${a})`);
+    g.addColorStop(l.core === undefined ? 0.5 : l.core, `rgba(0,0,0,${a})`);
     g.addColorStop(1, 'rgba(0,0,0,0)');
     m.fillStyle = g;
     m.fillRect(cx - mr, cy - mr, mr * 2, mr * 2);

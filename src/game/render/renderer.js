@@ -15,7 +15,8 @@ import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawF
 import { drawHighlights, drawTrail, drawLighting, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const TORCH_LIGHT = 3.5;   // how far a torch lights, in tiles
+const TORCH_LIGHT = 4.5;   // how far a torch lights, in tiles: well past the lantern
+const FLICKER = 0.12;      // how much a torch's reach wavers, in tiles
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
@@ -40,7 +41,8 @@ export function render(cam, s, fx, view, look) {
     if (t.z !== cam.z) continue;
     const row = torchRows.get(t.y);
     if (row) row.push(t.x); else torchRows.set(t.y, [t.x]);
-    lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: TORCH_LIGHT, color: look.color('mark.torch') });
+    const flicker = FLICKER * Math.sin(s.time * 9 + t.x * 1.7 + t.y * 2.3);
+    lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: TORCH_LIGHT + flicker, color: look.color('mark.torch') });
   }
 
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard }, (y) => {

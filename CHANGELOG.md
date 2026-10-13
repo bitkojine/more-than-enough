@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.36.7] - 2026-10-13
+
+### Changed
+- **The mine is really dark now, so torches matter.** Your lantern used to
+  light everything you could see underground, so a torch added nothing. The
+  lantern now lights only a small pool at your feet (about two tiles across,
+  down from six) and tunnels a few steps behind you sink back into the dark.
+  Torches reach further than before (4.5 tiles, up from 3.5) and flicker, so
+  a lit stretch of tunnel reads as somewhere you've made your own. The night
+  forest is unchanged.
+
 ## [0.36.6] - 2026-10-13
 
 ### Changed
