@@ -4,12 +4,15 @@
  * layers clears them. */
 
 import { resourceLook } from '../core/index.js';
+import { fmt } from './format.js';
 
 // Budgets keep bursts cheap.
 const MAX_PARTICLES = 160;
 const MAX_FLYERS = 40;
 const FLYER_SPEED = 12;            // tiles per second, on average
 const FLYER_TIME = [0.45, 1.6];    // shortest and longest flight, in seconds
+const TALLY_LIFE = 2.4;            // seconds a "+n" stays up after its last gain
+const TALLY_MERGE = 1.6;           // gains this soon after the last one add to it
 
 const rand = Math.random;
 const TAU = Math.PI * 2;
@@ -58,7 +61,25 @@ export function createEffects(look, landing) {
 
   // Floating text; `icon` (a look id) is drawn after it.
   function text(x, y, label, color, icon = null, vy = -1.1, life = 1.0) {
-    floats.push({ x, y, vy, life, max: life, text: label, color, icon });
+    floats.push({ x, y, vy, life, max: life, text: label, color, icon, pop: 0 });
+  }
+
+  // A running "+n" of what you just got: gains of the same thing in quick
+  // succession add up on one label, which pops and stays up a while longer,
+  // so a run of swings reads as +1, +2, +3 rather than a blur of +1s.
+  function tally(x, y, amount, color, icon) {
+    const f = floats.find((o) => o.amount !== undefined && o.icon === icon && o.max - o.life < TALLY_MERGE &&
+      Math.abs(o.x - x) < 1.5 && Math.abs(o.y - y) < 2);
+    if (f) {
+      f.amount += amount;
+      f.text = '+' + fmt(f.amount);
+      f.max = (f.max - f.life) + TALLY_LIFE; // age kept, so a long run moves on
+      f.life = TALLY_LIFE;
+      f.pop = 1;
+      return;
+    }
+    text(x, y, '+' + fmt(amount), color, icon, -1, TALLY_LIFE);
+    floats[floats.length - 1].amount = amount;
   }
 
   function gathered(tx, ty, res, amount) {
@@ -71,7 +92,7 @@ export function createEffects(look, landing) {
         life: 0.45 + rand() * 0.25, max: 0.7, size: 1.6 + rand() * 2.2, color
       });
     }
-    text(tx + 0.5, ty + 0.2, '+' + Math.floor(amount), color, resourceLook(res), -1.3, 0.9);
+    tally(tx + 0.5, ty - 0.3, Math.floor(amount), color, resourceLook(res));
     flyersFrom(tx, ty, res, amount);
   }
 
@@ -122,7 +143,8 @@ export function createEffects(look, landing) {
       f.life -= dt;
       if (f.life <= 0) { floats.splice(i, 1); continue; }
       f.y += f.vy * dt;
-      f.vy *= 0.96;
+      f.vy *= Math.pow(0.08, dt); // rises, then hangs where it can be read
+      f.pop = Math.max(0, f.pop - dt * 5);
     }
     // Flyers follow a lofted arc from where they were gathered to their
     // spot in the yard, easing out as they come down, and land on it.
@@ -141,5 +163,5 @@ export function createEffects(look, landing) {
     }
   }
 
-  return { particles, floats, flyers, gathered, flyersFrom, text, dug, built, poof, celebrate, wake, clear, update };
+  return { particles, floats, flyers, gathered, flyersFrom, text, tally, dug, built, poof, celebrate, wake, clear, update };
 }

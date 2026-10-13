@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.37.2] - 2026-10-13
+
+### Changed
+- **What you pick up stays up long enough to read.** The "+1" over a gathered
+  tile vanished in under a second, and quick swings stacked into a blur of
+  "+1"s. Gains of the same resource in quick succession now add up on one
+  label (+1, +2, +3...), which pops as it grows, hangs above the tile for a
+  couple of seconds after the last gain, and is bigger with a darker outline.
+  Collecting and Trails count up the same way, one label per resource.
+
 ## [0.37.1] - 2026-10-13
 
 ### Changed

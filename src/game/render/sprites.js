@@ -12,6 +12,7 @@ const groundAt = (cam, s, x, y) => cam.z + Core.tileHeight(s.world, Math.floor(x
 
 const FOOT = 0.6;           // where on a tile's depth standing things put their feet
 const SHADOW = 'rgba(0,0,0,0.38)';
+const FLOAT_FADE = 0.6;     // seconds a floating label takes to fade out
 // The wanderer stands on the boat's deck at full size, so the boat (its hull
 // and mast) is drawn to the same scale as them.
 const BOAT_DECK = Core.BOAT_DECK;
@@ -114,22 +115,28 @@ export function drawParticles(ctx, cam, fx) {
 
 // Floating numbers, with the icon of what they count after them.
 export function drawFloats(ctx, cam, look, fx) {
-  const size = Math.round(Math.max(12, cam.tilePx * 0.34));
+  const font = (px) => '700 ' + px + 'px -apple-system, sans-serif';
+  const size = Math.round(Math.max(14, cam.tilePx * 0.42));
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.font = '700 ' + size + 'px -apple-system, sans-serif';
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.font = font(size);
+  ctx.lineWidth = 4;
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = 'rgba(0,0,0,0.75)';
   for (const f of fx.floats) {
     const { x, y } = cam.project(f.x, f.y);
+    // A label that just grew pops a little bigger.
+    const px = f.pop > 0 ? Math.round(size * (1 + 0.3 * f.pop)) : size;
+    if (px !== size) ctx.font = font(px);
     const tw = ctx.measureText(f.text).width;
-    const iw = f.icon ? size * 1.15 : 0;
+    const iw = f.icon ? px * 1.15 : 0;
     const left = x - (tw + iw) / 2;
-    ctx.globalAlpha = Math.min(1, (f.life / f.max) * 1.6);
+    ctx.globalAlpha = Math.min(1, f.life / FLOAT_FADE);
     ctx.strokeText(f.text, left, y);
     ctx.fillStyle = f.color;
     ctx.fillText(f.text, left, y);
-    if (f.icon) look.draw(ctx, look.pick(f.icon, 'icon'), left + tw + size * 0.15, y - size / 2, size, size);
+    if (f.icon) look.draw(ctx, look.pick(f.icon, 'icon'), left + tw + px * 0.15, y - px / 2, px, px);
+    if (px !== size) ctx.font = font(size);
   }
   ctx.globalAlpha = 1;
 }

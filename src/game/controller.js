@@ -3,7 +3,6 @@
  * visual and audible only; the game never explains itself in text. */
 
 import * as Core from '../core/index.js';
-import { fmt } from './format.js';
 import { clearSave, randomSeed } from './storage.js';
 
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
@@ -21,6 +20,8 @@ export function createController({ game, cam, fx, audio, hud, look }) {
   const state = () => game.state;
   const player = () => game.state.player;
   const say = (text, color, icon) => fx.text(player().x, player().y - 0.4, text, color, icon);
+  // "+n" of a resource over your head, adding up with the gains just before it.
+  const tally = (res, amount) => fx.tally(player().x, player().y - 0.4, amount, look.color(Core.resourceLook(res)), Core.resourceLook(res));
   const toolLevel = (res) => state().tools[res === 'wood' ? 'axe' : 'pickaxe'];
 
   function changed() {
@@ -52,7 +53,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     const got = Core.collect(state());
     if (!got) return false;
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
-    for (const r of Object.keys(got.gained)) say('+' + fmt(got.gained[r]), look.color(Core.resourceLook(r)), Core.resourceLook(r));
+    for (const r of Object.keys(got.gained)) tally(r, got.gained[r]);
     audio.collect();
     changed();
     return true;
@@ -161,20 +162,21 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       if (!points) return;
       const s = state();
       const below = Core.isUnderground(s);
-      let count = 0, gathered = 0;
+      let count = 0;
+      const gathered = {};
       for (const t of Core.sweepTargets(s, points)) {
         const r = Core.harvestAt(s, t.x, t.y);
         if (!r) continue;
         count++;
-        gathered += r.amount;
         if (below) harvested(r);
         else if (r.amount > 0) {
+          gathered[r.res] = (gathered[r.res] || 0) + r.amount;
           audio.gather(r.res, r.amount, toolLevel(r.res));
           fx.flyersFrom(r.x, r.y, r.res, r.amount);
         }
       }
       if (!count) return;
-      if (gathered > 0) say('+' + fmt(gathered), '#b8ec9a');
+      for (const res of Object.keys(gathered)) tally(res, gathered[res]);
       changed();
     },
 
