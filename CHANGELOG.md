@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.26.3] - 2026-10-13
+
+### Fixed
+- **Sound on iPhone without opening a menu first.** Safari only lets a page
+  start sound from a touch that ends in a click, and the map and the Gather
+  button cancelled their presses, so after every reload the game stayed
+  silent until you tapped a menu button. They no longer cancel presses
+  (scrolling and zooming stay off by other means), so the first quick tap
+  on the map or Gather starts the sound. A drag or a long hold still
+  doesn't count in Safari; that's the browser's rule.
+- The performance panel shows the sound's state (`running`, `suspended`).
+- The browser tests now enforce the gesture rule (headless Chrome otherwise
+  lets any page play) and check that dragging, tapping the map, tapping or
+  holding Gather and the keyboard each start the sound on a fresh page.
+
 ## [0.26.2] - 2026-10-13
 
 ### Changed

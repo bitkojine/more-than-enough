@@ -10,7 +10,7 @@ const WINDOW = 120;            // frames kept for the averages (~2 s at 60 fps)
 const REFRESH_EVERY = 0.25;    // seconds between panel updates
 const GOOD_FPS = 55, OK_FPS = 30;
 
-export function createPerf(el, canvas) {
+export function createPerf(el, canvas, audio) {
   const interval = new Float32Array(WINDOW); // ms between frames
   const logic = new Float32Array(WINDOW);    // ms spent in the game update
   const draw = new Float32Array(WINDOW);     // ms spent drawing
@@ -50,7 +50,8 @@ export function createPerf(el, canvas) {
         dpr: window.devicePixelRatio || 1,
         cores: navigator.hardwareConcurrency || null,
         memoryGb: navigator.deviceMemory || null,
-        heapMb: performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null
+        heapMb: performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null,
+        sound: audio.state()
       };
     },
 
@@ -78,7 +79,8 @@ export function createPerf(el, canvas) {
       `draw    ${m.drawMs.toFixed(2)} ms`,
       `tiles   ${m.tiles}`,
       `screen  ${m.screen} @${+m.dpr.toFixed(2)}x`,
-      `canvas  ${m.canvas}`
+      `canvas  ${m.canvas}`,
+      `sound   ${m.sound}`
     ];
     if (m.cores) lines.push(`cores   ${m.cores}`);
     if (m.memoryGb) lines.push(`memory  ${m.memoryGb} GB`);

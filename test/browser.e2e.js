@@ -130,6 +130,9 @@ async function main() {
   var chrome = cp.spawn(CHROME, [
     '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
+    // Sound only after a gesture, as on real phones and desktops (headless
+    // Chrome would otherwise let any page play at once).
+    '--autoplay-policy=user-gesture-required',
     '--remote-debugging-port=' + CDP_PORT, '--user-data-dir=' + profile, 'about:blank'
   ], { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
   var chromeStderr = '';
@@ -994,6 +997,46 @@ async function main() {
   await evalJS('location.hash = "#textures"');
   var bundled = await evalJS('import("/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
   ok(bundled.n === things && bundled.svg && !bundled.paths, 'the default pack downloads as one file with every picture inside it');
+
+  console.log('\n== Sound on a fresh page ==');
+  // Each way of starting to play must also start the sound, on a page that
+  // has just been reloaded (no gesture yet), not only menu buttons.
+  var starts = {
+    'dragging the map': async function () { await drag(80, 600, 160, 560, 5, 30); },
+    'tapping the map': async function () { await tap(195, 300); },
+    'tapping Gather': async function () { var b = await rect('#btnAction'); await tap(b.x, b.y); },
+    'holding Gather': async function () { var b = await rect('#btnAction'); await hold(b.x, b.y, 900); },
+    'a key': async function () { await key('keyDown', 'd', 'KeyD', 68); await sleep(200); await key('keyUp', 'd', 'KeyD', 68); }
+  };
+  // Each in a brand-new browser profile: Chrome remembers that you used a
+  // site and would let a plain reload play at once.
+  var mainSession = session;
+  for (var how in starts) {
+    var bc = await cdp.send('Target.createBrowserContext', {});
+    var tgt = await cdp.send('Target.createTarget', { url: 'about:blank', browserContextId: bc.browserContextId });
+    session = (await cdp.send('Target.attachToTarget', { targetId: tgt.targetId, flatten: true })).sessionId;
+    await cdp.send('Runtime.enable', {}, session);
+    await cdp.send('Page.enable', {}, session);
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 3, mobile: true }, session);
+    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 }, session);
+    await cdp.send('Emulation.setFocusEmulationEnabled', { enabled: true }, session);
+    await cdp.send('Page.bringToFront', {}, session);
+    // Headless Chrome lets every page play at once, so enforce the rule real
+    // browsers apply: sound starts suspended and may only resume during a
+    // gesture (transient user activation).
+    await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: '(function(){var AC=window.AudioContext;window.AudioContext=class extends AC{constructor(o){super(o);super.suspend();}resume(){return navigator.userActivation.isActive?super.resume():Promise.reject(new DOMException("needs a gesture","NotAllowedError"));}};})()' }, session);
+    await navigate('http://127.0.0.1:' + PORT + '/index.html');
+    await sleep(1200); // the game's own retries happen without a gesture: they must not start it
+    var before = await evalJS('MTE_GAME.audioState()');
+    await starts[how]();
+    var started = await waitFor('MTE_GAME.audioState() === "running"', 1500);
+    ok(before === 'suspended' && started, 'on a fresh page, ' + how + ' starts the sound (' + before + ' -> ' + await evalJS('MTE_GAME.audioState()') + ')');
+    ok(await loudness('MTE_GAME.audio.collect()') > 0.01, '...and it is heard');
+    await cdp.send('Target.closeTarget', { targetId: tgt.targetId });
+    await cdp.send('Target.disposeBrowserContext', { browserContextId: bc.browserContextId });
+  }
+  session = mainSession;
+  await cdp.send('Page.bringToFront', {}, session);
 
   console.log('\n== Runtime errors ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

@@ -113,14 +113,16 @@ export function createInput({ canvas, cam, el, handlers }) {
     // A menu is open: touching the world past it means "back to the game".
     // The touch only closes the menu; it doesn't also steer or gather.
     if (handlers.blocked()) {
-      e.preventDefault();
       handlers.dismiss();
       return;
     }
     if (e.button !== undefined && e.button !== 0) return;
     capture(canvas, e);
     pointers.set(e.pointerId, canvasPoint(e));
-    e.preventDefault();
+    // No preventDefault() on press or release (here, below and on Gather):
+    // Safari only counts a touch as a gesture, the kind that may start
+    // sound, if it ends in a click, and cancelling the press stops the click.
+    // Scrolling and zooming are already off (touch-action: none).
     if (pinch.active || pointers.size >= 2) {
       // A second finger means zoom or tilt, not a joystick drag.
       joy.active = false; joy.x = 0; joy.y = 0;
@@ -187,7 +189,6 @@ export function createInput({ canvas, cam, el, handlers }) {
       const p = canvasPoint(e);
       handlers.tap(p.x, p.y);
     }
-    e.preventDefault();
   }
 
   canvas.addEventListener('pointerdown', onCanvasDown, { passive: false });
@@ -210,7 +211,6 @@ export function createInput({ canvas, cam, el, handlers }) {
   /* ------------------------------------------------------ Gather button */
 
   el.action.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
     input.held = true;
     actionPointerId = e.pointerId;
     handlers.actionPressed();
@@ -218,7 +218,6 @@ export function createInput({ canvas, cam, el, handlers }) {
   const releaseAction = (e) => {
     if (input.trail && input.trail.id === e.pointerId) endTrail();
     else input.release();
-    e.preventDefault();
   };
   el.action.addEventListener('pointerup', releaseAction);
   el.action.addEventListener('pointercancel', releaseAction);

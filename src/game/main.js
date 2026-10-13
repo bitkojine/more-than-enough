@@ -43,7 +43,7 @@ const audio = createAudio();
 const fx = createEffects(look);
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
-const perf = createPerf(el, el.canvas);
+const perf = createPerf(el, el.canvas, audio);
 
 const loaded = loadGame();
 let saveDue = false;
