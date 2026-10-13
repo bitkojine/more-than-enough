@@ -21,7 +21,11 @@ export const REGROW_RADIUS = 20;      // only tiles near the player regrow
 export const REGROW_INTERVAL = 0.5;
 export const REGROW_CHANCE = 0.02;
 export const EXTRACTOR_GROWTH = 1.65; // each extra extractor of a kind costs this much more
-export const EMBARK_MIN_TOTAL = 20000;
+// Embarking is the end of a world, not a step in it: every tool, refinery and
+// unlock at its top level, the Abundance Engine at EMBARK_ABUNDANCE, and this
+// much gathered in the world.
+export const EMBARK_MIN_TOTAL = 1000000;
+export const EMBARK_ABUNDANCE = 5;
 
 /* -------------------------------------------------------------- tools */
 

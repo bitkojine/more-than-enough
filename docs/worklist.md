@@ -31,7 +31,7 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 
 - [x] **Show what's still needed.** (0.28.0) Upgrade costs should show how much more of
       each resource you still need to collect, not the total price.
-- [ ] **Embark unlocks late.** Starting a new world should take a very long
+- [x] **Embark unlocks late.** (0.29.0) Starting a new world should take a very long
       time to unlock and stay hidden while you're still unlocking and
       upgrading. It should feel special.
 

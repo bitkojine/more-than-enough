@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.29.0] - 2026-10-13
+
+### Changed
+- **Embark is the end of a world.** The Beyond tab (and the Legacy family in
+  Upgrades) stays hidden until the world is mastered: every tool, refinery
+  level and unlock bought, and the Abundance Engine at 5. Embarking then
+  also needs 1,000,000 resources gathered in the world (was 20,000). Until
+  then the Embark row shows how far along you are. After the first Embark,
+  Beyond stays for the perks.
+- The last milestone is now "Master the world".
+
 ## [0.28.0] - 2026-10-13
 
 ### Changed

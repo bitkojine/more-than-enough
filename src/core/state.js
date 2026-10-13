@@ -5,6 +5,7 @@ import { RESOURCES } from './tiles.js';
 import { createWorld, findSpawn } from './world.js';
 import { UNLOCKS, PERKS, EMBARK_MIN_TOTAL } from './content.js';
 import { revealAround } from './sim.js';
+import { worldMastered } from './upgrades.js';
 
 /**
  * @typedef {{x: number, y: number, z: number}} Position
@@ -87,15 +88,16 @@ export function embarkGain(s) {
   return Math.floor(Math.sqrt(lifetimeTotal(s) / 2000));
 }
 
-// Eligibility counts this world only, so a fresh world can't re-embark on
-// carried-over progress. The Insight reward still uses the lifetime total.
+// Eligibility counts this world only (every upgrade done, and enough
+// gathered here), so a fresh world can't re-embark on carried-over progress.
+// The Insight reward still uses the lifetime total.
 export function canEmbark(s) {
-  return worldTotal(s) >= EMBARK_MIN_TOTAL;
+  return worldMastered(s) && worldTotal(s) >= EMBARK_MIN_TOTAL;
 }
 
 // Starts a new world from `seed`, keeping Insight, perks and lifetime totals.
 export function embark(s, seed) {
-  if (!canEmbark(s)) return { ok: false, reason: 'Gather ' + EMBARK_MIN_TOTAL + ' resources in this world first' };
+  if (!canEmbark(s)) return { ok: false, reason: 'Finish every upgrade and gather ' + EMBARK_MIN_TOTAL + ' resources in this world first' };
   const gained = embarkGain(s);
   const fresh = createState(seed);
   fresh.perks = { ...s.perks };

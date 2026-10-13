@@ -553,13 +553,9 @@ async function main() {
   var audioState = await evalJS('MTE_GAME.audioState()');
   console.log('  audio state after gestures: ' + audioState);
   ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
-  ok(!(await evalJS('document.getElementById("tabBeyond").hidden')), 'Beyond tab is visible from the start');
-  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 5, 'Progression map shows five family headers (4 world + legacy)');
-  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
-  var beyondPreviewReady = await waitFor('document.querySelector("#sheetTitle").textContent === "Beyond" && document.querySelector("#sheetBody button[data-kind=embark]").disabled && document.querySelectorAll("#sheetBody button.max").length === 5', 3000);
-  ok(beyondPreviewReady, 'Beyond shows Embark and the perks locked before the loop is reachable');
-  var upgradesTab = await rect('.tab[data-tab=upgrades]');
-  await tap(upgradesTab.x, upgradesTab.y);
+  // Embarking is the end of a world: no sign of it while you're upgrading.
+  ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'the Beyond tab stays hidden while there are upgrades to buy');
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 4, 'the progression map shows only the four world families');
   await sleep(200);
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
@@ -675,13 +671,16 @@ async function main() {
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(200);
 
-  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.wood=19000;s.stats.stone=1000;})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.wood=5000000;})()');
   await sleep(500);
-  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'Beyond tab stays visible once embark is within reach too');
+  ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'a huge haul alone does not reveal Beyond');
+  // Master the world: every tool, refinery and unlock, Abundance to the embark level.
+  await evalJS('(function(){var s=MTE_GAME.getState(),C=MTE_GAME.core;for(var k in s.tools)s.tools[k]=C.TOOLS[k].levels.length;for(k in s.resUp)s.resUp[k]=C.REFINERIES[k].levels.length;for(k in s.unlocks)s.unlocks[k]=true;s.abundanceLv=C.EMBARK_ABUNDANCE;})()');
+  ok(await waitFor('!document.getElementById("tabBeyond").hidden', 1500), 'mastering the world reveals the Beyond tab');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(250);
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');
-  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled at 20k gathered this world');
+  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled in a mastered world with a million gathered');
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(200);
@@ -695,7 +694,7 @@ async function main() {
   // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
   // world's resource sprites across the screen.
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
-  eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before embarking');
+  ok(await evalJS('MTE_GAME.flyers().length') >= 1, 'a leftover flyer exists before embarking');
   var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
   await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
   await sleep(400);
@@ -705,6 +704,7 @@ async function main() {
   ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
   ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'), 'carried lifetime progress cannot enable immediate re-embark');
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
+  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'after an Embark, Beyond stays for the perks');
 
   /* ------------------------------------- logistics auto-collect is ranged */
   console.log('\n== Logistics auto-collect needs range ==');

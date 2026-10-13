@@ -96,6 +96,10 @@ function upgradeRow(s, id) {
   return row(pic(u.look), name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
 }
 
+// Beyond (embarking and perks) stays out of sight until a world is
+// mastered, every upgrade done; after the first Embark it stays.
+const beyondUnlocked = (s) => s.insight > 0 || s.prestiges > 0 || Core.worldMastered(s);
+
 /* ----------------------------------------------------------- the sheet */
 
 export function createSheet(el, { getState, actions, look: currentLook }) {
@@ -103,7 +107,9 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
   let open = false;
   let tab = 'upgrades';
   const expanded = { tools: true }; // progression families showing their buy rows
-  let beyondShownUnlocked = false;
+  const beyondTab = el.tabs.find((t) => t.dataset.tab === 'beyond');
+  let beyondShownUnlocked = beyondUnlocked(getState());
+  beyondTab.hidden = !beyondShownUnlocked;
 
   function rail(nodes) {
     return '<span class="rail">' + nodes.map((n) => `<span class="node ${n.state}" aria-hidden="true" title="${esc(n.name)}"></span>`).join('') + '</span>';
@@ -127,8 +133,10 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
       if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
     }
-    html += '<div class="section">Legacy</div>';
-    html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.look, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
+    if (beyondUnlocked(s)) {
+      html += '<div class="section">Legacy</div>';
+      html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.look, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
+    }
     return html;
   }
 
@@ -151,20 +159,12 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
       '<div class="section">Converters</div>' + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('');
   }
 
-  // Until the prestige loop is reachable, Beyond shows it locked: the names
-  // and the progress number, nothing more.
-  const beyondUnlocked = (s) => s.insight > 0 || s.prestiges > 0 || Core.canEmbark(s);
-
   function renderBeyond(s) {
     const can = Core.canEmbark(s);
-    const progress = `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
+    const m = Core.worldMastery(s);
+    const progress = m.done < m.total ? `${m.done} / ${m.total}` : `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
     const embark = row(pic('ui.embark'), 'Embark', can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
       button('data-kind="embark"', 'Embark', can));
-    if (!beyondUnlocked(s)) {
-      return '<div class="section">Legacy</div>' + embark +
-        '<div class="section">Perks</div>' +
-        PERK_FAMILY.nodes.map((id) => row(pic('perk.' + id), esc(Core.PERKS[id].name), '', doneButton('Locked'))).join('');
-    }
     return '<div class="section">Insight</div>' +
       row(insight(), fmt(s.insight), `Embarks ${s.prestiges} &middot; Lifetime ${fmt(Core.lifetimeTotal(s))}`, '') +
       '<div class="section">New World</div>' + embark +
@@ -174,9 +174,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
   const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond };
 
   function render() {
-    const s = getState();
-    beyondShownUnlocked = beyondUnlocked(s);
-    el.sheetBody.innerHTML = RENDER[tab](s);
+    el.sheetBody.innerHTML = RENDER[tab](getState());
   }
 
   // Live updates while open (prices count down as you gather): changed
@@ -280,8 +278,14 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     show, close, toggle, render,
     // Reveal the Beyond tab's contents live once the prestige loop unlocks.
     tick() {
+      const shown = beyondUnlocked(getState());
+      if (shown !== beyondShownUnlocked) {
+        beyondShownUnlocked = shown;
+        beyondTab.hidden = !shown;
+        if (!shown && tab === 'beyond') setTab('upgrades');
+        else if (open) render();
+      }
       if (!open) return;
-      if (tab === 'beyond' && beyondUnlocked(getState()) !== beyondShownUnlocked) { render(); return; }
       const now = performance.now();
       if (now < nextRefresh) return;
       nextRefresh = now + 250;

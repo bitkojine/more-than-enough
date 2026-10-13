@@ -72,3 +72,13 @@ export function run(s, seconds) {
 export function lumberCamp(x, y, buffer = 0) {
   return { key: 'lumber', res: 'wood', x, y, z: C.SURFACE, buffer };
 }
+
+// Every world upgrade bought (tools, refineries, unlocks, Abundance to the
+// embark level): a mastered world.
+export function master(s) {
+  for (const k in s.tools) s.tools[k] = C.TOOLS[k].levels.length;
+  for (const k in s.resUp) s.resUp[k] = C.REFINERIES[k].levels.length;
+  for (const k in s.unlocks) s.unlocks[k] = true;
+  s.abundanceLv = C.EMBARK_ABUNDANCE;
+  return s;
+}

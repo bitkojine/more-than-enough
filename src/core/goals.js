@@ -1,9 +1,9 @@
 /* Milestones. The game celebrates each one when it happens but never says
  * what comes next; the list itself is documented in the wiki. */
 
-import { EMBARK_MIN_TOTAL } from './content.js';
+import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE } from './content.js';
 import { extractorCount } from './economy.js';
-import { worldTotal } from './state.js';
+import { canEmbark } from './state.js';
 
 const has = (key) => (s) => extractorCount(s, key) > 0;
 
@@ -34,7 +34,7 @@ export const GOALS = [
   { text: 'Sharpen ore production (Metallurgy I)', done: (s) => s.resUp.ore >= 1 },
   { text: 'Push the Abundance Engine to IV', done: (s) => s.abundanceLv >= 4 },
   { text: 'Own 25 automated structures', done: (s) => s.extractors.length >= 25 },
-  { text: 'The Long Road — gather ' + EMBARK_MIN_TOTAL.toLocaleString('en-US') + ' resources in this world', done: (s) => worldTotal(s) >= EMBARK_MIN_TOTAL },
+  { text: 'Master the world: every upgrade, the Abundance Engine at ' + EMBARK_ABUNDANCE + ', and ' + EMBARK_MIN_TOTAL.toLocaleString('en-US') + ' gathered', done: canEmbark },
   { text: 'MORE THAN ENOUGH — expand forever', done: () => false }
 ];
 

@@ -8,7 +8,7 @@
  *   currency       'inv' (resources) or 'insight'
  *   apply(s)       records one purchase in the state */
 
-import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS } from './content.js';
+import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { canAfford, pay, costText, abundanceCost } from './economy.js';
 
@@ -82,6 +82,23 @@ export const PATH_FAMILIES = [
   { id: 'unlocks', layer: 'world', name: 'Unlocks & Blueprints' },
   { id: 'perks', layer: 'legacy', name: 'Perks' }
 ].map((f) => ({ ...f, look: 'path.' + f.id, nodes: Object.keys(REGISTRY).filter((id) => REGISTRY[id].family === f.id) }));
+
+// The world upgrades that can be finished (Abundance never is).
+const FINITE = () => PATH_FAMILIES.filter((f) => f.layer === 'world' && f.id !== 'abundance').flatMap((f) => f.nodes);
+
+// How far through this world's upgrades you are: every tool, refinery and
+// unlock level bought, plus Abundance Engine levels up to EMBARK_ABUNDANCE.
+export function worldMastery(s) {
+  let done = 0, total = 0;
+  for (const id of FINITE()) { done += upgradeLevel(s, id); total += REGISTRY[id].max; }
+  return { done: done + Math.min(s.abundanceLv, EMBARK_ABUNDANCE), total: total + EMBARK_ABUNDANCE };
+}
+
+// Every world upgrade done: the first condition for embarking.
+export function worldMastered(s) {
+  const m = worldMastery(s);
+  return m.done >= m.total;
+}
 
 /* --------------------------------------------------------------- buying */
 
