@@ -81,8 +81,10 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 
 Deploys cache-bust automatically: `scripts/stage-site.sh` (run by the Pages
 workflow, or `npm run stage` locally) appends a hash of the source tree as
-`?v=` to the stylesheet, the entry module and every module import, so GitHub
-Pages' 10-minute cache can't serve a stale mix of modules to returning players.
+`?v=` to the stylesheet, the entry module, every module import, the icons and
+the manifest, so GitHub Pages' 10-minute cache can't serve a stale mix of
+modules to returning players, and Safari (which caches icons per host, shared
+by every project on bitkojine.github.io) fetches this game's icon afresh.
 You don't need to change asset URLs by hand — just push.
 
 The project is under git — commit early, commit often:

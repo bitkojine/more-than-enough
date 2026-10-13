@@ -91,3 +91,5 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **Play button in the wiki.** Easy to spot on mobile and desktop. (0.36.1)
 - [x] **Forest milestone needs a forest.** Fossil wood underground no longer earns
       "Gather wood from the forest". (0.36.2)
+- [x] **Right icon in Safari Favorites.** (0.36.3) It showed another bitkojine.github.io
+      project's icon; icon URLs are now cache-busted per deploy.

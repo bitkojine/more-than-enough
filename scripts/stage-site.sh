@@ -6,7 +6,10 @@
 # for 10 minutes and doesn't let us set headers, so a returning player could
 # get a mix of old and new modules. Every local asset URL (stylesheets and
 # scripts in each page, and every module import) gets ?v=<hash of the whole
-# source tree>, so any change makes every URL new at once.
+# source tree>, so any change makes every URL new at once. Icons and the
+# manifest get it too: Safari keeps one icon cache per host, and every project
+# on bitkojine.github.io shares that host, so a fixed icon URL can show another
+# project's icon in Favorites or on the home screen.
 set -eu
 cd "$(dirname "$0")/.."
 OUT="${1:-site}"
@@ -18,8 +21,11 @@ cp -R $SOURCES "$OUT/"
 
 HASH=$(find $SOURCES -type f | LC_ALL=C sort | xargs cat | shasum | cut -c1-10)
 
-# Pages: local href="....css" and src="....js" (anything without a scheme).
-find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|js))\"#\\1?v=$HASH\"#g" {} +
+# Pages: local href/src to stylesheets, scripts, icons and the manifest
+# (anything without a scheme).
+find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|js|png|svg|webmanifest))\"#\\1?v=$HASH\"#g" {} +
+# Manifest: its icons' "src".
+sed -i.bak -E "s#(\"src\": *\"[^\":]+\\.(png|svg))\"#\\1?v=$HASH\"#g" "$OUT/manifest.webmanifest"
 # Modules: from './x.js' -> from './x.js?v=HASH'.
 find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(from '\\.{1,2}/[^']+\\.js)'#\\1?v=$HASH'#g" {} +
 find "$OUT" -name '*.bak' -delete

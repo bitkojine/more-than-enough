@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.36.3] - 2026-10-13
+
+### Fixed
+- **The right icon in Safari Favorites.** Every project on bitkojine.github.io
+  shares one host, and Safari caches icons per host, so a favorite could show
+  another project's icon. Deploys now stamp the build hash onto the icon and
+  manifest URLs (and the manifest's icon URLs), so Safari fetches this game's
+  icon afresh, and the home-screen icon declares its 180×180 size.
+
 ## [0.36.2] - 2026-10-13
 
 ### Fixed
