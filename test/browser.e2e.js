@@ -482,6 +482,14 @@ async function main() {
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened');
   var axeCraft = await evalJS('(function(){var b=document.querySelector(".row button[data-id=axe]");return b?{disabled:b.disabled}:"missing";})()');
+  // Prices say how much more you still need, not the total.
+  var savedInv = await evalJS('JSON.stringify(MTE_GAME.getState().inv)');
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe");for(var r in c)s.inv[r]=0;s.inv[Object.keys(c)[0]]=c[Object.keys(c)[0]]-3;})()');
+  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=axe]").closest(".row"),s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe"),k=Object.keys(c);var need=[...row.querySelectorAll(".amt.need .n")].map(function(n){return n.textContent;});return need[0]==="3"&&need.length===k.length;})()', 2000),
+    'a price shows how much more of each resource is needed (' + await evalJS('[...document.querySelector(".row button[data-id=axe]").closest(".row").querySelectorAll(".amt")].map(function(a){return a.className+":"+a.textContent;}).join(" ")') + ')');
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe");for(var r in c)s.inv[r]=c[r];})()');
+  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=axe]").closest(".row");return row.querySelector(".price.ready")&&!row.querySelector(".amt.need");})()', 2000), 'once you have it all, the price shows what it costs');
+  await evalJS('Object.assign(MTE_GAME.getState().inv,' + savedInv + ')');
   if (woodNow < 6) { await evalJS('MTE_GAME.addRes("wood",20)'); await sleep(150); }
   var axeButton = await rect('.row button[data-id=axe]');
   await tap(axeButton.x, axeButton.y);

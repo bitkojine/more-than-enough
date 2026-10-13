@@ -61,15 +61,22 @@ export function createAudio() {
   // Resume, with no gesture to hand: works once the page has had one.
   function nudge() {
     if (!ctx || ctx.state === 'running' || document.hidden) return;
-    try { ctx.resume().catch(() => {}); } catch { /* the next gesture will */ }
+    try { ctx.resume().catch((err) => traceError('nudge', err)); } catch { /* the next gesture will */ }
   }
+
+  // What the sound last did, for the performance panel: the last gesture
+  // that tried to wake it, and the last refusal.
+  const trace = { wakes: 0, last: '', error: '' };
+  function traceError(what, err) { trace.error = what + ': ' + (err && (err.name || err.message) || err); }
 
   // Inside a gesture: resume, plus a one-sample silent buffer, the trick that
   // wakes mobile Safari when resume() alone is ignored.
-  function unlock() {
+  function unlock(e) {
     if (!create()) return false;
     if (ctx.state !== 'running') {
-      try { ctx.resume().catch(() => {}); } catch { /* keep going */ }
+      trace.wakes++;
+      trace.last = (e && e.type) || '?';
+      try { ctx.resume().catch((err) => traceError(trace.last, err)); } catch { /* keep going */ }
       try {
         const src = ctx.createBufferSource();
         src.buffer = ctx.createBuffer(1, 1, 22050);
@@ -80,8 +87,8 @@ export function createAudio() {
     return true;
   }
 
-  function init() {
-    if (!unlock() || master) return;
+  function init(e) {
+    if (!unlock(e) || master) return;
     wire();
   }
 
@@ -312,6 +319,7 @@ export function createAudio() {
     get muted() { return muted; },
     set muted(v) { muted = v; },
     state: () => (ctx ? ctx.state : 'none'),
+    trace: () => trace,
     // The loudest sample in the last ~40ms of output (0 = silence).
     level() {
       if (!meter) return 0;

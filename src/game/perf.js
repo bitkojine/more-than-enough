@@ -51,7 +51,8 @@ export function createPerf(el, canvas, audio) {
         cores: navigator.hardwareConcurrency || null,
         memoryGb: navigator.deviceMemory || null,
         heapMb: performance.memory ? performance.memory.usedJSHeapSize / 1048576 : null,
-        sound: audio.state()
+        sound: audio.state(),
+        soundTrace: audio.trace()
       };
     },
 
@@ -80,8 +81,9 @@ export function createPerf(el, canvas, audio) {
       `tiles   ${m.tiles}`,
       `screen  ${m.screen} @${+m.dpr.toFixed(2)}x`,
       `canvas  ${m.canvas}`,
-      `sound   ${m.sound}`
+      `sound   ${m.sound}  wakes ${m.soundTrace.wakes} ${m.soundTrace.last}`
     ];
+    if (m.soundTrace.error) lines.push(`        ${m.soundTrace.error}`);
     if (m.cores) lines.push(`cores   ${m.cores}`);
     if (m.memoryGb) lines.push(`memory  ${m.memoryGb} GB`);
     if (m.heapMb !== null) lines.push(`heap    ${m.heapMb.toFixed(1)} MB`);

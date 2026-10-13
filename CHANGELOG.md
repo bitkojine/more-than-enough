@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.0] - 2026-10-13
+
+### Changed
+- **Prices show what you still need.** Every price in the sheet is a row of
+  pills, one per resource, picture first. While you're short, each pill
+  shows how much more of that resource to gather, and resources you already
+  have enough of show a tick. Once you have it all, the pills turn green and
+  show the cost. The sheet updates live as you gather (changed rows are
+  patched in place, so a tap never lands on a button being replaced).
+- The performance panel's sound line also shows how many touches tried to
+  start the sound, the last kind, and the browser's last refusal.
+
 ## [0.27.1] - 2026-10-13
 
 ### Changed

@@ -316,6 +316,22 @@ canvas#game {
 .row .sub .cost { color: #e8d59a; }
 .row .sub .ok { color: var(--green); }
 .row .sub .bad { color: #e08a7a; }
+
+/* Prices: one pill per resource, picture first. Short of it: how much more
+   to gather (red). Enough of it: a tick. All there: what it costs (green). */
+.price { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.amt {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 8px 1px 3px;
+  border: 1px solid color-mix(in srgb, var(--res, #fff) 45%, transparent); border-radius: 999px;
+  background: color-mix(in srgb, var(--res, #fff) 10%, transparent);
+  font-size: 12px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.amt .ico { width: 16px; height: 16px; vertical-align: 0; }
+.amt.need .n { color: #f0a08f; }
+.amt.met { opacity: 0.6; }
+.amt.met .n { color: var(--green); }
+.amt.cost .n { color: var(--green); }
 .row .buy {
   flex: 0 0 auto;
   min-width: 92px; min-height: 52px;

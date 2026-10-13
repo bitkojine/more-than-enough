@@ -16,12 +16,26 @@ const pic = (id, slot) => iconHtml(look, id, 'ico', slot);
 const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
 
-function costHtml(cost) {
-  return Object.keys(cost).map((r) => fmt(cost[r]) + ' ' + icon(r)).join(' ');
-}
-
 function priceTag(text, affordable) {
   return `<span class="${affordable ? 'ok' : 'bad'}">${text}</span>`;
+}
+
+// A price, as what you still have to gather: one pill per resource, picture
+// first. Short of a resource, its pill shows how much more you need; one you
+// already have enough of shows a tick. Once you can pay it all, the pills show
+// what it will cost. `have` and `cost` are keyed by resource (or 'insight').
+function price(have, cost) {
+  const keys = Object.keys(cost);
+  const ready = keys.every((r) => have[r] >= cost[r]);
+  const pill = (r, text, cls) => {
+    const id = r === 'insight' ? 'resource.insight' : Core.resourceLook(r);
+    return `<span class="amt ${cls}" style="--res:${look.color(id)}">${pic(id)}<span class="n">${text}</span></span>`;
+  };
+  return `<span class="price ${ready ? 'ready' : 'short'}">` + keys.map((r) => {
+    if (ready) return pill(r, fmt(cost[r]), 'cost');
+    const short = Math.ceil(cost[r] - have[r]);
+    return short > 0 ? pill(r, fmt(short), 'need') : pill(r, '✓', 'met');
+  }).join('') + '</span>';
 }
 
 function row(rowIcon, name, sub, button) {
@@ -78,8 +92,8 @@ function upgradeRow(s, id) {
   const cost = Core.upgradeCost(s, id);
   if (cost === null) return row(pic(u.look), name, d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
   const affordable = Core.canBuy(s, id);
-  const price = priceTag(u.currency === 'insight' ? cost + ' ' + insight() : costHtml(cost), affordable);
-  return row(pic(u.look), name, d.sub ? d.sub + '<br>' + price : price, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
+  const tag = u.currency === 'insight' ? price({ insight: s.insight }, { insight: cost }) : price(s.inv, cost);
+  return row(pic(u.look), name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
 }
 
 /* ----------------------------------------------------------- the sheet */
@@ -129,7 +143,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const spot = Core.buildTarget(s, key);
-    return row(picture, name, rate + '<br>' + priceTag(costHtml(cost), affordable && !!spot), place(affordable && !!spot));
+    return row(picture, name, rate + '<br>' + price(s.inv, cost), place(affordable && !!spot));
   }
 
   function renderBuild(s) {
@@ -163,6 +177,32 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     const s = getState();
     beyondShownUnlocked = beyondUnlocked(s);
     el.sheetBody.innerHTML = RENDER[tab](s);
+  }
+
+  // Live updates while open (prices count down as you gather): changed
+  // texts and button states are patched in place, so a button never gets
+  // swapped out from under a finger mid-tap.
+  let nextRefresh = 0;
+  function refresh() {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = RENDER[tab](getState());
+    const was = el.sheetBody.querySelectorAll('.row, .railHead'), now = tmp.querySelectorAll('.row, .railHead');
+    if (was.length !== now.length) { render(); return; }
+    now.forEach((n, i) => {
+      const o = was[i];
+      if (o.innerHTML === n.innerHTML && o.className === n.className) return;
+      if (o.matches('.railHead')) { o.className = n.className; o.innerHTML = n.innerHTML; return; }
+      for (const part of ['.ic', '.nm', '.sub']) {
+        const a = o.querySelector(part), b = n.querySelector(part);
+        if (a && b && a.innerHTML !== b.innerHTML) a.innerHTML = b.innerHTML;
+      }
+      const a = o.querySelector('button'), b = n.querySelector('button');
+      if (a && b) {
+        a.disabled = b.disabled;
+        a.className = b.className;
+        if (a.innerHTML !== b.innerHTML) a.innerHTML = b.innerHTML;
+      }
+    });
   }
 
   function setTab(next) {
@@ -240,7 +280,12 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     show, close, toggle, render,
     // Reveal the Beyond tab's contents live once the prestige loop unlocks.
     tick() {
-      if (open && tab === 'beyond' && beyondUnlocked(getState()) !== beyondShownUnlocked) render();
+      if (!open) return;
+      if (tab === 'beyond' && beyondUnlocked(getState()) !== beyondShownUnlocked) { render(); return; }
+      const now = performance.now();
+      if (now < nextRefresh) return;
+      nextRefresh = now + 250;
+      refresh();
     }
   };
 }

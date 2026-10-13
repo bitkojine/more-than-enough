@@ -144,7 +144,9 @@
       <h2>The sheet</h2>
       <p>BUILD and UPGRADE open a sheet with three tabs: <strong>Upgrades</strong>, <strong>Build</strong> and <strong>Beyond</strong>.
         Tap the map above it (or <strong>Done</strong>) to close it. That tap only closes the sheet and doesn't move or gather.
-        Prices show in green when you can afford them and red when you can't. In Upgrades, each family has a row of dots: an empty
+        Each price is a row of pills, one per resource. While you're short, a pill shows <strong>how much more</strong> of that
+        resource you still need to gather (red), and a resource you already have enough of shows a tick. Once you have it
+        all, the pills turn green and show what it costs. The amounts count down live as you gather. In Upgrades, each family has a row of dots: an empty
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed.</p>
       <p>The bottom of the sheet holds <strong>Wiki</strong> (this page), <strong>Reset world</strong> (starts over, after asking),
         <strong>Sound</strong> and <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
@@ -165,6 +167,8 @@
           <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, regrowth.</td></tr>
           <tr><td>draw</td><td>Time per frame spent drawing the map. Tilting and zooming out raise it.</td></tr>
           <tr><td>tiles</td><td>Tiles drawn this frame (blocks, when zoomed far out).</td></tr>
+          <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
+            touches have tried to start it and the last kind, and the browser's last refusal if any.</td></tr>
           <tr><td>screen / canvas</td><td>Your screen size and pixel density, and the size the map is drawn at.</td></tr>
           <tr><td>cores, memory, heap</td><td>Your device's processor cores and memory, and the game's memory use, where the browser reports them.</td></tr>
         </tbody>
