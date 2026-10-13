@@ -208,6 +208,14 @@
    "image": "props/torch.svg",
    "color": "#ffb455"
   },
+  "mark.lamp": {
+   "image": "props/lamp.svg",
+   "color": "#bfe6ff"
+  },
+  "mark.flag": {
+   "image": "props/flag.svg",
+   "color": "#ff5d5d"
+  },
   "ui.build": {
    "icon": "icons/build.svg"
   },

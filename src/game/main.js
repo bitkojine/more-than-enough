@@ -115,7 +115,7 @@ const controller = createController({ game, cam, fx, audio, hud, look });
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
-  actions: { buy: controller.buy, place: controller.place, placeTorch: controller.placeTorch, embark: controller.embark }
+  actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
 
 const textures = createTextures({

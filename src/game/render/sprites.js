@@ -93,11 +93,11 @@ export function drawPlayer(ctx, cam, s, look, view) {
   figure(sy - step, u);
 }
 
-// A torch standing in a tunnel.
-export function drawTorch(ctx, cam, s, look, x, y) {
+// A prop (torch, lamp, flag) standing in a tunnel.
+export function drawProp(ctx, cam, s, look, kind, x, y) {
   const u = cam.tilePx;
   const at = cam.project(x + 0.5, y + FOOT, groundAt(cam, s, x, y));
-  look.stand(ctx, look.pick('mark.torch', 'image', x, y, s.time), at.x, at.y, u);
+  look.stand(ctx, look.pick('mark.' + kind, 'image', x, y, s.time), at.x, at.y, u);
 }
 
 export function drawParticles(ctx, cam, fx) {

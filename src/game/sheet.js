@@ -156,16 +156,17 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
     return row(picture, name, rate + '<br>' + price(s.inv, cost), place(affordable && !!spot));
   }
 
-  // A torch, for lighting the mine where you stand.
-  function torchRow(s) {
-    const ok = Core.canPlaceTorch(s) && Core.canAfford(s.inv, Core.TORCH_COST);
-    return row(pic('mark.torch', 'image'), 'Torch', price(s.inv, Core.TORCH_COST), button('data-kind="torch"', 'Place', ok));
+  // Something to place in the mine, where you stand.
+  function propRow(s, kind) {
+    const def = Core.PROPS[kind];
+    const ok = Core.canPlaceProp(s, kind) && Core.canAfford(s.inv, def.cost);
+    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost), button(`data-kind="prop" data-id="${kind}"`, 'Place', ok));
   }
 
   function renderBuild(s) {
     return '<div class="section">Extractors</div>' + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       '<div class="section">Converters</div>' + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
-      '<div class="section">Light</div>' + torchRow(s);
+      '<div class="section">In the mine</div>' + Object.keys(Core.PROPS).map((k) => propRow(s, k)).join('');
   }
 
   function renderBeyond(s) {
@@ -249,7 +250,7 @@ export function createSheet(el, { getState, actions, look: currentLook }) {
       return;
     }
     if (kind === 'build') actions.place(id);
-    else if (kind === 'torch') actions.placeTorch();
+    else if (kind === 'prop') actions.placeProp(id);
     else if (kind === 'embark') actions.embark();
     else if (kind) actions.buy(id);
     if (open) render();

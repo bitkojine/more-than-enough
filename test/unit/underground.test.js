@@ -354,22 +354,39 @@ test('a new hole takes work; an old one is a way straight through', () => {
   assert.ok(C.holeTime(fast) < C.holeTime(t) / 2);
 });
 
-test('torches: placed underground on open floor, one per tile, paid in wood, and saved', () => {
+test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));
-  assert.equal(C.canPlaceTorch(s), false, 'not on the surface');
+  assert.equal(C.canPlaceProp(s, 'torch'), false, 'not on the surface');
   assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
   C.goDown(s);
   assert.equal(C.needsLantern(s), true, 'the lantern comes out underground');
-  assert.equal(C.placeTorch(s).ok, false, 'needs wood');
+  assert.equal(C.placeProp(s, 'torch').ok, false, 'needs wood');
+  assert.equal(C.canPlaceProp(s, 'nonsense'), false);
   s.inv.wood = 10;
-  assert.equal(C.placeTorch(s).ok, true);
-  assert.equal(s.inv.wood, 10 - C.TORCH_COST.wood);
-  assert.equal(C.canPlaceTorch(s), false, 'one per tile');
+  assert.equal(C.placeProp(s, 'torch').ok, true);
+  assert.equal(s.inv.wood, 10 - C.PROPS.torch.cost.wood);
+  assert.equal(C.canPlaceProp(s, 'flag'), false, 'one per tile, of any kind');
+  C.setRichness(s.world, Math.floor(s.player.x) + 1, Math.floor(s.player.y), s.player.z, 0);
+  s.player.x += 1;
+  Object.assign(s.inv, { stone: 8, crystal: 1 });
+  assert.equal(C.placeProp(s, 'lamp').ok, true, 'a lamp next door');
+  assert.deepEqual([...s.world.props.values()].sort(), ['lamp', 'torch']);
   const back = C.deserialize(C.serialize(s));
-  assert.deepEqual([...back.world.torches], [...s.world.torches], 'torches are saved');
+  assert.deepEqual([...back.world.props], [...s.world.props], 'props are saved');
   const night = away(C.createState(1));
   night.time = C.DAY_LENGTH / 2;
   assert.equal(C.needsLantern(night), true, 'and at night');
+});
+
+test('saves from before props keep their torches', () => {
+  const s = away(C.createState(31415));
+  C.goDown(s);
+  const k = C.packKey(Math.floor(s.player.x), Math.floor(s.player.y), s.player.z);
+  const d = JSON.parse(C.serialize(s));
+  delete d.props;
+  d.torches = [k, C.packKey(0, 0, 0)];
+  const back = C.deserialize(JSON.stringify(d));
+  assert.deepEqual([...back.world.props], [[k, 'torch']], 'kept underground only');
 });
 
 test('home ground is sealed: no way down from it, none up into it; deeper is open rock', () => {

@@ -26,7 +26,18 @@ export const EXTRACTOR_GROWTH = 1.65; // each extra extractor of a kind costs th
 // much gathered in the world.
 export const EMBARK_MIN_TOTAL = 1000000;
 export const EMBARK_ABUNDANCE = 5;
-export const TORCH_COST = { wood: 3 };     // a torch for the tunnels
+
+/* -------------------------------------------------------------- props */
+
+// Things you place on the tunnel floor where you stand, one per tile, in the
+// mine only. `light` is how far it lights, in tiles (the lantern reaches 1.7);
+// a `beacon` shows through the dark from anywhere on screen, to find your way
+// back by.
+export const PROPS = {
+  torch: { name: 'Torch', cost: { wood: 3 }, light: 4.5, does: 'Lights the tunnel around it' },
+  lamp: { name: 'Crystal lamp', cost: { stone: 8, crystal: 1 }, light: 8, does: 'Lights a wide cavern, cool and bright' },
+  flag: { name: 'Marker flag', cost: { wood: 2 }, beacon: true, does: 'Shows through the dark, to find your way back' }
+};
 
 /* -------------------------------------------------------------- finds */
 

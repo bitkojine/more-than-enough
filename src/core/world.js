@@ -21,12 +21,12 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  * @property {Map<number, Uint8Array>} explored  chunk key -> fog bitmask
  * @property {number} revealed  tiles explored since the world was created or loaded (a change counter, not saved)
  * @property {Set<number>} holes             tile keys (x, y, z) with a hole in layer z's floor
- * @property {Set<number>} torches           tile keys (x, y, z) with a torch you placed
+ * @property {Map<number, string>} props     tile key (x, y, z) -> the prop you placed there (a PROPS key)
  */
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), torches: new Set(), hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), props: new Map(), hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so

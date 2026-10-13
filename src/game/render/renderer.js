@@ -10,13 +10,18 @@
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
+<<<<<<< HEAD
 import { drawTerrain, drawFarHoles } from './terrain.js';
 import { drawExtractor, drawDigging, drawPlayer, drawTorch, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawJoystick } from './overlay.js';
+=======
+import { drawTerrain } from './terrain.js';
+import { drawExtractor, drawDigging, drawPlayer, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawJoystick } from './overlay.js';
+>>>>>>> 1a39aa6 (v0.39.0: more to place in the mine: crystal lamps and marker flags)
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const TORCH_LIGHT = 4.5;   // how far a torch lights, in tiles: well past the lantern
-const FLICKER = 0.12;      // how much a torch's reach wavers, in tiles
+const FLICKER = 0.12;      // how much a flame's reach wavers, in tiles
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
@@ -33,24 +38,29 @@ export function render(cam, s, fx, view, look) {
     if (row) row.push(e); else byRow.set(e.y, [e]);
   }
   const playerRow = Math.floor(s.player.y);
-  // Torches on this layer, by row, and as lights.
-  const torchRows = new Map();
-  const lights = [];
-  for (const k of s.world.torches) {
+  // Props on this layer, by row; the ones that light, as lights (a torch's
+  // flame flickers), and the beacons.
+  const propRows = new Map();
+  const lights = [], beacons = [];
+  for (const [k, kind] of s.world.props) {
     const t = Core.unpackKey(k);
     if (t.z !== cam.z) continue;
-    const row = torchRows.get(t.y);
-    if (row) row.push(t.x); else torchRows.set(t.y, [t.x]);
-    const flicker = FLICKER * Math.sin(s.time * 9 + t.x * 1.7 + t.y * 2.3);
-    lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: TORCH_LIGHT + flicker, color: look.color('mark.torch') });
+    const row = propRows.get(t.y);
+    if (row) row.push([t.x, kind]); else propRows.set(t.y, [[t.x, kind]]);
+    const def = Core.PROPS[kind];
+    if (def.light) {
+      const flicker = kind === 'torch' ? FLICKER * Math.sin(s.time * 9 + t.x * 1.7 + t.y * 2.3) : 0;
+      lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
+    }
+    if (def.beacon) beacons.push({ x: t.x, y: t.y, kind });
   }
 
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
-    const torches = torchRows.get(y);
-    if (torches) for (const x of torches) drawTorch(ctx, cam, s, look, x, y);
+    const props = propRows.get(y);
+    if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
     if (y === playerRow) { drawDigging(ctx, cam, s, look); drawPlayer(ctx, cam, s, look, view); }
   });
   // Tilted, a wall in front can hide the player: show them faintly through it.
@@ -65,7 +75,11 @@ export function render(cam, s, fx, view, look) {
   drawFlyers(ctx, cam, look, fx);
   drawLighting(ctx, cam, s, look, lights);
   drawGlints(ctx, cam, s, look);
+<<<<<<< HEAD
   drawFarHoles(ctx, cam, s, look);
+=======
+  drawBeacons(ctx, cam, s, look, beacons);
+>>>>>>> 1a39aa6 (v0.39.0: more to place in the mine: crystal lamps and marker flags)
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

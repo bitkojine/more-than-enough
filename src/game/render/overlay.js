@@ -1,5 +1,6 @@
 /* Everything drawn over the world: target highlights, the Trail stroke, day
- * and night lighting, finds glinting in the dark, and the joystick. */
+ * and night lighting, finds glinting and beacons showing through the dark,
+ * and the joystick. */
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
@@ -86,7 +87,7 @@ export function drawTrail(ctx, cam, s, view) {
 
 /* Light and dark. Underground it is always dark; on the surface it gets dark
  * at night. What lights the dark: the wanderer's lantern (carried only then),
- * torches you placed, and daylight falling through holes in the ceiling. The
+ * torches and lamps you placed, and daylight falling through holes in the ceiling. The
  * dark is drawn as one mask at low resolution with every light cut out of it,
  * then each light adds a warm tint of its own colour.
  *
@@ -105,7 +106,7 @@ let mask = null;
 
 /**
  * @param {Array<{x: number, y: number, r: number, color: string, strength?: number}>} lights
- *   lights on this layer besides the lantern and skylights (torches), in tiles.
+ *   lights on this layer besides the lantern and skylights (torches, lamps), in tiles.
  *   `core` (0..1, default 0.5) is how much of the radius is lit fully before
  *   the light fades out.
  */
@@ -217,6 +218,43 @@ export function drawGlints(ctx, cam, s, look) {
     star(ctx, p.x, p.y, r, color);
     star(ctx, p.x, p.y, r * 0.5, '#fffbe8');
     ctx.globalAlpha = 1;
+  }
+}
+
+/* Beacons (marker flags): a pin of the flag's colour over the dark wherever
+ * one stands on screen, so you can find your way back to it. Kept on screen
+ * at the edge, pointing the way, when it's off it. */
+const BEACON_PIN = 7;     // the pin's radius, in CSS pixels
+const BEACON_EDGE = 28;   // how far in from the screen's edge an off-screen pin sits
+
+export function drawBeacons(ctx, cam, s, look, beacons) {
+  for (const b of beacons) {
+    const color = look.color('mark.' + b.kind);
+    const p = cam.project(b.x + 0.5, b.y + 0.5, cam.z);
+    const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
+    const x = Math.max(BEACON_EDGE, Math.min(cam.width - BEACON_EDGE, p.x));
+    const y = Math.max(BEACON_EDGE, Math.min(cam.height - BEACON_EDGE, p.y - (off ? 0 : cam.tilePx * 1.1)));
+    const pulse = 0.5 + 0.5 * Math.sin(s.time * 2.4 + b.x + b.y);
+    const halo = ctx.createRadialGradient(x, y, 0, x, y, BEACON_PIN * 3);
+    halo.addColorStop(0, rgba(color, 0.35 + 0.25 * pulse));
+    halo.addColorStop(1, rgba(color, 0));
+    ctx.fillStyle = halo;
+    ctx.fillRect(x - BEACON_PIN * 3, y - BEACON_PIN * 3, BEACON_PIN * 6, BEACON_PIN * 6);
+    ctx.fillStyle = color;
+    ctx.strokeStyle = 'rgba(10,8,6,0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (off) {
+      // An arrowhead at the edge, pointing at the flag.
+      const a = Math.atan2(p.y - y, p.x - x), r = BEACON_PIN * 1.4;
+      ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      ctx.lineTo(x + Math.cos(a + 2.4) * r, y + Math.sin(a + 2.4) * r);
+      ctx.lineTo(x + Math.cos(a - 2.4) * r, y + Math.sin(a - 2.4) * r);
+      ctx.closePath();
+    } else {
+      ctx.arc(x, y, BEACON_PIN, 0, TAU);
+    }
+    ctx.fill(); ctx.stroke();
   }
 }
 

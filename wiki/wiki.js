@@ -74,6 +74,12 @@ const TABLES = {
     return table(['Tile', 'Share of tiles', 'Found on'], rows, [1]);
   },
 
+  props: () => table(['Thing', 'Cost', 'Light reach', 'What it does'],
+    Object.keys(Core.PROPS).map((k) => {
+      const p = Core.PROPS[k];
+      return [`${pic('mark.' + k, 'image')} ${p.name}`, costText(p.cost), p.light || '—', p.does];
+    }), [2]),
+
   finds: () => table(['Find', 'Loot on layer 1, per point of tool yield', 'Found on'],
     Object.keys(Core.FINDS).map((t) => {
       const f = Core.FINDS[t];

@@ -5,7 +5,7 @@
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
-import { EXTRACTORS, TOOLS, REFINERIES } from './content.js';
+import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { createState } from './state.js';
 
 export const SAVE_VERSION = 5;
@@ -27,7 +27,7 @@ export function serialize(s) {
     mods: [...s.world.mods],
     explored: [...s.world.explored].map(([k, mask]) => [k, bytesToB64(mask)]),
     holes: [...s.world.holes],
-    torches: [...s.world.torches],
+    props: [...s.world.props],
     player: { x: +s.player.x.toFixed(3), y: +s.player.y.toFixed(3), z: s.player.z },
     inv: s.inv, tools: s.tools, unlocks: s.unlocks, resUp: s.resUp,
     abundanceLv: s.abundanceLv, insight: s.insight, prestiges: s.prestiges, totalEver: s.totalEver,
@@ -68,7 +68,10 @@ export function deserialize(str) {
   }
   const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
   w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
-  w.torches = new Set((d.torches || []).filter((k) => isInt(k) && unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN));
+  const propOk = ([k, kind]) => isInt(k) && PROPS[kind] && unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN;
+  // Saves from before other props held only torches.
+  const props = d.props || (d.torches || []).map((k) => [k, 'torch']);
+  w.props = new Map(props.filter((p) => Array.isArray(p) && propOk(p)));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };

@@ -12,7 +12,7 @@
 import { SURFACE, Z_MIN, tileDist2, packKey, chunkCoord } from './coords.js';
 import { TILE_INFO, T } from './tiles.js';
 import { tileAt, setRichness, holeBelow, digHole } from './world.js';
-import { REACH, TORCH_COST, GLINT_RANGE } from './content.js';
+import { REACH, PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
 import { extractorAt } from './actions.js';
 import { daylight } from './sim.js';
@@ -179,20 +179,19 @@ export function needsLantern(s) {
   return isUnderground(s) || daylight(s.time) < 0.6;
 }
 
-// A torch lights the tunnel around it for good. One per tile, on open tunnel
-// floor where you stand.
-export function canPlaceTorch(s) {
-  if (!isUnderground(s)) return false;
+// Props (PROPS) go on open tunnel floor where you stand, one per tile.
+export function canPlaceProp(s, kind) {
+  if (!isUnderground(s) || !PROPS[kind]) return false;
   const { x, y } = feet(s);
-  return !s.world.torches.has(packKey(x, y, s.player.z)) && !!TILE_INFO[tileAt(s.world, x, y, s.player.z)].walk;
+  return !s.world.props.has(packKey(x, y, s.player.z)) && !!TILE_INFO[tileAt(s.world, x, y, s.player.z)].walk;
 }
 
 /** @returns {{ok: true, x: number, y: number} | {ok: false}} */
-export function placeTorch(s) {
-  if (!canPlaceTorch(s) || !canAfford(s.inv, TORCH_COST)) return { ok: false };
-  pay(s.inv, TORCH_COST);
+export function placeProp(s, kind) {
+  if (!canPlaceProp(s, kind) || !canAfford(s.inv, PROPS[kind].cost)) return { ok: false };
+  pay(s.inv, PROPS[kind].cost);
   const { x, y } = feet(s);
-  s.world.torches.add(packKey(x, y, s.player.z));
+  s.world.props.set(packKey(x, y, s.player.z), kind);
   return { ok: true, x, y };
 }
 

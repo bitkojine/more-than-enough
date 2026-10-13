@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.39.0] - 2026-10-13
+
+### Added
+- **More to place in the mine.** The Build sheet's torch row is now an
+  **In the mine** section with three things, each placed on the tunnel floor
+  where you stand: the **torch** (3 wood, lights 4.5 tiles), a **crystal
+  lamp** (8 stone and 1 crystal, lights 8 tiles: a whole cavern) and a
+  **marker flag** (2 wood), whose red pin shows through the dark over it and,
+  when it's off screen, waits at the screen's edge pointing the way back.
+  New `mark.lamp` and `mark.flag` looks; the wiki's Underground page lists
+  them.
+
+### Changed
+- Torches are now one kind of placed thing (`PROPS` in content.js); saves
+  keep their torches.
+
 ## [0.38.3] - 2026-10-13
 
 ### Changed

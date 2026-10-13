@@ -207,9 +207,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       checkGoals();
     },
 
-    placeTorch() {
+    placeProp(kind) {
       const s = state();
-      const res = Core.placeTorch(s);
+      const res = Core.placeProp(s, kind);
       if (!res.ok) return;
       fx.built(res.x, res.y);
       audio.build();
