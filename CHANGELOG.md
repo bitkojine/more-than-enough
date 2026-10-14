@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.57.2] - 2026-10-14
+
+### Changed
+- **You can tell who's over there.** A friend off screen (or on another
+  layer) now shows at the screen's edge as their own badge: a circle in their
+  colour with their wanderer's face and their number, as on their chip, with
+  an arrow on its rim pointing their way (and a small up or down arrow when
+  they're on another layer). Asleep friends' badges are faded grey.
+
 ## [0.57.1] - 2026-10-14
 
 ### Changed

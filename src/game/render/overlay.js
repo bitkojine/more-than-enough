@@ -258,42 +258,73 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
   }
 }
 
-// Friends you can't see (off screen, or on another layer): a pin in their
-// colour at the edge pointing their way, with a small arrow up or down when
-// they're on another layer.
-export function drawFriendMarkers(ctx, cam, s, friends, colors) {
-  const pin = BEACON_PIN * 1.2, edge = BEACON_EDGE + 8;
+// Friends you can't see (off screen, or on another layer): their badge at
+// the screen's edge on the way to them. A circle in their colour with their
+// wanderer's face in it and their number on a tag, an arrow on the rim
+// pointing at them, and a small up or down arrow when they're on another
+// layer. Asleep (offline) friends' badges are faded and grey.
+const BADGE = 22;          // the badge's radius, in CSS pixels
+export function drawFriendMarkers(ctx, cam, s, look, friends, colors) {
+  const edge = BADGE + 14;
+  const face = look.pick('character.wanderer', 'image');
   for (const f of friends) {
     const p = cam.project(f.x, f.y, cam.z);
     const other = f.z !== cam.z;
     const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
     if (!off && !other) continue;
-    let x = Math.max(edge, Math.min(cam.width - edge, p.x));
-    let y = Math.max(edge + 60, Math.min(cam.height - edge - 120, p.y));
-    if (!off) y -= cam.tilePx * 1.2; // on another layer, right above where they are
+    const x = Math.max(edge, Math.min(cam.width - edge, p.x));
+    let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
+    if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
+    const color = colors[f.c];
+    const asleep = f.st === 'offline';
     ctx.save();
-    ctx.globalAlpha = f.st === 'offline' ? 0.8 : 1;
-    ctx.fillStyle = colors[f.c];
+    ctx.globalAlpha = asleep ? 0.75 : 1;
+    // The badge: their colour, and their face.
+    ctx.fillStyle = color;
     ctx.strokeStyle = 'rgba(10,8,6,0.85)';
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    if (off) {
-      const a = Math.atan2(p.y - y, p.x - x), r = pin * 1.4;
-      ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
-      ctx.lineTo(x + Math.cos(a + 2.4) * r, y + Math.sin(a + 2.4) * r);
-      ctx.lineTo(x + Math.cos(a - 2.4) * r, y + Math.sin(a - 2.4) * r);
-      ctx.closePath();
-    } else {
-      ctx.arc(x, y, pin, 0, TAU);
-    }
-    ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, BADGE, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f4efe4';
+    ctx.beginPath(); ctx.arc(x, y, BADGE - 4, 0, TAU); ctx.fill();
+    ctx.save();
+    ctx.clip();
+    if (asleep && 'filter' in ctx) ctx.filter = 'grayscale(1)';
+    // Their head fills the circle: the figure, big, with its top near the rim.
+    const size = BADGE * 4.6 / (face.units * face.aspect);
+    look.stand(ctx, face, x, y - BADGE * 0.9 + BADGE * 4.6, size);
+    ctx.restore();
+    // Their number, as on their chip in the top bar.
+    const nx = x - BADGE * 0.78, ny = y + BADGE * 0.78;
+    ctx.font = '800 11px system-ui, sans-serif'; // i18n-ok: a font
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(nx, ny, 8, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#0c0a08';
+    ctx.fillText(String(f.c + 1), nx, ny + 0.5);
     if (other) {
       // Up or down: which way the layer they're on is.
-      const up = f.z > cam.z, r = pin * 0.6;
+      const up = f.z > cam.z, ax = x + BADGE * 0.78, ay = y - BADGE * 0.78, r = 7;
       ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(ax, ay, r + 2, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#0c0a08';
       ctx.beginPath();
-      ctx.moveTo(x, y + (up ? -r : r)); ctx.lineTo(x + r, y + (up ? r * 0.6 : -r * 0.6)); ctx.lineTo(x - r, y + (up ? r * 0.6 : -r * 0.6));
+      ctx.moveTo(ax, ay + (up ? -r * 0.7 : r * 0.7));
+      ctx.lineTo(ax + r * 0.65, ay + (up ? r * 0.45 : -r * 0.45));
+      ctx.lineTo(ax - r * 0.65, ay + (up ? r * 0.45 : -r * 0.45));
       ctx.closePath(); ctx.fill();
+    }
+    // The arrow on the rim, toward them.
+    if (off) {
+      const a = Math.atan2(p.y - y, p.x - x);
+      ctx.fillStyle = color;
+      ctx.strokeStyle = 'rgba(10,8,6,0.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * (BADGE + 12), y + Math.sin(a) * (BADGE + 12));
+      ctx.lineTo(x + Math.cos(a + 0.45) * (BADGE + 1), y + Math.sin(a + 0.45) * (BADGE + 1));
+      ctx.lineTo(x + Math.cos(a - 0.45) * (BADGE + 1), y + Math.sin(a - 0.45) * (BADGE + 1));
+      ctx.closePath(); ctx.fill(); ctx.stroke();
     }
     ctx.restore();
   }
