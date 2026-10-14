@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.47.1] - 2026-10-14
+
+### Fixed
+- **Zooming out no longer turns blocky all at once.** Past a certain zoom
+  the map used to drop straight from full detail to big flat squares two
+  tiles wide. Now the zoomed-out view keeps every tile's own picture (trees,
+  rocks, water, piles) and just gets smaller as you pinch out. To stay
+  fast, it is drawn once into an off-screen map and kept up to date a
+  little each frame, so a frame costs about the same however far out you
+  are.
+
 ## [0.47.0] - 2026-10-14
 
 ### Removed

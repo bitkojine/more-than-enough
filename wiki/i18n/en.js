@@ -264,6 +264,8 @@ export default {
         You can zoom in to 3&times; and out until tiles are just a few pixels wide. Between the buttons, beside a magnifier,
         is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); tap it to go
         back to 1&times;.</p>
+      <p>Zoomed out, everything keeps its look and just gets smaller: forests stay forests and rocks stay rocks. Pinch
+        out quickly and the map may show in plain colours for a moment while it catches up.</p>
 
       <h2>The view</h2>
       <p>You look down on the world from just off straight above, leaning a little to the north, so things have height. Mountains
@@ -357,8 +359,8 @@ export default {
           <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
           <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
           <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, regrowth.</td></tr>
-          <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it.</td></tr>
-          <tr><td>tiles</td><td>Tiles drawn this frame (blocks, when zoomed far out).</td></tr>
+          <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it, until the far view takes over.</td></tr>
+          <tr><td>tiles</td><td>Tiles on screen.</td></tr>
           <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
             touches have tried to start it and the last kind, and the browser's last refusal if any.</td></tr>
           <tr><td>screen / canvas</td><td>Your screen size and pixel density, and the size the map is drawn at.</td></tr>
@@ -603,7 +605,6 @@ export default {
         <li>The yard stays put while you gather. Piles that are still needed never move, new piles take the best free spot,
           and only the piles that go (spent, or ten merged into one bigger pile) disappear. About every
           minute and a half the yard tidies itself, biggest piles back in the middle.</li>
-        <li>Zoomed far out, each pile is a dot of its resource's colour.</li>
       </ul>
       <p>What every kind of pile looks like comes from the texture pack (the <code>tiers</code> slot of
         piles in <a href="#things">Everything in the game</a>).</p>`,

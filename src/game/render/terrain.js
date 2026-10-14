@@ -1,5 +1,6 @@
-/* Terrain: one tile at a time up close, flat sampled blocks when zoomed far
- * out (so the draw count stays bounded however far you pinch out).
+/* Terrain: one tile at a time up close; zoomed out, the same tiles drawn into
+ * an off-screen map that is shown scaled (farmap.js), so the cost of a frame
+ * stays bounded however far you pinch out.
  *
  * Rows are drawn north to south. Each tile draws its top, then its south face
  * down to the top of the tile in front, so nearer blocks cover farther ones.
@@ -22,8 +23,9 @@ import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { shade, tv, rgba } from './palette.js';
 import { drawCliff, cliffDepthPx } from './strata.js';
+import { createFarMap } from './farmap.js';
 
-const LOD_PX = 10;          // below this tile size, draw level-of-detail blocks
+const FAR_PX = 14;          // below this tile size, show the off-screen map
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
 const RIM = 'rgba(255,255,255,0.09)';   // light catching a block's top edge
 const CONTACT = 'rgba(0,0,0,0.28)';     // shade at the foot of a taller block
@@ -329,58 +331,49 @@ function drawStand(ctx, cam, s, look, ground, x, y, z) {
   }
 }
 
-// One flat block per `step` x `step` tiles, coloured by the tile at its centre.
-function drawBlock(ctx, cam, s, look, bx, by, z, step) {
-  const tx = bx * step + (step >> 1), ty = by * step + (step >> 1);
-  if (!Core.isExplored(s.world, tx, ty, z)) return;
-  const t = Core.tileAt(s.world, tx, ty, z);
-  const p = cam.project(bx * step, by * step);
-  ctx.fillStyle = shade(look.color(TILE_LOOK[t]), tv(tx, ty, 7));
-  ctx.fillRect(p.x, p.y, cam.tilePx * step + 1, cam.depthPx * step + 1);
-}
-
-// Zoomed far out, each stockpile pile is a dot of its resource's colour
-// (bigger for bigger piles), so the yard reads as a patch spreading over the map.
-function drawFarPiles(ctx, cam, s, look, yard, v) {
-  const u = cam.tilePx;
-  for (const p of yard.piles.values()) {
-    if (p.x + p.span < v.x0 || p.x > v.x1 || p.y + p.span < v.y0 || p.y > v.y1) continue;
-    const size = Math.max(1.5, u * (p.span - 1 + Math.min(1, 0.5 + p.tier * 0.08)));
-    const c = cam.project(p.x + p.span / 2, p.y + p.span / 2);
-    ctx.fillStyle = look.color(Core.resourceLook(p.res));
-    ctx.fillRect(c.x - size / 2, c.y - size / 2, size, size);
+// Rows y0..y1 of ground, north to south, with what stands on them (and on
+// `side` columns past each side: trees lean and big piles are wide), calling
+// onRow(y) after each row.
+function drawRows(ctx, cam, s, look, ground, x0, y0, x1, y1, side, onRow) {
+  const z = cam.z;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) drawTile(ctx, cam, s, look, x, y, z);
+    for (let x = x0 - side; x <= x1 + side; x++) drawStand(ctx, cam, s, look, ground, x, y, z);
+    if (onRow) onRow(y);
   }
 }
 
-const lodStep = (cam) => Math.max(1, Math.ceil(LOD_PX / cam.tilePx));
+// A tile's flat colour for the far map's first quick draw, or null for none.
+function flatColor(look, w, x, y, z) {
+  if (Core.isExplored(w, x, y, z)) return look.color(TILE_LOOK[Core.tileAt(w, x, y, z)]);
+  return z < Core.SURFACE ? look.color('color.unknown') : null;
+}
+
+const far = createFarMap();
 
 // Draws the visible terrain and calls onRow(y) after each row of tiles.
 // `ground` holds what else stands on tiles: `built` (packed keys of tiles with
 // buildings), the stockpile `yard`, and `shake(key)`, how far a struck tile's
-// rock or tree is jolted (-1..1). Returns how many tiles (or far-zoom
-// blocks) it drew.
+// rock or tree is jolted (-1..1). Returns how many tiles are on screen.
 export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   const z = cam.z;
   const v = cam.visibleTiles();
-  const step = lodStep(cam);
-  if (step === 1) {
+  if (cam.tilePx >= FAR_PX) {
+    far.drop();
     // Start high enough that cliffs hanging down from rows above the screen show.
     const y0 = v.y0 - Math.ceil(cliffDepthPx(cam) / cam.depthPx);
-    for (let y = y0; y <= v.y1; y++) {
-      for (let x = v.x0; x <= v.x1; x++) drawTile(ctx, cam, s, look, x, y, z);
-      // A little past the sides: trees lean and big piles are wide.
-      for (let x = v.x0 - STAND_MARGIN; x <= v.x1 + STAND_MARGIN; x++) drawStand(ctx, cam, s, look, ground, x, y, z);
-      onRow(y);
-    }
+    drawRows(ctx, cam, s, look, ground, v.x0, y0, v.x1, v.y1, STAND_MARGIN, onRow);
     return (v.y1 - y0 + 1) * (v.x1 - v.x0 + 1);
   }
-  // Zoomed far out: flat blocks, no relief, then everything standing on them.
-  const by0 = Math.floor(v.y0 / step), by1 = Math.ceil(v.y1 / step);
-  const bx0 = Math.floor(v.x0 / step), bx1 = Math.ceil(v.x1 / step);
-  for (let by = by0; by <= by1; by++) {
-    for (let bx = bx0; bx <= bx1; bx++) drawBlock(ctx, cam, s, look, bx, by, z, step);
-  }
-  if (z === Core.SURFACE) drawFarPiles(ctx, cam, s, look, ground.yard, v);
+  // Zoomed out: the map, then whatever stands in each row over it. A struck
+  // rock's jolt is too small to see from here, and would stay in the map.
+  const still = { ...ground, shake: () => 0 };
+  far.draw(ctx, cam, s.time, look, {
+    paintArea: (c, mc, x0, y0, x1, y1, side) => drawRows(c, mc, s, look, still, x0, y0, x1, y1, side),
+    flatColor: (x, y) => flatColor(look, s.world, x, y, z),
+    player: s.player,
+    near: Core.exploreRadius(s) + 2
+  });
   for (let y = v.y0; y <= v.y1; y++) onRow(y);
-  return (by1 - by0 + 1) * (bx1 - bx0 + 1);
+  return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);
 }

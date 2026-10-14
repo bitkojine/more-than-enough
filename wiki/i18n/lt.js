@@ -261,6 +261,8 @@ export default {
         Priartinti gali iki 3&times;, o nutolinti tol, kol langeliai tampa vos kelių pikselių pločio. Tarp mygtukų, šalia didinamojo stiklo,
         matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); bakstelk, kad
         grįžtum prie 1&times;.</p>
+      <p>Nutolinus viskas atrodo taip pat, tik mažiau: miškai lieka miškais, uolos – uolomis. Greitai nutolinant
+        žemėlapis akimirką gali būti tik spalvotas, kol spės persipiešti.</p>
 
       <h2>Vaizdas</h2>
       <p>Į pasaulį žiūri beveik tiesiai iš viršaus, šiek tiek pasvirus į šiaurę, tad daiktai turi aukštį. Kalnai kyla kaip uolos,
@@ -354,8 +356,8 @@ export default {
           <tr><td>FPS</td><td>Kadrai per sekundę per paskutines ~2 sekundes. 60 – sklandu daugumoje ekranų.</td></tr>
           <tr><td>frame / worst</td><td>Vidutinis laikas tarp kadrų ir ilgiausias pavienis tarpas (strigtelėjimas).</td></tr>
           <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, ataugimui.</td></tr>
-          <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina.</td></tr>
-          <tr><td>tiles</td><td>Šiame kadre nupiešti langeliai (labai nutolinus – blokai).</td></tr>
+          <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina, kol vaizdą perima tolimas žemėlapis.</td></tr>
+          <tr><td>tiles</td><td>Langeliai ekrane.</td></tr>
           <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
             prisilietimų bandė jį paleisti ir paskutinio rūšis, taip pat paskutinis naršyklės atsisakymas, jei buvo.</td></tr>
           <tr><td>screen / canvas</td><td>Tavo ekrano dydis ir taškų tankis bei dydis, kuriuo piešiamas žemėlapis.</td></tr>
@@ -599,7 +601,6 @@ export default {
         <li>Kol renki, kiemas nejuda. Dar reikalingos krūvos niekada nepasislenka, naujos užima geriausią laisvą vietą, o
           dingsta tik nebereikalingos krūvos (išleistos arba dešimt, susiliejusių į vieną didesnę). Maždaug kas
           pusantros minutės kiemas susitvarko: didžiausios krūvos grįžta į vidurį.</li>
-        <li>Labai atitolinus vaizdą, kiekviena krūva – savo ištekliaus spalvos taškelis.</li>
       </ul>
       <p>Kaip atrodo kiekvienos rūšies krūva, nustato tekstūrų paketas (krūvų lizdas <code>tiers</code>
         skyriuje <a href="#things">Viskas žaidime</a>).</p>`,
