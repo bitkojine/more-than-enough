@@ -645,6 +645,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.64.0": "Kvietimų nuorodos galioja visą parą, o nuleidus lentelę jos nebesustoja.\nNustatymai → Kvietimų nuorodos: matyk visas nuorodas, kiek draugų su kiekviena prisijungė, ir sustabdyk bet kurią.",
   "news.0.63.0": "Ši kortelė: žaidimui atsinaujinus, ji parodo, kas nauja.\nŽaidimas visada naujausios versijos: jis atsinaujina vos tik ji pasirodo.",
   "news.0.62.0": "Pasaulio žemėlapis: mygtukas po mastelio juosta parodo visą tavo išžvalgytą žemę, regionų pavadinimus, namus ir tave.\nRegionų pavadinimai nebesirodo virš atverto meniu.",
   "news.0.61.0": "Žemė sudaryta iš didelių regionų su pavadinimais (pievos, miškai, ežerų kraštas, aukštumos, pelkės, viržynai), o tarp jų teka upės ir driekiasi kalnagūbriai.\nĮžengus į regioną parodomas jo pavadinimas.\nMuzika keičiasi tik įėjus į naują regioną.\nŠis atnaujinimas pradeda naują pasaulį.",

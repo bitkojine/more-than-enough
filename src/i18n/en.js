@@ -645,6 +645,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.64.0": "Invite links last a whole day, and lowering your sign no longer stops them.\nSettings → Invite links: see every link, how many friends joined with each, and stop any of them.",
   "news.0.63.0": "This card: after the game updates itself, it shows what's new.\nThe game always runs the newest version: it updates itself as soon as one is out.",
   "news.0.62.0": "A world map: the button at the foot of the zoom shows all the land you've explored, region names, home and you.\nRegion names no longer show over an open menu.",
   "news.0.61.0": "The land is made of big named regions (meadows, woods, lake country, highlands, fens, heath), with rivers and ridges between them.\nWalking into a region shows its name.\nThe music changes only when you enter a new region.\nThis update starts a new world.",
