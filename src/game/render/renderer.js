@@ -63,7 +63,7 @@ export function render(cam, s, fx, view, look) {
     if (def.beacon) beacons.push({ x: t.x, y: t.y, kind });
   }
 
-  let head = null;   // where your head is, for the sign you may hold up
+  let you = null;    // where your hands are, for the sign you may hold up
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
@@ -72,7 +72,7 @@ export function render(cam, s, fx, view, look) {
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) drawFriend(ctx, cam, s, look, f, view.friendColors[f.c]);
-    if (y === playerRow) head = drawPlayer(ctx, cam, s, look, view);
+    if (y === playerRow) you = drawPlayer(ctx, cam, s, look, view);
   });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
@@ -89,7 +89,7 @@ export function render(cam, s, fx, view, look) {
   drawFarHoles(ctx, cam, s, look);
   drawBeacons(ctx, cam, s, look, beacons);
   // Your sign, over the dark: a QR code has to read at night too.
-  if (view.sign > 0 && view.signFace && head) drawSign(ctx, head.x, head.top, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
+  if (view.sign > 0 && view.signFace && you) drawSign(ctx, you.x, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
   if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, view.friends, view.friendColors);
   drawJoystick(ctx, cam, view);
   return { tiles };

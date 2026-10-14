@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.57.1] - 2026-10-14
+
+### Changed
+- **A friendlier invite.** The Invite button and the sign are a sunny sky
+  blue instead of red, and your wanderer now holds the sign up in both hands
+  in front of them instead of hoisting it over their head on a stalk (friends
+  hold theirs the same way). It still scans from a friend's phone.
+
 ## [0.57.0] - 2026-10-14
 
 ### Changed

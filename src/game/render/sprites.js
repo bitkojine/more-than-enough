@@ -47,7 +47,7 @@ export function drawExtractor(ctx, cam, s, look, e) {
 // The wanderer: facing the way they last walked, stepping through the walk
 // frames while moving. On water they ride the boat. They always hold what
 // you play on (a phone or a laptop), and its screen lights the dark.
-// Returns where their head is ({x, top}), for the sign they may hold up.
+// Returns where their hands are ({x, hands}), for the sign they may hold up.
 export function drawPlayer(ctx, cam, s, look, view) {
   const u = cam.tilePx;
   const p = s.player;
@@ -60,7 +60,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = view.moving && !deck ? Math.abs(Math.sin(s.time * 12)) * u * 0.03 : 0;
   const tall = standWithHeld(ctx, look, body, view.device, sx, sy - deck - step, u, flip);
-  return { x: sx, top: sy - deck - step - tall };
+  return { x: sx, hands: sy - deck - step - tall * HANDS };
 }
 
 // The boat under someone on water, bobbing, with its shadow. Returns how far
@@ -88,35 +88,39 @@ function standWithHeld(ctx, look, body, device, x, y, size, flip) {
 
 /* ------------------------------------------------------------ friends */
 
+const HANDS = 0.55;              // how far up a figure their hands are, of its height
+const SIGN_COLOR = '#3f9bd6';   // the invite's friendly sky blue (style.css #btnInvite)
 const ease = (t) => 1 - (1 - t) ** 3 + Math.sin(t * Math.PI) * 0.15; // up with a little bounce
 
-// The sign you hold up to invite a friend: a mushroom-cap board on a stalk
-// from your hands, `side` px across. Yours carries the real QR code (`face`,
-// a canvas of its modules), big enough for a friend's camera to scan; a
-// friend's shows a small QR-like pattern (`face` a number to vary it).
-// `caption` is written along the board's bottom edge. `t` 0..1 raises it.
-export function drawSign(ctx, x, top, u, t, time, face, side = u * 0.62, caption = '') {
+// The sign you hold up to invite a friend: a board held in both hands in
+// front of you (hands at `hands` px down the screen), `side` px across.
+// Yours carries the real QR code (`face`, a canvas of its modules), big
+// enough for a friend's camera to scan; a friend's shows a small QR-like
+// pattern (`face` a number to vary it). `caption` is written along the
+// board's bottom edge. `t` 0..1 raises it from your hands' height.
+export function drawSign(ctx, x, hands, u, t, time, face, side = u * 0.62, caption = '') {
   const lift = ease(t);
-  const big = side > u;
   const rim = Math.max(u * 0.06, side * 0.05);
   const foot = caption ? Math.round(side * 0.13) : 0;   // room for the caption
-  const bx = big ? x : x + u * 0.18;
-  const by = top - u * 0.25 - foot - lift * (side / 2 + u * 0.3) + Math.sin(time * 3) * u * 0.02;
-  const left = bx - side / 2, upper = by - side / 2;
+  const bottom = hands + rim * 0.5 + (1 - lift) * side * 0.3 + Math.sin(time * 3) * u * 0.02;
+  const left = x - side / 2, upper = bottom - rim - foot - side;
   ctx.save();
   ctx.globalAlpha *= Math.min(1, t * 2);
-  ctx.strokeStyle = '#e8dcc0';
-  ctx.lineWidth = Math.max(2, u * (big ? 0.12 : 0.06));
-  ctx.beginPath(); ctx.moveTo(bx, by + side / 2 + foot); ctx.lineTo(bx, top + u * 0.25); ctx.stroke();
-  ctx.fillStyle = '#c0583a';
+  ctx.fillStyle = SIGN_COLOR;
   ctx.beginPath(); ctx.roundRect(left - rim, upper - rim, side + rim * 2, side + rim * 2 + foot, rim * 2); ctx.fill();
   if (caption) {
-    ctx.fillStyle = '#fff3e8';
+    ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `800 ${Math.round(foot * 0.62)}px system-ui, sans-serif`; // i18n-ok: a font
-    ctx.fillText(caption, bx, upper + side + rim * 0.4 + foot / 2, side);
+    ctx.fillText(caption, x, upper + side + rim * 0.4 + foot / 2, side);
   }
+  // Both hands gripping its bottom edge.
+  const hr = Math.max(3, u * 0.08), hx = Math.min(side * 0.3, u * 0.24);
+  ctx.fillStyle = '#f2c9a0';
+  ctx.strokeStyle = 'rgba(40,24,14,0.85)';
+  ctx.lineWidth = Math.max(1.5, u * 0.03);
+  for (const d of [-1, 1]) { ctx.beginPath(); ctx.arc(x + d * hx, bottom - rim * 0.2, hr, 0, TAU); ctx.fill(); ctx.stroke(); }
   ctx.fillStyle = '#fff';
   ctx.fillRect(left, upper, side, side);
   if (typeof face === 'object' && face) {
@@ -185,8 +189,8 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const tall = standWithHeld(ctx, look, body, f.dev, 0, 0, u, flip);
   ctx.restore();
   const hx = sx + Math.sin(nod) * tall, head = feet - Math.cos(nod) * tall;
-  if (f.sign && f.st === 'online') drawSign(ctx, sx, head, u, 1, time, f.c + 1);
-  const my = head - u * (f.sign && f.st === 'online' ? 1.25 : 0.2);
+  if (f.sign && f.st === 'online') drawSign(ctx, sx, feet - tall * HANDS, u, 1, time, f.c + 1);
+  const my = head - u * (f.sign && f.st === 'online' ? 0.6 : 0.2);
   const r = Math.max(5, u * 0.12);
   drawDiamond(ctx, hx, my, r, color);
   // Away: little z's drifting up.

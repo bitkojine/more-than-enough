@@ -326,18 +326,18 @@ canvas#game {
 
 /* Invite: the other main action, as big as Gather, in the left thumb's
    corner. Pressed while your sign is up (tap again to put it down). Its
-   colour is the sign's mushroom red. */
+   colour is the sign's friendly sky blue. */
 #btnInvite {
   left: var(--edge-l); bottom: var(--edge-b);
   width: var(--act); height: var(--act);
-  color: #ffe9dc;
-  background: radial-gradient(circle at 50% 32%, rgba(206, 104, 74, 0.95), rgba(74, 30, 20, 0.95));
-  border: 2px solid rgba(255, 180, 150, 0.5);
+  color: #eaf6ff;
+  background: radial-gradient(circle at 50% 32%, rgba(98, 180, 234, 0.95), rgba(22, 62, 98, 0.95));
+  border: 2px solid rgba(160, 214, 255, 0.55);
 }
 #btnInvite[hidden] { display: none; }
 #btnInvite .big { width: 40px; height: 40px; }
-#btnInvite .cap { font-size: 11px; color: #ffe9dc; background: #3a1910; border-color: rgba(255, 180, 150, 0.45); }
-#btnInvite.up { background: radial-gradient(circle at 50% 32%, #fff, #e9dccb); color: #3a1910; border-color: #fff; }
+#btnInvite .cap { font-size: 11px; color: #eaf6ff; background: #133150; border-color: rgba(160, 214, 255, 0.45); }
+#btnInvite.up { background: radial-gradient(circle at 50% 32%, #fff, #dcecf7); color: #133150; border-color: #fff; }
 
 /* The climb button, above-left of the action; it pops in beside a way up or
    down and is gone elsewhere. */
