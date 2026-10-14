@@ -4,6 +4,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import * as C from '../../src/core/index.js';
 import { TRACKS, TRACK_IDS, checkTrack, parseSection, degreeNote, sceneFor } from '../../src/game/music/score.js';
 import { INSTRUMENTS } from '../../src/game/music/instruments.js';
 import { LANGUAGES } from '../../src/i18n/i18n.js';
@@ -50,18 +51,16 @@ test('a melody note reads as degree, octave and length', () => {
   assert.equal(degreeNote(t, 0), 59); // below degree 1 wraps down an octave
 });
 
-test('every place has its own music', () => {
-  const at = (o) => sceneFor({ depth: 0, onWater: false, daylight: 1, forest: false, ...o });
+test('every place has its own music, and every region plays one', () => {
+  const at = (o) => sceneFor({ depth: 0, daylight: 1, land: 'meadow', ...o });
   assert.equal(at({}), 'meadow');
-  assert.equal(at({ forest: true }), 'forest');
-  assert.equal(at({ daylight: 0.1, forest: true }), 'night');
-  assert.equal(at({ onWater: true, daylight: 0.1 }), 'water');
-  assert.equal(at({ depth: 1 }), 'mines');
-  assert.equal(at({ depth: 2, onWater: true }), 'mines');
+  assert.equal(at({ land: 'forest' }), 'forest');
+  assert.equal(at({ daylight: 0.1, land: 'forest' }), 'night');
+  assert.equal(at({ depth: 1, land: 'water' }), 'mines');
   assert.equal(at({ depth: 5 }), 'deep');
+  const lands = Object.values(C.BIOMES).map((b) => b.music);
+  for (const land of lands) assert.ok(TRACK_IDS.includes(land), 'a region plays ' + land);
   const used = new Set();
-  for (const depth of [0, 1, 3]) for (const onWater of [false, true]) for (const daylight of [0, 1]) for (const forest of [false, true]) {
-    used.add(at({ depth, onWater, daylight, forest }));
-  }
+  for (const depth of [0, 1, 3]) for (const daylight of [0, 1]) for (const land of lands) used.add(at({ depth, daylight, land }));
   assert.deepEqual([...used].sort(), [...TRACK_IDS].sort(), 'a track no place plays');
 });

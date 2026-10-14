@@ -70,6 +70,9 @@ const TABLES = {
 
   underground: () => table(heads('tile', 'notes'), undergroundTiles.map((type) => [tileName(type), tileNotes(type)])),
 
+  regions: () => table(heads('land', 'notes', 'music'), Core.BIOME_KEYS.map((b) =>
+    [t('biome.' + b), t('wiki.biome.' + b), t('music.' + Core.BIOMES[b].music)])),
+
   geology: () => {
     const rows = Core.GEOLOGY.map((g) =>
       [tileName(g.type), g.deep === g.share ? pct(g.share) : `${pct(g.share)} → ${pct(g.deep)}`, fromLayer(g.from)]);

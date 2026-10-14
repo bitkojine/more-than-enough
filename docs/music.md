@@ -10,9 +10,13 @@ RuneScape's music is remembered twenty years on although it was MIDI played
 on a cheap sound card. What made it work, and what we copy:
 
 1. **A place is its music.** Every area has its own track, and walking into
-   a new area changes the music. You learn the world by ear. Here: open
-   land, woods, water, night, the first mine layers and the deep each have
-   a track (`sceneFor`).
+   a new area changes the music. You learn the world by ear. Here the
+   surface is split into big named regions a few minutes' walk across
+   (`src/core/regions.js`), and each kind of land plays its track: meadows
+   and heaths and highlands the open-land tune, woodland the woods, lakes
+   and fens the water. The music changes only when you cross into another
+   region, never tile by tile. Night, the first mine layers and the deep
+   have their own (`sceneFor`).
 2. **A real tune.** Each track is a melody you could hum, over simple chords
    and a bass line, not an ambient wash or random notes. Tracks are written
    by hand, bar by bar.
@@ -49,4 +53,4 @@ on a cheap sound card. What made it work, and what we copy:
 Write it in `TRACKS` (each bar of melody must add up to the meter; `npm
 test` checks), give it a name in `src/i18n/en.js` and `lt.js` as
 `music.<id>`, and return its id from `sceneFor` for the place it belongs
-to.
+to (for a kind of land, its `music` in `BIOMES`).

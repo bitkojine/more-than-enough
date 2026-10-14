@@ -45,6 +45,7 @@ export function findElements() {
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),
+    place: byId('place'),
     textures: byId('btnTextures'),
     packName: byId('packName'),
     texturesDefault: byId('btnTexturesDefault'),

@@ -170,6 +170,17 @@ export function createHud(el, look) {
       el.awards.classList.remove('new');
     },
 
+    // Walked into a region (or woke up in one): its name across the upper
+    // middle of the screen for a few seconds, the way an old map names a land.
+    place(kind, name) {
+      el.place.querySelector('small').textContent = kind;
+      el.place.querySelector('strong').textContent = name;
+      el.place.hidden = false;
+      el.place.style.animation = 'none';
+      void el.place.offsetWidth;
+      el.place.style.animation = '';
+    },
+
     toast(msg) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');

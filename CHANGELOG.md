@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.61.0] - 2026-10-14
+
+### Added
+- **Big named regions.** The land is now a patchwork of large regions, each
+  a few minutes' walk across, like the areas of RuneScape. Every region has
+  a name (*Buttercup Downs*, *Owlwood*, *Swan Waters*, *Stormcrags*...) and a
+  kind of land of its own: meadowland, woodland thick with forest, lake
+  country, rocky highlands rich in minerals, wet fens, or bare heath.
+  Between two regions runs a border you can see, a river to swim across or
+  a rocky ridge with passes through it. Walking into a region shows its name
+  across the screen. Every world starts in a meadow.
+
+### Changed
+- **The music changes only between regions.** Each kind of land plays its
+  own track, so the tune holds the whole time you're in a region instead of
+  switching as you pass a wood or a pond. Night and the mines still have
+  their own. Saves from before this start a new world.
+
 ## [0.60.2] - 2026-10-14
 
 ### Changed

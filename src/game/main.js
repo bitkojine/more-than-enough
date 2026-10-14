@@ -100,6 +100,7 @@ const game = {
     input.release();
     sheet.close();
     lastTileKey = -1;
+    region = shownRegion = null;
     hud.update(next);
     game.saveNow();
     game.changedMode();
@@ -245,28 +246,32 @@ el.language.addEventListener('click', () => {
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
   { every: 0.4, run: () => controller.checkGoals() },
-  { every: 0.25, run: () => { hud.update(game.state); audio.scene(sceneHere(game.state)); } }
+  { every: 0.25, run: () => { hud.update(game.state); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;
 let moving = false;
 
-// Which place's music fits where the player stands (see music/score.js).
-const FOREST_NEAR = 3;     // tiles around you that count as "here"
-const FOREST_SHARE = 0.3;  // of them forest: you're in the woods
-function sceneHere(s) {
-  const p = s.player;
-  const depth = -p.z;
-  let forest = 0, all = 0;
-  if (depth === 0) {
-    for (let dy = -FOREST_NEAR; dy <= FOREST_NEAR; dy++) {
-      for (let dx = -FOREST_NEAR; dx <= FOREST_NEAR; dx++) {
-        all++;
-        if (Core.tileAt(s.world, Math.floor(p.x) + dx, Math.floor(p.y) + dy, p.z) === Core.T.FOREST) forest++;
-      }
-    }
+// The region you're in (see core/regions.js): its name shows as you walk
+// into it, once it has held for REGION_SETTLE seconds (so stepping back and
+// forth through a pass doesn't flash names), and its kind of land picks the
+// music. Underground you're still under the region above, but no names show.
+const REGION_SETTLE = 1;
+let region = null, shownRegion = null, regionHeld = 0;
+function regionTick(s, dt) {
+  const here = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
+  if (!region || here.key !== region.key) { region = here; regionHeld = 0; }
+  regionHeld += dt;
+  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && (!shownRegion || shownRegion.key !== region.key)) {
+    shownRegion = region;
+    hud.place(region.kind, region.name);
   }
-  return sceneFor({ depth, onWater: Core.onWater(s), daylight: Core.daylight(s.time), forest: all > 0 && forest / all >= FOREST_SHARE });
+}
+
+// Which place's music fits where the player stands (see music/score.js).
+function sceneHere(s) {
+  const land = Core.BIOMES[(shownRegion || region).biome].music;
+  return sceneFor({ depth: -s.player.z, daylight: Core.daylight(s.time), land });
 }
 
 function update(dt) {

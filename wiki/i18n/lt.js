@@ -148,6 +148,14 @@ export default {
   "wiki.note.find": "radinys: blyksi tamsoje, vienas kasimas atiduoda visą jo turinį (žr. Radiniai)",
   "wiki.note.bedrock": "neiškasama",
   "wiki.col.tile": "Langelis",
+  "wiki.col.land": "Žemės pobūdis",
+  "wiki.col.music": "Muzika",
+  "wiki.biome.meadow": "Atviros pievos su giraitėmis, po truputį visko",
+  "wiki.biome.woods": "Tankūs miškai, grybų visur, mineralų mažai",
+  "wiki.biome.lakes": "Ežerai ir salos; reikės kantrybės arba valties",
+  "wiki.biome.highlands": "Kalnai ir turtingos mineralų žemės, medžių mažai",
+  "wiki.biome.fen": "Šlapi miškai ir balos, akmens beveik nėra",
+  "wiki.biome.heath": "Plyni, vėjuoti ir akmenuoti tyrai, beveik be medžių",
   "wiki.col.richness": "Turtingumas",
   "wiki.col.notes": "Pastabos",
   "wiki.col.share": "Langelių dalis (sekliai → giliai)",
@@ -388,6 +396,13 @@ export default {
         sausumos arčiausiai pasaulio centro, namų žemės laukymėje, skirtoje tavo <a href="#stockpile">atsargoms</a>.</p>
       <p>Pasaulis turi <strong>sluoksnius</strong>. Miškas, kuriame pradedi, yra paviršius; kasykla – tai sluoksnių stulpas
         tiesiai po juo, sutampantis langelis į langelį. Žr. <a href="#mine">Kasykla</a>.</p>
+
+      <h2>Kraštai</h2>
+      <p>Žemė padalyta į didelius pavadintus <strong>kraštus</strong>, kurių kiekvieną pereiti užtrunka kelias minutes. Kai
+        įžengi į kraštą, per ekraną parašomas jo vardas ir pradeda groti jo muzika: muzika keičiasi tik peržengus į kitą
+        kraštą. Kiekvienas kraštas turi savo žemės pobūdį, o tarp dviejų kraštų driekiasi matoma riba: upė, kurią
+        perplauki, arba uolėtas kalvagūbris su perėjomis. Kiekvienas pasaulis prasideda pievose.</p>
+      <div data-table="regions"></div>
 
       <h2>Miškai</h2>
       <p>Miškai skiriasi nuo regiono iki regiono, kaip ir tikri: šaltuose kraštuose auga tamsus <strong>pušynas</strong> (pušys ir

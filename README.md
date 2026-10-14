@@ -140,6 +140,7 @@ The project is under git — commit early, commit often:
   - `coords.js` — the `(x, y, z)` coordinate system: the forest is `z = 0`, mine layers are below
   - `tiles.js` — tile types and their rules as data (`TILE_INFO`)
   - `terrain.js`, `noise.js`, `world.js` — chunked, endless, layered world generation and edits
+  - `regions.js` — the big named regions the surface is split into, their kinds of land and borders
   - `content.js` — every tuning number and content table (tools, extractors, refineries, perks)
   - `economy.js`, `upgrades.js` — costs, multipliers, and the single registry of everything you can buy
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation

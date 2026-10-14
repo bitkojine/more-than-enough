@@ -66,7 +66,7 @@ test('a reloaded save keeps producing', () => {
 test('unreadable saves and saves from other format versions are rejected', () => {
   assert.equal(C.deserialize('not json'), null);
   assert.equal(C.deserialize('null'), null);
-  for (const v of [1, 2, 3, 4, 5, 6, C.SAVE_VERSION + 1]) {
+  for (const v of [1, 2, 3, 4, 5, 6, 7, C.SAVE_VERSION + 1]) {
     assert.equal(C.deserialize(JSON.stringify({ v, seed: 4242 })), null, 'format v' + v);
   }
   assert.equal(C.deserialize(JSON.stringify({ v: C.SAVE_VERSION })), null, 'a seed is required');

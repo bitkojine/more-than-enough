@@ -7,6 +7,7 @@ import { CHUNK_SIZE, CHUNK_TILES, SURFACE } from './coords.js';
 import { hash2, fbm, fbmAbove } from './noise.js';
 import { T, TILE_INFO } from './tiles.js';
 import { FINDS, FINDS_PER_CHUNK } from './content.js';
+import { landAt, BIOMES } from './regions.js';
 import { t } from '../i18n/i18n.js';
 
 const MAX_RICHNESS = 30;
@@ -49,19 +50,26 @@ function share(key, far) {
 
 function surfaceType(seed, x, y) {
   if (x * x + y * y <= HOME_RADIUS * HOME_RADIUS) return T.HOME;
+  // Each region's kind of land sets its water, peaks, forest and minerals
+  // (see regions.js); borders between regions are rivers and ridges.
+  const land = landAt(seed, x, y);
+  if (land.border === 'river') return T.WATER;
+  if (land.border === 'ridge') return T.ROCK;
+  if (land.border === 'pass') return T.GRASS;
+  const biome = BIOMES[land.biome];
   const elevation = fbm(x * 0.06, y * 0.06, seed + 11, 4);
-  if (elevation < 0.28) return T.WATER;
-  if (elevation > 0.79) return T.ROCK;
+  if (elevation < biome.water) return T.WATER;
+  if (elevation > biome.peaks) return T.ROCK;
   const far = farness(x, y);
   // Mineral country shades in over a short way past home, not all of FAR.
   const lodeFar = Math.min(1, far * 5);
-  if (fbm(x * 0.02 + 90, y * 0.02 - 40, seed + 79, 3) > fbmAbove(share('lode', lodeFar), 3)) {
+  if (fbm(x * 0.02 + 90, y * 0.02 - 40, seed + 79, 3) > fbmAbove(share('lode', lodeFar) * biome.lode, 3)) {
     const ore = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
     if (x * x + y * y >= CRYSTAL_FROM * CRYSTAL_FROM && ore > fbmAbove(share('crystal', far), 3)) return T.CRYSTAL;
     if (ore > fbmAbove(share('ore', far), 3)) return T.ORE;
     if (fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3) > fbmAbove(share('stone', far), 3)) return T.STONE;
   }
-  if (fbm(x * 0.04, y * 0.04, seed + 23, 4) > fbmAbove(share('forest', far), 4)) return T.FOREST;
+  if (fbm(x * 0.04, y * 0.04, seed + 23, 4) > fbmAbove(Math.min(0.85, share('forest', far) * biome.forest), 4)) return T.FOREST;
   return T.GRASS;
 }
 

@@ -749,11 +749,12 @@ async function main() {
   console.log('  screenshot: ' + s3);
 
   /* --------------------------------------------------- exploration aid */
-  console.log('\n== Endless world: resources everywhere + fog reveal ==');
-  var exploreInfo = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;var ore=0,crystal=0;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){var t=c.tileAt(s.world,x,y,0);if(t===3)ore++;if(t===4)crystal++;}var px=Math.floor(s.player.x),py=Math.floor(s.player.y);return JSON.stringify({ore:ore,crystal:crystal,here:c.isExplored(s.world,px,py,0),far:c.isExplored(s.world,px+300,py+300,0),farTile:typeof c.tileAt(s.world,420000,-420000,0)});})()');
+  console.log('\n== Endless world: resources to find + fog reveal ==');
+  var exploreInfo = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;var ore=0,crystal=0,crystalNear=0;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===3)ore++;}for(var y=-240;y<240;y+=2)for(var x=-240;x<240;x+=2){if(c.tileAt(s.world,x,y,0)===4){crystal++;if(x*x+y*y<1600)crystalNear++;}}var px=Math.floor(s.player.x),py=Math.floor(s.player.y);return JSON.stringify({ore:ore,crystal:crystal,crystalNear:crystalNear,here:c.isExplored(s.world,px,py,0),far:c.isExplored(s.world,px+300,py+300,0),farTile:typeof c.tileAt(s.world,420000,-420000,0)});})()');
   var ri = JSON.parse(exploreInfo);
   console.log('  near origin: ore=' + ri.ore + ' crystal=' + ri.crystal + '  fog(here/far)=' + ri.here + '/' + ri.far);
-  ok(ri.ore > 30 && ri.crystal > 3, 'ore and crystal occur near the origin');
+  ok(ri.ore > 30, 'ore occurs near the origin');
+  ok(ri.crystal > 3 && ri.crystalNear === 0, 'crystal is out there, but never close to home');
   ok(ri.here && !ri.far, 'fog is revealed around the player but not far away');
   ok(ri.farTile === 'number', 'terrain exists thousands of tiles from the origin');
 

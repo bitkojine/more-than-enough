@@ -20,4 +20,5 @@ export * from './save.js';
 export * from './stockpile.js';
 export * from './mushrooms.js';
 export * from './catalog.js';
+export * from './regions.js';
 export * from './shared.js';

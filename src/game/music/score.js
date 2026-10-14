@@ -222,13 +222,13 @@ export function checkTrack(track) {
 
 /* ------------------------------------------------------------- scenes */
 
-// Which track fits where the player is. Every place has its own music:
-// the deep, the mines, the water, the night, the forest, the open land.
-export function sceneFor({ depth, onWater, daylight, forest }) {
+// Which track fits where the player is. On the surface the region you're in
+// picks it (`land`: its kind of land's track, see BIOMES in core/regions.js),
+// so the music changes as you cross into another region, never tile by tile;
+// the night has its own. Below, the mines and the deep do.
+export function sceneFor({ depth, daylight, land }) {
   if (depth >= 3) return 'deep';
   if (depth >= 1) return 'mines';
-  if (onWater) return 'water';
   if (daylight < 0.3) return 'night';
-  if (forest) return 'forest';
-  return 'meadow';
+  return land;
 }

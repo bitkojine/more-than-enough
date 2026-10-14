@@ -151,6 +151,14 @@ export default {
   "wiki.note.find": "a find: glints in the dark, one dig pays its loot (see Finds)",
   "wiki.note.bedrock": "cannot be dug",
   "wiki.col.tile": "Tile",
+  "wiki.col.land": "Kind of land",
+  "wiki.col.music": "Music",
+  "wiki.biome.meadow": "Open grassland with copses, a little of everything",
+  "wiki.biome.woods": "Deep forest, mushrooms everywhere, few minerals",
+  "wiki.biome.lakes": "Lakes and islands; bring patience, or a boat",
+  "wiki.biome.highlands": "Mountains and rich mineral country, few trees",
+  "wiki.biome.fen": "Wet woods and pools, hardly any stone",
+  "wiki.biome.heath": "Bare, windswept and stony, almost treeless",
   "wiki.col.richness": "Richness",
   "wiki.col.notes": "Notes",
   "wiki.col.share": "Share of tiles (shallow → deep)",
@@ -391,6 +399,13 @@ export default {
         nearest the world's centre, in a clearing of home ground kept for your <a href="#stockpile">stockpile</a>.</p>
       <p>The world has <strong>layers</strong>. The forest you start in is the surface; the mine is a stack of layers directly
         beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
+
+      <h2>Regions</h2>
+      <p>The land is split into big named <strong>regions</strong>, each a few minutes' walk across. As you walk into one its
+        name shows across the screen, and its music starts: the music changes only when you cross into another region.
+        Every region has its own kind of land, and between two regions runs a border you can see: a river to swim across,
+        or a rocky ridge with passes through it. Every world starts in a meadow.</p>
+      <div data-table="regions"></div>
 
       <h2>Forests</h2>
       <p>Forests differ from region to region, like real ones: cold country grows dark <strong>pine forest</strong> (pines and
