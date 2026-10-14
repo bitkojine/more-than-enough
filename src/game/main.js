@@ -363,6 +363,13 @@ function update(dt) {
   sheet.tick();
 }
 
+// Where the zoom pill sits on the canvas, so a friend's edge badge (and the
+// distance under it) never hides beneath it.
+function friendsClear() {
+  const r = el.zoomControls.getBoundingClientRect(), c = el.canvas.getBoundingClientRect();
+  return r.width ? { left: r.left - c.left, top: r.top - c.top, bottom: r.bottom - c.top } : null;
+}
+
 function view() {
   const s = game.state;
   const underground = Core.isUnderground(s);
@@ -379,6 +386,7 @@ function view() {
     underground,
     joy: input.joy,
     friends: together.view(),
+    keepClear: friendsClear(),   // the zoom pill, which friends' edge badges move out from under
     me: together.me,   // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,

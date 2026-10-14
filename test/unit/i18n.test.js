@@ -273,3 +273,15 @@ for (const code of CODES) {
     assert.equal(out.goal, LANGUAGES[code].strings['goal.forage']);
   });
 }
+
+test('distances read as metres, then kilometres (a tile is 1 m)', async () => {
+  const { distance } = await import('../../src/i18n/i18n.js');
+  const nb = (s) => s.replace(/ /g, ' ');
+  assert.equal(nb(distance(0)), '0 m');
+  assert.equal(nb(distance(240.4)), '240 m');
+  assert.equal(nb(distance(999.4)), '999 m');
+  assert.equal(nb(distance(999.6)), '1.0 km');
+  assert.equal(nb(distance(1234)), '1.2 km');
+  assert.equal(nb(distance(9960)), '10 km');
+  assert.equal(nb(distance(42100)), '42 km');
+});

@@ -35,6 +35,7 @@ export function findElements() {
     mine: byId('btnMine'),
     mineIcon: byId('mineIcon'),
     mineLabel: byId('mineLabel'),
+    zoomControls: byId('zoomControls'),
     zoomIn: byId('btnZoomIn'),
     zoomOut: byId('btnZoomOut'),
     zoomLevel: byId('zoomLevel'),

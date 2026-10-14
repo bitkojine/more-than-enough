@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.77.0] - 2026-10-14
+
+### Added
+- **How far your friends are.** Every friend's badge at the screen's edge
+  has a pill under their name with the distance in metres, kilometres from
+  1 km ("240 m", "1.2 km"; "1,2 km" in Lithuanian). The game's scale is
+  now a rule: every tile is 1 m × 1 m × 1 m (README, wiki **Scale**,
+  `distance()` in `src/i18n/i18n.js`). On another layer the pill also shows
+  an up or down triangle and how many layers.
+
+### Fixed
+- Friends' badges on the right edge no longer hide under the zoom pill.
+
 ## [0.76.0] - 2026-10-14
 
 From a playtest with a friend.

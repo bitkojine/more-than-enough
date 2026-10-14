@@ -281,6 +281,10 @@ export default {
       <p>Nutolinus viskas atrodo taip pat, tik mažiau: miškai lieka miškais, uolos – uolomis. Greitai nutolinant
         žemėlapis akimirką gali būti tik spalvotas, kol spės persipiešti.</p>
 
+      <h2>Mastelis</h2>
+      <p>Kiekvienas langelis yra vienas metras: kiekvienas pasaulio blokas yra 1 m &times; 1 m &times; 1 m. Atstumai žaidime
+        skaičiuojami metrais, o toli – kilometrais: draugo ženklelis ekrano krašte rodo, kiek tektų eiti iki jo.</p>
+
       <h2>Vaizdas</h2>
       <p>Į pasaulį žiūri beveik tiesiai iš viršaus, šiek tiek pasvirus į šiaurę, tad daiktai turi aukštį. Kalnai kyla kaip uolos,
         vanduo tyvuliuoja žemiau kranto, o po žeme neiškasta uoliena aplink tavo tunelius stūkso viso sluoksnio aukščio. Sluoksnis

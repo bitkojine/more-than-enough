@@ -4,6 +4,7 @@
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
+import { distance, number } from '../../i18n/i18n.js';
 
 const TAU = Math.PI * 2;
 
@@ -262,11 +263,12 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 // the screen's edge on the way to them. A circle in their colour with their
 // wanderer's face in it and their name on a tag, an arrow on the rim
 // pointing at them, and a small up or down arrow when they're on another
-// layer. Asleep (offline) friends' badges are faded and grey. With a crowd
+// layer. Under the name, how far away they are (a tile is 1 m), and for
+// another layer how many layers up or down. Asleep (offline) friends' badges are faded and grey. With a crowd
 // in the world only the nearest few get a badge, so the edges stay readable.
 const BADGE = 22;          // the badge's radius, in CSS pixels
 const MAX_BADGES = 6;
-export function drawFriendMarkers(ctx, cam, s, look, friends) {
+export function drawFriendMarkers(ctx, cam, s, look, friends, clear) {
   const edge = BADGE + 14;
   const face = look.pick('character.wanderer', 'image');
   const cx = cam.width / 2, cy = cam.height / 2;
@@ -279,9 +281,11 @@ export function drawFriendMarkers(ctx, cam, s, look, friends) {
   }
   away.sort((a, b) => a.d - b.d);
   for (const { f, p, other, off } of away.slice(0, MAX_BADGES)) {
-    const x = Math.max(edge, Math.min(cam.width - edge, p.x));
+    let x = Math.max(edge, Math.min(cam.width - edge, p.x));
     let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
     if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
+    // Beside the zoom pill, not under it: the badge, its name and distance.
+    if (clear && x + edge + 16 > clear.left && y + BADGE + 40 > clear.top && y - BADGE - 40 < clear.bottom) x = Math.min(x, clear.left - edge - 16);
     const a = Math.atan2(p.y - y, p.x - x);   // which way they are
     const color = f.color;
     const asleep = f.st === 'offline';
@@ -313,6 +317,34 @@ export function drawFriendMarkers(ctx, cam, s, look, friends) {
     ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#0c0a08';
     ctx.fillText(f.name, tx, ty + 0.5);
+    // How far: a dark pill beyond the name, away from the badge, with the
+    // layers between you (an up or down triangle and how many) on another layer.
+    const below = ty > y;
+    const dy = ty + (below ? 17 : -17);
+    const dz = Math.abs(f.z - cam.z), up = f.z > cam.z;
+    const far = distance(Math.hypot(f.x - s.player.x, f.y - s.player.y));
+    ctx.font = '700 10px system-ui, sans-serif'; // i18n-ok: a font
+    const layers = dz ? number(dz) : '';
+    const fw = ctx.measureText(far).width, lw = dz ? ctx.measureText(layers).width + 13 : 0;
+    const dw = Math.ceil(fw + lw) + 12;
+    const dx = Math.max(dw / 2 + 4, Math.min(cam.width - dw / 2 - 4, x));
+    ctx.fillStyle = 'rgba(12,10,8,0.82)';
+    ctx.beginPath(); ctx.roundRect(dx - dw / 2, dy - 7, dw, 14, 7); ctx.fill();
+    ctx.fillStyle = '#f4efe4';
+    ctx.textAlign = 'left';
+    const left = dx - dw / 2 + 6;
+    ctx.fillText(far, left, dy + 0.5);
+    if (dz) {
+      const ax = left + fw + 7, r = 3.6;
+      ctx.beginPath();
+      ctx.moveTo(ax, dy + (up ? -r : r));
+      ctx.lineTo(ax + r, dy + (up ? r * 0.7 : -r * 0.7));
+      ctx.lineTo(ax - r, dy + (up ? r * 0.7 : -r * 0.7));
+      ctx.closePath(); ctx.fill();
+      ctx.fillText(layers, ax + r + 2, dy + 0.5);
+    }
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = 'rgba(10,8,6,0.85)';
     if (other) {
       // Up or down: which way the layer they're on is.
       const up = f.z > cam.z, ax = x + BADGE * 0.78, ay = y - BADGE * 0.78, r = 7;

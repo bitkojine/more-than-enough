@@ -284,6 +284,10 @@ export default {
       <p>Zoomed out, everything keeps its look and just gets smaller: forests stay forests and rocks stay rocks. Zoom
         out quickly and the map may show in plain colours for a moment while it catches up.</p>
 
+      <h2>Scale</h2>
+      <p>Every tile is one metre: each block of the world is 1 m &times; 1 m &times; 1 m. Distances in the game count in
+        metres and, once far enough, kilometres: a friend's badge at the edge of the screen says how far you'd walk to reach them.</p>
+
       <h2>The view</h2>
       <p>You look down on the world from just off straight above, leaning a little to the north, so things have height. Mountains
         rise as cliffs, water sits below the bank, and underground the rock you haven't dug stands a full layer tall around your

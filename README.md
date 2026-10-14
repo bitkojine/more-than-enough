@@ -49,6 +49,10 @@ stuck (why a building can't go here, that holding Gather keeps going);
 sentences that teach belong in the wiki. When you add or
 change a mechanic, update the wiki article that covers it.
 
+**Scale rule:** every tile (block) is 1 m × 1 m × 1 m. Any distance shown
+to the player is tiles counted as metres, kilometres from 1 km
+(`distance()` in `src/i18n/i18n.js`).
+
 The wiki's **Ideas** page (`wiki/ideas.js`) is a sketchbook of directions the
 game could take: looks, mechanics, big swings. Add ideas freely; when one
 ships, move it out of Ideas and into the article that documents it.

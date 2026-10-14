@@ -123,6 +123,15 @@ export const capitalize = (s) => s.charAt(0).toLocaleUpperCase(LOCALE) + s.slice
 // Numbers as the language writes them (1,234.5 / 1 234,5).
 export const number = (n, digits) => n.toLocaleString(LOCALE, digits === undefined ? undefined : { minimumFractionDigits: digits, maximumFractionDigits: digits });
 
+// A distance, from tiles (every tile is 1 m x 1 m x 1 m): whole metres up
+// to a kilometre, then kilometres (one decimal under 10 km).
+export function distance(tiles) {
+  const m = Math.round(tiles);
+  if (m < 1000) return t('unit.m', { n: number(m) });
+  const km = Math.round(m / 100) / 10;
+  return t('unit.km', { n: km < 10 ? number(km, 1) : number(Math.round(km)) });
+}
+
 // Remembers `code` and reloads, so the whole game comes back in it. A
 // browser that can't keep it (storage blocked) gets it in the address.
 export function setLanguage(code) {
