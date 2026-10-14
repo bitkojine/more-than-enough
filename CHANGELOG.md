@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.71.1] - 2026-10-14
+
+### Fixed
+- **Nobody can set off the nuke on their own.** A player could claim a
+  newer world format when joining a shared world and so call the nuke,
+  which a minute later wiped the world for everyone. Now only the room
+  service decides: it knows the current world format (`WORLD_FORMAT`, in
+  the new `src/core/format.js`, which the save format is too) and calls the
+  nuke only for a world made before it. Players no longer send a format at
+  all.
+
 ## [0.71.0] - 2026-10-14
 
 ### Changed

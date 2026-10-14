@@ -188,7 +188,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     const socket = new WebSocket(service.replace(/^http/, 'ws') + '/rooms/' + room + '/ws');
     ws = socket;
     welcomed = false;
-    socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), fmt: Core.SAVE_VERSION, ...(code ? { code } : {}) }));
+    socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), ...(code ? { code } : {}) }));
     socket.onmessage = (e) => { if (ws === socket) receive(e.data); };
     socket.onclose = (e) => { if (ws === socket) closed(e.code, e.reason); };
   }
@@ -691,7 +691,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     const yes = await ask({ title: t('together.start.title'), text: t('together.start.text'), yes: t('together.start.yes') });
     if (!yes || game.state.shared) return;
     const s = game.state;
-    const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player), time: cleanTime(s.time) ?? 0, fmt: Core.SAVE_VERSION });
+    const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player), time: cleanTime(s.time) ?? 0 });
     if (body.length > LIMITS.createBytes) { hud.toast(t('together.toast.tooBig')); return; }
     let made;
     try {

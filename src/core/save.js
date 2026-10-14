@@ -9,8 +9,10 @@ import { isValidFogMask } from './world.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
+import { WORLD_FORMAT } from './format.js';
 
-export const SAVE_VERSION = 10;
+// The room service knows it too (format.js).
+export const SAVE_VERSION = WORLD_FORMAT;
 
 export function bytesToB64(u8) {
   let out = '';

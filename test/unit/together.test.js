@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
 import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
+import { WORLD_FORMAT } from '../../src/core/format.js';
 
 const key = () => P.randomHex(32);
 const T0 = 1_700_000_000_000;
@@ -333,21 +334,38 @@ test('the vendored QR library is the published file, unchanged', () => {
 
 /* --------------------------------------------------------------- nuke */
 
-test('room: a newer game calls the nuke, and only presses or away players set it off', async () => {
-  const { r, owner } = await makeRoom({ save: '{"inv":1}', fmt: 5 });
-  assert.equal(r.fmt, 5);
-  const a = (await r.join(owner, null, T0, 5)).id;
-  assert.equal(r.welcome(a, T0).nuke, null, 'no nuke while everyone plays the same worlds');
+// A room whose world was made before the current world format.
+async function oldRoom(extra) {
+  const made = await makeRoom(extra);
+  made.r.fmt = WORLD_FORMAT - 1;
+  return made;
+}
+
+test('room: only a world from before the current format gets the nuke, whatever a player claims', async () => {
+  const { r, owner } = await makeRoom({ fmt: 1 });
+  assert.equal(r.fmt, WORLD_FORMAT, 'a new room is made at the current format, not what its maker says');
+  const a = (await r.join(owner, null, T0)).id;
+  assert.equal(r.welcome(a, T0).nuke, null);
+  // A hostile hello claiming a far newer game changes nothing.
+  const forged = await r.join(owner, null, T0, 99999);
+  assert.ok(!forged.called && r.call === null, 'a player cannot call the nuke');
+  assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0), {}, 'nothing to press until the room calls it');
+  assert.ok(!r.nukeDue(T0 + 10 * NUKE_AFK_MS));
+  assert.equal(Core.SAVE_VERSION, WORLD_FORMAT, 'the save format and the world format are one');
+});
+
+test('room: an old world calls the nuke, and only presses or away players set it off', async () => {
+  const { r, owner } = await oldRoom({ save: '{"inv":1}' });
+  const first = await r.join(owner, null, T0);
+  const a = first.id;
+  assert.ok(first.called, 'the first player in calls it');
   r.message(a, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 } }), T0);
   r.message(a, JSON.stringify({ t: 'edits', e: [['p', Core.packKey(1, 1, 0), 'glowcap']] }), T0);
-  assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0), {}, 'nothing to press until it is called');
-
   const bKey = key();
-  const joined = await r.join(bKey, invite(r, a), T0, 6);
+  const joined = await r.join(bKey, invite(r, a), T0);
   const b = joined.id;
-  assert.ok(joined.called, 'a newer game calls it');
+  assert.ok(!joined.called, 'called once, not again');
   assert.deepEqual(joined.welcome.nuke, { votes: [], until: T0 + NUKE_AFK_MS });
-  assert.ok(!(await r.join(owner, null, T0, 6)).called, 'called once, not again');
   assert.ok(!r.nukeDue(T0), 'both online, nobody has pressed');
 
   const out = r.message(a, JSON.stringify({ t: 'nuke', on: false }), T0);
@@ -360,28 +378,27 @@ test('room: a newer game calls the nuke, and only presses or away players set it
   const after = r.welcome(a, T0 + 5000);
   assert.notEqual(after.seed, 42);
   assert.ok(after.seed >= 1 && after.seed <= 0xffffffff);
-  assert.deepEqual([after.gen, after.nuke, r.fmt], [1, null, 6]);
+  assert.deepEqual([after.gen, after.nuke, r.fmt], [1, null, WORLD_FORMAT]);
   assert.deepEqual([after.mods, after.props, after.ext, after.save, after.p, after.time], [[], [], [], null, null, 0]);
   assert.equal(r.players.size, 2, 'everyone is still in the world');
-  assert.ok(!(await r.join(bKey, null, T0 + 6000, 6)).called, 'the new world has everything new');
+  assert.ok(!(await r.join(bKey, null, T0 + 6000)).called, 'the new world has everything new');
 
   // It all survives a restart.
   const back = Room.restore(r.id, r.takeWrites(), T0 + 6000);
-  assert.deepEqual([back.gen, back.fmt, back.call, back.seed, back.props.size], [1, 6, null, after.seed, 0]);
+  assert.deepEqual([back.gen, back.fmt, back.call, back.seed, back.props.size], [1, WORLD_FORMAT, null, after.seed, 0]);
 });
 
 test('room: offline players and idle ones once the minute is up have it pressed for them', async () => {
-  const { r, owner } = await makeRoom({ fmt: 5 });
-  const a = (await r.join(owner, null, T0, 5)).id;
-  const b = (await r.join(key(), invite(r, a), T0, 5)).id;
+  const { r, owner } = await oldRoom();
+  const a = (await r.join(owner, null, T0)).id;
+  const b = (await r.join(key(), invite(r, a), T0)).id;
   r.left(b, true, T0);
-  assert.ok((await r.join(owner, null, T0, 9)).called);
   assert.ok(!r.nukeDue(T0), 'the one online player has to press it');
   assert.ok(r.nukeDue(T0 + NUKE_AFK_MS), 'until the minute is up');
   r.message(a, JSON.stringify({ t: 'nuke' }), T0);
   assert.ok(r.nukeDue(T0), 'b is offline: pressed for them');
   // A restart keeps the call and the presses.
   const back = Room.restore(r.id, r.takeWrites(), T0 + 1000);
-  assert.deepEqual([back.call, [...back.nuke]], [{ fmt: 9, at: T0 }, [a]]);
+  assert.deepEqual([back.call, [...back.nuke]], [{ fmt: WORLD_FORMAT, at: T0 }, [a]]);
   assert.equal(back.nukeDeadline(), T0 + NUKE_AFK_MS);
 });

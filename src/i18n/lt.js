@@ -660,6 +660,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.71.1": "Bendrame pasaulyje sprogdinimą gali sukelti tik atnaujinimas, joks žaidėjas.",
   "news.0.71.0": "Mygtukas „Sprogdinti“ nebėra Nustatymuose. Dabar, kai atnaujinimas pakeičia, kaip kuriami pasauliai, ekrano viduryje atsiranda didelis raudonas mygtukas, ir jį paspaudžia visi.\nUž tuos, kurių nėra ar kurie atsitraukę, jis paspaudžiamas automatiškai, o už visus po minutės. Tada visi kartu pradedate iš naujo visiškai naujame pasaulyje su viskuo, kas nauja.",
   "news.0.70.1": "Žaidėjų vardai nebeuždengia QR lentelės, tad ji visada nuskaitoma.",
   "news.0.70.0": "Didelis raudonas mygtukas „Sunaikinti pasaulį“ (Nustatymai) sukuria pasaulį iš naujo su viskuo, kas žaidime nauja, ir tu pradedi iš naujo.\nBendrame pasaulyje tai balsavimas: kai visi paspaudžia, pasaulis sukuriamas iš naujo ir visi kartu pradedate iš naujo. Matai, kas jau paspaudė, ir savo balsą gali atšaukti.",

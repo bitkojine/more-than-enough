@@ -54,8 +54,8 @@ again in the game; anything that doesn't fit exactly is dropped.
   seconds is closed. A connection that keeps breaking the limits is closed.
 - **Ownership:** a building's owner is set by the room, never by the
   player.
-- **The nuke:** only a game with a newer world format than the room's calls
-  it, once. A player can only press it for themselves. The world is made
+- **The nuke:** only the room service calls it, once, when a world was made
+  before its own `WORLD_FORMAT` (`src/core/format.js`); nothing a player sends can. A player can only press it for themselves. The world is made
   again once everyone online has pressed it (away, lost and offline players
   count as pressed) or a minute after it was called, with a seed the room
   picks; every socket is then closed, so nothing from the old world gets in.

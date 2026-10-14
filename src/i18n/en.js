@@ -660,6 +660,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.71.1": "Only an update can set off the nuke in a shared world; no player can.",
   "news.0.71.0": "The Nuke button left Settings. Now, when an update changes how worlds are made, a big red button takes the middle of the screen and everyone presses it.\nIt's pressed for anyone away or offline, and for everyone after a minute. Then you all start fresh together in a brand-new world with everything new.",
   "news.0.70.1": "Players' names no longer cover the QR sign, so it always scans.",
   "news.0.70.0": "The big red Nuke button (Settings) makes the world again from scratch with everything new in the game, and you start over.\nIn a shared world it's a vote: once everyone has pressed it, the world is made anew and you all start fresh together. You can see who has pressed it, and take your vote back.",

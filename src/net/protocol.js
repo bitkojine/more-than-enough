@@ -4,7 +4,7 @@
  * up. No imports, so the room service can bundle it as is.
  *
  * Messages are small JSON objects with a type `t`:
- *   game -> room   hello {key, fmt}        proves who you are (once, first), and the world format you play
+ *   game -> room   hello {key}             proves who you are (once, first)
  *                  pos {p}                 where you are (and what you play on), several times a second
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
@@ -24,7 +24,7 @@
  *                  removed {id}            a player was taken out of the world
  *                  nuke {nuke: {votes, until}}  the nuke is on: who pressed it, and when it's pressed for the rest
  *                  full / bad              why the room is closing on you
- * A game whose world format is newer than the world's calls the nuke. When
+ * A world made before the current WORLD_FORMAT (src/core/format.js) gets the nuke. When
  * everyone has pressed it (or had it pressed for them), the room makes the
  * world again and closes every socket with code 4004; each game reconnects
  * to the new world.
@@ -171,12 +171,6 @@ export function cleanSave(s) {
 const TIME_MAX = 1e10;
 export function cleanTime(v) {
   return isNum(v) && v >= 0 && v <= TIME_MAX ? round(v, 1000) : null;
-}
-
-// A world format (the game's SAVE_VERSION): which generation of world the
-// game makes. A newer one than a world's calls the nuke.
-export function cleanFormat(v) {
-  return Number.isSafeInteger(v) && v >= 1 && v <= 100000 ? v : null;
 }
 
 export function cleanStatus(st) {

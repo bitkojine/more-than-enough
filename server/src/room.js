@@ -10,8 +10,9 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanFormat, KEY_RE
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE
 } from '../../src/net/protocol.js';
+import { WORLD_FORMAT } from '../../src/core/format.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
@@ -46,9 +47,10 @@ export class Room {
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
     this.invites = new Map();
-    // The nuke. `fmt` is the world format (the game's SAVE_VERSION) the
-    // world was made with. When a player arrives with a newer game whose
-    // worlds differ, the nuke is called (`call`: {fmt, at}) and shows on
+    // The nuke. `fmt` is the world format (WORLD_FORMAT) the world was made
+    // with. When the room service is newer (an update changed how worlds are
+    // made), the next player in calls the nuke (`call`: {fmt, at}); nothing
+    // a player says can. It shows on
     // everyone's screen. Who has pressed it is in `nuke`; it's pressed for
     // anyone away, offline or idle (see nukeDue). Then the world is made
     // again from scratch with everything new, and everyone starts over.
@@ -117,7 +119,7 @@ export class Room {
     const pos = d.pos === undefined ? null : cleanPos(d.pos);
     const time = d.time === undefined ? 0 : cleanTime(d.time);
     if (time === null) return 'bad';
-    this.fmt = cleanFormat(d.fmt) ?? 0;
+    this.fmt = WORLD_FORMAT;
     this.owner = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
@@ -139,10 +141,10 @@ export class Room {
 
   /* -------------------------------------------------------- players */
 
-  // A connection proved its key (and, the first time, brought an invite),
-  // playing world format `fmt`. Returns {id, welcome, called} (called: the
-  // nuke was just called) or {error}.
-  async join(key, code, now, fmt) {
+  // A connection proved its key (and, the first time, brought an invite).
+  // Returns {id, welcome, called} (called: the nuke was just called) or
+  // {error}.
+  async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     const id = await playerId(this.id, key);
     let pl = this.players.get(id);
@@ -162,7 +164,7 @@ export class Room {
     pl.lostAt = 0;
     this.touch(now);
     this.dirty.players.add(id);
-    const called = this.callNuke(fmt, now);
+    const called = this.callNuke(now);
     return { id, welcome: this.welcome(id, now), called };
   }
 
@@ -331,16 +333,14 @@ export class Room {
 
   /* ------------------------------------------------------------ nuke */
 
-  // A player arrived playing world format `fmt`. If it's newer than this
-  // world's, the world misses what the update brings: the nuke is called.
-  // Returns true if it was just called (everyone needs telling).
-  callNuke(fmt, now) {
-    const f = cleanFormat(fmt);
-    if (f === null || f <= this.fmt || (this.call && f <= this.call.fmt)) return false;
-    const fresh = !this.call;
-    this.call = { fmt: f, at: fresh ? now : this.call.at };
+  // Someone arrived in a world made before the current world format: it
+  // misses what the update brings, so the nuke is called. Returns true if it
+  // was just called (everyone needs telling).
+  callNuke(now) {
+    if (this.fmt >= WORLD_FORMAT || this.call) return false;
+    this.call = { fmt: WORLD_FORMAT, at: now };
     this.dirty.meta = true;
-    return fresh;
+    return true;
   }
 
   // The nuke as everyone sees it: who has pressed it, and when it will be

@@ -224,9 +224,9 @@ export class Rooms extends DurableObject {
 
   async hello(ws, raw, now) {
     let d = null;
-    if (raw.length <= 300) try { d = JSON.parse(raw); } catch { /* below */ }
+    if (raw.length <= 256) try { d = JSON.parse(raw); } catch { /* below */ }
     if (!d || d.t !== 'hello') return ws.close(1008, 'hello first');
-    const r = await this.room.join(d.key, d.code, now, d.fmt);
+    const r = await this.room.join(d.key, d.code, now);
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error }));
       return ws.close(1008, r.error);

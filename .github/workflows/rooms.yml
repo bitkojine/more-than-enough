@@ -8,7 +8,7 @@ name: Room service
 on:
   push:
     branches: [main]
-    paths: ['server/**', 'src/net/**', '.github/workflows/rooms.yml']
+    paths: ['server/**', 'src/net/**', 'src/core/format.js', '.github/workflows/rooms.yml']
   workflow_dispatch:
 
 permissions:
