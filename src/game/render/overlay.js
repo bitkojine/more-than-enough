@@ -86,16 +86,16 @@ export function drawTrail(ctx, cam, s, view) {
 }
 
 /* Light and dark. Underground it is always dark; on the surface it gets dark
- * at night. What lights the dark: the wanderer's lantern (carried only then),
+ * at night. What lights the dark: the screen of the wanderer's phone or laptop,
  * glowcaps and lamps you placed, and daylight falling through holes in the
  * ceiling. The dark is drawn as one mask at low resolution with every light
  * cut out of it, then each light adds a warm tint of its own colour.
  *
- * Down in the mine the lantern is only a small pool at your feet: the rock you
+ * Down in the mine the screen is only a small pool at your feet: the rock you
  * have uncovered a few steps away sinks back into the dark, and it takes a
  * glowcap to keep a stretch of tunnel lit. */
-const LANTERN_LIGHT = 3.0;      // how far the lantern lights the night forest, in tiles
-const MINE_LANTERN_LIGHT = 1.7; // how far it lights in the mine
+const SCREEN_LIGHT = 3.0;       // how far your screen lights the night forest, in tiles
+const MINE_SCREEN_LIGHT = 1.7;  // how far it lights in the mine
 const SKYLIGHT_LIGHT = 2.0;     // how far light falling through a hole spreads
 const UNDERGROUND_DARK = 0.95;  // how dark the mine is away from any light
 const NIGHT_DARK = 0.9;         // how dark the forest gets at midnight
@@ -106,11 +106,11 @@ let mask = null;
 
 /**
  * @param {Array<{x: number, y: number, r: number, color: string, strength?: number}>} lights
- *   lights on this layer besides the lantern and skylights (glowcaps, lamps), in tiles.
+ *   lights on this layer besides your screen and skylights (glowcaps, lamps), in tiles.
  *   `core` (0..1, default 0.5) is how much of the radius is lit fully before
  *   the light fades out.
  */
-export function drawLighting(ctx, cam, s, look, lights) {
+export function drawLighting(ctx, cam, s, look, lights, device) {
   const { width: W, height: H } = cam;
   const dl = Core.daylight(s.time);
   const under = cam.z < Core.SURFACE;
@@ -128,11 +128,11 @@ export function drawLighting(ctx, cam, s, look, lights) {
   if (dark < 0.01) return;
 
   const all = lights.slice();
-  if (Core.needsLantern(s)) {
+  if (Core.isDark(s)) {
     // Kept usable when zoomed far out, where tiles are tiny.
     all.push({
-      x: s.player.x, y: s.player.y, r: under ? MINE_LANTERN_LIGHT : LANTERN_LIGHT,
-      color: look.color('character.lantern'), min: Math.min(W, H) * (under ? 0.12 : 0.28), core: under ? 0.3 : 0.5
+      x: s.player.x, y: s.player.y, r: under ? MINE_SCREEN_LIGHT : SCREEN_LIGHT,
+      color: look.color('character.' + device), min: Math.min(W, H) * (under ? 0.12 : 0.28), core: under ? 0.3 : 0.5
     });
   }
   if (under) {

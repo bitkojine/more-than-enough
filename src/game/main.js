@@ -273,8 +273,7 @@ function view() {
     friends: together.view(),
     friendColors: FRIEND_COLORS,
     sign: together.sign,
-    // Together, you hold what you play on, as your friends see you.
-    device: s.shared ? playDevice() : null
+    device: playDevice() // what you hold, and whose screen lights the dark
   };
 }
 

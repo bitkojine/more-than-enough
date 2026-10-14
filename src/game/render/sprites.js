@@ -45,8 +45,8 @@ export function drawExtractor(ctx, cam, s, look, e) {
 }
 
 // The wanderer: facing the way they last walked, stepping through the walk
-// frames while moving. On water they ride the boat. In a shared world they
-// hold what they play on (a phone or a laptop).
+// frames while moving. On water they ride the boat. They always hold what
+// you play on (a phone or a laptop), and its screen lights the dark.
 export function drawPlayer(ctx, cam, s, look, view) {
   const u = cam.tilePx;
   const p = s.player;
@@ -55,9 +55,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const walk = look.frames('character.wanderer', 'image');
   const frame = view.moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
   const body = walk.pics[frame];
-  // The lantern only comes out when it's needed: at night and underground.
-  const held = [Core.needsLantern(s) && 'lantern', view.device].filter(Boolean);
-  const figure = (fy, size) => standWithHeld(ctx, look, body, held, sx, fy, size, flip);
+  const figure = (fy, size) => standWithHeld(ctx, look, body, view.device, sx, fy, size, flip);
   if (Core.onWater(s)) {
     const bob = Math.sin(s.time * 2.6 + p.x * 7.3) * u * 0.04;
     const boat = look.pick('character.boat', 'image');
@@ -72,12 +70,13 @@ export function drawPlayer(ctx, cam, s, look, view) {
   if (view.sign > 0) drawSign(ctx, sx, sy - step - body.units * u * body.aspect, u, view.sign, s.time, 0);
 }
 
-// A figure and what they hold (lantern, phone, laptop: drawn over them at the
-// same size and place, so each lines up with their hand). Returns their height.
-function standWithHeld(ctx, look, body, held, x, y, size, flip) {
+// A figure and what they hold (a phone or a laptop, or nothing for a friend
+// on an older game), drawn over them at the same size and place so it lines
+// up with their hand. Returns their height.
+function standWithHeld(ctx, look, body, device, x, y, size, flip) {
   const tall = look.stand(ctx, body, x, y, size, flip);
-  for (const key of held) {
-    const pic = look.pick('character.' + key, 'image');
+  if (device) {
+    const pic = look.pick('character.' + device, 'image');
     look.stand(ctx, pic, x, y, size * body.units / pic.units, flip);
   }
   return tall;
@@ -142,7 +141,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = moving ? Math.abs(Math.sin(time * 12)) * u * 0.03 : 0;
   const size = f.st === 'away' ? u * 0.78 : u;   // away: sitting down
-  const tall = standWithHeld(ctx, look, body, f.dev ? [f.dev] : [], sx, sy - step, size, flip);
+  const tall = standWithHeld(ctx, look, body, f.dev, sx, sy - step, size, flip);
   const head = sy - step - tall;
   ctx.restore();
   if (f.sign && f.st === 'online') drawSign(ctx, sx, head, u, 1, time, f.c + 1);
@@ -197,7 +196,7 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy) {
   ctx.save();
   ctx.translate(feet, sy - thick * 0.22);
   ctx.rotate(head * Math.PI / 2);
-  standWithHeld(ctx, look, body, f.dev ? [f.dev] : [], 0, 0, u * scale, head > 0);
+  standWithHeld(ctx, look, body, f.dev, 0, 0, u * scale, head > 0);
   ctx.restore();
   // The blanket over their legs, breathing; the head stays out on the pillow.
   ctx.save();

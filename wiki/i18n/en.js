@@ -70,9 +70,9 @@ export default {
   "wiki.idea.caveInsAndMyceliumProps.title": "Cave-ins and mycelium props",
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Dug tiles and mycelium.",
-  "wiki.idea.aLanternThatRunsLow.title": "A lantern that runs low",
-  "wiki.idea.aLanternThatRunsLow.pitch": "Underground your sight radius slowly shrinks unless you feed the lantern glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.",
-  "wiki.idea.aLanternThatRunsLow.builds": "Explore radius and night lighting.",
+  "wiki.idea.aBatteryThatRunsLow.title": "A battery that runs low",
+  "wiki.idea.aBatteryThatRunsLow.pitch": "Underground your sight radius slowly shrinks unless you charge your phone or laptop with glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.",
+  "wiki.idea.aBatteryThatRunsLow.builds": "Explore radius and night lighting.",
   "wiki.idea.glowOre.title": "Glow ore",
   "wiki.idea.glowOre.pitch": "A rare ore you can only see at night or in the dark, shimmering faintly. Rewards being out at night and exploring the mine by feel.",
   "wiki.idea.glowOre.builds": "Day/night and fog.",
@@ -325,7 +325,7 @@ export default {
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
           in the top-left corner counts the milestones you've reached and glows after a new one; tap it to see them all in the
           <strong>Awards</strong> tab.</li>
-        <li><strong>Darkness</strong> after dusk, with a pool of lamplight around you. See <a href="#world">The world</a>.</li>
+        <li><strong>Darkness</strong> after dusk, with a pool of screen light around you. See <a href="#world">The world</a>.</li>
         <li><strong>Black</strong>: fog. You haven't been there yet.</li>
       </ul>
 
@@ -427,8 +427,8 @@ export default {
 
       <h2>Day and night</h2>
       <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
-        After dusk the world fades into darkness and you take out your lantern: a pool of lamplight around you, so you can always
-        keep working. By day the lantern stays packed away. Nothing else changes at night.</p>`,
+        After dusk the world fades into darkness and the screen of your phone or laptop lights a pool around you, so you can always
+        keep working. Nothing else changes at night.</p>`,
   "wiki.article.gathering.title": "Gathering",
   "wiki.article.gathering": `      <h1>Gathering</h1>
       <p class="lede">Four resources, two tools, and deposits that run dry.</p>
@@ -531,7 +531,7 @@ export default {
 
       <h2>Placing things in the mine</h2>
       <p>No buildings go underground, but the Build sheet's <strong>In the mine</strong> section places these on the tunnel
-        floor where you stand, one per tile. They stay for good. Light reach is in tiles; your lantern reaches
+        floor where you stand, one per tile. They stay for good. Light reach is in tiles; your screen reaches
         about 1.7.</p>
       <div data-table="props"></div>
       <p>A <strong>marker flag</strong> shows as a pin through the dark over where it stands, and when it's off screen the
@@ -539,7 +539,7 @@ export default {
 
       <h2>Rules underground</h2>
       <ul>
-        <li>It's always dark down here. Your lantern lights only a small pool at your feet, so tunnels you dug a few steps back
+        <li>It's always dark down here. Your screen lights only a small pool at your feet, so tunnels you dug a few steps back
           sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
         <li>Logistics only collects from buildings on the layer you're on, so your surface camps simply fill up while you're below.</li>
@@ -757,7 +757,7 @@ export default {
         that stands.</p>
 
       <h2>What the game draws itself</h2>
-      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the lamplight
+      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the screen light
         around you, target outlines and Trails, the dial over a building that fills as it holds output, the fading of cliffs into
         the dark, and the floating numbers. Their colours come from the pack where it makes sense (a resource's colour tints its
         sparks; the skylight's colour lights holes in the ceiling).</p>

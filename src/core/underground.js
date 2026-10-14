@@ -129,9 +129,9 @@ export function takeWay(s) {
 
 /* ----------------------------------------------------------------- light */
 
-// Underground is dark; so is the forest at night. The wanderer only carries
-// the lantern then (and it is what lights the way).
-export function needsLantern(s) {
+// Underground is dark; so is the forest at night. Then the screen of what
+// the wanderer plays on (phone or laptop) is what lights the way.
+export function isDark(s) {
   return isUnderground(s) || daylight(s.time) < 0.6;
 }
 

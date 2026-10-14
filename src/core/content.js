@@ -31,7 +31,7 @@ export const EMBARK_ABUNDANCE = 5;
 /* -------------------------------------------------------------- props */
 
 // Things you place on the tunnel floor where you stand, one per tile, in the
-// mine only. `light` is how far it lights, in tiles (the lantern reaches 1.7);
+// mine only. `light` is how far it lights, in tiles (your screen reaches 1.7);
 // a `beacon` shows through the dark from anywhere on screen, to find your way
 // back by.
 export const PROPS = {

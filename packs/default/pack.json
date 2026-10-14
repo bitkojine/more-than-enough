@@ -238,15 +238,13 @@
     "fps": 8
    }
   },
-  "character.lantern": {
-   "image": "characters/lantern.svg",
-   "color": "#ffd28a"
-  },
   "character.phone": {
-   "image": "characters/phone.svg"
+   "image": "characters/phone.svg",
+   "color": "#cfe6ff"
   },
   "character.laptop": {
-   "image": "characters/laptop.svg"
+   "image": "characters/laptop.svg",
+   "color": "#cfe6ff"
   },
   "character.boat": {
    "image": "characters/boat.svg"

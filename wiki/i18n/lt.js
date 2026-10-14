@@ -67,9 +67,9 @@ export default {
   "wiki.idea.caveInsAndMyceliumProps.title": "Griūtys ir grybienos ramsčiai",
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Dideli atviri urvai girgžda ir gali sugriūti, jei neparemti užaugintais grybienos stulpais. Taip grybiena gauna priežastį keliauti po žeme, o kasyklos išdėstymas tampa pasirinkimu.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Iškasti langeliai ir grybiena.",
-  "wiki.idea.aLanternThatRunsLow.title": "Senkantis žibintas",
-  "wiki.idea.aLanternThatRunsLow.pitch": "Po žeme tavo matymo spindulys pamažu mažėja, nebent maitini žibintą švytukėmis ar kristalu. Šviesa tampa ištekliumi be jokio aiškinančio teksto: tiesiog pastebi, kad temsta.",
-  "wiki.idea.aLanternThatRunsLow.builds": "Tyrinėjimo spindulys ir naktinis apšvietimas.",
+  "wiki.idea.aBatteryThatRunsLow.title": "Senkanti baterija",
+  "wiki.idea.aBatteryThatRunsLow.pitch": "Po žeme tavo matymo spindulys pamažu mažėja, nebent krauni telefoną ar kompiuterį švytukėmis ar kristalu. Šviesa tampa ištekliumi be jokio aiškinančio teksto: tiesiog pastebi, kad temsta.",
+  "wiki.idea.aBatteryThatRunsLow.builds": "Tyrinėjimo spindulys ir naktinis apšvietimas.",
   "wiki.idea.glowOre.title": "Švytinti rūda",
   "wiki.idea.glowOre.pitch": "Reta rūda, kurią matai tik naktį ar tamsoje, silpnai mirguliuojančią. Apdovanoja už buvimą lauke naktį ir kasyklos tyrinėjimą apgraibomis.",
   "wiki.idea.glowOre.builds": "Diena, naktis ir rūkas.",
@@ -322,7 +322,7 @@ export default {
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
           viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; bakstelk ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
-        <li><strong>Tamsa</strong> sutemus, su žibinto šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
+        <li><strong>Tamsa</strong> sutemus, su ekrano šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
         <li><strong>Juoda</strong>: rūkas. Ten dar nebuvai.</li>
       </ul>
 
@@ -424,8 +424,8 @@ export default {
 
       <h2>Diena ir naktis</h2>
       <p>Visa para trunka <span data-k="DAY_LENGTH"></span> s, o naujas pasaulis prasideda vidurdienį. Dienos šviesios ir šiltos.
-        Po sutemų pasaulis paskęsta tamsoje ir tu išsitrauki žibintą: aplink tave – lempos šviesos ratas, tad dirbti gali visada.
-        Dieną žibintas lieka supakuotas. Daugiau naktį niekas nesikeičia.</p>`,
+        Po sutemų pasaulis paskęsta tamsoje ir tavo telefono ar kompiuterio ekranas apšviečia ratą aplink tave, tad dirbti gali visada.
+        Daugiau naktį niekas nesikeičia.</p>`,
   "wiki.article.gathering.title": "Rinkimas",
   "wiki.article.gathering": `      <h1>Rinkimas</h1>
       <p class="lede">Keturi ištekliai, du įrankiai ir telkiniai, kurie išsenka.</p>
@@ -528,14 +528,14 @@ export default {
       <h2>Daiktų dėjimas kasykloje</h2>
       <p>Po žeme pastatų nėra, bet Statybos lapo skiltyje <strong>Kasykloje</strong> šiuos daiktus gali padėti ant tunelio
         grindų ten, kur stovi, po vieną langelyje. Jie lieka visam laikui. Šviesos pasiekiamumas nurodytas langeliais; tavo
-        žibintas apšviečia maždaug 1,7.</p>
+        ekranas apšviečia maždaug 1,7.</p>
       <div data-table="props"></div>
       <p><strong>Žymės vėliavėlė</strong> rodoma kaip smeigtukas, matomas pro tamsą virš jos vietos, o kai ji už ekrano ribų,
         smeigtukas laukia ekrano krašte ir rodo kelią atgal iki jos.</p>
 
       <h2>Taisyklės po žeme</h2>
       <ul>
-        <li>Čia visada tamsu. Žibintas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
+        <li>Čia visada tamsu. Ekranas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
           atgal, vėl paskęsta tamsoje. Švytukės ir lempos laiko savo ruožą apšviestą, o dienos šviesa krinta pro angas,
           kuriomis nusileidai.</li>
         <li>Logistika paima produkciją tik iš pastatų tame sluoksnyje, kuriame esi, tad kol esi apačioje, tavo stovyklos paviršiuje tiesiog prisipildo.</li>
@@ -753,7 +753,7 @@ export default {
         kas stovi.</p>
 
       <h2>Ką žaidimas piešia pats</h2>
-      <p>Kai kas visuose paketuose išlieka toks pat, nes parodo, kaip veikia žaidimas: šešėliai, diena ir naktis, žibinto šviesa
+      <p>Kai kas visuose paketuose išlieka toks pat, nes parodo, kaip veikia žaidimas: šešėliai, diena ir naktis, ekrano šviesa
         aplink tave, taikinių kontūrai ir Takai, ciferblatas virš pastato, kuris pildosi kaupiantis produkcijai, skardžių blėsimas
         tamsoje ir skraidantys skaičiai. Jų spalvos imamos iš paketo, kur tai prasminga (ištekliaus spalva nuspalvina jo
         kibirkštis; šviesos šulinio spalva apšviečia angas lubose).</p>

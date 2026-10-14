@@ -37,7 +37,7 @@ export const IDEAS = [
   { id: 'liftsInHoleColumns', area: 'mechanics', size: 'medium' },
   { id: 'minecartRails', area: 'mechanics', size: 'large' },
   { id: 'caveInsAndMyceliumProps', area: 'mechanics', size: 'medium' },
-  { id: 'aLanternThatRunsLow', area: 'mechanics', size: 'small' },
+  { id: 'aBatteryThatRunsLow', area: 'mechanics', size: 'small' },
   { id: 'glowOre', area: 'mechanics', size: 'small' },
   { id: 'littleDiggers', area: 'mechanics', size: 'large' },
   { id: 'weather', area: 'mechanics', size: 'medium' },

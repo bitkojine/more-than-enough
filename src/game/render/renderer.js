@@ -76,7 +76,7 @@ export function render(cam, s, fx, view, look) {
   drawParticles(ctx, cam, fx);
   drawFloats(ctx, cam, look, fx);
   drawFlyers(ctx, cam, look, fx);
-  drawLighting(ctx, cam, s, look, lights);
+  drawLighting(ctx, cam, s, look, lights, view.device);
   drawGlints(ctx, cam, s, look);
   drawFarHoles(ctx, cam, s, look);
   drawBeacons(ctx, cam, s, look, beacons);

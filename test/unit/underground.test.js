@@ -363,9 +363,9 @@ test('the layer button shows beside a way and says which way it goes', () => {
 test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));
   assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on the surface');
-  assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
+  assert.equal(C.isDark(s), false, 'not dark at noon in the forest');
   C.goDown(s);
-  assert.equal(C.needsLantern(s), true, 'the lantern comes out underground');
+  assert.equal(C.isDark(s), true, 'always dark underground');
   s.inv.mycelium = 10;
   assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on a way between layers');
   s.inv.mycelium = 0;
@@ -387,7 +387,7 @@ test('props: placed underground on open floor, one per tile, paid for, and saved
   assert.deepEqual([...back.world.props], [...s.world.props], 'props are saved');
   const night = away(C.createState(1));
   night.time = C.DAY_LENGTH / 2;
-  assert.equal(C.needsLantern(night), true, 'and at night');
+  assert.equal(C.isDark(night), true, 'and at night');
 });
 
 test('torches in saves from before trees stopped being cut grow back as glowcaps', () => {

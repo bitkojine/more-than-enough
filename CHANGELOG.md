@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.55.0] - 2026-10-14
+
+### Changed
+- **Your screen lights the way.** The lantern is gone: your character
+  always holds the phone or laptop you play on (alone too, not only in shared
+  worlds), and at night and underground its screen lights the pool around
+  you. Texture packs drop `character.lantern`; the light's colour is now the
+  `color` of `character.phone` and `character.laptop`. `Core.needsLantern`
+  is now `Core.isDark`.
+
 ## [0.54.0] - 2026-10-14
 
 ### Added
