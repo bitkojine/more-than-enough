@@ -426,6 +426,9 @@ export default {
   "region.heath.9": "Dusty Downs",
   "region.heath.10": "Sandy Barrens",
 
+  "map.title": "World map",
+  "map.centre": "Back to where you are",
+
   "toast.saveLost": "Your old save could not be loaded — starting a new world",
 
   "button.climbDown": "CLIMB DOWN",

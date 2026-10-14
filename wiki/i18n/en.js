@@ -404,7 +404,8 @@ export default {
       <p>The land is split into big named <strong>regions</strong>, each a few minutes' walk across. As you walk into one its
         name shows across the screen, and its music starts: the music changes only when you cross into another region.
         Every region has its own kind of land, and between two regions runs a border you can see: a river to swim across,
-        or a rocky ridge with passes through it. Every world starts in a meadow.</p>
+        or a rocky ridge with passes through it. Every world starts in a meadow. The <strong>world map</strong> (the button under
+        the zoom) shows all the land you've explored, with the names of the regions you've seen.</p>
       <div data-table="regions"></div>
 
       <h2>Forests</h2>

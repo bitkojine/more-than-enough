@@ -343,6 +343,11 @@ function drawRows(ctx, cam, s, look, ground, x0, y0, x1, y1, side, onRow) {
   }
 }
 
+// A type of tile's colour in one flat swatch (the world map's), or null.
+export function tileColor(look, type) {
+  return look.color(TILE_LOOK[type]);
+}
+
 // A tile's flat colour for the far map's first quick draw, or null for none.
 function flatColor(look, w, x, y, z) {
   if (Core.isExplored(w, x, y, z)) return look.color(TILE_LOOK[Core.tileAt(w, x, y, z)]);

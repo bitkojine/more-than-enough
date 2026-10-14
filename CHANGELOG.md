@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.62.0] - 2026-10-14
+
+### Added
+- **A world map.** A map button at the foot of the zoom opens the world map:
+  all the land you've explored, with the names of the regions you've seen,
+  home and you. Drag to move around, pinch or scroll to zoom, and tap the
+  target to come back to where you are.
+
+### Fixed
+- A region's name no longer shows over an open sheet.
+
 ## [0.61.0] - 2026-10-14
 
 ### Added

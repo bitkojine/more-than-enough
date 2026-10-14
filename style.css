@@ -423,8 +423,9 @@ canvas#game {
   padding: 0 12px 8px;
 }
 #sheetTitle { flex: 1 1 auto; padding-left: 6px; font-size: 20px; font-weight: 800; color: var(--ink); }
-#sheet[data-tab]:not([data-tab="settings"]):not([data-tab="collected"]) #sheetTitle,
-#sheet[data-tab="settings"] #tabs, #sheet[data-tab="collected"] #tabs { display: none; }
+#sheet[data-tab]:not([data-tab="settings"]):not([data-tab="collected"]):not([data-tab="map"]) #sheetTitle,
+#sheet[data-tab="settings"] #tabs, #sheet[data-tab="collected"] #tabs, #sheet[data-tab="map"] #tabs { display: none; }
+#sheet[data-tab="map"] { height: min(88vh, 900px); max-width: 900px; }
 #btnClose { width: 40px; height: 40px; box-shadow: none; background: var(--raised); }
 #btnClose svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 
@@ -612,7 +613,22 @@ canvas#game {
   display: flex; flex-direction: column; gap: 14px;
   padding: 6px 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
-#settingsPanel[hidden], #sheetBody[hidden] { display: none; }
+#settingsPanel[hidden], #sheetBody[hidden], #mapPanel[hidden] { display: none; }
+
+/* The world map fills the sheet; its own zoom sits in the corner like the
+   game's, and a button brings you back to where you are. */
+#mapPanel { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 10px calc(env(safe-area-inset-bottom, 0px) + 10px); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--panel-line); }
+#worldMap { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+#mapTools {
+  position: absolute; right: 10px; bottom: 10px; width: 40px;
+  display: flex; flex-direction: column;
+  border: 1px solid var(--panel-line); border-radius: 999px; overflow: hidden;
+  background: var(--glass); box-shadow: var(--shadow-1);
+}
+#mapTools button { height: 40px; padding: 0; border: 0; background: none; color: var(--ink); font: 600 22px/1 -apple-system, BlinkMacSystemFont, sans-serif; touch-action: manipulation; }
+#mapTools button + button { border-top: 1px solid var(--panel-line); }
+#mapTools svg, #btnMap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; vertical-align: middle; }
+#zoomControls #btnMap { border-top: 1px solid var(--panel-line); }
 .setGroup {
   display: flex; flex-direction: column;
   border: 1px solid var(--panel-line); border-radius: var(--r-md);
@@ -667,7 +683,7 @@ canvas#game {
 /* A region's name as you walk into it: big and quiet across the upper
    middle of the map, fading in and away on its own. Taps go through. */
 #place {
-  position: absolute; left: 50%; top: 24%; z-index: 30;
+  position: absolute; left: 50%; top: 24%; z-index: 20;
   transform: translateX(-50%);
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   pointer-events: none; text-align: center; white-space: nowrap;

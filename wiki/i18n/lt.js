@@ -401,7 +401,8 @@ export default {
       <p>Žemė padalyta į didelius pavadintus <strong>kraštus</strong>, kurių kiekvieną pereiti užtrunka kelias minutes. Kai
         įžengi į kraštą, per ekraną parašomas jo vardas ir pradeda groti jo muzika: muzika keičiasi tik peržengus į kitą
         kraštą. Kiekvienas kraštas turi savo žemės pobūdį, o tarp dviejų kraštų driekiasi matoma riba: upė, kurią
-        perplauki, arba uolėtas kalvagūbris su perėjomis. Kiekvienas pasaulis prasideda pievose.</p>
+        perplauki, arba uolėtas kalvagūbris su perėjomis. Kiekvienas pasaulis prasideda pievose. <strong>Pasaulio
+        žemėlapis</strong> (mygtukas po mastelio valdikliu) rodo visą tavo ištyrinėtą žemę su matytų kraštų vardais.</p>
       <div data-table="regions"></div>
 
       <h2>Miškai</h2>

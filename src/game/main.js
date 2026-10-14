@@ -11,6 +11,7 @@ import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
+import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerf } from './perf.js';
 import { createLook } from './look/look.js';
@@ -151,10 +152,14 @@ const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: upd
 const actor = createActor(); // what the wanderer is doing, to animate it
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor });
 
+const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
-  onTab: (tab) => { if (tab === 'awards') hud.awardsSeen(); },
+  onTab: (tab) => {
+    if (tab === 'awards') hud.awardsSeen();
+    if (tab === 'map') worldMap.show();
+  },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
 
@@ -188,6 +193,10 @@ el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
 el.settings.addEventListener('click', () => sheet.toggle('settings'));
+el.map.addEventListener('click', () => sheet.toggle('map'));
+el.mapIn.addEventListener('click', () => worldMap.zoom(1.5));
+el.mapOut.addEventListener('click', () => worldMap.zoom(1 / 1.5));
+el.mapMe.addEventListener('click', () => worldMap.centre());
 el.resources.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (chip) sheet.showCollected(chip.dataset.res);
@@ -415,6 +424,7 @@ window.MTE_GAME = {
   setZoom(z) { cam.setZoom(z); hud.view(cam); },
   pitch: () => cam.pitch(),
   perf: () => perf.snapshot(),
+  mapNames: () => worldMap.names(),
   perfVisible: () => perf.visible,
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)

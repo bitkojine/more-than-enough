@@ -28,6 +28,7 @@ place it belongs here rather than adding a button where there is room.
 │                                   [+]│  zoom: slim vertical pill, right edge
 │                                   1× │
 │                                   [−]│
+│                                   [▤]│  world map, at the foot of the zoom pill
 │                        [CLIMB]       │  pops in above-left of the action
 │ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
@@ -39,6 +40,10 @@ place it belongs here rather than adding a button where there is room.
 - Radii: `--r-sm 10px`, `--r-md 14px`, `--r-lg 20px`, `--r-pill 999px`.
 - Shadows: `--shadow-1` (HUD), `--shadow-2` (sheets/dialogs).
 - Touch targets ≥ 44px; the main action 84px.
+
+### Places
+- **Region names**: walking into a region (see `src/core/regions.js`) shows its kind of land in small gold capitals over its name in a large serif, across the upper middle of the map, for a few seconds. It fades on its own, lets taps through, and sits under sheets.
+- **The world map** opens from the map button at the foot of the zoom pill (zooming out all the way's next step), as a tall sheet titled *World map*. It shows the surface you've explored, region names in the same style as on arrival, home and you; drag to pan, pinch or scroll to zoom, and its own small pill in the corner zooms and brings you back to where you are.
 
 ### Playing together
 - **Invite** is a main action, as big as Gather, in the bottom-left corner (the left thumb), in the sign's friendly sky blue. Tapping it holds up your sign; the first time it asks to put the world online. While the sign is up the button turns white and reads *Lower*; tap it again to put the sign down. It's never in a menu.

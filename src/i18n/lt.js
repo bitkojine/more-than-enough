@@ -426,6 +426,9 @@ export default {
   "region.heath.9": "Dulkėtosios kalvos",
   "region.heath.10": "Smėlynų tyrai",
 
+  "map.title": "Pasaulio žemėlapis",
+  "map.centre": "Grįžti ten, kur esi",
+
   "toast.saveLost": "Senojo išsaugojimo nepavyko įkelti – pradedamas naujas pasaulis",
 
   "button.climbDown": "LIPTI ŽEMYN",

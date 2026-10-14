@@ -758,6 +758,25 @@ async function main() {
   ok(ri.here && !ri.far, 'fog is revealed around the player but not far away');
   ok(ri.farTile === 'number', 'terrain exists thousands of tiles from the origin');
 
+  /* ------------------------------------------------------ regions + map */
+  console.log('\n== Regions and the world map ==');
+  var home = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.core.regionAt(MTE_GAME.getState().world.seed, 0, 0))'));
+  eq(home.biome, 'meadow', 'every world starts in a meadow');
+  var was = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  var next = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),x=0;s.player.z=0;while(c.regionAt(s.world.seed,x,0).key==="0,0")x++;x+=10;MTE_GAME.setPlayer(x+0.5,0.5);return JSON.stringify(c.regionAt(s.world.seed,x,0));})()'));
+  await sleep(1800);
+  eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name');
+  await evalJS('MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')');
+  await evalJS('document.getElementById("btnMap").click()');
+  await sleep(400);
+  ok(await evalJS('!document.getElementById("mapPanel").hidden && document.getElementById("worldMap").width > 100'), 'the map button opens the world map');
+  ok(JSON.parse(await evalJS('JSON.stringify(MTE_GAME.mapNames())')).indexOf(home.name) >= 0, 'the map names the home region');
+  await evalJS('document.getElementById("btnMapOut").click(); document.getElementById("btnMapMe").click()');
+  console.log('  screenshot: ' + await shot('05b-world-map.png'));
+  await evalJS('document.getElementById("btnMap").click()');
+  await sleep(300);
+  ok(await evalJS('!document.getElementById("sheet").classList.contains("open")'), 'and the button closes it again');
+
   /* -------------------------------------------------- late-game UI */
   console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
   await evalJS('MTE_GAME.addRes("mycelium",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
