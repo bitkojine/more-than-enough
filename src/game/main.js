@@ -24,7 +24,7 @@ import { createActor } from './render/motion.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
-import { createTogether, FRIEND_COLORS } from './together.js';
+import { createTogether } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
@@ -336,7 +336,6 @@ function view() {
     underground,
     joy: input.joy,
     friends: together.view(),
-    friendColors: FRIEND_COLORS,
     me: together.me,   // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,

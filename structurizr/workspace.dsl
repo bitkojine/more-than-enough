@@ -182,7 +182,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------- playing together (system)
-        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to four players. See server/README.md for the rules and security limits." {
+        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. See server/README.md for the rules and security limits." {
             tags "Server"
             properties {
                 "files" "server/, src/net/protocol.js"

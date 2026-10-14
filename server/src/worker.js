@@ -9,13 +9,18 @@
  * room are in room.js; the wire format is src/net/protocol.js. */
 
 import { DurableObject } from 'cloudflare:workers';
-import { Room, Bucket, editBucket } from './room.js';
+import { Room, Bucket, editBucket, NEAR } from './room.js';
 import { LIMITS, ROOM_ID_RE, randomRoomId } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one IP address may make
 const HELLO_MS = 10_000;         // a socket must say who it is within this
 const PERSIST_MS = 2_000;        // edits reach storage this soon
 const MAX_SOCKETS = LIMITS.players * 2;
+
+// Whether a player at `p` is near enough to `q` to hear its every step.
+function isNear(p, q) {
+  return !!p && p.z === q.z && Math.abs(p.x - q.x) <= NEAR && Math.abs(p.y - q.y) <= NEAR;
+}
 
 const SECURITY_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
@@ -204,7 +209,7 @@ export class Rooms extends DurableObject {
       return;
     }
     if (r.toSelf) for (const msg of r.toSelf) ws.send(JSON.stringify(msg));
-    if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id);
+    if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id, r.near);
     if (r.toAll) for (const msg of r.toAll) this.send(msg, null);
     if (r.kick) {
       for (const other of this.ctx.getWebSockets()) {
@@ -259,11 +264,14 @@ export class Rooms extends DurableObject {
   }
 
   // Sends to every player's socket except `except` (a player id), or to all.
-  send(msg, except) {
+  // To every player but `except`; with `near` (a position), only to those
+  // close to it (see Room's pos).
+  send(msg, except, near = null) {
     const text = JSON.stringify(msg);
     for (const ws of this.ctx.getWebSockets()) {
       const id = (ws.deserializeAttachment() || {}).id;
       if (!id || id === except) continue;
+      if (near && !isNear(this.room.players.get(id)?.p, near)) continue;
       try { ws.send(text); } catch { /* closing */ }
     }
   }

@@ -28,6 +28,7 @@ const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
 
 const WELCOME_BYTES = 8_000_000;      // the most a room's welcome may be
 const POS_EVERY = 0.125;              // seconds between position updates
+const MAX_CHIPS = 5;                  // friends shown by name under the top bar; the rest are "+N"
 const HEARTBEAT = 2;                  // seconds: say where you are even standing still
 const EDITS_EVERY = 0.25;
 const SAVE_EVERY = 10;
@@ -40,7 +41,10 @@ const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 const JOIN_RE = /^([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{22})$/;
 
 // Friends' colours, by the colour number the room gives them.
-export const FRIEND_COLORS = ['#7fd07a', '#ffb347', '#6fb7ff', '#ff7aa8', '#c9a6ff', '#ffe066', '#5fe0d0', '#ff8a65'];
+const FRIEND_COLORS = ['#7fd07a', '#ffb347', '#6fb7ff', '#ff7aa8', '#c9a6ff', '#ffe066', '#5fe0d0', '#ff8a65'];
+// A player's colour, from their place in the world (it comes round again
+// after eight: the name tells players apart).
+export const friendColor = (c) => FRIEND_COLORS[c % FRIEND_COLORS.length];
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -203,6 +207,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
     friends.clear();
+    roster = null;
     closeQr();
     write(PLAYING_STORE, '');
     renderFriends();
@@ -240,11 +245,13 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
         if (friends.size >= LIMITS.players) return;
         f = { c, st, p: null, shown: null, heard: 0, since: 0, actor: createActor() };
         friends.set(d.id, f);
+        roster = null;
         if (st === 'online') hud.toast(t('together.toast.joined', { name: nameOf(d.id) }));
       }
       const back = st === 'online' && f.st !== 'online';
       // They most likely just loaded the newest game: make sure this is it too.
       if (arrived) friendJoined();
+      if (f.c !== c) roster = null;
       f.c = c;
       f.st = st;
       f.since = back ? 0 : f.since;
@@ -255,7 +262,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     }
     if (d.t === 'removed') {
       if (d.id === me) return; // the close that follows says so
-      if (friends.delete(d.id)) renderFriends();
+      if (friends.delete(d.id)) { roster = null; renderFriends(); }
       return;
     }
     if (d.t === 'invite') {
@@ -277,6 +284,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     code = null;  // an invite is for getting in once
     me = w.you; owner = w.owner; myColor = w.c;
     friends.clear();
+    roster = null;
     for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
     remember(room);
     write(PLAYING_STORE, room);
@@ -447,7 +455,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       const row = document.createElement('div');
       row.className = 'invite' + (works ? '' : ' dead');
       const by = inv.by === me ? myColor : friends.get(inv.by)?.c;
-      row.style.setProperty('--friend', by === undefined ? 'var(--ink-dim)' : FRIEND_COLORS[by]);
+      row.style.setProperty('--friend', by === undefined ? 'var(--ink-dim)' : friendColor(by));
       const dot = document.createElement('i');
       const text = document.createElement('div');
       const title = document.createElement('strong');
@@ -507,30 +515,43 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
   // never two the same, and the same on every phone (players are named in
   // the order of their colours, which the room hands out). Shown in the
   // game's language.
+  // Past the last name they come round again numbered (Fox 2, Fox 3…).
+  // Worked out once per change of who's in the world.
+  let roster = null;   // id -> name number, or null when it needs working out
   function nameOf(id) {
-    const players = [...friends.entries()].map(([pid, f]) => [pid, f.c]);
-    if (me) players.push([me, myColor]);
-    players.sort((a, b) => a[1] - b[1]);
-    const taken = new Set();
-    for (const [pid] of players) {
-      let k = parseInt(pid.slice(0, 8), 16) % NAMES.length;
-      while (taken.has(k)) k = (k + 1) % NAMES.length;
-      taken.add(k);
-      if (pid === id) return t('together.name.' + NAMES[k]);
+    if (!roster) {
+      const players = [...friends.entries()].map(([pid, f]) => [pid, f.c]);
+      if (me) players.push([me, myColor]);
+      players.sort((a, b) => a[1] - b[1]);
+      const taken = new Set();
+      roster = new Map();
+      for (const [pid] of players) {
+        let k = parseInt(pid.slice(0, 8), 16) % NAMES.length;
+        while (taken.has(k)) k++;
+        taken.add(k);
+        roster.set(pid, k);
+      }
     }
-    return '';
+    const k = roster.get(id);
+    if (k === undefined) return '';
+    const name = t('together.name.' + NAMES[k % NAMES.length]);
+    return k < NAMES.length ? name : name + ' ' + (Math.floor(k / NAMES.length) + 1);
   }
 
   function stateOf(f) {
     return f.st === 'online' && f.quiet ? 'lost' : f.st;
   }
 
-  // One small chip per friend under the top bar: their colour and how
-  // they're doing. Built from elements and text only, never HTML.
+  // A small chip per friend under the top bar: their colour, name and how
+  // they're doing; those awake first, and past a handful a "+N" for the rest.
+  // Built from elements and text only, never HTML.
   let shownChips = '';
   function renderFriends() {
-    const list = [...friends.entries()].sort(([, a], [, b]) => a.c - b.c);
-    const key = list.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + (game.state.shared ? 1 : 0);
+    const awake = (f) => (f.st === 'offline' ? 1 : 0);
+    const all = [...friends.entries()].sort(([, a], [, b]) => awake(a) - awake(b) || a.c - b.c);
+    const list = all.slice(0, MAX_CHIPS);
+    const more = all.length - list.length;
+    const key = list.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + '+' + more + (game.state.shared ? 1 : 0);
     if (key === shownChips) return;
     shownChips = key;
     const box = el.friends;
@@ -540,7 +561,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       const chip = document.createElement('button');
       chip.type = 'button';
       chip.className = 'friend ' + stateOf(f);
-      chip.style.setProperty('--friend', FRIEND_COLORS[f.c]);
+      chip.style.setProperty('--friend', friendColor(f.c));
       chip.setAttribute('aria-label', nameOf(id) + ', ' + t('together.state.' + stateOf(f)));
       const dot = document.createElement('i');
       const name = document.createElement('span');
@@ -548,6 +569,13 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       chip.append(dot, name);
       chip.addEventListener('click', () => friendTapped(id));
       box.appendChild(chip);
+    }
+    if (more > 0) {
+      const rest = document.createElement('span');
+      rest.className = 'friend more'; // i18n-ok: a class name
+      rest.textContent = '+' + more;
+      rest.setAttribute('aria-label', t('together.more', { n: more }));
+      box.appendChild(rest);
     }
   }
 
@@ -628,7 +656,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     get isOwner() { return !!me && me === owner; },
     get canRejoin() { return !!service && !game.state.shared && knownRooms().length > 0; },
     get color() { return myColor; },
-    get me() { return game.state.shared && me ? { name: nameOf(me), color: FRIEND_COLORS[myColor] } : null; },
+    get me() { return game.state.shared && me ? { name: nameOf(me), color: friendColor(myColor) } : null; },
     get sign() { return signT; },
     get signFace() { return signFace; },
     tick,
@@ -649,7 +677,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     view() {
       const out = [];
       for (const [id, f] of friends) {
-        if (f.shown) out.push({ id, c: f.c, name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
+        if (f.shown) out.push({ id, c: f.c, color: friendColor(f.c), name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
       }
       return out;
     },

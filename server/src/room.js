@@ -10,7 +10,7 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE, COLOR_COUNT
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE
 } from '../../src/net/protocol.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
@@ -19,7 +19,9 @@ export const MOD_BUCKETS = 16;               // richness edits are stored in thi
 export const INVITE_MS = 24 * 3600_000;      // an invite link lets new friends in for a day
 export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
 const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
-const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left
+const REUSE_MS = 3600_000;
+export const NEAR = 48;                      // tiles: players this close hear each other's every step
+export const FAR_MS = 2000;                  // everyone else hears where you are this often                   // your sign shows your newest link while it has this long left
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -136,7 +138,7 @@ export class Room {
       this.dirty.meta = true;
       const used = new Set([...this.players.values()].map((p) => p.c));
       let c = 0;
-      while (used.has(c) && c < COLOR_COUNT - 1) c++;
+      while (used.has(c)) c++;
       pl = { c, st: 'offline', p: null, save: null, lostAt: 0 };
       this.players.set(id, pl);
     }
@@ -236,7 +238,12 @@ export class Room {
       if (!p) return { drop: true };
       pl.p = p;
       if (pl.st !== 'online') return this.setStatus(id, 'online', { t: 'pos', id, p });
-      return { toOthers: [{ t: 'pos', id, p }] };
+      // Players near you hear every step; everyone else every FAR_MS, enough
+      // for the pins at the edge of their screen. (With a hundred players,
+      // relaying every step to everyone would swamp every phone.)
+      const far = now - (pl.farAt || 0) >= FAR_MS;
+      if (far) pl.farAt = now;
+      return { toOthers: [{ t: 'pos', id, p }], near: far ? null : p };
     }
     if (d.t === 'edits') {
       const list = cleanEdits(d.e);

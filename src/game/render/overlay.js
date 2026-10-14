@@ -262,21 +262,28 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 // the screen's edge on the way to them. A circle in their colour with their
 // wanderer's face in it and their name on a tag, an arrow on the rim
 // pointing at them, and a small up or down arrow when they're on another
-// layer. Asleep (offline) friends' badges are faded and grey.
+// layer. Asleep (offline) friends' badges are faded and grey. With a crowd
+// in the world only the nearest few get a badge, so the edges stay readable.
 const BADGE = 22;          // the badge's radius, in CSS pixels
-export function drawFriendMarkers(ctx, cam, s, look, friends, colors) {
+const MAX_BADGES = 6;
+export function drawFriendMarkers(ctx, cam, s, look, friends) {
   const edge = BADGE + 14;
   const face = look.pick('character.wanderer', 'image');
+  const cx = cam.width / 2, cy = cam.height / 2;
+  const away = [];
   for (const f of friends) {
     const p = cam.project(f.x, f.y, cam.z);
     const other = f.z !== cam.z;
     const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
-    if (!off && !other) continue;
+    if (off || other) away.push({ f, p, other, off, d: Math.hypot(p.x - cx, p.y - cy) + (other ? 1e6 : 0) });
+  }
+  away.sort((a, b) => a.d - b.d);
+  for (const { f, p, other, off } of away.slice(0, MAX_BADGES)) {
     const x = Math.max(edge, Math.min(cam.width - edge, p.x));
     let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
     if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
     const a = Math.atan2(p.y - y, p.x - x);   // which way they are
-    const color = colors[f.c];
+    const color = f.color;
     const asleep = f.st === 'offline';
     ctx.save();
     ctx.globalAlpha = asleep ? 0.75 : 1;

@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 
 const key = () => P.randomHex(32);
@@ -141,13 +141,22 @@ test('room: invite links last a day, count who joined, and can be listed and sto
   assert.notEqual(invite(r, a.id), theirs, 'a stopped link is not shown again');
 });
 
-test('room: holds at most four players', async () => {
+test('room: holds at most LIMITS.players players', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
-  for (let i = 0; i < 3; i++) assert.ok((await r.join(key(), invite(r, o.id), T0)).id);
+  for (let i = 1; i < P.LIMITS.players; i++) assert.ok((await r.join(key(), invite(r, o.id), T0)).id);
   assert.equal((await r.join(key(), invite(r, o.id), T0)).error, 'full');
   assert.equal(r.players.size, P.LIMITS.players);
-  assert.equal(new Set([...r.players.values()].map((p) => p.c)).size, 4, 'everyone gets their own colour');
+  assert.equal(new Set([...r.players.values()].map((p) => p.c)).size, P.LIMITS.players, 'everyone gets their own colour');
+});
+
+test('room: steps go to everyone only every FAR_MS, to players nearby always', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const step = (t) => r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), t);
+  assert.equal(step(T0).near, null, 'the first step reaches the whole world');
+  assert.equal(step(T0 + 100).near?.x, 1.5, 'the next only those nearby');
+  assert.equal(step(T0 + FAR_MS).near, null);
 });
 
 test('room: edits are checked, owned by the sender, near the sender, and budgeted', async () => {

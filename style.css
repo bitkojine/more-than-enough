@@ -103,6 +103,7 @@ canvas#game {
 .friend.lost i { animation: friend-lost 1s ease-in-out infinite; }
 .friend.lost { border-color: rgba(255, 209, 102, .6); }
 .friend.offline { opacity: .5; }
+.friend.more { padding: 0 10px; color: var(--ink-dim); }
 .friend.offline i { background: transparent; box-shadow: inset 0 0 0 2px var(--friend); }
 @keyframes friend-lost { 50% { opacity: .2; } }
 

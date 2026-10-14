@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.67.0] - 2026-10-14
+
+### Changed
+- **Up to 100 players in one world** (was 4). Each player gets their own
+  colour and name (names repeat with a number past the first 24). The top
+  bar shows five friends, awake ones first, and a "+N" chip for the rest;
+  only the six nearest friends off screen get an edge badge. To keep a full
+  world light, a player's every step goes only to players within 48 tiles on
+  their layer; everyone else hears where they are every 2 seconds.
+
 ## [0.66.0] - 2026-10-14
 
 ### Added

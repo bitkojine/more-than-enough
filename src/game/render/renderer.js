@@ -74,8 +74,8 @@ export function render(cam, s, fx, view, look) {
     const friends = friendRows.get(y);
     if (friends) {
       for (const f of friends) {
-        const at = drawFriend(ctx, cam, s, look, f, view.friendColors[f.c]);
-        if (at) tags.push({ ...at, name: f.name, color: view.friendColors[f.c] });
+        const at = drawFriend(ctx, cam, s, look, f, f.color);
+        if (at) tags.push({ ...at, name: f.name, color: f.color });
       }
     }
     if (y === playerRow) you = drawPlayer(ctx, cam, s, look, view);
@@ -100,7 +100,7 @@ export function render(cam, s, fx, view, look) {
   // your sign is up in front of it).
   for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color);
   if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color);
-  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.friendColors);
+  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends);
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

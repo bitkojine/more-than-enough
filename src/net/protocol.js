@@ -13,16 +13,17 @@
  *                  invites                 the invite links you may see (all, for the owner)
  *                  revoke {code}           stop an invite link (the owner any, others their own)
  *   room -> game   welcome {...}           the world, its clock and everyone in it
- *                  pos {id, p}             a friend moved
+ *                  pos {id, p}             a friend moved (several times a second when near
+ *                                          you, every couple of seconds when far)
  *                  edits {id, e: [...]}    the world changed (yours echoed too)
- *                  status {id, st, c, p?}  a friend's state changed
+ *                  status {id, st, c, p?}  a friend's state changed (c: their place, 0, 1, 2…)
  *                  invite {code, until}    the link for your sign (lasts a day)
  *                  invites {list}          [code, by, made, until, uses, stopped] newest first
  *                  full / bad              why the room is closing on you
  */
 
 export const LIMITS = Object.freeze({
-  players: 4,            // in one room, ever (built for 4, tested with 2)
+  players: 100,          // in one room, ever
   messageBytes: 16384,   // any message after hello
   createBytes: 1048576,  // a whole world, when a room is made
   saveBytes: 65536,      // one player's progress
@@ -56,7 +57,6 @@ const NAME_RE = /^[a-z][a-zA-Z0-9]{0,23}$/;
 const XY_MAX = 2 ** 20 - 1;   // see src/core/coords.js packKey
 const Z_MIN = -512, Z_MAX = 0;
 const KEY_MAX = 2 ** 52;
-const COLORS = 8;
 
 const isInt = (v) => Number.isSafeInteger(v);
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
@@ -169,11 +169,11 @@ export function cleanStatus(st) {
   return STATUS.includes(st) ? st : null;
 }
 
+// A player's place in their world (0, 1, 2…, one each, given by the room in
+// the order they joined): the game picks their colour and name from it.
 export function cleanColor(c) {
-  return isInt(c) && c >= 0 && c < COLORS ? c : null;
+  return isInt(c) && c >= 0 && c < LIMITS.players ? c : null;
 }
-
-export const COLOR_COUNT = COLORS;
 
 // A tile key's (x, y, z), as src/core/coords.js packs them.
 export function unpackKey(key) {

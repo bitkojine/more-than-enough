@@ -43,20 +43,23 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Who can call it:** only the game's own origins (`ALLOWED_ORIGINS` in
   `wrangler.toml`; `localhost` only with `ALLOW_LOCALHOST`, for
   `wrangler dev`).
-- **Who can join:** whoever holds a live invite, at most 4 players a room.
-  The owner can remove a player, who then needs a new invite.
+- **Who can join:** whoever holds a live invite, at most 100 players a room
+  (`LIMITS.players`). The owner can remove a player, who then needs a new invite.
 - **Abuse limits:** 6 new rooms an hour per IP address (per /64 for IPv6);
   16 KB per message (64 KB for your own progress); 30 messages a second per
   connection and 60 world edits a second per player, with small bursts;
   edits only within 24 tiles of where the player stands, on their own layer;
   a room holds at most 100,000 tile edits, 20,000 props and 4,000
-  buildings; 8 sockets a room, and a socket that doesn't say who it is in 10
+  buildings; 200 sockets a room (two per player), and a socket that doesn't say who it is in 10
   seconds is closed. A connection that keeps breaking the limits is closed.
 - **Ownership:** a building's owner is set by the room, never by the
   player.
 - **No HTML from the network:** the game builds friends' chips from elements
-  and text, and shows no text a player wrote (friends are numbered by
-  colour). The page has a Content-Security-Policy.
+  and text, and shows no text a player wrote (friends get a name from the
+  game's own list). The page has a Content-Security-Policy.
+- **Steps:** a player's every step goes only to players within 48 tiles on
+  their layer; everyone else hears where they are every 2 seconds, so a
+  full world doesn't send every step to all 100.
 - **Storage:** a room nobody visits for 30 days is deleted.
 
 ## Running it
