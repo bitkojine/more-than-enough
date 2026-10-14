@@ -4,6 +4,7 @@
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
+import { pose } from './motion.js';
 
 const TAU = Math.PI * 2;
 
@@ -45,32 +46,60 @@ export function drawExtractor(ctx, cam, s, look, e) {
 }
 
 // The wanderer: facing the way they last walked, stepping through the walk
-// frames while moving. On water they ride the boat. They always hold what
-// you play on (a phone or a laptop), and its screen lights the dark.
-// Returns where their hands are ({x, hands}), for the sign they may hold up.
+// frames while moving and acting out what you do (see motion.js). On water
+// they ride the boat. They always hold what you play on (a phone or a
+// laptop), and its screen lights the dark. Returns where they are (see
+// drawCharacter), for the sign they may hold up.
 export function drawPlayer(ctx, cam, s, look, view) {
-  const u = cam.tilePx;
   const p = s.player;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
-  const flip = view.facing.x < -0.01;
-  const walk = look.frames('character.wanderer', 'image');
-  const frame = view.moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
-  const body = walk.pics[frame];
-  const deck = Core.onWater(s) ? drawBoat(ctx, cam, s, look, p.x, sx, sy, flip) : 0;
-  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42);
-  const step = view.moving && !deck ? Math.abs(Math.sin(s.time * 12)) * u * 0.03 : 0;
-  const tall = standWithHeld(ctx, look, body, view.device, sx, sy - deck - step, u, flip);
-  return { x: sx, hands: sy - deck - step - tall * HANDS };
+  return drawCharacter(ctx, cam, s, look, {
+    x: p.x, sx, sy, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
+    device: view.device, actor: view.actor, steady: view.sign > 0
+  });
 }
 
-// The boat under someone on water, bobbing, with its shadow. Returns how far
-// above (sx, sy) its deck is, for them to stand or lie on.
-function drawBoat(ctx, cam, s, look, x, sx, sy, flip) {
+// Someone standing at (sx, sy) on screen, or on their boat on water: their
+// picture posed for what they're doing (see motion.js), with what they hold
+// and any tool in hand. `nod` tips them forward a little more (dozing).
+// Returns where their head is ({x, top}) and their hands ({handsX, hands}).
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0 }) {
+  const u = cam.tilePx;
+  const walk = look.frames('character.wanderer', 'image');
+  const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
+  const body = walk.pics[frame];
+  const p = pose(actor, { moving, boat: water, steady, time: s.time, seed });
+  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock) : 0;
+  // Off the ground (a hop, a fall) their shadow stays down and shrinks.
+  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
+  const dir = flip ? -1 : 1, feet = sy - deck;
+  const fx = sx + p.dx * u * dir, fy = feet + p.dy * u, rot = (p.rot + nod) * dir;
+  ctx.save();
+  if (p.clip) { ctx.beginPath(); ctx.rect(sx - u * 2, feet - u * 4, u * 4, u * 4); ctx.clip(); }
+  ctx.translate(fx, fy);
+  ctx.rotate(rot);
+  const facing = p.turn ? !flip : flip;
+  const tall = standWithHeld(ctx, look, body, device, 0, 0, u, facing);
+  if (p.tool) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1);
+  ctx.restore();
+  const sin = Math.sin(rot), cos = Math.cos(rot);
+  return { x: fx + sin * tall, top: fy - cos * tall, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
+}
+
+// The boat under someone on water, bobbing and rocking by `rock` radians,
+// with its shadow. Returns how far above (sx, sy) its deck is, for them to
+// stand or lie on.
+function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0) {
   const u = cam.tilePx;
   const bob = Math.sin(s.time * 2.6 + x * 7.3) * u * 0.04;
   const boat = look.pick('character.boat', 'image');
   shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
-  return look.stand(ctx, boat, sx, sy + bob, u, flip) * BOAT_DECK - bob;
+  ctx.save();
+  ctx.translate(sx, sy + bob);
+  ctx.rotate(rock * (flip ? -1 : 1));
+  const h = look.stand(ctx, boat, 0, 0, u, flip);
+  ctx.restore();
+  return h * BOAT_DECK - bob;
 }
 
 // A figure and what they hold (a phone or a laptop, or nothing for a friend
@@ -84,6 +113,25 @@ function standWithHeld(ctx, look, body, device, x, y, size, flip) {
     look.stand(ctx, pic, x, y, size * body.units / pic.units, flip);
   }
   return tall;
+}
+
+// Where the wanderer's front hand is on their picture, as a share of its
+// width from the middle and of its height from the feet.
+const HAND = { x: 0.35, y: 0.43 };
+
+// A tool in their front hand (`dir` 1 facing right, -1 left), drawn from the
+// tool's icon: the pickaxe gripped at the end of its handle and turned by
+// `angle` (0 points it up and forward), the basket hanging from the hand.
+function drawTool(ctx, look, body, u, tool, dir) {
+  const w = body.units * u, h = w * body.aspect;
+  const pic = look.pick('tool.' + tool.kind, 'icon');
+  ctx.save();
+  ctx.translate(dir * w * HAND.x, -h * HAND.y);
+  ctx.scale(dir, 1);
+  ctx.rotate(tool.angle);
+  if (tool.kind === 'basket') { const size = u * 0.42; look.draw(ctx, pic, -size / 2, -size * 0.15, size, size); }
+  else { const size = u * 0.6; look.draw(ctx, pic, -size * 0.28, -size * 0.9, size, size); }
+  ctx.restore();
 }
 
 /* ------------------------------------------------------------ friends */
@@ -160,17 +208,14 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const u = cam.tilePx;
   const { x: sx, y: sy } = cam.project(f.x, f.y, groundAt(cam, s, f.x, f.y));
   if (sx < -u * 2 || sy < -u * 3 || sx > cam.width + u * 2 || sy > cam.height + u * 2) return;
-  const walk = look.frames('character.wanderer', 'image');
   const flip = facesLeft(f);
   const water = Core.swimsAt(s.world, f.x, f.y, cam.z);
   if (f.st === 'offline') {
+    const body = look.frames('character.wanderer', 'image').pics[0];
     const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
-    drawSleeper(ctx, cam, s, look, walk.pics[0], f, color, sx, sy - deck, !deck);
+    drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
     return;
   }
-  const moving = f.st === 'online' && f.m;
-  const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
-  const body = walk.pics[frame];
   const time = s.time;
   ctx.save();
   if (f.st === 'lost') ctx.globalAlpha = 0.35 + 0.3 * Math.abs(Math.sin(time * 5));
@@ -178,18 +223,14 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   ctx.strokeStyle = color;
   ctx.lineWidth = Math.max(2, u * 0.06);
   ctx.beginPath(); ctx.ellipse(sx, sy, u * 0.36, u * 0.36 * 0.38 * (cam.depthPx / cam.tilePx), 0, 0, TAU); ctx.stroke();
-  const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
-  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42);
-  const step = moving && !deck ? Math.abs(Math.sin(time * 12)) * u * 0.03 : 0;
-  const feet = sy - deck - step;
   // Away: dozing on their feet, leaning forward a little and nodding.
-  const nod = f.st === 'away' ? (flip ? -1 : 1) * (0.1 + 0.05 * Math.sin(time * 1.3)) : 0;
-  ctx.translate(sx, feet);
-  ctx.rotate(nod);
-  const tall = standWithHeld(ctx, look, body, f.dev, 0, 0, u, flip);
+  const nod = f.st === 'away' ? 0.1 + 0.05 * Math.sin(time * 1.3) : 0;
+  const { x: hx, top: head, handsX, hands } = drawCharacter(ctx, cam, s, look, {
+    x: f.x, sx, sy, flip, moving: f.st === 'online' && f.m, water, device: f.dev, nod,
+    actor: f.st === 'online' ? f.actor : STILL, steady: f.sign, seed: f.c * 2.3 + 1
+  });
   ctx.restore();
-  const hx = sx + Math.sin(nod) * tall, head = feet - Math.cos(nod) * tall;
-  if (f.sign && f.st === 'online') drawSign(ctx, sx, feet - tall * HANDS, u, 1, time, f.c + 1);
+  if (f.sign && f.st === 'online') drawSign(ctx, handsX, hands, u, 1, time, f.c + 1);
   const my = head - u * (f.sign && f.st === 'online' ? 0.6 : 0.2);
   const r = Math.max(5, u * 0.12);
   drawDiamond(ctx, hx, my, r, color);
@@ -257,6 +298,9 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy, onGround) {
   drawDiamond(ctx, mx, my, r, color);
   drawSnore(ctx, 'Z', mx + head * r, my - r, head, u, time, { speed: 0.3, size: 0.22, rise: 0.9, drift: 0.45, weight: 900, outline: true });
 }
+
+// Someone doing nothing in particular (a friend away or out of touch).
+const STILL = { act: null, t: 0, idle: 0 };
 
 // Whether a friend faces left (their sprite is mirrored).
 const facesLeft = (f) => f.fx < -0.01;

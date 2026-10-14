@@ -18,6 +18,7 @@ import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
+import { createActor } from './render/motion.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
@@ -98,6 +99,7 @@ const game = {
   // For playing together (together.js).
   facing: () => controller.facing,
   moving: () => moving,
+  act: () => actor.sent,
   // Friends changed the world: what's shown around you may differ now.
   worldChanged() { hud.update(game.state); },
   // Alone or together: the settings that differ.
@@ -137,7 +139,8 @@ const ask = createAsk(el.ask);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
 const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: updater.check });
-const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask });
+const actor = createActor(); // what the wanderer is doing, to animate it
+const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor });
 
 const sheet = createSheet(el, {
   getState: () => game.state,
@@ -259,6 +262,7 @@ function view() {
   return {
     facing: controller.facing,
     moving,
+    actor: actor.view(moving),
     yard,
     harvestTarget: Core.harvestTarget(s),
     buildTargets: sheet.isOpen && sheet.tab === 'build'

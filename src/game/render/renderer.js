@@ -89,7 +89,7 @@ export function render(cam, s, fx, view, look) {
   drawFarHoles(ctx, cam, s, look);
   drawBeacons(ctx, cam, s, look, beacons);
   // Your sign, over the dark: a QR code has to read at night too.
-  if (view.sign > 0 && view.signFace && you) drawSign(ctx, you.x, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
+  if (view.sign > 0 && view.signFace && you) drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
   if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.friendColors);
   drawJoystick(ctx, cam, view);
   return { tiles };

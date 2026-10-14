@@ -18,6 +18,7 @@ import { roomService } from '../net/config.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { loadGame } from './storage.js';
 import { playDevice } from './device.js';
+import { createActor } from './render/motion.js';
 import { t } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
@@ -135,7 +136,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   let welcomed = false;     // the room has sent this connection its world
   let clock = null;         // the world's clock: {t: its time, at: our time then}
   let retry = 0, retryTimer = null;
-  const friends = new Map();  // id -> {c, st, p, shown, heard, since}
+  const friends = new Map();  // id -> {c, st, p, shown, heard, since, actor}
   const timers = { pos: 0, beat: 0, edits: 0, save: 0, fog: 0 };
   let lastPos = '', lastSave = '';
   let invite = null;        // {code, until} while the QR is up
@@ -204,6 +205,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       if (!f || !p) return;
       if (f.st !== 'online') { f.st = 'online'; f.since = 0; }
       f.p = p;
+      f.actor.heard(p.a, p.n);
       f.heard = performance.now() / 1000;
       return;
     }
@@ -220,7 +222,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       const arrived = st === 'online' && (!f || f.st !== 'online');
       if (!f) {
         if (friends.size >= LIMITS.players) return;
-        f = { c, st, p: null, shown: null, heard: 0, since: 0 };
+        f = { c, st, p: null, shown: null, heard: 0, since: 0, actor: createActor() };
         friends.set(d.id, f);
         if (st === 'online') hud.toast(t('together.toast.joined', { n: c + 1 }));
       }
@@ -254,7 +256,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     code = null;  // an invite is for getting in once
     me = w.you; owner = w.owner; myColor = w.c;
     friends.clear();
-    for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0 });
+    for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
     remember(room);
     write(PLAYING_STORE, room);
     if (game.state.shared === room) {
@@ -335,7 +337,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     if (timers.pos <= 0) {
       timers.pos = POS_EVERY;
       const p = s.player, f = game.facing();
-      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: playDevice() };
+      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: playDevice(), ...game.act() };
       const text = JSON.stringify(cleanPos(pos));
       if (text !== lastPos || timers.beat <= 0) {
         lastPos = text;
@@ -544,7 +546,9 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     // last message said), with how long they've been in their state.
     view() {
       const out = [];
-      for (const [id, f] of friends) if (f.shown) out.push({ id, c: f.c, st: stateOf(f), since: f.since, ...f.shown });
+      for (const [id, f] of friends) {
+        if (f.shown) out.push({ id, c: f.c, st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
+      }
       return out;
     },
     refresh() { renderFriends(); renderButton(); }

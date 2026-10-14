@@ -1,6 +1,7 @@
 /* The player's intents, applied to the game: each one calls the core and then
- * gives feedback (effects, sound, HUD) and schedules a save. Feedback is
- * visual and audible only; the game never explains itself in text. */
+ * gives feedback (effects, sound, HUD, and the wanderer acting it out) and
+ * schedules a save. Feedback is visual and audible only; the game never
+ * explains itself in text. */
 
 import * as Core from '../core/index.js';
 import { clearSave, randomSeed } from './storage.js';
@@ -11,7 +12,7 @@ const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
-export function createController({ game, cam, fx, audio, hud, look, ask }) {
+export function createController({ game, cam, fx, audio, hud, look, ask, actor }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
@@ -36,6 +37,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
     if (!Core.advanceGoals(state())) return;
     for (let i = from; i < state().goalIndex; i++) hud.milestone(Core.GOALS[i].text, i + 1);
     fx.celebrate(player().x, player().y);
+    actor.act('cheer');
     audio.fanfare();
   }
 
@@ -43,6 +45,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
   // nothing: its clods are tossed aside and it says +0, so digging through it
   // reads as clearing the way, not as gathering that failed.
   function harvested(r) {
+    actor.act(r.res === 'mycelium' ? 'pick' : 'swing');
     fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
     if (r.found) {
       fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
@@ -69,6 +72,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
     if (!got) return false;
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
     for (const r of Object.keys(got.gained)) tally(r, got.gained[r]);
+    actor.act('collect');
     audio.collect();
     changed();
     return true;
@@ -78,9 +82,17 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
   // on it. Returns true if something was done.
   function workAt(tx, ty) {
     const r = Core.harvestAt(state(), tx, ty);
-    if (r) { harvested(r); changed(); return true; }
+    if (r) { faceTile(tx, ty); harvested(r); changed(); return true; }
     const near = Core.collectTarget(state());
-    return !!near && near.list.some((e) => e.x === tx && e.y === ty) && collectNearby();
+    if (!near || !near.list.some((e) => e.x === tx && e.y === ty)) return false;
+    faceTile(tx, ty);
+    return collectNearby();
+  }
+
+  // Turn to face tile (tx, ty), to work it.
+  function faceTile(tx, ty) {
+    const dx = tx + 0.5 - player().x, dy = ty + 0.5 - player().y;
+    if (dx || dy) controller.facing = { x: dx, y: dy };
   }
 
   // Something to gather or collect on (tx, ty), wherever it is.
@@ -106,7 +118,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
     return true;
   }
 
-  function layerChanged() {
+  function layerChanged(from) {
+    actor.act(player().z < from ? 'down' : 'up');
     fx.clear();
     walkTo = null;
     hud.update(state());
@@ -116,8 +129,9 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
 
   // Through a way between layers within reach: down a hole, or up a ladder.
   function passAt(x, y) {
+    const from = player().z;
     if (!Core.descendAt(state(), x, y) && !Core.climbAt(state(), x, y)) return false;
-    layerChanged();
+    layerChanged(from);
     return true;
   }
 
@@ -137,6 +151,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
         // Underground, pushing into rock digs it.
         const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
         if (dug) { harvested(dug); changed(); }
+        else if (drilling.t > 0 && !actor.busy) actor.act('swing'); // chipping at the wall
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         // Walking to something tapped: work it as soon as it's in reach.
@@ -203,19 +218,22 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
         }
       }
       if (!count) return;
+      if (!below) actor.act(gathered.mycelium ? 'pick' : 'swing');
       for (const res of Object.keys(gathered)) tally(res, gathered[res]);
       changed();
     },
 
     // The layer button: down the way you stand in, or up the ladder.
     toggleMine() {
-      if (Core.takeWay(state())) layerChanged();
+      const from = player().z;
+      if (Core.takeWay(state())) layerChanged(from);
     },
 
     buy(id) {
       const s = state();
       if (!Core.buy(s, id).ok) return;
       audio.upgrade();
+      actor.act('cheer');
       audio.drone(s.extractors.length, Core.overclockMult(s));
       say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
       changed();
@@ -227,6 +245,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
       const res = Core.placeProp(s, kind);
       if (!res.ok) return;
       fx.built(res.x, res.y);
+      actor.act('build');
       audio.build();
       changed();
     },
@@ -236,6 +255,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask }) {
       const res = Core.place(s, key);
       if (!res.ok) return;
       fx.built(res.x, res.y);
+      actor.act('build');
       audio.build();
       audio.drone(s.extractors.length, Core.overclockMult(s));
       changed();

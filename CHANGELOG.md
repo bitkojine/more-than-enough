@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.58.0] - 2026-10-14
+
+### Changed
+- **Characters act out what they do.** Mining rock, ore, crystal or dirt
+  swings a pickaxe (pushing into a wall underground keeps chipping at it);
+  foraging bends down to the ground with the basket; emptying a building
+  reaches out for it; building or placing taps a hammer twice; milestones
+  and upgrades get a happy hop. Going down a layer you drop in from above
+  and land with a bounce; going up you climb out of the ground hand over
+  hand. Walking leans into the step and sways, the boat rocks, and standing
+  still you breathe, now and then look around and take a long look at your
+  phone or laptop. Holding up the invite sign keeps you still, so it scans.
+- Friends in a shared world play the same moves as they do them.
 ## [0.57.2] - 2026-10-14
 
 ### Changed

@@ -45,8 +45,12 @@ test('protocol: positions are bounded and stripped to known fields', () => {
   assert.equal(P.cleanPos({ x: 0, y: NaN, z: 0 }), null);
   assert.equal(P.cleanPos({ x: '1', y: 0, z: 0 }), null);
   const p = P.cleanPos({ x: 1.23456, y: 2, z: -3, fx: 9, fy: -9, m: 'yes', sign: true, dev: 'phone', evil: '<script>' });
-  assert.deepEqual(p, { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true, dev: 'phone' });
+  assert.deepEqual(p, { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true, dev: 'phone', a: null, n: 0 });
   assert.equal(P.cleanPos({ x: 0, y: 0, z: 0, dev: 'toaster' }).dev, null);
+  const acting = P.cleanPos({ x: 0, y: 0, z: 0, a: 'swing', n: 7 });
+  assert.deepEqual([acting.a, acting.n], ['swing', 7]);
+  const junk = P.cleanPos({ x: 0, y: 0, z: 0, a: 'dance', n: 1e6 });
+  assert.deepEqual([junk.a, junk.n], [null, 0], 'unknown acts and counts are dropped');
 });
 
 test('protocol: edits must match one of three exact shapes', () => {

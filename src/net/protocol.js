@@ -35,6 +35,9 @@ export const LIMITS = Object.freeze({
 export const STATUS = Object.freeze(['online', 'away', 'lost', 'offline']);
 // What a player is playing on, shown as what their character holds.
 export const DEVICES = Object.freeze(['phone', 'laptop']);
+// What a player can be seen doing (src/game/render/motion.js animates them).
+export const ACTS = Object.freeze(['swing', 'pick', 'collect', 'build', 'cheer', 'down', 'up']);
+export const ACT_COUNT = 1000;  // acts are counted round this, so a new one shows
 
 // A room id is 16 random bytes in base64url: unguessable, so the link is the key.
 export const ROOM_ID_RE = /^[A-Za-z0-9_-]{22}$/;
@@ -80,12 +83,13 @@ export function parse(raw, maxBytes = LIMITS.messageBytes) {
 /* ------------------------------------------------------------- pieces */
 
 // A position: where, which way facing, walking or not, holding up the sign,
-// and what they play on (null if unknown).
+// what they play on (null if unknown), and their latest act with its count.
 export function cleanPos(p) {
   if (!isObj(p) || !inXY(p.x) || !inXY(p.y) || !inZ(p.z)) return null;
   const f = (v) => (isNum(v) ? Math.max(-1, Math.min(1, round(v, 100))) : 0);
   return { x: round(p.x, 1000), y: round(p.y, 1000), z: p.z, fx: f(p.fx), fy: f(p.fy), m: p.m === true, sign: p.sign === true,
-    dev: DEVICES.includes(p.dev) ? p.dev : null };
+    dev: DEVICES.includes(p.dev) ? p.dev : null,
+    a: ACTS.includes(p.a) ? p.a : null, n: isInt(p.n) && p.n >= 0 && p.n < ACT_COUNT ? p.n : 0 };
 }
 
 // One world edit, or null:
