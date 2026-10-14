@@ -9,6 +9,9 @@
  * player typed is logged, because players can't type anything. */
 
 export const LOG_DAYS = 14;                 // events older than this are deleted
+export const SECURITY_DAYS = 90;            // except the security trail, kept this long
+// The security trail: cheats, bans, people turned away, connections cut.
+export const SECURITY_EVENTS = new Set(['cheat', 'ban', 'deny', 'cut']);
 export const SAMPLE_MS = 15_000;            // where each moving player is, this often
 export const PROG_MS = 60_000;              // a player's progress, at most this often
 export const LOG_FLUSH_MS = 30_000;         // events reach storage this soon (and when the last player leaves)
@@ -67,3 +70,14 @@ export const codeTag = (code) => (typeof code === 'string' ? code.slice(0, 6) : 
 
 // Events as JSON lines.
 export const toLines = (events) => events.map((e) => JSON.stringify(e)).join('\n');
+
+// Whether any of these events belong to the security trail.
+export const hasSecurity = (events) => events.some((e) => SECURITY_EVENTS.has(e.e));
+
+// Only the security trail's lines of a chunk of JSON lines (for keeping it
+// after the rest of the chunk is LOG_DAYS old).
+export function securityOnly(lines) {
+  return lines.split('\n').filter((line) => {
+    try { return SECURITY_EVENTS.has(JSON.parse(line).e); } catch { return false; }
+  }).join('\n');
+}

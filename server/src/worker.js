@@ -17,7 +17,7 @@
 
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, editBucket, NEAR, visitor } from './room.js';
-import { LOG_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines } from './audit.js';
+import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
@@ -248,7 +248,12 @@ export class Rooms extends DurableObject {
     this.prunedAt = 0;        // when old log was last deleted
     // The audit log: chunks of JSON lines, each stamped with its first event.
     // Not in the key-value storage, so loading a room never reads it.
-    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS audit (ts INTEGER NOT NULL, lines TEXT NOT NULL)');
+    // `sec`: the chunk has security events (kept SECURITY_DAYS); `trimmed`:
+    // the rest of it has gone.
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS audit (ts INTEGER NOT NULL, lines TEXT NOT NULL, sec INTEGER NOT NULL DEFAULT 0, trimmed INTEGER NOT NULL DEFAULT 0)');
+    for (const col of ['sec', 'trimmed']) {
+      try { ctx.storage.sql.exec(`ALTER TABLE audit ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 0`); } catch { /* already there */ }
+    }
     ctx.blockConcurrencyWhile(() => this.load());
   }
 
@@ -333,11 +338,16 @@ export class Rooms extends DurableObject {
     const log = this.room.log;
     if (log.length && (force || log.length >= LOG_FLUSH_EVENTS || now - log[0].ts >= LOG_FLUSH_MS)) {
       const events = this.room.takeLog();
-      this.ctx.storage.sql.exec('INSERT INTO audit (ts, lines) VALUES (?, ?)', events[0].ts, toLines(events));
+      this.ctx.storage.sql.exec('INSERT INTO audit (ts, lines, sec) VALUES (?, ?, ?)', events[0].ts, toLines(events), hasSecurity(events) ? 1 : 0);
     }
     if (now - this.prunedAt >= PRUNE_MS) {
       this.prunedAt = now;
-      this.ctx.storage.sql.exec('DELETE FROM audit WHERE ts < ?', now - LOG_DAYS * 24 * 3600_000);
+      const day = 24 * 3600_000, sql = this.ctx.storage.sql;
+      sql.exec('DELETE FROM audit WHERE ts < ? OR (sec = 0 AND ts < ?)', now - SECURITY_DAYS * day, now - LOG_DAYS * day);
+      // Chunks with security events keep just those once the rest is old.
+      for (const row of sql.exec('SELECT rowid AS r, lines FROM audit WHERE sec = 1 AND trimmed = 0 AND ts < ?', now - LOG_DAYS * day).toArray()) {
+        sql.exec('UPDATE audit SET lines = ?, trimmed = 1 WHERE rowid = ?', securityOnly(row.lines), row.r);
+      }
     }
   }
 

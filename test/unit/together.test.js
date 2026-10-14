@@ -510,6 +510,14 @@ test('the room-making limit counts an IPv6 visitor by their /48, however it is w
 
 /* ----------------------------------------------------------- audit log */
 
+test('audit: the security trail outlives the rest of a chunk', async () => {
+  const { hasSecurity, securityOnly, toLines } = await import('../../server/src/audit.js');
+  const events = [{ ts: 1, p: 'a', e: 'at', x: 1 }, { ts: 2, p: 'a', e: 'cheat', why: 'speed' }, { ts: 3, p: 'b', e: 'deny', why: 'banned' }];
+  assert.equal(hasSecurity(events), true);
+  assert.equal(hasSecurity(events.slice(0, 1)), false);
+  assert.deepEqual(securityOnly(toLines(events)).split('\n').map((l) => JSON.parse(l).e), ['cheat', 'deny']);
+});
+
 test('audit: joins, steps, edits, progress and leaving are logged, keyed by player id only', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);

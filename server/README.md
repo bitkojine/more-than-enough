@@ -92,7 +92,8 @@ line in an export: `{"ts": <ms>, "p": <player id>, "e": <event>, ...}`. The
 player id is the room's hash of their key (never the key), and nothing else
 about a person is kept: no address, no name (players have none), nothing
 they typed (there's nowhere to type). Logs are deleted after 14 days
-(`LOG_DAYS`), and with the room. Players are told once, when they first
+(`LOG_DAYS`), except the security trail (`cheat`, `ban`, `deny`, `cut`),
+kept 90 days (`SECURITY_DAYS`); all of it goes with the room. Players are told once, when they first
 enter a shared world, and in Settings.
 
 | `e` | when | fields |

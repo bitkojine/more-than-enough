@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.74.1] - 2026-10-14
+
+### Changed
+- **The audit log's security trail is kept 90 days** (`SECURITY_DAYS`):
+  `cheat`, `ban`, `deny` and `cut` events outlive the rest of the log,
+  which still goes after 14 days. A log chunk with any of them keeps just
+  those once it is 14 days old. The Settings note says so.
+
 ## [0.74.0] - 2026-10-14
 
 ### Added
