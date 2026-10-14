@@ -14,25 +14,26 @@
 import { T } from './tiles.js';
 import { hash2 } from './noise.js';
 import { forestKind } from './terrain.js';
+import { t } from '../i18n/i18n.js';
 
 const ALL = ['pine', 'birch', 'oak', 'maple', 'mixed'];
 
 export const MUSHROOMS = {
-  flyAgaric: { name: 'Fly agaric', where: 'forest', kinds: ['pine', 'birch', 'mixed'], weight: 5, does: 'Red with white spots, the storybook toadstool. Under pines and birches.' },
-  pennyBun: { name: 'Penny bun', where: 'forest', kinds: ['oak', 'pine', 'mixed'], weight: 5, does: 'A fat brown cap on a stout stalk. Under oaks and pines.' },
-  chanterelle: { name: 'Chanterelle', where: 'forest', kinds: ['birch', 'oak', 'pine', 'mixed'], weight: 5, does: 'Golden funnels that smell of apricots.' },
-  honey: { name: 'Honey fungus', where: 'forest', kinds: ['birch', 'pine', 'mixed'], weight: 3, does: 'Amber caps in a crowded clump.' },
-  parasol: { name: 'Parasol', where: 'forest', kinds: ['maple', 'oak', 'mixed'], weight: 4, does: 'A tall stalk under a wide, scaly umbrella.' },
-  oyster: { name: 'Oyster mushroom', where: 'forest', kinds: ['oak', 'maple', 'birch'], weight: 3, does: 'Grey shelves stacked one over another.' },
-  inkCap: { name: 'Shaggy ink cap', where: 'forest', kinds: ['mixed', 'birch', 'maple'], weight: 3, does: 'Tall white shaggy caps that melt to ink.' },
-  puffball: { name: 'Puffball', where: 'forest', kinds: ['mixed', 'maple', 'birch'], weight: 3, does: 'White balls that puff out a cloud of spores.' },
-  morel: { name: 'Morel', where: 'forest', kinds: ['maple', 'oak'], weight: 2, does: 'A honeycombed cone. Warm country only.' },
-  milkCap: { name: 'Indigo milk cap', where: 'forest', kinds: ['pine', 'oak'], weight: 1.5, does: 'Blue right through, even its milk. Uncommon.' },
-  libertyCap: { name: 'Liberty cap', where: 'forest', kinds: ALL, weight: 0.4, magic: true, does: 'A little pointed cap that shimmers. Magic, and rare in any forest.' },
-  moonCap: { name: 'Moonlight cap', where: 'forest', kinds: ALL, weight: 0.2, magic: true, does: 'Glows violet in the shade. Magic, and the rarest thing in the forest.' },
-  glowcap: { name: 'Glowcap', where: 'cave', from: 1, weight: 5, does: 'The cave mushroom that lights the dark, found in spore beds.' },
-  ghost: { name: 'Ghost fungus', where: 'cave', from: 1, weight: 3, does: 'Pale fans with a cold green glow.' },
-  crystalCap: { name: 'Crystal cap', where: 'cave', from: 7, weight: 1, magic: true, does: 'Grown half into crystal. Magic, and only in the deepest spore beds.' }
+  flyAgaric: { name: t('mushroom.flyAgaric'), where: 'forest', kinds: ['pine', 'birch', 'mixed'], weight: 5, does: t('mushroom.flyAgaric.does') },
+  pennyBun: { name: t('mushroom.pennyBun'), where: 'forest', kinds: ['oak', 'pine', 'mixed'], weight: 5, does: t('mushroom.pennyBun.does') },
+  chanterelle: { name: t('mushroom.chanterelle'), where: 'forest', kinds: ['birch', 'oak', 'pine', 'mixed'], weight: 5, does: t('mushroom.chanterelle.does') },
+  honey: { name: t('mushroom.honey'), where: 'forest', kinds: ['birch', 'pine', 'mixed'], weight: 3, does: t('mushroom.honey.does') },
+  parasol: { name: t('mushroom.parasol'), where: 'forest', kinds: ['maple', 'oak', 'mixed'], weight: 4, does: t('mushroom.parasol.does') },
+  oyster: { name: t('mushroom.oyster'), where: 'forest', kinds: ['oak', 'maple', 'birch'], weight: 3, does: t('mushroom.oyster.does') },
+  inkCap: { name: t('mushroom.inkCap'), where: 'forest', kinds: ['mixed', 'birch', 'maple'], weight: 3, does: t('mushroom.inkCap.does') },
+  puffball: { name: t('mushroom.puffball'), where: 'forest', kinds: ['mixed', 'maple', 'birch'], weight: 3, does: t('mushroom.puffball.does') },
+  morel: { name: t('mushroom.morel'), where: 'forest', kinds: ['maple', 'oak'], weight: 2, does: t('mushroom.morel.does') },
+  milkCap: { name: t('mushroom.milkCap'), where: 'forest', kinds: ['pine', 'oak'], weight: 1.5, does: t('mushroom.milkCap.does') },
+  libertyCap: { name: t('mushroom.libertyCap'), where: 'forest', kinds: ALL, weight: 0.4, magic: true, does: t('mushroom.libertyCap.does') },
+  moonCap: { name: t('mushroom.moonCap'), where: 'forest', kinds: ALL, weight: 0.2, magic: true, does: t('mushroom.moonCap.does') },
+  glowcap: { name: t('mushroom.glowcap'), where: 'cave', from: 1, weight: 5, does: t('mushroom.glowcap.does') },
+  ghost: { name: t('mushroom.ghost'), where: 'cave', from: 1, weight: 3, does: t('mushroom.ghost.does') },
+  crystalCap: { name: t('mushroom.crystalCap'), where: 'cave', from: 7, weight: 1, magic: true, does: t('mushroom.crystalCap.does') }
 };
 
 export const MUSHROOM_KEYS = Object.keys(MUSHROOMS);

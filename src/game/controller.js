@@ -4,6 +4,7 @@
 
 import * as Core from '../core/index.js';
 import { clearSave, randomSeed } from './storage.js';
+import { t } from '../i18n/i18n.js';
 
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
@@ -49,7 +50,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     }
     if (r.newKind) {
       // A kind of mushroom never found before, in any world.
-      fx.text(r.x + 0.5, r.y - 1, 'New: ' + Core.MUSHROOMS[r.mushroom].name + '!', '#c9a6ff', null, -0.5, 2.6);
+      fx.text(r.x + 0.5, r.y - 1, t('fx.newMushroom', { name: Core.MUSHROOMS[r.mushroom].name }), '#c9a6ff', null, -0.5, 2.6);
       audio.collect();
     }
     if (r.res) {
@@ -244,7 +245,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     embark() {
       const s = state();
       if (!Core.canEmbark(s)) return;
-      if (!window.confirm('Embark? This world resets. +' + Core.embarkGain(s) + ' Insight.')) return;
+      if (!window.confirm(t('confirm.embark', { n: Core.embarkGain(s) }))) return;
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();
@@ -252,7 +253,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     },
 
     reset() {
-      if (!window.confirm('Start a new world? All progress is lost.')) return;
+      if (!window.confirm(t('confirm.reset'))) return;
       clearSave();
       game.replace(Core.createState(randomSeed()));
     },

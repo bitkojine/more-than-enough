@@ -11,11 +11,12 @@
 import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { canAfford, pay, costText, abundanceCost } from './economy.js';
+import { t } from '../i18n/i18n.js';
 
 const REGISTRY = {};
 
 function define(u) {
-  if (REGISTRY[u.id]) throw new Error('Duplicate upgrade id: ' + u.id);
+  if (REGISTRY[u.id]) throw new Error('Duplicate upgrade id: ' + u.id);  // i18n-ok: a bug in the game's own tables, for its developers
   REGISTRY[u.id] = { currency: 'inv', desc: '', ...u };
 }
 
@@ -76,12 +77,12 @@ export const UPGRADES = REGISTRY;
 // The progression map's families, in display order. `layer` separates what a
 // world keeps from what survives an Embark.
 export const PATH_FAMILIES = [
-  { id: 'tools', layer: 'world', name: 'Tools' },
-  { id: 'refining', layer: 'world', name: 'Refineries' },
-  { id: 'abundance', layer: 'world', name: 'Abundance Engine' },
-  { id: 'unlocks', layer: 'world', name: 'Unlocks & Blueprints' },
-  { id: 'perks', layer: 'legacy', name: 'Perks' }
-].map((f) => ({ ...f, look: 'path.' + f.id, nodes: Object.keys(REGISTRY).filter((id) => REGISTRY[id].family === f.id) }));
+  { id: 'tools', layer: 'world' },
+  { id: 'refining', layer: 'world' },
+  { id: 'abundance', layer: 'world' },
+  { id: 'unlocks', layer: 'world' },
+  { id: 'perks', layer: 'legacy' }
+].map((f) => ({ ...f, name: t('path.' + f.id), look: 'path.' + f.id, nodes: Object.keys(REGISTRY).filter((id) => REGISTRY[id].family === f.id) }));
 
 // The world upgrades that can be finished (Abundance never is).
 const FINITE = () => PATH_FAMILIES.filter((f) => f.layer === 'world' && f.id !== 'abundance').flatMap((f) => f.nodes);
@@ -125,11 +126,11 @@ export function canBuy(s, id) {
 
 export function buy(s, id) {
   const u = REGISTRY[id];
-  if (!u) return { ok: false, reason: 'Unknown upgrade' };
+  if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
   const cost = upgradeCost(s, id);
-  if (cost === null) return { ok: false, reason: u.max === 1 ? 'Already owned' : 'Maxed' };
+  if (cost === null) return { ok: false, reason: t(u.max === 1 ? 'reason.owned' : 'reason.maxed') };
   if (!canBuy(s, id)) {
-    return { ok: false, reason: 'Need ' + (u.currency === 'insight' ? cost + ' Insight' : costText(cost)) };
+    return { ok: false, reason: t('reason.need', { cost: u.currency === 'insight' ? t('cost.insight', { n: cost }) : costText(cost) }) };
   }
   if (u.currency === 'insight') s.insight -= cost;
   else pay(s.inv, cost);

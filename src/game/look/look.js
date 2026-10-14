@@ -7,10 +7,11 @@
 
 import { hash2, DEFAULT_TILE } from '../../core/index.js';
 import { validatePack, pictures } from './validate.js';
+import { t } from '../../i18n/i18n.js';
 
 const MIN_BUCKET = 4, MAX_BUCKET = 1024;
 
-const svgUrl = (markup) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.trim());
+const svgUrl = (markup) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.trim());  // i18n-ok: a URL
 
 function readAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -35,10 +36,10 @@ async function urlFor(ref, base, files) {
   if (ref.startsWith('data:') || ref.startsWith('https://')) return ref;
   if (files) {
     const f = pickedFile(files, ref);
-    if (!f) throw new Error(`"${ref}" was not among the files picked with the pack`);
+    if (!f) throw new Error(t('pack.fileNotPicked', { ref }));
     return readAsDataUrl(f);
   }
-  if (!base) throw new Error(`"${ref}" is a path, but the pack came as a single file: inline it (the wiki shows how)`);
+  if (!base) throw new Error(t('pack.pathInSingleFile', { ref }));
   const url = new URL(ref, base);
   url.search = new URL(base).search;
   return url.href;
@@ -48,7 +49,7 @@ function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('the picture failed to load or decode'));
+    img.onerror = () => reject(new Error(t('pack.pictureFailed')));
     img.src = url;
   });
 }
@@ -73,7 +74,7 @@ export async function loadPack(json, { base = null, files = null, complete = fal
     if (!loaded.has(ref)) {
       loaded.set(ref, urlFor(ref, base, files).then(async (url) => {
         const img = await loadImage(url);
-        if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) throw new Error('the picture has no size (an SVG needs width and height attributes)');
+        if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) throw new Error(t('pack.pictureNoSize'));
         return makePicture(img, url, tile, pixelated);
       }));
     }
@@ -93,7 +94,7 @@ export async function loadPack(json, { base = null, files = null, complete = fal
       refs.forEach((ref, i) => {
         if (ref === null) return;
         jobs.push(load(ref).then((pic) => { resolved.pics[i] = pic; },
-          (err) => problems.push(`${id} ${slot}: ${ref.startsWith('<') ? 'inline SVG' : `"${ref.slice(0, 80)}"`}: ${err.message}`)));
+          (err) => problems.push(`${id} ${slot}: ${ref.startsWith('<') ? t('pack.inlineSvg') : `"${ref.slice(0, 80)}"`}: ${err.message}`)));
       });
     }
   }
@@ -133,7 +134,8 @@ export function createLook() {
     // Bumped on every change, so anything that caches pictures can tell.
     version: 0,
 
-    get name() { return (over || base).name; },
+    // The default pack's name is the game's own, so it is translated.
+    get name() { return over ? over.name : t('pack.defaultName'); },
     get custom() { return !!over; },
     get pack() { return over; },
 

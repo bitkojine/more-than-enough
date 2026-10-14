@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.46.0] - 2026-10-14
+
+### Added
+- **English and Lithuanian, everywhere.** Every word the game shows is in
+  both languages: the HUD, every sheet and card, toasts, goals, the share
+  text, achievements, texture-pack errors, the crash screen and the whole
+  wiki. Numbers follow the language too (1,5 tūkst. in Lithuanian).
+- **Language button** in the sheet's utilities (and at the top of the wiki)
+  switches between English and Lietuvių at any time. Your game is saved
+  first and you stay right where you were. The choice is remembered; the
+  first visit follows your browser's language.
+
+### Changed
+- **A missing translation fails loudly.** `npm test` fails if a string is
+  missing in either language, if a placeholder or plural form differs, or
+  if any player-facing text bypasses the translation layer. In the game, an
+  unknown key throws instead of showing a blank.
+
 ## [0.45.0] - 2026-10-14
 
 ### Changed

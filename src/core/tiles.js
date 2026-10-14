@@ -27,8 +27,14 @@
  *            used first). Without it, no piles stand there: never on
  *            anything you can gather, so piles never hide a resource */
 
+import { t } from '../i18n/i18n.js';
+
 export const RESOURCES = ['mycelium', 'stone', 'ore', 'crystal'];
-export const RESOURCE_LABEL = { mycelium: 'Mycelium', stone: 'Stone', ore: 'Ore', crystal: 'Crystal' };
+// Each resource's name, and its lowercase forms for use inside a sentence:
+// as the subject (`lower`) and "of it" (`of`, the Lithuanian genitive).
+export const RESOURCE_LABEL = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r)]));
+export const RESOURCE_LOWER = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r + '.lower')]));
+export const RESOURCE_OF = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r + '.of')]));
 
 // Values are stable: the surface ids match older saves and tests refer to them.
 export const T = {
@@ -50,15 +56,15 @@ export const T = {
 export const TILE_NAME = [];
 export const TILE_KEY = [];
 [
-  [T.GRASS, 'grass', 'Grass'], [T.FOREST, 'forest', 'Forest'], [T.STONE, 'stone', 'Stone'],
-  [T.ORE, 'ore', 'Ore'], [T.CRYSTAL, 'crystal', 'Crystal'], [T.WATER, 'water', 'Water'],
-  [T.ROCK, 'mountain', 'Mountain'], [T.TUNNEL, 'tunnel', 'Tunnel'], [T.SOIL, 'soil', 'Soil'],
-  [T.STONE_SEAM, 'stone-seam', 'Stone seam'], [T.ORE_SEAM, 'ore-seam', 'Ore seam'],
-  [T.CRYSTAL_SEAM, 'crystal-seam', 'Crystal seam'], [T.SPORE_BED, 'spore-bed', 'Spore bed'],
-  [T.BEDROCK, 'bedrock', 'Bedrock'], [T.SHAFT, 'shaft', 'Shaft'], [T.SHAFT_OPEN, 'shaft-open', 'Open shaft'],
-  [T.HOME, 'home', 'Home ground'], [T.CACHE, 'cache', 'Buried cache'], [T.GEODE, 'geode', 'Geode'],
-  [T.CAVE, 'cave', 'Cave mouth'], [T.RISE, 'rise', 'Way up']
-].forEach(([t, key, name]) => { TILE_KEY[t] = key; TILE_NAME[t] = name; });
+  [T.GRASS, 'grass'], [T.FOREST, 'forest'], [T.STONE, 'stone'],
+  [T.ORE, 'ore'], [T.CRYSTAL, 'crystal'], [T.WATER, 'water'],
+  [T.ROCK, 'mountain'], [T.TUNNEL, 'tunnel'], [T.SOIL, 'soil'],
+  [T.STONE_SEAM, 'stone-seam'], [T.ORE_SEAM, 'ore-seam'],
+  [T.CRYSTAL_SEAM, 'crystal-seam'], [T.SPORE_BED, 'spore-bed'],
+  [T.BEDROCK, 'bedrock'], [T.SHAFT, 'shaft'], [T.SHAFT_OPEN, 'shaft-open'],
+  [T.HOME, 'home'], [T.CACHE, 'cache'], [T.GEODE, 'geode'],
+  [T.CAVE, 'cave'], [T.RISE, 'rise']
+].forEach(([type, key]) => { TILE_KEY[type] = key; TILE_NAME[type] = t('tile.' + key); });
 
 export const TILE_INFO = [];
 TILE_INFO[T.GRASS] = { walk: true, land: true, yard: 3 };

@@ -8,6 +8,7 @@
 import { loadPack, inlinePack } from './look/look.js';
 import { validatePack } from './look/validate.js';
 import { loadSavedPack, savePack, forgetPack } from './look/store.js';
+import { t } from '../i18n/i18n.js';
 
 // The default pack, carrying this module's ?v= cache-busting hash.
 function defaultPackUrl() {
@@ -20,9 +21,9 @@ function defaultPackUrl() {
 export async function loadDefaultPack() {
   const url = defaultPackUrl();
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Default texture pack: ${url} answered ${res.status}`);
+  if (!res.ok) throw new Error(t('pack.defaultHttp', { url, status: res.status }));
   const { pack, problems } = await loadPack(await res.json(), { base: url, complete: true });
-  if (!pack) throw new Error('Default texture pack is broken:\n' + problems.join('\n'));
+  if (!pack) throw new Error(t('pack.defaultBroken', { problems: problems.join('\n') }));
   return pack;
 }
 
@@ -53,9 +54,9 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
   // Reads the picked files into a self-contained pack, or reports why not.
   async function fromFiles(files) {
     const jsons = files.filter((f) => /\.json$/i.test(f.name));
-    if (jsons.length !== 1) return report([jsons.length ? `Pick one pack.json, not ${jsons.length} (${jsons.map((f) => f.name).join(', ')})` : 'No .json file among the picked files: pick the pack.json (and its pictures)']);
+    if (jsons.length !== 1) return report([jsons.length ? t('pack.pickOne', { n: jsons.length, names: jsons.map((f) => f.name).join(', ') }) : t('pack.noJson')]);
     let json;
-    try { json = JSON.parse(await jsons[0].text()); } catch (err) { return report([`${jsons[0].name} is not valid JSON: ${err.message}`]); }
+    try { json = JSON.parse(await jsons[0].text()); } catch (err) { return report([t('pack.badJson', { name: jsons[0].name, error: err.message })]); }
     // Check the pack itself before reading its pictures, so every problem in
     // it is listed, not just the first missing file.
     const invalid = validatePack(json);
@@ -65,7 +66,7 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
     if (!pack) return report(problems);
     apply(pack);
     const saved = await savePack(json);
-    toast(saved.error ? `Textures: ${pack.name} (this browser can't keep it: ${saved.error.name || saved.error})` : 'Textures: ' + pack.name);
+    toast(saved.error ? t('toast.texturesUnkept', { name: pack.name, error: saved.error.name || saved.error }) : t('toast.textures', { name: pack.name }));
   }
 
   el.textures.addEventListener('click', () => el.packFile.click());
@@ -79,7 +80,7 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
   el.texturesDefault.addEventListener('click', async () => {
     const gone = await forgetPack();
     apply(null);
-    toast(gone.error ? `Textures: ${look.name} (couldn't forget the old pack: ${gone.error.name})` : 'Textures: ' + look.name);
+    toast(gone.error ? t('toast.texturesUnforgotten', { name: look.name, error: gone.error.name }) : t('toast.textures', { name: look.name }));
   });
   el.packReport.querySelector('button').addEventListener('click', () => { el.packReport.hidden = true; });
 
@@ -88,7 +89,7 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
     async restore() {
       label();
       const saved = await loadSavedPack();
-      if (saved.error) return toast(`Your texture pack couldn't be read (${saved.error.name || saved.error})`);
+      if (saved.error) return toast(t('toast.texturesUnread', { error: saved.error.name || saved.error }));
       if (!saved.value) return;
       const { pack, problems } = await loadPack(saved.value);
       if (pack) apply(pack);

@@ -6,6 +6,8 @@
  * drawing took. The panel shows the last WINDOW frames, refreshed a few times
  * a second so reading it costs next to nothing. */
 
+import { t } from '../i18n/i18n.js';
+
 const WINDOW = 120;            // frames kept for the averages (~2 s at 60 fps)
 const REFRESH_EVERY = 0.25;    // seconds between panel updates
 const GOOD_FPS = 55, OK_FPS = 30;
@@ -72,20 +74,22 @@ export function createPerf(el, canvas, audio) {
   function render(m) {
     const grade = m.fps >= GOOD_FPS ? 'good' : m.fps >= OK_FPS ? 'ok' : 'bad';
     el.perf.dataset.grade = grade;
+    // Label, padded so the values line up.
+    const line = (key, value) => t('perf.' + key).padEnd(8) + value;
     const lines = [
-      `FPS     ${m.fps.toFixed(0)}`,
-      `frame   ${m.frameMs.toFixed(1)} ms  worst ${m.worstMs.toFixed(0)}`,
-      `logic   ${m.logicMs.toFixed(2)} ms`,
-      `draw    ${m.drawMs.toFixed(2)} ms`,
-      `tiles   ${m.tiles}`,
-      `screen  ${m.screen} @${+m.dpr.toFixed(2)}x`,
-      `canvas  ${m.canvas}`,
-      `sound   ${m.sound}  wakes ${m.soundTrace.wakes} ${m.soundTrace.last}`
+      line('fps', m.fps.toFixed(0)),
+      line('frame', `${m.frameMs.toFixed(1)} ms  ${t('perf.worst')} ${m.worstMs.toFixed(0)}`),
+      line('logic', `${m.logicMs.toFixed(2)} ms`),
+      line('draw', `${m.drawMs.toFixed(2)} ms`),
+      line('tiles', m.tiles),
+      line('screen', `${m.screen} @${+m.dpr.toFixed(2)}x`),
+      line('canvas', m.canvas),
+      line('sound', `${m.sound}  ${t('perf.wakes')} ${m.soundTrace.wakes} ${m.soundTrace.last}`)
     ];
     if (m.soundTrace.error) lines.push(`        ${m.soundTrace.error}`);
-    if (m.cores) lines.push(`cores   ${m.cores}`);
-    if (m.memoryGb) lines.push(`memory  ${m.memoryGb} GB`);
-    if (m.heapMb !== null) lines.push(`heap    ${m.heapMb.toFixed(1)} MB`);
+    if (m.cores) lines.push(line('cores', m.cores));
+    if (m.memoryGb) lines.push(line('memory', `${m.memoryGb} GB`));
+    if (m.heapMb !== null) lines.push(line('heap', `${m.heapMb.toFixed(1)} MB`));
     el.perf.textContent = lines.join('\n');
   }
 

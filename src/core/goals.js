@@ -4,38 +4,39 @@
 import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE } from './content.js';
 import { extractorCount } from './economy.js';
 import { canEmbark } from './state.js';
+import { t, number } from '../i18n/i18n.js';
 
 const has = (key) => (s) => extractorCount(s, key) > 0;
 
 export const GOALS = [
-  { text: 'Forage mycelium from the forest floor', done: (s) => s.stats.foraged > 0 },
-  { text: 'Weave a bigger Basket (6 mycelium)', done: (s) => s.tools.basket >= 2 },
-  { text: 'Gather stone from a stone deposit', done: (s) => s.stats.stone > 0 },
-  { text: 'Craft a Pickaxe upgrade (10 mycelium, 6 stone)', done: (s) => s.tools.pickaxe >= 2 },
-  { text: 'Build a Mushroom Garden on a forest tile (15 mycelium)', done: has('garden') },
-  { text: 'Collect your camp’s output (stand next to it)', done: (s) => s.stats.collected > 0 || s.unlocks.logistics },
-  { text: 'Explore outward to find ore', done: (s) => s.discovered.ore },
-  { text: 'Build a Mine on an ore deposit', done: has('mine') },
-  { text: 'Research Overclock II (30 stone, 4 ore)', done: (s) => s.tools.overclock >= 2 },
-  { text: 'Unlock Logistics (camps near you auto-collect)', done: (s) => s.unlocks.logistics },
-  { text: 'Discover crystal in the far wilds', done: (s) => s.discovered.crystal },
-  { text: 'Build a Resonator on a crystal deposit', done: has('resonator') },
-  { text: 'Build the Abundance Engine', done: (s) => s.abundanceLv >= 1 },
-  { text: 'Push the Abundance Engine to II', done: (s) => s.abundanceLv >= 2 },
-  { text: 'Sharpen mycelium production (Mycology I)', done: (s) => s.resUp.mycelium >= 1 },
-  { text: 'Sharpen stone production (Masonry I)', done: (s) => s.resUp.stone >= 1 },
-  { text: 'Unlock the Foundry blueprint', done: (s) => s.unlocks.foundry },
-  { text: 'Build a Foundry (ore, anywhere)', done: has('foundry') },
-  { text: 'Sharpen crystal production (Crystallurgy I)', done: (s) => s.resUp.crystal >= 1 },
-  { text: 'Unlock the Observatory blueprint', done: (s) => s.unlocks.observatory },
-  { text: 'Build an Observatory (crystal, anywhere)', done: has('observatory') },
-  { text: 'Automate a Compost Heap (mycelium, anywhere)', done: has('compost') },
-  { text: 'Automate a Brickyard (stone, anywhere)', done: has('brickyard') },
-  { text: 'Sharpen ore production (Metallurgy I)', done: (s) => s.resUp.ore >= 1 },
-  { text: 'Push the Abundance Engine to IV', done: (s) => s.abundanceLv >= 4 },
-  { text: 'Own 25 automated structures', done: (s) => s.extractors.length >= 25 },
-  { text: 'Master the world: every upgrade, the Abundance Engine at ' + EMBARK_ABUNDANCE + ', and ' + EMBARK_MIN_TOTAL.toLocaleString('en-US') + ' gathered', done: canEmbark },
-  { text: 'MORE THAN ENOUGH — expand forever', done: () => false }
+  { id: 'forage', text: t('goal.forage'), done: (s) => s.stats.foraged > 0 },
+  { id: 'basket', text: t('goal.basket'), done: (s) => s.tools.basket >= 2 },
+  { id: 'stone', text: t('goal.stone'), done: (s) => s.stats.stone > 0 },
+  { id: 'pickaxe', text: t('goal.pickaxe'), done: (s) => s.tools.pickaxe >= 2 },
+  { id: 'garden', text: t('goal.garden'), done: has('garden') },
+  { id: 'collect', text: t('goal.collect'), done: (s) => s.stats.collected > 0 || s.unlocks.logistics },
+  { id: 'ore', text: t('goal.ore'), done: (s) => s.discovered.ore },
+  { id: 'mine', text: t('goal.mine'), done: has('mine') },
+  { id: 'overclock', text: t('goal.overclock'), done: (s) => s.tools.overclock >= 2 },
+  { id: 'logistics', text: t('goal.logistics'), done: (s) => s.unlocks.logistics },
+  { id: 'crystal', text: t('goal.crystal'), done: (s) => s.discovered.crystal },
+  { id: 'resonator', text: t('goal.resonator'), done: has('resonator') },
+  { id: 'abundance1', text: t('goal.abundance1'), done: (s) => s.abundanceLv >= 1 },
+  { id: 'abundance2', text: t('goal.abundance2'), done: (s) => s.abundanceLv >= 2 },
+  { id: 'mycology', text: t('goal.mycology'), done: (s) => s.resUp.mycelium >= 1 },
+  { id: 'masonry', text: t('goal.masonry'), done: (s) => s.resUp.stone >= 1 },
+  { id: 'foundryBlueprint', text: t('goal.foundryBlueprint'), done: (s) => s.unlocks.foundry },
+  { id: 'foundry', text: t('goal.foundry'), done: has('foundry') },
+  { id: 'crystallurgy', text: t('goal.crystallurgy'), done: (s) => s.resUp.crystal >= 1 },
+  { id: 'observatoryBlueprint', text: t('goal.observatoryBlueprint'), done: (s) => s.unlocks.observatory },
+  { id: 'observatory', text: t('goal.observatory'), done: has('observatory') },
+  { id: 'compost', text: t('goal.compost'), done: has('compost') },
+  { id: 'brickyard', text: t('goal.brickyard'), done: has('brickyard') },
+  { id: 'metallurgy', text: t('goal.metallurgy'), done: (s) => s.resUp.ore >= 1 },
+  { id: 'abundance4', text: t('goal.abundance4'), done: (s) => s.abundanceLv >= 4 },
+  { id: 'structures', text: t('goal.structures'), done: (s) => s.extractors.length >= 25 },
+  { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), done: canEmbark },
+  { id: 'forever', text: t('goal.forever'), done: () => false }
 ];
 
 // Moves past every completed goal. Returns true if any were completed.

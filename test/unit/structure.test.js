@@ -3,7 +3,8 @@
  *  - no function name is declared twice in a file: a later declaration
  *    silently replaces the earlier one (this once made the game silent);
  *  - no import cycles among the source modules;
- *  - the core stays pure: it never imports game (browser) code;
+ *  - the core stays pure: it never imports game (browser) code, only its
+ *    own modules and the translations (src/i18n/), which import nothing else;
  *  - no merge-conflict markers are left in the code (several people push to
  *    main at once, and the browser-only files have no other check). */
 
@@ -65,7 +66,12 @@ test('source modules have no import cycles', () => {
 test('the core never imports game code', () => {
   for (const file of jsFiles(join(ROOT, 'src', 'core'))) {
     for (const dep of importsOf(file)) {
-      assert.ok(dep.startsWith(join(ROOT, 'src', 'core')), `${rel(file)} imports ${rel(dep)}`);
+      assert.ok(dep.startsWith(join(ROOT, 'src', 'core')) || dep.startsWith(join(ROOT, 'src', 'i18n')), `${rel(file)} imports ${rel(dep)}`);
+    }
+  }
+  for (const file of jsFiles(join(ROOT, 'src', 'i18n'))) {
+    for (const dep of importsOf(file)) {
+      assert.ok(dep.startsWith(join(ROOT, 'src', 'i18n')), `${rel(file)} imports ${rel(dep)}`);
     }
   }
 });

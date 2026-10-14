@@ -19,12 +19,13 @@
  * data:image/... URL or an https:// URL. */
 
 import { LOOK, LOOKS, PACK_FORMAT } from '../../core/index.js';
+import { t } from '../../i18n/i18n.js';
 const TOP_KEYS = ['format', 'name', 'author', 'tile', 'pixelated', 'looks'];
 const COLOR = /^#[0-9a-f]{6}$/i;
 const PATH = /^(?!\/)(?!.*\.\.)[\w\-./ ]+\.(svg|png|webp|jpe?g|gif)$/i;
 
 export const isPicture = (v) => typeof v === 'string' &&
-  (PATH.test(v) || v.startsWith('data:image/') || v.startsWith('https://') || /^\s*<svg[\s>]/.test(v));
+  (PATH.test(v) || v.startsWith('data:image/') || v.startsWith('https://') || /^\s*<svg[\s>]/.test(v));  // i18n-ok: a URL prefix
 
 // Every picture an image value refers to, in order (variants' nulls skipped).
 export function pictures(value) {
@@ -35,16 +36,16 @@ export function pictures(value) {
 
 function checkImage(value, where, problems) {
   if (Array.isArray(value)) {
-    if (!value.length) problems.push(`${where}: the list of variants is empty`);
-    if (value.every((v) => v === null)) problems.push(`${where}: every variant is empty`);
+    if (!value.length) problems.push(t('pack.variantsEmpty', { where }));
+    if (value.every((v) => v === null)) problems.push(t('pack.variantsAllEmpty', { where }));
   } else if (value && typeof value === 'object') {
     const extra = Object.keys(value).filter((k) => k !== 'frames' && k !== 'fps');
-    if (extra.length) problems.push(`${where}: unknown key ${extra.map((k) => `"${k}"`).join(', ')} (an animation has "frames" and "fps")`);
-    if (!Array.isArray(value.frames) || !value.frames.length) problems.push(`${where}: "frames" must be a list of pictures`);
-    if (!(value.fps > 0 && value.fps <= 30)) problems.push(`${where}: "fps" must be a number from 1 to 30`);
+    if (extra.length) problems.push(t('pack.animationKey', { where, keys: extra.map((k) => `"${k}"`).join(', ') }));
+    if (!Array.isArray(value.frames) || !value.frames.length) problems.push(t('pack.frames', { where }));
+    if (!(value.fps > 0 && value.fps <= 30)) problems.push(t('pack.fps', { where }));
   }
   for (const p of pictures(value)) {
-    if (!isPicture(p)) problems.push(`${where}: ${JSON.stringify(String(p).slice(0, 60))} is not a picture (a path ending .svg/.png/.webp/.jpg/.gif, inline <svg>, data:image/ or https://)`);
+    if (!isPicture(p)) problems.push(t('pack.notPicture', { where, value: JSON.stringify(String(p).slice(0, 60)) }));
   }
 }
 
@@ -52,29 +53,29 @@ function checkImage(value, where, problems) {
 // required slot (the default pack must be complete).
 export function validatePack(pack, { complete = false } = {}) {
   const problems = [];
-  if (!pack || typeof pack !== 'object' || Array.isArray(pack)) return ['The pack is not a JSON object'];
-  for (const k of Object.keys(pack)) if (!TOP_KEYS.includes(k)) problems.push(`Unknown top-level key "${k}" (allowed: ${TOP_KEYS.join(', ')})`);
-  if (pack.format !== PACK_FORMAT) problems.push(`"format" must be ${PACK_FORMAT} (this game's pack format), not ${JSON.stringify(pack.format)}`);
-  if (typeof pack.name !== 'string' || !pack.name.trim()) problems.push('"name" is missing');
-  if (pack.author !== undefined && typeof pack.author !== 'string') problems.push('"author" must be text');
-  if (pack.tile !== undefined && !(Number.isInteger(pack.tile) && pack.tile >= 4 && pack.tile <= 1024)) problems.push('"tile" must be a whole number of pixels from 4 to 1024');
-  if (pack.pixelated !== undefined && typeof pack.pixelated !== 'boolean') problems.push('"pixelated" must be true or false');
+  if (!pack || typeof pack !== 'object' || Array.isArray(pack)) return [t('pack.notObject')];
+  for (const k of Object.keys(pack)) if (!TOP_KEYS.includes(k)) problems.push(t('pack.topKey', { key: k, allowed: TOP_KEYS.join(', ') }));
+  if (pack.format !== PACK_FORMAT) problems.push(t('pack.format', { format: PACK_FORMAT, got: JSON.stringify(pack.format) }));
+  if (typeof pack.name !== 'string' || !pack.name.trim()) problems.push(t('pack.name'));
+  if (pack.author !== undefined && typeof pack.author !== 'string') problems.push(t('pack.author'));
+  if (pack.tile !== undefined && !(Number.isInteger(pack.tile) && pack.tile >= 4 && pack.tile <= 1024)) problems.push(t('pack.tile'));
+  if (pack.pixelated !== undefined && typeof pack.pixelated !== 'boolean') problems.push(t('pack.pixelated'));
   const looks = pack.looks;
   if (!looks || typeof looks !== 'object' || Array.isArray(looks)) {
-    problems.push('"looks" must be an object of thing ids');
+    problems.push(t('pack.looks'));
     return problems;
   }
   for (const id of Object.keys(looks)) {
     const thing = LOOK[id];
-    if (!thing) { problems.push(`${id}: no such thing in the game (see the wiki's list)`); continue; }
+    if (!thing) { problems.push(t('pack.noThing', { id })); continue; }
     const entry = looks[id];
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) { problems.push(`${id}: must be an object of slots`); continue; }
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) { problems.push(t('pack.slotsObject', { id })); continue; }
     for (const slot of Object.keys(entry)) {
       const where = `${id} ${slot}`;
-      if (!(slot in thing.slots)) problems.push(`${where}: ${thing.name} has no "${slot}" (it has ${Object.keys(thing.slots).join(', ')})`);
-      else if (slot === 'color') { if (!COLOR.test(entry[slot])) problems.push(`${where}: must be a colour like "#4a7a33"`); }
+      if (!(slot in thing.slots)) problems.push(t('pack.noSlot', { where, name: thing.name, slot, slots: Object.keys(thing.slots).join(', ') }));
+      else if (slot === 'color') { if (!COLOR.test(entry[slot])) problems.push(t('pack.color', { where })); }
       else if (slot === 'tiers' && !(Array.isArray(entry[slot]) && entry[slot].length && !entry[slot].includes(null))) {
-        problems.push(`${where}: must be a list of pictures, one per power of ten, smallest first`);
+        problems.push(t('pack.tiers', { where }));
       }
       else checkImage(entry[slot], where, problems);
     }
@@ -82,7 +83,7 @@ export function validatePack(pack, { complete = false } = {}) {
   if (complete) {
     for (const thing of LOOKS) {
       for (const [slot, required] of Object.entries(thing.slots)) {
-        if (required && !(looks[thing.id] && looks[thing.id][slot] !== undefined)) problems.push(`${thing.id} ${slot}: missing`);
+        if (required && !(looks[thing.id] && looks[thing.id][slot] !== undefined)) problems.push(t('pack.missing', { where: `${thing.id} ${slot}` }));
       }
     }
   }

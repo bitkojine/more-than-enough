@@ -2,11 +2,12 @@
 
 import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS } from './content.js';
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
+import { t } from '../i18n/i18n.js';
 
 /* ------------------------------------------------------------- income */
 
 // Where resources come from, as counted in the Collected sheet.
-export const SOURCES = { hand: 'By hand', finds: 'From finds', buildings: 'From buildings', engine: 'From the Abundance Engine' };
+export const SOURCES = Object.fromEntries(['hand', 'finds', 'buildings', 'engine'].map((k) => [k, t('source.' + k)]));
 
 // Adds `amount` of `res` to the packs, counted as gathered this world and as
 // coming from `source` (a key of SOURCES).
@@ -31,7 +32,7 @@ export function pay(inv, cost) {
 }
 
 export function costText(cost) {
-  return Object.keys(cost || {}).map((r) => cost[r] + ' ' + RESOURCE_LABEL[r]).join(', ');
+  return Object.keys(cost || {}).map((r) => t('cost.item', { n: cost[r], res: RESOURCE_LABEL[r] })).join(', ');
 }
 
 export function scaleCost(cost, factor) {

@@ -4,6 +4,7 @@
 
 import * as Core from '../src/core/index.js';
 import { pictures } from '../src/game/look/validate.js';
+import { t } from './strings.js';
 
 const PACK_DIR = '../packs/default/';
 let pack = null;
@@ -12,7 +13,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 export async function loadDefaultPack() {
   const res = await fetch(PACK_DIR + 'pack.json');
-  if (!res.ok) throw new Error(`The default texture pack didn't load (${res.status})`);
+  if (!res.ok) throw new Error(t('wiki.packFailed', { status: res.status }));
   pack = await res.json();
   return pack;
 }
@@ -67,15 +68,15 @@ function slotList(thing) {
 }
 
 export function renderThings() {
-  const count = `<p class="count">${Core.LOOKS.length} things in ${Core.LOOK_GROUPS.length} groups.</p>`;
+  const count = `<p class="count">${t('wiki.thingCount', { count: Core.LOOKS.length, groups: Core.LOOK_GROUPS.length })}</p>`;
   return count + Core.LOOK_GROUPS.map((g) => {
-    const rows = Core.LOOKS.filter((t) => t.group === g.id).map((t) => `
-      <li class="thing" id="look-${esc(t.id)}">
-        <div class="thing-pics">${preview(t)}</div>
+    const rows = Core.LOOKS.filter((thing) => thing.group === g.id).map((thing) => `
+      <li class="thing" id="look-${esc(thing.id)}">
+        <div class="thing-pics">${preview(thing)}</div>
         <div class="thing-text">
-          <div class="thing-head"><strong>${esc(t.name)}</strong> <code class="thing-id">${esc(t.id)}</code></div>
-          <p>${esc(t.does)}</p>
-          <p class="thing-slots">Slots: ${slotList(t)}</p>
+          <div class="thing-head"><strong>${esc(thing.name)}</strong> <code class="thing-id">${esc(thing.id)}</code></div>
+          <p>${esc(thing.does)}</p>
+          <p class="thing-slots">${t('wiki.slots', { slots: slotList(thing) })}</p>
         </div>
       </li>`).join('');
     return `<h2 id="group-${g.id}">${esc(g.name)}</h2><p class="area-blurb">${esc(g.blurb)}</p><ul class="things">${rows}</ul>`;
@@ -108,7 +109,7 @@ export async function bundleDefaultPack() {
       else entry[slot] = await inline(v);
     }
   }
-  out.name = pack.name + ' (copy)';
+  out.name = t('wiki.packCopy', { name: t('pack.defaultName') });
   return out;
 }
 
@@ -124,7 +125,7 @@ export function wireDownload(button) {
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     } catch (err) {
-      button.insertAdjacentHTML('afterend', `<p class="error">Couldn't build the file: ${esc(err.message)}</p>`);
+      button.insertAdjacentHTML('afterend', `<p class="error">${t('wiki.packBuildFailed', { error: esc(err.message) })}</p>`);
     } finally {
       button.disabled = false;
     }

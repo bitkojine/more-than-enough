@@ -7,6 +7,7 @@ import { UNLOCKS, PERKS, EMBARK_MIN_TOTAL } from './content.js';
 import { SOURCES } from './economy.js';
 import { revealAround } from './sim.js';
 import { worldMastered } from './upgrades.js';
+import { t } from '../i18n/i18n.js';
 
 /**
  * @typedef {{x: number, y: number, z: number}} Position
@@ -104,7 +105,7 @@ export function canEmbark(s) {
 
 // Starts a new world from `seed`, keeping Insight, perks and lifetime totals.
 export function embark(s, seed) {
-  if (!canEmbark(s)) return { ok: false, reason: 'Finish every upgrade and gather ' + EMBARK_MIN_TOTAL + ' resources in this world first' };
+  if (!canEmbark(s)) return { ok: false, reason: t('reason.embark', { n: EMBARK_MIN_TOTAL }) };
   const gained = embarkGain(s);
   const fresh = createState(seed);
   fresh.perks = { ...s.perks };

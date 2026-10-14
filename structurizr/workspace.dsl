@@ -110,6 +110,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
+            i18n = container "Translations" "Every word the player reads, in English and Lithuanian (src/i18n/, plus the wiki's own in wiki/i18n/). Code asks for text by key with t(); the language is picked once at load (the player's choice, else the browser's) and switching reloads the page. A missing key or placeholder throws, and the unit tests fail if either language lacks a key or any text bypasses t()." "JavaScript modules (browser + Node)" {
+                tags "Presentation"
+                properties {
+                    "files" "src/i18n/, wiki/i18n/"
+                }
+            }
+
             core = container "Simulation Core" "The game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." "JavaScript modules (browser + Node)" {
                 tags "Core Engine"
                 properties {
@@ -195,6 +202,9 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dev -> tools.coreTests "Runs and extends"
         dev -> tools.e2e "Runs and extends"
 
+        mte.app -> mte.i18n "Asks for every word by key"
+        mte.core -> mte.i18n "Names things (tiles, buildings, milestones) by key"
+        mte.wiki -> mte.i18n "Asks for every word by key; its articles live there"
         mte.app -> mte.core "Drives actions and step(); reads state every frame"
         mte.core -> mte.app "Returns state; emits transient events on auto-collect"
         tools.coreTests -> mte.core "Imports src/core/index.js and steps it directly"

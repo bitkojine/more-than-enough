@@ -6,12 +6,13 @@ import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
 import { loadDefaultPack, pic, colorOf, tierUrl, renderThings, wireDownload } from './textures.js';
 import { find, renderResults, passages, mark, unmark } from './search.js';
+import { t, localizePage, setLanguage, nextLanguage, number, LOCALE } from './strings.js';
 
 const { T, TILE_NAME } = Core;
 // Pictures come from the default texture pack.
 const icon = (res) => pic(Core.resourceLook(res), 'icon', 'pic', Core.RESOURCE_LABEL[res]);
-const tileName = (t) => pic(Core.tileLook(t), 'top') + ' ' + TILE_NAME[t];
-const num = (n) => (Number.isInteger(n) ? n.toLocaleString('en-US') : String(Math.round(n * 1000) / 1000));
+const tileName = (type) => pic(Core.tileLook(type), 'top') + ' ' + TILE_NAME[type];
+const num = (n) => number(Number.isInteger(n) ? n : Math.round(n * 1000) / 1000);
 const pct = (f) => Math.round(f * 100) + '%';
 
 // A price: one pill per resource, picture first, so each amount clearly
@@ -29,101 +30,105 @@ function table(headers, rows, numeric = []) {
 
 /* --------------------------------------------------------------- tiles */
 
-function tileNotes(t) {
-  const info = Core.TILE_INFO[t];
+function tileNotes(type) {
+  const info = Core.TILE_INFO[type];
   const notes = [];
-  if (info.swim) notes.push('Swimmable, at ' + pct(Core.SWIM_SPEED) + ' speed');
-  else if (info.walk) notes.push('Walkable');
-  else if (info.solid) notes.push('Solid until dug');
-  else notes.push('Impassable');
-  if (info.res) notes.push('yields ' + icon(info.res) + ' ' + Core.RESOURCE_LABEL[info.res]);
-  else if (info.harvest && info.sweep !== false) notes.push('holds nothing: digging it only clears the way');
-  if (info.regrows) notes.push('regrows');
-  else if (info.harvest && !info.solid) notes.push('never regrows');
-  if (info.land) notes.push('converters can stand here');
-  if (t === T.HOME) notes.push('your stockpile is kept here');
-  else if (info.yard !== undefined) notes.push('your stockpile spills onto it');
-  if (info.descend) notes.push('drop to the layer below');
-  if (info.rise) notes.push('climb to the layer above');
-  if (t === T.SHAFT) notes.push('one dig opens it');
-  if (info.find) notes.push('a find: glints in the dark, one dig pays its loot (see Finds)');
-  if (t === T.BEDROCK) notes.push('cannot be dug');
+  if (info.swim) notes.push(t('wiki.note.swim', { pct: pct(Core.SWIM_SPEED) }));
+  else if (info.walk) notes.push(t('wiki.note.walk'));
+  else if (info.solid) notes.push(t('wiki.note.solid'));
+  else notes.push(t('wiki.note.impassable'));
+  if (info.res) notes.push(t('wiki.note.yields', { res: icon(info.res) + ' ' + Core.RESOURCE_LOWER[info.res] }));
+  else if (info.harvest && info.sweep !== false) notes.push(t('wiki.note.empty'));
+  if (info.regrows) notes.push(t('wiki.note.regrows'));
+  else if (info.harvest && !info.solid) notes.push(t('wiki.note.neverRegrows'));
+  if (info.land) notes.push(t('wiki.note.land'));
+  if (type === T.HOME) notes.push(t('wiki.note.home'));
+  else if (info.yard !== undefined) notes.push(t('wiki.note.yard'));
+  if (info.descend) notes.push(t('wiki.note.descend'));
+  if (info.rise) notes.push(t('wiki.note.rise'));
+  if (type === T.SHAFT) notes.push(t('wiki.note.shaft'));
+  if (info.find) notes.push(t('wiki.note.find'));
+  if (type === T.BEDROCK) notes.push(t('wiki.note.bedrock'));
   return notes.join(' · ');
 }
 
 const surfaceTiles = [T.HOME, T.GRASS, T.FOREST, T.STONE, T.ORE, T.CRYSTAL, T.WATER, T.ROCK, T.CAVE];
 const undergroundTiles = [T.SOIL, T.STONE_SEAM, T.ORE_SEAM, T.CRYSTAL_SEAM, T.SPORE_BED, T.BEDROCK, T.CACHE, T.GEODE, T.SHAFT, T.SHAFT_OPEN, T.RISE, T.TUNNEL];
 
+// Table headings, by key.
+const heads = (...keys) => keys.map((k) => t('wiki.col.' + k));
+const fromLayer = (from) => (from === 1 ? t('wiki.everyLayer') : t('wiki.fromLayer', { layer: from }));
+
 /* -------------------------------------------------------------- tables */
 
 const TABLES = {
-  surface: () => table(['Tile', 'Richness', 'Notes'], surfaceTiles.map((t) => {
-    const d = Core.DEPOSIT[t];
-    return [tileName(t), d ? `${d.base}–${d.base + d.spread}` : '—', tileNotes(t)];
+  surface: () => table(heads('tile', 'richness', 'notes'), surfaceTiles.map((type) => {
+    const d = Core.DEPOSIT[type];
+    return [tileName(type), d ? `${d.base}–${d.base + d.spread}` : '—', tileNotes(type)];
   }), [1]),
 
-  underground: () => table(['Tile', 'Notes'], undergroundTiles.map((t) => [tileName(t), tileNotes(t)])),
+  underground: () => table(heads('tile', 'notes'), undergroundTiles.map((type) => [tileName(type), tileNotes(type)])),
 
   geology: () => {
     let prev = 0;
     const rows = Core.GEOLOGY.map((g) => {
       const share = g.below - prev;
       prev = g.below;
-      return [tileName(g.type), pct(share), g.from === 1 ? 'every layer' : `layer ${g.from} and deeper`];
+      return [tileName(g.type), pct(share), fromLayer(g.from)];
     });
-    rows.push([tileName(T.SOIL), pct(1 - prev) + ' + any band not yet unlocked', 'every layer']);
-    return table(['Tile', 'Share of tiles', 'Found on'], rows, [1]);
+    rows.push([tileName(T.SOIL), t('wiki.soilShare', { pct: pct(1 - prev) }), t('wiki.everyLayer')]);
+    return table(heads('tile', 'share', 'foundOn'), rows, [1]);
   },
 
   mushrooms: () => {
-    return table(['Mushroom', 'Grows', 'How common', 'What it is'], Core.MUSHROOM_KEYS.map((k) => {
+    const common = (w) => t(w >= 4 ? 'wiki.common' : w >= 2 ? 'wiki.fairlyCommon' : w >= 1 ? 'wiki.uncommon' : 'wiki.rare');
+    return table(heads('mushroom', 'grows', 'howCommon', 'whatItIs'), Core.MUSHROOM_KEYS.map((k) => {
       const m = Core.MUSHROOMS[k];
       const where = m.where === 'cave'
-        ? (m.from > 1 ? `spore beds, layer ${m.from} and deeper` : 'spore beds')
-        : m.kinds.map((f) => Core.FOREST_KINDS[f].name.toLowerCase()).join(', ');
-      const common = m.weight >= 4 ? 'common' : m.weight >= 2 ? 'fairly common' : m.weight >= 1 ? 'uncommon' : 'rare';
-      return [`${pic(Core.mushroomLook(k), 'image')} ${m.name}${m.magic ? ' ✦' : ''}`, where, common, m.does];
+        ? (m.from > 1 ? t('wiki.sporeBedsFrom', { layer: m.from }) : t('wiki.sporeBeds'))
+        : m.kinds.map((f) => Core.FOREST_KINDS[f].name.toLocaleLowerCase(LOCALE)).join(', ');
+      return [`${pic(Core.mushroomLook(k), 'image')} ${m.name}${m.magic ? ' ✦' : ''}`, where, common(m.weight), m.does];
     }));
   },
 
-  props: () => table(['Thing', 'Cost', 'Light reach', 'What it does'],
+  props: () => table(heads('thing', 'cost', 'light', 'whatItDoes'),
     Object.keys(Core.PROPS).map((k) => {
       const p = Core.PROPS[k];
-      return [`${pic('mark.' + k, 'image')} ${p.name}`, costText(p.cost), p.light || '—', p.does];
+      return [`${pic('mark.' + k, 'image')} ${p.name}`, costText(p.cost), p.light ? num(p.light) : '—', p.does];
     }), [2]),
 
-  finds: () => table(['Find', 'Loot on layer 1, per point of tool yield', 'Found on'],
-    Object.keys(Core.FINDS).map((t) => {
-      const f = Core.FINDS[t];
-      return [tileName(+t), Object.keys(f.loot).map((r) => f.loot[r] + ' ' + icon(r)).join(' '), f.from === 1 ? 'every layer' : `layer ${f.from} and deeper`];
+  finds: () => table(heads('find', 'loot', 'foundOn'),
+    Object.keys(Core.FINDS).map((type) => {
+      const f = Core.FINDS[type];
+      return [tileName(+type), Object.keys(f.loot).map((r) => f.loot[r] + ' ' + icon(r)).join(' '), fromLayer(f.from)];
     })),
 
   tools: () => Object.keys(Core.TOOLS).map((id) => {
     const tool = Core.TOOLS[id];
-    const rows = tool.levels.map((lv, i) => [i + 1, lv.yield !== undefined ? lv.yield + ' per swing' : '×' + lv.mult, lv.cost ? costText(lv.cost) : 'starting tool']);
-    return `<h3>${pic('tool.' + id)} ${tool.name}</h3><p>${tool.desc}.</p>` + table(['Level', 'Effect', 'Cost'], rows, [0, 1]);
+    const rows = tool.levels.map((lv, i) => [i + 1, lv.yield !== undefined ? t('wiki.perSwing', { n: lv.yield }) : '×' + num(lv.mult), lv.cost ? costText(lv.cost) : t('wiki.startingTool')]);
+    return `<h3>${pic('tool.' + id)} ${tool.name}</h3><p>${t('sentence', { text: tool.desc })}</p>` + table(heads('level', 'effect', 'cost'), rows, [0, 1]);
   }).join(''),
 
-  extractors: () => table(['Building', 'Stands on', 'Makes', 'Base rate', 'Holds', 'First one costs'],
+  extractors: () => table(heads('building', 'standsOn', 'makes', 'baseRate', 'holds', 'firstCosts'),
     Core.DEPOSIT_EXTRACTORS.map((k) => {
       const e = Core.EXTRACTORS[k];
-      return [`${pic('building.' + k, 'image')} ${e.name}`, tileName(e.tile), icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
+      return [`${pic('building.' + k, 'image')} ${e.name}`, tileName(e.tile), icon(e.res), num(e.rate) + '/s', e.buffer, costText(e.baseCost)];
     }), [3, 4]),
 
-  converters: () => table(['Building', 'Needs', 'Makes', 'Base rate', 'Holds', 'First one costs'],
+  converters: () => table(heads('building', 'needs', 'makes', 'baseRate', 'holds', 'firstCosts'),
     Core.CONVERTERS.map((k) => {
       const e = Core.EXTRACTORS[k];
-      return [`${pic('building.' + k, 'image')} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), e.rate + '/s', e.buffer, costText(e.baseCost)];
+      return [`${pic('building.' + k, 'image')} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), num(e.rate) + '/s', e.buffer, costText(e.baseCost)];
     }), [3, 4]),
 
-  unlocks: () => table(['Unlock', 'What it does', 'Cost'],
+  unlocks: () => table(heads('unlock', 'whatItDoes', 'cost'),
     Object.keys(Core.UNLOCKS).map((k) => {
       const u = Core.UNLOCKS[k];
       return [`${pic('unlock.' + k)} ${u.name}`, u.desc, costText(u.cost)];
     })),
 
-  abundance: () => table(['Level', 'Trickle', 'Production', 'Cost of this level'],
-    [0, 1, 2, 3, 4, 5].map((lv) => [lv + 1, `+${lv + 1}/s each`, '×' + num(Math.pow(Core.ABUNDANCE.prodMult, lv + 1)),
+  abundance: () => table(heads('level', 'trickle', 'production', 'levelCost'),
+    [0, 1, 2, 3, 4, 5].map((lv) => [lv + 1, t('wiki.trickle', { n: lv + 1 }), '×' + num(Math.pow(Core.ABUNDANCE.prodMult, lv + 1)),
       costText(Core.scaleCost(Core.ABUNDANCE.baseCost, Math.pow(Core.ABUNDANCE.growth, lv)))]), [0, 2]),
 
   refineries: () => Core.RESOURCES.map((res) => {
@@ -133,13 +138,13 @@ const TABLES = {
       total *= lv.mult;
       return [i + 1, '×' + lv.mult, '×' + num(total), costText(lv.cost)];
     });
-    return `<h3>${pic('refinery.' + res)} ${chain.name} ${icon(res)}</h3>` + table(['Level', 'Step', 'Total', 'Cost'], rows, [0, 1, 2]);
+    return `<h3>${pic('refinery.' + res)} ${chain.name} ${icon(res)}</h3>` + table(heads('level', 'step', 'total', 'cost'), rows, [0, 1, 2]);
   }).join(''),
 
-  perks: () => table(['Perk', 'What it does', 'Cost in Insight'],
+  perks: () => table(heads('perk', 'whatItDoes', 'insightCost'),
     Object.keys(Core.PERKS).map((k) => {
       const p = Core.PERKS[k];
-      return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.repeat ? `${p.base}, then +1 per level owned` : `${p.base} (once)`];
+      return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.repeat ? t('wiki.perkRepeat', { n: p.base }) : t('wiki.perkOnce', { n: p.base })];
     })),
 
   // One row per power of ten: the pile for each resource, and its footprint.
@@ -149,9 +154,9 @@ const TABLES = {
       const span = Core.pileSpan(tier);
       rows.push([num(Math.pow(Core.PILE_BASE, tier)),
         ...Core.RESOURCES.map((r) => `<img class="pile" src="${tierUrl(r, tier)}" alt="${Core.RESOURCE_LABEL[r]}, ${num(Math.pow(10, tier))}" loading="lazy">`),
-        span === 1 ? '1 tile' : `${span} × ${span} tiles`]);
+        span === 1 ? t('wiki.oneTile') : t('wiki.tilesSquare', { n: span })]);
     }
-    return table(['Each pile is', ...Core.RESOURCES.map(icon), 'Ground'], rows, [0]);
+    return table([t('wiki.col.pileIs'), ...Core.RESOURCES.map(icon), t('wiki.col.ground')], rows, [0]);
   },
 
   milestones: () => '<ol>' + Core.GOALS.map((g) => `<li>${g.text}</li>`).join('') + '</ol>'
@@ -173,14 +178,21 @@ async function fill() {
   for (const node of document.querySelectorAll('[data-ideas]')) node.innerHTML = renderIdeas();
   for (const node of document.querySelectorAll('[data-things]')) node.innerHTML = renderThings();
   for (const node of document.querySelectorAll('[data-download-pack]')) wireDownload(node);
-  document.querySelector('.version').textContent = 'for game v' + VERSION;
+  document.querySelector('.version').textContent = t('wiki.forVersion', { version: VERSION });
 }
 
 /* ------------------------------------------------------------- routing */
 
 // Addresses: #article, #article/n (the n-th passage of an article, from a
 // search result) and #search/words.
+// Each article's words come from the dictionaries, in the reader's language.
 const articles = [...document.querySelectorAll('article')];
+for (const a of articles) {
+  a.dataset.title = t(`wiki.article.${a.id}.title`);
+  a.innerHTML = t(`wiki.article.${a.id}`);
+}
+localizePage();
+document.getElementById('language').addEventListener('click', () => setLanguage(nextLanguage()));
 const toc = document.getElementById('toc');
 const results = document.getElementById('results');
 const search = document.getElementById('search');
@@ -203,7 +215,7 @@ function show() {
     results.hidden = false;
     results.innerHTML = renderResults(find(articles, r.query), r.query);
     filterToc(r.query);
-    document.title = 'Search – More Than Enough Wiki';
+    document.title = t('wiki.searchTitle');
     return;
   }
   const current = r.article;
@@ -213,7 +225,7 @@ function show() {
     if (link.getAttribute('href') === '#' + current.id) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   }
-  document.title = (current === articles[0] ? '' : current.dataset.title + ' – ') + 'More Than Enough Wiki';
+  document.title = current === articles[0] ? t('wiki.title') : t('wiki.articleTitle', { article: current.dataset.title });
   // Came from a search: mark the words in the article and go to the spot.
   const spot = r.passage >= 0 && passages(current)[r.passage];
   if (spot) {
@@ -254,6 +266,6 @@ fill().then(() => {
   document.body.dataset.filled = 'true';
   if (route().query !== undefined || route().passage >= 0) show(); // tables are in now
 }, (err) => {
-  document.querySelector('main').insertAdjacentHTML('afterbegin', `<div class="note error">The wiki couldn't load its tables: ${err.message}</div>`);
+  document.querySelector('main').insertAdjacentHTML('afterbegin', `<div class="note error">${t('wiki.loadFailed', { error: err.message })}</div>`);
   throw err;
 });

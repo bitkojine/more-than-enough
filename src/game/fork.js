@@ -5,16 +5,17 @@
 
 import * as Core from '../core/index.js';
 import { fmt, esc } from './format.js';
+import { t } from '../i18n/i18n.js';
 
 function played(seconds) {
   const m = Math.floor(seconds / 60);
-  if (m < 60) return m + ' min';
-  return Math.floor(m / 60) + ' h ' + (m % 60) + ' min';
+  if (m < 60) return t('fork.minutes', { m });
+  return t('fork.hours', { h: Math.floor(m / 60), m: m % 60 });
 }
 
 function summary(s) {
-  const parts = [played(s.time) + ' played', fmt(Core.lifetimeTotal(s)) + ' gathered'];
-  if (s.prestiges > 0) parts.push(s.prestiges + (s.prestiges === 1 ? ' embark' : ' embarks'));
+  const parts = [t('fork.played', { time: played(s.time) }), t('fork.gathered', { n: fmt(Core.lifetimeTotal(s)) })];
+  if (s.prestiges > 0) parts.push(t('fork.embarks', { count: s.prestiges }));
   return parts.join(' · ');
 }
 
@@ -34,12 +35,12 @@ export function createFork(box) {
     const otherAhead = other && compare(other, mine) > 0;
     const card = (id, title, text, ahead) => `
       <button type="button" data-pick="${id}" class="${ahead ? 'ahead' : ''}">
-        <span class="title">${esc(title)}${ahead ? ' <em>further along</em>' : ''}</span>
+        <span class="title">${esc(title)}${ahead ? ` <em>${t('fork.ahead')}</em>` : ''}</span>
         <span class="text">${esc(text)}</span>
       </button>`;
     body.innerHTML = other
-      ? card('other', "The other tab's world", summary(other), otherAhead) + card('mine', "This tab's world", summary(mine), !otherAhead)
-      : card('reload', 'Reload', 'The other tab saved with a newer version of the game.', true) + card('mine', "This tab's world", summary(mine), false);
+      ? card('other', t('fork.other'), summary(other), otherAhead) + card('mine', t('fork.mine'), summary(mine), !otherAhead)
+      : card('reload', t('fork.reload'), t('fork.newer'), true) + card('mine', t('fork.mine'), summary(mine), false);
     box.hidden = false;
     open = true;
     for (const b of body.querySelectorAll('button')) {

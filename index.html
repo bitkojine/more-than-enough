@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>More Than Enough</title>
+<title data-i18n="game.title"></title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -13,8 +13,8 @@
 <link rel="icon" href="icons/favicon-32.png" type="image/png" sizes="32x32" />
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
 <link rel="manifest" href="manifest.webmanifest" />
-<meta name="apple-mobile-web-app-title" content="Enough" />
-<meta name="application-name" content="More Than Enough" />
+<meta name="apple-mobile-web-app-title" content="" data-i18n-content="game.shortTitle" />
+<meta name="application-name" content="" data-i18n-content="game.title" />
 <!-- scripts/stage-site.sh stamps a build hash onto every asset URL (here and
      in each module import) so GitHub Pages' 10-minute cache can't serve a
      stale build. Keep plain paths in the source. -->
@@ -23,6 +23,25 @@
   // Fail loud: anything that breaks the game (an exception, a module that
   // failed to load) is shown on screen with what broke, never a frozen map.
   (function () {
+    // This runs before the game's modules (which may be what failed), so it
+    // carries its own few words in every language; test/unit/i18n.test.js
+    // checks they match. The language is picked as src/i18n/i18n.js does.
+    var CRASH_TEXT = {
+      en: { title: 'The game broke', reload: 'Reload', game: 'Game', failedToLoad: 'Failed to load', unhandled: 'Unhandled promise rejection' },
+      lt: { title: 'Žaidimas sugedo', reload: 'Perkrauti', game: 'Žaidimas', failedToLoad: 'Nepavyko įkelti', unhandled: 'Neapdorotas pažado atmetimas' }
+    };
+    function language() {
+      var asked = null;
+      try { asked = new URLSearchParams(location.search).get('lang') || localStorage.getItem('mte.lang'); } catch (e) { asked = null; }
+      if (asked && CRASH_TEXT[asked]) return asked;
+      var wanted = (navigator.languages || []).concat([navigator.language]);
+      for (var i = 0; i < wanted.length; i++) {
+        var code = String(wanted[i] || '').slice(0, 2).toLowerCase();
+        if (CRASH_TEXT[code]) return code;
+      }
+      return 'en';
+    }
+    var words = CRASH_TEXT[language()];
     // Everything we know about an error: its kind and message (Safari's
     // stack leaves both out), where it was thrown, and the stack.
     function describe(err, where) {
@@ -40,7 +59,9 @@
       var pre = box.querySelector('pre');
       if (!shown) {
         shown = true;
-        pre.textContent = 'Game v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
+        box.querySelector('strong').textContent = words.title;
+        box.querySelector('button').textContent = words.reload;
+        pre.textContent = words.game + ' v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
       }
       box.hidden = false;
       pre.textContent += text + '\n\n';
@@ -50,7 +71,7 @@
     function ours(url) { return !url || url.indexOf(location.origin + '/') === 0; }
     window.addEventListener('error', function (e) {
       var el = e.target;
-      if (el && el !== window && (el.src || el.href)) return crash('Failed to load ' + (el.src || el.href));
+      if (el && el !== window && (el.src || el.href)) return crash(words.failedToLoad + ' ' + (el.src || el.href));
       // An error the browser hides from us ("Script error.", no error object)
       // or one from another origin was thrown by code that isn't the game:
       // iOS Safari runs its own and share extensions' scripts in the page when
@@ -63,7 +84,7 @@
       crash(describe(e.error, e.filename && e.filename + ':' + e.lineno + ':' + e.colno));
     }, true);
     window.addEventListener('unhandledrejection', function (e) {
-      crash('Unhandled promise rejection: ' + describe(e.reason));
+      crash(words.unhandled + ': ' + describe(e.reason));
     });
   })();
 </script>
@@ -72,38 +93,38 @@
   <canvas id="game"></canvas>
 
   <div id="hud">
-    <div id="version"><span id="brand">byrforr</span><span id="verText"></span></div>
-    <button id="btnAwards" type="button" aria-label="Milestones reached"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
+    <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
+    <button id="btnAwards" type="button" data-i18n-aria-label="hud.awards"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
     <pre id="perf" aria-live="off" hidden></pre>
     <div id="resources"></div>
     <div id="depth" aria-live="polite" hidden></div>
     <div id="depthGauge" aria-hidden="true" hidden></div>
-    <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small>Milestone <span class="of"></span></small><strong></strong></div>
+    <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small><span class="label" data-i18n="hud.milestone"></span> <span class="of"></span></small><strong></strong></div>
   </div>
 
-  <div id="controls" role="group" aria-label="Thumb controls">
-    <div id="zoomControls" aria-label="Map zoom">
-      <button id="btnZoomOut" type="button" aria-label="Zoom out">&minus;</button>
-      <button id="zoomLevel" type="button" aria-label="Zoom 1×, tap to reset">
+  <div id="controls" role="group" data-i18n-aria-label="hud.controls">
+    <div id="zoomControls" data-i18n-aria-label="hud.zoom">
+      <button id="btnZoomOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
+      <button id="zoomLevel" type="button">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" /><path d="M14.5 14.5 L20 20" /></svg><span id="zoomText">1×</span>
       </button>
-      <button id="btnZoomIn" type="button" aria-label="Zoom in">+</button>
-      <button id="btnTilt" type="button" aria-label="Tilt the view" aria-pressed="false">
+      <button id="btnZoomIn" type="button" data-i18n-aria-label="hud.zoomIn">+</button>
+      <button id="btnTilt" type="button" data-i18n-aria-label="hud.tilt" aria-pressed="false">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17 L9 8 H21 L15 17 Z" /><path d="M3 17 V20 H15 V17 M15 20 L21 11 V8" /></svg>
       </button>
     </div>
     <div id="thumbDock">
-      <button id="btnBuild" class="btn" type="button" aria-label="Build extractor">
-        <img class="big" data-look="ui.build" alt=""><span class="cap">BUILD</span>
+      <button id="btnBuild" class="btn" type="button" data-i18n-aria-label="button.build.aria">
+        <img class="big" data-look="ui.build" alt=""><span class="cap" data-i18n="button.build"></span>
       </button>
-      <button id="btnUpgrade" class="btn" type="button" aria-label="Upgrades">
-        <img class="big" data-look="ui.upgrade" alt=""><span class="cap">UPGRADE</span>
+      <button id="btnUpgrade" class="btn" type="button" data-i18n-aria-label="button.upgrade.aria">
+        <img class="big" data-look="ui.upgrade" alt=""><span class="cap" data-i18n="button.upgrade"></span>
       </button>
-      <button id="btnMine" class="btn" type="button" aria-label="Climb down the ladder" hidden>
-        <img class="big" id="mineIcon" data-look="ui.climbDown" alt=""><span class="cap" id="mineLabel">CLIMB DOWN</span>
+      <button id="btnMine" class="btn" type="button" hidden>
+        <img class="big" id="mineIcon" data-look="ui.climbDown" alt=""><span class="cap" id="mineLabel"></span>
       </button>
-      <button id="btnAction" class="btn" type="button" aria-label="Gather">
-        <img class="big" id="actionIcon" data-look="ui.gather" alt=""><span class="cap" id="actionLabel">GATHER</span>
+      <button id="btnAction" class="btn" type="button">
+        <img class="big" id="actionIcon" data-look="ui.gather" alt=""><span class="cap" id="actionLabel"></span>
       </button>
     </div>
   </div>
@@ -111,26 +132,27 @@
   <div id="sheet" aria-hidden="true">
     <div id="sheetGrab" aria-hidden="true"><span></span></div>
     <div id="sheetHead">
-      <div id="sheetTitle">Upgrades</div>
+      <div id="sheetTitle"></div>
     </div>
     <div id="sheetBody"></div>
     <div id="sheetFoot">
       <div id="sheetNav">
         <div id="tabs">
-          <button class="tab active" type="button" data-tab="upgrades">Upgrades</button>
-          <button class="tab" type="button" data-tab="build">Build</button>
-          <button class="tab" id="tabBeyond" type="button" data-tab="beyond">Beyond</button>
-          <button class="tab" type="button" data-tab="awards">Awards</button>
+          <button class="tab active" type="button" data-tab="upgrades" data-i18n="sheet.upgrades"></button>
+          <button class="tab" type="button" data-tab="build" data-i18n="sheet.build"></button>
+          <button class="tab" id="tabBeyond" type="button" data-tab="beyond" data-i18n="sheet.beyond"></button>
+          <button class="tab" type="button" data-tab="awards" data-i18n="sheet.awards"></button>
         </div>
-        <button id="btnClose" type="button" aria-label="Done">Done</button>
+        <button id="btnClose" type="button" data-i18n="sheet.done"></button>
       </div>
       <div id="sheetUtilities">
-        <a id="wikiLink" href="wiki/" target="_blank" rel="noopener">Wiki</a>
-        <button id="btnReset" type="button">Reset world</button>
-        <button id="btnMute" type="button">Sound: on</button>
-        <button id="btnDrag" type="button" class="twoLine" aria-pressed="false">Drag<small id="dragMode">walk that way</small></button>
-        <button id="btnTextures" type="button" class="twoLine">Textures<small id="packName"></small></button>
-        <button id="btnTexturesDefault" type="button" hidden>Default textures</button>
+        <a id="wikiLink" href="wiki/" target="_blank" rel="noopener" data-i18n="sheet.wiki"></a>
+        <button id="btnReset" type="button" data-i18n="sheet.reset"></button>
+        <button id="btnMute" type="button"></button>
+        <button id="btnDrag" type="button" class="twoLine" aria-pressed="false"><span data-i18n="sheet.drag"></span><small id="dragMode"></small></button>
+        <button id="btnTextures" type="button" class="twoLine"><span data-i18n="sheet.textures"></span><small id="packName"></small></button>
+        <button id="btnTexturesDefault" type="button" hidden data-i18n="sheet.texturesDefault"></button>
+        <button id="btnLanguage" type="button" class="twoLine"><span data-i18n="sheet.language"></span><small data-i18n="language.name"></small></button>
         <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
       </div>
     </div>
@@ -138,18 +160,18 @@
 
   <div id="toast" role="status" aria-live="polite"></div>
   <div id="packReport" role="alert" hidden>
-    <strong>Texture pack not used</strong>
+    <strong data-i18n="pack.notUsed"></strong>
     <ul></ul>
-    <button type="button">Close</button>
+    <button type="button" data-i18n="pack.close"></button>
   </div>
   <div id="fork" role="alertdialog" aria-labelledby="forkTitle" hidden>
-    <strong id="forkTitle">This world was also played in another tab</strong>
+    <strong id="forkTitle" data-i18n="fork.title"></strong>
     <div class="choices"></div>
   </div>
   <div id="crash" role="alert" hidden>
-    <strong>The game broke</strong>
+    <strong></strong>
     <pre></pre>
-    <button type="button" onclick="location.reload()">Reload</button>
+    <button type="button" onclick="location.reload()"></button>
   </div>
 
   <script type="module" src="src/game/main.js"></script>

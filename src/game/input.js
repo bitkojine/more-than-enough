@@ -244,7 +244,7 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   /* ---------------------------------------------------------- keyboard */
 
-  const isActionKey = (e) => e.key === ' ' || e.key === 'Enter';
+  const isActionKey = (e) => e.key === ' ' || e.key === 'Enter';  // i18n-ok: a key name
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
     keys[k] = true;

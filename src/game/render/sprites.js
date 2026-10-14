@@ -95,7 +95,7 @@ export function drawParticles(ctx, cam, fx) {
 
 // Floating numbers, with the icon of what they count after them.
 export function drawFloats(ctx, cam, look, fx) {
-  const font = (px) => '700 ' + px + 'px -apple-system, sans-serif';
+  const font = (px) => '700 ' + px + 'px -apple-system, sans-serif';  // i18n-ok: a font
   const size = Math.round(Math.max(14, cam.tilePx * 0.42));
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';

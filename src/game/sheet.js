@@ -7,8 +7,9 @@
 import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
+import { t, listOr, capitalize } from '../i18n/i18n.js';
 
-const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond', awards: 'Awards', collected: 'Collected' };
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]));
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
@@ -59,31 +60,31 @@ const DESCRIBE = {
   tool(s, id) {
     const levels = Core.TOOLS[id].levels;
     const lv = s.tools[id];
-    const head = `Lv ${lv}/${levels.length}`;
+    const head = t('sheet.levelOf', { lv, max: levels.length });
     if (lv >= levels.length) return { sub: head };
     const cur = levels[lv - 1], next = levels[lv];
     const effect = next.yield !== undefined ? arrow(cur.yield, next.yield) : arrow('&times;' + cur.mult, '&times;' + next.mult);
-    return { sub: `${head} &middot; ${effect}`, label: 'Craft' };
+    return { sub: `${head} &middot; ${effect}`, label: t('sheet.craft') };
   },
   resup(s, res) {
     const levels = Core.REFINERIES[res].levels;
     const lv = s.resUp[res];
     const mult = Core.refineryMult(s, res);
-    const head = `Lv ${lv}/${levels.length}`;
+    const head = t('sheet.levelOf', { lv, max: levels.length });
     if (lv >= levels.length) return { sub: `${head} &middot; &times;${fmtMult(mult)}` };
-    return { sub: `${head} &middot; ${arrow('&times;' + fmtMult(mult), '&times;' + fmtMult(mult * levels[lv].mult))}`, label: 'Refine' };
+    return { sub: `${head} &middot; ${arrow('&times;' + fmtMult(mult), '&times;' + fmtMult(mult * levels[lv].mult))}`, label: t('sheet.refine') };
   },
   abundance(s) {
     const lv = s.abundanceLv;
-    return { sub: `Lv ${lv} &middot; +${lv}/s &middot; &times;${fmtMult(Core.abundanceMult(s))}`, label: lv === 0 ? 'Build' : 'Lv ' + (lv + 1) };
+    return { sub: `${t('sheet.level', { lv })} &middot; +${lv}/s &middot; &times;${fmtMult(Core.abundanceMult(s))}`, label: lv === 0 ? t('sheet.buildIt') : t('sheet.level', { lv: lv + 1 }) };
   },
   unlock() {
-    return { sub: '', label: 'Unlock' };
+    return { sub: '', label: t('sheet.unlock') };
   },
   perk(s, id) {
     const lv = s.perks[id];
     const repeat = Core.PERKS[id].repeat;
-    return { sub: repeat && lv ? 'Lv ' + lv : '', label: repeat && lv ? 'Lv ' + (lv + 1) : 'Buy' };
+    return { sub: repeat && lv ? t('sheet.level', { lv }) : '', label: repeat && lv ? t('sheet.level', { lv: lv + 1 }) : t('sheet.buy') };
   }
 };
 
@@ -92,7 +93,7 @@ function upgradeRow(s, id) {
   const d = DESCRIBE[u.kind](s, id);
   const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
   const cost = Core.upgradeCost(s, id);
-  if (cost === null) return row(pic(u.look), name, d.sub, doneButton(u.max === 1 ? 'OWNED' : 'MAX'));
+  if (cost === null) return row(pic(u.look), name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
   const affordable = Core.canBuy(s, id);
   const tag = u.currency === 'insight' ? price({ insight: s.insight }, { insight: cost }) : price(s.inv, cost);
   return row(pic(u.look), name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
@@ -130,15 +131,15 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   }
 
   function renderUpgrades(s) {
-    let html = '<div class="section">World</div>';
+    let html = `<div class="section">${t('sheet.section.world')}</div>`;
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
       const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
-      const count = f.id === 'abundance' ? () => 'Lv ' + s.abundanceLv : (p) => p.owned + '/' + p.total;
+      const count = f.id === 'abundance' ? () => t('sheet.level', { lv: s.abundanceLv }) : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
       if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
     }
     if (beyondUnlocked(s)) {
-      html += '<div class="section">Legacy</div>';
+      html += `<div class="section">${t('sheet.section.legacy')}</div>`;
       html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.look, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
     }
     return html;
@@ -148,9 +149,9 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     const def = Core.EXTRACTORS[key];
     const count = Core.extractorCount(s, key);
     const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
-    const place = (enabled, label = 'Place') => button(`data-kind="build" data-id="${key}"`, label, enabled);
+    const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
-    if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, 'Locked'));
+    if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
     const rate = `+${fmt1(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
@@ -162,34 +163,34 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   function propRow(s, kind) {
     const def = Core.PROPS[kind];
     const ok = Core.canPlaceProp(s, kind) && Core.canAfford(s.inv, def.cost);
-    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost), button(`data-kind="prop" data-id="${kind}"`, 'Place', ok));
+    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost), button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
   }
 
   function renderBuild(s) {
-    return '<div class="section">Extractors</div>' + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
-      '<div class="section">Converters</div>' + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
-      '<div class="section">In the mine</div>' + Object.keys(Core.PROPS).map((k) => propRow(s, k)).join('');
+    return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
+      `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
+      `<div class="section">${t('sheet.section.mine')}</div>` + Object.keys(Core.PROPS).map((k) => propRow(s, k)).join('');
   }
 
   function renderBeyond(s) {
     const can = Core.canEmbark(s);
     const m = Core.worldMastery(s);
     const progress = m.done < m.total ? `${m.done} / ${m.total}` : `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
-    const embark = row(pic('ui.embark'), 'Embark', can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
-      button('data-kind="embark"', 'Embark', can));
-    return '<div class="section">Insight</div>' +
-      row(insight(), fmt(s.insight), `Embarks ${s.prestiges} &middot; Lifetime ${fmt(Core.lifetimeTotal(s))}`, '') +
-      '<div class="section">New World</div>' + embark +
-      '<div class="section">Perks</div>' + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
+    const embark = row(pic('ui.embark'), t('sheet.embark'), can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
+      button('data-kind="embark"', t('sheet.embark'), can));
+    return `<div class="section">${t('res.insight')}</div>` +
+      row(insight(), fmt(s.insight), t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '') +
+      `<div class="section">${t('sheet.section.newWorld')}</div>` + embark +
+      `<div class="section">${t('path.perks')}</div>` + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
   }
 
   // Milestones reached, newest first, and how many are still out there.
   // Which ones are left is for the player to find (or the wiki to tell).
   function renderAwards(s) {
     const total = Core.GOALS.length - 1; // the last one goes on forever
-    let html = `<div class="section">Milestones ${s.goalIndex} / ${total}</div>`;
-    for (let i = s.goalIndex - 1; i >= 0; i--) html += row(TROPHY, esc(Core.GOALS[i].text), 'Milestone ' + (i + 1), '');
-    if (s.goalIndex < total) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${total - s.goalIndex} more to reach</div></div></div>`;
+    let html = `<div class="section">${t('sheet.milestones', { n: s.goalIndex, total })}</div>`;
+    for (let i = s.goalIndex - 1; i >= 0; i--) html += row(TROPHY, esc(Core.GOALS[i].text), t('sheet.milestone', { n: i + 1 }), '');
+    if (s.goalIndex < total) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: total - s.goalIndex })}</div></div></div>`;
     return html;
   }
 
@@ -202,8 +203,8 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     for (const r of Core.RESOURCES) {
       const total = s.stats[r];
       html += `<div class="section colHead" id="col-${r}">${icon(r)} ${Core.RESOURCE_LABEL[r]}</div>`;
-      html += row(icon(r), fmt(s.inv[r]) + ' in your packs',
-        `Gathered in this world: ${fmt(total)}` + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmt1(rates[r])}/s</span>` : ''), '');
+      html += row(icon(r), t('sheet.inPacks', { n: fmt(s.inv[r]) }),
+        t('sheet.gatheredHere', { n: fmt(total) }) + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmt1(rates[r])}/s</span>` : ''), '');
       for (const k of Object.keys(Core.SOURCES)) {
         const n = s.sources[r][k];
         if (n < 1) continue;
@@ -217,20 +218,20 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   }
 
   function whereItGrows(m) {
-    if (m.where === 'cave') return m.from > 1 ? `In spore beds, layer ${m.from} and down` : 'In spore beds in the mine';
-    if (m.kinds.length === Object.keys(Core.FOREST_KINDS).length) return 'In any forest, rarely';
-    return 'In ' + m.kinds.map((k) => Core.FOREST_KINDS[k].name.toLowerCase()).join(', ').replace(/, ([^,]*)$/, ' or $1');
+    if (m.where === 'cave') return m.from > 1 ? t('mushroom.where.deep', { layer: m.from }) : t('mushroom.where.cave');
+    if (m.kinds.length === Object.keys(Core.FOREST_KINDS).length) return t('mushroom.where.anyForest');
+    return capitalize(t('mushroom.where.forests', { list: listOr(m.kinds.map((k) => Core.FOREST_KINDS[k].in)) }));
   }
 
   function mushroomCards(s) {
     const found = Core.MUSHROOM_KEYS.filter((k) => s.mushroomsEver.includes(k)).length;
-    let html = `<div class="section">Kinds of mushroom &middot; found ${found} of ${Core.MUSHROOM_KEYS.length}</div><div class="cards">`;
+    let html = `<div class="section">${t('sheet.mushroomKinds', { n: found, total: Core.MUSHROOM_KEYS.length })}</div><div class="cards">`;
     for (const k of Core.MUSHROOM_KEYS) {
       const m = Core.MUSHROOMS[k], seen = s.mushroomsEver.includes(k), n = s.mushrooms[k] || 0;
       const cls = 'card' + (seen ? '' : ' unseen') + (m.magic ? ' magic' : '');
       html += `<div class="${cls}" data-mushroom="${k}">${pic(Core.mushroomLook(k), 'image')}` +
         `<div class="nm">${seen ? esc(m.name) : '???'}${m.magic ? ' <span class="spark">✦</span>' : ''}</div>` +
-        `<div class="sub">${seen ? (n > 0 ? fmt(n) + ' picked here' : 'Found in another world') : esc(whereItGrows(m))}</div></div>`;
+        `<div class="sub">${seen ? (n > 0 ? t('sheet.mushroomPicked', { n: fmt(n) }) : t('sheet.mushroomElsewhere')) : esc(whereItGrows(m))}</div></div>`;
     }
     return html + '</div>';
   }

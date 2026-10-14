@@ -20,10 +20,13 @@ import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
+import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 
+// Every word on the page in the player's language first.
+localizePage();
 const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 window.MTE_VERSION = VERSION;  // for the crash report
@@ -69,7 +72,7 @@ const game = {
     // fails later), so progress is never lost silently.
     if (err && !saveError) {
       console.error('Saving failed:', err);
-      hud.toast('Saving failed — progress is not being kept (' + (err.name || 'error') + ')');
+      hud.toast(t('toast.saveFailed', { error: err.name || err }));
     }
     saveError = err;
   },
@@ -158,13 +161,21 @@ el.reset.addEventListener('click', controller.reset);
 // pulling the map along like scrolling.
 function setDrag(invert) {
   input.invert = invert;
-  el.dragMode.textContent = invert ? 'pull the map' : 'walk that way';
+  el.dragMode.textContent = t(invert ? 'sheet.drag.pull' : 'sheet.drag.walk');
   el.drag.setAttribute('aria-pressed', String(invert));
 }
 el.drag.addEventListener('click', () => { setDrag(!input.invert); saveView(cam, input.invert); });
+const showMute = () => { el.mute.textContent = t(audio.muted ? 'sheet.sound.off' : 'sheet.sound.on'); };
 el.mute.addEventListener('click', () => {
   audio.muted = !audio.muted;
-  el.mute.textContent = 'Sound: ' + (audio.muted ? 'off' : 'on');
+  showMute();
+});
+showMute();
+// The language button: the next language, the game saved first so the
+// reload comes back to the same spot.
+el.language.addEventListener('click', () => {
+  game.saveNow();
+  setLanguage(nextLanguage());
 });
 
 /* -------------------------------------------------------------- loop */
@@ -280,7 +291,7 @@ hud.repaint();
 await textures.restore();
 hud.update(game.state);
 hud.updateButtons(game.state);
-if (loaded.lost) hud.toast('Your old save could not be loaded — starting a new world');
+if (loaded.lost) hud.toast(t('toast.saveLost'));
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.

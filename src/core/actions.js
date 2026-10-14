@@ -7,6 +7,7 @@ import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, earn } from './economy.js';
 import { mushroomAt } from './mushrooms.js';
+import { t } from '../i18n/i18n.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
 export const SWEEP_RADIUS = 0.6;
@@ -172,12 +173,12 @@ export function buildTarget(s, key) {
 
 export function place(s, key) {
   const def = EXTRACTORS[key];
-  if (!def) return { ok: false, reason: 'Unknown' };
-  if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: 'Find the ' + UNLOCKS[def.unlock].name };
+  if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
+  if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
   const at = buildTarget(s, key);
-  if (!at) return { ok: false, reason: 'Stand next to a suitable deposit' };
+  if (!at) return { ok: false, reason: t('reason.noSpot') };
   const cost = extractorCost(s, key);
-  if (!canAfford(s.inv, cost)) return { ok: false, reason: 'Need ' + costText(cost) };
+  if (!canAfford(s.inv, cost)) return { ok: false, reason: t('reason.need', { cost: costText(cost) }) };
   pay(s.inv, cost);
   s.extractors.push({ key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 });
   s.stats.built += 1;

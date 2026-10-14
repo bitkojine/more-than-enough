@@ -6,8 +6,10 @@
  * "mycelium" finds a cost shown as a mushroom icon. */
 
 const CARD = '.thing, .idea'; // a card is one passage: its name with what it says
-const PASSAGE = CARD + ', p, li, tbody tr, h2, h3, pre';
+const PASSAGE = CARD + ', p, li, tbody tr, h2, h3, pre';  // i18n-ok: CSS selectors
 const SNIP = 220; // characters of context shown per hit
+
+import { t } from './strings.js';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -74,9 +76,9 @@ function snippet(text, ws) {
 export function renderResults(groups, q) {
   const ws = words(q);
   const total = groups.reduce((n, g) => n + g.hits.length, 0);
-  const head = `<h1>Search: “${esc(q.trim())}”</h1>`;
-  if (!groups.length) return head + '<p class="lede">Not mentioned anywhere in the wiki.</p>';
-  const lede = `<p class="lede">${total} ${total === 1 ? 'mention' : 'mentions'} in ${groups.length} ${groups.length === 1 ? 'article' : 'articles'}.</p>`;
+  const head = `<h1>${t('wiki.search.head', { query: esc(q.trim()) })}</h1>`;
+  if (!groups.length) return head + `<p class="lede">${t('wiki.search.none')}</p>`;
+  const lede = `<p class="lede">${t('wiki.search.mentions', { count: total, articles: t('wiki.search.articles', { count: groups.length }) })}</p>`;
   return head + lede + groups.map((g) => `
     <section class="hit-group">
       <h2><a href="#${g.article.id}">${esc(g.article.dataset.title)}</a> <span class="hit-count">${g.hits.length}</span></h2>

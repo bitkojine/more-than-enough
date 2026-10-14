@@ -2,7 +2,7 @@
 
 const byId = (id) => {
   const node = document.getElementById(id);
-  if (!node) throw new Error('Missing #' + id + ' in index.html');
+  if (!node) throw new Error('Missing #' + id + ' in index.html');  // i18n-ok: a bug in the page, for its developers
   return node;
 };
 
@@ -47,6 +47,7 @@ export function findElements() {
     texturesDefault: byId('btnTexturesDefault'),
     packFile: byId('packFile'),
     packReport: byId('packReport'),
+    language: byId('btnLanguage'),
     fork: byId('fork')
   };
 }

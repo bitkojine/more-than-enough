@@ -7,6 +7,7 @@ import { CHUNK_SIZE, CHUNK_TILES, SURFACE } from './coords.js';
 import { hash2, fbm } from './noise.js';
 import { T, TILE_INFO } from './tiles.js';
 import { FINDS, FINDS_PER_CHUNK } from './content.js';
+import { t } from '../i18n/i18n.js';
 
 const MAX_RICHNESS = 30;
 // Every world starts in a round clearing of home ground at the origin, where
@@ -36,13 +37,14 @@ function surfaceType(seed, x, y) {
 // Forests come in kinds, by region: what grows there changes how a forest
 // looks, never what it yields. Two slow noises stand for cold..warm and
 // dry..wet: cold land grows pine; warm land oak (wet) or maple (dry);
-// in between, birch where it's wet and a mixed forest elsewhere.
+// in between, birch where it's wet and a mixed forest elsewhere. `in` names
+// it inside "grows in ..." (the Lithuanian locative).
 export const FOREST_KINDS = {
-  pine: { name: 'Pine forest', does: 'Cold country: pines and spruce, close and dark.' },
-  birch: { name: 'Birch grove', does: 'Wet, mild country: pale birches, a pine here and there.' },
-  oak: { name: 'Oak forest', does: 'Warm, wet country: broad oaks and the odd apple tree.' },
-  maple: { name: 'Maple forest', does: 'Warm, dry country: maples in autumn colours.' },
-  mixed: { name: 'Mixed forest', does: 'Where the others meet: a little of everything.' }
+  pine: { name: t('forest.pine'), in: t('forest.pine.in'), does: t('forest.pine.does') },
+  birch: { name: t('forest.birch'), in: t('forest.birch.in'), does: t('forest.birch.does') },
+  oak: { name: t('forest.oak'), in: t('forest.oak.in'), does: t('forest.oak.does') },
+  maple: { name: t('forest.maple'), in: t('forest.maple.in'), does: t('forest.maple.does') },
+  mixed: { name: t('forest.mixed'), in: t('forest.mixed.in'), does: t('forest.mixed.does') }
 };
 
 export function forestKind(seed, x, y) {

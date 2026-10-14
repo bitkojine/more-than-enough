@@ -1,6 +1,7 @@
 /* Game content and tuning: everything a designer tweaks lives here as data. */
 
 import { T } from './tiles.js';
+import { t } from '../i18n/i18n.js';
 
 /* ------------------------------------------------------------- tuning */
 
@@ -34,9 +35,9 @@ export const EMBARK_ABUNDANCE = 5;
 // a `beacon` shows through the dark from anywhere on screen, to find your way
 // back by.
 export const PROPS = {
-  glowcap: { name: 'Glowcap', cost: { mycelium: 3 }, light: 4.5, does: 'A glowing mushroom that lights the tunnel around it' },
-  lamp: { name: 'Crystal lamp', cost: { stone: 8, crystal: 1 }, light: 8, does: 'Lights a wide cavern, cool and bright' },
-  flag: { name: 'Marker flag', cost: { mycelium: 2 }, beacon: true, does: 'Shows through the dark, to find your way back' }
+  glowcap: { name: t('prop.glowcap'), cost: { mycelium: 3 }, light: 4.5, does: t('prop.glowcap.does') },
+  lamp: { name: t('prop.lamp'), cost: { stone: 8, crystal: 1 }, light: 8, does: t('prop.lamp.does') },
+  flag: { name: t('prop.flag'), cost: { mycelium: 2 }, beacon: true, does: t('prop.flag.does') }
 };
 
 /* -------------------------------------------------------------- finds */
@@ -50,8 +51,8 @@ export const PROPS = {
 export const FINDS_PER_CHUNK = 3;
 export const GLINT_RANGE = 9;
 export const FINDS = {
-  [T.CACHE]: { name: 'Buried cache', loot: { mycelium: 8, stone: 6, ore: 2 }, from: 1 },
-  [T.GEODE]: { name: 'Geode', loot: { stone: 4, crystal: 1 }, from: 2 }
+  [T.CACHE]: { name: t('tile.cache'), loot: { mycelium: 8, stone: 6, ore: 2 }, from: 1 },
+  [T.GEODE]: { name: t('tile.geode'), loot: { stone: 4, crystal: 1 }, from: 2 }
 };
 
 /* -------------------------------------------------------------- tools */
@@ -59,7 +60,7 @@ export const FINDS = {
 // Level 1 is what you start with; each later level has a cost.
 export const TOOLS = {
   basket: {
-    name: 'Basket', desc: 'Mycelium foraged per gather',
+    name: t('tool.basket'), desc: t('tool.basket.desc'),
     levels: [
       { yield: 1 },
       { yield: 2, cost: { mycelium: 6 } },
@@ -70,7 +71,7 @@ export const TOOLS = {
     ]
   },
   pickaxe: {
-    name: 'Pickaxe', desc: 'Stone / ore / crystal per swing',
+    name: t('tool.pickaxe'), desc: t('tool.pickaxe.desc'),
     levels: [
       { yield: 1 },
       { yield: 2, cost: { mycelium: 10, stone: 6 } },
@@ -81,7 +82,7 @@ export const TOOLS = {
     ]
   },
   boots: {
-    name: 'Boots', desc: 'Movement speed',
+    name: t('tool.boots'), desc: t('tool.boots.desc'),
     levels: [
       { mult: 1.0 },
       { mult: 1.3, cost: { mycelium: 8 } },
@@ -91,7 +92,7 @@ export const TOOLS = {
     ]
   },
   overclock: {
-    name: 'Overclock', desc: 'Multiplies what every building makes',
+    name: t('tool.overclock'), desc: t('tool.overclock.desc'),
     levels: [
       { mult: 1 },
       { mult: 2, cost: { stone: 30, ore: 4 } },
@@ -108,14 +109,14 @@ export const TOOLS = {
 // Deposit extractors sit on a matching surface tile. Converters (tile: null)
 // need a blueprint and synthesize their resource on any open land.
 export const EXTRACTORS = {
-  garden: { name: 'Mushroom Garden', tile: T.FOREST, res: 'mycelium', rate: 0.6, buffer: 60, baseCost: { mycelium: 15 } },
-  quarry: { name: 'Quarry', tile: T.STONE, res: 'stone', rate: 0.45, buffer: 60, baseCost: { mycelium: 30, stone: 15 } },
-  mine: { name: 'Mine', tile: T.ORE, res: 'ore', rate: 0.32, buffer: 50, baseCost: { stone: 45, ore: 12 } },
-  resonator: { name: 'Resonator', tile: T.CRYSTAL, res: 'crystal', rate: 0.09, buffer: 30, baseCost: { stone: 140, ore: 70, crystal: 6 } },
-  compost: { name: 'Compost Heap', tile: null, res: 'mycelium', rate: 0.5, buffer: 60, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
-  brickyard: { name: 'Brickyard', tile: null, res: 'stone', rate: 0.38, buffer: 60, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
-  foundry: { name: 'Foundry', tile: null, res: 'ore', rate: 0.3, buffer: 50, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
-  observatory: { name: 'Observatory', tile: null, res: 'crystal', rate: 0.11, buffer: 30, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
+  garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.6, buffer: 60, baseCost: { mycelium: 15 } },
+  quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.45, buffer: 60, baseCost: { mycelium: 30, stone: 15 } },
+  mine: { name: t('building.mine'), tile: T.ORE, res: 'ore', rate: 0.32, buffer: 50, baseCost: { stone: 45, ore: 12 } },
+  resonator: { name: t('building.resonator'), tile: T.CRYSTAL, res: 'crystal', rate: 0.09, buffer: 30, baseCost: { stone: 140, ore: 70, crystal: 6 } },
+  compost: { name: t('building.compost'), tile: null, res: 'mycelium', rate: 0.5, buffer: 60, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
+  brickyard: { name: t('building.brickyard'), tile: null, res: 'stone', rate: 0.38, buffer: 60, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
+  foundry: { name: t('building.foundry'), tile: null, res: 'ore', rate: 0.3, buffer: 50, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
+  observatory: { name: t('building.observatory'), tile: null, res: 'crystal', rate: 0.11, buffer: 30, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
 };
 
 export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);
@@ -125,16 +126,16 @@ export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].ti
 
 // One-time purchases.
 export const UNLOCKS = {
-  logistics: { name: 'Logistics', desc: 'Camps near you auto-collect into your packs', cost: { stone: 150, ore: 40 } },
-  compost: { name: 'Blueprint: Compost Heap', desc: 'Grow mycelium anywhere (any land tile)', cost: { mycelium: 150, stone: 40 } },
-  brickyard: { name: 'Blueprint: Brickyard', desc: 'Shape stone anywhere (any land tile)', cost: { mycelium: 220, stone: 120 } },
-  foundry: { name: 'Blueprint: Foundry', desc: 'Smelt ore anywhere (any land tile)', cost: { stone: 180, ore: 60 } },
-  observatory: { name: 'Blueprint: Observatory', desc: 'Focus the sky: crystal anywhere', cost: { stone: 340, ore: 150, crystal: 26 } }
+  logistics: { name: t('unlock.logistics'), desc: t('unlock.logistics.desc'), cost: { stone: 150, ore: 40 } },
+  compost: { name: t('unlock.compost'), desc: t('unlock.compost.desc'), cost: { mycelium: 150, stone: 40 } },
+  brickyard: { name: t('unlock.brickyard'), desc: t('unlock.brickyard.desc'), cost: { mycelium: 220, stone: 120 } },
+  foundry: { name: t('unlock.foundry'), desc: t('unlock.foundry.desc'), cost: { stone: 180, ore: 60 } },
+  observatory: { name: t('unlock.observatory'), desc: t('unlock.observatory.desc'), cost: { stone: 340, ore: 150, crystal: 26 } }
 };
 
 // Repeatable: every level adds +1/s of each resource and x1.5 to all production.
 export const ABUNDANCE = {
-  name: 'Abundance Engine', desc: '+1/s of everything per level; refineries +50% per level',
+  name: t('engine.abundance'), desc: t('engine.abundance.desc'),
   baseCost: { mycelium: 1500, stone: 1500, ore: 750, crystal: 80 },
   growth: 2.4,
   prodMult: 1.5
@@ -146,7 +147,7 @@ export const ABUNDANCE = {
 // extractors and converters alike. The multipliers compound.
 export const REFINERIES = {
   mycelium: {
-    name: 'Mycology',
+    name: t('refinery.mycelium'),
     levels: [
       { mult: 2, cost: { mycelium: 60 } },
       { mult: 2, cost: { mycelium: 180, stone: 30 } },
@@ -161,7 +162,7 @@ export const REFINERIES = {
     ]
   },
   stone: {
-    name: 'Masonry',
+    name: t('refinery.stone'),
     levels: [
       { mult: 2, cost: { mycelium: 60, stone: 40 } },
       { mult: 2, cost: { mycelium: 200, stone: 120 } },
@@ -176,7 +177,7 @@ export const REFINERIES = {
     ]
   },
   ore: {
-    name: 'Metallurgy',
+    name: t('refinery.ore'),
     levels: [
       { mult: 2, cost: { mycelium: 80, stone: 60 } },
       { mult: 2, cost: { mycelium: 260, stone: 180, ore: 10 } },
@@ -191,7 +192,7 @@ export const REFINERIES = {
     ]
   },
   crystal: {
-    name: 'Crystallurgy',
+    name: t('refinery.crystal'),
     levels: [
       { mult: 2, cost: { stone: 120, ore: 40 } },
       { mult: 2, cost: { stone: 400, ore: 140, crystal: 5 } },
@@ -212,9 +213,9 @@ export const REFINERIES = {
 // Permanent perks bought with Insight; they survive embarking to a new world.
 // Repeatable perks cost base + level; one-shots cost base.
 export const PERKS = {
-  legacy: { name: 'Legacy', base: 1, repeat: true, desc: 'Every refinery +25% output per level' },
-  memory: { name: 'Memory', base: 1, repeat: false, desc: 'Begin each new world with Logistics' },
-  heirloom: { name: 'Heirloom', base: 1, repeat: false, desc: 'Begin each new world with Basket & Pickaxe II' },
-  cartographer: { name: 'Cartographer', base: 2, repeat: false, desc: 'Fog clears wider (+2 tile radius)' },
-  nomad: { name: 'Nomad', base: 2, repeat: true, desc: '+20% movement speed per level' }
+  legacy: { name: t('perk.legacy'), base: 1, repeat: true, desc: t('perk.legacy.desc') },
+  memory: { name: t('perk.memory'), base: 1, repeat: false, desc: t('perk.memory.desc') },
+  heirloom: { name: t('perk.heirloom'), base: 1, repeat: false, desc: t('perk.heirloom.desc') },
+  cartographer: { name: t('perk.cartographer'), base: 2, repeat: false, desc: t('perk.cartographer.desc') },
+  nomad: { name: t('perk.nomad'), base: 2, repeat: true, desc: t('perk.nomad.desc') }
 };

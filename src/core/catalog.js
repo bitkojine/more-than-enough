@@ -24,7 +24,8 @@
  * subset and the default fills the rest. Everything here is plain data so
  * the wiki can list it. */
 
-import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL } from './tiles.js';
+import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL, RESOURCE_LOWER, RESOURCE_OF } from './tiles.js';
+import { t, capitalize, LOCALE } from '../i18n/i18n.js';
 import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS } from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
@@ -37,51 +38,51 @@ export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', '
 
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
-  { id: 'tile', name: 'Ground', blurb: 'Every kind of tile, on the surface and in the mine.' },
-  { id: 'forest', name: 'Forests', blurb: 'Kinds of forest, by region: each grows its own mix of trees. Their floors all yield mycelium alike.' },
-  { id: 'mushroom', name: 'Mushrooms', blurb: 'Every kind of mushroom you can find and collect, drawn as it grows at the trees\' feet or in a spore bed.' },
-  { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
-  { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
-  { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
-  { id: 'character', name: 'The wanderer', blurb: 'You, your lantern and your boat.' },
-  { id: 'mark', name: 'Marks in the world', blurb: 'Ways between layers, their ladders, the light through them, and what you place in the mine.' },
-  { id: 'ui', name: 'Buttons', blurb: 'The thumb buttons and the sheet.' },
-  { id: 'tool', name: 'Tools', blurb: 'Upgrades you craft.' },
-  { id: 'refinery', name: 'Refineries', blurb: 'Upgrades that multiply one resource.' },
-  { id: 'engine', name: 'Abundance Engine', blurb: 'The endless upgrade.' },
-  { id: 'unlock', name: 'Unlocks and blueprints', blurb: 'One-time purchases.' },
-  { id: 'perk', name: 'Perks', blurb: 'Bought with Insight; they outlast a world.' },
-  { id: 'path', name: 'Upgrade groups', blurb: 'The headings of the Upgrades sheet.' },
-  { id: 'color', name: 'Colours', blurb: 'The dark, the cliffs and the light.' }
-];
+  'tile',
+  'forest',
+  'mushroom',
+  'resource',
+  'pile',
+  'building',
+  'character',
+  'mark',
+  'ui',
+  'tool',
+  'refinery',
+  'engine',
+  'unlock',
+  'perk',
+  'path',
+  'color'
+].map((id) => ({ id, name: t('group.' + id), blurb: t('group.' + id + '.blurb') }));
 
 const req = (...slots) => Object.fromEntries(slots.map((s) => [s, true]));
 const opt = (...slots) => Object.fromEntries(slots.map((s) => [s, false]));
 
-function tileDoes(t) {
-  const info = TILE_INFO[t];
+function tileDoes(type) {
+  const info = TILE_INFO[type];
   const out = [];
-  if (info.swim) out.push('Walkable, slowly; you float across in a boat.');
-  else if (info.walk) out.push('Walkable.');
-  else if (info.solid) out.push('Solid rock until you dig it out.');
-  else out.push('Impassable.');
-  if (info.res) out.push(`Gathering it yields ${RESOURCE_LABEL[info.res].toLowerCase()}.`);
+  if (info.swim) out.push(t('tileDoes.walkSlow'));
+  else if (info.walk) out.push(t('tileDoes.walk'));
+  else if (info.solid) out.push(t('tileDoes.solid'));
+  else out.push(t('tileDoes.impassable'));
+  if (info.res) out.push(t('tileDoes.yields', { res: RESOURCE_OF[info.res] }));
   if (info.find) {
-    const loot = Object.keys(FINDS[t].loot).map((r) => RESOURCE_LABEL[r].toLowerCase()).join(', ');
-    out.push(`A find: one dig pays out ${loot} all at once, more on deeper layers and with better tools. It glints in the dark from a way off.`);
+    const loot = Object.keys(FINDS[type].loot).map((r) => RESOURCE_LOWER[r]).join(', ');
+    out.push(t('tileDoes.find', { loot }));
   }
-  if (info.forage) out.push('Its trees are never cut: you forage the forest floor, and the trees stand for good.');
-  if (info.regrows) out.push('Grows back near you.');
-  if (info.land) out.push('Converters can be built on it.');
-  if (info.descend) out.push('A way down to the layer below.');
-  if (info.rise) out.push('A ladder up to the way down of the layer above.');
-  if (t === T.SHAFT) out.push('A way down to the layer below once one dig opens it.');
-  if (t === T.CAVE) out.push('The only ways into the mine are these, scattered through the forest: you can\'t dig down.');
-  if (t === T.BEDROCK) out.push('Cannot be dug.');
-  if (t === T.TUNNEL) out.push('Dug-out space in the mine.');
-  if (info.height >= 1) out.push('Stands a full layer tall.');
-  if (t === T.HOME) out.push('The clearing every world starts in, kept for your stockpile.');
-  else if (info.yard > 0) out.push('Your stockpile spills onto it once home ground is full.');
+  if (info.forage) out.push(t('tileDoes.forage'));
+  if (info.regrows) out.push(t('tileDoes.regrows'));
+  if (info.land) out.push(t('tileDoes.land'));
+  if (info.descend) out.push(t('tileDoes.descend'));
+  if (info.rise) out.push(t('tileDoes.rise'));
+  if (type === T.SHAFT) out.push(t('tileDoes.shaft'));
+  if (type === T.CAVE) out.push(t('tileDoes.cave'));
+  if (type === T.BEDROCK) out.push(t('tileDoes.bedrock'));
+  if (type === T.TUNNEL) out.push(t('tileDoes.tunnel'));
+  if (info.height >= 1) out.push(t('tileDoes.tall'));
+  if (type === T.HOME) out.push(t('tileDoes.home'));
+  else if (info.yard > 0) out.push(t('tileDoes.yard'));
   return out.join(' ');
 }
 
@@ -99,11 +100,11 @@ function tileSlots(t) {
 const things = [];
 const add = (group, key, name, does, slots) => things.push({ id: `${group}.${key}`, group, key, name, does, slots });
 
-for (let t = 0; t < TILE_KEY.length; t++) add('tile', TILE_KEY[t], TILE_NAME[t], tileDoes(t), tileSlots(t));
+for (let type = 0; type < TILE_KEY.length; type++) add('tile', TILE_KEY[type], TILE_NAME[type], tileDoes(type), tileSlots(type));
 // A forest kind's trees (stand), and optionally its own ground (top);
 // anything it leaves out comes from tile.forest.
 for (const key of Object.keys(FOREST_KINDS)) {
-  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Its floor yields mycelium like any forest.', { ...req('stand'), ...opt('top') });
+  add('forest', key, FOREST_KINDS[key].name, t('look.forest.does', { does: FOREST_KINDS[key].does }), { ...req('stand'), ...opt('top') });
 }
 
 // Each kind of mushroom: a little clump of it, drawn at the trees' feet on
@@ -111,58 +112,43 @@ for (const key of Object.keys(FOREST_KINDS)) {
 // in the Collected sheet.
 for (const key of Object.keys(MUSHROOMS)) add('mushroom', key, MUSHROOMS[key].name, MUSHROOMS[key].does, req('image'));
 
-for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], `A resource. Counted at the top of the screen.`, req('icon', 'color'));
-add('resource', 'insight', 'Insight', 'Earned by embarking to a new world; spent on perks.', req('icon', 'color'));
+for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], t('look.resource.does'), req('icon', 'color'));
+add('resource', 'insight', t('res.insight'), t('look.insight.does'), req('icon', 'color'));
 
 for (const r of RESOURCES) {
-  add('pile', r, `${RESOURCE_LABEL[r]} piles`, `Your ${RESOURCE_LABEL[r].toLowerCase()} in the stockpile: one pile for each unit of each digit you own, bigger piles for bigger powers of ten.`, req('tiers'));
+  add('pile', r, capitalize(t('look.pile', { res: RESOURCE_OF[r] })), t('look.pile.does', { res: RESOURCE_LOWER[r] }), req('tiers'));
 }
 
 for (const key of Object.keys(EXTRACTORS)) {
   const e = EXTRACTORS[key];
-  const where = e.tile === null ? 'on any open land' : `on ${TILE_NAME[e.tile].toLowerCase()}`;
-  add('building', key, e.name, `Makes ${RESOURCE_LABEL[e.res].toLowerCase()} ${where}.`, req('image'));
+  const does = e.tile === null ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
+    : t('look.extractor.does', { res: RESOURCE_OF[e.res], tile: TILE_NAME[e.tile].toLocaleLowerCase(LOCALE) });
+  add('building', key, e.name, does, req('image'));
 }
 
-add('character', 'wanderer', 'Wanderer', 'You. Drawn facing right and mirrored to walk left. As an animation, the first frame is standing still and the rest loop while you walk.', req('image'));
-add('character', 'lantern', 'Lantern', 'Carried at night and underground, drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. It is what lights the way; the colour is its light.', req('image', 'color'));
-add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and to the same scale as the wanderer (who stands in it at full size, ${Math.round(BOAT_DECK * 100)}% of its height up from the bottom), so make the mast taller than them.`, req('image'));
+add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), req('image'));
+add('character', 'lantern', t('look.character.lantern'), t('look.character.lantern.does'), req('image', 'color'));
+add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));
 
-add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below (a cave mouth or an open shaft). The colour is the dark inside it.', req('top', 'color'));
-add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
-add('mark', 'ladder', 'Ladder', 'A steel ladder. Stands in every way between layers: down into the pit from above, up into the light (or the dark of a shaft not yet opened) from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
-add('mark', 'glowcap', 'Glowcap', 'A glowing mushroom you planted in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
-add('mark', 'lamp', 'Crystal lamp', 'A crystal lamp you placed in the mine. It lights much further than a glowcap; the colour is its light.', req('image', 'color'));
-add('mark', 'flag', 'Marker flag', 'A flag you planted in the mine to find your way back. The colour is the pin that shows through the dark over it, or at the edge of the screen pointing to it.', req('image', 'color'));
+add('mark', 'hole', t('look.mark.hole'), t('look.mark.hole.does'), req('top', 'color'));
+add('mark', 'skylight', t('look.mark.skylight'), t('look.mark.skylight.does'), req('color'));
+add('mark', 'ladder', t('look.mark.ladder'), t('look.mark.ladder.does'), req('image'));
+add('mark', 'glowcap', t('look.mark.glowcap'), t('look.mark.glowcap.does'), req('image', 'color'));
+add('mark', 'lamp', t('look.mark.lamp'), t('look.mark.lamp.does'), req('image', 'color'));
+add('mark', 'flag', t('look.mark.flag'), t('look.mark.flag.does'), req('image', 'color'));
 
-const UI = {
-  build: ['Build', 'Opens the Build sheet.'],
-  upgrade: ['Upgrade', 'Opens the Upgrades sheet.'],
-  climbDown: ['Climb down', 'Climbs down the cave mouth you stand in, into the mine.'],
-  climb: ['Climb up', 'Climbs the ladder you stand at the foot of, up to the layer above.'],
-  gather: ['Gather', 'Works whatever is in reach (shown when nothing is).'],
-  collect: ['Collect', 'Empties nearby buildings into your pack.'],
-  embark: ['Embark', 'Leaves this world for a new one.']
-};
-for (const key of Object.keys(UI)) add('ui', key, UI[key][0], UI[key][1], req('icon'));
+const UI = ['build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
+for (const key of UI) add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));
 
-for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, TOOLS[key].desc + '.', req('icon'));
-for (const r of RESOURCES) add('refinery', r, REFINERIES[r].name, `Multiplies all ${RESOURCE_LABEL[r].toLowerCase()} production.`, req('icon'));
-add('engine', 'abundance', ABUNDANCE.name, ABUNDANCE.desc + '.', req('icon'));
-for (const key of Object.keys(UNLOCKS)) add('unlock', key, UNLOCKS[key].name, UNLOCKS[key].desc + '.', req('icon'));
-for (const key of Object.keys(PERKS)) add('perk', key, PERKS[key].name, PERKS[key].desc + '.', req('icon'));
-for (const f of PATH_FAMILIES) add('path', f.id, f.name, 'A heading in the Upgrades sheet.', req('icon'));
+for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), req('icon'));
+for (const r of RESOURCES) add('refinery', r, REFINERIES[r].name, t('look.refinery.does', { res: RESOURCE_OF[r] }), req('icon'));
+add('engine', 'abundance', ABUNDANCE.name, t('sentence', { text: ABUNDANCE.desc }), req('icon'));
+for (const key of Object.keys(UNLOCKS)) add('unlock', key, UNLOCKS[key].name, t('sentence', { text: UNLOCKS[key].desc }), req('icon'));
+for (const key of Object.keys(PERKS)) add('perk', key, PERKS[key].name, t('sentence', { text: PERKS[key].desc }), req('icon'));
+for (const f of PATH_FAMILIES) add('path', f.id, f.name, t('look.path.does'), req('icon'));
 
-const COLORS = {
-  backdrop: ['Backdrop', 'The dark around the known world.'],
-  unknown: ['Unknown layer', 'Layers in a cliff you have never been down to.'],
-  visited: ['Visited layer', 'Layers in a cliff you have been down to but not seen here.'],
-  cavity: ['Dug space', 'Open space in a cliff where you dug.'],
-  edge: ['Edge of the known', 'The light lip along edges facing the dark.'],
-  dial: ['Output dial', 'The dial over a building holding output you have to collect, filling as it holds more.'],
-  dialFull: ['Full dial', 'The dial over a building that is full and has stopped working until you collect.']
-};
-for (const key of Object.keys(COLORS)) add('color', key, COLORS[key][0], COLORS[key][1], req('color'));
+const COLORS = ['backdrop', 'unknown', 'visited', 'cavity', 'edge', 'dial', 'dialFull'];
+for (const key of COLORS) add('color', key, t('look.color.' + key), t('look.color.' + key + '.does'), req('color'));
 
 export const LOOKS = things;
 export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));

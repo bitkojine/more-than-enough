@@ -133,6 +133,8 @@ async function main() {
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
     '--autoplay-policy=user-gesture-required',
+    // English unless a test picks Lithuanian (the game follows the browser).
+    '--lang=en-US',
     '--remote-debugging-port=' + CDP_PORT, '--user-data-dir=' + profile, 'about:blank'
   ], { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
   var chromeStderr = '';
@@ -1183,6 +1185,41 @@ async function main() {
   }
   session = mainSession;
   await cdp.send('Page.bringToFront', {}, session);
+
+  console.log('\n== Languages: English and Lithuanian ==');
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  // Every English phrase that Lithuanian says differently: none may show once
+  // the game is in Lithuanian, on the HUD or on any tab of the sheet.
+  var englishLeft = 'new Promise(function(done){Promise.all([import("/src/i18n/en.js"),import("/src/i18n/lt.js")]).then(function(m){' +
+    'var en=m[0].default,lt=m[1].default,text=document.body.innerText,left=[];' +
+    'for(var k in en){var v=en[k];if(typeof v!=="string"||/[{&]/.test(v)||v.length<4||v===lt[k])continue;' +
+    'if(new RegExp("(^|[^\\\\p{L}])"+v.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\$&")+"($|[^\\\\p{L}])","u").test(text))left.push(v);}done(JSON.stringify(left));});})';
+  var langBefore = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  eq(await evalJS('document.documentElement.lang'), 'en', 'the game starts in the browser\'s language, English');
+  await evalJS('document.getElementById("btnUpgrade").click()');
+  await evalJS('document.getElementById("btnLanguage").click()');
+  ok(await waitFor('document.documentElement.lang === "lt" && !!window.MTE_GAME', 8000), 'the Language button reloads the game in Lithuanian');
+  await sleep(400);
+  var langAfter = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  ok(Math.abs(langAfter.x - langBefore.x) < 0.01 && Math.abs(langAfter.y - langBefore.y) < 0.01 && langAfter.z === langBefore.z, 'switching language keeps the world and where you stand');
+  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'TOBULINTI', 'the thumb buttons speak Lithuanian');
+  eq(await evalJS('localStorage.getItem("mte.lang")'), 'lt', 'the choice is remembered');
+  var ltLeft = [];
+  for (var tabName of ['upgrades', 'build', 'awards', 'collected']) {
+    await evalJS(tabName === 'collected' ? 'document.querySelector("#resources .chip").click()' : 'document.getElementById("sheet").classList.contains("open") || document.getElementById("btnUpgrade").click(); document.querySelector(".tab[data-tab=' + tabName + ']").click()');
+    await sleep(200);
+    ltLeft = ltLeft.concat(JSON.parse(await evalJS(englishLeft)));
+  }
+  eq(JSON.stringify(ltLeft), '[]', 'no English is left on the screen or the sheet in Lithuanian');
+  await shot('lithuanian.png');
+  await evalJS('document.getElementById("btnClose").click()');
+  await navigate2('http://127.0.0.1:' + PORT + '/wiki/');
+  ok(await waitFor('document.body.dataset.filled === "true"', 8000), 'the wiki fills itself in Lithuanian');
+  eq(await evalJS('document.documentElement.lang + " " + document.querySelector("#toc a").textContent'), 'lt Pradžia', 'the wiki follows the chosen language');
+  await evalJS('document.getElementById("language").click()');
+  ok(await waitFor('document.documentElement.lang === "en" && document.body.dataset.filled === "true"', 8000), "the wiki's own Language button switches back to English");
+  await navigate('http://127.0.0.1:' + PORT + '/');
+  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'UPGRADE', 'and the game follows');
 
   console.log('\n== Runtime errors ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

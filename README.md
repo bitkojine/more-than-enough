@@ -17,7 +17,7 @@ modules with zero dependencies and no build step, so `index.html` just needs a
 static host:
 
 ```sh
-cd newgame-2026-10-12
+cd more-than-enough
 npm run serve        # same as: python3 -m http.server 8000
 ```
 
@@ -46,6 +46,35 @@ change a mechanic, update the wiki article that covers it.
 The wiki's **Ideas** page (`wiki/ideas.js`) is a sketchbook of directions the
 game could take: looks, mechanics, big swings. Add ideas freely; when one
 ships, move it out of Ideas and into the article that documents it.
+
+## Languages
+
+The game and the wiki speak **English and Lithuanian**, every word of both,
+and the player can switch at any time (**Language** at the bottom of the
+sheet, or in the wiki's sidebar). The choice is kept in the browser; until one
+is made, the browser's own language decides, else English. `?lang=lt` in the
+address picks one too.
+
+**Rule: code never writes player-facing text.** It asks for it by key with
+`t('key')` from `src/i18n/i18n.js`, and every key lives in both dictionaries:
+`src/i18n/en.js` and `src/i18n/lt.js` for the game, `wiki/i18n/en.js` and
+`wiki/i18n/lt.js` for the wiki (its articles are HTML strings there). When
+you add or change any text, write it in both languages in the same commit.
+
+Nothing can go untranslated quietly:
+
+- `npm test` (`test/unit/i18n.test.js`) fails if a key is missing from either
+  language, if placeholders or plural forms differ, if the code asks for a key
+  no dictionary has, if a string literal in `src/` or `wiki/` reads like words
+  instead of going through `t()`, or if a page's markup holds words of its own
+  (static text uses `data-i18n="key"` and `data-i18n-<attribute>="key"`). A
+  line holding text no player reads (a developer error, a CSS value) opts out
+  with a trailing `// i18n-ok: <why>`.
+- At runtime, `t()` throws on a missing key or a missing placeholder value,
+  so the crash screen names it.
+
+Switching language saves the game and reloads the page in the new language,
+so names built into the content tables at load are always in one language.
 
 ## Texture packs
 
@@ -101,6 +130,8 @@ The project is under git — commit early, commit often:
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
   - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of each digit)
+  - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
+- `src/i18n/` — every word the player reads: `i18n.js` (`t()`, language choice, `data-i18n` markup) and the `en.js` / `lt.js` dictionaries
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and tilt; tilted picking hits the block you see
@@ -109,7 +140,7 @@ The project is under git — commit early, commit often:
   - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
 - `index.html`, `style.css` — shell and mobile-first styling
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
-- `wiki/` — the player wiki (`index.html` articles, `wiki.js` renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
+- `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
 - `docs/progression-map.md` — design spec for the Progression map
 - `test/unit/` — Node `node:test` suites for the core
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
@@ -125,7 +156,7 @@ The project is under git — commit early, commit often:
 ## Tests
 
 ```sh
-npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs
+npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs, translations
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 ```
 

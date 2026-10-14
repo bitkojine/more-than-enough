@@ -5,6 +5,7 @@
 
 import * as Core from '../core/index.js';
 import { fmt, fmt1 } from './format.js';
+import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
 const MILESTONE_SECONDS = 6;
@@ -12,8 +13,8 @@ const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
 const LAYER_BUTTON = {
-  down: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the ladder'],
-  up: ['ui.climb', 'CLIMB UP', 'Climb up the ladder']
+  down: ['ui.climbDown', t('button.climbDown'), t('button.climbDown.aria')],
+  up: ['ui.climb', t('button.climbUp'), t('button.climbUp.aria')]
 };
 
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
@@ -34,7 +35,7 @@ export function createHud(el, look) {
     milestoneLeft = next ? MILESTONE_SECONDS : 0;
     if (!next) return;
     el.milestone.querySelector('strong').textContent = next.text;
-    el.milestone.querySelector('.of').textContent = next.number + ' of ' + (Core.GOALS.length - 1);
+    el.milestone.querySelector('.of').textContent = t('hud.milestoneOf', { n: next.number, total: Core.GOALS.length - 1 });
     // Restart the entrance animation for each one.
     el.milestone.style.animation = 'none';
     void el.milestone.offsetWidth;
@@ -70,7 +71,7 @@ export function createHud(el, look) {
     chip.type = 'button';
     chip.className = 'chip';
     chip.dataset.res = r;
-    chip.setAttribute('aria-label', Core.RESOURCE_LABEL[r] + ': see what you collected');
+    chip.setAttribute('aria-label', t('hud.chip', { res: Core.RESOURCE_LABEL[r] }));
     chip.innerHTML = `<img class="ic" data-look="${Core.resourceLook(r)}" alt="">` +
       '<span class="col"><span class="val">0</span></span><span class="rate"></span>';
     el.resources.appendChild(chip);
@@ -116,15 +117,15 @@ export function createHud(el, look) {
 
     // The big button shows what holding it will do right now.
     updateButtons(s) {
-      let icon = 'ui.gather', label = 'EXPLORE', ready = false;
+      let icon = 'ui.gather', label = t('button.explore'), ready = false;
       const collect = Core.collectTarget(s);
       const harvest = !collect && Core.harvestTarget(s);
       if (collect) {
-        icon = 'ui.collect'; label = 'COLLECT ' + fmt(collect.total); ready = true;
+        icon = 'ui.collect'; label = t('button.collect', { n: fmt(collect.total) }); ready = true;
       } else if (harvest) {
-        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = 'GATHER +' + fmt(Core.gatherYield(s, harvest.res)); ready = true;
+        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = t('button.gatherYield', { n: fmt(Core.gatherYield(s, harvest.res)) }); ready = true;
       } else if (Core.isUnderground(s)) {
-        label = 'GATHER'; ready = true;
+        label = t('button.gather'); ready = true;
       }
       const key = icon + label + ready;
       if (key !== lastAction) {
@@ -149,9 +150,9 @@ export function createHud(el, look) {
 
     view(cam) {
       // Zoom as a magnification (1×, 1.25×, 0.64×), beside a magnifier.
-      const zoom = +cam.zoom.toFixed(2) + '×';
+      const zoom = number(+cam.zoom.toFixed(2)) + '×';
       setText(el.zoomText, zoom);
-      el.zoomLevel.setAttribute('aria-label', 'Zoom ' + zoom + ', tap to reset');
+      el.zoomLevel.setAttribute('aria-label', t('hud.zoomLevel', { zoom }));
       el.tilt.setAttribute('aria-pressed', String(cam.tiltTarget > 0.5));
     },
 
