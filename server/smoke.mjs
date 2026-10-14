@@ -57,8 +57,19 @@ friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
 const moved = await owner.next('pos');
 check(moved && moved.p.x === 2, 'the owner sees the friend move');
 
-check((await fetch(BASE + '/admin/rooms')).status === 404, 'the moderator routes are hidden without the token');
-check((await fetch(BASE + '/admin/rooms', { headers: { Authorization: 'Bearer ' + hex(32) } })).status === 404, 'and with a wrong one');
+// (Right after a deploy the old version may still answer for a few seconds.)
+const hidden = async (headers) => {
+  let status = 0;
+  for (let i = 0; i < 10 && status !== 404; i++) {
+    if (i) await new Promise((r) => setTimeout(r, 3000));
+    status = (await fetch(BASE + '/admin/rooms', { headers })).status;
+  }
+  return status;
+};
+let st = await hidden({});
+check(st === 404, 'the moderator routes are hidden without the token (' + st + ')');
+st = await hidden({ Authorization: 'Bearer ' + hex(32) });
+check(st === 404, 'and with a wrong one (' + st + ')');
 const token = process.env.ROOMS_ADMIN_TOKEN;
 if (token) {
   const res = await fetch(`${BASE}/admin/rooms/${room}/log`, { headers: { Authorization: 'Bearer ' + token } });
