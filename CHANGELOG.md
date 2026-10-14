@@ -16,6 +16,7 @@
 
 ### Removed
 - The hum of your buildings, replaced by the music.
+
 ## [0.59.2] - 2026-10-14
 
 ### Changed
