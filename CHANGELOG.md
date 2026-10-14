@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.56.1] - 2026-10-14
+
+### Fixed
+- **Everyone is the same size, whatever they're doing.** A friend asleep
+  (offline) was drawn smaller than everyone else, and an away friend shrank
+  to "sit down". Both are now full size: an away friend dozes on their feet,
+  leaning forward and nodding, with the little z's.
+- Friends on water ride a boat like you do, instead of standing on the water;
+  a friend who falls asleep at sea sleeps on their boat's deck.
+- Holding up the invite sign works on the boat too.
+
 ## [0.56.0] - 2026-10-14
 
 ### Changed

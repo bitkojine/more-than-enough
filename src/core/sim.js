@@ -93,7 +93,12 @@ function canStand(s, x, y) {
 
 export function onWater(s) {
   const p = s.player;
-  return !!TILE_INFO[tileAt(s.world, Math.floor(p.x), Math.floor(p.y), p.z)].swim;
+  return swimsAt(s.world, p.x, p.y, p.z);
+}
+
+// Whether (x, y) on layer z is water, where anyone there rides a boat.
+export function swimsAt(world, x, y, z) {
+  return !!TILE_INFO[tileAt(world, Math.floor(x), Math.floor(y), z)].swim;
 }
 
 // Moves the player along (dx, dy), sliding along walls axis by axis.
