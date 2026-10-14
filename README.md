@@ -43,8 +43,10 @@ mine, buildings, every upgrade table, the prestige loop and the milestones. Its
 tables and figures are read live from `src/core/`, so they always match the
 game they ship with.
 
-**Design rule:** nothing to read in-game, ever. Labels, names, numbers and
-prices are fine; sentences that teach belong in the wiki. When you add or
+**Design rule:** almost nothing to read in-game. Labels, names, numbers and
+prices are fine, and so is a one-line hint where playtests showed players get
+stuck (why a building can't go here, that holding Gather keeps going);
+sentences that teach belong in the wiki. When you add or
 change a mechanic, update the wiki article that covers it.
 
 The wiki's **Ideas** page (`wiki/ideas.js`) is a sketchbook of directions the

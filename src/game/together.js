@@ -47,6 +47,12 @@ const RECONNECT_MAX = 15;             // seconds between tries, at most
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
 const NUKE_NAMES = 6;                 // names listed on the nuke screen
+// Why a link turned you away (the room says, see server/src/room.js whyNot).
+const INVITE_WHY = Object.freeze({
+  expired: () => t('together.toast.inviteExpired'),
+  usedUp: () => t('together.toast.inviteUsedUp'),
+  stopped: () => t('together.toast.inviteStopped')
+});
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 
 const JOIN_RE = /^([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{22})$/;
@@ -184,6 +190,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
   const timers = { pos: 0, beat: 0, edits: 0, save: 0, fog: 0 };
   let lastPos = '', lastSave = '';
   let invite = null;        // {code, until} while the QR is up
+  let turnedAway = null;    // why the room said your invite link no longer works
   let signT = 0;            // 0..1: how far up your sign is
   let signFace = null;      // the QR on it (a canvas), kept while it comes down
   let nukeOn = null;        // the nuke, while it's up: {votes, until}
@@ -200,6 +207,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     const socket = new WebSocket(service.replace(/^http/, 'ws') + '/rooms/' + room + '/ws');
     ws = socket;
     welcomed = false;
+    turnedAway = null;
     socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), ...(code ? { code } : {}) }));
     socket.onmessage = (e) => { if (ws === socket) receive(e.data); };
     socket.onclose = (e) => { if (ws === socket) closed(e.code, e.reason); };
@@ -213,7 +221,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     if (codeNum === 4003) return stop(t('together.toast.removed'));
     // Everyone pressed the nuke: straight back in, to the world made anew.
     if (codeNum === 4004) { retry = 0; return connect(); }
-    if (reason === 'invite') return stop(t('together.toast.inviteOld'));
+    if (reason === 'invite') return stop(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
     if (reason === 'full') return stop(t('together.toast.full'));
     if (!room) return;
     // Never got in (the service is down or unreachable): say so, don't loop.
@@ -247,6 +255,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     const d = parse(raw, WELCOME_BYTES);
     if (!d) return;
     if (d.t === 'welcome') return welcome(d);
+    // Turned away at the door: why the link no longer works, said before the close.
+    if (!welcomed && d.t === 'invite' && Object.hasOwn(INVITE_WHY, d.why)) turnedAway = d.why;
     if (!welcomed) return;
     if (d.t === 'pos') {
       const f = ID_RE.test(d.id) && friends.get(d.id), p = cleanPos(d.p);

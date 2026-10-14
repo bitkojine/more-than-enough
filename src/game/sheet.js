@@ -27,9 +27,9 @@ function priceTag(text, affordable) {
 }
 
 // A price, as what you still have to gather: one pill per resource, picture
-// first. Short of a resource, its pill shows how much more you need; one you
-// already have enough of shows a tick. Once you can pay it all, the pills show
-// what it will cost. `have` and `cost` are keyed by resource (or 'insight').
+// first, after a "Still need" label. Short of a resource, its pill shows how
+// much more you need; one you already have enough of shows a tick. Once you
+// can pay it all, the label goes and the pills show what it will cost. `have` and `cost` are keyed by resource (or 'insight').
 function price(have, cost) {
   const keys = Object.keys(cost);
   const ready = keys.every((r) => have[r] >= cost[r]);
@@ -37,7 +37,7 @@ function price(have, cost) {
     const id = r === 'insight' ? 'resource.insight' : Core.resourceLook(r);
     return `<span class="amt ${cls}" style="--res:${look.color(id)}">${pic(id)}<span class="n">${text}</span></span>`;
   };
-  return `<span class="price ${ready ? 'ready' : 'short'}">` + keys.map((r) => {
+  return `<span class="price ${ready ? 'ready' : 'short'}">` + (ready ? '' : `<span class="still">${t('sheet.stillNeed')}</span>`) + keys.map((r) => {
     if (ready) return pill(r, fmt(cost[r]), 'cost');
     const short = Math.ceil(cost[r] - have[r]);
     return short > 0 ? pill(r, fmt(short), 'need') : pill(r, '✓', 'met');
@@ -159,7 +159,16 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const spot = Core.buildTarget(s, key);
-    return row(picture, name, rate + '<br>' + price(s.inv, cost), place(affordable && !!spot));
+    return row(picture, name, rate + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
+  }
+
+  // Where a building goes. Once you can pay for it but there's nowhere in
+  // reach, why Place is greyed out (a greyed-out button says nothing itself).
+  function where(def, spot, affordable) {
+    const tile = def.tile === null ? '' : esc(Core.TILE_NAME[def.tile].toLocaleLowerCase());
+    if (affordable && !spot) return `<span class="where bad">${tile ? t('sheet.notHere', { tile }) : t('sheet.notHereLand')}</span>`;
+    const goes = !tile ? t('sheet.goesAnywhere') : spot ? t('sheet.goesOnHere', { tile }) : t('sheet.goesOn', { tile });
+    return `<span class="where">${goes}</span>`;
   }
 
   // Something to place in the mine, where you stand.

@@ -505,6 +505,8 @@ body.signing #zoomControls { visibility: hidden; }
 .amt.met { opacity: 0.6; }
 .amt.met .n { color: var(--green); }
 .amt.cost .n { color: var(--green); }
+.price .still { align-self: center; font-size: 12px; font-weight: 700; color: #f0a08f; margin-right: 2px; }
+.row .sub .where { display: inline-block; margin-top: 3px; font-size: 12px; }
 .row .buy {
   flex: 0 0 auto;
   min-width: 84px; min-height: 46px;

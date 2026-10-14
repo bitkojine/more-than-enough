@@ -1,7 +1,7 @@
 /* The heads-up display: the resource bar (tap a resource for what you
  * collected), the trophy button, the depth meter, the thumb cluster and
- * status toasts. Layout rules: docs/ui.md. The game never explains itself in text;
- * everything to read lives in the wiki. */
+ * status toasts. Layout rules: docs/ui.md. The game hardly explains itself in
+ * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtShort } from './format.js';
@@ -181,11 +181,14 @@ export function createHud(el, look) {
       el.place.style.animation = '';
     },
 
-    toast(msg) {
+    toast(msg, seconds = TOAST_SECONDS) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');
-      toastLeft = TOAST_SECONDS;
+      toastLeft = seconds;
     },
+
+    // A milestone banner is up (a hint would only be covered by it).
+    get celebrating() { return milestoneLeft > 0; },
 
     tick(dt) {
       if (toastLeft > 0 && (toastLeft -= dt) <= 0) el.toast.classList.remove('show');

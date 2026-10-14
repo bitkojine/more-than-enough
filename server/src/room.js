@@ -181,7 +181,11 @@ export class Room {
     const fresh = !pl;
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
-      if (!inv || !this.inviteWorks(inv, now)) { this.audit(now, id, 'deny', { why: 'invite', code: codeTag(code) }); return { error: 'invite' }; }
+      if (!inv || !this.inviteWorks(inv, now)) {
+        this.audit(now, id, 'deny', { why: 'invite', code: codeTag(code) });
+        // Say why, so a friend knows whether to ask for a new link or more room on it.
+        return { error: 'invite', why: inv ? this.whyNot(inv, now) : undefined };
+      }
       if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
       inv.uses++;
       this.dirty.meta = true;
@@ -223,6 +227,13 @@ export class Room {
   // Whether a link still lets someone new in: not stopped, not expired, not used up.
   inviteWorks(inv, now) {
     return !inv.off && inv.until >= now && inv.uses < this.maxOf(inv);
+  }
+
+  // Why a link no longer lets anyone in: 'stopped', 'expired' or 'usedUp'.
+  whyNot(inv, now) {
+    if (inv.off) return 'stopped';
+    if (inv.until < now) return 'expired';
+    return 'usedUp';
   }
 
   // The world's clock at `now`: seconds of game time, the same for everyone.

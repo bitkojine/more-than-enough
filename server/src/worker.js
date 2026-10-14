@@ -425,7 +425,7 @@ export class Rooms extends DurableObject {
     if (!d || d.t !== 'hello') return ws.close(1008, 'hello first');
     const r = await this.room.join(d.key, d.code, now);
     if (r.error) {
-      ws.send(JSON.stringify({ t: r.error }));
+      ws.send(JSON.stringify({ t: r.error, ...(r.why ? { why: r.why } : {}) }));
       return ws.close(1008, r.error);
     }
     // One connection per player: a newer one (another tab, a reconnect) wins.

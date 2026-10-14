@@ -24,8 +24,8 @@ async function makeRoom(extra = {}) {
 }
 
 // A fresh invite code, as the room hands one out to `id`.
-function invite(r, id, now = T0) {
-  return r.message(id, JSON.stringify({ t: 'invite' }), now).toSelf[0].code;
+function invite(r, id, now = T0, ask = {}) {
+  return r.message(id, JSON.stringify({ t: 'invite', ...ask }), now).toSelf[0].code;
 }
 
 /* ------------------------------------------------------------ protocol */
@@ -106,7 +106,9 @@ test('room: new players need a live invite; members come back with their key', a
   assert.equal((await r.join(key(), undefined, T0)).error, 'invite');
   assert.equal((await r.join(key(), 'A'.repeat(22), T0)).error, 'invite');
   const code = invite(r, o.id);
-  assert.equal((await r.join(key(), code, T0 + INVITE_MS + 1)).error, 'invite', 'invites expire');
+  const late = await r.join(key(), code, T0 + INVITE_MS + 1);
+  assert.deepEqual([late.error, late.why], ['invite', 'expired'], 'invites expire, and the joiner hears why');
+  assert.equal((await r.join(key(), 'A'.repeat(22), T0)).why, undefined, 'a made-up code is told nothing more');
   const friendKey = key();
   const f = await r.join(friendKey, code, T0 + 1000);
   assert.ok(f.id && f.welcome.you === f.id);
@@ -117,7 +119,11 @@ test('room: new players need a live invite; members come back with their key', a
   // A stopped link stops letting anyone new in.
   const code2 = invite(r, o.id);
   r.message(o.id, JSON.stringify({ t: 'revoke', code: code2 }), T0);
-  assert.equal((await r.join(key(), code2, T0)).error, 'invite');
+  assert.equal((await r.join(key(), code2, T0)).why, 'stopped');
+  // A full link says so.
+  const one = invite(r, o.id, T0, { uses: 1 });
+  assert.ok((await r.join(key(), one, T0)).id);
+  assert.equal((await r.join(key(), one, T0)).why, 'usedUp', 'a used-up link says so');
 });
 
 test('room: invite links last a day, count who joined, and can be listed and stopped', async () => {

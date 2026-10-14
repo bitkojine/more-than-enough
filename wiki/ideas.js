@@ -41,6 +41,7 @@ export const IDEAS = [
   { id: 'glowOre', area: 'mechanics', size: 'small' },
   { id: 'littleDiggers', area: 'mechanics', size: 'large' },
   { id: 'weather', area: 'mechanics', size: 'medium' },
+  { id: 'fish', area: 'mechanics', size: 'medium' },
 
   /* --------------------------------------------------------- economy */
   { id: 'visualRecipes', area: 'economy', size: 'medium' },
@@ -48,6 +49,7 @@ export const IDEAS = [
   { id: 'caravansAtTheEdge', area: 'economy', size: 'medium' },
   { id: 'trophiesOnThePlateau', area: 'economy', size: 'small' },
   { id: 'insightAsConstellations', area: 'economy', size: 'medium' },
+  { id: 'aSharedBank', area: 'economy', size: 'medium' },
 
   /* ------------------------------------------------------------- big */
   { id: 'aMountainColony', area: 'big', size: 'huge' },
@@ -55,7 +57,8 @@ export const IDEAS = [
   { id: 'visitAFriendSPlateau', area: 'big', size: 'huge' },
   { id: 'theWorldThatRemembers', area: 'big', size: 'large' },
   { id: 'downIsTheWholeGame', area: 'big', size: 'huge' },
-  { id: 'noNumbersAtAll', area: 'big', size: 'large' }
+  { id: 'noNumbersAtAll', area: 'big', size: 'large' },
+  { id: 'playtesterBots', area: 'big', size: 'large' }
 ];
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');

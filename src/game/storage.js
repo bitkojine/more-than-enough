@@ -70,8 +70,8 @@ export function loadGame() {
   return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
 }
 
-// The viewer's zoom, drag direction, music choice and the tracks they have
-// heard: conveniences for this browser, not game state.
+// The viewer's zoom, drag direction, music choice, the tracks they have
+// heard, quality level and whether they know to hold Gather: conveniences for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
@@ -80,10 +80,11 @@ export function loadView() {
       invertDrag: v.invertDrag === true,
       music: v.music !== false,
       heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : [],
-      quality: Number(v.quality) || 0
+      quality: Number(v.quality) || 0,
+      holdTip: v.holdTip === true
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0 };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false };
   }
 }
 

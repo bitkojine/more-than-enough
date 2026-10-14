@@ -1,7 +1,6 @@
 /* The player's intents, applied to the game: each one calls the core and then
  * gives feedback (effects, sound, HUD, and the wanderer acting it out) and
- * schedules a save. Feedback is visual and audible only; the game never
- * explains itself in text. */
+ * schedules a save. Feedback is visual and audible only. */
 
 import * as Core from '../core/index.js';
 import { randomSeed } from './storage.js';
@@ -12,7 +11,8 @@ const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
-export function createController({ game, cam, fx, audio, hud, look, ask, actor }) {
+// `gathered(held)` hears every gather: `held` when a hold repeated it.
+export function createController({ game, cam, fx, audio, hud, look, ask, actor, gathered = () => {} }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
@@ -155,7 +155,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         // Walking to something tapped: work it as soon as it's in reach.
-        if (walkTo.work && workAt(walkTo.work.x, walkTo.work.y)) walkTo = null;
+        if (walkTo.work && workAt(walkTo.work.x, walkTo.work.y)) { walkTo = null; gathered(false); }
         else if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;
         else {
           Core.move(state(), dx, dy, dt);
@@ -172,18 +172,19 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
 
     // Gather pressed: act at once, then the hold repeats via tick().
     press() {
-      if (cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
+      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); }
     },
 
     // `holdAt`: a finger held still on the map (screen point), or null. It
     // works that tile over and over, like holding Gather.
     tick(dt, holding, holdAt) {
       cooldown -= dt;
-      if (holding && cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
+      // The first gather of a hold is press()'s; these are its repeats.
+      if (holding && cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(true); }
       if (holdAt && cooldown <= 0) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);
-        if (workAt(tx, ty)) cooldown = GATHER_COOLDOWN;
+        if (workAt(tx, ty)) { cooldown = GATHER_COOLDOWN; gathered(true); }
         else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
       }
     },
@@ -194,7 +195,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
     tap(sx, sy) {
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
-      if (passAt(tx, ty) || workAt(tx, ty)) return;
+      if (passAt(tx, ty)) return;
+      if (workAt(tx, ty)) { gathered(false); return; }
       walkToward(tx, ty, workable(tx, ty));
     },
 

@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.76.0] - 2026-10-14
+
+From a playtest with a friend.
+
+### Added
+- **Build rows say where a building goes** ("Goes on stone within your
+  reach") and, when there's nowhere in reach, why Place is greyed out
+  ("Can't place here: walk up to stone with nothing built on it").
+- **Prices you can't pay yet start with "Still need"**, so the pills read as
+  what's left to gather, not the whole price.
+- **A one-time hint to hold Gather**, after eight single taps or presses for
+  players who haven't found out that holding (the button, Space, or a finger
+  on a resource) keeps gathering. Remembered per browser.
+- **Invite links say why they turned you away**: expired, used up or
+  stopped. The room service adds `why` to its `invite` refusal; older
+  clients ignore it.
+- Wiki ideas: fish, a shared bank, playtester bots. Worklist: Edge staying
+  silent until the tab is muted and unmuted, to reproduce.
+
+### Changed
+- **Quality settles faster and stays put**: each visit starts at the level
+  the last one settled on (not one better), and frames are judged after
+  1.5 s for 1 s at a time (was 3 s and 2 s), so old phones stop lagging on
+  every load. The map is never drawn with more than 3 million device pixels
+  (a Retina laptop window had several times a phone's), never below 1x for
+  that alone.
+- README design rule: a one-line hint is fine where playtests show players
+  get stuck.
+
 ## [0.75.1] - 2026-10-14
 
 ### Changed

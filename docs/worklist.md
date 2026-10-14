@@ -20,6 +20,12 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **Tap the world to close menus.** (0.26.2) Clicking past a menu onto the game
       world should close the menu.
 
+- [ ] **No sound on Edge until the tab is muted and unmuted.** (playtest, 2026-10-14; to reproduce)
+      A friend on Microsoft Edge heard nothing until they muted and unmuted the tab. Not reproduced yet
+      (no Edge to test on). Suspect: `src/game/audio.js` makes its AudioContext at load, before any click,
+      and Edge may leave that early context "running" but silent. If it reproduces, make a fresh context on
+      the first click when the early one has never sounded (the output meter can tell).
+
 ## Wiki
 
 - [x] **Find every mention.** (0.27.0) Searching a term (e.g. "overclock") should show

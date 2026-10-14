@@ -11,6 +11,7 @@
  * and a wall in layer -1 stands up to 0. Only south faces can be seen. */
 
 import { RELIEF_MIN, RELIEF_MAX } from '../core/index.js';
+import { drawDpr } from './quality.js';
 
 const ZOOM_MAX = 3;          // 3x in
 const MIN_TILE_PX = 3;       // floor on tile size: the practical zoom-out limit
@@ -29,7 +30,7 @@ export function createCamera(canvas) {
     width: 0,            // viewport size in CSS pixels
     height: 0,
     dpr: 1,              // device pixels per CSS pixel the map is drawn at
-    maxDpr: 2,           // ...at most (lower on a device that can't keep up, see quality.js)
+    maxDpr: 2,           // ...at most (lower on a device that can't keep up, or a big screen; see quality.js)
     baseTilePx: 48,      // tile size at 1x zoom for this viewport
     zoom: 1,
     tilePx: 48,          // tile width in CSS pixels
@@ -41,9 +42,9 @@ export function createCamera(canvas) {
     relief: () => 0,
 
     resize() {
-      const dpr = cam.dpr = Math.min(cam.maxDpr, window.devicePixelRatio || 1);
       cam.width = window.innerWidth;
       cam.height = window.innerHeight;
+      const dpr = cam.dpr = drawDpr(cam.maxDpr, window.devicePixelRatio || 1, cam.width, cam.height);
       canvas.width = Math.round(cam.width * dpr);
       canvas.height = Math.round(cam.height * dpr);
       canvas.style.width = cam.width + 'px';

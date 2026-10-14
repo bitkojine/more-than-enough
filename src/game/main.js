@@ -180,7 +180,18 @@ const nuke = createNuke(el.nuke);
 const updater = createUpdater({ save: () => game.saveNow() });
 const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, friendJoined: updater.check, closeSheet: () => sheet.close() });
 const actor = createActor(); // what the wanderer is doing, to animate it
-const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor });
+// Players who gather a tap at a time are told, once, that holding keeps going.
+const HOLD_TIP_AFTER = 8;   // single gathers before the tip
+const HOLD_TIP_SECONDS = 6; // long enough to read
+let singleGathers = 0;
+function gathered(held) {
+  if (savedView.holdTip) return;
+  if (!held && (++singleGathers < HOLD_TIP_AFTER || hud.celebrating)) return;
+  savedView.holdTip = true;  // found it, or told now: never again
+  saveView(savedView);
+  if (!held) hud.toast(t('tip.hold'), HOLD_TIP_SECONDS);
+}
+const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
 
 const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
 const sheet = createSheet(el, {
