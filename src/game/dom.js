@@ -51,13 +51,10 @@ export function findElements() {
     language: byId('btnLanguage'),
     fork: byId('fork'),
     ask: byId('ask'),
-    together: byId('btnTogether'),
-    togetherLabel: byId('togetherLabel'),
+    invite: byId('btnInvite'),
+    inviteLabel: byId('inviteLabel'),
     leave: byId('btnLeave'),
     rejoin: byId('btnRejoin'),
-    friends: byId('friends'),
-    qr: byId('qr'),
-    qrCanvas: byId('qrCanvas'),
-    qrDone: byId('qrDone')
+    friends: byId('friends')
   };
 }

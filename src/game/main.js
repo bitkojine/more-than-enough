@@ -103,8 +103,6 @@ const game = {
   // Alone or together: the settings that differ.
   changedMode() {
     const shared = !!game.state.shared;
-    el.together.hidden = !together.available;
-    el.togetherLabel.textContent = t(shared ? 'together.invite' : 'together.start');
     el.leave.hidden = !shared;
     el.rejoin.hidden = !together.canRejoin;
     el.reset.closest('.setGroup').hidden = shared; // no starting over a world you share
@@ -159,7 +157,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open || !el.qr.hidden,
+    blocked: () => sheet.isOpen || fork.open || ask.open,
     dismiss: () => sheet.close(),
     tap: controller.tap,
     actionPressed: controller.press,
@@ -183,7 +181,6 @@ el.resources.addEventListener('click', (e) => {
   if (chip) sheet.showCollected(chip.dataset.res);
 });
 el.mine.addEventListener('click', controller.toggleMine);
-el.together.addEventListener('click', () => { sheet.close(); together.start(); });
 el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
 el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
 el.reset.addEventListener('click', controller.reset);
@@ -273,6 +270,8 @@ function view() {
     friends: together.view(),
     friendColors: FRIEND_COLORS,
     sign: together.sign,
+    signFace: together.signFace,
+    signCaption: t('together.sign'),
     device: playDevice() // what you hold, and whose screen lights the dark
   };
 }

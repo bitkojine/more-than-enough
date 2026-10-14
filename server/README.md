@@ -9,7 +9,7 @@ shared with the game.
 
 ## How it works
 
-1. **Play together** in the game posts your world (the seed and every edit,
+1. **Invite** in the game (the first time) posts your world (the seed and every edit,
    your buildings and your own progress) to `POST /rooms`. The service makes
    a room with a random 128-bit id and keeps it.
 2. You connect to `GET /rooms/<id>/ws` (a WebSocket) and say who you are

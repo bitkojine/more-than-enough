@@ -122,6 +122,12 @@
       <button id="zoomLevel" type="button"><span id="zoomText">1×</span></button>
       <button id="btnZoomOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
     </div>
+    <!-- Invite: hold up your sign with a QR code a friend scans to join (the
+         world goes online the first time). A main action like Gather, on the
+         other thumb. See docs/ui.md. -->
+    <button id="btnInvite" class="btn" type="button" aria-pressed="false" data-i18n-aria-label="together.button.aria" hidden>
+      <svg class="big" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z" fill="none" stroke="currentColor" stroke-width="2" /><path d="M5.5 5.5h2v2h-2zM16.5 5.5h2v2h-2zM5.5 16.5h2v2h-2zM14 14h3v3h-3zM18 18h3v3h-3zM18 14h3v2h-3zM14 18h2v3h-2z" fill="currentColor" /></svg><span class="cap" id="inviteLabel"></span>
+    </button>
     <div id="thumbDock">
       <button id="btnBuild" class="btn" type="button" data-i18n-aria-label="button.build.aria">
         <img class="big" data-look="ui.build" alt=""><span class="cap" data-i18n="button.build"></span>
@@ -155,7 +161,6 @@
     <div id="sheetBody"></div>
     <div id="settingsPanel" hidden>
       <div class="setGroup">
-        <button id="btnTogether" class="setRow together" type="button" hidden><span id="togetherLabel"></span><b aria-hidden="true">&#9638;</b></button>
         <button id="btnRejoin" class="setRow" type="button" hidden><span data-i18n="together.rejoin"></span></button>
         <button id="btnLeave" class="setRow" type="button" hidden><span data-i18n="together.leave"></span></button>
       </div>
@@ -190,19 +195,6 @@
       <strong id="askTitle"></strong>
       <p></p>
       <div class="choices"><button type="button" class="secondary"></button><button type="button" class="primary"></button></div>
-    </div>
-  </div>
-  <!-- Holding up the QR: your wanderer lifts a sign with the code on it. -->
-  <div id="qr" class="scrim" role="dialog" aria-labelledby="qrTitle" hidden>
-    <div class="holdup">
-      <strong id="qrTitle" data-i18n="together.qr.title"></strong>
-      <div class="sign">
-        <div class="board"><canvas id="qrCanvas" width="280" height="280" role="img" data-i18n-aria-label="together.qr.title"></canvas></div>
-        <div class="stalk"></div>
-      </div>
-      <img class="holder" data-look="character.wanderer" data-slot="image" alt="">
-      <p data-i18n="together.qr.text"></p>
-      <div class="choices"><button id="qrDone" type="button" class="primary" data-i18n="together.qr.done"></button></div>
     </div>
   </div>
   <div id="fork" class="scrim" role="alertdialog" aria-labelledby="forkTitle" hidden>

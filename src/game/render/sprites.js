@@ -47,6 +47,7 @@ export function drawExtractor(ctx, cam, s, look, e) {
 // The wanderer: facing the way they last walked, stepping through the walk
 // frames while moving. On water they ride the boat. They always hold what
 // you play on (a phone or a laptop), and its screen lights the dark.
+// Returns where their head is ({x, top}), for the sign they may hold up.
 export function drawPlayer(ctx, cam, s, look, view) {
   const u = cam.tilePx;
   const p = s.player;
@@ -59,7 +60,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = view.moving && !deck ? Math.abs(Math.sin(s.time * 12)) * u * 0.03 : 0;
   const tall = standWithHeld(ctx, look, body, view.device, sx, sy - deck - step, u, flip);
-  if (view.sign > 0) drawSign(ctx, sx, sy - deck - step - tall, u, view.sign, s.time, 0);
+  return { x: sx, top: sy - deck - step - tall };
 }
 
 // The boat under someone on water, bobbing, with its shadow. Returns how far
@@ -89,34 +90,60 @@ function standWithHeld(ctx, look, body, device, x, y, size, flip) {
 
 const ease = (t) => 1 - (1 - t) ** 3 + Math.sin(t * Math.PI) * 0.15; // up with a little bounce
 
-// The sign you hold up to invite a friend: a mushroom-cap board on a stalk,
-// with a tiny QR on it (the real one fills the screen). `t` 0..1 raises it.
-export function drawSign(ctx, x, top, u, t, time, seed) {
+// The sign you hold up to invite a friend: a mushroom-cap board on a stalk
+// from your hands, `side` px across. Yours carries the real QR code (`face`,
+// a canvas of its modules), big enough for a friend's camera to scan; a
+// friend's shows a small QR-like pattern (`face` a number to vary it).
+// `caption` is written along the board's bottom edge. `t` 0..1 raises it.
+export function drawSign(ctx, x, top, u, t, time, face, side = u * 0.62, caption = '') {
   const lift = ease(t);
-  const w = u * 0.62, h = u * 0.62;
-  const bx = x + u * 0.18, by = top - u * 0.15 - lift * u * 0.55 + Math.sin(time * 3) * u * 0.02;
+  const big = side > u;
+  const rim = Math.max(u * 0.06, side * 0.05);
+  const foot = caption ? Math.round(side * 0.13) : 0;   // room for the caption
+  const bx = big ? x : x + u * 0.18;
+  const by = top - u * 0.25 - foot - lift * (side / 2 + u * 0.3) + Math.sin(time * 3) * u * 0.02;
+  const left = bx - side / 2, upper = by - side / 2;
   ctx.save();
   ctx.globalAlpha *= Math.min(1, t * 2);
   ctx.strokeStyle = '#e8dcc0';
-  ctx.lineWidth = Math.max(2, u * 0.06);
-  ctx.beginPath(); ctx.moveTo(bx, by + h / 2); ctx.lineTo(bx, top + u * 0.25); ctx.stroke();
+  ctx.lineWidth = Math.max(2, u * (big ? 0.12 : 0.06));
+  ctx.beginPath(); ctx.moveTo(bx, by + side / 2 + foot); ctx.lineTo(bx, top + u * 0.25); ctx.stroke();
   ctx.fillStyle = '#c0583a';
-  ctx.beginPath(); ctx.roundRect(bx - w / 2 - u * 0.06, by - h / 2 - u * 0.06, w + u * 0.12, h + u * 0.12, u * 0.12); ctx.fill();
+  ctx.beginPath(); ctx.roundRect(left - rim, upper - rim, side + rim * 2, side + rim * 2 + foot, rim * 2); ctx.fill();
+  if (caption) {
+    ctx.fillStyle = '#fff3e8';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = `800 ${Math.round(foot * 0.62)}px system-ui, sans-serif`; // i18n-ok: a font
+    ctx.fillText(caption, bx, upper + side + rim * 0.4 + foot / 2, side);
+  }
   ctx.fillStyle = '#fff';
-  ctx.fillRect(bx - w / 2, by - h / 2, w, h);
-  // A QR-ish pattern: three finder squares and some dots.
-  const cell = w / 9;
-  ctx.fillStyle = '#111';
-  const finder = (cx, cy) => {
-    ctx.fillRect(bx - w / 2 + cx * cell, by - h / 2 + cy * cell, cell * 3, cell * 3);
-    ctx.fillStyle = '#fff'; ctx.fillRect(bx - w / 2 + (cx + 1) * cell, by - h / 2 + (cy + 1) * cell, cell, cell); ctx.fillStyle = '#111';
-  };
-  finder(0.5, 0.5); finder(5.5, 0.5); finder(0.5, 5.5);
-  for (let i = 0; i < 12; i++) {
-    const cx = 4 + ((i * 7 + seed) % 5), cy = 4 + ((i * 3 + seed * 5) % 5);
-    if ((i + seed) % 3) ctx.fillRect(bx - w / 2 + cx * cell - cell / 2, by - h / 2 + cy * cell - cell / 2, cell, cell);
+  ctx.fillRect(left, upper, side, side);
+  if (typeof face === 'object' && face) {
+    // The real code, square pixels and no blur, so cameras read it.
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(face, left, upper, side, side);
+  } else {
+    // A QR-ish pattern: three finder squares and some dots.
+    const seed = face || 0, cell = side / 9;
+    ctx.fillStyle = '#111';
+    const finder = (cx, cy) => {
+      ctx.fillRect(left + cx * cell, upper + cy * cell, cell * 3, cell * 3);
+      ctx.fillStyle = '#fff'; ctx.fillRect(left + (cx + 1) * cell, upper + (cy + 1) * cell, cell, cell); ctx.fillStyle = '#111';
+    };
+    finder(0.5, 0.5); finder(5.5, 0.5); finder(0.5, 5.5);
+    for (let i = 0; i < 12; i++) {
+      const cx = 4 + ((i * 7 + seed) % 5), cy = 4 + ((i * 3 + seed * 5) % 5);
+      if ((i + seed) % 3) ctx.fillRect(left + cx * cell - cell / 2, upper + cy * cell - cell / 2, cell, cell);
+    }
   }
   ctx.restore();
+}
+
+// How big your own sign is on screen: as big as fits above you, so a friend's
+// phone can scan it from a step away.
+export function signSide(cam) {
+  return Math.round(Math.min(cam.width * 0.62, cam.height * 0.36, 340));
 }
 
 // A friend, drawn like the wanderer (holding what they play on) with a ring

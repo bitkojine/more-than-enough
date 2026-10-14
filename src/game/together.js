@@ -77,6 +77,26 @@ function playedTime(save) {
   } catch { return -1; }
 }
 
+// A canvas of a QR code for `text`: one pixel per module times SCALE, with
+// the quiet margin scanners need, black on white.
+const QR_SCALE = 8, QR_QUIET = 4;
+function qrCanvas(text) {
+  const qr = qrcode(0, 'M');
+  qr.addData(text);
+  qr.make();
+  const n = qr.getModuleCount();
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = (n + QR_QUIET * 2) * QR_SCALE;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#000';
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect((c + QR_QUIET) * QR_SCALE, (r + QR_QUIET) * QR_SCALE, QR_SCALE, QR_SCALE);
+  }
+  return canvas;
+}
+
 /* ------------------------------------------------- what the room sends */
 
 function cleanPlayers(players) {
@@ -120,6 +140,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   let lastPos = '', lastSave = '';
   let invite = null;        // {code, until} while the QR is up
   let signT = 0;            // 0..1: how far up your sign is
+  let signFace = null;      // the QR on it (a canvas), kept while it comes down
 
   /* ---------------------------------------------------- the connection */
 
@@ -287,6 +308,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   function tick(dt) {
     const s = game.state;
     signT = Math.max(0, Math.min(1, signT + (invite ? dt : -dt) * SIGN_SPEED));
+    if (signT === 0 && !invite) signFace = null;
     if (invite && Date.now() > invite.until) closeQr();
     if (!s.shared) return;
     keepTime();
@@ -360,35 +382,36 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     send({ t: 'invite' });
   }
 
+  // The room gave us an invite: up goes the sign with its code. Your
+  // wanderer holds it in the world (render/sprites.js drawSign).
   function openQr(inviteCode) {
     invite = { code: inviteCode, until: Date.now() + 10 * 60_000 };
     // In the fragment (#), which browsers never send to any server: the
     // invite reaches the friend's phone and nowhere else.
-    const link = location.origin + location.pathname + '#join=' + room + '.' + inviteCode;
-    const qr = qrcode(0, 'M');
-    qr.addData(link);
-    qr.make();
-    const n = qr.getModuleCount(), quiet = 4, px = Math.max(4, Math.floor(280 / (n + quiet * 2)));
-    const canvas = el.qrCanvas;
-    canvas.width = canvas.height = (n + quiet * 2) * px;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#000';
-    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect((c + quiet) * px, (r + quiet) * px, px, px);
-    el.qr.hidden = false;
-    el.qr.classList.remove('up');
-    void el.qr.offsetWidth; // restart the pop-up
-    el.qr.classList.add('up');
+    signFace = qrCanvas(location.origin + location.pathname + '#join=' + room + '.' + inviteCode);
+    renderButton();
   }
 
   function closeQr() {
     if (invite) send({ t: 'uninvite', code: invite.code });
     invite = null;
-    el.qr.hidden = true;
+    renderButton();
   }
-  el.qrDone.addEventListener('click', closeQr);
-  el.qr.addEventListener('click', (e) => { if (e.target === el.qr) closeQr(); });
+
+  // The main Invite button: holds up your sign (going online first if this
+  // world isn't shared yet), or puts it down.
+  function renderButton() {
+    const up = !!invite;
+    el.invite.hidden = !service;
+    el.invite.classList.toggle('up', up);
+    el.invite.setAttribute('aria-pressed', String(up));
+    el.inviteLabel.textContent = t(up ? 'together.button.down' : 'together.button');
+  }
+  el.invite.addEventListener('click', () => {
+    if (invite) closeQr();
+    else if (game.state.shared) showInvite();
+    else start();
+  });
 
   /* ---------------------------------------------------- friends in the HUD */
 
@@ -439,8 +462,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
 
   // Your world goes online: a room is made from it and you're its owner.
   async function start() {
-    if (!service) return;
-    if (game.state.shared) { showInvite(); return; }
+    if (!service || game.state.shared) return;
     const yes = await ask({ title: t('together.start.title'), text: t('together.start.text'), yes: t('together.start.yes') });
     if (!yes || game.state.shared) return;
     const s = game.state;
@@ -505,6 +527,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     get canRejoin() { return !!service && !game.state.shared && knownRooms().length > 0; },
     get color() { return myColor; },
     get sign() { return signT; },
+    get signFace() { return signFace; },
     tick,
     save,
     start,
@@ -524,6 +547,6 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       for (const [id, f] of friends) if (f.shown) out.push({ id, c: f.c, st: stateOf(f), since: f.since, ...f.shown });
       return out;
     },
-    refresh: renderFriends
+    refresh() { renderFriends(); renderButton(); }
   };
 }

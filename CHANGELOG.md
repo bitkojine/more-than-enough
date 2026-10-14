@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.57.0] - 2026-10-14
+
+### Changed
+- **Invite is a main button, and the QR lives in the world.** A big red
+  *Invite* button sits in the bottom-left corner, as easy to reach as
+  Gather. Tap it and your wanderer lifts a mushroom-cap sign with the real
+  QR code on it and *Scan to join my world* along the bottom; the view pans
+  so the sign is clear of the top bar, and it's drawn bright even at night
+  so a friend's camera reads it any time. Tap *Lower* to put it down. The
+  first tap puts your world online. The separate QR screen and the Settings
+  entry are gone (Settings still has *Back to the shared world* and *Leave*).
+  In English and Lithuanian.
+
 ## [0.56.1] - 2026-10-14
 
 ### Fixed

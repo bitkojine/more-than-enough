@@ -29,7 +29,7 @@ place it belongs here rather than adding a button where there is room.
 │                                   1× │
 │                                   [−]│
 │                        [CLIMB]       │  pops in above-left of the action
-│   [BUILD] [UPGRADE]      ( GATHER )  │  thumb cluster
+│ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
 ```
 
@@ -41,8 +41,9 @@ place it belongs here rather than adding a button where there is room.
 - Touch targets ≥ 44px; the main action 84px.
 
 ### Playing together
-- **Settings** opens it: *Play together* (or *Show QR to invite a friend* once you're in a shared world), *Back to the shared world*, *Leave the shared world*. Reset world is hidden in a shared world.
-- **The QR** is a full-screen card: your wanderer at the bottom lifts a sign on a mushroom stalk with the code on it (it rises with a bounce and sways). Friends see the sign over your head in the world.
+- **Invite** is a main action, as big as Gather, in the bottom-left corner (the left thumb), in the sign's mushroom red. Tapping it holds up your sign; the first time it asks to put the world online. While the sign is up the button turns white and reads *Lower*; tap it again to put the sign down. It's never in a menu.
+- **The QR lives in the world**: your wanderer lifts a mushroom-cap sign on a stalk with the real, scannable code on it and *Scan to join my world* along the bottom, as big as fits (about 60% of the screen's width). The view pans so you stand low on the screen and the sign is clear of the top bar and messages. It's drawn over the night's darkness so it scans at any hour. Friends see a small sign over your head.
+- **Settings** keeps the rest: *Back to the shared world* and *Leave the shared world*. Reset world is hidden in a shared world.
 - **Friends** are chips under the top bar on the right, one per friend in their colour with their number, showing their state: online, away (z), connection lost (blinking), offline (hollow). The owner taps one to remove that friend (through `ask()`).
 - **In the world** a friend has a ring of their colour at their feet and a diamond over their head. Away: smaller, with drifting z's. Connection lost: flickering under a spinning arc. Offline: asleep on the ground where they left, like a sleeper in Rust, under a blanket of their colour that rises and falls, with slow big Z's; always solid, never hidden. Back: a burst of sparkles. Off screen or on another layer: a pin at the screen's edge pointing their way, with an arrow up or down for another layer.
 
