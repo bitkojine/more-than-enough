@@ -341,21 +341,25 @@ canvas#game {
 
 #sheet {
   position: absolute; left: 0; right: 0; bottom: 0;
-  max-height: min(76vh, 720px);
+  max-width: 640px; margin: 0 auto;
+  height: min(72vh, 720px);
   background: var(--panel);
-  border-top-left-radius: 20px; border-top-right-radius: 20px;
-  border-top: 1px solid var(--panel-line);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top-left-radius: var(--r-lg); border-top-right-radius: var(--r-lg);
+  border: 1px solid var(--panel-line); border-bottom: 0;
   transform: translateY(110%);
-  transition: transform .22s ease;
+  transition: transform .26s cubic-bezier(.2, .9, .3, 1);
   display: flex; flex-direction: column;
   z-index: 30;
-  box-shadow: 0 -8px 30px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-2);
 }
 #sheet.open { transform: translateY(0); }
+/* Settings is short: it takes only the room it needs. */
+#sheet[data-tab="settings"] { height: auto; max-height: 88vh; }
 
 #sheetGrab {
   flex: 0 0 auto;
-  height: 22px;
+  height: 18px;
   display: flex; align-items: center; justify-content: center;
   cursor: grab;
   touch-action: none;
@@ -367,47 +371,55 @@ canvas#game {
 }
 #sheetGrab:active span { background: rgba(255, 255, 255, 0.4); }
 
+/* The tabs, or a screen's own title, with × on the right. */
 #sheetHead {
-  display: flex; align-items: center; justify-content: center;
-  min-height: 34px; padding: 2px 12px 6px;
   flex: 0 0 auto;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 12px 8px;
 }
-#sheetTitle { font-size: 13px; font-weight: 800; letter-spacing: 0.03em; color: var(--ink-dim); }
-#tabs { display: flex; gap: 6px; flex: 1; min-width: 0; }
-.tab {
-  flex: 1;
-  min-width: 0; min-height: 52px;
-  border-radius: 11px;
-  border: 1px solid var(--panel-line);
-  background: rgba(255,255,255,0.04);
-  color: var(--ink-dim);
-  font-size: 13px; font-weight: 800;
-  touch-action: manipulation;
-}
-.tab.active { color: var(--ink); background: rgba(80, 130, 90, 0.35); border-color: rgba(127,208,122,0.5); }
+#sheetTitle { flex: 1 1 auto; padding-left: 6px; font-size: 20px; font-weight: 800; color: var(--ink); }
+#sheet[data-tab]:not([data-tab="settings"]):not([data-tab="collected"]) #sheetTitle,
+#sheet[data-tab="settings"] #tabs, #sheet[data-tab="collected"] #tabs { display: none; }
+#btnClose { width: 40px; height: 40px; box-shadow: none; background: var(--raised); }
+#btnClose svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 
-#btnClose {
-  flex: 0 0 62px; min-width: 62px; height: 52px;
+/* Tabs: one segmented control under the title. */
+#tabs {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; gap: 2px;
+  padding: 3px;
   border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--panel-line);
-  background: rgba(255,255,255,0.05);
-  color: var(--ink); font-size: 13px; font-weight: 800;
-  touch-action: manipulation;
 }
+#tabs [hidden] { display: none; }
+.tab {
+  flex: 1 1 0;
+  min-width: 0; height: 38px;
+  border: 0; border-radius: 9px;
+  background: none;
+  color: var(--ink-dim);
+  font: 800 13.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  touch-action: manipulation; cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.tab.active { color: #0c1a0e; background: var(--green); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
 
 #sheetBody {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   flex: 1 1 auto;
-  padding: 4px 0 8px;
+  padding: 2px 0 calc(env(safe-area-inset-bottom, 0px) + 16px);
   min-height: 60px;
 }
 
 .row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 10px 6px; padding: 10px 12px;
+  border: 1px solid var(--panel-line); border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.035);
 }
 .row .ic { width: 34px; height: 34px; flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
 .row .ic .ico { width: 34px; height: 34px; object-fit: contain; }
@@ -445,7 +457,7 @@ canvas#game {
 .amt.cost .n { color: var(--green); }
 .row .buy {
   flex: 0 0 auto;
-  min-width: 92px; min-height: 52px;
+  min-width: 84px; min-height: 46px;
   border-radius: 12px;
   padding: 0 12px;
   font: 800 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -473,7 +485,7 @@ canvas#game {
 }
 .row .buy.max { border: 1px solid transparent; background: rgba(255,255,255,0.04); color: var(--ink-dim); }
 .row.locked { opacity: 0.6; }
-.section { padding: 10px 12px 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); }
+.section { padding: 12px 20px 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 
 /* ------------------------------------------------------ Collected */
 
@@ -505,15 +517,15 @@ canvas#game {
    nodes, a count, and a chevron. */
 .railHead {
   display: flex; align-items: center; gap: 10px;
-  width: 100%; text-align: left;
-  min-height: 52px;
-  padding: 11px 12px;
-  background: none; border: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  width: calc(100% - 20px); text-align: left;
+  min-height: 56px;
+  margin: 0 10px 6px; padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-line); border-radius: var(--r-md);
   color: var(--ink); font: inherit; font-weight: 700;
   cursor: pointer; touch-action: manipulation;
 }
-.railHead.ready { background: rgba(60, 120, 80, 0.14); }
+.railHead.ready { background: rgba(60, 120, 80, 0.18); border-color: rgba(127, 208, 122, 0.35); }
 .railHead:active { background: rgba(255,255,255,0.06); }
 .railHead .fh-ic { width: 28px; height: 28px; flex: 0 0 auto; }
 .railHead .fh-ic .ico { width: 28px; height: 28px; }
@@ -544,26 +556,16 @@ canvas#game {
 .rail .node.saving { border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.03); }
 
 /* Expanded family: the existing buy rows, indented under their header. */
-.familyBody { background: rgba(255,255,255,0.02); }
-.familyBody .row { padding-left: 22px; }
-
-#sheetFoot {
-  flex: 0 0 auto;
-  display: flex; flex-direction: column; gap: 7px;
-  padding: 7px 10px calc(env(safe-area-inset-bottom, 0px) + 7px);
-  border-top: 1px solid var(--panel-line);
-}
-#sheetNav { display: flex; align-items: stretch; gap: 7px; }
+.familyBody { margin-bottom: 8px; }
+.familyBody .row { margin-left: 24px; }
 
 /* Settings: grouped rows, a name on the left and its value on the right,
    the destructive one alone at the bottom. No tabs: it isn't a game list. */
-#sheet.settings #tabs { display: none; }
-#sheet.settings #btnClose { flex: 1 1 auto; }
 #settingsPanel {
   overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column; gap: 14px;
-  padding: 4px 12px 12px;
+  padding: 6px 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
 #settingsPanel[hidden], #sheetBody[hidden] { display: none; }
 .setGroup {
@@ -693,17 +695,16 @@ canvas#game {
 
 /* Short screens (landscape phones): keep the map visible and controls reachable. */
 @media (max-height: 500px) {
-  #sheet { max-height: 86vh; }
   :root { --act: 72px; --sub: 50px; --gap: 10px; --edge-b: calc(env(safe-area-inset-bottom, 0px) + 14px); }
   #zoomControls { bottom: calc(var(--edge-b) + var(--act) + 64px); }
-  #sheetFoot { gap: 5px; padding-top: 5px; }
-  .tab, #btnClose { min-height: 46px; height: 46px; }
+  #sheet { height: 88vh; }
+  .tab { height: 34px; }
   .setRow { min-height: 44px; }
 }
 
 @supports (height: 100dvh) {
-  #sheet { max-height: min(76dvh, 720px); }
-  @media (max-height: 500px) { #sheet { max-height: 86dvh; } }
+  #sheet { height: min(72dvh, 720px); }
+  @media (max-height: 500px) { #sheet { height: 88dvh; } }
 }
 
 /* Respect the OS "reduce motion" setting. */

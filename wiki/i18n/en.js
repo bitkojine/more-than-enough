@@ -284,7 +284,7 @@ export default {
           <a href="#mine">The mine</a>.</li>
       </ul>
       <p>A <strong>green dot</strong> on BUILD or UPGRADE means there's something in there you can place or buy right now.
-        Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
+        Close the sheet with the <strong>&times;</strong> by its title, or swipe it down by its handle.</p>
 
       <h2>Keyboard</h2>
       <div class="table"><table>
@@ -332,7 +332,7 @@ export default {
       <h2>The sheet</h2>
       <p>BUILD and UPGRADE open a sheet with the <strong>Upgrades</strong>, <strong>Build</strong> and <strong>Awards</strong> tabs, plus <strong>Beyond</strong> once you've mastered a world (see <a href="#beyond">Beyond</a>).
         Awards lists the milestones you've reached, newest first, and how many are left.
-        Tap the map above it (or <strong>Done</strong>) to close it. That tap only closes the sheet and doesn't move or gather.
+        Tap the map above it (or the <strong>&times;</strong>) to close it. That tap only closes the sheet and doesn't move or gather.
         Each price is a row of pills, one per resource. While you're short, a pill shows <strong>how much more</strong> of that
         resource you still need to gather (red), and a resource you already have enough of shows a tick. Once you have it
         all, the pills turn green and show what it costs. The amounts count down live as you gather. In Upgrades, each family has a row of dots: an empty

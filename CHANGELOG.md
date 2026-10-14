@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.49.0] - 2026-10-14
+
+### Changed
+- **Every sheet looks the same, like a game's panel.** Stage 2 of the UI
+  redesign (`docs/ui.md`).
+  - The tabs are one segmented control at the top of the sheet, beside a
+    round **×** that closes it. The Done button at the bottom is gone, so
+    the lists get the whole height. Settings and Collected show their
+    title there instead of tabs.
+  - Every row is a card: upgrades, buildings, awards and collected
+    resources. A family's upgrades sit indented under its card.
+  - The sheet keeps one height whichever tab you are on, so switching tabs
+    no longer makes it jump. Settings takes only the room it needs.
+
 ## [0.48.0] - 2026-10-14
 
 ### Changed

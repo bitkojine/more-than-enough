@@ -321,7 +321,7 @@ export default {
   "sheet.build": "Statyba",
   "sheet.beyond": "Anapus",
   "sheet.awards": "Apdovanojimai",
-  "sheet.done": "Gerai",
+  "sheet.close": "Uždaryti",
   "sheet.wiki": "Žinynas",
   "sheet.reset": "Naujas pasaulis",
   "sheet.drag": "Tempimas",

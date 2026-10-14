@@ -132,10 +132,19 @@
     </div>
   </div>
 
+  <!-- Every list in the game is this one sheet: tabs (or, for a screen
+       outside them, its title) beside a ×, and a scrolling body. Swipe it down by the handle or tap the map to close. -->
   <div id="sheet" aria-hidden="true">
     <div id="sheetGrab" aria-hidden="true"><span></span></div>
     <div id="sheetHead">
       <div id="sheetTitle"></div>
+      <div id="tabs" role="tablist">
+        <button class="tab active" type="button" role="tab" data-tab="upgrades" data-i18n="sheet.upgrades"></button>
+        <button class="tab" type="button" role="tab" data-tab="build" data-i18n="sheet.build"></button>
+        <button class="tab" id="tabBeyond" type="button" role="tab" data-tab="beyond" data-i18n="sheet.beyond"></button>
+        <button class="tab" type="button" role="tab" data-tab="awards" data-i18n="sheet.awards"></button>
+      </div>
+      <button id="btnClose" class="hudBtn" type="button" data-i18n-aria-label="sheet.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
     </div>
     <div id="sheetBody"></div>
     <div id="settingsPanel" hidden>
@@ -154,17 +163,6 @@
       </div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
-    </div>
-    <div id="sheetFoot">
-      <div id="sheetNav">
-        <div id="tabs">
-          <button class="tab active" type="button" data-tab="upgrades" data-i18n="sheet.upgrades"></button>
-          <button class="tab" type="button" data-tab="build" data-i18n="sheet.build"></button>
-          <button class="tab" id="tabBeyond" type="button" data-tab="beyond" data-i18n="sheet.beyond"></button>
-          <button class="tab" type="button" data-tab="awards" data-i18n="sheet.awards"></button>
-        </div>
-        <button id="btnClose" type="button" data-i18n="sheet.done"></button>
-      </div>
     </div>
   </div>
 

@@ -871,7 +871,7 @@ async function main() {
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
   await evalJS('MTE_GAME.getState().inv.mycelium = 999999');
-  var resetSheetOpen = await evalJS('document.getElementById("sheet").classList.contains("settings") && document.getElementById("sheet").classList.contains("open")');
+  var resetSheetOpen = await evalJS('document.getElementById("sheet").dataset.tab === "settings" && document.getElementById("sheet").classList.contains("open")');
   if (!resetSheetOpen) {
     var resetSheetButton = await rect('#btnSettings');
     await tap(resetSheetButton.x, resetSheetButton.y);

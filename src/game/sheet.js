@@ -295,9 +295,9 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     tab = next;
     el.sheetTitle.textContent = TITLES[tab];
     for (const t of el.tabs) t.classList.toggle('active', t.dataset.tab === tab);
-    // Settings has no tabs: it is not part of the game's lists.
+    // Settings and Collected show their title instead of the tabs.
+    el.sheet.dataset.tab = tab;
     const settings = tab === 'settings';
-    el.sheet.classList.toggle('settings', settings);
     el.settingsPanel.hidden = !settings;
     el.sheetBody.hidden = settings;
     render();

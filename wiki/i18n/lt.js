@@ -281,7 +281,7 @@ export default {
           <a href="#mine">Kasykla</a>.</li>
       </ul>
       <p><strong>Žalias taškelis</strong> ant STATYTI ar TOBULINTI reiškia, kad ten yra kažkas, ką gali padėti ar nusipirkti jau dabar.
-        Lapą uždarysi mygtuku <strong>Gerai</strong> arba nubraukęs jį žemyn už rankenėlės.</p>
+        Lapą uždarysi <strong>&times;</strong> šalia jo pavadinimo arba nubraukęs jį žemyn už rankenėlės.</p>
 
       <h2>Klaviatūra</h2>
       <div class="table"><table>
@@ -329,7 +329,7 @@ export default {
       <h2>Lapas</h2>
       <p>STATYTI ir TOBULINTI atveria lapą su skirtukais <strong>Patobulinimai</strong>, <strong>Statyba</strong> ir <strong>Apdovanojimai</strong>, o kai įvaldai pasaulį, ir <strong>Anapus</strong> (žr. <a href="#beyond">Anapus</a>).
         Apdovanojimuose išvardyti pasiekti etapai, naujausi pirmiau, ir kiek jų dar liko.
-        Bakstelk žemėlapį virš lapo (arba <strong>Gerai</strong>), kad jį uždarytum. Tas bakstelėjimas tik uždaro lapą: nei judi, nei renki.
+        Bakstelk žemėlapį virš lapo (arba <strong>&times;</strong>), kad jį uždarytum. Tas bakstelėjimas tik uždaro lapą: nei judi, nei renki.
         Kiekviena kaina – eilė piliulių, po vieną kiekvienam ištekliui. Kol trūksta, piliulė rodo, <strong>kiek dar</strong> to
         ištekliaus turi surinkti (raudonai), o išteklius, kurio jau užtenka, pažymėtas varnele. Kai turi
         visko, piliulės pažaliuoja ir rodo kainą. Kiekiai mažėja gyvai, kol renki. Patobulinimuose kiekviena šeima turi taškelių eilę: tuščias

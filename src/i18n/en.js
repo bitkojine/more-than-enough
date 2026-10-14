@@ -321,7 +321,7 @@ export default {
   "sheet.build": "Build",
   "sheet.beyond": "Beyond",
   "sheet.awards": "Awards",
-  "sheet.done": "Done",
+  "sheet.close": "Close",
   "sheet.wiki": "Wiki",
   "sheet.reset": "Reset world",
   "sheet.drag": "Drag",
