@@ -54,10 +54,11 @@ again in the game; anything that doesn't fit exactly is dropped.
   seconds is closed. A connection that keeps breaking the limits is closed.
 - **Ownership:** a building's owner is set by the room, never by the
   player.
-- **The nuke:** a player can only press it or take it back for themselves.
-  The world is made again only once every player in the room has pressed it
-  (one player can't wipe anyone else's progress), with a seed the room picks;
-  every socket is then closed, so nothing from the old world gets in.
+- **The nuke:** only a game with a newer world format than the room's calls
+  it, once. A player can only press it for themselves. The world is made
+  again once everyone online has pressed it (away, lost and offline players
+  count as pressed) or a minute after it was called, with a seed the room
+  picks; every socket is then closed, so nothing from the old world gets in.
 - **No HTML from the network:** the game builds friends' chips from elements
   and text, and shows no text a player wrote (friends get a name from the
   game's own list). The page has a Content-Security-Policy.

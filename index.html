@@ -189,12 +189,6 @@
         <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
         <a id="wikiLink" class="setRow" href="wiki/" target="_blank" rel="noopener"><span data-i18n="sheet.wiki"></span><b aria-hidden="true">&#8599;</b></a>
       </div>
-      <!-- The nuke: the world made again from scratch with everything new.
-           In a shared world it waits until everyone has pressed it. -->
-      <div class="setGroup danger">
-        <button id="btnNuke" class="setRow" type="button" aria-pressed="false"><span id="nukeLabel" data-i18n="nuke.button"></span></button>
-        <p id="nukeVotes" hidden></p>
-      </div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
     </div>
@@ -207,6 +201,16 @@
       <strong data-i18n="pack.notUsed"></strong>
       <ul></ul>
       <div class="choices"><button type="button" class="secondary" data-i18n="pack.close"></button></div>
+    </div>
+  </div>
+  <!-- The nuke: after an update that needs a new world, the big red button
+       in the middle of the screen, with no way past it. src/game/nuke.js -->
+  <div id="nuke" class="scrim" role="alertdialog" aria-labelledby="nukeTitle" hidden>
+    <div class="dialog">
+      <strong id="nukeTitle"></strong>
+      <p></p>
+      <button type="button" aria-pressed="false"><b></b></button>
+      <p></p>
     </div>
   </div>
   <div id="ask" class="scrim" role="alertdialog" aria-labelledby="askTitle" hidden>

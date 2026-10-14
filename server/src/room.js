@@ -10,7 +10,7 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanFormat, KEY_RE
 } from '../../src/net/protocol.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
@@ -22,6 +22,7 @@ const INVITE_LIST = 100;                     // newest links sent in one list (f
 const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
 export const FAR_MS = 2000;                  // everyone else hears where you are this often
+export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -45,10 +46,16 @@ export class Room {
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
     this.invites = new Map();
-    // The nuke: who has pressed it. Once every player in the world has, the
-    // world is made again from scratch (a new seed, everything new in the
-    // game) and everyone starts over. `gen` counts how many times, so a
-    // phone can tell its copy of your progress is from a world that's gone.
+    // The nuke. `fmt` is the world format (the game's SAVE_VERSION) the
+    // world was made with. When a player arrives with a newer game whose
+    // worlds differ, the nuke is called (`call`: {fmt, at}) and shows on
+    // everyone's screen. Who has pressed it is in `nuke`; it's pressed for
+    // anyone away, offline or idle (see nukeDue). Then the world is made
+    // again from scratch with everything new, and everyone starts over.
+    // `gen` counts how many times, so a phone can tell its copy of your
+    // progress is from a world that's gone.
+    this.fmt = 0;
+    this.call = null;
     this.nuke = new Set();
     this.gen = 0;
     // What changed since the last write to storage.
@@ -67,7 +74,7 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, ready: true });
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, call: meta.call ?? null, ready: true });
     r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
@@ -82,7 +89,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, nk: [...this.nuke] });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke] });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -110,6 +117,7 @@ export class Room {
     const pos = d.pos === undefined ? null : cleanPos(d.pos);
     const time = d.time === undefined ? 0 : cleanTime(d.time);
     if (time === null) return 'bad';
+    this.fmt = cleanFormat(d.fmt) ?? 0;
     this.owner = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
@@ -131,9 +139,10 @@ export class Room {
 
   /* -------------------------------------------------------- players */
 
-  // A connection proved its key (and, the first time, brought an invite).
-  // Returns {id, welcome} or {error}.
-  async join(key, code, now) {
+  // A connection proved its key (and, the first time, brought an invite),
+  // playing world format `fmt`. Returns {id, welcome, called} (called: the
+  // nuke was just called) or {error}.
+  async join(key, code, now, fmt) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     const id = await playerId(this.id, key);
     let pl = this.players.get(id);
@@ -153,7 +162,8 @@ export class Room {
     pl.lostAt = 0;
     this.touch(now);
     this.dirty.players.add(id);
-    return { id, welcome: this.welcome(id, now) };
+    const called = this.callNuke(fmt, now);
+    return { id, welcome: this.welcome(id, now), called };
   }
 
   // The invite links someone may see and stop: all of them for the owner,
@@ -179,7 +189,7 @@ export class Room {
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: [...this.nuke]
+      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null
     };
   }
 
@@ -308,32 +318,50 @@ export class Room {
       this.players.delete(d.id);
       this.dirty.players.add(d.id);
       this.nuke.delete(d.id);
-      // Everyone left may have pressed the nuke already.
-      return { kick: d.id, ...this.nukeIfAll(now, [{ t: 'removed', id: d.id }]) };
+      return { kick: d.id, toAll: [{ t: 'removed', id: d.id }] };
     }
     if (d.t === 'nuke') {
-      // Press it, or take your vote back.
-      if (d.on === true) this.nuke.add(id); else this.nuke.delete(id);
-      this.dirty.meta = true;
-      return this.nukeIfAll(now, []);
+      // Pressed, for good: there's no taking it back.
+      if (!this.call) return {};
+      if (!this.nuke.has(id)) { this.nuke.add(id); this.dirty.meta = true; }
+      return { toAll: [this.nukeVotes()] };
     }
     return { drop: true };
   }
 
   /* ------------------------------------------------------------ nuke */
 
-  // Who has pressed the nuke so far, for everyone.
-  nukeVotes() {
-    return { t: 'nuke', votes: [...this.nuke] };
+  // A player arrived playing world format `fmt`. If it's newer than this
+  // world's, the world misses what the update brings: the nuke is called.
+  // Returns true if it was just called (everyone needs telling).
+  callNuke(fmt, now) {
+    const f = cleanFormat(fmt);
+    if (f === null || f <= this.fmt || (this.call && f <= this.call.fmt)) return false;
+    const fresh = !this.call;
+    this.call = { fmt: f, at: fresh ? now : this.call.at };
+    this.dirty.meta = true;
+    return fresh;
   }
 
-  // Makes the world again if every player has pressed the nuke ({renewed},
-  // after `toAll`), else tells everyone the votes so far.
-  nukeIfAll(now, toAll) {
-    const all = this.players.size > 0 && [...this.players.keys()].every((id) => this.nuke.has(id));
-    if (!all) return { toAll: [...toAll, this.nukeVotes()] };
-    this.renew(now);
-    return { toAll, renewed: true };
+  // The nuke as everyone sees it: who has pressed it, and when it will be
+  // pressed for whoever hasn't.
+  nukeVotes() {
+    return { t: 'nuke', nuke: { votes: [...this.nuke], until: this.call.at + NUKE_AFK_MS } };
+  }
+
+  // Whether it's time: every player has pressed it, or had it pressed for
+  // them (away, offline, connection lost, or still not pressed once the
+  // minute is up).
+  nukeDue(now) {
+    if (!this.call) return false;
+    if (now >= this.call.at + NUKE_AFK_MS) return true;
+    for (const [id, p] of this.players) if (p.st === 'online' && !this.nuke.has(id)) return false;
+    return true;
+  }
+
+  // When the nuke will be pressed for everyone left, or null.
+  nukeDeadline() {
+    return this.call ? this.call.at + NUKE_AFK_MS : null;
   }
 
   // The world from scratch: a new seed, nothing built or changed, the clock
@@ -353,7 +381,10 @@ export class Room {
       this.dirty.players.add(id);
     }
     this.nuke.clear();
+    if (this.call) this.fmt = this.call.fmt;
+    this.call = null;
     this.gen++;
+    this.dirty.meta = true;
     this.dawn = now;
     this.touch(now);
     this.dirty.props = this.dirty.ext = true;

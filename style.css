@@ -676,21 +676,6 @@ body.signing #zoomControls { visibility: hidden; }
   font-weight: 600; color: var(--green);
 }
 .setRow b::first-letter { text-transform: uppercase; }
-.setGroup.danger { border-color: rgba(240, 138, 122, 0.3); }
-.setGroup.danger .setRow { justify-content: center; color: var(--danger); }
-/* The nuke: a big red button, hard to miss and hard to press by accident
-   (it always asks first). Pressed (your vote is in) it goes dark. */
-.setGroup.danger { border: 0; background: none; gap: 8px; }
-#btnNuke {
-  min-height: 64px; border-radius: var(--r-md);
-  border: 1px solid #ffab9c; background: linear-gradient(180deg, #e86f5c, #b6432f);
-  color: #fff4f1; font-size: 18px; letter-spacing: 0.04em;
-  box-shadow: 0 4px 0 #7d2a1d, var(--shadow-1);
-}
-#btnNuke:active { transform: translateY(2px); box-shadow: 0 2px 0 #7d2a1d, var(--shadow-1); }
-#btnNuke[aria-pressed="true"] { background: var(--raised); color: var(--danger); border-color: rgba(240, 138, 122, 0.5); box-shadow: none; }
-#nukeVotes { white-space: pre-line; margin: 0; padding: 0 4px; color: var(--ink-dim); font-size: 13px; line-height: 1.4; text-align: center; }
-#nukeVotes[hidden] { display: none; }
 #version {
   align-self: center;
   font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
@@ -755,6 +740,31 @@ body.signing #zoomControls { visibility: hidden; }
   animation: fade-in .16s ease-out;
 }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+/* The nuke: centre stage over a red-dark map, above everything else, with
+   one huge round red button and nothing to close it. */
+#nuke { z-index: 120; background: radial-gradient(circle at 50% 45%, rgba(120, 24, 12, 0.55), rgba(0, 0, 0, 0.82)); }
+#nuke .dialog { align-items: center; text-align: center; gap: 14px; border-color: rgba(240, 138, 122, 0.45); }
+#nuke .dialog strong { font-size: 22px; }
+#nuke button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  width: min(200px, 56vw); aspect-ratio: 1; margin: 6px 0;
+  border: 3px solid #ffab9c; border-radius: 50%;
+  background: radial-gradient(circle at 50% 35%, #ff7a63, #c2402b 60%, #8e2a1b);
+  color: #fff4f1; font: 900 22px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  box-shadow: 0 8px 0 #6b1e12, 0 0 0 10px rgba(232, 111, 92, 0.18), 0 18px 40px rgba(0, 0, 0, 0.6);
+  touch-action: manipulation; cursor: pointer;
+  animation: nuke-pulse 1.4s ease-in-out infinite;
+}
+#nuke button:focus { outline: none; }
+#nuke button:focus-visible { outline: 3px solid #ffab9c; outline-offset: 6px; }
+#nuke button::before { content: '\2622'; font-size: 64px; line-height: 1; }
+#nuke button:active { transform: translateY(5px); box-shadow: 0 3px 0 #6b1e12, 0 0 0 10px rgba(232, 111, 92, 0.18); }
+#nuke button[aria-pressed="true"] { animation: none; transform: translateY(6px); filter: saturate(0.5) brightness(0.75); box-shadow: 0 2px 0 #6b1e12; cursor: default; }
+#nuke p:last-child { white-space: pre-line; margin: 0; }
+#nuke p[hidden] { display: none; }
+@keyframes nuke-pulse { 50% { box-shadow: 0 8px 0 #6b1e12, 0 0 0 22px rgba(232, 111, 92, 0.08), 0 18px 40px rgba(0, 0, 0, 0.6); } }
+@media (prefers-reduced-motion: reduce) { #nuke button { animation: none; } }
 .dialog strong { font-size: 19px; line-height: 1.25; }
 .dialog p { margin: 0 0 6px; font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); }
 .dialog .choices { display: flex; gap: 10px; }

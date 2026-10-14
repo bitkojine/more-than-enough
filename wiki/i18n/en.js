@@ -349,8 +349,8 @@ export default {
         with something you can buy opens by itself; {phone:tap|laptop:click} its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
       <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
-        <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page), the game's version and, set apart at the bottom,
-        the big red <strong>Nuke world</strong> button (makes the world again from scratch with everything new in the game, after asking; in a shared world, only once everyone has pressed it).</p>
+        <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page)
+        and the game's version.</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
@@ -813,7 +813,7 @@ export default {
           this one last did, this tab won't overwrite it. It pauses and asks which world to keep: the other tab's or its own,
           each with time played and amount gathered, and the one further along is marked. A tab you closed or left behind
           can't quietly roll your progress back.</li>
-        <li><strong>Nuke world</strong>, the big red button at the bottom of Settings, makes the world again from scratch with everything new in the game, and your progress starts from the beginning. It asks first, and it can't be undone. In a shared world it's a vote: Settings shows who has pressed it and who it's waiting for, you can take your vote back, and once everyone has pressed it the world is made anew and you all start fresh together, still in the same world with the same friends and invite links.</li>
+        <li><strong>The nuke.</strong> When an update changes how worlds are made, a world from before it can't have what's new. A big red button then takes the middle of the screen, and the only way on is to press it: the world is made again from scratch with everything new, and you start from the beginning. In a shared world everyone presses it. It's pressed for anyone away or offline, and for everyone else a minute after it appears; then you all start fresh together in the new world, with the same friends and invite links. Anyone who was away finds themselves in the new world when they come back.</li>
         <li>While the game is in active development, a new version may not read older saves. If a save can't be read, the
           game tells you and starts a new world.</li>
       </ul>`,

@@ -4,7 +4,7 @@
  * explains itself in text. */
 
 import * as Core from '../core/index.js';
-import { clearSave, randomSeed } from './storage.js';
+import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
 import { fmt } from './format.js';
 
@@ -260,7 +260,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       checkGoals();
     },
 
-    // Embark and the nuke destroy a world, so they ask first.
+    // Embark destroys a world, so it asks first.
     async embark() {
       if (!Core.canEmbark(state())) return;
       const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.text', { n: fmt(Core.embarkGain(state())) }), yes: t('ask.embark.yes') });
@@ -270,15 +270,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       game.replace(res.state);
       audio.fanfare();
       say('+' + res.gained, look.color('resource.insight'), 'resource.insight');
-    },
-
-    // The world made again from scratch (a new seed, everything new in the
-    // game), and your progress back to the very beginning.
-    async nuke() {
-      if (!await ask({ title: t('nuke.ask.title'), text: t('nuke.ask.text'), yes: t('nuke.ask.yes'), danger: true })) return;
-      clearSave();
-      game.replace(Core.createState(randomSeed()));
-      hud.toast(t('nuke.toast.alone'));
     },
 
     // Forget per-world intents when the world itself is replaced.

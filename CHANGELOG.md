@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.71.0] - 2026-10-14
+
+### Changed
+- **The nuke takes the screen, and everyone presses it.** It's no longer an
+  option in Settings. When an update changes how worlds are made (the save
+  format), a world from before it gets the nuke: a huge red button in the
+  middle of the screen over everything, with no way past it but pressing.
+  Alone, that's how you get to the new world. In a shared world the first
+  player in with the newer game calls it and it goes up on every screen; a
+  press can't be taken back, and it shows how many have pressed it and who
+  it waits for. It's pressed for anyone away, offline or with the
+  connection lost, and for everyone left a minute after it went up. Then
+  the room makes the world again and everyone reconnects to it together;
+  anyone away finds themselves in the new world when they come back. Rooms
+  now remember which world format they were made with. Shared worlds made
+  before this version are from before it, so they get the nuke once.
+
 ## [0.70.1] - 2026-10-14
 
 ### Fixed

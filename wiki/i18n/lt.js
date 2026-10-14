@@ -346,8 +346,8 @@ export default {
         kurioje yra ką nusipirkti, atsiveria pati; {phone:bakstelk|laptop:spustelk} jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
       <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
-        <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis), žaidimo versija ir, atskirai apačioje,
-        didelis raudonas mygtukas <strong>Sunaikinti pasaulį</strong> (prieš tai paklausęs sukuria pasaulį iš naujo su viskuo, kas žaidime nauja; bendrame pasaulyje tik tada, kai jį paspaudžia visi).</p>
+        <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis)
+        ir žaidimo versija.</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
@@ -809,7 +809,7 @@ export default {
           skirtukas išsaugojo vėliau nei šis, šis skirtukas jo neperrašys. Jis sustoja ir klausia, kurį pasaulį palikti: kito
           skirtuko ar savąjį, prie kiekvieno nurodydamas žaidimo laiką ir surinktą kiekį, o toliau pažengęs pažymimas. Uždarytas
           ar užmirštas skirtukas negali tyliai atsukti tavo pažangos atgal.</li>
-        <li><strong>Sunaikinti pasaulį</strong>, didelis raudonas mygtukas Nustatymų apačioje, sukuria pasaulį iš naujo su viskuo, kas žaidime nauja, o tavo pažanga prasideda nuo pradžių. Pirmiausia paklausia, ir to atšaukti negalima. Bendrame pasaulyje tai balsavimas: Nustatymuose matyti, kas jau paspaudė ir ko dar laukiama, savo balsą gali atšaukti, o kai paspaudžia visi, pasaulis sukuriamas iš naujo ir visi kartu pradedate iš naujo, tame pačiame pasaulyje su tais pačiais draugais ir kvietimų nuorodomis.</li>
+        <li><strong>Sprogdinimas.</strong> Kai atnaujinimas pakeičia, kaip kuriami pasauliai, prieš jį sukurtame pasaulyje negali būti to, kas nauja. Tada ekrano viduryje atsiranda didelis raudonas mygtukas, ir vienintelis kelias toliau yra jį paspausti: pasaulis sukuriamas iš naujo su viskuo, kas nauja, o tu pradedi nuo pradžių. Bendrame pasaulyje jį paspaudžia visi. Už tuos, kurių nėra ar kurie atsitraukę, paspaudžiama automatiškai, o už visus kitus praėjus minutei nuo jo pasirodymo; tada visi kartu pradedate iš naujo naujame pasaulyje, su tais pačiais draugais ir kvietimų nuorodomis. Kas buvo išėjęs, grįžęs atsiduria naujame pasaulyje.</li>
         <li>Kol žaidimas aktyviai kuriamas, nauja versija gali nebeperskaityti senesnių išsaugojimų. Jei išsaugojimo nepavyksta
           perskaityti, žaidimas tau praneša ir pradeda naują pasaulį.</li>
       </ul>`,

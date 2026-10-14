@@ -24,6 +24,7 @@ import { createActor } from './render/motion.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
+import { createNuke } from './nuke.js';
 import { createTogether } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
@@ -147,9 +148,10 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
+const nuke = createNuke(el.nuke);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: updater.check, closeSheet: () => sheet.close() });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, friendJoined: updater.check, closeSheet: () => sheet.close() });
 const actor = createActor(); // what the wanderer is doing, to animate it
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor });
 
@@ -176,7 +178,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open,
+    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open,
     dismiss: () => sheet.close(),
     tap(x, y) {
       // On your sign: copy its link. Anywhere else: the world.
@@ -212,8 +214,6 @@ el.mine.addEventListener('click', controller.toggleMine);
 el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
 el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
-// The nuke: alone it starts over at once; together it's a vote (together.js).
-el.nuke.addEventListener('click', () => (game.state.shared ? together.nuke() : controller.nuke()));
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
 function setDrag(invert) {
@@ -407,7 +407,15 @@ hud.repaint();
 await textures.restore();
 hud.update(game.state);
 hud.updateButtons(game.state);
-if (loaded.lost) hud.toast(t('toast.saveLost'));
+// Your world is from before an update that changed how worlds are made (or
+// its save is broken): the nuke, centre stage. The new world is already
+// here; pressing it is how you get to it.
+if (loaded.lost) {
+  nuke.show({
+    heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'),
+    press() { nuke.hide(); audio.fanfare(); hud.toast(t('nuke.toast.alone')); }
+  });
+}
 game.changedMode();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.

@@ -1,5 +1,5 @@
 /* The game's own yes-or-no question, for the few things that can't be
- * undone (Embark, the nuke): a title, what will happen, and two buttons,
+ * undone (Embark, stopping an invite link): a title, what will happen, and two buttons,
  * the safe one first. Tapping outside the card or Escape says no. */
 
 import { t } from '../i18n/i18n.js';

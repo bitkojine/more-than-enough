@@ -15,10 +15,6 @@ function write(key, value) {
   try { localStorage.setItem(key, value); return null; } catch (err) { return err; }
 }
 
-function remove(key) {
-  try { localStorage.removeItem(key); } catch { /* private mode */ }
-}
-
 export function randomSeed() {
   return (Math.random() * 4294967295) >>> 0;
 }
@@ -92,9 +88,4 @@ export function loadView() {
 
 export function saveView(view) {
   write(VIEW_KEY, JSON.stringify(view));
-}
-
-export function clearSave() {
-  remove(SAVE_KEY);
-  known = null;
 }

@@ -903,27 +903,21 @@ async function main() {
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
 
-  /* ----------------------------- the nuke button starts a clean world */
-  console.log('\n== The nuke button starts a clean world ==');
-  await evalJS('MTE_GAME.flyers().length = 0');
-  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
-  eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
-  await evalJS('MTE_GAME.getState().inv.mycelium = 999999');
-  var resetSheetOpen = await evalJS('document.getElementById("sheet").dataset.tab === "settings" && document.getElementById("sheet").classList.contains("open")');
-  if (!resetSheetOpen) {
-    var resetSheetButton = await rect('#btnSettings');
-    await tap(resetSheetButton.x, resetSheetButton.y);
-    await sleep(250);
-  }
-  var resetButton = await rect('#btnNuke');
-  await tap(resetButton.x, resetButton.y);
-  await sleep(200);
-  ok(await evalJS('!document.getElementById("ask").hidden && document.querySelector("#ask .primary").classList.contains("danger")'), 'Nuke world asks first, with a red button');
-  var resetYes = await rect('#ask .primary');
-  await tap(resetYes.x, resetYes.y);
+  /* --------------------- a world from before the update: the nuke */
+  console.log('\n== A world from an older version: the nuke takes the screen ==');
+  await evalJS('MTE_GAME.getState().inv.mycelium = 999999; MTE_GAME.save()');
+  // The save of a world made by an older game (another format version).
+  await evalJS('localStorage.setItem("more-than-enough-save", JSON.stringify({ v: 1, seed: 5, inv: { mycelium: 999999 } }))');
+  await navigate('http://127.0.0.1:' + PORT + '/index.html');
+  ok(await waitFor('!document.getElementById("nuke").hidden', 3000), 'the nuke screen is up after loading an old world');
+  ok(await evalJS('!document.querySelector("#nuke .secondary") && !document.querySelector("#nuke [data-close]")'), 'the nuke screen has no way past it but its button');
+  var nukeRect = await rect('#nuke button');
+  ok(nukeRect.x > 100 && nukeRect.x < 290, 'the big red button is in the middle of the screen');
+  await shot('10-nuke.png');
+  await tap(nukeRect.x, nukeRect.y);
   await sleep(300);
-  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
-  ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'reset wipes inventory into a fresh world');
+  ok(await evalJS('document.getElementById("nuke").hidden'), 'pressing it goes on to the new world');
+  ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'the new world starts from the beginning');
 
   /* ---------------------------------------------------- pinch to zoom */
   console.log('\n== Pinch to zoom with two fingers ==');

@@ -218,23 +218,15 @@ export class Rooms extends DurableObject {
         other.close(4003, 'removed');
       }
     }
-    if (r.renewed) {
-      // The world was made again: everyone reconnects to it and starts over.
-      // Old sockets are cut first, so nothing from the old world gets in.
-      for (const other of this.ctx.getWebSockets()) {
-        other.serializeAttachment({ id: null, at: 0 });
-        this.buckets.delete(other);
-        other.close(4004, 'renewed');
-      }
-    }
+    this.nukeIfDue(now);
     await this.schedule();
   }
 
   async hello(ws, raw, now) {
     let d = null;
-    if (raw.length <= 256) try { d = JSON.parse(raw); } catch { /* below */ }
+    if (raw.length <= 300) try { d = JSON.parse(raw); } catch { /* below */ }
     if (!d || d.t !== 'hello') return ws.close(1008, 'hello first');
-    const r = await this.room.join(d.key, d.code, now);
+    const r = await this.room.join(d.key, d.code, now, d.fmt);
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error }));
       return ws.close(1008, r.error);
@@ -249,17 +241,21 @@ export class Rooms extends DurableObject {
     ws.serializeAttachment({ id: r.id, at: now });
     ws.send(JSON.stringify(r.welcome));
     this.send(this.room.statusOf(r.id), r.id);
+    // A newer game arrived: the nuke goes up on everyone else's screen too.
+    if (r.called) this.send(this.room.nukeVotes(), r.id);
     await this.schedule();
   }
 
   async webSocketClose(ws, code, reason) {
     this.closed(ws, code === 1000 && reason === 'bye');
     try { ws.close(1000); } catch { /* already closed */ }
+    this.nukeIfDue(Date.now());
     await this.schedule();
   }
 
   async webSocketError(ws) {
     this.closed(ws, false);
+    this.nukeIfDue(Date.now());
     await this.schedule();
   }
 
@@ -270,6 +266,19 @@ export class Rooms extends DurableObject {
     ws.serializeAttachment({ id: null, at: 0 });
     const msg = this.room.left(att.id, clean, Date.now());
     if (msg) this.send(msg, att.id);
+  }
+
+  // When every player has pressed the nuke (or had it pressed for them), the
+  // world is made again: everyone reconnects to it and starts over. Old
+  // sockets are cut first, so nothing from the old world gets in.
+  nukeIfDue(now) {
+    if (!this.room.nukeDue(now)) return;
+    this.room.renew(now);
+    for (const ws of this.ctx.getWebSockets()) {
+      ws.serializeAttachment({ id: null, at: 0 });
+      this.buckets.delete(ws);
+      ws.close(4004, 'renewed');
+    }
   }
 
   // Sends to every player's socket except `except` (a player id), or to all.
@@ -301,6 +310,8 @@ export class Rooms extends DurableObject {
     if (this.room.isDirty) at = Math.min(at, now + PERSIST_MS);
     const lost = this.room.nextLostDeadline();
     if (lost !== null) at = Math.min(at, lost);
+    const nuke = this.room.nukeDeadline();
+    if (nuke !== null) at = Math.min(at, Math.max(now, nuke));
     if (this.ctx.getWebSockets().some((ws) => !(ws.deserializeAttachment() || {}).id)) at = Math.min(at, now + HELLO_MS);
     const current = await this.ctx.storage.getAlarm();
     if (current === null || current > at) await this.ctx.storage.setAlarm(at);
@@ -318,6 +329,7 @@ export class Rooms extends DurableObject {
       if (!att.id && now - (att.at || 0) >= HELLO_MS) ws.close(1008, 'hello first');
     }
     for (const msg of this.room.expireLost(now)) this.send(msg, null);
+    if (this.room.ready) this.nukeIfDue(now);
     await this.persist();
     if (this.room.ready) await this.schedule();
   }

@@ -4,7 +4,7 @@
  * up. No imports, so the room service can bundle it as is.
  *
  * Messages are small JSON objects with a type `t`:
- *   game -> room   hello {key}             proves who you are (once, first)
+ *   game -> room   hello {key, fmt}        proves who you are (once, first), and the world format you play
  *                  pos {p}                 where you are (and what you play on), several times a second
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
@@ -13,7 +13,7 @@
  *                  invites                 the invite links you may see (all, for the owner)
  *                  revoke {code}           stop an invite link (the owner any, others their own)
  *                  remove {id}             the owner takes a player out of the world
- *                  nuke {on}               press the nuke (true) or take your vote back
+ *                  nuke                    press the nuke (for good)
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved (several times a second when near
  *                                          you, every couple of seconds when far)
@@ -22,10 +22,12 @@
  *                  invite {code, until}    the link for your sign (lasts a day)
  *                  invites {list}          [code, by, made, until, uses, stopped] newest first
  *                  removed {id}            a player was taken out of the world
- *                  nuke {votes}            who has pressed the nuke so far
+ *                  nuke {nuke: {votes, until}}  the nuke is on: who pressed it, and when it's pressed for the rest
  *                  full / bad              why the room is closing on you
- * When everyone has pressed the nuke, the room makes the world again and
- * closes every socket with code 4004; each game reconnects to the new world.
+ * A game whose world format is newer than the world's calls the nuke. When
+ * everyone has pressed it (or had it pressed for them), the room makes the
+ * world again and closes every socket with code 4004; each game reconnects
+ * to the new world.
  */
 
 export const LIMITS = Object.freeze({
@@ -169,6 +171,12 @@ export function cleanSave(s) {
 const TIME_MAX = 1e10;
 export function cleanTime(v) {
   return isNum(v) && v >= 0 && v <= TIME_MAX ? round(v, 1000) : null;
+}
+
+// A world format (the game's SAVE_VERSION): which generation of world the
+// game makes. A newer one than a world's calls the nuke.
+export function cleanFormat(v) {
+  return Number.isSafeInteger(v) && v >= 1 && v <= 100000 ? v : null;
 }
 
 export function cleanStatus(st) {
