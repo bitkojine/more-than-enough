@@ -1,15 +1,16 @@
 /* One shared world's room: the rules, with no Cloudflare in them, so the unit
- * tests drive it directly (test/unit/room.test.js). worker.js wraps it in a
+ * tests drive it directly (test/unit/together.test.js). worker.js wraps it in a
  * Durable Object and handles the sockets and storage.
  *
  * The room is the source of truth for the shared world (the seed and every
- * edit) and keeps each player's own progress and where they were. It trusts
+ * edit) and its clock (so day and night are the same for everyone), and keeps
+ * each player's own progress and where they were. It trusts
  * nothing a player sends: every message is checked (src/net/protocol.js),
  * buildings get their owner from the room, and a player is whoever holds
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, playerId, randomRoomId, editInReach, KEY_RE, COLOR_COUNT
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE, COLOR_COUNT
 } from '../../src/net/protocol.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
@@ -29,6 +30,7 @@ export class Room {
     this.owner = '';
     this.created = now;
     this.last = now;
+    this.dawn = now;             // when (ms) the world's clock read 0; it never stops
     this.mods = new Map();
     this.props = new Map();
     this.ext = [];               // [kind, x, y, z, owner]
@@ -53,7 +55,7 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, ready: true });
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, ready: true });
     r.invites = new Map(meta.inv || []);
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -67,7 +69,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, inv: [...this.invites] });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites] });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -93,6 +95,8 @@ export class Room {
     const save = d.save === undefined ? null : cleanSave(d.save);
     if (d.save !== undefined && !save) return 'bad';
     const pos = d.pos === undefined ? null : cleanPos(d.pos);
+    const time = d.time === undefined ? 0 : cleanTime(d.time);
+    if (time === null) return 'bad';
     this.owner = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
@@ -105,6 +109,7 @@ export class Room {
     this.players.set(this.owner, { c: 0, st: 'offline', p: pos, save, lostAt: 0 });
     this.ready = true;
     this.created = this.last = now;
+    this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
     this.dirty.meta = this.dirty.props = this.dirty.ext = true;
     for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
     this.dirty.players.add(this.owner);
@@ -133,17 +138,22 @@ export class Room {
     pl.lostAt = 0;
     this.touch(now);
     this.dirty.players.add(id);
-    return { id, welcome: this.welcome(id) };
+    return { id, welcome: this.welcome(id, now) };
   }
 
-  welcome(id) {
+  // The world's clock at `now`: seconds of game time, the same for everyone.
+  clock(now) {
+    return Math.max(0, (now - this.dawn) / 1000);
+  }
+
+  welcome(id, now) {
     const others = {};
     for (const [pid, p] of this.players) if (pid !== id) others[pid] = { c: p.c, st: p.st, p: p.p };
     const me = this.players.get(id);
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: me.save, p: me.p
+      players: others, save: me.save, p: me.p, time: this.clock(now)
     };
   }
 

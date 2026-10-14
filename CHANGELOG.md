@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.56.0] - 2026-10-14
+
+### Changed
+- **One sky for everyone in a shared world.** Day and night now follow the
+  world's own clock, kept by the room service, so every player has the same
+  time of day: when it's night for you, it's night for your friends. The
+  clock starts at the time of day the world was put online and keeps going
+  whether anyone is playing or not; a phone that slept or reconnects catches
+  up at once.
+- Which copy of your progress is newer when you come back to a shared world
+  is now decided by how long you've played, not by the clock.
+
 ## [0.55.0] - 2026-10-14
 
 ### Changed

@@ -9,7 +9,7 @@
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
  *                  away {a}                game hidden (true) or back (false)
- *   room -> game   welcome {...}           the world and everyone in it
+ *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved
  *                  edits {id, e: [...]}    the world changed (yours echoed too)
  *                  status {id, st, c, p?}  a friend's state changed
@@ -147,6 +147,13 @@ export function cleanWorld(w) {
 export function cleanSave(s) {
   if (typeof s !== 'string' || s.length > LIMITS.saveBytes || byteLength(s) > LIMITS.saveBytes) return null;
   try { return isObj(JSON.parse(s)) ? s : null; } catch { return null; }
+}
+
+// The world's clock: seconds of game time since its first dawn. One clock per
+// world, kept by the room, so day and night are the same for everyone.
+const TIME_MAX = 1e10;
+export function cleanTime(v) {
+  return isNum(v) && v >= 0 && v <= TIME_MAX ? round(v, 1000) : null;
 }
 
 export function cleanStatus(st) {

@@ -26,6 +26,9 @@ shared with the game.
    everyone in one order, so every phone ends with the same world) and each
    player's progress (kept by the room). Players see each other as online,
    away, connection lost (offline after a minute) or offline.
+6. The room keeps the world's **clock**: it starts at the creator's time of
+   day, runs whether anyone is in or not, and comes with every welcome, so
+   day and night are the same for everyone in the world.
 
 All traffic goes through the room: no phone ever learns another's IP
 address.

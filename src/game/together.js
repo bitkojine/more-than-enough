@@ -11,7 +11,7 @@
 
 import * as Core from '../core/index.js';
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanStatus, cleanColor,
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanStatus, cleanColor, cleanTime,
   ROOM_ID_RE, KEY_RE, ID_RE, randomHex
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
@@ -71,7 +71,10 @@ function remember(room) {
 
 // The time stamp in a progress string, to tell which copy is newer.
 function playedTime(save) {
-  try { const d = JSON.parse(save); return typeof d.time === 'number' ? d.time : -1; } catch { return -1; }
+  try {
+    const ms = JSON.parse(save).stats?.playedMs;
+    return typeof ms === 'number' ? ms : -1;
+  } catch { return -1; }
 }
 
 /* ------------------------------------------------- what the room sends */
@@ -96,7 +99,8 @@ function cleanWelcome(d) {
   if (!world || !players || (d.save && !save)) return null;
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
-    ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null
+    ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
+    time: d.time === undefined ? null : cleanTime(d.time)
   };
 }
 
@@ -109,6 +113,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   let code = null;          // the invite you're joining with, used once
   let me = null, owner = null, myColor = 0;
   let welcomed = false;     // the room has sent this connection its world
+  let clock = null;         // the world's clock: {t: its time, at: our time then}
   let retry = 0, retryTimer = null;
   const friends = new Map();  // id -> {c, st, p, shown, heard, since}
   const timers = { pos: 0, beat: 0, edits: 0, save: 0, fog: 0 };
@@ -155,7 +160,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   function stop(message) {
     if (game.state.shared) save(game.state, true);
     const wasIn = !!game.state.shared;
-    room = null; code = null; me = null; owner = null;
+    room = null; code = null; me = null; owner = null; clock = null;
     clearTimeout(retryTimer);
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
@@ -246,6 +251,8 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       game.replace(state);
       hud.toast(t('together.toast.in'));
     }
+    if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
+    keepTime();
     lastPos = ''; lastSave = '';
     renderFriends();
     game.changedMode();
@@ -270,11 +277,19 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
 
   /* ------------------------------------------------------- each frame */
 
+  // The world's time of day is the room's: everyone in it sees the same sun.
+  // The room sends its clock on every welcome; between those it runs here.
+  function keepTime() {
+    const s = game.state;
+    if (s.shared === room && clock) s.time = clock.t + performance.now() / 1000 - clock.at;
+  }
+
   function tick(dt) {
     const s = game.state;
     signT = Math.max(0, Math.min(1, signT + (invite ? dt : -dt) * SIGN_SPEED));
     if (invite && Date.now() > invite.until) closeQr();
     if (!s.shared) return;
+    keepTime();
     const w = s.world;
     if (w.edits && w.edits.length > MAX_PENDING_EDITS) w.edits.splice(0, w.edits.length - MAX_PENDING_EDITS);
     const now = performance.now() / 1000;
@@ -429,7 +444,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     const yes = await ask({ title: t('together.start.title'), text: t('together.start.text'), yes: t('together.start.yes') });
     if (!yes || game.state.shared) return;
     const s = game.state;
-    const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player) });
+    const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player), time: cleanTime(s.time) ?? 0 });
     if (body.length > LIMITS.createBytes) { hud.toast(t('together.toast.tooBig')); return; }
     let made;
     try {

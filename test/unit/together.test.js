@@ -198,6 +198,21 @@ test('room: what it writes to storage brings it back the same', async () => {
   assert.deepEqual(back.ext, r.ext);
   assert.equal(back.owner, r.owner);
   assert.equal(back.invites.get(code), r.invites.get(code));
+  assert.equal(back.clock(T0 + 5000), r.clock(T0 + 5000));
+});
+
+test('room: one clock for the whole world, going on from the creator\'s time of day', async () => {
+  const { r, owner } = await makeRoom({ time: 100 });
+  const o = await r.join(owner, undefined, T0 + 5000);
+  assert.equal(o.welcome.time, 105);
+  const code = invite(r, o.id);
+  const f = await r.join(key(), code, T0 + 65_000);
+  assert.equal(f.welcome.time, 165, 'a friend joining later sees the same clock');
+  assert.equal(P.cleanTime(-1), null);
+  assert.equal(P.cleanTime(Infinity), null);
+  assert.equal(P.cleanTime('5'), null);
+  const fresh = new Room(P.randomRoomId(), T0);
+  assert.equal(await fresh.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 }, time: -3 }), T0), 'bad');
 });
 
 test('rate buckets refill over time', () => {
