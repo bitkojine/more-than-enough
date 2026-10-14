@@ -5,7 +5,8 @@ import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
-import { canAfford, pay, costText, gatherYield, extractorCost } from './economy.js';
+import { canAfford, pay, costText, gatherYield, extractorCost, earn } from './economy.js';
+import { mushroomAt } from './mushrooms.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
 export const SWEEP_RADIUS = 0.6;
@@ -70,9 +71,15 @@ export function harvestAt(s, x, y) {
   setRichness(s.world, x, y, z, richness(s.world, x, y, z) - 1);
   const res = TILE_INFO[type].res || null;
   const amount = res ? gatherYield(s, res) : 0;
-  if (res) {
-    s.inv[res] += amount;
-    s.stats[res] += amount;
+  if (res) earn(s, res, amount, 'hand');
+  // Mycelium comes as one kind of mushroom or another: count which, and
+  // whether it's a kind never found before, in any world.
+  const mushroom = res ? mushroomAt(s.seed, type, x, y, z) : null;
+  let newKind = false;
+  if (mushroom) {
+    newKind = !s.mushroomsEver.includes(mushroom);
+    if (newKind) s.mushroomsEver.push(mushroom);
+    s.mushrooms[mushroom] = (s.mushrooms[mushroom] || 0) + amount;
   }
   // Mycelium also grows in spore beds deep underground; the first milestone wants a forest.
   if (type === T.FOREST) s.stats.foraged += amount;
@@ -81,12 +88,11 @@ export function harvestAt(s, x, y) {
   if (TILE_INFO[type].find) {
     found = findLoot(s, type, z);
     for (const r of Object.keys(found)) {
-      s.inv[r] += found[r];
-      s.stats[r] += found[r];
+      earn(s, r, found[r], 'finds');
     }
     s.stats.finds += 1;
   }
-  return { x, y, z, type, res, amount, found, now: tileAt(s.world, x, y, z) };
+  return { x, y, z, type, res, amount, found, mushroom, newKind, now: tileAt(s.world, x, y, z) };
 }
 
 export function harvest(s) {
@@ -133,8 +139,7 @@ export function collect(s) {
   for (const e of t.list) {
     const amt = Math.floor(e.buffer);
     e.buffer -= amt;
-    s.inv[e.res] += amt;
-    s.stats[e.res] += amt;
+    earn(s, e.res, amt, 'buildings');
     s.stats.collected += amt;
     gained[e.res] = (gained[e.res] || 0) + amt;
     sources.push({ x: e.x, y: e.y, res: e.res, amt });

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.44.0] - 2026-10-14
+
+### Added
+- **Fifteen kinds of mushroom to find.** Every forest patch grows its own
+  kind at the trees' feet, by the kind of forest: fly agarics and penny buns
+  under pines, chanterelles and honey fungus in birch groves, parasols,
+  morels and oyster mushrooms in warm country, ink caps and puffballs where
+  forests mix, and the uncommon indigo milk cap. Two **magic** mushrooms, the
+  Liberty cap and the Moonlight cap, are rare in any forest. Spore beds in
+  the mine hold glowcaps, ghost fungus and, deep down, the magic crystal cap.
+  You see each kind growing on the map, and the first of each kind you ever
+  pick is celebrated. The kinds you've found carry over when you embark.
+- **Tap a resource counter to see what you've collected.** The counters at
+  the top still show the totals; tapping one opens **Collected**: what you
+  hold, what this world has given you and where it came from (by hand, from
+  finds, from buildings, from the Abundance Engine), and for mycelium a card
+  for every kind of mushroom, with how many you've picked. Kinds you haven't
+  found yet show as shadows with a hint of where they grow.
 ## [0.43.0] - 2026-10-14
 
 ### Changed

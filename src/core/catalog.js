@@ -12,8 +12,6 @@
  *          other ground, so nothing shown is decoration you can't pick up; bottom
  *          centre on the tile's centre; it never squashes
  *   cut    what stands there once the tile has been worked out
- *   crop   what grows at the foot of a stand you forage (mushrooms under
- *          the trees); drawn in front of it while there is some left
  *   image  a thing standing on the map (buildings, the wanderer, the boat);
  *          also its picture in the sheet
  *   icon   a square picture for the buttons, counters and lists
@@ -30,16 +28,18 @@ import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL } from './
 import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS } from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
+import { MUSHROOMS } from './mushrooms.js';
 
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
 export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
-export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'crop', 'image', 'icon', 'tiers'];
+export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers'];
 
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
   { id: 'tile', name: 'Ground', blurb: 'Every kind of tile, on the surface and in the mine.' },
   { id: 'forest', name: 'Forests', blurb: 'Kinds of forest, by region: each grows its own mix of trees. Their floors all yield mycelium alike.' },
+  { id: 'mushroom', name: 'Mushrooms', blurb: 'Every kind of mushroom you can find and collect, drawn as it grows at the trees\' feet or in a spore bed.' },
   { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
@@ -90,8 +90,9 @@ function tileSlots(t) {
   const workable = info.harvest && !info.solid; // surface deposits can be worked out
   // Only what you can gather stands up on a tile: anything standing on
   // ground you can't gather would be decoration you can't pick up. A forest
-  // is never worked out: its trees stand for good and its crop runs out.
-  const standing = info.forage ? opt('stand', 'crop') : opt('stand', 'cut');
+  // is never worked out: its trees stand for good, and what runs out is the
+  // mushrooms at their feet (see the mushroom looks).
+  const standing = info.forage ? opt('stand') : opt('stand', 'cut');
   return { ...req('color', 'top'), ...opt('face'), ...(workable ? standing : {}) };
 }
 
@@ -99,12 +100,16 @@ const things = [];
 const add = (group, key, name, does, slots) => things.push({ id: `${group}.${key}`, group, key, name, does, slots });
 
 for (let t = 0; t < TILE_KEY.length; t++) add('tile', TILE_KEY[t], TILE_NAME[t], tileDoes(t), tileSlots(t));
-// A forest kind's trees (stand), and optionally its own ground (top) and
-// what grows at the trees' feet (crop); anything it leaves out comes from
-// tile.forest.
+// A forest kind's trees (stand), and optionally its own ground (top);
+// anything it leaves out comes from tile.forest.
 for (const key of Object.keys(FOREST_KINDS)) {
-  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Its floor yields mycelium like any forest.', { ...req('stand'), ...opt('top', 'crop') });
+  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Its floor yields mycelium like any forest.', { ...req('stand'), ...opt('top') });
 }
+
+// Each kind of mushroom: a little clump of it, drawn at the trees' feet on
+// the map while a forest patch has some left (smaller as it runs low), and
+// in the Collected sheet.
+for (const key of Object.keys(MUSHROOMS)) add('mushroom', key, MUSHROOMS[key].name, MUSHROOMS[key].does, req('image'));
 
 for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], `A resource. Counted at the top of the screen.`, req('icon', 'color'));
 add('resource', 'insight', 'Insight', 'Earned by embarking to a new world; spent on perks.', req('icon', 'color'));
@@ -166,3 +171,4 @@ export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));
 export const tileLook = (t) => 'tile.' + TILE_KEY[t];
 export const resourceLook = (r) => 'resource.' + r;
 export const forestLook = (seed, x, y) => 'forest.' + forestKind(seed, x, y);
+export const mushroomLook = (key) => 'mushroom.' + key;

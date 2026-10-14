@@ -18,4 +18,5 @@ export * from './underground.js';
 export * from './goals.js';
 export * from './save.js';
 export * from './stockpile.js';
+export * from './mushrooms.js';
 export * from './catalog.js';

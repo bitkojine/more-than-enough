@@ -304,6 +304,12 @@ async function main() {
   eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
   eq(chips, 4, 'four resource chips visible');
+  // Tapping a counter opens what you've collected of it, every kind of mushroom included.
+  var stoneChip = await rect('.chip[data-res=stone]');
+  await tap(stoneChip.x, stoneChip.y);
+  ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Collected"', 1500), 'tapping a resource counter opens Collected');
+  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'Collected has a section per resource and a card per kind of mushroom');
+  await evalJS('document.getElementById("btnClose").click()');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 4, 'gather, build, upgrade and mine share the thumb dock');
   // Sound: the context exists from load, and the first gesture of any kind
   // gets it running (it used to wait for certain controls).

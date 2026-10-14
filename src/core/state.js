@@ -4,6 +4,7 @@ import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
 import { createWorld, findSpawn } from './world.js';
 import { UNLOCKS, PERKS, EMBARK_MIN_TOTAL } from './content.js';
+import { SOURCES } from './economy.js';
 import { revealAround } from './sim.js';
 import { worldMastered } from './upgrades.js';
 
@@ -62,6 +63,12 @@ export function createState(seed) {
     perks: Object.fromEntries(Object.keys(PERKS).map((k) => [k, 0])),
     extractors: [],
     stats: { ...perResource(0), foraged: 0, gathers: 0, finds: 0, collected: 0, built: 0, playedMs: 0 },
+    // Where this world's resources came from ({res: {source: amount}}), how
+    // much of each kind of mushroom you've picked here, and every kind you've
+    // ever found, in any world.
+    sources: Object.fromEntries(RESOURCES.map((r) => [r, Object.fromEntries(Object.keys(SOURCES).map((k) => [k, 0]))])),
+    mushrooms: {},
+    mushroomsEver: [],
     discovered: { ore: false, crystal: false },
     goalIndex: 0,
     time: 0,
@@ -106,6 +113,7 @@ export function embark(s, seed) {
   fresh.insight = s.insight + gained;
   fresh.prestiges = s.prestiges + 1;
   fresh.totalEver = lifetimeTotal(s);
+  fresh.mushroomsEver = [...s.mushroomsEver];
   revealAround(fresh); // Cartographer widens the very first reveal too
   return { ok: true, state: fresh, gained };
 }

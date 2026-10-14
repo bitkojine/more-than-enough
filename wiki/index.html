@@ -137,6 +137,10 @@
       <h2>Resource counters</h2>
       <p>The four chips at the top are what you're carrying: 🍄 mycelium, 🪨 stone, ⛏️ ore and 💠 crystal. A green
         <em>+n/s</em> under a count is your income from buildings and the Abundance Engine, assuming you're there to pick it up.</p>
+      <p>Tap a counter to see what you've <strong>collected</strong>: what you hold, how much this world has given you, and
+        where it came from (by hand, from finds, from buildings, from the Abundance Engine). Under mycelium is every
+        <a href="#world">kind of mushroom</a>: the ones you've found, with how many you've picked in this world, and
+        the ones you haven't as shadows, with a hint of where they grow.</p>
 
       <h2>Depth marker</h2>
       <p>Underground, a small <strong>▼ n</strong> marker under the counters shows which layer you're on: 1 is just below the forest. Once you have been down, the depth gauge on the left edge shows the same as a column of layers (see <a href="#mine">The mine</a>).</p>
@@ -220,6 +224,14 @@
         grows on its floor: the mushrooms at the trees' feet. Forage a patch bare and the trees go on standing; the mushrooms
         come back near you. Mycelium is a real building material, grown rather than felled: your tools, buildings and
         upgrades are made from what grows back.</p>
+
+      <h2>Mushrooms</h2>
+      <p>Every forest patch grows one kind of mushroom at the trees' feet, chosen from what its kind of forest grows, and it
+        grows back as the same kind. Every spore bed in the mine holds one kind of cave mushroom. All of them pay mycelium
+        alike; what's different is which ones you've found. The first of each kind you ever pick is celebrated, and the
+        collection of kinds you've found carries over when you embark. The magic ones (✦) are rare: you might pass a
+        hundred patches before you see one.</p>
+      <div data-table="mushrooms"></div>
 
       <h2>Surface tiles</h2>
       <div data-table="surface"></div>
@@ -536,7 +548,8 @@
   "tile": 64,
   "looks": {
     "tile.grass":  { "color": "#b8873a", "top": ["grass-a.png", "grass-b.png"] },
-    "tile.forest": { "stand": ["maple.svg", "birch.svg", null], "crop": "toadstools.svg" },
+    "tile.forest": { "stand": ["maple.svg", "birch.svg", null] },
+    "mushroom.flyAgaric": { "image": "toadstools.svg" },
     "tile.water":  { "top": { "frames": ["water-1.png", "water-2.png"], "fps": 2 } },
     "character.wanderer": { "image": "fox.png" },
     "color.backdrop": { "color": "#0b0710" }
@@ -565,9 +578,9 @@
           Stone, ore and crystal wear down as they're mined: drawn smaller the less is left, to half size before they run out.</li>
         <li><code>cut</code>: what stands on a gathering tile once it's worked out (pebbles, a broken ore rock). Forests have
           none: their trees are never cut.</li>
-        <li><code>crop</code>: forests only. What grows at the trees' feet and is foraged (mushrooms), drawn in front of the
-          trees while there is some left, smaller as it runs low.</li>
-        <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
+        <li><code>image</code>: buildings, the wanderer, the boat and each kind of mushroom, drawn upright like
+          <code>stand</code>, and shown in the sheet. A mushroom's picture grows at the trees' feet in every forest patch of its
+          kind while some is left, smaller as it runs low.</li>
         <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
         <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is
           one of the resource, the next ten, then a hundred, and so on. Past the end of your list the last picture stands in.

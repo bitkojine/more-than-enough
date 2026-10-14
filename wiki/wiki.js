@@ -75,6 +75,17 @@ const TABLES = {
     return table(['Tile', 'Share of tiles', 'Found on'], rows, [1]);
   },
 
+  mushrooms: () => {
+    return table(['Mushroom', 'Grows', 'How common', 'What it is'], Core.MUSHROOM_KEYS.map((k) => {
+      const m = Core.MUSHROOMS[k];
+      const where = m.where === 'cave'
+        ? (m.from > 1 ? `spore beds, layer ${m.from} and deeper` : 'spore beds')
+        : m.kinds.map((f) => Core.FOREST_KINDS[f].name.toLowerCase()).join(', ');
+      const common = m.weight >= 4 ? 'common' : m.weight >= 2 ? 'fairly common' : m.weight >= 1 ? 'uncommon' : 'rare';
+      return [`${pic(Core.mushroomLook(k), 'image')} ${m.name}${m.magic ? ' ✦' : ''}`, where, common, m.does];
+    }));
+  },
+
   props: () => table(['Thing', 'Cost', 'Light reach', 'What it does'],
     Object.keys(Core.PROPS).map((k) => {
       const p = Core.PROPS[k];

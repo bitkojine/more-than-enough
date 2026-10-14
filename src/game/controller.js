@@ -47,6 +47,11 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       audio.collect();
       return;
     }
+    if (r.newKind) {
+      // A kind of mushroom never found before, in any world.
+      fx.text(r.x + 0.5, r.y - 1, 'New: ' + Core.MUSHROOMS[r.mushroom].name + '!', '#c9a6ff', null, -0.5, 2.6);
+      audio.collect();
+    }
     if (r.res) {
       fx.gathered(r.x, r.y, r.res, r.amount);
       audio.gather(r.res, r.amount, toolLevel(r.res));

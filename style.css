@@ -434,6 +434,33 @@ canvas#game {
 .row.locked { opacity: 0.6; }
 .section { padding: 10px 12px 4px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-dim); }
 
+/* ------------------------------------------------------ Collected */
+
+/* A resource's heading, lit for a moment when its counter was tapped. */
+.colHead { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--ink); transition: background 1.2s; border-radius: 10px; }
+.colHead .ico { width: 20px; height: 20px; }
+.colHead.lit { background: rgba(127, 208, 122, 0.22); }
+/* Where it came from: a share bar in the resource's own colour. */
+.row.share .bar { height: 6px; margin-top: 5px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.row.share .bar i { display: block; height: 100%; width: var(--share); background: var(--res); border-radius: 3px; }
+/* Every kind of mushroom, as a card; ones not found yet are shadows. */
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; padding: 4px 12px 12px; }
+.card {
+  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--panel-line); border-radius: 12px;
+  padding: 8px 6px 7px; text-align: center; min-width: 0;
+}
+.card .ico { width: 64px; height: 52px; object-fit: contain; display: block; margin: 0 auto 4px; }
+.card .nm { font-size: 13px; font-weight: 800; color: var(--ink); }
+.card .sub { font-size: 11px; color: var(--ink-dim); margin-top: 2px; }
+.card.unseen .ico { filter: brightness(0); opacity: 0.35; }
+.card.unseen .nm { color: var(--ink-dim); }
+.card.magic { border-color: rgba(201, 166, 255, 0.5); }
+.card.magic:not(.unseen) { background: rgba(201, 166, 255, 0.1); }
+.card .spark { color: #c9a6ff; }
+/* The counters open Collected. */
+.chip { cursor: pointer; touch-action: manipulation; font: inherit; color: inherit; pointer-events: auto; }
+.chip:active { transform: scale(0.96); }
+
 /* ------------------------------------ progression map (Upgrades tab) */
 
 /* A family header: full-width tap target with icon, name, a progress rail of

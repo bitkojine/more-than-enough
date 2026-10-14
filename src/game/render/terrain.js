@@ -297,8 +297,8 @@ function drawPile(ctx, cam, s, look, yard, p) {
 
 // Whatever stands on tile (x, y): a stockpile pile, else its stand picture
 // (worn smaller as a rock is mined, shaking when struck), or its cut picture
-// once worked out. A forest's trees always stand, with its crop (mushrooms)
-// in front of them while there is some left, fewer as it's foraged. Holes
+// once worked out. A forest's trees always stand, with its kind of mushroom
+// in front of them while there is some left, smaller as it's foraged. Holes
 // and built tiles have nothing else standing on them.
 function drawStand(ctx, cam, s, look, ground, x, y, z) {
   const w = s.world;
@@ -323,7 +323,7 @@ function drawStand(ctx, cam, s, look, ground, x, y, z) {
   ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
   look.stand(ctx, pic, fx, fy, size, tv(x, y, 17) < 0.5);
   if (Core.TILE_INFO[t].forage && left > 0) {
-    const crop = pickFor(look, w, t, 'crop', x, y, s.time);
+    const crop = look.pick(Core.mushroomLook(Core.mushroomAt(w.seed, t, x, y, z)), 'image', x, y, s.time);
     const grown = MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z));
     if (crop) look.stand(ctx, crop, fx + (tv(x, y, 23) - 0.5) * u * 0.4, fy + d * CROP_AHEAD, u * grown, tv(x, y, 29) < 0.5);
   }

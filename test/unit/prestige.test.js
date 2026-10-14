@@ -42,10 +42,12 @@ test('lifetime total adds earlier worlds to this one', () => {
   assert.equal(C.lifetimeTotal(s), 250);
 });
 
-test('embarking starts a fresh world and keeps Insight and lifetime', () => {
+test('embarking starts a fresh world and keeps Insight, lifetime and the mushrooms found', () => {
   const s = C.createState(12345);
   master(s);
   s.stats.mycelium = 1000000;
+  s.mushrooms.morel = 4;
+  s.mushroomsEver.push('morel');
   s.extractors.push({ key: 'garden', res: 'mycelium', x: 0, y: 0, z: 0, buffer: 0 });
   const em = C.embark(s, 99);
   assert.equal(em.ok, true);
@@ -59,6 +61,8 @@ test('embarking starts a fresh world and keeps Insight and lifetime', () => {
   assert.equal(fresh.totalEver, 1000000);
   assert.equal(C.worldTotal(fresh), 0);
   assert.equal(C.canEmbark(fresh), false, 'carried progress alone cannot re-embark');
+  assert.deepEqual(fresh.mushroomsEver, ['morel'], 'the collection of kinds found carries over');
+  assert.deepEqual(fresh.mushrooms, {}, 'what was picked in this world does not');
 });
 
 test('perks cost Insight and compound', () => {

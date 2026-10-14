@@ -9,7 +9,7 @@ import {
   EXTRACTORS, AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
-import { productionMult, abundanceTrickle, speedMult, exploreRadius } from './economy.js';
+import { productionMult, abundanceTrickle, speedMult, exploreRadius, earn } from './economy.js';
 
 const MAX_STEP = 0.25;
 
@@ -26,8 +26,7 @@ export function step(s, dt) {
   const trickle = abundanceTrickle(s) * dt;
   if (trickle > 0) {
     for (const r of RESOURCES) {
-      s.inv[r] += trickle;
-      s.stats[r] += trickle;
+      earn(s, r, trickle, 'engine');
     }
   }
 
@@ -59,8 +58,7 @@ function produce(s, dt) {
     // and fill their buffers, ready for when you walk back.
     if (e.buffer >= 1 && autoCollected(s, e)) {
       const amt = Math.floor(e.buffer);
-      s.inv[e.res] += amt;
-      s.stats[e.res] += amt;
+      earn(s, e.res, amt, 'buildings');
       e.buffer -= amt;
       s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
     }

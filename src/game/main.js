@@ -148,6 +148,10 @@ const input = createInput({
 el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
+el.resources.addEventListener('click', (e) => {
+  const chip = e.target.closest('.chip');
+  if (chip) sheet.showCollected(chip.dataset.res);
+});
 el.mine.addEventListener('click', controller.toggleMine);
 el.reset.addEventListener('click', controller.reset);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,

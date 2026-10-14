@@ -1,4 +1,5 @@
-/* The bottom sheet: Upgrades (the progression map), Build, and Beyond. It
+/* The bottom sheet: Upgrades (the progression map), Build, Beyond, Awards,
+ * and Collected (opened by tapping a resource counter, so it has no tab). It
  * renders from state and reports what the player picked through `actions`.
  * Rows carry names, levels, numbers and prices only; what things do is for
  * the player to discover (or read in the wiki). */
@@ -7,7 +8,7 @@ import * as Core from '../core/index.js';
 import { fmt, fmt1, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 
-const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond', awards: 'Awards' };
+const TITLES = { upgrades: 'Upgrades', build: 'Build', beyond: 'Beyond', awards: 'Awards', collected: 'Collected' };
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
@@ -192,7 +193,49 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     return html;
   }
 
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards };
+  // What you've collected, one resource at a time: what you hold, what this
+  // world has given you and where it came from; for mycelium, every kind of
+  // mushroom, the ones not found yet as shadows with a hint of where they grow.
+  function renderCollected(s) {
+    const rates = Core.productionRates(s);
+    let html = '';
+    for (const r of Core.RESOURCES) {
+      const total = s.stats[r];
+      html += `<div class="section colHead" id="col-${r}">${icon(r)} ${Core.RESOURCE_LABEL[r]}</div>`;
+      html += row(icon(r), fmt(s.inv[r]) + ' in your packs',
+        `Gathered in this world: ${fmt(total)}` + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmt1(rates[r])}/s</span>` : ''), '');
+      for (const k of Object.keys(Core.SOURCES)) {
+        const n = s.sources[r][k];
+        if (n < 1) continue;
+        const share = total > 0 ? n / total : 0;
+        html += `<div class="row share" style="--share:${(share * 100).toFixed(1)}%;--res:${look.color(Core.resourceLook(r))}"><div class="main"><div class="nm">${Core.SOURCES[k]}</div>` +
+          `<div class="sub">${fmt(n)} &middot; ${Math.round(share * 100)}%</div><div class="bar"><i></i></div></div></div>`;
+      }
+      if (r === 'mycelium') html += mushroomCards(s);
+    }
+    return html;
+  }
+
+  function whereItGrows(m) {
+    if (m.where === 'cave') return m.from > 1 ? `In spore beds, layer ${m.from} and down` : 'In spore beds in the mine';
+    if (m.kinds.length === Object.keys(Core.FOREST_KINDS).length) return 'In any forest, rarely';
+    return 'In ' + m.kinds.map((k) => Core.FOREST_KINDS[k].name.toLowerCase()).join(', ').replace(/, ([^,]*)$/, ' or $1');
+  }
+
+  function mushroomCards(s) {
+    const found = Core.MUSHROOM_KEYS.filter((k) => s.mushroomsEver.includes(k)).length;
+    let html = `<div class="section">Kinds of mushroom &middot; found ${found} of ${Core.MUSHROOM_KEYS.length}</div><div class="cards">`;
+    for (const k of Core.MUSHROOM_KEYS) {
+      const m = Core.MUSHROOMS[k], seen = s.mushroomsEver.includes(k), n = s.mushrooms[k] || 0;
+      const cls = 'card' + (seen ? '' : ' unseen') + (m.magic ? ' magic' : '');
+      html += `<div class="${cls}" data-mushroom="${k}">${pic(Core.mushroomLook(k), 'image')}` +
+        `<div class="nm">${seen ? esc(m.name) : '???'}${m.magic ? ' <span class="spark">✦</span>' : ''}</div>` +
+        `<div class="sub">${seen ? (n > 0 ? fmt(n) + ' picked here' : 'Found in another world') : esc(whereItGrows(m))}</div></div>`;
+    }
+    return html + '</div>';
+  }
+
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected };
 
   function render() {
     el.sheetBody.innerHTML = RENDER[tab](getState());
@@ -202,9 +245,20 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   // texts and button states are patched in place, so a button never gets
   // swapped out from under a finger mid-tap.
   let nextRefresh = 0;
+  function patch(was, now) {
+    if (was.children.length !== now.children.length) { was.innerHTML = now.innerHTML; return; }
+    [...now.children].forEach((n, i) => {
+      const o = was.children[i];
+      if (o.outerHTML === n.outerHTML || o.classList.contains('lit')) return;
+      if (n.classList.contains('cards')) patch(o, n);
+      else o.replaceWith(n.cloneNode(true));
+    });
+  }
   function refresh() {
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
+    // Nothing to tap in Collected: swap in just the rows and cards that changed.
+    if (tab === 'collected') { patch(el.sheetBody, tmp); return; }
     const was = el.sheetBody.querySelectorAll('.row, .railHead'), now = tmp.querySelectorAll('.row, .railHead');
     if (was.length !== now.length) { render(); return; }
     now.forEach((n, i) => {
@@ -222,6 +276,16 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
         if (a.innerHTML !== b.innerHTML) a.innerHTML = b.innerHTML;
       }
     });
+  }
+
+  // Opens Collected at resource `res`, briefly lit so the eye finds it.
+  function showCollected(res) {
+    show('collected');
+    const head = el.sheetBody.querySelector('#col-' + res);
+    if (!head) return;
+    el.sheetBody.scrollTop = head.offsetTop - el.sheetBody.offsetTop;
+    head.classList.add('lit');
+    setTimeout(() => head.classList.remove('lit'), 1500);
   }
 
   function setTab(next) {
@@ -298,7 +362,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   return {
     get isOpen() { return open; },
     get tab() { return tab; },
-    show, close, toggle, render,
+    show, close, toggle, render, showCollected,
     // Reveal the Beyond tab's contents live once the prestige loop unlocks.
     tick() {
       const shown = beyondUnlocked(getState());

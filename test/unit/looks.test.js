@@ -43,7 +43,6 @@ test('catalog: only surface deposits that can be worked out have a cut look; for
     const info = C.TILE_INFO[C.TILE_KEY.indexOf(t.key)];
     const workable = !!(info.harvest && !info.solid);
     assert.equal('cut' in t.slots, workable && !info.forage, t.id);
-    assert.equal('crop' in t.slots, workable && !!info.forage, t.id);
   }
   assert.ok(C.TILE_INFO[C.T.FOREST].forage, 'trees are never cut down');
   for (const f of C.LOOKS.filter((l) => l.group === 'forest')) assert.ok(!('cut' in f.slots), f.id);

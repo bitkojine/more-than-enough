@@ -1,4 +1,5 @@
-/* The heads-up display: resource chips, the depth marker, the contextual
+/* The heads-up display: resource chips (tap one for what you collected),
+ * the depth marker, the contextual
  * thumb buttons and status toasts. The game never explains itself in text;
  * everything to read lives in the wiki. */
 
@@ -65,9 +66,11 @@ export function createHud(el, look) {
   }
 
   for (const r of Core.RESOURCES) {
-    const chip = document.createElement('div');
+    const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = 'chip';
-    chip.setAttribute('aria-label', Core.RESOURCE_LABEL[r]);
+    chip.dataset.res = r;
+    chip.setAttribute('aria-label', Core.RESOURCE_LABEL[r] + ': see what you collected');
     chip.innerHTML = `<img class="ic" data-look="${Core.resourceLook(r)}" alt="">` +
       '<span class="col"><span class="val">0</span></span><span class="rate"></span>';
     el.resources.appendChild(chip);

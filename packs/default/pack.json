@@ -17,8 +17,7 @@
   "tile.forest": {
    "color": "#3a5a2c",
    "top": ["ground/forest-1.svg", "ground/forest-2.svg"],
-   "face": "faces/turf.svg",
-   "crop": "props/mushrooms.svg"
+   "face": "faces/turf.svg"
   },
   "forest.pine": {
    "top": "ground/forest-pine.svg",
@@ -131,6 +130,51 @@
   "tile.rise": {
    "color": "#5a4836",
    "top": "ground/tunnel.svg"
+  },
+  "mushroom.flyAgaric": {
+   "image": "mushrooms/fly-agaric.svg"
+  },
+  "mushroom.pennyBun": {
+   "image": "mushrooms/penny-bun.svg"
+  },
+  "mushroom.chanterelle": {
+   "image": "mushrooms/chanterelle.svg"
+  },
+  "mushroom.honey": {
+   "image": "mushrooms/honey.svg"
+  },
+  "mushroom.parasol": {
+   "image": "mushrooms/parasol.svg"
+  },
+  "mushroom.oyster": {
+   "image": "mushrooms/oyster.svg"
+  },
+  "mushroom.inkCap": {
+   "image": "mushrooms/ink-cap.svg"
+  },
+  "mushroom.puffball": {
+   "image": "mushrooms/puffball.svg"
+  },
+  "mushroom.morel": {
+   "image": "mushrooms/morel.svg"
+  },
+  "mushroom.milkCap": {
+   "image": "mushrooms/milk-cap.svg"
+  },
+  "mushroom.libertyCap": {
+   "image": "mushrooms/liberty-cap.svg"
+  },
+  "mushroom.moonCap": {
+   "image": "mushrooms/moon-cap.svg"
+  },
+  "mushroom.glowcap": {
+   "image": "mushrooms/glowcap.svg"
+  },
+  "mushroom.ghost": {
+   "image": "mushrooms/ghost.svg"
+  },
+  "mushroom.crystalCap": {
+   "image": "mushrooms/crystal-cap.svg"
   },
   "resource.mycelium": {
    "icon": "icons/mycelium.svg",

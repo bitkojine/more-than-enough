@@ -3,6 +3,19 @@
 import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS } from './content.js';
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
 
+/* ------------------------------------------------------------- income */
+
+// Where resources come from, as counted in the Collected sheet.
+export const SOURCES = { hand: 'By hand', finds: 'From finds', buildings: 'From buildings', engine: 'From the Abundance Engine' };
+
+// Adds `amount` of `res` to the packs, counted as gathered this world and as
+// coming from `source` (a key of SOURCES).
+export function earn(s, res, amount, source) {
+  s.inv[res] += amount;
+  s.stats[res] += amount;
+  s.sources[res][source] += amount;
+}
+
 /* -------------------------------------------------------------- costs */
 
 export function canAfford(inv, cost) {

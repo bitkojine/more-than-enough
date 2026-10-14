@@ -7,6 +7,7 @@
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
+import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
 
 export const SAVE_VERSION = 6;
@@ -35,6 +36,7 @@ export function serialize(s) {
     perks: s.perks,
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2) })),
     stats: s.stats, discovered: s.discovered,
+    sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
     goalIndex: s.goalIndex, time: s.time,
     underground: { deepest: s.underground.deepest }
   });
@@ -103,6 +105,9 @@ export function deserialize(str) {
   for (const k in s.resUp) s.resUp[k] = clampInt(s.resUp[k], 0, REFINERIES[k].levels.length);
   copyNumbers(s.perks, d.perks);
   copyNumbers(s.stats, d.stats);
+  for (const r in s.sources) copyNumbers(s.sources[r], d.sources && d.sources[r]);
+  for (const k in d.mushrooms || {}) if (MUSHROOMS[k] && isNum(d.mushrooms[k])) s.mushrooms[k] = d.mushrooms[k];
+  s.mushroomsEver = Array.isArray(d.mushroomsEver) ? d.mushroomsEver.filter((k, i, all) => MUSHROOMS[k] && all.indexOf(k) === i) : [];
   for (const k in s.unlocks) s.unlocks[k] = !!(d.unlocks && d.unlocks[k]);
   for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time']) {
     if (isNum(d[k])) s[k] = d[k];
