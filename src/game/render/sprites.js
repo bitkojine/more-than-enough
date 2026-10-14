@@ -120,8 +120,9 @@ function standWithHeld(ctx, look, body, device, x, y, size, flip) {
 const HAND = { x: 0.35, y: 0.43 };
 
 // A tool in their front hand (`dir` 1 facing right, -1 left), drawn from the
-// tool's icon: the pickaxe gripped at the end of its handle and turned by
-// `angle` (0 points it up and forward), the basket hanging from the hand.
+// tool's icon: the pickaxe held by the grip near its handle's end and
+// turned by `angle` (0 points it up and forward), the basket hanging from
+// the hand.
 function drawTool(ctx, look, body, u, tool, dir) {
   const w = body.units * u, h = w * body.aspect;
   const pic = look.pick('tool.' + tool.kind, 'icon');
@@ -130,7 +131,7 @@ function drawTool(ctx, look, body, u, tool, dir) {
   ctx.scale(dir, 1);
   ctx.rotate(tool.angle);
   if (tool.kind === 'basket') { const size = u * 0.42; look.draw(ctx, pic, -size / 2, -size * 0.15, size, size); }
-  else { const size = u * 0.6; look.draw(ctx, pic, -size * 0.28, -size * 0.9, size, size); }
+  else { const size = u * 0.6; look.draw(ctx, pic, -size * 0.27, -size * 0.78, size, size); }
   ctx.restore();
 }
 

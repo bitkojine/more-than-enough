@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.59.2] - 2026-10-14
+
+### Changed
+- **A proper pickaxe.** The pickaxe (its icon and the one your wanderer
+  swings) is redrawn as a classic double-pointed steel head on an all-steel
+  handle with a wrapped grip and a round pommel, so it reads clearly even
+  small. No wood anywhere.
+
 ## [0.59.1] - 2026-10-14
 
 ### Changed
