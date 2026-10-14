@@ -357,9 +357,11 @@ export default {
       <p>Sound plays as soon as your browser lets a page make sound. Some allow it straight away. Most wait until you've
         {phone:touched the page once, and on an iPhone that has to be a tap, since a drag doesn't count|laptop:clicked the page or pressed a key once}. After that,
         sound comes back by itself when you return to the tab or a call ends.</p>
-      <p><strong>Music</strong>: every kind of place has its own tune. Open land by day plays <em>Meadowsong</em>, the woods
-        <em>Under the Boughs</em>, the water <em>Rowing Song</em>, the surface at night <em>Starlit Hush</em>, the first mine
-        layers <em>Seams of Light</em> and from the third layer down <em>The Deep Dark</em>. The first time you hear one, a
+      <p><strong>Music</strong>: every kind of land has its own tune, and it changes when you cross into another region. By
+        day meadows play <em>Meadowsong</em>, woods <em>Under the Boughs</em>, lakes <em>Rowing Song</em>, heaths
+        <em>Heather and Stone</em>, highlands <em>The High Road</em> and fens <em>Mistwater</em>. The surface at night plays
+        <em>Starlit Hush</em>, the first mine layers <em>Seams of Light</em> and from the third layer down <em>The Deep
+        Dark</em>. The first time you hear one, a
         message tells you its name, and Settings shows what is playing. Your gathering plays along in the music's key. The
         music is composed, then played by instruments the game synthesizes as it goes, so it costs nothing to download.
         Turn it off with <strong>Music</strong> in Settings; <strong>Sound</strong> turns everything off.</p>

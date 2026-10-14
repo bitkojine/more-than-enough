@@ -354,8 +354,10 @@ export default {
       <p>Garsas pasigirsta, kai tik naršyklė leidžia puslapiui skleisti garsą. Kai kurios leidžia iškart. Dauguma laukia, kol
         bent kartą {phone:paliesi puslapį, o „iPhone“ tai turi būti bakstelėjimas, nes tempimas neskaičiuojamas|laptop:spustelėsi puslapį ar paspausi klavišą}. Po to
         garsas pats sugrįžta, kai grįžti į skirtuką ar baigiasi skambutis.</p>
-      <p><strong>Muzika</strong>: kiekviena vietų rūšis turi savo melodiją. Atvirose vietose dieną skamba <em>Pievų giesmė</em>,
-        miške <em>Po šakomis</em>, ant vandens <em>Irkluotojų daina</em>, paviršiuje naktį <em>Žvaigždžių tyla</em>, pirmuosiuose
+      <p><strong>Muzika</strong>: kiekviena krašto rūšis turi savo melodiją, ir ji pasikeičia, kai pereini į kitą kraštą. Dieną
+        pievose skamba <em>Pievų giesmė</em>, girioje <em>Po šakomis</em>, ežeryne <em>Irkluotojų daina</em>, viržyne
+        <em>Viržiai ir akmenys</em>, aukštumose <em>Aukštasis kelias</em>, pelkyne <em>Rūko vandenys</em>. Paviršiuje naktį
+        skamba <em>Žvaigždžių tyla</em>, pirmuosiuose
         kasyklų sluoksniuose <em>Šviesos gyslos</em>, o nuo trečio sluoksnio žemyn <em>Gilioji tamsa</em>. Pirmą kartą išgirdus
         melodiją, pranešimas pasako jos pavadinimą, o Nustatymuose matyti, kas skamba. Tavo rinkimas skamba muzikos tonacija.
         Muzika sukomponuota, o groja ją instrumentai, kuriuos žaidimas sintezuoja vietoje, tad jos nereikia atsisiųsti.

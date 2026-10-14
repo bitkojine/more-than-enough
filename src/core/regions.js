@@ -38,9 +38,9 @@ export const BIOMES = {
   meadow: { water: 0.28, peaks: 0.8, forest: 0.8, lode: 1, music: 'meadow', weight: 3, names: 10, borders: ['hedge', 'wall', 'river'] },
   woods: { water: 0.26, peaks: 0.82, forest: 3, lode: 0.5, music: 'forest', weight: 3, names: 10, borders: ['hedge', 'river'] },
   lakes: { water: 0.45, peaks: 0.84, forest: 1, lode: 0.7, music: 'water', weight: 2, names: 10, borders: ['river'] },
-  highlands: { water: 0.2, peaks: 0.64, forest: 0.5, lode: 1.8, music: 'meadow', weight: 2, names: 10, borders: ['ridge', 'wall'] },
-  fen: { water: 0.4, peaks: 0.88, forest: 1.8, lode: 0.3, music: 'water', weight: 2, names: 10, borders: ['river', 'hedge'] },
-  heath: { water: 0.22, peaks: 0.74, forest: 0.2, lode: 1.4, music: 'meadow', weight: 2, names: 10, borders: ['wall', 'ridge'] }
+  highlands: { water: 0.2, peaks: 0.64, forest: 0.5, lode: 1.8, music: 'highlands', weight: 2, names: 10, borders: ['ridge', 'wall'] },
+  fen: { water: 0.4, peaks: 0.88, forest: 1.8, lode: 0.3, music: 'fen', weight: 2, names: 10, borders: ['river', 'hedge'] },
+  heath: { water: 0.22, peaks: 0.74, forest: 0.2, lode: 1.4, music: 'heath', weight: 2, names: 10, borders: ['wall', 'ridge'] }
 };
 export const BIOME_KEYS = Object.keys(BIOMES);
 // The home region is always gentle meadow, so every world starts the same way.

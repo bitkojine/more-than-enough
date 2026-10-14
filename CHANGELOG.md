@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.66.0] - 2026-10-14
+
+### Added
+- **Three new tracks.** Heaths, highlands and fens now have music of their
+  own instead of borrowing another region's: *Heather and Stone* (a lone
+  flute over held strings, wide and windswept), *The High Road* (a march on
+  pipes over a drone and a drum) and *Mistwater* (a low flute over rippling
+  harp, still and misty). In English and Lithuanian.
+
 ## [0.65.0] - 2026-10-14
 
 ### Added

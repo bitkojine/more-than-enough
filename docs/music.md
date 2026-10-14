@@ -12,9 +12,9 @@ on a cheap sound card. What made it work, and what we copy:
 1. **A place is its music.** Every area has its own track, and walking into
    a new area changes the music. You learn the world by ear. Here the
    surface is split into big named regions a few minutes' walk across
-   (`src/core/regions.js`), and each kind of land plays its track: meadows
-   and heaths and highlands the open-land tune, woodland the woods, lakes
-   and fens the water. The music changes only when you cross into another
+   (`src/core/regions.js`), and each kind of land plays its own track
+   (its `music` in `BIOMES`): meadows, woods, lakes, heaths, highlands and
+   fens all sound different. The music changes only when you cross into another
    region, never tile by tile. Night, the first mine layers and the deep
    have their own (`sceneFor`).
 2. **A real tune.** Each track is a melody you could hum, over simple chords

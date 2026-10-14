@@ -27,6 +27,7 @@ export const MODES = {
   ionian: [0, 2, 4, 5, 7, 9, 11],
   dorian: [0, 2, 3, 5, 7, 9, 10],
   phrygian: [0, 1, 3, 5, 7, 8, 10],
+  lydian: [0, 2, 4, 6, 7, 9, 11],
   mixolydian: [0, 2, 4, 5, 7, 9, 10],
   aeolian: [0, 2, 3, 5, 7, 8, 10]
 };
@@ -90,6 +91,69 @@ export const TRACKS = {
         chords: '4 | 1 | 7 | 1 | 4 | 1 | 5 7 | 1',
         melody: "1'/2 1' 7/2 6 | 5/3 3/3 | 4/2 4 2/2 7, | 1/2 2 3/3 | " +
           "1'/2 7 6/2 5 | 3/2 5 1'/3 | 7/3 6/2 4 | 5/2 2 1/3"
+      }
+    }
+  },
+
+  // The heath by day: wide and windswept, a lone flute over held strings
+  // and slow plucked chords, in mixolydian.
+  heath: {
+    name: 'music.heath', tempo: 84, meter: 4, root: 74, mode: 'mixolydian', gain: 1.4,
+    band: { lead: 'flute', echo: 'bell', comp: 'drone', bass: 'bass', pad: true, drum: false },
+    space: 0.4,
+    form: ['I', 'A', 'A', 'B', 'A'],
+    sections: {
+      I: { chords: '1 | 7 | 1 | 7', melody: '-/4 | -/4 | -/4 | -/4' },
+      A: {
+        chords: '1 | 7 | 4 | 1 | 1 | 7 | 5 4 | 1',
+        melody: "5/2 3 1 | 4/1.5 2/.5 7,/2 | 1 4 6/1.5 5/.5 | 5/3 -/1 | " +
+          "3/1.5 4/.5 5 1' | 7/2 6 4 | 5 2 1 6, | 1/4"
+      },
+      B: {
+        chords: '4 | 1 | 7 | 1 | 4 | 1 | 2 | 7',
+        melody: "1' 6 4 6 | 5/2 3/2 | 4 2 7, 2 | 3/3 -/1 | 6/1.5 1'/.5 2' 1' | 5/2 3 5 | 2 4 6 4 | 4/3 -/1"
+      }
+    }
+  },
+
+  // The highlands by day: a proud march on pipes over a drone and a drum,
+  // in dorian.
+  highlands: {
+    name: 'music.highlands', tempo: 96, meter: 4, root: 69, mode: 'dorian', gain: 1.1,
+    band: { lead: 'reed', echo: 'flute', comp: 'drone', bass: 'bass', pad: true, drum: true },
+    space: 0.3,
+    form: ['I', 'A', 'A', 'B', 'A', 'B'],
+    sections: {
+      I: { chords: '1 | 1 | 7 | 1', melody: '-/4 | -/4 | -/4 | -/4' },
+      A: {
+        chords: '1 | 1 | 7 | 7 | 1 | 1 | 7 4 | 1',
+        melody: "1/.5 2/.5 3 5 3 | 5/1.5 6/.5 5 3 | 2/2 7, 2 | 4/1.5 2/.5 7,/2 | " +
+          "1/.5 2/.5 3 5 1' | 7/1.5 5/.5 6 5 | 2 7, 4 6 | 1/3 -/1"
+      },
+      B: {
+        chords: '3 | 7 | 4 | 1 | 3 | 7 | 4 7 | 1',
+        melody: "5/1.5 5/.5 1' 7 | 7/2 5 2 | 6/1.5 4/.5 1 4 | 5/3 -/1 | " +
+          "1'/1.5 2'/.5 3' 1' | 7/1.5 1'/.5 7 5 | 4 6 2 7, | 1/4"
+      }
+    }
+  },
+
+  // The fens by day: still water and mist, a low flute over rippling harp
+  // in a slow 6/8, in lydian (the dreamy raised fourth).
+  fen: {
+    name: 'music.fen', tempo: 150, meter: 6, root: 65, mode: 'lydian', gain: 1.1,
+    band: { lead: 'flute', echo: 'bell', comp: 'arp', bass: 'bass', pad: true, drum: false },
+    space: 0.55,
+    form: ['I', 'A', 'B', 'A'],
+    sections: {
+      I: { chords: '1 | 2 | 1 | 2', melody: '-/6 | -/6 | -/6 | -/6' },
+      A: {
+        chords: '1 | 2 | 1 | 2 | 6 | 3 | 2 5 | 1',
+        melody: "5/3 3/2 1 | 2/3 4/2 6 | 5/2 6 5/2 3 | 4/6 | 6/3 1'/2 6 | 5/2 3 7,/3 | 2/2 4 5/3 | 1/6"
+      },
+      B: {
+        chords: '6 | 3 | 2 | 1 | 6 | 3 | 2 | 5',
+        melody: "1'/3 6/2 4 | 5/3 3/3 | 4/2 6 2'/3 | 1'/3 5/3 | 6/2 1' 3'/3 | 2'/2 1' 7/3 | 6/3 4/3 | 5/6"
       }
     }
   },
