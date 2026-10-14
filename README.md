@@ -116,7 +116,8 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
   in `src/core/save.js` and older saves are rejected (the player is told)
   and a new world starts.
 - After each minor (or any notable) change, bump `VERSION` in
-  `src/version.js`, update `CHANGELOG.md`, and commit.
+  `src/version.js`, update `CHANGELOG.md`, add the player's notes for it (see
+  below), and commit.
 
 Deploys cache-bust automatically: `scripts/stage-site.sh` (run by the Pages
 workflow, or `npm run stage` locally) appends a hash of the source tree as
@@ -130,7 +131,10 @@ Players never run an old version: the staged site also has a `build.json`
 naming that hash, and the game (`src/game/update.js`) checks it on start, every
 minute, when it comes back into view or online, and when a friend joins a
 shared world. When it differs from the hash on the game's own modules, the
-game saves and reloads at once, without asking.
+game saves and reloads at once, without asking, then shows what's new since
+the version the player was on. So each release also adds its version to `NEWS`
+in `src/game/news.js` and its player-facing notes as `news.<version>` in
+`src/i18n/en.js` and `lt.js` (`npm test` fails otherwise).
 
 The project is under git — commit early, commit often:
 

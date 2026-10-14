@@ -6,13 +6,17 @@
  * while it's in view, when it comes back into view or back online, and when a
  * friend joins a shared world (they most likely just loaded the newest one).
  * The moment the site's build differs from the one running, the game saves
- * and reloads. No asking.
+ * and reloads. No asking. It notes the version it was on, so the new one can
+ * say what's new since (src/game/news.js).
  *
  * Run from source there is no stamp, so nothing to compare: it stays off. */
+
+import { VERSION } from '../version.js';
 
 const CHECK_EVERY = 60_000;   // ms between checks while the game is in view
 const RETRY_AFTER = 60_000;   // ms before reloading for the same build again
 const RELOADED_STORE = 'mte.reloadedFor';
+const FROM_STORE = 'mte.updatedFrom';  // the version played before the update
 
 // The build stamped on a module URL, or null when run from source.
 export function stampOf(url) {
@@ -47,8 +51,19 @@ function noteReload(build, store, now) {
   try { store.setItem(RELOADED_STORE, build + ' ' + now); } catch { /* storage off: no loop guard */ }
 }
 
+// The version this tab played before the game updated itself, or null; read
+// once (the next start doesn't ask again).
+export function takeUpdatedFrom(store = globalThis.sessionStorage) {
+  try {
+    const from = store.getItem(FROM_STORE);
+    store.removeItem(FROM_STORE);
+    return from || null;
+  } catch { return null; }
+}
+
 export function createUpdater({
   save,
+  version = VERSION,
   running = stampOf(import.meta.url),
   latest = siteBuild,
   reload = hardReload,
@@ -66,6 +81,8 @@ export function createUpdater({
       if (!build || build === running || reloadedRecently(build, store, now())) return;
       leaving = true;
       noteReload(build, store, now());
+      // Kept from the first of several updates in a row, so nothing is missed.
+      try { if (!store.getItem(FROM_STORE)) store.setItem(FROM_STORE, version); } catch { /* no notes then */ }
       save();
       await reload();
     } catch { /* offline or mid-deploy: the next check tries again */ }

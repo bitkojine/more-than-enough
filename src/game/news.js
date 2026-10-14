@@ -1,0 +1,70 @@
+/* What's new: after the game updates itself (src/game/update.js), a card
+ * thanks the player, says the game just updated, lists what each release
+ * since their old version added, and asks for their ideas.
+ *
+ * Every release adds its version to NEWS (newest first) and its notes to the
+ * dictionaries as "news.<version>": what a player will notice, one thing per
+ * line, in plain words. npm test fails when the current VERSION has none. */
+
+import { t } from '../i18n/i18n.js';
+
+export const NEWS = [
+  '0.63.0', '0.62.0', '0.61.0', '0.60.2', '0.60.1', '0.60.0', '0.59.2', '0.59.1',
+  '0.59.0', '0.58.0', '0.57.2', '0.57.1', '0.57.0', '0.56.1', '0.56.0', '0.55.0', '0.54.0'
+];
+
+// Where players share ideas with the developers.
+export const IDEAS_URL = 'https://github.com/bitkojine/more-than-enough/issues';
+
+// -1, 0 or 1, comparing two "major.minor.patch" versions.
+export function compareVersions(a, b) {
+  const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+  for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] < pb[i] ? -1 : 1;
+  return 0;
+}
+
+// The versions with notes after `from` up to `to`, newest first.
+export function newsSince(from, to, news = NEWS) {
+  return news.filter((v) => compareVersions(v, from) > 0 && compareVersions(v, to) <= 0);
+}
+
+export function createNews(box) {
+  const title = box.querySelector('strong');
+  const list = box.querySelector('.news');
+  const [ideas, play] = box.querySelectorAll('button');
+  const close = () => { box.hidden = true; };
+  play.addEventListener('click', close);
+  box.addEventListener('click', (e) => { if (e.target === box) close(); });
+  window.addEventListener('keydown', (e) => {
+    if (box.hidden || e.key !== 'Escape') return;  // i18n-ok: a key name
+    e.stopImmediatePropagation();
+    close();
+  });
+  ideas.addEventListener('click', () => window.open(IDEAS_URL, '_blank', 'noopener'));
+
+  return {
+    // Shows what's new since `from`, if this is a newer version with notes.
+    show(from, to) {
+      const versions = from ? newsSince(from, to) : [];
+      if (versions.length === 0) return false;
+      title.textContent = t('news.title', { v: to });
+      list.replaceChildren(...versions.map((v) => {
+        const section = document.createElement('section');
+        const head = document.createElement('h3');
+        head.textContent = 'v' + v;
+        const items = document.createElement('ul');
+        items.append(...t('news.' + v).split('\n').map((line) => {
+          const li = document.createElement('li');
+          li.textContent = line;
+          return li;
+        }));
+        section.append(head, items);
+        return section;
+      }));
+      list.scrollTop = 0;
+      box.hidden = false;
+      play.focus();
+      return true;
+    }
+  };
+}

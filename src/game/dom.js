@@ -60,6 +60,7 @@ export function findElements() {
     language: byId('btnLanguage'),
     fork: byId('fork'),
     ask: byId('ask'),
+    news: byId('news'),
     invite: byId('btnInvite'),
     inviteLabel: byId('inviteLabel'),
     leave: byId('btnLeave'),

@@ -25,7 +25,8 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createTogether, FRIEND_COLORS } from './together.js';
-import { createUpdater } from './update.js';
+import { createUpdater, takeUpdatedFrom } from './update.js';
+import { createNews } from './news.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -403,6 +404,8 @@ game.changedMode();
 // you were in, if any.
 if (!together.joinFromLink()) together.resume();
 updater.start();
+// Just updated itself: thank the player and say what's new.
+createNews(el.news).show(takeUpdatedFrom(), VERSION);
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.

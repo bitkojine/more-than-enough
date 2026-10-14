@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.63.0] - 2026-10-14
+
+### Added
+- **What's new.** When the game updates itself, a card now thanks you for
+  playing, says the game just updated (your progress was saved first), lists
+  everything new since the version you were on, and invites you to share
+  ideas with the developers (*Share an idea* opens the game's GitHub issues).
+  In English and Lithuanian. Every release now adds its player-facing notes
+  (`NEWS` in `src/game/news.js`, `news.<version>` in the dictionaries), and
+  `npm test` fails if the current version has none.
+
 ## [0.62.0] - 2026-10-14
 
 ### Added
