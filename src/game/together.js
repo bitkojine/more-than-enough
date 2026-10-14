@@ -101,7 +101,7 @@ function cleanWelcome(d) {
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el }) {
+export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -190,6 +190,7 @@ export function createTogether({ game, hud, ask, el }) {
       const st = cleanStatus(d.st), c = cleanColor(d.c);
       if (st === null || c === null) return;
       let f = friends.get(d.id);
+      const arrived = st === 'online' && (!f || f.st !== 'online');
       if (!f) {
         if (friends.size >= LIMITS.players) return;
         f = { c, st, p: null, shown: null, heard: 0, since: 0 };
@@ -197,6 +198,8 @@ export function createTogether({ game, hud, ask, el }) {
         if (st === 'online') hud.toast(t('together.toast.joined', { n: c + 1 }));
       }
       const back = st === 'online' && f.st !== 'online';
+      // They most likely just loaded the newest game: make sure this is it too.
+      if (arrived) friendJoined();
       f.c = c;
       f.st = st;
       f.since = back ? 0 : f.since;

@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.53.0] - 2026-10-14
+
+### Added
+- **Always the newest version.** The game checks for a new deploy when it
+  starts, every minute, when you come back to it, when you're back online,
+  and when a friend joins your shared world. As soon as there is one it saves
+  and reloads into it on its own, no asking, so nobody plays an old version
+  (and friends in a shared world end up on the same one). Each deploy now
+  publishes a `build.json` the game compares with its own build.
+
 ## [0.52.1] - 2026-10-14
 
 ### Changed

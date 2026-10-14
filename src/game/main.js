@@ -22,6 +22,7 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createTogether, FRIEND_COLORS } from './together.js';
+import { createUpdater } from './update.js';
 import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -134,7 +135,9 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
-const together = createTogether({ game, hud, ask: ask.ask, el });
+// Never an old version: a new deploy saves and reloads the game at once.
+const updater = createUpdater({ save: () => game.saveNow() });
+const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: updater.check });
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask });
 
 const sheet = createSheet(el, {
@@ -332,6 +335,7 @@ game.changedMode();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.
 if (!together.joinFromLink()) together.resume();
+updater.start();
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.

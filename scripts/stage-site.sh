@@ -29,6 +29,9 @@ sed -i.bak -E "s#(\"src\": *\"[^\":]+\\.(png|svg))\"#\\1?v=$HASH\"#g" "$OUT/mani
 # Modules: from './x.js' -> from './x.js?v=HASH'.
 find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(from '\\.{1,2}/[^']+\\.js)'#\\1?v=$HASH'#g" {} +
 find "$OUT" -name '*.bak' -delete
+# The build the site serves: the running game compares it with the ?v= on its
+# own modules and reloads into a new deploy at once (src/game/update.js).
+printf '{"build":"%s"}\n' "$HASH" > "$OUT/build.json"
 
 echo "Staged $OUT/ (asset version $HASH)"
 grep -rEo '(href|src)="[^"]+\?v=[^"]+"' "$OUT" --include='*.html'

@@ -116,6 +116,12 @@ modules to returning players, and Safari (which caches icons per host, shared
 by every project on bitkojine.github.io) fetches this game's icon afresh.
 You don't need to change asset URLs by hand — just push.
 
+Players never run an old version: the staged site also has a `build.json`
+naming that hash, and the game (`src/game/update.js`) checks it on start, every
+minute, when it comes back into view or online, and when a friend joins a
+shared world. When it differs from the hash on the game's own modules, the
+game saves and reloads at once, without asking.
+
 The project is under git — commit early, commit often:
 
 ## Files
