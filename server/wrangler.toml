@@ -1,6 +1,7 @@
 # The room service for playing together (see README.md here).
 # Deployed by .github/workflows/rooms.yml with the CLOUDFLARE_API_TOKEN and
-# CLOUDFLARE_ACCOUNT_ID repository secrets.
+# CLOUDFLARE_ACCOUNT_ID repository secrets. The moderator's ADMIN_TOKEN is a
+# Worker secret, set from the ROOMS_ADMIN_TOKEN repository secret on deploy.
 name = "mte-rooms"
 main = "src/worker.js"
 compatibility_date = "2026-09-01"
@@ -19,7 +20,15 @@ class_name = "Rooms"
 name = "LIMITER"
 class_name = "Limiter"
 
+[[durable_objects.bindings]]
+name = "REGISTRY"
+class_name = "Registry"
+
 # The free plan needs SQLite-backed Durable Objects.
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["Rooms", "Limiter"]
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Registry"]

@@ -57,6 +57,15 @@ friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
 const moved = await owner.next('pos');
 check(moved && moved.p.x === 2, 'the owner sees the friend move');
 
+check((await fetch(BASE + '/admin/rooms')).status === 404, 'the moderator routes are hidden without the token');
+check((await fetch(BASE + '/admin/rooms', { headers: { Authorization: 'Bearer ' + hex(32) } })).status === 404, 'and with a wrong one');
+const token = process.env.ROOMS_ADMIN_TOKEN;
+if (token) {
+  const res = await fetch(`${BASE}/admin/rooms/${room}/log`, { headers: { Authorization: 'Bearer ' + token } });
+  const lines = res.status === 200 ? (await res.text()).trim().split('\n').map((l) => JSON.parse(l)) : [];
+  check(lines[0]?.e === 'room' && lines.some((l) => l.e === 'join' && l.new), "the moderator reads the room's audit log");
+}
+
 owner.ws.close(1000, 'bye');
 friend.ws.close(1000, 'bye');
 console.log(failed ? `${failed} check(s) failed` : 'room service OK');

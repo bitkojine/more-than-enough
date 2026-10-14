@@ -144,6 +144,7 @@ const game = {
   changedMode() {
     const shared = !!game.state.shared;
     el.leave.hidden = !shared;
+    el.logNote.hidden = !shared;
     el.invitesBtn.hidden = !shared;
     el.rejoin.hidden = !together.canRejoin;
     together.refresh();

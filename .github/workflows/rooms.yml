@@ -45,5 +45,16 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx wrangler deploy
 
+      - name: The moderator's token (the ROOMS_ADMIN_TOKEN secret, if set)
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ROOMS_ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
+        run: |
+          if [ -n "$ROOMS_ADMIN_TOKEN" ]; then printf '%s' "$ROOMS_ADMIN_TOKEN" | npx wrangler secret put ADMIN_TOKEN; else echo "No ROOMS_ADMIN_TOKEN: the moderator routes stay off."; fi
+
       - name: Smoke test the live service
+        env:
+          ROOMS_ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
         run: node server/smoke.mjs https://mte-rooms.usernametologinwith.workers.dev https://play.robertasrudys.com

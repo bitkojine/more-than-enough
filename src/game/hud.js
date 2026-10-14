@@ -181,10 +181,10 @@ export function createHud(el, look) {
       el.place.style.animation = '';
     },
 
-    toast(msg) {
+    toast(msg, seconds = TOAST_SECONDS) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');
-      toastLeft = TOAST_SECONDS;
+      toastLeft = seconds;
     },
 
     tick(dt) {

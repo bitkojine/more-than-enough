@@ -25,6 +25,7 @@ const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest fi
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const SAVE_PREFIX = 'mte.room.';      // your progress in a shared world (a copy)
 const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
+const LOG_NOTICE_STORE = 'mte.logNotice'; // set once the player has been told shared worlds keep a play log
 const GEN_PREFIX = 'mte.gen.';        // which making of that world those are from (see the nuke)
 const INVITE_USES_STORE = 'mte.inviteUses'; // how many people your new invite links let in
 const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes
@@ -341,7 +342,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
-      hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
+      // The first time in any shared world, the toast says the room keeps a
+      // play log (server/src/audit.js); Settings says more.
+      if (renewed || read(LOG_NOTICE_STORE)) hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
+      else { write(LOG_NOTICE_STORE, '1'); hud.toast(t('together.toast.logged'), 8); }
     }
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();

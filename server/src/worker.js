@@ -4,13 +4,21 @@
  *   POST /rooms                 make a room from a world; returns {room}
  *   GET  /rooms/<id>/ws         join it (WebSocket)
  *
- * Only the game's own pages may call it (ALLOWED_ORIGINS), a visitor can make
- * only a few rooms an hour, and everything else is refused. The rules of a
- * room are in room.js; the wire format is src/net/protocol.js. */
+ * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
+ *
+ *   GET  /admin/rooms                  every world, in brief
+ *   GET  /admin/rooms/<id>/players     who is in one, and how far along
+ *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
+ *   POST /admin/rooms/<id>/ban         take a player out: {"id", "why"}
+ *
+ * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
+ * can make only a few rooms an hour, and everything else is refused. The
+ * rules of a room are in room.js; the wire format is src/net/protocol.js. */
 
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, editBucket, NEAR, visitor } from './room.js';
-import { LIMITS, ROOM_ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
+import { LOG_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines } from './audit.js';
+import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
 const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
@@ -19,6 +27,8 @@ const SOCKETS_PER_VISITOR = 8;   // sockets one visitor may hold in a room
 const STRANGERS_PER_VISITOR = 3; // of them, ones that haven't said who they are yet
 const PERSIST_MS = 2_000;        // edits reach storage this soon
 const MAX_SOCKETS = LIMITS.players * 2;
+const LOG_CHUNKS = 500;          // log chunks one export reads; the rest comes with the next `since`
+const PRUNE_MS = 3600_000;       // old log is deleted this often
 
 // Whether a player at `p` is near enough to `q` to hear its every step.
 function isNear(p, q) {
@@ -65,6 +75,53 @@ async function readCapped(request, max) {
   try { return new TextDecoder('utf-8', { fatal: true }).decode(all); } catch { return null; }
 }
 
+// Whether a request carries the moderator's token. Without an ADMIN_TOKEN
+// secret (or with a short one) there is no moderator. The hashes are
+// compared, so how long the comparison takes says nothing about the token.
+async function isAdmin(request, env) {
+  const want = env.ADMIN_TOKEN;
+  if (typeof want !== 'string' || want.length < 32) return false;
+  const got = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!got) return false;
+  const [a, b] = await Promise.all([sha256Hex('mte-admin|' + got), sha256Hex('mte-admin|' + want)]);
+  return a === b;
+}
+
+// The moderator's routes (see the top of this file).
+async function admin(request, env, url) {
+  if (url.pathname === '/admin/rooms' && request.method === 'GET') {
+    const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
+    const rooms = [];
+    for (const id of await registry.list()) {
+      const s = await env.ROOMS.get(env.ROOMS.idFromName(id)).summary();
+      if (s) rooms.push(s); else await registry.remove(id);
+    }
+    return respond({ rooms }, 200, null);
+  }
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban)$/);
+  if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
+  const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
+  if (m[2] === 'players' && request.method === 'GET') {
+    const players = await room.roster(m[1]);
+    return players ? respond({ players }, 200, null) : respond({ error: 'room' }, 404, null);
+  }
+  if (m[2] === 'log' && request.method === 'GET') {
+    const since = Math.max(0, Number(url.searchParams.get('since')) || 0);
+    const text = await room.exportLog(m[1], since);
+    if (text === null) return respond({ error: 'room' }, 404, null);
+    return new Response(text, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' } });
+  }
+  if (m[2] === 'ban' && request.method === 'POST') {
+    const body = await readCapped(request, 1024);
+    let d = null;
+    try { d = JSON.parse(body); } catch { /* below */ }
+    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
+    const err = await room.modBan(m[1], d.id, typeof d.why === 'string' ? d.why : '');
+    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
+  }
+  return respond({ error: 'not found' }, 404, null);
+}
+
 function respond(body, status, origin) {
   const headers = { ...SECURITY_HEADERS, 'Content-Type': 'application/json' };
   if (origin) {
@@ -96,6 +153,12 @@ export default {
     }
 
     if (url.pathname === '/') return respond({ ok: true }, 200, okOrigin);
+    // The moderator calls from a script, not a page: a token, no Origin.
+    // Anyone without the token sees nothing there at all.
+    if (url.pathname.startsWith('/admin/')) {
+      if (!(await isAdmin(request, env))) return respond({ error: 'not found' }, 404, null);
+      return admin(request, env, url);
+    }
     // Browsers always send Origin on these; anything else isn't the game.
     if (!okOrigin) return respond({ error: 'origin' }, 403, null);
 
@@ -112,6 +175,7 @@ export default {
       const room = env.ROOMS.get(env.ROOMS.idFromName(id));
       const err = await room.create(id, body);
       if (err) return respond({ error: err }, err === 'bad' ? 400 : 409, okOrigin);
+      await env.REGISTRY.get(env.REGISTRY.idFromName('*')).add(id);
       return respond({ room: id }, 201, okOrigin);
     }
 
@@ -153,6 +217,26 @@ export class Limiter extends DurableObject {
 
 /* ------------------------------------------------------------------ */
 
+// Every room's id (one object, named '*'), so the moderator can list them:
+// Durable Objects can't be listed. A room adds itself when it's made or
+// first visited, and leaves when it's gone.
+export class Registry extends DurableObject {
+  async add(id) {
+    if (await this.ctx.storage.get('r:' + id)) return;
+    await this.ctx.storage.put('r:' + id, 1);
+  }
+
+  async remove(id) {
+    await this.ctx.storage.delete('r:' + id);
+  }
+
+  async list() {
+    return [...(await this.ctx.storage.list({ prefix: 'r:' })).keys()].map((k) => k.slice(2));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+
 // One room. Sockets use the hibernation API, so an idle room costs nothing;
 // each socket's attachment says which player it is ({id, at}).
 export class Rooms extends DurableObject {
@@ -160,6 +244,11 @@ export class Rooms extends DurableObject {
     super(ctx, env);
     this.room = null;
     this.buckets = new Map(); // socket -> Bucket (resets on hibernation, which is fine)
+    this.registered = false;  // in the Registry, as far as this copy knows
+    this.prunedAt = 0;        // when old log was last deleted
+    // The audit log: chunks of JSON lines, each stamped with its first event.
+    // Not in the key-value storage, so loading a room never reads it.
+    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS audit (ts INTEGER NOT NULL, lines TEXT NOT NULL)');
     ctx.blockConcurrencyWhile(() => this.load());
   }
 
@@ -181,13 +270,85 @@ export class Rooms extends DurableObject {
     const err = await this.room.init(body, Date.now());
     if (err) { this.room = Room.restore('', new Map(), Date.now()); return err; }
     await this.ctx.storage.put('id', id);
+    this.registered = true;
     await this.persist();
     return null;
+  }
+
+  /* ------------------------------------------------- for the moderator */
+
+  // The room in brief, or null if there's no such room (any more).
+  async summary() {
+    const r = this.room;
+    if (!r.ready) return null;
+    let online = 0;
+    for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
+    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size };
+  }
+
+  async roster(id) {
+    if (!this.room.ready || this.room.id !== id) return null;
+    return this.room.roster(Date.now());
+  }
+
+  // The audit log from `since` (ms) as JSON lines: first the room itself,
+  // then its events, oldest first, and last {e: 'more', since} when there
+  // is more to fetch from there.
+  async exportLog(id, since) {
+    if (!this.room.ready || this.room.id !== id) return null;
+    await this.flushLog(Date.now(), true);
+    const head = { e: 'room', ...(await this.summary()), now: Date.now(), since };
+    // A chunk starts at its first event, so the one before `since` may hold later events.
+    const first = this.ctx.storage.sql.exec('SELECT MAX(rowid) AS r FROM audit WHERE ts <= ?', since).one().r ?? 0;
+    const rows = this.ctx.storage.sql.exec('SELECT rowid AS r, lines FROM audit WHERE rowid >= ? ORDER BY rowid LIMIT ?', first, LOG_CHUNKS + 1).toArray();
+    const lines = [JSON.stringify(head)];
+    let last = since;
+    for (const row of rows.slice(0, LOG_CHUNKS)) {
+      for (const line of row.lines.split('\n')) {
+        const ts = Number(line.slice(6, line.indexOf(','))); // every line starts {"ts":<ms>,
+        if (ts >= since) { lines.push(line); last = ts; }
+      }
+    }
+    if (rows.length > LOG_CHUNKS) lines.push(JSON.stringify({ e: 'more', since: last + 1 }));
+    return lines.join('\n') + '\n';
+  }
+
+  // The moderator takes a player out, as the owner would. Error string or null.
+  async modBan(id, player, why) {
+    if (!this.room.ready || this.room.id !== id) return 'room';
+    if (!this.room.players.has(player)) return 'player';
+    if (player === this.room.owner) return 'owner';
+    const now = Date.now();
+    const r = this.room.ban(player, now, 'mod', why);
+    for (const msg of r.toAll) this.send(msg, null);
+    this.kick(r.kick);
+    await this.persist();
+    await this.schedule();
+    return null;
+  }
+
+  // Writes waiting log events: when the oldest has waited LOG_FLUSH_MS, when
+  // many are waiting, or now (`force`). Old log goes now and then.
+  async flushLog(now, force = false) {
+    const log = this.room.log;
+    if (log.length && (force || log.length >= LOG_FLUSH_EVENTS || now - log[0].ts >= LOG_FLUSH_MS)) {
+      const events = this.room.takeLog();
+      this.ctx.storage.sql.exec('INSERT INTO audit (ts, lines) VALUES (?, ?)', events[0].ts, toLines(events));
+    }
+    if (now - this.prunedAt >= PRUNE_MS) {
+      this.prunedAt = now;
+      this.ctx.storage.sql.exec('DELETE FROM audit WHERE ts < ?', now - LOG_DAYS * 24 * 3600_000);
+    }
   }
 
   async fetch(request) {
     const id = request.headers.get('X-Room-Id');
     if (!this.room.ready || this.room.id !== id) return new Response('no such room', { status: 404 }); // i18n-ok: an HTTP status body
+    // Rooms made before the Registry add themselves when next visited.
+    if (!this.registered) {
+      await this.env.REGISTRY.get(this.env.REGISTRY.idFromName('*')).add(id);
+      this.registered = true;
+    }
     const sockets = this.ctx.getWebSockets();
     if (sockets.length >= MAX_SOCKETS) return new Response('busy', { status: 429 }); // i18n-ok: an HTTP status body
     // One visitor can't take every place in a room: a few sockets each, and
@@ -210,30 +371,42 @@ export class Rooms extends DurableObject {
     let bucket = this.buckets.get(ws);
     if (!bucket) this.buckets.set(ws, bucket = new Bucket(now));
     if (!bucket.edits) bucket.edits = editBucket(now);
+    const att = ws.deserializeAttachment() || {};
     if (!bucket.take(now)) {
-      if (bucket.strikes > LIMITS.rateBurst) ws.close(1008, 'too fast');
+      if (att.id) this.room.dropped(att.id, now);
+      if (bucket.strikes > LIMITS.rateBurst) this.cut(ws, att.id, 'too fast', now);
       return;
     }
-    const att = ws.deserializeAttachment() || {};
     if (!att.id) return this.hello(ws, raw, now);
     const r = this.room.message(att.id, raw, now, bucket.edits);
     if (r.drop) {
+      this.room.dropped(att.id, now);
       bucket.strikes += 5; // malformed messages cost more
-      if (bucket.strikes > LIMITS.rateBurst) ws.close(1008, 'bad messages');
+      if (bucket.strikes > LIMITS.rateBurst) this.cut(ws, att.id, 'bad messages', now);
       return;
     }
     if (r.toSelf) for (const msg of r.toSelf) ws.send(JSON.stringify(msg));
     if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id, r.near);
     if (r.toAll) for (const msg of r.toAll) this.send(msg, null);
-    if (r.kick) {
-      for (const other of this.ctx.getWebSockets()) {
-        if ((other.deserializeAttachment() || {}).id !== r.kick) continue;
-        other.serializeAttachment({ id: null, at: 0 });
-        other.close(4003, 'removed');
-      }
-    }
+    if (r.kick) this.kick(r.kick);
     this.nukeIfDue(now);
+    if (this.room.log.length >= LOG_FLUSH_EVENTS) await this.flushLog(now);
     await this.schedule();
+  }
+
+  // Closes a removed player's sockets.
+  kick(id) {
+    for (const other of this.ctx.getWebSockets()) {
+      if ((other.deserializeAttachment() || {}).id !== id) continue;
+      other.serializeAttachment({ id: null, at: 0 });
+      other.close(4003, 'removed');
+    }
+  }
+
+  // Closes a connection that keeps breaking the limits, and logs it.
+  cut(ws, id, why, now) {
+    if (id) this.room.audit(now, id, 'cut', { why });
+    ws.close(1008, why);
   }
 
   async hello(ws, raw, now) {
@@ -263,13 +436,20 @@ export class Rooms extends DurableObject {
   async webSocketClose(ws, code, reason) {
     this.closed(ws, code === 1000 && reason === 'bye');
     try { ws.close(1000); } catch { /* already closed */ }
-    this.nukeIfDue(Date.now());
-    await this.schedule();
+    await this.afterClose();
   }
 
   async webSocketError(ws) {
     this.closed(ws, false);
-    this.nukeIfDue(Date.now());
+    await this.afterClose();
+  }
+
+  // An empty room may be put to sleep and forget what it hasn't written,
+  // so the log is written when the last player goes.
+  async afterClose() {
+    const now = Date.now();
+    this.nukeIfDue(now);
+    if (!this.ctx.getWebSockets().some((ws) => (ws.deserializeAttachment() || {}).id)) await this.flushLog(now, true);
     await this.schedule();
   }
 
@@ -322,6 +502,7 @@ export class Rooms extends DurableObject {
     const now = Date.now();
     let at = now + 24 * 3600_000;
     if (this.room.isDirty) at = Math.min(at, now + PERSIST_MS);
+    if (this.room.log.length) at = Math.min(at, Math.max(now, this.room.log[0].ts + LOG_FLUSH_MS));
     const lost = this.room.nextLostDeadline();
     if (lost !== null) at = Math.min(at, lost);
     const nuke = this.room.nukeDeadline();
@@ -334,8 +515,10 @@ export class Rooms extends DurableObject {
   async alarm() {
     const now = Date.now();
     if (this.room.ready && this.room.expired(now) && this.ctx.getWebSockets().length === 0) {
-      await this.ctx.storage.deleteAll();
+      const id = this.room.id;
+      await this.ctx.storage.deleteAll(); // the audit log too
       this.room = Room.restore('', new Map(), now);
+      await this.env.REGISTRY.get(this.env.REGISTRY.idFromName('*')).remove(id);
       return;
     }
     for (const ws of this.ctx.getWebSockets()) {
@@ -345,6 +528,7 @@ export class Rooms extends DurableObject {
     for (const msg of this.room.expireLost(now)) this.send(msg, null);
     if (this.room.ready) this.nukeIfDue(now);
     await this.persist();
+    if (this.room.ready) await this.flushLog(now);
     if (this.room.ready) await this.schedule();
   }
 }

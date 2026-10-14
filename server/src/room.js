@@ -10,9 +10,10 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, KEY_RE
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE
 } from '../../src/net/protocol.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
+import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
@@ -82,6 +83,10 @@ export class Room {
     this.bans = new Set();
     // Per player, not kept: their step budget and cheats ({at, budget, fresh, cheats, cheatAt}).
     this.watch = new Map();
+    // The audit log (audit.js): events waiting to be written, and per player
+    // what they've done since their last sample ({since, at, dist, m, p, x, no, drops, dg, dgAt}).
+    this.log = [];
+    this.acts = new Map();
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
   }
@@ -156,6 +161,7 @@ export class Room {
     this.ready = true;
     this.created = this.last = now;
     this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
+    this.audit(now, this.owner, 'create', { seed: this.seed, fmt: this.fmt, mods: this.mods.size, props: this.props.size, ext: this.ext.length });
     this.dirty.meta = this.dirty.props = this.dirty.ext = true;
     for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
     this.dirty.players.add(this.owner);
@@ -170,12 +176,13 @@ export class Room {
   async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     const id = await playerId(this.id, key);
-    if (this.bans.has(id)) return { error: 'invite' };
+    if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite' }; }
     let pl = this.players.get(id);
+    const fresh = !pl;
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
-      if (!inv || !this.inviteWorks(inv, now)) return { error: 'invite' };
-      if (this.players.size >= LIMITS.players) return { error: 'full' };
+      if (!inv || !this.inviteWorks(inv, now)) { this.audit(now, id, 'deny', { why: 'invite', code: codeTag(code) }); return { error: 'invite' }; }
+      if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
       inv.uses++;
       this.dirty.meta = true;
       const used = new Set([...this.players.values()].map((p) => p.c));
@@ -191,6 +198,8 @@ export class Room {
     pl.lostAt = 0;
     this.touch(now);
     this.dirty.players.add(id);
+    this.acts.set(id, this.newAct(now, this.acts.get(id)));
+    this.audit(now, id, 'join', { new: fresh, c: pl.c, ...(fresh ? { via: codeTag(pl.via) } : {}), at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null, online: this.online() });
     const called = this.callNuke(now);
     return { id, welcome: this.welcome(id, now), called };
   }
@@ -241,6 +250,9 @@ export class Room {
   left(id, clean, now) {
     const p = this.players.get(id);
     if (!p) return null;
+    this.sample(id, now, true);
+    const act = this.acts.get(id);
+    this.audit(now, id, 'leave', { clean, secs: act ? Math.round((now - act.since) / 1000) : null, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null });
     p.st = clean ? 'offline' : 'lost';
     p.lostAt = clean ? 0 : now;
     this.dirty.players.add(id);
@@ -292,8 +304,14 @@ export class Room {
     if (d.t === 'pos') {
       const p = cleanPos(d.p);
       if (!p) return { drop: true };
-      if (!this.canStep(id, pl.p, p, now)) return this.cheat(id, now);
+      if (!this.canStep(id, pl.p, p, now)) {
+        return this.cheat(id, now, 'speed', { from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z], to: [Math.round(p.x), Math.round(p.y), p.z] });
+      }
+      const act = this.actOf(id, now);
+      if (pl.p && pl.p.z === p.z) act.dist += Math.hypot(p.x - pl.p.x, p.y - pl.p.y);
+      else if (pl.p) act.layers++;
       pl.p = p;
+      this.sample(id, now);
       if (pl.st !== 'online') return this.setStatus(id, 'online', { t: 'pos', id, p });
       // Players near you hear every step; everyone else every FAR_MS, enough
       // for the pins at the edge of their screen. (With a hundred players,
@@ -309,15 +327,21 @@ export class Room {
       // world bare in a moment, and only around where they stand.
       if (edits && !edits.take(now, list.length)) return { drop: true };
       const applied = [];
-      let far = false;
+      const act = this.actOf(id, now);
+      let far = null;
       for (const e of list) {
-        if (!editInReach(e, pl.p)) { far = !!pl.p; continue; }
-        if (this.apply(e, id)) applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
+        if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
+        if (this.apply(e, id)) {
+          applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
+          act[e[0]]++;
+          if (e[0] === 'x') this.audit(now, id, 'build', { k: e[1], at: [e[2], e[3], e[4]] });
+        } else act.no++;
       }
       this.touch(now);
       const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
       if (!far) return out;
-      const banned = this.cheat(id, now);
+      const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
+      const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
       return banned.kick ? banned : out;
     }
     if (d.t === 'save') {
@@ -325,10 +349,13 @@ export class Room {
       if (!save) return { drop: true };
       pl.save = save;
       this.dirty.players.add(id);
+      this.progress(id, save, now);
       return {};
     }
     if (d.t === 'away') {
-      return this.setStatus(id, d.a === true ? 'away' : 'online');
+      const st = d.a === true ? 'away' : 'online';
+      if (pl.st !== st) this.audit(now, id, 'st', { st });
+      return this.setStatus(id, st);
     }
     if (d.t === 'invite') {
       // Anyone in the world may hold up the QR, choosing how many people its
@@ -353,6 +380,7 @@ export class Room {
         code = randomRoomId();
         this.invites.set(code, { by: id, made: now, until: now + lifeMs, uses: 0, max: ask.uses, life: ask.life, off: false });
         this.dirty.meta = true;
+        this.audit(now, id, 'invite', { code: codeTag(code), uses: ask.uses, life: ask.life });
       }
       return { toSelf: [{ t: 'invite', code, until: this.invites.get(code).until }] };
     }
@@ -361,18 +389,18 @@ export class Room {
       // The owner stops any link; anyone else only their own.
       const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
       if (!inv || (id !== this.owner && inv.by !== id)) return { drop: true };
-      if (!inv.off) { inv.off = true; this.dirty.meta = true; }
+      if (!inv.off) { inv.off = true; this.dirty.meta = true; this.audit(now, id, 'revoke', { code: codeTag(d.code) }); }
       return { toSelf: [this.inviteList(id)] };
     }
     if (d.t === 'remove') {
       // Only the world's owner removes a player, never themselves.
       if (id !== this.owner || typeof d.id !== 'string' || d.id === this.owner || !this.players.has(d.id)) return { drop: true };
-      return this.ban(d.id);
+      return this.ban(d.id, now, 'owner', 'removed by the owner');
     }
     if (d.t === 'nuke') {
       // Pressed, for good: there's no taking it back.
       if (!this.call) return {};
-      if (!this.nuke.has(id)) { this.nuke.add(id); this.dirty.meta = true; }
+      if (!this.nuke.has(id)) { this.nuke.add(id); this.dirty.meta = true; this.audit(now, id, 'nuke', {}); }
       return { toAll: [this.nukeVotes()] };
     }
     return { drop: true };
@@ -401,20 +429,26 @@ export class Room {
 
   // A cheat by player `id`: counted (one a second at most, older ones
   // forgiven slowly), and enough of them take the player out for good.
-  cheat(id, now) {
+  // `why` ('speed' or 'reach') and `detail` go in the audit log.
+  cheat(id, now, why, detail = {}) {
     const w = this.watchOf(id, now);
     if (now - w.cheatAt >= 1000) {
       w.cheats = Math.max(0, w.cheats - Math.floor((now - w.cheatAt) / CHEAT_FORGIVE_MS)) + 1;
       w.cheatAt = now;
+      this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
     }
-    if (w.cheats >= CHEATS_TO_BAN && id !== this.owner && this.players.has(id)) return this.ban(id);
+    if (w.cheats >= CHEATS_TO_BAN && id !== this.owner && this.players.has(id)) return this.ban(id, now, 'auto', why);
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
   }
 
   // Takes a player out of the world for good: their key can't come back,
-  // the link they came in with stops, and their buildings go.
-  ban(id) {
+  // the link they came in with stops, and their buildings go. `by` is who
+  // decided ('owner', 'auto' for the anti-cheat, 'mod' for the moderator).
+  ban(id, now, by, why) {
     const pl = this.players.get(id);
+    this.sample(id, now, true);
+    this.audit(now, id, 'ban', { by, why: String(why || '').slice(0, 200) });
+    this.acts.delete(id);
     this.players.delete(id);
     this.dirty.players.add(id);
     this.nuke.delete(id);
@@ -442,6 +476,7 @@ export class Room {
     if (this.fmt >= WORLD_FORMAT || this.call) return false;
     this.call = { fmt: WORLD_FORMAT, at: now };
     this.dirty.meta = true;
+    this.audit(now, null, 'nukeCall', { fmt: WORLD_FORMAT, was: this.fmt });
     return true;
   }
 
@@ -488,9 +523,92 @@ export class Room {
     this.gen++;
     this.dirty.meta = true;
     this.dawn = now;
+    this.audit(now, null, 'renew', { gen: this.gen, seed });
+    for (const a of this.acts.values()) { a.dg = null; a.dgAt = 0; }
     this.touch(now);
     this.dirty.props = this.dirty.ext = true;
     for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
+  }
+
+  /* -------------------------------------------------------- audit log */
+
+  // Records one event (see audit.js); the Durable Object writes them out.
+  audit(now, p, e, fields) {
+    this.log.push({ ts: now, p, e, ...fields });
+  }
+
+  // The events waiting to be written, taken.
+  takeLog() {
+    const out = this.log;
+    this.log = [];
+    return out;
+  }
+
+  online() {
+    let n = 0;
+    for (const p of this.players.values()) if (p.st === 'online' || p.st === 'away') n++;
+    return n;
+  }
+
+  newAct(now, old) {
+    return { since: now, at: now, dist: 0, layers: 0, m: 0, p: 0, x: 0, no: 0, drops: 0, dg: old ? old.dg : null, dgAt: old ? old.dgAt : 0 };
+  }
+
+  actOf(id, now) {
+    let a = this.acts.get(id);
+    if (!a) this.acts.set(id, a = this.newAct(now));
+    return a;
+  }
+
+  // Where a player is and what they did since the last sample: every
+  // SAMPLE_MS while they move, and when they leave (`force`). Positions
+  // and the time between samples show where people spend their time and
+  // where they get stuck.
+  sample(id, now, force = false) {
+    const a = this.acts.get(id), pl = this.players.get(id);
+    if (!a || !pl || (!force && now - a.at < SAMPLE_MS)) return;
+    const busy = a.dist >= 0.5 || a.layers || a.m || a.p || a.x || a.no || a.drops;
+    if (busy || !force) {
+      const p = pl.p;
+      this.audit(now, id, 'at', {
+        ...(p ? { x: Math.round(p.x), y: Math.round(p.y), z: p.z, act: p.a || null } : {}),
+        secs: Math.round((now - a.at) / 1000), walked: Math.round(a.dist), layers: a.layers,
+        dug: a.m, props: a.p, built: a.x, refused: a.no, drops: a.drops
+      });
+    }
+    Object.assign(a, { at: now, dist: 0, layers: 0, m: 0, p: 0, x: 0, no: 0, drops: 0 });
+  }
+
+  // A player's progress came in: logged when it changed, at most every
+  // PROG_MS (sooner when they reach a new goal).
+  progress(id, save, now) {
+    const a = this.actOf(id, now);
+    const dg = digestOf(save);
+    if (!dg || sameDigest(a.dg, dg)) return;
+    if (a.dg && now - a.dgAt < PROG_MS && dg.goal === a.dg.goal) return;
+    this.audit(now, id, 'prog', progressEvent(a.dg, dg));
+    a.dg = dg;
+    a.dgAt = now;
+  }
+
+  // The service dropped a message from a player (malformed, too many):
+  // counted in their next sample.
+  dropped(id, now) {
+    if (this.players.has(id)) this.actOf(id, now).drops++;
+  }
+
+  // What the moderator sees of each player now.
+  roster(now) {
+    const out = [];
+    for (const [id, p] of this.players) {
+      const w = this.watch.get(id), a = this.acts.get(id);
+      out.push({
+        id, c: p.c, st: p.st, owner: id === this.owner, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
+        cheats: w ? w.cheats : 0, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
+        progress: p.save ? digestOf(p.save) : null
+      });
+    }
+    return out;
   }
 
   setStatus(id, st, also) {

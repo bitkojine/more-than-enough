@@ -78,6 +78,56 @@ again in the game; anything that doesn't fit exactly is dropped.
   their layer; everyone else hears where they are every 2 seconds, so a
   full world doesn't send every step to all 100.
 - **Storage:** a room nobody visits for 30 days is deleted.
+- **The moderator:** the `/admin/` routes answer only a bearer token equal
+  to the `ADMIN_TOKEN` Worker secret (set on deploy from the
+  `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
+  it they answer 404, as if they weren't there. They read; the one thing
+  they change is a ban, the same one the owner's *Remove* does.
+
+## Audit log
+
+Every room logs what its players do (`src/audit.js`), so cheats are caught
+quickly and we learn how people play. Each event is one JSON object, one per
+line in an export: `{"ts": <ms>, "p": <player id>, "e": <event>, ...}`. The
+player id is the room's hash of their key (never the key), and nothing else
+about a person is kept: no address, no name (players have none), nothing
+they typed (there's nowhere to type). Logs are deleted after 14 days
+(`LOG_DAYS`), and with the room. Players are told once, when they first
+enter a shared world, and in Settings.
+
+| `e` | when | fields |
+| --- | --- | --- |
+| `create` | the room is made | `seed`, `fmt`, how many `mods`, `props`, `ext` it came with |
+| `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
+| `deny` | someone is turned away | `why`: `banned`, `invite` (none, or not working), `full` |
+| `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
+| `build` | a building goes up | `k` (kind), `at` |
+| `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
+| `st` | away or back | `st` |
+| `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |
+| `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes) |
+| `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
+| `cut` | a connection was closed for breaking the limits | `why` |
+| `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
+| `nuke`, `nukeCall`, `renew` | the nuke is pressed, called, and the world made again | `fmt`, `gen`, `seed` |
+
+Events wait in memory and are written as one chunk every 30 seconds at
+most (or every 500, or when the last player leaves), into a SQL table of their own, so the free plan's row writes
+go a long way and loading a room never reads its log.
+
+The moderator's routes (`Authorization: Bearer <token>`):
+
+- `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
+  `online`, `bans`, `created`, `last`).
+- `GET /admin/rooms/<id>/players`: each player now, with their cheat count
+  and progress.
+- `GET /admin/rooms/<id>/log?since=<ms>`: the log as JSON lines: first
+  `{"e": "room", ...}`, then the events from `since`, and last
+  `{"e": "more", "since": ...}` if there is more to fetch from there.
+- `POST /admin/rooms/<id>/ban` with `{"id": "<player id>", "why": "..."}`:
+  takes a player out for good, as the owner would (never the owner).
+
+The deploy's smoke test makes a room with seed 12345 every time; skip those.
 
 ## Running it
 

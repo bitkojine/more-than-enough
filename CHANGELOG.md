@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.74.0] - 2026-10-14
+
+### Added
+- **An audit log of every shared world**, to catch cheaters quickly and to
+  learn how people play. The room service logs each player's joins and
+  leaves, where they are every 15 seconds while they move (and how far they
+  walked, what they dug and built since), their progress when it changes,
+  every cheat the anti-cheat refuses, bans, and connections cut for breaking
+  the limits (`server/src/audit.js`; the events are listed in
+  `server/README.md`). Players are known only by their id in that world; no
+  address, name or key is kept, and logs are deleted after 14 days.
+  Players are told the first time they enter a shared world, and in
+  Settings.
+- **Moderator routes** on the room service, behind a token (the
+  `ROOMS_ADMIN_TOKEN` repository secret, set as the Worker's `ADMIN_TOKEN`
+  on deploy): list every world, see its players, export its log as JSON
+  lines, and ban a player. Without the token they answer 404. A new
+  `Registry` Durable Object keeps the list of rooms (Durable Objects can't
+  be listed); older rooms add themselves when next visited.
+
 ## [0.73.0] - 2026-10-14
 
 ### Changed

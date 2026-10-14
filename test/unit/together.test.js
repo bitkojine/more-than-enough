@@ -507,3 +507,77 @@ test('the room-making limit counts an IPv6 visitor by their /48, however it is w
   assert.notEqual(visitor('2001:db8:1::'), visitor('2001:db8:2::'));
   assert.equal(visitor(null), 'unknown');
 });
+
+/* ----------------------------------------------------------- audit log */
+
+test('audit: joins, steps, edits, progress and leaving are logged, keyed by player id only', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const code = invite(r, o.id);
+  const gKey = key();
+  const g = await r.join(gKey, code, T0);
+  const say = (m, t) => r.message(g.id, JSON.stringify(m), t);
+  say({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }, T0);
+  say({ t: 'pos', p: { x: 14.5, y: 10.5, z: 0 } }, T0 + 1000);
+  say({ t: 'edits', e: [['x', 'garden', 15, 11, 0]] }, T0 + 2000);
+  say({ t: 'save', s: JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { trail: true, cart: false }, tools: { pickaxe: 2 } }) }, T0 + 3000);
+  say({ t: 'pos', p: { x: 20.5, y: 10.5, z: 0 } }, T0 + 16_000);
+  r.left(g.id, true, T0 + 20_000);
+  const log = r.takeLog();
+  assert.deepEqual(r.takeLog(), [], 'taken once');
+  const of = (e) => log.filter((x) => x.e === e && x.p === g.id);
+  assert.equal(of('join')[0].new, true);
+  assert.equal(of('join')[0].via, code.slice(0, 6), 'only a prefix of the invite, not a working code');
+  assert.deepEqual(of('build')[0], { ts: T0 + 2000, p: g.id, e: 'build', k: 'garden', at: [15, 11, 0] });
+  assert.deepEqual([of('prog')[0].goal, of('prog')[0].ever, of('prog')[0].gained], [2, 50, ['trail']]);
+  const at = of('at')[0];
+  assert.deepEqual([at.x, at.walked, at.built, at.secs], [21, 10, 1, 16]);
+  assert.equal(of('leave')[0].clean, true);
+  assert.deepEqual(of('leave')[0].at, [21, 11, 0]);
+  const text = JSON.stringify(log);
+  assert.ok(!text.includes(gKey) && !text.includes(owner), 'no secret key is ever logged');
+  assert.ok(!text.includes(code), 'nor a whole invite code');
+  assert.ok(log.every((x) => typeof x.ts === 'number' && typeof x.e === 'string'));
+});
+
+test('audit: progress is logged when it changes, at most once a minute unless a goal is reached', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  r.takeLog();
+  const save = (goal, ever, t) => r.message(o.id, JSON.stringify({ t: 'save', s: JSON.stringify({ goalIndex: goal, totalEver: ever }) }), t);
+  save(0, 10, T0);
+  save(0, 10, T0 + 70_000);   // the same: nothing new
+  save(0, 20, T0 + 80_000);   // within a minute of the last one logged? no: 80 s
+  save(0, 30, T0 + 90_000);   // too soon
+  save(1, 40, T0 + 95_000);   // a new goal: logged at once
+  assert.deepEqual(r.takeLog().filter((x) => x.e === 'prog').map((x) => x.ever), [10, 20, 40]);
+});
+
+test('audit: cheats, bans and refused joins are logged with what happened', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const cKey = key();
+  const c = await r.join(cKey, invite(r, o.id), T0);
+  const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
+  pos(0.5, T0);
+  let out = {};
+  for (let i = 1; i <= CHEATS_TO_BAN && !out.kick; i++) out = pos(10_000, T0 + i * 1000);
+  await r.join(cKey, undefined, T0 + 60_000);
+  r.dropped(o.id, T0);
+  const log = r.takeLog();
+  const cheats = log.filter((x) => x.e === 'cheat' && x.p === c.id);
+  assert.equal(cheats.length, CHEATS_TO_BAN);
+  assert.deepEqual([cheats[0].why, cheats[0].from, cheats[0].to], ['speed', [1, 1, 0], [10000, 1, 0]]);
+  assert.deepEqual(log.filter((x) => x.e === 'ban').map((x) => [x.p, x.by, x.why]), [[c.id, 'auto', 'speed']]);
+  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => [x.p, x.why]), [[c.id, 'banned']]);
+});
+
+test('audit: the moderator sees each player, their cheats and progress', async () => {
+  const { r, owner } = await makeRoom({ save: JSON.stringify({ goalIndex: 3, totalEver: 9 }) });
+  const o = await r.join(owner, undefined, T0);
+  const [me] = r.roster(T0 + 5000);
+  assert.deepEqual([me.id, me.owner, me.st, me.sessionSecs, me.progress.goal], [o.id, true, 'online', 5, 3]);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  assert.equal(r.ban(g.id, T0, 'mod', 'x'.repeat(500)).kick, g.id);
+  assert.equal(r.takeLog().find((x) => x.e === 'ban').why.length, 200, 'a reason is kept short');
+});
