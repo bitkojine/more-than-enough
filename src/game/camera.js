@@ -28,7 +28,8 @@ export function createCamera(canvas) {
     ctx,
     width: 0,            // viewport size in CSS pixels
     height: 0,
-    dpr: 1,              // device pixels per CSS pixel (capped at 2)
+    dpr: 1,              // device pixels per CSS pixel the map is drawn at
+    maxDpr: 2,           // ...at most (lower on a device that can't keep up, see quality.js)
     baseTilePx: 48,      // tile size at 1x zoom for this viewport
     zoom: 1,
     tilePx: 48,          // tile width in CSS pixels
@@ -40,7 +41,7 @@ export function createCamera(canvas) {
     relief: () => 0,
 
     resize() {
-      const dpr = cam.dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = cam.dpr = Math.min(cam.maxDpr, window.devicePixelRatio || 1);
       cam.width = window.innerWidth;
       cam.height = window.innerHeight;
       canvas.width = Math.round(cam.width * dpr);

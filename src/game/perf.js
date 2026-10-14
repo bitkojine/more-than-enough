@@ -12,7 +12,7 @@ const WINDOW = 120;            // frames kept for the averages (~2 s at 60 fps)
 const REFRESH_EVERY = 0.25;    // seconds between panel updates
 const GOOD_FPS = 55, OK_FPS = 30;
 
-export function createPerf(el, canvas, audio) {
+export function createPerf(el, canvas, audio, quality) {
   const interval = new Float32Array(WINDOW); // ms between frames
   const logic = new Float32Array(WINDOW);    // ms spent in the game update
   const draw = new Float32Array(WINDOW);     // ms spent drawing
@@ -49,6 +49,7 @@ export function createPerf(el, canvas, audio) {
         tiles,
         screen: `${window.innerWidth}×${window.innerHeight}`,
         canvas: `${canvas.width}×${canvas.height}`,
+        quality: quality.level,
         dpr: window.devicePixelRatio || 1,
         cores: navigator.hardwareConcurrency || null,
         memoryGb: navigator.deviceMemory || null,
@@ -84,6 +85,7 @@ export function createPerf(el, canvas, audio) {
       line('tiles', m.tiles),
       line('screen', `${m.screen} @${+m.dpr.toFixed(2)}x`),
       line('canvas', m.canvas),
+      line('quality', m.quality),
       line('sound', `${m.sound}  ${t('perf.wakes')} ${m.soundTrace.wakes} ${m.soundTrace.last}`)
     ];
     if (m.soundTrace.error) lines.push(`        ${m.soundTrace.error}`);

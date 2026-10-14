@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.73.0] - 2026-10-14
+
+### Changed
+- **Smoother on old phones.** A friend on an old Android phone in Firefox
+  found a shared world laggy. Profiling on a throttled low-end phone showed
+  the cost is pixels, not game logic (under 1 ms of a frame): the map was
+  drawn at up to 2 device pixels per CSS pixel, four times the pixels of 1,
+  and frosted glass (`backdrop-filter`) on the HUD re-blurred the moving map
+  under it every frame, about doubling the compositor's work. Players,
+  name tags, the network and the music were small next to these. The game
+  now watches its own frame rate (`src/game/quality.js`): while frames
+  average under 40 fps it steps down a level at a time, first dropping the
+  blur and drawing at 1.5x, then 1x, then 0.75x (softer, never blocky). It
+  never steps back up within a visit, and the next visit starts one level
+  better than the last settled on. On a 6x-throttled phone this took a
+  night scene from about 8 to 25 fps and the zoomed-out view from 9 to 54.
+  The perf panel shows the level (`quality`).
+- The bottom sheet's blur is gone: its panel is 96% opaque, so it never showed.
+
 ## [0.72.2] - 2026-10-14
 
 ### Fixed

@@ -21,7 +21,7 @@
   --r-lg: 20px;
   --shadow-1: 0 3px 12px rgba(0, 0, 0, 0.38);
   --shadow-2: 0 -8px 30px rgba(0, 0, 0, 0.5);
-  --blur: blur(8px);
+  --blur: blur(8px);   /* frosted glass, dropped on a device that can't keep up (quality.js) */
   /* The safe edges every HUD piece keeps to. */
   --edge-t: calc(env(safe-area-inset-top, 0px) + 8px);
   --edge-r: calc(env(safe-area-inset-right, 0px) + 12px);
@@ -32,6 +32,8 @@
   --sub: 56px;
   --gap: 14px;
 }
+
+.no-glass { --blur: none; }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -392,7 +394,6 @@ body.signing #zoomControls { visibility: hidden; }
   max-width: 640px; margin: 0 auto;
   height: min(72vh, 720px);
   background: var(--panel);
-  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   border-top-left-radius: var(--r-lg); border-top-right-radius: var(--r-lg);
   border: 1px solid var(--panel-line); border-bottom: 0;
   transform: translateY(110%);

@@ -14,6 +14,7 @@ import { createSheet } from './sheet.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerf } from './perf.js';
+import { createQuality } from './quality.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { createYard } from './yard.js';
@@ -84,7 +85,16 @@ function keepView() {
 const fx = createEffects(look, (res) => yard.landing(res));
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
-const perf = createPerf(el, el.canvas, audio);
+// Fewer pixels and no frosted glass on a device that can't keep up.
+const quality = createQuality(savedView.quality, window.devicePixelRatio || 1, applyQuality);
+function applyQuality() {
+  cam.maxDpr = quality.dpr;
+  document.documentElement.classList.toggle('no-glass', !quality.glass);
+  savedView.quality = quality.level;
+  saveView(savedView);
+  resize();
+}
+const perf = createPerf(el, el.canvas, audio, quality);
 
 const loaded = loadGame();
 let saveDue = false;
@@ -385,6 +395,7 @@ function frame(now) {
     signRect = stats.sign;
     descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
+    quality.frame(intervalMs);
     perf.tick(dt);
   } catch (err) {
     // Stop here and show what broke, rather than throwing every frame.
@@ -397,6 +408,7 @@ function frame(now) {
 /* -------------------------------------------------------------- boot */
 
 function resize() {
+  quality.settle();
   cam.resize();
   hud.view(cam);
 }
@@ -408,6 +420,7 @@ window.addEventListener('pagehide', () => game.saveNow());
 window.addEventListener('hashchange', () => together.joinFromLink());
 document.addEventListener('visibilitychange', () => {
   together.away(document.hidden);
+  quality.settle();
   if (document.hidden) game.saveNow(); else checkFork();
 });
 
@@ -418,7 +431,7 @@ showMusic();
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 toggles it, and ?perf in the address opens it (for phones).
 perf.toggle(new URLSearchParams(location.search).has('perf'));
-resize();
+applyQuality();
 hud.repaint();
 await textures.restore();
 hud.update(game.state);
@@ -460,6 +473,14 @@ window.MTE_GAME = {
   setZoom(z) { cam.setZoom(z); hud.view(cam); },
   pitch: () => cam.pitch(),
   perf: () => perf.snapshot(),
+  // Draws n frames back to back and returns the average ms each took,
+  // pixels included (reading one back makes the browser finish drawing).
+  bench(n) {
+    const t0 = performance.now();
+    for (let i = 0; i < n; i++) { render(cam, game.state, fx, view(), look); cam.ctx.getImageData(0, 0, 1, 1); }
+    return (performance.now() - t0) / n;
+  },
+  quality: () => quality.level,
   mapNames: () => worldMap.names(),
   perfVisible: () => perf.visible,
   project: (x, y, h) => cam.project(x, y, h),

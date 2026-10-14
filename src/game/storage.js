@@ -79,10 +79,11 @@ export function loadView() {
       zoom: Number(v.zoom) || 1,
       invertDrag: v.invertDrag === true,
       music: v.music !== false,
-      heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : []
+      heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : [],
+      quality: Number(v.quality) || 0
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [] };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0 };
   }
 }
 

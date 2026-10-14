@@ -378,6 +378,8 @@ export default {
           <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
             prisilietimų bandė jį paleisti ir paskutinio rūšis, taip pat paskutinis naršyklės atsisakymas, jei buvo.</td></tr>
           <tr><td>screen / canvas</td><td>Tavo ekrano dydis ir taškų tankis bei dydis, kuriuo piešiamas žemėlapis.</td></tr>
+          <tr><td>kokybė</td><td>0 – visa detalė. Jei įrenginys nespėja, žaidimas pats ją sumažina, iki 3: mygtukai
+            netenka matinio stiklo, o žemėlapis piešiamas mažesniu taškų skaičiumi, kad žaidimas veiktų sklandžiai.</td></tr>
           <tr><td>cores, memory, heap</td><td>Tavo įrenginio procesoriaus branduoliai ir atmintis bei žaidimo naudojama atmintis, jei naršyklė tai praneša.</td></tr>
         </tbody>
       </table></div>

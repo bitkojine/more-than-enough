@@ -381,6 +381,8 @@ export default {
           <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
             touches have tried to start it and the last kind, and the browser's last refusal if any.</td></tr>
           <tr><td>screen / canvas</td><td>Your screen size and pixel density, and the size the map is drawn at.</td></tr>
+          <tr><td>quality</td><td>0 is full detail. On a device that can't keep up, the game steps it down on its own, up to 3:
+            the buttons lose their frosted glass and the map is drawn with fewer pixels, so it runs smoothly.</td></tr>
           <tr><td>cores, memory, heap</td><td>Your device's processor cores and memory, and the game's memory use, where the browser reports them.</td></tr>
         </tbody>
       </table></div>
