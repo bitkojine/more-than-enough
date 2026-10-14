@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.59.1] - 2026-10-14
+
+### Changed
+- **Friends have names.** Every player in a shared world gets a nature name
+  (Moss, Fern, Fox, Firefly… or in Lithuanian Samana, Papartis, Lapė,
+  Jonvabalis…), shown in the game's language on their chip, on their badge at
+  the screen's edge and in messages such as "Fox joined". Never two alike in
+  a world, and the same on every phone. No more "1" and "2".
+
 ## [0.59.0] - 2026-10-14
 
 ### Changed

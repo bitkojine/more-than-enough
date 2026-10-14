@@ -260,7 +260,7 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 
 // Friends you can't see (off screen, or on another layer): their badge at
 // the screen's edge on the way to them. A circle in their colour with their
-// wanderer's face in it and their number on a tag, an arrow on the rim
+// wanderer's face in it and their name on a tag, an arrow on the rim
 // pointing at them, and a small up or down arrow when they're on another
 // layer. Asleep (offline) friends' badges are faded and grey.
 const BADGE = 22;          // the badge's radius, in CSS pixels
@@ -275,6 +275,7 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, colors) {
     const x = Math.max(edge, Math.min(cam.width - edge, p.x));
     let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
     if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
+    const a = Math.atan2(p.y - y, p.x - x);   // which way they are
     const color = colors[f.c];
     const asleep = f.st === 'offline';
     ctx.save();
@@ -293,15 +294,18 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, colors) {
     const size = BADGE * 4.6 / (face.units * face.aspect);
     look.stand(ctx, face, x, y - BADGE * 0.9 + BADGE * 4.6, size);
     ctx.restore();
-    // Their number, as on their chip in the top bar.
-    const nx = x - BADGE * 0.78, ny = y + BADGE * 0.78;
+    // Their name on a tag, as on their chip in the top bar: under the badge,
+    // or over it when the arrow points down.
+    const ty = off && Math.sin(a) > 0.4 ? y - BADGE - 4 : y + BADGE + 4;
     ctx.font = '800 11px system-ui, sans-serif'; // i18n-ok: a font
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const tw = Math.ceil(ctx.measureText(f.name).width) + 12;
+    const tx = Math.max(tw / 2 + 4, Math.min(cam.width - tw / 2 - 4, x));
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.arc(nx, ny, 8, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#0c0a08';
-    ctx.fillText(String(f.c + 1), nx, ny + 0.5);
+    ctx.fillText(f.name, tx, ty + 0.5);
     if (other) {
       // Up or down: which way the layer they're on is.
       const up = f.z > cam.z, ax = x + BADGE * 0.78, ay = y - BADGE * 0.78, r = 7;
@@ -316,7 +320,6 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, colors) {
     }
     // The arrow on the rim, toward them.
     if (off) {
-      const a = Math.atan2(p.y - y, p.x - x);
       ctx.fillStyle = color;
       ctx.strokeStyle = 'rgba(10,8,6,0.85)';
       ctx.lineWidth = 2;

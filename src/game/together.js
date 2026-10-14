@@ -98,6 +98,9 @@ function qrCanvas(text) {
   return canvas;
 }
 
+// Players' names (src/i18n: together.name.*), picked by nameOf().
+const NAMES = ['moss', 'fern', 'acorn', 'clover', 'hazel', 'birch', 'willow', 'juniper', 'sparrow', 'otter', 'badger', 'hedgehog', 'fox', 'owl', 'hare', 'lynx', 'beaver', 'squirrel', 'heron', 'stork', 'bee', 'firefly', 'thyme', 'mint'];
+
 /* ------------------------------------------------- what the room sends */
 
 function cleanPlayers(players) {
@@ -224,7 +227,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
         if (friends.size >= LIMITS.players) return;
         f = { c, st, p: null, shown: null, heard: 0, since: 0, actor: createActor() };
         friends.set(d.id, f);
-        if (st === 'online') hud.toast(t('together.toast.joined', { n: c + 1 }));
+        if (st === 'online') hud.toast(t('together.toast.joined', { name: nameOf(d.id) }));
       }
       const back = st === 'online' && f.st !== 'online';
       // They most likely just loaded the newest game: make sure this is it too.
@@ -417,8 +420,22 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
 
   /* ---------------------------------------------------- friends in the HUD */
 
-  function friendLabel(f) {
-    return t('together.player', { n: f.c + 1 });
+  // Everyone's name in this room, by id: a nature name picked from their id,
+  // never two the same, and the same on every phone (players are named in
+  // the order of their colours, which the room hands out). Shown in the
+  // game's language.
+  function nameOf(id) {
+    const players = [...friends.entries()].map(([pid, f]) => [pid, f.c]);
+    if (me) players.push([me, myColor]);
+    players.sort((a, b) => a[1] - b[1]);
+    const taken = new Set();
+    for (const [pid] of players) {
+      let k = parseInt(pid.slice(0, 8), 16) % NAMES.length;
+      while (taken.has(k)) k = (k + 1) % NAMES.length;
+      taken.add(k);
+      if (pid === id) return t('together.name.' + NAMES[k]);
+    }
+    return '';
   }
 
   function stateOf(f) {
@@ -430,7 +447,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   let shownChips = '';
   function renderFriends() {
     const list = [...friends.entries()].sort(([, a], [, b]) => a.c - b.c);
-    const key = list.map(([id, f]) => id + stateOf(f)).join('|') + (game.state.shared ? 1 : 0);
+    const key = list.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + (game.state.shared ? 1 : 0);
     if (key === shownChips) return;
     shownChips = key;
     const box = el.friends;
@@ -441,10 +458,10 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       chip.type = 'button';
       chip.className = 'friend ' + stateOf(f);
       chip.style.setProperty('--friend', FRIEND_COLORS[f.c]);
-      chip.setAttribute('aria-label', friendLabel(f) + ', ' + t('together.state.' + stateOf(f)));
+      chip.setAttribute('aria-label', nameOf(id) + ', ' + t('together.state.' + stateOf(f)));
       const dot = document.createElement('i');
       const name = document.createElement('span');
-      name.textContent = String(f.c + 1);
+      name.textContent = nameOf(id);
       chip.append(dot, name);
       chip.addEventListener('click', () => friendTapped(id));
       box.appendChild(chip);
@@ -455,8 +472,8 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
   async function friendTapped(id) {
     const f = friends.get(id);
     if (!f) return;
-    if (me !== owner) { hud.toast(friendLabel(f) + ': ' + t('together.state.' + stateOf(f))); return; }
-    const yes = await ask({ title: t('together.remove.title', { name: friendLabel(f) }), text: t('together.remove.text'), yes: t('together.remove.yes'), danger: true });
+    if (me !== owner) { hud.toast(nameOf(id) + ': ' + t('together.state.' + stateOf(f))); return; }
+    const yes = await ask({ title: t('together.remove.title', { name: nameOf(id) }), text: t('together.remove.text'), yes: t('together.remove.yes'), danger: true });
     if (yes && friends.has(id)) send({ t: 'remove', id });
   }
 
@@ -547,7 +564,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     view() {
       const out = [];
       for (const [id, f] of friends) {
-        if (f.shown) out.push({ id, c: f.c, st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
+        if (f.shown) out.push({ id, c: f.c, name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
       }
       return out;
     },
