@@ -218,6 +218,15 @@ export class Rooms extends DurableObject {
         other.close(4003, 'removed');
       }
     }
+    if (r.renewed) {
+      // The world was made again: everyone reconnects to it and starts over.
+      // Old sockets are cut first, so nothing from the old world gets in.
+      for (const other of this.ctx.getWebSockets()) {
+        other.serializeAttachment({ id: null, at: 0 });
+        this.buckets.delete(other);
+        other.close(4004, 'renewed');
+      }
+    }
     await this.schedule();
   }
 

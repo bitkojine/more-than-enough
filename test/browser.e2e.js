@@ -903,8 +903,8 @@ async function main() {
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
 
-  /* ----------------------------- reset button starts a clean world */
-  console.log('\n== Reset button starts a clean world ==');
+  /* ----------------------------- the nuke button starts a clean world */
+  console.log('\n== The nuke button starts a clean world ==');
   await evalJS('MTE_GAME.flyers().length = 0');
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
@@ -915,10 +915,10 @@ async function main() {
     await tap(resetSheetButton.x, resetSheetButton.y);
     await sleep(250);
   }
-  var resetButton = await rect('#btnReset');
+  var resetButton = await rect('#btnNuke');
   await tap(resetButton.x, resetButton.y);
   await sleep(200);
-  ok(await evalJS('!document.getElementById("ask").hidden && document.querySelector("#ask .primary").classList.contains("danger")'), 'Reset world asks first, with a red button');
+  ok(await evalJS('!document.getElementById("ask").hidden && document.querySelector("#ask .primary").classList.contains("danger")'), 'Nuke world asks first, with a red button');
   var resetYes = await rect('#ask .primary');
   await tap(resetYes.x, resetYes.y);
   await sleep(300);

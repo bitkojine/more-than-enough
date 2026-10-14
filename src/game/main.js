@@ -93,7 +93,7 @@ const game = {
     }
     saveError = err;
   },
-  // Swaps in a different world (embark, reset).
+  // Swaps in a different world (embark, the nuke, a shared world).
   replace(next) {
     game.state = next;
     fx.clear();
@@ -119,7 +119,6 @@ const game = {
     el.leave.hidden = !shared;
     el.invitesBtn.hidden = !shared;
     el.rejoin.hidden = !together.canRejoin;
-    el.reset.closest('.setGroup').hidden = shared; // no starting over a world you share
     together.refresh();
   }
 };
@@ -213,7 +212,8 @@ el.mine.addEventListener('click', controller.toggleMine);
 el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
 el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
-el.reset.addEventListener('click', controller.reset);
+// The nuke: alone it starts over at once; together it's a vote (together.js).
+el.nuke.addEventListener('click', () => (game.state.shared ? together.nuke() : controller.nuke()));
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
 function setDrag(invert) {

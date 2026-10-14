@@ -347,7 +347,7 @@ export default {
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
       <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
         <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis), žaidimo versija ir, atskirai apačioje,
-        <strong>Naujas pasaulis</strong> (pradeda iš naujo, prieš tai paklausęs).</p>
+        didelis raudonas mygtukas <strong>Sunaikinti pasaulį</strong> (prieš tai paklausęs sukuria pasaulį iš naujo su viskuo, kas žaidime nauja; bendrame pasaulyje tik tada, kai jį paspaudžia visi).</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
@@ -809,7 +809,7 @@ export default {
           skirtukas išsaugojo vėliau nei šis, šis skirtukas jo neperrašys. Jis sustoja ir klausia, kurį pasaulį palikti: kito
           skirtuko ar savąjį, prie kiekvieno nurodydamas žaidimo laiką ir surinktą kiekį, o toliau pažengęs pažymimas. Uždarytas
           ar užmirštas skirtukas negali tyliai atsukti tavo pažangos atgal.</li>
-        <li><strong>Naujas pasaulis</strong> Nustatymų apačioje pradeda naują pasaulį. Pirmiausia paklausia, ir to atšaukti negalima.</li>
+        <li><strong>Sunaikinti pasaulį</strong>, didelis raudonas mygtukas Nustatymų apačioje, sukuria pasaulį iš naujo su viskuo, kas žaidime nauja, o tavo pažanga prasideda nuo pradžių. Pirmiausia paklausia, ir to atšaukti negalima. Bendrame pasaulyje tai balsavimas: Nustatymuose matyti, kas jau paspaudė ir ko dar laukiama, savo balsą gali atšaukti, o kai paspaudžia visi, pasaulis sukuriamas iš naujo ir visi kartu pradedate iš naujo, tame pačiame pasaulyje su tais pačiais draugais ir kvietimų nuorodomis.</li>
         <li>Kol žaidimas aktyviai kuriamas, nauja versija gali nebeperskaityti senesnių išsaugojimų. Jei išsaugojimo nepavyksta
           perskaityti, žaidimas tau praneša ir pradeda naują pasaulį.</li>
       </ul>`,

@@ -189,8 +189,11 @@
         <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
         <a id="wikiLink" class="setRow" href="wiki/" target="_blank" rel="noopener"><span data-i18n="sheet.wiki"></span><b aria-hidden="true">&#8599;</b></a>
       </div>
+      <!-- The nuke: the world made again from scratch with everything new.
+           In a shared world it waits until everyone has pressed it. -->
       <div class="setGroup danger">
-        <button id="btnReset" class="setRow" type="button"><span data-i18n="sheet.reset"></span></button>
+        <button id="btnNuke" class="setRow" type="button" aria-pressed="false"><span id="nukeLabel" data-i18n="nuke.button"></span></button>
+        <p id="nukeVotes" hidden></p>
       </div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />

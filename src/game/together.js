@@ -25,6 +25,7 @@ const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest fi
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const SAVE_PREFIX = 'mte.room.';      // your progress in a shared world (a copy)
 const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
+const GEN_PREFIX = 'mte.gen.';        // which making of that world those are from (see the nuke)
 
 const WELCOME_BYTES = 8_000_000;      // the most a room's welcome may be
 const POS_EVERY = 0.125;              // seconds between position updates
@@ -36,6 +37,8 @@ const FOG_EVERY = 15;
 const QUIET_IS_LOST = 6;              // seconds without a word: shown as lost
 const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
+const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
+const NUKE_NAMES = 6;                 // names listed in each line under the nuke button
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 
 const JOIN_RE = /^([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{22})$/;
@@ -132,16 +135,25 @@ function cleanPlayers(players) {
   return out;
 }
 
+// Who has pressed the nuke, or null if the list doesn't fit.
+function cleanVotes(list) {
+  if (!Array.isArray(list) || list.length > LIMITS.players) return null;
+  return list.every((id) => typeof id === 'string' && ID_RE.test(id)) ? new Set(list) : null;
+}
+
 function cleanWelcome(d) {
   if (!ID_RE.test(d.you) || !ID_RE.test(d.owner) || cleanColor(d.c) === null) return null;
   const world = cleanWorld({ seed: d.seed, mods: d.mods, props: d.props, ext: d.ext });
   const players = cleanPlayers(d.players);
+  const votes = cleanVotes(d.nuke ?? []);
+  const gen = d.gen ?? 0;
+  if (!votes || !Number.isSafeInteger(gen) || gen < 0) return null;
   const save = d.save === null || d.save === undefined ? null : cleanSave(d.save);
   if (!world || !players || (d.save && !save)) return null;
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time)
+    time: d.time === undefined ? null : cleanTime(d.time), gen, votes
   };
 }
 
@@ -162,6 +174,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
   let invite = null;        // {code, until} while the QR is up
   let signT = 0;            // 0..1: how far up your sign is
   let signFace = null;      // the QR on it (a canvas), kept while it comes down
+  let votes = new Set();    // who has pressed the nuke
 
   /* ---------------------------------------------------- the connection */
 
@@ -186,6 +199,8 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     for (const f of friends.values()) f.heard = -Infinity;
     if (codeNum === 4001) return stop(t('together.toast.elsewhere'));
     if (codeNum === 4003) return stop(t('together.toast.removed'));
+    // Everyone pressed the nuke: straight back in, to the world made anew.
+    if (codeNum === 4004) { retry = 0; return connect(); }
     if (reason === 'invite') return stop(t('together.toast.inviteOld'));
     if (reason === 'full') return stop(t('together.toast.full'));
     if (!room) return;
@@ -202,7 +217,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
   function stop(message) {
     if (game.state.shared) save(game.state, true);
     const wasIn = !!game.state.shared;
-    room = null; code = null; me = null; owner = null; clock = null;
+    room = null; code = null; me = null; owner = null; clock = null; votes = new Set();
     clearTimeout(retryTimer);
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
@@ -258,16 +273,21 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       if (d.p) { const p = cleanPos(d.p); if (p) f.p = p; }
       f.heard = performance.now() / 1000;
       renderFriends();
+      renderVotes();
       return;
     }
     if (d.t === 'removed') {
       if (d.id === me) return; // the close that follows says so
-      if (friends.delete(d.id)) { roster = null; renderFriends(); }
+      if (friends.delete(d.id)) { roster = null; renderFriends(); renderVotes(); }
       return;
     }
     if (d.t === 'invite') {
       if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until)) return;
       openQr(d.code, d.until);
+    }
+    if (d.t === 'nuke') {
+      const next = cleanVotes(d.votes);
+      if (next) voted(next);
     }
     if (d.t === 'invitesFull') hud.toast(t('invites.full'));
     if (d.t === 'invites') {
@@ -288,7 +308,14 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
     remember(room);
     write(PLAYING_STORE, room);
-    if (game.state.shared === room) {
+    votes = w.votes;
+    // The world was nuked and made again since this phone was last in it:
+    // its copies of your progress and map are from a world that's gone.
+    const was = read(GEN_PREFIX + room);
+    const renewed = was !== null && was !== String(w.gen);
+    if (renewed) { write(SAVE_PREFIX + room, ''); write(FOG_PREFIX + room, ''); }
+    write(GEN_PREFIX + room, String(w.gen));
+    if (game.state.shared === room && !renewed) {
       resync(w);
     } else {
       // Arriving: your progress is the newer of the room's copy and this phone's.
@@ -301,12 +328,13 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
-      hud.toast(t('together.toast.in'));
+      hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
     }
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
     lastPos = ''; lastSave = '';
     renderFriends();
+    renderVotes();
     game.changedMode();
     if (game.state.shared === room && pendingInvite) { pendingInvite = false; showInvite(); }
   }
@@ -524,6 +552,54 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     else start();
   });
 
+  /* ------------------------------------------------------------ the nuke */
+
+  // When everyone in the world has pressed it, the room makes the world again
+  // from scratch and everyone starts over together (see server/src/room.js).
+  async function nuke() {
+    if (!welcomed) { hud.toast(t('together.toast.offline')); return; }
+    if (votes.has(me)) { send({ t: 'nuke', on: false }); return; }
+    const yes = await ask({ title: t('nuke.askShared.title'), text: t('nuke.askShared.text'), yes: t('nuke.askShared.yes'), danger: true });
+    if (yes && welcomed && !votes.has(me)) send({ t: 'nuke', on: true });
+  }
+
+  // The room's new count: say who pressed it or took it back. In a big
+  // world only your own vote gets a message; the count is in Settings.
+  function voted(next) {
+    const total = friends.size + 1, small = total <= NUKE_TOASTS;
+    for (const id of next) {
+      if (votes.has(id) || (id !== me && !small)) continue;
+      hud.toast(id === me ? t('nuke.toast.you', { n: next.size, total }) : t('nuke.toast.pressed', { name: nameOf(id), n: next.size, total }));
+    }
+    for (const id of votes) {
+      if (!next.has(id) && (id === me || small)) hud.toast(t(id === me ? 'nuke.toast.youBack' : 'nuke.toast.back', { name: nameOf(id) }));
+    }
+    votes = next;
+    renderVotes();
+  }
+
+  // The nuke button in Settings and, in a shared world, how many have
+  // pressed it, who has and who it still waits for (the first few names of
+  // each, and how many more).
+  function renderVotes() {
+    const shared = !!game.state.shared;
+    const mine = shared && votes.has(me);
+    el.nukeLabel.textContent = t(mine ? 'nuke.takeBack' : 'nuke.button');
+    el.nuke.setAttribute('aria-pressed', String(mine));
+    el.nukeVotes.hidden = !shared;
+    if (!shared) return;
+    const everyone = [...friends.keys(), me].filter(Boolean);
+    const pressed = everyone.filter((id) => votes.has(id)), waiting = everyone.filter((id) => !votes.has(id));
+    const names = (ids) => {
+      const shown = ids.slice(0, NUKE_NAMES).map((id) => nameOf(id)).join(', ');
+      return ids.length > NUKE_NAMES ? t('nuke.votes.more', { names: shown, n: ids.length - NUKE_NAMES }) : shown;
+    };
+    const lines = [t('nuke.votes.count', { n: pressed.length, total: everyone.length })];
+    if (!pressed.length) lines.push(t('nuke.votes.none'));
+    else lines.push(t('nuke.votes.pressed', { names: names(pressed) }), t('nuke.votes.waiting', { names: names(waiting) }));
+    el.nukeVotes.textContent = lines.join('\n');
+  }
+
   /* ---------------------------------------------------- friends in the HUD */
 
   // Everyone's name in this room, by id: a nature name picked from their id,
@@ -684,6 +760,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     showInvite,
     listInvites,
     copyLink,
+    nuke,
     away(hidden) {
       send({ t: 'away', a: hidden });
       if (hidden) save(game.state, true);
@@ -697,6 +774,6 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
       }
       return out;
     },
-    refresh() { renderFriends(); renderButton(); }
+    refresh() { renderFriends(); renderButton(); renderVotes(); }
   };
 }

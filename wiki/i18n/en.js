@@ -350,7 +350,7 @@ export default {
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
       <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
         <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page), the game's version and, set apart at the bottom,
-        <strong>Reset world</strong> (starts over, after asking).</p>
+        the big red <strong>Nuke world</strong> button (makes the world again from scratch with everything new in the game, after asking; in a shared world, only once everyone has pressed it).</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
@@ -813,7 +813,7 @@ export default {
           this one last did, this tab won't overwrite it. It pauses and asks which world to keep: the other tab's or its own,
           each with time played and amount gathered, and the one further along is marked. A tab you closed or left behind
           can't quietly roll your progress back.</li>
-        <li><strong>Reset world</strong> at the bottom of Settings starts a fresh world. It asks first, and it can't be undone.</li>
+        <li><strong>Nuke world</strong>, the big red button at the bottom of Settings, makes the world again from scratch with everything new in the game, and your progress starts from the beginning. It asks first, and it can't be undone. In a shared world it's a vote: Settings shows who has pressed it and who it's waiting for, you can take your vote back, and once everyone has pressed it the world is made anew and you all start fresh together, still in the same world with the same friends and invite links.</li>
         <li>While the game is in active development, a new version may not read older saves. If a save can't be read, the
           game tells you and starts a new world.</li>
       </ul>`,

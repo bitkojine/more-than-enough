@@ -19,9 +19,9 @@ export const MOD_BUCKETS = 16;               // richness edits are stored in thi
 export const INVITE_MS = 24 * 3600_000;      // an invite link lets new friends in for a day
 export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
 const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
-const REUSE_MS = 3600_000;
+const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
-export const FAR_MS = 2000;                  // everyone else hears where you are this often                   // your sign shows your newest link while it has this long left
+export const FAR_MS = 2000;                  // everyone else hears where you are this often
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -45,6 +45,12 @@ export class Room {
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
     this.invites = new Map();
+    // The nuke: who has pressed it. Once every player in the world has, the
+    // world is made again from scratch (a new seed, everything new in the
+    // game) and everyone starts over. `gen` counts how many times, so a
+    // phone can tell its copy of your progress is from a world that's gone.
+    this.nuke = new Set();
+    this.gen = 0;
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
   }
@@ -61,7 +67,8 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, ready: true });
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, ready: true });
+    r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -75,7 +82,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites] });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, nk: [...this.nuke] });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -172,7 +179,7 @@ export class Room {
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: me.save, p: me.p, time: this.clock(now)
+      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: [...this.nuke]
     };
   }
 
@@ -300,9 +307,57 @@ export class Room {
       if (id !== this.owner || typeof d.id !== 'string' || d.id === this.owner || !this.players.has(d.id)) return { drop: true };
       this.players.delete(d.id);
       this.dirty.players.add(d.id);
-      return { kick: d.id, toAll: [{ t: 'removed', id: d.id }] };
+      this.nuke.delete(d.id);
+      // Everyone left may have pressed the nuke already.
+      return { kick: d.id, ...this.nukeIfAll(now, [{ t: 'removed', id: d.id }]) };
+    }
+    if (d.t === 'nuke') {
+      // Press it, or take your vote back.
+      if (d.on === true) this.nuke.add(id); else this.nuke.delete(id);
+      this.dirty.meta = true;
+      return this.nukeIfAll(now, []);
     }
     return { drop: true };
+  }
+
+  /* ------------------------------------------------------------ nuke */
+
+  // Who has pressed the nuke so far, for everyone.
+  nukeVotes() {
+    return { t: 'nuke', votes: [...this.nuke] };
+  }
+
+  // Makes the world again if every player has pressed the nuke ({renewed},
+  // after `toAll`), else tells everyone the votes so far.
+  nukeIfAll(now, toAll) {
+    const all = this.players.size > 0 && [...this.players.keys()].every((id) => this.nuke.has(id));
+    if (!all) return { toAll: [...toAll, this.nukeVotes()] };
+    this.renew(now);
+    return { toAll, renewed: true };
+  }
+
+  // The world from scratch: a new seed, nothing built or changed, the clock
+  // at dawn, and every player's progress gone. The players, their colours
+  // and the invite links stay, so everyone comes back to the same room.
+  renew(now) {
+    let seed = 0;
+    while (!seed) seed = crypto.getRandomValues(new Uint32Array(1))[0];
+    this.seed = seed;
+    this.mods.clear();
+    this.props.clear();
+    this.ext = [];
+    this.extTiles.clear();
+    for (const [id, p] of this.players) {
+      p.save = null;
+      p.p = null;
+      this.dirty.players.add(id);
+    }
+    this.nuke.clear();
+    this.gen++;
+    this.dawn = now;
+    this.touch(now);
+    this.dirty.props = this.dirty.ext = true;
+    for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
   }
 
   setStatus(id, st, also) {

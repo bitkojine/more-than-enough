@@ -676,6 +676,19 @@ canvas#game {
 .setRow b::first-letter { text-transform: uppercase; }
 .setGroup.danger { border-color: rgba(240, 138, 122, 0.3); }
 .setGroup.danger .setRow { justify-content: center; color: var(--danger); }
+/* The nuke: a big red button, hard to miss and hard to press by accident
+   (it always asks first). Pressed (your vote is in) it goes dark. */
+.setGroup.danger { border: 0; background: none; gap: 8px; }
+#btnNuke {
+  min-height: 64px; border-radius: var(--r-md);
+  border: 1px solid #ffab9c; background: linear-gradient(180deg, #e86f5c, #b6432f);
+  color: #fff4f1; font-size: 18px; letter-spacing: 0.04em;
+  box-shadow: 0 4px 0 #7d2a1d, var(--shadow-1);
+}
+#btnNuke:active { transform: translateY(2px); box-shadow: 0 2px 0 #7d2a1d, var(--shadow-1); }
+#btnNuke[aria-pressed="true"] { background: var(--raised); color: var(--danger); border-color: rgba(240, 138, 122, 0.5); box-shadow: none; }
+#nukeVotes { white-space: pre-line; margin: 0; padding: 0 4px; color: var(--ink-dim); font-size: 13px; line-height: 1.4; text-align: center; }
+#nukeVotes[hidden] { display: none; }
 #version {
   align-self: center;
   font-size: 11px; font-weight: 700; letter-spacing: 0.05em;

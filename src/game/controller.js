@@ -260,7 +260,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       checkGoals();
     },
 
-    // Embark and reset destroy a world, so they ask first.
+    // Embark and the nuke destroy a world, so they ask first.
     async embark() {
       if (!Core.canEmbark(state())) return;
       const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.text', { n: fmt(Core.embarkGain(state())) }), yes: t('ask.embark.yes') });
@@ -272,10 +272,13 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       say('+' + res.gained, look.color('resource.insight'), 'resource.insight');
     },
 
-    async reset() {
-      if (!await ask({ title: t('ask.reset.title'), text: t('ask.reset.text'), yes: t('ask.reset.yes'), danger: true })) return;
+    // The world made again from scratch (a new seed, everything new in the
+    // game), and your progress back to the very beginning.
+    async nuke() {
+      if (!await ask({ title: t('nuke.ask.title'), text: t('nuke.ask.text'), yes: t('nuke.ask.yes'), danger: true })) return;
       clearSave();
       game.replace(Core.createState(randomSeed()));
+      hud.toast(t('nuke.toast.alone'));
     },
 
     // Forget per-world intents when the world itself is replaced.

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.70.0] - 2026-10-14
+
+### Added
+- **The nuke.** A big red *Nuke world* button at the bottom of Settings
+  makes the world again from scratch, with a new seed and everything new in
+  the game, and your progress starts from the very beginning: the fix for
+  old worlds missing what an update brings. It replaces *Reset world*. In a
+  shared world it's a vote: pressing it (after asking) puts your vote in,
+  Settings shows how many have pressed it, who has and who it's still
+  waiting for (offline players count as not yet; in a big world the first
+  few names and how many more), and you can take your vote back. Once everyone
+  has pressed it, the room makes the world again with a new seed, keeps the
+  players, their colours and invite links, and everyone reconnects to it
+  and starts fresh together. A phone that was away when it happened finds
+  out on its way back in and drops its copy of the old world's progress.
+
 ## [0.69.0] - 2026-10-14
 
 ### Changed

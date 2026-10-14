@@ -330,3 +330,54 @@ test('the vendored QR library is the published file, unchanged', () => {
   const sum = createHash('sha256').update(body).digest('hex');
   assert.match(src.split('\n')[0], new RegExp('sha256 ' + sum));
 });
+
+/* --------------------------------------------------------------- nuke */
+
+test('room: the world is nuked only once every player has pressed it', async () => {
+  const { r, owner } = await makeRoom({ save: '{"inv":1}' });
+  const a = (await r.join(owner, null, T0)).id;
+  const b = (await r.join(key(), invite(r, a), T0)).id;
+  r.message(a, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 } }), T0);
+  r.message(a, JSON.stringify({ t: 'edits', e: [['p', Core.packKey(1, 1, 0), 'glowcap']] }), T0);
+  const before = r.welcome(a, T0);
+  assert.equal(before.gen, 0);
+  assert.deepEqual(before.nuke, []);
+
+  let out = r.message(a, JSON.stringify({ t: 'nuke', on: true }), T0);
+  assert.deepEqual(out.toAll, [{ t: 'nuke', votes: [a] }]);
+  assert.ok(!out.renewed, 'one vote of two does nothing');
+  out = r.message(a, JSON.stringify({ t: 'nuke', on: false }), T0);
+  assert.deepEqual(out.toAll, [{ t: 'nuke', votes: [] }], 'a vote can be taken back');
+  // Nobody presses it for someone else: the vote is always the sender's own.
+  r.message(b, JSON.stringify({ t: 'nuke', on: true, id: a }), T0);
+  assert.deepEqual([...r.nuke], [b]);
+  r.message(b, JSON.stringify({ t: 'nuke', on: false }), T0);
+
+  r.message(a, JSON.stringify({ t: 'nuke', on: true }), T0);
+  out = r.message(b, JSON.stringify({ t: 'nuke', on: true }), T0 + 5000);
+  assert.ok(out.renewed, 'the last vote makes the world again');
+  const after = r.welcome(a, T0 + 5000);
+  assert.notEqual(after.seed, 42);
+  assert.ok(after.seed >= 1 && after.seed <= 0xffffffff);
+  assert.equal(after.gen, 1);
+  assert.deepEqual([after.mods, after.props, after.ext, after.save, after.p, after.time, after.nuke], [[], [], [], null, null, 0, []]);
+  assert.equal(r.players.size, 2, 'everyone is still in the world');
+
+  // It all survives a restart.
+  const back = Room.restore(r.id, r.takeWrites(), T0 + 6000);
+  assert.equal(back.gen, 1);
+  assert.equal(back.seed, after.seed);
+  assert.equal(back.props.size, 0);
+});
+
+test('room: offline players count as not pressed, and removing the last holdout nukes', async () => {
+  const { r, owner } = await makeRoom();
+  const a = (await r.join(owner, null, T0)).id;
+  const b = (await r.join(key(), invite(r, a), T0)).id;
+  r.left(b, true, T0);
+  assert.ok(!r.message(a, JSON.stringify({ t: 'nuke', on: true }), T0).renewed);
+  const out = r.message(a, JSON.stringify({ t: 'remove', id: b }), T0);
+  assert.equal(out.kick, b);
+  assert.ok(out.renewed);
+  assert.deepEqual(out.toAll, [{ t: 'removed', id: b }]);
+});

@@ -12,6 +12,8 @@
  *                  invite                  hold up the sign: your invite link, please
  *                  invites                 the invite links you may see (all, for the owner)
  *                  revoke {code}           stop an invite link (the owner any, others their own)
+ *                  remove {id}             the owner takes a player out of the world
+ *                  nuke {on}               press the nuke (true) or take your vote back
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved (several times a second when near
  *                                          you, every couple of seconds when far)
@@ -19,7 +21,11 @@
  *                  status {id, st, c, p?}  a friend's state changed (c: their place, 0, 1, 2…)
  *                  invite {code, until}    the link for your sign (lasts a day)
  *                  invites {list}          [code, by, made, until, uses, stopped] newest first
+ *                  removed {id}            a player was taken out of the world
+ *                  nuke {votes}            who has pressed the nuke so far
  *                  full / bad              why the room is closing on you
+ * When everyone has pressed the nuke, the room makes the world again and
+ * closes every socket with code 4004; each game reconnects to the new world.
  */
 
 export const LIMITS = Object.freeze({
