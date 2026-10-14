@@ -94,6 +94,12 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                         "ref" "src/game/storage.js"
                     }
                 }
+                together = component "Together" "Playing together (src/game/together.js): makes a room from your world, joins one from a QR link (#join=room.invite), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and shows the QR sign (src/vendor/qrcode.js)." "JavaScript + WebSocket" {
+                    tags "Presentation"
+                    properties {
+                        "files" "src/game/together.js, src/net/, src/vendor/qrcode.js"
+                    }
+                }
             }
 
             packs = container "Default Texture Pack" "Lanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." "JSON + SVG" {
@@ -175,6 +181,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
             }
         }
 
+        // ------------------------------------- playing together (system)
+        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to four players. See server/README.md for the rules and security limits." {
+            tags "Server"
+            properties {
+                "files" "server/, src/net/protocol.js"
+            }
+        }
+
         // ------------------------------------------ dev tooling (system)
         tools = softwareSystem "Development Tooling" "Test harnesses and the deploy pipeline. Zero dependencies." {
             tags "Tooling"
@@ -206,6 +220,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.core -> mte.i18n "Names things (tiles, buildings, milestones) by key"
         mte.wiki -> mte.i18n "Asks for every word by key; its articles live there"
         mte.app -> mte.core "Drives actions and step(); reads state every frame"
+        mte.app.together -> rooms "Makes and joins rooms; relays positions, edits and progress" "HTTPS + WebSocket"
+        mte.app.together -> mte.core.state "Splits and joins shared worlds (shared.js)"
+        mte.app.main -> mte.app.together "Ticks it every frame"
+        mte.app.render -> mte.app.together "Draws friends where they are shown"
         mte.core -> mte.app "Returns state; emits transient events on auto-collect"
         tools.coreTests -> mte.core "Imports src/core/index.js and steps it directly"
         tools.e2e -> mte.app "Loads index.html; asserts through window.MTE_GAME"
@@ -255,6 +273,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
 
             deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/), the default texture pack (packs/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
                 infrastructureNode "Static Files" "Serves the staged site over HTTPS."
+            }
+
+            deploymentNode "Cloudflare Workers" "Deployed by .github/workflows/rooms.yml with wrangler. Free plan: SQLite-backed Durable Objects." {
+                softwareSystemInstance rooms
             }
 
             deploymentNode "Node.js LTS" "Developer machine / CI runner." {

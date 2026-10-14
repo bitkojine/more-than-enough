@@ -258,6 +258,47 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
   }
 }
 
+// Friends you can't see (off screen, or on another layer): a pin in their
+// colour at the edge pointing their way, with a small arrow up or down when
+// they're on another layer.
+export function drawFriendMarkers(ctx, cam, s, friends, colors) {
+  const pin = BEACON_PIN * 1.2, edge = BEACON_EDGE + 8;
+  for (const f of friends) {
+    const p = cam.project(f.x, f.y, cam.z);
+    const other = f.z !== cam.z;
+    const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
+    if (!off && !other) continue;
+    let x = Math.max(edge, Math.min(cam.width - edge, p.x));
+    let y = Math.max(edge + 60, Math.min(cam.height - edge - 120, p.y));
+    if (!off) y -= cam.tilePx * 1.2; // on another layer, right above where they are
+    ctx.save();
+    ctx.globalAlpha = f.st === 'offline' ? 0.45 : 1;
+    ctx.fillStyle = colors[f.c];
+    ctx.strokeStyle = 'rgba(10,8,6,0.85)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (off) {
+      const a = Math.atan2(p.y - y, p.x - x), r = pin * 1.4;
+      ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+      ctx.lineTo(x + Math.cos(a + 2.4) * r, y + Math.sin(a + 2.4) * r);
+      ctx.lineTo(x + Math.cos(a - 2.4) * r, y + Math.sin(a - 2.4) * r);
+      ctx.closePath();
+    } else {
+      ctx.arc(x, y, pin, 0, TAU);
+    }
+    ctx.fill(); ctx.stroke();
+    if (other) {
+      // Up or down: which way the layer they're on is.
+      const up = f.z > cam.z, r = pin * 0.6;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.moveTo(x, y + (up ? -r : r)); ctx.lineTo(x + r, y + (up ? r * 0.6 : -r * 0.6)); ctx.lineTo(x - r, y + (up ? r * 0.6 : -r * 0.6));
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+  }
+}
+
 export function drawJoystick(ctx, cam, view) {
   const joy = view.joy;
   if (!joy.active) return;

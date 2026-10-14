@@ -40,6 +40,12 @@ place it belongs here rather than adding a button where there is room.
 - Shadows: `--shadow-1` (HUD), `--shadow-2` (sheets/dialogs).
 - Touch targets ≥ 44px; the main action 84px.
 
+### Playing together
+- **Settings** opens it: *Play together* (or *Show QR to invite a friend* once you're in a shared world), *Back to the shared world*, *Leave the shared world*. Reset world is hidden in a shared world.
+- **The QR** is a full-screen card: your wanderer at the bottom lifts a sign on a mushroom stalk with the code on it (it rises with a bounce and sways). Friends see the sign over your head in the world.
+- **Friends** are chips under the top bar on the right, one per friend in their colour with their number, showing their state: online, away (z), connection lost (blinking), offline (hollow). The owner taps one to remove that friend (through `ask()`).
+- **In the world** a friend has a ring of their colour at their feet and a diamond over their head. Away: smaller, with drifting z's. Connection lost: flickering under a spinning arc. Offline: a grey ghost bobbing where they left. Back: a burst of sparkles. Off screen or on another layer: a pin at the screen's edge pointing their way, with an arrow up or down for another layer.
+
 ### Stages
 1. **HUD and main actions** (shipped in 0.48.0): top bar (awards, one resource bar, gear), version moved into Settings, Settings split out of the sheet footer into its own panel, thumb cluster without the empty slot, slim zoom, one depth meter, toast moved to the top.
 2. **Sheets** (shipped in 0.49.0): tabs as a segmented control at the top beside a × (a title instead of tabs for Settings and Collected), cleaner rows and buy buttons, Collected and Awards restyled.

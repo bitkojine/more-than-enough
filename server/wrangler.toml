@@ -1,0 +1,25 @@
+# The room service for playing together (see README.md here).
+# Deployed by .github/workflows/rooms.yml with the CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID repository secrets.
+name = "mte-rooms"
+main = "src/worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[vars]
+# The pages allowed to use the service (comma-separated origins).
+ALLOWED_ORIGINS = "https://bitkojine.github.io"
+ALLOW_LOCALHOST = "false"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "Rooms"
+
+[[durable_objects.bindings]]
+name = "LIMITER"
+class_name = "Limiter"
+
+# The free plan needs SQLite-backed Durable Objects.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Rooms", "Limiter"]

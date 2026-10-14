@@ -131,6 +131,7 @@ The project is under git — commit early, commit often:
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
   - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of each digit)
   - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
+  - `shared.js` — a shared world: splitting a state into the world and your own progress, and applying friends' edits
 - `src/i18n/` — every word the player reads: `i18n.js` (`t()`, language choice, `data-i18n` markup) and the `en.js` / `lt.js` dictionaries
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core
@@ -138,12 +139,16 @@ The project is under git — commit early, commit often:
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`, `fork.js`, `ask.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
   - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
+  - `together.js` — playing together: the room connection, friends and their states, the QR sign
+- `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
+- `src/vendor/` — other people's code, copied unchanged (the QR code generator)
+- `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
 - `index.html`, `style.css` — shell and mobile-first styling
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
 - `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
 - `docs/progression-map.md` — design spec for the Progression map
 - `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why
-- `test/unit/` — Node `node:test` suites for the core
+- `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
 - `scripts/stage-site.sh` — stages the deployable site (game + wiki) with cache-busted URLs

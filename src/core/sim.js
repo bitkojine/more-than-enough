@@ -9,7 +9,7 @@ import {
   EXTRACTORS, AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
-import { productionMult, abundanceTrickle, speedMult, exploreRadius, earn } from './economy.js';
+import { productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 
 const MAX_STEP = 0.25;
 
@@ -38,7 +38,7 @@ const REACH2 = AUTO_COLLECT_RANGE * AUTO_COLLECT_RANGE;
 
 // Whether Logistics hauls this building's output in as it's made.
 export function autoCollected(s, e) {
-  return s.unlocks.logistics && tileDist2(s.player, e.x, e.y, e.z) <= REACH2;
+  return s.unlocks.logistics && ownBuilding(s, e) && tileDist2(s.player, e.x, e.y, e.z) <= REACH2;
 }
 
 // Whether a building holds output that waits for you to collect it (a whole
@@ -49,6 +49,7 @@ export function holdsOutput(s, e) {
 
 function produce(s, dt) {
   for (const e of s.extractors) {
+    if (!ownBuilding(s, e)) continue; // a friend's: it works on their phone
     const def = EXTRACTORS[e.key];
     if (e.buffer < def.buffer) {
       e.buffer = Math.min(def.buffer, e.buffer + def.rate * productionMult(s, e.res) * dt);

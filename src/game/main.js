@@ -21,6 +21,7 @@ import { createDescent } from './render/descent.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
+import { createTogether, FRIEND_COLORS } from './together.js';
 import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -65,6 +66,8 @@ const game = {
   saveSoon() { saveDue = true; },
   saveNow(force = false) {
     saveDue = false;
+    // A shared world is saved to its room (and a copy here), never over your own.
+    if (game.state.shared) return together.save(game.state);
     if (fork.open) return; // the player hasn't picked a world yet
     const r = saveGame(game.state, force);
     if (r && r.conflict) return forked(r.conflict);
@@ -88,6 +91,22 @@ const game = {
     lastTileKey = -1;
     hud.update(next);
     game.saveNow();
+    game.changedMode();
+  },
+  // For playing together (together.js).
+  facing: () => controller.facing,
+  moving: () => moving,
+  // Friends changed the world: what's shown around you may differ now.
+  worldChanged() { hud.update(game.state); },
+  // Alone or together: the settings that differ.
+  changedMode() {
+    const shared = !!game.state.shared;
+    el.together.hidden = !together.available;
+    el.togetherLabel.textContent = t(shared ? 'together.invite' : 'together.start');
+    el.leave.hidden = !shared;
+    el.rejoin.hidden = !together.canRejoin;
+    el.reset.closest('.setGroup').hidden = shared; // no starting over a world you share
+    together.refresh();
   }
 };
 
@@ -115,6 +134,7 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
+const together = createTogether({ game, hud, ask: ask.ask, el });
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask });
 
 const sheet = createSheet(el, {
@@ -135,7 +155,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open,
+    blocked: () => sheet.isOpen || fork.open || ask.open || !el.qr.hidden,
     dismiss: () => sheet.close(),
     tap: controller.tap,
     actionPressed: controller.press,
@@ -159,6 +179,9 @@ el.resources.addEventListener('click', (e) => {
   if (chip) sheet.showCollected(chip.dataset.res);
 });
 el.mine.addEventListener('click', controller.toggleMine);
+el.together.addEventListener('click', () => { sheet.close(); together.start(); });
+el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
+el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
 el.reset.addEventListener('click', controller.reset);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
@@ -201,6 +224,7 @@ function update(dt) {
   const moved = controller.steer(dt, input.moveVector());
   moving = moved;
   Core.step(s, dt);
+  together.tick(dt);
 
   // Logistics reports auto-collections as events; show them as flyers.
   for (const e of s.events) if (e.z === s.player.z) fx.flyersFrom(e.x, e.y, e.res, e.amt);
@@ -241,7 +265,10 @@ function view() {
     trail: input.trail,
     trailTargets: trailTargets(input.trail),
     underground,
-    joy: input.joy
+    joy: input.joy,
+    friends: together.view(),
+    friendColors: FRIEND_COLORS,
+    sign: together.sign
   };
 }
 
@@ -282,7 +309,12 @@ window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 window.addEventListener('pagehide', () => game.saveNow());
-document.addEventListener('visibilitychange', () => { if (document.hidden) game.saveNow(); else checkFork(); });
+// A QR scanned while the game is already open in this tab.
+window.addEventListener('hashchange', () => together.joinFromLink());
+document.addEventListener('visibilitychange', () => {
+  together.away(document.hidden);
+  if (document.hidden) game.saveNow(); else checkFork();
+});
 
 const savedView = loadView();
 cam.setZoom(savedView.zoom);
@@ -296,6 +328,10 @@ await textures.restore();
 hud.update(game.state);
 hud.updateButtons(game.state);
 if (loaded.lost) hud.toast(t('toast.saveLost'));
+game.changedMode();
+// Opened from a friend's QR: join them. Otherwise back into the shared world
+// you were in, if any.
+if (!together.joinFromLink()) together.resume();
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.
@@ -305,6 +341,7 @@ window.MTE_GAME = {
   textures,
   yard,
   getState: () => game.state,
+  together,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },

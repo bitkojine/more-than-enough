@@ -37,6 +37,8 @@ import { t } from '../i18n/i18n.js';
  * @property {number} goalIndex
  * @property {number} time                         game seconds
  * @property {{deepest: number}} underground     the deepest layer reached so far
+ * @property {string} [shared]                   the room of a shared world (not set when alone)
+ * @property {string} [me]                       your id in that room; your buildings carry it
  * @property {Array<{res: string, amt: number, x: number, y: number, z: number}>} events
  *           transient (never saved): auto-collections for the UI to animate
  */
@@ -99,8 +101,9 @@ export function embarkGain(s) {
 // Eligibility counts this world only (every upgrade done, and enough
 // gathered here), so a fresh world can't re-embark on carried-over progress.
 // The Insight reward still uses the lifetime total.
+// Never in a shared world: Embark is for playing alone.
 export function canEmbark(s) {
-  return worldMastered(s) && worldTotal(s) >= EMBARK_MIN_TOTAL;
+  return !s.shared && worldMastered(s) && worldTotal(s) >= EMBARK_MIN_TOTAL;
 }
 
 // Starts a new world from `seed`, keeping Insight, perks and lifetime totals.

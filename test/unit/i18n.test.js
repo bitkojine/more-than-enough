@@ -75,7 +75,8 @@ test('the game and the wiki never define the same key', () => {
   assert.deepEqual(twice, [], `defined in both: ${twice.join(', ')}`);
 });
 
-const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))]
+// src/vendor/ holds other people's code, copied unchanged: not ours to check.
+const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].filter((f) => !f.includes(join('src', 'vendor')))
   .filter((f) => !f.includes(join('src', 'i18n')) && !f.includes(join('wiki', 'i18n')));
 
 test('every key the code asks for exists', () => {
@@ -184,6 +185,7 @@ test('no player-facing text is written straight into the code', () => {
 function markupWords(html) {
   const found = [];
   const body = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)\b[\s\S]*?<\/\1>/g, '')
+    .replace(/<meta (http-equiv|name="referrer")[^>]*>/g, '') // policies for the browser, not words
     .replace(/(<[^>]*\stranslate="no"[^>]*>)[^<]*/g, '$1');
   for (const m of body.matchAll(/>([^<]+)</g)) if (/\p{L}/u.test(m[1].replace(/&\w+;/g, ''))) found.push(m[1].trim());
   for (const m of body.matchAll(/\s(aria-label|placeholder|title|alt|content)="([^"]*)"/g)) {

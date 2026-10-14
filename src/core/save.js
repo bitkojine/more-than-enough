@@ -34,7 +34,7 @@ export function serialize(s) {
     inv: s.inv, tools: s.tools, unlocks: s.unlocks, resUp: s.resUp,
     abundanceLv: s.abundanceLv, insight: s.insight, prestiges: s.prestiges, totalEver: s.totalEver,
     perks: s.perks,
-    extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2) })),
+    extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
     goalIndex: s.goalIndex, time: s.time,
@@ -115,7 +115,10 @@ export function deserialize(str) {
   s.discovered = { ore: !!(d.discovered && d.discovered.ore), crystal: !!(d.discovered && d.discovered.crystal) };
   s.extractors = (d.extractors || [])
     .filter((e) => e && EXTRACTORS[e.k] && isInt(e.x) && isInt(e.y))
-    .map((e) => ({ key: e.k, res: EXTRACTORS[e.k].res, x: e.x, y: e.y, z: isInt(e.z) ? e.z : SURFACE, buffer: isNum(e.b) ? e.b : 0 }));
+    .map((e) => ({
+      key: e.k, res: EXTRACTORS[e.k].res, x: e.x, y: e.y, z: isInt(e.z) ? e.z : SURFACE, buffer: isNum(e.b) ? e.b : 0,
+      ...(typeof e.o === 'string' && /^[0-9a-f]{16}$/.test(e.o) ? { owner: e.o } : {})
+    }));
 
   const u = d.underground || {};
   s.underground = {

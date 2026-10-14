@@ -11,8 +11,8 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles } from './terrain.js';
-import { drawExtractor, drawPlayer, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
-import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawJoystick } from './overlay.js';
+import { drawExtractor, drawPlayer, drawFriend, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const FLICKER = 0.25;      // how much a glowcap's reach swells and fades, in tiles
@@ -32,6 +32,13 @@ export function render(cam, s, fx, view, look) {
     if (row) row.push(e); else byRow.set(e.y, [e]);
   }
   const playerRow = Math.floor(s.player.y);
+  // Friends in a shared world, on this layer, by row.
+  const friendRows = new Map();
+  for (const f of view.friends || []) {
+    if (f.z !== cam.z) continue;
+    const y = Math.floor(f.y), row = friendRows.get(y);
+    if (row) row.push(f); else friendRows.set(y, [f]);
+  }
   // Props on this layer, by row; the ones that light, as lights (a glowcap
   // pulses slowly, like something alive), and the beacons.
   const propRows = new Map();
@@ -55,6 +62,8 @@ export function render(cam, s, fx, view, look) {
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
+    const friends = friendRows.get(y);
+    if (friends) for (const f of friends) drawFriend(ctx, cam, s, look, f, view.friendColors[f.c]);
     if (y === playerRow) drawPlayer(ctx, cam, s, look, view);
   });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
@@ -71,6 +80,7 @@ export function render(cam, s, fx, view, look) {
   drawGlints(ctx, cam, s, look);
   drawFarHoles(ctx, cam, s, look);
   drawBeacons(ctx, cam, s, look, beacons);
+  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, view.friends, view.friendColors);
   drawJoystick(ctx, cam, view);
   return { tiles };
 }

@@ -149,7 +149,9 @@ export function placeProp(s, kind) {
   if (!canPlaceProp(s, kind) || !canAfford(s.inv, PROPS[kind].cost)) return { ok: false };
   pay(s.inv, PROPS[kind].cost);
   const { x, y } = feet(s);
-  s.world.props.set(packKey(x, y, s.player.z), kind);
+  const key = packKey(x, y, s.player.z);
+  s.world.props.set(key, kind);
+  if (s.world.edits) s.world.edits.push(['p', key, kind]);
   return { ok: true, x, y };
 }
 

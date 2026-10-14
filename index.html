@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
+<!-- What the page may load and run (test/unit/security.test.js keeps the
+     inline script's hash in step). connect-src names the room service. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eEhbGB8L7GioktMj0MvqRGI5IC+ZM5LBP0QJJPgTCL4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://mte-rooms.workers.dev wss://mte-rooms.workers.dev http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta name="referrer" content="no-referrer" />
 <title data-i18n="game.title"></title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -61,6 +65,7 @@
         shown = true;
         box.querySelector('strong').textContent = words.title;
         box.querySelector('button').textContent = words.reload;
+        box.querySelector('button').addEventListener('click', function () { location.reload(); });
         pre.textContent = words.game + ' v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
       }
       box.hidden = false;
@@ -101,6 +106,7 @@
       <div id="resources"></div>
       <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
     </div>
+    <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
     <pre id="perf" aria-live="off" hidden></pre>
     <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small><span class="label" data-i18n="hud.milestone"></span> <span class="of"></span></small><strong></strong></div>
   </div>
@@ -149,6 +155,11 @@
     <div id="sheetBody"></div>
     <div id="settingsPanel" hidden>
       <div class="setGroup">
+        <button id="btnTogether" class="setRow together" type="button" hidden><span id="togetherLabel"></span><b aria-hidden="true">&#9638;</b></button>
+        <button id="btnRejoin" class="setRow" type="button" hidden><span data-i18n="together.rejoin"></span></button>
+        <button id="btnLeave" class="setRow" type="button" hidden><span data-i18n="together.leave"></span></button>
+      </div>
+      <div class="setGroup">
         <button id="btnMute" class="setRow" type="button"><span data-i18n="settings.sound"></span><b id="muteState"></b></button>
         <button id="btnDrag" class="setRow" type="button" aria-pressed="false"><span data-i18n="sheet.drag"></span><b id="dragMode"></b></button>
         <button id="btnLanguage" class="setRow" type="button"><span data-i18n="sheet.language"></span><b data-i18n="language.name"></b></button>
@@ -181,6 +192,19 @@
       <div class="choices"><button type="button" class="secondary"></button><button type="button" class="primary"></button></div>
     </div>
   </div>
+  <!-- Holding up the QR: your wanderer lifts a sign with the code on it. -->
+  <div id="qr" class="scrim" role="dialog" aria-labelledby="qrTitle" hidden>
+    <div class="holdup">
+      <strong id="qrTitle" data-i18n="together.qr.title"></strong>
+      <div class="sign">
+        <div class="board"><canvas id="qrCanvas" width="280" height="280" role="img" data-i18n-aria-label="together.qr.title"></canvas></div>
+        <div class="stalk"></div>
+      </div>
+      <img class="holder" data-look="character.wanderer" data-slot="image" alt="">
+      <p data-i18n="together.qr.text"></p>
+      <div class="choices"><button id="qrDone" type="button" class="primary" data-i18n="together.qr.done"></button></div>
+    </div>
+  </div>
   <div id="fork" class="scrim" role="alertdialog" aria-labelledby="forkTitle" hidden>
     <div class="dialog">
       <strong id="forkTitle" data-i18n="fork.title"></strong>
@@ -190,7 +214,7 @@
   <div id="crash" role="alert" hidden>
     <strong></strong>
     <pre></pre>
-    <button type="button" onclick="location.reload()"></button>
+    <button type="button"></button>
   </div>
 
   <script type="module" src="src/game/main.js"></script>

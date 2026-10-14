@@ -106,14 +106,20 @@ export function extractorRate(s, key) {
 export function productionRates(s) {
   const rates = {};
   for (const r of RESOURCES) rates[r] = abundanceTrickle(s);
-  for (const e of s.extractors) rates[e.res] += extractorRate(s, e.key);
+  for (const e of s.extractors) if (ownBuilding(s, e)) rates[e.res] += extractorRate(s, e.key);
   return rates;
 }
 
 /* -------------------------------------------------------- extractors */
 
+// In a shared world the buildings of everyone in it stand in s.extractors;
+// a building works for whoever built it.
+export function ownBuilding(s, e) {
+  return !e.owner || e.owner === s.me;
+}
+
 export function extractorCount(s, key) {
-  return s.extractors.filter((e) => e.key === key).length;
+  return s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
 }
 
 export function extractorCost(s, key) {

@@ -76,6 +76,36 @@ canvas#game {
   display: flex; align-items: center; gap: 8px;
 }
 
+/* Friends in a shared world, under the top bar on the right: a chip each in
+   their colour, showing how they're doing. */
+#friends {
+  align-self: flex-end;
+  display: flex; gap: 6px;
+  pointer-events: none;
+}
+#friends[hidden] { display: none; }
+.friend {
+  display: flex; align-items: center; gap: 5px;
+  height: 30px; padding: 0 10px 0 7px;
+  border: 1px solid var(--panel-line); border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  color: var(--ink); font: 800 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  pointer-events: auto; touch-action: manipulation; cursor: pointer;
+}
+.friend i {
+  width: 12px; height: 12px; border-radius: 50%;
+  background: var(--friend); box-shadow: 0 0 0 2px rgba(0, 0, 0, .35);
+}
+.friend.away i { opacity: .7; }
+.friend.away::after { content: "z"; color: var(--ink-dim); font-size: 11px; }
+.friend.lost i { animation: friend-lost 1s ease-in-out infinite; }
+.friend.lost { border-color: rgba(255, 209, 102, .6); }
+.friend.offline { opacity: .5; }
+.friend.offline i { background: transparent; box-shadow: inset 0 0 0 2px var(--friend); }
+@keyframes friend-lost { 50% { opacity: .2; } }
+
 /* Round glass buttons on the top bar. */
 .hudBtn {
   position: relative;
@@ -582,7 +612,7 @@ canvas#game {
   text-align: left; text-decoration: none;
   touch-action: manipulation; cursor: pointer;
 }
-.setRow[hidden] { display: none; }
+.setRow[hidden], .setGroup[hidden] { display: none; }
 .setRow + .setRow { border-top: 1px solid var(--panel-line); }
 .setRow:active { background: var(--raised); }
 .setRow b {
@@ -592,6 +622,7 @@ canvas#game {
 .setRow b::first-letter { text-transform: uppercase; }
 .setGroup.danger { border-color: rgba(240, 138, 122, 0.3); }
 .setGroup.danger .setRow { justify-content: center; color: var(--danger); }
+.setRow.together { color: var(--green); font-weight: 800; }
 #version {
   align-self: center;
   font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
@@ -668,6 +699,52 @@ canvas#game {
 #fork .title { font-weight: 800; font-size: 15px; }
 #fork .title em { margin-left: 6px; font-style: normal; font-size: 12px; color: var(--green); }
 #fork .text { font-size: 13px; color: var(--ink-dim); }
+
+/* Playing together: the QR you hold up. Your wanderer stands at the
+   bottom and lifts a sign on a mushroom stalk; the code on it is big and on
+   white so a phone camera reads it at arm's length. */
+#qr { background: radial-gradient(circle at 50% 45%, rgba(18, 26, 21, 0.82), rgba(0, 0, 0, 0.88)); }
+#qr .holdup {
+  width: 100%; max-width: 360px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  text-align: center;
+}
+#qr strong { font-size: 21px; line-height: 1.2; text-shadow: 0 2px 8px rgba(0, 0, 0, .6); }
+#qr .sign { display: flex; flex-direction: column; align-items: center; transform-origin: 50% 100%; }
+#qr .board {
+  padding: 10px; border-radius: 18px;
+  background: linear-gradient(180deg, #d8704f, #a9452c);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .55), inset 0 2px 0 rgba(255, 255, 255, .25);
+}
+#qrCanvas {
+  display: block;
+  width: min(68vw, 38vh, 280px); height: auto; aspect-ratio: 1;
+  border-radius: 8px;
+  background: #fff; image-rendering: pixelated;
+}
+#qr .stalk { width: 12px; height: 34px; border-radius: 0 0 6px 6px; background: linear-gradient(90deg, #cdbf9f, #f3ead2 45%, #b9aa88); }
+#qr .holder { width: 76px; height: 76px; object-fit: contain; margin-top: -10px; image-rendering: auto; }
+#qr p { margin: 0; max-width: 300px; font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); }
+#qr .choices { display: flex; width: 100%; max-width: 300px; }
+#qr .choices button {
+  flex: 1 1 0; min-height: 48px; border-radius: 12px;
+  font: 800 15px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  border: 1px solid #a4ec92; background: linear-gradient(180deg, #6fcf62, #3f9a45); color: #08200b;
+  touch-action: manipulation; cursor: pointer;
+}
+/* Up it goes: the sign rises from behind the wanderer with a bounce, the
+   wanderer hops, then the sign sways a little in their hands. */
+#qr.up .sign { animation: sign-rise .6s cubic-bezier(.2, 1.6, .4, 1) both, sign-sway 3s ease-in-out .6s infinite; }
+#qr.up .holder { animation: holder-hop .45s ease-out both; }
+@keyframes sign-rise {
+  from { opacity: 0; transform: translateY(45%) scale(.35) rotate(-8deg); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sign-sway { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1.5deg); } }
+@keyframes holder-hop { 0% { transform: translateY(0); } 40% { transform: translateY(-14px) scaleY(1.05); } 100% { transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  #qr.up .sign, #qr.up .holder { animation: none; }
+}
 
 /* A texture pack that didn't load: every problem, by thing and slot. */
 .dialog.warn { border-color: rgba(255, 179, 71, 0.6); background: #1e160a; color: #ffe9cc; }

@@ -24,7 +24,8 @@ function jsFiles(dir) {
   });
 }
 
-const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))];
+// src/vendor/ holds other people's code, copied unchanged: not ours to check.
+const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].filter((f) => !f.includes(join('src', 'vendor')));
 const rel = (p) => relative(ROOT, p);
 
 // Relative imports of a file, as absolute paths.

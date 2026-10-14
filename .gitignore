@@ -9,3 +9,8 @@ site/
 
 # Regenerated on demand via structurizr/scripts/structurizr.mjs json (the DSL is the source of truth)
 structurizr/workspace.json
+
+# The room service's tools and local state (server/)
+node_modules/
+.wrangler/
+.dev.vars

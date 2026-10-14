@@ -50,6 +50,14 @@ export function findElements() {
     packReport: byId('packReport'),
     language: byId('btnLanguage'),
     fork: byId('fork'),
-    ask: byId('ask')
+    ask: byId('ask'),
+    together: byId('btnTogether'),
+    togetherLabel: byId('togetherLabel'),
+    leave: byId('btnLeave'),
+    rejoin: byId('btnRejoin'),
+    friends: byId('friends'),
+    qr: byId('qr'),
+    qrCanvas: byId('qrCanvas'),
+    qrDone: byId('qrDone')
   };
 }

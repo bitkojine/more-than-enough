@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.51.0] - 2026-10-14
+
+### Added
+- **Play together.** Settings → *Play together* puts your world online;
+  your wanderer lifts a sign with a QR code, a friend scans it with their
+  phone's camera and lands next to you. Up to four players share one world
+  (built for four, tested with two), each with their own packs, tools and
+  upgrades; buildings work for whoever built them. You see each other move
+  in real time, and how each friend is doing: online, away (sitting, with
+  z's), connection lost (flickering under a spinning arc) or offline (a
+  ghost where they left), with sparkles when they come back. Friends off
+  screen or on another layer get a pin at the edge. The world never stops
+  for anyone leaving, a lost connection comes back by itself, and you can
+  return to a shared world any time from Settings. No Embark in a shared
+  world. In English and Lithuanian.
+- **The room service** (`server/`): a Cloudflare Worker with a Durable
+  Object per shared world. It checks every message, limits how fast and how
+  much anyone can send, lets new players in only with a QR code that works
+  for 10 minutes, and lets the owner remove a player. See
+  `server/README.md`.
+
+### Security
+- The page has a Content-Security-Policy and sends no referrer.
+
 ## [0.50.0] - 2026-10-14
 
 ### Changed

@@ -23,11 +23,13 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  * @property {Set<number>} holes             tile keys (x, y, z) with a hole in layer z's floor, dug
  *                                           in older versions (now every way is generated; see terrain.js)
  * @property {Map<number, string>} props     tile key (x, y, z) -> the prop you placed there (a PROPS key)
+ * @property {Array|null} edits              in a shared world, every change to it, for the room
+ *                                           (see shared.js); null when playing alone
  */
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), props: new Map(), hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), props: new Map(), edits: null, hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -59,9 +61,15 @@ export function richness(w, x, y, z) {
 }
 
 export function setRichness(w, x, y, z, value) {
-  // Keep the edit map minimal: drop entries that match the generated baseline.
-  if (value === baseRichness(w, x, y, z)) w.mods.delete(packKey(x, y, z));
-  else w.mods.set(packKey(x, y, z), value);
+  const key = packKey(x, y, z);
+  putRichness(w, key, x, y, z, value);
+  if (w.edits) w.edits.push(['m', key, value]);
+}
+
+// Keep the edit map minimal: drop entries that match the generated baseline.
+export function putRichness(w, key, x, y, z, value) {
+  if (value === baseRichness(w, x, y, z)) w.mods.delete(key);
+  else w.mods.set(key, value);
 }
 
 export function tileAt(w, x, y, z) {

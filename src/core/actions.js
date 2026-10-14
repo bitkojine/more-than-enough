@@ -5,7 +5,7 @@ import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
-import { canAfford, pay, costText, gatherYield, extractorCost, earn } from './economy.js';
+import { canAfford, pay, costText, gatherYield, extractorCost, earn, ownBuilding } from './economy.js';
 import { mushroomAt } from './mushrooms.js';
 import { t } from '../i18n/i18n.js';
 
@@ -126,7 +126,7 @@ export function sweepTargets(s, points) {
 
 export function collectTarget(s) {
   const range2 = COLLECT_RANGE * COLLECT_RANGE;
-  const list = s.extractors.filter((e) => e.buffer >= 1 && tileDist2(s.player, e.x, e.y, e.z) <= range2);
+  const list = s.extractors.filter((e) => ownBuilding(s, e) && e.buffer >= 1 && tileDist2(s.player, e.x, e.y, e.z) <= range2);
   if (!list.length) return null;
   return { total: Math.floor(list.reduce((n, e) => n + e.buffer, 0)), list };
 }
@@ -180,7 +180,10 @@ export function place(s, key) {
   const cost = extractorCost(s, key);
   if (!canAfford(s.inv, cost)) return { ok: false, reason: t('reason.need', { cost: costText(cost) }) };
   pay(s.inv, cost);
-  s.extractors.push({ key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 });
+  const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
+  if (s.me) e.owner = s.me;
+  s.extractors.push(e);
+  if (s.world.edits) s.world.edits.push(['x', key, e.x, e.y, e.z]);
   s.stats.built += 1;
   return { ok: true, x: at.x, y: at.y, cost };
 }

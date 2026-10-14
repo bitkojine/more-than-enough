@@ -1,0 +1,14 @@
+{
+  "name": "mte-rooms",
+  "private": true,
+  "license": "MIT",
+  "description": "The room service that lets friends play More Than Enough together.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --var ALLOW_LOCALHOST:true",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.0"
+  }
+}
