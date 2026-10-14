@@ -52,7 +52,7 @@ function tileNotes(type) {
   return notes.join(' · ');
 }
 
-const surfaceTiles = [T.HOME, T.GRASS, T.FOREST, T.STONE, T.ORE, T.CRYSTAL, T.WATER, T.ROCK, T.CAVE];
+const surfaceTiles = [T.HOME, T.GRASS, T.FOREST, T.STONE, T.ORE, T.CRYSTAL, T.WATER, T.ROCK, T.WALL, T.HEDGE, T.CAVE];
 const undergroundTiles = [T.SOIL, T.STONE_SEAM, T.ORE_SEAM, T.CRYSTAL_SEAM, T.SPORE_BED, T.BEDROCK, T.CACHE, T.GEODE, T.SHAFT, T.SHAFT_OPEN, T.RISE, T.TUNNEL];
 
 // Table headings, by key.

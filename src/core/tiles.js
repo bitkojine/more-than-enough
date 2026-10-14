@@ -49,7 +49,10 @@ export const T = {
   CACHE: 17, GEODE: 18,
   // the generated ways between layers: a cave mouth in the forest, and the
   // foot of the ladder up beneath every way down
-  CAVE: 19, RISE: 20
+  CAVE: 19, RISE: 20,
+  // surface: the borders between regions people built, a dry stone wall
+  // and a living hedge (see regions.js)
+  WALL: 21, HEDGE: 22
 };
 
 // Each type's name, and the key a texture pack knows it by (look id "tile.<key>").
@@ -63,7 +66,7 @@ export const TILE_KEY = [];
   [T.CRYSTAL_SEAM, 'crystal-seam'], [T.SPORE_BED, 'spore-bed'],
   [T.BEDROCK, 'bedrock'], [T.SHAFT, 'shaft'], [T.SHAFT_OPEN, 'shaft-open'],
   [T.HOME, 'home'], [T.CACHE, 'cache'], [T.GEODE, 'geode'],
-  [T.CAVE, 'cave'], [T.RISE, 'rise']
+  [T.CAVE, 'cave'], [T.RISE, 'rise'], [T.WALL, 'wall'], [T.HEDGE, 'hedge']
 ].forEach(([type, key]) => { TILE_KEY[type] = key; TILE_NAME[type] = t('tile.' + key); });
 
 export const TILE_INFO = [];
@@ -88,6 +91,8 @@ TILE_INFO[T.CACHE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL
 TILE_INFO[T.GEODE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.CAVE] = { walk: true, descend: true };
 TILE_INFO[T.RISE] = { walk: true, rise: true };
+TILE_INFO[T.WALL] = { height: 0.5 };
+TILE_INFO[T.HEDGE] = { height: 0.7 };
 
 // The lowest and highest a tile's top can sit above its layer's floor.
 export const RELIEF_MIN = Math.min(...TILE_INFO.map((i) => (i.height || 0) - (i.rough || 0) / 2));

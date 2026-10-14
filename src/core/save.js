@@ -1,8 +1,8 @@
 /* Save format. A save is the seed plus every player edit, so the world can be
  * regenerated exactly. While the game is in active development a save from
  * another format version is rejected (and the player told) and a new world
- * starts. Formats 7 and 8 changed what land a seed grows (scarce, clustered
- * resources; then regions), so older worlds don't carry over. */
+ * starts. Formats 7 to 9 changed what land a seed grows (scarce, clustered
+ * resources; regions; walls and hedges), so older worlds don't carry over. */
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -10,7 +10,7 @@ import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 export function bytesToB64(u8) {
   let out = '';

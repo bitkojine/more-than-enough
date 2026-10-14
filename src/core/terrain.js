@@ -51,10 +51,13 @@ function share(key, far) {
 function surfaceType(seed, x, y) {
   if (x * x + y * y <= HOME_RADIUS * HOME_RADIUS) return T.HOME;
   // Each region's kind of land sets its water, peaks, forest and minerals
-  // (see regions.js); borders between regions are rivers and ridges.
+  // (see regions.js); borders between regions are rivers, ridges, walls
+  // and hedges, and a gap through one is open grass.
   const land = landAt(seed, x, y);
   if (land.border === 'river') return T.WATER;
   if (land.border === 'ridge') return T.ROCK;
+  if (land.border === 'wall') return T.WALL;
+  if (land.border === 'hedge') return T.HEDGE;
   if (land.border === 'pass') return T.GRASS;
   const biome = BIOMES[land.biome];
   const elevation = fbm(x * 0.06, y * 0.06, seed + 11, 4);

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.65.0] - 2026-10-14
+
+### Added
+- **Walls and hedges between regions.** Besides rivers and rocky ridges,
+  regions are now set apart by dry stone walls and flowering hedges, each
+  with gaps to walk through. Which borders a region gets depends on its
+  land: meadows like hedges, heaths and highlands walls and ridges, lakes
+  and fens rivers. Saves from before this start a new world.
+
 ## [0.64.0] - 2026-10-14
 
 ### Added

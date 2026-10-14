@@ -70,6 +70,16 @@
    "top": "ground/mountain.svg",
    "face": "faces/rock.svg"
   },
+  "tile.wall": {
+   "color": "#7f7a6c",
+   "top": "ground/wall.svg",
+   "face": "faces/wall.svg"
+  },
+  "tile.hedge": {
+   "color": "#3d6a33",
+   "top": "ground/hedge.svg",
+   "face": "faces/hedge.svg"
+  },
   "tile.tunnel": {
    "color": "#5a4836",
    "top": "ground/tunnel.svg"

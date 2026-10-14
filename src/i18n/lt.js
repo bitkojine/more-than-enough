@@ -79,6 +79,8 @@ export default {
   "tile.home": "Namų žemė",
   "tile.cave": "Urvo anga",
   "tile.rise": "Kelias aukštyn",
+  "tile.wall": "Akmenų mūras",
+  "tile.hedge": "Gyvatvorė",
 
   "res.mycelium": "Grybiena",
   "res.mycelium.lower": "grybiena",
@@ -645,6 +647,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.65.0": "Kai kuriuos kraštus dabar juosia akmenų mūrai ar gyvatvorės su tarpais praeiti.\nŠis atnaujinimas pradeda naują pasaulį.",
   "news.0.64.0": "Kvietimų nuorodos galioja visą parą, o nuleidus lentelę jos nebesustoja.\nNustatymai → Kvietimų nuorodos: matyk visas nuorodas, kiek draugų su kiekviena prisijungė, ir sustabdyk bet kurią.",
   "news.0.63.0": "Ši kortelė: žaidimui atsinaujinus, ji parodo, kas nauja.\nŽaidimas visada naujausios versijos: jis atsinaujina vos tik ji pasirodo.",
   "news.0.62.0": "Pasaulio žemėlapis: mygtukas po mastelio juosta parodo visą tavo išžvalgytą žemę, regionų pavadinimus, namus ir tave.\nRegionų pavadinimai nebesirodo virš atverto meniu.",

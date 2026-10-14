@@ -2,7 +2,8 @@
  * walk across, the way RuneScape's world is a patchwork of areas you learn by
  * name and by ear. Each region has a kind of land (BIOMES) that shapes what
  * grows and stands there, a name, and its own music; between two regions runs
- * a border you can see: a river or a rocky ridge with passes through it.
+ * a border you can see: a river, a rocky ridge, a dry stone wall or a hedge,
+ * with gaps to get through (all but rivers, which you swim).
  *
  * Regions are a pure function of (seed, x, y), like the terrain. Each lies
  * around a site: one per REGION_SIZE square, jittered, the home region's on
@@ -16,21 +17,30 @@ export const REGION_SIZE = 300;    // tiles: one region per square this wide, on
 const JITTER = 0.6;                // how far a site strays from its square's middle (share of the square)
 const WARP = 56;                   // tiles: how far borders bend
 const WARP_SCALE = 0.007;
-export const BORDER_WIDTH = 3;     // tiles across a border
-const PASS_SHARE = 0.3;            // of a ridge's length, open passes through it
+// Each kind of border: how many tiles across it is, and how much of its
+// length is open (a pass through a ridge, a gap in a wall or hedge).
+export const BORDERS = {
+  river: { width: 3, open: 0 },
+  ridge: { width: 3, open: 0.3 },
+  wall: { width: 1.6, open: 0.22 },
+  hedge: { width: 1.6, open: 0.22 }
+};
+const WIDEST = Math.max(...Object.values(BORDERS).map((b) => b.width));
+const NEAR_BORDER = WIDEST * 3;   // closer than this, a border's width is measured in tiles
 
 /* Kinds of land. `water` and `peaks` are the elevation cut-offs for lakes and
  * mountains (higher water, more lakes; lower peaks, more mountains); `forest`
  * and `lode` scale how much of the land is forest and mineral country (see
  * terrain.js); `music` is the track that plays there (game/music/score.js);
- * `names` how many names it has (region.<kind>.<n> in the i18n files). */
+ * `names` how many names it has (region.<kind>.<n> in the i18n files);
+ * `borders` the kinds of border it likes at its edges (see BORDERS). */
 export const BIOMES = {
-  meadow: { water: 0.28, peaks: 0.8, forest: 0.8, lode: 1, music: 'meadow', weight: 3, names: 10 },
-  woods: { water: 0.26, peaks: 0.82, forest: 3, lode: 0.5, music: 'forest', weight: 3, names: 10 },
-  lakes: { water: 0.45, peaks: 0.84, forest: 1, lode: 0.7, music: 'water', weight: 2, names: 10 },
-  highlands: { water: 0.2, peaks: 0.64, forest: 0.5, lode: 1.8, music: 'meadow', weight: 2, names: 10 },
-  fen: { water: 0.4, peaks: 0.88, forest: 1.8, lode: 0.3, music: 'water', weight: 2, names: 10 },
-  heath: { water: 0.22, peaks: 0.74, forest: 0.2, lode: 1.4, music: 'meadow', weight: 2, names: 10 }
+  meadow: { water: 0.28, peaks: 0.8, forest: 0.8, lode: 1, music: 'meadow', weight: 3, names: 10, borders: ['hedge', 'wall', 'river'] },
+  woods: { water: 0.26, peaks: 0.82, forest: 3, lode: 0.5, music: 'forest', weight: 3, names: 10, borders: ['hedge', 'river'] },
+  lakes: { water: 0.45, peaks: 0.84, forest: 1, lode: 0.7, music: 'water', weight: 2, names: 10, borders: ['river'] },
+  highlands: { water: 0.2, peaks: 0.64, forest: 0.5, lode: 1.8, music: 'meadow', weight: 2, names: 10, borders: ['ridge', 'wall'] },
+  fen: { water: 0.4, peaks: 0.88, forest: 1.8, lode: 0.3, music: 'water', weight: 2, names: 10, borders: ['river', 'hedge'] },
+  heath: { water: 0.22, peaks: 0.74, forest: 0.2, lode: 1.4, music: 'meadow', weight: 2, names: 10, borders: ['wall', 'ridge'] }
 };
 export const BIOME_KEYS = Object.keys(BIOMES);
 // The home region is always gentle meadow, so every world starts the same way.
@@ -71,41 +81,55 @@ export function region(seed, cx, cy) {
  * the one nearest across the border, and how far it is from that border in
  * tiles.
  */
+const warped = (seed, x, y) => ({
+  x: x + (fbm(x * WARP_SCALE, y * WARP_SCALE, seed + 863, 3) - 0.5) * 2 * WARP,
+  y: y + (fbm(x * WARP_SCALE + 40, y * WARP_SCALE - 70, seed + 877, 3) - 0.5) * 2 * WARP
+});
+
 export function regionPlace(seed, x, y) {
-  const wx = x + (fbm(x * WARP_SCALE, y * WARP_SCALE, seed + 863, 3) - 0.5) * 2 * WARP;
-  const wy = y + (fbm(x * WARP_SCALE + 40, y * WARP_SCALE - 70, seed + 877, 3) - 0.5) * 2 * WARP;
-  const qx = square(wx), qy = square(wy);
+  const w = warped(seed, x, y);
+  const qx = square(w.x), qy = square(w.y);
   let a = null, b = null;
   for (let dy = -1; dy <= 1; dy++) {
     for (let dx = -1; dx <= 1; dx++) {
       const s = regionSite(seed, qx + dx, qy + dy);
-      const d = (s.x - wx) ** 2 + (s.y - wy) ** 2;
+      const d = (s.x - w.x) ** 2 + (s.y - w.y) ** 2;
       const c = { cx: qx + dx, cy: qy + dy, x: s.x, y: s.y, d };
       if (!a || d < a.d) { b = a; a = c; } else if (!b || d < b.d) b = c;
     }
   }
-  // Distance to the line halfway between the two sites.
-  const edge = (b.d - a.d) / (2 * Math.hypot(b.x - a.x, b.y - a.y));
+  // Distance to the line halfway between the two sites. The bending
+  // stretches the land in places, so near a border it's measured back in
+  // tiles: divided by how far one tile's step moves the bent point there.
+  let edge = (b.d - a.d) / (2 * Math.hypot(b.x - a.x, b.y - a.y));
+  if (edge < NEAR_BORDER) {
+    const ex = warped(seed, x + 1, y), ey = warped(seed, x, y + 1);
+    edge /= Math.max(1, Math.hypot(ex.x - w.x, ex.y - w.y), Math.hypot(ey.x - w.x, ey.y - w.y));
+  }
   return { cx: a.cx, cy: a.cy, ox: b.cx, oy: b.cy, edge };
 }
 
-// What kind of border runs between squares a and b: the same seen from either side.
+// What kind of border runs between squares a and b, picked from the kinds
+// either side likes: the same seen from either side.
 export function borderKind(seed, ax, ay, bx, by) {
   const [p, q] = ax < bx || (ax === bx && ay < by) ? [[ax, ay], [bx, by]] : [[bx, by], [ax, ay]];
-  return hash2(p[0] * 31 + q[0], p[1] * 31 + q[1], seed + 887) < 0.5 ? 'river' : 'ridge';
+  const kinds = [...new Set([...BIOMES[pickBiome(seed, p[0], p[1])].borders, ...BIOMES[pickBiome(seed, q[0], q[1])].borders])];
+  return kinds[Math.floor(hash2(p[0] * 31 + q[0], p[1] * 31 + q[1], seed + 887) * kinds.length)];
 }
 
 /**
  * The land at (x, y), for the terrain: its kind of land, and the border tile
- * there if it's on one ('river', 'ridge' or 'pass', a gap in a ridge), else null.
+ * there if it's on one ('river', 'ridge', 'wall', 'hedge', or 'pass' for a gap
+ * in one), else null.
  */
 export function landAt(seed, x, y) {
   const p = regionPlace(seed, x, y);
   const biome = pickBiome(seed, p.cx, p.cy);
   let border = null;
-  if (p.edge < BORDER_WIDTH / 2) {
-    border = borderKind(seed, p.cx, p.cy, p.ox, p.oy);
-    if (border === 'ridge' && valueNoise(x * 0.035, y * 0.035, seed + 893) < PASS_SHARE) border = 'pass';
+  if (p.edge < WIDEST / 2) {
+    const kind = borderKind(seed, p.cx, p.cy, p.ox, p.oy);
+    const b = BORDERS[kind];
+    if (p.edge < b.width / 2) border = valueNoise(x * 0.08, y * 0.08, seed + 893) < b.open ? 'pass' : kind;
   }
   return { biome, border, cx: p.cx, cy: p.cy };
 }

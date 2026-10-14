@@ -26,7 +26,7 @@ test('regions are big: a long walk from home in any direction before the next', 
   }
 });
 
-test('a border runs between any two regions: a river, a ridge, or a pass through it', () => {
+test('a border runs between any two regions: a river, a ridge, a wall or a hedge, with gaps', () => {
   const w = C.createWorld(SEED);
   const kinds = new Set();
   let crossings = 0;
@@ -38,11 +38,11 @@ test('a border runs between any two regions: a river, a ridge, or a pass through
       assert.ok(a.border || b.border, 'a border at ' + x + ',' + y);
       kinds.add(a.border || b.border);
       const t = C.tileAt(w, a.border ? x : x + 1, y, C.SURFACE);
-      assert.ok([T.WATER, T.ROCK, T.GRASS, T.CAVE].includes(t), 'border tile ' + t);
+      assert.ok([T.WATER, T.ROCK, T.WALL, T.HEDGE, T.GRASS, T.CAVE].includes(t), 'border tile ' + t);
     }
   }
   assert.ok(crossings > 50);
-  assert.deepEqual([...kinds].sort(), ['pass', 'ridge', 'river']);
+  assert.deepEqual([...kinds].sort(), ['hedge', 'pass', 'ridge', 'river', 'wall']);
 });
 
 test('kinds of land differ: woods are wooded, lakes wet, highlands rocky', () => {
