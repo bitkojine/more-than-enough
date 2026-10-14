@@ -19,6 +19,8 @@ export function findElements() {
     settings: byId('btnSettings'),
     settingsPanel: byId('settingsPanel'),
     mapPanel: byId('mapPanel'),
+    invitesPanel: byId('invitesPanel'),
+    invitesBtn: byId('btnInvites'),
     worldMap: byId('worldMap'),
     map: byId('btnMap'),
     mapIn: byId('btnMapIn'),

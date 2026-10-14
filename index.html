@@ -169,8 +169,12 @@
         <button id="btnMapMe" type="button" data-i18n-aria-label="map.centre"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg></button>
       </div>
     </div>
+    <!-- Invite links (playing together): each one, who made it, how many
+         joined with it, and a way to stop it. Filled by src/game/together.js. -->
+    <div id="invitesPanel" hidden></div>
     <div id="settingsPanel" hidden>
       <div class="setGroup">
+        <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>
         <button id="btnRejoin" class="setRow" type="button" hidden><span data-i18n="together.rejoin"></span></button>
         <button id="btnLeave" class="setRow" type="button" hidden><span data-i18n="together.leave"></span></button>
       </div>

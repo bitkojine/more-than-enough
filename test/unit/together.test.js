@@ -113,10 +113,32 @@ test('room: new players need a live invite; members come back with their key', a
   assert.equal(JSON.stringify(f.welcome).includes(friendKey), false, 'the key never comes back');
   // Back later, long after the invite: the key alone is enough.
   assert.equal((await r.join(friendKey, undefined, T0 + 10 * INVITE_MS)).id, f.id);
-  // Putting the sign down ends that invite at once.
+  // A stopped link stops letting anyone new in.
   const code2 = invite(r, o.id);
-  r.message(o.id, JSON.stringify({ t: 'uninvite', code: code2 }), T0);
+  r.message(o.id, JSON.stringify({ t: 'revoke', code: code2 }), T0);
   assert.equal((await r.join(key(), code2, T0)).error, 'invite');
+});
+
+test('room: invite links last a day, count who joined, and can be listed and stopped', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  assert.ok(INVITE_MS >= 12 * 3600_000, 'a link works for at least 12 hours');
+  const code = invite(r, o.id);
+  assert.equal(invite(r, o.id, T0 + 3600_000), code, 'holding the sign up again shows the same link');
+  const a = await r.join(key(), code, T0 + 11 * 3600_000);
+  const b = await r.join(key(), code, T0 + 12 * 3600_000);
+  assert.ok(a.id && b.id, 'one link lets several friends in, for hours');
+  const mine = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0];
+  assert.deepEqual(mine.list.map((e) => [e[0], e[1], e[4], e[5]]), [[code, o.id, 2, false]], 'the owner sees who made it and its uses');
+  const theirs = invite(r, a.id);
+  assert.notEqual(theirs, code);
+  assert.equal(r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.length, 2, 'the owner sees every link');
+  assert.deepEqual(r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.map((e) => e[0]), [theirs], 'others see only their own');
+  assert.ok(r.message(b.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).drop, "nobody stops someone else's link but the owner");
+  const after = r.message(o.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).toSelf[0];
+  assert.equal(after.list.find((e) => e[0] === theirs)[5], true);
+  assert.equal((await r.join(key(), theirs, T0)).error, 'invite', 'a stopped link lets nobody in');
+  assert.notEqual(invite(r, a.id), theirs, 'a stopped link is not shown again');
 });
 
 test('room: holds at most four players', async () => {

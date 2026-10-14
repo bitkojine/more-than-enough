@@ -9,10 +9,15 @@
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
  *                  away {a}                game hidden (true) or back (false)
+ *                  invite                  hold up the sign: your invite link, please
+ *                  invites                 the invite links you may see (all, for the owner)
+ *                  revoke {code}           stop an invite link (the owner any, others their own)
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved
  *                  edits {id, e: [...]}    the world changed (yours echoed too)
  *                  status {id, st, c, p?}  a friend's state changed
+ *                  invite {code, until}    the link for your sign (lasts a day)
+ *                  invites {list}          [code, by, made, until, uses, stopped] newest first
  *                  full / bad              why the room is closing on you
  */
 

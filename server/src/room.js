@@ -16,8 +16,10 @@ import {
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
 export const MOD_BUCKETS = 16;               // richness edits are stored in this many pieces
-export const INVITE_MS = 10 * 60_000;        // a QR lets new friends in for this long
-const MAX_INVITES = 4;
+export const INVITE_MS = 24 * 3600_000;      // an invite link lets new friends in for a day
+export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
+const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
+const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -36,8 +38,10 @@ export class Room {
     this.ext = [];               // [kind, x, y, z, owner]
     this.extTiles = new Set();
     this.players = new Map();    // id -> {c, st, p, save, lostAt}
-    // Invite codes (the code in a QR) -> when they stop working. Only a new
-    // player needs one; anyone already in the world comes back with their key.
+    // Invite links (the code in a QR) -> {by, made, until, uses, off}: who
+    // made it, when, until when it works, how many joined with it, and
+    // whether it was stopped. Only a new player needs one; anyone already in
+    // the world comes back with their key.
     this.invites = new Map();
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
@@ -56,7 +60,7 @@ export class Room {
     const meta = entries.get('meta');
     if (!meta) return r;
     Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, ready: true });
-    r.invites = new Map(meta.inv || []);
+    r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
       else if (k.startsWith('p:')) r.players.set(k.slice(2), v);
@@ -125,9 +129,11 @@ export class Room {
     const id = await playerId(this.id, key);
     let pl = this.players.get(id);
     if (!pl) {
-      const until = typeof code === 'string' ? this.invites.get(code) : undefined;
-      if (!until || until < now) return { error: 'invite' };
+      const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
+      if (!inv || inv.off || inv.until < now) return { error: 'invite' };
       if (this.players.size >= LIMITS.players) return { error: 'full' };
+      inv.uses++;
+      this.dirty.meta = true;
       const used = new Set([...this.players.values()].map((p) => p.c));
       let c = 0;
       while (used.has(c) && c < COLOR_COUNT - 1) c++;
@@ -139,6 +145,17 @@ export class Room {
     this.touch(now);
     this.dirty.players.add(id);
     return { id, welcome: this.welcome(id, now) };
+  }
+
+  // The invite links someone may see and stop: all of them for the owner,
+  // their own for anyone else. Newest first.
+  inviteList(id) {
+    const list = [];
+    for (const [code, inv] of this.invites) {
+      if (id === this.owner || inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off]);
+    }
+    list.sort((a, b) => b[2] - a[2]);
+    return { t: 'invites', list: list.slice(0, INVITE_LIST) };
   }
 
   // The world's clock at `now`: seconds of game time, the same for everyone.
@@ -243,18 +260,33 @@ export class Room {
       return this.setStatus(id, d.a === true ? 'away' : 'online');
     }
     if (d.t === 'invite') {
-      // Anyone in the world may hold up the QR; old codes are dropped.
-      for (const [c, until] of this.invites) if (until < now) this.invites.delete(c);
-      if (this.invites.size >= MAX_INVITES) this.invites.delete(this.invites.keys().next().value);
-      const code = randomRoomId();
-      this.invites.set(code, now + INVITE_MS);
-      this.dirty.meta = true;
-      return { toSelf: [{ t: 'invite', code, until: now + INVITE_MS }] };
+      // Anyone in the world may hold up the QR. It shows your newest link
+      // while that still has a while to go, else a new one.
+      let code = null, newest = 0;
+      for (const [c, inv] of this.invites) {
+        if (inv.by === id && !inv.off && inv.until - now >= REUSE_MS && inv.made >= newest) { code = c; newest = inv.made; }
+      }
+      if (!code) {
+        if (this.invites.size >= MAX_INVITES) {
+          // Make room by forgetting the oldest link that no longer works.
+          let dead = null;
+          for (const [c, inv] of this.invites) if ((inv.off || inv.until < now) && (!dead || inv.made < this.invites.get(dead).made)) dead = c;
+          if (!dead) return { toSelf: [{ t: 'invitesFull' }] };
+          this.invites.delete(dead);
+        }
+        code = randomRoomId();
+        this.invites.set(code, { by: id, made: now, until: now + INVITE_MS, uses: 0, off: false });
+        this.dirty.meta = true;
+      }
+      return { toSelf: [{ t: 'invite', code, until: this.invites.get(code).until }] };
     }
-    if (d.t === 'uninvite') {
-      // The sign went down: its code stops working.
-      if (typeof d.code === 'string' && this.invites.delete(d.code)) this.dirty.meta = true;
-      return {};
+    if (d.t === 'invites') return { toSelf: [this.inviteList(id)] };
+    if (d.t === 'revoke') {
+      // The owner stops any link; anyone else only their own.
+      const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
+      if (!inv || (id !== this.owner && inv.by !== id)) return { drop: true };
+      if (!inv.off) { inv.off = true; this.dirty.meta = true; }
+      return { toSelf: [this.inviteList(id)] };
     }
     if (d.t === 'remove') {
       // Only the world's owner removes a player, never themselves.

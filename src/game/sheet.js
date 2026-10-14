@@ -10,7 +10,9 @@ import { fmt, fmt1, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t, listOr, capitalize } from '../i18n/i18n.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')]]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')]]));
+// Screens that are a panel of their own rather than rendered rows.
+const PANELS = { settings: 'settingsPanel', map: 'mapPanel', invites: 'invitesPanel' };
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
@@ -237,7 +239,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     return html + '</div>';
   }
 
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected, settings: () => '', map: () => '' };
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected, settings: () => '', map: () => '', invites: () => '' };
 
   function render() {
     el.sheetBody.innerHTML = RENDER[tab](getState());
@@ -257,7 +259,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     });
   }
   function refresh() {
-    if (tab === 'settings') return;
+    if (PANELS[tab]) return;
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
     // Nothing to tap in Collected: swap in just the rows and cards that changed.
@@ -295,12 +297,11 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     tab = next;
     el.sheetTitle.textContent = TITLES[tab];
     for (const t of el.tabs) t.classList.toggle('active', t.dataset.tab === tab);
-    // Settings, the map and Collected show their title instead of the tabs.
+    // Settings, the map, invite links and Collected show their title instead
+    // of the tabs.
     el.sheet.dataset.tab = tab;
-    const settings = tab === 'settings', map = tab === 'map';
-    el.settingsPanel.hidden = !settings;
-    el.mapPanel.hidden = !map;
-    el.sheetBody.hidden = settings || map;
+    for (const [screen, panel] of Object.entries(PANELS)) el[panel].hidden = screen !== tab;
+    el.sheetBody.hidden = !!PANELS[tab];
     render();
     onTab(tab);
   }

@@ -117,6 +117,7 @@ const game = {
   changedMode() {
     const shared = !!game.state.shared;
     el.leave.hidden = !shared;
+    el.invitesBtn.hidden = !shared;
     el.rejoin.hidden = !together.canRejoin;
     el.reset.closest('.setGroup').hidden = shared; // no starting over a world you share
     together.refresh();
@@ -149,7 +150,7 @@ onSavedElsewhere(checkFork);
 const ask = createAsk(el.ask);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: updater.check });
+const together = createTogether({ game, hud, ask: ask.ask, el, friendJoined: updater.check, closeSheet: () => sheet.close() });
 const actor = createActor(); // what the wanderer is doing, to animate it
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor });
 
@@ -160,6 +161,7 @@ const sheet = createSheet(el, {
   onTab: (tab) => {
     if (tab === 'awards') hud.awardsSeen();
     if (tab === 'map') worldMap.show();
+    if (tab === 'invites') together.listInvites();
   },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
@@ -205,6 +207,7 @@ el.resources.addEventListener('click', (e) => {
 el.mine.addEventListener('click', controller.toggleMine);
 el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
 el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
+el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 el.reset.addEventListener('click', controller.reset);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.

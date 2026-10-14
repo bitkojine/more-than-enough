@@ -16,8 +16,10 @@ shared with the game.
    with your secret key. Your id in that room is a hash of the room and the
    key, so nobody can pose as you without the key, and ids differ from room
    to room.
-3. Holding up the sign asks the room for an **invite**: a second random code,
-   good for 10 minutes or until the sign goes down. The QR is
+3. Holding up the sign asks the room for an **invite link**: a second random
+   code, good for a day (your sign keeps showing your newest one while it has
+   an hour left). The room counts how many joined with each link; the owner
+   can list and stop every link, anyone else their own. The QR is
    `<game>#join=<room>.<invite>`. It's in the fragment, which browsers never
    send to any server.
 4. A friend's phone opens that link, connects and shows the invite once.

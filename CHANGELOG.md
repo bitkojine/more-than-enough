@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.64.0] - 2026-10-14
+
+### Added
+- **Invite links you can manage, like Discord's.** An invite link now works
+  for a whole day, and putting your sign down no longer stops it; holding
+  it up again shows the same link. Settings → *Invite links* lists every
+  link you made (the world's owner sees everyone's), newest first: who made
+  it, how many friends joined with it, and how long it still works, with
+  *Show* to hold it up again and *Stop* to turn it off at once. In English
+  and Lithuanian.
+
 ## [0.63.0] - 2026-10-14
 
 ### Added

@@ -102,6 +102,20 @@ const NAMES = ['moss', 'fern', 'acorn', 'clover', 'hazel', 'birch', 'willow', 'j
 
 /* ------------------------------------------------- what the room sends */
 
+// The invite links the room lists, or null if the list doesn't fit.
+function cleanInvites(list) {
+  if (!Array.isArray(list) || list.length > 100) return null;
+  const out = [];
+  for (const e of list) {
+    if (!Array.isArray(e) || e.length !== 6) return null;
+    const [code, by, made, until, uses, off] = e;
+    if (typeof code !== 'string' || !ROOM_ID_RE.test(code) || typeof by !== 'string' || !ID_RE.test(by) ||
+        !Number.isSafeInteger(made) || !Number.isSafeInteger(until) || !Number.isSafeInteger(uses) || uses < 0 || typeof off !== 'boolean') return null;
+    out.push({ code, by, made, until, uses, off });
+  }
+  return out;
+}
+
 function cleanPlayers(players) {
   if (!players || typeof players !== 'object' || Array.isArray(players)) return null;
   const out = new Map();
@@ -129,7 +143,7 @@ function cleanWelcome(d) {
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) {
+export function createTogether({ game, hud, ask, el, friendJoined = () => {}, closeSheet = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -245,8 +259,13 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
       return;
     }
     if (d.t === 'invite') {
-      if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || typeof d.until !== 'number') return;
-      openQr(d.code);
+      if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until)) return;
+      openQr(d.code, d.until);
+    }
+    if (d.t === 'invitesFull') hud.toast(t('invites.full'));
+    if (d.t === 'invites') {
+      const list = cleanInvites(d.list);
+      if (list) renderInvites(list);
     }
   }
 
@@ -388,18 +407,83 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
 
   // The room gave us an invite: up goes the sign with its code. Your
   // wanderer holds it in the world (render/sprites.js drawSign).
-  function openQr(inviteCode) {
-    invite = { code: inviteCode, until: Date.now() + 10 * 60_000 };
+  function openQr(inviteCode, until) {
+    invite = { code: inviteCode, until };
     // In the fragment (#), which browsers never send to any server: the
     // invite reaches the friend's phone and nowhere else.
     signFace = qrCanvas(location.origin + location.pathname + '#join=' + room + '.' + inviteCode);
     renderButton();
   }
 
+  // The sign goes down; its link keeps working (see Invite links).
   function closeQr() {
-    if (invite) send({ t: 'uninvite', code: invite.code });
     invite = null;
     renderButton();
+  }
+
+  /* ------------------------------------------------------ invite links */
+
+  // Every invite link you may see (all of them for the world's owner), with
+  // who made it, how many joined with it, and Show and Stop. Built from
+  // elements and text only, never HTML.
+  function listInvites() {
+    el.invitesPanel.replaceChildren(note(t(welcomed ? 'invites.loading' : 'together.toast.offline')));
+    send({ t: 'invites' });
+  }
+
+  function note(text) {
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = text;
+    return p;
+  }
+
+  function renderInvites(list) {
+    const box = el.invitesPanel;
+    if (!list.length) { box.replaceChildren(note(t('invites.empty'))); return; }
+    const now = Date.now();
+    box.replaceChildren(...list.map((inv) => {
+      const works = !inv.off && inv.until > now;
+      const row = document.createElement('div');
+      row.className = 'invite' + (works ? '' : ' dead');
+      const by = inv.by === me ? myColor : friends.get(inv.by)?.c;
+      row.style.setProperty('--friend', by === undefined ? 'var(--ink-dim)' : FRIEND_COLORS[by]);
+      const dot = document.createElement('i');
+      const text = document.createElement('div');
+      const title = document.createElement('strong');
+      title.textContent = inv.by === me ? t('invites.yours') : t('invites.theirs', { name: nameOf(inv.by) || t('invites.someone') });
+      const sub = document.createElement('small');
+      const state = inv.off ? t('invites.stopped') : inv.until <= now ? t('invites.expired') : t('invites.left', { time: timeLeft(inv.until - now) });
+      sub.textContent = t('invites.uses', { n: inv.uses }) + ' · ' + state;
+      text.append(title, sub);
+      row.append(dot, text);
+      if (works) {
+        if (inv.by === me) row.append(button(t('invites.show'), '', () => { closeSheet(); openQr(inv.code, inv.until); }));
+        row.append(button(t('invites.stop'), 'stop', () => revoke(inv.code)));
+      }
+      return row;
+    }));
+  }
+
+  function button(label, cls, onClick) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = cls;
+    b.textContent = label;
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function timeLeft(ms) {
+    const min = Math.max(1, Math.round(ms / 60_000));
+    return min < 60 ? t('invites.minutes', { n: min }) : t('invites.hours', { n: Math.round(min / 60) });
+  }
+
+  async function revoke(inviteCode) {
+    const yes = await ask({ title: t('invites.stopAsk.title'), text: t('invites.stopAsk.text'), yes: t('invites.stopAsk.yes'), danger: true });
+    if (!yes) return;
+    if (invite && invite.code === inviteCode) closeQr();
+    send({ t: 'revoke', code: inviteCode });
   }
 
   // The main Invite button: holds up your sign (going online first if this
@@ -555,6 +639,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     resume,
     joinFromLink,
     showInvite,
+    listInvites,
     away(hidden) {
       send({ t: 'away', a: hidden });
       if (hidden) save(game.state, true);
