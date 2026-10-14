@@ -9,6 +9,8 @@
  *    (it must come from t() instead): a line can opt out with a trailing
  *    `// i18n-ok: <why>` comment, for text that is not for the player;
  *  - the pages' static markup holds no words, only data-i18n keys;
+ *  - nothing names one kind of device ("tap", "phone", "keyboard") except
+ *    inside a {phone:…|laptop:…} choice, so the text fits what you play on;
  *  - the whole game's content loads in every language. */
 
 import { test } from 'node:test';
@@ -17,7 +19,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { LANGUAGES } from '../../src/i18n/i18n.js';
+import { LANGUAGES, DEVICE_CHOICE } from '../../src/i18n/i18n.js';
 import wikiEn from '../../wiki/i18n/en.js';
 import wikiLt from '../../wiki/i18n/lt.js';
 
@@ -212,6 +214,47 @@ test("the crash screen's own words exist in every language", () => {
   for (const code of CODES) {
     assert.deepEqual(Object.keys(crash[code]).sort(), Object.keys(crash.en).sort(), `CRASH_TEXT.${code} keys`);
     for (const [k, v] of Object.entries(crash[code])) assert.ok(v.trim(), `CRASH_TEXT.${code}.${k} is empty`);
+  }
+});
+
+/* ------------------------------------------ text fits what you play on */
+
+// Words that only fit a phone or only a computer, in both languages.
+const DEVICE_WORDS = [
+  /\b(phones?|laptops?|computers?|desktops?|taps?|tapp(?:ed|ing)|click(?:s|ed|ing)?|fingers?|thumbs?|mouse|keyboard|trackpad|pinch(?:es|ing)?|swipe[sd]?)\b/i,
+  /(telefon|kompiuter|nešiojam|bakst|palie[sčt]|spustel|spragtel|piršt|nykšt|klaviatūr|(?<!\p{L})pel(?:ė|ės|e|ę|ei)(?!\p{L})|nubrauk|sugnyb)/iu
+];
+// Texture-slot descriptions name the picture they hold, not your device.
+const NAMES_A_PICTURE = /^look\.character\.(phone|laptop)/;
+
+test('device-specific words only appear inside a {phone:…|laptop:…} choice', () => {
+  const found = [];
+  for (const [name, dicts] of [['game', GAME], ['wiki', WIKI]]) {
+    for (const code of CODES) {
+      for (const [key, value] of Object.entries(dicts[code])) {
+        if (NAMES_A_PICTURE.test(key)) continue;
+        for (const form of typeof value === 'string' ? [value] : Object.values(value)) {
+          assert.ok(!form.replace(DEVICE_CHOICE, '').includes('{phone:'), `${code} ${name} "${key}" has a broken {phone:…|laptop:…} choice`);
+          const rest = form.replace(DEVICE_CHOICE, '').replace(/<[^>]*>/g, ' ');
+          for (const re of DEVICE_WORDS) {
+            const m = rest.match(re);
+            if (m) found.push(`${code} ${name} "${key}": "${m[0]}"`);
+          }
+        }
+      }
+    }
+  }
+  assert.deepEqual(found, [], 'say it for both devices: {phone:tap|laptop:click}');
+});
+
+test('a {phone:…|laptop:…} choice shows only the part for this device', () => {
+  for (const device of ['phone', 'laptop']) {
+    const script = `
+      const { t, addStrings } = await import(${JSON.stringify(new URL('../../src/i18n/i18n.js', import.meta.url).href)});
+      addStrings({ en: { 'x.test': '{phone:Tap|laptop:Click} {n} here, {phone:on this phone|laptop:on this laptop}' }, lt: { 'x.test': '{phone:a|laptop:b} {n}' } });
+      console.log(t('x.test', { n: 2 }));`;
+    const out = execFileSync(process.execPath, ['--input-type=module', '-e', script], { env: { ...process.env, MTE_LANG: 'en', MTE_DEVICE: device } }).toString().trim();
+    assert.equal(out, device === 'phone' ? 'Tap 2 here, on this phone' : 'Click 2 here, on this laptop');
   }
 });
 

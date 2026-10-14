@@ -17,9 +17,8 @@ import {
 import { roomService } from '../net/config.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { loadGame } from './storage.js';
-import { playDevice } from './device.js';
 import { createActor } from './render/motion.js';
-import { t } from '../i18n/i18n.js';
+import { t, DEVICE } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
 const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
@@ -340,7 +339,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     if (timers.pos <= 0) {
       timers.pos = POS_EVERY;
       const p = s.player, f = game.facing();
-      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: playDevice(), ...game.act() };
+      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: DEVICE, ...game.act() };
       const text = JSON.stringify(cleanPos(pos));
       if (text !== lastPos || timers.beat <= 0) {
         lastPos = text;

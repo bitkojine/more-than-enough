@@ -65,13 +65,13 @@ export default {
   "wiki.idea.liftsInHoleColumns.pitch": "Build a winch over a column of holes and it carries what your underground extractors make up to the surface, and you with it. Makes deep mining a logistics puzzle instead of a long climb.",
   "wiki.idea.liftsInHoleColumns.builds": "Holes, columns and Logistics.",
   "wiki.idea.minecartRails.title": "Minecart rails",
-  "wiki.idea.minecartRails.pitch": "Lay rails along tunnels; carts roll ore to a lift on their own. Laying track could reuse the Trail gesture: draw the route with your thumb.",
+  "wiki.idea.minecartRails.pitch": "Lay rails along tunnels; carts roll ore to a lift on their own. Laying track could reuse the Trail gesture: draw the route with your {phone:thumb|laptop:mouse}.",
   "wiki.idea.minecartRails.builds": "Trails and dug tunnels.",
   "wiki.idea.caveInsAndMyceliumProps.title": "Cave-ins and mycelium props",
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Dug tiles and mycelium.",
   "wiki.idea.aBatteryThatRunsLow.title": "A battery that runs low",
-  "wiki.idea.aBatteryThatRunsLow.pitch": "Underground your sight radius slowly shrinks unless you charge your phone or laptop with glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.",
+  "wiki.idea.aBatteryThatRunsLow.pitch": "Underground your sight radius slowly shrinks unless you charge your {phone:phone|laptop:laptop} with glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.",
   "wiki.idea.aBatteryThatRunsLow.builds": "Explore radius and night lighting.",
   "wiki.idea.glowOre.title": "Glow ore",
   "wiki.idea.glowOre.pitch": "A rare ore you can only see at night or in the dark, shimmering faintly. Rewards being out at night and exploring the mine by feel.",
@@ -211,7 +211,7 @@ export default {
       <div class="note">Every number in this wiki is read live from the game's own code, so the tables always match the version
         you're playing.</div>
       <ul class="cards">
-        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, keyboard.</span></a></li>
+        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom{phone:.|laptop:, keyboard.}</span></a></li>
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
@@ -228,13 +228,13 @@ export default {
       </ul>`,
   "wiki.article.controls.title": "Controls",
   "wiki.article.controls": `      <h1>Controls</h1>
-      <p class="lede">Everything is reachable with one thumb. A keyboard works too.</p>
+      <p class="lede">{phone:Everything is reachable with one thumb.|laptop:Everything works with the mouse or trackpad, and the keyboard works too.}</p>
 
       <h2>Moving</h2>
-      <p>Put a finger down <strong>anywhere on the map</strong> and drag: a virtual joystick appears under your thumb and follows
-        it. Or <strong>tap a spot</strong> and you walk there in a straight line, stopping if something blocks the way.</p>
-      <p>If dragging feels backwards, tap <strong>Drag</strong> in Settings (the gear) to switch it to <em>pull the map</em>:
-        then the map follows your finger, like scrolling, and you walk the other way. Tap it again for <em>walk that way</em>.
+      <p>{phone:Put a finger down|laptop:Press the mouse button} <strong>anywhere on the map</strong> and drag: a virtual joystick appears under your {phone:thumb|laptop:pointer} and follows
+        it. Or <strong>{phone:tap|laptop:click} a spot</strong> and you walk there in a straight line, stopping if something blocks the way.</p>
+      <p>If dragging feels backwards, {phone:tap|laptop:click} <strong>Drag</strong> in Settings (the gear) to switch it to <em>pull the map</em>:
+        then the map follows your {phone:finger|laptop:pointer}, like scrolling, and you walk the other way. {phone:Tap|laptop:Click} it again for <em>walk that way</em>.
         The choice is remembered in this browser.</p>
       <p>You walk at <span data-k="BASE_SPEED"></span> tiles per second, faster with better Boots and the Nomad perk, and slower in
         water.</p>
@@ -248,30 +248,30 @@ export default {
           where n is what one swing yields). The tile it will work has a faint green outline.</li>
         <li>With nothing in reach, the button dims and reads <em>EXPLORE</em>.</li>
       </ul>
-      <p>You can also <strong>tap a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
-        collected. Tap one farther away and you walk over and gather or collect it when you get there. <strong>Hold your finger
-        still</strong> on a tile and you keep working it, just like holding Gather. Reach is <span data-k="REACH"></span> tiles
+      <p>You can also <strong>{phone:tap|laptop:click} a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
+        collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. <strong>{phone:Hold your finger
+        still|laptop:Hold the mouse button down}</strong> on a tile and you keep working it, just like holding Gather. Reach is <span data-k="REACH"></span> tiles
         from you to the tile's centre.</p>
 
       <h2>Trails</h2>
-      <p>Hold Gather, then <strong>slide your thumb off the button</strong> onto the map and draw. Every resource tile within reach
+      <p>Hold Gather, then <strong>slide your {phone:thumb|laptop:pointer} off the button</strong> onto the map and draw. Every resource tile within reach
         that your stroke passes over lights up green. Let go and each one is gathered once. It's the fastest way to clear a
         patch around you. Underground the same stroke digs, and glows amber.</p>
       <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
 
       <h2>Zoom</h2>
-      <p>Use the <strong>+ / &minus;</strong> column on the right edge, above the thumb buttons, pinch with two fingers, or scroll a mouse wheel.
+      <p>Use the <strong>+ / &minus;</strong> column on the right edge, above the action buttons, or {phone:pinch with two fingers|laptop:scroll the mouse wheel or pinch on the trackpad}.
         You can zoom in to 3&times; and out until tiles are just a few pixels wide. Between the buttons
-        is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); tap it to go
+        is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); {phone:tap|laptop:click} it to go
         back to 1&times;.</p>
-      <p>Zoomed out, everything keeps its look and just gets smaller: forests stay forests and rocks stay rocks. Pinch
+      <p>Zoomed out, everything keeps its look and just gets smaller: forests stay forests and rocks stay rocks. Zoom
         out quickly and the map may show in plain colours for a moment while it catches up.</p>
 
       <h2>The view</h2>
       <p>You look down on the world from just off straight above, leaning a little to the north, so things have height. Mountains
         rise as cliffs, water sits below the bank, and underground the rock you haven't dug stands a full layer tall around your
         tunnels. A layer is one and a half tiles high, a little taller than the wanderer, so a tunnel is somewhere you could walk.</p>
-      <p>A tap picks whatever block you can see at that spot, so tapping the top of a wall digs that wall.
+      <p>A {phone:tap|laptop:click} picks whatever block you can see at that spot, so {phone:tapping|laptop:clicking} the top of a wall digs that wall.
         If a wall stands in front of you, you show through it faintly. Your zoom is remembered in this browser.</p>
 
       <h2>The other buttons</h2>
@@ -284,8 +284,9 @@ export default {
           <a href="#mine">The mine</a>.</li>
       </ul>
       <p>A <strong>green dot</strong> on BUILD or UPGRADE means there's something in there you can place or buy right now.
-        Close the sheet with the <strong>&times;</strong> by its title, or swipe it down by its handle.</p>
+        Close the sheet with the <strong>&times;</strong> by its title{phone:, or swipe it down by its handle.|laptop:, or press <kbd>Esc</kbd>.}</p>
 
+{phone:|laptop:
       <h2>Keyboard</h2>
       <div class="table"><table>
         <thead><tr><th>Key</th><th>Does</th></tr></thead>
@@ -297,7 +298,7 @@ export default {
           <tr><td><kbd>U</kbd> or <kbd>C</kbd></td><td>Upgrades tab</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
         </tbody>
-      </table></div>`,
+      </table></div>}`,
   "wiki.article.screen.title": "The screen",
   "wiki.article.screen": `      <h1>The screen</h1>
       <p class="lede">There's no text to read in the game. Here's what everything you see means.</p>
@@ -305,7 +306,7 @@ export default {
       <h2>Resource counters</h2>
       <p>The four chips at the top are what you're carrying: 🍄 mycelium, 🪨 stone, ⛏️ ore and 💠 crystal. A green
         <em>+n/s</em> under a count is your income from buildings and the Abundance Engine, assuming you're there to pick it up.</p>
-      <p>Tap a counter to see what you've <strong>collected</strong>: what you hold, how much this world has given you, and
+      <p>{phone:Tap|laptop:Click} a counter to see what you've <strong>collected</strong>: what you hold, how much this world has given you, and
         where it came from (by hand, from finds, from buildings, from the Abundance Engine). Under mycelium is every
         <a href="#world">kind of mushroom</a>: the ones you've found, with how many you've picked in this world, and
         the ones you haven't as shadows, with a hint of where they grow.</p>
@@ -323,7 +324,7 @@ export default {
         <li><strong>Little sprites arcing away</strong>: what you just gathered, flying to its pile in your <a href="#stockpile">stockpile</a>. When home is far, they fly off screen in its direction.</li>
         <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the top bar naming
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
-          in the top-left corner counts the milestones you've reached and glows after a new one; tap it to see them all in the
+          in the top-left corner counts the milestones you've reached and glows after a new one; {phone:tap|laptop:click} it to see them all in the
           <strong>Awards</strong> tab.</li>
         <li><strong>Darkness</strong> after dusk, with a pool of screen light around you. See <a href="#world">The world</a>.</li>
         <li><strong>Black</strong>: fog. You haven't been there yet.</li>
@@ -332,12 +333,12 @@ export default {
       <h2>The sheet</h2>
       <p>BUILD and UPGRADE open a sheet with the <strong>Upgrades</strong>, <strong>Build</strong> and <strong>Awards</strong> tabs, plus <strong>Beyond</strong> once you've mastered a world (see <a href="#beyond">Beyond</a>).
         Awards lists the milestones you've reached, newest first, and how many are left.
-        Tap the map above it (or the <strong>&times;</strong>) to close it. That tap only closes the sheet and doesn't move or gather.
+        {phone:Tap|laptop:Click} the map above it (or the <strong>&times;</strong>) to close it. That {phone:tap|laptop:click} only closes the sheet and doesn't move or gather.
         Each price is a row of pills, one per resource. While you're short, a pill shows <strong>how much more</strong> of that
         resource you still need to gather (red), and a resource you already have enough of shows a tick. Once you have it
         all, the pills turn green and show what it costs. The amounts count down live as you gather. In Upgrades, each family has a row of dots: an empty
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed. A family
-        with something you can buy opens by itself; tap its row to open or close it. A button you can press is raised and
+        with something you can buy opens by itself; {phone:tap|laptop:click} its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
       <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
         <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page), the game's version and, set apart at the bottom,
@@ -346,7 +347,7 @@ export default {
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
       <p>Sound plays as soon as your browser lets a page make sound. Some allow it straight away. Most wait until you've
-        touched or clicked the page once, and on an iPhone that has to be a tap, since a drag doesn't count. After that,
+        {phone:touched the page once, and on an iPhone that has to be a tap, since a drag doesn't count|laptop:clicked the page or pressed a key once}. After that,
         sound comes back by itself when you return to the tab or a call ends.</p>
       <p><strong>Music</strong>: every kind of place has its own tune. Open land by day plays <em>Meadowsong</em>, the woods
         <em>Under the Boughs</em>, the water <em>Rowing Song</em>, the surface at night <em>Starlit Hush</em>, the first mine
@@ -357,7 +358,7 @@ export default {
 
       <h2>Performance panel</h2>
       <p>A tool for tuning the game, kept out of the way while you play. Press <kbd>F3</kbd> to see how well the game runs on
-        your device, and again to hide it. On a phone, open the game with <code>?perf</code> at the end of its address. Its left
+        your device, and again to hide it.{phone: Without a keyboard, open the game with <code>?perf</code> at the end of its address.|laptop:} Its left
         edge is green at 55 fps or more, yellow from 30, red below.</p>
       <div class="table"><table>
         <thead><tr><th>Line</th><th>Means</th></tr></thead>
@@ -435,7 +436,7 @@ export default {
 
       <h2>Day and night</h2>
       <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
-        After dusk the world fades into darkness and the screen of your phone or laptop lights a pool around you, so you can always
+        After dusk the world fades into darkness and the screen of your {phone:phone|laptop:laptop} lights a pool around you, so you can always
         keep working. Nothing else changes at night.</p>`,
   "wiki.article.gathering.title": "Gathering",
   "wiki.article.gathering": `      <h1>Gathering</h1>
@@ -468,12 +469,12 @@ export default {
       <ul>
         <li>A <strong>cave mouth</strong> in the forest, a ring of stones around a dark hole, is the way down to the first
           layer. Most stretches of forest have one (never in water, a mountain or on home ground), so explore and you'll
-          soon come across one. Next to it, the button says <strong>CLIMB DOWN</strong>; or tap it.</li>
+          soon come across one. Next to it, the button says <strong>CLIMB DOWN</strong>; or {phone:tap|laptop:click} it.</li>
         <li>In the mine, the way on down is a <strong>shaft</strong>: one in every stretch of rock, hidden until you get close.
-          One dig opens it; then tap it to drop through.</li>
+          One dig opens it; then {phone:tap|laptop:click} it to drop through.</li>
         <li>Directly beneath every cave mouth and every shaft, on the layer below, is the foot of a <strong>ladder up</strong>:
           a little open spot in the rock. You land on it when you come down, and it's how you get back. Next to it, the
-          button says <strong>CLIMB UP</strong>; or tap it. Climbing up through a shaft you haven't opened yet
+          button says <strong>CLIMB UP</strong>; or {phone:tap|laptop:click} it. Climbing up through a shaft you haven't opened yet
           opens it. Anywhere else, the rock overhead stays rock, so to go up you find a ladder, the one you came down or
           another.</li>
         <li><strong>Home ground</strong> is sealed: no way down from it, and none up onto it from below, so the stockpile's
@@ -510,9 +511,9 @@ export default {
       <h2>Digging</h2>
       <p>Underground, everything is solid and you can only walk through tunnels you dig. The easy way is to <strong>walk into
         the rock</strong>: keep pushing the stick (or holding a direction key) against a wall for <span data-k="DRILL_TIME"></span>
-        seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>tapping</strong>
+        seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>{phone:tapping|laptop:clicking}</strong>
         it within reach, or with a <strong>Trail</strong> across nearby rock. Bedrock never gives, and a shaft only opens to a
-        deliberate tap. Holding Gather on its own never digs.</p>
+        deliberate {phone:tap|laptop:click}. Holding Gather on its own never digs.</p>
       <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Basket or Pickaxe level. Plain
         soil holds nothing: its dirt is tossed aside with a <em>+0</em>, and digging it only clears the way. Tunnels stay
         where you dug them, on every layer.</p>
@@ -533,7 +534,7 @@ export default {
       <h2>Shafts</h2>
       <p>Every <span data-k="CHUNK_SIZE"></span>&times;<span data-k="CHUNK_SIZE"></span> area of each layer hides exactly one
         <strong>shaft</strong>, a marked hatch at least two tiles in from the area's edge. Dig your way to it and dig it once to
-        open it. Opening it doesn't drop you; when you're ready, <strong>tap the open shaft</strong> from within reach and you
+        open it. Opening it doesn't drop you; when you're ready, <strong>{phone:tap|laptop:click} the open shaft</strong> from within reach and you
         fall to the layer below, landing directly underneath it. Shafts are the only way deeper than you've been.</p>
       <p>Layers line up exactly: the tile at a given spot on layer 3 is directly below the same spot on layer 2 and on the
         forest.</p>
@@ -560,7 +561,7 @@ export default {
       <p class="lede">Make the world work for you.</p>
 
       <h2>Placing</h2>
-      <p>Open <strong>BUILD</strong>, stand next to the right kind of tile, and tap <strong>Place</strong>. The building goes on the
+      <p>Open <strong>BUILD</strong>, stand next to the right kind of tile, and {phone:tap|laptop:click} <strong>Place</strong>. The building goes on the
         nearest suitable free tile within reach; blue outlines on the map show where. Each building you already own of a kind
         makes the next one of that kind cost &times;<span data-k="EXTRACTOR_GROWTH"></span> more.</p>
 
@@ -579,7 +580,7 @@ export default {
       <p>Goods pile up inside the building until it's full ("Holds" above), then it stops. Nothing is lost; it just waits.</p>
 
       <h2>Collecting</h2>
-      <p>Stand within <span data-k="COLLECT_RANGE"></span> tiles of a building and press Gather (it reads <em>COLLECT</em>) or tap
+      <p>Stand within <span data-k="COLLECT_RANGE"></span> tiles of a building and press Gather (it reads <em>COLLECT</em>) or {phone:tap|laptop:click}
         the building. You take every whole unit from every building in that range at once.</p>
 
       <h2>Logistics</h2>
@@ -689,7 +690,7 @@ export default {
         anything it leaves out keeps the default look.</p>
 
       <h2>Using a pack</h2>
-      <p>Open Settings (the gear, top-right) and tap <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
+      <p>Open Settings (the gear, top-right) and {phone:tap|laptop:click} <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
         either on its own (if its pictures are inside it) or together with its picture files. The game checks the whole pack
         first: if anything is wrong it isn't used, and a panel lists every problem, naming the thing and slot that broke. A pack
         that works is used straight away and remembered in this browser. <strong>Default textures</strong> (shown while your pack is in use) goes back to Lanternlight.</p>

@@ -15,7 +15,12 @@
  * A dictionary value is a string, with {name} placeholders filled from
  * t(key, {name: value}), or a plural: an object of the language's plural
  * forms (Intl.PluralRules categories: English one/other, Lithuanian
- * one/few/many/other), picked by the `count` parameter. */
+ * one/few/many/other), picked by the `count` parameter.
+ *
+ * Text also fits what you play on (DEVICE): a phone (a touch screen) or a
+ * laptop (a mouse or trackpad). Anything that differs between them is
+ * written as a choice, {phone:tap|laptop:click}, and only the one for this
+ * device is shown; the tests reject words like "tap" or "phone" outside one. */
 
 import en from './en.js';
 import lt from './lt.js';
@@ -50,6 +55,19 @@ function detect() {
   return FALLBACK;
 }
 
+// What you play on: ?device= in the address, else a touch screen as the
+// main pointer means a phone (tablets count as phones), anything else a
+// laptop. Under Node (the tests), MTE_DEVICE picks it.
+export const DEVICES = ['phone', 'laptop'];
+function detectDevice() {
+  const env = globalThis.process && globalThis.process.env && globalThis.process.env.MTE_DEVICE;
+  const asked = env || (globalThis.location && new URLSearchParams(globalThis.location.search).get('device'));
+  if (DEVICES.includes(asked)) return asked;
+  const touch = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(pointer: coarse)').matches; // i18n-ok: a media query
+  return touch || !globalThis.matchMedia ? 'phone' : 'laptop';
+}
+export const DEVICE = detectDevice();
+
 export const LANG = detect();
 if (!LANGUAGES[LANG]) throw new Error(`Unknown language "${LANG}" (known: ${Object.keys(LANGUAGES).join(', ')})`);
 export const LOCALE = LANGUAGES[LANG].locale;
@@ -68,7 +86,12 @@ export function addStrings(byLang) {
   }
 }
 
+// {phone:…|laptop:…}: the part for this device.
+export const DEVICE_CHOICE = /\{phone:([^{}|]*)\|laptop:([^{}]*)\}/g;
+const forDevice = (text) => text.replace(DEVICE_CHOICE, (_, phone, laptop) => (DEVICE === 'phone' ? phone : laptop));
+
 function fill(template, key, params) {
+  template = forDevice(template);
   return template.replace(/\{(\w+)\}/g, (_, name) => {
     if (!params || !(name in params)) throw new Error(`Translation "${key}" (${LANG}) needs {${name}}`);
     return String(params[name]);
@@ -79,7 +102,7 @@ function fill(template, key, params) {
 export function t(key, params) {
   const value = strings[key];
   if (value === undefined) throw new Error(`Missing translation: "${key}" in ${LANGUAGES[LANG].name} (${LANG})`);
-  if (typeof value === 'string') return params ? fill(value, key, params) : value;
+  if (typeof value === 'string') return params ? fill(value, key, params) : forDevice(value);
   if (!params || typeof params.count !== 'number') throw new Error(`Translation "${key}" is a plural: pass {count}`);
   const form = value[plurals.select(params.count)];
   if (form === undefined) throw new Error(`Translation "${key}" (${LANG}) has no "${plurals.select(params.count)}" form`);

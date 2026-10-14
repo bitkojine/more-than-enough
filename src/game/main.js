@@ -24,9 +24,8 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createTogether, FRIEND_COLORS } from './together.js';
-import { playDevice } from './device.js';
 import { createUpdater } from './update.js';
-import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
+import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
@@ -323,7 +322,7 @@ function view() {
     sign: together.sign,
     signFace: together.signFace,
     signCaption: t('together.sign'),
-    device: playDevice() // what you hold, and whose screen lights the dark
+    device: DEVICE // what you hold, and whose screen lights the dark
   };
 }
 

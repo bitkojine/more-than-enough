@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.60.1] - 2026-10-14
+
+### Fixed
+- **Text fits what you play on.** On a computer the game no longer says
+  "phone" or "tap": the Play together dialogs say your world stays saved on
+  this computer, the zoom readout says click, and the wiki's Controls,
+  Screen, World, Mine, Buildings and Textures pages talk about the mouse,
+  clicking and the keyboard (on a phone: tapping, fingers, no keyboard table).
+  Text that differs is written as `{phone:tap|laptop:click}` and `t()` keeps
+  the part for this device (`DEVICE` in `src/i18n/i18n.js`, which now also
+  decides what your character holds). `npm test` fails on a word like "tap",
+  "phone" or "bakstelk" outside such a choice.
+
 ## [0.60.0] - 2026-10-14
 
 ### Added

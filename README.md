@@ -61,13 +61,23 @@ address picks one too.
 `wiki/i18n/lt.js` for the wiki (its articles are HTML strings there). When
 you add or change any text, write it in both languages in the same commit.
 
+**Text also fits what you play on.** The game knows whether you're on a phone
+(a touch screen) or a laptop (a mouse or trackpad; `DEVICE` in
+`src/i18n/i18n.js`, `?device=phone` or `?device=laptop` in the address to
+try the other). Anything that differs is written as a choice,
+`{phone:tap|laptop:click}` or `on this {phone:phone|laptop:computer}`, and
+`t()` keeps only the part for this device. Your character holds the same
+device.
+
 Nothing can go untranslated quietly:
 
 - `npm test` (`test/unit/i18n.test.js`) fails if a key is missing from either
   language, if placeholders or plural forms differ, if the code asks for a key
   no dictionary has, if a string literal in `src/` or `wiki/` reads like words
   instead of going through `t()`, or if a page's markup holds words of its own
-  (static text uses `data-i18n="key"` and `data-i18n-<attribute>="key"`). A
+  (static text uses `data-i18n="key"` and `data-i18n-<attribute>="key"`), or
+  if a word that fits only one device ("tap", "click", "phone", "keyboard",
+  "bakstelk", "telefone") stands outside a `{phone:…|laptop:…}` choice. A
   line holding text no player reads (a developer error, a CSS value) opts out
   with a trailing `// i18n-ok: <why>`.
 - At runtime, `t()` throws on a missing key or a missing placeholder value,

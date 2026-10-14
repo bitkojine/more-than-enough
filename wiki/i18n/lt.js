@@ -68,7 +68,7 @@ export default {
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Dideli atviri urvai girgžda ir gali sugriūti, jei neparemti užaugintais grybienos stulpais. Taip grybiena gauna priežastį keliauti po žeme, o kasyklos išdėstymas tampa pasirinkimu.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Iškasti langeliai ir grybiena.",
   "wiki.idea.aBatteryThatRunsLow.title": "Senkanti baterija",
-  "wiki.idea.aBatteryThatRunsLow.pitch": "Po žeme tavo matymo spindulys pamažu mažėja, nebent krauni telefoną ar kompiuterį švytukėmis ar kristalu. Šviesa tampa ištekliumi be jokio aiškinančio teksto: tiesiog pastebi, kad temsta.",
+  "wiki.idea.aBatteryThatRunsLow.pitch": "Po žeme tavo matymo spindulys pamažu mažėja, nebent krauni {phone:telefoną|laptop:kompiuterį} švytukėmis ar kristalu. Šviesa tampa ištekliumi be jokio aiškinančio teksto: tiesiog pastebi, kad temsta.",
   "wiki.idea.aBatteryThatRunsLow.builds": "Tyrinėjimo spindulys ir naktinis apšvietimas.",
   "wiki.idea.glowOre.title": "Švytinti rūda",
   "wiki.idea.glowOre.pitch": "Reta rūda, kurią matai tik naktį ar tamsoje, silpnai mirguliuojančią. Apdovanoja už buvimą lauke naktį ir kasyklos tyrinėjimą apgraibomis.",
@@ -208,7 +208,7 @@ export default {
       <div class="note">Kiekvienas šio žinyno skaičius imamas tiesiai iš paties žaidimo kodo, todėl lentelės visada atitinka versiją,
         kurią žaidi.</div>
       <ul class="cards">
-        <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis, klaviatūra.</span></a></li>
+        <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis{phone:.|laptop:, klaviatūra.}</span></a></li>
         <li><a href="#screen"><strong>Ekranas</strong><span>Ką reiškia skaitikliai, mygtukai ir švytėjimai.</span></a></li>
         <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, ataugimas, diena ir naktis.</span></a></li>
         <li><a href="#gathering"><strong>Rinkimas</strong><span>Ištekliai, derlius ir kaip išsenka telkiniai.</span></a></li>
@@ -225,13 +225,13 @@ export default {
       </ul>`,
   "wiki.article.controls.title": "Valdymas",
   "wiki.article.controls": `      <h1>Valdymas</h1>
-      <p class="lede">Viską pasieksi vienu nykščiu. Tinka ir klaviatūra.</p>
+      <p class="lede">{phone:Viską pasieksi vienu nykščiu.|laptop:Viskas veikia su pele ar jutikliniu kilimėliu, tinka ir klaviatūra.}</p>
 
       <h2>Judėjimas</h2>
-      <p>Padėk pirštą <strong>bet kur ant žemėlapio</strong> ir tempk: po nykščiu atsiras virtuali vairasvirtė, kuri seks paskui jį.
-        Arba <strong>bakstelk vietą</strong> ir nueisi ten tiesia linija, o jei kas užstos kelią, sustosi.</p>
-      <p>Jei tempimas atrodo atvirkščias, Nustatymuose (krumpliaratis) bakstelk <strong>Tempimas</strong> ir perjunk į <em>„tempti žemėlapį“</em>:
-        tada žemėlapis seka paskui pirštą, lyg slinktum puslapį, o tu eini priešinga kryptimi. Bakstelk dar kartą, kad grįžtum prie <em>„eiti ta kryptimi“</em>.
+      <p>{phone:Padėk pirštą|laptop:Nuspausk pelės mygtuką} <strong>bet kur ant žemėlapio</strong> ir tempk: po {phone:nykščiu|laptop:žymekliu} atsiras virtuali vairasvirtė, kuri seks paskui jį.
+        Arba <strong>{phone:bakstelk|laptop:spustelk} vietą</strong> ir nueisi ten tiesia linija, o jei kas užstos kelią, sustosi.</p>
+      <p>Jei tempimas atrodo atvirkščias, Nustatymuose (krumpliaratis) {phone:bakstelk|laptop:spustelk} <strong>Tempimas</strong> ir perjunk į <em>„tempti žemėlapį“</em>:
+        tada žemėlapis seka paskui {phone:pirštą|laptop:žymeklį}, lyg slinktum puslapį, o tu eini priešinga kryptimi. {phone:Bakstelk|laptop:Spustelk} dar kartą, kad grįžtum prie <em>„eiti ta kryptimi“</em>.
         Pasirinkimas įsimenamas šioje naršyklėje.</p>
       <p>Tavo greitis – <span data-k="BASE_SPEED"></span> langelio per sekundę; su geresniais batais ir privalumu Klajoklis eini greičiau, o
         vandenyje lėčiau.</p>
@@ -245,21 +245,21 @@ export default {
           kur n – tai, ką duoda vienas mostas). Langelis, kurį dirbsi, apvestas blankiu žaliu kontūru.</li>
         <li>Jei nieko nepasiekiama, mygtukas pritemsta ir jame parašyta <em>TYRINĖTI</em>.</li>
       </ul>
-      <p>Taip pat gali <strong>bakstelėti langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
-        produkciją. Bakstelk tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. <strong>Laikyk pirštą
-        nejudantį</strong> ant langelio ir dirbsi jį toliau, lygiai kaip laikydamas Rinkti. Pasiekiamumas – <span data-k="REACH"></span> langelio
+      <p>Taip pat gali <strong>{phone:bakstelėti|laptop:spustelėti} langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
+        produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. <strong>{phone:Laikyk pirštą
+        nejudantį|laptop:Laikyk nuspaustą pelės mygtuką}</strong> ant langelio ir dirbsi jį toliau, lygiai kaip laikydamas Rinkti. Pasiekiamumas – <span data-k="REACH"></span> langelio
         nuo tavęs iki langelio centro.</p>
 
       <h2>Takai</h2>
-      <p>Laikyk Rinkti, tada <strong>nuslysk nykščiu nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
+      <p>Laikyk Rinkti, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
         per kurį pereina tavo brūkšnys, nušvinta žaliai. Atleisk ir kiekvienas jų bus surinktas po kartą. Tai greičiausias būdas išvalyti
         plotelį aplink save. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
 
       <h2>Mastelis</h2>
-      <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš nykščio mygtukų, suimk dviem pirštais arba sukiok pelės ratuką.
+      <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš veiksmų mygtukų arba {phone:suimk dviem pirštais|laptop:sukiok pelės ratuką ar suimk ant jutiklinio kilimėlio}.
         Priartinti gali iki 3&times;, o nutolinti tol, kol langeliai tampa vos kelių pikselių pločio. Tarp mygtukų
-        matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); bakstelk, kad
+        matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); {phone:bakstelk|laptop:spustelk}, kad
         grįžtum prie 1&times;.</p>
       <p>Nutolinus viskas atrodo taip pat, tik mažiau: miškai lieka miškais, uolos – uolomis. Greitai nutolinant
         žemėlapis akimirką gali būti tik spalvotas, kol spės persipiešti.</p>
@@ -268,7 +268,7 @@ export default {
       <p>Į pasaulį žiūri beveik tiesiai iš viršaus, šiek tiek pasvirus į šiaurę, tad daiktai turi aukštį. Kalnai kyla kaip uolos,
         vanduo tyvuliuoja žemiau kranto, o po žeme neiškasta uoliena aplink tavo tunelius stūkso viso sluoksnio aukščio. Sluoksnis
         yra pusantro langelio aukščio, šiek tiek aukštesnis už klajūną, tad tunelyje tikrai galėtum vaikščioti.</p>
-      <p>Bakstelėjimas parenka tą bloką, kurį toje vietoje matai, tad bakstelėjęs sienos viršų kasi tą sieną.
+      <p>{phone:Bakstelėjimas|laptop:Spustelėjimas} parenka tą bloką, kurį toje vietoje matai, tad {phone:bakstelėjęs|laptop:spustelėjęs} sienos viršų kasi tą sieną.
         Jei priešais tave stovi siena, tavo siluetas blankiai matyti pro ją. Mastelis įsimenamas šioje naršyklėje.</p>
 
       <h2>Kiti mygtukai</h2>
@@ -281,8 +281,9 @@ export default {
           <a href="#mine">Kasykla</a>.</li>
       </ul>
       <p><strong>Žalias taškelis</strong> ant STATYTI ar TOBULINTI reiškia, kad ten yra kažkas, ką gali padėti ar nusipirkti jau dabar.
-        Lapą uždarysi <strong>&times;</strong> šalia jo pavadinimo arba nubraukęs jį žemyn už rankenėlės.</p>
+        Lapą uždarysi <strong>&times;</strong> šalia jo pavadinimo{phone: arba nubraukęs jį žemyn už rankenėlės.|laptop: arba klavišu <kbd>Esc</kbd>.}</p>
 
+{phone:|laptop:
       <h2>Klaviatūra</h2>
       <div class="table"><table>
         <thead><tr><th>Klavišas</th><th>Veiksmas</th></tr></thead>
@@ -294,7 +295,7 @@ export default {
           <tr><td><kbd>U</kbd> arba <kbd>C</kbd></td><td>Skirtukas Patobulinimai</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Uždaryti lapą</td></tr>
         </tbody>
-      </table></div>`,
+      </table></div>}`,
   "wiki.article.screen.title": "Ekranas",
   "wiki.article.screen": `      <h1>Ekranas</h1>
       <p class="lede">Žaidime nėra jokio teksto skaityti. Štai ką reiškia viskas, ką matai.</p>
@@ -302,7 +303,7 @@ export default {
       <h2>Išteklių skaitikliai</h2>
       <p>Keturi ženkleliai viršuje rodo, ką neši: 🍄 grybieną, 🪨 akmenį, ⛏️ rūdą ir 💠 kristalą. Žalias
         <em>+n/s</em> po skaičiumi – tavo pajamos iš pastatų ir Gausos variklio, jei esi šalia jų pasiimti.</p>
-      <p>Bakstelk skaitiklį ir pamatysi, ką esi <strong>surinkęs</strong>: kiek turi, kiek tau davė šis pasaulis ir
+      <p>{phone:Bakstelk|laptop:Spustelk} skaitiklį ir pamatysi, ką esi <strong>surinkęs</strong>: kiek turi, kiek tau davė šis pasaulis ir
         iš kur tai gauta (rankomis, iš radinių, iš pastatų, iš Gausos variklio). Po grybiena išvardyta kiekviena
         <a href="#world">grybų rūšis</a>: rastosios su tuo, kiek jų prisirinkai šiame pasaulyje, o
         nerastosios kaip šešėliai su užuomina, kur jos auga.</p>
@@ -320,7 +321,7 @@ export default {
         <li><strong>Lankais nuskriejantys mažyčiai paveikslėliai</strong>: ką ką tik surinkai, skrendantis į savo krūvą tavo <a href="#stockpile">atsargose</a>. Kai namai toli, jie išskrenda už ekrano namų kryptimi.</li>
         <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po viršutine juosta pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
-          viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; bakstelk ją ir pamatysi visus skirtuke
+          viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; {phone:bakstelk|laptop:spustelk} ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
         <li><strong>Tamsa</strong> sutemus, su ekrano šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
         <li><strong>Juoda</strong>: rūkas. Ten dar nebuvai.</li>
@@ -329,12 +330,12 @@ export default {
       <h2>Lapas</h2>
       <p>STATYTI ir TOBULINTI atveria lapą su skirtukais <strong>Patobulinimai</strong>, <strong>Statyba</strong> ir <strong>Apdovanojimai</strong>, o kai įvaldai pasaulį, ir <strong>Anapus</strong> (žr. <a href="#beyond">Anapus</a>).
         Apdovanojimuose išvardyti pasiekti etapai, naujausi pirmiau, ir kiek jų dar liko.
-        Bakstelk žemėlapį virš lapo (arba <strong>&times;</strong>), kad jį uždarytum. Tas bakstelėjimas tik uždaro lapą: nei judi, nei renki.
+        {phone:Bakstelk|laptop:Spustelk} žemėlapį virš lapo (arba <strong>&times;</strong>), kad jį uždarytum. Tas {phone:bakstelėjimas|laptop:spustelėjimas} tik uždaro lapą: nei judi, nei renki.
         Kiekviena kaina – eilė piliulių, po vieną kiekvienam ištekliui. Kol trūksta, piliulė rodo, <strong>kiek dar</strong> to
         ištekliaus turi surinkti (raudonai), o išteklius, kurio jau užtenka, pažymėtas varnele. Kai turi
         visko, piliulės pažaliuoja ir rodo kainą. Kiekiai mažėja gyvai, kol renki. Patobulinimuose kiekviena šeima turi taškelių eilę: tuščias
         taškelis – dar nepradėta, atspalvintas – galima įpirkti dabar, pusiau užpildytas – įpusėta, o vientisas žalias – maksimalus lygis. Šeima,
-        kurioje yra ką nusipirkti, atsiveria pati; bakstelk jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
+        kurioje yra ką nusipirkti, atsiveria pati; {phone:bakstelk|laptop:spustelk} jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
       <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
         <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis), žaidimo versija ir, atskirai apačioje,
@@ -343,7 +344,7 @@ export default {
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
       <p>Garsas pasigirsta, kai tik naršyklė leidžia puslapiui skleisti garsą. Kai kurios leidžia iškart. Dauguma laukia, kol
-        bent kartą paliesi ar spustelėsi puslapį, o „iPhone“ tai turi būti bakstelėjimas, nes tempimas neskaičiuojamas. Po to
+        bent kartą {phone:paliesi puslapį, o „iPhone“ tai turi būti bakstelėjimas, nes tempimas neskaičiuojamas|laptop:spustelėsi puslapį ar paspausi klavišą}. Po to
         garsas pats sugrįžta, kai grįžti į skirtuką ar baigiasi skambutis.</p>
       <p><strong>Muzika</strong>: kiekviena vietų rūšis turi savo melodiją. Atvirose vietose dieną skamba <em>Pievų giesmė</em>,
         miške <em>Po šakomis</em>, ant vandens <em>Irkluotojų daina</em>, paviršiuje naktį <em>Žvaigždžių tyla</em>, pirmuosiuose
@@ -354,7 +355,7 @@ export default {
 
       <h2>Našumo skydelis</h2>
       <p>Įrankis žaidimui derinti, žaidžiant netrukdantis. Paspausk <kbd>F3</kbd> ir pamatysi, kaip gerai žaidimas veikia tavo
-        įrenginyje, paspausk dar kartą, kad paslėptum. Telefone atverk žaidimą su <code>?perf</code> adreso gale. Kairysis skydelio
+        įrenginyje, paspausk dar kartą, kad paslėptum.{phone: Be klaviatūros atverk žaidimą su <code>?perf</code> adreso gale.|laptop:} Kairysis skydelio
         kraštas žalias, kai yra 55 kadrai per sekundę ar daugiau, geltonas nuo 30, raudonas žemiau.</p>
       <div class="table"><table>
         <thead><tr><th>Eilutė</th><th>Reiškia</th></tr></thead>
@@ -432,7 +433,7 @@ export default {
 
       <h2>Diena ir naktis</h2>
       <p>Visa para trunka <span data-k="DAY_LENGTH"></span> s, o naujas pasaulis prasideda vidurdienį. Dienos šviesios ir šiltos.
-        Po sutemų pasaulis paskęsta tamsoje ir tavo telefono ar kompiuterio ekranas apšviečia ratą aplink tave, tad dirbti gali visada.
+        Po sutemų pasaulis paskęsta tamsoje ir tavo {phone:telefono|laptop:kompiuterio} ekranas apšviečia ratą aplink tave, tad dirbti gali visada.
         Daugiau naktį niekas nesikeičia.</p>`,
   "wiki.article.gathering.title": "Rinkimas",
   "wiki.article.gathering": `      <h1>Rinkimas</h1>
@@ -465,12 +466,12 @@ export default {
       <ul>
         <li><strong>Urvo anga</strong> miške – akmenų ratas aplink tamsią angą – veda žemyn į pirmąjį sluoksnį. Beveik
           kiekviename miško plote jų yra (niekada vandenyje, kalne ar namų žemėje), tad tyrinėk ir netrukus kurią nors
-          užtiksi. Šalia jos mygtukas rodo <strong>LIPTI ŽEMYN</strong>; arba bakstelėk ją.</li>
+          užtiksi. Šalia jos mygtukas rodo <strong>LIPTI ŽEMYN</strong>; arba {phone:bakstelėk|laptop:spustelėk} ją.</li>
         <li>Kasykloje kelias toliau žemyn – <strong>šachta</strong>: po vieną kiekviename uolienos plote, paslėpta, kol prieini
-          arti. Vienas kasimas ją atveria; tada bakstelėk ją ir krisk žemyn.</li>
+          arti. Vienas kasimas ją atveria; tada {phone:bakstelėk|laptop:spustelėk} ją ir krisk žemyn.</li>
         <li>Tiesiai po kiekviena urvo anga ir kiekviena šachta, žemesniame sluoksnyje, yra <strong>kopėčių aukštyn</strong>
           papėdė: nedidelė atvira vieta uolienoje. Nusileidęs atsiduri ant jos, ir ja grįžti atgal. Šalia jos
-          mygtukas rodo <strong>LIPTI AUKŠTYN</strong>; arba bakstelėk ją. Lipant aukštyn pro dar neatvertą
+          mygtukas rodo <strong>LIPTI AUKŠTYN</strong>; arba {phone:bakstelėk|laptop:spustelėk} ją. Lipant aukštyn pro dar neatvertą
           šachtą, ji atsiveria. Visur kitur uoliena virš galvos lieka uoliena, tad norėdamas lipti aukštyn susirask kopėčias –
           tas, kuriomis nusileidai, ar kitas.</li>
         <li><strong>Namų žemė</strong> sandari: iš jos nėra kelio žemyn, o iš apačios – kelio aukštyn į ją, tad atsargų
@@ -506,9 +507,9 @@ export default {
       <h2>Kasimas</h2>
       <p>Po žeme viskas kieta, ir vaikščioti gali tik savo iškastais tuneliais. Paprasčiausia – <strong>eiti tiesiai į
         uolieną</strong>: laikyk valdymo svirtelę (arba krypties klavišą) atrėmęs į sieną <span data-k="DRILL_TIME"></span>
-        s, ir priešais tave esantis langelis iškasamas, tad tunelį kasi eidamas. Langelį gali iškasti ir <strong>bakstelėdamas</strong>
+        s, ir priešais tave esantis langelis iškasamas, tad tunelį kasi eidamas. Langelį gali iškasti ir <strong>{phone:bakstelėdamas|laptop:spustelėdamas}</strong>
         jį, kai jis pasiekiamas, arba <strong>Taku</strong> per netoliese esančią uolieną. Pamatinė uoliena niekada nepasiduoda, o
-        šachta atsiveria tik tyčia bakstelėjus. Vien laikant Rinkti niekas neiškasama.</p>
+        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Vien laikant Rinkti niekas neiškasama.</p>
       <p>Kiekvienas kasimas paverčia vieną langelį tuneliu. Gyslos duoda kaip paviršiaus telkiniai, pagal tavo Krepšio ar
         Kirtiklio lygį. Paprastame grunte nieko nėra: jo žemės nusviedžiamos į šalį su <em>+0</em>, o kasimas tik praskina kelią.
         Tuneliai lieka ten, kur juos iškasei, kiekviename sluoksnyje.</p>
@@ -529,7 +530,7 @@ export default {
       <h2>Šachtos</h2>
       <p>Kiekviename sluoksnyje kiekviename <span data-k="CHUNK_SIZE"></span>&times;<span data-k="CHUNK_SIZE"></span> plote slypi lygiai
         viena <strong>šachta</strong> – pažymėtas liukas bent per du langelius nuo ploto krašto. Prasikask iki jos ir kartą ją
-        iškask, kad atvertum. Atverta šachta tavęs nenumeta; kai būsi pasiruošęs, <strong>bakstelėk atvirą šachtą</strong>, kai ji
+        iškask, kad atvertum. Atverta šachta tavęs nenumeta; kai būsi pasiruošęs, <strong>{phone:bakstelėk|laptop:spustelėk} atvirą šachtą</strong>, kai ji
         pasiekiama, ir nukrisi į žemesnį sluoksnį, tiesiai po ja. Šachtos – vienintelis kelias giliau, nei esi buvęs.</p>
       <p>Sluoksniai sutampa tiksliai: tam tikroje 3 sluoksnio vietoje esantis langelis yra tiesiai po ta pačia vieta 2 sluoksnyje
         ir miške.</p>
@@ -556,7 +557,7 @@ export default {
       <p class="lede">Tegul pasaulis dirba tau.</p>
 
       <h2>Statymas</h2>
-      <p>Atidaryk <strong>STATYTI</strong>, atsistok šalia tinkamo langelio ir bakstelėk <strong>Padėti</strong>. Pastatas atsiras
+      <p>Atidaryk <strong>STATYTI</strong>, atsistok šalia tinkamo langelio ir {phone:bakstelėk|laptop:spustelėk} <strong>Padėti</strong>. Pastatas atsiras
         artimiausiame tinkamame laisvame pasiekiamame langelyje; mėlyni kontūrai žemėlapyje rodo, kur. Kiekvienas jau turimas tos
         rūšies pastatas kitą tokį pat padaro &times;<span data-k="EXTRACTOR_GROWTH"></span> brangesnį.</p>
 
@@ -576,7 +577,7 @@ export default {
 
       <h2>Paėmimas</h2>
       <p>Atsistok iki <span data-k="COLLECT_RANGE"></span> langelių nuo pastato ir spausk Rinkti (mygtukas rodo <em>PAIMTI</em>) arba
-        bakstelėk pastatą. Iš karto paimi visus sveikus vienetus iš visų tame spindulyje esančių pastatų.</p>
+        {phone:bakstelėk|laptop:spustelėk} pastatą. Iš karto paimi visus sveikus vienetus iš visų tame spindulyje esančių pastatų.</p>
 
       <h2>Logistika</h2>
       <p>Atrakinus <strong>Logistiką</strong>, kiekvienas pastatas iki <span data-k="AUTO_COLLECT_RANGE"></span> langelių nuo tavęs
