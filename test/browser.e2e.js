@@ -318,6 +318,15 @@ async function main() {
   ok(await evalJS('MTE_GAME.audioState()') !== 'none', 'the audio context exists before any gesture');
   await drag(80, 600, 140, 600, 4, 30);
   ok(await waitFor('MTE_GAME.audioState() === "running"', 1500), 'a drag on the map is enough to start the sound (state: ' + await evalJS('MTE_GAME.audioState()') + ')');
+  // The soundtrack plays from the start; with it, the place has a name.
+  ok(await waitFor('MTE_GAME.audio.track() !== null', 3000), 'music starts with the sound (' + await evalJS('MTE_GAME.audio.track()') + ')');
+  await startListening();
+  ok(await heard(1500) > 0.004, 'and the music is heard');
+  ok(await evalJS('!["on", "off", ""].includes(document.getElementById("musicState").textContent)'), 'Settings shows the track playing by its name (' + await evalJS('document.getElementById("musicState").textContent') + ')');
+  // The effects are checked on their own: music off, and give it time to fade.
+  await evalJS('document.getElementById("btnMusic").click()');
+  ok(await waitFor('MTE_GAME.audio.track() === null', 1500), 'the Music setting stops the music');
+  await sleep(4000);
   // Every sound must actually come out of the speakers, not just be "on".
   var SOUNDS = ['gather("mycelium",1,1)', 'gather("stone",1,1)', 'gather("ore",1,1)', 'gather("crystal",1,1)', 'dig()', 'collect()', 'upgrade()', 'build()', 'fanfare()'];
   for (var si = 0; si < SOUNDS.length; si++) {
@@ -330,6 +339,8 @@ async function main() {
   await evalJS('MTE_GAME.audio.muted = true');
   ok(await loudness('MTE_GAME.audio.collect()') < 0.005, 'muted, nothing is heard');
   await evalJS('MTE_GAME.audio.muted = false');
+  await evalJS('document.getElementById("btnMusic").click()');
+  ok(await waitFor('MTE_GAME.audio.track() !== null', 1500), 'and turns it back on');
   var zoomIn = await rect('#btnZoomIn');
   await tap(zoomIn.x, zoomIn.y);
   eq(Math.round(await evalJS('MTE_GAME.zoom()') * 100), 125, 'thumb zoom-in control changes map zoom');

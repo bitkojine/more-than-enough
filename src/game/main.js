@@ -224,13 +224,14 @@ el.music.addEventListener('click', () => {
   keepView();
   showMusic();
 });
-// The first time you hear a place's music, it tells you its name.
+// The first time you hear a place's music, it tells you its name (except
+// the very first tune, which plays over a world that says nothing yet).
 audio.onTrack((id) => {
   showMusic();
   if (savedView.heard.includes(id)) return;
   savedView.heard.push(id);
   keepView();
-  hud.toast(t('toast.newTrack', { name: t('music.' + id) }));
+  if (savedView.heard.length > 1) hud.toast(t('toast.newTrack', { name: t('music.' + id) }));
 });
 // The language button: the next language, the game saved first so the
 // reload comes back to the same spot.
