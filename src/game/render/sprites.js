@@ -111,40 +111,37 @@ export function drawSign(ctx, x, top, u, t, time, seed) {
 // A friend, drawn like the wanderer with a ring of their colour at their feet
 // and a marker over their head. How they're doing shows in how they look:
 // online as normal; away sitting with a little "z z"; connection lost
-// flickering under a spinning signal; offline a faded ghost bobbing where
-// they left. Coming back sparkles.
+// flickering under a spinning signal; offline asleep on the ground where they
+// left (see drawSleeper). Coming back sparkles.
 export function drawFriend(ctx, cam, s, look, f, color) {
   const u = cam.tilePx;
   const { x: sx, y: sy } = cam.project(f.x, f.y, groundAt(cam, s, f.x, f.y));
   if (sx < -u * 2 || sy < -u * 3 || sx > cam.width + u * 2 || sy > cam.height + u * 2) return;
   const walk = look.frames('character.wanderer', 'image');
+  if (f.st === 'offline') { drawSleeper(ctx, cam, s, look, walk.pics[0], f, color, sx, sy); return; }
   const moving = f.st === 'online' && f.m;
   const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
   const body = walk.pics[frame];
   const flip = f.fx < -0.01;
   const time = s.time;
   ctx.save();
-  let lift = 0, squash = 1;
+  let squash = 1;
   if (f.st === 'away') { squash = 0.78; }
   if (f.st === 'lost') ctx.globalAlpha = 0.35 + 0.3 * Math.abs(Math.sin(time * 5));
-  if (f.st === 'offline') { ctx.globalAlpha = 0.32; lift = u * (0.12 + 0.05 * Math.sin(time * 1.6)); }
   // The ring at their feet.
   ctx.strokeStyle = color;
   ctx.lineWidth = Math.max(2, u * 0.06);
   ctx.beginPath(); ctx.ellipse(sx, sy, u * 0.36, u * 0.36 * 0.38 * (cam.depthPx / cam.tilePx), 0, 0, TAU); ctx.stroke();
-  if (f.st !== 'offline') shadow(ctx, cam, sx, sy, body.units * u * 0.42);
+  shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = moving ? Math.abs(Math.sin(time * 12)) * u * 0.03 : 0;
   const size = u * squash;
-  if (f.st === 'offline' && 'filter' in ctx) ctx.filter = 'grayscale(1) brightness(1.4)';
-  const tall = look.stand(ctx, body, sx, sy - step - lift, size, flip);
-  ctx.filter = 'none';
-  const head = sy - step - lift - tall;
+  const tall = look.stand(ctx, body, sx, sy - step, size, flip);
+  const head = sy - step - tall;
   ctx.restore();
   if (f.sign && f.st === 'online') drawSign(ctx, sx, head, u, 1, time, f.c + 1);
   // Their marker: a diamond in their colour.
   const my = head - u * (f.sign && f.st === 'online' ? 1.25 : 0.2);
   ctx.save();
-  if (f.st === 'offline') ctx.globalAlpha = 0.45;
   ctx.fillStyle = color;
   ctx.strokeStyle = 'rgba(10,8,6,0.8)';
   ctx.lineWidth = 2;
@@ -185,6 +182,64 @@ export function drawFriend(ctx, cam, s, look, f, color) {
     }
     ctx.restore();
   }
+}
+
+// An offline friend, asleep where they left like a sleeper in Rust: lying on
+// the ground, tucked under a blanket in their colour that rises and falls,
+// with slow big Z's floating up. Always solid and in the world, never a ghost,
+// so everyone can see where a friend will wake up.
+function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy) {
+  const u = cam.tilePx, time = s.time;
+  const scale = 0.85;
+  const len = body.units * u * body.aspect * scale; // their height, now lying down
+  const thick = body.units * u;
+  const head = f.fx < -0.01 ? 1 : -1;            // which side their head lies
+  const feet = sx - head * len / 2;
+  const breath = 1 + 0.06 * Math.sin(time * 1.8);
+  shadow(ctx, cam, sx, sy, len * 0.55);
+  // A bedroll under them, in their colour.
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.globalAlpha = 0.35;
+  ctx.beginPath(); ctx.ellipse(sx, sy - thick * 0.12, len * 0.62, thick * 0.32, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+  // The body on its side: feet at one end, head at the other.
+  ctx.save();
+  ctx.translate(feet, sy - thick * 0.22);
+  ctx.rotate(head * Math.PI / 2);
+  look.stand(ctx, body, 0, 0, u * scale, head > 0);
+  ctx.restore();
+  // The blanket over their legs, breathing; the head stays out on the pillow.
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(10,8,6,0.7)';
+  ctx.lineWidth = Math.max(1.5, u * 0.03);
+  const bx = feet + head * len * 0.3, bw = len * 0.32, by = sy - thick * 0.12;
+  ctx.beginPath(); ctx.ellipse(bx, by, bw, thick * 0.3 * breath, 0, Math.PI, TAU); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+  // Their marker, small, over the pillow end.
+  const mx = sx + head * len * 0.42, my = sy - thick * 0.75;
+  const r = Math.max(4, u * 0.09);
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.strokeStyle = 'rgba(10,8,6,0.8)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(mx, my - r); ctx.lineTo(mx + r * 0.75, my); ctx.lineTo(mx, my + r); ctx.lineTo(mx - r * 0.75, my); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  // Big slow Z's.
+  ctx.fillStyle = '#dfe9ff';
+  ctx.strokeStyle = 'rgba(10,8,6,0.6)';
+  ctx.lineWidth = 3;
+  for (let i = 0; i < 3; i++) {
+    const k = (time * 0.3 + i / 3) % 1;
+    ctx.globalAlpha = Math.sin(k * Math.PI);
+    ctx.font = `900 ${Math.round(u * (0.22 + k * 0.22))}px system-ui, sans-serif`; // i18n-ok: a font
+    const zx = mx + head * (r + k * u * 0.45), zy = my - r - k * u * 0.9;
+    ctx.strokeText('Z', zx, zy); // i18n-ok: a snore, not a word
+    ctx.fillText('Z', zx, zy); // i18n-ok: a snore, not a word
+  }
+  ctx.restore();
 }
 
 // A prop (glowcap, lamp, flag) standing in a tunnel.

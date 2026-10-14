@@ -272,7 +272,7 @@ export function drawFriendMarkers(ctx, cam, s, friends, colors) {
     let y = Math.max(edge + 60, Math.min(cam.height - edge - 120, p.y));
     if (!off) y -= cam.tilePx * 1.2; // on another layer, right above where they are
     ctx.save();
-    ctx.globalAlpha = f.st === 'offline' ? 0.45 : 1;
+    ctx.globalAlpha = f.st === 'offline' ? 0.8 : 1;
     ctx.fillStyle = colors[f.c];
     ctx.strokeStyle = 'rgba(10,8,6,0.85)';
     ctx.lineWidth = 2;

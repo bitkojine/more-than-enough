@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.52.0] - 2026-10-14
+
+### Changed
+- **Offline friends sleep in the world.** Like sleepers in Rust, a friend
+  who goes offline stays right where they left, lying on the ground under a
+  blanket in their colour that rises and falls, with big slow Z's. They're
+  solid and always there (no more faint ghost), and their edge pin stays
+  clear too. Their chip now reads "asleep (offline)".
+
 ## [0.51.1] - 2026-10-14
 
 ### Changed

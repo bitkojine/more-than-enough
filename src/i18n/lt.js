@@ -492,7 +492,7 @@ export default {
   "together.state.online": "prisijungęs",
   "together.state.away": "pasitraukęs",
   "together.state.lost": "ryšys nutrūko",
-  "together.state.offline": "atsijungęs",
+  "together.state.offline": "miega (atsijungęs)",
   "together.qr.title": "Nuskenuok ir prisijunk prie mano pasaulio",
   "together.qr.text": "Draugas nukreipia telefono kamerą čia. Kodas galioja 10 minučių.",
   "together.qr.done": "Baigta",

@@ -492,7 +492,7 @@ export default {
   "together.state.online": "online",
   "together.state.away": "away",
   "together.state.lost": "connection lost",
-  "together.state.offline": "offline",
+  "together.state.offline": "asleep (offline)",
   "together.qr.title": "Scan to join my world",
   "together.qr.text": "Your friend points their phone's camera here. The code works for 10 minutes.",
   "together.qr.done": "Done",
