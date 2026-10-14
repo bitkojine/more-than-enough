@@ -233,8 +233,8 @@ export function drawFriend(ctx, cam, s, look, f, color) {
     actor: f.st === 'online' ? f.actor : STILL, steady: f.sign, seed: f.c * 2.3 + 1
   });
   ctx.restore();
-  if (f.sign && f.st === 'online') drawSign(ctx, handsX, hands, u, 1, time, f.c + 1);
-  const my = head - u * (f.sign && f.st === 'online' ? 0.6 : 0.2);
+  const sign = f.sign && f.st === 'online' ? drawSign(ctx, handsX, hands, u, 1, time, f.c + 1) : null;
+  const my = head - u * (sign ? 0.6 : 0.2);
   const r = Math.max(5, u * 0.12);
   // Away: little z's drifting up.
   if (f.st === 'away') drawSnore(ctx, 'z', hx + u * 0.25, my, 1, u, time, { speed: 0.6, size: 0.16, rise: 0.6, drift: 0.3, weight: 800 });
@@ -259,7 +259,8 @@ export function drawFriend(ctx, cam, s, look, f, color) {
     }
     ctx.restore();
   }
-  return { x: hx, y: my };
+  // Their name over their sign, never on it.
+  return { x: hx, y: sign ? Math.min(my, sign.y - 12) : my };
 }
 
 // An offline friend, asleep where they left like a sleeper in Rust: lying on

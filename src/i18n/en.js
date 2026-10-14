@@ -668,6 +668,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.70.1": "Players' names no longer cover the QR sign, so it always scans.",
   "news.0.70.0": "The big red Nuke button (Settings) makes the world again from scratch with everything new in the game, and you start over.\nIn a shared world it's a vote: once everyone has pressed it, the world is made anew and you all start fresh together. You can see who has pressed it, and take your vote back.",
   "news.0.69.0": "Regions are bigger: each takes over two minutes to walk across.\nThis update starts a new world.",
   "news.0.68.0": "{phone:Tap|laptop:Click} your invite sign to copy its link and send it to a friend.",

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.70.1] - 2026-10-14
+
+### Fixed
+- **Nothing covers your QR sign any more.** Your sign is drawn over other
+  players' names and the edge badges, and the zoom buttons hide while it's
+  up, so it always scans. Friends' names sit above the small sign they hold
+  instead of on it.
+
 ## [0.70.0] - 2026-10-14
 
 ### Added

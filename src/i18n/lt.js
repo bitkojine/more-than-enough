@@ -668,6 +668,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.70.1": "Žaidėjų vardai nebeuždengia QR lentelės, tad ji visada nuskaitoma.",
   "news.0.70.0": "Didelis raudonas mygtukas „Sunaikinti pasaulį“ (Nustatymai) sukuria pasaulį iš naujo su viskuo, kas žaidime nauja, ir tu pradedi iš naujo.\nBendrame pasaulyje tai balsavimas: kai visi paspaudžia, pasaulis sukuriamas iš naujo ir visi kartu pradedate iš naujo. Matai, kas jau paspaudė, ir savo balsą gali atšaukti.",
   "news.0.69.0": "Kraštai didesni: kiekvieną pereiti užtrunka daugiau nei dvi minutes.\nŠis atnaujinimas pradeda naują pasaulį.",
   "news.0.68.0": "{phone:Bakstelk|laptop:Spustelk} kvietimo lentelę, kad nukopijuotum nuorodą ir nusiųstum ją draugui.",

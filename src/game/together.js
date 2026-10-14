@@ -543,6 +543,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     const up = !!invite;
     el.invite.hidden = !service;
     el.invite.classList.toggle('up', up);
+    document.body.classList.toggle('signing', up); // clears the screen around the sign (style.css)
     el.invite.setAttribute('aria-pressed', String(up));
     el.inviteLabel.textContent = t(up ? 'together.button.down' : 'together.button');
   }

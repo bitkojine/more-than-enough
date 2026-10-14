@@ -369,6 +369,8 @@ canvas#game {
   overflow: hidden;
   pointer-events: auto;
 }
+/* Nothing on the HUD may cover your QR sign (zoom doesn't change its size). */
+body.signing #zoomControls { visibility: hidden; }
 #zoomControls button {
   height: 40px; padding: 0;
   border: 0; background: none; color: var(--ink);
