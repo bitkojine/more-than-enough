@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.68.0] - 2026-10-14
+
+### Added
+- **Tap your invite sign to copy its link.** Tapping (or clicking) the QR
+  sign your wanderer holds up copies the invite link, ready to send to a
+  friend who isn't there to scan it. In English and Lithuanian.
+
 ## [0.67.0] - 2026-10-14
 
 ### Changed

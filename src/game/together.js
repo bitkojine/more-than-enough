@@ -417,10 +417,25 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
   // wanderer holds it in the world (render/sprites.js drawSign).
   function openQr(inviteCode, until) {
     invite = { code: inviteCode, until };
-    // In the fragment (#), which browsers never send to any server: the
-    // invite reaches the friend's phone and nowhere else.
-    signFace = qrCanvas(location.origin + location.pathname + '#join=' + room + '.' + inviteCode);
+    signFace = qrCanvas(inviteUrl(inviteCode));
     renderButton();
+  }
+
+  // The link on the sign. The invite is in the fragment (#), which browsers
+  // never send to any server: it reaches the friend's phone and nowhere else.
+  function inviteUrl(inviteCode) {
+    return location.origin + location.pathname + '#join=' + room + '.' + inviteCode;
+  }
+
+  // Tapping your sign copies its link, to send to a friend who isn't there.
+  async function copyLink() {
+    if (!invite) return;
+    try {
+      await navigator.clipboard.writeText(inviteUrl(invite.code));
+      hud.toast(t('together.toast.copied'));
+    } catch {
+      hud.toast(t('together.toast.copyFailed'));
+    }
   }
 
   // The sign goes down; its link keeps working (see Invite links).
@@ -668,6 +683,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {}, cl
     joinFromLink,
     showInvite,
     listInvites,
+    copyLink,
     away(hidden) {
       send({ t: 'away', a: hidden });
       if (hidden) save(game.state, true);

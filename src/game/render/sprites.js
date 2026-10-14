@@ -191,6 +191,8 @@ export function drawSign(ctx, x, hands, u, t, time, face, side = u * 0.62, capti
     }
   }
   ctx.restore();
+  // Where it stands on screen, to catch taps on it.
+  return { x: left - rim, y: upper - rim, w: side + rim * 2, h: side + rim * 2 + foot };
 }
 
 // How big your own sign is on screen: as big as fits above you, so a friend's

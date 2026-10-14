@@ -179,7 +179,12 @@ const input = createInput({
   handlers: {
     blocked: () => sheet.isOpen || fork.open || ask.open,
     dismiss: () => sheet.close(),
-    tap: controller.tap,
+    tap(x, y) {
+      // On your sign: copy its link. Anywhere else: the world.
+      const r = signRect;
+      if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
+      else controller.tap(x, y);
+    },
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,
     viewChanged: () => { hud.view(cam); keepView(); },
@@ -346,6 +351,7 @@ function view() {
 
 let last = 0;
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
+let signRect = null;            // where your sign stood in the last frame, for taps on it
 function frame(now) {
   const intervalMs = last ? now - last : 0;
   const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
@@ -360,6 +366,7 @@ function frame(now) {
     if (game.state === shownState && z !== shownZ) descent.start(shownZ, z);
     shownState = game.state; shownZ = z;
     const stats = render(cam, game.state, fx, view(), look);
+    signRect = stats.sign;
     descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
     perf.tick(dt);
