@@ -17,6 +17,7 @@ import {
 import { roomService } from '../net/config.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { loadGame } from './storage.js';
+import { playDevice } from './device.js';
 import { t } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
@@ -288,7 +289,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
           const k = Math.min(1, dt * 12);
           f.shown.x += (f.p.x - f.shown.x) * k;
           f.shown.y += (f.p.y - f.shown.y) * k;
-          f.shown.fx = f.p.fx; f.shown.m = f.p.m; f.shown.sign = f.p.sign;
+          f.shown.fx = f.p.fx; f.shown.m = f.p.m; f.shown.sign = f.p.sign; f.shown.dev = f.p.dev;
         }
       }
     }
@@ -297,7 +298,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     if (timers.pos <= 0) {
       timers.pos = POS_EVERY;
       const p = s.player, f = game.facing();
-      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0 };
+      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: playDevice() };
       const text = JSON.stringify(cleanPos(pos));
       if (text !== lastPos || timers.beat <= 0) {
         lastPos = text;

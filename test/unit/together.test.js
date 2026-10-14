@@ -44,8 +44,9 @@ test('protocol: positions are bounded and stripped to known fields', () => {
   assert.equal(P.cleanPos({ x: 0, y: 0, z: 1 }), null);
   assert.equal(P.cleanPos({ x: 0, y: NaN, z: 0 }), null);
   assert.equal(P.cleanPos({ x: '1', y: 0, z: 0 }), null);
-  const p = P.cleanPos({ x: 1.23456, y: 2, z: -3, fx: 9, fy: -9, m: 'yes', sign: true, evil: '<script>' });
-  assert.deepEqual(p, { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true });
+  const p = P.cleanPos({ x: 1.23456, y: 2, z: -3, fx: 9, fy: -9, m: 'yes', sign: true, dev: 'phone', evil: '<script>' });
+  assert.deepEqual(p, { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true, dev: 'phone' });
+  assert.equal(P.cleanPos({ x: 0, y: 0, z: 0, dev: 'toaster' }).dev, null);
 });
 
 test('protocol: edits must match one of three exact shapes', () => {

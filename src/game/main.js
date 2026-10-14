@@ -22,6 +22,7 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createTogether, FRIEND_COLORS } from './together.js';
+import { playDevice } from './device.js';
 import { createUpdater } from './update.js';
 import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
 
@@ -271,7 +272,9 @@ function view() {
     joy: input.joy,
     friends: together.view(),
     friendColors: FRIEND_COLORS,
-    sign: together.sign
+    sign: together.sign,
+    // Together, you hold what you play on, as your friends see you.
+    device: s.shared ? playDevice() : null
   };
 }
 

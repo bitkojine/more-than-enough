@@ -128,6 +128,8 @@ for (const key of Object.keys(EXTRACTORS)) {
 
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), req('image'));
 add('character', 'lantern', t('look.character.lantern'), t('look.character.lantern.does'), req('image', 'color'));
+add('character', 'phone', t('look.character.phone'), t('look.character.phone.does'), req('image'));
+add('character', 'laptop', t('look.character.laptop'), t('look.character.laptop.does'), req('image'));
 add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));
 
 add('mark', 'hole', t('look.mark.hole'), t('look.mark.hole.does'), req('top', 'color'));

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.54.0] - 2026-10-14
+
+### Added
+- **You hold what you play on.** In a shared world every character holds a
+  phone or a laptop, depending on what that player is playing on, so you can
+  tell at a glance who is on what (asleep friends keep theirs by them too).
+  A touch screen counts as a phone and a mouse or trackpad as a laptop
+  (`src/game/device.js`). Positions sent to the room now carry `dev`, and the
+  default texture pack has new `character.phone` and `character.laptop`
+  pictures, drawn over the wanderer like the lantern.
+
 ## [0.53.0] - 2026-10-14
 
 ### Added

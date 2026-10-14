@@ -5,7 +5,7 @@
  *
  * Messages are small JSON objects with a type `t`:
  *   game -> room   hello {key}             proves who you are (once, first)
- *                  pos {p}                 where you are, several times a second
+ *                  pos {p}                 where you are (and what you play on), several times a second
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
  *                  away {a}                game hidden (true) or back (false)
@@ -33,6 +33,8 @@ export const LIMITS = Object.freeze({
 });
 
 export const STATUS = Object.freeze(['online', 'away', 'lost', 'offline']);
+// What a player is playing on, shown as what their character holds.
+export const DEVICES = Object.freeze(['phone', 'laptop']);
 
 // A room id is 16 random bytes in base64url: unguessable, so the link is the key.
 export const ROOM_ID_RE = /^[A-Za-z0-9_-]{22}$/;
@@ -77,11 +79,13 @@ export function parse(raw, maxBytes = LIMITS.messageBytes) {
 
 /* ------------------------------------------------------------- pieces */
 
-// A position: where, which way facing, walking or not, holding up the sign.
+// A position: where, which way facing, walking or not, holding up the sign,
+// and what they play on (null if unknown).
 export function cleanPos(p) {
   if (!isObj(p) || !inXY(p.x) || !inXY(p.y) || !inZ(p.z)) return null;
   const f = (v) => (isNum(v) ? Math.max(-1, Math.min(1, round(v, 100))) : 0);
-  return { x: round(p.x, 1000), y: round(p.y, 1000), z: p.z, fx: f(p.fx), fy: f(p.fy), m: p.m === true, sign: p.sign === true };
+  return { x: round(p.x, 1000), y: round(p.y, 1000), z: p.z, fx: f(p.fx), fy: f(p.fy), m: p.m === true, sign: p.sign === true,
+    dev: DEVICES.includes(p.dev) ? p.dev : null };
 }
 
 // One world edit, or null:
