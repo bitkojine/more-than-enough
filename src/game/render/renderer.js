@@ -15,7 +15,7 @@ import { drawExtractor, drawDigging, drawPlayer, drawProp, drawParticles, drawFl
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const FLICKER = 0.12;      // how much a flame's reach wavers, in tiles
+const FLICKER = 0.25;      // how much a glowcap's reach swells and fades, in tiles
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
@@ -32,8 +32,8 @@ export function render(cam, s, fx, view, look) {
     if (row) row.push(e); else byRow.set(e.y, [e]);
   }
   const playerRow = Math.floor(s.player.y);
-  // Props on this layer, by row; the ones that light, as lights (a torch's
-  // flame flickers), and the beacons.
+  // Props on this layer, by row; the ones that light, as lights (a glowcap
+  // pulses slowly, like something alive), and the beacons.
   const propRows = new Map();
   const lights = [], beacons = [];
   for (const [k, kind] of s.world.props) {
@@ -43,7 +43,7 @@ export function render(cam, s, fx, view, look) {
     if (row) row.push([t.x, kind]); else propRows.set(t.y, [[t.x, kind]]);
     const def = Core.PROPS[kind];
     if (def.light) {
-      const flicker = kind === 'torch' ? FLICKER * Math.sin(s.time * 9 + t.x * 1.7 + t.y * 2.3) : 0;
+      const flicker = kind === 'glowcap' ? FLICKER * Math.sin(s.time * 1.6 + t.x * 1.7 + t.y * 2.3) : 0;
       lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
     }
     if (def.beacon) beacons.push({ x: t.x, y: t.y, kind });

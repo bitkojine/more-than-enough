@@ -35,7 +35,7 @@ export function toolStat(s, id) {
 }
 
 export function gatherYield(s, res) {
-  return toolStat(s, res === 'wood' ? 'axe' : 'pickaxe').yield;
+  return toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield;
 }
 
 export function overclockMult(s) {

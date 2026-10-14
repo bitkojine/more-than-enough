@@ -21,12 +21,12 @@ export const IDEAS = [
   /* ------------------------------------------------------------ look */
   {
     title: 'Tools you can see', area: 'look', size: 'small',
-    pitch: 'Each Axe and Pickaxe level changes what the wanderer holds: flint, bronze, iron, crystal. Progress shows on the character instead of only in the sheet.',
+    pitch: 'Each Basket and Pickaxe level changes what the wanderer holds: reed, willow, bronze, crystal. Progress shows on the character instead of only in the sheet.',
     builds: 'Tool levels in the upgrade registry.'
   },
   {
     title: 'A pack that fills up', area: 'look', size: 'small',
-    pitch: 'Logs, stones and glinting ore pile up on a backpack or a little sled behind you as your stock grows, and spill into a cart once it gets absurd. "More than enough" you can see.',
+    pitch: 'Mushrooms, stones and glinting ore pile up on a backpack or a little sled behind you as your stock grows, and spill into a cart once it gets absurd. "More than enough" you can see.',
     builds: 'Inventory totals and the flyers that already zip into your pack.'
   },
   {
@@ -105,13 +105,13 @@ export const IDEAS = [
     builds: 'Trails and dug tunnels.'
   },
   {
-    title: 'Cave-ins and timber', area: 'mechanics', size: 'medium',
-    pitch: 'Big open caverns creak and may collapse unless propped with wooden beams, giving wood a reason to go underground and making mine layout a choice.',
-    builds: 'Dug tiles and wood.'
+    title: 'Cave-ins and mycelium props', area: 'mechanics', size: 'medium',
+    pitch: 'Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.',
+    builds: 'Dug tiles and mycelium.'
   },
   {
     title: 'A lantern that runs low', area: 'mechanics', size: 'small',
-    pitch: 'Underground your sight radius slowly shrinks unless you refuel the lantern with wood or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.',
+    pitch: 'Underground your sight radius slowly shrinks unless you feed the lantern glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.',
     builds: 'Explore radius and night lighting.'
   },
   {

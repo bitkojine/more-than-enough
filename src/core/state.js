@@ -54,7 +54,7 @@ export function createState(seed) {
     world,
     player: { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE },
     inv: perResource(0),
-    tools: { axe: 1, pickaxe: 1, boots: 1, overclock: 1 },
+    tools: { basket: 1, pickaxe: 1, boots: 1, overclock: 1 },
     unlocks: Object.fromEntries(Object.keys(UNLOCKS).map((k) => [k, false])),
     resUp: perResource(0),
     abundanceLv: 0,
@@ -63,7 +63,7 @@ export function createState(seed) {
     totalEver: 0,
     perks: Object.fromEntries(Object.keys(PERKS).map((k) => [k, 0])),
     extractors: [],
-    stats: { ...perResource(0), forestWood: 0, gathers: 0, finds: 0, collected: 0, built: 0, playedMs: 0 },
+    stats: { ...perResource(0), foraged: 0, gathers: 0, finds: 0, collected: 0, built: 0, playedMs: 0 },
     discovered: { ore: false, crystal: false },
     goalIndex: 0,
     time: 0,
@@ -105,7 +105,7 @@ export function embark(s, seed) {
   const fresh = createState(seed);
   fresh.perks = { ...s.perks };
   if (fresh.perks.memory) fresh.unlocks.logistics = true;
-  if (fresh.perks.heirloom) { fresh.tools.axe = 2; fresh.tools.pickaxe = 2; }
+  if (fresh.perks.heirloom) { fresh.tools.basket = 2; fresh.tools.pickaxe = 2; }
   fresh.insight = s.insight + gained;
   fresh.prestiges = s.prestiges + 1;
   fresh.totalEver = lifetimeTotal(s);

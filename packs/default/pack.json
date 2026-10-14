@@ -18,25 +18,24 @@
    "color": "#3a5a2c",
    "top": ["ground/forest-1.svg", "ground/forest-2.svg"],
    "face": "faces/turf.svg",
-   "cut": "props/stump.svg"
+   "crop": "props/mushrooms.svg"
   },
-  "forest.pinewood": {
+  "forest.pine": {
    "top": "ground/forest-pine.svg",
    "stand": ["props/pine.svg", "props/pine.svg", "props/pine.svg", "props/pines.svg", "props/pines.svg", "props/spruce.svg", "props/spruce.svg"]
   },
-  "forest.birchwood": {
+  "forest.birch": {
    "top": "ground/forest-birch.svg",
-   "stand": ["props/birch.svg", "props/birch.svg", "props/birch.svg", "props/birch.svg", "props/pine.svg"],
-   "cut": "props/birch-stump.svg"
+   "stand": ["props/birch.svg", "props/birch.svg", "props/birch.svg", "props/birch.svg", "props/pine.svg"]
   },
-  "forest.oakwood": {
+  "forest.oak": {
    "stand": ["props/oak.svg", "props/oak.svg", "props/oak.svg", "props/apple.svg", "props/birch.svg"]
   },
-  "forest.maplewood": {
+  "forest.maple": {
    "top": "ground/forest-maple.svg",
    "stand": ["props/maple.svg", "props/maple.svg", "props/maple-gold.svg", "props/maple-gold.svg", "props/oak.svg"]
   },
-  "forest.mixedwood": {
+  "forest.mixed": {
    "stand": ["props/pine.svg", "props/spruce.svg", "props/birch.svg", "props/oak.svg", "props/apple.svg", "props/maple.svg", "props/pines.svg"]
   },
   "tile.stone": {
@@ -106,10 +105,10 @@
    "top": "ground/crystal-seam.svg",
    "face": "faces/crystal.svg"
   },
-  "tile.fossil": {
+  "tile.spore-bed": {
    "color": "#74688a",
-   "top": "ground/fossil.svg",
-   "face": "faces/fossil.svg"
+   "top": "ground/spore-bed.svg",
+   "face": "faces/spore-bed.svg"
   },
   "tile.bedrock": {
    "color": "#2e3238",
@@ -125,9 +124,9 @@
    "color": "#5a4836",
    "top": "ground/shaft-open.svg"
   },
-  "resource.wood": {
-   "icon": "icons/wood.svg",
-   "color": "#d9a05b"
+  "resource.mycelium": {
+   "icon": "icons/mycelium.svg",
+   "color": "#f1d29a"
   },
   "resource.stone": {
    "icon": "icons/stone.svg",
@@ -145,8 +144,8 @@
    "icon": "icons/insight.svg",
    "color": "#c9a6ff"
   },
-  "pile.wood": {
-   "tiers": ["piles/wood-0.svg", "piles/wood-1.svg", "piles/wood-2.svg", "piles/wood-3.svg", "piles/wood-4.svg", "piles/wood-5.svg", "piles/wood-6.svg"]
+  "pile.mycelium": {
+   "tiers": ["piles/mycelium-0.svg", "piles/mycelium-1.svg", "piles/mycelium-2.svg", "piles/mycelium-3.svg", "piles/mycelium-4.svg", "piles/mycelium-5.svg", "piles/mycelium-6.svg"]
   },
   "pile.stone": {
    "tiers": ["piles/stone-0.svg", "piles/stone-1.svg", "piles/stone-2.svg", "piles/stone-3.svg", "piles/stone-4.svg", "piles/stone-5.svg", "piles/stone-6.svg"]
@@ -157,8 +156,8 @@
   "pile.crystal": {
    "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg"]
   },
-  "building.lumber": {
-   "image": "buildings/lumber.svg"
+  "building.garden": {
+   "image": "buildings/garden.svg"
   },
   "building.quarry": {
    "image": "buildings/quarry.svg"
@@ -169,8 +168,8 @@
   "building.resonator": {
    "image": "buildings/resonator.svg"
   },
-  "building.sapling": {
-   "image": "buildings/sapling.svg"
+  "building.compost": {
+   "image": "buildings/compost.svg"
   },
   "building.brickyard": {
    "image": "buildings/brickyard.svg"
@@ -204,9 +203,9 @@
   "mark.ladder": {
    "image": "props/ladder.svg"
   },
-  "mark.torch": {
-   "image": "props/torch.svg",
-   "color": "#ffb455"
+  "mark.glowcap": {
+   "image": "props/glowcap.svg",
+   "color": "#9ff5d6"
   },
   "mark.lamp": {
    "image": "props/lamp.svg",
@@ -243,8 +242,8 @@
   "ui.embark": {
    "icon": "icons/embark.svg"
   },
-  "tool.axe": {
-   "icon": "icons/axe.svg"
+  "tool.basket": {
+   "icon": "icons/basket.svg"
   },
   "tool.pickaxe": {
    "icon": "icons/pickaxe.svg"
@@ -255,8 +254,8 @@
   "tool.overclock": {
    "icon": "icons/overclock.svg"
   },
-  "refinery.wood": {
-   "icon": "icons/silviculture.svg"
+  "refinery.mycelium": {
+   "icon": "icons/mycology.svg"
   },
   "refinery.stone": {
    "icon": "icons/masonry.svg"
@@ -273,8 +272,8 @@
   "unlock.logistics": {
    "icon": "icons/logistics.svg"
   },
-  "unlock.sapling": {
-   "icon": "icons/blueprint-sapling.svg"
+  "unlock.compost": {
+   "icon": "icons/blueprint-compost.svg"
   },
   "unlock.brickyard": {
    "icon": "icons/blueprint-brickyard.svg"

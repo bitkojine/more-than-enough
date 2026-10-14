@@ -63,7 +63,7 @@ The map is split by *lifetime*, because the game is about repeated worlds:
 
 | Layer | Resets on Embark? | Contains |
 |---|---|---|
-| **This World** | yes | Tools (Axe, Pickaxe, Boots, Overclock), Abundance Engine, the four Refinery Chains, Unlocks & Blueprints |
+| **This World** | yes | Tools (Basket, Pickaxe, Boots, Overclock), Abundance Engine, the four Refinery Chains, Unlocks & Blueprints |
 | **Legacy** | no | Insight, Perks, Prestiges, Lifetime gathered |
 
 This reframes **respec**: we do *not* add in-run point refunds. The reset is
@@ -89,9 +89,9 @@ A vertical stack of **rails**, one per family:
 
 ```
 THIS WORLD
-  🪓 Tools              ●●●○ ○ ○ ○ ○ ○          3/8
+  🧺 Tools              ●●●○ ○ ○ ○ ○ ○          3/8
   🧰 Refineries         ●●●●●●●●●●             10/10
-     Silviculture  ●●●●○○○○○○   4/10
+     Mycology      ●●●●○○○○○○   4/10
      Masonry       ●●●○○○○○○○   3/10
      Metallurgy    ●○○○○○○○○○   1/10   ▶ tap
      Crystallurgy  ○○○○○○○○○○   0/10
@@ -146,10 +146,10 @@ Presentation must read from data, not hard-coded indices.
    `nodes` are derived from the registry, so rails and rows can never drift apart:
    ```js
    PATH_FAMILIES = [
-     { id: 'tools',     layer: 'world',  name: 'Tools',                nodes: ['axe', 'pickaxe', 'boots', 'overclock'] },
-     { id: 'refining',  layer: 'world',  name: 'Refineries',           nodes: ['wood', 'stone', 'ore', 'crystal'] },
+     { id: 'tools',     layer: 'world',  name: 'Tools',                nodes: ['basket', 'pickaxe', 'boots', 'overclock'] },
+     { id: 'refining',  layer: 'world',  name: 'Refineries',           nodes: ['mycelium', 'stone', 'ore', 'crystal'] },
      { id: 'abundance', layer: 'world',  name: 'Abundance Engine',     nodes: ['abundance'] },
-     { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', nodes: ['logistics', 'sapling', 'brickyard', 'foundry', 'observatory'] },
+     { id: 'unlocks',   layer: 'world',  name: 'Unlocks & Blueprints', nodes: ['logistics', 'compost', 'brickyard', 'foundry', 'observatory'] },
      { id: 'perks',     layer: 'legacy', name: 'Perks',                nodes: ['legacy', 'memory', 'heirloom', 'cartographer', 'nomad'] }
    ];
    ```

@@ -77,16 +77,16 @@ test('underground layers are solid rock with one shaft per chunk', () => {
   assert.equal(C.tileAt(w, shaft.x, shaft.y, -1), T.SHAFT);
 });
 
-test('crystal and fossils only appear in deeper layers', () => {
+test('crystal and spore beds only appear in deeper layers', () => {
   const w = C.createWorld(77);
   const kinds = (z) => {
     const seen = new Set();
     for (let y = 0; y < 64; y++) for (let x = 0; x < 64; x++) seen.add(C.tileAt(w, x, y, z));
     return seen;
   };
-  assert.ok(!kinds(-1).has(T.CRYSTAL_SEAM) && !kinds(-1).has(T.FOSSIL));
-  assert.ok(kinds(-3).has(T.CRYSTAL_SEAM) && !kinds(-3).has(T.FOSSIL));
-  assert.ok(kinds(-4).has(T.FOSSIL));
+  assert.ok(!kinds(-1).has(T.CRYSTAL_SEAM) && !kinds(-1).has(T.SPORE_BED));
+  assert.ok(kinds(-3).has(T.CRYSTAL_SEAM) && !kinds(-3).has(T.SPORE_BED));
+  assert.ok(kinds(-4).has(T.SPORE_BED));
 });
 
 test('richness edits are stored only where they differ from generation', () => {

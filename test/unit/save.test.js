@@ -1,16 +1,16 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, lumberCamp, run, away } from './helpers.js';
+import { C, mushroomGarden, run, away } from './helpers.js';
 
 const roundTrip = (s) => C.deserialize(C.serialize(s));
 
 test('a save restores the world, the economy and the player', () => {
   const s = away(C.createState(4242));
-  Object.assign(s.inv, { wood: 123, ore: 7 });
-  s.tools.axe = 3; s.tools.overclock = 2;
+  Object.assign(s.inv, { mycelium: 123, ore: 7 });
+  s.tools.basket = 3; s.tools.overclock = 2;
   s.unlocks.logistics = true;
   s.perks.legacy = 2;
-  s.extractors.push(lumberCamp(48, 50, 12.5));
+  s.extractors.push(mushroomGarden(48, 50, 12.5));
   s.goalIndex = 5;
   s.player.x = 51.25; s.player.y = 47.75;
   C.setRichness(s.world, 49, 49, 0, 2);
@@ -25,7 +25,7 @@ test('a save restores the world, the economy and the player', () => {
   assert.equal(r.unlocks.logistics, true);
   assert.equal(r.perks.legacy, 2);
   assert.equal(r.extractors.length, 1);
-  assert.equal(r.extractors[0].key, 'lumber');
+  assert.equal(r.extractors[0].key, 'garden');
   assert.equal(r.extractors[0].z, 0);
   assert.equal(r.extractors[0].buffer, 12.5);
   assert.equal(r.goalIndex, 5);
@@ -55,12 +55,12 @@ test('an underground expedition survives a reload, holes and mine fog included',
 test('a reloaded save keeps producing', () => {
   const s = away(C.createState(12345));
   s.unlocks.logistics = true;
-  s.extractors.push(lumberCamp(Math.floor(s.player.x) - 2, Math.floor(s.player.y)));
+  s.extractors.push(mushroomGarden(Math.floor(s.player.x) - 2, Math.floor(s.player.y)));
   run(s, 10);
   const r = roundTrip(s);
-  const before = r.inv.wood;
+  const before = r.inv.mycelium;
   run(r, 10);
-  assert.ok(r.inv.wood > before);
+  assert.ok(r.inv.mycelium > before);
 });
 
 test('unreadable saves and saves from other format versions are rejected', () => {
@@ -72,18 +72,41 @@ test('unreadable saves and saves from other format versions are rejected', () =>
   assert.equal(C.deserialize(JSON.stringify({ v: C.SAVE_VERSION })), null, 'a seed is required');
 });
 
+test('format 5 saves from before trees stopped being cut carry over, renamed', () => {
+  const s = C.createState(5150);
+  s.inv.mycelium = 42;
+  s.stats.foraged = 7;
+  s.tools.basket = 3;
+  s.resUp.mycelium = 2;
+  s.unlocks.compost = true;
+  const d = JSON.parse(C.serialize(s));
+  const names = { mycelium: 'wood', basket: 'axe', compost: 'sapling', foraged: 'forestWood' };
+  const old = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [names[k] || k, v]));
+  Object.assign(d, { v: 5, inv: old(d.inv), stats: old(d.stats), tools: old(d.tools), resUp: old(d.resUp), unlocks: old(d.unlocks) });
+  d.extractors = [{ k: 'lumber', x: 1, y: 2, z: 0, b: 3 }, { k: 'sapling', x: 4, y: 5, z: 0, b: 0 }];
+  const r = C.deserialize(JSON.stringify(d));
+  assert.ok(r, 'a format 5 save still loads');
+  assert.equal(r.inv.mycelium, 42);
+  assert.equal(r.stats.foraged, 7);
+  assert.equal(r.tools.basket, 3);
+  assert.equal(r.resUp.mycelium, 2);
+  assert.equal(r.unlocks.compost, true);
+  assert.deepEqual(r.extractors.map((e) => e.key), ['garden', 'compost']);
+  assert.equal(r.extractors[0].res, 'mycelium');
+});
+
 test('corrupt fields fall back to defaults instead of breaking the game', () => {
   const r = C.deserialize(JSON.stringify({
-    v: C.SAVE_VERSION, seed: 9, inv: { wood: 'lots' }, player: { x: 1.5, y: 2.5, z: 99 },
-    tools: { axe: 99, pickaxe: -3 }, resUp: { wood: 1e9 },
+    v: C.SAVE_VERSION, seed: 9, inv: { mycelium: 'lots' }, player: { x: 1.5, y: 2.5, z: 99 },
+    tools: { basket: 99, pickaxe: -3 }, resUp: { mycelium: 1e9 },
     extractors: [{ k: 'nope', x: 0, y: 0 }, { k: 'quarry', x: 1.5, y: 0 }],
     mods: [[1, -4], ['x', 2]], explored: [[1, '!!']], underground: { deepest: 3 }, holes: ['x', 1.5]
   }));
-  assert.equal(r.inv.wood, 0);
-  assert.equal(r.tools.axe, C.TOOLS.axe.levels.length);
+  assert.equal(r.inv.mycelium, 0);
+  assert.equal(r.tools.basket, C.TOOLS.basket.levels.length);
   assert.equal(r.tools.pickaxe, 1);
-  assert.equal(r.resUp.wood, C.REFINERIES.wood.levels.length);
-  assert.equal(C.gatherYield(r, 'wood'), 32, 'clamped levels stay usable');
+  assert.equal(r.resUp.mycelium, C.REFINERIES.mycelium.levels.length);
+  assert.equal(C.gatherYield(r, 'mycelium'), 32, 'clamped levels stay usable');
   assert.equal(r.player.z, 0);
   assert.equal(r.extractors.length, 0);
   assert.equal(r.world.mods.size, 0);

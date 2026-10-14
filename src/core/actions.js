@@ -74,8 +74,8 @@ export function harvestAt(s, x, y) {
     s.inv[res] += amount;
     s.stats[res] += amount;
   }
-  // Wood also comes from fossils deep underground; the first milestone wants a forest.
-  if (type === T.FOREST) s.stats.forestWood += amount;
+  // Mycelium also grows in spore beds deep underground; the first milestone wants a forest.
+  if (type === T.FOREST) s.stats.foraged += amount;
   s.stats.gathers += 1;
   let found = null;
   if (TILE_INFO[type].find) {

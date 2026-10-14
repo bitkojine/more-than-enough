@@ -172,7 +172,7 @@ export function createAudio() {
   }
 
   // A short filtered noise burst: the percussive transient that makes a hit
-  // read as wood / stone / ore / crystal instead of just a tone.
+  // read as mycelium / stone / ore / crystal instead of just a tone.
   function impact(cutoff, dur, vol, q, delay) {
     if (!live()) return;
     try {
@@ -197,7 +197,7 @@ export function createAudio() {
     } catch { /* ignore */ }
   }
 
-  // Each material has its own voice: wood knocks warmly, stone cracks dryly,
+  // Each material has its own voice: mycelium pops softly, stone cracks dryly,
   // ore rings metallic, crystal pings glassy. The pentatonic walk picks the
   // pitch; toolLevel 4+ adds an overtone.
   function gather(res, amount, toolLevel) {
@@ -211,10 +211,10 @@ export function createAudio() {
     const h = rand();
     const rich = toolLevel >= 4;
 
-    if (res === 'wood') {
+    if (res === 'mycelium') {
       const wf = f * 0.5 * (1 + (h - 0.5) * 0.02);
-      note(wf, 0.15, 'sine', vol, 0, 0);
-      impact(280 + h * 90, 0.12, vol * 0.5, 1.1, 0);
+      note(wf, 0.18, 'sine', vol, 0, 0);
+      impact(200 + h * 70, 0.09, vol * 0.35, 0.8, 0);
       if (rich && h < 0.5) note(wf * 1.5, 0.16, 'triangle', vol * 0.5, 0, 0.01);
     } else if (res === 'stone') {
       impact(1300 + h * 400, 0.07, vol * 0.85, 1.7, 0);

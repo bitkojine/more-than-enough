@@ -38,11 +38,15 @@ test('catalog: everything the game draws or lists has a look', () => {
   for (const f of C.PATH_FAMILIES) assert.ok(C.LOOK[f.look], `upgrade group ${f.id}`);
 });
 
-test('catalog: only surface deposits that can be worked out have a cut look', () => {
+test('catalog: only surface deposits that can be worked out have a cut look; forests never do', () => {
   for (const t of C.LOOKS.filter((l) => l.group === 'tile')) {
     const info = C.TILE_INFO[C.TILE_KEY.indexOf(t.key)];
-    assert.equal('cut' in t.slots, !!(info.harvest && !info.solid), t.id);
+    const workable = !!(info.harvest && !info.solid);
+    assert.equal('cut' in t.slots, workable && !info.forage, t.id);
+    assert.equal('crop' in t.slots, workable && !!info.forage, t.id);
   }
+  assert.ok(C.TILE_INFO[C.T.FOREST].forage, 'trees are never cut down');
+  for (const f of C.LOOKS.filter((l) => l.group === 'forest')) assert.ok(!('cut' in f.slots), f.id);
 });
 
 test('default pack: complete, valid, and every picture it names exists', () => {
@@ -96,14 +100,14 @@ test('pack: every problem is reported, naming the thing and slot', () => {
       'tile.water': { icon: 'w.png', color: 'blue', top: { frames: [], fps: 0, speed: 1 } },
       'tile.grass': { stand: 'tuft.png', top: 'grass.txt' },
       'tile.forest': { stand: [null, null] },
-      'resource.wood': 'wood.png'
+      'resource.mycelium': 'mycelium.png'
     }
   });
   const expect = [
     'Unknown top-level key "extra"', '"format" must be 1', '"name" is missing',
     'tile.gras: no such thing', 'tile.water icon: Water has no "icon"', 'tile.water color: must be a colour',
     'tile.water top: unknown key "speed"', 'tile.water top: "frames" must be a list', 'tile.water top: "fps" must be',
-    'tile.grass stand: Grass has no "stand"', 'tile.forest stand: every variant is empty', 'tile.grass top: "grass.txt" is not a picture', 'resource.wood: must be an object'
+    'tile.grass stand: Grass has no "stand"', 'tile.forest stand: every variant is empty', 'tile.grass top: "grass.txt" is not a picture', 'resource.mycelium: must be an object'
   ];
   for (const e of expect) assert.ok(problems.some((p) => p.startsWith(e)), `reports: ${e}\n got: ${problems.join('\n')}`);
   assert.equal(problems.length, expect.length, problems.join('\n'));

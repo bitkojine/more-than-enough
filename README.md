@@ -1,7 +1,7 @@
 # MORE THAN ENOUGH
 
 A small, complete, mobile-first browser game about turning a hostile wilderness
-into an absurd surplus. Explore an endless, ever-different world, gather wood /
+into an absurd surplus. Explore an endless, ever-different world, forage mycelium and mine
 stone / ore / crystal, craft better tools, automate with extractors, and chase
 the Abundance Engine.
 

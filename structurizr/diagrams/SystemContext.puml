@@ -62,7 +62,7 @@ hide stereotype
 
 person "==Player\n<size:16>[Person]</size>\n\nPlays the game on a phone or desktop browser." <<Element-RWxlbWVudCxQZXJzb24=>> as Player
 rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harnesses and the deploy pipeline. Zero dependencies." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw==>> as DevelopmentTooling
-rectangle "==MORE THAN ENOUGH\n<size:16>[Software System]</size>\n\nAn idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather wood/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sR2FtZQ==>> as MORETHANENOUGH
+rectangle "==MORE THAN ENOUGH\n<size:16>[Software System]</size>\n\nAn idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather mycelium/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sR2FtZQ==>> as MORETHANENOUGH
 
 Player --> MORETHANENOUGH <<Relationship-UmVsYXRpb25zaGlw>> : "Plays in a mobile/desktop browser"
 DevelopmentTooling --> MORETHANENOUGH <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"

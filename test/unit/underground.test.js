@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, T, typeAt, findNear, standOn, run, lumberCamp, away } from './helpers.js';
+import { C, T, typeAt, findNear, standOn, run, mushroomGarden, away } from './helpers.js';
 
 const { SURFACE } = C;
 
@@ -187,15 +187,15 @@ test('logistics does not collect from surface camps while underground', () => {
   const s = away(C.createState(31415));
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
   s.unlocks.logistics = true;
-  s.extractors.push(lumberCamp(px + 1, py, 20));
+  s.extractors.push(mushroomGarden(px + 1, py, 20));
   C.goDown(s); // right beside the camp, a layer below (never under it)
   run(s, 2);
-  assert.equal(s.inv.wood, 0);
+  assert.equal(s.inv.mycelium, 0);
   assert.equal(s.events.length, 0);
   assert.equal(C.collectTarget(s), null, 'nor by hand');
   C.goUp(s);
   C.step(s, 0.1);
-  assert.ok(s.inv.wood >= 20, 'back on the surface it collects again');
+  assert.ok(s.inv.mycelium >= 20, 'back on the surface it collects again');
 });
 
 test('each layer has its own fog, lifted only close by underground', () => {
@@ -223,10 +223,10 @@ test('surface regrowth is unaffected by underground position', () => {
 
 test('extractors cannot be built underground', () => {
   const s = away(C.createState(31415));
-  Object.assign(s.inv, { wood: 1e4, stone: 1e4, ore: 1e4 });
-  s.unlocks.sapling = true;
+  Object.assign(s.inv, { mycelium: 1e4, stone: 1e4, ore: 1e4 });
+  s.unlocks.compost = true;
   C.goDown(s);
-  assert.equal(C.place(s, 'sapling').ok, false);
+  assert.equal(C.place(s, 'compost').ok, false);
 });
 
 test('surface movement still swims and blocks on rock', () => {
@@ -276,7 +276,7 @@ test('no way between layers shares a tile with a building, and none opens in wat
   // Down through a building: no.
   const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
-  s.extractors.push({ key: 'sapling', res: 'wood', x: fx, y: fy, z: C.SURFACE, buffer: 0 });
+  s.extractors.push({ key: 'compost', res: 'mycelium', x: fx, y: fy, z: C.SURFACE, buffer: 0 });
   assert.equal(C.canGoDown(s), false, 'not under a building');
   s.extractors.length = 0;
   assert.equal(C.canGoDown(s), true);
@@ -286,7 +286,7 @@ test('no way between layers shares a tile with a building, and none opens in wat
   const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
   C.harvestAt(s, n.x, n.y);
   standOn(s, n);
-  s.extractors.push({ key: 'sapling', res: 'wood', x: n.x, y: n.y, z: C.SURFACE, buffer: 0 });
+  s.extractors.push({ key: 'compost', res: 'mycelium', x: n.x, y: n.y, z: C.SURFACE, buffer: 0 });
   assert.equal(C.canGoUp(s), false, 'not up into a building');
   s.extractors.length = 0;
 
@@ -301,11 +301,11 @@ test('no way between layers shares a tile with a building, and none opens in wat
 
   // And no building on a tile with a hole in its floor or ceiling.
   const b = away(C.createState(31415));
-  b.inv.wood = 1e6; b.inv.stone = 1e6; b.inv.ore = 1e6; b.unlocks.sapling = true;
+  b.inv.mycelium = 1e6; b.inv.stone = 1e6; b.inv.ore = 1e6; b.unlocks.compost = true;
   C.goDown(b);
   const hx = Math.floor(b.player.x), hy = Math.floor(b.player.y);
   assert.ok(C.holeAbove(b.world, hx, hy, b.player.z));
-  const spot = C.buildTarget(b, 'sapling');
+  const spot = C.buildTarget(b, 'compost');
   assert.ok(!spot || spot.x !== hx || spot.y !== hy, 'not under the hole you came down');
 });
 
@@ -356,21 +356,21 @@ test('a new hole takes work; an old one is a way straight through', () => {
 
 test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));
-  assert.equal(C.canPlaceProp(s, 'torch'), false, 'not on the surface');
+  assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on the surface');
   assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
   C.goDown(s);
   assert.equal(C.needsLantern(s), true, 'the lantern comes out underground');
-  assert.equal(C.placeProp(s, 'torch').ok, false, 'needs wood');
+  assert.equal(C.placeProp(s, 'glowcap').ok, false, 'needs mycelium');
   assert.equal(C.canPlaceProp(s, 'nonsense'), false);
-  s.inv.wood = 10;
-  assert.equal(C.placeProp(s, 'torch').ok, true);
-  assert.equal(s.inv.wood, 10 - C.PROPS.torch.cost.wood);
+  s.inv.mycelium = 10;
+  assert.equal(C.placeProp(s, 'glowcap').ok, true);
+  assert.equal(s.inv.mycelium, 10 - C.PROPS.glowcap.cost.mycelium);
   assert.equal(C.canPlaceProp(s, 'flag'), false, 'one per tile, of any kind');
   C.setRichness(s.world, Math.floor(s.player.x) + 1, Math.floor(s.player.y), s.player.z, 0);
   s.player.x += 1;
   Object.assign(s.inv, { stone: 8, crystal: 1 });
   assert.equal(C.placeProp(s, 'lamp').ok, true, 'a lamp next door');
-  assert.deepEqual([...s.world.props.values()].sort(), ['lamp', 'torch']);
+  assert.deepEqual([...s.world.props.values()].sort(), ['glowcap', 'lamp']);
   const back = C.deserialize(C.serialize(s));
   assert.deepEqual([...back.world.props], [...s.world.props], 'props are saved');
   const night = away(C.createState(1));
@@ -378,15 +378,15 @@ test('props: placed underground on open floor, one per tile, paid for, and saved
   assert.equal(C.needsLantern(night), true, 'and at night');
 });
 
-test('saves from before props keep their torches', () => {
+test('torches in saves from before trees stopped being cut grow back as glowcaps', () => {
   const s = away(C.createState(31415));
   C.goDown(s);
   const k = C.packKey(Math.floor(s.player.x), Math.floor(s.player.y), s.player.z);
   const d = JSON.parse(C.serialize(s));
-  delete d.props;
-  d.torches = [k, C.packKey(0, 0, 0)];
+  d.v = 5;
+  d.props = [[k, 'torch'], [C.packKey(0, 0, 0), 'torch']];
   const back = C.deserialize(JSON.stringify(d));
-  assert.deepEqual([...back.world.props], [[k, 'torch']], 'kept underground only');
+  assert.deepEqual([...back.world.props], [[k, 'glowcap']], 'kept underground only');
 });
 
 test('home ground is sealed: no way down from it, none up into it; deeper is open rock', () => {
@@ -437,7 +437,7 @@ test('digging out a find pays its loot at once, scaled by layer and tool, and it
   const f = near[0];
   C.setRichness(s.world, f.x + 1, f.y, s.player.z, 0); // a spot to stand beside it
   s.player.x = f.x + 1.5; s.player.y = f.y + 0.5;
-  s.tools.pickaxe = 2; s.tools.axe = 3;
+  s.tools.pickaxe = 2; s.tools.basket = 3;
   const before = { ...s.inv };
   const r = C.harvestAt(s, f.x, f.y);
   assert.ok(r && r.found, 'a find pays out');

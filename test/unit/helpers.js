@@ -69,8 +69,8 @@ export function run(s, seconds) {
   for (let t = 0; t < seconds * 10 - 1e-9; t++) C.step(s, 0.1);
 }
 
-export function lumberCamp(x, y, buffer = 0) {
-  return { key: 'lumber', res: 'wood', x, y, z: C.SURFACE, buffer };
+export function mushroomGarden(x, y, buffer = 0) {
+  return { key: 'garden', res: 'mycelium', x, y, z: C.SURFACE, buffer };
 }
 
 // Every world upgrade bought (tools, refineries, unlocks, Abundance to the

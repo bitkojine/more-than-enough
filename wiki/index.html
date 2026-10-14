@@ -29,7 +29,7 @@
       <p class="lede">The game tells you nothing. Poke at it, find out, and come here when you want the details.</p>
       <p><a class="play-hero" href="../"><span aria-hidden="true">&#9654;</span> Play now, free, in your browser</a></p>
       <p>MORE THAN ENOUGH is about turning a hostile wilderness into an absurd surplus. You start with nothing in an endless,
-        randomly generated forest. Gather wood, stone, ore and crystal, craft better tools, put up buildings that work while
+        randomly generated forest. Forage mycelium from the forest floor, gather stone, ore and crystal, craft better tools, put up buildings that work while
         you're away, dig into the rock below, and keep going until there's more than enough. Then start over in a new world, a
         little stronger.</p>
       <div class="note">Every number in this wiki is read live from the game's own code, so the tables always match the version
@@ -136,7 +136,7 @@
       <p class="lede">There's no text to read in the game. Here's what everything you see means.</p>
 
       <h2>Resource counters</h2>
-      <p>The four chips at the top are what you're carrying: 🪵 wood, 🪨 stone, ⛏️ ore and 💠 crystal. A green
+      <p>The four chips at the top are what you're carrying: 🍄 mycelium, 🪨 stone, ⛏️ ore and 💠 crystal. A green
         <em>+n/s</em> under a count is your income from buildings and the Abundance Engine, assuming you're there to pick it up.</p>
 
       <h2>Depth marker</h2>
@@ -212,11 +212,15 @@
         beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
 
       <h2>Forests</h2>
-      <p>Forests differ from region to region, like real ones: cold country grows dark <strong>pinewood</strong> (pines and
-        spruce), wet mild country pale <strong>birch groves</strong>, warm wet country broad <strong>oak woods</strong> with the odd
-        apple tree, warm dry country <strong>maple woods</strong> in autumn colours, and where they meet, <strong>mixed wood</strong>
-        with a bit of everything. Within a forest the trees vary too. Every forest yields wood the same way; only the look
+      <p>Forests differ from region to region, like real ones: cold country grows dark <strong>pine forest</strong> (pines and
+        spruce), wet mild country pale <strong>birch groves</strong>, warm wet country broad <strong>oak forest</strong> with the odd
+        apple tree, warm dry country <strong>maple forest</strong> in autumn colours, and where they meet, <strong>mixed forest</strong>
+        with a bit of everything. Within a forest the trees vary too. Every forest yields mycelium the same way; only the look
         changes. See them all under <a href="#things">Everything in the game</a>.</p>
+      <p>Trees are never cut down, not by you and not by your buildings. What you gather in a forest is the mycelium that
+        grows on its floor: the mushrooms at the trees' feet. Forage a patch bare and the trees go on standing; the mushrooms
+        come back near you. Mycelium is a real building material, grown rather than felled: your tools, buildings and
+        upgrades are made from what grows back.</p>
 
       <h2>Surface tiles</h2>
       <div data-table="surface"></div>
@@ -253,7 +257,7 @@
 
       <h2>Resources</h2>
       <ul>
-        <li><strong>🪵 Wood</strong> from forest, and from fossils in the deep mine. Uses the Axe.</li>
+        <li><strong>🍄 Mycelium</strong> foraged from the forest floor, and from spore beds in the deep mine. Uses the Basket.</li>
         <li><strong>🪨 Stone</strong> from stone deposits and stone seams. Uses the Pickaxe.</li>
         <li><strong>⛏️ Ore</strong> from ore deposits and ore seams. Uses the Pickaxe. Never regrows on the surface.</li>
         <li><strong>💠 Crystal</strong> from crystal deposits and, from layer 3 down, crystal seams. Uses the Pickaxe. Rare, and never regrows on the surface.</li>
@@ -262,7 +266,7 @@
       <h2>Yield and richness</h2>
       <p>Each swing gives you as much as your tool's level allows (1 at the start, up to 32), but always takes exactly
         <strong>one</strong> point of richness from the tile. Better tools don't use up deposits faster; they get more out of
-        each one. A forest at zero richness turns into a stump until it regrows.</p>
+        each one. A forest at zero richness keeps its trees but has no mushrooms left until they regrow.</p>
       <p>See <a href="#upgrades">Upgrades</a> for the full tool tables.</p>
 
       <h2>Finding ore and crystal</h2>
@@ -320,7 +324,7 @@
         seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>tapping</strong>
         it within reach, or with a <strong>Trail</strong> across nearby rock. Bedrock never gives, and a shaft only opens to a
         deliberate tap. Holding Gather on its own never digs.</p>
-      <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Axe or Pickaxe level. Plain
+      <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Basket or Pickaxe level. Plain
         soil holds nothing: its dirt is tossed aside with a <em>+0</em>, and digging it only clears the way. Tunnels stay
         where you dug them, on every layer.</p>
       <div data-table="underground"></div>
@@ -334,7 +338,7 @@
         <span data-k="FINDS_PER_CHUNK"></span> <strong>finds</strong> in the rock. They <strong>glint in the dark</strong>
         from up to <span data-k="GLINT_RANGE"></span> tiles away, even through rock you haven't uncovered, so there's
         always something close to dig toward. One dig breaks a find open and pays its loot all at once: each amount below,
-        times the layer number, times your Axe (wood) or Pickaxe (everything else) yield.</p>
+        times the layer number, times your Basket (mycelium) or Pickaxe (everything else) yield.</p>
       <div data-table="finds"></div>
 
       <h2>Shafts</h2>
@@ -356,7 +360,7 @@
       <h2>Rules underground</h2>
       <ul>
         <li>It's always dark down here. Your lantern lights only a small pool at your feet, so tunnels you dug a few steps back
-          sink into the dark again. Torches and lamps keep their stretch lit, and daylight falls through the holes you came
+          sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
         <li>Logistics only collects from buildings on the layer you're on, so your surface camps simply fill up while you're below.</li>
         <li>Nothing regrows underground.</li>
@@ -408,7 +412,7 @@
 
       <h2>Reading it</h2>
       <p>Each power of ten has its own kind of pile, and each digit of what you own is how many of that kind there are. It
-        reads like an abacus: 3,452 wood is 3 carts, 4 log piles, 5 bundles and 2 single logs. Ten of a pile become one of the
+        reads like an abacus: 3,452 mycelium is 3 carts, 4 brick stacks, 5 baskets, 1 clump and 2 single mushrooms. Ten of a pile become one of the
         next, so the yard grows with the number of digits, not the number itself, and a glance at the biggest piles tells you
         how rich you are.</p>
       <div data-table="piles"></div>
@@ -436,9 +440,9 @@
       <p class="lede">Everything in the Upgrades tab, level by level.</p>
 
       <h2>Tools</h2>
-      <p>Your Axe and Pickaxe set how much each swing yields. Boots set your speed.</p>
+      <p>Your Basket sets how much mycelium each gather brings in, your Pickaxe how much each swing yields. Boots set your speed.</p>
       <p><strong>Overclock</strong> is the one tool that works on your buildings rather than on you. Each level doubles what every
-        building makes (Lumber Camps, Quarries, Mines, Crystal Drills and converters), wherever they are, so it's the best
+        building makes (Mushroom Gardens, Quarries, Mines, Crystal Drills and converters), wherever they are, so it's the best
         upgrade once a few buildings stand. You also hear it: the hum of your buildings rises with each level.</p>
       <div data-table="tools"></div>
 
@@ -531,7 +535,7 @@
   "tile": 64,
   "looks": {
     "tile.grass":  { "color": "#b8873a", "top": ["grass-a.png", "grass-b.png"] },
-    "tile.forest": { "stand": ["maple.svg", "birch.svg", null], "cut": "stump.svg" },
+    "tile.forest": { "stand": ["maple.svg", "birch.svg", null], "crop": "toadstools.svg" },
     "tile.water":  { "top": { "frames": ["water-1.png", "water-2.png"], "fps": 2 } },
     "character.wanderer": { "image": "fox.png" },
     "color.backdrop": { "color": "#0b0710" }
@@ -558,7 +562,10 @@
           have it: nothing in the game is decoration you can't pick up, so a pack can't put props on grass, water or tunnels.
           Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.
           Stone, ore and crystal wear down as they're mined: drawn smaller the less is left, to half size before they run out.</li>
-        <li><code>cut</code>: what stands on a gathering tile once it's worked out (a stump, pebbles).</li>
+        <li><code>cut</code>: what stands on a gathering tile once it's worked out (pebbles, a broken ore rock). Forests have
+          none: their trees are never cut.</li>
+        <li><code>crop</code>: forests only. What grows at the trees' feet and is foraged (mushrooms), drawn in front of the
+          trees while there is some left, smaller as it runs low.</li>
         <li><code>image</code>: buildings, the wanderer and the boat, drawn upright like <code>stand</code>, and shown in the sheet.</li>
         <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
         <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is

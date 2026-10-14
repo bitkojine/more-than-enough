@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.42.0] - 2026-10-14
+
+### Changed
+- **No more cutting down trees.** Wood and logs are gone from the game.
+  Forests still stand everywhere they did, but a tree is never cut: what you
+  gather in a forest is the **mycelium** growing on its floor, the mushrooms
+  at the trees' feet. Forage a patch bare and the trees keep standing; the
+  mushrooms grow back near you. Mycelium takes wood's place everywhere, at the
+  same amounts, so the progression plays the same:
+  - the **Axe** is now the **Basket**, the **Lumber Camp** a **Mushroom
+    Garden**, the **Sapling Grove** a **Compost Heap** and **Silviculture**
+    **Mycology**;
+  - **torches** are now **glowcaps**, glowing mushrooms you plant in a tunnel,
+    and they pulse slowly instead of flickering;
+  - **fossils** in the deep mine are now **spore beds** of cave mushrooms;
+  - the stockpile piles up mushrooms, baskets and mycelium bricks, all the way
+    to a mushroom house, instead of logs and a woodshed.
+- Forest kinds are named Pine, Oak, Maple and Mixed *forest* rather than *wood*.
+- Saves carry over: a world saved before this update loads with its wood,
+  Axe, camps, groves and torches renamed one for one.
+
 ## [0.41.0] - 2026-10-13
 
 ### Added

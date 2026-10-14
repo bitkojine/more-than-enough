@@ -87,13 +87,13 @@ export function drawTrail(ctx, cam, s, view) {
 
 /* Light and dark. Underground it is always dark; on the surface it gets dark
  * at night. What lights the dark: the wanderer's lantern (carried only then),
- * torches and lamps you placed, and daylight falling through holes in the ceiling. The
- * dark is drawn as one mask at low resolution with every light cut out of it,
- * then each light adds a warm tint of its own colour.
+ * glowcaps and lamps you placed, and daylight falling through holes in the
+ * ceiling. The dark is drawn as one mask at low resolution with every light
+ * cut out of it, then each light adds a warm tint of its own colour.
  *
  * Down in the mine the lantern is only a small pool at your feet: the rock you
  * have uncovered a few steps away sinks back into the dark, and it takes a
- * torch to keep a stretch of tunnel lit. */
+ * glowcap to keep a stretch of tunnel lit. */
 const LANTERN_LIGHT = 3.0;      // how far the lantern lights the night forest, in tiles
 const MINE_LANTERN_LIGHT = 1.7; // how far it lights in the mine
 const SKYLIGHT_LIGHT = 2.0;     // how far light falling through a hole spreads
@@ -106,7 +106,7 @@ let mask = null;
 
 /**
  * @param {Array<{x: number, y: number, r: number, color: string, strength?: number}>} lights
- *   lights on this layer besides the lantern and skylights (torches, lamps), in tiles.
+ *   lights on this layer besides the lantern and skylights (glowcaps, lamps), in tiles.
  *   `core` (0..1, default 0.5) is how much of the radius is lit fully before
  *   the light fades out.
  */

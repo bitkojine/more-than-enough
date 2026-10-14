@@ -311,7 +311,7 @@ async function main() {
   await drag(80, 600, 140, 600, 4, 30);
   ok(await waitFor('MTE_GAME.audioState() === "running"', 1500), 'a drag on the map is enough to start the sound (state: ' + await evalJS('MTE_GAME.audioState()') + ')');
   // Every sound must actually come out of the speakers, not just be "on".
-  var SOUNDS = ['gather("wood",1,1)', 'gather("stone",1,1)', 'gather("ore",1,1)', 'gather("crystal",1,1)', 'dig()', 'collect()', 'upgrade()', 'build()', 'fanfare()'];
+  var SOUNDS = ['gather("mycelium",1,1)', 'gather("stone",1,1)', 'gather("ore",1,1)', 'gather("crystal",1,1)', 'dig()', 'collect()', 'upgrade()', 'build()', 'fanfare()'];
   for (var si = 0; si < SOUNDS.length; si++) {
     var peak = await loudness('MTE_GAME.audio.' + SOUNDS[si]);
     ok(peak > 0.004, 'the ' + SOUNDS[si].replace(/\(.*/, '') + ' sound is heard' + (SOUNDS[si].indexOf('gather') === 0 ? ' (' + SOUNDS[si].split('"')[1] + ')' : '') + ' (peak ' + peak.toFixed(3) + ')');
@@ -372,11 +372,11 @@ async function main() {
     await touch('touchEnd', []);
     ok(drilled, 'holding the stick against a wall drills through it');
   }
-  // Torches: the Build sheet places one where you stand, for wood.
-  await evalJS('MTE_GAME.addRes("wood", 10); document.getElementById("btnBuild").click()');
-  ok(await waitFor('!!document.querySelector("#sheetBody button[data-kind=prop][data-id=torch]:not([disabled])")', 1500), 'underground, the Build sheet offers a torch');
-  await evalJS('document.querySelector("#sheetBody button[data-kind=prop][data-id=torch]").click()');
-  eq(await evalJS('MTE_GAME.getState().world.props.size'), 1, 'placing a torch leaves it in the tunnel');
+  // Glowcaps: the Build sheet places one where you stand, for mycelium.
+  await evalJS('MTE_GAME.addRes("mycelium", 10); document.getElementById("btnBuild").click()');
+  ok(await waitFor('!!document.querySelector("#sheetBody button[data-kind=prop][data-id=glowcap]:not([disabled])")', 1500), 'underground, the Build sheet offers a glowcap');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=prop][data-id=glowcap]").click()');
+  eq(await evalJS('MTE_GAME.getState().world.props.size'), 1, 'placing a glowcap leaves it in the tunnel');
   await evalJS('document.getElementById("btnClose").click()');
   var shaftSpot = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,40,function(x,y){return c.tileAt(s.world,x,y,-1)===c.T.SHAFT;});c.setRichness(s.world,t.x+1,t.y,-1,0);MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);return JSON.stringify({x:t.x,y:t.y,sx:innerWidth/2-MTE_GAME.tilePx(),sy:innerHeight/2});})()'));
   await sleep(120);
@@ -469,9 +469,9 @@ async function main() {
   await hold(act.x, act.y, 2200); // hold to auto-repeat gather
   ok(await heard(200) > 0.01, 'gathering in play is heard');
   var g1 = JSON.parse(await stateSummary());
-  ok(g1.inv.wood > g0.inv.wood, 'holding GATHER collected wood (' + g0.inv.wood + ' -> ' + g1.inv.wood + ')');
-  // The first milestone (gather wood) is celebrated with a banner naming it.
-  ok(await waitFor('!document.getElementById("milestone").hidden && /wood/i.test(document.querySelector("#milestone strong").textContent)', 2000),
+  ok(g1.inv.mycelium > g0.inv.mycelium, 'holding GATHER collected mycelium (' + g0.inv.mycelium + ' -> ' + g1.inv.mycelium + ')');
+  // The first milestone (gather mycelium) is celebrated with a banner naming it.
+  ok(await waitFor('!document.getElementById("milestone").hidden && /mycelium/i.test(document.querySelector("#milestone strong").textContent)', 2000),
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
   ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
@@ -481,12 +481,12 @@ async function main() {
   var awardsBtn = await rect('#btnAwards');
   await tap(awardsBtn.x, awardsBtn.y);
   await sleep(300);
-  ok(await evalJS('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Awards" && /wood/i.test(document.getElementById("sheetBody").textContent)'), 'tapping it lists the milestones reached');
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Awards" && /mycelium/i.test(document.getElementById("sheetBody").textContent)'), 'tapping it lists the milestones reached');
   ok(await evalJS('!document.getElementById("btnAwards").classList.contains("new")'), 'and the glow stops once seen');
   console.log('  screenshot: ' + await shot('02b-awards.png'));
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(250);
-  var trailStartInv = g1.inv.wood;
+  var trailStartInv = g1.inv.mycelium;
   var trailStart = await rect('#btnAction');
   await touch('touchStart', [{ x: trailStart.x, y: trailStart.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
   for (var trailStep = 1; trailStep <= 8; trailStep++) {
@@ -497,15 +497,15 @@ async function main() {
   ok(trailGlow, 'live Trail stroke paints visibly on the map');
   await touch('touchEnd', []);
   await sleep(180);
-  var trailEndInv = JSON.parse(await stateSummary()).inv.wood;
+  var trailEndInv = JSON.parse(await stateSummary()).inv.mycelium;
   ok(trailEndInv > trailStartInv + 1, 'releasing a Trail gathers its highlighted resource tiles (' + trailStartInv + ' -> ' + trailEndInv + ')');
   var tapGatherBefore = trailEndInv;
   await tap(195, 422);
   await sleep(150);
-  var tapGatherAfter = JSON.parse(await stateSummary()).inv.wood;
+  var tapGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
   ok(tapGatherAfter > tapGatherBefore, 'tapping a resource tile gathers it directly');
   await hold(195, 422, 1400);
-  var holdGatherAfter = JSON.parse(await stateSummary()).inv.wood;
+  var holdGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
   ok(holdGatherAfter >= tapGatherAfter + 2, 'holding a finger still on a resource keeps gathering it (' + tapGatherAfter + ' -> ' + holdGatherAfter + ')');
   // A resource out of reach: the tap walks there and gathers it on arrival.
   var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3)continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
@@ -516,7 +516,7 @@ async function main() {
     farAt = JSON.parse(farAt);
     var farBefore = JSON.parse(await stateSummary());
     await tap(farAt.x, farAt.y);
-    ok(await waitFor('MTE_GAME.getState().inv.wood > ' + farBefore.inv.wood, 3000), 'tapping a tree out of reach walks there and gathers it');
+    ok(await waitFor('MTE_GAME.getState().inv.mycelium > ' + farBefore.inv.mycelium, 3000), 'tapping a tree out of reach walks there and gathers it');
   }
   var s1 = await shot('02-gathered.png');
   console.log(await asciiArt(evalJS));
@@ -563,67 +563,67 @@ async function main() {
   await sleep(100);
 
   /* ----------------------------------------------------------- upgrade */
-  console.log('\n== Upgrade (craft an Axe) ==');
-  var woodNow = g1.inv.wood;
+  console.log('\n== Upgrade (craft an Basket) ==');
+  var myceliumNow = g1.inv.mycelium;
   var upgradeControl = await rect('#btnUpgrade');
   await tap(upgradeControl.x, upgradeControl.y);
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened');
-  var axeCraft = await evalJS('(function(){var b=document.querySelector(".row button[data-id=axe]");return b?{disabled:b.disabled}:"missing";})()');
+  var axeCraft = await evalJS('(function(){var b=document.querySelector(".row button[data-id=basket]");return b?{disabled:b.disabled}:"missing";})()');
   // Prices say how much more you still need, not the total.
   var savedInv = await evalJS('JSON.stringify(MTE_GAME.getState().inv)');
-  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe");for(var r in c)s.inv[r]=0;s.inv[Object.keys(c)[0]]=c[Object.keys(c)[0]]-3;})()');
-  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=axe]").closest(".row"),s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe"),k=Object.keys(c);var need=[...row.querySelectorAll(".amt.need .n")].map(function(n){return n.textContent;});return need[0]==="3"&&need.length===k.length;})()', 2000),
-    'a price shows how much more of each resource is needed (' + await evalJS('[...document.querySelector(".row button[data-id=axe]").closest(".row").querySelectorAll(".amt")].map(function(a){return a.className+":"+a.textContent;}).join(" ")') + ')');
-  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"axe");for(var r in c)s.inv[r]=c[r];})()');
-  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=axe]").closest(".row");return row.querySelector(".price.ready")&&!row.querySelector(".amt.need");})()', 2000), 'once you have it all, the price shows what it costs');
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"basket");for(var r in c)s.inv[r]=0;s.inv[Object.keys(c)[0]]=c[Object.keys(c)[0]]-3;})()');
+  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=basket]").closest(".row"),s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"basket"),k=Object.keys(c);var need=[...row.querySelectorAll(".amt.need .n")].map(function(n){return n.textContent;});return need[0]==="3"&&need.length===k.length;})()', 2000),
+    'a price shows how much more of each resource is needed (' + await evalJS('[...document.querySelector(".row button[data-id=basket]").closest(".row").querySelectorAll(".amt")].map(function(a){return a.className+":"+a.textContent;}).join(" ")') + ')');
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"basket");for(var r in c)s.inv[r]=c[r];})()');
+  ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=basket]").closest(".row");return row.querySelector(".price.ready")&&!row.querySelector(".amt.need");})()', 2000), 'once you have it all, the price shows what it costs');
   ok(await waitFor('document.getElementById("btnUpgrade").classList.contains("has")', 2000), 'UPGRADE wears a dot while something in it can be bought');
-  ok(await evalJS('/gradient/.test(getComputedStyle(document.querySelector(".row button[data-id=axe]")).backgroundImage)'), 'a button you can press looks raised and solid');
+  ok(await evalJS('/gradient/.test(getComputedStyle(document.querySelector(".row button[data-id=basket]")).backgroundImage)'), 'a button you can press looks raised and solid');
   console.log('  screenshot: ' + await shot('02c-upgrades.png'));
   await evalJS('Object.assign(MTE_GAME.getState().inv,' + savedInv + ')');
-  if (woodNow < 6) { await evalJS('MTE_GAME.addRes("wood",20)'); await sleep(150); }
-  var axeButton = await rect('.row button[data-id=axe]');
+  if (myceliumNow < 6) { await evalJS('MTE_GAME.addRes("mycelium",20)'); await sleep(150); }
+  var axeButton = await rect('.row button[data-id=basket]');
   await tap(axeButton.x, axeButton.y);
   await sleep(200);
   var u1 = JSON.parse(await stateSummary());
-  eq(u1.tools.axe, 2, 'axe upgraded to level 2');
+  eq(u1.tools.basket, 2, 'basket upgraded to level 2');
   // Tapping the world past the sheet closes it, and does nothing else.
   var beforeTapOut = JSON.parse(await stateSummary());
   await tap(195, 90);
   await sleep(300);
   ok(await evalJS('!document.getElementById("sheet").classList.contains("open")'), 'tapping the map past the sheet closes it');
   var afterTapOut = JSON.parse(await stateSummary());
-  ok(afterTapOut.x === beforeTapOut.x && afterTapOut.y === beforeTapOut.y && afterTapOut.inv.wood === beforeTapOut.inv.wood, 'that tap only closes the sheet: no walking, no gathering');
+  ok(afterTapOut.x === beforeTapOut.x && afterTapOut.y === beforeTapOut.y && afterTapOut.inv.mycelium === beforeTapOut.inv.mycelium, 'that tap only closes the sheet: no walking, no gathering');
 
   /* ------------------------------------------------------------ build */
   console.log('\n== Build extractor (touch Place) ==');
   var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
-  await evalJS('MTE_GAME.addRes("wood",80)');
+  await evalJS('MTE_GAME.addRes("mycelium",80)');
   await sleep(150);
   var buildBtn = await rect('#btnBuild');
   await tap(buildBtn.x, buildBtn.y);
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'build sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'Build tab is highlighted when opened via the button');
-  var placeReady = await evalJS('(function(){var b=document.querySelector(".row button[data-id=lumber]");return b?!b.disabled:false;})()');
-  ok(placeReady, 'Lumber Camp can be placed on the current tile');
-  var lumberButton = await rect('.row button[data-id=lumber]');
-  await tap(lumberButton.x, lumberButton.y);
+  var placeReady = await evalJS('(function(){var b=document.querySelector(".row button[data-id=garden]");return b?!b.disabled:false;})()');
+  ok(placeReady, 'Mushroom Garden can be placed on the current tile');
+  var gardenButton = await rect('.row button[data-id=garden]');
+  await tap(gardenButton.x, gardenButton.y);
   await sleep(250);
   var b3 = JSON.parse(await stateSummary());
-  eq(b3.ext, 1, 'lumber camp constructed');
+  eq(b3.ext, 1, 'garden camp constructed');
   var camp = await evalJS('(function(){var e=MTE_GAME.getState().extractors[0];e.buffer=8;MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);return e.x+","+e.y;})()');
   await sleep(400);
   ok(await evalJS('document.getElementById("actionLabel").textContent.indexOf("COLLECT") === 0'), 'Gather control changes to Collect near stored extractor goods (' + camp + ')');
   var doneButton = await rect('#btnClose');
   await tap(doneButton.x, doneButton.y);
   await sleep(250);
-  var collectBefore = JSON.parse(await stateSummary()).inv.wood;
+  var collectBefore = JSON.parse(await stateSummary()).inv.mycelium;
   var collectButton = await rect('#btnAction');
   await tap(collectButton.x, collectButton.y);
   await sleep(200);
   var collectAfter = JSON.parse(await stateSummary());
-  ok(collectAfter.inv.wood > collectBefore, 'one-thumb Collect action drains nearby stored goods');
+  ok(collectAfter.inv.mycelium > collectBefore, 'one-thumb Collect action drains nearby stored goods');
   ok(collectAfter.buf[0] < 4, 'Collect drains the nearby buffer while production continues (' + collectAfter.buf[0].toFixed(2) + ' remains)');
   await sleep(200);
 
@@ -661,7 +661,7 @@ async function main() {
   console.log('\n== Automation produces over time ==');
   await sleep(2500);
   var prod = JSON.parse(await stateSummary());
-  ok(prod.buf[0] > 0.3, 'lumber camp is producing (buffer ' + prod.buf[0] + ')');
+  ok(prod.buf[0] > 0.3, 'garden camp is producing (buffer ' + prod.buf[0] + ')');
 
   /* ------------------------------------------------------ persistence */
   console.log('\n== Persistence across reload ==');
@@ -669,7 +669,7 @@ async function main() {
   var pre = JSON.parse(await stateSummary());
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   var post = JSON.parse(await stateSummary());
-  eq(post.tools.axe, pre.tools.axe, 'axe level survives reload');
+  eq(post.tools.basket, pre.tools.basket, 'basket level survives reload');
   eq(post.ext, pre.ext, 'extractor survives reload');
   eq(Math.floor(post.inv.ore), Math.floor(pre.inv.ore), 'ore inventory survives reload');
   eq(post.seed === undefined ? undefined : post.seed, undefined, 'seed key shape ok'); // no-op guard
@@ -680,7 +680,7 @@ async function main() {
   // on its next save: it pauses and asks which world to keep.
   var KEY = '"more-than-enough-save"';
   await evalJS('MTE_GAME.save()');
-  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=7200;d.stats.wood+=500000;d.inv.wood=777777;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=7200;d.stats.mycelium+=500000;d.inv.mycelium=777777;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   var otherRaw = await evalJS('localStorage.getItem(' + KEY + ')');
   await evalJS('MTE_GAME.save()');
   ok(await evalJS('!document.getElementById("fork").hidden'), 'saving after another tab did shows the choice instead');
@@ -693,20 +693,20 @@ async function main() {
   await evalJS('dispatchEvent(new Event("pagehide"))');
   ok(await evalJS('localStorage.getItem(' + KEY + ')') === otherRaw, 'closing the tab while it asks saves nothing');
   // The other tab is still open and saves again while this one asks.
-  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=60;d.inv.wood=888888;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=60;d.inv.mycelium=888888;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   var pickOther = await rect('#fork button[data-pick=other]');
   await tap(pickOther.x, pickOther.y);
   ok(await evalJS('document.getElementById("fork").hidden'), 'picking a world closes the choice');
-  eq(await evalJS('Math.floor(MTE_GAME.getState().inv.wood)'), 888888, "picking the other tab's world plays its newest save here");
+  eq(await evalJS('Math.floor(MTE_GAME.getState().inv.mycelium)'), 888888, "picking the other tab's world plays its newest save here");
   await evalJS('MTE_GAME.save()');
   ok(await evalJS('document.getElementById("fork").hidden'), 'one tap is enough: the next save does not ask again');
   // And the other way: an older save appears; keeping this tab's overwrites it.
-  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time=1;d.inv.wood=5;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time=1;d.inv.mycelium=5;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   await evalJS('MTE_GAME.save()');
   eq(await evalJS('document.querySelector("#fork button.ahead").dataset.pick'), 'mine', "this tab's world is marked when it's further along");
   var pickMine = await rect('#fork button[data-pick=mine]');
   await tap(pickMine.x, pickMine.y);
-  eq(await evalJS('JSON.parse(localStorage.getItem(' + KEY + ')).inv.wood'), 888888, "keeping this tab's world saves it over the older one");
+  eq(await evalJS('JSON.parse(localStorage.getItem(' + KEY + ')).inv.mycelium'), 888888, "keeping this tab's world saves it over the older one");
   await evalJS('MTE_GAME.save()');
   ok(await evalJS('document.getElementById("fork").hidden'), 'after choosing, saving carries on as normal');
 
@@ -724,7 +724,7 @@ async function main() {
 
   /* -------------------------------------------------- late-game UI */
   console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
-  await evalJS('MTE_GAME.addRes("wood",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
+  await evalJS('MTE_GAME.addRes("mycelium",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
   await evalJS('document.getElementById("btnUpgrade").click()');
   await sleep(300);
   ok(await evalJS('["refining","abundance","unlocks"].every(function(f){var b=document.querySelector("#sheetBody button[data-family="+f+"]");return b&&b.getAttribute("aria-expanded")==="true";})'),
@@ -735,10 +735,10 @@ async function main() {
   var resupRows = await evalJS('document.querySelectorAll("#sheetBody button[data-kind=resup]").length');
   eq(resupRows, 4, 'four refinery-chain rows rendered');
   ok(await evalJS('!!document.querySelector("#sheetBody button[data-id=abundance]")'), 'Abundance Engine row is levelable');
-  var woodBefore = await evalJS('MTE_GAME.getState().resUp.wood');
-  await evalJS('document.querySelector("#sheetBody button[data-kind=resup][data-id=wood]").click()');
+  var myceliumBefore = await evalJS('MTE_GAME.getState().resUp.mycelium');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=resup][data-id=mycelium]").click()');
   await sleep(200);
-  eq(await evalJS('MTE_GAME.getState().resUp.wood'), woodBefore + 1, 'clicking Refine advances the wood chain');
+  eq(await evalJS('MTE_GAME.getState().resUp.mycelium'), myceliumBefore + 1, 'clicking Refine advances the mycelium chain');
   var abBefore = await evalJS('MTE_GAME.getState().abundanceLv');
   await evalJS('document.querySelector("#sheetBody button[data-id=abundance]").click()');
   await sleep(200);
@@ -769,7 +769,7 @@ async function main() {
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(200);
 
-  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.wood=5000000;})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.mycelium=5000000;})()');
   await sleep(500);
   ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'a huge haul alone does not reveal Beyond');
   // Master the world: every tool, refinery and unlock, Abundance to the embark level.
@@ -791,7 +791,7 @@ async function main() {
   await evalJS('window.confirm = function(){return true;}');
   // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
   // world's resource sprites across the screen.
-  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
+  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   ok(await evalJS('MTE_GAME.flyers().length') >= 1, 'a leftover flyer exists before embarking');
   var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
   await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
@@ -806,22 +806,22 @@ async function main() {
 
   /* ------------------------------------- logistics auto-collect is ranged */
   console.log('\n== Logistics auto-collect needs range ==');
-  await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"lumber",res:"wood",x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:10};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"garden",res:"mycelium",x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:10};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
   await sleep(300);
   var lg0 = JSON.parse(await stateSummary());
-  ok(lg0.inv.wood >= 10, 'standing by the extractor auto-collects its buffer (' + lg0.inv.wood + ')');
+  ok(lg0.inv.mycelium >= 10, 'standing by the extractor auto-collects its buffer (' + lg0.inv.mycelium + ')');
   await evalJS('(function(){var s=MTE_GAME.getState();MTE_GAME.setPlayer(s.player.x+80,s.player.y+80);})()');
   await sleep(200);
   var lg1 = JSON.parse(await stateSummary());
   await sleep(1200);
   var lg2 = JSON.parse(await stateSummary());
-  eq(lg2.inv.wood, lg1.inv.wood, 'walking far away stops auto-collect (inv holds at ' + lg1.inv.wood + ')');
+  eq(lg2.inv.mycelium, lg1.inv.mycelium, 'walking far away stops auto-collect (inv holds at ' + lg1.inv.mycelium + ')');
   ok(lg2.buf[0] > lg1.buf[0], 'far extractor keeps producing into its buffer (' + lg1.buf[0] + ' -> ' + lg2.buf[0] + ')');
   // walking back re-engages it (and parks the player mid-world for the night test)
   await evalJS('(function(){var s=MTE_GAME.getState();var e=s.extractors[0];MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);})()');
   await sleep(300);
   var lg3 = JSON.parse(await stateSummary());
-  ok(lg3.inv.wood > lg2.inv.wood, 'walking back re-enables auto-collect (' + lg2.inv.wood + ' -> ' + lg3.inv.wood + ')');
+  ok(lg3.inv.mycelium > lg2.inv.mycelium, 'walking back re-enables auto-collect (' + lg2.inv.mycelium + ' -> ' + lg3.inv.mycelium + ')');
   ok(lg3.buf[0] < 1.0, 'buffer drains again when nearby (' + lg3.buf[0] + ')');
 
   /* ------------------------------------------------ day/night + light */
@@ -844,9 +844,9 @@ async function main() {
   /* ----------------------------- reset button starts a clean world */
   console.log('\n== Reset button starts a clean world ==');
   await evalJS('MTE_GAME.flyers().length = 0');
-  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"wood",seed:0,delay:0.16,t:0,vx:0,vy:0})');
+  await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
-  await evalJS('MTE_GAME.getState().inv.wood = 999999');
+  await evalJS('MTE_GAME.getState().inv.mycelium = 999999');
   var resetSheetOpen = await evalJS('document.getElementById("sheet").classList.contains("open")');
   if (!resetSheetOpen) {
     var resetSheetButton = await rect('#btnUpgrade');
@@ -857,7 +857,7 @@ async function main() {
   await tap(resetButton.x, resetButton.y);
   await sleep(300);
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
-  ok(await evalJS('MTE_GAME.getState().inv.wood') < 999999, 'reset wipes inventory into a fresh world');
+  ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'reset wipes inventory into a fresh world');
 
   /* ---------------------------------------------------- pinch to zoom */
   console.log('\n== Pinch to zoom with two fingers ==');
@@ -1036,21 +1036,21 @@ async function main() {
   await evalJS('document.querySelector("#packReport button").click()');
   ok(await evalJS('document.getElementById("packReport").hidden'), 'the report closes');
 
-  await pickPack({ format: 1, name: 'Missing file', looks: { 'resource.wood': { icon: 'wood.svg' } } });
-  ok(await waitFor('/wood\\.svg" was not among the files picked/.test(document.getElementById("packReport").textContent)', 2000),
+  await pickPack({ format: 1, name: 'Missing file', looks: { 'resource.mycelium': { icon: 'mycelium.svg' } } });
+  ok(await waitFor('/mycelium\\.svg" was not among the files picked/.test(document.getElementById("packReport").textContent)', 2000),
     'a picture that wasn\'t picked with the pack is named in the report');
   await evalJS('document.querySelector("#packReport button").click()');
 
-  var woodBefore = await evalJS('document.querySelector("#resources img.ic").src');
+  var myceliumBefore = await evalJS('document.querySelector("#resources img.ic").src');
   await pickPack({ format: 1, name: 'Test pack', looks: {
-    'resource.wood': { icon: 'wood.svg' },
+    'resource.mycelium': { icon: 'mycelium.svg' },
     'resource.stone': { icon: dot('#ff00ff') },
     'color.backdrop': { color: '#123456' },
-    'tile.grass': { top: ['wood.svg', null], color: '#aa2200' }
-  } }, [{ name: 'wood.svg', text: dot('#00ff00') }]);
+    'tile.grass': { top: ['mycelium.svg', null], color: '#aa2200' }
+  } }, [{ name: 'mycelium.svg', text: dot('#00ff00') }]);
   ok(await waitFor('MTE_GAME.look.name === "Test pack"', 3000), 'a good pack (a pack.json plus a picture file, and inline SVG) is used straight away');
   eq(await evalJS('document.getElementById("packName").textContent'), 'Test pack', 'the Textures button shows its name');
-  ok(await evalJS('document.querySelector("#resources img.ic").src') !== woodBefore, 'the wood counter switches to the pack\'s picture');
+  ok(await evalJS('document.querySelector("#resources img.ic").src') !== myceliumBefore, 'the mycelium counter switches to the pack\'s picture');
   eq(await evalJS('MTE_GAME.look.color("color.backdrop")'), '#123456', 'the pack\'s colours are used');
   eq(await evalJS('MTE_GAME.look.color("tile.forest")'), '#3a5a2c', 'anything the pack leaves out keeps the default look');
   eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), false, '"Default textures" appears');
@@ -1068,16 +1068,16 @@ async function main() {
   /* ---------------------------------------------------------- stockpile */
   console.log('\n== Stockpile ==');
   await navigate('http://127.0.0.1:' + PORT + '/');
-  // Explore around home and set a known inventory: 3,452 wood is 3+4+5+2 piles.
+  // Explore around home and set a known inventory: 3,452 mycelium is 3+4+5+2 piles.
   await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),h=C.home(s);s.player.z=0;G.setPlayer(h.x+0.5,h.y+0.5);' +
     'for(var y=-16;y<=16;y++)for(var x=-16;x<=16;x++)C.markExplored(s.world,h.x+x,h.y+y,0);' +
-    's.inv.wood=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);G.setTilt(0.6);})()');
-  ok(await waitFor('MTE_GAME.yard.piles.size === 14', 3000), 'what you own stands around home: 3,452 wood is 14 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
+    's.inv.mycelium=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);G.setTilt(0.6);})()');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 14', 3000), 'what you own stands around home: 3,452 mycelium is 14 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
   var tiers = await evalJS('[...MTE_GAME.yard.piles.values()].map(function(p){return p.tier;}).sort().join("")');
   eq(tiers, '00111112222333', 'one pile per unit of each digit: 2 logs, 5 bundles, 4 piles, 3 carts');
   console.log('  screenshot: ' + await shot('09-stockpile.png'));
-  await evalJS('MTE_GAME.getState().inv.wood = 3000');
-  ok(await waitFor('MTE_GAME.yard.piles.size === 3', 2000), 'spending takes piles away (3,000 wood is 3 carts)');
+  await evalJS('MTE_GAME.getState().inv.mycelium = 3000');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 3', 2000), 'spending takes piles away (3,000 mycelium is 3 carts)');
   await evalJS('MTE_GAME.getState().inv.stone = 12345678');
   ok(await waitFor('[...MTE_GAME.yard.piles.values()].some(function(p){return p.res==="stone"&&p.tier===7&&p.span===2;})', 2000),
     'ten million of something takes a 2 x 2 square of ground');
@@ -1119,8 +1119,8 @@ async function main() {
   ok(await waitFor('!document.getElementById("' + hitHref.slice(1).split('/')[0] + '").hidden && document.querySelector(".flash") && document.querySelector("mark.found")', 2000), 'a result opens its article at the passage, with the word marked');
   await evalJS('history.back()');
   ok(await waitFor('!document.getElementById("results").hidden', 2000), 'Back returns to the results');
-  await evalJS('(function(){var b=document.getElementById("search");b.value="wood stone";b.dispatchEvent(new Event("input"));})()');
-  ok(await waitFor('document.querySelectorAll("#results .hits li").length > 3', 2000), 'pictures count by name: costs in wood and stone are found');
+  await evalJS('(function(){var b=document.getElementById("search");b.value="mycelium stone";b.dispatchEvent(new Event("input"));})()');
+  ok(await waitFor('document.querySelectorAll("#results .hits li").length > 3', 2000), 'pictures count by name: costs in mycelium and stone are found');
   await evalJS('(function(){var b=document.getElementById("search");b.value="zzqx";b.dispatchEvent(new Event("input"));})()');
   ok(await waitFor('/Not mentioned/.test(document.getElementById("results").textContent)', 2000), 'a word the wiki never uses says so');
   await evalJS('(function(){var b=document.getElementById("search");b.value="";b.dispatchEvent(new Event("input"));})()');

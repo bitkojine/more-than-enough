@@ -12,6 +12,8 @@
  *          other ground, so nothing shown is decoration you can't pick up; bottom
  *          centre on the tile's centre; it never squashes
  *   cut    what stands there once the tile has been worked out
+ *   crop   what grows at the foot of a stand you forage (mushrooms under
+ *          the trees); drawn in front of it while there is some left
  *   image  a thing standing on the map (buildings, the wanderer, the boat);
  *          also its picture in the sheet
  *   icon   a square picture for the buttons, counters and lists
@@ -32,12 +34,12 @@ import { FOREST_KINDS, forestKind } from './terrain.js';
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
 export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
-export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers'];
+export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'crop', 'image', 'icon', 'tiers'];
 
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
   { id: 'tile', name: 'Ground', blurb: 'Every kind of tile, on the surface and in the mine.' },
-  { id: 'forest', name: 'Forests', blurb: 'Kinds of forest, by region: each grows its own mix of trees. They all yield wood alike.' },
+  { id: 'forest', name: 'Forests', blurb: 'Kinds of forest, by region: each grows its own mix of trees. Their floors all yield mycelium alike.' },
   { id: 'resource', name: 'Resources', blurb: 'What you gather and spend.' },
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
@@ -68,6 +70,7 @@ function tileDoes(t) {
     const loot = Object.keys(FINDS[t].loot).map((r) => RESOURCE_LABEL[r].toLowerCase()).join(', ');
     out.push(`A find: one dig pays out ${loot} all at once, more on deeper layers and with better tools. It glints in the dark from a way off.`);
   }
+  if (info.forage) out.push('Its trees are never cut: you forage the forest floor, and the trees stand for good.');
   if (info.regrows) out.push('Grows back near you.');
   if (info.land) out.push('Converters can be built on it.');
   if (info.descend) out.push('A way down to the layer below.');
@@ -84,18 +87,21 @@ function tileSlots(t) {
   const info = TILE_INFO[t];
   const workable = info.harvest && !info.solid; // surface deposits can be worked out
   // Only what you can gather stands up on a tile: anything standing on
-  // ground you can't gather would be decoration you can't pick up.
-  return { ...req('color', 'top'), ...opt('face'), ...(workable ? opt('stand', 'cut') : {}) };
+  // ground you can't gather would be decoration you can't pick up. A forest
+  // is never worked out: its trees stand for good and its crop runs out.
+  const standing = info.forage ? opt('stand', 'crop') : opt('stand', 'cut');
+  return { ...req('color', 'top'), ...opt('face'), ...(workable ? standing : {}) };
 }
 
 const things = [];
 const add = (group, key, name, does, slots) => things.push({ id: `${group}.${key}`, group, key, name, does, slots });
 
 for (let t = 0; t < TILE_KEY.length; t++) add('tile', TILE_KEY[t], TILE_NAME[t], tileDoes(t), tileSlots(t));
-// A forest kind's trees (stand) and stumps (cut), and optionally its own
-// ground (top); anything it leaves out comes from tile.forest.
+// A forest kind's trees (stand), and optionally its own ground (top) and
+// what grows at the trees' feet (crop); anything it leaves out comes from
+// tile.forest.
 for (const key of Object.keys(FOREST_KINDS)) {
-  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Yields wood like any forest.', { ...req('stand'), ...opt('top', 'cut') });
+  add('forest', key, FOREST_KINDS[key].name, FOREST_KINDS[key].does + ' Its floor yields mycelium like any forest.', { ...req('stand'), ...opt('top', 'crop') });
 }
 
 for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], `A resource. Counted at the top of the screen.`, req('icon', 'color'));
@@ -118,8 +124,8 @@ add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and
 add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below. The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
 add('mark', 'ladder', 'Ladder', 'Stands in every hole between layers: down into the pit from above, up into the light from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
-add('mark', 'torch', 'Torch', 'A torch you placed in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
-add('mark', 'lamp', 'Crystal lamp', 'A crystal lamp you placed in the mine. It lights much further than a torch; the colour is its light.', req('image', 'color'));
+add('mark', 'glowcap', 'Glowcap', 'A glowing mushroom you planted in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
+add('mark', 'lamp', 'Crystal lamp', 'A crystal lamp you placed in the mine. It lights much further than a glowcap; the colour is its light.', req('image', 'color'));
 add('mark', 'flag', 'Marker flag', 'A flag you planted in the mine to find your way back. The colour is the pin that shows through the dark over it, or at the edge of the screen pointing to it.', req('image', 'color'));
 
 const UI = {

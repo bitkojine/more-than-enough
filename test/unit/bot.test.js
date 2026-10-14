@@ -54,10 +54,10 @@ function createBot(seed) {
 function playToAutomation(seed) {
   const b = createBot(seed);
   const { s, clock, mark, gather, standBy, free } = b;
-  gather('wood', 6); C.buy(s, 'axe'); mark('axe2');
-  gather('wood', 10); gather('stone', 6); C.buy(s, 'pickaxe'); mark('pick2');
-  gather('wood', 15); standBy(free(T.FOREST)); C.place(s, 'lumber'); mark('lumber');
-  gather('wood', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry'); mark('quarry');
+  gather('mycelium', 6); C.buy(s, 'basket'); mark('axe2');
+  gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe'); mark('pick2');
+  gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden'); mark('garden');
+  gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry'); mark('quarry');
   gather('stone', 45); gather('ore', 12); standBy(free(T.ORE)); C.place(s, 'mine'); mark('mine');
   gather('stone', 30); gather('ore', 4); C.buy(s, 'overclock'); mark('overclock2');
 
@@ -78,17 +78,17 @@ for (const seed of [12345, 777, 20260101]) {
     const { s, timeline } = playToAutomation(seed);
     assert.ok(s.extractors.length >= 2, JSON.stringify(timeline));
     if (seed === 12345) {
-      for (const step of ['axe2', 'lumber', 'quarry', 'mine']) assert.ok(timeline[step] !== undefined, step);
+      for (const step of ['axe2', 'garden', 'quarry', 'mine']) assert.ok(timeline[step] !== undefined, step);
     }
   });
 }
 
 test('bot plays through to the Abundance Engine', () => {
   const { s, clock, timeline, mark, gather, standBy, free } = createBot(12345);
-  gather('wood', 6); C.buy(s, 'axe');
-  gather('wood', 10); gather('stone', 6); C.buy(s, 'pickaxe');
-  gather('wood', 15); standBy(free(T.FOREST)); C.place(s, 'lumber');
-  gather('wood', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry');
+  gather('mycelium', 6); C.buy(s, 'basket');
+  gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe');
+  gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden');
+  gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry');
   gather('stone', 45); gather('ore', 12); standBy(free(T.ORE)); C.place(s, 'mine');
   gather('stone', 150); gather('ore', 40); C.buy(s, 'logistics');
   while (s.tools.overclock < 4 && clock.t < 2000) {

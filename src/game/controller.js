@@ -22,7 +22,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
   const say = (text, color, icon) => fx.text(player().x, player().y - 0.4, text, color, icon);
   // "+n" of a resource over your head, adding up with the gains just before it.
   const tally = (res, amount) => fx.tally(player().x, player().y - 0.4, amount, look.color(Core.resourceLook(res)), Core.resourceLook(res));
-  const toolLevel = (res) => state().tools[res === 'wood' ? 'axe' : 'pickaxe'];
+  const toolLevel = (res) => state().tools[res === 'mycelium' ? 'basket' : 'pickaxe'];
 
   function changed() {
     hud.update(state());
@@ -185,7 +185,7 @@ export function createController({ game, cam, fx, audio, hud, look }) {
 
     // A tap on the map acts on that tile if it can (descend, harvest, collect).
     // Otherwise it walks there, and gathers or collects on arrival if there's
-    // something to work: tapping a tree across the clearing goes and chops it.
+    // something to work: tapping a forest across the clearing goes and forages it.
     tap(sx, sy) {
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);

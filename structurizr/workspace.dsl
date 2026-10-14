@@ -9,7 +9,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dev = person "Developer" "Builds and maintains the game and its test suites."
 
         // -------------------------------------------- the game (system)
-        mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather wood/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." {
+        mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather mycelium/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." {
             tags "Game"
 
             app = container "Web Application" "The presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." "HTML/CSS/JavaScript modules" {

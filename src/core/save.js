@@ -1,14 +1,15 @@
 /* Save format. A save is the seed plus every player edit, so the world can be
- * regenerated exactly. There are no migrations while the game is in active
- * development: a save from another format version is rejected (and the
- * player told), and a new world starts. */
+ * regenerated exactly. While the game is in active development a save from
+ * another format version is rejected (and the player told) and a new world
+ * starts, with one exception: format 5 saves from before trees stopped being
+ * cut are renamed into format 6 (see fromV5), so nobody loses a world to it. */
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { createState } from './state.js';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export function bytesToB64(u8) {
   let out = '';
@@ -49,11 +50,31 @@ function copyNumbers(into, from) {
   for (const k in into) if (isNum(from[k])) into[k] = from[k];
 }
 
+// Format 5 had wood instead of mycelium: the Axe, the Lumber Camp, the
+// Sapling Grove, Silviculture and torches. Format 6 is the same save with
+// those renamed to the Basket, the Mushroom Garden, the Compost Heap,
+// Mycology and glowcaps; amounts and levels carry over one for one.
+const V5_NAMES = { wood: 'mycelium', axe: 'basket', lumber: 'garden', sapling: 'compost', forestWood: 'foraged' };
+const renamed = (o) => (o && typeof o === 'object' && !Array.isArray(o)
+  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [V5_NAMES[k] || k, v]))
+  : o);
+function fromV5(d) {
+  const props = d.props || (d.torches || []).map((k) => [k, 'torch']);
+  return {
+    ...d,
+    v: 6,
+    inv: renamed(d.inv), tools: renamed(d.tools), unlocks: renamed(d.unlocks), resUp: renamed(d.resUp), stats: renamed(d.stats),
+    props: props.map((p) => (Array.isArray(p) && p[1] === 'torch' ? [p[0], 'glowcap'] : p)),
+    extractors: (d.extractors || []).map((e) => (e && V5_NAMES[e.k] ? { ...e, k: V5_NAMES[e.k] } : e))
+  };
+}
+
 // Returns the restored state, or null if the save is unreadable or too old.
 export function deserialize(str) {
   let d;
   try { d = JSON.parse(str); } catch { return null; }
   if (!d || typeof d !== 'object') return null;
+  if (d.v === 5) d = fromV5(d);
   if (d.v !== SAVE_VERSION || !isNum(d.seed)) return null;
 
   const s = createState(d.seed);
@@ -69,9 +90,7 @@ export function deserialize(str) {
   const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
   w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
   const propOk = ([k, kind]) => isInt(k) && PROPS[kind] && unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN;
-  // Saves from before other props held only torches.
-  const props = d.props || (d.torches || []).map((k) => [k, 'torch']);
-  w.props = new Map(props.filter((p) => Array.isArray(p) && propOk(p)));
+  w.props = new Map((d.props || []).filter((p) => Array.isArray(p) && propOk(p)));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };

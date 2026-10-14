@@ -10,7 +10,7 @@ function yardWorld(inv, r = 40, seed = 7) {
   const s = C.createState(seed);
   const h = C.home(s);
   for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) C.markExplored(s.world, h.x + x, h.y + y, C.SURFACE);
-  Object.assign(s.inv, { wood: 0, stone: 0, ore: 0, crystal: 0 }, inv);
+  Object.assign(s.inv, { mycelium: 0, stone: 0, ore: 0, crystal: 0 }, inv);
   return s;
 }
 
@@ -33,7 +33,7 @@ test('piles: big ones cover a square that grows one tile per power of ten', () =
 
 test('yard: an empty inventory has no piles; otherwise every pile has its own ground', () => {
   assert.deepEqual(C.yardLayout(yardWorld({})), []);
-  const s = yardWorld({ wood: 3452, stone: 871, ore: 46000000, crystal: 7 });
+  const s = yardWorld({ mycelium: 3452, stone: 871, ore: 46000000, crystal: 7 });
   const yard = C.yardLayout(s);
   const want = C.RESOURCES.reduce((n, r) => n + C.pileTiers(s.inv[r]).length, 0);
   assert.equal(yard.length, want, 'every pile placed');
@@ -53,7 +53,7 @@ test('yard: an empty inventory has no piles; otherwise every pile has its own gr
 });
 
 test('yard: biggest piles nearest home, and the same state gives the same yard', () => {
-  const s = yardWorld({ wood: 98765, stone: 4321, ore: 55, crystal: 9 });
+  const s = yardWorld({ mycelium: 98765, stone: 4321, ore: 55, crystal: 9 });
   const h = C.home(s);
   const yard = C.yardLayout(s);
   const dist = (p) => Math.max(Math.abs(p.x - h.x), Math.abs(p.y - h.y));
@@ -63,15 +63,15 @@ test('yard: biggest piles nearest home, and the same state gives the same yard',
   assert.deepEqual(C.yardLayout(s), yard);
   const memo = {};
   assert.deepEqual(C.yardLayout(s, memo), yard, 'a memo changes nothing...');
-  s.inv.wood += 1;
+  s.inv.mycelium += 1;
   assert.deepEqual(C.yardLayout(s, memo), C.yardLayout(s), '...even when reused');
 });
 
 test('yard: home ground first, never on anything you can gather, water, rock, holes, buildings or the unexplored', () => {
-  const s = yardWorld({ wood: 9999, stone: 9999, ore: 9999, crystal: 9999 }, 30);
+  const s = yardWorld({ mycelium: 9999, stone: 9999, ore: 9999, crystal: 9999 }, 30);
   const h = C.home(s);
   C.digHole(s.world, h.x, h.y, C.SURFACE);
-  s.extractors.push({ key: 'sapling', x: h.x + 1, y: h.y, z: C.SURFACE, buffer: 0 });
+  s.extractors.push({ key: 'compost', x: h.x + 1, y: h.y, z: C.SURFACE, buffer: 0 });
   const yard = C.yardLayout(s);
   for (const p of yard) {
     const t = C.tileAt(s.world, p.x, p.y, C.SURFACE);
@@ -93,16 +93,16 @@ test('yard: home ground first, never on anything you can gather, water, rock, ho
     }
   }
   const fresh = C.createState(7);
-  Object.assign(fresh.inv, { wood: 999 });
+  Object.assign(fresh.inv, { mycelium: 999 });
   for (const p of C.yardLayout(fresh)) assert.ok(C.isExplored(fresh.world, p.x, p.y, C.SURFACE), 'only explored ground');
 });
 
 test('yard: as amounts change, piles that stay called for never move', () => {
-  const s = yardWorld({ wood: 3452, stone: 871, ore: 46, crystal: 7 });
+  const s = yardWorld({ mycelium: 3452, stone: 871, ore: 46, crystal: 7 });
   const memo = {};
   let yard = C.yardLayout(s, memo);
   const at = (p) => p.res + p.tier + '@' + p.x + ',' + p.y;
-  for (const [res, add] of [['wood', 1], ['stone', 9], ['ore', 954], ['wood', 6548], ['crystal', -5], ['stone', -871]]) {
+  for (const [res, add] of [['mycelium', 1], ['stone', 9], ['ore', 954], ['mycelium', 6548], ['crystal', -5], ['stone', -871]]) {
     const before = new Set(yard.map(at));
     s.inv[res] += add;
     const next = C.yardSettle(s, yard, memo);
@@ -133,7 +133,7 @@ test('yard: as amounts change, piles that stay called for never move', () => {
 });
 
 test('yard: a pile on ground that stops being yard (a hole dug there) moves', () => {
-  const s = yardWorld({ wood: 5 });
+  const s = yardWorld({ mycelium: 5 });
   const yard = C.yardLayout(s, {});
   const p = yard[0];
   C.digHole(s.world, p.x, p.y, C.SURFACE);

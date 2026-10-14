@@ -1,9 +1,9 @@
 /* The stockpile: everything you own, piled up on the ground around home.
  *
  * Amounts are shown on a logarithmic scale, read like an abacus. Each power
- * of ten is its own kind of pile (a log, a bundle of 10, a pile of 100, a
- * cart of 1,000, ...), and each digit of the amount is how many of that
- * kind there are: 3,452 wood is 3 carts, 4 piles, 5 bundles and 2 logs. So
+ * of ten is its own kind of pile (one stone, a stack of 10, a pile of 100,
+ * a cart of 1,000, ...), and each digit of the amount is how many of that
+ * kind there are: 3,452 stone is 3 carts, 4 piles, 5 stacks and 2 stones. So
  * the yard grows with the number of digits, and a glance at the biggest piles
  * tells you the order of magnitude.
  *

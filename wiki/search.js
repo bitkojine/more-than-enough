@@ -3,7 +3,7 @@
  * table rows, headings); a passage matches when it holds every word of the
  * query. Results list each passage with its article and section, the words
  * marked, and link to that exact spot. Pictures count by their names, so
- * "wood" finds a cost shown as a log icon. */
+ * "mycelium" finds a cost shown as a mushroom icon. */
 
 const CARD = '.thing, .idea'; // a card is one passage: its name with what it says
 const PASSAGE = CARD + ', p, li, tbody tr, h2, h3, pre';

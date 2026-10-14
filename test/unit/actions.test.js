@@ -1,18 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, T, typeAt, richAt, findNear, standOn, run, lumberCamp } from './helpers.js';
+import { C, T, typeAt, richAt, findNear, standOn, run, mushroomGarden } from './helpers.js';
 
 const forest = (s, x, y) => typeAt(s, x, y) === T.FOREST && richAt(s, x, y) > 0;
 
-test('gathering a forest yields wood and depletes the tile', () => {
+test('gathering a forest yields mycelium and depletes the tile', () => {
   const s = C.createState(12345);
   const t = findNear(s, forest);
   standOn(s, t);
   const rich0 = richAt(s, t.x, t.y);
   const got = C.harvest(s);
-  assert.equal(got.res, 'wood');
-  assert.equal(got.amount, 1, 'a level-1 axe yields 1');
-  assert.equal(s.inv.wood, 1);
+  assert.equal(got.res, 'mycelium');
+  assert.equal(got.amount, 1, 'a level-1 basket yields 1');
+  assert.equal(s.inv.mycelium, 1);
   assert.deepEqual([got.x, got.y], [t.x, t.y], 'the tile underfoot is the nearest target');
   assert.equal(richAt(s, t.x, t.y), rich0 - 1);
 });
@@ -51,25 +51,25 @@ test('a Trail sweeps every reachable resource tile it crosses', () => {
 
 test('tool upgrades raise yields and stop at their max level', () => {
   const s = C.createState(12345);
-  s.inv.wood = 1000;
-  assert.equal(C.buy(s, 'axe').ok, true);
-  assert.equal(s.tools.axe, 2);
-  assert.equal(C.gatherYield(s, 'wood'), 2);
+  s.inv.mycelium = 1000;
+  assert.equal(C.buy(s, 'basket').ok, true);
+  assert.equal(s.tools.basket, 2);
+  assert.equal(C.gatherYield(s, 'mycelium'), 2);
   assert.equal(C.gatherYield(s, 'stone'), 1, 'the pickaxe is unaffected');
-  Object.assign(s.inv, { wood: 1e5, stone: 1e5, ore: 1e5 });
-  for (let i = 0; i < 10; i++) C.buy(s, 'axe');
-  assert.equal(s.tools.axe, 6);
-  assert.deepEqual(C.buy(s, 'axe'), { ok: false, reason: 'Maxed' });
+  Object.assign(s.inv, { mycelium: 1e5, stone: 1e5, ore: 1e5 });
+  for (let i = 0; i < 10; i++) C.buy(s, 'basket');
+  assert.equal(s.tools.basket, 6);
+  assert.deepEqual(C.buy(s, 'basket'), { ok: false, reason: 'Maxed' });
 });
 
 test('upgrades cost exactly their price', () => {
   const s = C.createState(12345);
-  s.inv.wood = 5;
-  assert.equal(C.buy(s, 'axe').ok, false);
-  s.inv.wood = 6;
-  assert.equal(C.buy(s, 'axe').ok, true);
-  assert.equal(s.inv.wood, 0);
-  s.inv.wood = 8;
+  s.inv.mycelium = 5;
+  assert.equal(C.buy(s, 'basket').ok, false);
+  s.inv.mycelium = 6;
+  assert.equal(C.buy(s, 'basket').ok, true);
+  assert.equal(s.inv.mycelium, 0);
+  s.inv.mycelium = 8;
   C.buy(s, 'boots');
   assert.equal(s.tools.boots, 2);
   assert.ok(C.speedMult(s) > 1);
@@ -79,46 +79,46 @@ test('extractors need a matching deposit and enough resources', () => {
   const s = C.createState(12345);
   const stone = findNear(s, (st, x, y) => typeAt(st, x, y) === T.STONE);
   standOn(s, stone);
-  s.inv.wood = 1000;
-  if (!C.buildTarget(s, 'lumber')) assert.equal(C.place(s, 'lumber').ok, false, 'no camp on stone');
+  s.inv.mycelium = 1000;
+  if (!C.buildTarget(s, 'garden')) assert.equal(C.place(s, 'garden').ok, false, 'no camp on stone');
   standOn(s, findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOREST));
-  s.inv.wood = 14;
-  assert.equal(C.place(s, 'lumber').ok, false, '14 wood is not enough');
-  s.inv.wood = 15;
-  const placed = C.place(s, 'lumber');
+  s.inv.mycelium = 14;
+  assert.equal(C.place(s, 'garden').ok, false, '14 mycelium is not enough');
+  s.inv.mycelium = 15;
+  const placed = C.place(s, 'garden');
   assert.equal(placed.ok, true);
-  assert.equal(s.inv.wood, 0);
-  assert.equal(C.extractorCount(s, 'lumber'), 1);
+  assert.equal(s.inv.mycelium, 0);
+  assert.equal(C.extractorCount(s, 'garden'), 1);
   assert.equal(s.extractors[0].z, C.SURFACE);
 });
 
 test('each extra extractor of a kind costs more', () => {
   const s = C.createState(12345);
-  s.extractors.push(lumberCamp(0, 0));
-  const first = C.extractorCost(s, 'lumber').wood;
-  s.extractors.push(lumberCamp(1, 0));
-  assert.ok(C.extractorCost(s, 'lumber').wood > first);
+  s.extractors.push(mushroomGarden(0, 0));
+  const first = C.extractorCost(s, 'garden').mycelium;
+  s.extractors.push(mushroomGarden(1, 0));
+  assert.ok(C.extractorCost(s, 'garden').mycelium > first);
 });
 
 test('extractors fill their buffer up to its cap and can be collected nearby', () => {
   const s = C.createState(12345);
-  s.extractors.push(lumberCamp(48, 50));
+  s.extractors.push(mushroomGarden(48, 50));
   standOn(s, { x: 100, y: 100 });
   run(s, 60);
   const e = s.extractors[0];
-  assert.ok(e.buffer > 30 && e.buffer <= C.EXTRACTORS.lumber.buffer + 1e-9);
-  assert.equal(s.inv.wood, 0, 'nothing arrives from far away');
+  assert.ok(e.buffer > 30 && e.buffer <= C.EXTRACTORS.garden.buffer + 1e-9);
+  assert.equal(s.inv.mycelium, 0, 'nothing arrives from far away');
   assert.equal(C.collectTarget(s), null);
   standOn(s, { x: 48, y: 50 });
   const got = C.collect(s);
-  assert.ok(got.gained.wood > 0);
+  assert.ok(got.gained.mycelium > 0);
   assert.deepEqual(got.sources.map((x) => [x.x, x.y]), [[48, 50]]);
   assert.ok(e.buffer < 1);
 });
 
 test('converters need their blueprint and build on any dry land, not home ground', () => {
   const s = C.createState(12345);
-  Object.assign(s.inv, { wood: 1e4, stone: 1e4, ore: 1e4 });
+  Object.assign(s.inv, { mycelium: 1e4, stone: 1e4, ore: 1e4 });
   s.unlocks.foundry = true;
   assert.equal(typeAt(s, Math.floor(s.player.x), Math.floor(s.player.y)), T.HOME, 'every world starts on home ground');
   assert.equal(C.place(s, 'foundry').ok, false, 'home ground is kept for the stockpile');
@@ -136,13 +136,13 @@ test('converters need their blueprint and build on any dry land, not home ground
   assert.ok(s.extractors[0].buffer <= C.EXTRACTORS.foundry.buffer + 1e-9);
 });
 
-test('wood from a fossil underground does not count as gathering from the forest', () => {
+test('mycelium from a spore bed underground does not count as gathering from the forest', () => {
   const s = C.createState(77);
   s.player.z = -4;
-  const fossil = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOSSIL && richAt(st, x, y) > 0);
-  standOn(s, fossil);
-  assert.equal(C.harvestAt(s, fossil.x, fossil.y).res, 'wood');
-  assert.equal(s.stats.wood, 1);
+  const sporeBed = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SPORE_BED && richAt(st, x, y) > 0);
+  standOn(s, sporeBed);
+  assert.equal(C.harvestAt(s, sporeBed.x, sporeBed.y).res, 'mycelium');
+  assert.equal(s.stats.mycelium, 1);
   assert.equal(C.advanceGoals(s), false, 'the forest milestone waits for a forest');
 
   s.player.z = C.SURFACE;
