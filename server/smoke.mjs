@@ -1,0 +1,61 @@
+/* After each deploy: the live room service answers as the game expects.
+ * Makes a room, joins it as its owner and as an invited friend, and checks
+ * that strangers are turned away. Usage: node smoke.mjs <service url> <origin> */
+
+const [BASE, ORIGIN] = process.argv.slice(2);
+const WS = BASE.replace(/^http/, 'ws');
+const hex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
+let failed = 0;
+const check = (ok, what) => { console.log((ok ? 'ok: ' : 'FAIL: ') + what); if (!ok) failed++; };
+
+function connect(room, key, code) {
+  const ws = new WebSocket(`${WS}/rooms/${room}/ws`, { headers: { Origin: ORIGIN } });
+  const msgs = [];
+  const next = (type, ms = 8000) => new Promise((resolve) => {
+    const t0 = Date.now();
+    const look = () => {
+      const m = msgs.find((x) => x.t === type);
+      if (m) return resolve(m);
+      if (Date.now() - t0 > ms) return resolve(null);
+      setTimeout(look, 50);
+    };
+    look();
+  });
+  const closed = new Promise((resolve) => { ws.onclose = (e) => resolve(e.code + ' ' + e.reason); });
+  ws.onmessage = (e) => msgs.push(JSON.parse(e.data));
+  ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', key, ...(code ? { code } : {}) }));
+  return { ws, next, closed, send: (m) => ws.send(JSON.stringify(m)) };
+}
+
+const post = (origin, body) => fetch(BASE + '/rooms', { method: 'POST', headers: { ...(origin ? { Origin: origin } : {}), 'Content-Type': 'application/json' }, body });
+
+check((await post(null, '{}')).status === 403, 'no Origin: refused');
+check((await post('https://evil.example', '{}')).status === 403, 'another site: refused');
+check((await post(ORIGIN, '{"t":"create","key":"short"}')).status === 400, 'a malformed world: refused');
+
+const ownerKey = hex(32);
+const res = await post(ORIGIN, JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }));
+const { room } = await res.json();
+check(res.status === 201 && /^[A-Za-z0-9_-]{22}$/.test(room), 'a room is made');
+
+const owner = connect(room, ownerKey);
+const hi = await owner.next('welcome');
+check(hi && hi.you === hi.owner && hi.seed === 12345, 'the owner gets the world back');
+
+const stranger = connect(room, hex(32));
+check(/1008 invite/.test(await stranger.closed), 'a stranger without an invite is turned away');
+
+owner.send({ t: 'invite' });
+const inv = await owner.next('invite');
+check(!!inv, 'the owner gets an invite');
+const friend = connect(room, hex(32), inv && inv.code);
+const fw = await friend.next('welcome');
+check(fw && fw.you !== hi.you && fw.players[hi.you], 'an invited friend joins and sees the owner');
+friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
+const moved = await owner.next('pos');
+check(moved && moved.p.x === 2, 'the owner sees the friend move');
+
+owner.ws.close(1000, 'bye');
+friend.ws.close(1000, 'bye');
+console.log(failed ? `${failed} check(s) failed` : 'room service OK');
+process.exit(failed ? 1 : 0);

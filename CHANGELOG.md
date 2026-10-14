@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.51.1] - 2026-10-14
+
+### Changed
+- **Play together is switched on.** The room service is live on Cloudflare
+  and the game talks to it; every deploy of it now ends with a smoke test
+  against the live service (origin checks, room creation, invite-only joins).
+
 ## [0.51.0] - 2026-10-14
 
 ### Added
