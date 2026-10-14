@@ -11,7 +11,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles } from './terrain.js';
-import { drawExtractor, drawPlayer, drawFriend, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawExtractor, drawPlayer, drawFriend, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
@@ -63,7 +63,8 @@ export function render(cam, s, fx, view, look) {
     if (def.beacon) beacons.push({ x: t.x, y: t.y, kind });
   }
 
-  let you = null;    // where your hands are, for the sign you may hold up
+  let you = null;    // where your head and hands are, for your name and sign
+  const tags = [];   // friends' names, drawn last, over the night
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = byRow.get(y);
@@ -71,7 +72,12 @@ export function render(cam, s, fx, view, look) {
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
     const friends = friendRows.get(y);
-    if (friends) for (const f of friends) drawFriend(ctx, cam, s, look, f, view.friendColors[f.c]);
+    if (friends) {
+      for (const f of friends) {
+        const at = drawFriend(ctx, cam, s, look, f, view.friendColors[f.c]);
+        if (at) tags.push({ ...at, name: f.name, color: view.friendColors[f.c] });
+      }
+    }
     if (y === playerRow) you = drawPlayer(ctx, cam, s, look, view);
   });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
@@ -90,6 +96,10 @@ export function render(cam, s, fx, view, look) {
   drawBeacons(ctx, cam, s, look, beacons);
   // Your sign, over the dark: a QR code has to read at night too.
   if (view.sign > 0 && view.signFace && you) drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
+  // Everyone's name over their head (yours too, in a shared world, unless
+  // your sign is up in front of it).
+  for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color);
+  if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color);
   if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.friendColors);
   drawJoystick(ctx, cam, view);
   return { tiles };

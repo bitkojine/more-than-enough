@@ -319,6 +319,7 @@ function view() {
     joy: input.joy,
     friends: together.view(),
     friendColors: FRIEND_COLORS,
+    me: together.me,   // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,
     signCaption: t('together.sign'),

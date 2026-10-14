@@ -200,22 +200,22 @@ export function signSide(cam) {
 }
 
 // A friend, drawn like the wanderer (holding what they play on) with a ring
-// of their colour at their feet and a marker over their head, on a boat on
+// of their colour at their feet, on a boat on
 // water like you. How they're doing shows in how they look, always at full
 // size: online as normal; away dozing on their feet, head nodding, with a
 // little "z z"; connection lost flickering under a spinning signal; offline
-// asleep where they left (see drawSleeper). Coming back sparkles.
+// asleep where they left (see drawSleeper). Coming back sparkles. Returns
+// where their name goes ({x, y}, see drawNameTag), or null when off screen.
 export function drawFriend(ctx, cam, s, look, f, color) {
   const u = cam.tilePx;
   const { x: sx, y: sy } = cam.project(f.x, f.y, groundAt(cam, s, f.x, f.y));
-  if (sx < -u * 2 || sy < -u * 3 || sx > cam.width + u * 2 || sy > cam.height + u * 2) return;
+  if (sx < -u * 2 || sy < -u * 3 || sx > cam.width + u * 2 || sy > cam.height + u * 2) return null;
   const flip = facesLeft(f);
   const water = Core.swimsAt(s.world, f.x, f.y, cam.z);
   if (f.st === 'offline') {
     const body = look.frames('character.wanderer', 'image').pics[0];
     const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
-    drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
-    return;
+    return drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
   }
   const time = s.time;
   ctx.save();
@@ -234,7 +234,6 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   if (f.sign && f.st === 'online') drawSign(ctx, handsX, hands, u, 1, time, f.c + 1);
   const my = head - u * (f.sign && f.st === 'online' ? 0.6 : 0.2);
   const r = Math.max(5, u * 0.12);
-  drawDiamond(ctx, hx, my, r, color);
   // Away: little z's drifting up.
   if (f.st === 'away') drawSnore(ctx, 'z', hx + u * 0.25, my, 1, u, time, { speed: 0.6, size: 0.16, rise: 0.6, drift: 0.3, weight: 800 });
   if (f.st === 'lost') {
@@ -258,6 +257,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
     }
     ctx.restore();
   }
+  return { x: hx, y: my };
 }
 
 // An offline friend, asleep where they left like a sleeper in Rust: lying on
@@ -293,11 +293,11 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy, onGround) {
   ctx.beginPath(); ctx.ellipse(bx, by, bw, thick * 0.3 * breath, 0, Math.PI, TAU); ctx.closePath();
   ctx.fill(); ctx.stroke();
   ctx.restore();
-  // Their marker, small, over the pillow end, and big slow Z's.
+  // Big slow Z's over the pillow end, where their name goes.
   const mx = sx + head * len * 0.42, my = sy - thick * 0.75;
   const r = Math.max(4, u * 0.09);
-  drawDiamond(ctx, mx, my, r, color);
-  drawSnore(ctx, 'Z', mx + head * r, my - r, head, u, time, { speed: 0.3, size: 0.22, rise: 0.9, drift: 0.45, weight: 900, outline: true });
+  drawSnore(ctx, 'Z', mx + head * r, my - r * 2, head, u, time, { speed: 0.3, size: 0.22, rise: 0.9, drift: 0.45, weight: 900, outline: true });
+  return { x: mx, y: my };
 }
 
 // Someone doing nothing in particular (a friend away or out of touch).
@@ -306,14 +306,20 @@ const STILL = { act: null, t: 0, idle: 0 };
 // Whether a friend faces left (their sprite is mirrored).
 const facesLeft = (f) => f.fx < -0.01;
 
-// A friend's marker: a diamond in their colour.
-function drawDiamond(ctx, x, y, r, color) {
+// A player's name over their head: a tag in their colour, the same size at
+// every zoom, drawn over the night so it always reads. (x, y) is its centre.
+export function drawNameTag(ctx, x, y, name, color) {
   ctx.save();
+  ctx.font = '800 12px system-ui, sans-serif'; // i18n-ok: a font
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const w = Math.ceil(ctx.measureText(name).width) + 14;
   ctx.fillStyle = color;
-  ctx.strokeStyle = 'rgba(10,8,6,0.8)';
+  ctx.strokeStyle = 'rgba(10,8,6,0.85)';
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.75, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.75, y); ctx.closePath();
-  ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - 9, w, 18, 9); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0c0a08';
+  ctx.fillText(name, x, y + 0.5);
   ctx.restore();
 }
 

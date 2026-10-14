@@ -544,6 +544,7 @@ export function createTogether({ game, hud, ask, el, friendJoined = () => {} }) 
     get isOwner() { return !!me && me === owner; },
     get canRejoin() { return !!service && !game.state.shared && knownRooms().length > 0; },
     get color() { return myColor; },
+    get me() { return game.state.shared && me ? { name: nameOf(me), color: FRIEND_COLORS[myColor] } : null; },
     get sign() { return signT; },
     get signFace() { return signFace; },
     tick,

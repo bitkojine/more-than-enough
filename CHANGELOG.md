@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.60.2] - 2026-10-14
+
+### Changed
+- **Names over heads.** In a shared world everyone's name now floats over
+  their head on a tag in their colour, yours included: awake, dozing, asleep
+  on the ground or on a boat. The tags stay the same size at any zoom and
+  are drawn over the night, so they always read. Yours steps aside while
+  your invite sign is up. They replace the little diamonds.
+
 ## [0.60.1] - 2026-10-14
 
 ### Fixed
