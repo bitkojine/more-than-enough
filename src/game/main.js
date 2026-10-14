@@ -151,6 +151,7 @@ const input = createInput({
 el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
+el.settings.addEventListener('click', () => sheet.toggle('settings'));
 el.resources.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (chip) sheet.showCollected(chip.dataset.res);
@@ -165,7 +166,10 @@ function setDrag(invert) {
   el.drag.setAttribute('aria-pressed', String(invert));
 }
 el.drag.addEventListener('click', () => { setDrag(!input.invert); saveView(cam, input.invert); });
-const showMute = () => { el.mute.textContent = t(audio.muted ? 'sheet.sound.off' : 'sheet.sound.on'); };
+const showMute = () => {
+  el.muteState.textContent = t(audio.muted ? 'settings.off' : 'settings.on');
+  el.mute.setAttribute('aria-pressed', String(!audio.muted));
+};
 el.mute.addEventListener('click', () => {
   audio.muted = !audio.muted;
   showMute();

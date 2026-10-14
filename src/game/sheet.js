@@ -1,5 +1,6 @@
 /* The bottom sheet: Upgrades (the progression map), Build, Beyond, Awards,
- * and Collected (opened by tapping a resource counter, so it has no tab). It
+ * Collected (opened by tapping a resource counter, so it has no tab) and
+ * Settings (opened by the gear; its controls are static, in index.html). It
  * renders from state and reports what the player picked through `actions`.
  * Rows carry names, levels, numbers and prices only; what things do is for
  * the player to discover (or read in the wiki). */
@@ -9,7 +10,7 @@ import { fmt, fmt1, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t, listOr, capitalize } from '../i18n/i18n.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')]]));
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
@@ -236,7 +237,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     return html + '</div>';
   }
 
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected };
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected, settings: () => '' };
 
   function render() {
     el.sheetBody.innerHTML = RENDER[tab](getState());
@@ -256,6 +257,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     });
   }
   function refresh() {
+    if (tab === 'settings') return;
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
     // Nothing to tap in Collected: swap in just the rows and cards that changed.
@@ -293,6 +295,11 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     tab = next;
     el.sheetTitle.textContent = TITLES[tab];
     for (const t of el.tabs) t.classList.toggle('active', t.dataset.tab === tab);
+    // Settings has no tabs: it is not part of the game's lists.
+    const settings = tab === 'settings';
+    el.sheet.classList.toggle('settings', settings);
+    el.settingsPanel.hidden = !settings;
+    el.sheetBody.hidden = settings;
     render();
     onTab(tab);
   }

@@ -14,6 +14,17 @@ export function fmt(n) {
   return number(n / 1e9, 2) + SUFFIX.B;
 }
 
+// The same, as short as it goes: for the resource bar, where every
+// character counts (12.3k, 4.56M).
+const SHORT = { k: t('num.short.thousand'), M: t('num.short.million'), B: t('num.short.billion') };
+export function fmtShort(n) {
+  n = Math.floor(n);
+  if (n < 10000) return String(n);
+  if (n < 1e6) return number(n / 1000, n < 1e5 ? 1 : 0) + SHORT.k;
+  if (n < 1e9) return number(n / 1e6, n < 1e8 ? 1 : 0) + SHORT.M;
+  return number(n / 1e9, 1) + SHORT.B;
+}
+
 export function fmt1(n) {
   return number(Math.round(n * 10) / 10, 1);
 }

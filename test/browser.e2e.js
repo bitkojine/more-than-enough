@@ -415,9 +415,9 @@ async function main() {
   eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'CLIMB UP the first ladder comes out of the cave mouth you went down');
   await sleep(200);
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'standing in that cave mouth, the layer button climbs down');
-  var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("depth"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
-  var ov = JSON.parse(overlap);
-  ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');
+  // Every piece of the HUD keeps its own place, the climb button included.
+  var clash = await evalJS('(function(){var ids=["btnAwards","resources","btnSettings","depthMeter","zoomControls","btnBuild","btnUpgrade","btnMine","btnAction"];var r=ids.map(function(id){var b=document.getElementById(id).getBoundingClientRect();return {id:id,l:b.left,t:b.top,r:b.right,b:b.bottom,w:b.width};}).filter(function(x){return x.w>0;});var out=[];for(var i=0;i<r.length;i++)for(var j=i+1;j<r.length;j++){var a=r[i],c=r[j];if(!(a.r<=c.l||c.r<=a.l||a.b<=c.t||c.b<=a.t))out.push(a.id+"/"+c.id);}return out.join(" ");})()');
+  eq(clash, '', 'no two HUD pieces overlap');
 
   // canvas actually painted
   var painted = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var set={};var n=0;for(var i=0;i<d.length;i+=40000){var k=d[i]+","+d[i+1]+","+d[i+2];if(!set[k]){set[k]=1;n++;}}return n;})()');
@@ -490,7 +490,7 @@ async function main() {
   ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
   ok(await waitFor('document.getElementById("awardCount").textContent === "1"', 1000), 'the trophy counter counts the milestone');
   ok(await evalJS('document.getElementById("btnAwards").classList.contains("new")'), 'and glows until the awards are looked at');
-  ok(await evalJS('(function(){function r(e){return e.getBoundingClientRect();}var a=r(document.getElementById("btnAwards"));return [].slice.call(document.querySelectorAll("#resources .chip, #version")).every(function(e){var c=r(e);return a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top;});})()'), 'the trophy counter overlaps nothing');
+  ok(await evalJS('(function(){function r(e){return e.getBoundingClientRect();}var a=r(document.getElementById("btnAwards"));return [].slice.call(document.querySelectorAll("#resources .chip, #btnSettings")).every(function(e){var c=r(e);return a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top;});})()'), 'the trophy counter overlaps nothing');
   var awardsBtn = await rect('#btnAwards');
   await tap(awardsBtn.x, awardsBtn.y);
   await sleep(300);
@@ -506,7 +506,9 @@ async function main() {
     await touch('touchMove', [{ x: trailStart.x + (195 - trailStart.x) * trailStep / 8, y: trailStart.y + (422 - trailStart.y) * trailStep / 8, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
     await sleep(20);
   }
-  var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=615;yy<=645;yy+=2)for(var xx=245;xx<=265;xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
+  // Look for the glow around a point part way along the stroke.
+  var probe = { x: Math.round(trailStart.x + (195 - trailStart.x) * 0.45), y: Math.round(trailStart.y + (422 - trailStart.y) * 0.45) };
+  var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=' + (probe.y - 15) + ';yy<=' + (probe.y + 15) + ';yy+=2)for(var xx=' + (probe.x - 15) + ';xx<=' + (probe.x + 15) + ';xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
   ok(trailGlow, 'live Trail stroke paints visibly on the map');
   await touch('touchEnd', []);
   await sleep(180);
@@ -646,14 +648,23 @@ async function main() {
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  // Settings live behind the gear, not under every list.
+  ok(await evalJS('document.getElementById("btnMute").offsetParent === null'), 'settings are not shown with the game lists');
+  var gear = await rect('#btnSettings');
+  await tap(gear.x, gear.y);
+  await sleep(250);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear switches the sheet to Settings');
+  ok(await evalJS('document.getElementById("sheetBody").hidden && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Settings shows no game list and no tabs');
+  ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Settings');
   var muteButton = await rect('#btnMute');
   await tap(muteButton.x, muteButton.y);
-  eq(await evalJS('document.getElementById("btnMute").textContent'), 'Sound: off', 'Sound control mutes with one tap');
+  eq(await evalJS('document.getElementById("muteState").textContent'), 'off', 'Sound control mutes with one tap');
   muteButton = await rect('#btnMute');
   await tap(muteButton.x, muteButton.y);
-  eq(await evalJS('document.getElementById("btnMute").textContent'), 'Sound: on', 'Sound control unmutes with one tap');
+  eq(await evalJS('document.getElementById("muteState").textContent'), 'on', 'Sound control unmutes with one tap');
   eq(await evalJS('document.getElementById("wikiLink").getAttribute("href")'), 'wiki/', 'the sheet links to the wiki');
   eq(await evalJS('document.getElementById("wikiLink").target'), '_blank', 'the wiki opens outside the game');
+  await evalJS('document.querySelector("#tabs .tab[data-tab=upgrades]").click()');
   var audioState = await evalJS('MTE_GAME.audioState()');
   console.log('  audio state after gestures: ' + audioState);
   ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
@@ -860,9 +871,9 @@ async function main() {
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   eq(await evalJS('MTE_GAME.flyers().length'), 1, 'a leftover flyer exists before resetting');
   await evalJS('MTE_GAME.getState().inv.mycelium = 999999');
-  var resetSheetOpen = await evalJS('document.getElementById("sheet").classList.contains("open")');
+  var resetSheetOpen = await evalJS('document.getElementById("sheet").classList.contains("settings") && document.getElementById("sheet").classList.contains("open")');
   if (!resetSheetOpen) {
-    var resetSheetButton = await rect('#btnUpgrade');
+    var resetSheetButton = await rect('#btnSettings');
     await tap(resetSheetButton.x, resetSheetButton.y);
     await sleep(250);
   }
@@ -979,10 +990,6 @@ async function main() {
   /* ------------------------------------------------- performance panel */
   console.log('\n== Performance panel ==');
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'the performance panel starts closed');
-  var badge = await rect('#version');
-  await tap(badge.x, badge.y);
-  await sleep(200);
-  eq(await evalJS('document.getElementById("perf").hidden'), true, 'tapping the version badge does not open it: it is not for play');
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
   ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'F3 opens the panel, showing FPS');
   var perfText = await evalJS('document.getElementById("perf").textContent');

@@ -1,12 +1,36 @@
-/* MORE THAN ENOUGH — styles. Mobile Safari first, desktop friendly. */
+/* MORE THAN ENOUGH — styles. Mobile Safari first, desktop friendly.
+   The layout and the rules behind it are in docs/ui.md. */
 
 :root {
   color-scheme: dark;
-  --panel: rgba(12, 17, 14, 0.94);
+  /* Surfaces: glass over the map, and the solid panels of sheets. */
+  --glass: rgba(12, 17, 14, 0.78);
+  --panel: rgba(12, 17, 14, 0.96);
   --panel-line: rgba(255, 255, 255, 0.10);
+  --raised: rgba(255, 255, 255, 0.06);
+  /* Ink and accents. */
   --ink: #e9f1e6;
   --ink-dim: #93a291;
   --green: #7fd07a;
+  --gold: #ffd166;
+  --earth: #ecd3a4;
+  --danger: #f08a7a;
+  /* Shape. */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --shadow-1: 0 3px 12px rgba(0, 0, 0, 0.38);
+  --shadow-2: 0 -8px 30px rgba(0, 0, 0, 0.5);
+  --blur: blur(8px);
+  /* The safe edges every HUD piece keeps to. */
+  --edge-t: calc(env(safe-area-inset-top, 0px) + 8px);
+  --edge-r: calc(env(safe-area-inset-right, 0px) + 12px);
+  --edge-b: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  --edge-l: calc(env(safe-area-inset-left, 0px) + 12px);
+  /* The thumb cluster: the big action and the buttons around it. */
+  --act: 84px;
+  --sub: 56px;
+  --gap: 14px;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,34 +60,108 @@ canvas#game {
 
 /* ------------------------------------------------------------------ HUD */
 
+/* Status along the top: trophies, the resource bar, settings. It lets taps
+   through to the map everywhere but on its buttons. */
 #hud {
   position: absolute;
   top: 0; left: 0; right: 0;
-  padding: calc(env(safe-area-inset-top, 0px) + 8px) 8px 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: var(--edge-t) var(--edge-r) 0 var(--edge-l);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
   pointer-events: none;
   z-index: 10;
 }
 
-#version {
-  align-self: flex-end;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: rgba(150, 165, 148, 0.8);
-  background: rgba(12, 17, 14, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 999px;
-  padding: 3px 8px;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+#topbar {
+  width: 100%; max-width: 560px;
+  display: flex; align-items: center; gap: 8px;
 }
+
+/* Round glass buttons on the top bar. */
+.hudBtn {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px; height: 44px; padding: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--panel-line); border-radius: 50%;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  color: var(--ink);
+  pointer-events: auto; touch-action: manipulation; cursor: pointer;
+  transition: transform .08s ease;
+}
+.hudBtn:active { transform: scale(0.92); }
+.hudBtn .gear { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Milestones reached: a trophy with its count on a badge. It glows after a
+   new one until the Awards are opened. */
+#btnAwards { color: var(--gold); border-color: rgba(255, 209, 102, 0.45); }
+#btnAwards .trophy { width: 22px; height: 22px; }
+#awardCount {
+  position: absolute; right: -4px; bottom: -4px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center;
+  border-radius: 999px; border: 2px solid #0c140e;
+  background: var(--gold); color: #2a1e04;
+  font: 800 11px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+#btnAwards.new { animation: awardGlow 1.4s ease-in-out infinite; background: rgba(70, 52, 14, 0.92); }
+@keyframes awardGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55); }
+  50% { box-shadow: 0 0 0 8px rgba(255, 209, 102, 0); }
+}
+.trophy { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; }
+.row .ic .trophy { width: 28px; height: 28px; color: var(--gold); }
+.awardsLeft .trophy { opacity: 0.35; color: var(--ink-dim) !important; }
+
+/* One resource bar: every resource in one capsule, tap one to see what you
+   collected. */
+#resources {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: stretch;
+  height: 44px; padding: 0 4px;
+  border: 1px solid var(--panel-line); border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+}
+.chip {
+  flex: 1 1 0; min-width: 0;
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 0 2px;
+  background: none; border: 0;
+  font: inherit; color: inherit;
+  pointer-events: auto; touch-action: manipulation; cursor: pointer;
+}
+.chip + .chip { border-left: 1px solid var(--panel-line); }
+.chip:active { background: var(--raised); }
+.chip:first-child { border-radius: 999px 0 0 999px; }
+.chip:last-child { border-radius: 0 999px 999px 0; }
+.chip .ic { width: 20px; height: 20px; flex: 0 0 auto; }
+.chip .col { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; min-width: 0; }
+.chip .val {
+  font-size: 15px; font-weight: 800; color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.chip .rate { font-size: 9.5px; color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
+.chip .rate:empty { display: none; }
+/* Narrow phones: each resource's picture over its count, rates left out. */
+@media (max-width: 360px) {
+  .chip { flex-direction: column; gap: 1px; }
+  .chip .ic { width: 16px; height: 16px; }
+  .chip .col { align-items: center; }
+  .chip .val { font-size: 13px; }
+  .chip .rate { display: none; }
+}
+
 /* Performance panel: F3, or ?perf in the address. */
 #perf {
   align-self: flex-end;
   margin: 0;
   padding: 7px 9px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-left: 3px solid #7fd07a;
+  border-left: 3px solid var(--green);
   border-radius: 8px;
   background: rgba(8, 12, 10, 0.82);
   color: #d6e4d3;
@@ -72,229 +170,172 @@ canvas#game {
   pointer-events: none;
 }
 #perf[hidden] { display: none; }
-#perf[data-grade="ok"] { border-left-color: #ffd166; }
+#perf[data-grade="ok"] { border-left-color: var(--gold); }
 #perf[data-grade="bad"] { border-left-color: #ff5a5a; }
 
-#version #brand {
-  color: #e8d9a8;
-  letter-spacing: 0.12em;
-  font-size: 9px;
-}
-#version span + span::before {
-  content: '\00B7';
-  margin: 0 5px;
-  color: rgba(150, 165, 148, 0.6);
-}
-
-#resources {
-  display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;
-  width: 100%;
-}
-
-.chip {
-  background: var(--panel);
-  border: 1px solid var(--panel-line);
-  border-radius: 13px;
-  padding: 5px 9px;
-  display: flex; align-items: center; gap: 5px;
-  min-width: 78px;
-  -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
-}
-.chip .ic { width: 18px; height: 18px; flex: 0 0 auto; }
-.chip .col { display: flex; flex-direction: column; line-height: 1.05; }
-.chip .val {
-  font-size: 15px; font-weight: 800; color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-.chip .rate { font-size: 10.5px; color: var(--green); font-weight: 700; margin-left: 1px; font-variant-numeric: tabular-nums; }
-
-/* Milestones reached: a trophy and a count in the top-left corner. It glows
-   after a new one until the Awards are opened. */
-#btnAwards {
-  position: absolute;
-  top: calc(env(safe-area-inset-top, 0px) + 6px); left: 8px;
-  pointer-events: auto;
-  display: flex; align-items: center; gap: 4px;
-  height: 26px; padding: 0 10px 0 7px;
-  border: 1px solid rgba(255, 209, 102, 0.45); border-radius: 999px;
-  background: rgba(30, 24, 10, 0.78);
-  color: #ffd166; font: 800 12.5px/1 -apple-system, BlinkMacSystemFont, sans-serif;
-  font-variant-numeric: tabular-nums;
-  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  touch-action: manipulation; cursor: pointer;
-}
-#btnAwards .trophy { width: 15px; height: 15px; }
-#btnAwards.new { animation: awardGlow 1.4s ease-in-out infinite; background: rgba(70, 52, 14, 0.92); }
-@keyframes awardGlow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.55); }
-  50% { box-shadow: 0 0 0 7px rgba(255, 209, 102, 0); }
-}
-.trophy { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; }
-.row .ic .trophy { width: 28px; height: 28px; color: #ffd166; }
-.awardsLeft .trophy { opacity: 0.35; color: var(--ink-dim) !important; }
-
-/* A milestone reached: a banner under the counters, a few seconds each. It
-   lets taps through to the map; the trophy counter lists them all. */
+/* A milestone reached: a banner under the top bar, a few seconds each. It
+   lets taps through to the map; the trophy button lists them all. */
 #milestone {
   pointer-events: none;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
-  margin-top: 8px; padding: 10px 22px 12px; max-width: 90%;
+  margin-top: 4px; padding: 10px 22px 12px; max-width: 90%;
   background: linear-gradient(180deg, rgba(58, 44, 16, 0.96), rgba(28, 22, 10, 0.96));
-  border: 1px solid rgba(255, 209, 102, 0.6); border-radius: 14px;
+  border: 1px solid rgba(255, 209, 102, 0.6); border-radius: var(--r-md);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 209, 102, 0.18);
   text-align: center;
   animation: milestone-in .35s cubic-bezier(.2, 1.4, .4, 1);
 }
 #milestone[hidden] { display: none; }
-#milestone .trophy { width: 30px; height: 30px; color: #ffd166; filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6)); }
-#milestone small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: #ffd166; }
+#milestone .trophy { width: 30px; height: 30px; color: var(--gold); filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6)); }
+#milestone small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
 #milestone strong { font-size: 17px; line-height: 1.25; color: #fff3d6; }
 @keyframes milestone-in { from { opacity: 0; transform: translateY(-14px) scale(.85); } 60% { transform: scale(1.06); } to { opacity: 1; transform: none; } }
 
+/* Underground: how deep you are, and the layers as a column under it: the
+   forest on top, every layer you've been down to, a dashed one for deeper
+   still, and you lit. Going down moves the light down. */
+#depthMeter {
+  position: absolute; z-index: 10;
+  left: var(--edge-l);
+  top: calc(var(--edge-t) + 56px);
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  pointer-events: none;
+}
 #depth {
-  pointer-events: none;
-  background: var(--panel);
-  border: 1px solid rgba(225, 181, 105, 0.35);
-  border-radius: 999px;
-  padding: 4px 12px;
-  font-size: 13px; font-weight: 800;
-  color: #ecd3a4;
+  min-width: 44px; padding: 5px 8px;
+  border: 1px solid rgba(225, 181, 105, 0.4); border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  text-align: center;
+  font-size: 13px; font-weight: 800; color: var(--earth);
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
 }
-#depth[hidden] { display: none; }
-
-/* The layers as a column down the left edge: the forest on top, every layer
-   you've been down to, a dashed one for deeper still, and you lit. Going down
-   moves the light down, so the mine reads as a stack, not rooms. */
+#depth[hidden], #depthGauge[hidden] { display: none; }
 #depthGauge {
-  position: fixed; left: calc(env(safe-area-inset-left, 0px) + 8px);
-  top: calc(env(safe-area-inset-top, 0px) + 150px);
   display: flex; flex-direction: column; gap: 2px;
-  padding: 4px; border-radius: 7px;
-  background: rgba(10, 14, 12, 0.55);
+  padding: 4px; border-radius: 8px;
+  background: var(--glass);
   border: 1px solid rgba(225, 181, 105, 0.25);
-  pointer-events: none;
 }
-#depthGauge[hidden] { display: none; }
-#depthGauge i { display: block; width: 14px; height: 9px; border-radius: 2px; background: #5e4a36; }
+#depthGauge i { display: block; width: 16px; height: 9px; border-radius: 2px; background: #5e4a36; }
 #depthGauge i.surface { background: #56803a; }
 #depthGauge i.deeper { background: none; border: 1px dashed rgba(236, 211, 164, 0.35); }
 #depthGauge i.here { background: #ffd28a; box-shadow: 0 0 6px rgba(255, 210, 138, 0.8); }
 
-/* -------------------------------------------------------------- buttons */
+/* ----------------------------------------------------- thumb cluster */
 
 #controls { position: absolute; inset: 0; pointer-events: none; z-index: 12; }
 
-/* One-hand play: every persistent control stays in a compact right-thumb zone.
-   Movement and map taps remain available across the rest of the canvas. */
+/* One-hand play: everything you press sits in the right thumb's arc around
+   the big action. Build and Upgrade to its left; the climb button pops in
+   above-left of it, only beside a way between layers. The map keeps the
+   rest of the screen. */
 #thumbDock {
   position: absolute;
-  right: 12px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  display: flex; align-items: flex-end; gap: 8px;
-  pointer-events: auto;
+  right: var(--edge-r); bottom: var(--edge-b);
+  width: var(--act); height: var(--act);
+  pointer-events: none;
 }
 
 .btn {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(22, 30, 25, 0.80);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: radial-gradient(circle at 50% 30%, rgba(44, 58, 48, 0.92), rgba(16, 22, 18, 0.92));
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   color: var(--ink);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
   padding: 0;
   pointer-events: auto;
   touch-action: manipulation;
   -webkit-user-select: none; user-select: none;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.45);
-  transition: transform .08s ease, background .12s ease;
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform .08s ease;
 }
-.btn:active { transform: scale(0.94); background: rgba(40, 58, 46, 0.9); }
-.btn .big { width: 28px; height: 28px; object-fit: contain; pointer-events: none; }
+.btn:active { transform: scale(0.93); }
+.btn .big { width: 30px; height: 30px; object-fit: contain; pointer-events: none; }
+/* Every button's name on a small plate across its bottom edge. */
 .btn .cap {
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.06em;
-  color: #b9c8b6; margin-top: 3px;
+  position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
+  padding: 2px 6px;
+  border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #141c17;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.03em; line-height: 1.2;
+  white-space: nowrap; color: #c9d6c6;
+  pointer-events: none;
 }
 /* Something in the sheet you can buy or place right now. */
 .btn.has::before {
-  content: ""; position: absolute; top: 3px; right: 3px;
-  width: 13px; height: 13px; border-radius: 50%;
+  content: ""; position: absolute; top: 0; right: 0;
+  width: 14px; height: 14px; border-radius: 50%;
   background: #7fe06e; border: 2px solid #0c140e;
   box-shadow: 0 0 8px rgba(127, 224, 110, 0.8);
 }
-.btn.ready { border-color: rgba(127, 208, 122, 0.5); animation: readyPulse 1.6s ease-in-out infinite; }
-.btn.ready:active { animation: none; }
 
-@keyframes readyPulse {
-  0%, 100% { box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 0 rgba(127,208,122,0.28); }
-  50% { box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 0 0 7px rgba(127,208,122,0); }
-}
+#btnBuild, #btnUpgrade, #btnMine { width: var(--sub); height: var(--sub); }
+#btnUpgrade { right: calc(var(--act) + var(--gap)); bottom: calc((var(--act) - var(--sub)) / 2); }
+#btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2); bottom: calc((var(--act) - var(--sub)) / 2); }
 
+/* The big action: what holding it does right now. */
 #btnAction {
-  position: relative;
-  width: 84px; height: 84px;
-  background: radial-gradient(circle at 50% 35%, rgba(74, 128, 84, 0.92), rgba(24, 40, 30, 0.92));
-  border-color: rgba(150, 230, 150, 0.45);
+  right: 0; bottom: 0;
+  width: var(--act); height: var(--act);
+  background: radial-gradient(circle at 50% 32%, rgba(84, 146, 94, 0.95), rgba(24, 44, 31, 0.95));
+  border: 2px solid rgba(150, 230, 150, 0.5);
 }
-#btnAction .big { width: 38px; height: 38px; }
-#btnAction .cap { font-size: 11px; color: #daf5d4; }
-#btnAction.disabled { opacity: 0.5; }
-/* Hidden away from any way between layers, but it keeps its place so the
-   buttons beside it never jump. */
-#btnMine[hidden] { display: flex; visibility: hidden; }
+#btnAction .big { width: 42px; height: 42px; }
+#btnAction .cap { font-size: 11px; color: #e4f7df; background: #1d3524; border-color: rgba(150, 230, 150, 0.45); }
+#btnAction.disabled { opacity: 0.55; }
+#btnAction.ready { animation: readyPulse 1.6s ease-in-out infinite; }
+#btnAction.ready:active { animation: none; }
+@keyframes readyPulse {
+  0%, 100% { box-shadow: var(--shadow-1), 0 0 0 0 rgba(127, 208, 122, 0.3); }
+  50% { box-shadow: var(--shadow-1), 0 0 0 8px rgba(127, 208, 122, 0); }
+}
 
-#btnBuild {
-  position: relative;
-  width: 60px; height: 60px;
-}
-#btnUpgrade {
-  position: relative;
-  width: 60px; height: 60px;
-}
+/* The climb button, above-left of the action; it pops in beside a way up or
+   down and is gone elsewhere. */
 #btnMine {
-  position: relative;
-  width: 60px; height: 60px;
-  border-color: rgba(198, 158, 108, 0.45);
+  right: calc(var(--act) - var(--sub) / 2 + 4px);
+  bottom: calc(var(--act) + 4px);
+  border-color: rgba(225, 181, 105, 0.6);
+  background: radial-gradient(circle at 50% 30%, rgba(96, 72, 44, 0.95), rgba(36, 26, 16, 0.95));
+  animation: pop-in .22s cubic-bezier(.2, 1.5, .4, 1);
 }
-/* Two words (CLIMB DOWN, CLIMB UP): one above the other. */
-#btnMine .cap { max-width: 40px; text-align: center; line-height: 1.05; margin-top: 2px; }
-#btnMine .big { width: 24px; height: 24px; }
+#btnMine[hidden] { display: none; }
+#btnMine .big { width: 26px; height: 26px; }
+#btnMine .cap { color: var(--earth); background: #2a1f13; border-color: rgba(225, 181, 105, 0.45); }
+@keyframes pop-in { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: none; } }
 
+/* Zoom: a slim column on the right edge, above the cluster. The middle
+   shows the magnification; tap it for 1×. Pinching zooms too. */
 #zoomControls {
   position: absolute;
-  right: 14px;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 106px);
-  height: 42px;
-  display: flex; align-items: center; justify-content: center; gap: 3px;
-  padding: 3px;
-  border: 1px solid rgba(255,255,255,0.13);
-  border-radius: 999px;
-  background: rgba(12,17,14,0.82);
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  box-shadow: 0 3px 12px rgba(0,0,0,0.36);
+  right: calc(var(--edge-r) + (var(--act) - 40px) / 2);
+  bottom: calc(var(--edge-b) + var(--act) + 78px);
+  width: 40px;
+  display: flex; flex-direction: column; align-items: stretch;
+  border: 1px solid var(--panel-line); border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
   pointer-events: auto;
 }
 #zoomControls button {
-  width: 36px; height: 34px; padding: 0;
-  border: 0; border-radius: 999px;
-  background: rgba(255,255,255,0.07); color: var(--ink);
-  font: 700 22px/1 -apple-system, BlinkMacSystemFont, sans-serif;
+  height: 40px; padding: 0;
+  border: 0; background: none; color: var(--ink);
+  font: 600 22px/1 -apple-system, BlinkMacSystemFont, sans-serif;
   touch-action: manipulation;
 }
-#zoomControls button:active { background: rgba(80,130,90,0.5); }
-/* The zoom readout: a magnifier and the magnification. Tap it for 1x. */
+#zoomControls button:active { background: rgba(80, 130, 90, 0.5); }
 #zoomControls #zoomLevel {
-  width: auto; min-width: 52px; padding: 0 7px;
-  display: flex; align-items: center; justify-content: center; gap: 2px;
-  background: none;
-  color: var(--ink-dim); font-size: 11px; font-weight: 800;
+  height: 26px;
+  border-top: 1px solid var(--panel-line); border-bottom: 1px solid var(--panel-line);
+  color: var(--ink-dim); font-size: 10.5px; font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
-#zoomLevel svg { width: 13px; height: 13px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
 
 /* ---------------------------------------------------------------- sheet */
 
@@ -457,9 +498,6 @@ canvas#game {
 .card.magic { border-color: rgba(201, 166, 255, 0.5); }
 .card.magic:not(.unseen) { background: rgba(201, 166, 255, 0.1); }
 .card .spark { color: #c9a6ff; }
-/* The counters open Collected. */
-.chip { cursor: pointer; touch-action: manipulation; font: inherit; color: inherit; pointer-events: auto; }
-.chip:active { transform: scale(0.96); }
 
 /* ------------------------------------ progression map (Upgrades tab) */
 
@@ -516,30 +554,56 @@ canvas#game {
   border-top: 1px solid var(--panel-line);
 }
 #sheetNav { display: flex; align-items: stretch; gap: 7px; }
-#sheetUtilities { display: flex; flex-wrap: wrap; gap: 7px; }
-#sheetUtilities [hidden] { display: none; }
-#sheetUtilities .twoLine { flex-direction: column; line-height: 1.15; }
-#sheetUtilities .twoLine small { font-size: 10.5px; font-weight: 600; opacity: 0.75; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#sheetUtilities button,
-#sheetUtilities a {
-  flex: 1 1 28%;
-  display: flex; align-items: center; justify-content: center;
-  text-decoration: none;
-  min-height: 46px;
-  border-radius: 12px;
-  border: 1px solid var(--panel-line);
-  background: rgba(255,255,255,0.04);
-  color: var(--ink-dim);
-  font-size: 13px; font-weight: 700;
-  touch-action: manipulation;
-}
 
+/* Settings: grouped rows, a name on the left and its value on the right,
+   the destructive one alone at the bottom. No tabs: it isn't a game list. */
+#sheet.settings #tabs { display: none; }
+#sheet.settings #btnClose { flex: 1 1 auto; }
+#settingsPanel {
+  overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
+  flex: 1 1 auto; min-height: 0;
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 4px 12px 12px;
+}
+#settingsPanel[hidden], #sheetBody[hidden] { display: none; }
+.setGroup {
+  display: flex; flex-direction: column;
+  border: 1px solid var(--panel-line); border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+.setRow {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 52px; padding: 0 16px;
+  border: 0; background: none;
+  color: var(--ink); font: 700 15px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  text-align: left; text-decoration: none;
+  touch-action: manipulation; cursor: pointer;
+}
+.setRow[hidden] { display: none; }
+.setRow + .setRow { border-top: 1px solid var(--panel-line); }
+.setRow:active { background: var(--raised); }
+.setRow b {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight: 600; color: var(--green);
+}
+.setRow b::first-letter { text-transform: uppercase; }
+.setGroup.danger { border-color: rgba(240, 138, 122, 0.3); }
+.setGroup.danger .setRow { justify-content: center; color: var(--danger); }
+#version {
+  align-self: center;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  color: var(--ink-dim);
+}
+#version #brand { color: #e8d9a8; letter-spacing: 0.12em; }
+#version span + span::before { content: '\00B7'; margin: 0 6px; opacity: 0.6; }
 
 /* --------------------------------------------------------------- toast */
 
+/* Status messages drop in under the top bar, out of the thumb's way. */
 #toast {
-  position: absolute; left: 50%; bottom: 34%;
-  transform: translate(-50%, 8px);
+  position: absolute; left: 50%; top: calc(var(--edge-t) + 56px);
+  transform: translate(-50%, -8px);
   background: rgba(20, 26, 22, 0.95);
   border: 1px solid var(--panel-line);
   border-radius: 12px;
@@ -620,9 +684,8 @@ canvas#game {
 }
 
 @media (min-width: 700px) {
-  #hud { padding-top: 12px; }
+  :root { --edge-t: calc(env(safe-area-inset-top, 0px) + 12px); }
   #depth { font-size: 14px; }
-  .chip { min-width: 92px; }
 }
 
 /* Keyboard users get a clear focus ring; touch users never see it. */
@@ -631,13 +694,11 @@ canvas#game {
 /* Short screens (landscape phones): keep the map visible and controls reachable. */
 @media (max-height: 500px) {
   #sheet { max-height: 86vh; }
-  #thumbDock { right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); gap: 6px; }
-  #btnAction { width: 72px; height: 72px; }
-  #btnBuild, #btnUpgrade, #btnMine { width: 52px; height: 52px; }
-  #zoomControls { right: 10px; bottom: calc(env(safe-area-inset-bottom, 0px) + 90px); transform: scale(.9); transform-origin: bottom right; }
+  :root { --act: 72px; --sub: 50px; --gap: 10px; --edge-b: calc(env(safe-area-inset-bottom, 0px) + 14px); }
+  #zoomControls { bottom: calc(var(--edge-b) + var(--act) + 64px); }
   #sheetFoot { gap: 5px; padding-top: 5px; }
   .tab, #btnClose { min-height: 46px; height: 46px; }
-  #sheetUtilities button, #sheetUtilities a { min-height: 40px; }
+  .setRow { min-height: 44px; }
 }
 
 @supports (height: 100dvh) {

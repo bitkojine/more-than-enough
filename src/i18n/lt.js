@@ -344,8 +344,10 @@ export default {
 
   "sheet.drag.pull": "tempti žemėlapį",
   "sheet.drag.walk": "eiti ta kryptimi",
-  "sheet.sound.on": "Garsas: įjungtas",
-  "sheet.sound.off": "Garsas: išjungtas",
+  "settings.title": "Nustatymai",
+  "settings.sound": "Garsas",
+  "settings.on": "įjungtas",
+  "settings.off": "išjungtas",
 
   "toast.saveLost": "Senojo išsaugojimo nepavyko įkelti – pradedamas naujas pasaulis",
 
@@ -365,6 +367,9 @@ export default {
   "hud.zoomLevel": "Mastelis {zoom}, palietus atstatomas",
 
   "num.thousand": " tūkst.",
+  "num.short.thousand": "K",
+  "num.short.million": "M",
+  "num.short.billion": "mlrd",
   "num.million": " mln.",
   "num.billion": " mlrd.",
 

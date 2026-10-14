@@ -94,7 +94,7 @@ No emoji: every icon comes from the pack.
 
 ## Versioning
 
-The HUD badge in the top-right shows the studio and exact version you're
+Settings (the gear, top-right) shows the studio and exact version you're
 playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 `src/version.js`; see `CHANGELOG.md` for the history.
 
@@ -142,6 +142,7 @@ The project is under git — commit early, commit often:
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
 - `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
 - `docs/progression-map.md` — design spec for the Progression map
+- `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why
 - `test/unit/` — Node `node:test` suites for the core
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)

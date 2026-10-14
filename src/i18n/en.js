@@ -344,8 +344,10 @@ export default {
 
   "sheet.drag.pull": "pull the map",
   "sheet.drag.walk": "walk that way",
-  "sheet.sound.on": "Sound: on",
-  "sheet.sound.off": "Sound: off",
+  "settings.title": "Settings",
+  "settings.sound": "Sound",
+  "settings.on": "on",
+  "settings.off": "off",
 
   "toast.saveLost": "Your old save could not be loaded — starting a new world",
 
@@ -365,6 +367,9 @@ export default {
   "hud.zoomLevel": "Zoom {zoom}, tap to reset",
 
   "num.thousand": "k",
+  "num.short.thousand": "k",
+  "num.short.million": "M",
+  "num.short.billion": "B",
   "num.million": "M",
   "num.billion": "B",
 

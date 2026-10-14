@@ -1,10 +1,10 @@
-/* The heads-up display: resource chips (tap one for what you collected),
- * the depth marker, the contextual
- * thumb buttons and status toasts. The game never explains itself in text;
+/* The heads-up display: the resource bar (tap a resource for what you
+ * collected), the trophy button, the depth meter, the thumb cluster and
+ * status toasts. Layout rules: docs/ui.md. The game never explains itself in text;
  * everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmt1 } from './format.js';
+import { fmt, fmt1, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
@@ -73,7 +73,7 @@ export function createHud(el, look) {
     chip.dataset.res = r;
     chip.setAttribute('aria-label', t('hud.chip', { res: Core.RESOURCE_LABEL[r] }));
     chip.innerHTML = `<img class="ic" data-look="${Core.resourceLook(r)}" alt="">` +
-      '<span class="col"><span class="val">0</span></span><span class="rate"></span>';
+      '<span class="col"><span class="val">0</span><span class="rate"></span></span>';
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
   }
@@ -98,7 +98,7 @@ export function createHud(el, look) {
     update(s) {
       const rates = Core.productionRates(s);
       for (const r of Core.RESOURCES) {
-        setText(chips[r].val, fmt(s.inv[r]));
+        setText(chips[r].val, fmtShort(s.inv[r]));
         setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmt1(rates[r]) + '/s' : '');
       }
       // A dot on BUILD and UPGRADE when there's something in there you can

@@ -9,7 +9,6 @@ const byId = (id) => {
 export function findElements() {
   return {
     canvas: byId('game'),
-    version: byId('version'),
     verText: byId('verText'),
     perf: byId('perf'),
     resources: byId('resources'),
@@ -17,6 +16,8 @@ export function findElements() {
     depthGauge: byId('depthGauge'),
     milestone: byId('milestone'),
     awards: byId('btnAwards'),
+    settings: byId('btnSettings'),
+    settingsPanel: byId('settingsPanel'),
     awardCount: byId('awardCount'),
     action: byId('btnAction'),
     actionIcon: byId('actionIcon'),
@@ -38,6 +39,7 @@ export function findElements() {
     close: byId('btnClose'),
     reset: byId('btnReset'),
     mute: byId('btnMute'),
+    muteState: byId('muteState'),
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),

@@ -230,7 +230,7 @@ export default {
       <h2>Judėjimas</h2>
       <p>Padėk pirštą <strong>bet kur ant žemėlapio</strong> ir tempk: po nykščiu atsiras virtuali vairasvirtė, kuri seks paskui jį.
         Arba <strong>bakstelk vietą</strong> ir nueisi ten tiesia linija, o jei kas užstos kelią, sustosi.</p>
-      <p>Jei tempimas atrodo atvirkščias, lapo apačioje bakstelk <strong>Tempimas</strong> ir perjunk į <em>„tempti žemėlapį“</em>:
+      <p>Jei tempimas atrodo atvirkščias, Nustatymuose (krumpliaratis) bakstelk <strong>Tempimas</strong> ir perjunk į <em>„tempti žemėlapį“</em>:
         tada žemėlapis seka paskui pirštą, lyg slinktum puslapį, o tu eini priešinga kryptimi. Bakstelk dar kartą, kad grįžtum prie <em>„eiti ta kryptimi“</em>.
         Pasirinkimas įsimenamas šioje naršyklėje.</p>
       <p>Tavo greitis – <span data-k="BASE_SPEED"></span> langelio per sekundę; su geresniais batais ir privalumu Klajoklis eini greičiau, o
@@ -257,8 +257,8 @@ export default {
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
 
       <h2>Mastelis</h2>
-      <p>Naudok <strong>&minus; / +</strong> mygtukus virš nykščio mygtukų, suimk dviem pirštais arba sukiok pelės ratuką.
-        Priartinti gali iki 3&times;, o nutolinti tol, kol langeliai tampa vos kelių pikselių pločio. Tarp mygtukų, šalia didinamojo stiklo,
+      <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš nykščio mygtukų, suimk dviem pirštais arba sukiok pelės ratuką.
+        Priartinti gali iki 3&times;, o nutolinti tol, kol langeliai tampa vos kelių pikselių pločio. Tarp mygtukų
         matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); bakstelk, kad
         grįžtum prie 1&times;.</p>
       <p>Nutolinus viskas atrodo taip pat, tik mažiau: miškai lieka miškais, uolos – uolomis. Greitai nutolinant
@@ -318,7 +318,7 @@ export default {
           o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Pastatai, kurių produkciją
           <strong>Logistika</strong> parveža vos pagaminus, skalės neturi.</li>
         <li><strong>Lankais nuskriejantys mažyčiai paveikslėliai</strong>: ką ką tik surinkai, skrendantis į savo krūvą tavo <a href="#stockpile">atsargose</a>. Kai namai toli, jie išskrenda už ekrano namų kryptimi.</li>
-        <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po skaitikliais pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu
+        <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po viršutine juosta pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
           viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; bakstelk ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
@@ -336,9 +336,9 @@ export default {
         taškelis – dar nepradėta, atspalvintas – galima įpirkti dabar, pusiau užpildytas – įpusėta, o vientisas žalias – maksimalus lygis. Šeima,
         kurioje yra ką nusipirkti, atsiveria pati; bakstelk jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
-      <p>Lapo apačioje yra <strong>Žinynas</strong> (šis puslapis), <strong>Naujas pasaulis</strong> (pradeda iš naujo, prieš tai paklausęs),
-        <strong>Garsas</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>) ir <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
-        <a href="#textures">Tekstūrų paketai</a>).</p>
+      <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
+        <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis), žaidimo versija ir, atskirai apačioje,
+        <strong>Naujas pasaulis</strong> (pradeda iš naujo, prieš tai paklausęs).</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
@@ -676,7 +676,7 @@ export default {
         visa, ko jis nepalieka, atrodo kaip numatyta.</p>
 
       <h2>Kaip naudoti paketą</h2>
-      <p>Atidaryk lapą (STATYTI arba TOBULINTI) ir apačioje paspausk <strong>Tekstūros</strong>. Pasirink paketo <code>pack.json</code>:
+      <p>Atidaryk Nustatymus (krumpliaratis viršuje dešinėje) ir paspausk <strong>Tekstūros</strong>. Pasirink paketo <code>pack.json</code>:
         vieną (jei paveikslėliai yra jo viduje) arba kartu su paveikslėlių failais. Žaidimas pirmiausia patikrina visą
         paketą: jei kas nors negerai, jis nenaudojamas, o skydelyje išvardijamos visos problemos, nurodant sugedusį daiktą ir lizdą. Veikiantis
         paketas pritaikomas iškart ir įsimenamas šioje naršyklėje. <strong>Numatytosios tekstūros</strong> (rodoma, kol naudojamas tavo paketas) grąžina Žibinto šviesą.</p>
@@ -780,7 +780,7 @@ export default {
           skirtukas išsaugojo vėliau nei šis, šis skirtukas jo neperrašys. Jis sustoja ir klausia, kurį pasaulį palikti: kito
           skirtuko ar savąjį, prie kiekvieno nurodydamas žaidimo laiką ir surinktą kiekį, o toliau pažengęs pažymimas. Uždarytas
           ar užmirštas skirtukas negali tyliai atsukti tavo pažangos atgal.</li>
-        <li><strong>Naujas pasaulis</strong> lapo apačioje pradeda naują pasaulį. Pirmiausia paklausia, ir to atšaukti negalima.</li>
+        <li><strong>Naujas pasaulis</strong> Nustatymų apačioje pradeda naują pasaulį. Pirmiausia paklausia, ir to atšaukti negalima.</li>
         <li>Kol žaidimas aktyviai kuriamas, nauja versija gali nebeperskaityti senesnių išsaugojimų. Jei išsaugojimo nepavyksta
           perskaityti, žaidimas tau praneša ir pradeda naują pasaulį.</li>
       </ul>`,

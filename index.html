@@ -92,23 +92,29 @@
 <body>
   <canvas id="game"></canvas>
 
+  <!-- The heads-up display. Status along the top (trophies, the resource
+       bar, settings), situational status down the left edge (depth), every
+       action in the bottom-right thumb cluster. See docs/ui.md. -->
   <div id="hud">
-    <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
-    <button id="btnAwards" type="button" data-i18n-aria-label="hud.awards"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
+    <div id="topbar">
+      <button id="btnAwards" class="hudBtn" type="button" data-i18n-aria-label="hud.awards"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
+      <div id="resources"></div>
+      <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
+    </div>
     <pre id="perf" aria-live="off" hidden></pre>
-    <div id="resources"></div>
-    <div id="depth" aria-live="polite" hidden></div>
-    <div id="depthGauge" aria-hidden="true" hidden></div>
     <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small><span class="label" data-i18n="hud.milestone"></span> <span class="of"></span></small><strong></strong></div>
+  </div>
+
+  <div id="depthMeter" aria-live="polite">
+    <div id="depth" hidden></div>
+    <div id="depthGauge" aria-hidden="true" hidden></div>
   </div>
 
   <div id="controls" role="group" data-i18n-aria-label="hud.controls">
     <div id="zoomControls" data-i18n-aria-label="hud.zoom">
-      <button id="btnZoomOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
-      <button id="zoomLevel" type="button">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6" /><path d="M14.5 14.5 L20 20" /></svg><span id="zoomText">1×</span>
-      </button>
       <button id="btnZoomIn" type="button" data-i18n-aria-label="hud.zoomIn">+</button>
+      <button id="zoomLevel" type="button"><span id="zoomText">1×</span></button>
+      <button id="btnZoomOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
     </div>
     <div id="thumbDock">
       <button id="btnBuild" class="btn" type="button" data-i18n-aria-label="button.build.aria">
@@ -132,6 +138,23 @@
       <div id="sheetTitle"></div>
     </div>
     <div id="sheetBody"></div>
+    <div id="settingsPanel" hidden>
+      <div class="setGroup">
+        <button id="btnMute" class="setRow" type="button"><span data-i18n="settings.sound"></span><b id="muteState"></b></button>
+        <button id="btnDrag" class="setRow" type="button" aria-pressed="false"><span data-i18n="sheet.drag"></span><b id="dragMode"></b></button>
+        <button id="btnLanguage" class="setRow" type="button"><span data-i18n="sheet.language"></span><b data-i18n="language.name"></b></button>
+      </div>
+      <div class="setGroup">
+        <button id="btnTextures" class="setRow" type="button"><span data-i18n="sheet.textures"></span><b id="packName"></b></button>
+        <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
+        <a id="wikiLink" class="setRow" href="wiki/" target="_blank" rel="noopener"><span data-i18n="sheet.wiki"></span><b aria-hidden="true">&#8599;</b></a>
+      </div>
+      <div class="setGroup danger">
+        <button id="btnReset" class="setRow" type="button"><span data-i18n="sheet.reset"></span></button>
+      </div>
+      <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
+      <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
+    </div>
     <div id="sheetFoot">
       <div id="sheetNav">
         <div id="tabs">
@@ -141,16 +164,6 @@
           <button class="tab" type="button" data-tab="awards" data-i18n="sheet.awards"></button>
         </div>
         <button id="btnClose" type="button" data-i18n="sheet.done"></button>
-      </div>
-      <div id="sheetUtilities">
-        <a id="wikiLink" href="wiki/" target="_blank" rel="noopener" data-i18n="sheet.wiki"></a>
-        <button id="btnReset" type="button" data-i18n="sheet.reset"></button>
-        <button id="btnMute" type="button"></button>
-        <button id="btnDrag" type="button" class="twoLine" aria-pressed="false"><span data-i18n="sheet.drag"></span><small id="dragMode"></small></button>
-        <button id="btnTextures" type="button" class="twoLine"><span data-i18n="sheet.textures"></span><small id="packName"></small></button>
-        <button id="btnTexturesDefault" type="button" hidden data-i18n="sheet.texturesDefault"></button>
-        <button id="btnLanguage" type="button" class="twoLine"><span data-i18n="sheet.language"></span><small data-i18n="language.name"></small></button>
-        <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
       </div>
     </div>
   </div>

@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.48.0] - 2026-10-14
+
+### Changed
+- **A new heads-up display, laid out like a mobile game.** The first stage
+  of a redesign of every screen (the plan is in `docs/ui.md`).
+  - **Top bar**: the trophy (with its count on a badge) on the left, all
+    four resources in one bar in the middle, and a **gear** on the right.
+    Big numbers are kept short there (12.3k). On narrow phones each
+    resource's picture sits over its count.
+  - **Settings** has its own screen behind the gear: Sound, Drag,
+    Language, Textures and the Wiki as rows with their current value, the
+    version at the bottom, and **Reset world** set apart from the rest. The
+    game's lists no longer carry nine buttons of settings under them.
+  - **Thumb cluster**: the big action in the corner, Build and Upgrade to
+    its left, and the climb button popping in above them only beside a way
+    up or down, instead of an empty space held for it. Every button's
+    name sits on a small plate across its bottom edge.
+  - **Zoom** is a slim + / 1× / − column on the right edge.
+  - **Underground**, the depth number and the column of layers are one
+    meter on the left edge.
+  - Messages appear under the top bar instead of over the middle of the map.
+
+### Removed
+- The studio and version badge from the top of the screen (it is in
+  Settings now).
+
 ## [0.47.1] - 2026-10-14
 
 ### Fixed

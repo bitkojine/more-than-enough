@@ -233,7 +233,7 @@ export default {
       <h2>Moving</h2>
       <p>Put a finger down <strong>anywhere on the map</strong> and drag: a virtual joystick appears under your thumb and follows
         it. Or <strong>tap a spot</strong> and you walk there in a straight line, stopping if something blocks the way.</p>
-      <p>If dragging feels backwards, tap <strong>Drag</strong> at the bottom of the sheet to switch it to <em>pull the map</em>:
+      <p>If dragging feels backwards, tap <strong>Drag</strong> in Settings (the gear) to switch it to <em>pull the map</em>:
         then the map follows your finger, like scrolling, and you walk the other way. Tap it again for <em>walk that way</em>.
         The choice is remembered in this browser.</p>
       <p>You walk at <span data-k="BASE_SPEED"></span> tiles per second, faster with better Boots and the Nomad perk, and slower in
@@ -260,8 +260,8 @@ export default {
       <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
 
       <h2>Zoom</h2>
-      <p>Use the <strong>&minus; / +</strong> buttons above the thumb buttons, pinch with two fingers, or scroll a mouse wheel.
-        You can zoom in to 3&times; and out until tiles are just a few pixels wide. Between the buttons, beside a magnifier,
+      <p>Use the <strong>+ / &minus;</strong> column on the right edge, above the thumb buttons, pinch with two fingers, or scroll a mouse wheel.
+        You can zoom in to 3&times; and out until tiles are just a few pixels wide. Between the buttons
         is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); tap it to go
         back to 1&times;.</p>
       <p>Zoomed out, everything keeps its look and just gets smaller: forests stay forests and rocks stay rocks. Pinch
@@ -321,7 +321,7 @@ export default {
           and turns gold when it's full, and a full building stops working until you collect. Buildings whose goods
           <strong>Logistics</strong> hauls in as they're made show no dial.</li>
         <li><strong>Little sprites arcing away</strong>: what you just gathered, flying to its pile in your <a href="#stockpile">stockpile</a>. When home is far, they fly off screen in its direction.</li>
-        <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the counters naming
+        <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the top bar naming
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
           in the top-left corner counts the milestones you've reached and glows after a new one; tap it to see them all in the
           <strong>Awards</strong> tab.</li>
@@ -339,9 +339,9 @@ export default {
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed. A family
         with something you can buy opens by itself; tap its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
-      <p>The bottom of the sheet holds <strong>Wiki</strong> (this page), <strong>Reset world</strong> (starts over, after asking),
-        <strong>Sound</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>) and <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
-        <a href="#textures">Texture packs</a>).</p>
+      <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
+        <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page), the game's version and, set apart at the bottom,
+        <strong>Reset world</strong> (starts over, after asking).</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
@@ -680,7 +680,7 @@ export default {
         anything it leaves out keeps the default look.</p>
 
       <h2>Using a pack</h2>
-      <p>Open the sheet (BUILD or UPGRADE) and tap <strong>Textures</strong> at the bottom. Pick the pack's <code>pack.json</code>,
+      <p>Open Settings (the gear, top-right) and tap <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
         either on its own (if its pictures are inside it) or together with its picture files. The game checks the whole pack
         first: if anything is wrong it isn't used, and a panel lists every problem, naming the thing and slot that broke. A pack
         that works is used straight away and remembered in this browser. <strong>Default textures</strong> (shown while your pack is in use) goes back to Lanternlight.</p>
@@ -784,7 +784,7 @@ export default {
           this one last did, this tab won't overwrite it. It pauses and asks which world to keep: the other tab's or its own,
           each with time played and amount gathered, and the one further along is marked. A tab you closed or left behind
           can't quietly roll your progress back.</li>
-        <li><strong>Reset world</strong> at the bottom of the sheet starts a fresh world. It asks first, and it can't be undone.</li>
+        <li><strong>Reset world</strong> at the bottom of Settings starts a fresh world. It asks first, and it can't be undone.</li>
         <li>While the game is in active development, a new version may not read older saves. If a save can't be read, the
           game tells you and starts a new world.</li>
       </ul>`,
