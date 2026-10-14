@@ -1,25 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
 <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c3a26"/><stop offset="1" stop-color="#0b1610"/></linearGradient>
-  <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd166" stop-opacity=".55"/><stop offset="1" stop-color="#ffd166" stop-opacity="0"/></radialGradient>
+  <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#9ff5d6" stop-opacity=".5"/><stop offset="1" stop-color="#9ff5d6" stop-opacity="0"/></radialGradient>
 </defs>
 <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<circle cx="256" cy="268" r="200" fill="url(#glow)"/>
-<g stroke="#1d1712" stroke-width="12" stroke-linejoin="round">
-  <!-- three logs below, two above: ends facing you -->
-  <g fill="#c98f52">
-    <circle cx="146" cy="352" r="56"/><circle cx="256" cy="352" r="56"/><circle cx="366" cy="352" r="56"/>
-    <circle cx="201" cy="258" r="56"/><circle cx="311" cy="258" r="56"/>
-  </g>
+<!-- glowcaps: mushrooms that light the dark, grown, never cut -->
+<circle cx="256" cy="270" r="210" fill="url(#glow)"/>
+<ellipse cx="256" cy="430" rx="196" ry="34" fill="#0a140d" opacity=".7"/>
+<g stroke="#1d1712" stroke-width="14" stroke-linejoin="round" stroke-linecap="round">
+  <path d="M206 432c-3-52 5-96 9-140h66c4 44 12 88 9 140z" fill="#e8fff6"/>
+  <path d="M84 270c0-176 312-176 312 0c-46 44-266 44-312 0z" fill="#7fe6c4"/>
+  <path d="M352 438c-2-30 3-56 5-80h38c2 24 7 50 5 80z" fill="#e8fff6"/>
+  <path d="M312 362c0-104 130-104 130 0c-20 20-110 20-130 0z" fill="#5fd3ae"/>
 </g>
-<g fill="none" stroke="#8a5a30" stroke-width="7">
-  <circle cx="146" cy="352" r="30"/><circle cx="256" cy="352" r="30"/><circle cx="366" cy="352" r="30"/>
-  <circle cx="201" cy="258" r="30"/><circle cx="311" cy="258" r="30"/>
+<g fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round" opacity=".5">
+  <path d="M142 216c22-34 58-54 98-60"/>
+  <path d="M342 330c10-14 22-20 36-22"/>
 </g>
-<g fill="#8a5a30"><circle cx="146" cy="352" r="9"/><circle cx="256" cy="352" r="9"/><circle cx="366" cy="352" r="9"/><circle cx="201" cy="258" r="9"/><circle cx="311" cy="258" r="9"/></g>
-<!-- a crystal on top: more than enough -->
-<path d="M256 70l44 70-44 66-44-66z" fill="#7fe8ff" stroke="#1d1712" stroke-width="12" stroke-linejoin="round"/>
-<path d="M256 70l44 70-44 66z" fill="#4fc3e8"/>
-<path d="M256 70l-20 70 20 66" fill="none" stroke="#d8fbff" stroke-width="6" stroke-linecap="round"/>
-<path d="M256 70l44 70-44 66-44-66z" fill="none" stroke="#1d1712" stroke-width="12" stroke-linejoin="round"/>
+<g fill="#e8fff6">
+  <circle cx="300" cy="196" r="17"/><circle cx="186" cy="232" r="14"/><circle cx="252" cy="160" r="10"/><circle cx="346" cy="246" r="10"/>
+  <circle cx="404" cy="324" r="9"/><circle cx="364" cy="342" r="7"/>
+</g>
 </svg>

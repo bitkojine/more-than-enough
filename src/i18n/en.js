@@ -671,6 +671,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.75.1": "A new logo: two glowing mushrooms instead of a pile of logs, because nobody here cuts trees. You'll see it on your home screen, in your browser tab and on shared links.",
   "news.0.75.0": "The game now has a privacy policy. Joining or opening a shared world accepts it (Cancel keeps you playing alone), and Settings has a link to read it in full.",
   "news.0.74.1": "Records of cheating in shared worlds are now kept for 90 days, so repeat cheaters can be spotted; the rest of the play log still goes after 14.",
   "news.0.74.0": "Shared worlds now keep a play log for 14 days, so cheaters are caught quickly and we learn what to make better. It holds no names or addresses; Settings says what's in it.",

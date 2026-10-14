@@ -187,7 +187,7 @@ test('no player-facing text is written straight into the code', () => {
 function markupWords(html) {
   const found = [];
   const body = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<(script|style)\b[\s\S]*?<\/\1>/g, '')
-    .replace(/<meta (http-equiv|name="referrer")[^>]*>/g, '') // policies for the browser, not words
+    .replace(/<meta (http-equiv|name="referrer"|property="og:image|name="twitter:card")[^>]*>/g, '') // for browsers and link previews, not words
     .replace(/(<[^>]*\stranslate="no"[^>]*>)[^<]*/g, '$1');
   for (const m of body.matchAll(/>([^<]+)</g)) if (/\p{L}/u.test(m[1].replace(/&\w+;/g, ''))) found.push(m[1].trim());
   for (const m of body.matchAll(/\s(aria-label|placeholder|title|alt|content)="([^"]*)"/g)) {

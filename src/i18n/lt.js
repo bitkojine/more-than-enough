@@ -671,6 +671,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.75.1": "Naujas logotipas: du švytintys grybai vietoj rąstų krūvos, nes čia niekas nekerta medžių. Jį matysi pradžios ekrane, naršyklės kortelėje ir bendrinamose nuorodose.",
   "news.0.75.0": "Žaidimas dabar turi privatumo politiką. Prisijungdamas prie bendro pasaulio ar jį kurdamas su ja sutinki (atšaukęs žaidi toliau vienas), o Nustatymuose yra nuoroda ją perskaityti visą.",
   "news.0.74.1": "Įrašai apie sukčiavimą bendruose pasauliuose dabar saugomi 90 dienų, kad pasikartojančius sukčius būtų galima pastebėti; likęs žaidimo žurnalas vis dar ištrinamas po 14.",
   "news.0.74.0": "Bendruose pasauliuose dabar 14 dienų saugomas žaidimo žurnalas, kad sukčiai būtų greitai pagauti, o mes sužinotume, ką pagerinti. Jame nėra vardų ar adresų; Nustatymuose parašyta, kas jame yra.",

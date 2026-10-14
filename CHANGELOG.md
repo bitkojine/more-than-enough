@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.75.1] - 2026-10-14
+
+### Changed
+- **A mushroom logo.** The favicon, app icons (iOS, Android, manifest) and
+  wiki brand mark show two glowcaps instead of a pile of logs, since the
+  game never cuts trees. `icons/social.svg` adds a link preview
+  (`og:image`); `scripts/icons.sh` renders it with the rest.
+
 ## [0.75.0] - 2026-10-14
 
 ### Added
