@@ -21,7 +21,8 @@ function connect(room, key, code) {
     };
     look();
   });
-  const closed = new Promise((resolve) => { ws.onclose = (e) => resolve(e.code + ' ' + e.reason); });
+  const closed = new Promise((resolve) => { ws.onclose = (e) => { console.log('  (socket closed: ' + e.code + ' ' + e.reason + ')'); resolve(e.code + ' ' + e.reason); }; });
+  ws.onerror = (e) => console.log('  (socket error: ' + (e.message || e.type) + ')');
   ws.onmessage = (e) => msgs.push(JSON.parse(e.data));
   ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', key, ...(code ? { code } : {}) }));
   return { ws, next, closed, send: (m) => ws.send(JSON.stringify(m)) };
@@ -31,7 +32,8 @@ const post = (origin, body) => fetch(BASE + '/rooms', { method: 'POST', headers:
 
 check((await post(null, '{}')).status === 403, 'no Origin: refused');
 check((await post('https://evil.example', '{}')).status === 403, 'another site: refused');
-check((await post(ORIGIN, '{"t":"create","key":"short"}')).status === 400, 'a malformed world: refused');
+const bad = await post(ORIGIN, '{"t":"create","key":"short"}');
+check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
 
 const ownerKey = hex(32);
 const res = await post(ORIGIN, JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }));
