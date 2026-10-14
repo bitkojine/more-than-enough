@@ -341,14 +341,14 @@ async function main() {
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'tapping the zoom readout goes back to 1x');
   // Home ground is kept for the stockpile: no way down there, and nowhere can
   // you dig one: the way into the mine is a cave mouth you find.
-  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'the layer button is off on home ground');
-  var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
+  ok(await evalJS('document.getElementById("btnMine").hidden'), 'no layer button on home ground');
+  var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+4.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
   await sleep(300);
-  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'beside a cave mouth, on open ground, there is no digging down');
+  ok(await evalJS('document.getElementById("btnMine").hidden'), 'out of reach of a cave mouth there is no layer button: no digging down');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
   await sleep(300);
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'in a cave mouth, the layer button climbs down');
-  ok(!(await evalJS('document.getElementById("btnMine").classList.contains("disabled")')), 'and it is on');
+  ok(!(await evalJS('document.getElementById("btnMine").hidden')), 'and the button shows');
   console.log('  screenshot: ' + await shot('02b-cave-mouth.png'));
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
@@ -390,6 +390,8 @@ async function main() {
   await tap(shaftSpot.sx, shaftSpot.sy);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'uncovering the marked shaft does not descend automatically');
   ok(await evalJS(shaftOpen), 'the marked shaft opens after a separate dig');
+  await sleep(200);
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'beside the open shaft, the layer button says it goes down');
   await tap(shaftSpot.sx, shaftSpot.sy);
   eq(await evalJS('MTE_GAME.getState().player.z'), -2, 'a deliberate second tap drops to the next layer');
   eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y);})()'), shaftSpot.x + ',' + shaftSpot.y, 'the next layer is directly beneath the shaft');
@@ -403,9 +405,9 @@ async function main() {
   ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'CLIMB UP climbs back through the shaft you came down');
-  await evalJS('MTE_GAME.setPlayer(' + (entry.x + 1.5) + ',' + (entry.y + 0.5) + ')');
+  await evalJS('MTE_GAME.setPlayer(' + (entry.x + 4.5) + ',' + (entry.y + 0.5) + ')');
   await sleep(200);
-  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'off the ladder, there is no digging up');
+  ok(await evalJS('document.getElementById("btnMine").hidden'), 'away from the ladder there is no layer button: no digging up');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
   await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'CLIMB UP the first ladder comes out of the cave mouth you went down');

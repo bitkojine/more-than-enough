@@ -153,26 +153,27 @@ test('holes dug in older versions still work, and a column rides to the bottom',
   assert.equal(C.goUp(s), true, 'and the old hole is a way back up');
   assert.equal(s.player.z, -2);
 });
-test('landing on a closed shaft opens it but does not keep falling', () => {
-  const seed = 31415;
-  // A chunk whose shafts on layers -1 and -2 line up.
-  let at = null;
-  for (let cx = -40; cx <= 40 && !at; cx++) {
-    for (let cy = -40; cy <= 40 && !at; cy++) {
-      const a = C.shaftInChunk(seed, cx, cy, -1), b = C.shaftInChunk(seed, cx, cy, -2);
-      if (a.x === b.x && a.y === b.y) at = a;
+test('a way up and a way down are never close together', () => {
+  const seed = 31415, w = C.createWorld(seed);
+  for (const z of [SURFACE, -1, -2, -5]) {
+    const downs = [], ups = [];
+    for (let cx = -4; cx < 4; cx++) {
+      for (let cy = -4; cy < 4; cy++) {
+        const d = C.wayDownInChunk(seed, cx, cy, z), u = C.wayUpInChunk(seed, cx, cy, z);
+        if (d) downs.push(d);
+        if (u) ups.push(u);
+      }
     }
+    assert.ok(downs.length > 30 && (z === SURFACE || ups.length > 30));
+    for (const d of downs) {
+      for (const u of ups) {
+        const apart = Math.max(Math.abs(d.x - u.x), Math.abs(d.y - u.y));
+        assert.ok(apart >= C.WAYS_APART, `layer ${z}: ${d.x},${d.y} and ${u.x},${u.y} are ${apart} apart`);
+      }
+    }
+    for (const u of ups) assert.equal(C.tileAt(w, u.x, u.y, z), T.RISE);
   }
-  assert.ok(at);
-  const s = C.createState(seed);
-  const w = s.world;
-  s.player.z = -1;
-  C.setRichness(w, at.x, at.y, -1, 0);
-  standOn(s, at);
-  assert.equal(C.descendAt(s, at.x, at.y), true);
-  assert.equal(s.player.z, -2, 'stopped on the next layer');
-  assert.equal(C.tileAt(w, at.x, at.y, -2), T.SHAFT_OPEN, 'the shaft you landed on is open now');
-  assert.equal(C.canGoUp(s), true, 'and it is a way both up and down');
+  assert.ok(C.WAYS_APART >= 5);
 });
 test('no way down or up where none was generated', () => {
   const s = away(C.createState(5));
@@ -281,7 +282,7 @@ test('surface movement still swims and blocks on rock', () => {
   const s = away(C.createState(12345));
   const rock = findNear(s, (st, x, y) => typeAt(st, x, y) === T.ROCK && C.walkable(st.world, x - 1, y, 0));
   s.player.x = rock.x - 0.5; s.player.y = rock.y + 0.5;
-  C.move(s, 1, 0, 0.5);
+  for (let i = 0; i < 5; i++) C.move(s, 1, 0, 0.1);
   assert.ok(Math.floor(s.player.x) < rock.x, 'mountains block');
   const water = findNear(s, (st, x, y) => typeAt(st, x, y) === T.WATER &&
     [[1, 0], [-1, 0], [0, 1], [0, -1]].every(([dx, dy]) => C.walkable(st.world, x + dx, y + dy, 0)));
@@ -334,19 +335,30 @@ test('no way between layers shares a tile with a building', () => {
   const under = C.buildTarget(s, 'compost');
   assert.ok(!under || under.x !== fx || under.y !== fy, 'not under the way you came down');
 });
-test('the layer button goes down from a cave mouth and up from the foot of a ladder', () => {
+test('the layer button shows beside a way and says which way it goes', () => {
   const s = away(C.createState(31415));
-  assert.deepEqual(C.layerWay(s), { up: false, ok: true }, 'climb down');
+  const cave = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
+  assert.deepEqual(C.layerWay(s), { up: false, ...cave }, 'climb down');
   assert.equal(C.takeWay(s), true);
   assert.equal(s.player.z, -1);
-  assert.deepEqual(C.layerWay(s), { up: true, ok: true }, 'climb up the way you came down');
+  assert.deepEqual(C.layerWay(s), { up: true, ...cave }, 'climb up the way you came down');
+  // A step off the ladder: still within reach, the button stays.
   const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
   C.harvestAt(s, n.x, n.y);
   standOn(s, n);
-  assert.deepEqual(C.layerWay(s), { up: true, ok: false }, 'a fresh tunnel tile: no way up');
-  standOn(s, { x: n.x - n.dx, y: n.y - n.dy });
+  assert.deepEqual(C.layerWay(s), { up: true, ...cave }, 'beside the ladder');
+  // Far from any way: no button.
+  standOn(s, { x: n.x + n.dx * 4, y: n.y + n.dy * 4 });
+  assert.equal(C.layerWay(s), null);
+  assert.equal(C.takeWay(s), false);
+  // Beside an open shaft underground, it says down (not up).
+  const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
+  C.setRichness(s.world, shaft.x, shaft.y, -1, 0);
+  C.setRichness(s.world, shaft.x + 1, shaft.y, -1, 0);
+  standOn(s, { x: shaft.x + 1, y: shaft.y });
+  assert.deepEqual(C.layerWay(s), { up: false, x: shaft.x, y: shaft.y });
   assert.equal(C.takeWay(s), true);
-  assert.deepEqual(C.layerWay(s), { up: false, ok: true }, 'back on the cave mouth');
+  assert.equal(s.player.z, -2);
 });
 test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));

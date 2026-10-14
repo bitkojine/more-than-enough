@@ -1,6 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="64" viewBox="0 0 24 64">
-<path d="M5 2v60M19 2v60" stroke="#1d1712" stroke-width="6" stroke-linecap="round"/>
-<path d="M5 9h14M5 21h14M5 33h14M5 45h14M5 57h14" stroke="#1d1712" stroke-width="5"/>
-<path d="M5 9h14M5 21h14M5 33h14M5 45h14M5 57h14" stroke="#c98f52" stroke-width="2.4"/>
-<path d="M5 2v60M19 2v60" stroke="#a8743c" stroke-width="3" stroke-linecap="round"/>
+<path d="M5 2v60M19 2v60" stroke="#15181c" stroke-width="6" stroke-linecap="round"/>
+<path d="M5 9h14M5 21h14M5 33h14M5 45h14M5 57h14" stroke="#15181c" stroke-width="5"/>
+<path d="M5 9h14M5 21h14M5 33h14M5 45h14M5 57h14" stroke="#7d8a96" stroke-width="2.6"/>
+<path d="M5 8.4h14M5 20.4h14M5 32.4h14M5 44.4h14M5 56.4h14" stroke="#c9d3dc" stroke-width="0.9"/>
+<path d="M5 2v60M19 2v60" stroke="#8f9ca8" stroke-width="3.2" stroke-linecap="round"/>
+<path d="M4.2 3v58M18.2 3v58" stroke="#dfe7ee" stroke-width="1" stroke-linecap="round"/>
+<g fill="#4c565f"><circle cx="5" cy="9" r="1.3"/><circle cx="19" cy="9" r="1.3"/><circle cx="5" cy="21" r="1.3"/><circle cx="19" cy="21" r="1.3"/><circle cx="5" cy="33" r="1.3"/><circle cx="19" cy="33" r="1.3"/><circle cx="5" cy="45" r="1.3"/><circle cx="19" cy="45" r="1.3"/><circle cx="5" cy="57" r="1.3"/><circle cx="19" cy="57" r="1.3"/></g>
 </svg>

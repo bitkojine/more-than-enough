@@ -67,13 +67,22 @@ DEPOSIT[T.CRYSTAL] = { base: 1, spread: 3, salt: 104 };
  * layer has its way down (a forest chunk only where it has open land), so
  * every layer is connected to the next both ways, all over. */
 
-const CAVE_TRIES = 8;
+const CAVE_TRIES = 12;
+// Ways down sit in one band of each chunk's columns, alternating by layer:
+// even layers (the forest too) in BAND_X[0], odd ones in BAND_X[1]. A layer's
+// ways up lie beneath the ways down of the layer above, in the other band, so
+// a way up and a way down are always at least WAYS_APART tiles apart, within
+// a chunk and across chunk edges alike.
+const BAND_X = [2, 10];
+const BAND_W = 4;
+export const WAYS_APART = BAND_X[1] - (BAND_X[0] + BAND_W - 1);
 
-// The tile two in from a chunk's edges picked by draw `i` for layer z.
+// The tile picked by draw `i` for layer z's way down: in its band across,
+// two in from the chunk's top and bottom edges.
 function wayCandidate(seed, cx, cy, z, i) {
   const span = CHUNK_SIZE - 4;
   return {
-    x: cx * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 3701 + z * 31 + i * 7027) * span),
+    x: cx * CHUNK_SIZE + BAND_X[z & 1] + Math.floor(hash2(cx, cy, seed + 3701 + z * 31 + i * 7027) * BAND_W),
     y: cy * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 7919 + z * 31 + i * 7027) * span)
   };
 }
@@ -140,8 +149,8 @@ function undergroundType(seed, x, y, layer) {
   return band && layer >= band.from ? band.type : T.SOIL;
 }
 
-// Each underground chunk hides one shaft down to the next layer, kept two tiles
-// in from the chunk edge.
+// Each underground chunk hides one shaft down to the next layer (see
+// wayCandidate for where).
 export function shaftInChunk(seed, cx, cy, cz) {
   return wayCandidate(seed, cx, cy, cz, 0);
 }
@@ -175,8 +184,6 @@ function generateUnderground(seed, cx, cy, cz) {
       type[ly * CHUNK_SIZE + lx] = undergroundType(seed, ox + lx, oy + ly, layer);
     }
   }
-  // The way up first, so a shaft right beneath one wins: that tile is then a
-  // way both up and down.
   const up = wayUpInChunk(seed, cx, cy, cz);
   if (up) type[(up.y - oy) * CHUNK_SIZE + (up.x - ox)] = T.RISE;
   const shaft = shaftInChunk(seed, cx, cy, cz);

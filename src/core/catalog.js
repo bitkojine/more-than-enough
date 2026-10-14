@@ -130,7 +130,7 @@ add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and
 
 add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below (a cave mouth or an open shaft). The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
-add('mark', 'ladder', 'Ladder', 'Stands in every way between layers: down into the pit from above, up into the light (or the dark of a shaft not yet opened) from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
+add('mark', 'ladder', 'Ladder', 'A steel ladder. Stands in every way between layers: down into the pit from above, up into the light (or the dark of a shaft not yet opened) from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
 add('mark', 'glowcap', 'Glowcap', 'A glowing mushroom you planted in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
 add('mark', 'lamp', 'Crystal lamp', 'A crystal lamp you placed in the mine. It lights much further than a glowcap; the colour is its light.', req('image', 'color'));
 add('mark', 'flag', 'Marker flag', 'A flag you planted in the mine to find your way back. The colour is the pin that shows through the dark over it, or at the edge of the screen pointing to it.', req('image', 'color'));

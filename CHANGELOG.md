@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.45.0] - 2026-10-14
+
+### Changed
+- **The climb button shows only where it works, and says the right way.**
+  It appears when a way between layers is within reach and is hidden
+  everywhere else (it keeps its spot, so the other buttons never move).
+  Underground beside an open shaft it now says CLIMB DOWN; it used to say
+  CLIMB UP there, dimmed. Pressing it takes the way in reach, so you no
+  longer have to stand right on it.
+- **Ways up and ways down are spread out.** On every layer, a ladder up and
+  a way down are now always at least 5 tiles apart, so finding the next one
+  takes exploring. Shafts and cave mouths moved to make room; anything
+  already opened keeps working.
+- **Steel ladders.** Ladders, and the climb button's icons, are steel now
+  instead of wood.
+
 ## [0.44.0] - 2026-10-14
 
 ### Added

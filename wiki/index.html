@@ -107,9 +107,10 @@
       <ul>
         <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
         <li><strong>UPGRADE</strong> opens the sheet on the Upgrades tab. See <a href="#upgrades">Upgrades</a>.</li>
-        <li>The <strong>layer button</strong> takes you between layers: <strong>CLIMB DOWN</strong> in a cave mouth in the
-          forest, <strong>CLIMB UP</strong> at the foot of a ladder underground. It dims anywhere else: you can never dig your
-          own way up or down. See <a href="#mine">The mine</a>.</li>
+        <li>The <strong>layer button</strong> appears only when you're in reach of a way between layers, and says which way
+          it goes: <strong>CLIMB DOWN</strong> by a cave mouth or an open shaft, <strong>CLIMB UP</strong> by the foot of a
+          ladder up. Anywhere else there's no button: you can never dig your own way up or down. See
+          <a href="#mine">The mine</a>.</li>
       </ul>
       <p>A <strong>green dot</strong> on BUILD or UPGRADE means there's something in there you can place or buy right now.
         Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
@@ -294,20 +295,22 @@
       <ul>
         <li>A <strong>cave mouth</strong> in the forest, a ring of stones around a dark hole, is the way down to the first
           layer. Most stretches of forest have one (never in water, a mountain or on home ground), so explore and you'll
-          soon come across one. Stand in it and the button says <strong>CLIMB DOWN</strong>, or tap it within reach.</li>
+          soon come across one. Next to it, the button says <strong>CLIMB DOWN</strong>; or tap it.</li>
         <li>In the mine, the way on down is a <strong>shaft</strong>: one in every stretch of rock, hidden until you get close.
           One dig opens it; then tap it to drop through.</li>
         <li>Directly beneath every cave mouth and every shaft, on the layer below, is the foot of a <strong>ladder up</strong>:
-          a little open spot in the rock. You land on it when you come down, and it's how you get back. Standing on it, the
-          button says <strong>CLIMB UP</strong>; or tap it within reach. Climbing up through a shaft you haven't opened yet
+          a little open spot in the rock. You land on it when you come down, and it's how you get back. Next to it, the
+          button says <strong>CLIMB UP</strong>; or tap it. Climbing up through a shaft you haven't opened yet
           opens it. Anywhere else, the rock overhead stays rock, so to go up you find a ladder, the one you came down or
           another.</li>
         <li><strong>Home ground</strong> is sealed: no way down from it, and none up onto it from below, so the stockpile's
           ground stays whole. Deeper down, under home, the ways are like anywhere else.</li>
         <li>A way between layers never shares a tile with a building: you can't build on one, or at the foot of a ladder
           up.</li>
+        <li>A way up and a way down are never close together: on any layer they're at least
+          <span data-k="WAYS_APART"></span> tiles apart, so you have to go looking for the next one.</li>
         <li>Holes dug in older versions of the game still work, both ways.</li>
-        <li>Every way has a <strong>ladder</strong> in it. From above, a hole is a dark pit in the floor with the ladder going
+        <li>Every way has a steel <strong>ladder</strong> in it. From above, a hole is a dark pit in the floor with the ladder going
           down. From below, it's a pool of light falling through the ceiling with the ladder standing in it, and a beam when
           the view is tilted (under a shaft not yet opened, the ladder stands in the dark). Where a hole has another hole
           above it (a column straight up or down), you see both: the pit ringed with light pouring into it, and the ladder

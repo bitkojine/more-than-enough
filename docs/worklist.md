@@ -59,6 +59,9 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **No digging between layers.** (0.43.0) You can never dig yourself up or down:
       every layer, the forest included, is connected only by generated ways up
       and down that you discover by exploring. (Replaces "Digging takes work".)
+- [x] **Climb button and ladders.** (0.45.0) The climb button says up or down
+      correctly, shows only within reach of a way, ways up and down never
+      spawn close together, and ladders are steel, not wood.
 - [x] **Dark tunnels.** (0.34.0) Tunnels are always dark unless you light them.
 
 ## The world and its look

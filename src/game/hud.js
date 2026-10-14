@@ -12,7 +12,7 @@ const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
 const LAYER_BUTTON = {
-  down: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the hole'],
+  down: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the ladder'],
   up: ['ui.climb', 'CLIMB UP', 'Climb up the ladder']
 };
 
@@ -135,14 +135,16 @@ export function createHud(el, look) {
         el.action.classList.toggle('ready', ready);
         el.action.classList.toggle('disabled', !ready);
       }
-      // The layer button says which way it goes: down from the forest, up
-      // from below. It only works on a way you've found.
+      // The layer button shows only beside a way between layers, and says
+      // which way it goes.
       const way = Core.layerWay(s);
-      const [mineIcon, mineLabel, mineAria] = LAYER_BUTTON[way.up ? 'up' : 'down'];
-      setIcon(el.mineIcon, mineIcon);
-      setText(el.mineLabel, mineLabel);
-      el.mine.setAttribute('aria-label', mineAria);
-      el.mine.classList.toggle('disabled', !way.ok);
+      el.mine.hidden = !way;
+      if (way) {
+        const [mineIcon, mineLabel, mineAria] = LAYER_BUTTON[way.up ? 'up' : 'down'];
+        setIcon(el.mineIcon, mineIcon);
+        setText(el.mineLabel, mineLabel);
+        el.mine.setAttribute('aria-label', mineAria);
+      }
     },
 
     view(cam) {

@@ -100,19 +100,31 @@ export function climbAt(s, x, y) {
 }
 
 /**
- * What the layer button would do right now, so it can say so: in the forest
- * the way is down, underground it's up (a hole in the floor is tapped to drop
- * through). `ok` is whether you stand on such a way.
- * @returns {{up: boolean, ok: boolean}}
+ * The way the layer button would take right now: the nearest way down or up
+ * within reach (the one you stand on first), or null when there's none, and
+ * the button hides. Where one tile is a way both up and down (a column of
+ * holes from an older version), the button goes up: a tap on it goes down.
+ * @returns {{up: boolean, x: number, y: number} | null}
  */
 export function layerWay(s) {
-  const up = isUnderground(s);
-  return { up, ok: up ? canGoUp(s) : canGoDown(s) };
+  const p = s.player, px = Math.floor(p.x), py = Math.floor(p.y);
+  let best = null, bestD = Infinity;
+  for (let y = py - 2; y <= py + 2; y++) {
+    for (let x = px - 2; x <= px + 2; x++) {
+      const d = x === px && y === py ? -1 : tileDist2(p, x, y, p.z);
+      if (d >= bestD) continue;
+      const up = canClimbAt(s, x, y);
+      if (up || canDescendAt(s, x, y)) { best = { up, x, y }; bestD = d; }
+    }
+  }
+  return best;
 }
 
-// The layer button: takes the way where you stand. Returns true if you moved.
+// The layer button: takes the way layerWay() finds. Returns true if you moved.
 export function takeWay(s) {
-  return isUnderground(s) ? goUp(s) : goDown(s);
+  const way = layerWay(s);
+  if (!way) return false;
+  return way.up ? climbAt(s, way.x, way.y) : descendAt(s, way.x, way.y);
 }
 
 /* ----------------------------------------------------------------- light */
