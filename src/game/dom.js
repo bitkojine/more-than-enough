@@ -30,7 +30,6 @@ export function findElements() {
     zoomOut: byId('btnZoomOut'),
     zoomLevel: byId('zoomLevel'),
     zoomText: byId('zoomText'),
-    tilt: byId('btnTilt'),
     sheet: byId('sheet'),
     sheetGrab: byId('sheetGrab'),
     sheetTitle: byId('sheetTitle'),

@@ -311,7 +311,6 @@ export default {
   "hud.zoom": "Žemėlapio mastelis",
   "hud.zoomOut": "Tolinti",
   "hud.zoomIn": "Artinti",
-  "hud.tilt": "Pakreipti vaizdą",
 
   "button.build.aria": "Statyti",
   "button.build": "STATYTI",

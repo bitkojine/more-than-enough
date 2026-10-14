@@ -1,6 +1,6 @@
 /* Things standing on the terrain: buildings, the wanderer (and their boat),
  * and the transient effects, all drawn from the texture pack. Standing things
- * keep their height as the view tilts; their shadows flatten. */
+ * keep their full height while the ground is foreshortened; their shadows lie flat. */
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';

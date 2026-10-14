@@ -943,42 +943,17 @@ async function main() {
   await sleep(120);
 
   /* ------------------------------------------------------------- errors */
-  /* ------------------------------------------------------ tilt the view */
-  console.log('\n== Tilt the view ==');
+  /* ----------------------------------------------------------- the view */
+  console.log('\n== The view ==');
   errBase = pageErrors.length;
-  var startTilt = await evalJS('MTE_GAME.tilt()');
-  ok(startTilt > 0 && startTilt < 0.5, 'the view starts at a slight angle, never flat (' + startTilt + ')');
-  var tiltBtn = await rect('#btnTilt');
-  await tap(tiltBtn.x, tiltBtn.y);
-  ok(await waitFor('MTE_GAME.tilt() > 0.98', 2000), 'the tilt button swings the view to full tilt');
-  eq(await evalJS('document.getElementById("btnTilt").getAttribute("aria-pressed")'), 'true', 'the tilt button shows it is on');
-  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-view")).tilt'), 1, 'the tilt is remembered for next time');
+  eq(await evalJS('document.getElementById("btnTilt")'), null, 'there is no tilt button: the view keeps its one slight lean');
+  ok(await evalJS('MTE_GAME.pitch() > 0 && MTE_GAME.pitch() < 0.4'), 'the view leans slightly, never flat (' + await evalJS('MTE_GAME.pitch()') + ')');
 
-  // Two fingers sliding down together tilt back toward flat, without zooming.
-  var zoomBefore = await evalJS('MTE_GAME.zoom()');
-  await touch('touchStart', [
-    { x: 180, y: 300, radiusX: 5, radiusY: 5, force: 1, id: 1 },
-    { x: 270, y: 300, radiusX: 5, radiusY: 5, force: 1, id: 2 }
-  ]);
-  for (var ty = 320; ty <= 400; ty += 20) {
-    await touch('touchMove', [
-      { x: 180, y: ty, radiusX: 5, radiusY: 5, force: 1, id: 1 },
-      { x: 270, y: ty, radiusX: 5, radiusY: 5, force: 1, id: 2 }
-    ]);
-    await sleep(30);
-  }
-  await touch('touchEnd', []);
-  await sleep(100);
-  var tiltAfterDrag = await evalJS('MTE_GAME.tilt()');
-  ok(tiltAfterDrag > 0.3 && tiltAfterDrag < 0.8, 'a two-finger drag down eases the tilt (' + tiltAfterDrag.toFixed(2) + ')');
-  eq(await evalJS('MTE_GAME.zoom()'), zoomBefore, 'tilting with two fingers leaves the zoom alone');
-
-  // Underground, tilted: a tap on the top of a wall digs that wall.
-  await evalJS('MTE_GAME.setTilt(1)');
+  // Underground: a tap on the top of a wall digs that wall.
   await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,80,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);})()');
   await sleep(200);
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
-  ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down a cave mouth into the mine with the view tilted');
+  ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down a cave mouth into the mine');
   // The camera moves to the new layer when it next draws: wait for a frame so
   // the wall's screen position below is projected from where it is now shown.
   await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
@@ -993,14 +968,13 @@ async function main() {
   var richBefore = await evalJS(wallRich);
   await tap(wall.sx, wall.sy);
   var dugWall = await waitFor(wallRich + ' === ' + (richBefore - 1), 1500);
-  ok(dugWall, 'tapping the top of a wall, tilted, digs that wall' + (dugWall ? '' : ' — tap picked ' +
-    await evalJS('JSON.stringify({pick:MTE_GAME.unproject(' + wall.sx + ',' + wall.sy + '),player:MTE_GAME.getState().player,tilt:MTE_GAME.tilt()})')));
-  console.log('  screenshot: ' + await shot('07-tilted-mine.png'));
+  ok(dugWall, 'tapping the top of a wall digs that wall' + (dugWall ? '' : ' — tap picked ' +
+    await evalJS('JSON.stringify({pick:MTE_GAME.unproject(' + wall.sx + ',' + wall.sy + '),player:MTE_GAME.getState().player})')));
+  console.log('  screenshot: ' + await shot('07-mine-wall.png'));
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   ok(await waitFor('MTE_GAME.getState().player.z === 0', 2000), 'back up on the surface');
-  console.log('  screenshot: ' + await shot('08-tilted-surface.png'));
-  eq(pageErrors.length, errBase, 'tilting throws no render errors');
-  await evalJS('MTE_GAME.setTilt(0)');
+  console.log('  screenshot: ' + await shot('08-surface.png'));
+  eq(pageErrors.length, errBase, 'the mine and surface draw without errors');
 
   /* ------------------------------------------------- performance panel */
   console.log('\n== Performance panel ==');
@@ -1086,7 +1060,7 @@ async function main() {
   // Explore around home and set a known inventory: 3,452 mycelium is 3+4+5+2 piles.
   await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),h=C.home(s);s.player.z=0;G.setPlayer(h.x+0.5,h.y+0.5);' +
     'for(var y=-16;y<=16;y++)for(var x=-16;x<=16;x++)C.markExplored(s.world,h.x+x,h.y+y,0);' +
-    's.inv.mycelium=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);G.setTilt(0.6);})()');
+    's.inv.mycelium=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);})()');
   ok(await waitFor('MTE_GAME.yard.piles.size === 14', 3000), 'what you own stands around home: 3,452 mycelium is 14 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
   var tiers = await evalJS('[...MTE_GAME.yard.piles.values()].map(function(p){return p.tier;}).sort().join("")');
   eq(tiers, '00111112222333', 'one pile per unit of each digit: 2 logs, 5 bundles, 4 piles, 3 carts');

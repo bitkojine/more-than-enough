@@ -6,7 +6,7 @@
  *
  * Terrain is drawn a row at a time from north to south; whatever stands in a
  * row (target outlines, buildings, the player) is drawn right after it, so
- * blocks nearer the viewer cover it when the view is tilted. */
+ * blocks nearer the viewer cover it. */
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
@@ -57,7 +57,7 @@ export function render(cam, s, fx, view, look) {
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
     if (y === playerRow) drawPlayer(ctx, cam, s, look, view);
   });
-  // Tilted, a wall in front can hide the player: show them faintly through it.
+  // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     ctx.globalAlpha = XRAY_ALPHA;
     drawPlayer(ctx, cam, s, look, view);

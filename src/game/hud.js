@@ -153,7 +153,6 @@ export function createHud(el, look) {
       const zoom = number(+cam.zoom.toFixed(2)) + '×';
       setText(el.zoomText, zoom);
       el.zoomLevel.setAttribute('aria-label', t('hud.zoomLevel', { zoom }));
-      el.tilt.setAttribute('aria-pressed', String(cam.tiltTarget > 0.5));
     },
 
     // Status only (e.g. a save that couldn't be read), never instructions.

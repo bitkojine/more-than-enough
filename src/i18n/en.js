@@ -311,7 +311,6 @@ export default {
   "hud.zoom": "Map zoom",
   "hud.zoomOut": "Zoom out",
   "hud.zoomIn": "Zoom in",
-  "hud.tilt": "Tilt the view",
 
   "button.build.aria": "Build",
   "button.build": "BUILD",

@@ -4,7 +4,7 @@
  * Rows are drawn north to south. Each tile draws its top, then its south face
  * down to the top of the tile in front, so nearer blocks cover farther ones.
  * After each row the caller draws whatever stands in it (the player,
- * buildings), which lets walls hide what is behind them when tilted.
+ * buildings), which lets walls hide what is behind them.
  *
  * In the forest, unexplored tiles are not drawn at all: the known world is a
  * plateau over the dark. Where explored ground has darkness in front of it,
@@ -14,7 +14,7 @@
  *
  * What everything looks like comes from the texture pack (look.js): a tile's
  * top picture is stretched over its top face (`u` wide, `g * u` deep, where g
- * shrinks as the view tilts), its face picture repeats down its south face,
+ * is the view's foreshortening), its face picture repeats down its south face,
  * and what stands on it (trees, boulders) is drawn upright after the whole
  * row's ground, so it can lean over its neighbours without being cut off. */
 
@@ -67,8 +67,8 @@ function drawLadder(ctx, look, cx, top, bottom, u) {
   look.draw(ctx, look.pick('mark.ladder', 'image'), cx - u * LADDER_W / 2, top, u * LADDER_W, bottom - top);
 }
 
-// A hole in the floor, with its ladder leaning on the far wall. Tilted, you
-// see down that wall, in the dark of the hole's colour.
+// A hole in the floor, with its ladder leaning on the far wall. Unless zoomed
+// far out, you see down that wall, in the dark of the hole's colour.
 function drawPit(ctx, look, sx, sy, u, d, rise) {
   look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
   const wall = rise > FLAT_RISE_PX ? Math.min(d * 0.6, rise * 0.9) : 0;
@@ -88,7 +88,7 @@ function drawPool(ctx, light, cx, cy, u, g, alpha) {
   ctx.fillRect(cx - u * 0.8, cy - u * 0.8 * g, u * 1.6, u * 1.6 * g);
 }
 
-// When tilted, the shaft of light falling from the opening above down to cy.
+// Where heights show, the shaft of light falling from the opening above down to cy.
 function drawBeam(ctx, light, sx, cy, u, rise) {
   const beam = ctx.createLinearGradient(0, cy - rise, 0, cy);
   beam.addColorStop(0, rgba(light, 0.3));
@@ -98,17 +98,17 @@ function drawBeam(ctx, light, sx, cy, u, rise) {
 }
 
 // A hole in the ceiling: light from the layer above pooling on the floor, and
-// the ladder standing in it, up to the opening when tilted. Under a shaft
+// the ladder standing in it, up to the opening where heights show. Under a shaft
 // not yet opened, the ladder stands in the dark.
 function drawSkylight(ctx, look, sx, sy, u, g, rise, lit = true) {
   const light = look.color('mark.skylight');
   const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
-  const tilted = rise > FLAT_RISE_PX;
+  const showsHeight = rise > FLAT_RISE_PX;
   if (lit) {
     drawPool(ctx, light, cx, cy, u, g, 0.45);
-    if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
+    if (showsHeight) drawBeam(ctx, light, sx, cy, u, rise);
   }
-  drawLadder(ctx, look, cx, tilted ? cy - rise : sy + u * g * 0.1, sy + u * g * 0.85, u);
+  drawLadder(ctx, look, cx, showsHeight ? cy - rise : sy + u * g * 0.1, sy + u * g * 0.85, u);
 }
 
 // A hole with a hole above it: the pit, ringed with the light falling into
@@ -119,9 +119,9 @@ function drawThroughShaft(ctx, look, sx, sy, u, d, rise) {
   drawPool(ctx, light, cx, cy, u, g, 0.5);
   look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
   drawPool(ctx, light, cx, cy, u * 0.4, g, 0.35);
-  const tilted = rise > FLAT_RISE_PX;
-  if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
-  drawLadder(ctx, look, cx, tilted ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
+  const showsHeight = rise > FLAT_RISE_PX;
+  if (showsHeight) drawBeam(ctx, light, sx, cy, u, rise);
+  drawLadder(ctx, look, cx, showsHeight ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
 }
 
 // Zoomed out, a way between layers is too small to see, so each one found on
@@ -176,7 +176,7 @@ function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
 /* ---------------------------------------------------------------- tiles */
 
 // Light lips on the edges of tile (x, y) that face the dark to the north,
-// west and east (the south edge is a cliff when tilted).
+// west and east (the south edge is a cliff).
 function drawLips(ctx, look, w, x, y, z, sx, sy, u, d) {
   const lip = Math.max(1, u * 0.04);
   ctx.fillStyle = rgba(look.color('color.edge'), 0.3);
@@ -202,10 +202,10 @@ export function groundHeight(w, x, y, z) {
 // An unseen tile of the mine: a dark block of rock.
 function drawUnseenRock(ctx, cam, look, w, x, y, z) {
   const u = cam.tilePx, d = cam.depthPx;
-  const tilted = cam.risePx > FLAT_RISE_PX;
-  const p = cam.project(x, y, z + (tilted ? 1 : 0));
+  const showsHeight = cam.risePx > FLAT_RISE_PX;
+  const p = cam.project(x, y, z + (showsHeight ? 1 : 0));
   const rock = look.color('color.unknown');
-  const front = tilted ? groundHeight(w, x, y + 1, z) : 1;
+  const front = showsHeight ? groundHeight(w, x, y + 1, z) : 1;
   if (front < 1) {
     ctx.fillStyle = shade(rock, tv(x, y, 8), UNSEEN_DIM * FACE_DIM);
     ctx.fillRect(p.x, p.y + d, u + 1, (1 - front) * cam.risePx + 1);
@@ -233,15 +233,15 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   }
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
-  const tilted = cam.risePx > FLAT_RISE_PX;
+  const showsHeight = cam.risePx > FLAT_RISE_PX;
   const { h, sx, sy } = tileTop(cam, w, x, y, z);
   const color = look.color(id);
 
   // The south face, down to the top of the tile in front, lit along its rim.
   // In the forest, with the dark in front, it runs down to the floor and the
   // cliff carries on.
-  const edge = tilted && !under && !Core.isExplored(w, x, y + 1, z);
-  const front = !tilted || edge ? Math.min(h, 0) : groundHeight(w, x, y + 1, z);
+  const edge = showsHeight && !under && !Core.isExplored(w, x, y + 1, z);
+  const front = !showsHeight || edge ? Math.min(h, 0) : groundHeight(w, x, y + 1, z);
   if (edge) drawCliff(ctx, cam, s, look, x, y, z);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
@@ -265,7 +265,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
     ctx.fillRect(sx, sy, u + 1, d + 1);
   } else if (!under) drawLips(ctx, look, w, x, y, z, sx, sy, u, d);
   // A taller block behind casts a little shade on this top's far edge.
-  if (tilted && groundHeight(w, x, y - 1, z) > h + 0.05) {
+  if (showsHeight && groundHeight(w, x, y - 1, z) > h + 0.05) {
     ctx.fillStyle = CONTACT;
     ctx.fillRect(sx, sy, u + 1, d * 0.2);
   }

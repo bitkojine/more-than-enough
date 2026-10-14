@@ -211,7 +211,7 @@ export default {
       <div class="note">Every number in this wiki is read live from the game's own code, so the tables always match the version
         you're playing.</div>
       <ul class="cards">
-        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, tilt, keyboard.</span></a></li>
+        <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom, keyboard.</span></a></li>
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
@@ -265,17 +265,12 @@ export default {
         is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); tap it to go
         back to 1&times;.</p>
 
-      <h2>Tilt</h2>
-      <p>The view always leans a little, and can tilt further to an angled, 2.5D look where things have height. Mountains rise as cliffs,
-        water sits below the bank, and underground the rock you haven't dug stands a full layer tall around your tunnels. A layer
-        is one and a half tiles high, a little taller than the wanderer, so a tunnel is somewhere you could walk.</p>
-      <ul>
-        <li>The <strong>tilt button</strong> (the slanted square beside the zoom buttons) swings between the slight lean and fully tilted.</li>
-        <li>On touch, <strong>slide two fingers up or down together</strong> to tilt by any amount. Spreading them still zooms.</li>
-        <li>On a computer, press <kbd>T</kbd>, or hold <kbd>Shift</kbd> and scroll.</li>
-      </ul>
-      <p>Tilted, a tap picks whatever block you can see at that spot, so tapping the top of a wall digs that wall.
-        If a wall stands in front of you, you show through it faintly. Your zoom and tilt are remembered in this browser.</p>
+      <h2>The view</h2>
+      <p>You look down on the world from just off straight above, leaning a little to the north, so things have height. Mountains
+        rise as cliffs, water sits below the bank, and underground the rock you haven't dug stands a full layer tall around your
+        tunnels. A layer is one and a half tiles high, a little taller than the wanderer, so a tunnel is somewhere you could walk.</p>
+      <p>A tap picks whatever block you can see at that spot, so tapping the top of a wall digs that wall.
+        If a wall stands in front of you, you show through it faintly. Your zoom is remembered in this browser.</p>
 
       <h2>The other buttons</h2>
       <ul>
@@ -295,9 +290,7 @@ export default {
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrows</td><td>Move</td></tr>
           <tr><td><kbd>Space</kbd> or <kbd>Enter</kbd></td><td>Gather (hold to repeat)</td></tr>
-          <tr><td><kbd>T</kbd></td><td>Tilt the view, or flatten it</td></tr>
           <tr><td><kbd>F3</kbd></td><td>Show or hide the performance panel</td></tr>
-          <tr><td><kbd>Shift</kbd> + scroll</td><td>Tilt by any amount</td></tr>
           <tr><td><kbd>B</kbd></td><td>Build tab</td></tr>
           <tr><td><kbd>U</kbd> or <kbd>C</kbd></td><td>Upgrades tab</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
@@ -364,7 +357,7 @@ export default {
           <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
           <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
           <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, regrowth.</td></tr>
-          <tr><td>draw</td><td>Time per frame spent drawing the map. Tilting and zooming out raise it.</td></tr>
+          <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it.</td></tr>
           <tr><td>tiles</td><td>Tiles drawn this frame (blocks, when zoomed far out).</td></tr>
           <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
             touches have tried to start it and the last kind, and the browser's last refusal if any.</td></tr>
@@ -480,8 +473,8 @@ export default {
           <span data-k="WAYS_APART"></span> tiles apart, so you have to go looking for the next one.</li>
         <li>Holes dug in older versions of the game still work, both ways.</li>
         <li>Every way has a steel <strong>ladder</strong> in it. From above, a hole is a dark pit in the floor with the ladder going
-          down. From below, it's a pool of light falling through the ceiling with the ladder standing in it, and a beam when
-          the view is tilted (under a shaft not yet opened, the ladder stands in the dark). Where a hole has another hole
+          down. From below, it's a pool of light falling through the ceiling with the ladder standing in it and a beam
+          of light (under a shaft not yet opened, the ladder stands in the dark). Where a hole has another hole
           above it (a column straight up or down), you see both: the pit ringed with light pouring into it, and the ladder
           running on up into the beam.</li>
         <li>Zoomed far out, each way you've found on your layer keeps a mark you can see: a dark pit with a ladder down, a
@@ -726,10 +719,10 @@ export default {
       <ul>
         <li><code>color</code>: a colour like <code>"#4a7a33"</code>. Used far zoomed out, in cliffs, for sparks, and wherever
           there's no picture.</li>
-        <li><code>top</code>: the ground. Stretched over the whole top of the tile, and squashed as the view tilts, so draw it
+        <li><code>top</code>: the ground. Stretched over the whole top of the tile, and squashed by the view's lean, so draw it
           straight from above. Neighbouring tiles touch, so keep edges plain if you don't want a grid.</li>
-        <li><code>face</code>: the front of a raised tile (mountains, walls in the mine, the shore above water), seen when the view
-          is tilted. One picture is one layer of height and repeats down taller faces.</li>
+        <li><code>face</code>: the front of a raised tile (mountains, walls in the mine, the shore above water), seen under the
+          raised top. One picture is one layer of height and repeats down taller faces.</li>
         <li><code>stand</code>: what you gather from the tile, standing on it, like trees and boulders. Only tiles you can gather
           have it: nothing in the game is decoration you can't pick up, so a pack can't put props on grass, water or tunnels.
           Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.

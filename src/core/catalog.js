@@ -4,9 +4,9 @@
  * decides what it looks like. Each thing names the slots a pack can fill:
  *
  *   color  '#rrggbb'. Used far out, on cliffs, for sparks and as a fallback.
- *   top    the ground: an image stretched over the tile's top (it squashes
- *          as the view tilts)
- *   face   the front of a raised tile, seen when tilted; one image is one
+ *   top    the ground: an image stretched over the tile's top (squashed by
+ *          the view's lean)
+ *   face   the front of a raised tile, seen below its top; one image is one
  *          layer tall and repeats down taller faces
  *   stand  something standing up on a tile you can gather (trees, boulders): never on
  *          other ground, so nothing shown is decoration you can't pick up; bottom

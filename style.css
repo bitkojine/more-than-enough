@@ -286,9 +286,6 @@ canvas#game {
   touch-action: manipulation;
 }
 #zoomControls button:active { background: rgba(80,130,90,0.5); }
-#btnTilt { display: grid; place-items: center; }
-#btnTilt svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-#btnTilt[aria-pressed="true"] { background: rgba(80,130,90,0.45); color: #caff9b; }
 /* The zoom readout: a magnifier and the magnification. Tap it for 1x. */
 #zoomControls #zoomLevel {
   width: auto; min-width: 52px; padding: 0 7px;

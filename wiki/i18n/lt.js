@@ -208,7 +208,7 @@ export default {
       <div class="note">Kiekvienas šio žinyno skaičius imamas tiesiai iš paties žaidimo kodo, todėl lentelės visada atitinka versiją,
         kurią žaidi.</div>
       <ul class="cards">
-        <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis, pakreipimas, klaviatūra.</span></a></li>
+        <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis, klaviatūra.</span></a></li>
         <li><a href="#screen"><strong>Ekranas</strong><span>Ką reiškia skaitikliai, mygtukai ir švytėjimai.</span></a></li>
         <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, ataugimas, diena ir naktis.</span></a></li>
         <li><a href="#gathering"><strong>Rinkimas</strong><span>Ištekliai, derlius ir kaip išsenka telkiniai.</span></a></li>
@@ -262,17 +262,12 @@ export default {
         matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); bakstelk, kad
         grįžtum prie 1&times;.</p>
 
-      <h2>Pakreipimas</h2>
-      <p>Vaizdas visada šiek tiek pasviręs, o pakreipus labiau atsiranda kampuotas 2,5D vaizdas, kuriame daiktai turi aukštį. Kalnai kyla kaip uolos,
+      <h2>Vaizdas</h2>
+      <p>Į pasaulį žiūri beveik tiesiai iš viršaus, šiek tiek pasvirus į šiaurę, tad daiktai turi aukštį. Kalnai kyla kaip uolos,
         vanduo tyvuliuoja žemiau kranto, o po žeme neiškasta uoliena aplink tavo tunelius stūkso viso sluoksnio aukščio. Sluoksnis
         yra pusantro langelio aukščio, šiek tiek aukštesnis už klajūną, tad tunelyje tikrai galėtum vaikščioti.</p>
-      <ul>
-        <li><strong>Pakreipimo mygtukas</strong> (pasviręs kvadratas šalia mastelio mygtukų) perjungia tarp lengvo pasvirimo ir visiško pakreipimo.</li>
-        <li>Lietimui: <strong>kartu slink dviem pirštais aukštyn arba žemyn</strong> ir pakreipsi kiek tik nori. Juos išskėtus vis tiek keičiamas mastelis.</li>
-        <li>Kompiuteryje spausk <kbd>T</kbd> arba laikyk <kbd>Shift</kbd> ir sukiok ratuką.</li>
-      </ul>
-      <p>Pakreiptame vaizde bakstelėjimas parenka tą bloką, kurį toje vietoje matai, tad bakstelėjęs sienos viršų kasi tą sieną.
-        Jei priešais tave stovi siena, tavo siluetas blankiai matyti pro ją. Mastelis ir pakreipimas įsimenami šioje naršyklėje.</p>
+      <p>Bakstelėjimas parenka tą bloką, kurį toje vietoje matai, tad bakstelėjęs sienos viršų kasi tą sieną.
+        Jei priešais tave stovi siena, tavo siluetas blankiai matyti pro ją. Mastelis įsimenamas šioje naršyklėje.</p>
 
       <h2>Kiti mygtukai</h2>
       <ul>
@@ -292,9 +287,7 @@ export default {
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> arba rodyklės</td><td>Judėti</td></tr>
           <tr><td><kbd>Space</kbd> arba <kbd>Enter</kbd></td><td>Rinkti (laikyk, kad kartotųsi)</td></tr>
-          <tr><td><kbd>T</kbd></td><td>Pakreipti vaizdą arba jį ištiesinti</td></tr>
           <tr><td><kbd>F3</kbd></td><td>Rodyti arba slėpti našumo skydelį</td></tr>
-          <tr><td><kbd>Shift</kbd> + ratukas</td><td>Pakreipti kiek tik nori</td></tr>
           <tr><td><kbd>B</kbd></td><td>Skirtukas Statyba</td></tr>
           <tr><td><kbd>U</kbd> arba <kbd>C</kbd></td><td>Skirtukas Patobulinimai</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Uždaryti lapą</td></tr>
@@ -361,7 +354,7 @@ export default {
           <tr><td>FPS</td><td>Kadrai per sekundę per paskutines ~2 sekundes. 60 – sklandu daugumoje ekranų.</td></tr>
           <tr><td>frame / worst</td><td>Vidutinis laikas tarp kadrų ir ilgiausias pavienis tarpas (strigtelėjimas).</td></tr>
           <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, ataugimui.</td></tr>
-          <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Pakreipimas ir nutolinimas jį ilgina.</td></tr>
+          <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina.</td></tr>
           <tr><td>tiles</td><td>Šiame kadre nupiešti langeliai (labai nutolinus – blokai).</td></tr>
           <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
             prisilietimų bandė jį paleisti ir paskutinio rūšis, taip pat paskutinis naršyklės atsisakymas, jei buvo.</td></tr>
@@ -477,8 +470,8 @@ export default {
           ne mažiau kaip <span data-k="WAYS_APART"></span> langelių, tad kito teks paieškoti.</li>
         <li>Angos, iškastos senesnėse žaidimo versijose, vis dar veikia į abi puses.</li>
         <li>Kiekviename kelyje yra plieninės <strong>kopėčios</strong>. Iš viršaus anga – tamsi duobė grindyse su žemyn vedančiomis
-          kopėčiomis. Iš apačios – pro lubas krentantis šviesos ratas su jame stovinčiomis kopėčiomis, o pakreipus vaizdą –
-          šviesos spindulys (po dar neatverta šachta kopėčios stovi tamsoje). Kur virš angos yra dar viena anga (stulpas
+          kopėčiomis. Iš apačios – pro lubas krentantis šviesos ratas su jame stovinčiomis kopėčiomis ir
+          šviesos spinduliu (po dar neatverta šachta kopėčios stovi tamsoje). Kur virš angos yra dar viena anga (stulpas
           tiesiai aukštyn ar žemyn), matai abi: duobę, apjuostą į ją besiliejančios šviesos, ir kopėčias, kylančias toliau į
           spindulį.</li>
         <li>Labai atitolinus vaizdą, kiekvienas tavo sluoksnyje rastas kelias lieka pažymėtas: tamsi duobė su kopėčiomis
@@ -722,10 +715,10 @@ export default {
       <ul>
         <li><code>color</code>: spalva, pvz., <code>"#4a7a33"</code>. Naudojama labai nutolinus vaizdą, skarduose, kibirkštims ir visur,
           kur nėra paveikslėlio.</li>
-        <li><code>top</code>: žemė. Ištempiama per visą langelio viršų ir suplojama, kai vaizdas pakrypsta, todėl piešk ją
+        <li><code>top</code>: žemė. Ištempiama per visą langelio viršų ir suplojama dėl vaizdo pasvirimo, todėl piešk ją
           tiesiai iš viršaus. Gretimi langeliai liečiasi, tad palik kraštus paprastus, jei nenori tinklelio.</li>
-        <li><code>face</code>: iškilusio langelio priekis (kalnai, sienos kasykloje, krantas virš vandens), matomas, kai vaizdas
-          pakreiptas. Vienas paveikslėlis – vienas aukščio sluoksnis; aukštesniuose šonuose jis kartojasi žemyn.</li>
+        <li><code>face</code>: iškilusio langelio priekis (kalnai, sienos kasykloje, krantas virš vandens), matomas po
+          iškilusiu viršumi. Vienas paveikslėlis – vienas aukščio sluoksnis; aukštesniuose šonuose jis kartojasi žemyn.</li>
         <li><code>stand</code>: tai, ką renki iš langelio ir kas ant jo stovi, pvz., medžiai ir rieduliai. Jį turi tik langeliai, iš kurių galima
           rinkti: žaidime nėra jokių dekoracijų, kurių negalėtum paimti, todėl paketas negali dėti rekvizito ant žolės, vandens ar tunelių.
           Piešiamas stačias, apačios viduriu langelio centre; niekada nesuplojamas ir gali kyšoti virš kaimynų.

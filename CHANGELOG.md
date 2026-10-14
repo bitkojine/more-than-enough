@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.47.0] - 2026-10-14
+
+### Removed
+- **Tilting the view.** The tilt button, the two-finger up/down tilt, the
+  T key and Shift + scroll are gone. The game keeps its one view, leaning
+  slightly as it always started. Two fingers now only zoom. A tilt saved
+  in your browser is ignored and dropped on the next save.
+
 ## [0.46.0] - 2026-10-14
 
 ### Added

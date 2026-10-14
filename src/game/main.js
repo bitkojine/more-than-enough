@@ -248,7 +248,6 @@ function frame(now) {
   try {
     const t0 = performance.now();
     if (!document.hidden && !fork.open) update(dt);
-    cam.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
     // Changed layers in this world since the last frame: show the trip.
@@ -281,7 +280,6 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) game.
 
 const savedView = loadView();
 cam.setZoom(savedView.zoom);
-cam.setTilt(savedView.tilt, true);
 setDrag(savedView.invertDrag);
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 toggles it, and ?perf in the address opens it (for phones).
@@ -310,10 +308,9 @@ window.MTE_GAME = {
   zoom: () => cam.zoom,
   tilePx: () => cam.tilePx,
   setZoom(z) { cam.setZoom(z); hud.view(cam); },
-  tilt: () => cam.tilt,
+  pitch: () => cam.pitch(),
   perf: () => perf.snapshot(),
   perfVisible: () => perf.visible,
-  setTilt(t) { cam.setTilt(t, true); hud.view(cam); },
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)
 };

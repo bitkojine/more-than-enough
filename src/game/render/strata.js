@@ -11,8 +11,8 @@ import * as Core from '../../core/index.js';
 import { shade, tv, rgba } from './palette.js';
 
 // Each layer on a cliff is at least this tall (in tile widths), so cliffs read
-// as a long drop even at the slightest tilt. Nothing is drawn in the dark under
-// an edge, so a cliff can hang deeper than the tilt alone would make it.
+// as a long drop even at the view's slight lean. Nothing is drawn in the dark under
+// an edge, so a cliff can hang deeper than the lean alone would make it.
 const MIN_BAND = 0.16;
 
 // How far down a cliff can hang below its edge, in pixels.
