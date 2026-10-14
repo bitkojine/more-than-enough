@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.69.0] - 2026-10-14
+
+### Changed
+- **Bigger regions.** Each region is now about 500 tiles across instead of
+  300, so it takes over two minutes to walk straight through and much
+  longer to explore, and names and music change less often. Saves from
+  before this start a new world.
+
 ## [0.68.0] - 2026-10-14
 
 ### Added

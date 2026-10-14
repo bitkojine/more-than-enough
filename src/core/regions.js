@@ -13,10 +13,10 @@
 import { hash2, fbm, valueNoise } from './noise.js';
 import { t } from '../i18n/i18n.js';
 
-export const REGION_SIZE = 300;    // tiles: one region per square this wide, on average
+export const REGION_SIZE = 500;    // tiles: one region per square this wide, on average
 const JITTER = 0.6;                // how far a site strays from its square's middle (share of the square)
-const WARP = 56;                   // tiles: how far borders bend
-const WARP_SCALE = 0.007;
+const WARP = 90;                   // tiles: how far borders bend
+const WARP_SCALE = 0.0045;
 // Each kind of border: how many tiles across it is, and how much of its
 // length is open (a pass through a ridge, a gap in a wall or hedge).
 export const BORDERS = {

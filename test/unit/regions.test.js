@@ -30,8 +30,8 @@ test('a border runs between any two regions: a river, a ridge, a wall or a hedge
   const w = C.createWorld(SEED);
   const kinds = new Set();
   let crossings = 0;
-  for (let y = -600; y < 600; y += 3) {
-    for (let x = -600; x < 600; x++) {
+  for (let y = -1500; y < 1500; y += 7) {
+    for (let x = -1500; x < 1500; x++) {
       const a = C.landAt(SEED, x, y), b = C.landAt(SEED, x + 1, y);
       if (a.cx === b.cx && a.cy === b.cy) continue;
       crossings++;

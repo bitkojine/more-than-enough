@@ -653,6 +653,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.69.0": "Kraštai didesni: kiekvieną pereiti užtrunka daugiau nei dvi minutes.\nŠis atnaujinimas pradeda naują pasaulį.",
   "news.0.68.0": "{phone:Bakstelk|laptop:Spustelk} kvietimo lentelę, kad nukopijuotum nuorodą ir nusiųstum ją draugui.",
   "news.0.67.0": "Viename pasaulyje dabar gali žaisti iki 100 žaidėjų.\nViršutinėje juostoje matyti penki draugai ir +N likusiems; prie ekrano krašto ženkleliai rodomi tik artimiausiems draugams.",
   "news.0.66.0": "Nauja muzika: viržynuose skamba „Viržiai ir akmenys“, aukštumose „Aukštasis kelias“, pelkynuose „Rūko vandenys“.",

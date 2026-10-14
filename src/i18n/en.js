@@ -653,6 +653,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.69.0": "Regions are bigger: each takes over two minutes to walk across.\nThis update starts a new world.",
   "news.0.68.0": "{phone:Tap|laptop:Click} your invite sign to copy its link and send it to a friend.",
   "news.0.67.0": "Up to 100 players can now share one world.\nThe top bar shows five friends and a +N for the rest; only the nearest friends get a badge at the screen's edge.",
   "news.0.66.0": "New music: heaths play Heather and Stone, highlands The High Road and fens Mistwater.",
