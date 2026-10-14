@@ -177,7 +177,6 @@
         <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>
         <button id="btnRejoin" class="setRow" type="button" hidden><span data-i18n="together.rejoin"></span></button>
         <button id="btnLeave" class="setRow" type="button" hidden><span data-i18n="together.leave"></span></button>
-        <p id="logNote" class="setNote" data-i18n="together.logNote" hidden></p>
       </div>
       <div class="setGroup">
         <button id="btnMute" class="setRow" type="button"><span data-i18n="settings.sound"></span><b id="muteState"></b></button>
@@ -189,6 +188,7 @@
         <button id="btnTextures" class="setRow" type="button"><span data-i18n="sheet.textures"></span><b id="packName"></b></button>
         <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
         <a id="wikiLink" class="setRow" href="wiki/" target="_blank" rel="noopener"><span data-i18n="sheet.wiki"></span><b aria-hidden="true">&#8599;</b></a>
+        <a id="privacyLink" class="setRow" href="privacy/" target="_blank" rel="noopener"><span data-i18n="privacy.link"></span><b aria-hidden="true">&#8599;</b></a>
       </div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
@@ -218,6 +218,7 @@
     <div class="dialog">
       <strong id="askTitle"></strong>
       <p></p>
+      <a class="askLink" target="_blank" rel="noopener" hidden></a>
       <div class="choices"><button type="button" class="secondary"></button><button type="button" class="primary"></button></div>
     </div>
   </div>

@@ -684,11 +684,7 @@ body.signing #zoomControls { visibility: hidden; }
   text-align: left; text-decoration: none;
   touch-action: manipulation; cursor: pointer;
 }
-.setRow[hidden], .setGroup[hidden], .setNote[hidden] { display: none; }
-.setNote {
-  margin: 0; padding: 12px 16px; border-top: 1px solid var(--panel-line);
-  color: var(--ink-dim); font: 400 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-}
+.setRow[hidden], .setGroup[hidden] { display: none; }
 .setRow + .setRow { border-top: 1px solid var(--panel-line); }
 .setRow:active { background: var(--raised); }
 .setRow b {
@@ -787,6 +783,8 @@ body.signing #zoomControls { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { #nuke button { animation: none; } }
 .dialog strong { font-size: 19px; line-height: 1.25; }
 .dialog p { margin: 0 0 6px; font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); }
+.dialog .askLink { margin: -4px 0 6px; font-size: 14.5px; font-weight: 700; color: var(--accent); }
+.dialog .askLink[hidden] { display: none; }
 .dialog .choices { display: flex; gap: 10px; }
 .dialog .choices button {
   flex: 1 1 0; min-height: 48px; padding: 0 12px;

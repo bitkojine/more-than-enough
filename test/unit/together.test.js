@@ -510,6 +510,18 @@ test('the room-making limit counts an IPv6 visitor by their /48, however it is w
 
 /* ----------------------------------------------------------- audit log */
 
+test("the privacy policy is in both languages and says how long the room service really keeps things", async () => {
+  const { LOG_DAYS, SECURITY_DAYS, SAMPLE_MS } = await import('../../server/src/audit.js');
+  const html = readFileSync(new URL('../../privacy/index.html', import.meta.url), 'utf8');
+  const en = html.slice(html.indexOf('<article id="en"'), html.indexOf('<article id="lt"'));
+  const lt = html.slice(html.indexOf('<article id="lt"'));
+  assert.ok(en.length > 1000 && lt.length > 1000, 'an English and a Lithuanian article');
+  for (const [part, days] of [[en, ' days'], [lt, ' dien']]) {
+    for (const n of [LOG_DAYS, SECURITY_DAYS, EXPIRE_MS / 86_400_000]) assert.ok(part.includes(n + days), n + days);
+    assert.ok(part.includes(SAMPLE_MS / 1000 + ' s'), 'how often positions are kept');
+  }
+});
+
 test('audit: the security trail outlives the rest of a chunk', async () => {
   const { hasSecurity, securityOnly, toLines } = await import('../../server/src/audit.js');
   const events = [{ ts: 1, p: 'a', e: 'at', x: 1 }, { ts: 2, p: 'a', e: 'cheat', why: 'speed' }, { ts: 3, p: 'b', e: 'deny', why: 'banned' }];

@@ -26,7 +26,7 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createNuke } from './nuke.js';
-import { createTogether } from './together.js';
+import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
@@ -144,7 +144,6 @@ const game = {
   changedMode() {
     const shared = !!game.state.shared;
     el.leave.hidden = !shared;
-    el.logNote.hidden = !shared;
     el.invitesBtn.hidden = !shared;
     el.rejoin.hidden = !together.canRejoin;
     together.refresh();
@@ -175,6 +174,7 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
+el.privacyLink.href = policyUrl(); // in the player's language
 const nuke = createNuke(el.nuke);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });

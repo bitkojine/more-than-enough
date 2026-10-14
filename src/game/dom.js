@@ -66,7 +66,7 @@ export function findElements() {
     invite: byId('btnInvite'),
     inviteLabel: byId('inviteLabel'),
     leave: byId('btnLeave'),
-    logNote: byId('logNote'),
+    privacyLink: byId('privacyLink'),
     rejoin: byId('btnRejoin'),
     friends: byId('friends')
   };

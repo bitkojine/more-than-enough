@@ -7,6 +7,7 @@ import { t } from '../i18n/i18n.js';
 export function createAsk(box) {
   const title = box.querySelector('strong');
   const text = box.querySelector('p');
+  const link = box.querySelector('a');
   const [no, yes] = box.querySelectorAll('button');
   let answer = null; // resolves the open question
 
@@ -29,11 +30,14 @@ export function createAsk(box) {
 
   return {
     get open() { return !!answer; },
-    // Resolves true if the player said yes. `danger` paints yes as destructive.
-    ask({ title: heading, text: body, yes: label, danger = false }) {
+    // Resolves true if the player said yes. `danger` paints yes as destructive;
+    // `link` ({href, text}) shows a link to read more (it opens a new tab).
+    ask({ title: heading, text: body, yes: label, danger = false, link: more = null }) {
       close(false);
       title.textContent = heading;
       text.textContent = body;
+      link.hidden = !more;
+      if (more) { link.href = more.href; link.textContent = more.text + ' \u2197'; }
       no.textContent = t('ask.cancel');
       yes.textContent = label;
       yes.classList.toggle('danger', danger);

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.75.0] - 2026-10-14
+
+### Added
+- **A privacy policy** (`privacy/index.html`, English and Lithuanian):
+  what stays on your device, what a shared world keeps and why, the
+  automatic anti-cheat and the hourly AI review, how long things are kept,
+  who else handles them, children, and your rights. Settings links to it
+  (in your language), next to the wiki.
+- **Playing together accepts it, with no extra step**: the question before
+  going online or joining a friend's world says so and links to the policy;
+  Cancel keeps you playing alone. Someone already in a shared world from
+  before gets a toast once. A test checks the policy's numbers (days kept,
+  how often positions are logged) against the room service's own.
+
+### Removed
+- The play-log note in Settings and its first-visit toast (v0.74.0): the
+  policy and the join question replace them.
+
 ## [0.74.1] - 2026-10-14
 
 ### Changed

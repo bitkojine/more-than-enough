@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<!-- The privacy policy: plain text in both languages, nothing that runs. The
+     game links to #en or #lt. Numbers here are checked against the room
+     service's own (test/unit/together.test.js), so they can't drift. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; base-uri 'none'; form-action 'none'" />
+<meta name="referrer" content="no-referrer" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e0b" />
+<title>Privacy policy · Privatumo politika</title>
+<link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+<style>
+  :root { color-scheme: dark; --ink: #e8efe6; --dim: #a9b7a6; --line: rgba(255,255,255,.12); --accent: #7ed492; }
+  body { margin: 0; background: #0a0e0b; color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 720px; margin: 0 auto; padding: 24px 16px 64px; }
+  nav { display: flex; gap: 16px; flex-wrap: wrap; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  a { color: var(--accent); }
+  article { padding-top: 24px; }
+  article + article { margin-top: 48px; border-top: 1px solid var(--line); }
+  h1 { font-size: 1.6rem; line-height: 1.25; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 6px; }
+  .meta { color: var(--dim); margin: 0 0 16px; }
+  ul { padding-left: 1.2em; }
+  li + li { margin-top: 4px; }
+</style>
+</head>
+<body>
+<main>
+<nav><a href="../">&#9654; More Than Enough</a><a href="#en" hreflang="en">English</a><a href="#lt" hreflang="lt">Lietuvių</a></nav>
+
+<article id="en" lang="en">
+<h1>Privacy policy</h1>
+<p class="meta">More Than Enough · version 1 · 14 October 2026</p>
+
+<h2>In short</h2>
+<p>Playing alone, nothing about you leaves your device. Playing together with others is optional; if you do, the shared world's server keeps what you do in that world, under a random id, to run the world, stop cheating and make the game better. We never ask for or keep your name, email or any account, and there is no chat.</p>
+
+<h2>Who we are</h2>
+<p>More Than Enough is a small independent browser game at play.robertasrudys.com. Its source code is public at <a href="https://github.com/bitkojine/more-than-enough">github.com/bitkojine/more-than-enough</a>. Questions and requests go to the developer through <a href="https://github.com/bitkojine/more-than-enough/issues">the game's GitHub page</a>.</p>
+
+<h2>Playing alone</h2>
+<p>Your world, progress and settings are saved in your browser's own storage on your device. They are not sent anywhere. Clearing the site's data in your browser deletes them.</p>
+
+<h2>Playing together</h2>
+<p>A shared world runs on our server (a Cloudflare Worker). Joining or making one means you accept this policy; if you don't, you can still play alone. The server keeps:</p>
+<ul>
+  <li><b>The world:</b> its map seed and every change anyone makes to it, and who owns each building.</li>
+  <li><b>Your player:</b> a random secret key made on your device, from which the server derives an id that is different in every world. The id is how you appear to the server; other players see a nature name picked from it (like Moss or Fern), never anything about you.</li>
+  <li><b>Your progress in that world</b> and where you last stood, so you can come back.</li>
+  <li><b>A play log</b> of what you do there: when you come and go, where you are about every 15 seconds while you move and how far you walked, what you dig and build, how your progress grows, which invite link you came in with, and anything the anti-cheat refuses or that breaks the server's limits.</li>
+</ul>
+<p>Your IP address is used for a moment by our hosting to limit how many worlds one person can make an hour and how many connections they can hold; it is not stored in the world or the log.</p>
+
+<h2>Why</h2>
+<ul>
+  <li>To run the shared world for everyone in it.</li>
+  <li>To catch and stop cheaters and people who try to break the game, quickly.</li>
+  <li>To learn how people play (where they spend time, where they get stuck) and make the game better.</li>
+</ul>
+<p>We do this because you accepted it when you chose to play together, and because keeping the game fair and working is a legitimate interest of everyone playing.</p>
+
+<h2>Automatic decisions</h2>
+<p>The server's anti-cheat refuses impossible moves, and a player who keeps making them is removed from that world automatically. Every hour, an AI system (Claude, by Anthropic) reviews the play logs of all shared worlds for cheating and for what we can learn; it removes a player only for clear cheating, and anything less clear goes to the developer. A world's owner can also remove players. If you think you were removed by mistake, tell us.</p>
+
+<h2>How long we keep it</h2>
+<ul>
+  <li>The play log: <b>14 days</b>.</li>
+  <li>Records of cheating, removals, refused joins and cut connections: <b>90 days</b>, so repeat cheaters can be recognised.</li>
+  <li>A shared world, with everyone's progress in it: until nobody has visited it for <b>30 days</b>, then it is deleted with all of its logs.</li>
+  <li>Summaries we write about how players play (by player id, never by person) may be kept longer, to guide the game's development.</li>
+</ul>
+
+<h2>Who else handles it</h2>
+<ul>
+  <li><b>Cloudflare</b> hosts the shared-world server and stores its data.</li>
+  <li><b>GitHub</b> hosts the game's pages; like any web host it may log requests.</li>
+  <li><b>Anthropic</b> provides the AI that reviews the play logs.</li>
+</ul>
+<p>Nothing is sold, and nothing is used for advertising. There are no ads or trackers in the game.</p>
+
+<h2>Children</h2>
+<p>Anyone can play alone. If you are under 14, ask a parent or guardian before playing together, since that means accepting this policy.</p>
+
+<h2>Your rights</h2>
+<p>You can ask what we keep about you, ask us to correct or delete it, or object to how we use it, and you can complain to your data protection authority (in Lithuania, the State Data Protection Inspectorate). Because we don't know who players are, tell us which world you played in and roughly when, so we can find your data. Leaving a shared world doesn't delete your data in it; ask us, or it goes when the world is deleted.</p>
+
+<h2>Changes</h2>
+<p>If this policy changes in a way that matters, the game will tell you the next time you play together.</p>
+</article>
+
+<article id="lt" lang="lt">
+<h1>Privatumo politika</h1>
+<p class="meta">More Than Enough · 1 versija · 2026 m. spalio 14 d.</p>
+
+<h2>Trumpai</h2>
+<p>Žaidžiant vienam, jokie duomenys apie tave neišeina iš tavo įrenginio. Žaisti kartu su kitais nėra privaloma; jei žaidi, bendro pasaulio serveris saugo, ką tame pasaulyje darai, su atsitiktiniu identifikatoriumi, kad pasaulis veiktų, būtų sustabdytas sukčiavimas ir žaidimas taptų geresnis. Mes niekada neprašome ir nesaugome tavo vardo, el. pašto ar paskyros, o pokalbių žaidime nėra.</p>
+
+<h2>Kas mes</h2>
+<p>More Than Enough yra mažas nepriklausomas naršyklės žaidimas adresu play.robertasrudys.com. Jo kodas viešas: <a href="https://github.com/bitkojine/more-than-enough">github.com/bitkojine/more-than-enough</a>. Klausimus ir prašymus kūrėjui siųsk per <a href="https://github.com/bitkojine/more-than-enough/issues">žaidimo GitHub puslapį</a>.</p>
+
+<h2>Žaidžiant vienam</h2>
+<p>Tavo pasaulis, pažanga ir nustatymai saugomi tavo naršyklės saugykloje tavo įrenginyje. Jie niekur nesiunčiami. Išvalius svetainės duomenis naršyklėje, jie ištrinami.</p>
+
+<h2>Žaidžiant kartu</h2>
+<p>Bendras pasaulis veikia mūsų serveryje („Cloudflare Worker“). Prisijungdamas prie jo ar jį kurdamas sutinki su šia politika; jei nesutinki, vis tiek gali žaisti vienas. Serveris saugo:</p>
+<ul>
+  <li><b>Pasaulį:</b> jo žemėlapio sėklą, kiekvieną bet kieno atliktą pakeitimą ir kam priklauso kiekvienas pastatas.</li>
+  <li><b>Tavo žaidėją:</b> atsitiktinį slaptą raktą, sukurtą tavo įrenginyje, iš kurio serveris gauna identifikatorių, kiekviename pasaulyje vis kitokį. Pagal jį tave mato serveris; kiti žaidėjai mato iš jo parinktą gamtos vardą (pvz., Samana ar Papartis), bet nieko apie tave.</li>
+  <li><b>Tavo pažangą tame pasaulyje</b> ir kur paskutinį kartą stovėjai, kad galėtum sugrįžti.</li>
+  <li><b>Žaidimo žurnalą</b> apie tai, ką ten darai: kada ateini ir išeini, kur esi maždaug kas 15 sekundžių, kai judi, ir kiek nuėjai, ką kasi ir statai, kaip auga tavo pažanga, su kuria pakvietimo nuoroda atėjai, ir ką atmetė apsauga nuo sukčiavimo arba kas pažeidė serverio ribas.</li>
+</ul>
+<p>Tavo IP adresą mūsų prieglobos paslauga trumpam naudoja, kad apribotų, kiek pasaulių vienas žmogus gali sukurti per valandą ir kiek ryšių laikyti; jis nesaugomas nei pasaulyje, nei žurnale.</p>
+
+<h2>Kodėl</h2>
+<ul>
+  <li>Kad bendras pasaulis veiktų visiems jame esantiems.</li>
+  <li>Kad greitai pagautume ir sustabdytume sukčius bei bandančius sugadinti žaidimą.</li>
+  <li>Kad sužinotume, kaip žmonės žaidžia (kur praleidžia laiką, kur užstringa), ir pagerintume žaidimą.</li>
+</ul>
+<p>Tai darome, nes su tuo sutikai, kai pasirinkai žaisti kartu, ir nes sąžiningas bei veikiantis žaidimas yra teisėtas visų žaidėjų interesas.</p>
+
+<h2>Automatiniai sprendimai</h2>
+<p>Serverio apsauga nuo sukčiavimo atmeta neįmanomus judesius, o nuolat juos darantis žaidėjas automatiškai pašalinamas iš to pasaulio. Kas valandą dirbtinio intelekto sistema („Claude“, sukurta „Anthropic“) peržiūri visų bendrų pasaulių žaidimo žurnalus dėl sukčiavimo ir to, ką galime sužinoti; ji pašalina žaidėją tik už aiškų sukčiavimą, o visa, kas mažiau aišku, perduodama kūrėjui. Pasaulio savininkas taip pat gali pašalinti žaidėjus. Jei manai, kad buvai pašalintas per klaidą, parašyk mums.</p>
+
+<h2>Kiek laiko saugome</h2>
+<ul>
+  <li>Žaidimo žurnalą: <b>14 dienų</b>.</li>
+  <li>Įrašus apie sukčiavimą, pašalinimus, atmestus prisijungimus ir nutrauktus ryšius: <b>90 dienų</b>, kad būtų galima atpažinti pasikartojančius sukčius.</li>
+  <li>Bendrą pasaulį su visų jame esančių pažanga: kol niekas jo neaplanko <b>30 dienų</b>, tada jis ištrinamas kartu su visais žurnalais.</li>
+  <li>Mūsų parašytos santraukos apie tai, kaip žaidėjai žaidžia (pagal žaidėjo identifikatorių, niekada pagal asmenį), gali būti saugomos ilgiau, kad padėtų kurti žaidimą.</li>
+</ul>
+
+<h2>Kas dar juos tvarko</h2>
+<ul>
+  <li><b>Cloudflare</b> talpina bendrų pasaulių serverį ir saugo jo duomenis.</li>
+  <li><b>GitHub</b> talpina žaidimo puslapius; kaip bet kuri svetainių priegloba, jis gali registruoti užklausas.</li>
+  <li><b>Anthropic</b> teikia dirbtinį intelektą, peržiūrintį žaidimo žurnalus.</li>
+</ul>
+<p>Niekas neparduodama ir nenaudojama reklamai. Žaidime nėra reklamos ar sekiklių.</p>
+
+<h2>Vaikai</h2>
+<p>Žaisti vienam gali kiekvienas. Jei tau mažiau nei 14 metų, prieš žaisdamas kartu paklausk tėvų ar globėjų, nes tai reiškia sutikimą su šia politika.</p>
+
+<h2>Tavo teisės</h2>
+<p>Gali paklausti, ką apie tave saugome, paprašyti tai ištaisyti ar ištrinti arba nesutikti, kaip tai naudojame, taip pat gali pateikti skundą duomenų apsaugos institucijai (Lietuvoje – Valstybinei duomenų apsaugos inspekcijai). Kadangi nežinome, kas yra žaidėjai, nurodyk, kuriame pasaulyje ir maždaug kada žaidei, kad rastume tavo duomenis. Išėjus iš bendro pasaulio, tavo duomenys jame neištrinami; paprašyk mūsų arba jie išnyks, kai pasaulis bus ištrintas.</p>
+
+<h2>Pakeitimai</h2>
+<p>Jei ši politika pasikeis reikšmingai, žaidimas tau apie tai praneš, kai kitą kartą žaisi kartu.</p>
+</article>
+</main>
+</body>
+</html>

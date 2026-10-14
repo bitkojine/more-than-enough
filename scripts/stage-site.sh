@@ -1,6 +1,6 @@
 #!/bin/sh
 # Stage the deployable site into <outdir> (default: site/): the game at the
-# root and the wiki under wiki/.
+# root, the wiki under wiki/ and the privacy policy under privacy/.
 #
 # The site is static files with no build step. GitHub Pages caches every file
 # for 10 minutes and doesn't let us set headers, so a returning player could
@@ -13,7 +13,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 OUT="${1:-site}"
-SOURCES="index.html style.css manifest.webmanifest icons src wiki packs"
+SOURCES="index.html style.css manifest.webmanifest icons src wiki packs privacy"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
