@@ -7,10 +7,14 @@ the Abundance Engine.
 
 ## How to launch
 
-**Play it live:** the game is deployed to GitHub Pages — every push to `main`
-rebuilds it automatically:
+**Play it live:** the game is deployed to GitHub Pages at its own domain —
+every push to `main` rebuilds it automatically:
 
-**https://bitkojine.github.io/more-than-enough/**
+**https://play.robertasrudys.com/**
+
+(The old address, bitkojine.github.io/more-than-enough/, redirects there. The
+game has an origin of its own, so nothing else on bitkojine.github.io can read
+players' keys or saves; the room service accepts only this origin.)
 
 Or serve the folder yourself. The game is plain HTML/CSS and JavaScript
 modules with zero dependencies and no build step, so `index.html` just needs a
@@ -33,7 +37,7 @@ on the Pages site, saves live in that browser for that origin).
 Figure it out by playing. The game never explains itself: there's no tutorial,
 no prompts and no instructions on screen.
 
-Everything is documented in the **[wiki](https://bitkojine.github.io/more-than-enough/wiki/)**
+Everything is documented in the **[wiki](https://play.robertasrudys.com/wiki/)**
 (`wiki/` in this repo, linked from the sheet in-game): controls, the world, the
 mine, buildings, every upgrade table, the prestige loop and the milestones. Its
 tables and figures are read live from `src/core/`, so they always match the
@@ -124,8 +128,8 @@ Deploys cache-bust automatically: `scripts/stage-site.sh` (run by the Pages
 workflow, or `npm run stage` locally) appends a hash of the source tree as
 `?v=` to the stylesheet, the entry module, every module import, the icons and
 the manifest, so GitHub Pages' 10-minute cache can't serve a stale mix of
-modules to returning players, and Safari (which caches icons per host, shared
-by every project on bitkojine.github.io) fetches this game's icon afresh.
+modules to returning players, and Safari (which caches icons per host)
+fetches this game's icon afresh.
 You don't need to change asset URLs by hand — just push.
 
 Players never run an old version: the staged site also has a `build.json`

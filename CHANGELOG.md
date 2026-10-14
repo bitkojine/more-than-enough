@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.72.1] - 2026-10-14
+
+### Security
+- **The game lives at https://play.robertasrudys.com**, its own origin.
+  On bitkojine.github.io it shared an origin with every other project
+  there, which could read players' secret keys and saves and call the room
+  service. The old address redirects, and the room service now accepts only
+  the new origin. Saves and keys don't carry over (browsers keep them per
+  origin), so everyone starts fresh there.
+
 ## [0.72.0] - 2026-10-14
 
 ### Security

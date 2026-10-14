@@ -665,6 +665,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.72.1": "The game has its own address now: play.robertasrudys.com. The old one takes you there.\nOn the new address you start fresh, and so does playing together.",
   "news.0.72.0": "Invite links now let in only a few people: in Invite links you pick how many (1 to 25, never unlimited) and how long they work (30 minutes to a day).\nA player removed from a world stays out, the link they came in with stops, and their buildings go.\nBasic anti-cheat: anyone who teleports or changes the world far from where they stand is taken out of the world.",
   "news.0.71.1": "Only an update can set off the nuke in a shared world; no player can.",
   "news.0.71.0": "The Nuke button left Settings. Now, when an update changes how worlds are made, a big red button takes the middle of the screen and everyone presses it.\nIt's pressed for anyone away or offline, and for everyone after a minute. Then you all start fresh together in a brand-new world with everything new.",

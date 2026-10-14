@@ -665,6 +665,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.72.1": "Žaidimas dabar turi savo adresą: play.robertasrudys.com. Senasis nukreipia ten.\nNauju adresu pradedi iš naujo, kaip ir žaidimą kartu.",
   "news.0.72.0": "Kvietimų nuorodos dabar įleidžia tik kelis žmones: skiltyje „Kvietimų nuorodos“ pasirenki, kiek (nuo 1 iki 25, niekada be ribos) ir kiek laiko jos galioja (nuo 30 minučių iki paros).\nIš pasaulio pašalintas žaidėjas nebegali grįžti, nuoroda, su kuria jis atėjo, sustabdoma, o jo pastatai dingsta.\nPaprasta apsauga nuo sukčiavimo: kas teleportuojasi ar keičia pasaulį toli nuo savęs, tas pašalinamas iš pasaulio.",
   "news.0.71.1": "Bendrame pasaulyje sprogdinimą gali sukelti tik atnaujinimas, joks žaidėjas.",
   "news.0.71.0": "Mygtukas „Sprogdinti“ nebėra Nustatymuose. Dabar, kai atnaujinimas pakeičia, kaip kuriami pasauliai, ekrano viduryje atsiranda didelis raudonas mygtukas, ir jį paspaudžia visi.\nUž tuos, kurių nėra ar kurie atsitraukę, jis paspaudžiamas automatiškai, o už visus po minutės. Tada visi kartu pradedate iš naujo visiškai naujame pasaulyje su viskuo, kas nauja.",
