@@ -10,20 +10,37 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, KEY_RE
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, KEY_RE
 } from '../../src/net/protocol.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
 export const MOD_BUCKETS = 16;               // richness edits are stored in this many pieces
-export const INVITE_MS = 24 * 3600_000;      // an invite link lets new friends in for a day
+export const INVITE_MS = cleanInviteAsk(null).life * 60_000; // a link works this long unless asked otherwise
 export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
 const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
-const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left
+const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left (or half its life)
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
 export const FAR_MS = 2000;                  // everyone else hears where you are this often
 export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
+export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
+// Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
+// fastest boots with many Nomad perks are well under it); a player's steps
+// draw on a budget of that much distance a second, up to MOVE_BURST, so steps
+// that arrive bunched up after a hiccup still pass. A step past the budget
+// or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_BAN
+// cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) take
+// the player out of the world for good. The owner is never banned from
+// their own world.
+export const MAX_SPEED = 40;
+export const MOVE_BURST = 120;
+export const CHEATS_TO_BAN = 10;
+export const CHEAT_FORGIVE_MS = 30_000;
+// What one player (not the owner) may put in a world, so one player can't
+// fill it for everyone.
+export const PLAYER_BUILDINGS = 400;
+export const PLAYER_PROPS = 2000;
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -60,6 +77,11 @@ export class Room {
     this.call = null;
     this.nuke = new Set();
     this.gen = 0;
+    // Players taken out of the world (by the owner or for cheating), who
+    // can't come back with their key.
+    this.bans = new Set();
+    // Per player, not kept: their step budget and cheats ({at, budget, fresh, cheats, cheatAt}).
+    this.watch = new Map();
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
   }
@@ -78,6 +100,7 @@ export class Room {
     if (!meta) return r;
     Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, call: meta.call ?? null, ready: true });
     r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
+    r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -91,7 +114,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke] });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke], bans: [...this.bans] });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -147,19 +170,23 @@ export class Room {
   async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     const id = await playerId(this.id, key);
+    if (this.bans.has(id)) return { error: 'invite' };
     let pl = this.players.get(id);
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
-      if (!inv || inv.off || inv.until < now) return { error: 'invite' };
+      if (!inv || !this.inviteWorks(inv, now)) return { error: 'invite' };
       if (this.players.size >= LIMITS.players) return { error: 'full' };
       inv.uses++;
       this.dirty.meta = true;
       const used = new Set([...this.players.values()].map((p) => p.c));
       let c = 0;
       while (used.has(c)) c++;
-      pl = { c, st: 'offline', p: null, save: null, lostAt: 0 };
+      // `via`: the link they came in with, stopped if they're taken out.
+      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, np: 0 };
       this.players.set(id, pl);
     }
+    // A new connection may stand anywhere its game remembers: its first step is free.
+    this.watch.set(id, { ...this.watchOf(id, now), fresh: true });
     pl.st = 'online';
     pl.lostAt = 0;
     this.touch(now);
@@ -173,10 +200,20 @@ export class Room {
   inviteList(id) {
     const list = [];
     for (const [code, inv] of this.invites) {
-      if (id === this.owner || inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off]);
+      if (id === this.owner || inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, this.maxOf(inv)]);
     }
     list.sort((a, b) => b[2] - a[2]);
     return { t: 'invites', list: list.slice(0, INVITE_LIST) };
+  }
+
+  // How many people a link lets in (links from before the limit: the default).
+  maxOf(inv) {
+    return Number.isSafeInteger(inv.max) ? inv.max : cleanInviteAsk(null).uses;
+  }
+
+  // Whether a link still lets someone new in: not stopped, not expired, not used up.
+  inviteWorks(inv, now) {
+    return !inv.off && inv.until >= now && inv.uses < this.maxOf(inv);
   }
 
   // The world's clock at `now`: seconds of game time, the same for everyone.
@@ -255,6 +292,7 @@ export class Room {
     if (d.t === 'pos') {
       const p = cleanPos(d.p);
       if (!p) return { drop: true };
+      if (!this.canStep(id, pl.p, p, now)) return this.cheat(id, now);
       pl.p = p;
       if (pl.st !== 'online') return this.setStatus(id, 'online', { t: 'pos', id, p });
       // Players near you hear every step; everyone else every FAR_MS, enough
@@ -271,9 +309,16 @@ export class Room {
       // world bare in a moment, and only around where they stand.
       if (edits && !edits.take(now, list.length)) return { drop: true };
       const applied = [];
-      for (const e of list) if (editInReach(e, pl.p) && this.apply(e, id)) applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
+      let far = false;
+      for (const e of list) {
+        if (!editInReach(e, pl.p)) { far = !!pl.p; continue; }
+        if (this.apply(e, id)) applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
+      }
       this.touch(now);
-      return applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
+      const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
+      if (!far) return out;
+      const banned = this.cheat(id, now);
+      return banned.kick ? banned : out;
     }
     if (d.t === 'save') {
       const save = cleanSave(d.s);
@@ -286,22 +331,27 @@ export class Room {
       return this.setStatus(id, d.a === true ? 'away' : 'online');
     }
     if (d.t === 'invite') {
-      // Anyone in the world may hold up the QR. It shows your newest link
-      // while that still has a while to go, else a new one.
+      // Anyone in the world may hold up the QR, choosing how many people its
+      // link lets in and for how long. It shows your newest link made that
+      // way while that still has a while to go and room for someone, else a
+      // new one.
+      const ask = cleanInviteAsk(d);
+      const lifeMs = ask.life * 60_000;
       let code = null, newest = 0;
       for (const [c, inv] of this.invites) {
-        if (inv.by === id && !inv.off && inv.until - now >= REUSE_MS && inv.made >= newest) { code = c; newest = inv.made; }
+        if (inv.by === id && this.inviteWorks(inv, now) && this.maxOf(inv) === ask.uses && inv.life === ask.life &&
+            inv.until - now >= Math.min(REUSE_MS, lifeMs / 2) && inv.made >= newest) { code = c; newest = inv.made; }
       }
       if (!code) {
         if (this.invites.size >= MAX_INVITES) {
           // Make room by forgetting the oldest link that no longer works.
           let dead = null;
-          for (const [c, inv] of this.invites) if ((inv.off || inv.until < now) && (!dead || inv.made < this.invites.get(dead).made)) dead = c;
+          for (const [c, inv] of this.invites) if (!this.inviteWorks(inv, now) && (!dead || inv.made < this.invites.get(dead).made)) dead = c;
           if (!dead) return { toSelf: [{ t: 'invitesFull' }] };
           this.invites.delete(dead);
         }
         code = randomRoomId();
-        this.invites.set(code, { by: id, made: now, until: now + INVITE_MS, uses: 0, off: false });
+        this.invites.set(code, { by: id, made: now, until: now + lifeMs, uses: 0, max: ask.uses, life: ask.life, off: false });
         this.dirty.meta = true;
       }
       return { toSelf: [{ t: 'invite', code, until: this.invites.get(code).until }] };
@@ -317,10 +367,7 @@ export class Room {
     if (d.t === 'remove') {
       // Only the world's owner removes a player, never themselves.
       if (id !== this.owner || typeof d.id !== 'string' || d.id === this.owner || !this.players.has(d.id)) return { drop: true };
-      this.players.delete(d.id);
-      this.dirty.players.add(d.id);
-      this.nuke.delete(d.id);
-      return { kick: d.id, toAll: [{ t: 'removed', id: d.id }] };
+      return this.ban(d.id);
     }
     if (d.t === 'nuke') {
       // Pressed, for good: there's no taking it back.
@@ -329,6 +376,61 @@ export class Room {
       return { toAll: [this.nukeVotes()] };
     }
     return { drop: true };
+  }
+
+  /* ------------------------------------------------------- anti-cheat */
+
+  watchOf(id, now) {
+    let w = this.watch.get(id);
+    if (!w) this.watch.set(id, w = { at: now, budget: MOVE_BURST, fresh: true, cheats: 0, cheatAt: 0 });
+    return w;
+  }
+
+  // Whether a step from `from` to `to` is one a player could take (taking
+  // it from their budget). A climb or fall keeps them on the same spot.
+  canStep(id, from, to, now) {
+    const w = this.watchOf(id, now);
+    w.budget = Math.min(MOVE_BURST, w.budget + (now - w.at) / 1000 * MAX_SPEED);
+    w.at = now;
+    if (!from || w.fresh) { w.fresh = false; return true; }
+    const dist = Math.hypot(to.x - from.x, to.y - from.y);
+    if (dist > w.budget) return false;
+    w.budget -= dist;
+    return true;
+  }
+
+  // A cheat by player `id`: counted (one a second at most, older ones
+  // forgiven slowly), and enough of them take the player out for good.
+  cheat(id, now) {
+    const w = this.watchOf(id, now);
+    if (now - w.cheatAt >= 1000) {
+      w.cheats = Math.max(0, w.cheats - Math.floor((now - w.cheatAt) / CHEAT_FORGIVE_MS)) + 1;
+      w.cheatAt = now;
+    }
+    if (w.cheats >= CHEATS_TO_BAN && id !== this.owner && this.players.has(id)) return this.ban(id);
+    return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
+  }
+
+  // Takes a player out of the world for good: their key can't come back,
+  // the link they came in with stops, and their buildings go.
+  ban(id) {
+    const pl = this.players.get(id);
+    this.players.delete(id);
+    this.dirty.players.add(id);
+    this.nuke.delete(id);
+    this.watch.delete(id);
+    if (this.bans.size >= MAX_BANS) this.bans.delete(this.bans.values().next().value);
+    this.bans.add(id);
+    const via = pl && typeof pl.via === 'string' ? this.invites.get(pl.via) : undefined;
+    if (via) via.off = true;
+    this.dirty.meta = true;
+    const left = this.ext.filter((e) => e[4] !== id);
+    if (left.length !== this.ext.length) {
+      this.ext = left;
+      this.extTiles = new Set(left.map((e) => extAt(e[1], e[2], e[3])));
+      this.dirty.ext = true;
+    }
+    return { kick: id, toAll: [{ t: 'removed', id }] };
   }
 
   /* ------------------------------------------------------------ nuke */
@@ -410,8 +512,11 @@ export class Room {
       this.dirty.buckets.add(bucketOf(e[1]));
       return true;
     }
+    const pl = by === this.owner ? null : this.players.get(by);
     if (e[0] === 'p') {
       if (this.props.has(e[1]) || this.props.size >= LIMITS.props) return false;
+      if (pl && (pl.np || 0) >= PLAYER_PROPS) return false;
+      if (pl) { pl.np = (pl.np || 0) + 1; this.dirty.players.add(by); }
       this.props.set(e[1], e[2]);
       this.dirty.props = true;
       return true;
@@ -419,6 +524,7 @@ export class Room {
     if (e[0] === 'x') {
       const at = extAt(e[2], e[3], e[4]);
       if (this.extTiles.has(at) || this.ext.length >= LIMITS.extractors) return false;
+      if (pl && this.ext.reduce((n, x) => n + (x[4] === by), 0) >= PLAYER_BUILDINGS) return false;
       this.ext.push([e[1], e[2], e[3], e[4], by]);
       this.extTiles.add(at);
       this.dirty.ext = true;
@@ -428,8 +534,25 @@ export class Room {
   }
 }
 
+// Who's asking, for the limits: the IP address, or for IPv6 its /48 (a
+// home or a phone gets a /64 to a /48, so single addresses, and even single
+// /64s, cost an abuser nothing). Addresses are written out in full first, so
+// "2001:db8::1" and "2001:0db8:0:0::1" are the same visitor.
+export function visitor(ip) {
+  if (!ip) return 'unknown';
+  if (!ip.includes(':')) return ip;
+  const [head, tail = ''] = ip.toLowerCase().split('::');
+  const a = head ? head.split(':') : [];
+  const b = tail ? tail.split(':') : [];
+  const groups = ip.includes('::') ? [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b] : a;
+  return groups.slice(0, 3).map((g) => (parseInt(g, 16) || 0).toString(16)).join(':') + '::/48';
+}
+
 /* A token bucket per connection: LIMITS.ratePerSecond on average, bursts
- * up to LIMITS.rateBurst. A connection that keeps going over is closed. */
+ * up to LIMITS.rateBurst. A connection that keeps going over is closed:
+ * each refusal is a strike, and one strike is forgiven every STRIKE_FORGIVE_MS,
+ * so an honest connection that goes over now and then is never cut. */
+export const STRIKE_FORGIVE_MS = 10_000;
 export class Bucket {
   constructor(now, rate = LIMITS.ratePerSecond, burst = LIMITS.rateBurst) {
     this.rate = rate;
@@ -440,6 +563,7 @@ export class Bucket {
   }
 
   take(now, n = 1) {
+    this.strikes = Math.max(0, this.strikes - (now - this.at) / STRIKE_FORGIVE_MS);
     this.tokens = Math.min(this.burst, this.tokens + (now - this.at) / 1000 * this.rate);
     this.at = now;
     if (this.tokens >= n) { this.tokens -= n; return true; }

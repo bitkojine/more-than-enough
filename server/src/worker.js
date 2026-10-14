@@ -9,11 +9,14 @@
  * room are in room.js; the wire format is src/net/protocol.js. */
 
 import { DurableObject } from 'cloudflare:workers';
-import { Room, Bucket, editBucket, NEAR } from './room.js';
-import { LIMITS, ROOM_ID_RE, randomRoomId } from '../../src/net/protocol.js';
+import { Room, Bucket, editBucket, NEAR, visitor } from './room.js';
+import { LIMITS, ROOM_ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
 
-const CREATES_PER_HOUR = 6;      // rooms one IP address may make
-const HELLO_MS = 10_000;         // a socket must say who it is within this
+const CREATES_PER_HOUR = 6;      // rooms one visitor may make
+const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
+const HELLO_MS = 5_000;          // a socket must say who it is within this
+const SOCKETS_PER_VISITOR = 8;   // sockets one visitor may hold in a room
+const STRANGERS_PER_VISITOR = 3; // of them, ones that haven't said who they are yet
 const PERSIST_MS = 2_000;        // edits reach storage this soon
 const MAX_SOCKETS = LIMITS.players * 2;
 
@@ -36,11 +39,10 @@ function allowedOrigin(env, origin) {
   return env.ALLOW_LOCALHOST === 'true' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/.test(origin);
 }
 
-// Who's asking, for the room-making limit: the IP address, or for IPv6 its
-// /64 (one home or phone gets a whole /64, so single addresses are free).
-function visitor(request) {
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  return ip.includes(':') ? ip.split(':').slice(0, 4).join(':') + '::/64' : ip;
+// A short, salted hash of a visitor for a room's socket limits: enough to
+// count sockets, without the room keeping anyone's address.
+async function visitorTag(room, request) {
+  return (await sha256Hex('mte-visitor|' + room + '|' + visitor(request.headers.get('CF-Connecting-IP')))).slice(0, 12);
 }
 
 // The request body as text, or null once it passes `max` bytes (read in
@@ -100,8 +102,10 @@ export default {
     if (url.pathname === '/rooms' && request.method === 'POST') {
       const len = Number(request.headers.get('Content-Length') || 0);
       if (len > LIMITS.createBytes) return respond({ error: 'size' }, 413, okOrigin);
-      const gate = env.LIMITER.get(env.LIMITER.idFromName(visitor(request)));
-      if (!(await gate.allow(Date.now()))) return respond({ error: 'busy' }, 429, okOrigin);
+      const gate = env.LIMITER.get(env.LIMITER.idFromName(visitor(request.headers.get('CF-Connecting-IP'))));
+      if (!(await gate.allow(Date.now(), CREATES_PER_HOUR))) return respond({ error: 'busy' }, 429, okOrigin);
+      const all = env.LIMITER.get(env.LIMITER.idFromName('*'));
+      if (!(await all.allow(Date.now(), CREATES_PER_HOUR_ALL))) return respond({ error: 'busy' }, 429, okOrigin);
       const body = await readCapped(request, LIMITS.createBytes);
       if (body === null) return respond({ error: 'size' }, 413, okOrigin);
       const id = randomRoomId();
@@ -119,6 +123,7 @@ export default {
       // The room learns its own id only from here, never from a player.
       const headers = new Headers(request.headers);
       headers.set('X-Room-Id', m[1]);
+      headers.set('X-Visitor', await visitorTag(m[1], request));
       return room.fetch(new Request(request.url, { headers, method: 'GET' }));
     }
 
@@ -128,12 +133,13 @@ export default {
 
 /* ------------------------------------------------------------------ */
 
-// Counts room creations for one IP address (an object per address).
+// Counts room creations for one visitor (an object per visitor), or for
+// everyone (the object named '*').
 export class Limiter extends DurableObject {
-  async allow(now) {
+  async allow(now, limit) {
     const hour = 3600_000;
     const times = ((await this.ctx.storage.get('t')) || []).filter((t) => now - t < hour);
-    if (times.length >= CREATES_PER_HOUR) return false;
+    if (times.length >= limit) return false;
     times.push(now);
     await this.ctx.storage.put('t', times);
     await this.ctx.storage.setAlarm(now + hour);
@@ -182,10 +188,18 @@ export class Rooms extends DurableObject {
   async fetch(request) {
     const id = request.headers.get('X-Room-Id');
     if (!this.room.ready || this.room.id !== id) return new Response('no such room', { status: 404 }); // i18n-ok: an HTTP status body
-    if (this.ctx.getWebSockets().length >= MAX_SOCKETS) return new Response('busy', { status: 429 }); // i18n-ok: an HTTP status body
+    const sockets = this.ctx.getWebSockets();
+    if (sockets.length >= MAX_SOCKETS) return new Response('busy', { status: 429 }); // i18n-ok: an HTTP status body
+    // One visitor can't take every place in a room: a few sockets each, and
+    // fewer still that haven't said who they are.
+    const v = request.headers.get('X-Visitor') || '';
+    const theirs = sockets.map((ws) => ws.deserializeAttachment() || {}).filter((a) => a.v === v);
+    if (theirs.length >= SOCKETS_PER_VISITOR || theirs.filter((a) => !a.id).length >= STRANGERS_PER_VISITOR) {
+      return new Response('busy', { status: 429 }); // i18n-ok: an HTTP status body
+    }
     const [client, server] = Object.values(new WebSocketPair());
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ id: null, at: Date.now() });
+    server.serializeAttachment({ id: null, at: Date.now(), v });
     await this.schedule();
     return new Response(null, { status: 101, webSocket: client });
   }
@@ -238,7 +252,7 @@ export class Rooms extends DurableObject {
         other.close(4001, 'replaced');
       }
     }
-    ws.serializeAttachment({ id: r.id, at: now });
+    ws.serializeAttachment({ id: r.id, at: now, v: (ws.deserializeAttachment() || {}).v });
     ws.send(JSON.stringify(r.welcome));
     this.send(this.room.statusOf(r.id), r.id);
     // A newer game arrived: the nuke goes up on everyone else's screen too.

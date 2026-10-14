@@ -9,7 +9,8 @@
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
  *                  away {a}                game hidden (true) or back (false)
- *                  invite                  hold up the sign: your invite link, please
+ *                  invite {uses, life}     hold up the sign: your invite link, please, letting in
+ *                                          at most `uses` people for `life` minutes (INVITE_USES, INVITE_LIVES)
  *                  invites                 the invite links you may see (all, for the owner)
  *                  revoke {code}           stop an invite link (the owner any, others their own)
  *                  remove {id}             the owner takes a player out of the world
@@ -19,8 +20,8 @@
  *                                          you, every couple of seconds when far)
  *                  edits {id, e: [...]}    the world changed (yours echoed too)
  *                  status {id, st, c, p?}  a friend's state changed (c: their place, 0, 1, 2…)
- *                  invite {code, until}    the link for your sign (lasts a day)
- *                  invites {list}          [code, by, made, until, uses, stopped] newest first
+ *                  invite {code, until}    the link for your sign
+ *                  invites {list}          [code, by, made, until, uses, stopped, max] newest first
  *                  removed {id}            a player was taken out of the world
  *                  nuke {nuke: {votes, until}}  the nuke is on: who pressed it, and when it's pressed for the rest
  *                  full / bad              why the room is closing on you
@@ -45,6 +46,22 @@ export const LIMITS = Object.freeze({
   editsBurst: 400,       // (a Trail sweep makes many at once)
   editReach: 24          // tiles from where you stand that you can change
 });
+
+// What an invite link may be, like Discord's: how many people it lets in
+// (never unlimited) and for how many minutes it works. The player picks
+// them in Invite links; the defaults are a few people for a day.
+export const INVITE_USES = Object.freeze([1, 2, 3, 5, 10, 25]);
+export const INVITE_LIVES = Object.freeze([30, 60, 360, 720, 1440]);
+export const INVITE_DEFAULT = Object.freeze({ uses: 3, life: 1440 });
+
+// An invite request's uses and life, each one of the allowed values, or the
+// default for anything else.
+export function cleanInviteAsk(d) {
+  return {
+    uses: INVITE_USES.includes(d?.uses) ? d.uses : INVITE_DEFAULT.uses,
+    life: INVITE_LIVES.includes(d?.life) ? d.life : INVITE_DEFAULT.life
+  };
+}
 
 export const STATUS = Object.freeze(['online', 'away', 'lost', 'offline']);
 // What a player is playing on, shown as what their character holds.

@@ -642,6 +642,21 @@ body.signing #zoomControls { visibility: hidden; }
   border: 1px solid var(--panel-line); background: rgba(255, 255, 255, 0.03);
 }
 .invite.dead { opacity: .55; }
+/* Picks for new invite links: how many people, for how long. */
+.inviteAsk { display: flex; flex-direction: column; gap: 6px; }
+.inviteAsk > span { font-size: 12.5px; font-weight: 700; color: var(--ink-dim); padding-left: 2px; }
+.inviteAsk .pick {
+  display: flex; gap: 2px; padding: 3px; border-radius: 12px;
+  background: rgba(0, 0, 0, 0.35); border: 1px solid var(--panel-line);
+}
+.inviteAsk .pick button {
+  flex: 1 1 0; min-width: 0; height: 38px; border: 0; border-radius: 9px;
+  background: none; color: var(--ink-dim);
+  font: 800 13.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  white-space: nowrap; touch-action: manipulation; cursor: pointer;
+}
+.inviteAsk .pick button.on { color: #0c1a0e; background: var(--green); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
+.inviteAsk + .inviteAsk { margin-bottom: 6px; }
 .invite i { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--friend); }
 .invite div { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .invite strong { font-size: 15px; }
@@ -814,6 +829,11 @@ body.signing #zoomControls { visibility: hidden; }
 }
 
 /* Fail loud: the crash report covers the game so nothing broken looks fine. */
+/* Shown instead of the game when another page frames it (src/game/main.js). */
+#framed {
+  position: fixed; inset: 0; display: grid; place-items: center; padding: 24px;
+  text-align: center; font: 700 18px/1.4 system-ui, sans-serif; color: var(--ink); background: var(--bg, #0a0e0b);
+}
 #crash {
   position: fixed; inset: 12px; z-index: 100;
   display: flex; flex-direction: column; gap: 10px;

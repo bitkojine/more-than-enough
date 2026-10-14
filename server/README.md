@@ -17,8 +17,10 @@ shared with the game.
    key, so nobody can pose as you without the key, and ids differ from room
    to room.
 3. Holding up the sign asks the room for an **invite link**: a second random
-   code, good for a day (your sign keeps showing your newest one while it has
-   an hour left). The room counts how many joined with each link; the owner
+   code that lets in a few people (1 to 25, 3 unless the player picks; never
+   unlimited) for a while (30 minutes to a day, a day unless they pick).
+   Your sign keeps showing your newest one made that way while it has room
+   and time left. The room counts how many joined with each link; the owner
    can list and stop every link, anyone else their own. The QR is
    `<game>#join=<room>.<invite>`. It's in the fragment, which browsers never
    send to any server.
@@ -43,15 +45,25 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Who can call it:** only the game's own origins (`ALLOWED_ORIGINS` in
   `wrangler.toml`; `localhost` only with `ALLOW_LOCALHOST`, for
   `wrangler dev`).
-- **Who can join:** whoever holds a live invite, at most 100 players a room
-  (`LIMITS.players`). The owner can remove a player, who then needs a new invite.
-- **Abuse limits:** 6 new rooms an hour per IP address (per /64 for IPv6);
+- **Who can join:** whoever holds a live invite that isn't used up, at most
+  100 players a room (`LIMITS.players`). The owner can remove a player: they
+  are banned from the room for good (their key can't come back), the link
+  they joined with stops, and their buildings go.
+- **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
+  budget, so bunched-up steps pass) are refused, and they and edits out of
+  reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
+  owner removed them (never the owner). One player (not the owner) puts up
+  at most 400 buildings and 2,000 props.
+- **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
+  and 300 an hour in all; in a room, 8 sockets per visitor, 3 of them before
+  saying who they are;
   16 KB per message (64 KB for your own progress); 30 messages a second per
   connection and 60 world edits a second per player, with small bursts;
   edits only within 24 tiles of where the player stands, on their own layer;
   a room holds at most 100,000 tile edits, 20,000 props and 4,000
-  buildings; 200 sockets a room (two per player), and a socket that doesn't say who it is in 10
-  seconds is closed. A connection that keeps breaking the limits is closed.
+  buildings; 200 sockets a room (two per player), and a socket that doesn't say who it is in 5
+  seconds is closed. A connection that keeps breaking the limits is closed
+  (strikes are forgiven over time).
 - **Ownership:** a building's owner is set by the room, never by the
   player.
 - **The nuke:** only the room service calls it, once, when a world was made

@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.72.0] - 2026-10-14
+
+### Security
+- **Invite links let in a few people, never unlimited.** Like Discord's,
+  each link has a most people it lets in (1, 2, 3, 5, 10 or 25; 3 unless
+  you pick) and a life (30 minutes, 1, 6 or 12 hours, or a day; a day
+  unless you pick), chosen at the top of Invite links. The list shows how
+  many of how many joined.
+- **Removed means removed.** A player the owner removes is banned from the
+  world (their key can't come back), the link they joined with stops, and
+  their buildings are taken down for everyone.
+- **Basic anti-cheat with auto-ban.** The room refuses steps faster than
+  anyone can walk and counts them, and edits far from where a player
+  stands, as cheats; ten of them (one a second at most, slowly forgiven)
+  ban the player. The owner is never banned from their own world. One
+  player (not the owner) can put up at most 400 buildings and 2,000 props.
+- **A room can't be locked shut from outside.** One visitor (an IPv4
+  address or an IPv6 /48) holds at most 8 sockets in a room, at most 3 of
+  them before saying who they are, and a socket has 5 seconds to say so.
+- **Room-making limits that hold.** IPv6 visitors are counted by /48, not
+  /64, and at most 300 rooms an hour are made in all.
+- Rate-limit strikes are forgiven over time, so an honest connection isn't
+  cut after hours of play.
+- The game won't run inside another site's frame (it offers its own tab),
+  the live page's CSP no longer allows localhost, and the wiki got a CSP.
+- The room service also accepts https://play.robertasrudys.com, the
+  game's coming home of its own.
+
 ## [0.71.1] - 2026-10-14
 
 ### Fixed

@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
@@ -401,4 +401,109 @@ test('room: offline players and idle ones once the minute is up have it pressed 
   const back = Room.restore(r.id, r.takeWrites(), T0 + 1000);
   assert.deepEqual([back.call, [...back.nuke]], [{ fmt: WORLD_FORMAT, at: T0 }, [a]]);
   assert.equal(back.nukeDeadline(), T0 + NUKE_AFK_MS);
+});
+
+/* ------------------------------------------------------------ security */
+
+test('room: an invite lets in only as many people as asked, never unlimited, for as long as asked', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const ask = (d) => r.message(o.id, JSON.stringify({ t: 'invite', ...d }), T0).toSelf[0];
+  const two = ask({ uses: 2, life: 30 });
+  assert.equal(two.until, T0 + 30 * 60_000);
+  assert.ok((await r.join(key(), two.code, T0)).id);
+  assert.ok((await r.join(key(), two.code, T0)).id);
+  assert.equal((await r.join(key(), two.code, T0)).error, 'invite', 'used up');
+  assert.equal((await r.join(key(), ask({ uses: 1, life: 30 }).code, T0 + 31 * 60_000)).error, 'invite', 'expired');
+  const odd = ask({ uses: 1e9, life: 1e9 });
+  const inv = r.invites.get(odd.code);
+  assert.deepEqual([inv.max, inv.until - T0], [P.INVITE_DEFAULT.uses, P.INVITE_DEFAULT.life * 60_000], 'anything not on the list is the default');
+  assert.ok(P.INVITE_USES.every((n) => Number.isSafeInteger(n) && n >= 1), 'never unlimited');
+  const listed = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.find((e) => e[0] === two.code);
+  assert.deepEqual([listed[4], listed[6]], [2, 2], 'the list says how many of how many');
+});
+
+test('room: a removed player stays out, the link they used stops, and their buildings go', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const code = r.message(o.id, JSON.stringify({ t: 'invite', uses: 10 }), T0).toSelf[0].code;
+  const gKey = key();
+  const g = await r.join(gKey, code, T0);
+  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
+  r.message(g.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 11, 11, 0]] }), T0);
+  assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1);
+  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0);
+  assert.equal(out.kick, g.id);
+  assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }]);
+  assert.equal(r.ext.some((e) => e[4] === g.id), false, 'their buildings are gone');
+  assert.equal(r.extTiles.has('11,11,0'), false, 'and their tiles are free');
+  assert.equal((await r.join(gKey, code, T0)).error, 'invite', 'not back with the same key');
+  assert.equal((await r.join(key(), code, T0)).error, 'invite', 'nor with a new key on the same link');
+  // The ban survives a restart.
+  const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
+  assert.equal((await back.join(gKey, invite(back, o.id), T0)).error, 'invite');
+});
+
+test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const code = invite(r, o.id);
+  const c = await r.join(key(), code, T0);
+  const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
+  pos(0.5, T0); // a new connection stands wherever its game says
+  // Walking at the fastest honest speed, in bunched-up messages, is fine.
+  let x = 0.5, t = T0;
+  for (let i = 0; i < 100; i++) { t += 125; x += 12 * 0.125; assert.ok(!pos(x, t).kick); }
+  assert.equal(r.players.get(c.id).p.x, Math.round(x * 1000) / 1000);
+  // A jump far beyond the budget is refused.
+  pos(x + MOVE_BURST + 50, t + 10);
+  assert.equal(r.players.get(c.id).p.x, Math.round(x * 1000) / 1000, 'the jump is not taken');
+  // An edit there doesn't count either, and keeps cheating gets them banned.
+  let out = {};
+  for (let i = 1; i <= CHEATS_TO_BAN && !out.kick; i++) out = pos(x + 10_000, t + i * 1000);
+  assert.equal(out.kick, c.id, 'banned');
+  assert.equal(r.players.has(c.id), false);
+  assert.ok(MAX_SPEED > 3.7 * 2.5 * 2, 'faster than the best boots with several Nomad perks');
+});
+
+test('anti-cheat: edits out of reach count; the owner is never banned from their world', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  const far = JSON.stringify({ t: 'edits', e: [['m', Core.packKey(900, 0, 0), 0]] });
+  for (let i = 0; i < CHEATS_TO_BAN * 2; i++) assert.ok(!r.message(o.id, far, T0 + i * 1000).kick);
+  assert.ok(r.players.has(o.id));
+  const f = await r.join(key(), invite(r, o.id), T0);
+  r.message(f.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  let out = {};
+  for (let i = 0; i < CHEATS_TO_BAN && !out.kick; i++) out = r.message(f.id, far, T0 + i * 1000);
+  assert.equal(out.kick, f.id);
+});
+
+test('anti-cheat: one player can only put up so many buildings', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const f = await r.join(key(), invite(r, o.id), T0);
+  let t = T0;
+  for (let i = 0; i < PLAYER_BUILDINGS + 5; i++) {
+    const x = i % 40, y = Math.floor(i / 40);
+    r.message(f.id, JSON.stringify({ t: 'pos', p: { x: x + 0.5, y: y + 0.5, z: 0 } }), t += 1000);
+    r.message(f.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', x, y, 0]] }), t);
+  }
+  assert.equal(r.ext.filter((e) => e[4] === f.id).length, PLAYER_BUILDINGS);
+});
+
+test('rate buckets forgive strikes over time', () => {
+  const b = new Bucket(T0, 1, 1);
+  b.take(T0); b.take(T0); b.take(T0);
+  assert.equal(b.strikes, 2);
+  b.take(T0 + 2 * STRIKE_FORGIVE_MS);
+  assert.ok(b.strikes < 1, 'an honest connection that slips now and then is never cut');
+});
+
+test('the room-making limit counts an IPv6 visitor by their /48, however it is written', () => {
+  assert.equal(visitor('203.0.113.7'), '203.0.113.7');
+  assert.equal(visitor('2001:db8:1:2::5'), visitor('2001:0db8:0001:ffff:0:0:0:9'));
+  assert.notEqual(visitor('2001:db8:1::'), visitor('2001:db8:2::'));
+  assert.equal(visitor(null), 'unknown');
 });

@@ -12,7 +12,7 @@
 import * as Core from '../core/index.js';
 import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanStatus, cleanColor, cleanTime,
-  ROOM_ID_RE, KEY_RE, ID_RE, randomHex
+  ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, cleanInviteAsk
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
 import { qrcode } from '../vendor/qrcode.js';
@@ -26,6 +26,8 @@ const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const SAVE_PREFIX = 'mte.room.';      // your progress in a shared world (a copy)
 const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
 const GEN_PREFIX = 'mte.gen.';        // which making of that world those are from (see the nuke)
+const INVITE_USES_STORE = 'mte.inviteUses'; // how many people your new invite links let in
+const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes
 
 const WELCOME_BYTES = 8_000_000;      // the most a room's welcome may be
 const POS_EVERY = 0.125;              // seconds between position updates
@@ -114,11 +116,12 @@ function cleanInvites(list) {
   if (!Array.isArray(list) || list.length > 100) return null;
   const out = [];
   for (const e of list) {
-    if (!Array.isArray(e) || e.length !== 6) return null;
-    const [code, by, made, until, uses, off] = e;
+    if (!Array.isArray(e) || e.length !== 7) return null;
+    const [code, by, made, until, uses, off, max] = e;
     if (typeof code !== 'string' || !ROOM_ID_RE.test(code) || typeof by !== 'string' || !ID_RE.test(by) ||
-        !Number.isSafeInteger(made) || !Number.isSafeInteger(until) || !Number.isSafeInteger(uses) || uses < 0 || typeof off !== 'boolean') return null;
-    out.push({ code, by, made, until, uses, off });
+        !Number.isSafeInteger(made) || !Number.isSafeInteger(until) || !Number.isSafeInteger(uses) || uses < 0 || typeof off !== 'boolean' ||
+        !Number.isSafeInteger(max) || max < 1) return null;
+    out.push({ code, by, made, until, uses, off, max });
   }
   return out;
 }
@@ -277,8 +280,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
       return;
     }
     if (d.t === 'removed') {
-      if (d.id === me) return; // the close that follows says so
+      if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return; // the close that follows says so
       if (friends.delete(d.id)) { roster = null; renderFriends(); renderNuke(); }
+      // Their buildings go with them (the room has taken them down too).
+      const s = game.state;
+      const kept = s.extractors.filter((b) => b.owner !== d.id);
+      if (kept.length !== s.extractors.length) { s.extractors = kept; game.worldChanged(); }
       return;
     }
     if (d.t === 'invite') {
@@ -439,7 +446,13 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
 
   function showInvite() {
     if (!game.state.shared || !welcomed) { hud.toast(t('together.toast.offline')); return; }
-    send({ t: 'invite' });
+    send({ t: 'invite', ...inviteAsk() });
+  }
+
+  // How many people your new links let in and for how long (Invite links),
+  // remembered on this device. Never unlimited.
+  function inviteAsk() {
+    return cleanInviteAsk({ uses: Number(read(INVITE_USES_STORE)), life: Number(read(INVITE_LIFE_STORE)) });
   }
 
   // The room gave us an invite: up goes the sign with its code. Your
@@ -490,12 +503,45 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     return p;
   }
 
+  // Picks for new links, like Discord's: how many people, for how long.
+  function askRow(label, values, current, text, store, list) {
+    const row = document.createElement('div');
+    row.className = 'inviteAsk';
+    const name = document.createElement('span');
+    name.textContent = label;
+    const pick = document.createElement('div');
+    pick.className = 'pick';
+    pick.setAttribute('role', 'radiogroup');
+    pick.setAttribute('aria-label', label);
+    for (const v of values) {
+      const b = button(text(v), v === current ? 'on' : '', () => {
+        write(store, String(v));
+        if (invite) closeQr(); // the sign's link was made the old way
+        renderInvites(list);
+      });
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', String(v === current));
+      pick.append(b);
+    }
+    row.append(name, pick);
+    return row;
+  }
+
+  function lifeText(min) {
+    return min < 60 ? t('invites.minutes', { n: min }) : min < 1440 ? t('invites.hours', { n: min / 60 }) : t('invites.day');
+  }
+
   function renderInvites(list) {
     const box = el.invitesPanel;
-    if (!list.length) { box.replaceChildren(note(t('invites.empty'))); return; }
+    const ask = inviteAsk();
+    const asks = [
+      askRow(t('invites.ask.uses'), INVITE_USES, ask.uses, String, INVITE_USES_STORE, list),
+      askRow(t('invites.ask.life'), INVITE_LIVES, ask.life, lifeText, INVITE_LIFE_STORE, list)
+    ];
+    if (!list.length) { box.replaceChildren(...asks, note(t('invites.empty'))); return; }
     const now = Date.now();
-    box.replaceChildren(...list.map((inv) => {
-      const works = !inv.off && inv.until > now;
+    box.replaceChildren(...asks, ...list.map((inv) => {
+      const works = !inv.off && inv.until > now && inv.uses < inv.max;
       const row = document.createElement('div');
       row.className = 'invite' + (works ? '' : ' dead');
       const by = inv.by === me ? myColor : friends.get(inv.by)?.c;
@@ -505,8 +551,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
       const title = document.createElement('strong');
       title.textContent = inv.by === me ? t('invites.yours') : t('invites.theirs', { name: nameOf(inv.by) || t('invites.someone') });
       const sub = document.createElement('small');
-      const state = inv.off ? t('invites.stopped') : inv.until <= now ? t('invites.expired') : t('invites.left', { time: timeLeft(inv.until - now) });
-      sub.textContent = t('invites.uses', { n: inv.uses }) + ' · ' + state;
+      const state = inv.off ? t('invites.stopped') : inv.until <= now ? t('invites.expired') : inv.uses >= inv.max ? t('invites.usedUp') : t('invites.left', { time: timeLeft(inv.until - now) });
+      sub.textContent = t('invites.uses', { n: inv.uses, max: inv.max }) + ' · ' + state;
       text.append(title, sub);
       row.append(dot, text);
       if (works) {

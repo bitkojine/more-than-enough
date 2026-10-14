@@ -35,6 +35,22 @@ const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 
 // Every word on the page in the player's language first.
 localizePage();
+
+// Never inside another site's page: framed, the game could be shown under
+// something else and trick taps onto Join, Remove or the nuke. GitHub Pages
+// can't send a header that forbids framing, so the game refuses here and
+// offers itself in a tab of its own.
+if (window.top !== window.self) {
+  const open = document.createElement('a');
+  open.id = 'framed';
+  open.href = location.href;
+  open.target = '_blank';
+  open.rel = 'noopener';
+  open.textContent = t('game.framed');
+  document.body.replaceChildren(open);
+  await new Promise(() => {}); // and go no further
+}
+
 const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 window.MTE_VERSION = VERSION;  // for the crash report

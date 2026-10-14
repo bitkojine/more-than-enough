@@ -8,7 +8,7 @@ workers_dev = true
 
 [vars]
 # The pages allowed to use the service (comma-separated origins).
-ALLOWED_ORIGINS = "https://bitkojine.github.io"
+ALLOWED_ORIGINS = "https://play.robertasrudys.com,https://bitkojine.github.io"
 ALLOW_LOCALHOST = "false"
 
 [[durable_objects.bindings]]

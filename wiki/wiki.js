@@ -267,6 +267,9 @@ fill().then(() => {
   document.body.dataset.filled = 'true';
   if (route().query !== undefined || route().passage >= 0) show(); // tables are in now
 }, (err) => {
-  document.querySelector('main').insertAdjacentHTML('afterbegin', `<div class="note error">${t('wiki.loadFailed', { error: err.message })}</div>`);
+  const note = document.createElement('div');
+  note.className = 'note error'; // i18n-ok: CSS classes
+  note.textContent = t('wiki.loadFailed', { error: err.message });
+  document.querySelector('main').prepend(note);
   throw err;
 });

@@ -46,4 +46,4 @@ jobs:
         run: npx wrangler deploy
 
       - name: Smoke test the live service
-        run: node server/smoke.mjs https://mte-rooms.usernametologinwith.workers.dev https://bitkojine.github.io
+        run: node server/smoke.mjs https://mte-rooms.usernametologinwith.workers.dev https://play.robertasrudys.com
