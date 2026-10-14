@@ -3,7 +3,7 @@
 
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
-import { tileAt, richness, setRichness, holeBelow, holeAbove } from './world.js';
+import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost } from './economy.js';
 
@@ -148,13 +148,13 @@ export function extractorAt(s, x, y, z) {
   return s.extractors.find((e) => e.x === x && e.y === y && e.z === z) || null;
 }
 
-// A building never shares a tile with a way between layers: not on a hole in
-// the floor, nor under one in the ceiling.
+// A building never shares a tile with a way between layers: not on a way
+// down, nor on a way up.
 function buildableTile(s, def, x, y) {
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
   const fits = def.tile === null ? !!TILE_INFO[type].land : type === def.tile;
-  return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !holeAbove(s.world, x, y, z);
+  return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
 }
 
 // The nearest free tile in reach where extractor `key` could stand.

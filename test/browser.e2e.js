@@ -333,25 +333,25 @@ async function main() {
   var zoomReadout = await rect('#zoomLevel');
   await tap(zoomReadout.x, zoomReadout.y);
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'tapping the zoom readout goes back to 1x');
-  // Home ground is kept for the stockpile: no hole there. Step out of it first.
+  // Home ground is kept for the stockpile: no way down there, and nowhere can
+  // you dig one: the way into the mine is a cave mouth you find.
   ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'the layer button is off on home ground');
-  var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return !!c.TILE_INFO[c.tileAt(s.world,x,y,0)].dig;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
+  var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
   await sleep(300);
-  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'DIG DOWN', 'on open ground, the layer button digs down');
+  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'beside a cave mouth, on open ground, there is no digging down');
+  await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
+  await sleep(300);
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'in a cave mouth, the layer button climbs down');
+  ok(!(await evalJS('document.getElementById("btnMine").classList.contains("disabled")')), 'and it is on');
+  console.log('  screenshot: ' + await shot('02b-cave-mouth.png'));
   var mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
-  // A new hole takes work: the button fills while you dig, then you drop.
-  await sleep(300);
-  ok(await evalJS('MTE_GAME.getState().player.z === 0 && document.getElementById("btnMine").classList.contains("digging")'), 'DIG DOWN starts digging a hole; it takes a while');
-  await sleep(900);
-  console.log('  screenshot: ' + await shot('02b-digging.png'));
-  var holeSecs = await evalJS('MTE_GAME.core.holeTime(MTE_GAME.getState())');
-  ok(await waitFor('MTE_GAME.getState().player.z === -1', holeSecs * 1000 + 1500), 'mine button drops to the layer beneath the forest once the hole is dug (' + holeSecs.toFixed(1) + ' s)');
-  ok(await evalJS('MTE_GAME.core.holeBelow(MTE_GAME.getState().world,' + entry.x + ',' + entry.y + ',0)'), 'going down leaves a hole in the forest floor');
+  ok(await waitFor('MTE_GAME.getState().player.z === -1', 1500), 'mine button drops down the cave mouth at once');
+  ok(await evalJS('MTE_GAME.getState().world.holes.size === 0'), 'going down digs nothing');
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.isExplored(s.world,' + (entry.x + 1) + ',' + entry.y + ',-1)&&!c.isExplored(s.world,' + (entry.x + 8) + ',' + entry.y + ',-1);})()', 1000), 'underground, only the rock close by is revealed');
   eq(await evalJS('document.getElementById("depth").hidden ? "" : document.getElementById("depth").textContent'), '\u25BC 1', 'the depth marker shows layer 1');
   eq(await evalJS('[].map.call(document.querySelectorAll("#depthGauge i"),function(i){return i.className||"-";}).join(" ")'), 'surface here deeper', 'the depth gauge shows the forest, you a layer under it, and deeper still');
-  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB UP', 'under the hole you came down, the layer button climbs up');
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB UP', 'at the foot of the ladder you came down, the layer button climbs up');
   await sleep(120); // let the camera settle on the new layer
   var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
   var ms = JSON.parse(mineSpot);
@@ -397,11 +397,14 @@ async function main() {
   ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'CLIMB UP climbs back through the shaft you came down');
+  await evalJS('MTE_GAME.setPlayer(' + (entry.x + 1.5) + ',' + (entry.y + 0.5) + ')');
+  await sleep(200);
+  ok(await evalJS('document.getElementById("btnMine").classList.contains("disabled")'), 'off the ladder, there is no digging up');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
   await tap(mineBtn.x, mineBtn.y);
-  eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'CLIMB UP under the first hole comes out where you went down');
+  eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y)+","+p.z;})()'), entry.x + ',' + entry.y + ',0', 'CLIMB UP the first ladder comes out of the cave mouth you went down');
   await sleep(200);
-  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'standing on that hole, the layer button climbs down');
+  eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'standing in that cave mouth, the layer button climbs down');
   var overlap = await evalJS('(function(){function rect(e){var b=e.getBoundingClientRect();return {l:b.left,t:b.top,r:b.right,b:b.bottom};}function hit(a,b){return !(a.r<=b.l||b.r<=a.l||a.b<=b.t||b.b<=a.t);}var v=rect(document.getElementById("version"));var g=rect(document.getElementById("depth"));var cs=[].slice.call(document.querySelectorAll("#resources .chip")).map(rect);return JSON.stringify({hitGoal:hit(v,g),hitChips:cs.some(function(c){return hit(v,c);})});})()');
   var ov = JSON.parse(overlap);
   ok(!ov.hitGoal && !ov.hitChips, 'version badge does not overlap goal or resource chips');
@@ -962,8 +965,10 @@ async function main() {
 
   // Underground, tilted: a tap on the top of a wall digs that wall.
   await evalJS('MTE_GAME.setTilt(1)');
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,80,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);})()');
+  await sleep(200);
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
-  ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down into the mine with the view tilted');
+  ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down a cave mouth into the mine with the view tilted');
   // The camera moves to the new layer when it next draws: wait for a frame so
   // the wall's screen position below is projected from where it is now shown.
   await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
@@ -1104,6 +1109,8 @@ async function main() {
   var things = await evalJS('import("/src/core/index.js").then(function(C){return C.LOOKS.length;})');
   ok(await waitFor('document.querySelectorAll("#things .thing").length === ' + things, 3000), 'Everything in the game lists every thing in the catalog (' + things + ')');
   ok(await waitFor('[...document.querySelectorAll("#things .thing")].every(function(t){return t.querySelector("img, .swatch");})', 2000), 'each one shows its default picture or colour');
+  // The list's pictures load lazily; ask for them all before checking.
+  await evalJS('document.querySelectorAll("#things img").forEach(function(i){i.loading="eager";})');
   ok(await waitFor('[...document.querySelectorAll("#things img")].every(function(i){return i.complete && i.naturalWidth > 0;})', 6000), 'every picture in the list loads');
   // Prices: every amount sits in one pill with its resource's picture.
   ok(await evalJS('(function(){var a=[...document.querySelectorAll(".cost .amt")];return a.length>50&&a.every(function(p){return p.querySelectorAll("img").length===1&&/^[0-9,]+$/.test(p.querySelector(".n").textContent);});})()'), 'each price pairs every amount with its resource in one pill');

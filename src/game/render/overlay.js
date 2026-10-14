@@ -138,9 +138,9 @@ export function drawLighting(ctx, cam, s, look, lights) {
   if (under) {
     const sky = look.color('mark.skylight');
     const strength = cam.z + 1 === Core.SURFACE ? 0.35 + 0.65 * dl : 0.4;
-    for (const k of s.world.holes) {
-      const t = Core.unpackKey(k);
-      if (t.z === cam.z + 1) all.push({ x: t.x + 0.5, y: t.y + 0.5, r: SKYLIGHT_LIGHT, color: sky, strength });
+    const v = cam.visibleTiles();
+    for (const t of Core.waysIn(s.world, cam.z, v.x0, v.y0, v.x1, v.y1)) {
+      if (Core.holeAbove(s.world, t.x, t.y, cam.z)) all.push({ x: t.x + 0.5, y: t.y + 0.5, r: SKYLIGHT_LIGHT, color: sky, strength });
     }
   }
 

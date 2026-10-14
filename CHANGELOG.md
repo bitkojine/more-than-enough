@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.43.0] - 2026-10-14
+
+### Changed
+- **Find your way down; you can't dig it.** There's no more digging down
+  from the forest or up through the ceiling. Every way between layers is now
+  part of the world, and you discover it by exploring: **cave mouths** in the
+  forest (most stretches of open land have one, never in water, mountains or
+  home ground) lead to the first layer, and the mine's shafts lead deeper, as
+  before. Directly beneath every cave mouth and shaft is the foot of a
+  **ladder up** back to it, so every layer connects to the next both ways,
+  all over the map. Stand on one and the layer button says CLIMB DOWN or
+  CLIMB UP, or tap one within reach. Anywhere else the button dims. Holes
+  dug in older saves keep working both ways. DIG DOWN, DIG UP and the dig
+  timer are gone.
+- Torches, lamps and flags can't be placed on a way between layers.
+
 ## [0.42.0] - 2026-10-14
 
 ### Changed

@@ -70,7 +70,7 @@ test('yard: biggest piles nearest home, and the same state gives the same yard',
 test('yard: home ground first, never on anything you can gather, water, rock, holes, buildings or the unexplored', () => {
   const s = yardWorld({ mycelium: 9999, stone: 9999, ore: 9999, crystal: 9999 }, 30);
   const h = C.home(s);
-  C.digHole(s.world, h.x, h.y, C.SURFACE);
+  s.world.holes.add(C.packKey(h.x, h.y, C.SURFACE)); // dug in an older version
   s.extractors.push({ key: 'compost', x: h.x + 1, y: h.y, z: C.SURFACE, buffer: 0 });
   const yard = C.yardLayout(s);
   for (const p of yard) {
@@ -132,12 +132,12 @@ test('yard: as amounts change, piles that stay called for never move', () => {
   }
 });
 
-test('yard: a pile on ground that stops being yard (a hole dug there) moves', () => {
+test('yard: a pile on ground that stops being yard (a building put there) moves', () => {
   const s = yardWorld({ mycelium: 5 });
   const yard = C.yardLayout(s, {});
   const p = yard[0];
-  C.digHole(s.world, p.x, p.y, C.SURFACE);
+  s.extractors.push({ key: 'compost', x: p.x, y: p.y, z: C.SURFACE, buffer: 0 });
   const next = C.yardSettle(s, yard, {});
   assert.equal(next.length, 5);
-  assert.ok(!next.some((q) => q.x === p.x && q.y === p.y), 'nothing stands over the hole');
+  assert.ok(!next.some((q) => q.x === p.x && q.y === p.y), 'nothing stands on the building');
 });

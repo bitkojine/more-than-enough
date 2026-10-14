@@ -11,7 +11,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles } from './terrain.js';
-import { drawExtractor, drawDigging, drawPlayer, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawExtractor, drawPlayer, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
@@ -55,7 +55,7 @@ export function render(cam, s, fx, view, look) {
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
-    if (y === playerRow) { drawDigging(ctx, cam, s, look); drawPlayer(ctx, cam, s, look, view); }
+    if (y === playerRow) drawPlayer(ctx, cam, s, look, view);
   });
   // Tilted, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {

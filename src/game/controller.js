@@ -8,14 +8,12 @@ import { clearSave, randomSeed } from './storage.js';
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
-const DIG_BEAT = 0.4;         // seconds between shovelfuls while digging a hole
 
 export function createController({ game, cam, fx, audio, hud, look }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
   const drilling = { x: 0, y: 0, t: 0 }; // progress into the wall you're pushing
-  let dustIn = 0;                          // seconds to the next shovelful while digging a hole
 
   const state = () => game.state;
   const player = () => game.state.player;
@@ -109,14 +107,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     game.saveNow();
   }
 
-  function brokeThrough() {
-    layerChanged();
-    const p = player();
-    fx.dug(Math.floor(p.x), Math.floor(p.y)); // dust where you came through
-  }
-
-  function descend(x, y) {
-    if (!Core.descendAt(state(), x, y)) return false;
+  // Through a way between layers within reach: down a hole, or up a ladder.
+  function passAt(x, y) {
+    if (!Core.descendAt(state(), x, y) && !Core.climbAt(state(), x, y)) return false;
     layerChanged();
     return true;
   }
@@ -163,16 +156,6 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     // `holdAt`: a finger held still on the map (screen point), or null. It
     // works that tile over and over, like holding Gather.
     tick(dt, holding, holdAt) {
-      const s = state();
-      if (s.digging) {
-        // A shovelful of dust and a thud every so often while you dig.
-        if ((dustIn -= dt) <= 0) {
-          dustIn = DIG_BEAT;
-          fx.dug(s.digging.x, s.digging.y);
-          audio.dig();
-        }
-        if (Core.digOn(s, dt)) brokeThrough();
-      }
       cooldown -= dt;
       if (holding && cooldown <= 0 && act()) cooldown = GATHER_COOLDOWN;
       if (holdAt && cooldown <= 0) {
@@ -183,13 +166,13 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       }
     },
 
-    // A tap on the map acts on that tile if it can (descend, harvest, collect).
+    // A tap on the map acts on that tile if it can (go down or up, harvest, collect).
     // Otherwise it walks there, and gathers or collects on arrival if there's
     // something to work: tapping a forest across the clearing goes and forages it.
     tap(sx, sy) {
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
-      if (descend(tx, ty) || workAt(tx, ty)) return;
+      if (passAt(tx, ty) || workAt(tx, ty)) return;
       walkToward(tx, ty, workable(tx, ty));
     },
 
@@ -217,10 +200,9 @@ export function createController({ game, cam, fx, audio, hud, look }) {
       changed();
     },
 
-    // The layer button: through a hole that's there, or start digging one
-    // (it takes a while; see tick()).
+    // The layer button: down the way you stand in, or up the ladder.
     toggleMine() {
-      if (Core.startDig(state()) === 'moved') brokeThrough();
+      if (Core.takeWay(state())) layerChanged();
     },
 
     buy(id) {
@@ -274,7 +256,6 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     forget() {
       walkTo = null;
       cooldown = 0;
-      dustIn = 0;
     }
   };
   return controller;

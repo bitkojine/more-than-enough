@@ -124,6 +124,14 @@
    "color": "#5a4836",
    "top": "ground/shaft-open.svg"
   },
+  "tile.cave": {
+   "color": "#4a5a3a",
+   "top": "ground/cave.svg"
+  },
+  "tile.rise": {
+   "color": "#5a4836",
+   "top": "ground/tunnel.svg"
+  },
   "resource.mycelium": {
    "icon": "icons/mycelium.svg",
    "color": "#f1d29a"
@@ -221,14 +229,8 @@
   "ui.upgrade": {
    "icon": "icons/upgrade.svg"
   },
-  "ui.dig": {
-   "icon": "icons/dig.svg"
-  },
   "ui.climb": {
    "icon": "icons/climb.svg"
-  },
-  "ui.digUp": {
-   "icon": "icons/dig-up.svg"
   },
   "ui.climbDown": {
    "icon": "icons/climb-down.svg"

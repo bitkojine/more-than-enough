@@ -39,7 +39,7 @@
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
-        <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, holes, digging and shafts.</span></a></li>
+        <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, cave mouths, shafts, ladders and digging.</span></a></li>
         <li><a href="#buildings"><strong>Buildings</strong><span>Extractors, converters, collecting, Logistics.</span></a></li>
         <li><a href="#stockpile"><strong>The stockpile</strong><span>Everything you own, piled up around home.</span></a></li>
         <li><a href="#upgrades"><strong>Upgrades</strong><span>Tools, refineries, unlocks, the Abundance Engine.</span></a></li>
@@ -107,10 +107,9 @@
       <ul>
         <li><strong>BUILD</strong> opens the sheet on the Build tab. See <a href="#buildings">Buildings</a>.</li>
         <li><strong>UPGRADE</strong> opens the sheet on the Upgrades tab. See <a href="#upgrades">Upgrades</a>.</li>
-        <li>The <strong>layer button</strong> takes you between layers and says how: <strong>DIG DOWN</strong> digs a new hole
-          where you stand, <strong>CLIMB DOWN</strong> goes down a hole that's already there, and underground
-          <strong>DIG UP</strong> and <strong>CLIMB UP</strong> do the same through the ceiling. It dims where you can't. See
-          <a href="#mine">The mine</a>.</li>
+        <li>The <strong>layer button</strong> takes you between layers: <strong>CLIMB DOWN</strong> in a cave mouth in the
+          forest, <strong>CLIMB UP</strong> at the foot of a ladder underground. It dims anywhere else: you can never dig your
+          own way up or down. See <a href="#mine">The mine</a>.</li>
       </ul>
       <p>A <strong>green dot</strong> on BUILD or UPGRADE means there's something in there you can place or buy right now.
         Close the sheet with <strong>Done</strong>, or swipe it down by its handle.</p>
@@ -276,31 +275,33 @@
 
     <article id="mine" data-title="The mine" hidden>
       <h1>The mine</h1>
-      <p class="lede">Solid rock under the forest, as deep as you care to dig.</p>
+      <p class="lede">Solid rock under the forest, layer after layer, for as deep as you can find the way.</p>
 
-      <h2>Holes: going down and back up</h2>
-      <p>Every way between layers is a <strong>hole</strong> you can see, so it's always clear where you went deeper and where
-        you came back up.</p>
+      <h2>Ways down and back up</h2>
+      <p>You can't dig your way up or down. Every way between layers comes with the world, and you have to find it:</p>
       <ul>
-        <li><strong>DIG DOWN</strong>, in the forest, digs a hole at your feet and drops you into a one-tile chamber in the rock
-          directly below. It works on open ground, not in water. A new hole takes work: you dig for
-          <span data-k="HOLE_TIME"></span> seconds with the first Pickaxe (quicker with better ones: the time is divided by the
-          square root of its level), while a ring fills around the button and the pit opens at your feet. Step off the spot
-          and you stop. Standing on a hole that's already there, the button says <strong>CLIMB DOWN</strong> and you go at once.</li>
-        <li>Underground the button goes up: <strong>CLIMB UP</strong> under a hole in the ceiling (the one you came down, say),
-          <strong>DIG UP</strong> anywhere else, which digs a new one through the ceiling where you stand (it takes the same
-          work as digging down). You can't dig up through bedrock, or come up inside a mountain or into water.</li>
-        <li><strong>Home ground</strong> is sealed: you can't dig down from it, or come up onto it from below, so the stockpile's
-          ground stays whole. Deeper down, under home, the rock is like anywhere else.</li>
-        <li>A way between layers never shares a tile with a building: you can't dig down under one or up into one, and you
-          can't build on a hole or under one.</li>
-        <li>Every hole has a <strong>ladder</strong> in it. From above, a hole is a dark pit in the floor with the ladder going
-          down; <strong>tap it</strong> within reach to drop through. From below, it's a pool of light falling through the
-          ceiling with the ladder standing in it, and a beam when the view is tilted. Where a hole has another hole above it
-          (in a column dug straight up or down), you see both: the pit ringed with light pouring into it, and the ladder
+        <li>A <strong>cave mouth</strong> in the forest, a ring of stones around a dark hole, is the way down to the first
+          layer. Most stretches of forest have one (never in water, a mountain or on home ground), so explore and you'll
+          soon come across one. Stand in it and the button says <strong>CLIMB DOWN</strong>, or tap it within reach.</li>
+        <li>In the mine, the way on down is a <strong>shaft</strong>: one in every stretch of rock, hidden until you get close.
+          One dig opens it; then tap it to drop through.</li>
+        <li>Directly beneath every cave mouth and every shaft, on the layer below, is the foot of a <strong>ladder up</strong>:
+          a little open spot in the rock. You land on it when you come down, and it's how you get back. Standing on it, the
+          button says <strong>CLIMB UP</strong>; or tap it within reach. Climbing up through a shaft you haven't opened yet
+          opens it. Anywhere else, the rock overhead stays rock, so to go up you find a ladder, the one you came down or
+          another.</li>
+        <li><strong>Home ground</strong> is sealed: no way down from it, and none up onto it from below, so the stockpile's
+          ground stays whole. Deeper down, under home, the ways are like anywhere else.</li>
+        <li>A way between layers never shares a tile with a building: you can't build on one, or at the foot of a ladder
+          up.</li>
+        <li>Holes dug in older versions of the game still work, both ways.</li>
+        <li>Every way has a <strong>ladder</strong> in it. From above, a hole is a dark pit in the floor with the ladder going
+          down. From below, it's a pool of light falling through the ceiling with the ladder standing in it, and a beam when
+          the view is tilted (under a shaft not yet opened, the ladder stands in the dark). Where a hole has another hole
+          above it (a column straight up or down), you see both: the pit ringed with light pouring into it, and the ladder
           running on up into the beam.</li>
-        <li>Zoomed far out, each hole on your layer keeps a mark you can see: a dark pit with a ladder down, light with a
-          ladder up, or both.</li>
+        <li>Zoomed far out, each way you've found on your layer keeps a mark you can see: a dark pit with a ladder down, a
+          ladder up (in light where the way above is open), or both.</li>
         <li>Holes stacked on top of each other make a column: drop into the top one and you fall all the way to the bottom.</li>
         <li>Going down, you see the trip: the layer you left slides up out of sight, the rock you pass goes by with the shaft
           and its ladder down the middle, and the new layer comes up from below (the other way when you climb). A long fall
@@ -405,7 +406,7 @@
       <h1>The stockpile</h1>
       <p class="lede">Everything you own stands on the ground around home, and the more you have, the further it spreads.</p>
       <p>Every world starts you in a round clearing of <strong>home ground</strong>, packed earth where nothing grows, nothing
-        can be gathered and no hole can be dug. It's where your stockpile is kept. It spirals out from the middle: the biggest piles in the middle, smaller
+        can be gathered and no way between layers opens. It's where your stockpile is kept. It spirals out from the middle: the biggest piles in the middle, smaller
         ones further out. It's a picture of what's in your packs, not a store: nothing has to be carried there, you can walk
         straight through it, and spending something anywhere takes it off the piles at once. New piles grow out of the
         ground; piles that go vanish in a puff.</p>

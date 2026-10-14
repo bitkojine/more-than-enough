@@ -11,10 +11,8 @@ const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
 const LAYER_BUTTON = {
-  digDown: ['ui.dig', 'DIG DOWN', 'Dig a hole down'],
-  climbDown: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the hole'],
-  digUp: ['ui.digUp', 'DIG UP', 'Dig a hole up'],
-  climbUp: ['ui.climb', 'CLIMB UP', 'Climb up the hole']
+  down: ['ui.climbDown', 'CLIMB DOWN', 'Climb down the hole'],
+  up: ['ui.climb', 'CLIMB UP', 'Climb up the ladder']
 };
 
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
@@ -134,16 +132,14 @@ export function createHud(el, look) {
         el.action.classList.toggle('ready', ready);
         el.action.classList.toggle('disabled', !ready);
       }
-      // The layer button says what it will do: climb through a hole that's
-      // there, or dig a new one; down from the forest, up from below.
+      // The layer button says which way it goes: down from the forest, up
+      // from below. It only works on a way you've found.
       const way = Core.layerWay(s);
-      const [mineIcon, mineLabel, mineAria] = LAYER_BUTTON[(way.through ? 'climb' : 'dig') + (way.up ? 'Up' : 'Down')];
+      const [mineIcon, mineLabel, mineAria] = LAYER_BUTTON[way.up ? 'up' : 'down'];
       setIcon(el.mineIcon, mineIcon);
       setText(el.mineLabel, mineLabel);
       el.mine.setAttribute('aria-label', mineAria);
       el.mine.classList.toggle('disabled', !way.ok);
-      el.mine.classList.toggle('digging', !!s.digging);
-      el.mine.style.setProperty('--dig', Core.digProgress(s).toFixed(3));
     },
 
     view(cam) {

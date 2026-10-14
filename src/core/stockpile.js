@@ -109,12 +109,12 @@ function yardWant(s) {
 
 // The ground for `want` piles. Reading the ground is the slow part and
 // doesn't change as amounts do, so callers can pass a `memo` object to keep
-// it between calls; it is re-read when the world, its fog, holes or
-// buildings change.
+// it between calls; it is re-read when the world, its fog or buildings
+// change.
 function groundFor(s, want, memo) {
   const area = want.reduce((n, p) => n + p.span * p.span, 0);
   const R = Math.min(YARD_RADIUS, Math.ceil(Math.sqrt(area) * 1.5) + 6);
-  const key = s.world.revealed + '|' + s.world.holes.size + '|' + s.extractors.length;
+  const key = s.world.revealed + '|' + s.extractors.length;
   if (memo && memo.world === s.world && memo.key === key && memo.ground.R >= R) return memo.ground;
   const g = yardGround(s, Math.max(R, memo && memo.world === s.world ? memo.ground.R : 0));
   if (memo) Object.assign(memo, { world: s.world, key, ground: g });

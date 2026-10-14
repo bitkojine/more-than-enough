@@ -24,7 +24,7 @@ export function createYard({ fx, look }) {
 
   // Everything the layout depends on.
   const signatureOf = (s) => Core.RESOURCES.map((r) => Math.floor(s.inv[r])).join() +
-    '|' + s.extractors.length + '|' + s.world.holes.size + '|' + s.world.revealed;
+    '|' + s.extractors.length + '|' + s.world.revealed;
 
   // `fresh` lays the yard out tidily; otherwise it settles around what stands.
   function refresh(s, quiet, fresh) {

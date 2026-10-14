@@ -36,8 +36,6 @@ import { worldMastered } from './upgrades.js';
  * @property {number} time                         game seconds
  * @property {{deepest: number}} underground     the deepest layer reached so far
  * @property {Array<{res: string, amt: number, x: number, y: number, z: number}>} events
- * @property {{x: number, y: number, z: number, up: boolean, t: number} | null} digging
- *           a hole being dug at the player's feet (not saved; see underground.js)
  *           transient (never saved): auto-collections for the UI to animate
  */
 
@@ -68,8 +66,7 @@ export function createState(seed) {
     goalIndex: 0,
     time: 0,
     underground: { deepest: SURFACE },
-    events: [],
-    digging: null
+    events: []
   };
   revealAround(s);
   return s;

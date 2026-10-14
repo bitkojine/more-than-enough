@@ -56,6 +56,9 @@ when it's shipped (committed, pushed, live), with the version it went out in.
 - [x] **No holes in water.** (0.32.1) Never dig down or up where there's water.
 - [x] **Digging takes work.** (0.33.0) Making a hole should take more steps, at least
       time, so holes aren't everywhere.
+- [x] **No digging between layers.** (0.43.0) You can never dig yourself up or down:
+      every layer, the forest included, is connected only by generated ways up
+      and down that you discover by exploring. (Replaces "Digging takes work".)
 - [x] **Dark tunnels.** (0.34.0) Tunnels are always dark unless you light them.
 
 ## The world and its look

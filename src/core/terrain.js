@@ -5,7 +5,7 @@
 
 import { CHUNK_SIZE, CHUNK_TILES, SURFACE } from './coords.js';
 import { hash2, fbm } from './noise.js';
-import { T } from './tiles.js';
+import { T, TILE_INFO } from './tiles.js';
 import { FINDS, FINDS_PER_CHUNK } from './content.js';
 
 const MAX_RICHNESS = 30;
@@ -60,6 +60,45 @@ DEPOSIT[T.STONE] = { base: 4, spread: 6, salt: 102 };
 DEPOSIT[T.ORE] = { base: 3, spread: 6, salt: 103 };
 DEPOSIT[T.CRYSTAL] = { base: 1, spread: 3, salt: 104 };
 
+/* Ways between layers. Nothing is dug between layers: every way up or down
+ * is generated with the world, and you find it by exploring. A way down is a
+ * cave mouth in the forest or a shaft in the mine; directly beneath each one,
+ * on the layer below, is a way up (T.RISE) back to it. Each chunk of every
+ * layer has its way down (a forest chunk only where it has open land), so
+ * every layer is connected to the next both ways, all over. */
+
+const CAVE_TRIES = 8;
+
+// The tile two in from a chunk's edges picked by draw `i` for layer z.
+function wayCandidate(seed, cx, cy, z, i) {
+  const span = CHUNK_SIZE - 4;
+  return {
+    x: cx * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 3701 + z * 31 + i * 7027) * span),
+    y: cy * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 7919 + z * 31 + i * 7027) * span)
+  };
+}
+
+// A forest chunk's cave mouth down to the first layer: on open land (never
+// in water, a mountain or home ground), or none if a few draws find none.
+export function caveInChunk(seed, cx, cy) {
+  for (let i = 0; i < CAVE_TRIES; i++) {
+    const c = wayCandidate(seed, cx, cy, SURFACE, i);
+    if (TILE_INFO[surfaceType(seed, c.x, c.y)].land) return c;
+  }
+  return null;
+}
+
+// The way down out of chunk (cx, cy) of layer z: its cave mouth or its shaft.
+export function wayDownInChunk(seed, cx, cy, cz) {
+  return cz === SURFACE ? caveInChunk(seed, cx, cy) : shaftInChunk(seed, cx, cy, cz);
+}
+
+// The way up out of chunk (cx, cy) of underground layer z: beneath the way
+// down of the layer above. Null on the surface, or under a chunk with no cave.
+export function wayUpInChunk(seed, cx, cy, cz) {
+  return cz < SURFACE ? wayDownInChunk(seed, cx, cy, cz + 1) : null;
+}
+
 function generateSurface(seed, cx, cy) {
   const type = new Uint8Array(CHUNK_TILES);
   const rich = new Uint8Array(CHUNK_TILES);
@@ -72,6 +111,12 @@ function generateSurface(seed, cx, cy) {
       const d = DEPOSIT[t];
       if (d) rich[i] = Math.max(1, Math.min(MAX_RICHNESS, Math.round(d.base + hash2(x, y, seed + d.salt) * d.spread)));
     }
+  }
+  const cave = caveInChunk(seed, cx, cy);
+  if (cave) {
+    const i = (cave.y - oy) * CHUNK_SIZE + (cave.x - ox);
+    type[i] = T.CAVE;
+    rich[i] = 0;
   }
   return { type, rich };
 }
@@ -98,25 +143,22 @@ function undergroundType(seed, x, y, layer) {
 // Each underground chunk hides one shaft down to the next layer, kept two tiles
 // in from the chunk edge.
 export function shaftInChunk(seed, cx, cy, cz) {
-  const span = CHUNK_SIZE - 4;
-  return {
-    x: cx * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 3701 + cz * 31) * span),
-    y: cy * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 7919 + cz * 31) * span)
-  };
+  return wayCandidate(seed, cx, cy, cz, 0);
 }
 
-// The finds hidden in a chunk: FINDS_PER_CHUNK spots (never on its shaft),
+// The finds hidden in a chunk: FINDS_PER_CHUNK spots (never on its ways),
 // each a geode where the layer is deep enough and the dice say so, else a
 // buried cache. Returns [{x, y, type}].
 export function findsInChunk(seed, cx, cy, cz) {
   const layer = SURFACE - cz;
   const shaft = shaftInChunk(seed, cx, cy, cz);
+  const up = wayUpInChunk(seed, cx, cy, cz);
   const out = [];
   for (let i = 0; i < FINDS_PER_CHUNK; i++) {
     const salt = seed + 4241 + i * 97 + cz * 53;
     const x = cx * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt) * CHUNK_SIZE);
     const y = cy * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt + 11) * CHUNK_SIZE);
-    if ((x === shaft.x && y === shaft.y) || out.some((f) => f.x === x && f.y === y)) continue;
+    if ((x === shaft.x && y === shaft.y) || (up && x === up.x && y === up.y) || out.some((f) => f.x === x && f.y === y)) continue;
     const geode = layer >= FINDS[T.GEODE].from && hash2(cx, cy, salt + 23) < 0.4;
     out.push({ x, y, type: geode ? T.GEODE : T.CACHE });
   }
@@ -133,6 +175,10 @@ function generateUnderground(seed, cx, cy, cz) {
       type[ly * CHUNK_SIZE + lx] = undergroundType(seed, ox + lx, oy + ly, layer);
     }
   }
+  // The way up first, so a shaft right beneath one wins: that tile is then a
+  // way both up and down.
+  const up = wayUpInChunk(seed, cx, cy, cz);
+  if (up) type[(up.y - oy) * CHUNK_SIZE + (up.x - ox)] = T.RISE;
   const shaft = shaftInChunk(seed, cx, cy, cz);
   type[(shaft.y - oy) * CHUNK_SIZE + (shaft.x - ox)] = T.SHAFT;
   for (const f of findsInChunk(seed, cx, cy, cz)) type[(f.y - oy) * CHUNK_SIZE + (f.x - ox)] = f.type;

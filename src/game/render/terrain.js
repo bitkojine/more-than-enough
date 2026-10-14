@@ -56,7 +56,7 @@ function pickFor(look, w, t, slot, x, y, time) {
 
 // Every hole has a ladder in it. A pit shows it going down, a skylight shows
 // it going up into the light, and a hole with another hole above it (part of
-// a column dug straight up or down) shows both: light pouring down into the
+// a column straight up or down) shows both: light pouring down into the
 // pit past the ladder, so a way on down never hides the way back up.
 
 const LADDER_W = 0.24; // a ladder's width, in tiles
@@ -98,13 +98,16 @@ function drawBeam(ctx, light, sx, cy, u, rise) {
 }
 
 // A hole in the ceiling: light from the layer above pooling on the floor, and
-// the ladder standing in it, up to the opening when tilted.
-function drawSkylight(ctx, look, sx, sy, u, g, rise) {
+// the ladder standing in it, up to the opening when tilted. Under a shaft
+// not yet opened, the ladder stands in the dark.
+function drawSkylight(ctx, look, sx, sy, u, g, rise, lit = true) {
   const light = look.color('mark.skylight');
   const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
-  drawPool(ctx, light, cx, cy, u, g, 0.45);
   const tilted = rise > FLAT_RISE_PX;
-  if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
+  if (lit) {
+    drawPool(ctx, light, cx, cy, u, g, 0.45);
+    if (tilted) drawBeam(ctx, light, sx, cy, u, rise);
+  }
   drawLadder(ctx, look, cx, tilted ? cy - rise : sy + u * g * 0.1, sy + u * g * 0.85, u);
 }
 
@@ -121,11 +124,12 @@ function drawThroughShaft(ctx, look, sx, sy, u, d, rise) {
   drawLadder(ctx, look, cx, tilted ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
 }
 
-// Zoomed out, a hole is too small to see, so each one on this layer gets a
-// mark that stays a readable size (drawn over the dark, so the mine's holes
-// show from afar): a dark pit with its ladder going down, light with its
-// ladder going up, or both for a hole in a column.
-const FAR_MARK_PX = 24;  // below this tile size, holes get marks
+// Zoomed out, a way between layers is too small to see, so each one found on
+// this layer gets a mark that stays a readable size (drawn over the dark, so
+// the mine's ways show from afar): a dark pit with its ladder going down, a
+// ladder going up (in light, where the way above is open), or both for a
+// hole in a column.
+const FAR_MARK_PX = 24;  // below this tile size, ways get marks
 const MARK_MIN = 12;     // a mark's least size, in px
 
 export function drawFarHoles(ctx, cam, s, look) {
@@ -134,17 +138,14 @@ export function drawFarHoles(ctx, cam, s, look) {
   const z = cam.z, w = s.world, m = Math.max(MARK_MIN, u * 1.2);
   const hole = look.color('mark.hole'), light = look.color('mark.skylight');
   const ladder = look.pick('mark.ladder', 'image');
-  const seen = new Set();
-  for (const k of w.holes) {
-    const h = Core.unpackKey(k);
-    if (h.z !== z && h.z !== z + 1) continue; // in this floor, or this ceiling
-    const key = Core.packKey(h.x, h.y, z);
-    if (seen.has(key) || !Core.isExplored(w, h.x, h.y, z)) continue;
-    seen.add(key);
+  const v = cam.visibleTiles();
+  for (const h of Core.waysIn(w, z, v.x0, v.y0, v.x1, v.y1)) {
+    if (!Core.isExplored(w, h.x, h.y, z)) continue;
+    const down = Core.holeBelow(w, h.x, h.y, z), up = Core.wayUp(w, h.x, h.y, z);
+    if (!down && !up) continue;
     const c = cam.project(h.x + 0.5, h.y + 0.5);
     if (c.x < -m || c.y < -m || c.x > cam.width + m || c.y > cam.height + m) continue;
-    const down = Core.holeBelow(w, h.x, h.y, z), up = Core.holeAbove(w, h.x, h.y, z);
-    if (up) {
+    if (up && Core.holeAbove(w, h.x, h.y, z)) {
       const glow = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, m * 0.8);
       glow.addColorStop(0, rgba(light, 0.9));
       glow.addColorStop(1, rgba(light, 0));
@@ -272,6 +273,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   if (down && up) drawThroughShaft(ctx, look, sx, sy, u, d, cam.risePx);
   else if (down) drawPit(ctx, look, sx, sy, u, d, cam.risePx);
   else if (up) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
+  else if (Core.wayUp(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx, false);
 }
 
 // A stockpile pile standing in the middle of its square of tiles, as big as

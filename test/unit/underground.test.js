@@ -9,18 +9,17 @@ function neighbours(s) {
   return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => ({ x: px + dx, y: py + dy, dx, dy }));
 }
 
-test('going down digs a hole at your feet and drops into a cleared chamber', () => {
+test('going down the cave mouth you stand in lands at the foot of a ladder back up', () => {
   const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
   assert.equal(C.goDown(s), true);
   assert.equal(s.player.z, -1);
-  assert.deepEqual([Math.floor(s.player.x), Math.floor(s.player.y)], [fx, fy], 'directly beneath the forest spot');
-  assert.ok(C.walkable(s.world, fx, fy, -1));
-  assert.ok(C.holeBelow(s.world, fx, fy, SURFACE), 'the forest keeps a hole where you went down');
-  assert.ok(C.holeAbove(s.world, fx, fy, -1), 'and the chamber has an opening above it');
+  assert.deepEqual([Math.floor(s.player.x), Math.floor(s.player.y)], [fx, fy], 'directly beneath the cave mouth');
+  assert.equal(typeAt(s, fx, fy), T.RISE);
+  assert.ok(C.holeAbove(s.world, fx, fy, -1), 'with the opening above it');
   assert.equal(C.goDown(s), false, 'already underground');
+  assert.equal(s.world.holes.size, 0, 'and nothing was dug');
 });
-
 test('tunnels must be dug before they can be walked', () => {
   const s = away(C.createState(31415));
   C.goDown(s);
@@ -93,79 +92,128 @@ test('an open shaft must be within reach to use it', () => {
   assert.equal(s.player.z, -1);
 });
 
-test('climbing up digs through the ceiling where you stand and leaves a hole', () => {
+test('there is no digging up: every way up is a ladder beneath a way down', () => {
   const s = away(C.createState(31415));
+  const cave = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x, shaft.y, -1, 0);
   standOn(s, { x: shaft.x + 1, y: shaft.y });
   C.descendAt(s, shaft.x, shaft.y);
   assert.equal(s.player.z, -2);
-  // Walk off somewhere else on layer -2 and climb up through solid rock.
+  assert.equal(C.canGoUp(s), true, 'the shaft you came down is a way back up');
+  // Anywhere else on layer -2, rock overhead stays rock.
   const spot = { x: shaft.x + 3, y: shaft.y };
   C.setRichness(s.world, spot.x, spot.y, -2, 0);
   standOn(s, spot);
-  assert.ok(!C.walkable(s.world, spot.x, spot.y, -1), 'rock above before climbing');
+  assert.equal(C.canGoUp(s), false);
+  assert.equal(C.goUp(s), false);
+  assert.equal(s.player.z, -2, 'no way up here');
+  standOn(s, shaft);
   assert.equal(C.goUp(s), true);
-  assert.deepEqual([Math.floor(s.player.x), Math.floor(s.player.y), s.player.z], [spot.x, spot.y, -1], 'straight up');
-  assert.ok(C.walkable(s.world, spot.x, spot.y, -1), 'the rock above was dug out');
-  assert.ok(C.holeBelow(s.world, spot.x, spot.y, -1), 'a hole marks where you came up');
-  assert.equal(C.descendAt(s, spot.x, spot.y), true, 'and it leads back down');
-  assert.equal(s.player.z, -2);
-  C.goUp(s);
-  C.goUp(s);
-  assert.equal(s.player.z, SURFACE, 'climbing again reaches the forest');
+  assert.deepEqual([Math.floor(s.player.x), Math.floor(s.player.y), s.player.z], [shaft.x, shaft.y, -1], 'straight up the shaft');
+  standOn(s, cave);
+  assert.equal(C.goUp(s), true);
+  assert.equal(s.player.z, SURFACE, 'and up the ladder to the cave mouth');
   assert.equal(C.goUp(s), false, 'nothing above the forest');
 });
 
-test('dropping into a dug column rides it to the bottom', () => {
+test('a shaft not yet opened is a way up from below, and climbing it opens it', () => {
+  const s = away(C.createState(31415));
+  C.goDown(s);
+  const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
+  s.player.z = -2;
+  standOn(s, shaft);
+  assert.equal(typeAt(s, shaft.x, shaft.y), T.RISE, 'the foot of its ladder, on the layer below');
+  assert.ok(C.canGoUp(s));
+  assert.equal(C.goUp(s), true);
+  assert.equal(typeAt(s, shaft.x, shaft.y), T.SHAFT_OPEN);
+});
+
+test('tap a ladder up within reach to climb it', () => {
+  const s = away(C.createState(31415));
+  const cave = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
+  C.goDown(s);
+  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
+  C.harvestAt(s, n.x, n.y);
+  standOn(s, n);
+  assert.equal(C.climbAt(s, n.x, n.y), false, 'no ladder on a plain tunnel');
+  assert.equal(C.climbAt(s, cave.x, cave.y), true);
+  assert.deepEqual([Math.floor(s.player.x), Math.floor(s.player.y), s.player.z], [cave.x, cave.y, SURFACE]);
+  assert.equal(C.climbAt(s, cave.x, cave.y), false, 'nothing above the forest');
+});
+test('holes dug in older versions still work, and a column rides to the bottom', () => {
   const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
-  C.goDown(s);
-  C.digHole(s.world, fx, fy, -1);
-  C.digHole(s.world, fx, fy, -2);
-  C.goUp(s);
-  assert.equal(s.player.z, SURFACE);
+  s.world.holes.add(C.packKey(fx, fy, -1));
+  s.world.holes.add(C.packKey(fx, fy, -2));
   C.goDown(s);
   assert.equal(s.player.z, -3, 'fell through -1 and -2');
   assert.equal(s.underground.deepest, -3);
+  assert.equal(C.goUp(s), true, 'and the old hole is a way back up');
+  assert.equal(s.player.z, -2);
 });
-
 test('landing on a closed shaft opens it but does not keep falling', () => {
-  const s = away(C.createState(31415));
+  const seed = 31415;
+  // A chunk whose shafts on layers -1 and -2 line up.
+  let at = null;
+  for (let cx = -40; cx <= 40 && !at; cx++) {
+    for (let cy = -40; cy <= 40 && !at; cy++) {
+      const a = C.shaftInChunk(seed, cx, cy, -1), b = C.shaftInChunk(seed, cx, cy, -2);
+      if (a.x === b.x && a.y === b.y) at = a;
+    }
+  }
+  assert.ok(at);
+  const s = C.createState(seed);
   const w = s.world;
-  const shaft = C.nearestTile(s.player.x, s.player.y, 80, (x, y) =>
-    C.tileAt(w, x, y, -1) === T.SHAFT && C.TILE_INFO[C.tileAt(w, x, y, SURFACE)].land);
-  standOn(s, shaft);
-  assert.equal(C.goDown(s), true);
-  assert.equal(s.player.z, -1, 'stopped on the first layer');
-  assert.equal(C.tileAt(w, shaft.x, shaft.y, -1), T.SHAFT_OPEN, 'the shaft you landed on is open now');
-});
-
-test('bedrock above and mountains above block climbing', () => {
-  const s = away(C.createState(5));
-  C.goDown(s);
-  s.player.z = -2;
-  const bed = C.nearestTile(s.player.x, s.player.y, 40, (x, y) => C.tileAt(s.world, x, y, -1) === T.BEDROCK);
-  standOn(s, bed);
-  s.player.z = -2;
-  assert.equal(C.canGoUp(s), false, 'bedrock above');
-  const rock = C.nearestTile(s.player.x, s.player.y, 300, (x, y) => C.tileAt(s.world, x, y, SURFACE) === T.ROCK);
-  standOn(s, rock);
   s.player.z = -1;
-  assert.equal(C.canGoUp(s), false, 'a mountain above');
-  const water = C.nearestTile(s.player.x, s.player.y, 300, (x, y) => C.tileAt(s.world, x, y, SURFACE) === T.WATER);
+  C.setRichness(w, at.x, at.y, -1, 0);
+  standOn(s, at);
+  assert.equal(C.descendAt(s, at.x, at.y), true);
+  assert.equal(s.player.z, -2, 'stopped on the next layer');
+  assert.equal(C.tileAt(w, at.x, at.y, -2), T.SHAFT_OPEN, 'the shaft you landed on is open now');
+  assert.equal(C.canGoUp(s), true, 'and it is a way both up and down');
+});
+test('no way down or up where none was generated', () => {
+  const s = away(C.createState(5));
+  const grass = findNear(s, (st, x, y) => typeAt(st, x, y) === T.GRASS);
+  standOn(s, grass);
+  assert.equal(C.canGoDown(s), false, 'no digging down');
+  assert.equal(C.takeWay(s), false);
+  const water = findNear(s, (st, x, y) => typeAt(st, x, y) === T.WATER, 300);
   standOn(s, water);
-  s.player.z = SURFACE;
-  assert.equal(C.canGoDown(s), false, 'no digging down through a lake');
+  assert.equal(C.canGoDown(s), false, 'nor through a lake');
+  s.player.z = -1;
+  standOn(s, grass);
+  C.setRichness(s.world, grass.x, grass.y, -1, 0);
+  assert.equal(C.canGoUp(s), false, 'no digging up');
+  assert.equal(C.takeWay(s), false);
+  assert.equal(s.player.z, -1);
 });
 
+test('cave mouths: on open land in many forest chunks, never in water, mountains or home', () => {
+  const seed = 31415, w = C.createWorld(seed);
+  let caves = 0;
+  for (let cx = -8; cx < 8; cx++) {
+    for (let cy = -8; cy < 8; cy++) {
+      const c = C.caveInChunk(seed, cx, cy);
+      if (!c) continue;
+      caves++;
+      assert.equal(C.tileAt(w, c.x, c.y, SURFACE), T.CAVE);
+      assert.ok(C.holeBelow(w, c.x, c.y, SURFACE), 'a way down');
+      assert.ok([T.RISE, T.SHAFT].includes(C.tileAt(w, c.x, c.y, -1)), 'over the foot of a ladder up (or a shaft on down)');
+    }
+  }
+  assert.ok(caves > 16 * 16 * 0.6, `most chunks have one (${caves} of 256)`);
+  const near = C.nearestTile(0.5, 0.5, 24, (x, y) => C.tileAt(w, x, y, SURFACE) === T.CAVE);
+  assert.ok(near, 'one is never far from home');
+});
 test('a hole is not gathered from or built on', () => {
   const s = away(C.createState(31415));
   const forest = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOREST);
   standOn(s, forest);
   assert.ok(C.canHarvest(s, forest.x, forest.y));
-  C.digHole(s.world, forest.x, forest.y, SURFACE);
+  s.world.holes.add(C.packKey(forest.x, forest.y, SURFACE)); // dug in an older version
   assert.equal(C.canHarvest(s, forest.x, forest.y), false);
 });
 
@@ -272,102 +320,54 @@ test('underground, pushing into rock drills it after a moment; bedrock and shaft
   assert.equal(C.drillTarget(top, 1, 0), null);
 });
 
-test('no way between layers shares a tile with a building, and none opens in water', () => {
-  // Down through a building: no.
+test('no way between layers shares a tile with a building', () => {
+  // Never on a cave mouth...
   const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
-  s.extractors.push({ key: 'compost', res: 'mycelium', x: fx, y: fy, z: C.SURFACE, buffer: 0 });
-  assert.equal(C.canGoDown(s), false, 'not under a building');
-  s.extractors.length = 0;
-  assert.equal(C.canGoDown(s), true);
-
-  // Up into a building: no.
+  Object.assign(s.inv, { mycelium: 1e6, stone: 1e6, ore: 1e6 });
+  s.unlocks.compost = true;
+  const spot = C.buildTarget(s, 'compost');
+  assert.ok(spot && (spot.x !== fx || spot.y !== fy), 'not on the cave mouth you stand in');
+  // ...nor under one, at the foot of its ladder.
   C.goDown(s);
-  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
-  C.harvestAt(s, n.x, n.y);
-  standOn(s, n);
-  s.extractors.push({ key: 'compost', res: 'mycelium', x: n.x, y: n.y, z: C.SURFACE, buffer: 0 });
-  assert.equal(C.canGoUp(s), false, 'not up into a building');
-  s.extractors.length = 0;
-
-  // Up into water: no; and never down from water.
-  const wet = C.nearestTile(s.player.x, s.player.y, 120, (x, y) => C.tileAt(s.world, x, y, C.SURFACE) === T.WATER);
-  C.setRichness(s.world, wet.x, wet.y, -1, 0);
-  standOn(s, wet);
-  assert.equal(C.canGoUp(s), false, 'not up into water');
-  const swim = away(C.createState(31415));
-  standOn(swim, wet);
-  assert.equal(C.canGoDown(swim), false, 'not down from water');
-
-  // And no building on a tile with a hole in its floor or ceiling.
-  const b = away(C.createState(31415));
-  b.inv.mycelium = 1e6; b.inv.stone = 1e6; b.inv.ore = 1e6; b.unlocks.compost = true;
-  C.goDown(b);
-  const hx = Math.floor(b.player.x), hy = Math.floor(b.player.y);
-  assert.ok(C.holeAbove(b.world, hx, hy, b.player.z));
-  const spot = C.buildTarget(b, 'compost');
-  assert.ok(!spot || spot.x !== hx || spot.y !== hy, 'not under the hole you came down');
+  assert.ok(C.wayUp(s.world, fx, fy, -1));
+  const under = C.buildTarget(s, 'compost');
+  assert.ok(!under || under.x !== fx || under.y !== fy, 'not under the way you came down');
 });
-
-test('the layer button knows whether it will dig a new hole or climb an old one', () => {
+test('the layer button goes down from a cave mouth and up from the foot of a ladder', () => {
   const s = away(C.createState(31415));
-  assert.deepEqual(C.layerWay(s), { up: false, through: false, ok: true }, 'dig down');
-  C.goDown(s);
-  assert.deepEqual(C.layerWay(s), { up: true, through: true, ok: true }, 'climb up the hole you came down');
+  assert.deepEqual(C.layerWay(s), { up: false, ok: true }, 'climb down');
+  assert.equal(C.takeWay(s), true);
+  assert.equal(s.player.z, -1);
+  assert.deepEqual(C.layerWay(s), { up: true, ok: true }, 'climb up the way you came down');
   const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
   C.harvestAt(s, n.x, n.y);
   standOn(s, n);
-  assert.equal(C.layerWay(s).through, false, 'a fresh tunnel tile: dig up');
+  assert.deepEqual(C.layerWay(s), { up: true, ok: false }, 'a fresh tunnel tile: no way up');
   standOn(s, { x: n.x - n.dx, y: n.y - n.dy });
-  C.goUp(s);
-  assert.deepEqual(C.layerWay(s), { up: false, through: true, ok: true }, 'back on the forest hole: climb down');
+  assert.equal(C.takeWay(s), true);
+  assert.deepEqual(C.layerWay(s), { up: false, ok: true }, 'back on the cave mouth');
 });
-
-test('a new hole takes work; an old one is a way straight through', () => {
-  const s = away(C.createState(31415));
-  assert.equal(C.startDig(s), 'digging');
-  assert.equal(s.player.z, C.SURFACE, 'not through yet');
-  const steps = Math.ceil(C.holeTime(s) / 0.1);
-  for (let i = 0; i < steps - 1; i++) assert.equal(C.digOn(s, 0.1), false);
-  assert.ok(C.digProgress(s) > 0.9);
-  assert.equal(C.digOn(s, 0.1), true, 'breaks through after holeTime');
-  assert.equal(s.player.z, -1);
-  assert.equal(s.digging, null);
-  // Back up through that hole, and down again: no digging.
-  assert.equal(C.startDig(s), 'moved');
-  assert.equal(s.player.z, C.SURFACE);
-  assert.equal(C.startDig(s), 'moved');
-  assert.equal(s.player.z, -1);
-
-  // Walking off the spot stops the dig.
-  const t = away(C.createState(31415));
-  C.startDig(t);
-  C.digOn(t, 0.5);
-  t.player.x += 1;
-  assert.equal(C.digOn(t, 5), false);
-  assert.equal(t.digging, null, 'stepping away gives up');
-  assert.equal(t.player.z, C.SURFACE);
-
-  // A better Pickaxe digs faster.
-  const fast = away(C.createState(31415));
-  fast.tools.pickaxe = 6;
-  assert.ok(C.holeTime(fast) < C.holeTime(t) / 2);
-});
-
 test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));
   assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on the surface');
   assert.equal(C.needsLantern(s), false, 'no lantern at noon in the forest');
   C.goDown(s);
   assert.equal(C.needsLantern(s), true, 'the lantern comes out underground');
+  s.inv.mycelium = 10;
+  assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on a way between layers');
+  s.inv.mycelium = 0;
+  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
+  C.harvestAt(s, n.x, n.y);
+  standOn(s, n);
   assert.equal(C.placeProp(s, 'glowcap').ok, false, 'needs mycelium');
   assert.equal(C.canPlaceProp(s, 'nonsense'), false);
   s.inv.mycelium = 10;
   assert.equal(C.placeProp(s, 'glowcap').ok, true);
   assert.equal(s.inv.mycelium, 10 - C.PROPS.glowcap.cost.mycelium);
   assert.equal(C.canPlaceProp(s, 'flag'), false, 'one per tile, of any kind');
-  C.setRichness(s.world, Math.floor(s.player.x) + 1, Math.floor(s.player.y), s.player.z, 0);
-  s.player.x += 1;
+  C.setRichness(s.world, n.x + n.dx, n.y + n.dy, s.player.z, 0);
+  standOn(s, { x: n.x + n.dx, y: n.y + n.dy });
   Object.assign(s.inv, { stone: 8, crystal: 1 });
   assert.equal(C.placeProp(s, 'lamp').ok, true, 'a lamp next door');
   assert.deepEqual([...s.world.props.values()].sort(), ['glowcap', 'lamp']);
@@ -389,22 +389,22 @@ test('torches in saves from before trees stopped being cut grow back as glowcaps
   assert.deepEqual([...back.world.props], [[k, 'glowcap']], 'kept underground only');
 });
 
-test('home ground is sealed: no way down from it, none up into it; deeper is open rock', () => {
+test('home ground is sealed: no way down from it, none up into it; deeper is like anywhere', () => {
   const s = C.createState(31415);
   const h = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
   assert.equal(typeAt(s, h.x, h.y), T.HOME, 'every world starts on home ground');
-  assert.equal(C.canGoDown(s), false, 'no digging down from home ground');
-  assert.equal(C.startDig(s), null);
+  assert.equal(C.canGoDown(s), false, 'no way down from home ground');
+  assert.equal(C.takeWay(s), false);
   // Underground, under home: no surfacing into it...
   s.player.z = -1;
   C.setRichness(s.world, h.x, h.y, -1, 0);
   assert.equal(C.canGoUp(s), false, 'no coming up onto home ground');
-  // ...but between deeper layers it's rock like anywhere else.
+  // ...but between deeper layers, ways are generated as anywhere else.
+  const shaft = C.shaftInChunk(s.world.seed, C.chunkCoord(h.x), C.chunkCoord(h.y), -1);
   s.player.z = -2;
-  C.setRichness(s.world, h.x, h.y, -2, 0);
-  if (typeAt(s, h.x, h.y, -1) !== T.BEDROCK) assert.equal(C.canGoUp(s), true, 'under home, deeper layers connect as usual');
+  standOn(s, shaft);
+  assert.equal(C.canGoUp(s), true, 'under home, deeper layers connect as usual');
 });
-
 test('finds: a few in every underground chunk, never on the shaft; geodes only from layer 2', () => {
   const seed = 31415;
   let geodesOn1 = 0, geodesDeeper = 0;

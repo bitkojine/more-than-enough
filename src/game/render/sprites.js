@@ -44,26 +44,6 @@ export function drawExtractor(ctx, cam, s, look, e) {
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * TAU); ctx.closePath(); ctx.fill();
 }
 
-// A hole being dug at the wanderer's feet: the pit opens wider as it goes.
-// Digging up, light starts to show through the ceiling instead.
-export function drawDigging(ctx, cam, s, look) {
-  const d = s.digging;
-  if (!d || d.z !== cam.z) return;
-  const k = Core.digProgress(s), u = cam.tilePx, dep = cam.depthPx;
-  const top = cam.project(d.x, d.y, groundAt(cam, s, d.x, d.y));
-  const w = u * (0.25 + 0.65 * k), h = dep * (0.25 + 0.65 * k);
-  const cx = top.x + u / 2, cy = top.y + dep / 2;
-  if (d.up) {
-    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.8);
-    glow.addColorStop(0, rgba(look.color('mark.skylight'), 0.5 * k));
-    glow.addColorStop(1, rgba(look.color('mark.skylight'), 0));
-    ctx.fillStyle = glow;
-    ctx.fillRect(cx - w, cy - h, w * 2, h * 2);
-    return;
-  }
-  look.draw(ctx, look.pick('mark.hole', 'top'), cx - w / 2, cy - h / 2, w, h);
-}
-
 // The wanderer: facing the way they last walked, stepping through the walk
 // frames while moving. On water they ride the boat.
 export function drawPlayer(ctx, cam, s, look, view) {

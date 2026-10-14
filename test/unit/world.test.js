@@ -62,16 +62,18 @@ test('spawn is on walkable dry land at the surface', () => {
   assert.notEqual(C.tileAt(s.world, x, y, SURFACE), T.WATER);
 });
 
-test('underground layers are solid rock with one shaft per chunk', () => {
+test('underground layers are solid rock with one shaft and one way up per chunk', () => {
   const w = C.createWorld(4242);
   for (const z of [-1, -4]) {
-    let walk = 0, shafts = 0;
+    let walk = 0, shafts = 0, rises = 0;
     for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
       if (C.walkable(w, x, y, z)) walk++;
       if (C.tileAt(w, x, y, z) === T.SHAFT) shafts++;
+      if (C.tileAt(w, x, y, z) === T.RISE) rises++;
     }
-    assert.equal(walk, 0, 'nothing is open until dug');
+    assert.equal(walk, rises, 'nothing is open until dug, but the foot of each ladder up');
     assert.equal(shafts, 4, 'a 2x2-chunk area holds four shafts');
+    assert.ok(rises >= (z === -1 ? 1 : 4) && rises <= 4, 'and a way up under each way down above');
   }
   const shaft = C.shaftInChunk(w.seed, 0, 0, -1);
   assert.equal(C.tileAt(w, shaft.x, shaft.y, -1), T.SHAFT);

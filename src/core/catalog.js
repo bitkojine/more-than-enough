@@ -44,7 +44,7 @@ export const LOOK_GROUPS = [
   { id: 'pile', name: 'The stockpile', blurb: 'What you own, piled up around home: one kind of pile per power of ten.' },
   { id: 'building', name: 'Buildings', blurb: 'Extractors and converters you place on the map.' },
   { id: 'character', name: 'The wanderer', blurb: 'You, your lantern and your boat.' },
-  { id: 'mark', name: 'Marks in the world', blurb: 'Holes between layers, their ladders, the light through them, and what you place in the mine.' },
+  { id: 'mark', name: 'Marks in the world', blurb: 'Ways between layers, their ladders, the light through them, and what you place in the mine.' },
   { id: 'ui', name: 'Buttons', blurb: 'The thumb buttons and the sheet.' },
   { id: 'tool', name: 'Tools', blurb: 'Upgrades you craft.' },
   { id: 'refinery', name: 'Refineries', blurb: 'Upgrades that multiply one resource.' },
@@ -74,7 +74,9 @@ function tileDoes(t) {
   if (info.regrows) out.push('Grows back near you.');
   if (info.land) out.push('Converters can be built on it.');
   if (info.descend) out.push('A way down to the layer below.');
-  if (t === T.SHAFT) out.push('One dig opens it.');
+  if (info.rise) out.push('A ladder up to the way down of the layer above.');
+  if (t === T.SHAFT) out.push('A way down to the layer below once one dig opens it.');
+  if (t === T.CAVE) out.push('The only ways into the mine are these, scattered through the forest: you can\'t dig down.');
   if (t === T.BEDROCK) out.push('Cannot be dug.');
   if (t === T.TUNNEL) out.push('Dug-out space in the mine.');
   if (info.height >= 1) out.push('Stands a full layer tall.');
@@ -121,9 +123,9 @@ add('character', 'wanderer', 'Wanderer', 'You. Drawn facing right and mirrored t
 add('character', 'lantern', 'Lantern', 'Carried at night and underground, drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. It is what lights the way; the colour is its light.', req('image', 'color'));
 add('character', 'boat', 'Boat', `Carries you over water. Drawn facing right and to the same scale as the wanderer (who stands in it at full size, ${Math.round(BOAT_DECK * 100)}% of its height up from the bottom), so make the mast taller than them.`, req('image'));
 
-add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below. The colour is the dark inside it.', req('top', 'color'));
+add('mark', 'hole', 'Hole', 'An opening in the floor down to the layer below (a cave mouth or an open shaft). The colour is the dark inside it.', req('top', 'color'));
 add('mark', 'skylight', 'Skylight', 'Light falling through a hole in the ceiling, and holes seen in a cliff.', req('color'));
-add('mark', 'ladder', 'Ladder', 'Stands in every hole between layers: down into the pit from above, up into the light from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
+add('mark', 'ladder', 'Ladder', 'Stands in every way between layers: down into the pit from above, up into the light (or the dark of a shaft not yet opened) from below. Drawn upright, top at the top; it is stretched to fit.', req('image'));
 add('mark', 'glowcap', 'Glowcap', 'A glowing mushroom you planted in a tunnel. It lights the tunnel around it for good; the colour is its light.', req('image', 'color'));
 add('mark', 'lamp', 'Crystal lamp', 'A crystal lamp you placed in the mine. It lights much further than a glowcap; the colour is its light.', req('image', 'color'));
 add('mark', 'flag', 'Marker flag', 'A flag you planted in the mine to find your way back. The colour is the pin that shows through the dark over it, or at the edge of the screen pointing to it.', req('image', 'color'));
@@ -131,10 +133,8 @@ add('mark', 'flag', 'Marker flag', 'A flag you planted in the mine to find your 
 const UI = {
   build: ['Build', 'Opens the Build sheet.'],
   upgrade: ['Upgrade', 'Opens the Upgrades sheet.'],
-  dig: ['Dig down', 'Digs a new hole at your feet and drops into the mine.'],
-  climbDown: ['Climb down', 'Climbs down the hole you stand on.'],
-  digUp: ['Dig up', 'Digs a new hole through the ceiling, up to the layer above.'],
-  climb: ['Climb up', 'Climbs up through the hole above you.'],
+  climbDown: ['Climb down', 'Climbs down the cave mouth you stand in, into the mine.'],
+  climb: ['Climb up', 'Climbs the ladder you stand at the foot of, up to the layer above.'],
   gather: ['Gather', 'Works whatever is in reach (shown when nothing is).'],
   collect: ['Collect', 'Empties nearby buildings into your pack.'],
   embark: ['Embark', 'Leaves this world for a new one.']

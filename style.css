@@ -257,16 +257,9 @@ canvas#game {
   width: 60px; height: 60px;
   border-color: rgba(198, 158, 108, 0.45);
 }
-/* Two words (DIG DOWN, CLIMB UP): one above the other. */
+/* Two words (CLIMB DOWN, CLIMB UP): one above the other. */
 #btnMine .cap { max-width: 40px; text-align: center; line-height: 1.05; margin-top: 2px; }
 #btnMine .big { width: 24px; height: 24px; }
-/* While a hole is being dug, a ring fills around the button. */
-#btnMine.digging::after {
-  content: ""; position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
-  background: conic-gradient(#e0b070 calc(var(--dig, 0) * 1turn), transparent 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 3px));
-}
 
 #zoomControls {
   position: absolute;

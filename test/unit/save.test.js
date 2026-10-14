@@ -46,10 +46,10 @@ test('an underground expedition survives a reload, holes and mine fog included',
   const r = roundTrip(s);
   assert.equal(r.player.z, -1);
   assert.deepEqual(r.underground, { deepest: -5 });
-  assert.ok(C.holeBelow(r.world, fx, fy, 0), 'the hole down from the forest is kept');
+  assert.ok(C.holeBelow(r.world, fx, fy, 0), 'the cave mouth down from the forest is still there');
   assert.ok(C.isExplored(r.world, fx + 1, fy, -1), 'so is what you saw underground');
   C.goUp(r);
-  assert.deepEqual([Math.floor(r.player.x), Math.floor(r.player.y), r.player.z], [fx, fy, 0], 'climbs back out the same hole');
+  assert.deepEqual([Math.floor(r.player.x), Math.floor(r.player.y), r.player.z], [fx, fy, 0], 'climbs back out the same way');
 });
 
 test('a reloaded save keeps producing', () => {
