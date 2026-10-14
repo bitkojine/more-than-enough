@@ -5,12 +5,13 @@
 import * as Core from '../core/index.js';
 import { clearSave, randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
+import { fmt } from './format.js';
 
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
-export function createController({ game, cam, fx, audio, hud, look }) {
+export function createController({ game, cam, fx, audio, hud, look, ask }) {
   let cooldown = 0;
   let walkTo = null;
   let stalled = 0;
@@ -242,18 +243,19 @@ export function createController({ game, cam, fx, audio, hud, look }) {
     },
 
     // Embark and reset destroy a world, so they ask first.
-    embark() {
+    async embark() {
+      if (!Core.canEmbark(state())) return;
+      const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.text', { n: fmt(Core.embarkGain(state())) }), yes: t('ask.embark.yes') });
       const s = state();
-      if (!Core.canEmbark(s)) return;
-      if (!window.confirm(t('confirm.embark', { n: Core.embarkGain(s) }))) return;
+      if (!yes || !Core.canEmbark(s)) return;
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();
       say('+' + res.gained, look.color('resource.insight'), 'resource.insight');
     },
 
-    reset() {
-      if (!window.confirm(t('confirm.reset'))) return;
+    async reset() {
+      if (!await ask({ title: t('ask.reset.title'), text: t('ask.reset.text'), yes: t('ask.reset.yes'), danger: true })) return;
       clearSave();
       game.replace(Core.createState(randomSeed()));
     },

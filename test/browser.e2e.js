@@ -812,13 +812,20 @@ async function main() {
   eq(await evalJS('MTE_GAME.getState().perks.legacy'), legacyBefore + 1, 'buying Legacy raises the perk level');
   console.log('  screenshot: ' + await shot('04-beyond.png'));
 
-  await evalJS('window.confirm = function(){return true;}');
   // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
   // world's resource sprites across the screen.
   await evalJS('MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})');
   ok(await evalJS('MTE_GAME.flyers().length') >= 1, 'a leftover flyer exists before embarking');
   var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
   await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
+  await sleep(150);
+  ok(await evalJS('!document.getElementById("ask").hidden && /Insight/.test(document.getElementById("ask").textContent)'), 'Embark asks first, in the game, saying what you take with you');
+  await evalJS('document.querySelector("#ask .secondary").click()');
+  await sleep(150);
+  ok(await evalJS('document.getElementById("ask").hidden && MTE_GAME.getState().prestiges === ' + prestigeBefore), 'Cancel keeps the world');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
+  await sleep(150);
+  await evalJS('document.querySelector("#ask .primary").click()');
   await sleep(400);
   var afterEmbark = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'));
   eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
@@ -879,6 +886,10 @@ async function main() {
   }
   var resetButton = await rect('#btnReset');
   await tap(resetButton.x, resetButton.y);
+  await sleep(200);
+  ok(await evalJS('!document.getElementById("ask").hidden && document.querySelector("#ask .primary").classList.contains("danger")'), 'Reset world asks first, with a red button');
+  var resetYes = await rect('#ask .primary');
+  await tap(resetYes.x, resetYes.y);
   await sleep(300);
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'resetting clears leftover resource flyers');
   ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'reset wipes inventory into a fresh world');

@@ -25,7 +25,7 @@ function compare(a, b) {
 }
 
 export function createFork(box) {
-  const body = box.querySelector('.choices');
+  const body = box.querySelector('.picks');
   let open = false;
 
   // Shows the choice. `other` is the other tab's state, or null if this

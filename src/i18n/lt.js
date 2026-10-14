@@ -412,8 +412,13 @@ export default {
 
   "fx.newMushroom": "Nauja: {name}!",
 
-  "confirm.embark": "Iškeliauti? Šis pasaulis prasidės iš naujo. +{n} įžvalgos.",
-  "confirm.reset": "Pradėti naują pasaulį? Visa pažanga bus prarasta.",
+  "ask.cancel": "Atšaukti",
+  "ask.embark.title": "Iškeliauti į naują pasaulį?",
+  "ask.embark.text": "Šis pasaulis prasidės iš naujo. Pasiimsi +{n} įžvalgos.",
+  "ask.embark.yes": "Iškeliauti",
+  "ask.reset.title": "Pradėti naują pasaulį?",
+  "ask.reset.text": "Visa šio pasaulio pažanga bus prarasta. To atšaukti negalima.",
+  "ask.reset.yes": "Pradėti iš naujo",
 
   "fork.minutes": "{m} min.",
   "fork.hours": "{h} val. {m} min.",

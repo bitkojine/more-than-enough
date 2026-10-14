@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.50.0] - 2026-10-14
+
+### Changed
+- **The game asks its own questions.** Stage 3 of the UI redesign
+  (`docs/ui.md`). Embark and Reset world no longer use the browser's
+  pop-up: a card in the middle of the dimmed map says what will happen,
+  with Cancel first and the answer beside it (red for Reset world).
+  Tapping outside the card or Escape cancels. The choice between two
+  tabs' worlds and the texture-pack problem report use the same card.
+
 ## [0.49.0] - 2026-10-14
 
 ### Changed

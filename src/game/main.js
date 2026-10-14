@@ -20,6 +20,7 @@ import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
+import { createAsk } from './ask.js';
 import { t, localizePage, setLanguage, nextLanguage } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -113,7 +114,8 @@ function checkFork() {
 }
 onSavedElsewhere(checkFork);
 
-const controller = createController({ game, cam, fx, audio, hud, look });
+const ask = createAsk(el.ask);
+const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask });
 
 const sheet = createSheet(el, {
   getState: () => game.state,
@@ -133,7 +135,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open,
+    blocked: () => sheet.isOpen || fork.open || ask.open,
     dismiss: () => sheet.close(),
     tap: controller.tap,
     actionPressed: controller.press,

@@ -412,8 +412,13 @@ export default {
 
   "fx.newMushroom": "New: {name}!",
 
-  "confirm.embark": "Embark? This world resets. +{n} Insight.",
-  "confirm.reset": "Start a new world? All progress is lost.",
+  "ask.cancel": "Cancel",
+  "ask.embark.title": "Embark to a new world?",
+  "ask.embark.text": "This world starts over. You take +{n} Insight with you.",
+  "ask.embark.yes": "Embark",
+  "ask.reset.title": "Start a new world?",
+  "ask.reset.text": "All progress in this world is lost. This can't be undone.",
+  "ask.reset.yes": "Start over",
 
   "fork.minutes": "{m} min",
   "fork.hours": "{h} h {m} min",

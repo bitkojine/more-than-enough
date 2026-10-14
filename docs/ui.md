@@ -43,4 +43,4 @@ place it belongs here rather than adding a button where there is room.
 ### Stages
 1. **HUD and main actions** (shipped in 0.48.0): top bar (awards, one resource bar, gear), version moved into Settings, Settings split out of the sheet footer into its own panel, thumb cluster without the empty slot, slim zoom, one depth meter, toast moved to the top.
 2. **Sheets** (shipped in 0.49.0): tabs as a segmented control at the top beside a × (a title instead of tabs for Settings and Collected), cleaner rows and buy buttons, Collected and Awards restyled.
-3. **Dialogs**: in-game confirm for Embark and Reset world instead of the browser's, fork chooser and texture report in the same dialog style.
+3. **Dialogs** (shipped in 0.50.0): in-game confirm for Embark and Reset world instead of the browser's, fork chooser and texture report in the same dialog style.

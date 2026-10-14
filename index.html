@@ -167,14 +167,25 @@
   </div>
 
   <div id="toast" role="status" aria-live="polite"></div>
-  <div id="packReport" role="alert" hidden>
-    <strong data-i18n="pack.notUsed"></strong>
-    <ul></ul>
-    <button type="button" data-i18n="pack.close"></button>
+  <div id="packReport" class="scrim" role="alert" hidden>
+    <div class="dialog warn">
+      <strong data-i18n="pack.notUsed"></strong>
+      <ul></ul>
+      <div class="choices"><button type="button" class="secondary" data-i18n="pack.close"></button></div>
+    </div>
   </div>
-  <div id="fork" role="alertdialog" aria-labelledby="forkTitle" hidden>
-    <strong id="forkTitle" data-i18n="fork.title"></strong>
-    <div class="choices"></div>
+  <div id="ask" class="scrim" role="alertdialog" aria-labelledby="askTitle" hidden>
+    <div class="dialog">
+      <strong id="askTitle"></strong>
+      <p></p>
+      <div class="choices"><button type="button" class="secondary"></button><button type="button" class="primary"></button></div>
+    </div>
+  </div>
+  <div id="fork" class="scrim" role="alertdialog" aria-labelledby="forkTitle" hidden>
+    <div class="dialog">
+      <strong id="forkTitle" data-i18n="fork.title"></strong>
+      <div class="picks"></div>
+    </div>
   </div>
   <div id="crash" role="alert" hidden>
     <strong></strong>

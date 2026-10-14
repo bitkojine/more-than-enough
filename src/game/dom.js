@@ -49,6 +49,7 @@ export function findElements() {
     packFile: byId('packFile'),
     packReport: byId('packReport'),
     language: byId('btnLanguage'),
-    fork: byId('fork')
+    fork: byId('fork'),
+    ask: byId('ask')
   };
 }
