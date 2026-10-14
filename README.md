@@ -144,6 +144,7 @@ The project is under git — commit early, commit often:
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and a fixed slight lean; picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`, `fork.js`, `ask.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
+  - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
   - `together.js` — playing together: the room connection, friends and their states, the QR sign
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)

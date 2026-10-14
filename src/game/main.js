@@ -6,6 +6,7 @@ import { VERSION } from '../version.js';
 import { findElements } from './dom.js';
 import { createCamera } from './camera.js';
 import { createAudio } from './audio.js';
+import { sceneFor } from './music/score.js';
 import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
 import { createInput } from './input.js';
@@ -53,6 +54,14 @@ const descent = createDescent(el.canvas);
 cam.relief = (x, y) => groundHeight(game.state.world, x, y, cam.z);
 const audio = createAudio();
 audio.wakeOn(el.canvas);
+// This browser's own conveniences: zoom, drag direction, music.
+const savedView = loadView();
+function keepView() {
+  savedView.zoom = cam.zoom;
+  savedView.invertDrag = input.invert;
+  savedView.music = audio.music;
+  saveView(savedView);
+}
 // What you gather flies to its pile in the yard (yard is made just below).
 const fx = createEffects(look, (res) => yard.landing(res));
 const yard = createYard({ fx, look });
@@ -165,7 +174,7 @@ const input = createInput({
     tap: controller.tap,
     actionPressed: controller.press,
     trailEnded: controller.trailEnded,
-    viewChanged: () => { hud.view(cam); saveView(cam, input.invert); },
+    viewChanged: () => { hud.view(cam); keepView(); },
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'close') sheet.close();
@@ -194,7 +203,7 @@ function setDrag(invert) {
   el.dragMode.textContent = t(invert ? 'sheet.drag.pull' : 'sheet.drag.walk');
   el.drag.setAttribute('aria-pressed', String(invert));
 }
-el.drag.addEventListener('click', () => { setDrag(!input.invert); saveView(cam, input.invert); });
+el.drag.addEventListener('click', () => { setDrag(!input.invert); keepView(); });
 const showMute = () => {
   el.muteState.textContent = t(audio.muted ? 'settings.off' : 'settings.on');
   el.mute.setAttribute('aria-pressed', String(!audio.muted));
@@ -204,6 +213,25 @@ el.mute.addEventListener('click', () => {
   showMute();
 });
 showMute();
+// Music: off, or the name of the track playing.
+const showMusic = () => {
+  const track = audio.track();
+  el.musicState.textContent = !audio.music ? t('settings.off') : track ? t('music.' + track) : t('settings.on');
+  el.music.setAttribute('aria-pressed', String(audio.music));
+};
+el.music.addEventListener('click', () => {
+  audio.music = !audio.music;
+  keepView();
+  showMusic();
+});
+// The first time you hear a place's music, it tells you its name.
+audio.onTrack((id) => {
+  showMusic();
+  if (savedView.heard.includes(id)) return;
+  savedView.heard.push(id);
+  keepView();
+  hud.toast(t('toast.newTrack', { name: t('music.' + id) }));
+});
 // The language button: the next language, the game saved first so the
 // reload comes back to the same spot.
 el.language.addEventListener('click', () => {
@@ -217,11 +245,29 @@ el.language.addEventListener('click', () => {
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
   { every: 0.4, run: () => controller.checkGoals() },
-  { every: 0.25, run: () => { hud.update(game.state); audio.drone(game.state.extractors.length, Core.overclockMult(game.state)); } }
+  { every: 0.25, run: () => { hud.update(game.state); audio.scene(sceneHere(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;
 let moving = false;
+
+// Which place's music fits where the player stands (see music/score.js).
+const FOREST_NEAR = 3;     // tiles around you that count as "here"
+const FOREST_SHARE = 0.3;  // of them forest: you're in the woods
+function sceneHere(s) {
+  const p = s.player;
+  const depth = -p.z;
+  let forest = 0, all = 0;
+  if (depth === 0) {
+    for (let dy = -FOREST_NEAR; dy <= FOREST_NEAR; dy++) {
+      for (let dx = -FOREST_NEAR; dx <= FOREST_NEAR; dx++) {
+        all++;
+        if (Core.tileAt(s.world, Math.floor(p.x) + dx, Math.floor(p.y) + dy, p.z) === Core.T.FOREST) forest++;
+      }
+    }
+  }
+  return sceneFor({ depth, onWater: Core.onWater(s), daylight: Core.daylight(s.time), forest: all > 0 && forest / all >= FOREST_SHARE });
+}
 
 function update(dt) {
   const s = game.state;
@@ -324,9 +370,10 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) game.saveNow(); else checkFork();
 });
 
-const savedView = loadView();
 cam.setZoom(savedView.zoom);
 setDrag(savedView.invertDrag);
+audio.music = savedView.music;
+showMusic();
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 toggles it, and ?perf in the address opens it (for phones).
 perf.toggle(new URLSearchParams(location.search).has('perf'));

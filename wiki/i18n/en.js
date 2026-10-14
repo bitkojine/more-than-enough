@@ -38,7 +38,7 @@ export default {
   "wiki.idea.packGallery.pitch": "A page in the wiki where players share texture packs with a preview of each, and the game can load one straight from a link. Packs become something people trade, like mods.",
   "wiki.idea.packGallery.builds": "Texture packs, the pack format and the one-file download.",
   "wiki.idea.soundPacks.title": "Sound packs",
-  "wiki.idea.soundPacks.pitch": "The same split for sound: the game defines every cue (each material's gather, collect, build, the fanfare, the hum), and a pack supplies the samples. A pixel-art pack could ship with chiptune bleeps.",
+  "wiki.idea.soundPacks.pitch": "The same split for sound: the game defines every cue (each material's gather, collect, build, the fanfare, the soundtrack's instruments), and a pack supplies the samples. A pixel-art pack could ship with chiptune bleeps.",
   "wiki.idea.soundPacks.builds": "The catalog and the audio cues.",
   "wiki.idea.packsThatChangeWithDepth.title": "Packs that change with depth",
   "wiki.idea.packsThatChangeWithDepth.pitch": "Let a pack give a thing a different picture per layer band, so stone looks warmer near the surface and colder deep down, without the game learning anything new.",
@@ -339,7 +339,7 @@ export default {
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed. A family
         with something you can buy opens by itself; tap its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
-      <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
+      <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
         <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page), the game's version and, set apart at the bottom,
         <strong>Reset world</strong> (starts over, after asking).</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
@@ -348,6 +348,12 @@ export default {
       <p>Sound plays as soon as your browser lets a page make sound. Some allow it straight away. Most wait until you've
         touched or clicked the page once, and on an iPhone that has to be a tap, since a drag doesn't count. After that,
         sound comes back by itself when you return to the tab or a call ends.</p>
+      <p><strong>Music</strong>: every kind of place has its own tune. Open land by day plays <em>Meadowsong</em>, the woods
+        <em>Under the Boughs</em>, the water <em>Rowing Song</em>, the surface at night <em>Starlit Hush</em>, the first mine
+        layers <em>Seams of Light</em> and from the third layer down <em>The Deep Dark</em>. The first time you hear one, a
+        message tells you its name, and Settings shows what is playing. Your gathering plays along in the music's key. The
+        music is composed, then played by instruments the game synthesizes as it goes, so it costs nothing to download.
+        Turn it off with <strong>Music</strong> in Settings; <strong>Sound</strong> turns everything off.</p>
 
       <h2>Performance panel</h2>
       <p>A tool for tuning the game, kept out of the way while you play. Press <kbd>F3</kbd> to see how well the game runs on
@@ -619,7 +625,7 @@ export default {
       <p>Your Basket sets how much mycelium each gather brings in, your Pickaxe how much each swing yields. Boots set your speed.</p>
       <p><strong>Overclock</strong> is the one tool that works on your buildings rather than on you. Each level doubles what every
         building makes (Mushroom Gardens, Quarries, Mines, Resonators and converters), wherever they are, so it's the best
-        upgrade once a few buildings stand. You also hear it: the hum of your buildings rises with each level.</p>
+        upgrade once a few buildings stand.</p>
       <div data-table="tools"></div>
 
       <h2>Unlocks and blueprints</h2>

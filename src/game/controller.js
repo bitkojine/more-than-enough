@@ -234,7 +234,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       if (!Core.buy(s, id).ok) return;
       audio.upgrade();
       actor.act('cheer');
-      audio.drone(s.extractors.length, Core.overclockMult(s));
       say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
       changed();
       checkGoals();
@@ -257,7 +256,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor }
       fx.built(res.x, res.y);
       actor.act('build');
       audio.build();
-      audio.drone(s.extractors.length, Core.overclockMult(s));
       changed();
       checkGoals();
     },

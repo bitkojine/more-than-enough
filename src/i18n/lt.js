@@ -350,6 +350,14 @@ export default {
   "settings.sound": "Garsas",
   "settings.on": "įjungtas",
   "settings.off": "išjungtas",
+  "settings.music": "Muzika",
+  "music.meadow": "Pievų giesmė",
+  "music.forest": "Po šakomis",
+  "music.water": "Irkluotojų daina",
+  "music.night": "Žvaigždžių tyla",
+  "music.mines": "Šviesos gyslos",
+  "music.deep": "Gilioji tamsa",
+  "toast.newTrack": "♪ Nauja muzika: {name}",
 
   "toast.saveLost": "Senojo išsaugojimo nepavyko įkelti – pradedamas naujas pasaulis",
 

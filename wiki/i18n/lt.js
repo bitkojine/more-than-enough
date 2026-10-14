@@ -35,7 +35,7 @@ export default {
   "wiki.idea.packGallery.pitch": "Žinyno puslapis, kuriame žaidėjai dalijasi tekstūrų paketais su kiekvieno peržiūra, o žaidimas gali įkelti paketą tiesiai iš nuorodos. Paketai tampa tuo, kuo žmonės mainosi, kaip modifikacijomis.",
   "wiki.idea.packGallery.builds": "Tekstūrų paketai, paketo formatas ir atsisiuntimas vienu failu.",
   "wiki.idea.soundPacks.title": "Garsų paketai",
-  "wiki.idea.soundPacks.pitch": "Toks pat padalijimas garsui: žaidimas apibrėžia kiekvieną garso signalą (kiekvienos medžiagos rinkimą, paėmimą, statybą, fanfarą, dūzgimą), o paketas pateikia įrašus. Pikselių grafikos paketas galėtų atkeliauti su čiptiūno pypsėjimais.",
+  "wiki.idea.soundPacks.pitch": "Toks pat padalijimas garsui: žaidimas apibrėžia kiekvieną garso signalą (kiekvienos medžiagos rinkimą, paėmimą, statybą, fanfarą, muzikos instrumentus), o paketas pateikia įrašus. Pikselių grafikos paketas galėtų atkeliauti su čiptiūno pypsėjimais.",
   "wiki.idea.soundPacks.builds": "Katalogas ir garso signalai.",
   "wiki.idea.packsThatChangeWithDepth.title": "Paketai, kurie keičiasi su gyliu",
   "wiki.idea.packsThatChangeWithDepth.pitch": "Leisk paketui duoti daiktui skirtingą paveikslėlį kiekvienai sluoksnių juostai, kad akmuo prie paviršiaus atrodytų šiltesnis, o giliai – šaltesnis, ir žaidimui nereikėtų mokytis nieko naujo.",
@@ -336,7 +336,7 @@ export default {
         taškelis – dar nepradėta, atspalvintas – galima įpirkti dabar, pusiau užpildytas – įpusėta, o vientisas žalias – maksimalus lygis. Šeima,
         kurioje yra ką nusipirkti, atsiveria pati; bakstelk jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
-      <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
+      <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
         <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis), žaidimo versija ir, atskirai apačioje,
         <strong>Naujas pasaulis</strong> (pradeda iš naujo, prieš tai paklausęs).</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
@@ -345,6 +345,12 @@ export default {
       <p>Garsas pasigirsta, kai tik naršyklė leidžia puslapiui skleisti garsą. Kai kurios leidžia iškart. Dauguma laukia, kol
         bent kartą paliesi ar spustelėsi puslapį, o „iPhone“ tai turi būti bakstelėjimas, nes tempimas neskaičiuojamas. Po to
         garsas pats sugrįžta, kai grįžti į skirtuką ar baigiasi skambutis.</p>
+      <p><strong>Muzika</strong>: kiekviena vietų rūšis turi savo melodiją. Atvirose vietose dieną skamba <em>Pievų giesmė</em>,
+        miške <em>Po šakomis</em>, ant vandens <em>Irkluotojų daina</em>, paviršiuje naktį <em>Žvaigždžių tyla</em>, pirmuosiuose
+        kasyklų sluoksniuose <em>Šviesos gyslos</em>, o nuo trečio sluoksnio žemyn <em>Gilioji tamsa</em>. Pirmą kartą išgirdus
+        melodiją, pranešimas pasako jos pavadinimą, o Nustatymuose matyti, kas skamba. Tavo rinkimas skamba muzikos tonacija.
+        Muzika sukomponuota, o groja ją instrumentai, kuriuos žaidimas sintezuoja vietoje, tad jos nereikia atsisiųsti.
+        Išjungti ją gali Nustatymuose, mygtuku <strong>Muzika</strong>; <strong>Garsas</strong> išjungia viską.</p>
 
       <h2>Našumo skydelis</h2>
       <p>Įrankis žaidimui derinti, žaidžiant netrukdantis. Paspausk <kbd>F3</kbd> ir pamatysi, kaip gerai žaidimas veikia tavo
@@ -615,7 +621,7 @@ export default {
       <p>Krepšys nustato, kiek grybienos parneša kiekvienas rinkimas, Kirtiklis – kiek duoda kiekvienas kirtis. Batai nustato tavo greitį.</p>
       <p><strong>Spartinimas</strong> – vienintelis įrankis, veikiantis ne tave, o tavo pastatus. Kiekvienas lygis padvigubina tai, ką
         gamina kiekvienas pastatas (Grybų daržai, Karjerai, Kasyklos, Rezonatoriai ir keitikliai), kad ir kur jie būtų, tad tai geriausias
-        patobulinimas, kai jau stovi keli pastatai. Jį ir girdi: tavo pastatų dūzgimas su kiekvienu lygiu stiprėja.</p>
+        patobulinimas, kai jau stovi keli pastatai.</p>
       <div data-table="tools"></div>
 
       <h2>Atrakinimai ir brėžiniai</h2>

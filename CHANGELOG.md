@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.60.0] - 2026-10-14
+
+### Added
+- **A soundtrack.** Every kind of place has its own composed tune, taking
+  RuneScape's lessons (see docs/music.md): *Meadowsong* on open land by day,
+  *Under the Boughs* in the woods, *Rowing Song* on the water, *Starlit Hush*
+  at night, *Seams of Light* in the first mine layers and *The Deep Dark*
+  from the third layer down. The music follows you, fading into the next
+  place's tune, and the band varies each time through so it doesn't wear
+  thin. The first time you hear a track, the game tells you its name.
+  Gathering now plays along in the music's key. It is synthesized in the
+  browser, so it adds nothing to download. *Music* in Settings shows what is
+  playing and turns it off. In English and Lithuanian.
+
+### Removed
+- The hum of your buildings, replaced by the music.
 ## [0.59.2] - 2026-10-14
 
 ### Changed

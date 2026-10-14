@@ -1,8 +1,11 @@
-/* A tiny WebAudio synth with humanization. Gathering walks a pentatonic ladder
- * at random (mostly rising, sometimes resting or dropping) and slips between
- * keys and octaves, so the melody keeps evolving instead of looping. Tool level
- * thickens the tone, and the extractor network drives a slow-breathing hum.
+/* The game's sound: the soundtrack (music/) and a tiny WebAudio synth for
+ * effects. Gathering walks a pentatonic ladder at random (mostly rising,
+ * sometimes resting or dropping) in the key of the music playing, so your
+ * work plays along with the soundtrack; with no music it slips between keys
+ * and octaves of its own. Tool level thickens the tone.
  * Knows nothing about game state: callers pass in what each sound needs. */
+
+import { createMusic } from './music/player.js';
 
 // Pentatonic keys the melody can drift into (all consonant, no wrong notes).
 const SCALES = [
@@ -20,8 +23,9 @@ export function createAudio() {
   let ctx = null;
   let master = null;
   let meter = null;             // analyser on the output
-  let droneMix = null;          // automated hum level -> tremolo -> master
-  const droneOscs = [null, null];
+  let music = null;
+  let musicOn = true;           // the player's choice, kept until music exists
+  let onTrack = null;           // told when a track starts
   let noise = null;             // shared white-noise buffer for impact transients
   let muted = false;
   let scale = null;
@@ -29,6 +33,8 @@ export function createAudio() {
   let voices = 0;
 
   function currentScale() {
+    const inKey = music && music.scale();
+    if (inKey) { scale = inKey; return scale; }
     if (!scale) { scale = pick(SCALES); noteStep = 0; }
     return scale;
   }
@@ -36,7 +42,7 @@ export function createAudio() {
   // When a phrase ends: half the time slip into a new key, otherwise hop the
   // whole phrase an octave up or down for register variety.
   function phraseEnd() {
-    if (rand() < 0.5) scale = pick(SCALES);
+    if (rand() < 0.5 && !(music && music.playing)) scale = pick(SCALES);
     else {
       const m = rand() < 0.55 ? 2 : 0.5;
       scale = scale.map((f) => f * m);
@@ -92,7 +98,7 @@ export function createAudio() {
     wire();
   }
 
-  // The output chain and the operation hum.
+  // The output chain, and the soundtrack on it.
   function wire() {
     try {
       master = ctx.createGain();
@@ -103,34 +109,12 @@ export function createAudio() {
       meter = ctx.createAnalyser();
       meter.fftSize = 2048;
       master.connect(meter);
-      // Operation hum: droneMix holds the automated level, then a slow tremolo
-      // LFO makes it breathe; inaudible until extractors exist.
-      droneMix = ctx.createGain();
-      droneMix.gain.value = 0;
-      const trem = ctx.createGain();
-      trem.gain.value = 1;
-      droneMix.connect(trem);
-      trem.connect(master);
-      const lfo = ctx.createOscillator();
-      lfo.type = 'sine';
-      lfo.frequency.value = 0.05 + rand() * 0.06; // 3-7 s breath cycle
-      const lfoAmt = ctx.createGain();
-      lfoAmt.gain.value = 0.22;
-      lfo.connect(lfoAmt);
-      lfoAmt.connect(trem.gain);
-      lfo.start();
-      for (let i = 0; i < 2; i++) {
-        const o = ctx.createOscillator();
-        o.type = 'sine';
-        o.frequency.value = i === 0 ? 110 : 165;
-        const g = ctx.createGain();
-        g.gain.value = i === 0 ? 1 : 0.45;
-        o.connect(g);
-        g.connect(droneMix);
-        o.start();
-        droneOscs[i] = o;
-      }
-    } catch { ctx = null; master = null; }
+      music = createMusic(ctx, master, {
+        canPlay: () => !muted && ctx.state === 'running',
+        onStart: (id) => onTrack && onTrack(id)
+      });
+      music.enabled = musicOn;
+    } catch { ctx = null; master = null; music = null; }
   }
 
   // Only while the clock runs: notes queued on a stalled context would all
@@ -290,18 +274,6 @@ export function createAudio() {
     }
   }
 
-  // The hum swells with the number of extractors and rises with overclock.
-  function drone(extractors, overclock) {
-    if (!live() || !droneMix) return;
-    let target = 0;
-    if (extractors > 0) target = Math.min(0.05, 0.012 * Math.min(3, extractors)) * (0.6 + 0.4 * Math.min(1, (overclock - 1) / 3));
-    const t = ctx.currentTime;
-    const root = 110 + (overclock - 1) * 2 + (rand() - 0.5) * 1.6;
-    droneMix.gain.setTargetAtTime(target, t, 0.9);
-    droneOscs[0].frequency.setTargetAtTime(root, t, 0.9);
-    droneOscs[1].frequency.setTargetAtTime(root * (1.45 + rand() * 0.1), t, 0.9);
-  }
-
   // Every kind of press, in the capture phase so it runs before handlers
   // that call preventDefault(). (Which of these count as a gesture differs by
   // browser: pointerup and touchend are the ones a tap on a phone gives.)
@@ -323,7 +295,14 @@ export function createAudio() {
   if (create()) { wire(); nudge(); }
 
   return {
-    init, wakeOn, gather, dig, collect, upgrade, build, fanfare, drone,
+    init, wakeOn, gather, dig, collect, upgrade, build, fanfare,
+    // The soundtrack: which place's music to play (score.js sceneFor),
+    // whether to play it, and what is playing.
+    scene(id) { if (music) music.want(id); },
+    get music() { return musicOn; },
+    set music(v) { musicOn = !!v; if (music) music.enabled = musicOn; },
+    track: () => (music ? music.playing : null),
+    onTrack(fn) { onTrack = fn; },
     get muted() { return muted; },
     set muted(v) { muted = v; },
     state: () => (ctx ? ctx.state : 'none'),

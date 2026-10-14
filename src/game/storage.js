@@ -74,19 +74,24 @@ export function loadGame() {
   return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
 }
 
-// The viewer's zoom and drag direction: conveniences for this browser,
-// not game state.
+// The viewer's zoom, drag direction, music choice and the tracks they have
+// heard: conveniences for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
-    return { zoom: Number(v.zoom) || 1, invertDrag: v.invertDrag === true };
+    return {
+      zoom: Number(v.zoom) || 1,
+      invertDrag: v.invertDrag === true,
+      music: v.music !== false,
+      heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : []
+    };
   } catch {
-    return { zoom: 1, invertDrag: false };
+    return { zoom: 1, invertDrag: false, music: true, heard: [] };
   }
 }
 
-export function saveView(cam, invertDrag) {
-  write(VIEW_KEY, JSON.stringify({ zoom: cam.zoom, invertDrag }));
+export function saveView(view) {
+  write(VIEW_KEY, JSON.stringify(view));
 }
 
 export function clearSave() {

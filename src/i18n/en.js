@@ -350,6 +350,14 @@ export default {
   "settings.sound": "Sound",
   "settings.on": "on",
   "settings.off": "off",
+  "settings.music": "Music",
+  "music.meadow": "Meadowsong",
+  "music.forest": "Under the Boughs",
+  "music.water": "Rowing Song",
+  "music.night": "Starlit Hush",
+  "music.mines": "Seams of Light",
+  "music.deep": "The Deep Dark",
+  "toast.newTrack": "♪ New music: {name}",
 
   "toast.saveLost": "Your old save could not be loaded — starting a new world",
 

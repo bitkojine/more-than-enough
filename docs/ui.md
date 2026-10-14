@@ -9,7 +9,7 @@ place it belongs here rather than adding a button where there is room.
 2. **Thumb zone.** Everything you press often sits in the bottom-right arc of a right thumb; the big action is biggest and closest. Contextual actions pop up *beside* the main button, they don't hold an empty slot. (Brawl Stars, PUBG Mobile, Genshin.)
 3. **Status top, actions bottom.** Read-only info (currencies, depth, trophies) lives in a top bar; things you press live at the bottom.
 4. **One currency bar.** All resources in one capsule, tap to see details. (Every F2P game.)
-5. **Settings behind a gear.** Sound, controls, language, textures, wiki, version, reset: one Settings screen from a gear in the top-right. Destructive actions in a separated danger zone with an in-game confirm.
+5. **Settings behind a gear.** Sound, music, controls, language, textures, wiki, version, reset: one Settings screen from a gear in the top-right. Destructive actions in a separated danger zone with an in-game confirm.
 6. **Badges, not prose.** A badge on a button says "something here for you".
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
 8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close.

@@ -40,6 +40,8 @@ export function findElements() {
     reset: byId('btnReset'),
     mute: byId('btnMute'),
     muteState: byId('muteState'),
+    music: byId('btnMusic'),
+    musicState: byId('musicState'),
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),
