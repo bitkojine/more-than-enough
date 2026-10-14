@@ -12,7 +12,7 @@
 import * as Core from '../core/index.js';
 import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanStatus, cleanColor, cleanTime,
-  ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, cleanInviteAsk
+  ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, INVITE_DEFAULT, cleanInviteAsk
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
 import { qrcode } from '../vendor/qrcode.js';
@@ -39,6 +39,7 @@ const FOG_EVERY = 15;
 const QUIET_IS_LOST = 6;              // seconds without a word: shown as lost
 const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
+const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
 const NUKE_NAMES = 6;                 // names listed on the nuke screen
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
@@ -111,13 +112,16 @@ const NAMES = ['moss', 'fern', 'acorn', 'clover', 'hazel', 'birch', 'willow', 'j
 
 /* ------------------------------------------------- what the room sends */
 
-// The invite links the room lists, or null if the list doesn't fit.
+// The invite links the room lists, or null if the list doesn't fit. The
+// game and the room service deploy separately, so for a while one can be a
+// version ahead of the other: fields the game doesn't know yet are ignored,
+// and a list from before `max` gets the default.
 function cleanInvites(list) {
   if (!Array.isArray(list) || list.length > 100) return null;
   const out = [];
   for (const e of list) {
-    if (!Array.isArray(e) || e.length !== 7) return null;
-    const [code, by, made, until, uses, off, max] = e;
+    if (!Array.isArray(e) || e.length < 6) return null;
+    const [code, by, made, until, uses, off, max = INVITE_DEFAULT.uses] = e;
     if (typeof code !== 'string' || !ROOM_ID_RE.test(code) || typeof by !== 'string' || !ID_RE.test(by) ||
         !Number.isSafeInteger(made) || !Number.isSafeInteger(until) || !Number.isSafeInteger(uses) || uses < 0 || typeof off !== 'boolean' ||
         !Number.isSafeInteger(max) || max < 1) return null;
@@ -298,8 +302,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     }
     if (d.t === 'invitesFull') hud.toast(t('invites.full'));
     if (d.t === 'invites') {
+      clearTimeout(invitesTimer);
       const list = cleanInvites(d.list);
       if (list) renderInvites(list);
+      else el.invitesPanel.replaceChildren(note(t('invites.failed')));
     }
   }
 
@@ -491,9 +497,15 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
   // Every invite link you may see (all of them for the world's owner), with
   // who made it, how many joined with it, and Show and Stop. Built from
   // elements and text only, never HTML.
+  // Never "loading" for ever: no answer in a few seconds says so.
+  let invitesTimer = 0;
   function listInvites() {
-    el.invitesPanel.replaceChildren(note(t(welcomed ? 'invites.loading' : 'together.toast.offline')));
+    clearTimeout(invitesTimer);
+    const online = !!ws && ws.readyState === 1 && welcomed;
+    el.invitesPanel.replaceChildren(note(t(online ? 'invites.loading' : 'together.toast.offline')));
+    if (!online) return;
     send({ t: 'invites' });
+    invitesTimer = setTimeout(() => el.invitesPanel.replaceChildren(note(t('invites.failed'))), INVITES_WAIT);
   }
 
   function note(text) {

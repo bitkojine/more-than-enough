@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.72.2] - 2026-10-14
+
+### Fixed
+- **Invite links stuck on "Loading".** v0.72.0 added how many people a link
+  lets in as a seventh field of each entry in the room's list. The room
+  service went live with it about 20 minutes before the game did (GitHub
+  Pages was slow to deploy while the custom domain was being set up), and
+  the game still running required exactly six fields, so it dropped the
+  whole list without a word. The game now ignores fields it doesn't know
+  and gives a list without the limit the default, so either side can be a
+  version ahead. If the list doesn't come within 8 seconds, or comes
+  malformed, Invite links says so instead of loading for ever.
+
 ## [0.72.1] - 2026-10-14
 
 ### Security

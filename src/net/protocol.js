@@ -29,6 +29,10 @@
  * everyone has pressed it (or had it pressed for them), the room makes the
  * world again and closes every socket with code 4004; each game reconnects
  * to the new world.
+ *
+ * The game (GitHub Pages) and the room service (Cloudflare) deploy on their
+ * own, so for a while either can be a version ahead: new fields go at the
+ * end of a message or list entry, and each side tolerates them missing.
  */
 
 export const LIMITS = Object.freeze({
