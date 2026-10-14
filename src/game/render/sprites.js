@@ -122,11 +122,9 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const moving = f.st === 'online' && f.m;
   const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
   const body = walk.pics[frame];
-  const flip = f.fx < -0.01;
+  const flip = facesLeft(f);
   const time = s.time;
   ctx.save();
-  let squash = 1;
-  if (f.st === 'away') { squash = 0.78; }
   if (f.st === 'lost') ctx.globalAlpha = 0.35 + 0.3 * Math.abs(Math.sin(time * 5));
   // The ring at their feet.
   ctx.strokeStyle = color;
@@ -134,33 +132,16 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   ctx.beginPath(); ctx.ellipse(sx, sy, u * 0.36, u * 0.36 * 0.38 * (cam.depthPx / cam.tilePx), 0, 0, TAU); ctx.stroke();
   shadow(ctx, cam, sx, sy, body.units * u * 0.42);
   const step = moving ? Math.abs(Math.sin(time * 12)) * u * 0.03 : 0;
-  const size = u * squash;
+  const size = f.st === 'away' ? u * 0.78 : u;   // away: sitting down
   const tall = look.stand(ctx, body, sx, sy - step, size, flip);
   const head = sy - step - tall;
   ctx.restore();
   if (f.sign && f.st === 'online') drawSign(ctx, sx, head, u, 1, time, f.c + 1);
-  // Their marker: a diamond in their colour.
   const my = head - u * (f.sign && f.st === 'online' ? 1.25 : 0.2);
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.strokeStyle = 'rgba(10,8,6,0.8)';
-  ctx.lineWidth = 2;
   const r = Math.max(5, u * 0.12);
-  ctx.beginPath(); ctx.moveTo(sx, my - r); ctx.lineTo(sx + r * 0.75, my); ctx.lineTo(sx, my + r); ctx.lineTo(sx - r * 0.75, my); ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.restore();
-  if (f.st === 'away') {
-    // Little z's drifting up.
-    ctx.save();
-    ctx.fillStyle = '#dfe9ff';
-    for (let i = 0; i < 3; i++) {
-      const k = (time * 0.6 + i / 3) % 1;
-      ctx.globalAlpha = Math.sin(k * Math.PI);
-      ctx.font = `800 ${Math.round(u * (0.16 + k * 0.14))}px system-ui, sans-serif`; // i18n-ok: a font
-      ctx.fillText('z', sx + u * 0.25 + k * u * 0.3, my - k * u * 0.6); // i18n-ok: a sleeping sound, not a word
-    }
-    ctx.restore();
-  }
+  drawDiamond(ctx, sx, my, r, color);
+  // Away: little z's drifting up.
+  if (f.st === 'away') drawSnore(ctx, 'z', sx + u * 0.25, my, 1, u, time, { speed: 0.6, size: 0.16, rise: 0.6, drift: 0.3, weight: 800 });
   if (f.st === 'lost') {
     // A spinning arc: still trying to reach them.
     ctx.save();
@@ -193,7 +174,7 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy) {
   const scale = 0.85;
   const len = body.units * u * body.aspect * scale; // their height, now lying down
   const thick = body.units * u;
-  const head = f.fx < -0.01 ? 1 : -1;            // which side their head lies
+  const head = facesLeft(f) ? 1 : -1;           // which side their head lies
   const feet = sx - head * len / 2;
   const breath = 1 + 0.06 * Math.sin(time * 1.8);
   shadow(ctx, cam, sx, sy, len * 0.55);
@@ -218,26 +199,41 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy) {
   ctx.beginPath(); ctx.ellipse(bx, by, bw, thick * 0.3 * breath, 0, Math.PI, TAU); ctx.closePath();
   ctx.fill(); ctx.stroke();
   ctx.restore();
-  // Their marker, small, over the pillow end.
+  // Their marker, small, over the pillow end, and big slow Z's.
   const mx = sx + head * len * 0.42, my = sy - thick * 0.75;
   const r = Math.max(4, u * 0.09);
+  drawDiamond(ctx, mx, my, r, color);
+  drawSnore(ctx, 'Z', mx + head * r, my - r, head, u, time, { speed: 0.3, size: 0.22, rise: 0.9, drift: 0.45, weight: 900, outline: true });
+}
+
+// Whether a friend faces left (their sprite is mirrored).
+const facesLeft = (f) => f.fx < -0.01;
+
+// A friend's marker: a diamond in their colour.
+function drawDiamond(ctx, x, y, r, color) {
   ctx.save();
   ctx.fillStyle = color;
   ctx.strokeStyle = 'rgba(10,8,6,0.8)';
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(mx, my - r); ctx.lineTo(mx + r * 0.75, my); ctx.lineTo(mx, my + r); ctx.lineTo(mx - r * 0.75, my); ctx.closePath();
+  ctx.beginPath(); ctx.moveTo(x, y - r); ctx.lineTo(x + r * 0.75, y); ctx.lineTo(x, y + r); ctx.lineTo(x - r * 0.75, y); ctx.closePath();
   ctx.fill(); ctx.stroke();
-  // Big slow Z's.
+  ctx.restore();
+}
+
+// Three letters drifting up and away from (x, y), fading in and out: a doze
+// (small z's) or deep sleep (big Z's). `dir` is which way they drift.
+function drawSnore(ctx, letter, x, y, dir, u, time, { speed, size, rise, drift, weight, outline = false }) {
+  ctx.save();
   ctx.fillStyle = '#dfe9ff';
   ctx.strokeStyle = 'rgba(10,8,6,0.6)';
   ctx.lineWidth = 3;
   for (let i = 0; i < 3; i++) {
-    const k = (time * 0.3 + i / 3) % 1;
+    const k = (time * speed + i / 3) % 1;
     ctx.globalAlpha = Math.sin(k * Math.PI);
-    ctx.font = `900 ${Math.round(u * (0.22 + k * 0.22))}px system-ui, sans-serif`; // i18n-ok: a font
-    const zx = mx + head * (r + k * u * 0.45), zy = my - r - k * u * 0.9;
-    ctx.strokeText('Z', zx, zy); // i18n-ok: a snore, not a word
-    ctx.fillText('Z', zx, zy); // i18n-ok: a snore, not a word
+    ctx.font = `${weight} ${Math.round(u * size * (1 + k))}px system-ui, sans-serif`; // i18n-ok: a font
+    const lx = x + dir * k * u * drift, ly = y - k * u * rise;
+    if (outline) ctx.strokeText(letter, lx, ly);
+    ctx.fillText(letter, lx, ly);
   }
   ctx.restore();
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1] - 2026-10-14
+
+### Changed
+- Friend drawing tidied for anyone building on it: the marker diamond and
+  the drifting z's (away) and Z's (asleep) are now small shared helpers in
+  `src/game/render/sprites.js`. Looks the same.
+
 ## [0.52.0] - 2026-10-14
 
 ### Changed
