@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, T } from './helpers.js';
+import { C, T, typeAt, findNear } from './helpers.js';
 
 const { SURFACE } = C;
 
@@ -40,18 +40,58 @@ test('the world is endless in every direction', () => {
   assert.equal(typeof C.tileAt(w, -999999, 888888, SURFACE), 'number');
 });
 
-test('surface terrain has a sensible resource mix', () => {
+test('surface terrain has every resource, with crystal the rarest', () => {
   const s = C.createState(12345);
   const counts = {};
-  for (let y = -60; y < 60; y++) for (let x = -60; x < 60; x++) {
+  for (let y = -120; y < 120; y++) for (let x = -120; x < 120; x++) {
     const t = C.tileAt(s.world, x, y, SURFACE);
     counts[t] = (counts[t] || 0) + 1;
   }
-  assert.ok(counts[T.FOREST] > 400, 'enough forest');
-  assert.ok(counts[T.STONE] > 300, 'enough stone');
-  assert.ok(counts[T.ORE] > 100, 'ore exists');
-  assert.ok(counts[T.CRYSTAL] > 20, 'crystal exists');
+  assert.ok(counts[T.FOREST] > 5000, 'enough forest');
+  assert.ok(counts[T.STONE] > 1500, 'enough stone');
+  assert.ok(counts[T.ORE] > 500, 'ore exists');
+  assert.ok(counts[T.CRYSTAL] > 50, 'crystal exists');
   assert.ok(counts[T.CRYSTAL] < counts[T.ORE], 'crystal is rarer than ore');
+  const resources = counts[T.FOREST] + counts[T.STONE] + counts[T.ORE] + counts[T.CRYSTAL];
+  assert.ok(resources < 0.45 * 240 * 240, 'most land holds nothing: resources take exploring');
+});
+
+test('resources start thin near home and grow richer far out', () => {
+  for (const seed of [12345, 777, 20260101]) {
+    const w = C.createWorld(seed);
+    let crystalNear = 0, nearRich = 0, nearN = 0, farRich = 0, farN = 0;
+    for (let y = -220; y < 220; y += 2) for (let x = -220; x < 220; x += 2) {
+      const t = C.tileAt(w, x, y, SURFACE), d = Math.hypot(x, y);
+      if (t === T.CRYSTAL && d < 40) crystalNear++;
+      if (t !== T.FOREST && t !== T.STONE) continue;
+      if (d < 30) { nearRich += C.richness(w, x, y, SURFACE); nearN++; }
+      if (d > 180) { farRich += C.richness(w, x, y, SURFACE); farN++; }
+    }
+    assert.equal(crystalNear, 0, 'no crystal close to home');
+    assert.ok(farRich / farN > 1.8 * (nearRich / nearN), 'deposits far out are much richer');
+  }
+});
+
+test('every start has forest and stone within reach of home', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const s = C.createState(seed * 7919);
+    for (const type of [T.FOREST, T.STONE, T.ORE]) {
+      assert.ok(findNear(s, (st, x, y) => typeAt(st, x, y) === type, 45), 'seed ' + seed * 7919 + ' type ' + type);
+    }
+  }
+});
+
+test('seams run in veins rather than scattered tile by tile', () => {
+  const w = C.createWorld(4242);
+  for (const [z, type] of [[-2, T.ORE_SEAM], [-2, T.STONE_SEAM], [-6, T.CRYSTAL_SEAM]]) {
+    let n = 0, joined = 0;
+    for (let y = -64; y < 64; y++) for (let x = -64; x < 64; x++) {
+      if (C.tileAt(w, x, y, z) !== type) continue;
+      n++;
+      if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => C.tileAt(w, x + dx, y + dy, z) === type)) joined++;
+    }
+    assert.ok(n > 20 && joined > 0.8 * n, 'type ' + type + ': ' + joined + ' of ' + n + ' touch another');
+  }
 });
 
 test('spawn is on walkable dry land at the surface', () => {

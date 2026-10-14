@@ -1,8 +1,8 @@
 /* Save format. A save is the seed plus every player edit, so the world can be
  * regenerated exactly. While the game is in active development a save from
  * another format version is rejected (and the player told) and a new world
- * starts, with one exception: format 5 saves from before trees stopped being
- * cut are renamed into format 6 (see fromV5), so nobody loses a world to it. */
+ * starts. Format 7 is when resources became scarce and clustered: the same
+ * seed grows different land, so older worlds don't carry over. */
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -10,7 +10,7 @@ import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export function bytesToB64(u8) {
   let out = '';
@@ -52,31 +52,11 @@ function copyNumbers(into, from) {
   for (const k in into) if (isNum(from[k])) into[k] = from[k];
 }
 
-// Format 5 had wood instead of mycelium: the Axe, the Lumber Camp, the
-// Sapling Grove, Silviculture and torches. Format 6 is the same save with
-// those renamed to the Basket, the Mushroom Garden, the Compost Heap,
-// Mycology and glowcaps; amounts and levels carry over one for one.
-const V5_NAMES = { wood: 'mycelium', axe: 'basket', lumber: 'garden', sapling: 'compost', forestWood: 'foraged' };
-const renamed = (o) => (o && typeof o === 'object' && !Array.isArray(o)
-  ? Object.fromEntries(Object.entries(o).map(([k, v]) => [V5_NAMES[k] || k, v]))
-  : o);
-function fromV5(d) {
-  const props = d.props || (d.torches || []).map((k) => [k, 'torch']);
-  return {
-    ...d,
-    v: 6,
-    inv: renamed(d.inv), tools: renamed(d.tools), unlocks: renamed(d.unlocks), resUp: renamed(d.resUp), stats: renamed(d.stats),
-    props: props.map((p) => (Array.isArray(p) && p[1] === 'torch' ? [p[0], 'glowcap'] : p)),
-    extractors: (d.extractors || []).map((e) => (e && V5_NAMES[e.k] ? { ...e, k: V5_NAMES[e.k] } : e))
-  };
-}
-
 // Returns the restored state, or null if the save is unreadable or too old.
 export function deserialize(str) {
   let d;
   try { d = JSON.parse(str); } catch { return null; }
   if (!d || typeof d !== 'object') return null;
-  if (d.v === 5) d = fromV5(d);
   if (d.v !== SAVE_VERSION || !isNum(d.seed)) return null;
 
   const s = createState(d.seed);

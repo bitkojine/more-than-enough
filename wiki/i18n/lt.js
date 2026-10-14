@@ -150,7 +150,7 @@ export default {
   "wiki.col.tile": "Langelis",
   "wiki.col.richness": "Turtingumas",
   "wiki.col.notes": "Pastabos",
-  "wiki.col.share": "Langelių dalis",
+  "wiki.col.share": "Langelių dalis (sekliai → giliai)",
   "wiki.col.foundOn": "Randama",
   "wiki.col.mushroom": "Grybas",
   "wiki.col.grows": "Auga",
@@ -183,7 +183,7 @@ export default {
   "wiki.col.ground": "Plotas",
   "wiki.everyLayer": "kiekviename sluoksnyje",
   "wiki.fromLayer": "nuo {layer} sluoksnio ir giliau",
-  "wiki.soilShare": "{pct} + dar neatrakintos juostos",
+  "wiki.soilShare": "apie {pct} 1 sluoksnyje, giliau mažiau",
   "wiki.common": "dažnas",
   "wiki.fairlyCommon": "gana dažnas",
   "wiki.uncommon": "retokas",
@@ -374,8 +374,10 @@ export default {
       <p class="lede">Begalinis į visas puses, kaskart kitoks, ir driekiasi ne tik į šalis, bet ir gilyn.</p>
 
       <h2>Išdėstymas</h2>
-      <p>Kiekvienas pasaulis sukuriamas iš atsitiktinės sėklos ir neturi kraštų: eini toliau, ir jis tęsiasi. Ištekliai
-        išbarstyti tolygiai visur, be turtingesnių zonų toli nuo starto, tad verta tyrinėti bet kuria kryptimi. Pradedi ant
+      <p>Kiekvienas pasaulis sukuriamas iš atsitiktinės sėklos ir neturi kraštų: eini toliau, ir jis tęsiasi. Išteklių nedaug,
+        ir jie telkiasi: miškai auga giraitėmis su atvirais viržynais tarp jų, o akmuo, rūda ir kristalai randami tik
+        mineralinių žemių lopuose, tarp kurių driekiasi tuščia žemė. Prie starto yra po truputį visko, kad galėtum pradėti;
+        toliau telkiniai turtingesni, rūdos daugiau, o kristalų apskritai atsiranda. Norėdamas daug surinkti, turėsi tyrinėti. Pradedi ant
         sausumos arčiausiai pasaulio centro, namų žemės laukymėje, skirtoje tavo <a href="#stockpile">atsargoms</a>.</p>
       <p>Pasaulis turi <strong>sluoksnius</strong>. Miškas, kuriame pradedi, yra paviršius; kasykla – tai sluoksnių stulpas
         tiesiai po juo, sutampantis langelis į langelį. Žr. <a href="#mine">Kasykla</a>.</p>
@@ -445,8 +447,9 @@ export default {
       <p>Visas įrankių lenteles rasi skyriuje <a href="#upgrades">Patobulinimai</a>.</p>
 
       <h2>Kaip rasti rūdos ir kristalų</h2>
-      <p>Rūda atrodo kaip oranžiniais taškeliais išmarginti akmenys, o kristalai – kaip blyškiai mėlynos kristalų sankaupos. Jų išsibarsčiusi visur,
-        bet kristalų mažai. Jei šalia nė vieno nėra, eik tiesia linija – rūkas daug ką slepia.</p>`,
+      <p>Rūda atrodo kaip oranžiniais taškeliais išmarginti akmenys, o kristalai – kaip blyškiai mėlynos kristalų sankaupos. Rūda driekiasi gyslomis
+        mineralinėse žemėse, o kristalai slypi turtingiausių gyslų širdyje, niekada ne prie namų. Jei šalia nė vieno nėra, eik
+        tiesia linija – rūkas daug ką slepia, o kuo toliau eini, tuo turtingesnė žemė.</p>`,
   "wiki.article.mine.title": "Kasykla",
   "wiki.article.mine": `      <h1>Kasykla</h1>
       <p class="lede">Kieta uoliena po mišku, sluoksnis po sluoksnio, tiek giliai, kiek tik rasi kelią.</p>
@@ -506,7 +509,7 @@ export default {
       <div data-table="underground"></div>
 
       <h2>Kas ten apačioje</h2>
-      <p>Gilesniuose sluoksniuose daugiau uolienų rūšių:</p>
+      <p>Gyslos driekiasi juostomis ir klodais, tad viena gysla dažniausiai veda prie kitų. Gilesniuose sluoksniuose daugiau uolienų rūšių ir daugiau vertingųjų:</p>
       <div data-table="geology"></div>
 
       <h2>Radiniai</h2>

@@ -4,7 +4,7 @@
  * edits live in the world's `mods` map on top of this. */
 
 import { CHUNK_SIZE, CHUNK_TILES, SURFACE } from './coords.js';
-import { hash2, fbm } from './noise.js';
+import { hash2, fbm, fbmAbove } from './noise.js';
 import { T, TILE_INFO } from './tiles.js';
 import { FINDS, FINDS_PER_CHUNK } from './content.js';
 import { t } from '../i18n/i18n.js';
@@ -18,19 +18,50 @@ export function generateChunk(seed, cx, cy, cz) {
   return cz === SURFACE ? generateSurface(seed, cx, cy) : generateUnderground(seed, cx, cy, cz);
 }
 
+/* Resources are scarce and come in clusters, so finding them takes walking.
+ * Forests grow in groves with open heath between them. Stone, ore and crystal
+ * only crop up in mineral country, broad regions with barren land between
+ * (LODE). Near home there's a little of everything to get started; further
+ * out the land gets richer: more ore, crystal at all, and deeper deposits.
+ * Each share below is the part of the land a resource takes, near home and
+ * far out (see `far`). */
+export const SURFACE_SHARE = {
+  forest: { near: 0.4, far: 0.22 },
+  lode: { near: 1, far: 0.4 },     // mineral country
+  stone: { near: 0.16, far: 0.2 }, // of mineral country
+  ore: { near: 0.05, far: 0.12 },  // of mineral country
+  crystal: { near: 0, far: 0.03 }  // of mineral country: the hearts of ore veins
+};
+// Distances from the origin, in tiles: within NEAR it's all `near`, beyond
+// FAR it's all `far`, and it shades between. Crystal never shows within
+// CRYSTAL_FROM.
+const NEAR = 20, FAR = 160, CRYSTAL_FROM = 40;
+
+// How far out (x, y) is: 0 near home, 1 far out.
+export function farness(x, y) {
+  return Math.min(1, Math.max(0, (Math.hypot(x, y) - NEAR) / (FAR - NEAR)));
+}
+
+function share(key, far) {
+  const s = SURFACE_SHARE[key];
+  return s.near + (s.far - s.near) * far;
+}
+
 function surfaceType(seed, x, y) {
   if (x * x + y * y <= HOME_RADIUS * HOME_RADIUS) return T.HOME;
   const elevation = fbm(x * 0.06, y * 0.06, seed + 11, 4);
-  const moisture = fbm(x * 0.055, y * 0.055, seed + 23, 4);
-  const rock = fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3);
-  const ore = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
-  // Past the home clearing, the whole plane is equally random.
   if (elevation < 0.28) return T.WATER;
   if (elevation > 0.79) return T.ROCK;
-  if (ore > 0.775) return T.CRYSTAL;
-  if (ore > 0.675) return T.ORE;
-  if (rock > 0.605) return T.STONE;
-  if (moisture > 0.505) return T.FOREST;
+  const far = farness(x, y);
+  // Mineral country shades in over a short way past home, not all of FAR.
+  const lodeFar = Math.min(1, far * 5);
+  if (fbm(x * 0.02 + 90, y * 0.02 - 40, seed + 79, 3) > fbmAbove(share('lode', lodeFar), 3)) {
+    const ore = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
+    if (x * x + y * y >= CRYSTAL_FROM * CRYSTAL_FROM && ore > fbmAbove(share('crystal', far), 3)) return T.CRYSTAL;
+    if (ore > fbmAbove(share('ore', far), 3)) return T.ORE;
+    if (fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3) > fbmAbove(share('stone', far), 3)) return T.STONE;
+  }
+  if (fbm(x * 0.04, y * 0.04, seed + 23, 4) > fbmAbove(share('forest', far), 4)) return T.FOREST;
   return T.GRASS;
 }
 
@@ -55,12 +86,14 @@ export function forestKind(seed, x, y) {
   return wet > 0.55 ? 'birch' : 'mixed';
 }
 
-// Starting richness for each surface deposit: base + random spread.
+// Starting richness for each surface deposit: base + random spread, times
+// WEALTH: thin near home, rich far out.
 export const DEPOSIT = [];
 DEPOSIT[T.FOREST] = { base: 5, spread: 9, salt: 101 };
 DEPOSIT[T.STONE] = { base: 4, spread: 6, salt: 102 };
 DEPOSIT[T.ORE] = { base: 3, spread: 6, salt: 103 };
 DEPOSIT[T.CRYSTAL] = { base: 1, spread: 3, salt: 104 };
+export const WEALTH = { near: 0.6, far: 1.6 };
 
 /* Ways between layers. Nothing is dug between layers: every way up or down
  * is generated with the world, and you find it by exploring. A way down is a
@@ -120,7 +153,10 @@ function generateSurface(seed, cx, cy) {
       const t = surfaceType(seed, x, y);
       type[i] = t;
       const d = DEPOSIT[t];
-      if (d) rich[i] = Math.max(1, Math.min(MAX_RICHNESS, Math.round(d.base + hash2(x, y, seed + d.salt) * d.spread)));
+      if (d) {
+        const wealth = WEALTH.near + (WEALTH.far - WEALTH.near) * farness(x, y);
+        rich[i] = Math.max(1, Math.min(MAX_RICHNESS, Math.round((d.base + hash2(x, y, seed + d.salt) * d.spread) * wealth)));
+      }
     }
   }
   const cave = caveInChunk(seed, cx, cy);
@@ -132,23 +168,42 @@ function generateSurface(seed, cx, cy) {
   return { type, rich };
 }
 
-// Geology below the forest. Each tile draws h in [0, 1) and takes the first
-// band with h < below. A band only appears from layer `from` down (layer 1 is
-// z = -1); above that its share is plain soil. Everything else is soil. Every
-// underground tile starts solid with richness 1; digging it to zero clears it.
+// Geology below the forest. Bedrock is scattered tile by tile, so it never
+// walls a way off. Every other kind of rock runs in veins and beds, each from
+// its own noise: a band shows from layer `from` down (layer 1 is z = -1),
+// taking `share` of the rock there and more the deeper you go, up to `deep`
+// by DEEP layers further down. Rarer bands come first in the list and win
+// where veins cross. Everything else is plain soil. Every underground tile
+// starts solid with richness 1; digging it to zero clears it.
 export const GEOLOGY = [
-  { type: T.BEDROCK, below: 0.13, from: 1 },
-  { type: T.STONE_SEAM, below: 0.27, from: 1 },
-  { type: T.ORE_SEAM, below: 0.34, from: 1 },
-  { type: T.CRYSTAL_SEAM, below: 0.37, from: 3 },
-  { type: T.SPORE_BED, below: 0.43, from: 4 }
+  { type: T.BEDROCK, share: 0.13, deep: 0.13, from: 1, scatter: true },
+  { type: T.CRYSTAL_SEAM, share: 0.012, deep: 0.035, from: 3, scale: 0.16 },
+  { type: T.ORE_SEAM, share: 0.035, deep: 0.07, from: 1, scale: 0.13 },
+  { type: T.SPORE_BED, share: 0.035, deep: 0.06, from: 4, scale: 0.1 },
+  { type: T.STONE_SEAM, share: 0.09, deep: 0.1, from: 1, scale: 0.1 }
 ];
+const DEEP = 8;
+
+// A band's share of the rock on mine layer `layer` (0 above its `from`).
+export function geologyShare(g, layer) {
+  if (layer < g.from) return 0;
+  return g.share + (g.deep - g.share) * Math.min(1, (layer - g.from) / DEEP);
+}
 
 function undergroundType(seed, x, y, layer) {
   const depth = layer - 1;
-  const h = hash2(x + depth * 977, y - depth * 613, seed + depth * 7919);
-  const band = GEOLOGY.find((g) => h < g.below);
-  return band && layer >= band.from ? band.type : T.SOIL;
+  for (let i = 0; i < GEOLOGY.length; i++) {
+    const g = GEOLOGY[i];
+    const share = geologyShare(g, layer);
+    if (!share) continue;
+    if (g.scatter) {
+      if (hash2(x + depth * 977, y - depth * 613, seed + depth * 7919) < share) return g.type;
+    } else {
+      const salt = seed + 307 + i * 131 + depth * 7919;
+      if (fbm(x * g.scale + depth * 37, y * g.scale - depth * 53, salt, 3) > fbmAbove(share, 3)) return g.type;
+    }
+  }
+  return T.SOIL;
 }
 
 // Each underground chunk hides one shaft down to the next layer (see

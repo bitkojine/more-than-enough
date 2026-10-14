@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.59.0] - 2026-10-14
+
+### Changed
+- **Resources are scarcer and come in clusters, so you have to explore.**
+  Forests grow in groves with open heath between them, and stone, ore and
+  crystal only crop up in patches of mineral country with barren land in
+  between. Home still has a little forest, stone and ore close by to get
+  started; further out, deposits get much richer, ore gets commoner, and
+  crystal only shows up at all from about 40 tiles out. Underground, seams
+  now run in veins and beds instead of a speckle on every tile, ore and
+  crystal grow commoner the deeper you go, and each area hides up to two
+  finds instead of three. Saves from before this start a new world.
+
 ## [0.58.0] - 2026-10-14
 
 ### Changed
@@ -13,6 +26,7 @@
   still you breathe, now and then look around and take a long look at your
   phone or laptop. Holding up the invite sign keeps you still, so it scans.
 - Friends in a shared world play the same moves as they do them.
+
 ## [0.57.2] - 2026-10-14
 
 ### Changed

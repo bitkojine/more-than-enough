@@ -64,19 +64,17 @@ const fromLayer = (from) => (from === 1 ? t('wiki.everyLayer') : t('wiki.fromLay
 const TABLES = {
   surface: () => table(heads('tile', 'richness', 'notes'), surfaceTiles.map((type) => {
     const d = Core.DEPOSIT[type];
-    return [tileName(type), d ? `${d.base}–${d.base + d.spread}` : '—', tileNotes(type)];
+    const rich = (r, wealth) => Math.max(1, Math.min(30, Math.round(r * wealth)));
+    return [tileName(type), d ? `${rich(d.base, Core.WEALTH.near)}–${rich(d.base + d.spread, Core.WEALTH.far)}` : '—', tileNotes(type)];
   }), [1]),
 
   underground: () => table(heads('tile', 'notes'), undergroundTiles.map((type) => [tileName(type), tileNotes(type)])),
 
   geology: () => {
-    let prev = 0;
-    const rows = Core.GEOLOGY.map((g) => {
-      const share = g.below - prev;
-      prev = g.below;
-      return [tileName(g.type), pct(share), fromLayer(g.from)];
-    });
-    rows.push([tileName(T.SOIL), t('wiki.soilShare', { pct: pct(1 - prev) }), t('wiki.everyLayer')]);
+    const rows = Core.GEOLOGY.map((g) =>
+      [tileName(g.type), g.deep === g.share ? pct(g.share) : `${pct(g.share)} → ${pct(g.deep)}`, fromLayer(g.from)]);
+    const firstLayer = Core.GEOLOGY.reduce((sum, g) => sum + Core.geologyShare(g, 1), 0);
+    rows.push([tileName(T.SOIL), t('wiki.soilShare', { pct: pct(1 - firstLayer) }), t('wiki.everyLayer')]);
     return table(heads('tile', 'share', 'foundOn'), rows, [1]);
   },
 

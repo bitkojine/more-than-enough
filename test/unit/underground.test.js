@@ -390,17 +390,6 @@ test('props: placed underground on open floor, one per tile, paid for, and saved
   assert.equal(C.isDark(night), true, 'and at night');
 });
 
-test('torches in saves from before trees stopped being cut grow back as glowcaps', () => {
-  const s = away(C.createState(31415));
-  C.goDown(s);
-  const k = C.packKey(Math.floor(s.player.x), Math.floor(s.player.y), s.player.z);
-  const d = JSON.parse(C.serialize(s));
-  d.v = 5;
-  d.props = [[k, 'torch'], [C.packKey(0, 0, 0), 'torch']];
-  const back = C.deserialize(JSON.stringify(d));
-  assert.deepEqual([...back.world.props], [[k, 'glowcap']], 'kept underground only');
-});
-
 test('home ground is sealed: no way down from it, none up into it; deeper is like anywhere', () => {
   const s = C.createState(31415);
   const h = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };

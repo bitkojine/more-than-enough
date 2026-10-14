@@ -66,33 +66,10 @@ test('a reloaded save keeps producing', () => {
 test('unreadable saves and saves from other format versions are rejected', () => {
   assert.equal(C.deserialize('not json'), null);
   assert.equal(C.deserialize('null'), null);
-  for (const v of [1, 2, 3, 4, C.SAVE_VERSION + 1]) {
+  for (const v of [1, 2, 3, 4, 5, 6, C.SAVE_VERSION + 1]) {
     assert.equal(C.deserialize(JSON.stringify({ v, seed: 4242 })), null, 'format v' + v);
   }
   assert.equal(C.deserialize(JSON.stringify({ v: C.SAVE_VERSION })), null, 'a seed is required');
-});
-
-test('format 5 saves from before trees stopped being cut carry over, renamed', () => {
-  const s = C.createState(5150);
-  s.inv.mycelium = 42;
-  s.stats.foraged = 7;
-  s.tools.basket = 3;
-  s.resUp.mycelium = 2;
-  s.unlocks.compost = true;
-  const d = JSON.parse(C.serialize(s));
-  const names = { mycelium: 'wood', basket: 'axe', compost: 'sapling', foraged: 'forestWood' };
-  const old = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [names[k] || k, v]));
-  Object.assign(d, { v: 5, inv: old(d.inv), stats: old(d.stats), tools: old(d.tools), resUp: old(d.resUp), unlocks: old(d.unlocks) });
-  d.extractors = [{ k: 'lumber', x: 1, y: 2, z: 0, b: 3 }, { k: 'sapling', x: 4, y: 5, z: 0, b: 0 }];
-  const r = C.deserialize(JSON.stringify(d));
-  assert.ok(r, 'a format 5 save still loads');
-  assert.equal(r.inv.mycelium, 42);
-  assert.equal(r.stats.foraged, 7);
-  assert.equal(r.tools.basket, 3);
-  assert.equal(r.resUp.mycelium, 2);
-  assert.equal(r.unlocks.compost, true);
-  assert.deepEqual(r.extractors.map((e) => e.key), ['garden', 'compost']);
-  assert.equal(r.extractors[0].res, 'mycelium');
 });
 
 test('corrupt fields fall back to defaults instead of breaking the game', () => {

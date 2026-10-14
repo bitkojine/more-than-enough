@@ -34,3 +34,21 @@ export function fbm(x, y, seed, octaves = 4) {
   }
   return sum / norm;
 }
+
+// fbm piles up around 0.5, so a raw cut-off says little about how much of the
+// map lies above it. fbmAbove(share, octaves) is the cut-off that about
+// `share` of all points exceed (0 = none, 1 = all), read off a fixed sample
+// taken once per octave count.
+const FBM_SAMPLE = 8192;
+const fbmSorted = {};
+export function fbmAbove(share, octaves = 4) {
+  if (share <= 0) return Infinity;
+  if (share >= 1) return -Infinity;
+  let s = fbmSorted[octaves];
+  if (!s) {
+    s = fbmSorted[octaves] = new Float64Array(FBM_SAMPLE);
+    for (let i = 0; i < FBM_SAMPLE; i++) s[i] = fbm(hash2(i, 1, 9001) * 5000, hash2(i, 2, 9001) * 5000, 9002 + i, octaves);
+    s.sort();
+  }
+  return s[Math.floor((1 - share) * (FBM_SAMPLE - 1))];
+}

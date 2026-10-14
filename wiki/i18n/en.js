@@ -153,7 +153,7 @@ export default {
   "wiki.col.tile": "Tile",
   "wiki.col.richness": "Richness",
   "wiki.col.notes": "Notes",
-  "wiki.col.share": "Share of tiles",
+  "wiki.col.share": "Share of tiles (shallow → deep)",
   "wiki.col.foundOn": "Found on",
   "wiki.col.mushroom": "Mushroom",
   "wiki.col.grows": "Grows",
@@ -186,7 +186,7 @@ export default {
   "wiki.col.ground": "Ground",
   "wiki.everyLayer": "every layer",
   "wiki.fromLayer": "layer {layer} and deeper",
-  "wiki.soilShare": "{pct} + any band not yet unlocked",
+  "wiki.soilShare": "about {pct} on layer 1, less deeper down",
   "wiki.common": "common",
   "wiki.fairlyCommon": "fairly common",
   "wiki.uncommon": "uncommon",
@@ -377,8 +377,10 @@ export default {
       <p class="lede">Endless in every direction, different every time, and it goes down as well as out.</p>
 
       <h2>Layout</h2>
-      <p>Each world comes from a random seed and has no edges: keep walking and it keeps going. Resources are spread evenly
-        everywhere with no richer zones far from the start, so every direction is worth exploring. You begin on the dry land
+      <p>Each world comes from a random seed and has no edges: keep walking and it keeps going. Resources are scarce and
+        come in clusters: forests grow in groves with open heath between them, and stone, ore and crystal only crop up in
+        patches of mineral country, with barren land between. Near the start there's a little of everything to get going;
+        further out deposits grow richer, ore more common, and crystal turns up at all. To gather a lot, you'll have to explore. You begin on the dry land
         nearest the world's centre, in a clearing of home ground kept for your <a href="#stockpile">stockpile</a>.</p>
       <p>The world has <strong>layers</strong>. The forest you start in is the surface; the mine is a stack of layers directly
         beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
@@ -448,8 +450,9 @@ export default {
       <p>See <a href="#upgrades">Upgrades</a> for the full tool tables.</p>
 
       <h2>Finding ore and crystal</h2>
-      <p>Ore and crystal show up as rocks flecked with orange, and as pale blue crystal clusters. They're scattered everywhere,
-        but crystal is rare. If none is near, walk in a straight line; the fog hides a lot.</p>`,
+      <p>Ore and crystal show up as rocks flecked with orange, and as pale blue crystal clusters. Ore runs in veins inside
+        mineral country, and crystal sits at the heart of the richest veins, never close to home. If none is near, walk in a
+        straight line; the fog hides a lot, and the further you go the richer it gets.</p>`,
   "wiki.article.mine.title": "The mine",
   "wiki.article.mine": `      <h1>The mine</h1>
       <p class="lede">Solid rock under the forest, layer after layer, for as deep as you can find the way.</p>
@@ -510,7 +513,7 @@ export default {
       <div data-table="underground"></div>
 
       <h2>What's down there</h2>
-      <p>Deeper layers hold more kinds of rock:</p>
+      <p>Seams run in veins and beds, so one seam usually leads to more. Deeper layers hold more kinds of rock, and more of the good ones:</p>
       <div data-table="geology"></div>
 
       <h2>Finds</h2>

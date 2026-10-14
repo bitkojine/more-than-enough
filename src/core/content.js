@@ -48,7 +48,7 @@ export const PROPS = {
 // multiplied by the layer number and by your Basket or Pickaxe yield for that
 // resource, so deeper finds and better tools pay more. A find shows from
 // layer `from` down.
-export const FINDS_PER_CHUNK = 3;
+export const FINDS_PER_CHUNK = 2;
 export const GLINT_RANGE = 9;
 export const FINDS = {
   [T.CACHE]: { name: t('tile.cache'), loot: { mycelium: 8, stone: 6, ore: 2 }, from: 1 },
