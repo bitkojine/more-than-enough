@@ -1,14 +1,16 @@
 # Test, then deploy the room service for playing together (server/) to
 # Cloudflare Workers. Needs the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID
 # repository secrets (a token from the "Edit Cloudflare Workers" template).
-# Runs when the service or the wire format it shares with the game changes.
+# Runs when the service or anything it shares with the game changes: the wire
+# format, and the game's rules (src/core, and the i18n they use), which the
+# room replays to keep its own copy of everyone's progress (server/src/shadow.js).
 
 name: Room service
 
 on:
   push:
     branches: [main]
-    paths: ['server/**', 'src/net/**', 'src/core/format.js', '.github/workflows/rooms.yml']
+    paths: ['server/**', 'src/net/**', 'src/core/**', 'src/i18n/**', '.github/workflows/rooms.yml']
   workflow_dispatch:
 
 permissions:
