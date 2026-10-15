@@ -35,7 +35,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   function checkGoals() {
     const from = state().goalIndex;
     if (!Core.advanceGoals(state())) return;
-    for (let i = from; i < state().goalIndex; i++) hud.milestone(Core.GOALS[i].text, i + 1);
+    for (let i = from; i < state().goalIndex; i++) hud.milestone(Core.GOALS[i].text, i + 1, Core.goalsTotal(state()));
     fx.celebrate(player().x, player().y);
     actor.act('cheer');
     audio.fanfare();

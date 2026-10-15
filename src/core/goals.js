@@ -39,9 +39,17 @@ export const GOALS = [
   { id: 'forever', text: t('goal.forever'), done: () => false }
 ];
 
+// How many milestones there are to reach: every one but the last, which goes
+// on forever. A shared world has no Embark (Watch's choice: those are hidden
+// there), so its milestones end before "Master the world".
+export function goalsTotal(s) {
+  return s.shared ? GOALS.findIndex((g) => g.id === 'master') : GOALS.length - 1;
+}
+
 // Moves past every completed goal. Returns true if any were completed.
 export function advanceGoals(s) {
   const start = s.goalIndex;
-  while (s.goalIndex < GOALS.length && GOALS[s.goalIndex].done(s)) s.goalIndex++;
+  const end = s.shared ? goalsTotal(s) : GOALS.length;
+  while (s.goalIndex < end && GOALS[s.goalIndex].done(s)) s.goalIndex++;
   return s.goalIndex > start;
 }

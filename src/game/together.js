@@ -17,7 +17,7 @@ import {
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
-import { loadGame } from './storage.js';
+import { loadGame, saveGame, randomSeed } from './storage.js';
 import { createActor } from './render/motion.js';
 import { t, DEVICE, LANG } from '../i18n/i18n.js';
 
@@ -463,6 +463,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
+      // Your world moved online (Watch's choice: moved, not copied), your
+      // character with it: playing alone starts a new world from here on.
+      if (moving === room) saveGame(Core.createState(randomSeed()), true);
+      moving = null;
       hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
       policyNotice();
     }
@@ -601,6 +605,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   /* -------------------------------------------------------- the QR sign */
 
   let pendingInvite = false;
+  let moving = null;        // the room your own world is moving into (see start)
 
   function showInvite() {
     if (!game.state.shared || !welcomed) { hud.toast(t('together.toast.offline')); return; }
@@ -937,6 +942,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     write(FOG_PREFIX + made.room, JSON.stringify(Core.fogOf(s)));
     room = made.room;
     pendingInvite = true;
+    moving = made.room;
     connect();
   }
 

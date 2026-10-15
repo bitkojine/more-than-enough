@@ -35,7 +35,7 @@ export function createHud(el, look) {
     milestoneLeft = next ? MILESTONE_SECONDS : 0;
     if (!next) return;
     el.milestone.querySelector('strong').textContent = next.text;
-    el.milestone.querySelector('.of').textContent = t('hud.milestoneOf', { n: next.number, total: Core.GOALS.length - 1 });
+    el.milestone.querySelector('.of').textContent = t('hud.milestoneOf', { n: next.number, total: next.total });
     // Restart the entrance animation for each one.
     el.milestone.style.animation = 'none';
     void el.milestone.offsetWidth;
@@ -156,11 +156,11 @@ export function createHud(el, look) {
     },
 
     // Status only (e.g. a save that couldn't be read), never instructions.
-    // A milestone reached (the `number`th): a banner under the counters for
+    // A milestone reached (the `number`th of `total`): a banner under the counters for
     // MILESTONE_SECONDS, several in a row taking turns, and the trophy
     // counter glows until the Awards are looked at.
-    milestone(text, number) {
-      milestones.push({ text, number });
+    milestone(text, number, total) {
+      milestones.push({ text, number, total });
       el.awards.classList.add('new');
       if (milestoneLeft <= 0) nextMilestone();
     },

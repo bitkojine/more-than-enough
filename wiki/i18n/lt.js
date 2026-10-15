@@ -702,7 +702,7 @@ export default {
       <p class="lede">Žaidimas tyliai seka juos iš eilės ir kiekvieną švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Kito niekada neišduoda.
         Atsargiai, atskleidžiama siužeto smulkmenų, jei mieliau nori atrasti pats.</p>
       <div data-table="milestones"></div>
-      <p>Etapai tikrinami iš eilės, tad etapas įskaitomas tik tada, kai įvykdyti visi ankstesni. Iškeliavus jie prasideda iš naujo.</p>`,
+      <p>Etapai tikrinami iš eilės, tad etapas įskaitomas tik tada, kai įvykdyti visi ankstesni. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
   "wiki.article.things.title": "Viskas žaidime",
   "wiki.article.things": `      <h1>Viskas žaidime</h1>
       <p class="lede">Kiekvienas daiktas, kurį gali pamatyti: kas tai ir ką jis daro. Paveikslėliai – iš numatytojo tekstūrų paketo

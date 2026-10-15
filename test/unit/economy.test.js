@@ -150,3 +150,14 @@ test("in a shared world, friends' buildings don't count toward your 25 structure
   for (const e of s.extractors) e.owner = s.me;
   assert.equal(structures.done(s), true, 'your own');
 });
+
+test('a shared world has no Embark, so its milestones end before "Master the world"', () => {
+  const s = C.createState(12345);
+  const master = C.GOALS.findIndex((g) => g.id === 'master');
+  assert.equal(C.goalsTotal(s), C.GOALS.length - 1, 'alone: all but the endless last one');
+  s.shared = 'room';
+  assert.equal(C.goalsTotal(s), master);
+  s.goalIndex = master;
+  assert.equal(C.advanceGoals(s), false, 'never past the end');
+  assert.equal(s.goalIndex, master);
+});

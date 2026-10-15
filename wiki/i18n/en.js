@@ -706,7 +706,7 @@ export default {
       <p class="lede">The game quietly tracks these in order and celebrates each one with a burst of sparks, a fanfare and a banner naming it. It never tells you the next one.
         Spoilers, if you'd rather find your own way.</p>
       <div data-table="milestones"></div>
-      <p>Milestones are checked in order, so one only counts once everything before it is done. They start over when you embark.</p>`,
+      <p>Milestones are checked in order, so one only counts once everything before it is done. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
   "wiki.article.things.title": "Everything in the game",
   "wiki.article.things": `      <h1>Everything in the game</h1>
       <p class="lede">Every thing you can see, what it is and what it does. The pictures are the default texture pack,

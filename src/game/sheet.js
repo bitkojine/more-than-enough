@@ -103,8 +103,9 @@ function upgradeRow(s, id) {
 }
 
 // Beyond (embarking and perks) stays out of sight until a world is
-// mastered, every upgrade done; after the first Embark it stays.
-const beyondUnlocked = (s) => s.insight > 0 || s.prestiges > 0 || Core.worldMastered(s);
+// mastered, every upgrade done; after the first Embark it stays. Never in a
+// shared world, which has no Embark (perks you have still work there).
+const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || Core.worldMastered(s));
 
 /* ----------------------------------------------------------- the sheet */
 
@@ -199,8 +200,8 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   // Milestones reached, newest first, and how many are still out there.
   // Which ones are left is for the player to find (or the wiki to tell).
   function renderAwards(s) {
-    const total = Core.GOALS.length - 1; // the last one goes on forever
-    let html = `<div class="section">${t('sheet.milestones', { n: s.goalIndex, total })}</div>`;
+    const total = Core.goalsTotal(s);
+    let html = `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
     for (let i = s.goalIndex - 1; i >= 0; i--) html += row(TROPHY, esc(Core.GOALS[i].text), t('sheet.milestone', { n: i + 1 }), '');
     if (s.goalIndex < total) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: total - s.goalIndex })}</div></div></div>`;
     return html;

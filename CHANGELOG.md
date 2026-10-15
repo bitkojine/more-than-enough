@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.83.0] - 2026-10-15
+
+### Changed
+Watch's answers to the state machine review:
+- **Going online moves your world, not copies it.** Once the new room
+  welcomes you, the solo save is replaced with a fresh world: your world and
+  your character (resources, Insight, perks) live on in the shared world
+  only, so Leave no longer brings back a stale copy from the moment you went
+  online. The owner keeps that progress there; people who join still start
+  from nothing.
+- **Shared worlds hide Embark.** The Beyond tab doesn't show there (perks you
+  already have still work), and milestones end before "Master the world"
+  (`goalsTotal`), which needs Embark.
+
 ## [0.82.2] - 2026-10-15
 
 ### Fixed
