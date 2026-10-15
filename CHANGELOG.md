@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.78.0] - 2026-10-15
+
+From the second security audit (finding 2). One invite could bring in
+any number of people: any player could make links, and a ban only stopped
+the link the player came in with.
+
+### Security
+- **A daily invite limit.** A player who isn't the owner brings in at most
+  5 people a day through their own links (`LIMITS.invitesPerDay`, counted
+  per joiner); the sixth is turned away with a message saying why. The
+  owner has no limit.
+- **Bans clean up after themselves.** A ban (by the owner, the anti-cheat
+  or the moderator) stops every link the player made, and removes everyone
+  who came in through their links, and whoever those brought in. The
+  owner's own guests are never taken along.
+
 ## [0.77.1] - 2026-10-15
 
 From the second security audit (finding 1).

@@ -42,6 +42,10 @@ export const CHEAT_FORGIVE_MS = 30_000;
 // fill it for everyone.
 export const PLAYER_BUILDINGS = 400;
 export const PLAYER_PROPS = 2000;
+// One player (not the owner) brings at most LIMITS.invitesPerDay people into
+// a world through their own links in a day, so one bad invite can't fill a
+// world with others.
+const DAY_MS = 24 * 3600_000;
 
 const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
@@ -187,13 +191,25 @@ export class Room {
         return { error: 'invite', why: inv ? this.whyNot(inv, now) : undefined };
       }
       if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
+      // Whoever made the link has brought in their share for today.
+      const host = inv.by !== this.owner ? this.players.get(inv.by) : null;
+      if (host) {
+        const today = (Array.isArray(host.brought) ? host.brought : []).filter((t) => now - t < DAY_MS);
+        if (today.length >= LIMITS.invitesPerDay) {
+          this.audit(now, id, 'deny', { why: 'limit', code: codeTag(code) });
+          return { error: 'invite', why: 'limit' };
+        }
+        host.brought = [...today, now];
+        this.dirty.players.add(inv.by);
+      }
       inv.uses++;
       this.dirty.meta = true;
       const used = new Set([...this.players.values()].map((p) => p.c));
       let c = 0;
       while (used.has(c)) c++;
-      // `via`: the link they came in with, stopped if they're taken out.
-      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, np: 0 };
+      // `via`: the link they came in with, stopped if they're taken out;
+      // `by`: who made it, taking them along if they're taken out.
+      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0 };
       this.players.set(id, pl);
     }
     // A new connection may stand anywhere its game remembers: its first step is free.
@@ -229,7 +245,8 @@ export class Room {
     return !inv.off && inv.until >= now && inv.uses < this.maxOf(inv);
   }
 
-  // Why a link no longer lets anyone in: 'stopped', 'expired' or 'usedUp'.
+  // Why a link no longer lets anyone in: 'stopped', 'expired' or 'usedUp'
+  // (or, from join, 'limit': its maker has brought in LIMITS.invitesPerDay today).
   whyNot(inv, now) {
     if (inv.off) return 'stopped';
     if (inv.until < now) return 'expired';
@@ -454,9 +471,26 @@ export class Room {
 
   // Takes a player out of the world for good: their key can't come back,
   // the link they came in with and every link they made stop, and their
-  // buildings go. `by` is who decided ('owner', 'auto' for the anti-cheat,
-  // 'mod' for the moderator).
+  // buildings go. So does everyone who came in through their links, and
+  // whoever those brought in (Watch's rule: a bad invite is cleaned up in
+  // one go). `by` is who decided ('owner', 'auto' for the anti-cheat, 'mod'
+  // for the moderator). Returns {kick, also, toAll}: the player, the others
+  // taken with them, and the news for everyone.
   ban(id, now, by, why) {
+    const also = [];
+    this.banOne(id, now, by, why);
+    for (let i = 0, from = [id]; i < from.length; i++) {
+      for (const [pid, p] of this.players) {
+        if (pid === this.owner || p.by !== from[i]) continue;
+        this.banOne(pid, now, by, 'came in through ' + from[i]);
+        also.push(pid);
+        from.push(pid);
+      }
+    }
+    return { kick: id, also, toAll: [id, ...also].map((x) => ({ t: 'removed', id: x })) };
+  }
+
+  banOne(id, now, by, why) {
     const pl = this.players.get(id);
     this.sample(id, now, true);
     this.audit(now, id, 'ban', { by, why: String(why || '').slice(0, 200) });
@@ -479,7 +513,6 @@ export class Room {
       this.extTiles = new Set(left.map((e) => extAt(e[1], e[2], e[3])));
       this.dirty.ext = true;
     }
-    return { kick: id, toAll: [{ t: 'removed', id }] };
   }
 
   /* ------------------------------------------------------------ nuke */

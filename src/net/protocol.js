@@ -48,7 +48,8 @@ export const LIMITS = Object.freeze({
   rateBurst: 60,
   editsPerSecond: 60,    // world edits from one player, on average
   editsBurst: 400,       // (a Trail sweep makes many at once)
-  editReach: 24          // tiles from where you stand that you can change
+  editReach: 24,         // tiles from where you stand that you can change
+  invitesPerDay: 5       // people a player (not the owner) may bring in through their links in a day
 });
 
 // What an invite link may be, like Discord's: how many people it lets in

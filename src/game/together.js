@@ -51,7 +51,8 @@ const NUKE_NAMES = 6;                 // names listed on the nuke screen
 const INVITE_WHY = Object.freeze({
   expired: () => t('together.toast.inviteExpired'),
   usedUp: () => t('together.toast.inviteUsedUp'),
-  stopped: () => t('together.toast.inviteStopped')
+  stopped: () => t('together.toast.inviteStopped'),
+  limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay })
 });
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 

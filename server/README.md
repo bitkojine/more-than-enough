@@ -46,9 +46,11 @@ again in the game; anything that doesn't fit exactly is dropped.
   `wrangler.toml`; `localhost` only with `ALLOW_LOCALHOST`, for
   `wrangler dev`).
 - **Who can join:** whoever holds a live invite that isn't used up, at most
-  100 players a room (`LIMITS.players`). The owner can remove a player: they
-  are banned from the room for good (their key can't come back), the link
-  they joined with stops, and their buildings go.
+  100 players a room (`LIMITS.players`). A player who isn't the owner brings
+  in at most 5 people a day through their links (`LIMITS.invitesPerDay`).
+  The owner can remove a player: they are banned from the room for good
+  (their key can't come back), the link they joined with and every link
+  they made stop, and their buildings go.
 - **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
   budget, so bunched-up steps pass) are refused, and they and edits out of
   reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
@@ -104,7 +106,7 @@ enter a shared world, and in Settings.
 | --- | --- | --- |
 | `create` | the room is made | `seed`, `fmt`, how many `mods`, `props`, `ext` it came with |
 | `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
-| `deny` | someone is turned away | `why`: `banned`, `invite` (none, or not working), `full` |
+| `deny` | someone is turned away | `why`: `banned`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
 | `build` | a building goes up | `k` (kind, or `?` for one the game doesn't have), `at` |
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |

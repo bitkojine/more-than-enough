@@ -327,6 +327,7 @@ export class Rooms extends DurableObject {
     const r = this.room.ban(player, now, 'mod', why);
     for (const msg of r.toAll) this.send(msg, null);
     this.kick(r.kick);
+    for (const other of r.also) this.kick(other);
     await this.persist();
     await this.schedule();
     return null;
@@ -399,6 +400,7 @@ export class Rooms extends DurableObject {
     if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id, r.near);
     if (r.toAll) for (const msg of r.toAll) this.send(msg, null);
     if (r.kick) this.kick(r.kick);
+    if (r.also) for (const other of r.also) this.kick(other);
     this.nukeIfDue(now);
     if (this.room.log.length >= LOG_FLUSH_EVENTS) await this.flushLog(now);
     await this.schedule();

@@ -452,6 +452,40 @@ test('room: a removed player stays out, the links they used and made stop, and t
   assert.equal((await back.join(gKey, invite(back, o.id), T0)).error, 'invite');
 });
 
+test("room: a player who isn't the owner brings in at most LIMITS.invitesPerDay people a day", async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const m = await r.join(key(), invite(r, o.id), T0);
+  const link = invite(r, m.id, T0, { uses: 25 });
+  for (let i = 0; i < P.LIMITS.invitesPerDay; i++) assert.ok((await r.join(key(), link, T0 + i)).id);
+  assert.deepEqual(await r.join(key(), link, T0 + 100), { error: 'invite', why: 'limit' }, 'the sixth is turned away, saying why');
+  assert.ok((await r.join(key(), invite(r, m.id, T0, { uses: 10, life: 60 }), T0 + 200)).error, 'a new link of theirs makes no difference');
+  assert.equal(r.takeLog().filter((x) => x.e === 'deny' && x.why === 'limit').length, 2);
+  const later = T0 + 24 * 3600_000 + 10;
+  assert.ok((await r.join(key(), invite(r, m.id, later, { uses: 5 }), later)).id, 'a day later there is room again');
+  const own = invite(r, o.id, T0, { uses: 25 });
+  for (let i = 0; i < 10; i++) assert.ok((await r.join(key(), own, T0 + i)).id, 'the owner has no limit');
+  // The count survives a restart.
+  const back = Room.restore(r.id, new Map([...Room.keysFor(r)].map((k) => [k, null]).concat([...r.takeWrites()])), T0);
+  assert.equal(back.players.get(m.id).brought.length, 1);
+});
+
+test("room: a ban takes everyone who came in through the player's links along, and whoever they brought", async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const friend = await r.join(key(), invite(r, o.id), T0);
+  const bad = await r.join(key(), invite(r, o.id), T0);
+  const p1 = await r.join(key(), invite(r, bad.id), T0);
+  const p2 = await r.join(key(), invite(r, p1.id), T0);
+  const ok = await r.join(key(), invite(r, friend.id), T0);
+  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: bad.id }), T0);
+  assert.equal(out.kick, bad.id);
+  assert.deepEqual(out.also, [p1.id, p2.id]);
+  assert.deepEqual(out.toAll.map((m) => m.id), [bad.id, p1.id, p2.id]);
+  assert.deepEqual([...r.players.keys()].sort(), [o.id, friend.id, ok.id].sort(), "the owner's and other players' guests stay");
+  assert.ok([bad.id, p1.id, p2.id].every((id) => r.bans.has(id)));
+});
+
 test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
