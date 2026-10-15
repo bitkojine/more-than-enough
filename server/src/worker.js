@@ -318,11 +318,10 @@ export class Rooms extends DurableObject {
     return lines.join('\n') + '\n';
   }
 
-  // The moderator takes a player out, as the owner would. Error string or null.
+  // The moderator takes a player out, owners too. Error string or null.
   async modBan(id, player, why) {
     if (!this.room.ready || this.room.id !== id) return 'room';
     if (!this.room.players.has(player)) return 'player';
-    if (player === this.room.owner) return 'owner';
     const now = Date.now();
     const r = this.room.ban(player, now, 'mod', why);
     for (const msg of r.toAll) this.send(msg, null);

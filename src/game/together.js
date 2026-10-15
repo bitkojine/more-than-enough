@@ -314,6 +314,16 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
       if (kept.length !== s.extractors.length) { s.extractors = kept; game.worldChanged(); }
       return;
     }
+    // The owner was removed for cheating: the world is someone else's now.
+    if (d.t === 'owner') {
+      if (typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
+      owner = d.id;
+      roster = null;
+      renderFriends();
+      game.changedMode();
+      hud.toast(d.id === me ? t('together.toast.youOwn') : t('together.toast.newOwner', { name: nameOf(d.id) }));
+      return;
+    }
     if (d.t === 'invite') {
       if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until)) return;
       openQr(d.code, d.until);

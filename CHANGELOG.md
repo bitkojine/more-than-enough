@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.80.0] - 2026-10-15
+
+Watch's rule: in a shared world nobody cheats, owners included.
+
+### Changed
+- **Owners follow the anti-cheat.** Speed and reach cheats count for a
+  world's owner as for anyone, and enough of them ban the owner; the
+  moderator can ban owners too. The world then passes to whoever joined it
+  first among those left (`owner {id}`, a new message; the game says who
+  owns it now). The banned owner's guests stay.
+- **Owners have the same caps** (400 buildings, 2,000 props, 10,000 new
+  tiles), counted from what they add: what their world held when it was
+  made doesn't count. Buildings are now counted per player as they go up.
+
 ## [0.79.1] - 2026-10-15
 
 From the second security audit (finding 5).

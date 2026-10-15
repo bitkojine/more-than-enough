@@ -25,6 +25,7 @@
  *                  invite {code, until}    the link for your sign
  *                  invites {list}          [code, by, made, until, uses, stopped, max] newest first
  *                  removed {id}            a player was taken out of the world
+ *                  owner {id}              the world has a new owner (the last one was removed)
  *                  nuke {nuke: {votes, until}}  the nuke is on: who pressed it, and when it's pressed for the rest
  *                  full / bad              why the room is closing on you
  * A world made before the current WORLD_FORMAT (src/core/format.js) gets the nuke. When

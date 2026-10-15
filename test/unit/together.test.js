@@ -545,7 +545,7 @@ test("anti-cheat: the edit budget is the player's, not the connection's", async 
   assert.ok(applied <= P.LIMITS.editsBurst, `reconnects don't refill it (${applied})`);
 });
 
-test('room: a player (not the owner) changes at most PLAYER_TILES new tiles', async () => {
+test('room: a player changes at most PLAYER_TILES new tiles', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
@@ -554,8 +554,9 @@ test('room: a player (not the owner) changes at most PLAYER_TILES new tiles', as
   const out = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0], ['m', Core.packKey(2, 2, 0), 0]] }), T0);
   assert.equal(out.toAll[0].e.length, 1, 'the last of their share, then no more');
   assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 5]] }), T0).toAll, 'changing a changed tile again is free');
+  r.players.get(o.id).nm = PLAYER_TILES;
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  assert.ok(r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has no share');
+  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has the same share');
 });
 
 test('room: flicking away and back can\'t flood the other players or the log', async () => {
@@ -569,18 +570,41 @@ test('room: flicking away and back can\'t flood the other players or the log', a
   assert.equal(r.takeLog().filter((x) => x.e === 'st').length, 2);
 });
 
-test('anti-cheat: edits out of reach count; the owner is never banned from their world', async () => {
+test('anti-cheat: edits out of reach count, owners too; the world passes to whoever joined first', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
+  const f = await r.join(key(), invite(r, o.id), T0);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  const h = await r.join(key(), invite(r, f.id), T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   const far = JSON.stringify({ t: 'edits', e: [['m', Core.packKey(900, 0, 0), 0]] });
-  for (let i = 0; i < CHEATS_TO_BAN * 2; i++) assert.ok(!r.message(o.id, far, T0 + i * 1000).kick);
-  assert.ok(r.players.has(o.id));
-  const f = await r.join(key(), invite(r, o.id), T0);
-  r.message(f.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   let out = {};
-  for (let i = 0; i < CHEATS_TO_BAN && !out.kick; i++) out = r.message(f.id, far, T0 + i * 1000);
-  assert.equal(out.kick, f.id);
+  for (let i = 0; i < CHEATS_TO_BAN && !out.kick; i++) out = r.message(o.id, far, T0 + i * 1000);
+  assert.equal(out.kick, o.id, 'the owner is banned like anyone');
+  assert.deepEqual(out.also, [], "the owner's guests stay");
+  assert.deepEqual(out.toAll.at(-1), { t: 'owner', id: f.id });
+  assert.equal(r.owner, f.id);
+  assert.deepEqual([...r.players.keys()].sort(), [f.id, g.id, h.id].sort());
+  assert.ok(r.bans.has(o.id));
+  // The new owner can remove players.
+  assert.equal(r.message(f.id, JSON.stringify({ t: 'remove', id: g.id }), T0 + 20_000).kick, g.id);
+  // And it survives a restart.
+  const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
+  assert.equal(back.owner, f.id);
+});
+
+test('room: the owner has the same caps, but what their world held when it was made is free', async () => {
+  const r = new Room(P.randomRoomId(), T0);
+  const ownerKey = key();
+  const ext = Array.from({ length: PLAYER_BUILDINGS + 10 }, (_, i) => ['garden', 1000 + i, 1000, 0]);
+  assert.equal(await r.init(JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 42, ext }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
+  const o = await r.join(ownerKey, undefined, T0);
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  assert.ok(r.message(o.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 1, 1, 0]] }), T0).toAll, 'imported buildings do not count');
+  r.players.get(o.id).nx = PLAYER_BUILDINGS;
+  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 2, 2, 0]] }), T0).toAll, 'but the cap holds');
+  r.players.get(o.id).nm = PLAYER_TILES;
+  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll);
 });
 
 test('anti-cheat: one player can only put up so many buildings', async () => {

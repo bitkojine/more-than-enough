@@ -33,8 +33,9 @@ export const MAX_BANS = 1000;                // removed players a world remember
 // that arrive bunched up after a hiccup still pass. A step past the budget
 // or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_BAN
 // cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) take
-// the player out of the world for good. The owner is never banned from
-// their own world.
+// the player out of the world for good. Owners too (Watch's rule: nobody
+// cheats in a shared world); the world then passes to whoever joined it
+// first among those left.
 //
 // Reconnecting doesn't start a player afresh: their first step after it may
 // cover only their budget, or the distance they could have walked since
@@ -48,8 +49,9 @@ export const MAX_SPEED = 40;
 export const MOVE_BURST = 120;
 export const CHEATS_TO_BAN = 10;
 export const CHEAT_FORGIVE_MS = 30_000;
-// What one player (not the owner) may put in a world, so one player can't
-// fill it for everyone.
+// What one player (the owner too) may add to a world, so one player can't
+// fill it for everyone. What the owner's world held when it was made
+// doesn't count.
 export const PLAYER_BUILDINGS = 400;
 export const PLAYER_PROPS = 2000;
 export const PLAYER_TILES = 10_000; // tiles nobody had changed before (re-changing one is free)
@@ -501,7 +503,7 @@ export class Room {
       w.cheatAt = now;
       this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
     }
-    if (w.cheats >= CHEATS_TO_BAN && id !== this.owner && this.players.has(id)) return this.ban(id, now, 'auto', why);
+    if (w.cheats >= CHEATS_TO_BAN && this.players.has(id)) return this.ban(id, now, 'auto', why);
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
   }
 
@@ -514,8 +516,10 @@ export class Room {
   // taken with them, and the news for everyone.
   ban(id, now, by, why) {
     const also = [];
+    const wasOwner = id === this.owner;
     this.banOne(id, now, by, why);
-    for (let i = 0, from = [id]; i < from.length; i++) {
+    // An owner's guests are the world's, not a bad invite's: they stay.
+    for (let i = 0, from = wasOwner ? [] : [id]; i < from.length; i++) {
       for (const [pid, p] of this.players) {
         if (pid === this.owner || p.by !== from[i]) continue;
         this.banOne(pid, now, by, 'came in through ' + from[i]);
@@ -523,7 +527,18 @@ export class Room {
         from.push(pid);
       }
     }
-    return { kick: id, also, toAll: [id, ...also].map((x) => ({ t: 'removed', id: x })) };
+    const toAll = [id, ...also].map((x) => ({ t: 'removed', id: x }));
+    if (wasOwner) {
+      // The world passes to whoever joined it first among those left (the
+      // lowest place), or to nobody if it's empty.
+      let next = '';
+      for (const [pid, p] of this.players) if (!next || p.c < this.players.get(next).c) next = pid;
+      this.owner = next;
+      this.dirty.meta = true;
+      this.audit(now, next || null, 'owner', { was: id });
+      if (next) toAll.push({ t: 'owner', id: next });
+    }
+    return { kick: id, also, toAll };
   }
 
   banOne(id, now, by, why) {
@@ -599,7 +614,7 @@ export class Room {
     for (const [id, p] of this.players) {
       p.save = null;
       p.p = null;
-      p.np = p.nm = 0; // their share of the world starts over with it
+      p.np = p.nm = p.nx = 0; // their share of the world starts over with it
       this.dirty.players.add(id);
     }
     this.nuke.clear();
@@ -709,7 +724,7 @@ export class Room {
 
   // Applies one checked edit. False if it can't be (full world, taken tile).
   apply(e, by) {
-    const pl = by === this.owner ? null : this.players.get(by);
+    const pl = this.players.get(by);
     if (e[0] === 'm') {
       if (!this.mods.has(e[1])) {
         if (this.mods.size >= LIMITS.mods || (pl && (pl.nm || 0) >= PLAYER_TILES)) return false;
@@ -730,7 +745,8 @@ export class Room {
     if (e[0] === 'x') {
       const at = extAt(e[2], e[3], e[4]);
       if (this.extTiles.has(at) || this.ext.length >= LIMITS.extractors) return false;
-      if (pl && this.ext.reduce((n, x) => n + (x[4] === by), 0) >= PLAYER_BUILDINGS) return false;
+      if (pl && (pl.nx || 0) >= PLAYER_BUILDINGS) return false;
+      if (pl) { pl.nx = (pl.nx || 0) + 1; this.dirty.players.add(by); }
       this.ext.push([e[1], e[2], e[3], e[4], by]);
       this.extTiles.add(at);
       this.dirty.ext = true;

@@ -54,9 +54,11 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
   budget, so bunched-up steps pass) are refused, and they and edits out of
   reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
-  owner removed them (never the owner). One player (not the owner) puts up
-  at most 400 buildings, 2,000 props and 10,000 newly changed tiles
-  (`PLAYER_TILES`). Reconnecting starts nothing afresh: the first step after
+  owner removed them. Owners too: nobody cheats in a shared world. A banned
+  owner's world passes to whoever joined it first among those left (`owner`
+  message). One player, the owner too, adds at most 400 buildings, 2,000
+  props and 10,000 newly changed tiles (`PLAYER_TILES`); what the owner's
+  world held when it was made doesn't count. Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
   elsewhere is told where it stands (`place`).
 - **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
@@ -119,6 +121,7 @@ enter a shared world, and in Settings.
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
+| `owner` | the world passed to a new owner (`p`; null if nobody is left) | `was` |
 | `nuke`, `nukeCall`, `renew` | the nuke is pressed, called, and the world made again | `fmt`, `gen`, `seed` |
 
 Events wait in memory and are written as one chunk every 30 seconds at
@@ -135,7 +138,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
   `{"e": "room", ...}`, then the events from `since`, and last
   `{"e": "more", "since": ...}` if there is more to fetch from there.
 - `POST /admin/rooms/<id>/ban` with `{"id": "<player id>", "why": "..."}`:
-  takes a player out for good, as the owner would (never the owner).
+  takes a player out for good, as the owner would; an owner too (the
+  world then passes on, as for the anti-cheat).
 
 The deploy's smoke test makes a room with seed 12345 every time; skip those.
 
