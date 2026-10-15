@@ -485,7 +485,9 @@ export default {
   "sheet.section.newWorld": "Naujas pasaulis",
   "sheet.milestones": "Etapai {n} / {total}",
   "sheet.milestone": "{n} etapas",
-  "sheet.milestonesLeft": {"one": "Liko pasiekti {count}", "few": "Liko pasiekti {count}", "many": "Liko pasiekti {count}", "other": "Liko pasiekti {count}"},
+  "sheet.nextMilestone": "Toliau",
+  "sheet.farMilestone": "Paskutinis",
+  "sheet.milestonesLeft": {"one": "Ir dar {count}", "few": "Ir dar {count}", "many": "Ir dar {count}", "other": "Ir dar {count}"},
   "sheet.inPacks": "Kuprinėje: {n}",
   "sheet.gatheredHere": "Surinkta šiame pasaulyje: {n}",
 
@@ -694,6 +696,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.84.0": "Taurė dabar rodo kitą etapą: {phone:bakstelk|laptop:spustelk} ją ir pamatysi, ko dar trūksta, pavyzdžiui, kiek akmens reikia geresniam kirtikliui. Žalias taškas ant jos reiškia, kad turi viską, ko reikia kitam etapui.\nEtapai dabar įskaitomi bet kuria tvarka, tad anksti pastatytas sodas nebepamirštamas.",
   "news.0.83.0": "Perkeliant pasaulį į internetą, jis dabar persikelia kartu su tavo veikėju, o ne palieka kopiją: vėliau žaisdamas vienas pradėsi naują pasaulį.\nBendruose pasauliuose nebėra iškeliavimo ir jam reikalingo etapo, nes iškeliauti galima tik žaidžiant vienam.",
   "news.0.82.2": "Kol diegiamas atnaujinimas, bendras pasaulis palaukia, kol ir tavo žaidimas bus atnaujintas, kad visi matytų tą pačią žemę.\n„Grįžti į bendrą pasaulį“ pamiršta nebeegzistuojantį pasaulį ir pirma bando kitus tavo pasaulius, o tik tada tą, kuriame tavo veikėjas užšaldytas.",
   "news.0.82.1": "Atidarius žaidimą antrame skirtuke ar jam strigtelėjus paleidžiant, jis nebepamiršta bendro pasaulio, kuriame žaidi.\nNebegaliojanti pakvietimo nuoroda palieka tave bendrame pasaulyje, kuriame buvai, o ne nusiunčia į tavo paties pasaulį.\nPašalintam iš bendro pasaulio žaidėjui, bandančiam grįžti, dabar taip ir pasakoma, užuot liepus prašyti naujos nuorodos, o mygtukas „Grįžti į bendrą pasaulį“ jo ten nebeveda.\nTrumpam pažvelgus į kitą programėlę, draugai nebemato, kad praradai ryšį.\nPasiekimas „25 statiniai“ skaičiuoja tik tavo paties pastatus.",

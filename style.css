@@ -147,6 +147,8 @@ canvas#game {
 .trophy { fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linejoin: round; stroke-linecap: round; }
 .row .ic .trophy { width: 28px; height: 28px; color: var(--gold); }
 .awardsLeft .trophy { opacity: 0.35; color: var(--ink-dim) !important; }
+.row.nextGoal { border-color: rgba(255, 209, 102, 0.45); }
+.row.farGoal .trophy { opacity: 0.6; }
 
 /* One resource bar: every resource in one capsule, tap one to see what you
    collected. */
@@ -298,8 +300,9 @@ canvas#game {
   white-space: nowrap; color: #c9d6c6;
   pointer-events: none;
 }
-/* Something in the sheet you can buy or place right now. */
-.btn.has::before {
+/* Something in the sheet you can buy or place right now (on the trophy: the
+   next milestone). */
+.btn.has::before, #btnAwards.has::before {
   content: ""; position: absolute; top: 0; right: 0;
   width: 14px; height: 14px; border-radius: 50%;
   background: #7fe06e; border: 2px solid #0c140e;

@@ -9,6 +9,7 @@ import { isValidFogMask } from './world.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
+import { GOALS } from './goals.js';
 import { WORLD_FORMAT } from './format.js';
 
 // The room service knows it too (format.js).
@@ -39,7 +40,7 @@ export function serialize(s) {
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
-    goalIndex: s.goalIndex, time: s.time,
+    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time,
     underground: { deepest: s.underground.deepest }
   });
 }
@@ -94,6 +95,13 @@ export function deserialize(str) {
   for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time']) {
     if (isNum(d[k])) s[k] = d[k];
   }
+  // Milestones reached; a save from before they counted in any order has
+  // only how many, which were the first ones listed.
+  const goalIds = GOALS.map((g) => g.id);
+  s.goalsDone = Array.isArray(d.goalsDone)
+    ? d.goalsDone.filter((id, i, all) => goalIds.includes(id) && all.indexOf(id) === i)
+    : goalIds.slice(0, clampInt(isNum(s.goalIndex) ? s.goalIndex : 0, 0, goalIds.length));
+  s.goalIndex = s.goalsDone.length;
   s.discovered = { ore: !!(d.discovered && d.discovered.ore), crystal: !!(d.discovered && d.discovered.crystal) };
   s.extractors = (d.extractors || [])
     .filter((e) => e && EXTRACTORS[e.k] && isInt(e.x) && isInt(e.y))

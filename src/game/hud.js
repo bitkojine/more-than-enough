@@ -109,6 +109,7 @@ export function createHud(el, look) {
         return (!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k)) && !!Core.buildTarget(s, k);
       }));
       setText(el.awardCount, String(s.goalIndex));
+      el.awards.classList.toggle('has', Core.nextGoalReady(s));
       const below = Core.isUnderground(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));

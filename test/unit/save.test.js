@@ -11,6 +11,7 @@ test('a save restores the world, the economy and the player', () => {
   s.unlocks.logistics = true;
   s.perks.legacy = 2;
   s.extractors.push(mushroomGarden(48, 50, 12.5));
+  s.goalsDone = ['forage', 'basket', 'stone', 'garden', 'pickaxe'];
   s.goalIndex = 5;
   s.player.x = 51.25; s.player.y = 47.75;
   C.setRichness(s.world, 49, 49, 0, 2);
@@ -29,6 +30,7 @@ test('a save restores the world, the economy and the player', () => {
   assert.equal(r.extractors[0].z, 0);
   assert.equal(r.extractors[0].buffer, 12.5);
   assert.equal(r.goalIndex, 5);
+  assert.deepEqual(r.goalsDone, s.goalsDone);
   assert.deepEqual(r.player, { x: 51.25, y: 47.75, z: 0 });
   assert.equal(C.richness(r.world, 49, 49, 0), 2);
   assert.equal(C.richness(r.world, -5000, 4000, 0), 1);

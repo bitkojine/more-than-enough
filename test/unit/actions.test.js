@@ -143,11 +143,11 @@ test('mycelium from a spore bed underground does not count as gathering from the
   standOn(s, sporeBed);
   assert.equal(C.harvestAt(s, sporeBed.x, sporeBed.y).res, 'mycelium');
   assert.equal(s.stats.mycelium, 1);
-  assert.equal(C.advanceGoals(s), false, 'the forest milestone waits for a forest');
+  assert.deepEqual(C.advanceGoals(s), [], 'the forest milestone waits for a forest');
 
   s.player.z = C.SURFACE;
   standOn(s, findNear(s, forest));
   C.harvest(s);
-  assert.equal(C.advanceGoals(s), true);
+  assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['forage']);
   assert.equal(s.goalIndex, 1);
 });

@@ -485,7 +485,9 @@ export default {
   "sheet.section.newWorld": "New World",
   "sheet.milestones": "Milestones {n} / {total}",
   "sheet.milestone": "Milestone {n}",
-  "sheet.milestonesLeft": {"one": "{count} more to reach", "other": "{count} more to reach"},
+  "sheet.nextMilestone": "Next",
+  "sheet.farMilestone": "The last one",
+  "sheet.milestonesLeft": {"one": "And {count} more", "other": "And {count} more"},
   "sheet.inPacks": "{n} in your packs",
   "sheet.gatheredHere": "Gathered in this world: {n}",
 
@@ -694,6 +696,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.84.0": "The trophy now shows your next milestone: {phone:tap|laptop:click} it to see what it still takes, like the stone you're short for a better Pickaxe. A green dot on it means you have everything the next one needs.\nMilestones now count in any order, so a garden built early is no longer forgotten.",
   "news.0.83.0": "Putting your world online now moves it there with your character, instead of leaving a copy behind: playing alone afterwards starts a new world.\nShared worlds no longer show Embark or the milestone that needs it, since you can only embark when playing alone.",
   "news.0.82.2": "While an update rolls out, a shared world waits until your game has the update too, so everyone sees the same land.\nBack to the shared world forgets a world that is gone, and tries your other worlds before one that froze your character.",
   "news.0.82.1": "Opening the game in a second tab, or a hiccup while it starts, no longer makes it forget the shared world you play in.\nAn invite link that no longer works keeps you in the shared world you were in, instead of sending you to your own.\nSomeone taken out of a shared world is told so when they try to come back, not to ask for a new link, and Back to the shared world no longer takes them there.\nA quick look at another app no longer shows you to friends as having lost your connection.\nThe 25 structures milestone counts only your own buildings.",

@@ -197,13 +197,37 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
       `<div class="section">${t('path.perks')}</div>` + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
   }
 
-  // Milestones reached, newest first, and how many are still out there.
-  // Which ones are left is for the player to find (or the wiki to tell).
+  // What a milestone still takes: a price as what's still needed, or a
+  // number to reach.
+  function goalNeeds(s, goal) {
+    const needs = Core.goalNeeds(s, goal);
+    if (!needs) return '';
+    return needs.cost ? price(s.inv, needs.cost) : `${fmt(needs.n)} / ${fmt(needs.of)}`;
+  }
+
+  // The next milestone and what it still takes, the last one far off, then
+  // the ones reached, newest first.
   function renderAwards(s) {
     const total = Core.goalsTotal(s);
-    let html = `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
-    for (let i = s.goalIndex - 1; i >= 0; i--) html += row(TROPHY, esc(Core.GOALS[i].text), t('sheet.milestone', { n: i + 1 }), '');
-    if (s.goalIndex < total) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: total - s.goalIndex })}</div></div></div>`;
+    const next = Core.nextGoal(s);
+    let html = '';
+    if (next) {
+      html += `<div class="section">${t('sheet.nextMilestone')}</div>` +
+        `<div class="row nextGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(next.text)}</div><div class="sub">${goalNeeds(s, next)}</div></div></div>`;
+      const last = Core.GOALS[total - 1];
+      const far = last !== next && !s.goalsDone.includes(last.id);
+      if (far) {
+        html += `<div class="row farGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(last.text)}</div>` +
+          `<div class="sub">${t('sheet.farMilestone')}${Core.goalNeeds(s, last) ? ' &middot; ' + goalNeeds(s, last) : ''}</div></div></div>`;
+      }
+      const left = total - s.goalIndex - (far ? 2 : 1);
+      if (left > 0) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: left })}</div></div></div>`;
+    }
+    html += `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
+    for (let i = s.goalsDone.length - 1; i >= 0; i--) {
+      const goal = Core.GOALS.find((g) => g.id === s.goalsDone[i]);
+      html += row(TROPHY, esc(goal.text), t('sheet.milestone', { n: i + 1 }), '');
+    }
     return html;
   }
 

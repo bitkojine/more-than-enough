@@ -30,12 +30,13 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     game.saveSoon();
   }
 
-  // Milestones are celebrated when reached (a burst, a fanfare and a banner
-  // naming each one), never announced ahead: what's next is for the wiki.
+  // Milestones are celebrated when reached: a burst, a fanfare and a banner
+  // naming each one. The Awards sheet shows the next one.
   function checkGoals() {
     const from = state().goalIndex;
-    if (!Core.advanceGoals(state())) return;
-    for (let i = from; i < state().goalIndex; i++) hud.milestone(Core.GOALS[i].text, i + 1, Core.goalsTotal(state()));
+    const reached = Core.advanceGoals(state());
+    if (!reached.length) return;
+    reached.forEach((g, i) => hud.milestone(g.text, from + i + 1, Core.goalsTotal(state())));
     fx.celebrate(player().x, player().y);
     actor.act('cheer');
     audio.fanfare();

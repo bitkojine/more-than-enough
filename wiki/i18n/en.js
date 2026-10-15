@@ -353,7 +353,7 @@ export default {
 
       <h2>The sheet</h2>
       <p>BUILD and UPGRADE open a sheet with the <strong>Upgrades</strong>, <strong>Build</strong> and <strong>Awards</strong> tabs, plus <strong>Beyond</strong> once you've mastered a world (see <a href="#beyond">Beyond</a>).
-        Awards lists the milestones you've reached, newest first, and how many are left.
+        Awards shows the next milestone and what it still takes, then the ones you've reached, newest first.
         {phone:Tap|laptop:Click} the map above it (or the <strong>&times;</strong>) to close it. That {phone:tap|laptop:click} only closes the sheet and doesn't move or gather.
         Each price is a row of pills, one per resource. While you're short, a pill shows <strong>how much more</strong> of that
         resource you still need to gather (red), and a resource you already have enough of shows a tick. Once you have it
@@ -703,10 +703,10 @@ export default {
         Cartographer take effect from the next world you start.</p>`,
   "wiki.article.milestones.title": "Milestones",
   "wiki.article.milestones": `      <h1>Milestones</h1>
-      <p class="lede">The game quietly tracks these in order and celebrates each one with a burst of sparks, a fanfare and a banner naming it. It never tells you the next one.
-        Spoilers, if you'd rather find your own way.</p>
+      <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a banner naming it. The Awards tab shows the next one, what it still takes, and the last one far off;
+        the trophy gets a green dot when you have what the next one costs.</p>
       <div data-table="milestones"></div>
-      <p>Milestones are checked in order, so one only counts once everything before it is done. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
+      <p>A milestone counts the moment you do it, in any order; the next one shown is the first on this list you haven't reached. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
   "wiki.article.things.title": "Everything in the game",
   "wiki.article.things": `      <h1>Everything in the game</h1>
       <p class="lede">Every thing you can see, what it is and what it does. The pictures are the default texture pack,

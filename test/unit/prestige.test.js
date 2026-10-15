@@ -94,13 +94,47 @@ test('one-shot perks carry their bonus into the next world', () => {
   assert.ok(C.isExplored(next.world, Math.floor(next.player.x) + 7, Math.floor(next.player.y), 0), 'the wider reveal applies at once');
 });
 
-test('milestones complete in order', () => {
+test('milestones count in any order, and the next one says what it still takes', () => {
   const s = C.createState(1);
-  assert.equal(C.advanceGoals(s), false);
+  assert.deepEqual(C.advanceGoals(s), []);
+  assert.equal(C.nextGoal(s).id, 'forage');
   s.stats.foraged = 1;
   s.tools.basket = 2;
-  assert.equal(C.advanceGoals(s), true);
+  assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['forage', 'basket']);
   assert.equal(s.goalIndex, 2);
+
+  // A garden before the Pickaxe still counts (a player built three while stuck on it).
+  s.extractors.push({ key: 'garden', res: 'mycelium', x: 3, y: 3, z: C.SURFACE, buffer: 0 });
+  assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['garden']);
+  assert.equal(s.goalIndex, 3);
+  assert.equal(C.nextGoal(s).id, 'stone');
+  s.stats.stone = 5;
+  C.advanceGoals(s);
+  const next = C.nextGoal(s);
+  assert.equal(next.id, 'pickaxe');
+  assert.deepEqual(C.goalNeeds(s, next), { cost: C.TOOLS.pickaxe.levels[1].cost });
+  s.inv.mycelium = 130; s.inv.stone = 5;
+  assert.equal(C.nextGoalReady(s), false, 'one stone short');
+  s.inv.stone = 6;
+  assert.equal(C.nextGoalReady(s), true);
+
+  // A converter's milestone asks for its blueprint first.
+  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.UNLOCKS.compost.cost });
+  s.unlocks.compost = true;
+  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.extractorCost(s, 'compost') });
+  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'structures')), { n: 1, of: 25 });
+});
+
+test('milestones reached survive a save, and an old save keeps its count', () => {
+  const s = C.createState(1);
+  s.goalsDone = ['forage', 'garden'];
+  s.goalIndex = 2;
+  const r = C.deserialize(C.serialize(s));
+  assert.deepEqual(r.goalsDone, ['forage', 'garden']);
+  const old = JSON.parse(C.serialize(s));
+  delete old.goalsDone;
+  old.goalIndex = 3;
+  assert.deepEqual(C.deserialize(JSON.stringify(old)).goalsDone, ['forage', 'basket', 'stone']);
 });
 
 test('the day-night cycle runs from noon to midnight and back', () => {

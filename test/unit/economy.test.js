@@ -157,7 +157,8 @@ test('a shared world has no Embark, so its milestones end before "Master the wor
   assert.equal(C.goalsTotal(s), C.GOALS.length - 1, 'alone: all but the endless last one');
   s.shared = 'room';
   assert.equal(C.goalsTotal(s), master);
-  s.goalIndex = master;
-  assert.equal(C.advanceGoals(s), false, 'never past the end');
+  s.goalsDone = C.GOALS.slice(0, master).map((g) => g.id);
+  assert.deepEqual(C.advanceGoals(s), [], 'never past the end');
   assert.equal(s.goalIndex, master);
+  assert.equal(C.nextGoal(s), null);
 });

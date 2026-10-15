@@ -350,7 +350,7 @@ export default {
 
       <h2>Lapas</h2>
       <p>STATYTI ir TOBULINTI atveria lapą su skirtukais <strong>Patobulinimai</strong>, <strong>Statyba</strong> ir <strong>Apdovanojimai</strong>, o kai įvaldai pasaulį, ir <strong>Anapus</strong> (žr. <a href="#beyond">Anapus</a>).
-        Apdovanojimuose išvardyti pasiekti etapai, naujausi pirmiau, ir kiek jų dar liko.
+        Apdovanojimuose rodomas kitas etapas ir ko jam dar trūksta, o po jo pasiekti etapai, naujausi pirmiau.
         {phone:Bakstelk|laptop:Spustelk} žemėlapį virš lapo (arba <strong>&times;</strong>), kad jį uždarytum. Tas {phone:bakstelėjimas|laptop:spustelėjimas} tik uždaro lapą: nei judi, nei renki.
         Kiekviena kaina – eilė piliulių, po vieną kiekvienam ištekliui. Kol trūksta, piliulė rodo, <strong>kiek dar</strong> to
         ištekliaus turi surinkti (raudonai), o išteklius, kurio jau užtenka, pažymėtas varnele. Kai turi
@@ -699,10 +699,10 @@ export default {
         tarpusavyje. Atmintis, Paveldas ir Kartografas įsigalioja nuo kito pradėto pasaulio.</p>`,
   "wiki.article.milestones.title": "Etapai",
   "wiki.article.milestones": `      <h1>Etapai</h1>
-      <p class="lede">Žaidimas tyliai seka juos iš eilės ir kiekvieną švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Kito niekada neišduoda.
-        Atsargiai, atskleidžiama siužeto smulkmenų, jei mieliau nori atrasti pats.</p>
+      <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;
+        kai turi viską, ko reikia kitam etapui, ant taurės atsiranda žalias taškas.</p>
       <div data-table="milestones"></div>
-      <p>Etapai tikrinami iš eilės, tad etapas įskaitomas tik tada, kai įvykdyti visi ankstesni. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
+      <p>Etapas įskaitomas vos jį pasiekus, bet kuria tvarka; kitas rodomas pirmasis šio sąrašo etapas, kurio dar nepasiekei. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
   "wiki.article.things.title": "Viskas žaidime",
   "wiki.article.things": `      <h1>Viskas žaidime</h1>
       <p class="lede">Kiekvienas daiktas, kurį gali pamatyti: kas tai ir ką jis daro. Paveikslėliai – iš numatytojo tekstūrų paketo

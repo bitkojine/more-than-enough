@@ -34,6 +34,7 @@ import { t } from '../i18n/i18n.js';
  * @property {Extractor[]} extractors
  * @property {Record<string, number>} stats
  * @property {{ore: boolean, crystal: boolean}} discovered
+ * @property {string[]} goalsDone
  * @property {number} goalIndex
  * @property {number} time                         game seconds
  * @property {{deepest: number}} underground     the deepest layer reached so far
@@ -73,7 +74,8 @@ export function createState(seed) {
     mushrooms: {},
     mushroomsEver: [],
     discovered: { ore: false, crystal: false },
-    goalIndex: 0,
+    goalsDone: [],  // milestone ids, in the order reached
+    goalIndex: 0,   // how many: goalsDone.length
     time: 0,
     underground: { deepest: SURFACE },
     events: []

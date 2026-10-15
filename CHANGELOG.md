@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.84.0] - 2026-10-15
+
+### Added
+- **The next milestone, with what it still takes.** The Awards tab (the
+  trophy) opens on the next milestone and its price as "Still need" pills,
+  or a count (25 structures, Master the world), plus the last milestone far
+  off. The trophy gets a green dot when you can pay for the next one
+  (`nextGoal`, `goalNeeds`, `nextGoalReady` in `src/core/goals.js`). A player
+  in the shared world sat on "Pickaxe II" for 12 hours, one stone short.
+
+### Changed
+- **Milestones count in any order** (`goalsDone` in the save; `goalIndex` is
+  now how many). Before, a garden built while stuck on the Pickaxe didn't
+  count until the Pickaxe did. Old saves keep their count.
+
 ## [0.83.0] - 2026-10-15
 
 ### Changed
