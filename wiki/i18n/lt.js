@@ -338,7 +338,7 @@ export default {
         <li><strong>Blankus žalias kontūras</strong>: langelis, kurį Rinkti dirbs kitą.</li>
         <li><strong>Mėlyni kontūrai</strong> (kai atvertas skirtukas Statyba): kur galėtų stovėti kiekvienos rūšies pastatas.</li>
         <li><strong>Skalė virš pastato</strong> reiškia, kad jame laukia produkcija, kurią gali paimti. Jai kaupiantis skalė pildosi žaliai,
-          o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Pastatai, kurių produkciją
+          o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Patobulinimai, kurie pastatą pagreitina, leidžia jam ir daugiau sutalpinti, tad prisipildo jis maždaug per tiek pat laiko. Pastatai, kurių produkciją
           <strong>Logistika</strong> parveža vos pagaminus, skalės neturi.</li>
         <li><strong>Lankais nuskriejantys mažyčiai paveikslėliai</strong>: ką ką tik surinkai, skrendantis į savo krūvą tavo <a href="#stockpile">atsargose</a>. Kai namai toli, jie išskrenda už ekrano namų kryptimi.</li>
         <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po viršutine juosta pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu

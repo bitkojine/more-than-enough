@@ -133,7 +133,7 @@ test('converters need their blueprint and build on any dry land, not home ground
   assert.ok(s.extractors[0].buffer > 2.5);
   assert.equal(s.inv.ore, 0);
   run(s, 300);
-  assert.ok(s.extractors[0].buffer <= C.EXTRACTORS.foundry.buffer + 1e-9);
+  assert.ok(s.extractors[0].buffer <= C.extractorCapacity(s, 'foundry') + 1e-9);
 });
 
 test('mycelium from a spore bed underground does not count as gathering from the forest', () => {

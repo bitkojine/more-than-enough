@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.88.0] - 2026-10-15
+
+### Changed
+- **Building storage grows with production** (`extractorCapacity` in
+  `src/core/economy.js`). A building used to hold its base `buffer` (30–60
+  units) at any level, so with big multipliers it filled within a frame and
+  sat full: the bar showed +7.7M/s while Logistics could haul at most about
+  buffer × frame rate (~3,600/s per building). It now holds `buffer ×
+  productionMult`, the same ~100 seconds of output at any level, so the
+  shown rate is what you get. The building dial fills against the new
+  capacity, and the wiki says so.
+
 ## [0.87.0] - 2026-10-15
 
 ### Added

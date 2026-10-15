@@ -32,11 +32,10 @@ export function drawExtractor(ctx, cam, s, look, e) {
   const pic = look.pick('building.' + e.key, 'image');
   shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
-  const def = Core.EXTRACTORS[e.key];
   // Only output that waits for you: what Logistics hauls in as it's made
   // never shows (a dial for it would blink on and off many times a second).
   if (!Core.holdsOutput(s, e)) return;
-  const p = Math.min(1, e.buffer / def.buffer);
+  const p = Math.min(1, e.buffer / Core.extractorCapacity(s, e.key));
   const r = Math.max(4, u * 0.13);
   const cx = ground.x + pic.units * u * 0.32, cy = ground.y - h - r * 0.2;
   ctx.fillStyle = 'rgba(10,12,14,0.72)';

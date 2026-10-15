@@ -102,6 +102,15 @@ export function extractorRate(s, key) {
   return def.rate * productionMult(s, def.res);
 }
 
+// How much a building holds before it stops and waits to be collected: the
+// same time's worth of output at any level (its base buffer at base rate),
+// so upgrades never fill it in an instant and the income shown is the income
+// you get.
+export function extractorCapacity(s, key) {
+  const def = EXTRACTORS[key];
+  return def.buffer * productionMult(s, def.res);
+}
+
 // Total per-second income of each resource when every extractor is producing.
 export function productionRates(s) {
   const rates = {};

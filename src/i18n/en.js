@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.88.0": "Upgraded buildings now hold more, so they no longer fill up in a blink and stop. The income at the top is now what you really get, however far you have upgraded.",
   "news.0.87.0": "Shared worlds now keep their own count of what everyone gathers, builds and buys, worked out from what each player did with the game's own rules. For now it only notes when someone's progress doesn't add up (like an edited save), so the fair-play team can look. Playing fairly changes nothing.",
   "news.0.86.1": "The counters at the top no longer run into each other. Big incomes are shortened like the amounts (+7.7M/s), and each one sits under its own count.",
   "news.0.86.0": "Tools now open new things, not only bigger numbers. Ore needs Pickaxe level 2, crystal and geodes level 3, and the shafts down from the deep layers a better Pickaxe still. Boots level 2 take you onto water, rivers included. Basket level 4 picks rare mushrooms, which give three times as much.\nThe Upgrades tab says what each level opens, and {phone:tapping|laptop:clicking} something your tools can't handle yet says what it takes.",

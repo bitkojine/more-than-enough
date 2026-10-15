@@ -6,10 +6,10 @@ import { hash2 } from './noise.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  EXTRACTORS, AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
+  AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
-import { productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
+import { extractorRate, extractorCapacity, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 
 const MAX_STEP = 0.25;
 
@@ -50,9 +50,9 @@ export function holdsOutput(s, e) {
 function produce(s, dt) {
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue; // a friend's: it works on their phone
-    const def = EXTRACTORS[e.key];
-    if (e.buffer < def.buffer) {
-      e.buffer = Math.min(def.buffer, e.buffer + def.rate * productionMult(s, e.res) * dt);
+    const cap = extractorCapacity(s, e.key);
+    if (e.buffer < cap) {
+      e.buffer = Math.min(cap, e.buffer + extractorRate(s, e.key) * dt);
     }
     // Logistics: whole units funnel into your packs, but only from extractors
     // close enough to haul from (on your layer). Far away they keep producing

@@ -162,3 +162,16 @@ test('a shared world has no Embark, so its milestones end before "Master the wor
   assert.equal(s.goalIndex, master);
   assert.equal(C.nextGoal(s), null);
 });
+
+test('an upgraded building holds as long a run of output, so its rate is what you get', () => {
+  const s = C.createState(12345);
+  s.extractors.push(mushroomGarden(48, 50));
+  s.abundanceLv = 20; // a big production multiplier
+  const rate = C.extractorRate(s, 'garden');
+  assert.equal(C.extractorCapacity(s, 'garden'), C.EXTRACTORS.garden.buffer * C.productionMult(s, 'mycelium'));
+  standOn(s, { x: 100, y: 100 });
+  run(s, 10);
+  assert.ok(Math.abs(s.extractors[0].buffer - rate * 10) < 1e-6 * rate, 'ten seconds of output, not the base buffer');
+  run(s, 1000);
+  assert.ok(s.extractors[0].buffer <= C.extractorCapacity(s, 'garden') + 1e-6);
+});

@@ -341,7 +341,7 @@ export default {
         <li><strong>Faint green outline</strong>: the tile Gather will work next.</li>
         <li><strong>Blue outlines</strong> (while the Build tab is open): where each kind of building would go.</li>
         <li><strong>A dial over a building</strong> means it holds goods waiting for you to collect. It fills green as they pile up
-          and turns gold when it's full, and a full building stops working until you collect. Buildings whose goods
+          and turns gold when it's full, and a full building stops working until you collect. Upgrades that speed a building up let it hold more too, so it always takes about as long to fill. Buildings whose goods
           <strong>Logistics</strong> hauls in as they're made show no dial.</li>
         <li><strong>Little sprites arcing away</strong>: what you just gathered, flying to its pile in your <a href="#stockpile">stockpile</a>. When home is far, they fly off screen in its direction.</li>
         <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the top bar naming
