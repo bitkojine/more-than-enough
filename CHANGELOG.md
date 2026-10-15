@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.82.2] - 2026-10-15
+
+### Fixed
+- **No different land during a deploy.** The welcome carries the world's
+  format (`fmt`: the one it's made with, or the nuke's new one). A game on
+  another format doesn't play it: an older game checks for the update and
+  reloads into it, a newer one (the site went live before the room service)
+  tries again a minute later. Rooms from before this don't send `fmt`, and
+  games from before it ignore it.
+- **Back to the shared world** forgets a world that's gone (new
+  `GET /rooms/<id>` → `{"exists"}`, asked only when a world can't be
+  reached), and moves a world that froze your character behind your others.
+
 ## [0.82.1] - 2026-10-15
 
 ### Fixed

@@ -840,3 +840,12 @@ test('room: a banned key is told it is banned, as an invite that no longer works
   r.ban(g.id, T0, 'owner', 'x');
   assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
 });
+
+test('room: the welcome says which world format the world is on, or will be once nuked', async () => {
+  const { r, owner } = await makeRoom();
+  assert.equal((await r.join(owner, null, T0)).welcome.fmt, WORLD_FORMAT);
+  const old = await oldRoom();
+  const w = (await old.r.join(old.owner, null, T0)).welcome;
+  assert.ok(w.nuke, 'the nuke is up');
+  assert.equal(w.fmt, WORLD_FORMAT, 'the format it is about to be made with: an older game updates first');
+});

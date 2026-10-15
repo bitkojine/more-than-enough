@@ -290,7 +290,10 @@ export class Room {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
       players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null,
-      graves: this.graves
+      graves: this.graves,
+      // The world format it's made with, or will be once the nuke goes off:
+      // a game on another one can't grow the same land (src/game/together.js).
+      fmt: this.call ? this.call.fmt : this.fmt
     };
   }
 

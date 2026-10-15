@@ -33,6 +33,15 @@ shared with the game.
 6. The room keeps the world's **clock**: it starts at the creator's time of
    day, runs whether anyone is in or not, and comes with every welcome, so
    day and night are the same for everyone in the world.
+7. The welcome also says which world format (`WORLD_FORMAT`) the world is
+   made with, or will be once its nuke goes off (`fmt`). A game on another
+   format stays out until both sides match: an older one reloads into the
+   newest version, a newer one tries again a minute later, while the room
+   service catches up. So during a deploy nobody grows different land from
+   the same seed.
+8. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`):
+   a game that couldn't get in asks, so it stops offering a world deleted
+   after 30 days unvisited.
 
 All traffic goes through the room: no phone ever learns another's IP
 address.

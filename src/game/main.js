@@ -192,7 +192,7 @@ const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, friendJoined: updater.check, closeSheet: () => sheet.close() });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close() });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip

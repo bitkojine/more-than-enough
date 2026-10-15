@@ -190,6 +190,15 @@ export default {
       return respond({ room: id }, 201, okOrigin);
     }
 
+    // Whether a shared world still exists: a game that couldn't get in asks,
+    // so it stops offering a world that's gone.
+    const there = url.pathname.match(/^\/rooms\/([^/]+)$/);
+    if (there && request.method === 'GET') {
+      if (!ROOM_ID_RE.test(there[1])) return respond({ exists: false }, 200, okOrigin);
+      const exists = await env.ROOMS.get(env.ROOMS.idFromName(there[1])).exists(there[1]);
+      return respond({ exists }, 200, okOrigin);
+    }
+
     const m = url.pathname.match(/^\/rooms\/([^/]+)\/ws$/);
     if (m && request.method === 'GET') {
       if (!ROOM_ID_RE.test(m[1])) return respond({ error: 'room' }, 404, okOrigin);
@@ -302,6 +311,11 @@ export class Rooms extends DurableObject {
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
     return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen };
+  }
+
+  // Whether this is still the room `id` (it's deleted after EXPIRE_MS unvisited).
+  async exists(id) {
+    return this.room.ready && this.room.id === id;
   }
 
   // The tombstones, the same list every welcome hands a player.

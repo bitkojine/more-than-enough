@@ -15,6 +15,7 @@ import {
   ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, INVITE_DEFAULT, cleanInviteAsk
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
+import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { loadGame } from './storage.js';
 import { createActor } from './render/motion.js';
@@ -47,6 +48,7 @@ const RECONNECT_MAX = 15;             // seconds between tries, at most
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
 const NUKE_NAMES = 6;                 // names listed on the nuke screen
+const FORMAT_RETRY = 60_000;          // ms before trying a world again whose room service hasn't updated yet
 const AWAY_EVERY = 2100;              // ms between away/back changes (the room takes one per STATUS_MS)
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
 const INVITE_WHY = Object.freeze({
@@ -96,6 +98,13 @@ function remember(room) {
 // A world you can never go back to: Back to the shared world tries the next.
 function forget(room) {
   write(ROOMS_STORE, JSON.stringify(knownRooms().filter((r) => r !== room)));
+}
+
+// A world that turned you away for now (it froze your character): Back to
+// the shared world tries your other worlds before it again.
+function skip(room) {
+  const list = knownRooms();
+  if (list.includes(room)) write(ROOMS_STORE, JSON.stringify([...list.filter((r) => r !== room), room]));
 }
 
 // The time stamp in a progress string, to tell which copy is newer.
@@ -190,19 +199,20 @@ function cleanWelcome(d) {
   const players = cleanPlayers(d.players);
   const nuke = d.nuke ? cleanNuke(d.nuke) : null;
   const gen = d.gen ?? 0;
-  if ((d.nuke && !nuke) || !Number.isSafeInteger(gen) || gen < 0) return null;
+  const fmt = d.fmt ?? null; // rooms from before v0.82.2 don't say
+  if ((d.nuke && !nuke) || !Number.isSafeInteger(gen) || gen < 0 || (fmt !== null && !Number.isSafeInteger(fmt))) return null;
   const save = d.save === null || d.save === undefined ? null : cleanSave(d.save);
   if (!world || !players || (d.save && !save)) return null;
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? [])
+    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt
   };
 }
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoined = () => {}, closeSheet = () => {} }) {
+export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -249,7 +259,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (codeNum === 4003) { forget(room); return stop(t('together.toast.removed')); }
     // The moderator froze this character (its progress was hacked): the
     // "FBI" notice, every time, and back to your own world.
-    if (codeNum === 4005 || reason === 'frozen') { refused(); return fbi.show(); }
+    if (codeNum === 4005 || reason === 'frozen') { skip(room); refused(); return fbi.show(); }
     // Everyone pressed the nuke: straight back in, to the world made anew.
     if (codeNum === 4004) { retry = 0; return connect(); }
     if (reason === 'invite' && turnedAway === 'banned') forget(room);
@@ -258,7 +268,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (!room) return;
     // Never got in (the service is down or unreachable): say so, don't loop,
     // and try again next time the game opens.
-    if (game.state.shared !== room) return refused(t('together.toast.unreachable'), false);
+    if (game.state.shared !== room) { gone(room); return refused(t('together.toast.unreachable'), false); }
     // Lost the connection: keep playing, and come back as soon as it can.
     if (retry === 0) hud.toast(t('together.toast.reconnecting'));
     const wait = Math.min(RECONNECT_MAX, 2 ** retry);
@@ -270,9 +280,22 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
   // a link was taking you elsewhere, else to your own.
   function refused(message, forget = true) {
     if (!back || game.state.shared !== back) return stop(message, forget);
+    hangUp();
     room = back; back = null; code = null; retry = 0;
     if (message) hud.toast(message);
     connect();
+  }
+
+  // The world and this game are on different world formats. A newer world
+  // needs the newest game, which reloads in as soon as the site has it; an
+  // older one waits for the room service to update, and the game tries again.
+  let formatTimer = 0;
+  function mismatched(gameIsOld) {
+    const was = room;
+    refused(t(gameIsOld ? 'together.toast.oldGame' : 'together.toast.worldUpdating'), false);
+    if (gameIsOld) checkUpdate();
+    clearTimeout(formatTimer);
+    formatTimer = setTimeout(() => { if (!game.state.shared && read(PLAYING_STORE) === was) resume(); }, FORMAT_RETRY);
   }
 
   // Closes the connection, saying goodbye.
@@ -343,7 +366,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
       }
       const back = st === 'online' && f.st !== 'online';
       // They most likely just loaded the newest game: make sure this is it too.
-      if (arrived) friendJoined();
+      if (arrived) checkUpdate();
       if (f.c !== c) roster = null;
       f.c = c;
       f.st = st;
@@ -405,6 +428,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
   function welcome(raw) {
     const w = cleanWelcome(raw);
     if (!w) { stop(t('together.toast.broken')); return; }
+    // Made another way than this game makes worlds (an update is rolling
+    // out): the same seed would grow different land here than for everyone
+    // else, so not until both sides match.
+    if (w.fmt !== null && w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
     welcomed = true;
     retry = 0;
     code = null;  // an invite is for getting in once
@@ -541,6 +568,22 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (progress === lastSave || !cleanSave(progress)) return;
     lastSave = progress;
     send({ t: 'save', s: progress });
+  }
+
+  // Couldn't get into a world: the room service may be down, or the world
+  // gone (one nobody visits for 30 days is deleted). Gone, it's forgotten
+  // and the player told; down, nothing changes.
+  async function gone(id) {
+    if (!service || !id) return;
+    try {
+      const res = await fetch(service + '/rooms/' + id, { cache: 'no-store' });
+      const d = res.ok ? await res.json() : null;
+      if (d?.exists !== false) return;
+    } catch { return; }
+    forget(id);
+    if (read(PLAYING_STORE) === id) write(PLAYING_STORE, '');
+    if (!game.state.shared) game.changedMode();
+    hud.toast(t('together.toast.gone'));
   }
 
   // Away or back, as the screen is now. The room takes one change every
