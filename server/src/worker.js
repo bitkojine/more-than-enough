@@ -21,7 +21,7 @@
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, NEAR, visitor } from './room.js';
 import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
-import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
+import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
 const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
@@ -274,6 +274,10 @@ export class Rooms extends DurableObject {
     for (const col of ['sec', 'trimmed']) {
       try { ctx.storage.sql.exec(`ALTER TABLE audit ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 0`); } catch { /* already there */ }
     }
+    // A game asks 'ping' now and then and the room answers 'pong' without
+    // waking up (see PING in src/net/protocol.js): that's how a game notices
+    // a connection that died without closing.
+    ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair(PING, PONG));
     ctx.blockConcurrencyWhile(() => this.load());
   }
 
@@ -294,9 +298,8 @@ export class Rooms extends DurableObject {
     this.room.id = id;
     const err = await this.room.init(body, Date.now());
     if (err) { this.room = Room.restore('', new Map(), Date.now()); return err; }
-    await this.ctx.storage.put('id', id);
     this.registered = true;
-    await this.persist();
+    await this.persist({ id }); // with the room itself, in one go
     return null;
   }
 
@@ -555,12 +558,24 @@ export class Rooms extends DurableObject {
     }
   }
 
-  async persist() {
+  // Writes what changed. The deletes and puts are issued together, with no
+  // await between them, so storage commits them as one: a ban can't land
+  // as "player gone" without "player banned" if the room stops in between.
+  // If the write fails, what it held is still to be written next time.
+  async persist(also = null) {
     const writes = this.room.takeWrites();
+    if (also) for (const [k, v] of Object.entries(also)) writes.set(k, v);
     const gone = [...writes].filter(([, v]) => v === null).map(([k]) => k);
     for (const k of gone) writes.delete(k);
-    if (gone.length) await this.ctx.storage.delete(gone);
-    if (writes.size) await this.ctx.storage.put(Object.fromEntries(writes));
+    const ops = [];
+    if (gone.length) ops.push(this.ctx.storage.delete(gone));
+    if (writes.size) ops.push(this.ctx.storage.put(Object.fromEntries(writes)));
+    try {
+      await Promise.all(ops);
+    } catch (err) {
+      this.room.redo(writes, gone);
+      throw err;
+    }
   }
 
   // One alarm covers everything that waits: saving, lost players turning

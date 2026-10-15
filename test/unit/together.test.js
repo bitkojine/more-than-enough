@@ -226,6 +226,47 @@ test('room: lost connections turn offline after a minute; clean leaves at once',
   assert.equal(r.expired(T0 + EXPIRE_MS), true);
 });
 
+test('room: numbered edits are answered with their number, applied or refused; others as before', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  assert.equal(o.welcome.pong, true);
+  assert.equal(o.welcome.ack, true);
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  const k = Core.packKey(1, 0, 0);
+  const a = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 1]], n: 7 }), T0);
+  assert.deepEqual(a.toSelf, [{ t: 'ack', n: 7 }]);
+  assert.equal(a.toAll[0].t, 'edits');
+  // A prop where there already is one: refused, still answered.
+  r.message(o.id, JSON.stringify({ t: 'edits', e: [['p', k, 'glowcap']] }), T0);
+  const b = r.message(o.id, JSON.stringify({ t: 'edits', e: [['p', k, 'glowcap']], n: 8 }), T0);
+  assert.deepEqual(b, { toSelf: [{ t: 'ack', n: 8 }] });
+  const c = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 2]] }), T0);
+  assert.equal(c.toSelf, undefined, 'unnumbered edits get no answer (games from before)');
+  const d = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', 'bad', 2]], n: 9 }), T0);
+  assert.deepEqual(d, { drop: true }, 'a malformed batch is dropped, not answered');
+});
+
+test('room: a write that fails is written again next time, with whatever changed since', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  r.takeWrites();
+  const guest = await r.join(key(), invite(r, o.id), T0);
+  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 1]] }), T0);
+  r.ban(guest.id, T0, 'owner', 'test'); // the player goes and the ban comes in the same write
+  const failed = r.takeWrites();
+  const gone = [...failed].filter(([, v]) => v === null).map(([k]) => k);
+  assert.ok(gone.includes('p:' + guest.id) && failed.has('meta'));
+  // Storage refused it: nothing landed.
+  r.redo(new Map([...failed].filter(([, v]) => v !== null)), gone);
+  assert.equal(r.isDirty, true);
+  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 1, 0), 1]] }), T0 + 10);
+  const retry = r.takeWrites();
+  assert.deepEqual([...retry.keys()].sort(), [...failed.keys()].sort(), 'the same keys again, none lost');
+  assert.equal(retry.get('p:' + guest.id), null, 'the banned player is still deleted');
+  assert.ok(retry.get('meta').bans.includes(guest.id), 'together with the ban');
+  assert.equal(retry.get('mods:' + (Core.packKey(2, 1, 0) % 16)).length > 0, true, 'and the newer edit rides along');
+});
+
 test('room: what it writes to storage brings it back the same', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);

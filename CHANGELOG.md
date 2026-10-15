@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.85.0] - 2026-10-15
+
+A pass for races and stale async results (thread "Race conditions"). Each
+fix has a test that forces the bad ordering: test/unit/together-client.test.js
+drives src/game/together.js against the real room with a fake network.
+
+### Fixed
+- **A connection that dies without closing is noticed.** The game pings the
+  room every 5 s of play (`ping`/`pong`, answered by the Durable Object's
+  auto-response without waking it) and after 15 s of silence drops the
+  connection and reconnects, instead of playing on into a dead socket.
+- **Edits swallowed by a dead connection aren't lost.** Edits carry a number
+  and the room acknowledges each batch (`ack`); after a reconnect the game
+  re-sends unanswered ones, except where the room already has something on
+  that tile. Before, buildings placed into a dead connection vanished on
+  reconnect and mined tiles grew back. Rooms say `pong`/`ack` in the
+  welcome, so games and rooms one version apart keep working.
+- **One connection at a time.** Every new connection closes the previous
+  one; a second tap on Back to the shared world or Invite while connecting
+  says so instead of opening another (which could even take the first one's
+  place and say "open on another screen").
+- **Stale results.** Going online no longer pulls you out of a friend's world
+  you joined while the room was being made, arrives with the progress made
+  meanwhile, and a failed attempt no longer holds up the sign in the next
+  world you enter.
+- **Opening the game through a link** you decline, or that no longer works,
+  takes you back into the shared world you were in.
+- **Two tabs:** a tab in a shared world no longer pops up the "which world to
+  keep" choice about the solo save (picking one there swapped worlds under a
+  live connection).
+- **Room storage writes land whole.** Deletes and puts are issued together
+  (one commit), so a ban can't half-land; a write that fails is retried with
+  the next one instead of being forgotten.
+
 ## [0.84.0] - 2026-10-15
 
 ### Added

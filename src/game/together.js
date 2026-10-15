@@ -12,7 +12,7 @@
 import * as Core from '../core/index.js';
 import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanStatus, cleanColor, cleanTime,
-  ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, INVITE_DEFAULT, cleanInviteAsk
+  ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, INVITE_DEFAULT, cleanInviteAsk, PING
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
@@ -45,6 +45,9 @@ const FOG_EVERY = 15;
 const QUIET_IS_LOST = 6;              // seconds without a word: shown as lost
 const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
+const PING_EVERY = 5;                 // seconds of play between asking the room if it's there
+const SILENT_IS_DEAD = 15;            // seconds of play without a word from the room: the connection is gone
+const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
 const NUKE_NAMES = 6;                 // names listed on the nuke screen
@@ -206,7 +209,8 @@ function cleanWelcome(d) {
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt
+    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt,
+    pong: d.pong === true, ack: d.ack === true  // rooms from before v0.85.0 do neither
   };
 }
 
@@ -231,6 +235,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   let signFace = null;      // the QR on it (a canvas), kept while it comes down
   let nukeOn = null;        // the nuke, while it's up: {votes, until}
   let graves = [];          // tombstones of banned and frozen characters (see cleanGraves)
+  // Is the room still there? Seconds of play since it last said anything,
+  // and until the next ping; whether it answers pings at all.
+  let silence = 0, pingT = 0, pongs = false;
+  // Edits sent and not yet answered ({n, e}), when the room answers them:
+  // the ones a dead connection swallowed are sent again (see resync).
+  let acks = false, editSeq = 0, unacked = [];
 
   /* ---------------------------------------------------- the connection */
 
@@ -238,15 +248,20 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (ws && ws.readyState === 1 && welcomed) ws.send(JSON.stringify(msg));
   }
 
+  // One connection at a time: a newer one replaces any still open, so a
+  // forgotten socket can't stay in a world as you, or take this one's place
+  // there ("open on another screen").
   function connect() {
     clearTimeout(retryTimer);
+    hangUp();
     if (!room || !service) return;
     const socket = new WebSocket(service.replace(/^http/, 'ws') + '/rooms/' + room + '/ws');
     ws = socket;
     welcomed = false;
     turnedAway = null;
+    silence = 0;
     socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), ...(code ? { code } : {}) }));
-    socket.onmessage = (e) => { if (ws === socket) receive(e.data); };
+    socket.onmessage = (e) => { if (ws === socket) { silence = 0; receive(e.data); } };
     socket.onclose = (e) => { if (ws === socket) closed(e.code, e.reason); };
   }
 
@@ -276,10 +291,20 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     retryTimer = setTimeout(connect, wait * 1000);
   }
 
+  // The room has said nothing for too long (not even to a ping): the
+  // connection died without closing. Dropped, as if it had closed, so the
+  // game reconnects instead of playing on into nothing.
+  function dead() {
+    const s = ws;
+    ws = null;
+    try { s.close(4000, 'silent'); } catch { /* gone */ }
+    closed(1006, 'silent');
+  }
+
   // A world didn't let you in: back to the shared world you came from, if
   // a link was taking you elsewhere, else to your own.
   function refused(message, forget = true) {
-    if (!back || game.state.shared !== back) return stop(message, forget);
+    if (!back) return stop(message, forget);
     hangUp();
     room = back; back = null; code = null; retry = 0;
     if (message) hud.toast(message);
@@ -295,7 +320,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     refused(t(gameIsOld ? 'together.toast.oldGame' : 'together.toast.worldUpdating'), false);
     if (gameIsOld) checkUpdate();
     clearTimeout(formatTimer);
-    formatTimer = setTimeout(() => { if (!game.state.shared && read(PLAYING_STORE) === was) resume(); }, FORMAT_RETRY);
+    // Only if nothing else started meanwhile (a link, going online, Back to the shared world).
+    formatTimer = setTimeout(() => { if (!game.state.shared && !room && read(PLAYING_STORE) === was) resume(); }, FORMAT_RETRY);
   }
 
   // Closes the connection, saying goodbye.
@@ -314,6 +340,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
     room = null; back = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
     graves = [];
+    pendingInvite = false; moving = null; // for the world you were going into, not the next one
+    unacked = [];
     hangUp();
     friends.clear();
     roster = null;
@@ -331,6 +359,11 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     // Turned away at the door: why the link no longer works, said before the close.
     if (!welcomed && d.t === 'invite' && Object.hasOwn(INVITE_WHY, d.why)) turnedAway = d.why;
     if (!welcomed) return;
+    // The room has dealt with every batch of edits up to this one.
+    if (d.t === 'ack') {
+      if (Number.isSafeInteger(d.n)) unacked = unacked.filter((u) => u.n > d.n);
+      return;
+    }
     if (d.t === 'pos') {
       const f = ID_RE.test(d.id) && friends.get(d.id), p = cleanPos(d.p);
       if (!f || !p) return;
@@ -434,6 +467,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (w.fmt !== null && w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
     welcomed = true;
     retry = 0;
+    pongs = w.pong; acks = w.ack; pingT = PING_EVERY;
     code = null;  // an invite is for getting in once
     back = null;
     me = w.you; owner = w.owner; myColor = w.c;
@@ -453,6 +487,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (game.state.shared === room && !renewed) {
       resync(w);
     } else {
+      unacked = []; // edits for another world, or one made again
       // Arriving: your progress is the newer of the room's copy and this phone's.
       const local = cleanSave(read(SAVE_PREFIX + room));
       const save = local && (!w.save || playedTime(local) > playedTime(w.save)) ? local : w.save;
@@ -485,7 +520,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   function resync(w) {
     const s = game.state;
     const waiting = new Map(s.extractors.filter((e) => e.owner === me).map((e) => [e.x + ',' + e.y + ',' + e.z, e.buffer]));
-    const pending = Core.takeEdits(s);
+    // Sent, but the connection died before the room answered: sent again,
+    // unless the room already has something there (then the room's stands).
+    const has = new Set([...w.mods.map(([k]) => 'm' + k), ...w.props.map(([k]) => 'p' + k), ...w.ext.map((e) => 'x' + e[1] + ',' + e[2] + ',' + e[3])]);
+    const lost = unacked.flatMap((u) => u.e).filter((e) => !has.has(e[0] === 'x' ? 'x' + e[2] + ',' + e[3] + ',' + e[4] : e[0] + e[1]));
+    unacked = [];
+    const pending = [...lost, ...Core.takeEdits(s)];
     s.world.mods = new Map();
     s.world.props = new Map();
     s.extractors = [];
@@ -532,6 +572,13 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       }
     }
     if (!ws || ws.readyState !== 1 || !welcomed) return;
+    // Counted in play time, so a game that was hidden doesn't come back
+    // thinking the room went quiet.
+    silence += dt;
+    if (pongs) {
+      if (silence > SILENT_IS_DEAD) return dead();
+      if ((pingT -= dt) <= 0) { pingT = PING_EVERY; ws.send(PING); }
+    }
     for (const k in timers) timers[k] -= dt;
     if (timers.pos <= 0) {
       timers.pos = POS_EVERY;
@@ -552,10 +599,18 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       if (edits.length) s.world.edits.unshift(...edits);
       for (let i = 0; i < now2.length; i += LIMITS.editsPerMessage) {
         const batch = cleanEdits(now2.slice(i, i + LIMITS.editsPerMessage));
-        if (batch) send({ t: 'edits', e: batch });
+        if (batch) sendEdits(batch);
       }
     }
     if (timers.save <= 0) save(s);
+  }
+
+  function sendEdits(batch) {
+    if (!acks) return send({ t: 'edits', e: batch });
+    const n = ++editSeq;
+    unacked.push({ n, e: batch });
+    if (unacked.length > MAX_UNACKED) unacked.shift();
+    send({ t: 'edits', e: batch, n });
   }
 
   // Your progress: kept on this phone and sent to the room.
@@ -925,10 +980,24 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     hud.toast(t('privacy.toast'));
   }
 
+  // Already on the way into a shared world (back into yours, through a
+  // link, or going online): a second one would race it. Says so.
+  function busy() {
+    if (!room && !starting) return false;
+    hud.toast(t('together.toast.offline'));
+    return true;
+  }
+
   // Your world goes online: a room is made from it and you're its owner.
+  let starting = false;
   async function start() {
-    if (!service || game.state.shared) return;
-    if (!(await askTogether('start')) || game.state.shared) return;
+    if (!service || game.state.shared || busy()) return;
+    if (!(await askTogether('start')) || game.state.shared || busy()) return;
+    starting = true;
+    try { await goOnline(); } finally { starting = false; }
+  }
+
+  async function goOnline() {
     const s = game.state;
     const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player), time: cleanTime(s.time) ?? 0 });
     if (body.length > LIMITS.createBytes) { hud.toast(t('together.toast.tooBig')); return; }
@@ -938,21 +1007,31 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       made = res.ok ? await res.json() : null;
       if (res.status === 429) { hud.toast(t('together.toast.busy')); return; }
     } catch { made = null; }
+    // Something else took you into a shared world meanwhile: that stands.
+    if (game.state.shared || room) return;
     if (!made || typeof made.room !== 'string' || !ROOM_ID_RE.test(made.room)) { hud.toast(t('together.toast.unreachable')); return; }
-    write(FOG_PREFIX + made.room, JSON.stringify(Core.fogOf(s)));
+    // You kept playing while the room was made: your progress as it is now
+    // (newer than what the room got) is what you arrive with (see welcome).
+    write(SAVE_PREFIX + made.room, Core.progressOf(game.state));
+    write(FOG_PREFIX + made.room, JSON.stringify(Core.fogOf(game.state)));
     room = made.room;
     pendingInvite = true;
     moving = made.room;
     connect();
   }
 
-  async function join(roomId, inviteCode) {
+  // `orBack`: the shared world the game was about to go back into when the
+  // link opened it, gone back to if you say no or the link doesn't work.
+  async function join(roomId, inviteCode, orBack = null) {
     if (!service) return;
-    if (!(await askTogether('join'))) return;
+    if (!(await askTogether('join'))) {
+      if (orBack && !game.state.shared && !room) resume();
+      return;
+    }
     // You stay in the shared world you're in until the new one lets you in:
     // a link that no longer works brings you back to it.
-    const here = game.state.shared;
-    if (here) save(game.state, true);
+    const here = game.state.shared || orBack;
+    if (game.state.shared) save(game.state, true);
     back = here && here !== roomId ? here : null;
     hangUp();
     room = roomId;
@@ -962,7 +1041,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
 
   // A friend's QR opened the game: #join=<room>.<invite>. The code is taken
   // out of the address at once so it isn't kept in history or reloaded.
-  function joinFromLink() {
+  function joinFromLink(atStart = false) {
     const hash = new URLSearchParams(location.hash.slice(1));
     const raw = hash.get('join');
     if (raw === null) return false;
@@ -970,21 +1049,27 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     const m = JOIN_RE.exec(raw);
     if (!m) { hud.toast(t('together.toast.badLink')); return false; }
     if (!service) { hud.toast(t('together.toast.unavailable')); return false; }
-    join(m[1], m[2]);
+    join(m[1], m[2], atStart ? playing() : null);
     return true;
+  }
+
+  // The shared world the game opens into, or null.
+  function playing() {
+    const last = read(PLAYING_STORE);
+    return last && ROOM_ID_RE.test(last) ? last : null;
   }
 
   // Back into the shared world you were in when the game closed.
   function resume() {
-    const last = read(PLAYING_STORE);
-    if (!service || !last || !ROOM_ID_RE.test(last)) return;
+    const last = playing();
+    if (!service || !last) return;
     room = last;
     connect();
   }
 
   function rejoin() {
     const last = knownRooms()[0];
-    if (!service || !last || game.state.shared) return;
+    if (!service || !last || game.state.shared || busy()) return;
     room = last;
     connect();
   }
@@ -1005,6 +1090,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     rejoin,
     resume,
     joinFromLink,
+    // The game opened: through a friend's link, else back into the shared
+    // world you were in, if any.
+    open() { if (!joinFromLink(true)) resume(); },
     showInvite,
     listInvites,
     copyLink,

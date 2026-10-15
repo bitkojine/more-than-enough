@@ -715,6 +715,13 @@ async function main() {
   // on its next save: it pauses and asks which world to keep.
   var KEY = '"more-than-enough-save"';
   await evalJS('MTE_GAME.save()');
+  // A tab in a shared world never writes this save: another tab saving it
+  // (say the one that went back to playing alone) must not stop it to ask.
+  var ownRaw = await evalJS('localStorage.getItem(' + KEY + ')');
+  await evalJS('MTE_GAME.getState().shared = "e2e-shared"');
+  await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=60;localStorage.setItem(' + KEY + ',JSON.stringify(d));dispatchEvent(new StorageEvent("storage",{key:' + KEY + ',newValue:localStorage.getItem(' + KEY + ')}));})()');
+  ok(await evalJS('document.getElementById("fork").hidden'), 'a tab in a shared world is not asked about the solo save');
+  await evalJS('MTE_GAME.getState().shared = null; localStorage.setItem(' + KEY + ',' + JSON.stringify(ownRaw) + ')');
   await evalJS('(function(){var d=JSON.parse(localStorage.getItem(' + KEY + '));d.time+=7200;d.stats.mycelium+=500000;d.inv.mycelium=777777;localStorage.setItem(' + KEY + ',JSON.stringify(d));})()');
   var otherRaw = await evalJS('localStorage.getItem(' + KEY + ')');
   await evalJS('MTE_GAME.save()');

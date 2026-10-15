@@ -151,6 +151,19 @@ export class Room {
     return out;
   }
 
+  // A write that didn't reach storage (keys put, keys deleted): marked
+  // dirty again, so the next write carries it with whatever changed since.
+  redo(puts, gone) {
+    const d = this.dirty;
+    for (const k of [...puts.keys(), ...gone]) {
+      if (k === 'meta') d.meta = true;
+      else if (k === 'props') d.props = true;
+      else if (k === 'ext') d.ext = true;
+      else if (k.startsWith('mods:')) d.buckets.add(Number(k.slice(5)));
+      else if (k.startsWith('p:')) d.players.add(k.slice(2));
+    }
+  }
+
   get isDirty() {
     const d = this.dirty;
     return d.meta || d.props || d.ext || d.buckets.size > 0 || d.players.size > 0;
@@ -293,7 +306,10 @@ export class Room {
       graves: this.graves,
       // The world format it's made with, or will be once the nuke goes off:
       // a game on another one can't grow the same land (src/game/together.js).
-      fmt: this.call ? this.call.fmt : this.fmt
+      fmt: this.call ? this.call.fmt : this.fmt,
+      // This room answers PING (worker.js) and acknowledges numbered edits
+      // ('ack'): games only rely on either when the room says so.
+      pong: true, ack: true
     };
   }
 
@@ -381,31 +397,12 @@ export class Room {
       return { toOthers: [{ t: 'pos', id, p }], near: far ? null : p };
     }
     if (d.t === 'edits') {
-      const list = cleanEdits(d.e);
-      if (!list) return { drop: true };
-      // A budget of edits per player (see Bucket), so nobody can strip a
-      // world bare in a moment, and only around where they stand.
-      const w = this.watchOf(id, now);
-      if (!(edits || w.edits).take(now, list.length)) return { drop: true };
-      // Not where the room has them yet (see MAX_SPEED): refused, not a cheat.
-      if (w.placing) return {};
-      const applied = [];
-      const act = this.actOf(id, now);
-      let far = null;
-      for (const e of list) {
-        if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
-        if (this.apply(e, id)) {
-          applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
-          act[e[0]]++;
-          if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
-        } else act.no++;
-      }
-      this.touch(now);
-      const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
-      if (!far) return out;
-      const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
-      const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
-      return banned.kick ? banned : out;
+      // Numbered edits are answered with their number once the room has
+      // dealt with them (applied or not), so the game knows which never
+      // arrived and sends those again after a lost connection.
+      const out = this.editBatch(id, pl, d.e, now, edits);
+      if (Number.isSafeInteger(d.n) && !out.drop && !out.kick) out.toSelf = [{ t: 'ack', n: d.n }];
+      return out;
     }
     if (d.t === 'save') {
       const save = cleanSave(d.s);
@@ -473,6 +470,35 @@ export class Room {
       return { toAll: [this.nukeVotes()] };
     }
     return { drop: true };
+  }
+
+  // A batch of edits from player `id` (see message).
+  editBatch(id, pl, raw, now, edits) {
+    const list = cleanEdits(raw);
+    if (!list) return { drop: true };
+    // A budget of edits per player (see Bucket), so nobody can strip a
+    // world bare in a moment, and only around where they stand.
+    const w = this.watchOf(id, now);
+    if (!(edits || w.edits).take(now, list.length)) return { drop: true };
+    // Not where the room has them yet (see MAX_SPEED): refused, not a cheat.
+    if (w.placing) return {};
+    const applied = [];
+    const act = this.actOf(id, now);
+    let far = null;
+    for (const e of list) {
+      if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
+      if (this.apply(e, id)) {
+        applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
+        act[e[0]]++;
+        if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
+      } else act.no++;
+    }
+    this.touch(now);
+    const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
+    if (!far) return out;
+    const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
+    const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
+    return banned.kick ? banned : out;
   }
 
   /* ------------------------------------------------------- anti-cheat */

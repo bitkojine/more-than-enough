@@ -179,8 +179,10 @@ function forked(raw) {
     reload: () => location.reload()
   });
 }
+// Only while playing that world: in a shared one this tab never writes it,
+// so there's nothing to choose (leaving reads the newest save anyway).
 function checkFork() {
-  const raw = !document.hidden && savedElsewhere();
+  const raw = !document.hidden && !game.state.shared && savedElsewhere();
   if (raw) forked(raw);
 }
 onSavedElsewhere(checkFork);
@@ -490,7 +492,7 @@ soloNuke();
 game.changedMode();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.
-if (!together.joinFromLink()) together.resume();
+together.open();
 updater.start();
 // Just updated itself: thank the player and say what's new.
 news.show(takeUpdatedFrom(), VERSION);

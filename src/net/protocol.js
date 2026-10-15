@@ -77,6 +77,11 @@ export const DEVICES = Object.freeze(['phone', 'laptop']);
 // What a player can be seen doing (src/game/render/motion.js animates them).
 export const ACTS = Object.freeze(['swing', 'pick', 'collect', 'build', 'cheer', 'down', 'up']);
 export const ACT_COUNT = 1000;  // acts are counted round this, so a new one shows
+// Is the connection still there? A game sends PING (plain text, not JSON)
+// and the room answers PONG without even waking up. A connection can die
+// without closing (a phone changing networks): only silence tells.
+export const PING = 'ping';
+export const PONG = 'pong';
 
 // A room id is 16 random bytes in base64url: unguessable, so the link is the key.
 export const ROOM_ID_RE = /^[A-Za-z0-9_-]{22}$/;

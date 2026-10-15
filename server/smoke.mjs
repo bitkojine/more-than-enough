@@ -2,6 +2,8 @@
  * Makes a room, joins it as its owner and as an invited friend, and checks
  * that strangers are turned away. Usage: node smoke.mjs <service url> <origin> */
 
+import { packKey } from '../src/core/coords.js';
+
 const [BASE, ORIGIN] = process.argv.slice(2);
 const WS = BASE.replace(/^http/, 'ws');
 const hex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -23,7 +25,7 @@ function connect(room, key, code) {
   });
   const closed = new Promise((resolve) => { ws.onclose = (e) => { console.log('  (socket closed: ' + e.code + ' ' + e.reason + ')'); resolve(e.code + ' ' + e.reason); }; });
   ws.onerror = (e) => console.log('  (socket error: ' + (e.message || e.type) + ')');
-  ws.onmessage = (e) => msgs.push(JSON.parse(e.data));
+  ws.onmessage = (e) => msgs.push(e.data === 'pong' ? { t: 'pong' } : JSON.parse(e.data));
   ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', key, ...(code ? { code } : {}) }));
   return { ws, next, closed, send: (m) => ws.send(JSON.stringify(m)) };
 }
@@ -56,6 +58,12 @@ check(fw && fw.you !== hi.you && fw.players[hi.you], 'an invited friend joins an
 friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
 const moved = await owner.next('pos');
 check(moved && moved.p.x === 2, 'the owner sees the friend move');
+check(hi && hi.pong === true && hi.ack === true, 'the welcome says the room answers pings and acknowledges edits');
+friend.ws.send('ping');
+check(!!(await friend.next('pong')), 'the room answers a ping');
+friend.send({ t: 'edits', e: [['m', packKey(2, 3, 0), 1]], n: 1 });
+const ack = await friend.next('ack');
+check(ack && ack.n === 1, 'numbered edits are acknowledged');
 
 // (Right after a deploy the old version may still answer for a few seconds.)
 const hidden = async (headers) => {

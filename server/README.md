@@ -39,7 +39,17 @@ shared with the game.
    newest version, a newer one tries again a minute later, while the room
    service catches up. So during a deploy nobody grows different land from
    the same seed.
-8. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`):
+8. A connection can die without closing (a phone changing networks). The
+   game sends `ping` (plain text) every 5 seconds of play and the room
+   answers `pong` without waking up (`setWebSocketAutoResponse`); 15
+   seconds of play with no word from the room and the game drops the
+   connection and reconnects. Edits carry a number `n` and the room answers
+   `{"t":"ack","n"}` once it has dealt with them (applied or refused): after
+   a reconnect the game sends again those never answered, except where the
+   room already has something on that tile (the room's stands). The welcome
+   says `pong` and `ack` when the room does both; games rely on neither
+   otherwise.
+9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`):
    a game that couldn't get in asks, so it stops offering a world deleted
    after 30 days unvisited.
 
