@@ -453,8 +453,9 @@ export class Room {
   }
 
   // Takes a player out of the world for good: their key can't come back,
-  // the link they came in with stops, and their buildings go. `by` is who
-  // decided ('owner', 'auto' for the anti-cheat, 'mod' for the moderator).
+  // the link they came in with and every link they made stop, and their
+  // buildings go. `by` is who decided ('owner', 'auto' for the anti-cheat,
+  // 'mod' for the moderator).
   ban(id, now, by, why) {
     const pl = this.players.get(id);
     this.sample(id, now, true);
@@ -466,8 +467,11 @@ export class Room {
     this.watch.delete(id);
     if (this.bans.size >= MAX_BANS) this.bans.delete(this.bans.values().next().value);
     this.bans.add(id);
+    // The link they came in with stops, and every link they made: a banned
+    // player can't come back through an invite of their own.
     const via = pl && typeof pl.via === 'string' ? this.invites.get(pl.via) : undefined;
     if (via) via.off = true;
+    for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
     this.dirty.meta = true;
     const left = this.ext.filter((e) => e[4] !== id);
     if (left.length !== this.ext.length) {

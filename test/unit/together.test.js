@@ -429,7 +429,7 @@ test('room: an invite lets in only as many people as asked, never unlimited, for
   assert.deepEqual([listed[4], listed[6]], [2, 2], 'the list says how many of how many');
 });
 
-test('room: a removed player stays out, the link they used stops, and their buildings go', async () => {
+test('room: a removed player stays out, the links they used and made stop, and their buildings go', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
   const code = r.message(o.id, JSON.stringify({ t: 'invite', uses: 10 }), T0).toSelf[0].code;
@@ -438,6 +438,7 @@ test('room: a removed player stays out, the link they used stops, and their buil
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
   r.message(g.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 11, 11, 0]] }), T0);
   assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1);
+  const theirs = [invite(r, g.id, T0, { uses: 25 }), invite(r, g.id, T0, { uses: 5, life: 60 })];
   const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0);
   assert.equal(out.kick, g.id);
   assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }]);
@@ -445,6 +446,7 @@ test('room: a removed player stays out, the link they used stops, and their buil
   assert.equal(r.extTiles.has('11,11,0'), false, 'and their tiles are free');
   assert.equal((await r.join(gKey, code, T0)).error, 'invite', 'not back with the same key');
   assert.equal((await r.join(key(), code, T0)).error, 'invite', 'nor with a new key on the same link');
+  for (const c of theirs) assert.equal((await r.join(key(), c, T0)).error, 'invite', 'nor through a link they made');
   // The ban survives a restart.
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
   assert.equal((await back.join(gKey, invite(back, o.id), T0)).error, 'invite');
