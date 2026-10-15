@@ -691,6 +691,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.82.0": "Užblokuotas ar užšaldytas veikėjas dabar palieka antkapį ten, kur stovėjo paskutinį kartą, su savo vardu, kad visi žinotų, kur jis buvo. Užšaldytųjų antkapiai įšalę į ledą.",
   "news.0.81.0": "Bendro pasaulio veikėjai su nulaužta pažanga dabar užšaldomi: kas bando tokiu žaisti, sulaukia „Fair-play“ tyrimų biuro vizito ir turi pradėti iš naujo, sąžiningai, su nauju veikėju.",
   "news.0.80.2": "Senasis žaidimo kartu serverio adresas išjungtas, tad visi bendri pasauliai dabar eina per apsaugotą.",
   "news.0.80.1": "Bendri pasauliai dabar veikia adresu rooms.robertasrudys.com, saugomi „Cloudflare“, tad srauto antplūdžiai sustabdomi, kol dar negali sugadinti žaidimo kartu.",

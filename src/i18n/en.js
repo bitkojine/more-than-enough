@@ -691,6 +691,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.82.0": "A banned or frozen character now leaves a tombstone where it last stood, with its name on it, so everyone knows where they were. Frozen ones are sealed in ice.",
   "news.0.81.0": "Characters with hacked progress in a shared world are now frozen: whoever tries to play one gets a visit from the Fair-play Bureau of Investigation and has to start again, fairly, with a new character.",
   "news.0.80.2": "The old room service address is switched off, so every shared world now goes through the protected one.",
   "news.0.80.1": "Shared worlds now run at rooms.robertasrudys.com, behind Cloudflare's protection, so floods of traffic are stopped before they can take multiplayer down.",

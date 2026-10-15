@@ -160,6 +160,23 @@ function cleanNuke(n) {
   return n.votes.every((id) => typeof id === 'string' && ID_RE.test(id)) ? { votes: new Set(n.votes), until: n.until } : null;
 }
 
+// Tombstones where banned and frozen characters last stood ([id, colour,
+// x, y, z, kind]), or an empty list if they don't fit: they only mark
+// places, so a bad list mustn't keep anyone out of the world.
+const GRAVE_KINDS = ['ban', 'ice'];
+function cleanGraves(list) {
+  if (!Array.isArray(list) || list.length > 300) return [];
+  const out = [];
+  for (const g of list) {
+    if (!Array.isArray(g) || g.length < 6) return [];
+    const [id, c, x, y, z, k] = g;
+    const p = cleanPos({ x, y, z });
+    if (typeof id !== 'string' || !ID_RE.test(id) || cleanColor(c) === null || !p || !GRAVE_KINDS.includes(k)) return [];
+    out.push({ id, c, x: p.x, y: p.y, z: p.z, k });
+  }
+  return out;
+}
+
 function cleanWelcome(d) {
   if (!ID_RE.test(d.you) || !ID_RE.test(d.owner) || cleanColor(d.c) === null) return null;
   const world = cleanWorld({ seed: d.seed, mods: d.mods, props: d.props, ext: d.ext });
@@ -172,7 +189,7 @@ function cleanWelcome(d) {
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke
+    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? [])
   };
 }
 
@@ -195,6 +212,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
   let signT = 0;            // 0..1: how far up your sign is
   let signFace = null;      // the QR on it (a canvas), kept while it comes down
   let nukeOn = null;        // the nuke, while it's up: {votes, until}
+  let graves = [];          // tombstones of banned and frozen characters (see cleanGraves)
 
   /* ---------------------------------------------------- the connection */
 
@@ -242,6 +260,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (game.state.shared) save(game.state, true);
     const wasIn = !!game.state.shared;
     room = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
+    graves = [];
     clearTimeout(retryTimer);
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
@@ -317,6 +336,18 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
       if (kept.length !== s.extractors.length) { s.extractors = kept; game.worldChanged(); }
       return;
     }
+    // Frozen (its progress was hacked): no longer asleep here, a tombstone
+    // instead (the 'graves' that follows); its buildings stay.
+    if (d.t === 'frozen') {
+      if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
+      if (friends.delete(d.id)) { renderFriends(); renderNuke(); }
+      return;
+    }
+    if (d.t === 'graves') {
+      graves = cleanGraves(d.g);
+      roster = null;
+      return;
+    }
     // The owner was removed for cheating: the world is someone else's now.
     if (d.t === 'owner') {
       if (typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
@@ -354,6 +385,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     friends.clear();
     roster = null;
     for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
+    graves = w.graves;
     remember(room);
     write(PLAYING_STORE, room);
     nukeOn = w.nuke;
@@ -711,6 +743,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (!roster) {
       const players = [...friends.entries()].map(([pid, f]) => [pid, f.c]);
       if (me) players.push([me, myColor]);
+      // A tombstone keeps its character's name, so nobody else gets it.
+      for (const g of graves) if (g.id !== me && !friends.has(g.id)) players.push([g.id, g.c]);
       players.sort((a, b) => a[1] - b[1]);
       const taken = new Set();
       roster = new Map();
@@ -891,6 +925,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
         if (f.shown) out.push({ id, c: f.c, color: friendColor(f.c), name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
       }
       return out;
+    },
+    // The tombstones, as the renderer draws them.
+    graves() {
+      return graves.map((g) => ({ x: g.x, y: g.y, z: g.z, k: g.k, color: friendColor(g.c), name: nameOf(g.id) }));
     },
     refresh() { renderFriends(); renderButton(); renderNuke(); }
   };

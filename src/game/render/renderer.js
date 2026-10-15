@@ -11,7 +11,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles } from './terrain.js';
-import { drawExtractor, drawPlayer, drawFriend, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
@@ -46,6 +46,13 @@ export function render(cam, s, fx, view, look) {
     const y = Math.floor(f.y), row = friendRows.get(y);
     if (row) row.push(f); else friendRows.set(y, [f]);
   }
+  // Tombstones of banned and frozen characters, on this layer, by row.
+  const graveRows = new Map();
+  for (const g of view.graves || []) {
+    if (g.z !== cam.z) continue;
+    const y = Math.floor(g.y), row = graveRows.get(y);
+    if (row) row.push(g); else graveRows.set(y, [g]);
+  }
   // Props on this layer, by row; the ones that light, as lights (a glowcap
   // pulses slowly, like something alive), and the beacons.
   const propRows = new Map();
@@ -71,6 +78,13 @@ export function render(cam, s, fx, view, look) {
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
+    const stones = graveRows.get(y);
+    if (stones) {
+      for (const g of stones) {
+        const at = drawGrave(ctx, cam, s, g);
+        if (at && g.name) tags.push({ ...at, name: g.name, color: g.color });
+      }
+    }
     const friends = friendRows.get(y);
     if (friends) {
       for (const f of friends) {

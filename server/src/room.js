@@ -27,6 +27,7 @@ export const FAR_MS = 2000;
 export const STATUS_MS = 2000;               // a player's away/back changes, at most this often                  // everyone else hears where you are this often
 export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
 export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
+export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
 // Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
 // fastest boots with many Nomad perks are well under it); a player's steps
 // draw on a budget of that much distance a second, up to MOVE_BURST, so steps
@@ -98,6 +99,10 @@ export class Room {
     // Players taken out of the world (by the owner or for cheating), who
     // can't come back with their key.
     this.bans = new Set();
+    // Tombstones where banned and frozen characters last stood, so everyone
+    // knows where they were (Watch's rule): [id, colour, x, y, z, kind],
+    // kind 'ban' or 'ice' (frozen). They go when the world is made again.
+    this.graves = [];
     // Per player, not kept: their step budget and cheats ({at, budget, fresh, cheats, cheatAt}).
     this.watch = new Map();
     // The audit log (audit.js): events waiting to be written, and per player
@@ -123,6 +128,7 @@ export class Room {
     Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, call: meta.call ?? null, ready: true });
     r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
+    r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -136,7 +142,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke], bans: [...this.bans] });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -275,12 +281,13 @@ export class Room {
 
   welcome(id, now) {
     const others = {};
-    for (const [pid, p] of this.players) if (pid !== id) others[pid] = { c: p.c, st: p.st, p: p.p };
+    for (const [pid, p] of this.players) if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
     const me = this.players.get(id);
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null
+      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null,
+      graves: this.graves
     };
   }
 
@@ -530,6 +537,7 @@ export class Room {
       }
     }
     const toAll = [id, ...also].map((x) => ({ t: 'removed', id: x }));
+    toAll.push(this.gravesMsg());
     if (wasOwner) toAll.push(...this.passOwner(id, now));
     return { kick: id, also, toAll };
   }
@@ -561,6 +569,7 @@ export class Room {
     if (pl.frozen) return { error: 'frozen' };
     this.sample(id, now, true);
     this.audit(now, id, 'freeze', { why: String(why || '').slice(0, 200) });
+    this.bury(id, pl, 'ice');
     pl.frozen = now;
     pl.st = 'offline';
     pl.lostAt = 0;
@@ -570,25 +579,44 @@ export class Room {
     this.nuke.delete(id);
     for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
     this.dirty.meta = true;
-    const toAll = [this.statusOf(id)];
+    // Friends see a tombstone where the character slept ('frozen': its
+    // buildings stay, unlike 'removed').
+    const toAll = [{ t: 'frozen', id }, this.gravesMsg()];
     if (id === this.owner) toAll.push(...this.passOwner(id, now));
     return { kick: id, toAll };
   }
 
-  // Undoes a freeze: the player may come back to that character. Error
-  // string or null. (A world that passed on stays with its new owner.)
+  // Undoes a freeze: the player may come back to that character, asleep
+  // again where the tombstone was. Returns {toAll} or {error}. (A world
+  // that passed on stays with its new owner.)
   thaw(id, now) {
     const pl = this.players.get(id);
-    if (!pl) return 'player';
-    if (!pl.frozen) return 'not frozen';
+    if (!pl) return { error: 'player' };
+    if (!pl.frozen) return { error: 'not frozen' };
     delete pl.frozen;
     this.dirty.players.add(id);
+    this.graves = this.graves.filter((g) => g[0] !== id);
+    this.dirty.meta = true;
     this.audit(now, id, 'thaw', {});
-    return null;
+    return { toAll: [this.gravesMsg(), this.statusOf(id)] };
+  }
+
+  // A tombstone for player `id` where they last stood (none if they never
+  // stood anywhere), replacing one they already had.
+  bury(id, pl, kind) {
+    this.graves = this.graves.filter((g) => g[0] !== id);
+    if (pl.p) this.graves.push([id, pl.c, pl.p.x, pl.p.y, pl.p.z, kind]);
+    if (this.graves.length > MAX_GRAVES) this.graves.shift();
+    this.dirty.meta = true;
+  }
+
+  gravesMsg() {
+    return { t: 'graves', g: this.graves };
   }
 
   banOne(id, now, by, why) {
     const pl = this.players.get(id);
+    if (pl) this.bury(id, pl, 'ban');
     this.sample(id, now, true);
     this.audit(now, id, 'ban', { by, why: String(why || '').slice(0, 200) });
     this.acts.delete(id);
@@ -664,6 +692,7 @@ export class Room {
       this.dirty.players.add(id);
     }
     this.nuke.clear();
+    this.graves = []; // the places they marked are gone with the world
     if (this.call) this.fmt = this.call.fmt;
     this.call = null;
     this.gen++;

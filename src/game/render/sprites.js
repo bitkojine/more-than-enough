@@ -303,6 +303,52 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy, onGround) {
   return { x: mx, y: my };
 }
 
+// A tombstone where a banned or frozen character last stood (Watch's rule:
+// everyone knows where they were): a grey headstone on a mound, with a band
+// in their colour; a frozen one (k 'ice') sits in a block of ice with a
+// frosty glint. Returns where their name goes, or null when off screen.
+export function drawGrave(ctx, cam, s, g) {
+  const u = cam.tilePx;
+  const { x: sx, y: sy } = cam.project(g.x, g.y, groundAt(cam, s, g.x, g.y));
+  if (sx < -u * 2 || sy < -u * 3 || sx > cam.width + u * 2 || sy > cam.height + u * 2) return null;
+  const w = u * 0.5, h = u * 0.7, top = sy - h;
+  shadow(ctx, cam, sx, sy, u * 0.42);
+  ctx.save();
+  ctx.lineWidth = Math.max(1.5, u * 0.035);
+  ctx.strokeStyle = 'rgba(10,8,6,0.8)';
+  // The mound of earth.
+  ctx.fillStyle = '#5b4a3a';
+  ctx.beginPath(); ctx.ellipse(sx, sy - u * 0.02, u * 0.42, u * 0.12, 0, Math.PI, TAU); ctx.closePath(); ctx.fill();
+  // The headstone, round at the top.
+  ctx.fillStyle = '#9aa0a6';
+  ctx.beginPath();
+  ctx.moveTo(sx - w / 2, sy - u * 0.05);
+  ctx.lineTo(sx - w / 2, top + w / 2);
+  ctx.arc(sx, top + w / 2, w / 2, Math.PI, TAU);
+  ctx.lineTo(sx + w / 2, sy - u * 0.05);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // A cross cut into it, and a band in their colour across it.
+  ctx.strokeStyle = 'rgba(40,44,48,0.85)';
+  ctx.beginPath();
+  ctx.moveTo(sx, top + h * 0.16); ctx.lineTo(sx, top + h * 0.5);
+  ctx.moveTo(sx - w * 0.2, top + h * 0.28); ctx.lineTo(sx + w * 0.2, top + h * 0.28);
+  ctx.stroke();
+  ctx.fillStyle = g.color;
+  ctx.fillRect(sx - w / 2, top + h * 0.62, w, h * 0.12);
+  if (g.k === 'ice') {
+    // Frozen: a block of ice around it, catching the light now and then.
+    ctx.fillStyle = 'rgba(170, 225, 255, 0.38)';
+    ctx.strokeStyle = 'rgba(220, 245, 255, 0.85)';
+    ctx.beginPath(); ctx.roundRect(sx - w * 0.78, top - u * 0.1, w * 1.56, h + u * 0.06, u * 0.06); ctx.fill(); ctx.stroke();
+    const glint = 0.5 + 0.5 * Math.sin(s.time * 1.3 + g.x);
+    ctx.strokeStyle = `rgba(255,255,255,${(0.35 + 0.5 * glint).toFixed(2)})`; // i18n-ok: a colour
+    ctx.beginPath(); ctx.moveTo(sx - w * 0.6, top + u * 0.05); ctx.lineTo(sx - w * 0.3, top + u * 0.05); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - w * 0.6, top + u * 0.05); ctx.lineTo(sx - w * 0.6, top + u * 0.3); ctx.stroke();
+  }
+  ctx.restore();
+  return { x: sx, y: top - u * (g.k === 'ice' ? 0.32 : 0.22) };
+}
+
 // Someone doing nothing in particular (a friend away or out of touch).
 const STILL = { act: null, t: 0, idle: 0 };
 

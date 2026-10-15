@@ -441,7 +441,7 @@ test('room: a removed player stays out, the links they used and made stop, and t
   const theirs = [invite(r, g.id, T0, { uses: 25 }), invite(r, g.id, T0, { uses: 5, life: 60 })];
   const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0);
   assert.equal(out.kick, g.id);
-  assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }]);
+  assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }, { t: 'graves', g: r.graves }]);
   assert.equal(r.ext.some((e) => e[4] === g.id), false, 'their buildings are gone');
   assert.equal(r.extTiles.has('11,11,0'), false, 'and their tiles are free');
   assert.equal((await r.join(gKey, code, T0)).error, 'invite', 'not back with the same key');
@@ -481,7 +481,7 @@ test("room: a ban takes everyone who came in through the player's links along, a
   const out = r.message(o.id, JSON.stringify({ t: 'remove', id: bad.id }), T0);
   assert.equal(out.kick, bad.id);
   assert.deepEqual(out.also, [p1.id, p2.id]);
-  assert.deepEqual(out.toAll.map((m) => m.id), [bad.id, p1.id, p2.id]);
+  assert.deepEqual(out.toAll.filter((m) => m.t === 'removed').map((m) => m.id), [bad.id, p1.id, p2.id]);
   assert.deepEqual([...r.players.keys()].sort(), [o.id, friend.id, ok.id].sort(), "the owner's and other players' guests stay");
   assert.ok([bad.id, p1.id, p2.id].every((id) => r.bans.has(id)));
 });
@@ -767,10 +767,15 @@ test('room: the moderator freezes a hacked character: it stays asleep, but its k
   const h = await r.join(hKey, invite(r, o.id), T0);
   const guest = await r.join(key(), invite(r, h.id), T0);
   const theirs = invite(r, h.id, T0, { uses: 5, life: 60 });
+  r.message(h.id, JSON.stringify({ t: 'pos', p: { x: 3.5, y: 4.5, z: 0 } }), T0 + 5);
   r.takeLog();
   const out = r.freeze(h.id, T0 + 10, 'resources jumped to 500M');
   assert.equal(out.kick, h.id);
-  assert.deepEqual(out.toAll, [{ t: 'status', id: h.id, st: 'offline', c: h.welcome.c, p: null }], 'friends see them asleep');
+  const grave = [h.id, h.welcome.c, 3.5, 4.5, 0, 'ice'];
+  assert.deepEqual(out.toAll, [{ t: 'frozen', id: h.id }, { t: 'graves', g: [grave] }], 'friends see a tombstone where they stood');
+  assert.equal(o.id in r.welcome(guest.id, T0).players, true);
+  assert.equal(h.id in r.welcome(guest.id, T0).players, false, 'not a sleeper any more');
+  assert.deepEqual(r.welcome(guest.id, T0).graves, [grave]);
   assert.ok(r.players.has(h.id) && r.players.has(guest.id), 'the character stays, and so do their guests');
   assert.deepEqual(await r.join(hKey, undefined, T0 + 20), { error: 'frozen' }, 'their key only gets the notice');
   assert.equal((await r.join(key(), theirs, T0 + 20)).error, 'invite', 'their links stop');
@@ -782,8 +787,9 @@ test('room: the moderator freezes a hacked character: it stays asleep, but its k
   // It survives a restart, and thawing undoes it.
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
   assert.deepEqual(await back.join(hKey, undefined, T0 + 40), { error: 'frozen' });
-  assert.equal(back.thaw(h.id, T0 + 50), null);
-  assert.equal(back.thaw(h.id, T0 + 50), 'not frozen');
+  assert.deepEqual(back.graves, [grave], 'the tombstone survives a restart');
+  assert.deepEqual(back.thaw(h.id, T0 + 50).toAll[0], { t: 'graves', g: [] }, 'thawing takes the tombstone away');
+  assert.equal(back.thaw(h.id, T0 + 50).error, 'not frozen');
   assert.equal((await back.join(hKey, undefined, T0 + 60)).id, h.id, 'thawed, they can play it again');
 });
 
@@ -797,4 +803,18 @@ test('room: a frozen owner\'s world passes to the earliest joiner who can still 
   assert.equal(r.owner, b.id, 'not to the frozen player who joined first');
   assert.deepEqual(out.toAll.at(-1), { t: 'owner', id: b.id });
   assert.equal(r.freeze('nobody', T0).error, 'player');
+});
+
+test('room: a banned character leaves a tombstone where it last stood, until the world is made again', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  const nowhere = await r.join(key(), invite(r, o.id), T0);
+  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 7.25, y: 2.5, z: 0 } }), T0 + 5);
+  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0 + 10);
+  assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ban']] });
+  r.message(o.id, JSON.stringify({ t: 'remove', id: nowhere.id }), T0 + 20);
+  assert.equal(r.graves.length, 1, 'no tombstone for someone who never stood anywhere');
+  r.renew(T0 + 30);
+  assert.deepEqual(r.graves, [], 'a new world has none');
 });

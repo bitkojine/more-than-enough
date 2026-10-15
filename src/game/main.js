@@ -398,6 +398,7 @@ function view() {
     underground,
     joy: input.joy,
     friends: together.view(),
+    graves: together.graves(),
     keepClear: friendsClear(),   // the zoom pill, which friends' edge badges move out from under
     me: together.me,   // your name and colour in a shared world
     sign: together.sign,

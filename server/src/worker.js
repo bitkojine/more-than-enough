@@ -354,8 +354,9 @@ export class Rooms extends DurableObject {
 
   async modThaw(id, player) {
     if (!this.room.ready || this.room.id !== id) return 'room';
-    const err = this.room.thaw(player, Date.now());
-    if (err) return err;
+    const r = this.room.thaw(player, Date.now());
+    if (r.error) return r.error;
+    for (const msg of r.toAll) this.send(msg, null);
     await this.persist();
     await this.schedule();
     return null;

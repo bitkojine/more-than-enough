@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.82.0] - 2026-10-15
+
+### Added
+- **Tombstones** (Watch's rule). A banned or frozen character no longer
+  sleeps in the world: a headstone with a band in their colour and their
+  name marks where they last stood, so everyone knows where they were. A
+  frozen one sits in a block of ice. The room keeps them (`graves`, in the
+  welcome and as a `graves` message, at most 300) until the world is made
+  again; thawing a character takes its tombstone away. Frozen friends get a
+  `frozen` message (their buildings stay), not `removed`.
+
 ## [0.81.0] - 2026-10-15
 
 ### Security
