@@ -684,6 +684,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.79.0": "Shared worlds are harder to cheat in: leaving and rejoining no longer lets anyone jump across the map or change the world faster.\nIf you come back from another device, or after playing offline, the game moves you to where the shared world last saw you.\nEach player can change up to 10,000 new tiles in a world, so nobody can use up a world's space for everyone else.",
   "news.0.78.0": "Shared worlds are harder to flood with strangers: a player who isn't the world's owner can bring in up to 5 people a day through their invite links.\nWhen someone is removed from a world, their invite links stop working, and everyone who came in through those links is removed with them.",
   "news.0.77.1": "Shared worlds are safer: the server's play log now only keeps names the game itself uses, so nothing a player sends can sneak extra text into it.",
   "news.0.77.0": "Friends' badges at the edge of the screen now say how far away they are, in metres or kilometres (every block is 1 m), so you know how far you'd walk to meet them. On another layer, the badge also shows how many layers up or down.\nBadges no longer hide under the zoom buttons.",

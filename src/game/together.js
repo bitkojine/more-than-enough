@@ -268,6 +268,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
       f.heard = performance.now() / 1000;
       return;
     }
+    // The room has you somewhere else than this game does: go there.
+    if (d.t === 'place') {
+      const p = cleanPos(d.p);
+      if (p) game.moveTo(p);
+      return;
+    }
     if (d.t === 'edits') {
       const list = cleanEdits(d.e);
       if (list && game.state.shared === room && Core.applyEdits(game.state, list)) game.worldChanged();

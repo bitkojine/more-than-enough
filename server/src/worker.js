@@ -16,7 +16,7 @@
  * rules of a room are in room.js; the wire format is src/net/protocol.js. */
 
 import { DurableObject } from 'cloudflare:workers';
-import { Room, Bucket, editBucket, NEAR, visitor } from './room.js';
+import { Room, Bucket, NEAR, visitor } from './room.js';
 import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex } from '../../src/net/protocol.js';
 
@@ -381,7 +381,6 @@ export class Rooms extends DurableObject {
     if (typeof raw !== 'string') return ws.close(1003, 'text only');
     let bucket = this.buckets.get(ws);
     if (!bucket) this.buckets.set(ws, bucket = new Bucket(now));
-    if (!bucket.edits) bucket.edits = editBucket(now);
     const att = ws.deserializeAttachment() || {};
     if (!bucket.take(now)) {
       if (att.id) this.room.dropped(att.id, now);
@@ -389,7 +388,7 @@ export class Rooms extends DurableObject {
       return;
     }
     if (!att.id) return this.hello(ws, raw, now);
-    const r = this.room.message(att.id, raw, now, bucket.edits);
+    const r = this.room.message(att.id, raw, now); // edits draw on the player's own budget (Room.watchOf)
     if (r.drop) {
       this.room.dropped(att.id, now);
       bucket.strikes += 5; // malformed messages cost more

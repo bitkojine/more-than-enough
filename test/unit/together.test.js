@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
@@ -506,6 +506,56 @@ test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned
   assert.equal(out.kick, c.id, 'banned');
   assert.equal(r.players.has(c.id), false);
   assert.ok(MAX_SPEED > 3.7 * 2.5 * 2, 'faster than the best boots with several Nomad perks');
+});
+
+test('anti-cheat: reconnecting is no teleport; a game that is elsewhere is told where it stands', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const gKey = key();
+  const g = await r.join(gKey, invite(r, o.id), T0);
+  const pos = (x, t) => r.message(g.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
+  assert.ok(!pos(0.5, T0).toSelf, 'a new player may stand anywhere');
+  await r.join(gKey, undefined, T0 + 1000);
+  const out = pos(90_000.5, T0 + 1000);
+  assert.deepEqual(out.toSelf, [{ t: 'place', p: r.players.get(g.id).p }], 'told where the room has them');
+  assert.equal(r.players.get(g.id).p.x, 0.5, 'and not moved');
+  for (let i = 1; i <= CHEATS_TO_BAN * 2; i++) assert.ok(!pos(90_000.5, T0 + 1000 + i * 1000).kick, 'never banned for it');
+  const edit = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(90_000, 0, 0), 0]] }), T0 + 30_000);
+  assert.ok(!edit.toAll && !edit.kick, 'nor can they change the world over there');
+  assert.equal(r.watch.get(g.id).cheats, 0, 'none of it counts as cheating');
+  assert.ok(pos(1.5, T0 + 31_000).toOthers, 'a step from where the room has them carries on');
+  // Coming back after a while: as far as one could have walked since is fine.
+  await r.join(gKey, undefined, T0 + 41_000);
+  assert.ok(pos(1.5 + MAX_SPEED * 9, T0 + 41_000).toOthers);
+});
+
+test("anti-cheat: the edit budget is the player's, not the connection's", async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const gKey = key();
+  const g = await r.join(gKey, invite(r, o.id), T0);
+  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  let applied = 0;
+  for (let k = 0; k < 20; k++) {
+    await r.join(gKey, undefined, T0);
+    const e = Array.from({ length: 64 }, (_, i) => ['m', Core.packKey(-20 + (k * 64 + i) % 40, -20 + Math.floor((k * 64 + i) / 40), 0), 0]);
+    const out = r.message(g.id, JSON.stringify({ t: 'edits', e }), T0);
+    if (out.toAll) applied += out.toAll[0].e.length;
+  }
+  assert.ok(applied <= P.LIMITS.editsBurst, `reconnects don't refill it (${applied})`);
+});
+
+test('room: a player (not the owner) changes at most PLAYER_TILES new tiles', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  r.players.get(g.id).nm = PLAYER_TILES - 1;
+  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  const out = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0], ['m', Core.packKey(2, 2, 0), 0]] }), T0);
+  assert.equal(out.toAll[0].e.length, 1, 'the last of their share, then no more');
+  assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 5]] }), T0).toAll, 'changing a changed tile again is free');
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
+  assert.ok(r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has no share');
 });
 
 test('anti-cheat: edits out of reach count; the owner is never banned from their world', async () => {

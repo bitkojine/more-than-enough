@@ -55,7 +55,10 @@ again in the game; anything that doesn't fit exactly is dropped.
   budget, so bunched-up steps pass) are refused, and they and edits out of
   reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
   owner removed them (never the owner). One player (not the owner) puts up
-  at most 400 buildings and 2,000 props.
+  at most 400 buildings, 2,000 props and 10,000 newly changed tiles
+  (`PLAYER_TILES`). Reconnecting starts nothing afresh: the first step after
+  it is checked against the time since the last one, and a game that is
+  elsewhere is told where it stands (`place`).
 - **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
   and 300 an hour in all; in a room, 8 sockets per visitor, 3 of them before
   saying who they are;

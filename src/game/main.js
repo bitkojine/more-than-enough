@@ -140,6 +140,16 @@ const game = {
   act: () => actor.sent,
   // Friends changed the world: what's shown around you may differ now.
   worldChanged() { hud.update(game.state); },
+  // The room says you stand somewhere else (you came back from another
+  // device, or after playing offline): you're moved there.
+  moveTo(p) {
+    const s = game.state;
+    Object.assign(s.player, { x: p.x, y: p.y, z: p.z });
+    s.underground.deepest = Math.min(s.underground.deepest, p.z);
+    controller.forget();
+    lastTileKey = -1;
+    hud.update(s);
+  },
   // Alone or together: the settings that differ.
   changedMode() {
     const shared = !!game.state.shared;

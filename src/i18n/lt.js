@@ -684,6 +684,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.79.0": "Bendruose pasauliuose sunkiau sukčiauti: išėjus ir vėl prisijungus nebegalima peršokti per žemėlapį ar greičiau keisti pasaulio.\nJei grįžti iš kito įrenginio arba pažaidęs neprisijungęs, žaidimas perkelia tave ten, kur bendras pasaulis tave matė paskutinį kartą.\nKiekvienas žaidėjas pasaulyje gali pakeisti iki 10 000 naujų langelių, tad niekas negali išnaudoti visos pasaulio vietos kitiems.",
   "news.0.78.0": "Bendrus pasaulius sunkiau užtvindyti nepažįstamaisiais: žaidėjas, kuris nėra pasaulio savininkas, per savo kvietimo nuorodas per dieną gali pakviesti iki 5 žmonių.\nKai kas nors pašalinamas iš pasaulio, jo kvietimo nuorodos nustoja veikti, o visi, atėję per jas, pašalinami kartu.",
   "news.0.77.1": "Bendri pasauliai saugesni: serverio žaidimo žurnalas dabar saugo tik pačio žaidimo naudojamus pavadinimus, tad joks žaidėjas negali į jį įterpti savo teksto.",
   "news.0.77.0": "Draugų ženkleliai ekrano krašte dabar rodo, kiek jie toli, metrais ar kilometrais (kiekvienas blokas – 1 m), tad žinai, kiek tektų eiti iki jų. Jei draugas kitame sluoksnyje, ženklelis dar rodo, kiek sluoksnių aukščiau ar žemiau.\nŽenkleliai nebesislepia po mastelio mygtukais.",

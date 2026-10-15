@@ -34,6 +34,15 @@ export const MAX_BANS = 1000;                // removed players a world remember
 // cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) take
 // the player out of the world for good. The owner is never banned from
 // their own world.
+//
+// Reconnecting doesn't start a player afresh: their first step after it may
+// cover only their budget, or the distance they could have walked since
+// the room last saw them. A first step further than that isn't counted as a
+// cheat (a phone that was offline, or another device, may simply be
+// elsewhere): the room tells the game where the player stands (`place`) and
+// refuses their steps and edits, quietly, until one starts from there.
+// Edits draw on a budget per player, not per connection, so a reconnect
+// doesn't refill it either.
 export const MAX_SPEED = 40;
 export const MOVE_BURST = 120;
 export const CHEATS_TO_BAN = 10;
@@ -42,6 +51,7 @@ export const CHEAT_FORGIVE_MS = 30_000;
 // fill it for everyone.
 export const PLAYER_BUILDINGS = 400;
 export const PLAYER_PROPS = 2000;
+export const PLAYER_TILES = 10_000; // tiles nobody had changed before (re-changing one is free)
 // One player (not the owner) brings at most LIMITS.invitesPerDay people into
 // a world through their own links in a day, so one bad invite can't fill a
 // world with others.
@@ -332,9 +342,13 @@ export class Room {
     if (d.t === 'pos') {
       const p = cleanPos(d.p);
       if (!p) return { drop: true };
-      if (!this.canStep(id, pl.p, p, now)) {
+      const step = this.canStep(id, pl, p, now);
+      if (step === 'place') return { toSelf: [{ t: 'place', p: pl.p }] };
+      if (step === 'wait') return {};
+      if (step === 'far') {
         return this.cheat(id, now, 'speed', { from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z], to: [Math.round(p.x), Math.round(p.y), p.z] });
       }
+      pl.at = now;
       const act = this.actOf(id, now);
       if (pl.p && pl.p.z === p.z) act.dist += Math.hypot(p.x - pl.p.x, p.y - pl.p.y);
       else if (pl.p) act.layers++;
@@ -353,7 +367,10 @@ export class Room {
       if (!list) return { drop: true };
       // A budget of edits per player (see Bucket), so nobody can strip a
       // world bare in a moment, and only around where they stand.
-      if (edits && !edits.take(now, list.length)) return { drop: true };
+      const w = this.watchOf(id, now);
+      if (!(edits || w.edits).take(now, list.length)) return { drop: true };
+      // Not where the room has them yet (see MAX_SPEED): refused, not a cheat.
+      if (w.placing) return {};
       const applied = [];
       const act = this.actOf(id, now);
       let far = null;
@@ -438,21 +455,33 @@ export class Room {
 
   watchOf(id, now) {
     let w = this.watch.get(id);
-    if (!w) this.watch.set(id, w = { at: now, budget: MOVE_BURST, fresh: true, cheats: 0, cheatAt: 0 });
+    if (!w) this.watch.set(id, w = { at: now, budget: MOVE_BURST, fresh: true, placing: false, cheats: 0, cheatAt: 0, edits: editBucket(now) });
     return w;
   }
 
-  // Whether a step from `from` to `to` is one a player could take (taking
-  // it from their budget). A climb or fall keeps them on the same spot.
-  canStep(id, from, to, now) {
-    const w = this.watchOf(id, now);
+  // Whether player `pl` (id `id`) could step to `to`, taking it from their
+  // budget: 'ok', 'far' (a cheat) or 'place' (the first step after
+  // connecting starts somewhere else: not a cheat, see MAX_SPEED). A climb
+  // or fall keeps them on the same spot.
+  canStep(id, pl, to, now) {
+    const w = this.watchOf(id, now), from = pl.p;
     w.budget = Math.min(MOVE_BURST, w.budget + (now - w.at) / 1000 * MAX_SPEED);
     w.at = now;
-    if (!from || w.fresh) { w.fresh = false; return true; }
+    if (!from) { w.fresh = w.placing = false; return 'ok'; } // nowhere yet: a new player, or a renewed world
     const dist = Math.hypot(to.x - from.x, to.y - from.y);
-    if (dist > w.budget) return false;
+    if (w.fresh || w.placing) {
+      const since = Number.isSafeInteger(pl.at) ? Math.max(0, now - pl.at) / 1000 * MAX_SPEED : 0;
+      const ok = dist <= (w.placing ? w.budget : Math.max(w.budget, since));
+      const was = w.fresh;
+      w.fresh = false;
+      w.placing = !ok;
+      if (!ok) return was ? 'place' : 'wait';
+      w.budget = Math.max(0, w.budget - dist);
+      return 'ok';
+    }
+    if (dist > w.budget) return 'far';
     w.budget -= dist;
-    return true;
+    return 'ok';
   }
 
   // A cheat by player `id`: counted (one a second at most, older ones
@@ -563,6 +592,7 @@ export class Room {
     for (const [id, p] of this.players) {
       p.save = null;
       p.p = null;
+      p.np = p.nm = 0; // their share of the world starts over with it
       this.dirty.players.add(id);
     }
     this.nuke.clear();
@@ -672,13 +702,16 @@ export class Room {
 
   // Applies one checked edit. False if it can't be (full world, taken tile).
   apply(e, by) {
+    const pl = by === this.owner ? null : this.players.get(by);
     if (e[0] === 'm') {
-      if (!this.mods.has(e[1]) && this.mods.size >= LIMITS.mods) return false;
+      if (!this.mods.has(e[1])) {
+        if (this.mods.size >= LIMITS.mods || (pl && (pl.nm || 0) >= PLAYER_TILES)) return false;
+        if (pl) { pl.nm = (pl.nm || 0) + 1; this.dirty.players.add(by); }
+      }
       this.mods.set(e[1], e[2]);
       this.dirty.buckets.add(bucketOf(e[1]));
       return true;
     }
-    const pl = by === this.owner ? null : this.players.get(by);
     if (e[0] === 'p') {
       if (this.props.has(e[1]) || this.props.size >= LIMITS.props) return false;
       if (pl && (pl.np || 0) >= PLAYER_PROPS) return false;

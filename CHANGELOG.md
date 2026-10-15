@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.79.0] - 2026-10-15
+
+From the second security audit (finding 3). Reconnecting started a player
+afresh: the first step was unchecked (a free teleport) and the edit budget
+was the connection's, so one player could use up a world's 100,000 tile
+edits in minutes with no cheat recorded.
+
+### Security
+- **Reconnecting is no teleport.** The first step after connecting may
+  cover the player's budget or the distance they could have walked since
+  the room last saw them. Further than that isn't a cheat: the room sends
+  `place {p}` and quietly refuses steps and edits until one starts there.
+  The game moves the player to `p` (back from another device, or after
+  playing offline).
+- **Edit budget per player**, kept across reconnects (`Room.watchOf`).
+- **A share of the world per player.** A player who isn't the owner changes
+  at most 10,000 tiles nobody had changed before (`PLAYER_TILES`); changing
+  a changed tile again is free. The nuke resets everyone's shares.
+
 ## [0.78.0] - 2026-10-15
 
 From the second security audit (finding 2). One invite could bring in

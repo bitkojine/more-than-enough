@@ -20,6 +20,8 @@
  *                                          you, every couple of seconds when far)
  *                  edits {id, e: [...]}    the world changed (yours echoed too)
  *                  status {id, st, c, p?}  a friend's state changed (c: their place, 0, 1, 2…)
+ *                  place {p}               you're somewhere else than your game thinks (back from another
+ *                                          device, or after playing offline): go there
  *                  invite {code, until}    the link for your sign
  *                  invites {list}          [code, by, made, until, uses, stopped, max] newest first
  *                  removed {id}            a player was taken out of the world
