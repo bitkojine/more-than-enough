@@ -107,7 +107,8 @@ again in the game; anything that doesn't fit exactly is dropped.
   moderator instead of banned. It stays in the world, asleep, with what it
   built, but its key can't play it again (`frozen`, close code 4005): the
   game shows a joke "FBI" notice and goes back to the player's own world.
-  The links its player made stop; a frozen owner's world passes on.
+  The links its player made stop; a frozen owner's world passes on. The
+  nuke thaws every frozen character, since everyone starts over; bans stay.
 - **Tombstones:** a banned or frozen character leaves a tombstone where it
   last stood (`graves` in the welcome and in a `graves` message: `[id,
   colour, x, y, z, 'ban' | 'ice']`, at most 300), until the world is made

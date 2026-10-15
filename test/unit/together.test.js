@@ -849,3 +849,17 @@ test('room: the welcome says which world format the world is on, or will be once
   assert.ok(w.nuke, 'the nuke is up');
   assert.equal(w.fmt, WORLD_FORMAT, 'the format it is about to be made with: an older game updates first');
 });
+
+test('room: the nuke thaws frozen characters, so they start over fairly; bans stay', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const fKey = key(), bKey = key();
+  const f = await r.join(fKey, invite(r, o.id), T0);
+  const b = await r.join(bKey, invite(r, o.id), T0);
+  r.freeze(f.id, T0, 'hacked');
+  r.ban(b.id, T0, 'mod', 'x');
+  r.renew(T0 + 10);
+  assert.equal(r.takeWrites().get('p:' + f.id).frozen, undefined, 'the thaw is saved');
+  assert.equal((await r.join(fKey, undefined, T0 + 20)).id, f.id, 'back in, starting over');
+  assert.equal((await r.join(bKey, undefined, T0 + 20)).why, 'banned');
+});

@@ -701,6 +701,9 @@ export class Room {
       p.save = null;
       p.p = null;
       p.np = p.nm = p.nx = 0; // their share of the world starts over with it
+      // A frozen character thaws (Watch's call): everyone starts over fairly.
+      // Bans stay.
+      if (p.frozen) { delete p.frozen; this.audit(now, id, 'thaw', { why: 'nuke' }); }
       this.dirty.players.add(id);
     }
     this.nuke.clear();
