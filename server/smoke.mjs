@@ -37,13 +37,20 @@ check((await post('https://evil.example', '{}')).status === 403, 'another site: 
 const bad = await post(ORIGIN, '{"t":"create","key":"short"}');
 check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
 
-const ownerKey = hex(32);
-const res = await post(ORIGIN, JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }));
-const { room } = await res.json();
+// Right after a deploy the old version may still make and run rooms for a
+// few seconds: rooms are made until one welcomes with what this version
+// says (`ack`), for a while.
+let ownerKey, res, room, owner, hi;
+for (let i = 0; i < 5; i++) { // (a visitor may make 6 rooms an hour)
+  if (i) { owner.ws.close(1000, 'bye'); await new Promise((r) => setTimeout(r, 3000)); }
+  ownerKey = hex(32);
+  res = await post(ORIGIN, JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }));
+  ({ room } = await res.json());
+  owner = connect(room, ownerKey);
+  hi = await owner.next('welcome');
+  if (!hi || hi.ack === true) break;
+}
 check(res.status === 201 && /^[A-Za-z0-9_-]{22}$/.test(room), 'a room is made');
-
-const owner = connect(room, ownerKey);
-const hi = await owner.next('welcome');
 check(hi && hi.you === hi.owner && hi.seed === 12345, 'the owner gets the world back');
 
 const stranger = connect(room, hex(32));
