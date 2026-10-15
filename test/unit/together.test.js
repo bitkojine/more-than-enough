@@ -558,6 +558,17 @@ test('room: a player (not the owner) changes at most PLAYER_TILES new tiles', as
   assert.ok(r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has no share');
 });
 
+test('room: flicking away and back can\'t flood the other players or the log', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  r.takeLog();
+  let sent = 0;
+  for (let i = 0; i < 100; i++) sent += (r.message(g.id, JSON.stringify({ t: 'away', a: i % 2 === 0 }), T0 + 1000 + i * 40).toOthers || []).length;
+  assert.equal(sent, 2, 'one change every STATUS_MS');
+  assert.equal(r.takeLog().filter((x) => x.e === 'st').length, 2);
+});
+
 test('anti-cheat: edits out of reach count; the owner is never banned from their world', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);

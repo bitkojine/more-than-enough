@@ -23,7 +23,8 @@ export const MAX_INVITES = 200;              // links a world keeps (working or 
 const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
 const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left (or half its life)
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
-export const FAR_MS = 2000;                  // everyone else hears where you are this often
+export const FAR_MS = 2000;
+export const STATUS_MS = 2000;               // a player's away/back changes, at most this often                  // everyone else hears where you are this often
 export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
 export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
 // Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
@@ -399,7 +400,13 @@ export class Room {
     }
     if (d.t === 'away') {
       const st = d.a === true ? 'away' : 'online';
-      if (pl.st !== st) this.audit(now, id, 'st', { st });
+      if (pl.st === st) return {};
+      // At most one change every STATUS_MS: each one goes to every player
+      // and into the log, so flicking it can't flood either. (A step brings
+      // a player back online anyway.)
+      if (now - (pl.stAt || 0) < STATUS_MS) return {};
+      pl.stAt = now;
+      this.audit(now, id, 'st', { st });
       return this.setStatus(id, st);
     }
     if (d.t === 'invite') {

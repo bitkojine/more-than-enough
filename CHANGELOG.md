@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.79.1] - 2026-10-15
+
+From the second security audit (finding 5).
+
+### Security
+- **Away/back can't flood a world.** Each change went to every player and
+  into the audit log, so flicking it at the message rate sent thousands of
+  messages a second to everyone's phone and about 170 MB of log a day. A
+  player's status now changes at most every 2 seconds (`STATUS_MS`); a
+  step still brings them back online at once.
+
 ## [0.79.0] - 2026-10-15
 
 From the second security audit (finding 3). Reconnecting started a player
