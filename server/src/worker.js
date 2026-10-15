@@ -167,7 +167,8 @@ export default {
     // Anyone without the token sees nothing there at all.
     if (url.pathname.startsWith('/admin/')) {
       if (!(await isAdmin(request, env))) return respond({ error: 'not found' }, 404, null);
-      return admin(request, env, url);
+      // A failure says what went wrong, to the moderator only.
+      try { return await admin(request, env, url); } catch (e) { return respond({ error: String(e && e.message || e).slice(0, 300) }, 500, null); }
     }
     // Browsers always send Origin on these; anything else isn't the game.
     if (!okOrigin) return respond({ error: 'origin' }, 403, null);
