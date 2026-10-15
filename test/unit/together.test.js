@@ -818,3 +818,25 @@ test('room: a banned character leaves a tombstone where it last stood, until the
   r.renew(T0 + 30);
   assert.deepEqual(r.graves, [], 'a new world has none');
 });
+
+test("room: a world passes to whoever really joined first, not to whoever took a banned player's colour", async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const a = await r.join(key(), invite(r, o.id), T0 + 1);
+  const b = await r.join(key(), invite(r, o.id), T0 + 2);
+  await r.join(key(), invite(r, o.id), T0 + 3);
+  r.ban(a.id, T0 + 4, 'mod', 'x');
+  const d = await r.join(key(), invite(r, o.id), T0 + 5);
+  assert.equal(d.welcome.c, a.welcome.c, 'the newest player takes the free colour');
+  r.ban(o.id, T0 + 6, 'mod', 'x');
+  assert.equal(r.owner, b.id);
+});
+
+test('room: a banned key is told it is banned, as an invite that no longer works', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const gKey = key();
+  const g = await r.join(gKey, invite(r, o.id), T0);
+  r.ban(g.id, T0, 'owner', 'x');
+  assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
+});

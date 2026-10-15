@@ -180,7 +180,7 @@ export class Room {
       this.ext.push([kind, x, y, z, this.owner]);
       this.extTiles.add(extAt(x, y, z));
     }
-    this.players.set(this.owner, { c: 0, st: 'offline', p: pos, save, lostAt: 0 });
+    this.players.set(this.owner, { c: 0, st: 'offline', p: pos, save, lostAt: 0, joined: now });
     this.ready = true;
     this.created = this.last = now;
     this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
@@ -199,7 +199,9 @@ export class Room {
   async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     const id = await playerId(this.id, key);
-    if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite' }; }
+    // Said as an invite that no longer works, with why: games from before
+    // 'banned' was a reason still stop and say the link is no good.
+    if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite', why: 'banned' }; }
     let pl = this.players.get(id);
     // A frozen character can't be played (see freeze): the game shows why.
     if (pl && pl.frozen) { this.audit(now, id, 'deny', { why: 'frozen' }); return { error: 'frozen' }; }
@@ -230,7 +232,8 @@ export class Room {
       while (used.has(c)) c++;
       // `via`: the link they came in with, stopped if they're taken out;
       // `by`: who made it, taking them along if they're taken out.
-      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0 };
+      // `joined`: when, so a world passes to whoever really came first (see passOwner).
+      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0, joined: now };
       this.players.set(id, pl);
     }
     // A new connection may stand anywhere its game remembers: its first step is free.
@@ -543,12 +546,18 @@ export class Room {
   }
 
   // The owner `was` is out (banned or frozen): the world passes to whoever
-  // joined it first among those left who can still play (the lowest
-  // place), or to nobody. Returns the news for everyone.
+  // joined it first among those left who can still play, or to nobody.
+  // Returns the news for everyone. (Not by colour: a banned player's colour
+  // goes to the next one in. Players from before `joined` was kept came
+  // before everyone with it; among them, the colour is the best guess.)
   passOwner(was, now) {
+    const order = (p) => [Number.isSafeInteger(p.joined) ? p.joined : -Infinity, p.c];
     let next = '';
     for (const [pid, p] of this.players) {
-      if (pid !== was && !p.frozen && (!next || p.c < this.players.get(next).c)) next = pid;
+      if (pid === was || p.frozen) continue;
+      if (!next) { next = pid; continue; }
+      const [a, b] = [order(p), order(this.players.get(next))];
+      if (a[0] < b[0] || (a[0] === b[0] && a[1] < b[1])) next = pid;
     }
     this.owner = next;
     this.dirty.meta = true;

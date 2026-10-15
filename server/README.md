@@ -55,8 +55,8 @@ again in the game; anything that doesn't fit exactly is dropped.
   budget, so bunched-up steps pass) are refused, and they and edits out of
   reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
   owner removed them. Owners too: nobody cheats in a shared world. A banned
-  owner's world passes to whoever joined it first among those left (`owner`
-  message). One player, the owner too, adds at most 400 buildings, 2,000
+  owner's world passes to whoever joined it first among those left who
+  aren't frozen (by join time, `owner` message). One player, the owner too, adds at most 400 buildings, 2,000
   props and 10,000 newly changed tiles (`PLAYER_TILES`); what the owner's
   world held when it was made doesn't count. Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
@@ -90,6 +90,9 @@ again in the game; anything that doesn't fit exactly is dropped.
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
   it they answer 404, as if they weren't there. They read; what they
   change is a ban (the same one the owner's *Remove* does) and a freeze.
+- **Turned away:** a banned key gets `{"t": "invite", "why": "banned"}`
+  and the socket closes (1008, `invite`); a frozen one gets
+  `{"t": "frozen"}` and closes (1008, `frozen`).
 - **Frozen characters:** a character whose progress was clearly hacked
   (an edited save, which the anti-cheat can't see) is frozen by the
   moderator instead of banned. It stays in the world, asleep, with what it
