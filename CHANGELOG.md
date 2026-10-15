@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.82.1] - 2026-10-15
+
+### Fixed
+From a review of every state the game can be in
+(`multiplayer/state-machine-review.md` in the project files):
+- A newer tab taking over a shared world, or the room service being
+  unreachable as the game starts, no longer clears the stored shared world,
+  so the game opens into it again next time. Leaving on purpose, being
+  removed or frozen still forget it.
+- Opening an invite link while in a shared world keeps you there until the
+  new world lets you in; a link that doesn't work brings you back.
+- Away/back changes the room would ignore (one per `STATUS_MS`) now wait
+  their turn on the game, so a quick look away and back can't leave friends
+  seeing "connection lost" or the nuke waiting on someone who is away.
+- The solo nuke (an unreadable or older save at start-up) waits while you're
+  in a shared world and shows when you're back in your own; the new solo
+  world is saved at once, so it's the one you come back to.
+- A banned player trying to come back (the room now says `why: "banned"`)
+  sees "You were removed from the shared world", not "ask for a new link",
+  and a world that removed you leaves the list Back to the shared world
+  tries, so it goes to the next one.
+- The "25 structures" milestone counts only your own buildings.
+- The What's new card blocks keyboard and pointer input like the other
+  dialogs.
+
 ## [0.82.0] - 2026-10-15
 
 ### Added

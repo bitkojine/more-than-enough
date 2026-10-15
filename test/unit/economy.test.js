@@ -140,3 +140,13 @@ test('a building shows waiting output only when nothing hauls it in', () => {
   e.buffer = 3;
   assert.equal(C.holdsOutput(s, e), true, 'out of reach, it waits again');
 });
+
+test("in a shared world, friends' buildings don't count toward your 25 structures", () => {
+  const s = C.createState(12345);
+  s.me = 'a'.repeat(16);
+  const structures = C.GOALS.find((g) => g.id === 'structures');
+  for (let i = 0; i < 25; i++) s.extractors.push({ ...mushroomGarden(40 + i, 50), owner: 'b'.repeat(16) });
+  assert.equal(structures.done(s), false, "a friend's buildings");
+  for (const e of s.extractors) e.owner = s.me;
+  assert.equal(structures.done(s), true, 'your own');
+});

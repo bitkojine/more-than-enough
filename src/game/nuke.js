@@ -10,14 +10,17 @@ export function createNuke(box) {
   const button = box.querySelector('button');
   const label = button.querySelector('b');
   let pressed = null; // what pressing does, while the screen is up
+  let alone = false;  // it's the nuke for your own world, not a shared one
 
   button.addEventListener('click', () => { if (pressed) pressed(); });
 
   return {
     get open() { return !box.hidden; },
+    get alone() { return alone; },
     // Puts the screen up (or updates it): its words, the button's label,
     // a status line, whether it's already pressed, and what pressing does.
-    show({ heading, body, button: buttonLabel, line = '', done = false, press }) {
+    show({ heading, body, button: buttonLabel, line = '', done = false, press, alone: own = false }) {
+      alone = own;
       title.textContent = heading;
       text.textContent = body;
       label.textContent = buttonLabel;

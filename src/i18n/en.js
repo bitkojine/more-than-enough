@@ -691,6 +691,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.82.1": "Opening the game in a second tab, or a hiccup while it starts, no longer makes it forget the shared world you play in.\nAn invite link that no longer works keeps you in the shared world you were in, instead of sending you to your own.\nSomeone taken out of a shared world is told so when they try to come back, not to ask for a new link, and Back to the shared world no longer takes them there.\nA quick look at another app no longer shows you to friends as having lost your connection.\nThe 25 structures milestone counts only your own buildings.",
   "news.0.82.0": "A banned or frozen character now leaves a tombstone where it last stood, with its name on it, so everyone knows where they were. Frozen ones are sealed in ice.",
   "news.0.81.0": "Characters with hacked progress in a shared world are now frozen: whoever tries to play one gets a visit from the Fair-play Bureau of Investigation and has to start again, fairly, with a new character.",
   "news.0.80.2": "The old room service address is switched off, so every shared world now goes through the protected one.",

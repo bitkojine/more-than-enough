@@ -134,6 +134,7 @@ const game = {
     hud.update(next);
     game.saveNow();
     game.changedMode();
+    soloNuke();
   },
   // For playing together (together.js).
   facing: () => controller.facing,
@@ -185,6 +186,7 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
+const news = createNews(el.news);
 el.privacyLink.href = policyUrl(); // in the player's language
 const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
@@ -228,7 +230,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open,
+    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open || news.open,
     dismiss: () => sheet.close(),
     tap(x, y) {
       // On your sign: copy its link. Anywhere else: the world.
@@ -471,20 +473,27 @@ hud.update(game.state);
 hud.updateButtons(game.state);
 // Your world is from before an update that changed how worlds are made (or
 // its save is broken): the nuke, centre stage. The new world is already
-// here; pressing it is how you get to it.
-if (loaded.lost) {
+// here (and saved, so it's the one you come back to); pressing it is how
+// you get to it. It's about your own world, so it waits while you're in a
+// shared one.
+let soloNukeDue = loaded.lost;
+if (soloNukeDue) game.saveNow();
+function soloNuke() {
+  if (!soloNukeDue) return;
+  if (game.state.shared) { if (nuke.open && nuke.alone) nuke.hide(); return; }
   nuke.show({
-    heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'),
-    press() { nuke.hide(); audio.fanfare(); hud.toast(t('nuke.toast.alone')); }
+    heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'), alone: true,
+    press() { soloNukeDue = false; nuke.hide(); audio.fanfare(); hud.toast(t('nuke.toast.alone')); }
   });
 }
+soloNuke();
 game.changedMode();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.
 if (!together.joinFromLink()) together.resume();
 updater.start();
 // Just updated itself: thank the player and say what's new.
-createNews(el.news).show(takeUpdatedFrom(), VERSION);
+news.show(takeUpdatedFrom(), VERSION);
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.

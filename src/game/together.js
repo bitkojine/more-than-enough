@@ -47,12 +47,14 @@ const RECONNECT_MAX = 15;             // seconds between tries, at most
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
 const NUKE_NAMES = 6;                 // names listed on the nuke screen
+const AWAY_EVERY = 2100;              // ms between away/back changes (the room takes one per STATUS_MS)
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
 const INVITE_WHY = Object.freeze({
   expired: () => t('together.toast.inviteExpired'),
   usedUp: () => t('together.toast.inviteUsedUp'),
   stopped: () => t('together.toast.inviteStopped'),
-  limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay })
+  limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay }),
+  banned: () => t('together.toast.removed')   // taken out of that world for good
 });
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 
@@ -89,6 +91,11 @@ function knownRooms() {
 
 function remember(room) {
   write(ROOMS_STORE, JSON.stringify([room, ...knownRooms().filter((r) => r !== room)].slice(0, 8)));
+}
+
+// A world you can never go back to: Back to the shared world tries the next.
+function forget(room) {
+  write(ROOMS_STORE, JSON.stringify(knownRooms().filter((r) => r !== room)));
 }
 
 // The time stamp in a progress string, to tell which copy is newer.
@@ -199,6 +206,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
+  let back = null;          // the shared world you're still in while a link takes you to another
   let code = null;          // the invite you're joining with, used once
   let me = null, owner = null, myColor = 0;
   let welcomed = false;     // the room has sent this connection its world
@@ -236,18 +244,21 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     ws = null;
     welcomed = false;
     for (const f of friends.values()) f.heard = -Infinity;
-    if (codeNum === 4001) return stop(t('together.toast.elsewhere'));
-    if (codeNum === 4003) return stop(t('together.toast.removed'));
+    // The newer screen plays this world now, and comes back to it next time.
+    if (codeNum === 4001) return stop(t('together.toast.elsewhere'), false);
+    if (codeNum === 4003) { forget(room); return stop(t('together.toast.removed')); }
     // The moderator froze this character (its progress was hacked): the
     // "FBI" notice, every time, and back to your own world.
-    if (codeNum === 4005 || reason === 'frozen') { stop(); return fbi.show(); }
+    if (codeNum === 4005 || reason === 'frozen') { refused(); return fbi.show(); }
     // Everyone pressed the nuke: straight back in, to the world made anew.
     if (codeNum === 4004) { retry = 0; return connect(); }
-    if (reason === 'invite') return stop(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
-    if (reason === 'full') return stop(t('together.toast.full'));
+    if (reason === 'invite' && turnedAway === 'banned') forget(room);
+    if (reason === 'invite') return refused(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
+    if (reason === 'full') return refused(t('together.toast.full'));
     if (!room) return;
-    // Never got in (the service is down or unreachable): say so, don't loop.
-    if (game.state.shared !== room) return stop(t('together.toast.unreachable'));
+    // Never got in (the service is down or unreachable): say so, don't loop,
+    // and try again next time the game opens.
+    if (game.state.shared !== room) return refused(t('together.toast.unreachable'), false);
     // Lost the connection: keep playing, and come back as soon as it can.
     if (retry === 0) hud.toast(t('together.toast.reconnecting'));
     const wait = Math.min(RECONNECT_MAX, 2 ** retry);
@@ -255,19 +266,35 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     retryTimer = setTimeout(connect, wait * 1000);
   }
 
-  // Leaves the shared world for your own (saving your progress there first).
-  function stop(message) {
-    if (game.state.shared) save(game.state, true);
-    const wasIn = !!game.state.shared;
-    room = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
-    graves = [];
+  // A world didn't let you in: back to the shared world you came from, if
+  // a link was taking you elsewhere, else to your own.
+  function refused(message, forget = true) {
+    if (!back || game.state.shared !== back) return stop(message, forget);
+    room = back; back = null; code = null; retry = 0;
+    if (message) hud.toast(message);
+    connect();
+  }
+
+  // Closes the connection, saying goodbye.
+  function hangUp() {
     clearTimeout(retryTimer);
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
+  }
+
+  // Leaves the shared world for your own (saving your progress there first).
+  // `forget`: the game no longer opens into it (not when another screen
+  // took it over, or it couldn't be reached).
+  function stop(message, forget = true) {
+    if (game.state.shared) save(game.state, true);
+    const wasIn = !!game.state.shared;
+    if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
+    room = null; back = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
+    graves = [];
+    hangUp();
     friends.clear();
     roster = null;
     closeQr();
-    write(PLAYING_STORE, '');
     renderFriends();
     if (wasIn) game.replace(loadGame().state);
     if (message) hud.toast(message);
@@ -381,6 +408,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     welcomed = true;
     retry = 0;
     code = null;  // an invite is for getting in once
+    back = null;
     me = w.you; owner = w.owner; myColor = w.c;
     friends.clear();
     roster = null;
@@ -414,6 +442,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
     lastPos = ''; lastSave = '';
+    if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
     renderNuke();
     game.changedMode();
@@ -512,6 +541,18 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     if (progress === lastSave || !cleanSave(progress)) return;
     lastSave = progress;
     send({ t: 'save', s: progress });
+  }
+
+  // Away or back, as the screen is now. The room takes one change every
+  // STATUS_MS and ignores the rest, so one that comes too soon waits: a
+  // quick look away and back must not leave friends seeing the wrong one.
+  let awayAt = -Infinity, awayTimer = 0;
+  function sendAway() {
+    clearTimeout(awayTimer);
+    const wait = awayAt + AWAY_EVERY - performance.now();
+    if (wait > 0) { awayTimer = setTimeout(sendAway, wait); return; }
+    awayAt = performance.now();
+    send({ t: 'away', a: document.hidden });
   }
 
   /* -------------------------------------------------------- the QR sign */
@@ -859,7 +900,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
   async function join(roomId, inviteCode) {
     if (!service) return;
     if (!(await askTogether('join'))) return;
-    if (game.state.shared) stop();
+    // You stay in the shared world you're in until the new one lets you in:
+    // a link that no longer works brings you back to it.
+    const here = game.state.shared;
+    if (here) save(game.state, true);
+    back = here && here !== roomId ? here : null;
+    hangUp();
     room = roomId;
     code = inviteCode;
     connect();
@@ -914,7 +960,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoin
     listInvites,
     copyLink,
     away(hidden) {
-      send({ t: 'away', a: hidden });
+      sendAway();
       if (hidden) save(game.state, true);
     },
     // Friends as the renderer draws them (where they're shown, not where the

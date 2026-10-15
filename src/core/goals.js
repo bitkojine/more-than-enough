@@ -2,7 +2,7 @@
  * what comes next; the list itself is documented in the wiki. */
 
 import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE } from './content.js';
-import { extractorCount } from './economy.js';
+import { extractorCount, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
 import { t, number } from '../i18n/i18n.js';
 
@@ -34,7 +34,7 @@ export const GOALS = [
   { id: 'brickyard', text: t('goal.brickyard'), done: has('brickyard') },
   { id: 'metallurgy', text: t('goal.metallurgy'), done: (s) => s.resUp.ore >= 1 },
   { id: 'abundance4', text: t('goal.abundance4'), done: (s) => s.abundanceLv >= 4 },
-  { id: 'structures', text: t('goal.structures'), done: (s) => s.extractors.length >= 25 },
+  { id: 'structures', text: t('goal.structures'), done: (s) => s.extractors.filter((e) => ownBuilding(s, e)).length >= 25 },
   { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), done: canEmbark },
   { id: 'forever', text: t('goal.forever'), done: () => false }
 ];

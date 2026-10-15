@@ -691,6 +691,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.82.1": "Atidarius žaidimą antrame skirtuke ar jam strigtelėjus paleidžiant, jis nebepamiršta bendro pasaulio, kuriame žaidi.\nNebegaliojanti pakvietimo nuoroda palieka tave bendrame pasaulyje, kuriame buvai, o ne nusiunčia į tavo paties pasaulį.\nPašalintam iš bendro pasaulio žaidėjui, bandančiam grįžti, dabar taip ir pasakoma, užuot liepus prašyti naujos nuorodos, o mygtukas „Grįžti į bendrą pasaulį“ jo ten nebeveda.\nTrumpam pažvelgus į kitą programėlę, draugai nebemato, kad praradai ryšį.\nPasiekimas „25 statiniai“ skaičiuoja tik tavo paties pastatus.",
   "news.0.82.0": "Užblokuotas ar užšaldytas veikėjas dabar palieka antkapį ten, kur stovėjo paskutinį kartą, su savo vardu, kad visi žinotų, kur jis buvo. Užšaldytųjų antkapiai įšalę į ledą.",
   "news.0.81.0": "Bendro pasaulio veikėjai su nulaužta pažanga dabar užšaldomi: kas bando tokiu žaisti, sulaukia „Fair-play“ tyrimų biuro vizito ir turi pradėti iš naujo, sąžiningai, su nauju veikėju.",
   "news.0.80.2": "Senasis žaidimo kartu serverio adresas išjungtas, tad visi bendri pasauliai dabar eina per apsaugotą.",
