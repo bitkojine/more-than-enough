@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.87.0": "Bendri pasauliai dabar patys skaičiuoja, ką kiekvienas surenka, pastato ir nusiperka, pagal tai, ką žaidėjas darė, ir pagal tas pačias žaidimo taisykles. Kol kas jie tik pažymi, kai kieno nors pažanga nesutampa (pavyzdžiui, pakeistas išsaugojimas), kad sąžiningo žaidimo komanda galėtų pažiūrėti. Žaidžiantiems sąžiningai niekas nesikeičia.",
   "news.0.86.1": "Skaitikliai viršuje nebelenda vienas ant kito. Didelės pajamos per sekundę trumpinamos kaip ir kiekiai (+7,7M/s) ir rodomos po savo kiekiu.",
   "news.0.86.0": "Įrankiai dabar atveria naujų dalykų, ne tik didina skaičius. Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio, o šachtoms žemyn iš gilių sluoksnių – dar geresnio. 2 lygio Batai nuneša ant vandens, taip pat per upes. 4 lygio Krepšys renka retus grybus, kurie duoda tris kartus daugiau.\nPatobulinimų skirtuke parašyta, ką atveria kiekvienas lygis, o {phone:bakstelėjus|laptop:spustelėjus} tai, ko tavo įrankiai dar neįveikia, pasakoma, ko reikia.",
   "news.0.84.0": "Taurė dabar rodo kitą etapą: {phone:bakstelk|laptop:spustelk} ją ir pamatysi, ko dar trūksta, pavyzdžiui, kiek akmens reikia geresniam kirtikliui. Žalias taškas ant jos reiškia, kad turi viską, ko reikia kitam etapui.\nEtapai dabar įskaitomi bet kuria tvarka, tad anksti pastatytas sodas nebepamirštamas.",

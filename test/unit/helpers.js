@@ -93,3 +93,54 @@ export function away(s) {
   C.revealAround(s);
   return s;
 }
+
+/* ------------------------------------------------------------- the bot */
+
+// A bot that plays state `s` (a new world from `seed` unless given) the way
+// a player would; `tick()` runs after every step of play.
+export function createBot(seed, s = C.createState(seed), tick = () => {}) {
+  const clock = { t: 0 };
+  const timeline = {};
+  const mark = (name) => { if (timeline[name] === undefined) timeline[name] = +clock.t.toFixed(1); };
+
+  function walkTowards(target, pad, budget) {
+    const path = findPath(s, Math.floor(s.player.x), Math.floor(s.player.y), target.x, target.y, pad);
+    if (!path) return -1;
+    const used = walkPath(s, path, 0.1, budget);
+    clock.t += used;
+    tick();
+    return used;
+  }
+
+  function gather(res, need) {
+    for (let guard = 0; s.inv[res] < need && guard < 6000; guard++) {
+      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0 && !C.gearNeeded(st, x, y));
+      if (!t) return false;
+      if (!C.canHarvest(s, t.x, t.y)) {
+        if (walkTowards(t, 10, 30) < 0) C.setRichness(s.world, t.x, t.y, 0, 0); // unreachable: forget it
+        continue;
+      }
+      if (!C.harvestAt(s, t.x, t.y)) continue;
+      C.step(s, 0.25);
+      clock.t += 0.25;
+      tick();
+    }
+    return s.inv[res] >= need;
+  }
+
+  // Walks next to (or, when tight, onto) the nearest tile matching pred.
+  function standBy(pred, tight) {
+    const stop = tight ? 0.25 : 1.2;
+    for (let attempt = 0; attempt < 30; attempt++) {
+      const t = findNear(s, pred);
+      if (!t) return false;
+      if (Math.hypot(t.x + 0.5 - s.player.x, t.y + 0.5 - s.player.y) <= stop) return true;
+      if (walkTowards(t, 24, 12) < 0.1) return false;
+    }
+    return false;
+  }
+
+  const free = (type) => (st, x, y) => typeAt(st, x, y) === type && !C.extractorAt(st, x, y, 0);
+
+  return { s, clock, timeline, mark, gather, standBy, free };
+}

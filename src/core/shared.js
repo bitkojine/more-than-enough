@@ -40,7 +40,7 @@ const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 // A playable state from what the room sent (its welcome) and the explored
 // map this phone kept, or null if it doesn't make a world. A new player
 // starts fresh, next to `near` if given (a friend, wherever they are).
-export function joinState(welcome, room, fog, near) {
+export function joinState(welcome, room, fog, near, make = undefined) {
   let mine = {};
   if (typeof welcome.save === 'string') {
     try { mine = JSON.parse(welcome.save); } catch { mine = {}; }
@@ -61,7 +61,7 @@ export function joinState(welcome, room, fog, near) {
       b: e[4] === welcome.you ? waiting.get(e[1] + ',' + e[2] + ',' + e[3]) || 0 : 0
     }))
   };
-  const s = deserialize(JSON.stringify(d));
+  const s = deserialize(JSON.stringify(d), make);
   if (!s) return null;
   s.shared = room;
   s.me = welcome.you;

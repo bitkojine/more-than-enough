@@ -396,3 +396,34 @@ test('client: a room from before pings and acks is never pinged, and edits go ou
   const edits = socket.sent.filter((m) => m.t === 'edits');
   assert.ok(edits.length && edits.every((m) => !('n' in m)));
 });
+
+test('client: what you did goes to the room before the edits it made, and before your progress', async () => {
+  const w = await makeRoom();
+  const { together, game, id } = await inWorld(w);
+  const socket = open()[0];
+  assert.ok(Array.isArray(game.state.acts), 'the room asked for acts');
+  Core.noteAct(game.state, 'c');
+  mine(game, 1);
+  together.tick(0.3);
+  const kinds = socket.sent.slice(socket.done).map((m) => m.t || m);
+  assert.ok(kinds.indexOf('acts') >= 0 && kinds.indexOf('acts') < kinds.indexOf('edits'), kinds.join());
+  Core.noteAct(game.state, 'c');
+  together.save(game.state, true);
+  const after = socket.sent.slice(socket.sent.length - 2).map((m) => m.t);
+  assert.deepEqual(after, ['acts', 'save']);
+  pump(w.r, id, socket);
+});
+
+test('client: a room from before acts gets none', async () => {
+  const w = await makeRoom();
+  const h = harness();
+  location.hash = '#join=' + w.id + '.' + w.code;
+  h.together.joinFromLink();
+  await tick();
+  const socket = open()[0];
+  socket.open();
+  const j = await w.r.join(socket.sent[0].key, socket.sent[0].code, T0);
+  const { acts, ...old } = j.welcome;
+  socket.deliver(old);
+  assert.equal(h.game.state.acts, null);
+});

@@ -10,8 +10,9 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE
+  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
 } from '../../src/net/protocol.js';
+import { Shadow } from './shadow.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
@@ -28,6 +29,7 @@ export const STATUS_MS = 2000;               // a player's away/back changes, at
 export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
 export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
 export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
+export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log at most this often
 // Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
 // fastest boots with many Nomad perks are well under it); a player's steps
 // draw on a budget of that much distance a second, up to MOVE_BURST, so steps
@@ -109,6 +111,10 @@ export class Room {
     // what they've done since their last sample ({since, at, dist, m, p, x, no, drops, dg, dgAt}).
     this.log = [];
     this.acts = new Map();
+    // Its own copy of everyone's progress, from what they did (shadow.js),
+    // made when first needed; not kept (a restart starts it from saves).
+    this.shadow = null;
+    this.driftAt = new Map(); // when each player's drift was last logged
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
   }
@@ -256,6 +262,8 @@ export class Room {
     this.touch(now);
     this.dirty.players.add(id);
     this.acts.set(id, this.newAct(now, this.acts.get(id)));
+    // The room's copy of their progress picks up from what they come back with.
+    this.shadow?.start(id, pl.save, this, now);
     this.audit(now, id, 'join', { new: fresh, c: pl.c, ...(fresh ? { via: codeTag(pl.via) } : {}), at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null, online: this.online() });
     const called = this.callNuke(now);
     return { id, welcome: this.welcome(id, now), called };
@@ -309,7 +317,10 @@ export class Room {
       fmt: this.call ? this.call.fmt : this.fmt,
       // This room answers PING (worker.js) and acknowledges numbered edits
       // ('ack'): games only rely on either when the room says so.
-      pong: true, ack: true
+      pong: true, ack: true,
+      // The room keeps its own copy of your progress from what you did:
+      // games send 'acts' (src/core/acts.js) when it says so.
+      acts: true
     };
   }
 
@@ -410,6 +421,13 @@ export class Room {
       pl.save = save;
       this.dirty.players.add(id);
       this.progress(id, save, now);
+      this.checkDrift(id, pl, save, now);
+      return {};
+    }
+    if (d.t === 'acts') {
+      const list = cleanActs(d.a);
+      if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
+      this.shadowOf().acts(id, d.ms, list, now, this);
       return {};
     }
     if (d.t === 'away') {
@@ -499,6 +517,20 @@ export class Room {
     const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
     const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
     return banned.kick ? banned : out;
+  }
+
+  shadowOf() {
+    return this.shadow ||= new Shadow(this.seed);
+  }
+
+  // Compares a player's progress with the room's own copy (shadow.js), and
+  // logs where they differ, at most every DRIFT_LOG_MS per player.
+  checkDrift(id, pl, save, now) {
+    if (!this.shadow) return;
+    const drift = this.shadow.check(id, save, now, this);
+    if (!drift || now - (this.driftAt.get(id) || 0) < DRIFT_LOG_MS) return;
+    this.driftAt.set(id, now);
+    this.audit(now, id, 'drift', { res: drift.res.slice(0, 8), levels: drift.levels.slice(0, 8) });
   }
 
   /* ------------------------------------------------------- anti-cheat */
@@ -613,6 +645,7 @@ export class Room {
     pl.lostAt = 0;
     this.dirty.players.add(id);
     this.acts.delete(id);
+    this.shadow?.forget(id);
     this.watch.delete(id);
     this.nuke.delete(id);
     for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
@@ -658,6 +691,7 @@ export class Room {
     this.sample(id, now, true);
     this.audit(now, id, 'ban', { by, why: String(why || '').slice(0, 200) });
     this.acts.delete(id);
+    this.shadow?.forget(id);
     this.players.delete(id);
     this.dirty.players.add(id);
     this.nuke.delete(id);
@@ -719,6 +753,7 @@ export class Room {
     let seed = 0;
     while (!seed) seed = crypto.getRandomValues(new Uint32Array(1))[0];
     this.seed = seed;
+    this.shadow = null;
     this.mods.clear();
     this.props.clear();
     this.ext = [];
@@ -821,7 +856,8 @@ export class Room {
       out.push({
         id, c: p.c, st: p.st, owner: id === this.owner, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
         cheats: w ? w.cheats : 0, frozen: !!p.frozen, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
-        progress: p.save ? digestOf(p.save) : null
+        progress: p.save ? digestOf(p.save) : null,
+        shadow: this.shadow?.report(id) ?? null // the room's own copy: checks, how many were off, acts refused
       });
     }
     return out;

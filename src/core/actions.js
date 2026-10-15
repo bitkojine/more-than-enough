@@ -7,6 +7,7 @@ import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
+import { noteAct } from './acts.js';
 import { t } from '../i18n/i18n.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
@@ -113,6 +114,7 @@ export function findLoot(s, type, z) {
 export function harvestAt(s, x, y) {
   x = Math.floor(x); y = Math.floor(y);
   if (!canHarvest(s, x, y)) return null;
+  noteAct(s, 'h', x, y);
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
   setRichness(s.world, x, y, z, richness(s.world, x, y, z) - 1);
@@ -182,6 +184,7 @@ export function collectTarget(s) {
 export function collect(s) {
   const t = collectTarget(s);
   if (!t) return null;
+  noteAct(s, 'c');
   const gained = {}, sources = [];
   for (const e of t.list) {
     const amt = Math.floor(e.buffer);
@@ -217,14 +220,24 @@ export function buildTarget(s, key) {
   return t ? { x: t.x, y: t.y } : null;
 }
 
-export function place(s, key) {
+// Whether extractor `key` could stand on tile (x, y) now (in reach and free).
+function canBuildAt(s, key, x, y) {
+  const def = EXTRACTORS[key];
+  return !!def && tilesInReach(s).some((c) => c.x === x && c.y === y) && buildableTile(s, def, x, y);
+}
+
+// Puts up extractor `key` on the nearest free tile, or on `at` ({x, y}) if
+// given (the room doing what a player did: on the same tile, or not at all).
+export function place(s, key, at = null) {
   const def = EXTRACTORS[key];
   if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
   if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
-  const at = buildTarget(s, key);
+  if (at && !canBuildAt(s, key, at.x, at.y)) return { ok: false, reason: t('reason.noSpot') };
+  at = at || buildTarget(s, key);
   if (!at) return { ok: false, reason: t('reason.noSpot') };
   const cost = extractorCost(s, key);
   if (!canAfford(s.inv, cost)) return { ok: false, reason: t('reason.need', { cost: costText(cost) }) };
+  noteAct(s, 'b', key, at.x, at.y);
   pay(s.inv, cost);
   const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
   if (s.me) e.owner = s.me;

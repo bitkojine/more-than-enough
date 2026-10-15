@@ -14,6 +14,7 @@ import { REACH, PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
 import { daylight } from './sim.js';
 import { canAfford, pay } from './economy.js';
+import { noteAct } from './acts.js';
 
 export function isUnderground(s) {
   return s.player.z < SURFACE;
@@ -147,6 +148,7 @@ export function canPlaceProp(s, kind) {
 /** @returns {{ok: true, x: number, y: number} | {ok: false}} */
 export function placeProp(s, kind) {
   if (!canPlaceProp(s, kind) || !canAfford(s.inv, PROPS[kind].cost)) return { ok: false };
+  noteAct(s, 'p', kind);
   pay(s.inv, PROPS[kind].cost);
   const { x, y } = feet(s);
   const key = packKey(x, y, s.player.z);

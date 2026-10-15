@@ -56,13 +56,14 @@ function copyNumbers(into, from) {
 }
 
 // Returns the restored state, or null if the save is unreadable or too old.
-export function deserialize(str) {
+// `make(seed)` makes the state it fills in (the room's copies use a cheap one).
+export function deserialize(str, make = createState) {
   let d;
   try { d = JSON.parse(str); } catch { return null; }
   if (!d || typeof d !== 'object') return null;
   if (d.v !== SAVE_VERSION || !isNum(d.seed)) return null;
 
-  const s = createState(d.seed);
+  const s = make(d.seed);
   const w = s.world;
   w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
   w.explored = new Map();

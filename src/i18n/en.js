@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.87.0": "Shared worlds now keep their own count of what everyone gathers, builds and buys, worked out from what each player did with the game's own rules. For now it only notes when someone's progress doesn't add up (like an edited save), so the fair-play team can look. Playing fairly changes nothing.",
   "news.0.86.1": "The counters at the top no longer run into each other. Big incomes are shortened like the amounts (+7.7M/s), and each one sits under its own count.",
   "news.0.86.0": "Tools now open new things, not only bigger numbers. Ore needs Pickaxe level 2, crystal and geodes level 3, and the shafts down from the deep layers a better Pickaxe still. Boots level 2 take you onto water, rivers included. Basket level 4 picks rare mushrooms, which give three times as much.\nThe Upgrades tab says what each level opens, and {phone:tapping|laptop:clicking} something your tools can't handle yet says what it takes.",
   "news.0.84.0": "The trophy now shows your next milestone: {phone:tap|laptop:click} it to see what it still takes, like the stone you're short for a better Pickaxe. A green dot on it means you have everything the next one needs.\nMilestones now count in any order, so a garden built early is no longer forgotten.",

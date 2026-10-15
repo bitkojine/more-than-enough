@@ -210,7 +210,8 @@ function cleanWelcome(d) {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
     time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt,
-    pong: d.pong === true, ack: d.ack === true  // rooms from before v0.85.0 do neither
+    pong: d.pong === true, ack: d.ack === true, // rooms from before v0.85.0 do neither
+    acts: d.acts === true                       // nor this, before v0.87.0
   };
 }
 
@@ -505,6 +506,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
       policyNotice();
     }
+    // The room works out your progress from what you do too (src/core/acts.js).
+    if (game.state.shared === room) game.state.acts = w.acts ? (game.state.acts || []) : null;
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
     lastPos = ''; lastSave = '';
@@ -593,6 +596,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     }
     if (timers.edits <= 0) {
       timers.edits = EDITS_EVERY;
+      sendActs(s); // before the edits they made: the room does them on the world as it was
       const edits = Core.takeEdits(s);
       // A few messages' worth now; the rest waits for the next turn.
       const now2 = edits.splice(0, LIMITS.editsPerMessage * 3);
@@ -603,6 +607,16 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       }
     }
     if (timers.save <= 0) save(s);
+  }
+
+  // What you did since last time, with your play time now (see src/core/acts.js).
+  // Kept while there's no connection to send them on.
+  function sendActs(s) {
+    if (!ws || ws.readyState !== 1 || !welcomed || !s.acts || !s.acts.length) return;
+    const acts = Core.takeActs(s);
+    for (let i = 0; i < acts.length; i += LIMITS.actsPerMessage) {
+      send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts.slice(i, i + LIMITS.actsPerMessage) });
+    }
   }
 
   function sendEdits(batch) {
@@ -626,6 +640,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     timers.save = SAVE_EVERY;
     if (progress === lastSave || !cleanSave(progress)) return;
     lastSave = progress;
+    sendActs(s); // the room checks this against what you did, so that goes first
     send({ t: 'save', s: progress });
   }
 

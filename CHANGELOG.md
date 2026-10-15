@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.87.0] - 2026-10-15
+
+### Added
+- **The room keeps its own copy of everyone's progress** (server economy,
+  stage 1 of /mnt/project-files/multiplayer/server-economy-plan.md). In a
+  shared world the game records what the player does (`src/core/acts.js`:
+  gather, collect, build, place, buy) and sends it as `acts`; the room replays
+  each act with the same core rules (`src/core/replay.js`) on its own copy
+  (`server/src/shadow.js`), with play time capped by its own clock. Whenever
+  the game sends a save, the room compares and logs any difference as a
+  `drift` security event (at most once a minute per player), then starts its
+  copy again from the save. Nothing is enforced yet; `/admin` player lists
+  show `shadow: {checks, off, refused}`.
+
+### Fixed
+- `upgrades.buy` looks ids up with `Object.hasOwn`, so `buy(s, 'constructor')`
+  is refused like any unknown upgrade.
+
 ## [0.86.1] - 2026-10-15
 
 ### Fixed

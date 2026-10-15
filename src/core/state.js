@@ -52,10 +52,18 @@ function perResource(value) {
 export function createState(seed) {
   const world = createWorld(seed);
   const spawn = findSpawn(world);
-  const s = {
+  const s = blankState(world, { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE });
+  revealAround(s);
+  return s;
+}
+
+// A state with nothing done yet, in `world`, standing at `player`. Cheap: it
+// looks at no land (the room's copies of players start from these).
+export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
+  return {
     seed: world.seed,
     world,
-    player: { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE },
+    player,
     inv: perResource(0),
     tools: { basket: 1, pickaxe: 1, boots: 1, overclock: 1 },
     unlocks: Object.fromEntries(Object.keys(UNLOCKS).map((k) => [k, false])),
@@ -80,8 +88,6 @@ export function createState(seed) {
     underground: { deepest: SURFACE },
     events: []
   };
-  revealAround(s);
-  return s;
 }
 
 /* -------------------------------------------------------------- prestige */

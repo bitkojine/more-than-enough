@@ -152,6 +152,7 @@ enter a shared world, and in Settings.
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |
 | `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes) |
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
+| `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
 | `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |

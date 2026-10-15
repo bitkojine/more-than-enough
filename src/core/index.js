@@ -22,3 +22,5 @@ export * from './mushrooms.js';
 export * from './catalog.js';
 export * from './regions.js';
 export * from './shared.js';
+export * from './acts.js';
+export * from './replay.js';

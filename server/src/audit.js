@@ -17,7 +17,7 @@ import { ROOM_ID_RE } from '../../src/net/protocol.js';
 export const LOG_DAYS = 14;                 // events older than this are deleted
 export const SECURITY_DAYS = 90;            // except the security trail, kept this long
 // The security trail: cheats, bans, freezes, people turned away, connections cut.
-export const SECURITY_EVENTS = new Set(['cheat', 'ban', 'freeze', 'thaw', 'deny', 'cut']);
+export const SECURITY_EVENTS = new Set(['cheat', 'ban', 'freeze', 'thaw', 'deny', 'cut', 'drift']);
 export const SAMPLE_MS = 15_000;            // where each moving player is, this often
 export const PROG_MS = 60_000;              // a player's progress, at most this often
 export const LOG_FLUSH_MS = 30_000;         // events reach storage this soon (and when the last player leaves)

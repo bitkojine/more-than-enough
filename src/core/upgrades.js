@@ -11,6 +11,7 @@
 import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { canAfford, pay, costText, abundanceCost } from './economy.js';
+import { noteAct } from './acts.js';
 import { t } from '../i18n/i18n.js';
 
 const REGISTRY = {};
@@ -125,13 +126,14 @@ export function canBuy(s, id) {
 }
 
 export function buy(s, id) {
-  const u = REGISTRY[id];
+  const u = Object.hasOwn(REGISTRY, id) ? REGISTRY[id] : null;
   if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
   const cost = upgradeCost(s, id);
   if (cost === null) return { ok: false, reason: t(u.max === 1 ? 'reason.owned' : 'reason.maxed') };
   if (!canBuy(s, id)) {
     return { ok: false, reason: t('reason.need', { cost: u.currency === 'insight' ? t('cost.insight', { n: cost }) : costText(cost) }) };
   }
+  noteAct(s, 'u', id);
   if (u.currency === 'insight') s.insight -= cost;
   else pay(s.inv, cost);
   u.apply(s);
