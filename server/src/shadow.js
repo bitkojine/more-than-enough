@@ -1,20 +1,29 @@
 /* The room's own copy of each player's progress, worked out from what they
  * did (src/core/acts.js) with the game's own rules (src/core/replay.js).
  *
- * Stage 1 of the server economy (/mnt/project-files/multiplayer/
- * server-economy-plan.md): the copy is a shadow. It decides nothing yet:
- * each time a player's game sends its progress, the room compares it with
- * its own copy, logs where they differ (audit 'drift'), and starts its copy
- * again from the game's. That shows whether the room and the game agree in
- * real play before the room's copy becomes the truth.
+ * This copy is the truth (stage 2 of /mnt/project-files/multiplayer/
+ * server-economy-plan.md). What a player has is what follows from what they
+ * did, checked here: where they stood (no faster than anyone can move), how
+ * often they worked a tile (no faster than the game lets them), and how much
+ * play time has passed (no more than on the room's clock). The progress a
+ * game sends is only compared: where it differs, the game is sent the room's
+ * numbers (room.js, 'econ'), and the room keeps its own.
  *
  * The world it works in is the room's own (its mods and props), seen
- * through an overlay: what a replay changes stays in the overlay, since the
- * game's edits still change the room's world in this stage. */
+ * through an overlay. Buildings and props it puts up go to the room's world
+ * from here (room.js), not from the game's edits; gathering's changes to the
+ * land still come from the game's edits. */
 
-import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, EXTRACTORS, RESOURCES } from '../../src/core/index.js';
+import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, EXTRACTORS, RESOURCES } from '../../src/core/index.js';
 
-const SLACK_MS = 2000;  // play time a game may be ahead of the room's clock (a late message)
+const SLACK_MS = 2000;     // play time a game may be ahead of the room's clock (a late message)
+// Gathering by hand: holding Gather works a tile every 0.25 s (the game's
+// GATHER_COOLDOWN), but one Trail stroke works every tile it crosses at once.
+// So a budget: HAND_BURST tiles at once, HAND_RATE a second after that.
+const HAND_BURST = 40;
+const HAND_RATE = 24;
+const STRIDE = 40;         // tiles a second anyone may cover between acts (room.js MAX_SPEED)
+const STRIDE_SLACK = 4;    // tiles: rounding, a boat's drift
 
 // A map that reads through to `base` and keeps its own writes.
 class Overlay {
@@ -25,10 +34,13 @@ class Overlay {
   delete(k) { this.own.delete(k); this.gone.add(k); return true; }
 }
 
+const spot = (e) => e.x + ',' + e.y + ',' + e.z;
+
 export class Shadow {
   constructor(seed) {
     this.base = createWorld(seed); // its generated land, cached for every player
-    this.players = new Map();      // id -> {s, at, checks, off, refused}
+    this.players = new Map();      // id -> {s, at, hand, last, checks, off, refused}
+    this.bare = { ...this.base, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() };
   }
 
   // A world to work in: the room's, with the room's edits under an overlay.
@@ -36,18 +48,30 @@ export class Shadow {
     return { ...this.base, mods: new Overlay(room.mods), props: new Overlay(room.props), explored: new Map(), revealed: 0, holes: new Set(), edits: null };
   }
 
-  // The player's progress as their game last sent it (null: nothing yet).
-  start(id, save, room, now) {
-    const make = () => blankState({ ...this.base, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() });
+  has(id) {
+    return this.players.has(id);
+  }
+
+  // The player's copy, started from `save` (the room's own, or null: from
+  // nothing) as of time `at`.
+  start(id, save, room, at) {
+    const make = () => blankState({ ...this.bare, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() });
     const s = joinState({ save, seed: this.base.seed, mods: [], props: [], ext: room.ext, you: id }, room.id, null, null, make);
     if (!s) return null;
     s.world.edits = null;
     const old = this.players.get(id);
-    // `acting`: their game sends what they do. A game from before that
-    // doesn't, and there's nothing to compare its progress with.
-    const sh = { s, at: now, checks: 0, off: 0, refused: 0, acting: false, ...(old ? { checks: old.checks, off: old.off, refused: old.refused, acting: old.acting } : {}) };
+    // Where they were last: where their progress says, or anywhere for the
+    // first act of someone new (the game puts them by a friend).
+    const last = save ? { x: s.player.x, y: s.player.y, z: s.player.z, ms: s.stats.playedMs } : null;
+    const sh = { s, at, hand: { n: HAND_BURST, ms: s.stats.playedMs }, last, checks: 0, off: 0, refused: 0, ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
     this.players.set(id, sh);
     return sh;
+  }
+
+  // The copy of player `id`, started from what the room kept if there's none.
+  of(id, room, now) {
+    const pl = room.players.get(id);
+    return this.players.get(id) || this.start(id, pl?.save ?? null, room, pl?.savedAt ?? room.acts.get(id)?.since ?? now);
   }
 
   forget(id) {
@@ -55,14 +79,13 @@ export class Shadow {
   }
 
   // Brings player `id`'s copy up to play time `ms` (no further than the
-  // room's clock allows) with acts `list` on the way. Returns how many the
-  // rules refused.
+  // room's clock allows) with acts `list` on the way. Returns how many acts
+  // were refused and the buildings and props put up ([edit], for the room's
+  // world).
   acts(id, ms, list, now, room) {
-    // No copy yet: it starts from their progress as of when they came in.
-    const sh = this.players.get(id) || this.start(id, room.players.get(id)?.save ?? null, room, room.acts.get(id)?.since ?? now);
-    if (!sh) return 0;
+    const sh = this.of(id, room, now);
+    if (!sh) return { refused: list.length, made: [] };
     const s = sh.s;
-    sh.acting = true;
     const limit = s.stats.playedMs + Math.max(0, now - sh.at) + SLACK_MS;
     sh.at = now;
     s.world = this.view(room);
@@ -71,44 +94,96 @@ export class Shadow {
     // reads the room's time when it gets to `ms`, as the game's did.
     const to = Math.min(ms, limit);
     s.time = room.clock(now) - Math.max(0, to - s.stats.playedMs) / 1000;
-    const pl = room.players.get(id);
-    if (pl && pl.p) Object.assign(s.player, { x: pl.p.x, y: pl.p.y, z: pl.p.z });
     // Everyone's buildings stand in the way of new ones; only yours make things for you.
     const mine = s.extractors.filter((e) => e.owner === id);
+    const had = new Set(mine.map(spot));
     s.extractors = [...mine, ...room.ext.filter((e) => e[4] !== id && EXTRACTORS[e[0]])
       .map(([key, x, y, z, owner]) => ({ key, res: EXTRACTORS[key].res, x, y, z, buffer: 0, owner }))];
     let refused = 0;
     for (const a of list) {
-      this.until(s, Math.min(a[1], limit));
+      if (!this.allowed(sh, a, limit)) { refused++; continue; }
+      this.until(s, a[1]);
+      sh.last = { x: a[2], y: a[3], z: a[4], ms: a[1] };
       if (!replayAct(s, a)) refused++;
     }
     this.until(s, to);
     advanceGoals(s);
     s.extractors = s.extractors.filter((e) => e.owner === id);
+    for (const e of s.extractors) e.owner = id;
+    const made = [
+      ...s.extractors.filter((e) => !had.has(spot(e))).map((e) => ['x', e.key, e.x, e.y, e.z]),
+      ...[...s.world.props.own].filter(([k]) => !room.props.has(k)).map(([k, kind]) => ['p', k, kind])
+    ];
     sh.refused += refused;
-    return refused;
+    return { refused, made };
+  }
+
+  // Whether act `a` could have happened: in play-time order, no later than
+  // the room's clock allows, no further from the last than anyone can go,
+  // and gathering no faster than the game lets anyone.
+  allowed(sh, a, limit) {
+    const s = sh.s;
+    if (a[1] < s.stats.playedMs - 1 || a[1] > limit) return false;
+    if (a[0] === 'h') {
+      const h = sh.hand;
+      h.n = Math.min(HAND_BURST, h.n + Math.max(0, a[1] - h.ms) / 1000 * HAND_RATE);
+      h.ms = Math.max(h.ms, a[1]);
+      if (h.n < 1) return false;
+      h.n--;
+    }
+    const l = sh.last;
+    if (!l) return true;
+    const secs = Math.max(0, a[1] - l.ms) / 1000;
+    if (Math.hypot(a[2] - l.x, a[3] - l.y) > STRIDE * secs + STRIDE_SLACK) return false;
+    return Math.abs(a[4] - l.z) <= 1 + Math.floor(secs);
+  }
+
+  // A building or prop the room's world had no room for: gone from the copy too.
+  unmake(id, e) {
+    const sh = this.players.get(id);
+    if (sh && e[0] === 'x') sh.s.extractors = sh.s.extractors.filter((b) => !(b.x === e[2] && b.y === e[3] && b.z === e[4]));
   }
 
   until(s, ms) {
     if (ms > s.stats.playedMs) playFor(s, (ms - s.stats.playedMs) / 1000);
   }
 
-  // The game sent player `id`'s progress: how it differs from the room's
-  // copy (null if it doesn't, or there's no copy yet), and the copy starts
-  // again from it.
-  check(id, save, now, room) {
-    const sh = this.players.get(id);
+  // The game sent player `id`'s progress (`save`, checked by protocol.js).
+  // Returns {drift: how it differs from the room's copy, or null; save: the
+  // room's progress to keep, with the game's own bits (where they stand,
+  // what they've seen); ms: the play time it's as of}.
+  settle(id, save, now, room) {
     let theirs;
-    try { theirs = JSON.parse(save); } catch { return null; }
-    let drift = null;
-    if (sh && sh.acting && theirs && typeof theirs === 'object') {
-      this.acts(id, Number(theirs.stats?.playedMs) || 0, [], now, room);
-      drift = differ(sh.s, theirs);
-      sh.checks++;
-      if (drift) sh.off++;
+    try { theirs = JSON.parse(save); } catch { theirs = null; }
+    if (!theirs || typeof theirs !== 'object') return { drift: null, save: null };
+    const sh = this.of(id, room, now);
+    if (!sh) return { drift: null, save: null };
+    // Ore and crystal count as found once seen, which the game sees as the
+    // player walks (src/core/sim.js revealAround), not only where they act:
+    // the game's word is taken for that (it opens two milestones, nothing more).
+    for (const k of ['ore', 'crystal']) if (theirs.discovered?.[k] === true) sh.s.discovered[k] = true;
+    const ms = Math.round(Number(theirs.stats?.playedMs) || 0);
+    this.acts(id, ms, [], now, room);
+    const drift = differ(sh.s, theirs);
+    sh.checks++;
+    if (drift) sh.off++;
+    return { drift, save: this.saveOf(id, theirs), ms };
+  }
+
+  // The room's copy as a save (where they stand: their last act), with the
+  // game's own bits from `theirs`.
+  saveOf(id, theirs = null) {
+    const sh = this.players.get(id);
+    if (!sh) return null;
+    // Progress leaves the world out: a bare one does (the overlay can't be listed).
+    const world = sh.s.world;
+    sh.s.world = this.bare;
+    const ours = JSON.parse(progressOf(sh.s));
+    sh.s.world = world;
+    if (theirs) {
+      for (const k of ['discovered', 'time']) if (theirs[k] !== undefined) ours[k] = theirs[k];
     }
-    this.start(id, save, room, now);
-    return drift;
+    return JSON.stringify(ours);
   }
 
   // What the moderator sees per player: checks made, how many were off, acts refused.
@@ -136,6 +211,9 @@ export function differ(s, theirs) {
   // act: only a game ahead of the room is off.
   const goals = Array.isArray(theirs.goalsDone) ? theirs.goalsDone.length : Number(theirs.goalIndex) || 0;
   if (goals > s.goalIndex) levels.push(['goals', goals, s.goalIndex]);
+  const mine = Array.isArray(theirs.extractors) ? theirs.extractors.length : 0;
+  const ours = s.extractors.length;
+  if (mine !== ours) levels.push(['buildings', mine, ours]);
   return res.length || levels.length ? { res, levels } : null;
 }
 

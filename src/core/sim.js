@@ -3,6 +3,7 @@
 
 import { SURFACE, tileDist2 } from './coords.js';
 import { hash2 } from './noise.js';
+import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
@@ -17,6 +18,7 @@ const MAX_STEP = 0.25;
 
 export function step(s, dt) {
   if (dt > MAX_STEP) dt = MAX_STEP;
+  noteWhere(s); // a shared world's room follows where you are (acts.js)
   const regrowTick = Math.floor(s.time / REGROW_INTERVAL);
   s.time += dt;
   s.stats.playedMs += dt * 1000;

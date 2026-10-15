@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.89.0] - 2026-10-15
+
+### Changed
+- **The room's count of each player's progress is the truth** (server
+  economy, stage 2; `server/src/shadow.js`). The progress a game sends is
+  only compared: the room keeps its own copy, logs a difference as `drift`
+  and sends the game its numbers (`econ`), which the game takes while keeping
+  what it got since (`correctProgress` in `src/core/shared.js`). Buildings
+  and props go up in the world from the room's copy, not from the game's
+  edits. An act counts only in play-time order, within the room's clock,
+  within `MAX_SPEED` of the last one, and gathering within a budget (40 at
+  once, 24 a second).
+- **Shared worlds start from nothing, the owner too** (Watch's call). Going
+  online makes a new world from a new seed; the solo world stays for playing
+  alone, instead of moving online (0.83.0). The room takes no save or edits
+  when it's made.
+- Every shared world gets the nuke once (`ECON_FORMAT` in
+  `src/core/format.js`, new: like `WORLD_FORMAT`, but leaves solo worlds).
+
+### Fixed
+- The room's copy followed only where the player acted, so Logistics hauled
+  for it at the wrong times (live drift in 0.87.0). The game now notes where
+  it walks (`'w'` acts, every half tile).
+- A long backlog of acts goes four messages a frame, and progress waits for
+  it, so the room never runs ahead of what's still to come.
+
 ## [0.88.0] - 2026-10-15
 
 ### Changed

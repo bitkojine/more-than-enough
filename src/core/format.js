@@ -6,3 +6,10 @@
  * the room service (server/) bundles it as is. */
 
 export const WORLD_FORMAT = 10;
+
+/* How shared worlds keep score. Bump ECON_FORMAT when an update changes how
+ * the room service counts players' progress so much that what it counted
+ * before can't stand: every shared world gets the nuke (as for WORLD_FORMAT),
+ * but solo worlds are untouched. 1: the room's own count is the truth (server
+ * economy, v0.89.0). */
+export const ECON_FORMAT = 1;

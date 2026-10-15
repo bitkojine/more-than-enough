@@ -17,7 +17,7 @@ import {
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
-import { loadGame, saveGame, randomSeed } from './storage.js';
+import { loadGame, randomSeed } from './storage.js';
 import { createActor } from './render/motion.js';
 import { t, DEVICE, LANG } from '../i18n/i18n.js';
 
@@ -47,6 +47,8 @@ const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
 const PING_EVERY = 5;                 // seconds of play between asking the room if it's there
 const SILENT_IS_DEAD = 15;            // seconds of play without a word from the room: the connection is gone
+const ACTS_PER_TICK = 4;              // 'acts' messages at most per frame (the room allows 30 messages a second)
+const SENT_KEPT = 6;                  // progress sent, remembered for the room's answer to it
 const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
@@ -211,7 +213,8 @@ function cleanWelcome(d) {
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
     time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt,
     pong: d.pong === true, ack: d.ack === true, // rooms from before v0.85.0 do neither
-    acts: d.acts === true                       // nor this, before v0.87.0
+    acts: d.acts === true,                      // nor this, before v0.87.0
+    econ: d.econ === true                       // nor keep your progress, before v0.89.0
   };
 }
 
@@ -242,6 +245,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // Edits sent and not yet answered ({n, e}), when the room answers them:
   // the ones a dead connection swallowed are sent again (see resync).
   let acks = false, editSeq = 0, unacked = [];
+  let sent = [];            // {ms, inv} of the last progress sent, for the room's corrections ('econ')
 
   /* ---------------------------------------------------- the connection */
 
@@ -341,8 +345,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
     room = null; back = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
     graves = [];
-    pendingInvite = false; moving = null; // for the world you were going into, not the next one
-    unacked = [];
+    pendingInvite = false; // for the world you were going into, not the next one
+    unacked = []; sent = [];
     hangUp();
     friends.clear();
     roster = null;
@@ -378,6 +382,14 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (d.t === 'place') {
       const p = cleanPos(d.p);
       if (p) game.moveTo(p);
+      return;
+    }
+    if (d.t === 'econ') {
+      // What you really have, as the room works it out, as of the progress
+      // your game sent at play time `ms`: what you got since stays yours.
+      if (game.state.shared !== room || !Number.isSafeInteger(d.ms) || !cleanSave(d.s)) return;
+      const at = sent.find((x) => x.ms === d.ms);
+      if (Core.correctProgress(game.state, d.s, at ? at.inv : null)) game.worldChanged();
       return;
     }
     if (d.t === 'edits') {
@@ -489,8 +501,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       resync(w);
     } else {
       unacked = []; // edits for another world, or one made again
-      // Arriving: your progress is the newer of the room's copy and this phone's.
-      const local = cleanSave(read(SAVE_PREFIX + room));
+      // Arriving: your progress is the room's (it works it out from what you
+      // did). A room from before that kept whatever came last: then the newer
+      // of its copy and this phone's.
+      const local = w.econ ? null : cleanSave(read(SAVE_PREFIX + room));
       const save = local && (!w.save || playedTime(local) > playedTime(w.save)) ? local : w.save;
       let fog = null;
       try { fog = JSON.parse(read(FOG_PREFIX + room) || 'null'); } catch { fog = null; }
@@ -499,10 +513,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
-      // Your world moved online (Watch's choice: moved, not copied), your
-      // character with it: playing alone starts a new world from here on.
-      if (moving === room) saveGame(Core.createState(randomSeed()), true);
-      moving = null;
       hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
       policyNotice();
     }
@@ -610,13 +620,22 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   }
 
   // What you did since last time, with your play time now (see src/core/acts.js).
-  // Kept while there's no connection to send them on.
+  // Kept while there's no connection to send them on, and a long backlog
+  // goes ACTS_PER_TICK messages at a time, each as of its last act, so the
+  // room never runs ahead of what's still to come. Returns whether all went.
   function sendActs(s) {
-    if (!ws || ws.readyState !== 1 || !welcomed || !s.acts || !s.acts.length) return;
+    if (!ws || ws.readyState !== 1 || !welcomed || !s.acts) return false;
+    if (!s.acts.length) return true;
     const acts = Core.takeActs(s);
-    for (let i = 0; i < acts.length; i += LIMITS.actsPerMessage) {
-      send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts.slice(i, i + LIMITS.actsPerMessage) });
+    const n = LIMITS.actsPerMessage;
+    const now = acts.slice(0, n * ACTS_PER_TICK);
+    s.acts.unshift(...acts.slice(now.length));
+    const done = !s.acts.length;
+    for (let i = 0; i < now.length; i += n) {
+      const a = now.slice(i, i + n);
+      send({ t: 'acts', ms: done && i + n >= now.length ? Math.round(s.stats.playedMs) : a[a.length - 1][1], a });
     }
+    return done;
   }
 
   function sendEdits(batch) {
@@ -640,7 +659,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     timers.save = SAVE_EVERY;
     if (progress === lastSave || !cleanSave(progress)) return;
     lastSave = progress;
-    sendActs(s); // the room checks this against what you did, so that goes first
+    // The room checks this against what you did, so that goes first, all of it.
+    if (s.acts && !sendActs(s)) { lastSave = ''; timers.save = 0; return; }
+    sent.push({ ms: Math.round(s.stats.playedMs), inv: { ...s.inv } });
+    if (sent.length > SENT_KEPT) sent.shift();
     send({ t: 'save', s: progress });
   }
 
@@ -675,7 +697,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   /* -------------------------------------------------------- the QR sign */
 
   let pendingInvite = false;
-  let moving = null;        // the room your own world is moving into (see start)
 
   function showInvite() {
     if (!game.state.shared || !welcomed) { hud.toast(t('together.toast.offline')); return; }
@@ -1014,7 +1035,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
 
   async function goOnline() {
     const s = game.state;
-    const body = JSON.stringify({ t: 'create', key: myKey(), world: Core.worldOf(s), save: Core.progressOf(s), pos: cleanPos(s.player), time: cleanTime(s.time) ?? 0 });
+    // A new world, everyone in it starting from nothing, you too (Watch's
+    // call: the room can't check progress made anywhere else). Your world
+    // here stays as it is for playing alone.
+    const body = JSON.stringify({ t: 'create', key: myKey(), world: { seed: randomSeed(), mods: [], props: [], ext: [] }, time: cleanTime(s.time) ?? 0 });
     if (body.length > LIMITS.createBytes) { hud.toast(t('together.toast.tooBig')); return; }
     let made;
     try {
@@ -1025,13 +1049,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     // Something else took you into a shared world meanwhile: that stands.
     if (game.state.shared || room) return;
     if (!made || typeof made.room !== 'string' || !ROOM_ID_RE.test(made.room)) { hud.toast(t('together.toast.unreachable')); return; }
-    // You kept playing while the room was made: your progress as it is now
-    // (newer than what the room got) is what you arrive with (see welcome).
-    write(SAVE_PREFIX + made.room, Core.progressOf(game.state));
-    write(FOG_PREFIX + made.room, JSON.stringify(Core.fogOf(game.state)));
     room = made.room;
     pendingInvite = true;
-    moving = made.room;
     connect();
   }
 

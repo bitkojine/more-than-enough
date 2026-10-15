@@ -9,10 +9,13 @@
  *   ['c', …]               collected from their buildings in range
  *   ['b', …, key, tx, ty]  put up building `key` on tile (tx, ty)
  *   ['p', …, kind]         set down prop `kind` where they stand
- *   ['u', …, id]           bought upgrade `id` */
+ *   ['u', …, id]           bought upgrade `id`
+ *   ['w', …]               walked here (every WHERE_STEP tiles): your
+ *                          buildings haul to you only when you're near */
 
-export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'p', 'u']);
-const MAX_WAITING = 2000; // acts kept while they wait to be sent
+export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'p', 'u', 'w']);
+const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
+const WHERE_STEP = 0.5;   // tiles walked between two 'w' acts
 
 const r3 = (v) => Math.round(v * 1000) / 1000;
 
@@ -21,6 +24,15 @@ export function noteAct(s, kind, ...args) {
   if (s.acts.length >= MAX_WAITING) s.acts.shift();
   const p = s.player;
   s.acts.push([kind, Math.round(s.stats.playedMs), r3(p.x), r3(p.y), p.z, ...args]);
+  s.actedAt = { x: p.x, y: p.y, z: p.z };
+}
+
+// Where the player is now, if they've walked WHERE_STEP since the last act
+// (sim.js step, before the time passes).
+export function noteWhere(s) {
+  if (!Array.isArray(s.acts)) return;
+  const p = s.player, l = s.actedAt;
+  if (!l || l.z !== p.z || Math.hypot(p.x - l.x, p.y - l.y) >= WHERE_STEP) noteAct(s, 'w');
 }
 
 // The acts waiting to be sent, taken.

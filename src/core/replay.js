@@ -38,6 +38,7 @@ export function replayAct(s, a) {
   else if (kind === 'b') ok = Object.hasOwn(EXTRACTORS, a[5]) && place(s, a[5], { x: a[6], y: a[7] }).ok;
   else if (kind === 'p') ok = Object.hasOwn(PROPS, a[5]) && placeProp(s, a[5]).ok;
   else if (kind === 'u') ok = Object.hasOwn(UPGRADES, a[5]) && buy(s, a[5]).ok;
+  else if (kind === 'w') return true; // only where they are
   if (ok) advanceGoals(s);
   return ok;
 }

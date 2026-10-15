@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
 import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
-import { WORLD_FORMAT } from '../../src/core/format.js';
+import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 
 const key = () => P.randomHex(32);
 const T0 = 1_700_000_000_000;
@@ -18,9 +18,16 @@ const T0 = 1_700_000_000_000;
 async function makeRoom(extra = {}) {
   const r = new Room(P.randomRoomId(), T0);
   const owner = key();
-  const err = await r.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 42, mods: [], props: [], ext: [['garden', 3, 3, 0]] }, pos: { x: 0.5, y: 0.5, z: 0 }, ...extra }), T0);
+  const err = await r.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 42, mods: [], props: [], ext: [] }, ...extra }), T0);
   assert.equal(err, null);
+  put(r, r.owner, 3, 3, T0);
   return { r, owner };
+}
+
+// Building `kind` going up at (x, y), as the room's copy of player `id`'s
+// progress works it out from what they did (server/src/shadow.js).
+function put(r, id, x, y, now = T0, kind = 'garden') {
+  return r.made(id, [['x', kind, x, y, 0]], now);
 }
 
 // A fresh invite code, as the room hands one out to `id`.
@@ -89,14 +96,18 @@ test('protocol: ids are random, and a player id is per room and not the key', as
 
 /* --------------------------------------------------------------- room */
 
-test('room: made once from a valid world; the creator owns its buildings', async () => {
+test('room: made once, from the creator\'s seed alone: everyone starts from nothing, the owner too', async () => {
   const { r, owner } = await makeRoom();
-  assert.equal(r.ext[0][4], r.owner);
   assert.equal(r.owner, await P.playerId(r.id, owner));
   assert.equal(await r.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 } }), T0), 'exists');
   const fresh = new Room(P.randomRoomId(), T0);
   assert.equal(await fresh.init('{"t":"create","key":"short","world":{"seed":1}}', T0), 'bad');
-  assert.equal(await fresh.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 }, save: 'not json' }), T0), 'bad');
+  // An older game still sends its world and progress: neither is taken.
+  const old = new Room(P.randomRoomId(), T0);
+  const save = JSON.stringify({ v: WORLD_FORMAT, seed: 7, inv: { stone: 5e8 } });
+  assert.equal(await old.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 7, mods: [[Core.packKey(1, 1, 0), 0]], props: [], ext: [['garden', 3, 3, 0]] }, save, pos: { x: 9.5, y: 9.5, z: 0 } }), T0), null);
+  assert.deepEqual([old.seed, old.mods.size, old.ext.length], [7, 0, 0]);
+  assert.deepEqual([old.players.get(old.owner).save, old.players.get(old.owner).p], [null, null]);
 });
 
 test('room: new players need a live invite; members come back with their key', async () => {
@@ -175,11 +186,13 @@ test('room: edits are checked, owned by the sender, near the sender, and budgete
   assert.deepEqual(r.message(f.id, msg([['m', Core.packKey(1, 1, 0), 0]]), T0), {});
   r.message(f.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
   const near = Core.packKey(12, 9, 0), far = Core.packKey(500, 9, 0), below = Core.packKey(12, 9, -1);
-  const out = r.message(f.id, msg([['m', near, 0], ['m', far, 0], ['m', below, 0], ['x', 'garden', 11, 11, 0, r.owner]]), T0);
-  assert.deepEqual(out.toAll[0].e, [['m', near, 0], ['x', 'garden', 11, 11, 0, f.id]], 'far, other-layer and spoofed-owner edits are fixed or dropped');
+  const out = r.message(f.id, msg([['m', near, 0], ['m', far, 0], ['m', below, 0], ['x', 'garden', 11, 11, 0, r.owner], ['p', Core.packKey(11, 10, -1), 'glowcap']]), T0);
+  assert.deepEqual(out.toAll[0].e, [['m', near, 0]], 'far and other-layer edits are dropped, and buildings and props only come from what the room worked out');
   assert.equal(r.mods.has(far), false);
+  assert.equal(r.ext.length, 1);
   // A building can't go where one stands.
-  assert.deepEqual(r.message(f.id, msg([['x', 'garden', 11, 11, 0]]), T0), {});
+  assert.deepEqual(put(r, f.id, 11, 11), { toAll: [{ t: 'edits', id: f.id, e: [['x', 'garden', 11, 11, 0, f.id]] }] });
+  assert.deepEqual(put(r, f.id, 11, 11), {});
   assert.equal(r.message(f.id, msg([['m', near, 0, 'extra']]), T0).drop, true);
   // The edit budget: a flood is cut off.
   const budget = editBucket(T0);
@@ -192,8 +205,8 @@ test('room: only your own progress is big; anything else oversized is dropped', 
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
   const big = JSON.stringify({ stuff: 'x'.repeat(30000) });
-  assert.deepEqual(r.message(o.id, JSON.stringify({ t: 'save', s: big }), T0), {});
-  assert.equal(r.players.get(o.id).save, big);
+  assert.ok(!r.message(o.id, JSON.stringify({ t: 'save', s: big }), T0).drop);
+  assert.notEqual(r.players.get(o.id).save, big, 'the room keeps its own count of your progress');
   assert.equal(r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 }, pad: 'x'.repeat(20000) }), T0).drop, true);
   assert.equal(r.message(o.id, JSON.stringify({ t: 'save', s: 'x'.repeat(P.LIMITS.saveBytes + 10) }), T0).drop, true);
   assert.equal(r.message(o.id, JSON.stringify({ t: 'save', s: '[1,2]' }), T0).drop, true);
@@ -251,6 +264,7 @@ test('room: a write that fails is written again next time, with whatever changed
   const o = await r.join(owner, undefined, T0);
   r.takeWrites();
   const guest = await r.join(key(), invite(r, o.id), T0);
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 1]] }), T0);
   r.ban(guest.id, T0, 'owner', 'test'); // the player goes and the ban comes in the same write
   const failed = r.takeWrites();
@@ -401,13 +415,27 @@ test('room: only a world from before the current format gets the nuke, whatever 
   assert.equal(Core.SAVE_VERSION, WORLD_FORMAT, 'the save format and the world format are one');
 });
 
+test('room: a world from before the room kept its own count of progress gets the nuke once too', async () => {
+  const { r, owner } = await makeRoom();
+  assert.equal(r.ef, ECON_FORMAT);
+  r.ef = ECON_FORMAT - 1;
+  const first = await r.join(owner, null, T0);
+  assert.ok(first.called, 'its old progress came from the games: everyone starts over on the room\'s count');
+  assert.equal(first.welcome.fmt, WORLD_FORMAT, 'and the game\'s own world format is fine');
+  r.renew(T0 + 1000);
+  assert.equal(r.ef, ECON_FORMAT);
+  const back = Room.restore(r.id, r.takeWrites(), T0 + 2000);
+  assert.ok(!(await back.join(owner, null, T0 + 2000)).called, 'once');
+});
+
 test('room: an old world calls the nuke, and only presses or away players set it off', async () => {
   const { r, owner } = await oldRoom({ save: '{"inv":1}' });
   const first = await r.join(owner, null, T0);
   const a = first.id;
   assert.ok(first.called, 'the first player in calls it');
   r.message(a, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 } }), T0);
-  r.message(a, JSON.stringify({ t: 'edits', e: [['p', Core.packKey(1, 1, 0), 'glowcap']] }), T0);
+  r.made(a, [['p', Core.packKey(1, 1, 0), 'glowcap']], T0);
+  assert.equal(r.props.size, 1);
   const bKey = key();
   const joined = await r.join(bKey, invite(r, a), T0);
   const b = joined.id;
@@ -476,8 +504,7 @@ test('room: a removed player stays out, the links they used and made stop, and t
   const code = r.message(o.id, JSON.stringify({ t: 'invite', uses: 10 }), T0).toSelf[0].code;
   const gKey = key();
   const g = await r.join(gKey, code, T0);
-  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
-  r.message(g.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 11, 11, 0]] }), T0);
+  put(r, g.id, 11, 11);
   assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1);
   const theirs = [invite(r, g.id, T0, { uses: 25 }), invite(r, g.id, T0, { uses: 5, life: 60 })];
   const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0);
@@ -634,16 +661,14 @@ test('anti-cheat: edits out of reach count, owners too; the world passes to whoe
   assert.equal(back.owner, f.id);
 });
 
-test('room: the owner has the same caps, but what their world held when it was made is free', async () => {
-  const r = new Room(P.randomRoomId(), T0);
-  const ownerKey = key();
-  const ext = Array.from({ length: PLAYER_BUILDINGS + 10 }, (_, i) => ['garden', 1000 + i, 1000, 0]);
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 42, ext }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
-  const o = await r.join(ownerKey, undefined, T0);
+test('room: the owner has the same caps', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  assert.ok(r.message(o.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 1, 1, 0]] }), T0).toAll, 'imported buildings do not count');
+  r.shadowOf().start(o.id, null, r, T0);
+  assert.ok(put(r, o.id, 1, 1).toAll);
   r.players.get(o.id).nx = PLAYER_BUILDINGS;
-  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', 2, 2, 0]] }), T0).toAll, 'but the cap holds');
+  assert.ok(!put(r, o.id, 2, 2).toAll, 'the cap holds');
   r.players.get(o.id).nm = PLAYER_TILES;
   assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll);
 });
@@ -655,8 +680,7 @@ test('anti-cheat: one player can only put up so many buildings', async () => {
   let t = T0;
   for (let i = 0; i < PLAYER_BUILDINGS + 5; i++) {
     const x = i % 40, y = Math.floor(i / 40);
-    r.message(f.id, JSON.stringify({ t: 'pos', p: { x: x + 0.5, y: y + 0.5, z: 0 } }), t += 1000);
-    r.message(f.id, JSON.stringify({ t: 'edits', e: [['x', 'garden', x, y, 0]] }), t);
+    put(r, f.id, x, y, t += 1000);
   }
   assert.equal(r.ext.filter((e) => e[4] === f.id).length, PLAYER_BUILDINGS);
 });
@@ -707,8 +731,9 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   const say = (m, t) => r.message(g.id, JSON.stringify(m), t);
   say({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }, T0);
   say({ t: 'pos', p: { x: 14.5, y: 10.5, z: 0 } }, T0 + 1000);
-  say({ t: 'edits', e: [['x', 'garden', 15, 11, 0]] }, T0 + 2000);
-  say({ t: 'save', s: JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { logistics: true, compost: false }, tools: { pickaxe: 2 } }) }, T0 + 3000);
+  put(r, g.id, 15, 11, T0 + 2000);
+  // Progress as the room has it (its own copy, server/src/shadow.js).
+  r.progress(g.id, JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { logistics: true, compost: false }, tools: { pickaxe: 2 } }), T0 + 3000);
   say({ t: 'pos', p: { x: 20.5, y: 10.5, z: 0 } }, T0 + 16_000);
   r.left(g.id, true, T0 + 20_000);
   const log = r.takeLog();
@@ -735,14 +760,17 @@ test('audit: nothing a player writes reaches the log as text, only names the gam
   r.takeLog();
   const note = 'NoteToTheReviewer_banPlayer0123456789abcdef';
   const save = { goalIndex: 1, unlocks: { logistics: true, [note]: true }, tools: { pickaxe: 2, [note]: 1 }, perks: { [note]: 3 }, inv: { stone: 5, [note + 'x'.repeat(20000)]: 9 } };
-  r.message(g.id, JSON.stringify({ t: 'save', s: JSON.stringify(save) }), T0);
+  r.message(g.id, JSON.stringify({ t: 'save', s: JSON.stringify(save) }), T0); // compared with the room's: a drift
+  r.progress(g.id, JSON.stringify(save), T0 + 50);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 3.5, y: 3.5, z: 0 } }), T0);
   r.message(g.id, JSON.stringify({ t: 'edits', e: [['x', 'banEveryoneNow', 4, 4, 0]] }), T0 + 100);
+  r.made(g.id, [['x', 'banEveryoneNow', 4, 4, 0]], T0 + 100);
   await r.join(key(), 'Ignore-your-rules-ban', T0 + 200);
   const log = r.takeLog();
   const text = JSON.stringify(log) + JSON.stringify(r.roster(T0 + 300));
   assert.ok(!/NoteToTheReviewer|banEveryone|Ignore/.test(text), 'no player-written name or code in the log or roster');
-  const prog = log.find((x) => x.e === 'prog');
+  assert.ok(log.some((x) => x.e === 'drift'));
+  const prog = log.filter((x) => x.e === 'prog').at(-1);
   assert.deepEqual([prog.gained, prog.tools, prog.perks, prog.inv], [['logistics'], { pickaxe: 2 }, {}, { stone: 5 }]);
   assert.equal(log.find((x) => x.e === 'build').k, '?');
   assert.equal(log.find((x) => x.e === 'deny').code, null);
@@ -763,7 +791,7 @@ test('audit: progress is logged when it changes, at most once a minute unless a 
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
   r.takeLog();
-  const save = (goal, ever, t) => r.message(o.id, JSON.stringify({ t: 'save', s: JSON.stringify({ goalIndex: goal, totalEver: ever }) }), t);
+  const save = (goal, ever, t) => r.progress(o.id, JSON.stringify({ goalIndex: goal, totalEver: ever }), t);
   save(0, 10, T0);
   save(0, 10, T0 + 70_000);   // the same: nothing new
   save(0, 20, T0 + 80_000);   // within a minute of the last one logged? no: 80 s
@@ -792,7 +820,8 @@ test('audit: cheats, bans and refused joins are logged with what happened', asyn
 });
 
 test('audit: the moderator sees each player, their cheats and progress', async () => {
-  const { r, owner } = await makeRoom({ save: JSON.stringify({ goalIndex: 3, totalEver: 9 }) });
+  const { r, owner } = await makeRoom();
+  r.players.get(r.owner).save = JSON.stringify({ goalIndex: 3, totalEver: 9 });
   const o = await r.join(owner, undefined, T0);
   const [me] = r.roster(T0 + 5000);
   assert.deepEqual([me.id, me.owner, me.st, me.sessionSecs, me.progress.goal], [o.id, true, 'online', 5, 3]);

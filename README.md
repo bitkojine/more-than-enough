@@ -163,7 +163,8 @@ The project is under git — commit early, commit often:
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
   - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of each digit)
   - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
-  - `shared.js` — a shared world: splitting a state into the world and your own progress, and applying friends' edits
+  - `shared.js` — a shared world: splitting a state into the world and your own progress, applying friends' edits and the room's corrections
+  - `acts.js`, `replay.js` — in a shared world, what the player did, written down, and the room doing the same with the same rules (`server/src/shadow.js`), so the room knows what everyone really has
 - `src/i18n/` — every word the player reads: `i18n.js` (`t()`, language choice, `data-i18n` markup) and the `en.js` / `lt.js` dictionaries
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core

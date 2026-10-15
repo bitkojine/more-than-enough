@@ -76,7 +76,7 @@ test('shadow: a game played fairly, from nothing to its first buildings, agrees 
   assert.ok(s.stats.built >= 2 && s.tools.pickaxe >= 2, 'it really played');
 });
 
-test('shadow: progress that doesn\'t follow from what was done is logged', async () => {
+test('shadow: progress that doesn\'t follow from what was done is logged, not kept, and the game is set straight', async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 6);
@@ -86,13 +86,22 @@ test('shadow: progress that doesn\'t follow from what was done is logged', async
   const hacked = JSON.parse(C.progressOf(s));
   hacked.inv.stone = 500_000_000;
   hacked.tools.pickaxe = 6;
-  send({ t: 'save', s: JSON.stringify(hacked) });
+  const out = send({ t: 'save', s: JSON.stringify(hacked) });
   const d = drifts(r);
   assert.equal(d.length, 1);
   assert.deepEqual(d[0].res.find((x) => x[0] === 'stone').slice(1), [500_000_000, s.inv.stone]);
   assert.deepEqual(d[0].levels.find((x) => x[0] === 'tool.pickaxe'), ['tool.pickaxe', 6, 1]);
   assert.equal(r.shadow.report(id).off, 1);
   assert.ok(r.roster(g0()).find((p) => p.id === id).shadow.off === 1, 'the moderator sees it');
+  const kept = JSON.parse(r.players.get(id).save);
+  assert.deepEqual([kept.inv.stone, kept.tools.pickaxe], [s.inv.stone, 1], 'the room keeps its own numbers');
+  assert.equal(out.toSelf[0].t, 'econ');
+  assert.equal(out.toSelf[0].ms, Math.round(hacked.stats.playedMs));
+  // The game takes them, keeping what it got since it sent its progress.
+  const sentInv = { ...hacked.inv };
+  s.inv.stone = 500_000_007;
+  assert.ok(C.correctProgress(s, out.toSelf[0].s, sentInv));
+  assert.deepEqual([s.inv.stone, s.tools.pickaxe], [kept.inv.stone + 7, 1]);
 });
 
 const g0 = () => T0 + 60_000;
@@ -157,4 +166,36 @@ test('shadow: play before the game\'s first message counts from when it came in'
   assert.equal(r.shadow.report(id).refused, 0, 'none of it was refused for being too fast');
   assert.deepEqual(drifts(r), [], JSON.stringify(drifts(r)));
   void send;
+});
+
+test('shadow: what nobody could do gets nobody anything', async () => {
+  const { s, r, id, sync, send } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 4);
+  sync(true);
+  const p = s.player, ms = Math.round(s.stats.playedMs) + 1000;
+  // A hundred gathers in one moment, more than any Trail stroke works.
+  const flurry = Array.from({ length: 100 }, (_, i) => ['h', ms, p.x, p.y, p.z, Math.floor(p.x) + (i % 3) - 1, Math.floor(p.y) + (Math.floor(i / 3) % 3) - 1]);
+  // And a step of a kilometre in a second, to gather over there.
+  const leap = ['h', ms + 1000, p.x + 1000, p.y, p.z, Math.floor(p.x) + 1000, Math.floor(p.y)];
+  // And acts from further ahead than the room's clock.
+  const ahead = ['c', ms + 60_000, p.x, p.y, p.z];
+  send({ t: 'acts', ms: ms + 1000, a: [...flurry.slice(0, 50), ...flurry.slice(50), leap, ahead] });
+  assert.ok(r.shadow.report(id).refused >= 100 - 40 + 2, 'past the budget, the leap and the future are refused (' + r.shadow.report(id).refused + ')');
+});
+
+test('shadow: buildings go up in the room\'s world from what the room worked out, not from the game\'s edits', async () => {
+  const { s, r, id, sync, send, now } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  // A hacked game's edit: a building it never paid for.
+  send({ t: 'pos', p: P.cleanPos(s.player) });
+  send({ t: 'edits', e: [['x', 'garden', Math.floor(s.player.x) + 1, Math.floor(s.player.y), 0]] });
+  assert.equal(r.ext.length, 0);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
+  const e = s.extractors.find((x) => x.owner === id);
+  const acts = C.takeActs(s);
+  const out = r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts }), now());
+  assert.deepEqual(r.ext.map((x) => x.slice(1, 5)), [[e.x, e.y, e.z, id]], 'the garden they paid for stands');
+  assert.deepEqual(out.toAll[0].e, [['x', 'garden', e.x, e.y, e.z, id]], 'and everyone hears');
 });

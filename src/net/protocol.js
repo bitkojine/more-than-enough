@@ -44,7 +44,7 @@ export const LIMITS = Object.freeze({
   createBytes: 1048576,  // a whole world, when a room is made
   saveBytes: 65536,      // one player's progress
   editsPerMessage: 64,
-  actsPerMessage: 64,    // things a player did, in one 'acts' message (see src/core/acts.js)
+  actsPerMessage: 256,    // things a player did, in one 'acts' message (see src/core/acts.js)
   mods: 100000,          // richness edits in one world
   props: 20000,
   extractors: 4000,
@@ -161,7 +161,7 @@ export function cleanAct(a) {
   const head = [a[0], a[1], round(a[2], 1000), round(a[3], 1000), a[4]];
   const tile = (v) => isInt(v) && Math.abs(v) <= XY_MAX;
   if (a[0] === 'h' && a.length === 7 && tile(a[5]) && tile(a[6])) return [...head, a[5], a[6]];
-  if (a[0] === 'c' && a.length === 5) return head;
+  if ((a[0] === 'c' || a[0] === 'w') && a.length === 5) return head;
   if (a[0] === 'b' && a.length === 8 && typeof a[5] === 'string' && NAME_RE.test(a[5]) && tile(a[6]) && tile(a[7])) return [...head, a[5], a[6], a[7]];
   if (a[0] === 'p' && a.length === 6 && typeof a[5] === 'string' && NAME_RE.test(a[5])) return [...head, a[5]];
   if (a[0] === 'u' && a.length === 6 && typeof a[5] === 'string' && UPGRADE_RE.test(a[5])) return [...head, a[5]];

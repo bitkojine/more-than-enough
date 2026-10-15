@@ -203,14 +203,17 @@ test('client: a second Invite tap while the first is making the room makes no se
   assert.ok(toasts.includes('Not connected yet, try again in a moment'));
 });
 
-test('client: progress made while the room was being made comes along', async () => {
+test('client: going online starts a new world from nothing, and your world here stays as it was', async () => {
   const { together, game } = harness();
+  game.state.inv.stone = 1234;
+  const soloSeed = game.state.seed;
+  store.set('more-than-enough-save', 'the solo save');
   together.start();
   await tick();
   const sent = JSON.parse(fetches[0].opts.body);
-  // The player keeps playing while the room is made.
-  game.state.inv.stone = 1234;
-  game.state.stats.playedMs += 5000;
+  assert.equal(sent.save, undefined, 'no progress is sent');
+  assert.deepEqual([sent.world.mods, sent.world.props, sent.world.ext], [[], [], []], 'nor what was built or dug');
+  assert.notEqual(sent.world.seed, soloSeed, 'a new world');
   const id = P.randomRoomId();
   const r = new Room(id, T0);
   assert.equal(await r.init(JSON.stringify(sent), T0), null);
@@ -218,7 +221,8 @@ test('client: progress made while the room was being made comes along', async ()
   await tick(); await tick();
   await serve(r, open()[0]);
   assert.equal(game.state.shared, id);
-  assert.equal(Math.floor(game.state.inv.stone), 1234, 'what was gathered meanwhile is not lost');
+  assert.equal(game.state.inv.stone, 0, 'everyone starts from nothing, you too');
+  assert.equal(store.get('more-than-enough-save'), 'the solo save', 'your world here is kept for playing alone');
 });
 
 test('client: a failed go-online does not hold up the sign in the next world you enter', async () => {

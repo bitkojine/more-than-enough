@@ -8,6 +8,8 @@ import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { putRichness } from './world.js';
 import { EXTRACTORS, PROPS } from './content.js';
 import { serialize, deserialize, SAVE_VERSION } from './save.js';
+import { blankState } from './state.js';
+import { RESOURCES } from './tiles.js';
 
 // The world part of a state, as a room is made from it: the seed and every
 // edit. Your buildings come along; the room marks them as yours.
@@ -71,6 +73,22 @@ export function joinState(welcome, room, fog, near, make = undefined) {
   }
   s.world.edits = [];
   return s;
+}
+
+// Sets your progress straight from the room's numbers (`save`, the room's
+// copy of your progress as of when your game sent it with inventory
+// `sentInv`): what you have is the room's, plus what you got since. Your
+// levels, milestones and buildings are the room's. False if it can't be read.
+export function correctProgress(s, save, sentInv = null) {
+  const r = deserialize(save, (seed) => blankState({ seed, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() }));
+  if (!r) return false;
+  for (const k of RESOURCES) {
+    const since = sentInv && Number.isFinite(sentInv[k]) ? s.inv[k] - sentInv[k] : 0;
+    s.inv[k] = Math.max(0, r.inv[k] + since);
+  }
+  for (const k of ['tools', 'unlocks', 'resUp', 'perks', 'sources', 'mushrooms', 'mushroomsEver', 'goalsDone', 'goalIndex', 'abundanceLv', 'insight', 'totalEver']) s[k] = r[k];
+  s.extractors = [...s.extractors.filter((e) => e.owner !== s.me), ...r.extractors.map((e) => ({ ...e, owner: s.me }))];
+  return true;
 }
 
 // Applies world changes from the room (checked by src/net/protocol.js; kinds

@@ -9,9 +9,10 @@ shared with the game.
 
 ## How it works
 
-1. **Invite** in the game (the first time) posts your world (the seed and every edit,
-   your buildings and your own progress) to `POST /rooms`. The service makes
-   a room with a random 128-bit id and keeps it.
+1. **Invite** in the game (the first time) posts a new world (a seed) to
+   `POST /rooms`. The service makes a room with a random 128-bit id and keeps
+   it. Everyone starts a shared world from nothing, its owner too: the room
+   can't check progress made anywhere else, so it takes no save or edits.
 2. You connect to `GET /rooms/<id>/ws` (a WebSocket) and say who you are
    with your secret key. Your id in that room is a hash of the room and the
    key, so nobody can pose as you without the key, and ids differ from room
@@ -26,9 +27,15 @@ shared with the game.
    send to any server.
 4. A friend's phone opens that link, connects and shows the invite once.
    From then on their key is enough, from anywhere.
-5. The room relays positions (about 8 a second), world edits (echoed to
-   everyone in one order, so every phone ends with the same world) and each
-   player's progress (kept by the room). Players see each other as online,
+5. The room relays positions (about 8 a second) and world edits (echoed to
+   everyone in one order, so every phone ends with the same world), and
+   **works out each player's progress itself** (`shadow.js`): the game sends
+   what the player did (`acts`: gather, collect, build, place, buy; see
+   `src/core/acts.js`) and the room does the same with the game's own rules
+   on its own copy. That copy is what they have. When the progress a game
+   sends (`save`) differs, the room keeps its own and sends the game its
+   numbers (`econ`); the game keeps what it got since. Buildings and props
+   go up in the world from the room's copy, not from the game's edits. Players see each other as online,
    away, connection lost (offline after a minute) or offline.
 6. The room keeps the world's **clock**: it starts at the creator's time of
    day, runs whether anyone is in or not, and comes with every welcome, so
@@ -76,8 +83,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   owner removed them. Owners too: nobody cheats in a shared world. A banned
   owner's world passes to whoever joined it first among those left who
   aren't frozen (by join time, `owner` message). One player, the owner too, adds at most 400 buildings, 2,000
-  props and 10,000 newly changed tiles (`PLAYER_TILES`); what the owner's
-  world held when it was made doesn't count. Reconnecting starts nothing afresh: the first step after
+  props and 10,000 newly changed tiles (`PLAYER_TILES`). Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
   elsewhere is told where it stands (`place`).
 - **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
@@ -92,8 +98,15 @@ again in the game; anything that doesn't fit exactly is dropped.
   (strikes are forgiven over time).
 - **Ownership:** a building's owner is set by the room, never by the
   player.
+- **Progress:** an act counts only if it could have happened: in play-time
+  order, no more play time than has passed on the room's clock (2 seconds'
+  slack), no further from the last act than `MAX_SPEED` allows, gathering
+  no faster than the game lets anyone, and then by the game's own rules
+  (reach, tools, costs, free tiles). Refused acts change nothing and are
+  counted for the moderator (`shadow` in the player list).
 - **The nuke:** only the room service calls it, once, when a world was made
-  before its own `WORLD_FORMAT` (`src/core/format.js`); nothing a player sends can. A player can only press it for themselves. The world is made
+  before its own `WORLD_FORMAT` or `ECON_FORMAT` (`src/core/format.js`; the
+  second only for how the room counts progress, so solo worlds stay); nothing a player sends can. A player can only press it for themselves. The world is made
   again once everyone online has pressed it (away, lost and offline players
   count as pressed) or a minute after it was called, with a seed the room
   picks; every socket is then closed, so nothing from the old world gets in.
@@ -112,9 +125,9 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Turned away:** a banned key gets `{"t": "invite", "why": "banned"}`
   and the socket closes (1008, `invite`); a frozen one gets
   `{"t": "frozen"}` and closes (1008, `frozen`).
-- **Frozen characters:** a character whose progress was clearly hacked
-  (an edited save, which the anti-cheat can't see) is frozen by the
-  moderator instead of banned. It stays in the world, asleep, with what it
+- **Frozen characters:** a character whose player clearly hacked (an
+  edited save or game: the room doesn't take its numbers, but logs the try
+  as `drift`) is frozen by the moderator instead of banned. It stays in the world, asleep, with what it
   built, but its key can't play it again (`frozen`, close code 4005): the
   game shows a joke "FBI" notice and goes back to the player's own world.
   The links its player made stop; a frozen owner's world passes on. The
@@ -152,7 +165,7 @@ enter a shared world, and in Settings.
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |
 | `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes) |
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
-| `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
+| `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
 | `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |

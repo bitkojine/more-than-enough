@@ -60,6 +60,7 @@ export function walkPath(s, path, dt, budget) {
     if (Math.hypot(dx, dy) < 0.25) { i++; continue; }
     const moved = C.move(s, dx, dy, dt);
     C.revealAround(s);
+    C.step(s, dt); // walking takes play time, as in the game
     used += dt;
     if (!moved) break;
   }

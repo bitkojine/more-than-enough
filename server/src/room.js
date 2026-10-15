@@ -13,7 +13,7 @@ import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
 } from '../../src/net/protocol.js';
 import { Shadow } from './shadow.js';
-import { WORLD_FORMAT } from '../../src/core/format.js';
+import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
@@ -95,6 +95,7 @@ export class Room {
     // `gen` counts how many times, so a phone can tell its copy of your
     // progress is from a world that's gone.
     this.fmt = 0;
+    this.ef = 0;   // ...and how it counts progress (ECON_FORMAT): newer, the nuke too
     this.call = null;
     this.nuke = new Set();
     this.gen = 0;
@@ -131,7 +132,7 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, call: meta.call ?? null, ready: true });
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, call: meta.call ?? null, ready: true });
     r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
@@ -148,7 +149,7 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -184,12 +185,17 @@ export class Room {
     if (!d || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key)) return 'bad';
     const world = cleanWorld(d.world);
     if (!world) return 'bad';
-    const save = d.save === undefined ? null : cleanSave(d.save);
-    if (d.save !== undefined && !save) return 'bad';
-    const pos = d.pos === undefined ? null : cleanPos(d.pos);
+    // Everyone starts a shared world from nothing, its owner too (Watch's
+    // call): the room can't check progress made anywhere else. So a world is
+    // made from the creator's seed alone, and their save and edits are not
+    // taken (an older game still sends them).
+    world.mods = []; world.props = []; world.ext = [];
+    const save = null;
+    const pos = null;
     const time = d.time === undefined ? 0 : cleanTime(d.time);
     if (time === null) return 'bad';
     this.fmt = WORLD_FORMAT;
+    this.ef = ECON_FORMAT;
     this.owner = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
@@ -262,8 +268,6 @@ export class Room {
     this.touch(now);
     this.dirty.players.add(id);
     this.acts.set(id, this.newAct(now, this.acts.get(id)));
-    // The room's copy of their progress picks up from what they come back with.
-    this.shadow?.start(id, pl.save, this, now);
     this.audit(now, id, 'join', { new: fresh, c: pl.c, ...(fresh ? { via: codeTag(pl.via) } : {}), at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null, online: this.online() });
     const called = this.callNuke(now);
     return { id, welcome: this.welcome(id, now), called };
@@ -310,7 +314,7 @@ export class Room {
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: me.save, p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null,
+      players: others, save: this.saveFor(id, me), p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null,
       graves: this.graves,
       // The world format it's made with, or will be once the nuke goes off:
       // a game on another one can't grow the same land (src/game/together.js).
@@ -320,8 +324,20 @@ export class Room {
       pong: true, ack: true,
       // The room keeps its own copy of your progress from what you did:
       // games send 'acts' (src/core/acts.js) when it says so.
-      acts: true
+      acts: true,
+      // ...and that copy is what you have: `save` is it, and 'econ' sets
+      // your game straight when it's off (src/game/together.js).
+      econ: true
     };
+  }
+
+  // Player `id`'s progress as the room has it: its copy, if it's working
+  // one out (newer than the last one kept), else the one kept.
+  saveFor(id, me) {
+    if (!this.shadow?.has(id)) return me.save;
+    let kept = null;
+    try { kept = me.save && JSON.parse(me.save); } catch { kept = null; }
+    return cleanSave(this.shadow.saveOf(id, kept)) || me.save;
   }
 
   statusOf(id) {
@@ -416,19 +432,26 @@ export class Room {
       return out;
     }
     if (d.t === 'save') {
+      // Their game's progress is only compared: the room keeps its own.
       const save = cleanSave(d.s);
       if (!save) return { drop: true };
-      pl.save = save;
+      const { drift, save: ours, ms } = this.shadowOf().settle(id, save, now, this);
+      const kept = ours && cleanSave(ours);
+      if (!kept) return {};
+      pl.save = kept;
+      pl.savedAt = now;
       this.dirty.players.add(id);
-      this.progress(id, save, now);
-      this.checkDrift(id, pl, save, now);
-      return {};
+      this.progress(id, kept, now);
+      if (!drift) return {};
+      this.logDrift(id, drift, now);
+      // Their game is told what they really have, as of the progress it sent.
+      return { toSelf: [{ t: 'econ', ms, s: kept }] };
     }
     if (d.t === 'acts') {
       const list = cleanActs(d.a);
       if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
-      this.shadowOf().acts(id, d.ms, list, now, this);
-      return {};
+      const { made } = this.shadowOf().acts(id, d.ms, list, now, this);
+      return this.made(id, made, now);
     }
     if (d.t === 'away') {
       const st = d.a === true ? 'away' : 'online';
@@ -504,11 +527,12 @@ export class Room {
     const act = this.actOf(id, now);
     let far = null;
     for (const e of list) {
+      // Buildings and props come from the room's copy of what they did (made).
+      if (e[0] !== 'm') continue;
       if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
       if (this.apply(e, id)) {
-        applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
-        act[e[0]]++;
-        if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
+        applied.push(e);
+        act.m++;
       } else act.no++;
     }
     this.touch(now);
@@ -523,12 +547,30 @@ export class Room {
     return this.shadow ||= new Shadow(this.seed);
   }
 
-  // Compares a player's progress with the room's own copy (shadow.js), and
-  // logs where they differ, at most every DRIFT_LOG_MS per player.
-  checkDrift(id, pl, save, now) {
-    if (!this.shadow) return;
-    const drift = this.shadow.check(id, save, now, this);
-    if (!drift || now - (this.driftAt.get(id) || 0) < DRIFT_LOG_MS) return;
+  // Buildings and props player `id` put up, as the room's copy of their
+  // progress worked out (shadow.js): into the world, for everyone.
+  made(id, list, now) {
+    const applied = [];
+    const act = this.actOf(id, now);
+    for (const e of list) {
+      if (this.apply(e, id)) {
+        applied.push(e[0] === 'x' ? [...e, id] : e);
+        act[e[0]]++;
+        if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
+      } else {
+        this.shadow?.unmake(id, e); // the world is full: not built after all
+        act.no++;
+      }
+    }
+    if (!applied.length) return {};
+    this.touch(now);
+    return { toAll: [{ t: 'edits', id, e: applied }] };
+  }
+
+  // Where a player's game differs from the room's copy (shadow.js), in the
+  // log at most every DRIFT_LOG_MS per player.
+  logDrift(id, drift, now) {
+    if (now - (this.driftAt.get(id) || 0) < DRIFT_LOG_MS) return;
     this.driftAt.set(id, now);
     this.audit(now, id, 'drift', { res: drift.res.slice(0, 8), levels: drift.levels.slice(0, 8) });
   }
@@ -718,10 +760,10 @@ export class Room {
   // misses what the update brings, so the nuke is called. Returns true if it
   // was just called (everyone needs telling).
   callNuke(now) {
-    if (this.fmt >= WORLD_FORMAT || this.call) return false;
+    if ((this.fmt >= WORLD_FORMAT && this.ef >= ECON_FORMAT) || this.call) return false;
     this.call = { fmt: WORLD_FORMAT, at: now };
     this.dirty.meta = true;
-    this.audit(now, null, 'nukeCall', { fmt: WORLD_FORMAT, was: this.fmt });
+    this.audit(now, null, 'nukeCall', { fmt: WORLD_FORMAT, was: this.fmt, ef: ECON_FORMAT, wasEf: this.ef });
     return true;
   }
 
@@ -769,7 +811,7 @@ export class Room {
     }
     this.nuke.clear();
     this.graves = []; // the places they marked are gone with the world
-    if (this.call) this.fmt = this.call.fmt;
+    if (this.call) { this.fmt = this.call.fmt; this.ef = ECON_FORMAT; }
     this.call = null;
     this.gen++;
     this.dirty.meta = true;
