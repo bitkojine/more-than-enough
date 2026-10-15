@@ -195,6 +195,8 @@ export class Room {
     const id = await playerId(this.id, key);
     if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite' }; }
     let pl = this.players.get(id);
+    // A frozen character can't be played (see freeze): the game shows why.
+    if (pl && pl.frozen) { this.audit(now, id, 'deny', { why: 'frozen' }); return { error: 'frozen' }; }
     const fresh = !pl;
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
@@ -528,17 +530,61 @@ export class Room {
       }
     }
     const toAll = [id, ...also].map((x) => ({ t: 'removed', id: x }));
-    if (wasOwner) {
-      // The world passes to whoever joined it first among those left (the
-      // lowest place), or to nobody if it's empty.
-      let next = '';
-      for (const [pid, p] of this.players) if (!next || p.c < this.players.get(next).c) next = pid;
-      this.owner = next;
-      this.dirty.meta = true;
-      this.audit(now, next || null, 'owner', { was: id });
-      if (next) toAll.push({ t: 'owner', id: next });
-    }
+    if (wasOwner) toAll.push(...this.passOwner(id, now));
     return { kick: id, also, toAll };
+  }
+
+  // The owner `was` is out (banned or frozen): the world passes to whoever
+  // joined it first among those left who can still play (the lowest
+  // place), or to nobody. Returns the news for everyone.
+  passOwner(was, now) {
+    let next = '';
+    for (const [pid, p] of this.players) {
+      if (pid !== was && !p.frozen && (!next || p.c < this.players.get(next).c)) next = pid;
+    }
+    this.owner = next;
+    this.dirty.meta = true;
+    this.audit(now, next || null, 'owner', { was });
+    return next ? [{ t: 'owner', id: next }] : [];
+  }
+
+  // The moderator freezes a player whose progress was clearly hacked
+  // (Watch's rule, instead of a ban for an edited save the anti-cheat can't
+  // see). The character stays in the world, asleep where it was, with what
+  // it built, but its key can't play it again: every try shows the game's
+  // joke "FBI" notice, and the player has to start fair with another
+  // character. The links they made stop; an owner's world passes on, as for
+  // a ban. Thawing undoes it. Returns {kick, toAll}, or {error}.
+  freeze(id, now, why) {
+    const pl = this.players.get(id);
+    if (!pl) return { error: 'player' };
+    if (pl.frozen) return { error: 'frozen' };
+    this.sample(id, now, true);
+    this.audit(now, id, 'freeze', { why: String(why || '').slice(0, 200) });
+    pl.frozen = now;
+    pl.st = 'offline';
+    pl.lostAt = 0;
+    this.dirty.players.add(id);
+    this.acts.delete(id);
+    this.watch.delete(id);
+    this.nuke.delete(id);
+    for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
+    this.dirty.meta = true;
+    const toAll = [this.statusOf(id)];
+    if (id === this.owner) toAll.push(...this.passOwner(id, now));
+    return { kick: id, toAll };
+  }
+
+  // Undoes a freeze: the player may come back to that character. Error
+  // string or null. (A world that passed on stays with its new owner.)
+  thaw(id, now) {
+    const pl = this.players.get(id);
+    if (!pl) return 'player';
+    if (!pl.frozen) return 'not frozen';
+    delete pl.frozen;
+    this.dirty.players.add(id);
+    this.audit(now, id, 'thaw', {});
+    return null;
   }
 
   banOne(id, now, by, why) {
@@ -704,7 +750,7 @@ export class Room {
       const w = this.watch.get(id), a = this.acts.get(id);
       out.push({
         id, c: p.c, st: p.st, owner: id === this.owner, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
-        cheats: w ? w.cheats : 0, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
+        cheats: w ? w.cheats : 0, frozen: !!p.frozen, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
         progress: p.save ? digestOf(p.save) : null
       });
     }

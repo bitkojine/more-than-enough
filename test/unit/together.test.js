@@ -759,3 +759,42 @@ test('audit: the moderator sees each player, their cheats and progress', async (
   assert.equal(r.ban(g.id, T0, 'mod', 'x'.repeat(500)).kick, g.id);
   assert.equal(r.takeLog().find((x) => x.e === 'ban').why.length, 200, 'a reason is kept short');
 });
+
+test('room: the moderator freezes a hacked character: it stays asleep, but its key gets only "frozen" until thawed', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const hKey = key();
+  const h = await r.join(hKey, invite(r, o.id), T0);
+  const guest = await r.join(key(), invite(r, h.id), T0);
+  const theirs = invite(r, h.id, T0, { uses: 5, life: 60 });
+  r.takeLog();
+  const out = r.freeze(h.id, T0 + 10, 'resources jumped to 500M');
+  assert.equal(out.kick, h.id);
+  assert.deepEqual(out.toAll, [{ t: 'status', id: h.id, st: 'offline', c: h.welcome.c, p: null }], 'friends see them asleep');
+  assert.ok(r.players.has(h.id) && r.players.has(guest.id), 'the character stays, and so do their guests');
+  assert.deepEqual(await r.join(hKey, undefined, T0 + 20), { error: 'frozen' }, 'their key only gets the notice');
+  assert.equal((await r.join(key(), theirs, T0 + 20)).error, 'invite', 'their links stop');
+  assert.deepEqual(r.freeze(h.id, T0 + 30, 'again'), { error: 'frozen' });
+  assert.equal(r.roster(T0).find((p) => p.id === h.id).frozen, true);
+  const log = r.takeLog();
+  assert.deepEqual(log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.why]), [[h.id, 'resources jumped to 500M']]);
+  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => x.why), ['frozen', 'invite']);
+  // It survives a restart, and thawing undoes it.
+  const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
+  assert.deepEqual(await back.join(hKey, undefined, T0 + 40), { error: 'frozen' });
+  assert.equal(back.thaw(h.id, T0 + 50), null);
+  assert.equal(back.thaw(h.id, T0 + 50), 'not frozen');
+  assert.equal((await back.join(hKey, undefined, T0 + 60)).id, h.id, 'thawed, they can play it again');
+});
+
+test('room: a frozen owner\'s world passes to the earliest joiner who can still play', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const a = await r.join(key(), invite(r, o.id), T0);
+  const b = await r.join(key(), invite(r, o.id), T0);
+  r.freeze(a.id, T0, 'hacked');
+  const out = r.freeze(o.id, T0 + 1, 'hacked');
+  assert.equal(r.owner, b.id, 'not to the frozen player who joined first');
+  assert.deepEqual(out.toAll.at(-1), { t: 'owner', id: b.id });
+  assert.equal(r.freeze('nobody', T0).error, 'player');
+});

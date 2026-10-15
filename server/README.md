@@ -88,8 +88,14 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **The moderator:** the `/admin/` routes answer only a bearer token equal
   to the `ADMIN_TOKEN` Worker secret (set on deploy from the
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
-  it they answer 404, as if they weren't there. They read; the one thing
-  they change is a ban, the same one the owner's *Remove* does.
+  it they answer 404, as if they weren't there. They read; what they
+  change is a ban (the same one the owner's *Remove* does) and a freeze.
+- **Frozen characters:** a character whose progress was clearly hacked
+  (an edited save, which the anti-cheat can't see) is frozen by the
+  moderator instead of banned. It stays in the world, asleep, with what it
+  built, but its key can't play it again (`frozen`, close code 4005): the
+  game shows a joke "FBI" notice and goes back to the player's own world.
+  The links its player made stop; a frozen owner's world passes on.
 
 ## Audit log
 
@@ -103,7 +109,7 @@ logged as text either: item and building names only from the game's own
 list (`src/net/names.js`), invite codes only as a 6-character prefix of a
 real code. The log is read by an AI reviewer, so text in it could be made
 to read like an instruction. Logs are deleted after 14 days
-(`LOG_DAYS`), except the security trail (`cheat`, `ban`, `deny`, `cut`),
+(`LOG_DAYS`), except the security trail (`cheat`, `ban`, `freeze`, `thaw`, `deny`, `cut`),
 kept 90 days (`SECURITY_DAYS`); all of it goes with the room. Players are told once, when they first
 enter a shared world, and in Settings.
 
@@ -111,7 +117,7 @@ enter a shared world, and in Settings.
 | --- | --- | --- |
 | `create` | the room is made | `seed`, `fmt`, how many `mods`, `props`, `ext` it came with |
 | `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
-| `deny` | someone is turned away | `why`: `banned`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
+| `deny` | someone is turned away | `why`: `banned`, `frozen`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
 | `build` | a building goes up | `k` (kind, or `?` for one the game doesn't have), `at` |
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
@@ -121,6 +127,7 @@ enter a shared world, and in Settings.
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
+| `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |
 | `owner` | the world passed to a new owner (`p`; null if nobody is left) | `was` |
 | `nuke`, `nukeCall`, `renew` | the nuke is pressed, called, and the world made again | `fmt`, `gen`, `seed` |
 
@@ -131,15 +138,18 @@ go a long way and loading a room never reads its log.
 The moderator's routes (`Authorization: Bearer <token>`):
 
 - `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
-  `online`, `bans`, `created`, `last`).
-- `GET /admin/rooms/<id>/players`: each player now, with their cheat count
-  and progress.
+  `online`, `bans`, `frozen`, `created`, `last`).
+- `GET /admin/rooms/<id>/players`: each player now, with their cheat count,
+  whether they're `frozen`, and progress.
 - `GET /admin/rooms/<id>/log?since=<ms>`: the log as JSON lines: first
   `{"e": "room", ...}`, then the events from `since`, and last
   `{"e": "more", "since": ...}` if there is more to fetch from there.
 - `POST /admin/rooms/<id>/ban` with `{"id": "<player id>", "why": "..."}`:
   takes a player out for good, as the owner would; an owner too (the
   world then passes on, as for the anti-cheat).
+- `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
+  freezes a character whose progress was hacked (see Security); its game
+  shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
 
 The deploy's smoke test makes a room with seed 12345 every time; skip those.
 

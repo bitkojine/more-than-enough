@@ -10,6 +10,8 @@
  *   GET  /admin/rooms/<id>/players     who is in one, and how far along
  *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
  *   POST /admin/rooms/<id>/ban         take a player out: {"id", "why"}
+ *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
+ *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
  * can make only a few rooms an hour, and everything else is refused. The
@@ -98,7 +100,7 @@ async function admin(request, env, url) {
     }
     return respond({ rooms }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -111,12 +113,15 @@ async function admin(request, env, url) {
     if (text === null) return respond({ error: 'room' }, 404, null);
     return new Response(text, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' } });
   }
-  if (m[2] === 'ban' && request.method === 'POST') {
+  if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
     try { d = JSON.parse(body); } catch { /* below */ }
     if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
-    const err = await room.modBan(m[1], d.id, typeof d.why === 'string' ? d.why : '');
+    const why = typeof d.why === 'string' ? d.why : '';
+    const err = m[2] === 'ban' ? await room.modBan(m[1], d.id, why)
+      : m[2] === 'freeze' ? await room.modFreeze(m[1], d.id, why)
+      : await room.modThaw(m[1], d.id);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
   return respond({ error: 'not found' }, 404, null);
@@ -288,7 +293,9 @@ export class Rooms extends DurableObject {
     if (!r.ready) return null;
     let online = 0;
     for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
-    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size };
+    let frozen = 0;
+    for (const p of r.players.values()) if (p.frozen) frozen++;
+    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen };
   }
 
   async roster(id) {
@@ -327,6 +334,28 @@ export class Rooms extends DurableObject {
     for (const msg of r.toAll) this.send(msg, null);
     this.kick(r.kick);
     for (const other of r.also) this.kick(other);
+    await this.persist();
+    await this.schedule();
+    return null;
+  }
+
+  // The moderator freezes a hacked character (Room.freeze), owners too.
+  // The player's game is told, so it shows the notice. Error string or null.
+  async modFreeze(id, player, why) {
+    if (!this.room.ready || this.room.id !== id) return 'room';
+    const r = this.room.freeze(player, Date.now(), why);
+    if (r.error) return r.error;
+    this.kick(r.kick, 4005, 'frozen', { t: 'frozen' });
+    for (const msg of r.toAll) this.send(msg, null);
+    await this.persist();
+    await this.schedule();
+    return null;
+  }
+
+  async modThaw(id, player) {
+    if (!this.room.ready || this.room.id !== id) return 'room';
+    const err = this.room.thaw(player, Date.now());
+    if (err) return err;
     await this.persist();
     await this.schedule();
     return null;
@@ -404,12 +433,13 @@ export class Rooms extends DurableObject {
     await this.schedule();
   }
 
-  // Closes a removed player's sockets.
-  kick(id) {
+  // Closes a removed (or frozen) player's sockets, telling them `last` first.
+  kick(id, code = 4003, reason = 'removed', last = null) {
     for (const other of this.ctx.getWebSockets()) {
       if ((other.deserializeAttachment() || {}).id !== id) continue;
       other.serializeAttachment({ id: null, at: 0 });
-      other.close(4003, 'removed');
+      if (last) try { other.send(JSON.stringify(last)); } catch { /* closing */ }
+      other.close(code, reason);
     }
   }
 

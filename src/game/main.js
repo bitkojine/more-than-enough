@@ -26,6 +26,7 @@ import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, 
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createNuke } from './nuke.js';
+import { createFbi } from './fbi.js';
 import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
@@ -186,9 +187,10 @@ onSavedElsewhere(checkFork);
 const ask = createAsk(el.ask);
 el.privacyLink.href = policyUrl(); // in the player's language
 const nuke = createNuke(el.nuke);
+const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, friendJoined: updater.check, closeSheet: () => sheet.close() });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, friendJoined: updater.check, closeSheet: () => sheet.close() });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
@@ -226,7 +228,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open,
+    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open,
     dismiss: () => sheet.close(),
     tap(x, y) {
       // On your sign: copy its link. Anywhere else: the world.

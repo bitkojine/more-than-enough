@@ -63,6 +63,7 @@ export function findElements() {
     fork: byId('fork'),
     ask: byId('ask'),
     nuke: byId('nuke'),
+    fbi: byId('fbi'),
     news: byId('news'),
     invite: byId('btnInvite'),
     inviteLabel: byId('inviteLabel'),

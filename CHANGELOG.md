@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.81.0] - 2026-10-15
+
+### Security
+- **Hacked characters are frozen, not banned** (Watch's rule). The moderator
+  freezes a shared-world character whose progress was clearly edited (the
+  anti-cheat sees steps and edits, not saves): `POST /admin/rooms/<id>/freeze`
+  with `{"id", "why"}`, undone by `/thaw`. The character stays in the world
+  asleep, with what it built; its key can't play it again, the links its
+  player made stop, and a frozen owner's world passes on as for a ban. Every
+  try to play it shows a joke "FBI" notice (the Fair-play Bureau of
+  Investigation, a glowcap on the badge, no real seal) and sends the player
+  back to their own world, to start fairly with a new character.
+
 ## [0.80.2] - 2026-10-15
 
 ### Security

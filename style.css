@@ -783,6 +783,17 @@ body.signing #zoomControls { visibility: hidden; }
 #nuke p[hidden] { display: none; }
 @keyframes nuke-pulse { 50% { box-shadow: 0 8px 0 #6b1e12, 0 0 0 22px rgba(232, 111, 92, 0.08), 0 18px 40px rgba(0, 0, 0, 0.6); } }
 @media (prefers-reduced-motion: reduce) { #nuke button { animation: none; } }
+/* A frozen character: the joke "FBI" badge (a glowcap, not a real seal),
+   over a police-blue map, with one way on. */
+#fbi { z-index: 120; background: radial-gradient(circle at 50% 40%, rgba(16, 48, 96, 0.6), rgba(0, 0, 0, 0.85)); }
+#fbi .dialog { align-items: center; text-align: center; gap: 8px; border-color: rgba(232, 193, 90, 0.5); }
+#fbi .fbiBadge { width: min(150px, 42vw); height: auto; margin-bottom: 2px; animation: fbi-flash 1.2s steps(2) infinite; }
+#fbi .fbiBadge text { fill: #e8c15a; font: 900 22px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; letter-spacing: 0.12em; }
+#fbi .fbiBureau { color: var(--gold); font-size: 12px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+#fbi .dialog strong { font-size: 22px; }
+#fbi .choices { align-self: stretch; }
+@keyframes fbi-flash { 50% { filter: drop-shadow(0 0 14px rgba(255, 70, 70, 0.7)); } 0%, 100% { filter: drop-shadow(0 0 14px rgba(80, 140, 255, 0.7)); } }
+@media (prefers-reduced-motion: reduce) { #fbi .fbiBadge { animation: none; } }
 .dialog strong { font-size: 19px; line-height: 1.25; }
 .dialog p { margin: 0 0 6px; font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); }
 .dialog .askLink { margin: -4px 0 6px; font-size: 14.5px; font-weight: 700; color: var(--accent); }

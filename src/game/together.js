@@ -178,7 +178,7 @@ function cleanWelcome(d) {
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = () => {}, closeSheet = () => {} }) {
+export function createTogether({ game, hud, ask, el, nukeScreen, fbi, friendJoined = () => {}, closeSheet = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -220,6 +220,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, friendJoined = 
     for (const f of friends.values()) f.heard = -Infinity;
     if (codeNum === 4001) return stop(t('together.toast.elsewhere'));
     if (codeNum === 4003) return stop(t('together.toast.removed'));
+    // The moderator froze this character (its progress was hacked): the
+    // "FBI" notice, every time, and back to your own world.
+    if (codeNum === 4005 || reason === 'frozen') { stop(); return fbi.show(); }
     // Everyone pressed the nuke: straight back in, to the world made anew.
     if (codeNum === 4004) { retry = 0; return connect(); }
     if (reason === 'invite') return stop(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));

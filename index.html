@@ -219,6 +219,26 @@
       <p></p>
     </div>
   </div>
+  <!-- A frozen character (its progress was hacked): a joke "FBI" badge, the
+       Fair-play Bureau of Investigation, and the only way on is back to
+       your own world. src/game/fbi.js -->
+  <div id="fbi" class="scrim" role="alertdialog" aria-labelledby="fbiTitle" hidden>
+    <div class="dialog">
+      <svg class="fbiBadge" viewBox="0 0 120 120" aria-hidden="true">
+        <circle cx="60" cy="60" r="56" fill="#0f2a4a" stroke="#e8c15a" stroke-width="5" />
+        <circle cx="60" cy="60" r="46" fill="none" stroke="#e8c15a" stroke-width="1.5" stroke-dasharray="3 4" />
+        <path d="M60 14 l9 18 20 3 -14 14 3 20 -18 -9 -18 9 3 -20 -14 -14 20 -3z" fill="#e8c15a" opacity="0.22" />
+        <path d="M42 66 q18 -26 36 0 z" fill="#5fe0d0" />
+        <rect x="56" y="66" width="8" height="12" rx="3" fill="#cfeee9" />
+        <circle cx="52" cy="58" r="2.4" fill="#e9fffb" /><circle cx="66" cy="55" r="2" fill="#e9fffb" />
+        <text x="60" y="100" text-anchor="middle" data-i18n="fbi.badge"></text>
+      </svg>
+      <small class="fbiBureau" data-i18n="fbi.bureau"></small>
+      <strong id="fbiTitle" data-i18n="fbi.title"></strong>
+      <p data-i18n="fbi.text"></p>
+      <div class="choices"><button type="button" class="primary" data-i18n="fbi.ok"></button></div>
+    </div>
+  </div>
   <div id="ask" class="scrim" role="alertdialog" aria-labelledby="askTitle" hidden>
     <div class="dialog">
       <strong id="askTitle"></strong>
