@@ -154,6 +154,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
+- `GET /admin/rooms/<id>/graves`: its tombstones, as a player's welcome
+  carries them (`[id, colour, x, y, z, 'ban' | 'ice']`).
 
 The deploy's smoke test makes a room with seed 12345 every time; skip those.
 

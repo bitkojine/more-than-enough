@@ -12,6 +12,7 @@
  *   POST /admin/rooms/<id>/ban         take a player out: {"id", "why"}
  *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
+ *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
  * can make only a few rooms an hour, and everything else is refused. The
@@ -100,12 +101,16 @@ async function admin(request, env, url) {
     }
     return respond({ rooms }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
     const players = await room.roster(m[1]);
     return players ? respond({ players }, 200, null) : respond({ error: 'room' }, 404, null);
+  }
+  if (m[2] === 'graves' && request.method === 'GET') {
+    const graves = await room.graves(m[1]);
+    return graves ? respond({ graves }, 200, null) : respond({ error: 'room' }, 404, null);
   }
   if (m[2] === 'log' && request.method === 'GET') {
     const since = Math.max(0, Number(url.searchParams.get('since')) || 0);
@@ -296,6 +301,12 @@ export class Rooms extends DurableObject {
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
     return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen };
+  }
+
+  // The tombstones, the same list every welcome hands a player.
+  async graves(id) {
+    if (!this.room.ready || this.room.id !== id) return null;
+    return this.room.graves; // the welcome's `graves`
   }
 
   async roster(id) {
