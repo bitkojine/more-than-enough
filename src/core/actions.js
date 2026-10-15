@@ -4,9 +4,9 @@
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
-import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS } from './content.js';
+import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, earn, ownBuilding } from './economy.js';
-import { mushroomAt } from './mushrooms.js';
+import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { t } from '../i18n/i18n.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
@@ -24,9 +24,55 @@ export function harvestable(s, x, y) {
     !holeBelow(s.world, x, y, z);
 }
 
+/* ---------------------------------------------------------------- gear */
+
+// Whether a mushroom of kind `k` is a rare one.
+const rare = (k) => !!(k && MUSHROOMS[k].magic);
+
+// The tool level working tile (x, y, z) takes ({ tool, level }), or null if
+// any will do. See GEAR.
+export function gearFor(s, x, y, z) {
+  const type = tileAt(s.world, x, y, z);
+  if (GEAR.rock[type]) return { tool: 'pickaxe', level: GEAR.rock[type] };
+  if (type === T.SHAFT) {
+    const layer = SURFACE - z;
+    const deep = GEAR.shafts.filter((g) => layer >= g.from).pop();
+    return deep ? { tool: 'pickaxe', level: deep.level } : null;
+  }
+  if (rare(mushroomAt(s.seed, type, x, y, z))) return { tool: 'basket', level: GEAR.rare };
+  return null;
+}
+
+// The tool level tile (x, y) on your layer still needs, or null if you have it.
+export function gearNeeded(s, x, y) {
+  const g = gearFor(s, x, y, s.player.z);
+  return g && s.tools[g.tool] < g.level ? g : null;
+}
+
+// What reaching level `level` of tool `tool` opens, as door ids for the
+// sheet and the wiki: { id, layer? } (layer: the shafts out of it and below).
+export function toolOpens(tool, level) {
+  const out = [];
+  if (tool === 'pickaxe') {
+    const rocks = Object.keys(GEAR.rock).map(Number).filter((k) => GEAR.rock[k] === level);
+    if (rocks.includes(T.ORE)) out.push({ id: 'ore' });
+    if (rocks.includes(T.CRYSTAL)) out.push({ id: 'crystal' });
+    for (const g of GEAR.shafts) if (g.level === level) out.push({ id: 'deep', layer: g.from });
+  }
+  if (tool === 'basket' && level === GEAR.rare) out.push({ id: 'rare' });
+  if (tool === 'boots' && level === GEAR.water) out.push({ id: 'water' });
+  return out;
+}
+
+// The tool level that's all that keeps you from working tile (x, y), right
+// there in reach, or null.
+export function gearBlocks(s, x, y) {
+  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 ? gearNeeded(s, x, y) : null;
+}
+
 // A tile on the player's layer that Gather could work right now.
 export function canHarvest(s, x, y) {
-  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2;
+  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 && !gearNeeded(s, x, y);
 }
 
 // Tiles within reach of the player, nearest first.
@@ -71,11 +117,11 @@ export function harvestAt(s, x, y) {
   const type = tileAt(s.world, x, y, z);
   setRichness(s.world, x, y, z, richness(s.world, x, y, z) - 1);
   const res = TILE_INFO[type].res || null;
-  const amount = res ? gatherYield(s, res) : 0;
-  if (res) earn(s, res, amount, 'hand');
   // Mycelium comes as one kind of mushroom or another: count which, and
   // whether it's a kind never found before, in any world.
   const mushroom = res ? mushroomAt(s.seed, type, x, y, z) : null;
+  const amount = res ? gatherYield(s, res) * (rare(mushroom) ? RARE_PAYS : 1) : 0;
+  if (res) earn(s, res, amount, 'hand');
   let newKind = false;
   if (mushroom) {
     newKind = !s.mushroomsEver.includes(mushroom);

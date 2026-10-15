@@ -79,11 +79,19 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     return true;
   }
 
+  // Says which tool level something takes, when that's all that's missing.
+  function needsGear(g) {
+    hud.toast(t('reason.gear', { tool: Core.TOOLS[g.tool].name, lv: g.level }));
+  }
+
   // Works tile (tx, ty) if it's in reach: gather it, or collect the building
-  // on it. Returns true if something was done.
+  // on it. Returns true if something was done, 'gear' if it's in reach but
+  // takes a better tool (the player is told which), else false.
   function workAt(tx, ty) {
     const r = Core.harvestAt(state(), tx, ty);
     if (r) { faceTile(tx, ty); harvested(r); changed(); return true; }
+    const gear = Core.gearBlocks(state(), tx, ty);
+    if (gear) { faceTile(tx, ty); needsGear(gear); return 'gear'; }
     const near = Core.collectTarget(state());
     if (!near || !near.list.some((e) => e.x === tx && e.y === ty)) return false;
     faceTile(tx, ty);
@@ -148,6 +156,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (dir.x || dir.y) {
         walkTo = null;
         Core.move(state(), dir.x, dir.y, dt);
+        if (Core.waterAhead(state(), dir.x, dir.y)) needsGear({ tool: 'boots', level: Core.GEAR.water });
         controller.facing = dir;
         // Underground, pushing into rock digs it.
         const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
@@ -156,10 +165,12 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         // Walking to something tapped: work it as soon as it's in reach.
-        if (walkTo.work && workAt(walkTo.work.x, walkTo.work.y)) { walkTo = null; gathered(false); }
+        const done = walkTo.work && workAt(walkTo.work.x, walkTo.work.y);
+        if (done) { walkTo = null; if (done === true) gathered(false); }
         else if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;
         else {
           Core.move(state(), dx, dy, dt);
+          if (Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
           controller.facing = { x: dx, y: dy };
         }
       }
@@ -185,7 +196,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (holdAt && cooldown <= 0) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);
-        if (workAt(tx, ty)) { cooldown = GATHER_COOLDOWN; gathered(true); }
+        const done = workAt(tx, ty);
+        if (done) { cooldown = GATHER_COOLDOWN; if (done === true) gathered(true); }
         else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
       }
     },
@@ -197,7 +209,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
       if (passAt(tx, ty)) return;
-      if (workAt(tx, ty)) { gathered(false); return; }
+      const done = workAt(tx, ty);
+      if (done) { if (done === true) gathered(false); return; }
       walkToward(tx, ty, workable(tx, ty));
     },
 

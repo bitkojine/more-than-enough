@@ -21,7 +21,7 @@ function createBot(seed) {
 
   function gather(res, need) {
     for (let guard = 0; s.inv[res] < need && guard < 6000; guard++) {
-      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0);
+      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0 && !C.gearNeeded(st, x, y));
       if (!t) return false;
       if (!C.canHarvest(s, t.x, t.y)) {
         if (walkTowards(t, 10, 30) < 0) C.setRichness(s.world, t.x, t.y, 0, 0); // unreachable: forget it
@@ -55,6 +55,7 @@ function playToAutomation(seed) {
   const b = createBot(seed);
   const { s, clock, mark, gather, standBy, free } = b;
   gather('mycelium', 6); C.buy(s, 'basket'); mark('axe2');
+  gather('mycelium', 8); C.buy(s, 'boots'); mark('boots2');
   gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe'); mark('pick2');
   gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden'); mark('garden');
   gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry'); mark('quarry');
@@ -86,6 +87,7 @@ for (const seed of [12345, 777, 20260101]) {
 test('bot plays through to the Abundance Engine', () => {
   const { s, clock, timeline, mark, gather, standBy, free } = createBot(12345);
   gather('mycelium', 6); C.buy(s, 'basket');
+  gather('mycelium', 8); C.buy(s, 'boots');
   gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe');
   gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden');
   gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry');
@@ -96,6 +98,7 @@ test('bot plays through to the Abundance Engine', () => {
     gather('stone', cost.stone); gather('ore', cost.ore);
     if (!C.buy(s, 'overclock').ok) break;
   }
+  gather('mycelium', 30); gather('stone', 24); assert.ok(C.buy(s, 'pickaxe').ok, 'Pickaxe III, for crystal');
   gather('stone', 140); gather('ore', 70);
   if (standBy((st, x, y) => typeAt(st, x, y) === T.CRYSTAL)) {
     mark('crystal');

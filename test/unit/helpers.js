@@ -24,7 +24,8 @@ export function standOn(s, t) {
   s.player.y = t.y + 0.5;
 }
 
-// Breadth-first path over walkable tiles inside a padded box around start and goal.
+// Breadth-first path over walkable tiles inside a padded box around start and
+// goal (not over water until your Boots take you onto it).
 export function findPath(s, sx, sy, tx, ty, pad = 10) {
   const minX = Math.min(sx, tx) - pad, maxX = Math.max(sx, tx) + pad;
   const minY = Math.min(sy, ty) - pad, maxY = Math.max(sy, ty) + pad;
@@ -37,6 +38,7 @@ export function findPath(s, sx, sy, tx, ty, pad = 10) {
     for (const [nx, ny] of [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]]) {
       if (nx < minX || ny < minY || nx > maxX || ny > maxY || prev.has(key(nx, ny))) continue;
       if (!C.walkable(s.world, nx, ny, s.player.z)) continue;
+      if (!C.canWade(s) && C.swimsAt(s.world, nx, ny, s.player.z)) continue;
       prev.set(key(nx, ny), [cx, cy]);
       queue.push([nx, ny]);
     }

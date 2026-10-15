@@ -181,6 +181,7 @@ export default {
   "wiki.col.loot": "Turinys 1 sluoksnyje, už kiekvieną įrankio derliaus tašką",
   "wiki.col.level": "Lygis",
   "wiki.col.effect": "Poveikis",
+  "wiki.col.opens": "Atveria",
   "wiki.col.building": "Pastatas",
   "wiki.col.standsOn": "Stovi ant",
   "wiki.col.makes": "Gamina",
@@ -654,6 +655,10 @@ export default {
 
       <h2>Įrankiai</h2>
       <p>Krepšys nustato, kiek grybienos parneša kiekvienas rinkimas, Kirtiklis – kiek duoda kiekvienas kirtis. Batai nustato tavo greitį.</p>
+      <p>Kai kurie lygiai dar ir <strong>atveria</strong> ką nors nauja (stulpelis „Atveria“). Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio,
+        o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol rinkimas jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
+        2 lygio Batai nuneša ant vandens (iki tol sustoji ties krantu, taip pat prie upių tarp regionų), o 4 lygio Krepšys renka retus grybus, kurie duoda tris kartus daugiau.
+        Draugo atidaryta šachta atvira ir tau.</p>
       <p><strong>Spartinimas</strong> – vienintelis įrankis, veikiantis ne tave, o tavo pastatus. Kiekvienas lygis padvigubina tai, ką
         gamina kiekvienas pastatas (Grybų daržai, Karjerai, Kasyklos, Rezonatoriai ir keitikliai), kad ir kur jie būtų, tad tai geriausias
         patobulinimas, kai jau stovi keli pastatai.</p>

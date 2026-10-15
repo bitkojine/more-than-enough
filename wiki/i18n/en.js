@@ -184,6 +184,7 @@ export default {
   "wiki.col.loot": "Loot on layer 1, per point of tool yield",
   "wiki.col.level": "Level",
   "wiki.col.effect": "Effect",
+  "wiki.col.opens": "Opens",
   "wiki.col.building": "Building",
   "wiki.col.standsOn": "Stands on",
   "wiki.col.makes": "Makes",
@@ -658,6 +659,10 @@ export default {
 
       <h2>Tools</h2>
       <p>Your Basket sets how much mycelium each gather brings in, your Pickaxe how much each swing yields. Boots set your speed.</p>
+      <p>Some levels also <strong>open</strong> something new (the Opens column). Ore needs Pickaxe 2, crystal and geodes Pickaxe 3,
+        and the shafts down from the deep layers better Pickaxes still: until then Gather leaves them alone and {phone:tapping|laptop:clicking} one says what it takes.
+        Boots 2 take you onto water (until then the shore stops you, rivers between regions too), and Basket 4 picks the rare mushrooms, which pay three times over.
+        A shaft a friend opened is open for you too.</p>
       <p><strong>Overclock</strong> is the one tool that works on your buildings rather than on you. Each level doubles what every
         building makes (Mushroom Gardens, Quarries, Mines, Resonators and converters), wherever they are, so it's the best
         upgrade once a few buildings stand.</p>

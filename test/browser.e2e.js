@@ -499,7 +499,8 @@ async function main() {
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
   ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
-  ok(await waitFor('document.getElementById("awardCount").textContent === "1"', 1000), 'the trophy counter counts the milestone');
+  // Milestones count in any order: walking may have already found ore.
+  ok(await waitFor('MTE_GAME.getState().goalIndex >= 1 && document.getElementById("awardCount").textContent === String(MTE_GAME.getState().goalIndex)', 1000), 'the trophy counter counts the milestone');
   ok(await evalJS('document.getElementById("btnAwards").classList.contains("new")'), 'and glows until the awards are looked at');
   ok(await evalJS('(function(){function r(e){return e.getBoundingClientRect();}var a=r(document.getElementById("btnAwards"));return [].slice.call(document.querySelectorAll("#resources .chip, #btnSettings")).every(function(e){var c=r(e);return a.right<=c.left||c.right<=a.left||a.bottom<=c.top||c.bottom<=a.top;});})()'), 'the trophy counter overlaps nothing');
   var awardsBtn = await rect('#btnAwards');

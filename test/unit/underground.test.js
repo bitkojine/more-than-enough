@@ -40,9 +40,12 @@ test('digging a seam yields its resource; soil and bedrock behave', () => {
   const seam = findNear(s, (st, x, y) => typeAt(st, x, y) === T.ORE_SEAM, 30);
   C.setRichness(s.world, seam.x, seam.y - 1, -1, 0); // open a spot beside it
   standOn(s, { x: seam.x, y: seam.y - 1 });
+  assert.equal(C.harvestAt(s, seam.x, seam.y), null, 'ore wants Pickaxe II');
+  assert.deepEqual(C.gearNeeded(s, seam.x, seam.y), { tool: 'pickaxe', level: 2 });
+  s.tools.pickaxe = 2;
   const got = C.harvestAt(s, seam.x, seam.y);
-  assert.deepEqual([got.res, got.amount, got.now], ['ore', 1, T.TUNNEL]);
-  assert.equal(s.inv.ore, 1);
+  assert.deepEqual([got.res, got.amount, got.now], ['ore', 2, T.TUNNEL]);
+  assert.equal(s.inv.ore, 2);
 
   const bedrock = findNear(s, (st, x, y) => typeAt(st, x, y) === T.BEDROCK, 30);
   standOn(s, { x: bedrock.x, y: bedrock.y + 1 });

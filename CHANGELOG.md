@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.86.0] - 2026-10-15
+
+### Added
+- **Tools open doors, not only bigger numbers** (`GEAR` in
+  `src/core/content.js`, `gearFor` / `gearNeeded` / `toolOpens` in
+  `actions.js`, `canWade` / `waterAhead` in `sim.js`). Ore and ore seams need
+  Pickaxe 2; crystal, crystal seams and geodes Pickaxe 3; the shafts down out
+  of layer 3, 6 and 9 and below Pickaxe 4, 5 and 6. Boots 2 take you onto
+  water (rivers between regions too); without them the shore stops you, and
+  anyone already in the water can always get out. Basket 4 picks rare
+  (magic) mushrooms, which pay three times over (`RARE_PAYS`).
+- Holding Gather passes by what your tools can't work yet; tapping it, or
+  walking into water, says which level it takes. The Upgrades tab shows what
+  a tool's next level opens, the wiki's tool tables have an Opens column, and
+  the rare mushrooms' cards say they need Basket 4.
+
 ## [0.85.0] - 2026-10-15
 
 A pass for races and stale async results (thread "Race conditions"). Each

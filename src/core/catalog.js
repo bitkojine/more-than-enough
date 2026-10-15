@@ -26,7 +26,7 @@
 
 import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL, RESOURCE_LOWER, RESOURCE_OF } from './tiles.js';
 import { t, capitalize, LOCALE } from '../i18n/i18n.js';
-import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS } from './content.js';
+import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS, GEAR } from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
 import { MUSHROOMS } from './mushrooms.js';
@@ -76,7 +76,12 @@ function tileDoes(type) {
   if (info.land) out.push(t('tileDoes.land'));
   if (info.descend) out.push(t('tileDoes.descend'));
   if (info.rise) out.push(t('tileDoes.rise'));
-  if (type === T.SHAFT) out.push(t('tileDoes.shaft'));
+  if (GEAR.rock[type]) out.push(t('tileDoes.needs', { tool: TOOLS.pickaxe.name, lv: GEAR.rock[type] }));
+  if (info.swim) out.push(t('tileDoes.needs', { tool: TOOLS.boots.name, lv: GEAR.water }));
+  if (type === T.SHAFT) {
+    out.push(t('tileDoes.shaft'));
+    for (const g of GEAR.shafts) out.push(t('tileDoes.deepShaft', { from: g.from, tool: TOOLS.pickaxe.name, lv: g.level }));
+  }
   if (type === T.CAVE) out.push(t('tileDoes.cave'));
   if (type === T.BEDROCK) out.push(t('tileDoes.bedrock'));
   if (type === T.TUNNEL) out.push(t('tileDoes.tunnel'));

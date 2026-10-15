@@ -106,8 +106,9 @@ const TABLES = {
 
   tools: () => Object.keys(Core.TOOLS).map((id) => {
     const tool = Core.TOOLS[id];
-    const rows = tool.levels.map((lv, i) => [i + 1, lv.yield !== undefined ? t('wiki.perSwing', { n: lv.yield }) : '×' + num(lv.mult), lv.cost ? costText(lv.cost) : t('wiki.startingTool')]);
-    return `<h3>${pic('tool.' + id)} ${tool.name}</h3><p>${t('sentence', { text: tool.desc })}</p>` + table(heads('level', 'effect', 'cost'), rows, [0, 1]);
+    const opens = (level) => Core.toolOpens(id, level).map((d) => t('door.' + d.id, { n: d.layer })).join(', ') || '—';
+    const rows = tool.levels.map((lv, i) => [i + 1, lv.yield !== undefined ? t('wiki.perSwing', { n: lv.yield }) : '×' + num(lv.mult), opens(i + 1), lv.cost ? costText(lv.cost) : t('wiki.startingTool')]);
+    return `<h3>${pic('tool.' + id)} ${tool.name}</h3><p>${t('sentence', { text: tool.desc })}</p>` + table(heads('level', 'effect', 'opens', 'cost'), rows, [0, 1]);
   }).join(''),
 
   extractors: () => table(heads('building', 'standsOn', 'makes', 'baseRate', 'holds', 'firstCosts'),

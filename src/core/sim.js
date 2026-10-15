@@ -6,7 +6,7 @@ import { hash2 } from './noise.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  EXTRACTORS, AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH,
+  EXTRACTORS, AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
 import { productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
@@ -101,6 +101,25 @@ export function swimsAt(world, x, y, z) {
   return !!TILE_INFO[tileAt(world, Math.floor(x), Math.floor(y), z)].swim;
 }
 
+// Whether your Boots take you onto water (see GEAR.water).
+export function canWade(s) {
+  return s.tools.boots >= GEAR.water;
+}
+
+// Whether a step to (x, y) would take you from land onto water you can't
+// go on yet. Someone already in the water can always get out.
+function shoreStops(s, x, y) {
+  return !canWade(s) && !onWater(s) && swimsAt(s.world, x, y, s.player.z);
+}
+
+// Whether walking along (dx, dy) runs into water your Boots can't take you
+// onto: the shore is what stops you, to tell the player why.
+export function waterAhead(s, dx, dy) {
+  const len = Math.hypot(dx, dy);
+  if (canWade(s) || len < 0.0001) return false;
+  return shoreStops(s, s.player.x + dx / len * 0.6, s.player.y + dy / len * 0.6);
+}
+
 // Moves the player along (dx, dy), sliding along walls axis by axis.
 // Returns whether the player moved at all.
 export function move(s, dx, dy, dt) {
@@ -112,9 +131,9 @@ export function move(s, dx, dy, dt) {
   const p = s.player;
   let moved = false;
   const nx = p.x + dx * speed * dt;
-  if (canStand(s, nx, p.y)) { p.x = nx; moved = true; }
+  if (canStand(s, nx, p.y) && !shoreStops(s, nx, p.y)) { p.x = nx; moved = true; }
   const ny = p.y + dy * speed * dt;
-  if (canStand(s, p.x, ny)) { p.y = ny; moved = true; }
+  if (canStand(s, p.x, ny) && !shoreStops(s, p.x, ny)) { p.y = ny; moved = true; }
   return moved;
 }
 

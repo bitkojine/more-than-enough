@@ -58,6 +58,9 @@ const arrow = (from, to) => `${from} → <span class="ok">${to}</span>`;
 
 /* ------------------------------------------------------ upgrade rows */
 
+// What a tool level opens (see Core.toolOpens), in a few words.
+const doorName = (d) => t('door.' + d.id, { n: d.layer });
+
 // The numbers for each kind of upgrade, and its button label.
 const DESCRIBE = {
   tool(s, id) {
@@ -67,7 +70,9 @@ const DESCRIBE = {
     if (lv >= levels.length) return { sub: head };
     const cur = levels[lv - 1], next = levels[lv];
     const effect = next.yield !== undefined ? arrow(cur.yield, next.yield) : arrow('&times;' + cur.mult, '&times;' + next.mult);
-    return { sub: `${head} &middot; ${effect}`, label: t('sheet.craft') };
+    const doors = Core.toolOpens(id, lv + 1);
+    const opens = doors.length ? `<br><span class="ok">${t('sheet.opens', { what: doors.map(doorName).join(', ') })}</span>` : '';
+    return { sub: `${head} &middot; ${effect}${opens}`, label: t('sheet.craft') };
   },
   resup(s, res) {
     const levels = Core.REFINERIES[res].levels;
@@ -255,6 +260,11 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   }
 
   function whereItGrows(m) {
+    const where = growsIn(m);
+    return m.magic ? `${where} · ${t('reason.gear', { tool: Core.TOOLS.basket.name, lv: Core.GEAR.rare })}` : where;
+  }
+
+  function growsIn(m) {
     if (m.where === 'cave') return m.from > 1 ? t('mushroom.where.deep', { layer: m.from }) : t('mushroom.where.cave');
     if (m.kinds.length === Object.keys(Core.FOREST_KINDS).length) return t('mushroom.where.anyForest');
     return capitalize(t('mushroom.where.forests', { list: listOr(m.kinds.map((k) => Core.FOREST_KINDS[k].in)) }));

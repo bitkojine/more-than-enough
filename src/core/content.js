@@ -55,6 +55,23 @@ export const FINDS = {
   [T.GEODE]: { name: t('tile.geode'), loot: { stone: 4, crystal: 1 }, from: 2 }
 };
 
+/* --------------------------------------------------------------- gear */
+
+// What tools open, not only how much they gather: rock too hard for the
+// Pickaxe you have, the shafts down to the deep layers, rare mushrooms and
+// the water. Below the level named here, Gather leaves the tile alone (or,
+// for water, you stop at the shore). Checked by gearNeeded and canWade.
+export const GEAR = {
+  // the Pickaxe level that breaks each kind of rock
+  rock: { [T.ORE]: 2, [T.ORE_SEAM]: 2, [T.CRYSTAL]: 3, [T.CRYSTAL_SEAM]: 3, [T.GEODE]: 3 },
+  // the Pickaxe level that breaks the shafts down out of mine layer `from` and below
+  shafts: [{ from: 3, level: 4 }, { from: 6, level: 5 }, { from: 9, level: 6 }],
+  rare: 4,       // the Basket level that picks rare (magic) mushrooms
+  water: 2       // the Boots level that takes you onto water
+};
+// A rare mushroom pays this many times what a common one does.
+export const RARE_PAYS = 3;
+
 /* -------------------------------------------------------------- tools */
 
 // Level 1 is what you start with; each later level has a cost.
