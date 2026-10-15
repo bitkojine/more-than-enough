@@ -4,7 +4,7 @@
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmt1, fmtShort } from './format.js';
+import { fmt, fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
@@ -72,8 +72,8 @@ export function createHud(el, look) {
     chip.className = 'chip';
     chip.dataset.res = r;
     chip.setAttribute('aria-label', t('hud.chip', { res: Core.RESOURCE_LABEL[r] }));
-    chip.innerHTML = `<img class="ic" data-look="${Core.resourceLook(r)}" alt="">` +
-      '<span class="col"><span class="val">0</span><span class="rate"></span></span>';
+    chip.innerHTML = `<span class="top"><img class="ic" data-look="${Core.resourceLook(r)}" alt=""><span class="val">0</span></span>` +
+      '<span class="rate"></span>';
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
   }
@@ -99,7 +99,7 @@ export function createHud(el, look) {
       const rates = Core.productionRates(s);
       for (const r of Core.RESOURCES) {
         setText(chips[r].val, fmtShort(s.inv[r]));
-        setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmt1(rates[r]) + '/s' : '');
+        setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmtRate(rates[r], true) + '/s' : '');
       }
       // A dot on BUILD and UPGRADE when there's something in there you can
       // do right now, so the sheet is worth opening.

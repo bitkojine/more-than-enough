@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.86.1] - 2026-10-15
+
+### Fixed
+- **Resource bar counters ran into each other on phones.** Rates were shown
+  in full (`+7 726 237,6/s`) beside the count and spilled into the next chip.
+  Rates now abbreviate like the counts (`fmtRate` in `src/game/format.js`:
+  one decimal under 100, then `fmtShort`), counts never use more than three
+  digits (`4.7M`, `45k`, `459M`), and each chip puts its icon and count on
+  one row with the rate centred under the whole chip. Below 414 px the count
+  is a little smaller; below 375 px rates are left out as before. Anything
+  that still doesn't fit is cut with an ellipsis instead of overlapping. The
+  Build and Collected sheets abbreviate big rates too.
+
 ## [0.86.0] - 2026-10-15
 
 ### Added

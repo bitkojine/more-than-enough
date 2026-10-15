@@ -163,29 +163,39 @@ canvas#game {
 }
 .chip {
   flex: 1 1 0; min-width: 0;
-  display: flex; align-items: center; justify-content: center; gap: 4px;
-  padding: 0 2px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  padding: 0 3px; overflow: hidden;
   background: none; border: 0;
-  font: inherit; color: inherit;
+  font: inherit; color: inherit; line-height: 1.05;
   pointer-events: auto; touch-action: manipulation; cursor: pointer;
 }
 .chip + .chip { border-left: 1px solid var(--panel-line); }
 .chip:active { background: var(--raised); }
 .chip:first-child { border-radius: 999px 0 0 999px; }
 .chip:last-child { border-radius: 0 999px 999px 0; }
-.chip .ic { width: 20px; height: 20px; flex: 0 0 auto; }
-.chip .col { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; min-width: 0; }
+/* The count beside its picture, the rate under both, using the chip's whole
+ * width. Counts and rates are abbreviated to fit (fmtShort); should one ever
+ * not, it's cut short rather than spilling into the next chip. */
+.chip .top { display: flex; align-items: center; gap: 3px; max-width: 100%; }
+.chip .ic { width: 18px; height: 18px; flex: 0 0 auto; }
+.chip .val, .chip .rate { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .chip .val {
   font-size: 15px; font-weight: 800; color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .chip .rate { font-size: 9.5px; color: var(--green); font-weight: 700; font-variant-numeric: tabular-nums; }
 .chip .rate:empty { display: none; }
-/* Narrow phones: each resource's picture over its count, rates left out. */
-@media (max-width: 360px) {
-  .chip { flex-direction: column; gap: 1px; }
+/* Most phones: a little smaller, so four digits fit beside the picture. */
+@media (max-width: 413px) {
+  .chip { padding: 0 2px; }
+  .chip .top { gap: 2px; }
   .chip .ic { width: 16px; height: 16px; }
-  .chip .col { align-items: center; }
+  .chip .val { font-size: 13px; }
+}
+/* Narrow phones: each resource's picture over its count, rates left out. */
+@media (max-width: 374px) {
+  .chip .top { flex-direction: column; gap: 1px; }
+  .chip .ic { width: 16px; height: 16px; }
   .chip .val { font-size: 13px; }
   .chip .rate { display: none; }
 }

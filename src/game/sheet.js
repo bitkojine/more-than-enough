@@ -6,7 +6,7 @@
  * the player to discover (or read in the wiki). */
 
 import * as Core from '../core/index.js';
-import { fmt, fmt1, fmtMult, esc } from './format.js';
+import { fmt, fmtRate, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t, listOr, capitalize } from '../i18n/i18n.js';
 
@@ -161,7 +161,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
     if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
-    const rate = `+${fmt1(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
+    const rate = `+${fmtRate(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const spot = Core.buildTarget(s, key);
@@ -246,7 +246,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
       const total = s.stats[r];
       html += `<div class="section colHead" id="col-${r}">${icon(r)} ${Core.RESOURCE_LABEL[r]}</div>`;
       html += row(icon(r), t('sheet.inPacks', { n: fmt(s.inv[r]) }),
-        t('sheet.gatheredHere', { n: fmt(total) }) + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmt1(rates[r])}/s</span>` : ''), '');
+        t('sheet.gatheredHere', { n: fmt(total) }) + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmtRate(rates[r])}/s</span>` : ''), '');
       for (const k of Object.keys(Core.SOURCES)) {
         const n = s.sources[r][k];
         if (n < 1) continue;
