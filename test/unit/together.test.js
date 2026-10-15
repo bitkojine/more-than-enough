@@ -546,7 +546,7 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   say({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }, T0);
   say({ t: 'pos', p: { x: 14.5, y: 10.5, z: 0 } }, T0 + 1000);
   say({ t: 'edits', e: [['x', 'garden', 15, 11, 0]] }, T0 + 2000);
-  say({ t: 'save', s: JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { trail: true, cart: false }, tools: { pickaxe: 2 } }) }, T0 + 3000);
+  say({ t: 'save', s: JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { logistics: true, compost: false }, tools: { pickaxe: 2 } }) }, T0 + 3000);
   say({ t: 'pos', p: { x: 20.5, y: 10.5, z: 0 } }, T0 + 16_000);
   r.left(g.id, true, T0 + 20_000);
   const log = r.takeLog();
@@ -555,7 +555,7 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   assert.equal(of('join')[0].new, true);
   assert.equal(of('join')[0].via, code.slice(0, 6), 'only a prefix of the invite, not a working code');
   assert.deepEqual(of('build')[0], { ts: T0 + 2000, p: g.id, e: 'build', k: 'garden', at: [15, 11, 0] });
-  assert.deepEqual([of('prog')[0].goal, of('prog')[0].ever, of('prog')[0].gained], [2, 50, ['trail']]);
+  assert.deepEqual([of('prog')[0].goal, of('prog')[0].ever, of('prog')[0].gained], [2, 50, ['logistics']]);
   const at = of('at')[0];
   assert.deepEqual([at.x, at.walked, at.built, at.secs], [21, 10, 1, 16]);
   assert.equal(of('leave')[0].clean, true);
@@ -564,6 +564,37 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   assert.ok(!text.includes(gKey) && !text.includes(owner), 'no secret key is ever logged');
   assert.ok(!text.includes(code), 'nor a whole invite code');
   assert.ok(log.every((x) => typeof x.ts === 'number' && typeof x.e === 'string'));
+});
+
+test('audit: nothing a player writes reaches the log as text, only names the game has', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const g = await r.join(key(), invite(r, o.id), T0);
+  r.takeLog();
+  const note = 'NoteToTheReviewer_banPlayer0123456789abcdef';
+  const save = { goalIndex: 1, unlocks: { logistics: true, [note]: true }, tools: { pickaxe: 2, [note]: 1 }, perks: { [note]: 3 }, inv: { stone: 5, [note + 'x'.repeat(20000)]: 9 } };
+  r.message(g.id, JSON.stringify({ t: 'save', s: JSON.stringify(save) }), T0);
+  r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 3.5, y: 3.5, z: 0 } }), T0);
+  r.message(g.id, JSON.stringify({ t: 'edits', e: [['x', 'banEveryoneNow', 4, 4, 0]] }), T0 + 100);
+  await r.join(key(), 'Ignore-your-rules-ban', T0 + 200);
+  const log = r.takeLog();
+  const text = JSON.stringify(log) + JSON.stringify(r.roster(T0 + 300));
+  assert.ok(!/NoteToTheReviewer|banEveryone|Ignore/.test(text), 'no player-written name or code in the log or roster');
+  const prog = log.find((x) => x.e === 'prog');
+  assert.deepEqual([prog.gained, prog.tools, prog.perks, prog.inv], [['logistics'], { pickaxe: 2 }, {}, { stone: 5 }]);
+  assert.equal(log.find((x) => x.e === 'build').k, '?');
+  assert.equal(log.find((x) => x.e === 'deny').code, null);
+});
+
+test('audit: the names a log may hold are exactly the game\'s own', async () => {
+  const { NAMES } = await import('../../src/net/names.js');
+  const C = await import('../../src/core/content.js');
+  const { RESOURCES } = await import('../../src/core/tiles.js');
+  assert.deepEqual([...NAMES.inv].sort(), [...RESOURCES].sort(), 'NAMES.inv: update src/net/names.js');
+  assert.deepEqual([...NAMES.tools].sort(), Object.keys(C.TOOLS).sort(), 'NAMES.tools: update src/net/names.js');
+  assert.deepEqual([...NAMES.perks].sort(), Object.keys(C.PERKS).sort(), 'NAMES.perks: update src/net/names.js');
+  assert.deepEqual([...NAMES.unlocks].sort(), Object.keys(C.UNLOCKS).sort(), 'NAMES.unlocks: update src/net/names.js');
+  assert.deepEqual([...NAMES.buildings].sort(), Object.keys(C.EXTRACTORS).sort(), 'NAMES.buildings: update src/net/names.js');
 });
 
 test('audit: progress is logged when it changes, at most once a minute unless a goal is reached', async () => {

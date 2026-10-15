@@ -13,7 +13,7 @@ import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE
 } from '../../src/net/protocol.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
-import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag } from './audit.js';
+import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
@@ -345,7 +345,7 @@ export class Room {
         if (this.apply(e, id)) {
           applied.push(e[0] === 'x' ? [...e.slice(0, 5), id] : e);
           act[e[0]]++;
-          if (e[0] === 'x') this.audit(now, id, 'build', { k: e[1], at: [e[2], e[3], e[4]] });
+          if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
         } else act.no++;
       }
       this.touch(now);

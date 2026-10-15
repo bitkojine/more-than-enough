@@ -91,7 +91,11 @@ quickly and we learn how people play. Each event is one JSON object, one per
 line in an export: `{"ts": <ms>, "p": <player id>, "e": <event>, ...}`. The
 player id is the room's hash of their key (never the key), and nothing else
 about a person is kept: no address, no name (players have none), nothing
-they typed (there's nowhere to type). Logs are deleted after 14 days
+they typed (there's nowhere to type). Nothing a player's game writes is
+logged as text either: item and building names only from the game's own
+list (`src/net/names.js`), invite codes only as a 6-character prefix of a
+real code. The log is read by an AI reviewer, so text in it could be made
+to read like an instruction. Logs are deleted after 14 days
 (`LOG_DAYS`), except the security trail (`cheat`, `ban`, `deny`, `cut`),
 kept 90 days (`SECURITY_DAYS`); all of it goes with the room. Players are told once, when they first
 enter a shared world, and in Settings.
@@ -102,7 +106,7 @@ enter a shared world, and in Settings.
 | `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
 | `deny` | someone is turned away | `why`: `banned`, `invite` (none, or not working), `full` |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
-| `build` | a building goes up | `k` (kind), `at` |
+| `build` | a building goes up | `k` (kind, or `?` for one the game doesn't have), `at` |
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
 | `st` | away or back | `st` |
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.77.1] - 2026-10-15
+
+From the second security audit (finding 1).
+
+### Security
+- **No player-written text in the audit log.** The log is read by an AI
+  reviewer, and the keys of a player's save (unlocks, tools, perks, items)
+  went into it as written, so a player could put sentences there. The room
+  service now logs only names the game has (`src/net/names.js`, kept equal
+  to the game's tables by a test) and drops the rest; a building of a kind
+  the game doesn't have is logged as `?`, and an invite code is logged only
+  if it looks like a real one.
+
 ## [0.77.0] - 2026-10-14
 
 ### Added

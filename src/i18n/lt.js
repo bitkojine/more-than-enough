@@ -683,6 +683,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.77.1": "Bendri pasauliai saugesni: serverio žaidimo žurnalas dabar saugo tik pačio žaidimo naudojamus pavadinimus, tad joks žaidėjas negali į jį įterpti savo teksto.",
   "news.0.77.0": "Draugų ženkleliai ekrano krašte dabar rodo, kiek jie toli, metrais ar kilometrais (kiekvienas blokas – 1 m), tad žinai, kiek tektų eiti iki jų. Jei draugas kitame sluoksnyje, ženklelis dar rodo, kiek sluoksnių aukščiau ar žemiau.\nŽenkleliai nebesislepia po mastelio mygtukais.",
   "news.0.76.0": "Statybų sąraše matyti, ko dar reikia, kur statomas kiekvienas pastatas ir kodėl jo negali padėti ten, kur stovi. Nebegaliojanti kvietimo nuoroda pasako, ar baigėsi jos laikas, ar ji išnaudota, ar sustabdyta. Senesni įrenginiai greičiau randa sklandžią kokybę, o dideli ekranai piešia mažiau taškų.",
   "news.0.75.1": "Naujas logotipas: du švytintys grybai vietoj rąstų krūvos, nes čia niekas nekerta medžių. Jį matysi pradžios ekrane, naršyklės kortelėje ir bendrinamose nuorodose.",

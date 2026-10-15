@@ -683,6 +683,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.77.1": "Shared worlds are safer: the server's play log now only keeps names the game itself uses, so nothing a player sends can sneak extra text into it.",
   "news.0.77.0": "Friends' badges at the edge of the screen now say how far away they are, in metres or kilometres (every block is 1 m), so you know how far you'd walk to meet them. On another layer, the badge also shows how many layers up or down.\nBadges no longer hide under the zoom buttons.",
   "news.0.76.0": "The Build list says what you still need, where each building goes, and why you can't place it where you stand. An invite link that no longer works says whether it expired, filled up or was stopped. Older devices settle on smooth quality faster, and big screens draw fewer pixels.",
   "news.0.75.1": "A new logo: two glowing mushrooms instead of a pile of logs, because nobody here cuts trees. You'll see it on your home screen, in your browser tab and on shared links.",

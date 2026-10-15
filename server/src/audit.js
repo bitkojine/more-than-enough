@@ -6,7 +6,13 @@
  * Every event is {ts, p, e, ...}: when (ms), which player (their id in this
  * world: a hash, never their key, name or address) and what. The events and
  * their fields are listed in server/README.md ("Audit log"). Nothing a
- * player typed is logged, because players can't type anything. */
+ * player wrote is logged: names come only from the game's own list
+ * (src/net/names.js) and invite codes only as a short prefix of a real
+ * code, because the log is read by an AI reviewer and any text in it could
+ * be made to read like an instruction. */
+
+import { NAMES } from '../../src/net/names.js';
+import { ROOM_ID_RE } from '../../src/net/protocol.js';
 
 export const LOG_DAYS = 14;                 // events older than this are deleted
 export const SECURITY_DAYS = 90;            // except the security trail, kept this long
@@ -21,16 +27,20 @@ const round = (v) => Math.round(v);
 
 // The parts of a player's progress (their save, JSON from the game) worth
 // following: how far along they are, what they have unlocked and built, and
-// how much they hold. Null if it isn't readable.
+// how much they hold. Only names the game has are kept; anything else is
+// left out. Null if it isn't readable.
 export function digestOf(save) {
   let d;
   try { d = JSON.parse(save); } catch { return null; }
   if (!d || typeof d !== 'object') return null;
   const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
-  const keysWhere = (o, ok) => (o && typeof o === 'object' ? Object.keys(o).filter((k) => ok(o[k])).sort() : []);
-  const nums = (o) => {
+  const known = (o, names) => {
+    if (!o || typeof o !== 'object') return [];
+    return Object.keys(o).filter((k) => names.includes(k)).sort();
+  };
+  const nums = (o, names) => {
     const out = {};
-    if (o && typeof o === 'object') for (const k of Object.keys(o).slice(0, 32)) if (num(o[k])) out[k] = round(num(o[k]));
+    for (const k of known(o, names)) if (num(o[k])) out[k] = round(num(o[k]));
     return out;
   };
   const st = d.stats && typeof d.stats === 'object' ? d.stats : {};
@@ -41,14 +51,17 @@ export function digestOf(save) {
     ins: round(num(d.insight)),
     ab: num(d.abundanceLv),
     deep: num(d.underground && d.underground.deepest),
-    unl: keysWhere(d.unlocks, (v) => v === true),
-    tools: nums(d.tools),
-    perks: nums(d.perks),
-    inv: nums(d.inv),
+    unl: known(d.unlocks, NAMES.unlocks).filter((k) => d.unlocks[k] === true),
+    tools: nums(d.tools, NAMES.tools),
+    perks: nums(d.perks, NAMES.perks),
+    inv: nums(d.inv, NAMES.inv),
     built: round(num(st.built)),
     played: round(num(st.playedMs) / 1000)
   };
 }
+
+// A building's kind as logged: one the game has, or '?'.
+export const kindTag = (kind) => (NAMES.buildings.includes(kind) ? kind : '?');
 
 // What changed between two digests, as the fields of a `prog` event: the
 // numbers now, and which unlocks are new.
@@ -66,7 +79,7 @@ export function sameDigest(a, b) {
 
 // A short, safe prefix of an invite code: enough to tell links apart in the
 // log, not enough to use one.
-export const codeTag = (code) => (typeof code === 'string' ? code.slice(0, 6) : null);
+export const codeTag = (code) => (typeof code === 'string' && ROOM_ID_RE.test(code) ? code.slice(0, 6) : null);
 
 // Events as JSON lines.
 export const toLines = (events) => events.map((e) => JSON.stringify(e)).join('\n');
