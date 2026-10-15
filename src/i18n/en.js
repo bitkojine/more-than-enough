@@ -686,6 +686,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.80.2": "The old room service address is switched off, so every shared world now goes through the protected one.",
   "news.0.80.1": "Shared worlds now run at rooms.robertasrudys.com, behind Cloudflare's protection, so floods of traffic are stopped before they can take multiplayer down.",
   "news.0.80.0": "No cheating in shared worlds, not even for the world's owner: owners follow the same anti-cheat and the same building and digging limits as everyone else.\nIf an owner is removed for cheating, the world passes to whoever joined it first, and everyone keeps playing.",
   "news.0.79.1": "Shared worlds keep running smoothly even if someone tries to flood them with away/back messages.",

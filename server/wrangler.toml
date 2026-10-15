@@ -8,9 +8,9 @@ compatibility_date = "2026-09-01"
 # The service lives at rooms.robertasrudys.com: a Custom Domain on the
 # robertasrudys.com zone, added in the Cloudflare dashboard (Workers & Pages ->
 # mte-rooms -> Domains), so Cloudflare's firewall and rate-limiting rule sit in
-# front of it. The workers.dev address only stays while games still on the
-# old address update; then it goes off. No preview addresses.
-workers_dev = true
+# front of it. No workers.dev or preview addresses: everything goes through
+# the domain and its rules.
+workers_dev = false
 preview_urls = false
 
 [vars]

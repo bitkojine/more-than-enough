@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.80.2] - 2026-10-15
+
+### Security
+- **The old workers.dev address is off** (`workers_dev = false`). Every game
+  has updated to rooms.robertasrudys.com, so the room service is now only
+  reachable through the domain, behind Cloudflare's firewall and the
+  rate-limiting rule.
+
 ## [0.80.1] - 2026-10-15
 
 From the second security audit (finding 4).
