@@ -1,7 +1,7 @@
 /* Where the room service (server/) runs. Empty means playing together is not
  * set up yet, and the game doesn't offer it. */
 
-export const ROOM_SERVICE = 'https://mte-rooms.usernametologinwith.workers.dev';
+export const ROOM_SERVICE = 'https://rooms.robertasrudys.com';
 
 // On a developer's own machine, ?rooms=http://localhost:8787 points the game
 // at a local `wrangler dev`. Never anywhere else: a link must not be able to

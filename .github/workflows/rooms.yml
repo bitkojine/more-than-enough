@@ -57,4 +57,4 @@ jobs:
       - name: Smoke test the live service
         env:
           ROOMS_ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
-        run: node server/smoke.mjs https://mte-rooms.usernametologinwith.workers.dev https://play.robertasrudys.com
+        run: node server/smoke.mjs https://rooms.robertasrudys.com https://play.robertasrudys.com

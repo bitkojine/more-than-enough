@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.80.1] - 2026-10-15
+
+From the second security audit (finding 4).
+
+### Security
+- **The room service moves to rooms.robertasrudys.com**, a Custom Domain on
+  the Cloudflare zone, so the zone's firewall and a free rate-limiting rule
+  stop floods before they use up the free plan's daily requests (a
+  workers.dev address can't have either). The game and its CSP point
+  there; the deploy smoke-tests it. Preview addresses are off. The old
+  workers.dev address keeps working until every game has updated, then
+  goes off.
+
 ## [0.80.0] - 2026-10-15
 
 Watch's rule: in a shared world nobody cheats, owners included.

@@ -686,6 +686,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.80.1": "Bendri pasauliai dabar veikia adresu rooms.robertasrudys.com, saugomi „Cloudflare“, tad srauto antplūdžiai sustabdomi, kol dar negali sugadinti žaidimo kartu.",
   "news.0.80.0": "Bendruose pasauliuose sukčiauti negali niekas, net pasaulio savininkas: savininkams galioja ta pati apsauga nuo sukčiavimo ir tos pačios statybų bei kasimo ribos kaip visiems.\nJei savininkas pašalinamas už sukčiavimą, pasaulis atitenka tam, kas prisijungė pirmas, ir visi žaidžia toliau.",
   "news.0.79.1": "Bendri pasauliai veikia sklandžiai, net jei kas nors bando juos užtvindyti „pasitraukė / grįžo“ žinutėmis.",
   "news.0.79.0": "Bendruose pasauliuose sunkiau sukčiauti: išėjus ir vėl prisijungus nebegalima peršokti per žemėlapį ar greičiau keisti pasaulio.\nJei grįžti iš kito įrenginio arba pažaidęs neprisijungęs, žaidimas perkelia tave ten, kur bendras pasaulis tave matė paskutinį kartą.\nKiekvienas žaidėjas pasaulyje gali pakeisti iki 10 000 naujų langelių, tad niekas negali išnaudoti visos pasaulio vietos kitiems.",
