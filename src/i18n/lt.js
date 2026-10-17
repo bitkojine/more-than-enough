@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.92.0": "Žaidimas vėl atsisiunčia mažiau ir atsidaro greičiau: prieš pradedant žaisti reikia atsisiųsti apie 40 % mažiau.\nVikis vėl rodo savo paveikslėlius.",
   "news.0.91.1": "Bendruose pasauliuose, kai tavo žaidimo skaičiai nesutampa su pasaulio skaičiavimu, žaidimas dabar iš karto perima pasaulio skaičius ir jų laikosi, užuot vis labiau nutolęs.",
   "news.0.91.0": "Žaidimas atsidaro greičiau, ypač per lėtą ryšį ar senesniame {phone:telefone|laptop:kompiuteryje}: jo paveikslėliai dabar atkeliauja visi kartu, o ne po vieną.",
   "news.0.90.0": "Kvietimų nuorodos dabar gali galioti iki savaitės: nustatymuose, skiltyje „Kvietimų nuorodos“, pasirink 7 paras. Naujos nuorodos galioja savaitę, nebent pasirinksi trumpiau.",

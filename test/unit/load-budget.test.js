@@ -3,11 +3,12 @@
  * browser has to download before the game can start:
  *  - the default pack's pictures arrive inside pack.json (one request, not
  *    one per picture);
- *  - every module the game imports, and the pack, is named up front in the
- *    page, so they download together instead of one import level at a time;
+ *  - the game's code is one bundled file (no module is left to fetch import
+ *    by import), and the pack is named up front so it downloads alongside;
  *  - the whole first load (page, stylesheet, modules, pack), gzipped as
  *    GitHub Pages serves it, stays under a budget. Raise BUDGET_KB only on
- *    purpose: every 10 KB is ~60 ms more on slow 3G before anyone can play. */
+ *    purpose: every 10 KB is ~60 ms more on slow 3G before anyone can play.
+ * Needs `npm ci` (staging bundles with esbuild). */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,8 +20,8 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const BUDGET_KB = 300;
-const MAX_REQUESTS = 80;
+const BUDGET_KB = 200;
+const MAX_REQUESTS = 6;
 
 test('the first load is few requests and fits the size budget', (t) => {
   const out = mkdtempSync(join(tmpdir(), 'mte-stage-'));
@@ -35,7 +36,7 @@ test('the first load is few requests and fits the size budget', (t) => {
   const paths = JSON.stringify(pack.looks).match(/"[^"<]*\.(svg|png|webp|jpe?g|gif)"/g) || [];
   assert.deepEqual(paths, [], 'pictures left as separate files in the staged pack');
 
-  // Every module the game imports is preloaded, with the same ?v= the import uses.
+  // Anything the game still imports is preloaded (the bundle leaves nothing).
   const preloaded = new Set([...page.matchAll(/<link rel="(?:modulepreload|preload)" href="([^"]+)"/g)].map((m) => m[1]));
   const entry = page.match(/<script type="module" src="([^"]+)"/)[1];
   const modules = new Set();
@@ -49,7 +50,7 @@ test('the first load is few requests and fits the size budget', (t) => {
     }
   };
   walk(entry);
-  for (const m of modules) if (m !== entry) assert.ok(preloaded.has(m), `${m} is imported but not preloaded`);
+  for (const m of modules) if (m !== entry) assert.ok(preloaded.has(m), `${m} is imported but neither bundled nor preloaded`);
   assert.ok([...preloaded].some((u) => u.startsWith('packs/default/pack.json?v=')), 'the default pack is not preloaded');
 
   // Size and count of everything a fresh browser fetches before the game starts.

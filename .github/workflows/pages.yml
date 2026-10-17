@@ -1,6 +1,7 @@
-# Test, then deploy the game to GitHub Pages. No build step: scripts/stage-site.sh
-# copies the static files, makes them quick to load (scripts/stage-speed.mjs)
-# and stamps a cache-busting hash onto asset URLs.
+# Test, then deploy the game to GitHub Pages. The source runs as it is;
+# scripts/stage-site.sh copies the static files, makes them quick to load
+# (scripts/stage-speed.mjs: one pictures file, code bundled and minified) and
+# stamps a cache-busting hash onto asset URLs.
 # Runs on every push to main, on pull requests (tests only), and on demand.
 
 name: Test and deploy
@@ -34,6 +35,9 @@ jobs:
       - name: Node version
         run: node --version
 
+      - name: Install esbuild (the only dependency; staging the site uses it)
+        run: npm ci
+
       - name: Unit tests
         run: npm test
 
@@ -51,7 +55,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Stage the site (cache-busted)
+      - name: Set up Node (latest LTS, from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+
+      - name: Install esbuild
+        run: npm ci
+
+      - name: Stage the site (bundled, cache-busted)
         run: sh scripts/stage-site.sh site
 
       - name: Upload artifact

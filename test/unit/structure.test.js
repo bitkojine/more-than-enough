@@ -1,5 +1,5 @@
 /* The code's shape, checked so it can't quietly rot. The project has no
- * linter (no dependencies at all), so these few rules are enforced here:
+ * linter (its one dev dependency, esbuild, only stages the site), so these few rules are enforced here:
  *  - no function name is declared twice in a file: a later declaration
  *    silently replaces the earlier one (this once made the game silent);
  *  - no import cycles among the source modules;

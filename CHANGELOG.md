@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.92.0] - 2026-10-17
+
+### Changed
+- **The deployed game is one bundled, minified file** (Watch's call).
+  `scripts/stage-speed.mjs` bundles `src/game/main.js` and its ~70 modules
+  with esbuild (names kept for crash reports, linked source map for DevTools)
+  in place of `main.js` in the staged site. The source still runs as it is.
+  esbuild is the repo's one dev dependency (`npm ci`; the Pages workflow runs
+  it). First load: 263 KB and 72 requests to 160 KB and 4. Slow 3G at 4x CPU
+  throttle: 5.3 s to 4.5 s; 4G 2.8 s to 2.5 s.
+- `test/unit/load-budget.test.js` budget lowered to 200 KB and 6 requests.
+- `MTE_SITE=<staged dir> node test/browser.e2e.js` tests the bundled site.
+
+### Fixed
+- The wiki's pictures, broken on the live site since 0.91.0 put the default
+  pack's pictures inside `pack.json`: `wiki/textures.js` now shows inline
+  pictures as well as files.
+
 ## [0.91.1] - 2026-10-17
 
 ### Fixed

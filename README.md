@@ -17,8 +17,9 @@ game has an origin of its own, so nothing else on bitkojine.github.io can read
 players' keys or saves; the room service accepts only this origin.)
 
 Or serve the folder yourself. The game is plain HTML/CSS and JavaScript
-modules with zero dependencies and no build step, so `index.html` just needs a
-static host:
+modules with no runtime dependencies and no build step, so `index.html` just
+needs a static host. (The deploy bundles and minifies a copy for players with
+esbuild, the one dev dependency: `npm ci` before `npm test` or `npm run stage`.)
 
 ```sh
 cd more-than-enough

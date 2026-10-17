@@ -1,14 +1,17 @@
 /* Makes the staged site (scripts/stage-site.sh) quick to open on a slow phone
- * connection, without a build step or any change to the source tree:
+ * connection. The source tree is untouched and still runs as it is, with no
+ * build step; only the copy players download changes:
  *
  * 1. The default texture pack is one file. Every picture path in the staged
  *    packs/default/pack.json is replaced by the SVG itself (a pack may carry
  *    inline "<svg ...>" markup), so the game makes one request for its
  *    pictures instead of ~150. The source pack keeps its files, so it stays
  *    an easy example to copy for your own pack.
- * 2. The page names every module the game will load, and the pack, up front
- *    (<link rel="modulepreload"> and "preload"), so the browser fetches them all at once
- *    instead of discovering them import by import, one round trip per level.
+ * 2. The game's ~70 modules are bundled and minified (esbuild) into one
+ *    file in place of src/game/main.js: one request, and about half the bytes,
+ *    since the source is mostly comments. A source map is alongside for DevTools.
+ * 3. The page names the pack up front (<link rel="preload">), so it downloads
+ *    with the code instead of after it.
  *
  * Usage: node scripts/stage-speed.mjs <staged site dir>  (before stamping) */
 
@@ -36,25 +39,32 @@ for (const entry of Object.values(pack.looks)) {
 }
 fs.writeFileSync(packFile, JSON.stringify(pack));
 
-/* 2. Preload every module reachable from the entry point. */
+/* 2. Bundle and minify the game's code. */
+let esbuild;
+try {
+  esbuild = await import('esbuild');
+} catch {
+  throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
+}
+const entry = path.join(OUT, 'src/game/main.js');
+await esbuild.build({
+  entryPoints: [entry],
+  outfile: entry,          // in place: import.meta.url stays where main.js was
+  allowOverwrite: true,
+  bundle: true,
+  format: 'esm',
+  minify: true,
+  keepNames: true,         // so a crash report still names the functions
+  sourcemap: 'linked',     // for DevTools only; players never download it
+  sourcesContent: false,   // the staged site carries the sources themselves
+  legalComments: 'none',
+  logLevel: 'warning'
+});
+
+/* 3. The pack is named up front, so it downloads with the code. */
 const page = path.join(OUT, 'index.html');
-const entry = 'src/game/main.js';
-const seen = new Set();
-const walk = (rel) => {
-  if (seen.has(rel)) return;
-  seen.add(rel);
-  const src = fs.readFileSync(path.join(OUT, rel), 'utf8');
-  for (const m of src.matchAll(/^\s*(?:import|export)\s[^;]*?from\s+'(\.{1,2}\/[^']+\.js)'/gm)) {
-    walk(path.posix.normalize(path.posix.join(path.posix.dirname(rel), m[1])));
-  }
-};
-walk(entry);
-seen.delete(entry); // the page's own <script> already asks for it
-const links = [...seen].sort().map((m) => `<link rel="modulepreload" href="${m}" />`)
-  // The pack too: fetched with the modules instead of after them all.
-  .concat('<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />').join('\n');
 const html = fs.readFileSync(page, 'utf8');
 if (!html.includes('</head>')) throw new Error('no </head> in index.html');
-fs.writeFileSync(page, html.replace('</head>', `${links}\n</head>`));
+fs.writeFileSync(page, html.replace('</head>', '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'));
 
-console.log(`Inlined the default pack's pictures; preloading ${seen.size} modules`);
+console.log(`Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(entry).size / 1024)} KB)`);

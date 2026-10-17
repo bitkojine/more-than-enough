@@ -20,11 +20,17 @@ export async function loadDefaultPack() {
 
 const slotOf = (id, slot) => (pack.looks[id] || {})[slot];
 
+// Where a picture of the pack loads from: a file next to pack.json, or (in the
+// deployed site, which puts every picture inside pack.json) its own markup.
+const srcOf = (ref) => (ref.startsWith('<')
+  ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ref)  // i18n-ok: a URL
+  : PACK_DIR + ref);
+
 // The URL of the first picture in a thing's slot ('' if it has none).
 export function pictureUrl(id, slot = 'icon') {
   const v = slotOf(id, slot);
   const first = v === undefined ? null : pictures(v)[0];
-  return first ? PACK_DIR + first : '';
+  return first ? srcOf(first) : '';
 }
 
 // A thing's colour in the default pack.
@@ -33,7 +39,7 @@ export const colorOf = (id) => slotOf(id, 'color');
 // The URL of a stockpile pile's picture for 10^tier of a resource.
 export function tierUrl(res, tier) {
   const list = pack.looks['pile.' + res].tiers;
-  return PACK_DIR + list[Math.min(tier, list.length - 1)];
+  return srcOf(list[Math.min(tier, list.length - 1)]);
 }
 
 // An inline <img> of a thing's picture, sized like text. Give it `alt` when
@@ -55,7 +61,7 @@ function preview(thing) {
   for (const slot of SLOT_ORDER) {
     if (look[slot] === undefined) continue;
     const imgs = pictures(look[slot]).filter((p, i, all) => all.indexOf(p) === i)
-      .map((p) => `<img src="${PACK_DIR + p}" alt="" loading="lazy" class="thumb thumb-${slot}">`).join('');
+      .map((p) => `<img src="${srcOf(p)}" alt="" loading="lazy" class="thumb thumb-${slot}">`).join('');
     parts.push(`<span class="slotpics" title="${slot}">${imgs}</span>`);
   }
   if (look.color) parts.push(`<span class="swatch" style="background:${look.color}" title="${look.color}"></span>`);
@@ -91,7 +97,7 @@ export async function bundleDefaultPack() {
   const out = JSON.parse(JSON.stringify(pack));
   const cache = new Map();
   const inline = async (ref) => {
-    if (ref === null) return null;
+    if (ref === null || ref.startsWith('<')) return ref;
     if (!cache.has(ref)) {
       cache.set(ref, fetch(PACK_DIR + ref).then((r) => {
         if (!r.ok) throw new Error(`${ref}: ${r.status}`);

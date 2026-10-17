@@ -6,7 +6,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-var ROOT = path.resolve(import.meta.dirname, '..');
+// MTE_SITE=<dir> tests a staged site (scripts/stage-site.sh: the bundled game
+// players get) instead of the source.
+var ROOT = path.resolve(process.env.MTE_SITE || path.join(import.meta.dirname, '..'));
 var PORT = 8200 + Math.floor(Math.random() * 400);
 var CDP_PORT = 9400 + Math.floor(Math.random() * 400);
 var SHOT_DIR = process.env.MTE_SHOT_DIR || path.join(os.tmpdir(), 'mte-shots');
@@ -1168,7 +1170,8 @@ async function main() {
   await evalJS('(function(){var b=document.getElementById("search");b.value="";b.dispatchEvent(new Event("input"));})()');
   ok(await waitFor('document.getElementById("results").hidden && !document.getElementById("home").hidden && document.querySelectorAll("#toc li:not([hidden])").length === document.querySelectorAll("article").length', 2000), 'clearing the search returns to the wiki');
   await evalJS('location.hash = "#textures"');
-  var bundled = await evalJS('import("/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
+  // The same module instance the wiki loaded (a staged site stamps ?v= on it).
+  var bundled = await evalJS('import(performance.getEntriesByType("resource").map(function(e){return e.name;}).filter(function(n){return /\\/wiki\\/textures\\.js/.test(n);})[0] || "/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
   ok(bundled.n === things && bundled.svg && !bundled.paths, 'the default pack downloads as one file with every picture inside it');
 
   console.log('\n== Sound on a fresh page ==');
