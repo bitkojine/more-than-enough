@@ -5,7 +5,8 @@
  *   build  a building: its price (or its blueprint's, before that)
  *   count  (s) => { n, of }: a number to reach */
 
-import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS } from './content.js';
+import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
+import { RESOURCES } from './tiles.js';
 import { extractorCount, ownBuilding, extractorCost, canAfford } from './economy.js';
 import { canEmbark, worldTotal } from './state.js';
 import { upgradeCost, isMaxed, worldMastery } from './upgrades.js';
@@ -14,6 +15,15 @@ import { t, number } from '../i18n/i18n.js';
 const has = (key) => (s) => extractorCount(s, key) > 0;
 const STRUCTURES = 25;
 const ownBuildings = (s) => s.extractors.filter((e) => ownBuilding(s, e)).length;
+
+// Refinery levels bought, counting each chain up to `top` levels.
+const refined = (top) => (s) => ({ n: RESOURCES.reduce((n, r) => n + Math.min(top, s.resUp[r]), 0), of: top * RESOURCES.length });
+
+// Tool levels bought, out of every level there is.
+function toolLevels(s) {
+  const ids = Object.keys(TOOLS);
+  return { n: ids.reduce((n, id) => n + s.tools[id] - 1, 0), of: ids.reduce((n, id) => n + TOOLS[id].levels.length - 1, 0) };
+}
 
 // Master the world: every upgrade first, then the resources to gather.
 function masterProgress(s) {
@@ -48,6 +58,10 @@ export const GOALS = [
   { id: 'metallurgy', text: t('goal.metallurgy'), buy: 'ore', done: (s) => s.resUp.ore >= 1 },
   { id: 'abundance4', text: t('goal.abundance4'), buy: 'abundance', done: (s) => s.abundanceLv >= 4 },
   { id: 'structures', text: t('goal.structures'), count: (s) => ({ n: ownBuildings(s), of: STRUCTURES }), done: (s) => ownBuildings(s) >= STRUCTURES },
+  { id: 'refined5', text: t('goal.refined5'), count: refined(5), done: (s) => refined(5)(s).n >= refined(5)(s).of },
+  { id: 'tools', text: t('goal.tools'), count: toolLevels, done: (s) => toolLevels(s).n >= toolLevels(s).of },
+  { id: 'abundance5', text: t('goal.abundance5'), buy: 'abundance', done: (s) => s.abundanceLv >= 5 },
+  { id: 'refined10', text: t('goal.refined10'), count: refined(10), done: (s) => refined(10)(s).n >= refined(10)(s).of },
   { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), count: masterProgress, done: canEmbark },
   { id: 'forever', text: t('goal.forever'), done: () => false }
 ];

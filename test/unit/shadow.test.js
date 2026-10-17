@@ -135,16 +135,11 @@ test('shadow: play time can\'t run ahead of the room\'s clock', async () => {
 
 test('shadow: hauling with Logistics and overclocked buildings agree too', async () => {
   const { s, r, id, sync } = await sharedGame(12345);
-  const { gather, standBy, free } = createBot(12345, s, sync);
-  gather('mycelium', 6); C.buy(s, 'basket');
-  gather('mycelium', 8); C.buy(s, 'boots');
-  gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe');
-  gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden');
-  gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry');
-  gather('stone', 45); gather('ore', 12); standBy(free(T.ORE)); C.place(s, 'mine');
-  gather('stone', 150); gather('ore', 40); assert.ok(C.buy(s, 'logistics').ok, 'Logistics');
-  const cost = C.upgradeCost(s, 'overclock');
-  gather('stone', cost.stone); gather('ore', cost.ore); assert.ok(C.buy(s, 'overclock').ok);
+  const { buyNow, buildNow } = createBot(12345, s, sync);
+  buyNow('basket'); buyNow('boots'); buyNow('pickaxe');
+  assert.ok(buildNow('garden').ok && buildNow('quarry').ok && buildNow('mine').ok, 'a garden, a quarry and a mine');
+  assert.ok(buyNow('logistics').ok, 'Logistics');
+  assert.ok(buyNow('overclock').ok);
   for (let i = 0; i < 1200; i++) { C.step(s, 0.1); if (i % 3 === 2) sync(); }
   sync(true);
   const report = r.shadow.report(id);

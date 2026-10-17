@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { C, master } from './helpers.js';
 
-test('embarking needs a mastered world and a million gathered in it', () => {
+test('embarking needs a mastered world and a world\'s worth gathered in it', () => {
   const s = C.createState(12345);
   assert.equal(C.canEmbark(s), false);
   assert.equal(C.embarkGain(s), 0);
@@ -19,8 +19,10 @@ test('embarking needs a mastered world and a million gathered in it', () => {
   assert.equal(C.canEmbark(s), true);
   s.stats.mycelium = C.EMBARK_MIN_TOTAL - 1;
   assert.equal(C.canEmbark(s), false, 'mastery alone is not enough');
-  s.stats.mycelium = 1000000;
-  assert.equal(C.embarkGain(s), 22, 'floor(sqrt(1000000 / 2000))');
+  s.stats.mycelium = C.EMBARK_MIN_TOTAL;
+  assert.equal(C.embarkGain(s), 22, 'floor(sqrt(500)) for one world\'s worth');
+  s.stats.mycelium = 4 * C.EMBARK_MIN_TOTAL;
+  assert.equal(C.embarkGain(s), 44, 'the square root after that');
 });
 
 test('mastery counts every level of every finite world upgrade', () => {
@@ -45,7 +47,7 @@ test('lifetime total adds earlier worlds to this one', () => {
 test('embarking starts a fresh world and keeps Insight, lifetime and the mushrooms found', () => {
   const s = C.createState(12345);
   master(s);
-  s.stats.mycelium = 1000000;
+  s.stats.mycelium = C.EMBARK_MIN_TOTAL;
   s.mushrooms.morel = 4;
   s.mushroomsEver.push('morel');
   s.extractors.push({ key: 'garden', res: 'mycelium', x: 0, y: 0, z: 0, buffer: 0 });
@@ -58,7 +60,7 @@ test('embarking starts a fresh world and keeps Insight, lifetime and the mushroo
   assert.equal(fresh.extractors.length, 0);
   assert.equal(fresh.insight, 22);
   assert.equal(fresh.prestiges, 1);
-  assert.equal(fresh.totalEver, 1000000);
+  assert.equal(fresh.totalEver, C.EMBARK_MIN_TOTAL);
   assert.equal(C.worldTotal(fresh), 0);
   assert.equal(C.canEmbark(fresh), false, 'carried progress alone cannot re-embark');
   assert.deepEqual(fresh.mushroomsEver, ['morel'], 'the collection of kinds found carries over');
@@ -113,9 +115,10 @@ test('milestones count in any order, and the next one says what it still takes',
   const next = C.nextGoal(s);
   assert.equal(next.id, 'pickaxe');
   assert.deepEqual(C.goalNeeds(s, next), { cost: C.TOOLS.pickaxe.levels[1].cost });
-  s.inv.mycelium = 130; s.inv.stone = 5;
+  const price = C.TOOLS.pickaxe.levels[1].cost;
+  s.inv.mycelium = 130; s.inv.stone = price.stone - 1;
   assert.equal(C.nextGoalReady(s), false, 'one stone short');
-  s.inv.stone = 6;
+  s.inv.stone = price.stone;
   assert.equal(C.nextGoalReady(s), true);
 
   // A converter's milestone asks for its blueprint first.

@@ -56,7 +56,7 @@ test('tool upgrades raise yields and stop at their max level', () => {
   assert.equal(s.tools.basket, 2);
   assert.equal(C.gatherYield(s, 'mycelium'), 2);
   assert.equal(C.gatherYield(s, 'stone'), 1, 'the pickaxe is unaffected');
-  Object.assign(s.inv, { mycelium: 1e5, stone: 1e5, ore: 1e5 });
+  Object.assign(s.inv, { mycelium: 1e12, stone: 1e12, ore: 1e12 });
   for (let i = 0; i < 10; i++) C.buy(s, 'basket');
   assert.equal(s.tools.basket, 6);
   assert.deepEqual(C.buy(s, 'basket'), { ok: false, reason: 'Maxed' });
@@ -64,12 +64,13 @@ test('tool upgrades raise yields and stop at their max level', () => {
 
 test('upgrades cost exactly their price', () => {
   const s = C.createState(12345);
-  s.inv.mycelium = 5;
+  const price = C.TOOLS.basket.levels[1].cost.mycelium;
+  s.inv.mycelium = price - 1;
   assert.equal(C.buy(s, 'basket').ok, false);
-  s.inv.mycelium = 6;
+  s.inv.mycelium = price;
   assert.equal(C.buy(s, 'basket').ok, true);
   assert.equal(s.inv.mycelium, 0);
-  s.inv.mycelium = 8;
+  s.inv.mycelium = C.TOOLS.boots.levels[1].cost.mycelium;
   C.buy(s, 'boots');
   assert.equal(s.tools.boots, 2);
   assert.ok(C.speedMult(s) > 1);

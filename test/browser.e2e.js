@@ -496,8 +496,8 @@ async function main() {
   ok(await heard(200) > 0.01, 'gathering in play is heard');
   var g1 = JSON.parse(await stateSummary());
   ok(g1.inv.mycelium > g0.inv.mycelium, 'holding GATHER collected mycelium (' + g0.inv.mycelium + ' -> ' + g1.inv.mycelium + ')');
-  // The first milestone (gather mycelium) is celebrated with a banner naming it.
-  ok(await waitFor('!document.getElementById("milestone").hidden && /mycelium/i.test(document.querySelector("#milestone strong").textContent)', 2000),
+  // A milestone reached (gathering, or ore spotted on the way) is celebrated with a banner naming it.
+  ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.text===txt;});})()', 2000),
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
   ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
@@ -593,7 +593,6 @@ async function main() {
 
   /* ----------------------------------------------------------- upgrade */
   console.log('\n== Upgrade (craft an Basket) ==');
-  var myceliumNow = g1.inv.mycelium;
   var upgradeControl = await rect('#btnUpgrade');
   await tap(upgradeControl.x, upgradeControl.y);
   await sleep(300);
@@ -610,7 +609,8 @@ async function main() {
   ok(await evalJS('/gradient/.test(getComputedStyle(document.querySelector(".row button[data-id=basket]")).backgroundImage)'), 'a button you can press looks raised and solid');
   console.log('  screenshot: ' + await shot('02c-upgrades.png'));
   await evalJS('Object.assign(MTE_GAME.getState().inv,' + savedInv + ')');
-  if (myceliumNow < 6) { await evalJS('MTE_GAME.addRes("mycelium",20)'); await sleep(150); }
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"basket");for(var r in c)if(s.inv[r]<c[r])MTE_GAME.addRes(r,c[r]-s.inv[r]);})()');
+  await sleep(150);
   var axeButton = await rect('.row button[data-id=basket]');
   await tap(axeButton.x, axeButton.y);
   await sleep(200);
@@ -834,7 +834,7 @@ async function main() {
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(200);
 
-  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.mycelium=5000000;})()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.stats.mycelium=MTE_GAME.core.EMBARK_MIN_TOTAL;})()');
   await sleep(500);
   ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'a huge haul alone does not reveal Beyond');
   // Master the world: every tool, refinery and unlock, Abundance to the embark level.
@@ -843,7 +843,7 @@ async function main() {
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(250);
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');
-  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled in a mastered world with a million gathered');
+  ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled in a mastered world with enough gathered');
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(200);

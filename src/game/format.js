@@ -1,6 +1,6 @@
 /* Number and text formatting for the UI, as the player's language writes
- * numbers (decimal point or comma, and its words for thousand, million and
- * billion). */
+ * numbers (decimal point or comma, and its words for thousand, million,
+ * billion and trillion). */
 
 import { t, number } from '../i18n/i18n.js';
 

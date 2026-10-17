@@ -41,13 +41,13 @@ test('logistics auto-collects only within range', () => {
 
 test('the Abundance Engine trickles resources and compounds production', () => {
   const s = C.createState(12345);
-  Object.assign(s.inv, { mycelium: 1e5, stone: 1e5, ore: 1e5, crystal: 1000 });
+  Object.assign(s.inv, { mycelium: 1e12, stone: 1e12, ore: 1e12, crystal: 1e12 });
   assert.equal(C.buy(s, 'abundance').ok, true);
   assert.equal(s.abundanceLv, 1);
   const before = s.inv.crystal;
   run(s, 5);
   assert.ok(Math.abs(s.inv.crystal - before - 5) < 0.5, '+1/s of each resource at level 1');
-  assert.equal(C.abundanceCost(s).mycelium, Math.ceil(1500 * 2.4));
+  assert.equal(C.abundanceCost(s).mycelium, Math.ceil(C.ABUNDANCE.baseCost.mycelium * C.ABUNDANCE.growth));
   assert.equal(C.buy(s, 'abundance').ok, true);
   assert.equal(C.abundanceMult(s), 2.25);
   const mycelium = s.inv.mycelium;

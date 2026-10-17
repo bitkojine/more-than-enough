@@ -143,5 +143,21 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
 
   const free = (type) => (st, x, y) => typeAt(st, x, y) === type && !C.extractorAt(st, x, y, 0);
 
-  return { s, clock, timeline, mark, gather, standBy, free };
+  // Gathers what upgrade `id` costs by hand, then buys it.
+  function buyNow(id) {
+    const cost = C.upgradeCost(s, id);
+    for (const r in cost) gather(r, cost[r]);
+    return C.buy(s, id);
+  }
+  // Gathers what building `key` costs by hand, walks to a free tile it can
+  // stand on and builds it.
+  function buildNow(key) {
+    const cost = C.extractorCost(s, key);
+    for (const r in cost) gather(r, cost[r]);
+    const tile = C.EXTRACTORS[key].tile;
+    if (tile !== null) standBy(free(tile));
+    return C.place(s, key);
+  }
+
+  return { s, clock, timeline, mark, gather, standBy, free, buyNow, buildNow };
 }

@@ -102,8 +102,10 @@ export function lifetimeTotal(s) {
   return s.totalEver + worldTotal(s);
 }
 
+// Insight for embarking: 22 for one world's worth (EMBARK_MIN_TOTAL), and the
+// square root of the lifetime total in worlds' worth after that.
 export function embarkGain(s) {
-  return Math.floor(Math.sqrt(lifetimeTotal(s) / 2000));
+  return Math.floor(Math.sqrt(500 * lifetimeTotal(s) / EMBARK_MIN_TOTAL));
 }
 
 // Eligibility counts this world only (every upgrade done, and enough

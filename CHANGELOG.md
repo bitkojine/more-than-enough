@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.94.0] - 2026-10-17
+
+### Changed
+- **A world takes about 40 hours to master instead of about 16 minutes.**
+  Measured with a headless player on real worlds
+  (`game-direction/pacing/simulate.mjs` in the project files): v0.88.0
+  mastered a world in a median 16 minutes, with most upgrades bought in
+  one-second bursts at the end. Prices were refitted so purchases land on a
+  widening curve (Watch's choice): something new every minute or two in the
+  first hour, then one big upgrade every few hours by the end. Now 34 to 36
+  hours for a focused bot on three seeds, so longer for people.
+  - Tool, refinery, unlock and Abundance Engine prices in `content.js`;
+    every refinery level is now x2 (was x2 up to x6); Abundance growth 27;
+    each extra building of a kind costs x2.2 (was x1.65).
+  - `EMBARK_MIN_TOTAL` 500 billion (was 1 million); Insight for embarking
+    scales with it (`embarkGain`: 22 for one world's worth, as before).
+- Four new milestones for the long game: every refinery at level 5, every
+  tool at its top level, Abundance Engine V, every refinery at level 10.
+- Milestone texts no longer carry prices (the Awards sheet shows what each
+  still takes, since v0.84.0). Tests read prices from `content.js`.
+
 ## [0.93.0] - 2026-10-17
 
 ### Fixed

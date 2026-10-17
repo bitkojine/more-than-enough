@@ -39,31 +39,20 @@ for (const seed of [12345, 777, 20260101]) {
 }
 
 test('bot plays through to the Abundance Engine', () => {
-  const { s, clock, timeline, mark, gather, standBy, free } = createBot(12345);
-  gather('mycelium', 6); C.buy(s, 'basket');
-  gather('mycelium', 8); C.buy(s, 'boots');
-  gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe');
-  gather('mycelium', 15); standBy(free(T.FOREST)); C.place(s, 'garden');
-  gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); C.place(s, 'quarry');
-  gather('stone', 45); gather('ore', 12); standBy(free(T.ORE)); C.place(s, 'mine');
-  gather('stone', 150); gather('ore', 40); C.buy(s, 'logistics');
-  while (s.tools.overclock < 4 && clock.t < 2000) {
-    const cost = C.upgradeCost(s, 'overclock');
-    gather('stone', cost.stone); gather('ore', cost.ore);
-    if (!C.buy(s, 'overclock').ok) break;
-  }
-  gather('mycelium', 30); gather('stone', 24); assert.ok(C.buy(s, 'pickaxe').ok, 'Pickaxe III, for crystal');
-  gather('stone', 140); gather('ore', 70);
+  const { s, clock, timeline, mark, gather, standBy, buyNow, buildNow } = createBot(12345);
+  buyNow('basket'); buyNow('boots'); buyNow('pickaxe');
+  buildNow('garden'); buildNow('quarry'); buildNow('mine');
+  assert.ok(buyNow('logistics').ok, 'Logistics');
+  while (s.tools.overclock < 3 && clock.t < 2000) if (!buyNow('overclock').ok) break;
+  assert.ok(buyNow('pickaxe').ok, 'Pickaxe III, for crystal');
   if (standBy((st, x, y) => typeAt(st, x, y) === T.CRYSTAL)) {
     mark('crystal');
-    gather('crystal', 6);
-    standBy(free(T.CRYSTAL));
-    if (C.place(s, 'resonator').ok) mark('resonator');
+    if (buildNow('resonator').ok) mark('resonator');
   }
 
-  const quota = C.ABUNDANCE.baseCost;
+  const quota = C.abundanceCost(s);
   const campFor = (res) => s.extractors.find((e) => e.res === res);
-  while (clock.t < 3000 && s.abundanceLv === 0) {
+  while (clock.t < 6000 && s.abundanceLv === 0) {
     const want = C.RESOURCES.find((r) => s.inv[r] < quota[r]);
     if (want) {
       const camp = campFor(want);
