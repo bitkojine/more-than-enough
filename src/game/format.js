@@ -4,19 +4,28 @@
 
 import { t, number } from '../i18n/i18n.js';
 
-const SUFFIX = { k: t('num.thousand'), M: t('num.million'), B: t('num.billion') };
+const SUFFIX = { k: t('num.thousand'), M: t('num.million'), B: t('num.billion'), T: t('num.trillion') };
 
 export function fmt(n) {
   n = Math.floor(n);
   if (n < 10000) return String(n);
   if (n < 1e6) return number(n / 1000, 1) + SUFFIX.k;
   if (n < 1e9) return number(n / 1e6, 2) + SUFFIX.M;
-  return number(n / 1e9, 2) + SUFFIX.B;
+  if (n < 1e12) return number(n / 1e9, 2) + SUFFIX.B;
+  if (n < 1e15) return number(n / 1e12, 2) + SUFFIX.T;
+  return sci(n);
+}
+
+// Past a thousand trillion no word helps: 1.2e15.
+function sci(n) {
+  const e = Math.floor(Math.log10(n));
+  return number(Math.floor(n / 10 ** e * 10) / 10, 1) + 'e' + e;
 }
 
 // The same, as short as it goes: for the resource bar, where every
-// character counts. Never more than three digits: 9999, 45k, 4.7M, 459M.
-const SHORT = { k: t('num.short.thousand'), M: t('num.short.million'), B: t('num.short.billion') };
+// character counts. Never more than three digits and a one-letter unit:
+// 9999, 45k, 4.7M, 459B, 12T (from 1e15 on, 1.2e15).
+const SHORT = { k: t('num.short.thousand'), M: t('num.short.million'), B: t('num.short.billion'), T: t('num.short.trillion') };
 function short(x, unit) {
   return x < 10 ? number(Math.floor(x * 10) / 10, 1) + unit : number(Math.floor(x), 0) + unit;
 }
@@ -25,7 +34,9 @@ export function fmtShort(n) {
   if (n < 10000) return String(n);
   if (n < 1e6) return short(n / 1000, SHORT.k);
   if (n < 1e9) return short(n / 1e6, SHORT.M);
-  return short(n / 1e9, SHORT.B);
+  if (n < 1e12) return short(n / 1e9, SHORT.B);
+  if (n < 1e15) return short(n / 1e12, SHORT.T);
+  return sci(n);
 }
 
 export function fmt1(n) {

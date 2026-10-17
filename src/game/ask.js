@@ -43,7 +43,7 @@ export function createAsk(box) {
       yes.classList.toggle('danger', danger);
       box.hidden = false;
       // The keyboard starts on the safe answer when yes destroys something.
-      (danger ? no : yes).focus();
+      (danger ? no : yes).focus({ preventScroll: true });
       return new Promise((resolve) => { answer = resolve; });
     }
   };

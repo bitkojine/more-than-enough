@@ -373,9 +373,9 @@ canvas#game {
    shows the magnification; tap it for 1×. Pinching zooms too. */
 #zoomControls {
   position: absolute;
-  right: calc(var(--edge-r) + (var(--act) - 40px) / 2);
+  right: calc(var(--edge-r) + (var(--act) - 42px) / 2);
   bottom: calc(var(--edge-b) + var(--act) + 78px);
-  width: 40px;
+  width: 42px;
   display: flex; flex-direction: column; align-items: stretch;
   border: 1px solid var(--panel-line); border-radius: 999px;
   background: var(--glass);
@@ -457,8 +457,8 @@ body.signing #zoomControls { visibility: hidden; }
 }
 #tabs [hidden] { display: none; }
 .tab {
-  flex: 1 1 0;
-  min-width: 0; height: 38px;
+  flex: 1 1 auto;
+  min-width: 0; height: 38px; padding: 0 6px;
   border: 0; border-radius: 9px;
   background: none;
   color: var(--ink-dim);
@@ -467,6 +467,10 @@ body.signing #zoomControls { visibility: hidden; }
   touch-action: manipulation; cursor: pointer;
   transition: background .15s ease, color .15s ease;
 }
+/* Phones: a little smaller, so every tab's whole name fits (Lithuanian's
+   are long: Patobulinimai, Apdovanojimai). */
+@media (max-width: 413px) { .tab { font-size: 12.5px; } }
+@media (max-width: 374px) { .tab { font-size: 11.5px; padding: 0 3px; letter-spacing: -0.01em; } }
 .tab.active { color: #0c1a0e; background: var(--green); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
 
 #sheetBody {
@@ -686,6 +690,7 @@ body.signing #zoomControls { visibility: hidden; }
 .invite button.stop { color: var(--danger); border-color: rgba(240, 138, 122, 0.35); }
 
 .setGroup {
+  flex: 0 0 auto;
   display: flex; flex-direction: column;
   border: 1px solid var(--panel-line); border-radius: var(--r-md);
   background: rgba(255, 255, 255, 0.03);
@@ -769,7 +774,11 @@ body.signing #zoomControls { visibility: hidden; }
   background: #121a15; color: var(--ink);
   box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6);
   animation: fade-in .16s ease-out;
+  /* Never taller than the screen: a long one scrolls (landscape phones). */
+  max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; touch-action: pan-y;
 }
+.dialog > * { flex-shrink: 0; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 /* The nuke: centre stage over a red-dark map, above everything else, with
    one huge round red button and nothing to close it. */
@@ -809,7 +818,7 @@ body.signing #zoomControls { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { #fbi .fbiBadge { animation: none; } }
 .dialog strong { font-size: 19px; line-height: 1.25; }
 .dialog p { margin: 0 0 6px; font-size: 14.5px; line-height: 1.45; color: var(--ink-dim); }
-.dialog .askLink { margin: -4px 0 6px; font-size: 14.5px; font-weight: 700; color: var(--accent); }
+.dialog .askLink { margin: -4px 0 6px; font-size: 14.5px; font-weight: 700; color: var(--green); }
 .dialog .askLink[hidden] { display: none; }
 .dialog .choices { display: flex; gap: 10px; }
 .dialog .choices button {
@@ -826,6 +835,7 @@ body.signing #zoomControls { visibility: hidden; }
 /* What's new after the game updated itself: each release's notes, scrolling. */
 #news .news {
   max-height: min(46vh, 360px); overflow-y: auto;
+  flex-shrink: 1; min-height: 72px;  /* gives way first, so Play stays on screen */
   padding: 10px 12px; border: 1px solid var(--panel-line); border-radius: var(--r-md);
   background: var(--raised);
 }
@@ -833,6 +843,17 @@ body.signing #zoomControls { visibility: hidden; }
 #news section + section { margin-top: 10px; }
 #news ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.45; }
 #news li + li { margin-top: 4px; }
+/* Landscape phones: the big pictures shrink so each dialog fits the height. */
+@media (max-height: 500px) {
+  .scrim { padding: 10px 16px; }
+  .dialog { padding: 14px 18px; gap: 8px; max-width: 520px; }
+  .dialog p { font-size: 13.5px; line-height: 1.35; margin-bottom: 0; }
+  #nuke .dialog { gap: 8px; }
+  #nuke button { width: min(140px, 34vh); margin: 2px 0; font-size: 14px; letter-spacing: 0.04em; }
+  #nuke button::before { font-size: 40px; }
+  #fbi .fbiBadge { width: min(90px, 22vh); }
+
+}
 
 /* Two tabs saved the same world: pick which to keep, one card each. */
 #fork .picks { display: flex; flex-direction: column; gap: 8px; }
@@ -891,10 +912,24 @@ body.signing #zoomControls { visibility: hidden; }
 /* Keyboard users get a clear focus ring; touch users never see it. */
 :focus-visible { outline: 2px solid rgba(127, 208, 122, 0.85); outline-offset: 2px; }
 
+/* Narrow phones (iPhone SE 1st gen, 320px): a slightly smaller cluster, so
+   Invite on the left thumb keeps clear of Build. */
+@media (max-width: 374px) {
+  :root { --act: 76px; --sub: 50px; --gap: 10px; }
+}
+
 /* Short screens (landscape phones): keep the map visible and controls reachable. */
 @media (max-height: 500px) {
   :root { --act: 72px; --sub: 50px; --gap: 10px; --edge-b: calc(env(safe-area-inset-bottom, 0px) + 14px); }
-  #zoomControls { bottom: calc(var(--edge-b) + var(--act) + 64px); }
+  /* Zoom lies down: a column this tall would reach the top bar. */
+  /* Low enough to clear a milestone banner, above the climb button. */
+  #zoomControls {
+    right: var(--edge-r); bottom: calc(var(--edge-b) + var(--act) + 54px);
+    width: auto; height: 40px; flex-direction: row;
+  }
+  #zoomControls button { width: 40px; }
+  #zoomControls #zoomLevel { height: 40px; width: 34px; border: 0; border-left: 1px solid var(--panel-line); border-right: 1px solid var(--panel-line); }
+  #zoomControls #btnMap { border-top: 0; border-left: 1px solid var(--panel-line); }
   #sheet { height: 88vh; }
   .tab { height: 34px; }
   .setRow { min-height: 44px; }

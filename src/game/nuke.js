@@ -31,7 +31,7 @@ export function createNuke(box) {
       pressed = press;
       if (box.hidden) {
         box.hidden = false;
-        button.focus();
+        button.focus({ preventScroll: true });
       }
     },
     hide() {

@@ -22,7 +22,7 @@ export function createFbi(box) {
     show(then = null) {
       done = then;
       box.hidden = false;
-      button.focus();
+      button.focus({ preventScroll: true });
     }
   };
 }

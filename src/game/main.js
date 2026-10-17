@@ -510,6 +510,7 @@ window.MTE_GAME = {
   yard,
   getState: () => game.state,
   together,
+  dialogs: { ask, nuke, fbi, news },
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },

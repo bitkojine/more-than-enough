@@ -463,8 +463,10 @@ export default {
   "num.short.thousand": "k",
   "num.short.million": "M",
   "num.short.billion": "B",
+  "num.short.trillion": "T",
   "num.million": "M",
   "num.billion": "B",
+  "num.trillion": "T",
 
   "sheet.collected": "Collected",
   "sheet.levelOf": "Lv {lv}/{max}",
@@ -705,6 +707,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.93.0": "Every screen size looks right now: on a short, wide screen the zoom buttons lie in a row instead of running into Settings, and every dialog fits with its buttons in view.\nSettings no longer hides Language and the privacy policy on short screens.\nOn the narrowest screens the Invite button keeps clear of Build.\nVery big numbers stay readable: after billions the counters go on to trillions (T).",
   "news.0.92.0": "The game downloads less and opens faster again: about 40% less to download before you can play.\nThe wiki shows its pictures again.",
   "news.0.91.1": "In shared worlds, when your game's numbers and the world's count disagree, your game now takes the world's count at once and keeps it, instead of drifting further apart.",
   "news.0.91.0": "The game opens faster, most of all on a slow connection or an older {phone:phone|laptop:computer}: its pictures now come in one go instead of one by one.",

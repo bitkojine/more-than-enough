@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.93.0] - 2026-10-17
+
+### Fixed
+- Landscape phones: the zoom pill ran into the Settings gear (568x320). On
+  short screens it now lies down as a row above the thumb cluster.
+- Settings squashed its groups on short screens, hiding Language, Wiki and
+  the privacy policy behind the next group; groups keep their height and
+  the panel scrolls.
+- 320px phones: Invite overlapped Build. The thumb cluster is a little
+  smaller there.
+- Lithuanian sheet tabs were cut to "Patobul…" / "Apdov…" on phones. Tabs
+  now size to their words, slightly smaller on phones.
+- Lithuanian counters showed "987…" in the resource bar ("mlrd" didn't fit);
+  the bar now uses G for billions, like K and M. Both languages go on to
+  trillions (T) and then 1.2e15, instead of thousands of billions.
+- Dialogs (nuke, FBI notice, What's new, questions) ran off landscape phones.
+  They fit the height now, their buttons always in view, and keep the title
+  in view when they open.
+- The privacy link in questions used an undefined colour (`--accent`).
+
+### Added
+- `npm run test:layout` (`test/layout.e2e.js`): the real game in headless
+  Chrome at 12 screen sizes, both languages, 12 states (HUD, underground,
+  every sheet, every dialog, huge numbers). Fails on overlapping or
+  off-screen buttons, targets under 44px, words cut short, squashed rows and
+  dialog buttons below the fold.
 ## [0.92.0] - 2026-10-17
 
 ### Changed
