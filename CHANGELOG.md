@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.95.0] - 2026-10-17
+
+### Changed
+- **Explore always does something.** Pressed with nothing in reach on the
+  surface, it walks to the nearest resource your tools can work (within
+  `SEEK_RADIUS`, 14 tiles: `nearestWork` in `src/core/actions.js`) and
+  gathers it on arrival; with nothing around, a one-line hint says how to
+  walk. The button is lit whenever there is somewhere to go. A brand-new
+  player's first press used to do nothing in the bare clearing at home.
+- **The next milestone is shown.** Opening the game (while fewer than three
+  milestones are reached) or arriving in a friend's world names the next
+  milestone in the banner, and every milestone banner adds what's next. A
+  region's name waits until the banner is gone instead of overlapping it.
+- **Joining a friend puts you a step beside them** (`beside` in
+  `src/core/shared.js`), not drawn over them.
+
+### Tests
+- Browser test: a new player's first Explore press gathers something,
+  leaving at once keeps it, and with storage blocked the game still plays
+  and says it isn't saving.
+
 ## [0.94.0] - 2026-10-17
 
 ### Changed

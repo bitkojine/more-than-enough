@@ -5,7 +5,7 @@
  * the network lives in src/game/together.js. */
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
-import { putRichness } from './world.js';
+import { putRichness, walkable } from './world.js';
 import { EXTRACTORS, PROPS } from './content.js';
 import { serialize, deserialize, SAVE_VERSION } from './save.js';
 import { blankState } from './state.js';
@@ -68,11 +68,21 @@ export function joinState(welcome, room, fog, near, make = undefined) {
   s.shared = room;
   s.me = welcome.you;
   if (!mine.player && near && near.z <= SURFACE && near.z >= Z_MIN) {
-    s.player = { x: near.x, y: near.y, z: near.z };
+    s.player = beside(s.world, near);
     s.underground.deepest = Math.min(s.underground.deepest, near.z);
   }
   s.world.edits = [];
   return s;
+}
+
+// Where a newcomer arrives: a step beside the friend they join, so the two
+// are both seen, not one drawn over the other (on them if there's no room).
+const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+export function beside(w, p) {
+  for (const [dx, dy] of SIDES) {
+    if (walkable(w, Math.floor(p.x + dx), Math.floor(p.y + dy), p.z)) return { x: p.x + dx, y: p.y + dy, z: p.z };
+  }
+  return { x: p.x, y: p.y, z: p.z };
 }
 
 // Sets your progress straight from the room's numbers (`save`, the room's

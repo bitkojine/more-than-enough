@@ -36,7 +36,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     const from = state().goalIndex;
     const reached = Core.advanceGoals(state());
     if (!reached.length) return;
-    reached.forEach((g, i) => hud.milestone(g.text, from + i + 1, Core.goalsTotal(state())));
+    const next = Core.nextGoal(state());
+    reached.forEach((g, i) => hud.milestone(g.text, from + i + 1, Core.goalsTotal(state()), i === reached.length - 1 && next ? next.text : null));
     fx.celebrate(player().x, player().y);
     actor.act('cheer');
     audio.fanfare();
@@ -144,6 +145,16 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     return true;
   }
 
+  // Explore pressed with nothing in reach (a new player's first press, in
+  // the bare clearing at home): head for the nearest resource in sight and
+  // work it on arrival, as a tap on it would. Nothing in sight: say how to walk.
+  function explore() {
+    const s = state();
+    const to = s.player.z === Core.SURFACE && Core.nearestWork(s);
+    if (to) walkToward(to.x, to.y, true);
+    else if (!Core.isUnderground(s)) hud.toast(t('tip.walk'));
+  }
+
   const controller = {
     facing: { x: 0, y: 1 },
     checkGoals,
@@ -184,7 +195,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
     // Gather pressed: act at once, then the hold repeats via tick().
     press() {
-      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); }
+      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
+      if (!walkTo) explore();
     },
 
     // `holdAt`: a finger held still on the map (screen point), or null. It

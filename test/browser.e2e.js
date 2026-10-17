@@ -303,7 +303,9 @@ async function main() {
   ok(icons.n >= 6 && icons.bad.length === 0 && icons.name === 'More Than Enough' && icons.maskable, 'favicon, home-screen icon and manifest icons all load (' + JSON.stringify(icons) + ')');
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
-  ok(await evalJS('document.getElementById("milestone").hidden'), 'no milestone banner before one is reached');
+  // A new player's first read is what to do: the next milestone.
+  ok(await evalJS('!document.getElementById("milestone").hidden && (/next milestone/i.test(document.querySelector("#milestone small").textContent) || /^Next: ./.test(document.querySelector("#milestone .next").textContent))'),
+    'a new world names the next milestone (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
   eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
   var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
@@ -1248,6 +1250,32 @@ async function main() {
   ok(await waitFor('document.documentElement.lang === "en" && document.body.dataset.filled === "true"', 8000), "the wiki's own Language button switches back to English");
   await navigate('http://127.0.0.1:' + PORT + '/');
   eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'UPGRADE', 'and the game follows');
+
+  console.log('\n== A new player: the first press, leaving, coming back ==');
+  // The very first thing a new player does is press the big button, standing
+  // in the bare clearing at home: it walks them to something and gathers it.
+  // (Another host name: storage of its own, empty, as on a new phone.)
+  var NEW_PLAYER = 'http://localhost:' + PORT + '/';
+  await navigate(NEW_PLAYER);
+  ok(await evalJS('!document.getElementById("btnAction").classList.contains("disabled")'), 'in the clearing at home, Explore is lit: there is somewhere to go');
+  // (Pressed through its pointer events: touches this late in the run no
+  // longer reach the page in headless Chrome; the touch path is tested above.)
+  var pressExplore = 'document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerdown",{pointerId:7}));document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerup",{pointerId:7}))';
+  await evalJS(pressExplore);
+  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 8000), 'one press of Explore walks to the nearest resource and gathers it');
+  var gotFirst = await evalJS('JSON.stringify(MTE_GAME.getState().inv)');
+  // Gone the moment it's gathered (tab closed, reloaded): nothing is lost.
+  await navigate(NEW_PLAYER);
+  eq(await evalJS('JSON.stringify(MTE_GAME.getState().inv)'), gotFirst, 'what was just gathered is there after leaving at once');
+  // Storage off altogether (some private modes): the game still plays.
+  var noStorage = await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: 'Object.defineProperty(window,"localStorage",{get:function(){throw new DOMException("denied","SecurityError");}});' }, session);
+  await navigate(NEW_PLAYER);
+  ok(await evalJS('document.getElementById("crash").hidden && MTE_GAME.getState().inv.mycelium === 0'), 'with storage blocked the game starts a new world and does not break');
+  await evalJS(pressExplore);
+  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 8000), 'and can be played');
+  ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'it says progress is not being saved');
+  pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
+  await cdp.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: noStorage.identifier }, session);
 
   console.log('\n== Runtime errors ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

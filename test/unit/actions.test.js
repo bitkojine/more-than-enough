@@ -152,3 +152,16 @@ test('mycelium from a spore bed underground does not count as gathering from the
   assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['forage']);
   assert.equal(s.goalIndex, 1);
 });
+
+test('Explore heads for the nearest resource around you that your tools can work', () => {
+  for (let i = 0; i < 60; i++) {
+    const seed = (i * 2654435761) >>> 0;
+    const s = C.createState(seed);
+    const to = C.nearestWork(s);
+    assert.ok(to, 'from home there is always something to head for (seed ' + seed + ')');
+    assert.ok(C.harvestable(s, to.x, to.y) && !C.gearNeeded(s, to.x, to.y), 'and only what the tools in hand can work');
+    assert.ok(C.TILE_INFO[typeAt(s, to.x, to.y)].res, 'a resource, not bare ground');
+  }
+  const s = C.createState(5);
+  assert.equal(C.nearestWork(s, 2), null, 'nothing that close to home: nowhere to head');
+});

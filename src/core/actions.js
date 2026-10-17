@@ -99,6 +99,31 @@ export function harvestTarget(s) {
   return null;
 }
 
+// How far Explore looks for something to head to, in tiles: about what a
+// phone shows around you, and from home always far enough to find some.
+export const SEEK_RADIUS = 14;
+
+// The nearest tile within `radius` holding a resource your tools can already
+// work, or null: where Explore heads when nothing is in reach. Ring by ring,
+// so the first found is about the nearest.
+export function nearestWork(s, radius = SEEK_RADIUS) {
+  const p = s.player, cx = Math.floor(p.x), cy = Math.floor(p.y);
+  for (let r = 1; r <= radius; r++) {
+    let best = null;
+    for (let y = cy - r; y <= cy + r; y++) {
+      for (let x = cx - r; x <= cx + r; x++) {
+        if (Math.max(Math.abs(x - cx), Math.abs(y - cy)) !== r) continue;
+        if (!harvestable(s, x, y) || gearNeeded(s, x, y)) continue;
+        if (!TILE_INFO[tileAt(s.world, x, y, p.z)].res) continue;
+        const d2 = tileDist2(p, x, y, p.z);
+        if (!best || d2 < best.d2) best = { x, y, d2 };
+      }
+    }
+    if (best) return { x: best.x, y: best.y };
+  }
+  return null;
+}
+
 // What digging out a find of `type` on layer z pays right now (see FINDS).
 export function findLoot(s, type, z) {
   const layer = SURFACE - z, out = {};

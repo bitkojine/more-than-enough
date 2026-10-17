@@ -28,20 +28,26 @@ export function createHud(el, look) {
   let toastLeft = 0;
   const milestones = []; // reached, waiting to be shown
   let milestoneLeft = 0;
+  let showing = null; // the number of the milestone on the banner (0: only what's next)
 
   function nextMilestone() {
     const next = milestones.shift();
+    showing = next ? next.number : null;
     el.milestone.hidden = !next;
     milestoneLeft = next ? MILESTONE_SECONDS : 0;
     if (!next) return;
+    // A milestone reached says what comes next; at the start, what's next is all it says.
+    el.milestone.querySelector('.label').textContent = t(next.number ? 'hud.milestone' : 'hud.nextMilestone');
+    el.milestone.querySelector('.of').textContent = next.number ? t('hud.milestoneOf', { n: next.number, total: next.total }) : '';
     el.milestone.querySelector('strong').textContent = next.text;
-    el.milestone.querySelector('.of').textContent = t('hud.milestoneOf', { n: next.number, total: next.total });
+    el.milestone.querySelector('.next').textContent = next.then ? t('hud.then', { goal: next.then }) : '';
     // Restart the entrance animation for each one.
     el.milestone.style.animation = 'none';
     void el.milestone.offsetWidth;
     el.milestone.style.animation = '';
   }
   let lastAction = '';
+  let inSight = false; // something to gather in sight for Explore to head to
 
   // The depth gauge: one bar per layer from the forest down to the deepest
   // you've been, plus one for deeper still; at most GAUGE_BARS, kept around you.
@@ -111,6 +117,7 @@ export function createHud(el, look) {
       setText(el.awardCount, String(s.goalIndex));
       el.awards.classList.toggle('has', Core.nextGoalReady(s));
       const below = Core.isUnderground(s);
+      inSight = !below && !!Core.nearestWork(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
       updateGauge(s);
@@ -128,14 +135,14 @@ export function createHud(el, look) {
       } else if (Core.isUnderground(s)) {
         label = t('button.gather'); ready = true;
       }
-      const key = icon + label + ready;
+      const key = icon + label + ready + inSight;
       if (key !== lastAction) {
         lastAction = key;
         setIcon(el.actionIcon, icon);
         el.actionLabel.textContent = label;
         el.action.setAttribute('aria-label', label);
         el.action.classList.toggle('ready', ready);
-        el.action.classList.toggle('disabled', !ready);
+        el.action.classList.toggle('disabled', !ready && !inSight);
       }
       // The layer button shows only beside a way between layers, and says
       // which way it goes.
@@ -160,9 +167,19 @@ export function createHud(el, look) {
     // A milestone reached (the `number`th of `total`): a banner under the counters for
     // MILESTONE_SECONDS, several in a row taking turns, and the trophy
     // counter glows until the Awards are looked at.
-    milestone(text, number, total) {
-      milestones.push({ text, number, total });
+    // `then`: the milestone after it, if any.
+    milestone(text, number, total, then = null) {
+      // Reached ones take over from a banner that only said what's next.
+      for (let i = milestones.length - 1; i >= 0; i--) if (!milestones[i].number) milestones.splice(i, 1);
+      milestones.push({ text, number, total, then });
       el.awards.classList.add('new');
+      if (milestoneLeft <= 0 || showing === 0) nextMilestone();
+    },
+
+    // The milestone to go for, in the same banner: a new character's first
+    // sight, so the first thing they read is what to do.
+    nextUp(text) {
+      milestones.push({ text, number: 0 });
       if (milestoneLeft <= 0) nextMilestone();
     },
 

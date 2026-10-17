@@ -341,8 +341,16 @@ test('shared world: a new player starts fresh next to their friend', () => {
   const near = { x: 7.5, y: -3.5, z: -2 };
   const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, near);
   assert.equal(s.inv.mycelium, 0);
-  assert.deepEqual(s.player, near);
+  assert.deepEqual(s.player, near, 'shut in by rock: right where they are');
   assert.equal(s.underground.deepest, -2);
+});
+
+test('shared world: a new player arrives a step beside their friend, not inside them', () => {
+  const near = { x: 0.5, y: 0.5, z: 0 };
+  const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, near);
+  assert.equal(Math.hypot(s.player.x - near.x, s.player.y - near.y), 1);
+  assert.equal(s.player.z, 0);
+  assert.ok(Core.walkable(s.world, Math.floor(s.player.x), Math.floor(s.player.y), 0));
 });
 
 test("shared world: friends' buildings stand but work only for their owner", () => {

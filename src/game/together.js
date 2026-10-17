@@ -517,6 +517,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
+      game.arrived();
       hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
       policyNotice();
     }

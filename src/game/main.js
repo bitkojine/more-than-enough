@@ -140,6 +140,8 @@ const game = {
     game.changedMode();
     soloNuke();
   },
+  // Just arrived in a world new to you (a friend's): what to go for.
+  arrived() { showNext(); },
   // For playing together (together.js).
   facing: () => controller.facing,
   moving: () => moving,
@@ -210,6 +212,14 @@ function gathered(held) {
   savedView.holdTip = true;  // found it, or told now: never again
   saveView(savedView);
   if (!held) hud.toast(t('tip.hold'), HOLD_TIP_SECONDS);
+}
+// Early on, opening the game (or arriving in a new world) says what the
+// next milestone is, so a new player's first read is what to do.
+const NEXT_SHOWN_BELOW = 3; // milestones reached, after which players know where to look
+function showNext() {
+  controller.checkGoals(); // one reached right here says what's next itself
+  const next = Core.nextGoal(game.state);
+  if (next && !hud.celebrating && game.state.goalIndex < NEXT_SHOWN_BELOW) hud.nextUp(next.text);
 }
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
 
@@ -338,7 +348,8 @@ function regionTick(s, dt) {
   const here = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
   if (!region || here.key !== region.key) { region = here; regionHeld = 0; }
   regionHeld += dt;
-  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && (!shownRegion || shownRegion.key !== region.key)) {
+  // A milestone banner first: the two would sit on top of each other.
+  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && !hud.celebrating && (!shownRegion || shownRegion.key !== region.key)) {
     shownRegion = region;
     hud.place(region.kind, region.name);
   }
@@ -494,6 +505,7 @@ function soloNuke() {
 }
 soloNuke();
 game.changedMode();
+showNext();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.
 together.open();

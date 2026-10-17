@@ -88,6 +88,7 @@ function harness({ yes = true } = {}) {
   const game = {
     state: Core.createState(7),
     replace(next) { game.state = next; },
+    arrived() {},
     changedMode() {}, worldChanged() {}, moveTo() {},
     facing: () => ({ x: 0, y: 1 }), moving: () => false, act: () => ({ a: null, n: 0 })
   };

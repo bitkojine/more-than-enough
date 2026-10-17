@@ -264,7 +264,7 @@ export default {
         <li>If a building near you has goods waiting, it <strong>collects</strong> them (the button reads <em>COLLECT</em>).</li>
         <li>Otherwise it works the <strong>nearest deposit</strong> you're standing among (the button reads <em>GATHER +n</em>,
           where n is what one swing yields). The tile it will work has a faint green outline.</li>
-        <li>With nothing in reach, the button dims and reads <em>EXPLORE</em>.</li>
+        <li>With nothing in reach, it reads <em>EXPLORE</em> and walks you to the nearest resource your tools can work, then gathers it. With nothing around at all, it dims.</li>
       </ul>
       <p>You can also <strong>{phone:tap|laptop:click} a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
         collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. <strong>{phone:Hold your finger

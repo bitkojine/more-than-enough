@@ -261,7 +261,7 @@ export default {
         <li>Jei šalia esantis pastatas turi laukiančios produkcijos, ją <strong>paimi</strong> (mygtuke parašyta <em>PAIMTI</em>).</li>
         <li>Kitaip dirbi <strong>artimiausią telkinį</strong>, tarp kurių stovi (mygtuke parašyta <em>RINKTI +n</em>,
           kur n – tai, ką duoda vienas mostas). Langelis, kurį dirbsi, apvestas blankiu žaliu kontūru.</li>
-        <li>Jei nieko nepasiekiama, mygtukas pritemsta ir jame parašyta <em>TYRINĖTI</em>.</li>
+        <li>Jei nieko nepasiekiama, jame parašyta <em>TYRINĖTI</em>: jis nuveda prie artimiausio ištekliaus, kurį tavo įrankiai įveikia, ir jį surenka. Jei aplink visai nieko nėra, mygtukas pritemsta.</li>
       </ul>
       <p>Taip pat gali <strong>{phone:bakstelėti|laptop:spustelėti} langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
         produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. <strong>{phone:Laikyk pirštą
