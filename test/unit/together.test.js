@@ -494,6 +494,10 @@ test('room: an invite lets in only as many people as asked, never unlimited, for
   const inv = r.invites.get(odd.code);
   assert.deepEqual([inv.max, inv.until - T0], [P.INVITE_DEFAULT.uses, P.INVITE_DEFAULT.life * 60_000], 'anything not on the list is the default');
   assert.ok(P.INVITE_USES.every((n) => Number.isSafeInteger(n) && n >= 1), 'never unlimited');
+  const week = ask({ uses: 1, life: 7 * 1440 });
+  assert.equal(week.until, T0 + 7 * 24 * 3600_000, 'a link can work for a week');
+  assert.ok((await r.join(key(), week.code, T0 + 6.9 * 24 * 3600_000)).id, 'still works on day seven');
+  assert.equal(Math.max(...P.INVITE_LIVES), 7 * 1440, 'but never longer than a week');
   const listed = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.find((e) => e[0] === two.code);
   assert.deepEqual([listed[4], listed[6]], [2, 2], 'the list says how many of how many');
 });

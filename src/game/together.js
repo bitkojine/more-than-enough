@@ -788,7 +788,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   }
 
   function lifeText(min) {
-    return min < 60 ? t('invites.minutes', { n: min }) : min < 1440 ? t('invites.hours', { n: min / 60 }) : t('invites.day');
+    return min < 60 ? t('invites.minutes', { n: min }) : min < 1440 ? t('invites.hours', { n: min / 60 }) : t('invites.days', { count: min / 1440 });
   }
 
   function renderInvites(list) {
@@ -834,7 +834,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
 
   function timeLeft(ms) {
     const min = Math.max(1, Math.round(ms / 60_000));
-    return min < 60 ? t('invites.minutes', { n: min }) : t('invites.hours', { n: Math.round(min / 60) });
+    return min < 60 ? t('invites.minutes', { n: min })
+      : min < 2880 ? t('invites.hours', { n: Math.round(min / 60) })
+      : t('invites.days', { count: Math.round(min / 1440) });
   }
 
   async function revoke(inviteCode) {

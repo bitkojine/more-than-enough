@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.90.0] - 2026-10-17
+
+### Changed
+- **Invite links can work for up to a week** (Watch: links expired too
+  quickly). `INVITE_LIVES` in `src/net/protocol.js` gains 7 days, like
+  Discord's longest timed invite, and new links default to it; 12 hours
+  goes, so five choices still fit a small phone. Uses stay capped, never
+  unlimited. The room service keeps refusing anything longer.
+  Link times over two days read in days.
+
 ## [0.89.0] - 2026-10-15
 
 ### Changed

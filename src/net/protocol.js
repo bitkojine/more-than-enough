@@ -60,8 +60,8 @@ export const LIMITS = Object.freeze({
 // (never unlimited) and for how many minutes it works. The player picks
 // them in Invite links; the defaults are a few people for a day.
 export const INVITE_USES = Object.freeze([1, 2, 3, 5, 10, 25]);
-export const INVITE_LIVES = Object.freeze([30, 60, 360, 720, 1440]);
-export const INVITE_DEFAULT = Object.freeze({ uses: 3, life: 1440 });
+export const INVITE_LIVES = Object.freeze([30, 60, 360, 1440, 10080]); // up to a week, like Discord; five fit a small phone
+export const INVITE_DEFAULT = Object.freeze({ uses: 3, life: 10080 });
 
 // An invite request's uses and life, each one of the allowed values, or the
 // default for anything else.
