@@ -445,7 +445,7 @@ export class Room {
       if (!drift) return {};
       this.logDrift(id, drift, now);
       // Their game is told what they really have, as of the progress it sent.
-      return { toSelf: [{ t: 'econ', ms, s: kept }] };
+      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}) }] };
     }
     if (d.t === 'acts') {
       const list = cleanActs(d.a);

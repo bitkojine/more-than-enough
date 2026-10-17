@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import * as P from '../../src/net/protocol.js';
 import { Room } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
+import { createBot } from './helpers.js';
 
 /* ------------------------------------------------------- a fake browser */
 
@@ -430,4 +431,45 @@ test('client: a room from before acts gets none', async () => {
   const { acts, ...old } = j.welcome;
   socket.deliver(old);
   assert.equal(h.game.state.acts, null);
+});
+
+test('client: progress the room can\'t account for is set straight, and stays straight', async () => {
+  const w = await makeRoom();
+  const { together, game, id } = await inWorld(w);
+  const socket = open()[0];
+  together.save(game.state, true); // an honest save first, at the same play time
+  pump(w.r, id, socket, T0 + 1500);
+  game.state.inv.stone = 5e8; // then an edited game
+  game.state.tools.pickaxe = 4;
+  together.save(game.state, true);
+  pump(w.r, id, socket, T0 + 2000);
+  assert.equal(game.state.inv.stone, 0, 'the room\'s numbers, answering the save they were sent for');
+  assert.equal(game.state.tools.pickaxe, 1);
+  const drifts = w.r.log.filter((e) => e.e === 'drift').length;
+  together.save(game.state, true);
+  pump(w.r, id, socket, T0 + 70_000);
+  assert.equal(w.r.shadow.report(id).off, 1, 'and it stays straight: the next save agrees');
+  assert.equal(w.r.log.filter((e) => e.e === 'drift').length, drifts);
+});
+
+test('client: the owner of a new world plays it, and the room counts what they do', async () => {
+  const { together, game } = harness();
+  together.start();
+  await tick();
+  const sent = JSON.parse(fetches[0].opts.body);
+  const id = P.randomRoomId();
+  const r = new Room(id, T0);
+  assert.equal(await r.init(JSON.stringify(sent), T0), null);
+  answer(fetches[0], 201, { room: id });
+  await tick(); await tick();
+  const socket = open()[0];
+  const me = await serve(r, socket);
+  let now = T0;
+  const bot = createBot(sent.world.seed, game.state, () => { together.tick(0.1); pump(r, me, socket, now = T0 + Math.round(game.state.stats.playedMs) + 500); });
+  bot.gather('stone', 8);
+  bot.gather('mycelium', 6);
+  together.save(game.state, true);
+  pump(r, me, socket, now + 100);
+  assert.deepEqual(r.log.filter((e) => e.e === 'drift'), [], 'the room agrees');
+  assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
 });

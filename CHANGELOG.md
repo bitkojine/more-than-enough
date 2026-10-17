@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.91.1] - 2026-10-17
+
+### Fixed
+- **A shared world's corrections (`econ`) now stick.** The game matched the
+  room's answer to the progress it sent by play time alone, and two saves
+  often go at the same play time (say while the game is hidden), so it took
+  the older one's numbers as the base and kept most of what the room had
+  just taken away. Live, one player's game ran to 10^14 mycelium while the
+  room counted 10^8. Saves are now numbered (`n`) and the room echoes the
+  number; against an older room the newest save at that play time is used.
+
 ## [0.91.0] - 2026-10-17
 
 ### Changed

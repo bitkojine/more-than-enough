@@ -245,7 +245,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // Edits sent and not yet answered ({n, e}), when the room answers them:
   // the ones a dead connection swallowed are sent again (see resync).
   let acks = false, editSeq = 0, unacked = [];
-  let sent = [];            // {ms, inv} of the last progress sent, for the room's corrections ('econ')
+  let sent = [];            // {n, ms, inv} of the last progress sent, for the room's corrections ('econ')
+  let saveSeq = 0;          // numbers the progress sent
 
   /* ---------------------------------------------------- the connection */
 
@@ -388,7 +389,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       // What you really have, as the room works it out, as of the progress
       // your game sent at play time `ms`: what you got since stays yours.
       if (game.state.shared !== room || !Number.isSafeInteger(d.ms) || !cleanSave(d.s)) return;
-      const at = sent.find((x) => x.ms === d.ms);
+      // Which progress it answers: by its number (several can go at the
+      // same play time, say while the game is hidden), or from a room
+      // before v0.91.1, the newest at that play time.
+      const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : sent.findLast((x) => x.ms === d.ms);
       if (Core.correctProgress(game.state, d.s, at ? at.inv : null)) game.worldChanged();
       return;
     }
@@ -661,9 +665,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     lastSave = progress;
     // The room checks this against what you did, so that goes first, all of it.
     if (s.acts && !sendActs(s)) { lastSave = ''; timers.save = 0; return; }
-    sent.push({ ms: Math.round(s.stats.playedMs), inv: { ...s.inv } });
+    sent.push({ n: ++saveSeq, ms: Math.round(s.stats.playedMs), inv: { ...s.inv } });
     if (sent.length > SENT_KEPT) sent.shift();
-    send({ t: 'save', s: progress });
+    send({ t: 'save', s: progress, n: saveSeq });
   }
 
   // Couldn't get into a world: the room service may be down, or the world
