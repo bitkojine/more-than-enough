@@ -85,10 +85,11 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
   el.packReport.querySelector('button').addEventListener('click', () => { el.packReport.hidden = true; });
 
   return {
-    // Puts back the pack remembered from last time, if any.
-    async restore() {
+    // Puts back the pack remembered from last time, if any (`reading`: a
+    // loadSavedPack() already under way).
+    async restore(reading = loadSavedPack()) {
       label();
-      const saved = await loadSavedPack();
+      const saved = await reading;
       if (saved.error) return toast(t('toast.texturesUnread', { error: saved.error.name || saved.error }));
       if (!saved.value) return;
       const { pack, problems } = await loadPack(saved.value);

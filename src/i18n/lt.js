@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.91.0": "Žaidimas atsidaro greičiau, ypač per lėtą ryšį ar senesniame {phone:telefone|laptop:kompiuteryje}: jo paveikslėliai dabar atkeliauja visi kartu, o ne po vieną.",
   "news.0.90.0": "Kvietimų nuorodos dabar gali galioti iki savaitės: nustatymuose, skiltyje „Kvietimų nuorodos“, pasirink 7 paras. Naujos nuorodos galioja savaitę, nebent pasirinksi trumpiau.",
   "news.0.89.0": "Bendri pasauliai dabar sąžiningi visiems: pats pasaulis skaičiuoja, ką kiekvienas žaidėjas surenka, pastato ir nusiperka, pagal žaidimo taisykles, tad pakeistas išsaugojimas ar žaidimas ten nieko neduoda.\nBendrame pasaulyje visi pradeda nuo nieko, ir jo savininkas taip pat. Išėjus į internetą sukuriamas naujas pasaulis, o tavo pasaulis lieka toks pat, kai žaidi vienas.\nSu šiuo atnaujinimu kiekvienas bendras pasaulis vieną kartą prasideda iš naujo.",
   "news.0.88.0": "Patobulinti pastatai dabar sutalpina daugiau, tad nebeprisipildo akimirksniu ir nebesustoja. Pajamos viršuje dabar tokios, kokias tikrai gauni, kad ir kiek būtum patobulinęs.",

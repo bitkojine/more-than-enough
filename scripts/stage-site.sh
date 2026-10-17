@@ -21,9 +21,13 @@ cp -R $SOURCES "$OUT/"
 
 HASH=$(find $SOURCES -type f | LC_ALL=C sort | xargs cat | shasum | cut -c1-10)
 
+# One file for the default pack's pictures, and every module named up front
+# (before stamping, so the preload links get the same ?v= as the imports).
+node scripts/stage-speed.mjs "$OUT"
+
 # Pages: local href/src to stylesheets, scripts, icons and the manifest
 # (anything without a scheme).
-find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|js|png|svg|webmanifest))\"#\\1?v=$HASH\"#g" {} +
+find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|js|json|png|svg|webmanifest))\"#\\1?v=$HASH\"#g" {} +
 # Manifest: its icons' "src".
 sed -i.bak -E "s#(\"src\": *\"[^\":]+\\.(png|svg))\"#\\1?v=$HASH\"#g" "$OUT/manifest.webmanifest"
 # Modules: from './x.js' -> from './x.js?v=HASH'.

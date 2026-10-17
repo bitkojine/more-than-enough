@@ -1,5 +1,6 @@
 # Test, then deploy the game to GitHub Pages. No build step: scripts/stage-site.sh
-# copies the static files and stamps a cache-busting hash onto asset URLs.
+# copies the static files, makes them quick to load (scripts/stage-speed.mjs)
+# and stamps a cache-busting hash onto asset URLs.
 # Runs on every push to main, on pull requests (tests only), and on demand.
 
 name: Test and deploy

@@ -705,6 +705,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.91.0": "The game opens faster, most of all on a slow connection or an older {phone:phone|laptop:computer}: its pictures now come in one go instead of one by one.",
   "news.0.90.0": "Invite links can now work for up to a week: pick 7 days in Settings, Invite links. New links last a week unless you pick less.",
   "news.0.89.0": "Shared worlds are now fair for everyone: the world itself keeps count of what each player gathers, builds and buys, by the game's own rules, so an edited save or game gets nothing there.\nEveryone starts a shared world from nothing, its owner too. Going online starts a new world, and your own world stays as it is for when you play alone.\nEvery shared world starts over once with this update.",
   "news.0.88.0": "Upgraded buildings now hold more, so they no longer fill up in a blink and stop. The income at the top is now what you really get, however far you have upgraded.",

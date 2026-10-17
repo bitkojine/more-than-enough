@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.91.0] - 2026-10-17
+
+### Changed
+- **The game opens faster on slow connections and old phones.** The staged
+  site (`scripts/stage-speed.mjs`, run by `scripts/stage-site.sh`) puts every
+  picture of the default pack inside `pack.json` (one request instead of
+  ~150) and names every module and the pack in the page with
+  `<link rel="modulepreload">`/`preload`, so they download together instead of
+  one import level at a time. The source pack keeps its files. The player's
+  own pack is read from IndexedDB while the default one loads. Measured on a
+  fresh browser at a phone viewport with 4x CPU throttle: slow 3G 8.7 s to
+  5.4 s, 4G 4.5 s to 3.0 s; 243 requests and 300 KB to 74 requests and 259 KB.
+- `test/unit/load-budget.test.js` stages the site and fails if the first load
+  goes over 300 KB gzipped or 80 requests, a module is not preloaded, or the
+  default pack's pictures are separate files again.
+
 ## [0.90.0] - 2026-10-17
 
 ### Changed

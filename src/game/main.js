@@ -17,6 +17,7 @@ import { createPerf } from './perf.js';
 import { createQuality } from './quality.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
+import { loadSavedPack } from './look/store.js';
 import { createYard } from './yard.js';
 import { render } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
@@ -60,6 +61,9 @@ window.MTE_VERSION = VERSION;  // for the crash report
 // Nothing is drawn until the default texture pack is in. If it can't load,
 // that's a crash: say exactly what broke.
 const look = createLook();
+// The player's own pack (if any) is read from this browser's database while
+// the default one loads, not after it.
+const savedPack = loadSavedPack();
 let defaultPack;
 try {
   defaultPack = await loadDefaultPack();
@@ -470,7 +474,7 @@ showMusic();
 perf.toggle(new URLSearchParams(location.search).has('perf'));
 applyQuality();
 hud.repaint();
-await textures.restore();
+await textures.restore(savedPack);
 hud.update(game.state);
 hud.updateButtons(game.state);
 // Your world is from before an update that changed how worlds are made (or
