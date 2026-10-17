@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.96.0] - 2026-10-17
+
+### Added
+- **Buildings work while you're away** (Watch's choice: full rate, up to 8
+  hours). Time away from a solo world, closed or hidden or asleep, is made up
+  at once when you come back: every building of yours and the Abundance
+  Engine make what they would have in up to `AWAY_CAP` (8 h), straight into
+  your packs, and a toast says how much (`awayProduce` in `src/core/sim.js`;
+  `catchUp` in `src/game/main.js`). Gaps under `AWAY_MIN` (10 s) are play
+  time. The save keeps `seen`, when the world was last open (the game sets it:
+  core has no clock). Shared worlds are left to their room for now.
+- `fmtDuration` in `src/game/format.js` (was the fork dialog's own helper).
+
 ## [0.95.0] - 2026-10-17
 
 ### Changed

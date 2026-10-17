@@ -359,6 +359,7 @@ export default {
   "game.shortTitle": "Enough",
   "game.framed": "More Than Enough only runs in its own tab: {phone:tap|laptop:click} to open it",
 
+  "toast.away": "While you were away ({time}) your buildings made {made}",
   "toast.saveFailed": "Saving failed — progress is not being kept ({error})",
 
   "sheet.drag.pull": "pull the map",
@@ -543,8 +544,8 @@ export default {
   "nuke.toast.done": "Boom! A brand-new world, and everyone starts fresh together.",
   "nuke.toast.alone": "Boom! A brand-new world.",
 
-  "fork.minutes": "{m} min",
-  "fork.hours": "{h} h {m} min",
+  "duration.minutes": "{m} min",
+  "duration.hours": "{h} h {m} min",
   "fork.played": "{time} played",
   "fork.gathered": "{n} gathered",
   "fork.embarks": {"one": "{count} embark", "other": "{count} embarks"},
@@ -714,6 +715,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.96.0": "Your buildings keep working while you are away. Close the game, come back later, and what they made in up to 8 hours is waiting in your packs, along with what the Abundance Engine made. This is for your own world; shared worlds don't have it yet.",
   "news.0.95.0": "A new world now opens by naming your first milestone, and each milestone you reach says what comes next.\nThe big Explore button always does something: with nothing in reach, it walks you to the nearest mushrooms or stone and gathers them.\nJoining a friend's world puts you right beside them instead of inside them.",
   "news.0.94.0": "A world now lasts far longer: mastering one takes about 40 hours of play instead of well under one. At the start something new still comes every minute or two; later on the big upgrades come further apart, each one a bigger step.\nFour new milestones mark the long road: every refinery at level 5, every tool at its top level, the Abundance Engine at V, and every refinery at level 10.\nWhat you already own stays yours. Only what you buy from now on costs more.",
   "news.0.93.0": "Every screen size looks right now: on a short, wide screen the zoom buttons lie in a row instead of running into Settings, and every dialog fits with its buttons in view.\nSettings no longer hides Language and the privacy policy on short screens.\nOn the narrowest screens the Invite button keeps clear of Build.\nVery big numbers stay readable: after billions the counters go on to trillions (T).",

@@ -175,3 +175,28 @@ test('an upgraded building holds as long a run of output, so its rate is what yo
   run(s, 1000);
   assert.ok(s.extractors[0].buffer <= C.extractorCapacity(s, 'garden') + 1e-6);
 });
+
+test('time away: buildings and the engine make their full rate into the packs, up to 8 hours', () => {
+  const s = C.createState(5);
+  s.extractors.push({ key: 'garden', res: 'mycelium', x: 0, y: 0, z: C.SURFACE, buffer: 0 });
+  s.abundanceLv = 1;
+  const rate = C.extractorRate(s, 'garden'), trickle = C.abundanceTrickle(s);
+  assert.equal(C.awayProduce(s, C.AWAY_MIN - 1), null, 'a short gap is play time, not time away');
+  const made = C.awayProduce(s, 3600);
+  assert.ok(Math.abs(made.mycelium - (rate + trickle) * 3600) < 1e-6);
+  assert.ok(Math.abs(s.inv.mycelium - made.mycelium) < 1e-6, 'straight into the packs');
+  assert.ok(Math.abs(s.sources.mycelium.buildings - rate * 3600) < 1e-6, 'counted as from buildings');
+  assert.ok(Math.abs(made.stone - trickle * 3600) < 1e-6, 'the engine makes every resource');
+  const capped = C.awayProduce(s, 30 * 24 * 3600);
+  assert.ok(Math.abs(capped.mycelium - (rate + trickle) * C.AWAY_CAP) < 1e-6, 'a month away counts as 8 hours');
+  assert.equal(C.awayProduce(s, -5000), null, 'a clock set back gives nothing');
+  s.shared = 'room';
+  assert.equal(C.awayProduce(s, 3600), null, 'a shared world\'s room keeps its own time');
+});
+
+test('a save remembers when the world was last open', () => {
+  const s = C.createState(5);
+  assert.equal(C.deserialize(C.serialize(s)).seen, undefined);
+  s.seen = 1760000000000;
+  assert.equal(C.deserialize(C.serialize(s)).seen, 1760000000000);
+});

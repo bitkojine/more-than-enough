@@ -31,6 +31,7 @@ import { createFbi } from './fbi.js';
 import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
+import { fmt, fmtDuration } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -114,6 +115,7 @@ const game = {
     // A shared world is saved to its room (and a copy here), never over your own.
     if (game.state.shared) return together.save(game.state);
     if (fork.open) return; // the player hasn't picked a world yet
+    game.state.seen = Date.now(); // for what your buildings make while you're away (catchUp)
     const r = saveGame(game.state, force);
     if (r && r.conflict) return forked(r.conflict);
     const err = r && r.error;
@@ -428,12 +430,30 @@ function view() {
 }
 
 let last = 0;
+let lastWall = 0; // Date.now() at the last frame shown
+
+// Time away from a solo world (closed, asleep, in another app): what your
+// buildings made meanwhile lands in your packs (Core.awayProduce), said in a toast.
+function catchUp(seconds) {
+  const made = Core.awayProduce(game.state, seconds);
+  if (!made) return;
+  const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) => t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] }));
+  if (parts.length) hud.toast(t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') }));
+  hud.update(game.state);
+  game.saveSoon();
+}
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
 function frame(now) {
   const intervalMs = last ? now - last : 0;
   const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
   last = now;
+  // Frames stop while the tab is hidden or the device sleeps: the gap is time away.
+  if (!document.hidden) {
+    const wall = Date.now();
+    if (lastWall && !fork.open) catchUp((wall - lastWall) / 1000);
+    lastWall = wall;
+  }
   try {
     const t0 = performance.now();
     if (!document.hidden && !fork.open) update(dt);
@@ -512,6 +532,7 @@ together.open();
 updater.start();
 // Just updated itself: thank the player and say what's new.
 news.show(takeUpdatedFrom(), VERSION);
+if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
 requestAnimationFrame(frame);
 
 // A small hook so the browser tests can inspect and adjust the real game.

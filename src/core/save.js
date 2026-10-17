@@ -40,7 +40,7 @@ export function serialize(s) {
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
-    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time,
+    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, ...(s.seen ? { seen: s.seen } : {}),
     underground: { deepest: s.underground.deepest }
   });
 }
@@ -93,7 +93,7 @@ export function deserialize(str, make = createState) {
   for (const k in d.mushrooms || {}) if (MUSHROOMS[k] && isNum(d.mushrooms[k])) s.mushrooms[k] = d.mushrooms[k];
   s.mushroomsEver = Array.isArray(d.mushroomsEver) ? d.mushroomsEver.filter((k, i, all) => MUSHROOMS[k] && all.indexOf(k) === i) : [];
   for (const k in s.unlocks) s.unlocks[k] = !!(d.unlocks && d.unlocks[k]);
-  for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time']) {
+  for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time', 'seen']) {
     if (isNum(d[k])) s[k] = d[k];
   }
   // Milestones reached; a save from before they counted in any order has

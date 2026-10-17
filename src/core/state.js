@@ -37,6 +37,7 @@ import { t } from '../i18n/i18n.js';
  * @property {string[]} goalsDone
  * @property {number} goalIndex
  * @property {number} time                         game seconds
+ * @property {number} [seen]                     when this world was last open (ms since 1970, set by the game: core keeps no clock)
  * @property {{deepest: number}} underground     the deepest layer reached so far
  * @property {string} [shared]                   the room of a shared world (not set when alone)
  * @property {string} [me]                       your id in that room; your buildings carry it

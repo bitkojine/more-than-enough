@@ -359,6 +359,7 @@ export default {
   "game.shortTitle": "Gana",
   "game.framed": "„Daugiau nei gana“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum",
 
+  "toast.away": "Kol tavęs nebuvo ({time}), tavo pastatai pagamino: {made}",
   "toast.saveFailed": "Nepavyko išsaugoti – pažanga nesaugoma ({error})",
 
   "sheet.drag.pull": "tempti žemėlapį",
@@ -543,8 +544,8 @@ export default {
   "nuke.toast.done": "Bum! Visiškai naujas pasaulis, ir visi kartu pradedate iš naujo.",
   "nuke.toast.alone": "Bum! Visiškai naujas pasaulis.",
 
-  "fork.minutes": "{m} min.",
-  "fork.hours": "{h} val. {m} min.",
+  "duration.minutes": "{m} min.",
+  "duration.hours": "{h} val. {m} min.",
   "fork.played": "Žaista {time}",
   "fork.gathered": "Surinkta {n}",
   "fork.embarks": {"one": "{count} iškeliavimas", "few": "{count} iškeliavimai", "many": "{count} iškeliavimo", "other": "{count} iškeliavimų"},
@@ -714,6 +715,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.96.0": "Tavo pastatai dirba ir tada, kai tavęs nėra. Uždaryk žaidimą, sugrįžk vėliau, ir tai, ką jie pagamino per iki 8 valandų, lauks tavo kuprinėje, kartu su tuo, ką pagamino Gausos variklis. Tai veikia tavo paties pasaulyje; bendruose pasauliuose to dar nėra.",
   "news.0.95.0": "Naujas pasaulis dabar prasideda parodydamas pirmąjį etapą, o kiekvienas pasiektas etapas pasako, kas toliau.\nDidysis mygtukas „Tyrinėti“ visada ką nors daro: kai šalia nieko nėra, jis nuveda prie artimiausių grybų ar akmenų ir juos surenka.\nPrisijungęs prie draugo pasaulio atsiduri šalia jo, o ne jame.",
   "news.0.94.0": "Pasaulis dabar trunka daug ilgiau: jį įvaldyti užtrunka apie 40 valandų žaidimo, o ne mažiau nei valandą. Pradžioje kas minutę ar dvi vis dar atsiranda kas nors nauja, o vėliau dideli patobulinimai ateina rečiau, bet kiekvienas yra didesnis žingsnis.\nKeturi nauji etapai žymi ilgą kelią: kiekvienas perdirbimas iki 5 lygio, kiekvienas įrankis iki aukščiausio lygio, Gausos variklis iki V ir kiekvienas perdirbimas iki 10 lygio.\nTai, ką jau turi, lieka tavo. Brangiau kainuoja tik tai, ką pirksi nuo šiol.",
   "news.0.93.0": "Kiekvieno dydžio ekranas dabar atrodo tvarkingai: žemame plačiame ekrane mastelio mygtukai išsirikiuoja eile ir nebeužlenda ant Nustatymų, o kiekvienas langas telpa su mygtukais matomoje vietoje.\nNustatymai žemuose ekranuose nebeslepia Kalbos ir privatumo politikos.\nSiauriausiuose ekranuose mygtukas Kviesti nebeliečia Statyti.\nSkirtukų pavadinimai (Patobulinimai, Apdovanojimai) telpa visi, o labai dideli skaičiai lieka įskaitomi: milijardai rodomi kaip G, o po jų eina trilijonai (T).",

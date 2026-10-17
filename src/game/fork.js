@@ -4,17 +4,11 @@
  * The one further along is marked. */
 
 import * as Core from '../core/index.js';
-import { fmt, esc } from './format.js';
+import { fmt, fmtDuration, esc } from './format.js';
 import { t } from '../i18n/i18n.js';
 
-function played(seconds) {
-  const m = Math.floor(seconds / 60);
-  if (m < 60) return t('fork.minutes', { m });
-  return t('fork.hours', { h: Math.floor(m / 60), m: m % 60 });
-}
-
 function summary(s) {
-  const parts = [t('fork.played', { time: played(s.time) }), t('fork.gathered', { n: fmt(Core.lifetimeTotal(s)) })];
+  const parts = [t('fork.played', { time: fmtDuration(s.time) }), t('fork.gathered', { n: fmt(Core.lifetimeTotal(s)) })];
   if (s.prestiges > 0) parts.push(t('fork.embarks', { count: s.prestiges }));
   return parts.join(' · ');
 }

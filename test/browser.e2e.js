@@ -777,7 +777,7 @@ async function main() {
   var was = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   var next = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),x=0;s.player.z=0;while(c.regionAt(s.world.seed,x,0).key==="0,0")x++;x+=10;MTE_GAME.setPlayer(x+0.5,0.5);return JSON.stringify(c.regionAt(s.world.seed,x,0));})()'));
   await sleep(1800);
-  eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name');
+  eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name (banner: ' + await evalJS('document.getElementById("milestone").hidden ? "none" : document.getElementById("milestone").textContent') + '; toast: ' + await evalJS('document.getElementById("toast").textContent') + ')');
   await evalJS('MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')');
   await evalJS('document.getElementById("btnMap").click()');
   await sleep(400);

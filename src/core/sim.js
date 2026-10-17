@@ -7,7 +7,7 @@ import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  AUTO_COLLECT_RANGE, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
+  AUTO_COLLECT_RANGE, AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
 import { extractorRate, extractorCapacity, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
@@ -82,6 +82,26 @@ function regrow(s, tick) {
       }
     }
   }
+}
+
+// `seconds` away from a solo world: your buildings and the Abundance Engine
+// make what they would have, capped at AWAY_CAP, into your packs. Returns
+// what was made per resource, or null when nothing is (too short, or a shared
+// world, whose room keeps the time).
+export function awayProduce(s, seconds) {
+  if (s.shared || !(seconds >= AWAY_MIN)) return null;
+  const sec = Math.min(AWAY_CAP, seconds);
+  const made = Object.fromEntries(RESOURCES.map((r) => [r, 0]));
+  for (const e of s.extractors) {
+    if (!ownBuilding(s, e)) continue;
+    made[e.res] += extractorRate(s, e.key) * sec;
+  }
+  const trickle = abundanceTrickle(s) * sec;
+  for (const r of RESOURCES) {
+    if (made[r] > 0) earn(s, r, made[r], 'buildings');
+    if (trickle > 0) { earn(s, r, trickle, 'engine'); made[r] += trickle; }
+  }
+  return made;
 }
 
 /* --------------------------------------------------------------- move */

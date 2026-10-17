@@ -14,6 +14,11 @@ export const COLLECT_RANGE = 1.7;
 // tiles. Wider than manual collection so a few camps packed in your base all
 // feed you at once — but walk away and they just buffer up.
 export const AUTO_COLLECT_RANGE = 3.0;
+// Time away from a solo world (closed, or in another app): buildings and the
+// Abundance Engine keep working at full rate for up to AWAY_CAP seconds
+// (Watch's choice), straight into your packs. Gaps under AWAY_MIN are ignored.
+export const AWAY_CAP = 8 * 3600;
+export const AWAY_MIN = 10;
 export const BASE_SPEED = 3.7;
 export const SWIM_SPEED = 0.75;       // multiplier on water
 export const PLAYER_RADIUS = 0.3;

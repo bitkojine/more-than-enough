@@ -61,3 +61,10 @@ const ENTITIES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 export function esc(text) {
   return String(text).replace(/[&<>"]/g, (c) => ENTITIES[c]);
 }
+
+// A stretch of time in minutes, or hours and minutes: "25 min", "2 h 5 min".
+export function fmtDuration(seconds) {
+  const m = Math.floor(seconds / 60);
+  if (m < 60) return t('duration.minutes', { m });
+  return t('duration.hours', { h: Math.floor(m / 60), m: m % 60 });
+}
