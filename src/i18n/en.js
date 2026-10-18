@@ -803,6 +803,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.120.1": "The Nerds screen now shows its own title instead of the game tabs.",
   "news.0.120.0": "You can save your world as a file on your {phone:phone|laptop:computer} and play it again from that file, on any device: Settings, Nerds, Save a backup.",
   "news.0.119.0": "Settings is simpler: texture packs, the performance panel and the version moved to a new Nerds screen, its last row.",
   "news.0.118.0": "Underground, the top left now says which layer you are on, with the forest in green at the top of the layer column and a marker by yours. Each new layer shows its name as you arrive.",

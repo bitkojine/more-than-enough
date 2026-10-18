@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.120.1] - 2026-10-18
+
+### Fixed
+- The Nerds screen (v0.119.0) showed the Upgrades/Build/Awards tabs as its
+  header instead of its title: style.css lists the screens that hide the
+  tabs, and Nerds wasn't on it. It also sizes to its rows like Settings.
+
+### Tests
+- Browser e2e checks Nerds shows its title and no tabs.
+
 ## [0.120.0] - 2026-10-18
 
 Watch's ask: back up any world and save it to disk. Watch chose that only

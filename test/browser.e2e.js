@@ -704,6 +704,7 @@ async function main() {
   await evalJS('document.getElementById("btnNerds").click()');
   await sleep(100);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Nerds', 'Nerds opens its own screen');
+  ok(await evalJS('document.getElementById("sheetTitle").offsetParent !== null && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Nerds shows its title, not the game tabs');
   ok(await evalJS('document.getElementById("btnTextures").offsetParent !== null && document.getElementById("btnMute").offsetParent === null'), 'Nerds shows Textures, not the everyday settings');
   ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Nerds');
   eq(await evalJS('document.getElementById("perfState").textContent'), 'off', 'the performance panel switch starts off');
