@@ -195,9 +195,21 @@ function cleanWelcome(d) {
   };
 }
 
+// What a room says your buildings made while you were away: {secs, made}, or null.
+function cleanAway(d) {
+  if (!d || typeof d !== 'object' || !Number.isFinite(d.secs) || d.secs < 0 || !d.made || typeof d.made !== 'object') return null;
+  const made = {};
+  for (const r of Core.RESOURCES) {
+    const n = d.made[r] ?? 0;
+    if (!Number.isFinite(n) || n < 0) return null;
+    made[r] = n;
+  }
+  return { secs: Math.min(d.secs, Core.AWAY_CAP), made };
+}
+
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {} }) {
+export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {}, onAway = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -378,6 +390,23 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       // before v0.91.1, the newest at that play time.
       const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : sent.findLast((x) => x.ms === d.ms);
       if (Core.correctProgress(game.state, d.s, at ? at.inv : null)) game.worldChanged();
+      const away = d.away && cleanAway(d.away);
+      if (away) onAway(away.secs, away.made); // already in what it sent
+      return;
+    }
+    if (d.t === 'away') {
+      // What your buildings made while you were away, as the room worked it
+      // out (server/src/shadow.js away): into your packs, as the room has it.
+      const away = cleanAway(d);
+      if (game.state.shared !== room || !away) return;
+      for (const r of Core.RESOURCES) {
+        if (!(away.made[r] > 0)) continue;
+        Core.earn(game.state, r, away.made[r], 'buildings');
+        // The room has it from the progress it answered on: any it answers
+        // later had it too, so a correction keeps it once.
+        for (const x of sent) if (x.inv) x.inv[r] = (x.inv[r] || 0) + away.made[r];
+      }
+      onAway(away.secs, away.made);
       return;
     }
     if (d.t === 'edits') {

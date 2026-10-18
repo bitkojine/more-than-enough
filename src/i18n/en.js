@@ -757,6 +757,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.100.0": "Your buildings in a shared world now keep working while you are away, up to 8 hours, just like in your own world. When you come back, a message says what they made.",
   "news.0.99.0": "Every shared world now has its own name, like Fern Valley, so you always know which world you are joining. Settings has a new Worlds list with your own world and every shared world you have joined, and how many are playing in each. {phone:Tap|laptop:Click} Play to switch between them.",
   "news.0.98.0": "Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. Losing the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.",
   "news.0.97.0": "A new milestone marks the long middle of a world: every refinery at level 9, about halfway between the Abundance Engine at V and every refinery at level 10.",

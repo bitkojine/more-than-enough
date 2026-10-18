@@ -35,7 +35,10 @@ shared with the game.
    on its own copy. That copy is what they have. When the progress a game
    sends (`save`) differs, the room keeps its own and sends the game its
    numbers (`econ`); the game keeps what it got since. Buildings and props
-   go up in the world from the room's copy, not from the game's edits. Players see each other as online,
+   go up in the world from the room's copy, not from the game's edits. Time
+   away (up to 8 hours) is made up by the room too: with the first `save`
+   after coming back, their buildings' output goes into the copy and the game
+   hears it (`away`). Players see each other as online,
    away, connection lost (offline after a minute) or offline.
 6. The room keeps the world's **clock**: it starts at the creator's time of
    day, runs whether anyone is in or not, and comes with every welcome, so
@@ -166,6 +169,7 @@ enter a shared world, and in Settings.
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |
 | `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes) |
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
+| `away` | a player's first progress after coming back, when their buildings made something while they were away (stage 3: up to 8 hours, worked out by the room) | `secs` away |
 | `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |

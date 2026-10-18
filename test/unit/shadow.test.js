@@ -25,7 +25,8 @@ async function sharedGame(seed) {
   const id = j.id;
   const edits = new Bucket(T0, 1e9, 1e9); // edit budgets aren't what's tested here
   let savedAt = 0;
-  const now = () => T0 + Math.round(s.stats.playedMs);
+  let off = 0; // wall time spent away from the game (not playing)
+  const now = () => T0 + off + Math.round(s.stats.playedMs);
   const send = (m) => {
     const out = r.message(id, JSON.stringify(m), now(), edits);
     assert.ok(!out.drop, 'the room took ' + m.t);
@@ -46,7 +47,8 @@ async function sharedGame(seed) {
       send({ t: 'save', s: C.progressOf(s) });
     }
   }
-  return { r, s, id, sync, send, now };
+  const away = (ms) => { off += ms; };
+  return { r, s, id, key, sync, send, now, away };
 }
 
 const drifts = (r) => r.log.filter((e) => e.e === 'drift');
@@ -193,4 +195,57 @@ test('shadow: buildings go up in the room\'s world from what the room worked out
   const out = r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts }), now());
   assert.deepEqual(r.ext.map((x) => x.slice(1, 5)), [[e.x, e.y, e.z, id]], 'the garden they paid for stands');
   assert.deepEqual(out.toAll[0].e, [['x', 'garden', e.x, e.y, e.z, id]], 'and everyone hears');
+});
+
+// What the game does with the room's answers to its progress (together.js).
+function hear(s, out) {
+  for (const m of out.toSelf || []) {
+    if (m.t === 'away') for (const r of C.RESOURCES) if (m.made[r] > 0) C.earn(s, r, m.made[r], 'buildings');
+  }
+}
+
+test('shadow: buildings in a shared world keep working while their owner is away, up to 8 hours, once', async () => {
+  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  sync(true);
+  const rate = C.extractorRate(s, 'garden');
+  r.left(id, false, now());
+  away(3600_000); // an hour with the game closed
+  await r.join(key, undefined, now());
+  const before = s.inv.mycelium;
+  const out = send({ t: 'save', s: C.progressOf(s) });
+  const m = (out.toSelf || []).find((x) => x.t === 'away');
+  assert.ok(m, 'the game hears what was made: ' + JSON.stringify(out));
+  assert.ok(Math.abs(m.secs - 3600) <= 1, 'an hour away (' + m.secs + ')');
+  assert.ok(Math.abs(m.made.mycelium - rate * 3600) < 1, 'what the garden makes in an hour');
+  assert.ok(r.log.some((e) => e.e === 'away' && e.p === id), 'and the log says so');
+  hear(s, out);
+  assert.ok(s.inv.mycelium - before > rate * 3500);
+  // The room keeps it, and the game and the room still agree.
+  assert.ok(JSON.parse(r.players.get(id).save).inv.mycelium >= s.inv.mycelium - 1);
+  const again = send({ t: 'save', s: C.progressOf(s) });
+  assert.deepEqual(again.toSelf || [], [], 'counted once, and no drift');
+  assert.deepEqual(drifts(r), []);
+  // Away for days: still 8 hours' worth.
+  r.left(id, true, now());
+  away(3 * 86400_000);
+  await r.join(key, undefined, now());
+  const long = (send({ t: 'save', s: C.progressOf(s) }).toSelf || []).find((x) => x.t === 'away');
+  assert.equal(long.secs, C.AWAY_CAP);
+});
+
+test('shadow: a game that played on through a lost connection was not away', async () => {
+  const { s, r, id, key, sync, send, now } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  sync(true);
+  r.left(id, false, now());
+  // A minute of play with nobody to hear it, then back.
+  for (let i = 0; i < 600; i++) C.step(s, 0.1);
+  await r.join(key, undefined, now());
+  sync(true);
+  const out = send({ t: 'save', s: C.progressOf(s) });
+  assert.ok(!(out.toSelf || []).some((x) => x.t === 'away'), 'nothing extra for time spent playing');
+  assert.deepEqual(drifts(r), []);
 });

@@ -84,7 +84,7 @@ const open = () => sockets.filter((s) => s.readyState < 2);
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 function harness({ yes = true } = {}) {
-  const toasts = [];
+  const toasts = [], aways = [];
   const game = {
     state: Core.createState(7),
     replace(next) { game.state = next; },
@@ -100,9 +100,10 @@ function harness({ yes = true } = {}) {
     ask: (q) => { asked.push(q); return Promise.resolve(typeof yes === 'function' ? yes(q) : yes); },
     el,
     nukeScreen: { show() {}, hide() {} },
-    fbi: { show() {} }
+    fbi: { show() {} },
+    onAway: (secs, made) => aways.push({ secs, made })
   });
-  return { together, game, toasts, asked, el };
+  return { together, game, toasts, asked, el, aways };
 }
 
 // A real room with an owner in it, and a link for friends.
@@ -540,4 +541,18 @@ test('client: a link to a world you are in already takes you there without askin
   together.switchTo(null);
   assert.equal(together.active, false);
   assert.equal(together.worldName, 'Your own world');
+});
+
+test('client: what the room says your buildings made while away lands in your packs, once, and is said', async () => {
+  const w = await makeRoom();
+  const { game, aways } = await inWorld(w);
+  const socket = open()[0];
+  const before = game.state.inv.mycelium;
+  socket.deliver({ t: 'away', secs: 3600, made: { mycelium: 50 } });
+  assert.equal(game.state.inv.mycelium, before + 50);
+  assert.deepEqual(aways, [{ secs: 3600, made: { ...Object.fromEntries(Core.RESOURCES.map((r) => [r, 0])), mycelium: 50 } }]);
+  socket.deliver({ t: 'away', secs: 3600, made: { mycelium: -5 } }); // nonsense: ignored
+  socket.deliver({ t: 'away', secs: 'soon', made: { mycelium: 5 } });
+  assert.equal(game.state.inv.mycelium, before + 50);
+  assert.equal(aways.length, 1);
 });

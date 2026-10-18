@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.100.0] - 2026-10-18
+
+### Added
+- **Buildings in shared worlds work while you're away** (stage 3 of the
+  server economy). The room works it out, not the game: when a player
+  leaves, it notes when and their play time (`gone` on the player); with
+  the first progress their game sends after coming back, the wall time that
+  their play time doesn't account for is away time (a game that played on
+  through a lost connection wasn't away). Their buildings make what they
+  would have in up to `AWAY_CAP`, into the room's copy (`Shadow.away`,
+  using `produceAway` from `src/core/sim.js`, which solo's `awayProduce`
+  now wraps), and the game hears `{t: 'away', secs, made}`, adds it and
+  shows the same toast as solo. If the game was off anyway, the `econ`
+  correction already carries it and only says so. Logged as `away`.
+
 ## [0.99.0] - 2026-10-18
 
 Watch found it unclear which shared world a link joins, and a second

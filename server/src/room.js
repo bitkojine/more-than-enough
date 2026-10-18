@@ -12,7 +12,7 @@
 import {
   LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
 } from '../../src/net/protocol.js';
-import { Shadow } from './shadow.js';
+import { Shadow, playedIn } from './shadow.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
@@ -79,7 +79,7 @@ export class Room {
     this.props = new Map();
     this.ext = [];               // [kind, x, y, z, owner]
     this.extTiles = new Set();
-    this.players = new Map();    // id -> {c, st, p, save, lostAt}
+    this.players = new Map();    // id -> {c, st, p, save, lostAt, gone}
     // Invite links (the code in a QR) -> {by, made, until, uses, off}: who
     // made it, when, until when it works, how many joined with it, and
     // whether it was stopped. Only a new player needs one; anyone already in
@@ -354,6 +354,9 @@ export class Room {
     this.audit(now, id, 'leave', { clean, secs: act ? Math.round((now - act.since) / 1000) : null, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null });
     p.st = clean ? 'offline' : 'lost';
     p.lostAt = clean ? 0 : now;
+    // Away from here (unless still away since an earlier leave): when, and
+    // their play time then, for what their buildings make meanwhile (shadow.js away).
+    if (!p.gone && p.save) p.gone = [now, this.shadow?.playedOf(id) ?? playedIn(p.save)];
     this.dirty.players.add(id);
     return this.statusOf(id);
   }
@@ -435,17 +438,23 @@ export class Room {
       // Their game's progress is only compared: the room keeps its own.
       const save = cleanSave(d.s);
       if (!save) return { drop: true };
-      const { drift, save: ours, ms } = this.shadowOf().settle(id, save, now, this);
+      const { drift, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone);
       const kept = ours && cleanSave(ours);
       if (!kept) return {};
       pl.save = kept;
       pl.savedAt = now;
+      delete pl.gone;
       this.dirty.players.add(id);
       this.progress(id, kept, now);
-      if (!drift) return {};
+      if (away) this.audit(now, id, 'away', { secs: away.secs });
+      // What their buildings made while they were away: their game adds it
+      // and says so ('away', src/game/together.js)...
+      const said = away && { secs: away.secs, made: away.made };
+      if (!drift) return said ? { toSelf: [{ t: 'away', ...said }] } : {};
       this.logDrift(id, drift, now);
-      // Their game is told what they really have, as of the progress it sent.
-      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}) }] };
+      // ...unless their game is off: then it's told what they really have
+      // (that included), as of the progress it sent.
+      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}), ...(said ? { away: said } : {}) }] };
     }
     if (d.t === 'acts') {
       const list = cleanActs(d.a);
@@ -804,6 +813,7 @@ export class Room {
       p.save = null;
       p.p = null;
       p.np = p.nm = p.nx = 0; // their share of the world starts over with it
+      delete p.gone;
       // A frozen character thaws (Watch's call): everyone starts over fairly.
       // Bans stay.
       if (p.frozen) { delete p.frozen; this.audit(now, id, 'thaw', { why: 'nuke' }); }

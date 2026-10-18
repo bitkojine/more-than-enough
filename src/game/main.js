@@ -203,7 +203,7 @@ const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close() });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), onAway: (secs, made) => sayAway(secs, made) });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
@@ -435,9 +435,12 @@ let lastWall = 0; // Date.now() at the last frame shown
 
 // Time away from a solo world (closed, asleep, in another app): what your
 // buildings made meanwhile lands in your packs (Core.awayProduce), said in a toast.
+// In a shared world the room works it out and says so (together.js 'away').
 function catchUp(seconds) {
   const made = Core.awayProduce(game.state, seconds);
-  if (!made) return;
+  if (made) sayAway(seconds, made);
+}
+function sayAway(seconds, made) {
   const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) => t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] }));
   if (parts.length) hud.toast(t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') }));
   hud.update(game.state);

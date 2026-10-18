@@ -14,7 +14,7 @@
  * from here (room.js), not from the game's edits; gathering's changes to the
  * land still come from the game's edits. */
 
-import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, EXTRACTORS, RESOURCES } from '../../src/core/index.js';
+import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
 
 const SLACK_MS = 2000;     // play time a game may be ahead of the room's clock (a late message)
 // Gathering by hand: holding Gather works a tile every 0.25 s (the game's
@@ -151,8 +151,10 @@ export class Shadow {
   // The game sent player `id`'s progress (`save`, checked by protocol.js).
   // Returns {drift: how it differs from the room's copy, or null; save: the
   // room's progress to keep, with the game's own bits (where they stand,
-  // what they've seen); ms: the play time it's as of}.
-  settle(id, save, now, room) {
+  // what they've seen); ms: the play time it's as of; away: what their
+  // buildings made while they were away, or null}. `gone`: [when, play time]
+  // they last left (room.js left), if this is their first progress since.
+  settle(id, save, now, room, gone = null) {
     let theirs;
     try { theirs = JSON.parse(save); } catch { theirs = null; }
     if (!theirs || typeof theirs !== 'object') return { drift: null, save: null };
@@ -167,7 +169,26 @@ export class Shadow {
     const drift = differ(sh.s, theirs);
     sh.checks++;
     if (drift) sh.off++;
-    return { drift, save: this.saveOf(id, theirs), ms };
+    // After what they sent is compared: their game hears of it separately.
+    const away = gone ? this.away(sh.s, gone, now) : null;
+    return { drift, save: this.saveOf(id, theirs), ms, away };
+  }
+
+  // Away time (stage 3): the wall time since they left that their play time
+  // doesn't account for (a game playing on through a lost connection is not
+  // away). Their buildings make what they would have meanwhile, capped like
+  // a solo world's (src/core/sim.js produceAway). Comes once their game has
+  // sent its progress, so its play time is known: {secs, made} or null.
+  away(s, [when, played], now) {
+    const secs = (now - when) / 1000 - Math.max(0, s.stats.playedMs - played) / 1000;
+    const made = produceAway(s, secs);
+    if (!made || !RESOURCES.some((r) => made[r] > 0)) return null;
+    return { secs: Math.round(Math.min(secs, AWAY_CAP)), made };
+  }
+
+  // Player `id`'s play time as of now, if the room is working out their copy.
+  playedOf(id) {
+    return this.players.get(id)?.s.stats.playedMs ?? null;
   }
 
   // The room's copy as a save (where they stand: their last act), with the
@@ -218,3 +239,8 @@ export function differ(s, theirs) {
 }
 
 const round = (v) => Math.round(v * 100) / 100;
+
+// The play time progress `save` (JSON) is as of.
+export function playedIn(save) {
+  try { return Math.max(0, Number(JSON.parse(save).stats.playedMs) || 0); } catch { return 0; }
+}

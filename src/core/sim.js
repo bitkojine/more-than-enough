@@ -87,9 +87,13 @@ function regrow(s, tick) {
 // `seconds` away from a solo world: your buildings and the Abundance Engine
 // make what they would have, capped at AWAY_CAP, into your packs. Returns
 // what was made per resource, or null when nothing is (too short, or a shared
-// world, whose room keeps the time).
+// world, whose room keeps the time and calls produceAway itself).
 export function awayProduce(s, seconds) {
-  if (s.shared || !(seconds >= AWAY_MIN)) return null;
+  return s.shared ? null : produceAway(s, seconds);
+}
+
+export function produceAway(s, seconds) {
+  if (!(seconds >= AWAY_MIN)) return null;
   const sec = Math.min(AWAY_CAP, seconds);
   const made = Object.fromEntries(RESOURCES.map((r) => [r, 0]));
   for (const e of s.extractors) {
