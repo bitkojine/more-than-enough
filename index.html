@@ -180,9 +180,13 @@
     <!-- Worlds: your own and every shared world you've been in, to switch
          between them. Filled by src/game/worlds.js. -->
     <div id="worldsPanel" hidden></div>
+    <!-- Players: everyone in the shared world you're in, how they're doing
+         and how far away; the owner can remove them. Filled by src/game/players.js. -->
+    <div id="playersPanel" hidden></div>
     <div id="settingsPanel" hidden>
       <div class="setGroup">
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
+        <button id="btnPlayers" class="setRow" type="button" hidden><span data-i18n="players.title"></span><b><span id="playersCount"></span> &rsaquo;</b></button>
         <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>
       </div>
       <div class="setGroup">

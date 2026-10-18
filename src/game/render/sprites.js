@@ -82,7 +82,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   if (p.tool) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1);
   ctx.restore();
   const sin = Math.sin(rot), cos = Math.cos(rot);
-  return { x: fx + sin * tall, top: fy - cos * tall, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
+  return { x: fx + sin * tall, top: fy - cos * tall, foot: fy, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
 }
 
 // The boat under someone on water, bobbing and rocking by `rock` radians,
@@ -356,12 +356,19 @@ const facesLeft = (f) => f.fx < -0.01;
 
 // A player's name over their head: a tag in their colour, the same size at
 // every zoom, drawn over the night so it always reads. (x, y) is its centre.
-export function drawNameTag(ctx, x, y, name, color) {
+// `taken`: boxes of the tags already drawn; one that would cover any of
+// them isn't drawn (returns false), so a crowd's names stay readable.
+export function drawNameTag(ctx, x, y, name, color, taken = null) {
   ctx.save();
   ctx.font = '800 12px system-ui, sans-serif'; // i18n-ok: a font
+  const w = Math.ceil(ctx.measureText(name).width) + 14;
+  if (taken) {
+    const box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 11, b: y + 11 };
+    if (taken.some((o) => o.l < box.r && box.l < o.r && o.t < box.b && box.t < o.b)) { ctx.restore(); return false; }
+    taken.push(box);
+  }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const w = Math.ceil(ctx.measureText(name).width) + 14;
   ctx.fillStyle = color;
   ctx.strokeStyle = 'rgba(10,8,6,0.85)';
   ctx.lineWidth = 2;
@@ -369,6 +376,7 @@ export function drawNameTag(ctx, x, y, name, color) {
   ctx.fillStyle = '#0c0a08';
   ctx.fillText(name, x, y + 0.5);
   ctx.restore();
+  return true;
 }
 
 // Three letters drifting up and away from (x, y), fading in and out: a doze

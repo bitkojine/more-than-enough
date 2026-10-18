@@ -18,9 +18,10 @@ import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn } from './worlds.js';
+import { renderChips, renderPlayers } from './players.js';
 import { loadGame, randomSeed } from './storage.js';
 import { createActor } from './render/motion.js';
-import { t, DEVICE, LANG } from '../i18n/i18n.js';
+import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
@@ -37,7 +38,6 @@ const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes
 
 const WELCOME_BYTES = 8_000_000;      // the most a room's welcome may be
 const POS_EVERY = 0.125;              // seconds between position updates
-const MAX_CHIPS = 5;                  // friends shown by name under the top bar; the rest are "+N"
 const HEARTBEAT = 2;                  // seconds: say where you are even standing still
 const EDITS_EVERY = 0.25;
 const SAVE_EVERY = 10;
@@ -209,7 +209,7 @@ function cleanAway(d) {
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {}, onAway = () => {} }) {
+export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {}, showPlayers = () => {}, onAway = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -965,41 +965,36 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     return f.st === 'online' && f.quiet ? 'lost' : f.st;
   }
 
-  // A small chip per friend under the top bar: their colour, name and how
-  // they're doing; those awake first, and past a handful a "+N" for the rest.
-  // Built from elements and text only, never HTML.
+  // A chip per friend under the top bar (src/game/players.js): those awake
+  // first, and past what fits a "+N" that opens the Players screen.
   let shownChips = '';
   function renderFriends() {
     const awake = (f) => (f.st === 'offline' ? 1 : 0);
     const all = [...friends.entries()].sort(([, a], [, b]) => awake(a) - awake(b) || a.c - b.c);
-    const list = all.slice(0, MAX_CHIPS);
-    const more = all.length - list.length;
-    const key = list.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + '+' + more + (game.state.shared ? 1 : 0);
+    const key = all.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + (game.state.shared ? 1 : 0);
+    if (!el.playersPanel.hidden) listPlayers();
+    el.playersCount.textContent = number(friends.size + 1);
     if (key === shownChips) return;
     shownChips = key;
-    const box = el.friends;
-    box.replaceChildren();
-    box.hidden = !game.state.shared;
-    for (const [id, f] of list) {
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = 'friend ' + stateOf(f);
-      chip.style.setProperty('--friend', friendColor(f.c));
-      chip.setAttribute('aria-label', nameOf(id) + ', ' + t('together.state.' + stateOf(f)));
-      const dot = document.createElement('i');
-      const name = document.createElement('span');
-      name.textContent = nameOf(id);
-      chip.append(dot, name);
-      chip.addEventListener('click', () => friendTapped(id));
-      box.appendChild(chip);
+    el.friends.hidden = !game.state.shared;
+    if (!game.state.shared) return el.friends.replaceChildren();
+    const list = all.map(([id, f]) => ({ id, name: nameOf(id), st: stateOf(f), color: friendColor(f.c) }));
+    renderChips(el.friends, list, { tap: friendTapped, more: showPlayers });
+  }
+
+  // The Players screen: everyone in the world, the owner able to remove them.
+  function listPlayers() {
+    const s = game.state, at = s.player;
+    const rows = [];
+    if (me) rows.push({ id: me, name: nameOf(me), color: friendColor(myColor), st: 'online', you: true, owner: me === owner, far: null, dz: 0 });
+    for (const [id, f] of friends) {
+      const p = f.shown || f.p;
+      rows.push({ id, name: nameOf(id), color: friendColor(f.c), st: stateOf(f), you: false, owner: id === owner,
+        far: p ? Math.hypot(p.x - at.x, p.y - at.y) : null, dz: p ? p.z - at.z : 0 });
     }
-    if (more > 0) {
-      const rest = document.createElement('span');
-      rest.className = 'friend more'; // i18n-ok: a class name
-      rest.textContent = '+' + more;
-      rest.setAttribute('aria-label', t('together.more', { n: more }));
-      box.appendChild(rest);
-    }
+    const rank = { online: 0, lost: 1, away: 2, offline: 3 };
+    rows.sort((a, b) => b.you - a.you || rank[a.st] - rank[b.st] || (a.far ?? Infinity) - (b.far ?? Infinity));
+    renderPlayers(el.playersPanel, rows, me && me === owner ? friendTapped : null);
   }
 
   // The owner can remove someone from their world (say a link got out).
@@ -1175,6 +1170,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     save,
     start,
     listWorlds,
+    listPlayers,
     switchTo,
     resume,
     joinFromLink,
@@ -1203,6 +1199,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     graves() {
       return graves.map((g) => ({ x: g.x, y: g.y, z: g.z, k: g.k, color: friendColor(g.c), name: nameOf(g.id) }));
     },
-    refresh() { renderFriends(); renderButton(); renderNuke(); }
+    refresh() { renderFriends(); renderButton(); renderNuke(); },
+    // The screen changed size: as many chips as fit now.
+    refit() { shownChips = ''; renderFriends(); }
   };
 }

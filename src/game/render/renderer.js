@@ -57,7 +57,7 @@ export function render(cam, s, fx, view, look) {
     if (stones) {
       for (const g of stones) {
         const at = drawGrave(ctx, cam, s, g);
-        if (at && g.name) tags.push({ ...at, name: g.name, color: g.color });
+        if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
       }
     }
     const friends = friendRows.get(y);
@@ -84,10 +84,21 @@ export function render(cam, s, fx, view, look) {
   drawFarHoles(ctx, cam, s, look);
   drawBeacons(ctx, cam, s, look, beacons);
   // Everyone's name over their head (yours too, in a shared world, unless
-  // your sign is up in front of it).
-  for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color);
-  if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color);
-  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear);
+  // your sign is up in front of it). In a crowd, yours first, then the
+  // living nearest you, then tombstones: a name that would cover one
+  // already shown waits until its player steps clear.
+  const taken = [];
+  if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
+  if (tags.length > 1) {
+    const cx = you ? you.x : cam.width / 2, cy = you ? you.top : cam.height / 2;
+    for (const tag of tags) tag.d = Math.hypot(tag.x - cx, tag.y - cy) + (tag.grave ? 1e6 : 0);
+    tags.sort((a, b) => a.d - b.d);
+  }
+  for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color, taken);
+  // Badges at the edge for friends out of sight, kept off you, the names
+  // shown and each other.
+  if (you) taken.push({ l: you.x - cam.tilePx * 0.5, r: you.x + cam.tilePx * 0.5, t: you.top - cam.tilePx * 0.2 - 11, b: you.foot });
+  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
   // Your sign last, over the dark and over every name and badge: a QR code
   // has to read at night too, and nothing may cover it.
   let sign = null;

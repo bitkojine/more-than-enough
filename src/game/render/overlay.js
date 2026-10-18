@@ -265,10 +265,12 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 // pointing at them, and a small up or down arrow when they're on another
 // layer. Under the name, how far away they are (a tile is 1 m), and for
 // another layer how many layers up or down. Asleep (offline) friends' badges are faded and grey. With a crowd
-// in the world only the nearest few get a badge, so the edges stay readable.
+// in the world only the nearest few get a badge, so the edges stay readable,
+// and a badge that would cover another, or anything in `taken` (boxes round
+// you and the names shown), gives way to the next nearest.
 const BADGE = 22;          // the badge's radius, in CSS pixels
 const MAX_BADGES = 6;
-export function drawFriendMarkers(ctx, cam, s, look, friends, clear) {
+export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = []) {
   const edge = BADGE + 14;
   const face = look.pick('character.wanderer', 'image');
   const cx = cam.width / 2, cy = cam.height / 2;
@@ -280,13 +282,26 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear) {
     if (off || other) away.push({ f, p, other, off, d: Math.hypot(p.x - cx, p.y - cy) + (other ? 1e6 : 0) });
   }
   away.sort((a, b) => a.d - b.d);
-  for (const { f, p, other, off } of away.slice(0, MAX_BADGES)) {
+  const placed = [...taken];
+  let shown = 0;
+  for (const { f, p, other, off } of away) {
+    if (shown >= MAX_BADGES) break;
     let x = Math.max(edge, Math.min(cam.width - edge, p.x));
     let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
     if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
     // Beside the zoom pill, not under it: the badge, its name and distance.
     if (clear && x + edge + 16 > clear.left && y + BADGE + 40 > clear.top && y - BADGE - 40 < clear.bottom) x = Math.min(x, clear.left - edge - 16);
     const a = Math.atan2(p.y - y, p.x - x);   // which way they are
+    // Their name goes under the badge, or over it when the arrow points down,
+    // and the distance beyond it: all that must be clear of the others.
+    const nameUp = off && Math.sin(a) > 0.4;
+    ctx.font = '800 11px system-ui, sans-serif'; // i18n-ok: a font
+    const tw = Math.ceil(ctx.measureText(f.name).width) + 12;
+    const half = Math.max(BADGE + 12, tw / 2) + 2;
+    const box = { l: x - half, r: x + half, t: y - BADGE - (nameUp ? 38 : 14), b: y + BADGE + (nameUp ? 14 : 38) };
+    if (placed.some((o) => o.l < box.r && box.l < o.r && o.t < box.b && box.t < o.b)) continue;
+    placed.push(box);
+    shown++;
     const color = f.color;
     const asleep = f.st === 'offline';
     ctx.save();
@@ -307,11 +322,10 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear) {
     ctx.restore();
     // Their name on a tag, as on their chip in the top bar: under the badge,
     // or over it when the arrow points down.
-    const ty = off && Math.sin(a) > 0.4 ? y - BADGE - 4 : y + BADGE + 4;
+    const ty = nameUp ? y - BADGE - 4 : y + BADGE + 4;
     ctx.font = '800 11px system-ui, sans-serif'; // i18n-ok: a font
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    const tw = Math.ceil(ctx.measureText(f.name).width) + 12;
     const tx = Math.max(tw / 2 + 4, Math.min(cam.width - tw / 2 - 4, x));
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.stroke();

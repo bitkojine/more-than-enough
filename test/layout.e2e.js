@@ -30,7 +30,8 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
   [768, 1024], [1024, 768], [1366, 768], [1920, 1080]
 ];
 // In this order on one page per screen; `rich` last, as it can't be undone.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'nuke', 'fbi', 'news', 'rich'];
+// `crowd` joins a shared world of 100 (a fake room) and stays in it.
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'nuke', 'fbi', 'news', 'crowd', 'players', 'rich'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -95,16 +96,16 @@ function problems() {
   }
 
   // Words cut short with an ellipsis (or clipped) anywhere a player reads.
-  for (const el of document.querySelectorAll('.tab, .chip .val, .chip .rate, .setRow > *, .row .nm, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
+  for (const el of document.querySelectorAll('.tab, .chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
     if (!shown(el) || !el.textContent.trim()) continue;
     if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push('cut short: ' + name(el));
   }
 
-  // Rows squashed: each settings row whole inside its group, each buy button
-  // inside its row.
-  for (const row of document.querySelectorAll('.setRow, .row .buy')) {
+  // Rows squashed: each settings row whole inside its group, each buy (or
+  // Remove) button inside its row.
+  for (const row of document.querySelectorAll('.setRow, .row .buy, .player button')) {
     if (!shown(row)) continue;
-    const box = row.parentElement.closest('.setGroup, .row').getBoundingClientRect(), r = row.getBoundingClientRect();
+    const box = row.parentElement.closest('.setGroup, .row, .player').getBoundingClientRect(), r = row.getBoundingClientRect();
     if (r.top < box.top - 1 || r.bottom > box.bottom + 1 || r.left < box.left - 1 || r.right > box.right + 1) out.push('squashed: ' + name(row));
   }
 
@@ -162,6 +163,28 @@ async function enter(state) {
     localStorage.setItem('mte.rooms', JSON.stringify(['AAAAAAAAAAAAAAAAAAAAAA', 'thunderfallsXXXXXXXXXX', 'zzzzzzzzzzzzzzzzzzzzzz']));
     click('#btnSettings');
     click('#btnWorlds');
+  }
+  // A shared world full to its 100 players, from a fake room service: some
+  // awake round you, some away, out of touch or asleep, some a layer down.
+  if (state === 'crowd') {
+    const id = (n) => n.toString(16).padStart(16, '0');
+    const players = {};
+    for (let i = 1; i < 100; i++) {
+      const a = i * 2.4, r = 1 + (i % 25);
+      players[id(i * 7919)] = { c: i, st: ['online', 'online', 'away', 'lost', 'offline'][i % 5], p: { x: Math.cos(a) * r, y: Math.sin(a) * r, z: i % 6 ? 0 : -1 } };
+    }
+    const welcome = { t: 'welcome', you: id(1), owner: id(1), c: 0, seed: 12345, mods: [], props: [], ext: [], players, save: null, p: { x: 0.5, y: 0.5, z: 0 } };
+    window.WebSocket = class {
+      constructor() { this.readyState = 0; setTimeout(() => { this.readyState = 1; this.onopen?.(); }); }
+      send(text) { if (text.includes('"hello"')) setTimeout(() => this.onmessage?.({ data: JSON.stringify(welcome) })); }
+      close() { this.readyState = 3; }
+    };
+    g.together.switchTo('AAAAAAAAAAAAAAAAAAAAAA');
+    await new Promise((r) => setTimeout(r, 1500));  // the world is made and everyone placed
+  }
+  if (state === 'players') {
+    click('#btnSettings');
+    click('#btnPlayers');
   }
   if (state === 'map') click('#btnMap');
   if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question

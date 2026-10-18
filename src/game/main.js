@@ -165,6 +165,7 @@ const game = {
   changedMode() {
     const shared = !!game.state.shared;
     el.invitesBtn.hidden = !shared;
+    el.playersBtn.hidden = !shared;
     el.worldsBtn.hidden = !together.available;
     el.worldNow.textContent = together.worldName;
     together.refresh();
@@ -203,7 +204,7 @@ const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), onAway: (secs, made) => sayAway(secs, made) });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made) => sayAway(secs, made) });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
@@ -235,6 +236,7 @@ const sheet = createSheet(el, {
     if (tab === 'map') worldMap.show();
     if (tab === 'invites') together.listInvites();
     if (tab === 'worlds') together.listWorlds();
+    if (tab === 'players') together.listPlayers();
   },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
@@ -285,6 +287,8 @@ el.resources.addEventListener('click', (e) => {
 el.mine.addEventListener('click', controller.toggleMine);
 el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
+el.playersBtn.addEventListener('click', () => sheet.show('players'));
+window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
 function setDrag(invert) {

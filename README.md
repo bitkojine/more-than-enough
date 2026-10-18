@@ -172,7 +172,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
-  - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them
+  - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
   - `update.js`, `news.js` — the self-update on every deploy and the What's new notes
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
 - `src/vendor/` — other people's code, copied unchanged (the QR code generator)
