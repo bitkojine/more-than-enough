@@ -769,6 +769,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.105.1": "Behind the scenes: a fix to the admin's page for opening a copy of a shared world.",
   "news.0.105.0": "The game is easier on your {phone:phone|laptop:computer}'s battery and keeps it cooler: while you just watch, it draws the map half as often, and never more than 60 times a second.\nIf the game had to lower its picture quality, it now raises it again once your {phone:phone|laptop:computer} can keep up, for example after it cools down or is plugged in.",
   "news.0.104.1": "Behind the scenes: the admin's list of shared worlds now also shows worlds that are busy while the server updates.",
   "news.0.104.0": "Behind the scenes: the game's admin has a page listing every shared world and everyone in it, to keep an eye on fair play. It shows only what the server already keeps: your character's name, progress and play time, never your real name or address.",

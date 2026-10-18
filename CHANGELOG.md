@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.105.1] - 2026-10-18
+
+### Fixed
+- **Play a copy opens again from the moderator's page.** The page opens
+  only the game's own `#copy=` address, and v0.103.2 added `&of=<room>` to
+  it, so the page refused every link. It now takes extra `&name=value`
+  parts made only of safe characters; `test/unit/admin.test.js` checks the
+  link the room service makes.
+
 ## [0.105.0] - 2026-10-18
 
 ### Changed

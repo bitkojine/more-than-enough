@@ -50,3 +50,13 @@ test('admin: the page runs only its own script and style, and writes no HTML fro
   assert.doesNotMatch(script, /innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(|new Function/, 'data goes in as text only');
   assert.doesNotMatch(html, /[0-9a-f]{32,}/, 'nothing token-like in the page');
 });
+
+test('admin: the page opens the copy links the room service makes', async () => {
+  const { html } = await adminPage();
+  const re = new RegExp(html.match(/if \(!\/(\^https.*?\$)\/\.test\(c\.link\)\)/)[1]);
+  const link = 'https://play.robertasrudys.com/#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64);
+  assert.match(link, re);
+  assert.match(link + '&of=' + ROOM, re, 'with the real world (v0.103.2)');
+  assert.doesNotMatch('javascript:alert(1)//#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64), re);
+  assert.doesNotMatch(link + '&of=<b>', re);
+});

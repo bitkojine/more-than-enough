@@ -223,7 +223,7 @@ function client() {
         act('Play a copy', 'primary', async () => {
           const c = await api(base + '/copy', { id: r.id });
           // Only ever the game's own address, in a tab that can't reach back here.
-          if (!/^https:\/\/[a-z0-9.-]+\/#copy=[A-Za-z0-9_-]{22}\.[0-9a-f]{64}$/.test(c.link)) throw new Error('unexpected link');
+          if (!/^https:\/\/[a-z0-9.-]+\/#copy=[A-Za-z0-9_-]{22}\.[0-9a-f]{64}(&[a-z]+=[A-Za-z0-9_.:,-]*)*$/.test(c.link)) throw new Error('unexpected link');
           window.open(c.link, '_blank', 'noopener,noreferrer');
           say.className = 'note';
           say.textContent = 'Copy opened in a new tab; it lasts until ' + new Date(c.until).toLocaleTimeString() + '.';
