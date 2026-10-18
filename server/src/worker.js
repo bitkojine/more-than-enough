@@ -113,12 +113,20 @@ async function admin(request, env, url) {
     const tests = url.searchParams.get('tests') === '1';
     const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
     const rooms = await Promise.all((await registry.list()).map(async (id) => {
+      const room = env.ROOMS.get(env.ROOMS.idFromName(id));
       try {
-        const o = await env.ROOMS.get(env.ROOMS.idFromName(id)).overview(id, tests);
+        const o = await room.overview(id, tests);
         return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
       } catch (e) {
-        // A room still running older code (see "Deploying") says so, and the rest still shows.
-        return { id, error: String(e && e.message || e).slice(0, 200), players: [], name: { en: id, lt: id }, last: 0 };
+        // A busy room can run the code from before a deploy for a while:
+        // asked the older way; failing that, it says so and the rest still shows.
+        try {
+          const summary = await room.summary();
+          if (!summary || (isSmokeTest(summary) && !tests)) return null;
+          return worldOf(summary, await room.roster(id) || [], await room.graves(id) || []);
+        } catch {
+          return { id, error: String(e && e.message || e).slice(0, 200), players: [], name: { en: id, lt: id }, last: 0 };
+        }
       }
     }));
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);

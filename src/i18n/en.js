@@ -769,6 +769,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.104.1": "Behind the scenes: the admin's list of shared worlds now also shows worlds that are busy while the server updates.",
   "news.0.104.0": "Behind the scenes: the game's admin has a page listing every shared world and everyone in it, to keep an eye on fair play. It shows only what the server already keeps: your character's name, progress and play time, never your real name or address.",
   "news.0.103.2": "Behind the scenes: the admin's copy of a shared world can now also show what a player's own game would show on coming back, like What's new and a note about numbers that were never real.",
   "news.0.103.1": "In a shared world, nothing you gather is taken back any more when your connection drops for a moment or the server updates: what the server missed is sent again when you're back.",

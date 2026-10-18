@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.104.1] - 2026-10-18
+
+### Fixed
+- **A busy world shows on the moderator's page right after a deploy.** A
+  room with players connected kept running the code from before v0.104.0
+  and answered `/admin/players` with an error, so its players were missing
+  (Clover Woods, live). Such a room is now asked the older way (brief,
+  players, tombstones).
+
 ## [0.104.0] - 2026-10-18
 
 Watch's ask: one view of every shared world and everyone in it, the most
