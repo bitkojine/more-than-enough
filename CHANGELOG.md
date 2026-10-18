@@ -1,5 +1,59 @@
 # Changelog
 
+## [0.110.0] - 2026-10-18
+
+Watch's ask: replace Explore/Gather with one Perfect button that plays the
+game while held, from the first spawn to the edge of Embark, while manual
+play stays as it was. Watch picked "Explored only": it never sees through
+the fog.
+
+### Added
+- **Perfect** is the big button (`src/game/perfect.js`). Held, it asks the
+  brain for the next intent every 0.25 s and has the controller carry it out
+  through the same calls a tap or press makes (`controller.perform`), so a
+  shared world's room sees only a player's acts. It waits while a sheet or
+  dialog is up and while you steer, tap, hold a tile or draw a Trail. Its
+  badge shows what it's doing or would do (new `ui.perfect`, `ui.explore`
+  and `ui.wait` pictures); held, the button lights up. The screen is kept
+  awake while held (Wake Lock, where allowed).
+- **The brain** (`src/core/perfect.js`, pure): `nextIntent(s, mind)` returns
+  walk, harvestAt, collect, buy, place, descend, climb, prop or wait. It
+  picks whatever it can have soonest (the pacing simulator's rule), gathers
+  by hand at first, fetches from buildings that are filling and camps among
+  them under Logistics, mines when finds pay better than the surface (cave
+  mouths, shafts, flags, lamps, digging toward finds it can sense, back up
+  the way it came), searches for a building's tile it hasn't seen (less
+  eagerly after each empty search), leaves the last of a deposit a building
+  could use, and keeps Abundance at the Embark level until the rest is done.
+  In a world of your own it buys perks: Memory, Heirloom and Cartographer
+  first, then Legacy over Nomad. Only explored tiles count. At Embark it
+  waits (`why: 'embark'`): the badge turns to Embark, the button pulses
+  gold and a toast says so once per world. It never presses Embark or
+  anything behind `ask()`. Held from spawn it reaches Embark in 36 h of play
+  on seed 12345 and 45 h on 777 (the pacing simulator: 36.4 h).
+- **Routes** (`src/core/paths.js`): `findPath` is a cheapest-first search in
+  a box, through explored tiles on the surface and through rock you can dig
+  underground; the bot tests use it too.
+- The wiki has a Perfect article with everything it leaves to you; Controls,
+  The screen, The mine, Buildings and Upgrades say Perfect where they said
+  Gather.
+
+### Changed
+- Gather and Explore are gone from the thumb cluster; their work is
+  Perfect's bootstrap. Tapping a building in reach collects it before
+  gathering the tile under it, so collecting by hand still works. The green
+  outline shows the tile Perfect will work next. `nearestWork` and
+  `SEEK_RADIUS` are gone.
+- In a shared world, walking within Logistics' reach of one of your
+  buildings is written down at once (`noteWhere`), so the room hauls from it
+  when your game does instead of refusing what you build with it.
+- `walkSpeed(s)` in `sim.js` is the one walking speed.
+- The layer button sits 4 px higher so its label no longer touches the big
+  button, and on landscape phones the zoom row moves up to stay clear of it.
+- The Structurizr model has the Perfect and Perfect Brain components; the
+  exported diagrams were not regenerated (the export service is out of this
+  environment's reach).
+
 ## [0.109.0] - 2026-10-18
 
 Watch's ask: every pile must fit in the spawn zone and never be drawn over

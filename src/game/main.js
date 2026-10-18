@@ -15,6 +15,7 @@ import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
+import { createPerfect } from './perfect.js';
 import { createPerf } from './perf.js';
 import { createQuality, frameDue, FULL_FPS, CALM_FPS, CALM_AFTER_S } from './quality.js';
 import { createLook } from './look/look.js';
@@ -146,6 +147,7 @@ const game = {
     fx.clear();
     yard.reset();
     controller.forget();
+    perfect.forget();
     input.release();
     sheet.close();
     lastTileKey = -1;
@@ -239,6 +241,7 @@ function showNext() {
   if (next && !hud.celebrating && game.state.goalIndex < NEXT_SHOWN_BELOW) hud.nextUp(next.text);
 }
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
+const perfect = createPerfect({ game, controller, hud });
 
 const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
 const sheet = createSheet(el, {
@@ -262,10 +265,13 @@ const textures = createTextures({
 
 const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : []);
 
+// Something on screen that needs the player: a sheet or a dialog. The
+// Perfect button waits while one is up.
+const blocked = () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open || news.open;
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
-    blocked: () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open || news.open,
+    blocked,
     dismiss: () => sheet.close(),
     tap(x, y) {
       // On your sign: copy its link. Anywhere else: the world.
@@ -273,7 +279,8 @@ const input = createInput({
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
       else controller.tap(x, y);
     },
-    actionPressed: controller.press,
+    actionPressed: perfect.press,
+    actionReleased: perfect.release,
     trailEnded: controller.trailEnded,
     viewChanged: () => { hud.view(cam); keepView(); },
     command(cmd) {
@@ -394,7 +401,8 @@ function showCopy() {
 
 function update(dt) {
   const s = game.state;
-  const moved = controller.steer(dt, input.moveVector());
+  const dir = input.moveVector();
+  const moved = controller.steer(dt, dir);
   moving = moved;
   Core.step(s, dt);
   together.tick(dt);
@@ -410,7 +418,10 @@ function update(dt) {
     Core.revealAround(s);
   }
 
-  controller.tick(dt, input.held && !input.trail, input.holdPoint());
+  const holdAt = input.holdPoint();
+  controller.tick(dt, holdAt);
+  // Perfect plays while held, unless you're steering or working a tile yourself.
+  perfect.tick(dt, input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked());
   if (moved && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
@@ -423,6 +434,7 @@ function update(dt) {
   }
   hud.tick(dt);
   hud.updateButtons(s);
+  hud.perfect(perfect.badge, input.held);
   sheet.tick();
 }
 
@@ -441,7 +453,7 @@ function view() {
     moving,
     actor: actor.view(moving),
     yard,
-    harvestTarget: Core.harvestTarget(s),
+    harvestTarget: perfect.target,
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
     trail: input.trail,
@@ -482,7 +494,7 @@ let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
 let fullPace = true;            // the last frame was drawn at full pace
 function frame(now) {
-  // Full pace while you play (a touch or key just now, Gather held, you or
+  // Full pace while you play (a touch or key just now, Perfect held, you or
   // the view on the move, the trip between layers), calm while you watch.
   const full = moving || input.held || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
   if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
@@ -558,6 +570,7 @@ hud.repaint();
 await textures.restore(savedPack);
 hud.update(game.state);
 hud.updateButtons(game.state);
+hud.perfect(perfect.badge, false);
 // Your world is from before an update that changed how worlds are made, or
 // its save is broken (then the screen says so): the nuke, centre stage. The new world is already
 // here (and saved, so it's the one you come back to); pressing it is how

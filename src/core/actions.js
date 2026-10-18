@@ -71,7 +71,7 @@ export function gearBlocks(s, x, y) {
   return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 ? gearNeeded(s, x, y) : null;
 }
 
-// A tile on the player's layer that Gather could work right now.
+// A tile on the player's layer that could be worked right now.
 export function canHarvest(s, x, y) {
   return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 && !gearNeeded(s, x, y);
 }
@@ -89,37 +89,12 @@ function tilesInReach(s) {
   return out.sort((a, b) => a.d2 - b.d2);
 }
 
-// What holding Gather works on: the nearest deposit you can walk among. Solid
-// rock is never auto-targeted; digging is always a deliberate choice.
+// The nearest deposit in reach you can walk among. Solid rock is never
+// picked; digging is always a deliberate choice.
 export function harvestTarget(s) {
   for (const t of tilesInReach(s)) {
     const type = tileAt(s.world, t.x, t.y, s.player.z);
     if (!TILE_INFO[type].solid && canHarvest(s, t.x, t.y)) return { x: t.x, y: t.y, res: TILE_INFO[type].res };
-  }
-  return null;
-}
-
-// How far Explore looks for something to head to, in tiles: about what a
-// phone shows around you, and from home always far enough to find some.
-export const SEEK_RADIUS = 14;
-
-// The nearest tile within `radius` holding a resource your tools can already
-// work, or null: where Explore heads when nothing is in reach. Ring by ring,
-// so the first found is about the nearest.
-export function nearestWork(s, radius = SEEK_RADIUS) {
-  const p = s.player, cx = Math.floor(p.x), cy = Math.floor(p.y);
-  for (let r = 1; r <= radius; r++) {
-    let best = null;
-    for (let y = cy - r; y <= cy + r; y++) {
-      for (let x = cx - r; x <= cx + r; x++) {
-        if (Math.max(Math.abs(x - cx), Math.abs(y - cy)) !== r) continue;
-        if (!harvestable(s, x, y) || gearNeeded(s, x, y)) continue;
-        if (!TILE_INFO[tileAt(s.world, x, y, p.z)].res) continue;
-        const d2 = tileDist2(p, x, y, p.z);
-        if (!best || d2 < best.d2) best = { x, y, d2 };
-      }
-    }
-    if (best) return { x: best.x, y: best.y };
   }
   return null;
 }

@@ -281,6 +281,15 @@
    "image": "props/flag.svg",
    "color": "#ff5d5d"
   },
+  "ui.perfect": {
+   "icon": "icons/perfect.svg"
+  },
+  "ui.explore": {
+   "icon": "icons/explore.svg"
+  },
+  "ui.wait": {
+   "icon": "icons/wait.svg"
+  },
   "ui.build": {
    "icon": "icons/build.svg"
   },

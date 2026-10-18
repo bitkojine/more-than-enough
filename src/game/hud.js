@@ -4,7 +4,7 @@
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmtRate, fmtShort } from './format.js';
+import { fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
@@ -53,7 +53,6 @@ export function createHud(el, look) {
     el.toast.style.top = m.hidden ? '' : m.offsetTop + m.offsetHeight + 8 + 'px';
   }
   let lastAction = '';
-  let inSight = false; // something to gather in sight for Explore to head to
 
   // The depth gauge: one bar per layer from the forest down to the deepest
   // you've been, plus one for deeper still; at most GAUGE_BARS, kept around you.
@@ -123,33 +122,24 @@ export function createHud(el, look) {
       setText(el.awardCount, String(s.goalIndex));
       el.awards.classList.toggle('has', Core.nextGoalReady(s));
       const below = Core.isUnderground(s);
-      inSight = !below && !!Core.nearestWork(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
       updateGauge(s);
     },
 
-    // The big button shows what holding it will do right now.
+    // The big button is Perfect; its badge shows what holding it does
+    // right now (`badge`, a look id), and it glows when the world is ready
+    // to Embark, which is yours to press.
+    perfect(badge, held) {
+      const key = badge + held;
+      if (key === lastAction) return;
+      lastAction = key;
+      setIcon(el.actionBadge, badge);
+      el.action.classList.toggle('embark', badge === 'ui.embark');
+      el.action.classList.toggle('on', !!held);
+    },
+
     updateButtons(s) {
-      let icon = 'ui.gather', label = t('button.explore'), ready = false;
-      const collect = Core.collectTarget(s);
-      const harvest = !collect && Core.harvestTarget(s);
-      if (collect) {
-        icon = 'ui.collect'; label = t('button.collect', { n: fmt(collect.total) }); ready = true;
-      } else if (harvest) {
-        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = t('button.gatherYield', { n: fmt(Core.gatherYield(s, harvest.res)) }); ready = true;
-      } else if (Core.isUnderground(s)) {
-        label = t('button.gather'); ready = true;
-      }
-      const key = icon + label + ready + inSight;
-      if (key !== lastAction) {
-        lastAction = key;
-        setIcon(el.actionIcon, icon);
-        el.actionLabel.textContent = label;
-        el.action.setAttribute('aria-label', label);
-        el.action.classList.toggle('ready', ready);
-        el.action.classList.toggle('disabled', !ready && !inSight);
-      }
       // The layer button shows only beside a way between layers, and says
       // which way it goes.
       const way = Core.layerWay(s);

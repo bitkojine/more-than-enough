@@ -18,24 +18,31 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "files" "index.html, style.css, src/game/"
                 }
 
-                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, work a held tile and tick Perfect, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/main.js"
                     }
                 }
 
-                input = component "Input" "Raw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." "JavaScript" {
+                input = component "Input" "Raw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Perfect (button or Space), the Trail stroke (hold Perfect and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/input.js"
                     }
                 }
 
-                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), a finger held on a tile, Perfect's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/controller.js"
+                    }
+                }
+
+                perfect = component "Perfect" "The Perfect button: while held (and no sheet or dialog is up, and the player isn't steering or working a tile) it asks the brain for the next intent about four times a second and has the Controller carry it out, the same calls a tap makes. Keeps the badge (what it's doing), waits at Embark with a toast, and keeps the screen awake while held." "JavaScript" {
+                    tags "Presentation"
+                    properties {
+                        "ref" "src/game/perfect.js"
                     }
                 }
 
@@ -158,6 +165,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
+                brain = component "Perfect Brain" "nextIntent(s, mind): the next thing a careful player would do (walk, gather, collect, buy, place, go down or up, or wait), from what has been explored only. Picks whatever can be had soonest, plans routes (findPath, through dug rock underground), mines when finds pay better, waits for the player at Embark, and never in a shared world spends Insight. Pure: the mind is a cache it keeps between calls." "JavaScript" {
+                    tags "Core Engine"
+                    properties {
+                        "ref" "src/core/perfect.js, paths.js"
+                    }
+                }
+
                 stockpile = component "Stockpile" "What you own as piles around home, on a logarithmic scale: one pile per unit of the two leading digits (at most 18 per resource), each power of ten its own kind; from 10^7 a pile covers a square of tiles one wider per power, as far as its slot allows. Home ground is a square laid out like a town: roads cross in the middle and each resource owns a block with fixed slots (the leading digit in the corner by the crossroads, the second along the outer edges), so nothing stands outside home ground or on another pile. Pure: only a picture of the inventory." "JavaScript" {
                     tags "Core Engine"
                     properties {
@@ -228,9 +242,15 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         tools.coreTests -> mte.core "Imports src/core/index.js and steps it directly"
         tools.e2e -> mte.app "Loads index.html; asserts through window.MTE_GAME"
 
-        mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
+        mte.app.input -> mte.app.controller "Taps, held tiles, Trail strokes"
+        mte.app.input -> mte.app.perfect "Perfect pressed and let go"
         mte.app.input -> mte.app.camera "Unprojects pointers; zooms"
-        mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
+        mte.app.main -> mte.app.controller "Steers and works a held tile each frame"
+        mte.app.main -> mte.app.perfect "Ticks it every frame while held"
+        mte.app.perfect -> mte.core.brain "nextIntent"
+        mte.app.perfect -> mte.app.controller "Carries out each intent"
+        mte.core.brain -> mte.core.world "Reads explored tiles; finds routes"
+        mte.core.brain -> mte.core.economy "Reads costs, rates and the registry"
         mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
         mte.app.main -> mte.app.render "Renders each frame"
         mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
@@ -318,7 +338,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
 
         dynamic mte.app "GameLoop" {
             title "Game Loop (one frame)"
-            mte.app.main -> mte.app.controller "Steers and repeats the held action each frame"
+            mte.app.main -> mte.app.controller "Steers and works a held tile each frame"
+            mte.app.main -> mte.app.perfect "Ticks it every frame while held"
+            mte.app.perfect -> mte.core.brain "nextIntent"
+            mte.app.perfect -> mte.app.controller "Carries out each intent"
             mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
             mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
             mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
@@ -329,7 +352,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
 
         dynamic mte.app "CollectFlow" {
             title "Tap to gather or dig"
-            mte.app.input -> mte.app.controller "Taps, held action, Trail strokes"
+            mte.app.input -> mte.app.controller "Taps, held tiles, Trail strokes"
             mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
             mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
             mte.app.controller -> mte.app.fx "Spawns effects"

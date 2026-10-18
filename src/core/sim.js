@@ -18,7 +18,7 @@ const MAX_STEP = 0.25;
 
 export function step(s, dt) {
   if (dt > MAX_STEP) dt = MAX_STEP;
-  noteWhere(s); // a shared world's room follows where you are (acts.js)
+  noteWhere(s, AUTO_COLLECT_RANGE); // a shared world's room follows where you are (acts.js)
   const regrowTick = Math.floor(s.time / REGROW_INTERVAL);
   s.time += dt;
   s.stats.playedMs += dt * 1000;
@@ -146,14 +146,18 @@ export function waterAhead(s, dx, dy) {
   return shoreStops(s, s.player.x + dx / len * 0.6, s.player.y + dy / len * 0.6);
 }
 
+// How fast the player walks (or rows) where they are, in tiles a second.
+export function walkSpeed(s) {
+  return BASE_SPEED * speedMult(s) * (onWater(s) ? SWIM_SPEED : 1);
+}
+
 // Moves the player along (dx, dy), sliding along walls axis by axis.
 // Returns whether the player moved at all.
 export function move(s, dx, dy, dt) {
   const len = Math.hypot(dx, dy);
   if (len < 0.0001) return false;
   dx /= len; dy /= len;
-  let speed = BASE_SPEED * speedMult(s);
-  if (onWater(s)) speed *= SWIM_SPEED;
+  const speed = walkSpeed(s);
   const p = s.player;
   let moved = false;
   const nx = p.x + dx * speed * dt;

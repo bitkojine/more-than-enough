@@ -90,7 +90,7 @@ function formatOf(raw) {
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have
-// heard, quality level and whether they know to hold Gather: conveniences for this browser, not game state.
+// heard, quality level and whether they know to hold Perfect: conveniences for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));

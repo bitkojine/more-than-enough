@@ -24,31 +24,10 @@ export function standOn(s, t) {
   s.player.y = t.y + 0.5;
 }
 
-// Breadth-first path over walkable tiles inside a padded box around start and
-// goal (not over water until your Boots take you onto it).
+// The route over walkable tiles from start to goal (the brain's own, core
+// paths.js), not over water until your Boots take you onto it.
 export function findPath(s, sx, sy, tx, ty, pad = 10) {
-  const minX = Math.min(sx, tx) - pad, maxX = Math.max(sx, tx) + pad;
-  const minY = Math.min(sy, ty) - pad, maxY = Math.max(sy, ty) + pad;
-  const key = (x, y) => x + ',' + y;
-  const prev = new Map([[key(sx, sy), null]]);
-  const queue = [[sx, sy]];
-  for (let head = 0; head < queue.length; head++) {
-    const [cx, cy] = queue[head];
-    if (cx === tx && cy === ty) break;
-    for (const [nx, ny] of [[cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]]) {
-      if (nx < minX || ny < minY || nx > maxX || ny > maxY || prev.has(key(nx, ny))) continue;
-      if (!C.walkable(s.world, nx, ny, s.player.z)) continue;
-      if (!C.canWade(s) && C.swimsAt(s.world, nx, ny, s.player.z)) continue;
-      prev.set(key(nx, ny), [cx, cy]);
-      queue.push([nx, ny]);
-    }
-  }
-  if (!prev.has(key(tx, ty))) return null;
-  const path = [];
-  for (let node = [tx, ty]; node && !(node[0] === sx && node[1] === sy); node = prev.get(key(node[0], node[1]))) {
-    path.push({ x: node[0], y: node[1] });
-  }
-  return path.reverse();
+  return C.findPath(s, sx, sy, tx, ty, { pad });
 }
 
 // Walks the path with real movement for up to `budget` seconds; returns time used.
@@ -160,4 +139,60 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
   }
 
   return { s, clock, timeline, mark, gather, standBy, free, buyNow, buildNow };
+}
+
+/* --------------------------------------------------- the Perfect button */
+
+// Holds the Perfect button for `seconds` of play: the brain (core
+// perfect.js) picks each intent and it's carried out the way the game's
+// button does it (src/game/perfect.js): walking with real movement, one act
+// every 0.25 s. `seen(intent, result)` hears each one, and `tick()` runs
+// after every step of play. Returns the time played and the last intent;
+// stops early at the Embark pause.
+export function holdPerfect(s, seconds, { mind = C.newMind(), seen = () => {}, tick = () => {} } = {}) {
+  let played = 0, last = null;
+  const pass = (dt) => { C.step(s, dt); played += dt; tick(); };
+  C.revealAround(s); // as the game's first frame does
+  while (played < seconds) {
+    const intent = C.nextIntent(s, mind);
+    last = intent;
+    if (intent.type === 'wait') {
+      seen(intent);
+      if (intent.why === 'embark') break;
+      pass(1);
+      continue;
+    }
+    if (intent.type === 'walk') {
+      const tx = intent.x + 0.5, ty = intent.y + 0.5;
+      for (let k = 0; k < 20; k++) {
+        const dx = tx - s.player.x, dy = ty - s.player.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 0.18) break;
+        const dt = Math.min(0.1, d / C.walkSpeed(s)); // no overshooting the step
+        const moved = C.move(s, dx, dy, dt);
+        C.revealAround(s);
+        pass(dt);
+        if (!moved) break;
+      }
+      seen(intent);
+      continue;
+    }
+    seen(intent, performIntent(s, intent));
+    pass(0.25);
+  }
+  return { played, last, mind };
+}
+
+// Carries out one act intent through the core calls a press makes.
+export function performIntent(s, intent) {
+  switch (intent.type) {
+    case 'harvestAt': return C.harvestAt(s, intent.x, intent.y);
+    case 'collect': return C.collect(s);
+    case 'buy': return C.buy(s, intent.id);
+    case 'place': return C.place(s, intent.key, { x: intent.x, y: intent.y });
+    case 'descend': { const r = C.descendAt(s, intent.x, intent.y); C.revealAround(s); return r; }
+    case 'climb': { const r = C.climbAt(s, intent.x, intent.y); C.revealAround(s); return r; }
+    case 'prop': return C.placeProp(s, intent.kind);
+  }
+  throw new Error('unknown intent ' + intent.type);
 }

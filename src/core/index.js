@@ -24,3 +24,5 @@ export * from './regions.js';
 export * from './shared.js';
 export * from './acts.js';
 export * from './replay.js';
+export * from './paths.js';
+export * from './perfect.js';

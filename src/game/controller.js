@@ -7,7 +7,7 @@ import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
 import { fmt } from './format.js';
 
-const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
+const GATHER_COOLDOWN = 0.25; // seconds between repeated gathers while a finger is held on a tile
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
@@ -85,18 +85,17 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     hud.toast(t('reason.gear', { tool: Core.TOOLS[g.tool].name, lv: g.level }));
   }
 
-  // Works tile (tx, ty) if it's in reach: gather it, or collect the building
-  // on it. Returns true if something was done, 'gear' if it's in reach but
-  // takes a better tool (the player is told which), else false.
+  // Works tile (tx, ty) if it's in reach: collect the building on it, or
+  // gather it. Returns true if something was done, 'gear' if it's in reach
+  // but takes a better tool (the player is told which), else false.
   function workAt(tx, ty) {
+    const near = Core.collectTarget(state());
+    if (near && near.list.some((e) => e.x === tx && e.y === ty)) { faceTile(tx, ty); return collectNearby(); }
     const r = Core.harvestAt(state(), tx, ty);
     if (r) { faceTile(tx, ty); harvested(r); changed(); return true; }
     const gear = Core.gearBlocks(state(), tx, ty);
     if (gear) { faceTile(tx, ty); needsGear(gear); return 'gear'; }
-    const near = Core.collectTarget(state());
-    if (!near || !near.list.some((e) => e.x === tx && e.y === ty)) return false;
-    faceTile(tx, ty);
-    return collectNearby();
+    return false;
   }
 
   // Turn to face tile (tx, ty), to work it.
@@ -117,17 +116,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     stalled = 0;
   }
 
-  // What Gather does right now: empty nearby extractors, else work the
-  // nearest deposit. Underground there is no automatic target.
-  function act() {
-    if (Core.collectTarget(state())) return collectNearby();
-    const r = Core.harvest(state());
-    if (!r) return false;
-    harvested(r);
-    changed();
-    return true;
-  }
-
   function layerChanged(from) {
     actor.act(player().z < from ? 'down' : 'up');
     fx.clear();
@@ -143,16 +131,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     if (!Core.descendAt(state(), x, y) && !Core.climbAt(state(), x, y)) return false;
     layerChanged(from);
     return true;
-  }
-
-  // Explore pressed with nothing in reach (a new player's first press, in
-  // the bare clearing at home): head for the nearest resource in sight and
-  // work it on arrival, as a tap on it would. Nothing in sight: say how to walk.
-  function explore() {
-    const s = state();
-    const to = s.player.z === Core.SURFACE && Core.nearestWork(s);
-    if (to) walkToward(to.x, to.y, true);
-    else if (!Core.isUnderground(s)) hud.toast(t('tip.walk'));
   }
 
   const controller = {
@@ -177,10 +155,11 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         // Walking to something tapped: work it as soon as it's in reach.
         const done = walkTo.work && workAt(walkTo.work.x, walkTo.work.y);
+        const d = Math.hypot(dx, dy);
         if (done) { walkTo = null; if (done === true) gathered(false); }
-        else if (Math.hypot(dx, dy) < ARRIVE_DIST) walkTo = null;
+        else if (d < ARRIVE_DIST) walkTo = null;
         else {
-          Core.move(state(), dx, dy, dt);
+          Core.move(state(), dx, dy, Math.min(dt, d / Core.walkSpeed(state()))); // never past it
           if (Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
           controller.facing = { x: dx, y: dy };
         }
@@ -193,24 +172,39 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       return moved;
     },
 
-    // Gather pressed: act at once, then the hold repeats via tick().
-    press() {
-      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
-      if (!walkTo) explore();
-    },
-
     // `holdAt`: a finger held still on the map (screen point), or null. It
-    // works that tile over and over, like holding Gather.
-    tick(dt, holding, holdAt) {
+    // works that tile over and over.
+    tick(dt, holdAt) {
       cooldown -= dt;
-      // The first gather of a hold is press()'s; these are its repeats.
-      if (holding && cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(true); }
       if (holdAt && cooldown <= 0) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);
         const done = workAt(tx, ty);
         if (done) { cooldown = GATHER_COOLDOWN; if (done === true) gathered(true); }
         else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
+      }
+    },
+
+    // Whether the wanderer is on the way somewhere tapped (or stepped toward).
+    get walking() { return !!walkTo; },
+
+    // Carries out one of the Perfect button's intents (core perfect.js)
+    // through the very calls a tap or press makes, feedback and all.
+    // `held`: a hold repeated it. Returns whether it was done.
+    perform(intent, held) {
+      switch (intent.type) {
+        case 'walk': walkToward(intent.x, intent.y, false); return true;
+        case 'harvestAt': {
+          const done = workAt(intent.x, intent.y) === true;
+          if (done) gathered(held);
+          return done;
+        }
+        case 'collect': return collectNearby();
+        case 'buy': return controller.buy(intent.id);
+        case 'place': return controller.place(intent.key, { x: intent.x, y: intent.y });
+        case 'descend': case 'climb': return passAt(intent.x, intent.y);
+        case 'prop': return controller.placeProp(intent.kind);
+        default: return false;
       }
     },
 
@@ -259,33 +253,37 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
     buy(id) {
       const s = state();
-      if (!Core.buy(s, id).ok) return;
+      if (!Core.buy(s, id).ok) return false;
       audio.upgrade();
       actor.act('cheer');
       say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
       changed();
       checkGoals();
+      return true;
     },
 
     placeProp(kind) {
       const s = state();
       const res = Core.placeProp(s, kind);
-      if (!res.ok) return;
+      if (!res.ok) return false;
       fx.built(res.x, res.y);
       actor.act('build');
       audio.build();
       changed();
+      return true;
     },
 
-    place(key) {
+    // On the nearest free tile, or on `at` ({x, y}) when one is picked.
+    place(key, at = null) {
       const s = state();
-      const res = Core.place(s, key);
-      if (!res.ok) return;
+      const res = Core.place(s, key, at);
+      if (!res.ok) return false;
       fx.built(res.x, res.y);
       actor.act('build');
       audio.build();
       changed();
       checkGoals();
+      return true;
     },
 
     // Embark destroys a world, so it asks first.
@@ -301,6 +299,9 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     },
 
     // Forget per-world intents when the world itself is replaced.
+    // Stops walking to wherever it was headed.
+    stop() { walkTo = null; },
+
     forget() {
       walkTo = null;
       cooldown = 0;

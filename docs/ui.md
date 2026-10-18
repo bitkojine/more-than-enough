@@ -30,9 +30,14 @@ place it belongs here rather than adding a button where there is room.
 │                                   [−]│
 │                                   [▤]│  world map, at the foot of the zoom pill
 │                        [CLIMB]       │  pops in above-left of the action
-│ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
+│ ( QR )   [BUILD] [UPGRADE] (PERFECT)│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
 ```
+
+### Perfect, the main action
+- **Perfect** is the big round button, there from the first spawn. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, a tap, a finger held on a tile or a Trail take over while you do them, and Perfect picks up again after.
+- **Its badge** (top-right of the button, a small circle, clear of the layer button above-left) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up.
+- **Embark is yours**: when the world is ready, Perfect stops, its badge turns to Embark and the button pulses gold, with a toast once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
 
 ### Tokens
 - Surfaces: `--surface` (glass panel), `--surface-raised`, `--line`.
@@ -62,7 +67,7 @@ place it belongs here rather than adding a button where there is room.
 - **The world map** opens from the map button at the foot of the zoom pill (zooming out all the way's next step), as a tall sheet titled *World map*. It shows the surface you've explored, region names in the same style as on arrival, home and you; drag to pan, pinch or scroll to zoom, and its own small pill in the corner zooms and brings you back to where you are.
 
 ### Playing together
-- **Invite** is a main action, as big as Gather, in the bottom-left corner (the left thumb), in the sign's friendly sky blue. Tapping it holds up your sign; the first time it asks to put the world online. While the sign is up the button turns white and reads *Lower*; tap it again to put the sign down. It's never in a menu.
+- **Invite** is a main action, as big as Perfect, in the bottom-left corner (the left thumb), in the sign's friendly sky blue. Tapping it holds up your sign; the first time it asks to put the world online. While the sign is up the button turns white and reads *Lower*; tap it again to put the sign down. It's never in a menu.
 - **The QR lives in the world**: your wanderer holds a sign up in both hands in front of them with the real, scannable code on it and *Scan to join my world* along the bottom, as big as fits (about 60% of the screen's width). The view pans so you stand low on the screen and the sign is clear of the top bar and messages. It's drawn over the night's darkness so it scans at any hour. Tapping the sign copies its link (a toast says so), for a friend who isn't there to scan it. Nothing covers it: it's drawn over names and edge badges, and the zoom buttons hide while it's up. Friends see you holding a small one, with their name above it.
 - **Invite links** (Settings, in a shared world) is a sheet screen like Discord's: every link you may see (all of them for the world's owner), newest first, with who made it, how many joined with it and how long it still works, and *Show* (holds it up on your sign) and *Stop* (asks first). At the top, like Discord's invite settings, two pickers for new links: how many people they let in (1, 2, 3, 5, 10, 25; never unlimited) and how long they work (30 min, 1 h, 6 h, 1 day or 7 days; 7 days unless picked). A link is used up, expired or stopped; lowering the sign doesn't stop it.
 - **Worlds** (Settings, top row, showing the world you're in by name) is a sheet screen listing your own world and every shared world you've been in, newest first: its name, whether it's yours or a friend's, how many play there now, and *Play* (or a green *You're here*). *Remove* takes a shared world off the list (asks first; you'd need a new link to go back). Switching never asks: each world keeps its own character and progress.

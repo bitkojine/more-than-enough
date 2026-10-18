@@ -154,17 +154,13 @@ test('mycelium from a spore bed underground does not count as gathering from the
   assert.equal(s.goalIndex, 1);
 });
 
-test('Explore heads for the nearest resource around you that your tools can work', () => {
+test("Perfect's first press heads for a resource, or out to find one", () => {
   for (let i = 0; i < 60; i++) {
     const seed = (i * 2654435761) >>> 0;
     const s = C.createState(seed);
-    const to = C.nearestWork(s);
-    assert.ok(to, 'from home there is always something to head for (seed ' + seed + ')');
-    assert.ok(C.harvestable(s, to.x, to.y) && !C.gearNeeded(s, to.x, to.y), 'and only what the tools in hand can work');
-    assert.ok(C.TILE_INFO[typeAt(s, to.x, to.y)].res, 'a resource, not bare ground');
+    C.revealAround(s); // what a new player sees
+    const go = C.nextIntent(s, C.newMind());
+    assert.ok(go.type === 'walk' || go.type === 'harvestAt', 'from spawn there is always something to head for (seed ' + seed + ': ' + go.type + ')');
+    assert.ok(go.badge.startsWith('resource.') || go.badge === 'ui.explore', 'to a resource, or out to look for one (' + go.badge + ')');
   }
-  const s = C.createState(5);
-  assert.ok(C.nearestWork(s, 3), 'a world starts you by a forest');
-  standOn(s, C.home());
-  assert.equal(C.nearestWork(s, 2), null, 'nothing that close to the middle of home: nowhere to head');
 });

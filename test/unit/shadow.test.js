@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as P from '../../src/net/protocol.js';
 import { Room, Bucket } from '../../server/src/room.js';
-import { C, T, createBot } from './helpers.js';
+import { C, T, createBot, holdPerfect } from './helpers.js';
 
 const T0 = 1_700_000_000_000;
 const SAVE_EVERY_MS = 10_000;
@@ -20,6 +20,7 @@ async function sharedGame(seed) {
   assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }), T0), null);
   const j = await r.join(key, undefined, T0);
   const s = C.joinState(j.welcome, r.id, null, null);
+  s.time = j.welcome.time; // the game keeps the room's clock (together.js keepTime)
   assert.ok(j.welcome.acts, 'the room asks for acts');
   s.acts = [];
   const id = j.id;
@@ -52,6 +53,28 @@ async function sharedGame(seed) {
 }
 
 const drifts = (r) => r.log.filter((e) => e.e === 'drift');
+
+// The Perfect button plays only through a player's own acts, so the room,
+// replaying them, must come out exactly where the game did: no refused act,
+// no drift, from the first spawn on through its first buildings.
+test('shadow: the Perfect button, held, plays a shared world the room agrees with', async () => {
+  const g = await sharedGame(777);
+  const { s, r, id, sync } = g;
+  let n = 0;
+  holdPerfect(s, 20 * 60, { tick: () => { if (++n % 5 === 0) sync(); } });
+  sync(true);
+  const report = r.shadow.report(id);
+  assert.ok(report.checks >= 20, 'the room checked often (' + report.checks + ')');
+  assert.equal(report.refused, 0, 'every act was allowed');
+  // Logistics hauls whole units a step at a time, and the room hears where
+  // you walk every half tile: a few units can land a step apart. Never more,
+  // and never a level.
+  for (const d of drifts(r)) {
+    assert.deepEqual(d.levels, [], JSON.stringify(d));
+    for (const [, theirs, ours] of d.res) assert.ok(Math.abs(theirs - ours) <= 10, JSON.stringify(d));
+  }
+  assert.ok(s.extractors.length >= 4 && s.tools.pickaxe >= 2, 'it really played (' + s.extractors.length + ' buildings)');
+});
 
 test('shadow: a game played fairly, from nothing to its first buildings, agrees with the room', async () => {
   const g = await sharedGame(12345);

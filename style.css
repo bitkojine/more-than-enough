@@ -328,7 +328,9 @@ canvas#game {
 #btnUpgrade { right: calc(var(--act) + var(--gap)); bottom: calc((var(--act) - var(--sub)) / 2); }
 #btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2); bottom: calc((var(--act) - var(--sub)) / 2); }
 
-/* The big action: what holding it does right now. */
+/* The big action: Perfect. Holding it plays the game; the badge in its
+   corner shows what it's doing (or would do), and it glows gold when the
+   world is ready to Embark, which only the player presses. */
 #btnAction {
   right: 0; bottom: 0;
   width: var(--act); height: var(--act);
@@ -337,12 +339,18 @@ canvas#game {
 }
 #btnAction .big { width: 42px; height: 42px; }
 #btnAction .cap { font-size: 11px; color: #e4f7df; background: #1d3524; border-color: rgba(150, 230, 150, 0.45); }
-#btnAction.disabled { opacity: 0.55; }
-#btnAction.ready { animation: readyPulse 1.6s ease-in-out infinite; }
-#btnAction.ready:active { animation: none; }
-@keyframes readyPulse {
-  0%, 100% { box-shadow: var(--shadow-1), 0 0 0 0 rgba(127, 208, 122, 0.3); }
-  50% { box-shadow: var(--shadow-1), 0 0 0 8px rgba(127, 208, 122, 0); }
+#btnAction .badge {
+  position: absolute; top: -4px; right: -4px;
+  width: 30px; height: 30px; padding: 4px; box-sizing: border-box;
+  border-radius: 50%; background: #141c17; border: 2px solid rgba(150, 230, 150, 0.5);
+  object-fit: contain; pointer-events: none;
+}
+#btnAction.on { border-color: #b6f0a8; background: radial-gradient(circle at 50% 32%, rgba(112, 184, 120, 0.98), rgba(30, 60, 40, 0.98)); }
+#btnAction.embark { border-color: var(--gold); animation: embarkPulse 1.6s ease-in-out infinite; }
+#btnAction.embark .badge { border-color: var(--gold); }
+@keyframes embarkPulse {
+  0%, 100% { box-shadow: var(--shadow-1), 0 0 0 0 rgba(255, 200, 90, 0.45); }
+  50% { box-shadow: var(--shadow-1), 0 0 0 10px rgba(255, 200, 90, 0); }
 }
 
 /* Invite: the other main action, as big as Gather, in the left thumb's
@@ -364,7 +372,7 @@ canvas#game {
    down and is gone elsewhere. */
 #btnMine {
   right: calc(var(--act) - var(--sub) / 2 + 4px);
-  bottom: calc(var(--act) + 4px);
+  bottom: calc(var(--act) + 8px); /* its label clear of Perfect */
   border-color: rgba(225, 181, 105, 0.6);
   background: radial-gradient(circle at 50% 30%, rgba(96, 72, 44, 0.95), rgba(36, 26, 16, 0.95));
   animation: pop-in .22s cubic-bezier(.2, 1.5, .4, 1);
@@ -934,7 +942,7 @@ body.signing #zoomControls { visibility: hidden; }
   /* Zoom lies down: a column this tall would reach the top bar. */
   /* Low enough to clear a milestone banner, above the climb button. */
   #zoomControls {
-    right: var(--edge-r); bottom: calc(var(--edge-b) + var(--act) + 54px);
+    right: var(--edge-r); bottom: calc(var(--edge-b) + var(--act) + 62px); /* over the layer button */
     width: auto; height: 40px; flex-direction: row;
   }
   #zoomControls button { width: 40px; }

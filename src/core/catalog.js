@@ -142,7 +142,7 @@ add('mark', 'glowcap', t('look.mark.glowcap'), t('look.mark.glowcap.does'), req(
 add('mark', 'lamp', t('look.mark.lamp'), t('look.mark.lamp.does'), req('image', 'color'));
 add('mark', 'flag', t('look.mark.flag'), t('look.mark.flag.does'), req('image', 'color'));
 
-const UI = ['build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
+const UI = ['perfect', 'explore', 'wait', 'build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
 for (const key of UI) add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));
 
 for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), req('icon'));

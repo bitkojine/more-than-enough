@@ -64,7 +64,7 @@ export const FINDS = {
 
 // What tools open, not only how much they gather: rock too hard for the
 // Pickaxe you have, the shafts down to the deep layers, rare mushrooms and
-// the water. Below the level named here, Gather leaves the tile alone (or,
+// the water. Below the level named here, working the tile is refused (or,
 // for water, you stop at the shore). Checked by gearNeeded and canWade.
 export const GEAR = {
   // the Pickaxe level that breaks each kind of rock

@@ -6,7 +6,7 @@
  *   sealed   no way between layers ever opens here, from above or below
  *            (home ground: kept for the stockpile)
  *   swim     walkable, but slow (water)
- *   harvest  the Gather action works it, lowering its richness by one
+ *   harvest  gathering works it, lowering its richness by one
  *   solid    a harvestable tile you cannot stand on (underground rock); it must
  *            be chosen deliberately with a tap or a Trail, never auto-targeted
  *   res      the resource a harvest yields (none for plain soil)

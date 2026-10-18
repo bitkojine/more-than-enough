@@ -1,9 +1,11 @@
-/* Scripted playthroughs: a bot walks the real world with real movement and
- * plays the game from nothing to automation, and on to the Abundance Engine. */
+/* Playthroughs: the Perfect button's brain (core perfect.js), held, plays
+ * the real world with real movement from the first spawn on, through every
+ * phase, and stops for the player at Embark. Before it, scripted bots that
+ * walk the same world from nothing to automation and the Abundance Engine. */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, T, typeAt, createBot } from './helpers.js';
+import { C, T, typeAt, createBot, holdPerfect, master } from './helpers.js';
 
 function playToAutomation(seed) {
   const b = createBot(seed);
@@ -67,4 +69,127 @@ test('bot plays through to the Abundance Engine', () => {
   assert.ok(timeline.crystal !== undefined, 'found crystal');
   assert.ok(timeline.resonator !== undefined, 'built a Resonator');
   assert.ok(timeline.abundance !== undefined, 'built the Abundance Engine (' + JSON.stringify(timeline) + ')');
+});
+
+/* ------------------------------------------------- the Perfect button */
+
+// Holds Perfect on a new world for `minutes` of play, checking that every
+// act it picks is one the game takes (legal by construction: nothing out of
+// reach, nothing it can't afford, nothing through the fog) and noting when
+// each milestone comes.
+function holdFromSpawn(seed, minutes) {
+  const s = C.createState(seed);
+  const timeline = {}, refused = [], kinds = {};
+  let clock = 0;
+  holdPerfect(s, minutes * 60, {
+    seen(intent, result) {
+      kinds[intent.type] = (kinds[intent.type] || 0) + 1;
+      if (intent.type === 'harvestAt' && s.player.z === C.SURFACE) {
+        assert.ok(C.isExplored(s.world, intent.x, intent.y, C.SURFACE), 'only works what has been seen');
+      }
+      if (intent.type === 'walk' && s.player.z === C.SURFACE) {
+        assert.ok(C.isExplored(s.world, intent.x, intent.y, C.SURFACE), 'only walks where it has seen');
+      }
+      if (intent.type === 'wait') assert.notEqual(intent.why, 'embark');
+      if (result === undefined) return;
+      if (!(result === true || (result && result.ok !== false))) refused.push(intent);
+    },
+    tick() {
+      clock = s.time;
+      for (const g of C.advanceGoals(s)) timeline[g.id] = +(clock / 60).toFixed(1);
+    }
+  });
+  return { s, timeline, refused, kinds };
+}
+
+for (const seed of [12345, 777, 20260101]) {
+  test('Perfect, held from the first spawn, plays to automation on seed ' + seed, () => {
+    const { s, timeline, refused } = holdFromSpawn(seed, 45);
+    assert.deepEqual(refused, [], 'the game took every act it picked');
+    for (const goal of ['forage', 'basket', 'garden', 'pickaxe', 'overclock', 'logistics']) {
+      assert.ok(timeline[goal] !== undefined, goal + ' within 45 minutes: ' + JSON.stringify(timeline));
+    }
+    assert.ok(s.extractors.length >= 4, 'it built (' + s.extractors.length + ')');
+  });
+}
+
+// The whole world, from spawn to Embark, takes it 36 h of play on seed 12345
+// and 45 h on 777: minutes of test time per seed, too long for every run. Four
+// hours here reaches the compounding phase: refineries on every resource,
+// converters, the Abundance Engine.
+test('Perfect plays on through automation into compounding', () => {
+  const { s, timeline, refused } = holdFromSpawn(12345, 240);
+  assert.deepEqual(refused, []);
+  for (const goal of ['crystal', 'resonator', 'observatory', 'abundance1']) assert.ok(timeline[goal] !== undefined, goal + ': ' + JSON.stringify(timeline));
+  for (const r of C.RESOURCES) assert.ok(s.resUp[r] >= 2, r + ' refinery ' + s.resUp[r]);
+  assert.ok(s.abundanceLv <= C.EMBARK_ABUNDANCE, 'Abundance waits at the Embark level until the rest is done');
+});
+
+// The mine: when what's wanted can only be dug (here ore, every deposit seen
+// too hard for the Pickaxe in hand and no building making it), Perfect goes
+// down a cave mouth it has seen, flags the way back, lights the tunnel with
+// glowcaps, digs to the finds, and later climbs back up the way it came.
+test('Perfect digs in the mine when only finds pay, and comes back up', () => {
+  const s = C.createState(12345);
+  const mind = C.newMind();
+  holdPerfect(s, 8 * 60, { mind });
+  s.tools.pickaxe = 1;
+  s.inv.ore = 0;
+  s.extractors = s.extractors.filter((e) => e.res !== 'ore');
+  const want = { ore: 40 };
+  assert.equal(C.plan(s, mind, want).layer, 1, 'finds on layer 1 are the way to ore');
+  mind.goal = { kind: 'build', id: 'mine', cost: want, level: C.extractorCount(s, 'mine') };
+  mind.decided = s.time;
+  let deepest = 0;
+  const did = new Set();
+  holdPerfect(s, 60, { mind, seen: (i) => { did.add(i.type + ':' + (i.kind || '')); deepest = Math.min(deepest, s.player.z); } });
+  assert.equal(deepest, -1, 'it went down');
+  assert.ok(did.has('descend:'), 'through a cave mouth');
+  const props = [...s.world.props.values()];
+  assert.ok(props.includes('flag') && props.includes('glowcap'), 'a flag by the way back, glowcaps along the tunnel: ' + props);
+  assert.ok(s.stats.finds > 0 && s.inv.ore > 0, 'and dug finds for ore (' + s.stats.finds + ')');
+  holdPerfect(s, 10 * 60, { mind });
+  assert.equal(s.player.z, C.SURFACE, 'then back on the surface');
+});
+
+// A mastered world just short of what Embark takes, its Abundance Engine
+// running: the brain keeps playing, and the moment Embark opens it waits
+// for the player, never pressing it itself.
+test('Perfect pauses at Embark and leaves it to the player', () => {
+  const s = master(C.createState(12345));
+  s.stats.mycelium = C.EMBARK_MIN_TOTAL - 400;
+  let before = 0, pausedWhen = null;
+  const { last } = holdPerfect(s, 600, {
+    seen(intent) {
+      if (intent.type === 'wait' && intent.why === 'embark') { pausedWhen = C.canEmbark(s); return; }
+      assert.ok(!C.canEmbark(s), 'it acts only while Embark is closed');
+      before++;
+    }
+  });
+  assert.ok(before > 0, 'it played until then');
+  assert.equal(pausedWhen, true, 'it paused once Embark opened');
+  assert.deepEqual([last.type, last.why, last.badge], ['wait', 'embark', 'ui.embark']);
+  assert.equal(s.prestiges, 0, 'and did not embark');
+  // Held on and on, it still only waits.
+  const again = holdPerfect(s, 30);
+  assert.equal(again.played, 0);
+  assert.ok(C.canEmbark(s) && s.prestiges === 0);
+});
+
+test('Perfect never pauses in a shared world, where there is no Embark, and spends no Insight there', () => {
+  const s = master(C.createState(12345));
+  s.shared = 'room'; s.me = 'me';
+  s.stats.mycelium = 2 * C.EMBARK_MIN_TOTAL;
+  s.insight = 10;
+  const i = C.nextIntent(s, C.newMind());
+  assert.notEqual(i.why, 'embark');
+  assert.equal(C.nextPerk(s), null);
+});
+
+test('after embarking, Insight goes to the one-time perks first, then Legacy', () => {
+  const s = C.createState(777);
+  s.insight = 7;
+  const bought = [];
+  for (let id; (id = C.nextPerk(s)); ) { bought.push(id); C.buy(s, id); }
+  assert.deepEqual(bought, ['memory', 'heirloom', 'cartographer', 'legacy', 'legacy']);
 });
