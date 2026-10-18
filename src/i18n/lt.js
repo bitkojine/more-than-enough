@@ -257,8 +257,7 @@ export default {
   "tileDoes.bedrock": "Neiškasama.",
   "tileDoes.tunnel": "Iškasta erdvė kasykloje.",
   "tileDoes.tall": "Aukščio – visas sluoksnis.",
-  "tileDoes.home": "Proskyna, kurioje prasideda kiekvienas pasaulis, skirta tavo atsargoms.",
-  "tileDoes.yard": "Čia išsilieja tavo atsargos, kai namų žemė prisipildo.",
+  "tileDoes.home": "Kvadratas, ant kurio prasideda kiekvienas pasaulis, skirtas tavo atsargoms.",
   "tileDoes.yields": "Renkant gaunama {res}.",
   "tileDoes.find": "Radinys: vienas kasimas iškart atiduoda visą jo turinį ({loot}), daugiau giliau ir su geresniais įrankiais. Iš toli blyksi tamsoje.",
 
@@ -778,6 +777,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.109.0": "Namai dabar – kvadratinis miestelis, 23 langelių kraštinės, ir tavo atsargos lieka jo viduje. Viduryje susikerta du keliai, o kiekvienas išteklius turi savo kvartalą: grybiena šiaurės vakaruose, akmuo šiaurės rytuose, rūda pietryčiuose, kristalai pietvakariuose. Kiekviena krūva turi savo vietą, tad niekas niekada neišsilieja į žemę aplink namus ir nestovi ant kitos krūvos, o vieniša sostinė gauna visą kampą sau.\nPradedi kvadrato pakraštyje, prie artimiausio miško.\nDėl to pasaulis kuriamas šiek tiek kitaip, tad vieno žaidėjo pasauliai prasideda iš naujo, o bendruose pasauliuose laukia sprogdinimas.",
   "news.0.108.0": "Tavo atsargos išauga į karalystę: nuo dešimties milijonų kiekvienas dešimties laipsnis turi savo paveikslėlį, kylantį nuo vienkiemio iki kaimo, miestelio, mūrais apjuosto miesto, citadelės ir galiausiai karūnuotos sostinės, kiekvienas savo ištekliaus stiliumi (šviečianti grybų sostinė, akmens rūmai, auksu kupolu dengta liejykla, kristalų rūmai).",
   "news.0.107.0": "Atsargos aplink namus vėl ramios, kad ir kiek turėtum. Kiekvienas išteklius laikosi savo namų pusės (grybiena šiaurėje, akmuo rytuose, rūda pietuose, kristalai vakaruose), tarp krūvų paliekama šiek tiek vietos, o stovi tik dvi didžiausios krūvų rūšys, tad vienam ištekliui tenka ne daugiau kaip 18 krūvų, o ne šimtai.\nKaip žaidime 2048, dešimt krūvų dabar susilieja į vieną didesnę: jos susislenka draugėn, o ten, kur susitinka, iššoka didesnė. Kai kiemas susitvarko, krūvos nuslenka į naujas vietas, o ne peršoka.",
   "news.0.106.0": "Bendrame pasaulyje tavo pastatai nebedingsta akimirką po to, kai juos pastatai. Kai pasaulis ištaisydavo tavo skaičius, tavo žaidimas iš ekrano dingdavo ir visus tavo pastatus, nors pasaulyje jie stovėjo.\nKai pasaulis vis dėlto ką nors atima – pastatą, patobulinimą ar dalį išteklių, – dabar parašoma, ką ir kodėl: kažkas kitas toje vietoje buvo pirmas, pasaulis suskaičiavo mažiau išteklių, nei rodė tavo žaidimas, arba ryšys buvo per silpnas, kad tai, ką darei, būtų įskaityta.",

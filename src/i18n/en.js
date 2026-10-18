@@ -257,8 +257,7 @@ export default {
   "tileDoes.bedrock": "Cannot be dug.",
   "tileDoes.tunnel": "Dug-out space in the mine.",
   "tileDoes.tall": "Stands a full layer tall.",
-  "tileDoes.home": "The clearing every world starts in, kept for your stockpile.",
-  "tileDoes.yard": "Your stockpile spills onto it once home ground is full.",
+  "tileDoes.home": "The square every world starts on, kept for your stockpile.",
   "tileDoes.yields": "Gathering it yields {res}.",
   "tileDoes.find": "A find: one dig pays out its loot ({loot}) all at once, more on deeper layers and with better tools. It glints in the dark from a way off.",
 
@@ -778,6 +777,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.109.0": "Home is now a square town, 23 tiles a side, and your stockpile stays inside it. Two roads cross in the middle, and each resource has its own block: mycelium north-west, stone north-east, ore south-east, crystal south-west. Every pile has its own place, so nothing ever spills onto the land around home or stands on another pile, and a lone capital gets a whole corner to itself.\nYou start on the edge of the square, by the nearest forest.\nThe world is made a little differently for this, so solo worlds start fresh and shared worlds get the nuke.",
   "news.0.108.0": "Your stockpile grows into a kingdom: from ten million up, every power of ten has its own picture, climbing from a hamlet to a village, town, walled city, citadel and finally a crowned capital, each in its resource's style (a glowing mushroom capital, a stone palace, a golden-domed foundry, a crystal palace).",
   "news.0.107.0": "The stockpile around home is calm again, however rich you get. Each resource keeps to its own side of home (mycelium north, stone east, ore south, crystal west), piles keep a little space between them, and only your two biggest kinds of pile stand, so there are at most 18 per resource instead of a crowd of hundreds.\nLike in 2048, ten piles now merge into one bigger pile: they slide together and the bigger one pops up where they meet. When the yard tidies itself, piles slide to their new spots instead of jumping.",
   "news.0.106.0": "In a shared world, your buildings no longer vanish a moment after you put them up. When the world set your numbers straight, your game also lost every building of yours from your screen, though they still stood in the world.\nWhen the world does take something back, a building, an upgrade or some resources, a note now says what and why: someone else got to that spot first, the world counted fewer resources than your game showed, or your connection was too weak for it to count what you did.",

@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.109.0] - 2026-10-18
+
+Watch's ask: every pile must fit in the spawn zone and never be drawn over
+resource tiles outside it; Watch picked "Bigger fixed spawn" (solo worlds
+restart, shared worlds get the nuke).
+
+### Changed
+- **Home ground is a square, 23 tiles a side** (`HOME_HALF` 11, was a
+  circle of radius 5.5). `WORLD_FORMAT` 11.
+- **The stockpile has fixed slots** (`yardLayout`): home is laid out like a
+  town, roads crossing in the middle and one 10 x 10 block per resource
+  (mycelium NW, stone NE, ore SE, crystal SW). The leading digit's piles
+  share the corner by the crossroads (one pile gets 8 x 8, up to four 3 x 3,
+  up to nine 2 x 2), the second digit's stand along the outer edges, and a
+  tile of home ground is left to the wild. No pile ever stands outside home
+  ground, so there's no more reading the ground, fog, holes or buildings,
+  no settling, and no tidy-up every 90 s: the same amounts always give the
+  same yard, and piles slide when the amounts move them. `yardSettle`,
+  `yardGround`, `yardCost`, `YARD_RADIUS` and the tiles' `yard` field are
+  gone.
+- **You start on the edge of home ground, by the nearest forest**
+  (`findSpawn`), and home ground plus 6 tiles around it is in view from the
+  start, so the first screen shows something to gather rather than bare
+  earth.
+
 ## [0.108.0] - 2026-10-18
 
 Watch picked "Kingdom ladder": from 10^7 up every pile size reused one

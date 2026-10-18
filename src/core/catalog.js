@@ -87,7 +87,6 @@ function tileDoes(type) {
   if (type === T.TUNNEL) out.push(t('tileDoes.tunnel'));
   if (info.height >= 1) out.push(t('tileDoes.tall'));
   if (type === T.HOME) out.push(t('tileDoes.home'));
-  else if (info.yard > 0) out.push(t('tileDoes.yard'));
   return out.join(' ');
 }
 

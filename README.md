@@ -160,7 +160,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
-  - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of the two leading digits, a district per resource)
+  - `stockpile.js` — what you own as piles on home ground, on a log scale (one pile per unit of the two leading digits, a fixed block of slots per resource)
   - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
   - `shared.js` — a shared world: splitting a state into the world and your own progress, applying friends' edits and the room's corrections
   - `acts.js`, `replay.js` — in a shared world, what the player did, written down, and the room doing the same with the same rules (`server/src/shadow.js`), so the room knows what everyone really has

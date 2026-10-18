@@ -3,17 +3,12 @@
  * like the tiles of 2048: when ten piles become one bigger pile they slide
  * together and the bigger one pops up where they meet; piles that move to
  * make room slide there; new piles grow out of the ground; piles that just go
- * (you spent them) vanish in a puff.
- *
- * The yard stays put while you gather: piles that are still called for never
- * move, new ones take the best free spot. Only once in a while (TIDY_EVERY)
- * is it laid out tidily again, biggest piles back in the middle. */
+ * (you spent them) vanish in a puff. */
 
 import * as Core from '../core/index.js';
 
 const REFRESH = 0.2;     // seconds between layout checks while amounts change
 const GROW_TIME = 0.35;  // seconds a new pile takes to grow to full size
-const TIDY_EVERY = 90;   // seconds between tidy-ups of the yard
 const SLIDE_TIME = 0.8;  // seconds a pile takes to slide to a new spot or into a merge
 const MERGED_SHRINK = 0.35; // how small a merging pile gets as it reaches the bigger one
 
@@ -27,24 +22,19 @@ export function createYard({ fx, look }) {
   let merging = []; // piles sliding into a bigger one: { x, y, span, res, tier, to, start }
   let covered = new Set(); // packed keys of every tile under a pile
   let wait = 0;
-  let tidyIn = TIDY_EVERY;
-  let middle = { x: 0.5, y: 0.5 }; // the middle of home ground
-  const memo = {}; // the ground the yard stands on, kept between layouts
+  const h = Core.home();
+  const middle = { x: h.x + 0.5, y: h.y + 0.5 }; // the crossroads in the middle of home
 
   // Everything the layout depends on.
-  const signatureOf = (s) => Core.RESOURCES.map((r) => Math.floor(s.inv[r])).join() +
-    '|' + s.extractors.length + '|' + s.world.revealed;
+  const signatureOf = (s) => Core.RESOURCES.map((r) => Math.floor(s.inv[r])).join();
 
-  // `fresh` lays the yard out tidily; otherwise it settles around what stands.
-  function refresh(s, quiet, fresh) {
-    const h = Core.home(s);
-    middle = { x: h.x + 0.5, y: h.y + 0.5 };
+  function refresh(s, quiet) {
     const now = s.time;
     const show = !quiet && s.player.z === Core.SURFACE;
     const next = new Map();
     const under = new Set();
     const left = new Set(piles.values()); // piles not yet matched to the new layout
-    const layout = fresh ? Core.yardLayout(s, memo) : Core.yardSettle(s, [...piles.values()], memo);
+    const layout = Core.yardLayout(s);
     const placed = [];
     for (const p of layout) {
       // Drawn with the row of its front edge, so it covers what's behind it.
@@ -89,7 +79,6 @@ export function createYard({ fx, look }) {
   return {
     // Called every frame; recomputes at most every REFRESH seconds.
     update(s, dt) {
-      tidyIn -= dt;
       if (merging.length) {
         merging = merging.filter((m) => {
           if (s.time - m.start < SLIDE_TIME) return true;
@@ -100,12 +89,9 @@ export function createYard({ fx, look }) {
       }
       if ((wait -= dt) > 0) return;
       const sig = signatureOf(s);
-      const tidy = tidyIn <= 0;
-      if (sig === signature && !tidy) return;
+      if (sig === signature) return;
       wait = REFRESH;
-      if (tidy) tidyIn = TIDY_EVERY;
-      const first = signature === null;
-      refresh(s, first, first || tidy);
+      refresh(s, signature === null);
       signature = sig;
     },
 
@@ -115,7 +101,6 @@ export function createYard({ fx, look }) {
       wait = 0;
       piles = new Map();
       merging = [];
-      tidyIn = TIDY_EVERY;
     },
 
     // How grown a pile is (new piles grow in, overshooting a little like a

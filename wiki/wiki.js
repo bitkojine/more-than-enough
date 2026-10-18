@@ -43,7 +43,6 @@ function tileNotes(type) {
   else if (info.harvest && !info.solid) notes.push(t('wiki.note.neverRegrows'));
   if (info.land) notes.push(t('wiki.note.land'));
   if (type === T.HOME) notes.push(t('wiki.note.home'));
-  else if (info.yard !== undefined) notes.push(t('wiki.note.yard'));
   if (info.descend) notes.push(t('wiki.note.descend'));
   if (info.rise) notes.push(t('wiki.note.rise'));
   if (type === T.SHAFT) notes.push(t('wiki.note.shaft'));

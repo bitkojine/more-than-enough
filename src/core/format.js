@@ -5,7 +5,7 @@
  * nuke. Only the room service decides that, never a player. No imports, so
  * the room service (server/) bundles it as is. */
 
-export const WORLD_FORMAT = 10;
+export const WORLD_FORMAT = 11;
 
 /* How shared worlds keep score. Bump ECON_FORMAT when an update changes how
  * the room service counts players' progress so much that what it counted

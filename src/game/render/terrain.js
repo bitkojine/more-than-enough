@@ -287,8 +287,8 @@ function drawPile(ctx, cam, s, look, yard, p, at = yard.at(p, s.time)) {
   const h = cam.risePx > FLAT_RISE_PX ? Core.tileHeight(s.world, Math.floor(at.x + p.span / 2), Math.round(front), Core.SURFACE) : 0;
   const foot = cam.project(at.x + p.span / 2, front + FOOT, Core.SURFACE + h);
   const pic = look.tier('pile.' + p.res, p.tier);
-  // One tile: the picture's own size. A square: fitted to the square's width.
-  const fit = p.span === 1 ? 1 : (p.span * PILE_FILL) / pic.units;
+  // A small pile: the picture's own size. A big one: fitted to its square's width.
+  const fit = p.span === 1 && p.tier < Core.SPAN_FROM ? 1 : (p.span * PILE_FILL) / pic.units;
   const size = u * fit * at.size;
   if (size < 1) return;
   const fx = foot.x, fy = foot.y;

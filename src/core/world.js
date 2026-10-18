@@ -4,7 +4,7 @@
  * stays small however far anyone walks or digs. */
 
 import { CHUNK_SIZE, SURFACE, packKey, unpackKey, chunkCoord, chunkIndex } from './coords.js';
-import { generateChunk, wayDownInChunk, wayUpInChunk } from './terrain.js';
+import { generateChunk, wayDownInChunk, wayUpInChunk, HOME_HALF } from './terrain.js';
 import { hash2 } from './noise.js';
 import { TILE_INFO, T } from './tiles.js';
 
@@ -187,9 +187,13 @@ export function nearestTile(x, y, maxR, pred) {
   return null;
 }
 
-// Fully random birth: the nearest walkable surface tile to the origin,
-// preferring dry land. No terrain is sculpted and no resources are guaranteed.
+// Where a new world starts you: on the edge of home ground, by the forest
+// nearest its middle, so there's something to gather in view straight away
+// (the middle, where the stockpile stands, is bare ground). No terrain is
+// sculpted and no resources are guaranteed.
 export function findSpawn(w) {
-  const dry = nearestTile(0.5, 0.5, SPAWN_SEARCH_RADIUS, (x, y) => walkable(w, x, y, SURFACE) && tileAt(w, x, y, SURFACE) !== T.WATER);
-  return dry || nearestTile(0.5, 0.5, SPAWN_SEARCH_RADIUS, (x, y) => walkable(w, x, y, SURFACE)) || { x: 0, y: 0 };
+  const f = nearestTile(0.5, 0.5, SPAWN_SEARCH_RADIUS, (x, y) => tileAt(w, x, y, SURFACE) === T.FOREST);
+  if (!f) return { x: 0, y: 0 };
+  const edge = (v) => Math.max(-HOME_HALF, Math.min(HOME_HALF, v));
+  return { x: edge(f.x), y: edge(f.y) };
 }

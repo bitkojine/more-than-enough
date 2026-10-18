@@ -122,6 +122,7 @@ test('converters need their blueprint and build on any dry land, not home ground
   Object.assign(s.inv, { mycelium: 1e4, stone: 1e4, ore: 1e4 });
   s.unlocks.foundry = true;
   assert.equal(typeAt(s, Math.floor(s.player.x), Math.floor(s.player.y)), T.HOME, 'every world starts on home ground');
+  standOn(s, C.home());
   assert.equal(C.place(s, 'foundry').ok, false, 'home ground is kept for the stockpile');
   s.unlocks.foundry = false;
   standOn(s, findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].land));
@@ -163,5 +164,7 @@ test('Explore heads for the nearest resource around you that your tools can work
     assert.ok(C.TILE_INFO[typeAt(s, to.x, to.y)].res, 'a resource, not bare ground');
   }
   const s = C.createState(5);
-  assert.equal(C.nearestWork(s, 2), null, 'nothing that close to home: nowhere to head');
+  assert.ok(C.nearestWork(s, 3), 'a world starts you by a forest');
+  standOn(s, C.home());
+  assert.equal(C.nearestWork(s, 2), null, 'nothing that close to the middle of home: nowhere to head');
 });

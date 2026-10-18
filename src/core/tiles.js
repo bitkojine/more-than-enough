@@ -21,11 +21,7 @@
  *            and mountains reach the layer above, water sits a little low
  *   rough    how much the height varies from tile to tile (mountain peaks)
  *   find     a find hidden in the rock (see FINDS): digging it out pays its
- *            loot all at once, and it glints in the dark from a way off
- *   yard     the stockpile can stand on it; the number is how many tiles
- *            further out it would rather go to avoid it (0 = home ground,
- *            used first). Without it, no piles stand there: never on
- *            anything you can gather, so piles never hide a resource */
+ *            loot all at once, and it glints in the dark from a way off */
 
 import { t } from '../i18n/i18n.js';
 
@@ -70,7 +66,7 @@ export const TILE_KEY = [];
 ].forEach(([type, key]) => { TILE_KEY[type] = key; TILE_NAME[type] = t('tile.' + key); });
 
 export const TILE_INFO = [];
-TILE_INFO[T.GRASS] = { walk: true, land: true, yard: 3 };
+TILE_INFO[T.GRASS] = { walk: true, land: true };
 TILE_INFO[T.FOREST] = { walk: true, land: true, harvest: true, res: 'mycelium', regrows: true, forage: true };
 TILE_INFO[T.STONE] = { walk: true, land: true, harvest: true, res: 'stone', regrows: true };
 TILE_INFO[T.ORE] = { walk: true, land: true, harvest: true, res: 'ore' };
@@ -86,7 +82,7 @@ TILE_INFO[T.SPORE_BED] = { harvest: true, solid: true, res: 'mycelium', cleared:
 TILE_INFO[T.BEDROCK] = { cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.SHAFT] = { harvest: true, solid: true, sweep: false, cleared: T.SHAFT_OPEN, height: 1 };
 TILE_INFO[T.SHAFT_OPEN] = { walk: true, descend: true };
-TILE_INFO[T.HOME] = { walk: true, sealed: true, yard: 0 };
+TILE_INFO[T.HOME] = { walk: true, sealed: true };
 TILE_INFO[T.CACHE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.GEODE] = { harvest: true, solid: true, find: true, cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.CAVE] = { walk: true, descend: true };

@@ -60,7 +60,7 @@ test('holding Gather never auto-digs; digging is a deliberate choice', () => {
 });
 
 test('a Trail digs the rock it crosses but never opens a shaft', () => {
-  const s = away(C.createState(31415));
+  const s = away(C.createState(2718));
   C.goDown(s);
   const p = s.player;
   const stroke = [{ x: p.x - 1.5, y: p.y }, { x: p.x + 1.5, y: p.y }];
@@ -179,7 +179,7 @@ test('a way up and a way down are never close together', () => {
   assert.ok(C.WAYS_APART >= 5);
 });
 test('no way down or up where none was generated', () => {
-  const s = away(C.createState(5));
+  const s = away(C.createState(7));
   const grass = findNear(s, (st, x, y) => typeAt(st, x, y) === T.GRASS);
   standOn(s, grass);
   assert.equal(C.canGoDown(s), false, 'no digging down');

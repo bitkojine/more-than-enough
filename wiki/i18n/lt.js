@@ -150,7 +150,6 @@ export default {
   "wiki.note.neverRegrows": "niekada neatauga",
   "wiki.note.land": "gali stovėti keitikliai",
   "wiki.note.home": "čia laikomos tavo atsargos",
-  "wiki.note.yard": "čia išsilieja tavo atsargos",
   "wiki.note.descend": "nusileidi į sluoksnį žemiau",
   "wiki.note.rise": "užlipi į sluoksnį aukščiau",
   "wiki.note.shaft": "atsidaro vienu kasimu",
@@ -410,8 +409,8 @@ export default {
       <p>Kiekvienas pasaulis sukuriamas iš atsitiktinės sėklos ir neturi kraštų: eini toliau, ir jis tęsiasi. Išteklių nedaug,
         ir jie telkiasi: miškai auga giraitėmis su atvirais viržynais tarp jų, o akmuo, rūda ir kristalai randami tik
         mineralinių žemių lopuose, tarp kurių driekiasi tuščia žemė. Prie starto yra po truputį visko, kad galėtum pradėti;
-        toliau telkiniai turtingesni, rūdos daugiau, o kristalų apskritai atsiranda. Norėdamas daug surinkti, turėsi tyrinėti. Pradedi ant
-        sausumos arčiausiai pasaulio centro, namų žemės laukymėje, skirtoje tavo <a href="#stockpile">atsargoms</a>.</p>
+        toliau telkiniai turtingesni, rūdos daugiau, o kristalų apskritai atsiranda. Norėdamas daug surinkti, turėsi tyrinėti. Pradedi pasaulio
+        centre esančio namų žemės kvadrato, skirto tavo <a href="#stockpile">atsargoms</a>, pakraštyje, prie artimiausio miško.</p>
       <p>Pasaulis turi <strong>sluoksnius</strong>. Miškas, kuriame pradedi, yra paviršius; kasykla – tai sluoksnių stulpas
         tiesiai po juo, sutampantis langelis į langelį. Žr. <a href="#mine">Kasykla</a>.</p>
 
@@ -620,34 +619,33 @@ export default {
         pastatus į bazę ir dirbti iš jos vidurio.</p>`,
   "wiki.article.stockpile.title": "Atsargos",
   "wiki.article.stockpile": `      <h1>Atsargos</h1>
-      <p class="lede">Viskas, ką turi, stovi ant žemės aplink namus, ir kuo daugiau turi, tuo plačiau tai išsidriekia.</p>
-      <p>Kiekviename pasaulyje pradedi apvalioje <strong>namų žemės</strong> laukymėje – suplūktoje žemėje, kur niekas neauga,
-        nieko negalima rinkti ir neatsiveria joks kelias tarp sluoksnių. Čia laikomos tavo atsargos. Kiekvienas išteklius turi savo namų pusę: grybiena šiaurėje, akmuo rytuose,
-        rūda pietuose, kristalai vakaruose, didžiausios krūvos arčiausiai vidurio, kuris lieka atvira aikštele. Tarp krūvų
-        paliekamas vienas laisvas langelis, tad jos niekada nestovi viena ant kitos. Tai vaizdas to, kas yra tavo kuprinėje, o ne sandėlis: nieko nereikia ten nešti, gali eiti tiesiai pro jas, o ką nors
-        bet kur išleidus, tai iš karto dingsta iš krūvų. Naujos krūvos išauga iš žemės; nebereikalingos išnyksta dūmų
-        debesėlyje.</p>
-      <p>Kaip žaidime 2048, dešimt vienos rūšies krūvų susilieja į vieną kitos rūšies krūvą: jos susislenka draugėn, ir ten, kur
+      <p class="lede">Viskas, ką turi, stovi ant žemės aplink namus, ir kuo turtingesnis esi, tuo didingiau tai auga.</p>
+      <p>Kiekviename pasaulyje pradedi ant <strong>namų žemės</strong> kvadrato, kurio kraštinė – <span data-k="HOME_SIDE"></span> langeliai:
+        suplūktos žemės, kur niekas neauga, nieko negalima rinkti, nieko nestatoma ir neatsiveria joks kelias tarp sluoksnių.
+        Ji išplanuota kaip miestelis. Viduryje susikerta du keliai, o kiekvienam ištekliui priklauso vienas iš keturių kvartalų tarp jų:
+        grybienai šiaurės vakarai, akmeniui šiaurės rytai, rūdai pietryčiai, kristalams pietvakariai. Tavo atsargos stovi tik čia,
+        tad niekada neuždengia žemės aplink namus.</p>
+      <p>Tai vaizdas to, kas yra tavo kuprinėje, o ne sandėlis: nieko nereikia ten nešti, gali eiti tiesiai pro jas, o ką nors
+        bet kur išleidus, tai iš karto dingsta iš krūvų. Naujos krūvos išauga iš žemės; išleistos išnyksta dūmų debesėlyje.
+        Kaip žaidime 2048, dešimt vienos rūšies krūvų susilieja į vieną kitos rūšies krūvą: jos susislenka draugėn, ir ten, kur
         susitinka, iššoka didesnė krūva. Krūvos, kurios pasitraukia užleisdamos vietą, irgi nuslenka.</p>
 
       <h2>Kaip jas skaityti</h2>
       <p>Kiekvienas dešimties laipsnis turi savo krūvos rūšį, o pirmi du tavo turimo kiekio skaitmenys rodo, kiek yra dviejų
         didžiausių rūšių krūvų: 3 452 grybienos – tai 3 vežimai ir 4 plytų rietuvės. Mažesni skaitmenys nerodomi, tad vienas
-        išteklius niekada nestovi daugiau nei 18 krūvų, o užmetęs akį į didžiausias krūvas iškart matai, koks esi turtingas.</p>
+        išteklius niekada nestovi daugiau nei 18 krūvų, o užmetęs akį į didžiausias krūvas iškart matai, koks esi turtingas.
+        Nuo dešimties milijonų krūvos virsta karalyste: vienkiemis, kaimas, miestelis, mūrais apjuostas miestas, citadelė ir,
+        pasiekus trilijoną, karūnuota sostinė.</p>
       <div data-table="piles"></div>
-      <p>Dešimties milijonų (10<sup>7</sup>) ir didesnėms krūvoms reikia vietos: kiekviena užima kvadratinį žemės plotą, vienu
-        langeliu platesnį su kiekvienu tolesniu dešimties laipsniu. Šimtas milijardų ko nors – jau atskiras rajonas.</p>
 
       <h2>Kur jos dedamos</h2>
       <ul>
-        <li>Tik ištyrinėtoje žemėje; ištyrinėk apylinkes aplink namus, ir kieme atsiras daugiau vietos.</li>
-        <li>Pirmiausia namų žemėje, savo ištekliaus pusėje. Kai ji pilna, krūvos išsilieja į aplinkinę atvirą žolę.</li>
-        <li>Niekada ant nieko, ką galima rinkti (miško, akmens, rūdos, kristalo), tad krūva niekada neuždengia ištekliaus.</li>
-        <li>Niekada ant vandens, kalnų, angų ar pastatų ir niekada toliau nei <span data-k="YARD_RADIUS"></span> langelių nuo
-          namų. Jei pritrūksta vietos, mažiausios krūvos laukia, kol atsiras daugiau žemės.</li>
-        <li>Kol renki, kiemas nejuda. Dar reikalingos krūvos niekada nepasislenka, naujos užima geriausią laisvą vietą, o
-          dingsta tik nebereikalingos krūvos (išleistos arba dešimt, susiliejusių į vieną didesnę). Maždaug kas
-          pusantros minutės kiemas susitvarko: didžiausios krūvos nuslenka atgal į vidurį.</li>
+        <li>Pirmojo skaitmens krūvos stovi kvartalo kampe prie sankryžos. Kuo jų mažiau, tuo daugiau vietos kiekvienai:
+          viena krūva užima visą kampą, devynios jį dalijasi. Dešimties milijonų ir didesnės krūvos su kiekvienu tolesniu
+          dešimties laipsniu paplatėja vienu langeliu, kiek leidžia jų vieta.</li>
+        <li>Antrojo skaitmens krūvos stovi eile palei kvartalo išorinius kraštus, per langelį viena nuo kitos.</li>
+        <li>Kiekviena krūva turi savo vietą, per langelį nuo kitos, tad nė viena nestovi ant kitos, o tarp krūvų ir aplinkinės
+          žemės paliekamas namų žemės langelis.</li>
       </ul>
       <p>Kaip atrodo kiekvienos rūšies krūva, nustato tekstūrų paketas (krūvų lizdas <code>tiers</code>
         skyriuje <a href="#things">Viskas žaidime</a>).</p>`,

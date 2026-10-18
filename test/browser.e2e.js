@@ -564,7 +564,7 @@ async function main() {
   var sawFlyers = await waitFor('MTE_GAME.flyers().length > 0', 3000);
   ok(sawFlyers, 'gathering sends items flying');
   // They head for the yard (a pile of their resource, or home), not the player.
-  ok(await evalJS('(function(){var s=MTE_GAME.getState(),h=MTE_GAME.core.home(s);return MTE_GAME.flyers().every(function(f){var toYard=Math.max(Math.abs(f.x1-h.x),Math.abs(f.y1-h.y))<=MTE_GAME.core.YARD_RADIUS+1,toPlayer=Math.hypot(f.x1-s.player.x,f.y1-s.player.y)<0.6;return toYard&&!toPlayer;});})()'),
+  ok(await evalJS('(function(){var s=MTE_GAME.getState(),h=MTE_GAME.core.home(s);return MTE_GAME.flyers().every(function(f){var toYard=Math.max(Math.abs(f.x1-h.x),Math.abs(f.y1-h.y))<=MTE_GAME.core.HOME_HALF+1,toPlayer=Math.hypot(f.x1-s.player.x,f.y1-s.player.y)<0.6;return toYard&&!toPlayer;});})()'),
     'they fly to the stockpile, not to the player (' + await evalJS('JSON.stringify(MTE_GAME.flyers().slice(0,2).map(function(f){return [+f.x1.toFixed(1),+f.y1.toFixed(1)];}))') + ')');
   await touch('touchEnd', []);
   await sleep(2000);

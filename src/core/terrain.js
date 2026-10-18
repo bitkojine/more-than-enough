@@ -11,9 +11,10 @@ import { landAt, BIOMES } from './regions.js';
 import { t } from '../i18n/i18n.js';
 
 const MAX_RICHNESS = 30;
-// Every world starts in a round clearing of home ground at the origin, where
-// your stockpile is kept (see stockpile.js).
-export const HOME_RADIUS = 5.5;
+// Every world starts on a square of home ground at the origin, HOME_HALF
+// tiles out each way from its middle, where your stockpile is kept (see
+// stockpile.js).
+export const HOME_HALF = 11;
 
 export function generateChunk(seed, cx, cy, cz) {
   return cz === SURFACE ? generateSurface(seed, cx, cy) : generateUnderground(seed, cx, cy, cz);
@@ -49,7 +50,7 @@ function share(key, far) {
 }
 
 function surfaceType(seed, x, y) {
-  if (x * x + y * y <= HOME_RADIUS * HOME_RADIUS) return T.HOME;
+  if (Math.abs(x) <= HOME_HALF && Math.abs(y) <= HOME_HALF) return T.HOME;
   // Each region's kind of land sets its water, peaks, forest and minerals
   // (see regions.js); borders between regions are rivers, ridges, walls
   // and hedges, and a gap through one is open grass.

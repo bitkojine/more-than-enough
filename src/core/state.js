@@ -2,12 +2,15 @@
 
 import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
-import { createWorld, findSpawn } from './world.js';
+import { createWorld, findSpawn, markExplored } from './world.js';
+import { HOME_HALF } from './terrain.js';
 import { UNLOCKS, PERKS, EMBARK_MIN_TOTAL } from './content.js';
 import { SOURCES } from './economy.js';
 import { revealAround } from './sim.js';
 import { worldMastered } from './upgrades.js';
 import { t } from '../i18n/i18n.js';
+
+const HOME_VIEW = 6; // tiles of land around home ground in view from the start
 
 /**
  * @typedef {{x: number, y: number, z: number}} Position
@@ -54,6 +57,10 @@ export function createState(seed) {
   const world = createWorld(seed);
   const spawn = findSpawn(world);
   const s = blankState(world, { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE });
+  // Home ground, where your stockpile stands, is in view from the start, and
+  // the land just around it, so there's something to go and gather.
+  const r = HOME_HALF + HOME_VIEW;
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) markExplored(world, x, y, SURFACE);
   revealAround(s);
   return s;
 }

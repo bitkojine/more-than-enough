@@ -153,7 +153,6 @@ export default {
   "wiki.note.neverRegrows": "never regrows",
   "wiki.note.land": "converters can stand here",
   "wiki.note.home": "your stockpile is kept here",
-  "wiki.note.yard": "your stockpile spills onto it",
   "wiki.note.descend": "drop to the layer below",
   "wiki.note.rise": "climb to the layer above",
   "wiki.note.shaft": "one dig opens it",
@@ -413,8 +412,8 @@ export default {
       <p>Each world comes from a random seed and has no edges: keep walking and it keeps going. Resources are scarce and
         come in clusters: forests grow in groves with open heath between them, and stone, ore and crystal only crop up in
         patches of mineral country, with barren land between. Near the start there's a little of everything to get going;
-        further out deposits grow richer, ore more common, and crystal turns up at all. To gather a lot, you'll have to explore. You begin on the dry land
-        nearest the world's centre, in a clearing of home ground kept for your <a href="#stockpile">stockpile</a>.</p>
+        further out deposits grow richer, ore more common, and crystal turns up at all. To gather a lot, you'll have to explore. You begin on the edge of
+        a square of home ground in the world's centre, kept for your <a href="#stockpile">stockpile</a>, by the nearest forest.</p>
       <p>The world has <strong>layers</strong>. The forest you start in is the surface; the mine is a stack of layers directly
         beneath it, lined up tile for tile. See <a href="#mine">The mine</a>.</p>
 
@@ -624,34 +623,32 @@ export default {
         buildings into a base and work from the middle of it.</p>`,
   "wiki.article.stockpile.title": "The stockpile",
   "wiki.article.stockpile": `      <h1>The stockpile</h1>
-      <p class="lede">Everything you own stands on the ground around home, and the more you have, the further it spreads.</p>
-      <p>Every world starts you in a round clearing of <strong>home ground</strong>, packed earth where nothing grows, nothing
-        can be gathered and no way between layers opens. It's where your stockpile is kept. Each resource has its own side of home: mycelium to the north, stone
-        east, ore south, crystal west, the biggest piles nearest the middle, which stays an open square. Piles keep a tile of
-        space between them so they never stand on each other. It's a picture of what's in your packs, not a store: nothing has to be carried there, you can walk
-        straight through it, and spending something anywhere takes it off the piles at once. New piles grow out of the
-        ground; piles that go vanish in a puff.</p>
-      <p>Like the tiles of 2048, ten piles of a kind merge into one of the next: they slide together and the bigger pile pops up
-        where they meet. Piles that move to make room slide there too.</p>
+      <p class="lede">Everything you own stands on the ground around home, and the richer you get, the grander it grows.</p>
+      <p>Every world starts you on a square of <strong>home ground</strong>, <span data-k="HOME_SIDE"></span> tiles a side:
+        packed earth where nothing grows, nothing can be gathered, nothing is built and no way between layers opens. It's
+        laid out like a town. Two roads cross in the middle, and each resource owns one of the four blocks between them:
+        mycelium north-west, stone north-east, ore south-east, crystal south-west. Your stockpile stands there and nowhere
+        else, so it never covers the land around home.</p>
+      <p>It's a picture of what's in your packs, not a store: nothing has to be carried there, you can walk straight through
+        it, and spending something anywhere takes it off the piles at once. New piles grow out of the ground; piles you spend
+        vanish in a puff. Like the tiles of 2048, ten piles of a kind merge into one of the next: they slide together and the
+        bigger pile pops up where they meet. Piles that move to make room slide there too.</p>
 
       <h2>Reading it</h2>
       <p>Each power of ten has its own kind of pile, and the first two digits of what you own say how many of the two biggest
         kinds there are: 3,452 mycelium is 3 carts and 4 brick stacks. The smaller digits aren't shown, so a resource never
-        stands as more than 18 piles, and a glance at the biggest piles tells you how rich you are.</p>
+        stands as more than 18 piles, and a glance at the biggest piles tells you how rich you are. From ten million up, the
+        piles become a kingdom: hamlet, village, town, walled city, citadel and, at a trillion, a crowned capital.</p>
       <div data-table="piles"></div>
-      <p>Piles of ten million (10<sup>7</sup>) and more need room: each covers a square of ground, one tile wider for every
-        further power of ten. A hundred billion of something is a district of its own.</p>
 
       <h2>Where it goes</h2>
       <ul>
-        <li>Only on ground you've explored; explore around home and the yard has more room.</li>
-        <li>Home ground first, on its resource's side. Once that's full, piles spill onto open grass around it.</li>
-        <li>Never on anything you can gather (forest, stone, ore, crystal), so a pile never hides a resource.</li>
-        <li>Never on water, mountains, holes or buildings, and never more than <span data-k="YARD_RADIUS"></span> tiles from
-          home. If it runs out of room, the smallest piles wait for more ground.</li>
-        <li>The yard stays put while you gather. Piles that are still needed never move, new piles take the best free spot,
-          and only the piles that go (spent, or ten merged into one bigger pile) disappear. About every
-          minute and a half the yard tidies itself, biggest piles sliding back to the middle.</li>
+        <li>The first digit's piles stand in the corner of the block by the crossroads. The fewer there are, the more room each
+          gets: one pile has the whole corner, nine share it. Piles of ten million and more grow a tile wider for every
+          further power of ten, as far as their room allows.</li>
+        <li>The second digit's piles stand in a row along the block's outer edges, a tile apart.</li>
+        <li>Every pile has its own place, a tile from the next, so none ever stands on another, and a tile of home ground is
+          left between the piles and the land around.</li>
       </ul>
       <p>What every kind of pile looks like comes from the texture pack (the <code>tiers</code> slot of
         piles in <a href="#things">Everything in the game</a>).</p>`,
