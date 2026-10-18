@@ -138,7 +138,7 @@ async function admin(request, env, url) {
     const err = await env.ROOMS.get(env.ROOMS.idFromName(copy)).adopt(copy, made);
     if (err) return respond({ error: err }, 409, null);
     const game = String(env.ALLOWED_ORIGINS || '').split(',')[0].trim();
-    return respond({ room: copy, key, until, link: game + '/#copy=' + copy + '.' + key }, 200, null);
+    return respond({ room: copy, key, until, link: game + '/#copy=' + copy + '.' + key + '&of=' + m[1] }, 200, null);
   }
   if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
     const body = await readCapped(request, 1024);

@@ -5,6 +5,7 @@
  * same on every phone and in the player's language. Nobody types it, so no
  * player's words ever reach anyone else (Watch's call, 2026-10-18). */
 
+import { copy } from './copy.js';
 import { ROOM_ID_RE } from '../net/protocol.js';
 import { t } from '../i18n/i18n.js';
 
@@ -50,7 +51,9 @@ function readList(key) {
 }
 
 // The world's name, from its id: the same id always gives the same name.
+// An admin's copy goes by the real world's name.
 export function worldName(id) {
+  if (copy && id === copy.room && copy.of) id = copy.of;
   let h = 2166136261;
   for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
   return t('world.name', { thing: t('world.thing.' + THINGS[h % THINGS.length]), place: t('world.place.' + PLACES[(h >>> 8) % PLACES.length]) });

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.103.2] - 2026-10-18
+
+Watch's ask: see everything Willow will see coming back, the greeting on
+their own phone included.
+
+### Added
+- **A copy can play the player's phone too.** The copy link takes
+  `&was=<version>` (the version their open tab last ran: the game updates
+  from it and shows What's new since) and `&shown=mycelium:1.4e14,...` (the
+  numbers their phone last showed: the arrival then says those weren't real
+  when they're far over the room's). `src/game/copy.js` writes them into the
+  page's in-memory storage, `sessionStorage` now included.
+
+### Fixed
+- **A copy goes by the real world's name.** It was named from its own id, so
+  Willow's copy of Clover Woods said "You're in Thunder Woods". The link
+  now carries the real world's id (`&of=`) for its name.
+- **A copy link opened over a game tab** (only the address's `#` part
+  changing) now loads the page again, so the copy starts with storage in
+  memory; before, that tab stayed in the admin's own game.
+
 ## [0.103.1] - 2026-10-18
 
 From the persistence review, bugs 5 and 7 of 9. Both were confirmed by

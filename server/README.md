@@ -208,13 +208,16 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `POST /admin/rooms/<id>/copy` with `{"id": "<player id>"}`: a copy of the
   world to play as that player, to see what they'd see coming back now
   (`src/copy.js`). Answers `{room, key, until, link}`; the link
-  (`<game>/#copy=<room>.<key>`) opens the copy in the game, which then keeps
+  (`<game>/#copy=<room>.<key>&of=<id>`, `of` for the world's name) opens the copy in the game, which then keeps
   nothing in the browser (`src/game/copy.js`). The copy has every entry of
   the room (each player's progress as the room has it now), but no invite
   links; only that key gets in, as the player (the player's own key is
   never needed or known), it logs nothing, isn't listed, and is deleted
   after 2 hours (`COPY_MS`), closing its sockets with 4006. Keep the key to
-  yourself: it plays the copy, nothing else.
+  yourself: it plays the copy, nothing else. What only the player's phone
+  knew can be added to the link: `&was=0.89.0` (the version their tab last
+  ran: What's new since then shows) and `&shown=mycelium:1.4e14,stone:2e13`
+  (the numbers their phone last showed).
 - `GET /admin/rooms/<id>/graves`: its tombstones, as a player's welcome
   carries them (`[id, colour, x, y, z, 'ban' | 'ice']`).
 

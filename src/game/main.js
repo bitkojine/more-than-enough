@@ -514,7 +514,12 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
 window.addEventListener('pagehide', () => game.saveNow());
 // A QR scanned while the game is already open in this tab.
-window.addEventListener('hashchange', () => together.joinFromLink());
+// A copy link opened over this tab: copies start before anything reads
+// storage (copy.js), so the page loads again for it.
+window.addEventListener('hashchange', () => {
+  if (!copy && new URLSearchParams(location.hash.slice(1)).has('copy')) return location.reload();
+  together.joinFromLink();
+});
 // The network came back: reconnect to the shared world now.
 window.addEventListener('online', () => together.online());
 document.addEventListener('visibilitychange', () => {
