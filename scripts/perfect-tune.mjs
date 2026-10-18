@@ -32,13 +32,14 @@ const hours = (sec) => (sec / 3600).toFixed(2) + ' h';
 // broke a behaviour rule or a seed didn't get there within `cap` seconds.
 async function score(knobs, on, cap) {
   const r = await bench({ seeds: on, hours: cap / 3600, knobs });
-  return check(r, null).length ? { t: Infinity, r } : { t: r.summary.embark, r };
+  const why = check(r, null);
+  return why.length ? { t: Infinity, r, why } : { t: r.summary.embark, r };
 }
 
 const capFor = (r) => 1.25 * Math.max(...r.runs.map((x) => x.embark));
 let best = { ...KNOBS, ...JSON.parse(args.from || '{}') };
 let top = await score(best, seeds, 60 * 3600);
-if (!isFinite(top.t)) throw new Error('the starting knobs fail the benchmark: ' + check(top.r, null).join('; '));
+if (!isFinite(top.t)) throw new Error('the starting knobs fail the benchmark: ' + top.why.join('; '));
 log('start ' + hours(top.t) + ' ' + JSON.stringify(best));
 const start = top.t;
 
@@ -49,7 +50,7 @@ for (let pass = 0; pass < passes && step >= 0.1; pass++) {
     for (const f of [1 + step, 1 - step]) {
       const tryK = { ...best, [name]: +(best[name] * f).toPrecision(3) };
       const got = await score(tryK, seeds, capFor(top.r));
-      log(`  ${name} ${best[name]} -> ${tryK[name]}: ${isFinite(got.t) ? hours(got.t) : 'fails'}`);
+      log(`  ${name} ${best[name]} -> ${tryK[name]}: ${isFinite(got.t) ? hours(got.t) : 'fails (' + got.why[0] + ')'}`);
       if (got.t < top.t * (1 - GAIN)) {
         best = tryK; top = got; gained = true;
         log(`kept ${name} = ${best[name]}: ${hours(top.t)}`);
