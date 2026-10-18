@@ -548,6 +548,8 @@ export default {
       <p>Tavo rankos neatsilieka nuo pastatų. Be to, ką duoda įrankis, kiekvienas mostas atneša tiek, kiek tavo pastatai to
         ištekliaus pagamina per <span data-k="HAND_SHARE"></span> sekundės, ir kiekvieno radinio grobis auga taip pat. Kad ir kokios
         didelės būtų tavo stovyklos, rinkimas visada prie jų prideda, tad stovėti ir laukti niekada nėra greičiausias kelias.</p>
+      <p>Langelis, ant kurio stovi pastatas, priklauso pastatui – tavo ar kieno nors kito: rankomis iš jo rinkti negali, o
+        {phone:bakstelėjus|laptop:spustelėjus} jį paimama pastato produkcija.</p>
       <p>Visas įrankių lenteles rasi skyriuje <a href="#upgrades">Patobulinimai</a>.</p>
 
       <h2>Kaip rasti rūdos ir kristalų</h2>

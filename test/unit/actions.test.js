@@ -93,6 +93,27 @@ test('extractors need a matching deposit and enough resources', () => {
   assert.equal(s.extractors[0].z, C.SURFACE);
 });
 
+test('a tile with a building on it is only worked by the building, anyone\'s', () => {
+  const s = C.createState(12345);
+  const t = findNear(s, forest);
+  standOn(s, t);
+  s.inv.mycelium = 15;
+  assert.deepEqual(C.place(s, 'garden', t), { ok: true, x: t.x, y: t.y, cost: { mycelium: 15 } });
+  const rich0 = richAt(s, t.x, t.y);
+  assert.equal(C.harvestable(s, t.x, t.y), false);
+  assert.equal(C.harvestAt(s, t.x, t.y), null);
+  for (let i = 0; i < 30; i++) assert.notDeepEqual([C.harvest(s)?.x, C.harvest(s)?.y], [t.x, t.y]);
+  const points = [{ x: t.x - 1.5, y: t.y + 0.5 }, { x: t.x + 2.5, y: t.y + 0.5 }];
+  assert.ok(!C.sweepTargets(s, points).some((g) => g.x === t.x && g.y === t.y), 'a Trail passes it by');
+  assert.equal(richAt(s, t.x, t.y), rich0);
+  // Someone else's building in a shared world too.
+  s.extractors = [{ ...s.extractors[0], owner: 'friend' }];
+  s.me = 'me';
+  assert.equal(C.harvestAt(s, t.x, t.y), null);
+  s.extractors = [];
+  assert.equal(C.harvestAt(s, t.x, t.y).x, t.x, 'free again once it is gone');
+});
+
 test('each extra extractor of a kind costs more', () => {
   const s = C.createState(12345);
   s.extractors.push(mushroomGarden(0, 0));

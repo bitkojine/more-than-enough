@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.115.0] - 2026-10-18
+
+Watch's ask: don't let players gather by hand from a resource tile that has a
+building on it. The building works the tile; hands working it too took from
+the same deposit twice.
+
+### Changed
+- **A built-on tile is the building's**: `harvestable` (src/core/actions.js)
+  is false where any building stands, anyone's in a shared world, so taps,
+  Gather, Trails and the Perfect button's deposit search all pass it by, and
+  a tap on it goes to the building. The room refuses such a gather ('spot')
+  because it replays the same rule.
+- `extractorAt` looks buildings up by tile through an index rebuilt when the
+  list is swapped or grows, so the extra check stays cheap in the brain's
+  wide searches.
+
+### Tests
+- `test/unit/actions.test.js`: tap, Gather and Trail skip a built-on tile,
+  someone else's building too, and it frees up once the building is gone.
+- `test/unit/shadow.test.js`: the room refuses a game's gather on a
+  built-on tile and pays nothing for it.
+- `test/browser.e2e.js`: the hand-gathering checks clear what Perfect built
+  around their forest tile first, and the far tree is one with no building.
+- Perfect benchmark unchanged within the gate (Embark 35.7-36.2 h).
+
 ## [0.114.0] - 2026-10-18
 
 Watch asked for Gather back as the main button, so players can hold it and

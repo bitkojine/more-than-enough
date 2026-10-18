@@ -18,11 +18,13 @@ const REACH2 = REACH * REACH;
 /* ------------------------------------------------------------- harvest */
 
 // A tile on the player's layer that has something to gather, near or far.
+// A tile with a building on it is the building's: only it works the tile.
 export function harvestable(s, x, y) {
   const z = s.player.z;
   return !!TILE_INFO[tileAt(s.world, x, y, z)].harvest &&
     richness(s.world, x, y, z) > 0 &&
-    !holeBelow(s.world, x, y, z);
+    !holeBelow(s.world, x, y, z) &&
+    !extractorAt(s, x, y, z);
 }
 
 /* ---------------------------------------------------------------- gear */
@@ -224,8 +226,18 @@ export function collect(s) {
 
 /* --------------------------------------------------------------- build */
 
+// The buildings by tile ('x,y,z'), made again whenever the list is replaced
+// or grows (buildings are only ever added to it, or the list swapped).
+const byTile = new WeakMap();
+
 export function extractorAt(s, x, y, z) {
-  return s.extractors.find((e) => e.x === x && e.y === y && e.z === z) || null;
+  const list = s.extractors;
+  let c = byTile.get(list);
+  if (!c || c.n !== list.length) {
+    c = { n: list.length, at: new Map(list.map((e) => [e.x + ',' + e.y + ',' + e.z, e])) };
+    byTile.set(list, c);
+  }
+  return c.at.get(x + ',' + y + ',' + z) || null;
 }
 
 // A building never shares a tile with a way between layers: not on a way

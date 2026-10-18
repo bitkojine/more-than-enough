@@ -284,7 +284,8 @@ function nearestDeposit(s, mind, res) {
 function harvestableOn(s, x, y) {
   const type = tileAt(s.world, x, y, SURFACE);
   const keep = Object.values(EXTRACTORS).some((d) => d.tile === type && (!d.unlock || s.unlocks[d.unlock]));
-  return !!TILE_INFO[type].harvest && !holeBelow(s.world, x, y, SURFACE) && richness(s.world, x, y, SURFACE) > (keep ? 1 : 0);
+  return !!TILE_INFO[type].harvest && !holeBelow(s.world, x, y, SURFACE) && !extractorAt(s, x, y, SURFACE) &&
+    richness(s.world, x, y, SURFACE) > (keep ? 1 : 0);
 }
 function gearOn(s, x, y) {
   const g = gearFor(s, x, y, SURFACE);

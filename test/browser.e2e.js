@@ -502,8 +502,9 @@ async function main() {
   var played = JSON.stringify(p1.inv) !== JSON.stringify(p0.inv) || p1.ext !== p0.ext || p1.x !== p0.x || p1.y !== p0.y;
   ok(played, 'holding PERFECT played (' + JSON.stringify(p0) + ' -> ' + JSON.stringify(p1) + ')');
   ok(await evalJS('!!document.getElementById("perfectBadge").dataset.look'), 'the badge on Perfect shows what it is doing (' + await evalJS('document.getElementById("perfectBadge").dataset.look') + ')');
-  // Back onto the forest tile (Perfect may have walked off), to Gather it.
-  await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number);MTE_GAME.setPlayer(p[0]+0.5,p[1]+0.5);})()');
+  // Back onto the forest tile (Perfect may have walked off), to Gather it,
+  // with nothing built around it (a building's tile can't be gathered by hand).
+  await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();s.extractors=s.extractors.filter(function(e){return Math.max(Math.abs(e.x-p[0]),Math.abs(e.y-p[1]))>3;});MTE_GAME.setPlayer(p[0]+0.5,p[1]+0.5);})()');
   await sleep(150);
   // A milestone reached (gathering, or ore spotted on the way) is celebrated with a banner naming it.
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.text===txt;});})()', 2000),
@@ -552,7 +553,7 @@ async function main() {
   var holdGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
   ok(holdGatherAfter >= tapGatherAfter + 2, 'holding a finger still on a resource keeps gathering it (' + tapGatherAfter + ' -> ' + holdGatherAfter + ')');
   // A resource out of reach: the tap walks there and gathers it on arrival.
-  var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3)continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
+  var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3||c.extractorAt(s,x,y,0))continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
   ok(!!far, 'found a tree across open ground');
   if (far) {
     await sleep(200);

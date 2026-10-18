@@ -555,6 +555,8 @@ export default {
         <span data-k="HAND_SHARE"></span> seconds of what your buildings make of that resource, and every find's loot
         grows the same way. However big your camps get, gathering always adds to them, so standing and waiting is never
         the quickest way to anything.</p>
+      <p>A tile with a building on it belongs to the building, yours or anyone's: you can't gather from it by hand, and
+        {phone:tapping|laptop:clicking} it collects from the building instead.</p>
       <p>See <a href="#upgrades">Upgrades</a> for the full tool tables.</p>
 
       <h2>Finding ore and crystal</h2>

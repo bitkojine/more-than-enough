@@ -787,6 +787,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.115.0": "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
   "news.0.114.0": "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
   "news.0.113.1": "Fixed: with lots of buildings near spawn, floating resources flickered by the buildings and never reached the stockpile. Now every one floats all the way home.",
   "news.0.113.0": "Buildings now show what waits in them: a garden is bare until mushrooms grow in it, a mine's cart heaps up with ore, bricks, blocks, ingots and crystal shards stack up beside the others. Once you collect, they look empty again, so you can tell at a glance which ones have something for you. With Logistics they stay empty, since everything is already on its way to you.",

@@ -147,6 +147,24 @@ test('shadow: acts the rules refuse change nothing and are counted', async () =>
   assert.equal(JSON.stringify(r.shadow.players.get(id).s.inv), before);
 });
 
+test('shadow: a tile with a building on it can\'t be gathered by hand', async () => {
+  const { s, r, id, sync, send } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15);
+  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1);
+  const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
+  assert.ok(built.ok);
+  sync(true);
+  const copy = r.shadow.players.get(id).s;
+  assert.ok(C.richness(copy.world, built.x, built.y, C.SURFACE) > 0, 'there is something left to gather');
+  const refused = r.shadow.report(id).refused, before = copy.inv.mycelium;
+  // A game that ignores the rule works the building's tile anyway.
+  const ms = Math.round(s.stats.playedMs) + 250, p = s.player;
+  send({ t: 'acts', ms, a: [['h', ms, p.x, p.y, p.z, built.x, built.y]] });
+  assert.equal(r.shadow.report(id).refused, refused + 1);
+  assert.equal(copy.inv.mycelium, before);
+});
+
 test('shadow: play time can\'t run ahead of the room\'s clock', async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
