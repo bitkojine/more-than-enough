@@ -144,7 +144,7 @@ function report({ runs, summary }, before) {
   console.log('\nmedian Embark ' + h(summary.embark) + delta(summary.embark, before?.summary.embark) + `, ${summary.embarked}/${runs.length} seeds reached it`);
   console.log('milestones (median):');
   for (const [id, t] of Object.entries(summary.milestones).sort((a, b) => a[1] - b[1])) {
-    console.log('  ' + id.padEnd(16) + h(t) + delta(t, before?.summary.milestones[id]));
+    console.log('  ' + id.padEnd(22) + h(t) + delta(t, before?.summary.milestones[id]));
   }
 }
 
