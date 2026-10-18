@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { C, standOn, run, mushroomGarden } from './helpers.js';
+import { C, standOn, run, mushroomGarden, master } from './helpers.js';
 
 test('overclock doubles extractor output', () => {
   const s = C.createState(12345);
@@ -10,33 +10,32 @@ test('overclock doubles extractor output', () => {
   assert.equal(C.overclockMult(s), 2);
   standOn(s, { x: 100, y: 100 });
   run(s, 10);
-  assert.equal(Math.round(s.extractors[0].buffer), Math.round(0.6 * 2 * 10));
+  assert.ok(Math.abs(s.extractors[0].buffer - C.EXTRACTORS.garden.rate * 2 * 10) < 1e-6);
 });
 
-test('logistics auto-collects only within range', () => {
-  assert.equal(C.AUTO_COLLECT_RANGE, 3);
+// Waiting must never beat doing something (Watch, 2026-10-18): with
+// Logistics, walking off to explore costs nothing your buildings make, just
+// as closing the game doesn't (awayProduce).
+test('logistics hauls from your buildings wherever you are, showing only the near ones', () => {
   const s = C.createState(12345);
   s.extractors.push(mushroomGarden(48, 50, 12));
+  standOn(s, { x: 100, y: 100 });
+  run(s, 4);
+  assert.equal(s.inv.mycelium, 0, 'without Logistics it waits to be collected');
+  assert.ok(s.extractors[0].buffer > 12);
+
   s.unlocks.logistics = true;
-  standOn(s, { x: 100, y: 100 });
-  run(s, 4);
-  assert.equal(s.inv.mycelium, 0);
-  assert.equal(s.events.length, 0);
-  assert.ok(s.extractors[0].buffer > 12, 'a far camp keeps filling');
-
-  standOn(s, { x: 48, y: 50 });
   C.step(s, 0.1);
-  assert.ok(s.inv.mycelium >= 12);
+  assert.ok(s.inv.mycelium >= 12, 'hauled in from far away');
   assert.ok(s.extractors[0].buffer < 1);
-  assert.equal(s.events.length, 1);
-  const evt = s.events[0];
-  assert.deepEqual([evt.res, evt.amt, evt.x, evt.y, evt.z], ['mycelium', s.inv.mycelium, 48, 50, C.SURFACE]);
+  assert.equal(s.events.length, 0, 'too far to see it fly in');
 
-  const held = s.inv.mycelium;
-  standOn(s, { x: 100, y: 100 });
+  s.events.length = 0;
+  standOn(s, { x: 48, y: 50 });
   run(s, 4);
-  assert.equal(s.inv.mycelium, held, 'walking away stops auto-collect at once');
-  assert.ok(s.extractors[0].buffer > 1);
+  assert.ok(s.events.length > 0, 'close by, the goods fly in');
+  const evt = s.events[0];
+  assert.deepEqual([evt.res, evt.x, evt.y, evt.z], ['mycelium', 48, 50, C.SURFACE]);
 });
 
 test('the Abundance Engine trickles resources and compounds production', () => {
@@ -83,7 +82,7 @@ test('production rates add up extractors and abundance', () => {
   s.extractors.push(mushroomGarden(0, 0), mushroomGarden(1, 0));
   s.abundanceLv = 1;
   const rates = C.productionRates(s);
-  assert.ok(Math.abs(rates.mycelium - (2 * 0.6 * 1.5 + 1)) < 1e-9);
+  assert.ok(Math.abs(rates.mycelium - (2 * C.EXTRACTORS.garden.rate * 1.5 + 1)) < 1e-9);
   assert.equal(rates.crystal, 1);
 });
 
@@ -130,7 +129,7 @@ test('a building shows waiting output only when nothing hauls it in', () => {
   e.buffer = 3;
   assert.equal(C.holdsOutput(s, e), true, 'without Logistics, output waits');
   s.unlocks.logistics = true;
-  assert.equal(C.holdsOutput(s, e), false, 'in Logistics reach, it is hauled in as made');
+  assert.equal(C.holdsOutput(s, e), false, 'with Logistics, it is hauled in as made');
   // Many frames of production in reach: it never shows as waiting.
   for (let i = 0; i < 600; i++) {
     C.step(s, 1 / 60);
@@ -138,7 +137,7 @@ test('a building shows waiting output only when nothing hauls it in', () => {
   }
   e.x += 1000;
   e.buffer = 3;
-  assert.equal(C.holdsOutput(s, e), true, 'out of reach, it waits again');
+  assert.equal(C.holdsOutput(s, e), false, 'however far away');
 });
 
 test("in a shared world, friends' buildings don't count toward your 25 structures", () => {
@@ -199,4 +198,23 @@ test('a save remembers when the world was last open', () => {
   assert.equal(C.deserialize(C.serialize(s)).seen, undefined);
   s.seen = 1760000000000;
   assert.equal(C.deserialize(C.serialize(s)).seen, 1760000000000);
+});
+
+// Waiting must never beat doing something: however big your buildings get,
+// a gather by hand brings HAND_SHARE seconds of what they make of it, on top
+// of the tool's yield, and so does each find's loot.
+test('a gather by hand keeps up with your buildings at every stage', () => {
+  const s = master(C.createState(12345));
+  const base = C.gatherYield(s, 'stone');
+  assert.equal(base, C.TOOLS.pickaxe.levels.at(-1).yield, 'no buildings: just the tool');
+  for (let i = 0; i < 6; i++) s.extractors.push({ key: 'quarry', res: 'stone', x: 40 + i, y: 40, z: C.SURFACE, buffer: 0 });
+  const rate = C.productionRates(s).stone - C.abundanceTrickle(s);
+  assert.ok(rate > 1e5, 'a late-game quarry row: ' + rate);
+  assert.equal(C.gatherYield(s, 'stone'), base + C.HAND_SHARE * rate);
+  assert.equal(C.gatherYield(s, 'mycelium'), C.TOOLS.basket.levels.at(-1).yield, 'only what makes that resource counts');
+  s.extractors.push({ key: 'quarry', res: 'stone', x: 60, y: 60, z: C.SURFACE, buffer: 0, owner: 'b'.repeat(16) });
+  s.me = 'a'.repeat(16);
+  assert.equal(C.gatherYield(s, 'stone'), base + C.HAND_SHARE * rate, "a friend's buildings don't count");
+  const loot = C.findLoot(s, C.T.CACHE, C.SURFACE - 2);
+  assert.equal(loot.stone, C.FINDS[C.T.CACHE].loot.stone * 2 * C.gatherYield(s, 'stone'), 'finds scale with it too');
 });

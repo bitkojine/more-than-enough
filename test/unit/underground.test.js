@@ -235,19 +235,16 @@ test('tunnels persist per layer and never leak onto the surface', () => {
 
 /* Regressions: rules that must only apply on the player's own layer. */
 
-test('logistics does not collect from surface camps while underground', () => {
+test('logistics hauls from surface camps while you are underground', () => {
   const s = away(C.createState(31415));
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
-  s.unlocks.logistics = true;
   s.extractors.push(mushroomGarden(px + 1, py, 20));
   C.goDown(s); // right beside the camp, a layer below (never under it)
+  assert.equal(C.collectTarget(s), null, 'not by hand from below');
+  s.unlocks.logistics = true;
   run(s, 2);
-  assert.equal(s.inv.mycelium, 0);
-  assert.equal(s.events.length, 0);
-  assert.equal(C.collectTarget(s), null, 'nor by hand');
-  C.goUp(s);
-  C.step(s, 0.1);
-  assert.ok(s.inv.mycelium >= 20, 'back on the surface it collects again');
+  assert.ok(s.inv.mycelium >= 20, 'Logistics hauls it down to you');
+  assert.equal(s.events.length, 0, 'unseen: it flies on the surface');
 });
 
 test('each layer has its own fog, lifted only close by underground', () => {

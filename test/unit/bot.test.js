@@ -104,8 +104,11 @@ function holdFromSpawn(seed, minutes) {
 
 for (const seed of [12345, 777, 20260101]) {
   test('Perfect, held from the first spawn, plays to automation on seed ' + seed, () => {
-    const { s, timeline, refused } = holdFromSpawn(seed, 45);
+    const { s, timeline, refused, kinds } = holdFromSpawn(seed, 45);
     assert.deepEqual(refused, [], 'the game took every act it picked');
+    // Waiting is never the best thing to do (Watch, 2026-10-18): there's
+    // always something to gather that adds to what the buildings make.
+    assert.ok(!(kinds.wait > 5), 'it stood waiting ' + kinds.wait + ' times');
     for (const goal of ['forage', 'basket', 'garden', 'pickaxe', 'overclock', 'logistics']) {
       assert.ok(timeline[goal] !== undefined, goal + ' within 45 minutes: ' + JSON.stringify(timeline));
     }

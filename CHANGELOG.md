@@ -1,5 +1,41 @@
 # Changelog
 
+## [0.111.0] - 2026-10-18
+
+Watch's ask: waiting and doing nothing must never be the best option. Held
+from spawn, Perfect spent 2-16% of its play standing still (median 9%), and
+from the first hour on a gather was worth nothing next to the buildings
+(32 a swing against millions a second), so between purchases, hours apart
+late on, the best play was to wait. And with Logistics only reaching 3
+tiles, walking off to explore lost what the buildings made, while closing
+the game lost nothing (away time runs at full rate).
+
+### Changed
+- **Hands keep up with buildings**: every gather also brings in `HAND_SHARE`
+  (0.1) seconds of what your buildings make of that resource
+  (`gatherYield` adds `HAND_SHARE * buildingRate`), and each find's loot
+  scales with it too. Holding Gather on a resource adds about a third to it,
+  at any stage; a friend's buildings don't count.
+- **Logistics hauls from all your buildings, wherever you are**, any layer
+  included. `AUTO_COLLECT_RANGE` is gone; hauls within 12 tiles still fly
+  in. A shared world's game no longer reports coming within reach of a
+  building (`noteWhere`), since the room needs no position to haul.
+- **Buildings make 25% less on their own** (every rate and buffer in
+  `EXTRACTORS` times 0.75), so a focused player takes about as long as
+  before: Perfect reaches Embark in 35.7 h median on 4 worlds (35.7 h
+  before, in game time), now with no waiting at all. Away time still runs at
+  full rate, of the smaller output.
+- **Perfect never stands waiting**: with nothing to fetch, it gathers by
+  hand what its goal will take longest to get; hand time counts the
+  buildings working alongside; no more camping among buildings (`camp`
+  removed, converters go up near home). A bot test fails if it waits more
+  than 5 times in its first 45 minutes.
+
+### Fixed
+- `holdPerfect` (tests and the benchmark) counted a second of waiting as
+  play while the game moved on only a quarter second, so the old baseline
+  (37.33 h) overstated play time; the new one is recorded with this rule.
+
 ## [0.110.1] - 2026-10-18
 
 Watch's report: holding Perfect looped up and down the mine ladder.

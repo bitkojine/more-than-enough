@@ -107,7 +107,7 @@ test('extractors fill their buffer up to its cap and can be collected nearby', (
   standOn(s, { x: 100, y: 100 });
   run(s, 60);
   const e = s.extractors[0];
-  assert.ok(e.buffer > 30 && e.buffer <= C.EXTRACTORS.garden.buffer + 1e-9);
+  assert.ok(e.buffer > C.EXTRACTORS.garden.buffer / 2 && e.buffer <= C.EXTRACTORS.garden.buffer + 1e-9);
   assert.equal(s.inv.mycelium, 0, 'nothing arrives from far away');
   assert.equal(C.collectTarget(s), null);
   standOn(s, { x: 48, y: 50 });
@@ -132,7 +132,7 @@ test('converters need their blueprint and build on any dry land, not home ground
   standOn(s, { x: 500, y: 500 });
   s.inv.ore = 0;
   run(s, 10);
-  assert.ok(s.extractors[0].buffer > 2.5);
+  assert.ok(s.extractors[0].buffer > 8 * C.EXTRACTORS.foundry.rate);
   assert.equal(s.inv.ore, 0);
   run(s, 300);
   assert.ok(s.extractors[0].buffer <= C.extractorCapacity(s, 'foundry') + 1e-9);

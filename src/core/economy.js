@@ -1,6 +1,6 @@
 /* Costs, yields and production multipliers. */
 
-import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS } from './content.js';
+import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS, HAND_SHARE } from './content.js';
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
 import { t } from '../i18n/i18n.js';
 
@@ -48,8 +48,10 @@ export function toolStat(s, id) {
   return TOOLS[id].levels[s.tools[id] - 1];
 }
 
+// One gather of `res`: what the tool brings, plus HAND_SHARE seconds of your
+// buildings' output of it, so working by hand always adds to waiting.
 export function gatherYield(s, res) {
-  return toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield;
+  return toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield + HAND_SHARE * buildingRate(s, res);
 }
 
 export function overclockMult(s) {
@@ -117,6 +119,13 @@ export function productionRates(s) {
   for (const r of RESOURCES) rates[r] = abundanceTrickle(s);
   for (const e of s.extractors) if (ownBuilding(s, e)) rates[e.res] += extractorRate(s, e.key);
   return rates;
+}
+
+// What all your buildings make of `res` a second.
+export function buildingRate(s, res) {
+  let rate = 0;
+  for (const e of s.extractors) if (e.res === res && ownBuilding(s, e)) rate += extractorRate(s, e.key);
+  return rate;
 }
 
 /* -------------------------------------------------------- extractors */

@@ -7,7 +7,7 @@ import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  AUTO_COLLECT_RANGE, AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
+  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
 import { extractorRate, extractorCapacity, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
@@ -18,7 +18,7 @@ const MAX_STEP = 0.25;
 
 export function step(s, dt) {
   if (dt > MAX_STEP) dt = MAX_STEP;
-  noteWhere(s, AUTO_COLLECT_RANGE); // a shared world's room follows where you are (acts.js)
+  noteWhere(s); // a shared world's room follows where you are (acts.js)
   const regrowTick = Math.floor(s.time / REGROW_INTERVAL);
   s.time += dt;
   s.stats.playedMs += dt * 1000;
@@ -36,12 +36,14 @@ export function step(s, dt) {
   if (nextTick !== regrowTick) regrow(s, nextTick);
 }
 
-const REACH2 = AUTO_COLLECT_RANGE * AUTO_COLLECT_RANGE;
-
-// Whether Logistics hauls this building's output in as it's made.
+// Whether Logistics hauls this building's output in as it's made: any of
+// yours, wherever you are, so walking off to do something never costs what
+// your buildings make (closing the game doesn't either, awayProduce).
 export function autoCollected(s, e) {
-  return s.unlocks.logistics && ownBuilding(s, e) && tileDist2(s.player, e.x, e.y, e.z) <= REACH2;
+  return s.unlocks.logistics && ownBuilding(s, e);
 }
+
+const SHOW2 = 12 * 12; // tiles away a haul is still shown flying in
 
 // Whether a building holds output that waits for you to collect it (a whole
 // unit or more, and nothing is hauling it in).
@@ -56,14 +58,13 @@ function produce(s, dt) {
     if (e.buffer < cap) {
       e.buffer = Math.min(cap, e.buffer + extractorRate(s, e.key) * dt);
     }
-    // Logistics: whole units funnel into your packs, but only from extractors
-    // close enough to haul from (on your layer). Far away they keep producing
-    // and fill their buffers, ready for when you walk back.
+    // Logistics: whole units funnel into your packs; without it they fill
+    // the building, ready for when you walk over and collect.
     if (e.buffer >= 1 && autoCollected(s, e)) {
       const amt = Math.floor(e.buffer);
       earn(s, e.res, amt, 'buildings');
       e.buffer -= amt;
-      s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
+      if (tileDist2(s.player, e.x, e.y, e.z) <= SHOW2) s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
     }
   }
 }

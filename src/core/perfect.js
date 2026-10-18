@@ -12,7 +12,9 @@
  * stays fog; with nothing known to go for, it explores) and underground it
  * digs toward the finds that glint in the dark. What to get next is
  * whatever it can get soonest, upgrade or building, hand-gathering what that
- * beats waiting for, as the pacing runs found best; Abundance stops at the
+ * beats waiting for, as the pacing runs found best, and while it waits it
+ * gathers anyway, since a gather always adds to what buildings make (never
+ * stands idle: Watch, 2026-10-18); Abundance stops at the
  * Embark level until everything else is bought. When the world is ready to
  * leave it waits: Embark is the player's to press (wait, why 'embark').
  *
@@ -24,13 +26,13 @@
  *   place {key, x, y}     put up building `key` on tile (x, y), in reach
  *   descend / climb {x, y} through the way between layers at (x, y)
  *   prop {kind}           put a prop down where you stand
- *   wait {why}            nothing to do but let the buildings work, or
+ *   wait {why}            nothing at all to do (nothing to gather), or
  *                         'embark': the world is done, over to you */
 
 import { SURFACE, CHUNK_SIZE, tileDist2, packKey } from './coords.js';
 import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, holeBelow, wayUp, walkable, findSpawn } from './world.js';
-import { EXTRACTORS, REACH, AUTO_COLLECT_RANGE, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK } from './content.js';
+import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
 import { canAfford, gatherYield, speedMult, productionRates, extractorCost, extractorCapacity, extractorCount, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
@@ -42,9 +44,6 @@ import { findPath } from './paths.js';
 const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
 const SEARCH = 120;           // tiles out the brain looks for a deposit or a spot
 const STUCK = 6;              // tries at the same step before a target counts as out of reach
-// Inside Logistics' reach by this much more than the room could miss (it
-// knows where you are to half a tile, src/core/acts.js).
-const SURE_RANGE = AUTO_COLLECT_RANGE - 0.6;
 const PERKS_FIRST = ['memory', 'heirloom', 'cartographer'];
 
 // The brain's judgement calls: guesses and margins the rules don't settle.
@@ -163,12 +162,14 @@ function decide(s, mind) {
 
 const handRate = (s, mind, res) => TAPS * gatherYield(s, res) * mind.k.walkLoss;
 
-// How long `m` more of `res` takes by hand from the surface: to the nearest
+// How long `m` more of `res` takes by hand from the surface, with your
+// buildings (making `rate` a second) working on alongside: to the nearest
 // deposit you know of and the gathering, or a search if you know of none.
-function handEta(s, mind, res, m) {
+function handEta(s, mind, res, m, rate = 0) {
   const d = nearestDeposit(s, mind, res);
-  if (d.tile) return dist(s, d.tile.x, d.tile.y) / speed(s) + m / handRate(s, mind, res);
-  return d.gated ? Infinity : mind.k.exploreGuess + m / handRate(s, mind, res);
+  const work = m / (handRate(s, mind, res) + rate);
+  if (d.tile) return dist(s, d.tile.x, d.tile.y) / speed(s) + work;
+  return d.gated ? Infinity : mind.k.exploreGuess + work;
 }
 
 /**
@@ -186,7 +187,7 @@ export function plan(s, mind, cost) {
     if (m <= 0) continue;
     missing[r] = m;
     const w = rates[r] > 0 ? m / rates[r] : Infinity;
-    const h = handEta(s, mind, r, m);
+    const h = handEta(s, mind, r, m, rates[r]);
     if (h < w) { how[r] = 'hand'; handSum += h; } else { how[r] = 'wait'; waitMax = Math.max(waitMax, w); }
   }
   // Underground, getting it on the surface starts with the way back up.
@@ -302,9 +303,8 @@ function caveMouth(s, mind) {
 }
 
 // Where building `id` would go: a deposit building on the free matching
-// tile nearest home that you've seen, a converter on free open land beside
-// where you stand among your buildings (camp), so Logistics reaches it.
-// Remembered while it stays free.
+// tile nearest home that you've seen, a converter on free open land near
+// home. Remembered while it stays free.
 function buildSpot(s, mind, id) {
   const def = EXTRACTORS[id];
   const which = def.tile === null ? 'land' : 'tile' + def.tile;
@@ -316,8 +316,7 @@ function buildSpot(s, mind, id) {
       : tileAt(s.world, x, y, SURFACE) === def.tile);
   const c = mind.spots[which];
   if (c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120)) return c.tile;
-  const from = def.tile === null ? camp(s, mind) : mind.home;
-  const tile = nearestTile(from.x + 0.5, from.y + 0.5, def.tile === null ? 30 : SEARCH, free);
+  const tile = nearestTile(mind.home.x + 0.5, mind.home.y + 0.5, def.tile === null ? 30 : SEARCH, free);
   mind.spots[which] = { t: s.time, tile };
   return tile;
 }
@@ -452,62 +451,34 @@ function gather(s, mind, res) {
 }
 
 // Waiting on buildings: fetch what they hold that the goal still needs
-// (`need`, resources) and empty the ones filling up, else stand at camp, among
-// the buildings, and let Logistics haul.
+// (`need`, resources) and empty the ones filling up (before Logistics hauls
+// for you), else gather by hand what the goal will take longest to get,
+// which beats standing about whatever the buildings make.
 function idle(s, mind, need = {}) {
-  const logistics = s.unlocks.logistics;
   const cap = (e) => extractorCapacity(s, e.key);
   const due = s.extractors.filter((e) => e.z === s.player.z && ownBuilding(s, e) && e.buffer >= 1 && !autoCollected(s, e) &&
-    (e.buffer >= Math.min(need[e.res] || Infinity, 0.25 * cap(e)) || e.buffer >= (logistics ? 0.7 : 0.5) * cap(e)) && !mind.bad.has(key(e.x, e.y, e.z)));
+    (e.buffer >= Math.min(need[e.res] || Infinity, 0.25 * cap(e)) || e.buffer >= 0.5 * cap(e)) && !mind.bad.has(key(e.x, e.y, e.z)));
   // The building you're on your way to, until it's emptied; else the nearest due.
   const f = mind.fetch;
-  if (!(f && f.buffer >= 1 && f.z === s.player.z && s.extractors.includes(f))) {
+  if (!(f && f.buffer >= 1 && f.z === s.player.z && s.extractors.includes(f) && !autoCollected(s, f))) {
     mind.fetch = due.length ? due.reduce((a, b) => (dist(s, b.x, b.y) < dist(s, a.x, a.y) ? b : a)) : null;
   }
   const e = mind.fetch;
-  const near = !logistics && collectTarget(s);
+  const near = !s.unlocks.logistics && collectTarget(s);
   if (near && near.list.includes(e)) { mind.fetch = null; return { type: 'collect', badge: 'ui.collect' }; }
-  // In Logistics' reach it's hauled in; go on in a little, so a shared
-  // world's room, which knows where you are only to half a tile, sees it too.
-  if (e && autoCollected(s, e) && dist(s, e.x, e.y) <= SURE_RANGE) mind.fetch = null;
-  else if (e) {
+  if (e) {
     const step = walkTo(s, mind, e.x, e.y, 'ui.collect');
     if (step) return step;
     mind.fetch = null;
   }
   if (s.player.z !== SURFACE) return up(s, mind) || wait('lost');
-  const c = camp(s, mind);
-  if (dist(s, c.x, c.y) > 0.5) {
-    const step = walkTo(s, mind, c.x, c.y, 'ui.wait');
+  const rates = productionRates(s);
+  const slowest = Object.keys(need).sort((a, b) => need[b] / rates[b] - need[a] / rates[a]);
+  for (const r of slowest) {
+    const step = gather(s, mind, r);
     if (step) return step;
   }
   return wait('production');
-}
-
-// Where to stand while the buildings work: the tile with the most of your
-// buildings within Logistics' reach (home, before there are any).
-function camp(s, mind) {
-  const mine = s.extractors.filter((e) => e.z === SURFACE && ownBuilding(s, e));
-  if (mind.camp && mind.camp.n === mine.length && !mind.bad.has(key(mind.camp.x, mind.camp.y, SURFACE))) return mind.camp;
-  let best = { x: mind.home.x, y: mind.home.y, score: -1 };
-  if (s.unlocks.logistics) {
-    const r2 = SURE_RANGE * SURE_RANGE, wade = canWade(s), tried = new Set();
-    for (const e of mine) {
-      for (let y = e.y - 2; y <= e.y + 2; y++) {
-        for (let x = e.x - 2; x <= e.x + 2; x++) {
-          const k = key(x, y, SURFACE);
-          if (tried.has(k) || mind.bad.has(k)) continue;
-          tried.add(k);
-          if (!walkable(s.world, x, y, SURFACE) || (!wade && swimsAt(s.world, x, y, SURFACE))) continue;
-          let score = 0;
-          for (const o of mine) if ((o.x - x) ** 2 + (o.y - y) ** 2 <= r2) score++;
-          if (score > best.score) best = { x, y, score };
-        }
-      }
-    }
-  }
-  mind.camp = { x: best.x, y: best.y, n: mine.length };
-  return mind.camp;
 }
 
 /* -------------------------------------------------------------- the mine */

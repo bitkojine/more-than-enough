@@ -10,8 +10,7 @@
  *   ['b', …, key, tx, ty]  put up building `key` on tile (tx, ty)
  *   ['p', …, kind]         set down prop `kind` where they stand
  *   ['u', …, id]           bought upgrade `id`
- *   ['w', …]               walked here (every WHERE_STEP tiles): your
- *                          buildings haul to you only when you're near */
+ *   ['w', …]               walked here (every WHERE_STEP tiles) */
 
 export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'p', 'u', 'w']);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
@@ -27,22 +26,11 @@ export function noteAct(s, kind, ...args) {
   s.actedAt = { x: p.x, y: p.y, z: p.z };
 }
 
-// Where the player is now, if they've walked WHERE_STEP since the last act,
-// or come within Logistics' reach of one of their buildings (`haul`, the
-// range) since then, which the room must know to haul from it as the game
-// does (sim.js step, before the time passes).
-export function noteWhere(s, haul) {
+// Where the player is now, if they've walked WHERE_STEP since the last act.
+export function noteWhere(s) {
   if (!Array.isArray(s.acts)) return;
   const p = s.player, l = s.actedAt;
-  if (!l || l.z !== p.z || Math.hypot(p.x - l.x, p.y - l.y) >= WHERE_STEP || nearer(s, l, haul)) noteAct(s, 'w');
-}
-
-// Whether one of your buildings is within `range` of you but wasn't of `l`.
-function nearer(s, l, range) {
-  if (!s.unlocks.logistics) return false;
-  const p = s.player, r2 = range * range;
-  const d2 = (q, e) => (e.x + 0.5 - q.x) ** 2 + (e.y + 0.5 - q.y) ** 2;
-  return s.extractors.some((e) => e.z === p.z && (!e.owner || e.owner === s.me) && d2(p, e) <= r2 && d2(l, e) > r2);
+  if (!l || l.z !== p.z || Math.hypot(p.x - l.x, p.y - l.y) >= WHERE_STEP) noteAct(s, 'w');
 }
 
 // The acts waiting to be sent, taken.

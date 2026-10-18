@@ -151,7 +151,13 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
 // stops early at the Embark pause.
 export function holdPerfect(s, seconds, { mind = C.newMind(), seen = () => {}, tick = () => {} } = {}) {
   let played = 0, last = null;
-  const pass = (dt) => { C.step(s, dt); played += dt; tick(); };
+  // In steps the game takes (it caps each at a quarter second), so a second
+  // spent waiting is a second of play.
+  const pass = (dt) => {
+    for (let left = dt; left > 1e-9; left -= 0.25) C.step(s, Math.min(0.25, left));
+    played += dt;
+    tick();
+  };
   C.revealAround(s); // as the game's first frame does
   while (played < seconds) {
     const intent = C.nextIntent(s, mind);

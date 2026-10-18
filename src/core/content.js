@@ -10,10 +10,10 @@ export const MINE_EXPLORE_RADIUS = 3; // underground you only see the rock close
 export const CLIFF_LAYERS = 8;        // layers a cliff at the edge of the known world shows before fading
 export const REACH = 1.65;            // how far the player can gather, dig or build
 export const COLLECT_RANGE = 1.7;
-// Logistics auto-collects whole units from any extractor within this many
-// tiles. Wider than manual collection so a few camps packed in your base all
-// feed you at once — but walk away and they just buffer up.
-export const AUTO_COLLECT_RANGE = 3.0;
+// Waiting must never beat doing something (Watch, 2026-10-18), so hands keep
+// up with buildings: each gather (and each find's loot) also brings in this
+// many seconds of what your buildings make of that resource.
+export const HAND_SHARE = 0.1;
 // Time away from a solo world (closed, or in another app): buildings and the
 // Abundance Engine keep working at full rate for up to AWAY_CAP seconds
 // (Watch's choice), straight into your packs. Gaps under AWAY_MIN are ignored.
@@ -131,14 +131,14 @@ export const TOOLS = {
 // Deposit extractors sit on a matching surface tile. Converters (tile: null)
 // need a blueprint and synthesize their resource on any open land.
 export const EXTRACTORS = {
-  garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.6, buffer: 60, baseCost: { mycelium: 15 } },
-  quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.45, buffer: 60, baseCost: { mycelium: 30, stone: 15 } },
-  mine: { name: t('building.mine'), tile: T.ORE, res: 'ore', rate: 0.32, buffer: 50, baseCost: { stone: 45, ore: 12 } },
-  resonator: { name: t('building.resonator'), tile: T.CRYSTAL, res: 'crystal', rate: 0.09, buffer: 30, baseCost: { stone: 140, ore: 70, crystal: 6 } },
-  compost: { name: t('building.compost'), tile: null, res: 'mycelium', rate: 0.5, buffer: 60, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
-  brickyard: { name: t('building.brickyard'), tile: null, res: 'stone', rate: 0.38, buffer: 60, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
-  foundry: { name: t('building.foundry'), tile: null, res: 'ore', rate: 0.3, buffer: 50, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
-  observatory: { name: t('building.observatory'), tile: null, res: 'crystal', rate: 0.11, buffer: 30, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
+  garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.45, buffer: 45, baseCost: { mycelium: 15 } },
+  quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.34, buffer: 45, baseCost: { mycelium: 30, stone: 15 } },
+  mine: { name: t('building.mine'), tile: T.ORE, res: 'ore', rate: 0.24, buffer: 38, baseCost: { stone: 45, ore: 12 } },
+  resonator: { name: t('building.resonator'), tile: T.CRYSTAL, res: 'crystal', rate: 0.07, buffer: 22, baseCost: { stone: 140, ore: 70, crystal: 6 } },
+  compost: { name: t('building.compost'), tile: null, res: 'mycelium', rate: 0.375, buffer: 45, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
+  brickyard: { name: t('building.brickyard'), tile: null, res: 'stone', rate: 0.285, buffer: 45, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
+  foundry: { name: t('building.foundry'), tile: null, res: 'ore', rate: 0.225, buffer: 38, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
+  observatory: { name: t('building.observatory'), tile: null, res: 'crystal', rate: 0.08, buffer: 22, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
 };
 
 export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);

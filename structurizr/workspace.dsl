@@ -151,7 +151,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): extractor production, range-limited logistics auto-collect on the player's layer, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/sim.js"

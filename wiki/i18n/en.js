@@ -86,8 +86,8 @@ export default {
   "wiki.idea.visualRecipes.pitch": "A workbench where you drop resources in and see what comes out: icons only, no words, discovered by trying combinations. Fits the figure-it-out rule perfectly.",
   "wiki.idea.visualRecipes.builds": "Converters and the no-text rule.",
   "wiki.idea.roads.title": "Roads",
-  "wiki.idea.roads.pitch": "Paved paths you lay between buildings that make you walk faster and extend Logistics range along them. Turns the camp into a network you design.",
-  "wiki.idea.roads.builds": "Movement speed and Logistics range.",
+  "wiki.idea.roads.pitch": "Paved paths you lay between buildings that make you walk faster along them. Turns the camp into a network you design.",
+  "wiki.idea.roads.builds": "Movement speed.",
   "wiki.idea.caravansAtTheEdge.title": "Caravans at the edge",
   "wiki.idea.caravansAtTheEdge.pitch": "Every so often a caravan appears at the edge of the known world and trades one resource for another. Exploring further brings bigger caravans.",
   "wiki.idea.caravansAtTheEdge.builds": "Fog edges and resources.",
@@ -336,8 +336,8 @@ export default {
         <li><strong>Starting out</strong>: it walks to the nearest resource you can see and gathers it, and looks around
           when there's nothing in sight.</li>
         <li><strong>Building up</strong>: it saves for whatever it can have soonest (a tool, an upgrade, another building) and
-          gets it, walking to the right tile to put a building up. While it waits, it fetches goods from buildings that are filling
-          up, and once you have Logistics it stands among your buildings so they haul to you.</li>
+          gets it, walking to the right tile to put a building up. It never just stands and waits: until you have Logistics it
+          fetches goods from buildings that are filling up, and otherwise it gathers by hand what it's still short of.</li>
         <li><strong>The mine</strong>: when digging for finds pays better than the surface, it goes down a cave mouth, digs
           tunnels to the finds it can sense, opens shafts deeper, and climbs back up the way it came.</li>
         <li><strong>Searching</strong>: when a building needs a tile you haven't found yet (crystal, say), it explores outward for
@@ -537,6 +537,10 @@ export default {
       <p>Each swing gives you as much as your tool's level allows (1 at the start, up to 32), but always takes exactly
         <strong>one</strong> point of richness from the tile. Better tools don't use up deposits faster; they get more out of
         each one. A forest at zero richness keeps its trees but has no mushrooms left until they regrow.</p>
+      <p>Your hands keep up with your buildings. On top of what the tool gives, every swing brings in
+        <span data-k="HAND_SHARE"></span> seconds of what your buildings make of that resource, and every find's loot
+        grows the same way. However big your camps get, gathering always adds to them, so standing and waiting is never
+        the quickest way to anything.</p>
       <p>See <a href="#upgrades">Upgrades</a> for the full tool tables.</p>
 
       <h2>Finding ore and crystal</h2>
@@ -635,7 +639,7 @@ export default {
         <li>It's always dark down here. Your screen lights only a small pool at your feet, so tunnels you dug a few steps back
           sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
-        <li>Logistics only collects from buildings on the layer you're on, so your surface camps simply fill up while you're below.</li>
+        <li>Logistics hauls from your surface camps down here too. Without it they simply fill up while you're below.</li>
         <li>Nothing regrows underground.</li>
         <li>Day and night carry on as usual: light through a hole to the forest fades at night.</li>
       </ul>`,
@@ -667,9 +671,9 @@ export default {
         the building. You take every whole unit from every building in that range at once.</p>
 
       <h2>Logistics</h2>
-      <p>Once you unlock <strong>Logistics</strong>, every building within <span data-k="AUTO_COLLECT_RANGE"></span> tiles of you
-        sends its goods straight into your packs as they're made. Walk away and they fill up again. The trick is to cluster
-        buildings into a base and work from the middle of it.</p>`,
+      <p>Once you unlock <strong>Logistics</strong>, every building of yours sends its goods straight into your packs as
+        they're made, wherever you are, underground too. There's no need to stand around your base: go and explore, gather
+        or dig, and nothing your buildings make is lost.</p>`,
   "wiki.article.stockpile.title": "The stockpile",
   "wiki.article.stockpile": `      <h1>The stockpile</h1>
       <p class="lede">Everything you own stands on the ground around home, and the richer you get, the grander it grows.</p>

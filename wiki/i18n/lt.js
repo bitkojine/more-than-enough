@@ -83,8 +83,8 @@ export default {
   "wiki.idea.visualRecipes.pitch": "Darbastalis, ant kurio dedi išteklius ir matai, kas išeina: tik piktogramos, jokių žodžių, atrandama bandant derinius. Puikiai tinka taisyklei „išsiaiškink pats“.",
   "wiki.idea.visualRecipes.builds": "Keitikliai ir taisyklė „be teksto“.",
   "wiki.idea.roads.title": "Keliai",
-  "wiki.idea.roads.pitch": "Grįsti takai, kuriuos tiesi tarp pastatų: jais eini greičiau, o Logistikos nuotolis išilgai jų padidėja. Stovykla tampa tavo paties suprojektuotu tinklu.",
-  "wiki.idea.roads.builds": "Judėjimo greitis ir Logistikos nuotolis.",
+  "wiki.idea.roads.pitch": "Grįsti takai, kuriuos tiesi tarp pastatų: jais eini greičiau. Stovykla tampa tavo paties suprojektuotu tinklu.",
+  "wiki.idea.roads.builds": "Judėjimo greitis.",
   "wiki.idea.caravansAtTheEdge.title": "Karavanai pakraštyje",
   "wiki.idea.caravansAtTheEdge.pitch": "Kartkartėmis žinomo pasaulio pakraštyje pasirodo karavanas ir iškeičia vieną išteklių į kitą. Kuo toliau tyrinėji, tuo didesni karavanai.",
   "wiki.idea.caravansAtTheEdge.builds": "Rūko kraštai ir ištekliai.",
@@ -331,8 +331,8 @@ export default {
       <ul>
         <li><strong>Pradžioje</strong> nueina prie artimiausio matomo ištekliaus ir jį renka, o kai nieko nesimato, apsidairo.</li>
         <li><strong>Augdamas</strong> taupo tam, ką gali gauti greičiausiai (įrankiui, patobulinimui, dar vienam pastatui), ir tai gauna,
-          pastatui nueidamas iki tinkamo langelio. Laukdamas parsineša produkciją iš besipildančių pastatų, o turint Logistiką stovi
-          tarp savo pastatų, kad jie gabentų tau.</li>
+          pastatui nueidamas iki tinkamo langelio. Niekada nestovi vietoje laukdamas: kol neturi Logistikos, parsineša produkciją
+          iš besipildančių pastatų, o šiaip rankomis renka tai, ko dar trūksta.</li>
         <li><strong>Kasykla</strong>: kai radiniai po žeme apsimoka labiau nei paviršius, nusileidžia pro urvo angą, kasa tunelius
           iki juntamų radinių, atveria gilesnes šachtas ir grįžta tuo pačiu keliu.</li>
         <li><strong>Paieška</strong>: kai pastatui reikia dar nerasto langelio (pavyzdžiui, kristalo), tyrinėja vis toliau, ir
@@ -531,6 +531,9 @@ export default {
       <p>Kiekvienas mostas duoda tiek, kiek leidžia tavo įrankio lygis (pradžioje 1, daugiausia 32), bet iš langelio visada atima lygiai
         <strong>vieną</strong> turtingumo tašką. Geresni įrankiai telkinių neišsemia greičiau – jie tiesiog iš kiekvieno
         išgauna daugiau. Miškas, kurio turtingumas nulinis, medžius išlaiko, bet grybų jame nebelieka, kol jie ataugs.</p>
+      <p>Tavo rankos neatsilieka nuo pastatų. Be to, ką duoda įrankis, kiekvienas mostas atneša tiek, kiek tavo pastatai to
+        ištekliaus pagamina per <span data-k="HAND_SHARE"></span> sekundės, ir kiekvieno radinio grobis auga taip pat. Kad ir kokios
+        didelės būtų tavo stovyklos, rinkimas visada prie jų prideda, tad stovėti ir laukti niekada nėra greičiausias kelias.</p>
       <p>Visas įrankių lenteles rasi skyriuje <a href="#upgrades">Patobulinimai</a>.</p>
 
       <h2>Kaip rasti rūdos ir kristalų</h2>
@@ -628,7 +631,7 @@ export default {
         <li>Čia visada tamsu. Ekranas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
           atgal, vėl paskęsta tamsoje. Švytukės ir lempos laiko savo ruožą apšviestą, o dienos šviesa krinta pro angas,
           kuriomis nusileidai.</li>
-        <li>Logistika paima produkciją tik iš pastatų tame sluoksnyje, kuriame esi, tad kol esi apačioje, tavo stovyklos paviršiuje tiesiog prisipildo.</li>
+        <li>Logistika ir čia, apačioje, parveža produkciją iš tavo stovyklų paviršiuje. Be jos jos tiesiog prisipildo, kol esi apačioje.</li>
         <li>Po žeme niekas neatauga.</li>
         <li>Diena ir naktis keičiasi kaip įprasta: šviesa pro angą į mišką naktį blėsta.</li>
       </ul>`,
@@ -660,9 +663,9 @@ export default {
         {phone:bakstelėk|laptop:spustelėk} jį. Iš karto paimi visus sveikus vienetus iš visų tame spindulyje esančių pastatų.</p>
 
       <h2>Logistika</h2>
-      <p>Atrakinus <strong>Logistiką</strong>, kiekvienas pastatas iki <span data-k="AUTO_COLLECT_RANGE"></span> langelių nuo tavęs
-        siunčia produkciją tiesiai tau į kuprinę, vos ją pagamina. Nueik toliau, ir jie vėl ims pildytis. Gudrybė – sutelkti
-        pastatus į bazę ir dirbti iš jos vidurio.</p>`,
+      <p>Atrakinus <strong>Logistiką</strong>, kiekvienas tavo pastatas siunčia produkciją tiesiai tau į kuprinę, vos ją
+        pagamina, kad ir kur būtum, net po žeme. Nereikia stovėti prie bazės: eik tyrinėti, rinkti ar kasti, ir nieko, ką
+        pagamina tavo pastatai, neprarasi.</p>`,
   "wiki.article.stockpile.title": "Atsargos",
   "wiki.article.stockpile": `      <h1>Atsargos</h1>
       <p class="lede">Viskas, ką turi, stovi ant žemės aplink namus, ir kuo turtingesnis esi, tuo didingiau tai auga.</p>
