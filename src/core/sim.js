@@ -7,10 +7,11 @@ import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, DAY_LENGTH, GEAR,
+  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
 import { extractorRate, extractorCapacity, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
+import { tickBattery, lightScale } from './light.js';
 
 const MAX_STEP = 0.25;
 
@@ -24,6 +25,7 @@ export function step(s, dt) {
   s.stats.playedMs += dt * 1000;
 
   produce(s, dt);
+  tickBattery(s, dt);
 
   const trickle = abundanceTrickle(s) * dt;
   if (trickle > 0) {
@@ -171,8 +173,9 @@ export function move(s, dx, dy, dt) {
 /* ---------------------------------------------------------------- fog */
 
 // Only the surface has fog. Revealing ore or crystal marks it discovered,
-// which drives the early goals and the compass hint.
-export function revealAround(s, radius = exploreRadius(s)) {
+// which drives the early goals and the compass hint. In the dark a low
+// battery lifts it over less (battery.js).
+export function revealAround(s, radius = exploreRadius(s) * lightScale(s)) {
   const p = s.player;
   const w = s.world, r = Math.ceil(radius), r2 = radius * radius;
   const px = Math.floor(p.x), py = Math.floor(p.y);
@@ -186,11 +189,4 @@ export function revealAround(s, radius = exploreRadius(s)) {
       if (t === T.CRYSTAL) s.discovered.crystal = true;
     }
   }
-}
-
-/* ---------------------------------------------------------- day/night */
-
-// 1 at time 0 (noon) ... 0 at DAY_LENGTH / 2 (midnight).
-export function daylight(t) {
-  return 0.5 + 0.5 * Math.cos((t / DAY_LENGTH) * Math.PI * 2);
 }

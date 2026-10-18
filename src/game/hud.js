@@ -78,6 +78,30 @@ export function createHud(el, look) {
     el.depthGauge.innerHTML = html;
   }
 
+  // The battery, once it isn't full: how much is left, and whether a
+  // charger is filling it. The first time your light starts to shrink, one
+  // line says where to charge it.
+  let lastBattery = '', warned = false;
+  function updateBattery(s) {
+    const pct = Math.round(s.battery * 100);
+    const charging = !!Core.chargerNear(s) && pct < 100;
+    const key = pct < 100 ? pct + (charging ? 'c' : '') : '';
+    if (key === lastBattery) return;
+    lastBattery = key;
+    el.battery.hidden = !key;
+    if (!key) return;
+    el.battery.querySelector('b').style.width = pct + '%';
+    setText(el.battery.querySelector('span'), number(pct) + '%');
+    el.battery.classList.toggle('low', s.battery < Core.BATTERY_LOW);
+    el.battery.classList.toggle('flat', s.battery < 0.1);
+    el.battery.classList.toggle('charging', charging);
+    el.battery.setAttribute('aria-label', t(charging ? 'hud.batteryCharging' : 'hud.battery', { n: number(pct) }));
+    if (s.battery < Core.BATTERY_LOW && !charging && !warned) {
+      warned = true;
+      hud.toast(t('toast.batteryLow'), 6);
+    } else if (s.battery >= Core.BATTERY_LOW) warned = false;
+  }
+
   for (const r of Core.RESOURCES) {
     const chip = document.createElement('button');
     chip.type = 'button';
@@ -94,13 +118,14 @@ export function createHud(el, look) {
     if (node.textContent !== text) node.textContent = text;
   }
 
+  // A thing with no icon (a prop, say) shows its picture.
   function setIcon(img, id) {
-    const src = look.src(id);
+    const src = look.src(id) || look.src(id, 'image');
     if (img.getAttribute('src') !== src) img.src = src;
     img.dataset.look = id;
   }
 
-  return {
+  const hud = {
     // The texture pack changed: repaint every picture.
     repaint() {
       paintIcons(look);
@@ -124,6 +149,7 @@ export function createHud(el, look) {
       el.awards.classList.toggle('has', Core.nextGoalReady(s));
       const below = Core.isUnderground(s);
       inSight = !below && !!Core.nearestWork(s);
+      updateBattery(s);
       el.depth.hidden = !below;
       if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
       updateGauge(s);
@@ -239,4 +265,5 @@ export function createHud(el, look) {
       if (milestoneLeft > 0 && (milestoneLeft -= dt) <= 0) nextMilestone();
     }
   };
+  return hud;
 }

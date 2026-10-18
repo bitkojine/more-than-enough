@@ -233,6 +233,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         case 'place': return controller.place(intent.key, { x: intent.x, y: intent.y });
         case 'descend': case 'climb': return passAt(intent.x, intent.y);
         case 'prop': return controller.placeProp(intent.kind);
+        case 'charge': return !!Core.chargerNear(state());
         default: return false;
       }
     },

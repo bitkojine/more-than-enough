@@ -36,8 +36,11 @@ kind of knowledge lives.
   through generated ways up and down that players discover.
 - Nobody cheats in a shared world, world owners included. The room's own copy
   of each player's progress is the truth (`server/src/shadow.js`).
-- Any change to world generation bumps `WORLD_FORMAT` in `src/core/format.js`
-  (new solo worlds, the nuke in shared ones). Saves are not migrated.
+- Worlds are kept (Watch, 2026-10-18): no change may reset or nuke anyone's
+  world. Don't change world generation or bump `WORLD_FORMAT` in
+  `src/core/format.js`; build new things on top of the land that's there
+  (placing on existing tiles, player edits), and new save fields default when
+  missing. Anything that would need a reset goes to Watch first.
 - The game and the room service go live minutes apart. A wire change in
   `src/net/protocol.js` must work with the other side one version behind:
   add fields, tolerate missing or extra ones, and time out rather than wait

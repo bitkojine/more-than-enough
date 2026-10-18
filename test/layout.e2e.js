@@ -81,7 +81,7 @@ function problems() {
   // The HUD, while nothing covers it: every button and name plate clear of
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
-    const targets = [...document.querySelectorAll('#topbar button, #friends .friend, #controls button, #controls .cap, #depth, #depthGauge')].filter(shown);
+    const targets = [...document.querySelectorAll('#topbar button, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge')].filter(shown);
     for (let i = 0; i < targets.length; i++) {
       const a = targets[i], ra = a.getBoundingClientRect();
       if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1) out.push('off screen: ' + name(a));
@@ -148,7 +148,11 @@ async function enter(state) {
     const hold = () => {
       document.getElementById('depth').textContent = '▼ 12';  // i18n-ok: test fixture
       document.getElementById('depthGauge').innerHTML = '<i class="surface"></i><i></i><i class="here"></i><i class="deeper"></i>';
-      for (const id of ['depth', 'depthGauge', 'btnMine']) document.getElementById(id).hidden = false;
+      const battery = document.getElementById('battery');
+      battery.className = 'low';
+      battery.querySelector('b').style.width = '23%';
+      battery.querySelector('span').textContent = '23%';  // i18n-ok: test fixture
+      for (const id of ['battery', 'depth', 'depthGauge', 'btnMine']) document.getElementById(id).hidden = false;
       document.getElementById('mineLabel').textContent = t('button.climbDown');
     };
     hold();

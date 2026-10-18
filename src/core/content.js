@@ -35,15 +35,34 @@ export const EMBARK_ABUNDANCE = 5;
 
 /* -------------------------------------------------------------- props */
 
-// Things you place on the tunnel floor where you stand, one per tile, in the
-// mine only. `light` is how far it lights, in tiles (your screen reaches 1.7);
-// a `beacon` shows through the dark from anywhere on screen, to find your way
-// back by.
+// Things you place where you stand, one per tile. `on` is where they go:
+// 'tunnel' (open mine floor), 'water' (any water on the surface) or 'river'
+// (a river between regions). `light` is how far it lights, in tiles (your
+// screen reaches 1.7 in the mine); a `beacon` shows through the dark from
+// anywhere on screen, to find your way back by. `charge` charges the battery
+// of anyone within CHARGE_RANGE: 'day' while the sun is up, 'always' at any
+// hour (see battery.js).
 export const PROPS = {
-  glowcap: { name: t('prop.glowcap'), cost: { mycelium: 3 }, light: 4.5, does: t('prop.glowcap.does') },
-  lamp: { name: t('prop.lamp'), cost: { stone: 8, crystal: 1 }, light: 8, does: t('prop.lamp.does') },
-  flag: { name: t('prop.flag'), cost: { mycelium: 2 }, beacon: true, does: t('prop.flag.does') }
+  glowcap: { name: t('prop.glowcap'), cost: { mycelium: 3 }, on: 'tunnel', light: 4.5, does: t('prop.glowcap.does') },
+  lamp: { name: t('prop.lamp'), cost: { stone: 8, crystal: 1 }, on: 'tunnel', light: 8, does: t('prop.lamp.does') },
+  flag: { name: t('prop.flag'), cost: { mycelium: 2 }, on: 'tunnel', beacon: true, does: t('prop.flag.does') },
+  solar: { name: t('prop.solar'), cost: { stone: 30, ore: 6 }, on: 'water', charge: 'day', does: t('prop.solar.does') },
+  wheel: { name: t('prop.wheel'), cost: { stone: 60, ore: 20 }, on: 'river', charge: 'always', does: t('prop.wheel.does') }
 };
+
+/* ------------------------------------------------------------ battery */
+
+// The phone or laptop in your hands lights the dark, and that runs its
+// battery down (Watch, 2026-10-18). It drains only while it's dark (night,
+// the mine), never while you're away, and only water power charges it.
+// Below BATTERY_LOW your light starts to shrink, down to BATTERY_DIM of its
+// full reach when it's flat: you see and uncover less, but can still do
+// everything.
+export const BATTERY_LIFE = 900;   // seconds of dark a full battery lasts
+export const BATTERY_LOW = 0.3;
+export const BATTERY_DIM = 0.4;
+export const CHARGE_TIME = 10;     // seconds by a working charger from flat to full
+export const CHARGE_RANGE = 2.5;   // tiles from a charger it reaches
 
 /* -------------------------------------------------------------- finds */
 

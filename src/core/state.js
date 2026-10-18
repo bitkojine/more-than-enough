@@ -40,6 +40,7 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {string[]} goalsDone
  * @property {number} goalIndex
  * @property {number} time                         game seconds
+ * @property {number} battery                      your device's charge, 0 (flat) to 1 (full)
  * @property {number} [seen]                     when this world was last open (ms since 1970, set by the game: core keeps no clock)
  * @property {{deepest: number}} underground     the deepest layer reached so far
  * @property {string} [shared]                   the room of a shared world (not set when alone)
@@ -93,6 +94,7 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
     goalsDone: [],  // milestone ids, in the order reached
     goalIndex: 0,   // how many: goalsDone.length
     time: 0,
+    battery: 1,     // the device's charge, 0..1 (battery.js)
     underground: { deepest: SURFACE },
     events: []
   };

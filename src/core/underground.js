@@ -12,7 +12,7 @@ import { TILE_INFO } from './tiles.js';
 import { tileAt, setRichness, holeBelow, wayUp } from './world.js';
 import { REACH, PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
-import { daylight } from './sim.js';
+import { landAt } from './regions.js';
 import { canAfford, pay } from './economy.js';
 import { noteAct } from './acts.js';
 
@@ -128,21 +128,18 @@ export function takeWay(s) {
   return way.up ? climbAt(s, way.x, way.y) : descendAt(s, way.x, way.y);
 }
 
-/* ----------------------------------------------------------------- light */
+/* ----------------------------------------------------------------- props */
 
-// Underground is dark; so is the forest at night. Then the screen of what
-// the wanderer plays on (phone or laptop) is what lights the way.
-export function isDark(s) {
-  return isUnderground(s) || daylight(s.time) < 0.6;
-}
-
-// Props (PROPS) go on open tunnel floor where you stand, one per tile, never
-// on a way between layers.
+// Props (PROPS) go where you stand, one per tile: tunnel props on open mine
+// floor, never on a way between layers; water power on the surface's water
+// (a water wheel only on a river, whose water flows).
 export function canPlaceProp(s, kind) {
-  if (!isUnderground(s) || !PROPS[kind]) return false;
-  const { x, y } = feet(s), z = s.player.z, w = s.world;
-  return !w.props.has(packKey(x, y, z)) && !!TILE_INFO[tileAt(w, x, y, z)].walk &&
-    !holeBelow(w, x, y, z) && !wayUp(w, x, y, z);
+  if (!Object.hasOwn(PROPS, kind)) return false;
+  const { x, y } = feet(s), z = s.player.z, w = s.world, on = PROPS[kind].on;
+  if (w.props.has(packKey(x, y, z))) return false;
+  if (on === 'tunnel') return isUnderground(s) && !!TILE_INFO[tileAt(w, x, y, z)].walk && !holeBelow(w, x, y, z) && !wayUp(w, x, y, z);
+  if (z !== SURFACE || !TILE_INFO[tileAt(w, x, y, z)].swim) return false;
+  return on === 'water' || landAt(w.seed, x, y).border === 'river';
 }
 
 /** @returns {{ok: true, x: number, y: number} | {ok: false}} */

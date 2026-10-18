@@ -92,10 +92,16 @@ const TABLES = {
   },
 
   props: () => table(heads('thing', 'cost', 'light', 'whatItDoes'),
-    Object.keys(Core.PROPS).map((k) => {
+    Object.keys(Core.PROPS).filter((k) => Core.PROPS[k].on === 'tunnel').map((k) => {
       const p = Core.PROPS[k];
       return [`${pic('mark.' + k, 'image')} ${p.name}`, costText(p.cost), p.light ? num(p.light) : '—', p.does];
     }), [2]),
+
+  waterPower: () => table(heads('thing', 'cost', 'whatItDoes'),
+    Object.keys(Core.PROPS).filter((k) => Core.PROPS[k].charge).map((k) => {
+      const p = Core.PROPS[k];
+      return [`${pic('mark.' + k, 'image')} ${p.name}`, costText(p.cost), p.does];
+    })),
 
   finds: () => table(heads('find', 'loot', 'foundOn'),
     Object.keys(Core.FINDS).map((type) => {

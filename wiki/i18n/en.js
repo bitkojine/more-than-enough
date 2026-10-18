@@ -70,9 +70,6 @@ export default {
   "wiki.idea.caveInsAndMyceliumProps.title": "Cave-ins and mycelium props",
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Dug tiles and mycelium.",
-  "wiki.idea.aBatteryThatRunsLow.title": "A battery that runs low",
-  "wiki.idea.aBatteryThatRunsLow.pitch": "Underground your sight radius slowly shrinks unless you charge your {phone:phone|laptop:laptop} with glowcaps or crystal. Light becomes a resource without any text explaining it: you just notice it getting darker.",
-  "wiki.idea.aBatteryThatRunsLow.builds": "Explore radius and night lighting.",
   "wiki.idea.glowOre.title": "Glow ore",
   "wiki.idea.glowOre.pitch": "A rare ore you can only see at night or in the dark, shimmering faintly. Rewards being out at night and exploring the mine by feel.",
   "wiki.idea.glowOre.builds": "Day/night and fog.",
@@ -115,9 +112,6 @@ export default {
   "wiki.idea.noNumbersAtAll.title": "No numbers at all",
   "wiki.idea.noNumbersAtAll.pitch": "Go further than \"no tutorial\": hide all counters and let the size of your piles, the glow of buildings and the length of your tunnels tell you how you're doing. The wiki keeps the numbers for those who want them.",
   "wiki.idea.noNumbersAtAll.builds": "The no-text rule and the wiki.",
-  "wiki.idea.fish.title": "Fish",
-  "wiki.idea.fish.pitch": "Lakes and rivers hold fish to catch, a calm thing to do between digging, with rarer kinds in far-off waters like the mushrooms in far-off forests. Asked for by a playtester the first time they saw water.",
-  "wiki.idea.fish.builds": "Water tiles, the mushroom collection and region music.",
   "wiki.idea.aSharedBank.title": "A shared bank",
   "wiki.idea.aSharedBank.pitch": "In a shared world, a bank everyone can put things into and take from, so friends can pool resources for something big or help a newcomer get started.",
   "wiki.idea.aSharedBank.builds": "Shared worlds, the stockpile and the yard.",
@@ -523,7 +517,10 @@ export default {
 
       <h2>Water</h2>
       <p>You can swim anywhere there's water, at <span data-k="SWIM_SPEED" data-f="pct"></span> of your walking speed. You'll be
-        riding a little boat. Nothing can be built on water.</p>
+        riding a little boat. No buildings go on water, but water power does: the Build sheet's <strong>On the water</strong>
+        section puts these down where you float, one per tile, to charge your battery (see below). Nobody fishes: the water is left
+        to whatever lives in it.</p>
+      <div data-table="waterPower"></div>
 
       <h2>Regrowth</h2>
       <p>Forest and stone grow back; ore and crystal never do. Every <span data-k="REGROW_INTERVAL"></span> seconds, each depleted
@@ -534,7 +531,17 @@ export default {
       <h2>Day and night</h2>
       <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
         After dusk the world fades into darkness and the screen of your {phone:phone|laptop:laptop} lights a pool around you, so you can always
-        keep working. Nothing else changes at night.</p>`,
+        keep working.</p>
+
+      <h2>Your battery</h2>
+      <p>Lighting the dark runs your {phone:phone|laptop:laptop}'s battery down: a full one lasts <span data-k="BATTERY_LIFE"></span>
+        seconds of dark, at night or in the mine. By day it doesn't drain, and nothing happens to it while you're away. Once
+        it's down to <span data-k="BATTERY_LOW" data-f="pct"></span> your light starts to shrink, to
+        <span data-k="BATTERY_DIM" data-f="pct"></span> of its reach when it's flat, so you see less and the fog lifts over less.
+        It never stops you doing anything. The battery shows on the left edge once it isn't full.</p>
+      <p>Only water power charges it: stand within <span data-k="CHARGE_RANGE"></span> tiles of a floating solar panel while the
+        sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
+        charger charges anyone.</p>`,
   "wiki.article.gathering.title": "Gathering",
   "wiki.article.gathering": `      <h1>Gathering</h1>
       <p class="lede">Four resources, two tools, and deposits that run dry.</p>

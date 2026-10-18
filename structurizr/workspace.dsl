@@ -151,10 +151,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, the device battery (drains in the dark, charged by water power: solar panels and water wheels) and hash-seeded regrowth near the player. Also movement, fog reveal (smaller when the battery is low at night) and the day/night curve." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/sim.js"
+                        "ref" "src/core/sim.js, light.js"
                     }
                 }
 
@@ -165,7 +165,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                brain = component "Perfect Brain" "nextIntent(s, mind): the next thing a careful player would do (walk, gather, collect, buy, place, go down or up, or wait), from what has been explored only. Picks whatever can be had soonest, plans routes (findPath, through dug rock underground), mines when finds pay better, waits for the player at Embark, and never in a shared world spends Insight. Pure: the mind is a cache it keeps between calls." "JavaScript" {
+                brain = component "Perfect Brain" "nextIntent(s, mind): the next thing a careful player would do (walk, gather, collect, buy, place, go down or up, put a solar panel by the shore, charge, or wait), from what has been explored only. Picks whatever can be had soonest, plans routes (findPath, through dug rock underground), mines when finds pay better, waits for the player at Embark, and never in a shared world spends Insight. Pure: the mind is a cache it keeps between calls." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/perfect.js, paths.js"

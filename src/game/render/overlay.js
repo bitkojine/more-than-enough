@@ -132,8 +132,8 @@ export function drawLighting(ctx, cam, s, look, lights, device) {
   if (Core.isDark(s)) {
     // Kept usable when zoomed far out, where tiles are tiny.
     all.push({
-      x: s.player.x, y: s.player.y, r: under ? MINE_SCREEN_LIGHT : SCREEN_LIGHT,
-      color: look.color('character.' + device), min: Math.min(W, H) * (under ? 0.12 : 0.28), core: under ? 0.3 : 0.5
+      x: s.player.x, y: s.player.y, r: (under ? MINE_SCREEN_LIGHT : SCREEN_LIGHT) * Core.lightScale(s),
+      color: look.color('character.' + device), min: Math.min(W, H) * (under ? 0.12 : 0.28) * Core.lightScale(s), core: under ? 0.3 : 0.5
     });
   }
   if (under) {

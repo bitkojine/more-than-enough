@@ -26,10 +26,11 @@
  *   place {key, x, y}     put up building `key` on tile (x, y), in reach
  *   descend / climb {x, y} through the way between layers at (x, y)
  *   prop {kind}           put a prop down where you stand
+ *   charge                stay by the charger in reach a moment, filling the battery
  *   wait {why}            nothing at all to do (nothing to gather), or
  *                         'embark': the world is done, over to you */
 
-import { SURFACE, CHUNK_SIZE, tileDist2, packKey } from './coords.js';
+import { SURFACE, CHUNK_SIZE, tileDist2, packKey, unpackKey } from './coords.js';
 import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, holeBelow, wayUp, walkable, findSpawn } from './world.js';
 import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK } from './content.js';
@@ -39,6 +40,7 @@ import { canEmbark } from './state.js';
 import { canHarvest, gearNeeded, gearFor, collectTarget, extractorAt } from './actions.js';
 import { autoCollected, canWade, swimsAt } from './sim.js';
 import { canDescendAt, canClimbAt, canPlaceProp, findsNear } from './underground.js';
+import { charging, chargerNear } from './light.js';
 import { findPath } from './paths.js';
 
 const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
@@ -98,7 +100,7 @@ export function nextIntent(s, mind, { peek = false } = {}) {
   if (canEmbark(s)) return wait('embark', 'ui.embark');
   const perk = nextPerk(s);
   if (perk) return { type: 'buy', id: perk, badge: 'resource.insight' };
-  return pursue(s, mind, decide(s, mind));
+  return power(s, mind) || pursue(s, mind, decide(s, mind));
 }
 
 /* -------------------------------------------------------------- perks */
@@ -480,6 +482,65 @@ function idle(s, mind, need = {}) {
     if (step) return step;
   }
   return wait('production');
+}
+
+/* ------------------------------------------------------------ the battery */
+
+const CHARGE_BELOW = 0.5;  // battery share that sends it off to a charger
+const CHARGE_FULL = 0.98;  // ... and that it stays there until
+const CHARGE_TRIP = 60;    // tiles it'll go for a charge
+const SOLAR_NEAR = 40;     // tiles from home it puts its solar panel within
+
+// Keeping the light up: once the battery has begun to run down, a solar
+// panel on water near home; when it's low, off to a charger that works now
+// (a solar panel only by day), staying by it till the battery is full.
+function power(s, mind) {
+  if (s.player.z !== SURFACE) { mind.charger = null; return null; }
+  let c = mind.charger;
+  if (c && (s.battery >= CHARGE_FULL || !charging(s.world.props.get(key(c.x, c.y, SURFACE)), s.time))) c = mind.charger = null;
+  if (!c && s.battery < CHARGE_BELOW) c = mind.charger = nearestCharger(s, mind);
+  if (!c) return solar(s, mind);
+  const badge = 'mark.' + s.world.props.get(key(c.x, c.y, SURFACE));
+  if (chargerNear(s)) return { type: 'charge', badge };
+  const step = walkTo(s, mind, c.x, c.y, badge);
+  if (!step) mind.charger = null;
+  return step;
+}
+
+// The nearest charger that works now within CHARGE_TRIP of you.
+function nearestCharger(s, mind) {
+  let best = null, bestD = CHARGE_TRIP;
+  for (const [k, kind] of s.world.props) {
+    const t = unpackKey(k);
+    if (t.z !== SURFACE || !charging(kind, s.time) || mind.bad.has(k)) continue;
+    const d = dist(s, t.x, t.y);
+    if (d < bestD) { bestD = d; best = { x: t.x, y: t.y }; }
+  }
+  return best;
+}
+
+// A solar panel on the water nearest home that's beside the shore, so it
+// charges you from land too, unless there's a charger near home already.
+function solar(s, mind) {
+  if (s.battery >= 0.9 || !canWade(s) || !canAfford(s.inv, PROPS.solar.cost)) return null;
+  const h = mind.home;
+  for (const [k, kind] of s.world.props) {
+    const t = unpackKey(k);
+    if (t.z === SURFACE && PROPS[kind].charge && Math.hypot(t.x - h.x, t.y - h.y) < SOLAR_NEAR) return null;
+  }
+  const w = s.world, land = (x, y) => walkable(w, x, y, SURFACE) && !swimsAt(w, x, y, SURFACE);
+  const free = (x, y) => isExplored(w, x, y, SURFACE) && swimsAt(w, x, y, SURFACE) && !w.props.has(key(x, y, SURFACE)) &&
+    !mind.bad.has(key(x, y, SURFACE)) && (land(x + 1, y) || land(x - 1, y) || land(x, y + 1) || land(x, y - 1));
+  const c = mind.spots.solar;
+  const spot = c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120) ? c.tile : nearestTile(h.x + 0.5, h.y + 0.5, SOLAR_NEAR, free);
+  mind.spots.solar = { t: c && c.tile === spot ? c.t : s.time, tile: spot };
+  if (!spot) return null;
+  if (Math.floor(s.player.x) === spot.x && Math.floor(s.player.y) === spot.y) {
+    if (canPlaceProp(s, 'solar')) return { type: 'prop', kind: 'solar', badge: 'mark.solar' };
+    unreachable(s, mind, spot.x, spot.y);
+    return null;
+  }
+  return walkTo(s, mind, spot.x, spot.y, 'mark.solar');
 }
 
 /* -------------------------------------------------------------- the mine */

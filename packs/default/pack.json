@@ -289,6 +289,15 @@
    "image": "props/flag.svg",
    "color": "#ff5d5d"
   },
+  "mark.solar": {
+   "image": "props/solar.svg"
+  },
+  "mark.wheel": {
+   "image": {
+    "frames": ["props/wheel-1.svg", "props/wheel-2.svg"],
+    "fps": 3
+   }
+  },
   "ui.perfect": {
    "icon": "icons/perfect.svg"
   },

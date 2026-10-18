@@ -177,17 +177,22 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     return `<span class="where">${goes}</span>`;
   }
 
-  // Something to place in the mine, where you stand.
+  // Something to place where you stand: in the mine, or water power on the
+  // water (saying where, while you aren't there).
   function propRow(s, kind) {
     const def = Core.PROPS[kind];
-    const ok = Core.canPlaceProp(s, kind) && Core.canAfford(s.inv, def.cost);
-    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost), button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
+    const here = Core.canPlaceProp(s, kind);
+    const ok = here && Core.canAfford(s.inv, def.cost);
+    const where = def.on === 'tunnel' || here ? '' : `<br><span class="where">${t('sheet.goesOn.' + def.on, { tool: Core.TOOLS.boots.name, lv: Core.GEAR.water })}</span>`;
+    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
   }
+  const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderBuild(s) {
     return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.mine')}</div>` + Object.keys(Core.PROPS).map((k) => propRow(s, k)).join('');
+      `<div class="section">${t('sheet.section.water')}</div>` + propsOn(true).map((k) => propRow(s, k)).join('') +
+      `<div class="section">${t('sheet.section.mine')}</div>` + propsOn(false).map((k) => propRow(s, k)).join('');
   }
 
   function renderBeyond(s) {

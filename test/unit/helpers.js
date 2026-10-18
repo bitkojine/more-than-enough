@@ -199,6 +199,7 @@ export function performIntent(s, intent) {
     case 'descend': { const r = C.descendAt(s, intent.x, intent.y); C.revealAround(s); return r; }
     case 'climb': { const r = C.climbAt(s, intent.x, intent.y); C.revealAround(s); return r; }
     case 'prop': return C.placeProp(s, intent.kind);
+    case 'charge': return !!C.chargerNear(s);
   }
   throw new Error('unknown intent ' + intent.type);
 }

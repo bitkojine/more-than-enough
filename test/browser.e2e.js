@@ -400,7 +400,14 @@ async function main() {
   ok(await waitFor('!!document.querySelector("#sheetBody button[data-kind=prop][data-id=glowcap]:not([disabled])")', 1500), 'underground, the Build sheet offers a glowcap');
   await evalJS('document.querySelector("#sheetBody button[data-kind=prop][data-id=glowcap]").click()');
   eq(await evalJS('MTE_GAME.getState().world.props.size'), 1, 'placing a glowcap leaves it in the tunnel');
+  ok(await evalJS('!!document.querySelector("#sheetBody button[data-kind=prop][data-id=solar][disabled]")'), 'a solar panel is offered, but not down here');
   await evalJS('document.getElementById("btnClose").click()');
+  // The battery: hidden while full, then a pill on the left edge that turns
+  // amber once the light starts to shrink.
+  ok(await evalJS('document.getElementById("battery").hidden === (MTE_GAME.getState().battery >= 0.995)'), 'the battery shows once it is not full');
+  await evalJS('MTE_GAME.getState().battery = 0.2');
+  ok(await waitFor('(function(){var b=document.getElementById("battery");return !b.hidden && b.classList.contains("low") && /20/.test(b.textContent);})()', 1500), 'a low battery shows amber with its percent');
+  await evalJS('MTE_GAME.getState().battery = 1');
   var shaftSpot = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,40,function(x,y){return c.tileAt(s.world,x,y,-1)===c.T.SHAFT;});c.setRichness(s.world,t.x+1,t.y,-1,0);MTE_GAME.setPlayer(t.x+1.5,t.y+0.5);return JSON.stringify({x:t.x,y:t.y,sx:innerWidth/2-MTE_GAME.tilePx(),sy:innerHeight/2});})()'));
   await sleep(120);
   var shaftOpen = '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + shaftSpot.x + ',' + shaftSpot.y + ',-1)===c.T.SHAFT_OPEN;})()';

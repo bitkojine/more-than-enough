@@ -145,6 +145,8 @@ add('mark', 'ladder', t('look.mark.ladder'), t('look.mark.ladder.does'), req('im
 add('mark', 'glowcap', t('look.mark.glowcap'), t('look.mark.glowcap.does'), req('image', 'color'));
 add('mark', 'lamp', t('look.mark.lamp'), t('look.mark.lamp.does'), req('image', 'color'));
 add('mark', 'flag', t('look.mark.flag'), t('look.mark.flag.does'), req('image', 'color'));
+add('mark', 'solar', t('look.mark.solar'), t('look.mark.solar.does'), req('image'));
+add('mark', 'wheel', t('look.mark.wheel'), t('look.mark.wheel.does'), req('image'));
 
 const UI = ['perfect', 'explore', 'wait', 'build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
 for (const key of UI) add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));

@@ -20,7 +20,8 @@ place it belongs here rather than adding a button where there is room.
 ```
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
-│ ▼1                                   │  depth meter (underground only), left edge
+│ ▮▯ 62%                               │  battery (once it isn't full), left edge
+│ ▼1                                   │  depth meter (underground only), under it
 │ ▮                                    │
 │ ▮          (milestone banner)        │
 │                                      │
@@ -59,6 +60,10 @@ place it belongs here rather than adding a button where there is room.
 
 ### Messages
 - A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.
+
+### The battery
+- The battery of the device in your hands sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
+- The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section, above *In the mine*, saying where they go while you aren't there.
 
 ### Resource bar
 - One chip per resource: icon and count on one row, the per-second rate centred under the whole chip. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Below 375px each chip stacks icon over count and leaves the rate out. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.

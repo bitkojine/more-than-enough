@@ -12,6 +12,7 @@ export function findElements() {
     verText: byId('verText'),
     perf: byId('perf'),
     resources: byId('resources'),
+    battery: byId('battery'),
     depth: byId('depth'),
     depthGauge: byId('depthGauge'),
     milestone: byId('milestone'),

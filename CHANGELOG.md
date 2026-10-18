@@ -1,5 +1,57 @@
 # Changelog
 
+## [0.116.0] - 2026-10-18
+
+Watch's ask: water was boring, so design what players do in it, eco
+friendly and with no fishing, tied to the idea that characters need to
+recharge. Watch chose the device battery: the phone or laptop in your hands
+lights the dark, that runs it down, and water power charges it. Watch also
+ruled that every world is kept from now on, so nothing here touches world
+generation or the save format.
+
+### Added
+- **The battery** (`src/core/light.js`, new home of `daylight` and
+  `isDark`): `s.battery` (0..1, saved; a save without it loads full) drains
+  over `BATTERY_LIFE` (900 s) of dark, at night or in the mine, and never by
+  day or while you're away. Below `BATTERY_LOW` your light shrinks, down to
+  `BATTERY_DIM` of its reach when flat: the fog lifts over less
+  (`revealAround`) and the screen's pool of light is smaller. It never blocks
+  an act.
+- **Water power**, the first things that go on water: a floating solar
+  panel (any surface water, charges while the sun is up) and a steel water
+  wheel (rivers between regions only, charges day and night), new `PROPS`
+  with `on` and `charge`. Standing within `CHARGE_RANGE` of a working one
+  fills the battery in `CHARGE_TIME` seconds; anyone's charges anyone.
+  Placed where you stand, like the mine's props; Build has an *On the water*
+  section.
+- **The battery on screen**: a small tile at the top of the left edge once
+  it isn't full (green, amber when the light shrinks, red when nearly flat,
+  blue while charging), and one hint when it first gets low.
+- **Perfect** puts a solar panel by the shore near home once the battery
+  starts to run down, and goes back to charge when it's under half, staying
+  till it's full (`charge` intent).
+- Art: `props/solar.svg`, `props/wheel-1.svg` and `wheel-2.svg` (it turns).
+
+### Changed
+- AGENTS.md: worlds are kept; no `WORLD_FORMAT` bumps or resets.
+- Wiki: *Water* and *Your battery* in The world, water power table; the
+  Ideas page drops "A battery that runs low" (built) and "Fish" (Watch: no
+  fishing).
+- The Perfect button's badge shows a prop's picture when it has no icon.
+
+### Saves and shared worlds
+- `WORLD_FORMAT` unchanged: every solo and shared world loads as it was.
+  Surface props are accepted only for water power; the room replays the new
+  props with the same rules (a room still on the old code refuses them as a
+  plain refusal, not a cheat).
+
+### Tests
+- `test/unit/light.test.js`: drain only in the dark, never away; light
+  shrinking; solar and wheel placement, day/night charging, range; saves
+  with and without a battery; Perfect builds a panel and charges.
+- e2e: the battery tile shows and turns amber; layout check covers it on
+  every screen. Perfect benchmark unchanged (Embark 35.9 h).
+
 ## [0.115.0] - 2026-10-18
 
 Watch's ask: don't let players gather by hand from a resource tile that has a

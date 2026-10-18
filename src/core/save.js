@@ -40,7 +40,7 @@ export function serialize(s) {
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
-    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, ...(s.seen ? { seen: s.seen } : {}),
+    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(s.seen ? { seen: s.seen } : {}),
     underground: { deepest: s.underground.deepest }
   });
 }
@@ -75,7 +75,9 @@ export function deserialize(str, make = createState) {
   }
   const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
   w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
-  const propOk = ([k, kind]) => isInt(k) && PROPS[kind] && unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN;
+  // Tunnel props in the mine, water power on the surface.
+  const propOk = ([k, kind]) => isInt(k) && Object.hasOwn(PROPS, kind) &&
+    (PROPS[kind].on === 'tunnel' ? unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN : unpackKey(k).z === SURFACE);
   w.props = new Map((d.props || []).filter((p) => Array.isArray(p) && propOk(p)));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
@@ -96,6 +98,7 @@ export function deserialize(str, make = createState) {
   for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time', 'seen']) {
     if (isNum(d[k])) s[k] = d[k];
   }
+  if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
   // Milestones reached; a save from before they counted in any order has
   // only how many, which were the first ones listed.
   const goalIds = GOALS.map((g) => g.id);

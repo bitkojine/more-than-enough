@@ -67,9 +67,6 @@ export default {
   "wiki.idea.caveInsAndMyceliumProps.title": "Griūtys ir grybienos ramsčiai",
   "wiki.idea.caveInsAndMyceliumProps.pitch": "Dideli atviri urvai girgžda ir gali sugriūti, jei neparemti užaugintais grybienos stulpais. Taip grybiena gauna priežastį keliauti po žeme, o kasyklos išdėstymas tampa pasirinkimu.",
   "wiki.idea.caveInsAndMyceliumProps.builds": "Iškasti langeliai ir grybiena.",
-  "wiki.idea.aBatteryThatRunsLow.title": "Senkanti baterija",
-  "wiki.idea.aBatteryThatRunsLow.pitch": "Po žeme tavo matymo spindulys pamažu mažėja, nebent krauni {phone:telefoną|laptop:kompiuterį} švytukėmis ar kristalu. Šviesa tampa ištekliumi be jokio aiškinančio teksto: tiesiog pastebi, kad temsta.",
-  "wiki.idea.aBatteryThatRunsLow.builds": "Tyrinėjimo spindulys ir naktinis apšvietimas.",
   "wiki.idea.glowOre.title": "Švytinti rūda",
   "wiki.idea.glowOre.pitch": "Reta rūda, kurią matai tik naktį ar tamsoje, silpnai mirguliuojančią. Apdovanoja už buvimą lauke naktį ir kasyklos tyrinėjimą apgraibomis.",
   "wiki.idea.glowOre.builds": "Diena, naktis ir rūkas.",
@@ -112,9 +109,6 @@ export default {
   "wiki.idea.noNumbersAtAll.title": "Jokių skaičių",
   "wiki.idea.noNumbersAtAll.pitch": "Eik toliau nei „be mokomojo režimo“: paslėpk visus skaitiklius ir leisk krūvų dydžiui, pastatų švytėjimui ir tunelių ilgiui pasakyti, kaip tau sekasi. Žinynas skaičius pasilieka tiems, kurie jų nori.",
   "wiki.idea.noNumbersAtAll.builds": "Taisyklė „be teksto“ ir žinynas.",
-  "wiki.idea.fish.title": "Žuvys",
-  "wiki.idea.fish.pitch": "Ežeruose ir upėse plaukioja žuvys, kurias galima pagauti: rami veikla tarp kasimo, o retesnės rūšys gyvena tolimuose vandenyse, kaip grybai tolimuose miškuose. To paprašė žaidėjas, vos pamatęs vandenį.",
-  "wiki.idea.fish.builds": "Vandens langeliai, grybų kolekcija ir regionų muzika.",
   "wiki.idea.aSharedBank.title": "Bendras bankas",
   "wiki.idea.aSharedBank.pitch": "Bendrame pasaulyje – bankas, į kurį visi gali dėti ir iš kurio imti, kad draugai galėtų sumesti išteklius kam nors dideliam arba padėti naujokui pradėti.",
   "wiki.idea.aSharedBank.builds": "Bendri pasauliai, sandėlis ir kiemas.",
@@ -517,7 +511,10 @@ export default {
 
       <h2>Vanduo</h2>
       <p>Plaukti gali visur, kur yra vandens; tavo greitis ten – <span data-k="SWIM_SPEED" data-f="pct"></span> ėjimo greičio.
-        Plauksi mažyte valtimi. Ant vandens nieko pastatyti negalima.</p>
+        Plauksi mažyte valtimi. Pastatų ant vandens nestatoma, bet vandens energija – taip: Statybos lapo skiltyje
+        <strong>Ant vandens</strong> šiuos daiktus padedi ten, kur plūduriuoji, po vieną langelyje, kad krautum bateriją (žr. žemiau).
+        Niekas nežvejoja: vanduo paliekamas tiems, kas jame gyvena.</p>
+      <div data-table="waterPower"></div>
 
       <h2>Ataugimas</h2>
       <p>Miškas ir akmuo atauga; rūda ir kristalas – niekada. Kas <span data-k="REGROW_INTERVAL"></span> s kiekvienas nualintas
@@ -527,8 +524,17 @@ export default {
 
       <h2>Diena ir naktis</h2>
       <p>Visa para trunka <span data-k="DAY_LENGTH"></span> s, o naujas pasaulis prasideda vidurdienį. Dienos šviesios ir šiltos.
-        Po sutemų pasaulis paskęsta tamsoje ir tavo {phone:telefono|laptop:kompiuterio} ekranas apšviečia ratą aplink tave, tad dirbti gali visada.
-        Daugiau naktį niekas nesikeičia.</p>`,
+        Po sutemų pasaulis paskęsta tamsoje ir tavo {phone:telefono|laptop:kompiuterio} ekranas apšviečia ratą aplink tave, tad dirbti gali visada.</p>
+
+      <h2>Tavo baterija</h2>
+      <p>Šviesdamas tamsoje tavo {phone:telefonas|laptop:kompiuteris} eikvoja bateriją: pilnos užtenka <span data-k="BATTERY_LIFE"></span>
+        s tamsos, naktį ar kasykloje. Dieną ji neseka, o kol tavęs nėra, jai nieko nenutinka. Kai lieka
+        <span data-k="BATTERY_LOW" data-f="pct"></span>, tavo šviesa ima trauktis, kol, baterijai išsikrovus, siekia tik
+        <span data-k="BATTERY_DIM" data-f="pct"></span> įprasto atstumo: matai mažiau, o rūkas prasisklaido mažesniame plote.
+        Daryti nieko ji netrukdo. Kai baterija nepilna, ji rodoma kairiajame ekrano krašte.</p>
+      <p>Ją įkrauna tik vandens energija: stovėk ne toliau kaip <span data-k="CHARGE_RANGE"></span> langelio nuo plaukiojančios
+        saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
+        <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>`,
   "wiki.article.gathering.title": "Rinkimas",
   "wiki.article.gathering": `      <h1>Rinkimas</h1>
       <p class="lede">Keturi ištekliai, du įrankiai ir telkiniai, kurie išsenka.</p>

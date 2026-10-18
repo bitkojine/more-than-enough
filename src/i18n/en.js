@@ -8,6 +8,10 @@ export default {
   "prop.lamp.does": "Lights a wide cavern, cool and bright",
   "prop.flag": "Marker flag",
   "prop.flag.does": "Shows through the dark, to find your way back",
+  "prop.solar": "Floating solar panel",
+  "prop.solar.does": "Floats on water and charges your {phone:phone|laptop:laptop} near it while the sun is up",
+  "prop.wheel": "Water wheel",
+  "prop.wheel.does": "Turns in a river and charges your {phone:phone|laptop:laptop} near it, day and night",
 
   "tile.cache": "Buried cache",
   "tile.geode": "Geode",
@@ -282,6 +286,10 @@ export default {
   "look.mark.lamp.does": "A crystal lamp you placed in the mine. It lights much further than a glowcap; the colour is its light.",
   "look.mark.flag": "Marker flag",
   "look.mark.flag.does": "A flag you planted in the mine to find your way back. The colour is the pin that shows through the dark over it, or at the edge of the screen pointing to it.",
+  "look.mark.solar": "Floating solar panel",
+  "look.mark.solar.does": "A solar panel on a steel float, out on the water. Animate it with frames if you like.",
+  "look.mark.wheel": "Water wheel",
+  "look.mark.wheel.does": "A steel water wheel standing in a river. Give it frames to turn it.",
   "look.character.phone": "Phone",
   "look.character.phone.does": "Held by everyone playing on a phone, so friends in a shared world can tell at a glance. Drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. Its screen lights the way at night and underground; the colour is its light.",
   "look.character.laptop": "Laptop",
@@ -366,6 +374,7 @@ export default {
   "game.framed": "More Than Enough only runs in its own tab: {phone:tap|laptop:click} to open it",
 
   "toast.away": "While you were away ({time}) your buildings made {made}",
+  "toast.batteryLow": "Your {phone:phone|laptop:laptop} is running low, so its light is shrinking. Charge it by a floating solar panel or water wheel (Build).",
   "toast.saveFailed": "Saving failed — progress is not being kept ({error})",
 
   "sheet.drag.pull": "pull the map",
@@ -463,6 +472,8 @@ export default {
   "button.climbUp.aria": "Climb up the ladder",
 
   "hud.milestoneOf": "{n} of {total}",
+  "hud.battery": "Battery {n}%",
+  "hud.batteryCharging": "Battery {n}%, charging",
   "hud.chip": "{res}: see what you collected",
 
   "button.explore": "EXPLORE",
@@ -506,6 +517,9 @@ export default {
   "sheet.section.extractors": "Extractors",
   "sheet.section.converters": "Converters",
   "sheet.section.mine": "In the mine",
+  "sheet.section.water": "On the water",
+  "sheet.goesOn.water": "Goes on water where you stand ({tool} Lv {lv} take you onto it).",
+  "sheet.goesOn.river": "Goes on a river between regions, where you stand.",
   "sheet.embark": "Embark",
   "sheet.embarks": "Embarks {n} &middot; Lifetime {total}",
   "sheet.section.newWorld": "New World",
@@ -787,6 +801,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.116.0": "Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.",
   "news.0.115.0": "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
   "news.0.114.0": "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
   "news.0.113.1": "Fixed: with lots of buildings near spawn, floating resources flickered by the buildings and never reached the stockpile. Now every one floats all the way home.",

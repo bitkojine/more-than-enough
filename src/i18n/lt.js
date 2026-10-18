@@ -8,6 +8,10 @@ export default {
   "prop.lamp.does": "Apšviečia plačią olą vėsia, ryškia šviesa",
   "prop.flag": "Žymės vėliavėlė",
   "prop.flag.does": "Matoma pro tamsą, kad rastum kelią atgal",
+  "prop.solar": "Plaukiojanti saulės plokštė",
+  "prop.solar.does": "Plūduriuoja vandenyje ir, kol šviečia saulė, įkrauna šalia esantį tavo {phone:telefoną|laptop:kompiuterį}",
+  "prop.wheel": "Vandens ratas",
+  "prop.wheel.does": "Sukasi upėje ir dieną bei naktį įkrauna šalia esantį tavo {phone:telefoną|laptop:kompiuterį}",
 
   "tile.cache": "Užkasta slėptuvė",
   "tile.geode": "Geoda",
@@ -282,6 +286,10 @@ export default {
   "look.mark.lamp.does": "Kristalinė lempa, kurią padėjai kasykloje. Šviečia daug toliau nei švytukė; spalva – jos šviesa.",
   "look.mark.flag": "Žymės vėliavėlė",
   "look.mark.flag.does": "Vėliavėlė, kurią įsmeigei kasykloje, kad rastum kelią atgal. Spalva – smeigtukas, matomas virš jos pro tamsą arba ekrano krašte, rodantis į ją.",
+  "look.mark.solar": "Plaukiojanti saulės plokštė",
+  "look.mark.solar.does": "Saulės plokštė ant plieninės plūdės vandenyje. Jei nori, pagyvink ją kadrais.",
+  "look.mark.wheel": "Vandens ratas",
+  "look.mark.wheel.does": "Plieninis vandens ratas upėje. Duok jam kadrų, kad suktųsi.",
   "look.character.phone": "Telefonas",
   "look.character.phone.does": "Jį laiko visi, kurie žaidžia telefonu, kad draugai bendrame pasaulyje iš karto matytų. Piešiamas virš klajūno tokio pat dydžio ir toje pačioje vietoje (kad atitiktų ranką) ir atspindimas kartu. Jo ekranas apšviečia kelią naktį ir po žeme; spalva – jo šviesa.",
   "look.character.laptop": "Nešiojamasis kompiuteris",
@@ -366,6 +374,7 @@ export default {
   "game.framed": "„Daugiau nei gana“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum",
 
   "toast.away": "Kol tavęs nebuvo ({time}), tavo pastatai pagamino: {made}",
+  "toast.batteryLow": "Tavo {phone:telefonas|laptop:kompiuteris} senka, tad jo šviesa mažėja. Įkrauk jį prie plaukiojančios saulės plokštės ar vandens rato (Statyti).",
   "toast.saveFailed": "Nepavyko išsaugoti – pažanga nesaugoma ({error})",
 
   "sheet.drag.pull": "tempti žemėlapį",
@@ -463,6 +472,8 @@ export default {
   "button.climbUp.aria": "Lipti aukštyn kopėčiomis",
 
   "hud.milestoneOf": "{n} iš {total}",
+  "hud.battery": "Baterija {n} %",
+  "hud.batteryCharging": "Baterija {n} %, kraunasi",
   "hud.chip": "{res}: žiūrėti, ką surinkai",
 
   "button.explore": "TYRINĖTI",
@@ -506,6 +517,9 @@ export default {
   "sheet.section.extractors": "Gavyklos",
   "sheet.section.converters": "Keitikliai",
   "sheet.section.mine": "Kasykloje",
+  "sheet.section.water": "Ant vandens",
+  "sheet.goesOn.water": "Statoma ant vandens, kur stovi (ant jo nuneša: {tool}, lyg. {lv}).",
+  "sheet.goesOn.river": "Statoma ant upės tarp regionų, kur stovi.",
   "sheet.embark": "Iškeliauti",
   "sheet.embarks": "Iškeliavimų: {n} &middot; Iš viso: {total}",
   "sheet.section.newWorld": "Naujas pasaulis",
@@ -787,6 +801,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.116.0": "Tavo {phone:telefonas|laptop:kompiuteris} dabar turi bateriją. Šviečiant tamsoje naktį ar kasykloje ji senka, o kai lieka mažai, tavo šviesa traukiasi.\nĮkrauk ją vandens energija: padėk plaukiojančią saulės plokštę ežere (veikia, kol šviečia saulė) arba vandens ratą upėje (dieną ir naktį). Abu rasi Statyboje, skiltyje „Ant vandens“.\nTavo pasauliai ir viskas juose išlieka, kaip išliks ir toliau.",
   "news.0.115.0": "Pakeista: langelis, ant kurio stovi pastatas, dabar priklauso pastatui. Rankomis iš jo rinkti nebegali – {phone:bakstelėjus|laptop:spustelėjus} jį paimama pastato produkcija.",
   "news.0.114.0": "„Rinkti“ vėl yra didysis mygtukas. Laikyk jį ir rinksi ten, kur stovi: paimsi produkciją iš šalia esančių pastatų, dirbsi telkinį, tarp kurio stovi, o jei nieko nepasiekiama, nueisi prie artimiausio ištekliaus. {phone:Nuslydęs nuo jo|laptop:Nutempęs nuo jo} pieši Taką, kaip anksčiau.\n„Idealiai“ niekur nedingo: jis dabar mažesnis mygtukas iškart virš „Rinkti“. Laikyk jį ir žaidimas žais pats.{phone:|laptop: Tarpo klavišas vėl renka, o P laiko „Idealiai“.}",
   "news.0.113.1": "Pataisyta: kai prie pradžios daug pastatų, plaukiantys ištekliai mirgėdavo prie pastatų ir niekada nepasiekdavo sandėlio. Dabar kiekvienas nuplaukia iki pat namų.",

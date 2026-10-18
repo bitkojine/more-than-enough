@@ -103,7 +103,7 @@
   <canvas id="game"></canvas>
 
   <!-- The heads-up display. Status along the top (trophies, the resource
-       bar, settings), situational status down the left edge (depth), every
+       bar, settings), situational status down the left edge (battery, depth), every
        action in the bottom-right thumb cluster. See docs/ui.md. -->
   <div id="hud">
     <div id="topbar">
@@ -117,6 +117,7 @@
   </div>
 
   <div id="depthMeter" aria-live="polite">
+    <div id="battery" role="img" hidden><i><b></b></i><span></span></div>
     <div id="depth" hidden></div>
     <div id="depthGauge" aria-hidden="true" hidden></div>
   </div>
