@@ -127,6 +127,8 @@ again in the game; anything that doesn't fit exactly is dropped.
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
   it they answer 404, as if they weren't there. They read; what they
   change is a ban (the same one the owner's *Remove* does) and a freeze.
+  A copy (below) is a room of its own: making and playing it changes
+  nothing in the real one.
 - **Turned away:** a banned key gets `{"t": "invite", "why": "banned"}`
   and the socket closes (1008, `invite`); a frozen one gets
   `{"t": "frozen"}` and closes (1008, `frozen`).
@@ -197,6 +199,16 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
+- `POST /admin/rooms/<id>/copy` with `{"id": "<player id>"}`: a copy of the
+  world to play as that player, to see what they'd see coming back now
+  (`src/copy.js`). Answers `{room, key, until, link}`; the link
+  (`<game>/#copy=<room>.<key>`) opens the copy in the game, which then keeps
+  nothing in the browser (`src/game/copy.js`). The copy has every entry of
+  the room (each player's progress as the room has it now), but no invite
+  links; only that key gets in, as the player (the player's own key is
+  never needed or known), it logs nothing, isn't listed, and is deleted
+  after 2 hours (`COPY_MS`), closing its sockets with 4006. Keep the key to
+  yourself: it plays the copy, nothing else.
 - `GET /admin/rooms/<id>/graves`: its tombstones, as a player's welcome
   carries them (`[id, colour, x, y, z, 'ban' | 'ice']`).
 

@@ -94,7 +94,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                         "ref" "src/game/storage.js"
                     }
                 }
-                together = component "Together" "Playing together (src/game/together.js): makes a room from your world, joins one from a QR link (#join=room.invite), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and makes the QR code for the sign your wanderer holds up in the world (src/vendor/qrcode.js). The worlds you've been in, their generated names and the Worlds screen that switches between them are in src/game/worlds.js; the friend chips and the Players screen (everyone in the world, Remove for its owner) are drawn by src/game/players.js." "JavaScript + WebSocket" {
+                together = component "Together" "Playing together (src/game/together.js): makes a room from your world, joins one from a QR link (#join=room.invite) or opens a moderator's copy of one (#copy=room.key; src/game/copy.js keeps the browser's storage in memory then), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and makes the QR code for the sign your wanderer holds up in the world (src/vendor/qrcode.js). The worlds you've been in, their generated names and the Worlds screen that switches between them are in src/game/worlds.js; the friend chips and the Players screen (everyone in the world, Remove for its owner) are drawn by src/game/players.js." "JavaScript + WebSocket" {
                     tags "Presentation"
                     properties {
                         "files" "src/game/together.js, src/game/worlds.js, src/game/players.js, src/net/, src/vendor/qrcode.js"
@@ -182,7 +182,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------- playing together (system)
-        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. See server/README.md for the rules and security limits." {
+        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one. See server/README.md for the rules and security limits." {
             tags "Server"
             properties {
                 "files" "server/, src/net/protocol.js"

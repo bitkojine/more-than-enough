@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.103.0] - 2026-10-18
+
+Watch's ask: as the game's admin, see exactly what a player would see coming
+back to a shared world, in a copy, without changing anything about their
+character or the world. First use: Willow in Clover Woods.
+
+### Added
+- **Admin copies of a shared world.** `POST /admin/rooms/<id>/copy` with a
+  player's id (token only, like every `/admin/` route) copies the room's every
+  entry into a room of its own (`server/src/copy.js`) and answers with a link,
+  `#copy=<room>.<key>`. The copy lets in only that new key, played as the
+  copied player: their progress (the room's own copy of it), buildings,
+  colour, place and time away, so their return plays out as it would now
+  (away credit, the room's numbers, the nuke if one is due). The player's
+  own key is never needed: the room only has its hash. Nobody else gets in,
+  there are no invite links in it, it keeps no audit log, it's not in the
+  room list, and it deletes itself, sockets and all, after 2 hours.
+- **The game opens a copy link** (`src/game/copy.js`, imported first) with
+  this browser's storage swapped for one in memory, so the admin's own worlds
+  and key are left as they were, and an amber frame and a label say whose
+  copy it is. What only the player's phone knew (the numbers it last showed,
+  the version it ran) the copy can't show: it plays as their character coming
+  back on a phone with nothing on it.
+
 ## [0.102.2] - 2026-10-18
 
 From the persistence review, bugs 4 and 9 of 9.

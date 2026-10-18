@@ -56,6 +56,7 @@ export function findElements() {
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),
+    copyBadge: byId('copyBadge'),
     place: byId('place'),
     textures: byId('btnTextures'),
     packName: byId('packName'),

@@ -1,6 +1,8 @@
 /* MORE THAN ENOUGH — browser entry point. Wires the modules together and runs
  * the frame loop: input -> controller -> core step -> effects -> render. */
 
+// First: an admin's copy swaps this browser's storage before anything reads it.
+import { copy } from './copy.js';
 import * as Core from '../core/index.js';
 import { VERSION } from '../version.js';
 import { findElements } from './dom.js';
@@ -368,12 +370,24 @@ function sceneHere(s) {
   return sceneFor({ depth: -s.player.z, daylight: Core.daylight(s.time), land });
 }
 
+// An admin's copy says so, with whose character it is, all the time.
+let copyText = '';
+function showCopy() {
+  const me = together.me;
+  const text = me ? t('copy.badge', { name: me.name }) : t('copy.badgeWait');
+  if (text === copyText) return;
+  copyText = text;
+  el.copyBadge.textContent = text;
+  el.copyBadge.hidden = false;
+}
+
 function update(dt) {
   const s = game.state;
   const moved = controller.steer(dt, input.moveVector());
   moving = moved;
   Core.step(s, dt);
   together.tick(dt);
+  if (copy) showCopy();
 
   // Logistics reports auto-collections as events; show them as flyers.
   for (const e of s.events) if (e.z === s.player.z) fx.flyersFrom(e.x, e.y, e.res, e.amt);

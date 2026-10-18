@@ -271,6 +271,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (codeNum === 4005 || reason === 'frozen') { skip(room); refused(); return fbi.show(); }
     // Everyone pressed the nuke: straight back in, to the world made anew.
     if (codeNum === 4004) { retry = 0; return connect(); }
+    // An admin's copy whose time was up (server/src/copy.js): it's gone.
+    if (codeNum === 4006) { forget(room); return stop(t('copy.ended')); }
     if (reason === 'invite' && turnedAway === 'banned') forget(room);
     if (reason === 'invite') return refused(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
     if (reason === 'full') return refused(t('together.toast.full'));

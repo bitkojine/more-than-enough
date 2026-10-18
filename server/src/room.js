@@ -118,6 +118,8 @@ export class Room {
     this.driftAt = new Map(); // when each player's drift was last logged
     // What changed since the last write to storage.
     this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
+    // An admin's copy of another room (copy.js), or null: {as, key, until}.
+    this.copy = null;
   }
 
   /* ---------------------------------------------------------- storage */
@@ -136,6 +138,7 @@ export class Room {
     r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
+    r.copy = meta.copy ?? null;
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -148,13 +151,25 @@ export class Room {
 
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
-    const out = new Map(), d = this.dirty;
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves });
+    const out = this.writesOf(this.dirty);
+    this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
+    return out;
+  }
+
+  // Every entry storage holds for the room, as copies (for copy.js).
+  entries() {
+    const all = { meta: true, buckets: new Set(Array.from({ length: MOD_BUCKETS }, (_, i) => i)), props: true, ext: true, players: new Set(this.players.keys()) };
+    return structuredClone(this.writesOf(all));
+  }
+
+  // The entries the parts marked in `d` take ({key: value}).
+  writesOf(d) {
+    const out = new Map();
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
     for (const id of d.players) out.set('p:' + id, this.players.get(id) || null); // null: delete
-    this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
     return out;
   }
 
@@ -223,7 +238,12 @@ export class Room {
   // {error}.
   async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
-    const id = await playerId(this.id, key);
+    let id = await playerId(this.id, key);
+    // An admin's copy lets in only its own key, as the player it copies.
+    if (this.copy) {
+      if (id !== this.copy.key) return { error: 'invite' };
+      id = this.copy.as;
+    }
     // Said as an invite that no longer works, with why: games from before
     // 'banned' was a reason still stop and say the link is no good.
     if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite', why: 'banned' }; }
@@ -394,6 +414,7 @@ export class Room {
   }
 
   expired(now) {
+    if (this.copy) return now >= this.copy.until;
     return now - this.last >= EXPIRE_MS;
   }
 
@@ -481,6 +502,7 @@ export class Room {
       // link lets in and for how long. It shows your newest link made that
       // way while that still has a while to go and room for someone, else a
       // new one.
+      if (this.copy) return { toSelf: [{ t: 'invitesFull' }] }; // nobody else comes into a copy
       const ask = cleanInviteAsk(d);
       const lifeMs = ask.life * 60_000;
       let code = null, newest = 0;
@@ -840,6 +862,7 @@ export class Room {
 
   // Records one event (see audit.js); the Durable Object writes them out.
   audit(now, p, e, fields) {
+    if (this.copy) return; // a copy logs nothing: it isn't anyone's play
     this.log.push({ ts: now, p, e, ...fields });
   }
 

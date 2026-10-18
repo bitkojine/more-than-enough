@@ -14,6 +14,7 @@
  *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
  *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
+ *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
  * can make only a few rooms an hour, and everything else is refused. The
@@ -22,7 +23,8 @@
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, NEAR, visitor } from './room.js';
 import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
-import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
+import { snapshot, copyEntries, COPY_MS } from './copy.js';
+import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
 const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
@@ -33,6 +35,8 @@ const PERSIST_MS = 2_000;        // edits reach storage this soon
 const MAX_SOCKETS = LIMITS.players * 2;
 const LOG_CHUNKS = 500;          // log chunks one export reads; the rest comes with the next `since`
 const PRUNE_MS = 3600_000;       // old log is deleted this often
+const PUT_MAX = 100;             // entries storage takes in one put (it allows 128)
+const COPY_ENDED = 4006;         // a copy's sockets close with this when it's deleted
 
 // Whether a player at `p` is near enough to `q` to hear its every step.
 function isNear(p, q) {
@@ -102,7 +106,7 @@ async function admin(request, env, url) {
     }
     return respond({ rooms }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -118,6 +122,23 @@ async function admin(request, env, url) {
     const text = await room.exportLog(m[1], since);
     if (text === null) return respond({ error: 'room' }, 404, null);
     return new Response(text, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' } });
+  }
+  if (m[2] === 'copy' && request.method === 'POST') {
+    const body = await readCapped(request, 1024);
+    let d = null;
+    try { d = JSON.parse(body); } catch { /* below */ }
+    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
+    const entries = await room.snapshot(m[1]);
+    if (!entries) return respond({ error: 'room' }, 404, null);
+    // A key of its own for the copy, handed to the moderator only: the
+    // player's own never leaves their phone (the room has its hash).
+    const copy = randomRoomId(), key = randomHex(32), until = Date.now() + COPY_MS;
+    const made = copyEntries(entries, d.id, await playerId(copy, key), until);
+    if (!made) return respond({ error: 'player' }, 409, null);
+    const err = await env.ROOMS.get(env.ROOMS.idFromName(copy)).adopt(copy, made);
+    if (err) return respond({ error: err }, 409, null);
+    const game = String(env.ALLOWED_ORIGINS || '').split(',')[0].trim();
+    return respond({ room: copy, key, until, link: game + '/#copy=' + copy + '.' + key }, 200, null);
   }
   if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
     const body = await readCapped(request, 1024);
@@ -307,6 +328,27 @@ export class Rooms extends DurableObject {
 
   /* ------------------------------------------------- for the moderator */
 
+  // Every entry of the room, for a copy (copy.js), or null if there's no
+  // such room. Reads only.
+  async snapshot(id) {
+    if (!this.room.ready || this.room.id !== id) return null;
+    return snapshot(this.room);
+  }
+
+  // Becomes the copy `id` of a room, from its entries (copy.js copyEntries).
+  // Error string or null.
+  async adopt(id, entries) {
+    if (this.room.ready) return 'exists';
+    const all = [...entries, ['id', id]];
+    const ops = [];
+    for (let i = 0; i < all.length; i += PUT_MAX) ops.push(this.ctx.storage.put(Object.fromEntries(all.slice(i, i + PUT_MAX))));
+    await Promise.all(ops);
+    await this.load(); // as after a restart: whoever was in is gone now
+    await this.persist();
+    await this.schedule();
+    return null;
+  }
+
   // The room in brief, or null if there's no such room (any more).
   async summary() {
     const r = this.room;
@@ -416,8 +458,9 @@ export class Rooms extends DurableObject {
   async fetch(request) {
     const id = request.headers.get('X-Room-Id');
     if (!this.room.ready || this.room.id !== id) return new Response('no such room', { status: 404 }); // i18n-ok: an HTTP status body
-    // Rooms made before the Registry add themselves when next visited.
-    if (!this.registered) {
+    // Rooms made before the Registry add themselves when next visited
+    // (never a copy: it's nobody's world).
+    if (!this.registered && !this.room.copy) {
       await this.env.REGISTRY.get(this.env.REGISTRY.idFromName('*')).add(id);
       this.registered = true;
     }
@@ -520,6 +563,7 @@ export class Rooms extends DurableObject {
   // An empty room may be put to sleep and forget what it hasn't written,
   // so the log is written when the last player goes.
   async afterClose() {
+    if (!this.room.ready) return; // deleted (a copy whose time was up)
     const now = Date.now();
     this.nukeIfDue(now);
     if (!this.ctx.getWebSockets().some((ws) => (ws.deserializeAttachment() || {}).id)) await this.flushLog(now, true);
@@ -593,14 +637,20 @@ export class Rooms extends DurableObject {
     const nuke = this.room.nukeDeadline();
     if (nuke !== null) at = Math.min(at, Math.max(now, nuke));
     if (this.ctx.getWebSockets().some((ws) => !(ws.deserializeAttachment() || {}).id)) at = Math.min(at, now + HELLO_MS);
+    if (this.room.copy) at = Math.min(at, Math.max(now, this.room.copy.until));
     const current = await this.ctx.storage.getAlarm();
     if (current === null || current > at) await this.ctx.storage.setAlarm(at);
   }
 
   async alarm() {
     const now = Date.now();
-    if (this.room.ready && this.room.expired(now) && this.ctx.getWebSockets().length === 0) {
+    // A copy goes when its time is up, even while it's played.
+    if (this.room.ready && this.room.expired(now) && (this.room.copy || this.ctx.getWebSockets().length === 0)) {
       const id = this.room.id;
+      for (const ws of this.ctx.getWebSockets()) {
+        ws.serializeAttachment({ id: null, at: 0 });
+        ws.close(COPY_ENDED, 'ended');
+      }
       await this.ctx.storage.deleteAll(); // the audit log too
       this.room = Room.restore('', new Map(), now);
       await this.env.REGISTRY.get(this.env.REGISTRY.idFromName('*')).remove(id);
