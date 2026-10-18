@@ -186,6 +186,11 @@ export class Shadow {
     return { secs: Math.round(Math.min(secs, AWAY_CAP)), made };
   }
 
+  // When player `id`'s copy was last brought up to date (room time), if the room is working it out.
+  atOf(id) {
+    return this.players.get(id)?.at ?? null;
+  }
+
   // Player `id`'s play time as of now, if the room is working out their copy.
   playedOf(id) {
     return this.players.get(id)?.s.stats.playedMs ?? null;

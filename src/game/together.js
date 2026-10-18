@@ -47,6 +47,8 @@ const SILENT_IS_DEAD = 15;            // seconds of play without a word from the
 const FIXED_SECONDS = 9;              // how long the note that your numbers were set straight stays up
 const ACTS_PER_TICK = 4;              // 'acts' messages at most per frame (the room allows 30 messages a second)
 const SENT_KEPT = 6;                  // progress sent, remembered for the room's answer to it
+const ACTS_KEPT_MS = 60_000;          // play time of acts kept after sending, to send again if the room missed them
+const ACTS_KEPT_MAX = 6000;           // and at most this many
 const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
@@ -233,6 +235,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // the ones a dead connection swallowed are sent again (see resync).
   let acks = false, editSeq = 0, unacked = [];
   let sent = [];            // {n, ms, inv} of the last progress sent, for the room's corrections ('econ')
+  let sentActs = [];        // acts sent lately: the room may not have them (a dying connection, a restart)
   let saveSeq = 0;          // numbers the progress sent
   let fixedNote = false;    // arrived to smaller numbers than this phone showed: the away toast says so too
 
@@ -344,7 +347,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     room = null; back = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
     graves = [];
     pendingInvite = false; // for the world you were going into, not the next one
-    unacked = []; sent = [];
+    unacked = []; sent = []; sentActs = [];
     hangUp();
     friends.clear();
     roster = null;
@@ -526,6 +529,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       resync(w);
     } else {
       unacked = []; // edits for another world, or one made again
+      sentActs = [];
       // Arriving: your progress is the room's (it works it out from what you
       // did). A room from before that kept whatever came last: then the newer
       // of its copy and this phone's.
@@ -570,6 +574,15 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     const has = new Set([...w.mods.map(([k]) => 'm' + k), ...w.props.map(([k]) => 'p' + k), ...w.ext.map((e) => 'x' + e[1] + ',' + e[2] + ',' + e[3])]);
     const lost = unacked.flatMap((u) => u.e).filter((e) => !has.has(e[0] === 'x' ? 'x' + e[2] + ',' + e[3] + ',' + e[4] : e[0] + e[1]));
     unacked = [];
+    // Acts the room hasn't done (its copy, in the welcome, is as of an
+    // earlier play time): lost on the dying connection, or done by a room
+    // that restarted since and has only the progress it kept. Sent again
+    // ahead of the ones still waiting, so nothing you did is lost.
+    if (s.acts) {
+      const upTo = playedTime(w.save);
+      s.acts = [...sentActs.filter((a) => a[1] > upTo), ...s.acts];
+    }
+    sentActs = [];
     const pending = [...lost, ...Core.takeEdits(s)];
     s.world.mods = new Map();
     s.world.props = new Map();
@@ -662,6 +675,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     const n = LIMITS.actsPerMessage;
     const now = acts.slice(0, n * ACTS_PER_TICK);
     s.acts.unshift(...acts.slice(now.length));
+    const keepFrom = s.stats.playedMs - ACTS_KEPT_MS;
+    sentActs = [...sentActs, ...now].filter((a) => a[1] >= keepFrom).slice(-ACTS_KEPT_MAX);
     const done = !s.acts.length;
     for (let i = 0; i < now.length; i += n) {
       const a = now.slice(i, i + n);

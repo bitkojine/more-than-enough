@@ -169,7 +169,17 @@ export class Room {
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
-    for (const id of d.players) out.set('p:' + id, this.players.get(id) || null); // null: delete
+    for (const id of d.players) {
+      // A player's progress goes to storage as the room's copy has it now,
+      // with the world edits it made, so a restart (a deploy) never finds the
+      // world ahead of their progress. Their game sends again what came after.
+      const pl = this.players.get(id);
+      if (pl && this.shadow?.has(id)) {
+        const now = this.saveFor(id, pl);
+        if (now) { pl.save = now; pl.savedAt = this.shadow.atOf(id) ?? pl.savedAt; }
+      }
+      out.set('p:' + id, pl || null); // null: delete
+    }
     return out;
   }
 

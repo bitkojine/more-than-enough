@@ -59,7 +59,13 @@ shared with the game.
    a reconnect the game sends again those never answered, except where the
    room already has something on that tile (the room's stands). The welcome
    says `pong` and `ack` when the room does both; games rely on neither
-   otherwise.
+   otherwise. Acts aren't answered: the game keeps the last minute of
+   them, and after a reconnect sends again every one after the play time
+   of the progress in the welcome (the room's copy), so acts a dying
+   connection swallowed still count. The room stores each player's copy
+   with the world edits they made (whenever it writes them), so a room
+   that restarts (a deploy) never has the world ahead of their progress,
+   and the acts it hadn't stored come again the same way.
 9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
    and, if it does, how many play there now (`online`, a count, never who):
    a game that couldn't get in asks, so it stops offering a world deleted

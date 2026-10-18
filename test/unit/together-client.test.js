@@ -493,6 +493,70 @@ test('client: the owner of a new world plays it, and the room counts what they d
   assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
 });
 
+// A new world's owner playing it: the game, the room and the clock between
+// them. What the room writes goes to `stored` as the room service's storage
+// keeps it, so the room can restart from it.
+async function owning() {
+  const h = harness();
+  h.together.start();
+  await tick();
+  const sent = JSON.parse(fetches[0].opts.body);
+  const id = P.randomRoomId();
+  const g = { ...h, r: new Room(id, T0), stored: new Map([['id', id]]) };
+  assert.equal(await g.r.init(JSON.stringify(sent), T0), null);
+  answer(fetches[0], 201, { room: id });
+  await tick(); await tick();
+  g.me = await serve(g.r, open()[0]);
+  g.clock = () => T0 + Math.round(h.game.state.stats.playedMs) + 500;
+  g.pump = (now = g.clock()) => {
+    const socket = open()[0];
+    if (socket && !g.swallowing) pump(g.r, g.me, socket, now);
+    for (const [k, v] of g.r.takeWrites()) if (v === null) g.stored.delete(k); else g.stored.set(k, structuredClone(v));
+  };
+  g.bot = createBot(sent.world.seed, h.game.state, () => { h.together.tick(0.1); g.pump(); });
+  return g;
+}
+
+// The connection drops and the game comes back on a new one.
+async function reconnect(g) {
+  open()[0].lose(1006);
+  await new Promise((res) => setTimeout(res, 1100));
+  await serve(g.r, open()[0]);
+  g.together.tick(0.3);
+  g.pump();
+  g.together.save(g.game.state, true);
+  g.pump(g.clock() + 100);
+}
+
+const driftsIn = (r) => r.log.filter((e) => e.e === 'drift');
+
+test('client: what you did on a connection that was already dead is sent again once back', async () => {
+  const g = await owning();
+  g.bot.gather('mycelium', 4);
+  g.together.save(g.game.state, true);
+  g.pump();
+  g.swallowing = true;        // sent, never arrives
+  g.bot.gather('mycelium', 9);
+  g.swallowing = false;
+  await reconnect(g);
+  assert.deepEqual(driftsIn(g.r), [], 'the room got all of it: no drift');
+  assert.ok(g.game.state.inv.mycelium >= 9, 'and nothing gathered is taken back (' + g.game.state.inv.mycelium + ')');
+  assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing done twice');
+});
+
+test('client: a room that restarts (a deploy) between your saves loses nothing you did', async () => {
+  const g = await owning();
+  g.bot.gather('mycelium', 4);
+  g.together.save(g.game.state, true);
+  g.pump();
+  g.bot.gather('mycelium', 9); // the room does these and keeps the world's edits...
+  g.bot.gather('stone', 3);
+  g.r = Room.restore(g.r.id, new Map(g.stored), g.clock()); // ...then restarts from what it kept
+  await reconnect(g);
+  assert.deepEqual(driftsIn(g.r), [], 'the room\'s copy is where the game is: no drift');
+  assert.ok(g.game.state.inv.mycelium >= 9 && g.game.state.inv.stone >= 3, 'and nothing gathered is taken back');
+});
+
 /* ---------------------------------------------------- the Worlds list */
 
 test('client: every world has a two-word name, the same each time, and the join question says it', async () => {

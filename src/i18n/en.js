@@ -769,6 +769,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.103.1": "In a shared world, nothing you gather is taken back any more when your connection drops for a moment or the server updates: what the server missed is sent again when you're back.",
   "news.0.103.0": "Behind the scenes: to check what coming back to a shared world is like, the game's admin can now play a throwaway copy of it. Nothing done in a copy touches your real character or world, and the copy deletes itself after two hours.",
   "news.0.102.2": "Fixed a note from version 0.79.0 that promised coming back to a shared world from another device. Your character lives in this browser; another tab of it works.",
   "news.0.102.1": "Shared worlds you've left behind no longer take up space in your browser: what the game kept for one goes when it drops off your Worlds list or you remove it.",

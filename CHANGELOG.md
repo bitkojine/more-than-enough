@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.103.1] - 2026-10-18
+
+From the persistence review, bugs 5 and 7 of 9. Both were confirmed by
+tests first: the room's copy came out behind the game, the game was set
+back, and the room logged it as `drift` in the security trail, which reads
+like an edited save to the moderator.
+
+### Fixed
+- **Acts a dying connection swallowed count after all.** Acts carry no
+  number or answer, so the ones sent on a connection that had already died
+  were lost. The game now keeps the last minute of acts it sent and, after
+  a reconnect, sends again every one after the play time of the room's copy
+  in the welcome (`together.js` `resync`).
+- **A room restart (a deploy) no longer takes back recent progress.** The
+  room's copy of each player lived in memory and reached storage only with
+  their progress every 10 s, while the world's edits went every 2 s; after
+  a restart the world was ahead of the copy, so the gathers sent again were
+  refused. Now each player's stored record carries the copy as it is
+  whenever the room writes it (`room.js` `takeWrites`), which is with the
+  edits they made.
+- Tests in `test/unit/together-client.test.js` play a world through a
+  swallowed connection and through a room rebuilt from what it stored.
 ## [0.103.0] - 2026-10-18
 
 Watch's ask: as the game's admin, see exactly what a player would see coming
