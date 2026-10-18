@@ -1,6 +1,7 @@
 /* The performance panel: how well the game runs on this device, on any device.
- * A tool for tuning, kept out of play: press F3, or add ?perf to the address
- * (on a phone). Numbers and short labels only; what they mean is in the wiki.
+ * A tool for tuning, kept out of play: press F3, add ?perf to the address, or
+ * turn it on in Settings, Nerds. Numbers and short labels only; what they
+ * mean is in the wiki.
  *
  * Every frame reports its interval and how long the game logic and the
  * drawing took. The panel shows the last WINDOW frames, refreshed a few times
@@ -62,6 +63,9 @@ export function createPerf(el, canvas, audio, quality) {
     toggle(show = !perf.visible) {
       perf.visible = show;
       el.perf.hidden = !show;
+      // Its switch in Nerds, so a phone can turn it on too.
+      el.perfState.textContent = t(show ? 'settings.on' : 'settings.off');
+      el.perfBtn.setAttribute('aria-pressed', String(show));
       refreshIn = 0;
     },
 

@@ -115,8 +115,8 @@ No emoji: every icon comes from the pack.
 
 ## Versioning
 
-Settings (the gear, top-right) shows the studio and exact version you're
-playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
+Settings (the gear, top-right), then Nerds, shows the studio and exact
+version you're playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 `src/version.js`; see `CHANGELOG.md` for the history.
 
 - **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long

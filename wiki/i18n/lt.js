@@ -412,9 +412,9 @@ export default {
         taškelis – dar nepradėta, atspalvintas – galima įpirkti dabar, pusiau užpildytas – įpusėta, o vientisas žalias – maksimalus lygis. Šeima,
         kurioje yra ką nusipirkti, atsiveria pati; {phone:bakstelk|laptop:spustelk} jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
-      <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Tekstūros</strong>, kur matyti naudojamas tekstūrų paketas ir galima įkelti savo (žr.
-        <a href="#textures">Tekstūrų paketai</a>), <strong>Žinynas</strong> (šis puslapis)
-        ir žaidimo versija.</p>
+      <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Kalba</strong>, <strong>Žinynas</strong> (šis puslapis) ir privatumo politika.
+        Paskutinė eilutė, <strong>Moksliukams</strong>, slepia techninius dalykus: <strong>Tekstūros</strong>, kur matyti naudojamas
+        tekstūrų paketas ir galima įkelti savo (žr. <a href="#textures">Tekstūrų paketai</a>), <strong>Našumo skydelis</strong> ir žaidimo versija.</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
@@ -432,7 +432,7 @@ export default {
 
       <h2>Našumo skydelis</h2>
       <p>Įrankis žaidimui derinti, žaidžiant netrukdantis. Paspausk <kbd>F3</kbd> ir pamatysi, kaip gerai žaidimas veikia tavo
-        įrenginyje, paspausk dar kartą, kad paslėptum.{phone: Be klaviatūros atverk žaidimą su <code>?perf</code> adreso gale.|laptop:} Kairysis skydelio
+        įrenginyje, paspausk dar kartą, kad paslėptum, arba įjunk jį Nustatymuose, skiltyje <strong>Moksliukams</strong>. Kairysis skydelio
         kraštas žalias, kai yra 55 kadrai per sekundę ar daugiau, geltonas nuo 30, raudonas žemiau.</p>
       <div class="table"><table>
         <thead><tr><th>Eilutė</th><th>Reiškia</th></tr></thead>
@@ -796,7 +796,7 @@ export default {
         visa, ko jis nepalieka, atrodo kaip numatyta.</p>
 
       <h2>Kaip naudoti paketą</h2>
-      <p>Atidaryk Nustatymus (krumpliaratis viršuje dešinėje) ir paspausk <strong>Tekstūros</strong>. Pasirink paketo <code>pack.json</code>:
+      <p>Atidaryk Nustatymus (krumpliaratis viršuje dešinėje), tada <strong>Moksliukams</strong>, ir paspausk <strong>Tekstūros</strong>. Pasirink paketo <code>pack.json</code>:
         vieną (jei paveikslėliai yra jo viduje) arba kartu su paveikslėlių failais. Žaidimas pirmiausia patikrina visą
         paketą: jei kas nors negerai, jis nenaudojamas, o skydelyje išvardijamos visos problemos, nurodant sugedusį daiktą ir lizdą. Veikiantis
         paketas pritaikomas iškart ir įsimenamas šioje naršyklėje. <strong>Numatytosios tekstūros</strong> (rodoma, kol naudojamas tavo paketas) grąžina Žibinto šviesą.</p>

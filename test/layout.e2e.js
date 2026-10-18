@@ -31,7 +31,7 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
 ];
 // In this order on one page per screen; `rich` last, as it can't be undone.
 // `crowd` joins a shared world of 100 (a fake room) and stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich'];
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -156,6 +156,7 @@ async function enter(state) {
   if (state === 'build') click('#btnBuild');
   if (state === 'awards') click('#btnAwards');
   if (state === 'settings') click('#btnSettings');
+  if (state === 'nerds') { click('#btnSettings'); click('#btnNerds'); }
   // Three shared worlds (made-up ids: their names are what's checked).
   if (state === 'worlds') {
     localStorage.setItem('mte.rooms', JSON.stringify(['AAAAAAAAAAAAAAAAAAAAAA', 'thunderfallsXXXXXXXXXX', 'zzzzzzzzzzzzzzzzzzzzzz']));

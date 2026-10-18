@@ -309,6 +309,8 @@ el.mine.addEventListener('click', controller.toggleMine);
 el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 el.playersBtn.addEventListener('click', () => sheet.show('players'));
+el.nerdsBtn.addEventListener('click', () => sheet.show('nerds'));
+el.perfBtn.addEventListener('click', () => perf.toggle());
 window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
@@ -577,7 +579,7 @@ setDrag(savedView.invertDrag);
 audio.music = savedView.music;
 showMusic();
 // The performance panel is for whoever is tuning the game, not for play:
-// F3 toggles it, and ?perf in the address opens it (for phones).
+// F3 or its switch in Nerds toggles it, and ?perf in the address opens it.
 perf.toggle(new URLSearchParams(location.search).has('perf'));
 applyQuality();
 hud.repaint();

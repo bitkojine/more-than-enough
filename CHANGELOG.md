@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.119.0] - 2026-10-18
+
+Watch: "All this techy stuff needs to be in a nerds menu, don't make it top
+level for most players."
+
+### Added
+- A *Nerds* screen, the last row of Settings: Textures (and Default
+  textures), a Performance panel switch (so a phone can open it without
+  `?perf`) and the version line.
+
+### Changed
+- Settings keeps only everyday things: worlds and players, sound, music,
+  drag, language, wiki and privacy policy.
+- docs/ui.md (rule 5a: technical things go under Nerds), README, the wiki's
+  Settings, texture pack and performance panel pages say where things are.
+
+### Tests
+- Browser e2e checks Nerds holds Textures and the version and that its
+  switch opens the performance panel; the layout check gains a `nerds` state.
+
 ## [0.118.0] - 2026-10-18
 
 Watch's ask: the underground depth indicator wasn't clear. It said "▼ 3"

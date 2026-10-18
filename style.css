@@ -698,15 +698,15 @@ body.signing #zoomControls { visibility: hidden; }
 .familyBody { margin-bottom: 8px; }
 .familyBody .row { margin-left: 24px; }
 
-/* Settings: grouped rows, a name on the left and its value on the right,
-   the destructive one alone at the bottom. No tabs: it isn't a game list. */
-#settingsPanel {
+/* Settings and Nerds: grouped rows, a name on the left and its value on the
+   right. No tabs: they aren't game lists. */
+.setPanel {
   overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
   flex: 1 1 auto; min-height: 0;
   display: flex; flex-direction: column; gap: 14px;
   padding: 6px 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
-#settingsPanel[hidden], #sheetBody[hidden], #mapPanel[hidden] { display: none; }
+.setPanel[hidden], #sheetBody[hidden], #mapPanel[hidden] { display: none; }
 
 /* The world map fills the sheet; its own zoom sits in the corner like the
    game's, and a button brings you back to where you are. */

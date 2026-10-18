@@ -187,7 +187,7 @@
     <!-- Players: everyone in the shared world you're in, how they're doing
          and how far away; the owner can remove them. Filled by src/game/players.js. -->
     <div id="playersPanel" hidden></div>
-    <div id="settingsPanel" hidden>
+    <div id="settingsPanel" class="setPanel" hidden>
       <div class="setGroup">
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
         <button id="btnPlayers" class="setRow" type="button" hidden><span data-i18n="players.title"></span><b><span id="playersCount"></span> &rsaquo;</b></button>
@@ -200,10 +200,21 @@
         <button id="btnLanguage" class="setRow" type="button"><span data-i18n="sheet.language"></span><b data-i18n="language.name"></b></button>
       </div>
       <div class="setGroup">
-        <button id="btnTextures" class="setRow" type="button"><span data-i18n="sheet.textures"></span><b id="packName"></b></button>
-        <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
         <a id="wikiLink" class="setRow" href="wiki/" target="_blank" rel="noopener"><span data-i18n="sheet.wiki"></span><b aria-hidden="true">&#8599;</b></a>
         <a id="privacyLink" class="setRow" href="privacy/" target="_blank" rel="noopener"><span data-i18n="privacy.link"></span><b aria-hidden="true">&#8599;</b></a>
+      </div>
+      <div class="setGroup">
+        <button id="btnNerds" class="setRow" type="button"><span data-i18n="nerds.title"></span><b aria-hidden="true">&rsaquo;</b></button>
+      </div>
+    </div>
+    <!-- For nerds: the technical things most players never need. -->
+    <div id="nerdsPanel" class="setPanel" hidden>
+      <div class="setGroup">
+        <button id="btnTextures" class="setRow" type="button"><span data-i18n="sheet.textures"></span><b id="packName"></b></button>
+        <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
+      </div>
+      <div class="setGroup">
+        <button id="btnPerf" class="setRow" type="button" aria-pressed="false"><span data-i18n="nerds.perf"></span><b id="perfState"></b></button>
       </div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />

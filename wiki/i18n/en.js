@@ -418,9 +418,9 @@ export default {
         dot hasn't been started, a tinted dot is affordable now, a half dot is part way, and a solid green dot is maxed. A family
         with something you can buy opens by itself; {phone:tap|laptop:click} its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
-      <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Textures</strong>, which shows the texture pack in use and loads your own (see
-        <a href="#textures">Texture packs</a>), <strong>Wiki</strong> (this page)
-        and the game's version.</p>
+      <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Language</strong>, <strong>Wiki</strong> (this page) and the privacy policy.
+        Its last row, <strong>Nerds</strong>, holds the technical things: <strong>Textures</strong>, which shows the texture pack
+        in use and loads your own (see <a href="#textures">Texture packs</a>), the <strong>Performance panel</strong> and the game's version.</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
@@ -438,7 +438,7 @@ export default {
 
       <h2>Performance panel</h2>
       <p>A tool for tuning the game, kept out of the way while you play. Press <kbd>F3</kbd> to see how well the game runs on
-        your device, and again to hide it.{phone: Without a keyboard, open the game with <code>?perf</code> at the end of its address.|laptop:} Its left
+        your device, and again to hide it, or switch <strong>Performance panel</strong> in Settings, Nerds. Its left
         edge is green at 55 fps or more, yellow from 30, red below.</p>
       <div class="table"><table>
         <thead><tr><th>Line</th><th>Means</th></tr></thead>
@@ -804,7 +804,7 @@ export default {
         anything it leaves out keeps the default look.</p>
 
       <h2>Using a pack</h2>
-      <p>Open Settings (the gear, top-right) and {phone:tap|laptop:click} <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
+      <p>Open Settings (the gear, top-right), then <strong>Nerds</strong>, and {phone:tap|laptop:click} <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
         either on its own (if its pictures are inside it) or together with its picture files. The game checks the whole pack
         first: if anything is wrong it isn't used, and a panel lists every problem, naming the thing and slot that broke. A pack
         that works is used straight away and remembered in this browser. <strong>Default textures</strong> (shown while your pack is in use) goes back to Lanternlight.</p>

@@ -699,7 +699,21 @@ async function main() {
   await sleep(250);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear switches the sheet to Settings');
   ok(await evalJS('document.getElementById("sheetBody").hidden && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Settings shows no game list and no tabs');
-  ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Settings');
+  // The technical things wait one row further in, under Nerds.
+  ok(await evalJS('document.getElementById("btnTextures").offsetParent === null && document.getElementById("version").offsetParent === null'), 'Settings keeps textures and the version out of sight');
+  await evalJS('document.getElementById("btnNerds").click()');
+  await sleep(100);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Nerds', 'Nerds opens its own screen');
+  ok(await evalJS('document.getElementById("btnTextures").offsetParent !== null && document.getElementById("btnMute").offsetParent === null'), 'Nerds shows Textures, not the everyday settings');
+  ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Nerds');
+  eq(await evalJS('document.getElementById("perfState").textContent'), 'off', 'the performance panel switch starts off');
+  await evalJS('document.getElementById("btnPerf").click()');
+  ok(await evalJS('!document.getElementById("perf").hidden && document.getElementById("perfState").textContent === "on"'), 'its switch opens the performance panel');
+  await evalJS('document.getElementById("btnPerf").click()');
+  eq(await evalJS('document.getElementById("perf").hidden'), true, 'and closes it');
+  await evalJS('document.getElementById("btnSettings").click()');
+  await sleep(100);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear goes back to Settings');
   var muteButton = await rect('#btnMute');
   await tap(muteButton.x, muteButton.y);
   eq(await evalJS('document.getElementById("muteState").textContent'), 'off', 'Sound control mutes with one tap');
