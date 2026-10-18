@@ -5,7 +5,7 @@
   color-scheme: dark;
   /* Surfaces: glass over the map, and the solid panels of sheets. */
   --glass: rgba(12, 17, 14, 0.78);
-  --panel: rgba(12, 17, 14, 0.96);
+  --panel: rgb(12, 17, 14);
   --panel-line: rgba(255, 255, 255, 0.10);
   --raised: rgba(255, 255, 255, 0.06);
   /* Ink and accents. */
@@ -224,7 +224,7 @@ canvas#game {
   pointer-events: none;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   margin-top: 4px; padding: 10px 22px 12px; max-width: 90%;
-  background: linear-gradient(180deg, rgba(58, 44, 16, 0.96), rgba(28, 22, 10, 0.96));
+  background: linear-gradient(180deg, rgb(58, 44, 16), rgb(28, 22, 10));
   border: 1px solid rgba(255, 209, 102, 0.6); border-radius: var(--r-md);
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 209, 102, 0.18);
   text-align: center;
@@ -854,7 +854,11 @@ body.signing #zoomControls { visibility: hidden; }
   #nuke button { width: min(140px, 34vh); margin: 2px 0; font-size: 14px; letter-spacing: 0.04em; }
   #nuke button::before { font-size: 40px; }
   #fbi .fbiBadge { width: min(90px, 22vh); }
-
+  /* The milestone banner stays a thin strip above you, not over you. */
+  #milestone { padding: 5px 16px 6px; gap: 1px; }
+  #milestone .trophy { display: none; }
+  #milestone strong { font-size: 15px; }
+  #milestone .next { font-size: 12px; }
 }
 
 /* Two tabs saved the same world: pick which to keep, one card each. */

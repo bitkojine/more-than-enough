@@ -353,6 +353,20 @@ test('shared world: a new player arrives a step beside their friend, not inside 
   assert.ok(Core.walkable(s.world, Math.floor(s.player.x), Math.floor(s.player.y), 0));
 });
 
+test('shared world: friends joining one after another each get a spot of their own', () => {
+  const near = { x: 0.5, y: 0.5, z: 0 };
+  const players = new Map([['o', { st: 'online', p: near }]]);
+  const spots = [];
+  for (let i = 0; i < 3; i++) {
+    const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null, players }, 'r', null, near);
+    assert.ok(Math.hypot(s.player.x - near.x, s.player.y - near.y) <= 2, 'beside their friend');
+    assert.ok(Core.walkable(s.world, Math.floor(s.player.x), Math.floor(s.player.y), 0));
+    spots.push(s.player.x + ',' + s.player.y);
+    players.set('j' + i, { st: 'online', p: s.player });
+  }
+  assert.equal(new Set(spots).size, 3, 'nobody arrives on top of another: ' + spots.join(' '));
+});
+
 test("shared world: friends' buildings stand but work only for their owner", () => {
   const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, null);
   Core.applyEdits(s, [['x', 'garden', s.player.x | 0, (s.player.y | 0) + 1, 0, 'bbbbbbbbbbbbbbbb'], ['x', 'nonsense', 1, 1, 0, 'bbbbbbbbbbbbbbbb'], ['p', 5, 'nonsense']]);

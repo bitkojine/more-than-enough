@@ -68,7 +68,7 @@ export function joinState(welcome, room, fog, near, make = undefined) {
   s.shared = room;
   s.me = welcome.you;
   if (!mine.player && near && near.z <= SURFACE && near.z >= Z_MIN) {
-    s.player = beside(s.world, near);
+    s.player = beside(s.world, near, playersIn(welcome));
     s.underground.deepest = Math.min(s.underground.deepest, near.z);
   }
   s.world.edits = [];
@@ -77,12 +77,22 @@ export function joinState(welcome, room, fog, near, make = undefined) {
 
 // Where a newcomer arrives: a step beside the friend they join, so the two
 // are both seen, not one drawn over the other (on them if there's no room).
-const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-export function beside(w, p) {
-  for (const [dx, dy] of SIDES) {
-    if (walkable(w, Math.floor(p.x + dx), Math.floor(p.y + dy), p.z)) return { x: p.x + dx, y: p.y + dy, z: p.z };
-  }
-  return { x: p.x, y: p.y, z: p.z };
+// `taken`: where everyone already in the world stands, so friends joining
+// one after another each get a spot of their own, not one on top of another.
+const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1], [2, 0], [-2, 0], [0, 2], [0, -2]];
+export function beside(w, p, taken = []) {
+  const free = (x, y) => walkable(w, Math.floor(x), Math.floor(y), p.z);
+  const clear = (x, y) => !taken.some((o) => o.z === p.z && Math.abs(o.x - x) < 0.75 && Math.abs(o.y - y) < 0.75);
+  const spot = SIDES.find(([dx, dy]) => free(p.x + dx, p.y + dy) && clear(p.x + dx, p.y + dy)) ||
+    SIDES.slice(0, 4).find(([dx, dy]) => free(p.x + dx, p.y + dy));
+  return spot ? { x: p.x + spot[0], y: p.y + spot[1], z: p.z } : { x: p.x, y: p.y, z: p.z };
+}
+
+// Where the players in a welcome stand (its `players`, a Map or an object of
+// {p: {x, y, z}}), for beside().
+function playersIn(welcome) {
+  const list = welcome.players instanceof Map ? [...welcome.players.values()] : isObj(welcome.players) ? Object.values(welcome.players) : [];
+  return list.filter((f) => isObj(f) && isObj(f.p) && Number.isFinite(f.p.x) && Number.isFinite(f.p.y)).map((f) => f.p);
 }
 
 // Sets your progress straight from the room's numbers (`save`, the room's

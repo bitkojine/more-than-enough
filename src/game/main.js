@@ -137,6 +137,7 @@ const game = {
     sheet.close();
     lastTileKey = -1;
     region = shownRegion = null;
+    hud.newWorld();
     hud.update(next);
     game.saveNow();
     game.changedMode();
@@ -490,6 +491,8 @@ if (window.visualViewport) window.visualViewport.addEventListener('resize', resi
 window.addEventListener('pagehide', () => game.saveNow());
 // A QR scanned while the game is already open in this tab.
 window.addEventListener('hashchange', () => together.joinFromLink());
+// The network came back: reconnect to the shared world now.
+window.addEventListener('online', () => together.online());
 document.addEventListener('visibilitychange', () => {
   together.away(document.hidden);
   quality.settle();

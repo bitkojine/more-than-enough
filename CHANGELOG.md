@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.98.0] - 2026-10-18
+
+Fixes from a play test in real browsers (phone, landscape phone, desktop;
+several players in one shared world).
+
+### Fixed
+- **Sheets were see-through.** `--panel` was 96% opaque, so the map, the
+  region name and the HUD buttons showed through every list and Settings.
+  Sheets and the milestone banner are solid now.
+- **The milestone banner covered your character on a landscape phone.**
+  Under 500px tall it drops its trophy and shrinks to a strip above you.
+- **Toasts landed on top of the milestone banner** ("You're in the shared
+  world" over it, for one): a toast goes under the banner while one is up
+  (`placeToast` in `src/game/hud.js`).
+- **A milestone from your solo world showed in the shared world** you had
+  just gone into: swapping worlds clears the banner queue (`hud.newWorld`).
+- **Reconnecting after a dropped connection waited up to 15 s** after the
+  network was back. The game now tries at once when the browser goes
+  `online` or the game comes back on screen (`together.online`).
+- **Friends joining one after another arrived on the same tile.** `beside`
+  in `src/core/shared.js` now skips spots where someone already stands.
+
 ## [0.97.0] - 2026-10-18
 
 ### Added

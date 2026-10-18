@@ -35,7 +35,7 @@ export function createHud(el, look) {
     showing = next ? next.number : null;
     el.milestone.hidden = !next;
     milestoneLeft = next ? MILESTONE_SECONDS : 0;
-    if (!next) return;
+    if (!next) return placeToast();
     // A milestone reached says what comes next; at the start, what's next is all it says.
     el.milestone.querySelector('.label').textContent = t(next.number ? 'hud.milestone' : 'hud.nextMilestone');
     el.milestone.querySelector('.of').textContent = next.number ? t('hud.milestoneOf', { n: next.number, total: next.total }) : '';
@@ -45,6 +45,12 @@ export function createHud(el, look) {
     el.milestone.style.animation = 'none';
     void el.milestone.offsetWidth;
     el.milestone.style.animation = '';
+    placeToast();
+  }
+  // A message goes under the milestone banner while one is up, not over it.
+  function placeToast() {
+    const m = el.milestone;
+    el.toast.style.top = m.hidden ? '' : m.offsetTop + m.offsetHeight + 8 + 'px';
   }
   let lastAction = '';
   let inSight = false; // something to gather in sight for Explore to head to
@@ -183,6 +189,13 @@ export function createHud(el, look) {
       if (milestoneLeft <= 0) nextMilestone();
     },
 
+    // Another world swapped in: milestones from the old one mean nothing here.
+    newWorld() {
+      milestones.length = 0;
+      nextMilestone();
+      el.awards.classList.remove('new');
+    },
+
     // The Awards were looked at.
     awardsSeen() {
       el.awards.classList.remove('new');
@@ -202,6 +215,7 @@ export function createHud(el, look) {
     toast(msg, seconds = TOAST_SECONDS) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');
+      placeToast();
       toastLeft = seconds;
     },
 

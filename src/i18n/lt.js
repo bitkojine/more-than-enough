@@ -716,6 +716,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.98.0": "Sąrašai ir nustatymai dabar nepermatomi, pro juos nieko nesimato. Žemame gulsčiame ekrane etapo juosta nebeuždengia tavo veikėjo. Bendrame pasaulyje nutrūkus ryšiui, žaidimas grįžta vos tik vėl prisijungi, o kartu prisijungę draugai atsiranda kiekvienas savo vietoje.",
   "news.0.97.0": "Naujas etapas žymi ilgą pasaulio vidurį: kiekvienas perdirbimas iki 9 lygio, maždaug pusiaukelėje tarp Gausos variklio V ir kiekvieno perdirbimo iki 10 lygio.",
   "news.0.96.0": "Tavo pastatai dirba ir tada, kai tavęs nėra. Uždaryk žaidimą, sugrįžk vėliau, ir tai, ką jie pagamino per iki 8 valandų, lauks tavo kuprinėje, kartu su tuo, ką pagamino Gausos variklis. Tai veikia tavo paties pasaulyje; bendruose pasauliuose to dar nėra.",
   "news.0.95.0": "Naujas pasaulis dabar prasideda parodydamas pirmąjį etapą, o kiekvienas pasiektas etapas pasako, kas toliau.\nDidysis mygtukas „Tyrinėti“ visada ką nors daro: kai šalia nieko nėra, jis nuveda prie artimiausių grybų ar akmenų ir juos surenka.\nPrisijungęs prie draugo pasaulio atsiduri šalia jo, o ne jame.",

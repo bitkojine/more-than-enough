@@ -42,10 +42,13 @@ place it belongs here rather than adding a button where there is room.
 - Touch targets ≥ 44px (the slim zoom pill 40px); the main action 84px (76px under 375px wide, 72px on short landscape screens).
 
 ### Other screens
-- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. Dialogs shrink their big pictures (nuke button, FBI badge) and never grow taller than the screen; What's new's list gives way first, so the buttons stay in view.
+- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The milestone banner drops its trophy and becomes a thin strip, so it stays above your character. Dialogs shrink their big pictures (nuke button, FBI badge) and never grow taller than the screen; What's new's list gives way first, so the buttons stay in view.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Tabs** size to their words (Lithuanian's are long), a little smaller on phones.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows and dialog buttons out of view. Run it after any change to the layout.
+
+### Messages
+- A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.
 
 ### Resource bar
 - One chip per resource: icon and count on one row, the per-second rate centred under the whole chip. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Below 375px each chip stacks icon over count and leaves the rate out. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.

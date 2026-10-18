@@ -297,6 +297,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     retryTimer = setTimeout(connect, wait * 1000);
   }
 
+  // The network is back (the phone found Wi-Fi again, or the game is back
+  // on screen) while waiting to reconnect: try now, not after the wait.
+  function retryNow() {
+    if (retryTimer && !ws && room) connect();
+  }
+
   // The room has said nothing for too long (not even to a ping): the
   // connection died without closing. Dropped, as if it had closed, so the
   // game reconnects instead of playing on into nothing.
@@ -333,6 +339,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // Closes the connection, saying goodbye.
   function hangUp() {
     clearTimeout(retryTimer);
+    retryTimer = null;
     if (ws) { const s = ws; ws = null; try { s.close(1000, 'bye'); } catch { /* closed */ } }
     welcomed = false;
   }
@@ -1140,7 +1147,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     away(hidden) {
       sendAway();
       if (hidden) save(game.state, true);
+      else retryNow();
     },
+    online: retryNow,
     // Friends as the renderer draws them (where they're shown, not where the
     // last message said), with how long they've been in their state.
     view() {

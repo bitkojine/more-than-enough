@@ -342,6 +342,23 @@ test('client: a connection that dies without closing is noticed, and the game re
   assert.equal(open().length, 1, 'and it tries again');
 });
 
+test('client: when the network comes back, the game reconnects at once, not after its wait', async () => {
+  const w = await makeRoom();
+  const { together } = await inWorld(w);
+  open()[0].lose();
+  await tick();
+  assert.equal(open().length, 0, 'waiting to try again');
+  together.online();
+  assert.equal(open().length, 1, 'tries now');
+  together.online();
+  assert.equal(open().length, 1, 'and only once');
+  // Coming back on screen does the same.
+  open()[0].lose();
+  await tick();
+  together.away(false);
+  assert.equal(open().length, 1, 'back on screen, it tries now');
+});
+
 test('client: edits a dead connection swallowed are sent again once back', async () => {
   const w = await makeRoom();
   const { together, game, id } = await inWorld(w);

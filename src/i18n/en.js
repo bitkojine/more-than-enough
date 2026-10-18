@@ -716,6 +716,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.98.0": "Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. Losing the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.",
   "news.0.97.0": "A new milestone marks the long middle of a world: every refinery at level 9, about halfway between the Abundance Engine at V and every refinery at level 10.",
   "news.0.96.0": "Your buildings keep working while you are away. Close the game, come back later, and what they made in up to 8 hours is waiting in your packs, along with what the Abundance Engine made. This is for your own world; shared worlds don't have it yet.",
   "news.0.95.0": "A new world now opens by naming your first milestone, and each milestone you reach says what comes next.\nThe big Explore button always does something: with nothing in reach, it walks you to the nearest mushrooms or stone and gathers them.\nJoining a friend's world puts you right beside them instead of inside them.",
