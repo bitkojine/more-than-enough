@@ -33,6 +33,9 @@ jobs:
           node-version-file: .nvmrc
           check-latest: true
 
+      - name: Install esbuild (the tests stage the site with it)
+        run: npm ci --no-audit --no-fund
+
       - name: Unit tests (the room's rules among them)
         run: npm test
 
