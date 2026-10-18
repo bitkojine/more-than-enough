@@ -23,19 +23,21 @@ function shadow(ctx, cam, x, y, r) {
   ctx.beginPath(); ctx.ellipse(x, y, r, r * 0.38 * (cam.depthPx / cam.tilePx), 0, 0, TAU); ctx.fill();
 }
 
-// A building: its picture standing on its tile, and a small dial over it
-// that fills as it holds output (gold when full).
+// A building standing on its tile, showing what waits in it to be collected
+// (its stages: a garden's mushrooms, a mine's cart of ore), and a small dial
+// over it that fills as it does (gold when full).
 export function drawExtractor(ctx, cam, s, look, e) {
   const u = cam.tilePx;
   const ground = cam.project(e.x + 0.5, e.y + FOOT, groundAt(cam, s, e.x, e.y));
   if (ground.x < -u * 2 || ground.y < -u || ground.x > cam.width + u * 2 || ground.y > cam.height + u * 3) return;
-  const pic = look.pick('building.' + e.key, 'image');
+  // Only output that waits for you: what Logistics hauls in as it's made
+  // never shows (it would blink on and off many times a second), so a
+  // hauled building looks empty.
+  const p = Core.holdsOutput(s, e) ? Math.min(1, e.buffer / Core.extractorCapacity(s, e.key)) : 0;
+  const pic = look.stage('building.' + e.key, p);
   shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
-  // Only output that waits for you: what Logistics hauls in as it's made
-  // never shows (a dial for it would blink on and off many times a second).
-  if (!Core.holdsOutput(s, e)) return;
-  const p = Math.min(1, e.buffer / Core.extractorCapacity(s, e.key));
+  if (!p) return;
   const r = Math.max(4, u * 0.13);
   const cx = ground.x + pic.units * u * 0.32, cy = ground.y - h - r * 0.2;
   ctx.fillStyle = 'rgba(10,12,14,0.72)';

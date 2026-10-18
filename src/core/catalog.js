@@ -15,6 +15,10 @@
  *   image  a thing standing on the map (buildings, the wanderer, the boat);
  *          also its picture in the sheet
  *   icon   a square picture for the buttons, counters and lists
+ *   stages a building on the map as its output builds up: a list of
+ *          pictures, empty first, full last (nothing waiting to collect
+ *          shows the first; full shows the last; the ones between share
+ *          the way up). `image` stays its picture in the sheet.
  *   tiers  the stockpile's piles, smallest first: picture k stands for
  *          10^k of the resource (past the last, the last stands in). Drawn
  *          one tile wide; piles of 10^7 and more cover a square of tiles
@@ -34,7 +38,7 @@ import { MUSHROOMS } from './mushrooms.js';
 export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
 export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
-export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers'];
+export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers', 'stages'];
 
 // The groups, in the order the wiki lists them.
 export const LOOK_GROUPS = [
@@ -127,7 +131,7 @@ for (const key of Object.keys(EXTRACTORS)) {
   const e = EXTRACTORS[key];
   const does = e.tile === null ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
     : t('look.extractor.does', { res: RESOURCE_OF[e.res], tile: TILE_NAME[e.tile].toLocaleLowerCase(LOCALE) });
-  add('building', key, e.name, does, req('image'));
+  add('building', key, e.name, does, req('image', 'stages'));
 }
 
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), req('image'));

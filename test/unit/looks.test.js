@@ -8,6 +8,7 @@ import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { C } from './helpers.js';
 import { validatePack, pictures, isPicture } from '../../src/game/look/validate.js';
+import { createLook } from '../../src/game/look/look.js';
 
 const PACK_DIR = new URL('../../packs/default/', import.meta.url).pathname;
 const pack = JSON.parse(readFileSync(join(PACK_DIR, 'pack.json'), 'utf8'));
@@ -112,4 +113,40 @@ test('pack: every problem is reported, naming the thing and slot', () => {
   assert.equal(problems.length, expect.length, problems.join('\n'));
   assert.deepEqual(validatePack(null), ['The pack is not a JSON object']);
   assert.ok(validatePack({ format: 1, name: 'x' }).includes('"looks" must be an object of thing ids'));
+});
+
+test('pack: a building\'s stages are a list of pictures, empty first', () => {
+  const pack = (stages) => ({ format: 1, name: 'x', looks: { 'building.garden': { stages } } });
+  assert.deepEqual(validatePack(pack(['e.png', 'f.png'])), []);
+  for (const bad of [[], ['e.png', null], 'e.png']) {
+    assert.ok(validatePack(pack(bad)).some((p) => p.startsWith('building.garden stages: must be a list')), JSON.stringify(bad));
+  }
+});
+
+// A loaded pack's slots, each picture standing in as its name.
+const loaded = (looks) => ({ slots: new Map(Object.entries(looks).map(([id, e]) =>
+  [id, Object.fromEntries(Object.entries(e).map(([slot, pics]) => [slot, { pics: [].concat(pics), variants: false, fps: 0 }]))])) });
+
+test('look: a building shows the stage for what waits in it, empty when nothing does', () => {
+  const look = createLook();
+  look.use(loaded({ 'building.garden': { image: 'full', stages: ['empty', 'little', 'most', 'full'] } }));
+  const at = (share) => look.stage('building.garden', share);
+  assert.equal(at(0), 'empty');
+  assert.equal(at(0.01), 'little', 'one unit waiting already shows');
+  assert.equal(at(0.49), 'little');
+  assert.equal(at(0.5), 'most');
+  assert.equal(at(0.99), 'most', 'full only when it is');
+  assert.equal(at(1), 'full');
+  look.use(loaded({ 'building.garden': { image: 'full', stages: ['empty', 'full'] } }));
+  assert.equal(at(0.3), 'full', 'two stages: anything waiting shows the full one');
+});
+
+test('look: a player\'s pack that draws a building without stages keeps its own picture', () => {
+  const look = createLook();
+  const base = loaded({ 'building.garden': { image: 'full', stages: ['empty', 'little', 'most', 'full'] } });
+  look.use(base, loaded({ 'building.garden': { image: 'mine' } }));
+  assert.equal(look.stage('building.garden', 0), 'mine');
+  assert.equal(look.stage('building.garden', 1), 'mine');
+  look.use(base, loaded({ 'tile.grass': { top: 'g' } }));
+  assert.equal(look.stage('building.garden', 0), 'empty', 'untouched buildings use the default stages');
 });

@@ -51,7 +51,7 @@ export function pic(id, slot = 'icon', cls = 'pic', alt = '') {
 
 /* --------------------------------------------- everything in the game */
 
-const SLOT_ORDER = ['top', 'stand', 'cut', 'face', 'image', 'icon', 'tiers'];
+const SLOT_ORDER = ['top', 'stand', 'cut', 'face', 'image', 'icon', 'tiers', 'stages'];
 
 // What the default pack shows for a thing: each picture slot's pictures
 // (every variant and frame) and its colour.

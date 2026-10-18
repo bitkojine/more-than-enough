@@ -920,7 +920,8 @@ async function main() {
   await sleep(300);
   var nightShot = await shot('05-night.png');
   ok(!!nightShot, 'night render screenshot: ' + nightShot);
-  var lum = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'));
+  // Averaged over a patch, so whatever picture stands at the very centre doesn't decide it.
+  var lum = JSON.parse(await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var t=0,n=0;for(var a=-4;a<=4;a++)for(var b=-4;b<=4;b++){var o=(Math.floor(h*(j+b*0.01))*w+Math.floor(w*(i+a*0.01)))*4;t+=(d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;n++;}return t/n;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'));
   console.log('  night luminance: center=' + lum.center + ' corner=' + lum.corner);
   ok(lum.center > lum.corner + 0.08, 'flashlight pools light around the player at night (center ' + lum.center + ' vs corner ' + lum.corner + ')');
   await evalJS('MTE_GAME.getState().time = 0'); // back to noon

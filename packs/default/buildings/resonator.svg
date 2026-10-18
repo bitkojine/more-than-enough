@@ -7,4 +7,4 @@
 <path d="M28 4l11 18-4 40H21l-4-40z" fill="none" stroke="#1d1712" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
 <path d="M17 22h22" stroke="#1d1712" stroke-width="1.6"/>
 <path d="M4 44a24 8 0 0 0 48 0" fill="none" stroke="#1d1712" stroke-width="5"/><path d="M4 44a24 8 0 0 0 48 0" fill="none" stroke="#e4b84a" stroke-width="2.6"/>
-<g fill="#ffffff"><path d="M46 12l1.5-4 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5z"/></g></svg>
+<g fill="#ffffff"><path d="M46 12l1.5-4 1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5z"/></g><path d="M46 78V69L50.5 63L55 69V78z" fill="#ff6fbf" stroke="#1d1712" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M47.2 77V69.5L50.5 65V77z" fill="#ffc2e6"/><path d="M1 78V70.2L5.5 65L10 70.2V78z" fill="#ff6fbf" stroke="#1d1712" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M2.2 77V70.7L5.5 67V77z" fill="#ffc2e6"/><path d="M40 78V72.6L43 69L46 72.6V78z" fill="#ff6fbf" stroke="#1d1712" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/><path d="M41.2 77V73.1L43 71V77z" fill="#ffc2e6"/></svg>

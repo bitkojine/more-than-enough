@@ -385,6 +385,11 @@ export default {
         <li><strong>Skalė virš pastato</strong> reiškia, kad jame laukia produkcija, kurią gali paimti. Jai kaupiantis skalė pildosi žaliai,
           o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Patobulinimai, kurie pastatą pagreitina, leidžia jam ir daugiau sutalpinti, tad prisipildo jis maždaug per tiek pat laiko. Pastatai, kurių produkciją
           <strong>Logistika</strong> parveža vos pagaminus, skalės neturi.</li>
+        <li><strong>Ką pastatas rodo</strong> – tai, kas jame laukia: tuščias daržas – plika žemė, o kaupiantis produkcijai jame
+          dygsta grybai, kasyklos vagonėlis prisipildo rūdos, karjeras sukrauna blokus, plytinė – plytas, liejykla – luitus,
+          o kristalų pastatai – šukes prie savo papėdės. Paėmus produkciją, pastatas vėl atrodo tuščias. Pastatas, kurio
+          produkciją parveža <strong>Logistika</strong>, visada atrodo tuščias, nes jame nieko nelaukia. Kasamos uolos taip pat
+          mažėja, o miško grybai traukiasi, kai juos renki.</li>
         <li><strong>Lankais nuskriejantys mažyčiai paveikslėliai</strong>: ką ką tik surinkai, skrendantis į savo krūvą tavo <a href="#stockpile">atsargose</a>. Kai namai toli, jie išskrenda už ekrano namų kryptimi.</li>
         <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po viršutine juosta pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
@@ -831,6 +836,10 @@ export default {
         <li><code>tiers</code>: <a href="#stockpile">atsargų</a> krūvos – paveikslėlių sąrašas nuo mažiausio: pirmas reiškia
           vieną ištekliaus vienetą, kitas – dešimt, tada šimtą ir t. t. Už sąrašo galo naudojamas paskutinis paveikslėlis.
           Piešk jas stačias, maždaug vieno langelio pločio; nuo dešimties milijonų žaidimas jas piešia per visą jų žemės kvadratą.</li>
+        <li><code>stages</code>: pastatas žemėlapyje, kai jame kaupiasi produkcija – paveikslėlių sąrašas nuo tuščio iki pilno
+          (numatytajame pakete jų keturi: tuščias, šiek tiek, beveik pilnas, pilnas). Kai nieko nelaukia, rodomas pirmas, pilnas
+          pastatas – paskutinis, o tarpiniai pasidalija kelią aukštyn. <code>image</code> lieka jo paveikslėlis lape; paketas,
+          kuris nupiešia pastato <code>image</code>, bet ne jo etapus, žemėlapyje rodo tą vieną paveikslėlį.</li>
       </ul>
 
       <h2>Paveikslėliai</h2>

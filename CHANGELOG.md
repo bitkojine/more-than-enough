@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.113.0] - 2026-10-18
+
+Watch's ask: everything you collect from must change as you collect from it,
+so nothing still shows goods it no longer has. Rocks already wore down and
+forest mushrooms shrank as you gathered, and underground seams and finds turn
+to tunnel in one dig, but a building always showed its full picture: an
+emptied Mushroom Garden still had its five mushrooms.
+
+### Added
+- **Buildings show what waits in them**: a new `stages` slot for buildings in
+  texture packs, a list of pictures from empty to full. The default pack has
+  four per building (empty, a little, most, full): the garden's and compost
+  heap's mushrooms, the quarry's blocks, the mine cart's ore, the brickyard's
+  bricks, the foundry's ingots, and pink shards at the foot of the
+  Resonator and Observatory (their full pictures, also used in the sheet,
+  gained the ingots and shards, and the mine's heap of ore grew). Nothing waiting shows the first; one unit
+  already shows the second; full shows the last. `look.stage()` picks it.
+- With Logistics a building always looks empty (Watch chose this): nothing
+  waits in it, and the flying hauls show it's working.
+- A player's pack that draws a building's `image` but not its `stages` keeps
+  showing that one picture.
+
 ## [0.112.0] - 2026-10-18
 
 Watch's ask: what you gather flew to the stockpile so fast it looked like

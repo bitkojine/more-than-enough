@@ -219,28 +219,36 @@
    "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg", "piles/crystal-7.svg", "piles/crystal-8.svg", "piles/crystal-9.svg", "piles/crystal-10.svg", "piles/crystal-11.svg", "piles/crystal-12.svg"]
   },
   "building.garden": {
-   "image": "buildings/garden.svg"
+   "image": "buildings/garden.svg",
+   "stages": ["buildings/garden-empty.svg", "buildings/garden-little.svg", "buildings/garden-most.svg", "buildings/garden.svg"]
   },
   "building.quarry": {
-   "image": "buildings/quarry.svg"
+   "image": "buildings/quarry.svg",
+   "stages": ["buildings/quarry-empty.svg", "buildings/quarry-little.svg", "buildings/quarry-most.svg", "buildings/quarry.svg"]
   },
   "building.mine": {
-   "image": "buildings/mine.svg"
+   "image": "buildings/mine.svg",
+   "stages": ["buildings/mine-empty.svg", "buildings/mine-little.svg", "buildings/mine-most.svg", "buildings/mine.svg"]
   },
   "building.resonator": {
-   "image": "buildings/resonator.svg"
+   "image": "buildings/resonator.svg",
+   "stages": ["buildings/resonator-empty.svg", "buildings/resonator-little.svg", "buildings/resonator-most.svg", "buildings/resonator.svg"]
   },
   "building.compost": {
-   "image": "buildings/compost.svg"
+   "image": "buildings/compost.svg",
+   "stages": ["buildings/compost-empty.svg", "buildings/compost-little.svg", "buildings/compost-most.svg", "buildings/compost.svg"]
   },
   "building.brickyard": {
-   "image": "buildings/brickyard.svg"
+   "image": "buildings/brickyard.svg",
+   "stages": ["buildings/brickyard-empty.svg", "buildings/brickyard-little.svg", "buildings/brickyard-most.svg", "buildings/brickyard.svg"]
   },
   "building.foundry": {
-   "image": "buildings/foundry.svg"
+   "image": "buildings/foundry.svg",
+   "stages": ["buildings/foundry-empty.svg", "buildings/foundry-little.svg", "buildings/foundry-most.svg", "buildings/foundry.svg"]
   },
   "building.observatory": {
-   "image": "buildings/observatory.svg"
+   "image": "buildings/observatory.svg",
+   "stages": ["buildings/observatory-empty.svg", "buildings/observatory-little.svg", "buildings/observatory-most.svg", "buildings/observatory.svg"]
   },
   "character.wanderer": {
    "image": {

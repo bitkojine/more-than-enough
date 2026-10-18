@@ -172,6 +172,20 @@ export function createLook() {
       return pics[Math.min(tier, pics.length - 1)];
     },
 
+    // A building's picture with `share` of its room holding output waiting
+    // to be collected (0 = nothing waiting, 1 = full): the first of its
+    // stages when empty, the last when full, the ones between on the way
+    // up. A player's pack that draws the building but not its stages keeps
+    // its one picture.
+    stage(id, share) {
+      const own = over && over.slots.get(id);
+      if (own && own.image && !own.stages) return own.image.pics[0];
+      const pics = entry(id, 'stages').pics, n = pics.length;
+      if (share <= 0) return pics[0];
+      if (share >= 1 || n <= 2) return pics[n - 1];
+      return pics[Math.min(n - 2, 1 + Math.floor(share * (n - 2)))];
+    },
+
     // Every frame of (id, slot), for things that animate on their own clock.
     frames(id, slot) {
       const e = entry(id, slot);

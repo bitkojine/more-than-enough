@@ -391,6 +391,11 @@ export default {
         <li><strong>A dial over a building</strong> means it holds goods waiting for you to collect. It fills green as they pile up
           and turns gold when it's full, and a full building stops working until you collect. Upgrades that speed a building up let it hold more too, so it always takes about as long to fill. Buildings whose goods
           <strong>Logistics</strong> hauls in as they're made show no dial.</li>
+        <li><strong>What a building shows</strong> is what waits in it: an empty garden is bare soil and grows mushrooms as
+          they pile up, a mine's cart heaps with ore, a quarry stacks blocks, a brickyard bricks, a foundry ingots and the
+          crystal buildings shards at their foot. Once you collect, it looks empty again. A building whose goods
+          <strong>Logistics</strong> hauls in always looks empty, since nothing waits in it. Rocks you mine wear smaller and
+          a forest's mushrooms shrink as you forage them, the same way.</li>
         <li><strong>Little sprites arcing away</strong>: what you just gathered, flying to its pile in your <a href="#stockpile">stockpile</a>. When home is far, they fly off screen in its direction.</li>
         <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the top bar naming
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
@@ -838,6 +843,10 @@ export default {
         <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is
           one of the resource, the next ten, then a hundred, and so on. Past the end of your list the last picture stands in.
           Draw them standing, about one tile wide; from ten million up the game draws them across their square of ground.</li>
+        <li><code>stages</code>: a building on the map as goods pile up in it, a list of pictures, empty first and full last
+          (the default pack has four: empty, a little, most, full). Nothing waiting shows the first, a full building the last,
+          and the ones between share the way up. <code>image</code> stays its picture in the sheet; a pack that draws a building's
+          <code>image</code> but not its stages shows that one picture on the map.</li>
       </ul>
 
       <h2>Pictures</h2>
