@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.106.0] - 2026-10-18
+
+Watch's ask: when a shared world undoes something you did (a building put
+up, then gone a second later), say why.
+
+### Fixed
+- **Your buildings no longer vanish from your screen after a correction.**
+  The room's copy of your progress (`progressOf`) listed your buildings by
+  place without their kind, and `correctProgress` dropped every one it
+  couldn't read, so each `econ` answer took all your buildings off your
+  screen while they still stood in the world. Your next progress then
+  showed none, which was off again (the live log had `buildings 0` against
+  the room's 21), and so on. Saves now name each building's kind, and a
+  correction from a room before this version takes the kind from the one
+  standing there in the game.
+- **What you built or bought while the room was answering stays.** A
+  correction keeps buildings and levels that changed since the progress it
+  answers was sent (`sentOf`), as it already did for resources; the room
+  answers those on their own.
+
+### Added
+- **Being told what was taken back, and why.** The room's `econ` answer
+  carries `why`: what it refused since the last check (`spot`: someone else
+  built or worked there first; `cost`: its count couldn't pay for it;
+  `pace`: out of time order or further than anyone can go; `full`: no room
+  for more buildings). The game says what it took back (buildings, upgrades,
+  resources: `takenBack`) and why, calmly, at most every 20 seconds, and
+  nothing for the small differences that are only timing. Being moved back
+  to where the world last saw you (`place`) is said too.
+
 ## [0.105.1] - 2026-10-18
 
 ### Fixed

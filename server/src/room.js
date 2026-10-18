@@ -472,7 +472,7 @@ export class Room {
       // Their game's progress is only compared: the room keeps its own.
       const save = cleanSave(d.s);
       if (!save) return { drop: true };
-      const { drift, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone);
+      const { drift, why, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone);
       const kept = ours && cleanSave(ours);
       if (!kept) return {};
       pl.save = kept;
@@ -487,8 +487,9 @@ export class Room {
       if (!drift) return said ? { toSelf: [{ t: 'away', ...said }] } : {};
       this.logDrift(id, drift, now);
       // ...unless their game is off: then it's told what they really have
-      // (that included), as of the progress it sent.
-      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}), ...(said ? { away: said } : {}) }] };
+      // (that included), as of the progress it sent, and why, if the room
+      // refused something (shadow.js whyNot): the game tells the player.
+      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}), ...(said ? { away: said } : {}), ...(why.length ? { why } : {}) }] };
     }
     if (d.t === 'acts') {
       const list = cleanActs(d.a);

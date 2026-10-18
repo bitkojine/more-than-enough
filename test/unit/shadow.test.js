@@ -102,7 +102,7 @@ test('shadow: progress that doesn\'t follow from what was done is logged, not ke
   // The game takes them, keeping what it got since it sent its progress.
   const sentInv = { ...hacked.inv };
   s.inv.stone = 500_000_007;
-  assert.ok(C.correctProgress(s, out.toSelf[0].s, sentInv));
+  assert.ok(C.correctProgress(s, out.toSelf[0].s, { inv: sentInv }));
   assert.deepEqual([s.inv.stone, s.tools.pickaxe], [kept.inv.stone + 7, 1]);
 });
 
@@ -276,4 +276,19 @@ test('overCounted: a phone that showed far more than the room counts', () => {
   assert.ok(!C.overCounted(save({ mycelium: 1200 }, 3), save({ mycelium: 1000 }, 3)), 'a little ahead is just timing');
   assert.ok(!C.overCounted(save({ mycelium: 500 }), save({ mycelium: 1 })), 'small numbers never count');
   assert.ok(!C.overCounted(null, save({})) && !C.overCounted('{bad', save({})) && !C.overCounted(save({}), null));
+});
+
+test('correctProgress: a room before v0.106.0 named no kinds: your building standing there stays', () => {
+  const s = C.createState(7);
+  s.me = 'a1a1a1a1a1a1a1a1';
+  s.extractors.push({ key: 'quarry', res: 'stone', x: 3, y: 4, z: 0, buffer: 0, owner: s.me });
+  const was = C.sentOf(s);
+  const old = JSON.parse(C.progressOf(s));
+  old.extractors = old.extractors.map(({ k, ...e }) => ({ ...e, b: 5 }));
+  assert.ok(C.correctProgress(s, JSON.stringify(old), was));
+  assert.deepEqual(s.extractors.map((e) => [e.key, e.x, e.y, e.buffer]), [['quarry', 3, 4, 5]]);
+  assert.equal(C.takenBack(was, s), null, 'nothing taken back');
+  old.extractors = [];
+  C.correctProgress(s, JSON.stringify(old), was);
+  assert.deepEqual(C.takenBack(was, s), { buildings: 1, levels: 0, res: [] }, 'one the room never had comes down, and that is said');
 });

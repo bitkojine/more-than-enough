@@ -24,11 +24,11 @@ export function worldOf(s) {
 
 // Your own part, as the room keeps it: everything in a save except the
 // shared world and the map you've explored (that stays on this phone).
-// Your buildings' waiting output comes along by place.
+// Your buildings come along by kind and place, with their waiting output.
 export function progressOf(s) {
   const d = JSON.parse(serialize(s));
   delete d.mods; delete d.props; delete d.explored; delete d.holes;
-  d.extractors = d.extractors.filter((e) => e.o === s.me).map((e) => ({ x: e.x, y: e.y, z: e.z, b: e.b }));
+  d.extractors = d.extractors.filter((e) => e.o === s.me).map((e) => ({ k: e.k, x: e.x, y: e.y, z: e.z, b: e.b }));
   return JSON.stringify(d);
 }
 
@@ -96,19 +96,70 @@ function playersIn(welcome) {
 }
 
 // Sets your progress straight from the room's numbers (`save`, the room's
-// copy of your progress as of when your game sent it with inventory
-// `sentInv`): what you have is the room's, plus what you got since. Your
-// levels, milestones and buildings are the room's. False if it can't be read.
-export function correctProgress(s, save, sentInv = null) {
+// copy of your progress as of when your game sent it, with `sent` what the
+// game had then: sentOf). What you have is the room's, plus what you got
+// since; your levels, milestones and buildings are the room's, except what
+// changed since it was sent (the room hasn't heard of that yet: it's on its
+// way, and the room answers it on its own). False if it can't be read.
+export function correctProgress(s, save, sent = null) {
   const r = deserialize(save, (seed) => blankState({ seed, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() }));
   if (!r) return false;
   for (const k of RESOURCES) {
-    const since = sentInv && Number.isFinite(sentInv[k]) ? s.inv[k] - sentInv[k] : 0;
+    const since = sent && Number.isFinite(sent.inv?.[k]) ? s.inv[k] - sent.inv[k] : 0;
     s.inv[k] = Math.max(0, r.inv[k] + since);
   }
-  for (const k of ['tools', 'unlocks', 'resUp', 'perks', 'sources', 'mushrooms', 'mushroomsEver', 'goalsDone', 'goalIndex', 'abundanceLv', 'insight', 'totalEver']) s[k] = r[k];
-  s.extractors = [...s.extractors.filter((e) => e.owner !== s.me), ...r.extractors.map((e) => ({ ...e, owner: s.me }))];
+  const changed = (k) => !!sent && k in sent && JSON.stringify(s[k]) !== JSON.stringify(sent[k]);
+  for (const k of LEVELS) if (!changed(k)) s[k] = r[k];
+  if (!changed('goalIndex')) { s.goalsDone = r.goalsDone; s.goalIndex = r.goalIndex; }
+  for (const k of ['sources', 'mushrooms', 'mushroomsEver', 'insight', 'totalEver']) s[k] = r[k];
+  // Your buildings, where the room has them. A room before v0.106.0 left
+  // out their kind: the one standing there in this game, then.
+  const here = new Map(s.extractors.map((e) => [spotOf(e), e]));
+  const theirs = new Map();
+  for (const e of buildingsIn(save)) {
+    const key = EXTRACTORS[e.k] ? e.k : here.get(spotOf(e))?.key;
+    if (key && !theirs.has(spotOf(e))) theirs.set(spotOf(e), { key, res: EXTRACTORS[key].res, x: e.x, y: e.y, z: e.z, buffer: e.b, owner: s.me });
+  }
+  const had = sent && Array.isArray(sent.built) ? new Set(sent.built) : null;
+  const since = had ? s.extractors.filter((e) => e.owner === s.me && !had.has(spotOf(e)) && !theirs.has(spotOf(e))) : [];
+  s.extractors = [...s.extractors.filter((e) => e.owner !== s.me && !theirs.has(spotOf(e))), ...theirs.values(), ...since];
   return true;
+}
+
+// Levels the room sets straight (correctProgress), each counted by takenBack.
+const LEVELS = ['tools', 'unlocks', 'resUp', 'perks', 'abundanceLv'];
+const spotOf = (e) => e.x + ',' + e.y + ',' + e.z;
+
+// The buildings in a save (JSON), as written: {k, x, y, z, b}.
+function buildingsIn(save) {
+  let d;
+  try { d = JSON.parse(save); } catch { return []; }
+  const isInt = Number.isSafeInteger;
+  return (isObj(d) && Array.isArray(d.extractors) ? d.extractors : [])
+    .filter((e) => isObj(e) && isInt(e.x) && isInt(e.y))
+    .map((e) => ({ k: e.k, x: e.x, y: e.y, z: isInt(e.z) ? e.z : SURFACE, b: Number.isFinite(e.b) ? e.b : 0 }));
+}
+
+// What your game has that a correction from the room could change (and
+// correctProgress keeps if it changed since): kept with each progress sent.
+export function sentOf(s) {
+  const out = { inv: { ...s.inv }, goalIndex: s.goalIndex, built: s.extractors.filter((e) => e.owner === s.me).map(spotOf) };
+  for (const k of LEVELS) out[k] = JSON.parse(JSON.stringify(s[k] ?? null));
+  return out;
+}
+
+// What a correction took back from what your game had (`was`, sentOf just
+// before it): {buildings, levels, res: [resource]}, or null if nothing
+// that counts. A little less of a resource is only timing, not worth a word.
+export function takenBack(was, s) {
+  const now = new Set(s.extractors.filter((e) => e.owner === s.me).map(spotOf));
+  const buildings = was.built.filter((k) => !now.has(k)).length;
+  let levels = (s.abundanceLv || 0) < (was.abundanceLv || 0) ? 1 : 0;
+  for (const k of ['tools', 'unlocks', 'resUp', 'perks']) {
+    for (const [id, lv] of Object.entries(was[k] || {})) if (Number(s[k]?.[id] || 0) < Number(lv || 0)) levels++;
+  }
+  const res = RESOURCES.filter((r) => (was.inv[r] || 0) - (s.inv[r] || 0) > Math.max(10, 0.05 * (was.inv[r] || 0)));
+  return buildings || levels || res.length ? { buildings, levels, res } : null;
 }
 
 // Whether this phone's copy of your progress (`local`, a save) showed far

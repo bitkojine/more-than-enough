@@ -14,7 +14,7 @@
  * from here (room.js), not from the game's edits; gathering's changes to the
  * land still come from the game's edits. */
 
-import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
+import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, canAfford, extractorCost, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
 
 const SLACK_MS = 2000;     // play time a game may be ahead of the room's clock (a late message)
 // Gathering by hand: holding Gather works a tile every 0.25 s (the game's
@@ -39,7 +39,7 @@ const spot = (e) => e.x + ',' + e.y + ',' + e.z;
 export class Shadow {
   constructor(seed) {
     this.base = createWorld(seed); // its generated land, cached for every player
-    this.players = new Map();      // id -> {s, at, hand, last, checks, off, refused}
+    this.players = new Map();      // id -> {s, at, hand, last, checks, off, refused, why}
     this.bare = { ...this.base, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() };
   }
 
@@ -63,7 +63,7 @@ export class Shadow {
     // Where they were last: where their progress says, or anywhere for the
     // first act of someone new (the game puts them by a friend).
     const last = save ? { x: s.player.x, y: s.player.y, z: s.player.z, ms: s.stats.playedMs } : null;
-    const sh = { s, at, hand: { n: HAND_BURST, ms: s.stats.playedMs }, last, checks: 0, off: 0, refused: 0, ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
+    const sh = { s, at, hand: { n: HAND_BURST, ms: s.stats.playedMs }, last, checks: 0, off: 0, refused: 0, why: new Set(), ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
     this.players.set(id, sh);
     return sh;
   }
@@ -101,10 +101,10 @@ export class Shadow {
       .map(([key, x, y, z, owner]) => ({ key, res: EXTRACTORS[key].res, x, y, z, buffer: 0, owner }))];
     let refused = 0;
     for (const a of list) {
-      if (!this.allowed(sh, a, limit)) { refused++; continue; }
+      if (!this.allowed(sh, a, limit)) { refused++; sh.why.add('pace'); continue; }
       this.until(s, a[1]);
       sh.last = { x: a[2], y: a[3], z: a[4], ms: a[1] };
-      if (!replayAct(s, a)) refused++;
+      if (!replayAct(s, a)) { refused++; sh.why.add(whyNot(s, a)); }
     }
     this.until(s, to);
     advanceGoals(s);
@@ -141,7 +141,9 @@ export class Shadow {
   // A building or prop the room's world had no room for: gone from the copy too.
   unmake(id, e) {
     const sh = this.players.get(id);
-    if (sh && e[0] === 'x') sh.s.extractors = sh.s.extractors.filter((b) => !(b.x === e[2] && b.y === e[3] && b.z === e[4]));
+    if (!sh || e[0] !== 'x') return;
+    sh.s.extractors = sh.s.extractors.filter((b) => !(b.x === e[2] && b.y === e[3] && b.z === e[4]));
+    sh.why.add('full');
   }
 
   until(s, ms) {
@@ -149,7 +151,8 @@ export class Shadow {
   }
 
   // The game sent player `id`'s progress (`save`, checked by protocol.js).
-  // Returns {drift: how it differs from the room's copy, or null; save: the
+  // Returns {drift: how it differs from the room's copy, or null; why: what
+  // the room refused since the last check, for the player (whyNot); save: the
   // room's progress to keep, with the game's own bits (where they stand,
   // what they've seen); ms: the play time it's as of; away: what their
   // buildings made while they were away, or null}. `gone`: [when, play time]
@@ -169,9 +172,11 @@ export class Shadow {
     const drift = differ(sh.s, theirs);
     sh.checks++;
     if (drift) sh.off++;
+    const why = [...sh.why];
+    sh.why.clear();
     // After what they sent is compared: their game hears of it separately.
     const away = gone ? this.away(sh.s, gone, now) : null;
-    return { drift, save: this.saveOf(id, theirs), ms, away };
+    return { drift, why, save: this.saveOf(id, theirs), ms, away };
   }
 
   // Away time (stage 3): the wall time since they left that their play time
@@ -217,6 +222,16 @@ export class Shadow {
     const sh = this.players.get(id);
     return sh ? { checks: sh.checks, off: sh.off, refused: sh.refused } : null;
   }
+}
+
+// Why the rules refused act `a` on copy `s`, in a word the player's game
+// explains (together.js, 'econ'): 'spot' (someone else built or worked
+// there first), 'cost' (the room's count couldn't pay for it). Besides
+// these, 'pace' is an act out of time order or further than anyone can go
+// (allowed), and 'full' a building the world had no room for (unmake).
+function whyNot(s, a) {
+  if (a[0] === 'b' && EXTRACTORS[a[5]]) return canAfford(s.inv, extractorCost(s, a[5])) ? 'spot' : 'cost';
+  return a[0] === 'u' || a[0] === 'p' ? 'cost' : 'spot';
 }
 
 // Where the game's progress (`theirs`, a parsed save) differs from the

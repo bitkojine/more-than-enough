@@ -34,7 +34,9 @@ shared with the game.
    `src/core/acts.js`) and the room does the same with the game's own rules
    on its own copy. That copy is what they have. When the progress a game
    sends (`save`) differs, the room keeps its own and sends the game its
-   numbers (`econ`); the game keeps what it got since. Buildings and props
+   numbers (`econ`, with `why`: what it refused since the last `save`,
+   `spot`, `cost`, `pace` or `full`, for the game to tell the player); the
+   game keeps what it got, built and bought since. Buildings and props
    go up in the world from the room's copy, not from the game's edits. Time
    away (up to 8 hours) is made up by the room too: with the first `save`
    after coming back, their buildings' output goes into the copy and the game

@@ -46,6 +46,11 @@ const RECONNECT_MAX = 15;             // seconds between tries, at most
 const PING_EVERY = 5;                 // seconds of play between asking the room if it's there
 const SILENT_IS_DEAD = 15;            // seconds of play without a word from the room: the connection is gone
 const FIXED_SECONDS = 9;              // how long the note that your numbers were set straight stays up
+const UNDONE_SECONDS = 8;             // how long the note that the room took something back stays up
+const UNDONE_QUIET = 20;              // seconds after one such note before the next
+// Why the room refused something (server/src/shadow.js whyNot), the most
+// telling first; 'count' when it said nothing (only the counts differed).
+const UNDONE_WHY = ['full', 'spot', 'cost', 'pace'];
 const ACTS_PER_TICK = 4;              // 'acts' messages at most per frame (the room allows 30 messages a second)
 const SENT_KEPT = 6;                  // progress sent, remembered for the room's answer to it
 const ACTS_KEPT_MS = 60_000;          // play time of acts kept after sending, to send again if the room missed them
@@ -232,7 +237,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // Edits sent and not yet answered ({n, e}), when the room answers them:
   // the ones a dead connection swallowed are sent again (see resync).
   let acks = false, editSeq = 0, unacked = [];
-  let sent = [];            // {n, ms, inv} of the last progress sent, for the room's corrections ('econ')
+  let sent = [];            // {n, ms, ...Core.sentOf} of the last progress sent, for the room's corrections ('econ')
+  let undoneAt = -Infinity; // when the player was last told the room took something back (seconds)
   let sentActs = [];        // acts sent lately: the room may not have them (a dying connection, a restart)
   let saveSeq = 0;          // numbers the progress sent
   let fixedNote = false;    // arrived to smaller numbers than this phone showed: the away toast says so too
@@ -378,9 +384,10 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       return;
     }
     // The room has you somewhere else than this game does: go there.
+    // (Your game walked on while the room couldn't hear it, say offline.)
     if (d.t === 'place') {
       const p = cleanPos(d.p);
-      if (p) game.moveTo(p);
+      if (p) { game.moveTo(p); hud.toast(t('together.toast.placed'), UNDONE_SECONDS); }
       return;
     }
     if (d.t === 'econ') {
@@ -391,9 +398,11 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       // same play time, say while the game is hidden), or from a room
       // before v0.91.1, the newest at that play time.
       const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : sent.findLast((x) => x.ms === d.ms);
-      if (Core.correctProgress(game.state, d.s, at ? at.inv : null)) game.worldChanged();
+      const was = Core.sentOf(game.state);
+      if (Core.correctProgress(game.state, d.s, at || null)) game.worldChanged();
       const away = d.away && cleanAway(d.away);
       if (away) onAway(away.secs, away.made, takeFixed()); // already in what it sent
+      else sayUndone(Core.takenBack(was, game.state), d.why);
       return;
     }
     if (d.t === 'away') {
@@ -495,6 +504,22 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     const was = fixedNote;
     fixedNote = false;
     return was;
+  }
+
+  // The room took back something your game showed (an 'econ' answer):
+  // what, and why as the room saw it (server/src/shadow.js whyNot), or that
+  // the counts differed. Calm: an honest game ends up here too, say after a
+  // weak connection or a friend building on the same spot first.
+  function sayUndone(lost, why) {
+    if (!lost) return;
+    const now = performance.now() / 1000;
+    if (now - undoneAt < UNDONE_QUIET) return;
+    undoneAt = now;
+    const what = lost.buildings ? t('together.undone.buildings', { count: lost.buildings })
+      : lost.levels ? t('together.undone.levels', { count: lost.levels })
+      : t('together.undone.res', { res: lost.res.map((r) => Core.RESOURCE_LOWER[r]).join(', ') });
+    const reason = UNDONE_WHY.find((w) => Array.isArray(why) && why.includes(w)) || 'count';
+    hud.toast(what + '. ' + t('together.why.' + reason), UNDONE_SECONDS);
   }
 
   function welcome(raw) {
@@ -706,7 +731,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     lastSave = progress;
     // The room checks this against what you did, so that goes first, all of it.
     if (s.acts && !sendActs(s)) { lastSave = ''; timers.save = 0; return; }
-    sent.push({ n: ++saveSeq, ms: Math.round(s.stats.playedMs), inv: { ...s.inv } });
+    sent.push({ n: ++saveSeq, ms: Math.round(s.stats.playedMs), ...Core.sentOf(s) });
     if (sent.length > SENT_KEPT) sent.shift();
     send({ t: 'save', s: progress, n: saveSeq });
   }

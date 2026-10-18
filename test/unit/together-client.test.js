@@ -557,6 +557,58 @@ test('client: a room that restarts (a deploy) between your saves loses nothing y
   assert.ok(g.game.state.inv.mycelium >= 9 && g.game.state.inv.stone >= 3, 'and nothing gathered is taken back');
 });
 
+// What your game shows as yours: buildings by place.
+const mineIn = (s) => s.extractors.filter((e) => e.owner === s.me).map((e) => e.x + ',' + e.y);
+
+test('client: a correction from the room keeps your buildings, and says what it took back and why', async () => {
+  const g = await owning();
+  const { s } = g.bot;
+  assert.ok(g.bot.buildNow('garden').ok);
+  g.together.tick(0.3); g.pump();
+  g.together.save(s, true); g.pump();
+  const built = mineIn(s);
+  assert.equal(built.length, 1);
+  s.inv.stone += 5000; // the game counts more than the room
+  g.together.save(s, true); g.pump();
+  assert.ok(s.inv.stone < 5000, 'the room\'s numbers');
+  assert.deepEqual(mineIn(s), built, 'your building still stands');
+  assert.ok(g.toasts.includes('Taken back: some of your stone. The world keeps count of what everyone has, and its count differed from your game\'s'), g.toasts.at(-1));
+  const off = g.r.shadow.report(g.me).off;
+  g.together.save(s, true); g.pump(g.clock() + 70_000);
+  assert.equal(g.r.shadow.report(g.me).off, off, 'and the next progress agrees');
+});
+
+test('client: a building put up while the room was answering stays, and goes up once', async () => {
+  const g = await owning();
+  const { s } = g.bot;
+  g.bot.gather('mycelium', 40);
+  g.together.tick(0.3); g.pump();
+  s.inv.ore += 50;                 // a difference the room corrects...
+  g.together.save(s, true);
+  assert.ok(g.bot.standBy(g.bot.free(Core.T.FOREST)));
+  assert.ok(Core.place(s, 'garden').ok); // ...and a building put up before its answer
+  g.pump();
+  assert.equal(mineIn(s).length, 1, 'the answer doesn\'t take it down');
+  g.together.tick(0.3); g.pump();
+  assert.equal(mineIn(s).length, 1, 'and the room\'s word of it adds no second one');
+  assert.equal(g.r.ext.length, 1);
+});
+
+test('client: a building the room couldn\'t pay for comes down, and the player is told why', async () => {
+  const g = await owning();
+  const { s } = g.bot;
+  g.together.tick(0.3); g.pump();
+  g.together.save(s, true); g.pump();
+  s.inv.mycelium += 200;           // more than the room counts
+  assert.ok(g.bot.standBy(g.bot.free(Core.T.FOREST)));
+  assert.ok(Core.place(s, 'garden').ok);
+  g.together.tick(0.3); g.pump();
+  g.together.save(s, true); g.pump();
+  assert.deepEqual(mineIn(s), [], 'not in the world, so not in your game');
+  assert.equal(g.r.ext.length, 0);
+  assert.ok(g.toasts.includes('A building of yours was taken down. The world counted fewer resources for you than your game showed, so it couldn\'t be paid for'), g.toasts.at(-1));
+});
+
 /* ---------------------------------------------------- the Worlds list */
 
 test('client: every world has a two-word name, the same each time, and the join question says it', async () => {
