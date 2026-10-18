@@ -19,7 +19,7 @@ shared with the game.
    to room.
 3. Holding up the sign asks the room for an **invite link**: a second random
    code that lets in a few people (1 to 25, 3 unless the player picks; never
-   unlimited) for a while (30 minutes to a day, a day unless they pick).
+   unlimited) for a while (30 minutes to a week, a week unless they pick).
    Your sign keeps showing your newest one made that way while it has room
    and time left. The room counts how many joined with each link; the owner
    can list and stop every link, anyone else their own. The QR is
@@ -153,7 +153,7 @@ logged as text either: item and building names only from the game's own
 list (`src/net/names.js`), invite codes only as a 6-character prefix of a
 real code. The log is read by an AI reviewer, so text in it could be made
 to read like an instruction. Logs are deleted after 14 days
-(`LOG_DAYS`), except the security trail (`cheat`, `ban`, `freeze`, `thaw`, `deny`, `cut`),
+(`LOG_DAYS`), except the security trail (`cheat`, `ban`, `freeze`, `thaw`, `deny`, `cut`, `drift`),
 kept 90 days (`SECURITY_DAYS`); all of it goes with the room. Players are told once, when they first
 enter a shared world, and in Settings.
 
