@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.110.1] - 2026-10-18
+
+Watch's report: holding Perfect looped up and down the mine ladder.
+
+### Fixed
+- **Perfect bobbed between layers** near a cave mouth: each small early
+  purchase looked quickest to dig for, so it went down for a find or two
+  and straight back up for the next. A trip down now counts the way there
+  and back, and must be worth at least a minute of digging (`MIN_DIG`);
+  once down, the surface's price includes the climb back up (`climbBack`).
+  Three seeds that did it from spawn are now bot tests (12 layer changes and
+  1.8 s trips before the fix).
+
 ## [0.110.0] - 2026-10-18
 
 Watch's ask: replace Explore/Gather with one Perfect button that plays the

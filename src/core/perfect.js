@@ -51,6 +51,7 @@ const STICK = 10;             // game seconds a way of getting the goal is kept 
 const MINE_EDGE = 0.8;       // the mine must be this much quicker than the surface to go down
 const SHAFT_SECONDS = 45;     // reckoned to find and open the way down out of a layer
 const DIG_SECONDS = 0.6;      // reckoned per tile tunnelled toward a find (dig, then step)
+const MIN_DIG = 60;           // seconds of digging a trip down must be worth: no popping in for a find or two
 const PERKS_FIRST = ['memory', 'heirloom', 'cartographer'];
 
 /** @returns {object} a blank memory for nextIntent */
@@ -180,9 +181,18 @@ export function plan(s, mind, cost) {
     const h = handEta(s, mind, r, m);
     if (h < w) { how[r] = 'hand'; handSum += h; } else { how[r] = 'wait'; waitMax = Math.max(waitMax, w); }
   }
-  const surface = { eta: Math.max(waitMax, handSum), how };
+  // Underground, getting it on the surface starts with the way back up.
+  const surface = { eta: Math.max(waitMax, handSum) + (handSum > 0 ? climbBack(s, mind) : 0), how };
   const mine = minePlan(s, mind, missing);
   return mine && mine.eta < surface.eta * MINE_EDGE ? mine : surface;
+}
+
+// Underground: about how long the way back up to the surface takes.
+function climbBack(s, mind) {
+  const here = layerOf(s);
+  if (!here) return 0;
+  const a = mind.arrived[s.player.z];
+  return (a ? dist(s, a.x, a.y) / speed(s) : EXPLORE_GUESS) + (here - 1) * SHAFT_SECONDS;
 }
 
 // The deepest mine layer your Pickaxe can open the way down to.
@@ -219,7 +229,7 @@ function minePlan(s, mind, missing) {
   if (here === 0) {
     const cave = caveMouth(s, mind);
     if (!cave) return null;
-    travel = dist(s, cave.x, cave.y) / speed(s);
+    travel = 2 * dist(s, cave.x, cave.y) / speed(s); // there, and back up after
   }
   // A find is about this many tiles of tunnel from the last one.
   const between = CHUNK_SIZE / Math.sqrt(FINDS_PER_CHUNK);
@@ -230,6 +240,8 @@ function minePlan(s, mind, missing) {
     const perFind = between / Math.sqrt(pays.share) * DIG_SECONDS;
     let dig = 0;
     for (const r of res) dig = Math.max(dig, pays.loot[r] > 0 ? missing[r] / pays.loot[r] * perFind : Infinity);
+    // Down from the surface only for a dig worth the trip; once down, any dig.
+    if (here === 0 && dig < MIN_DIG) continue;
     const eta = travel + Math.max(0, layer - Math.max(here, 1)) * SHAFT_SECONDS + dig;
     if (isFinite(eta) && (!best || eta < best.eta)) best = { eta, layer, how: Object.fromEntries(res.map((r) => [r, 'mine'])) };
   }

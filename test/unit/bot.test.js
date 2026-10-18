@@ -125,6 +125,27 @@ test('Perfect plays on through automation into compounding', () => {
   assert.ok(s.abundanceLv <= C.EMBARK_ABUNDANCE, 'Abundance waits at the Embark level until the rest is done');
 });
 
+// Near a cave mouth, small early purchases each looked quickest to dig for,
+// so Perfect went down for a second and straight back up, over and over
+// (Watch saw it on the ladder, v0.110.0). These seeds did it from spawn: a
+// trip down must now be worth the way back, and lasts.
+for (const seed of [2415085376, 4055616911, 3668339994]) {
+  test('Perfect does not bob up and down the mine ladder on seed ' + seed, () => {
+    const s = C.createState(seed);
+    let z = C.SURFACE, changes = 0, wentDown = 0;
+    const stays = [];
+    holdPerfect(s, 20 * 60, { seen: () => {
+      if (s.player.z === z) return;
+      changes++;
+      if (z === C.SURFACE) wentDown = s.time;
+      else if (s.player.z === C.SURFACE) stays.push(s.time - wentDown);
+      z = s.player.z;
+    } });
+    assert.ok(changes <= 4, 'layer changes: ' + changes);
+    for (const t of stays) assert.ok(t >= 30, 'a trip down lasted only ' + t.toFixed(1) + ' s');
+  });
+}
+
 // The mine: when what's wanted can only be dug (here ore, every deposit seen
 // too hard for the Pickaxe in hand and no building making it), Perfect goes
 // down a cave mouth it has seen, flags the way back, lights the tunnel with
