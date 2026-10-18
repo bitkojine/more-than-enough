@@ -21,9 +21,6 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const SEEDS = [12345, 777, 99, 20260101, 4242, 2415085376, 4055616911, 3668339994, 31337, 8080, 1, 65535];
 const SHORT_TRIP = 30; // seconds below the surface that count as popping in and out
 
-if (isMainThread) await main();
-else parentPort.postMessage(await play(workerData));
-
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const seeds = /^\d+$/.test(args.seeds) && Number(args.seeds) <= SEEDS.length
@@ -150,3 +147,7 @@ function report({ runs, summary }, before) {
     console.log('  ' + id.padEnd(16) + h(t) + delta(t, before?.summary.milestones[id]));
   }
 }
+
+// Last, so every function and constant above is ready.
+if (isMainThread) await main();
+else parentPort.postMessage(await play(workerData));
