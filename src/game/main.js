@@ -29,6 +29,7 @@ import { createActor } from './render/motion.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
+import { createBackup } from './backup.js';
 import { createFbi } from './fbi.js';
 import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
@@ -182,6 +183,7 @@ const game = {
     el.playersBtn.hidden = !shared;
     el.worldsBtn.hidden = !together.available;
     el.worldNow.textContent = together.worldName;
+    backup.changedMode();
     together.refresh();
   }
 };
@@ -256,6 +258,8 @@ const sheet = createSheet(el, {
   },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
+
+const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
 
 const textures = createTextures({
   el, look, defaultPack,

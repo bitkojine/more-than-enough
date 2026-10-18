@@ -90,3 +90,21 @@ test('worlds: copies left behind by an older version are cleared the next time a
   remember(roomId(1), false);
   for (const k of copies(roomId(99))) assert.equal(store.has(k), false, k);
 });
+
+test('storage: a backup file of your own world loads back as it was, and nothing else does', async () => {
+  const { backupText, fromBackup, backupName } = await import('../../src/game/backup.js');
+  const s = Core.createState(42);
+  s.inv.mycelium = 17;
+  s.prestiges = 2;
+  const text = backupText(s, Date.UTC(2026, 9, 18), '1.2.3');
+  const back = fromBackup(text);
+  assert.equal(back.seed, 42);
+  assert.equal(back.inv.mycelium, 17);
+  assert.equal(back.prestiges, 2);
+  assert.equal(Core.serialize(back), Core.serialize(s), 'the whole world');
+  assert.equal(fromBackup(Core.serialize(s)).inv.mycelium, 17, 'a save as the browser keeps it reads too');
+  for (const bad of ['', 'nope', 'null', '[]', '{}', otherFormat, JSON.stringify({ kind: 'mte-solo-world', save: otherFormat }), JSON.stringify({ kind: 'mte-shared-world', entries: [] })]) {
+    assert.equal(fromBackup(bad), null, bad);
+  }
+  assert.match(backupName(Date.now()), /^more-than-enough-\d{4}-\d\d-\d\d-\d{4}\.json$/);
+});

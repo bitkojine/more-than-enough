@@ -199,7 +199,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
 
 - `GET /admin` (no token): the moderator's page (`src/admin.js`), every
   player of every world in one table that sorts by any column, with a
-  copy, freeze/thaw and the log for each. It asks for the token and keeps
+  copy, a backup download, freeze/thaw and the log for each, and
+  *Restore a backup…* at the top. It asks for the token and keeps
   it in the browser, sending it only to these routes; it holds no data
   itself, writes what it's sent as text, and runs only its own script.
 - `GET /admin/players[?tests=1]`: every world (`/admin/rooms`'s brief plus
@@ -234,6 +235,17 @@ The moderator's routes (`Authorization: Bearer <token>`):
   (the numbers their phone last showed).
 - `GET /admin/rooms/<id>/graves`: its tombstones, as a player's welcome
   carries them (`[id, colour, x, y, z, 'ban' | 'ice']`).
+- `GET /admin/rooms/<id>/backup`: the whole world as one JSON file to keep
+  on disk (`src/backup.js`, a download named `mte-world-<id>-<time>.json`):
+  every entry the room keeps, each player's progress as the room has it now,
+  but no invite links. `node scripts/backup-worlds.mjs [folder]` saves every
+  world's (needs `ADMIN_TOKEN`, or the project's proxy). Only the moderator
+  backs up a shared world (Watch's choice): it holds everyone's progress.
+- `POST /admin/rooms/<id>/restore` with a backup file as the body: puts a
+  world that's gone back from it, at its own address, so its players come
+  back with their own phones (a player's id comes from the address and
+  their key). A world that's still there is never written over: 409
+  `exists` (Watch's choice). Answers `{room}`.
 
 The deploy's smoke test makes a room with seed 12345 every time; skip those.
 

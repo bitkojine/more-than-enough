@@ -17,6 +17,8 @@
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
  *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
  *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
+ *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
+ *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
  * can make only a few rooms an hour, and everything else is refused. The
@@ -27,6 +29,8 @@ import { Room, Bucket, NEAR, visitor } from './room.js';
 import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
 import { snapshot, copyEntries, COPY_MS } from './copy.js';
 import { adminPage, worldOf, isSmokeTest } from './admin.js';
+import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
+import { VERSION } from '../../src/version.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
@@ -131,7 +135,7 @@ async function admin(request, env, url) {
     }));
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy|backup|restore)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -147,6 +151,23 @@ async function admin(request, env, url) {
     const text = await room.exportLog(m[1], since);
     if (text === null) return respond({ error: 'room' }, 404, null);
     return new Response(text, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' } });
+  }
+  if (m[2] === 'backup' && request.method === 'GET') {
+    const entries = await room.snapshot(m[1]);
+    if (!entries) return respond({ error: 'room' }, 404, null);
+    const now = Date.now();
+    return new Response(backupOf(entries, m[1], now, VERSION), { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="' + backupName(m[1], now) + '"' } });
+  }
+  if (m[2] === 'restore' && request.method === 'POST') {
+    const body = await readCapped(request, BACKUP_MAX);
+    if (body === null) return respond({ error: 'size' }, 413, null);
+    const entries = entriesOf(body, m[1]);
+    if (!entries) return respond({ error: 'bad' }, 400, null);
+    // adopt refuses a room that's there ('exists'): a live world is never written over.
+    const err = await room.adopt(m[1], entries);
+    if (err) return respond({ error: err }, 409, null);
+    await env.REGISTRY.get(env.REGISTRY.idFromName('*')).add(m[1]);
+    return respond({ room: m[1] }, 200, null);
   }
   if (m[2] === 'copy' && request.method === 'POST') {
     const body = await readCapped(request, 1024);

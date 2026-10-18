@@ -420,7 +420,8 @@ export default {
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
       <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Language</strong>, <strong>Wiki</strong> (this page) and the privacy policy.
         Its last row, <strong>Nerds</strong>, holds the technical things: <strong>Textures</strong>, which shows the texture pack
-        in use and loads your own (see <a href="#textures">Texture packs</a>), the <strong>Performance panel</strong> and the game's version.</p>
+        in use and loads your own (see <a href="#textures">Texture packs</a>), <strong>Save a backup</strong> and <strong>Load a backup</strong>
+        (see <a href="#saving">Saving</a>), the <strong>Performance panel</strong> and the game's version.</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
         one, the game follows your browser's language.</p>
@@ -917,6 +918,10 @@ export default {
         <li>If a save can't be read (it's damaged, or from a newer version than the page you have open), the game says so
           and starts a new world, but the save is kept to one side, never written over. It comes back by itself as soon as
           a version that can read it loads, and so does any world set aside that you had played further than the one in use.</li>
+        <li><strong>Backups.</strong> <em>Save a backup</em> in Settings, Nerds, saves your own world as a file on your device; keep it
+          anywhere. <em>Load a backup</em> plays a world from such a file, on any browser or device. It asks first, and saves
+          the world you're in as a file before it, so neither is lost. A shared world has neither: its progress is kept by the
+          world itself, and the moderator backs it up.</li>
       </ul>`,
   "wiki.article.ideas.title": "Ideas",
   "wiki.article.ideas": `      <h1>Ideas</h1>

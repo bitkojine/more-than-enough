@@ -1,5 +1,5 @@
 /* The moderator's page: every shared world and everyone in it, in one table
- * that sorts by any column, with a copy to play, freeze and thaw, and each
+ * that sorts by any column, with a copy to play, a backup to download, freeze and thaw, and each
  * player's log (server/README.md, "The moderator").
  *
  * GET /admin serves the page to anyone, and it holds nothing: it asks for
@@ -240,6 +240,19 @@ function client() {
             await api(base + '/freeze', { id: r.id, why: why.trim().slice(0, 200) });
             await load();
           }),
+        act('Download backup', '', async () => {
+          // The whole world, to keep on disk (backup.js): fetched with the
+          // token, then saved from memory.
+          const res = await fetch(base + '/backup', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+          if (!res.ok) throw new Error(res.status);
+          const name = (/filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '') || [])[1] || 'mte-world.json';
+          const url = URL.createObjectURL(await res.blob());
+          const a = el('a', { href: url, download: name });
+          document.body.append(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 60_000);
+          say.className = 'note';
+          say.textContent = 'Saved ' + name + ' (the whole world, every player in it).';
+        }),
         act('Log, last 24 h', '', async () => {
           let since = Date.now() - 86400_000, lines = [];
           for (let page = 0; page < 10; page++) {
@@ -311,6 +324,32 @@ function client() {
     start();
   };
   $('refresh').onclick = load;
+  // A world that's gone, put back from its backup file at its own address
+  // (backup.js): the room service refuses one that's still there.
+  $('restore').onclick = () => $('restoreFile').click();
+  $('restoreFile').onchange = async () => {
+    const file = $('restoreFile').files[0];
+    $('restoreFile').value = '';
+    if (!file) return;
+    const status = $('status');
+    try {
+      const text = await file.text();
+      let d = null;
+      try { d = JSON.parse(text); } catch { /* below */ }
+      if (!d || d.kind !== 'mte-shared-world' || typeof d.room !== 'string') throw new Error('that file is not a world backup');
+      if (!window.confirm('Put world ' + d.room + ' back as it was on ' + new Date(d.at).toLocaleString() + '? Only if it is gone: a world that is still there is never written over.')) return;
+      const res = await fetch('/admin/rooms/' + encodeURIComponent(d.room) + '/restore', { method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, body: text, cache: 'no-store' });
+      const out = await res.json().catch(() => ({}));
+      if (res.status === 409 && out.error === 'exists') throw new Error('that world is still there, so it was left as it is');
+      if (!res.ok) throw new Error(out.error || res.status);
+      await load();
+      status.className = 'note';
+      status.textContent = 'World ' + d.room + ' is back; its players come back with their own phones.';
+    } catch (e) {
+      status.className = 'error';
+      status.textContent = 'Restore failed: ' + e.message;
+    }
+  };
   $('signout').onclick = () => signOut('');
   $('world').onchange = render;
   $('find').oninput = render;
@@ -340,6 +379,8 @@ const BODY = `<form id="gate">
     <label><input id="live" type="checkbox" checked> Live</label>
     <label><input id="tests" type="checkbox"> Test worlds</label>
     <button id="refresh" type="button">Refresh</button>
+    <button id="restore" type="button">Restore a backup…</button>
+    <input id="restoreFile" type="file" accept=".json,application/json" hidden>
     <button id="signout" type="button">Sign out</button>
   </header>
   <main>

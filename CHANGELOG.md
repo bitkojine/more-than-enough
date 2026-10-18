@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.120.0] - 2026-10-18
+
+Watch's ask: back up any world and save it to disk. Watch chose that only
+the moderator backs up a shared world (it holds everyone's progress), and
+that a restore never touches a live world.
+
+### Added
+- *Save a backup* and *Load a backup* on the Nerds screen, in your own world
+  only (`src/game/backup.js`): your world as a JSON file on your device, and
+  playing one from such a file. Loading asks first and saves the world
+  you're in as a file before it, so neither is lost. A shared world has
+  neither: putting back an old copy of your progress there would be cheating.
+- `GET /admin/rooms/<id>/backup` (`server/src/backup.js`): a whole shared
+  world as one file, every entry the room keeps and each player's progress
+  as the room has it now, without the invite links. The admin page has a
+  *Download backup* button per row; `scripts/backup-worlds.mjs` saves every
+  world's at once.
+- `POST /admin/rooms/<id>/restore` and the admin page's *Restore a backup…*:
+  puts a world that's gone back from its file, at its own address (a
+  player's id comes from the address and their key, so only there do they
+  get back in with their own phones). A world that's still there is refused
+  (409 `exists`), never written over.
+
+### Tests
+- `test/unit/backup.test.js`: a backup reads back into the same world, both
+  players' keys play their own characters in it, no invite links come
+  along, the room is left as it was, and a restore takes only that world's
+  own file and never brings back an admin's copy.
+- `test/unit/storage.test.js`: a solo backup loads back exactly, a browser
+  save reads too, and other files don't.
+- `test/browser.e2e.js`: your own world has both backup rows.
+
 ## [0.119.0] - 2026-10-18
 
 Watch: "All this techy stuff needs to be in a nerds menu, don't make it top

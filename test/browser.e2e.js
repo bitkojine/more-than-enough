@@ -1105,6 +1105,7 @@ async function main() {
     'no emoji left on the buttons or counters');
   eq(await evalJS('document.getElementById("packName").textContent'), 'Lanternlight', 'the Textures button names the pack in use');
   eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), true, '"Default textures" only shows while another pack is in use');
+  eq(await evalJS('document.getElementById("btnBackupSave").hidden || document.getElementById("btnBackupLoad").hidden'), false, 'your own world has Save a backup and Load a backup');
   // The sheet's rows use the pack's pictures too.
   await evalJS('document.getElementById("btnBuild").click()');
   ok(await waitFor('document.querySelectorAll("#sheetBody .row .ic img").length >= 8', 2000), 'the Build sheet shows each building\'s picture');

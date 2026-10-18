@@ -414,7 +414,8 @@ export default {
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
       <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Kalba</strong>, <strong>Žinynas</strong> (šis puslapis) ir privatumo politika.
         Paskutinė eilutė, <strong>Moksliukams</strong>, slepia techninius dalykus: <strong>Tekstūros</strong>, kur matyti naudojamas
-        tekstūrų paketas ir galima įkelti savo (žr. <a href="#textures">Tekstūrų paketai</a>), <strong>Našumo skydelis</strong> ir žaidimo versija.</p>
+        tekstūrų paketas ir galima įkelti savo (žr. <a href="#textures">Tekstūrų paketai</a>), <strong>Išsaugoti atsarginę kopiją</strong> ir
+        <strong>Įkelti atsarginę kopiją</strong> (žr. <a href="#saving">Išsaugojimas</a>), <strong>Našumo skydelis</strong> ir žaidimo versija.</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
         žaidimas seka naršyklės kalbą.</p>
@@ -909,6 +910,10 @@ export default {
         <li>Jei išsaugojimo nepavyksta perskaityti (jis sugadintas arba iš naujesnės versijos nei atverta), žaidimas tau
           praneša ir pradeda naują pasaulį, bet išsaugojimas padedamas į šalį, niekada neperrašomas. Jis sugrįžta pats, kai
           tik įsikelia jį perskaityti galinti versija, kaip ir bet kuris į šalį padėtas pasaulis, kurį žaidei ilgiau nei dabartinį.</li>
+        <li><strong>Atsarginės kopijos.</strong> <em>Išsaugoti atsarginę kopiją</em> Nustatymų skiltyje <strong>Moksliukams</strong> išsaugo tavo pasaulį kaip failą
+          tavo įrenginyje; laikyk jį kur nori. <em>Įkelti atsarginę kopiją</em> leidžia žaisti pasaulį iš tokio failo bet kurioje
+          naršyklėje ar įrenginyje. Pirma paklausia ir išsaugo pasaulį, kuriame esi, kaip failą, tad nė vienas nedingsta.
+          Bendras pasaulis jų neturi: jo pažangą saugo pats pasaulis, o atsargines kopijas daro moderatorius.</li>
       </ul>`,
   "wiki.article.ideas.title": "Idėjos",
   "wiki.article.ideas": `      <h1>Idėjos</h1>
