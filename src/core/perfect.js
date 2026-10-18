@@ -74,7 +74,7 @@ const speed = (s) => BASE_SPEED * speedMult(s);
 const dist = (s, x, y) => Math.hypot(x + 0.5 - s.player.x, y + 0.5 - s.player.y);
 const layerOf = (s) => SURFACE - s.player.z;
 
-// The mind belongs to one state: a new world (Embark, the nuke, switching
+// The mind belongs to one state: a new world (Embark, switching
 // worlds) starts it afresh.
 function fresh(s, mind) {
   if (mind.state !== s) {

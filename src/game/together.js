@@ -57,8 +57,6 @@ const ACTS_KEPT_MS = 60_000;          // play time of acts kept after sending, t
 const ACTS_KEPT_MAX = 6000;           // and at most this many
 const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
-const NUKE_TOASTS = 8;                // worlds this small hear about every nuke vote
-const NUKE_NAMES = 6;                 // names listed on the nuke screen
 const FORMAT_RETRY = 60_000;          // ms before trying a world again whose room service hasn't updated yet
 const AWAY_EVERY = 2100;              // ms between away/back changes (the room takes one per STATUS_MS)
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
@@ -155,12 +153,6 @@ function cleanPlayers(players) {
   return out;
 }
 
-// The nuke as the room sends it ({votes, until}), or null if it doesn't fit.
-function cleanNuke(n) {
-  if (!n || typeof n !== 'object' || !Array.isArray(n.votes) || n.votes.length > LIMITS.players || !Number.isSafeInteger(n.until)) return null;
-  return n.votes.every((id) => typeof id === 'string' && ID_RE.test(id)) ? { votes: new Set(n.votes), until: n.until } : null;
-}
-
 // Tombstones where banned and frozen characters last stood ([id, colour,
 // x, y, z, kind]), or an empty list if they don't fit: they only mark
 // places, so a bad list mustn't keep anyone out of the world.
@@ -182,16 +174,15 @@ function cleanWelcome(d) {
   if (!ID_RE.test(d.you) || !ID_RE.test(d.owner) || cleanColor(d.c) === null) return null;
   const world = cleanWorld({ seed: d.seed, mods: d.mods, props: d.props, ext: d.ext });
   const players = cleanPlayers(d.players);
-  const nuke = d.nuke ? cleanNuke(d.nuke) : null;
-  const gen = d.gen ?? 0;
+  const gen = d.gen ?? 0; // how often the world was made again (only by the nuke, gone since v0.117.0)
   const fmt = d.fmt ?? null; // rooms from before v0.82.2 don't say
-  if ((d.nuke && !nuke) || !Number.isSafeInteger(gen) || gen < 0 || (fmt !== null && !Number.isSafeInteger(fmt))) return null;
+  if (!Number.isSafeInteger(gen) || gen < 0 || (fmt !== null && !Number.isSafeInteger(fmt))) return null;
   const save = d.save === null || d.save === undefined ? null : cleanSave(d.save);
   if (!world || !players || (d.save && !save)) return null;
   return {
     you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time), gen, nuke, graves: cleanGraves(d.graves ?? []), fmt,
+    time: d.time === undefined ? null : cleanTime(d.time), gen, graves: cleanGraves(d.graves ?? []), fmt,
     pong: d.pong === true, ack: d.ack === true, // rooms from before v0.85.0 do neither
     acts: d.acts === true,                      // nor this, before v0.87.0
     econ: d.econ === true                       // nor keep your progress, before v0.89.0
@@ -212,7 +203,7 @@ function cleanAway(d) {
 
 /* ------------------------------------------------------------------ */
 
-export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdate = () => {}, closeSheet = () => {}, showPlayers = () => {}, onAway = () => {} }) {
+export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}, closeSheet = () => {}, showPlayers = () => {}, onAway = () => {} }) {
   const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
@@ -229,7 +220,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   let turnedAway = null;    // why the room said your invite link no longer works
   let signT = 0;            // 0..1: how far up your sign is
   let signFace = null;      // the QR on it (a canvas), kept while it comes down
-  let nukeOn = null;        // the nuke, while it's up: {votes, until}
   let graves = [];          // tombstones of banned and frozen characters (see cleanGraves)
   // Is the room still there? Seconds of play since it last said anything,
   // and until the next ping; whether it answers pings at all.
@@ -276,8 +266,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     // The moderator froze this character (its progress was hacked): the
     // "FBI" notice, every time, and back to your own world.
     if (codeNum === 4005 || reason === 'frozen') { skip(room); refused(); return fbi.show(); }
-    // Everyone pressed the nuke: straight back in, to the world made anew.
-    if (codeNum === 4004) { retry = 0; return connect(); }
     // An admin's copy whose time was up (server/src/copy.js): it's gone.
     if (codeNum === 4006) { forget(room); return stop(t('copy.ended')); }
     if (reason === 'invite' && turnedAway === 'banned') forget(room);
@@ -348,7 +336,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (game.state.shared) save(game.state, true);
     const wasIn = !!game.state.shared;
     if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
-    room = null; back = null; code = null; me = null; owner = null; clock = null; nukeOn = null;
+    room = null; back = null; code = null; me = null; owner = null; clock = null;
     graves = [];
     pendingInvite = false; // for the world you were going into, not the next one
     unacked = []; sent = []; sentActs = [];
@@ -448,12 +436,11 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       if (d.p) { const p = cleanPos(d.p); if (p) f.p = p; }
       f.heard = performance.now() / 1000;
       renderFriends();
-      renderNuke();
       return;
     }
     if (d.t === 'removed') {
       if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return; // the close that follows says so
-      if (friends.delete(d.id)) { roster = null; renderFriends(); renderNuke(); }
+      if (friends.delete(d.id)) { roster = null; renderFriends(); }
       // Their buildings go with them (the room has taken them down too).
       const s = game.state;
       const kept = s.extractors.filter((b) => b.owner !== d.id);
@@ -464,7 +451,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     // instead (the 'graves' that follows); its buildings stay.
     if (d.t === 'frozen') {
       if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
-      if (friends.delete(d.id)) { renderFriends(); renderNuke(); }
+      if (friends.delete(d.id)) renderFriends();
       return;
     }
     if (d.t === 'graves') {
@@ -485,10 +472,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (d.t === 'invite') {
       if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until)) return;
       openQr(d.code, d.until);
-    }
-    if (d.t === 'nuke') {
-      const next = cleanNuke(d.nuke);
-      if (next) voted(next);
     }
     if (d.t === 'invitesFull') hud.toast(t('invites.full'));
     if (d.t === 'invites') {
@@ -541,8 +524,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     graves = w.graves;
     remember(room, w.you === w.owner);
     write(PLAYING_STORE, room);
-    nukeOn = w.nuke;
-    // The world was nuked and made again since this phone was last in it:
+    // The world was made again (by the nuke, before v0.117.0) since this
+    // phone was last in it:
     // its copies of your progress and map are from a world that's gone.
     const was = read(GEN_PREFIX + room);
     const renewed = was !== null && was !== String(w.gen);
@@ -572,7 +555,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       game.arrived();
       fixedNote = fixed;
       if (fixed) hud.toast(t('together.toast.in', { world: worldName(room) }) + '. ' + t('together.toast.fixed'), FIXED_SECONDS);
-      else hud.toast(renewed ? t('nuke.toast.done') : t('together.toast.in', { world: worldName(room) }));
+      else hud.toast(t('together.toast.in', { world: worldName(room) }));
       policyNotice();
     }
     // The room works out your progress from what you do too (src/core/acts.js).
@@ -582,7 +565,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     lastPos = ''; lastSave = '';
     if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
-    renderNuke();
     game.changedMode();
     if (game.state.shared === room && pendingInvite) { pendingInvite = false; showInvite(); }
   }
@@ -633,7 +615,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     if (invite && Date.now() > invite.until) closeQr();
     if (!s.shared) return;
     keepTime();
-    if (nukeOn) renderNuke(); // its countdown
     const w = s.world;
     if (w.edits && w.edits.length > MAX_PENDING_EDITS) w.edits.splice(0, w.edits.length - MAX_PENDING_EDITS);
     const now = performance.now() / 1000;
@@ -932,56 +913,6 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     else start();
   });
 
-  /* ------------------------------------------------------------ the nuke */
-
-  // Someone arrived with an update this world can't have: the nuke is up on
-  // every screen until the room makes the world again (server/src/room.js).
-  // You must press it; it's pressed for anyone away or offline, and for
-  // everyone left once its minute is up.
-  function press() {
-    if (!nukeOn || nukeOn.votes.has(me)) return;
-    nukeOn.votes.add(me);
-    send({ t: 'nuke' });
-    renderNuke();
-  }
-
-  // The room's new count: in a small world, say who just pressed it.
-  function voted(next) {
-    const small = friends.size + 1 <= NUKE_TOASTS;
-    for (const id of next.votes) {
-      if (small && id !== me && !(nukeOn && nukeOn.votes.has(id))) hud.toast(t('nuke.toast.pressed', { name: nameOf(id) }));
-    }
-    nukeOn = next;
-    renderNuke();
-  }
-
-  // The screen: how many have pressed it (counting those it's pressed for),
-  // who it still waits for (the first few names, and how many more), and
-  // how long until it's pressed for them.
-  let shownNuke = '';
-  function renderNuke() {
-    if (!nukeOn || !game.state.shared) {
-      if (shownNuke) { shownNuke = ''; nukeScreen.hide(); }
-      return;
-    }
-    const everyone = [...friends.keys(), me].filter(Boolean);
-    const here = (id) => id === me || friends.get(id)?.st === 'online';
-    const waiting = everyone.filter((id) => here(id) && !nukeOn.votes.has(id));
-    const left = Math.max(0, Math.ceil((nukeOn.until - Date.now()) / 1000));
-    const time = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0');
-    const shown = waiting.slice(0, NUKE_NAMES).map((id) => nameOf(id)).join(', ');
-    const lines = [t('nuke.votes.count', { n: everyone.length - waiting.length, total: everyone.length })];
-    if (waiting.length) {
-      lines.push(t('nuke.votes.waiting', { names: waiting.length > NUKE_NAMES ? t('nuke.votes.more', { names: shown, n: waiting.length - NUKE_NAMES }) : shown }));
-      lines.push(t('nuke.votes.auto', { time }));
-    }
-    const line = lines.join('\n'), done = nukeOn.votes.has(me);
-    const key = line + done;
-    if (key === shownNuke) return;
-    shownNuke = key;
-    nukeScreen.show({ heading: t('nuke.title'), body: t('nuke.text.shared'), button: t(done ? 'nuke.pressed' : 'nuke.button'), line, done, press });
-  }
-
   /* ---------------------------------------------------- friends in the HUD */
 
   // Everyone's name in this room, by id (src/net/naming.js), shown in the
@@ -1239,7 +1170,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     graves() {
       return graves.map((g) => ({ x: g.x, y: g.y, z: g.z, k: g.k, color: friendColor(g.c), name: nameOf(g.id) }));
     },
-    refresh() { renderFriends(); renderButton(); renderNuke(); },
+    refresh() { renderFriends(); renderButton(); },
     // The screen changed size: as many chips as fit now.
     refit() { shownChips = ''; renderFriends(); }
   };

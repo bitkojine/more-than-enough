@@ -101,7 +101,6 @@ function harness({ yes = true } = {}) {
     hud: { toast: (m) => toasts.push(m) },
     ask: (q) => { asked.push(q); return Promise.resolve(typeof yes === 'function' ? yes(q) : yes); },
     el,
-    nukeScreen: { show() {}, hide() {} },
     fbi: { show() {} },
     onAway: (secs, made) => aways.push({ secs, made })
   });

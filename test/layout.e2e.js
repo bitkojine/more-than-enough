@@ -31,7 +31,7 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
 ];
 // In this order on one page per screen; `rich` last, as it can't be undone.
 // `crowd` joins a shared world of 100 (a fake room) and stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'nuke', 'fbi', 'news', 'crowd', 'players', 'rich'];
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -109,12 +109,6 @@ function problems() {
     if (r.top < box.top - 1 || r.bottom > box.bottom + 1 || r.left < box.left - 1 || r.right > box.right + 1) out.push('squashed: ' + name(row));
   }
 
-  // The nuke's word stays on its button.
-  const nuke = document.querySelector('#nuke button');
-  if (shown(nuke)) {
-    const r = nuke.getBoundingClientRect(), b = nuke.querySelector('b').getBoundingClientRect();
-    if (b.left < r.left + 4 || b.right > r.right - 4) out.push('off its button: #nuke b');
-  }
   // A dialog's buttons are on screen without scrolling.
   for (const b of document.querySelectorAll('.scrim:not([hidden]) .choices button')) {
     const r = b.getBoundingClientRect();
@@ -137,7 +131,6 @@ async function enter(state) {
   const click = (sel) => document.querySelector(sel).click();
   if (document.getElementById('sheet').classList.contains('open')) click('#btnClose');
   if (g.dialogs.ask.open) click('#ask .secondary');
-  if (g.dialogs.nuke.open) g.dialogs.nuke.hide();
   if (g.dialogs.fbi.open) click('#fbi button');
   if (g.dialogs.news.open) click('#news .primary');
   clearInterval(window.layoutHold);
@@ -192,7 +185,6 @@ async function enter(state) {
   }
   if (state === 'map') click('#btnMap');
   if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
-  if (state === 'nuke') g.dialogs.nuke.show({ heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'), press() {} });
   if (state === 'fbi') g.dialogs.fbi.show();
   if (state === 'news') g.dialogs.news.show('0.80.0', window.MTE_VERSION);
 }

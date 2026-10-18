@@ -363,7 +363,7 @@ export default {
           on in the new world.</li>
         <li><strong>Anything that asks first</strong>: it never answers a question, so it never does anything you couldn't take back.</li>
         <li><strong>Every sheet and dialog</strong>: while Build, Upgrades, Settings, the world map or any question is open, it waits.</li>
-        <li><strong>The nuke</strong>, <strong>What's new</strong>, joining a shared world and its privacy policy, the
+        <li><strong>What's new</strong>, joining a shared world and its privacy policy, the
           <strong>FBI</strong> notice, and a choice between two saves: all yours.</li>
         <li><strong>Invite</strong>, your sign and everything about playing together.</li>
         <li><strong>Holding on</strong>: it plays only while held, with the game open and in front of you. If the
@@ -912,9 +912,11 @@ export default {
           this one last did, this tab won't overwrite it. It pauses and asks which world to keep: the other tab's or its own,
           each with time played and amount gathered, and the one further along is marked. A tab you closed or left behind
           can't quietly roll your progress back.</li>
-        <li><strong>The nuke.</strong> When an update changes how worlds are made, a world from before it can't have what's new. A big red button then takes the middle of the screen, and the only way on is to press it: the world is made again from scratch with everything new, and you start from the beginning. In a shared world everyone presses it. It's pressed for anyone away or offline, and for everyone else a minute after it appears; then you all start fresh together in the new world, with the same friends and invite links. Anyone who was away finds themselves in the new world when they come back.</li>
-        <li>While the game is in active development, a new version may not read older saves. If a save can't be read, the
-          game tells you and starts a new world.</li>
+        <li><strong>Your worlds are kept for good.</strong> No update ever starts a world over, yours or a shared one:
+          updates only add to the worlds already played.</li>
+        <li>If a save can't be read (it's damaged, or from a newer version than the page you have open), the game says so
+          and starts a new world, but the save is kept to one side, never written over. It comes back by itself as soon as
+          a version that can read it loads, and so does any world set aside that you had played further than the one in use.</li>
       </ul>`,
   "wiki.article.ideas.title": "Ideas",
   "wiki.article.ideas": `      <h1>Ideas</h1>

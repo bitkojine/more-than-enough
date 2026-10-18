@@ -29,7 +29,6 @@ import { createActor } from './render/motion.js';
 import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
-import { createNuke } from './nuke.js';
 import { createFbi } from './fbi.js';
 import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
@@ -44,7 +43,7 @@ const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
 localizePage();
 
 // Never inside another site's page: framed, the game could be shown under
-// something else and trick taps onto Join, Remove or the nuke. GitHub Pages
+// something else and trick taps onto Join or Remove. GitHub Pages
 // can't send a header that forbids framing, so the game refuses here and
 // offers itself in a tab of its own.
 if (window.top !== window.self) {
@@ -141,7 +140,7 @@ const game = {
     }
     saveError = err;
   },
-  // Swaps in a different world (embark, the nuke, a shared world).
+  // Swaps in a different world (embark, a shared world).
   replace(next) {
     game.state = next;
     fx.clear();
@@ -157,7 +156,6 @@ const game = {
     hud.update(next);
     game.saveNow();
     game.changedMode();
-    soloNuke();
   },
   // Just arrived in a world new to you (a friend's): what to go for.
   arrived() { showNext(); },
@@ -217,15 +215,15 @@ onSavedElsewhere(checkFork);
 const ask = createAsk(el.ask);
 const news = createNews(el.news);
 el.privacyLink.href = policyUrl(); // in the player's language
-const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made, fixed) => sayAway(secs, made, fixed) });
+const together = createTogether({ game, hud, ask: ask.ask, el, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made, fixed) => sayAway(secs, made, fixed) });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
 const HOLD_TIP_SECONDS = 6; // long enough to read
+const ASIDE_SECONDS = 9;   // the note that your save was kept to one side
 let singleGathers = 0;
 function gathered(held) {
   if (savedView.holdTip) return;
@@ -269,7 +267,7 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 
 // Something on screen that needs the player: a sheet or a dialog. The
 // Perfect button waits while one is up.
-const blocked = () => sheet.isOpen || fork.open || ask.open || nuke.open || fbi.open || news.open;
+const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open || news.open;
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
@@ -575,23 +573,13 @@ await textures.restore(savedPack);
 hud.update(game.state);
 hud.updateButtons(game.state);
 hud.perfect(perfect.badge, false);
-// Your world is from before an update that changed how worlds are made, or
-// its save is broken (then the screen says so): the nuke, centre stage. The new world is already
-// here (and saved, so it's the one you come back to); pressing it is how
-// you get to it. It's about your own world, so it waits while you're in a
-// shared one.
-let soloNukeDue = !!loaded.lost;
-const broken = loaded.lost === 'broken';
-if (soloNukeDue) game.saveNow();
-function soloNuke() {
-  if (!soloNukeDue) return;
-  if (game.state.shared) { if (nuke.open && nuke.alone) nuke.hide(); return; }
-  nuke.show({
-    heading: t(broken ? 'nuke.title.broken' : 'nuke.title'), body: t(broken ? 'nuke.text.broken' : 'nuke.text.alone'), button: t('nuke.button'), alone: true,
-    press() { soloNukeDue = false; nuke.hide(); audio.fanfare(); hud.toast(t('nuke.toast.alone')); }
-  });
+// Your save couldn't be opened (damaged, or made by another version): it's
+// kept to one side, never written over, and comes back when a version that
+// reads it loads (src/game/storage.js). Meanwhile a new world, and a word.
+if (loaded.lost) {
+  game.saveNow();
+  hud.toast(t(loaded.lost === 'broken' ? 'save.aside.broken' : 'save.aside.format'), ASIDE_SECONDS);
 }
-soloNuke();
 game.changedMode();
 showNext();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
@@ -611,7 +599,7 @@ window.MTE_GAME = {
   yard,
   getState: () => game.state,
   together,
-  dialogs: { ask, nuke, fbi, news },
+  dialogs: { ask, fbi, news },
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },

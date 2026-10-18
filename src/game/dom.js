@@ -69,7 +69,6 @@ export function findElements() {
     language: byId('btnLanguage'),
     fork: byId('fork'),
     ask: byId('ask'),
-    nuke: byId('nuke'),
     fbi: byId('fbi'),
     news: byId('news'),
     invite: byId('btnInvite'),

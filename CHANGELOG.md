@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.117.1] - 2026-10-18
+
+The rest of Watch's "disable all nukes": the game's side of the nuke goes
+too, now that the room service never calls it (v0.117.0).
+
+### Removed
+- The nuke screen (`src/game/nuke.js`, its dialog and styles) and
+  together.js's nuke handling: votes, countdown, the 'nuke' message and the
+  4004 'renewed' reconnect.
+
+### Changed
+- A solo save the game can't read (damaged, or from a newer version) no
+  longer brings up a red button to press: a toast says it's kept safe to one
+  side, and a new world starts meanwhile.
+- Wiki (*Saves*, Perfect's list) and docs/ui.md say worlds are never started
+  over and describe the note instead of the nuke.
+
+### Tests
+- `test/browser.e2e.js`: an unreadable or damaged save shows the note, is
+  kept to one side, and there is no nuke screen; a format 10 world set aside
+  and played further comes back on load.
+- `test/layout.e2e.js` drops the nuke screen from the states it checks.
+
 ## [0.117.0] - 2026-10-18
 
 Watch's ask: every solo and multiplayer world must be kept; nukes are never

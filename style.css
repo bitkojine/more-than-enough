@@ -838,31 +838,6 @@ body.signing #zoomControls { visibility: hidden; }
 }
 .dialog > * { flex-shrink: 0; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-/* The nuke: centre stage over a red-dark map, above everything else, with
-   one huge round red button and nothing to close it. */
-#nuke { z-index: 120; background: radial-gradient(circle at 50% 45%, rgba(120, 24, 12, 0.55), rgba(0, 0, 0, 0.82)); }
-#nuke .dialog { align-items: center; text-align: center; gap: 14px; border-color: rgba(240, 138, 122, 0.45); }
-#nuke .dialog strong { font-size: 22px; }
-#nuke button {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-  width: min(200px, 56vw); aspect-ratio: 1; margin: 6px 0;
-  border: 3px solid #ffab9c; border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, #ff7a63, #c2402b 60%, #8e2a1b);
-  color: #fff4f1; font: 900 22px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  box-shadow: 0 8px 0 #6b1e12, 0 0 0 10px rgba(232, 111, 92, 0.18), 0 18px 40px rgba(0, 0, 0, 0.6);
-  touch-action: manipulation; cursor: pointer;
-  animation: nuke-pulse 1.4s ease-in-out infinite;
-}
-#nuke button:focus { outline: none; }
-#nuke button:focus-visible { outline: 3px solid #ffab9c; outline-offset: 6px; }
-#nuke button::before { content: '\2622'; font-size: 64px; line-height: 1; }
-#nuke button:active { transform: translateY(5px); box-shadow: 0 3px 0 #6b1e12, 0 0 0 10px rgba(232, 111, 92, 0.18); }
-#nuke button[aria-pressed="true"] { animation: none; transform: translateY(6px); filter: saturate(0.5) brightness(0.75); box-shadow: 0 2px 0 #6b1e12; cursor: default; }
-#nuke p:last-child { white-space: pre-line; margin: 0; }
-#nuke p[hidden] { display: none; }
-@keyframes nuke-pulse { 50% { box-shadow: 0 8px 0 #6b1e12, 0 0 0 22px rgba(232, 111, 92, 0.08), 0 18px 40px rgba(0, 0, 0, 0.6); } }
-@media (prefers-reduced-motion: reduce) { #nuke button { animation: none; } }
 /* A frozen character: the joke "FBI" badge (a glowcap, not a real seal),
    over a police-blue map, with one way on. */
 #fbi { z-index: 120; background: radial-gradient(circle at 50% 40%, rgba(16, 48, 96, 0.6), rgba(0, 0, 0, 0.85)); }
@@ -906,9 +881,6 @@ body.signing #zoomControls { visibility: hidden; }
   .scrim { padding: 10px 16px; }
   .dialog { padding: 14px 18px; gap: 8px; max-width: 520px; }
   .dialog p { font-size: 13.5px; line-height: 1.35; margin-bottom: 0; }
-  #nuke .dialog { gap: 8px; }
-  #nuke button { width: min(140px, 34vh); margin: 2px 0; font-size: 14px; letter-spacing: 0.04em; }
-  #nuke button::before { font-size: 40px; }
   #fbi .fbiBadge { width: min(90px, 22vh); }
   /* The milestone banner stays a thin strip above you, not over you. */
   #milestone { padding: 5px 16px 6px; gap: 1px; }

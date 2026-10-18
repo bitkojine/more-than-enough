@@ -60,7 +60,7 @@ test('storage: a save set aside that this version can read is taken back (an old
   store.set(ASIDE, mine);     // the newest game's save, set aside by an old page
   store.set(SAVE, otherFormat); // the fresh world that old page made
   const { state, lost } = loadGame();
-  assert.equal(lost, false, 'no nuke: your world is back');
+  assert.equal(lost, false, 'your world is back');
   assert.equal(state.inv.stone, 123);
   assert.equal(store.get(ASIDE), otherFormat, 'the old page\'s world is set aside in its place');
   assert.equal(saveGame(state), null);

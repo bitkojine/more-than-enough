@@ -357,7 +357,7 @@ export default {
           mygtukas šviečia auksu, o žinutė sako, kad Iškeliauti spaudi tu. Iškeliauk pats, ir jei vis dar laikai, jis tęs naujame pasaulyje.</li>
         <li><strong>Viskas, kas pirma klausia</strong>: jis niekada neatsako į klausimus, tad nedaro nieko, ko negalėtum atšaukti.</li>
         <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai, pasaulio žemėlapis ar koks klausimas, jis laukia.</li>
-        <li><strong>Branduolinis mygtukas</strong> (NUKE), žinutė apie atnaujinimą, prisijungimas prie bendro pasaulio ir jo privatumo politika,
+        <li><strong>Žinutė apie atnaujinimą</strong>, prisijungimas prie bendro pasaulio ir jo privatumo politika,
           <strong>FBI</strong> pranešimas ir pasirinkimas tarp dviejų išsaugojimų: visa tai tavo.</li>
         <li><strong>Kviesti</strong>, tavo ženklas ir viskas, kas susiję su žaidimu kartu.</li>
         <li><strong>Laikymas</strong>: jis žaidžia tik kol laikai, žaidimui esant atvertam priešais tave. Jei
@@ -904,9 +904,11 @@ export default {
           skirtukas išsaugojo vėliau nei šis, šis skirtukas jo neperrašys. Jis sustoja ir klausia, kurį pasaulį palikti: kito
           skirtuko ar savąjį, prie kiekvieno nurodydamas žaidimo laiką ir surinktą kiekį, o toliau pažengęs pažymimas. Uždarytas
           ar užmirštas skirtukas negali tyliai atsukti tavo pažangos atgal.</li>
-        <li><strong>Sprogdinimas.</strong> Kai atnaujinimas pakeičia, kaip kuriami pasauliai, prieš jį sukurtame pasaulyje negali būti to, kas nauja. Tada ekrano viduryje atsiranda didelis raudonas mygtukas, ir vienintelis kelias toliau yra jį paspausti: pasaulis sukuriamas iš naujo su viskuo, kas nauja, o tu pradedi nuo pradžių. Bendrame pasaulyje jį paspaudžia visi. Už tuos, kurių nėra ar kurie atsitraukę, paspaudžiama automatiškai, o už visus kitus praėjus minutei nuo jo pasirodymo; tada visi kartu pradedate iš naujo naujame pasaulyje, su tais pačiais draugais ir kvietimų nuorodomis. Kas buvo išėjęs, grįžęs atsiduria naujame pasaulyje.</li>
-        <li>Kol žaidimas aktyviai kuriamas, nauja versija gali nebeperskaityti senesnių išsaugojimų. Jei išsaugojimo nepavyksta
-          perskaityti, žaidimas tau praneša ir pradeda naują pasaulį.</li>
+        <li><strong>Tavo pasauliai išsaugomi visam laikui.</strong> Joks atnaujinimas niekada nepradeda pasaulio iš naujo –
+          nei tavo, nei bendro: atnaujinimai tik prideda prie jau žaidžiamų pasaulių.</li>
+        <li>Jei išsaugojimo nepavyksta perskaityti (jis sugadintas arba iš naujesnės versijos nei atverta), žaidimas tau
+          praneša ir pradeda naują pasaulį, bet išsaugojimas padedamas į šalį, niekada neperrašomas. Jis sugrįžta pats, kai
+          tik įsikelia jį perskaityti galinti versija, kaip ir bet kuris į šalį padėtas pasaulis, kurį žaidei ilgiau nei dabartinį.</li>
       </ul>`,
   "wiki.article.ideas.title": "Idėjos",
   "wiki.article.ideas": `      <h1>Idėjos</h1>

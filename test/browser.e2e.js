@@ -943,29 +943,25 @@ async function main() {
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
 
-  /* --------------------- a world from before the update: the nuke */
-  console.log('\n== A world from an older version: the nuke takes the screen ==');
+  /* ------------- a save it can't read: kept to one side, never a nuke */
+  console.log('\n== A save it can\'t read is kept to one side ==');
   await evalJS('MTE_GAME.getState().inv.mycelium = 999999; MTE_GAME.save()');
-  // The save of a world made by an older game (another format version).
+  // The save of a world made by a much older game (a format no longer kept).
   await evalJS('localStorage.setItem("more-than-enough-save", JSON.stringify({ v: 1, seed: 5, inv: { mycelium: 999999 } }))');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
-  ok(await waitFor('!document.getElementById("nuke").hidden', 3000), 'the nuke screen is up after loading an old world');
-  ok(await evalJS('!document.querySelector("#nuke .secondary") && !document.querySelector("#nuke [data-close]")'), 'the nuke screen has no way past it but its button');
-  var nukeRect = await rect('#nuke button');
-  ok(nukeRect.x > 100 && nukeRect.x < 290, 'the big red button is in the middle of the screen');
-  await shot('10-nuke.png');
-  await tap(nukeRect.x, nukeRect.y);
-  await sleep(300);
-  ok(await evalJS('document.getElementById("nuke").hidden'), 'pressing it goes on to the new world');
-  ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'the new world starts from the beginning');
+  ok(await waitFor('/kept safe to one side/.test(document.getElementById("toast").textContent)', 3000), 'a note says the save is kept to one side');
+  ok(await evalJS('!document.getElementById("nuke")'), 'there is no nuke screen any more');
+  ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'a new world meanwhile');
   eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-save-aside")).v'), 1, 'the old world\'s save is kept to one side, not written over');
-  // A damaged save: the same screen, but it says what happened.
+  // A damaged save: the note says what happened.
   await evalJS('localStorage.setItem("more-than-enough-save", "{\\"v\\":1")');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
-  ok(await waitFor('!document.getElementById("nuke").hidden', 3000), 'a damaged save brings up the nuke screen too');
-  eq(await evalJS('document.getElementById("nukeTitle").textContent'), "Your saved world couldn't be opened", 'and it says the save could not be opened, not that an update needs a new world');
-  await tap((await rect('#nuke button')).x, (await rect('#nuke button')).y);
+  ok(await waitFor('/^Your saved world couldn\'t be opened/.test(document.getElementById("toast").textContent)', 3000), 'a damaged save says it could not be opened');
+  // A format 10 world, set aside by v0.109.0 and played further, comes back.
+  await evalJS('(() => { const s = JSON.parse(localStorage.getItem("more-than-enough-save")); s.v = 10; s.seed = 4242; s.stats.playedMs = 9e7; localStorage.setItem("more-than-enough-save-aside", JSON.stringify(s)); })()');
+  await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await sleep(300);
+  eq(await evalJS('MTE_GAME.getState().seed'), 4242, 'the world played further comes back from one side');
 
   /* ---------------------------------------------------- pinch to zoom */
   console.log('\n== Pinch to zoom with two fingers ==');
