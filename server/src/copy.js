@@ -13,8 +13,7 @@
  *   real player is ever written.
  *
  * The rest is the room's own rules (room.js), so the return plays as it
- * would for them: away-time credit, the room setting the game straight,
- * the nuke if the world is due one. What was on their phone (the numbers
+ * would for them: away-time credit and the room setting the game straight. What was on their phone (the numbers
  * it last showed, the version it ran) only their phone knows: the copy
  * plays as their character coming back on a phone that has nothing. */
 

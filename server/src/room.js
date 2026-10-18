@@ -17,7 +17,8 @@ import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
-export const EXPIRE_MS = 30 * 24 * 3600_000; // a room nobody visits for 30 days is deleted
+export const EXPIRE_MS = 30 * 24 * 3600_000; // a deploy's smoke-test room nobody visits for 30 days is deleted
+export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test makes its rooms with (rooms.yml)
 export const MOD_BUCKETS = 16;               // richness edits are stored in this many pieces
 export const INVITE_MS = cleanInviteAsk(null).life * 60_000; // a link works this long unless asked otherwise
 export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
@@ -26,7 +27,6 @@ const REUSE_MS = 3600_000;                   // your sign shows your newest link
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
 export const FAR_MS = 2000;                  // everyone else hears where you are this often
 export const STATUS_MS = 2000;               // a player's away/back changes, at most this often (the game waits it out)
-export const NUKE_AFK_MS = 60_000;           // after this, the nuke is pressed for whoever hasn't
 export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
 export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
 export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log at most this often
@@ -85,19 +85,12 @@ export class Room {
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
     this.invites = new Map();
-    // The nuke. `fmt` is the world format (WORLD_FORMAT) the world was made
-    // with. When the room service is newer (an update changed how worlds are
-    // made), the next player in calls the nuke (`call`: {fmt, at}); nothing
-    // a player says can. It shows on
-    // everyone's screen. Who has pressed it is in `nuke`; it's pressed for
-    // anyone away, offline or idle (see nukeDue). Then the world is made
-    // again from scratch with everything new, and everyone starts over.
-    // `gen` counts how many times, so a phone can tell its copy of your
-    // progress is from a world that's gone.
+    // Every world is kept, always (Watch, 2026-10-18): nothing resets a
+    // world, and there is no nuke. `fmt` and `ef` say which WORLD_FORMAT and
+    // ECON_FORMAT the room plays by (always the current ones, see restore);
+    // `gen` counted the world's remakings when there were any, and stays.
     this.fmt = 0;
-    this.ef = 0;   // ...and how it counts progress (ECON_FORMAT): newer, the nuke too
-    this.call = null;
-    this.nuke = new Set();
+    this.ef = 0;
     this.gen = 0;
     // Players taken out of the world (by the owner or for cheating), who
     // can't come back with their key.
@@ -134,11 +127,17 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, call: meta.call ?? null, ready: true });
-    r.nuke = new Set((meta.nk || []).filter((id) => typeof id === 'string'));
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, ready: true });
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.copy = meta.copy ?? null;
+    // A world made under an older format is kept and plays on under the
+    // current one (a pending nuke from before, meta.call, is dropped).
+    if (r.fmt !== WORLD_FORMAT || r.ef !== ECON_FORMAT || meta.call || meta.nk?.length) {
+      r.audit(now, null, 'kept', { fmt: r.fmt, ef: r.ef });
+      Object.assign(r, { fmt: WORLD_FORMAT, ef: ECON_FORMAT });
+      r.dirty.meta = true;
+    }
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
     for (const [k, v] of entries) {
       if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
@@ -165,7 +164,7 @@ export class Room {
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, call: this.call, nk: [...this.nuke], bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
     for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -244,7 +243,7 @@ export class Room {
   /* -------------------------------------------------------- players */
 
   // A connection proved its key (and, the first time, brought an invite).
-  // Returns {id, welcome, called} (called: the nuke was just called) or
+  // Returns {id, welcome} or
   // {error}.
   async join(key, code, now) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
@@ -302,8 +301,7 @@ export class Room {
     this.dirty.players.add(id);
     this.acts.set(id, this.newAct(now, this.acts.get(id)));
     this.audit(now, id, 'join', { new: fresh, c: pl.c, ...(fresh ? { via: codeTag(pl.via) } : {}), at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null, online: this.online() });
-    const called = this.callNuke(now);
-    return { id, welcome: this.welcome(id, now), called };
+    return { id, welcome: this.welcome(id, now) };
   }
 
   // The invite links someone may see and stop: all of them for the owner,
@@ -347,11 +345,11 @@ export class Room {
     return {
       t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: this.saveFor(id, me), p: me.p, time: this.clock(now), gen: this.gen, nuke: this.call ? this.nukeVotes().nuke : null,
+      players: others, save: this.saveFor(id, me), p: me.p, time: this.clock(now), gen: this.gen, nuke: null,
       graves: this.graves,
-      // The world format it's made with, or will be once the nuke goes off:
-      // a game on another one can't grow the same land (src/game/together.js).
-      fmt: this.call ? this.call.fmt : this.fmt,
+      // The world format it plays by: a game on another one can't grow the
+      // same land (src/game/together.js).
+      fmt: this.fmt,
       // This room answers PING (worker.js) and acknowledges numbered edits
       // ('ack'): games only rely on either when the room says so.
       pong: true, ack: true,
@@ -425,7 +423,8 @@ export class Room {
 
   expired(now) {
     if (this.copy) return now >= this.copy.until;
-    return now - this.last >= EXPIRE_MS;
+    // Only the deploy's smoke-test rooms go; a players' world is kept forever.
+    return this.seed === SMOKE_SEED && now - this.last >= EXPIRE_MS;
   }
 
   /* -------------------------------------------------------- messages */
@@ -549,12 +548,8 @@ export class Room {
       if (id !== this.owner || typeof d.id !== 'string' || d.id === this.owner || !this.players.has(d.id)) return { drop: true };
       return this.ban(d.id, now, 'owner', 'removed by the owner');
     }
-    if (d.t === 'nuke') {
-      // Pressed, for good: there's no taking it back.
-      if (!this.call) return {};
-      if (!this.nuke.has(id)) { this.nuke.add(id); this.dirty.meta = true; this.audit(now, id, 'nuke', {}); }
-      return { toAll: [this.nukeVotes()] };
-    }
+    // There is no nuke any more: an old game pressing it changes nothing.
+    if (d.t === 'nuke') return {};
     return { drop: true };
   }
 
@@ -636,7 +631,7 @@ export class Room {
     const w = this.watchOf(id, now), from = pl.p;
     w.budget = Math.min(MOVE_BURST, w.budget + (now - w.at) / 1000 * MAX_SPEED);
     w.at = now;
-    if (!from) { w.fresh = w.placing = false; return 'ok'; } // nowhere yet: a new player, or a renewed world
+    if (!from) { w.fresh = w.placing = false; return 'ok'; } // nowhere yet: a new player
     const dist = Math.hypot(to.x - from.x, to.y - from.y);
     if (w.fresh || w.placing) {
       const since = Number.isSafeInteger(pl.at) ? Math.max(0, now - pl.at) / 1000 * MAX_SPEED : 0;
@@ -734,7 +729,6 @@ export class Room {
     this.acts.delete(id);
     this.shadow?.forget(id);
     this.watch.delete(id);
-    this.nuke.delete(id);
     for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
     this.dirty.meta = true;
     // Friends see a tombstone where the character slept ('frozen': its
@@ -781,7 +775,6 @@ export class Room {
     this.shadow?.forget(id);
     this.players.delete(id);
     this.dirty.players.add(id);
-    this.nuke.delete(id);
     this.watch.delete(id);
     if (this.bans.size >= MAX_BANS) this.bans.delete(this.bans.values().next().value);
     this.bans.add(id);
@@ -797,76 +790,6 @@ export class Room {
       this.extTiles = new Set(left.map((e) => extAt(e[1], e[2], e[3])));
       this.dirty.ext = true;
     }
-  }
-
-  /* ------------------------------------------------------------ nuke */
-
-  // Someone arrived in a world made before the current world format: it
-  // misses what the update brings, so the nuke is called. Returns true if it
-  // was just called (everyone needs telling).
-  callNuke(now) {
-    if ((this.fmt >= WORLD_FORMAT && this.ef >= ECON_FORMAT) || this.call) return false;
-    this.call = { fmt: WORLD_FORMAT, at: now };
-    this.dirty.meta = true;
-    this.audit(now, null, 'nukeCall', { fmt: WORLD_FORMAT, was: this.fmt, ef: ECON_FORMAT, wasEf: this.ef });
-    return true;
-  }
-
-  // The nuke as everyone sees it: who has pressed it, and when it will be
-  // pressed for whoever hasn't.
-  nukeVotes() {
-    return { t: 'nuke', nuke: { votes: [...this.nuke], until: this.call.at + NUKE_AFK_MS } };
-  }
-
-  // Whether it's time: every player has pressed it, or had it pressed for
-  // them (away, offline, connection lost, or still not pressed once the
-  // minute is up).
-  nukeDue(now) {
-    if (!this.call) return false;
-    if (now >= this.call.at + NUKE_AFK_MS) return true;
-    for (const [id, p] of this.players) if (p.st === 'online' && !this.nuke.has(id)) return false;
-    return true;
-  }
-
-  // When the nuke will be pressed for everyone left, or null.
-  nukeDeadline() {
-    return this.call ? this.call.at + NUKE_AFK_MS : null;
-  }
-
-  // The world from scratch: a new seed, nothing built or changed, the clock
-  // at dawn, and every player's progress gone. The players, their colours
-  // and the invite links stay, so everyone comes back to the same room.
-  renew(now) {
-    let seed = 0;
-    while (!seed) seed = crypto.getRandomValues(new Uint32Array(1))[0];
-    this.seed = seed;
-    this.shadow = null;
-    this.mods.clear();
-    this.props.clear();
-    this.ext = [];
-    this.extTiles.clear();
-    for (const [id, p] of this.players) {
-      p.save = null;
-      p.p = null;
-      p.np = p.nm = p.nx = 0; // their share of the world starts over with it
-      delete p.gone;
-      // A frozen character thaws (Watch's call): everyone starts over fairly.
-      // Bans stay.
-      if (p.frozen) { delete p.frozen; this.audit(now, id, 'thaw', { why: 'nuke' }); }
-      this.dirty.players.add(id);
-    }
-    this.nuke.clear();
-    this.graves = []; // the places they marked are gone with the world
-    if (this.call) { this.fmt = this.call.fmt; this.ef = ECON_FORMAT; }
-    this.call = null;
-    this.gen++;
-    this.dirty.meta = true;
-    this.dawn = now;
-    this.audit(now, null, 'renew', { gen: this.gen, seed });
-    for (const a of this.acts.values()) { a.dg = null; a.dgAt = 0; }
-    this.touch(now);
-    this.dirty.props = this.dirty.ext = true;
-    for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
   }
 
   /* -------------------------------------------------------- audit log */

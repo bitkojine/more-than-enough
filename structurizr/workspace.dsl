@@ -144,7 +144,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                state = component "State and Saves" "createState() builds the state; serialize/deserialize write and validate a JSON save (its format is WORLD_FORMAT in format.js; a save from another version is rejected, and the browser sets it aside). state.events is transient and never saved." "JavaScript" {
+                state = component "State and Saves" "createState() builds the state; serialize/deserialize write and validate a JSON save (its format is WORLD_FORMAT in format.js, frozen so every world is kept; saves from format 10 on load, and the browser sets aside, never overwrites, one it can't read). state.events is transient and never saved." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/state.js, save.js"

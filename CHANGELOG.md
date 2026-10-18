@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.117.0] - 2026-10-18
+
+Watch's ask: every solo and multiplayer world must be kept; nukes are never
+allowed any more. v0.109.0's `WORLD_FORMAT` bump to 11 had left 70 shared
+worlds made at format 10 (the busiest one with 8 players among them), each
+one join away from the nuke, and had set aside format 10 solo saves for new
+worlds.
+
+### Changed
+- **No nuke**: the room service no longer calls, counts or sets off the
+  nuke and never remakes a world (`renew`, `callNuke`, `nukeDue` and the
+  Durable Object's `nukeIfDue` are gone). A world stored with an older
+  `fmt`/`ef`, or with a nuke already called, plays on under the current
+  formats with its seed, edits, buildings and players, logged once as
+  `kept`. An old game's `nuke` message changes nothing; the welcome's
+  `nuke` is always null, so games of either version join as before.
+- **Formats frozen**: `WORLD_FORMAT` (11) and `ECON_FORMAT` (1) never change
+  again. Saves from format 10 on load.
+- **Solo worlds come back**: a world set aside that was played further (more
+  Embarks, else more play time) than the one in use is taken back on load,
+  and the other set aside in its place, so format 10 worlds set aside by
+  v0.109.0 return to players who played them longer.
+- **No deletion**: a players' world is no longer deleted after 30 days
+  unvisited; only the deploy's smoke-test rooms (seed 12345) and admin
+  copies still go.
+- AGENTS.md, README, server/README.md and the architecture model say every
+  world is kept and the formats are frozen.
+
+### Tests
+- `test/unit/worlds-kept.test.js`: the formats are pinned; format 10 and 11
+  saves load; an old-format room with a called nuke restores as the same
+  world with no nuke; pressing the nuke does nothing; the room has no
+  remake path left; unvisited worlds stay; a longer-played solo world set
+  aside comes back, an Embarked one is never swapped out.
+
 ## [0.116.0] - 2026-10-18
 
 Watch's ask: water was boring, so design what players do in it, eco

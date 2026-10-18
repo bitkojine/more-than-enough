@@ -121,12 +121,10 @@ playing — `byrforr · vX.Y.Z` (SemVer). The single source of truth is
 
 - **0.x dev line** — pre-1.0.0. Reaching 1.0.0 is intentionally a long
   road; there is no rush to get there.
-- PATCH bumps = bug fixes, never break saves.
-- MINOR bumps = new features. They may change the save format. During
-  active development there are **no save migrations**: bump `WORLD_FORMAT`
-  in `src/core/format.js`: older saves are rejected and a new world starts,
-  and every shared world made before it gets the nuke (everyone presses a
-  big red button and starts fresh together).
+- PATCH bumps = bug fixes, MINOR bumps = new features. Neither ever loses a
+  world: **every solo and shared world is kept**. `WORLD_FORMAT` in
+  `src/core/format.js` is frozen and there is no nuke any more (since
+  v0.117.0); a change must fit the worlds already played.
 - After each minor (or any notable) change, bump `VERSION` in
   `src/version.js`, update `CHANGELOG.md`, add the player's notes for it (see
   below), and commit.

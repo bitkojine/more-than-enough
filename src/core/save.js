@@ -1,8 +1,9 @@
 /* Save format. A save is the seed plus every player edit, so the world can be
- * regenerated exactly. While the game is in active development a save from
- * another format version is rejected (and the player told) and a new world
- * starts. Formats 7 to 9 changed what land a seed grows (scarce, clustered
- * resources; regions; walls and hedges; bigger regions), so older worlds don't carry over. */
+ * regenerated exactly. Every world is kept (format.js): a save from format
+ * OLDEST_SAVE on loads and plays on (format 10 worlds were set aside by
+ * v0.109.0's bump, the last one ever, and come back). Older ones were from
+ * worlds already replaced, and a save from a newer game than this one is set
+ * aside until the update arrives (src/game/storage.js). */
 
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -14,6 +15,7 @@ import { WORLD_FORMAT } from './format.js';
 
 // The room service knows it too (format.js).
 export const SAVE_VERSION = WORLD_FORMAT;
+export const OLDEST_SAVE = 10;
 
 export function bytesToB64(u8) {
   let out = '';
@@ -61,7 +63,7 @@ export function deserialize(str, make = createState) {
   let d;
   try { d = JSON.parse(str); } catch { return null; }
   if (!d || typeof d !== 'object') return null;
-  if (d.v !== SAVE_VERSION || !isNum(d.seed)) return null;
+  if (!isInt(d.v) || d.v < OLDEST_SAVE || d.v > SAVE_VERSION || !isNum(d.seed)) return null;
 
   const s = make(d.seed);
   const w = s.world;

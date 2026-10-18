@@ -801,6 +801,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.117.0": "Tavo pasauliai saugūs visam laikui: joks atnaujinimas daugiau niekada nepradės tavo pasaulio iš naujo – nei vieno žaidžiant, nei bendro. Branduolinio mygtuko nebėra.\nJei paskutinis didelis atnaujinimas tave perkėlė į naują pasaulį, sugrįžta tas, kurį žaidei ilgiau.",
   "news.0.116.0": "Tavo {phone:telefonas|laptop:kompiuteris} dabar turi bateriją. Šviečiant tamsoje naktį ar kasykloje ji senka, o kai lieka mažai, tavo šviesa traukiasi.\nĮkrauk ją vandens energija: padėk plaukiojančią saulės plokštę ežere (veikia, kol šviečia saulė) arba vandens ratą upėje (dieną ir naktį). Abu rasi Statyboje, skiltyje „Ant vandens“.\nTavo pasauliai ir viskas juose išlieka, kaip išliks ir toliau.",
   "news.0.115.0": "Pakeista: langelis, ant kurio stovi pastatas, dabar priklauso pastatui. Rankomis iš jo rinkti nebegali – {phone:bakstelėjus|laptop:spustelėjus} jį paimama pastato produkcija.",
   "news.0.114.0": "„Rinkti“ vėl yra didysis mygtukas. Laikyk jį ir rinksi ten, kur stovi: paimsi produkciją iš šalia esančių pastatų, dirbsi telkinį, tarp kurio stovi, o jei nieko nepasiekiama, nueisi prie artimiausio ištekliaus. {phone:Nuslydęs nuo jo|laptop:Nutempęs nuo jo} pieši Taką, kaip anksčiau.\n„Idealiai“ niekur nedingo: jis dabar mažesnis mygtukas iškart virš „Rinkti“. Laikyk jį ir žaidimas žais pats.{phone:|laptop: Tarpo klavišas vėl renka, o P laiko „Idealiai“.}",

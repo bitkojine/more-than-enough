@@ -14,7 +14,7 @@
  *                  invites                 the invite links you may see (all, for the owner)
  *                  revoke {code}           stop an invite link (the owner any, others their own)
  *                  remove {id}             the owner takes a player out of the world
- *                  nuke                    press the nuke (for good)
+ *                  nuke                    (old games only) ignored: there is no nuke any more
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved (several times a second when near
  *                                          you, every couple of seconds when far)
@@ -26,12 +26,10 @@
  *                  invites {list}          [code, by, made, until, uses, stopped, max] newest first
  *                  removed {id}            a player was taken out of the world
  *                  owner {id}              the world has a new owner (the last one was removed)
- *                  nuke {nuke: {votes, until}}  the nuke is on: who pressed it, and when it's pressed for the rest
  *                  full / bad              why the room is closing on you
- * A world made before the current WORLD_FORMAT (src/core/format.js) gets the nuke. When
- * everyone has pressed it (or had it pressed for them), the room makes the
- * world again and closes every socket with code 4004; each game reconnects
- * to the new world.
+ * Every world is kept: nothing resets one (no nuke since 2026-10-18; the
+ * welcome's `nuke` is always null, and the room never sends 'nuke' or closes
+ * with 4004 'renewed' any more).
  *
  * The game (GitHub Pages) and the room service (Cloudflare) deploy on their
  * own, so for a while either can be a version ahead: new fields go at the

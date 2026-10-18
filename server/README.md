@@ -46,8 +46,8 @@ shared with the game.
 6. The room keeps the world's **clock**: it starts at the creator's time of
    day, runs whether anyone is in or not, and comes with every welcome, so
    day and night are the same for everyone in the world.
-7. The welcome also says which world format (`WORLD_FORMAT`) the world is
-   made with, or will be once its nuke goes off (`fmt`). A game on another
+7. The welcome also says which world format (`WORLD_FORMAT`) the world
+   plays by (`fmt`; always the current one, see *Every world is kept*). A game on another
    format stays out until both sides match: an older one reloads into the
    newest version, a newer one tries again a minute later, while the room
    service catches up. So during a deploy nobody grows different land from
@@ -70,8 +70,8 @@ shared with the game.
    and the acts it hadn't stored come again the same way.
 9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
    and, if it does, how many play there now (`online`, a count, never who):
-   a game that couldn't get in asks, so it stops offering a world deleted
-   after 30 days unvisited, and the Worlds list shows who's playing.
+   a game that couldn't get in asks, so it stops offering a world that is
+   gone (an admin copy whose time is up), and the Worlds list shows who's playing.
 
 All traffic goes through the room: no phone ever learns another's IP
 address.
@@ -117,19 +117,21 @@ again in the game; anything that doesn't fit exactly is dropped.
   no faster than the game lets anyone, and then by the game's own rules
   (reach, tools, costs, free tiles). Refused acts change nothing and are
   counted for the moderator (`shadow` in the player list).
-- **The nuke:** only the room service calls it, once, when a world was made
-  before its own `WORLD_FORMAT` or `ECON_FORMAT` (`src/core/format.js`; the
-  second only for how the room counts progress, so solo worlds stay); nothing a player sends can. A player can only press it for themselves. The world is made
-  again once everyone online has pressed it (away, lost and offline players
-  count as pressed) or a minute after it was called, with a seed the room
-  picks; every socket is then closed, so nothing from the old world gets in.
+- **Every world is kept:** nothing resets or deletes a players' world
+  (Watch, 2026-10-18). There is no nuke any more: a world made under an
+  older `WORLD_FORMAT` or `ECON_FORMAT` (`src/core/format.js`, frozen) plays
+  on under the current one, logged once as `kept`; a `nuke` message from an
+  old game changes nothing, and the welcome's `nuke` is always null. Unit
+  tests fail if any of that comes back.
 - **No HTML from the network:** the game builds friends' chips from elements
   and text, and shows no text a player wrote (friends get a name from the
   game's own list). The page has a Content-Security-Policy.
 - **Steps:** a player's every step goes only to players within 48 tiles on
   their layer; everyone else hears where they are every 2 seconds, so a
   full world doesn't send every step to all 100.
-- **Storage:** a room nobody visits for 30 days is deleted.
+- **Storage:** a players' world is kept forever; only the deploy's smoke-test
+  rooms (seed 12345) are deleted after 30 days unvisited, and admin copies
+  when their time is up.
 - **The moderator:** the `/admin/` routes answer only a bearer token equal
   to the `ADMIN_TOKEN` Worker secret (set on deploy from the
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
@@ -146,8 +148,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   as `drift`) is frozen by the moderator instead of banned. It stays in the world, asleep, with what it
   built, but its key can't play it again (`frozen`, close code 4005): the
   game shows a joke "FBI" notice and goes back to the player's own world.
-  The links its player made stop; a frozen owner's world passes on. The
-  nuke thaws every frozen character, since everyone starts over; bans stay.
+  The links its player made stop; a frozen owner's world passes on.
 - **Tombstones:** a banned or frozen character leaves a tombstone where it
   last stood (`graves` in the welcome and in a `graves` message: `[id,
   colour, x, y, z, 'ban' | 'ice']`, at most 300), until the world is made
@@ -187,7 +188,8 @@ enter a shared world, and in Settings.
 | `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
 | `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |
 | `owner` | the world passed to a new owner (`p`; null if nobody is left) | `was` |
-| `nuke`, `nukeCall`, `renew` | the nuke is pressed, called, and the world made again | `fmt`, `gen`, `seed` |
+| `kept` | a world made under an older format (or with a nuke pending from before nukes ended) is kept and plays on under the current one | `fmt`, `ef` (what it was) |
+| `nuke`, `nukeCall`, `renew` | only in logs from before 2026-10-18: the old nuke | `fmt`, `gen`, `seed` |
 
 Events wait in memory and are written as one chunk every 30 seconds at
 most (or every 500, or when the last player leaves), into a SQL table of their own, so the free plan's row writes

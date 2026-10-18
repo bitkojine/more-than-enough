@@ -1,7 +1,7 @@
 /* localStorage persistence. Every access is guarded: private browsing and full
  * quotas throw, and the game must keep running regardless. */
 
-import { serialize, deserialize, createState, SAVE_VERSION } from '../core/index.js';
+import { serialize, deserialize, createState, SAVE_VERSION, OLDEST_SAVE } from '../core/index.js';
 
 const SAVE_KEY = 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
@@ -64,28 +64,43 @@ export function onSavedElsewhere(fn) {
 
 // Loads the saved game, or starts a new world. `lost` says why a save that
 // existed could not be read, so the player can be told: 'format' (made by
-// another version of the game) or 'broken'; false when nothing was lost.
+// another version of the game: a newer one, or one from before the
+// oldest format kept) or 'broken'; false when nothing was lost.
 // A save that can't be read is set aside, never just written over: one this
 // version can read is taken back instead (an old cached page right after an
-// update set the new game's save aside, or a later fix reads it again).
+// update set the new game's save aside, or a later fix reads it again), and
+// so is one played further than the save in use (v0.109.0, the last format
+// change ever, set format 10 worlds aside and started new ones): every
+// world is kept (src/core/format.js).
 export function loadGame() {
   const raw = read(SAVE_KEY);
   known = raw;
-  if (!raw) return { state: createState(randomSeed()), lost: false };
-  const state = deserialize(raw);
-  if (state) return { state, lost: false };
   const aside = read(ASIDE_KEY);
   const back = aside && deserialize(aside);
+  const state = raw && deserialize(raw);
+  if (state && !(back && further(back, state))) return { state, lost: false };
+  if (back) {
+    // Back in use first, then the other set aside: closing the game in
+    // between loses neither.
+    if (!write(SAVE_KEY, aside)) { known = aside; write(ASIDE_KEY, raw ?? ''); }
+    return { state: back, lost: false };
+  }
+  if (!raw) return { state: createState(randomSeed()), lost: false };
   write(ASIDE_KEY, raw);
-  if (back) return { state: back, lost: false };
   return { state: createState(randomSeed()), lost: formatOf(raw) === null ? 'broken' : 'format' };
+}
+
+// Whether world `a` has been played further than `b`: more Embarks (each
+// starts the play clock again), else more time played.
+function further(a, b) {
+  return a.prestiges !== b.prestiges ? a.prestiges > b.prestiges : a.stats.playedMs > b.stats.playedMs;
 }
 
 // The format version a save says it has, or null if it doesn't say one.
 function formatOf(raw) {
   try {
     const v = JSON.parse(raw)?.v;
-    return Number.isInteger(v) && v !== SAVE_VERSION ? v : null;
+    return Number.isInteger(v) && (v > SAVE_VERSION || v < OLDEST_SAVE) ? v : null;
   } catch { return null; }
 }
 

@@ -6,14 +6,14 @@
  * the admin token, keeps it in the browser (the tab only, unless "remember"
  * is ticked) and sends it as a bearer to the /admin/ routes, which answer
  * nothing without it. Everything the rooms send is written into the page as
- * text, never as HTML, and the page runs only its own script (CSP). No
- * imports but the game's words, so the room service bundles it as is. */
+ * text, never as HTML, and the page runs only its own script (CSP). Its
+ * imports are the game's words and room.js's smoke-test seed, so the room service bundles it as is. */
 
 import en from '../../src/i18n/en.js';
 import lt from '../../src/i18n/lt.js';
 import { worldWords, nameNumbers, nameWord } from '../../src/net/naming.js';
 
-const SMOKE_SEED = 12345; // the deploy's smoke test makes these rooms (rooms.yml)
+import { SMOKE_SEED } from './room.js';
 
 export const isSmokeTest = (summary) => summary.seed === SMOKE_SEED;
 

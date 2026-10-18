@@ -8,9 +8,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, NUKE_AFK_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
-import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
+import { WORLD_FORMAT } from '../../src/core/format.js';
 
 const key = () => P.randomHex(32);
 const T0 = 1_700_000_000_000;
@@ -235,8 +235,7 @@ test('room: lost connections turn offline after a minute; clean leaves at once',
   assert.equal(r.expireLost(T0 + LOST_TO_OFFLINE_MS)[0].st, 'offline');
   await r.join(owner, undefined, T0);
   assert.equal(r.left(o.id, true, T0).st, 'offline');
-  assert.equal(r.expired(T0 + EXPIRE_MS - 1), false);
-  assert.equal(r.expired(T0 + EXPIRE_MS), true);
+  assert.equal(r.expired(T0 + 100 * EXPIRE_MS), false, 'a players\' world is never deleted (worlds-kept.test.js)');
 });
 
 test('room: numbered edits are answered with their number, applied or refused; others as before', async () => {
@@ -413,91 +412,6 @@ test('the vendored QR library is the published file, unchanged', () => {
   const body = src.slice(src.indexOf('\n') + 1);
   const sum = createHash('sha256').update(body).digest('hex');
   assert.match(src.split('\n')[0], new RegExp('sha256 ' + sum));
-});
-
-/* --------------------------------------------------------------- nuke */
-
-// A room whose world was made before the current world format.
-async function oldRoom(extra) {
-  const made = await makeRoom(extra);
-  made.r.fmt = WORLD_FORMAT - 1;
-  return made;
-}
-
-test('room: only a world from before the current format gets the nuke, whatever a player claims', async () => {
-  const { r, owner } = await makeRoom({ fmt: 1 });
-  assert.equal(r.fmt, WORLD_FORMAT, 'a new room is made at the current format, not what its maker says');
-  const a = (await r.join(owner, null, T0)).id;
-  assert.equal(r.welcome(a, T0).nuke, null);
-  // A hostile hello claiming a far newer game changes nothing.
-  const forged = await r.join(owner, null, T0, 99999);
-  assert.ok(!forged.called && r.call === null, 'a player cannot call the nuke');
-  assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0), {}, 'nothing to press until the room calls it');
-  assert.ok(!r.nukeDue(T0 + 10 * NUKE_AFK_MS));
-  assert.equal(Core.SAVE_VERSION, WORLD_FORMAT, 'the save format and the world format are one');
-});
-
-test('room: a world from before the room kept its own count of progress gets the nuke once too', async () => {
-  const { r, owner } = await makeRoom();
-  assert.equal(r.ef, ECON_FORMAT);
-  r.ef = ECON_FORMAT - 1;
-  const first = await r.join(owner, null, T0);
-  assert.ok(first.called, 'its old progress came from the games: everyone starts over on the room\'s count');
-  assert.equal(first.welcome.fmt, WORLD_FORMAT, 'and the game\'s own world format is fine');
-  r.renew(T0 + 1000);
-  assert.equal(r.ef, ECON_FORMAT);
-  const back = Room.restore(r.id, r.takeWrites(), T0 + 2000);
-  assert.ok(!(await back.join(owner, null, T0 + 2000)).called, 'once');
-});
-
-test('room: an old world calls the nuke, and only presses or away players set it off', async () => {
-  const { r, owner } = await oldRoom({ save: '{"inv":1}' });
-  const first = await r.join(owner, null, T0);
-  const a = first.id;
-  assert.ok(first.called, 'the first player in calls it');
-  r.message(a, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 } }), T0);
-  r.made(a, [['p', Core.packKey(1, 1, 0), 'glowcap']], T0);
-  assert.equal(r.props.size, 1);
-  const bKey = key();
-  const joined = await r.join(bKey, invite(r, a), T0);
-  const b = joined.id;
-  assert.ok(!joined.called, 'called once, not again');
-  assert.deepEqual(joined.welcome.nuke, { votes: [], until: T0 + NUKE_AFK_MS });
-  assert.ok(!r.nukeDue(T0), 'both online, nobody has pressed');
-
-  const out = r.message(a, JSON.stringify({ t: 'nuke', on: false }), T0);
-  assert.deepEqual(out.toAll, [{ t: 'nuke', nuke: { votes: [a], until: T0 + NUKE_AFK_MS } }], 'any press counts, for good');
-  assert.ok(!r.nukeDue(T0));
-  r.message(b, JSON.stringify({ t: 'away', a: true }), T0);
-  assert.ok(r.nukeDue(T0), 'pressed for a player who is away');
-
-  r.renew(T0 + 5000);
-  const after = r.welcome(a, T0 + 5000);
-  assert.notEqual(after.seed, 42);
-  assert.ok(after.seed >= 1 && after.seed <= 0xffffffff);
-  assert.deepEqual([after.gen, after.nuke, r.fmt], [1, null, WORLD_FORMAT]);
-  assert.deepEqual([after.mods, after.props, after.ext, after.save, after.p, after.time], [[], [], [], null, null, 0]);
-  assert.equal(r.players.size, 2, 'everyone is still in the world');
-  assert.ok(!(await r.join(bKey, null, T0 + 6000)).called, 'the new world has everything new');
-
-  // It all survives a restart.
-  const back = Room.restore(r.id, r.takeWrites(), T0 + 6000);
-  assert.deepEqual([back.gen, back.fmt, back.call, back.seed, back.props.size], [1, WORLD_FORMAT, null, after.seed, 0]);
-});
-
-test('room: offline players and idle ones once the minute is up have it pressed for them', async () => {
-  const { r, owner } = await oldRoom();
-  const a = (await r.join(owner, null, T0)).id;
-  const b = (await r.join(key(), invite(r, a), T0)).id;
-  r.left(b, true, T0);
-  assert.ok(!r.nukeDue(T0), 'the one online player has to press it');
-  assert.ok(r.nukeDue(T0 + NUKE_AFK_MS), 'until the minute is up');
-  r.message(a, JSON.stringify({ t: 'nuke' }), T0);
-  assert.ok(r.nukeDue(T0), 'b is offline: pressed for them');
-  // A restart keeps the call and the presses.
-  const back = Room.restore(r.id, r.takeWrites(), T0 + 1000);
-  assert.deepEqual([back.call, [...back.nuke]], [{ fmt: WORLD_FORMAT, at: T0 }, [a]]);
-  assert.equal(back.nukeDeadline(), T0 + NUKE_AFK_MS);
 });
 
 /* ------------------------------------------------------------ security */
@@ -901,7 +815,7 @@ test('room: a frozen owner\'s world passes to the earliest joiner who can still 
   assert.equal(r.freeze('nobody', T0).error, 'player');
 });
 
-test('room: a banned character leaves a tombstone where it last stood, until the world is made again', async () => {
+test('room: a banned character leaves a tombstone where it last stood', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
@@ -911,8 +825,6 @@ test('room: a banned character leaves a tombstone where it last stood, until the
   assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ban']] });
   r.message(o.id, JSON.stringify({ t: 'remove', id: nowhere.id }), T0 + 20);
   assert.equal(r.graves.length, 1, 'no tombstone for someone who never stood anywhere');
-  r.renew(T0 + 30);
-  assert.deepEqual(r.graves, [], 'a new world has none');
 });
 
 test("room: a world passes to whoever really joined first, not to whoever took a banned player's colour", async () => {
@@ -937,25 +849,3 @@ test('room: a banned key is told it is banned, as an invite that no longer works
   assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
 });
 
-test('room: the welcome says which world format the world is on, or will be once nuked', async () => {
-  const { r, owner } = await makeRoom();
-  assert.equal((await r.join(owner, null, T0)).welcome.fmt, WORLD_FORMAT);
-  const old = await oldRoom();
-  const w = (await old.r.join(old.owner, null, T0)).welcome;
-  assert.ok(w.nuke, 'the nuke is up');
-  assert.equal(w.fmt, WORLD_FORMAT, 'the format it is about to be made with: an older game updates first');
-});
-
-test('room: the nuke thaws frozen characters, so they start over fairly; bans stay', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
-  const fKey = key(), bKey = key();
-  const f = await r.join(fKey, invite(r, o.id), T0);
-  const b = await r.join(bKey, invite(r, o.id), T0);
-  r.freeze(f.id, T0, 'hacked');
-  r.ban(b.id, T0, 'mod', 'x');
-  r.renew(T0 + 10);
-  assert.equal(r.takeWrites().get('p:' + f.id).frozen, undefined, 'the thaw is saved');
-  assert.equal((await r.join(fKey, undefined, T0 + 20)).id, f.id, 'back in, starting over');
-  assert.equal((await r.join(bKey, undefined, T0 + 20)).why, 'banned');
-});

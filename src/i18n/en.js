@@ -801,6 +801,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.117.0": "Your worlds are safe for good: no update will ever start your world over again, alone or shared. The nuke is gone.\nIf the last big update started you on a new world, the one you had played longer comes back.",
   "news.0.116.0": "Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.",
   "news.0.115.0": "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
   "news.0.114.0": "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
