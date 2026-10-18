@@ -207,16 +207,16 @@
    "color": "#c9a6ff"
   },
   "pile.mycelium": {
-   "tiers": ["piles/mycelium-0.svg", "piles/mycelium-1.svg", "piles/mycelium-2.svg", "piles/mycelium-3.svg", "piles/mycelium-4.svg", "piles/mycelium-5.svg", "piles/mycelium-6.svg"]
+   "tiers": ["piles/mycelium-0.svg", "piles/mycelium-1.svg", "piles/mycelium-2.svg", "piles/mycelium-3.svg", "piles/mycelium-4.svg", "piles/mycelium-5.svg", "piles/mycelium-6.svg", "piles/mycelium-7.svg", "piles/mycelium-8.svg", "piles/mycelium-9.svg", "piles/mycelium-10.svg", "piles/mycelium-11.svg", "piles/mycelium-12.svg"]
   },
   "pile.stone": {
-   "tiers": ["piles/stone-0.svg", "piles/stone-1.svg", "piles/stone-2.svg", "piles/stone-3.svg", "piles/stone-4.svg", "piles/stone-5.svg", "piles/stone-6.svg"]
+   "tiers": ["piles/stone-0.svg", "piles/stone-1.svg", "piles/stone-2.svg", "piles/stone-3.svg", "piles/stone-4.svg", "piles/stone-5.svg", "piles/stone-6.svg", "piles/stone-7.svg", "piles/stone-8.svg", "piles/stone-9.svg", "piles/stone-10.svg", "piles/stone-11.svg", "piles/stone-12.svg"]
   },
   "pile.ore": {
-   "tiers": ["piles/ore-0.svg", "piles/ore-1.svg", "piles/ore-2.svg", "piles/ore-3.svg", "piles/ore-4.svg", "piles/ore-5.svg", "piles/ore-6.svg"]
+   "tiers": ["piles/ore-0.svg", "piles/ore-1.svg", "piles/ore-2.svg", "piles/ore-3.svg", "piles/ore-4.svg", "piles/ore-5.svg", "piles/ore-6.svg", "piles/ore-7.svg", "piles/ore-8.svg", "piles/ore-9.svg", "piles/ore-10.svg", "piles/ore-11.svg", "piles/ore-12.svg"]
   },
   "pile.crystal": {
-   "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg"]
+   "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg", "piles/crystal-7.svg", "piles/crystal-8.svg", "piles/crystal-9.svg", "piles/crystal-10.svg", "piles/crystal-11.svg", "piles/crystal-12.svg"]
   },
   "building.garden": {
    "image": "buildings/garden.svg"

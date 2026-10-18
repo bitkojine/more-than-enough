@@ -152,7 +152,7 @@ const TABLES = {
   // One row per power of ten: the pile for each resource, and its footprint.
   piles: () => {
     const rows = [];
-    for (let tier = 0; tier <= Core.SPAN_FROM + 2; tier++) {
+    for (let tier = 0; tier <= Core.SPAN_FROM + 5; tier++) { // up to 10^12, the top of the kingdom ladder
       const span = Core.pileSpan(tier);
       rows.push([num(Math.pow(Core.PILE_BASE, tier)),
         ...Core.RESOURCES.map((r) => `<img class="pile" src="${tierUrl(r, tier)}" alt="${Core.RESOURCE_LABEL[r]}, ${num(Math.pow(10, tier))}" loading="lazy">`),

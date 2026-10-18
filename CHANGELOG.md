@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.108.0] - 2026-10-18
+
+Watch picked "Kingdom ladder": from 10^7 up every pile size reused one
+picture per resource, so a rich stash was rows of identical houses.
+
+### Added
+- **Six new pile pictures per resource, 10^7 to 10^12**: hamlet, village,
+  town, walled city, citadel, crowned capital, each in its resource's
+  style (mushroom houses and towers up to a glowing teal capital; stone
+  keeps up to a domed palace; copper forges up to a golden-domed foundry;
+  crystal spires up to a haloed crystal palace). Each picture's frame is
+  fitted to what's drawn, so it fills its square. Past 10^12 the capital
+  just grows. The wiki's pile table shows the whole ladder. First load
+  grows by about 8 KB gzipped (175 to 183 KB, budget 200).
+
 ## [0.107.0] - 2026-10-18
 
 Watch's ask: the stockpile at spawn turns into a crowd of buildings drawn
