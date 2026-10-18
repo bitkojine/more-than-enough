@@ -13,7 +13,8 @@ const FLYER_SPEED = 3;             // tiles per second, on average: just under w
 const FLYER_MIN = 0.8;             // shortest flight, in seconds
 const FLYER_LIFT = 0.7;            // how high a flyer floats, in tiles
 const FLYER_RISE = 0.5;            // seconds to lift off, and to settle at the end
-const FLYER_MERGE = 2;             // gains from the same tile this soon after a launch ride along with it
+const FLYER_MERGE = 2;             // gains from near a launch this soon after it ride along with it
+const FLYER_NEAR = 1;              // tiles from a launch that count as near it (a row of buildings shares)
 const TALLY_LIFE = 2.4;            // seconds a "+n" stays up after its last gain
 const TALLY_MERGE = 1.6;           // gains this soon after the last one add to it
 const HIT_TIME = 0.28;             // how long a struck rock or tree shakes, in seconds
@@ -60,14 +61,22 @@ export function createEffects(look, landing) {
 
   // What you gather floats off to the stockpile, unhurried, so you can see
   // where it goes and follow it home (off screen when the yard is far). A run
-  // of gains from one tile rides along on the flyer just launched from it, so
-  // a steady stream reads as a trail of bundles rather than a blur.
+  // of gains from one spot rides along on the flyer just launched from there,
+  // so a steady stream reads as a trail of bundles rather than a blur. Over
+  // budget, flyers already on their way keep going (replacing them would
+  // restart the trail every time and none would ever reach home); the gain
+  // simply rides on the newest of its kind, if any.
   function flyersFrom(tx, ty, res, amount) {
+    let newest = null;
     for (const f of flyers) {
-      if (f.res === res && f.tx === tx && f.ty === ty && f.t < FLYER_MERGE) { f.amount += amount; return; }
+      if (f.res !== res) continue;
+      if (f.t < FLYER_MERGE && Math.abs(f.tx - tx) <= FLYER_NEAR && Math.abs(f.ty - ty) <= FLYER_NEAR) { f.amount += amount; return; }
+      if (!newest || f.t < newest.t) newest = f;
     }
-    // Over budget, the oldest (likely long off screen) makes way.
-    if (flyers.length >= MAX_FLYERS) flyers.shift();
+    if (flyers.length >= MAX_FLYERS) {
+      if (newest) newest.amount += amount;
+      return;
+    }
     const to = landing(res);
     const x0 = tx + 0.5 + (rand() - 0.5) * 0.4, y0 = ty + 0.5 + (rand() - 0.5) * 0.4;
     const x1 = to.x + (rand() - 0.5) * 0.4, y1 = to.y + (rand() - 0.5) * 0.4;

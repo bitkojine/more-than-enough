@@ -783,6 +783,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.113.1": "Pataisyta: kai prie pradžios daug pastatų, plaukiantys ištekliai mirgėdavo prie pastatų ir niekada nepasiekdavo sandėlio. Dabar kiekvienas nuplaukia iki pat namų.",
   "news.0.113.0": "Pastatai dabar rodo, kas juose laukia: daržas tuščias, kol jame neužauga grybų, kasyklos vagonėlis prisipildo rūdos, o prie kitų kaupiasi plytos, blokai, luitai ir kristalų šukės. Paėmus produkciją, jie vėl atrodo tušti, tad iš karto matai, kuriuose kažkas tavęs laukia. Su Logistika jie lieka tušti, nes viskas jau keliauja pas tave.",
   "news.0.112.0": "Tai, ką surenki, dabar ramiai plaukia namo į tavo sandėlį, šiek tiek lėčiau, nei tu eini, o ne švysteli kaip mirgėjimas. Sek paskui ir jis nuves tave atgal į pradžią.\nMostų serijos ir užimti pastatai savo grobį siunčia ryšuliais, tad nuolatinis srautas atrodo kaip takas namo.",
   "news.0.111.0": "Laukti nebėra geriausias ėjimas. Kiekvienas mostas dabar atneša ir dalį to, ką tavo pastatai to ištekliaus pagamina, o radiniai kasykloje auga taip pat, tad rinkimas visada tave paspartina, kad ir kokios didelės būtų tavo stovyklos.\nLogistika dabar parveža produkciją iš visų tavo pastatų, kad ir kur būtum, net kasykloje, tad nereikia stovėti prie bazės: eik tyrinėti, rinkti ar kasti, ir nieko neprarasi. Pastatai patys pagamina šiek tiek mažiau, kad pasaulis truktų maždaug tiek pat.",

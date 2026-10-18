@@ -783,6 +783,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.113.1": "Fixed: with lots of buildings near spawn, floating resources flickered by the buildings and never reached the stockpile. Now every one floats all the way home.",
   "news.0.113.0": "Buildings now show what waits in them: a garden is bare until mushrooms grow in it, a mine's cart heaps up with ore, bricks, blocks, ingots and crystal shards stack up beside the others. Once you collect, they look empty again, so you can tell at a glance which ones have something for you. With Logistics they stay empty, since everything is already on its way to you.",
   "news.0.112.0": "What you gather now floats home to your stockpile at a calm pace, a little slower than you walk, instead of zipping off in a flicker. Follow it and it leads you back to spawn.\nRuns of swings and busy buildings send their haul in bundles, so a steady stream reads as a trail home.",
   "news.0.111.0": "Waiting is never the best move any more. Every swing now also brings in a share of what your buildings make of that resource, and finds in the mine grow the same way, so gathering always speeds you up, however big your camps get.\nLogistics now hauls from all your buildings wherever you are, even down in the mine, so there's no need to stand around your base: go and explore, gather or dig, and nothing is lost. Buildings make a little less on their own to keep the world about as long.",

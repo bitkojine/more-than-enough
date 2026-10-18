@@ -29,24 +29,32 @@ test('effects: flyers drift home slower than you walk, and land there', () => {
   assert.equal(fx.flyers.length, 0, 'landed');
 });
 
-test('effects: a run of gains from one tile rides on one flyer', () => {
+test('effects: a run of gains from one spot rides on one flyer', () => {
   const fx = fresh();
   for (let i = 0; i < 6; i++) { fx.flyersFrom(10, 4, 'ore', 3); run(fx, 0.25); }
   assert.equal(fx.flyers.length, 1);
   assert.equal(fx.flyers[0].amount, 18);
   fx.flyersFrom(10, 4, 'crystal', 1);
-  fx.flyersFrom(11, 4, 'ore', 1);
-  assert.equal(fx.flyers.length, 3, 'another resource or tile gets its own');
+  fx.flyersFrom(11, 5, 'ore', 1);
+  assert.equal(fx.flyers.length, 2, 'a building next door shares it');
+  fx.flyersFrom(12, 4, 'ore', 1);
+  assert.equal(fx.flyers.length, 3, 'another resource or spot gets its own');
   run(fx, 1);
   fx.flyersFrom(10, 4, 'ore', 1);
   assert.equal(fx.flyers.length, 4, 'a steady stream leaves a trail of bundles');
 });
 
-test('effects: over budget, the oldest flyer makes way for the newest', () => {
+test('effects: over budget, flyers on their way keep going and still land', () => {
+  // Many busy buildings near spawn: replacing the oldest restarted every
+  // trail, so none ever reached the stockpile and they flickered (v0.112.0).
   const fx = fresh();
-  for (let i = 0; i < 100; i++) fx.flyersFrom(i * 3, 50, 'stone', 1);
+  const busy = () => { for (let i = 0; i < 100; i++) fx.flyersFrom(10 + (i % 10) * 2, (i / 10 | 0) * 2, 'stone', 1); };
+  busy();
   assert.equal(fx.flyers.length, 40);
-  assert.equal(fx.flyers.at(-1).tx, 297, 'the latest gain is shown');
+  const first = [...fx.flyers];
+  for (let t = 0; t < 10; t += 0.5) { busy(); run(fx, 0.5); }
+  assert.ok(first.every((f) => !fx.flyers.includes(f) && Math.hypot(f.x - f.x1, f.y - f.y1) < 1), 'every first flyer made it home');
+  assert.ok(fx.flyers.length > 0 && fx.flyers.length <= 40);
   fx.clear();
   assert.equal(fx.flyers.length, 0);
 });

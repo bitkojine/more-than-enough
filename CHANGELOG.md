@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.113.1] - 2026-10-18
+
+Watch's bug: near spawn, with buildings near spawn too, floating resources
+flickered by the buildings and never floated to the stockpile. Reproduced
+with 60 Logistics buildings in view: they launch more bundles than the 40
+in the air allow, and v0.112.0 made room by dropping the oldest, so all 40
+were replaced every 2 s, each restarting at its building, and none got
+home.
+
+### Fixed
+- **Flyers on their way always land**: over budget, a new gain rides on the
+  newest flyer of its resource instead of evicting the oldest.
+- Gains within a tile of a fresh launch (`FLYER_NEAR`) share its bundle, so
+  a row of buildings sends one trail, not one each.
+
+### Tests
+- `test/unit/effects.test.js`: with 100 busy sources, every flyer launched
+  first reaches the stockpile (failed on v0.112.0).
+
 ## [0.113.0] - 2026-10-18
 
 Watch's ask: everything you collect from must change as you collect from it,
