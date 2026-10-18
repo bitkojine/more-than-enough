@@ -445,12 +445,13 @@ export function drawFloats(ctx, cam, look, fx) {
   ctx.globalAlpha = 1;
 }
 
-// Gathered items zipping into the pack, as their resource's icon.
+// Gathered items floating home to the stockpile, as their resource's icon.
 export function drawFlyers(ctx, cam, look, fx) {
-  const size = Math.max(10, cam.tilePx * 0.3);
+  const size = Math.max(12, cam.tilePx * 0.36);
   for (const f of fx.flyers) {
     const { x, y } = cam.project(f.x, f.y);
-    ctx.globalAlpha = Math.min(1, 0.3 + f.t * 2.5);
+    if (x < -size || y < -size || x > cam.width + size || y > cam.height + size) continue;
+    ctx.globalAlpha = Math.min(1, 0.3 + f.t * 1.5);
     look.draw(ctx, look.pick(Core.resourceLook(f.res), 'icon'), x - size / 2, y - size / 2, size, size);
   }
   ctx.globalAlpha = 1;

@@ -562,7 +562,7 @@ async function main() {
   var contrast = await evalJS('(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var n=0,sum=0,sum2=0;for(var i=0;i<d.length;i+=160){var l=(d[i]*0.3+d[i+1]*0.59+d[i+2]*0.11)/255;sum+=l;sum2+=l*l;n++;}var m=sum/n;return JSON.stringify({mean:+m.toFixed(3),std:+Math.sqrt(sum2/n-m*m).toFixed(3)});})()');
   console.log('  luminance ' + contrast);
 
-  /* -------------------------------------------- items fly to the player */
+  /* ------------------------------------- items float home to the stockpile */
   console.log('\n== Gathered items fly to the stockpile ==');
   var spotF = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotF, 'moved onto a fresh rich forest tile for the flyer test (' + spotF + ')');
@@ -577,8 +577,11 @@ async function main() {
   ok(await evalJS('(function(){var s=MTE_GAME.getState(),h=MTE_GAME.core.home(s);return MTE_GAME.flyers().every(function(f){var toYard=Math.max(Math.abs(f.x1-h.x),Math.abs(f.y1-h.y))<=MTE_GAME.core.HOME_HALF+1,toPlayer=Math.hypot(f.x1-s.player.x,f.y1-s.player.y)<0.6;return toYard&&!toPlayer;});})()'),
     'they fly to the stockpile, not to the player (' + await evalJS('JSON.stringify(MTE_GAME.flyers().slice(0,2).map(function(f){return [+f.x1.toFixed(1),+f.y1.toFixed(1)];}))') + ')');
   await touch('touchEnd', []);
-  await sleep(2000);
-  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'flyers land and clear within 2 s');
+  ok(await evalJS('MTE_GAME.flyers().every(function(f){return Math.hypot(f.x1-f.x0,f.y1-f.y0)/f.dur<MTE_GAME.core.BASE_SPEED;})'),
+    'they drift home slower than you walk, so you can follow them');
+  // Gains from one tile ride on the bundle it launched for 2 s (FLYER_MERGE).
+  ok(await evalJS('(function(){var last={};return MTE_GAME.flyers().slice().sort(function(a,b){return b.t-a.t;}).every(function(o){var k=o.tx+","+o.ty+","+o.res,ok=!(k in last)||last[k]-o.t>1.9;last[k]=o.t;return ok;});})()'),
+    'each tile sends one bundle at a time, not a burst');
 
   /* --------------------------------- SPACE hold must gather at the cd rate */
   console.log('\n== Holding SPACE plays at the hold pace (no key-repeat turbo) ==');

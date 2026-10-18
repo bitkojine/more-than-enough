@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.112.0] - 2026-10-18
+
+Watch's ask: what you gather flew to the stockpile so fast it looked like
+flickering artifacts. Each gain threw up to 7 icons at 12 tiles a second,
+landing within 1.6 s however far, and every building Logistics hauled from
+within 12 tiles sent a fresh burst each second. Watch wants a new player to
+get curious and follow them back to spawn, and picked the pace and the
+Logistics behaviour on decision cards.
+
+### Changed
+- **Flyers float home at 3 tiles a second** (`FLYER_SPEED`, just under the
+  3.7 walking speed), with no cap on the flight time, so you can follow one
+  home and still overtake it. They lift off, drift with a gentle bob and
+  settle onto their pile.
+- **One bundle, not a burst**: a gain launches one flyer, and later gains of
+  the same resource from the same tile ride along on it for 2 s
+  (`FLYER_MERGE`), so a run of swings or a hauling building leaves a calm
+  trail of bundles. At most 40 are in the air; the oldest makes way.
+- Flyers off screen are skipped when drawing; icons are a little bigger.
+
+### Tests
+- `test/unit/effects.test.js`: flyers move slower than walking and land,
+  gains bundle per tile and resource, the budget keeps the newest. The
+  browser test checks real gathers drift slower than walking in one or two
+  bundles instead of clearing within 2 s.
+
 ## [0.111.0] - 2026-10-18
 
 Watch's ask: waiting and doing nothing must never be the best option. Held

@@ -1,7 +1,7 @@
 /* Short-lived visual effects in world space: particles, floating text, the
  * shake of a struck rock or tree, and the "flyers" that carry what you gather
- * off to the stockpile, so you see where it goes. All effects belong to the layer they were spawned on; changing
- * layers clears them. */
+ * off to the stockpile, so you see where it goes. All effects belong to the
+ * layer they were spawned on; changing layers clears them. */
 
 import { resourceLook } from '../core/index.js';
 import { fmt } from './format.js';
@@ -9,8 +9,11 @@ import { fmt } from './format.js';
 // Budgets keep bursts cheap.
 const MAX_PARTICLES = 160;
 const MAX_FLYERS = 40;
-const FLYER_SPEED = 12;            // tiles per second, on average
-const FLYER_TIME = [0.45, 1.6];    // shortest and longest flight, in seconds
+const FLYER_SPEED = 3;             // tiles per second, on average: just under walking, so you can follow one home
+const FLYER_MIN = 0.8;             // shortest flight, in seconds
+const FLYER_LIFT = 0.7;            // how high a flyer floats, in tiles
+const FLYER_RISE = 0.5;            // seconds to lift off, and to settle at the end
+const FLYER_MERGE = 2;             // gains from the same tile this soon after a launch ride along with it
 const TALLY_LIFE = 2.4;            // seconds a "+n" stays up after its last gain
 const TALLY_MERGE = 1.6;           // gains this soon after the last one add to it
 const HIT_TIME = 0.28;             // how long a struck rock or tree shakes, in seconds
@@ -55,22 +58,24 @@ export function createEffects(look, landing) {
     }
   }
 
-  // A handful of sprites arc from a tile to the stockpile, so every gain is
-  // visible and you can see where it went (off screen when the yard is far).
+  // What you gather floats off to the stockpile, unhurried, so you can see
+  // where it goes and follow it home (off screen when the yard is far). A run
+  // of gains from one tile rides along on the flyer just launched from it, so
+  // a steady stream reads as a trail of bundles rather than a blur.
   function flyersFrom(tx, ty, res, amount) {
-    const n = Math.max(1, Math.min(7, Math.ceil(amount * 0.35)));
-    const to = landing(res);
-    for (let i = 0; i < n && flyers.length < MAX_FLYERS; i++) {
-      const x0 = tx + 0.5 + (rand() - 0.5) * 0.5, y0 = ty + 0.5 + (rand() - 0.5) * 0.5;
-      const x1 = to.x + (rand() - 0.5) * 0.4, y1 = to.y + (rand() - 0.5) * 0.4;
-      const dist = Math.hypot(x1 - x0, y1 - y0);
-      flyers.push({
-        x: x0, y: y0, x0, y0, x1, y1, res,
-        dur: Math.min(FLYER_TIME[1], Math.max(FLYER_TIME[0], dist / FLYER_SPEED)),
-        arc: Math.min(3, 0.6 + dist * 0.2) * (0.8 + rand() * 0.4),
-        delay: rand() * 0.16, t: 0
-      });
+    for (const f of flyers) {
+      if (f.res === res && f.tx === tx && f.ty === ty && f.t < FLYER_MERGE) { f.amount += amount; return; }
     }
+    // Over budget, the oldest (likely long off screen) makes way.
+    if (flyers.length >= MAX_FLYERS) flyers.shift();
+    const to = landing(res);
+    const x0 = tx + 0.5 + (rand() - 0.5) * 0.4, y0 = ty + 0.5 + (rand() - 0.5) * 0.4;
+    const x1 = to.x + (rand() - 0.5) * 0.4, y1 = to.y + (rand() - 0.5) * 0.4;
+    flyers.push({
+      x: x0, y: y0, x0, y0, x1, y1, tx, ty, res, amount,
+      dur: Math.max(FLYER_MIN, Math.hypot(x1 - x0, y1 - y0) / FLYER_SPEED),
+      bob: rand() * TAU, t: 0
+    });
   }
 
   // Floating text; `icon` (a look id) is drawn after it.
@@ -187,20 +192,20 @@ export function createEffects(look, landing) {
       f.vy *= Math.pow(0.08, dt); // rises, then hangs where it can be read
       f.pop = Math.max(0, f.pop - dt * 5);
     }
-    // Flyers follow a lofted arc from where they were gathered to their
-    // spot in the yard, easing out as they come down, and land on it.
+    // Flyers lift off, drift home at an even pace with a gentle bob, and
+    // settle onto their spot in the yard.
     for (let i = flyers.length - 1; i >= 0; i--) {
       const f = flyers[i];
       f.t += dt;
-      const k = Math.min(1, Math.max(0, (f.t - f.delay) / f.dur));
-      if (k >= 1) {
+      if (f.t >= f.dur) {
         burst(f.x1, f.y1 - 0.2, 3, [1, 1.8], 0.7, [0.22, 0.18], [1.2, 1.6], resColor(f.res));
         flyers.splice(i, 1);
         continue;
       }
-      const e = 1 - (1 - k) * (1 - k);
+      const k = f.t / f.dur, e = k * k * (3 - 2 * k);
+      const up = Math.min(1, f.t / FLYER_RISE, (f.dur - f.t) / FLYER_RISE);
       f.x = f.x0 + (f.x1 - f.x0) * e;
-      f.y = f.y0 + (f.y1 - f.y0) * e - Math.sin(Math.PI * e) * f.arc;
+      f.y = f.y0 + (f.y1 - f.y0) * e - up * (FLYER_LIFT + Math.sin(f.t * 3 + f.bob) * 0.08);
     }
   }
 
