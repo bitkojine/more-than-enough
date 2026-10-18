@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.102.2] - 2026-10-18
+
+From the persistence review, bugs 4 and 9 of 9.
+
+### Fixed
+- The 0.79.0 player note said the game moves you to your place in a shared
+  world "if you come back from another device", but your key never leaves
+  the browser that made it. It now says "after playing offline, or from
+  another tab".
+- `structurizr/workspace.dsl` still said the save is "format v5": it names
+  `WORLD_FORMAT` and says the browser sets a rejected save aside.
+
 ## [0.102.1] - 2026-10-18
 
 From the persistence review, bug 3 of 9.
