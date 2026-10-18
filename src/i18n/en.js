@@ -766,6 +766,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.102.1": "Shared worlds you've left behind no longer take up space in your browser: what the game kept for one goes when it drops off your Worlds list or you remove it.",
   "news.0.102.0": "Coming back to a shared world where an older version showed you more than you really had, a message now says the numbers you see are your real ones. If you left a shared world before away time was counted, your buildings now make up to 8 hours' worth when you return.",
   "news.0.101.2": "If your saved world is damaged, the game now says so, instead of saying an update needs a new world.",
   "news.0.101.1": "A saved world this version of the game can't open is now kept to one side instead of being written over, so a fix can bring it back. If the site briefly hands out an older page after an update, your world comes back on the next load instead of being lost.",

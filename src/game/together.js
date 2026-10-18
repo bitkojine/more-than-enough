@@ -17,7 +17,7 @@ import {
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
-import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn } from './worlds.js';
+import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
 import { loadGame, randomSeed } from './storage.js';
 import { createActor } from './render/motion.js';
@@ -25,14 +25,11 @@ import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
-const SAVE_PREFIX = 'mte.room.';      // your progress in a shared world (a copy)
-const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
 const PRIVACY_STORE = 'mte.privacy';   // the version of the privacy policy the player agreed to
 // The privacy policy (privacy/index.html). Playing together means agreeing
 // to it; a new version (after a change that matters) asks everyone again.
 export const POLICY_VERSION = '1';
 export const policyUrl = () => 'privacy/#' + LANG;
-const GEN_PREFIX = 'mte.gen.';        // which making of that world those are from (see the nuke)
 const INVITE_USES_STORE = 'mte.inviteUses'; // how many people your new invite links let in
 const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes
 

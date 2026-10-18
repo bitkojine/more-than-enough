@@ -1,5 +1,7 @@
-/* The browser's save (src/game/storage.js) with localStorage faked: a save
- * this version can't read is set aside, never written over. */
+/* What the game keeps in the browser, with localStorage faked: the save
+ * (src/game/storage.js), where a save this version can't read is set aside,
+ * never written over, and the copies kept per shared world
+ * (src/game/worlds.js), which go when the world leaves the list. */
 
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,9 +11,12 @@ const store = new Map();
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
   setItem: (k, v) => { store.set(k, String(v)); },
-  removeItem: (k) => { store.delete(k); }
+  removeItem: (k) => { store.delete(k); },
+  key: (i) => [...store.keys()][i] ?? null,
+  get length() { return store.size; }
 };
 const { loadGame, saveGame } = await import('../../src/game/storage.js');
+const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } = await import('../../src/game/worlds.js');
 
 const SAVE = 'more-than-enough-save', ASIDE = 'more-than-enough-save-aside';
 const otherFormat = JSON.stringify({ v: Core.SAVE_VERSION + 1, seed: 5, inv: { mycelium: 999 } });
@@ -60,4 +65,28 @@ test('storage: a save set aside that this version can read is taken back (an old
   assert.equal(store.get(ASIDE), otherFormat, 'the old page\'s world is set aside in its place');
   assert.equal(saveGame(state), null);
   assert.equal(Core.deserialize(store.get(SAVE)).inv.stone, 123, 'and saved as your game again');
+});
+
+const roomId = (n) => ('room' + n).padEnd(22, 'x');
+const copies = (id) => [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX].map((p) => p + id);
+
+test('worlds: what is kept for a shared world goes with it when it leaves the list', () => {
+  store.set(SAVE, 'the solo save');
+  for (let n = 0; n < 12; n++) {
+    remember(roomId(n), false);
+    for (const k of copies(roomId(n))) store.set(k, 'kept');
+  }
+  remember(roomId(12), false); // a 13th: the oldest falls off
+  assert.equal(knownRooms().includes(roomId(0)), false);
+  for (const k of copies(roomId(0))) assert.equal(store.has(k), false, k + ' dropped with its world');
+  for (const k of copies(roomId(1))) assert.equal(store.has(k), true, k + ' kept: still on the list');
+  forget(roomId(5));
+  for (const k of copies(roomId(5))) assert.equal(store.has(k), false, k + ' dropped when the world is forgotten');
+  assert.equal(store.get(SAVE), 'the solo save', 'nothing else is touched');
+});
+
+test('worlds: copies left behind by an older version are cleared the next time a world is remembered', () => {
+  for (const k of copies(roomId(99))) store.set(k, 'orphan');
+  remember(roomId(1), false);
+  for (const k of copies(roomId(99))) assert.equal(store.has(k), false, k);
 });

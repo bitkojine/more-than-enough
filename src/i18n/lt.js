@@ -766,6 +766,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.102.1": "Bendri pasauliai, kuriuos palikai, nebeužima vietos tavo naršyklėje: tai, ką žaidimas apie juos laikė, dingsta, kai pasaulis iškrenta iš tavo Pasaulių sąrašo arba kai jį pašalini.",
   "news.0.102.0": "Grįžus į bendrą pasaulį, kur senesnė versija rodė daugiau, nei iš tikrųjų turėjai, pranešimas dabar pasako, kad matai tikrus savo skaičius. Jei bendrą pasaulį palikai dar prieš skaičiuojant laiką tau nesant, grįžus tavo pastatai pagamina iki 8 valandų produkcijos.",
   "news.0.101.2": "Jei tavo išsaugotas pasaulis sugadintas, žaidimas dabar taip ir pasako, užuot sakęs, kad atnaujinimui reikia naujo pasaulio.",
   "news.0.101.1": "Išsaugotas pasaulis, kurio ši žaidimo versija negali atverti, dabar padedamas į šalį, o ne perrašomas, kad pataisymas galėtų jį sugrąžinti. Jei po atnaujinimo svetainė trumpam pateikia senesnį puslapį, tavo pasaulis grįžta kitą kartą įkėlus, o ne dingsta.",

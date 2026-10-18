@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.102.1] - 2026-10-18
+
+From the persistence review, bug 3 of 9.
+
+### Fixed
+- **Copies kept for shared worlds go with the world.** The progress copy,
+  explored map and generation number the game keeps for each shared world
+  (`mte.room.`, `mte.fog.`, `mte.gen.`) stayed in the browser forever after
+  the world dropped off the Worlds list (12 at most) or was removed. Now
+  `src/game/worlds.js` clears every copy whose world isn't on the list
+  whenever the list changes, including ones older versions left behind.
+  The prefixes moved there from `together.js`. Tests:
+  `test/unit/storage.test.js`.
 ## [0.102.0] - 2026-10-18
 
 For players coming back to a shared world from before the fixes of v0.91.1
