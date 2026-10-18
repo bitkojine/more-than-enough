@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.118.0] - 2026-10-18
+
+Watch's ask: the underground depth indicator wasn't clear. It said "▼ 3"
+over a column of unlabelled bars, so nothing said 3 of what or which end was
+up, and on phones the milestone banner covered the column. Watch picked the
+layer number over meters or named layers, the forest green on top, and a
+short title on arrival.
+
+### Changed
+- **Depth meter**: the pill reads *Layer 3* (*Sluoksnis 3*), a small label
+  over a big number. The column under it has the forest on top as a green
+  bar (grass over earth), and yours lit with a marker beside it. It shows
+  only underground now; on the surface it used to linger once you'd been
+  down.
+- **Arriving on a layer** names it briefly where region names go:
+  *Underground / Layer 3*, or *Forest* over the region's name on the way
+  up (which then counts as that region's name shown).
+
+### Fixed
+- On narrow screens underground, the milestone banner moves right to clear
+  the depth meter and toasts narrow, instead of covering the column; a
+  region or layer title goes under the banner while one is up.
 ## [0.117.1] - 2026-10-18
 
 The rest of Watch's "disable all nukes": the game's side of the nuke goes

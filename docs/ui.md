@@ -21,7 +21,7 @@ place it belongs here rather than adding a button where there is room.
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
 │ ▮▯ 62%                               │  battery (once it isn't full), left edge
-│ ▼1                                   │  depth meter (underground only), under it
+│ LAYER 1                              │  depth meter (underground only), under it
 │ ▮                                    │
 │ ▮          (milestone banner)        │
 │                                      │
@@ -64,6 +64,11 @@ place it belongs here rather than adding a button where there is room.
 ### The battery
 - The battery of the device in your hands sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
 - The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section, above *In the mine*, saying where they go while you aren't there.
+
+### Depth
+- Underground, the depth meter sits on the left edge under the battery: a pill saying which layer you're on (*Layer 3*: a small capital label over a big number), and under it the layers as a column. The forest is on top in green (grass over earth), then every layer you've been down to in brown, a dashed one for deeper still; yours is lit gold with a small marker pointing at it. Over 12 layers, the column keeps the ones around you. On the surface the whole meter hides.
+- Arriving on another layer names it briefly where region names go: *Underground* over *Layer 3*, or *Forest* over the region's name when you come up. It sits under the milestone banner while one is up.
+- On a narrow screen underground, the milestone banner moves right to clear the meter and toasts narrow, rather than covering it.
 
 ### Resource bar
 - One chip per resource: icon and count on one row, the per-second rate centred under the whole chip. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Below 375px each chip stacks icon over count and leaves the rate out. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.

@@ -337,6 +337,10 @@ export default {
   "look.path.does": "Patobulinimų lapo antraštė.",
 
   "hud.awards": "Pasiekti etapai",
+  "hud.layer": "Sluoksnis",
+  "hud.layerN": "Sluoksnis {n}",
+  "hud.underground": "Po žeme",
+  "hud.forest": "Miškas",
   "hud.milestone": "Etapas",
   "hud.nextMilestone": "Kitas etapas",
   "hud.then": "Toliau: {goal}",
@@ -789,6 +793,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.118.0": "Po žeme kairėje viršuje dabar parašyta, kuriame sluoksnyje esi: sluoksnių stulpelio viršuje žalias miškas, o tavo sluoksnį rodo žymeklis. Atkeliavus į naują sluoksnį trumpam parodomas jo pavadinimas.",
   "news.0.117.1": "Didelio raudono branduolinio mygtuko ekrano žaidime irgi nebeliko. Jei kada išsaugojimo nepavyktų atidaryti, trumpa žinutė pasakys, kad jis saugiai padėtas į šalį.",
   "news.0.117.0": "Tavo pasauliai saugūs visam laikui: joks atnaujinimas daugiau niekada nepradės tavo pasaulio iš naujo – nei vieno žaidžiant, nei bendro. Branduolinio mygtuko nebėra.\nJei paskutinis didelis atnaujinimas tave perkėlė į naują pasaulį, sugrįžta tas, kurį žaidei ilgiau.",
   "news.0.116.0": "Tavo {phone:telefonas|laptop:kompiuteris} dabar turi bateriją. Šviečiant tamsoje naktį ar kasykloje ji senka, o kai lieka mažai, tavo šviesa traukiasi.\nĮkrauk ją vandens energija: padėk plaukiojančią saulės plokštę ežere (veikia, kol šviečia saulė) arba vandens ratą upėje (dieną ir naktį). Abu rasi Statyboje, skiltyje „Ant vandens“.\nTavo pasauliai ir viskas juose išlieka, kaip išliks ir toliau.",

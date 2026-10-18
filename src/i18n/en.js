@@ -337,6 +337,10 @@ export default {
   "look.path.does": "A heading in the Upgrades sheet.",
 
   "hud.awards": "Milestones reached",
+  "hud.layer": "Layer",
+  "hud.layerN": "Layer {n}",
+  "hud.underground": "Underground",
+  "hud.forest": "Forest",
   "hud.milestone": "Milestone",
   "hud.nextMilestone": "Next milestone",
   "hud.then": "Next: {goal}",
@@ -789,6 +793,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.118.0": "Underground, the top left now says which layer you are on, with the forest in green at the top of the layer column and a marker by yours. Each new layer shows its name as you arrive.",
   "news.0.117.1": "The big red nuke screen is gone from the game too. If a save ever can't be opened, a short note says it's kept safe to one side.",
   "news.0.117.0": "Your worlds are safe for good: no update will ever start your world over again, alone or shared. The nuke is gone.\nIf the last big update started you on a new world, the one you had played longer comes back.",
   "news.0.116.0": "Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.",

@@ -55,12 +55,13 @@ export function createHud(el, look) {
   let lastAction = '', lastPerfect = '';
   let inSight = false; // something to gather in sight for Explore to head to
 
-  // The depth gauge: one bar per layer from the forest down to the deepest
-  // you've been, plus one for deeper still; at most GAUGE_BARS, kept around you.
+  // The depth gauge, underground: one bar per layer from the forest (green,
+  // on top) down to the deepest you've been, plus one for deeper still; at
+  // most GAUGE_BARS, kept around you. Yours is lit, with a marker beside it.
   let lastGauge = '';
   function updateGauge(s) {
     const deepest = s.underground.deepest, z = s.player.z;
-    const key = deepest < Core.SURFACE ? deepest + ',' + z : '';
+    const key = z < Core.SURFACE ? deepest + ',' + z : '';
     if (key === lastGauge) return;
     lastGauge = key;
     el.depthGauge.hidden = !key;
@@ -72,7 +73,7 @@ export function createHud(el, look) {
     }
     let html = '';
     for (let k = top; k >= bottom; k--) {
-      const cls = k === z ? 'here' : k === Core.SURFACE ? 'surface' : k < deepest ? 'deeper' : '';
+      const cls = k === z ? 'here' : k === Core.SURFACE ? 'forest' : k < deepest ? 'deeper' : '';
       html += cls ? `<i class="${cls}"></i>` : '<i></i>';
     }
     el.depthGauge.innerHTML = html;
@@ -151,7 +152,11 @@ export function createHud(el, look) {
       inSight = !below && !!Core.nearestWork(s);
       updateBattery(s);
       el.depth.hidden = !below;
-      if (below) setText(el.depth, '▼ ' + (Core.SURFACE - s.player.z));
+      document.body.classList.toggle('below', below);
+      if (below) {
+        setText(el.depth.lastElementChild, number(Core.SURFACE - s.player.z));
+        el.depth.setAttribute('aria-label', t('hud.layerN', { n: Core.SURFACE - s.player.z }));
+      }
       updateGauge(s);
     },
 
@@ -239,11 +244,23 @@ export function createHud(el, look) {
       el.awards.classList.remove('new');
     },
 
+    // Arriving on another layer: its name, briefly, where region names go
+    // (the forest gives the region you come up in).
+    layer(z, region) {
+      if (z === Core.SURFACE) this.place(t('hud.forest'), region, true);
+      else this.place(t('hud.underground'), t('hud.layerN', { n: Core.SURFACE - z }), true);
+    },
+
     // Walked into a region (or woke up in one): its name across the upper
     // middle of the screen for a few seconds, the way an old map names a land.
-    place(kind, name) {
+    // `brief` for a layer's name, which goes sooner.
+    place(kind, name, brief = false) {
+      el.place.classList.toggle('brief', brief);
       el.place.querySelector('small').textContent = kind;
       el.place.querySelector('strong').textContent = name;
+      // Under the milestone banner while one is up, not over it.
+      const under = el.milestone.hidden ? 0 : el.milestone.getBoundingClientRect().bottom + 12;
+      el.place.style.top = under > innerHeight * 0.24 ? under + 'px' : '';
       el.place.hidden = false;
       el.place.style.animation = 'none';
       void el.place.offsetWidth;

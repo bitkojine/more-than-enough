@@ -139,8 +139,9 @@ async function enter(state) {
   // up against the HUD's own updates while the check runs.
   if (state === 'underground') {
     const hold = () => {
-      document.getElementById('depth').textContent = '▼ 12';  // i18n-ok: test fixture
-      document.getElementById('depthGauge').innerHTML = '<i class="surface"></i><i></i><i class="here"></i><i class="deeper"></i>';
+      document.getElementById('depth').lastElementChild.textContent = '12';  // i18n-ok: test fixture
+      document.getElementById('depthGauge').innerHTML = '<i class="forest"></i><i></i><i class="here"></i><i class="deeper"></i>';
+      document.body.classList.add('below');
       const battery = document.getElementById('battery');
       battery.className = 'low';
       battery.querySelector('b').style.width = '23%';

@@ -383,6 +383,15 @@ function regionTick(s, dt) {
   }
 }
 
+// Arrived on another layer: its name, briefly. Coming up into the forest
+// names the region, which then counts as shown.
+function layerArrived(s) {
+  if (s.player.z === Core.SURFACE) {
+    shownRegion = region = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
+    hud.layer(s.player.z, region.name);
+  } else hud.layer(s.player.z);
+}
+
 // Which place's music fits where the player stands (see music/score.js).
 function sceneHere(s) {
   const land = Core.BIOMES[(shownRegion || region).biome].music;
@@ -518,7 +527,10 @@ function frame(now) {
     const t1 = performance.now();
     // Changed layers in this world since the last frame: show the trip.
     const z = game.state.player.z;
-    if (game.state === shownState && z !== shownZ) descent.start(shownZ, z);
+    if (game.state === shownState && z !== shownZ) {
+      descent.start(shownZ, z);
+      layerArrived(game.state);
+    }
     shownState = game.state; shownZ = z;
     const stats = render(cam, game.state, fx, view(), look);
     signRect = stats.sign;

@@ -234,6 +234,11 @@ canvas#game {
   animation: milestone-in .35s cubic-bezier(.2, 1.4, .4, 1);
 }
 #milestone[hidden] { display: none; }
+/* Underground on a narrow screen, the banner moves over to clear the depth
+   meter down the left edge rather than cover it. */
+@media (max-width: 700px) {
+  body.below #milestone { margin-left: 66px; max-width: calc(100% - 66px); }
+}
 #milestone .trophy { width: 30px; height: 30px; color: var(--gold); filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6)); }
 #milestone small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
 #milestone strong { font-size: 17px; line-height: 1.25; color: #fff3d6; }
@@ -241,9 +246,10 @@ canvas#game {
 #milestone .next:empty { display: none; }
 @keyframes milestone-in { from { opacity: 0; transform: translateY(-14px) scale(.85); } 60% { transform: scale(1.06); } to { opacity: 1; transform: none; } }
 
-/* Underground: how deep you are, and the layers as a column under it: the
-   forest on top, every layer you've been down to, a dashed one for deeper
-   still, and you lit. Going down moves the light down. */
+/* Underground: which layer you're on ("Layer 3"), and the layers as a
+   column under it: the forest on top in green, every layer you've been down
+   to, a dashed one for deeper still, and yours lit with a marker. Going down
+   moves the light down. */
 #depthMeter {
   position: absolute; z-index: 10;
   left: var(--edge-l);
@@ -252,15 +258,16 @@ canvas#game {
   pointer-events: none;
 }
 #depth {
-  min-width: 44px; padding: 5px 8px;
-  border: 1px solid rgba(225, 181, 105, 0.4); border-radius: 999px;
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 48px; padding: 4px 6px 5px;
+  border: 1px solid rgba(225, 181, 105, 0.4); border-radius: 12px;
   background: var(--glass);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   box-shadow: var(--shadow-1);
-  text-align: center;
-  font-size: 13px; font-weight: 800; color: var(--earth);
-  font-variant-numeric: tabular-nums;
+  text-align: center; line-height: 1; color: var(--earth);
 }
+#depth small { font-size: 8px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; opacity: .85; }
+#depth b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
 #depth[hidden], #depthGauge[hidden], #battery[hidden] { display: none; }
 /* The battery of the device in your hands, once it isn't full: a little
    battery that empties, green, then amber when the light starts to shrink,
@@ -294,10 +301,15 @@ canvas#game {
   background: var(--glass);
   border: 1px solid rgba(225, 181, 105, 0.25);
 }
-#depthGauge i { display: block; width: 16px; height: 9px; border-radius: 2px; background: #5e4a36; }
-#depthGauge i.surface { background: #56803a; }
+#depthGauge i { position: relative; display: block; width: 20px; height: 9px; border-radius: 2px; background: #5e4a36; }
+/* The forest: grass over earth, plainly green. */
+#depthGauge i.forest { height: 12px; background: linear-gradient(#8fd35a 0 45%, #4f8a32 45%); }
 #depthGauge i.deeper { background: none; border: 1px dashed rgba(236, 211, 164, 0.35); }
 #depthGauge i.here { background: #ffd28a; box-shadow: 0 0 6px rgba(255, 210, 138, 0.8); }
+#depthGauge i.here::after {
+  content: ''; position: absolute; left: calc(100% + 6px); top: 50%; margin-top: -4px;
+  border: 4px solid transparent; border-left: none; border-right: 5px solid #ffd28a;
+}
 
 /* ----------------------------------------------------- thumb cluster */
 
@@ -796,6 +808,7 @@ body.signing #zoomControls { visibility: hidden; }
   text-align: center;
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
+@media (max-width: 700px) { body.below #toast { max-width: calc(100% - 140px); } }
 
 /* A region's name as you walk into it: big and quiet across the upper
    middle of the map, fading in and away on its own. Taps go through. */
@@ -810,6 +823,7 @@ body.signing #zoomControls { visibility: hidden; }
 #place[hidden] { display: none; }
 #place small { font-size: 12px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
 #place strong { font-family: Georgia, 'Times New Roman', serif; font-size: clamp(26px, 8vw, 40px); font-weight: 700; letter-spacing: .02em; }
+#place.brief { animation-duration: 2.2s; }
 @keyframes place-show { 0% { opacity: 0; transform: translate(-50%, 8px); } 14%, 70% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
 
 /* ------------------------------------------------------------ dialogs */
