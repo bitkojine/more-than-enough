@@ -19,7 +19,7 @@ rm -rf "$OUT"
 mkdir -p "$OUT"
 cp -R $SOURCES "$OUT/"
 
-HASH=$(find $SOURCES -type f | LC_ALL=C sort | xargs cat | shasum | cut -c1-10)
+HASH=$(sh scripts/site-hash.sh)
 
 # One file for the default pack's pictures, and every module named up front
 # (before stamping, so the preload links get the same ?v= as the imports).

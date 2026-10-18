@@ -162,7 +162,8 @@ export default {
       });
     }
 
-    if (url.pathname === '/') return respond({ ok: true }, 200, okOrigin);
+    // The commit it was deployed from (rooms.yml), for scripts/live-check.mjs.
+    if (url.pathname === '/') return respond({ ok: true, commit: env.COMMIT || null }, 200, okOrigin);
     // The moderator calls from a script, not a page: a token, no Origin.
     // Anyone without the token sees nothing there at all.
     if (url.pathname.startsWith('/admin/')) {

@@ -1,0 +1,18 @@
+# One setup for every workflow: Node (latest LTS, from .nvmrc) and the dev
+# dependencies from the lockfile. Shared so the workflows can't drift apart:
+# the room service once skipped `npm ci`, and its tests failed for a day
+# after they started needing esbuild (v0.92.0 to v0.97.0).
+name: Set up
+description: Node from .nvmrc and npm ci
+runs:
+  using: composite
+  steps:
+    - name: Set up Node (latest LTS, from .nvmrc)
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .nvmrc
+        check-latest: true
+
+    - name: Install the dev dependencies (esbuild; staging the site uses it)
+      shell: bash
+      run: npm ci --no-audit --no-fund

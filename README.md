@@ -206,7 +206,14 @@ reads it with `check-latest`, and locally `fnm` (or `nvm`) picks it up from the
 same file.
 
 CI runs `npm test` on every push and pull request, and only deploys `main`
-when it passes. The browser test looks for Chrome at the standard macOS path
+when it passes. Both deploy workflows (`pages.yml` for the game, `rooms.yml` for
+the room service) set up through one shared step, `.github/actions/setup`, so
+they can't drift apart. `live-check.yml` runs after every deploy and hourly:
+`scripts/live-check.mjs` fails if any workflow's latest run on `main` failed,
+the site's `build.json` isn't main's build, or the room service isn't running
+main's newest room commit (it names its commit at `/`), each after a 30-minute
+grace. While it fails, one open issue labelled `live-check` says what; it
+closes itself once all is well. The browser test looks for Chrome at the standard macOS path
 or `google-chrome` elsewhere; set `CHROME_PATH` to point it at another browser.
 
 On macOS, run the browser E2E command from Terminal or approve unsandboxed

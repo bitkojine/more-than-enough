@@ -208,7 +208,10 @@ Then open the game at `http://localhost:8000/?rooms=http://localhost:8787`
 (the `rooms` override only works on localhost).
 
 Deploys happen from `.github/workflows/rooms.yml` on every push to `main`
-that touches `server/` or `src/net/`, with the `CLOUDFLARE_API_TOKEN` and
-`CLOUDFLARE_ACCOUNT_ID` repository secrets. After the first deploy, put the
+that touches `server/`, `src/net/` or the rules it replays (`src/core/`,
+`src/i18n/`), with the `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` repository secrets. The deploy stamps the commit
+(`COMMIT`), which the service names at `/` so the hourly live check can tell
+a service that stopped deploying. After the first deploy, put the
 service's address in `src/net/config.js` and in `connect-src` of the
 Content-Security-Policy in `index.html`.

@@ -1,0 +1,67 @@
+# Is what's live what main says? (scripts/live-check.mjs): every workflow's
+# latest run on main passed, the game site serves main's build and the room
+# service runs main's newest room commit. Runs after each deploy finishes and
+# every hour. While anything is wrong one open issue labelled live-check says
+# what, so GitHub notifies the owner; it closes itself once all is well.
+
+name: Live check
+
+on:
+  workflow_run:
+    workflows: ['Test and deploy', 'Room service']
+    types: [completed]
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: live-check
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main (all history, to compare commits)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Node (latest LTS, from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+
+      - name: Check
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          node scripts/live-check.mjs > report.txt
+          code=$?
+          cat report.txt
+          echo "failed=$([ $code -ne 0 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - name: Open, update or close the live-check issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILED: ${{ steps.check.outputs.failed }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create live-check --color B60205 --description 'Something live is not what main says' 2>/dev/null || true
+          open=$(gh issue list --label live-check --state open --json number --jq '.[0].number')
+          if [ "$FAILED" = true ]; then
+            body=$(printf 'Live check found:\n\n%s\n\n[This check](%s)' "$(cat report.txt)" "$RUN")
+            if [ -n "$open" ]; then gh issue comment "$open" --body "$body"; else gh issue create --title 'Live check: something is not live or not green' --label live-check --body "$body"; fi
+            exit 1
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "All live and green again ([check]($RUN))."
+          fi

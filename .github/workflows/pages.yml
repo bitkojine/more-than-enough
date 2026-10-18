@@ -26,17 +26,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node (latest LTS, from .nvmrc)
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          check-latest: true
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
 
       - name: Node version
         run: node --version
-
-      - name: Install esbuild (the only dependency; staging the site uses it)
-        run: npm ci
 
       - name: Unit tests
         run: npm test
@@ -55,14 +49,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node (latest LTS, from .nvmrc)
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .nvmrc
-          check-latest: true
-
-      - name: Install esbuild
-        run: npm ci
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
 
       - name: Stage the site (bundled, cache-busted)
         run: sh scripts/stage-site.sh site
