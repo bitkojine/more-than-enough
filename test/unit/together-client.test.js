@@ -135,23 +135,21 @@ beforeEach(() => {
 
 /* ------------------------------------------------------------- tests */
 
-test('client: Back to the shared world tapped twice opens one connection, not two', async () => {
+test('client: Play on a world tapped twice opens one connection, not two', async () => {
   const { id, r, code } = await makeRoom();
-  store.set('mte.rooms', JSON.stringify([id]));
   // In the world once already, so the key is known there.
   const first = harness();
   location.hash = '#join=' + id + '.' + code;
   first.together.joinFromLink();
   await tick();
   await serve(r, sockets[0]);
-  first.together.leave();
+  first.together.switchTo(null);
   sockets.length = 0;
 
-  const { together, toasts } = harness();
-  together.rejoin();
-  together.rejoin(); // the button is still there while it connects
+  const { together } = harness();
+  together.switchTo(id);
+  together.switchTo(id); // the list is still there while it connects
   assert.equal(open().length, 1, 'one socket into the world');
-  assert.ok(toasts.includes('Not connected yet, try again in a moment'), 'the second tap says it is still connecting');
   await serve(r, open()[0]);
   assert.ok(together.active);
 });
@@ -490,4 +488,56 @@ test('client: the owner of a new world plays it, and the room counts what they d
   pump(r, me, socket, now + 100);
   assert.deepEqual(r.log.filter((e) => e.e === 'drift'), [], 'the room agrees');
   assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
+});
+
+/* ---------------------------------------------------- the Worlds list */
+
+test('client: every world has a two-word name, the same each time, and the join question says it', async () => {
+  const { worldName } = await import('../../src/game/worlds.js');
+  const { id, code } = await makeRoom();
+  const name = worldName(id);
+  assert.match(name, /^\S+ \S+$/, 'two words');
+  assert.equal(worldName(id), name, 'the same id, the same name');
+  const names = new Set(Array.from({ length: 200 }, () => worldName(P.randomRoomId())));
+  assert.ok(names.size > 100, 'worlds rarely share a name (' + names.size + ' of 200)');
+  const { together, asked } = harness({ yes: false });
+  location.hash = '#join=' + id + '.' + code;
+  together.joinFromLink();
+  await tick();
+  assert.equal(asked[0].title, 'Join ' + name + '?');
+});
+
+test('client: a link to a world you are in already takes you there without asking, and you can switch back', async () => {
+  const a = await makeRoom(), b = await makeRoom();
+  const { together, asked, toasts } = harness();
+  // Into a, then b, through their links: one question each, each named.
+  for (const w of [a, b]) {
+    location.hash = '#join=' + w.id + '.' + w.code;
+    together.joinFromLink();
+    await tick();
+    await serve(w.r, open()[0]);
+  }
+  assert.equal(asked.length, 2);
+  const { worldName } = await import('../../src/game/worlds.js');
+  assert.ok(toasts.includes("You're in " + worldName(b.id)));
+  assert.equal(together.worldName, worldName(b.id));
+  // a's old link again: straight back to a, no question.
+  location.hash = '#join=' + a.id + '.' + a.code;
+  together.joinFromLink();
+  await tick();
+  assert.equal(asked.length, 2, 'no question for a world you are in');
+  assert.equal(open().length, 1);
+  assert.equal(open()[0].room, a.id);
+  await serve(a.r, open()[0]);
+  assert.equal(together.worldName, worldName(a.id));
+  // The same link while there: just says so.
+  location.hash = '#join=' + a.id + '.' + a.code;
+  together.joinFromLink();
+  await tick();
+  assert.ok(toasts.includes("You're already in " + worldName(a.id)));
+  assert.equal(open().length, 1, 'the connection stays');
+  // Back to your own world from the list.
+  together.switchTo(null);
+  assert.equal(together.active, false);
+  assert.equal(together.worldName, 'Your own world');
 });

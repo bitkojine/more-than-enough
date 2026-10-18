@@ -67,9 +67,10 @@ export function findElements() {
     news: byId('news'),
     invite: byId('btnInvite'),
     inviteLabel: byId('inviteLabel'),
-    leave: byId('btnLeave'),
     privacyLink: byId('privacyLink'),
-    rejoin: byId('btnRejoin'),
+    worldsBtn: byId('btnWorlds'),
+    worldNow: byId('worldNow'),
+    worldsPanel: byId('worldsPanel'),
     friends: byId('friends')
   };
 }

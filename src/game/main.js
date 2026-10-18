@@ -164,9 +164,9 @@ const game = {
   // Alone or together: the settings that differ.
   changedMode() {
     const shared = !!game.state.shared;
-    el.leave.hidden = !shared;
     el.invitesBtn.hidden = !shared;
-    el.rejoin.hidden = !together.canRejoin;
+    el.worldsBtn.hidden = !together.available;
+    el.worldNow.textContent = together.worldName;
     together.refresh();
   }
 };
@@ -234,6 +234,7 @@ const sheet = createSheet(el, {
     if (tab === 'awards') hud.awardsSeen();
     if (tab === 'map') worldMap.show();
     if (tab === 'invites') together.listInvites();
+    if (tab === 'worlds') together.listWorlds();
   },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
@@ -282,8 +283,7 @@ el.resources.addEventListener('click', (e) => {
   if (chip) sheet.showCollected(chip.dataset.res);
 });
 el.mine.addEventListener('click', controller.toggleMine);
-el.leave.addEventListener('click', () => { sheet.close(); together.leave(); });
-el.rejoin.addEventListener('click', () => { sheet.close(); together.rejoin(); });
+el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.

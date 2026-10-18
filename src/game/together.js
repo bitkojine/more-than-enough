@@ -17,12 +17,12 @@ import {
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
+import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn } from './worlds.js';
 import { loadGame, randomSeed } from './storage.js';
 import { createActor } from './render/motion.js';
 import { t, DEVICE, LANG } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
-const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const SAVE_PREFIX = 'mte.room.';      // your progress in a shared world (a copy)
 const FOG_PREFIX = 'mte.fog.';        // the map you've explored there
@@ -87,29 +87,6 @@ function myKey() {
     write(KEY_STORE, key);
   }
   return key;
-}
-
-function knownRooms() {
-  try {
-    const list = JSON.parse(read(ROOMS_STORE) || '[]');
-    return Array.isArray(list) ? list.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r)) : [];
-  } catch { return []; }
-}
-
-function remember(room) {
-  write(ROOMS_STORE, JSON.stringify([room, ...knownRooms().filter((r) => r !== room)].slice(0, 8)));
-}
-
-// A world you can never go back to: Back to the shared world tries the next.
-function forget(room) {
-  write(ROOMS_STORE, JSON.stringify(knownRooms().filter((r) => r !== room)));
-}
-
-// A world that turned you away for now (it froze your character): Back to
-// the shared world tries your other worlds before it again.
-function skip(room) {
-  const list = knownRooms();
-  if (list.includes(room)) write(ROOMS_STORE, JSON.stringify([...list.filter((r) => r !== room), room]));
 }
 
 // The time stamp in a progress string, to tell which copy is newer.
@@ -499,7 +476,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     roster = null;
     for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
     graves = w.graves;
-    remember(room);
+    remember(room, w.you === w.owner);
     write(PLAYING_STORE, room);
     nukeOn = w.nuke;
     // The world was nuked and made again since this phone was last in it:
@@ -525,7 +502,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
       game.arrived();
-      hud.toast(t(renewed ? 'nuke.toast.done' : 'together.toast.in'));
+      hud.toast(renewed ? t('nuke.toast.done') : t('together.toast.in', { world: worldName(room) }));
       policyNotice();
     }
     // The room works out your progress from what you do too (src/core/acts.js).
@@ -1010,9 +987,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // The question before going into a shared world says that playing
   // together accepts the privacy policy and links to it: yes accepts it,
   // Cancel keeps you playing alone. No extra step.
-  async function askTogether(kind) {
+  async function askTogether(kind, world = '') {
     const yes = await ask({
-      title: t(`together.${kind}.title`),
+      title: t(`together.${kind}.title`, { world }),
       text: t(`together.${kind}.text`) + ' ' + t(`privacy.${kind}`),
       yes: t(`together.${kind}.yes`),
       link: { href: policyUrl(), text: t('privacy.link') }
@@ -1072,7 +1049,15 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   // link opened it, gone back to if you say no or the link doesn't work.
   async function join(roomId, inviteCode, orBack = null) {
     if (!service) return;
-    if (!(await askTogether('join'))) {
+    // A world you've been in already takes you back as you are: no question.
+    if (knownRooms().includes(roomId)) {
+      if ((game.state.shared || orBack) === roomId) {
+        if (!game.state.shared && !room) resume();
+        hud.toast(t('together.toast.already', { world: worldName(roomId) }));
+      } else switchTo(roomId, inviteCode);
+      return;
+    }
+    if (!(await askTogether('join', worldName(roomId)))) {
       if (orBack && !game.state.shared && !room) resume();
       return;
     }
@@ -1115,18 +1100,44 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     connect();
   }
 
-  function rejoin() {
-    const last = knownRooms()[0];
-    if (!service || !last || game.state.shared || busy()) return;
-    room = last;
+  // Into another world from the Worlds screen (null: your own). Turned
+  // away there, you're back in the one you were in.
+  // `inviteCode`: the link that brought you, in case the room doesn't know
+  // you after all (this list is only this phone's).
+  function switchTo(id, inviteCode = null) {
+    const here = game.state.shared || room;
+    if (id === here || starting) return;
+    if (!id) return stop();
+    if (!service) return;
+    if (game.state.shared) save(game.state, true);
+    closeQr();
+    back = game.state.shared || null;
+    hangUp();
+    room = id; code = inviteCode; retry = 0;
     connect();
+  }
+
+  function listWorlds() {
+    renderWorlds(el.worldsPanel, {
+      here: game.state.shared || null,
+      online: (id) => onlineIn(service, id),
+      play: (id) => { closeSheet(); switchTo(id); },
+      remove: async (id) => {
+        const world = worldName(id);
+        const yes = await ask({ title: t('worlds.removeAsk.title', { world }), text: t('worlds.removeAsk.text'), yes: t('worlds.remove'), danger: true });
+        if (!yes) return;
+        forget(id);
+        listWorlds();
+      }
+    });
   }
 
   return {
     available: !!service,
     get active() { return !!game.state.shared; },
     get isOwner() { return !!me && me === owner; },
-    get canRejoin() { return !!service && !game.state.shared && knownRooms().length > 0; },
+    // The world you're in, by name, for Settings.
+    get worldName() { return game.state.shared ? worldName(game.state.shared) : t('worlds.own'); },
     get color() { return myColor; },
     get me() { return game.state.shared && me ? { name: nameOf(me), color: friendColor(myColor) } : null; },
     get sign() { return signT; },
@@ -1134,8 +1145,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     tick,
     save,
     start,
-    leave: () => stop(),
-    rejoin,
+    listWorlds,
+    switchTo,
     resume,
     joinFromLink,
     // The game opened: through a friend's link, else back into the shared

@@ -177,11 +177,13 @@
     <!-- Invite links (playing together): each one, who made it, how many
          joined with it, and a way to stop it. Filled by src/game/together.js. -->
     <div id="invitesPanel" hidden></div>
+    <!-- Worlds: your own and every shared world you've been in, to switch
+         between them. Filled by src/game/worlds.js. -->
+    <div id="worldsPanel" hidden></div>
     <div id="settingsPanel" hidden>
       <div class="setGroup">
+        <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
         <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>
-        <button id="btnRejoin" class="setRow" type="button" hidden><span data-i18n="together.rejoin"></span></button>
-        <button id="btnLeave" class="setRow" type="button" hidden><span data-i18n="together.leave"></span></button>
       </div>
       <div class="setGroup">
         <button id="btnMute" class="setRow" type="button"><span data-i18n="settings.sound"></span><b id="muteState"></b></button>

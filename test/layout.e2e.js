@@ -30,7 +30,7 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
   [768, 1024], [1024, 768], [1366, 768], [1920, 1080]
 ];
 // In this order on one page per screen; `rich` last, as it can't be undone.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'map', 'ask', 'nuke', 'fbi', 'news', 'rich'];
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'worlds', 'map', 'ask', 'nuke', 'fbi', 'news', 'rich'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -157,8 +157,14 @@ async function enter(state) {
   if (state === 'build') click('#btnBuild');
   if (state === 'awards') click('#btnAwards');
   if (state === 'settings') click('#btnSettings');
+  // Three shared worlds (made-up ids: their names are what's checked).
+  if (state === 'worlds') {
+    localStorage.setItem('mte.rooms', JSON.stringify(['AAAAAAAAAAAAAAAAAAAAAA', 'thunderfallsXXXXXXXXXX', 'zzzzzzzzzzzzzzzzzzzzzz']));
+    click('#btnSettings');
+    click('#btnWorlds');
+  }
   if (state === 'map') click('#btnMap');
-  if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title'), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
+  if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
   if (state === 'nuke') g.dialogs.nuke.show({ heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'), press() {} });
   if (state === 'fbi') g.dialogs.fbi.show();
   if (state === 'news') g.dialogs.news.show('0.80.0', window.MTE_VERSION);

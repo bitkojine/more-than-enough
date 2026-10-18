@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.99.0] - 2026-10-18
+
+Watch found it unclear which shared world a link joins, and a second
+invite seemed not to work once already in a world (it did, but nothing
+said where you were, and the world you left dropped out of reach).
+
+### Added
+- **World names.** Every shared world has a two-word name made from its id
+  (Fern Valley; Paparčių slėnis), the same on every phone and never typed
+  by anyone (Watch's call). The join question and the arrival toast say it.
+- **Worlds** in Settings: your own world and every shared world you've
+  been in (up to 12), with whose it is, how many play there now and Play
+  to switch. Remove takes one off the list. `src/game/worlds.js`, split
+  out of `together.js` with the list of worlds it kept.
+- `GET /rooms/<id>` also says how many play there now (`online`).
+
+### Changed
+- A link to a shared world you're already in takes you straight there,
+  without the join question (and says so if you're there already).
+- *Back to the shared world* and *Leave the shared world* are gone from
+  Settings: the Worlds list does both.
+
 ## [0.98.0] - 2026-10-18
 
 Fixes from a play test in real browsers (phone, landscape phone, desktop;

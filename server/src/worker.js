@@ -2,6 +2,7 @@
  * rooms and hands each room's WebSockets to its Durable Object.
  *
  *   POST /rooms                 make a room from a world; returns {room}
+ *   GET  /rooms/<id>            whether it exists, and how many play there now
  *   GET  /rooms/<id>/ws         join it (WebSocket)
  *
  * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
@@ -191,13 +192,13 @@ export default {
       return respond({ room: id }, 201, okOrigin);
     }
 
-    // Whether a shared world still exists: a game that couldn't get in asks,
-    // so it stops offering a world that's gone.
+    // Whether a shared world still exists (a game that couldn't get in asks,
+    // so it stops offering a world that's gone), and how many play there now
+    // (the Worlds list). Only a count: never who.
     const there = url.pathname.match(/^\/rooms\/([^/]+)$/);
     if (there && request.method === 'GET') {
       if (!ROOM_ID_RE.test(there[1])) return respond({ exists: false }, 200, okOrigin);
-      const exists = await env.ROOMS.get(env.ROOMS.idFromName(there[1])).exists(there[1]);
-      return respond({ exists }, 200, okOrigin);
+      return respond(await env.ROOMS.get(env.ROOMS.idFromName(there[1])).brief(there[1]), 200, okOrigin);
     }
 
     const m = url.pathname.match(/^\/rooms\/([^/]+)\/ws$/);
@@ -318,8 +319,9 @@ export class Rooms extends DurableObject {
   }
 
   // Whether this is still the room `id` (it's deleted after EXPIRE_MS unvisited).
-  async exists(id) {
-    return this.room.ready && this.room.id === id;
+  async brief(id) {
+    const exists = this.room.ready && this.room.id === id;
+    return exists ? { exists, online: this.room.online() } : { exists };
   }
 
   // The tombstones, the same list every welcome hands a player.

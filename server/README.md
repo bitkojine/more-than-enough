@@ -56,9 +56,10 @@ shared with the game.
    room already has something on that tile (the room's stands). The welcome
    says `pong` and `ack` when the room does both; games rely on neither
    otherwise.
-9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`):
+9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
+   and, if it does, how many play there now (`online`, a count, never who):
    a game that couldn't get in asks, so it stops offering a world deleted
-   after 30 days unvisited.
+   after 30 days unvisited, and the Worlds list shows who's playing.
 
 All traffic goes through the room: no phone ever learns another's IP
 address.
