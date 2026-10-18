@@ -199,14 +199,26 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs, translations
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 npm run test:layout # real Chrome: every screen at 12 sizes in both languages (see docs/ui.md)
+node scripts/perfect-bench.mjs --check  # the Perfect button, held to Embark on 4 worlds, against its baseline
 ```
+
+The Perfect button's score is the median hours of play, held from spawn, until
+Embark opens. `scripts/perfect-bench.mjs` measures it (and how the brain
+behaves: refused acts, stuck steps, waiting, quick pops down a ladder);
+`--check` fails if it moved more than 2% from `test/perfect-baseline.json` or
+broke a behaviour rule. When a rules change makes it slower, re-learn:
+`node scripts/perfect-tune.mjs` searches the brain's `KNOBS`
+(`src/core/perfect.js`) for the quickest Embark and checks the gain on worlds it
+wasn't tuned on; put its knobs into `KNOBS`, then record the new score with
+`perfect-bench.mjs --write`. A change that makes the game longer on purpose is
+recorded the same way, after a tune.
 
 Node: always the latest LTS, locally and in CI. `.nvmrc` says `lts/*`; CI
 reads it with `check-latest`, and locally `fnm` (or `nvm`) picks it up from the
 same file.
 
-CI runs `npm test` on every push and pull request, and only deploys `main`
-when it passes. Both deploy workflows (`pages.yml` for the game, `rooms.yml` for
+CI runs `npm test` on every push and pull request, and the Perfect benchmark
+when `src/core/` changed, and only deploys `main` when both pass. Both deploy workflows (`pages.yml` for the game, `rooms.yml` for
 the room service) set up through one shared step, `.github/actions/setup`, so
 they can't drift apart. `live-check.yml` runs after every deploy and hourly:
 `scripts/live-check.mjs` fails if any workflow's latest run on `main` failed,

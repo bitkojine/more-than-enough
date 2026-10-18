@@ -1,69 +1,118 @@
-/* Benchmark for the Perfect button's brain (src/core/perfect.js).
+/* Benchmark for the Perfect button's brain (src/core/perfect.js). Its
+ * score is the one Watch chose: hours of play, held from the first spawn,
+ * until Embark opens (median over the seeds; lower is better).
  *
- * Holds Perfect from the first spawn on several seeds, the way the unit
- * tests do (test/unit/helpers.js holdPerfect: real walking, one act every
- * 0.25 s), until Embark opens or the hour cap is hit, one seed per worker.
- * For each seed it reports when every milestone was reached and how the
- * brain behaved: acts the game refused, steps that went nowhere, time spent
- * waiting, trips between layers and how short they were.
+ * Holds Perfect from spawn on several seeds the way the unit tests do
+ * (test/unit/helpers.js holdPerfect: real walking, one act every 0.25 s),
+ * one seed per worker, and reports when every milestone was reached and how
+ * the brain behaved: acts the game refused, steps that went nowhere, time
+ * spent waiting, trips between layers and how many were only a quick pop down.
  *
- *   node scripts/perfect-bench.mjs [--seeds 12345,777,99 | --seeds 8] [--hours 60]
- *                                  [--out run.json] [--against old.json]
+ *   node scripts/perfect-bench.mjs [--seeds 4 | --seeds 12345,777] [--hours 60]
+ *       [--knobs '{"stick":20}'] [--out run.json] [--against old.json]
+ *       [--check] [--write]
  *
- * `--seeds 8` takes the first 8 of a fixed list, so runs stay comparable.
- * `--against` prints the change from an earlier `--out` file, seed by seed.
- * A full run to Embark is ~36-45 h of game time, about 4 minutes per seed. */
+ * `--seeds 4` takes the first 4 of a fixed list, so runs stay comparable.
+ * `--knobs` overrides the brain's KNOBS for this run. `--against` prints the
+ * change from an earlier `--out` file. `--check` (CI) fails unless every seed
+ * reaches Embark with no refused acts or quick pops down and the median is
+ * within TOLERANCE of test/perfect-baseline.json; `--write` records this
+ * run there. Runs are deterministic, so a moved median means the brain or
+ * the rules changed. A seed to Embark takes about 4 minutes. */
 
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
 import { availableParallelism } from 'node:os';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const SEEDS = [12345, 777, 99, 20260101, 4242, 2415085376, 4055616911, 3668339994, 31337, 8080, 1, 65535];
-const SHORT_TRIP = 30; // seconds below the surface that count as popping in and out
+const SHORT_TRIP = 30;    // seconds below the surface that count as popping in and out
+const TOLERANCE = 0.02;   // how far the median may move from the baseline before --check fails
+const BASELINE = fileURLToPath(new URL('../test/perfect-baseline.json', import.meta.url));
 
-async function main() {
-  const args = parseArgs(process.argv.slice(2));
-  const seeds = /^\d+$/.test(args.seeds) && Number(args.seeds) <= SEEDS.length
-    ? SEEDS.slice(0, Number(args.seeds))
-    : args.seeds.split(',').map(Number);
-  const hours = Number(args.hours);
+/** Plays `seeds` (numbers) for up to `hours` each with `knobs`; resolves to { hours, knobs, runs, summary }. */
+export async function bench({ seeds, hours = 60, knobs = {}, log = () => {} }) {
   const runs = [];
   const queue = [...seeds];
   const lanes = Array.from({ length: Math.min(seeds.length, availableParallelism()) }, async () => {
     while (queue.length) {
       const seed = queue.shift();
       const run = await new Promise((done, fail) => {
-        const w = new Worker(new URL(import.meta.url), { workerData: { seed, hours } });
+        const w = new Worker(new URL(import.meta.url), { workerData: { seed, hours, knobs } });
         w.once('message', done);
         w.once('error', fail);
       });
-      process.stderr.write(`seed ${seed}: ${run.embark === null ? 'no Embark' : 'Embark'} at ${h(run.played)}\n`);
+      log(`seed ${seed}: ${run.embark === null ? 'no Embark' : 'Embark'} at ${h(run.played)}\n`);
       runs.push(run);
     }
   });
   await Promise.all(lanes);
   runs.sort((a, b) => seeds.indexOf(a.seed) - seeds.indexOf(b.seed));
-  const result = { hours, runs, summary: summarize(runs) };
+  return { hours, knobs, runs, summary: summarize(runs) };
+}
+
+/** Takes `--seeds` as a count from the fixed list or a comma-separated list. */
+export function pickSeeds(arg) {
+  return /^\d+$/.test(arg) && Number(arg) <= SEEDS.length ? SEEDS.slice(0, Number(arg)) : arg.split(',').map(Number);
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const baseline = args.check && readJson(BASELINE);
+  const seeds = args.seeds ? pickSeeds(args.seeds) : baseline ? baseline.seeds : SEEDS.slice(0, 4);
+  const result = await bench({ seeds, hours: Number(args.hours || 60), knobs: JSON.parse(args.knobs || '{}'), log: (m) => process.stderr.write(m) });
   if (args.out) writeFileSync(args.out, JSON.stringify(result, null, 1) + '\n');
-  report(result, args.against && JSON.parse(readFileSync(args.against, 'utf8')));
+  report(result, args.against ? readJson(args.against) : baseline || null);
+  if (args.write) {
+    const embark = Object.fromEntries(result.runs.map((r) => [r.seed, r.embark]));
+    writeFileSync(BASELINE, JSON.stringify({ seeds, median: result.summary.embark, embark }, null, 1) + '\n');
+    console.log('\nrecorded in test/perfect-baseline.json');
+  }
+  if (args.check) {
+    const problems = check(result, baseline);
+    for (const p of problems) console.log('FAIL ' + p);
+    if (problems.length) process.exit(1);
+    console.log('\nPerfect plays as well as the baseline');
+  }
+}
+
+// What --check objects to in `result`, measured against `baseline`.
+export function check({ runs, summary }, baseline) {
+  const out = [];
+  for (const r of runs) {
+    if (r.embark === null) out.push(`seed ${r.seed} never reached Embark`);
+    if (r.behaviour.refused) out.push(`seed ${r.seed}: the game refused ${r.behaviour.refused} acts Perfect picked`);
+    if (r.behaviour.shortTrips) out.push(`seed ${r.seed}: ${r.behaviour.shortTrips} trips down lasted under ${SHORT_TRIP} s`);
+  }
+  if (summary.embark !== null && baseline) {
+    const d = (summary.embark - baseline.median) / baseline.median;
+    if (d > TOLERANCE) out.push(`median Embark ${h(summary.embark)} is ${pct(d)} slower than the baseline ${h(baseline.median)}: retune (node scripts/perfect-tune.mjs) or, if the rules made the game longer on purpose, record it with --write`);
+    if (d < -TOLERANCE) out.push(`median Embark ${h(summary.embark)} is ${pct(-d)} faster than the baseline ${h(baseline.median)}: record it with --write so the bar rises`);
+  }
+  return out;
 }
 
 function parseArgs(argv) {
-  const args = { seeds: '12345,777,99', hours: '60' };
-  for (let i = 0; i < argv.length; i += 2) args[argv[i].replace(/^--/, '')] = argv[i + 1];
+  const args = {};
+  for (let i = 0; i < argv.length; i++) {
+    const name = argv[i].replace(/^--/, '');
+    args[name] = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
+  }
   return args;
 }
 
+const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
+
 /* ---------------------------------------------------------------- a seed */
 
-async function play({ seed, hours }) {
+async function play({ seed, hours, knobs }) {
   const C = await import('../src/core/index.js');
   const { holdPerfect } = await import('../test/unit/helpers.js');
   const s = C.createState(seed);
   const milestones = {};
   const b = { refused: 0, nowhere: 0, walks: 0, waited: 0, layerChanges: 0, shortTrips: 0, goals: 0 };
   let z = s.player.z, wentDown = 0, at = { x: s.player.x, y: s.player.y }, goal = null, waitFrom = null;
-  const mind = C.newMind();
+  const mind = C.newMind(knobs);
   const { played, last } = holdPerfect(s, hours * 3600, {
     mind,
     tick() {
@@ -72,7 +121,7 @@ async function play({ seed, hours }) {
     },
     seen(intent, result) {
       if (waitFrom !== null) { b.waited += s.time - waitFrom; waitFrom = null; }
-      if (intent.type === 'wait') { if (intent.why !== 'embark') waitFrom = s.time - 1; }
+      if (intent.type === 'wait') { if (intent.why !== 'embark') waitFrom = s.time; }
       else if (intent.type === 'walk') {
         b.walks++;
         if (Math.hypot(s.player.x - at.x, s.player.y - at.y) < 0.01) b.nowhere++;
@@ -126,8 +175,9 @@ function delta(now, then) {
   return ` (${d > 0 ? '+' : ''}${(100 * d).toFixed(1)}%)`;
 }
 
+// `before`: an earlier --out file, or the baseline (only Embark times).
 function report({ runs, summary }, before) {
-  const old = (seed) => before && before.runs.find((r) => r.seed === seed);
+  const old = (seed) => before && (before.runs ? before.runs.find((r) => r.seed === seed) : { embark: before.embark[seed] });
   console.log('seed        Embark            refused  nowhere  waiting  layer changes  short trips');
   for (const r of runs) {
     const b = r.behaviour;
@@ -141,13 +191,14 @@ function report({ runs, summary }, before) {
       String(b.shortTrips).padStart(12)
     ].join(' '));
   }
-  console.log('\nmedian Embark ' + h(summary.embark) + delta(summary.embark, before?.summary.embark) + `, ${summary.embarked}/${runs.length} seeds reached it`);
+  console.log('\nmedian Embark ' + h(summary.embark) + delta(summary.embark, before && (before.summary ? before.summary.embark : before.median)) + `, ${summary.embarked}/${runs.length} seeds reached it`);
   console.log('milestones (median):');
   for (const [id, t] of Object.entries(summary.milestones).sort((a, b) => a[1] - b[1])) {
-    console.log('  ' + id.padEnd(22) + h(t) + delta(t, before?.summary.milestones[id]));
+    console.log('  ' + id.padEnd(22) + h(t) + delta(t, before?.summary?.milestones[id]));
   }
 }
 
-// Last, so every function and constant above is ready.
-if (isMainThread) await main();
-else parentPort.postMessage(await play(workerData));
+// Last, so every function and constant above is ready. Run as a script it
+// benchmarks; as a worker it plays one seed; imported, it only lends bench().
+if (!isMainThread) parentPort.postMessage(await play(workerData));
+else if (process.argv[1] === fileURLToPath(import.meta.url)) await main();

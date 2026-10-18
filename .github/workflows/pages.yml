@@ -35,8 +35,37 @@ jobs:
       - name: Unit tests
         run: npm test
 
+  # The Perfect button still plays as well as test/perfect-baseline.json
+  # (scripts/perfect-bench.mjs --check: 4 worlds held to Embark, a few
+  # minutes). Only when the rules or the brain may have changed; otherwise
+  # it passes at once.
+  perfect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (with history, to see what changed)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Did the rules or the brain change?
+        id: changed
+        run: |
+          base="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if ! git cat-file -e "$base^{commit}" 2>/dev/null ||
+             ! git diff --quiet "$base" HEAD -- src/core scripts/perfect-bench.mjs test/perfect-baseline.json test/unit/helpers.js; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node and the dev dependencies
+        if: steps.changed.outputs.run
+        uses: ./.github/actions/setup
+
+      - name: Perfect benchmark against the baseline
+        if: steps.changed.outputs.run
+        run: node scripts/perfect-bench.mjs --check
+
   deploy:
-    needs: test
+    needs: [test, perfect]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

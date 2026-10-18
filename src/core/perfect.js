@@ -40,23 +40,31 @@ import { canDescendAt, canClimbAt, canPlaceProp, findsNear } from './underground
 import { findPath } from './paths.js';
 
 const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
-const RETHINK = 60;           // game seconds before the goal is chosen afresh anyway
-const EXPLORE_GUESS = 60;     // seconds a search for something not yet seen is reckoned to take
 const SEARCH = 120;           // tiles out the brain looks for a deposit or a spot
 const STUCK = 6;              // tries at the same step before a target counts as out of reach
 // Inside Logistics' reach by this much more than the room could miss (it
 // knows where you are to half a tile, src/core/acts.js).
 const SURE_RANGE = AUTO_COLLECT_RANGE - 0.6;
-const STICK = 10;             // game seconds a way of getting the goal is kept before it's weighed again
-const MINE_EDGE = 0.8;       // the mine must be this much quicker than the surface to go down
-const SHAFT_SECONDS = 45;     // reckoned to find and open the way down out of a layer
-const DIG_SECONDS = 0.6;      // reckoned per tile tunnelled toward a find (dig, then step)
-const MIN_DIG = 60;           // seconds of digging a trip down must be worth: no popping in for a find or two
 const PERKS_FIRST = ['memory', 'heirloom', 'cartographer'];
 
-/** @returns {object} a blank memory for nextIntent */
-export function newMind() {
-  return { state: null };
+// The brain's judgement calls: guesses and margins the rules don't settle.
+// scripts/perfect-tune.mjs searches them for the quickest Embark after a
+// rules change; scripts/perfect-bench.mjs measures what they give.
+export const KNOBS = Object.freeze({
+  rethink: 60,       // game seconds before the goal is chosen afresh anyway
+  stick: 10,         // game seconds a way of getting the goal is kept before it's weighed again
+  exploreGuess: 60,  // seconds a search for something not yet seen is reckoned to take
+  walkLoss: 0.8,     // share of holding Gather that gathers, the rest lost walking between tiles
+  mineEdge: 0.8,     // the mine must be this much quicker than the surface to go down
+  shaftSeconds: 45,  // reckoned to find and open the way down out of a layer
+  digSeconds: 0.6,   // reckoned per tile tunnelled toward a find (dig, then step)
+  minDig: 60,        // seconds of digging a trip down must be worth: no popping in for a find or two
+  outward: 0.8       // exploring: how much further from home outweighs being further from you
+});
+
+/** @returns {object} a blank memory for nextIntent, judging with `knobs` (KNOBS by default) */
+export function newMind(knobs = {}) {
+  return { state: null, k: { ...KNOBS, ...knobs } };
 }
 
 const key = (x, y, z) => packKey(x, y, z);
@@ -122,7 +130,7 @@ export function candidates(s, mind) {
     if (def.unlock && !s.unlocks[def.unlock]) continue;
     if (buildSpot(s, mind, id)) out.push({ kind: 'build', id, cost: extractorCost(s, id) });
     // Each search that comes up empty makes the next one look less worth it.
-    else if (def.tile !== null && s.player.z === SURFACE) out.push({ kind: 'find', id, cost: {}, eta: EXPLORE_GUESS * 2 ** (mind.searches[id] || 0) });
+    else if (def.tile !== null && s.player.z === SURFACE) out.push({ kind: 'find', id, cost: {}, eta: mind.k.exploreGuess * 2 ** (mind.searches[id] || 0) });
   }
   return out;
 }
@@ -138,7 +146,7 @@ function current(s, mind, goal) {
 // The goal: whatever can be had soonest. Kept until it's had (or a while
 // has passed), as a person sticks to what they're saving for.
 function decide(s, mind) {
-  if (current(s, mind, mind.goal) && s.time - mind.decided < RETHINK) return mind.goal;
+  if (current(s, mind, mind.goal) && s.time - mind.decided < mind.k.rethink) return mind.goal;
   let best = null;
   for (const c of candidates(s, mind)) {
     const eta = c.kind === 'find' ? c.eta : plan(s, mind, c.cost).eta;
@@ -153,14 +161,14 @@ function decide(s, mind) {
 
 /* ------------------------------------------------------------ planning */
 
-const handRate = (s, res) => TAPS * gatherYield(s, res) * 0.8; // a little lost to walking between tiles
+const handRate = (s, mind, res) => TAPS * gatherYield(s, res) * mind.k.walkLoss;
 
 // How long `m` more of `res` takes by hand from the surface: to the nearest
 // deposit you know of and the gathering, or a search if you know of none.
 function handEta(s, mind, res, m) {
   const d = nearestDeposit(s, mind, res);
-  if (d.tile) return dist(s, d.tile.x, d.tile.y) / speed(s) + m / handRate(s, res);
-  return d.gated ? Infinity : EXPLORE_GUESS + m / handRate(s, res);
+  if (d.tile) return dist(s, d.tile.x, d.tile.y) / speed(s) + m / handRate(s, mind, res);
+  return d.gated ? Infinity : mind.k.exploreGuess + m / handRate(s, mind, res);
 }
 
 /**
@@ -184,7 +192,7 @@ export function plan(s, mind, cost) {
   // Underground, getting it on the surface starts with the way back up.
   const surface = { eta: Math.max(waitMax, handSum) + (handSum > 0 ? climbBack(s, mind) : 0), how };
   const mine = minePlan(s, mind, missing);
-  return mine && mine.eta < surface.eta * MINE_EDGE ? mine : surface;
+  return mine && mine.eta < surface.eta * mind.k.mineEdge ? mine : surface;
 }
 
 // Underground: about how long the way back up to the surface takes.
@@ -192,7 +200,7 @@ function climbBack(s, mind) {
   const here = layerOf(s);
   if (!here) return 0;
   const a = mind.arrived[s.player.z];
-  return (a ? dist(s, a.x, a.y) / speed(s) : EXPLORE_GUESS) + (here - 1) * SHAFT_SECONDS;
+  return (a ? dist(s, a.x, a.y) / speed(s) : mind.k.exploreGuess) + (here - 1) * mind.k.shaftSeconds;
 }
 
 // The deepest mine layer your Pickaxe can open the way down to.
@@ -237,12 +245,12 @@ function minePlan(s, mind, missing) {
   for (let layer = 1, deepest = deepestOpen(s); layer <= deepest; layer++) {
     const pays = findPays(s, layer);
     if (!pays.share) continue;
-    const perFind = between / Math.sqrt(pays.share) * DIG_SECONDS;
+    const perFind = between / Math.sqrt(pays.share) * mind.k.digSeconds;
     let dig = 0;
     for (const r of res) dig = Math.max(dig, pays.loot[r] > 0 ? missing[r] / pays.loot[r] * perFind : Infinity);
     // Down from the surface only for a dig worth the trip; once down, any dig.
-    if (here === 0 && dig < MIN_DIG) continue;
-    const eta = travel + Math.max(0, layer - Math.max(here, 1)) * SHAFT_SECONDS + dig;
+    if (here === 0 && dig < mind.k.minDig) continue;
+    const eta = travel + Math.max(0, layer - Math.max(here, 1)) * mind.k.shaftSeconds + dig;
     if (isFinite(eta) && (!best || eta < best.eta)) best = { eta, layer, how: Object.fromEntries(res.map((r) => [r, 'mine'])) };
   }
   return best;
@@ -379,7 +387,6 @@ function explore(s, mind) {
   return null;
 }
 
-const OUTWARD = 0.8; // how much further from home outweighs being further from you
 const EDGE_LOOK = 24; // tiles around you an edge is looked for in
 
 // The edge of what you've seen worth heading to: near you, far from home.
@@ -394,7 +401,7 @@ function outward(s, mind) {
   for (let y = py - EDGE_LOOK; y <= py + EDGE_LOOK; y++) {
     for (let x = px - EDGE_LOOK; x <= px + EDGE_LOOK; x++) {
       if (!edge(x, y)) continue;
-      const score = Math.hypot(x - px, y - py) - OUTWARD * Math.hypot(x - h.x, y - h.y);
+      const score = Math.hypot(x - px, y - py) - mind.k.outward * Math.hypot(x - h.x, y - h.y);
       if (score < bestScore) { bestScore = score; best = { x, y }; }
     }
   }
@@ -409,7 +416,7 @@ function pursue(s, mind, goal) {
   if (canAfford(s.inv, goal.cost)) return obtain(s, mind, goal);
   // How to get it, kept a while: chosen afresh at every step, two ways that
   // are nearly as quick would take turns, a step toward each.
-  if (!mind.how || mind.how.goal !== goal || s.time - mind.how.t > STICK) mind.how = { goal, t: s.time, p: plan(s, mind, goal.cost) };
+  if (!mind.how || mind.how.goal !== goal || s.time - mind.how.t > mind.k.stick) mind.how = { goal, t: s.time, p: plan(s, mind, goal.cost) };
   const p = mind.how.p;
   if (p.layer) return mine(s, mind, p.layer);
   if (underground) return up(s, mind) || idle(s, mind);

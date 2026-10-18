@@ -18,6 +18,10 @@ kind of knowledge lives.
 - Before pushing: `npm ci && npm test`. After a change under `src/game/`, run
   `npm run test:e2e` too (unit tests don't load browser code); after a layout
   or text-length change, `npm run test:layout`.
+- After a change under `src/core/`, run `node scripts/perfect-bench.mjs
+  --check` (CI runs it and won't deploy if it fails). If Perfect got slower,
+  re-learn with `scripts/perfect-tune.mjs` and record the score with
+  `--write` (README, Tests).
 - After pushing, check that every workflow for your commit passed, not only
   Pages. `live-check.yml` opens a `live-check` issue when something didn't
   deploy.
