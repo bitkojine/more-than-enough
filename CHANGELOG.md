@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.101.0] - 2026-10-18
+
+Watch asked that the game stay good to use when a shared world's player
+list is long. Played with 99 simulated players on a local room service.
+
+### Added
+- **Players** in Settings (and from the friends' "+N" chip, which did
+  nothing before): everyone in the world, you first, then awake before
+  asleep, nearest first, with how they're doing, how far away and how many
+  layers up or down. The owner gets Remove on each, so anyone can be
+  removed, not only the five with a chip. `src/game/players.js`, which now
+  also draws the chips, out of `together.js`.
+- `npm run test:layout` has a `crowd` state (a fake room service welcomes
+  the game into a world of 100) and `players`; the Remove buttons and names
+  are checked like other rows.
+
+### Fixed
+- Friend chips ran off the left of small phones and under the depth meter:
+  only as many as fit show, the rest fold into "+N".
+- In a crowd, names over heads covered each other: yours shows first, then
+  the nearest, and a name that would cover one already shown waits.
+- Edge badges of friends a layer down stacked on each other and on you
+  (landscape especially): a badge that would cover another, a name or you
+  gives way to the next nearest.
+
 ## [0.100.1] - 2026-10-18
 
 ### Fixed

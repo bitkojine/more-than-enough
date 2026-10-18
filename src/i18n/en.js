@@ -763,6 +763,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.101.0": "Shared worlds with many players stay easy to read: Players in Settings lists everyone, how they're doing and how far away they are, and the world's owner can remove anyone there. {phone:Tap|laptop:Click} the +N beside your friends to open it.\nNames over heads no longer pile up in a crowd, and badges at the edge of the screen no longer cover each other or you.",
   "news.0.100.1": "In a shared world, other players' buildings, lamps, flags and tombstones stay hidden in the dark until you explore that land, instead of floating in the void.",
   "news.0.100.0": "Your buildings in a shared world now keep working while you are away, up to 8 hours, just like in your own world. When you come back, a message says what they made.",
   "news.0.99.0": "Every shared world now has its own name, like Fern Valley, so you always know which world you are joining. Settings has a new Worlds list with your own world and every shared world you have joined, and how many are playing in each. {phone:Tap|laptop:Click} Play to switch between them.",
