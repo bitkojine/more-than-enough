@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuality, drawDpr, LEVELS, MAX_PIXELS } from '../../src/game/quality.js';
+import { createQuality, drawDpr, frameDue, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, FULL_FPS, CALM_FPS } from '../../src/game/quality.js';
 
 // Feeds `seconds` of frames `ms` apart.
 function run(q, ms, seconds) {
@@ -26,8 +26,6 @@ test('a slow device steps down a level at a time, to the last and no further', (
   run(q, 1000 / 20, 60);
   assert.equal(q.level, LEVELS.length - 1);
   assert.equal(steps, LEVELS.length - 1);
-  run(q, 1000 / 60, 60);
-  assert.equal(q.level, LEVELS.length - 1, 'never steps back up within a visit');
 });
 
 test('pauses and the first seconds are not judged', () => {
@@ -60,4 +58,59 @@ test('a big screen is drawn with at most MAX_PIXELS, but never under 1x for that
   assert.equal(drawDpr(2, 2, 5000, 3000), 1);
   assert.equal(drawDpr(0.75, 2, 412, 915), 0.75, 'a struggling device still goes under 1x');
   assert.equal(drawDpr(2, 1, 800, 600), 1);
+});
+
+test('once the device keeps up again (cooled down, plugged in) it steps back up, a level at a time', () => {
+  let steps = 0;
+  const q = createQuality(3, 3, () => steps++);
+  run(q, 1000 / 60, UP_AFTER_S - 2);
+  assert.equal(q.level, 3, 'not before UP_AFTER_S of smooth frames');
+  run(q, 1000 / 60, 6);
+  assert.equal(q.level, 2, 'one level better');
+  run(q, 1000 / 60, 3 * (UP_AFTER_S + 3));
+  assert.equal(q.level, 0, 'all the way back to full quality');
+  assert.equal(steps, 3);
+  run(q, 1000 / 60, 120);
+  assert.equal(steps, 3, 'and stays there');
+});
+
+test('a try that is too slow steps straight back and waits twice as long before the next', () => {
+  const q = createQuality(1, 3, () => {});
+  run(q, 1000 / 60, UP_AFTER_S + 5);
+  assert.equal(q.level, 0, 'tries a level better');
+  run(q, 1000 / 30, 3);
+  assert.equal(q.level, 1, 'too slow there: back down');
+  run(q, 1000 / 60, UP_AFTER_S + 5);
+  assert.equal(q.level, 1, 'no new try after the usual wait');
+  run(q, 1000 / 60, UP_AFTER_S + 5);
+  assert.equal(q.level, 0, 'but after twice as long');
+  // Each failure doubles the wait, up to UP_MAX_S, so it never flickers.
+  let tries = 0;
+  for (let i = 0; i < 10; i++) {
+    run(q, 1000 / 30, 3);   // back down
+    let s = 0;
+    while (q.level === 1 && s < UP_MAX_S + 10) { run(q, 1000 / 60, 1); s++; }
+    if (q.level === 0) tries++;
+    assert.ok(s <= UP_MAX_S + 5, 'the wait never grows past UP_MAX_S (' + s + ' s)');
+  }
+  assert.equal(tries, 10);
+});
+
+test('plugging in the charger tries a better level within seconds', () => {
+  const q = createQuality(2, 3, () => {});
+  run(q, 1000 / 60, 5);
+  assert.equal(q.level, 2);
+  q.retry();
+  run(q, 1000 / 60, 8);
+  assert.equal(q.level, 1);
+});
+
+test('frames are drawn at most FULL_FPS a second, and CALM_FPS when calm', () => {
+  // On a 120 Hz screen every other refresh is drawn; on 60 Hz, every one.
+  assert.ok(!frameDue(1000 / 120, FULL_FPS));
+  assert.ok(frameDue(2000 / 120, FULL_FPS));
+  assert.ok(frameDue(1000 / 60, FULL_FPS));
+  // Calm on 60 Hz: every other refresh.
+  assert.ok(!frameDue(1000 / 60, CALM_FPS));
+  assert.ok(frameDue(2000 / 60, CALM_FPS));
 });

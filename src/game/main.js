@@ -16,7 +16,7 @@ import { createSheet } from './sheet.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerf } from './perf.js';
-import { createQuality } from './quality.js';
+import { createQuality, frameDue, FULL_FPS, CALM_FPS, CALM_AFTER_S } from './quality.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { loadSavedPack } from './look/store.js';
@@ -103,6 +103,17 @@ function applyQuality() {
   resize();
 }
 const perf = createPerf(el, el.canvas, audio, quality);
+// Plugging in the charger may give a hot or saving phone its speed back
+// (where the browser says so: not Safari).
+if (navigator.getBattery) {
+  navigator.getBattery().then((b) => b.addEventListener('chargingchange', () => { if (b.charging) quality.retry(); }), () => {});
+}
+// The last touch, click, key or wheel: the map is drawn at full pace for a
+// few seconds after one, and calmly (fewer frames, less heat) otherwise.
+let lastTouch = 0;
+for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) {
+  window.addEventListener(ev, () => { lastTouch = performance.now(); }, { capture: true, passive: true });
+}
 
 const loaded = loadGame();
 let saveDue = false;
@@ -469,7 +480,14 @@ function sayAway(seconds, made, fixed = false) {
 }
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
+let fullPace = true;            // the last frame was drawn at full pace
 function frame(now) {
+  // Full pace while you play (a touch or key just now, Gather held, you or
+  // the view on the move, the trip between layers), calm while you watch.
+  const full = moving || input.held || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
+  if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
+  if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
+  fullPace = full;
   const intervalMs = last ? now - last : 0;
   const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
   last = now;
@@ -492,7 +510,7 @@ function frame(now) {
     signRect = stats.sign;
     descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
-    quality.frame(intervalMs);
+    if (full) quality.frame(intervalMs);
     perf.tick(dt);
   } catch (err) {
     // Stop here and show what broke, rather than throwing every frame.

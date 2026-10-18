@@ -769,6 +769,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.105.0": "Žaidimas mažiau eikvoja tavo {phone:telefono|laptop:kompiuterio} bateriją ir mažiau jį kaitina: kai tik žiūri, žemėlapį piešia dvigubai rečiau ir niekada ne dažniau nei 60 kartų per sekundę.\nJei žaidimui teko sumažinti vaizdo kokybę, dabar jis ją vėl padidina, kai tavo {phone:telefonas|laptop:kompiuteris} vėl spėja, pavyzdžiui, kai atvėsta ar yra įkraunamas.",
   "news.0.104.1": "Užkulisiuose: administratoriaus bendrų pasaulių sąraše dabar matyti ir pasauliai, kuriuose žaidžiama, kol serveris atnaujinamas.",
   "news.0.104.0": "Užkulisiuose: žaidimo administratorius turi puslapį su visais bendrais pasauliais ir visais jų žaidėjais, kad galėtų prižiūrėti sąžiningą žaidimą. Jame rodoma tik tai, ką serveris jau saugo: tavo veikėjo vardas, pažanga ir žaidimo laikas, niekada tavo tikras vardas ar adresas.",
   "news.0.103.2": "Užkulisiuose: administratoriaus bendro pasaulio kopija dabar gali parodyti ir tai, ką grįžtančiam žaidėjui parodytų jo paties žaidimas, pavyzdžiui, naujienas ir pastabą apie skaičius, kurie niekada nebuvo tikri.",

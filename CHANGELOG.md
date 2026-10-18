@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.105.0] - 2026-10-18
+
+### Changed
+- **Calmer frame rate, less heat** (Watch: the game warmed their phone). The
+  map was redrawn on every screen refresh, idle or not (120 times a second
+  on a 120 Hz phone). Now it is drawn at most 60 times a second
+  (`FULL_FPS`), and 30 (`CALM_FPS`) once nothing has been touched for 3 s and
+  neither you nor the trip between layers is moving (`src/game/quality.js`,
+  `frameDue`; `src/game/main.js`). Idle main-thread time in a phone-sized
+  headless Chrome: 98% to ~60%.
+- **Quality steps back up** when the device can keep up again (cooled down,
+  plugged in): after 20 s of smooth frames (52 fps or better) it tries one
+  level better; a try that is too slow steps straight back and doubles the
+  wait, up to 10 minutes, so it never flickers. Where the browser reports
+  charging (not Safari), plugging in tries again within seconds. Calm frames
+  are never judged.
+- Checked a 3-minute walk for leaks: JS heap, DOM nodes and listeners stay flat.
+
 ## [0.104.1] - 2026-10-18
 
 ### Fixed
