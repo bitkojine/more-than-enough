@@ -279,22 +279,28 @@ function drawTile(ctx, cam, s, look, x, y, z) {
 }
 
 // A stockpile pile standing in the middle of its square of tiles, as big as
-// the square, growing in if it's new.
-function drawPile(ctx, cam, s, look, yard, p) {
+// the square, growing in if it's new, sliding if it moves. `at` overrides
+// where it stands and how big it is (a pile sliding into a merge).
+function drawPile(ctx, cam, s, look, yard, p, at = yard.at(p, s.time)) {
   const u = cam.tilePx, d = cam.depthPx;
-  const front = p.y + p.span - 1;
-  const h = cam.risePx > FLAT_RISE_PX ? Core.tileHeight(s.world, p.x + (p.span >> 1), front, Core.SURFACE) : 0;
-  const foot = cam.project(p.x + p.span / 2, front + FOOT, Core.SURFACE + h);
+  const front = at.y + p.span - 1;
+  const h = cam.risePx > FLAT_RISE_PX ? Core.tileHeight(s.world, Math.floor(at.x + p.span / 2), Math.round(front), Core.SURFACE) : 0;
+  const foot = cam.project(at.x + p.span / 2, front + FOOT, Core.SURFACE + h);
   const pic = look.tier('pile.' + p.res, p.tier);
   // One tile: the picture's own size. A square: fitted to the square's width.
   const fit = p.span === 1 ? 1 : (p.span * PILE_FILL) / pic.units;
-  const size = u * fit * yard.growth(p, s.time);
+  const size = u * fit * at.size;
   if (size < 1) return;
   const fx = foot.x, fy = foot.y;
   const r = Math.min(u * 0.48 * p.span, pic.units * size * 0.45);
   ctx.fillStyle = SHADOW;
   ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
   look.stand(ctx, pic, fx, fy, size);
+}
+
+// Piles sliding into a bigger one (ten becoming one), over the ground.
+export function drawMerging(ctx, cam, s, look, yard) {
+  for (const m of yard.merging(s.time)) drawPile(ctx, cam, s, look, yard, m.pile, m);
 }
 
 // Whatever stands on tile (x, y): a stockpile pile, else its stand picture

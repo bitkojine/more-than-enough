@@ -1120,14 +1120,20 @@ async function main() {
   /* ---------------------------------------------------------- stockpile */
   console.log('\n== Stockpile ==');
   await navigate('http://127.0.0.1:' + PORT + '/');
-  // Explore around home and set a known inventory: 3,452 mycelium is 3+4+5+2 piles.
+  // Explore around home and set a known inventory: 3,452 mycelium is 3+4 piles (two leading digits).
   await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),h=C.home(s);s.player.z=0;G.setPlayer(h.x+0.5,h.y+0.5);' +
     'for(var y=-16;y<=16;y++)for(var x=-16;x<=16;x++)C.markExplored(s.world,h.x+x,h.y+y,0);' +
     's.inv.mycelium=3452;s.inv.stone=0;s.inv.ore=0;s.inv.crystal=0;G.setZoom(0.7);})()');
-  ok(await waitFor('MTE_GAME.yard.piles.size === 14', 3000), 'what you own stands around home: 3,452 mycelium is 14 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 7', 3000), 'what you own stands around home: 3,452 mycelium is 7 piles (' + await evalJS('MTE_GAME.yard.piles.size') + ')');
   var tiers = await evalJS('[...MTE_GAME.yard.piles.values()].map(function(p){return p.tier;}).sort().join("")');
-  eq(tiers, '00111112222333', 'one pile per unit of each digit: 2 logs, 5 bundles, 4 piles, 3 carts');
+  eq(tiers, '2222333', 'one pile per unit of the two leading digits: 4 baskets, 3 carts');
   console.log('  screenshot: ' + await shot('09-stockpile.png'));
+  await evalJS('MTE_GAME.getState().inv.mycelium = 9990');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 18', 2000), '9,990 mycelium is 9 carts and 9 baskets');
+  await evalJS('MTE_GAME.getState().inv.mycelium = 10000');
+  ok(await waitFor('MTE_GAME.yard.piles.size === 1 && [...MTE_GAME.yard.merging(MTE_GAME.getState().time)].length > 0', 2000),
+    'ten carts merge into one bigger pile: the smaller ones slide into it');
+  ok(await waitFor('[...MTE_GAME.yard.merging(MTE_GAME.getState().time)].length === 0', 3000), '...and are gone once they reach it');
   await evalJS('MTE_GAME.getState().inv.mycelium = 3000');
   ok(await waitFor('MTE_GAME.yard.piles.size === 3', 2000), 'spending takes piles away (3,000 mycelium is 3 carts)');
   await evalJS('MTE_GAME.getState().inv.stone = 12345678');

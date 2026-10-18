@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.107.0] - 2026-10-18
+
+Watch's ask: the stockpile at spawn turns into a crowd of buildings drawn
+on top of each other once you're rich; design it better with 2048 in mind.
+A save with 458B mycelium, 32B stone, 7.8B ore and 1.2B crystal drew 209
+piles spilling into the forest; it now draws 32.
+
+### Changed
+- **Only the two leading digits stand as piles** (`PILE_DIGITS`): 3,452 is 3
+  carts and 4 baskets, not 3+4+5+2 piles, so a resource never stands as
+  more than 18 piles. The biggest piles still say how rich you are.
+- **Each resource has its own district**: mycelium north of home, stone
+  east, ore south, crystal west (`offDistrict` adds a detour for tiles
+  outside a resource's quarter, so it spills over only when its side is
+  full). The middle of home (`PLAZA`) stays open.
+- **Piles keep a tile apart** (`PILE_GAP`), so big ones no longer stand on
+  each other's pictures.
+
+### Added
+- **2048-style merges.** When ten piles become one bigger pile, they slide
+  together and the bigger pile pops up where they meet, with a little
+  overshoot; piles that move (the yard tidying itself every 90 s) slide to
+  their new spot instead of jumping. Drawing gets cheaper, not costlier:
+  fewer piles, and the sliding ones are only drawn for 0.8 s.
+
 ## [0.106.0] - 2026-10-18
 
 Watch's ask: when a shared world undoes something you did (a building put

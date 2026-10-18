@@ -10,7 +10,7 @@
 
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain, drawFarHoles } from './terrain.js';
+import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
@@ -75,6 +75,7 @@ export function render(cam, s, fx, view, look) {
     drawPlayer(ctx, cam, s, look, view);
     ctx.globalAlpha = 1;
   }
+  if (cam.z === Core.SURFACE) drawMerging(ctx, cam, s, look, view.yard);
   drawTrail(ctx, cam, s, view);
   drawParticles(ctx, cam, fx);
   drawFloats(ctx, cam, look, fx);

@@ -1,18 +1,21 @@
 /* The stockpile: everything you own, piled up on the ground around home.
  *
- * Amounts are shown on a logarithmic scale, read like an abacus. Each power
- * of ten is its own kind of pile (one stone, a stack of 10, a pile of 100,
- * a cart of 1,000, ...), and each digit of the amount is how many of that
- * kind there are: 3,452 stone is 3 carts, 4 piles, 5 stacks and 2 stones. So
- * the yard grows with the number of digits, and a glance at the biggest piles
- * tells you the order of magnitude.
+ * Amounts are shown on a logarithmic scale, like the tiles of 2048. Each
+ * power of ten is its own kind of pile (one stone, a stack of 10, a pile of
+ * 100, a cart of 1,000, ...), and ten of a kind merge into one of the next.
+ * Only the two leading digits are shown: 3,452 stone is 3 carts and 4 piles,
+ * so a resource never stands as more than 18 piles, and a glance at the
+ * biggest tells you the order of magnitude.
  *
  * The yard is only a picture of the inventory: nothing is carried there, and
- * piles never get in the way of walking or gathering. It fills the home
- * clearing every world starts in (home ground, see terrain.js), biggest piles
- * in the middle, and once that is full spills onto open grass around it. It
- * never stands on anything you can gather, nor on water, mountains, holes or
- * buildings. Pure: the same state always gives the same yard. */
+ * piles never get in the way of walking or gathering. Each resource keeps to
+ * its own district around the home clearing every world starts in (home
+ * ground, see terrain.js): mycelium to the north, stone east, ore south,
+ * crystal west, biggest piles nearest the middle, which stays an open square.
+ * Piles keep a tile of space between them, and once home ground is full they
+ * spill onto open grass. They never stand on anything you can gather, nor on
+ * water, mountains, holes or buildings. Pure: the same state always gives the
+ * same yard. */
 
 import { SURFACE } from './coords.js';
 import { RESOURCES, TILE_INFO } from './tiles.js';
@@ -20,13 +23,16 @@ import { tileAt, findSpawn, holeBelow, isExplored } from './world.js';
 
 export const YARD_RADIUS = 64;   // how far from home the yard can spread, in tiles
 export const PILE_BASE = 10;     // each kind of pile is this many of the one below
+export const PILE_DIGITS = 2;    // how many leading digits of an amount stand as piles
+export const PILE_GAP = 1;       // free tiles kept between piles
+export const PLAZA = 1;          // the open square in the middle of home: tiles from the centre
 export const SPAN_FROM = 7;      // piles for 10^7 and up take a square of tiles...
 // ...one tile wider for every power of ten (10^7: 2x2, 10^8: 3x3, ...), so
 // every power of ten still looks different from the next.
 export const pileSpan = (tier) => (tier < SPAN_FROM ? 1 : tier - SPAN_FROM + 2);
 
 // The piles that show amount `a`, as tiers (0 = ones, 1 = tens, ...),
-// biggest first.
+// biggest first: as many of each as its digit, for the leading PILE_DIGITS.
 export function pileTiers(a) {
   const n = Math.floor(Math.max(0, a));
   if (!(n > 0)) return [];
@@ -40,7 +46,7 @@ export function pileTiers(a) {
     exp = Number(e);
   }
   const out = [];
-  for (let i = 0; i < digits.length; i++) {
+  for (let i = 0; i < Math.min(digits.length, PILE_DIGITS); i++) {
     for (let k = 0; k < digits.charCodeAt(i) - 48; k++) out.push(exp - i);
   }
   return out;
@@ -58,9 +64,18 @@ export function yardCost(w, x, y) {
 // Home: where the world started (also where every new world starts you).
 export const home = (s) => findSpawn(s.world);
 
+// How far tile (dx, dy) from home lies outside the district of resource
+// number `i` (0 north, then clockwise a quarter turn each), in quarter turns
+// past its edge: 0 inside, up to 1.5 on the far side.
+function offDistrict(i, dx, dy) {
+  const turn = (Math.atan2(dx, -dy) / (Math.PI / 2) - i + 4) % 4; // quarter turns clockwise from its middle
+  return Math.max(0, Math.min(turn, 4 - turn) - 0.5);
+}
+
 // The ground within R of home, as a grid: how much the yard avoids each
-// tile (-1 = never), and every usable tile in order of preference (ring by
-// ring around home, each ring clockwise from due north, plus avoidance).
+// tile (-1 = never), and for each resource every usable tile in order of
+// preference (ring by ring around home, each ring clockwise from due north,
+// plus avoidance, plus a detour for tiles outside its district).
 export function yardGround(s, R) {
   const side = 2 * R + 1;
   const h = home(s);
@@ -72,15 +87,21 @@ export function yardGround(s, R) {
     const gx = e.x - h.x + R, gy = e.y - h.y + R;
     if (e.z === SURFACE && gx >= 0 && gy >= 0 && gx < side && gy < side) avoid[gy * side + gx] = -1;
   }
-  const order = [];
+  for (let dy = -PLAZA; dy <= PLAZA; dy++) {
+    for (let dx = -PLAZA; dx <= PLAZA; dx++) if (Math.max(Math.abs(dx), Math.abs(dy)) <= R) avoid[(dy + R) * side + dx + R] = -1;
+  }
+  const cells = [];
   for (let r = 0; r <= R; r++) {
     for (const [dx, dy] of ring(r)) {
       const i = (dy + R) * side + (dx + R);
-      if (avoid[i] >= 0) order.push({ i, cost: r + avoid[i], n: order.length });
+      if (avoid[i] >= 0) cells.push({ i, dx, dy, r, cost: r + avoid[i] });
     }
   }
-  order.sort((p, q) => p.cost - q.cost || p.n - q.n);
-  return { home: h, R, side, avoid, order: order.map((o) => o.i) };
+  const orders = RESOURCES.map((_, k) => cells
+    .map((c, n) => ({ i: c.i, n, cost: c.cost + Math.ceil(offDistrict(k, c.dx, c.dy) * 4 * c.r) }))
+    .sort((p, q) => p.cost - q.cost || p.n - q.n)
+    .map((o) => o.i));
+  return { home: h, R, side, avoid, orders };
 }
 
 /**
@@ -112,7 +133,7 @@ function yardWant(s) {
 // it between calls; it is re-read when the world, its fog or buildings
 // change.
 function groundFor(s, want, memo) {
-  const area = want.reduce((n, p) => n + p.span * p.span, 0);
+  const area = want.reduce((n, p) => n + (p.span + PILE_GAP) ** 2, 0);
   const R = Math.min(YARD_RADIUS, Math.ceil(Math.sqrt(area) * 1.5) + 6);
   const key = s.world.revealed + '|' + s.extractors.length;
   if (memo && memo.world === s.world && memo.key === key && memo.ground.R >= R) return memo.ground;
@@ -121,20 +142,22 @@ function groundFor(s, want, memo) {
   return g;
 }
 
-// Places piles on ground `g`, each on the first free spot in order of
-// preference, around what `used` already holds. Returns the placed piles.
+// Places piles on ground `g`, each on the first free spot in its resource's
+// order of preference, around what `used` already holds. Returns the placed
+// piles.
 function place(g, want, used) {
-  const { side, order } = g;
+  const { side } = g;
   const out = [];
-  let next = 0; // single tiles only ever move further out
+  const next = RESOURCES.map(() => 0); // single tiles only ever move further out
   for (const p of want) {
+    const r = RESOURCES.indexOf(p.res), order = g.orders[r];
     const half = (p.span - 1) >> 1;
-    for (let k = p.span === 1 ? next : 0; k < order.length; k++) {
+    for (let k = p.span === 1 ? next[r] : 0; k < order.length; k++) {
       const gx = (order[k] % side) - half, gy = Math.floor(order[k] / side) - half;
       if (!fits(g, used, gx, gy, p.span)) continue;
       claim(g, used, gx, gy, p.span);
       out.push({ x: g.home.x - g.R + gx, y: g.home.y - g.R + gy, ...p });
-      if (p.span === 1) next = k + 1;
+      if (p.span === 1) next[r] = k + 1;
       break;
     }
   }
@@ -195,11 +218,17 @@ export function yardSettle(s, current, memo = null) {
   return kept.concat(place(g, missing, used));
 }
 
-// Whether a span x span square at grid (gx, gy) is free yard ground.
+// Whether a span x span square at grid (gx, gy) is free yard ground, with
+// PILE_GAP tiles around it clear of other piles.
 function fits(g, used, gx, gy, span) {
   if (gx < 0 || gy < 0 || gx + span > g.side || gy + span > g.side) return false;
   for (let y = gy; y < gy + span; y++) {
-    for (let x = gx; x < gx + span; x++) if (used[y * g.side + x] || g.avoid[y * g.side + x] < 0) return false;
+    for (let x = gx; x < gx + span; x++) if (g.avoid[y * g.side + x] < 0) return false;
+  }
+  const x0 = Math.max(0, gx - PILE_GAP), x1 = Math.min(g.side, gx + span + PILE_GAP);
+  const y0 = Math.max(0, gy - PILE_GAP), y1 = Math.min(g.side, gy + span + PILE_GAP);
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) if (used[y * g.side + x]) return false;
   }
   return true;
 }

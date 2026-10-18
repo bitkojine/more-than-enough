@@ -160,7 +160,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
-  - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of each digit)
+  - `stockpile.js` — what you own as piles around home, on a log scale (one pile per unit of the two leading digits, a district per resource)
   - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
   - `shared.js` — a shared world: splitting a state into the world and your own progress, applying friends' edits and the room's corrections
   - `acts.js`, `replay.js` — in a shared world, what the player did, written down, and the room doing the same with the same rules (`server/src/shadow.js`), so the room knows what everyone really has
@@ -171,7 +171,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`, `fork.js`, `ask.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
-  - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
+  - `yard.js` — keeps the stockpile's piles in step with the inventory: they grow, slide, merge 2048-style and puff as it changes
   - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
   - `update.js`, `news.js` — the self-update on every deploy and the What's new notes
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)

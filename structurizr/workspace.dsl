@@ -81,7 +81,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                yard = component "Yard" "Keeps the stockpile's layout in step with the inventory (at most five times a second, reusing the ground grid), tracks which tiles big piles cover, and makes changes visible: new piles grow in, gone piles puff." "JavaScript" {
+                yard = component "Yard" "Keeps the stockpile's layout in step with the inventory (at most five times a second, reusing the ground grid), tracks which tiles big piles cover, and makes changes visible like 2048: ten piles slide together into the bigger one they became, moved piles slide, new piles grow in, spent piles puff." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/yard.js"
@@ -158,7 +158,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                stockpile = component "Stockpile" "What you own as piles around home, on a logarithmic scale: one pile per unit of each digit, each power of ten its own kind, biggest nearest home; from 10^7 a pile covers a square of tiles one wider per power. Laid out over explored ground (grass first) by a cost-ordered spiral; the ground grid can be memoized between layouts. Pure: only a picture of the inventory." "JavaScript" {
+                stockpile = component "Stockpile" "What you own as piles around home, on a logarithmic scale: one pile per unit of the two leading digits (at most 18 per resource), each power of ten its own kind; from 10^7 a pile covers a square of tiles one wider per power. Each resource has its own district (a quarter around home), biggest nearest the open middle, with a tile of space between piles. Laid out over explored ground (home ground first) by a cost-ordered spiral per resource; the ground grid can be memoized between layouts. Pure: only a picture of the inventory." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/stockpile.js"
@@ -246,7 +246,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.render -> mte.app.look "Colours and pictures by thing id"
         mte.app.render -> mte.app.yard "Draws the piles"
         mte.app.yard -> mte.core.stockpile "Lays out the yard"
-        mte.app.yard -> mte.app.fx "Puffs for vanished piles"
+        mte.app.yard -> mte.app.fx "Puffs for vanished and merged piles"
         mte.core.stockpile -> mte.core.world "Reads ground, fog and holes around home"
         mte.app.ui -> mte.app.look "Icons by thing id"
         mte.app.look -> mte.core.catalog "Validates packs against"

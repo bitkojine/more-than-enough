@@ -1,5 +1,6 @@
 /* The stockpile: amounts become piles on a logarithmic scale (one pile per
- * unit of each digit), laid out around home on explored ground. */
+ * unit of each of the two leading digits), laid out around home on explored
+ * ground, each resource in its own district. */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -14,16 +15,19 @@ function yardWorld(inv, r = 40, seed = 7) {
   return s;
 }
 
-test('piles: one per unit of each digit, the place being the tier', () => {
+test('piles: one per unit of each of the two leading digits, the place being the tier', () => {
   assert.deepEqual(C.pileTiers(0), []);
   assert.deepEqual(C.pileTiers(0.99), []);
   assert.deepEqual(C.pileTiers(7), [0, 0, 0, 0, 0, 0, 0]);
-  assert.deepEqual(C.pileTiers(3452), [3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0]);
+  assert.deepEqual(C.pileTiers(3452), [3, 3, 3, 2, 2, 2, 2]);
   assert.deepEqual(C.pileTiers(1000000), [6]);
+  assert.deepEqual(C.pileTiers(1099), [3]);
   assert.deepEqual(C.pileTiers(20.7), [1, 1]);
   // Past plain digits (1e21+), the leading digits still read right.
   assert.deepEqual(C.pileTiers(1.5e22), [22, 21, 21, 21, 21, 21]);
   assert.deepEqual(C.pileTiers(3e25), [25, 25, 25]);
+  // However rich, a resource never stands as more than 18 piles.
+  for (const a of [99, 999999, 9.99e14, 987654321987, 1e300]) assert.ok(C.pileTiers(a).length <= 18, `${a}`);
 });
 
 test('piles: big ones cover a square that grows one tile per power of ten', () => {
@@ -67,34 +71,51 @@ test('yard: biggest piles nearest home, and the same state gives the same yard',
   assert.deepEqual(C.yardLayout(s, memo), C.yardLayout(s), '...even when reused');
 });
 
-test('yard: home ground first, never on anything you can gather, water, rock, holes, buildings or the unexplored', () => {
+test('yard: never on anything you can gather, water, rock, holes, buildings, the open middle or the unexplored', () => {
   const s = yardWorld({ mycelium: 9999, stone: 9999, ore: 9999, crystal: 9999 }, 30);
   const h = C.home(s);
-  s.world.holes.add(C.packKey(h.x, h.y, C.SURFACE)); // dug in an older version
-  s.extractors.push({ key: 'compost', x: h.x + 1, y: h.y, z: C.SURFACE, buffer: 0 });
+  s.world.holes.add(C.packKey(h.x + 2, h.y, C.SURFACE)); // dug in an older version
+  s.extractors.push({ key: 'compost', x: h.x + 3, y: h.y, z: C.SURFACE, buffer: 0 });
   const yard = C.yardLayout(s);
   for (const p of yard) {
-    const t = C.tileAt(s.world, p.x, p.y, C.SURFACE);
-    assert.ok(t !== T.WATER && t !== T.ROCK, 'not on water or rock');
-    assert.ok(!C.TILE_INFO[t].harvest, `never hides a resource (${C.TILE_NAME[t]} at ${p.x},${p.y})`);
-    assert.ok(!(p.x === h.x && p.y === h.y), 'not on the hole');
-    assert.ok(!(p.x === h.x + 1 && p.y === h.y), 'not on the building');
-  }
-  // Home ground is preferred: no grass is used while home ground that costs
-  // less (its ring, against the grass's ring plus its avoidance) is left free.
-  const ringOf = (x, y) => Math.max(Math.abs(x - h.x), Math.abs(y - h.y));
-  const used = new Set(yard.map((p) => p.x + ',' + p.y));
-  const worst = Math.max(...yard.map((p) => ringOf(p.x, p.y) + C.yardCost(s.world, p.x, p.y)));
-  for (let y = h.y - 30; y <= h.y + 30; y++) {
-    for (let x = h.x - 30; x <= h.x + 30; x++) {
-      if (C.yardCost(s.world, x, y) === 0 && ringOf(x, y) < worst && !(x === h.x + 1 && y === h.y)) {
-        assert.ok(used.has(x + ',' + y), `free home ground at ${x},${y} (ring ${ringOf(x, y)}) beats grass costing ${worst}`);
+    for (let y = p.y; y < p.y + p.span; y++) {
+      for (let x = p.x; x < p.x + p.span; x++) {
+        const t = C.tileAt(s.world, x, y, C.SURFACE);
+        assert.ok(t !== T.WATER && t !== T.ROCK, 'not on water or rock');
+        assert.ok(!C.TILE_INFO[t].harvest, `never hides a resource (${C.TILE_NAME[t]} at ${x},${y})`);
+        assert.ok(!(x === h.x + 2 && y === h.y), 'not on the hole');
+        assert.ok(!(x === h.x + 3 && y === h.y), 'not on the building');
+        assert.ok(Math.max(Math.abs(x - h.x), Math.abs(y - h.y)) > C.PLAZA, 'the middle of home stays open');
       }
     }
   }
   const fresh = C.createState(7);
   Object.assign(fresh.inv, { mycelium: 999 });
   for (const p of C.yardLayout(fresh)) assert.ok(C.isExplored(fresh.world, p.x, p.y, C.SURFACE), 'only explored ground');
+});
+
+test('yard: piles keep a tile apart, and each resource keeps to its own side of home', () => {
+  const s = yardWorld({ mycelium: 98765432109, stone: 4321098, ore: 55555, crystal: 9 }, 50);
+  const h = C.home(s);
+  const yard = C.yardLayout(s);
+  assert.equal(yard.length, 9 + 8 + 4 + 3 + 5 + 5 + 9);
+  for (const a of yard) {
+    for (const b of yard) {
+      if (a === b) continue;
+      const gapX = Math.max(b.x - (a.x + a.span), a.x - (b.x + b.span));
+      const gapY = Math.max(b.y - (a.y + a.span), a.y - (b.y + b.span));
+      assert.ok(Math.max(gapX, gapY) >= C.PILE_GAP, `${a.res}${a.tier} at ${a.x},${a.y} and ${b.res}${b.tier} at ${b.x},${b.y} touch`);
+    }
+  }
+  // The middle of each resource's piles lies its way from home: mycelium
+  // north, stone east, ore south, crystal west.
+  const side = (res) => {
+    const ps = yard.filter((p) => p.res === res);
+    const dx = ps.reduce((n, p) => n + p.x + p.span / 2, 0) / ps.length - h.x - 0.5;
+    const dy = ps.reduce((n, p) => n + p.y + p.span / 2, 0) / ps.length - h.y - 0.5;
+    return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'east' : 'west') : (dy > 0 ? 'south' : 'north');
+  };
+  assert.deepEqual(C.RESOURCES.map(side), ['north', 'east', 'south', 'west']);
 });
 
 test('yard: as amounts change, piles that stay called for never move', () => {

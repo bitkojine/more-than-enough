@@ -622,30 +622,32 @@ export default {
   "wiki.article.stockpile": `      <h1>Atsargos</h1>
       <p class="lede">Viskas, ką turi, stovi ant žemės aplink namus, ir kuo daugiau turi, tuo plačiau tai išsidriekia.</p>
       <p>Kiekviename pasaulyje pradedi apvalioje <strong>namų žemės</strong> laukymėje – suplūktoje žemėje, kur niekas neauga,
-        nieko negalima rinkti ir neatsiveria joks kelias tarp sluoksnių. Čia laikomos tavo atsargos. Jos vyniojasi spirale nuo vidurio: didžiausios krūvos viduryje, mažesnės
-        toliau. Tai vaizdas to, kas yra tavo kuprinėje, o ne sandėlis: nieko nereikia ten nešti, gali eiti tiesiai pro jas, o ką nors
+        nieko negalima rinkti ir neatsiveria joks kelias tarp sluoksnių. Čia laikomos tavo atsargos. Kiekvienas išteklius turi savo namų pusę: grybiena šiaurėje, akmuo rytuose,
+        rūda pietuose, kristalai vakaruose, didžiausios krūvos arčiausiai vidurio, kuris lieka atvira aikštele. Tarp krūvų
+        paliekamas vienas laisvas langelis, tad jos niekada nestovi viena ant kitos. Tai vaizdas to, kas yra tavo kuprinėje, o ne sandėlis: nieko nereikia ten nešti, gali eiti tiesiai pro jas, o ką nors
         bet kur išleidus, tai iš karto dingsta iš krūvų. Naujos krūvos išauga iš žemės; nebereikalingos išnyksta dūmų
         debesėlyje.</p>
+      <p>Kaip žaidime 2048, dešimt vienos rūšies krūvų susilieja į vieną kitos rūšies krūvą: jos susislenka draugėn, ir ten, kur
+        susitinka, iššoka didesnė krūva. Krūvos, kurios pasitraukia užleisdamos vietą, irgi nuslenka.</p>
 
       <h2>Kaip jas skaityti</h2>
-      <p>Kiekvienas dešimties laipsnis turi savo krūvos rūšį, o kiekvienas tavo turimo kiekio skaitmuo rodo, kiek tos rūšies
-        krūvų yra. Skaitoma kaip skaitytuvai: 3 452 grybienos – tai 3 vežimai, 4 plytų rietuvės, 5 krepšiai, 1 kuokštas ir 2 pavieniai grybai. Dešimt krūvų virsta viena
-        aukštesnio lygio krūva, tad kiemas auga pagal skaitmenų skaičių, o ne pagal patį skaičių, ir užmetęs akį į didžiausias
-        krūvas iškart matai, koks esi turtingas.</p>
+      <p>Kiekvienas dešimties laipsnis turi savo krūvos rūšį, o pirmi du tavo turimo kiekio skaitmenys rodo, kiek yra dviejų
+        didžiausių rūšių krūvų: 3 452 grybienos – tai 3 vežimai ir 4 plytų rietuvės. Mažesni skaitmenys nerodomi, tad vienas
+        išteklius niekada nestovi daugiau nei 18 krūvų, o užmetęs akį į didžiausias krūvas iškart matai, koks esi turtingas.</p>
       <div data-table="piles"></div>
       <p>Dešimties milijonų (10<sup>7</sup>) ir didesnėms krūvoms reikia vietos: kiekviena užima kvadratinį žemės plotą, vienu
-        langeliu platesnį su kiekvienu tolesniu dešimties laipsniu. Šimtas milijardų ko nors – jau atskiras rajonas. Turint pakankamai, atsargos uždengia visą žemėlapį.</p>
+        langeliu platesnį su kiekvienu tolesniu dešimties laipsniu. Šimtas milijardų ko nors – jau atskiras rajonas.</p>
 
       <h2>Kur jos dedamos</h2>
       <ul>
         <li>Tik ištyrinėtoje žemėje; ištyrinėk apylinkes aplink namus, ir kieme atsiras daugiau vietos.</li>
-        <li>Pirmiausia namų žemėje. Kai ji pilna, krūvos išsilieja į aplinkinę atvirą žolę.</li>
+        <li>Pirmiausia namų žemėje, savo ištekliaus pusėje. Kai ji pilna, krūvos išsilieja į aplinkinę atvirą žolę.</li>
         <li>Niekada ant nieko, ką galima rinkti (miško, akmens, rūdos, kristalo), tad krūva niekada neuždengia ištekliaus.</li>
         <li>Niekada ant vandens, kalnų, angų ar pastatų ir niekada toliau nei <span data-k="YARD_RADIUS"></span> langelių nuo
           namų. Jei pritrūksta vietos, mažiausios krūvos laukia, kol atsiras daugiau žemės.</li>
         <li>Kol renki, kiemas nejuda. Dar reikalingos krūvos niekada nepasislenka, naujos užima geriausią laisvą vietą, o
           dingsta tik nebereikalingos krūvos (išleistos arba dešimt, susiliejusių į vieną didesnę). Maždaug kas
-          pusantros minutės kiemas susitvarko: didžiausios krūvos grįžta į vidurį.</li>
+          pusantros minutės kiemas susitvarko: didžiausios krūvos nuslenka atgal į vidurį.</li>
       </ul>
       <p>Kaip atrodo kiekvienos rūšies krūva, nustato tekstūrų paketas (krūvų lizdas <code>tiers</code>
         skyriuje <a href="#things">Viskas žaidime</a>).</p>`,
