@@ -518,18 +518,19 @@ hud.repaint();
 await textures.restore(savedPack);
 hud.update(game.state);
 hud.updateButtons(game.state);
-// Your world is from before an update that changed how worlds are made (or
-// its save is broken): the nuke, centre stage. The new world is already
+// Your world is from before an update that changed how worlds are made, or
+// its save is broken (then the screen says so): the nuke, centre stage. The new world is already
 // here (and saved, so it's the one you come back to); pressing it is how
 // you get to it. It's about your own world, so it waits while you're in a
 // shared one.
-let soloNukeDue = loaded.lost;
+let soloNukeDue = !!loaded.lost;
+const broken = loaded.lost === 'broken';
 if (soloNukeDue) game.saveNow();
 function soloNuke() {
   if (!soloNukeDue) return;
   if (game.state.shared) { if (nuke.open && nuke.alone) nuke.hide(); return; }
   nuke.show({
-    heading: t('nuke.title'), body: t('nuke.text.alone'), button: t('nuke.button'), alone: true,
+    heading: t(broken ? 'nuke.title.broken' : 'nuke.title'), body: t(broken ? 'nuke.text.broken' : 'nuke.text.alone'), button: t('nuke.button'), alone: true,
     press() { soloNukeDue = false; nuke.hide(); audio.fanfare(); hud.toast(t('nuke.toast.alone')); }
   });
 }

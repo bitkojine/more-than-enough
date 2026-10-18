@@ -930,6 +930,14 @@ async function main() {
   await sleep(300);
   ok(await evalJS('document.getElementById("nuke").hidden'), 'pressing it goes on to the new world');
   ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'the new world starts from the beginning');
+  eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-save-aside")).v'), 1, 'the old world\'s save is kept to one side, not written over');
+  // A damaged save: the same screen, but it says what happened.
+  await evalJS('localStorage.setItem("more-than-enough-save", "{\\"v\\":1")');
+  await navigate('http://127.0.0.1:' + PORT + '/index.html');
+  ok(await waitFor('!document.getElementById("nuke").hidden', 3000), 'a damaged save brings up the nuke screen too');
+  eq(await evalJS('document.getElementById("nukeTitle").textContent'), "Your saved world couldn't be opened", 'and it says the save could not be opened, not that an update needs a new world');
+  await tap((await rect('#nuke button')).x, (await rect('#nuke button')).y);
+  await sleep(300);
 
   /* ---------------------------------------------------- pinch to zoom */
   console.log('\n== Pinch to zoom with two fingers ==');

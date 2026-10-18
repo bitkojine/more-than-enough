@@ -1,7 +1,7 @@
 /* localStorage persistence. Every access is guarded: private browsing and full
  * quotas throw, and the game must keep running regardless. */
 
-import { serialize, deserialize, createState } from '../core/index.js';
+import { serialize, deserialize, createState, SAVE_VERSION } from '../core/index.js';
 
 const SAVE_KEY = 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
@@ -62,8 +62,9 @@ export function onSavedElsewhere(fn) {
   });
 }
 
-// Loads the saved game, or starts a new world. `lost` is true when a save
-// existed but could not be read, so the player can be told.
+// Loads the saved game, or starts a new world. `lost` says why a save that
+// existed could not be read, so the player can be told: 'format' (made by
+// another version of the game) or 'broken'; false when nothing was lost.
 // A save that can't be read is set aside, never just written over: one this
 // version can read is taken back instead (an old cached page right after an
 // update set the new game's save aside, or a later fix reads it again).
@@ -77,7 +78,15 @@ export function loadGame() {
   const back = aside && deserialize(aside);
   write(ASIDE_KEY, raw);
   if (back) return { state: back, lost: false };
-  return { state: createState(randomSeed()), lost: true };
+  return { state: createState(randomSeed()), lost: formatOf(raw) === null ? 'broken' : 'format' };
+}
+
+// The format version a save says it has, or null if it doesn't say one.
+function formatOf(raw) {
+  try {
+    const v = JSON.parse(raw)?.v;
+    return Number.isInteger(v) && v !== SAVE_VERSION ? v : null;
+  } catch { return null; }
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.101.2] - 2026-10-18
+
+From the persistence review, bug 2 of 9.
+
+### Fixed
+- **A damaged save says it's damaged.** The new-world screen told players
+  "A big update needs a new world" whenever a save couldn't be read, even
+  when it was simply broken. `loadGame` now says why (`lost`: `'format'`
+  or `'broken'`) and a broken save gets its own heading and text, which
+  also says the old save is kept to one side (since 0.101.1).
+
 ## [0.101.1] - 2026-10-18
 
 From the persistence review, bug 1 of 9.

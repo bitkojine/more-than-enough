@@ -31,16 +31,21 @@ test('storage: a save it reads is loaded, and nothing is set aside', () => {
 test('storage: a save it can\'t read is set aside before the new world is saved over it', () => {
   store.set(SAVE, otherFormat);
   const { state, lost } = loadGame();
-  assert.equal(lost, true);
+  assert.equal(lost, 'format', 'made by another version');
   assert.equal(store.get(ASIDE), otherFormat, 'kept, as it was');
   assert.equal(saveGame(state), null, 'the new world saves without a conflict');
   assert.equal(store.get(ASIDE), otherFormat, 'and the old one is still kept');
 });
 
-test('storage: a broken save is set aside too', () => {
-  store.set(SAVE, '{"v":' + Core.SAVE_VERSION + ',"seed":1,"mods":[[');
-  assert.equal(loadGame().lost, true);
-  assert.equal(store.get(ASIDE), '{"v":' + Core.SAVE_VERSION + ',"seed":1,"mods":[[');
+test('storage: a broken save is set aside too, and told apart from one made by another version', () => {
+  const cut = '{"v":' + Core.SAVE_VERSION + ',"seed":1,"mods":[[';
+  store.set(SAVE, cut);
+  assert.equal(loadGame().lost, 'broken');
+  assert.equal(store.get(ASIDE), cut);
+  for (const raw of ['null', '[]', '{"seed":3}', JSON.stringify({ v: Core.SAVE_VERSION, seed: 'x' })]) {
+    store.set(SAVE, raw);
+    assert.equal(loadGame().lost, 'broken', raw);
+  }
 });
 
 test('storage: a save set aside that this version can read is taken back (an old cached page set it aside)', () => {
