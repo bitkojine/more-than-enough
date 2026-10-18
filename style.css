@@ -328,9 +328,7 @@ canvas#game {
 #btnUpgrade { right: calc(var(--act) + var(--gap)); bottom: calc((var(--act) - var(--sub)) / 2); }
 #btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2); bottom: calc((var(--act) - var(--sub)) / 2); }
 
-/* The big action: Perfect. Holding it plays the game; the badge in its
-   corner shows what it's doing (or would do), and it glows gold when the
-   world is ready to Embark, which only the player presses. */
+/* The big action: what holding it does right now. */
 #btnAction {
   right: 0; bottom: 0;
   width: var(--act); height: var(--act);
@@ -339,15 +337,35 @@ canvas#game {
 }
 #btnAction .big { width: 42px; height: 42px; }
 #btnAction .cap { font-size: 11px; color: #e4f7df; background: #1d3524; border-color: rgba(150, 230, 150, 0.45); }
-#btnAction .badge {
-  position: absolute; top: -4px; right: -4px;
-  width: 30px; height: 30px; padding: 4px; box-sizing: border-box;
-  border-radius: 50%; background: #141c17; border: 2px solid rgba(150, 230, 150, 0.5);
+#btnAction.disabled { opacity: 0.55; }
+#btnAction.ready { animation: readyPulse 1.6s ease-in-out infinite; }
+#btnAction.ready:active { animation: none; }
+@keyframes readyPulse {
+  0%, 100% { box-shadow: var(--shadow-1), 0 0 0 0 rgba(127, 208, 122, 0.3); }
+  50% { box-shadow: var(--shadow-1), 0 0 0 8px rgba(127, 208, 122, 0); }
+}
+
+/* Perfect: a smaller button right above Gather. Holding it plays the game;
+   the badge in its corner shows what it's doing (or would do), and it
+   glows gold when the world is ready to Embark, which only the player
+   presses. */
+#btnPerfect {
+  width: var(--sub); height: var(--sub);
+  right: calc((var(--act) - var(--sub)) / 2); bottom: calc(var(--act) + 8px);
+  background: radial-gradient(circle at 50% 32%, rgba(120, 100, 52, 0.95), rgba(40, 32, 16, 0.95));
+  border: 2px solid rgba(240, 206, 120, 0.5);
+}
+#btnPerfect .big { width: 26px; height: 26px; }
+#btnPerfect .cap { color: #fbeec4; background: #33280f; border-color: rgba(240, 206, 120, 0.45); }
+#btnPerfect .badge {
+  position: absolute; top: -6px; right: -6px;
+  width: 24px; height: 24px; padding: 3px; box-sizing: border-box;
+  border-radius: 50%; background: #141c17; border: 2px solid rgba(240, 206, 120, 0.5);
   object-fit: contain; pointer-events: none;
 }
-#btnAction.on { border-color: #b6f0a8; background: radial-gradient(circle at 50% 32%, rgba(112, 184, 120, 0.98), rgba(30, 60, 40, 0.98)); }
-#btnAction.embark { border-color: var(--gold); animation: embarkPulse 1.6s ease-in-out infinite; }
-#btnAction.embark .badge { border-color: var(--gold); }
+#btnPerfect.on { border-color: #ffe39a; background: radial-gradient(circle at 50% 32%, rgba(176, 146, 70, 0.98), rgba(60, 46, 20, 0.98)); }
+#btnPerfect.embark { border-color: var(--gold); animation: embarkPulse 1.6s ease-in-out infinite; }
+#btnPerfect.embark .badge { border-color: var(--gold); }
 @keyframes embarkPulse {
   0%, 100% { box-shadow: var(--shadow-1), 0 0 0 0 rgba(255, 200, 90, 0.45); }
   50% { box-shadow: var(--shadow-1), 0 0 0 10px rgba(255, 200, 90, 0); }
@@ -368,11 +386,11 @@ canvas#game {
 #btnInvite .cap { font-size: 11px; color: #eaf6ff; background: #133150; border-color: rgba(160, 214, 255, 0.45); }
 #btnInvite.up { background: radial-gradient(circle at 50% 32%, #fff, #dcecf7); color: #133150; border-color: #fff; }
 
-/* The climb button, above-left of the action; it pops in beside a way up or
-   down and is gone elsewhere. */
+/* The climb button, above-left of the action, beside Perfect; it pops in
+   beside a way up or down and is gone elsewhere. */
 #btnMine {
-  right: calc(var(--act) - var(--sub) / 2 + 4px);
-  bottom: calc(var(--act) + 8px); /* its label clear of Perfect */
+  right: calc((var(--act) + var(--sub)) / 2 + var(--gap) * 2); /* room for long labels on both */
+  bottom: calc(var(--act) + 8px);
   border-color: rgba(225, 181, 105, 0.6);
   background: radial-gradient(circle at 50% 30%, rgba(96, 72, 44, 0.95), rgba(36, 26, 16, 0.95));
   animation: pop-in .22s cubic-bezier(.2, 1.5, .4, 1);

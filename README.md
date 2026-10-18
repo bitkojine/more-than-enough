@@ -46,7 +46,7 @@ game they ship with.
 
 **Design rule:** almost nothing to read in-game. Labels, names, numbers and
 prices are fine, and so is a one-line hint where playtests showed players get
-stuck (why a building can't go here, that holding Perfect plays for you);
+stuck (why a building can't go here, that holding Gather keeps going);
 sentences that teach belong in the wiki. When you add or
 change a mechanic, update the wiki article that covers it.
 

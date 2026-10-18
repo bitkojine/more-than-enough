@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.114.0] - 2026-10-18
+
+Watch asked for Gather back as the main button, so players can hold it and
+gather where they stand without tapping a lot, and for Perfect to stay but
+be more secondary.
+
+### Changed
+- **Gather is the big button again**, as before v0.110.0: it shows COLLECT n,
+  GATHER +n or EXPLORE, holding repeats it every 0.25 s, one press of
+  Explore walks to the nearest resource (`nearestWork`, `SEEK_RADIUS` are
+  back in `src/core/actions.js`), and sliding off it draws a Trail. Space
+  and Enter hold Gather.
+- **Perfect is a smaller button** (`#btnPerfect`, the size of Build)
+  centred right above Gather, with its badge, gold Embark pulse and lit
+  state as before. `P` holds it on a keyboard. It waits while Gather is
+  held, as it does while you steer or work a tile. The layer button sits
+  to its left.
+- The green outline shows Gather's tile, or Perfect's while it is held.
+- Wiki (Controls, Perfect, Screen, Mine, Buildings, Upgrades), `docs/ui.md`
+  and the architecture model describe the two buttons.
+
+### Tests
+- Browser tests hold Gather again (collects, COLLECT label, Space gathers
+  exactly once, Explore walks to the first resource) and hold Perfect on
+  its own button; the HUD overlap check includes it.
+
 ## [0.113.1] - 2026-10-18
 
 Watch's bug: near spawn, with buildings near spawn too, floating resources

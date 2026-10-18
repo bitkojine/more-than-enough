@@ -226,7 +226,7 @@ export default {
         kurią žaidi.</div>
       <ul class="cards">
         <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis{phone:.|laptop:, klaviatūra.}</span></a></li>
-        <li><a href="#perfect"><strong>Idealiai</strong><span>Laikyk didįjį mygtuką ir žaidimas žais pats.</span></a></li>
+        <li><a href="#perfect"><strong>Idealiai</strong><span>Laikyk mygtuką virš „Rinkti“ ir žaidimas žais pats.</span></a></li>
         <li><a href="#screen"><strong>Ekranas</strong><span>Ką reiškia skaitikliai, mygtukai ir švytėjimai.</span></a></li>
         <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, ataugimas, diena ir naktis.</span></a></li>
         <li><a href="#gathering"><strong>Rinkimas</strong><span>Ištekliai, derlius ir kaip išsenka telkiniai.</span></a></li>
@@ -254,22 +254,30 @@ export default {
       <p>Tavo greitis – <span data-k="BASE_SPEED"></span> langelio per sekundę; su geresniais batais ir privalumu Klajoklis eini greičiau, o
         vandenyje lėčiau.</p>
 
-      <h2>Idealiai</h2>
-      <p>Didelis apvalus mygtukas apatiniame dešiniajame kampe – <strong>Idealiai</strong>. Laikyk jį ir žaidimas žais pats:
-        tyrinės, rinks, paims produkciją, pirks, statys ir leisis į kasyklą, maždaug keturis kartus per sekundę, kol laikai.
-        Mažas paveiksliukas ant mygtuko rodo, ką jis daro. Ką jis daro ir ką palieka tau, rasi skyriuje <a href="#perfect">Idealiai</a>.</p>
-
-      <h2>Rinkimas rankomis</h2>
-      <p><strong>{phone:Bakstelk|laptop:Spustelk} langelį</strong>: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
+      <h2>Rinkti</h2>
+      <p>Didelis apvalus mygtukas apatiniame dešiniajame kampe – <strong>Rinkti</strong>. Laikyk jį nuspaudęs ir dirbsi toliau, maždaug keturis kartus
+        per sekundę, ten, kur stovi. Kiekvienas paspaudimas atlieka naudingiausią veiksmą, kurį gali pasiekti:</p>
+      <ul>
+        <li>Jei šalia esantis pastatas turi laukiančios produkcijos, ją <strong>paimi</strong> (mygtuke parašyta <em>PAIMTI</em>).</li>
+        <li>Kitaip dirbi <strong>artimiausią telkinį</strong>, tarp kurių stovi (mygtuke parašyta <em>RINKTI +n</em>,
+          kur n – tai, ką duoda vienas mostas). Langelis, kurį dirbsi, apvestas blankiu žaliu kontūru.</li>
+        <li>Jei nieko nepasiekiama, jame parašyta <em>TYRINĖTI</em>: jis nuveda prie artimiausio ištekliaus, kurį tavo įrankiai įveikia, ir jį surenka. Jei aplink visai nieko nėra, mygtukas pritemsta.</li>
+      </ul>
+      <p>Taip pat gali <strong>{phone:bakstelėti|laptop:spustelėti} langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
         produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. <strong>{phone:Laikyk pirštą
-        nejudantį|laptop:Laikyk nuspaustą pelės mygtuką}</strong> ant langelio ir dirbsi jį toliau, maždaug keturis kartus per sekundę. Pasiekiamumas – <span data-k="REACH"></span> langelio
+        nejudantį|laptop:Laikyk nuspaustą pelės mygtuką}</strong> ant langelio ir dirbsi jį toliau, lygiai kaip laikydamas Rinkti. Pasiekiamumas – <span data-k="REACH"></span> langelio
         nuo tavęs iki langelio centro.</p>
 
       <h2>Takai</h2>
-      <p>Laikyk Idealiai, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
+      <p>Laikyk Rinkti, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
         per kurį pereina tavo brūkšnys, nušvinta žaliai. Atleisk ir kiekvienas jų bus surinktas po kartą. Tai greičiausias būdas išvalyti
         plotelį aplink save. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
+
+      <h2>Idealiai</h2>
+      <p>Iškart virš „Rinkti“ yra mažesnis mygtukas – <strong>Idealiai</strong>. Laikyk jį ir žaidimas žais pats:
+        tyrinės, rinks, paims produkciją, pirks, statys ir leisis į kasyklą, maždaug keturis kartus per sekundę, kol laikai.
+        Mažas paveiksliukas ant jo rodo, ką jis daro. Ką jis daro ir ką palieka tau, rasi skyriuje <a href="#perfect">Idealiai</a>.</p>
 
       <h2>Mastelis</h2>
       <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš veiksmų mygtukų arba {phone:suimk dviem pirštais|laptop:sukiok pelės ratuką ar suimk ant jutiklinio kilimėlio}.
@@ -308,7 +316,8 @@ export default {
         <thead><tr><th>Klavišas</th><th>Veiksmas</th></tr></thead>
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> arba rodyklės</td><td>Judėti</td></tr>
-          <tr><td><kbd>Space</kbd> arba <kbd>Enter</kbd></td><td>Idealiai (laikyk, kad žaistų toliau)</td></tr>
+          <tr><td><kbd>Space</kbd> arba <kbd>Enter</kbd></td><td>Rinkti (laikyk, kad kartotųsi)</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Idealiai (laikyk, kad žaistų toliau)</td></tr>
           <tr><td><kbd>F3</kbd></td><td>Rodyti arba slėpti našumo skydelį</td></tr>
           <tr><td><kbd>B</kbd></td><td>Skirtukas Statyba</td></tr>
           <tr><td><kbd>U</kbd> arba <kbd>C</kbd></td><td>Skirtukas Patobulinimai</td></tr>
@@ -317,10 +326,10 @@ export default {
       </table></div>}`,
   "wiki.article.perfect.title": "Idealiai",
   "wiki.article.perfect": `      <h1>Idealiai</h1>
-      <p class="lede">Laikyk didįjį mygtuką ir žaidimas žais pats: nuo pirmo žingsnio naujame pasaulyje iki pat Iškeliavimo.</p>
+      <p class="lede">Laikyk mygtuką virš „Rinkti“ ir žaidimas žais pats: nuo pirmo žingsnio naujame pasaulyje iki pat Iškeliavimo.</p>
 
       <h2>Kaip laikyti</h2>
-      <p><strong>{phone:Laikyk nykštį ant|laptop:Laikyk nuspaudęs pelės mygtuką ant didžiojo mygtuko arba laikyk <kbd>Space</kbd>, ir}</strong> {phone:didžiojo apvalaus mygtuko.|laptop:jis žais.}
+      <p><strong>{phone:Laikyk nykštį ant|laptop:Laikyk nuspaudęs pelės mygtuką ant mažesnio apvalaus mygtuko virš „Rinkti“ arba laikyk <kbd>P</kbd>, ir}</strong> {phone:mažesnio apvalaus mygtuko iškart virš „Rinkti“.|laptop:jis žais.}
         Kol laikai, klajūnas daro tai, ką darytų apdairus žaidėjas, maždaug keturis kartus per sekundę. Atleisk ir jis iškart sustoja.
         {phone:Kol laikai, ekranas neužgęsta, jei telefonas leidžia.|laptop:Kol laikai, ekranas neužgęsta, jei naršyklė leidžia.}</p>
       <p>Mažas paveiksliukas mygtuko kampe rodo, ką jis daro arba darytų, jei laikytum: renkamą išteklių, kompasą, kai tyrinėja,
@@ -344,7 +353,7 @@ export default {
         tik žaidžiantį žaidėją.</p>
 
       <h2>Žaisti kartu su juo</h2>
-      <p>Viskas, ką gali daryti rankomis, veikia ir jam žaidžiant. Vairuok, {phone:bakstelk|laptop:spustelk} langelį, laikyk ant jo {phone:pirštą|laptop:pelės mygtuką} ar piešk
+      <p>Viskas, ką gali daryti rankomis, veikia ir jam žaidžiant. Vairuok, laikyk Rinkti, {phone:bakstelk|laptop:spustelk} langelį, laikyk ant jo {phone:pirštą|laptop:pelės mygtuką} ar piešk
         Taką, ir Idealiai palauks, kol baigsi; paskui tęs. Statyti, Tobulinti, sluoksnio mygtukas ir Kviesti veikia kaip visada.</p>
 
       <h2>Ką jis palieka tau</h2>
@@ -380,7 +389,7 @@ export default {
 
       <h2>Žemėlapyje</h2>
       <ul>
-        <li><strong>Blankus žalias kontūras</strong>: langelis, kurį Idealiai dirbs kitą.</li>
+        <li><strong>Blankus žalias kontūras</strong>: langelis, kurį Rinkti dirbs kitą, o kol laikai Idealiai – jo langelis.</li>
         <li><strong>Mėlyni kontūrai</strong> (kai atvertas skirtukas Statyba): kur galėtų stovėti kiekvienos rūšies pastatas.</li>
         <li><strong>Skalė virš pastato</strong> reiškia, kad jame laukia produkcija, kurią gali paimti. Jai kaupiantis skalė pildosi žaliai,
           o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Patobulinimai, kurie pastatą pagreitina, leidžia jam ir daugiau sutalpinti, tad prisipildo jis maždaug per tiek pat laiko. Pastatai, kurių produkciją
@@ -597,7 +606,7 @@ export default {
         uolieną</strong>: laikyk valdymo svirtelę (arba krypties klavišą) atrėmęs į sieną <span data-k="DRILL_TIME"></span>
         s, ir priešais tave esantis langelis iškasamas, tad tunelį kasi eidamas. Langelį gali iškasti ir <strong>{phone:bakstelėdamas|laptop:spustelėdamas}</strong>
         jį, kai jis pasiekiamas, arba <strong>Taku</strong> per netoliese esančią uolieną. Pamatinė uoliena niekada nepasiduoda, o
-        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip kasama tik tada, kai Idealiai prasikasa iki radinio ar šachtos.</p>
+        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip kasama tik tada, kai Idealiai prasikasa iki radinio ar šachtos. Vien laikant Rinkti niekas neiškasama.</p>
       <p>Kiekvienas kasimas paverčia vieną langelį tuneliu. Gyslos duoda kaip paviršiaus telkiniai, pagal tavo Krepšio ar
         Kirtiklio lygį. Paprastame grunte nieko nėra: jo žemės nusviedžiamos į šalį su <em>+0</em>, o kasimas tik praskina kelią.
         Tuneliai lieka ten, kur juos iškasei, kiekviename sluoksnyje.</p>
@@ -664,7 +673,7 @@ export default {
       <p>Produkcija kaupiasi pastate, kol jis prisipildo („Talpa“ aukščiau), tada jis sustoja. Niekas neprarandama; jis tiesiog laukia.</p>
 
       <h2>Paėmimas</h2>
-      <p>Atsistok iki <span data-k="COLLECT_RANGE"></span> langelių nuo pastato ir
+      <p>Atsistok iki <span data-k="COLLECT_RANGE"></span> langelių nuo pastato ir spausk Rinkti (mygtukas rodo <em>PAIMTI</em>) arba
         {phone:bakstelėk|laptop:spustelėk} jį. Iš karto paimi visus sveikus vienetus iš visų tame spindulyje esančių pastatų.</p>
 
       <h2>Logistika</h2>
@@ -710,7 +719,7 @@ export default {
       <h2>Įrankiai</h2>
       <p>Krepšys nustato, kiek grybienos parneša kiekvienas rinkimas, Kirtiklis – kiek duoda kiekvienas kirtis. Batai nustato tavo greitį.</p>
       <p>Kai kurie lygiai dar ir <strong>atveria</strong> ką nors nauja (stulpelis „Atveria“). Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio,
-        o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol Idealiai jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
+        o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol Rinkti ir Idealiai jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
         2 lygio Batai nuneša ant vandens (iki tol sustoji ties krantu, taip pat prie upių tarp regionų), o 4 lygio Krepšys renka retus grybus, kurie duoda tris kartus daugiau.
         Draugo atidaryta šachta atvira ir tau.</p>
       <p><strong>Spartinimas</strong> – vienintelis įrankis, veikiantis ne tave, o tavo pastatus. Kiekvienas lygis padvigubina tai, ką

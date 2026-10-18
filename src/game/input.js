@@ -5,9 +5,10 @@
  *                            the map instead (you walk against the drag)
  *   tap the map              handlers.tap(screenX, screenY)
  *   hold still on the map    holdPoint() (the main loop works that tile)
- *   hold Perfect / Space     `held` (handlers.actionPressed, then the main
- *                            loop plays while held; handlers.actionReleased)
- *   hold Perfect, drag off   a Trail (`trail`, then handlers.trailEnded)
+ *   hold Gather / Space      `held` (the main loop repeats the action)
+ *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
+ *   hold Perfect / P         `perfect` (handlers.perfectPressed, then the
+ *                            main loop plays while held; perfectReleased)
  *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x)
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close')
  *   F3                       handlers.command('perf') */
@@ -27,7 +28,8 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   const input = {
     joy,
-    held: false,   // Perfect is held down (button or key)
+    held: false,   // Gather is held down (button or key)
+    perfect: false, // Perfect is held down (button or key)
     trail: null,   // { id, points: [{x, y}] in world space, leftButton }
     invert: false, // drag pulls the map: you walk the other way from the finger
 
@@ -49,9 +51,13 @@ export function createInput({ canvas, cam, el, handlers }) {
     },
 
     release() {
-      if (input.held) handlers.actionReleased();
       input.held = false;
       actionPointerId = null;
+    },
+
+    releasePerfect() {
+      if (input.perfect) handlers.perfectReleased();
+      input.perfect = false;
     }
   };
 
@@ -97,7 +103,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (Math.abs(last.x - p.x) + Math.abs(last.y - p.y) > TRAIL_MIN_STEP) t.points.push(p);
   }
 
-  // A Trail only counts once the finger has left the Perfect button and drawn
+  // A Trail only counts once the finger has left the Gather button and drawn
   // at least a segment; otherwise it was just a press.
   function endTrail() {
     const t = input.trail;
@@ -118,7 +124,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (e.button !== undefined && e.button !== 0) return;
     capture(canvas, e);
     pointers.set(e.pointerId, canvasPoint(e));
-    // No preventDefault() on press or release (here, below and on Perfect):
+    // No preventDefault() on press or release (here, below and on Gather):
     // Safari only counts a touch as a gesture, the kind that may start
     // sound, if it ends in a click, and cancelling the press stops the click.
     // Scrolling and zooming are already off (touch-action: none).
@@ -184,7 +190,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   }
 
   canvas.addEventListener('pointerdown', onCanvasDown, { passive: false });
-  // Touch may stay implicitly captured by Perfect; listen on the window so the
+  // Touch may stay implicitly captured by Gather; listen on the window so the
   // same thumb can drag from the button onto the map.
   window.addEventListener('pointermove', onMove, { capture: true, passive: false });
   window.addEventListener('pointerup', (e) => {
@@ -199,7 +205,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     handlers.viewChanged();
   }, { passive: false });
 
-  /* ----------------------------------------------------- Perfect button */
+  /* ------------------------------------------------------ Gather button */
 
   el.action.addEventListener('pointerdown', (e) => {
     input.held = true;
@@ -215,6 +221,16 @@ export function createInput({ canvas, cam, el, handlers }) {
   el.action.addEventListener('pointerleave', (e) => {
     if (input.held && !input.trail && e.pointerId === actionPointerId) beginTrail(e);
   });
+
+  /* ----------------------------------------------------- Perfect button */
+
+  el.perfect.addEventListener('pointerdown', (e) => {
+    capture(el.perfect, e);
+    input.perfect = true;
+    handlers.perfectPressed();
+  });
+  el.perfect.addEventListener('pointerup', input.releasePerfect);
+  el.perfect.addEventListener('pointercancel', input.releasePerfect);
 
   /* -------------------------------------------------------------- zoom */
 
@@ -236,6 +252,7 @@ export function createInput({ canvas, cam, el, handlers }) {
       // holding is paced by the main loop's cooldown, like the touch button.
       if (!e.repeat) handlers.actionPressed();
     }
+    if (k === 'p' && !e.repeat && !handlers.blocked()) { input.perfect = true; handlers.perfectPressed(); }
     if (k === 'escape') handlers.command('close');
     if (k === 'b') handlers.command('build');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
@@ -244,8 +261,9 @@ export function createInput({ canvas, cam, el, handlers }) {
   window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
     if (isActionKey(e)) input.release();
+    if (e.key.toLowerCase() === 'p') input.releasePerfect();
   });
-  window.addEventListener('blur', () => { input.release(); keys = {}; });
+  window.addEventListener('blur', () => { input.release(); input.releasePerfect(); keys = {}; });
 
   // Block browser scrolling and zoom gestures outside the sheet.
   document.addEventListener('touchmove', (e) => {

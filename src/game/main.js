@@ -149,6 +149,7 @@ const game = {
     controller.forget();
     perfect.forget();
     input.release();
+    input.releasePerfect();
     sheet.close();
     lastTileKey = -1;
     region = shownRegion = null;
@@ -194,6 +195,7 @@ const fork = createFork(el.fork);
 // adopting an older copy would only conflict again on the next save.
 function forked(raw) {
   input.release();
+  input.releasePerfect();
   fork.show(game.state, Core.deserialize(raw), {
     keepOther: () => {
       const latest = adopt(savedElsewhere() || raw);
@@ -279,8 +281,9 @@ const input = createInput({
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
       else controller.tap(x, y);
     },
-    actionPressed: perfect.press,
-    actionReleased: perfect.release,
+    actionPressed: controller.press,
+    perfectPressed: perfect.press,
+    perfectReleased: perfect.release,
     trailEnded: controller.trailEnded,
     viewChanged: () => { hud.view(cam); keepView(); },
     command(cmd) {
@@ -419,9 +422,9 @@ function update(dt) {
   }
 
   const holdAt = input.holdPoint();
-  controller.tick(dt, holdAt);
-  // Perfect plays while held, unless you're steering or working a tile yourself.
-  perfect.tick(dt, input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked());
+  controller.tick(dt, input.held && !input.trail, holdAt);
+  // Perfect plays while held, unless you're steering, gathering or working a tile yourself.
+  perfect.tick(dt, input.perfect && !input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked());
   if (moved && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
@@ -434,7 +437,7 @@ function update(dt) {
   }
   hud.tick(dt);
   hud.updateButtons(s);
-  hud.perfect(perfect.badge, input.held);
+  hud.perfect(perfect.badge, input.perfect);
   sheet.tick();
 }
 
@@ -453,7 +456,7 @@ function view() {
     moving,
     actor: actor.view(moving),
     yard,
-    harvestTarget: perfect.target,
+    harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
     trail: input.trail,
@@ -494,9 +497,10 @@ let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
 let fullPace = true;            // the last frame was drawn at full pace
 function frame(now) {
-  // Full pace while you play (a touch or key just now, Perfect held, you or
-  // the view on the move, the trip between layers), calm while you watch.
-  const full = moving || input.held || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
+  // Full pace while you play (a touch or key just now, Gather or Perfect
+  // held, you or the view on the move, the trip between layers), calm while
+  // you watch.
+  const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
   if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
   if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
   fullPace = full;

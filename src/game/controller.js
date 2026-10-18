@@ -7,7 +7,7 @@ import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
 import { fmt } from './format.js';
 
-const GATHER_COOLDOWN = 0.25; // seconds between repeated gathers while a finger is held on a tile
+const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 
@@ -116,6 +116,17 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     stalled = 0;
   }
 
+  // What Gather does right now: empty nearby extractors, else work the
+  // nearest deposit. Underground there is no automatic target.
+  function act() {
+    if (Core.collectTarget(state())) return collectNearby();
+    const r = Core.harvest(state());
+    if (!r) return false;
+    harvested(r);
+    changed();
+    return true;
+  }
+
   function layerChanged(from) {
     actor.act(player().z < from ? 'down' : 'up');
     fx.clear();
@@ -131,6 +142,16 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     if (!Core.descendAt(state(), x, y) && !Core.climbAt(state(), x, y)) return false;
     layerChanged(from);
     return true;
+  }
+
+  // Explore pressed with nothing in reach (a new player's first press, in
+  // the bare clearing at home): head for the nearest resource in sight and
+  // work it on arrival, as a tap on it would. Nothing in sight: say how to walk.
+  function explore() {
+    const s = state();
+    const to = s.player.z === Core.SURFACE && Core.nearestWork(s);
+    if (to) walkToward(to.x, to.y, true);
+    else if (!Core.isUnderground(s)) hud.toast(t('tip.walk'));
   }
 
   const controller = {
@@ -172,10 +193,18 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       return moved;
     },
 
+    // Gather pressed: act at once, then the hold repeats via tick().
+    press() {
+      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
+      if (!walkTo) explore();
+    },
+
     // `holdAt`: a finger held still on the map (screen point), or null. It
-    // works that tile over and over.
-    tick(dt, holdAt) {
+    // works that tile over and over, like holding Gather.
+    tick(dt, holding, holdAt) {
       cooldown -= dt;
+      // The first gather of a hold is press()'s; these are its repeats.
+      if (holding && cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(true); }
       if (holdAt && cooldown <= 0) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);

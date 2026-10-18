@@ -316,7 +316,7 @@ async function main() {
   ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Collected"', 1500), 'tapping a resource counter opens Collected');
   ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'Collected has a section per resource and a card per kind of mushroom');
   await evalJS('document.getElementById("btnClose").click()');
-  eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 4, 'Perfect, build, upgrade and mine share the thumb dock');
+  eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 5, 'Gather, Perfect, build, upgrade and mine share the thumb dock');
   // Sound: the context exists from load, and the first gesture of any kind
   // gets it running (it used to wait for certain controls).
   ok(await evalJS('MTE_GAME.audioState()') !== 'none', 'the audio context exists before any gesture');
@@ -412,6 +412,14 @@ async function main() {
   await tap(shaftSpot.sx, shaftSpot.sy);
   eq(await evalJS('MTE_GAME.getState().player.z'), -2, 'a deliberate second tap drops to the next layer');
   eq(await evalJS('(function(){var p=MTE_GAME.getState().player;return Math.floor(p.x)+","+Math.floor(p.y);})()'), shaftSpot.x + ',' + shaftSpot.y, 'the next layer is directly beneath the shaft');
+  // Holding Gather with nothing to dig must not stall the rest of the frame:
+  // the clock, effects and the 3-second autosave all keep running.
+  await evalJS('localStorage.removeItem("more-than-enough-save")');
+  var heldClock = await evalJS('MTE_GAME.getState().time');
+  var holdBtn = await rect('#btnAction');
+  await hold(holdBtn.x, holdBtn.y, 3600);
+  ok(await evalJS('MTE_GAME.getState().time') > heldClock + 3, 'the game clock runs while Gather is held underground');
+  ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'CLIMB UP climbs back through the shaft you came down');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 4.5) + ',' + (entry.y + 0.5) + ')');
@@ -423,7 +431,7 @@ async function main() {
   await sleep(200);
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB DOWN', 'standing in that cave mouth, the layer button climbs down');
   // Every piece of the HUD keeps its own place, the climb button included.
-  var clash = await evalJS('(function(){var ids=["btnAwards","resources","btnSettings","depthMeter","zoomControls","btnBuild","btnUpgrade","btnMine","btnAction"];var r=ids.map(function(id){var b=document.getElementById(id).getBoundingClientRect();return {id:id,l:b.left,t:b.top,r:b.right,b:b.bottom,w:b.width};}).filter(function(x){return x.w>0;});var out=[];for(var i=0;i<r.length;i++)for(var j=i+1;j<r.length;j++){var a=r[i],c=r[j];if(!(a.r<=c.l||c.r<=a.l||a.b<=c.t||c.b<=a.t))out.push(a.id+"/"+c.id);}return out.join(" ");})()');
+  var clash = await evalJS('(function(){var ids=["btnAwards","resources","btnSettings","depthMeter","zoomControls","btnBuild","btnUpgrade","btnMine","btnPerfect","btnAction"];var r=ids.map(function(id){var b=document.getElementById(id).getBoundingClientRect();return {id:id,l:b.left,t:b.top,r:b.right,b:b.bottom,w:b.width};}).filter(function(x){return x.w>0;});var out=[];for(var i=0;i<r.length;i++)for(var j=i+1;j<r.length;j++){var a=r[i],c=r[j];if(!(a.r<=c.l||c.r<=a.l||a.b<=c.t||c.b<=a.t))out.push(a.id+"/"+c.id);}return out.join(" ");})()');
   eq(clash, '', 'no two HUD pieces overlap');
 
   // canvas actually painted
@@ -477,38 +485,35 @@ async function main() {
   ok(Math.abs(tapWalkEnd.x - tapWalkStart.x) + Math.abs(tapWalkEnd.y - tapWalkStart.y) > 0.25, 'tapping a world destination starts walking');
 
   /* ------------------------------------------------------------ gather */
-  console.log('\n== Perfect (touch the action button) ==');
+  console.log('\n== Gathering (touch the action button) ==');
   var spot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spot, 'found a rich forest tile to stand on (' + spot + ')');
   await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();MTE_GAME.core.setRichness(s.world,p[0],p[1],0,200);})()');
   await sleep(150);
   var act = await rect('#btnAction');
   ok(act && act.w > 60, 'action button is a comfortable tap target (' + (act && act.w) + 'px)');
-  // A tap forages the tile underfoot (the first milestone, celebrated below).
-  await startListening();
-  var under = JSON.parse(await evalJS('(function(){var p=MTE_GAME.getState().player;return JSON.stringify(MTE_GAME.project(Math.floor(p.x)+0.5,Math.floor(p.y)+0.5));})()'));
-  await tap(under.x, under.y);
-  await sleep(100);
-  var g0 = JSON.parse(await stateSummary());
-  // Holding Perfect plays: it gathers, and the rest of the frame keeps going
-  // (the clock, effects and the 3-second autosave).
-  await evalJS('localStorage.removeItem("more-than-enough-save")');
-  var heldClock = await evalJS('MTE_GAME.getState().time');
-  await hold(act.x, act.y, 3600);
-  ok(await heard(200) > 0.01, 'gathering in play is heard');
-  var g1 = JSON.parse(await stateSummary());
-  // It plays as it sees fit: gathers, walks somewhere, builds or buys.
-  var played = JSON.stringify(g1.inv) !== JSON.stringify(g0.inv) || g1.ext !== g0.ext || g1.x !== g0.x || g1.y !== g0.y;
-  ok(played, 'holding PERFECT played (' + JSON.stringify(g0) + ' -> ' + JSON.stringify(g1) + ')');
-  ok(await evalJS('MTE_GAME.getState().time') > heldClock + 3, 'the game clock runs while Perfect is held');
-  ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Perfect is held');
-  ok(await evalJS('!!document.getElementById("actionBadge").dataset.look'), 'the badge on Perfect shows what it is doing (' + await evalJS('document.getElementById("actionBadge").dataset.look') + ')');
-  // Back onto the forest tile (Perfect may have walked off), for what follows.
+  // Holding Perfect, the smaller button above, plays as it sees fit:
+  // gathers, walks somewhere, builds or buys.
+  var perf = await rect('#btnPerfect');
+  ok(perf && perf.w >= 44 && perf.y < act.y, 'Perfect is a smaller button above Gather (' + (perf && perf.w) + 'px)');
+  var p0 = JSON.parse(await stateSummary());
+  await hold(perf.x, perf.y, 3600);
+  var p1 = JSON.parse(await stateSummary());
+  var played = JSON.stringify(p1.inv) !== JSON.stringify(p0.inv) || p1.ext !== p0.ext || p1.x !== p0.x || p1.y !== p0.y;
+  ok(played, 'holding PERFECT played (' + JSON.stringify(p0) + ' -> ' + JSON.stringify(p1) + ')');
+  ok(await evalJS('!!document.getElementById("perfectBadge").dataset.look'), 'the badge on Perfect shows what it is doing (' + await evalJS('document.getElementById("perfectBadge").dataset.look') + ')');
+  // Back onto the forest tile (Perfect may have walked off), to Gather it.
   await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number);MTE_GAME.setPlayer(p[0]+0.5,p[1]+0.5);})()');
   await sleep(150);
   // A milestone reached (gathering, or ore spotted on the way) is celebrated with a banner naming it.
   ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.text===txt;});})()', 2000),
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
+  var g0 = JSON.parse(await stateSummary());
+  await startListening();
+  await hold(act.x, act.y, 2200); // hold to auto-repeat gather
+  ok(await heard(200) > 0.01, 'gathering in play is heard');
+  var g1 = JSON.parse(await stateSummary());
+  ok(g1.inv.mycelium > g0.inv.mycelium, 'holding GATHER collected mycelium (' + g0.inv.mycelium + ' -> ' + g1.inv.mycelium + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
   ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
   // Milestones count in any order: walking may have already found ore.
@@ -584,7 +589,7 @@ async function main() {
     'each tile sends one bundle at a time, not a burst');
 
   /* --------------------------------- SPACE hold must gather at the cd rate */
-  console.log('\n== Holding SPACE plays at the hold pace (no key-repeat turbo) ==');
+  console.log('\n== Hold SPACE gathers at GATHER_CD (no key-repeat turbo) ==');
   var spotK = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!spotK, 'standing on a fresh rich forest tile for the SPACE test (' + spotK + ')');
   await sleep(150);
@@ -592,8 +597,7 @@ async function main() {
   await key('keyDown', ' ', 'Space', 32); // one physical press
   await sleep(60);
   var kg1 = await evalJS('MTE_GAME.getState().stats.gathers');
-  // (Perfect may walk first, rather than gather, wherever it judges best.)
-  ok(kg1 - kg0 <= 1, 'one SPACE press acts once at most (no double action; gathers ' + kg0 + ' -> ' + kg1 + ')');
+  eq(kg1, kg0 + 1, 'one SPACE press gathers exactly once (no double action)');
   var stormT0 = await evalJS('MTE_GAME.getState().time');
   for (var rep = 0; rep < 15; rep++) { // OS key-repeat storm
     await cdp.send('Input.dispatchKeyEvent', { type: 'keyDown', key: ' ', code: 'Space', windowsVirtualKeyCode: 32, nativeVirtualKeyCode: 32, autoRepeat: true }, session);
@@ -659,6 +663,7 @@ async function main() {
   eq(b3.ext, 1, 'garden camp constructed');
   var camp = await evalJS('(function(){var e=MTE_GAME.getState().extractors[0];e.buffer=8;MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);return e.x+","+e.y;})()');
   await sleep(400);
+  ok(await evalJS('document.getElementById("actionLabel").textContent.indexOf("COLLECT") === 0'), 'Gather control changes to Collect near stored extractor goods (' + camp + ')');
   var doneButton = await rect('#btnClose');
   await tap(doneButton.x, doneButton.y);
   await sleep(250);
@@ -1211,8 +1216,9 @@ async function main() {
   var starts = {
     'dragging the map': async function () { await drag(80, 600, 160, 560, 5, 30); },
     'tapping the map': async function () { await tap(195, 300); },
-    'tapping Perfect': async function () { var b = await rect('#btnAction'); await tap(b.x, b.y); },
-    'holding Perfect': async function () { var b = await rect('#btnAction'); await hold(b.x, b.y, 900); },
+    'tapping Gather': async function () { var b = await rect('#btnAction'); await tap(b.x, b.y); },
+    'holding Gather': async function () { var b = await rect('#btnAction'); await hold(b.x, b.y, 900); },
+    'holding Perfect': async function () { var b = await rect('#btnPerfect'); await hold(b.x, b.y, 900); },
     'a key': async function () { await key('keyDown', 'd', 'KeyD', 68); await sleep(200); await key('keyUp', 'd', 'KeyD', 68); }
   };
   // Each in a brand-new browser profile: Chrome remembers that you used a
@@ -1286,14 +1292,12 @@ async function main() {
   // (Another host name: storage of its own, empty, as on a new phone.)
   var NEW_PLAYER = 'http://localhost:' + PORT + '/';
   await navigate(NEW_PLAYER);
-  eq(await evalJS('document.querySelector("#btnAction .cap").textContent'), 'PERFECT', 'the big button is Perfect from the first spawn');
+  ok(await evalJS('!document.getElementById("btnAction").classList.contains("disabled")'), 'in the clearing at home, Explore is lit: there is somewhere to go');
   // (Pressed through its pointer events: touches this late in the run no
   // longer reach the page in headless Chrome; the touch path is tested above.)
-  var holdPerfect = 'document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerdown",{pointerId:7}))';
-  var letGo = 'document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerup",{pointerId:7}))';
-  await evalJS(holdPerfect);
-  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 15000), 'holding Perfect walks to the nearest resource and gathers it');
-  await evalJS(letGo);
+  var pressExplore = 'document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerdown",{pointerId:7}));document.getElementById("btnAction").dispatchEvent(new PointerEvent("pointerup",{pointerId:7}))';
+  await evalJS(pressExplore);
+  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 8000), 'one press of Explore walks to the nearest resource and gathers it');
   var gotFirst = await evalJS('JSON.stringify(MTE_GAME.getState().inv)');
   // Gone the moment it's gathered (tab closed, reloaded): nothing is lost.
   await navigate(NEW_PLAYER);
@@ -1302,9 +1306,8 @@ async function main() {
   var noStorage = await cdp.send('Page.addScriptToEvaluateOnNewDocument', { source: 'Object.defineProperty(window,"localStorage",{get:function(){throw new DOMException("denied","SecurityError");}});' }, session);
   await navigate(NEW_PLAYER);
   ok(await evalJS('document.getElementById("crash").hidden && MTE_GAME.getState().inv.mycelium === 0'), 'with storage blocked the game starts a new world and does not break');
-  await evalJS(holdPerfect);
-  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 15000), 'and can be played');
-  await evalJS(letGo);
+  await evalJS(pressExplore);
+  ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 8000), 'and can be played');
   ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'it says progress is not being saved');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
   await cdp.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: noStorage.identifier }, session);
