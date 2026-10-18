@@ -15,6 +15,7 @@ import {
   ROOM_ID_RE, KEY_RE, ID_RE, randomHex, INVITE_USES, INVITE_LIVES, INVITE_DEFAULT, cleanInviteAsk, PING
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
+import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } from './worlds.js';
@@ -116,9 +117,6 @@ function qrCanvas(text) {
   }
   return canvas;
 }
-
-// Players' names (src/i18n: together.name.*), picked by nameOf().
-const NAMES = ['moss', 'fern', 'acorn', 'clover', 'hazel', 'birch', 'willow', 'juniper', 'sparrow', 'otter', 'badger', 'hedgehog', 'fox', 'owl', 'hare', 'lynx', 'beaver', 'squirrel', 'heron', 'stork', 'bee', 'firefly', 'thyme', 'mint'];
 
 /* ------------------------------------------------- what the room sends */
 
@@ -961,12 +959,8 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
 
   /* ---------------------------------------------------- friends in the HUD */
 
-  // Everyone's name in this room, by id: a nature name picked from their id,
-  // never two the same, and the same on every phone (players are named in
-  // the order of their colours, which the room hands out). Shown in the
-  // game's language.
-  // Past the last name they come round again numbered (Fox 2, Fox 3…).
-  // Worked out once per change of who's in the world.
+  // Everyone's name in this room, by id (src/net/naming.js), shown in the
+  // game's language. Worked out once per change of who's in the world.
   let roster = null;   // id -> name number, or null when it needs working out
   function nameOf(id) {
     if (!roster) {
@@ -974,20 +968,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       if (me) players.push([me, myColor]);
       // A tombstone keeps its character's name, so nobody else gets it.
       for (const g of graves) if (g.id !== me && !friends.has(g.id)) players.push([g.id, g.c]);
-      players.sort((a, b) => a[1] - b[1]);
-      const taken = new Set();
-      roster = new Map();
-      for (const [pid] of players) {
-        let k = parseInt(pid.slice(0, 8), 16) % NAMES.length;
-        while (taken.has(k)) k++;
-        taken.add(k);
-        roster.set(pid, k);
-      }
+      roster = nameNumbers(players);
     }
     const k = roster.get(id);
     if (k === undefined) return '';
-    const name = t('together.name.' + NAMES[k % NAMES.length]);
-    return k < NAMES.length ? name : name + ' ' + (Math.floor(k / NAMES.length) + 1);
+    const { key, n } = nameWord(k);
+    return n ? t(key) + ' ' + n : t(key);
   }
 
   function stateOf(f) {

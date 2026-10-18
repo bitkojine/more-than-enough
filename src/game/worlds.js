@@ -7,6 +7,7 @@
 
 import { copy } from './copy.js';
 import { ROOM_ID_RE } from '../net/protocol.js';
+import { worldWords } from '../net/naming.js';
 import { t } from '../i18n/i18n.js';
 
 const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
@@ -18,10 +19,6 @@ export const SAVE_PREFIX = 'mte.room.'; // your progress there (a copy)
 export const FOG_PREFIX = 'mte.fog.';   // the map you've explored there
 export const GEN_PREFIX = 'mte.gen.';   // which making of that world those are from (see the nuke)
 const COPIES = [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX];
-
-// The two words of a world's name (src/i18n: world.thing.*, world.place.*).
-const THINGS = ['glowcap', 'fern', 'moss', 'amber', 'crystal', 'heron', 'otter', 'lynx', 'owl', 'willow', 'juniper', 'clover', 'firefly', 'mist', 'thunder', 'honey'];
-const PLACES = ['hollow', 'valley', 'ridge', 'meadow', 'grove', 'marsh', 'hills', 'shore', 'falls', 'woods', 'heath', 'lake'];
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -54,9 +51,8 @@ function readList(key) {
 // An admin's copy goes by the real world's name.
 export function worldName(id) {
   if (copy && id === copy.room && copy.of) id = copy.of;
-  let h = 2166136261;
-  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619) >>> 0;
-  return t('world.name', { thing: t('world.thing.' + THINGS[h % THINGS.length]), place: t('world.place.' + PLACES[(h >>> 8) % PLACES.length]) });
+  const { thing, place } = worldWords(id);
+  return t('world.name', { thing: t(thing), place: t(place) });
 }
 
 export function knownRooms() {

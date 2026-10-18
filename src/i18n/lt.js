@@ -769,6 +769,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.104.0": "Užkulisiuose: žaidimo administratorius turi puslapį su visais bendrais pasauliais ir visais jų žaidėjais, kad galėtų prižiūrėti sąžiningą žaidimą. Jame rodoma tik tai, ką serveris jau saugo: tavo veikėjo vardas, pažanga ir žaidimo laikas, niekada tavo tikras vardas ar adresas.",
   "news.0.103.2": "Užkulisiuose: administratoriaus bendro pasaulio kopija dabar gali parodyti ir tai, ką grįžtančiam žaidėjui parodytų jo paties žaidimas, pavyzdžiui, naujienas ir pastabą apie skaičius, kurie niekada nebuvo tikri.",
   "news.0.103.1": "Bendrame pasaulyje tai, ką surenki, nebeatimama, kai trumpam nutrūksta ryšys ar atnaujinamas serveris: tai, ko serveris negavo, išsiunčiama dar kartą, kai grįžti.",
   "news.0.103.0": "Užkulisiuose: kad patikrintų, kaip grįžtama į bendrą pasaulį, žaidimo administratorius dabar gali žaisti laikiną jo kopiją. Niekas, kas daroma kopijoje, nepakeičia tavo tikro veikėjo ar pasaulio, o kopija po dviejų valandų išsitrina pati.",

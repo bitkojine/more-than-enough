@@ -7,6 +7,8 @@
  *
  * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
  *
+ *   GET  /admin                        the moderator's page (admin.js): holds nothing, asks for the token
+ *   GET  /admin/players?tests=         every world with everyone in it, named (not the smoke test's)
  *   GET  /admin/rooms                  every world, in brief
  *   GET  /admin/rooms/<id>/players     who is in one, and how far along
  *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
@@ -24,6 +26,7 @@ import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, NEAR, visitor } from './room.js';
 import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
 import { snapshot, copyEntries, COPY_MS } from './copy.js';
+import { adminPage, worldOf, isSmokeTest } from './admin.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
@@ -106,6 +109,20 @@ async function admin(request, env, url) {
     }
     return respond({ rooms }, 200, null);
   }
+  if (url.pathname === '/admin/players' && request.method === 'GET') {
+    const tests = url.searchParams.get('tests') === '1';
+    const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
+    const rooms = await Promise.all((await registry.list()).map(async (id) => {
+      try {
+        const o = await env.ROOMS.get(env.ROOMS.idFromName(id)).overview(id, tests);
+        return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
+      } catch (e) {
+        // A room still running older code (see "Deploying") says so, and the rest still shows.
+        return { id, error: String(e && e.message || e).slice(0, 200), players: [], name: { en: id, lt: id }, last: 0 };
+      }
+    }));
+    return respond({ rooms: rooms.filter(Boolean) }, 200, null);
+  }
   const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
@@ -186,8 +203,13 @@ export default {
 
     // The commit it was deployed from (rooms.yml), for scripts/live-check.mjs.
     if (url.pathname === '/') return respond({ ok: true, commit: env.COMMIT || null }, 200, okOrigin);
-    // The moderator calls from a script, not a page: a token, no Origin.
-    // Anyone without the token sees nothing there at all.
+    // The moderator's page holds nothing until the token is typed in it.
+    if (url.pathname === '/admin' && request.method === 'GET') {
+      const { html, headers } = await adminPage();
+      return new Response(html, { status: 200, headers: { ...SECURITY_HEADERS, ...headers } });
+    }
+    // The moderator's routes take a token, from the page or a script, and
+    // never an Origin's word. Anyone without the token sees nothing there at all.
     if (url.pathname.startsWith('/admin/')) {
       if (!(await isAdmin(request, env))) return respond({ error: 'not found' }, 404, null);
       // A failure says what went wrong, to the moderator only.
@@ -375,6 +397,16 @@ export class Rooms extends DurableObject {
   async roster(id) {
     if (!this.room.ready || this.room.id !== id) return null;
     return this.room.roster(Date.now());
+  }
+
+  // The room in brief with everyone in it and its tombstones (for their
+  // names), in one call; just the brief for the smoke test's rooms, unless
+  // `tests`. Null if there's no such room.
+  async overview(id, tests) {
+    if (!this.room.ready || this.room.id !== id) return null;
+    const summary = await this.summary();
+    if (isSmokeTest(summary) && !tests) return { summary };
+    return { summary, players: this.room.roster(Date.now()), graves: this.room.graves };
   }
 
   // The audit log from `since` (ms) as JSON lines: first the room itself,

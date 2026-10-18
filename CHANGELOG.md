@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.104.0] - 2026-10-18
+
+Watch's ask: one view of every shared world and everyone in it, the most
+progress on top, sortable by anything.
+
+### Added
+- **The moderator's page** at `https://rooms.robertasrudys.com/admin`
+  (`server/src/admin.js`): every player of every shared world in one table,
+  named as the game names them (English / Lithuanian), ranked by milestones
+  (ties: resources, then play time) and sortable by any column: status,
+  resources, play time, deepest layer, buildings, tool levels, cheat count,
+  how often the room's own copy disagreed, when the world was last active.
+  A world filter, a name search, smoke-test worlds hidden unless asked, and
+  a refresh every 30 s while the page is open. A player's row opens their
+  details and three actions: play a copy, freeze or thaw (with a reason),
+  and their log for the last 24 hours. Banning stays off the page.
+- `GET /admin/players`: every world with its players, names and tombstones
+  in one call (one call per room, like `/admin/rooms`).
+
+### Security
+- The page itself holds nothing and is the only thing under `/admin` that
+  answers without the token. It asks for the token and keeps it in the
+  tab (or the browser, if "remember" is ticked); it goes only as a bearer
+  to the `/admin/` routes, which still answer 404 without it. Rooms' data
+  is written as text, never HTML; the CSP lets the page run only its own
+  script and style (by hash), talk only to the service, and never be
+  framed; a copy link opens only if it is the game's own `#copy=` address,
+  in a tab that can't reach back. `test/unit/admin.test.js` checks the
+  hashes, the policy and that nothing in the page writes HTML.
+
+### Changed
+- How worlds and players are named moved to `src/net/naming.js`, shared by
+  the game and the room service (it was in `worlds.js` and `together.js`).
+
 ## [0.103.2] - 2026-10-18
 
 Watch's ask: see everything Willow will see coming back, the greeting on

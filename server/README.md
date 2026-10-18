@@ -131,7 +131,8 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **The moderator:** the `/admin/` routes answer only a bearer token equal
   to the `ADMIN_TOKEN` Worker secret (set on deploy from the
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
-  it they answer 404, as if they weren't there. They read; what they
+  it they answer 404, as if they weren't there; only the page at `/admin`
+  answers without it, and it holds nothing but a form for the token. They read; what they
   change is a ban (the same one the owner's *Remove* does) and a freeze.
   A copy (below) is a room of its own: making and playing it changes
   nothing in the real one.
@@ -192,6 +193,15 @@ go a long way and loading a room never reads its log.
 
 The moderator's routes (`Authorization: Bearer <token>`):
 
+- `GET /admin` (no token): the moderator's page (`src/admin.js`), every
+  player of every world in one table that sorts by any column, with a
+  copy, freeze/thaw and the log for each. It asks for the token and keeps
+  it in the browser, sending it only to these routes; it holds no data
+  itself, writes what it's sent as text, and runs only its own script.
+- `GET /admin/players[?tests=1]`: every world (`/admin/rooms`'s brief plus
+  `name: {en, lt}`) with its players (as below, plus `name: {en, lt}`),
+  named as the game names them (`src/net/naming.js`); the smoke test's
+  worlds only with `tests=1`. A room that can't answer comes with `error`.
 - `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
   `online`, `bans`, `frozen`, `created`, `last`).
 - `GET /admin/rooms/<id>/players`: each player now, with their cheat count,
