@@ -47,6 +47,10 @@ place it belongs here rather than adding a button where there is room.
 - **Tabs** size to their words (Lithuanian's are long), a little smaller on phones.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows and dialog buttons out of view. Run it after any change to the layout.
 
+### Upgrades and Beyond
+- **Upgrades is a progression map**, not a shop list: one row per family (`PATH_FAMILIES` in `src/core/upgrades.js`) with its count (`3/8`); tapping a family opens its buy rows, and families with something to buy start open. Rows and the map read the same upgrade registry, so they can't disagree.
+- **Beyond** (perks and Embark) stays hidden until the world is mastered, and never shows in a shared world. There are no in-world refunds: Embark is the respec.
+
 ### Messages
 - A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.
 
@@ -79,8 +83,3 @@ place it belongs here rather than adding a button where there is room.
 
 ### What's new
 - After the game updates itself (it always does, at once: `src/game/update.js`), a dialog thanks the player, says it just updated, lists each release's notes since the version they were on (newest first, scrolling), and asks for ideas: *Share an idea* opens the repo's GitHub issues, *Play* closes it. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
-
-### Stages
-1. **HUD and main actions** (shipped in 0.48.0): top bar (awards, one resource bar, gear), version moved into Settings, Settings split out of the sheet footer into its own panel, thumb cluster without the empty slot, slim zoom, one depth meter, toast moved to the top.
-2. **Sheets** (shipped in 0.49.0): tabs as a segmented control at the top beside a × (a title instead of tabs for Settings and Collected), cleaner rows and buy buttons, Collected and Awards restyled.
-3. **Dialogs** (shipped in 0.50.0): in-game confirm for Embark and Reset world instead of the browser's, fork chooser and texture report in the same dialog style.

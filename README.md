@@ -148,8 +148,6 @@ the version the player was on. So each release also adds its version to `NEWS`
 in `src/game/news.js` and its player-facing notes as `news.<version>` in
 `src/i18n/en.js` and `lt.js` (`npm test` fails otherwise).
 
-The project is under git — commit early, commit often:
-
 ## Files
 
 - `src/core/` — the game rules: pure, deterministic, no DOM (runs in Node too)
@@ -174,15 +172,15 @@ The project is under git — commit early, commit often:
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory, growing and puffing as they change
-  - `together.js` — playing together: the room connection, friends and their states, the QR sign
+  - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them
+  - `update.js`, `news.js` — the self-update on every deploy and the What's new notes
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
 - `src/vendor/` — other people's code, copied unchanged (the QR code generator)
 - `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
 - `index.html`, `style.css` — shell and mobile-first styling
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
 - `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
-- `docs/progression-map.md` — design spec for the Progression map
-- `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why
+- `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why; `docs/music.md` — the soundtrack
 - `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
@@ -199,6 +197,7 @@ The project is under git — commit early, commit often:
 ```sh
 npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs, translations
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
+npm run test:layout # real Chrome: every screen at 12 sizes in both languages (see docs/ui.md)
 ```
 
 Node: always the latest LTS, locally and in CI. `.nvmrc` says `lts/*`; CI
@@ -216,13 +215,9 @@ grace. While it fails, one open issue labelled `live-check` says what; it
 closes itself once all is well. The browser test looks for Chrome at the standard macOS path
 or `google-chrome` elsewhere; set `CHROME_PATH` to point it at another browser.
 
-On macOS, run the browser E2E command from Terminal or approve unsandboxed
-execution when prompted. Chrome aborts during macOS app registration when
-launched inside the Codex seatbelt sandbox; the test detects that case and
-stops before opening Chrome.
-
-The browser test launches its own local server and headless Chrome and cleans up
-after itself.
+The browser tests launch their own local server and headless Chrome. On
+macOS, run them from Terminal: Chrome aborts inside a sandboxed agent shell
+(the test detects that and stops).
 
 ## Icons
 

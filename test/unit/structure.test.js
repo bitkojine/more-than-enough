@@ -6,11 +6,13 @@
  *  - the core stays pure: it never imports game (browser) code, only its
  *    own modules and the translations (src/i18n/), which import nothing else;
  *  - no merge-conflict markers are left in the code (several people push to
- *    main at once, and the browser-only files have no other check). */
+ *    main at once, and the browser-only files have no other check);
+ *  - the docs and the architecture model name only files that exist, so
+ *    moving or deleting code can't leave them pointing at nothing. */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname, normalize, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -75,4 +77,32 @@ test('the core never imports game code', () => {
       assert.ok(dep.startsWith(join(ROOT, 'src', 'i18n')), `${rel(file)} imports ${rel(dep)}`);
     }
   }
+});
+
+test('the docs and the architecture model name only files that exist', () => {
+  const docs = ['README.md', 'AGENTS.md', 'server/README.md', 'structurizr/README.md',
+    ...readdirSync(join(ROOT, 'docs')).map((n) => 'docs/' + n)];
+  const ROOTS = /^(\.\.?\/|src\/|server\/|test\/|wiki\/|docs\/|scripts\/|packs\/|structurizr\/|icons\/|privacy\/|\.github\/)/;
+  const missing = [];
+  const check = (doc, path) => {
+    if (!ROOTS.test(path) || /[<>*]/.test(path)) return;
+    // A path in server/README.md may be from server/ or from the repo root.
+    if (![join(ROOT, dirname(doc), path), join(ROOT, path)].some((p) => existsSync(p))) missing.push(`${doc}: ${path}`);
+  };
+  for (const doc of docs) {
+    const text = readFileSync(join(ROOT, doc), 'utf8');
+    for (const m of text.matchAll(/`([\w./-]+)`/g)) check(doc, m[1]);
+    for (const m of text.matchAll(/\]\(([\w./-]+)\)/g)) check(doc, m[1]);
+  }
+  // The model's "ref" and "files" lists: a bare name sits in the folder of the path before it.
+  const dsl = readFileSync(join(ROOT, 'structurizr', 'workspace.dsl'), 'utf8');
+  for (const m of dsl.matchAll(/"(?:ref|files)" "([^"]+)"/g)) {
+    let dir = '';
+    for (const part of m[1].split(/,\s*/)) {
+      const path = part.includes('/') ? part : dir + part;
+      dir = path.endsWith('/') ? path : dirname(path) + '/';
+      check('structurizr/workspace.dsl', path);
+    }
+  }
+  assert.deepEqual(missing, [], 'these name files that do not exist:\n' + missing.join('\n'));
 });
