@@ -61,6 +61,7 @@ export const GOALS = [
   { id: 'refined5', text: t('goal.refined5'), count: refined(5), done: (s) => refined(5)(s).n >= refined(5)(s).of },
   { id: 'tools', text: t('goal.tools'), count: toolLevels, done: (s) => toolLevels(s).n >= toolLevels(s).of },
   { id: 'abundance5', text: t('goal.abundance5'), buy: 'abundance', done: (s) => s.abundanceLv >= 5 },
+  { id: 'refined9', text: t('goal.refined9'), count: refined(9), done: (s) => refined(9)(s).n >= refined(9)(s).of },
   { id: 'refined10', text: t('goal.refined10'), count: refined(10), done: (s) => refined(10)(s).n >= refined(10)(s).of },
   { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), count: masterProgress, done: canEmbark },
   { id: 'forever', text: t('goal.forever'), done: () => false }

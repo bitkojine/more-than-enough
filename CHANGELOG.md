@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.97.0] - 2026-10-18
+
+### Added
+- Milestone **every refinery at level 9** (`refined9`, Watch's call). After
+  Abundance Engine V (about 12 h for the pacing bot) the next milestone was
+  every refinery at level 10, about 24 h later; level 9 lands at about 24 h,
+  halfway. (Level 8 would land at about 15 h, too soon to split the gap.)
+
 ## [0.96.0] - 2026-10-17
 
 ### Added
