@@ -204,7 +204,7 @@ const nuke = createNuke(el.nuke);
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made) => sayAway(secs, made) });
+const together = createTogether({ game, hud, ask: ask.ask, el, nukeScreen: nuke, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made, fixed) => sayAway(secs, made, fixed) });
 const actor = createActor(); // what the wanderer is doing, to animate it
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
@@ -444,9 +444,12 @@ function catchUp(seconds) {
   const made = Core.awayProduce(game.state, seconds);
   if (made) sayAway(seconds, made);
 }
-function sayAway(seconds, made) {
+// `fixed`: arriving in a shared world also set your numbers straight
+// (together.js), so the toast says that too, and stays up longer.
+function sayAway(seconds, made, fixed = false) {
   const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) => t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] }));
-  if (parts.length) hud.toast(t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') }));
+  const away = t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') });
+  if (parts.length) hud.toast(fixed ? away + '. ' + t('together.toast.fixed') : away, fixed ? 9 : undefined);
   hud.update(game.state);
   game.saveSoon();
 }

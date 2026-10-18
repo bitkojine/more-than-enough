@@ -249,3 +249,31 @@ test('shadow: a game that played on through a lost connection was not away', asy
   assert.ok(!(out.toSelf || []).some((x) => x.t === 'away'), 'nothing extra for time spent playing');
   assert.deepEqual(drifts(r), []);
 });
+
+test('shadow: someone who left before rooms noted when is away since their last progress', async () => {
+  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  sync(true);
+  const rate = C.extractorRate(s, 'garden');
+  const left = now();
+  r.left(id, true, left);
+  delete r.players.get(id).gone; // as a room from before v0.100.0 kept them
+  r.shadow.forget(id);           // and a restarted room starts its copy from the save
+  away(3600_000);
+  await r.join(key, undefined, now());
+  const m = (send({ t: 'save', s: C.progressOf(s) }).toSelf || []).find((x) => x.t === 'away');
+  assert.ok(m, 'their buildings made something meanwhile');
+  const since = (now() - r.players.get(id).savedAt) / 1000;
+  assert.ok(m.secs >= 3600 && m.secs <= 3600 + 15, 'from their last progress (' + m.secs + ', ' + since + ')');
+  assert.ok(m.made.mycelium >= rate * 3600 - 1);
+});
+
+test('overCounted: a phone that showed far more than the room counts', () => {
+  const save = (inv, n = 0) => JSON.stringify({ inv, extractors: Array.from({ length: n }, () => ({})) });
+  assert.ok(C.overCounted(save({ mycelium: 1.4e14 }, 327), save({ mycelium: 1.8e8 }, 186)), 'the runaway of v0.91.0');
+  assert.ok(C.overCounted(save({ mycelium: 10 }, 20), save({ mycelium: 10 }, 10)), 'buildings only the phone had');
+  assert.ok(!C.overCounted(save({ mycelium: 1200 }, 3), save({ mycelium: 1000 }, 3)), 'a little ahead is just timing');
+  assert.ok(!C.overCounted(save({ mycelium: 500 }), save({ mycelium: 1 })), 'small numbers never count');
+  assert.ok(!C.overCounted(null, save({})) && !C.overCounted('{bad', save({})) && !C.overCounted(save({}), null));
+});

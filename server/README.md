@@ -38,7 +38,8 @@ shared with the game.
    go up in the world from the room's copy, not from the game's edits. Time
    away (up to 8 hours) is made up by the room too: with the first `save`
    after coming back, their buildings' output goes into the copy and the game
-   hears it (`away`). Players see each other as online,
+   hears it (`away`). Someone who left before rooms noted when (v0.100.0)
+   is away since their last `save`. Players see each other as online,
    away, connection lost (offline after a minute) or offline.
 6. The room keeps the world's **clock**: it starts at the creator's time of
    day, runs whether anyone is in or not, and comes with every welcome, so

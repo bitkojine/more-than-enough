@@ -111,6 +111,19 @@ export function correctProgress(s, save, sentInv = null) {
   return true;
 }
 
+// Whether this phone's copy of your progress (`local`, a save) showed far
+// more than the room's (`room`): resources more than twice over, or more
+// buildings. Games before v0.91.1 could run away from the room's count, so
+// arriving back says the room's numbers are the real ones.
+export function overCounted(local, room) {
+  const parse = (v) => { try { const d = JSON.parse(v); return isObj(d) ? d : null; } catch { return null; } };
+  const a = parse(local), b = parse(room);
+  if (!a || !b) return false;
+  const total = (d) => RESOURCES.reduce((n, r) => n + (Number(d.inv?.[r]) > 0 ? Number(d.inv[r]) : 0), 0);
+  const built = (d) => (Array.isArray(d.extractors) ? d.extractors.length : 0);
+  return total(a) > 2 * total(b) + 1000 || built(a) > built(b) + 5;
+}
+
 // Applies world changes from the room (checked by src/net/protocol.js; kinds
 // are checked against the game's own tables here). Your own changes come back
 // too: in the room's order, so every phone ends with the same world.

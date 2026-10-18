@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.102.0] - 2026-10-18
+
+For players coming back to a shared world from before the fixes of v0.91.1
+and v0.100.0 (Watch's call, after a review of an early player whose game had
+shown 139 trillion mycelium against the room's 177 million).
+
+### Added
+- **Coming back to smaller numbers says why.** Games before v0.91.1 could run
+  away from the room's count; arriving, the game now takes the room's real
+  numbers silently, so a player's packs and buildings seemed to vanish. When
+  this phone's copy showed far more than the room counts (`overCounted` in
+  `src/core/shared.js`: resources more than twice over, or more buildings),
+  the arrival toast, and the away toast if one follows, say these are your
+  real numbers and an older version showed more than you had.
+
+### Fixed
+- **Away time for players who left before v0.100.0.** The room only noted
+  when someone left from v0.100.0 on, so a player who left earlier got
+  nothing for their time away on coming back. Joining with no note of
+  leaving now counts them away since their last progress (`savedAt`),
+  capped at 8 hours as always (`server/src/room.js` join).
+
 ## [0.101.2] - 2026-10-18
 
 From the persistence review, bug 2 of 9.

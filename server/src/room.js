@@ -261,6 +261,9 @@ export class Room {
       pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0, joined: now };
       this.players.set(id, pl);
     }
+    // Left before rooms noted when (v0.100.0): away since their last progress,
+    // so their buildings make what they would have meanwhile too (shadow.js away).
+    if (!fresh && pl.st === 'offline' && !pl.gone && pl.save && Number.isFinite(pl.savedAt)) pl.gone = [pl.savedAt, playedIn(pl.save)];
     // A new connection may stand anywhere its game remembers: its first step is free.
     this.watch.set(id, { ...this.watchOf(id, now), fresh: true });
     pl.st = 'online';

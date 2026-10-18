@@ -47,6 +47,7 @@ const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
 const PING_EVERY = 5;                 // seconds of play between asking the room if it's there
 const SILENT_IS_DEAD = 15;            // seconds of play without a word from the room: the connection is gone
+const FIXED_SECONDS = 9;              // how long the note that your numbers were set straight stays up
 const ACTS_PER_TICK = 4;              // 'acts' messages at most per frame (the room allows 30 messages a second)
 const SENT_KEPT = 6;                  // progress sent, remembered for the room's answer to it
 const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
@@ -236,6 +237,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
   let acks = false, editSeq = 0, unacked = [];
   let sent = [];            // {n, ms, inv} of the last progress sent, for the room's corrections ('econ')
   let saveSeq = 0;          // numbers the progress sent
+  let fixedNote = false;    // arrived to smaller numbers than this phone showed: the away toast says so too
 
   /* ---------------------------------------------------- the connection */
 
@@ -391,7 +393,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : sent.findLast((x) => x.ms === d.ms);
       if (Core.correctProgress(game.state, d.s, at ? at.inv : null)) game.worldChanged();
       const away = d.away && cleanAway(d.away);
-      if (away) onAway(away.secs, away.made); // already in what it sent
+      if (away) onAway(away.secs, away.made, takeFixed()); // already in what it sent
       return;
     }
     if (d.t === 'away') {
@@ -406,7 +408,7 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
         // later had it too, so a correction keeps it once.
         for (const x of sent) if (x.inv) x.inv[r] = (x.inv[r] || 0) + away.made[r];
       }
-      onAway(away.secs, away.made);
+      onAway(away.secs, away.made, takeFixed());
       return;
     }
     if (d.t === 'edits') {
@@ -488,6 +490,13 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
     }
   }
 
+  // Whether the next away toast should also say your numbers were set straight (once).
+  function takeFixed() {
+    const was = fixedNote;
+    fixedNote = false;
+    return was;
+  }
+
   function welcome(raw) {
     const w = cleanWelcome(raw);
     if (!w) { stop(t('together.toast.broken')); return; }
@@ -521,8 +530,12 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       // Arriving: your progress is the room's (it works it out from what you
       // did). A room from before that kept whatever came last: then the newer
       // of its copy and this phone's.
-      const local = w.econ ? null : cleanSave(read(SAVE_PREFIX + room));
+      const kept = cleanSave(read(SAVE_PREFIX + room));
+      const local = w.econ ? null : kept;
       const save = local && (!w.save || playedTime(local) > playedTime(w.save)) ? local : w.save;
+      // This phone last showed far more than the room counts (games before
+      // v0.91.1 could run away): say the room's numbers are the real ones.
+      const fixed = w.econ && !renewed && Core.overCounted(kept, w.save);
       let fog = null;
       try { fog = JSON.parse(read(FOG_PREFIX + room) || 'null'); } catch { fog = null; }
       const near = [...w.players.entries()].filter(([, f]) => f.st === 'online' && f.p)
@@ -531,7 +544,9 @@ export function createTogether({ game, hud, ask, el, nukeScreen, fbi, checkUpdat
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
       game.arrived();
-      hud.toast(renewed ? t('nuke.toast.done') : t('together.toast.in', { world: worldName(room) }));
+      fixedNote = fixed;
+      if (fixed) hud.toast(t('together.toast.in', { world: worldName(room) }) + '. ' + t('together.toast.fixed'), FIXED_SECONDS);
+      else hud.toast(renewed ? t('nuke.toast.done') : t('together.toast.in', { world: worldName(room) }));
       policyNotice();
     }
     // The room works out your progress from what you do too (src/core/acts.js).
