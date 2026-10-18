@@ -763,6 +763,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.101.1": "A saved world this version of the game can't open is now kept to one side instead of being written over, so a fix can bring it back. If the site briefly hands out an older page after an update, your world comes back on the next load instead of being lost.",
   "news.0.101.0": "Shared worlds with many players stay easy to read: Players in Settings lists everyone, how they're doing and how far away they are, and the world's owner can remove anyone there. {phone:Tap|laptop:Click} the +N beside your friends to open it.\nNames over heads no longer pile up in a crowd, and badges at the edge of the screen no longer cover each other or you.",
   "news.0.100.1": "In a shared world, other players' buildings, lamps, flags and tombstones stay hidden in the dark until you explore that land, instead of floating in the void.",
   "news.0.100.0": "Your buildings in a shared world now keep working while you are away, up to 8 hours, just like in your own world. When you come back, a message says what they made.",

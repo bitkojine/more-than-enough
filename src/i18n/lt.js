@@ -763,6 +763,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.101.1": "Išsaugotas pasaulis, kurio ši žaidimo versija negali atverti, dabar padedamas į šalį, o ne perrašomas, kad pataisymas galėtų jį sugrąžinti. Jei po atnaujinimo svetainė trumpam pateikia senesnį puslapį, tavo pasaulis grįžta kitą kartą įkėlus, o ne dingsta.",
   "news.0.101.0": "Bendri pasauliai su daug žaidėjų lieka aiškūs: Nustatymuose skiltis Žaidėjai rodo visus, kaip jiems sekasi ir kaip toli jie yra, o pasaulio savininkas ten gali bet kurį pašalinti. {phone:Bakstelk|laptop:Spustelk} +N šalia draugų, kad ją atvertum.\nVardai virš galvų minioje nebesikrauna vienas ant kito, o ženkliukai ekrano krašte nebeuždengia vienas kito ir tavęs.",
   "news.0.100.1": "Bendrame pasaulyje kitų žaidėjų pastatai, lempos, vėliavos ir antkapiai lieka paslėpti tamsoje, kol neištyrinėji tos žemės, o ne kybo tuštumoje.",
   "news.0.100.0": "Tavo pastatai bendrame pasaulyje dabar dirba ir tau nesant, iki 8 valandų, kaip ir tavo paties pasaulyje. Grįžus pranešimas pasako, ką jie pagamino.",

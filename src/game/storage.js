@@ -4,6 +4,8 @@
 import { serialize, deserialize, createState } from '../core/index.js';
 
 const SAVE_KEY = 'more-than-enough-save';
+// A save this version couldn't read, set aside rather than written over.
+const ASIDE_KEY = 'more-than-enough-save-aside';
 const VIEW_KEY = 'more-than-enough-view';
 
 function read(key) {
@@ -62,12 +64,20 @@ export function onSavedElsewhere(fn) {
 
 // Loads the saved game, or starts a new world. `lost` is true when a save
 // existed but could not be read, so the player can be told.
+// A save that can't be read is set aside, never just written over: one this
+// version can read is taken back instead (an old cached page right after an
+// update set the new game's save aside, or a later fix reads it again).
 export function loadGame() {
   const raw = read(SAVE_KEY);
   known = raw;
   if (!raw) return { state: createState(randomSeed()), lost: false };
   const state = deserialize(raw);
-  return state ? { state, lost: false } : { state: createState(randomSeed()), lost: true };
+  if (state) return { state, lost: false };
+  const aside = read(ASIDE_KEY);
+  const back = aside && deserialize(aside);
+  write(ASIDE_KEY, raw);
+  if (back) return { state: back, lost: false };
+  return { state: createState(randomSeed()), lost: true };
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have

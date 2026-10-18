@@ -88,7 +88,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                sav = component "Storage" "Guarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." "JavaScript + localStorage" {
+                sav = component "Storage" "Guarded localStorage: load, save (reporting failures, never over another tab's save) and setting aside a save it can't read rather than writing over it, plus per-browser view settings." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/storage.js"

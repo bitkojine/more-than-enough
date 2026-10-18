@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.101.1] - 2026-10-18
+
+From the persistence review, bug 1 of 9.
+
+### Fixed
+- **A save the game can't read is set aside, not written over.** Before,
+  an unreadable save (another format, or broken) was replaced by the new
+  world the moment the game opened, so nothing could bring it back. Now it
+  is kept under `more-than-enough-save-aside` (`src/game/storage.js`
+  `loadGame`), and a save set aside that this version *can* read is taken
+  back instead of starting a new world. That also covers an old page the
+  CDN serves for a minute after an update: it sets the new game's save
+  aside, and the next load of the new game brings it back. Tests:
+  `test/unit/storage.test.js`.
+
 ## [0.101.0] - 2026-10-18
 
 Watch asked that the game stay good to use when a shared world's player
