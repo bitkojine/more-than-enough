@@ -757,6 +757,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.100.1": "Bendrame pasaulyje kitų žaidėjų pastatai, lempos, vėliavos ir antkapiai lieka paslėpti tamsoje, kol neištyrinėji tos žemės, o ne kybo tuštumoje.",
   "news.0.100.0": "Tavo pastatai bendrame pasaulyje dabar dirba ir tau nesant, iki 8 valandų, kaip ir tavo paties pasaulyje. Grįžus pranešimas pasako, ką jie pagamino.",
   "news.0.99.0": "Kiekvienas bendras pasaulis dabar turi savo vardą, pavyzdžiui, „Paparčių slėnis“, tad visada žinai, prie kurio pasaulio jungiesi. Nustatymuose atsirado pasaulių sąrašas: tavo paties pasaulis ir visi bendri pasauliai, prie kurių prisijungei, ir kiek kiekviename dabar žaidžia. Spausk „Žaisti“, kad persijungtum.",
   "news.0.98.0": "Sąrašai ir nustatymai dabar nepermatomi, pro juos nieko nesimato. Žemame gulsčiame ekrane etapo juosta nebeuždengia tavo veikėjo. Bendrame pasaulyje nutrūkus ryšiui, žaidimas grįžta vos tik vėl prisijungi, o kartu prisijungę draugai atsiranda kiekvienas savo vietoje.",

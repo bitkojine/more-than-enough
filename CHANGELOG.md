@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.100.1] - 2026-10-18
+
+### Fixed
+- **Nothing floats in the dark any more.** Watch saw other players'
+  buildings standing in the void over land they hadn't explored yet. The
+  renderer drew every building, prop and tombstone on the layer, explored or
+  not. What stands on a layer is now gathered in `src/game/render/scene.js`,
+  which leaves out anything on an unexplored tile (lamps then cast no light
+  and flags no beacon from the dark); it shows once you explore it. Friends
+  still always show, so you can find each other. Tested in
+  `test/unit/scene.test.js`.
+
 ## [0.100.0] - 2026-10-18
 
 ### Added

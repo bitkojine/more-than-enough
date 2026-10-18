@@ -12,11 +12,12 @@ import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles } from './terrain.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { scene } from './scene.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const FLICKER = 0.25;
-const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign      // how much a glowcap's reach swells and fades, in tiles
+const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in tiles
+const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
@@ -30,51 +31,25 @@ export function render(cam, s, fx, view, look) {
   ctx.fillStyle = look.color('color.backdrop');
   ctx.fillRect(0, 0, cam.width, cam.height);
 
-  const byRow = new Map();
-  const built = new Set(); // tiles with a building on them show no trees or boulders
-  for (const e of s.extractors) {
-    if (e.z !== cam.z) continue;
-    built.add(Core.packKey(e.x, e.y, e.z));
-    const row = byRow.get(e.y);
-    if (row) row.push(e); else byRow.set(e.y, [e]);
-  }
+  // Props that light, as lights (a glowcap pulses slowly, like something
+  // alive), and the beacons.
+  const { buildings, built, friends: friendRows, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
-  // Friends in a shared world, on this layer, by row.
-  const friendRows = new Map();
-  for (const f of view.friends || []) {
-    if (f.z !== cam.z) continue;
-    const y = Math.floor(f.y), row = friendRows.get(y);
-    if (row) row.push(f); else friendRows.set(y, [f]);
-  }
-  // Tombstones of banned and frozen characters, on this layer, by row.
-  const graveRows = new Map();
-  for (const g of view.graves || []) {
-    if (g.z !== cam.z) continue;
-    const y = Math.floor(g.y), row = graveRows.get(y);
-    if (row) row.push(g); else graveRows.set(y, [g]);
-  }
-  // Props on this layer, by row; the ones that light, as lights (a glowcap
-  // pulses slowly, like something alive), and the beacons.
-  const propRows = new Map();
   const lights = [], beacons = [];
-  for (const [k, kind] of s.world.props) {
-    const t = Core.unpackKey(k);
-    if (t.z !== cam.z) continue;
-    const row = propRows.get(t.y);
-    if (row) row.push([t.x, kind]); else propRows.set(t.y, [[t.x, kind]]);
+  for (const { x, y, kind } of placed) {
     const def = Core.PROPS[kind];
     if (def.light) {
-      const flicker = kind === 'glowcap' ? FLICKER * Math.sin(s.time * 1.6 + t.x * 1.7 + t.y * 2.3) : 0;
-      lights.push({ x: t.x + 0.5, y: t.y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
+      const flicker = kind === 'glowcap' ? FLICKER * Math.sin(s.time * 1.6 + x * 1.7 + y * 2.3) : 0;
+      lights.push({ x: x + 0.5, y: y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
     }
-    if (def.beacon) beacons.push({ x: t.x, y: t.y, kind });
+    if (def.beacon) beacons.push({ x, y, kind });
   }
 
   let you = null;    // where your head and hands are, for your name and sign
   const tags = [];   // friends' names, drawn last, over the night
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
-    const row = byRow.get(y);
+    const row = buildings.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
