@@ -116,11 +116,6 @@ test('milestones count in any order, and the next one says what it still takes',
   const next = C.nextGoal(s);
   assert.equal(next.id, 'pickaxe');
   assert.deepEqual(C.goalNeeds(s, next), { cost: C.TOOLS.pickaxe.levels[1].cost });
-  const price = C.TOOLS.pickaxe.levels[1].cost;
-  s.inv.mycelium = 130; s.inv.stone = price.stone - 1;
-  assert.equal(C.nextGoalReady(s), false, 'one stone short');
-  s.inv.stone = price.stone;
-  assert.equal(C.nextGoalReady(s), true);
 
   // A converter's milestone asks for its blueprint first.
   assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.UNLOCKS.compost.cost });

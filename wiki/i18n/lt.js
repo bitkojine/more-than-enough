@@ -300,7 +300,9 @@ export default {
           aukštyn papėdės. Kitur mygtuko nėra: pačiam išsikasti kelio aukštyn ar žemyn niekada nepavyks. Žr.
           <a href="#mine">Kasykla</a>.</li>
       </ul>
-      <p><strong>Žalias taškelis</strong> ant STATYTI ar TOBULINTI reiškia, kad ten yra kažkas, ką gali padėti ar nusipirkti jau dabar.
+      <p><strong>NAUJA</strong> ant STATYTI ar TOBULINTI reiškia, kad ten atsirado kažkas, ką dabar gali įpirkti, o anksčiau
+        negalėjai (pastatas, dar vienas tokios rūšies pastatas, kitas patobulinimo lygis). Užrašas lieka, kol atsidarai tą lapą, kur
+        tos eilutės irgi pažymėtos NAUJA; vaikštant ar išleidžiant jis niekur nedingsta.
         Lapą uždarysi <strong>&times;</strong> šalia jo pavadinimo{phone: arba nubraukęs jį žemyn už rankenėlės.|laptop: arba klavišu <kbd>Esc</kbd>.}</p>
 
 {phone:|laptop:
@@ -774,7 +776,7 @@ export default {
   "wiki.article.milestones.title": "Etapai",
   "wiki.article.milestones": `      <h1>Etapai</h1>
       <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;
-        kai turi viską, ko reikia kitam etapui, ant taurės atsiranda žalias taškas.</p>
+        pasiekus etapą, taurė šviečia, kol atsidarai Apdovanojimus.</p>
       <div data-table="milestones"></div>
       <p>Etapas įskaitomas vos jį pasiekus, bet kuria tvarka; kitas rodomas pirmasis šio sąrašo etapas, kurio dar nepasiekei. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
   "wiki.article.things.title": "Viskas žaidime",

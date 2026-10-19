@@ -9,7 +9,7 @@
 
 import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
 import { RESOURCES } from './tiles.js';
-import { extractorCount, ownBuilding, extractorCost, canAfford } from './economy.js';
+import { extractorCount, ownBuilding, extractorCost } from './economy.js';
 import { canEmbark, worldTotal } from './state.js';
 import { upgradeCost, isMaxed, worldMastery } from './upgrades.js';
 import { t, number } from '../i18n/i18n.js';
@@ -102,12 +102,4 @@ export function goalNeeds(s, goal) {
     return { cost: blueprint && !s.unlocks[blueprint] ? UNLOCKS[blueprint].cost : extractorCost(s, goal.build) };
   }
   return goal.count ? goal.count(s) : null;
-}
-
-// Whether the next milestone could be reached right now (its price is in
-// your packs), so the trophy can say it's worth a look.
-export function nextGoalReady(s) {
-  const goal = nextGoal(s);
-  const needs = goal && goalNeeds(s, goal);
-  return !!(needs && needs.cost && canAfford(s.inv, needs.cost));
 }

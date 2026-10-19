@@ -67,10 +67,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                ui = component "HUD and Sheet" "Resource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond; the phone's Back steps back through it. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." "JavaScript" {
+                ui = component "HUD and Sheet" "Resource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond, with NEW on Build and Upgrade until what became affordable is looked at; the phone's Back steps back through it. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/hud.js, src/game/sheet.js, src/game/back.js"
+                        "ref" "src/game/hud.js, src/game/sheet.js, src/game/fresh.js, src/game/back.js"
                     }
                 }
 

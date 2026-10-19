@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.129.0] - 2026-10-19
+
+Watch's report: the green dots over Build and Upgrade came and went for no
+reason. The Build dot needed a free tile of the right ground within arm's
+reach, so it flickered as you walked; all three dots (Build, Upgrade,
+trophy) only meant "affordable now", so any spending put them all out.
+Watch chose: a NEW tag that means new,
+every new level counting, no dot on the trophy, Place left as it is.
+
+### Changed
+- BUILD and UPGRADE show a NEW tag (NAUJA) once something there becomes
+  affordable that wasn't before (a building, the next one of a kind, an
+  upgrade's next level; water power and mine lights once you've been on
+  water or underground). It stays until that sheet is opened or the thing
+  is bought; where you stand no longer matters. `src/game/fresh.js` keeps
+  what was seen per world in localStorage; a world without a record starts
+  with what it can afford as seen.
+- Rows that were new, and their family on the Upgrades map, carry the same
+  tag while the sheet is open.
+- The trophy's green dot is gone (the purchase is on Upgrade, which says
+  NEW); it still glows after a milestone until the Awards are opened.
+  `nextGoalReady` is gone from `src/core/goals.js` with it.
+- docs/ui.md rule 6: a badge means new and only looking clears it; what you
+  can do right here shows where you do it.
+
 ## [0.128.0] - 2026-10-19
 
 Watch's choice: Perfect plays the best game it can (v0.121.0 got it to

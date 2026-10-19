@@ -9,6 +9,7 @@ import * as Core from '../core/index.js';
 import { fmt, fmtRate, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t, listOr, capitalize } from '../i18n/i18n.js';
+import { SHEETS } from './fresh.js';
 
 const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
@@ -22,6 +23,10 @@ const PERK_FAMILY = Core.pathFamily('perks');
 
 // Set by createSheet: pictures come from the current texture pack.
 let look = null;
+// What's new on the sheet showing (src/game/fresh.js): ids to tag NEW.
+let newIds = new Set();
+const NEW_TAG = `<span class="newTag">${t('badge.new')}</span>`;
+const newTag = (id) => newIds.has(id) ? ' ' + NEW_TAG : '';
 const pic = (id, slot) => iconHtml(look, id, 'ico', slot);
 const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
@@ -103,7 +108,7 @@ const DESCRIBE = {
 function upgradeRow(s, id) {
   const u = Core.UPGRADES[id];
   const d = DESCRIBE[u.kind](s, id);
-  const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
+  const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '') + newTag(id);
   const cost = Core.upgradeCost(s, id);
   if (cost === null) return row(pic(u.look), name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
   const affordable = Core.canBuy(s, id);
@@ -118,7 +123,7 @@ const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || 
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions, look: currentLook, onTab = () => {} }) {
+export function createSheet(el, { getState, actions, look: currentLook, fresh = null, onTab = () => {} }) {
   look = currentLook;
   let open = false;
   let tab = 'upgrades';
@@ -139,7 +144,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     return `<button class="railHead${p.canBuy ? ' ready' : ''}${extra.cls || ''}" type="button" data-family="${extra.target || familyId}"` +
       (extra.expandable ? ` aria-expanded="${extra.open}"` : '') + '>' +
       `<span class="fh-ic">${pic(famLook)}</span>` +
-      `<span class="fh-main"><span class="fh-nm">${esc(name)}</span>${rail(p.nodes)}</span>` +
+      `<span class="fh-main"><span class="fh-nm">${esc(name)}${p.nodes.some((n) => newIds.has(n.key)) ? ' ' + NEW_TAG : ''}</span>${rail(p.nodes)}</span>` +
       `<span class="fh-count">${countText(p)}</span>` +
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
   }
@@ -162,7 +167,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   function extractorRow(s, key) {
     const def = Core.EXTRACTORS[key];
     const count = Core.extractorCount(s, key);
-    const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
+    const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '') + newTag(key);
     const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
     if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
@@ -189,7 +194,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     const here = Core.canPlaceProp(s, kind);
     const ok = here && Core.canAfford(s.inv, def.cost);
     const where = def.on === 'tunnel' || here ? '' : `<br><span class="where">${t('sheet.goesOn.' + def.on, { tool: Core.TOOLS.boots.name, lv: Core.GEAR.water })}</span>`;
-    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
+    return row(pic('mark.' + kind, 'image'), def.name + newTag(kind), def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
   }
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
@@ -295,7 +300,13 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
 
   const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected };
 
+  // Looking at Build or Upgrades sees what's new there.
+  function noteNew() {
+    newIds = fresh && open && SHEETS.includes(tab) ? fresh.see(getState(), tab) : new Set();
+  }
+
   function render() {
+    noteNew();
     el.sheetBody.innerHTML = PANELS[tab] ? '' : RENDER[tab](getState());
   }
 
@@ -314,6 +325,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
   }
   function refresh() {
     if (PANELS[tab]) return;
+    noteNew();
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
     // Nothing to tap in Collected: swap in just the rows and cards that changed.

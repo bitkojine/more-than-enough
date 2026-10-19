@@ -13,6 +13,7 @@ import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
+import { createFresh } from './fresh.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerfect } from './perfect.js';
@@ -266,9 +267,11 @@ const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.
 const perfect = createPerfect({ game, controller, hud });
 
 const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
+const fresh = createFresh();
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
+  fresh,
   onTab: (tab) => {
     if (tab === 'awards') hud.awardsSeen();
     if (tab === 'map') worldMap.show();
@@ -395,7 +398,7 @@ el.language.addEventListener('click', () => {
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
   { every: 0.4, run: () => controller.checkGoals() },
-  { every: 0.25, run: () => { hud.update(game.state); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
+  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;

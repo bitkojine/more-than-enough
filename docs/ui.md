@@ -11,7 +11,7 @@ place it belongs here rather than adding a button where there is room.
 4. **One currency bar.** All resources in one capsule, tap to see details. (Every F2P game.)
 5. **Settings behind a gear.** Sound, music, controls, language, wiki: one Settings screen from a gear in the top-right. Irreversible actions ask first, in-game.
 5a. **Technical things under Nerds.** Most players never need texture packs or the performance panel, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
-6. **Badges, not prose.** A badge on a button says "something here for you".
+6. **Badges, not prose, and only looking clears them.** A badge on a button says "something new here for you" and stays until you open what it points to; walking, spending or waiting never hide it. What you can do *right now, right here* shows where you do it (lit buttons in a sheet, Gather's label, Climb popping in), not as a badge. Green is something to do, gold is something reached or to read.
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
 8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close. A screen opened from Settings (Nerds, Worlds, Players, Invite links) has ‹ before its title, back to Settings.
 9. **Back always steps back.** The phone's own Back and Escape go back one level: a screen inside Settings to Settings, a question says no, a sheet closes (`src/game/back.js`). Only with nothing open does Back leave the game.
@@ -62,6 +62,11 @@ place it belongs here rather than adding a button where there is room.
 ### Upgrades and Beyond
 - **Upgrades is a progression map**, not a shop list: one row per family (`PATH_FAMILIES` in `src/core/upgrades.js`) with its count (`3/8`); tapping a family opens its buy rows, and families with something to buy start open. Rows and the map read the same upgrade registry, so they can't disagree.
 - **Beyond** (perks and Embark) stays hidden until the world is mastered, and never shows in a shared world. There are no in-world refunds: Embark is the respec.
+
+### What's new on Build and Upgrade
+- **NEW** (a small green tag, *NAUJA* in Lithuanian) on BUILD or UPGRADE: something there has become affordable that you couldn't get before. Every new level counts: a building, the next one of a kind, an upgrade's next level; water power and mine lights once you've been on water or underground. Where you stand doesn't matter (Watch, 2026-10-19).
+- It stays until you open that sheet, where the rows that were new (and their family on the Upgrades map) carry the same tag while the sheet is open. Buying the thing, yourself or by AUTO, clears it too. What's been seen is kept per world on the phone (`src/game/fresh.js`); a world opened for the first time since this shipped starts with what it can afford as seen.
+- The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
 
 ### Messages
 - A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.

@@ -634,7 +634,8 @@ async function main() {
     'a price shows how much more of each resource is needed (' + await evalJS('[...document.querySelector(".row button[data-id=basket]").closest(".row").querySelectorAll(".amt")].map(function(a){return a.className+":"+a.textContent;}).join(" ")') + ')');
   await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.upgradeCost(s,"basket");for(var r in c)s.inv[r]=c[r];})()');
   ok(await waitFor('(function(){var row=document.querySelector(".row button[data-id=basket]").closest(".row");return row.querySelector(".price.ready")&&!row.querySelector(".amt.need");})()', 2000), 'once you have it all, the price shows what it costs');
-  ok(await waitFor('document.getElementById("btnUpgrade").classList.contains("has")', 2000), 'UPGRADE wears a dot while something in it can be bought');
+  ok(await waitFor('!!document.querySelector(".row button[data-id=basket]").closest(".row").querySelector(".nm .newTag")', 2000), 'a row that just became affordable says NEW while the sheet is open');
+  ok(!(await evalJS('document.getElementById("btnUpgrade").classList.contains("has")')), 'UPGRADE does not say NEW while its own sheet is open');
   ok(await evalJS('/gradient/.test(getComputedStyle(document.querySelector(".row button[data-id=basket]")).backgroundImage)'), 'a button you can press looks raised and solid');
   console.log('  screenshot: ' + await shot('02c-upgrades.png'));
   await evalJS('Object.assign(MTE_GAME.getState().inv,' + savedInv + ')');
@@ -759,6 +760,27 @@ async function main() {
   await key('keyUp', 'b', 'KeyB', 66);
   await sleep(300);
   ok(!(await evalJS('document.getElementById("sheet").classList.contains("open")')), 'B key closes the sheet when Build is already active');
+
+  console.log('\n== NEW on BUILD stays until you look ==');
+  var newSaved = await evalJS('JSON.stringify({inv:MTE_GAME.getState().inv,x:MTE_GAME.getState().player.x,y:MTE_GAME.getState().player.y})');
+  // One more garden than any seen yet (each next one is new), then its price.
+  await evalJS('(function(){var s=MTE_GAME.getState();for(var r in s.inv)s.inv[r]=0;s.extractors.push({key:"garden",res:"mycelium",x:9999,y:9999,z:s.player.z,buffer:0});})()');
+  await sleep(400);
+  await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core.extractorCost(s,"garden");for(var r in c)if(s.inv[r]<c[r])MTE_GAME.addRes(r,c[r]-s.inv[r]);})()');
+  ok(await waitFor('document.getElementById("btnBuild").classList.contains("has")', 2000), 'BUILD says NEW once a building becomes affordable');
+  ok(await evalJS('getComputedStyle(document.querySelector("#btnBuild .newTag")).display !== "none" && document.querySelector("#btnBuild .newTag").textContent === "NEW"'), 'the tag reads NEW');
+  await evalJS('(function(){var s=MTE_GAME.getState();MTE_GAME.setPlayer(s.player.x+60,s.player.y+60);for(var r in s.inv)s.inv[r]=0;})()');
+  await sleep(600);
+  ok(await evalJS('document.getElementById("btnBuild").classList.contains("has")'), 'walking away and spending do not take NEW away');
+  var buildBtn = await rect('#btnBuild');
+  await tap(buildBtn.x, buildBtn.y);
+  await sleep(300);
+  ok(await evalJS('!!document.querySelector(".row button[data-id=garden]").closest(".row").querySelector(".nm .newTag")'), 'the new row says NEW in the sheet');
+  await key('keyDown', 'Escape', 'Escape', 27);
+  await key('keyUp', 'Escape', 'Escape', 27);
+  await sleep(600);
+  ok(!(await evalJS('document.getElementById("btnBuild").classList.contains("has")')), 'once looked at, BUILD no longer says NEW');
+  await evalJS('(function(){var v=' + newSaved + ',s=MTE_GAME.getState();s.extractors.pop();Object.assign(s.inv,v.inv);MTE_GAME.setPlayer(v.x,v.y);})()');
 
   console.log('\n== Automation produces over time ==');
   await sleep(2500);

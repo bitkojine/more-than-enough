@@ -392,14 +392,21 @@ body.signing #btnVersion { visibility: hidden; }
   white-space: nowrap; color: #c9d6c6;
   pointer-events: none;
 }
-/* Something in the sheet you can buy or place right now (on the trophy: the
-   next milestone). */
-.btn.has::before, #btnAwards.has::before {
-  content: ""; position: absolute; top: 0; right: 0;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: #7fe06e; border: 2px solid #0c140e;
-  box-shadow: 0 0 8px rgba(127, 224, 110, 0.8);
+/* NEW: something on that sheet became affordable that you couldn't get
+   before; it stays until you look (src/game/fresh.js). The same tag marks
+   those rows inside the sheet. */
+.newTag {
+  display: inline-block; padding: 2px 5px; border-radius: var(--r-pill);
+  background: #7fe06e; color: #08200b; border: 1.5px solid #0c140e;
+  font: 900 9px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.04em; vertical-align: middle; white-space: nowrap;
 }
+.btn .newTag {
+  display: none; position: absolute; top: -6px; right: -8px;
+  box-shadow: 0 0 8px rgba(127, 224, 110, 0.8);
+  pointer-events: none;
+}
+.btn.has .newTag { display: block; }
 
 #btnBuild, #btnUpgrade, #btnMine { width: var(--sub); height: var(--sub); }
 #btnUpgrade { right: calc(var(--act) + var(--gap)); bottom: calc((var(--act) - var(--sub)) / 2); }

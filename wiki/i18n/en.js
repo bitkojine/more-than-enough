@@ -304,7 +304,9 @@ export default {
           ladder up. Anywhere else there's no button: you can never dig your own way up or down. See
           <a href="#mine">The mine</a>.</li>
       </ul>
-      <p>A <strong>green dot</strong> on BUILD or UPGRADE means there's something in there you can place or buy right now.
+      <p><strong>NEW</strong> on BUILD or UPGRADE means something in there has become affordable that you couldn't get
+        before (a building, the next one of a kind, an upgrade's next level). It stays until you open that sheet, where those
+        rows say NEW too; walking or spending never takes it away.
         Close the sheet with the <strong>&times;</strong> by its title{phone:, or swipe it down by its handle.|laptop:, or press <kbd>Esc</kbd>.}</p>
 
 {phone:|laptop:
@@ -783,7 +785,7 @@ export default {
   "wiki.article.milestones.title": "Milestones",
   "wiki.article.milestones": `      <h1>Milestones</h1>
       <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a banner naming it. The Awards tab shows the next one, what it still takes, and the last one far off;
-        the trophy gets a green dot when you have what the next one costs.</p>
+        the trophy glows after you reach one, until you open the Awards.</p>
       <div data-table="milestones"></div>
       <p>A milestone counts the moment you do it, in any order; the next one shown is the first on this list you haven't reached. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
   "wiki.article.things.title": "Everything in the game",

@@ -168,7 +168,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `src/game/` — the browser layer
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core; `perfect.js` — the AUTO button (Auto-play), carrying out the brain's intents while held
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and a fixed slight lean; picking hits the block you see
-  - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`, `fork.js`, `ask.js`
+  - `render/`, `effects.js`, `hud.js`, `sheet.js` (`fresh.js`: when Build and Upgrade say NEW), `audio.js`, `storage.js`, `fork.js`, `ask.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory: they grow, slide, merge 2048-style and puff as it changes

@@ -139,15 +139,7 @@ export function createHud(el, look) {
         setText(chips[r].val, fmtShort(s.inv[r]));
         setText(chips[r].rate, rates[r] > 0.01 ? '+' + fmtRate(rates[r], true) + '/s' : '');
       }
-      // A dot on BUILD and UPGRADE when there's something in there you can
-      // do right now, so the sheet is worth opening.
-      el.upgrade.classList.toggle('has', Core.PATH_FAMILIES.some((f) => f.layer === 'world' && Core.pathProgress(s, f.id).canBuy));
-      el.build.classList.toggle('has', [...Core.DEPOSIT_EXTRACTORS, ...Core.CONVERTERS].some((k) => {
-        const def = Core.EXTRACTORS[k];
-        return (!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k)) && !!Core.buildTarget(s, k);
-      }));
       setText(el.awardCount, String(s.goalIndex));
-      el.awards.classList.toggle('has', Core.nextGoalReady(s));
       const below = Core.isUnderground(s);
       inSight = !below && !!Core.nearestWork(s);
       updateBattery(s);
@@ -158,6 +150,12 @@ export function createHud(el, look) {
         el.depth.setAttribute('aria-label', t('hud.layerN', { n: Core.SURFACE - s.player.z }));
       }
       updateGauge(s);
+    },
+
+    // NEW on BUILD and UPGRADE (src/game/fresh.js says when).
+    fresh(news) {
+      el.build.classList.toggle('has', news.build);
+      el.upgrade.classList.toggle('has', news.upgrades);
     },
 
     // AUTO (the Perfect button) above Gather: its badge shows what holding
