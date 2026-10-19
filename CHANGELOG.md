@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.128.0] - 2026-10-19
+
+Watch's choice: Perfect plays the best game it can (v0.121.0 got it to
+Embark in 24.7 h), and that best game should still last about 40 h.
+
+### Changed
+- Refinery levels 6-10 cost x1.22, x1.49, x1.82, x2.22 and x2.71 what they
+  did (`REFINERIES` in content.js; two significant figures). Everything up to
+  level 5 is unchanged, so the first hours play as before. Perfect, held from
+  spawn, reaches Embark in a median 40.09 h on the benchmark's 4 worlds
+  (39.9-41.2 h), from 24.65 h. Milestones keep widening: refined5 2.4 h,
+  tools 4.0 h, Abundance IV 4.7 h, Abundance V 13.1 h, refined9 22.8 h,
+  refined10 and Embark 40.1 h. `test/perfect-baseline.json` re-recorded.
+
 ## [0.127.2] - 2026-10-19
 
 Watch's ask: show the hold hint after every short tap on AUTO, so players

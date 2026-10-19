@@ -837,6 +837,7 @@ export default {
   "news.new": "New",
   "news.full": "Every change, for developers",
   "news.shareIdea": "Share an idea",
+  "news.0.128.0": "Refinery levels 6 to 10 cost more, a little more at each level. Played as well as it can be, a world now takes about 40 hours again. What you already own stays yours.",
   "news.0.127.2": "Every quick {phone:tap|laptop:click} on AUTO now reminds you to hold it down, not just the first few.",
   "news.0.127.1": "Auto-play no longer gets stuck trying to put a building on a deposit you've emptied. It picks one with something left, further out if it must.",
   "news.0.127.0": "Perfect is now called AUTO (Auto-play). It plays only while you hold it down: a quick {phone:tap|laptop:click} reminds you to hold it, a gold ring turns round the button while you do, and a gold AUTO tag floats over your character while it plays.",

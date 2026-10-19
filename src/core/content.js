@@ -191,11 +191,11 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 820, stone: 200 } },
       { mult: 2, cost: { mycelium: 54000, stone: 18000, ore: 900 } },
       { mult: 2, cost: { mycelium: 710000, stone: 240000, ore: 13000 } },
-      { mult: 2, cost: { mycelium: 12000000, stone: 4000000, ore: 210000, crystal: 11000 } },
-      { mult: 2, cost: { mycelium: 130000000, stone: 44000000, ore: 2100000, crystal: 120000 } },
-      { mult: 2, cost: { mycelium: 660000000, stone: 220000000, ore: 8100000, crystal: 510000 } },
-      { mult: 2, cost: { mycelium: 3300000000, stone: 1100000000, ore: 30000000, crystal: 1900000 } },
-      { mult: 2, cost: { mycelium: 16000000000, stone: 5100000000, ore: 97000000, crystal: 6100000 } }
+      { mult: 2, cost: { mycelium: 15000000, stone: 4900000, ore: 260000, crystal: 13000 } },
+      { mult: 2, cost: { mycelium: 190000000, stone: 65000000, ore: 3100000, crystal: 180000 } },
+      { mult: 2, cost: { mycelium: 1200000000, stone: 400000000, ore: 15000000, crystal: 930000 } },
+      { mult: 2, cost: { mycelium: 7300000000, stone: 2400000000, ore: 66000000, crystal: 4200000 } },
+      { mult: 2, cost: { mycelium: 43000000000, stone: 14000000000, ore: 260000000, crystal: 16000000 } }
     ]
   },
   stone: {
@@ -206,11 +206,11 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 5000, stone: 2500, ore: 100 } },
       { mult: 2, cost: { mycelium: 100000, stone: 46000, ore: 2300 } },
       { mult: 2, cost: { mycelium: 1200000, stone: 520000, ore: 28000 } },
-      { mult: 2, cost: { mycelium: 22000000, stone: 9700000, ore: 540000, crystal: 13000 } },
-      { mult: 2, cost: { mycelium: 260000000, stone: 110000000, ore: 5500000, crystal: 150000 } },
-      { mult: 2, cost: { mycelium: 1100000000, stone: 480000000, ore: 19000000, crystal: 520000 } },
-      { mult: 2, cost: { mycelium: 5700000000, stone: 2500000000, ore: 79000000, crystal: 1900000 } },
-      { mult: 2, cost: { mycelium: 24000000000, stone: 11000000000, ore: 240000000, crystal: 4800000 } }
+      { mult: 2, cost: { mycelium: 27000000, stone: 12000000, ore: 660000, crystal: 16000 } },
+      { mult: 2, cost: { mycelium: 390000000, stone: 160000000, ore: 8200000, crystal: 220000 } },
+      { mult: 2, cost: { mycelium: 2000000000, stone: 870000000, ore: 35000000, crystal: 940000 } },
+      { mult: 2, cost: { mycelium: 13000000000, stone: 5500000000, ore: 180000000, crystal: 4200000 } },
+      { mult: 2, cost: { mycelium: 65000000000, stone: 30000000000, ore: 650000000, crystal: 13000000 } }
     ]
   },
   ore: {
@@ -221,11 +221,11 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 12000, stone: 8400, ore: 460 } },
       { mult: 2, cost: { mycelium: 310000, stone: 220000, ore: 13000 } },
       { mult: 2, cost: { mycelium: 2400000, stone: 1800000, ore: 100000 } },
-      { mult: 2, cost: { mycelium: 22000000, stone: 17000000, ore: 930000, crystal: 11000 } },
-      { mult: 2, cost: { mycelium: 280000000, stone: 210000000, ore: 9800000, crystal: 140000 } },
-      { mult: 2, cost: { mycelium: 940000000, stone: 740000000, ore: 27000000, crystal: 370000 } },
-      { mult: 2, cost: { mycelium: 5800000000, stone: 4800000000, ore: 160000000, crystal: 1500000 } },
-      { mult: 2, cost: { mycelium: 20000000000, stone: 16000000000, ore: 510000000, crystal: 3100000 } }
+      { mult: 2, cost: { mycelium: 27000000, stone: 21000000, ore: 1100000, crystal: 13000 } },
+      { mult: 2, cost: { mycelium: 420000000, stone: 310000000, ore: 15000000, crystal: 210000 } },
+      { mult: 2, cost: { mycelium: 1700000000, stone: 1300000000, ore: 49000000, crystal: 670000 } },
+      { mult: 2, cost: { mycelium: 13000000000, stone: 11000000000, ore: 350000000, crystal: 3300000 } },
+      { mult: 2, cost: { mycelium: 54000000000, stone: 43000000000, ore: 1400000000, crystal: 8400000 } }
     ]
   },
   crystal: {
@@ -236,11 +236,11 @@ export const REFINERIES = {
       { mult: 2, cost: { stone: 25000, ore: 8700, crystal: 310 } },
       { mult: 2, cost: { stone: 420000, ore: 150000, crystal: 5000 } },
       { mult: 2, cost: { stone: 8700000, ore: 3000000, crystal: 99000 } },
-      { mult: 2, cost: { mycelium: 41000000, stone: 99000000, ore: 33000000, crystal: 1000000 } },
-      { mult: 2, cost: { mycelium: 160000000, stone: 450000000, ore: 150000000, crystal: 4200000 } },
-      { mult: 2, cost: { mycelium: 860000000, stone: 2300000000, ore: 790000000, crystal: 19000000 } },
-      { mult: 2, cost: { mycelium: 3200000000, stone: 9100000000, ore: 3200000000, crystal: 65000000 } },
-      { mult: 2, cost: { mycelium: 9600000000, stone: 27000000000, ore: 9600000000, crystal: 150000000 } }
+      { mult: 2, cost: { mycelium: 50000000, stone: 120000000, ore: 40000000, crystal: 1200000 } },
+      { mult: 2, cost: { mycelium: 240000000, stone: 670000000, ore: 220000000, crystal: 6300000 } },
+      { mult: 2, cost: { mycelium: 1600000000, stone: 4200000000, ore: 1400000000, crystal: 35000000 } },
+      { mult: 2, cost: { mycelium: 7100000000, stone: 20000000000, ore: 7100000000, crystal: 140000000 } },
+      { mult: 2, cost: { mycelium: 26000000000, stone: 73000000000, ore: 26000000000, crystal: 410000000 } }
     ]
   }
 };
