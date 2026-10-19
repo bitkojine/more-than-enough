@@ -219,7 +219,7 @@ export default {
         kurią žaidi.</div>
       <ul class="cards">
         <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis{phone:.|laptop:, klaviatūra.}</span></a></li>
-        <li><a href="#perfect"><strong>Idealiai</strong><span>Laikyk mygtuką virš „Rinkti“ ir žaidimas žais pats.</span></a></li>
+        <li><a href="#perfect"><strong>Autožaidimas</strong><span>Laikyk mygtuką „Auto“ virš „Rinkti“ ir žaidimas žais pats.</span></a></li>
         <li><a href="#screen"><strong>Ekranas</strong><span>Ką reiškia skaitikliai, mygtukai ir švytėjimai.</span></a></li>
         <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, kas surenkama visam laikui, diena ir naktis.</span></a></li>
         <li><a href="#gathering"><strong>Rinkimas</strong><span>Ištekliai, derlius ir kaip išsenka telkiniai.</span></a></li>
@@ -267,10 +267,10 @@ export default {
         plotelį aplink save. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
 
-      <h2>Idealiai</h2>
-      <p>Iškart virš „Rinkti“ yra mažesnis mygtukas – <strong>Idealiai</strong>. Laikyk jį ir žaidimas žais pats:
+      <h2>Autožaidimas</h2>
+      <p>Iškart virš „Rinkti“ yra mažesnis mygtukas – <strong>„Auto“</strong>. Laikyk jį nuspaudęs ir žaidimas žais pats:
         tyrinės, rinks, paims produkciją, pirks, statys ir leisis į kasyklą, maždaug keturis kartus per sekundę, kol laikai.
-        Mažas paveiksliukas ant jo rodo, ką jis daro. Ką jis daro ir ką palieka tau, rasi skyriuje <a href="#perfect">Idealiai</a>.</p>
+        Mažas paveiksliukas ant jo rodo, ką jis daro. Ką jis daro ir ką palieka tau, rasi skyriuje <a href="#perfect">Autožaidimas</a>.</p>
 
       <h2>Mastelis</h2>
       <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš veiksmų mygtukų arba {phone:suimk dviem pirštais|laptop:sukiok pelės ratuką ar suimk ant jutiklinio kilimėlio}.
@@ -310,24 +310,25 @@ export default {
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> arba rodyklės</td><td>Judėti</td></tr>
           <tr><td><kbd>Space</kbd> arba <kbd>Enter</kbd></td><td>Rinkti (laikyk, kad kartotųsi)</td></tr>
-          <tr><td><kbd>P</kbd></td><td>Idealiai (laikyk, kad žaistų toliau)</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Autožaidimas (laikyk, kad žaistų toliau)</td></tr>
           <tr><td><kbd>F3</kbd></td><td>Rodyti arba slėpti našumo skydelį</td></tr>
           <tr><td><kbd>B</kbd></td><td>Skirtukas Statyba</td></tr>
           <tr><td><kbd>U</kbd> arba <kbd>C</kbd></td><td>Skirtukas Patobulinimai</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Uždaryti lapą</td></tr>
         </tbody>
       </table></div>}`,
-  "wiki.article.perfect.title": "Idealiai",
-  "wiki.article.perfect": `      <h1>Idealiai</h1>
-      <p class="lede">Laikyk mygtuką virš „Rinkti“ ir žaidimas žais pats: nuo pirmo žingsnio naujame pasaulyje iki pat Iškeliavimo.</p>
+  "wiki.article.perfect.title": "Autožaidimas",
+  "wiki.article.perfect": `      <h1>Autožaidimas</h1>
+      <p class="lede">Laikyk mygtuką „Auto“ virš „Rinkti“ ir žaidimas žais pats: nuo pirmo žingsnio naujame pasaulyje iki pat Iškeliavimo.</p>
 
       <h2>Kaip laikyti</h2>
-      <p><strong>{phone:Laikyk nykštį ant|laptop:Laikyk nuspaudęs pelės mygtuką ant mažesnio apvalaus mygtuko virš „Rinkti“ arba laikyk <kbd>P</kbd>, ir}</strong> {phone:mažesnio apvalaus mygtuko iškart virš „Rinkti“.|laptop:jis žais.}
+      <p><strong>{phone:Laikyk nykštį ant|laptop:Laikyk nuspaudęs pelės mygtuką ant mažesnio apvalaus mygtuko „Auto“ virš „Rinkti“ arba laikyk <kbd>P</kbd>, ir}</strong> {phone:mažesnio apvalaus mygtuko „Auto“ iškart virš „Rinkti“.|laptop:jis žais.}
         Kol laikai, klajūnas daro tai, ką darytų apdairus žaidėjas, maždaug keturis kartus per sekundę. Atleisk ir jis iškart sustoja.
         {phone:Kol laikai, ekranas neužgęsta, jei telefonas leidžia.|laptop:Kol laikai, ekranas neužgęsta, jei naršyklė leidžia.}</p>
       <p>Mažas paveiksliukas mygtuko kampe rodo, ką jis daro arba darytų, jei laikytum: renkamą išteklių, kompasą, kai tyrinėja,
-        smėlio laikrodį, kai laukia pastatų, pastatą ar patobulinimą, kelią žemyn ar aukštyn. Kol laikai, mygtukas šviečia.
-        Langelis, kurį jis dirbs kitą, apvestas blankiu žaliu kontūru.</p>
+        smėlio laikrodį, kai laukia pastatų, pastatą ar patobulinimą, kelią žemyn ar aukštyn. Kol laikai, mygtukas šviečia ir aplink jį sukasi auksinis žiedas,
+        o kol jis žaidžia, virš tavo veikėjo plūduriuoja auksinė <strong>AUTO</strong> žymė.
+        Langelis, kurį jis dirbs kitą, apvestas blankiu žaliu kontūru. Greitas {phone:bakstelėjimas|laptop:spustelėjimas} atlieka vieną žingsnį ir primena laikyti nuspaudus.</p>
 
       <h2>Ką jis daro</h2>
       <ul>
@@ -347,12 +348,12 @@ export default {
 
       <h2>Žaisti kartu su juo</h2>
       <p>Viskas, ką gali daryti rankomis, veikia ir jam žaidžiant. Vairuok, laikyk Rinkti, {phone:bakstelk|laptop:spustelk} langelį, laikyk ant jo {phone:pirštą|laptop:pelės mygtuką} ar piešk
-        Taką, ir Idealiai palauks, kol baigsi; paskui tęs. Statyti, Tobulinti, sluoksnio mygtukas ir Kviesti veikia kaip visada.</p>
+        Taką, ir Autožaidimas palauks, kol baigsi; paskui tęs. Statyti, Tobulinti, sluoksnio mygtukas ir Kviesti veikia kaip visada.</p>
 
       <h2>Ką jis palieka tau</h2>
       <p>Kai kas visada lieka tau:</p>
       <ul>
-        <li><strong>Iškeliauti</strong>. Kai pasaulis paruoštas, Idealiai sustoja ir laukia: paveiksliukas tampa Iškeliavimu,
+        <li><strong>Iškeliauti</strong>. Kai pasaulis paruoštas, Autožaidimas sustoja ir laukia: paveiksliukas tampa Iškeliavimu,
           mygtukas šviečia auksu, o žinutė sako, kad Iškeliauti spaudi tu. Iškeliauk pats, ir jei vis dar laikai, jis tęs naujame pasaulyje.</li>
         <li><strong>Viskas, kas pirma klausia</strong>: jis niekada neatsako į klausimus, tad nedaro nieko, ko negalėtum atšaukti.</li>
         <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai, pasaulio žemėlapis ar koks klausimas, jis laukia.</li>
@@ -382,7 +383,7 @@ export default {
 
       <h2>Žemėlapyje</h2>
       <ul>
-        <li><strong>Blankus žalias kontūras</strong>: langelis, kurį Rinkti dirbs kitą, o kol laikai Idealiai – jo langelis.</li>
+        <li><strong>Blankus žalias kontūras</strong>: langelis, kurį Rinkti dirbs kitą, o kol laikai „Auto“ – Autožaidimo langelis.</li>
         <li><strong>Mėlyni kontūrai</strong> (kai atvertas skirtukas Statyba): kur galėtų stovėti kiekvienos rūšies pastatas.</li>
         <li><strong>Skalė virš pastato</strong> reiškia, kad jame laukia produkcija, kurią gali paimti. Jai kaupiantis skalė pildosi žaliai,
           o prisipildžiusi pasidaro auksinė; pilnas pastatas nustoja dirbti, kol produkcijos nepaimsi. Patobulinimai, kurie pastatą pagreitina, leidžia jam ir daugiau sutalpinti, tad prisipildo jis maždaug per tiek pat laiko. Pastatai, kurių produkciją
@@ -612,7 +613,7 @@ export default {
         uolieną</strong>: laikyk valdymo svirtelę (arba krypties klavišą) atrėmęs į sieną <span data-k="DRILL_TIME"></span>
         s, ir priešais tave esantis langelis iškasamas, tad tunelį kasi eidamas. Langelį gali iškasti ir <strong>{phone:bakstelėdamas|laptop:spustelėdamas}</strong>
         jį, kai jis pasiekiamas, arba <strong>Taku</strong> per netoliese esančią uolieną. Pamatinė uoliena niekada nepasiduoda, o
-        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip kasama tik tada, kai Idealiai prasikasa iki radinio ar šachtos. Vien laikant Rinkti niekas neiškasama.</p>
+        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip kasama tik tada, kai Autožaidimas prasikasa iki radinio ar šachtos. Vien laikant Rinkti niekas neiškasama.</p>
       <p>Kiekvienas kasimas paverčia vieną langelį tuneliu. Gyslos duoda kaip paviršiaus telkiniai, pagal tavo Krepšio ar
         Kirtiklio lygį. Paprastame grunte nieko nėra: jo žemės nusviedžiamos į šalį su <em>+0</em>, o kasimas tik praskina kelią.
         Tuneliai lieka ten, kur juos iškasei, kiekviename sluoksnyje.</p>
@@ -724,7 +725,7 @@ export default {
       <h2>Įrankiai</h2>
       <p>Krepšys nustato, kiek grybienos parneša kiekvienas rinkimas, Kirtiklis – kiek duoda kiekvienas kirtis. Batai nustato tavo greitį.</p>
       <p>Kai kurie lygiai dar ir <strong>atveria</strong> ką nors nauja (stulpelis „Atveria“). Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio,
-        o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol Rinkti ir Idealiai jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
+        o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol Rinkti ir Autožaidimas jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
         2 lygio Batai nuneša ant vandens (iki tol sustoji ties krantu, taip pat prie upių tarp regionų), o 4 lygio Krepšys renka retus grybus, kurie duoda tris kartus daugiau.
         Draugo atidaryta šachta atvira ir tau.</p>
       <p><strong>Spartinimas</strong> – vienintelis įrankis, veikiantis ne tave, o tavo pastatus. Kiekvienas lygis padvigubina tai, ką

@@ -25,7 +25,7 @@ export function paintIcons(look, root = document) {
 
 export function createHud(el, look) {
   const chips = {};
-  let toastLeft = 0;
+  let toastLeft = 0, autoTipLeft = 0;
   const milestones = []; // reached, waiting to be shown
   let milestoneLeft = 0;
   let showing = null; // the number of the milestone on the banner (0: only what's next)
@@ -160,9 +160,10 @@ export function createHud(el, look) {
       updateGauge(s);
     },
 
-    // The Perfect button above Gather: its badge shows what holding it does
-    // right now (`badge`, a look id), and it glows when the world is ready
-    // to Embark, which is yours to press.
+    // AUTO (the Perfect button) above Gather: its badge shows what holding
+    // it does right now (`badge`, a look id), a gold ring turns while it's
+    // held, and it glows when the world is ready to Embark, which is yours
+    // to press.
     perfect(badge, held) {
       const key = badge + held;
       if (key === lastPerfect) return;
@@ -267,6 +268,13 @@ export function createHud(el, look) {
       el.place.style.animation = '';
     },
 
+    // The bubble over AUTO saying it must be held, for `seconds` (0 hides it).
+    autoTip(seconds) {
+      if (seconds) el.autoTip.textContent = t('tip.auto');
+      el.autoTip.hidden = !seconds;
+      autoTipLeft = seconds;
+    },
+
     toast(msg, seconds = TOAST_SECONDS) {
       el.toast.textContent = msg;
       el.toast.classList.add('show');
@@ -279,6 +287,7 @@ export function createHud(el, look) {
 
     tick(dt) {
       if (toastLeft > 0 && (toastLeft -= dt) <= 0) el.toast.classList.remove('show');
+      if (autoTipLeft > 0 && (autoTipLeft -= dt) <= 0) el.autoTip.hidden = true;
       if (milestoneLeft > 0 && (milestoneLeft -= dt) <= 0) nextMilestone();
     }
   };

@@ -11,7 +11,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
-import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
@@ -90,6 +90,8 @@ export function render(cam, s, fx, view, look) {
   // already shown waits until its player steps clear.
   const taken = [];
   if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
+  // While AUTO plays, its tag floats over you (over your name, if shown).
+  if (view.auto && you) drawAutoTag(ctx, you.x, you.top - cam.tilePx * 0.2 - (view.me && !(view.sign > 0) ? 22 : 0), view.auto, s.time, taken);
   if (tags.length > 1) {
     const cx = you ? you.x : cam.width / 2, cy = you ? you.top : cam.height / 2;
     for (const tag of tags) tag.d = Math.hypot(tag.x - cx, tag.y - cy) + (tag.grave ? 1e6 : 0);

@@ -105,7 +105,7 @@ function formatOf(raw) {
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have
-// heard, quality level and whether they know to hold Perfect: conveniences for this browser, not game state.
+// heard, quality level and whether they know to hold Gather and AUTO: conveniences for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
@@ -115,10 +115,11 @@ export function loadView() {
       music: v.music !== false,
       heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : [],
       quality: Number(v.quality) || 0,
-      holdTip: v.holdTip === true
+      holdTip: v.holdTip === true,
+      autoHeld: v.autoHeld === true
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, autoHeld: false };
   }
 }
 

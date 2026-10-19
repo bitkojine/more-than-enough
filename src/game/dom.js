@@ -40,6 +40,7 @@ export function findElements() {
     actionLabel: byId('actionLabel'),
     perfect: byId('btnPerfect'),
     perfectBadge: byId('perfectBadge'),
+    autoTip: byId('autoTip'),
     build: byId('btnBuild'),
     upgrade: byId('btnUpgrade'),
     mine: byId('btnMine'),

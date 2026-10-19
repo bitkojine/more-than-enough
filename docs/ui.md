@@ -33,16 +33,18 @@ place it belongs here rather than adding a button where there is room.
 │                                   1× │
 │                                   [−]│
 │                                   [▤]│  world map, at the foot of the zoom pill
-│                   [CLIMB] [PERFECT]  │  layer button pops in beside Perfect
+│                      [CLIMB] [AUTO]  │  layer button pops in beside AUTO
 │ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
 ```
 
-### Gather, the main action, and Perfect above it
+### Gather, the main action, and AUTO above it
 - **Gather** is the big round button. It shows what holding it does right where you stand: *COLLECT n* beside a building with goods, *GATHER +n* among a deposit (its picture is the resource), *EXPLORE* with nothing in reach (one press walks to the nearest resource), dimmed with nothing around. Holding it repeats about four times a second; sliding off it draws a Trail.
-- **Perfect** is a smaller round button (the size of Build) centred right above Gather, there from the first spawn. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and Perfect picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
-- **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up.
-- **Embark is yours**: when the world is ready, Perfect stops, its badge turns to Embark and the button pulses gold, with a toast once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
+- **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) centred right above Gather, there from the first spawn. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
+- **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up and a dashed gold ring turns round it (still under reduced motion).
+- **Holding is taught once**: a quick tap (under 0.5 s) pops a bubble over the button, *Hold me down to auto-play* (phone or laptop wording, `tip.auto`), for 4 s, until the player has once held it 2 s (`autoHeld` in the view settings).
+- **In the world**: while it's actually playing (held, not paused by your own play, a sheet or Embark) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
+- **Embark is yours**: when the world is ready, AUTO stops, its badge turns to Embark and the button pulses gold, with a toast once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
 
 ### Tokens
 - Surfaces: `--surface` (glass panel), `--surface-raised`, `--line`.

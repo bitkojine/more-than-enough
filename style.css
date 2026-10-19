@@ -441,6 +441,26 @@ body.signing #btnVersion { visibility: hidden; }
   object-fit: contain; pointer-events: none;
 }
 #btnPerfect.on { border-color: #ffe39a; background: radial-gradient(circle at 50% 32%, rgba(176, 146, 70, 0.98), rgba(60, 46, 20, 0.98)); }
+/* Held, a dashed gold ring turns round it: it's playing. */
+#btnPerfect.on:not(.embark)::before {
+  content: ''; position: absolute; inset: -7px; border-radius: 50%;
+  border: 3px dashed #ffe39a; pointer-events: none;
+  animation: autoTurn 2.4s linear infinite;
+}
+@keyframes autoTurn { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { #btnPerfect.on::before { animation: none; } }
+/* After a quick tap: a bubble over it saying to hold it down. */
+#btnPerfect .tip {
+  position: absolute; right: -10px; bottom: calc(100% + 14px);
+  background: #fbeec4; color: #33280f; font: 700 14px/1.25 system-ui, sans-serif;
+  padding: 8px 12px; border-radius: 12px; white-space: nowrap;
+  box-shadow: var(--shadow-1); pointer-events: none;
+}
+#btnPerfect .tip::after {
+  content: ''; position: absolute; right: 28px; bottom: -8px;
+  border: 8px solid transparent; border-bottom: 0; border-top-color: #fbeec4;
+}
+#btnPerfect .tip[hidden] { display: none; }
 #btnPerfect.embark { border-color: var(--gold); animation: embarkPulse 1.6s ease-in-out infinite; }
 #btnPerfect.embark .badge { border-color: var(--gold); }
 @keyframes embarkPulse {

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.127.0] - 2026-10-19
+
+Watch's ask: Perfect needed a clearer name, it should be obvious it must be
+held down, and the world could show that auto-play is running. Watch chose
+on decision cards: AUTO on the button and Auto-play in longer text; a tip
+after a quick tap plus a turning ring while held; an AUTO tag over the
+character.
+
+### Changed
+- **AUTO**: the Perfect button's plate says AUTO in both languages; the
+  wiki, its aria label and the badge descriptions call it Auto-play
+  (Autožaidimas). The code keeps the name `perfect`.
+- **Hold me down**: a tap shorter than 0.5 s pops a bubble over the button
+  (`#autoTip`, `tip.auto`) for 4 s, until the player has once held it for
+  2 s (`autoHeld` in the view settings, `src/game/storage.js`).
+- **Turning ring**: while held (and not waiting on Embark) a dashed gold
+  ring turns round the button; reduced motion keeps it still.
+- **AUTO tag** (`drawAutoTag`, `src/game/render/sprites.js`): while auto-play
+  is actually playing, a gold tag with a turning star floats over your
+  character, above your name in a shared world.
+
 ## [0.125.0] - 2026-10-19
 
 Watch's ask: resources no longer grow back. What you collect is gone for

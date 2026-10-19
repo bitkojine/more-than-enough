@@ -157,7 +157,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `content.js` — every tuning number and content table (tools, extractors, refineries, perks)
   - `economy.js`, `upgrades.js` — costs, multipliers, and the single registry of everything you can buy
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
-  - `perfect.js`, `paths.js` — the Perfect button's brain: the next thing to do (walk, gather, collect, buy, build, go down or up, wait), from what you've explored, and routes across a layer
+  - `perfect.js`, `paths.js` — Auto-play's brain (the AUTO button, `perfect` in the code): the next thing to do (walk, gather, collect, buy, build, go down or up, wait), from what you've explored, and routes across a layer
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
   - `catalog.js` — everything that exists, by the id a texture pack uses for it
   - `stockpile.js` — what you own as piles on home ground, on a log scale (one pile per unit of the two leading digits, a fixed block of slots per resource)
@@ -166,7 +166,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `acts.js`, `replay.js` — in a shared world, what the player did, written down, and the room doing the same with the same rules (`server/src/shadow.js`), so the room knows what everyone really has
 - `src/i18n/` — every word the player reads: `i18n.js` (`t()`, language choice, `data-i18n` markup) and the `en.js` / `lt.js` dictionaries
 - `src/game/` — the browser layer
-  - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core; `perfect.js` — the Perfect button, carrying out the brain's intents while held
+  - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core; `perfect.js` — the AUTO button (Auto-play), carrying out the brain's intents while held
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and a fixed slight lean; picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js`, `audio.js`, `storage.js`, `fork.js`, `ask.js`
   - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game

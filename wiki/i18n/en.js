@@ -222,7 +222,7 @@ export default {
         you're playing.</div>
       <ul class="cards">
         <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom{phone:.|laptop:, keyboard.}</span></a></li>
-        <li><a href="#perfect"><strong>Perfect</strong><span>Hold the button above Gather and the game plays itself.</span></a></li>
+        <li><a href="#perfect"><strong>Auto-play</strong><span>Hold AUTO, the button above Gather, and the game plays itself.</span></a></li>
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
         <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, what's gathered for good, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
@@ -270,10 +270,10 @@ export default {
         patch around you. Underground the same stroke digs, and glows amber.</p>
       <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
 
-      <h2>Perfect</h2>
-      <p>Right above Gather sits a smaller button, <strong>Perfect</strong>. Hold it and the game plays itself: it
+      <h2>Auto-play</h2>
+      <p>Right above Gather sits a smaller button, <strong>AUTO</strong>. Hold it down and the game plays itself: it
         explores, gathers, collects, buys, builds and goes down the mine, about four times a second, for as long as you hold it.
-        The small picture on it shows what it's doing. See <a href="#perfect">Perfect</a> for what it does and what it
+        The small picture on it shows what it's doing. See <a href="#perfect">Auto-play</a> for what it does and what it
         leaves to you.</p>
 
       <h2>Zoom</h2>
@@ -314,24 +314,26 @@ export default {
         <tbody>
           <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or arrows</td><td>Move</td></tr>
           <tr><td><kbd>Space</kbd> or <kbd>Enter</kbd></td><td>Gather (hold to repeat)</td></tr>
-          <tr><td><kbd>P</kbd></td><td>Perfect (hold to keep playing)</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Auto-play (hold to keep playing)</td></tr>
           <tr><td><kbd>F3</kbd></td><td>Show or hide the performance panel</td></tr>
           <tr><td><kbd>B</kbd></td><td>Build tab</td></tr>
           <tr><td><kbd>U</kbd> or <kbd>C</kbd></td><td>Upgrades tab</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
         </tbody>
       </table></div>}`,
-  "wiki.article.perfect.title": "Perfect",
-  "wiki.article.perfect": `      <h1>Perfect</h1>
-      <p class="lede">Hold the button above Gather and the game plays itself, from the first step in a new world to the edge of Embark.</p>
+  "wiki.article.perfect.title": "Auto-play",
+  "wiki.article.perfect": `      <h1>Auto-play</h1>
+      <p class="lede">Hold AUTO, the button above Gather, and the game plays itself, from the first step in a new world to the edge of Embark.</p>
 
       <h2>Holding it</h2>
-      <p><strong>{phone:Hold your thumb on|laptop:Hold the mouse button down on, or hold <kbd>P</kbd> for,}</strong> the smaller round button right above Gather.
+      <p><strong>{phone:Hold your thumb on|laptop:Hold the mouse button down on, or hold <kbd>P</kbd> for,}</strong> AUTO, the smaller round button right above Gather.
         While you hold it, the wanderer does what a careful player would, about four times a second. Let go and it stops at once.
         {phone:The screen stays on while you hold it, where the phone allows.|laptop:The screen stays on while you hold it, where the browser allows.}</p>
       <p>The small picture in the button's corner shows what it's doing, or what it would do if you held it: a resource it's gathering,
         the compass while it explores, the hourglass while it waits for buildings, a building or an upgrade, a way down or up.
-        While you hold it, the button lights up. The tile it will work next has a faint green outline.</p>
+        While you hold it, the button lights up and a gold ring turns round it, and a gold <strong>AUTO</strong> tag floats over
+        your character while it plays. The tile it will work next has a faint green outline. A quick {phone:tap|laptop:click} on it does one step and
+        reminds you to hold it down.</p>
 
       <h2>What it does</h2>
       <ul>
@@ -352,12 +354,12 @@ export default {
 
       <h2>Playing alongside it</h2>
       <p>Everything you can do by hand still works while you hold it. Steer, hold Gather, {phone:tap|laptop:click} a tile, hold {phone:a finger|laptop:the mouse button} on one or draw a
-        Trail, and Perfect waits while you do; it picks up again afterwards. Build, Upgrade, the layer button and Invite work as always.</p>
+        Trail, and Auto-play waits while you do; it picks up again afterwards. Build, Upgrade, the layer button and Invite work as always.</p>
 
       <h2>What it leaves to you</h2>
       <p>Some things are always yours:</p>
       <ul>
-        <li><strong>Embark</strong>. When the world is ready, Perfect stops and waits: its picture turns to Embark, the button
+        <li><strong>Embark</strong>. When the world is ready, Auto-play stops and waits: its picture turns to Embark, the button
           glows gold, and a message says Embark is yours to press. Embark yourself, and if you're still holding, it carries
           on in the new world.</li>
         <li><strong>Anything that asks first</strong>: it never answers a question, so it never does anything you couldn't take back.</li>
@@ -388,7 +390,7 @@ export default {
 
       <h2>On the map</h2>
       <ul>
-        <li><strong>Faint green outline</strong>: the tile Gather will work next, or Perfect's while you hold it.</li>
+        <li><strong>Faint green outline</strong>: the tile Gather will work next, or Auto-play's while you hold AUTO.</li>
         <li><strong>Blue outlines</strong> (while the Build tab is open): where each kind of building would go.</li>
         <li><strong>A dial over a building</strong> means it holds goods waiting for you to collect. It fills green as they pile up
           and turns gold when it's full, and a full building stops working until you collect. Upgrades that speed a building up let it hold more too, so it always takes about as long to fill. Buildings whose goods
@@ -621,7 +623,7 @@ export default {
         the rock</strong>: keep pushing the stick (or holding a direction key) against a wall for <span data-k="DRILL_TIME"></span>
         seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>{phone:tapping|laptop:clicking}</strong>
         it within reach, or with a <strong>Trail</strong> across nearby rock. Bedrock never gives, and a shaft only opens to a
-        deliberate {phone:tap|laptop:click}, or Perfect digging its way to a find or a shaft. Holding Gather on its own never digs.</p>
+        deliberate {phone:tap|laptop:click}, or Auto-play digging its way to a find or a shaft. Holding Gather on its own never digs.</p>
       <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Basket or Pickaxe level. Plain
         soil holds nothing: its dirt is tossed aside with a <em>+0</em>, and digging it only clears the way. Tunnels stay
         where you dug them, on every layer.</p>
@@ -732,7 +734,7 @@ export default {
       <h2>Tools</h2>
       <p>Your Basket sets how much mycelium each gather brings in, your Pickaxe how much each swing yields. Boots set your speed.</p>
       <p>Some levels also <strong>open</strong> something new (the Opens column). Ore needs Pickaxe 2, crystal and geodes Pickaxe 3,
-        and the shafts down from the deep layers better Pickaxes still: until then Gather and Perfect leave them alone and {phone:tapping|laptop:clicking} one says what it takes.
+        and the shafts down from the deep layers better Pickaxes still: until then Gather and Auto-play leave them alone and {phone:tapping|laptop:clicking} one says what it takes.
         Boots 2 take you onto water (until then the shore stops you, rivers between regions too), and Basket 4 picks the rare mushrooms, which pay three times over.
         A shaft a friend opened is open for you too.</p>
       <p><strong>Overclock</strong> is the one tool that works on your buildings rather than on you. Each level doubles what every

@@ -241,6 +241,26 @@ function gathered(held) {
   saveView(savedView);
   if (!held) hud.toast(t('tip.hold'), HOLD_TIP_SECONDS);
 }
+// A quick tap on AUTO says, in a bubble over it, that it plays while held,
+// until the player has once held it down for a while.
+const AUTO_TAP_S = 0.5;    // released sooner than this: a tap
+const AUTO_LEARNT_S = 2;   // held this long once: they know
+const AUTO_TIP_SECONDS = 4;
+let autoDownAt = 0;
+function autoPressed() {
+  autoDownAt = performance.now();
+  hud.autoTip(0);
+  perfect.press();
+}
+function autoReleased() {
+  perfect.release();
+  if (savedView.autoHeld) return;
+  const held = (performance.now() - autoDownAt) / 1000;
+  if (held >= AUTO_LEARNT_S) {
+    savedView.autoHeld = true;
+    saveView(savedView);
+  } else if (held < AUTO_TAP_S) hud.autoTip(AUTO_TIP_SECONDS);
+}
 // Early on, opening the game (or arriving in a new world) says what the
 // next milestone is, so a new player's first read is what to do.
 const NEXT_SHOWN_BELOW = 3; // milestones reached, after which players know where to look
@@ -299,8 +319,8 @@ const input = createInput({
       else controller.tap(x, y);
     },
     actionPressed: controller.press,
-    perfectPressed: perfect.press,
-    perfectReleased: perfect.release,
+    perfectPressed: autoPressed,
+    perfectReleased: autoReleased,
     trailEnded: controller.trailEnded,
     viewChanged: () => { hud.view(cam); keepView(); },
     command(cmd) {
@@ -431,6 +451,7 @@ function showCopy() {
   el.copyBadge.hidden = false;
 }
 
+let autoPlaying = false; // AUTO is held and playing (its tag shows over you)
 function update(dt) {
   const s = game.state;
   const dir = input.moveVector();
@@ -452,8 +473,9 @@ function update(dt) {
 
   const holdAt = input.holdPoint();
   controller.tick(dt, input.held && !input.trail, holdAt);
-  // Perfect plays while held, unless you're steering, gathering or working a tile yourself.
-  perfect.tick(dt, input.perfect && !input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked());
+  // AUTO plays while held, unless you're steering, gathering or working a tile yourself.
+  autoPlaying = input.perfect && !input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked();
+  perfect.tick(dt, autoPlaying);
   if (moved && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
@@ -487,6 +509,7 @@ function view() {
     actor: actor.view(moving),
     yard,
     harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
+    auto: autoPlaying && perfect.badge !== 'ui.embark' ? t('button.perfect') : '',
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
     trail: input.trail,
