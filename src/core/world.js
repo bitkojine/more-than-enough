@@ -173,8 +173,9 @@ export function nearestTile(x, y, maxR, pred) {
   for (let r = 0; r <= maxR; r++) {
     let best = null, bestD = Infinity;
     for (let dy = -r; dy <= r; dy++) {
-      for (let dx = -r; dx <= r; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      // Only the ring: every tile of the top and bottom rows, the two ends of the others.
+      const edge = dy === -r || dy === r;
+      for (let dx = -r; dx <= r; dx += edge ? 1 : 2 * r) {
         const tx = px + dx, ty = py + dy;
         if (!pred(tx, ty)) continue;
         const ex = tx + 0.5 - x, ey = ty + 0.5 - y;

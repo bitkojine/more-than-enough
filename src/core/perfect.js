@@ -49,15 +49,16 @@ const STUCK = 6;              // tries at the same step before a target counts a
 const PERKS_FIRST = ['memory', 'heirloom', 'cartographer'];
 
 // The brain's judgement calls: guesses and margins the rules don't settle.
+// Tuned 2026-10-19 on v0.120 rules: Embark in 24.65 h (35.83 h before).
 // scripts/perfect-tune.mjs searches them for the quickest Embark after a
 // rules change; scripts/perfect-bench.mjs measures what they give.
 export const KNOBS = Object.freeze({
   rethink: 60,       // game seconds before the goal is chosen afresh anyway
   stick: 10,         // game seconds a way of getting the goal is kept before it's weighed again
   exploreGuess: 60,  // seconds a search for something not yet seen is reckoned to take
-  walkLoss: 0.8,     // share of holding Gather that gathers, the rest lost walking between tiles
-  mineEdge: 0.8,     // the mine must be this much quicker than the surface to go down
-  shaftSeconds: 45,  // reckoned to find and open the way down out of a layer
+  walkLoss: 0.4,     // share of holding Gather reckoned to gather, the rest lost walking between tiles
+  mineEdge: 1.2,     // the mine is chosen while it's reckoned under this share of the surface's time
+  shaftSeconds: 22.5, // reckoned to find and open the way down out of a layer
   digSeconds: 0.6,   // reckoned per tile tunnelled toward a find (dig, then step)
   minDig: 60,        // seconds of digging a trip down must be worth: no popping in for a find or two
   outward: 0.8       // exploring: how much further from home outweighs being further from you
@@ -78,7 +79,7 @@ const layerOf = (s) => SURFACE - s.player.z;
 // worlds) starts it afresh.
 function fresh(s, mind) {
   if (mind.state !== s) {
-    Object.assign(mind, { state: s, goal: null, decided: -Infinity, route: null, bad: new Set(), near: {}, spots: {}, searches: {}, frontier: null, home: findSpawn(s.world), arrived: {}, flagged: new Set(), z: null });
+    Object.assign(mind, { state: s, goal: null, decided: -Infinity, route: null, bad: new Set(), near: {}, spots: {}, searches: {}, frontier: null, home: findSpawn(s.world), arrived: {}, flagged: new Set(), z: null, upWay: null });
   }
   if (mind.z !== s.player.z) {
     // Just came onto this layer: remember where, the way back up.
@@ -545,6 +546,8 @@ function solar(s, mind) {
 
 /* -------------------------------------------------------------- the mine */
 
+const UP_LOOK = 2;
+
 // Up toward the surface: the ladder in reach, else the way up you know of
 // nearest (the one you came down by, at least).
 function up(s, mind) {
@@ -552,8 +555,13 @@ function up(s, mind) {
   const z = s.player.z, w = s.world;
   const ladder = nearestTile(s.player.x, s.player.y, 2, (x, y) => canClimbAt(s, x, y));
   if (ladder) return { type: 'climb', x: ladder.x, y: ladder.y, badge: 'ui.climb' };
-  const known = nearestTile(s.player.x, s.player.y, 60, (x, y) => wayUp(w, x, y, z) && isExplored(w, x, y, z) && !mind.bad.has(key(x, y, z))) ||
-    mind.arrived[z];
+  // Looked for afresh every UP_LOOK seconds, not every step: a search 60
+  // tiles out is the costliest thing the brain does underground.
+  const c = mind.upWay;
+  if (!c || c.z !== z || s.time - c.t > UP_LOOK || (c.way && mind.bad.has(key(c.way.x, c.way.y, z)))) {
+    mind.upWay = { z, t: s.time, way: nearestTile(s.player.x, s.player.y, 60, (x, y) => isExplored(w, x, y, z) && !mind.bad.has(key(x, y, z)) && wayUp(w, x, y, z)) };
+  }
+  const known = mind.upWay.way || mind.arrived[z];
   return known ? walkTo(s, mind, known.x, known.y, 'ui.climb') || explore(s, mind) : explore(s, mind);
 }
 

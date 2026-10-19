@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.121.0] - 2026-10-19
+
+Watch's ask: Perfect always plays the best game it can, and re-learns when
+the rules change (scored by hours held from spawn to Embark, Watch's pick).
+
+### Changed
+- Perfect re-learned (`scripts/perfect-tune.mjs` on v0.120 rules): it now
+  reckons hand-gathering at half the pace it did (`walkLoss` 0.4), goes down
+  the mine while that's reckoned under 1.2x the surface's time (`mineEdge`,
+  was 0.8) and a shaft at 22.5 s (was 45). Since finds scale with your
+  buildings (v0.111.0) digging pays, so it mines far more: Embark in a median
+  24.65 h on the benchmark's 4 worlds, from 35.83 h, and 24.6-24.7 h on 2
+  worlds it wasn't tuned on. No refused acts and no quick pops down.
+  `test/perfect-baseline.json` re-recorded.
+
+### Performance
+- `nearestTile` (world.js) visits only the ring it is on instead of the
+  whole square around it each ring: the same answers, far fewer tiles.
+- Underground, Perfect looks for the way up afresh every 2 s instead of every
+  step, and checks fog before generating tiles. A tick's production works out
+  each resource's multiplier once instead of twice per building. Together the
+  brain is about 5x cheaper underground, which matters on old phones too: the
+  benchmark's 4 worlds now run in under 2 minutes.
+
 ## [0.120.1] - 2026-10-18
 
 ### Fixed

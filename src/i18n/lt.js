@@ -803,6 +803,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
+  "news.0.121.0": "„Idealiai“ žaidžia geriau: daug dažniau kasa radinių kasykloje ir pasaulį iškeliauti paruošia maždaug trečdaliu greičiau.",
   "news.0.120.1": "Ekranas Moksliukams dabar rodo savo pavadinimą, o ne žaidimo korteles.",
   "news.0.120.0": "Savo pasaulį gali išsaugoti kaip failą {phone:telefone|laptop:kompiuteryje} ir vėl žaisti jį iš to failo bet kuriame įrenginyje: Nustatymai, Moksliukams, Išsaugoti atsarginę kopiją.",
   "news.0.119.0": "Nustatymai paprastesni: tekstūrų paketai, našumo skydelis ir versija persikėlė į naują ekraną Moksliukams, paskutinę eilutę.",

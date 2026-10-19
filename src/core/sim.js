@@ -7,10 +7,10 @@ import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
 import {
-  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR,
+  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS,
   REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
 } from './content.js';
-import { extractorRate, extractorCapacity, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
+import { extractorRate, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
 
 const MAX_STEP = 0.25;
@@ -54,11 +54,14 @@ export function holdsOutput(s, e) {
 }
 
 function produce(s, dt) {
+  const mult = {}; // productionMult per resource, worked out once a tick, not per building
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue; // a friend's: it works on their phone
-    const cap = extractorCapacity(s, e.key);
+    const def = EXTRACTORS[e.key];
+    const m = mult[def.res] ??= productionMult(s, def.res);
+    const cap = def.buffer * m; // extractorCapacity
     if (e.buffer < cap) {
-      e.buffer = Math.min(cap, e.buffer + extractorRate(s, e.key) * dt);
+      e.buffer = Math.min(cap, e.buffer + def.rate * m * dt); // extractorRate
     }
     // Logistics: whole units funnel into your packs; without it they fill
     // the building, ready for when you walk over and collect.
