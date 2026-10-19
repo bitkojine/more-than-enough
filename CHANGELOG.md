@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.121.1] - 2026-10-19
+
+Watch's ask: some floating resources go undrawn to keep old phones fast,
+but the ones near the player must always show; a building just placed could
+float nothing for a while. Reproduced 78 m from spawn with 40 buildings
+around: within 2 s all 40 slots held bundles on a 26 s trip home, all off
+screen within 6 s, so nothing showed by the player and a new quarry's stone
+was dropped (it had no bundle of its kind to ride on). Watch is choosing
+on decision cards; this ships the recommended one.
+
+### Fixed
+- **Off screen makes way first**: over budget, a flyer off screen (with a
+  40 px margin, `ON_SCREEN_PX`) gives up its slot to the new gain. With
+  all of them on screen they still keep going (v0.113.1); the first of a
+  new resource takes the oldest one's place, so a new building always
+  shows. In the same test 20-28 of the 40 now stay on screen.
+- `createEffects` takes a `seen(x, y)` check from the camera.
+
+### Tests
+- `test/unit/effects.test.js`: far from spawn, fresh bundles by you replace
+  ones off screen and a new building shows at once; at a full spawn, the
+  first of a new resource still shows (both failed on v0.121.0).
+
 ## [0.121.0] - 2026-10-19
 
 Watch's ask: Perfect always plays the best game it can, and re-learns when

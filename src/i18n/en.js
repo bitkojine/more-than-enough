@@ -803,6 +803,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
+  "news.0.121.1": "Floating resources around you always show now. Far from spawn, the ones drifting home off screen used to take every slot, so a building you had just placed could float nothing for a while.",
   "news.0.121.0": "Perfect plays better: it digs for finds in the mine much more often and gets a world ready to Embark about a third sooner.",
   "news.0.120.1": "The Nerds screen now shows its own title instead of the game tabs.",
   "news.0.120.0": "You can save your world as a file on your {phone:phone|laptop:computer} and play it again from that file, on any device: Settings, Nerds, Save a backup.",

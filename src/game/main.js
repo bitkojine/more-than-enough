@@ -39,6 +39,7 @@ import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
+const ON_SCREEN_PX = 40;    // margin around the screen a flyer still counts as seen in
 
 // Every word on the page in the player's language first.
 localizePage();
@@ -91,7 +92,10 @@ function keepView() {
   saveView(savedView);
 }
 // What you gather flies to its pile in the yard (yard is made just below).
-const fx = createEffects(look, (res) => yard.landing(res));
+const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
+  const p = cam.project(x, y);
+  return p.x > -ON_SCREEN_PX && p.y > -ON_SCREEN_PX && p.x < cam.width + ON_SCREEN_PX && p.y < cam.height + ON_SCREEN_PX;
+});
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
 // Fewer pixels and no frosted glass on a device that can't keep up.

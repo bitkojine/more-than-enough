@@ -26,8 +26,10 @@ const TAU = Math.PI * 2;
  * @param {object} look  the texture pack: sparks take their resource's colour from it
  * @param {(res: string) => {x: number, y: number}} landing  where a flyer of
  *   `res` lands: a spot in the stockpile
+ * @param {(x: number, y: number) => boolean} seen  whether a world point is on
+ *   screen: flyers off it are the first to make way when there are too many
  */
-export function createEffects(look, landing) {
+export function createEffects(look, landing, seen) {
   const resColor = (res) => look.color(resourceLook(res));
   const particles = [];
   const floats = [];
@@ -62,10 +64,14 @@ export function createEffects(look, landing) {
   // What you gather floats off to the stockpile, unhurried, so you can see
   // where it goes and follow it home (off screen when the yard is far). A run
   // of gains from one spot rides along on the flyer just launched from there,
-  // so a steady stream reads as a trail of bundles rather than a blur. Over
-  // budget, flyers already on their way keep going (replacing them would
-  // restart the trail every time and none would ever reach home); the gain
-  // simply rides on the newest of its kind, if any.
+  // so a steady stream reads as a trail of bundles rather than a blur.
+  //
+  // Over budget, what's on screen still shows: a flyer off screen makes way
+  // (nobody sees it go). With every flyer on screen (a busy spawn), the ones
+  // on their way keep going, since replacing them would restart every trail
+  // and none would reach home; the gain rides on the newest of its kind, or,
+  // the first of its kind, takes the oldest one's place, so a new building
+  // always shows.
   function flyersFrom(tx, ty, res, amount) {
     let newest = null;
     for (const f of flyers) {
@@ -74,8 +80,9 @@ export function createEffects(look, landing) {
       if (!newest || f.t < newest.t) newest = f;
     }
     if (flyers.length >= MAX_FLYERS) {
-      if (newest) newest.amount += amount;
-      return;
+      const gone = flyers.findIndex((f) => !seen(f.x, f.y));
+      if (gone < 0 && newest) { newest.amount += amount; return; }
+      flyers.splice(Math.max(0, gone), 1);
     }
     const to = landing(res);
     const x0 = tx + 0.5 + (rand() - 0.5) * 0.4, y0 = ty + 0.5 + (rand() - 0.5) * 0.4;
