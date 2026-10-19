@@ -363,7 +363,7 @@ export default {
           on in the new world.</li>
         <li><strong>Anything that asks first</strong>: it never answers a question, so it never does anything you couldn't take back.</li>
         <li><strong>Every sheet and dialog</strong>: while Build, Upgrades, Settings, the world map or any question is open, it waits.</li>
-        <li><strong>What's new</strong>, joining a shared world and its privacy policy, the
+        <li>Joining a shared world and its privacy policy, the
           <strong>FBI</strong> notice, and a choice between two saves: all yours.</li>
         <li><strong>Invite</strong>, your sign and everything about playing together.</li>
         <li><strong>Holding on</strong>: it plays only while held, with the game open and in front of you. If the

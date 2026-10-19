@@ -81,7 +81,7 @@ function problems() {
   // The HUD, while nothing covers it: every button and name plate clear of
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
-    const targets = [...document.querySelectorAll('#topbar button, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge')].filter(shown);
+    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge')].filter(shown);
     for (let i = 0; i < targets.length; i++) {
       const a = targets[i], ra = a.getBoundingClientRect();
       if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1) out.push('off screen: ' + name(a));
@@ -132,7 +132,6 @@ async function enter(state) {
   if (document.getElementById('sheet').classList.contains('open')) click('#btnClose');
   if (g.dialogs.ask.open) click('#ask .secondary');
   if (g.dialogs.fbi.open) click('#fbi button');
-  if (g.dialogs.news.open) click('#news .primary');
   clearInterval(window.layoutHold);
   if (state === 'rich') for (const r of Object.keys(g.getState().inv)) g.addRes(r, 987654321098);
   // Underground beside a ladder: the depth meter and the climb button, held
@@ -188,7 +187,7 @@ async function enter(state) {
   if (state === 'map') click('#btnMap');
   if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
   if (state === 'fbi') g.dialogs.fbi.show();
-  if (state === 'news') g.dialogs.news.show('0.80.0', window.MTE_VERSION);
+  if (state === 'news') click('#btnVersion');
 }
 
 /* -------------------------------------------------------------------- run */

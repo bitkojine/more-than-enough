@@ -7,8 +7,8 @@
  * notice already seen are taken along, so the copy reads like the game.
  *
  * What only the player's phone knew can be played too, from the link:
- * `&was=0.89.0`, the version their open tab last ran (the game then updates
- * from it and shows What's new since), and `&shown=mycelium:1.4e14,ore:2e13`,
+ * `&was=0.89.0`, the version their open tab last ran (the version badge then
+ * rolls over from it and What's new marks what came since), and `&shown=mycelium:1.4e14,ore:2e13`,
  * the numbers their phone last showed (the arrival then says those weren't
  * real when they're far over the room's).
  *

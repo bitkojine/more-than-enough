@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.124.0] - 2026-10-19
+
+Watch's ask: update notifications annoy players mid-game, so nothing should
+need reading or dismissing; the version is always shown and animates when
+it changes, and tapping it opens the full changelog with what's new. Watch
+chose on decision cards: the version sits under the gear, it rolls and
+glows and keeps a dot, and the changelog shows the player notes.
+
+### Changed
+- **No What's new dialog**: the game still updates itself at once, but
+  nothing pops up. The `#news` dialog is gone, and Perfect no longer
+  waits on it.
+- **Version badge** (`#btnVersion`, `src/game/news.js`): always in view
+  under the gear. After an update (in the tab, or coming back on a newer
+  version: `mte.ranVersion` in localStorage) the old number rolls away,
+  the new one rolls in and glows; a gold dot stays while there are notes
+  newer than `mte.newsSeen`. Reduced motion: glow only.
+- **What's new sheet** (`#newsPanel`, a sheet panel like Nerds): Share an
+  idea, every release's notes newest first with the one being played
+  labelled and the unseen ones marked New, and a link to `CHANGELOG.md` on
+  GitHub. Opening it marks everything seen. A first ever start has
+  nothing new.
+- `--r-pill` (named in `docs/ui.md`) is now a real token in `style.css`.
+
+### Tests
+- `update.test.js`: where a start stands (first start, coming back newer,
+  same or older version, junk in storage) and the badge's dot and roll.
+- `test:layout`: the news state opens the sheet from the badge, and the
+  badge is among the HUD targets checked for overlaps.
+
 ## [0.123.0] - 2026-10-19
 
 Watch: a milestone reached should congratulate in the past tense ("mes tai

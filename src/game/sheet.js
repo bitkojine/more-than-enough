@@ -10,9 +10,9 @@ import { fmt, fmtRate, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t, listOr, capitalize } from '../i18n/i18n.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')]]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
-const PANELS = { settings: 'settingsPanel', map: 'mapPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel' };
+const PANELS = { settings: 'settingsPanel', map: 'mapPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel' };
 // The game lists, which show their tabs; every other screen shows its title.
 const TABBED = ['upgrades', 'build', 'beyond', 'awards'];
 // Screens one row inside Settings: opened from there, ‹ goes back to it.

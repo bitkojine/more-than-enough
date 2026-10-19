@@ -10,11 +10,11 @@ place it belongs here rather than adding a button where there is room.
 3. **Status top, actions bottom.** Read-only info (currencies, depth, trophies) lives in a top bar; things you press live at the bottom.
 4. **One currency bar.** All resources in one capsule, tap to see details. (Every F2P game.)
 5. **Settings behind a gear.** Sound, music, controls, language, wiki: one Settings screen from a gear in the top-right. Irreversible actions ask first, in-game.
-5a. **Technical things under Nerds.** Most players never need texture packs, the performance panel or the exact version, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
+5a. **Technical things under Nerds.** Most players never need texture packs or the performance panel, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
 6. **Badges, not prose.** A badge on a button says "something here for you".
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
 8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close. A screen opened from Settings (Nerds, Worlds, Players, Invite links) has ‹ before its title, back to Settings.
-9. **Back always steps back.** The phone's own Back and Escape go back one level: a screen inside Settings to Settings, a question says no, a sheet or What's new closes (`src/game/back.js`). Only with nothing open does Back leave the game.
+9. **Back always steps back.** The phone's own Back and Escape go back one level: a screen inside Settings to Settings, a question says no, a sheet closes (`src/game/back.js`). Only with nothing open does Back leave the game.
 
 ## The system
 
@@ -22,6 +22,7 @@ place it belongs here rather than adding a button where there is room.
 ```
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
+│                            v0.124.0 ●│  version, under the gear (● = news)
 │ ▮▯ 62%                               │  battery (once it isn't full), left edge
 │ LAYER 1                              │  depth meter (underground only), under it
 │ ▮                                    │
@@ -51,7 +52,7 @@ place it belongs here rather than adding a button where there is room.
 - Touch targets ≥ 44px (the slim zoom pill 40px); the main action 84px (76px under 375px wide, 72px on short landscape screens).
 
 ### Other screens
-- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The milestone banner drops its trophy and becomes a thin strip, so it stays above your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen; What's new's list gives way first, so the buttons stay in view.
+- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The milestone banner drops its trophy and becomes a thin strip, so it stays above your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Tabs** size to their words (Lithuanian's are long), a little smaller on phones.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, and a shared world full to its 100 players (chips and the Players screen), and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows and dialog buttons out of view. Run it after any change to the layout.
@@ -99,4 +100,6 @@ place it belongs here rather than adding a button where there is room.
 - **A save it can't read** (damaged, or from a newer version than the page open): a toast says it's kept safe to one side and a new world starts meanwhile. There is no nuke and no screen to press through: worlds are never started over (`src/game/storage.js`).
 
 ### What's new
-- After the game updates itself (it always does, at once: `src/game/update.js`), a dialog thanks the player, says it just updated, lists each release's notes since the version they were on (newest first, scrolling), and asks for ideas: *Share an idea* opens the repo's GitHub issues, *Play* closes it. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
+- **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
+- **The version is always in view**: a small, quiet pill under the gear, so players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
+- **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.

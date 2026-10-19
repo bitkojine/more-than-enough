@@ -19,6 +19,7 @@
   --r-sm: 10px;
   --r-md: 14px;
   --r-lg: 20px;
+  --r-pill: 999px;
   --shadow-1: 0 3px 12px rgba(0, 0, 0, 0.38);
   --shadow-2: 0 -8px 30px rgba(0, 0, 0, 0.5);
   --blur: blur(8px);   /* frosted glass, dropped on a device that can't keep up (quality.js) */
@@ -77,6 +78,44 @@ canvas#game {
   width: 100%; max-width: 560px;
   display: flex; align-items: center; gap: 8px;
 }
+
+/* The version, always in view under the gear (src/game/news.js): small and
+   quiet, a dot once there's something new, and after an update the old
+   number rolls away as the new one rolls in and glows. Its touch area is
+   bigger than it looks. */
+#btnVersion {
+  position: relative; align-self: flex-end;
+  margin: -6px max(0px, (100% - 560px) / 2) -2px 0;
+  height: 20px; padding: 0 8px;
+  display: flex; align-items: center; gap: 5px;
+  border: 1px solid transparent; border-radius: var(--r-pill);
+  background: rgba(10, 14, 12, 0.35);
+  color: var(--ink-dim);
+  font: 700 11px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  pointer-events: auto; touch-action: manipulation; cursor: pointer;
+}
+#btnVersion::after { content: ''; position: absolute; inset: -12px -6px; }
+#btnVersion .was { position: absolute; left: 8px; opacity: 0; }
+#btnVersion.fresh::before {
+  content: ''; order: 2; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 6px var(--gold);
+}
+#btnVersion.rolling { animation: ver-glow 2.4s ease-out 0.8s backwards; }
+#btnVersion.rolling .was { animation: ver-out 0.4s ease-in 0.8s backwards; }
+#btnVersion.rolling .now { animation: ver-in 0.6s cubic-bezier(.2, 1.4, .4, 1) 1.1s backwards; }
+@keyframes ver-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-120%); } }
+@keyframes ver-in { from { opacity: 0; transform: translateY(120%); } to { opacity: 1; transform: none; } }
+@keyframes ver-glow {
+  0%, 25% { color: var(--ink-dim); border-color: transparent; box-shadow: none; }
+  40% { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 14px rgba(255, 209, 102, 0.7); }
+  100% { color: var(--ink-dim); border-color: transparent; box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #btnVersion.rolling .was, #btnVersion.rolling .now { animation: none; }
+}
+body.signing #btnVersion { visibility: hidden; }
 
 /* Friends in a shared world, under the top bar on the right: a chip each in
    their colour, showing how they're doing. */
@@ -878,17 +917,6 @@ body.signing #zoomControls { visibility: hidden; }
 .dialog .primary.danger { border-color: #ffab9c; background: linear-gradient(180deg, #e86f5c, #b6432f); color: #fff4f1; }
 .dialog .choices button:active { transform: scale(0.97); }
 
-/* What's new after the game updated itself: each release's notes, scrolling. */
-#news .news {
-  max-height: min(46vh, 360px); overflow-y: auto;
-  flex-shrink: 1; min-height: 72px;  /* gives way first, so Play stays on screen */
-  padding: 10px 12px; border: 1px solid var(--panel-line); border-radius: var(--r-md);
-  background: var(--raised);
-}
-#news h3 { margin: 0 0 4px; font-size: 12px; letter-spacing: 0.06em; color: var(--gold); }
-#news section + section { margin-top: 10px; }
-#news ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.45; }
-#news li + li { margin-top: 4px; }
 /* Landscape phones: the big pictures shrink so each dialog fits the height. */
 @media (max-height: 500px) {
   .scrim { padding: 10px 16px; }
@@ -1014,6 +1042,22 @@ body.signing #zoomControls { visibility: hidden; }
 .world button.stop { color: var(--danger); border-color: rgba(240, 138, 122, 0.35); }
 #worldNow, #playersCount { font-weight: 600; }
 /* Players: everyone in the shared world, you first, then awake, then asleep. */
+/* What's new: every release, newest first; the ones not seen yet stand out. */
+#newsPanel { overflow-y: auto; padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+#newsPanel[hidden] { display: none; }
+#newsPanel .setRow b { flex: none; }
+#newsPanel section { padding: 10px 12px; border: 1px solid var(--panel-line); border-radius: var(--r-md); background: var(--raised); }
+#newsPanel section.fresh { border-color: rgba(255, 209, 102, 0.6); box-shadow: 0 0 12px rgba(255, 209, 102, 0.12); }
+#newsPanel h3 { margin: 0 0 4px; display: flex; align-items: baseline; gap: 6px; font-size: 13px; letter-spacing: 0.04em; color: var(--ink); }
+#newsPanel h3 small { font-size: 11px; font-weight: 600; color: var(--green); }
+#newsPanel h3 em {
+  margin-left: auto; padding: 2px 7px; border-radius: var(--r-pill);
+  background: var(--gold); color: #2a1e06;
+  font: 800 10px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+}
+#newsPanel ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.45; color: var(--ink-dim); }
+#newsPanel .fresh ul { color: var(--ink); }
+#newsPanel li + li { margin-top: 4px; }
 #playersPanel { overflow-y: auto; padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 6px; }
 #playersPanel[hidden] { display: none; }
 #playersPanel .count { color: var(--ink-dim); font-size: 13px; padding: 2px 4px 4px; }

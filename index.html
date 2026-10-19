@@ -111,6 +111,10 @@
       <div id="resources"></div>
       <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
     </div>
+    <!-- The version, always in view. After an update it rolls from the old
+         number to the new one and keeps a dot until you look; tapping it
+         opens the changelog. Never a dialog (src/game/news.js). -->
+    <button id="btnVersion" type="button" translate="no"><span class="was" aria-hidden="true"></span><span class="now"></span></button>
     <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
     <pre id="perf" aria-live="off" hidden></pre>
     <div id="milestone" role="status" aria-live="polite" hidden><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><small><span class="label"></span> <span class="of"></span></small><strong></strong><span class="next"></span></div>
@@ -190,6 +194,8 @@
     <!-- Players: everyone in the shared world you're in, how they're doing
          and how far away; the owner can remove them. Filled by src/game/players.js. -->
     <div id="playersPanel" hidden></div>
+    <!-- What's new: every release's notes, newest first. Filled by src/game/news.js. -->
+    <div id="newsPanel" hidden></div>
     <div id="settingsPanel" class="setPanel" hidden>
       <div class="setGroup">
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
@@ -272,15 +278,6 @@
     <div class="dialog">
       <strong id="forkTitle" data-i18n="fork.title"></strong>
       <div class="picks"></div>
-    </div>
-  </div>
-  <div id="news" class="scrim" role="dialog" aria-labelledby="newsTitle" hidden>
-    <div class="dialog">
-      <strong id="newsTitle"></strong>
-      <p data-i18n="news.thanks"></p>
-      <div class="news"></div>
-      <p data-i18n="news.ideas"></p>
-      <div class="choices"><button type="button" class="secondary" data-i18n="news.shareIdea"></button><button type="button" class="primary" data-i18n="news.play"></button></div>
     </div>
   </div>
   <div id="crash" role="alert" hidden>

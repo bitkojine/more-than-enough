@@ -221,7 +221,8 @@ function checkFork() {
 onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
-const news = createNews(el.news);
+// The version, always in view; tapping it shows what's new.
+const news = createNews({ badge: el.versionBtn, panel: el.newsPanel, version: VERSION, updatedFrom: takeUpdatedFrom() });
 el.privacyLink.href = policyUrl(); // in the player's language
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
@@ -261,6 +262,7 @@ const sheet = createSheet(el, {
     if (tab === 'invites') together.listInvites();
     if (tab === 'worlds') together.listWorlds();
     if (tab === 'players') together.listPlayers();
+    if (tab === 'news') news.render();
   },
   actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
@@ -277,15 +279,14 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 
 // Something on screen that needs the player: a sheet or a dialog. The
 // Perfect button waits while one is up.
-const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open || news.open;
-// Back (Escape, or the phone's own Back): a question says no, What's new
-// closes, a sheet steps back a screen or closes.
+const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open;
+// Back (Escape, or the phone's own Back): a question says no, a sheet
+// steps back a screen or closes.
 function goBack() {
   if (ask.open) ask.cancel();
-  else if (news.open) news.close();
   else sheet.back();
 }
-const back = createBack({ isOpen: () => sheet.isOpen || ask.open || news.open, goBack });
+const back = createBack({ isOpen: () => sheet.isOpen || ask.open, goBack });
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
@@ -316,6 +317,7 @@ el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
 el.settings.addEventListener('click', () => sheet.toggle('settings'));
 el.map.addEventListener('click', () => sheet.toggle('map'));
+el.versionBtn.addEventListener('click', () => sheet.toggle('news'));
 el.mapIn.addEventListener('click', () => worldMap.zoom(1.5));
 el.mapOut.addEventListener('click', () => worldMap.zoom(1 / 1.5));
 el.mapMe.addEventListener('click', () => worldMap.centre());
@@ -619,8 +621,8 @@ showNext();
 // you were in, if any.
 together.open();
 updater.start();
-// Just updated itself: thank the player and say what's new.
-news.show(takeUpdatedFrom(), VERSION);
+// Just updated itself: the version number rolls over to the new one.
+news.play();
 if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
 requestAnimationFrame(frame);
 
@@ -632,7 +634,8 @@ window.MTE_GAME = {
   yard,
   getState: () => game.state,
   together,
-  dialogs: { ask, fbi, news },
+  dialogs: { ask, fbi },
+  news,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },

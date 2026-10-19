@@ -231,7 +231,7 @@ The moderator's routes (`Authorization: Bearer <token>`):
   after 2 hours (`COPY_MS`), closing its sockets with 4006. Keep the key to
   yourself: it plays the copy, nothing else. What only the player's phone
   knew can be added to the link: `&was=0.89.0` (the version their tab last
-  ran: What's new since then shows) and `&shown=mycelium:1.4e14,stone:2e13`
+  ran: the version badge rolls over from it and What's new marks what came since) and `&shown=mycelium:1.4e14,stone:2e13`
   (the numbers their phone last showed).
 - `GET /admin/rooms/<id>/graves`: its tombstones, as a player's welcome
   carries them (`[id, colour, x, y, z, 'ban' | 'ice']`).

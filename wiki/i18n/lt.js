@@ -357,7 +357,7 @@ export default {
           mygtukas šviečia auksu, o žinutė sako, kad Iškeliauti spaudi tu. Iškeliauk pats, ir jei vis dar laikai, jis tęs naujame pasaulyje.</li>
         <li><strong>Viskas, kas pirma klausia</strong>: jis niekada neatsako į klausimus, tad nedaro nieko, ko negalėtum atšaukti.</li>
         <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai, pasaulio žemėlapis ar koks klausimas, jis laukia.</li>
-        <li><strong>Žinutė apie atnaujinimą</strong>, prisijungimas prie bendro pasaulio ir jo privatumo politika,
+        <li>Prisijungimas prie bendro pasaulio ir jo privatumo politika,
           <strong>FBI</strong> pranešimas ir pasirinkimas tarp dviejų išsaugojimų: visa tai tavo.</li>
         <li><strong>Kviesti</strong>, tavo ženklas ir viskas, kas susiję su žaidimu kartu.</li>
         <li><strong>Laikymas</strong>: jis žaidžia tik kol laikai, žaidimui esant atvertam priešais tave. Jei

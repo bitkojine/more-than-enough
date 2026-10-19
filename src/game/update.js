@@ -7,7 +7,7 @@
  * friend joins a shared world (they most likely just loaded the newest one).
  * The moment the site's build differs from the one running, the game saves
  * and reloads. No asking. It notes the version it was on, so the new one can
- * say what's new since (src/game/news.js).
+ * roll the version badge over from it (src/game/news.js).
  *
  * Run from source there is no stamp, so nothing to compare: it stays off. */
 

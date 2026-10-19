@@ -141,8 +141,9 @@ Players never run an old version: the staged site also has a `build.json`
 naming that hash, and the game (`src/game/update.js`) checks it on start, every
 minute, when it comes back into view or online, and when a friend joins a
 shared world. When it differs from the hash on the game's own modules, the
-game saves and reloads at once, without asking, then shows what's new since
-the version the player was on. So each release also adds its version to `NEWS`
+game saves and reloads at once, without asking. Nothing pops up: the version
+number, always on screen under the gear, rolls over to the new one and keeps a
+dot until the player taps it to read what's new since the version they were on. So each release also adds its version to `NEWS`
 in `src/game/news.js` and its player-facing notes as `news.<version>` in
 `src/i18n/en.js` and `lt.js` (`npm test` fails otherwise).
 
@@ -172,7 +173,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory: they grow, slide, merge 2048-style and puff as it changes
   - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
-  - `update.js`, `news.js` — the self-update on every deploy and the What's new notes
+  - `update.js`, `news.js` — the self-update on every deploy, the version badge and the What's new changelog
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
 - `src/vendor/` — other people's code, copied unchanged (the QR code generator)
 - `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
