@@ -76,7 +76,7 @@ function tileDoes(type) {
     out.push(t('tileDoes.find', { loot }));
   }
   if (info.forage) out.push(t('tileDoes.forage'));
-  if (info.regrows) out.push(t('tileDoes.regrows'));
+  if (info.harvest && !info.solid) out.push(t('tileDoes.spent'));
   if (info.land) out.push(t('tileDoes.land'));
   if (info.descend) out.push(t('tileDoes.descend'));
   if (info.rise) out.push(t('tileDoes.rise'));

@@ -2,6 +2,42 @@
 
 ## [0.125.0] - 2026-10-19
 
+Watch's ask: resources no longer grow back. What you collect is gone for
+good and stays shown as collected, so players explore further and the land
+shows where they've been. Watch chose each part: buildings keep working
+forever without using up their deposit; a building only goes on a deposit
+with something left in it; the world map fades emptied deposits; shared
+worlds remember far more changed tiles.
+
+### Changed
+- **Nothing regrows** (`src/core/sim.js`): the regrowth tick, `REGROW_*`
+  and the tiles' `regrows` flag are gone. Forest and stone now stay worked
+  down like ore, crystal and the mine always did. No world is touched:
+  tiles already regrown keep what they have.
+- **Buildings need some deposit left** (`buildableTile` in
+  `src/core/actions.js`): a garden, quarry, mine or resonator can't go on
+  a tile gathered to nothing.
+- **The world map fades emptied deposits** (`src/game/worldmap.js`), and
+  repaints a chunk whenever something in it is gathered, wherever you are.
+- **Shared worlds**: a tile's richness only ever goes down, so the room
+  refuses an edit that raises it (an old game regrowing, or a refill).
+  `PLAYER_TILES` 10,000 -> 60,000 and `LIMITS.mods` 100,000 -> 1,000,000,
+  stored in 512 pieces instead of 16 (`MOD_BUCKETS`); a world stored in
+  16 loads whole and is spread over the 512 on its first write.
+- **Perfect** walks past where it looks for building spots when there's
+  nothing left to gather near home, keeps a trip down for at least
+  `minDig` seconds (a shifting guess about the emptied surface popped it
+  straight back up), and digs a new goal where it is soon after coming
+  down. Embark median 24.65 h -> 25.40 h, nothing refused, no waiting, no
+  quick pops down; baseline re-recorded.
+- Tile cards and the wiki say deposits never grow back; the wiki's
+  Regrowth section is now "Gathered for good".
+
+### Tests
+- Nothing regrows beside you; a building needs something left and never
+  uses it up; the room refuses a raised richness; a world stored in 16
+  pieces loads and is rewritten into 512. Bot helpers skip unreachable and
+  built-on tiles instead of zeroing them (regrowth used to hide that).
 Watch: unexplored land should look like the fog of war in Civilization.
 Watch picked clouds (Civ V) over an old-map parchment (Civ VI) and over
 keeping the dark drop, chose to keep explored land fully bright (no greying

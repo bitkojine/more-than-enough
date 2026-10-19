@@ -6,11 +6,10 @@
  *   sealed   no way between layers ever opens here, from above or below
  *            (home ground: kept for the stockpile)
  *   swim     walkable, but slow (water)
- *   harvest  gathering works it, lowering its richness by one
+ *   harvest  gathering works it, lowering its richness by one for good
  *   solid    a harvestable tile you cannot stand on (underground rock); it must
  *            be chosen deliberately with a tap or a Trail, never auto-targeted
  *   res      the resource a harvest yields (none for plain soil)
- *   regrows  richness creeps back up near the player
  *   forage   what stands on it is never worked out (trees stay standing):
  *            you gather what grows at its foot, and that is what runs out
  *   cleared  the type a solid tile becomes once its richness reaches zero
@@ -67,8 +66,8 @@ export const TILE_KEY = [];
 
 export const TILE_INFO = [];
 TILE_INFO[T.GRASS] = { walk: true, land: true };
-TILE_INFO[T.FOREST] = { walk: true, land: true, harvest: true, res: 'mycelium', regrows: true, forage: true };
-TILE_INFO[T.STONE] = { walk: true, land: true, harvest: true, res: 'stone', regrows: true };
+TILE_INFO[T.FOREST] = { walk: true, land: true, harvest: true, res: 'mycelium', forage: true };
+TILE_INFO[T.STONE] = { walk: true, land: true, harvest: true, res: 'stone' };
 TILE_INFO[T.ORE] = { walk: true, land: true, harvest: true, res: 'ore' };
 TILE_INFO[T.CRYSTAL] = { walk: true, land: true, harvest: true, res: 'crystal' };
 TILE_INFO[T.WATER] = { walk: true, swim: true, height: -0.15 };

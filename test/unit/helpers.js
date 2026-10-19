@@ -92,12 +92,15 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
     return used;
   }
 
+  const unreachable = new Set(); // tiles a walk found no way to: passed by
+  const reachable = (x, y) => !unreachable.has(x + ',' + y);
+
   function gather(res, need) {
     for (let guard = 0; s.inv[res] < need && guard < 6000; guard++) {
-      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0 && !C.gearNeeded(st, x, y));
+      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0 && !C.gearNeeded(st, x, y) && !C.extractorAt(st, x, y, C.SURFACE) && reachable(x, y));
       if (!t) return false;
       if (!C.canHarvest(s, t.x, t.y)) {
-        if (walkTowards(t, 10, 30) < 0) C.setRichness(s.world, t.x, t.y, 0, 0); // unreachable: forget it
+        if (walkTowards(t, 10, 30) < 0) unreachable.add(t.x + ',' + t.y);
         continue;
       }
       if (!C.harvestAt(s, t.x, t.y)) continue;
@@ -120,7 +123,7 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
     return false;
   }
 
-  const free = (type) => (st, x, y) => typeAt(st, x, y) === type && !C.extractorAt(st, x, y, 0);
+  const free = (type) => (st, x, y) => typeAt(st, x, y) === type && richAt(st, x, y) > 0 && !C.extractorAt(st, x, y, 0) && reachable(x, y);
 
   // Gathers what upgrade `id` costs by hand, then buys it.
   function buyNow(id) {

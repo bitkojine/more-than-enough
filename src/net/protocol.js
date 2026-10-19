@@ -43,7 +43,7 @@ export const LIMITS = Object.freeze({
   saveBytes: 65536,      // one player's progress
   editsPerMessage: 64,
   actsPerMessage: 256,    // things a player did, in one 'acts' message (see src/core/acts.js)
-  mods: 100000,          // richness edits in one world
+  mods: 1000000,         // richness edits in one world (nothing grows back: they're kept)
   props: 20000,
   extractors: 4000,
   ratePerSecond: 30,     // messages from one connection, on average

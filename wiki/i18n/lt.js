@@ -29,7 +29,7 @@ export default {
   "wiki.idea.crystalsThatLightTheDark.pitch": "Kristalo langeliai ir gyslos naktį ir po žeme švyti, apšviesdami aplinkinę žemę ir skardžius, kuriuose yra. Radęs kristalo gyslą, tamsų žemėlapio kampą paverti orientyru.",
   "wiki.idea.crystalsThatLightTheDark.builds": "Naktinis apšvietimas ir kristalo langeliai.",
   "wiki.idea.seasons.title": "Metų laikai",
-  "wiki.idea.seasons.pitch": "Per daugelį žaidimo dienų miškas iš žalio tampa auksinis, paskui plikas ir vėl žalias. Kiekvienas metų laikas galėtų šiek tiek paveikti ataugimą ir plaukimą, bet net vien vizualiai jie ilgoms žaidimo sesijoms suteiktų laiko pojūtį.",
+  "wiki.idea.seasons.pitch": "Per daugelį žaidimo dienų miškas iš žalio tampa auksinis, paskui plikas ir vėl žalias. Kiekvienas metų laikas galėtų šiek tiek paveikti plaukimą, bet net vien vizualiai jie ilgoms žaidimo sesijoms suteiktų laiko pojūtį.",
   "wiki.idea.seasons.builds": "Dienos ir nakties laikrodis.",
   "wiki.idea.packGallery.title": "Paketų galerija",
   "wiki.idea.packGallery.pitch": "Žinyno puslapis, kuriame žaidėjai dalijasi tekstūrų paketais su kiekvieno peržiūra, o žaidimas gali įkelti paketą tiesiai iš nuorodos. Paketai tampa tuo, kuo žmonės mainosi, kaip modifikacijomis.",
@@ -74,8 +74,8 @@ export default {
   "wiki.idea.littleDiggers.pitch": "Tamsoje gyvenantys mažyliai: kurmiai, kurie patys kasa tunelius, ar vagišiai, graužiantys pilnus gavyklų buferius. Priežastis laikyti stovyklą tvarkingą ir šiek tiek gyvybės pasaulyje.",
   "wiki.idea.littleDiggers.builds": "Gavyklų buferiai ir tuneliai.",
   "wiki.idea.weather.title": "Orai",
-  "wiki.idea.weather.pitch": "Lietus pripildo tvenkinius ir pagreitina ataugimą; sausros sumažina ežerus ir atveria naujus kelius. Orai atslenka matomais debesimis, tad matai, kas artėja.",
-  "wiki.idea.weather.builds": "Ataugimas ir vandens langeliai.",
+  "wiki.idea.weather.pitch": "Lietus pripildo tvenkinius; sausros sumažina ežerus ir atveria naujus kelius. Orai atslenka matomais debesimis, tad matai, kas artėja.",
+  "wiki.idea.weather.builds": "Vandens langeliai.",
   "wiki.idea.visualRecipes.title": "Vaizdiniai receptai",
   "wiki.idea.visualRecipes.pitch": "Darbastalis, ant kurio dedi išteklius ir matai, kas išeina: tik piktogramos, jokių žodžių, atrandama bandant derinius. Puikiai tinka taisyklei „išsiaiškink pats“.",
   "wiki.idea.visualRecipes.builds": "Keitikliai ir taisyklė „be teksto“.",
@@ -140,7 +140,6 @@ export default {
   "wiki.note.impassable": "Neįveikiama",
   "wiki.note.yields": "duoda: {res}",
   "wiki.note.empty": "nieko neturi: kasant tik praskinamas kelias",
-  "wiki.note.regrows": "atauga",
   "wiki.note.neverRegrows": "niekada neatauga",
   "wiki.note.land": "gali stovėti keitikliai",
   "wiki.note.home": "čia laikomos tavo atsargos",
@@ -222,7 +221,7 @@ export default {
         <li><a href="#controls"><strong>Valdymas</strong><span>Judėjimas, rinkimas, takai, mastelis{phone:.|laptop:, klaviatūra.}</span></a></li>
         <li><a href="#perfect"><strong>Idealiai</strong><span>Laikyk mygtuką virš „Rinkti“ ir žaidimas žais pats.</span></a></li>
         <li><a href="#screen"><strong>Ekranas</strong><span>Ką reiškia skaitikliai, mygtukai ir švytėjimai.</span></a></li>
-        <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, ataugimas, diena ir naktis.</span></a></li>
+        <li><a href="#world"><strong>Pasaulis</strong><span>Langeliai, rūkas, vanduo, kas surenkama visam laikui, diena ir naktis.</span></a></li>
         <li><a href="#gathering"><strong>Rinkimas</strong><span>Ištekliai, derlius ir kaip išsenka telkiniai.</span></a></li>
         <li><a href="#mine"><strong>Kasykla</strong><span>Sluoksniai po mišku, urvų angos, šachtos, kopėčios ir kasimas.</span></a></li>
         <li><a href="#buildings"><strong>Pastatai</strong><span>Gavyklos, keitikliai, produkcijos paėmimas, logistika.</span></a></li>
@@ -440,7 +439,7 @@ export default {
         <tbody>
           <tr><td>FPS</td><td>Kadrai per sekundę per paskutines ~2 sekundes. 60 – sklandu daugumoje ekranų.</td></tr>
           <tr><td>frame / worst</td><td>Vidutinis laikas tarp kadrų ir ilgiausias pavienis tarpas (strigtelėjimas).</td></tr>
-          <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, ataugimui.</td></tr>
+          <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, baterijai.</td></tr>
           <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina, kol vaizdą perima tolimas žemėlapis.</td></tr>
           <tr><td>tiles</td><td>Langeliai ekrane.</td></tr>
           <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
@@ -485,13 +484,12 @@ export default {
         <strong>mišrus miškas</strong>, kuriame visko po truputį. Ir to paties miško medžiai skiriasi. Kiekvienas miškas grybienos
         duoda vienodai; keičiasi tik išvaizda. Visus juos rasi skyriuje <a href="#things">Viskas žaidime</a>.</p>
       <p>Medžiai niekada nekertami – nei tavęs, nei tavo pastatų. Miške renki grybieną, augančią ant jo paklotės: grybus prie
-        medžių kamienų. Išrink lopinėlį iki paskutinio grybo – medžiai liks stovėti, o grybai vėl išdygs netoli tavęs.
+        medžių kamienų. Išrink lopinėlį iki paskutinio grybo – medžiai liks stovėti, bet grybų ten nebeliks visam laikui.
         Grybiena – tikra statybinė medžiaga, užauginta, o ne nukirsta: tavo įrankiai, pastatai ir patobulinimai pagaminti iš
-        to, kas atauga.</p>
+        to, ką užaugino miško paklotė.</p>
 
       <h2>Grybai</h2>
-      <p>Kiekviename miško lopinėlyje prie medžių auga vienos rūšies grybai, parinkti iš tų, kurie auga tokiame miške, ir
-        atauga vis ta pati rūšis. Kiekviename kasyklos sporų guolyje auga viena urvų grybų rūšis. Visi jie grybienos duoda
+      <p>Kiekviename miško lopinėlyje prie medžių auga vienos rūšies grybai, parinkti iš tų, kurie auga tokiame miške. Kiekviename kasyklos sporų guolyje auga viena urvų grybų rūšis. Visi jie grybienos duoda
         vienodai; skiriasi tik tai, kuriuos jau esi radęs. Pirmasis kiekvienos rūšies grybas, kurį kada nors nuskini,
         švenčiamas, o rastų rūšių kolekcija lieka tau ir iškeliavus. Magiški (✦) reti: gali praeiti šimtą lopinėlių, kol
         pamatysi bent vieną.</p>
@@ -514,11 +512,13 @@ export default {
         Niekas nežvejoja: vanduo paliekamas tiems, kas jame gyvena.</p>
       <div data-table="waterPower"></div>
 
-      <h2>Ataugimas</h2>
-      <p>Miškas ir akmuo atauga; rūda ir kristalas – niekada. Kas <span data-k="REGROW_INTERVAL"></span> s kiekvienas nualintas
-        miško ar akmens langelis iki <span data-k="REGROW_RADIUS"></span> langelių nuo tavęs turi
-        <span data-k="REGROW_CHANCE" data-f="pct"></span> tikimybę atgauti vieną turtingumo tašką, kol pasiekia pradinį lygį.
-        Toli nuo tavęs esantys langeliai neatauga, tad išvalytas lopinėlis atsigauna tik tau būnant netoliese.</p>
+      <h2>Surinkta visam laikui</h2>
+      <p>Niekas neatauga. Ką surenki – grybus, akmenį, rūdą ar kristalą, – iš to langelio dingsta visam laikui, ir langelis tai
+        rodo: nudilusi uola, iki plikumo išrinkta miško paklotė, tuneliai ten, kur buvo gyslos. Tavo išdirbta žemė – tai
+        žemėlapis, kur esi buvęs, ir pasaulio žemėlapis tai rodo taip pat: išsemti telkiniai jame išblukę. Naujų telkinių
+        rasi eidamas toliau, ir kuo toliau bei giliau, tuo jie turtingesni.</p>
+      <p>Pastatai – išimtis: pastatas savo telkinį dirba amžinai jo neišsemdamas. Jis statomas tik ant telkinio, kuriame dar
+        kažko liko, tad išsemtas lopinėlis lieka išnaudotas visam laikui.</p>
 
       <h2>Diena ir naktis</h2>
       <p>Visa para trunka <span data-k="DAY_LENGTH"></span> s, o naujas pasaulis prasideda vidurdienį. Dienos šviesios ir šiltos.
@@ -541,14 +541,14 @@ export default {
       <ul>
         <li><strong>🍄 Grybiena</strong> renkama nuo miško paklotės ir iš sporų guolių giliai kasykloje. Reikia krepšio.</li>
         <li><strong>🪨 Akmuo</strong> iš akmens telkinių ir akmens gyslų. Reikia kirtiklio.</li>
-        <li><strong>⛏️ Rūda</strong> iš rūdos telkinių ir rūdos gyslų. Reikia kirtiklio. Paviršiuje niekada neatauga.</li>
-        <li><strong>💠 Kristalas</strong> iš kristalo telkinių, o nuo 3 sluoksnio gilyn – ir iš kristalo gyslų. Reikia kirtiklio. Retas ir paviršiuje niekada neatauga.</li>
+        <li><strong>⛏️ Rūda</strong> iš rūdos telkinių ir rūdos gyslų. Reikia kirtiklio.</li>
+        <li><strong>💠 Kristalas</strong> iš kristalo telkinių, o nuo 3 sluoksnio gilyn – ir iš kristalo gyslų. Reikia kirtiklio. Retas.</li>
       </ul>
 
       <h2>Derlius ir turtingumas</h2>
       <p>Kiekvienas mostas duoda tiek, kiek leidžia tavo įrankio lygis (pradžioje 1, daugiausia 32), bet iš langelio visada atima lygiai
         <strong>vieną</strong> turtingumo tašką. Geresni įrankiai telkinių neišsemia greičiau – jie tiesiog iš kiekvieno
-        išgauna daugiau. Miškas, kurio turtingumas nulinis, medžius išlaiko, bet grybų jame nebelieka, kol jie ataugs.</p>
+        išgauna daugiau. Niekas neatauga: miškas, kurio turtingumas nulinis, medžius išlaiko, bet grybų jame nebelieka visam laikui.</p>
       <p>Tavo rankos neatsilieka nuo pastatų. Be to, ką duoda įrankis, kiekvienas mostas atneša tiek, kiek tavo pastatai to
         ištekliaus pagamina per <span data-k="HAND_SHARE"></span> sekundės, ir kiekvieno radinio grobis auga taip pat. Kad ir kokios
         didelės būtų tavo stovyklos, rinkimas visada prie jų prideda, tad stovėti ir laukti niekada nėra greičiausias kelias.</p>
@@ -652,7 +652,6 @@ export default {
           atgal, vėl paskęsta tamsoje. Švytukės ir lempos laiko savo ruožą apšviestą, o dienos šviesa krinta pro angas,
           kuriomis nusileidai.</li>
         <li>Logistika ir čia, apačioje, parveža produkciją iš tavo stovyklų paviršiuje. Be jos jos tiesiog prisipildo, kol esi apačioje.</li>
-        <li>Po žeme niekas neatauga.</li>
         <li>Diena ir naktis keičiasi kaip įprasta: šviesa pro angą į mišką naktį blėsta.</li>
       </ul>`,
   "wiki.article.buildings.title": "Pastatai",

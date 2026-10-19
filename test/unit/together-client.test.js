@@ -388,8 +388,9 @@ test('client: a lost edit where someone has changed the tile since is not sent o
   together.tick(0.3); // sent, never arrives
   // The owner changes that tile meanwhile.
   const ownerId = [...w.r.players.keys()].find((p) => p !== id);
-  w.r.players.get(ownerId).p = { x: 0.5, y: 0.5, z: 0 };
-  w.r.message(ownerId, JSON.stringify({ t: 'edits', e: [['m', key, 7]] }), T0 + 500);
+  // (Straight into the room: a made-up richness the tile never had, which
+  // an edit from a game couldn't raise it to.)
+  w.r.apply(['m', key, 7], ownerId);
   first.lose(1006);
   await new Promise((r) => setTimeout(r, 1100));
   const again = open()[0];

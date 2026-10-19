@@ -39,8 +39,7 @@ function tileNotes(type) {
   else notes.push(t('wiki.note.impassable'));
   if (info.res) notes.push(t('wiki.note.yields', { res: icon(info.res) + ' ' + Core.RESOURCE_LOWER[info.res] }));
   else if (info.harvest && info.sweep !== false) notes.push(t('wiki.note.empty'));
-  if (info.regrows) notes.push(t('wiki.note.regrows'));
-  else if (info.harvest && !info.solid) notes.push(t('wiki.note.neverRegrows'));
+  if (info.harvest && !info.solid) notes.push(t('wiki.note.neverRegrows'));
   if (info.land) notes.push(t('wiki.note.land'));
   if (type === T.HOME) notes.push(t('wiki.note.home'));
   if (info.descend) notes.push(t('wiki.note.descend'));

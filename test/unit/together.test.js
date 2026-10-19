@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, MOD_BUCKETS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
@@ -245,14 +245,14 @@ test('room: numbered edits are answered with their number, applied or refused; o
   assert.equal(o.welcome.ack, true);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   const k = Core.packKey(1, 0, 0);
-  const a = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 1]], n: 7 }), T0);
+  const a = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 0]], n: 7 }), T0);
   assert.deepEqual(a.toSelf, [{ t: 'ack', n: 7 }]);
   assert.equal(a.toAll[0].t, 'edits');
   // A prop where there already is one: refused, still answered.
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['p', k, 'glowcap']] }), T0);
   const b = r.message(o.id, JSON.stringify({ t: 'edits', e: [['p', k, 'glowcap']], n: 8 }), T0);
   assert.deepEqual(b, { toSelf: [{ t: 'ack', n: 8 }] });
-  const c = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 2]] }), T0);
+  const c = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, 0]] }), T0);
   assert.equal(c.toSelf, undefined, 'unnumbered edits get no answer (games from before)');
   const d = r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', 'bad', 2]], n: 9 }), T0);
   assert.deepEqual(d, { drop: true }, 'a malformed batch is dropped, not answered');
@@ -264,7 +264,7 @@ test('room: a write that fails is written again next time, with whatever changed
   r.takeWrites();
   const guest = await r.join(key(), invite(r, o.id), T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 1]] }), T0);
+  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0);
   r.ban(guest.id, T0, 'owner', 'test'); // the player goes and the ban comes in the same write
   const failed = r.takeWrites();
   const gone = [...failed].filter(([, v]) => v === null).map(([k]) => k);
@@ -272,12 +272,35 @@ test('room: a write that fails is written again next time, with whatever changed
   // Storage refused it: nothing landed.
   r.redo(new Map([...failed].filter(([, v]) => v !== null)), gone);
   assert.equal(r.isDirty, true);
-  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 1, 0), 1]] }), T0 + 10);
+  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 1, 0), 0]] }), T0 + 10);
   const retry = r.takeWrites();
   assert.deepEqual([...retry.keys()].sort(), [...failed.keys()].sort(), 'the same keys again, none lost');
   assert.equal(retry.get('p:' + guest.id), null, 'the banned player is still deleted');
   assert.ok(retry.get('meta').bans.includes(guest.id), 'together with the ban');
-  assert.equal(retry.get('mods:' + (Core.packKey(2, 1, 0) % 16)).length > 0, true, 'and the newer edit rides along');
+  assert.equal(retry.get('mods:' + (Core.packKey(2, 1, 0) % MOD_BUCKETS)).length > 0, true, 'and the newer edit rides along');
+});
+
+test('room: a world stored in fewer pieces loads whole and is spread over the new ones', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), T0);
+  const e = [];
+  for (let y = 0; y < 20; y++) for (let x = 0; x < 2; x++) e.push(['m', Core.packKey(x, y, 0), 0]);
+  r.message(o.id, JSON.stringify({ t: 'edits', e }), T0);
+  const stored = new Map([['id', r.id], ...r.takeWrites()]);
+  // As worlds were stored before v0.126.0: 16 pieces.
+  const all = [...r.mods];
+  assert.ok(all.some(([k]) => k % 16 !== k % MOD_BUCKETS), 'some edit lives in another piece now');
+  for (const k of [...stored.keys()]) if (k.startsWith('mods:')) stored.delete(k);
+  for (let b = 0; b < 16; b++) stored.set('mods:' + b, all.filter(([k]) => k % 16 === b));
+  const back = Room.restore(r.id, stored, T0);
+  assert.deepEqual([...back.mods].sort(), all.sort(), 'every edit is there');
+  const w = back.takeWrites();
+  for (let b = 0; b < MOD_BUCKETS; b++) assert.ok(w.has('mods:' + b), 'every piece is written again');
+  for (const [k, v] of w) if (k.startsWith('mods:')) for (const [key] of v) assert.equal(key % MOD_BUCKETS, Number(k.slice(5)));
+  const again = Room.restore(r.id, new Map([...stored, ...w]), T0);
+  assert.deepEqual([...again.mods].sort(), all.sort());
+  assert.equal(again.isDirty, false, 'and from then on it is stored as it should be');
 });
 
 test('room: what it writes to storage brings it back the same', async () => {
@@ -553,6 +576,24 @@ test("anti-cheat: the edit budget is the player's, not the connection's", async 
   assert.ok(applied <= P.LIMITS.editsBurst, `reconnects don't refill it (${applied})`);
 });
 
+test('room: nothing grows back, so an edit that raises a tile\'s richness is refused', async () => {
+  const { r, owner } = await makeRoom();
+  const o = await r.join(owner, undefined, T0);
+  const w = Core.createWorld(r.seed);
+  let k = null, base = 0;
+  for (let y = -80; y <= 80 && !k; y++) for (let x = -80; x <= 80 && !k; x++) {
+    base = Core.baseRichness(w, x, y, 0);
+    if (base >= 2) { k = Core.packKey(x, y, 0); r.message(o.id, JSON.stringify({ t: 'pos', p: { x: x + 0.5, y: y + 0.5, z: 0 } }), T0); }
+  }
+  assert.ok(k, 'a deposit');
+  const edit = (v) => r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, v]] }), T0).toAll;
+  assert.ok(!edit(base + 1), 'never above how it was made');
+  assert.ok(edit(base - 1), 'gathered down by one');
+  assert.ok(!edit(base), 'and it does not come back');
+  assert.ok(edit(0), 'emptied');
+  assert.equal(r.mods.get(k), 0);
+});
+
 test('room: a player changes at most PLAYER_TILES new tiles', async () => {
   const { r, owner } = await makeRoom();
   const o = await r.join(owner, undefined, T0);
@@ -561,7 +602,7 @@ test('room: a player changes at most PLAYER_TILES new tiles', async () => {
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   const out = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0], ['m', Core.packKey(2, 2, 0), 0]] }), T0);
   assert.equal(out.toAll[0].e.length, 1, 'the last of their share, then no more');
-  assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 5]] }), T0).toAll, 'changing a changed tile again is free');
+  assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0).toAll, 'changing a changed tile again is free');
   r.players.get(o.id).nm = PLAYER_TILES;
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has the same share');

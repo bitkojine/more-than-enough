@@ -2,13 +2,11 @@
  * Deterministic: no clocks, no Math.random. */
 
 import { SURFACE, tileDist2 } from './coords.js';
-import { hash2 } from './noise.js';
 import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
-import { tileAt, walkable, richness, baseRichness, setRichness, markExplored } from './world.js';
+import { tileAt, walkable, markExplored } from './world.js';
 import {
-  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS,
-  REGROW_RADIUS, REGROW_INTERVAL, REGROW_CHANCE
+  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
 } from './content.js';
 import { extractorRate, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
@@ -20,7 +18,6 @@ const MAX_STEP = 0.25;
 export function step(s, dt) {
   if (dt > MAX_STEP) dt = MAX_STEP;
   noteWhere(s); // a shared world's room follows where you are (acts.js)
-  const regrowTick = Math.floor(s.time / REGROW_INTERVAL);
   s.time += dt;
   s.stats.playedMs += dt * 1000;
 
@@ -33,9 +30,6 @@ export function step(s, dt) {
       earn(s, r, trickle, 'engine');
     }
   }
-
-  const nextTick = Math.floor(s.time / REGROW_INTERVAL);
-  if (nextTick !== regrowTick) regrow(s, nextTick);
 }
 
 // Whether Logistics hauls this building's output in as it's made: any of
@@ -70,22 +64,6 @@ function produce(s, dt) {
       earn(s, e.res, amt, 'buildings');
       e.buffer -= amt;
       if (tileDist2(s.player, e.x, e.y, e.z) <= SHOW2) s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
-    }
-  }
-}
-
-// Depleted deposits near the player creep back toward their generated
-// richness. Randomness is a hash of tile and tick, so replays match.
-function regrow(s, tick) {
-  const w = s.world, z = s.player.z;
-  const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
-  for (let y = py - REGROW_RADIUS; y <= py + REGROW_RADIUS; y++) {
-    for (let x = px - REGROW_RADIUS; x <= px + REGROW_RADIUS; x++) {
-      if (!TILE_INFO[tileAt(w, x, y, z)].regrows) continue;
-      const cur = richness(w, x, y, z);
-      if (cur < baseRichness(w, x, y, z) && hash2(x ^ tick, y, w.seed + tick) < REGROW_CHANCE) {
-        setRichness(w, x, y, z, cur + 1);
-      }
     }
   }
 }

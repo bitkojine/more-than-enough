@@ -241,11 +241,13 @@ export function extractorAt(s, x, y, z) {
 }
 
 // A building never shares a tile with a way between layers: not on a way
-// down, nor on a way up.
+// down, nor on a way up. One that works a deposit needs some of it left:
+// nothing grows back, so an emptied deposit is spent for good (Watch,
+// 2026-10-19).
 function buildableTile(s, def, x, y) {
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
-  const fits = def.tile === null ? !!TILE_INFO[type].land : type === def.tile;
+  const fits = def.tile === null ? !!TILE_INFO[type].land : type === def.tile && richness(s.world, x, y, z) > 0;
   return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
 }
 

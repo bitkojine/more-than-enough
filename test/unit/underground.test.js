@@ -260,16 +260,6 @@ test('each layer has its own fog, lifted only close by underground', () => {
   assert.deepEqual(s.discovered, found, 'surface discoveries are untouched');
 });
 
-test('surface regrowth is unaffected by underground position', () => {
-  const s = away(C.createState(31415));
-  const forest = findNear(s, (st, x, y) => typeAt(st, x, y) === T.FOREST);
-  C.setRichness(s.world, forest.x, forest.y, SURFACE, 0);
-  C.goDown(s);
-  standOn(s, { x: forest.x, y: forest.y });
-  run(s, 200);
-  assert.equal(C.richness(s.world, forest.x, forest.y, SURFACE), 0, 'nothing regrows on a layer you are not on');
-});
-
 test('extractors cannot be built underground', () => {
   const s = away(C.createState(31415));
   Object.assign(s.inv, { mycelium: 1e4, stone: 1e4, ore: 1e4 });

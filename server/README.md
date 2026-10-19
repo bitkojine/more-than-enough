@@ -96,7 +96,8 @@ again in the game; anything that doesn't fit exactly is dropped.
   owner removed them. Owners too: nobody cheats in a shared world. A banned
   owner's world passes to whoever joined it first among those left who
   aren't frozen (by join time, `owner` message). One player, the owner too, adds at most 400 buildings, 2,000
-  props and 10,000 newly changed tiles (`PLAYER_TILES`). Reconnecting starts nothing afresh: the first step after
+  props and 60,000 newly changed tiles (`PLAYER_TILES`). Nothing grows back, so a
+  tile's richness only goes down: an edit that raises it is refused. Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
   elsewhere is told where it stands (`place`).
 - **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
@@ -105,7 +106,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   16 KB per message (64 KB for your own progress); 30 messages a second per
   connection and 60 world edits a second per player, with small bursts;
   edits only within 24 tiles of where the player stands, on their own layer;
-  a room holds at most 100,000 tile edits, 20,000 props and 4,000
+  a room holds at most 1,000,000 tile edits (stored in `MOD_BUCKETS` pieces), 20,000 props and 4,000
   buildings; 200 sockets a room (two per player), and a socket that doesn't say who it is in 5
   seconds is closed. A connection that keeps breaking the limits is closed
   (strikes are forgiven over time).

@@ -76,6 +76,35 @@ test('upgrades cost exactly their price', () => {
   assert.ok(C.speedMult(s) > 1);
 });
 
+test('nothing grows back: a gathered tile stays as it was left', () => {
+  const s = C.createState(12345);
+  const stone = findNear(s, (st, x, y) => typeAt(st, x, y) === T.STONE && richAt(st, x, y) > 1);
+  const wood = findNear(s, forest);
+  C.setRichness(s.world, stone.x, stone.y, C.SURFACE, 0);
+  C.setRichness(s.world, wood.x, wood.y, C.SURFACE, 1);
+  standOn(s, stone);
+  run(s, 600);
+  assert.equal(richAt(s, stone.x, stone.y), 0, 'emptied stone stays empty beside you');
+  assert.equal(richAt(s, wood.x, wood.y), 1, 'a foraged forest keeps what little it had left');
+});
+
+test('a building only goes on a deposit with something left in it', () => {
+  const s = C.createState(12345);
+  const t = findNear(s, forest);
+  standOn(s, t);
+  s.inv.mycelium = 1000;
+  const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
+  for (let y = py - 2; y <= py + 2; y++) for (let x = px - 2; x <= px + 2; x++) {
+    if (typeAt(s, x, y) === T.FOREST) C.setRichness(s.world, x, y, C.SURFACE, 0);
+  }
+  assert.equal(C.buildTarget(s, 'garden'), null, 'no spot on an emptied forest');
+  assert.equal(C.place(s, 'garden', t).ok, false, 'not even when asked for by tile');
+  C.setRichness(s.world, t.x, t.y, C.SURFACE, 1);
+  assert.equal(C.place(s, 'garden', t).ok, true, 'one point left is enough');
+  run(s, 60);
+  assert.equal(richAt(s, t.x, t.y), 1, 'and the building never uses it up');
+});
+
 test('extractors need a matching deposit and enough resources', () => {
   const s = C.createState(12345);
   const stone = findNear(s, (st, x, y) => typeAt(st, x, y) === T.STONE);

@@ -90,8 +90,8 @@ export class Shadow {
     sh.at = now;
     s.world = this.view(room);
     // The game's clock is the room's as it plays (keepTime in together.js),
-    // and spent deposits grow back on its ticks: run the copy's clock so it
-    // reads the room's time when it gets to `ms`, as the game's did.
+    // and day and night follow it: run the copy's clock so it reads the
+    // room's time when it gets to `ms`, as the game's did.
     const to = Math.min(ms, limit);
     s.time = room.clock(now) - Math.max(0, to - s.stats.playedMs) / 1000;
     // Everyone's buildings stand in the way of new ones; only yours make things for you.

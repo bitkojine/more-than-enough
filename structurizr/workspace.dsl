@@ -151,7 +151,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, the device battery (drains in the dark, charged by water power: solar panels and water wheels) and hash-seeded regrowth near the player. Also movement, fog reveal (smaller when the battery is low at night) and the day/night curve." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, the device battery (drains in the dark, charged by water power: solar panels and water wheels). Also movement, fog reveal (smaller when the battery is low at night) and the day/night curve." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/sim.js, light.js"

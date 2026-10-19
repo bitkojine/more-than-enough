@@ -14,12 +14,16 @@ import {
 } from '../../src/net/protocol.js';
 import { Shadow, playedIn } from './shadow.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
+import { baseRichness } from '../../src/core/world.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a deploy's smoke-test room nobody visits for 30 days is deleted
 export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test makes its rooms with (rooms.yml)
-export const MOD_BUCKETS = 16;               // richness edits are stored in this many pieces
+// Richness edits are stored in this many pieces, each well under a storage
+// value's 128 KiB however full the world (LIMITS.mods). A world stored in
+// fewer (16 before v0.126.0) is spread over these on its first write.
+export const MOD_BUCKETS = 512;
 export const INVITE_MS = cleanInviteAsk(null).life * 60_000; // a link works this long unless asked otherwise
 export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
 const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
@@ -57,7 +61,10 @@ export const CHEAT_FORGIVE_MS = 30_000;
 // doesn't count.
 export const PLAYER_BUILDINGS = 400;
 export const PLAYER_PROPS = 2000;
-export const PLAYER_TILES = 10_000; // tiles nobody had changed before (re-changing one is free)
+// Tiles nobody had changed before (re-changing one is free). Nothing grows
+// back, so this is a whole world's play of gathering (the Perfect bot
+// changes about 15,000 in its ~25 h), with room to roam.
+export const PLAYER_TILES = 60_000;
 // One player (not the owner) brings at most LIMITS.invitesPerDay people into
 // a world through their own links in a day, so one bad invite can't fill a
 // world with others.
@@ -139,10 +146,15 @@ export class Room {
       r.dirty.meta = true;
     }
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
+    let moved = false; // stored in other pieces than MOD_BUCKETS gives
     for (const [k, v] of entries) {
-      if (k.startsWith('mods:')) for (const [key, rich] of v) r.mods.set(key, rich);
-      else if (k.startsWith('p:')) r.players.set(k.slice(2), v);
+      if (k.startsWith('mods:')) {
+        const b = Number(k.slice(5));
+        for (const [key, rich] of v) { r.mods.set(key, rich); if (bucketOf(key) !== b) moved = true; }
+      } else if (k.startsWith('p:')) r.players.set(k.slice(2), v);
     }
+    // Every piece written again, so none keeps an edit that now lives in another.
+    if (moved) for (let b = 0; b < MOD_BUCKETS; b++) r.dirty.buckets.add(b);
     for (const [key, kind] of entries.get('props') || []) r.props.set(key, kind);
     for (const e of entries.get('ext') || []) { r.ext.push(e); r.extTiles.add(extAt(e[1], e[2], e[3])); }
     return r;
@@ -165,7 +177,11 @@ export class Room {
   writesOf(d) {
     const out = new Map();
     if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
-    for (const b of d.buckets) out.set('mods:' + b, [...this.mods].filter(([k]) => bucketOf(k) === b));
+    if (d.buckets.size) {
+      const pieces = new Map([...d.buckets].map((b) => [b, []]));
+      for (const m of this.mods) pieces.get(bucketOf(m[0]))?.push(m);
+      for (const [b, list] of pieces) out.set('mods:' + b, list);
+    }
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
     for (const id of d.players) {
@@ -570,6 +586,10 @@ export class Room {
       // Buildings and props come from the room's copy of what they did (made).
       if (e[0] !== 'm') continue;
       if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
+      // Nothing grows back (src/core/sim.js), so a tile's richness only ever
+      // goes down: an edit raising it is refused (an old game regrowing it,
+      // or someone refilling a deposit).
+      if (e[2] > this.richnessAt(e[1])) { act.no++; continue; }
       if (this.apply(e, id)) {
         applied.push(e);
         act.m++;
@@ -581,6 +601,13 @@ export class Room {
     const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
     const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
     return banned.kick ? banned : out;
+  }
+
+  // Tile `key`'s richness in this world now: as edited, else as generated.
+  richnessAt(key) {
+    if (this.mods.has(key)) return this.mods.get(key);
+    const t = unpackKey(key);
+    return baseRichness(this.shadowOf().bare, t.x, t.y, t.z);
   }
 
   shadowOf() {

@@ -32,7 +32,7 @@ export default {
   "wiki.idea.crystalsThatLightTheDark.pitch": "Crystal tiles and seams glow at night and underground, lighting nearby ground and the cliff faces they sit in. Finding a crystal vein turns a dark corner of the map into a landmark.",
   "wiki.idea.crystalsThatLightTheDark.builds": "Night lighting and crystal tiles.",
   "wiki.idea.seasons.title": "Seasons",
-  "wiki.idea.seasons.pitch": "Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge regrowth and swimming, but even purely visual it gives long sessions a sense of time.",
+  "wiki.idea.seasons.pitch": "Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge swimming, but even purely visual it gives long sessions a sense of time.",
   "wiki.idea.seasons.builds": "The day/night clock.",
   "wiki.idea.packGallery.title": "Pack gallery",
   "wiki.idea.packGallery.pitch": "A page in the wiki where players share texture packs with a preview of each, and the game can load one straight from a link. Packs become something people trade, like mods.",
@@ -77,8 +77,8 @@ export default {
   "wiki.idea.littleDiggers.pitch": "Small creatures living in the dark: moles that dig tunnels on their own, or thieves that nibble at full extractor buffers. A reason to keep the camp tidy and a bit of life in the world.",
   "wiki.idea.littleDiggers.builds": "Extractor buffers and tunnels.",
   "wiki.idea.weather.title": "Weather",
-  "wiki.idea.weather.pitch": "Rain fills ponds and speeds regrowth; dry spells shrink lakes and open new paths. Weather rolls in as visible clouds, so you see it coming.",
-  "wiki.idea.weather.builds": "Regrowth and water tiles.",
+  "wiki.idea.weather.pitch": "Rain fills ponds; dry spells shrink lakes and open new paths. Weather rolls in as visible clouds, so you see it coming.",
+  "wiki.idea.weather.builds": "Water tiles.",
   "wiki.idea.visualRecipes.title": "Visual recipes",
   "wiki.idea.visualRecipes.pitch": "A workbench where you drop resources in and see what comes out: icons only, no words, discovered by trying combinations. Fits the figure-it-out rule perfectly.",
   "wiki.idea.visualRecipes.builds": "Converters and the no-text rule.",
@@ -143,7 +143,6 @@ export default {
   "wiki.note.impassable": "Impassable",
   "wiki.note.yields": "yields {res}",
   "wiki.note.empty": "holds nothing: digging it only clears the way",
-  "wiki.note.regrows": "regrows",
   "wiki.note.neverRegrows": "never regrows",
   "wiki.note.land": "converters can stand here",
   "wiki.note.home": "your stockpile is kept here",
@@ -225,7 +224,7 @@ export default {
         <li><a href="#controls"><strong>Controls</strong><span>Moving, gathering, Trails, zoom{phone:.|laptop:, keyboard.}</span></a></li>
         <li><a href="#perfect"><strong>Perfect</strong><span>Hold the button above Gather and the game plays itself.</span></a></li>
         <li><a href="#screen"><strong>The screen</strong><span>What the counters, buttons and glows mean.</span></a></li>
-        <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, regrowth, day and night.</span></a></li>
+        <li><a href="#world"><strong>The world</strong><span>Tiles, fog, water, what's gathered for good, day and night.</span></a></li>
         <li><a href="#gathering"><strong>Gathering</strong><span>Resources, yields and how deposits run out.</span></a></li>
         <li><a href="#mine"><strong>The mine</strong><span>Layers beneath the forest, cave mouths, shafts, ladders and digging.</span></a></li>
         <li><a href="#buildings"><strong>Buildings</strong><span>Extractors, converters, collecting, Logistics.</span></a></li>
@@ -446,7 +445,7 @@ export default {
         <tbody>
           <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
           <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
-          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, regrowth.</td></tr>
+          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, the battery.</td></tr>
           <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it, until the far view takes over.</td></tr>
           <tr><td>tiles</td><td>Tiles on screen.</td></tr>
           <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
@@ -491,13 +490,12 @@ export default {
         with a bit of everything. Within a forest the trees vary too. Every forest yields mycelium the same way; only the look
         changes. See them all under <a href="#things">Everything in the game</a>.</p>
       <p>Trees are never cut down, not by you and not by your buildings. What you gather in a forest is the mycelium that
-        grows on its floor: the mushrooms at the trees' feet. Forage a patch bare and the trees go on standing; the mushrooms
-        come back near you. Mycelium is a real building material, grown rather than felled: your tools, buildings and
-        upgrades are made from what grows back.</p>
+        grows on its floor: the mushrooms at the trees' feet. Forage a patch bare and the trees go on standing, but its
+        mushrooms are gone for good. Mycelium is a real building material, grown rather than felled: your tools, buildings
+        and upgrades are made from what the forest floor grew.</p>
 
       <h2>Mushrooms</h2>
-      <p>Every forest patch grows one kind of mushroom at the trees' feet, chosen from what its kind of forest grows, and it
-        grows back as the same kind. Every spore bed in the mine holds one kind of cave mushroom. All of them pay mycelium
+      <p>Every forest patch grows one kind of mushroom at the trees' feet, chosen from what its kind of forest grows. Every spore bed in the mine holds one kind of cave mushroom. All of them pay mycelium
         alike; what's different is which ones you've found. The first of each kind you ever pick is celebrated, and the
         collection of kinds you've found carries over when you embark. The magic ones (✦) are rare: you might pass a
         hundred patches before you see one.</p>
@@ -520,11 +518,13 @@ export default {
         to whatever lives in it.</p>
       <div data-table="waterPower"></div>
 
-      <h2>Regrowth</h2>
-      <p>Forest and stone grow back; ore and crystal never do. Every <span data-k="REGROW_INTERVAL"></span> seconds, each depleted
-        forest or stone tile within <span data-k="REGROW_RADIUS"></span> tiles of you has a
-        <span data-k="REGROW_CHANCE" data-f="pct"></span> chance to regain one point of richness, up to where it started. Tiles far
-        from you don't regrow, so a cleared patch only comes back while you're nearby.</p>
+      <h2>Gathered for good</h2>
+      <p>Nothing grows back. Whatever you gather, mushrooms, stone, ore or crystal, is gone from that tile for good, and the
+        tile keeps showing it: worn-down rock, a forest floor foraged bare, tunnels where seams were. The land you've worked
+        is a map of where you've been, and the world map shows it too, with emptied deposits faded. New deposits are found
+        by going further, and they get richer the further out and deeper you go.</p>
+      <p>Buildings are the exception: one keeps working its deposit forever without using it up. It only goes on a deposit
+        with something left in it, so a patch you've emptied is spent for good.</p>
 
       <h2>Day and night</h2>
       <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
@@ -548,14 +548,14 @@ export default {
       <ul>
         <li><strong>🍄 Mycelium</strong> foraged from the forest floor, and from spore beds in the deep mine. Uses the Basket.</li>
         <li><strong>🪨 Stone</strong> from stone deposits and stone seams. Uses the Pickaxe.</li>
-        <li><strong>⛏️ Ore</strong> from ore deposits and ore seams. Uses the Pickaxe. Never regrows on the surface.</li>
-        <li><strong>💠 Crystal</strong> from crystal deposits and, from layer 3 down, crystal seams. Uses the Pickaxe. Rare, and never regrows on the surface.</li>
+        <li><strong>⛏️ Ore</strong> from ore deposits and ore seams. Uses the Pickaxe.</li>
+        <li><strong>💠 Crystal</strong> from crystal deposits and, from layer 3 down, crystal seams. Uses the Pickaxe. Rare.</li>
       </ul>
 
       <h2>Yield and richness</h2>
       <p>Each swing gives you as much as your tool's level allows (1 at the start, up to 32), but always takes exactly
         <strong>one</strong> point of richness from the tile. Better tools don't use up deposits faster; they get more out of
-        each one. A forest at zero richness keeps its trees but has no mushrooms left until they regrow.</p>
+        each one. Nothing grows back: a forest at zero richness keeps its trees but has no mushrooms left, for good.</p>
       <p>Your hands keep up with your buildings. On top of what the tool gives, every swing brings in
         <span data-k="HAND_SHARE"></span> seconds of what your buildings make of that resource, and every find's loot
         grows the same way. However big your camps get, gathering always adds to them, so standing and waiting is never
@@ -661,7 +661,6 @@ export default {
           sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
         <li>Logistics hauls from your surface camps down here too. Without it they simply fill up while you're below.</li>
-        <li>Nothing regrows underground.</li>
         <li>Day and night carry on as usual: light through a hole to the forest fades at night.</li>
       </ul>`,
   "wiki.article.buildings.title": "Buildings",

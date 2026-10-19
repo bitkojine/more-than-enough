@@ -2,9 +2,12 @@
  * tile, with the names of the regions you've set foot in or seen, home, and
  * you. Drag to pan, pinch or scroll to zoom; it opens centred on you.
  *
+ * Deposits you've emptied show faded: nothing grows back, so the map is a
+ * record of where you've gathered (Watch, 2026-10-19).
+ *
  * What you've explored is painted into one off-screen canvas, a chunk at a
- * time, and kept: each time the map opens only the chunks whose fog changed
- * since (and the ones around you, where you dig and forage) are repainted. */
+ * time, and kept: each time the map opens only the chunks whose fog or
+ * gathered tiles changed since are repainted. */
 
 import * as Core from '../core/index.js';
 import { tileColor } from './render/terrain.js';
@@ -15,19 +18,21 @@ const GROW = 32;             // chunks the canvas grows by past what's explored
 const MIN_SCALE = 0.25;      // screen pixels per tile, zoomed right out
 const MAX_SCALE = 8;
 const START_SCALE = 2;
-const FRESH_AROUND = 2;      // chunks around you repainted every time it opens
 const CLOUD_SPAN = 120;      // tiles one picture of cloud spans, seen from this high
 const LABEL_INK = '#fff6dc';
 const LABEL_EDGE = 'rgba(20, 16, 10, 0.85)';
 const KIND_FONT = '-apple-system, BlinkMacSystemFont, sans-serif'; // i18n-ok: a font list
 const NAME_FONT = "Georgia, 'Times New Roman', serif"; // i18n-ok: a font list
 
+const FADE = 0.65;           // how far an emptied deposit's colour fades to grey
+const DIM = 0.85;
+
 const bits = (mask) => mask.reduce((n, b) => { for (; b; b &= b - 1) n++; return n; }, 0);
 
 export function createWorldMap(canvas, { getState, look }) {
   const ctx = canvas.getContext('2d');
   let land = null;            // { canvas, ctx, cx0, cy0, cols, rows } in chunks
-  let painted = new Map();    // chunk key -> explored tiles when last painted
+  let painted = new Map();    // chunk key -> explored tiles and gathering when last painted
   let known = new Map();      // region key -> region (named on the map)
   let seed = null;
   let view = { x: 0, y: 0, scale: START_SCALE };
@@ -56,12 +61,16 @@ export function createWorldMap(canvas, { getState, look }) {
       for (let lx = 0; lx < CS; lx++) {
         const x = cx * CS + lx, y = cy * CS + ly;
         if (!Core.isExplored(w, x, y, Core.SURFACE)) continue;
-        const hex = tileColor(look, Core.tileAt(w, x, y, Core.SURFACE));
+        const type = Core.tileAt(w, x, y, Core.SURFACE);
+        const hex = tileColor(look, type);
         if (!hex) continue;
         const o = (ly * CS + lx) * 4;
-        px[o] = parseInt(hex.slice(1, 3), 16);
-        px[o + 1] = parseInt(hex.slice(3, 5), 16);
-        px[o + 2] = parseInt(hex.slice(5, 7), 16);
+        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+        if (Core.TILE_INFO[type].harvest && Core.richness(w, x, y, Core.SURFACE) <= 0) {
+          const grey = 0.3 * r + 0.59 * g + 0.11 * b;
+          r = (r + (grey - r) * FADE) * DIM; g = (g + (grey - g) * FADE) * DIM; b = (b + (grey - b) * FADE) * DIM;
+        }
+        px[o] = r; px[o + 1] = g; px[o + 2] = b;
         px[o + 3] = 255;
       }
     }
@@ -73,18 +82,30 @@ export function createWorldMap(canvas, { getState, look }) {
   function refresh(s) {
     const w = s.world;
     if (seed !== w.seed) { land = null; painted = new Map(); known = new Map(); seed = w.seed; }
-    const pcx = Core.chunkCoord(Math.floor(s.player.x)), pcy = Core.chunkCoord(Math.floor(s.player.y));
+    const worked = gathered(w);
     for (const [key, mask] of w.explored) {
       const c = Core.unpackKey(key);
       if (c.z !== Core.SURFACE) continue;
-      const n = bits(mask);
-      const near = Math.abs(c.x - pcx) <= FRESH_AROUND && Math.abs(c.y - pcy) <= FRESH_AROUND;
-      if (painted.get(key) === n && !near) continue;
+      const n = bits(mask) + ':' + (worked.get(key) || 0);
+      if (painted.get(key) === n) continue;
       painted.set(key, n);
       paintChunk(w, c.x, c.y);
       const r = Core.regionAt(w.seed, c.x * CS + CS / 2, c.y * CS + CS / 2);
       if (!known.has(r.key)) known.set(r.key, r);
     }
+  }
+
+  // Per surface chunk (keyed like w.explored), a number that changes
+  // whenever a tile in it is gathered: how much has been taken from it.
+  function gathered(w) {
+    const out = new Map();
+    for (const [key, left] of w.mods) {
+      const t = Core.unpackKey(key);
+      if (t.z !== Core.SURFACE) continue;
+      const c = Core.packKey(Core.chunkCoord(t.x), Core.chunkCoord(t.y), Core.SURFACE);
+      out.set(c, (out.get(c) || 0) + Core.baseRichness(w, t.x, t.y, t.z) - left);
+    }
+    return out;
   }
 
   function resize() {

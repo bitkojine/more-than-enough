@@ -82,7 +82,9 @@ function fresh(s, mind) {
     Object.assign(mind, { state: s, goal: null, decided: -Infinity, route: null, bad: new Set(), near: {}, spots: {}, searches: {}, frontier: null, home: findSpawn(s.world), arrived: {}, flagged: new Set(), z: null, upWay: null });
   }
   if (mind.z !== s.player.z) {
-    // Just came onto this layer: remember where, the way back up.
+    // Just came onto this layer: remember where, the way back up, and when
+    // a trip down from the surface began.
+    if (mind.z === SURFACE) mind.downAt = s.time;
     mind.z = s.player.z;
     mind.route = null;
     mind.frontier = null;
@@ -197,6 +199,13 @@ export function plan(s, mind, cost) {
   const surface = { eta: Math.max(waitMax, handSum) + (handSum > 0 ? climbBack(s, mind) : 0), how };
   const mine = minePlan(s, mind, missing);
   return mine && mine.eta < surface.eta * mind.k.mineEdge ? mine : surface;
+}
+
+// What of `cost` you don't have yet ({res: amount}).
+function missingFor(s, cost) {
+  const out = {};
+  for (const r of Object.keys(cost)) if (cost[r] > s.inv[r]) out[r] = cost[r] - s.inv[r];
+  return out;
 }
 
 // Underground: about how long the way back up to the surface takes.
@@ -373,12 +382,14 @@ function unreachable(s, mind, x, y) {
 // home: a person exploring heads away from where they've been rather than
 // filling in every corner near home. Underground, the nearest rock you
 // haven't seen, dug toward.
-function explore(s, mind) {
+// `beyond`: the search is for more of a resource, so past where buildings
+// are looked for too (nothing grows back: near home runs out).
+function explore(s, mind, beyond = false) {
   const z = s.player.z;
   for (let tries = 0; tries < 3; tries++) {
     let f = mind.frontier;
     if (!f || f.z !== z || mind.bad.has(key(f.x, f.y, z))) {
-      const tile = z === SURFACE ? outward(s, mind) : nearestTile(s.player.x, s.player.y, 40, (x, y) => !isExplored(s.world, x, y, z) && !mind.bad.has(key(x, y, z)));
+      const tile = z === SURFACE ? outward(s, mind, beyond) : nearestTile(s.player.x, s.player.y, 40, (x, y) => !isExplored(s.world, x, y, z) && !mind.bad.has(key(x, y, z)));
       if (!tile) return null;
       f = mind.frontier = { ...tile, z };
     }
@@ -393,12 +404,14 @@ function explore(s, mind) {
 const EDGE_LOOK = 24; // tiles around you an edge is looked for in
 
 // The edge of what you've seen worth heading to: near you, far from home.
-function outward(s, mind) {
+function outward(s, mind, beyond) {
   const w = s.world, z = SURFACE, wade = canWade(s);
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y), h = mind.home;
   const seen = (x, y) => isExplored(w, x, y, z);
-  // Only as far out as buildings are looked for: further finds nothing to use.
-  const edge = (x, y) => Math.hypot(x - h.x, y - h.y) < SEARCH && seen(x, y) && !(seen(x + 1, y) && seen(x - 1, y) && seen(x, y + 1) && seen(x, y - 1)) &&
+  // Only as far out as buildings are looked for (further finds nothing to
+  // use), unless it's more to gather that's wanted.
+  const reach = beyond ? Infinity : SEARCH;
+  const edge = (x, y) => Math.hypot(x - h.x, y - h.y) < reach && seen(x, y) && !(seen(x + 1, y) && seen(x - 1, y) && seen(x, y + 1) && seen(x, y - 1)) &&
     walkable(w, x, y, z) && (wade || !swimsAt(w, x, y, z)) && !mind.bad.has(key(x, y, z));
   let best = null, bestScore = Infinity;
   for (let y = py - EDGE_LOOK; y <= py + EDGE_LOOK; y++) {
@@ -408,7 +421,9 @@ function outward(s, mind) {
       if (score < bestScore) { bestScore = score; best = { x, y }; }
     }
   }
-  return best || nearestTile(px + 0.5, py + 0.5, 80, edge);
+  // Nothing unseen close by: the nearest edge further off (much further when
+  // it's more to gather that's wanted and all around has been seen).
+  return best || nearestTile(px + 0.5, py + 0.5, beyond ? 400 : 80, edge);
 }
 
 /* ------------------------------------------------------------ pursuing */
@@ -418,8 +433,16 @@ function pursue(s, mind, goal) {
   if (!goal || goal.kind === 'find') return (underground ? up(s, mind) : explore(s, mind)) || idle(s, mind);
   if (canAfford(s.inv, goal.cost)) return obtain(s, mind, goal);
   // How to get it, kept a while: chosen afresh at every step, two ways that
-  // are nearly as quick would take turns, a step toward each.
-  if (!mind.how || mind.how.goal !== goal || s.time - mind.how.t > mind.k.stick) mind.how = { goal, t: s.time, p: plan(s, mind, goal.cost) };
+  // are nearly as quick would take turns, a step toward each. A trip down is
+  // kept as long as a dig is worth (minDig), or a guess about the surface
+  // that shifts as its deposits run out would pop it straight back up.
+  const keep = mind.how?.p.layer ? Math.max(mind.k.stick, mind.k.minDig) : mind.k.stick;
+  if (!mind.how || mind.how.goal !== goal || s.time - mind.how.t > keep) {
+    let p = plan(s, mind, goal.cost);
+    // A new goal soon after coming down is dug for here if it can be.
+    if (!p.layer && underground && s.time - mind.downAt < mind.k.minDig) p = minePlan(s, mind, missingFor(s, goal.cost)) || p;
+    mind.how = { goal, t: s.time, p };
+  }
   const p = mind.how.p;
   if (p.layer) return mine(s, mind, p.layer);
   if (underground) return up(s, mind) || idle(s, mind);
@@ -446,7 +469,7 @@ function obtain(s, mind, goal) {
 function gather(s, mind, res) {
   const d = nearestDeposit(s, mind, res);
   const badge = 'resource.' + res;
-  if (!d.tile) return d.gated ? null : explore(s, mind);
+  if (!d.tile) return d.gated ? null : explore(s, mind, true);
   if (canHarvest(s, d.tile.x, d.tile.y)) return { type: 'harvestAt', x: d.tile.x, y: d.tile.y, badge };
   const step = walkTo(s, mind, d.tile.x, d.tile.y, badge);
   if (step) return step;

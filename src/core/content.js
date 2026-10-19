@@ -22,9 +22,6 @@ export const BASE_SPEED = 3.7;
 export const SWIM_SPEED = 0.75;       // multiplier on water
 export const PLAYER_RADIUS = 0.3;
 export const DAY_LENGTH = 240;        // seconds of game time per day-night cycle
-export const REGROW_RADIUS = 20;      // only tiles near the player regrow
-export const REGROW_INTERVAL = 0.5;
-export const REGROW_CHANCE = 0.02;
 export const EXTRACTOR_GROWTH = 2.2; // each extra extractor of a kind costs this much more
 // Embarking is the end of a world, not a step in it: every tool, refinery and
 // unlock at its top level, the Abundance Engine at EMBARK_ABUNDANCE, and this

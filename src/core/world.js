@@ -50,7 +50,8 @@ function chunkAt(w, x, y, z) {
   return chunk;
 }
 
-// Richness as generated, before any player edits. Also the regrowth ceiling.
+// Richness as generated, before any player edits. Nothing grows back: once
+// gathered, a tile stays as it was left, for good.
 export function baseRichness(w, x, y, z) {
   return chunkAt(w, x, y, z).rich[chunkIndex(x, y)];
 }
