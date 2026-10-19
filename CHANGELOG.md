@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.123.0] - 2026-10-19
+
+Watch: a milestone reached should congratulate in the past tense ("mes tai
+padarėm"), never read like the objective it was.
+
+### Changed
+- **Milestones reached say they're done**: each goal in `src/core/goals.js`
+  has `reached` beside `text`, from new `goal.<id>.reached` strings in
+  English and Lithuanian ("Built a Mushroom Garden", "Pastatei Grybų
+  daržą"). The banner (now labelled "Milestone reached" / "Etapas
+  pasiektas") and the Awards list of milestones reached use it; the next
+  milestone and "Next: …" keep the objective's words.
+
+### Tests
+- `prestige.test.js`: every reachable milestone has past-tense words that
+  differ from its objective, in every language.
+
 ## [0.122.0] - 2026-10-19
 
 Watch's ask: review the navigation of every menu; Nerds had no way back.

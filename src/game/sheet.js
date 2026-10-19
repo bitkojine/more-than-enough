@@ -241,7 +241,7 @@ export function createSheet(el, { getState, actions, look: currentLook, onTab = 
     html += `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
     for (let i = s.goalsDone.length - 1; i >= 0; i--) {
       const goal = Core.GOALS.find((g) => g.id === s.goalsDone[i]);
-      html += row(TROPHY, esc(goal.text), t('sheet.milestone', { n: i + 1 }), '');
+      html += row(TROPHY, esc(goal.reached), t('sheet.milestone', { n: i + 1 }), '');
     }
     return html;
   }

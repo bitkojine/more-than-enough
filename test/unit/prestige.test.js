@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { C, master } from './helpers.js';
+import { LANGUAGES } from '../../src/i18n/i18n.js';
 
 test('embarking needs a mastered world and a world\'s worth gathered in it', () => {
   const s = C.createState(12345);
@@ -126,6 +127,18 @@ test('milestones count in any order, and the next one says what it still takes',
   s.unlocks.compost = true;
   assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.extractorCost(s, 'compost') });
   assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'structures')), { n: 1, of: 25 });
+});
+
+// Watch (2026-10-19): a milestone reached is congratulated as done, in the
+// past tense, never in the words of the objective it was.
+test('every milestone that can be reached says so in its own past-tense words, in every language', () => {
+  for (const g of C.GOALS.filter((g) => g.id !== 'forever')) {
+    assert.ok(g.reached && g.reached !== g.text, `${g.id} has no words for being reached`);
+    for (const [code, { strings }] of Object.entries(LANGUAGES)) {
+      assert.ok(strings[`goal.${g.id}.reached`], `${code} ${g.id} has no reached words`);
+      assert.notEqual(strings[`goal.${g.id}.reached`], strings[`goal.${g.id}`], `${code} ${g.id} reads like the objective`);
+    }
+  }
 });
 
 test('milestones reached survive a save, and an old save keeps its count', () => {

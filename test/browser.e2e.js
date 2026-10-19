@@ -515,7 +515,7 @@ async function main() {
   await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();s.extractors=s.extractors.filter(function(e){return Math.max(Math.abs(e.x-p[0]),Math.abs(e.y-p[1]))>3;});MTE_GAME.setPlayer(p[0]+0.5,p[1]+0.5);})()');
   await sleep(150);
   // A milestone reached (gathering, or ore spotted on the way) is celebrated with a banner naming it.
-  ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.text===txt;});})()', 2000),
+  ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.reached===txt;});})()', 2000),
     'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   var g0 = JSON.parse(await stateSummary());
   await startListening();
