@@ -9,8 +9,8 @@
  *
  * So the game watches its own frame rate. While frames come too slowly, it
  * steps down a level at a time: the HUD drops its blur (its glass is nearly
- * opaque anyway) and the map is drawn with fewer and fewer pixels, softer
- * but never blocky. After UP_AFTER_S of smooth frames it tries one level
+ * opaque anyway), the map is drawn with fewer and fewer pixels, softer
+ * but never blocky, and fewer gathered resources float home at once. After UP_AFTER_S of smooth frames it tries one level
  * better. If that is too slow it steps back down at once and waits twice as
  * long before trying again (up to UP_MAX_S), so it never flickers between
  * levels; plugging in the charger tries again soon. The level it settled on
@@ -25,11 +25,13 @@
  * moving. Drawing every frame is what warms a phone; the world still
  * animates, just at half the rate while you're only watching it. */
 
+// `flyers`: how many gathered resources float home at once (Watch: busy
+// bases look fuller on fast phones, slow ones save a little more).
 export const LEVELS = [
-  { dpr: 2, glass: true },
-  { dpr: 1.5, glass: false },
-  { dpr: 1, glass: false },
-  { dpr: 0.75, glass: false }
+  { dpr: 2, glass: true, flyers: 80 },
+  { dpr: 1.5, glass: false, flyers: 60 },
+  { dpr: 1, glass: false, flyers: 40 },
+  { dpr: 0.75, glass: false, flyers: 20 }
 ];
 export const MAX_PIXELS = 3_000_000; // device pixels the map is drawn with, at most
 export const FULL_FPS = 60;   // frames drawn a second, at most
@@ -98,6 +100,7 @@ export function createQuality(remembered, screenDpr, changed) {
     get level() { return level; },
     get dpr() { return LEVELS[level].dpr; },
     get glass() { return LEVELS[level].glass; },
+    get flyers() { return LEVELS[level].flyers; },
 
     // One frame drawn at full pace, intervalMs after the last one.
     frame(intervalMs) {

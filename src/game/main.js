@@ -91,11 +91,12 @@ function keepView() {
   savedView.music = audio.music;
   saveView(savedView);
 }
-// What you gather flies to its pile in the yard (yard is made just below).
+// What you gather flies to its pile in the yard (yard and quality are made
+// just below), as many at once as the device's quality allows.
 const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
   const p = cam.project(x, y);
   return p.x > -ON_SCREEN_PX && p.y > -ON_SCREEN_PX && p.x < cam.width + ON_SCREEN_PX && p.y < cam.height + ON_SCREEN_PX;
-});
+}, () => quality.flyers);
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
 // Fewer pixels and no frosted glass on a device that can't keep up.

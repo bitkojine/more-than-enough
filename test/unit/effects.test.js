@@ -10,7 +10,7 @@ import { createEffects } from '../../src/game/effects.js';
 const look = { color: () => '#fff' };
 const home = { x: 0.5, y: 0.5 };
 // The screen: 9 x 17 tiles around `you`, as on a phone held upright.
-const fresh = (you = { x: 15, y: 5 }) => createEffects(look, () => home, (x, y) => Math.abs(x - you.x) < 4.5 && Math.abs(y - you.y) < 8.5);
+const fresh = (you = { x: 15, y: 5 }) => createEffects(look, () => home, (x, y) => Math.abs(x - you.x) < 4.5 && Math.abs(y - you.y) < 8.5, () => 40);
 
 function run(fx, seconds, dt = 1 / 60) {
   for (let t = 0; t < seconds; t += dt) fx.update(dt);
@@ -49,7 +49,7 @@ test('effects: over budget, flyers on their way keep going and still land', () =
   // Many busy buildings near spawn: replacing the oldest restarted every
   // trail, so none ever reached the stockpile and they flickered (v0.112.0).
   // Here all of it is on screen (zoomed out), so nothing may make way.
-  const fx = createEffects(look, () => home, () => true);
+  const fx = createEffects(look, () => home, () => true, () => 40);
   const busy = () => { for (let i = 0; i < 100; i++) fx.flyersFrom(10 + (i % 10) * 2, (i / 10 | 0) * 2, 'stone', 1); };
   busy();
   assert.equal(fx.flyers.length, 40);
@@ -83,4 +83,15 @@ test('effects: at a full spawn, the first of a new resource still shows', () => 
   fx.flyersFrom(6, 1, 'crystal', 1);
   assert.equal(fx.flyers.length, 40);
   assert.ok(fx.flyers.some((f) => f.res === 'crystal'));
+});
+
+test('effects: the budget follows the device, and a smaller one sheds what is off screen', () => {
+  let budget = 80;
+  const fx = createEffects(look, () => home, (x) => x > 50, () => budget);
+  for (let i = 0; i < 100; i++) fx.flyersFrom(i * 3, 0, 'stone', 1);
+  assert.equal(fx.flyers.length, 80);
+  budget = 20;
+  fx.flyersFrom(300, 0, 'ore', 1);
+  assert.equal(fx.flyers.length, 20);
+  assert.ok(fx.flyers.every((f) => f.x > 50), 'what went was off screen');
 });

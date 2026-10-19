@@ -114,3 +114,10 @@ test('frames are drawn at most FULL_FPS a second, and CALM_FPS when calm', () =>
   assert.ok(!frameDue(1000 / 60, CALM_FPS));
   assert.ok(frameDue(2000 / 60, CALM_FPS));
 });
+
+test('quality: fewer gathered resources float at once at each lower level', () => {
+  const b = LEVELS.map((l) => l.flyers);
+  assert.deepEqual(b, [...b].sort((x, y) => y - x));
+  assert.ok(b.at(-1) >= 10, 'the slowest phone still sees some');
+  assert.equal(createQuality(LEVELS.length - 1, 2, () => {}).flyers, b.at(-1));
+});

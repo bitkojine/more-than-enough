@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.121.2] - 2026-10-19
+
+Watch's choices on the decision cards for v0.121.1: the bundle farthest
+from you makes way (the off-screen rule shipped there), and the number in
+the air follows the phone's quality level.
+
+### Changed
+- **Floating budget follows quality**: `LEVELS` in `src/game/quality.js`
+  carry `flyers`: 80 at full quality, 60, 40, and 20 at the lowest.
+  `createEffects` reads it through a `budget()` callback; when quality
+  steps down, the next gain sheds the extra, off-screen ones first.
+
+### Tests
+- `effects.test.js`: the budget follows a callback and a shrunk one sheds
+  only what's off screen. `quality.test.js`: each lower level floats fewer.
+
 ## [0.121.1] - 2026-10-19
 
 Watch's ask: some floating resources go undrawn to keep old phones fast,

@@ -8,7 +8,6 @@ import { fmt } from './format.js';
 
 // Budgets keep bursts cheap.
 const MAX_PARTICLES = 160;
-const MAX_FLYERS = 40;
 const FLYER_SPEED = 3;             // tiles per second, on average: just under walking, so you can follow one home
 const FLYER_MIN = 0.8;             // shortest flight, in seconds
 const FLYER_LIFT = 0.7;            // how high a flyer floats, in tiles
@@ -28,8 +27,10 @@ const TAU = Math.PI * 2;
  *   `res` lands: a spot in the stockpile
  * @param {(x: number, y: number) => boolean} seen  whether a world point is on
  *   screen: flyers off it are the first to make way when there are too many
+ * @param {() => number} budget  how many flyers may be in the air at once (it
+ *   follows the device's quality level)
  */
-export function createEffects(look, landing, seen) {
+export function createEffects(look, landing, seen, budget) {
   const resColor = (res) => look.color(resourceLook(res));
   const particles = [];
   const floats = [];
@@ -79,7 +80,8 @@ export function createEffects(look, landing, seen) {
       if (f.t < FLYER_MERGE && Math.abs(f.tx - tx) <= FLYER_NEAR && Math.abs(f.ty - ty) <= FLYER_NEAR) { f.amount += amount; return; }
       if (!newest || f.t < newest.t) newest = f;
     }
-    if (flyers.length >= MAX_FLYERS) {
+    // (A budget that just shrank sheds the extra the same way.)
+    while (flyers.length >= budget()) {
       const gone = flyers.findIndex((f) => !seen(f.x, f.y));
       if (gone < 0 && newest) { newest.amount += amount; return; }
       flyers.splice(Math.max(0, gone), 1);
