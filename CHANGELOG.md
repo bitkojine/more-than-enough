@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.127.2] - 2026-10-19
+
+Watch's ask: show the hold hint after every short tap on AUTO, so players
+who keep tapping keep getting it.
+
+### Changed
+- Every tap on AUTO shorter than 0.5 s shows the "Hold me down" bubble;
+  holding it once no longer turns the hint off (`autoHeld` is gone from
+  the view settings).
+
 ## [0.127.1] - 2026-10-19
 
 Watch's report: auto-play tried to build on emptied resource tiles. Since

@@ -837,6 +837,7 @@ export default {
   "news.new": "Nauja",
   "news.full": "Visi pakeitimai, kūrėjams",
   "news.shareIdea": "Pasiūlyti idėją",
+  "news.0.127.2": "Kiekvienas greitas {phone:bakstelėjimas|laptop:spustelėjimas} ant „Auto“ dabar primena jį laikyti nuspaudus, ne tik pirmieji keli.",
   "news.0.127.1": "Autožaidimas nebestringa bandydamas statyti pastatą ant išsemto telkinio. Jis pasirenka tokį, kuriame dar kažko liko, jei reikia – toliau.",
   "news.0.127.0": "„Idealiai“ dabar vadinasi „Auto“ (Autožaidimas). Jis žaidžia tik kol laikai jį nuspaudęs: greitas {phone:bakstelėjimas|laptop:spustelėjimas} primena jį laikyti, kol laikai, aplink mygtuką sukasi auksinis žiedas, o virš tavo veikėjo plūduriuoja auksinė „AUTO“ žymė.",
   "news.0.126.0": "Niekas nebeatauga. Ką surenki, to nebelieka visam laikui, ir žemė tai rodo, tad tavo pėdsakai parodo, kur esi buvęs. Naujų telkinių rasi tyrinėdamas toliau.\nPasaulio žemėlapyje išsemti telkiniai išblukę.\nPastatą galima statyti tik ant telkinio, kuriame dar kažko liko, ir tada jis dirba amžinai jo neišsemdamas.",

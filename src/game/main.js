@@ -241,10 +241,8 @@ function gathered(held) {
   saveView(savedView);
   if (!held) hud.toast(t('tip.hold'), HOLD_TIP_SECONDS);
 }
-// A quick tap on AUTO says, in a bubble over it, that it plays while held,
-// until the player has once held it down for a while.
+// Every quick tap on AUTO says, in a bubble over it, that it plays while held.
 const AUTO_TAP_S = 0.5;    // released sooner than this: a tap
-const AUTO_LEARNT_S = 2;   // held this long once: they know
 const AUTO_TIP_SECONDS = 4;
 let autoDownAt = 0;
 function autoPressed() {
@@ -254,12 +252,7 @@ function autoPressed() {
 }
 function autoReleased() {
   perfect.release();
-  if (savedView.autoHeld) return;
-  const held = (performance.now() - autoDownAt) / 1000;
-  if (held >= AUTO_LEARNT_S) {
-    savedView.autoHeld = true;
-    saveView(savedView);
-  } else if (held < AUTO_TAP_S) hud.autoTip(AUTO_TIP_SECONDS);
+  if ((performance.now() - autoDownAt) / 1000 < AUTO_TAP_S) hud.autoTip(AUTO_TIP_SECONDS);
 }
 // Early on, opening the game (or arriving in a new world) says what the
 // next milestone is, so a new player's first read is what to do.
