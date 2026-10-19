@@ -34,6 +34,7 @@ import { createFbi } from './fbi.js';
 import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
+import { createBack } from './back.js';
 import { fmt, fmtDuration } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
@@ -277,6 +278,14 @@ const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(g
 // Something on screen that needs the player: a sheet or a dialog. The
 // Perfect button waits while one is up.
 const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open || news.open;
+// Back (Escape, or the phone's own Back): a question says no, What's new
+// closes, a sheet steps back a screen or closes.
+function goBack() {
+  if (ask.open) ask.cancel();
+  else if (news.open) news.close();
+  else sheet.back();
+}
+const back = createBack({ isOpen: () => sheet.isOpen || ask.open || news.open, goBack });
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
@@ -295,7 +304,7 @@ const input = createInput({
     viewChanged: () => { hud.view(cam); keepView(); },
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
-      else if (cmd === 'close') sheet.close();
+      else if (cmd === 'back') goBack();
       else sheet.toggle(cmd);
     }
   }
@@ -457,6 +466,7 @@ function update(dt) {
   hud.updateButtons(s);
   hud.perfect(perfect.badge, input.perfect);
   sheet.tick();
+  back.tick();
 }
 
 // Where the zoom pill sits on the canvas, so a friend's edge badge (and the

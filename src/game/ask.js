@@ -30,6 +30,8 @@ export function createAsk(box) {
 
   return {
     get open() { return !!answer; },
+    // Says no, as Cancel does.
+    cancel: () => close(false),
     // Resolves true if the player said yes. `danger` paints yes as destructive;
     // `link` ({href, text}) shows a link to read more (it opens a new tab).
     ask({ title: heading, text: body, yes: label, danger = false, link: more = null }) {

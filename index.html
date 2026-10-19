@@ -155,10 +155,13 @@
   </div>
 
   <!-- Every list in the game is this one sheet: tabs (or, for a screen
-       outside them, its title) beside a ×, and a scrolling body. Swipe it down by the handle or tap the map to close. -->
+       outside them, its title) beside a ×, and a scrolling body. A screen
+       opened from Settings has ‹ before its title, back to Settings. Swipe it
+       down by the handle or tap the map to close. -->
   <div id="sheet" aria-hidden="true">
     <div id="sheetGrab" aria-hidden="true"><span></span></div>
     <div id="sheetHead">
+      <button id="btnBack" class="hudBtn" type="button" data-i18n-aria-label="sheet.back" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
       <div id="sheetTitle"></div>
       <div id="tabs" role="tablist">
         <button class="tab active" type="button" role="tab" data-tab="upgrades" data-i18n="sheet.upgrades"></button>

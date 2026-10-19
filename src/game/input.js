@@ -10,7 +10,7 @@
  *   hold Perfect / P         `perfect` (handlers.perfectPressed, then the
  *                            main loop plays while held; perfectReleased)
  *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x)
- *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'close')
+ *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'back')
  *   F3                       handlers.command('perf') */
 
 const JOY_MAX = 74;          // px from the stick origin to full speed
@@ -253,7 +253,7 @@ export function createInput({ canvas, cam, el, handlers }) {
       if (!e.repeat) handlers.actionPressed();
     }
     if (k === 'p' && !e.repeat && !handlers.blocked()) { input.perfect = true; handlers.perfectPressed(); }
-    if (k === 'escape') handlers.command('close');
+    if (k === 'escape') handlers.command('back');
     if (k === 'b') handlers.command('build');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
     if (e.key === 'F3') { e.preventDefault(); if (!e.repeat) handlers.command('perf'); }

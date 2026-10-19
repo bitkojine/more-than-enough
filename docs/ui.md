@@ -13,7 +13,8 @@ place it belongs here rather than adding a button where there is room.
 5a. **Technical things under Nerds.** Most players never need texture packs, the performance panel or the exact version, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
 6. **Badges, not prose.** A badge on a button says "something here for you".
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
-8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close.
+8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close. A screen opened from Settings (Nerds, Worlds, Players, Invite links) has ‹ before its title, back to Settings.
+9. **Back always steps back.** The phone's own Back and Escape go back one level: a screen inside Settings to Settings, a question says no, a sheet or What's new closes (`src/game/back.js`). Only with nothing open does Back leave the game.
 
 ## The system
 

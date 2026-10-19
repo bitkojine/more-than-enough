@@ -82,7 +82,15 @@ export function createTextures({ el, look, defaultPack, changed, toast }) {
     apply(null);
     toast(gone.error ? t('toast.texturesUnforgotten', { name: look.name, error: gone.error.name }) : t('toast.textures', { name: look.name }));
   });
-  el.packReport.querySelector('button').addEventListener('click', () => { el.packReport.hidden = true; });
+  // Closes by its button, a tap outside the card or Escape, like every dialog.
+  const closeReport = () => { el.packReport.hidden = true; };
+  el.packReport.querySelector('button').addEventListener('click', closeReport);
+  el.packReport.addEventListener('click', (e) => { if (e.target === el.packReport) closeReport(); });
+  window.addEventListener('keydown', (e) => {
+    if (el.packReport.hidden || e.key !== 'Escape') return;  // i18n-ok: a key name
+    e.stopImmediatePropagation();
+    closeReport();
+  });
 
   return {
     // Puts back the pack remembered from last time, if any (`reading`: a

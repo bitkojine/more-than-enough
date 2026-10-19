@@ -56,6 +56,7 @@ export function findElements() {
     sheetBody: byId('sheetBody'),
     tabs: [...document.querySelectorAll('#tabs .tab')],
     close: byId('btnClose'),
+    back: byId('btnBack'),
     mute: byId('btnMute'),
     muteState: byId('muteState'),
     music: byId('btnMusic'),

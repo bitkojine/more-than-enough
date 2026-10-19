@@ -509,12 +509,11 @@ body.signing #zoomControls { visibility: hidden; }
   padding: 0 12px 8px;
 }
 #sheetTitle { flex: 1 1 auto; padding-left: 6px; font-size: 20px; font-weight: 800; color: var(--ink); }
-#sheet[data-tab]:not([data-tab="settings"]):not([data-tab="collected"]):not([data-tab="map"]):not([data-tab="invites"]):not([data-tab="worlds"]):not([data-tab="players"]):not([data-tab="nerds"]) #sheetTitle,
-#sheet[data-tab="settings"] #tabs, #sheet[data-tab="collected"] #tabs, #sheet[data-tab="map"] #tabs, #sheet[data-tab="invites"] #tabs,
-#sheet[data-tab="worlds"] #tabs, #sheet[data-tab="players"] #tabs, #sheet[data-tab="nerds"] #tabs { display: none; }
+#sheet:not(.titled) #sheetTitle, #sheet.titled #tabs, #btnBack[hidden] { display: none; }
+#btnBack:not([hidden]) + #sheetTitle { padding-left: 0; }
 #sheet[data-tab="map"] { height: min(88vh, 900px); max-width: 900px; }
-#btnClose { width: 40px; height: 40px; box-shadow: none; background: var(--raised); }
-#btnClose svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+#btnClose, #btnBack { flex: 0 0 auto; width: 40px; height: 40px; box-shadow: none; background: var(--raised); }
+#btnClose svg, #btnBack svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Tabs: one segmented control under the title. */
 #tabs {

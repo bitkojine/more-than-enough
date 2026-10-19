@@ -712,6 +712,25 @@ async function main() {
   ok(await evalJS('!document.getElementById("perf").hidden && document.getElementById("perfState").textContent === "on"'), 'its switch opens the performance panel');
   await evalJS('document.getElementById("btnPerf").click()');
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'and closes it');
+  // Back, three ways: ‹, Escape and the phone's own Back, each one screen.
+  ok(await evalJS('document.getElementById("btnBack").offsetParent !== null'), 'Nerds has a back button');
+  await evalJS('document.getElementById("btnBack").click()');
+  await sleep(100);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', '‹ goes back to Settings');
+  ok(await evalJS('document.getElementById("btnBack").offsetParent === null'), 'Settings itself has no back button');
+  await evalJS('document.getElementById("btnNerds").click()');
+  await sleep(100);
+  await key('keyDown', 'Escape', 'Escape', 27);
+  await key('keyUp', 'Escape', 'Escape', 27);
+  await sleep(100);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent + " " + document.getElementById("sheet").classList.contains("open")'), 'Settings true', 'Escape goes back to Settings');
+  await evalJS('document.getElementById("btnNerds").click()');
+  await sleep(150);
+  await evalJS('history.back()');
+  await sleep(300);
+  eq(await evalJS('document.getElementById("sheetTitle").textContent + " " + document.getElementById("sheet").classList.contains("open")'), 'Settings true', "the phone's Back goes back to Settings");
+  await evalJS('document.getElementById("btnNerds").click()');
+  await sleep(100);
   await evalJS('document.getElementById("btnSettings").click()');
   await sleep(100);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear goes back to Settings');

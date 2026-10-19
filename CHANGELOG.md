@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.122.0] - 2026-10-19
+
+Watch's ask: review the navigation of every menu; Nerds had no way back.
+Checked every sheet and dialog in the running game on a phone and a laptop
+in both languages. Screens one row inside Settings (Nerds, Worlds, Players,
+Invite links) could only be closed with ×, so getting back to Settings
+meant the gear; and a phone's own Back (Android's button or gesture, the
+browser's Back) left the game with a sheet open.
+
+### Added
+- **‹ back** in the sheet header on a screen opened from Settings
+  (`sheet.back()` in `src/game/sheet.js`); a screen opened elsewhere (the
+  friends' "+N" chip opens Players) has none, × closes it as before.
+- **The phone's Back steps back** (`src/game/back.js`): while a sheet or a
+  question is up, one history entry of the game's own sits on top; Back
+  takes it off and steps back one level (a screen inside Settings to
+  Settings, a question says no, What's new or a sheet closes). With nothing
+  open, Back leaves the game as before.
+
+### Changed
+- **Escape** steps back one level the same way, rather than closing the
+  whole sheet from Nerds. The texture-pack report closes on Escape and a
+  tap outside, like every other dialog.
+- The sheet marks screens with a title instead of tabs with one class
+  (`titled`), replacing a seven-screen CSS selector list.
+
+### Tests
+- `back.test.js`: Back steps out one screen at a time, then leaves; no
+  entries pile up. `browser.e2e.js`: ‹, Escape and `history.back()` each
+  take Nerds back to Settings.
+
 ## [0.121.2] - 2026-10-19
 
 Watch's choices on the decision cards for v0.121.1: the bundle farthest
