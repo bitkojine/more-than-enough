@@ -7,7 +7,6 @@ import { t } from '../i18n/i18n.js';
 
 export const EXPLORE_RADIUS = 6;
 export const MINE_EXPLORE_RADIUS = 3; // underground you only see the rock close by
-export const CLIFF_LAYERS = 8;        // layers a cliff at the edge of the known world shows before fading
 export const REACH = 1.65;            // how far the player can gather, dig or build
 export const COLLECT_RANGE = 1.7;
 // Waiting must never beat doing something (Watch, 2026-10-18), so hands keep

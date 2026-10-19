@@ -4,7 +4,7 @@ export default {
   "wiki.area.look": "Kaip viskas atrodo",
   "wiki.area.look.blurb": "Klajūnas, daiktai, pastatai ir pats pasaulis.",
   "wiki.area.depth": "Aukštis ir gylis",
-  "wiki.area.depth.blurb": "Plokščiakalnis, skardžiai ir sluoksniai – dar toliau.",
+  "wiki.area.depth.blurb": "Debesys, kasykla ir sluoksniai – dar toliau.",
   "wiki.area.mechanics": "Mechanikos",
   "wiki.area.mechanics.blurb": "Nauji dalykai rankoms ir galvai.",
   "wiki.area.economy": "Ekonomika ir pažanga",
@@ -42,7 +42,7 @@ export default {
   "wiki.idea.packsThatChangeWithDepth.builds": "Tekstūrų paketų variantai ir geologinės juostos.",
   "wiki.idea.distantPlateaus.title": "Tolimi plokščiakalniai",
   "wiki.idea.distantPlateaus.pitch": "Toli tamsoje skirtinguose aukščiuose kabo kitos žemės salos, blankiai apšviestos, užsimenančios apie biomus, kurių dar nepasiekei. Einant link vienos, ji galiausiai prisijungia prie tavo plokščiakalnio.",
-  "wiki.idea.distantPlateaus.builds": "Plokščiakalnio virš tamsos vaizdas ir begalinis reljefas.",
+  "wiki.idea.distantPlateaus.builds": "Debesys virš neištyrinėtos žemės ir begalinis reljefas.",
   "wiki.idea.waterfallsOffTheEdge.title": "Kriokliai nuo krašto",
   "wiki.idea.waterfallsOffTheEdge.pitch": "Kur upė ar ežeras pasiekia žinomo pasaulio kraštą, vanduo per skardį krinta į tamsą, o purslai gaudo šviesą. Po žeme vanduo, pasiekęs angą, krinta į žemesnį sluoksnį.",
   "wiki.idea.waterfallsOffTheEdge.builds": "Vandens langeliai, skardžiai ir angos.",
@@ -105,7 +105,7 @@ export default {
   "wiki.idea.theWorldThatRemembers.builds": "Sėklos, išsaugojimai ir iškeliavimas.",
   "wiki.idea.downIsTheWholeGame.title": "Žemyn – tai visas žaidimas",
   "wiki.idea.downIsTheWholeGame.pitch": "Apversk dėmesį: paviršius – maža pradinė pieva, o tikrasis žaidimas yra leidimasis, sluoksnis po sluoksnio, kiekvienas – atskiras urvas, kurį reikia apšviesti, iškasti ir sujungti angomis. Paviršius tampa namų baze.",
-  "wiki.idea.downIsTheWholeGame.builds": "Sluoksniai, angos, kasyklos rūkas ir skardžiai.",
+  "wiki.idea.downIsTheWholeGame.builds": "Sluoksniai, angos ir kasyklos rūkas.",
   "wiki.idea.noNumbersAtAll.title": "Jokių skaičių",
   "wiki.idea.noNumbersAtAll.pitch": "Eik toliau nei „be mokomojo režimo“: paslėpk visus skaitiklius ir leisk krūvų dydžiui, pastatų švytėjimui ir tunelių ilgiui pasakyti, kaip tau sekasi. Žinynas skaičius pasilieka tiems, kurie jų nori.",
   "wiki.idea.noNumbersAtAll.builds": "Taisyklė „be teksto“ ir žinynas.",
@@ -399,7 +399,7 @@ export default {
           viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; {phone:bakstelk|laptop:spustelk} ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
         <li><strong>Tamsa</strong> sutemus, su ekrano šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
-        <li><strong>Juoda</strong>: rūkas. Ten dar nebuvai.</li>
+        <li><strong>Debesys</strong>: žemė, kurios dar neištyrinėjai.</li>
       </ul>
 
       <h2>Lapas</h2>
@@ -503,12 +503,9 @@ export default {
         intervale. Rieduliai, rūdos uolos ir kristalai su kiekvienu kirčiu sudreba, nuo jų byra skeveldros, o senkant jie mažėja.</p>
 
       <h2>Rūkas</h2>
-      <p>Tau pažįstamas pasaulis – plokščiakalnis aukštai virš tamsos. Viskas iki <span data-k="EXPLORE_RADIUS"></span> langelių
-        nuo tavęs atsiskleidžia tau einant ir lieka atidengta. Privalumas Kartografas šį spindulį padidina 2.</p>
-      <p>Ten, kur žinoma žemė baigiasi, ji nutrūksta <strong>skardžiu</strong>: jo šlaite matyti sluoksniai po ta vieta, nykstantys
-        tamsoje maždaug <span data-k="CLIFF_LAYERS"></span> sluoksnių gylyje. Uoliena, kurią tuose sluoksniuose jau matei, rodoma
-        savo spalvomis, sluoksniai, į kuriuos esi nusileidęs, – blanki žemė, o likusieji – tamsios juostos. Tyrinėk toliau, ir nauja
-        žemė uždengs seną skardį, tad priekyje visada bus kraštas. Nuo tavęs nusisukę kraštai pasipuošia blyškiu apvadu.</p>
+      <p>Neištyrinėta žemė slypi po <strong>debesimis</strong>, kaip karo rūkas strateginiuose žaidimuose. Viskas iki
+        <span data-k="EXPLORE_RADIUS"></span> langelių nuo tavęs atsiskleidžia tau einant ir lieka atidengta: debesys pasitraukia
+        ir nebegrįžta. Privalumas Kartografas šį spindulį padidina 2. Naktį debesys patamsėja kartu su viskuo.</p>
 
       <h2>Vanduo</h2>
       <p>Plaukti gali visur, kur yra vandens; tavo greitis ten – <span data-k="SWIM_SPEED" data-f="pct"></span> ėjimo greičio.

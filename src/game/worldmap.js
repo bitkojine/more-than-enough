@@ -8,6 +8,7 @@
 
 import * as Core from '../core/index.js';
 import { tileColor } from './render/terrain.js';
+import { cloudBank } from './render/fog.js';
 
 const CS = Core.CHUNK_SIZE;
 const GROW = 32;             // chunks the canvas grows by past what's explored
@@ -15,7 +16,7 @@ const MIN_SCALE = 0.25;      // screen pixels per tile, zoomed right out
 const MAX_SCALE = 8;
 const START_SCALE = 2;
 const FRESH_AROUND = 2;      // chunks around you repainted every time it opens
-const BACKDROP = '#1c1a15';  // unexplored land: an old map's blank
+const CLOUD_SPAN = 120;      // tiles one picture of cloud spans, seen from this high
 const LABEL_INK = '#fff6dc';
 const LABEL_EDGE = 'rgba(20, 16, 10, 0.85)';
 const KIND_FONT = '-apple-system, BlinkMacSystemFont, sans-serif'; // i18n-ok: a font list
@@ -102,7 +103,10 @@ export function createWorldMap(canvas, { getState, look }) {
     const W = canvas.width, H = canvas.height, k = view.scale * dpr;
     const sx = (x) => W / 2 + (x - view.x) * k, sy = (y) => H / 2 + (y - view.y) * k;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = BACKDROP;
+    // Unexplored land: clouds, as in the game, fixed to the land.
+    const bank = cloudBank(look), clouds = ctx.createPattern(bank, 'repeat');
+    clouds.setTransform(new DOMMatrix().translate(sx(0), sy(0)).scale(CLOUD_SPAN * k / bank.width));
+    ctx.fillStyle = clouds;
     ctx.fillRect(0, 0, W, H);
     if (land) {
       ctx.imageSmoothingEnabled = view.scale < 1;

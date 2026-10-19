@@ -78,6 +78,12 @@ test('pack: a partial pack is fine; the default fills the rest', () => {
   assert.ok(validatePack(minimal(), { complete: true }).some((p) => p === 'tile.grass top: missing'));
 });
 
+test('pack: a pack saved before a thing was retired still loads', () => {
+  assert.deepEqual(validatePack(minimal({ 'color.edge': { color: '#f0e2b6' }, 'color.visited': { color: '#3d2f21' } })), []);
+  for (const id of C.RETIRED_LOOKS) assert.equal(C.LOOK[id], undefined, id + ' is retired, not drawn');
+  assert.ok(validatePack(minimal({ 'color.nonsense': { color: '#000000' } })).length, 'an unknown thing is still a problem');
+});
+
 test('pack: pictures can be paths, inline SVG, data: or https: URLs; variants and animations', () => {
   for (const ok of ['a/b.png', 'x.svg', 'data:image/png;base64,AAA', 'https://example.com/t.webp', '<svg width="1" height="1"></svg>']) {
     assert.ok(isPicture(ok), ok);

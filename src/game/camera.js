@@ -4,7 +4,7 @@
  * unproject(), so this is the one place that decides how the world is viewed.
  *
  * The view looks north, leaning slightly (PITCH, never quite straight down, so
- * walls and the edges of the known world always read as cliffs). There is no
+ * walls and the faces of raised ground always read as blocks). There is no
  * turning or tilting, so a tile's top always projects to an axis-aligned
  * rectangle: x maps straight across, a row of tiles is foreshortened to
  * `depthPx` tall, and height lifts things by `risePx` per layer. Heights are absolute: the surface floor is 0, layer -1's floor is -1,

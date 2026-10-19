@@ -13,7 +13,6 @@
  * changes far away show too. */
 
 import * as Core from '../../core/index.js';
-import { cliffDepthPx } from './strata.js';
 
 const LEVEL = Math.SQRT2;    // the map's resolution steps by this factor
 const MARGIN = 6;            // tiles kept ready past each edge of the screen
@@ -160,7 +159,7 @@ export function createFarMap() {
   // that can reach into them drawn again in order, clipped to them.
   function paint(art, x0, y0, x1, y1) {
     const c = map.cam, ctx = map.ctx;
-    const up = Math.ceil((cliffDepthPx(c) + (Core.RELIEF_MAX - Core.RELIEF_MIN) * c.risePx) / c.depthPx) + 1;
+    const up = Math.ceil((Core.RELIEF_MAX - Core.RELIEF_MIN) * c.risePx / c.depthPx) + 1;
     const down = Math.ceil((Core.RELIEF_MAX * c.risePx + STAND_REACH * c.tilePx) / c.depthPx) + 1;
     const sx = (x0 - map.x0) * c.tilePx, sy = (y0 - map.y0) * c.depthPx;
     const w = (x1 - x0 + 1) * c.tilePx, h = (y1 - y0 + 1) * c.depthPx;

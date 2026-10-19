@@ -7,7 +7,7 @@ export default {
   "wiki.area.look": "How things look",
   "wiki.area.look.blurb": "The wanderer, items, buildings and the world itself.",
   "wiki.area.depth": "Height and depth",
-  "wiki.area.depth.blurb": "Taking the plateau, the cliffs and the layers further.",
+  "wiki.area.depth.blurb": "Taking the clouds, the mine and the layers further.",
   "wiki.area.mechanics": "Mechanics",
   "wiki.area.mechanics.blurb": "New things to do with your hands and your head.",
   "wiki.area.economy": "Economy and progression",
@@ -45,7 +45,7 @@ export default {
   "wiki.idea.packsThatChangeWithDepth.builds": "Texture pack variants and the geology bands.",
   "wiki.idea.distantPlateaus.title": "Distant plateaus",
   "wiki.idea.distantPlateaus.pitch": "Far out in the dark, other islands of land hang at different heights, dimly lit, hinting at biomes you haven't reached. Walking toward one eventually joins it to your plateau.",
-  "wiki.idea.distantPlateaus.builds": "The plateau-over-the-dark look and endless terrain.",
+  "wiki.idea.distantPlateaus.builds": "Clouds over unexplored land and endless terrain.",
   "wiki.idea.waterfallsOffTheEdge.title": "Waterfalls off the edge",
   "wiki.idea.waterfallsOffTheEdge.pitch": "Where a river or lake reaches the edge of the known world, water pours over the cliff into the dark, with spray catching the light. Underground, water that meets a hole falls to the layer below.",
   "wiki.idea.waterfallsOffTheEdge.builds": "Water tiles, cliffs and holes.",
@@ -108,7 +108,7 @@ export default {
   "wiki.idea.theWorldThatRemembers.builds": "Seeds, saves and embark.",
   "wiki.idea.downIsTheWholeGame.title": "Down is the whole game",
   "wiki.idea.downIsTheWholeGame.pitch": "Flip the focus: the surface is a small starting meadow and the real game is the descent, layer after layer, each one a self-contained cave to light, mine and connect with holes. The surface becomes home base.",
-  "wiki.idea.downIsTheWholeGame.builds": "Layers, holes, mine fog and cliffs.",
+  "wiki.idea.downIsTheWholeGame.builds": "Layers, holes and mine fog.",
   "wiki.idea.noNumbersAtAll.title": "No numbers at all",
   "wiki.idea.noNumbersAtAll.pitch": "Go further than \"no tutorial\": hide all counters and let the size of your piles, the glow of buildings and the length of your tunnels tell you how you're doing. The wiki keeps the numbers for those who want them.",
   "wiki.idea.noNumbersAtAll.builds": "The no-text rule and the wiki.",
@@ -405,7 +405,7 @@ export default {
           in the top-left corner counts the milestones you've reached and glows after a new one; {phone:tap|laptop:click} it to see them all in the
           <strong>Awards</strong> tab.</li>
         <li><strong>Darkness</strong> after dusk, with a pool of screen light around you. See <a href="#world">The world</a>.</li>
-        <li><strong>Black</strong>: fog. You haven't been there yet.</li>
+        <li><strong>Clouds</strong>: land you haven't explored yet.</li>
       </ul>
 
       <h2>The sheet</h2>
@@ -509,12 +509,9 @@ export default {
         ore rocks and crystals shake and shed chips with every swing, and shrink as they run down.</p>
 
       <h2>Fog</h2>
-      <p>The world you know is a plateau high over the dark. Everything within <span data-k="EXPLORE_RADIUS"></span> tiles of
-        you is revealed as you walk, and stays revealed. The Cartographer perk widens this by 2.</p>
-      <p>Where the known ground ends, it drops away as a <strong>cliff</strong>: its face shows the layers beneath that spot,
-        fading into the dark about <span data-k="CLIFF_LAYERS"></span> layers down. Rock you've seen on those layers shows in its
-        own colours, layers you've been down to are dim earth, and the rest are dark bands. Explore further and the new ground
-        covers the old cliff, so there's always an edge out ahead of you. Edges facing away from you catch a pale lip.</p>
+      <p>Land you haven't explored lies under <strong>clouds</strong>, like the fog of war in a strategy game. Everything within
+        <span data-k="EXPLORE_RADIUS"></span> tiles of you is revealed as you walk, and stays revealed: the clouds roll back
+        and never return. The Cartographer perk widens this by 2. At night the clouds darken with everything else.</p>
 
       <h2>Water</h2>
       <p>You can swim anywhere there's water, at <span data-k="SWIM_SPEED" data-f="pct"></span> of your walking speed. You'll be

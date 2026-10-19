@@ -53,7 +53,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; unexplored tiles are left dark and explored edges drop as layered cliffs (strata); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"

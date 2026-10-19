@@ -33,7 +33,7 @@ export function render(cam, s, fx, view, look) {
 
   // Props that light, as lights (a glowcap pulses slowly, like something
   // alive), and the beacons.
-  const { buildings, built, friends: friendRows, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
+  const { buildings, built, friends: friendRows, aloft, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
   const lights = [], beacons = [];
   for (const { x, y, kind } of placed) {
@@ -47,6 +47,10 @@ export function render(cam, s, fx, view, look) {
 
   let you = null;    // where your head and hands are, for your name and sign
   const tags = [];   // friends' names, drawn last, over the night
+  const friend = (f) => {
+    const at = drawFriend(ctx, cam, s, look, f, f.color);
+    if (at) tags.push({ ...at, name: f.name, color: f.color });
+  };
   const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
     drawHighlights(ctx, cam, s, view, y);
     const row = buildings.get(y);
@@ -61,14 +65,10 @@ export function render(cam, s, fx, view, look) {
       }
     }
     const friends = friendRows.get(y);
-    if (friends) {
-      for (const f of friends) {
-        const at = drawFriend(ctx, cam, s, look, f, f.color);
-        if (at) tags.push({ ...at, name: f.name, color: f.color });
-      }
-    }
+    if (friends) for (const f of friends) friend(f);
     if (y === playerRow) you = drawPlayer(ctx, cam, s, look, view);
   });
+  for (const f of aloft) friend(f);
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     ctx.globalAlpha = XRAY_ALPHA;

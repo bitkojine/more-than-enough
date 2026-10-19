@@ -3,7 +3,7 @@
  * The game decides what each thing is and what it does; a texture pack
  * decides what it looks like. Each thing names the slots a pack can fill:
  *
- *   color  '#rrggbb'. Used far out, on cliffs, for sparks and as a fallback.
+ *   color  '#rrggbb'. Used far out, for sparks and as a fallback.
  *   top    the ground: an image stretched over the tile's top (squashed by
  *          the view's lean)
  *   face   the front of a raised tile, seen below its top; one image is one
@@ -158,11 +158,15 @@ for (const key of Object.keys(UNLOCKS)) add('unlock', key, UNLOCKS[key].name, t(
 for (const key of Object.keys(PERKS)) add('perk', key, PERKS[key].name, t('sentence', { text: PERKS[key].desc }), req('icon'));
 for (const f of PATH_FAMILIES) add('path', f.id, f.name, t('look.path.does'), req('icon'));
 
-const COLORS = ['backdrop', 'unknown', 'visited', 'cavity', 'edge', 'dial', 'dialFull'];
+const COLORS = ['backdrop', 'unknown', 'cloud', 'cloudShade', 'dial', 'dialFull'];
 for (const key of COLORS) add('color', key, t('look.color.' + key), t('look.color.' + key + '.does'), req('color'));
 
 export const LOOKS = things;
 export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));
+
+// Things the game no longer draws. A pack that still has them (one saved or
+// exported before they went) loads as before; they are just ignored.
+export const RETIRED_LOOKS = new Set(['color.visited', 'color.cavity', 'color.edge']);
 
 // The look id for a tile type and for a resource.
 export const tileLook = (t) => 'tile.' + TILE_KEY[t];

@@ -7,10 +7,8 @@
  * After each row the caller draws whatever stands in it (the player,
  * buildings), which lets walls hide what is behind them.
  *
- * In the forest, unexplored tiles are not drawn at all: the known world is a
- * plateau over the dark. Where explored ground has darkness in front of it,
- * its edge drops as a cliff showing the layers below (strata.js); other edges
- * over the dark catch a light lip. In the mine, unexplored tiles are dark rock
+ * In the forest, unexplored tiles are under clouds (fog.js), drawn over the
+ * ground once the rows are done. In the mine, unexplored tiles are dark rock
  * (see drawUnseenRock).
  *
  * What everything looks like comes from the texture pack (look.js): a tile's
@@ -22,8 +20,8 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { shade, tv, rgba } from './palette.js';
-import { drawCliff, cliffDepthPx } from './strata.js';
 import { createFarMap } from './farmap.js';
+import { drawFog } from './fog.js';
 
 const FAR_PX = 14;          // below this tile size, show the off-screen map
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
@@ -177,16 +175,6 @@ function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
 
 /* ---------------------------------------------------------------- tiles */
 
-// Light lips on the edges of tile (x, y) that face the dark to the north,
-// west and east (the south edge is a cliff).
-function drawLips(ctx, look, w, x, y, z, sx, sy, u, d) {
-  const lip = Math.max(1, u * 0.04);
-  ctx.fillStyle = rgba(look.color('color.edge'), 0.3);
-  if (!Core.isExplored(w, x, y - 1, z)) ctx.fillRect(sx, sy, u, lip);
-  if (!Core.isExplored(w, x - 1, y, z)) ctx.fillRect(sx, sy, lip, d);
-  if (!Core.isExplored(w, x + 1, y, z)) ctx.fillRect(sx + u - lip, sy, lip, d);
-}
-
 /* Underground, everything is rock until you dig it out, seen or not. So the
  * mine is drawn as one mass of rock with your tunnels cut down into it: rock
  * you haven't seen is a dark block (not a drop into nothing), rock you have
@@ -224,12 +212,12 @@ function tileTop(cam, w, x, y, z) {
   return { h, sx: p.x, sy: p.y };
 }
 
-// The ground of one tile: cliff, south face, top, and any hole or skylight.
+// The ground of one tile: south face, top, and any hole or skylight.
 function drawTile(ctx, cam, s, look, x, y, z) {
   const w = s.world, u = cam.tilePx, d = cam.depthPx, g = d / u;
   const under = z < Core.SURFACE;
   if (!Core.isExplored(w, x, y, z)) {
-    // In the forest, the dark below the known world; in the mine, rock.
+    // In the forest, clouds come over it later; in the mine, rock.
     if (under) drawUnseenRock(ctx, cam, look, w, x, y, z);
     return;
   }
@@ -240,11 +228,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   const color = look.color(id);
 
   // The south face, down to the top of the tile in front, lit along its rim.
-  // In the forest, with the dark in front, it runs down to the floor and the
-  // cliff carries on.
-  const edge = showsHeight && !under && !Core.isExplored(w, x, y + 1, z);
-  const front = !showsHeight || edge ? Math.min(h, 0) : groundHeight(w, x, y + 1, z);
-  if (edge) drawCliff(ctx, cam, s, look, x, y, z);
+  const front = showsHeight ? groundHeight(w, x, y + 1, z) : Math.min(h, 0);
   if (h > front) {
     const faceH = (h - front) * cam.risePx;
     const face = look.pick(id, 'face', x, y, s.time);
@@ -265,7 +249,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   if (under && !Core.TILE_INFO[t].walk) {
     ctx.fillStyle = `rgba(0,0,0,${ROCK_SHADE})`;
     ctx.fillRect(sx, sy, u + 1, d + 1);
-  } else if (!under) drawLips(ctx, look, w, x, y, z, sx, sy, u, d);
+  }
   // A taller block behind casts a little shade on this top's far edge.
   if (showsHeight && groundHeight(w, x, y - 1, z) > h + 0.05) {
     ctx.fillStyle = CONTACT;
@@ -357,7 +341,7 @@ export function tileColor(look, type) {
 // A tile's flat colour for the far map's first quick draw, or null for none.
 function flatColor(look, w, x, y, z) {
   if (Core.isExplored(w, x, y, z)) return look.color(TILE_LOOK[Core.tileAt(w, x, y, z)]);
-  return z < Core.SURFACE ? look.color('color.unknown') : null;
+  return look.color(z < Core.SURFACE ? 'color.unknown' : 'color.cloud');
 }
 
 const far = createFarMap();
@@ -371,16 +355,18 @@ export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   const v = cam.visibleTiles();
   if (cam.tilePx >= FAR_PX) {
     far.drop();
-    // Start high enough that cliffs hanging down from rows above the screen show.
-    const y0 = v.y0 - Math.ceil(cliffDepthPx(cam) / cam.depthPx);
-    drawRows(ctx, cam, s, look, ground, v.x0, y0, v.x1, v.y1, STAND_MARGIN, onRow);
-    return (v.y1 - y0 + 1) * (v.x1 - v.x0 + 1);
+    drawRows(ctx, cam, s, look, ground, v.x0, v.y0, v.x1, v.y1, STAND_MARGIN, onRow);
+    drawFog(ctx, cam, s, look, v.x0, v.y0, v.x1, v.y1);
+    return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);
   }
   // Zoomed out: the map, then whatever stands in each row over it. A struck
   // rock's jolt is too small to see from here, and would stay in the map.
   const still = { ...ground, shake: () => 0 };
   far.draw(ctx, cam, s.time, look, {
-    paintArea: (c, mc, x0, y0, x1, y1, side) => drawRows(c, mc, s, look, still, x0, y0, x1, y1, side),
+    paintArea: (c, mc, x0, y0, x1, y1, side) => {
+      drawRows(c, mc, s, look, still, x0, y0, x1, y1, side);
+      drawFog(c, mc, s, look, x0, y0, x1, y1);
+    },
     flatColor: (x, y) => flatColor(look, s.world, x, y, z),
     player: s.player,
     near: Core.exploreRadius(s) + 2

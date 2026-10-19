@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.125.0] - 2026-10-19
+
+Watch: unexplored land should look like the fog of war in Civilization.
+Watch picked clouds (Civ V) over an old-map parchment (Civ VI) and over
+keeping the dark drop, chose to keep explored land fully bright (no greying
+of land out of sight), and wanted the world map to match. Day and night and
+the device's light are unchanged.
+
+### Changed
+- **Clouds over unexplored land** (`src/game/render/fog.js`): on the surface
+  every unexplored tile is covered by one seamless cloud bank, and each tile
+  on its edge by a billowing puff 1.75 tiles wide, so the edge rolls softly
+  over the known land instead of following the grid. The pictures are made
+  once from two new texture-pack colours, `color.cloud` and
+  `color.cloudShade`, lit from the north-west. Clouds are drawn with the
+  ground (and kept in the far map when zoomed out); the bank's picture is
+  kept at its on-screen size in device pixels so filling with it is a copy,
+  not a resample (about +2 ms a frame at 2x on a screen that is mostly
+  cloud, in headless Chromium). The underground keeps its unseen rock.
+- **The world map** shows the same clouds where it used to be dark.
+- **Friends out in the clouds** are drawn over them (`scene().aloft`), so
+  you can still find each other.
+- **The stylesheet players download is minified** (`scripts/stage-speed.mjs`,
+  esbuild, targeting Safari 12 so nothing is rewritten into newer CSS): the
+  first load drops from 200.6 KB to 196.1 KB gzipped, back under the 200 KB
+  budget the clouds had pushed it just over.
+
+### Removed
+- The cliffs at the edge of the known world (`strata.js`, `CLIFF_LAYERS`),
+  the light lips on edges facing the dark, and the pack colours only they
+  used (`color.visited`, `color.cavity`, `color.edge`): the clouds cover
+  where they were. The wiki's Fog section now describes the clouds.
+  A pack saved or exported with those colours still loads: they're listed in
+  `RETIRED_LOOKS` (`src/core/catalog.js`) and ignored.
+
+### Tests
+- `scene.test.js`: a friend out in the clouds is drawn over them; on
+  explored land, in their row.
+- `looks.test.js`: a pack with retired colours still validates.
+
 ## [0.124.0] - 2026-10-19
 
 Watch's ask: update notifications annoy players mid-game, so nothing should

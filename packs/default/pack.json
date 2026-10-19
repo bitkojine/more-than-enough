@@ -406,14 +406,11 @@
   "color.unknown": {
    "color": "#2e241a"
   },
-  "color.visited": {
-   "color": "#3d2f21"
+  "color.cloud": {
+   "color": "#fbfdff"
   },
-  "color.cavity": {
-   "color": "#17120e"
-  },
-  "color.edge": {
-   "color": "#f0e2b6"
+  "color.cloudShade": {
+   "color": "#808ca6"
   },
   "color.dial": {
    "color": "#7fd07a"

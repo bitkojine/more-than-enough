@@ -19,7 +19,7 @@
  * A picture is a path next to pack.json, inline "<svg ...>" markup, a
  * data:image/... URL or an https:// URL. */
 
-import { LOOK, LOOKS, PACK_FORMAT } from '../../core/index.js';
+import { LOOK, LOOKS, PACK_FORMAT, RETIRED_LOOKS } from '../../core/index.js';
 import { t } from '../../i18n/i18n.js';
 const TOP_KEYS = ['format', 'name', 'author', 'tile', 'pixelated', 'looks'];
 const COLOR = /^#[0-9a-f]{6}$/i;
@@ -68,6 +68,7 @@ export function validatePack(pack, { complete = false } = {}) {
   }
   for (const id of Object.keys(looks)) {
     const thing = LOOK[id];
+    if (!thing && RETIRED_LOOKS.has(id)) continue;
     if (!thing) { problems.push(t('pack.noThing', { id })); continue; }
     const entry = looks[id];
     if (!entry || typeof entry !== 'object' || Array.isArray(entry)) { problems.push(t('pack.slotsObject', { id })); continue; }
