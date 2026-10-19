@@ -803,7 +803,7 @@ export default {
   "news.ideas": "Got an idea for the game? Share it with the developers on GitHub: every idea gets read.",
   "news.shareIdea": "Share an idea",
   "news.play": "Play",
-  "news.0.121.2": "Fast phones now show up to 80 resources floating home at once, and slower ones fewer, so busy bases look full where the phone can keep up.",
+  "news.0.121.2": "Fast devices now show up to 80 resources floating home at once, and slower ones fewer, so busy bases look full wherever the game runs smoothly.",
   "news.0.121.1": "Floating resources around you always show now. Far from spawn, the ones drifting home off screen used to take every slot, so a building you had just placed could float nothing for a while.",
   "news.0.121.0": "Perfect plays better: it digs for finds in the mine much more often and gets a world ready to Embark about a third sooner.",
   "news.0.120.1": "The Nerds screen now shows its own title instead of the game tabs.",

@@ -803,7 +803,7 @@ export default {
   "news.ideas": "Turi idėją žaidimui? Pasidalyk ja su kūrėjais GitHub'e: perskaitoma kiekviena idėja.",
   "news.shareIdea": "Pasiūlyti idėją",
   "news.play": "Žaisti",
-  "news.0.121.2": "Greiti telefonai dabar vienu metu rodo iki 80 namo plaukiančių išteklių, o lėtesni mažiau, tad užimtos bazės atrodo pilnos ten, kur telefonas spėja.",
+  "news.0.121.2": "Greiti įrenginiai dabar vienu metu rodo iki 80 namo plaukiančių išteklių, o lėtesni mažiau, tad užimtos bazės atrodo pilnos visur, kur žaidimas veikia sklandžiai.",
   "news.0.121.1": "Plaukiantys ištekliai aplink tave dabar visada matomi. Toli nuo pradžios už ekrano namo plaukiantys užimdavo visas vietas, tad ką tik pastatytas pastatas kurį laiką nieko neišsiųsdavo.",
   "news.0.121.0": "„Idealiai“ žaidžia geriau: daug dažniau kasa radinių kasykloje ir pasaulį iškeliauti paruošia maždaug trečdaliu greičiau.",
   "news.0.120.1": "Ekranas Moksliukams dabar rodo savo pavadinimą, o ne žaidimo korteles.",
