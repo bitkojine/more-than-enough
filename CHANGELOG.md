@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.127.1] - 2026-10-19
+
+Watch's report: auto-play tried to build on emptied resource tiles. Since
+v0.126.0 a building needs some of its deposit left, but the brain's
+`buildSpot` (`src/core/perfect.js`) still picked the nearest matching tile
+whatever was left in it, so on land a player had gathered bare it walked to
+an emptied tile and asked to build there again and again, refused each time.
+
+### Fixed
+- `buildSpot` only takes a deposit with richness left, and when none is
+  near home, the nearest one to you.
+
+### Tests
+- `bot.test.js`: held on a world gathered mostly bare around home,
+  auto-play builds, never on an emptied deposit, and nothing it tries is
+  refused (fails before the fix: thousands of refused places).
+
 ## [0.127.0] - 2026-10-19
 
 Watch's ask: Perfect needed a clearer name, it should be obvious it must be

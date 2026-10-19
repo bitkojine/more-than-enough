@@ -316,8 +316,9 @@ function caveMouth(s, mind) {
 }
 
 // Where building `id` would go: a deposit building on the free matching
-// tile nearest home that you've seen, a converter on free open land near
-// home. Remembered while it stays free.
+// tile nearest home that you've seen with some of it left (an emptied one
+// takes no building, and nothing grows back), else nearest you; a converter
+// on free open land near home. Remembered while it stays free.
 function buildSpot(s, mind, id) {
   const def = EXTRACTORS[id];
   const which = def.tile === null ? 'land' : 'tile' + def.tile;
@@ -326,10 +327,11 @@ function buildSpot(s, mind, id) {
     (def.tile === null
       ? !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].land && !TILE_INFO[tileAt(s.world, x, y, SURFACE)].harvest &&
         !(x === mind.home.x && y === mind.home.y)
-      : tileAt(s.world, x, y, SURFACE) === def.tile);
+      : tileAt(s.world, x, y, SURFACE) === def.tile && richness(s.world, x, y, SURFACE) > 0);
   const c = mind.spots[which];
   if (c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120)) return c.tile;
-  const tile = nearestTile(mind.home.x + 0.5, mind.home.y + 0.5, def.tile === null ? 30 : SEARCH, free);
+  const tile = nearestTile(mind.home.x + 0.5, mind.home.y + 0.5, def.tile === null ? 30 : SEARCH, free) ||
+    (def.tile === null ? null : nearestTile(s.player.x, s.player.y, SEARCH, free));
   mind.spots[which] = { t: s.time, tile };
   return tile;
 }

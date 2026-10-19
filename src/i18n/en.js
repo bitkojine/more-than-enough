@@ -837,6 +837,7 @@ export default {
   "news.new": "New",
   "news.full": "Every change, for developers",
   "news.shareIdea": "Share an idea",
+  "news.0.127.1": "Auto-play no longer gets stuck trying to put a building on a deposit you've emptied. It picks one with something left, further out if it must.",
   "news.0.127.0": "Perfect is now called AUTO (Auto-play). It plays only while you hold it down: a quick {phone:tap|laptop:click} reminds you to hold it, a gold ring turns round the button while you do, and a gold AUTO tag floats over your character while it plays.",
   "news.0.126.0": "Nothing grows back any more. What you gather is gone for good and the land shows it, so your trail shows where you've been. New deposits are found by exploring further.\nThe world map fades the deposits you've emptied.\nA building needs some of its deposit left to go on it, and then works forever without using it up.",
   "news.0.125.0": "Land you haven't explored now lies under clouds, like the fog of war in a strategy game. They roll back as you explore, darken at night with everything else, and cover the world map's blank too.",

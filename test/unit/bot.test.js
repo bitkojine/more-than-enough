@@ -179,6 +179,29 @@ test('Perfect digs in the mine when only finds pay, and comes back up', () => {
 // A mastered world just short of what Embark takes, its Abundance Engine
 // running: the brain keeps playing, and the moment Embark opens it waits
 // for the player, never pressing it itself.
+test('Perfect never tries to build on a deposit the player has emptied', () => {
+  // A player who gathered most of the land around home bare, as nothing grows back.
+  const s = C.createState(12345);
+  const hx = Math.floor(s.player.x), hy = Math.floor(s.player.y);
+  for (let y = hy - 25; y <= hy + 25; y++) for (let x = hx - 25; x <= hx + 25; x++) {
+    const info = C.TILE_INFO[C.tileAt(s.world, x, y, C.SURFACE)];
+    if (info.harvest && info.res && (x + y) % 3) C.setRichness(s.world, x, y, C.SURFACE, 0);
+  }
+  let places = 0, onEmpty = 0, refused = 0;
+  holdPerfect(s, 600, {
+    seen(intent, result) {
+      if (intent.type !== 'place') return;
+      places++;
+      if (C.EXTRACTORS[intent.key].tile !== null && C.richness(s.world, intent.x, intent.y, C.SURFACE) <= 0) onEmpty++;
+      if (result && !result.ok) refused++;
+    },
+    tick() { C.advanceGoals(s); s.events.length = 0; }
+  });
+  assert.ok(places > 0, 'it builds');
+  assert.equal(onEmpty, 0, 'never on an emptied deposit');
+  assert.equal(refused, 0, 'and nothing it tries is refused');
+});
+
 test('Perfect pauses at Embark and leaves it to the player', () => {
   const s = master(C.createState(12345));
   s.stats.mycelium = C.EMBARK_MIN_TOTAL - 400;
