@@ -308,13 +308,16 @@ async function main() {
     'a new world names the next milestone (' + await evalJS('document.getElementById("milestone").textContent') + ')');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
   eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
-  var chips = await evalJS('document.querySelectorAll("#resources .chip").length');
+  var chips = await evalJS('document.querySelectorAll("#resources .chip[data-res]").length');
   eq(chips, 4, 'four resource chips visible');
-  // Tapping a counter opens what you've collected of it, every kind of mushroom included.
+  // Tapping a counter opens the earnings statement at it, every kind of mushroom included.
   var stoneChip = await rect('.chip[data-res=stone]');
   await tap(stoneChip.x, stoneChip.y);
-  ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Collected"', 1500), 'tapping a resource counter opens Collected');
-  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'Collected has a section per resource and a card per kind of mushroom');
+  ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Earnings"', 1500), 'tapping a resource counter opens the earnings statement');
+  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .colHead").length === 4 && !!document.querySelector("#sheetBody .units") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'the statement has a section per resource, the unit switch and a card per kind of mushroom');
+  await evalJS('document.querySelector("#sheetBody .unit[data-unit=h]").click()');
+  ok(await waitFor('document.querySelector("#sheetBody .unit[data-unit=h]").classList.contains("on")', 1000), 'the statement switches to per hour');
+  await evalJS('document.querySelector("#sheetBody .unit[data-unit=s]").click()');
   await evalJS('document.getElementById("btnClose").click()');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 5, 'Gather, Perfect, build, upgrade and mine share the thumb dock');
   // Sound: the context exists from load, and the first gesture of any kind

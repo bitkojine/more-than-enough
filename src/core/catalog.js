@@ -117,7 +117,7 @@ for (const key of Object.keys(FOREST_KINDS)) {
 
 // Each kind of mushroom: a little clump of it, drawn at the trees' feet on
 // the map while a forest patch has some left (smaller as it runs low), and
-// in the Collected sheet.
+// in the earnings statement.
 for (const key of Object.keys(MUSHROOMS)) add('mushroom', key, MUSHROOMS[key].name, MUSHROOMS[key].does, req('image'));
 
 for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], t('look.resource.does'), req('icon', 'color'));

@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.130.0] - 2026-10-19
+
+Watch asked for a clear, detailed statement of how fast everything earns,
+with ROI, spending and earnings, like a live financial statement, top level
+and easy to find. Watch chose: it opens from the resource bar; ROI counts
+everything in seconds of your own income; a chart of income is kept per
+world.
+
+### Added
+- The earnings statement replaces the Collected sheet. Tapping a resource
+  opens it at that resource; a small chart at the bar's end opens it at the
+  top. One scrolling sheet: a /s, /min, /h switch (kept on the phone);
+  Income per resource with a chart of it over your play, a line per kind of
+  building (how many, what one makes, the share of the income, how soon
+  they earn their price), the Abundance Engine, every multiplier behind
+  the rate and what a gather brings; Best buys, quickest payback first, each
+  with what it adds and a button to its sheet; This world (earned, spent and
+  in packs per resource, and where it came from); Spending by kind; every
+  kind of mushroom, as before.
+- `src/core/ledger.js`: `incomeStatement`, `spendingStatement`,
+  `totalSpent`, `worthRates`, `costSeconds`, `payback`, `bestBuys`,
+  `ownedPayback`. Nothing new is recorded or saved: spending is the sum of
+  the prices of what you own at today's prices (every price is fixed by
+  level), so it works the same in solo and shared worlds; a shared world
+  counts only your own buildings and leaves props out, since they're
+  everyone's. A resource is worth the time your income takes to make it
+  (or holding Gather, when that's faster), so a price in four resources and
+  an output in one compare as seconds.
+- `src/game/income.js` samples each resource's income a minute apart (and
+  a few seconds after a jump, so a buy shows as a step) into localStorage
+  per world, up to 480 samples, thinning its older half when full. Time
+  away is squeezed to a step on the chart, which uses a log scale; touching
+  or pointing at it shows what it earned then.
+- `test/unit/ledger.test.js`; `npm run test:layout` has a statement state.
+
+### Changed
+- The first-load budget is 210 KB (was 200): the statement adds about 5 KB
+  gzipped to the bundle.
+- The mushroom cards moved from `src/game/sheet.js` to
+  `src/game/statement.js` with the rest of what was Collected.
+
 ## [0.129.0] - 2026-10-19
 
 Watch's report: the green dots over Build and Upgrade came and went for no

@@ -3,7 +3,7 @@
  * spore bed in the mine holds one kind of cave mushroom. The kind is a pure
  * function of the seed and the tile, so it never changes as a patch is
  * foraged bare and grows back. Each kind pays mycelium alike: what you collect
- * is the kinds themselves, counted in the Collected sheet.
+ * is the kinds themselves, counted in the earnings statement.
  *
  *   where   'forest' (the floor under the trees) or 'cave' (spore beds)
  *   kinds   the forest kinds it grows in (forest only)

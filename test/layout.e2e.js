@@ -31,7 +31,7 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
 ];
 // In this order on one page per screen; `rich` last, as it can't be undone.
 // `crowd` joins a shared world of 100 (a fake room) and stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich'];
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -188,6 +188,20 @@ async function enter(state) {
   if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
   if (state === 'fbi') g.dialogs.fbi.show();
   if (state === 'news') click('#btnVersion');
+  // The statement of a world well under way: every kind of building, levels
+  // bought, and an hour of income behind it for the charts.
+  if (state === 'statement') {
+    const st = g.getState();
+    Object.assign(st.unlocks, { compost: true, brickyard: true, foundry: true, observatory: true, logistics: true });
+    Object.assign(st.discovered, { ore: true, crystal: true });
+    for (const key of Object.keys(g.core.EXTRACTORS)) for (let i = 0; i < 3; i++) st.extractors.push({ key, res: g.core.EXTRACTORS[key].res, x: 200 + i, y: 200, z: 0, buffer: 0 });
+    st.tools.overclock = 4; st.abundanceLv = 2;
+    for (let i = 0; i <= 8; i++) {
+      for (const r of g.core.RESOURCES) st.resUp[r] = i;
+      g.income.note(st, Date.now() + (i + 1) * 400000); // after the samples the game itself took
+    }
+    click('#resources .chip.ledger');
+  }
 }
 
 /* -------------------------------------------------------------------- run */

@@ -1,5 +1,6 @@
 /* The bottom sheet: Upgrades (the progression map), Build, Beyond, Awards,
- * Collected (opened by tapping a resource counter, so it has no tab) and
+ * the earnings statement (opened by tapping the resource bar, so it has no
+ * tab; src/game/statement.js) and
  * Settings (opened by the gear; its controls are static, in index.html). It
  * renders from state and reports what the player picked through `actions`.
  * Rows carry names, levels, numbers and prices only; what things do is for
@@ -8,10 +9,11 @@
 import * as Core from '../core/index.js';
 import { fmt, fmtRate, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
-import { t, listOr, capitalize } from '../i18n/i18n.js';
+import { t } from '../i18n/i18n.js';
 import { SHEETS } from './fresh.js';
+import { createStatement } from './statement.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'collected'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')]]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['map', t('map.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
 const PANELS = { settings: 'settingsPanel', map: 'mapPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel' };
 // The game lists, which show their tabs; every other screen shows its title.
@@ -123,7 +125,7 @@ const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || 
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions, look: currentLook, fresh = null, onTab = () => {} }) {
+export function createSheet(el, { getState, actions, look: currentLook, fresh = null, income, onTab = () => {} }) {
   look = currentLook;
   let open = false;
   let tab = 'upgrades';
@@ -251,54 +253,9 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     return html;
   }
 
-  // What you've collected, one resource at a time: what you hold, what this
-  // world has given you and where it came from; for mycelium, every kind of
-  // mushroom, the ones not found yet as shadows with a hint of where they grow.
-  function renderCollected(s) {
-    const rates = Core.productionRates(s);
-    let html = '';
-    for (const r of Core.RESOURCES) {
-      const total = s.stats[r];
-      html += `<div class="section colHead" id="col-${r}">${icon(r)} ${Core.RESOURCE_LABEL[r]}</div>`;
-      html += row(icon(r), t('sheet.inPacks', { n: fmt(s.inv[r]) }),
-        t('sheet.gatheredHere', { n: fmt(total) }) + (rates[r] > 0.01 ? ` &middot; <span class="ok">+${fmtRate(rates[r])}/s</span>` : ''), '');
-      for (const k of Object.keys(Core.SOURCES)) {
-        const n = s.sources[r][k];
-        if (n < 1) continue;
-        const share = total > 0 ? n / total : 0;
-        html += `<div class="row share" style="--share:${(share * 100).toFixed(1)}%;--res:${look.color(Core.resourceLook(r))}"><div class="main"><div class="nm">${Core.SOURCES[k]}</div>` +
-          `<div class="sub">${fmt(n)} &middot; ${Math.round(share * 100)}%</div><div class="bar"><i></i></div></div></div>`;
-      }
-      if (r === 'mycelium') html += mushroomCards(s);
-    }
-    return html;
-  }
-
-  function whereItGrows(m) {
-    const where = growsIn(m);
-    return m.magic ? `${where} · ${t('reason.gear', { tool: Core.TOOLS.basket.name, lv: Core.GEAR.rare })}` : where;
-  }
-
-  function growsIn(m) {
-    if (m.where === 'cave') return m.from > 1 ? t('mushroom.where.deep', { layer: m.from }) : t('mushroom.where.cave');
-    if (m.kinds.length === Object.keys(Core.FOREST_KINDS).length) return t('mushroom.where.anyForest');
-    return capitalize(t('mushroom.where.forests', { list: listOr(m.kinds.map((k) => Core.FOREST_KINDS[k].in)) }));
-  }
-
-  function mushroomCards(s) {
-    const found = Core.MUSHROOM_KEYS.filter((k) => s.mushroomsEver.includes(k)).length;
-    let html = `<div class="section">${t('sheet.mushroomKinds', { n: found, total: Core.MUSHROOM_KEYS.length })}</div><div class="cards">`;
-    for (const k of Core.MUSHROOM_KEYS) {
-      const m = Core.MUSHROOMS[k], seen = s.mushroomsEver.includes(k), n = s.mushrooms[k] || 0;
-      const cls = 'card' + (seen ? '' : ' unseen') + (m.magic ? ' magic' : '');
-      html += `<div class="${cls}" data-mushroom="${k}">${pic(Core.mushroomLook(k), 'image')}` +
-        `<div class="nm">${seen ? esc(m.name) : '???'}${m.magic ? ' <span class="spark">✦</span>' : ''}</div>` +
-        `<div class="sub">${seen ? (n > 0 ? t('sheet.mushroomPicked', { n: fmt(n) }) : t('sheet.mushroomElsewhere')) : esc(whereItGrows(m))}</div></div>`;
-    }
-    return html + '</div>';
-  }
-
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, collected: renderCollected };
+  const statement = createStatement({ look, pic, icon, price, row, income });
+  statement.attach(el.sheetBody, { rerender: () => render(), go: (next) => setTab(next) });
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, statement: statement.render };
 
   // Looking at Build or Upgrades sees what's new there.
   function noteNew() {
@@ -328,8 +285,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     noteNew();
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
-    // Nothing to tap in Collected: swap in just the rows and cards that changed.
-    if (tab === 'collected') { patch(el.sheetBody, tmp); return; }
+    // The statement: swap in just the rows, charts and cards that changed.
+    if (tab === 'statement') { patch(el.sheetBody, tmp); return; }
     const was = el.sheetBody.querySelectorAll('.row, .railHead'), now = tmp.querySelectorAll('.row, .railHead');
     if (was.length !== now.length) { render(); return; }
     now.forEach((n, i) => {
@@ -349,9 +306,10 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     });
   }
 
-  // Opens Collected at resource `res`, briefly lit so the eye finds it.
-  function showCollected(res) {
-    show('collected');
+  // Opens the statement at resource `res`, briefly lit so the eye finds it.
+  function showStatement(res) {
+    show('statement');
+    if (!res) { el.sheetBody.scrollTop = 0; return; }
     const head = el.sheetBody.querySelector('#col-' + res);
     if (!head) return;
     el.sheetBody.scrollTop = head.offsetTop - el.sheetBody.offsetTop;
@@ -360,6 +318,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   }
 
   function setTab(next, parent = null) {
+    statement.hide();
     tab = next;
     from = parent;
     el.sheetTitle.textContent = TITLES[tab];
@@ -383,6 +342,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   }
 
   function close() {
+    statement.hide();
     open = false;
     el.sheet.classList.remove('open');
     el.sheet.setAttribute('aria-hidden', 'true');
@@ -448,7 +408,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   return {
     get isOpen() { return open; },
     get tab() { return tab; },
-    show, close, back, toggle, render, showCollected,
+    show, close, back, toggle, render, showStatement,
     // Reveal the Beyond tab's contents live once the prestige loop unlocks.
     tick() {
       const shown = beyondUnlocked(getState());

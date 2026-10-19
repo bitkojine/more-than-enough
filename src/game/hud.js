@@ -1,5 +1,5 @@
-/* The heads-up display: the resource bar (tap a resource for what you
- * collected), the trophy button, the depth meter, the thumb cluster and
+/* The heads-up display: the resource bar (tap it for the earnings
+ * statement), the trophy button, the depth meter, the thumb cluster and
  * status toasts. Layout rules: docs/ui.md. The game hardly explains itself in
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
@@ -114,6 +114,13 @@ export function createHud(el, look) {
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
   }
+  // A small chart at the bar's end says the bar opens the earnings statement.
+  const ledger = document.createElement('button');
+  ledger.type = 'button';
+  ledger.className = 'chip ledger'; // i18n-ok: class names
+  ledger.setAttribute('aria-label', t('hud.statement'));
+  ledger.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13.5h12M3.5 11l3-3.5 2.5 2 3.5-5" /><path d="M10 4.5h2.5V7" /></svg>';
+  el.resources.appendChild(ledger);
 
   function setText(node, text) {
     if (node.textContent !== text) node.textContent = text;

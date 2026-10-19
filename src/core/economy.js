@@ -6,7 +6,7 @@ import { t } from '../i18n/i18n.js';
 
 /* ------------------------------------------------------------- income */
 
-// Where resources come from, as counted in the Collected sheet.
+// Where resources come from, as counted in the earnings statement.
 export const SOURCES = Object.fromEntries(['hand', 'finds', 'buildings', 'engine'].map((k) => [k, t('source.' + k)]));
 
 // Adds `amount` of `res` to the packs, counted as gathered this world and as

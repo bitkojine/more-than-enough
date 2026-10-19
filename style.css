@@ -192,8 +192,8 @@ body.signing #btnVersion { visibility: hidden; }
 .row.nextGoal { border-color: rgba(255, 209, 102, 0.45); }
 .row.farGoal .trophy { opacity: 0.6; }
 
-/* One resource bar: every resource in one capsule, tap one to see what you
-   collected. */
+/* One resource bar: every resource in one capsule, tap one for the earnings
+   statement. */
 #resources {
   flex: 1 1 auto; min-width: 0;
   display: flex; align-items: stretch;
@@ -691,7 +691,59 @@ body.signing #zoomControls { visibility: hidden; }
 .row.locked { opacity: 0.6; }
 .section { padding: 12px 20px 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); }
 
-/* ------------------------------------------------------ Collected */
+/* ------------------------------------------- The earnings statement */
+
+/* The bar's end: a small chart saying the bar opens the statement. */
+.chip.ledger { flex: 0 0 24px; padding: 0; color: var(--green); }
+.chip.ledger svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* Most phones: the chart at the end slim, and the bar's own edges too, so
+   the counts keep their room. */
+@media (max-width: 413px) {
+  #resources { padding: 0 2px; }
+  .chip.ledger { flex-basis: 16px; }
+  .chip.ledger svg { width: 13px; height: 13px; }
+}
+/* Per second, minute or hour. */
+.units { display: flex; gap: 4px; margin: 8px 10px 0; padding: 3px; border: 1px solid var(--panel-line); border-radius: 999px; background: rgba(255, 255, 255, 0.035); }
+.unit {
+  flex: 1 1 0; min-height: 44px; border: 0; border-radius: 999px; background: none;
+  color: var(--ink-dim); font: 800 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  touch-action: manipulation; cursor: pointer;
+}
+.unit.on { background: var(--raised); color: var(--ink); box-shadow: inset 0 0 0 1px var(--panel-line); }
+.colHead .headRate { margin-left: auto; color: var(--green); font-size: 14px; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+.section .headNote { margin-left: 6px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink-dim); opacity: 0.8; }
+/* A resource's income over your play, in its own colour. */
+.chart { position: relative; height: 84px; margin: 0 10px 6px; padding: 14px 0 16px; border: 1px solid var(--panel-line); border-radius: var(--r-md); background: rgba(255, 255, 255, 0.025); touch-action: pan-y; }
+.chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.chart .line { fill: none; stroke: var(--res); stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.chart .area { fill: color-mix(in srgb, var(--res) 14%, transparent); stroke: none; }
+.chart .y, .chart .x { position: absolute; font-size: 10px; font-weight: 700; color: var(--ink-dim); font-variant-numeric: tabular-nums; pointer-events: none; }
+.chart .y { left: 8px; }
+.chart .y.hi { top: 2px; }
+.chart .y.lo { bottom: 2px; }
+.chart .x.from { bottom: 2px; left: 50%; transform: translateX(-50%); opacity: 0.8; }
+.chart .x.now { bottom: 2px; right: 8px; }
+.chart.empty { height: auto; padding: 12px; font-size: 12px; color: var(--ink-dim); text-align: center; }
+.chartCross { position: fixed; z-index: 60; width: 1px; background: var(--ink-dim); pointer-events: none; }
+.chartTip {
+  position: fixed; z-index: 60; transform: translateX(-50%); padding: 3px 8px; white-space: nowrap;
+  border: 1px solid var(--panel-line); border-radius: 999px; background: var(--panel);
+  font-size: 11.5px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.row.line .nm { display: flex; align-items: baseline; gap: 4px; }
+.row.line .nm .amount { margin-left: auto; color: var(--green); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.row.note { padding: 6px 12px; background: none; border-style: dashed; }
+/* This world's account: earned, spent, held, and where it came from. */
+.row.account .cols { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 3px; font-size: 11.5px; color: var(--ink-dim); }
+.row.account .cols b { margin-right: 3px; color: var(--ink); font-size: 13px; font-variant-numeric: tabular-nums; }
+.row.account .stack { display: flex; gap: 2px; height: 6px; margin-top: 6px; border-radius: 3px; overflow: hidden; background: rgba(255, 255, 255, 0.08); }
+.row.account .stack i { display: block; height: 100%; background: var(--res); }
+.row.account .stack .src-finds { opacity: 0.75; }
+.row.account .stack .src-buildings { opacity: 0.5; }
+.row.account .stack .src-engine { opacity: 0.3; }
+.row .buy.go { min-width: 72px; }
+.amt.spent .n { color: var(--ink); }
 
 /* A resource's heading, lit for a moment when its counter was tapped. */
 .colHead { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 800; color: var(--ink); transition: background 1.2s; border-radius: 10px; }

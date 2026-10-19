@@ -81,7 +81,16 @@ place it belongs here rather than adding a button where there is room.
 - On a narrow screen underground, the milestone banner moves right to clear the meter and toasts narrow, rather than covering it.
 
 ### Resource bar
+- Tapping a chip opens the **earnings statement** at that resource; a small green chart at the bar's end (narrower than a chip) opens it at the top. The bar is the way in: no button of its own (Watch, 2026-10-19).
 - One chip per resource: icon and count on one row, the per-second rate centred under the whole chip. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Below 375px each chip stacks icon over count and leaves the rate out. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.
+
+### The earnings statement
+- A sheet titled *Earnings* with no tabs (`src/game/statement.js`, numbers from `src/core/ledger.js`), live while open. On top a three-way switch, per second, minute or hour, kept on the phone.
+- **Income**, a section per resource: its total rate, a chart of it over your play (log scale, time away squeezed to a step; touch or point at it for what it earned then and when), a row per kind of building you own (count, what one makes, the total, a share bar in the resource's colour, how soon they earn their price), the Abundance Engine, and a dashed note with every multiplier above ×1 and what a gather brings. A resource nothing makes yet is one row.
+- **Best buys**: the six quickest to pay back (buildings, refinery levels, Overclock, the engine), each with what it adds, its payback, its price as in Build, and a button to the sheet where you buy it.
+- **This world**: earned, spent and in packs per resource, with where it came from (hand, finds, buildings, engine) as one stacked bar.
+- **Spending** by kind (buildings, tools, refineries, the engine, unlocks, lights and water power), at today's prices, then every kind of mushroom.
+- Payback counts every price in seconds of your own income (Watch's choice): what you make little of is worth more. Spent amounts are plain ink, not green: green is still something to do.
 
 ### Places
 - **Region names**: walking into a region (see `src/core/regions.js`) shows its kind of land in small gold capitals over its name in a large serif, across the upper middle of the map, for a few seconds. It fades on its own, lets taps through, and sits under sheets.

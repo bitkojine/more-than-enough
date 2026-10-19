@@ -14,6 +14,7 @@ import { createHud } from './hud.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createFresh } from './fresh.js';
+import { createIncome } from './income.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerfect } from './perfect.js';
@@ -268,10 +269,12 @@ const perfect = createPerfect({ game, controller, hud });
 
 const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
 const fresh = createFresh();
+const income = createIncome();
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
   fresh,
+  income,
   onTab: (tab) => {
     if (tab === 'awards') hud.awardsSeen();
     if (tab === 'map') worldMap.show();
@@ -339,7 +342,7 @@ el.mapOut.addEventListener('click', () => worldMap.zoom(1 / 1.5));
 el.mapMe.addEventListener('click', () => worldMap.centre());
 el.resources.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
-  if (chip) sheet.showCollected(chip.dataset.res);
+  if (chip) sheet.showStatement(chip.dataset.res || null);
 });
 el.mine.addEventListener('click', controller.toggleMine);
 el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
@@ -398,7 +401,7 @@ el.language.addEventListener('click', () => {
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
   { every: 0.4, run: () => controller.checkGoals() },
-  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
+  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let lastTileKey = -1;
@@ -655,6 +658,7 @@ window.MTE_GAME = {
   together,
   dialogs: { ask, fbi },
   news,
+  income,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
