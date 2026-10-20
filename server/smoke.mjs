@@ -44,7 +44,19 @@ let ownerKey, res, room, owner, hi;
 for (let i = 0; i < 5; i++) { // (a visitor may make 6 rooms an hour)
   if (i) { owner.ws.close(1000, 'bye'); await new Promise((r) => setTimeout(r, 3000)); }
   ownerKey = hex(32);
-  res = await post(ORIGIN, JSON.stringify({ t: 'create', key: ownerKey, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }));
+  // Under the admin token the room is marked as a smoke test (so it ages out
+  // unvisited, like every deploy's room ever since) and counts against no
+  // one's creation quota. Without the token the room still works, just
+  // unmarked and among players' worlds.
+  const admin = process.env.ROOMS_ADMIN_TOKEN;
+  res = await fetch(BASE + '/rooms', {
+    method: 'POST',
+    headers: {
+      Origin: ORIGIN, 'Content-Type': 'application/json',
+      ...(admin ? { Authorization: 'Bearer ' + admin } : {})
+    },
+    body: JSON.stringify({ t: 'create', key: ownerKey, smoke: true, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } })
+  });
   ({ room } = await res.json());
   owner = connect(room, ownerKey);
   hi = await owner.next('welcome');
@@ -90,6 +102,14 @@ if (token) {
   const res = await fetch(`${BASE}/admin/rooms/${room}/log`, { headers: { Authorization: 'Bearer ' + token } });
   const lines = res.status === 200 ? (await res.text()).trim().split('\n').map((l) => JSON.parse(l)) : [];
   check(lines[0]?.e === 'room' && lines.some((l) => l.e === 'join' && l.new), "the moderator reads the room's audit log");
+  // The room was marked as a smoke test under the token, so the moderator's
+  // world list hides it without "Test worlds" and shows it with them.
+  const players = async (tests) => {
+    const r = await fetch(`${BASE}/admin/players${tests ? '?tests=1' : ''}`, { headers: { Authorization: 'Bearer ' + token } });
+    return r.status === 200 ? (await r.json()).rooms.map((w) => w.id) : [];
+  };
+  check(!(await players(false)).includes(room), "the smoke room's world stays out of the moderator's plain list");
+  check((await players(true)).includes(room), "and appears with 'Test worlds' ticked");
 }
 
 owner.ws.close(1000, 'bye');

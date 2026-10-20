@@ -7,15 +7,15 @@
  * is ticked) and sends it as a bearer to the /admin/ routes, which answer
  * nothing without it. Everything the rooms send is written into the page as
  * text, never as HTML, and the page runs only its own script (CSP). Its
- * imports are the game's words and room.js's smoke-test seed, so the room service bundles it as is. */
+ * imports are the game's words, so the room service bundles it as is. */
 
 import en from '../../src/i18n/en.js';
 import lt from '../../src/i18n/lt.js';
 import { worldWords, nameNumbers, nameWord } from '../../src/net/naming.js';
 
-import { SMOKE_SEED } from './room.js';
-
-export const isSmokeTest = (summary) => summary.seed === SMOKE_SEED;
+// A deploy smoke-test room: marked by the server under the admin token when
+// it is made (server/src/worker.js), never told apart by its seed.
+export const isSmokeTest = (summary) => summary.smk === true;
 
 // A world's name and its players' names, in English and Lithuanian, as the
 // game shows them (src/net/naming.js).

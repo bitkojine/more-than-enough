@@ -19,7 +19,7 @@ import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindT
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const EXPIRE_MS = 30 * 24 * 3600_000; // a deploy's smoke-test room nobody visits for 30 days is deleted
-export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test makes its rooms with (rooms.yml)
+export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
 // Richness edits are stored in this many pieces, each well under a storage
 // value's 128 KiB however full the world (LIMITS.mods). A world stored in
 // fewer (16 before v0.126.0) is spread over these on its first write.
@@ -99,6 +99,11 @@ export class Room {
     this.fmt = 0;
     this.ef = 0;
     this.gen = 0;
+    // Whether the server made this room as the deploy's smoke test (set only under
+    // the admin token, see init): marked rooms are the only player-facing rooms that
+    // age out unvisited. Never inferred from the seed: a player's world is
+    // kept forever whatever seed it happens to have.
+    this.smoke = false;
     // Players taken out of the world (by the owner or for cheating), who
     // can't come back with their key.
     this.bans = new Set();
@@ -134,7 +139,7 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, ready: true });
+    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, smoke: meta.smk === true, ready: true });
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.copy = meta.copy ?? null;
@@ -176,7 +181,7 @@ export class Room {
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
+    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
     if (d.buckets.size) {
       const pieces = new Map([...d.buckets].map((b) => [b, []]));
       for (const m of this.mods) pieces.get(bucketOf(m[0]))?.push(m);
@@ -219,7 +224,9 @@ export class Room {
   /* ----------------------------------------------------------- create */
 
   // Makes the room from the creator's world. Returns an error string or null.
-  async init(raw, now) {
+  // `trusted` is the worker saying the create came under the admin token: only
+  // then can the body's `smoke` marker mark a deploy smoke-test room.
+  async init(raw, now, trusted = false) {
     if (this.ready) return 'exists';
     const d = parse(raw, LIMITS.createBytes);
     if (!d || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key)) return 'bad';
@@ -234,6 +241,10 @@ export class Room {
     const pos = null;
     const time = d.time === undefined ? 0 : cleanTime(d.time);
     if (time === null) return 'bad';
+    // A room is a smoke test only when the server says the caller is who they
+    // are (the admin token) and the body asked for it: a player's own world
+    // never marks itself, and the seed is never consulted (Watch's rule).
+    this.smoke = trusted === true && d.smoke === true;
     this.fmt = WORLD_FORMAT;
     this.ef = ECON_FORMAT;
     this.owner = await playerId(this.id, d.key);
@@ -439,8 +450,21 @@ export class Room {
 
   expired(now) {
     if (this.copy) return now >= this.copy.until;
-    // Only the deploy's smoke-test rooms go; a players' world is kept forever.
-    return this.seed === SMOKE_SEED && now - this.last >= EXPIRE_MS;
+    // Only rooms the server marked as deploy smoke tests go; a players' world
+    // is kept forever, whatever its seed (the mark: init under the admin
+    // token, or markSmoke below for rooms made before the flag existed).
+    return this.smoke === true && now - this.last >= EXPIRE_MS;
+  }
+
+  // The moderator marks (or unmarks) the room as the deploy's smoke test
+  // (scripts/mark-smoke.mjs): rooms made before the server kept the flag
+  // still age out this way. Logged; never set any other way.
+  markSmoke(smoke, now) {
+    if (!this.ready) return 'room';
+    this.smoke = smoke === true;
+    this.audit(now, null, 'smoke', { smoke: this.smoke });
+    this.dirty.meta = true;
+    return null;
   }
 
   /* -------------------------------------------------------- messages */

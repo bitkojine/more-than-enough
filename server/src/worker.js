@@ -19,6 +19,7 @@
  *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
  *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
  *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
+ *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (only marked rooms age out)
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
  * can make only a few rooms an hour, and everything else is refused. The
@@ -135,7 +136,7 @@ async function admin(request, env, url) {
     }));
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy|backup|restore)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy|backup|restore|smoke)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -197,6 +198,17 @@ async function admin(request, env, url) {
       : await room.modThaw(m[1], d.id);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
+  // Marking a room as the deploy's smoke test (or unmarking one the old way
+  // got marked): only marked rooms age out, so the mark is the moderator's,
+  // from scripts/mark-smoke.mjs, never a guess from the seed.
+  if (m[2] === 'smoke' && request.method === 'POST') {
+    const body = await readCapped(request, 1024);
+    let d = null;
+    try { d = JSON.parse(body); } catch { /* below */ }
+    if (!d || typeof d.smoke !== 'boolean') return respond({ error: 'bad' }, 400, null);
+    const err = await room.modSmoke(m[1], d.smoke);
+    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
+  }
   return respond({ error: 'not found' }, 404, null);
 }
 
@@ -250,15 +262,21 @@ export default {
     if (url.pathname === '/rooms' && request.method === 'POST') {
       const len = Number(request.headers.get('Content-Length') || 0);
       if (len > LIMITS.createBytes) return respond({ error: 'size' }, 413, okOrigin);
-      const gate = env.LIMITER.get(env.LIMITER.idFromName(visitor(request.headers.get('CF-Connecting-IP'))));
-      if (!(await gate.allow(Date.now(), CREATES_PER_HOUR))) return respond({ error: 'busy' }, 429, okOrigin);
-      const all = env.LIMITER.get(env.LIMITER.idFromName('*'));
-      if (!(await all.allow(Date.now(), CREATES_PER_HOUR_ALL))) return respond({ error: 'busy' }, 429, okOrigin);
+      // The deploy's smoke test creates under the admin token: it is trusted,
+      // counts against no one's quota (the CI address makes up to five rooms
+      // a run), and its room is the only kind marked to age out (room.js).
+      const trusted = await isAdmin(request, env);
+      if (!trusted) {
+        const gate = env.LIMITER.get(env.LIMITER.idFromName(visitor(request.headers.get('CF-Connecting-IP'))));
+        if (!(await gate.allow(Date.now(), CREATES_PER_HOUR))) return respond({ error: 'busy' }, 429, okOrigin);
+        const all = env.LIMITER.get(env.LIMITER.idFromName('*'));
+        if (!(await all.allow(Date.now(), CREATES_PER_HOUR_ALL))) return respond({ error: 'busy' }, 429, okOrigin);
+      }
       const body = await readCapped(request, LIMITS.createBytes);
       if (body === null) return respond({ error: 'size' }, 413, okOrigin);
       const id = randomRoomId();
       const room = env.ROOMS.get(env.ROOMS.idFromName(id));
-      const err = await room.create(id, body);
+      const err = await room.create(id, body, trusted);
       if (err) return respond({ error: err }, err === 'bad' ? 400 : 409, okOrigin);
       await env.REGISTRY.get(env.REGISTRY.idFromName('*')).add(id);
       return respond({ room: id }, 201, okOrigin);
@@ -367,10 +385,10 @@ export class Rooms extends DurableObject {
   }
 
   // Called by the Worker for POST /rooms. Returns an error string or null.
-  async create(id, body) {
+  async create(id, body, trusted = false) {
     if (this.room.ready) return 'exists';
     this.room.id = id;
-    const err = await this.room.init(body, Date.now());
+    const err = await this.room.init(body, Date.now(), trusted);
     if (err) { this.room = Room.restore('', new Map(), Date.now()); return err; }
     this.registered = true;
     await this.persist({ id }); // with the room itself, in one go
@@ -408,7 +426,7 @@ export class Rooms extends DurableObject {
     for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
-    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen };
+    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen, smk: r.smoke === true };
   }
 
   // Whether this is still the room `id` (a copy is deleted when its time is up, a smoke-test room after EXPIRE_MS unvisited).
@@ -494,6 +512,12 @@ export class Rooms extends DurableObject {
     for (const msg of r.toAll) this.send(msg, null);
     await this.persist();
     await this.schedule();
+    return null;
+  }
+  async modSmoke(id, smoke) {
+    const err = this.room.markSmoke(smoke, Date.now());
+    if (err) return err;
+    await this.persist();
     return null;
   }
 

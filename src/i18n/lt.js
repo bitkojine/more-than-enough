@@ -863,6 +863,7 @@ export default {
   "badge.new": "NAUJA",
   "news.full": "Visi pakeitimai, kūrėjams",
   "news.shareIdea": "Pasiūlyti idėją",
+  "news.0.130.1": "Daliniai pasauliai dabar saugesni: paslauga pati žymėdama savo bandomuosius kambarius, todėl tavo pasaulis niekada negali būti supainiotas su vienu iš jų ir saugomas kiekvienas. Kiekvienas pasaulis saugomas amžinai.",
   "news.0.130.0": "{phone:Bakstelk|laptop:Spustelėk} išteklių juostą (ar mažą grafiką jos gale) ir pamatysi savo uždarbį: kiek kiekvieno ištekliaus uždirbi per sekundę, minutę ar valandą, iš kurių pastatų, per kiek laiko kiekvienas atsiperka, pajamų grafiką žaidžiant, geriausius kitus pirkinius ir kiek šis pasaulis tau davė ir kainavo.",
   "news.0.129.0": "Ant STATYTI ir TOBULINTI dabar rašoma NAUJA, kai ten atsiranda kažkas, ką gali įpirkti, ir užrašas lieka, kol pažiūri, o ne žalias taškelis, kuris dingdavo ir vėl atsirasdavo vaikštant. Naujos eilutės irgi taip pažymėtos.",
   "news.0.128.0": "Perdirbimų 6–10 lygiai brangsta, kiekvienas vis šiek tiek labiau. Žaidžiant kuo geriau, pasaulis vėl trunka apie 40 valandų. Tai, ką jau turi, lieka tavo.",

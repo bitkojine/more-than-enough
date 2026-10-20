@@ -31,9 +31,11 @@ test('admin: names past the last one come round numbered', () => {
   assert.deepEqual(nameWord(k), { key: 'together.name.' + PLAYER_NAMES[0], n: 2 });
 });
 
-test('admin: the smoke test\'s worlds are told apart by their seed', () => {
-  assert.equal(isSmokeTest({ seed: 12345 }), true);
-  assert.equal(isSmokeTest({ seed: 2275619781 }), false);
+test('admin: the smoke test\'s worlds are told apart by the server\'s mark, never by their seed', () => {
+  assert.equal(isSmokeTest({ smk: true, seed: 12345 }), true);
+  assert.equal(isSmokeTest({ smk: true, seed: 2275619781 }), true);
+  assert.equal(isSmokeTest({ smk: false, seed: 12345 }), false);
+  assert.equal(isSmokeTest({ seed: 12345 }), false, 'the seed alone says nothing');
 });
 
 test('admin: the page runs only its own script and style, and writes no HTML from data', async () => {

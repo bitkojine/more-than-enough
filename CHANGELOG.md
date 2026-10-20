@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.130.1] - 2026-10-20
+
+The deploy's smoke test always made its room with seed 12345, and the room
+service used that seed to tell its throwaway test rooms from players'
+worlds — but the seed came from the client, so a player's world that
+happened to have it could have been deleted unvisited after 30 days (and
+been hidden from the moderator and skipped by backups with it). The server
+now marks its own test rooms itself and never classifies by seed.
+
+### Changed
+- The deploy's smoke test creates under the admin token, marking the room
+  as a smoke test (`{"smoke": true}` under the token only); such rooms
+  count against no creation quota.
+- `expired()` and the moderator's smoke-test filters key off the server's
+  mark (`meta.smk`), never the seed. `GET /admin/rooms`'s brief carries
+  `smk`.
+- New `POST /admin/rooms/<id>/smoke` with `{"smoke": bool}` marks or
+  unmarks a room the moderator's way, logged in the audit log.
+- `scripts/mark-smoke.mjs` marks the rooms made before this version (the
+  smoke seed, no flag); runs dry without `--yes`.
+
+### Fixed
+- A players' world with seed 12345 could have been deleted after 30 days
+  unvisited, breaking the frozen rule that every world is kept forever
+  (`test/unit/worlds-kept.test.js` now asserts a world on that seed is
+  kept, and that a create claiming `smoke` without the token marks nothing).
+
 ## [0.130.0] - 2026-10-19
 
 Watch asked for a clear, detailed statement of how fast everything earns,

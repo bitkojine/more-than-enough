@@ -863,6 +863,7 @@ export default {
   "badge.new": "NEW",
   "news.full": "Every change, for developers",
   "news.shareIdea": "Share an idea",
+  "news.0.130.1": "Shared worlds are safer: the room service now marks its own test rooms itself, so a world of yours can never be mistaken for one and kept any less carefully. Every world is kept, forever.",
   "news.0.130.0": "{phone:Tap|laptop:Click} the resource bar (or the small chart at its end) for your earnings: what each resource earns a second, a minute or an hour, from which buildings, how soon each earns its price back, a chart of your income as you play, the best things to buy next, and what this world has earned and cost you.",
   "news.0.129.0": "BUILD and UPGRADE now say NEW when something there has become affordable, and keep saying it until you look, instead of a green dot that came and went as you walked. The rows that are new say so too.",
   "news.0.128.0": "Refinery levels 6 to 10 cost more, a little more at each level. Played as well as it can be, a world now takes about 40 hours again. What you already own stays yours.",

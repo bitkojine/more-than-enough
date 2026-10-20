@@ -130,9 +130,10 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Steps:** a player's every step goes only to players within 48 tiles on
   their layer; everyone else hears where they are every 2 seconds, so a
   full world doesn't send every step to all 100.
-- **Storage:** a players' world is kept forever; only the deploy's smoke-test
-  rooms (seed 12345) are deleted after 30 days unvisited, and admin copies
-  when their time is up.
+- **Storage:** a players' world is kept forever, whatever its seed; only
+  rooms the server marked as the deploy's smoke tests (under the admin
+  token when made, or by the moderator) are deleted after 30 days
+  unvisited, and admin copies when their time is up.
 - **The moderator:** the `/admin/` routes answer only a bearer token equal
   to the `ADMIN_TOKEN` Worker secret (set on deploy from the
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
@@ -209,7 +210,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
   named as the game names them (`src/net/naming.js`); the smoke test's
   worlds only with `tests=1`. A room that can't answer comes with `error`.
 - `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
-  `online`, `bans`, `frozen`, `created`, `last`).
+  `online`, `bans`, `frozen`, `created`, `last`, `smk` — the last says
+  whether it's the deploy's smoke test).
 - `GET /admin/rooms/<id>/players`: each player now, with their cheat count,
   whether they're `frozen`, and progress.
 - `GET /admin/rooms/<id>/log?since=<ms>`: the log as JSON lines: first
@@ -242,13 +244,20 @@ The moderator's routes (`Authorization: Bearer <token>`):
   but no invite links. `node scripts/backup-worlds.mjs [folder]` saves every
   world's (needs `ADMIN_TOKEN`, or the project's proxy). Only the moderator
   backs up a shared world (Watch's choice): it holds everyone's progress.
+- `POST /admin/rooms/<id>/smoke` with `{"smoke": true}` (or `false`): marks
+  (or unmarks) the room as the deploy's smoke test, the only kind of
+  players' room that ages out unvisited. The mark is logged; nothing else
+  sets it (`scripts/mark-smoke.mjs` marked the rooms made before v0.130.1,
+  which had the smoke seed but no flag). Answers `{ok}`.
 - `POST /admin/rooms/<id>/restore` with a backup file as the body: puts a
   world that's gone back from it, at its own address, so its players come
   back with their own phones (a player's id comes from the address and
   their key). A world that's still there is never written over: 409
   `exists` (Watch's choice). Answers `{room}`.
 
-The deploy's smoke test makes a room with seed 12345 every time; skip those.
+The deploy's smoke test makes a room every time, marked as one by the
+server under the admin token; without the token it makes an ordinary,
+unmarked room, so the CI address's quota matters only there.
 
 ## Running it
 
