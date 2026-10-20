@@ -101,7 +101,9 @@ again in the game; anything that doesn't fit exactly is dropped.
   it is checked against the time since the last one, and a game that is
   elsewhere is told where it stands (`place`).
 - **Abuse limits:** 6 new rooms an hour per IP address (per /48 for IPv6)
-  and 300 an hour in all; in a room, 8 sockets per visitor, 3 of them before
+  and 300 an hour in all — both counted only for a body that really makes a
+  room, so junk bodies are refused free of charge and can't spend anyone's
+  quota; in a room, 8 sockets per visitor, 3 of them before
   saying who they are;
   16 KB per message (64 KB for your own progress); 30 messages a second per
   connection and 60 world edits a second per player, with small bursts;

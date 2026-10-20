@@ -10,7 +10,7 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanWorld, cleanSave, cleanTime, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
+  LIMITS, parse, cleanPos, cleanEdits, cleanSave, cleanCreate, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
 } from '../../src/net/protocol.js';
 import { Shadow, playedIn } from './shadow.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
@@ -229,18 +229,17 @@ export class Room {
   async init(raw, now, trusted = false) {
     if (this.ready) return 'exists';
     const d = parse(raw, LIMITS.createBytes);
-    if (!d || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key)) return 'bad';
-    const world = cleanWorld(d.world);
-    if (!world) return 'bad';
+    const c = cleanCreate(d);
+    if (!c) return 'bad';
     // Everyone starts a shared world from nothing, its owner too (Watch's
     // call): the room can't check progress made anywhere else. So a world is
     // made from the creator's seed alone, and their save and edits are not
     // taken (an older game still sends them).
+    const world = c.world;
     world.mods = []; world.props = []; world.ext = [];
     const save = null;
     const pos = null;
-    const time = d.time === undefined ? 0 : cleanTime(d.time);
-    if (time === null) return 'bad';
+    const time = c.time;
     // A room is a smoke test only when the server says the caller is who they
     // are (the admin token) and the body asked for it: a player's own world
     // never marks itself, and the seed is never consulted (Watch's rule).

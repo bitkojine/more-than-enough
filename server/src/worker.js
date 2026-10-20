@@ -32,7 +32,7 @@ import { snapshot, copyEntries, COPY_MS } from './copy.js';
 import { adminPage, worldOf, isSmokeTest } from './admin.js';
 import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
 import { VERSION } from '../../src/version.js';
-import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG } from '../../src/net/protocol.js';
+import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate } from '../../src/net/protocol.js';
 
 const CREATES_PER_HOUR = 6;      // rooms one visitor may make
 const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
@@ -262,6 +262,12 @@ export default {
     if (url.pathname === '/rooms' && request.method === 'POST') {
       const len = Number(request.headers.get('Content-Length') || 0);
       if (len > LIMITS.createBytes) return respond({ error: 'size' }, 413, okOrigin);
+      const body = await readCapped(request, LIMITS.createBytes);
+      if (body === null) return respond({ error: 'size' }, 413, okOrigin);
+      // A body must be a create we can actually make before any quota is
+      // charged: junk costs nothing and touches no room, so flooding junk
+      // can't spend the shared ceiling that players make their worlds with.
+      if (!cleanCreate(parse(body, LIMITS.createBytes))) return respond({ error: 'bad' }, 400, okOrigin);
       // The deploy's smoke test creates under the admin token: it is trusted,
       // counts against no one's quota (the CI address makes up to five rooms
       // a run), and its room is the only kind marked to age out (room.js).
@@ -272,8 +278,6 @@ export default {
         const all = env.LIMITER.get(env.LIMITER.idFromName('*'));
         if (!(await all.allow(Date.now(), CREATES_PER_HOUR_ALL))) return respond({ error: 'busy' }, 429, okOrigin);
       }
-      const body = await readCapped(request, LIMITS.createBytes);
-      if (body === null) return respond({ error: 'size' }, 413, okOrigin);
       const id = randomRoomId();
       const room = env.ROOMS.get(env.ROOMS.idFromName(id));
       const err = await room.create(id, body, trusted);

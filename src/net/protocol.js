@@ -223,10 +223,22 @@ export function cleanSave(s) {
 }
 
 // The world's clock: seconds of game time since its first dawn. One clock per
-// world, kept by the room, so day and night are the same for everyone.
+// The world's clock, kept by the room, so day and night are the same for everyone.
 const TIME_MAX = 1e10;
 export function cleanTime(v) {
   return isNum(v) && v >= 0 && v <= TIME_MAX ? round(v, 1000) : null;
+}
+
+// Whether a parsed message can make a room: the key, the world and the time,
+// exactly what a room's create requires. The worker runs it on the raw body
+// before any creation quota is charged or any room is touched, so flooding
+// junk bodies costs nobody's quota and never reaches a room (server/src/worker.js).
+export function cleanCreate(d) {
+  if (!isObj(d) || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key)) return null;
+  const world = cleanWorld(d.world);
+  if (!world) return null;
+  const time = d.time === undefined ? 0 : cleanTime(d.time);
+  return time === null ? null : { key: d.key, world, time };
 }
 
 export function cleanStatus(st) {

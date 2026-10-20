@@ -78,6 +78,18 @@ test('protocol: a world is capped and checked entry by entry', () => {
   assert.deepEqual(P.cleanWorld({ seed: 7, ext: [['garden', 1, 2, 0]] }), { seed: 7, mods: [], props: [], ext: [['garden', 1, 2, 0]] });
 });
 
+test('protocol: a create is only real once the key, world and time check out', () => {
+  const key = 'ab'.repeat(32);
+  assert.deepEqual(P.cleanCreate({ t: 'create', key, world: { seed: 7 }, time: 5 }),
+    { key, world: { seed: 7, mods: [], props: [], ext: [] }, time: 5 });
+  assert.equal(P.cleanCreate({ t: 'create', key, world: { seed: 7 } }).time, 0, 'time is optional');
+  for (const bad of [null, 'junk', {}, { t: 'hello', key, world: { seed: 7 } },
+    { t: 'create', key: 'short', world: { seed: 7 } }, { t: 'create', key, world: null },
+    { t: 'create', key, world: { seed: 0 } }, { t: 'create', key, world: { seed: 7 }, time: -1 }]) {
+    assert.equal(P.cleanCreate(bad), null, JSON.stringify(bad));
+  }
+});
+
 test('protocol: tile keys unpack exactly as the core packs them', () => {
   for (const [x, y, z] of [[0, 0, 0], [-5, 9, -2], [1000000, -1000000, -512], [123, 456, 0]]) {
     assert.deepEqual(P.unpackKey(Core.packKey(x, y, z)), { x, y, z });

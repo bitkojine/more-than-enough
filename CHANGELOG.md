@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.130.2] - 2026-10-20
+
+Creating a world used to charge both rate-limit quotas (6/hour per address,
+300/hour shared) the moment a create body arrived, before anything was
+looked at — so junk bodies from an attacker could spend the shared hourly
+ceiling and deny world-making to everyone. The body is now read and fully
+validated first; only a create that could really make a room charges
+anything, and junk is refused free of charge.
+
+### Changed
+- `POST /rooms` reads and validates the body (shared `cleanCreate`, used by
+  `Room.init` too) before either quota is charged; junk no longer
+  instantiates a room either.
+- `scripts/mark-smoke.mjs` paces its marking requests and backs off on 429
+  (the zone rate-limits bursts of admin posts).
+
 ## [0.130.1] - 2026-10-20
 
 The deploy's smoke test always made its room with seed 12345, and the room

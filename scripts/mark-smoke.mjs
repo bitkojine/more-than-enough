@@ -21,6 +21,7 @@ async function get(path) {
   return res;
 }
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const { rooms } = await (await get('/admin/rooms')).json();
 const old = rooms.filter((w) => w.seed === 12345 && w.smk !== true);
 console.log(rooms.length + ' worlds, ' + old.length + ' with the smoke seed and no flag' + (commit ? '' : '; marking nothing without --yes'));
@@ -28,12 +29,22 @@ let failed = 0;
 for (const w of old) {
   if (!commit) { console.log('would mark:', w.id, 'made', new Date(w.created).toISOString(), 'last seen', new Date(w.last).toISOString()); continue; }
   try {
-    const res = await fetch(`${SERVICE}/admin/rooms/${encodeURIComponent(w.id)}/smoke`, {
-      method: 'POST',
-      headers: { ...headers, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ smoke: true })
-    });
-    if (!res.ok) throw new Error(res.status + ' ' + (await res.text()).slice(0, 200));
+    // Paced: the zone's rate limit answers bursts of admin POSTs with a 429
+    // (Cloudflare's HTML, not the service's JSON), and a 429 is retried
+    // with backoff before it counts as failed.
+    let res = null;
+    for (let wait = 1000; wait <= 16000; wait *= 2) {
+      await sleep(300);
+      res = await fetch(`${SERVICE}/admin/rooms/${encodeURIComponent(w.id)}/smoke`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ smoke: true })
+      });
+      if (res.status !== 429) break;
+      console.log('  (429, waiting ' + wait + 'ms):', w.id);
+      await sleep(wait);
+    }
+    if (!res.ok) throw new Error(res.status + ' ' + (await res.text()).slice(0, 80).replace(/\s+/g, ' '));
     console.log('marked:', w.id, 'last seen', new Date(w.last).toISOString());
   } catch (e) {
     failed++;
