@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "serve": "python3 -m http.server 8000",
-    "test": "node --test \"test/unit/*.test.js\"",
+    "test": "node --test \"test/unit/*.test.js\" \"test/property/*.test.js\"",
     "test:e2e": "node test/browser.e2e.js",
     "test:layout": "node test/layout.e2e.js",
     "stage": "sh scripts/stage-site.sh site"

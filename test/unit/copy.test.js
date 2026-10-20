@@ -15,8 +15,8 @@ const HOUR = 3600_000;
 // Everything the room holds, and everything it would still write or log.
 const stateOf = (r) => JSON.stringify({ entries: [...r.entries()], log: r.log, dirty: r.isDirty, players: [...r.players], watch: [...r.watch.keys()] });
 
-// A world with its owner's garden, a friend in it, and the owner gone for
-// two hours; the copy is made then, of the owner.
+// A world with its maker's garden, a friend in it, and the maker gone for
+// two hours; the copy is made then, of the maker.
 async function world() {
   const r = new Room(P.randomRoomId(), T0);
   const key = P.randomHex(32);
@@ -81,15 +81,16 @@ test('copy: nothing done in it reaches the real room', async () => {
   assert.equal(stateOf(r), before, 'making the copy only reads');
   const j = await c.join(adminKey, undefined, at);
   const s = C.joinState(j.welcome, c.id, null, null);
-  // Play in it: progress, steps, digging, building, removing the friend.
+  // Play in it: progress, steps, digging, building, taking the friend out
+  // (what the moderator's ban does).
   c.message(id, JSON.stringify({ t: 'save', s: C.progressOf(s) }), at);
   c.message(id, JSON.stringify({ t: 'pos', p: { x: s.player.x + 1, y: s.player.y, z: 0 } }), at + 1000);
   c.message(id, JSON.stringify({ t: 'edits', e: [['m', C.packKey(Math.round(s.player.x) + 1, Math.round(s.player.y), 0), 0]] }), at + 1100);
   c.made(id, [['x', 'garden', Math.round(s.player.x) + 3, Math.round(s.player.y) + 3, 0]], at + 1200);
   const friend = [...c.players.keys()].find((p) => p !== id);
-  if (c.owner === id) c.message(id, JSON.stringify({ t: 'remove', id: friend }), at + 1300);
+  c.ban(friend, at + 1300, 'mod', 'took them out in the copy');
   assert.equal(c.ext.length, r.ext.length + 1, 'the copy has a building the real world hasn\'t');
-  assert.ok(c.players.size < r.players.size || c.owner !== id, 'and lost the friend its owner removed');
+  assert.equal(c.players.size, r.players.size - 1, 'and lost the friend Watch took out there');
   c.left(id, true, at + 2000);
   c.takeWrites();
   assert.equal(stateOf(r), before, 'the real room is exactly as it was');

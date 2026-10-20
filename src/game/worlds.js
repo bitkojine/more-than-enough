@@ -11,7 +11,6 @@ import { worldWords } from '../net/naming.js';
 import { t } from '../i18n/i18n.js';
 
 const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
-const MINE_STORE = 'mte.myWorlds';    // the ones among them you own
 const KEPT = 12;                      // worlds remembered at most
 // What this phone keeps for each of those worlds (together.js), dropped
 // with the world when it leaves the list.
@@ -29,6 +28,7 @@ function write(key, value) {
 // Drops what's kept for worlds no longer on the list.
 function tidy() {
   try {
+    localStorage.removeItem('mte.myWorlds'); // worlds had owners once (v0.131.1)
     const keep = new Set(knownRooms());
     const stale = [];
     for (let i = 0; i < localStorage.length; i++) {
@@ -59,11 +59,9 @@ export function knownRooms() {
   return readList(ROOMS_STORE);
 }
 
-// Just played in: first on the list. `mine`: whether you own it now.
-export function remember(room, mine) {
+// Just played in: first on the list.
+export function remember(room) {
   write(ROOMS_STORE, JSON.stringify([room, ...knownRooms().filter((r) => r !== room)].slice(0, KEPT)));
-  const owned = readList(MINE_STORE).filter((r) => r !== room && knownRooms().includes(r));
-  write(MINE_STORE, JSON.stringify(mine ? [room, ...owned] : owned));
   tidy();
 }
 
@@ -79,8 +77,6 @@ export function skip(room) {
   if (list.includes(room)) write(ROOMS_STORE, JSON.stringify([...list.filter((r) => r !== room), room]));
 }
 
-const isMine = (room) => readList(MINE_STORE).includes(room);
-
 // How many play in a world now, or null if the room service doesn't say
 // (none set, out of reach, or from before it counted).
 export async function onlineIn(service, id) {
@@ -95,7 +91,7 @@ export async function onlineIn(service, id) {
 /* --------------------------------------------------- the Worlds screen */
 
 // Your own world first, then every shared world, newest first: its name,
-// whose it is, how many are playing there now, and Play (or "You're here").
+// how many are playing there now, and Play (or "You're here").
 // `here`: the world you're in (null alone); `online(id)`: a promise of how
 // many play there now, or null if the room service didn't say;
 // `play(id)` (null: your own); `remove(id)`.
@@ -122,7 +118,7 @@ export function renderWorlds(box, { here, online, play, remove }) {
   };
   const own = row(t('worlds.own'), t('worlds.alone'), !here, null);
   const rows = knownRooms().map((id) => {
-    const whose = t(isMine(id) ? 'worlds.mine' : 'worlds.friends');
+    const whose = t('worlds.friends');
     const x = row(worldName(id), whose, id === here, id);
     online(id).then((n) => { if (n !== null && x.r.isConnected) x.small.textContent = whose + ' · ' + t('worlds.online', { count: n }); });
     return x.r;

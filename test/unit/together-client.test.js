@@ -102,27 +102,27 @@ function harness({ yes = true } = {}) {
   return { together, game, toasts, asked, el, aways };
 }
 
-// A real room with an owner in it, and a link for friends.
+// A real room with its maker in it, and a link for friends.
 async function makeRoom() {
   const id = P.randomRoomId();
   const r = new Room(id, T0);
-  const owner = P.randomHex(32);
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 42, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
-  const ownerId = await P.playerId(id, owner);
-  const code = r.message(ownerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
+  const maker = P.randomHex(32);
+  assert.equal(await r.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 42, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
+  const makerId = await P.playerId(id, maker);
+  const code = r.message(makerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
   return { id, r, code };
 }
 
-// A world Watch made, gone into as its owner: the room was made with the
+// A world Watch made, gone into by its maker: the room was made with the
 // same key the player holds (`mte.key` is who you are to every room).
-async function ownedWorld(seed = 42) {
+async function madeWorld(seed = 42) {
   const key = P.randomHex(32);
   store.set('mte.key', key);
   const id = P.randomRoomId();
   const r = new Room(id, T0);
   assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
-  const ownerId = await P.playerId(id, key);
-  const code = r.message(ownerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
+  const makerId = await P.playerId(id, key);
+  const code = r.message(makerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
   return { id, r, code };
 }
 
@@ -339,18 +339,18 @@ test('client: a lost edit where someone has changed the tile since is not sent o
   const first = open()[0];
   const key = mine(game, 3);
   together.tick(0.3); // sent, never arrives
-  // The owner changes that tile meanwhile.
-  const ownerId = [...w.r.players.keys()].find((p) => p !== id);
+  // The friend changes that tile meanwhile.
+  const friendId = [...w.r.players.keys()].find((p) => p !== id);
   // (Straight into the room: a made-up richness the tile never had, which
   // an edit from a game couldn't raise it to.)
-  w.r.apply(['m', key, 7], ownerId);
+  w.r.apply(['m', key, 7], friendId);
   first.lose(1006);
   await new Promise((r) => setTimeout(r, 1100));
   const again = open()[0];
   await serve(w.r, again);
   together.tick(0.3);
   pump(w.r, id, again);
-  assert.equal(w.r.mods.get(key), 7, 'the room keeps what the owner did');
+  assert.equal(w.r.mods.get(key), 7, 'the room keeps what the friend did');
 });
 
 test('client: a room from before pings and acks is never pinged, and edits go out as before', async () => {
@@ -424,8 +424,8 @@ test('client: progress the room can\'t account for is set straight, and stays st
   assert.equal(w.r.log.filter((e) => e.e === 'drift').length, drifts);
 });
 
-test('client: the owner of a new world plays it, and the room counts what they do', async () => {
-  const w = await ownedWorld();
+test('client: the maker of a new world plays it, and the room counts what they do', async () => {
+  const w = await madeWorld();
   const { together, game } = harness();
   location.hash = '#join=' + w.id + '.' + w.code;
   together.joinFromLink();
@@ -442,11 +442,11 @@ test('client: the owner of a new world plays it, and the room counts what they d
   assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
 });
 
-// A new world's owner playing it: the game, the room and the clock between
+// A new world's maker playing it: the game, the room and the clock between
 // them. What the room writes goes to `stored` as the room service's storage
 // keeps it, so the room can restart from it.
-async function owning() {
-  const w = await ownedWorld();
+async function playing() {
+  const w = await madeWorld();
   const h = harness();
   const g = { ...h, r: w.r, stored: new Map([['id', w.id]]) };
   location.hash = '#join=' + w.id + '.' + w.code;
@@ -477,7 +477,7 @@ async function reconnect(g) {
 const driftsIn = (r) => r.log.filter((e) => e.e === 'drift');
 
 test('client: what you did on a connection that was already dead is sent again once back', async () => {
-  const g = await owning();
+  const g = await playing();
   g.bot.gather('mycelium', 4);
   g.together.save(g.game.state, true);
   g.pump();
@@ -491,7 +491,7 @@ test('client: what you did on a connection that was already dead is sent again o
 });
 
 test('client: a room that restarts (a deploy) between your saves loses nothing you did', async () => {
-  const g = await owning();
+  const g = await playing();
   g.bot.gather('mycelium', 4);
   g.together.save(g.game.state, true);
   g.pump();
@@ -507,7 +507,7 @@ test('client: a room that restarts (a deploy) between your saves loses nothing y
 const mineIn = (s) => s.extractors.filter((e) => e.owner === s.me).map((e) => e.x + ',' + e.y);
 
 test('client: a correction from the room keeps your buildings, and says what it took back and why', async () => {
-  const g = await owning();
+  const g = await playing();
   const { s } = g.bot;
   assert.ok(g.bot.buildNow('garden').ok);
   g.together.tick(0.3); g.pump();
@@ -525,7 +525,7 @@ test('client: a correction from the room keeps your buildings, and says what it 
 });
 
 test('client: a building put up while the room was answering stays, and goes up once', async () => {
-  const g = await owning();
+  const g = await playing();
   const { s } = g.bot;
   g.bot.gather('mycelium', 40);
   g.together.tick(0.3); g.pump();
@@ -541,7 +541,7 @@ test('client: a building put up while the room was answering stays, and goes up 
 });
 
 test('client: a building the room couldn\'t pay for comes down, and the player is told why', async () => {
-  const g = await owning();
+  const g = await playing();
   const { s } = g.bot;
   g.together.tick(0.3); g.pump();
   g.together.save(s, true); g.pump();

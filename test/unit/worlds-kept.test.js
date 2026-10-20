@@ -28,9 +28,9 @@ const key = () => P.randomHex(32);
 
 async function makeRoom(seed = 42, { smoke = false } = {}) {
   const r = new Room(P.randomRoomId(), T0);
-  const owner = key();
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: owner, ...(smoke ? { smoke: true } : {}), world: { seed, mods: [], props: [], ext: [] } }), T0, smoke), null);
-  return { r, owner };
+  const maker = key();
+  assert.equal(await r.init(JSON.stringify({ t: 'create', key: maker, ...(smoke ? { smoke: true } : {}), world: { seed, mods: [], props: [], ext: [] } }), T0, smoke), null);
+  return { r, maker };
 }
 
 test('worlds kept: the world and economy formats are frozen forever', () => {
@@ -54,8 +54,8 @@ test('worlds kept: a save from any kept format loads with everything in it', () 
 });
 
 test('worlds kept: a shared world from an older format plays on, with no nuke, and stays that way after a restart', async () => {
-  const { r, owner } = await makeRoom();
-  const a = (await r.join(owner, null, T0)).id;
+  const { r, maker } = await makeRoom();
+  const a = (await r.join(maker, null, T0)).id;
   r.made(a, [['p', Core.packKey(1, 1, 0), 'glowcap']], T0);
   const writes = r.takeWrites();
   // As a world made before v0.109.0 is stored, with a nuke already called.
@@ -63,7 +63,7 @@ test('worlds kept: a shared world from an older format plays on, with no nuke, a
   const back = Room.restore(r.id, writes, T0 + 1000);
   assert.deepEqual([back.fmt, back.ef, back.seed, back.props.size], [WORLD_FORMAT, ECON_FORMAT, 42, 1], 'same world, same land, nothing lost');
   assert.ok(back.log.some((e) => e.e === 'kept'), 'logged once as kept');
-  const joined = await back.join(owner, null, T0 + 2000);
+  const joined = await back.join(maker, null, T0 + 2000);
   assert.equal(joined.called, undefined, 'nothing is called');
   assert.deepEqual([joined.welcome.nuke, joined.welcome.fmt, joined.welcome.gen, joined.welcome.seed], [null, WORLD_FORMAT, 0, 42]);
   const meta = back.takeWrites().get('meta');
@@ -71,12 +71,12 @@ test('worlds kept: a shared world from an older format plays on, with no nuke, a
 });
 
 test('worlds kept: pressing the nuke from an old game changes nothing', async () => {
-  const { r, owner } = await makeRoom();
-  const a = (await r.join(owner, null, T0)).id;
+  const { r, maker } = await makeRoom();
+  const a = (await r.join(maker, null, T0)).id;
   r.made(a, [['p', Core.packKey(2, 2, 0), 'glowcap']], T0);
   for (let i = 0; i < 3; i++) assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0 + i), {});
   assert.deepEqual([r.seed, r.props.size, r.gen], [42, 1, 0]);
-  const forged = await r.join(owner, null, T0, 99999);
+  const forged = await r.join(maker, null, T0, 99999);
   assert.equal(forged.welcome.nuke, null, 'a hello claiming a far newer game changes nothing either');
 });
 

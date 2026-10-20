@@ -1,5 +1,5 @@
 /* After each deploy: the live room service answers as the game expects.
- * Makes a room, joins it as its owner and as an invited friend, and checks
+ * Makes a room, joins it as its maker and as an invited friend, and checks
  * that strangers are turned away. Usage: node smoke.mjs <service url> <origin> */
 
 import { packKey } from '../src/core/coords.js';
@@ -40,10 +40,10 @@ const adminToken = process.env.ROOMS_ADMIN_TOKEN;
 // few seconds: rooms are made until one welcomes with what this version
 // says (`ack`), for a while.
 if (!adminToken) { console.error('ROOMS_ADMIN_TOKEN is needed: worlds are made under it now.'); process.exit(1); }
-let ownerKey, res, room, owner, hi;
+let makerKey, res, room, maker, hi;
 for (let i = 0; i < 5; i++) { // (right after a deploy an old version may still answer)
-  if (i) { owner.ws.close(1000, 'bye'); await new Promise((r) => setTimeout(r, 3000)); }
-  ownerKey = hex(32);
+  if (i) { maker.ws.close(1000, 'bye'); await new Promise((r) => setTimeout(r, 3000)); }
+  makerKey = hex(32);
   // Under the admin token the room is marked as a smoke test (so it ages out
   // unvisited, like every deploy's room ever since): the token is the only
   // door to a world now, and the mark is the only kind that ages out.
@@ -53,15 +53,15 @@ for (let i = 0; i < 5; i++) { // (right after a deploy an old version may still 
       Origin: ORIGIN, 'Content-Type': 'application/json',
       Authorization: 'Bearer ' + adminToken
     },
-    body: JSON.stringify({ t: 'create', key: ownerKey, smoke: true, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } })
+    body: JSON.stringify({ t: 'create', key: makerKey, smoke: true, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } })
   });
   ({ room } = await res.json());
-  owner = connect(room, ownerKey);
-  hi = await owner.next('welcome');
+  maker = connect(room, makerKey);
+  hi = await maker.next('welcome');
   if (!hi || hi.ack === true) break;
 }
 check(res.status === 201 && /^[A-Za-z0-9_-]{22}$/.test(room), 'a room is made');
-check(hi && hi.you === hi.owner && hi.seed === 12345, 'the owner gets the world back');
+check(hi && /^[A-Za-z0-9_-]{22}$/.test(hi.you) && hi.seed === 12345, 'the maker gets the world back');
 
 // Worlds are Watch's to make: a stranger is refused before the body is read.
 // The check waits out the rollout — for a few seconds after a deploy the
@@ -86,15 +86,15 @@ if (adminToken) {
 const stranger = connect(room, hex(32));
 check(/1008 invite/.test(await stranger.closed), 'a stranger without an invite is turned away');
 
-owner.send({ t: 'invite' });
-const inv = await owner.next('invite');
-check(!!inv, 'the owner gets an invite');
+maker.send({ t: 'invite' });
+const inv = await maker.next('invite');
+check(!!inv, 'the maker gets an invite');
 const friend = connect(room, hex(32), inv && inv.code);
 const fw = await friend.next('welcome');
-check(fw && fw.you !== hi.you && fw.players[hi.you], 'an invited friend joins and sees the owner');
+check(fw && fw.you !== hi.you && fw.players[hi.you], 'an invited friend joins and sees the maker');
 friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
-const moved = await owner.next('pos');
-check(moved && moved.p.x === 2, 'the owner sees the friend move');
+const moved = await maker.next('pos');
+check(moved && moved.p.x === 2, 'the maker sees the friend move');
 check(hi && hi.pong === true && hi.ack === true, 'the welcome says the room answers pings and acknowledges edits');
 friend.ws.send('ping');
 check(!!(await friend.next('pong')), 'the room answers a ping');
@@ -130,7 +130,7 @@ if (token) {
   check((await players(true)).includes(room), "and appears with 'Test worlds' ticked");
 }
 
-owner.ws.close(1000, 'bye');
+maker.ws.close(1000, 'bye');
 friend.ws.close(1000, 'bye');
 console.log(failed ? `${failed} check(s) failed` : 'room service OK');
 process.exit(failed ? 1 : 0);

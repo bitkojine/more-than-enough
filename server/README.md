@@ -9,9 +9,9 @@ shared with the game.
 
 ## How it works
 
-1. **Invite** in the game (the first time) posts a new world (a seed) to
-   `POST /rooms`. The service makes a room with a random 128-bit id and keeps
-   it. Everyone starts a shared world from nothing, its owner too: the room
+1. Watch makes a world (a seed) with `POST /rooms` under the admin token.
+   The service makes a room with a random 128-bit id and keeps it.
+   Everyone starts a shared world from nothing: the room
    can't check progress made anywhere else, so it takes no save or edits.
 2. You connect to `GET /rooms/<id>/ws` (a WebSocket) and say who you are
    with your secret key. Your id in that room is a hash of the room and the
@@ -21,8 +21,9 @@ shared with the game.
    code that lets in a few people (1 to 25, 3 unless the player picks; never
    unlimited) for a while (30 minutes to a week, a week unless they pick).
    Your sign keeps showing your newest one made that way while it has room
-   and time left. The room counts how many joined with each link; the owner
-   can list and stop every link, anyone else their own. The QR is
+   and time left. The room counts how many joined with each link; each
+   player lists and stops the links they made, and the moderator any of
+   them (admin route). The QR is
    `<game>#join=<room>.<invite>`. It's in the fragment, which browsers never
    send to any server.
 4. A friend's phone opens that link, connects and shows the invite once.
@@ -85,17 +86,15 @@ again in the game; anything that doesn't fit exactly is dropped.
   `wrangler.toml`; `localhost` only with `ALLOW_LOCALHOST`, for
   `wrangler dev`).
 - **Who can join:** whoever holds a live invite that isn't used up, at most
-  100 players a room (`LIMITS.players`). A player who isn't the owner brings
-  in at most 5 people a day through their links (`LIMITS.invitesPerDay`).
-  The owner can remove a player: they are banned from the room for good
+  100 players a room (`LIMITS.players`). Every player brings in at most
+  5 people a day through their links (`LIMITS.invitesPerDay`). The
+  moderator removes a player: they are banned from the room for good
   (their key can't come back), the link they joined with and every link
   they made stop, and their buildings go.
 - **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
   budget, so bunched-up steps pass) are refused, and they and edits out of
-  reach count as cheats; `CHEATS_TO_BAN` of them ban the player, as if the
-  owner removed them. Owners too: nobody cheats in a shared world. A banned
-  owner's world passes to whoever joined it first among those left who
-  aren't frozen (by join time, `owner` message). One player, the owner too, adds at most 400 buildings, 2,000
+  reach count as cheats; `CHEATS_TO_BAN` of them ban the player (Watch's
+  rule: nobody cheats in a shared world). One player adds at most 400 buildings, 2,000
   props and 60,000 newly changed tiles (`PLAYER_TILES`). Nothing grows back, so a
   tile's richness only goes down: an edit that raises it is refused. Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
@@ -141,7 +140,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
   it they answer 404, as if they weren't there; only the page at `/admin`
   answers without it, and it holds nothing but a form for the token. They read; what they
-  change is a ban (the same one the owner's *Remove* does) and a freeze.
+  change is a ban, a freeze or stopping an invite link.
   A copy (below) is a room of its own: making and playing it changes
   nothing in the real one.
 - **Turned away:** a banned key gets `{"t": "invite", "why": "banned"}`
@@ -152,7 +151,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   as `drift`) is frozen by the moderator instead of banned. It stays in the world, asleep, with what it
   built, but its key can't play it again (`frozen`, close code 4005): the
   game shows a joke "FBI" notice and goes back to the player's own world.
-  The links its player made stop; a frozen owner's world passes on.
+  The links its player made stop.
 - **Tombstones:** a banned or frozen character leaves a tombstone where it
   last stood (`graves` in the welcome and in a `graves` message: `[id,
   colour, x, y, z, 'ban' | 'ice']`, at most 300), until the world is made
@@ -189,9 +188,9 @@ enter a shared world, and in Settings.
 | `away` | a player's first progress after coming back, when their buildings made something while they were away (stage 3: up to 8 hours, worked out by the room) | `secs` away |
 | `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
 | `cut` | a connection was closed for breaking the limits | `why` |
-| `ban` | a player is taken out | `by` (`owner`, `auto`, `mod`), `why` |
+| `ban` | a player is taken out | `by` (`auto`, `mod`), `why` |
 | `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |
-| `owner` | the world passed to a new owner (`p`; null if nobody is left) | `was` |
+| `owner` | only in logs from before v0.131.1: the world passed to a new owner (`p`; null if nobody is left) | `was` |
 | `kept` | a world made under an older format (or with a nuke pending from before nukes ended) is kept and plays on under the current one | `fmt`, `ef` (what it was) |
 | `nuke`, `nukeCall`, `renew` | only in logs from before 2026-10-18: the old nuke | `fmt`, `gen`, `seed` |
 
@@ -220,11 +219,14 @@ The moderator's routes (`Authorization: Bearer <token>`):
   `{"e": "room", ...}`, then the events from `since`, and last
   `{"e": "more", "since": ...}` if there is more to fetch from there.
 - `POST /admin/rooms/<id>/ban` with `{"id": "<player id>", "why": "..."}`:
-  takes a player out for good, as the owner would; an owner too (the
-  world then passes on, as for the anti-cheat).
+  takes a player out for good; everyone who came in through their links
+  goes too.
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
+- `POST /admin/rooms/<id>/revoke` with `{"code": "<invite code>"}`: stops
+  an invite link (the code after the dot in the link); anyone may stop
+  their own in the game, the moderator any of them here.
 - `POST /admin/rooms/<id>/copy` with `{"id": "<player id>"}`: a copy of the
   world to play as that player, to see what they'd see coming back now
   (`src/copy.js`). Answers `{room, key, until, link}`; the link

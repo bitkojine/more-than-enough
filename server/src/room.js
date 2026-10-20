@@ -40,9 +40,8 @@ export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log
 // that arrive bunched up after a hiccup still pass. A step past the budget
 // or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_BAN
 // cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) take
-// the player out of the world for good. Owners too (Watch's rule: nobody
-// cheats in a shared world); the world then passes to whoever joined it
-// first among those left.
+// the player out of the world for good (Watch's rule: nobody cheats in a
+// shared world).
 //
 // Reconnecting doesn't start a player afresh: their first step after it may
 // cover only their budget, or the distance they could have walked since
@@ -56,18 +55,16 @@ export const MAX_SPEED = 40;
 export const MOVE_BURST = 120;
 export const CHEATS_TO_BAN = 10;
 export const CHEAT_FORGIVE_MS = 30_000;
-// What one player (the owner too) may add to a world, so one player can't
-// fill it for everyone. What the owner's world held when it was made
-// doesn't count.
+// What one player may add to a world, so one player can't fill it for
+// everyone. What the world held when it was made doesn't count.
 export const PLAYER_BUILDINGS = 400;
 export const PLAYER_PROPS = 2000;
 // Tiles nobody had changed before (re-changing one is free). Nothing grows
 // back, so this is a whole world's play of gathering (the Perfect bot
 // changes about 15,000 in its ~25 h), with room to roam.
 export const PLAYER_TILES = 60_000;
-// One player (not the owner) brings at most LIMITS.invitesPerDay people into
-// a world through their own links in a day, so one bad invite can't fill a
-// world with others.
+// One player brings at most LIMITS.invitesPerDay people into a world through
+// their own links in a day, so one bad invite can't fill a world with others.
 const DAY_MS = 24 * 3600_000;
 
 const bucketOf = (key) => key % MOD_BUCKETS;
@@ -78,7 +75,6 @@ export class Room {
     this.id = id;
     this.ready = false;
     this.seed = 0;
-    this.owner = '';
     this.created = now;
     this.last = now;
     this.dawn = now;             // when (ms) the world's clock read 0; it never stops
@@ -104,7 +100,7 @@ export class Room {
     // age out unvisited. Never inferred from the seed: a player's world is
     // kept forever whatever seed it happens to have.
     this.smoke = false;
-    // Players taken out of the world (by the owner or for cheating), who
+    // Players taken out of the world (by Watch or for cheating), who
     // can't come back with their key.
     this.bans = new Set();
     // Tombstones where banned and frozen characters last stood, so everyone
@@ -139,7 +135,7 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, owner: meta.owner, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, smoke: meta.smk === true, ready: true });
+    Object.assign(r, { seed: meta.seed, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, smoke: meta.smk === true, ready: true });
     r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.copy = meta.copy ?? null;
@@ -181,7 +177,7 @@ export class Room {
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
-    if (d.meta) out.set('meta', { seed: this.seed, owner: this.owner, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
+    if (d.meta) out.set('meta', { seed: this.seed, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
     if (d.buckets.size) {
       const pieces = new Map([...d.buckets].map((b) => [b, []]));
       for (const m of this.mods) pieces.get(bucketOf(m[0]))?.push(m);
@@ -231,7 +227,7 @@ export class Room {
     const d = parse(raw, LIMITS.createBytes);
     const c = cleanCreate(d);
     if (!c) return 'bad';
-    // Everyone starts a shared world from nothing, its owner too (Watch's
+    // Everyone starts a shared world from nothing (Watch's
     // call): the room can't check progress made anywhere else. So a world is
     // made from the creator's seed alone, and their save and edits are not
     // taken (an older game still sends them).
@@ -246,23 +242,23 @@ export class Room {
     this.smoke = trusted === true && d.smoke === true;
     this.fmt = WORLD_FORMAT;
     this.ef = ECON_FORMAT;
-    this.owner = await playerId(this.id, d.key);
+    const first = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
     for (const [k, v] of world.props) this.props.set(k, v);
     for (const [kind, x, y, z] of world.ext) {
       if (this.extTiles.has(extAt(x, y, z))) continue;
-      this.ext.push([kind, x, y, z, this.owner]);
+      this.ext.push([kind, x, y, z, first]);
       this.extTiles.add(extAt(x, y, z));
     }
-    this.players.set(this.owner, { c: 0, st: 'offline', p: pos, save, lostAt: 0, joined: now });
+    this.players.set(first, { c: 0, st: 'offline', p: pos, save, lostAt: 0 });
     this.ready = true;
     this.created = this.last = now;
     this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
-    this.audit(now, this.owner, 'create', { seed: this.seed, fmt: this.fmt, mods: this.mods.size, props: this.props.size, ext: this.ext.length });
+    this.audit(now, first, 'create', { seed: this.seed, fmt: this.fmt, mods: this.mods.size, props: this.props.size, ext: this.ext.length });
     this.dirty.meta = this.dirty.props = this.dirty.ext = true;
     for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
-    this.dirty.players.add(this.owner);
+    this.dirty.players.add(first);
     return null;
   }
 
@@ -295,7 +291,7 @@ export class Room {
       }
       if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
       // Whoever made the link has brought in their share for today.
-      const host = inv.by !== this.owner ? this.players.get(inv.by) : null;
+      const host = this.players.get(inv.by);
       if (host) {
         const today = (Array.isArray(host.brought) ? host.brought : []).filter((t) => now - t < DAY_MS);
         if (today.length >= LIMITS.invitesPerDay) {
@@ -312,8 +308,7 @@ export class Room {
       while (used.has(c)) c++;
       // `via`: the link they came in with, stopped if they're taken out;
       // `by`: who made it, taking them along if they're taken out.
-      // `joined`: when, so a world passes to whoever really came first (see passOwner).
-      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0, joined: now };
+      pl = { c, st: 'offline', p: null, save: null, lostAt: 0, via: code, by: inv.by, np: 0 };
       this.players.set(id, pl);
     }
     // Left before rooms noted when (v0.100.0): away since their last progress,
@@ -330,12 +325,12 @@ export class Room {
     return { id, welcome: this.welcome(id, now) };
   }
 
-  // The invite links someone may see and stop: all of them for the owner,
-  // their own for anyone else. Newest first.
+  // The invite links someone may see and stop: the ones they made,
+  // newest first.
   inviteList(id) {
     const list = [];
     for (const [code, inv] of this.invites) {
-      if (id === this.owner || inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, this.maxOf(inv)]);
+      if (inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, this.maxOf(inv)]);
     }
     list.sort((a, b) => b[2] - a[2]);
     return { t: 'invites', list: list.slice(0, INVITE_LIST) };
@@ -369,7 +364,7 @@ export class Room {
     for (const [pid, p] of this.players) if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
     const me = this.players.get(id);
     return {
-      t: 'welcome', you: id, c: me.c, owner: this.owner, seed: this.seed,
+      t: 'welcome', you: id, c: me.c, seed: this.seed,
       mods: [...this.mods], props: [...this.props], ext: this.ext,
       players: others, save: this.saveFor(id, me), p: me.p, time: this.clock(now), gen: this.gen, nuke: null,
       graves: this.graves,
@@ -576,16 +571,12 @@ export class Room {
     }
     if (d.t === 'invites') return { toSelf: [this.inviteList(id)] };
     if (d.t === 'revoke') {
-      // The owner stops any link; anyone else only their own.
+      // Each player stops only the links they made; Watch stops any of them
+      // through the admin route (modRevoke).
       const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
-      if (!inv || (id !== this.owner && inv.by !== id)) return { drop: true };
+      if (!inv || inv.by !== id) return { drop: true };
       if (!inv.off) { inv.off = true; this.dirty.meta = true; this.audit(now, id, 'revoke', { code: codeTag(d.code) }); }
       return { toSelf: [this.inviteList(id)] };
-    }
-    if (d.t === 'remove') {
-      // Only the world's owner removes a player, never themselves.
-      if (id !== this.owner || typeof d.id !== 'string' || d.id === this.owner || !this.players.has(d.id)) return { drop: true };
-      return this.ban(d.id, now, 'owner', 'removed by the owner');
     }
     // There is no nuke any more: an old game pressing it changes nothing.
     if (d.t === 'nuke') return {};
@@ -716,17 +707,15 @@ export class Room {
   // the link they came in with and every link they made stop, and their
   // buildings go. So does everyone who came in through their links, and
   // whoever those brought in (Watch's rule: a bad invite is cleaned up in
-  // one go). `by` is who decided ('owner', 'auto' for the anti-cheat, 'mod'
+  // one go). `by` is who decided ('auto' for the anti-cheat, 'mod'
   // for the moderator). Returns {kick, also, toAll}: the player, the others
   // taken with them, and the news for everyone.
   ban(id, now, by, why) {
     const also = [];
-    const wasOwner = id === this.owner;
     this.banOne(id, now, by, why);
-    // An owner's guests are the world's, not a bad invite's: they stay.
-    for (let i = 0, from = wasOwner ? [] : [id]; i < from.length; i++) {
+    for (let i = 0, from = [id]; i < from.length; i++) {
       for (const [pid, p] of this.players) {
-        if (pid === this.owner || p.by !== from[i]) continue;
+        if (p.by !== from[i]) continue;
         this.banOne(pid, now, by, 'came in through ' + from[i]);
         also.push(pid);
         from.push(pid);
@@ -734,28 +723,16 @@ export class Room {
     }
     const toAll = [id, ...also].map((x) => ({ t: 'removed', id: x }));
     toAll.push(this.gravesMsg());
-    if (wasOwner) toAll.push(...this.passOwner(id, now));
     return { kick: id, also, toAll };
   }
 
-  // The owner `was` is out (banned or frozen): the world passes to whoever
-  // joined it first among those left who can still play, or to nobody.
-  // Returns the news for everyone. (Not by colour: a banned player's colour
-  // goes to the next one in. Players from before `joined` was kept came
-  // before everyone with it; among them, the colour is the best guess.)
-  passOwner(was, now) {
-    const order = (p) => [Number.isSafeInteger(p.joined) ? p.joined : -Infinity, p.c];
-    let next = '';
-    for (const [pid, p] of this.players) {
-      if (pid === was || p.frozen) continue;
-      if (!next) { next = pid; continue; }
-      const [a, b] = [order(p), order(this.players.get(next))];
-      if (a[0] < b[0] || (a[0] === b[0] && a[1] < b[1])) next = pid;
-    }
-    this.owner = next;
-    this.dirty.meta = true;
-    this.audit(now, next || null, 'owner', { was });
-    return next ? [{ t: 'owner', id: next }] : [];
+  // Watch stops any invite link, through the moderator's route. The room's
+  // audit log says who decided. Error string or null.
+  revokeAny(code, now) {
+    const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
+    if (!inv) return 'link';
+    if (!inv.off) { inv.off = true; this.dirty.meta = true; this.audit(now, null, 'revoke', { code: codeTag(code), by: 'mod' }); }
+    return null;
   }
 
   // The moderator freezes a player whose progress was clearly hacked
@@ -763,8 +740,8 @@ export class Room {
   // see). The character stays in the world, asleep where it was, with what
   // it built, but its key can't play it again: every try shows the game's
   // joke "FBI" notice, and the player has to start fair with another
-  // character. The links they made stop; an owner's world passes on, as for
-  // a ban. Thawing undoes it. Returns {kick, toAll}, or {error}.
+  // character. The links they made stop. Thawing undoes it.
+  // Returns {kick, toAll}, or {error}.
   freeze(id, now, why) {
     const pl = this.players.get(id);
     if (!pl) return { error: 'player' };
@@ -784,13 +761,11 @@ export class Room {
     // Friends see a tombstone where the character slept ('frozen': its
     // buildings stay, unlike 'removed').
     const toAll = [{ t: 'frozen', id }, this.gravesMsg()];
-    if (id === this.owner) toAll.push(...this.passOwner(id, now));
     return { kick: id, toAll };
   }
 
   // Undoes a freeze: the player may come back to that character, asleep
-  // again where the tombstone was. Returns {toAll} or {error}. (A world
-  // that passed on stays with its new owner.)
+  // again where the tombstone was. Returns {toAll} or {error}.
   thaw(id, now) {
     const pl = this.players.get(id);
     if (!pl) return { error: 'player' };
@@ -916,7 +891,7 @@ export class Room {
     for (const [id, p] of this.players) {
       const w = this.watch.get(id), a = this.acts.get(id);
       out.push({
-        id, c: p.c, st: p.st, owner: id === this.owner, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
+        id, c: p.c, st: p.st, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
         cheats: w ? w.cheats : 0, frozen: !!p.frozen, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
         progress: p.save ? digestOf(p.save) : null,
         shadow: this.shadow?.report(id) ?? null // the room's own copy: checks, how many were off, acts refused

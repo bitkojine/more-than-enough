@@ -1,7 +1,7 @@
 /* The room service for playing together: a Cloudflare Worker that makes
  * rooms and hands each room's WebSockets to its Durable Object.
  *
- *   POST /rooms                 make a room from a world; returns {room}
+ *   POST /rooms                 make a room from a world (the admin token); returns {room}
  *   GET  /rooms/<id>            whether it exists, and how many play there now
  *   GET  /rooms/<id>/ws         join it (WebSocket)
  *
@@ -15,14 +15,15 @@
  *   POST /admin/rooms/<id>/ban         take a player out: {"id", "why"}
  *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
+ *   POST /admin/rooms/<id>/revoke      stop an invite link: {"code"}
  *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
  *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
  *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
  *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
  *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (only marked rooms age out)
  *
- * Only the game's own pages may call the rest (ALLOWED_ORIGINS), a visitor
- * can make only a few rooms an hour, and everything else is refused. The
+ * Only the game's own pages may call the rest (ALLOWED_ORIGINS), worlds are
+ * Watch's to make (the admin token), and everything else is refused. The
  * rules of a room are in room.js; the wire format is src/net/protocol.js. */
 
 import { DurableObject } from 'cloudflare:workers';
@@ -134,7 +135,7 @@ async function admin(request, env, url) {
     }));
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|graves|copy|backup|restore|smoke)$/);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|revoke|graves|copy|backup|restore|smoke)$/);
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -194,6 +195,16 @@ async function admin(request, env, url) {
     const err = m[2] === 'ban' ? await room.modBan(m[1], d.id, why)
       : m[2] === 'freeze' ? await room.modFreeze(m[1], d.id, why)
       : await room.modThaw(m[1], d.id);
+    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
+  }
+  // Stopping any invite link (only its maker can in the game itself): for a
+  // link that got out, without taking the person who made it along.
+  if (m[2] === 'revoke' && request.method === 'POST') {
+    const body = await readCapped(request, 1024);
+    let d = null;
+    try { d = JSON.parse(body); } catch { /* below */ }
+    if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code)) return respond({ error: 'bad' }, 400, null);
+    const err = await room.modRevoke(m[1], d.code);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
   // Marking a room as the deploy's smoke test (or unmarking one the old way
@@ -404,7 +415,7 @@ export class Rooms extends DurableObject {
     for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
-    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, owner: r.owner, players: r.players.size, online, bans: r.bans.size, frozen, smk: r.smoke === true };
+    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, players: r.players.size, online, bans: r.bans.size, frozen, smk: r.smoke === true };
   }
 
   // Whether this is still the room `id` (a copy is deleted when its time is up, a smoke-test room after EXPIRE_MS unvisited).
@@ -456,7 +467,7 @@ export class Rooms extends DurableObject {
     return lines.join('\n') + '\n';
   }
 
-  // The moderator takes a player out, owners too. Error string or null.
+  // The moderator takes a player out. Error string or null.
   async modBan(id, player, why) {
     if (!this.room.ready || this.room.id !== id) return 'room';
     if (!this.room.players.has(player)) return 'player';
@@ -470,7 +481,7 @@ export class Rooms extends DurableObject {
     return null;
   }
 
-  // The moderator freezes a hacked character (Room.freeze), owners too.
+  // The moderator freezes a hacked character (Room.freeze).
   // The player's game is told, so it shows the notice. Error string or null.
   async modFreeze(id, player, why) {
     if (!this.room.ready || this.room.id !== id) return 'room';
@@ -494,6 +505,14 @@ export class Rooms extends DurableObject {
   }
   async modSmoke(id, smoke) {
     const err = this.room.markSmoke(smoke, Date.now());
+    if (err) return err;
+    await this.persist();
+    return null;
+  }
+  // The moderator stops any invite link (Room.revokeAny). Error string or null.
+  async modRevoke(id, code) {
+    if (!this.room.ready || this.room.id !== id) return 'room';
+    const err = this.room.revokeAny(code, Date.now());
     if (err) return err;
     await this.persist();
     return null;

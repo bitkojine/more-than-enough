@@ -1,8 +1,7 @@
 /* Who's in a shared world, on screen: a chip per friend under the top bar,
  * as many as fit across the screen with a "+N" for the rest, and the
- * Players screen (Settings) listing everyone, where the world's owner can
- * remove someone. src/game/together.js keeps who they are; this draws them,
- * from elements and text only, never HTML. */
+ * Players screen (Settings) listing everyone. src/game/together.js keeps
+ * who they are; this draws them, from elements and text only, never HTML. */
 
 import { t, distance } from '../i18n/i18n.js';
 
@@ -43,10 +42,9 @@ export function renderChips(box, list, { tap, more }) {
 
 // Everyone in the world, you first, then those awake, then those asleep,
 // nearest first: their colour, name, how they're doing and how far away
-// they are. `rows`: [{id, name, color, st, you, owner, far, dz}] (far in
-// tiles, dz layers up (+) or down (-), both null if not known);
-// `remove(id)`, for the world's owner, on everyone else's row.
-export function renderPlayers(box, rows, remove) {
+// they are. `rows`: [{id, name, color, st, you, far, dz}] (far in
+// tiles, dz layers up (+) or down (-), both null if not known).
+export function renderPlayers(box, rows) {
   const head = document.createElement('p');
   head.className = 'count';
   head.textContent = t('players.count', { count: rows.length });
@@ -57,9 +55,9 @@ export function renderPlayers(box, rows, remove) {
     const text = document.createElement('div');
     const name = document.createElement('strong');
     name.textContent = p.name;
-    if (p.you || p.owner) {
+    if (p.you) {
       const tag = document.createElement('span');
-      tag.textContent = t(p.you ? 'players.you' : 'players.owner');
+      tag.textContent = t('players.you');
       name.append(' ', tag);
     }
     const sub = document.createElement('small');
@@ -69,7 +67,6 @@ export function renderPlayers(box, rows, remove) {
     sub.textContent = [t('together.state.' + p.st), ...where].join(' · ');
     text.append(name, sub);
     row.append(document.createElement('i'), text);
-    if (remove && !p.you) row.append(button(t('together.remove.yes'), 'stop', () => remove(p.id)));
     return row;
   }));
 }

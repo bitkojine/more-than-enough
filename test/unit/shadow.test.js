@@ -13,7 +13,7 @@ import { C, T, createBot, holdPerfect } from './helpers.js';
 const T0 = 1_700_000_000_000;
 const SAVE_EVERY_MS = 10_000;
 
-// A room made from a new world, its owner in it, and a game playing there.
+// A room made from a new world, a player in it, and a game playing there.
 async function sharedGame(seed) {
   const r = new Room(P.randomRoomId(), T0);
   const key = P.randomHex(32);

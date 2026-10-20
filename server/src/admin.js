@@ -107,7 +107,7 @@ function client() {
   // Each column: its heading, how a row sorts by it, and what it shows.
   const COLUMNS = [
     { key: 'rank', label: '#', value: (r) => r.rank },
-    { key: 'name', label: 'Player', value: (r) => r.name.en.toLowerCase(), text: (r) => [r.name.en + ' / ' + r.name.lt, ...(r.owner ? [el('span', { className: 'tag', textContent: 'owner' })] : [])] },
+    { key: 'name', label: 'Player', value: (r) => r.name.en.toLowerCase(), text: (r) => [r.name.en + ' / ' + r.name.lt] },
     { key: 'world', label: 'World', value: (r) => r.world.name.en, text: (r) => r.world.name.en },
     { key: 'status', label: 'Status', value: (r) => STATUS_ORDER[r.status], text: (r) => [el('span', { className: 'st-' + r.status, textContent: r.status })] },
     { key: 'goal', label: 'Milestones', value: (r) => r.goal },
@@ -199,7 +199,7 @@ function client() {
     const list = (o) => Object.entries(o || {}).map(([k, v]) => k + ' ' + short(Math.round(v))).join(', ') || '–';
     const facts = [
       ['World', r.world.name.en + ' / ' + r.world.name.lt + ' (' + r.world.id + ')'],
-      ['Player id', r.id + (r.owner ? ' (owner)' : '')],
+      ['Player id', r.id],
       ['Status', r.status + (r.sessionSecs !== null && r.sessionSecs !== undefined ? ', this session ' + hours(r.sessionSecs) : '')],
       ['Where', r.at ? r.at.join(', ') : '–'],
       ['Has', list(g.inv)],
@@ -240,6 +240,13 @@ function client() {
             await api(base + '/freeze', { id: r.id, why: why.trim().slice(0, 200) });
             await load();
           }),
+        act('Stop a link…', '', async () => {
+          const code = window.prompt('Stop an invite link of ' + r.name.en + '? Paste its code: the part after the dot in the link.');
+          if (!code || !/^[A-Za-z0-9_-]{22}$/.test(code.trim())) return;
+          await api(base + '/revoke', { code: code.trim() });
+          say.className = 'note';
+          say.textContent = 'Link stopped; nobody new gets in through it.';
+        }),
         act('Download backup', '', async () => {
           // The whole world, to keep on disk (backup.js): fetched with the
           // token, then saved from memory.

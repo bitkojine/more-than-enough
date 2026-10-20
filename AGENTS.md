@@ -18,6 +18,12 @@ kind of knowledge lives.
 - Before pushing: `npm ci && npm test`. After a change under `src/game/`, run
   `npm run test:e2e` too (unit tests don't load browser code); after a layout
   or text-length change, `npm run test:layout`.
+- `test/property/` searches for rule breaks that the example tests in
+  `test/unit/` didn't happen to try: it plays thousands of random legal games
+  and holds every invariant in `test/property/invariants.js` after each step.
+  Add an invariant when you add a rule the code must never break, and run
+  `PROP_SEEDS=1500 npm test` (or a specific seed it prints) when a change
+  touches `src/core/` arithmetic, saves or the shared-world round-trip.
 - After a change under `src/core/`, run `node scripts/perfect-bench.mjs
   --check` (CI runs it and won't deploy if it fails). If Perfect got slower,
   re-learn with `scripts/perfect-tune.mjs` and record the score with

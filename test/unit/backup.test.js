@@ -30,7 +30,6 @@ test('backup: reads back into the same world, everyone in it', async () => {
   const back = Room.restore(r.id, entriesOf(text), T0 + 6000);
   assert.ok(back.ready);
   assert.equal(back.seed, r.seed);
-  assert.equal(back.owner, r.owner);
   assert.deepEqual([...back.mods], [...r.mods], 'every edit');
   assert.deepEqual([...back.players.keys()].sort(), [id, friendId].sort());
   for (const [pid, pl] of r.players) assert.equal(back.players.get(pid).save, pl.save, 'progress as the room has it');

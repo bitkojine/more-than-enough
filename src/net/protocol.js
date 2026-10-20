@@ -11,9 +11,8 @@
  *                  away {a}                game hidden (true) or back (false)
  *                  invite {uses, life}     hold up the sign: your invite link, please, letting in
  *                                          at most `uses` people for `life` minutes (INVITE_USES, INVITE_LIVES)
- *                  invites                 the invite links you may see (all, for the owner)
- *                  revoke {code}           stop an invite link (the owner any, others their own)
- *                  remove {id}             the owner takes a player out of the world
+ *                  invites                 the invite links you may see (the ones you made)
+ *                  revoke {code}           stop an invite link (the ones you made; Watch stops any, admin route)
  *                  nuke                    (old games only) ignored: there is no nuke any more
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved (several times a second when near
@@ -25,7 +24,6 @@
  *                  invite {code, until}    the link for your sign
  *                  invites {list}          [code, by, made, until, uses, stopped, max] newest first
  *                  removed {id}            a player was taken out of the world
- *                  owner {id}              the world has a new owner (the last one was removed)
  *                  full / bad              why the room is closing on you
  * Every world is kept: nothing resets one (no nuke since 2026-10-18; the
  * welcome's `nuke` is always null, and the room never sends 'nuke' or closes
@@ -51,7 +49,7 @@ export const LIMITS = Object.freeze({
   editsPerSecond: 60,    // world edits from one player, on average
   editsBurst: 400,       // (a Trail sweep makes many at once)
   editReach: 24,         // tiles from where you stand that you can change
-  invitesPerDay: 5       // people a player (not the owner) may bring in through their links in a day
+  invitesPerDay: 5       // people a player may bring in through their links in a day
 });
 
 // What an invite link may be, like Discord's: how many people it lets in

@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.131.1] - 2026-10-20
+
+Shared worlds have no owners any more: every world belongs to everyone
+in it, and Watch looks after all of them through the admin routes. The
+owner's powers move there or disappear.
+
+### Added
+- `test/property/`: random legal play, thousands of short games a run,
+  checked after every step against the rules the game must never break
+  (`test/property/invariants.js`) — resources never go negative or NaN,
+  paying never overdraws, a save always round-trips, explored land never
+  un-reveals, the world formats never move. A failure prints its seed
+  (`PROP_SEEDS=<seed> npm test` replays it; `PROP_SEEDS=1500` searches
+  wider). `npm test` runs a fixed set of seeds with the rest of the suite.
+
+### Changed
+- The room keeps no owner: the creator is simply the first player
+  (`meta.owner` is no longer written; older saves with one load the
+  same, the field is just ignored).
+- The wire drops `remove {id}` (game→room) and `owner {id}`
+  (room→game); `welcome` no longer carries `owner`, and the invite list
+  and `revoke` act only on links you made. Clients are forced to
+  update, so no old client is legal by design.
+- The moderator can stop any link: `POST /admin/rooms/<id>/revoke`
+  with `{"code"}` (in the admin page, *Stop a link…*), and a ban now
+  takes everyone who came in through the banned player's links along —
+  an owner's guests no longer stay, because there is no owner.
+- Every player is subject to the same `LIMITS.invitesPerDay`; the
+  owner's exemption is gone. A banned or frozen player's world passes
+  to nobody (the `owner` audit event only appears in old logs).
+- The Players screen has no owner tag and no *Remove*; tapping a
+  friend's chip says how they're doing. The Worlds screen no longer
+  says which shared world is yours (`mte.myWorlds` is dropped).
+
 ## [0.131.0] - 2026-10-20
 
 Shared worlds are made by Watch now, by hand, as many as players need —

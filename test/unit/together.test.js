@@ -17,11 +17,11 @@ const T0 = 1_700_000_000_000;
 
 async function makeRoom(extra = {}) {
   const r = new Room(P.randomRoomId(), T0);
-  const owner = key();
-  const err = await r.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 42, mods: [], props: [], ext: [] }, ...extra }), T0);
+  const maker = key();
+  const err = await r.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 42, mods: [], props: [], ext: [] }, ...extra }), T0);
   assert.equal(err, null);
-  put(r, r.owner, 3, 3, T0);
-  return { r, owner };
+  put(r, await P.playerId(r.id, maker), 3, 3, T0);
+  return { r, maker };
 }
 
 // Building `kind` going up at (x, y), as the room's copy of player `id`'s
@@ -108,24 +108,25 @@ test('protocol: ids are random, and a player id is per room and not the key', as
 
 /* --------------------------------------------------------------- room */
 
-test('room: made once, from the creator\'s seed alone: everyone starts from nothing, the owner too', async () => {
-  const { r, owner } = await makeRoom();
-  assert.equal(r.owner, await P.playerId(r.id, owner));
+test('room: made once, from the creator\'s seed alone: everyone starts from nothing', async () => {
+  const { r, maker } = await makeRoom();
+  assert.ok(r.players.has(await P.playerId(r.id, maker)), 'the maker is the first player');
   assert.equal(await r.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 } }), T0), 'exists');
   const fresh = new Room(P.randomRoomId(), T0);
   assert.equal(await fresh.init('{"t":"create","key":"short","world":{"seed":1}}', T0), 'bad');
   // An older game still sends its world and progress: neither is taken.
   const old = new Room(P.randomRoomId(), T0);
   const save = JSON.stringify({ v: WORLD_FORMAT, seed: 7, inv: { stone: 5e8 } });
-  assert.equal(await old.init(JSON.stringify({ t: 'create', key: owner, world: { seed: 7, mods: [[Core.packKey(1, 1, 0), 0]], props: [], ext: [['garden', 3, 3, 0]] }, save, pos: { x: 9.5, y: 9.5, z: 0 } }), T0), null);
+  assert.equal(await old.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 7, mods: [[Core.packKey(1, 1, 0), 0]], props: [], ext: [['garden', 3, 3, 0]] }, save, pos: { x: 9.5, y: 9.5, z: 0 } }), T0), null);
   assert.deepEqual([old.seed, old.mods.size, old.ext.length], [7, 0, 0]);
-  assert.deepEqual([old.players.get(old.owner).save, old.players.get(old.owner).p], [null, null]);
+  const oldId = await P.playerId(old.id, maker);
+  assert.deepEqual([old.players.get(oldId).save, old.players.get(oldId).p], [null, null]);
 });
 
 test('room: new players need a live invite; members come back with their key', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
-  assert.equal(o.id, r.owner, 'the owner needs no invite');
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
+  assert.equal(o.id, await P.playerId(r.id, maker), 'the maker needs no invite');
   assert.equal((await r.join(key(), undefined, T0)).error, 'invite');
   assert.equal((await r.join(key(), 'A'.repeat(22), T0)).error, 'invite');
   const code = invite(r, o.id);
@@ -150,8 +151,8 @@ test('room: new players need a live invite; members come back with their key', a
 });
 
 test('room: invite links last a day, count who joined, and can be listed and stopped', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   assert.ok(INVITE_MS >= 12 * 3600_000, 'a link works for at least 12 hours');
   const code = invite(r, o.id);
   assert.equal(invite(r, o.id, T0 + 3600_000), code, 'holding the sign up again shows the same link');
@@ -159,30 +160,36 @@ test('room: invite links last a day, count who joined, and can be listed and sto
   const b = await r.join(key(), code, T0 + 12 * 3600_000);
   assert.ok(a.id && b.id, 'one link lets several friends in, for hours');
   const mine = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0];
-  assert.deepEqual(mine.list.map((e) => [e[0], e[1], e[4], e[5]]), [[code, o.id, 2, false]], 'the owner sees who made it and its uses');
+  assert.deepEqual(mine.list.map((e) => [e[0], e[1], e[4], e[5]]), [[code, o.id, 2, false]], 'the maker sees who made it and its uses');
   const theirs = invite(r, a.id);
   assert.notEqual(theirs, code);
-  assert.equal(r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.length, 2, 'the owner sees every link');
-  assert.deepEqual(r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.map((e) => e[0]), [theirs], 'others see only their own');
-  assert.ok(r.message(b.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).drop, "nobody stops someone else's link but the owner");
-  const after = r.message(o.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).toSelf[0];
+  assert.equal(r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.length, 1, 'everyone sees only their own links');
+  assert.deepEqual(r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.map((e) => e[0]), [theirs], 'so do others');
+  assert.ok(r.message(b.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).drop, "nobody stops someone else's link");
+  assert.equal(r.revokeAny(theirs, T0), null, 'Watch stops any link, through the admin route');
+  const after = r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0];
   assert.equal(after.list.find((e) => e[0] === theirs)[5], true);
   assert.equal((await r.join(key(), theirs, T0)).error, 'invite', 'a stopped link lets nobody in');
   assert.notEqual(invite(r, a.id), theirs, 'a stopped link is not shown again');
 });
 
 test('room: holds at most LIMITS.players players', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
-  for (let i = 1; i < P.LIMITS.players; i++) assert.ok((await r.join(key(), invite(r, o.id), T0)).id);
-  assert.equal((await r.join(key(), invite(r, o.id), T0)).error, 'full');
+  const { r, maker } = await makeRoom();
+  // Each player brings in the next: nobody hits their invites-per-day share.
+  let host = (await r.join(maker, undefined, T0)).id;
+  for (let i = 1; i < P.LIMITS.players; i++) {
+    const p = await r.join(key(), invite(r, host, T0), T0);
+    assert.ok(p.id, 'one more fits');
+    host = p.id;
+  }
+  assert.equal((await r.join(key(), invite(r, host, T0), T0)).error, 'full');
   assert.equal(r.players.size, P.LIMITS.players);
   assert.equal(new Set([...r.players.values()].map((p) => p.c)).size, P.LIMITS.players, 'everyone gets their own colour');
 });
 
 test('room: steps go to everyone only every FAR_MS, to players nearby always', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const step = (t) => r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), t);
   assert.equal(step(T0).near, null, 'the first step reaches the whole world');
   assert.equal(step(T0 + 100).near?.x, 1.5, 'the next only those nearby');
@@ -190,15 +197,15 @@ test('room: steps go to everyone only every FAR_MS, to players nearby always', a
 });
 
 test('room: edits are checked, owned by the sender, near the sender, and budgeted', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const f = await r.join(key(), invite(r, o.id), T0);
   const msg = (e) => JSON.stringify({ t: 'edits', e });
   // No position yet: nothing applies.
   assert.deepEqual(r.message(f.id, msg([['m', Core.packKey(1, 1, 0), 0]]), T0), {});
   r.message(f.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
   const near = Core.packKey(12, 9, 0), far = Core.packKey(500, 9, 0), below = Core.packKey(12, 9, -1);
-  const out = r.message(f.id, msg([['m', near, 0], ['m', far, 0], ['m', below, 0], ['x', 'garden', 11, 11, 0, r.owner], ['p', Core.packKey(11, 10, -1), 'glowcap']]), T0);
+  const out = r.message(f.id, msg([['m', near, 0], ['m', far, 0], ['m', below, 0], ['x', 'garden', 11, 11, 0, o.id], ['p', Core.packKey(11, 10, -1), 'glowcap']]), T0);
   assert.deepEqual(out.toAll[0].e, [['m', near, 0]], 'far and other-layer edits are dropped, and buildings and props only come from what the room worked out');
   assert.equal(r.mods.has(far), false);
   assert.equal(r.ext.length, 1);
@@ -214,8 +221,8 @@ test('room: edits are checked, owned by the sender, near the sender, and budgete
 });
 
 test('room: only your own progress is big; anything else oversized is dropped', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const big = JSON.stringify({ stuff: 'x'.repeat(30000) });
   assert.ok(!r.message(o.id, JSON.stringify({ t: 'save', s: big }), T0).drop);
   assert.notEqual(r.players.get(o.id).save, big, 'the room keeps its own count of your progress');
@@ -225,34 +232,21 @@ test('room: only your own progress is big; anything else oversized is dropped', 
   assert.equal(r.message(o.id, JSON.stringify({ t: 'whatever' }), T0).drop, true);
 });
 
-test('room: only the owner removes players, never themselves', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
-  const fKey = key();
-  const f = await r.join(fKey, invite(r, o.id), T0);
-  assert.equal(r.message(f.id, JSON.stringify({ t: 'remove', id: o.id }), T0).drop, true);
-  assert.equal(r.message(o.id, JSON.stringify({ t: 'remove', id: o.id }), T0).drop, true);
-  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: f.id }), T0);
-  assert.equal(out.kick, f.id);
-  assert.equal(r.players.has(f.id), false);
-  assert.equal((await r.join(fKey, undefined, T0)).error, 'invite', 'removed means a new invite is needed');
-});
-
 test('room: lost connections turn offline after a minute; clean leaves at once', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   assert.equal(r.left(o.id, false, T0).st, 'lost');
   assert.deepEqual(r.expireLost(T0 + 1000), []);
   assert.equal(r.nextLostDeadline(), T0 + LOST_TO_OFFLINE_MS);
   assert.equal(r.expireLost(T0 + LOST_TO_OFFLINE_MS)[0].st, 'offline');
-  await r.join(owner, undefined, T0);
+  await r.join(maker, undefined, T0);
   assert.equal(r.left(o.id, true, T0).st, 'offline');
   assert.equal(r.expired(T0 + 100 * EXPIRE_MS), false, 'a players\' world is never deleted (worlds-kept.test.js)');
 });
 
 test('room: numbered edits are answered with their number, applied or refused; others as before', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   assert.equal(o.welcome.pong, true);
   assert.equal(o.welcome.ack, true);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
@@ -271,13 +265,13 @@ test('room: numbered edits are answered with their number, applied or refused; o
 });
 
 test('room: a write that fails is written again next time, with whatever changed since', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   r.takeWrites();
   const guest = await r.join(key(), invite(r, o.id), T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0);
-  r.ban(guest.id, T0, 'owner', 'test'); // the player goes and the ban comes in the same write
+  r.ban(guest.id, T0, 'mod', 'test'); // the player goes and the ban comes in the same write
   const failed = r.takeWrites();
   const gone = [...failed].filter(([, v]) => v === null).map(([k]) => k);
   assert.ok(gone.includes('p:' + guest.id) && failed.has('meta'));
@@ -293,8 +287,8 @@ test('room: a write that fails is written again next time, with whatever changed
 });
 
 test('room: a world stored in fewer pieces loads whole and is spread over the new ones', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), T0);
   const e = [];
   for (let y = 0; y < 20; y++) for (let x = 0; x < 2; x++) e.push(['m', Core.packKey(x, y, 0), 0]);
@@ -316,8 +310,8 @@ test('room: a world stored in fewer pieces loads whole and is spread over the ne
 });
 
 test('room: what it writes to storage brings it back the same', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), T0);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 2, 0), 1], ['p', Core.packKey(1, 1, 0), 'glowcap']] }), T0);
   const code = invite(r, o.id);
@@ -327,14 +321,13 @@ test('room: what it writes to storage brings it back the same', async () => {
   assert.deepEqual([...back.mods], [...r.mods]);
   assert.deepEqual([...back.props], [...r.props]);
   assert.deepEqual(back.ext, r.ext);
-  assert.equal(back.owner, r.owner);
   assert.equal(back.invites.get(code), r.invites.get(code));
   assert.equal(back.clock(T0 + 5000), r.clock(T0 + 5000));
 });
 
 test('room: one clock for the whole world, going on from the creator\'s time of day', async () => {
-  const { r, owner } = await makeRoom({ time: 100 });
-  const o = await r.join(owner, undefined, T0 + 5000);
+  const { r, maker } = await makeRoom({ time: 100 });
+  const o = await r.join(maker, undefined, T0 + 5000);
   assert.equal(o.welcome.time, 105);
   const code = invite(r, o.id);
   const f = await r.join(key(), code, T0 + 65_000);
@@ -361,7 +354,7 @@ test('shared world: made from yours, joined back with your progress and fog', ()
   s.inv.mycelium = 123;
   const world = Core.worldOf(s);
   const me = '0123456789abcdef';
-  const welcome = { you: me, owner: me, seed: world.seed, mods: world.mods, props: world.props, ext: world.ext.map((e) => [...e, me]), save: Core.progressOf(s) };
+  const welcome = { you: me, seed: world.seed, mods: world.mods, props: world.props, ext: world.ext.map((e) => [...e, me]), save: Core.progressOf(s) };
   const back = Core.joinState(welcome, 'room', Core.fogOf(s), null);
   assert.equal(back.inv.mycelium, 123);
   assert.equal(back.shared, 'room');
@@ -452,8 +445,8 @@ test('the vendored QR library is the published file, unchanged', () => {
 /* ------------------------------------------------------------ security */
 
 test('room: an invite lets in only as many people as asked, never unlimited, for as long as asked', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const ask = (d) => r.message(o.id, JSON.stringify({ t: 'invite', ...d }), T0).toSelf[0];
   const two = ask({ uses: 2, life: 30 });
   assert.equal(two.until, T0 + 30 * 60_000);
@@ -474,15 +467,15 @@ test('room: an invite lets in only as many people as asked, never unlimited, for
 });
 
 test('room: a removed player stays out, the links they used and made stop, and their buildings go', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const code = r.message(o.id, JSON.stringify({ t: 'invite', uses: 10 }), T0).toSelf[0].code;
   const gKey = key();
   const g = await r.join(gKey, code, T0);
   put(r, g.id, 11, 11);
   assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1);
   const theirs = [invite(r, g.id, T0, { uses: 25 }), invite(r, g.id, T0, { uses: 5, life: 60 })];
-  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0);
+  const out = r.ban(g.id, T0, 'mod', 'removed by the moderator');
   assert.equal(out.kick, g.id);
   assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }, { t: 'graves', g: r.graves }]);
   assert.equal(r.ext.some((e) => e[4] === g.id), false, 'their buildings are gone');
@@ -495,9 +488,9 @@ test('room: a removed player stays out, the links they used and made stop, and t
   assert.equal((await back.join(gKey, invite(back, o.id), T0)).error, 'invite');
 });
 
-test("room: a player who isn't the owner brings in at most LIMITS.invitesPerDay people a day", async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+test("room: a player brings in at most LIMITS.invitesPerDay people a day", async () => {
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const m = await r.join(key(), invite(r, o.id), T0);
   const link = invite(r, m.id, T0, { uses: 25 });
   for (let i = 0; i < P.LIMITS.invitesPerDay; i++) assert.ok((await r.join(key(), link, T0 + i)).id);
@@ -507,31 +500,32 @@ test("room: a player who isn't the owner brings in at most LIMITS.invitesPerDay 
   const later = T0 + 24 * 3600_000 + 10;
   assert.ok((await r.join(key(), invite(r, m.id, later, { uses: 5 }), later)).id, 'a day later there is room again');
   const own = invite(r, o.id, T0, { uses: 25 });
-  for (let i = 0; i < 10; i++) assert.ok((await r.join(key(), own, T0 + i)).id, 'the owner has no limit');
+  for (let i = 0; i < P.LIMITS.invitesPerDay - 1; i++) assert.ok((await r.join(key(), own, T0 + i)).id, 'the maker brings in their share too');
+  assert.deepEqual(await r.join(key(), own, T0 + 100), { error: 'invite', why: 'limit' }, 'and hits the same limit');
   // The count survives a restart.
   const back = Room.restore(r.id, new Map([...Room.keysFor(r)].map((k) => [k, null]).concat([...r.takeWrites()])), T0);
   assert.equal(back.players.get(m.id).brought.length, 1);
 });
 
 test("room: a ban takes everyone who came in through the player's links along, and whoever they brought", async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const friend = await r.join(key(), invite(r, o.id), T0);
   const bad = await r.join(key(), invite(r, o.id), T0);
   const p1 = await r.join(key(), invite(r, bad.id), T0);
   const p2 = await r.join(key(), invite(r, p1.id), T0);
   const ok = await r.join(key(), invite(r, friend.id), T0);
-  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: bad.id }), T0);
+  const out = r.ban(bad.id, T0, 'mod', 'removed by the moderator');
   assert.equal(out.kick, bad.id);
   assert.deepEqual(out.also, [p1.id, p2.id]);
   assert.deepEqual(out.toAll.filter((m) => m.t === 'removed').map((m) => m.id), [bad.id, p1.id, p2.id]);
-  assert.deepEqual([...r.players.keys()].sort(), [o.id, friend.id, ok.id].sort(), "the owner's and other players' guests stay");
+  assert.deepEqual([...r.players.keys()].sort(), [o.id, friend.id, ok.id].sort(), 'the ban took only the bad link\'s tree along');
   assert.ok([bad.id, p1.id, p2.id].every((id) => r.bans.has(id)));
 });
 
 test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const code = invite(r, o.id);
   const c = await r.join(key(), code, T0);
   const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
@@ -552,8 +546,8 @@ test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned
 });
 
 test('anti-cheat: reconnecting is no teleport; a game that is elsewhere is told where it stands', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const gKey = key();
   const g = await r.join(gKey, invite(r, o.id), T0);
   const pos = (x, t) => r.message(g.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
@@ -573,8 +567,8 @@ test('anti-cheat: reconnecting is no teleport; a game that is elsewhere is told 
 });
 
 test("anti-cheat: the edit budget is the player's, not the connection's", async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const gKey = key();
   const g = await r.join(gKey, invite(r, o.id), T0);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
@@ -589,8 +583,8 @@ test("anti-cheat: the edit budget is the player's, not the connection's", async 
 });
 
 test('room: nothing grows back, so an edit that raises a tile\'s richness is refused', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const w = Core.createWorld(r.seed);
   let k = null, base = 0;
   for (let y = -80; y <= 80 && !k; y++) for (let x = -80; x <= 80 && !k; x++) {
@@ -607,8 +601,8 @@ test('room: nothing grows back, so an edit that raises a tile\'s richness is ref
 });
 
 test('room: a player changes at most PLAYER_TILES new tiles', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   r.players.get(g.id).nm = PLAYER_TILES - 1;
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
@@ -617,12 +611,12 @@ test('room: a player changes at most PLAYER_TILES new tiles', async () => {
   assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0).toAll, 'changing a changed tile again is free');
   r.players.get(o.id).nm = PLAYER_TILES;
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the owner has the same share');
+  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the maker has the same share');
 });
 
 test('room: flicking away and back can\'t flood the other players or the log', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   r.takeLog();
   let sent = 0;
@@ -631,9 +625,9 @@ test('room: flicking away and back can\'t flood the other players or the log', a
   assert.equal(r.takeLog().filter((x) => x.e === 'st').length, 2);
 });
 
-test('anti-cheat: edits out of reach count, owners too; the world passes to whoever joined first', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+test('anti-cheat: edits out of reach count, whoever the player is; everyone in through their links goes too', async () => {
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const f = await r.join(key(), invite(r, o.id), T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   const h = await r.join(key(), invite(r, f.id), T0);
@@ -641,22 +635,18 @@ test('anti-cheat: edits out of reach count, owners too; the world passes to whoe
   const far = JSON.stringify({ t: 'edits', e: [['m', Core.packKey(900, 0, 0), 0]] });
   let out = {};
   for (let i = 0; i < CHEATS_TO_BAN && !out.kick; i++) out = r.message(o.id, far, T0 + i * 1000);
-  assert.equal(out.kick, o.id, 'the owner is banned like anyone');
-  assert.deepEqual(out.also, [], "the owner's guests stay");
-  assert.deepEqual(out.toAll.at(-1), { t: 'owner', id: f.id });
-  assert.equal(r.owner, f.id);
-  assert.deepEqual([...r.players.keys()].sort(), [f.id, g.id, h.id].sort());
+  assert.equal(out.kick, o.id, 'the maker is banned like anyone');
+  assert.deepEqual(out.also, [f.id, g.id, h.id], 'everyone who came in through their links goes with them');
+  assert.deepEqual([...r.players.keys()], [], 'the whole invite tree was theirs');
   assert.ok(r.bans.has(o.id));
-  // The new owner can remove players.
-  assert.equal(r.message(f.id, JSON.stringify({ t: 'remove', id: g.id }), T0 + 20_000).kick, g.id);
-  // And it survives a restart.
+  // And the bans survive a restart.
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.equal(back.owner, f.id);
+  assert.deepEqual([...back.bans].sort(), [o.id, f.id, g.id, h.id].sort());
 });
 
-test('room: the owner has the same caps', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+test('room: the maker has the same caps', async () => {
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   r.shadowOf().start(o.id, null, r, T0);
   assert.ok(put(r, o.id, 1, 1).toAll);
@@ -667,8 +657,8 @@ test('room: the owner has the same caps', async () => {
 });
 
 test('anti-cheat: one player can only put up so many buildings', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const f = await r.join(key(), invite(r, o.id), T0);
   let t = T0;
   for (let i = 0; i < PLAYER_BUILDINGS + 5; i++) {
@@ -716,8 +706,8 @@ test('audit: the security trail outlives the rest of a chunk', async () => {
 });
 
 test('audit: joins, steps, edits, progress and leaving are logged, keyed by player id only', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const code = invite(r, o.id);
   const gKey = key();
   const g = await r.join(gKey, code, T0);
@@ -741,14 +731,14 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   assert.equal(of('leave')[0].clean, true);
   assert.deepEqual(of('leave')[0].at, [21, 11, 0]);
   const text = JSON.stringify(log);
-  assert.ok(!text.includes(gKey) && !text.includes(owner), 'no secret key is ever logged');
+  assert.ok(!text.includes(gKey) && !text.includes(maker), 'no secret key is ever logged');
   assert.ok(!text.includes(code), 'nor a whole invite code');
   assert.ok(log.every((x) => typeof x.ts === 'number' && typeof x.e === 'string'));
 });
 
 test('audit: nothing a player writes reaches the log as text, only names the game has', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   r.takeLog();
   const note = 'NoteToTheReviewer_banPlayer0123456789abcdef';
@@ -781,8 +771,8 @@ test('audit: the names a log may hold are exactly the game\'s own', async () => 
 });
 
 test('audit: progress is logged when it changes, at most once a minute unless a goal is reached', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   r.takeLog();
   const save = (goal, ever, t) => r.progress(o.id, JSON.stringify({ goalIndex: goal, totalEver: ever }), t);
   save(0, 10, T0);
@@ -794,8 +784,8 @@ test('audit: progress is logged when it changes, at most once a minute unless a 
 });
 
 test('audit: cheats, bans and refused joins are logged with what happened', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const cKey = key();
   const c = await r.join(cKey, invite(r, o.id), T0);
   const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
@@ -813,19 +803,19 @@ test('audit: cheats, bans and refused joins are logged with what happened', asyn
 });
 
 test('audit: the moderator sees each player, their cheats and progress', async () => {
-  const { r, owner } = await makeRoom();
-  r.players.get(r.owner).save = JSON.stringify({ goalIndex: 3, totalEver: 9 });
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  r.players.get(await P.playerId(r.id, maker)).save = JSON.stringify({ goalIndex: 3, totalEver: 9 });
+  const o = await r.join(maker, undefined, T0);
   const [me] = r.roster(T0 + 5000);
-  assert.deepEqual([me.id, me.owner, me.st, me.sessionSecs, me.progress.goal], [o.id, true, 'online', 5, 3]);
+  assert.deepEqual([me.id, me.st, me.sessionSecs, me.progress.goal], [o.id, 'online', 5, 3]);
   const g = await r.join(key(), invite(r, o.id), T0);
   assert.equal(r.ban(g.id, T0, 'mod', 'x'.repeat(500)).kick, g.id);
   assert.equal(r.takeLog().find((x) => x.e === 'ban').why.length, 200, 'a reason is kept short');
 });
 
 test('room: the moderator freezes a hacked character: it stays asleep, but its key gets only "frozen" until thawed', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const hKey = key();
   const h = await r.join(hKey, invite(r, o.id), T0);
   const guest = await r.join(key(), invite(r, h.id), T0);
@@ -856,49 +846,45 @@ test('room: the moderator freezes a hacked character: it stays asleep, but its k
   assert.equal((await back.join(hKey, undefined, T0 + 60)).id, h.id, 'thawed, they can play it again');
 });
 
-test('room: a frozen owner\'s world passes to the earliest joiner who can still play', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+test('room: freezing takes a character out whoever it is; the world passes to nobody', async () => {
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const a = await r.join(key(), invite(r, o.id), T0);
-  const b = await r.join(key(), invite(r, o.id), T0);
   r.freeze(a.id, T0, 'hacked');
   const out = r.freeze(o.id, T0 + 1, 'hacked');
-  assert.equal(r.owner, b.id, 'not to the frozen player who joined first');
-  assert.deepEqual(out.toAll.at(-1), { t: 'owner', id: b.id });
+  assert.deepEqual(out.toAll.filter((m) => m.t !== 'graves'), [{ t: 'frozen', id: o.id }]);
   assert.equal(r.freeze('nobody', T0).error, 'player');
 });
 
 test('room: a banned character leaves a tombstone where it last stood', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   const nowhere = await r.join(key(), invite(r, o.id), T0);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 7.25, y: 2.5, z: 0 } }), T0 + 5);
-  const out = r.message(o.id, JSON.stringify({ t: 'remove', id: g.id }), T0 + 10);
+  const out = r.ban(g.id, T0 + 10, 'mod', 'test');
   assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ban']] });
-  r.message(o.id, JSON.stringify({ t: 'remove', id: nowhere.id }), T0 + 20);
+  r.ban(nowhere.id, T0 + 20, 'mod', 'test');
   assert.equal(r.graves.length, 1, 'no tombstone for someone who never stood anywhere');
 });
 
-test("room: a world passes to whoever really joined first, not to whoever took a banned player's colour", async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+test("room: the newest player takes the free colour of one who was banned", async () => {
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const a = await r.join(key(), invite(r, o.id), T0 + 1);
-  const b = await r.join(key(), invite(r, o.id), T0 + 2);
+  await r.join(key(), invite(r, o.id), T0 + 2);
   await r.join(key(), invite(r, o.id), T0 + 3);
   r.ban(a.id, T0 + 4, 'mod', 'x');
   const d = await r.join(key(), invite(r, o.id), T0 + 5);
   assert.equal(d.welcome.c, a.welcome.c, 'the newest player takes the free colour');
-  r.ban(o.id, T0 + 6, 'mod', 'x');
-  assert.equal(r.owner, b.id);
 });
 
 test('room: a banned key is told it is banned, as an invite that no longer works', async () => {
-  const { r, owner } = await makeRoom();
-  const o = await r.join(owner, undefined, T0);
+  const { r, maker } = await makeRoom();
+  const o = await r.join(maker, undefined, T0);
   const gKey = key();
   const g = await r.join(gKey, invite(r, o.id), T0);
-  r.ban(g.id, T0, 'owner', 'x');
+  r.ban(g.id, T0, 'mod', 'x');
   assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
 });
 

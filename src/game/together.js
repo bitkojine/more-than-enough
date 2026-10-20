@@ -171,7 +171,7 @@ function cleanGraves(list) {
 }
 
 function cleanWelcome(d) {
-  if (!ID_RE.test(d.you) || !ID_RE.test(d.owner) || cleanColor(d.c) === null) return null;
+  if (!ID_RE.test(d.you) || cleanColor(d.c) === null) return null;
   const world = cleanWorld({ seed: d.seed, mods: d.mods, props: d.props, ext: d.ext });
   const players = cleanPlayers(d.players);
   const gen = d.gen ?? 0; // how often the world was made again (only by the nuke, gone since v0.117.0)
@@ -180,7 +180,7 @@ function cleanWelcome(d) {
   const save = d.save === null || d.save === undefined ? null : cleanSave(d.save);
   if (!world || !players || (d.save && !save)) return null;
   return {
-    you: d.you, owner: d.owner, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
+    you: d.you, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
     time: d.time === undefined ? null : cleanTime(d.time), gen, graves: cleanGraves(d.graves ?? []), fmt,
     pong: d.pong === true, ack: d.ack === true, // rooms from before v0.85.0 do neither
@@ -209,7 +209,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   let room = null;          // the shared world you're in (or joining)
   let back = null;          // the shared world you're still in while a link takes you to another
   let code = null;          // the invite you're joining with, used once
-  let me = null, owner = null, myColor = 0;
+  let me = null, myColor = 0;
   let welcomed = false;     // the room has sent this connection its world
   let clock = null;         // the world's clock: {t: its time, at: our time then}
   let retry = 0, retryTimer = null;
@@ -336,7 +336,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (game.state.shared) save(game.state, true);
     const wasIn = !!game.state.shared;
     if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
-    room = null; back = null; code = null; me = null; owner = null; clock = null;
+    room = null; back = null; code = null; me = null; clock = null;
     graves = [];
     unacked = []; sent = []; sentActs = [];
     hangUp();
@@ -458,16 +458,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       roster = null;
       return;
     }
-    // The owner was removed for cheating: the world is someone else's now.
-    if (d.t === 'owner') {
-      if (typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
-      owner = d.id;
-      roster = null;
-      renderFriends();
-      game.changedMode();
-      hud.toast(d.id === me ? t('together.toast.youOwn') : t('together.toast.newOwner', { name: nameOf(d.id) }));
-      return;
-    }
     if (d.t === 'invite') {
       if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until)) return;
       openQr(d.code, d.until);
@@ -516,12 +506,12 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     pongs = w.pong; acks = w.ack; pingT = PING_EVERY;
     code = null;  // an invite is for getting in once
     back = null;
-    me = w.you; owner = w.owner; myColor = w.c;
+    me = w.you; myColor = w.c;
     friends.clear();
     roster = null;
     for (const [id, p] of w.players) friends.set(id, { ...p, shown: null, heard: performance.now() / 1000, since: 0, actor: createActor() });
     graves = w.graves;
-    remember(room, w.you === w.owner);
+    remember(room);
     write(PLAYING_STORE, room);
     // The world was made again (by the nuke, before v0.117.0) since this
     // phone was last in it:
@@ -546,8 +536,9 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       const fixed = w.econ && !renewed && Core.overCounted(kept, w.save);
       let fog = null;
       try { fog = JSON.parse(read(FOG_PREFIX + room) || 'null'); } catch { fog = null; }
-      const near = [...w.players.entries()].filter(([, f]) => f.st === 'online' && f.p)
-        .sort(([a], [b]) => (a === w.owner ? -1 : b === w.owner ? 1 : 0)).map(([, f]) => f.p)[0] || w.p;
+      const mine = w.p || { x: 0, y: 0 };
+      const near = [...w.players.values()].filter((f) => f.st === 'online' && f.p).map((f) => f.p)
+        .sort((a, b) => Math.hypot(a.x - mine.x, a.y - mine.y) - Math.hypot(b.x - mine.x, b.y - mine.y))[0] || w.p;
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
       game.replace(state);
@@ -789,9 +780,8 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
 
   /* ------------------------------------------------------ invite links */
 
-  // Every invite link you may see (all of them for the world's owner), with
-  // who made it, how many joined with it, and Show and Stop. Built from
-  // elements and text only, never HTML.
+  // The invite links you made, with how many joined with each, and Show and
+  // Stop. Built from elements and text only, never HTML.
   // Never "loading" for ever: no answer in a few seconds says so.
   let invitesTimer = 0;
   function listInvites() {
@@ -949,28 +939,25 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     renderChips(el.friends, list, { tap: friendTapped, more: showPlayers });
   }
 
-  // The Players screen: everyone in the world, the owner able to remove them.
+  // The Players screen: everyone in the world.
   function listPlayers() {
     const s = game.state, at = s.player;
     const rows = [];
-    if (me) rows.push({ id: me, name: nameOf(me), color: friendColor(myColor), st: 'online', you: true, owner: me === owner, far: null, dz: 0 });
+    if (me) rows.push({ id: me, name: nameOf(me), color: friendColor(myColor), st: 'online', you: true, far: null, dz: 0 });
     for (const [id, f] of friends) {
       const p = f.shown || f.p;
-      rows.push({ id, name: nameOf(id), color: friendColor(f.c), st: stateOf(f), you: false, owner: id === owner,
+      rows.push({ id, name: nameOf(id), color: friendColor(f.c), st: stateOf(f), you: false,
         far: p ? Math.hypot(p.x - at.x, p.y - at.y) : null, dz: p ? p.z - at.z : 0 });
     }
     const rank = { online: 0, lost: 1, away: 2, offline: 3 };
     rows.sort((a, b) => b.you - a.you || rank[a.st] - rank[b.st] || (a.far ?? Infinity) - (b.far ?? Infinity));
-    renderPlayers(el.playersPanel, rows, me && me === owner ? friendTapped : null);
+    renderPlayers(el.playersPanel, rows);
   }
 
-  // The owner can remove someone from their world (say a link got out).
-  async function friendTapped(id) {
+  // Tapping a friend under the top bar says how they're doing there.
+  function friendTapped(id) {
     const f = friends.get(id);
-    if (!f) return;
-    if (me !== owner) { hud.toast(nameOf(id) + ': ' + t('together.state.' + stateOf(f))); return; }
-    const yes = await ask({ title: t('together.remove.title', { name: nameOf(id) }), text: t('together.remove.text'), yes: t('together.remove.yes'), danger: true });
-    if (yes && friends.has(id)) send({ t: 'remove', id });
+    if (f) hud.toast(nameOf(id) + ': ' + t('together.state.' + stateOf(f)));
   }
 
   /* ---------------------------------------------------- joining a world */
@@ -1094,9 +1081,8 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   }
 
   return {
-    available: !!service,
+    get available() { return !!service; },
     get active() { return !!game.state.shared; },
-    get isOwner() { return !!me && me === owner; },
     // The world you're in, by name, for Settings.
     get worldName() { return game.state.shared ? worldName(game.state.shared) : t('worlds.own'); },
     get color() { return myColor; },

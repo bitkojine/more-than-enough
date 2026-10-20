@@ -182,6 +182,9 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
 - `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why; `docs/music.md` — the soundtrack
 - `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
+- `test/property/` — property tests: random legal play, checked against the
+  rules the game must never break (`invariants.js`), thousands of short games
+  per run; a failure prints the seed it replays from (`PROP_SEEDS=<seed> npm test`)
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
 - `scripts/stage-site.sh` — stages the deployable site (game + wiki) with cache-busted URLs
@@ -195,7 +198,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 ## Tests
 
 ```sh
-npm test            # node:test over test/unit/ — world layers, actions, economy, saves, bot playthroughs, translations
+npm test            # node:test over test/unit/ and test/property/ — world layers, actions, economy, saves, bot playthroughs, translations, and the game's invariants under random play
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 npm run test:layout # real Chrome: every screen at 12 sizes in both languages (see docs/ui.md)
 node scripts/perfect-bench.mjs --check  # the Perfect button, held to Embark on 4 worlds, against its baseline
