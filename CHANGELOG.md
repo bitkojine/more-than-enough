@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.131.2] - 2026-10-20
+
+A deploy's own checks now run before the push, and a full stockpile is
+never cut short on a phone.
+
+### Fixed
+- A full stockpile shows whole on a narrow phone: the resource bar's
+  count ("987B") was clipped by 2px at 375×667 and, in Lithuanian, at
+  430×932, because the picture and the gap left it too little room. The
+  count now fits at every size the layout walk checks.
+
+### Added
+- `npm run check`: what CI will run, run here first, in seconds — `npm test`
+  and the Perfect benchmark when the rules changed, then the deploy's own
+  `stage-site.sh`. `npm run check -- quick` skips the benchmark. It exists
+  because a deploy failed on a bug no local step covered; see Changed. The
+  slow checks stay by hand, run when what they cover changes: `test:layout`
+  (~4 min, after a layout or text change) and `test:e2e` (gameplay).
+- `test/unit/smoke.test.js`: the deploy's smoke checks (`server/checks.mjs`)
+  run in `npm test` against a real `Room` in this process, with no network
+  and no admin token. The live `server/smoke.mjs` and this share one copy
+  of the checks, so a wrong idea about the wire fails locally, not only in
+  CI after a deploy.
+
+### Changed
+- The deploy's smoke test reads the wire's shapes from
+  `src/net/protocol.js` (`ID_RE`, `ROOM_ID_RE`) instead of its own regular
+  expressions. It checked a player's id against the room's 22-char shape
+  and failed every deploy until fixed; the shared checks now can't drift
+  from the wire again.
+
 ## [0.131.1] - 2026-10-20
 
 Shared worlds have no owners any more: every world belongs to everyone

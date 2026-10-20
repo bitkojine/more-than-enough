@@ -216,10 +216,11 @@ body.signing #btnVersion { visibility: hidden; }
 .chip:first-child { border-radius: 999px 0 0 999px; }
 .chip:last-child { border-radius: 0 999px 999px 0; }
 /* The count beside its picture, the rate under both, using the chip's whole
- * width. Counts and rates are abbreviated to fit (fmtShort); should one ever
- * not, it's cut short rather than spilling into the next chip. */
-.chip .top { display: flex; align-items: center; gap: 3px; max-width: 100%; }
-.chip .ic { width: 18px; height: 18px; flex: 0 0 auto; }
+ * width. Counts and rates are abbreviated to fit (fmtShort: at most three
+ * digits and a unit, "987B"); the picture and the gap are kept just tight
+ * enough that even that fits, so a full stockpile is never cut short. */
+.chip .top { display: flex; align-items: center; gap: 2px; max-width: 100%; }
+.chip .ic { width: 17px; height: 17px; flex: 0 0 auto; }
 .chip .val, .chip .rate { min-width: 0; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .chip .val {
   font-size: 15px; font-weight: 800; color: var(--ink);
@@ -230,14 +231,14 @@ body.signing #btnVersion { visibility: hidden; }
 /* Most phones: a little smaller, so four digits fit beside the picture. */
 @media (max-width: 413px) {
   .chip { padding: 0 2px; }
-  .chip .top { gap: 2px; }
-  .chip .ic { width: 16px; height: 16px; }
+  .chip .top { gap: 1px; }
+  .chip .ic { width: 15px; height: 15px; }
   .chip .val { font-size: 13px; }
 }
 /* Narrow phones: each resource's picture over its count, rates left out. */
 @media (max-width: 374px) {
   .chip .top { flex-direction: column; gap: 1px; }
-  .chip .ic { width: 16px; height: 16px; }
+  .chip .ic { width: 15px; height: 15px; }
   .chip .val { font-size: 13px; }
   .chip .rate { display: none; }
 }

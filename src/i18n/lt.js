@@ -850,6 +850,7 @@ export default {
   "badge.new": "NAUJA",
   "news.full": "Visi pakeitimai, kūrėjams",
   "news.shareIdea": "Pasiūlyti idėją",
+  "news.0.131.2": "Pilna atsarga dabar telpa išteklų juostoje siaurame ekrane — didžiausiems kiekiams buvo nukerpama paskutinė raidė.",
   "news.0.131.1": "Bendriems pasauliams priklauso visiems juose esantiems: savininkų nebeliko. Žaidėjų sąraše nebeliko žymos „savininkas“, kvietimų sąraše matosi tik tavo pačių sukurtos nuorodos, ir niekas nebepašalina žaidėjo iš vidaus. Watch rūpinasi kiekvienu pasauliu — stabdo pasklidusias nuorodas ir pašalina sukčiaujančius žaidėjus.",
   "news.0.131.0": "Pasauliai žaisti kartu dabar kuriami Watch, po vieną, kai jų prireikia: mygtuko „į internetą“ nebeliko. Kvietimo ženklas vis dar pakyla, kai esi bendrame pasaulyje, o draugo nuoroda tave į jį nuveda. Vieno žaidimo nepasikeitė — tavo pasaulis lieka tavo.",
   "news.0.130.2": "Kas valandą galimų naujų kambarių limitai dabar skaičiuoja tik tikrai sukurtus kambarius: nesėkmingas ar bevertis bandymas nieko neatima nei iš tavęs, nei iš kitų.",

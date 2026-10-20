@@ -9,6 +9,7 @@
     "test": "node --test \"test/unit/*.test.js\" \"test/property/*.test.js\"",
     "test:e2e": "node test/browser.e2e.js",
     "test:layout": "node test/layout.e2e.js",
+    "check": "sh scripts/check.sh",
     "stage": "sh scripts/stage-site.sh site"
   },
   "engines": {

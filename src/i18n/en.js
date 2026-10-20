@@ -850,6 +850,7 @@ export default {
   "badge.new": "NEW",
   "news.full": "Every change, for developers",
   "news.shareIdea": "Share an idea",
+  "news.0.131.2": "A full stockpile now shows whole in the resource bar on a narrow screen — the biggest counts were getting their last letter clipped.",
   "news.0.131.1": "Shared worlds belong to everyone in them now: there are no owners. Players no longer shows an “owner” tag, Invite links shows only the links you made yourself, and nobody removes a player from inside the game any more. Watch looks after every world — stopping links that get out and taking out players who cheat.",
   "news.0.131.0": "Worlds to play together in are now made by Watch, one at a time as they're needed: there is no “go online” button any more. The Invite sign still holds up your invite once you're in a shared world, and a friend's link takes you into one. Playing alone is exactly as before — your own world stays yours.",
   "news.0.130.2": "The hourly limits on new rooms now count only rooms that really get made: a failed or junk attempt never spends your share — or anyone's.",
