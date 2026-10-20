@@ -34,19 +34,7 @@ const post = (origin, body) => fetch(BASE + '/rooms', { method: 'POST', headers:
 
 check((await post(null, '{}')).status === 403, 'no Origin: refused');
 check((await post('https://evil.example', '{}')).status === 403, 'another site: refused');
-// Worlds are Watch's to make: a stranger is refused before the body is read.
-const shut = await post(ORIGIN, '{"t":"create","key":"short"}');
-check(shut.status === 403, 'a stranger cannot make a world (' + shut.status + ' ' + (await shut.text()) + ')');
 const adminToken = process.env.ROOMS_ADMIN_TOKEN;
-if (adminToken) {
-  // Under the token, a body that couldn't make a world is still a plain 400.
-  const bad = await fetch(BASE + '/rooms', {
-    method: 'POST',
-    headers: { Origin: ORIGIN, 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken },
-    body: '{"t":"create","key":"short"}'
-  });
-  check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
-}
 
 // Right after a deploy the old version may still make and run rooms for a
 // few seconds: rooms are made until one welcomes with what this version
@@ -74,6 +62,26 @@ for (let i = 0; i < 5; i++) { // (right after a deploy an old version may still 
 }
 check(res.status === 201 && /^[A-Za-z0-9_-]{22}$/.test(room), 'a room is made');
 check(hi && hi.you === hi.owner && hi.seed === 12345, 'the owner gets the world back');
+
+// Worlds are Watch's to make: a stranger is refused before the body is read.
+// The check waits out the rollout — for a few seconds after a deploy the
+// previous version may still answer at the edge, and it made junk bodies a
+// 400 — but the loop above only ends on a welcome from this version.
+let shut = 0;
+for (let wait = 1000; shut !== 403 && wait <= 16000; wait *= 2) {
+  shut = (await post(ORIGIN, '{"t":"create","key":"short"}')).status;
+  if (shut !== 403) await new Promise((r) => setTimeout(r, wait));
+}
+check(shut === 403, 'a stranger cannot make a world (' + shut + ')');
+if (adminToken) {
+  // Under the token, a body that couldn't make a world is still a plain 400.
+  const bad = await fetch(BASE + '/rooms', {
+    method: 'POST',
+    headers: { Origin: ORIGIN, 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken },
+    body: '{"t":"create","key":"short"}'
+  });
+  check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
+}
 
 const stranger = connect(room, hex(32));
 check(/1008 invite/.test(await stranger.closed), 'a stranger without an invite is turned away');
