@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.131.0] - 2026-10-20
+
+Shared worlds are made by Watch now, by hand, as many as players need —
+one multiplayer world to start with. Nothing else creates a world, so
+there is no creation left for anyone to flood: the door is shut before
+the body is even read.
+
+### Changed
+- `POST /rooms` answers only to the admin token (403 otherwise); the
+  per-IP and shared creation rate limits and their Durable Object are
+  gone (`Limiter` deleted in wrangler migration v3).
+- The Invite sign only appears inside a shared world; the flow that
+  started a new world from your own ("Play together? / Go online") is
+  removed, with it keys only it used (`together.start.*`,
+  `privacy.start`, `together.toast.busy`, `together.toast.tooBig`) in
+  both languages.
+- The deploy's smoke test now needs `ROOMS_ADMIN_TOKEN` — it is the only
+  door to a world — and checks that a stranger's create is refused (403)
+  before a malformed body under the token is a plain 400.
+
 ## [0.130.2] - 2026-10-20
 
 Creating a world used to charge both rate-limit quotas (6/hour per address,

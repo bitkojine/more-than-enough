@@ -72,11 +72,6 @@ class FakeSocket {
 }
 globalThis.WebSocket = FakeSocket;
 
-// The room creation call (POST /rooms): the test answers it when it likes.
-let fetches = [];
-globalThis.fetch = (url, opts = {}) => new Promise((resolve) => fetches.push({ url, opts, resolve }));
-const answer = (f, status, body) => f.resolve({ ok: status < 300, status, json: async () => body });
-
 const { createTogether } = await import('../../src/game/together.js');
 
 /* ------------------------------------------------------- the harness */
@@ -118,6 +113,19 @@ async function makeRoom() {
   return { id, r, code };
 }
 
+// A world Watch made, gone into as its owner: the room was made with the
+// same key the player holds (`mte.key` is who you are to every room).
+async function ownedWorld(seed = 42) {
+  const key = P.randomHex(32);
+  store.set('mte.key', key);
+  const id = P.randomRoomId();
+  const r = new Room(id, T0);
+  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
+  const ownerId = await P.playerId(id, key);
+  const code = r.message(ownerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
+  return { id, r, code };
+}
+
 // The room service answers a socket's hello as the real room would.
 async function serve(room, socket) {
   socket.open();
@@ -131,7 +139,6 @@ async function serve(room, socket) {
 beforeEach(() => {
   store.clear();
   sockets.length = 0;
-  fetches = [];
   location.hash = '';
 });
 
@@ -174,68 +181,14 @@ test('client: a new connection always closes the one before it', async () => {
   assert.equal(together.active, true);
 });
 
-test('client: going online while the room is being made, then taking a link, keeps the link', async () => {
-  const b = await makeRoom();
-  const { together, game } = harness();
-  const solo = game.state;
-  together.start();
-  await tick();
-  assert.equal(fetches.length, 1, 'asking for a room');
-  // Meanwhile a friend's link opens and the player says yes.
-  location.hash = '#join=' + b.id + '.' + b.code;
-  together.joinFromLink();
-  await tick();
-  // Now the room arrives: it mustn't pull the game away from the link.
-  answer(fetches[0], 201, { room: P.randomRoomId() });
-  await tick(); await tick();
-  assert.equal(open().length, 1);
-  assert.equal(open()[0].room, b.id, 'still going into the friend\'s world');
-  await serve(b.r, open()[0]);
-  assert.equal(game.state.shared, b.id);
-  assert.notEqual(game.state, solo);
-});
-
-test('client: a second Invite tap while the first is making the room makes no second room', async () => {
-  const { together, toasts } = harness();
-  together.start();
-  await tick();
-  together.start();
-  await tick();
-  assert.equal(fetches.length, 1, 'one room asked for');
-  assert.ok(toasts.includes('Not connected yet, try again in a moment'));
-});
-
-test('client: going online starts a new world from nothing, and your world here stays as it was', async () => {
-  const { together, game } = harness();
-  game.state.inv.stone = 1234;
-  const soloSeed = game.state.seed;
-  store.set('more-than-enough-save', 'the solo save');
-  together.start();
-  await tick();
-  const sent = JSON.parse(fetches[0].opts.body);
-  assert.equal(sent.save, undefined, 'no progress is sent');
-  assert.deepEqual([sent.world.mods, sent.world.props, sent.world.ext], [[], [], []], 'nor what was built or dug');
-  assert.notEqual(sent.world.seed, soloSeed, 'a new world');
-  const id = P.randomRoomId();
-  const r = new Room(id, T0);
-  assert.equal(await r.init(JSON.stringify(sent), T0), null);
-  answer(fetches[0], 201, { room: id });
-  await tick(); await tick();
-  await serve(r, open()[0]);
-  assert.equal(game.state.shared, id);
-  assert.equal(game.state.inv.stone, 0, 'everyone starts from nothing, you too');
-  assert.equal(store.get('more-than-enough-save'), 'the solo save', 'your world here is kept for playing alone');
-});
-
-test('client: a failed go-online does not hold up the sign in the next world you enter', async () => {
+test('client: a failed entry does not hold up the sign in the next world you enter', async () => {
   const { together, el } = harness();
   let up = 0;
   el.invite.classList.toggle = (cls, on) => { if (cls === 'up' && on) up++; };
-  together.start();
+  const a = await makeRoom();
+  location.hash = '#join=' + a.id + '.' + a.code;
+  together.joinFromLink();
   await tick();
-  const madeId = P.randomRoomId();
-  answer(fetches[0], 201, { room: madeId });
-  await tick(); await tick();
   open()[0].lose(1006); // never got in: the service is down
   await tick();
   assert.equal(together.active, false);
@@ -472,24 +425,20 @@ test('client: progress the room can\'t account for is set straight, and stays st
 });
 
 test('client: the owner of a new world plays it, and the room counts what they do', async () => {
+  const w = await ownedWorld();
   const { together, game } = harness();
-  together.start();
+  location.hash = '#join=' + w.id + '.' + w.code;
+  together.joinFromLink();
   await tick();
-  const sent = JSON.parse(fetches[0].opts.body);
-  const id = P.randomRoomId();
-  const r = new Room(id, T0);
-  assert.equal(await r.init(JSON.stringify(sent), T0), null);
-  answer(fetches[0], 201, { room: id });
-  await tick(); await tick();
   const socket = open()[0];
-  const me = await serve(r, socket);
+  const me = await serve(w.r, socket);
   let now = T0;
-  const bot = createBot(sent.world.seed, game.state, () => { together.tick(0.1); pump(r, me, socket, now = T0 + Math.round(game.state.stats.playedMs) + 500); });
+  const bot = createBot(42, game.state, () => { together.tick(0.1); pump(w.r, me, socket, now = T0 + Math.round(game.state.stats.playedMs) + 500); });
   bot.gather('stone', 8);
   bot.gather('mycelium', 6);
   together.save(game.state, true);
-  pump(r, me, socket, now + 100);
-  assert.deepEqual(r.log.filter((e) => e.e === 'drift'), [], 'the room agrees');
+  pump(w.r, me, socket, now + 100);
+  assert.deepEqual(w.r.log.filter((e) => e.e === 'drift'), [], 'the room agrees');
   assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
 });
 
@@ -497,15 +446,12 @@ test('client: the owner of a new world plays it, and the room counts what they d
 // them. What the room writes goes to `stored` as the room service's storage
 // keeps it, so the room can restart from it.
 async function owning() {
+  const w = await ownedWorld();
   const h = harness();
-  h.together.start();
+  const g = { ...h, r: w.r, stored: new Map([['id', w.id]]) };
+  location.hash = '#join=' + w.id + '.' + w.code;
+  h.together.joinFromLink();
   await tick();
-  const sent = JSON.parse(fetches[0].opts.body);
-  const id = P.randomRoomId();
-  const g = { ...h, r: new Room(id, T0), stored: new Map([['id', id]]) };
-  assert.equal(await g.r.init(JSON.stringify(sent), T0), null);
-  answer(fetches[0], 201, { room: id });
-  await tick(); await tick();
   g.me = await serve(g.r, open()[0]);
   g.clock = () => T0 + Math.round(h.game.state.stats.playedMs) + 500;
   g.pump = (now = g.clock()) => {
@@ -513,7 +459,7 @@ async function owning() {
     if (socket && !g.swallowing) pump(g.r, g.me, socket, now);
     for (const [k, v] of g.r.takeWrites()) if (v === null) g.stored.delete(k); else g.stored.set(k, structuredClone(v));
   };
-  g.bot = createBot(sent.world.seed, h.game.state, () => { h.together.tick(0.1); g.pump(); });
+  g.bot = createBot(42, h.game.state, () => { h.together.tick(0.1); g.pump(); });
   return g;
 }
 

@@ -23,10 +23,6 @@ name = "ROOMS"
 class_name = "Rooms"
 
 [[durable_objects.bindings]]
-name = "LIMITER"
-class_name = "Limiter"
-
-[[durable_objects.bindings]]
 name = "REGISTRY"
 class_name = "Registry"
 
@@ -38,3 +34,9 @@ new_sqlite_classes = ["Rooms", "Limiter"]
 [[migrations]]
 tag = "v2"
 new_sqlite_classes = ["Registry"]
+
+# The creations counter went with worlds becoming Watch's to make: the door
+# is shut for everyone else (src/worker.js, POST /rooms).
+[[migrations]]
+tag = "v3"
+deleted_classes = ["Limiter"]

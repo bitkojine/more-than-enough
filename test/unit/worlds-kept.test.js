@@ -86,9 +86,9 @@ test('worlds kept: the room has no way left to remake or wipe a world', () => {
   }
   const worker = readFileSync(new URL('../../server/src/worker.js', import.meta.url), 'utf8');
   assert.doesNotMatch(worker, /renew|nuke/i, 'the Durable Object never remakes a world');
-  // deleteAll only where a room is meant to go: an expired room (a copy or a
-  // smoke test, see the next test) and the invite-rate bucket.
-  assert.equal(worker.match(/deleteAll\(/g).length, 2);
+  // The only deleteAll left is where a room is meant to go: an expired room
+  // (a copy or a smoke test, see the next test).
+  assert.equal(worker.match(/deleteAll\(/g).length, 1);
 });
 
 test('worlds kept: a players\' world is never deleted for being unvisited, whatever its seed; only rooms the server marked as smoke tests and copies go', async () => {

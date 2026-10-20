@@ -34,8 +34,6 @@ import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
 import { VERSION } from '../../src/version.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate } from '../../src/net/protocol.js';
 
-const CREATES_PER_HOUR = 6;      // rooms one visitor may make
-const CREATES_PER_HOUR_ALL = 300; // rooms everyone together may make: a ceiling for floods from many addresses
 const HELLO_MS = 5_000;          // a socket must say who it is within this
 const SOCKETS_PER_VISITOR = 8;   // sockets one visitor may hold in a room
 const STRANGERS_PER_VISITOR = 3; // of them, ones that haven't said who they are yet
@@ -260,24 +258,20 @@ export default {
     if (!okOrigin) return respond({ error: 'origin' }, 403, null);
 
     if (url.pathname === '/rooms' && request.method === 'POST') {
+      // Worlds are made by Watch, by hand, as many as players need
+      // (2026-10-20): the door is shut for everyone else before the body is
+      // even read, so there is no creation left to flood. The deploy's
+      // smoke test creates under the admin token and marks its own room to
+      // age out (room.js); worlds Watch makes stay unmarked.
+      const trusted = await isAdmin(request, env);
+      if (!trusted) return respond({ error: 'closed' }, 403, okOrigin);
       const len = Number(request.headers.get('Content-Length') || 0);
       if (len > LIMITS.createBytes) return respond({ error: 'size' }, 413, okOrigin);
       const body = await readCapped(request, LIMITS.createBytes);
       if (body === null) return respond({ error: 'size' }, 413, okOrigin);
-      // A body must be a create we can actually make before any quota is
-      // charged: junk costs nothing and touches no room, so flooding junk
-      // can't spend the shared ceiling that players make their worlds with.
+      // A body must be a create a room can actually be made from, or it is
+      // refused here without a room ever being touched.
       if (!cleanCreate(parse(body, LIMITS.createBytes))) return respond({ error: 'bad' }, 400, okOrigin);
-      // The deploy's smoke test creates under the admin token: it is trusted,
-      // counts against no one's quota (the CI address makes up to five rooms
-      // a run), and its room is the only kind marked to age out (room.js).
-      const trusted = await isAdmin(request, env);
-      if (!trusted) {
-        const gate = env.LIMITER.get(env.LIMITER.idFromName(visitor(request.headers.get('CF-Connecting-IP'))));
-        if (!(await gate.allow(Date.now(), CREATES_PER_HOUR))) return respond({ error: 'busy' }, 429, okOrigin);
-        const all = env.LIMITER.get(env.LIMITER.idFromName('*'));
-        if (!(await all.allow(Date.now(), CREATES_PER_HOUR_ALL))) return respond({ error: 'busy' }, 429, okOrigin);
-      }
       const id = randomRoomId();
       const room = env.ROOMS.get(env.ROOMS.idFromName(id));
       const err = await room.create(id, body, trusted);
@@ -310,26 +304,6 @@ export default {
     return respond({ error: 'not found' }, 404, okOrigin);
   }
 };
-
-/* ------------------------------------------------------------------ */
-
-// Counts room creations for one visitor (an object per visitor), or for
-// everyone (the object named '*').
-export class Limiter extends DurableObject {
-  async allow(now, limit) {
-    const hour = 3600_000;
-    const times = ((await this.ctx.storage.get('t')) || []).filter((t) => now - t < hour);
-    if (times.length >= limit) return false;
-    times.push(now);
-    await this.ctx.storage.put('t', times);
-    await this.ctx.storage.setAlarm(now + hour);
-    return true;
-  }
-
-  async alarm() {
-    await this.ctx.storage.deleteAll();
-  }
-}
 
 /* ------------------------------------------------------------------ */
 

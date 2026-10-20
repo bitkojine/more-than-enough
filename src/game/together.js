@@ -20,7 +20,7 @@ import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
-import { loadGame, randomSeed } from './storage.js';
+import { loadGame } from './storage.js';
 import { createActor } from './render/motion.js';
 import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
 
@@ -338,7 +338,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (forget && read(PLAYING_STORE) === (game.state.shared || room)) write(PLAYING_STORE, '');
     room = null; back = null; code = null; me = null; owner = null; clock = null;
     graves = [];
-    pendingInvite = false; // for the world you were going into, not the next one
     unacked = []; sent = []; sentActs = [];
     hangUp();
     friends.clear();
@@ -566,7 +565,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
     game.changedMode();
-    if (game.state.shared === room && pendingInvite) { pendingInvite = false; showInvite(); }
   }
 
   // Back after a lost connection: the room's world wins, your progress stays,
@@ -747,8 +745,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
 
   /* -------------------------------------------------------- the QR sign */
 
-  let pendingInvite = false;
-
   function showInvite() {
     if (!game.state.shared || !welcomed) { hud.toast(t('together.toast.offline')); return; }
     send({ t: 'invite', ...inviteAsk() });
@@ -897,11 +893,12 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     send({ t: 'revoke', code: inviteCode });
   }
 
-  // The main Invite button: holds up your sign (going online first if this
-  // world isn't shared yet), or puts it down.
+  // The main Invite button: holds up your sign, or puts it down. It is only
+  // there inside a shared world: worlds are made by Watch now, so there is
+  // nothing here to start — you get into one through a friend's link.
   function renderButton() {
     const up = !!invite;
-    el.invite.hidden = !service;
+    el.invite.hidden = !service || !game.state.shared;
     el.invite.classList.toggle('up', up);
     document.body.classList.toggle('signing', up); // clears the screen around the sign (style.css)
     el.invite.setAttribute('aria-pressed', String(up));
@@ -909,8 +906,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   }
   el.invite.addEventListener('click', () => {
     if (invite) closeQr();
-    else if (game.state.shared) showInvite();
-    else start();
+    else showInvite();
   });
 
   /* ---------------------------------------------------- friends in the HUD */
@@ -977,7 +973,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (yes && friends.has(id)) send({ t: 'remove', id });
   }
 
-  /* ---------------------------------------------------- starting & joining */
+  /* ---------------------------------------------------- joining a world */
 
   // The question before going into a shared world says that playing
   // together accepts the privacy policy and links to it: yes accepts it,
@@ -1002,42 +998,12 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     hud.toast(t('privacy.toast'));
   }
 
-  // Already on the way into a shared world (back into yours, through a
-  // link, or going online): a second one would race it. Says so.
+  // Already on the way into a shared world (back into yours, or through a
+  // link): a second one would race it. Says so.
   function busy() {
-    if (!room && !starting) return false;
+    if (!room) return false;
     hud.toast(t('together.toast.offline'));
     return true;
-  }
-
-  // Your world goes online: a room is made from it and you're its owner.
-  let starting = false;
-  async function start() {
-    if (!service || game.state.shared || busy()) return;
-    if (!(await askTogether('start')) || game.state.shared || busy()) return;
-    starting = true;
-    try { await goOnline(); } finally { starting = false; }
-  }
-
-  async function goOnline() {
-    const s = game.state;
-    // A new world, everyone in it starting from nothing, you too (Watch's
-    // call: the room can't check progress made anywhere else). Your world
-    // here stays as it is for playing alone.
-    const body = JSON.stringify({ t: 'create', key: myKey(), world: { seed: randomSeed(), mods: [], props: [], ext: [] }, time: cleanTime(s.time) ?? 0 });
-    if (body.length > LIMITS.createBytes) { hud.toast(t('together.toast.tooBig')); return; }
-    let made;
-    try {
-      const res = await fetch(service + '/rooms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-      made = res.ok ? await res.json() : null;
-      if (res.status === 429) { hud.toast(t('together.toast.busy')); return; }
-    } catch { made = null; }
-    // Something else took you into a shared world meanwhile: that stands.
-    if (game.state.shared || room) return;
-    if (!made || typeof made.room !== 'string' || !ROOM_ID_RE.test(made.room)) { hud.toast(t('together.toast.unreachable')); return; }
-    room = made.room;
-    pendingInvite = true;
-    connect();
   }
 
   // `orBack`: the shared world the game was about to go back into when the
@@ -1101,7 +1067,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   // you after all (this list is only this phone's).
   function switchTo(id, inviteCode = null) {
     const here = game.state.shared || room;
-    if (id === here || starting) return;
+    if (id === here) return;
     if (!id) return stop();
     if (!service) return;
     if (game.state.shared) save(game.state, true);
@@ -1139,7 +1105,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     get signFace() { return signFace; },
     tick,
     save,
-    start,
     listWorlds,
     listPlayers,
     switchTo,

@@ -34,26 +34,36 @@ const post = (origin, body) => fetch(BASE + '/rooms', { method: 'POST', headers:
 
 check((await post(null, '{}')).status === 403, 'no Origin: refused');
 check((await post('https://evil.example', '{}')).status === 403, 'another site: refused');
-const bad = await post(ORIGIN, '{"t":"create","key":"short"}');
-check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
+// Worlds are Watch's to make: a stranger is refused before the body is read.
+const shut = await post(ORIGIN, '{"t":"create","key":"short"}');
+check(shut.status === 403, 'a stranger cannot make a world (' + shut.status + ' ' + (await shut.text()) + ')');
+const adminToken = process.env.ROOMS_ADMIN_TOKEN;
+if (adminToken) {
+  // Under the token, a body that couldn't make a world is still a plain 400.
+  const bad = await fetch(BASE + '/rooms', {
+    method: 'POST',
+    headers: { Origin: ORIGIN, 'Content-Type': 'application/json', Authorization: 'Bearer ' + adminToken },
+    body: '{"t":"create","key":"short"}'
+  });
+  check(bad.status === 400, 'a malformed world: refused (' + bad.status + ' ' + (await bad.text()) + ')');
+}
 
 // Right after a deploy the old version may still make and run rooms for a
 // few seconds: rooms are made until one welcomes with what this version
 // says (`ack`), for a while.
+if (!adminToken) { console.error('ROOMS_ADMIN_TOKEN is needed: worlds are made under it now.'); process.exit(1); }
 let ownerKey, res, room, owner, hi;
-for (let i = 0; i < 5; i++) { // (a visitor may make 6 rooms an hour)
+for (let i = 0; i < 5; i++) { // (right after a deploy an old version may still answer)
   if (i) { owner.ws.close(1000, 'bye'); await new Promise((r) => setTimeout(r, 3000)); }
   ownerKey = hex(32);
   // Under the admin token the room is marked as a smoke test (so it ages out
-  // unvisited, like every deploy's room ever since) and counts against no
-  // one's creation quota. Without the token the room still works, just
-  // unmarked and among players' worlds.
-  const admin = process.env.ROOMS_ADMIN_TOKEN;
+  // unvisited, like every deploy's room ever since): the token is the only
+  // door to a world now, and the mark is the only kind that ages out.
   res = await fetch(BASE + '/rooms', {
     method: 'POST',
     headers: {
       Origin: ORIGIN, 'Content-Type': 'application/json',
-      ...(admin ? { Authorization: 'Bearer ' + admin } : {})
+      Authorization: 'Bearer ' + adminToken
     },
     body: JSON.stringify({ t: 'create', key: ownerKey, smoke: true, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } })
   });
