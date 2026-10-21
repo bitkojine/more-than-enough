@@ -157,7 +157,7 @@ export class Shadow {
   // what they've seen); ms: the play time it's as of; away: what their
   // buildings made while they were away, or null}. `gone`: [when, play time]
   // they last left (room.js left), if this is their first progress since.
-  settle(id, save, now, room, gone = null) {
+  settle(id, save, now, room, gone = null, awayProduce = false) {
     let theirs;
     try { theirs = JSON.parse(save); } catch { theirs = null; }
     if (!theirs || typeof theirs !== 'object') return { drift: null, save: null };
@@ -175,18 +175,20 @@ export class Shadow {
     const why = [...sh.why];
     sh.why.clear();
     // After what they sent is compared: their game hears of it separately.
-    const away = gone ? this.away(sh.s, gone, now) : null;
+    const away = gone ? this.away(sh.s, gone, now, awayProduce) : null;
     return { drift, why, save: this.saveOf(id, theirs), ms, away };
   }
 
   // Away time (stage 3): the wall time since they left that their play time
   // doesn't account for (a game playing on through a lost connection is not
   // away). Their buildings make what they would have meanwhile, capped like
-  // a solo world's (src/core/sim.js produceAway). Comes once their game has
-  // sent its progress, so its play time is known: {secs, made} or null.
-  away(s, [when, played], now) {
+  // a solo world's (src/core/sim.js produceAway) — but only if they opted in
+  // (freeze season: `awayProduce`, their own Setting, told to the room when
+  // they joined). Comes once their game has sent its progress, so its play
+  // time is known: {secs, made} or null.
+  away(s, [when, played], now, awayProduce = false) {
     const secs = (now - when) / 1000 - Math.max(0, s.stats.playedMs - played) / 1000;
-    const made = produceAway(s, secs);
+    const made = produceAway(s, secs, awayProduce === true);
     if (!made || !RESOURCES.some((r) => made[r] > 0)) return null;
     return { secs: Math.round(Math.min(secs, AWAY_CAP)), made };
   }

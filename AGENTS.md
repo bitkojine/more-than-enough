@@ -48,6 +48,12 @@ kind of knowledge lives.
   through generated ways up and down that players discover.
 - Nobody cheats in a shared world, world owners included. The room's own copy
   of each player's progress is the truth (`server/src/shadow.js`).
+- **Time away makes nothing** (Watch, 2026-10-21, "freeze season"): a game
+  that isn't the active screen is time away, and time away is worth nothing,
+  in solo and shared worlds alike. It lives in one place, `FREEZE_AWAY` in
+  `src/core/content.js`, and a player may turn their own back on
+  (`src/game/storage.js` keeps the choice; the room is told of it when they
+  join). Temporary: it may be lifted, and then `FREEZE_AWAY` goes false.
 - **Every world is kept, forever** (Watch, 2026-10-18): never reset, nuke or
   delete a solo or shared world. `WORLD_FORMAT` and `ECON_FORMAT` in
   `src/core/format.js` are frozen; never bump them (`test/unit/worlds-kept.test.js`

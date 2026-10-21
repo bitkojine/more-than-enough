@@ -679,6 +679,9 @@ export default {
       <p>Tikrasis pastato našumas – jo bazinis našumas, padaugintas iš Spartinimo, jo ištekliaus perdirbimo grandinės, Gausos
         variklio ir privalumo Palikimas. Statybos skirtuke matyti dabartinis kiekvieno pastato skaičius.</p>
       <p>Produkcija kaupiasi pastate, kol jis prisipildo („Talpa“ aukščiau), tada jis sustoja. Niekas neprarandama; jis tiesiog laukia.</p>
+      <p><strong>Kai žaidimas nėra aktyvus ekranas</strong> — uždarytas, apsnigtas ar kitoje programėje — nieko nėra gaminama:
+        tavo pastatai ir Gausos variklis išlaiko savo našumą, bet neveikia, o laikas neatrodo nieko negauna.
+        Nustatymuose yra <em>Gaminti, kai toli</em>, išjungta pagal nutylėjimą; įjunk, ir neatrodo laikas vėl skaičiuojamas, iki aštuonių valandų.</p>
 
       <h2>Paėmimas</h2>
       <p>Atsistok iki <span data-k="COLLECT_RANGE"></span> langelių nuo pastato ir spausk Rinkti (mygtukas rodo <em>PAIMTI</em>) arba

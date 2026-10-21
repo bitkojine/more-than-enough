@@ -4,11 +4,17 @@
  * up. No imports, so the room service can bundle it as is.
  *
  * Messages are small JSON objects with a type `t`:
- *   game -> room   hello {key}             proves who you are (once, first)
+ *   game -> room   hello {key, away}       proves who you are (once, first);
+ *                                          `away` is the player's own choice
+ *                                          for time away (freeze season: only
+ *                                          true counts; a game from before
+ *                                          the setting sends no field, and
+ *                                          the room keeps what it knows)
  *                  pos {p}                 where you are (and what you play on), several times a second
  *                  edits {e: [...]}        what you changed in the world
  *                  save {s}                your own progress in this world
  *                  away {a}                game hidden (true) or back (false)
+ *                  awayProduce {a}         changed your time-away choice (Settings)
  *                  invite {uses, life}     hold up the sign: your invite link, please, letting in
  *                                          at most `uses` people for `life` minutes (INVITE_USES, INVITE_LIVES)
  *                  invites                 the invite links you may see (the ones you made)

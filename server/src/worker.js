@@ -610,7 +610,12 @@ export class Rooms extends DurableObject {
     let d = null;
     if (raw.length <= 256) try { d = JSON.parse(raw); } catch { /* below */ }
     if (!d || d.t !== 'hello') return ws.close(1008, 'hello first');
-    const r = await this.room.join(d.key, d.code, now);
+    // Freeze season: whether this player wants time away to make anything.
+    // Only `true` counts. A game from before the setting says nothing at all,
+    // and then the room keeps what it knows: frozen, unless this player
+    // turned it on before (src/net/protocol.js).
+    const away = d.away === undefined ? undefined : d.away === true;
+    const r = await this.room.join(d.key, d.code, now, away);
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error, ...(r.why ? { why: r.why } : {}) }));
       return ws.close(1008, r.error);

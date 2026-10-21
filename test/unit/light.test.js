@@ -38,7 +38,7 @@ test('the battery drains only in the dark, at one BATTERY_LIFE from full to flat
   for (let i = 0; i < 40; i++) C.step(s, 0.25);
   assert.equal(s.battery, 0, 'never below flat');
   const before = s.battery;
-  C.produceAway(s, 3600);
+  C.produceAway(s, 3600, true);
   assert.equal(s.battery, before, 'and nothing happens to it while you are away');
 });
 

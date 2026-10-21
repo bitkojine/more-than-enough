@@ -265,9 +265,12 @@ export class Room {
   /* -------------------------------------------------------- players */
 
   // A connection proved its key (and, the first time, brought an invite).
+  // `awayProduce` is the player's own freeze-season choice, told on the
+  // hello: undefined means the game didn't say (one from before the
+  // setting), and then the room keeps what it knows.
   // Returns {id, welcome} or
   // {error}.
-  async join(key, code, now) {
+  async join(key, code, now, awayProduce = undefined) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     let id = await playerId(this.id, key);
     // An admin's copy lets in only its own key, as the player it copies.
@@ -314,6 +317,12 @@ export class Room {
     // Left before rooms noted when (v0.100.0): away since their last progress,
     // so their buildings make what they would have meanwhile too (shadow.js away).
     if (!fresh && pl.st === 'offline' && !pl.gone && pl.save && Number.isFinite(pl.savedAt)) pl.gone = [pl.savedAt, playedIn(pl.save)];
+    // Freeze season: their own choice for time away, whatever they came in
+    // with this time (they may have changed it in Settings since). A game
+    // from before the setting says nothing, and then the room keeps what it
+    // knows: frozen, unless this player turned it on before. A copy plays the
+    // copied player, so their own rule stands there too.
+    if (!this.copy && awayProduce !== undefined) pl.awayProduce = awayProduce === true;
     // A new connection may stand anywhere its game remembers: its first step is free.
     this.watch.set(id, { ...this.watchOf(id, now), fresh: true });
     pl.st = 'online';
@@ -505,7 +514,7 @@ export class Room {
       // Their game's progress is only compared: the room keeps its own.
       const save = cleanSave(d.s);
       if (!save) return { drop: true };
-      const { drift, why, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone);
+      const { drift, why, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone, pl.awayProduce === true);
       const kept = ours && cleanSave(ours);
       if (!kept) return {};
       pl.save = kept;
@@ -540,6 +549,14 @@ export class Room {
       pl.stAt = now;
       this.audit(now, id, 'st', { st });
       return this.setStatus(id, st);
+    }
+    if (d.t === 'awayProduce') {
+      // Their freeze-season choice changed while playing (Settings). Off
+      // is the default; nothing to tell anyone else, only what the room works
+      // out for them (shadow.js away). A copy plays the copied player, so
+      // their own rule stands there and the admin's own setting is ignored.
+      if (!this.copy) pl.awayProduce = d.a === true;
+      return {};
     }
     if (d.t === 'invite') {
       // Anyone in the world may hold up the QR, choosing how many people its

@@ -232,6 +232,10 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   let sentActs = [];        // acts sent lately: the room may not have them (a dying connection, a restart)
   let saveSeq = 0;          // numbers the progress sent
   let fixedNote = false;    // arrived to smaller numbers than this phone showed: the away toast says so too
+  // Whether this player's time away makes anything (freeze season defaults it
+  // off). Their own Settings choice, told to the room on every join (hello),
+  // which works out away production for them (server/src/shadow.js away).
+  let awayProduce = false;
 
   /* ---------------------------------------------------- the connection */
 
@@ -251,7 +255,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     welcomed = false;
     turnedAway = null;
     silence = 0;
-    socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), ...(code ? { code } : {}) }));
+    socket.onopen = () => socket.send(JSON.stringify({ t: 'hello', key: myKey(), away: awayProduce, ...(code ? { code } : {}) }));
     socket.onmessage = (e) => { if (ws === socket) { silence = 0; receive(e.data); } };
     socket.onclose = (e) => { if (ws === socket) closed(e.code, e.reason); };
   }
@@ -1108,6 +1112,13 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       else retryNow();
     },
     online: retryNow,
+    // The player's own freeze-season choice (Settings). The room honours it
+    // for the away time it works out; a live connection is told at once, so
+    // toggling it while playing together takes effect without rejoining.
+    setAwayProduce(on) {
+      awayProduce = on === true;
+      if (ws && ws.readyState === 1 && welcomed) send({ t: 'awayProduce', a: awayProduce });
+    },
     // Friends as the renderer draws them (where they're shown, not where the
     // last message said), with how long they've been in their state.
     view() {

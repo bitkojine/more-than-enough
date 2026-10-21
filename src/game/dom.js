@@ -62,6 +62,8 @@ export function findElements() {
     muteState: byId('muteState'),
     music: byId('btnMusic'),
     musicState: byId('musicState'),
+    away: byId('btnAway'),
+    awayState: byId('awayState'),
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),

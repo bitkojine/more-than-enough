@@ -6,7 +6,7 @@ import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, markExplored } from './world.js';
 import {
-  AWAY_CAP, AWAY_MIN, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
+  AWAY_CAP, AWAY_MIN, FREEZE_AWAY, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
 } from './content.js';
 import { extractorRate, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
@@ -70,13 +70,16 @@ function produce(s, dt) {
 
 // `seconds` away from a solo world: your buildings and the Abundance Engine
 // make what they would have, capped at AWAY_CAP, into your packs. Returns
-// what was made per resource, or null when nothing is (too short, or a shared
-// world, whose room keeps the time and calls produceAway itself).
-export function awayProduce(s, seconds) {
-  return s.shared ? null : produceAway(s, seconds);
+// what was made per resource, or null when nothing is (too short, frozen
+// season, or a shared world, whose room keeps the time and calls produceAway
+// itself). `allowed` is the player's own setting: away makes nothing unless
+// they turned it back on (FREEZE_AWAY is the default).
+export function awayProduce(s, seconds, allowed = !FREEZE_AWAY) {
+  return s.shared ? null : produceAway(s, seconds, allowed);
 }
 
-export function produceAway(s, seconds) {
+export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
+  if (!allowed) return null; // freeze season: time away makes nothing
   if (!(seconds >= AWAY_MIN)) return null;
   const sec = Math.min(AWAY_CAP, seconds);
   const made = Object.fromEntries(RESOURCES.map((r) => [r, 0]));

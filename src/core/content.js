@@ -18,6 +18,11 @@ export const HAND_SHARE = 0.1;
 // (Watch's choice), straight into your packs. Gaps under AWAY_MIN are ignored.
 export const AWAY_CAP = 8 * 3600;
 export const AWAY_MIN = 10;
+// Freeze season (Watch, 2026-10-21): nothing is made while the game isn't the
+// active screen, so leaving for the day pays nothing. One switch for every
+// world, solo and shared; a player may turn their own back on in Settings.
+// Temporary, and meant to be lifted: flip this (or the per-player setting).
+export const FREEZE_AWAY = true;
 export const BASE_SPEED = 3.7;
 export const SWIM_SPEED = 0.75;       // multiplier on water
 export const PLAYER_RADIUS = 0.3;

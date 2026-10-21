@@ -689,6 +689,9 @@ export default {
       <p>A building's real rate is its base rate multiplied by Overclock, its resource's refinery chain, the Abundance Engine and
         the Legacy perk. The Build tab shows the current figure for each.</p>
       <p>Goods pile up inside the building until it's full ("Holds" above), then it stops. Nothing is lost; it just waits.</p>
+      <p><strong>While the game isn't the active screen</strong> — closed, asleep, or in another app — nothing is made: your
+        buildings and the Abundance Engine keep their rates, but they don't run, and time away counts for nothing.
+        Settings has <em>Produce while away</em>, off by default; turn it on and time away counts again, up to eight hours.</p>
 
       <h2>Collecting</h2>
       <p>Stand within <span data-k="COLLECT_RANGE"></span> tiles of a building and press Gather (it reads <em>COLLECT</em>) or {phone:tap|laptop:click}

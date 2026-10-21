@@ -379,6 +379,19 @@ el.music.addEventListener('click', () => {
   keepView();
   showMusic();
 });
+// Freeze season: whether time away makes anything. Off by default; a player
+// can turn it back on. Solo reads it on the next catch-up (catchUp), a shared
+// world is told at once (together.setAwayProduce).
+const showAway = () => {
+  el.awayState.textContent = t(savedView.awayProduce ? 'settings.on' : 'settings.off');
+  el.away.setAttribute('aria-pressed', String(savedView.awayProduce));
+};
+el.away.addEventListener('click', () => {
+  savedView.awayProduce = !savedView.awayProduce;
+  keepView();
+  together.setAwayProduce(savedView.awayProduce);
+  showAway();
+});
 // The first time you hear a place's music, it tells you its name (except
 // the very first tune, which plays over a world that says nothing yet).
 audio.onTrack((id) => {
@@ -532,8 +545,10 @@ let lastWall = 0; // Date.now() at the last frame shown
 // Time away from a solo world (closed, asleep, in another app): what your
 // buildings made meanwhile lands in your packs (Core.awayProduce), said in a toast.
 // In a shared world the room works it out and says so (together.js 'away').
+// Freeze season: away makes nothing unless the player turned it back on in
+// Settings (savedView.awayProduce).
 function catchUp(seconds) {
-  const made = Core.awayProduce(game.state, seconds);
+  const made = Core.awayProduce(game.state, seconds, savedView.awayProduce);
   if (made) sayAway(seconds, made);
 }
 // `fixed`: arriving in a shared world also set your numbers straight
@@ -597,6 +612,7 @@ function resize() {
   quality.settle();
   cam.resize();
   hud.view(cam);
+  hud.fit();
 }
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
@@ -621,6 +637,8 @@ cam.setZoom(savedView.zoom);
 setDrag(savedView.invertDrag);
 audio.music = savedView.music;
 showMusic();
+together.setAwayProduce(savedView.awayProduce);
+showAway();
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 or its switch in Nerds toggles it, and ?perf in the address opens it.
 perf.toggle(new URLSearchParams(location.search).has('perf'));
@@ -659,6 +677,7 @@ window.MTE_GAME = {
   dialogs: { ask, fbi },
   news,
   income,
+  hud,
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },

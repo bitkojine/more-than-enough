@@ -4,7 +4,7 @@
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmtRate, fmtShort } from './format.js';
+import { fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
@@ -54,6 +54,26 @@ export function createHud(el, look) {
   }
   let lastAction = '', lastPerfect = '';
   let inSight = false; // something to gather in sight for Explore to head to
+
+  // The plate under the big button is as wide as its words need, but it must
+  // stay clear of the screen's edge and of the plates beside it: a big yield
+  // in a long language would otherwise run off or overlap. It grows into the
+  // free space and shrinks only when it has to (docs/ui.md).
+  function fitCap() {
+    const plate = el.actionLabel;
+    const b = el.action.getBoundingClientRect();
+    if (!b.width) { plate.style.setProperty('--cap-scale', 1); return; }
+    const mid = b.left + b.width / 2;
+    const top = plate.getBoundingClientRect().top;
+    let room = 2 * Math.min(innerWidth - mid - 1, mid - 1);
+    for (const other of document.querySelectorAll('#controls button, #controls .cap')) { // i18n-ok: CSS selectors
+      if (other === el.action || other === plate) continue;
+      const r = other.getBoundingClientRect();
+      if (r.width && r.right <= b.left && r.bottom > top) room = Math.min(room, 2 * (mid - r.right - 2));
+    }
+    const w = plate.offsetWidth;
+    plate.style.setProperty('--cap-scale', w > room ? Math.max(room, 1) / w : 1);
+  }
 
   // The depth gauge, underground: one bar per layer from the forest (green,
   // on top) down to the deepest you've been, plus one for deeper still; at
@@ -184,9 +204,9 @@ export function createHud(el, look) {
       const collect = Core.collectTarget(s);
       const harvest = !collect && Core.harvestTarget(s);
       if (collect) {
-        icon = 'ui.collect'; label = t('button.collect', { n: fmt(collect.total) }); ready = true;
+        icon = 'ui.collect'; label = t('button.collect', { n: fmtShort(collect.total) }); ready = true;
       } else if (harvest) {
-        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = t('button.gatherYield', { n: fmt(Core.gatherYield(s, harvest.res)) }); ready = true;
+        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = t('button.gatherYield', { n: fmtShort(Core.gatherYield(s, harvest.res)) }); ready = true;
       } else if (Core.isUnderground(s)) {
         label = t('button.gather'); ready = true;
       }
@@ -198,6 +218,7 @@ export function createHud(el, look) {
         el.action.setAttribute('aria-label', label);
         el.action.classList.toggle('ready', ready);
         el.action.classList.toggle('disabled', !ready && !inSight);
+        fitCap();
       }
       // The layer button shows only beside a way between layers, and says
       // which way it goes.
@@ -217,6 +238,10 @@ export function createHud(el, look) {
       setText(el.zoomText, zoom);
       el.zoomLevel.setAttribute('aria-label', t('hud.zoomLevel', { zoom }));
     },
+
+    // The screen is a different size now: the plate under the big button may
+    // no longer fit, so it is measured again.
+    fit() { fitCap(); },
 
     // Status only (e.g. a save that couldn't be read), never instructions.
     // A milestone reached (the `number`th of `total`): a banner under the counters for

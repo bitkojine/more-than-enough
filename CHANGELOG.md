@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.131.3] - 2026-10-21
+
+Freeze season: nothing is made while the game isn't the active screen, in
+any world, and a player can turn their own away production back on.
+
+### Changed
+- Time away from the game now makes nothing. A game that isn't the active
+  screen — closed, asleep, or in another app — is time away, and time away
+  is worth nothing: your buildings and the Abundance Engine keep their
+  rates but don't run, in a solo world and in a shared one alike. Before
+  this, up to eight hours of away time was credited to your packs on your
+  return (`AWAY_CAP`), which made walking away the cheapest way to play.
+  The cap and the rest of the away rule stay in place for a player who
+  turns it back on.
+- The rule lives in one place, `FREEZE_AWAY` in `src/core/content.js`, and
+  both paths go through it: a solo world's `awayProduce` and the room
+  service's `Shadow.away`, so a shared world freezes the same way a solo
+  one does. The setting is a player's own, not world state, so no save
+  format moved and no world already played is touched.
+
+### Added
+- Settings has **Produce while away**, off by default: one choice for
+  every world, on this device, remembered in the browser like the sound
+  and language settings. Turn it on and time away counts again, up to
+  eight hours, as before.
+- The choice travels to the room service when a player joins a shared
+  world (an extra field on `hello`) and when they change it while
+  playing (`awayProduce`), so the room's own copy of their progress is
+  worked out the same way their game would. A room that doesn't hear it
+  (an older game, or a message without the field) freezes the player, so
+  a room ahead of the game never hands out resources for time nobody
+  asked for.
+
+### Fixed
+- Very big numbers fit where they stand. Past a thousand trillion the
+  counts in the resource bar go scientific and keep one digit (`1e15`),
+  so they are never cut short on a phone; the full form keeps two
+  (`1.2e15`) where there is room for them, in the sheets.
+- The Gather button's label is as wide as its words need and no wider:
+  the number on it is the short form (`+4.7M`), and the plate grows into
+  the free space between the buttons and shrinks to fit rather than
+  running past the screen's edge or over the plate beside it — in
+  Lithuanian, where the words are longer, most of all.
+
 ## [0.131.2] - 2026-10-20
 
 A deploy's own checks now run before the push, and a full stockpile is

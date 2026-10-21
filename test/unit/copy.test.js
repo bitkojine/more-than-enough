@@ -21,7 +21,7 @@ async function world() {
   const r = new Room(P.randomRoomId(), T0);
   const key = P.randomHex(32);
   assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed: 12345, mods: [], props: [], ext: [] } }), T0), null);
-  const j = await r.join(key, undefined, T0);
+  const j = await r.join(key, undefined, T0, true);
   const id = j.id;
   const s = C.joinState(j.welcome, r.id, null, null);
   s.acts = [];
@@ -59,7 +59,7 @@ async function copyOf(r, as, now) {
 test('copy: plays as the player coming back now, with their progress and time away', async () => {
   const { r, id, at, rate } = await world();
   const { c, adminKey } = await copyOf(r, id, at);
-  const j = await c.join(adminKey, undefined, at);
+  const j = await c.join(adminKey, undefined, at, true);
   assert.equal(j.id, id, 'the new key plays the copied player');
   assert.equal(j.welcome.you, id);
   assert.equal(j.welcome.save, r.players.get(id).save, 'their progress, as the room keeps it');

@@ -29,9 +29,10 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
   [568, 320], [667, 375], [844, 390], [932, 430],   // phones, landscape
   [768, 1024], [1024, 768], [1366, 768], [1920, 1080]
 ];
-// In this order on one page per screen; `rich` last, as it can't be undone.
-// `crowd` joins a shared world of 100 (a fake room) and stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement'];
+// In this order on one page per screen; `rich` and `huge` last, as they
+// can't be undone. `crowd` joins a shared world of 100 (a fake room) and
+// stays in it.
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement', 'huge'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -121,6 +122,14 @@ function problems() {
     const r = el.getBoundingClientRect();
     if (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1) out.push('off screen: ' + name(el));
   }
+
+  // The plate under the big action may shrink to keep its words on the
+  // screen, but not to a smudge: they are what the player reads.
+  const cap = document.querySelector('#btnAction .cap');
+  if (shown(cap)) {
+    const scale = parseFloat(getComputedStyle(cap).getPropertyValue('--cap-scale')) || 1;
+    if (scale < 0.75) out.push('plate shrunk to a smudge: ' + name(cap) + ' ' + scale);
+  }
   return out;
 }
 
@@ -134,6 +143,24 @@ async function enter(state) {
   if (g.dialogs.fbi.open) click('#fbi button');
   clearInterval(window.layoutHold);
   if (state === 'rich') for (const r of Object.keys(g.getState().inv)) g.addRes(r, 987654321098);
+  // Absurd numbers: the counts in the bar go scientific (1e15), the rate
+  // under them does too, and the plate under Gather is held at its widest —
+  // the longest word with the widest short number (docs/ui.md).
+  if (state === 'huge') {
+    const st = g.getState();
+    for (const r of Object.keys(st.inv)) g.addRes(r, 1.2e15);
+    st.perks.legacy = 120;   // the multiplier that makes what is produced big
+    st.tools.overclock = 6;
+    for (const r of g.core.RESOURCES) st.resUp[r] = 10;
+    for (const key of Object.keys(g.core.EXTRACTORS)) for (let i = 0; i < 3; i++) st.extractors.push({ key, res: g.core.EXTRACTORS[key].res, x: 200 + i, y: 200, z: 0, buffer: 0 });
+    const { fmtShort } = await import('/src/game/format.js');
+    const hold = () => {
+      document.getElementById('actionLabel').textContent = t('button.gatherYield', { n: fmtShort(9999) });
+      g.hud.fit();   // the plate measures itself against the screen
+    };
+    hold();
+    window.layoutHold = setInterval(hold, 10);
+  }
   // Underground beside a ladder: the depth meter and the climb button, held
   // up against the HUD's own updates while the check runs.
   if (state === 'underground') {

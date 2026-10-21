@@ -14,11 +14,13 @@ const T0 = 1_700_000_000_000;
 const SAVE_EVERY_MS = 10_000;
 
 // A room made from a new world, a player in it, and a game playing there.
-async function sharedGame(seed) {
+// `awayProduce` is that player's own freeze-season choice (Settings), told to
+// the room when they join; the default is frozen, as a real game without it.
+async function sharedGame(seed, awayProduce = false) {
   const r = new Room(P.randomRoomId(), T0);
   const key = P.randomHex(32);
   assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }), T0), null);
-  const j = await r.join(key, undefined, T0);
+  const j = await r.join(key, undefined, T0, awayProduce);
   const s = C.joinState(j.welcome, r.id, null, null);
   s.time = j.welcome.time; // the game keeps the room's clock (together.js keepTime)
   assert.ok(j.welcome.acts, 'the room asks for acts');
@@ -248,14 +250,14 @@ function hear(s, out) {
 }
 
 test('shadow: buildings in a shared world keep working while their owner is away, up to 8 hours, once', async () => {
-  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345);
+  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345, true);
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
   sync(true);
   const rate = C.extractorRate(s, 'garden');
   r.left(id, false, now());
   away(3600_000); // an hour with the game closed
-  await r.join(key, undefined, now());
+  await r.join(key, undefined, now(), true);
   const before = s.inv.mycelium;
   const out = send({ t: 'save', s: C.progressOf(s) });
   const m = (out.toSelf || []).find((x) => x.t === 'away');
@@ -273,9 +275,38 @@ test('shadow: buildings in a shared world keep working while their owner is away
   // Away for days: still 8 hours' worth.
   r.left(id, true, now());
   away(3 * 86400_000);
-  await r.join(key, undefined, now());
+  await r.join(key, undefined, now(), true);
   const long = (send({ t: 'save', s: C.progressOf(s) }).toSelf || []).find((x) => x.t === 'away');
   assert.equal(long.secs, C.AWAY_CAP);
+});
+
+test('shadow: freeze season — a shared world makes nothing while their owner is away by default', async () => {
+  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345); // no opt-in: frozen
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  sync(true);
+  const before = s.inv.mycelium;
+  r.left(id, false, now());
+  away(3600_000); // an hour with the game closed
+  await r.join(key, undefined, now()); // still nothing said: frozen
+  const out = send({ t: 'save', s: C.progressOf(s) });
+  assert.ok(!(out.toSelf || []).some((x) => x.t === 'away'), 'no away credit: ' + JSON.stringify(out));
+  assert.ok(!r.log.some((e) => e.e === 'away' && e.p === id), 'and the log says nothing was made');
+  assert.ok(Math.abs(s.inv.mycelium - before) < 1e-6, 'the packs did not change');
+});
+
+test('shadow: freeze season — turning it on while playing is honoured at once', async () => {
+  const { s, r, id, key, sync, send, now, away } = await sharedGame(12345); // starts frozen
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  sync(true);
+  const rate = C.extractorRate(s, 'garden');
+  r.left(id, false, now()); // leaves while frozen
+  away(3600_000);
+  await r.join(key, undefined, now(), true); // Settings turned it on since
+  const out = send({ t: 'save', s: C.progressOf(s) });
+  const m = (out.toSelf || []).find((x) => x.t === 'away');
+  assert.ok(m && Math.abs(m.made.mycelium - rate * 3600) < 1, 'opted in, so the hour counts: ' + JSON.stringify(out));
 });
 
 test('shadow: a game that played on through a lost connection was not away', async () => {
@@ -304,7 +335,7 @@ test('shadow: someone who left before rooms noted when is away since their last 
   delete r.players.get(id).gone; // as a room from before v0.100.0 kept them
   r.shadow.forget(id);           // and a restarted room starts its copy from the save
   away(3600_000);
-  await r.join(key, undefined, now());
+  await r.join(key, undefined, now(), true);
   const m = (send({ t: 'save', s: C.progressOf(s) }).toSelf || []).find((x) => x.t === 'away');
   assert.ok(m, 'their buildings made something meanwhile');
   const since = (now() - r.players.get(id).savedAt) / 1000;
