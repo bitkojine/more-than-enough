@@ -13,6 +13,7 @@ import * as Core from '../core/index.js';
 import { t } from '../i18n/i18n.js';
 
 const ACT_EVERY = 0.25;   // seconds between acts, as holding a tile works it
+const CLOCK_EPSILON = 1e-9; // exact tick boundaries must not wait an extra frame
 const PEEK_EVERY = 0.5;   // seconds between looks at what holding would do, while not held
 
 export function createPerfect({ game, controller, hud }) {
@@ -31,7 +32,7 @@ export function createPerfect({ game, controller, hud }) {
   };
 
   // One step of the brain: what it wants, done. `held`: a hold repeated it.
-  function act(held) {
+  function act(held, overdue = 0) {
     const intent = Core.nextIntent(state(), mind);
     see(intent);
     if (intent.type === 'wait') {
@@ -43,7 +44,7 @@ export function createPerfect({ game, controller, hud }) {
     }
     controller.perform(intent, held);
     walked = intent.type === 'walk';
-    if (!walked) cooldown = ACT_EVERY;
+    if (!walked) cooldown = ACT_EVERY - overdue;
   }
 
   // The screen stays on while the button is held (where the browser lets it).
@@ -59,11 +60,19 @@ export function createPerfect({ game, controller, hud }) {
     get badge() { return badge; },
     // The tile it would work next, outlined on the map.
     get target() { return target; },
+    // The shared scheduler may skip quiet ticks strictly before this deadline.
+    get secondsUntilAct() { return Math.max(0, cooldown); },
+
+    // Read-only diagnostic copy: observing a playtest cannot steer the brain.
+    get goal() {
+      const g = mind.goal;
+      return g ? { kind: g.kind, id: g.id, cost: { ...g.cost } } : null;
+    },
 
     // Pressed: act at once; holding repeats it in tick().
     press() {
       keepAwake(true);
-      if (cooldown <= 0 && !controller.walking) act(false);
+      if (cooldown <= CLOCK_EPSILON && !controller.walking) act(false);
     },
 
     // Let go: it stops, mid-step too.
@@ -76,9 +85,14 @@ export function createPerfect({ game, controller, hud }) {
     // Every frame. `holding`: the button is held, nothing in the way (no
     // dialog, no sheet) and the player isn't steering or working a tile.
     tick(dt, holding) {
+      const remaining = cooldown;
       cooldown -= dt;
       if (holding) {
-        if (cooldown <= 0 && !controller.walking) act(true);
+        // Carry only the fraction of this tick past the deadline. Otherwise
+        // 30 fps turns 0.25 s into 0.267 s forever. Time spent walking or
+        // released never banks a burst of actions for later.
+        const overdue = remaining > CLOCK_EPSILON ? Math.max(0, -cooldown) : 0;
+        if (cooldown <= CLOCK_EPSILON && !controller.walking) act(true, overdue);
         return;
       }
       if ((peekIn -= dt) > 0) return;

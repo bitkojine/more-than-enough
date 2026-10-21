@@ -7,10 +7,12 @@
   "scripts": {
     "serve": "python3 -m http.server 8000",
     "test": "node --test \"test/unit/*.test.js\" \"test/property/*.test.js\"",
+    "test:scaling": "node --test test/unit/production-ledger.test.js test/unit/event-economy.test.js test/unit/explored-index.test.js test/unit/explored-search.test.js test/unit/observed-types.test.js test/unit/collection-index.test.js test/unit/simulation-parity.test.js test/unit/path-parity.test.js test/unit/engine-clock.test.js test/unit/autoplay-driver.test.js test/unit/autoplay-fairness.test.js test/unit/autoplay-regressions.test.js test/unit/structure.test.js",
     "test:e2e": "node test/browser.e2e.js",
     "test:layout": "node test/layout.e2e.js",
     "check": "sh scripts/check.sh",
-    "stage": "sh scripts/stage-site.sh site"
+    "stage": "sh scripts/stage-site.sh site",
+    "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js"
   },
   "engines": {
     "node": ">=24"

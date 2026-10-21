@@ -13,6 +13,18 @@ hide stereotype
     BackgroundColor: #ffffff;
     FontColor: #444444;
   }
+  // Element,Component
+  .Element-RWxlbWVudCxDb21wb25lbnQ= {
+    BackgroundColor: #85bbf0;
+    LineColor: #5d82a8;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #000000;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
   // Element,Component,Presentation
   .Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u {
     BackgroundColor: #b0761f;
@@ -41,6 +53,18 @@ hide stereotype
   .Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u {
     BackgroundColor: #b0761f;
     LineColor: #7b5215;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
+  // Element,Software System
+  .Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0= {
+    BackgroundColor: #1168bd;
+    LineColor: #0b4884;
     LineStyle: 0;
     LineThickness: 2;
     FontColor: #ffffff;
@@ -82,29 +106,47 @@ hide stereotype
   }
 </style>
 
+rectangle "==Room Service\n<size:16>[Software System]</size>\n\nLets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one, download a whole world as a backup file and put a world that's gone back from one (server/src/backup.js), and has a page listing every world's players, sortable by progress (server/src/admin.js). See server/README.md for the rules and security limits." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0=>> as RoomService
+
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
   rectangle "Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>" <<Boundary-V2ViIEFwcGxpY2F0aW9u>> {
+    rectangle "==Camera\n<size:16>[Component: JavaScript]</size>\n\nMaps world (x, y, height) to screen pixels and back (project/unproject) with zoom and a fixed slight lean; picking hits the top or face you see. Also the visible tile range." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Camera
+    rectangle "==Renderer\n<size:16>[Component: JavaScript]</size>\n\nDraws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Renderer
     rectangle "==Effects\n<size:16>[Component: JavaScript]</size>\n\nParticles, floating text and flyers (resources homing into the pack), with budgets and a flyer lifetime so bursts stay cheap." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Effects
-    rectangle "==HUD and Sheet\n<size:16>[Component: JavaScript]</size>\n\nResource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, and Beyond. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.HUDandSheet
+    rectangle "==HUD and Sheet\n<size:16>[Component: JavaScript]</size>\n\nResource chips and rates, the depth marker, the contextual thumb buttons, and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, Beyond and the earnings statement (income per building with charts kept per world, payback, best buys, spending), with NEW on Build and Upgrade until what became affordable is looked at; the phone's Back steps back through it. Shows names, levels, numbers and prices only; no instructions (those live in the wiki)." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.HUDandSheet
     rectangle "==Audio\n<size:16>[Component: JavaScript]</size>\n\nA small WebAudio synth unlocked by the first gesture: per-material gather voices, collect/build/upgrade/fanfare cues and an extractor hum. Takes parameters, never reads game state." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Audio
     rectangle "==Look and Texture Packs\n<size:16>[Component: JavaScript + IndexedDB]</size>\n\nWhat everything looks like: the default pack (packs/default/) with the player's pack laid over it slot by slot. Validates packs against the Catalog and refuses any with a problem (listing each by thing and slot), loads and rasterises pictures per size, picks variants and animation frames, and remembers the player's pack in IndexedDB. Drawing code and the HUD ask it for colours and pictures by thing id." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.LookandTexturePacks
-    rectangle "==Yard\n<size:16>[Component: JavaScript]</size>\n\nKeeps the stockpile's layout in step with the inventory (at most five times a second, reusing the ground grid), tracks which tiles big piles cover, and makes changes visible: new piles grow in, gone piles puff." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Yard
-    rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
-    rectangle "==Main Loop\n<size:16>[Component: JavaScript]</size>\n\nWires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.MainLoop
-    rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
-    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
-    rectangle "==Camera\n<size:16>[Component: JavaScript]</size>\n\nMaps world (x, y, height) to screen pixels and back (project/unproject) with zoom and a fixed slight lean; picking hits the top or face you see. Also the visible tile range." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Camera
-    rectangle "==Renderer\n<size:16>[Component: JavaScript]</size>\n\nDraws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Renderer
+    rectangle "==Yard\n<size:16>[Component: JavaScript]</size>\n\nKeeps the stockpile's layout in step with the inventory (at most five times a second), tracks which tiles big piles cover, and makes changes visible like 2048: ten piles slide together into the bigger one they became, moved piles slide, new piles grow in, spent piles puff." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Yard
+    rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load, save (reporting failures, never over another tab's save) and setting aside a save it can't read rather than writing over it, plus per-browser view settings." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
+    rectangle "==Together\n<size:16>[Component: JavaScript + WebSocket]</size>\n\nPlaying together (src/game/together.js): joins a shared world from a QR link (#join=room.invite) or opens a moderator's copy of one (#copy=room.key; src/game/copy.js keeps the browser's storage in memory then), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and makes the QR code for the sign your wanderer holds up in the world (src/vendor/qrcode.js). The worlds you've been in, their generated names and the Worlds screen that switches between them are in src/game/worlds.js; the friend chips and the Players screen (everyone in the world) are drawn by src/game/players.js." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Together
+    rectangle "==Main Loop\n<size:16>[Component: JavaScript]</size>\n\nWires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. Exposes window.MTE_GAME for the browser tests." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.MainLoop
+    rectangle "==Tick and Deadline Engine\n<size:16>[Component: JavaScript]</size>\n\nShared 60 Hz logical clock. Browser catch-up is bounded; the headless runner coalesces stationary ticks ending at AUTO/goal deadlines, retaining fine motion and first Embark eligibility. Cumulative battery intervals preserve daylight transitions. Injected controller, AUTO and input interfaces keep scheduling independent of presentation." <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as MORETHANENOUGH.WebApplication.TickandDeadlineEngine
+    rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), hold AUTO (button or P), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
+    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, AUTO's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
+    rectangle "==AUTO\n<size:16>[Component: JavaScript]</size>\n\nThe AUTO button (formerly Perfect): while held (and no sheet or dialog is up, and the player isn't steering, gathering or working a tile) it asks the brain for the next intent about four times a second and has the Controller carry it out, the same calls a tap makes. Keeps the badge (what it's doing), waits at Embark with a toast, and keeps the screen awake while held." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.AUTO
   }
 
   rectangle "==Default Texture Pack\n<size:16>[Container: JSON + SVG]</size>\n\nLanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.DefaultTexturePack
   rectangle "==Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>\n\nThe game rules (src/core/). Pure and deterministic: no DOM, no clock, no Math.random. Terrain is a pure function of (x, y, z, seed), state is a plain object, and the same modules run in the browser and in Node tests." <<Element-RWxlbWVudCxDb250YWluZXIsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore
 }
 
-MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "Taps, held action, Trail strokes"
+MORETHANENOUGH.WebApplication.Yard --> MORETHANENOUGH.WebApplication.Effects <<Relationship-UmVsYXRpb25zaGlw>> : "Puffs for vanished and merged piles"
+MORETHANENOUGH.WebApplication.HUDandSheet --> MORETHANENOUGH.WebApplication.LookandTexturePacks <<Relationship-UmVsYXRpb25zaGlw>> : "Icons by thing id"
+MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Validates packs against"
+MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
+MORETHANENOUGH.WebApplication.Together --> RoomService <<Relationship-UmVsYXRpb25zaGlw>> : "Makes and joins rooms; relays positions, edits and progress\n<size:16>[HTTPS + WebSocket]</size>"
+MORETHANENOUGH.WebApplication.Together --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Splits and joins shared worlds (shared.js)"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.WebApplication.Together <<Relationship-UmVsYXRpb25zaGlw>> : "Ticks it every simulation tick"
+MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.Together <<Relationship-UmVsYXRpb25zaGlw>> : "Draws friends where they are shown"
+MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "Taps, held tiles, Trail strokes"
+MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.AUTO <<Relationship-UmVsYXRpb25zaGlw>> : "AUTO pressed and let go"
 MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Camera <<Relationship-UmVsYXRpb25zaGlw>> : "Unprojects pointers; zooms"
-MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "Steers and repeats the held action each frame"
-MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Calls step(state, dt) every frame"
+MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.TickandDeadlineEngine <<Relationship-UmVsYXRpb25zaGlw>> : "Schedules fixed ticks independently of drawing"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "Steers and works held input each simulation tick"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.WebApplication.AUTO <<Relationship-UmVsYXRpb25zaGlw>> : "Ticks AUTO every simulation tick while held"
+MORETHANENOUGH.WebApplication.AUTO --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "nextIntent"
+MORETHANENOUGH.WebApplication.AUTO --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "Carries out each intent"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Calls step(state, 1/60) every simulation tick"
 MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.Renderer <<Relationship-UmVsYXRpb25zaGlw>> : "Renders each frame"
 MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "harvest, collect, place, go down/up, descend"
 MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.WebApplication.Effects <<Relationship-UmVsYXRpb25zaGlw>> : "Spawns effects"
@@ -118,9 +160,5 @@ MORETHANENOUGH.WebApplication.Storage --> MORETHANENOUGH.SimulationCore <<Relati
 MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.LookandTexturePacks <<Relationship-UmVsYXRpb25zaGlw>> : "Colours and pictures by thing id"
 MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.Yard <<Relationship-UmVsYXRpb25zaGlw>> : "Draws the piles"
 MORETHANENOUGH.WebApplication.Yard --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Lays out the yard"
-MORETHANENOUGH.WebApplication.Yard --> MORETHANENOUGH.WebApplication.Effects <<Relationship-UmVsYXRpb25zaGlw>> : "Puffs for vanished piles"
-MORETHANENOUGH.WebApplication.HUDandSheet --> MORETHANENOUGH.WebApplication.LookandTexturePacks <<Relationship-UmVsYXRpb25zaGlw>> : "Icons by thing id"
-MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Validates packs against"
-MORETHANENOUGH.WebApplication.LookandTexturePacks --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
 
 @enduml

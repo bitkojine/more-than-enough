@@ -1,6 +1,7 @@
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
+import { economyForState } from './economy-context.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
@@ -200,9 +201,22 @@ export function sweepTargets(s, points) {
 /* ------------------------------------------------------------- collect */
 
 export function collectTarget(s) {
-  const range2 = COLLECT_RANGE * COLLECT_RANGE;
-  const list = s.extractors.filter((e) => ownBuilding(s, e) && e.buffer >= 1 && tileDist2(s.player, e.x, e.y, e.z) <= range2);
-  if (!list.length) return null;
+  const p = s.player, range2 = COLLECT_RANGE * COLLECT_RANGE;
+  const index = tileIndex(s), found = [];
+  // Collection has a fixed spatial radius. Query those tile buckets instead
+  // of filtering every building in the world on each AUTO decision.
+  for (let y = Math.ceil(p.y - COLLECT_RANGE - 0.5); y <= Math.floor(p.y + COLLECT_RANGE - 0.5); y++) {
+    for (let x = Math.ceil(p.x - COLLECT_RANGE - 0.5); x <= Math.floor(p.x + COLLECT_RANGE - 0.5); x++) {
+      if (tileDist2(p, x, y, p.z) > range2) continue;
+      const entries = index.entries.get(x + ',' + y + ',' + p.z);
+      if (entries) for (const entry of entries) if (ownBuilding(s, entry.e) && entry.e.buffer >= 1) found.push(entry);
+    }
+  }
+  if (!found.length) return null;
+  // Preserve the original building order, including kept saves with duplicate
+  // coordinates. That also preserves collection and floating-point order.
+  found.sort((a, b) => a.i - b.i);
+  const list = found.map(entry => entry.e);
   return { total: Math.floor(list.reduce((n, e) => n + e.buffer, 0)), list };
 }
 
@@ -230,14 +244,25 @@ export function collect(s) {
 // or grows (buildings are only ever added to it, or the list swapped).
 const byTile = new WeakMap();
 
-export function extractorAt(s, x, y, z) {
+function tileIndex(s) {
   const list = s.extractors;
   let c = byTile.get(list);
   if (!c || c.n !== list.length) {
-    c = { n: list.length, at: new Map(list.map((e) => [e.x + ',' + e.y + ',' + e.z, e])) };
+    c = { n: list.length, at: new Map(), entries: new Map() };
+    for (let i = 0; i < list.length; i++) {
+      const e = list[i], key = e.x + ',' + e.y + ',' + e.z;
+      c.at.set(key, e);
+      let entries = c.entries.get(key);
+      if (!entries) { entries = []; c.entries.set(key, entries); }
+      entries.push({ e, i });
+    }
     byTile.set(list, c);
   }
-  return c.at.get(x + ',' + y + ',' + z) || null;
+  return c;
+}
+
+export function extractorAt(s, x, y, z) {
+  return tileIndex(s).at.get(x + ',' + y + ',' + z) || null;
 }
 
 // A building never shares a tile with a way between layers: not on a way
@@ -281,6 +306,7 @@ export function place(s, key, at = null) {
   const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
   if (s.me) e.owner = s.me;
   s.extractors.push(e);
+  economyForState(s)?.reconfigure();
   if (s.world.edits) s.world.edits.push(['x', key, e.x, e.y, e.z]);
   s.stats.built += 1;
   return { ok: true, x: at.x, y: at.y, cost };

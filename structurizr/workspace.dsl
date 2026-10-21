@@ -18,28 +18,34 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "files" "index.html, style.css, src/game/"
                 }
 
-                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, work a held tile and tick Perfect, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/main.js"
                     }
                 }
 
-                input = component "Input" "Raw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), hold Perfect (button or P), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." "JavaScript" {
+                engine = component "Tick and Deadline Engine" "Shared 60 Hz logical clock. Browser catch-up is bounded; the headless runner coalesces stationary ticks ending at AUTO/goal deadlines, retaining fine motion and first Embark eligibility. Cumulative battery intervals preserve daylight transitions. Injected controller, AUTO and input interfaces keep scheduling independent of presentation." "JavaScript" {
+                    properties {
+                        "files" "src/engine/clock.js, src/engine/simulation.js"
+                    }
+                }
+
+                input = component "Input" "Raw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), hold AUTO (button or P), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/input.js"
                     }
                 }
 
-                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, Perfect's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, AUTO's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/controller.js"
                     }
                 }
 
-                perfect = component "Perfect" "The Perfect button: while held (and no sheet or dialog is up, and the player isn't steering, gathering or working a tile) it asks the brain for the next intent about four times a second and has the Controller carry it out, the same calls a tap makes. Keeps the badge (what it's doing), waits at Embark with a toast, and keeps the screen awake while held." "JavaScript" {
+                perfect = component "AUTO" "The AUTO button (formerly Perfect): while held (and no sheet or dialog is up, and the player isn't steering, gathering or working a tile) it asks the brain for the next intent about four times a second and has the Controller carry it out, the same calls a tap makes. Keeps the badge (what it's doing), waits at Embark with a toast, and keeps the screen awake while held." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/perfect.js"
@@ -151,10 +157,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): extractor production, logistics hauling from all your buildings, the abundance trickle, the device battery (drains in the dark, charged by water power: solar panels and water wheels). Also movement, fog reveal (smaller when the battery is low at night) and the day/night curve." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income and battery; movement and fog reveal. Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Battery intervals support quiet-tick batching. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/sim.js, light.js"
+                        "ref" "src/core/sim.js, light.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"
                     }
                 }
 
@@ -165,7 +171,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                brain = component "Perfect Brain" "nextIntent(s, mind): the next thing a careful player would do (walk, gather, collect, buy, place, go down or up, put a solar panel by the shore, charge, or wait), from what has been explored only. Picks whatever can be had soonest, plans routes (findPath, through dug rock underground), mines when finds pay better, waits for the player at Embark, and never in a shared world spends Insight. Pure: the mind is a cache it keeps between calls." "JavaScript" {
+                brain = component "AUTO Brain" "nextIntent(s, mind): legal player actions from explored terrain, remembered observations, visible mine glints, own resources and public rules. Integer A* treats unseen underground rock as an assumption and replans after normal revelation, without inspecting hidden geology. Unseen chargers, ladders, shores and tunnel props cannot steer decisions. Prices building repayment against required upgrades; mining is a fallback only when surface acquisition is unavailable, includes passive income and return travel and targets useful observed finds. Waits at Embark, and never spends Insight in shared worlds. Pure: mind caches observations and routes." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/perfect.js, paths.js"
@@ -236,22 +242,23 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app -> mte.core "Drives actions and step(); reads state every frame"
         mte.app.together -> rooms "Makes and joins rooms; relays positions, edits and progress" "HTTPS + WebSocket"
         mte.app.together -> mte.core.state "Splits and joins shared worlds (shared.js)"
-        mte.app.main -> mte.app.together "Ticks it every frame"
+        mte.app.engine -> mte.app.together "Ticks it every simulation tick"
         mte.app.render -> mte.app.together "Draws friends where they are shown"
         mte.core -> mte.app "Returns state; emits transient events on auto-collect"
         tools.coreTests -> mte.core "Imports src/core/index.js and steps it directly"
         tools.e2e -> mte.app "Loads index.html; asserts through window.MTE_GAME"
 
         mte.app.input -> mte.app.controller "Taps, held tiles, Trail strokes"
-        mte.app.input -> mte.app.perfect "Perfect pressed and let go"
+        mte.app.input -> mte.app.perfect "AUTO pressed and let go"
         mte.app.input -> mte.app.camera "Unprojects pointers; zooms"
-        mte.app.main -> mte.app.controller "Steers and works a held tile each frame"
-        mte.app.main -> mte.app.perfect "Ticks it every frame while held"
+        mte.app.main -> mte.app.engine "Schedules fixed ticks independently of drawing"
+        mte.app.engine -> mte.app.controller "Steers and works held input each simulation tick"
+        mte.app.engine -> mte.app.perfect "Ticks AUTO every simulation tick while held"
         mte.app.perfect -> mte.core.brain "nextIntent"
         mte.app.perfect -> mte.app.controller "Carries out each intent"
         mte.core.brain -> mte.core.world "Reads explored tiles; finds routes"
         mte.core.brain -> mte.core.economy "Reads costs, rates and the registry"
-        mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
+        mte.app.engine -> mte.core.step "Calls step(state, 1/60) every simulation tick"
         mte.app.main -> mte.app.render "Renders each frame"
         mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
         mte.app.controller -> mte.core.economy "buy, embark"
@@ -274,7 +281,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.wiki -> mte.packs "Shows its pictures"
         mte.core.catalog -> mte.core.economy "Lists what the content tables define"
 
-        mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
+        mte.core.step -> mte.core.world "Reveals explored tiles"
         mte.core.actions -> mte.core.world "Edits richness (gathering, digging)"
         mte.core.actions -> mte.core.economy "Yields and costs"
         mte.core.state -> mte.core.world "Creates the world; saves its edits"
@@ -337,14 +344,15 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         dynamic mte.app "GameLoop" {
-            title "Game Loop (one frame)"
-            mte.app.main -> mte.app.controller "Steers and works a held tile each frame"
-            mte.app.main -> mte.app.perfect "Ticks it every frame while held"
+            mte.app.main -> mte.app.engine "Schedules fixed ticks independently of drawing"
+            title "Game Loop (fixed ticks and independent drawing)"
+            mte.app.engine -> mte.app.controller "Steers and works held input each simulation tick"
+            mte.app.engine -> mte.app.perfect "Ticks AUTO every simulation tick while held"
             mte.app.perfect -> mte.core.brain "nextIntent"
             mte.app.perfect -> mte.app.controller "Carries out each intent"
             mte.app.controller -> mte.core.actions "harvest, collect, place, go down/up, descend"
-            mte.app.main -> mte.core.step "Calls step(state, dt) every frame"
-            mte.core.step -> mte.core.world "Regrows tiles; reveals fog"
+            mte.app.engine -> mte.core.step "Calls step(state, 1/60) every simulation tick"
+            mte.core.step -> mte.core.world "Reveals explored tiles"
             mte.app.main -> mte.app.render "Renders each frame"
             mte.app.render -> mte.app.camera "Projects every draw"
             autoLayout

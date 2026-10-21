@@ -27,11 +27,12 @@ kind of knowledge lives.
 - `test/property/` searches for rule breaks that the example tests in
   `test/unit/` didn't happen to try: it plays thousands of random legal games
   and holds every invariant in `test/property/invariants.js` after each step.
-  Add an invariant when you add a rule the code must never break, and run
-  `PROP_SEEDS=1500 npm test` (or a specific seed it prints) when a change
-  touches `src/core/` arithmetic, saves or the shared-world round-trip.
-- After a change under `src/core/`, run `node scripts/perfect-bench.mjs
-  --check` (CI runs it and won't deploy if it fails). If Perfect got slower,
+  Add an invariant when you add a rule the code must never break, and use `npm run test:extended` (or a specific seed it prints) for the
+  explicit long sweep of arithmetic, saves or shared-world round-trips.
+  Local feedback uses 12 seeds per family; the 1,500-seed sweep runs separately
+  in CI and manually, never as a prerequisite for interactive iteration.
+- CI runs `node scripts/perfect-bench.mjs --check` after core changes and
+  will not deploy if it fails. Run it locally explicitly when needed. If Perfect got slower,
   re-learn with `scripts/perfect-tune.mjs` and record the score with
   `--write` (README, Tests).
 - After pushing, check that every workflow for your commit passed, not only

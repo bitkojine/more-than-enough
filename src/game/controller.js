@@ -183,6 +183,9 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
           Core.move(state(), dx, dy, Math.min(dt, d / Core.walkSpeed(state()))); // never past it
           if (Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
           controller.facing = { x: dx, y: dy };
+          // Finish on the tick that arrives, so AUTO can choose its next
+          // step immediately instead of spending another tick standing still.
+          if (walkTo && !walkTo.work && Math.hypot(walkTo.x - p.x, walkTo.y - p.y) < ARRIVE_DIST) walkTo = null;
         }
       }
       const moved = Math.abs(p.x - before.x) + Math.abs(p.y - before.y) > 0.0004;

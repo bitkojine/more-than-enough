@@ -89,14 +89,14 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
 
   rectangle "Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>" <<Boundary-V2ViIEFwcGxpY2F0aW9u>> {
     rectangle "==Effects\n<size:16>[Component: JavaScript]</size>\n\nParticles, floating text and flyers (resources homing into the pack), with budgets and a flyer lifetime so bursts stay cheap." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Effects
-    rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load, save (reporting failures) and clear, plus per-browser view settings." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
-    rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
-    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
+    rectangle "==Storage\n<size:16>[Component: JavaScript + localStorage]</size>\n\nGuarded localStorage: load, save (reporting failures, never over another tab's save) and setting aside a save it can't read rather than writing over it, plus per-browser view settings." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Storage
+    rectangle "==Input\n<size:16>[Component: JavaScript]</size>\n\nRaw touch/mouse/keyboard to intents: drag-anywhere joystick, tap, hold Gather (button or Space), hold AUTO (button or P), the Trail stroke (hold Gather and draw), pinch/wheel/button zoom, and sheet shortcuts. Holds no game state; calls the handlers it is given." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Input
+    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, AUTO's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
   }
 
 }
 
-MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "1: Taps, held action, Trail strokes"
+MORETHANENOUGH.WebApplication.Input --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "1: Taps, held tiles, Trail strokes"
 MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "2: harvest, collect, place, go down/up, descend"
 MORETHANENOUGH.SimulationCore.Actions --> MORETHANENOUGH.SimulationCore.LayeredWorld <<Relationship-UmVsYXRpb25zaGlw>> : "3: Edits richness (gathering, digging)"
 MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.WebApplication.Effects <<Relationship-UmVsYXRpb25zaGlw>> : "4: Spawns effects"

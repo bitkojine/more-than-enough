@@ -1,6 +1,6 @@
 ' Generated from structurizr/workspace.dsl - do not edit; run: node structurizr/scripts/structurizr.mjs plantuml
 @startuml
-title <size:24>Game Loop (one frame)</size>
+title <size:24>Game Loop (fixed ticks and independent drawing)</size>
 
 set separator none
 left to right direction
@@ -12,6 +12,18 @@ hide stereotype
   root {
     BackgroundColor: #ffffff;
     FontColor: #444444;
+  }
+  // Element,Component
+  .Element-RWxlbWVudCxDb21wb25lbnQ= {
+    BackgroundColor: #85bbf0;
+    LineColor: #5d82a8;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #000000;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
   }
   // Element,Component,Core Engine
   .Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU= {
@@ -84,24 +96,31 @@ hide stereotype
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
   rectangle "Simulation Core\n<size:16>[Container: JavaScript modules (browser + Node)]</size>" <<Boundary-U2ltdWxhdGlvbiBDb3Jl>> {
     rectangle "==Layered World\n<size:16>[Component: JavaScript]</size>\n\nCoordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.LayeredWorld
-    rectangle "==Simulation Step\n<size:16>[Component: JavaScript]</size>\n\nstep(s, dt): extractor production, range-limited logistics auto-collect on the player's layer, the abundance trickle, and hash-seeded regrowth near the player. Also movement, fog reveal and the day/night curve." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.SimulationStep
+    rectangle "==Simulation Step\n<size:16>[Component: JavaScript]</size>\n\nstep(s, dt): production, logistics, abundance income and battery; movement and fog reveal. Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Battery intervals support quiet-tick batching. Variable-step/shared callers and extreme arithmetic retain the legacy economy." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.SimulationStep
     rectangle "==Actions\n<size:16>[Component: JavaScript]</size>\n\nHarvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus travel between layers through holes (dig down from the forest, climb up through the ceiling, drop through holes and shafts). All work on the player's own layer." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.Actions
+    rectangle "==AUTO Brain\n<size:16>[Component: JavaScript]</size>\n\nnextIntent(s, mind): legal player actions from explored terrain, remembered observations, visible mine glints, own resources and public rules. Integer A* treats unseen underground rock as an assumption and replans after normal revelation, without inspecting hidden geology. Unseen chargers, ladders, shores and tunnel props cannot steer decisions. Prices building repayment against required upgrades; mining is a fallback only when surface acquisition is unavailable, includes passive income and return travel and targets useful observed finds. Waits at Embark, and never spends Insight in shared worlds. Pure: mind caches observations and routes." <<Element-RWxlbWVudCxDb21wb25lbnQsQ29yZSBFbmdpbmU=>> as MORETHANENOUGH.SimulationCore.AUTOBrain
   }
 
   rectangle "Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>" <<Boundary-V2ViIEFwcGxpY2F0aW9u>> {
-    rectangle "==Main Loop\n<size:16>[Component: JavaScript]</size>\n\nWires the modules together and owns the current state (game.state, replaced on embark/reset). Each frame: steer the player, Core step(), turn logistics events into flyers, reveal fog on tile change, repeat the held action, update effects, run the save/milestone/HUD timers, then render. Exposes window.MTE_GAME for the browser tests." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.MainLoop
-    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), the held action (collect, else harvest), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
     rectangle "==Camera\n<size:16>[Component: JavaScript]</size>\n\nMaps world (x, y, height) to screen pixels and back (project/unproject) with zoom and a fixed slight lean; picking hits the top or face you see. Also the visible tile range." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Camera
-    rectangle "==Renderer\n<size:16>[Component: JavaScript]</size>\n\nDraws one frame back to front: terrain for the camera's layer row by row (tops and south faces, or level-of-detail blocks when zoomed far out) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Renderer
+    rectangle "==Renderer\n<size:16>[Component: JavaScript]</size>\n\nDraws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Never text to read." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Renderer
+    rectangle "==Main Loop\n<size:16>[Component: JavaScript]</size>\n\nWires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. Exposes window.MTE_GAME for the browser tests." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.MainLoop
+    rectangle "==Tick and Deadline Engine\n<size:16>[Component: JavaScript]</size>\n\nShared 60 Hz logical clock. Browser catch-up is bounded; the headless runner coalesces stationary ticks ending at AUTO/goal deadlines, retaining fine motion and first Embark eligibility. Cumulative battery intervals preserve daylight transitions. Injected controller, AUTO and input interfaces keep scheduling independent of presentation." <<Element-RWxlbWVudCxDb21wb25lbnQ=>> as MORETHANENOUGH.WebApplication.TickandDeadlineEngine
+    rectangle "==Controller\n<size:16>[Component: JavaScript]</size>\n\nApplies intents to the game: tap (descend, harvest, collect, or walk there), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, AUTO's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.Controller
+    rectangle "==AUTO\n<size:16>[Component: JavaScript]</size>\n\nThe AUTO button (formerly Perfect): while held (and no sheet or dialog is up, and the player isn't steering, gathering or working a tile) it asks the brain for the next intent about four times a second and has the Controller carry it out, the same calls a tap makes. Keeps the badge (what it's doing), waits at Embark with a toast, and keeps the screen awake while held." <<Element-RWxlbWVudCxDb21wb25lbnQsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication.AUTO
   }
 
 }
 
-MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "1: Steers and repeats the held action each frame"
-MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "2: harvest, collect, place, go down/up, descend"
-MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.SimulationCore.SimulationStep <<Relationship-UmVsYXRpb25zaGlw>> : "3: Calls step(state, dt) every frame"
-MORETHANENOUGH.SimulationCore.SimulationStep --> MORETHANENOUGH.SimulationCore.LayeredWorld <<Relationship-UmVsYXRpb25zaGlw>> : "4: Regrows tiles; reveals fog"
-MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.Renderer <<Relationship-UmVsYXRpb25zaGlw>> : "5: Renders each frame"
-MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.Camera <<Relationship-UmVsYXRpb25zaGlw>> : "6: Projects every draw"
+MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.TickandDeadlineEngine <<Relationship-UmVsYXRpb25zaGlw>> : "1: Schedules fixed ticks independently of drawing"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "2: Steers and works held input each simulation tick"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.WebApplication.AUTO <<Relationship-UmVsYXRpb25zaGlw>> : "3: Ticks AUTO every simulation tick while held"
+MORETHANENOUGH.WebApplication.AUTO --> MORETHANENOUGH.SimulationCore.AUTOBrain <<Relationship-UmVsYXRpb25zaGlw>> : "4: nextIntent"
+MORETHANENOUGH.WebApplication.AUTO --> MORETHANENOUGH.WebApplication.Controller <<Relationship-UmVsYXRpb25zaGlw>> : "5: Carries out each intent"
+MORETHANENOUGH.WebApplication.Controller --> MORETHANENOUGH.SimulationCore.Actions <<Relationship-UmVsYXRpb25zaGlw>> : "6: harvest, collect, place, go down/up, descend"
+MORETHANENOUGH.WebApplication.TickandDeadlineEngine --> MORETHANENOUGH.SimulationCore.SimulationStep <<Relationship-UmVsYXRpb25zaGlw>> : "7: Calls step(state, 1/60) every simulation tick"
+MORETHANENOUGH.SimulationCore.SimulationStep --> MORETHANENOUGH.SimulationCore.LayeredWorld <<Relationship-UmVsYXRpb25zaGlw>> : "8: Reveals explored tiles"
+MORETHANENOUGH.WebApplication.MainLoop --> MORETHANENOUGH.WebApplication.Renderer <<Relationship-UmVsYXRpb25zaGlw>> : "9: Renders each frame"
+MORETHANENOUGH.WebApplication.Renderer --> MORETHANENOUGH.WebApplication.Camera <<Relationship-UmVsYXRpb25zaGlw>> : "10: Projects every draw"
 
 @enduml

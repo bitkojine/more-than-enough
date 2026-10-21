@@ -218,7 +218,7 @@ async function main() {
   async function navigate(url) {
     await cdp.send('Page.navigate', { url: url }, session);
     var loaded = await waitFor('!!window.MTE_GAME', 8000);
-    if (!loaded) throw new Error('game did not boot at ' + url);
+    if (!loaded) throw new Error('game did not boot at ' + url + '; runtime errors: ' + pageErrors.join(' | ') + '; page: ' + await evalJS('document.body.innerText.slice(0, 1000)'));
     await sleep(400);
   }
 
@@ -289,6 +289,54 @@ async function main() {
   await evalJS('localStorage.clear()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await evalJS('!!window.MTE_GAME'), 'game booted');
+  // A bounded integration fixture, deliberately separate from fresh-world
+  // AUTO evaluations. Checks the live browser host after Logistics unlocks.
+  if (process.env.MTE_ENGINE_ONLY === '1') {
+    console.log('\n== Event economy: bounded browser fixture ==');
+    await evalJS(`(async function(){
+      window.__economyForState = (await import('./src/core/economy-context.js')).economyForState;
+      var c=MTE_GAME.core,s=MTE_GAME.getState();
+      for(var r of c.RESOURCES)c.earn(s,r,1000000,'hand');
+      s.unlocks.logistics=true;
+      if(!c.place(s,'garden').ok)throw new Error('fixture building placement failed');
+    })()`);
+    ok(await waitFor('!!__economyForState(MTE_GAME.getState())'), 'browser shared loop activates event production');
+    var engineBefore = await evalJS('JSON.stringify({time:MTE_GAME.getState().time,income:MTE_GAME.getState().sources.mycelium.buildings,visits:__economyForState(MTE_GAME.getState()).work.buildingVisits})');
+    await sleep(2200);
+    var engineAfter = JSON.parse(await evalJS('JSON.stringify({time:MTE_GAME.getState().time,income:MTE_GAME.getState().sources.mycelium.buildings,visits:__economyForState(MTE_GAME.getState()).work.buildingVisits})'));
+    engineBefore = JSON.parse(engineBefore);
+    ok(engineAfter.time > engineBefore.time + 1, 'live browser simulation advances');
+    ok(engineAfter.income > engineBefore.income, 'presentation observes earned production');
+    eq(engineAfter.visits, engineBefore.visits, 'ordinary browser ticks do not materialize every building');
+    ok(await evalJS(`(function(){var c=MTE_GAME.core,s=MTE_GAME.getState();
+      c.earn(s,'stone',17,'finds');var n=s.inv.stone;c.settleEconomy(s);return s.inv.stone===n;})()`), 'manual earnings survive later balance observations');
+    await evalJS('MTE_GAME.save()');
+    await navigate('http://127.0.0.1:' + PORT + '/index.html');
+    ok(await evalJS('MTE_GAME.getState().unlocks.logistics && MTE_GAME.getState().extractors.length===1'), 'save reload preserves Logistics and its building');
+    ok(pageErrors.length === 0, 'no browser runtime errors with event economy');
+    console.log((failures ? 'ENGINE BROWSER FAILURES' : 'ENGINE BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
+  // Dedicated smoke for the full-game headless AUTO evaluations. Unlike the
+  // general interaction tests below, this fresh world gets no state edits,
+  // teleporting, resource grants, manual gathering, purchases or other input.
+  if (process.env.MTE_AUTO_ONLY === '1') {
+    console.log('\n== Fresh world: hold AUTO and nothing else ==');
+    var autoBefore = JSON.parse(await evalJS('JSON.stringify({player:MTE_GAME.getState().player,stats:MTE_GAME.getState().stats})'));
+    ok(autoBefore.stats.gathers === 0 && autoBefore.stats.built === 0, 'fresh world has no previous player actions');
+    var autoButton = await rect('#btnPerfect');
+    await hold(autoButton.x, autoButton.y, 20000);
+    var autoAfter = JSON.parse(await evalJS('JSON.stringify({player:MTE_GAME.getState().player,stats:MTE_GAME.getState().stats})'));
+    ok(autoAfter.stats.gathers > 0, 'holding only the actual AUTO button gathers from a fresh spawn');
+    ok(autoAfter.player.x !== autoBefore.player.x || autoAfter.player.y !== autoBefore.player.y, 'AUTO walks without manual steering');
+    await sleep(1200);
+    var autoReleased = JSON.parse(await evalJS('JSON.stringify({player:MTE_GAME.getState().player,stats:MTE_GAME.getState().stats})'));
+    eq(autoReleased.stats.gathers, autoAfter.stats.gathers, 'releasing AUTO stops gathering');
+    eq(JSON.stringify(autoReleased.player), JSON.stringify(autoAfter.player), 'releasing AUTO stops walking');
+    ok(pageErrors.length === 0, 'no browser runtime errors during AUTO-only play');
+    console.log((failures ? 'AUTO BROWSER FAILURES' : 'AUTO BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
   // Movement and timing checks assume the game runs in real time. If the
   // machine is starved, say so here rather than as odd failures later.
   var pace = JSON.parse(await evalJS('new Promise(function(done){var t0=MTE_GAME.getState().time,n=0,w0=performance.now();' +
@@ -965,8 +1013,8 @@ async function main() {
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
   ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'after an Embark, Beyond stays for the perks');
 
-  /* ------------------------------------- logistics auto-collect is ranged */
-  console.log('\n== Logistics auto-collect needs range ==');
+  /* --------------------------- Logistics hauls from anywhere (v0.111.0) */
+  console.log('\n== Logistics auto-collect works at any distance ==');
   await evalJS('(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"garden",res:"mycelium",x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:10};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()');
   await sleep(300);
   var lg0 = JSON.parse(await stateSummary());
@@ -974,22 +1022,24 @@ async function main() {
   await evalJS('(function(){var s=MTE_GAME.getState();MTE_GAME.setPlayer(s.player.x+80,s.player.y+80);})()');
   await sleep(200);
   var lg1 = JSON.parse(await stateSummary());
-  await sleep(1200);
+  ok(await waitFor('MTE_GAME.getState().inv.mycelium > ' + lg1.inv.mycelium, 5000), 'far extractor still delivers its production');
   var lg2 = JSON.parse(await stateSummary());
-  eq(lg2.inv.mycelium, lg1.inv.mycelium, 'walking far away stops auto-collect (inv holds at ' + lg1.inv.mycelium + ')');
-  ok(lg2.buf[0] > lg1.buf[0], 'far extractor keeps producing into its buffer (' + lg1.buf[0] + ' -> ' + lg2.buf[0] + ')');
-  // walking back re-engages it (and parks the player mid-world for the night test)
+  ok(lg2.inv.mycelium > lg1.inv.mycelium, 'walking far away keeps auto-collect running');
+  ok(lg2.buf[0] < 1, 'the far buffer sends whole units to the packs');
+  // Returning is no longer required, but parks the player for the night test.
   await evalJS('(function(){var s=MTE_GAME.getState();var e=s.extractors[0];MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);})()');
-  await sleep(300);
+  ok(await waitFor('MTE_GAME.getState().inv.mycelium > ' + lg2.inv.mycelium, 5000), 'production continues after returning');
   var lg3 = JSON.parse(await stateSummary());
-  ok(lg3.inv.mycelium > lg2.inv.mycelium, 'walking back re-enables auto-collect (' + lg2.inv.mycelium + ' -> ' + lg3.inv.mycelium + ')');
+  ok(lg3.inv.mycelium > lg2.inv.mycelium, 'auto-collect works nearby too');
   ok(lg3.buf[0] < 1.0, 'buffer drains again when nearby (' + lg3.buf[0] + ')');
 
   /* ------------------------------------------------ day/night + light */
   console.log('\n== Day/night cycle & flashlight ==');
   var di = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core;return JSON.stringify({len:c.DAY_LENGTH,noon:c.daylight(0),mid:c.daylight(c.DAY_LENGTH/2)});})()'));
   ok(di.len > 0 && di.noon === 1 && Math.round(di.mid) === 0, 'daylight curve sane (cycle ' + di.len + 's, noon ' + di.noon + ', midnight ' + di.mid + ')');
-  await evalJS('MTE_GAME.getState().time = MTE_GAME.core.DAY_LENGTH / 2'); // force midnight
+  // This constructed visual fixture changes time directly. A variable-step
+  // call settles and leaves the cumulative clock first, preserving balances.
+  await evalJS('MTE_GAME.core.step(MTE_GAME.getState(), 1/120); MTE_GAME.getState().time = MTE_GAME.core.DAY_LENGTH / 2'); // force midnight
   await sleep(300);
   var nightShot = await shot('05-night.png');
   ok(!!nightShot, 'night render screenshot: ' + nightShot);

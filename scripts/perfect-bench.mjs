@@ -31,19 +31,29 @@ const TOLERANCE = 0.02;   // how far the median may move from the baseline befor
 const BASELINE = fileURLToPath(new URL('../test/perfect-baseline.json', import.meta.url));
 
 /** Plays `seeds` (numbers) for up to `hours` each with `knobs`; resolves to { hours, knobs, runs, summary }. */
-export async function bench({ seeds, hours = 60, knobs = {}, log = () => {} }) {
+export async function bench({ seeds, hours = 60, wallSeconds = 0, knobs = {}, driver = 'core', jobs = availableParallelism(), onResult = () => {}, onProgress = () => {}, log = () => {} }) {
+  if (!seeds.length || !Number.isFinite(hours) || hours <= 0 || !Number.isInteger(jobs) || jobs < 1) throw new Error('Benchmark needs seeds, a positive time cap and a positive worker count');
   const runs = [];
   const queue = [...seeds];
-  const lanes = Array.from({ length: Math.min(seeds.length, availableParallelism()) }, async () => {
+  const lanes = Array.from({ length: Math.min(seeds.length, jobs, availableParallelism()) }, async () => {
     while (queue.length) {
       const seed = queue.shift();
       const run = await new Promise((done, fail) => {
-        const w = new Worker(new URL(import.meta.url), { workerData: { seed, hours, knobs } });
-        w.once('message', done);
+        const w = new Worker(new URL(import.meta.url), { workerData: { seed, hours, wallSeconds, knobs, driver } });
+        w.on('message', (message) => {
+          if (message.progress === true) {
+            if (message.driver === 'core') log(`seed ${seed}: core regression, ${message.hours.toFixed(0)} simulated h played; ${message.point.buildings} buildings, ${message.point.goal || "no goal"}\n`);
+            else log(`seed ${seed}: AUTO still held, ${message.hours.toFixed(0)} simulated h played; ${message.point.buildings} buildings, ${message.point.badge}, ${Math.round(message.point.seconds.blocked)} s blocked\n`);
+            onProgress({ seed, point: message.point });
+          }
+          else done(message);
+        });
         w.once('error', fail);
+        w.once('exit', (code) => { if (code !== 0) fail(new Error(`seed ${seed}: worker exited ${code}`)); });
       });
       log(`seed ${seed}: ${run.embark === null ? 'no Embark' : 'Embark'} at ${h(run.played)}\n`);
       runs.push(run);
+      onResult(run);
     }
   });
   await Promise.all(lanes);
@@ -60,7 +70,7 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   const baseline = args.check && readJson(BASELINE);
   const seeds = args.seeds ? pickSeeds(args.seeds) : baseline ? baseline.seeds : SEEDS.slice(0, 4);
-  const result = await bench({ seeds, hours: Number(args.hours || 60), knobs: JSON.parse(args.knobs || '{}'), log: (m) => process.stderr.write(m) });
+  const result = await bench({ seeds, hours: Number(args.hours || 60), jobs: Number(args.jobs || availableParallelism()), knobs: JSON.parse(args.knobs || '{}'), log: (m) => process.stderr.write(m) });
   if (args.out) writeFileSync(args.out, JSON.stringify(result, null, 1) + '\n');
   report(result, args.against ? readJson(args.against) : baseline || null);
   if (args.write) {
@@ -105,7 +115,13 @@ const readJson = (file) => JSON.parse(readFileSync(file, 'utf8'));
 
 /* ---------------------------------------------------------------- a seed */
 
-async function play({ seed, hours, knobs }) {
+async function play({ seed, hours, wallSeconds, knobs, driver }) {
+  if (driver === 'auto') {
+    if (Object.keys(knobs).length) throw new Error('AUTO evaluation uses only the shipped strategy');
+    const { playAutoplay } = await import('./autoplay-driver.mjs');
+    return playAutoplay({ seed, hours, wallSeconds,
+      onProgress: (played, point) => parentPort.postMessage({ progress: true, hours: played / 3600, point }) });
+  }
   const C = await import('../src/core/index.js');
   const { holdPerfect } = await import('../test/unit/helpers.js');
   const s = C.createState(seed);
@@ -113,11 +129,17 @@ async function play({ seed, hours, knobs }) {
   const b = { refused: 0, nowhere: 0, walks: 0, waited: 0, layerChanges: 0, shortTrips: 0, goals: 0 };
   let z = s.player.z, wentDown = 0, at = { x: s.player.x, y: s.player.y }, goal = null, waitFrom = null;
   const mind = C.newMind(knobs);
+  let nextProgress = 3600;
   const { played, last } = holdPerfect(s, hours * 3600, {
     mind,
     tick() {
       for (const g of C.advanceGoals(s)) milestones[g.id] = s.time;
       s.events.length = 0;
+      if (s.time >= nextProgress) {
+        parentPort.postMessage({ progress: true, driver: 'core', hours: s.time / 3600,
+          point: { buildings: s.extractors.length, goal: mind.goal?.id || null } });
+        nextProgress += 3600;
+      }
     },
     seen(intent, result) {
       if (waitFrom !== null) { b.waited += s.time - waitFrom; waitFrom = null; }
@@ -138,7 +160,8 @@ async function play({ seed, hours, knobs }) {
   });
   if (waitFrom !== null) b.waited += s.time - waitFrom;
   const embark = last && last.why === 'embark' ? played : null;
-  return { seed, played, embark, milestones, behaviour: b, abundance: s.abundanceLv, buildings: s.extractors.length };
+  return { seed, played, embark, milestones, behaviour: b, abundance: s.abundanceLv, buildings: s.extractors.length,
+    ...(embark === null ? { failureState: JSON.parse(C.serialize(s)) } : {}) };
 }
 
 /* -------------------------------------------------------------- reporting */

@@ -159,7 +159,10 @@ test('Perfect digs in the mine when only finds pay, and comes back up', () => {
   holdPerfect(s, 8 * 60, { mind });
   s.tools.pickaxe = 1;
   s.inv.ore = 0;
+  s.abundanceLv = 0; // this fixture requires ore unavailable from any surface income
   s.extractors = s.extractors.filter((e) => e.res !== 'ore');
+  const cave = C.nearestTile(s.player.x, s.player.y, 120, (x, y) => C.tileAt(s.world, x, y, 0) === C.T.CAVE);
+  assert.ok(cave); C.markExplored(s.world, cave.x, cave.y, 0);
   const want = { ore: 40 };
   assert.equal(C.plan(s, mind, want).layer, 1, 'finds on layer 1 are the way to ore');
   mind.goal = { kind: 'build', id: 'mine', cost: want, level: C.extractorCount(s, 'mine') };

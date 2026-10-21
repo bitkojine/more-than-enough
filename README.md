@@ -183,8 +183,8 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why; `docs/music.md` — the soundtrack
 - `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
 - `test/property/` — property tests: random legal play, checked against the
-  rules the game must never break (`invariants.js`), thousands of short games
-  per run; a failure prints the seed it replays from (`PROP_SEEDS=<seed> npm test`)
+  rules the game must never break (`invariants.js`), 12 seeds per family by
+  default and 1,500 in the explicit extended sweep; a failure prints the seed it replays from (`PROP_SEEDS=<seed> npm test`)
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
 - `scripts/stage-site.sh` — stages the deployable site (game + wiki) with cache-busted URLs
@@ -199,10 +199,33 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 
 ```sh
 npm test            # node:test over test/unit/ and test/property/ — world layers, actions, economy, saves, bot playthroughs, translations, and the game's invariants under random play
+npm run test:extended # explicit 1,500-seed property sweep; also runs in background CI
+npm run test:scaling # bounded engine correctness and operation-count checks; no long-world runs
 npm run test:e2e    # real Chrome: boot, render, touch/keyboard, gather, dig, upgrade, build, reload-save
 npm run test:layout # real Chrome: every screen at 12 sizes in both languages (see docs/ui.md)
 node scripts/perfect-bench.mjs --check  # the Perfect button, held to Embark on 4 worlds, against its baseline
 ```
+
+`node scripts/scaling-bench.mjs` measures bounded algorithm kernels with up to
+10,000 buildings and reports operation counts. Its forty-hour time horizon is
+an arithmetic query, not a completed game. The event-time solo hauling economy
+uses cumulative production and cached rates/counts instead of building updates
+on every tick. The shared browser/AUTO engine enables it after Logistics,
+normalizing saved output first. It settles income at commands and observations;
+visual feedback queries nearby buildings only. Direct variable-step core and
+shared-world replay callers retain the legacy economy. Production uses
+cumulative arithmetic rather than repeated frame-sized floating additions.
+The scheduler coalesces stationary ticks ending at AUTO and goal deadlines,
+keeping individual ticks for movement, external callbacks, feedback and first
+Embark eligibility. Battery accounting preserves daylight transitions when
+batching. `node scripts/engine-bench.mjs --save <fixture.json> --ticks 3600`
+compares actual AUTO command times and complete state with and without
+coalescing; it stops at a one-second per-sample budget rather than running an
+unexpectedly slow workload. No end-to-end speedup is established by kernel or
+short-fixture benchmarks.
+Existing saves and world formats are retained. A bounded real-browser check is
+available with `MTE_ENGINE_ONLY=1 npm run test:e2e`; its constructed Logistics
+fixture is separate from fresh-world AUTO evaluations.
 
 The Perfect button's score is the median hours of play, held from spawn, until
 Embark opens. `scripts/perfect-bench.mjs` measures it (and how the brain
@@ -214,6 +237,67 @@ broke a behaviour rule. When a rules change makes it slower, re-learn:
 wasn't tuned on; put its knobs into `KNOBS`, then record the new score with
 `perfect-bench.mjs --write`. A change that makes the game longer on purpose is
 recorded the same way, after a tune.
+
+For evaluation on fresh worlds, run `node scripts/playtest.mjs`. Each batch
+plays four cryptographically random, nonzero 32-bit seeds with the shipped
+AUTO strategy frozen, starting with no carried perks or progress. Winning
+means first Embark eligibility. `--worlds 8 --jobs 4 --hours 60` controls the
+batch size, parallelism and per-world simulation limit; `--batches 0` keeps
+playing new batches until stopped. The default is one batch.
+
+The runner presses AUTO once and holds it, driving the actual
+`src/game/perfect.js` handler and `src/game/controller.js` through the same
+`src/engine/simulation.js` used by the browser. Gameplay advances at 60 fixed
+simulation ticks per game second, independently of drawing. Headless runs
+advance ticks directly without waiting for a display or wall clock; there is
+no bot FPS setting. The runner never chooses custom actions or grants progress.
+AUTO plans from explored terrain, remembered observations, visible mine glints,
+its own resources and public rules. Unknown underground rock has a uniform
+assumed digging cost; it is not inspected to choose a route. Unseen chargers,
+shore terrain, ladders and tunnel props cannot steer decisions. The fairness
+checks change hidden world information while preserving observations and
+require unchanged decisions or plans.
+Rendering, sound and persistence are stubbed; `npm run test:e2e` separately
+verifies real button input in Chrome. The older fixed-seed benchmark uses its
+original core-action helper for regression comparisons; its timings are not
+interchangeable with these AUTO/controller runs.
+
+For a repeatable production-component CPU benchmark, run
+`node scripts/simulation-bench.mjs` (optionally `--save <playtest-result.json>`).
+It compares against the scalar reference and requires exact saved-state and
+unrounded building-buffer parity. Its speedup is for production alone, not
+an end-to-end world win.
+Timeouts and refused AUTO actions are saved and make the command exit with
+a failure status; later batches still run so one failure does not hide others.
+The saved diagnostics separate movement, blocked movement, charging, waiting
+and other work. Hourly checkpoints and the longest slow episodes show where
+time went. Five minutes with no resources earned, finds, buildings, new
+exploration or charging ends a stalled run with the failure save and recent
+actions retained. Movement through already explored land alone is not progress.
+Stalls also fail the command. Short exploratory runs with a deliberately small
+`--hours` limit produce expected timeouts, not completed-world validation.
+The separate movement-loop check ignores passive income, so pacing around a
+small area for five minutes without gathering, exploring, buying, building
+or changing layers fails even when the Abundance Engine keeps paying. Hourly
+checkpoints are also saved while a world is running, for live diagnosis.
+For an isolated browser smoke that only holds AUTO on a fresh world, run
+`MTE_AUTO_ONLY=1 npm run test:e2e`. It checks real pointer input, automatic
+walking and gathering, and stopping on release without editing game state;
+it does not wait 40 real hours for a browser win.
+
+Seeds are reserved before play in ../.mte-playtests/seeds/, outside the
+checkout. Keep this directory across runs (or use `--state <shared-directory>`)
+to prevent reuse, including after interrupted games. The known benchmark and
+tuning seeds are excluded. Earlier unrecorded random worlds cannot be ruled
+out; sharing the ledger is required across machines. Each completed world
+saves its seed, result, source fingerprint, commit and frozen knobs immediately.
+Results show fastest, median and slowest winning times, timeouts, and wins
+under 40 hours. These are simulated foreground hours, including walking and
+waiting; offline production is never called. They do not measure human input
+hours or prove an optimal strategy. Keep evaluation separate from tuning:
+do not feed these worlds into `perfect-tune.mjs` or select knobs on their scores;
+evaluate any revised strategy on another fresh batch. The fixed-seed CI
+benchmark remains a regression check.
 
 Node: always the latest LTS, locally and in CI. `.nvmrc` says `lts/*`; CI
 reads it with `check-latest`, and locally `fnm` (or `nvm`) picks it up from the
@@ -246,3 +330,20 @@ full screen.
 ## License
 
 MIT, see [LICENSE](LICENSE). Fork it, change it, ship your own version.
+
+AUTO goal selection compares required upgrades with building acquisition plus
+repayment time, valuing each input using current production and accessible
+hand gathering. Mining estimates include income earned during travel and digging
+and the return to the surface. Find selection uses visible or remembered glints
+that supply a resource still needed by the current goal. These are estimates,
+not a guarantee of the optimal strategy.
+
+AUTO defaults to minimum mining: if surface gathering or production provides
+a finite route to its current price, it stays above ground (or returns there).
+Known caves remain a fallback when a needed resource is otherwise unavailable.
+
+For interactive feedback use `npm run check`; it skips the long AUTO
+baseline benchmark. `npm run check -- full` includes that benchmark explicitly. Extended property checks run separately in CI and with
+`npm run test:extended`, without holding up deployment. The first-load budget
+is 215 KB gzipped for the shared clock, indexed searches and cumulative economy
+(previously 210 KB); the release currently measures about 213 KB.

@@ -15,12 +15,15 @@ diagrams (see [Tools](#tools)) and commit the regenerated files together.
 
 The game is plain JavaScript modules with no runtime dependencies, served as
 static files; the only server is the room service for shared worlds
-(`server/`, a Cloudflare Worker). The split that matters is between two folders:
+(`server/`, a Cloudflare Worker). The runtime separates three responsibilities:
 
 - **`src/core/` — Simulation Core.** The game rules, *pure, DOM-free and
   deterministic*: no DOM, no clocks, no `Math.random()`. The same modules run
   in the browser, under Node in `test/unit/`, and in the room service, which
   replays each player's actions with them (`server/src/shadow.js`).
+- **`src/engine/` — Shared tick orchestration.** Fixed 60 Hz gameplay updates
+  drive injected input, controller and AUTO interfaces. Browser elapsed time
+  schedules bounded catch-up; headless evaluation advances ticks directly.
 - **`src/game/` — Web Application.** Presentation and input: DOM, canvas
   renderer, camera, touch/keyboard input, audio, HUD and sheets, localStorage.
   It **only changes state through the Core's exports** (`harvestAt()`,

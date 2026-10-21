@@ -4,6 +4,8 @@ import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RAD
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
 import { t } from '../i18n/i18n.js';
 
+import { economyForState, economyForInventory } from './economy-context.js';
+
 /* ------------------------------------------------------------- income */
 
 // Where resources come from, as counted in the earnings statement.
@@ -12,6 +14,8 @@ export const SOURCES = Object.fromEntries(['hand', 'finds', 'buildings', 'engine
 // Adds `amount` of `res` to the packs, counted as gathered this world and as
 // coming from `source` (a key of SOURCES).
 export function earn(s, res, amount, source) {
+  const indexed = economyForState(s);
+  if (indexed) return indexed.credit(source, res, amount);
   s.inv[res] += amount;
   s.stats[res] += amount;
   s.sources[res][source] += amount;
@@ -20,12 +24,16 @@ export function earn(s, res, amount, source) {
 /* -------------------------------------------------------------- costs */
 
 export function canAfford(inv, cost) {
+  const indexed = economyForInventory(inv);
+  if (indexed) return indexed.canAfford(cost);
   if (!cost) return false;
   for (const r in cost) if ((inv[r] || 0) < cost[r]) return false;
   return true;
 }
 
 export function pay(inv, cost) {
+  const indexed = economyForInventory(inv);
+  if (indexed) return indexed.pay(cost);
   if (!canAfford(inv, cost)) return false;
   for (const r in cost) inv[r] -= cost[r];
   return true;
@@ -115,6 +123,8 @@ export function extractorCapacity(s, key) {
 
 // Total per-second income of each resource when every extractor is producing.
 export function productionRates(s) {
+  const indexed = economyForState(s);
+  if (indexed) return indexed.productionRates();
   const rates = {};
   for (const r of RESOURCES) rates[r] = abundanceTrickle(s);
   for (const e of s.extractors) if (ownBuilding(s, e)) rates[e.res] += extractorRate(s, e.key);
@@ -123,6 +133,8 @@ export function productionRates(s) {
 
 // What all your buildings make of `res` a second.
 export function buildingRate(s, res) {
+  const indexed = economyForState(s);
+  if (indexed) return indexed.buildingRate(res);
   let rate = 0;
   for (const e of s.extractors) if (e.res === res && ownBuilding(s, e)) rate += extractorRate(s, e.key);
   return rate;
@@ -137,6 +149,8 @@ export function ownBuilding(s, e) {
 }
 
 export function extractorCount(s, key) {
+  const indexed = economyForState(s);
+  if (indexed) return indexed.extractorCount(key);
   return s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
 }
 

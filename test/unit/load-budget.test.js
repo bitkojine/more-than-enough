@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const BUDGET_KB = 210; // 200 until v0.130.0's earnings statement (~5 KB)
+const BUDGET_KB = 215; // v0.131.4 shared clock, indexed searches and cumulative economy (~3 KB extra)
 const MAX_REQUESTS = 6;
 
 test('the first load is few requests and fits the size budget', (t) => {

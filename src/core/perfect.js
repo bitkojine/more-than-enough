@@ -11,7 +11,7 @@
  * It plays like a person could: it only goes for what has been seen (fog
  * stays fog; with nothing known to go for, it explores) and underground it
  * digs toward the finds that glint in the dark. What to get next is
- * whatever it can get soonest, upgrade or building, hand-gathering what that
+ * an upgrade it can reach soon, or a building including its repayment time, hand-gathering what that
  * beats waiting for, as the pacing runs found best, and while it waits it
  * gathers anyway, since a gather always adds to what buildings make (never
  * stands idle: Watch, 2026-10-18); Abundance stops at the
@@ -32,16 +32,16 @@
 
 import { SURFACE, CHUNK_SIZE, tileDist2, packKey, unpackKey } from './coords.js';
 import { T, TILE_INFO, RESOURCES } from './tiles.js';
-import { tileAt, richness, isExplored, nearestTile, holeBelow, wayUp, walkable, findSpawn } from './world.js';
-import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK } from './content.js';
+import { tileAt, richness, isExplored, nearestTile, nearestExploredTile, holeBelow, wayUp, waysIn, walkable, findSpawn, observationVersion } from './world.js';
+import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
-import { canAfford, gatherYield, speedMult, productionRates, extractorCost, extractorCapacity, extractorCount, ownBuilding } from './economy.js';
+import { canAfford, gatherYield, speedMult, productionRates, extractorRate, extractorCost, extractorCapacity, extractorCount, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
 import { canHarvest, gearNeeded, gearFor, collectTarget, extractorAt } from './actions.js';
-import { autoCollected, canWade, swimsAt } from './sim.js';
+import { autoCollected, canWade, swimsAt, settleEconomy } from './sim.js';
 import { canDescendAt, canClimbAt, canPlaceProp, findsNear } from './underground.js';
 import { charging, chargerNear } from './light.js';
-import { findPath } from './paths.js';
+import { findPath, routePosition } from './paths.js';
 
 const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
 const SEARCH = 120;           // tiles out the brain looks for a deposit or a spot
@@ -57,7 +57,7 @@ export const KNOBS = Object.freeze({
   stick: 10,         // game seconds a way of getting the goal is kept before it's weighed again
   exploreGuess: 60,  // seconds a search for something not yet seen is reckoned to take
   walkLoss: 0.4,     // share of holding Gather reckoned to gather, the rest lost walking between tiles
-  mineEdge: 1.2,     // the mine is chosen while it's reckoned under this share of the surface's time
+  mineEdge: 0,       // surface first; positive values permit elective mining in comparison fixtures
   shaftSeconds: 22.5, // reckoned to find and open the way down out of a layer
   digSeconds: 0.6,   // reckoned per tile tunnelled toward a find (dig, then step)
   minDig: 60,        // seconds of digging a trip down must be worth: no popping in for a find or two
@@ -74,12 +74,14 @@ const wait = (why, badge = 'ui.wait') => ({ type: 'wait', why, badge });
 const speed = (s) => BASE_SPEED * speedMult(s);
 const dist = (s, x, y) => Math.hypot(x + 0.5 - s.player.x, y + 0.5 - s.player.y);
 const layerOf = (s) => SURFACE - s.player.z;
+const SURFACE_TYPES = Object.fromEntries(RESOURCES.map(res => [res,
+  TILE_INFO.findIndex(info => info && info.res === res && !info.solid)]));
 
 // The mind belongs to one state: a new world (Embark, switching
 // worlds) starts it afresh.
 function fresh(s, mind) {
   if (mind.state !== s) {
-    Object.assign(mind, { state: s, goal: null, decided: -Infinity, route: null, bad: new Set(), near: {}, spots: {}, searches: {}, frontier: null, home: findSpawn(s.world), arrived: {}, flagged: new Set(), z: null, upWay: null });
+    Object.assign(mind, { state: s, goal: null, decided: -Infinity, route: null, bad: new Set(), near: {}, spots: {}, searches: {}, frontier: null, home: findSpawn(s.world), arrived: {}, flagged: new Set(), z: null, upWay: null, mineFailures: new Map() });
   }
   if (mind.z !== s.player.z) {
     // Just came onto this layer: remember where, the way back up, and when
@@ -88,7 +90,25 @@ function fresh(s, mind) {
     mind.z = s.player.z;
     mind.route = null;
     mind.frontier = null;
-    mind.arrived[s.player.z] = { x: Math.floor(s.player.x), y: Math.floor(s.player.y) };
+    mind.find = null;
+    mind.shaft = null;
+    const x = Math.floor(s.player.x), y = Math.floor(s.player.y);
+    // Coming back from a deeper layer lands at a way DOWN, which must not
+    // overwrite the remembered way UP and send us pacing back to that shaft.
+    if (wayUp(s.world, x, y, s.player.z)) mind.arrived[s.player.z] = { x, y };
+  }
+  const access = gearKey(s);
+  if (mind.access !== access) {
+    // A river or rock that blocked an old route may be passable with the
+    // new gear. Failed targets must not stay forbidden for the whole world.
+    mind.access = access;
+    mind.bad.clear();
+    mind.mineFailures.clear();
+    mind.route = null;
+    mind.near = {};
+    mind.spots = {};
+    mind.frontier = null;
+    mind.upWay = null;
   }
 }
 
@@ -98,6 +118,7 @@ function fresh(s, mind) {
  * @returns {{type: string, badge: string}}
  */
 export function nextIntent(s, mind, { peek = false } = {}) {
+  settleEconomy(s);
   fresh(s, mind);
   mind.peek = peek;
   if (canEmbark(s)) return wait('embark', 'ui.embark');
@@ -147,15 +168,26 @@ function current(s, mind, goal) {
   return extractorCount(s, goal.id) === goal.level;
 }
 
-// The goal: whatever can be had soonest. Kept until it's had (or a while
+// Required upgrades compete with investments including their repayment time.
+// Kept until it's had (or a while
 // has passed), as a person sticks to what they're saving for.
 function decide(s, mind) {
   if (current(s, mind, mind.goal) && s.time - mind.decided < mind.k.rethink) return mind.goal;
-  let best = null;
+  let best = null, fallback = null;
+  // Evaluate the economy once, not once per candidate price.
+  const rates = productionRates(s);
   for (const c of candidates(s, mind)) {
-    const eta = c.kind === 'find' ? c.eta : plan(s, mind, c.cost).eta;
-    if (isFinite(eta) && (!best || eta < best.eta)) best = { ...c, eta };
+    const acquisition = c.kind === 'find' ? { eta: c.eta } : plan(s, mind, c.cost, rates);
+    let eta = acquisition.eta;
+    if (c.kind !== 'buy') eta += investmentPayback(s, mind, c.id, rates);
+    if (!isFinite(eta)) continue;
+    // A locked resource for one optional goal is not a reason to descend
+    // while a different goal can progress entirely on the surface.
+    if (acquisition.layer && mind.k.mineEdge <= 0) {
+      if (!fallback || eta < fallback.eta) fallback = { ...c, eta };
+    } else if (!best || eta < best.eta) best = { ...c, eta };
   }
+  best ||= fallback;
   if (best) best.level = best.kind === 'buy' ? upgradeLevel(s, best.id) : extractorCount(s, best.id);
   if (best && best.kind === 'find') mind.searches[best.id] = (mind.searches[best.id] || 0) + 1;
   mind.goal = best;
@@ -163,18 +195,39 @@ function decide(s, mind) {
   return best;
 }
 
+// Convert all input prices into equivalent production time, then into the
+// output this building must earn back. No state mutation or speculative buys.
+export function investmentPayback(s, mind, id, rates = productionRates(s)) {
+  const value = r => rates[r] + (surfaceUnlocked(s, r) ? handRate(s, mind, r) : 0);
+  let spent = 0;
+  for (const [r, amount] of Object.entries(extractorCost(s, id))) {
+    if (!amount) continue;
+    if (!value(r)) return Infinity;
+    spent += amount / value(r);
+  }
+  return spent * value(EXTRACTORS[id].res) / extractorRate(s, id);
+}
+
 /* ------------------------------------------------------------ planning */
 
 const handRate = (s, mind, res) => TAPS * gatherYield(s, res) * mind.k.walkLoss;
+
+// Rare forage is only a local obstacle; harder rock gates the whole resource.
+// Seeing a rare mushroom must not imply every unexplored forest is locked.
+function surfaceUnlocked(s, res) {
+  const type = SURFACE_TYPES[res];
+  return s.tools.pickaxe >= (GEAR.rock[type] || 1);
+}
 
 // How long `m` more of `res` takes by hand from the surface, with your
 // buildings (making `rate` a second) working on alongside: to the nearest
 // deposit you know of and the gathering, or a search if you know of none.
 function handEta(s, mind, res, m, rate = 0) {
+  if (!surfaceUnlocked(s, res)) return Infinity;
   const d = nearestDeposit(s, mind, res);
   const work = m / (handRate(s, mind, res) + rate);
   if (d.tile) return dist(s, d.tile.x, d.tile.y) / speed(s) + work;
-  return d.gated ? Infinity : mind.k.exploreGuess + work;
+  return mind.k.exploreGuess + work;
 }
 
 /**
@@ -183,8 +236,7 @@ function handEta(s, mind, res, m, rate = 0) {
  * when digging finds is quicker, all of it from mine layer `layer`.
  * Waiting runs alongside everything else; hand-gathering one at a time.
  */
-export function plan(s, mind, cost) {
-  const rates = productionRates(s);
+export function plan(s, mind, cost, rates = productionRates(s)) {
   let waitMax = 0, handSum = 0;
   const how = {}, missing = {};
   for (const r of Object.keys(cost)) {
@@ -197,15 +249,11 @@ export function plan(s, mind, cost) {
   }
   // Underground, getting it on the surface starts with the way back up.
   const surface = { eta: Math.max(waitMax, handSum) + (handSum > 0 ? climbBack(s, mind) : 0), how };
-  const mine = minePlan(s, mind, missing);
-  return mine && mine.eta < surface.eta * mind.k.mineEdge ? mine : surface;
-}
-
-// What of `cost` you don't have yet ({res: amount}).
-function missingFor(s, cost) {
-  const out = {};
-  for (const r of Object.keys(cost)) if (cost[r] > s.inv[r]) out[r] = cost[r] - s.inv[r];
-  return out;
+  // Any finite surface route wins under the default minimum-mining policy.
+  // Do not even search caves or estimate mine layers for an elective trip.
+  if (Number.isFinite(surface.eta) && mind.k.mineEdge <= 0) return surface;
+  const mine = minePlan(s, mind, missing, rates, !Number.isFinite(surface.eta));
+  return mine && (!Number.isFinite(surface.eta) || mine.eta < surface.eta * mind.k.mineEdge) ? mine : surface;
 }
 
 // Underground: about how long the way back up to the surface takes.
@@ -241,7 +289,7 @@ function findPays(s, layer) {
 }
 
 // Digging finds for everything still missing: the quickest layer to do it on.
-function minePlan(s, mind, missing) {
+function minePlan(s, mind, missing, rates = productionRates(s), required = false) {
   const res = Object.keys(missing);
   // A new player starts on the surface: the mine waits for the first building.
   if (!res.length || !s.extractors.some((e) => ownBuilding(s, e))) return null;
@@ -256,14 +304,24 @@ function minePlan(s, mind, missing) {
   const between = CHUNK_SIZE / Math.sqrt(FINDS_PER_CHUNK);
   let best = null;
   for (let layer = 1, deepest = deepestOpen(s); layer <= deepest; layer++) {
+    const failure = mind.mineFailures?.get(layer);
+    if (failure && failure.version === observationVersion(s.world, SURFACE - layer) &&
+        (here !== layer || failure.glints === glintSignature(s))) continue;
     const pays = findPays(s, layer);
     if (!pays.share) continue;
     const perFind = between / Math.sqrt(pays.share) * mind.k.digSeconds;
+    const outward = travel / 2 + Math.max(0, layer - Math.max(here, 1)) * mind.k.shaftSeconds;
+    const home = here ? climbBack(s, mind) : travel / 2;
+    const returnTrip = home + Math.max(0, layer - Math.max(here, 1)) * mind.k.shaftSeconds;
     let dig = 0;
-    for (const r of res) dig = Math.max(dig, pays.loot[r] > 0 ? missing[r] / pays.loot[r] * perFind : Infinity);
+    for (const r of res) {
+      const remaining = Math.max(0, missing[r] - rates[r] * (outward + returnTrip));
+      const rate = pays.loot[r] / perFind + rates[r];
+      dig = Math.max(dig, remaining === 0 ? 0 : rate > 0 ? remaining / rate : Infinity);
+    }
     // Down from the surface only for a dig worth the trip; once down, any dig.
-    if (here === 0 && dig < mind.k.minDig) continue;
-    const eta = travel + Math.max(0, layer - Math.max(here, 1)) * mind.k.shaftSeconds + dig;
+    if (!required && here === 0 && dig < mind.k.minDig) continue;
+    const eta = outward + returnTrip + dig;
     if (isFinite(eta) && (!best || eta < best.eta)) best = { eta, layer, how: Object.fromEntries(res.map((r) => [r, 'mine'])) };
   }
   return best;
@@ -283,8 +341,8 @@ function nearestDeposit(s, mind, res) {
   const c = mind.near[res];
   if (c && c.gear === gearKey(s) && s.time - c.t < 30 && (!c.tile || works(c.tile.x, c.tile.y)) &&
       (!c.tile || dist(s, c.tile.x, c.tile.y) < 3 || s.time - c.t < 5)) return c;
-  const tile = nearestTile(s.player.x, s.player.y, SEARCH, works);
-  const out = { t: s.time, gear: gearKey(s), tile, gated: !tile && !!nearestTile(s.player.x, s.player.y, SEARCH, seen) };
+  const tile = nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, works, null, SURFACE_TYPES[res]);
+  const out = { t: s.time, gear: gearKey(s), tile, gated: !tile && !!nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, seen, null, SURFACE_TYPES[res]) };
   mind.near[res] = out;
   return out;
 }
@@ -309,8 +367,8 @@ function caveMouth(s, mind) {
   // Remembered once seen; none seen yet is looked for again now and then.
   const c = mind.spots.cave;
   if (c && (c.tile ? !mind.bad.has(key(c.tile.x, c.tile.y, SURFACE)) : s.time - c.t < 120)) return c.tile;
-  const cave = nearestTile(mind.home.x + 0.5, mind.home.y + 0.5, SEARCH, (x, y) =>
-    isExplored(s.world, x, y, SURFACE) && tileAt(s.world, x, y, SURFACE) === T.CAVE && !mind.bad.has(key(x, y, SURFACE)));
+  const cave = nearestExploredTile(s.world, mind.home.x + 0.5, mind.home.y + 0.5, SURFACE, SEARCH, (x, y) =>
+    isExplored(s.world, x, y, SURFACE) && tileAt(s.world, x, y, SURFACE) === T.CAVE && !mind.bad.has(key(x, y, SURFACE)), null, T.CAVE);
   mind.spots.cave = { t: s.time, tile: cave };
   return cave;
 }
@@ -330,8 +388,8 @@ function buildSpot(s, mind, id) {
       : tileAt(s.world, x, y, SURFACE) === def.tile && richness(s.world, x, y, SURFACE) > 0);
   const c = mind.spots[which];
   if (c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120)) return c.tile;
-  const tile = nearestTile(mind.home.x + 0.5, mind.home.y + 0.5, def.tile === null ? 30 : SEARCH, free) ||
-    (def.tile === null ? null : nearestTile(s.player.x, s.player.y, SEARCH, free));
+  const tile = nearestExploredTile(s.world, mind.home.x + 0.5, mind.home.y + 0.5, SURFACE, def.tile === null ? 30 : SEARCH, free, null, def.tile) ||
+    (def.tile === null ? null : nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, free, null, def.tile));
   mind.spots[which] = { t: s.time, tile };
   return tile;
 }
@@ -341,13 +399,13 @@ function buildSpot(s, mind, id) {
 // A step toward tile (tx, ty) on this layer, along a route through what
 // you've seen (underground, through rock you can dig). Null once you're on
 // it, or when there's no way there (then it's remembered as out of reach).
-function walkTo(s, mind, tx, ty, badge) {
+function walkTo(s, mind, tx, ty, badge, retried = false) {
   const z = s.player.z, px = Math.floor(s.player.x), py = Math.floor(s.player.y);
   if (px === tx && py === ty) return null;
   let r = mind.route;
-  const i = r && r.tx === tx && r.ty === ty && r.z === z ? routeIndex(r, px, py) : -1;
+  const i = r && r.tx === tx && r.ty === ty && r.z === z ? routePosition(r, px, py) : -1;
   if (i < 0) {
-    const opts = { pad: 12, known: z === SURFACE, dig: z !== SURFACE };
+    const opts = { pad: 12, known: true, dig: z !== SURFACE, unknownDig: z !== SURFACE };
     // The long way round, and the very long way (out past where you've explored).
     const nodes = findPath(s, px, py, tx, ty, opts) || findPath(s, px, py, tx, ty, { ...opts, pad: 40 }) || findPath(s, px, py, tx, ty, { ...opts, pad: 120 });
     if (!nodes) { unreachable(s, mind, tx, ty); return null; }
@@ -358,17 +416,17 @@ function walkTo(s, mind, tx, ty, badge) {
   const at = key(px, py, z);
   if (!mind.peek) { r.same = at === r.last ? r.same + 1 : 0; r.last = at; }
   if (r.same > STUCK) { unreachable(s, mind, tx, ty); return null; }
+  // Walk toward an unknown frontier without looking through its rock. Moving
+  // reveals it normally; a newly discovered obstacle triggers a fresh route.
+  if (z !== SURFACE && !isExplored(s.world, next.x, next.y, z)) {
+    return { type: 'walk', x: next.x, y: next.y, badge };
+  }
   if (next.dig && !walkable(s.world, next.x, next.y, z)) {
-    return canHarvest(s, next.x, next.y) ? { type: 'harvestAt', x: next.x, y: next.y, badge: 'tool.pickaxe' } : (unreachable(s, mind, tx, ty), null);
+    if (canHarvest(s, next.x, next.y)) return { type: 'harvestAt', x: next.x, y: next.y, badge: 'tool.pickaxe' };
+    mind.route = null;
+    return !retried ? walkTo(s, mind, tx, ty, badge, true) : (unreachable(s, mind, tx, ty), null);
   }
   return { type: 'walk', x: next.x, y: next.y, badge };
-}
-
-// Where along route r a player on tile (px, py) is: the index of the next
-// step, or -1 if they've left it (a person took over for a moment).
-function routeIndex(r, px, py) {
-  for (let k = r.nodes.length - 1; k >= 0; k--) if (r.nodes[k].x === px && r.nodes[k].y === py) return k + 1;
-  return px === r.from.x && py === r.from.y ? 0 : -1;
 }
 
 function unreachable(s, mind, x, y) {
@@ -425,14 +483,14 @@ function outward(s, mind, beyond) {
   }
   // Nothing unseen close by: the nearest edge further off (much further when
   // it's more to gather that's wanted and all around has been seen).
-  return best || nearestTile(px + 0.5, py + 0.5, beyond ? 400 : 80, edge);
+  return best || nearestExploredTile(w, px + 0.5, py + 0.5, SURFACE, beyond ? 400 : 80, edge);
 }
 
 /* ------------------------------------------------------------ pursuing */
 
 function pursue(s, mind, goal) {
   const underground = s.player.z !== SURFACE;
-  if (!goal || goal.kind === 'find') return (underground ? up(s, mind) : explore(s, mind)) || idle(s, mind);
+  if (!goal || goal.kind === 'find') return (underground ? up(s, mind) : explore(s, mind, goal?.kind === 'find')) || idle(s, mind);
   if (canAfford(s.inv, goal.cost)) return obtain(s, mind, goal);
   // How to get it, kept a while: chosen afresh at every step, two ways that
   // are nearly as quick would take turns, a step toward each. A trip down is
@@ -440,15 +498,13 @@ function pursue(s, mind, goal) {
   // that shifts as its deposits run out would pop it straight back up.
   const keep = mind.how?.p.layer ? Math.max(mind.k.stick, mind.k.minDig) : mind.k.stick;
   if (!mind.how || mind.how.goal !== goal || s.time - mind.how.t > keep) {
-    let p = plan(s, mind, goal.cost);
-    // A new goal soon after coming down is dug for here if it can be.
-    if (!p.layer && underground && s.time - mind.downAt < mind.k.minDig) p = minePlan(s, mind, missingFor(s, goal.cost)) || p;
+    const p = plan(s, mind, goal.cost);
     mind.how = { goal, t: s.time, p };
   }
   const p = mind.how.p;
   if (p.layer) return mine(s, mind, p.layer);
   if (underground) return up(s, mind) || idle(s, mind);
-  const hand = Object.keys(p.how).find((r) => p.how[r] === 'hand');
+  const hand = Object.keys(p.how).find((r) => p.how[r] === 'hand' && goal.cost[r] > s.inv[r]);
   if (hand) return gather(s, mind, hand) || idle(s, mind);
   const need = {};
   for (const r of Object.keys(goal.cost)) if (goal.cost[r] > s.inv[r]) need[r] = goal.cost[r] - s.inv[r];
@@ -471,7 +527,7 @@ function obtain(s, mind, goal) {
 function gather(s, mind, res) {
   const d = nearestDeposit(s, mind, res);
   const badge = 'resource.' + res;
-  if (!d.tile) return d.gated ? null : explore(s, mind, true);
+  if (!d.tile) return surfaceUnlocked(s, res) ? explore(s, mind, true) : null;
   if (canHarvest(s, d.tile.x, d.tile.y)) return { type: 'harvestAt', x: d.tile.x, y: d.tile.y, badge };
   const step = walkTo(s, mind, d.tile.x, d.tile.y, badge);
   if (step) return step;
@@ -485,7 +541,7 @@ function gather(s, mind, res) {
 // which beats standing about whatever the buildings make.
 function idle(s, mind, need = {}) {
   const cap = (e) => extractorCapacity(s, e.key);
-  const due = s.extractors.filter((e) => e.z === s.player.z && ownBuilding(s, e) && e.buffer >= 1 && !autoCollected(s, e) &&
+  const due = s.unlocks.logistics ? [] : s.extractors.filter((e) => e.z === s.player.z && ownBuilding(s, e) && e.buffer >= 1 && !autoCollected(s, e) &&
     (e.buffer >= Math.min(need[e.res] || Infinity, 0.25 * cap(e)) || e.buffer >= 0.5 * cap(e)) && !mind.bad.has(key(e.x, e.y, e.z)));
   // The building you're on your way to, until it's emptied; else the nearest due.
   const f = mind.fetch;
@@ -504,6 +560,14 @@ function idle(s, mind, need = {}) {
   const rates = productionRates(s);
   const slowest = Object.keys(need).sort((a, b) => need[b] / rates[b] - need[a] / rates[a]);
   for (const r of slowest) {
+    const step = gather(s, mind, r);
+    if (step) return step;
+  }
+  // Searching for a building has no resource price yet. If this look at
+  // the frontier found only failed paths, gather something already known
+  // while the next look tries another edge instead of doing nothing.
+  if (!slowest.length) for (const r of RESOURCES) {
+    if (!nearestDeposit(s, mind, r).tile) continue;
     const step = gather(s, mind, r);
     if (step) return step;
   }
@@ -538,7 +602,7 @@ function nearestCharger(s, mind) {
   let best = null, bestD = CHARGE_TRIP;
   for (const [k, kind] of s.world.props) {
     const t = unpackKey(k);
-    if (t.z !== SURFACE || !charging(kind, s.time) || mind.bad.has(k)) continue;
+    if (t.z !== SURFACE || !isExplored(s.world, t.x, t.y, SURFACE) || !charging(kind, s.time) || mind.bad.has(k)) continue;
     const d = dist(s, t.x, t.y);
     if (d < bestD) { bestD = d; best = { x: t.x, y: t.y }; }
   }
@@ -552,13 +616,13 @@ function solar(s, mind) {
   const h = mind.home;
   for (const [k, kind] of s.world.props) {
     const t = unpackKey(k);
-    if (t.z === SURFACE && PROPS[kind].charge && Math.hypot(t.x - h.x, t.y - h.y) < SOLAR_NEAR) return null;
+    if (t.z === SURFACE && isExplored(s.world, t.x, t.y, SURFACE) && PROPS[kind].charge && Math.hypot(t.x - h.x, t.y - h.y) < SOLAR_NEAR) return null;
   }
-  const w = s.world, land = (x, y) => walkable(w, x, y, SURFACE) && !swimsAt(w, x, y, SURFACE);
+  const w = s.world, land = (x, y) => isExplored(w, x, y, SURFACE) && walkable(w, x, y, SURFACE) && !swimsAt(w, x, y, SURFACE);
   const free = (x, y) => isExplored(w, x, y, SURFACE) && swimsAt(w, x, y, SURFACE) && !w.props.has(key(x, y, SURFACE)) &&
     !mind.bad.has(key(x, y, SURFACE)) && (land(x + 1, y) || land(x - 1, y) || land(x, y + 1) || land(x, y - 1));
   const c = mind.spots.solar;
-  const spot = c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120) ? c.tile : nearestTile(h.x + 0.5, h.y + 0.5, SOLAR_NEAR, free);
+  const spot = c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120) ? c.tile : nearestExploredTile(w, h.x + 0.5, h.y + 0.5, SURFACE, SOLAR_NEAR, free, null, T.WATER);
   mind.spots.solar = { t: c && c.tile === spot ? c.t : s.time, tile: spot };
   if (!spot) return null;
   if (Math.floor(s.player.x) === spot.x && Math.floor(s.player.y) === spot.y) {
@@ -573,20 +637,38 @@ function solar(s, mind) {
 
 const UP_LOOK = 2;
 
+function knownWayUp(s, mind) {
+  const w = s.world, z = s.player.z;
+  let best = null, bestD = Infinity;
+  // Only inspect ways in chunks the player has explored, and only accept
+  // explored tiles. The exit can be farther than the old 60-tile search.
+  for (const k of w.explored.keys()) {
+    const c = unpackKey(k);
+    if (c.z !== z) continue;
+    const x = c.x * CHUNK_SIZE, y = c.y * CHUNK_SIZE;
+    for (const t of waysIn(w, z, x, y, x + CHUNK_SIZE - 1, y + CHUNK_SIZE - 1)) {
+      if (!isExplored(w, t.x, t.y, z) || !wayUp(w, t.x, t.y, z) || mind.bad.has(key(t.x, t.y, z))) continue;
+      const d = dist(s, t.x, t.y);
+      if (d < bestD) { bestD = d; best = t; }
+    }
+  }
+  return best;
+}
+
 // Up toward the surface: the ladder in reach, else the way up you know of
 // nearest (the one you came down by, at least).
 function up(s, mind) {
   if (s.player.z === SURFACE) return null;
   const z = s.player.z, w = s.world;
-  const ladder = nearestTile(s.player.x, s.player.y, 2, (x, y) => canClimbAt(s, x, y));
+  const ladder = nearestExploredTile(w, s.player.x, s.player.y, z, 2, (x, y) => canClimbAt(s, x, y));
   if (ladder) return { type: 'climb', x: ladder.x, y: ladder.y, badge: 'ui.climb' };
-  // Looked for afresh every UP_LOOK seconds, not every step: a search 60
-  // tiles out is the costliest thing the brain does underground.
+  // Looked for afresh every UP_LOOK seconds, not every step.
   const c = mind.upWay;
   if (!c || c.z !== z || s.time - c.t > UP_LOOK || (c.way && mind.bad.has(key(c.way.x, c.way.y, z)))) {
-    mind.upWay = { z, t: s.time, way: nearestTile(s.player.x, s.player.y, 60, (x, y) => isExplored(w, x, y, z) && !mind.bad.has(key(x, y, z)) && wayUp(w, x, y, z)) };
+    mind.upWay = { z, t: s.time, way: knownWayUp(s, mind) };
   }
-  const known = mind.upWay.way || mind.arrived[z];
+  const a = mind.arrived[z];
+  const known = mind.upWay.way || (a && wayUp(w, a.x, a.y, z) && !mind.bad.has(key(a.x, a.y, z)) ? a : null);
   return known ? walkTo(s, mind, known.x, known.y, 'ui.climb') || explore(s, mind) : explore(s, mind);
 }
 
@@ -607,8 +689,15 @@ function mine(s, mind, layer) {
     const down = shaftDown(s, mind);
     if (down) return down;
   }
-  return dig(s, mind) || explore(s, mind) || up(s, mind) || idle(s, mind);
+  const productive = dig(s, mind) || explore(s, mind);
+  if (productive) return productive;
+  mind.mineFailures.set(layer, { version: observationVersion(s.world, SURFACE - layer),
+    glints: here === layer ? glintSignature(s) : null });
+  mind.how = null; // retreat must not immediately re-enter with the same plan
+  return up(s, mind) || idle(s, mind);
 }
+
+const glintSignature = s => findsNear(s).map(f => key(f.x, f.y, s.player.z)).sort((a, b) => a - b).join(',');
 
 // A flag beside where you came down onto this layer, to find the way back by
 // (it shows through the dark from anywhere on screen).
@@ -627,7 +716,7 @@ function lamp(s) {
   if (!canPlaceProp(s, 'glowcap') || !canAfford(s.inv, PROPS.glowcap.cost)) return null;
   const px = Math.floor(s.player.x), py = Math.floor(s.player.y), z = s.player.z, props = s.world.props;
   for (let y = py - LAMP_GAP; y <= py + LAMP_GAP; y++) {
-    for (let x = px - LAMP_GAP; x <= px + LAMP_GAP; x++) if (props.has(key(x, y, z))) return null;
+    for (let x = px - LAMP_GAP; x <= px + LAMP_GAP; x++) if (isExplored(s.world, x, y, z) && props.has(key(x, y, z))) return null;
   }
   return { type: 'prop', kind: 'glowcap', badge: 'mark.glowcap' };
 }
@@ -636,8 +725,13 @@ function lamp(s) {
 // dig, never done by a Trail), then drop through.
 function shaftDown(s, mind) {
   const z = s.player.z, w = s.world;
-  const shaft = nearestTile(s.player.x, s.player.y, 40, (x, y) => isExplored(w, x, y, z) && !mind.bad.has(key(x, y, z)) &&
-    (tileAt(w, x, y, z) === T.SHAFT_OPEN || (tileAt(w, x, y, z) === T.SHAFT && !gearNeeded(s, x, y))));
+  const valid = (x, y) => isExplored(w, x, y, z) && !mind.bad.has(key(x, y, z)) &&
+    (tileAt(w, x, y, z) === T.SHAFT_OPEN || (tileAt(w, x, y, z) === T.SHAFT && !gearNeeded(s, x, y)));
+  // A detour can temporarily put an already discovered shaft outside the
+  // search radius too. Finish the route instead of exploring back and forth.
+  if (mind.shaft && (mind.shaft.z !== z || !valid(mind.shaft.x, mind.shaft.y))) mind.shaft = null;
+  const shaft = mind.shaft || nearestExploredTile(w, s.player.x, s.player.y, z, 40, valid);
+  if (shaft) mind.shaft = { ...shaft, z };
   if (!shaft) return null;
   if (canDescendAt(s, shaft.x, shaft.y)) return { type: 'descend', x: shaft.x, y: shaft.y, badge: 'ui.climbDown' };
   if (canHarvest(s, shaft.x, shaft.y)) return { type: 'harvestAt', x: shaft.x, y: shaft.y, badge: 'ui.climbDown' };
@@ -647,9 +741,20 @@ function shaftDown(s, mind) {
 // Tunnel to the nearest find glinting in the dark that your Pickaxe can break.
 function dig(s, mind) {
   const z = s.player.z;
-  const finds = findsNear(s).filter((f) => !gearNeeded(s, f.x, f.y) && !mind.bad.has(key(f.x, f.y, z))).sort((a, b) => a.d - b.d);
+  // A route may initially lead away from the glint (around bedrock). Keep
+  // the find we actually saw until collected or unreachable; losing sight
+  // must not replace that route with exploration back toward the glint.
+  const f = mind.find;
+  const valid = (f) => s.tools.pickaxe >= (GEAR.rock[f.type] || 1) && !mind.bad.has(key(f.x, f.y, z)) &&
+    (!mind.goal?.cost || Object.keys(FINDS[f.type].loot).some(r => mind.goal.cost[r] > s.inv[r]));
+  const observed = findsNear(s);
+  if (f && (f.z !== z || !valid(f) ||
+      (isExplored(s.world, f.x, f.y, z) && tileAt(s.world, f.x, f.y, z) !== f.type) ||
+      (tileDist2(s.player, f.x, f.y, z) <= GLINT_RANGE * GLINT_RANGE && !observed.some(v => v.x === f.x && v.y === f.y)))) mind.find = null;
+  const finds = mind.find ? [mind.find] : observed.filter(valid).sort((a, b) => a.d - b.d);
   for (const f of finds.slice(0, 3)) {
-    if (canHarvest(s, f.x, f.y)) return { type: 'harvestAt', x: f.x, y: f.y, badge: 'tool.pickaxe' };
+    mind.find = { ...f, z };
+    if (tileDist2(s.player, f.x, f.y, z) <= REACH * REACH && canHarvest(s, f.x, f.y)) return { type: 'harvestAt', x: f.x, y: f.y, badge: 'tool.pickaxe' };
     const step = walkTo(s, mind, f.x, f.y, 'tool.pickaxe');
     if (step) return step;
   }

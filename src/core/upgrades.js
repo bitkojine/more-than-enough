@@ -8,6 +8,7 @@
  *   currency       'inv' (resources) or 'insight'
  *   apply(s)       records one purchase in the state */
 
+import { economyForState } from './economy-context.js';
 import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { canAfford, pay, costText, abundanceCost } from './economy.js';
@@ -91,13 +92,19 @@ const FINITE = () => PATH_FAMILIES.filter((f) => f.layer === 'world' && f.id !==
 // How far through this world's upgrades you are: every tool, refinery and
 // unlock level bought, plus Abundance Engine levels up to EMBARK_ABUNDANCE.
 export function worldMastery(s) {
+  const indexed = economyForState(s);
+  if (indexed?.mastery) return { ...indexed.mastery };
   let done = 0, total = 0;
   for (const id of FINITE()) { done += upgradeLevel(s, id); total += REGISTRY[id].max; }
-  return { done: done + Math.min(s.abundanceLv, EMBARK_ABUNDANCE), total: total + EMBARK_ABUNDANCE };
+  const result = { done: done + Math.min(s.abundanceLv, EMBARK_ABUNDANCE), total: total + EMBARK_ABUNDANCE };
+  indexed?.cacheMastery(result);
+  return result;
 }
 
 // Every world upgrade done: the first condition for embarking.
 export function worldMastered(s) {
+  const cached = economyForState(s)?.mastery;
+  if (cached) return cached.done >= cached.total;
   const m = worldMastery(s);
   return m.done >= m.total;
 }
@@ -137,6 +144,7 @@ export function buy(s, id) {
   if (u.currency === 'insight') s.insight -= cost;
   else pay(s.inv, cost);
   u.apply(s);
+  economyForState(s)?.reconfigure();
   return { ok: true, id, level: upgradeLevel(s, id) };
 }
 

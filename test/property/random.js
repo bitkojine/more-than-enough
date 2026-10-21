@@ -25,7 +25,7 @@ export function rng(seed) {
 
 // The seeds a suite runs by default. Fixed, so a red build is reproducible;
 // `PROP_SEEDS` (a count or a list) widens the search when hunting.
-export function seeds(count = 60) {
+export function seeds(count = 12) {
   const env = process.env.PROP_SEEDS;
   if (env) {
     const n = Number(env);

@@ -6,11 +6,29 @@
 import { CHUNK_SIZE, SURFACE, packKey, unpackKey, chunkCoord, chunkIndex } from './coords.js';
 import { generateChunk, wayDownInChunk, wayUpInChunk, HOME_HALF } from './terrain.js';
 import { hash2 } from './noise.js';
+import { ExploredChunks, visitNearestExploredChunks } from './explored-index.js';
+import { createObservedTypes } from './observed-types.js';
 import { TILE_INFO, T } from './tiles.js';
 
 const MAX_CACHED_CHUNKS = 512;
 const FOG_BYTES = (CHUNK_SIZE * CHUNK_SIZE) >> 3; // one bit per tile
 const SPAWN_SEARCH_RADIUS = 200;
+const observationVersions = new WeakMap();
+const observedTypes = new WeakMap();
+
+// Derived perception revisions: only newly revealed tiles and edits to known
+// tiles invalidate knowledge-based caches. Hidden edits reveal nothing.
+function noteObservation(w, z) {
+  let entry = observationVersions.get(w);
+  if (!entry || entry.fog !== w.explored) {
+    entry = { fog: w.explored, layers: new Map() }; observationVersions.set(w, entry);
+  }
+  entry.layers.set(z, (entry.layers.get(z) || 0) + 1);
+}
+export function observationVersion(w, z) {
+  const entry = observationVersions.get(w);
+  return entry?.fog === w.explored ? entry.layers.get(z) || 0 : 0;
+}
 const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
 
 /**
@@ -29,7 +47,7 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new Map(), revealed: 0, holes: new Set(), props: new Map(), edits: null, hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new ExploredChunks(), revealed: 0, holes: new Set(), props: new Map(), edits: null, hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -69,8 +87,16 @@ export function setRichness(w, x, y, z, value) {
 
 // Keep the edit map minimal: drop entries that match the generated baseline.
 export function putRichness(w, key, x, y, z, value) {
+  const before = w.mods.get(key);
   if (value === baseRichness(w, x, y, z)) w.mods.delete(key);
   else w.mods.set(key, value);
+  if (before !== w.mods.get(key) && isExplored(w, x, y, z)) {
+    noteObservation(w, z);
+    if (z === SURFACE) {
+      const typed = observedTypes.get(w);
+      if (typed?.fog === w.explored && typed.version === w.explored.revision) typed.changed(x, y);
+    }
+  }
 }
 
 export function tileAt(w, x, y, z) {
@@ -148,6 +174,8 @@ export function isExplored(w, x, y, z) {
 }
 
 export function markExplored(w, x, y, z) {
+  const typed = observedTypes.get(w);
+  const typedValid = typed?.fog === w.explored && typed.version === w.explored.revision;
   const key = packKey(chunkCoord(x), chunkCoord(y), z);
   let mask = w.explored.get(key);
   if (!mask) {
@@ -159,6 +187,9 @@ export function markExplored(w, x, y, z) {
   if (mask[i >> 3] & bit) return;
   mask[i >> 3] |= bit;
   w.revealed++;
+  noteObservation(w, z);
+  if (typedValid) typed.reveal(x, y, z);
+  else if (typed) observedTypes.delete(w);
 }
 
 export function isValidFogMask(mask) {
@@ -187,6 +218,46 @@ export function nearestTile(x, y, maxR, pred) {
     if (best) return best;
   }
   return null;
+}
+
+// The same ring/distance/row-order choice as nearestTile, restricted to fog
+// already revealed on this layer. Skip whole unseen chunks instead of
+// probing every tile of an empty search square (common while in a mine).
+export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = null) {
+  maxR = Math.floor(maxR);
+  const px = Math.floor(x), py = Math.floor(y);
+  const close = nearestTile(x, y, Math.min(4, maxR), (tx, ty) => isExplored(w, tx, ty, z) &&
+    (type === null || tileAt(w, tx, ty, z) === type) && pred(tx, ty));
+  if (close || maxR <= 4) return close;
+  let best = null, bestR = maxR + 1, bestD = Infinity;
+  let index = w.explored;
+  if (type !== null && z === SURFACE && w.explored instanceof ExploredChunks) {
+    let typed = observedTypes.get(w);
+    if (!typed || typed.fog !== w.explored || typed.version !== w.explored.revision) {
+      typed = createObservedTypes(w.explored, (tx, ty) => tileAt(w, tx, ty, SURFACE)); observedTypes.set(w, typed);
+    }
+    index = typed.query(type, px, py, maxR, work);
+  }
+  visitNearestExploredChunks(index, z, px, py, maxR, (cx, cy, mask) => {
+    const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
+    const radius = Math.min(maxR, bestR);
+    const left = Math.max(ox, px - radius), right = Math.min(ox + CHUNK_SIZE - 1, px + radius);
+    const top = Math.max(oy, py - radius), bottom = Math.min(oy + CHUNK_SIZE - 1, py + radius);
+    for (let ty = top; ty <= bottom; ty++) for (let tx = left; tx <= right; tx++) {
+      const r = Math.max(Math.abs(tx - px), Math.abs(ty - py));
+      if (r <= 4 || r > bestR) continue;
+      if (work) work.cells++;
+      const i = (ty - oy) * CHUNK_SIZE + tx - ox;
+      if (!(mask[i >> 3] & (1 << (i & 7)))) continue;
+      if (type !== null && tileAt(w, tx, ty, z) !== type) continue;
+      const ex = tx + 0.5 - x, ey = ty + 0.5 - y, d = ex * ex + ey * ey;
+      if (r === bestR && (d > bestD || (d === bestD && best && (ty > best.y || (ty === best.y && tx >= best.x))))) continue;
+      if (!pred(tx, ty)) continue;
+      best = { x: tx, y: ty }; bestR = r; bestD = d;
+    }
+    return bestR;
+  }, work);
+  return best;
 }
 
 // Where a new world starts you: on the edge of home ground, by the forest

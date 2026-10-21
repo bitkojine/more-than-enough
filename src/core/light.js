@@ -7,6 +7,7 @@
 
 import { SURFACE, packKey } from './coords.js';
 import { PROPS, DAY_LENGTH, BATTERY_LIFE, BATTERY_LOW, BATTERY_DIM, CHARGE_TIME, CHARGE_RANGE } from './content.js';
+import { economyForState } from './economy-context.js';
 
 // 1 at time 0 (noon) ... 0 at DAY_LENGTH / 2 (midnight).
 export function daylight(t) {
@@ -15,8 +16,8 @@ export function daylight(t) {
 
 // Underground is dark; so is the forest at night. Then the screen of what
 // the wanderer plays on (phone or laptop) is what lights the way.
-export function isDark(s) {
-  return s.player.z < SURFACE || daylight(s.time) < 0.6;
+export function isDark(s, time = s.time) {
+  return s.player.z < SURFACE || daylight(time) < 0.6;
 }
 
 // Whether a charger of `kind` works at game time `time`: solar only by day.
@@ -27,15 +28,15 @@ export function charging(kind, time) {
 
 // The nearest charger within CHARGE_RANGE of you that works now
 // ({x, y, kind}), or null. Anyone's charger charges anyone.
-export function chargerNear(s) {
+export function chargerNear(s, time = s.time) {
   const p = s.player;
-  if (p.z !== SURFACE) return null;
+  if (p.z !== SURFACE || !s.world.props.size) return null;
   const r = Math.ceil(CHARGE_RANGE), px = Math.floor(p.x), py = Math.floor(p.y);
   let best = null, bestD = CHARGE_RANGE * CHARGE_RANGE;
   for (let y = py - r; y <= py + r; y++) {
     for (let x = px - r; x <= px + r; x++) {
       const kind = s.world.props.get(packKey(x, y, SURFACE));
-      if (!kind || !charging(kind, s.time)) continue;
+      if (!kind || !charging(kind, time)) continue;
       const d = (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
       if (d <= bestD) { bestD = d; best = { x, y, kind }; }
     }
@@ -45,8 +46,46 @@ export function chargerNear(s) {
 
 // One tick: by a working charger the battery fills; in the dark it drains.
 export function tickBattery(s, dt) {
+  const economy = economyForState(s);
+  if (economy) { tickEventBattery(s, economy, Math.round(dt * 60)); return; }
   if (chargerNear(s)) s.battery = Math.min(1, s.battery + dt / CHARGE_TIME);
   else if (isDark(s)) s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
+}
+
+const batteryEpochs = new WeakMap();
+
+// Cumulative battery intervals make a quiet 15-tick batch identical to fifteen
+// individual ticks. Walking still evaluates the current location each tick.
+// step's 0.25-second maximum is shorter than either daylight interval, so at
+// most one day/night transition can occur inside a stationary batch.
+function tickEventBattery(s, economy, count) {
+  if (!count) return;
+  const end = economy.tick, start = end - count;
+  let epoch = batteryEpochs.get(s);
+  if (!epoch || epoch.economy !== economy || epoch.last !== start || epoch.value !== s.battery) {
+    epoch = { economy, at: start, opening: s.battery, rate: null, last: start, value: s.battery };
+    batteryEpochs.set(s, epoch);
+  }
+  const rateAt = tick => {
+    const time = economy.timeAt(tick);
+    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) ? -1 / BATTERY_LIFE : 0;
+  };
+  const apply = (first, last, rate) => {
+    if (rate !== epoch.rate) { epoch.at = first - 1; epoch.opening = epoch.value; epoch.rate = rate; }
+    epoch.value = Math.max(0, Math.min(1, epoch.opening + (last - epoch.at) * rate / 60));
+    epoch.last = last;
+  };
+  const firstRate = rateAt(start + 1), lastRate = count === 1 ? firstRate : rateAt(end);
+  if (firstRate === lastRate) apply(start + 1, end, firstRate);
+  else {
+    let lo = start + 2, hi = end;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (rateAt(mid) === firstRate) lo = mid + 1; else hi = mid;
+    }
+    apply(start + 1, lo - 1, firstRate); apply(lo, end, lastRate);
+  }
+  s.battery = epoch.value;
 }
 
 // How far your light reaches, as a share of a full battery's: 1 down to

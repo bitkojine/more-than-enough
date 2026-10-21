@@ -1,5 +1,77 @@
 # Changelog
 
+## [0.131.4] - 2026-10-22
+
+### Changed
+- Default property checks use twelve seeds per family for interactive feedback;
+  the full 1,500-seed sweep is an explicit command and separate background CI.
+- First-load budget is now 215 KB gzipped (about 213 KB measured) to cover
+  the shared engine and economy indexes, previously 210 KB.
+- AUTO prefers surface gathering and production whenever these can fund its
+  goal. Mining is a fallback for otherwise unavailable resources; changing
+  goals no longer forces a recently started mine trip to continue.
+- AUTO compares building investments including cross-resource repayment time,
+  rather than repeatedly buying the cheapest extra building ahead of required
+  upgrades. Mining estimates include passive income and the return trip;
+  visible finds without resources needed by the current goal are skipped.
+- Added bounded scaling checks for sparse explored-world searches, indexed
+  collection and event-time production/accounting. Solo browser and AUTO
+  hosts enable cumulative hauling after Logistics; direct variable-step and
+  shared-world replay callers retain the legacy economy. Production
+  queries skip empty ticks and reuse rate/count indexes between purchases;
+  visible feedback queries nearby buildings only. Mastery prerequisites are
+  cached until purchases. Kernel timings are not completed-world performance
+  results. The runner coalesces quiet ticks before action/goal deadlines, with
+  cumulative battery intervals preserving sunrise/sunset charging transitions.
+- Browser and headless AUTO playtests share a fixed 60-tick gameplay engine.
+  Browser drawing cadence no longer controls gameplay update sizes; headless
+  runs advance ticks directly, with no FPS option or rendering wait.
+- Legacy production groups repeated resource work while preserving each addition,
+  building buffer and visual-event order exactly. Headless ticks omit visual
+  events. Pathfinding uses integer-bucket A* to search toward its destination,
+  retaining shortest weighted route cost with deterministic ties; original
+  cheapest-first route choices remain available via `heuristic: false`.
+  Surface searches prune unrevealed and distant explored branches while
+  retaining the original nearest-target ordering.
+
+### Fixed
+- AUTO no longer reads unexplored underground rock when planning routes,
+  targets unseen chargers or ladders, uses hidden shore tiles to choose solar
+  placement, or lets unseen props suppress tunnel lighting. Remembered finds
+  change only when their current state becomes observable. Glints visible in
+  the normal game remain valid observations.
+- Movement within a tile and increased sight range now refresh exploration,
+  allowing normal observation to reveal obstacles before AUTO replans.
+- Auto-play keeps a mine find it has seen while routing around rock, even
+  when the route briefly leaves glint range. It forgets collected or blocked
+  finds instead of oscillating between mining and exploration. Discovered
+  shafts likewise remain targets through detours and nearer-shaft changes.
+- Auto-play preserves its quarter-second action cadence across update rates,
+  including tick remainders and floating-point boundaries, and finishes each
+  walking step on arrival without spending another update standing still.
+- A cached plan stops gathering a resource once its share of the price is
+  covered. Better travel or digging gear clears outdated failed routes.
+- Seeing only rare mushrooms no longer stops exploration for ordinary forage;
+  rock that requires a better pickaxe still waits for the right tool.
+- Searching for another building deposit can continue beyond the old radius
+  around home after nearby land is exhausted.
+- A failed look for a route to new land can fall back to useful gathering
+  rather than waiting with no resource target.
+- Returning from a deeper mine no longer replaces the remembered exit with
+  a downward shaft. Auto-play searches already explored exits beyond the old
+  60-tile limit instead of pacing between the shaft and exploration forever.
+
+### Added
+- Fresh-seed AUTO-only playtests use the shipped handler and controller,
+  retain seed reservations and per-world results, and report blocked movement,
+  charging, waiting, hourly progress and the slowest unproductive episodes.
+  Five minutes without earning, finding, building, exploring or charging stops
+  a stuck run with its save and recent actions preserved. A timeout, stall or
+  refused action fails the command. Browser smoke tests exercise holding and
+  releasing AUTO on a fresh world without other gameplay input.
+- Movement loops are checked independently of passive income; buildings
+  earning resources cannot hide five minutes pacing in the same small area.
+
 ## [0.131.3] - 2026-10-21
 
 Freeze season: nothing is made while the game isn't the active screen, in

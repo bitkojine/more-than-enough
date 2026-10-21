@@ -49,6 +49,18 @@ hide stereotype
     Shadowing: 0;
     MaximumWidth: 450;
   }
+  // Element,Software System
+  .Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0= {
+    BackgroundColor: #1168bd;
+    LineColor: #0b4884;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
   // Element,Software System,Tooling
   .Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw== {
     BackgroundColor: #6f4f9e;
@@ -84,6 +96,7 @@ hide stereotype
 </style>
 
 person "==Player\n<size:16>[Person]</size>\n\nPlays the game on a phone or desktop browser." <<Element-RWxlbWVudCxQZXJzb24=>> as Player
+rectangle "==Room Service\n<size:16>[Software System]</size>\n\nLets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one, download a whole world as a backup file and put a world that's gone back from one (server/src/backup.js), and has a page listing every world's players, sortable by progress (server/src/admin.js). See server/README.md for the rules and security limits." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0=>> as RoomService
 rectangle "==Development Tooling\n<size:16>[Software System]</size>\n\nTest harnesses and the deploy pipeline. Zero dependencies." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0sVG9vbGluZw==>> as DevelopmentTooling
 
 rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SRSBUSEFOIEVOT1VHSA==>> {
@@ -94,6 +107,8 @@ rectangle "MORE THAN ENOUGH\n<size:16>[Software System]</size>" <<Boundary-TU9SR
   rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as MORETHANENOUGH.WebApplication
 }
 
+MORETHANENOUGH.WebApplication --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
+MORETHANENOUGH.Wiki --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Shows its pictures"
 Player --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Plays in a mobile/desktop browser"
 Player --> MORETHANENOUGH.Wiki <<Relationship-UmVsYXRpb25zaGlw>> : "Looks things up"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.Wiki <<Relationship-UmVsYXRpb25zaGlw>> : "Links to"
@@ -102,10 +117,9 @@ MORETHANENOUGH.WebApplication --> MORETHANENOUGH.Translations <<Relationship-UmV
 MORETHANENOUGH.SimulationCore --> MORETHANENOUGH.Translations <<Relationship-UmVsYXRpb25zaGlw>> : "Names things (tiles, buildings, milestones) by key"
 MORETHANENOUGH.Wiki --> MORETHANENOUGH.Translations <<Relationship-UmVsYXRpb25zaGlw>> : "Asks for every word by key; its articles live there"
 MORETHANENOUGH.WebApplication --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
+MORETHANENOUGH.WebApplication --> RoomService <<Relationship-UmVsYXRpb25zaGlw>> : "Makes and joins rooms; relays positions, edits and progress\n<size:16>[HTTPS + WebSocket]</size>"
 MORETHANENOUGH.SimulationCore --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
 DevelopmentTooling --> MORETHANENOUGH.SimulationCore <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
 DevelopmentTooling --> MORETHANENOUGH.WebApplication <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
-MORETHANENOUGH.WebApplication --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
-MORETHANENOUGH.Wiki --> MORETHANENOUGH.DefaultTexturePack <<Relationship-UmVsYXRpb25zaGlw>> : "Shows its pictures"
 
 @enduml

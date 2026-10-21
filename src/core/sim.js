@@ -10,18 +10,49 @@ import {
 } from './content.js';
 import { extractorRate, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
+import { economyForState } from './economy-context.js';
+import { createEventEconomy } from './event-economy.js';
 
 const MAX_STEP = 0.25;
 
+// The shared engine activates hauling after one normalizing legacy tick.
+// Direct variable-step/core replay callers retain their existing contract.
+export function startEventEconomy(s) {
+  const current = economyForState(s);
+  if (current) return current;
+  if (s.shared || !s.unlocks.logistics || !Number.isFinite(abundanceTrickle(s)) ||
+      s.extractors.some(e => ownBuilding(s, e) && (!Number.isFinite(e.buffer) || e.buffer < 0 || e.buffer >= 1 ||
+        !Number.isFinite(extractorRate(s, e.key))))) return null;
+  return createEventEconomy(s, {
+    rateFor: extractorRate, trickleFor: abundanceTrickle, owns: ownBuilding
+  });
+}
+
+export function settleEconomy(s) { economyForState(s)?.settle(); }
+export function canBatchEconomy(s, count) { return !s.shared && s.unlocks.logistics && !!economyForState(s)?.canAdvanceTicks(count); }
+
 /* --------------------------------------------------------------- step */
 
-export function step(s, dt) {
+export function step(s, dt, { visualEvents = true } = {}) {
   if (dt > MAX_STEP) dt = MAX_STEP;
   noteWhere(s); // a shared world's room follows where you are (acts.js)
+  const economy = economyForState(s);
+  if (economy) {
+    const ticks = Math.round(dt * 60);
+    if (!s.shared && s.unlocks.logistics && Math.abs(dt * 60 - ticks) < 1e-9 && economy.canAdvanceTicks(ticks)) {
+      economy.advanceTicks(ticks);
+      tickBattery(s, dt);
+      if (visualEvents) economy.emitVisualEvents();
+      return;
+    }
+    // Variable-step and shared callers retain the legacy contract. Settle
+    // first so falling back cannot discard production or fractional buffers.
+    economy.stop();
+  }
   s.time += dt;
   s.stats.playedMs += dt * 1000;
 
-  produce(s, dt);
+  produce(s, dt, visualEvents);
   tickBattery(s, dt);
 
   const trickle = abundanceTrickle(s) * dt;
@@ -47,25 +78,52 @@ export function holdsOutput(s, e) {
   return e.buffer >= 1 && !autoCollected(s, e);
 }
 
-function produce(s, dt) {
-  const mult = {}; // productionMult per resource, worked out once a tick, not per building
-  for (const e of s.extractors) {
-    if (!ownBuilding(s, e)) continue; // a friend's: it works on their phone
-    const def = EXTRACTORS[e.key];
-    const m = mult[def.res] ??= productionMult(s, def.res);
-    const cap = def.buffer * m; // extractorCapacity
-    if (e.buffer < cap) {
-      e.buffer = Math.min(cap, e.buffer + def.rate * m * dt); // extractorRate
-    }
-    // Logistics: whole units funnel into your packs; without it they fill
-    // the building, ready for when you walk over and collect.
-    if (e.buffer >= 1 && autoCollected(s, e)) {
-      const amt = Math.floor(e.buffer);
-      earn(s, e.res, amt, 'buildings');
-      e.buffer -= amt;
-      if (tileDist2(s.player, e.x, e.y, e.z) <= SHOW2) s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
-    }
+const productionScratch = new WeakMap();
+
+function produce(s, dt, visualEvents) {
+  if (!s.extractors.length) return;
+  let scratch = productionScratch.get(s);
+  if (!scratch) {
+    scratch = { groups: Object.fromEntries(RESOURCES.map((res) => [res, { indices: [], count: 0 }])), events: [] };
+    productionScratch.set(s, scratch);
   }
+  const groups = scratch.groups, events = scratch.events;
+  for (const res of RESOURCES) groups[res].count = 0;
+  // Rebuild membership every tick: appends, removals, replacement arrays,
+  // same-length replacements and ownership changes all take effect now.
+  for (let i = 0; i < s.extractors.length; i++) {
+    const e = s.extractors[i];
+    if (!ownBuilding(s, e)) continue;
+    const group = groups[e.res];
+    group.indices[group.count++] = i;
+  }
+  let lastEvent = -1;
+  const hauling = s.unlocks.logistics;
+  for (const res of RESOURCES) {
+    const group = groups[res];
+    if (!group.count) continue;
+    const m = productionMult(s, res);
+    let inv = s.inv[res], total = s.stats[res], income = s.sources[res].buildings;
+    for (let j = 0; j < group.count; j++) {
+      const i = group.indices[j], e = s.extractors[i], def = EXTRACTORS[e.key];
+      const cap = def.buffer * m;
+      if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * m * dt);
+      if (e.buffer >= 1 && hauling) {
+        const amt = Math.floor(e.buffer);
+        // Keep each resource's original building order and every addition.
+        // Summing into a single gain would change floating-point rounding.
+        inv += amt; total += amt; income += amt;
+        e.buffer -= amt;
+        if (visualEvents && tileDist2(s.player, e.x, e.y, e.z) <= SHOW2) {
+          events[i] = { res, amt, x: e.x, y: e.y, z: e.z };
+          lastEvent = Math.max(lastEvent, i);
+        }
+      }
+    }
+    s.inv[res] = inv; s.stats[res] = total; s.sources[res].buildings = income;
+  }
+  // Presentation events retain their original inter-resource order too.
+  for (let i = 0; i <= lastEvent; i++) if (events[i]) { s.events.push(events[i]); events[i] = undefined; }
 }
 
 // `seconds` away from a solo world: your buildings and the Abundance Engine

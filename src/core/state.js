@@ -1,5 +1,6 @@
 /* The game state, and the prestige loop that replaces it with a fresh world. */
 
+import { economyForState } from './economy-context.js';
 import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
 import { createWorld, findSpawn, markExplored } from './world.js';
@@ -104,6 +105,7 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
 
 // Resources gathered (or produced) in the current world.
 export function worldTotal(s) {
+  economyForState(s)?.settle();
   return RESOURCES.reduce((n, r) => n + s.stats[r], 0);
 }
 

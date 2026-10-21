@@ -7,6 +7,7 @@
  * `text` says what to do; `reached` says it's done, for the banner and the
  * list of milestones reached. */
 
+import { economyForState } from './economy-context.js';
 import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { extractorCount, ownBuilding, extractorCost } from './economy.js';
@@ -82,6 +83,7 @@ const reachable = (s) => GOALS.slice(0, goalsTotal(s));
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.
 export function advanceGoals(s) {
+  economyForState(s)?.settle();
   const reached = reachable(s).filter((g) => !s.goalsDone.includes(g.id) && g.done(s));
   s.goalsDone.push(...reached.map((g) => g.id));
   s.goalIndex = s.goalsDone.length;

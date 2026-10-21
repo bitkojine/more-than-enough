@@ -61,6 +61,18 @@ hide stereotype
     Shadowing: 0;
     MaximumWidth: 450;
   }
+  // Element,Software System
+  .Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0= {
+    BackgroundColor: #1168bd;
+    LineColor: #0b4884;
+    LineStyle: 0;
+    LineThickness: 2;
+    FontColor: #ffffff;
+    FontSize: 24;
+    HorizontalAlignment: center;
+    Shadowing: 0;
+    MaximumWidth: 450;
+  }
   // Relationship
   .Relationship-UmVsYXRpb25zaGlw {
     LineThickness: 2;
@@ -83,18 +95,6 @@ hide stereotype
   }
 </style>
 
-rectangle "GitHub Pages\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.GitHubPages {
-  rectangle "==Static Files\n<size:16>[Infrastructure Node]</size>\n\nServes the staged site over HTTPS." <<Element-RWxlbWVudA==>> as Production.GitHubPages.StaticFiles
-}
-
-rectangle "Node.js LTS\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS {
-  rectangle "==Unit Tests\n<size:16>[Container: Node.js LTS]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.UnitTests_1
-  rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS.HeadlessChrome {
-    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1
-  }
-
-}
-
 rectangle "Browser\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Browser {
   rectangle "Browser tab\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.Browser.Browsertab {
     rectangle "==Web Application\n<size:16>[Container: HTML/CSS/JavaScript modules]</size>\n\nThe presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." <<Element-RWxlbWVudCxDb250YWluZXIsUHJlc2VudGF0aW9u>> as Production.Browser.Browsertab.WebApplication_1
@@ -105,13 +105,30 @@ rectangle "Browser\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVu
 
 }
 
-Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
-Production.Browser.Browsertab.Wiki_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Renders tables from content and tuning"
-Production.NodejsLTS.UnitTests_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
-Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
+rectangle "GitHub Pages\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.GitHubPages {
+  rectangle "==Static Files\n<size:16>[Infrastructure Node]</size>\n\nServes the staged site over HTTPS." <<Element-RWxlbWVudA==>> as Production.GitHubPages.StaticFiles
+}
+
+rectangle "Cloudflare Workers\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.CloudflareWorkers {
+  rectangle "==Room Service\n<size:16>[Software System]</size>\n\nLets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one, download a whole world as a backup file and put a world that's gone back from one (server/src/backup.js), and has a page listing every world's players, sortable by progress (server/src/admin.js). See server/README.md for the rules and security limits." <<Element-RWxlbWVudCxTb2Z0d2FyZSBTeXN0ZW0=>> as Production.CloudflareWorkers.RoomService_1
+}
+
+rectangle "Node.js LTS\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS {
+  rectangle "==Unit Tests\n<size:16>[Container: Node.js LTS]</size>\n\nnode:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.UnitTests_1
+  rectangle "Headless Chrome\n<size:16>[Deployment Node]</size>" <<DeploymentNode-RWxlbWVudCxEZXBsb3ltZW50IE5vZGU=>> as Production.NodejsLTS.HeadlessChrome {
+    rectangle "==Browser E2E Harness\n<size:16>[Container: Node.js + Headless Chrome + CDP]</size>\n\nSpawns a local static server and headless Chrome and drives the real game through the DevTools Protocol (touch, keys, DOM clicks, screenshots)." <<Element-RWxlbWVudCxDb250YWluZXIsVG9vbGluZyxUZXN0>> as Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1
+  }
+
+}
+
 Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.Wiki_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Links to"
 Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.DefaultTexturePack_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads at boot"
 Production.Browser.Browsertab.Wiki_1 --> Production.Browser.Browsertab.DefaultTexturePack_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Shows its pictures"
 Production.Browser.Browsertab.SimulationCore_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Returns state; emits transient events on auto-collect"
+Production.Browser.Browsertab.WebApplication_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Drives actions and step(); reads state every frame"
+Production.Browser.Browsertab.Wiki_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Renders tables from content and tuning"
+Production.Browser.Browsertab.WebApplication_1 --> Production.CloudflareWorkers.RoomService_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Makes and joins rooms; relays positions, edits and progress\n<size:16>[HTTPS + WebSocket]</size>"
+Production.NodejsLTS.UnitTests_1 --> Production.Browser.Browsertab.SimulationCore_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Imports src/core/index.js and steps it directly"
+Production.NodejsLTS.HeadlessChrome.BrowserE2EHarness_1 --> Production.Browser.Browsertab.WebApplication_1 <<Relationship-UmVsYXRpb25zaGlw>> : "Loads index.html; asserts through window.MTE_GAME"
 
 @enduml

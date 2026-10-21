@@ -18,6 +18,8 @@ import { createIncome } from './income.js';
 import { createWorldMap } from './worldmap.js';
 import { createController } from './controller.js';
 import { createPerfect } from './perfect.js';
+import { createSimulation } from '../engine/simulation.js';
+import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf.js';
 import { createQuality, frameDue, FULL_FPS, CALM_FPS, CALM_AFTER_S } from './quality.js';
 import { createLook } from './look/look.js';
@@ -125,6 +127,7 @@ for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) {
 }
 
 const loaded = loadGame();
+let simulation = null, simulationClock = null;
 let saveDue = false;
 let saveError = null;
 
@@ -159,7 +162,8 @@ const game = {
     input.release();
     input.releasePerfect();
     sheet.close();
-    lastTileKey = -1;
+    simulation?.invalidate();
+    simulationClock?.reset();
     region = shownRegion = null;
     hud.newWorld();
     hud.update(next);
@@ -181,7 +185,7 @@ const game = {
     Object.assign(s.player, { x: p.x, y: p.y, z: p.z });
     s.underground.deepest = Math.min(s.underground.deepest, p.z);
     controller.forget();
-    lastTileKey = -1;
+    simulation?.invalidate();
     hud.update(s);
   },
   // Alone or together: the settings that differ.
@@ -413,11 +417,9 @@ el.language.addEventListener('click', () => {
 // Work that runs on its own cadence rather than every frame.
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
-  { every: 0.4, run: () => controller.checkGoals() },
   { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
 ].map((t) => ({ ...t, left: t.every }));
 
-let lastTileKey = -1;
 let moving = false;
 
 // The region you're in (see core/regions.js): its name shows as you walk
@@ -464,31 +466,25 @@ function showCopy() {
 }
 
 let autoPlaying = false; // AUTO is held and playing (its tag shows over you)
-function update(dt) {
-  const s = game.state;
-  const dir = input.moveVector();
-  const moved = controller.steer(dt, dir);
-  moving = moved;
-  Core.step(s, dt);
-  together.tick(dt);
-  if (copy) showCopy();
-
-  // Logistics reports auto-collections as events; show them as flyers.
-  for (const e of s.events) if (e.z === s.player.z) fx.flyersFrom(e.x, e.y, e.res, e.amt);
-  s.events.length = 0;
-
-  const tileKey = Core.packKey(Math.floor(s.player.x), Math.floor(s.player.y), s.player.z);
-  if (tileKey !== lastTileKey) {
-    lastTileKey = tileKey;
-    Core.revealAround(s);
+simulation = createSimulation({ game, controller, autoplay: perfect, input,
+  canAutoplay: () => !blocked(), afterCore: (dt) => together.tick(dt),
+  onEvents(events, s) {
+    for (const e of events) if (e.z === s.player.z) fx.flyersFrom(e.x, e.y, e.res, e.amt);
   }
+});
+simulationClock = createTickClock(() => {
+  simulation.tick();
+  moving = simulation.moving;
+  autoPlaying = simulation.autoPlaying;
+});
 
-  const holdAt = input.holdPoint();
-  controller.tick(dt, input.held && !input.trail, holdAt);
-  // AUTO plays while held, unless you're steering, gathering or working a tile yourself.
-  autoPlaying = input.perfect && !input.held && !input.trail && !holdAt && !dir.x && !dir.y && !blocked();
-  perfect.tick(dt, autoPlaying);
-  if (moved && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
+// Presentation observes the state after simulation. Its cadence cannot
+// change movement, production, AUTO cooldowns or milestone progression.
+function updateView(dt) {
+  const s = game.state;
+  Core.settleEconomy(s);
+  if (copy) showCopy();
+  if (moving && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
     const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
   }
@@ -496,7 +492,7 @@ function update(dt) {
 
   if (saveDue) game.saveNow();
   for (const t of timers) {
-    if ((t.left -= dt) <= 0) { t.left = t.every; t.run(); }
+    if ((t.left -= dt) <= 0) { t.left += t.every; t.run(); }
   }
   hud.tick(dt);
   hud.updateButtons(s);
@@ -540,6 +536,7 @@ function view() {
 }
 
 let last = 0;
+let lastSimulationNow = 0, simulationMs = 0;
 let lastWall = 0; // Date.now() at the last frame shown
 
 // Time away from a solo world (closed, asleep, in another app): what your
@@ -564,25 +561,35 @@ let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
 let fullPace = true;            // the last frame was drawn at full pace
 function frame(now) {
-  // Full pace while you play (a touch or key just now, Gather or Perfect
-  // held, you or the view on the move, the trip between layers), calm while
-  // you watch.
-  const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
-  if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
-  if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
-  fullPace = full;
-  const intervalMs = last ? now - last : 0;
-  const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
-  last = now;
-  // Frames stop while the tab is hidden or the device sleeps: the gap is time away.
-  if (!document.hidden) {
-    const wall = Date.now();
-    if (lastWall && !fork.open) catchUp((wall - lastWall) / 1000);
-    lastWall = wall;
-  }
   try {
+    const simStart = performance.now();
+    const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
+    lastSimulationNow = now;
+    if (document.hidden || fork.open) {
+      simulationClock.reset();
+      if (fork.open && !document.hidden) lastWall = Date.now();
+    }
+    else {
+      const wall = Date.now();
+      if (lastWall) catchUp((wall - lastWall) / 1000);
+      lastWall = wall;
+      // A suspended device's gap is away time, not active simulation time.
+      if (elapsed >= Core.AWAY_MIN) simulationClock.reset();
+      else simulationClock.advance(elapsed);
+    }
+    simulationMs += performance.now() - simStart;
+    // Full pace while you play (a touch or key just now, Gather or Perfect
+    // held, you or the view on the move, the trip between layers), calm while
+    // you watch.
+    const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
+    if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
+    if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
+    fullPace = full;
+    const intervalMs = last ? now - last : 0;
+    const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
+    last = now;
     const t0 = performance.now();
-    if (!document.hidden && !fork.open) update(dt);
+    if (!document.hidden && !fork.open) updateView(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
     // Changed layers in this world since the last frame: show the trip.
@@ -595,7 +602,8 @@ function frame(now) {
     const stats = render(cam, game.state, fx, view(), look);
     signRect = stats.sign;
     descent.draw(cam, look, dt);
-    if (intervalMs > 0) perf.frame(intervalMs, t1 - t0, performance.now() - t1, stats.tiles);
+    if (intervalMs > 0) perf.frame(intervalMs, simulationMs + t1 - t0, performance.now() - t1, stats.tiles);
+    simulationMs = 0;
     if (full) quality.frame(intervalMs);
     perf.tick(dt);
   } catch (err) {
@@ -628,6 +636,8 @@ window.addEventListener('hashchange', () => {
 // The network came back: reconnect to the shared world now.
 window.addEventListener('online', () => together.online());
 document.addEventListener('visibilitychange', () => {
+  simulationClock.reset();
+  lastSimulationNow = 0;
   together.away(document.hidden);
   quality.settle();
   if (document.hidden) game.saveNow(); else checkFork();
@@ -679,7 +689,7 @@ window.MTE_GAME = {
   income,
   hud,
   save: () => game.saveNow(),
-  setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); lastTileKey = -1; },
+  setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); simulation.invalidate(); },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
   flyers: () => fx.flyers,
   audioState: () => audio.state(),

@@ -5,8 +5,10 @@
  * worlds already replaced, and a save from a newer game than this one is set
  * aside until the update arrives (src/game/storage.js). */
 
+import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
+import { ExploredChunks } from './explored-index.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
@@ -28,6 +30,7 @@ export function b64ToBytes(b64) {
 }
 
 export function serialize(s) {
+  economyForState(s)?.snapshot();
   return JSON.stringify({
     v: SAVE_VERSION,
     seed: s.seed,
@@ -68,7 +71,7 @@ export function deserialize(str, make = createState) {
   const s = make(d.seed);
   const w = s.world;
   w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
-  w.explored = new Map();
+  w.explored = new ExploredChunks();
   for (const [k, b64] of d.explored || []) {
     try {
       const mask = b64ToBytes(b64);
