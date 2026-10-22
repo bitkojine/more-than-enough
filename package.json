@@ -7,7 +7,7 @@
   "scripts": {
     "serve": "python3 -m http.server 8000",
     "test": "node --test \"test/unit/*.test.js\" \"test/property/*.test.js\"",
-    "test:scaling": "node --test test/unit/production-ledger.test.js test/unit/resource-ledger.test.js test/unit/event-economy.test.js test/unit/explored-index.test.js test/unit/explored-search.test.js test/unit/reveal-scaling.test.js test/unit/charger-index.test.js test/unit/observed-types.test.js test/unit/collection-index.test.js test/unit/simulation-parity.test.js test/unit/path-parity.test.js test/unit/engine-clock.test.js test/unit/autoplay-driver.test.js test/unit/autoplay-fairness.test.js test/unit/fair-play-audit.test.js test/unit/autoplay-regressions.test.js test/unit/structure.test.js",
+    "test:scaling": "node --test test/unit/production-ledger.test.js test/unit/resource-ledger.test.js test/unit/event-economy.test.js test/unit/explored-index.test.js test/unit/explored-search.test.js test/unit/reveal-scaling.test.js test/unit/charger-index.test.js test/unit/observed-types.test.js test/unit/goal-observation.test.js test/unit/collection-index.test.js test/unit/simulation-parity.test.js test/unit/path-parity.test.js test/unit/engine-clock.test.js test/unit/autoplay-driver.test.js test/unit/autoplay-fairness.test.js test/unit/fair-play-audit.test.js test/unit/autoplay-regressions.test.js test/unit/structure.test.js",
     "test:e2e": "node test/browser.e2e.js",
     "test:layout": "node test/layout.e2e.js",
     "check": "sh scripts/check.sh",

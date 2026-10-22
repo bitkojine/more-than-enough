@@ -20,6 +20,8 @@ import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { LANGUAGES, DEVICE_CHOICE } from '../../src/i18n/i18n.js';
+import labEn from '../../src/i18n/autoplay/en.js';
+import labLt from '../../src/i18n/autoplay/lt.js';
 import wikiEn from '../../wiki/i18n/en.js';
 import wikiLt from '../../wiki/i18n/lt.js';
 
@@ -37,6 +39,7 @@ function jsFiles(dir) {
 // The game's dictionaries, as loaded (before the wiki adds its own).
 const GAME = Object.fromEntries(Object.entries(LANGUAGES).map(([code, l]) => [code, { ...l.strings }]));
 const WIKI = { en: wikiEn, lt: wikiLt };
+const LAB = { en: labEn, lt: labLt };
 const CODES = Object.keys(LANGUAGES);
 
 const placeholders = (v) => {
@@ -44,7 +47,7 @@ const placeholders = (v) => {
   return [...new Set(forms.flatMap((f) => [...f.matchAll(/\{(\w+)\}/g)].map((m) => m[1])))].sort();
 };
 
-for (const [name, dicts] of [['game', GAME], ['wiki', WIKI]]) {
+for (const [name, dicts] of [['game', GAME], ['wiki', WIKI], ['developer viewer', LAB]]) {
   test(`the ${name} dictionaries all have the same keys`, () => {
     const keys = Object.keys(dicts.en);
     for (const code of CODES) {
@@ -77,12 +80,16 @@ test('the game and the wiki never define the same key', () => {
   assert.deepEqual(twice, [], `defined in both: ${twice.join(', ')}`);
 });
 
+test('lazy developer labels do not duplicate game or wiki keys', () => {
+  assert.deepEqual(Object.keys(LAB.en).filter(k => k in GAME.en || k in WIKI.en), []);
+});
+
 // src/vendor/ holds other people's code, copied unchanged: not ours to check.
 const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].filter((f) => !f.includes(join('src', 'vendor')))
   .filter((f) => !f.includes(join('src', 'i18n')) && !f.includes(join('wiki', 'i18n')));
 
 test('every key the code asks for exists', () => {
-  const all = { ...GAME.en, ...WIKI.en };
+  const all = { ...GAME.en, ...WIKI.en, ...LAB.en };
   for (const file of SOURCES) {
     for (const m of readFileSync(file, 'utf8').matchAll(/\bt\('([^']+)'\s*[,)]/g)) {
       assert.ok(m[1] in all, `${rel(file)} asks for "${m[1]}", which no dictionary has`);
@@ -200,7 +207,7 @@ for (const page of ['index.html', 'wiki/index.html']) {
   test(`${page} has no words of its own, only data-i18n keys`, () => {
     const html = readFileSync(join(ROOT, page), 'utf8');
     assert.deepEqual(markupWords(html), []);
-    const all = { ...GAME.en, ...WIKI.en };
+    const all = { ...GAME.en, ...WIKI.en, ...LAB.en };
     for (const m of html.matchAll(/data-i18n(?:-[\w-]+)?="([^"]+)"/g)) assert.ok(m[1] in all, `${page} uses "${m[1]}", which no dictionary has`);
   });
 }
@@ -229,7 +236,7 @@ const NAMES_A_PICTURE = /^look\.character\.(phone|laptop)/;
 
 test('device-specific words only appear inside a {phone:…|laptop:…} choice', () => {
   const found = [];
-  for (const [name, dicts] of [['game', GAME], ['wiki', WIKI]]) {
+  for (const [name, dicts] of [['game', GAME], ['wiki', WIKI], ['developer viewer', LAB]]) {
     for (const code of CODES) {
       for (const [key, value] of Object.entries(dicts[code])) {
         if (NAMES_A_PICTURE.test(key)) continue;

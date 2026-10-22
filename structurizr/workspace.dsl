@@ -31,9 +31,9 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                autoplayLab = component "AUTO Developer Viewer" "Lazy single-player viewer booted before normal world loading. Runs the shipped AUTO session in bounded real-time work slices at selectable speed, renders the normal client view, and retains separate IndexedDB worlds. The evaluation runner imports the same session." "JavaScript" {
+                autoplayLab = component "AUTO Developer Viewer" "Lazy single-player viewer booted before normal world loading. Lazily loads viewer-only styles and labels. Runs the shipped AUTO session in bounded real-time work slices at selectable speed, renders the normal client view, and retains separate IndexedDB worlds. The evaluation runner imports the same session." "JavaScript" {
                     properties {
-                        "files" "src/game/autoplay-lab.js, src/game/autoplay-session.js, src/game/autoplay-store.js, autoplay-seeds.js"
+                        "files" "src/game/autoplay-lab.js, src/game/autoplay-session.js, src/game/autoplay-store.js, autoplay-seeds.js, autoplay-text.js, ./autoplay-lab.css, src/i18n/autoplay/en.js, lt.js"
                     }
                 }
 
@@ -149,7 +149,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache. Explored chunks and observed resource types have derived spatial indexes; Map-compatible prop mutation epochs invalidate charger candidates." "JavaScript" {
+                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache. Explored chunks and observed resource types have derived spatial indexes, including one/two-unit reserve masks that remove exhausted deposits from searches; Map-compatible prop mutation epochs invalidate charger candidates." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js, explored-index.js, observed-types.js, versioned-map.js"

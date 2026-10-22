@@ -341,11 +341,20 @@ function nearestDeposit(s, mind, res) {
   const c = mind.near[res];
   if (c && c.gear === gearKey(s) && s.time - c.t < 30 && (!c.tile || works(c.tile.x, c.tile.y)) &&
       (!c.tile || dist(s, c.tile.x, c.tile.y) < 3 || s.time - c.t < 5)) return c;
-  const tile = nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, works, null, SURFACE_TYPES[res]);
-  const out = { t: s.time, gear: gearKey(s), tile, gated: !tile && !!nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, seen, null, SURFACE_TYPES[res]) };
+  const minimum = reserveDeposit(s, SURFACE_TYPES[res]) ? 2 : 1;
+  const tile = nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, works, null, SURFACE_TYPES[res], minimum);
+  const out = { t: s.time, gear: gearKey(s), tile, gated: !tile && !!nearestExploredTile(s.world, s.player.x, s.player.y, SURFACE, SEARCH, seen, null, SURFACE_TYPES[res], minimum) };
   mind.near[res] = out;
   return out;
 }
+
+// Static terrain-to-building rules; unlock eligibility remains live.
+const depositBuildings = new Map();
+for (const d of Object.values(EXTRACTORS)) {
+  const list = depositBuildings.get(d.tile) || [];
+  list.push(d); depositBuildings.set(d.tile, list);
+}
+const reserveDeposit = (s, type) => depositBuildings.get(type)?.some(d => !d.unlock || s.unlocks[d.unlock]);
 
 // Surface checks that hold wherever the player is (harvestable and
 // gearNeeded look at the player's own layer).
@@ -353,7 +362,7 @@ function nearestDeposit(s, mind, res) {
 // nothing: the last of it is left for the building.
 function harvestableOn(s, x, y) {
   const type = tileAt(s.world, x, y, SURFACE);
-  const keep = Object.values(EXTRACTORS).some((d) => d.tile === type && (!d.unlock || s.unlocks[d.unlock]));
+  const keep = reserveDeposit(s, type);
   return !!TILE_INFO[type].harvest && !holeBelow(s.world, x, y, SURFACE) && !extractorAt(s, x, y, SURFACE) &&
     richness(s.world, x, y, SURFACE) > (keep ? 1 : 0);
 }

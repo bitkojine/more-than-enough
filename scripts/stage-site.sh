@@ -13,7 +13,7 @@
 set -eu
 cd "$(dirname "$0")/.."
 OUT="${1:-site}"
-SOURCES="index.html style.css manifest.webmanifest icons src wiki packs privacy"
+SOURCES="index.html style.css autoplay-lab.css manifest.webmanifest icons src wiki packs privacy"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"

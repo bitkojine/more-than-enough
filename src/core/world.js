@@ -224,20 +224,20 @@ export function nearestTile(x, y, maxR, pred) {
 // The same ring/distance/row-order choice as nearestTile, restricted to fog
 // already revealed on this layer. Skip whole unseen chunks instead of
 // probing every tile of an empty search square (common while in a mine).
-export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = null) {
+export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = null, minimum = 0) {
   maxR = Math.floor(maxR);
   const px = Math.floor(x), py = Math.floor(y);
   const close = nearestTile(x, y, Math.min(4, maxR), (tx, ty) => isExplored(w, tx, ty, z) &&
-    (type === null || tileAt(w, tx, ty, z) === type) && pred(tx, ty));
+    (type === null || tileAt(w, tx, ty, z) === type) && (!minimum || richness(w, tx, ty, z) >= minimum) && pred(tx, ty));
   if (close || maxR <= 4) return close;
   let best = null, bestR = maxR + 1, bestD = Infinity;
   let index = w.explored;
   if (type !== null && z === SURFACE && w.explored instanceof ExploredChunks) {
     let typed = observedTypes.get(w);
     if (!typed || typed.fog !== w.explored || typed.version !== w.explored.revision) {
-      typed = createObservedTypes(w.explored, (tx, ty) => tileAt(w, tx, ty, SURFACE)); observedTypes.set(w, typed);
+      typed = createObservedTypes(w.explored, (tx, ty) => tileAt(w, tx, ty, SURFACE), (tx, ty) => richness(w, tx, ty, SURFACE)); observedTypes.set(w, typed);
     }
-    index = typed.query(type, px, py, maxR, work);
+    index = typed.query(type, px, py, maxR, work, minimum === 1 || minimum === 2 ? minimum : 0);
   }
   visitNearestExploredChunks(index, z, px, py, maxR, (cx, cy, mask) => {
     const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
@@ -251,6 +251,7 @@ export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = 
       const i = (ty - oy) * CHUNK_SIZE + tx - ox;
       if (!(mask[i >> 3] & (1 << (i & 7)))) continue;
       if (type !== null && tileAt(w, tx, ty, z) !== type) continue;
+      if (minimum && richness(w, tx, ty, z) < minimum) continue;
       const ex = tx + 0.5 - x, ey = ty + 0.5 - y, d = ex * ex + ey * ey;
       if (r === bestR && (d > bestD || (d === bestD && best && (ty > best.y || (ty === best.y && tx >= best.x))))) continue;
       if (!pred(tx, ty)) continue;

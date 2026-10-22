@@ -71,10 +71,12 @@ if (!html.includes('</head>')) throw new Error('no </head> in index.html');
 fs.writeFileSync(page, html.replace('</head>', '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'));
 
 /* 4. Minify the stylesheet. */
-const sheet = path.join(OUT, 'style.css');
+for (const name of ['style.css', 'autoplay-lab.css']) {
+const sheet = path.join(OUT, name);
 const css = await esbuild.transform(fs.readFileSync(sheet, 'utf8'), {
   loader: 'css', minify: true, legalComments: 'none', target: ['safari12', 'chrome70', 'firefox68']
 });
 fs.writeFileSync(sheet, css.code);
+}
 
 console.log(`Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(entry).size / 1024)} KB)`);

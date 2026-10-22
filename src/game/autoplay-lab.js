@@ -1,5 +1,6 @@
 /* Live developer spectator: the real renderer observes the same AUTO session
  * used in headless evaluation. Only the host's rate of execution changes. */
+import './autoplay-text.js';
 import * as Core from '../core/index.js';
 import { TICK_HZ } from '../engine/clock.js';
 import { createAutoplaySession } from './autoplay-session.js';
@@ -16,6 +17,12 @@ import { t } from '../i18n/i18n.js';
 import { VERSION } from '../version.js';
 
 export async function startAutoplayLab({ el, look }) {
+  const style = document.createElement('link'); style.rel = 'stylesheet';
+  const url = new URL('../../autoplay-lab.css', import.meta.url); url.search = new URL(import.meta.url).search;
+  style.href = url.href;
+  await new Promise((resolve, reject) => {
+    style.onload = resolve; style.onerror = () => reject(new Error(t('lab.error'))); document.head.append(style);
+  });
   document.body.classList.add('autoplay-lab');
   const panel = document.createElement('section');
   panel.id = 'autoplayLab';

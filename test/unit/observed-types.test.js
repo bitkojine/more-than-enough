@@ -72,3 +72,50 @@ test('fog replacement and saving cannot retain stale typed candidates', () => {
   loaded.world.explored = new Map(loaded.world.explored);
   assert.deepEqual(C.nearestExploredTile(loaded.world, 0.5, 0.5, 0, 100, pred, null, type), { x, y }, 'plain-Map snapshots retain the correct fallback');
 });
+
+test('remaining-deposit queries skip exhausted chunks instead of revisiting their tiles', () => {
+  const w = C.createWorld(91361);
+  for (let cx = 1; cx <= 200; cx++) {
+    const x = cx * C.CHUNK_SIZE, y = 8;
+    const type = new Uint8Array(256).fill(C.T.FOREST), rich = new Uint8Array(256).fill(1);
+    if (cx === 200) rich[C.chunkIndex(x, y)] = 2;
+    w.chunks.set(C.packKey(cx, 0, 0), {type, rich});
+    C.markExplored(w, x, y, 0);
+  }
+  const query = work => C.nearestExploredTile(w,.5,8.5,0,3300,()=>true,work,C.T.FOREST,2);
+  assert.deepEqual(query({}), {x:3200,y:8});
+  const work = {cells:0,chunks:0,nodes:0};
+  assert.deepEqual(query(work), {x:3200,y:8});
+  assert.equal(work.classifiedCells || 0,0,'repeated queries classify nothing');
+  assert.equal(work.chunks,1,'exhausted chunks are absent from the eligible index');
+  assert.ok(work.cells <= 256,'work is bounded by the live target chunk');
+});
+
+test('observed depletion removes reserve-boundary candidates and saves rebuild them correctly', () => {
+  const s = C.createState(91362), w = s.world, x = 64, y = 8;
+  w.chunks.set(C.packKey(4,0,0),{type:new Uint8Array(256).fill(C.T.FOREST),rich:new Uint8Array(256).fill(3)});
+  C.markExplored(w,x,y,0);
+  const query = minimum => C.nearestExploredTile(w,x+.5,y+.5,0,6,()=>true,null,C.T.FOREST,minimum);
+  assert.deepEqual(query(2),{x,y});
+  // Prime the derived index too; a near-only query does not need it.
+  C.nearestExploredTile(w,x-8+.5,y+.5,0,12,()=>true,null,C.T.FOREST,2);
+  C.setRichness(w,x,y,0,2);assert.deepEqual(query(2),{x,y});
+  C.setRichness(w,x,y,0,1);assert.equal(query(2),null);assert.deepEqual(query(1),{x,y});
+  C.setRichness(w,x,y,0,0);assert.equal(query(1),null);assert.deepEqual(query(0),{x,y});
+  const back=C.deserialize(C.serialize(s));
+  assert.equal(C.nearestExploredTile(back.world,x+.5,y+.5,0,6,()=>true,null,C.T.FOREST,1),null);
+});
+
+test('remaining-deposit index preserves ordinary nearest-query ordering', () => {
+  for(const seed of [12345,777,99]){
+    const s=C.createState(seed);s.tools.boots=6;C.revealAround(s,24);
+    for(const type of [C.T.FOREST,C.T.STONE,C.T.ORE,C.T.CRYSTAL])for(const minimum of [1,2]){
+      const pred=(x,y)=>C.richness(s.world,x,y,0)>=minimum;
+      for(const offset of [0,5,-7]){
+        const x=s.player.x+offset,y=s.player.y-offset;
+        assert.deepEqual(C.nearestExploredTile(s.world,x,y,0,40,()=>true,null,type,minimum),
+          C.nearestExploredTile(s.world,x,y,0,40,pred,null,type));
+      }
+    }
+  }
+});

@@ -1,0 +1,9 @@
+/* Developer spectator: normal resource HUD, read-only map, separate controls. */
+.autoplay-lab #hud > :not(#topbar):not(#battery):not(#depth):not(#depthGauge),
+.autoplay-lab #controls, .autoplay-lab #btnAwards, .autoplay-lab #btnSettings { display: none !important; }
+#autoplayLab { position: fixed; z-index: 40; bottom: max(12px, env(safe-area-inset-bottom)); left: 12px; right: 12px; margin: auto; max-width: 760px; padding: 12px; border: 1px solid var(--panel-line); border-radius: var(--r-md); background: var(--panel); max-height: 50vh; overflow: auto; touch-action: pan-y; color: var(--ink); }
+#autoplayLab p { margin: 6px 0; font-size: 13px; overflow-wrap: anywhere; }
+.labControls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.labControls button, .labControls select, .labControls a { min-height: 44px; padding: 8px; border: 1px solid var(--panel-line); border-radius: var(--r-sm); background: var(--raised); color: var(--ink); }
+.labControls label { display: flex; gap: 6px; align-items: center; }
+#labHistory { max-width: 220px; }

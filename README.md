@@ -387,3 +387,13 @@ player saves and shared rooms are untouched. Seeds are reserved uniquely in
 that browser archive, not globally across machines or the CLI ledger. No
 offline income is used. Run `MTE_LAB_ONLY=1 npm run test:e2e` for the focused
 viewer test, including a complete fresh AUTO-only win.
+
+Observed surface indexes also retain masks for one or two remaining resource
+units. Known depletion updates only the affected cell when a reserve boundary
+is crossed; exhausted chunks disappear from the corresponding query index.
+This preserves nearest-target ordering while avoiding repeated predicate work
+over depleted areas. Milestone predicates explicitly mark income dependencies,
+so purchase-only checks do not force production observations. The developer
+viewer's `autoplay-lab.css` is loaded lazily with the same build identity as its
+module; developer-only labels also load lazily, leaving the normal first-load
+budget unchanged.

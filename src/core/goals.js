@@ -37,7 +37,7 @@ function masterProgress(s) {
 export const GOALS = [
   { id: 'forage', text: t('goal.forage'), reached: t('goal.forage.reached'), done: (s) => s.stats.foraged > 0 },
   { id: 'basket', text: t('goal.basket'), reached: t('goal.basket.reached'), buy: 'basket', done: (s) => s.tools.basket >= 2 },
-  { id: 'stone', text: t('goal.stone'), reached: t('goal.stone.reached'), done: (s) => s.stats.stone > 0 },
+  { id: 'stone', income: true, text: t('goal.stone'), reached: t('goal.stone.reached'), done: (s) => s.stats.stone > 0 },
   { id: 'pickaxe', text: t('goal.pickaxe'), reached: t('goal.pickaxe.reached'), buy: 'pickaxe', done: (s) => s.tools.pickaxe >= 2 },
   { id: 'garden', text: t('goal.garden'), reached: t('goal.garden.reached'), build: 'garden', done: has('garden') },
   { id: 'collect', text: t('goal.collect'), reached: t('goal.collect.reached'), done: (s) => s.stats.collected > 0 || s.unlocks.logistics },
@@ -83,8 +83,11 @@ const reachable = (s) => GOALS.slice(0, goalsTotal(s));
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.
 export function advanceGoals(s) {
-  economyForState(s)?.settle();
-  const reached = reachable(s).filter((g) => !s.goalsDone.includes(g.id) && g.done(s));
+  const pending = reachable(s).filter((g) => !s.goalsDone.includes(g.id));
+  // Only income-dependent predicates need a fresh production observation.
+  // Mastery's worldTotal query settles itself once purchases are complete.
+  if (pending.some(g => g.income)) economyForState(s)?.settle();
+  const reached = pending.filter(g => g.done(s));
   s.goalsDone.push(...reached.map((g) => g.id));
   s.goalIndex = s.goalsDone.length;
   return reached;

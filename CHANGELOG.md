@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.131.7] - 2026-10-22
+
+### Changed
+- AUTO's observed terrain index tracks remaining deposits at the ordinary
+  gathering and building-reserve boundaries, excluding exhausted chunks from
+  searches without changing nearest-target ordering or reading through fog.
+- Milestone checks settle production only for outstanding income predicates;
+  purchase-only milestones retain their normal decision times without extra
+  economy observations.
+- Developer viewer styles and labels load only when the viewer opens, keeping normal
+  first-load bytes within the existing budget.
+
 ## [0.131.6] - 2026-10-22
 
 ### Fixed
