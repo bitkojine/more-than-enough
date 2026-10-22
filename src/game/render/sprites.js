@@ -33,7 +33,7 @@ export function drawExtractor(ctx, cam, s, look, e) {
   // Only output that waits for you: what Logistics hauls in as it's made
   // never shows (it would blink on and off many times a second), so a
   // hauled building looks empty.
-  const p = Core.holdsOutput(s, e) ? Math.min(1, e.buffer / Core.extractorCapacity(s, e.key)) : 0;
+  const p = Core.holdsOutput(s, e) ? Math.min(1, e.buffer / Core.extractorCapacity(s, e.key, e)) : 0;
   const pic = look.stage('building.' + e.key, p);
   shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
@@ -56,7 +56,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
     x: p.x, sx, sy, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
-    device: view.device, actor: view.actor, steady: view.sign > 0
+    device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools
   });
 }
 
@@ -64,12 +64,12 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // picture posed for what they're doing (see motion.js), with what they hold
 // and any tool in hand. `nod` tips them forward a little more (dozing).
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0 }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null }) {
   const u = cam.tilePx;
   const walk = look.frames('character.wanderer', 'image');
   const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
   const body = walk.pics[frame];
-  const p = pose(actor, { moving, boat: water, steady, time: s.time, seed });
+  const p = pose(actor, { moving, boat: water, steady, time: s.time, seed, equipment });
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
   if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
@@ -81,7 +81,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   ctx.rotate(rot);
   const facing = p.turn ? !flip : flip;
   const tall = standWithHeld(ctx, look, body, device, 0, 0, u, facing);
-  if (p.tool) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1);
+  if (p.tool && (!equipment || equipment[p.tool.kind] > 0)) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1);
   ctx.restore();
   const sin = Math.sin(rot), cos = Math.cos(rot);
   return { x: fx + sin * tall, top: fy - cos * tall, foot: fy, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
@@ -231,6 +231,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const nod = f.st === 'away' ? 0.1 + 0.05 * Math.sin(time * 1.3) : 0;
   const { x: hx, top: head, handsX, hands } = drawCharacter(ctx, cam, s, look, {
     x: f.x, sx, sy, flip, moving: f.st === 'online' && f.m, water, device: f.dev, nod,
+    equipment: f.gear === undefined ? null : { basket: f.gear & 1, pickaxe: f.gear & 2 },
     actor: f.st === 'online' ? f.actor : STILL, steady: f.sign, seed: f.c * 2.3 + 1
   });
   ctx.restore();

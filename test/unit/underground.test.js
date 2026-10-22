@@ -22,6 +22,7 @@ test('going down the cave mouth you stand in lands at the foot of a ladder back 
 });
 test('tunnels must be dug before they can be walked', () => {
   const s = away(C.createState(31415));
+  s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
   const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
   const start = { ...s.player };
@@ -61,6 +62,7 @@ test('holding Gather never auto-digs; digging is a deliberate choice', () => {
 
 test('a Trail digs the rock it crosses but never opens a shaft', () => {
   const s = away(C.createState(2718));
+  s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
   const p = s.player;
   const stroke = [{ x: p.x - 1.5, y: p.y }, { x: p.x + 1.5, y: p.y }];
@@ -71,6 +73,7 @@ test('a Trail digs the rock it crosses but never opens a shaft', () => {
 
 test('shafts open with one dig and take the player down one layer', () => {
   const s = away(C.createState(31415));
+  s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x + 1, shaft.y, -1, 0);
@@ -285,6 +288,7 @@ test('surface movement still swims and blocks on rock', () => {
 
 test('underground, pushing into rock drills it after a moment; bedrock and shafts hold', () => {
   const s = away(C.createState(31415));
+  s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
   const progress = { x: 0, y: 0, t: 0 };
   const n = neighbours(s).find((t) => [T.SOIL, T.STONE_SEAM, T.ORE_SEAM].includes(typeAt(s, t.x, t.y)));
@@ -352,6 +356,7 @@ test('the layer button shows beside a way and says which way it goes', () => {
 });
 test('props: placed underground on open floor, one per tile, paid for, and saved', () => {
   const s = away(C.createState(31415));
+  s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   assert.equal(C.canPlaceProp(s, 'glowcap'), false, 'not on the surface');
   assert.equal(C.isDark(s), false, 'not dark at noon in the forest');
   C.goDown(s);

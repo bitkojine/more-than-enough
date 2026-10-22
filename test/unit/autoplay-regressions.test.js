@@ -87,7 +87,7 @@ test('seeing only rare mushrooms does not stop AUTO exploring for ordinary forag
   mind.goal = goal;
   mind.decided = s.time;
   mind.how = { goal, t: s.time, p: { how: { mycelium: 'hand' } } };
-  mind.near.mycelium = { tile: null, gated: true, t: s.time, gear: '1,1,1' };
+  mind.near.mycelium = { tile: null, gated: true, t: s.time, gear: [s.tools.pickaxe,s.tools.basket,s.tools.boots].join(',') };
   const intent = C.nextIntent(s, mind);
   assert.equal(intent.type, 'walk');
   assert.equal(intent.badge, 'ui.explore');

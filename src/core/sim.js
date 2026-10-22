@@ -8,7 +8,7 @@ import { tileAt, walkable, markExplored } from './world.js';
 import {
   AWAY_CAP, AWAY_MIN, FREEZE_AWAY, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
 } from './content.js';
-import { extractorRate, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
+import { extractorRate, supportMult, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
 import { economyForState } from './economy-context.js';
 import { createEventEconomy } from './event-economy.js';
@@ -22,7 +22,7 @@ export function startEventEconomy(s) {
   if (current) return current;
   if (s.shared || !s.unlocks.logistics || !Number.isFinite(abundanceTrickle(s)) ||
       s.extractors.some(e => ownBuilding(s, e) && (!Number.isFinite(e.buffer) || e.buffer < 0 || e.buffer >= 1 ||
-        !Number.isFinite(extractorRate(s, e.key))))) return null;
+        !Number.isFinite(extractorRate(s, e.key, e))))) return null;
   return createEventEconomy(s, {
     rateFor: extractorRate, trickleFor: abundanceTrickle, owns: ownBuilding
   });
@@ -106,8 +106,9 @@ function produce(s, dt, visualEvents) {
     let inv = s.inv[res], total = s.stats[res], income = s.sources[res].buildings;
     for (let j = 0; j < group.count; j++) {
       const i = group.indices[j], e = s.extractors[i], def = EXTRACTORS[e.key];
-      const cap = def.buffer * m;
-      if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * m * dt);
+      const boosted = m * supportMult(s, e);
+      const cap = def.buffer * boosted;
+      if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * boosted * dt);
       if (e.buffer >= 1 && hauling) {
         const amt = Math.floor(e.buffer);
         // Keep each resource's original building order and every addition.
@@ -143,7 +144,7 @@ export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
   const made = Object.fromEntries(RESOURCES.map((r) => [r, 0]));
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue;
-    made[e.res] += extractorRate(s, e.key) * sec;
+    made[e.res] += extractorRate(s, e.key, e) * sec;
   }
   const trickle = abundanceTrickle(s) * sec;
   for (const r of RESOURCES) {

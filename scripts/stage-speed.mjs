@@ -49,13 +49,14 @@ try {
   throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
 }
 const entry = path.join(OUT, 'src/game/main.js');
-for (const target of [entry, path.join(OUT, 'src/game/autoplay-lab.js')]) await esbuild.build({
+for (const target of [entry, path.join(OUT, 'src/game/autoplay-lab.js'), path.join(OUT, 'src/game/news-text.js')]) await esbuild.build({
   entryPoints: [target],
-  external: ['./autoplay-lab.js'],
+  external: ['./autoplay-lab.js', './news-text.js'],
   outfile: target,          // in place: import.meta.url stays where main.js was
   allowOverwrite: true,
   bundle: true,
   format: 'esm',
+  charset: 'utf8',         // module scripts are UTF-8; avoid escaping Lithuanian text
   minify: true,
   keepNames: true,         // so a crash report still names the functions
   sourcemap: 'linked',     // for DevTools only; players never download it

@@ -48,7 +48,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // nothing: its clods are tossed aside and it says +0, so digging through it
   // reads as clearing the way, not as gathering that failed.
   function harvested(r) {
-    actor.act(r.res === 'mycelium' ? 'pick' : 'swing');
+    actor.act(r.res === 'mycelium' || state().tools.pickaxe === 0 ? 'pick' : 'swing');
     fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
     if (r.found) {
       fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
@@ -277,7 +277,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         }
       }
       if (!count) return;
-      if (!below) actor.act(gathered.mycelium ? 'pick' : 'swing');
+      if (!below) actor.act(gathered.mycelium || state().tools.pickaxe === 0 ? 'pick' : 'swing');
       for (const res of Object.keys(gathered)) tally(res, gathered[res]);
       changed();
     },
@@ -323,16 +323,16 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       return true;
     },
 
-    // Embark destroys a world, so it asks first.
+    // Embark starts another preserved world, so it asks first.
     async embark() {
       if (!Core.canEmbark(state())) return;
-      const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.text', { n: fmt(Core.embarkGain(state())) }), yes: t('ask.embark.yes') });
+      const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.empty'), yes: t('ask.embark.yes') });
       const s = state();
       if (!yes || !Core.canEmbark(s)) return;
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();
-      say('+' + res.gained, look.color('resource.insight'), 'resource.insight');
+      hud.toast(t('world.emptyStart'));
     },
 
     // Forget per-world intents when the world itself is replaced.

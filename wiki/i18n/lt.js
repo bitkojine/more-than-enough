@@ -201,7 +201,7 @@ export default {
   "wiki.sporeBedsFrom": "sporų guoliai, nuo {layer} sluoksnio ir giliau",
   "wiki.sporeBeds": "sporų guoliai",
   "wiki.perSwing": "{n} per kirtį",
-  "wiki.startingTool": "pradinis įrankis",
+  "wiki.startingTool": "senasis bazinis įrankis",
   "wiki.trickle": "+{n}/s kiekvieno",
   "wiki.perkRepeat": "{n}, paskui +1 už kiekvieną turimą lygį",
   "wiki.perkOnce": "{n} (vieną kartą)",
@@ -728,6 +728,10 @@ export default {
       <p class="lede">Viskas, kas yra Patobulinimų skirtuke, lygis po lygio.</p>
 
       <h2>Įrankiai</h2>
+      <p>Kiekvienas naujas pasaulis prasideda tuščiomis rankomis. Rankomis rink grybus ir palaidus akmenis, tada
+        Patobulinimuose pasigamink Krepšį arba Kirtiklį. Pirmiems receptams nereikia rūdos ar dirbtuvių. Pirmas kirtiklis
+        leidžia rinkti rūdą, o krepšys pagerina grybų rinkimą. Požemių kasimui reikia kirtiklio. Lentelės 1 lygis skirtas
+        seniesiems baziniams įrankiams; naujame pasaulyje pirmas pagamintas įrankis yra 2 lygio. Seni įrašai įrankius išlaiko.</p>
       <p>Krepšys nustato, kiek grybienos parneša kiekvienas rinkimas, Kirtiklis – kiek duoda kiekvienas kirtis. Batai nustato tavo greitį.</p>
       <p>Kai kurie lygiai dar ir <strong>atveria</strong> ką nors nauja (stulpelis „Atveria“). Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio,
         o šachtoms žemyn iš gilių sluoksnių – dar geresnio: iki tol Rinkti ir Autožaidimas jų neliečia, o {phone:bakstelėjus|laptop:spustelėjus} pasakoma, ko reikia.
@@ -755,27 +759,15 @@ export default {
       <div data-table="abundance"></div>`,
   "wiki.article.beyond.title": "Anapus",
   "wiki.article.beyond": `      <h1>Anapus</h1>
-      <p class="lede">Pradėk iš naujo naujame pasaulyje, kaskart šiek tiek stipresnis.</p>
-
+      <p class="lede">Pradėk kitą pasaulį tuščiomis rankomis, su įgytomis žiniomis.</p>
       <h2>Iškeliavimas</h2>
-      <p>Iškeliavimas – tai pasaulio pabaiga, o ne žingsnis pakeliui. Skirtukas <strong>Anapus</strong> visai nepasirodo, kol
-        <strong>neįvaldai</strong> savo pasaulio: kol nenusiperki visų įrankių, visų perdirbimo lygių ir visų atrakinimų, o Gausos
-        variklis nepasiekia <span data-k="EMBARK_ABUNDANCE"></span> lygio. Užbaigus šiuos patobulinimus,
-        <strong>Iškeliauti</strong> galima iš karto: papildomo surinktų išteklių reikalavimo nėra.
-        Po pirmojo iškeliavimo skirtukas Anapus lieka, kad galėtum leisti Įžvalgą privalumams.</p>
-      <p>Iškeliavęs atsiduri visiškai naujame atsitiktiniame pasaulyje. Prarandi senąjį pasaulį, inventorių, įrankius, pastatus,
-        atrakinimus, perdirbimą, Gausos variklį ir etapų pažangą. Pasilieki Įžvalgą, privalumus ir viso laiko sumą.</p>
-
-      <h2>Įžvalga</h2>
-      <p>Kiekvienas iškeliavimas duoda Įžvalgos pagal viską, ką kada nors surinkai visuose pasauliuose:</p>
-      <p><strong>Gauta Įžvalga = &radic;(500 &times; viso laiko suma &divide; <span data-k="EMBARK_MIN_TOTAL"></span>), suapvalinta žemyn</strong></p>
-      <p>Taigi 500 milijardų per visą laiką duoda 22, o 2 trilijonai – 44. Įžvalga leidžiama privalumams ir niekada nedingsta.
-        Iškeliavimo sąlyga skaičiuoja tik dabartinio pasaulio patobulinimus, tad senos pažangos sąskaita iš karto vėl iškeliauti negalėsi.</p>
-
-      <h2>Privalumai</h2>
-      <div data-table="perks"></div>
-      <p>Palikimas kiekvienu lygiu padaugina visų pastatų produkciją ir Gausos srautelį iš 1,25, o lygių poveikis dauginasi
-        tarpusavyje. Atmintis, Paveldas ir Kartografas įsigalioja nuo kito pradėto pasaulio.</p>`,
+      <p>Užbaik visus pasaulio patobulinimus ir pasiek Gausos variklio <span data-k="EMBARK_ABUNDANCE"></span> lygį.
+        Tuomet gali iš karto iškeliauti. Patvirtinus naujame pasaulyje nėra įrankių, išteklių, pastatų, privalumų,
+        Įžvalgos ar automatinės Logistikos. Išlieka viso laiko įrašai ir žinomos grybų rūšys. Ankstesni pasauliai išsaugomi.</p>
+      <h2>Senieji pasauliai</h2>
+      <p>Seni įrašai išlaiko įrankius, privalumus, Įžvalgą ir uždirbtą pažangą. Jų skirtuke Anapus lieka senieji
+        privalumai, tačiau iškeliavus į kitą pasaulį jų poveikis nepersikelia.</p>
+      <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Etapai",
   "wiki.article.milestones": `      <h1>Etapai</h1>
       <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;

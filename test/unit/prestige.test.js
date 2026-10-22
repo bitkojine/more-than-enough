@@ -35,7 +35,7 @@ test('mastery counts every level of every finite world upgrade', () => {
   const s = C.createState(1);
   const m0 = C.worldMastery(s);
   assert.equal(m0.done, 0);
-  s.tools.basket += 1;
+  s.tools.basket = 2;
   s.abundanceLv = 99;
   const m1 = C.worldMastery(s);
   assert.equal(m1.done, 1 + C.EMBARK_ABUNDANCE, 'Abundance counts only up to the embark level');
@@ -50,7 +50,7 @@ test('lifetime total adds earlier worlds to this one', () => {
   assert.equal(C.lifetimeTotal(s), 250);
 });
 
-test('embarking starts a fresh world and keeps Insight, lifetime and the mushrooms found', () => {
+test('embarking starts empty-handed and keeps lifetime records and known mushroom kinds', () => {
   const s = C.createState(12345);
   master(s);
   s.stats.mycelium = C.EMBARK_MIN_TOTAL;
@@ -64,7 +64,7 @@ test('embarking starts a fresh world and keeps Insight, lifetime and the mushroo
   assert.equal(fresh.seed, 99);
   assert.equal(fresh.inv.mycelium, 0);
   assert.equal(fresh.extractors.length, 0);
-  assert.equal(fresh.insight, 22);
+  assert.equal(fresh.insight, 0);
   assert.equal(fresh.prestiges, 1);
   assert.equal(fresh.totalEver, C.EMBARK_MIN_TOTAL);
   assert.equal(C.worldTotal(fresh), 0);
@@ -87,19 +87,24 @@ test('perks cost Insight and compound', () => {
   assert.equal(C.speedMult(s), 1);
 });
 
-test('one-shot perks carry their bonus into the next world', () => {
+test('perks and free starting equipment do not carry into the next world', () => {
   const s = C.createState(1);
   s.insight = 10;
   master(s);
   s.stats.mycelium = C.EMBARK_MIN_TOTAL;
-  for (const p of ['memory', 'heirloom', 'cartographer']) assert.equal(C.buy(s, p).ok, true);
-  assert.equal(C.buy(s, 'memory').reason, 'Already owned');
+  s.perks.memory = 1; s.perks.heirloom = 1; // preserved ownership from legacy saves
+  assert.equal(C.buy(s, 'cartographer').ok, true);
+  const before = s.insight;
+  assert.equal(C.buy(s, 'memory').ok, false);
+  assert.equal(C.buy(s, 'heirloom').ok, false);
+  assert.equal(s.insight, before, 'retired perks never charge the player');
   const next = C.embark(s, 2).state;
-  assert.equal(next.unlocks.logistics, true);
-  assert.equal(next.tools.basket, 2);
-  assert.equal(next.tools.pickaxe, 2);
-  assert.equal(C.exploreRadius(next), C.EXPLORE_RADIUS + 2);
-  assert.ok(C.isExplored(next.world, Math.floor(next.player.x) + 7, Math.floor(next.player.y), 0), 'the wider reveal applies at once');
+  assert.equal(next.unlocks.logistics, false);
+  assert.equal(next.tools.basket, 0);
+  assert.equal(next.tools.pickaxe, 0);
+  assert.equal(C.exploreRadius(next), C.EXPLORE_RADIUS);
+  assert.ok(Object.values(next.perks).every(n => n === 0));
+  assert.equal(s.perks.memory, 1, 'the previous world keeps its earned perks');
 });
 
 test('milestones count in any order, and the next one says what it still takes', () => {

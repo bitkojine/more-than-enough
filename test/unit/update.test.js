@@ -5,7 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createUpdater, stampOf, takeUpdatedFrom } from '../../src/game/update.js';
-import { NEWS, newsSince, newsState, createNews, compareVersions } from '../../src/game/news.js';
+import { loadNews, NEWS, newsSince, newsState, createNews, compareVersions } from '../../src/game/news.js';
 import { VERSION } from '../../src/version.js';
 import { LANGUAGES } from '../../src/i18n/i18n.js';
 
@@ -27,6 +27,8 @@ function setup({ running = 'aaa', site = 'aaa', at = 1_000_000 } = {}) {
   });
   return { u, log, clock };
 }
+
+await loadNews();
 
 test('the build comes from the ?v= stamped on the module URL', () => {
   assert.equal(stampOf('https://x.test/src/game/update.js?v=71935c7990'), '71935c7990');

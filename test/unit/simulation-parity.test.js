@@ -16,7 +16,7 @@ function changes(s, i) {
 for (const dt of [1 / 60, 0.1, 0.25, 0.4, 0.013]) test(`optimized economy exactly matches the scalar tick at dt=${dt}`, () => {
   const a = productionFixture(), b = structuredClone(a);
   for (let i = 0; i < 240; i++) {
-    changes(a, i); changes(b, i);
+    changes(a, i); changes(b, i); C.invalidateSupports(b);
     referenceStep(a, dt); C.step(b, dt);
     assert.deepEqual(b.inv, a.inv);
     assert.deepEqual(b.stats, a.stats);

@@ -27,7 +27,7 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {import('./world.js').World} world
  * @property {Position} player
  * @property {Record<string, number>} inv
- * @property {Record<string, number>} tools        tool levels, starting at 1
+ * @property {Record<string, number>} tools        tool levels; 0 means uncrafted, 1 is legacy basic gear
  * @property {Record<string, boolean>} unlocks
  * @property {Record<string, number>} resUp        refinery chain levels
  * @property {number} abundanceLv
@@ -72,10 +72,11 @@ export function createState(seed) {
 export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
   return {
     seed: world.seed,
+    emptyStart: true,
     world,
     player,
     inv: perResource(0),
-    tools: { basket: 1, pickaxe: 1, boots: 1, overclock: 1 },
+    tools: { basket: 0, pickaxe: 0, boots: 0, overclock: 0 },
     unlocks: Object.fromEntries(Object.keys(UNLOCKS).map((k) => [k, false])),
     resUp: perResource(0),
     abundanceLv: 0,
@@ -128,18 +129,16 @@ export function canEmbark(s) {
   return !s.shared && worldMastered(s);
 }
 
-// Starts a new world from `seed`, keeping Insight, perks and lifetime totals.
+// Starts empty-handed, keeping lifetime records and known mushroom kinds.
 export function embark(s, seed) {
   if (!canEmbark(s)) return { ok: false, reason: t('reason.embark') };
   const gained = embarkGain(s);
   const fresh = createState(seed);
-  fresh.perks = { ...s.perks };
-  if (fresh.perks.memory) fresh.unlocks.logistics = true;
-  if (fresh.perks.heirloom) { fresh.tools.basket = 2; fresh.tools.pickaxe = 2; }
-  fresh.insight = s.insight + gained;
+  // New worlds carry records and knowledge only, never equipment or bonuses.
+  // The old world retains its Insight and perks in its preserved save.
   fresh.prestiges = s.prestiges + 1;
   fresh.totalEver = lifetimeTotal(s);
   fresh.mushroomsEver = [...s.mushroomsEver];
-  revealAround(fresh); // Cartographer widens the very first reveal too
+  revealAround(fresh);
   return { ok: true, state: fresh, gained };
 }

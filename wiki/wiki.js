@@ -125,7 +125,10 @@ const TABLES = {
     Core.CONVERTERS.map((k) => {
       const e = Core.EXTRACTORS[k];
       return [`${pic('building.' + k, 'image')} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), num(e.rate) + '/s', e.buffer, costText(e.baseCost)];
-    }), [3, 4]),
+    }), [3, 4]) + table(heads('building', 'whatItDoes', 'firstCosts'), Core.SUPPORT_BUILDINGS.map(k => {
+      const e = Core.EXTRACTORS[k];
+      return [pic('building.' + k, 'image') + ' ' + e.name, Core.LOOK['building.' + k].does, costText(e.baseCost)];
+    })),
 
   unlocks: () => table(heads('unlock', 'whatItDoes', 'cost'),
     Object.keys(Core.UNLOCKS).map((k) => {
@@ -150,7 +153,7 @@ const TABLES = {
   perks: () => table(heads('perk', 'whatItDoes', 'insightCost'),
     Object.keys(Core.PERKS).map((k) => {
       const p = Core.PERKS[k];
-      return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.repeat ? t('wiki.perkRepeat', { n: p.base }) : t('wiki.perkOnce', { n: p.base })];
+      return [`${pic('perk.' + k)} ${p.name}`, p.desc, p.retired ? '—' : p.repeat ? t('wiki.perkRepeat', { n: p.base }) : t('wiki.perkOnce', { n: p.base })];
     })),
 
   // One row per power of ten: the pile for each resource, and its footprint.

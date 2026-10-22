@@ -9,9 +9,15 @@
  * dictionaries as "news.<version>": what a player will notice, one thing per
  * line, in plain words. npm test fails when the current VERSION has none. */
 
-import { t } from '../i18n/i18n.js';
+import { t, addStrings } from '../i18n/i18n.js';
+
+let history;
+export function loadNews() {
+  return history ||= import('./news-text.js').then(({ default: notes }) => addStrings(notes));
+}
 
 export const NEWS = [
+  '0.132.0',
   '0.131.8',
   '0.131.7',
   '0.131.6',
@@ -207,7 +213,8 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
 
   // The whole changelog, newest first; what's new since they last looked
   // is marked. Looking at it counts as seen.
-  function render() {
+  async function render() {
+    await loadNews();
     const fresh = new Set(unseen());
     const ideas = document.createElement('button');
     ideas.type = 'button';

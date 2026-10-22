@@ -87,7 +87,7 @@ export function createStatement({ look, pic, icon, price, row, income }) {
       const engine = l.key === 'engine';
       const name = engine ? esc(Core.ABUNDANCE.name) : esc(Core.EXTRACTORS[l.key].name) + ` <span class="tag">×${l.count}</span>`;
       const back = !engine && owned[l.key] < Infinity ? ' &middot; ' + t('ledger.earnsPrice', { time: fmtPayback(owned[l.key]) }) : '';
-      const sub = (engine ? t('sheet.level', { lv: l.count }) : t('ledger.each', { rate: rate(l.each) })) + back;
+      const sub = (engine ? t('sheet.level', { lv: l.count }) : t(l.average ? 'ledger.average' : 'ledger.each', { rate: rate(l.each) })) + back;
       html += `<div class="row share line" style="--share:${(share * 100).toFixed(1)}%;--res:${look.color(Core.resourceLook(res))}">` +
         `<div class="ic">${pic(engine ? 'engine.abundance' : 'building.' + l.key, engine ? undefined : 'image')}</div>` +
         `<div class="main"><div class="nm">${name}<span class="amount">+${rate(l.rate)}</span></div><div class="sub">${sub}</div><div class="bar"><i></i></div></div></div>`;

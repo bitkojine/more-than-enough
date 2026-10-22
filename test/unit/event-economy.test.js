@@ -151,7 +151,7 @@ test('production feedback observes only nearby buildings and cannot change earni
   const a = haulingState(), b = structuredClone(a);
   a.player = { x: 0.5, y: 0.5, z: 0 }; b.player = { ...a.player };
   a.events.length = 0; b.events.length = 0;
-  const initial = a.extractors.map(e => ({ buffer: e.buffer, rate: C.extractorRate(a, e.key) }));
+  const initial = a.extractors.map(e => ({ buffer: e.buffer, rate: C.extractorRate(a, e.key, e) }));
   const ra = C.startEventEconomy(a); C.startEventEconomy(b);
   for (let tick = 1; tick <= 60; tick++) {
     C.step(a, 1 / 60); C.step(b, 1 / 60, { visualEvents: false });

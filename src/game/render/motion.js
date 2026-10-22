@@ -72,7 +72,7 @@ const bump = (k) => Math.sin(Math.PI * Math.max(0, Math.min(1, k)));
  * ({kind, angle} or null) and `clip` (only what's above their feet shows,
  * climbing out of the ground).
  */
-export function pose(a, { moving = false, boat = false, steady = false, time = 0, seed = 0 } = {}) {
+export function pose(a, { moving = false, boat = false, steady = false, time = 0, seed = 0, equipment = null } = {}) {
   const p = { dx: 0, dy: 0, rot: 0, rock: 0, turn: false, tool: null, clip: false };
   if (moving) {
     // Walking: leaning into it, swaying from foot to foot, bobbing each step.
@@ -133,5 +133,6 @@ export function pose(a, { moving = false, boat = false, steady = false, time = 0
       else p.dy -= 0.16 * bump((k - 0.7) / 0.3);
       break;
   }
+  if (p.tool && equipment && !equipment[p.tool.kind]) p.tool = null;
   return p;
 }

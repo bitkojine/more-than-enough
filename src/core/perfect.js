@@ -35,7 +35,7 @@ import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, nearestExploredTile, holeBelow, wayUp, waysIn, walkable, findSpawn, observationVersion } from './world.js';
 import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE, CHARGE_RANGE } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
-import { canAfford, gatherYield, speedMult, productionRates, extractorRate, extractorCost, extractorCapacity, extractorCount, ownBuilding } from './economy.js';
+import { canAfford, gatherYield, speedMult, productionRates, extractorRate, extractorCost, extractorCapacity, extractorCount, placementGain, supportGain, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
 import { canHarvest, gearNeeded, gearFor, collectTarget, extractorAt } from './actions.js';
 import { autoCollected, canWade, swimsAt, settleEconomy } from './sim.js';
@@ -205,7 +205,7 @@ export function investmentPayback(s, mind, id, rates = productionRates(s)) {
     if (!value(r)) return Infinity;
     spent += amount / value(r);
   }
-  return spent * value(EXTRACTORS[id].res) / extractorRate(s, id);
+  return spent * value(EXTRACTORS[id].res) / placementGain(s, id, mind.spots ? buildSpot(s, mind, id) : null);
 }
 
 /* ------------------------------------------------------------ planning */
@@ -216,7 +216,7 @@ const handRate = (s, mind, res) => TAPS * gatherYield(s, res) * mind.k.walkLoss;
 // Seeing a rare mushroom must not imply every unexplored forest is locked.
 function surfaceUnlocked(s, res) {
   const type = SURFACE_TYPES[res];
-  return s.tools.pickaxe >= (GEAR.rock[type] || 1);
+  return s.tools.pickaxe >= (GEAR.rock[type] || 0);
 }
 
 // How long `m` more of `res` takes by hand from the surface, with your
@@ -388,13 +388,34 @@ function caveMouth(s, mind) {
 // on free open land near home. Remembered while it stays free.
 function buildSpot(s, mind, id) {
   const def = EXTRACTORS[id];
-  const which = def.tile === null ? 'land' : 'tile' + def.tile;
+  const which = def.support ? id : def.tile === null ? 'land' : 'tile' + def.tile;
   const free = (x, y) => isExplored(s.world, x, y, SURFACE) && !mind.bad.has(key(x, y, SURFACE)) && !extractorAt(s, x, y, SURFACE) &&
     !holeBelow(s.world, x, y, SURFACE) && !wayUp(s.world, x, y, SURFACE) &&
     (def.tile === null
       ? !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].land && !TILE_INFO[tileAt(s.world, x, y, SURFACE)].harvest &&
         !(x === mind.home.x && y === mind.home.y)
       : tileAt(s.world, x, y, SURFACE) === def.tile && richness(s.world, x, y, SURFACE) > 0);
+  if (def.support) {
+    const cached = mind.spots[which];
+    if (cached && cached.n === s.extractors.length && s.time - cached.t < 120 && (!cached.tile || free(cached.tile.x, cached.tile.y))) return cached.tile;
+    let tile = null, gain = 0, distance = Infinity;
+    const seen = new Set();
+    for (const q of s.extractors) {
+      if (q.key !== def.support.target || q.z !== SURFACE || !ownBuilding(s, q) || !isExplored(s.world, q.x, q.y, SURFACE)) continue;
+      for (let dy = -def.support.radius; dy <= def.support.radius; dy++) for (let dx = -def.support.radius; dx <= def.support.radius; dx++) {
+        if (dx*dx + dy*dy > def.support.radius**2) continue;
+        const x = q.x+dx, y = q.y+dy, k = key(x,y,SURFACE);
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (!free(x,y)) continue;
+        const g = supportGain(s, { x, y, z: SURFACE });
+        const d = (x-mind.home.x)**2 + (y-mind.home.y)**2;
+        if (g > gain || (g === gain && g > 0 && d < distance)) { tile = { x, y }; gain = g; distance = d; }
+      }
+    }
+    mind.spots[which] = { n: s.extractors.length, t: s.time, tile };
+    return tile;
+  }
   const c = mind.spots[which];
   if (c && (c.tile ? free(c.tile.x, c.tile.y) : s.time - c.t < 120)) return c.tile;
   const tile = nearestExploredTile(s.world, mind.home.x + 0.5, mind.home.y + 0.5, SURFACE, def.tile === null ? 30 : SEARCH, free, null, def.tile) ||
@@ -549,7 +570,7 @@ function gather(s, mind, res) {
 // for you), else gather by hand what the goal will take longest to get,
 // which beats standing about whatever the buildings make.
 function idle(s, mind, need = {}) {
-  const cap = (e) => extractorCapacity(s, e.key);
+  const cap = (e) => extractorCapacity(s, e.key, e);
   const due = s.unlocks.logistics ? [] : s.extractors.filter((e) => e.z === s.player.z && ownBuilding(s, e) && e.buffer >= 1 && !autoCollected(s, e) &&
     (e.buffer >= Math.min(need[e.res] || Infinity, 0.25 * cap(e)) || e.buffer >= 0.5 * cap(e)) && !mind.bad.has(key(e.x, e.y, e.z)));
   // The building you're on your way to, until it's emptied; else the nearest due.

@@ -262,7 +262,7 @@ async function main() {
     return evalJS('(function(){var e=document.querySelector(' + JSON.stringify(sel) + ');if(!e)return null;var r=e.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height};})()');
   }
   function stateSummary() {
-    return evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({x:+s.player.x.toFixed(2),y:+s.player.y.toFixed(2),inv:s.inv,tools:s.tools,unlocks:s.unlocks,ext:s.extractors.length,goal:s.goalIndex,buf:s.extractors.map(function(e){return +e.buffer.toFixed(2);})});})()');
+    return evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({x:+s.player.x.toFixed(2),y:+s.player.y.toFixed(2),inv:s.inv,tools:s.tools,unlocks:s.unlocks,ext:s.extractors.length,goal:s.goalIndex,buf:s.extractors.map(function(e){return e.buffer;})});})()');
   }
 
   // Sound: watch the game's output meter for a while and return the loudest
@@ -289,8 +289,62 @@ async function main() {
   await evalJS('localStorage.clear()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await evalJS('!!window.MTE_GAME'), 'game booted');
+  ok(await evalJS('MTE_GAME.getState().emptyStart && Object.values(MTE_GAME.getState().tools).every(n=>n===0)'), 'fresh browser world starts without tools');
   // A bounded integration fixture, deliberately separate from fresh-world
   // AUTO evaluations. Checks the live browser host after Logistics unlocks.
+  if (process.env.MTE_STONEWORKS_ONLY === '1') {
+    console.log('\n== Stoneworks: real placement, production, links and persistence ==');
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1366, height: 768, deviceScaleFactor: 1, mobile: false }, session);
+    await evalJS(`(function(){var c=MTE_GAME.core,s=MTE_GAME.getState();
+      // A constructed UI fixture, never a fresh-seed evaluation.
+      var q={key:'quarry',res:'stone',x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:0};
+      s.extractors.push(q);s.unlocks.logistics=true;MTE_GAME.hud.newWorld();
+      for(var r in c.EXTRACTORS.stoneworks.baseCost)c.earn(s,r,c.EXTRACTORS.stoneworks.baseCost[r],'finds');
+      window.__stoneBefore=s.inv.stone;document.getElementById('btnBuild').click();})()`);
+    await sleep(300);
+    ok(await evalJS('!document.querySelector("button[data-id=stoneworks]").disabled'), 'physical support can be placed with normal funds');
+    ok(await evalJS('document.querySelector("button[data-id=stoneworks]").closest(".row").textContent.includes("Does not stack")'), 'support role and non-stacking rule are explained');
+    ok(await evalJS('MTE_GAME.core.supportGain(MTE_GAME.getState(),MTE_GAME.core.buildTarget(MTE_GAME.getState(),"stoneworks"))>0'), 'local preview benefits the nearby quarry');
+    await evalJS('document.querySelector("button[data-id=stoneworks]").scrollIntoView({block:"center"})');
+    await sleep(200);
+    await shot('stoneworks-preview.png');
+    await evalJS('document.querySelector("button[data-id=stoneworks]").click()');
+    eq(await evalJS('MTE_GAME.core.extractorCount(MTE_GAME.getState(),"stoneworks")'),1,'real Place button builds one Stoneworks');
+    ok(await evalJS('MTE_GAME.getState().inv.stone < window.__stoneBefore/2'), 'normal placement spends the stone investment');
+    ok(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),q=s.extractors.find(e=>e.key==="quarry");return c.supportingBuilding(s,q)?.key==="stoneworks" && c.extractorRate(s,q.key,q)===2*c.extractorRate(s,q.key);})()'), 'placed support links to the quarry and doubles its rate');
+    await evalJS('document.getElementById("btnClose").click();MTE_GAME.hud.newWorld()');
+    await sleep(200);
+    await shot('stoneworks-built.png');
+    await evalJS('MTE_GAME.save()');
+    await navigate('http://127.0.0.1:' + PORT + '/index.html');
+    ok(await evalJS('MTE_GAME.core.extractorCount(MTE_GAME.getState(),"stoneworks")===1 && MTE_GAME.core.productionRates(MTE_GAME.getState()).stone===.68'), 'save reload preserves physical support and production');
+    await evalJS('MTE_GAME.news.render()');
+    ok(await evalJS('document.getElementById("newsPanel").querySelectorAll("section").length > 100'), 'historical release notes load from the deferred bundle');
+    eq(pageErrors.length,0,'no browser errors');
+    console.log((failures ? 'STONEWORKS BROWSER FAILURES' : 'STONEWORKS BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
+  if (process.env.MTE_OPENING_ONLY === '1') {
+    console.log('\n== Empty-handed opening: real crafting controls ==');
+    await evalJS('document.getElementById("btnUpgrade").click()');
+    await sleep(200);
+    ok(await evalJS('document.querySelector("button[data-id=pickaxe]").disabled'), 'first pick cannot be crafted for free');
+    ok(await evalJS('document.querySelector("button[data-id=pickaxe]").closest(".row").textContent.includes("Not crafted")'), 'uncrafted equipment is identified');
+    await evalJS('document.getElementById("btnClose").click();MTE_GAME.addRes("mycelium",42);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+    await sleep(200);
+    await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click()');
+    eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'paid first pick is crafted through the real button');
+    await evalJS('document.querySelector("button[data-kind=tool][data-id=basket]").click()');
+    eq(await evalJS('MTE_GAME.getState().tools.basket'), 2, 'paid first basket is crafted through the real button');
+    eq(await evalJS('MTE_GAME.getState().inv.stone'), 0, 'the pick consumed its stone cost');
+    ok(await evalJS('MTE_GAME.getState().tools.boots===0 && MTE_GAME.getState().tools.overclock===0'), 'other equipment remains uncrafted');
+    await evalJS('document.getElementById("btnClose").click();MTE_GAME.save()');
+    await navigate('http://127.0.0.1:' + PORT + '/index.html');
+    ok(await evalJS('MTE_GAME.getState().emptyStart && MTE_GAME.getState().tools.pickaxe===2 && MTE_GAME.getState().tools.basket===2 && MTE_GAME.getState().tools.boots===0'), 'reload preserves owned and uncrafted equipment');
+    eq(pageErrors.length, 0, 'no browser errors');
+    console.log((failures ? 'OPENING BROWSER FAILURES' : 'OPENING BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
   if (process.env.MTE_ENGINE_ONLY === '1') {
     console.log('\n== Event economy: bounded browser fixture ==');
     await evalJS(`(async function(){
@@ -493,7 +547,15 @@ async function main() {
   eq(await evalJS('MTE_GAME.zoom()'), 1, 'tapping the zoom readout goes back to 1x');
   // Home ground is kept for the stockpile: no way down there, and nowhere can
   // you dig one: the way into the mine is a cave mouth you find.
+  await evalJS('MTE_GAME.setPlayer(0.5,0.5)');
+  await sleep(150);
   ok(await evalJS('document.getElementById("btnMine").hidden'), 'no layer button on home ground');
+  // This underground integration fixture needs a crafted pick. The separate
+  // opening fixture verifies that the player starts without one.
+  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+  await sleep(150);
+  await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click();document.getElementById("btnClose").click()');
+  eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'craft a pick before the underground digging fixture');
   var entry = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,60,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+4.5,t.y+0.5);c.revealAround(s);return JSON.stringify({x:t.x,y:t.y});})()'));
   await sleep(300);
   ok(await evalJS('document.getElementById("btnMine").hidden'), 'out of reach of a cave mouth there is no layer button: no digging down');
@@ -995,7 +1057,7 @@ async function main() {
   eq(home.biome, 'meadow', 'every world starts in a meadow');
   var was = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   var next = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),x=0;s.player.z=0;while(c.regionAt(s.world.seed,x,0).key==="0,0")x++;x+=10;MTE_GAME.setPlayer(x+0.5,0.5);return JSON.stringify(c.regionAt(s.world.seed,x,0));})()'));
-  await sleep(1800);
+  await waitFor('document.querySelector("#place strong").textContent === ' + JSON.stringify(next.name), 30000);
   eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name (banner: ' + await evalJS('document.getElementById("milestone").hidden ? "none" : document.getElementById("milestone").textContent') + '; toast: ' + await evalJS('document.getElementById("toast").textContent') + ')');
   await evalJS('MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')');
   await evalJS('document.getElementById("btnMap").click()');
@@ -1063,7 +1125,9 @@ async function main() {
   ok(await waitFor('!document.getElementById("tabBeyond").hidden', 1500), 'mastering the world reveals the Beyond tab');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
   await sleep(250);
-  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 5, 'five perks offered in the Beyond tab');
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 0, 'new worlds do not offer legacy carry-over perks');
+  await evalJS('MTE_GAME.getState().emptyStart=false;document.querySelector(".tab[data-tab=beyond]").click()');
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 3, 'three active legacy perks offered in the Beyond tab');
   ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled in a mastered world with enough gathered');
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
   await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
@@ -1081,7 +1145,7 @@ async function main() {
   var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
   await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
   await sleep(150);
-  ok(await evalJS('!document.getElementById("ask").hidden && /Insight/.test(document.getElementById("ask").textContent)'), 'Embark asks first, in the game, saying what you take with you');
+  ok(await evalJS('!document.getElementById("ask").hidden && /empty-handed/.test(document.getElementById("ask").textContent)'), 'Embark asks first and explains the empty-handed start');
   await evalJS('document.querySelector("#ask .secondary").click()');
   await sleep(150);
   ok(await evalJS('document.getElementById("ask").hidden && MTE_GAME.getState().prestiges === ' + prestigeBefore), 'Cancel keeps the world');
@@ -1092,7 +1156,7 @@ async function main() {
   var afterEmbark = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'));
   eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
   eq(afterEmbark.ext, 0, 'embark resets extractors');
-  ok(afterEmbark.insight > 0, 'embark banks Insight for perks');
+  eq(afterEmbark.insight, 0, 'new worlds carry no spendable Insight');
   ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'), 'carried lifetime progress cannot enable immediate re-embark');
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
   ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'after an Embark, Beyond stays for the perks');
@@ -1235,6 +1299,12 @@ async function main() {
   ok(await evalJS('MTE_GAME.pitch() > 0 && MTE_GAME.pitch() < 0.4'), 'the view leans slightly, never flat (' + await evalJS('MTE_GAME.pitch()') + ')');
 
   // Underground: a tap on the top of a wall digs that wall.
+  // Embark above created another empty-handed world. This later fixture
+  // must make its own pick as well; no equipment carries over.
+  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+  await sleep(150);
+  await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click();document.getElementById("btnClose").click()');
+  eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'craft another pick after the empty-handed restart');
   await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;var t=c.nearestTile(p.x,p.y,80,function(x,y){return c.tileAt(s.world,x,y,0)===c.T.CAVE;});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);})()');
   await sleep(200);
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);

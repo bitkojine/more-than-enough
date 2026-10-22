@@ -27,7 +27,7 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     const definitions = members.map((e, order) => {
       work.buildingVisits++;
       counts.set(e.key, (counts.get(e.key) || 0) + 1);
-      return { id: e, order, resource: e.res, rate: rateFor(state, e.key), buffer: e.buffer };
+      return { id: e, order, resource: e.res, rate: rateFor(state, e.key, e), buffer: e.buffer };
     });
     if (!Number.isFinite(trickleFor(state)) || definitions.some(d => !Number.isFinite(d.rate) ||
         d.rate < 0 || !Number.isFinite(d.buffer) || d.buffer < 0 || d.buffer >= 1)) return false;

@@ -13,7 +13,7 @@ import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
-import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
+import { drawSupports, drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in tiles
@@ -76,6 +76,7 @@ export function render(cam, s, fx, view, look) {
     ctx.globalAlpha = 1;
   }
   if (cam.z === Core.SURFACE) drawMerging(ctx, cam, s, look, view.yard);
+  drawSupports(ctx, cam, s, view);
   drawTrail(ctx, cam, s, view);
   drawParticles(ctx, cam, fx);
   drawFloats(ctx, cam, look, fx);

@@ -16,7 +16,11 @@ export function step(s, dt) {
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue;
     const def = EXTRACTORS[e.key];
-    const m = mult[def.res] ??= productionMult(s, def.res);
+    const base = mult[def.res] ??= productionMult(s, def.res);
+    // Deliberately scan the whole layout: an independent slow oracle for the
+    // indexed adjacency implementation, including same-length replacements.
+    const supported = e.key === 'quarry' && s.extractors.some(b => b.key === 'stoneworks' && b.z === e.z && b.owner === e.owner && (b.x-e.x)**2+(b.y-e.y)**2 <= 4);
+    const m = base * (supported ? 2 : 1);
     const cap = def.buffer * m;
     if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * m * dt);
     if (e.buffer >= 1 && s.unlocks.logistics && ownBuilding(s, e)) {

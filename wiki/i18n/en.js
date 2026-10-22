@@ -204,7 +204,7 @@ export default {
   "wiki.sporeBedsFrom": "spore beds, layer {layer} and deeper",
   "wiki.sporeBeds": "spore beds",
   "wiki.perSwing": "{n} per swing",
-  "wiki.startingTool": "starting tool",
+  "wiki.startingTool": "legacy basic equipment",
   "wiki.trickle": "+{n}/s each",
   "wiki.perkRepeat": "{n}, then +1 per level owned",
   "wiki.perkOnce": "{n} (once)",
@@ -737,6 +737,10 @@ export default {
       <p class="lede">Everything in the Upgrades tab, level by level.</p>
 
       <h2>Tools</h2>
+      <p>Every new world starts empty-handed. Gather fungi and loose surface stone by hand, then craft a Basket or Pickaxe
+        in Upgrades. Both first recipes use only those materials; no workbench or ore is required. The first crafted pick opens ore,
+        and a basket improves fungal gathering. Underground excavation requires a pick. Level 1 below is legacy basic equipment;
+        new worlds craft directly to level 2. Existing saves keep their tools.</p>
       <p>Your Basket sets how much mycelium each gather brings in, your Pickaxe how much each swing yields. Boots set your speed.</p>
       <p>Some levels also <strong>open</strong> something new (the Opens column). Ore needs Pickaxe 2, crystal and geodes Pickaxe 3,
         and the shafts down from the deep layers better Pickaxes still: until then Gather and Auto-play leave them alone and {phone:tapping|laptop:clicking} one says what it takes.
@@ -764,27 +768,15 @@ export default {
       <div data-table="abundance"></div>`,
   "wiki.article.beyond.title": "Beyond",
   "wiki.article.beyond": `      <h1>Beyond</h1>
-      <p class="lede">Start over in a new world, a little stronger each time.</p>
-
+      <p class="lede">Start another world empty-handed, with what you have learned.</p>
       <h2>Embarking</h2>
-      <p>Embarking is the end of a world, not a step along the way. The <strong>Beyond</strong> tab doesn't appear at all until
-        you've <strong>mastered</strong> your world: every tool, every refinery level and every unlock bought, and the Abundance
-        Engine at level <span data-k="EMBARK_ABUNDANCE"></span>. Completing those upgrades unlocks <strong>Embark</strong>
-        immediately: there is no additional resource-total requirement. After your first Embark, the Beyond tab stays
-        so you can spend Insight on perks.</p>
-      <p>Embarking throws you into a brand new random world. You lose the old world, your inventory, tools, buildings, unlocks,
-        refineries, the Abundance Engine and your milestone progress. You keep your Insight, your perks and your lifetime total.</p>
-
-      <h2>Insight</h2>
-      <p>Each Embark pays out Insight based on everything you've ever gathered, across all worlds:</p>
-      <p><strong>Insight gained = floor(&radic;(500 &times; lifetime total &divide; <span data-k="EMBARK_MIN_TOTAL"></span>))</strong></p>
-      <p>So 500 billion lifetime gives 22, and 2 trillion gives 44. Insight is spent on perks and never resets. The
-        requirement to embark counts the current world's upgrades, so you cannot re-embark immediately on old progress.</p>
-
-      <h2>Perks</h2>
-      <div data-table="perks"></div>
-      <p>Legacy multiplies all building output and the Abundance trickle by 1.25 per level, compounding. Memory, Heirloom and
-        Cartographer take effect from the next world you start.</p>`,
+      <p>Complete every world upgrade and bring the Abundance Engine to level <span data-k="EMBARK_ABUNDANCE"></span>.
+        Embark then opens immediately. Confirming starts a new world without tools, inventory, buildings, perks,
+        Insight or automatic Logistics. Lifetime records and known mushroom kinds carry over. Previous worlds remain saved.</p>
+      <h2>Legacy worlds</h2>
+      <p>Existing saves keep their equipment, perks, Insight and earned progress. Their Beyond tab still offers the legacy
+        perks below, but those bonuses do not follow you when you embark into another world.</p>
+      <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Milestones",
   "wiki.article.milestones": `      <h1>Milestones</h1>
       <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a banner naming it. The Awards tab shows the next one, what it still takes, and the last one far off;

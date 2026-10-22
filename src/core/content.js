@@ -148,7 +148,8 @@ export const TOOLS = {
 /* --------------------------------------------------------- extractors */
 
 // Deposit extractors sit on a matching surface tile. Converters (tile: null)
-// need a blueprint and synthesize their resource on any open land.
+// need a blueprint and synthesize their resource on any open land. Support
+// buildings have no output: their physical position improves nearby producers.
 export const EXTRACTORS = {
   garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.45, buffer: 45, baseCost: { mycelium: 15 } },
   quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.34, buffer: 45, baseCost: { mycelium: 30, stone: 15 } },
@@ -157,11 +158,13 @@ export const EXTRACTORS = {
   compost: { name: t('building.compost'), tile: null, res: 'mycelium', rate: 0.375, buffer: 45, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
   brickyard: { name: t('building.brickyard'), tile: null, res: 'stone', rate: 0.285, buffer: 45, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
   foundry: { name: t('building.foundry'), tile: null, res: 'ore', rate: 0.225, buffer: 38, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
+  stoneworks: { name: t('building.stoneworks'), tile: null, res: 'stone', rate: 0, buffer: 0, support: { target: 'quarry', radius: 2, mult: 2 }, baseCost: { mycelium: 200000000, stone: 100000000, ore: 10000000 } },
   observatory: { name: t('building.observatory'), tile: null, res: 'crystal', rate: 0.08, buffer: 22, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
 };
 
 export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);
-export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile === null);
+export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile === null && !EXTRACTORS[k].support);
+export const SUPPORT_BUILDINGS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].support);
 
 /* ------------------------------------------------------------ unlocks */
 
@@ -257,8 +260,8 @@ export const REFINERIES = {
 // Repeatable perks cost base + level; one-shots cost base.
 export const PERKS = {
   legacy: { name: t('perk.legacy'), base: 1, repeat: true, desc: t('perk.legacy.desc') },
-  memory: { name: t('perk.memory'), base: 1, repeat: false, desc: t('perk.memory.desc') },
-  heirloom: { name: t('perk.heirloom'), base: 1, repeat: false, desc: t('perk.heirloom.desc') },
+  memory: { retired: true, name: t('perk.memory'), base: 1, repeat: false, desc: t('perk.memory.desc') },
+  heirloom: { retired: true, name: t('perk.heirloom'), base: 1, repeat: false, desc: t('perk.heirloom.desc') },
   cartographer: { name: t('perk.cartographer'), base: 2, repeat: false, desc: t('perk.cartographer.desc') },
   nomad: { name: t('perk.nomad'), base: 2, repeat: true, desc: t('perk.nomad.desc') }
 };

@@ -25,6 +25,9 @@ import labLt from '../../src/i18n/autoplay/lt.js';
 import wikiEn from '../../wiki/i18n/en.js';
 import wikiLt from '../../wiki/i18n/lt.js';
 
+import { loadNews } from '../../src/game/news.js';
+await loadNews();
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const rel = (p) => relative(ROOT, p);
 

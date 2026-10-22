@@ -282,3 +282,10 @@ that touches `server/`, `src/net/` or the rules it replays (`src/core/`,
 a service that stopped deploying. After the first deploy, put the
 service's address in `src/net/config.js` and in `connect-src` of the
 Content-Security-Policy in `index.html`.
+
+Position presentation may include optional `gear` bits (1 = basket, 2 = pick)
+so peers do not draw tools that an empty-handed character has not crafted.
+Missing bits retain legacy presentation; older clients can ignore the field.
+This is visual state, never authority for gathering or purchases. Actual tool
+levels are validated through canonical replay and saves. New saves mark
+`emptyStart: true`; absent markers retain legacy positive tool defaults.

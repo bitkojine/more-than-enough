@@ -48,6 +48,33 @@ export function drawHighlights(ctx, cam, s, view, y) {
   for (const b of view.buildTargets) if (b.y === y) outlineTile(ctx, cam, s, b.x, b.y, 'rgba(140,220,255,0.6)');
 }
 
+// Dashed physical service links; fog is checked at both ends. Shown while
+// building, including the local placement preview, rather than all the time.
+export function drawSupports(ctx, cam, s, view) {
+  const seen = e => e.z === cam.z && Core.isExplored(s.world, e.x, e.y, e.z);
+  const link = (from, to, preview) => {
+    if (!seen(from) || !seen(to)) return;
+    const a = cam.project(from.x+.5, from.y+.5, from.z), b = cam.project(to.x+.5, to.y+.5, to.z);
+    if (Math.max(a.x,b.x) < 0 || Math.min(a.x,b.x) > cam.width || Math.max(a.y,b.y) < 0 || Math.min(a.y,b.y) > cam.height) return;
+    ctx.strokeStyle = preview ? '#fff0ae' : '#bce8ff';
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    outlineTile(ctx, cam, s, to.x, to.y, ctx.strokeStyle);
+  };
+  ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  for (const e of s.extractors) {
+    if (e.key !== 'quarry' || !seen(e)) continue;
+    const support = Core.supportingBuilding(s,e);
+    if (support && (view.showSupports || Core.tileDist2(s.player,support.x,support.y,support.z)<=36)) link(support,e,false);
+  }
+  const at = view.showSupports && Core.buildTarget(s,'stoneworks');
+  if (at) {
+    const preview = { ...at, key: 'stoneworks', z: s.player.z, owner: s.me || undefined };
+    for (const q of Core.supportTargets(s,preview)) if (!Core.supportingBuilding(s,q)) link(preview,q,true);
+    outlineTile(ctx,cam,s,at.x,at.y,'#fff0ae');
+  }
+  ctx.restore();
+}
+
 // The live Trail: a glowing stroke that turns green (amber underground) once it
 // crosses tiles the sweep will take, with those tiles filled in.
 export function drawTrail(ctx, cam, s, view) {

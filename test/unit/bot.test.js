@@ -236,10 +236,10 @@ test('Perfect never pauses in a shared world, where there is no Embark, and spen
   assert.equal(C.nextPerk(s), null);
 });
 
-test('after embarking, Insight goes to the one-time perks first, then Legacy', () => {
+test('legacy Insight skips retired carry-over perks', () => {
   const s = C.createState(777);
   s.insight = 7;
   const bought = [];
   for (let id; (id = C.nextPerk(s)); ) { bought.push(id); C.buy(s, id); }
-  assert.deepEqual(bought, ['memory', 'heirloom', 'cartographer', 'legacy', 'legacy']);
+  assert.deepEqual(bought, ['cartographer', 'legacy', 'legacy', 'nomad']);
 });

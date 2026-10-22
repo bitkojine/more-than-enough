@@ -25,7 +25,7 @@ const refined = (top) => (s) => ({ n: RESOURCES.reduce((n, r) => n + Math.min(to
 // Tool levels bought, out of every level there is.
 function toolLevels(s) {
   const ids = Object.keys(TOOLS);
-  return { n: ids.reduce((n, id) => n + s.tools[id] - 1, 0), of: ids.reduce((n, id) => n + TOOLS[id].levels.length - 1, 0) };
+  return { n: ids.reduce((n, id) => n + Math.max(0, s.tools[id] - 1), 0), of: ids.reduce((n, id) => n + TOOLS[id].levels.length - 1, 0) };
 }
 
 // Master the world by completing its upgrades, with no extra income gate.

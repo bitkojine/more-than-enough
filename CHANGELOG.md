@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.132.0] - 2026-10-22
+
+### Changed
+- Prototype Stoneworks is a physical support building: it doubles nearby
+  quarries within two tiles without stacking. The Build panel shows service
+  links and the local production gain; it produces no stone itself.
+- Newly created worlds start without crafted tools. Bare hands gather fungi
+  and loose surface stone; the first paid basket improves gathering and the
+  first paid pick opens ore. Excavation requires an owned pick.
+- Tool rows distinguish uncrafted equipment. Character gathering poses show
+  only owned tools, and empty-start characters no longer hold a supplied device.
+  Optional ownership bits let updated clients show friends' equipment correctly;
+  older clients can omit or ignore them.
+- Embarking starts empty-handed with only knowledge and lifetime records.
+  Equipment, inventory, perks, Insight and automatic Logistics do not carry over.
+  Memory and Heirloom purchases are retired; existing ownership records stay.
+  Legacy saves retain their earned tools and benefits in their existing worlds;
+  missing legacy tool fields retain the old basic-equipment defaults.
+- The new-world Beyond panel explains the start instead of offering carry-over
+  perks. Existing legacy worlds retain their perk interface.
+
+### Fixed
+- Staged JavaScript uses UTF-8 text directly, keeping the normal startup
+  download within the existing byte budget.
+- AUTO recognizes that ordinary fungi and loose stone need no starter pick,
+  and income recommendations use the real first crafting price for unowned tools.
+
+
 ## [0.131.8] - 2026-10-22
 
 ### Changed

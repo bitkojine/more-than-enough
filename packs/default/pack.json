@@ -222,6 +222,10 @@
    "image": "buildings/garden.svg",
    "stages": ["buildings/garden-empty.svg", "buildings/garden-little.svg", "buildings/garden-most.svg", "buildings/garden.svg"]
   },
+  "building.stoneworks": {
+   "image": "buildings/stoneworks.svg",
+   "stages": ["buildings/stoneworks.svg"]
+  },
   "building.quarry": {
    "image": "buildings/quarry.svg",
    "stages": ["buildings/quarry-empty.svg", "buildings/quarry-little.svg", "buildings/quarry-most.svg", "buildings/quarry.svg"]

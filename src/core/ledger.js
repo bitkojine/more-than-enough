@@ -10,8 +10,9 @@ import { EXTRACTORS, PROPS, ABUNDANCE, EXTRACTOR_GROWTH, HAND_SHARE, REFINERIES,
 import { RESOURCES } from './tiles.js';
 import {
   refineryMult, overclockMult, abundanceMult, legacyMult, productionMult, abundanceTrickle,
-  extractorRate, productionRates, ownBuilding, toolStat, scaleCost, extractorCost, abundanceCost
+  extractorRate, placementGain, productionRates, ownBuilding, toolStat, scaleCost, extractorCost, abundanceCost
 } from './economy.js';
+import { buildTarget } from './actions.js';
 import { UPGRADES, PATH_FAMILIES, upgradeLevel } from './upgrades.js';
 
 const zero = () => Object.fromEntries(RESOURCES.map((r) => [r, 0]));
@@ -33,10 +34,12 @@ export function incomeStatement(s) {
     const lines = [];
     for (const key of Object.keys(EXTRACTORS)) {
       if (EXTRACTORS[key].res !== res) continue;
-      const count = s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
+      const members = s.extractors.filter(e => e.key === key && ownBuilding(s,e));
+      const count = members.length;
       if (!count) continue;
-      const each = extractorRate(s, key);
-      lines.push({ key, count, each, rate: each * count });
+      const outputs = members.map(e => extractorRate(s,key,e));
+      const rate = outputs.reduce((n,v) => n+v,0);
+      lines.push({ key, count, each: rate / count, rate, average: outputs.some(v => v !== outputs[0]) });
     }
     const engine = abundanceTrickle(s);
     if (engine > 0) lines.push({ key: 'engine', count: s.abundanceLv, each: legacyMult(s), rate: engine });
@@ -120,7 +123,7 @@ export function payback(cost, gain, rates) {
 
 function buildingRates(s) {
   const out = zero();
-  for (const e of s.extractors) if (ownBuilding(s, e)) out[e.res] += extractorRate(s, e.key);
+  for (const e of s.extractors) if (ownBuilding(s, e)) out[e.res] += extractorRate(s, e.key, e);
   return out;
 }
 
@@ -137,14 +140,14 @@ export function bestBuys(s) {
     const def = EXTRACTORS[key];
     if (def.unlock && !s.unlocks[def.unlock]) continue;
     if (def.res in s.discovered && !s.discovered[def.res] && def.tile !== null) continue;
-    out.push({ kind: 'building', id: key, cost: extractorCost(s, key), gain: { [def.res]: extractorRate(s, key) } });
+    out.push({ kind: 'building', id: key, cost: extractorCost(s, key), gain: { [def.res]: placementGain(s, key, buildTarget(s, key)) } });
   }
   for (const res of RESOURCES) {
     const next = REFINERIES[res].levels[s.resUp[res]];
     if (next) out.push({ kind: 'upgrade', id: res, cost: next.cost, gain: { [res]: made[res] * (next.mult - 1) } });
   }
   const oc = TOOLS.overclock.levels;
-  if (s.tools.overclock < oc.length) out.push({ kind: 'upgrade', id: 'overclock', cost: oc[s.tools.overclock].cost, gain: scaled(made, oc[s.tools.overclock].mult / overclockMult(s) - 1) });
+  if (s.tools.overclock < oc.length) out.push({ kind: 'upgrade', id: 'overclock', cost: oc[Math.max(1, s.tools.overclock)].cost, gain: scaled(made, oc[Math.max(1, s.tools.overclock)].mult / overclockMult(s) - 1) });
   const engine = scaled(made, ABUNDANCE.prodMult - 1);
   for (const r of RESOURCES) engine[r] += legacyMult(s);
   out.push({ kind: 'upgrade', id: 'abundance', cost: abundanceCost(s), gain: engine });
@@ -158,8 +161,7 @@ export function ownedPayback(s) {
   const rates = worthRates(s), out = {};
   const spent = spendingStatement(s).find((c) => c.id === 'buildings');
   for (const key in spent?.parts || {}) {
-    const n = s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
-    out[key] = payback(spent.parts[key], { [EXTRACTORS[key].res]: extractorRate(s, key) * n }, rates);
+    out[key] = payback(spent.parts[key], { [EXTRACTORS[key].res]: s.extractors.filter(e => e.key === key && ownBuilding(s, e)).reduce((v,e) => v + extractorRate(s, key, e), 0) }, rates);
   }
   return out;
 }

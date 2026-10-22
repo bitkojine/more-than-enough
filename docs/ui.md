@@ -121,3 +121,30 @@ place it belongs here rather than adding a button where there is room.
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
 - **The version is always in view**: a small, quiet pill under the gear, so players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
 - **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
+
+### Empty-handed starts and equipment
+New worlds begin with uncrafted tools. Upgrade rows say Not crafted until the
+first paid craft; the existing Craft action makes the first basket/pick from
+fungi and loose surface stone. Bare-handed surface gathering uses a picking
+pose; a basket or pick appears only when owned. Empty-start characters do not
+hold a supplied phone/laptop. Legacy saves retain their existing equipment.
+The new-world Beyond panel shows lifetime records and an empty-handed Embark
+action, without legacy Insight/perk purchases. Legacy worlds keep their perk UI.
+
+### Physical identity of purchases
+Every purchased item, building and individual upgrade level must have a unique
+physical visual identity. Equipment changes must appear on the character when
+used; building upgrades must visibly change the placed structure or machinery.
+A number, renamed buff or menu icon alone does not satisfy this rule. Resource
+output/service stays recognizable at every tier, including empty states and
+reduced motion. This is the redesign target; legacy abstract purchases and
+generic later-tier artwork remain to be replaced in subsequent slices.
+
+- **Stoneworks prototype:** Build separates support buildings from producers.
+  Its row explains the two-tile, non-stacking quarry service and previews the
+  local incremental stone rate. Dashed links identify affected quarries while
+  building and when standing near a workshop; hidden buildings stay hidden.
+  Stoneworks has its own crusher picture and no output-buffer dial.
+- Historical release-note translations load when What’s new opens; current
+  notes remain in the startup dictionaries. The archive uses the same
+  versioned asset URLs as the rest of the deploy.

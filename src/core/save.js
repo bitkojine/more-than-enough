@@ -33,7 +33,7 @@ export function serialize(s) {
   economyForState(s)?.snapshot();
   return JSON.stringify({
     v: SAVE_VERSION,
-    seed: s.seed,
+    seed: s.seed, ...(s.emptyStart ? { emptyStart: true } : {}),
     mods: [...s.world.mods],
     explored: [...s.world.explored].map(([k, mask]) => [k, bytesToB64(mask)]),
     holes: [...s.world.holes],
@@ -69,6 +69,7 @@ export function deserialize(str, make = createState) {
   if (!isInt(d.v) || d.v < OLDEST_SAVE || d.v > SAVE_VERSION || !isNum(d.seed)) return null;
 
   const s = make(d.seed);
+  s.emptyStart = d.emptyStart === true;
   const w = s.world;
   w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
   w.explored = new ExploredChunks();
@@ -89,10 +90,12 @@ export function deserialize(str, make = createState) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };
   }
   copyNumbers(s.inv, d.inv);
+  // Missing old fields mean legacy basic equipment, not a new empty start.
+  for (const k in s.tools) s.tools[k] = s.emptyStart ? 0 : 1;
   copyNumbers(s.tools, d.tools);
   copyNumbers(s.resUp, d.resUp);
   // Levels index content tables, so keep them inside those tables.
-  for (const k in s.tools) s.tools[k] = clampInt(s.tools[k], 1, TOOLS[k].levels.length);
+  for (const k in s.tools) s.tools[k] = clampInt(s.tools[k], s.emptyStart ? 0 : 1, TOOLS[k].levels.length);
   for (const k in s.resUp) s.resUp[k] = clampInt(s.resUp[k], 0, REFINERIES[k].levels.length);
   copyNumbers(s.perks, d.perks);
   copyNumbers(s.stats, d.stats);

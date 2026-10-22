@@ -27,9 +27,9 @@ for (const id of Object.keys(TOOLS)) {
   define({
     id, family: 'tools', kind: 'tool', name: tool.name, look: 'tool.' + id, desc: tool.desc,
     max: tool.levels.length - 1,
-    level: (s) => s.tools[id] - 1,
+    level: (s) => Math.max(0, s.tools[id] - 1),
     cost: (s, lv) => tool.levels[lv + 1].cost,
-    apply: (s) => { s.tools[id] += 1; }
+    apply: (s) => { s.tools[id] = Math.max(1, s.tools[id]) + 1; }
   });
 }
 
@@ -66,7 +66,7 @@ for (const id of Object.keys(UNLOCKS)) {
 for (const id of Object.keys(PERKS)) {
   const p = PERKS[id];
   define({
-    id, family: 'perks', kind: 'perk', name: p.name, look: 'perk.' + id, desc: p.desc, currency: 'insight',
+    id, retired: p.retired === true, family: 'perks', kind: 'perk', name: p.name, look: 'perk.' + id, desc: p.desc, currency: 'insight',
     max: p.repeat ? Infinity : 1,
     level: (s) => s.perks[id],
     cost: (s, lv) => p.base + (p.repeat ? lv : 0),
@@ -127,6 +127,7 @@ export function upgradeCost(s, id) {
 }
 
 export function canBuy(s, id) {
+  if (REGISTRY[id]?.retired) return false;
   const cost = upgradeCost(s, id);
   if (cost === null) return false;
   return REGISTRY[id].currency === 'insight' ? s.insight >= cost : canAfford(s.inv, cost);
@@ -135,6 +136,7 @@ export function canBuy(s, id) {
 export function buy(s, id) {
   const u = Object.hasOwn(REGISTRY, id) ? REGISTRY[id] : null;
   if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
+  if (u.retired) return { ok: false, reason: t('reason.retiredUpgrade') };
   const cost = upgradeCost(s, id);
   if (cost === null) return { ok: false, reason: t(u.max === 1 ? 'reason.owned' : 'reason.maxed') };
   if (!canBuy(s, id)) {

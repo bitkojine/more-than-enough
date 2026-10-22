@@ -54,7 +54,7 @@ export function invariants() {
   invariant('tool and refinery levels index their tables', (s) => {
     for (const k in s.tools) {
       if (!Number.isInteger(s.tools[k])) throw new Error(`tools.${k} = ${s.tools[k]}`);
-      if (s.tools[k] < 1 || s.tools[k] > C.TOOLS[k].levels.length) throw new Error(`tools.${k} = ${s.tools[k]}`);
+      if (s.tools[k] < 0 || s.tools[k] > C.TOOLS[k].levels.length) throw new Error(`tools.${k} = ${s.tools[k]}`);
     }
     for (const k in s.resUp) {
       if (!Number.isInteger(s.resUp[k])) throw new Error(`resUp.${k} = ${s.resUp[k]}`);

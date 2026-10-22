@@ -6,7 +6,7 @@ import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
-import { canAfford, pay, costText, gatherYield, extractorCost, earn, ownBuilding } from './economy.js';
+import { canAfford, pay, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { noteAct } from './acts.js';
 import { t } from '../i18n/i18n.js';
@@ -37,6 +37,7 @@ const rare = (k) => !!(k && MUSHROOMS[k].magic);
 // any will do. See GEAR.
 export function gearFor(s, x, y, z) {
   const type = tileAt(s.world, x, y, z);
+  if (TILE_INFO[type].solid && s.tools.pickaxe === 0) return { tool: 'pickaxe', level: 2 };
   if (GEAR.rock[type]) return { tool: 'pickaxe', level: GEAR.rock[type] };
   if (type === T.SHAFT) {
     const layer = SURFACE - z;
@@ -280,7 +281,9 @@ function buildableTile(s, def, x, y) {
 export function buildTarget(s, key) {
   const def = EXTRACTORS[key];
   if (!def) return null;
-  const t = tilesInReach(s).find((c) => buildableTile(s, def, c.x, c.y));
+  const spots = tilesInReach(s).filter((c) => buildableTile(s, def, c.x, c.y));
+  if (def.support) spots.sort((a, b) => supportGain(s, b) - supportGain(s, a));
+  const t = spots[0];
   return t ? { x: t.x, y: t.y } : null;
 }
 

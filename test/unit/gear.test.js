@@ -24,13 +24,14 @@ test('crystal waits for Pickaxe III, and holding Gather passes it by', () => {
 
 test('the shafts below layer 3 wait for Pickaxe IV, deeper ones for V and VI', () => {
   const s = away(C.createState(31415));
+  s.tools.pickaxe = 1; // explicit legacy basic pick
   const shaftOn = (layer) => {
     s.player.z = C.SURFACE - layer;
     const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 60);
     beside(s, shaft);
     return C.gearNeeded(s, shaft.x, shaft.y);
   };
-  assert.equal(shaftOn(1), null, 'the first shafts open by hand');
+  assert.equal(shaftOn(1), null, 'the first shafts open with a basic pick');
   assert.equal(shaftOn(2), null);
   assert.deepEqual(shaftOn(3), { tool: 'pickaxe', level: 4 });
   assert.deepEqual(shaftOn(7), { tool: 'pickaxe', level: 5 });

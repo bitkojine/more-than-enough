@@ -76,8 +76,8 @@ const doorName = (d) => t('door.' + d.id, { n: d.layer });
 const DESCRIBE = {
   tool(s, id) {
     const levels = Core.TOOLS[id].levels;
-    const lv = s.tools[id];
-    const head = t('sheet.levelOf', { lv, max: levels.length });
+    const lv = Math.max(1, s.tools[id]);
+    const head = s.tools[id] === 0 ? t('sheet.notCrafted') : t('sheet.levelOf', { lv, max: levels.length });
     if (lv >= levels.length) return { sub: head };
     const cur = levels[lv - 1], next = levels[lv];
     const effect = next.yield !== undefined ? arrow(cur.yield, next.yield) : arrow('&times;' + cur.mult, '&times;' + next.mult);
@@ -110,6 +110,7 @@ const DESCRIBE = {
 function upgradeRow(s, id) {
   const u = Core.UPGRADES[id];
   const d = DESCRIBE[u.kind](s, id);
+  if (u.retired) return row(pic(u.look), esc(u.name), d.sub, doneButton(t('sheet.retired')));
   const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '') + newTag(id);
   const cost = Core.upgradeCost(s, id);
   if (cost === null) return row(pic(u.look), name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
@@ -173,11 +174,12 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
     if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
-    const rate = `+${fmtRate(Core.extractorRate(s, key))} ${icon(def.res)}/s`;
+    const spot = Core.buildTarget(s, key);
+    const rate = def.support ? esc(t('building.' + key + '.desc')) : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
-    const spot = Core.buildTarget(s, key);
-    return row(picture, name, rate + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
+    const preview = def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
+    return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
   }
 
   // Where a building goes. Once you can pay for it but there's nowhere in
@@ -203,6 +205,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   function renderBuild(s) {
     return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
+      `<div class="section">${t('sheet.section.support')}</div>` + Core.SUPPORT_BUILDINGS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.water')}</div>` + propsOn(true).map((k) => propRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.mine')}</div>` + propsOn(false).map((k) => propRow(s, k)).join('');
   }
@@ -211,8 +214,10 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const can = Core.canEmbark(s);
     const m = Core.worldMastery(s);
     const progress = `${m.done} / ${m.total}`;
-    const embark = row(pic('ui.embark'), t('sheet.embark'), can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
+    const embark = row(pic('ui.embark'), t('sheet.embark'), can ? t('world.emptyStart') : progress,
       button('data-kind="embark"', t('sheet.embark'), can));
+    if (s.emptyStart) return `<div class="section">${t('sheet.section.newWorld')}</div>` + embark +
+      row('', t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '', '');
     return `<div class="section">${t('res.insight')}</div>` +
       row(insight(), fmt(s.insight), t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '') +
       `<div class="section">${t('sheet.section.newWorld')}</div>` + embark +

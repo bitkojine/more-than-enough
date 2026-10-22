@@ -43,6 +43,13 @@ kind of knowledge lives.
 
 ## Design rules
 
+- New worlds start empty-handed; only knowledge and records carry over.
+  Existing worlds retain their earned equipment and progress.
+- Every purchase and every upgrade level needs a distinct physical identity:
+  equipment the character uses or a real structure/visible structural upgrade.
+  No new abstract buffs or paid menu permissions. Legacy systems are being
+  replaced incrementally; do not strip earned legacy progress.
+
 - Rules live in `src/core/` as pure functions: no DOM, no clocks, no
   randomness. The browser and the room service both run them.
 - No tree cutting and no wood anywhere (ladders are steel). Mycelium takes

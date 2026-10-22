@@ -525,6 +525,7 @@ function view() {
     yard,
     harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
     auto: autoPlaying && perfect.badge !== 'ui.embark' ? t('button.perfect') : '',
+    showSupports: sheet.isOpen && sheet.tab === 'build',
     buildTargets: sheet.isOpen && sheet.tab === 'build'
       ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
     trail: input.trail,

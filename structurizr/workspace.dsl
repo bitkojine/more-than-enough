@@ -135,7 +135,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            i18n = container "Translations" "Every word the player reads, in English and Lithuanian (src/i18n/, plus the wiki's own in wiki/i18n/). Code asks for text by key with t(); the language is picked once at load (the player's choice, else the browser's) and switching reloads the page. A missing key or placeholder throws, and the unit tests fail if either language lacks a key or any text bypasses t()." "JavaScript modules (browser + Node)" {
+            i18n = container "Translations" "Every word the player reads, in English and Lithuanian (src/i18n/, plus the wiki's own in wiki/i18n/). Historical release notes load on demand through news-text.js; startup retains current release prose. Code asks for text by key with t(); the language is picked once at load (the player's choice, else the browser's) and switching reloads the page. A missing key or placeholder throws, and the unit tests fail if either language lacks a key or any text bypasses t()." "JavaScript modules (browser + Node)" {
                 tags "Presentation"
                 properties {
                     "files" "src/i18n/, wiki/i18n/"
@@ -198,7 +198,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (income lines, spending at today's prices, payback in seconds of your own income). Also embark/prestige and the goal track." "JavaScript" {
+                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (income lines, spending at today's prices, payback in seconds of your own income). Stoneworks supplies a non-stacking same-owner quarry bonus within two tiles. A derived tile index caches service links per layout; both scalar and event economies use instance rates. Also embark/prestige and the goal track." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/content.js, economy.js, ledger.js, upgrades.js, goals.js, state.js"

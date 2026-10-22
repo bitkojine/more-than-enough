@@ -191,6 +191,7 @@ test('converters need their blueprint and build on any dry land, not home ground
 test('mycelium from a spore bed underground does not count as gathering from the forest', () => {
   const s = C.createState(77);
   s.player.z = -4;
+  s.tools.pickaxe = 1; // legacy basic pick; the test concerns income classification
   const sporeBed = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SPORE_BED && richAt(st, x, y) > 0);
   standOn(s, sporeBed);
   assert.equal(C.harvestAt(s, sporeBed.x, sporeBed.y).res, 'mycelium');
