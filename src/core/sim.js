@@ -217,18 +217,52 @@ export function move(s, dx, dy, dt) {
 // Only the surface has fog. Revealing ore or crystal marks it discovered,
 // which drives the early goals and the compass hint. In the dark a low
 // battery lifts it over less (battery.js).
-export function revealAround(s, radius = exploreRadius(s) * lightScale(s)) {
-  const p = s.player;
-  const w = s.world, r = Math.ceil(radius), r2 = radius * radius;
-  const px = Math.floor(p.x), py = Math.floor(p.y);
-  for (let y = py - r; y <= py + r; y++) {
-    for (let x = px - r; x <= px + r; x++) {
-      if (tileDist2(p, x, y, p.z) > r2) continue;
+// Derived visibility coverage, never serialized. Consecutive circles differ
+// only at their edges: O(radius + newly covered tiles), not O(radius²).
+const revealCoverage = new WeakMap();
+export function revealAround(s, radius = exploreRadius(s) * lightScale(s), work = null) {
+  const p = s.player, w = s.world, r = Math.ceil(radius), r2 = radius * radius;
+  const px = Math.floor(p.x), py = Math.floor(p.y), top = py - r;
+  const revision = w.explored.revision;
+  let cache = revealCoverage.get(s);
+  const reuse = cache && typeof revision === 'number' && cache.world === w &&
+    cache.fog === w.explored && cache.revision === revision && cache.z === p.z &&
+    (!cache.ore || s.discovered.ore) && (!cache.crystal || s.discovered.crystal);
+  const previous = reuse ? cache.rows : null, previousTop = cache?.top;
+  const rows = cache?.spare || [];
+  rows.length = (2 * r + 1) * 2;
+  const reveal = (left, right, y) => {
+    for (let x = left; x <= right; x++) {
+      if (work) work.tiles = (work.tiles || 0) + 1;
       markExplored(w, x, y, p.z);
       if (p.z !== SURFACE) continue;
       const t = tileAt(w, x, y, SURFACE);
       if (t === T.ORE) s.discovered.ore = true;
       if (t === T.CRYSTAL) s.discovered.crystal = true;
     }
+  };
+  for (let y = top; y <= py + r; y++) {
+    if (work) work.rows = (work.rows || 0) + 1;
+    const index = (y - top) * 2, dy = y + 0.5 - p.y;
+    if (dy * dy > r2) { rows[index] = 1; rows[index + 1] = 0; continue; }
+    const span = Math.sqrt(r2 - dy * dy);
+    // Widen by one, then use the original distance predicate at both ends:
+    // rounding at an exact circular boundary must not reveal a different tile.
+    let left = Math.max(px - r, Math.ceil(p.x - 0.5 - span) - 1);
+    let right = Math.min(px + r, Math.floor(p.x - 0.5 + span) + 1);
+    while (left <= right && tileDist2(p, left, y, p.z) > r2) left++;
+    while (right >= left && tileDist2(p, right, y, p.z) > r2) right--;
+    rows[index] = left; rows[index + 1] = right;
+    const old = (y - previousTop) * 2;
+    if (!previous || old < 0 || old >= previous.length || previous[old] > previous[old + 1]) {
+      reveal(left, right, y);
+    } else {
+      reveal(left, Math.min(right, previous[old] - 1), y);
+      reveal(Math.max(left, previous[old + 1] + 1), right, y);
+    }
   }
+  if (!cache) { cache = {}; revealCoverage.set(s, cache); }
+  cache.spare = cache.rows; cache.rows = rows; cache.top = top;
+  cache.world = w; cache.fog = w.explored; cache.revision = w.explored.revision;
+  cache.z = p.z; cache.ore = s.discovered.ore; cache.crystal = s.discovered.crystal;
 }

@@ -347,3 +347,13 @@ baseline benchmark. `npm run check -- full` includes that benchmark explicitly. 
 `npm run test:extended`, without holding up deployment. The first-load budget
 is 215 KB gzipped for the shared clock, indexed searches and cumulative economy
 (previously 210 KB); the release currently measures about 213 KB.
+
+Visibility updates compare exact per-row circle intervals with the previous
+observation, visiting only newly covered edges during movement: O(radius +
+newly covered tiles) instead of O(radius²) per movement tick. Fog replacement,
+layer changes and reset discoveries invalidate this derived cache. Charger
+candidates are cached per player tile and prop mutation epoch, then checked
+against exact distance and current daylight. Plain Map fixtures retain a full
+query fallback; saves still contain ordinary prop entries. Resource settlement
+batches continuous streams and publishes manual changes only for the affected
+resource while retaining the same accounting order.

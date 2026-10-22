@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.131.5] - 2026-10-22
+
+### Changed
+- Fog reveal updates only newly covered circle edges during movement instead
+  of scanning the full sight area on every tick. Exact circle boundaries,
+  within-tile movement, sight changes, discoveries and saved fog are preserved.
+- Nearby charger candidates are cached by player tile and prop mutation epoch;
+  exact range, tie order and sunrise/sunset rules remain unchanged. Props keep
+  their Map-compatible saved representation.
+- Continuous income streams settle together; manual earnings and spending
+  materialize only affected resources, retaining deterministic stream ordering.
+- Added bounded parity, invalidation and work-count checks for these paths.
+
 ## [0.131.4] - 2026-10-22
 
 ### Changed

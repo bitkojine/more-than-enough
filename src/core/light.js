@@ -28,18 +28,31 @@ export function charging(kind, time) {
 
 // The nearest charger within CHARGE_RANGE of you that works now
 // ({x, y, kind}), or null. Anyone's charger charges anyone.
-export function chargerNear(s, time = s.time) {
+const chargerCandidates = new WeakMap();
+export function chargerNear(s, time = s.time, work = null) {
   const p = s.player;
   if (p.z !== SURFACE || !s.world.props.size) return null;
   const r = Math.ceil(CHARGE_RANGE), px = Math.floor(p.x), py = Math.floor(p.y);
-  let best = null, bestD = CHARGE_RANGE * CHARGE_RANGE;
-  for (let y = py - r; y <= py + r; y++) {
-    for (let x = px - r; x <= px + r; x++) {
-      const kind = s.world.props.get(packKey(x, y, SURFACE));
-      if (!kind || !charging(kind, time)) continue;
-      const d = (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
-      if (d <= bestD) { bestD = d; best = { x, y, kind }; }
+  const props = s.world.props;
+  let cached = chargerCandidates.get(s);
+  if (!cached || typeof props.revision !== 'number' || cached.props !== props ||
+      cached.revision !== props.revision || cached.x !== px || cached.y !== py) {
+    const entries = [];
+    for (let y = py - r; y <= py + r; y++) for (let x = px - r; x <= px + r; x++) {
+      if (work) work.lookups = (work.lookups || 0) + 1;
+      const kind = props.get(packKey(x, y, SURFACE));
+      if (PROPS[kind]?.charge) entries.push({ x, y, kind });
     }
+    cached = { props, revision: props.revision, x: px, y: py, entries };
+    chargerCandidates.set(s, cached);
+  }
+  let best = null, bestD = CHARGE_RANGE * CHARGE_RANGE;
+  for (const candidate of cached.entries) {
+    if (work) work.candidates = (work.candidates || 0) + 1;
+    const { x, y, kind } = candidate;
+    if (!charging(kind, time)) continue;
+    const d = (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
+    if (d <= bestD) { bestD = d; best = { x, y, kind }; }
   }
   return best;
 }

@@ -143,10 +143,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache." "JavaScript" {
+                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache. Explored chunks and observed resource types have derived spatial indexes; Map-compatible prop mutation epochs invalidate charger candidates." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js"
+                        "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js, explored-index.js, observed-types.js, versioned-map.js"
                     }
                 }
 
@@ -157,7 +157,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income and battery; movement and fog reveal. Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Battery intervals support quiet-tick batching. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income and battery; movement and fog reveal. Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Battery intervals support quiet-tick batching and reuse nearby charger candidates with exact range and daylight checks. Reveal compares exact circle row intervals and visits newly covered edges. Resource streams settle together with targeted manual balance updates. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/sim.js, light.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"

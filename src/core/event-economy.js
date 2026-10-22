@@ -56,9 +56,9 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     work.observations++;
     const made = production.advanceTo(tick), totals = {};
     for (const r of RESOURCES) totals[r] = offset[r] + (made[r] || 0);
-    account.setStream('production', 'buildings', totals);
     const engine = engineOffset + (tick - epoch) * trickle / tickHz;
-    account.setStream('trickle', 'engine', Object.fromEntries(RESOURCES.map(r => [r, engine])));
+    account.setStreams([{ name: 'production', source: 'buildings', totals },
+      { name: 'trickle', source: 'engine', totals: Object.fromEntries(RESOURCES.map(r => [r, engine])) }]);
     observed = tick;
     return state;
   }

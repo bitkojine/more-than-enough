@@ -8,6 +8,7 @@ import { generateChunk, wayDownInChunk, wayUpInChunk, HOME_HALF } from './terrai
 import { hash2 } from './noise.js';
 import { ExploredChunks, visitNearestExploredChunks } from './explored-index.js';
 import { createObservedTypes } from './observed-types.js';
+import { VersionedMap } from './versioned-map.js';
 import { TILE_INFO, T } from './tiles.js';
 
 const MAX_CACHED_CHUNKS = 512;
@@ -47,7 +48,7 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
 
 /** @returns {World} */
 export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new ExploredChunks(), revealed: 0, holes: new Set(), props: new Map(), edits: null, hotKey: -1, hotChunk: null };
+  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new ExploredChunks(), revealed: 0, holes: new Set(), props: new VersionedMap(), edits: null, hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
