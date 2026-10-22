@@ -8,12 +8,12 @@
  * list of milestones reached. */
 
 import { economyForState } from './economy-context.js';
-import { EMBARK_MIN_TOTAL, EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
+import { EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
 import { RESOURCES } from './tiles.js';
 import { extractorCount, ownBuilding, extractorCost } from './economy.js';
-import { canEmbark, worldTotal } from './state.js';
+import { canEmbark } from './state.js';
 import { upgradeCost, isMaxed, worldMastery } from './upgrades.js';
-import { t, number } from '../i18n/i18n.js';
+import { t } from '../i18n/i18n.js';
 
 const has = (key) => (s) => extractorCount(s, key) > 0;
 const STRUCTURES = 25;
@@ -28,10 +28,10 @@ function toolLevels(s) {
   return { n: ids.reduce((n, id) => n + s.tools[id] - 1, 0), of: ids.reduce((n, id) => n + TOOLS[id].levels.length - 1, 0) };
 }
 
-// Master the world: every upgrade first, then the resources to gather.
+// Master the world by completing its upgrades, with no extra income gate.
 function masterProgress(s) {
   const m = worldMastery(s);
-  return m.done < m.total ? { n: m.done, of: m.total } : { n: Math.floor(worldTotal(s)), of: EMBARK_MIN_TOTAL };
+  return { n: m.done, of: m.total };
 }
 
 export const GOALS = [
@@ -66,7 +66,7 @@ export const GOALS = [
   { id: 'abundance5', text: t('goal.abundance5'), reached: t('goal.abundance5.reached'), buy: 'abundance', done: (s) => s.abundanceLv >= 5 },
   { id: 'refined9', text: t('goal.refined9'), reached: t('goal.refined9.reached'), count: refined(9), done: (s) => refined(9)(s).n >= refined(9)(s).of },
   { id: 'refined10', text: t('goal.refined10'), reached: t('goal.refined10.reached'), count: refined(10), done: (s) => refined(10)(s).n >= refined(10)(s).of },
-  { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), reached: t('goal.master.reached', { level: EMBARK_ABUNDANCE, total: number(EMBARK_MIN_TOTAL) }), count: masterProgress, done: canEmbark },
+  { id: 'master', text: t('goal.master', { level: EMBARK_ABUNDANCE }), reached: t('goal.master.reached', { level: EMBARK_ABUNDANCE }), count: masterProgress, done: canEmbark },
   { id: 'forever', text: t('goal.forever'), done: () => false }
 ];
 
@@ -85,7 +85,6 @@ const reachable = (s) => GOALS.slice(0, goalsTotal(s));
 export function advanceGoals(s) {
   const pending = reachable(s).filter((g) => !s.goalsDone.includes(g.id));
   // Only income-dependent predicates need a fresh production observation.
-  // Mastery's worldTotal query settles itself once purchases are complete.
   if (pending.some(g => g.income)) economyForState(s)?.settle();
   const reached = pending.filter(g => g.done(s));
   s.goalsDone.push(...reached.map((g) => g.id));

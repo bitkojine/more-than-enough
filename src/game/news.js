@@ -12,6 +12,7 @@
 import { t } from '../i18n/i18n.js';
 
 export const NEWS = [
+  '0.131.8',
   '0.131.7',
   '0.131.6',
   '0.131.5',

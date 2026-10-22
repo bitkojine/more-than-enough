@@ -216,7 +216,7 @@ test('Perfect pauses at Embark and leaves it to the player', () => {
       before++;
     }
   });
-  assert.ok(before > 0, 'it played until then');
+  assert.equal(before, 0, 'mastery pauses AUTO immediately, even below the old income gate');
   assert.equal(pausedWhen, true, 'it paused once Embark opened');
   assert.deepEqual([last.type, last.why, last.badge], ['wait', 'embark', 'ui.embark']);
   assert.equal(s.prestiges, 0, 'and did not embark');

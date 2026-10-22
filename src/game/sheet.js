@@ -210,7 +210,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   function renderBeyond(s) {
     const can = Core.canEmbark(s);
     const m = Core.worldMastery(s);
-    const progress = m.done < m.total ? `${m.done} / ${m.total}` : `${fmt(Core.worldTotal(s))} / ${fmt(Core.EMBARK_MIN_TOTAL)}`;
+    const progress = `${m.done} / ${m.total}`;
     const embark = row(pic('ui.embark'), t('sheet.embark'), can ? priceTag('+' + fmt(Core.embarkGain(s)) + ' ' + insight(), true) : progress,
       button('data-kind="embark"', t('sheet.embark'), can));
     return `<div class="section">${t('res.insight')}</div>` +

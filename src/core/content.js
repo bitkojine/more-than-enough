@@ -28,9 +28,8 @@ export const SWIM_SPEED = 0.75;       // multiplier on water
 export const PLAYER_RADIUS = 0.3;
 export const DAY_LENGTH = 240;        // seconds of game time per day-night cycle
 export const EXTRACTOR_GROWTH = 2.2; // each extra extractor of a kind costs this much more
-// Embarking is the end of a world, not a step in it: every tool, refinery and
-// unlock at its top level, the Abundance Engine at EMBARK_ABUNDANCE, and this
-// much gathered in the world.
+// Historical resource scale for Insight rewards, retained for compatibility.
+// This is no longer a victory gate: finishing world mastery unlocks Embark.
 export const EMBARK_MIN_TOTAL = 500000000000;
 export const EMBARK_ABUNDANCE = 5;
 
@@ -187,6 +186,8 @@ export const ABUNDANCE = {
 
 // Every level multiplies ALL production of its resource, from deposit
 // extractors and converters alike. The multipliers compound.
+// The final tier costs 1.5x the previous tier for a 2x production reward:
+// mastery finishes with a shorter payoff instead of a final funding wall.
 export const REFINERIES = {
   mycelium: {
     name: t('refinery.mycelium'),
@@ -200,7 +201,7 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 190000000, stone: 65000000, ore: 3100000, crystal: 180000 } },
       { mult: 2, cost: { mycelium: 1200000000, stone: 400000000, ore: 15000000, crystal: 930000 } },
       { mult: 2, cost: { mycelium: 7300000000, stone: 2400000000, ore: 66000000, crystal: 4200000 } },
-      { mult: 2, cost: { mycelium: 43000000000, stone: 14000000000, ore: 260000000, crystal: 16000000 } }
+      { mult: 2, cost: { mycelium: 10950000000, stone: 3600000000, ore: 99000000, crystal: 6300000 } }
     ]
   },
   stone: {
@@ -215,7 +216,7 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 390000000, stone: 160000000, ore: 8200000, crystal: 220000 } },
       { mult: 2, cost: { mycelium: 2000000000, stone: 870000000, ore: 35000000, crystal: 940000 } },
       { mult: 2, cost: { mycelium: 13000000000, stone: 5500000000, ore: 180000000, crystal: 4200000 } },
-      { mult: 2, cost: { mycelium: 65000000000, stone: 30000000000, ore: 650000000, crystal: 13000000 } }
+      { mult: 2, cost: { mycelium: 19500000000, stone: 8250000000, ore: 270000000, crystal: 6300000 } }
     ]
   },
   ore: {
@@ -230,7 +231,7 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 420000000, stone: 310000000, ore: 15000000, crystal: 210000 } },
       { mult: 2, cost: { mycelium: 1700000000, stone: 1300000000, ore: 49000000, crystal: 670000 } },
       { mult: 2, cost: { mycelium: 13000000000, stone: 11000000000, ore: 350000000, crystal: 3300000 } },
-      { mult: 2, cost: { mycelium: 54000000000, stone: 43000000000, ore: 1400000000, crystal: 8400000 } }
+      { mult: 2, cost: { mycelium: 19500000000, stone: 16500000000, ore: 525000000, crystal: 4950000 } }
     ]
   },
   crystal: {
@@ -245,7 +246,7 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 240000000, stone: 670000000, ore: 220000000, crystal: 6300000 } },
       { mult: 2, cost: { mycelium: 1600000000, stone: 4200000000, ore: 1400000000, crystal: 35000000 } },
       { mult: 2, cost: { mycelium: 7100000000, stone: 20000000000, ore: 7100000000, crystal: 140000000 } },
-      { mult: 2, cost: { mycelium: 26000000000, stone: 73000000000, ore: 26000000000, crystal: 410000000 } }
+      { mult: 2, cost: { mycelium: 10650000000, stone: 30000000000, ore: 10650000000, crystal: 210000000 } }
     ]
   }
 };

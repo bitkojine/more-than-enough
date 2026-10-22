@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { C, master } from './helpers.js';
 import { LANGUAGES } from '../../src/i18n/i18n.js';
 
-test('embarking needs a mastered world and a world\'s worth gathered in it', () => {
+test('embarking needs world mastery without a production-total waiting gate', () => {
   const s = C.createState(12345);
   assert.equal(C.canEmbark(s), false);
   assert.equal(C.embarkGain(s), 0);
@@ -19,7 +19,12 @@ test('embarking needs a mastered world and a world\'s worth gathered in it', () 
   assert.equal(C.worldMastered(s), true);
   assert.equal(C.canEmbark(s), true);
   s.stats.mycelium = C.EMBARK_MIN_TOTAL - 1;
-  assert.equal(C.canEmbark(s), false, 'mastery alone is not enough');
+  assert.equal(C.canEmbark(s), true, 'mastery ends the world without another funding gate');
+  s.stats.mycelium = 0;
+  assert.equal(C.canEmbark(s), true, 'eligibility is independent of production totals');
+  s.shared = 'room';
+  assert.equal(C.canEmbark(s), false, 'shared worlds cannot embark');
+  s.shared = null;
   s.stats.mycelium = C.EMBARK_MIN_TOTAL;
   assert.equal(C.embarkGain(s), 22, 'floor(sqrt(500)) for one world\'s worth');
   s.stats.mycelium = 4 * C.EMBARK_MIN_TOTAL;

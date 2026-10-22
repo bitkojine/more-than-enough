@@ -744,7 +744,8 @@ export default {
 
       <h2>Perdirbimas</h2>
       <p>Kiekvienas išteklius turi dešimties perdirbimo lygių grandinę. Kiekvienas lygis padaugina <strong>visą</strong> to ištekliaus
-        gamybą – tiek gavyklų, tiek keitiklių, o lygių poveikis dauginasi tarpusavyje.</p>
+        gamybą – tiek gavyklų, tiek keitiklių, o lygių poveikis dauginasi tarpusavyje. Dešimtas lygis kainuoja
+        1,5 karto daugiau nei devintas ir taip pat padvigubina gamybą, todėl paskutinis žingsnis trumpesnis.</p>
       <div data-table="refineries"></div>
 
       <h2>Gausos variklis</h2>
@@ -759,18 +760,17 @@ export default {
       <h2>Iškeliavimas</h2>
       <p>Iškeliavimas – tai pasaulio pabaiga, o ne žingsnis pakeliui. Skirtukas <strong>Anapus</strong> visai nepasirodo, kol
         <strong>neįvaldai</strong> savo pasaulio: kol nenusiperki visų įrankių, visų perdirbimo lygių ir visų atrakinimų, o Gausos
-        variklis nepasiekia <span data-k="EMBARK_ABUNDANCE"></span> lygio. Tada mygtukas <strong>Iškeliauti</strong> užsidega, kai šiame
-        pasaulyje dar būsi gavęs <span data-k="EMBARK_MIN_TOTAL"></span> išteklių. Skaičiuojama viskas, kas patenka į tavo kuprinę:
-        rinkimas, kasimas, paėmimas, Logistika ir Gausos srautelis. Iki tol Iškeliavimo eilutė rodo, kiek jau nuveikei.
+        variklis nepasiekia <span data-k="EMBARK_ABUNDANCE"></span> lygio. Užbaigus šiuos patobulinimus,
+        <strong>Iškeliauti</strong> galima iš karto: papildomo surinktų išteklių reikalavimo nėra.
         Po pirmojo iškeliavimo skirtukas Anapus lieka, kad galėtum leisti Įžvalgą privalumams.</p>
       <p>Iškeliavęs atsiduri visiškai naujame atsitiktiniame pasaulyje. Prarandi senąjį pasaulį, inventorių, įrankius, pastatus,
         atrakinimus, perdirbimą, Gausos variklį ir etapų pažangą. Pasilieki Įžvalgą, privalumus ir viso laiko sumą.</p>
 
       <h2>Įžvalga</h2>
       <p>Kiekvienas iškeliavimas duoda Įžvalgos pagal viską, ką kada nors surinkai visuose pasauliuose:</p>
-      <p><strong>Gauta Įžvalga = &radic;(viso laiko suma &divide; 2 000), suapvalinta žemyn</strong></p>
-      <p>Taigi 1 000 000 per visą laiką duoda 22, o 4 000 000 – 44. Įžvalga leidžiama privalumams ir niekada nedingsta.
-        Iškeliavimo sąlyga skaičiuoja tik dabartinį pasaulį, tad senos pažangos sąskaita iš karto vėl iškeliauti negalėsi.</p>
+      <p><strong>Gauta Įžvalga = &radic;(500 &times; viso laiko suma &divide; <span data-k="EMBARK_MIN_TOTAL"></span>), suapvalinta žemyn</strong></p>
+      <p>Taigi 500 milijardų per visą laiką duoda 22, o 2 trilijonai – 44. Įžvalga leidžiama privalumams ir niekada nedingsta.
+        Iškeliavimo sąlyga skaičiuoja tik dabartinio pasaulio patobulinimus, tad senos pažangos sąskaita iš karto vėl iškeliauti negalėsi.</p>
 
       <h2>Privalumai</h2>
       <div data-table="perks"></div>

@@ -120,17 +120,17 @@ export function embarkGain(s) {
   return Math.floor(Math.sqrt(500 * lifetimeTotal(s) / EMBARK_MIN_TOTAL));
 }
 
-// Eligibility counts this world only (every upgrade done, and enough
-// gathered here), so a fresh world can't re-embark on carried-over progress.
+// Eligibility counts this world's upgrades only. Finishing mastery ends the
+// world immediately; there is no production-total waiting gate afterward.
 // The Insight reward still uses the lifetime total.
 // Never in a shared world: Embark is for playing alone.
 export function canEmbark(s) {
-  return !s.shared && worldMastered(s) && worldTotal(s) >= EMBARK_MIN_TOTAL;
+  return !s.shared && worldMastered(s);
 }
 
 // Starts a new world from `seed`, keeping Insight, perks and lifetime totals.
 export function embark(s, seed) {
-  if (!canEmbark(s)) return { ok: false, reason: t('reason.embark', { n: EMBARK_MIN_TOTAL }) };
+  if (!canEmbark(s)) return { ok: false, reason: t('reason.embark') };
   const gained = embarkGain(s);
   const fresh = createState(seed);
   fresh.perks = { ...s.perks };

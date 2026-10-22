@@ -753,7 +753,8 @@ export default {
 
       <h2>Refineries</h2>
       <p>Each resource has a chain of ten refinery levels. Every level multiplies <strong>all</strong> production of that resource,
-        from extractors and converters alike, and the levels compound.</p>
+        from extractors and converters alike, and the levels compound. The tenth level costs 1.5 times the ninth
+        for the same doubling of production, making the final step shorter.</p>
       <div data-table="refineries"></div>
 
       <h2>The Abundance Engine</h2>
@@ -768,18 +769,17 @@ export default {
       <h2>Embarking</h2>
       <p>Embarking is the end of a world, not a step along the way. The <strong>Beyond</strong> tab doesn't appear at all until
         you've <strong>mastered</strong> your world: every tool, every refinery level and every unlock bought, and the Abundance
-        Engine at level <span data-k="EMBARK_ABUNDANCE"></span>. Then the <strong>Embark</strong> button lights up once you've also
-        taken in <span data-k="EMBARK_MIN_TOTAL"></span> resources in this world. Everything that reaches your packs counts:
-        gathering, digging, collecting, Logistics and the Abundance trickle. Until then the Embark row shows how far along you
-        are. After your first Embark, the Beyond tab stays so you can spend Insight on perks.</p>
+        Engine at level <span data-k="EMBARK_ABUNDANCE"></span>. Completing those upgrades unlocks <strong>Embark</strong>
+        immediately: there is no additional resource-total requirement. After your first Embark, the Beyond tab stays
+        so you can spend Insight on perks.</p>
       <p>Embarking throws you into a brand new random world. You lose the old world, your inventory, tools, buildings, unlocks,
         refineries, the Abundance Engine and your milestone progress. You keep your Insight, your perks and your lifetime total.</p>
 
       <h2>Insight</h2>
       <p>Each Embark pays out Insight based on everything you've ever gathered, across all worlds:</p>
-      <p><strong>Insight gained = floor(&radic;(lifetime total &divide; 2,000))</strong></p>
-      <p>So 1,000,000 lifetime gives 22, and 4,000,000 gives 44. Insight is spent on perks and never resets. The
-        requirement to embark only counts the current world, so you can't embark again right away on old progress.</p>
+      <p><strong>Insight gained = floor(&radic;(500 &times; lifetime total &divide; <span data-k="EMBARK_MIN_TOTAL"></span>))</strong></p>
+      <p>So 500 billion lifetime gives 22, and 2 trillion gives 44. Insight is spent on perks and never resets. The
+        requirement to embark counts the current world's upgrades, so you cannot re-embark immediately on old progress.</p>
 
       <h2>Perks</h2>
       <div data-table="perks"></div>

@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.131.8] - 2026-10-22
+
+### Changed
+- Final refinery levels cost 1.5 times the previous level while still doubling
+  production, reducing the final funding wall. Earlier levels are unchanged.
+- Single-player world mastery unlocks Embark immediately. The additional
+  production-total gate is removed; lifetime earnings still determine Insight
+  using the existing reward scale. Saved worlds, paid levels and balances remain intact.
+- Mastery progress and English/Lithuanian rules describe upgrade completion
+  consistently. Corrected the wiki's outdated Insight formula and examples.
+
 ## [0.131.7] - 2026-10-22
 
 ### Changed
