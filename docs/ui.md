@@ -148,3 +148,15 @@ generic later-tier artwork remain to be replaced in subsequent slices.
 - Historical release-note translations load when What’s new opens; current
   notes remain in the startup dictionaries. The archive uses the same
   versioned asset URLs as the rest of the deploy.
+
+### Physical collection prototype
+Nerds links to `?depots` in a separate tab. Its title identifies the separate
+solo save; normal save/backup adoption cannot move a world across these slots.
+The prototype has no room connection. Build lists Collection Depot under
+support buildings, with its material recipe and additional producer count.
+A dashed eight-tile boundary and recipient links preview coverage before
+placement and show nearby depots afterward. Permanent material bins identify
+collection even when no output is waiting. No carts or journey times are implied.
+Unserved producers keep their output and can be collected normally.
+Producer sprites in this prototype retain permanent resource plaques even
+when automatically collected, so empty buffers do not hide material identity.

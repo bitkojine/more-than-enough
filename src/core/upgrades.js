@@ -8,6 +8,7 @@
  *   currency       'inv' (resources) or 'insight'
  *   apply(s)       records one purchase in the state */
 
+import { usesDepots, hasDepot } from './logistics.js';
 import { economyForState } from './economy-context.js';
 import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
@@ -57,7 +58,7 @@ for (const id of Object.keys(UNLOCKS)) {
   define({
     id, family: 'unlocks', kind: 'unlock', name: u.name, look: 'unlock.' + id, desc: u.desc,
     max: 1,
-    level: (s) => (s.unlocks[id] ? 1 : 0),
+    level: (s) => id==='logistics' && usesDepots(s) ? (hasDepot(s) ? 1 : 0) : (s.unlocks[id] ? 1 : 0),
     cost: () => u.cost,
     apply: (s) => { s.unlocks[id] = true; }
   });
@@ -127,6 +128,7 @@ export function upgradeCost(s, id) {
 }
 
 export function canBuy(s, id) {
+  if(id==='logistics' && usesDepots(s))return false;
   if (REGISTRY[id]?.retired) return false;
   const cost = upgradeCost(s, id);
   if (cost === null) return false;
@@ -137,6 +139,7 @@ export function buy(s, id) {
   const u = Object.hasOwn(REGISTRY, id) ? REGISTRY[id] : null;
   if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
   if (u.retired) return { ok: false, reason: t('reason.retiredUpgrade') };
+  if (id==='logistics' && usesDepots(s)) return {ok:false,reason:t('reason.depotPrototype')};
   const cost = upgradeCost(s, id);
   if (cost === null) return { ok: false, reason: t(u.max === 1 ? 'reason.owned' : 'reason.maxed') };
   if (!canBuy(s, id)) {
@@ -162,7 +165,7 @@ export function pathNode(s, id) {
   if (level >= u.max) state = 'owned';
   else if (ready) state = 'ready';
   else state = level > 0 ? 'partial' : 'saving';
-  return { key: id, kind: u.kind, name: u.name, look: 'unlock.' + id, level, max: u.max, canBuy: ready, cost: upgradeCost(s, id), state };
+  return { key: id, kind: u.kind, name: id==='logistics'&&usesDepots(s)?t('building.depot'):u.name, look: 'unlock.' + id, level, max: u.max, canBuy: ready, cost: upgradeCost(s, id), state };
 }
 
 export function pathFamily(familyId) {

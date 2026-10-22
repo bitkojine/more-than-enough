@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.133.0] - 2026-10-23
+
+### Added
+- Experimental physical Collection Depot, opened from Nerds or `?depots`,
+  in an isolated solo save slot with retained per-seed archives. Ordinary
+  worlds and their global Logistics keep their rules.
+- Depot coverage previews, same-owner/same-layer collection within eight
+  tiles, non-duplicating overlap, and normal canonical AUTO placement.
+- Mixed hauling and capped unserved buffers in the cumulative economy;
+  advancing quiet game time does not scan every producer or collection area.
+
+### Changed
+- Experimental worlds build depots instead of buying global Logistics.
+  This slice keeps other progression intact; it does not implement the
+  proposed refinery, blueprint or physical endgame redesign.
+
 ## [0.132.0] - 2026-10-22
 
 ### Changed

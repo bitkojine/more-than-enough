@@ -2,6 +2,17 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.133.0": "Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.",
+  "building.depot": "Collection Depot",
+  "building.depot.desc": "Collects output from your producers within 8 tiles on this layer. Overlap never collects twice.",
+  "reason.depotPrototype": "Use the solo depot prototype to build physical Logistics.",
+  "prototype.depot": "Collection depot prototype",
+  "prototype.depot.title": "Depot prototype · separate solo save",
+  "prototype.depot.count": "{n} additional producers served",
+  "goal.depot": "Build a Collection Depot near your producers",
+  "goal.depot.reached": "Built a Collection Depot",
+  "prototype.storageMismatch": "This world belongs in a different save slot.",
+
   "prop.glowcap": "Glowcap",
   "prop.glowcap.does": "A glowing mushroom that lights the tunnel around it",
   "prop.lamp": "Crystal lamp",

@@ -158,7 +158,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
       const count = f.id === 'abundance' ? () => t('sheet.level', { lv: s.abundanceLv }) : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
-      if (isOpen) html += '<div class="familyBody">' + f.nodes.map((id) => upgradeRow(s, id)).join('') + '</div>';
+      if (isOpen) html += '<div class="familyBody">' + f.nodes.filter(id=>id!=='logistics'||!Core.usesDepots(s)).map((id) => upgradeRow(s, id)).join('') + '</div>';
     }
     if (beyondUnlocked(s)) {
       html += `<div class="section">${t('sheet.section.legacy')}</div>`;
@@ -169,16 +169,17 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
 
   function extractorRow(s, key) {
     const def = Core.EXTRACTORS[key];
+    if (def.depot && !Core.usesDepots(s)) return '';
     const count = Core.extractorCount(s, key);
     const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '') + newTag(key);
     const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
     if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
     const spot = Core.buildTarget(s, key);
-    const rate = def.support ? esc(t('building.' + key + '.desc')) : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
+    const rate = def.depot ? esc(t('building.depot.desc')) : def.support ? esc(t('building.' + key + '.desc')) : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
-    const preview = def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
+    const preview = def.depot && spot ? '<br>' + esc(t('prototype.depot.count',{n:Core.depotGain(s,spot)})) : def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
     return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
   }
 
@@ -253,7 +254,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     html += `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
     for (let i = s.goalsDone.length - 1; i >= 0; i--) {
       const goal = Core.GOALS.find((g) => g.id === s.goalsDone[i]);
-      html += row(TROPHY, esc(goal.reached), t('sheet.milestone', { n: i + 1 }), '');
+      html += row(TROPHY, esc(Core.usesDepots(s)&&goal.id==='logistics'?t('goal.depot.reached'):goal.reached), t('sheet.milestone', { n: i + 1 }), '');
     }
     return html;
   }

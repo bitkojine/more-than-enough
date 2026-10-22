@@ -20,7 +20,7 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
     const dir = input.moveVector();
     moving = controller.steer(dt, dir);
     Core.step(s, dt, options);
-    if (!economyStarted && !s.shared && s.unlocks.logistics) {
+    if (!economyStarted && Core.haulingEconomyAvailable(s)) {
       // Old saves may hold whole output units. The legacy tick above hauls
       // them before the cumulative ledger captures fractional starting phases.
       Core.startEventEconomy(s); economyStarted = true;

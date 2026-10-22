@@ -156,6 +156,7 @@ export function extractorRate(s, key, instance = null) {
 
 // Quote a *new* building at a known location without mutating the layout.
 export function placementGain(s, key, at) {
+  if (EXTRACTORS[key].depot) return 0;
   if (EXTRACTORS[key].support) return at ? supportGain(s, at) : 0;
   const base = extractorRate(s, key);
   if (key !== 'quarry' || !at) return base;

@@ -422,3 +422,27 @@ export function drawJoystick(ctx, cam, view) {
   ctx.fillStyle = 'rgba(120,190,130,0.55)';
   ctx.beginPath(); ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU); ctx.fill();
 }
+
+// Physical collection service: radius and recipients, not fictional cart routes.
+export function drawDepots(ctx,cam,s,view) {
+  if(!Core.usesDepots(s))return;
+  const seen=e=>e.z===cam.z&&Core.isExplored(s.world,e.x,e.y,e.z);
+  const visible=d=>seen(d)&&(view.showSupports||Core.tileDist2(s.player,d.x,d.y,d.z)<=100);
+  const paint=(d,preview)=>{
+    if(!visible(d))return;
+    const p=cam.project(d.x+.5,d.y+.5,d.z),r=Core.EXTRACTORS.depot.depot.radius;
+    ctx.strokeStyle=preview?'#fff0ae':'#d0e7c4';ctx.lineWidth=2;
+    ctx.setLineDash(preview?[3,4]:[8,5]);
+    ctx.beginPath();ctx.ellipse(p.x,p.y,r*cam.tilePx,r*cam.depthPx,0,0,Math.PI*2);ctx.stroke();
+    for(const e of Core.depotTargets(s,d)) {
+      if(!seen(e)||(preview?!!Core.depotFor(s,e):Core.depotFor(s,e)!==d))continue;
+      const q=cam.project(e.x+.5,e.y+.5,e.z);
+      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+      outlineTile(ctx,cam,s,e.x,e.y,ctx.strokeStyle);
+    }
+  };
+  ctx.save();
+  for(const d of s.extractors)if(d.key==='depot'&&(!d.owner||d.owner===s.me))paint(d,false);
+  if(view.showSupports){const at=Core.buildTarget(s,'depot');if(at)paint({...at,z:s.player.z,owner:s.me||undefined},true);}
+  ctx.restore();
+}

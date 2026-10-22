@@ -9,6 +9,7 @@ export * from './tiles.js';
 export * from './world.js';
 export * from './content.js';
 export * from './economy.js';
+export * from './logistics.js';
 export * from './upgrades.js';
 export * from './state.js';
 export * from './sim.js';

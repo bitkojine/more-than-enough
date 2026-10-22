@@ -129,7 +129,7 @@ for (const r of RESOURCES) {
 
 for (const key of Object.keys(EXTRACTORS)) {
   const e = EXTRACTORS[key];
-  const does = e.support ? t('building.' + key + '.desc') : e.tile === null ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
+  const does = e.depot ? t('building.depot.desc') : e.support ? t('building.' + key + '.desc') : e.tile === null ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
     : t('look.extractor.does', { res: RESOURCE_OF[e.res], tile: TILE_NAME[e.tile].toLocaleLowerCase(LOCALE) });
   add('building', key, e.name, does, req('image', 'stages'));
 }

@@ -1,6 +1,7 @@
 /* The wiki's own words in Lithuanian: the same keys as wiki/i18n/en.js. */
 
 export default {
+  "wiki.depotPrototype": "Surinkimo sandėlis yra atskiras vieno žaidėjo prototipas kūrėjų skiltyje (?depots). Savo sluoksnyje jis surenka savų gamintojų produkciją 8 langelių spinduliu; persidengimas nesurenka dukart. Už aptarnaujamo ploto produkcija lieka gamintojuje. Esami pasauliai išlaiko visuotinę logistiką. Prototipas turi atskirą išsaugojimą ir neprisijungia prie kambarių.",
   "wiki.area.look": "Kaip viskas atrodo",
   "wiki.area.look.blurb": "Klajūnas, daiktai, pastatai ir pats pasaulis.",
   "wiki.area.depth": "Aukštis ir gylis",

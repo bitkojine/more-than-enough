@@ -2,6 +2,17 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.133.0": "Išbandyk fizinį surinkimo sandėlį kūrėjų skiltyje. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.",
+  "building.depot": "Surinkimo sandėlis",
+  "building.depot.desc": "Surenka tavo gamintojų produkciją 8 langelių spinduliu šiame sluoksnyje. Persidengiantys plotai nesurenka dukart.",
+  "reason.depotPrototype": "Fizinei logistikai statyti naudok atskirą vieno žaidėjo prototipą.",
+  "prototype.depot": "Surinkimo sandėlio prototipas",
+  "prototype.depot.title": "Sandėlio prototipas · atskiras išsaugojimas",
+  "prototype.depot.count": "Papildomai aptarnaujamų gamintojų: {n}",
+  "goal.depot": "Pastatyk surinkimo sandėlį prie savo gamintojų",
+  "goal.depot.reached": "Pastatytas surinkimo sandėlis",
+  "prototype.storageMismatch": "Šis pasaulis priklauso kitam išsaugojimo skyriui.",
+
   "prop.glowcap": "Švytukė",
   "prop.glowcap.does": "Švytintis grybas, apšviečiantis tunelį aplink save",
   "prop.lamp": "Kristalinė lempa",

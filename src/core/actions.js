@@ -1,6 +1,8 @@
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
+import { usesDepots, depotGain } from './logistics.js';
+import { startEventEconomy } from './sim.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
@@ -282,6 +284,7 @@ export function buildTarget(s, key) {
   const def = EXTRACTORS[key];
   if (!def) return null;
   const spots = tilesInReach(s).filter((c) => buildableTile(s, def, c.x, c.y));
+  if (def.depot) spots.sort((a,b)=>depotGain(s,b)-depotGain(s,a));
   if (def.support) spots.sort((a, b) => supportGain(s, b) - supportGain(s, a));
   const t = spots[0];
   return t ? { x: t.x, y: t.y } : null;
@@ -298,6 +301,7 @@ function canBuildAt(s, key, x, y) {
 export function place(s, key, at = null) {
   const def = EXTRACTORS[key];
   if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
+  if (def.depot && (!usesDepots(s) || s.shared || s.player.z!==SURFACE)) return {ok:false,reason:t('reason.depotPrototype')};
   if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
   if (at && !canBuildAt(s, key, at.x, at.y)) return { ok: false, reason: t('reason.noSpot') };
   at = at || buildTarget(s, key);
@@ -305,6 +309,7 @@ export function place(s, key, at = null) {
   const cost = extractorCost(s, key);
   if (!canAfford(s.inv, cost)) return { ok: false, reason: t('reason.need', { cost: costText(cost) }) };
   noteAct(s, 'b', key, at.x, at.y);
+  if (usesDepots(s)) startEventEconomy(s);
   pay(s.inv, cost);
   const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
   if (s.me) e.owner = s.me;

@@ -12,5 +12,5 @@ export const NAMES = Object.freeze({
   tools: Object.freeze(['basket', 'pickaxe', 'boots', 'overclock']),
   perks: Object.freeze(['legacy', 'memory', 'heirloom', 'cartographer', 'nomad']),
   unlocks: Object.freeze(['logistics', 'compost', 'brickyard', 'foundry', 'observatory']),
-  buildings: Object.freeze(['garden', 'quarry', 'mine', 'resonator', 'compost', 'brickyard', 'foundry', 'stoneworks', 'observatory'])
+  buildings: Object.freeze(['depot', 'garden', 'quarry', 'mine', 'resonator', 'compost', 'brickyard', 'foundry', 'stoneworks', 'observatory'])
 });

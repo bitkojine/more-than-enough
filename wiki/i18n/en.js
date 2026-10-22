@@ -4,6 +4,7 @@
  * exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "wiki.depotPrototype": "Collection Depot is an isolated solo prototype available from Nerds (?depots). It collects owned producer output within 8 tiles on its own layer; overlap never duplicates collection. Outside coverage output stays in the producer. Existing worlds keep global Logistics. It uses a separate save slot and cannot join rooms.",
   "wiki.area.look": "How things look",
   "wiki.area.look.blurb": "The wanderer, items, buildings and the world itself.",
   "wiki.area.depth": "Height and depth",

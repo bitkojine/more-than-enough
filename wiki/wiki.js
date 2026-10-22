@@ -125,7 +125,7 @@ const TABLES = {
     Core.CONVERTERS.map((k) => {
       const e = Core.EXTRACTORS[k];
       return [`${pic('building.' + k, 'image')} ${e.name}`, Core.UNLOCKS[e.unlock].name, icon(e.res), num(e.rate) + '/s', e.buffer, costText(e.baseCost)];
-    }), [3, 4]) + table(heads('building', 'whatItDoes', 'firstCosts'), Core.SUPPORT_BUILDINGS.map(k => {
+    }), [3, 4]) + '<p>' + t('wiki.depotPrototype') + '</p>' + table(heads('building', 'whatItDoes', 'firstCosts'), Core.SUPPORT_BUILDINGS.map(k => {
       const e = Core.EXTRACTORS[k];
       return [pic('building.' + k, 'image') + ' ' + e.name, Core.LOOK['building.' + k].does, costText(e.baseCost)];
     })),

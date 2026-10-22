@@ -5,17 +5,21 @@
 import { createProductionLedger } from './production-ledger.js';
 import { createResourceLedger } from './resource-ledger.js';
 import { attachEconomy, detachEconomy } from './economy-context.js';
+import { haulingEconomyAvailable, haulsBuilding, usesDepots } from './logistics.js';
+import { extractorCapacity } from './economy.js';
 import { RESOURCES } from './tiles.js';
 import { tileDist2 } from './coords.js';
 
 const zero = () => Object.fromEntries(RESOURCES.map(r => [r, 0]));
 
 export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, owns }) {
-  if (state.shared || !state.unlocks.logistics) throw new Error('event-economy-mode');
+  if (!haulingEconomyAvailable(state)) throw new Error('event-economy-mode');
   const account = createResourceLedger(state);
   const openedAt = state.time, playedAt = state.stats.playedMs;
   let tick = 0, epoch = 0, observed = -1, production, members, trickle, rates, buildingRates, counts;
   const offset = zero(); let engineOffset = 0;
+  let covered = new Set();
+  const waiting = new Map();
   let visualTick = 0, visualTiles, visible = null, lastSafeTick, mastery = null;
   const work = { observations: 0, rebuilds: 0, buildingVisits: 0, visualVisits: 0 };
 
@@ -24,10 +28,25 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     mastery = null;
     members = state.extractors.filter(e => owns(state, e));
     counts = new Map();
-    const definitions = members.map((e, order) => {
+    covered = new Set(members.filter(e=>haulsBuilding(state,e)));
+    const definitions = members.flatMap((e, order) => {
       work.buildingVisits++;
       counts.set(e.key, (counts.get(e.key) || 0) + 1);
-      return { id: e, order, resource: e.res, rate: rateFor(state, e.key, e), buffer: e.buffer };
+      const rate=rateFor(state,e.key,e);
+      if (!covered.has(e)) {
+        const member={value:e.buffer,at:tick,rate,cap:extractorCapacity(state,e.key,e)};
+        waiting.set(e,member);
+        Object.defineProperty(e,'buffer',{enumerable:true,configurable:true,
+          get:()=>Math.min(member.cap,member.value+(tick-member.at)*member.rate/tickHz),
+          set:value=>{member.value=value;member.at=tick;}});
+        return [];
+      }
+      // A newly built depot immediately takes already waiting whole units.
+      // Legacy global mode still normalizes in its existing initial tick.
+      if (usesDepots(state) && e.buffer>=1) {
+        const n=Math.floor(e.buffer);account.credit('buildings',e.res,n);e.buffer-=n;
+      }
+      return [{ id: e, order, resource: e.res, rate, buffer: e.buffer }];
     });
     if (!Number.isFinite(trickleFor(state)) || definitions.some(d => !Number.isFinite(d.rate) ||
         d.rate < 0 || !Number.isFinite(d.buffer) || d.buffer < 0 || d.buffer >= 1)) return false;
@@ -42,7 +61,7 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     epoch = tick; trickle = trickleFor(state); rates = zero(); buildingRates = zero();
     // Cached planner rates keep the legacy addition order (engine first).
     for (const r of RESOURCES) rates[r] = trickle;
-    for (const d of definitions) { rates[d.resource] += d.rate; buildingRates[d.resource] += d.rate; }
+    for (const e of members) { const rate=rateFor(state,e.key,e); rates[e.res]+=rate; buildingRates[e.res]+=rate; }
     // Stay well inside the integer-payout range. The ordinary step can settle
     // and return to the legacy economy before crossing this bound, rather
     // than throwing in an existing highly advanced saved world.
@@ -63,14 +82,21 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     return state;
   }
   function materializeBuffers() {
-    for (const e of members) { work.buildingVisits++; e.buffer = production.buffer(e, tick); }
+    for (const e of members) { work.buildingVisits++; if(covered.has(e)) e.buffer = production.buffer(e, tick); }
+  }
+  function restoreWaiting() {
+    for(const e of waiting.keys()) {
+      const value=e.buffer;
+      Object.defineProperty(e,'buffer',{value,writable:true,enumerable:true,configurable:true});
+    }
+    waiting.clear();
   }
   function reconfigure() {
-    settle(); materializeBuffers();
+    settle(); materializeBuffers(); restoreWaiting();
     const made = production.advanceTo(tick);
     for (const r of RESOURCES) offset[r] += made[r] || 0;
     engineOffset += (tick - epoch) * trickle / tickHz;
-    if (!configure()) { detachEconomy(state); return; }
+    if (!configure()) { restoreWaiting(); detachEconomy(state); return; }
     observed = -1;
   }
   function emitVisualEvents() {
@@ -115,7 +141,7 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     get mastery() { return mastery; },
     timeAt(at) { return openedAt + at / tickHz; },
     snapshot() { settle(); materializeBuffers(); return state; },
-    stop() { settle(); materializeBuffers(); detachEconomy(state); },
+    stop() { settle(); materializeBuffers(); restoreWaiting(); detachEconomy(state); },
     get work() { return { ...work, production: production.work }; },
     get tick() { return tick; }
   };

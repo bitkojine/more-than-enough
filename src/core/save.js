@@ -33,7 +33,7 @@ export function serialize(s) {
   economyForState(s)?.snapshot();
   return JSON.stringify({
     v: SAVE_VERSION,
-    seed: s.seed, ...(s.emptyStart ? { emptyStart: true } : {}),
+    seed: s.seed, ...(s.logisticsModel ? { logisticsModel: s.logisticsModel } : {}), ...(s.emptyStart ? { emptyStart: true } : {}),
     mods: [...s.world.mods],
     explored: [...s.world.explored].map(([k, mask]) => [k, bytesToB64(mask)]),
     holes: [...s.world.holes],
@@ -42,7 +42,7 @@ export function serialize(s) {
     inv: s.inv, tools: s.tools, unlocks: s.unlocks, resUp: s.resUp,
     abundanceLv: s.abundanceLv, insight: s.insight, prestiges: s.prestiges, totalEver: s.totalEver,
     perks: s.perks,
-    extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
+    extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: s.logisticsModel ? e.buffer : +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
     goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(s.seen ? { seen: s.seen } : {}),
@@ -70,6 +70,8 @@ export function deserialize(str, make = createState) {
 
   const s = make(d.seed);
   s.emptyStart = d.emptyStart === true;
+  if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
+  if (d.logisticsModel) s.logisticsModel = d.logisticsModel;
   const w = s.world;
   w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
   w.explored = new ExploredChunks();

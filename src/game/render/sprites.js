@@ -37,6 +37,13 @@ export function drawExtractor(ctx, cam, s, look, e) {
   const pic = look.stage('building.' + e.key, p);
   shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
+  // Permanent material plaque: automatic collection must not erase output identity.
+  if(Core.usesDepots(s) && Core.EXTRACTORS[e.key].rate>0) {
+    const size=Math.max(10,u*.25);
+    const x=ground.x-size*.5,y=ground.y-h*.48-size*.5;
+    ctx.fillStyle='#24312b';ctx.fillRect(x-2,y-2,size+4,size+4);
+    look.draw(ctx,look.pick(Core.resourceLook(e.res),'icon'),x,y,size,size);
+  }
   if (!p) return;
   const r = Math.max(4, u * 0.13);
   const cx = ground.x + pic.units * u * 0.32, cy = ground.y - h - r * 0.2;

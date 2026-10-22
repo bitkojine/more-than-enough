@@ -151,6 +151,7 @@ export const TOOLS = {
 // need a blueprint and synthesize their resource on any open land. Support
 // buildings have no output: their physical position improves nearby producers.
 export const EXTRACTORS = {
+  depot: { name: t('building.depot'), tile: null, res: 'stone', rate: 0, buffer: 0, depot: { radius: 8 }, baseCost: { stone: 110, ore: 28 } },
   garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.45, buffer: 45, baseCost: { mycelium: 15 } },
   quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.34, buffer: 45, baseCost: { mycelium: 30, stone: 15 } },
   mine: { name: t('building.mine'), tile: T.ORE, res: 'ore', rate: 0.24, buffer: 38, baseCost: { stone: 45, ore: 12 } },
@@ -163,8 +164,8 @@ export const EXTRACTORS = {
 };
 
 export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);
-export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile === null && !EXTRACTORS[k].support);
-export const SUPPORT_BUILDINGS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].support);
+export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile === null && !EXTRACTORS[k].support && !EXTRACTORS[k].depot);
+export const SUPPORT_BUILDINGS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].support || EXTRACTORS[k].depot);
 
 /* ------------------------------------------------------------ unlocks */
 

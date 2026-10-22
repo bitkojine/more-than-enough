@@ -138,6 +138,7 @@ export function bestBuys(s) {
   const rates = worthRates(s), made = buildingRates(s), out = [];
   for (const key of Object.keys(EXTRACTORS)) {
     const def = EXTRACTORS[key];
+    if (def.depot) continue;
     if (def.unlock && !s.unlocks[def.unlock]) continue;
     if (def.res in s.discovered && !s.discovered[def.res] && def.tile !== null) continue;
     out.push({ kind: 'building', id: key, cost: extractorCost(s, key), gain: { [def.res]: placementGain(s, key, buildTarget(s, key)) } });

@@ -107,7 +107,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                sav = component "Storage" "Guarded localStorage: load, save (reporting failures, never over another tab's save) and setting aside a save it can't read rather than writing over it, plus per-browser view settings." "JavaScript + localStorage" {
+                sav = component "Storage" "Guarded localStorage: load, save (reporting failures, never over another tab's save) and setting aside a save it can't read rather than writing over it, plus per-browser view settings. The depot prototype uses separate save/aside keys and retained per-seed archives, rejects cross-slot adoption, and disables room connections." "JavaScript + localStorage" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/storage.js"
@@ -198,10 +198,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (income lines, spending at today's prices, payback in seconds of your own income). Stoneworks supplies a non-stacking same-owner quarry bonus within two tiles. A derived tile index caches service links per layout; both scalar and event economies use instance rates. Also embark/prestige and the goal track." "JavaScript" {
+                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (income lines, spending at today's prices, payback in seconds of your own income). Stoneworks supplies a non-stacking same-owner quarry bonus within two tiles. A derived tile index caches service links per layout; both scalar and event economies use instance rates. Experimental solo depots use an eight-tile same-owner/layer collection index; overlapping depots never duplicate transfers. Also embark/prestige and the goal track." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/content.js, economy.js, ledger.js, upgrades.js, goals.js, state.js"
+                        "ref" "src/core/content.js, economy.js, logistics.js, ledger.js, upgrades.js, goals.js, state.js"
                     }
                 }
             }

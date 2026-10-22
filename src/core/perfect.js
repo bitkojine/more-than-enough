@@ -35,6 +35,7 @@ import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, nearestExploredTile, holeBelow, wayUp, waysIn, walkable, findSpawn, observationVersion } from './world.js';
 import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE, CHARGE_RANGE } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
+import { usesDepots, depotFor, depotGain } from './logistics.js';
 import { canAfford, gatherYield, speedMult, productionRates, extractorRate, extractorCost, extractorCapacity, extractorCount, placementGain, supportGain, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
 import { canHarvest, gearNeeded, gearFor, collectTarget, extractorAt } from './actions.js';
@@ -145,6 +146,7 @@ export function nextPerk(s) {
 export function candidates(s, mind) {
   const out = [];
   for (const id of Object.keys(UPGRADES)) {
+    if (id==='logistics' && usesDepots(s)) continue;
     if (UPGRADES[id].currency !== 'inv' || isMaxed(s, id)) continue;
     // Abundance past the Embark level only once everything else is done.
     if (id === 'abundance' && s.abundanceLv >= EMBARK_ABUNDANCE && !worldMastered(s)) continue;
@@ -152,6 +154,7 @@ export function candidates(s, mind) {
   }
   for (const id of Object.keys(EXTRACTORS)) {
     const def = EXTRACTORS[id];
+    if (def.depot && !usesDepots(s)) continue;
     if (def.unlock && !s.unlocks[def.unlock]) continue;
     if (buildSpot(s, mind, id)) out.push({ kind: 'build', id, cost: extractorCost(s, id) });
     // Each search that comes up empty makes the next one look less worth it.
@@ -204,6 +207,10 @@ export function investmentPayback(s, mind, id, rates = productionRates(s)) {
     if (!amount) continue;
     if (!value(r)) return Infinity;
     spent += amount / value(r);
+  }
+  if (EXTRACTORS[id].depot) {
+    const at=mind.spots ? buildSpot(s,mind,id) : null;
+    return at && depotGain(s,at)>0 ? spent / depotGain(s,at) : Infinity;
   }
   return spent * value(EXTRACTORS[id].res) / placementGain(s, id, mind.spots ? buildSpot(s, mind, id) : null);
 }
@@ -388,30 +395,42 @@ function caveMouth(s, mind) {
 // on free open land near home. Remembered while it stays free.
 function buildSpot(s, mind, id) {
   const def = EXTRACTORS[id];
-  const which = def.support ? id : def.tile === null ? 'land' : 'tile' + def.tile;
+  const which = def.support || def.depot ? id : def.tile === null ? 'land' : 'tile' + def.tile;
   const free = (x, y) => isExplored(s.world, x, y, SURFACE) && !mind.bad.has(key(x, y, SURFACE)) && !extractorAt(s, x, y, SURFACE) &&
     !holeBelow(s.world, x, y, SURFACE) && !wayUp(s.world, x, y, SURFACE) &&
     (def.tile === null
       ? !!TILE_INFO[tileAt(s.world, x, y, SURFACE)].land && !TILE_INFO[tileAt(s.world, x, y, SURFACE)].harvest &&
         !(x === mind.home.x && y === mind.home.y)
       : tileAt(s.world, x, y, SURFACE) === def.tile && richness(s.world, x, y, SURFACE) > 0);
-  if (def.support) {
+  if (def.support || def.depot) {
     const cached = mind.spots[which];
     if (cached && cached.n === s.extractors.length && s.time - cached.t < 120 && (!cached.tile || free(cached.tile.x, cached.tile.y))) return cached.tile;
     let tile = null, gain = 0, distance = Infinity;
+    const radius = (def.support || def.depot).radius;
     const seen = new Set();
+    const coverageScores = def.depot ? new Map() : null;
     for (const q of s.extractors) {
-      if (q.key !== def.support.target || q.z !== SURFACE || !ownBuilding(s, q) || !isExplored(s.world, q.x, q.y, SURFACE)) continue;
-      for (let dy = -def.support.radius; dy <= def.support.radius; dy++) for (let dx = -def.support.radius; dx <= def.support.radius; dx++) {
-        if (dx*dx + dy*dy > def.support.radius**2) continue;
+      if ((def.depot ? EXTRACTORS[q.key].rate<=0 || !!depotFor(s,q) : q.key !== def.support.target) || q.z !== SURFACE || !ownBuilding(s, q) || !isExplored(s.world, q.x, q.y, SURFACE)) continue;
+      for (let dy = -radius; dy <= radius; dy++) for (let dx = -radius; dx <= radius; dx++) {
+        if (dx*dx + dy*dy > radius**2) continue;
         const x = q.x+dx, y = q.y+dy, k = key(x,y,SURFACE);
+        if (coverageScores) {
+          const before=coverageScores.get(k);
+          if(before)before.gain++;else coverageScores.set(k,{x,y,gain:1});
+          continue;
+        }
         if (seen.has(k)) continue;
         seen.add(k);
         if (!free(x,y)) continue;
-        const g = supportGain(s, { x, y, z: SURFACE });
+        const g = def.depot ? depotGain(s,{x,y,z:SURFACE}) : supportGain(s, { x, y, z: SURFACE });
         const d = (x-mind.home.x)**2 + (y-mind.home.y)**2;
         if (g > gain || (g === gain && g > 0 && d < distance)) { tile = { x, y }; gain = g; distance = d; }
       }
+    }
+    if(coverageScores)for(const c of coverageScores.values()) {
+      if(!free(c.x,c.y))continue;
+      const d=(c.x-mind.home.x)**2+(c.y-mind.home.y)**2;
+      if(c.gain>gain||(c.gain===gain&&d<distance)){tile={x:c.x,y:c.y};gain=c.gain;distance=d;}
     }
     mind.spots[which] = { n: s.extractors.length, t: s.time, tile };
     return tile;

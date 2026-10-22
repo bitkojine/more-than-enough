@@ -134,6 +134,12 @@ for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) {
 }
 
 const loaded = loadGame();
+if (Core.usesDepots(loaded.state)) {
+  document.title=t('prototype.depot.title');
+  const label=document.createElement('p'); label.className='prototypeLabel'; label.textContent=t('prototype.depot.title');
+  document.getElementById('nerdsPanel').prepend(label);
+}
+
 let simulation = null, simulationClock = null;
 let saveDue = false;
 let saveError = null;

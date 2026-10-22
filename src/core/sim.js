@@ -11,6 +11,8 @@ import {
 import { extractorRate, supportMult, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery, lightScale } from './light.js';
 import { economyForState } from './economy-context.js';
+import { haulingEconomyAvailable, haulsBuilding, usesDepots } from './logistics.js';
+import { extractorCapacity } from './economy.js';
 import { createEventEconomy } from './event-economy.js';
 
 const MAX_STEP = 0.25;
@@ -20,8 +22,8 @@ const MAX_STEP = 0.25;
 export function startEventEconomy(s) {
   const current = economyForState(s);
   if (current) return current;
-  if (s.shared || !s.unlocks.logistics || !Number.isFinite(abundanceTrickle(s)) ||
-      s.extractors.some(e => ownBuilding(s, e) && (!Number.isFinite(e.buffer) || e.buffer < 0 || e.buffer >= 1 ||
+  if (!haulingEconomyAvailable(s) || !Number.isFinite(abundanceTrickle(s)) ||
+      s.extractors.some(e => ownBuilding(s, e) && (!Number.isFinite(e.buffer) || e.buffer < 0 || (!usesDepots(s) && e.buffer >= 1) ||
         !Number.isFinite(extractorRate(s, e.key, e))))) return null;
   return createEventEconomy(s, {
     rateFor: extractorRate, trickleFor: abundanceTrickle, owns: ownBuilding
@@ -29,17 +31,17 @@ export function startEventEconomy(s) {
 }
 
 export function settleEconomy(s) { economyForState(s)?.settle(); }
-export function canBatchEconomy(s, count) { return !s.shared && s.unlocks.logistics && !!economyForState(s)?.canAdvanceTicks(count); }
+export function canBatchEconomy(s, count) { return haulingEconomyAvailable(s) && !!economyForState(s)?.canAdvanceTicks(count); }
 
 /* --------------------------------------------------------------- step */
 
 export function step(s, dt, { visualEvents = true } = {}) {
   if (dt > MAX_STEP) dt = MAX_STEP;
   noteWhere(s); // a shared world's room follows where you are (acts.js)
-  const economy = economyForState(s);
+  const economy = economyForState(s) || (usesDepots(s) && Math.abs(dt*60-Math.round(dt*60))<1e-9 ? startEventEconomy(s) : null);
   if (economy) {
     const ticks = Math.round(dt * 60);
-    if (!s.shared && s.unlocks.logistics && Math.abs(dt * 60 - ticks) < 1e-9 && economy.canAdvanceTicks(ticks)) {
+    if (haulingEconomyAvailable(s) && Math.abs(dt * 60 - ticks) < 1e-9 && economy.canAdvanceTicks(ticks)) {
       economy.advanceTicks(ticks);
       tickBattery(s, dt);
       if (visualEvents) economy.emitVisualEvents();
@@ -67,7 +69,7 @@ export function step(s, dt, { visualEvents = true } = {}) {
 // yours, wherever you are, so walking off to do something never costs what
 // your buildings make (closing the game doesn't either, awayProduce).
 export function autoCollected(s, e) {
-  return s.unlocks.logistics && ownBuilding(s, e);
+  return haulsBuilding(s,e);
 }
 
 const SHOW2 = 12 * 12; // tiles away a haul is still shown flying in
@@ -109,7 +111,7 @@ function produce(s, dt, visualEvents) {
       const boosted = m * supportMult(s, e);
       const cap = def.buffer * boosted;
       if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * boosted * dt);
-      if (e.buffer >= 1 && hauling) {
+      if (e.buffer >= 1 && (usesDepots(s) ? haulsBuilding(s,e) : hauling)) {
         const amt = Math.floor(e.buffer);
         // Keep each resource's original building order and every addition.
         // Summing into a single gain would change floating-point rounding.
@@ -141,10 +143,16 @@ export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
   if (!allowed) return null; // freeze season: time away makes nothing
   if (!(seconds >= AWAY_MIN)) return null;
   const sec = Math.min(AWAY_CAP, seconds);
+  if (usesDepots(s)) economyForState(s)?.stop();
   const made = Object.fromEntries(RESOURCES.map((r) => [r, 0]));
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue;
-    made[e.res] += extractorRate(s, e.key, e) * sec;
+    const amount = extractorRate(s, e.key, e) * sec;
+    if (usesDepots(s)) {
+      const total = e.buffer + amount;
+      if (haulsBuilding(s,e)) { const n=Math.floor(total); made[e.res]+=n; e.buffer=total-n; }
+      else e.buffer=Math.min(extractorCapacity(s,e.key,e),total);
+    } else made[e.res] += amount;
   }
   const trickle = abundanceTrickle(s) * sec;
   for (const r of RESOURCES) {

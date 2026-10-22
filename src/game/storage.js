@@ -1,11 +1,14 @@
 /* localStorage persistence. Every access is guarded: private browsing and full
  * quotas throw, and the game must keep running regardless. */
 
+import { DEPOT_MODEL, usesDepots } from '../core/logistics.js';
 import { serialize, deserialize, createState, SAVE_VERSION, OLDEST_SAVE } from '../core/index.js';
 
-const SAVE_KEY = 'more-than-enough-save';
+export const DEPOT_PROTOTYPE = new URLSearchParams(globalThis.location?.search || '').has('depots');
+const SAVE_KEY = DEPOT_PROTOTYPE ? 'mte.depot-v1.save' : 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
-const ASIDE_KEY = 'more-than-enough-save-aside';
+const ASIDE_KEY = DEPOT_PROTOTYPE ? 'mte.depot-v1.aside' : 'more-than-enough-save-aside';
+function freshWorld() { const s=createState(randomSeed()); if(DEPOT_PROTOTYPE)s.logisticsModel=DEPOT_MODEL; return s; }
 const VIEW_KEY = 'more-than-enough-view';
 
 function read(key) {
@@ -18,7 +21,12 @@ function write(key, value) {
 }
 
 export function randomSeed() {
-  return (Math.random() * 4294967295) >>> 0;
+  for(let i=0;i<100;i++){
+    const seed=(Math.random()*4294967295)>>>0;
+    if(!DEPOT_PROTOTYPE || !read('mte.depot-v1.world.'+seed))return seed;
+  }
+  throw new Error('No unused prototype seed'); // i18n-ok: diagnostic
+
 }
 
 // The save as this tab last read or wrote it. If what's stored differs, another
@@ -36,11 +44,16 @@ export function savedElsewhere() {
 // `conflict` holds that tab's save). `force` writes regardless.
 // Returns null when saved, { conflict } or { error }.
 export function saveGame(state, force = false) {
+  if (usesDepots(state)!==DEPOT_PROTOTYPE || (DEPOT_PROTOTYPE && state.shared)) return {error:new Error('Save slot mismatch')}; // i18n-ok: storage diagnostic
   if (!force) {
     const other = savedElsewhere();
     if (other) return { conflict: other };
   }
   const raw = serialize(state);
+  if (DEPOT_PROTOTYPE) {
+    const archived=write('mte.depot-v1.world.'+state.seed,raw);
+    if(archived)return {error:archived};
+  }
   const err = write(SAVE_KEY, raw);
   if (err) return { error: err };
   known = raw;
@@ -51,6 +64,7 @@ export function saveGame(state, force = false) {
 // this version of the game can't read it.
 export function adopt(raw) {
   const state = deserialize(raw);
+  if (state && usesDepots(state)!==DEPOT_PROTOTYPE)return null;
   if (state) known = raw;
   return state;
 }
@@ -85,9 +99,9 @@ export function loadGame() {
     if (!write(SAVE_KEY, aside)) { known = aside; write(ASIDE_KEY, raw ?? ''); }
     return { state: back, lost: false };
   }
-  if (!raw) return { state: createState(randomSeed()), lost: false };
+  if (!raw) return { state: freshWorld(), lost: false };
   write(ASIDE_KEY, raw);
-  return { state: createState(randomSeed()), lost: formatOf(raw) === null ? 'broken' : 'format' };
+  return { state: freshWorld(), lost: formatOf(raw) === null ? 'broken' : 'format' };
 }
 
 // Whether world `a` has been played further than `b`: more Embarks (each

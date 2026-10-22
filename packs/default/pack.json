@@ -218,6 +218,7 @@
   "pile.crystal": {
    "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg", "piles/crystal-7.svg", "piles/crystal-8.svg", "piles/crystal-9.svg", "piles/crystal-10.svg", "piles/crystal-11.svg", "piles/crystal-12.svg"]
   },
+  "building.depot": {"image":"buildings/depot.svg","stages":["buildings/depot.svg"]},
   "building.garden": {
    "image": "buildings/garden.svg",
    "stages": ["buildings/garden-empty.svg", "buildings/garden-little.svg", "buildings/garden-most.svg", "buildings/garden.svg"]

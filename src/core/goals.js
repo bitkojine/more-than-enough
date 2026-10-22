@@ -7,6 +7,7 @@
  * `text` says what to do; `reached` says it's done, for the banner and the
  * list of milestones reached. */
 
+import { usesDepots, hasDepot } from './logistics.js';
 import { economyForState } from './economy-context.js';
 import { EMBARK_ABUNDANCE, EXTRACTORS, UNLOCKS, TOOLS } from './content.js';
 import { RESOURCES } from './tiles.js';
@@ -40,11 +41,11 @@ export const GOALS = [
   { id: 'stone', income: true, text: t('goal.stone'), reached: t('goal.stone.reached'), done: (s) => s.stats.stone > 0 },
   { id: 'pickaxe', text: t('goal.pickaxe'), reached: t('goal.pickaxe.reached'), buy: 'pickaxe', done: (s) => s.tools.pickaxe >= 2 },
   { id: 'garden', text: t('goal.garden'), reached: t('goal.garden.reached'), build: 'garden', done: has('garden') },
-  { id: 'collect', text: t('goal.collect'), reached: t('goal.collect.reached'), done: (s) => s.stats.collected > 0 || s.unlocks.logistics },
+  { id: 'collect', text: t('goal.collect'), reached: t('goal.collect.reached'), done: (s) => s.stats.collected > 0 || s.unlocks.logistics || (usesDepots(s) && hasDepot(s)) },
   { id: 'ore', text: t('goal.ore'), reached: t('goal.ore.reached'), done: (s) => s.discovered.ore },
   { id: 'mine', text: t('goal.mine'), reached: t('goal.mine.reached'), build: 'mine', done: has('mine') },
   { id: 'overclock', text: t('goal.overclock'), reached: t('goal.overclock.reached'), buy: 'overclock', done: (s) => s.tools.overclock >= 2 },
-  { id: 'logistics', text: t('goal.logistics'), reached: t('goal.logistics.reached'), buy: 'logistics', done: (s) => s.unlocks.logistics },
+  { id: 'logistics', text: t('goal.logistics'), reached: t('goal.logistics.reached'), buy: 'logistics', done: (s) => s.unlocks.logistics || (usesDepots(s) && hasDepot(s)) },
   { id: 'crystal', text: t('goal.crystal'), reached: t('goal.crystal.reached'), done: (s) => s.discovered.crystal },
   { id: 'resonator', text: t('goal.resonator'), reached: t('goal.resonator.reached'), build: 'resonator', done: has('resonator') },
   { id: 'abundance1', text: t('goal.abundance1'), reached: t('goal.abundance1.reached'), buy: 'abundance', done: (s) => s.abundanceLv >= 1 },
@@ -78,7 +79,7 @@ export function goalsTotal(s) {
 }
 
 // The milestones there are to reach in this world.
-const reachable = (s) => GOALS.slice(0, goalsTotal(s));
+const reachable = (s) => GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
 
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.
