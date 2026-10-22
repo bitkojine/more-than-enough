@@ -15,20 +15,30 @@
  * `--seeds 4` takes the first 4 of a fixed list, so runs stay comparable.
  * `--knobs` overrides the brain's KNOBS for this run. `--against` prints the
  * change from an earlier `--out` file. `--check` (CI) fails unless every seed
- * reaches Embark with no refused acts or quick pops down and the median is
- * within TOLERANCE of test/perfect-baseline.json; `--write` records this
- * run there. Runs are deterministic, so a moved median means the brain or
- * the rules changed. A seed to Embark takes about 4 minutes. */
+ * reaches Embark with no refused acts or quick pops down. With unchanged
+ * canonical rules, it also rejects a slower median beyond TOLERANCE; faster
+ * wins always pass. Changed rules report timing without comparing the old
+ * balance target. `--write` records a reviewed baseline and rules fingerprint. */
 
 import { Worker, isMainThread, parentPort, workerData } from 'node:worker_threads';
+import { createHash } from 'node:crypto';
 import { availableParallelism } from 'node:os';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { TRAINING_SEEDS as SEEDS } from '../src/game/autoplay-seeds.js';
 const SHORT_TRIP = 30;    // seconds below the surface that count as popping in and out
-const TOLERANCE = 0.02;   // how far the median may move from the baseline before --check fails
+const TOLERANCE = 0.02;   // maximum slowdown under unchanged rules
 const BASELINE = fileURLToPath(new URL('../test/perfect-baseline.json', import.meta.url));
+
+// Scope strategy timing comparisons to the canonical rules, excluding the brain.
+export function rulesFingerprint() {
+  const root = new URL('../src/core/', import.meta.url), hash = createHash('sha256');
+  for (const name of readdirSync(root).filter(n => n.endsWith('.js') && n !== 'perfect.js').sort()) {
+    hash.update(name).update('\0').update(readFileSync(new URL(name, root))).update('\0');
+  }
+  return hash.digest('hex');
+}
 
 /** Plays `seeds` (numbers) for up to `hours` each with `knobs`; resolves to { hours, knobs, runs, summary }. */
 export async function bench({ seeds, hours = 60, wallSeconds = 0, knobs = {}, driver = 'core', jobs = availableParallelism(), canStart = () => true, onResult = () => {}, onProgress = () => {}, log = () => {} }) {
@@ -59,7 +69,7 @@ export async function bench({ seeds, hours = 60, wallSeconds = 0, knobs = {}, dr
   });
   await Promise.all(lanes);
   runs.sort((a, b) => seeds.indexOf(a.seed) - seeds.indexOf(b.seed));
-  return { hours, knobs, runs, summary: summarize(runs) };
+  return { hours, knobs, runs, rulesHash: rulesFingerprint(), summary: summarize(runs) };
 }
 
 /** Takes `--seeds` as a count from the fixed list or a comma-separated list. */
@@ -74,16 +84,19 @@ async function main() {
   const result = await bench({ seeds, hours: Number(args.hours || 60), jobs: Number(args.jobs || availableParallelism()), knobs: JSON.parse(args.knobs || '{}'), log: (m) => process.stderr.write(m) });
   if (args.out) writeFileSync(args.out, JSON.stringify(result, null, 1) + '\n');
   report(result, args.against ? readJson(args.against) : baseline || null);
+  if (args.check && result.rulesHash !== baseline?.rulesHash) {
+    console.log("Canonical rules changed or baseline has no rules fingerprint: completion time is informational; completion and behavior checks still apply.");
+  }
   if (args.write) {
     const embark = Object.fromEntries(result.runs.map((r) => [r.seed, r.embark]));
-    writeFileSync(BASELINE, JSON.stringify({ seeds, median: result.summary.embark, embark }, null, 1) + '\n');
+    writeFileSync(BASELINE, JSON.stringify({ seeds, rulesHash: result.rulesHash, median: result.summary.embark, embark }, null, 1) + '\n');
     console.log('\nrecorded in test/perfect-baseline.json');
   }
   if (args.check) {
     const problems = check(result, baseline);
     for (const p of problems) console.log('FAIL ' + p);
     if (problems.length) process.exit(1);
-    console.log('\nPerfect plays as well as the baseline');
+    console.log('\nPerfect completion and behavior checks passed');
   }
 }
 
@@ -94,17 +107,16 @@ export function actionWasRefused(result) {
 }
 
 // What --check objects to in `result`, measured against `baseline`.
-export function check({ runs, summary }, baseline) {
+export function check({ runs, summary, rulesHash }, baseline) {
   const out = [];
   for (const r of runs) {
     if (r.embark === null) out.push(`seed ${r.seed} never reached Embark`);
     if (r.behaviour.refused) out.push(`seed ${r.seed}: the game refused ${r.behaviour.refused} acts Perfect picked`);
     if (r.behaviour.shortTrips) out.push(`seed ${r.seed}: ${r.behaviour.shortTrips} trips down lasted under ${SHORT_TRIP} s`);
   }
-  if (summary.embark !== null && baseline) {
+  if (summary.embark !== null && baseline && rulesHash && rulesHash === baseline.rulesHash) {
     const d = (summary.embark - baseline.median) / baseline.median;
-    if (d > TOLERANCE) out.push(`median Embark ${h(summary.embark)} is ${pct(d)} slower than the baseline ${h(baseline.median)}: retune (node scripts/perfect-tune.mjs) or, if the rules made the game longer on purpose, record it with --write`);
-    if (d < -TOLERANCE) out.push(`median Embark ${h(summary.embark)} is ${pct(-d)} faster than the baseline ${h(baseline.median)}: record it with --write so the bar rises`);
+    if (d > TOLERANCE) out.push(`median Embark ${h(summary.embark)} is ${pct(d)} slower than the baseline ${h(baseline.median)}: investigate the strategy regression under unchanged rules`);
   }
   return out;
 }

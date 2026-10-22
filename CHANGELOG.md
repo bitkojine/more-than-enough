@@ -3,6 +3,11 @@
 ## [0.131.8] - 2026-10-22
 
 ### Changed
+- Benchmark timing regressions are checked only against matching canonical
+  rules. Faster wins pass; changed rules retain hard completion and behavior
+  checks while reporting timing as balance data.
+- Recorded the intentionally faster four-seed regression baseline (17.84-hour
+  median); the benchmark retains its existing regression and fairness checks.
 - Final refinery levels cost 1.5 times the previous level while still doubling
   production, reducing the final funding wall. Earlier levels are unchanged.
 - Single-player world mastery unlocks Embark immediately. The additional

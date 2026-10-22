@@ -32,9 +32,11 @@ kind of knowledge lives.
   Local feedback uses 12 seeds per family; the 1,500-seed sweep runs separately
   in CI and manually, never as a prerequisite for interactive iteration.
 - CI runs `node scripts/perfect-bench.mjs --check` after core changes and
-  will not deploy if it fails. Run it locally explicitly when needed. If Perfect got slower,
-  re-learn with `scripts/perfect-tune.mjs` and record the score with
-  `--write` (README, Tests).
+  will not deploy if it fails. Run it locally explicitly when needed. Completion
+  and behavior checks always apply; timing regression checks apply only when
+  canonical rules match the baseline fingerprint. Faster wins pass. Review
+  intentional balance changes before recording a new reference with `--write`
+  (README, Tests). Never stretch duration merely to hit the future forty-hour goal.
 - After pushing, check that every workflow for your commit passed, not only
   Pages. `live-check.yml` opens a `live-check` issue when something didn't
   deploy.

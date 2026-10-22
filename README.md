@@ -230,13 +230,14 @@ fixture is separate from fresh-world AUTO evaluations.
 The Perfect button's score is the median hours of play, held from spawn, until
 Embark opens. `scripts/perfect-bench.mjs` measures it (and how the brain
 behaves: refused acts, stuck steps, waiting, quick pops down a ladder);
-`--check` fails if it moved more than 2% from `test/perfect-baseline.json` or
-broke a behaviour rule. When a rules change makes it slower, re-learn:
-`node scripts/perfect-tune.mjs` searches the brain's `KNOBS`
-(`src/core/perfect.js`) for the quickest Embark and checks the gain on worlds it
-wasn't tuned on; put its knobs into `KNOBS`, then record the new score with
-`perfect-bench.mjs --write`. A change that makes the game longer on purpose is
-recorded the same way, after a tune.
+`--check` fails when a seed does not finish or breaks a behavior rule. Completion
+hours are balance data. A slowdown over 2% also fails when the canonical rules
+match the baseline fingerprint; faster wins pass. When rules change, the old
+completion-time target is informational, while completion and behavior remain
+mandatory. After reviewing a rules change, record its reference with
+`perfect-bench.mjs --write`. Do not tune away intended balance changes merely
+to match an old duration. The current goal is meaningful, well-paced gameplay;
+forty hours is a future content goal, never a reason to inflate prices or wait times.
 
 For evaluation on fresh worlds, run `node scripts/playtest.mjs`. Each batch
 plays four cryptographically random, nonzero 32-bit seeds with the shipped

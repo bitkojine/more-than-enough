@@ -35,10 +35,9 @@ jobs:
       - name: Unit tests
         run: npm test
 
-  # The Perfect button still plays as well as test/perfect-baseline.json
-  # (scripts/perfect-bench.mjs --check: 4 worlds held to Embark, a few
-  # minutes). Only when the rules or the brain may have changed; otherwise
-  # it passes at once.
+  # Four fixed seeds must finish with legal behavior. Timing comparisons apply
+  # only under the same canonical rules; rebalancing reports new durations.
+  # Runs only when the rules, brain or baseline may have changed.
   perfect:
     runs-on: ubuntu-latest
     steps:
