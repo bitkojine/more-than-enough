@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.133.1": "White chalk construction plans, coverage lines and drawing trails, with chalk accents in Build.",
   "news.0.133.0": "Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.",
   "building.depot": "Collection Depot",
   "building.depot.desc": "Collects output from your producers within 8 tiles on this layer. Overlap never collects twice.",

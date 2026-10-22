@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.133.1": "Baltos kreidos statybų planai, aptarnavimo linijos ir piešiami takai, su kreidos akcentais statybų lange.",
   "news.0.133.0": "Išbandyk fizinį surinkimo sandėlį kūrėjų skiltyje. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.",
   "building.depot": "Surinkimo sandėlis",
   "building.depot.desc": "Surenka tavo gamintojų produkciją 8 langelių spinduliu šiame sluoksnyje. Persidengiantys plotai nesurenka dukart.",

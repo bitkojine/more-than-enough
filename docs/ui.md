@@ -160,3 +160,14 @@ collection even when no output is waiting. No carts or journey times are implied
 Unserved producers keep their output and can be collected normally.
 Producer sprites in this prototype retain permanent resource plaques even
 when automatically collected, so empty buffers do not hide material identity.
+
+### White chalk planning language
+Construction previews, service links, recipient outlines and depot coverage use
+soft white chalk with a dark backing stroke for contrast on light ground. Planned
+marks are dashed; existing service marks use longer, nearly continuous strokes.
+The hand variation is static, subtle and decorative: it never alters rule range,
+targets or placement. The live Trail uses the same white chalk; eligible tiles
+retain surface green/underground amber fill. Build uses chalk underlines and quiet
+white card outlines on dark slate. Material colors, readable type, prices and
+status feedback remain distinct. No new fonts, textures, animated grain or
+flashing. The coverage-ring path is cached at the current zoom.

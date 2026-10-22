@@ -797,10 +797,11 @@ async function main() {
     await touch('touchMove', [{ x: trailStart.x + (195 - trailStart.x) * trailStep / 8, y: trailStart.y + (422 - trailStart.y) * trailStep / 8, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
     await sleep(20);
   }
-  // Look for the glow around a point part way along the stroke.
+  // Look for warm white chalk part way along the live stroke.
   var probe = { x: Math.round(trailStart.x + (195 - trailStart.x) * 0.45), y: Math.round(trailStart.y + (422 - trailStart.y) * 0.45) };
-  var trailGlow = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=' + (probe.y - 15) + ';yy<=' + (probe.y + 15) + ';yy+=2)for(var xx=' + (probe.x - 15) + ';xx<=' + (probe.x + 15) + ';xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]<230&&d[i+1]>180&&d[i+2]<175)return true;}return false;})()');
-  ok(trailGlow, 'live Trail stroke paints visibly on the map');
+  var trailChalk = await evalJS('(function(){var c=document.getElementById("game"),g=c.getContext("2d"),d=g.getImageData(0,0,c.width,c.height).data,s=c.width/window.innerWidth;for(var yy=' + (probe.y - 15) + ';yy<=' + (probe.y + 15) + ';yy+=2)for(var xx=' + (probe.x - 15) + ';xx<=' + (probe.x + 15) + ';xx+=2){var i=(Math.floor(yy*s)*c.width+Math.floor(xx*s))*4;if(d[i]>220&&d[i+1]>215&&d[i+2]>200&&Math.abs(d[i]-d[i+1])<20&&Math.abs(d[i+1]-d[i+2])<25)return true;}return false;})()');
+  ok(trailChalk, 'live white chalk Trail paints visibly on the map');
+  console.log('  screenshot: ' + await shot('02b-chalk-trail.png'));
   await touch('touchEnd', []);
   await sleep(180);
   var trailEndInv = JSON.parse(await stateSummary()).inv.mycelium;

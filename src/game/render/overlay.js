@@ -3,6 +3,7 @@
  * and the joystick. */
 
 import * as Core from '../../core/index.js';
+import { chalkPath, chalkLine, chalkBox, chalkEllipse } from './chalk.js';
 import { rgba } from './palette.js';
 import { distance, number } from '../../i18n/i18n.js';
 
@@ -45,10 +46,10 @@ function outlineTile(ctx, cam, s, tx, ty, color) {
 export function drawHighlights(ctx, cam, s, view, y) {
   const t = view.harvestTarget;
   if (t && t.y === y) outlineTile(ctx, cam, s, t.x, t.y, 'rgba(200,255,180,0.5)');
-  for (const b of view.buildTargets) if (b.y === y) outlineTile(ctx, cam, s, b.x, b.y, 'rgba(140,220,255,0.6)');
+  for (const b of view.buildTargets) if (b.y === y) chalkBox(ctx, topRect(cam,s,b.x,b.y,Math.min(2,cam.tilePx*0.2)), true);
 }
 
-// Dashed physical service links; fog is checked at both ends. Shown while
+// White chalk service links; fog is checked at both ends. Shown while
 // building, including the local placement preview, rather than all the time.
 export function drawSupports(ctx, cam, s, view) {
   const seen = e => e.z === cam.z && Core.isExplored(s.world, e.x, e.y, e.z);
@@ -56,11 +57,10 @@ export function drawSupports(ctx, cam, s, view) {
     if (!seen(from) || !seen(to)) return;
     const a = cam.project(from.x+.5, from.y+.5, from.z), b = cam.project(to.x+.5, to.y+.5, to.z);
     if (Math.max(a.x,b.x) < 0 || Math.min(a.x,b.x) > cam.width || Math.max(a.y,b.y) < 0 || Math.min(a.y,b.y) > cam.height) return;
-    ctx.strokeStyle = preview ? '#fff0ae' : '#bce8ff';
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-    outlineTile(ctx, cam, s, to.x, to.y, ctx.strokeStyle);
+    chalkLine(ctx,a,b,preview);
+    chalkBox(ctx,topRect(cam,s,to.x,to.y,Math.min(2,cam.tilePx*0.2)),preview);
   };
-  ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+  ctx.save();
   for (const e of s.extractors) {
     if (e.key !== 'quarry' || !seen(e)) continue;
     const support = Core.supportingBuilding(s,e);
@@ -70,13 +70,13 @@ export function drawSupports(ctx, cam, s, view) {
   if (at) {
     const preview = { ...at, key: 'stoneworks', z: s.player.z, owner: s.me || undefined };
     for (const q of Core.supportTargets(s,preview)) if (!Core.supportingBuilding(s,q)) link(preview,q,true);
-    outlineTile(ctx,cam,s,at.x,at.y,'#fff0ae');
+    chalkBox(ctx,topRect(cam,s,at.x,at.y,Math.min(2,cam.tilePx*0.2)),true);
   }
   ctx.restore();
 }
 
-// The live Trail: a glowing stroke that turns green (amber underground) once it
-// crosses tiles the sweep will take, with those tiles filled in.
+// The live Trail: white chalk, dashed with no eligible tiles. Green/amber
+// tile fills retain the surface/underground harvest feedback.
 export function drawTrail(ctx, cam, s, view) {
   const trail = view.trail;
   if (!trail || !trail.points.length) return;
@@ -86,20 +86,15 @@ export function drawTrail(ctx, cam, s, view) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = hits ? (dig ? 'rgba(255,205,125,0.95)' : 'rgba(157,255,117,0.95)') : 'rgba(120,232,255,0.88)';
-  ctx.shadowColor = hits ? (dig ? 'rgba(255,190,90,0.9)' : 'rgba(143,255,88,0.9)') : 'rgba(88,215,255,0.85)';
-  ctx.lineWidth = Math.max(5, Math.min(12, u * 0.18));
-  ctx.shadowBlur = 18;
-  ctx.beginPath();
+  const path = new Path2D();
   const at = (pt) => cam.project(pt.x, pt.y, cam.z + (pt.h || 0));
   trail.points.forEach((pt, i) => {
     const p = at(pt);
-    if (i === 0) ctx.moveTo(p.x, p.y);
-    else ctx.lineTo(p.x, p.y);
+    if (i === 0) path.moveTo(p.x,p.y); else path.lineTo(p.x,p.y);
   });
-  ctx.stroke();
+  chalkPath(ctx,path,{preview:!hits,width:Math.max(4,Math.min(9,u*0.14))});
   const end = at(trail.points[trail.points.length - 1]);
-  ctx.fillStyle = hits ? (dig ? '#ffe0a8' : '#caff9b') : '#b9f3ff';
+  ctx.fillStyle = '#f5f2e9';
   ctx.beginPath();
   ctx.arc(end.x, end.y, Math.max(7, u * 0.17), 0, TAU);
   ctx.fill();
@@ -431,14 +426,12 @@ export function drawDepots(ctx,cam,s,view) {
   const paint=(d,preview)=>{
     if(!visible(d))return;
     const p=cam.project(d.x+.5,d.y+.5,d.z),r=Core.EXTRACTORS.depot.depot.radius;
-    ctx.strokeStyle=preview?'#fff0ae':'#d0e7c4';ctx.lineWidth=2;
-    ctx.setLineDash(preview?[3,4]:[8,5]);
-    ctx.beginPath();ctx.ellipse(p.x,p.y,r*cam.tilePx,r*cam.depthPx,0,0,Math.PI*2);ctx.stroke();
+    chalkEllipse(ctx,p.x,p.y,r*cam.tilePx,r*cam.depthPx,preview);
     for(const e of Core.depotTargets(s,d)) {
       if(!seen(e)||(preview?!!Core.depotFor(s,e):Core.depotFor(s,e)!==d))continue;
       const q=cam.project(e.x+.5,e.y+.5,e.z);
-      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
-      outlineTile(ctx,cam,s,e.x,e.y,ctx.strokeStyle);
+      chalkLine(ctx,p,q,preview);
+      chalkBox(ctx,topRect(cam,s,e.x,e.y,Math.min(2,cam.tilePx*0.2)),preview);
     }
   };
   ctx.save();

@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.133.1] - 2026-10-23
+
+### Changed
+- White chalk planning marks for construction previews, support/depot links,
+  service coverage and Trail drawing; dashed previews and dark backing strokes
+  preserve state distinction and contrast. Build adds chalk accents on slate.
+- Static vector variation and a cached coverage path avoid animated grain or
+  new font/texture downloads. Game rules and resource identities are preserved.
+
 ## [0.133.0] - 2026-10-23
 
 ### Added

@@ -43,6 +43,10 @@ kind of knowledge lives.
 
 ## Design rules
 
+- Use white chalk drawing accents where useful, especially construction and
+  planning overlays. Preserve resource identity, readable text, non-color status
+  cues and contrast on bright terrain. Prefer stable, inexpensive vector marks.
+
 - New worlds start empty-handed; only knowledge and records carry over.
   Existing worlds retain their earned equipment and progress.
 - Every purchase and every upgrade level needs a distinct physical identity:
