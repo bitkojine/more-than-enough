@@ -83,6 +83,13 @@ try {
 }
 look.use(defaultPack);
 
+// The developer viewer boots before loading or connecting any player world.
+if (new URLSearchParams(location.search).has('autoplay')) {
+  const { startAutoplayLab } = await import('./autoplay-lab.js');
+  await startAutoplayLab({ el, look });
+  await new Promise(() => {});
+}
+
 const cam = createCamera(el.canvas);
 const descent = createDescent(el.canvas);
 cam.relief = (x, y) => groundHeight(game.state.world, x, y, cam.z);

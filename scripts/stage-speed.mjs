@@ -49,9 +49,10 @@ try {
   throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
 }
 const entry = path.join(OUT, 'src/game/main.js');
-await esbuild.build({
-  entryPoints: [entry],
-  outfile: entry,          // in place: import.meta.url stays where main.js was
+for (const target of [entry, path.join(OUT, 'src/game/autoplay-lab.js')]) await esbuild.build({
+  entryPoints: [target],
+  external: ['./autoplay-lab.js'],
+  outfile: target,          // in place: import.meta.url stays where main.js was
   allowOverwrite: true,
   bundle: true,
   format: 'esm',

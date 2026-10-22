@@ -34,9 +34,9 @@ export function reserveSeeds(directory, count, draw = () => randomInt(1, 2 ** 32
 }
 
 export function speedSummary(runs) {
-  const wins = runs.filter((r) => r.embark !== null).map((r) => r.embark).sort((a, b) => a - b);
+  const wins = runs.filter((r) => r.embark !== null && r.evaluationValid !== false).map((r) => r.embark).sort((a, b) => a - b);
   return {
-    completed: runs.length, won: wins.length, timedOut: runs.filter((r) => r.embark === null && !r.stalled && r.stopReason !== 'wall-budget').length,
+    completed: runs.length, invalid: runs.filter(r => r.evaluationValid === false).length, won: wins.length, timedOut: runs.filter((r) => r.evaluationValid !== false && r.embark === null && !r.stalled && r.stopReason !== 'wall-budget').length,
     budgetExceeded: runs.filter(r => r.stopReason === 'wall-budget').length,
     stalled: runs.filter((r) => r.stalled).length,
     fastest: wins[0] ?? null,
@@ -48,7 +48,7 @@ export function speedSummary(runs) {
 
 function provenance() {
   const files = ['scripts/playtest.mjs', 'scripts/perfect-bench.mjs', 'scripts/autoplay-driver.mjs',
-    'src/game/perfect.js', 'src/game/controller.js',
+    'src/game/autoplay-session.js', 'src/game/autoplay-seeds.js', 'src/game/perfect.js', 'src/game/controller.js', 'src/game/input.js', 'src/game/main.js',
     'src/engine/clock.js', 'src/engine/simulation.js',
     ...readdirSync(join(ROOT, 'src/core')).filter((f) => f.endsWith('.js')).map((f) => `src/core/${f}`)];
   const hash = createHash('sha256');
@@ -86,6 +86,11 @@ async function main() {
     const seeds = reserveSeeds(seedsDir, opts.worlds);
     console.log(`Batch ${batch + 1}: ${seeds.join(', ')}`);
     const result = await bench({ seeds, hours: opts.hours, wallSeconds: opts.wallSeconds, jobs: opts.jobs, driver: 'auto',
+      canStart: () => {
+        const stable = provenance().sourceHash === meta.sourceHash;
+        if (!stable) process.exitCode = 1;
+        return stable;
+      },
       log: (m) => process.stdout.write(m),
       onProgress({ seed, point }) {
         const file = join(seedsDir, `${seed}.json`);
@@ -93,18 +98,24 @@ async function main() {
         writeFileSync(file, JSON.stringify({ ...reservation, ...meta, hours: opts.hours, wallSeconds: opts.wallSeconds, progress: point }, null, 2) + '\n');
       },
       onResult(run) {
+        run.sourceHashAtResult = provenance().sourceHash;
+        run.evaluationValid = run.sourceHashAtResult === meta.sourceHash;
         // Each world is saved immediately, even if another worker later fails.
         const file = join(seedsDir, `${run.seed}.json`);
         const reservation = JSON.parse(readFileSync(file, 'utf8'));
         writeFileSync(file, JSON.stringify({ ...reservation, finished: new Date().toISOString(), hours: opts.hours, wallSeconds: opts.wallSeconds, ...meta, run }, null, 2) + '\n');
-        if (run.embark === null || run.behaviour.refused > 0) process.exitCode = 1;
-        console.log(`  seed ${run.seed}: ${run.stopReason === 'wall-budget' ? 'WALL BUDGET' : run.stalled ? 'STALLED (' + run.stopReason + ')' : run.embark === null ? 'TIMEOUT' : (run.embark / 3600).toFixed(3) + ' h to win'}; refused ${run.behaviour.refused}, waiting ${(100 * run.behaviour.waited / run.played).toFixed(1)}%, blocked ${run.diagnostics.seconds.blocked.toFixed(1)} s`);
+        if (!run.evaluationValid || run.embark === null || run.behaviour.refused > 0) process.exitCode = 1;
+        console.log(`  seed ${run.seed}: ${!run.evaluationValid ? 'INVALID (source changed)' : run.stopReason === 'wall-budget' ? 'WALL BUDGET' : run.stalled ? 'STALLED (' + run.stopReason + ')' : run.embark === null ? 'TIMEOUT' : (run.embark / 3600).toFixed(3) + ' h to win'}; refused ${run.behaviour.refused}, waiting ${(100 * run.behaviour.waited / run.played).toFixed(1)}%, blocked ${run.diagnostics.seconds.blocked.toFixed(1)} s`);
       }
     });
     runs.push(...result.runs);
     const s = speedSummary(runs);
     const h = (t) => t === null ? 'none' : (t / 3600).toFixed(3) + ' h';
-    console.log(`This invocation: ${s.won}/${s.completed} won; ${s.stalled} stalled; ${s.timedOut} timed out at ${opts.hours} h; ${s.budgetExceeded} stopped at wall-time budget. Fastest ${h(s.fastest)}, median of wins ${h(s.medianWin)}, slowest win ${h(s.slowestWin)}. Under 40 h: ${s.under40Hours}.`);
+    console.log(`This invocation: ${s.won}/${s.completed} won; ${s.invalid} invalid; ${s.stalled} stalled; ${s.timedOut} timed out at ${opts.hours} h; ${s.budgetExceeded} stopped at wall-time budget. Fastest ${h(s.fastest)}, median of wins ${h(s.medianWin)}, slowest win ${h(s.slowestWin)}. Under 40 h: ${s.under40Hours}.`);
+    if (provenance().sourceHash !== meta.sourceHash) {
+      console.error('Source changed: finished worlds were retained; no further worlds will start.');
+      process.exitCode = 1; break;
+    }
   }
 }
 

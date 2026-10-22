@@ -7,6 +7,7 @@ import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
 import { fmt } from './format.js';
 
+const CLOCK_EPSILON = 1e-9;
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
@@ -14,7 +15,7 @@ const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 // `gathered(held)` hears every gather: `held` when a hold repeated it.
 export function createController({ game, cam, fx, audio, hud, look, ask, actor, gathered = () => {} }) {
   let cooldown = 0;
-  let walkTo = null;
+  let walkTo = null, walkSerial = 0;
   let stalled = 0;
   const drilling = { x: 0, y: 0, t: 0 }; // progress into the wall you're pushing
 
@@ -112,7 +113,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   // Walk to (tx, ty); with `work`, work it once it's in reach.
   function walkToward(tx, ty, work) {
-    walkTo = { x: tx + 0.5, y: ty + 0.5, work: work ? { x: tx, y: ty } : null };
+    walkTo = { id: ++walkSerial, x: tx + 0.5, y: ty + 0.5, work: work ? { x: tx, y: ty } : null };
     stalled = 0;
   }
 
@@ -198,27 +199,30 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
     // Gather pressed: act at once, then the hold repeats via tick().
     press() {
-      if (cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
+      if (cooldown <= CLOCK_EPSILON && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
       if (!walkTo) explore();
     },
 
     // `holdAt`: a finger held still on the map (screen point), or null. It
     // works that tile over and over, like holding Gather.
     tick(dt, holding, holdAt) {
+      const remaining = cooldown;
       cooldown -= dt;
+      const overdue = remaining > CLOCK_EPSILON ? Math.max(0, -cooldown) : 0;
       // The first gather of a hold is press()'s; these are its repeats.
-      if (holding && cooldown <= 0 && act()) { cooldown = GATHER_COOLDOWN; gathered(true); }
-      if (holdAt && cooldown <= 0) {
+      if (holding && cooldown <= CLOCK_EPSILON && act()) { cooldown = GATHER_COOLDOWN - overdue; gathered(true); }
+      if (holdAt && cooldown <= CLOCK_EPSILON) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);
         const done = workAt(tx, ty);
-        if (done) { cooldown = GATHER_COOLDOWN; if (done === true) gathered(true); }
+        if (done) { cooldown = GATHER_COOLDOWN - overdue; if (done === true) gathered(true); }
         else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
       }
     },
 
     // Whether the wanderer is on the way somewhere tapped (or stepped toward).
     get walking() { return !!walkTo; },
+    get walkToken() { return walkTo?.id ?? null; },
 
     // Carries out one of the Perfect button's intents (core perfect.js)
     // through the very calls a tap or press makes, feedback and all.

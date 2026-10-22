@@ -23,7 +23,7 @@ export function createPerfect({ game, controller, hud }) {
   let target = null;     // the tile it works next ({x, y}), if it's working one
   let embarkSaid = null; // the world the Embark pause was last pointed out in
   let lock = null;
-  let walked = false;    // the walk under way is one it started
+  let walked = false, walkToken = null;    // the walk under way is one it started
 
   const state = () => game.state;
   const see = (intent) => {
@@ -44,7 +44,14 @@ export function createPerfect({ game, controller, hud }) {
     }
     controller.perform(intent, held);
     walked = intent.type === 'walk';
+    walkToken = walked ? controller.walkToken : null;
     if (!walked) cooldown = ACT_EVERY - overdue;
+  }
+
+  function stopOwnedWalk() {
+    if (walked && controller.walking &&
+        (walkToken === undefined || controller.walkToken === walkToken)) controller.stop();
+    walked = false; walkToken = null;
   }
 
   // The screen stays on while the button is held (where the browser lets it).
@@ -78,9 +85,11 @@ export function createPerfect({ game, controller, hud }) {
     // Let go: it stops, mid-step too.
     release() {
       keepAwake(false);
-      if (walked && controller.walking) controller.stop();
-      walked = false;
+      stopOwnedWalk();
     },
+
+    // Modal UI pauses AUTO movement without releasing the held input.
+    suspend() { stopOwnedWalk(); },
 
     // Every frame. `holding`: the button is held, nothing in the way (no
     // dialog, no sheet) and the player isn't steering or working a tile.

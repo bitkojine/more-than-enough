@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.131.6] - 2026-10-22
+
+### Fixed
+- AUTO no longer uses an unseen nearby charger to decide to wait when its
+  selected known charger is farther away.
+- Manual Gather and held-tile actions retain fractional cooldown time and
+  use the same quarter-second boundary tolerance as AUTO.
+- Blocked UI rejects pointer presses on AUTO and Gather. Opening blocked UI
+  suspends an AUTO-owned walk; releasing AUTO preserves a replacement manual
+  route instead of cancelling it.
+- Core regression reporting counts boolean and null action refusals. Fresh
+  evaluation retains but disqualifies source-changed runs and stops starting
+  further worlds when its source fingerprint changes.
+
+### Added
+- Nerds offers a live super-speed AUTO viewer on fresh single-player seeds,
+  with pause, speed selection and a separate retained-world archive. The
+  viewer and evaluation runner share the same AUTO session and simulation.
+
+### Changed
+- Added bounded control, information-access, action-legality, host-parity and
+  evaluation-integrity checks, plus a dedicated browser control-audit mode.
+
 ## [0.131.5] - 2026-10-22
 
 ### Changed

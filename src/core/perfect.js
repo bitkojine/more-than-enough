@@ -33,14 +33,14 @@
 import { SURFACE, CHUNK_SIZE, tileDist2, packKey, unpackKey } from './coords.js';
 import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, nearestExploredTile, holeBelow, wayUp, waysIn, walkable, findSpawn, observationVersion } from './world.js';
-import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE } from './content.js';
+import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE, CHARGE_RANGE } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
 import { canAfford, gatherYield, speedMult, productionRates, extractorRate, extractorCost, extractorCapacity, extractorCount, ownBuilding } from './economy.js';
 import { canEmbark } from './state.js';
 import { canHarvest, gearNeeded, gearFor, collectTarget, extractorAt } from './actions.js';
 import { autoCollected, canWade, swimsAt, settleEconomy } from './sim.js';
 import { canDescendAt, canClimbAt, canPlaceProp, findsNear } from './underground.js';
-import { charging, chargerNear } from './light.js';
+import { charging } from './light.js';
 import { findPath, routePosition } from './paths.js';
 
 const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
@@ -591,7 +591,9 @@ function power(s, mind) {
   if (!c && s.battery < CHARGE_BELOW) c = mind.charger = nearestCharger(s, mind);
   if (!c) return solar(s, mind);
   const badge = 'mark.' + s.world.props.get(key(c.x, c.y, SURFACE));
-  if (chargerNear(s)) return { type: 'charge', badge };
+  // Physics can charge from an unseen prop, but AUTO may only decide to
+  // wait beside the observed charger it actually selected.
+  if (tileDist2(s.player, c.x, c.y, SURFACE) <= CHARGE_RANGE * CHARGE_RANGE) return { type: 'charge', badge };
   const step = walkTo(s, mind, c.x, c.y, badge);
   if (!step) mind.charger = null;
   return step;

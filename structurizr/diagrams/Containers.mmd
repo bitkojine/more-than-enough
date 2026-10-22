@@ -7,39 +7,39 @@ graph LR
 
     1["<div style='font-weight: bold'>Player</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Plays the game on a phone or<br />desktop browser.</div>"]
     style 1 fill:#08427b,stroke:#052e56,color:#ffffff
-    31["<div style='font-weight: bold'>Room Service</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Lets friends play one world<br />together (server/): a<br />Cloudflare Worker that makes<br />rooms and a Durable Object<br />per shared world that keeps<br />the world and each player's<br />progress, checks every<br />message, and relays positions<br />and edits between up to 100<br />players. The moderator can<br />make a copy of a world to<br />play as one of its players<br />(server/src/copy.js), apart<br />from the real one, download a<br />whole world as a backup file<br />and put a world that's gone<br />back from one<br />(server/src/backup.js), and<br />has a page listing every<br />world's players, sortable by<br />progress<br />(server/src/admin.js). See<br />server/README.md for the<br />rules and security limits.</div>"]
-    style 31 fill:#1168bd,stroke:#0b4884,color:#ffffff
-    32["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses and the deploy<br />pipeline. Zero dependencies.</div>"]
-    style 32 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
+    32["<div style='font-weight: bold'>Room Service</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Lets friends play one world<br />together (server/): a<br />Cloudflare Worker that makes<br />rooms and a Durable Object<br />per shared world that keeps<br />the world and each player's<br />progress, checks every<br />message, and relays positions<br />and edits between up to 100<br />players. The moderator can<br />make a copy of a world to<br />play as one of its players<br />(server/src/copy.js), apart<br />from the real one, download a<br />whole world as a backup file<br />and put a world that's gone<br />back from one<br />(server/src/backup.js), and<br />has a page listing every<br />world's players, sortable by<br />progress<br />(server/src/admin.js). See<br />server/README.md for the<br />rules and security limits.</div>"]
+    style 32 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    33["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses and the deploy<br />pipeline. Zero dependencies.</div>"]
+    style 33 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
 
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
 
-      19["<div style='font-weight: bold'>Default Texture Pack</div><div style='font-size: 70%; margin-top: 0px'>[Container: JSON + SVG]</div><div style='font-size: 80%; margin-top:10px'>Lanternlight<br />(packs/default/): pack.json<br />mapping every thing in the<br />Catalog to its SVG pictures<br />and colours. Required before<br />the game draws anything;<br />players' packs override any<br />part of it.</div>"]
-      style 19 fill:#b0761f,stroke:#7b5215,color:#ffffff
-      20["<div style='font-weight: bold'>Wiki</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The player documentation<br />(wiki/), served next to the<br />game. The game teaches<br />nothing in-game, so every<br />mechanic is written up here;<br />tables and figures are<br />rendered at load time from<br />the Simulation Core's content<br />and tuning, so they can never<br />drift from the game. An Ideas<br />page (ideas.js) collects<br />possible directions for the<br />game, clearly marked as not<br />in it. Everything in the game<br />is listed from the Catalog<br />with its default pictures,<br />and the texture pack format<br />is documented.</div>"]
+      20["<div style='font-weight: bold'>Default Texture Pack</div><div style='font-size: 70%; margin-top: 0px'>[Container: JSON + SVG]</div><div style='font-size: 80%; margin-top:10px'>Lanternlight<br />(packs/default/): pack.json<br />mapping every thing in the<br />Catalog to its SVG pictures<br />and colours. Required before<br />the game draws anything;<br />players' packs override any<br />part of it.</div>"]
       style 20 fill:#b0761f,stroke:#7b5215,color:#ffffff
-      21["<div style='font-weight: bold'>Translations</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Every word the player reads,<br />in English and Lithuanian<br />(src/i18n/, plus the wiki's<br />own in wiki/i18n/). Code asks<br />for text by key with t(); the<br />language is picked once at<br />load (the player's choice,<br />else the browser's) and<br />switching reloads the page. A<br />missing key or placeholder<br />throws, and the unit tests<br />fail if either language lacks<br />a key or any text bypasses<br />t().</div>"]
+      21["<div style='font-weight: bold'>Wiki</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The player documentation<br />(wiki/), served next to the<br />game. The game teaches<br />nothing in-game, so every<br />mechanic is written up here;<br />tables and figures are<br />rendered at load time from<br />the Simulation Core's content<br />and tuning, so they can never<br />drift from the game. An Ideas<br />page (ideas.js) collects<br />possible directions for the<br />game, clearly marked as not<br />in it. Everything in the game<br />is listed from the Catalog<br />with its default pictures,<br />and the texture pack format<br />is documented.</div>"]
       style 21 fill:#b0761f,stroke:#7b5215,color:#ffffff
-      22["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
-      style 22 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
+      22["<div style='font-weight: bold'>Translations</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>Every word the player reads,<br />in English and Lithuanian<br />(src/i18n/, plus the wiki's<br />own in wiki/i18n/). Code asks<br />for text by key with t(); the<br />language is picked once at<br />load (the player's choice,<br />else the browser's) and<br />switching reloads the page. A<br />missing key or placeholder<br />throws, and the unit tests<br />fail if either language lacks<br />a key or any text bypasses<br />t().</div>"]
+      style 22 fill:#b0761f,stroke:#7b5215,color:#ffffff
+      23["<div style='font-weight: bold'>Simulation Core</div><div style='font-size: 70%; margin-top: 0px'>[Container: JavaScript modules (browser + Node)]</div><div style='font-size: 80%; margin-top:10px'>The game rules (src/core/).<br />Pure and deterministic: no<br />DOM, no clock, no<br />Math.random. Terrain is a<br />pure function of (x, y, z,<br />seed), state is a plain<br />object, and the same modules<br />run in the browser and in<br />Node tests.</div>"]
+      style 23 fill:#3f7d3a,stroke:#2c5728,color:#ffffff
       4["<div style='font-weight: bold'>Web Application</div><div style='font-size: 70%; margin-top: 0px'>[Container: HTML/CSS/JavaScript modules]</div><div style='font-size: 80%; margin-top:10px'>The presentation layer<br />(index.html, style.css,<br />src/game/). Owns the DOM, the<br />canvas, input, audio, HUD and<br />sheets, and localStorage.<br />Reads state from the<br />Simulation Core every frame<br />and changes it only through<br />the Core's exports.</div>"]
       style 4 fill:#b0761f,stroke:#7b5215,color:#ffffff
     end
 
-    4-. "<div>Loads at boot</div><div style='font-size: 70%'></div>" .->19
-    20-. "<div>Shows its pictures</div><div style='font-size: 70%'></div>" .->19
+    4-. "<div>Loads at boot</div><div style='font-size: 70%'></div>" .->20
+    21-. "<div>Shows its pictures</div><div style='font-size: 70%'></div>" .->20
     1-. "<div>Plays in a mobile/desktop<br />browser</div><div style='font-size: 70%'></div>" .->4
-    1-. "<div>Looks things up</div><div style='font-size: 70%'></div>" .->20
-    4-. "<div>Links to</div><div style='font-size: 70%'></div>" .->20
-    20-. "<div>Renders tables from content<br />and tuning</div><div style='font-size: 70%'></div>" .->22
-    4-. "<div>Asks for every word by key</div><div style='font-size: 70%'></div>" .->21
-    22-. "<div>Names things (tiles,<br />buildings, milestones) by key</div><div style='font-size: 70%'></div>" .->21
-    20-. "<div>Asks for every word by key;<br />its articles live there</div><div style='font-size: 70%'></div>" .->21
-    4-. "<div>Drives actions and step();<br />reads state every frame</div><div style='font-size: 70%'></div>" .->22
-    4-. "<div>Makes and joins rooms; relays<br />positions, edits and progress</div><div style='font-size: 70%'>[HTTPS + WebSocket]</div>" .->31
-    22-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->4
-    32-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->22
-    32-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
+    1-. "<div>Looks things up</div><div style='font-size: 70%'></div>" .->21
+    4-. "<div>Links to</div><div style='font-size: 70%'></div>" .->21
+    21-. "<div>Renders tables from content<br />and tuning</div><div style='font-size: 70%'></div>" .->23
+    4-. "<div>Asks for every word by key</div><div style='font-size: 70%'></div>" .->22
+    23-. "<div>Names things (tiles,<br />buildings, milestones) by key</div><div style='font-size: 70%'></div>" .->22
+    21-. "<div>Asks for every word by key;<br />its articles live there</div><div style='font-size: 70%'></div>" .->22
+    4-. "<div>Drives actions and step();<br />reads state every frame</div><div style='font-size: 70%'></div>" .->23
+    4-. "<div>Makes and joins rooms; relays<br />positions, edits and progress</div><div style='font-size: 70%'>[HTTPS + WebSocket]</div>" .->32
+    23-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->4
+    33-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->23
+    33-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
 
   end

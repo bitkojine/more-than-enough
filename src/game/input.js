@@ -208,6 +208,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   /* ------------------------------------------------------ Gather button */
 
   el.action.addEventListener('pointerdown', (e) => {
+    if (handlers.blocked()) return;
     input.held = true;
     actionPointerId = e.pointerId;
     handlers.actionPressed();
@@ -225,6 +226,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   /* ----------------------------------------------------- Perfect button */
 
   el.perfect.addEventListener('pointerdown', (e) => {
+    if (handlers.blocked()) return;
     capture(el.perfect, e);
     input.perfect = true;
     handlers.perfectPressed();

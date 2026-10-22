@@ -357,3 +357,33 @@ against exact distance and current daylight. Plain Map fixtures retain a full
 query fallback; saves still contain ordinary prop entries. Resource settlement
 batches continuous streams and publishes manual changes only for the affected
 resource while retaining the same accounting order.
+
+Fair play uses camera-independent player knowledge: explored terrain (including
+what the player can inspect on the map), remembered observations, glints within
+the normal game range, the player's own progress and public rules. It does not
+mean recognizing pixels only in the current viewport. AUTO may calculate and
+remember precisely; hidden terrain or unseen world objects must not steer it.
+Charger physics still applies normally, including an unseen wheel charging the
+battery; AUTO must base its decision to wait on its selected known charger.
+Manual Gather and held tiles use the same quarter-second cadence as AUTO.
+Blocked pointer input is rejected, and modal UI stops an AUTO-owned walk without
+cancelling a later manual destination. `MTE_FAIR_ONLY=1 npm run test:e2e` checks
+those controls in the real browser separately from AUTO-only evaluation.
+
+Fresh evaluation fingerprints the browser input/host, controller, AUTO, engine,
+core and runner sources. It checks that fingerprint before starting each world
+and when each world finishes. Source-changed runs keep their full world and
+result but are excluded from wins and speed statistics; no further worlds start
+once a change is detected. This is a development integrity guard, not an
+attestation against malicious changes that are reverted between checks.
+
+For live visual inspection, open Settings → Nerds → Super-speed AUTO, or open
+`?autoplay`. The developer viewer uses `src/game/autoplay-session.js`, the same
+shipped AUTO/controller/shared-engine session as fresh evaluation. It renders
+the game client between bounded work slices, offers speed and pause controls,
+and stops at first Embark eligibility. Worlds are retained in a separate
+IndexedDB archive and can be downloaded as ordinary world backups; normal
+player saves and shared rooms are untouched. Seeds are reserved uniquely in
+that browser archive, not globally across machines or the CLI ledger. No
+offline income is used. Run `MTE_LAB_ONLY=1 npm run test:e2e` for the focused
+viewer test, including a complete fresh AUTO-only win.

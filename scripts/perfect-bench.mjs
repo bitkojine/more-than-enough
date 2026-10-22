@@ -25,18 +25,19 @@ import { availableParallelism } from 'node:os';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-const SEEDS = [12345, 777, 99, 20260101, 4242, 2415085376, 4055616911, 3668339994, 31337, 8080, 1, 65535];
+import { TRAINING_SEEDS as SEEDS } from '../src/game/autoplay-seeds.js';
 const SHORT_TRIP = 30;    // seconds below the surface that count as popping in and out
 const TOLERANCE = 0.02;   // how far the median may move from the baseline before --check fails
 const BASELINE = fileURLToPath(new URL('../test/perfect-baseline.json', import.meta.url));
 
 /** Plays `seeds` (numbers) for up to `hours` each with `knobs`; resolves to { hours, knobs, runs, summary }. */
-export async function bench({ seeds, hours = 60, wallSeconds = 0, knobs = {}, driver = 'core', jobs = availableParallelism(), onResult = () => {}, onProgress = () => {}, log = () => {} }) {
+export async function bench({ seeds, hours = 60, wallSeconds = 0, knobs = {}, driver = 'core', jobs = availableParallelism(), canStart = () => true, onResult = () => {}, onProgress = () => {}, log = () => {} }) {
   if (!seeds.length || !Number.isFinite(hours) || hours <= 0 || !Number.isInteger(jobs) || jobs < 1) throw new Error('Benchmark needs seeds, a positive time cap and a positive worker count');
   const runs = [];
   const queue = [...seeds];
   const lanes = Array.from({ length: Math.min(seeds.length, jobs, availableParallelism()) }, async () => {
     while (queue.length) {
+      if (!canStart()) break;
       const seed = queue.shift();
       const run = await new Promise((done, fail) => {
         const w = new Worker(new URL(import.meta.url), { workerData: { seed, hours, wallSeconds, knobs, driver } });
@@ -84,6 +85,12 @@ async function main() {
     if (problems.length) process.exit(1);
     console.log('\nPerfect plays as well as the baseline');
   }
+}
+
+// Core actions return booleans, nullable harvest/collection results, or
+// {ok}. A rejected boolean/null must not disappear from the audit report.
+export function actionWasRefused(result) {
+  return result === false || result === null || result?.ok === false;
 }
 
 // What --check objects to in `result`, measured against `baseline`.
@@ -147,7 +154,7 @@ async function play({ seed, hours, wallSeconds, knobs, driver }) {
       else if (intent.type === 'walk') {
         b.walks++;
         if (Math.hypot(s.player.x - at.x, s.player.y - at.y) < 0.01) b.nowhere++;
-      } else if (result && result.ok === false) b.refused++;
+      } else if (actionWasRefused(result)) b.refused++;
       at = { x: s.player.x, y: s.player.y };
       if (s.player.z !== z) {
         b.layerChanges++;
@@ -160,7 +167,7 @@ async function play({ seed, hours, wallSeconds, knobs, driver }) {
   });
   if (waitFrom !== null) b.waited += s.time - waitFrom;
   const embark = last && last.why === 'embark' ? played : null;
-  return { seed, played, embark, milestones, behaviour: b, abundance: s.abundanceLv, buildings: s.extractors.length,
+  return { seed, played, embark, milestones, behaviour: b, driver: 'core-action regression helper (not shipped AUTO host)', abundance: s.abundanceLv, buildings: s.extractors.length,
     ...(embark === null ? { failureState: JSON.parse(C.serialize(s)) } : {}) };
 }
 

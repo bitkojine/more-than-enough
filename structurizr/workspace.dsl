@@ -25,9 +25,15 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                engine = component "Tick and Deadline Engine" "Shared 60 Hz logical clock. Browser catch-up is bounded; the headless runner coalesces stationary ticks ending at AUTO/goal deadlines, retaining fine motion and first Embark eligibility. Cumulative battery intervals preserve daylight transitions. Injected controller, AUTO and input interfaces keep scheduling independent of presentation." "JavaScript" {
+                engine = component "Tick and Deadline Engine" "Shared 60 Hz logical clock. Browser catch-up is bounded; the headless runner coalesces stationary ticks ending at AUTO/goal deadlines, retaining fine motion and first Embark eligibility. Cumulative battery intervals preserve daylight transitions. Injected controller, AUTO and input interfaces keep scheduling independent of presentation. Blocked UI suspends AUTO-owned movement." "JavaScript" {
                     properties {
                         "files" "src/engine/clock.js, src/engine/simulation.js"
+                    }
+                }
+
+                autoplayLab = component "AUTO Developer Viewer" "Lazy single-player viewer booted before normal world loading. Runs the shipped AUTO session in bounded real-time work slices at selectable speed, renders the normal client view, and retains separate IndexedDB worlds. The evaluation runner imports the same session." "JavaScript" {
+                    properties {
+                        "files" "src/game/autoplay-lab.js, src/game/autoplay-session.js, src/game/autoplay-store.js, autoplay-seeds.js"
                     }
                 }
 
@@ -171,7 +177,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                brain = component "AUTO Brain" "nextIntent(s, mind): legal player actions from explored terrain, remembered observations, visible mine glints, own resources and public rules. Integer A* treats unseen underground rock as an assumption and replans after normal revelation, without inspecting hidden geology. Unseen chargers, ladders, shores and tunnel props cannot steer decisions. Prices building repayment against required upgrades; mining is a fallback only when surface acquisition is unavailable, includes passive income and return travel and targets useful observed finds. Waits at Embark, and never spends Insight in shared worlds. Pure: mind caches observations and routes." "JavaScript" {
+                brain = component "AUTO Brain" "nextIntent(s, mind): legal player actions from explored terrain, remembered observations, visible mine glints, own resources and public rules. Integer A* treats unseen underground rock as an assumption and replans after normal revelation, without inspecting hidden geology. Unseen chargers, ladders, shores and tunnel props cannot steer decisions. Prices building repayment against required upgrades; mining is a fallback only when surface acquisition is unavailable, includes passive income and return travel and targets useful observed finds. Waits at Embark, and never spends Insight in shared worlds. Selected known chargers alone authorize charging decisions. Manual holds share AUTO cadence. Pure: mind caches observations and routes." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/perfect.js, paths.js"
@@ -242,6 +248,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app -> mte.core "Drives actions and step(); reads state every frame"
         mte.app.together -> rooms "Makes and joins rooms; relays positions, edits and progress" "HTTPS + WebSocket"
         mte.app.together -> mte.core.state "Splits and joins shared worlds (shared.js)"
+        mte.app.main -> mte.app.autoplayLab "Lazily opens developer-only spectator"
+        mte.app.autoplayLab -> mte.app.engine "Advances canonical AUTO ticks without wall-time waiting"
+        mte.app.autoplayLab -> mte.app.controller "Uses shipped AUTO session"
+        mte.app.autoplayLab -> mte.app.perfect "Holds shipped AUTO only"
         mte.app.engine -> mte.app.together "Ticks it every simulation tick"
         mte.app.render -> mte.app.together "Draws friends where they are shown"
         mte.core -> mte.app "Returns state; emits transient events on auto-collect"

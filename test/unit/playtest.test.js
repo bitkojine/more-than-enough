@@ -34,3 +34,10 @@ test('invalid or unbounded individual games are rejected before reserving seeds'
   assert.equal(options(['--batches', '0']).batches, 0);
   assert.equal(options(['--wallSeconds', '60']).wallSeconds, 60);
 });
+
+
+test('a source-invalidated win is retained but excluded from evaluation wins and speed statistics',()=>{
+ const summary=speedSummary([{embark:1,evaluationValid:false},{embark:7200,evaluationValid:true}]);
+ assert.equal(summary.completed,2);assert.equal(summary.invalid,1);assert.equal(summary.won,1);
+ assert.equal(summary.fastest,7200);assert.equal(summary.medianWin,7200);
+});

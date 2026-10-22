@@ -76,8 +76,10 @@ export function away(s) {
 
 /* ------------------------------------------------------------- the bot */
 
-// A bot that plays state `s` (a new world from `seed` unless given) the way
-// a player would; `tick()` runs after every step of play.
+// Scripted rules-test fixture, NOT a fair-play bot: target searches inspect
+// unexplored terrain and routes need not respect fog. Never use this helper
+// for AUTO-only evaluation or fair-world timing claims. `tick()` runs after
+// every step of the constructed scenario.
 export function createBot(seed, s = C.createState(seed), tick = () => {}) {
   const clock = { t: 0 };
   const timeline = {};

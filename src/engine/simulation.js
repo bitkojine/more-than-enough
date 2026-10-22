@@ -15,6 +15,8 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
     const dt = count / TICK_HZ;
     const s = game.state;
     if (s !== state) { state = s; tile = -1; goalTicks = 0; economyStarted = false; }
+    const allowed = canAutoplay();
+    if (!allowed) autoplay.suspend?.();
     const dir = input.moveVector();
     moving = controller.steer(dt, dir);
     Core.step(s, dt, options);
@@ -34,7 +36,7 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
     }
     const hold = input.holdPoint();
     controller.tick(dt, input.held && !input.trail, hold);
-    autoPlaying = input.perfect && !input.held && !input.trail && !hold && !dir.x && !dir.y && canAutoplay();
+    autoPlaying = input.perfect && !input.held && !input.trail && !hold && !dir.x && !dir.y && allowed;
     autoplay.tick(dt, autoPlaying);
     goalTicks += count;
     if (goalTicks === Math.round(0.4 * TICK_HZ)) { goalTicks = 0; controller.checkGoals(); }

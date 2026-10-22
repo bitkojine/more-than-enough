@@ -32,6 +32,8 @@ find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|j
 sed -i.bak -E "s#(\"src\": *\"[^\":]+\\.(png|svg))\"#\\1?v=$HASH\"#g" "$OUT/manifest.webmanifest"
 # Modules: from './x.js' -> from './x.js?v=HASH'.
 find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(from '\\.{1,2}/[^']+\\.js)'#\\1?v=$HASH'#g" {} +
+# Lazy developer modules get the same cache identity as the main bundle.
+find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(import\\(['\"]\\.{1,2}/[^'\"]+\\.js)(['\"]\\))#\\1?v=$HASH\\2#g" {} +
 find "$OUT" -name '*.bak' -delete
 # The live site never talks to a developer's own room service: the
 # Content-Security-Policy's localhost entries (for `wrangler dev`) stay in

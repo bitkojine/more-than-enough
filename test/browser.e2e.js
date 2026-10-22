@@ -178,7 +178,7 @@ async function main() {
       pageErrors.push(JSON.stringify(msg.params.exceptionDetails.exception || msg.params.exceptionDetails.text));
     }
     if (msg.method === 'Runtime.consoleAPICalled' && msg.params.type === 'error') {
-      pageErrors.push(msg.params.args.map(function (a) { return a.value; }).join(' '));
+      pageErrors.push(msg.params.args.map(function (a) { return a.value ?? a.description; }).join(' '));
     }
     if (msg.method === 'Log.entryAdded' && msg.params.entry.level === 'error') {
       pageErrors.push('[log] ' + msg.params.entry.text);
@@ -315,6 +315,90 @@ async function main() {
     ok(await evalJS('MTE_GAME.getState().unlocks.logistics && MTE_GAME.getState().extractors.length===1'), 'save reload preserves Logistics and its building');
     ok(pageErrors.length === 0, 'no browser runtime errors with event economy');
     console.log((failures ? 'ENGINE BROWSER FAILURES' : 'ENGINE BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
+  if (process.env.MTE_LAB_ONLY === '1') {
+    console.log('\n== Super-speed AUTO: live client, archive and full fresh win ==');
+    var normalSave = await evalJS('localStorage.getItem("more-than-enough-save")');
+    ok(await evalJS('document.getElementById("btnAutoplayLab").getAttribute("href") === "?autoplay"'), 'Nerds has a developer viewer link');
+    await navigate2('http://127.0.0.1:' + PORT + '/index.html?autoplay');
+    ok(await waitFor('!!window.MTE_LAB'), 'developer viewer boots');
+    normalSave = await evalJS('localStorage.getItem("more-than-enough-save")');
+    await sleep(200);
+    if(pageErrors.length) throw new Error(pageErrors.join(' | '));
+    ok(await waitFor('MTE_LAB.getState().stats.playedMs > 10000'), 'maximum speed advances the real simulation');
+    await evalJS('document.getElementById("labPause").click()');
+    var labPaused = await evalJS('MTE_LAB.getState().stats.playedMs');
+    await sleep(500);
+    eq(await evalJS('MTE_LAB.getState().stats.playedMs'), labPaused, 'pause stops simulation time');
+    await evalJS('document.getElementById("labSpeed").value="1";document.getElementById("labSpeed").dispatchEvent(new Event("change"));document.getElementById("labPause").click()');
+    var labSlow = await evalJS('MTE_LAB.getState().stats.playedMs');
+    await sleep(1100);
+    var labDelta = await evalJS('MTE_LAB.getState().stats.playedMs') - labSlow;
+    ok(labDelta > 600 && labDelta < 1800, '1x uses normal game seconds (' + labDelta + ' ms)');
+    await evalJS('document.getElementById("labPause").click()');
+    var oldLabSeed = await evalJS('MTE_LAB.getState().seed');
+    await evalJS('document.getElementById("labSpeed").value="max";document.getElementById("labFresh").click()');
+    ok(await waitFor('MTE_LAB.getState().seed !== ' + oldLabSeed), 'new run reserves a different seed');
+    ok(await waitFor('document.getElementById("labHistory").options.length >= 2'), 'previous world retained in archive');
+    for (var lap = 0; lap < 24 && !await evalJS('MTE_LAB.won'); lap++) {
+      await sleep(4000);
+      console.log('  live AUTO viewer: ' + await evalJS('(MTE_LAB.getState().stats.playedMs/3600000).toFixed(2)') + ' game hours');
+      if (pageErrors.length) break;
+    }
+    ok(await evalJS('MTE_LAB.won'), 'fresh world reaches Embark through held AUTO only');
+    ok(await evalJS('MTE_LAB.paused'), 'viewer stops at first win');
+    eq(await evalJS('MTE_LAB.refused'), 0, 'no refused AUTO actions');
+    ok(await evalJS('localStorage.getItem("more-than-enough-save")') === normalSave, 'normal player save is untouched');
+    ok(await evalJS('MTE_LAB.getState().shared === undefined || !MTE_LAB.getState().shared'), 'viewer remains single-player');
+    ok(await evalJS('getComputedStyle(document.getElementById("controls")).display === "none"'), 'manual game controls hidden in spectator');
+    ok(await evalJS('getComputedStyle(document.getElementById("autoplayLab")).backgroundColor !== "rgba(0, 0, 0, 0)"'), 'spectator controls have an opaque panel');
+    for (var viewport of [{width:360,height:740},{width:740,height:360}]) {
+      await cdp.send('Emulation.setDeviceMetricsOverride', {...viewport,deviceScaleFactor:1,mobile:true}, session);
+      await sleep(200);
+      ok(await evalJS('document.getElementById("autoplayLab").getBoundingClientRect().right <= innerWidth && document.getElementById("autoplayLab").getBoundingClientRect().bottom <= innerHeight'), 'controls fit ' + viewport.width + 'x' + viewport.height);
+    }
+    await shot('autoplay-lab-win');
+    ok(pageErrors.length === 0, 'no viewer runtime errors');
+    console.log((failures ? 'LAB BROWSER FAILURES' : 'LAB BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
+  // UI interruption audit, separate from AUTO-only full-game evaluation.
+  if (process.env.MTE_FAIR_ONLY === '1') {
+    console.log('\n== Fair controls: blocked pointer presses and held AUTO pause ==');
+    await cdp.send('Emulation.setDeviceMetricsOverride', { width: 1366, height: 768, deviceScaleFactor: 1, mobile: false }, session);
+    await sleep(300);
+    await evalJS('document.getElementById("btnSettings").click()');
+    ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'settings blocks AUTO');
+    var fairAuto = await rect('#btnPerfect'), fairHand = await rect('#btnAction');
+    ok(await evalJS('document.elementFromPoint('+fairAuto.x+','+fairAuto.y+').closest("#btnPerfect")!==null'), 'wide-screen AUTO remains physically reachable beside the sheet');
+    var fairBefore = JSON.parse(await stateSummary());
+    await hold(fairAuto.x, fairAuto.y, 800);
+    await hold(fairHand.x, fairHand.y, 800);
+    var fairBlocked = JSON.parse(await stateSummary());
+    eq(JSON.stringify(fairBlocked.inv), JSON.stringify(fairBefore.inv), 'blocked pointer presses grant no resources');
+    ok(await evalJS('!document.getElementById("btnPerfect").classList.contains("on")'), 'blocked AUTO press does not latch');
+    await evalJS('document.getElementById("btnClose").click()');
+    await touch('touchStart', [{ x: fairAuto.x, y: fairAuto.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+    await sleep(3500);
+    var fairActive = JSON.parse(await stateSummary());
+    ok(await evalJS('MTE_GAME.getState().stats.gathers>0') || fairActive.x !== fairBefore.x || fairActive.y !== fairBefore.y, 'held AUTO acts or walks while unblocked');
+    await evalJS('document.getElementById("btnSettings").click()');
+    await sleep(150);
+    function fairActivity() { return evalJS('(function(){var s=MTE_GAME.getState();return JSON.stringify({player:s.player,gathers:s.stats.gathers,built:s.stats.built,tools:s.tools,unlocks:s.unlocks,resUp:s.resUp,abundance:s.abundanceLv});})()'); }
+    var fairPaused = await fairActivity();
+    await sleep(700);
+    eq(await fairActivity(), fairPaused, 'opening settings pauses AUTO movement and actions');
+    await evalJS('document.getElementById("btnClose").click()');
+    await sleep(1000);
+    ok(await fairActivity() !== fairPaused, 'closing settings resumes the still-held AUTO input');
+    await touch('touchEnd', []);
+    await sleep(150);
+    var fairReleased = await fairActivity();
+    await sleep(700);
+    eq(await fairActivity(), fairReleased, 'release stops AUTO again');
+    ok(pageErrors.length===0, 'no browser runtime errors during control audit');
+    console.log((failures ? 'FAIR CONTROL BROWSER FAILURES' : 'FAIR CONTROL BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
     process.exit(failures ? 1 : 0);
   }
   // Dedicated smoke for the full-game headless AUTO evaluations. Unlike the
