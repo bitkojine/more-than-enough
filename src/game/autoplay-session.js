@@ -33,6 +33,7 @@ export function createAutoplaySession(seed, seen = () => {}) {
     state,
     get badge() { return auto.badge; },
     get walking() { return controller.walking; },
+    get facing() { return controller.facing; },
     get goal() { return auto.goal; },
     press() { input.perfect = true; auto.press(); },
     release() { input.perfect = false; auto.release(); },

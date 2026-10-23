@@ -256,3 +256,8 @@ Painted work frames have extra transparent canvas below the registered sole
 baseline, so low tool tips remain complete. The renderer derives the drawing
 offset from picture dimensions and that sole baseline; transparent margins
 never lift the feet or change the body scale.
+
+The first eight-direction character release uses bare-character artwork in
+all equipment states; inventory and interactions retain earned equipment.
+Walking faces actual movement, actions face targets, and stopping retains
+facing. Tool and carrying illustrations are deferred for this initial release.

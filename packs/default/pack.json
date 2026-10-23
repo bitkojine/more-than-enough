@@ -786,6 +786,30 @@
     ],
     "fps": 24
    }
+  },
+  "character.directionN": {
+   "image": "characters/directions/n.svg"
+  },
+  "character.directionNE": {
+   "image": "characters/directions/ne.svg"
+  },
+  "character.directionE": {
+   "image": "characters/directions/e.svg"
+  },
+  "character.directionSE": {
+   "image": "characters/directions/se.svg"
+  },
+  "character.directionS": {
+   "image": "characters/directions/s.svg"
+  },
+  "character.directionSW": {
+   "image": "characters/directions/sw.svg"
+  },
+  "character.directionW": {
+   "image": "characters/directions/w.svg"
+  },
+  "character.directionNW": {
+   "image": "characters/directions/nw.svg"
   }
  }
 }

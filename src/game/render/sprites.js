@@ -5,6 +5,8 @@
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
 import { pose } from './motion.js';
+import { characterDirection } from './character-direction.js';
+import { directionalFrame } from './directional-art.js';
 import { characterSprite, characterFrame } from './character-sprite.js';
 
 const TAU = Math.PI * 2;
@@ -63,7 +65,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
-    x: p.x, sx, sy, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
+    x: p.x, sx, sy, direction:characterDirection(view.facing), flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
     device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal
   });
 }
@@ -72,7 +74,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // picture posed for what they're doing (see motion.js), with what they hold
 // and any tool in hand. `nod` tips them forward a little more (dozing).
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
   const u = cam.tilePx;
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
   const planted=appearance.actionProgress==null&&(!moving||water||actor.walking===false);
@@ -80,7 +82,17 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   const walk = look.frames(appearance.id,planted&&hasStand?'stand':'image');
   const time=actor.clock??s.time;
   const frame=characterFrame(appearance,walk,actor,{moving,water,time});
-  const body = walk.pics[frame];
+  let body = walk.pics[frame];
+  // First directional release is deliberately the unequipped figure, even
+  // when earned tools exist. Inventory and rules retain all earned equipment.
+  const baseDirectional=direction&&!device&&!look.custom;
+  const stepping=moving&&!water&&actor.walking!==false;
+  if(baseDirectional)body=look.frames('character.direction'+direction.toUpperCase(),'image').pics[0];
+  const directional=baseDirectional&&stepping?look.directional?.get('bare','walk',direction):null;
+  if(directional){
+    const progress=actor.stride??0;
+    body=directionalFrame(directional,progress);
+  }
   const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
   // Painted poses already contain the lean and foot placement. Do not stack
   // the old icon-puppet bob/rotation on them or planted feet drift.
@@ -94,8 +106,10 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   if (p.clip) { ctx.beginPath(); ctx.rect(sx - u * 2, feet - u * 4, u * 4, u * 4); ctx.clip(); }
   ctx.translate(fx, fy);
   ctx.rotate(rot);
-  const facing = !appearance.composed&&p.turn ? !flip : flip;
-  const pictureHeight = standWithHeld(ctx, look, body, device, 0, appearance.composed&&!look.overrides(appearance.id)?u*(body.units*body.aspect-71/64):0, u, facing);
+  const facing = baseDirectional?false:!appearance.composed&&p.turn ? !flip : flip;
+  const offsetX=directional?u*(body.units/2-body.root[0]/(body.scale*64)):0;
+  const offsetY=directional?u*(body.units*body.aspect-body.root[1]/(body.scale*64)):appearance.composed&&!look.overrides(appearance.id)?u*(body.units*body.aspect-71/64):0;
+  const pictureHeight = standWithHeld(ctx, look, body, device, offsetX,offsetY,u,facing);
   const tall=appearance.composed?u*60/64:pictureHeight;
   if(!appearance.composed&&p.tool&&(!equipment||equipment[p.tool.kind]>0))drawTool(ctx,look,body,u,p.tool,facing?-1:1,equipment?.[p.tool.kind]??1);
   ctx.restore();

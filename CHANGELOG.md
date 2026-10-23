@@ -1,13 +1,25 @@
 # Changelog
 
-## Unreleased — character art tooling
+## [0.138.0] - 2026-10-23
+
+### Changed
+- First eight-direction bare character: 128 original walk drawings and eight
+  separate standing poses. Movement, gathering, collection and construction
+  face their actual movement/target; stopping retains facing.
+- Walk atlases load on demand with bounded decoding and memory caching; atlas
+  rectangles draw directly without allocating per-frame scaled bitmap caches.
+- Equipment and carrying artwork are deferred for this first release at the
+  owner's request. Earned equipment, saves and game rules remain intact.
+- Added reproducible atlas packaging and browser coverage of all eight views.
+
+### Production tooling
 
 - Confirmed complete frame-by-frame sprites in eight directions, with movement
   and actual action targets determining facing. Added a draft turnaround and
   versioned production manifest covering the first 216 directional clips.
 - Added reference-bound prompts and fast checks for coverage, source checksums,
   anchors, body scale, distinct drawings, contact frames and stale reviews.
-  Existing gameplay artwork is unchanged; new directional clips are unfinished.
+  Full directional equipment and work-animation coverage remains unfinished.
 
 
 ## [0.137.0] - 2026-10-23

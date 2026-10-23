@@ -287,6 +287,41 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
+  if(process.env.MTE_DIRECTION_ONLY==='1'){
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1200,height:900,deviceScaleFactor:1,mobile:false},session);
+    const review=await evalJS(`(async()=>{
+      const {drawPlayer}=await import('./src/game/render/sprites.js');
+      const dirs=['n','ne','e','se','s','sw','w','nw'],vectors=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
+      const look=MTE_GAME.look,base=MTE_GAME.getState();
+      const clips=await Promise.all(dirs.map(d=>look.directional.load('bare','walk',d)));
+      const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=900;
+      canvas.style='position:fixed;inset:0;z-index:99999;width:1200px;height:900px';document.body.append(canvas);
+      const g=canvas.getContext('2d');g.fillStyle='#252b2b';g.fillRect(0,0,1200,900);g.font='18px system-ui';
+      let count=0;const frames=[];
+      for(let phase=0;phase<16;phase++){g.fillStyle='#252b2b';g.fillRect(0,0,1200,900);
+      for(let i=0;i<8;i++){
+        const clip=clips[i];if(!clip||clip.pics.length!==16||new Set(clip.pics.map(p=>p.rect.join(','))).size!==16)throw Error('Missing sixteen-frame direction '+dirs[i]);
+        for(const pic of clip.pics){const b=look.bitmap(pic,160),data=b.getContext('2d').getImageData(0,0,b.width,b.height).data;
+          if(!data.some((n,j)=>j%4===3&&n>128))throw Error('Empty direction '+dirs[i]);if(phase===0)count++;}
+        const x=150+(i%4)*300,y=360+Math.floor(i/4)*420;
+        g.fillStyle='#eee8db';g.fillText(dirs[i].toUpperCase()+' — rest / walk',x-115,y-270);
+        const state={...base,emptyStart:true,player:{x:.5,y:.5,z:0},tools:{basket:0,pickaxe:0,boots:0,overclock:0},cultivation:null};
+        for(let col=0;col<2;col++){
+          const sx=x-65+col*130;g.strokeStyle='#718079';g.beginPath();g.moveTo(sx-55,y+1);g.lineTo(sx+55,y+1);g.stroke();
+          drawPlayer(g,{tilePx:128,depthPx:64,z:0,project:()=>({x:sx,y})},state,look,{facing:{x:vectors[i][0],y:vectors[i][1]},moving:!!col,sign:0,device:null,actor:{act:null,t:0,idle:0,clock:0,stride:phase/16,walking:!!col}});
+        }
+      }
+      frames.push(canvas.toDataURL('image/png').split(',')[1]);}
+      return {count,stats:look.directional.stats,frames};
+    })()`);
+    eq(review.count,128,'all eight directions decode sixteen raster frames');
+    eq(review.stats.errors.length,0,'no atlas loading errors');
+    ok(review.stats.bytes<=64*1024*1024,'decoded atlases stay within memory budget');
+    await shot('eight-direction-character.png');
+    if(process.env.MTE_RECORD_MOTION==='1'){fs.mkdirSync(path.join(SHOT_DIR,'motion-frames'),{recursive:true});review.frames.forEach((f,i)=>fs.writeFileSync(path.join(SHOT_DIR,'motion-frames',String(i).padStart(3,'0')+'.png'),Buffer.from(f,'base64')));}
+    eq(pageErrors.length,0,'no directional renderer errors');
+    console.log((failures?'DIRECTION BROWSER FAILURES':'DIRECTION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_CHARACTER_ONLY==='1'){
     console.log('\n== Painted character: whole-figure poses at gameplay scales ==');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1600,height:1700,deviceScaleFactor:1,mobile:false},session);

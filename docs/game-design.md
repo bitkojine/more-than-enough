@@ -220,10 +220,14 @@ must be registered explicitly. Idle/action targets start at 12 drawings and
 walking/construction at 16; these are minimum authoring targets, not proof of
 smoothness. Existing eight-frame side-view artwork remains legacy coverage.
 
-Current boundary: the first eight-view reference is a draft, and no full new
-directional clip has been accepted. The current game still draws side views.
-The remaining work is reference refinement, full directional drawing/review,
-streamed clip playback and action-target facing integration. Audit found that
-some controller paths already retain a target-facing vector, while generic
-Gather/collection/build feedback needs consistent target propagation. Do not
-claim eight-direction gameplay until both art and those runtime paths work.
+Current boundary (0.138.0): the owner approved shipping the bare character
+first, deferring tools and carrying artwork. All eight views have sixteen
+walking drawings and a separate static rest pose, using turnaround-v2.png.
+Actions turn toward actual targets but full directional work animations and
+animated idles remain unfinished. Earned equipment and all game rules remain
+intact. Custom packs and legacy device presentation retain their compatibility
+renderer. This is the existing game, with no separate playable prototype.
+
+Atlases load only when needed, through a bounded decoder queue and 64 MiB
+cache. Walking uses actual travelled distance; presentation never advances
+simulation time. The full 216-clip production goal is still incomplete.

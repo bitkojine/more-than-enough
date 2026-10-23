@@ -48,6 +48,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // nothing: its clods are tossed aside and it says +0, so digging through it
   // reads as clearing the way, not as gathering that failed.
   function harvested(r) {
+    faceTile(r.x,r.y);
     actor.act(r.res === 'mycelium' || state().tools.pickaxe === 0 ? 'pick' : 'swing');
     fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
     if (r.found) {
@@ -70,11 +71,14 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     audio.dig();
   }
 
-  function collectNearby() {
+  function collectNearby(at=null) {
     const got = Core.collect(state());
     if (!got) return false;
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
     for (const r of Object.keys(got.gained)) tally(r, got.gained[r]);
+    const sources=got.sources;
+    const target=at&&sources.find(p=>p.x===at.x&&p.y===at.y)||sources.reduce((best,p)=>!best||Core.tileDist2(player(),p.x,p.y,player().z)<Core.tileDist2(player(),best.x,best.y,player().z)?p:best,null);
+    if(target)faceTile(target.x,target.y);
     actor.act('collect');
     audio.collect();
     changed();
@@ -91,7 +95,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // but takes a better tool (the player is told which), else false.
   function workAt(tx, ty) {
     const near = Core.collectTarget(state());
-    if (near && near.list.some((e) => e.x === tx && e.y === ty)) { faceTile(tx, ty); return collectNearby(); }
+    if (near && near.list.some((e) => e.x === tx && e.y === ty)) { faceTile(tx, ty); return collectNearby({x:tx,y:ty}); }
     const r = Core.harvestAt(state(), tx, ty);
     if (r) { faceTile(tx, ty); harvested(r); changed(); return true; }
     const gear = Core.gearBlocks(state(), tx, ty);
@@ -158,6 +162,15 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   const controller = {
     facing: { x: 0, y: 1 },
     checkGoals,
+    cultivation(cmd){
+      const result=Core.cultivationCommand(state(),cmd);
+      if(['ok','discovery','activated'].includes(result)){
+        faceTile(cmd.x??Math.floor(player().x),cmd.y??Math.floor(player().y));
+        const action={build:'build',repair:'build',reinforce:'build',craft:'build',collect:'collect',store:'collect',shutter:'collect',shade:'collect',lantern:'collect',plant:'pick',tend:'pick',starter:'pick',activate:'cheer'}[cmd.type];
+        if(action)actor.act(action);
+      }
+      return result;
+    },
 
     // Moves by the input vector, or else toward a tapped destination.
     // Returns true if the player moved.
@@ -168,7 +181,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         walkTo = null;
         Core.move(state(), dir.x, dir.y, dt);
         if (Core.waterAhead(state(), dir.x, dir.y)) needsGear({ tool: 'boots', level: Core.GEAR.water });
-        controller.facing = dir;
+        if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
         // Underground, pushing into rock digs it.
         const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
         if (dug) { harvested(dug); changed(); }
@@ -183,7 +196,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         else {
           Core.move(state(), dx, dy, Math.min(dt, d / Core.walkSpeed(state()))); // never past it
           if (Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
-          controller.facing = { x: dx, y: dy };
+          if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
           // Finish on the tick that arrives, so AUTO can choose its next
           // step immediately instead of spending another tick standing still.
           if (walkTo && !walkTo.work && Math.hypot(walkTo.x - p.x, walkTo.y - p.y) < ARRIVE_DIST) walkTo = null;
@@ -262,12 +275,12 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (!points) return;
       const s = state();
       const below = Core.isUnderground(s);
-      let count = 0;
+      let count = 0,lastTarget=null;
       const gathered = {};
       for (const t of Core.sweepTargets(s, points)) {
         const r = Core.harvestAt(s, t.x, t.y);
         if (!r) continue;
-        count++;
+        count++;lastTarget=t;
         if (below) harvested(r);
         else if (r.amount > 0) {
           fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
@@ -277,6 +290,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         }
       }
       if (!count) return;
+      if(lastTarget)faceTile(lastTarget.x,lastTarget.y);
       if (!below) actor.act(gathered.mycelium || state().tools.pickaxe === 0 ? 'pick' : 'swing');
       for (const res of Object.keys(gathered)) tally(res, gathered[res]);
       changed();
@@ -303,6 +317,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const s = state();
       const res = Core.placeProp(s, kind);
       if (!res.ok) return false;
+      faceTile(res.x,res.y);
       fx.built(res.x, res.y);
       actor.act('build');
       audio.build();
@@ -315,6 +330,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const s = state();
       const res = Core.place(s, key, at);
       if (!res.ok) return false;
+      faceTile(res.x,res.y);
       fx.built(res.x, res.y);
       actor.act('build');
       audio.build();

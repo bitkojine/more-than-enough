@@ -130,7 +130,7 @@ export async function startAutoplayLab({ el, look }) {
       if (session) {
         const s = session.state;
         hud.update(s); hud.updateButtons(s); hud.tick(elapsed); yard.update(s,elapsed);
-        render(cam,s,fx,{facing:{x:0,y:1},moving:!paused,actor:actor.view(!paused,s.player),yard,
+        render(cam,s,fx,{facing:session.facing,moving:!paused,actor:actor.view(!paused,s.player),yard,
           harvestTarget:null,auto:paused?'':t('button.perfect'),buildTargets:[],trail:null,trailTargets:[],underground:Core.isUnderground(s),
           joy:{active:false},friends:[],graves:[],me:null,sign:0,device:'laptop'},look);
         status.textContent = failure || t('lab.status',{ seed:s.seed, time:fmtDuration(s.stats.playedMs/1000), speed:Math.round(measured),

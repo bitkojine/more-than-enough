@@ -1,12 +1,14 @@
 {
   "format": 1,
   "model": {
-    "id": "orange-wanderer-v1",
-    "reference": "art/characters/turnaround-v1-draft.png",
-    "sha256": "95ba184caab53bc126c76a11e2e87df6a1e1b56b2c4fecbbe817e16d96aaab9f",
+    "id": "orange-wanderer-v2",
+    "reference": "art/characters/turnaround-v2.png",
+    "sha256": "d26f3fcfa52c29aed32488b993a33921a9b99567c6f2f83536360928c3ffc81a",
     "review": {
-      "status": "draft",
-      "notes": "First eight-view turnaround; inspect directional separation, proportions and camera before accepting animation batches."
+      "status": "accepted",
+      "by": "Codex visual review",
+      "sourceSha": "d26f3fcfa52c29aed32488b993a33921a9b99567c6f2f83536360928c3ffc81a",
+      "notes": "Eight distinct views reviewed against the existing orange wanderer; limited bare-character first release. Full action/loadout production remains unfinished."
     },
     "bodyHeight": 60,
     "heightTolerance": 2,
@@ -124,5 +126,12 @@
       "e"
     ],
     "westIsMirrored": true
+  },
+  "firstRelease": {
+    "version": "0.138.0",
+    "scope": "Bare character only: sixteen walk drawings and one static rest pose per direction. Tools, cargo, directional work and animated idle remain deferred.",
+    "sources": "art/characters/directional/clips.json",
+    "runtime": "packs/directional/index.json",
+    "fullProductionAcceptance": false
   }
 }

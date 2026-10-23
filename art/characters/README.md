@@ -6,8 +6,17 @@ attached inventory pictures is not the production target.
 
 `production.json` is the new production contract. `animation.json` and the
 older packers reproduce the currently shipped east-facing art; they do not
-provide eight-direction coverage. The first turnaround is deliberately a draft.
-No new directional clips have been accepted yet.
+provide eight-direction coverage. The initial turnaround remains as a draft for provenance. The first release
+uses turnaround-v2.png and the bare eight-direction walks in directional/.
+The owner explicitly approved this limited release without tools: eight
+16-frame walk clips and eight static rest poses. It does not satisfy the full
+216-clip production matrix or the animated-idle/action requirements.
+
+Run `node scripts/pack-directional-character.mjs` to reproduce these assets.
+`directional/clips.json` records sources, checksums and playback
+metadata. Only the root anchor is used by this bare-character renderer; hand
+anchor placeholders are not accepted equipment-contact authoring. Walk clips
+use one scale per source sheet, never a different scale for each frame.
 
 ## Authoring order
 
@@ -70,9 +79,8 @@ the previous direction. Batch collection needs an explicit representative
 actual source, not the nearest hidden object. Animation never changes rules,
 resource amounts, timing, position or visibility.
 
-Future directional playback must use a constant-time indexed clip lookup and
+Directional playback uses a constant-time indexed clip lookup and
 load/cache bounded direction/loadout chunks. Never embed all thousands of
-frames into the startup pack or decode them per tick. The existing side-facing
-renderer remains in use until accepted directional clips and their runtime
-adapter are integrated. Missing coverage must remain visible to developers;
+frames into the startup pack or decode them per tick. The side-facing renderer remains for custom packs and legacy device
+compatibility. Missing coverage must remain visible to developers;
 it must never be labelled complete by counting mirrored east artwork as north.

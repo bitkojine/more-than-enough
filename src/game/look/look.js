@@ -224,7 +224,8 @@ export function createLook() {
         c.height = Math.max(1, Math.round(bucket * pic.aspect));
         const g = c.getContext('2d');
         g.imageSmoothingEnabled = !pic.pixelated;
-        g.drawImage(pic.img, 0, 0, c.width, c.height);
+        if(pic.rect)g.drawImage(pic.img,...pic.rect,0,0,c.width,c.height);
+        else g.drawImage(pic.img, 0, 0, c.width, c.height);
         pic.cache.set(bucket, c);
       }
       return c;
@@ -232,6 +233,7 @@ export function createLook() {
 
     // Draws a picture into a rectangle.
     draw(ctx, pic, x, y, w, h) {
+      if(pic.rect){ctx.drawImage(pic.img,...pic.rect,x,y,w,h);return;}
       if (pic.pixelated) ctx.imageSmoothingEnabled = false;
       ctx.drawImage(look.bitmap(pic, w), x, y, w, h);
       if (pic.pixelated) ctx.imageSmoothingEnabled = true;
