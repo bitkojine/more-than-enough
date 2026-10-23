@@ -415,10 +415,10 @@
   "character.wanderer": {
    "image": {
     "frames": [
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-1.svg",
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-2.svg"
+     "characters/painted/idle.svg",
+     "characters/painted/walk-a.svg",
+     "characters/painted/idle.svg",
+     "characters/painted/walk-b.svg"
     ],
     "fps": 8
    }
@@ -661,6 +661,76 @@
     "cultivation/lantern-off.svg",
     "cultivation/lantern.svg"
    ]
+  },
+  "character.legacyWanderer": {
+   "image": {
+    "frames": [
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-1.svg",
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-2.svg"
+    ],
+    "fps": 8
+   }
+  },
+  "character.worker": {
+   "image": {
+    "frames": [
+     "characters/painted/worker-idle.svg",
+     "characters/painted/worker-walk-a.svg",
+     "characters/painted/worker-idle.svg",
+     "characters/painted/worker-walk-b.svg"
+    ],
+    "fps": 8
+   }
+  },
+  "character.courier": {
+   "image": {
+    "frames": [
+     "characters/painted/courier-idle.svg",
+     "characters/painted/courier-walk-a.svg",
+     "characters/painted/courier-idle.svg",
+     "characters/painted/courier-walk-b.svg"
+    ],
+    "fps": 8
+   }
+  },
+  "character.specimen": {
+   "image": {
+    "frames": [
+     "characters/painted/starter-idle.svg",
+     "characters/painted/starter-walk-a.svg",
+     "characters/painted/starter-idle.svg",
+     "characters/painted/starter-walk-b.svg"
+    ],
+    "fps": 8
+   }
+  },
+  "character.lamplighter": {
+   "image": {
+    "frames": [
+     "characters/painted/lantern-idle.svg",
+     "characters/painted/lantern-walk-a.svg",
+     "characters/painted/lantern-idle.svg",
+     "characters/painted/lantern-walk-b.svg"
+    ],
+    "fps": 8
+   }
+  },
+  "character.miner": {
+   "image": {
+    "frames": [
+     "characters/painted/mine-windup.svg",
+     "characters/painted/mine-strike.svg"
+    ],
+    "fps": 6
+   }
+  },
+  "character.forager": {
+   "image": "characters/painted/gather.svg"
+  },
+  "character.bareForager": {
+   "image": "characters/painted/gather-bare.svg"
   }
  }
 }

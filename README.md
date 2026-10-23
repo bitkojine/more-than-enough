@@ -111,7 +111,7 @@ The game defines what exists and what it does; a **texture pack** defines what
 it looks like. `src/core/catalog.js` lists every thing in the game (tiles,
 resources, buildings, the wanderer, buttons, upgrades, colours) with the
 slots a pack can fill, and `packs/default/` (Lanternlight) draws all of it as
-hand-written SVG. Players load their own pack from the sheet (Textures); the
+SVG world art and generated raster character poses. Players load their own pack from the sheet (Textures); the
 format is documented in the wiki's **Texture packs** article, and **Everything
 in the game** lists the catalog with its default pictures.
 
@@ -417,3 +417,10 @@ node scripts/cultivation-playtest.mjs ../.mte-cultivation-playtests
 The runner reserves a new seed, starts empty-handed and records its commands,
 clock advances, milestones, pre-activation checkpoint and completed save outside
 the repository. It uses observed terrain and never grants resources or teleports.
+
+Character raster sources live in `art/characters/`. With ImageMagick installed,
+`node scripts/pack-character-art.mjs` extracts the authored figures, registers
+feet/scale and encodes the production WebP textures. Size-preserving SVG image
+containers keep the existing texture-pack loader compatible; the character
+artwork inside them is raster, not a vector redraw. Review real rendering with
+`MTE_CHARACTER_ONLY=1 npm run test:e2e` (set `CHROME_PATH` when needed).

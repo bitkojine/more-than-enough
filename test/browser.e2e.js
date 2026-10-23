@@ -287,6 +287,37 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
+  if(process.env.MTE_CHARACTER_ONLY==='1'){
+    console.log('\n== Painted character: whole-figure poses at gameplay scales ==');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1600,height:1700,deviceScaleFactor:1,mobile:false},session);
+    const review=await evalJS(`(async()=>{
+      const {drawPlayer}=await import('./src/game/render/sprites.js');const c=MTE_GAME.core,look=MTE_GAME.look;
+      const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=1700;canvas.style='position:fixed;inset:0;z-index:99999;width:1600px;height:1700px';document.body.append(canvas);
+      const g=canvas.getContext('2d');g.fillStyle='#252b2b';g.fillRect(0,0,1600,1700);g.fillStyle='#eee8db';g.font='26px Georgia';g.fillText('MORE THAN ENOUGH — production character review',35,40);g.font='14px system-ui';g.fillStyle='#a9b8b1';g.fillText('Actual renderer · native scale / close view · both facings · walking contacts · no equipment icon layers',35,68);
+      const gear={basket:2,pickaxe:3,boots:2,overclock:0};
+      const cases=[['Empty-handed',{},null,null],['Fieldwork',gear,null,null],['Mining',gear,{act:'swing',t:.16,idle:0},null],['Bare gathering',{}, {act:'pick',t:.2,idle:0},null],['Gathering',gear,{act:'pick',t:.2,idle:0},null],['Sealed transport',gear,null,{gear:{carrier:true},starter:{health:100}}],['Exposed starter',gear,null,{gear:{carrier:false},starter:{health:100}}],['Lantern',gear,null,{gear:{lantern:true},lantern:true}]];
+      let waterAt={x:20,y:20};outer:for(let y=-70;y<70;y++)for(let x=-70;x<70;x++)if(c.TILE_INFO[c.tileAt(MTE_GAME.getState().world,x,y,0)].swim){waterAt={x,y};break outer;}
+      const columns=[['Small →',40,false,false,0],['Idle ←',64,false,true,0],['Stride A',64,true,false,.125],['Stride B',64,true,false,.375],['Close →',128,false,false,0],['Close ←',128,true,true,.125],['Boat deck',64,false,false,0]];
+      for(let col=0;col<columns.length;col++){g.fillStyle='#b9c9c1';g.fillText(columns[col][0],185+col*190,106);}
+      for(let row=0;row<cases.length;row++){
+        const[label,tools,actor,cargo]=cases[row];const top=125+row*190;
+        g.fillStyle=row%2?'#343b37':'#51493e';g.fillRect(25,top,1550,180);g.fillStyle='#eee8db';g.fillText(label,38,top+24);
+        for(let col=0;col<columns.length;col++){
+          const[,u,moving,flip,time]=columns[col],x=220+col*190,y=top+162;
+          const state={...MTE_GAME.getState(),time,emptyStart:true,player:{x:col===6?waterAt.x+.5:.5,y:col===6?waterAt.y+.5:.5,z:0},tools:{basket:0,pickaxe:0,boots:0,overclock:0,...tools},cultivation:cargo,inv:{mycelium:0,stone:0,ore:0,crystal:0}};
+          const cam={tilePx:u,depthPx:u*.5,z:0,project:()=>({x,y})};
+          g.strokeStyle='#718079';g.lineWidth=1;g.beginPath();g.moveTo(x-55,y+1);g.lineTo(x+55,y+1);g.stroke();
+          drawPlayer(g,cam,state,look,{facing:{x:flip?-1:1,y:0},moving,sign:0,device:null,actor:actor?{...actor,t:row===2&&col===2?.03:actor.t}:{act:null,t:0,idle:0}});
+        }
+      }
+      const ids=['wanderer','worker','miner','forager','courier','specimen','lamplighter','bareForager'];let pictures=0;
+      for(const id of ids)for(const pic of look.frames('character.'+id,'image').pics){const bitmap=look.bitmap(pic,160);const data=bitmap.getContext('2d').getImageData(0,0,bitmap.width,bitmap.height).data;if(!data.some((n,i)=>i%4===3&&n>128))throw Error('Empty raster sprite: '+id);pictures++;}
+      return pictures;
+    })()`);
+    ok(review>=18,'all production poses contain rendered pixels');await shot('character-contact-sheet.png');
+    eq(pageErrors.length,0,'no character renderer errors');
+    console.log((failures?'CHARACTER BROWSER FAILURES':'CHARACTER BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_ART_ONLY==='1'){
     console.log('\n== Win-path art: original renderer and sheets ==');
     await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();

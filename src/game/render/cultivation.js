@@ -28,14 +28,11 @@ export function drawCultivation(ctx,cam,s,look,b){
  ctx.restore();
  if(b.kind==='conduit')for(const id of [b.from,b.to]){const other=s.cultivation.facilities.find(a=>a.id===id);if(other&&Core.isExplored(s.world,other.x,other.y,other.z))chalkLine(ctx,p,cam.project(other.x+.5,other.y+.5,other.z));}
 }
-export function drawCrystalCargo(ctx,cam,s,look){
- const c=s.cultivation;if(!c)return;const p=cam.project(s.player.x,s.player.y,s.player.z),u=cam.tilePx;
- if(c.gear.lantern)look.stand(ctx,look.level(Core.CULTIVATION_LOOK.lantern,c.lantern?1:0),p.x+u*.3,p.y-u*.15,u*.28);
- if(c.gear.carrier||c.starter||s.inv.crystal>0){
-  const quality=c.starter?.health??c.quality;
-  const id=c.gear.carrier?Core.CULTIVATION_LOOK.carrier:'resource.crystal',slot=c.gear.carrier?'image':'icon';
-  const pic=c.gear.carrier?look.level(id,c.starter||s.inv.crystal>0?1:0):look.pick(id,slot);
-  look.stand(ctx,pic,p.x-u*.3,p.y-u*.15,u*.3);
-  if(c.starter||s.inv.crystal>0){ctx.fillStyle='#172328';ctx.fillRect(p.x-u*.5,p.y-u*.65,u*.4,u*.06);ctx.fillStyle=quality<35?'#ffc09c':'#c1cef5';ctx.fillRect(p.x-u*.5,p.y-u*.65,u*.4*quality/100,u*.06);}
- }
+// Condition feedback follows the same posed head anchor as the figure.
+// The capsule/crystal itself is painted into the selected carrying pose.
+export function drawCrystalCargo(ctx,cam,s,look,character){
+ const c=s.cultivation;if(!c||!character||(!c.starter&&s.inv.crystal<=0))return;
+ const quality=c.starter?.health??c.quality,u=cam.tilePx,x=character.x-u*.2,y=character.top-u*.12;
+ ctx.fillStyle='#172328';ctx.fillRect(x,y,u*.4,u*.06);
+ ctx.fillStyle=quality<35?'#ffc09c':'#c1cef5';ctx.fillRect(x,y,u*.4*quality/100,u*.06);
 }

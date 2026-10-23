@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.135.1": "Nauji kreidos ir skalūno piešiniai lydi visą atkūrimo kelią: rinkimą, įrankius, aušinimą, kristalų apsaugą ir mašiną. Kiekviena įrankio pakopa ir mašinos atkūrimo etapas turi savitą fizinę išvaizdą.",
+  "news.0.135.0": "Atkurk tris fizines mašinos dalis, laikyk jų kristalus vėsiai ir sandariai, tada paleisk mašiną ir užbaik pasaulį. Užbaigti pasauliai lieka archyve, o naujas prasideda tuščiomis rankomis. Kristalų pernešimas ir ankstesni suapvalinti išsaugojimai dabar atkuriami saugiai.",
+
   "news.0.134.1": "Visi vieno žaidėjo pasauliai naudoja įprastą išsaugojimą, archyvą ir atsarginių kopijų importą. Senos eksperimentinės nuorodos pašalintos; ankstesnius pasaulius vis dar galima atkurti.",
   "news.0.134.0": "Pažįstamas pasaulis dabar veda į gelmes: metalo kasyba, vėsios tamsios kristalų kameros, apsaugotas pernešimas ir pirmas mašinos atkūrimas. Nauji pasauliai prasideda tuščiomis rankomis; ankstesni išsaugoti.",
 

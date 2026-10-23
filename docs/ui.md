@@ -213,8 +213,25 @@ show empty and holding crystal. Material emblems remain readable when sealed.
 Early picks use stone and mycelium bindings, early boots use woven fibre with
 later stone reinforcement; metal appears only at tiers whose recipes include it.
 Baskets retain fibre/stone construction throughout their current recipe chain.
-Every basket/pick/boot purchase tier changes physical hardware; Upgrade previews
-the next tier, held tools show the owned tier, and purchased baskets/boots remain
-visible on the original character. Empty-handed characters show neither.
+Every basket/pick/boot purchase tier has distinct inventory artwork; Upgrade
+previews the next tier. The character uses generated full-figure raster poses,
+not those inventory icons. Context selects fieldwork, mining, gathering, carrying
+or lantern use; only earned equipment and actual cargo select those poses.
+Bare-handed gathering has its own pose. The current painted body sets cover
+the stone-tool restoration route; later equipment body variations remain work.
 All sprites stay in the normal texture-pack loader/raster cache. Optional tool
 `stages` run from crafted level 2 upward; single-icon overrides remain respected.
+
+### Character presentation
+The original orange-hooded identity remains. Production poses are generated
+raster artwork, authored as complete figures with grips, sleeves, straps and
+feet; the PNG masters live in `art/characters/`. All frames share world scale
+and a registered sole baseline. The renderer mirrors the whole figure and
+uses the same actor/boat transform for the figure and its cargo feedback.
+Walking and working artwork already includes body lean; do not add the former
+icon-puppet bob/rotation on top. Exposed starters and sealed capsules are painted
+in the hands, rather than drawn independently in world space. Active action or
+cargo takes visual priority; showing every inventory item at once is avoided.
+Custom body overrides keep their own silhouette. Device-holding legacy worlds
+retain the compatible original body/hand alignment. Review the actual renderer
+at small and close scales, both facings, stride contacts, actions and boat deck.

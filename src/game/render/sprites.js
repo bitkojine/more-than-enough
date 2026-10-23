@@ -5,6 +5,7 @@
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
 import { pose } from './motion.js';
+import { characterSprite } from './character-sprite.js';
 
 const TAU = Math.PI * 2;
 
@@ -63,7 +64,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
     x: p.x, sx, sy, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
-    device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools
+    device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal
   });
 }
 
@@ -71,36 +72,30 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // picture posed for what they're doing (see motion.js), with what they hold
 // and any tool in hand. `nod` tips them forward a little more (dozing).
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
   const u = cam.tilePx;
-  const walk = look.frames('character.wanderer', 'image');
-  const frame = moving && walk.pics.length > 1 ? 1 + Math.floor(s.time * (walk.fps || 6)) % (walk.pics.length - 1) : 0;
+  const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
+  const walk = look.frames(appearance.id, 'image');
+  const frame=appearance.actionFrame!==null&&appearance.actionFrame!==undefined?Math.min(appearance.actionFrame,walk.pics.length-1):
+    moving&&walk.pics.length>1?(appearance.composed?Math.floor(s.time*(walk.fps||8))%walk.pics.length:1+Math.floor(s.time*(walk.fps||6))%(walk.pics.length-1)):0;
   const body = walk.pics[frame];
   const p = pose(actor, { moving, boat: water, steady, time: s.time, seed, equipment });
+  // Painted poses already contain the lean and foot placement. Do not stack
+  // the old icon-puppet bob/rotation on them or planted feet drift.
+  if(appearance.composed&&(!actor.act||['swing','pick','build'].includes(actor.act))){p.dy=0;p.rot=water?p.rock:0;}
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
-  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
+  if (!deck) shadow(ctx, cam, sx, sy, (appearance.composed?.625:body.units) * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
   const dir = flip ? -1 : 1, feet = sy - deck;
   const fx = sx + p.dx * u * dir, fy = feet + p.dy * u, rot = (p.rot + nod) * dir;
   ctx.save();
   if (p.clip) { ctx.beginPath(); ctx.rect(sx - u * 2, feet - u * 4, u * 4, u * 4); ctx.clip(); }
   ctx.translate(fx, fy);
   ctx.rotate(rot);
-  const facing = p.turn ? !flip : flip;
-  if(equipment?.pickaxe>0&&p.tool?.kind!=='pickaxe'){
-    const pick=look.level('tool.pickaxe',Math.max(0,equipment.pickaxe-2),'icon');
-    look.draw(ctx,pick,(facing?-1:1)*u*.16-u*.19,-u*.76,u*.38,u*.38);
-  }
-  const tall = standWithHeld(ctx, look, body, device, 0, 0, u, facing);
-  if(equipment?.boots>0){
-    const boots=look.level('tool.boots',Math.max(0,equipment.boots-2),'icon');
-    look.draw(ctx,boots,-u*.17,-u*.17,u*.34,u*.22);
-  }
-  if(equipment?.basket>0&&p.tool?.kind!=='basket'){
-    const basket=look.level('tool.basket',Math.max(0,equipment.basket-2),'icon');
-    look.draw(ctx,basket,(facing?1:-1)*u*.18-u*.15,-u*.48,u*.3,u*.3);
-  }
-  if (p.tool && (!equipment || equipment[p.tool.kind] > 0)) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1, equipment?.[p.tool.kind]??1);
+  const facing = !appearance.composed&&p.turn ? !flip : flip;
+  const pictureHeight = standWithHeld(ctx, look, body, device, 0, appearance.composed?u/64:0, u, facing);
+  const tall=appearance.composed?u*60/64:pictureHeight;
+  if(!appearance.composed&&p.tool&&(!equipment||equipment[p.tool.kind]>0))drawTool(ctx,look,body,u,p.tool,facing?-1:1,equipment?.[p.tool.kind]??1);
   ctx.restore();
   const sin = Math.sin(rot), cos = Math.cos(rot);
   return { x: fx + sin * tall, top: fy - cos * tall, foot: fy, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
@@ -235,7 +230,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const flip = facesLeft(f);
   const water = Core.swimsAt(s.world, f.x, f.y, cam.z);
   if (f.st === 'offline') {
-    const body = look.frames('character.wanderer', 'image').pics[0];
+    const body = look.frames(look.overrides('character.wanderer')?'character.wanderer':'character.legacyWanderer', 'image').pics[0];
     const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
     return drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
   }

@@ -76,7 +76,7 @@ export function render(cam, s, fx, view, look) {
     }
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) {you = drawPlayer(ctx, cam, s, look, view);drawCrystalCargo(ctx,cam,s,look);}
+    if (y === playerRow) {you = drawPlayer(ctx, cam, s, look, view);drawCrystalCargo(ctx,cam,s,look,you);}
   });
   for (const f of aloft) friend(f);
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.

@@ -149,6 +149,10 @@ export function createLook() {
       return entry(id, 'color');
     },
 
+    overrides(id, slot = 'image') {
+      return !!over?.slots.get(id)?.[slot];
+    },
+
     has(id, slot) {
       return !!entry(id, slot);
     },

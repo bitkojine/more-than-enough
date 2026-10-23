@@ -2,8 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.135.1": "Nauji kreidos ir skalūno piešiniai lydi visą atkūrimo kelią: rinkimą, įrankius, aušinimą, kristalų apsaugą ir mašiną. Kiekviena įrankio pakopa ir mašinos atkūrimo etapas turi savitą fizinę išvaizdą.",
-  "news.0.135.0": "Atkurk tris fizines mašinos dalis, laikyk jų kristalus vėsiai ir sandariai, tada paleisk mašiną ir užbaik pasaulį. Užbaigti pasauliai lieka archyve, o naujas prasideda tuščiomis rankomis. Kristalų pernešimas ir ankstesni suapvalinti išsaugojimai dabar atkuriami saugiai.",
+  "news.0.136.0": "Oranžinis keliautojas dabar turi tapytas pozas: prigludusią darbo įrangą, taisyklingus žingsnius, kasimą abiem rankomis, rinkimą plikomis rankomis ar į krepšį ir atsargų kristalų nešimą. Pakibusių įrangos ikonų nebėra.",
   "cr.reason.completed": "Šis pasaulis jau užbaigtas.",
   "cr.reason.close": "Pirmiausia uždaryk apsaugines sklendes.",
   "cr.reason.sections": "Pirmiausia atkurk visas mašinos dalis.",

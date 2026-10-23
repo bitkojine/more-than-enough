@@ -141,6 +141,16 @@ for(const [kind,id] of Object.entries(CULTIVATION_LOOK)){
 }
 
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), req('image'));
+for(const [key,name,does] of [
+ ['legacyWanderer','look.character.wanderer','look.character.wanderer.does'],
+ ['worker','look.character.wanderer','cr.goal.start'],
+ ['miner','tool.pickaxe','tool.pickaxe.desc'],
+ ['forager','tool.basket','tool.basket.desc'],
+ ['bareForager','look.character.wanderer','cr.goal.start'],
+ ['courier','cr.carrier','cr.carrier.desc'],
+ ['specimen','cr.wild','cr.goal.plant'],
+ ['lamplighter','cr.lantern','cr.lantern.desc']
+])add('character',key,t(name),t(does),req('image'));
 add('character', 'phone', t('look.character.phone'), t('look.character.phone.does'), req('image', 'color'));
 add('character', 'laptop', t('look.character.laptop'), t('look.character.laptop.does'), req('image', 'color'));
 add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));

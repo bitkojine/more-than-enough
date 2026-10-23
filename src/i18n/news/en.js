@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.135.1": "Fresh chalk-and-slate artwork follows the whole restoration journey: gathering, tools, cooling, crystal handling and the machine. Every crafted tool tier and machine repair has a distinct physical appearance.",
+  "news.0.135.0": "Restore three physical machine sections, keep their crystal cool and sealed, then activate the machine to complete your world. Completed worlds stay archived; the next starts empty-handed. Crystal transfers and earlier rounded saves now reload safely.",
+
   "news.0.134.1": "All solo worlds now share the normal save, archive and backup-import flow. Retired experimental links are gone; earlier worlds remain recoverable.",
   "news.0.134.0": "The existing world now leads underground: metal mining, dark cooled crystal chambers, protected handling and the first machine restoration. New worlds start empty-handed; earlier worlds remain preserved.",
 

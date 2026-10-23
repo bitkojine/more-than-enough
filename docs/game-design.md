@@ -116,7 +116,9 @@ Each repair reveals a clue. Activating all three restored sections with viable c
 
 Existing global refinery/Overclock/Abundance purchases are absent from new-world
 progression but remain preserved in old worlds. The existing basket/pick/footwear
-chains now have distinct physical artwork at every purchased tier; cultivation
+chains have distinct inventory artwork at every purchased tier. Generated
+whole-character raster poses now cover the current stone-tool win route; later
+equipment-specific body variations remain to be expanded. Cultivation
 facilities and all five machine repair/activation states also have dedicated
 chalk-and-slate sprites. AUTO
 and multiplayer are not yet adapted to cultivation; no fair new-model AUTO win

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.136.0] - 2026-10-23
+
+### Changed
+- Generated raster character artwork is used directly for idle/walking,
+  fieldwork, mining, basket and bare-handed gathering, sealed/exposed crystal
+  carrying and lantern use. The orange hood, cloak and familiar identity remain.
+- Equipment is composed into full figures with authored grips and straps.
+  Removed inventory-icon costume layers and independently positioned cargo.
+- Common scale and foot registration keep the walk frames grounded. Painted
+  action poses replace stacked procedural tool rotations; cargo feedback follows
+  the posed character. Existing custom bodies and device-holding worlds retain
+  compatible rendering.
+- Raster source masters and a reproducible packer are included. The first-load
+  budget intentionally increases to 525 KB for the requested 4x raster artwork;
+  request count remains bounded. Inventory tool-tier art is retained; these
+  painted body sets cover the current stone-tool restoration route.
+
+
 ## [0.135.1] - 2026-10-23
 
 ### Changed
