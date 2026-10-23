@@ -436,3 +436,10 @@ manual asset-production step requires ImageMagick. It preserves a common scale
 per sheet and registers figures before WebP encoding. The default character
 `image` slot is the eight-frame moving/working clip; optional `stand` supplies
 resting artwork. The browser character check rejects repeated-frame padding.
+
+Eight-direction frame-by-frame production uses
+[the character production contract](art/characters/README.md).
+`npm run art:check` reports accepted coverage; `-- --complete` is the strict
+completion gate. `npm run art:prompt -- bare walk ne` emits a reference-bound
+prompt. This tooling is separate from the currently shipped side-view clips;
+a valid manifest does not imply directional artwork is complete.

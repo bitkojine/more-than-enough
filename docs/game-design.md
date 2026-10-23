@@ -196,3 +196,34 @@ The fuller 64-drawing animation set intentionally expands startup to about
 1.02 MB compressed within a 1150 KB budget. This is a measured art-quality
 tradeoff; additional clips should use asset streaming before continuing to
 expand the initial pack. Frame decoding remains cached, outside the tick loop.
+
+## Confirmed eight-direction frame-by-frame character production
+
+The owner chose complete frame-by-frame sprites, explicitly accepting the
+large amount of artwork. Keep the existing painted wanderer; do not switch to
+a skeletal puppet, 3D character or icon attachments. Eight directions are
+required: N, NE, E, SE, S, SW, W, NW. Walking faces movement; collecting,
+mining and building face their actual target; stopping retains the last facing.
+
+Consistency is a production requirement: a versioned eight-view model sheet,
+shared camera/palette/proportions/handedness, explicit source-space anchors,
+matched stride phases, named physical loadout variants, sequential drawings,
+recorded timings/contact frames and playback review. Source or metadata changes
+invalidate the review. A master prompt is helpful, but cannot guarantee visual
+consistency without review.
+
+The production contract is `art/characters/production.json`; the workflow and
+acceptance rules are in `art/characters/README.md`. The CLI validates coverage
+and produces reference-bound prompts. The initial matrix contains 216 clips
+across five loadout contexts; further earned equipment tiers and combinations
+must be registered explicitly. Idle/action targets start at 12 drawings and
+walking/construction at 16; these are minimum authoring targets, not proof of
+smoothness. Existing eight-frame side-view artwork remains legacy coverage.
+
+Current boundary: the first eight-view reference is a draft, and no full new
+directional clip has been accepted. The current game still draws side views.
+The remaining work is reference refinement, full directional drawing/review,
+streamed clip playback and action-target facing integration. Audit found that
+some controller paths already retain a target-facing vector, while generic
+Gather/collection/build feedback needs consistent target propagation. Do not
+claim eight-direction gameplay until both art and those runtime paths work.

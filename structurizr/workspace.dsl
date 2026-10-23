@@ -223,7 +223,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------------ dev tooling (system)
-        tools = softwareSystem "Development Tooling" "Test harnesses and the deploy pipeline. Zero dependencies." {
+        tools = softwareSystem "Development Tooling" "Test harnesses, deploy pipeline and frame-by-frame character production contracts. scripts/character-production.mjs validates model/source checksums, directional action/loadout coverage, explicit anchors and playback-review fingerprints; it emits shared reference-bound art prompts. Missing directional clips remain visible rather than counting mirrored legacy art. The source/reference manifest and workflow live in art/characters/." {
             tags "Tooling"
 
             coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." "Node.js LTS" {

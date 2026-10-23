@@ -12,7 +12,9 @@
     "test:layout": "node test/layout.e2e.js",
     "check": "sh scripts/check.sh",
     "stage": "sh scripts/stage-site.sh site",
-    "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js"
+    "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js",
+    "art:check": "node scripts/character-production.mjs",
+    "art:prompt": "node scripts/character-production.mjs prompt"
   },
   "engines": {
     "node": ">=24"

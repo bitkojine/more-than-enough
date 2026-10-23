@@ -1,0 +1,128 @@
+{
+  "format": 1,
+  "model": {
+    "id": "orange-wanderer-v1",
+    "reference": "art/characters/turnaround-v1-draft.png",
+    "sha256": "95ba184caab53bc126c76a11e2e87df6a1e1b56b2c4fecbbe817e16d96aaab9f",
+    "review": {
+      "status": "draft",
+      "notes": "First eight-view turnaround; inspect directional separation, proportions and camera before accepting animation batches."
+    },
+    "bodyHeight": 60,
+    "heightTolerance": 2,
+    "identity": "Existing orange hood and knee-length cloak with pale chalk stitches, cream face, small black eyes, dark gloves, cream leg wraps and dark shoes; no wood. Preserve hood outline, face proportions and outfit seams.",
+    "camera": "Existing fixed game camera and upright sprite projection; world north is away from the viewer, south toward the viewer; no camera changes between clips.",
+    "handedness": "Right hand gathers; left supports basket or lantern; both hands grip mining tools and protected crystal cargo. Never swap hands by mirroring."
+  },
+  "actions": {
+    "idle": {
+      "minFrames": 12,
+      "brief": "A subtle complete breathing/rest loop with planted feet."
+    },
+    "walk": {
+      "minFrames": 16,
+      "brief": "Full alternating walk cycle: contact, down, passing, up on both sides. Same phase landmarks in all eight directions."
+    },
+    "gather": {
+      "minFrames": 12,
+      "contact": true,
+      "brief": "Turn toward the actual nearby target, bend, reach, collect and recover; use only the registered physical loadout."
+    },
+    "mine": {
+      "minFrames": 12,
+      "contact": true,
+      "brief": "Two-handed wind-up, acceleration, contact, follow-through and recovery toward the actual rock target."
+    },
+    "collect": {
+      "minFrames": 12,
+      "contact": true,
+      "brief": "Reach toward the actual producer output and recover; retain body scale."
+    },
+    "build": {
+      "minFrames": 16,
+      "contact": true,
+      "brief": "Work toward the actual placed structure, with anticipation, physical contact and recovery."
+    },
+    "cheer": {
+      "minFrames": 12,
+      "brief": "A short celebration that returns to the same grounded stance."
+    },
+    "climbUp": {
+      "minFrames": 12,
+      "brief": "Physical hand-over-hand ascent through a generated passage; no teleport pose."
+    },
+    "climbDown": {
+      "minFrames": 12,
+      "brief": "Physical descent through a generated passage and landing recovery."
+    }
+  },
+  "variants": [
+    {
+      "id": "bare",
+      "description": "Empty-handed, no tools or equipment.",
+      "actions": [
+        "idle",
+        "walk",
+        "gather",
+        "collect",
+        "build",
+        "cheer",
+        "climbUp",
+        "climbDown"
+      ]
+    },
+    {
+      "id": "fieldwork-tier1",
+      "description": "Earned tier-one mycelium basket and stone pick; fixed straps and grip; no invented boots or later tiers.",
+      "actions": [
+        "idle",
+        "walk",
+        "gather",
+        "mine",
+        "collect",
+        "build",
+        "cheer",
+        "climbUp",
+        "climbDown"
+      ]
+    },
+    {
+      "id": "sealed-carrier",
+      "description": "Earned sealed carrier with actual living-crystal cargo, securely held/protected.",
+      "actions": [
+        "idle",
+        "walk",
+        "climbUp",
+        "climbDown"
+      ]
+    },
+    {
+      "id": "exposed-starter",
+      "description": "Actual exposed living-crystal starter; careful two-handed handling, no invented protective carrier.",
+      "actions": [
+        "idle",
+        "walk",
+        "climbUp",
+        "climbDown"
+      ]
+    },
+    {
+      "id": "lantern-held",
+      "description": "Earned hooded lantern in the left hand, same handle, shutter and light source.",
+      "actions": [
+        "idle",
+        "walk"
+      ]
+    }
+  ],
+  "inventoryCoverage": "Initial production tranche, not exhaustive inventory coverage. Register every additional earned tier and valid loadout before treating that combination as complete.",
+  "clips": [],
+  "legacy": {
+    "pack": "packs/default/pack.json",
+    "status": "existing shipped side-facing artwork; not accepted directional production coverage",
+    "directions": [
+      "e"
+    ],
+    "westIsMirrored": true
+  }
+}
