@@ -142,9 +142,15 @@ Useful design references are Ori's readable silhouette and separation from the
 background, Hades' clear anticipation/contact/recovery and restrained impact
 hierarchy, and Factorio's visually legible production and physical flow. These
 are principles to adapt to this game's camera and quiet exploration, not a
-request to copy their assets or add their engine complexity. External engine
-documentation was inaccessible in the current environment; these references
-are design direction, not a claim of a newly completed comparative study.
+request to copy their assets or add their engine complexity. These game references are design direction, not a claim of a completed
+comparative study. Reviewed engine references:
+[Godot AnimationTree](https://github.com/godotengine/godot-docs/blob/master/tutorials/animation/animation_tree.rst)
+and [2D sprite animation](https://github.com/godotengine/godot-docs/blob/master/tutorials/2d/2d_sprite_animation.rst).
+The applicable principles are separate animation assets from the transition
+controller, use one-shot actions that return to locomotion, synchronize phase
+across related clips, and use discrete/carry transitions for frame-by-frame
+sprites instead of dissolving complete figures. These principles do not
+require adopting Godot or adding a general-purpose animation graph now.
 
 Production rules:
 - Gameplay owns position, inventory, actions, visibility and environmental
