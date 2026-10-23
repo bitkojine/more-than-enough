@@ -229,5 +229,6 @@ intact. Custom packs and legacy device presentation retain their compatibility
 renderer. This is the existing game, with no separate playable prototype.
 
 Atlases load only when needed, through a bounded decoder queue and 64 MiB
-cache. Walking uses actual travelled distance; presentation never advances
+cache. Walking uses actual travelled distance, with a relaxed full cycle per 2.4
+world tiles (0.138.1); presentation never advances
 simulation time. The full 216-clip production goal is still incomplete.

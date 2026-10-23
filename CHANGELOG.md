@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.138.1] - 2026-10-23
+
+- Halved walking-animation cadence: one full cycle per 2.4 travelled tiles.
+  Movement speed, input responsiveness and game timing remain unchanged.
+
+
 ## [0.138.0] - 2026-10-23
 
 ### Changed

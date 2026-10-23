@@ -56,12 +56,12 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
       if (position) {
         const dt = last ? t - last.time : 0;
         const distance = last ? Math.hypot(position.x-last.x, position.y-last.y) : 0;
-        // Presentation only: a stride is 1.2 world tiles, independent of FPS,
+        // Presentation only: a full walk cycle spans 2.4 world tiles, independent of FPS,
         // zoom and game speed. Never animate teleports or time away as steps.
         const continuous = last && position.z === last.z && dt >= 0 && dt <= .25 && distance <= 1.5;
         walking = !!(moving && continuous && distance > 1e-6);
         if (!moving || !continuous) phase = 0;
-        else if (walking) phase = (phase + distance / 1.2) % 1;
+        else if (walking) phase = (phase + distance / 2.4) % 1;
         last = {x:position.x,y:position.y,z:position.z,time:t};
       }
 

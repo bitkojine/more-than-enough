@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.138.1": "Walking animation now plays at half its previous pace for calmer steps. Your movement speed stays the same.",
   "news.0.138.0": "The wanderer now faces eight directions, with sixteen walking drawings in each direction. Gathering and building turn toward their targets. This first version uses the empty-handed appearance; tool and carrying artwork will follow.",
   "news.0.137.0": "Walking, carrying, mining and gathering now use eight distinct drawings per cycle, including real in-between poses. Standing pictures no longer interrupt walking, and work plays through to its drawn recovery.",
   "news.0.136.1": "Walking now follows distance travelled, feet stop against walls and on boats, and work poses settle back after each action. Character motion stays calm during fast simulations.",

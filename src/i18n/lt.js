@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.138.1": "Ėjimo animacija dabar atkuriama perpus lėčiau, todėl žingsniai ramesni. Judėjimo greitis nepasikeitė.",
   "news.0.138.0": "Keliautojas dabar žvelgia aštuoniomis kryptimis, kiekvienai skirta šešiolika ėjimo piešinių. Rinkdamas ir statydamas atsisuka į tikslą. Ši pirmoji versija vaizduoja tuščias rankas; įrankių ir nešimo piešiniai bus pridėti vėliau.",
   "news.0.137.0": "Ėjimas, nešimas, kasimas ir rinkimas dabar turi po aštuonis skirtingus ciklo kadrus su tarpinėmis pozomis. Ėjimo nebepertraukia stovėjimo kadrai, o darbo judesiai baigiami nupieštu grįžimu į ramybės pozą.",
   "news.0.136.1": "Žingsniai dabar atitinka nueitą atstumą. Atsirėmus į sieną ir plaukiant valtele kojos nebežingsniuoja, o darbo judesiai grįžta į ramybės pozą. Spartus modeliavimas nepagreitina veikėjo judesių.",
