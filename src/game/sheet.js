@@ -122,7 +122,7 @@ function upgradeRow(s, id) {
 // Beyond (embarking and perks) stays out of sight until a world is
 // mastered, every upgrade done; after the first Embark it stays. Never in a
 // shared world, which has no Embark (perks you have still work there).
-const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || Core.worldMastered(s));
+const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || Core.canEmbark(s));
 
 /* ----------------------------------------------------------- the sheet */
 
@@ -161,17 +161,19 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     for(const kind of ['chamber','cooler','vault','conduit'])html+=row(pic(Core.CULTIVATION_LOOK[kind],'image'),crystalName(kind),crystalName(kind+'.desc')+'<br>'+crystalCost(s,kind),crystalButton('build',kind,Math.floor(p.x),Math.floor(p.y),t('sheet.place')));
     for(const b of c.facilities)if(b.z===p.z&&Math.hypot(b.x+.5-p.x,b.y+.5-p.y)<=1.65){
       let sub=crystalName(Core.cultivationStatus(s,b))+'<br>'+t('cr.temperature',{n:b.temperature.toFixed(1)})+'<br>'+t('cr.buffer',{n:b.buffer.toFixed(1)})+' · '+t('cr.quality',{n:Math.floor(b.quality)});
+      if(b.kind==='machine')sub+='<br>'+t('cr.sections',{n:Core.machineSections(b),total:Core.MACHINE_REPAIRS.length});
       if(b.health!==undefined)sub+='<br>'+t('cr.health',{n:Math.floor(b.health)});
       if(['chamber','vault','machine'].includes(b.kind))sub+='<br>'+crystalName(b.closed?'closed':'opened');
-      html+=row(pic(Core.CULTIVATION_LOOK[b.kind],'image'),crystalName(b.kind),sub,crystalButton('shutter','',b.x,b.y));
-      const acts=b.kind==='chamber'?['plant','tend','collect','reinforce']:b.kind==='vault'?['collect','store','reinforce']:b.kind==='machine'?['repair']:[];
-      for(const act of acts.filter(a=>!(a==='reinforce'&&b.reinforced)&&!(a==='plant'&&b.health>0)&&!(a==='tend'&&!b.needsTend)))html+=row('',crystalName(act),Core.CULTIVATION_RECIPES[act]?crystalCost(s,act):'',crystalButton(act,'',b.x,b.y));
+      html+=row(pic(Core.CULTIVATION_LOOK[b.kind],'image'),crystalName(b.kind),sub,['chamber','vault','machine'].includes(b.kind)?crystalButton('shutter','',b.x,b.y):'');
+      const acts=b.kind==='chamber'?['plant','tend','collect','reinforce']:b.kind==='vault'?['collect','store','reinforce']:b.kind==='machine'?(Core.machineRepairCost(b)?['repair']:c.completed?[]:['activate']):[];
+      for(const act of acts.filter(a=>!(a==='reinforce'&&b.reinforced)&&!(a==='plant'&&b.health>0)&&!(a==='tend'&&!b.needsTend)))html+=row('',crystalName(act),act==='repair'?price(s.inv,Core.machineRepairCost(b)):Core.CULTIVATION_RECIPES[act]?crystalCost(s,act):'',crystalButton(act,'',b.x,b.y));
     }
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
       const x=Math.floor(p.x)+dx,y=Math.floor(p.y)+dy;
       if(Core.PROPS[s.world.props.get(Core.packKey(x,y,p.z))]?.light)html+=row('',t('cr.shade'),'',crystalButton('shade','',x,y,t('cr.shade')));
       if(Core.wildColony(s,x,y))html+=row(pic('tile.geode','top'),crystalName('wild'),'',crystalButton('starter','',x,y,crystalName('gather')));
     }
+    if(c.completed)html+=`<div class="row"><p>${crystalName('activated')}</p></div>`;
     if(c.restored)html+=`<div class="row"><p>${crystalName('discovery')}</p></div>`;
     return html;
   }

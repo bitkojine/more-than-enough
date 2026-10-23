@@ -58,3 +58,33 @@ test('environmental state is independent of browser-style observation cadence',(
  const b=C.deserialize(C.serialize(a));for(let i=0;i<600;i++)C.step(a,.1,{visualEvents:false});for(let i=0;i<3600;i++)C.step(b,1/60,{visualEvents:false});
  assert.equal(a.cultivation.clock,b.cultivation.clock);assert.deepEqual(a.cultivation.facilities,b.cultivation.facilities);
 });
+
+test('repeated sealed transfers preserve bounded quality and readable saves',()=>{
+ const s=fixture(),room=build(s,'chamber'),vault=build(s,'vault',2,0);build(s,'conduit',1,0);build(s,'cooler',0,2);
+ room.health=100;room.needsTend=false;cmd(s,'craft','carrier');
+ for(let i=0;i<1000;i++){C.step(s,.25,{visualEvents:false});if(vault.buffer>=1){s.player.x=2.5;s.player.y=.5;assert.equal(cmd(s,'collect',null,2,0),'ok');}assert.ok(s.cultivation.quality<=100);}
+ assert.ok(C.deserialize(C.serialize(s)));
+ const old=JSON.parse(C.serialize(s));old.cultivation.quality=100.00000000000024;old.cultivation.facilities[0].quality=100.00000000000024;
+ assert.equal(C.deserialize(JSON.stringify(old)).cultivation.quality,100);
+ old.cultivation.quality=100.01;assert.equal(C.deserialize(JSON.stringify(old)),null);
+});
+
+test('machine activation requires all physical repairs, cooling, sealed shutters and viable crystal',()=>{
+ const s=fixture();C.step(s,.25,{visualEvents:false});const b=s.cultivation.facilities.find(b=>b.kind==='machine');assert.ok(b);
+ s.player={x:b.x+.5,y:b.y+.5,z:b.z};const at={x:b.x,y:b.y};
+ assert.equal(C.cultivationCommand(s,{type:'activate',...at}),'sections');
+ build(s,'cooler',b.x,b.y+1);s.player={x:b.x+.5,y:b.y+.5,z:b.z};
+ for(const recipe of C.MACHINE_REPAIRS){const before={...s.inv};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');for(const [r,n]of Object.entries(recipe))assert.equal(s.inv[r],before[r]-n);assert.equal(C.canEmbark(s),false);}
+ cmd(s,'shutter',null,b.x,b.y);assert.equal(cmd(s,'activate',null,b.x,b.y),'close');cmd(s,'shutter',null,b.x,b.y);
+ b.quality=10;assert.equal(cmd(s,'activate',null,b.x,b.y),'quality');b.quality=100;b.temperature=30;assert.equal(cmd(s,'activate',null,b.x,b.y),'cooling');b.temperature=18;
+ assert.equal(cmd(s,'activate',null,b.x,b.y),'activated');assert.ok(C.canEmbark(s));C.advanceGoals(s);assert.ok(s.goalsDone.includes('master'));
+ const loaded=C.deserialize(C.serialize(s));assert.ok(C.canEmbark(loaded));assert.equal(loaded.cultivation.completedAt,s.cultivation.completedAt);
+ b.health=0;assert.ok(C.canEmbark(s),'completion is a permanent record even if infrastructure later fails');
+ const next=C.embark(loaded,1234);assert.ok(next.ok);assert.ok(next.state.cultivation);assert.equal(C.canEmbark(next.state),false);assert.ok(Object.values(next.state.inv).every(n=>n===0));assert.ok(Object.values(next.state.tools).every(n=>n===0));
+});
+
+test('earlier first-section saves retain their repair, and damaged final sections can be rebuilt',()=>{
+ const s=fixture();C.step(s,.25,{visualEvents:false});const b=s.cultivation.facilities.find(b=>b.kind==='machine');s.cultivation.restored=true;b.health=100;delete b.sections;s.goalsDone=['master'];
+ const loaded=C.deserialize(C.serialize(s)),machine=loaded.cultivation.facilities.find(b=>b.kind==='machine');assert.equal(machine.sections,1);assert.equal(C.canEmbark(loaded),false);assert.ok(!loaded.goalsDone.includes('master'));assert.ok(loaded.goalsDone.includes('cultivationRepair'));
+ b.sections=3;b.health=0;build(s,'cooler',b.x,b.y+1);s.player={x:b.x+.5,y:b.y+.5,z:b.z};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');assert.equal(b.sections,3);assert.equal(b.health,100);assert.ok(C.deserialize(C.serialize(s)));
+});

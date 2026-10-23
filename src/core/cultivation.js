@@ -14,6 +14,17 @@ export const CULTIVATION_RECIPES={
   tend:{mycelium:2,ore:1},reinforce:{crystal:2},
   repair:{stone:16,ore:16,crystal:6},shade:{mycelium:1}
 };
+// Each stage installs physical machine components; activation is a separate act.
+export const MACHINE_REPAIRS=[CULTIVATION_RECIPES.repair,{stone:24,ore:24,crystal:8},{stone:32,ore:32,crystal:12}];
+export function machineSections(b){return b.sections??(b.health>0?1:0);}
+export function machineRepairCost(b){return MACHINE_REPAIRS[machineSections(b)]??(b.health<=0||b.quality<60?MACHINE_REPAIRS.at(-1):null);}
+const qualityMean=(a,an,b,bn)=>Math.max(0,Math.min(100,a+(b-a)*(bn/(an+bn))));
+// Recover saves produced by the earlier weighted-average rounding bug, while
+// keeping genuinely invalid condition values rejected by the validator.
+export function recoverCultivationRounding(c){
+ const fix=b=>{if(typeof b?.quality==='number'&&b.quality>100&&b.quality<=100+1e-9)b.quality=100;};
+ fix(c);if(Array.isArray(c?.facilities))c.facilities.forEach(b=>{fix(b);if(b?.kind==='machine'&&b.sections===undefined)b.sections=c.restored?1:0;});
+}
 export const CULTIVATION_LOOK={chamber:'building.observatory',cooler:'building.stoneworks',vault:'building.depot',conduit:'building.foundry',machine:'building.resonator',carrier:'unlock.logistics',lantern:'mark.lamp'};
 export function newCultivation(){return {model:CULTIVATION_MODEL,facilities:[],wild:{},starter:null,quality:100,gear:{lantern:false,carrier:false},lantern:false,phase:0,clock:0,nextId:1,restored:false};}
 const distance=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
@@ -103,18 +114,27 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='collect'&&['chamber','vault'].includes(b.kind)){
   if(b.closed&&!c.gear.carrier)return 'open';if(b.buffer<1)return 'empty';
-  c.quality=s.inv.crystal?(c.quality*s.inv.crystal+b.quality*b.buffer)/(s.inv.crystal+b.buffer):b.quality;earned(s,'crystal',b.buffer);b.buffer=0;exposeCargo(s);return 'ok';
+  c.quality=s.inv.crystal?qualityMean(c.quality,s.inv.crystal,b.quality,b.buffer):b.quality;earned(s,'crystal',b.buffer);b.buffer=0;exposeCargo(s);return 'ok';
  }
  if(cmd.type==='store'&&b.kind==='vault'){
   if(b.closed&&!c.gear.carrier)return 'open';const n=Math.min(s.inv.crystal,(b.reinforced?40:20)-b.buffer);if(n<=0)return 'empty';
-  b.quality=b.buffer?(b.quality*b.buffer+c.quality*n)/(b.buffer+n):c.quality;b.buffer+=n;pay(s,{crystal:n});return 'ok';
+  b.quality=b.buffer?qualityMean(b.quality,b.buffer,c.quality,n):c.quality;b.buffer+=n;pay(s,{crystal:n});return 'ok';
  }
  if(cmd.type==='reinforce'&&['chamber','vault'].includes(b.kind)){
   if(b.reinforced)return 'occupied';if(!canPay(s,CULTIVATION_RECIPES.reinforce))return 'materials';pay(s,CULTIVATION_RECIPES.reinforce);b.reinforced=true;return 'ok';
  }
  if(cmd.type==='repair'&&b.kind==='machine'){
-  if(b.health>0)return 'repaired';if(c.quality<60)return 'quality';if(cultivationTarget(s,b)>22)return 'cooling';
-  if(!canPay(s,CULTIVATION_RECIPES.repair))return 'materials';const quality=c.quality;pay(s,CULTIVATION_RECIPES.repair);b.health=100;b.quality=quality;b.temperature=cultivationTarget(s,b);c.restored=true;return 'discovery';
+  const recipe=machineRepairCost(b);if(!recipe)return 'repaired';
+  if(c.quality<60)return 'quality';if(cultivationTarget(s,b)>22)return 'cooling';
+  if(!b.closed)return 'close';
+  if(!canPay(s,recipe))return 'materials';const quality=c.quality;pay(s,recipe);
+  b.sections=Math.min(MACHINE_REPAIRS.length,machineSections(b)+1);b.health=100;b.quality=quality;b.temperature=cultivationTarget(s,b);c.restored=true;return 'discovery';
+ }
+ if(cmd.type==='activate'&&b.kind==='machine'){
+  if(c.completed)return 'completed';if(machineSections(b)<MACHINE_REPAIRS.length)return 'sections';
+  if(!b.closed)return 'close';if(b.health<=0||b.quality<60)return 'quality';
+  if(cultivationTarget(s,b)>22||b.temperature>22)return 'cooling';
+  c.completed=true;c.completedAt=s.time;return 'activated';
  }
  return 'invalid';
 }
@@ -123,7 +143,7 @@ function discoverMachine(s){
  const x=Math.floor(s.player.x),y=Math.floor(s.player.y),z=s.player.z;
  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
   const px=x+dx,py=y+dy;if(!isExplored(s.world,px,py,z)||tileAt(s.world,px,py,z)!==T.TUNNEL||cultivationAt(s,px,py,z))continue;
-  c.facilities.push({kind:'machine',id:c.nextId++,x:px,y:py,z,temperature:30,closed:true,health:0,quality:100,buffer:0});return;
+  c.facilities.push({kind:'machine',sections:0,id:c.nextId++,x:px,y:py,z,temperature:30,closed:true,health:0,quality:100,buffer:0});return;
  }
 }
 export function stepCultivation(s,dt){
@@ -151,18 +171,22 @@ export function stepCultivation(s,dt){
    if(b.kind==='chamber'&&b.health>0&&!b.needsTend&&b.temperature<=22){if(!b.buffer)b.quality=100;b.buffer=Math.min(b.reinforced?40:20,b.buffer+.3*seconds);}
   }
  }
- for(const {from,to} of index(s).routes){const n=Math.max(0,Math.min(from.buffer,.8*seconds,(to.reinforced?40:20)-to.buffer));if(n){to.quality=to.buffer?(to.quality*to.buffer+from.quality*n)/(to.buffer+n):from.quality;to.buffer+=n;from.buffer-=n;}}
+ for(const {from,to} of index(s).routes){const n=Math.max(0,Math.min(from.buffer,.8*seconds,(to.reinforced?40:20)-to.buffer));if(n){to.quality=to.buffer?qualityMean(to.quality,to.buffer,from.quality,n):from.quality;to.buffer+=n;from.buffer-=n;}}
 }
 export function validCultivation(c){
  const number=(n,min,max)=>Number.isFinite(n)&&n>=min&&n<=max;
- const pos=b=>Number.isInteger(b.x)&&Number.isInteger(b.y)&&Math.abs(b.x)<2**20&&Math.abs(b.y)<2**20&&Number.isInteger(b.z)&&b.z>=-512&&b.z<=-2;
+ const pos=b=>!!b&&Number.isInteger(b.x)&&Number.isInteger(b.y)&&Math.abs(b.x)<2**20&&Math.abs(b.y)<2**20&&Number.isInteger(b.z)&&b.z>=-512&&b.z<=-2;
  if(!c||c.model!==CULTIVATION_MODEL||!Array.isArray(c.facilities)||!c.wild||Array.isArray(c.wild)||typeof c.wild!=='object'||!c.gear||!number(c.quality,0,100)||!number(c.phase,0,.25-1e-10)||!Number.isSafeInteger(c.nextId)||!number(c.clock,0,Number.MAX_SAFE_INTEGER))return false;
  if(c.starter&&!number(c.starter.health,0,100))return false;
+ if(c.completed!==undefined&&typeof c.completed!=='boolean')return false;
+ if(c.completedAt!==undefined&&!number(c.completedAt,0,Number.MAX_SAFE_INTEGER))return false;
  const ids=new Map(),cells=new Set();
  for(const b of c.facilities){
-  if(!['chamber','cooler','vault','conduit','machine'].includes(b.kind)||!Number.isSafeInteger(b.id)||b.id<1||b.id>=c.nextId||ids.has(b.id)||!pos(b)||!number(b.temperature,-1000,1000)||!number(b.buffer,0,40)||!number(b.quality,0,100)||(b.health!==undefined&&!number(b.health,0,100)))return false;
+  if(!b||!['chamber','cooler','vault','conduit','machine'].includes(b.kind)||!Number.isSafeInteger(b.id)||b.id<1||b.id>=c.nextId||ids.has(b.id)||!pos(b)||!number(b.temperature,-1000,1000)||!number(b.buffer,0,40)||!number(b.quality,0,100)||(b.health!==undefined&&!number(b.health,0,100)))return false;
+  if(b.sections!==undefined&&(b.kind!=='machine'||!Number.isInteger(b.sections)||b.sections<0||b.sections>MACHINE_REPAIRS.length))return false;
   const k=cell(b.x,b.y,b.z);if(cells.has(k))return false;cells.add(k);ids.set(b.id,b);
  }
  for(const b of c.facilities)if(b.kind==='conduit'&&(ids.get(b.from)?.kind!=='chamber'||ids.get(b.to)?.kind!=='vault'))return false;
+ if(c.completed&&!c.facilities.some(b=>b.kind==='machine'&&machineSections(b)===MACHINE_REPAIRS.length))return false;
  return Object.values(c.wild).every(w=>pos(w)&&number(w.health,0,100)&&number(w.regrow,0,45));
 }

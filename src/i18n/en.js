@@ -2,11 +2,17 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.134.1": "All solo worlds now share the normal save, archive and backup-import flow. Retired experimental links are gone; earlier worlds remain recoverable.",
+  "news.0.135.0": "Restore three physical machine sections, keep their crystal cool and sealed, then activate the machine to complete your world. Completed worlds stay archived; the next starts empty-handed. Crystal transfers and earlier rounded saves now reload safely.",
+  "cr.reason.completed": "This world is already complete.",
+  "cr.reason.close": "Close the protective shutters first.",
+  "cr.reason.sections": "Restore every machine section first.",
+  "cr.goal.activate": "Restore all three machine sections, then activate it with healthy crystal, cooling and closed shutters.",
+  "cr.sections": "Restored sections: {n}/{total}",
+  "cr.activated": "The machine is awake. World complete. Keep exploring, or start another empty-handed world from Beyond.",
+  "cr.activate": "Activate machine",
   "reason.depotUnavailable": "Collection Depots require a solo world with local collection.",
   "reason.localLogistics": "This world uses physical Collection Depots.",
 
-  "news.0.134.0": "The existing world now leads underground: metal mining, dark cooled crystal chambers, protected handling and the first machine restoration. New worlds start empty-handed; earlier worlds remain preserved.",
   "cr.shade": "Cover / uncover light",
   "cr.title": "The sleeping machine",
   "cr.subtitle": "Build above. Grow in darkness. Discover below.",
@@ -66,9 +72,9 @@ export default {
   "cr.goal.metal": "Use the cave passage. Mine metal and establish production.",
   "cr.goal.chamber": "Descend again. Build a growing chamber and a cooling tower nearby.",
   "cr.goal.plant": "Take a wild starter. Switch off your lantern, open the chamber, plant and tend if damaged, then close it.",
-  "cr.goal.repair": "Grow crystal. Bring 6 crystal of at least 60% quality, 16 metal and 16 stone to a cooled machine section.",
-  "cr.goal.done": "First section restored. Keep its crystal cool and dark. This is the first playable chapter; the full ending is still being built.",
-  "cr.discovery": "Beneath the casing is a map of branching chambers. This was no ordinary engine. Its builders were maintaining something alive. First restoration stage complete.",
+  "cr.goal.repair": "Restore the machine’s three physical sections with protected crystal, metal and stone. Inspect it for each recipe.",
+  "cr.goal.done": "Machine activated. World complete.",
+  "cr.discovery": "Another section responds. Branching chambers surround something alive; the machine’s full purpose remains to be discovered.",
   "cr.closed": "Sealed / dark",
   "cr.opened": "Shutters open",
   "cr.health": "Colony tolerance: {n}%",

@@ -177,7 +177,7 @@ function constant(name) {
   return name.split('.').reduce((v, k) => v[k], Core);
 }
 
-TABLES.cultivation=()=>table(heads('thing','cost','whatItDoes'),['chamber','cooler','vault','conduit','lantern','carrier'].map(k=>[t('cr.'+k),costText(Core.CULTIVATION_RECIPES[k]),t('cr.'+k+'.desc')]));
+TABLES.cultivation=()=>table(heads('thing','cost','whatItDoes'),[...['chamber','cooler','vault','conduit','lantern','carrier'].map(k=>[t('cr.'+k),costText(Core.CULTIVATION_RECIPES[k]),t('cr.'+k+'.desc')]),...Core.MACHINE_REPAIRS.map((cost,i)=>[t('cr.machine')+' · '+(i+1),costText(cost),t('cr.repair')])]);
 async function fill() {
   await loadDefaultPack();
   for (const node of document.querySelectorAll('[data-table]')) node.innerHTML = TABLES[node.dataset.table]();

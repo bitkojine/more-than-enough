@@ -20,6 +20,12 @@ export function drawCultivation(ctx,cam,s,look,b){
   if(b.closed){ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+u*.36,y+u*.28);ctx.stroke();}
   if(b.health!==undefined&&b.health<60){ctx.strokeStyle='#ffc09c';ctx.beginPath();ctx.moveTo(x+u*.12,y);ctx.lineTo(x+u*.06,y+u*.14);ctx.lineTo(x+u*.22,y+u*.25);ctx.stroke();}
  }
+ if(b.kind==='machine'){
+  for(let i=0;i<Core.MACHINE_REPAIRS.length;i++){
+   const x=p.x-u*.28+i*u*.2,y=p.y-h*.6;ctx.strokeRect(x,y,u*.14,u*.12);
+   if(i<Core.machineSections(b)){ctx.fillStyle=s.cultivation.completed?'#f5f2e9':'#bcc6f4';ctx.fillRect(x+u*.025,y+u*.025,u*.09,u*.07);}
+  }
+ }
  if(b.reinforced){ctx.strokeRect(p.x-u*.3,p.y-h*.2,u*.6,u*.12);}
  const danger=b.temperature>22||b.needsTend||b.health===0;
  if(danger){ctx.fillStyle='#ffc09c';ctx.beginPath();ctx.moveTo(p.x+u*.3,p.y-h-u*.15);ctx.lineTo(p.x+u*.42,p.y-h+u*.08);ctx.lineTo(p.x+u*.18,p.y-h+u*.08);ctx.closePath();ctx.fill();}

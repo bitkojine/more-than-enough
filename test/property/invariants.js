@@ -16,6 +16,11 @@ export function invariants() {
   const list = [];
   const invariant = (name, check) => list.push({ name, check });
 
+  invariant('cultivation condition and completion records remain valid', (s) => {
+    if(s.cultivation&&!C.validCultivation(s.cultivation))throw new Error('Invalid cultivation state');
+    if(s.cultivation&&C.canEmbark(s)!==(!s.shared&&s.cultivation.completed===true))throw new Error('Cultivation completion mismatch');
+  });
+
   // --- resources and money: never negative, never NaN (economy.js: pay()
   // refuses a cost you can't afford, copyNumbers keeps numbers finite).
   invariant('every resource count is finite and never negative', (s) => {
@@ -130,7 +135,7 @@ export function invariants() {
   invariant('milestones are reached once each, and counted', (s) => {
     if (new Set(s.goalsDone).size !== s.goalsDone.length) throw new Error('a milestone was counted twice');
     if (s.goalIndex !== s.goalsDone.length) throw new Error(`goalIndex ${s.goalIndex} != ${s.goalsDone.length} done`);
-    const ids = new Set(C.GOALS.map((g) => g.id));
+    const ids = new Set((s.cultivation?C.CULTIVATION_GOALS:C.GOALS).map((g) => g.id));
     for (const id of s.goalsDone) if (!ids.has(id)) throw new Error(`unknown milestone ${id}`);
   });
 

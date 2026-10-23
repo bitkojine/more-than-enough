@@ -406,3 +406,14 @@ so purchase-only checks do not force production observations. The developer
 viewer's `autoplay-lab.css` is loaded lazily with the same build identity as its
 module; developer-only labels also load lazily, leaving the normal first-load
 budget unchanged.
+
+Fresh-world cultivation playtest (bounded, manual strategy through canonical
+player actions; legacy AUTO is not adapted to cultivation):
+
+```sh
+node scripts/cultivation-playtest.mjs ../.mte-cultivation-playtests
+```
+
+The runner reserves a new seed, starts empty-handed and records its commands,
+clock advances, milestones, pre-activation checkpoint and completed save outside
+the repository. It uses observed terrain and never grants resources or teleports.

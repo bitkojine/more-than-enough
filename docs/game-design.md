@@ -43,7 +43,7 @@ Surface mycelium/stone bootstrap the settlement. Descending for metal enables un
 ### Machine restoration and completion
 Restoring the dormant underground machine is the world-completion objective. The settlement supplies its restoration. Discoveries progressively reveal the machine's purpose, with its main effect reserved for the ending.
 
-The earlier alternative of intermediate repairs primarily activating useful lifts, pumps and passages was not selected; nor was landscape restoration selected as the main repair payoff. Exact machine purpose, repair stages, discovery delivery and final activation are still open. Completing all legacy upgrade tracks is not the intended new-model victory condition.
+The earlier alternative of intermediate repairs primarily activating useful lifts, pumps and passages was not selected; nor was landscape restoration selected as the main repair payoff. The machine’s purpose and final story delivery remain open. The approved playable completion is now three physical repairs followed by safe activation; the recipes are provisional. Completing all legacy upgrade tracks is not the intended new-model victory condition.
 
 ### Retained requirements
 No wood or tree cutting. Each purchased equipment or building tier needs a distinct physical visual identity.
@@ -84,7 +84,7 @@ These are design recommendations, not approved rules:
 - Represent crystal condition within the existing four-resource economy; quality is not permission to add a fifth resource. Storage, selection and delivery rules must preserve condition without burdensome per-piece micromanagement.
 - Specify how construction selects suitable crystal, how degraded material is used, and whether installed quality affects capability or efficiency. No recipe thresholds or numerical penalties are agreed yet.
 - Explain environmental dependency visibly at the consuming structure. Design infrastructure that can support reliable operation; ongoing requirements do not themselves imply manual maintenance clicks or unavoidable periodic failures.
-- Define failure and recovery of installed crystal, particularly in the final machine, without conflating material degradation with death of a cultivated colony. Activation/completion behavior after environmental failure remains undecided.
+- Define failure and recovery of installed crystal, particularly in the final machine, without conflating material degradation with death of a cultivated colony. After activation, completion remains an earned record even if later environmental failure damages the installed material.
 
 ### Other design questions still open
 - What is the machine, why did it stop, and what does activating it do?
@@ -99,7 +99,7 @@ These are design recommendations, not approved rules:
 - What does each physical equipment/support upgrade let players do?
 - What happens in a completed world and what knowledge/records motivate the next?
 
-### Implementation boundary — 0.134.0
+### Implementation boundary — 0.135.0
 The first cultivation chapter is integrated into the existing client, artwork,
 character, endless terrain, movement, generated cave connections, music and sheets.
 New solo worlds use the four-resource geography and physical progression. Earlier
@@ -109,16 +109,16 @@ rather than converted or erased. The normal game has no separate prototype entry
 Implemented: cooling/dark growing chambers, renewable observed wild colonies,
 short-lived exposed starters, lightproof carriers, condition-sensitive crystal,
 protected storage and sealed chamber-to-vault transfer, physical tending,
-degraded-crystal storage reinforcement, and the first machine-section repair.
+degraded-crystal storage reinforcement, and three visible machine-section repairs followed by safe activation.
 Installed crystal still needs cooling/darkness. Recipes, 22°C growth limit,
 12°C local cooling, rates and tolerance thresholds are provisional playtest values.
-One repair reveals a clue; it is not the full ending or a final machine-purpose decision.
+Each repair reveals a clue. Activating all three restored sections with viable crystal, cooling and closed shutters completes the playable world. The user approved this restoration/activation win on 2026-10-23; it does not decide the final story reveal or machine purpose. Completion remains a permanent record if infrastructure later fails. Earlier first-section repairs count toward the three stages.
 
 Existing global refinery/Overclock/Abundance purchases are absent from new-world
 progression but remain preserved in old worlds. The existing basket/pick/footwear
 chains and their art still need the broader physical-tier identity pass. AUTO
 and multiplayer are not yet adapted to cultivation; no fair new-model AUTO win
-or final-game duration is claimed. Transfers are currently direct sealed links
+or final-game duration is claimed. Fresh-world manual-strategy playtests reach activation in minutes of game time; this is an early playable chapter, far below the eventual meaningful-content goal. Transfers are currently direct sealed links
 of bounded reach/throughput, not a finished multi-layer transport network.
 
 Environment work runs at 250ms deadlines using derived local spatial indexes;

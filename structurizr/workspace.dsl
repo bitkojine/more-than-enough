@@ -149,7 +149,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat/light, damage, tending, renewable wild colonies, protected material condition/storage/transfer, and the first dormant-machine repair. Original texture-pack buildings gain physical shutters/fans and condition marks in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
+                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat/light, damage, tending, renewable wild colonies, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Original texture-pack buildings gain physical shutters/fans and condition marks in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/cultivation.js, src/game/render/cultivation.js"

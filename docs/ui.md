@@ -191,3 +191,11 @@ retain earlier milestones and rules. AUTO is hidden for cultivation worlds;
 keyboard AUTO also cannot run the incompatible old planner. Room entry is blocked
 until the new progression is supported by multiplayer. Nerds provides normal
 solo-world creation and retained solo archives, not experimental game modes.
+
+### Machine completion
+Nearby Build inspection shows the machine’s restored section count and the
+next physical repair recipe. Three visible casing panels fill with each repair;
+activation lights all three. After repairs, Activate appears only on the machine.
+The core requires viable crystal, closed shutters and current cooling. Completion
+is announced as a milestone and stays saved; Beyond offers the normal confirmed
+empty-handed next world while preserving the completed world’s archive.

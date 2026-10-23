@@ -75,11 +75,12 @@ export const CULTIVATION_GOALS=[
  {id:'forage',text:t('cr.goal.start'),reached:t('goal.forage.reached'),done:s=>s.stats.foraged>0},
  {id:'pickaxe',text:t('goal.pickaxe'),reached:t('goal.pickaxe.reached'),buy:'pickaxe',done:s=>s.tools.pickaxe>=2},
  {id:'garden',text:t('goal.garden'),reached:t('goal.garden.reached'),build:'garden',done:has('garden')},
- {id:'ore',text:t('cr.goal.metal'),reached:t('goal.ore.reached'),done:s=>s.discovered.ore},
+ {id:'ore',text:t('cr.goal.metal'),reached:t('goal.ore.reached'),done:s=>s.discovered.ore||s.stats.ore>0},
  {id:'cultivationDeep',text:t('cr.goal.chamber'),reached:t('cr.deep'),done:s=>s.underground.deepest<=-2},
  {id:'cultivationChamber',text:t('cr.goal.plant'),reached:t('cr.chamber'),done:s=>s.cultivation.facilities.some(b=>b.kind==='chamber'&&b.health>0)},
  {id:'crystal',text:t('cr.goal.repair'),reached:t('goal.crystal.reached'),done:s=>s.stats.crystal>0},
- {id:'master',text:t('cr.goal.repair'),reached:t('cr.goal.done'),done:s=>s.cultivation.restored}
+ {id:'cultivationRepair',text:t('cr.goal.repair'),reached:t('cr.discovery'),done:s=>s.cultivation.restored},
+ {id:'master',text:t('cr.goal.activate'),reached:t('cr.goal.done'),done:canEmbark}
 ];
 
 // How many milestones there are to reach: every one but the last, which goes

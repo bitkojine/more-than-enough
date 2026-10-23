@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.134.1": "Visi vieno žaidėjo pasauliai naudoja įprastą išsaugojimą, archyvą ir atsarginių kopijų importą. Senos eksperimentinės nuorodos pašalintos; ankstesnius pasaulius vis dar galima atkurti.",
+  "news.0.134.0": "Pažįstamas pasaulis dabar veda į gelmes: metalo kasyba, vėsios tamsios kristalų kameros, apsaugotas pernešimas ir pirmas mašinos atkūrimas. Nauji pasauliai prasideda tuščiomis rankomis; ankstesni išsaugoti.",
+
   "news.0.133.1": "Baltos kreidos statybų planai, aptarnavimo linijos ir piešiami takai, su kreidos akcentais statybų lange.",
   "news.0.133.0": "Išbandyk fizinį surinkimo sandėlį kūrėjų skiltyje. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.",
 

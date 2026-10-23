@@ -296,7 +296,7 @@ const sheet = createSheet(el, {
     if (tab === 'players') together.listPlayers();
     if (tab === 'news') news.render();
   },
-  actions: { cultivation(cmd){const result=Core.cultivationCommand(game.state,cmd);hud.toast(t('cr.'+(result==='discovery'?'discovery':'reason.'+result)));game.saveSoon();hud.update(game.state);}, buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
+  actions: { cultivation(cmd){const result=Core.cultivationCommand(game.state,cmd);hud.toast(t('cr.'+(result==='discovery'?'discovery':result==='activated'?'activated':'reason.'+result)));game.saveSoon();controller.checkGoals();hud.update(game.state);}, buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });

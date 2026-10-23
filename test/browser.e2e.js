@@ -287,6 +287,42 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
+  if(process.env.MTE_CULTIVATION_RUN){
+    const run=JSON.parse(fs.readFileSync(process.env.MTE_CULTIVATION_RUN,'utf8'));
+    if(run.result!=='won'||!run.activationSave)throw Error('A completed canonical playtest checkpoint is required');
+    await evalJS('localStorage.setItem("more-than-enough-save",'+JSON.stringify(run.activationSave)+')');
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=en');
+    console.log('\n== Fresh playthrough checkpoint: actual activation and next world ==');
+    eq(await evalJS('MTE_GAME.getState().seed'),run.seed,'resumes the world played from empty hands');
+    ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'repairs alone have not won');
+    await evalJS('document.getElementById("btnBuild").click()');
+    ok(await evalJS('document.getElementById("sheetBody").textContent.includes("3/3")'),'machine shows all three physical repairs');
+    ok(await evalJS('!!document.querySelector("[data-action=activate]")'),'real Build sheet offers activation');
+    await evalJS('document.querySelector("[data-action=activate]").click()');
+    ok(await waitFor('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'real activation button wins the world');
+    ok(await evalJS('MTE_GAME.getState().goalsDone.includes("master")'),'completion milestone is recorded immediately');
+    ok(await evalJS('MTE_GAME.core.nextGoal(MTE_GAME.getState())===null'),'completion has no stale mining objective');
+    await evalJS('MTE_GAME.save();document.getElementById("btnClose").click()');
+    await shot('cultivation-world-complete.png');
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt');
+    ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'win survives normal browser reload');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
+    await evalJS('document.getElementById("btnBuild").click()');await sleep(200);
+    ok(await evalJS('!document.querySelector("[data-action=activate]")'),'completed machine cannot be activated twice');
+    ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'completed Lithuanian sheet fits a phone');
+    await shot('cultivation-win-phone-lt.png');
+    await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+    ok(await evalJS('!document.querySelector("[data-kind=embark]").disabled'),'Beyond offers an empty-handed next world');
+    await evalJS('document.querySelector("[data-kind=embark]").click()');
+    ok(await waitFor('!document.getElementById("ask").hidden'),'next world asks for confirmation');
+    await evalJS('document.querySelector("#ask button.primary").click()');
+    ok(await waitFor('MTE_GAME.getState().seed!=='+run.seed),'confirmed next world opens');
+    ok(await evalJS('Object.values(MTE_GAME.getState().tools).every(n=>n===0)&&Object.values(MTE_GAME.getState().inv).every(n=>n===0)'),'next world starts empty-handed');
+    ok(await evalJS('!!MTE_GAME.getState().cultivation&&!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'next world keeps new rules and earns its own victory');
+    ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.core.deserialize(localStorage.getItem("mte.solo.world.'+run.seed+'")))'),'completed world remains in its archive');
+    eq(pageErrors.length,0,'no browser runtime errors');
+    console.log((failures?'CULTIVATION WIN FAILURES':'CULTIVATION WIN PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_CULTIVATION_ONLY!=='1'&&process.env.MTE_DEPOT_ONLY!=='1'){
     const core=await import('../src/core/index.js');const raw=core.serialize(core.createState((Date.now()>>>0)||1));
     await evalJS('localStorage.setItem("more-than-enough-save",'+JSON.stringify(raw)+')');

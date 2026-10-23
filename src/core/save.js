@@ -5,7 +5,7 @@
  * worlds already replaced, and a save from a newer game than this one is set
  * aside until the update arrives (src/game/storage.js). */
 
-import {validCultivation} from './cultivation.js';
+import {validCultivation,recoverCultivationRounding} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -75,6 +75,7 @@ export function deserialize(str, make = createState) {
   if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
   if (d.logisticsModel) s.logisticsModel = d.logisticsModel;
   if(d.cultivation){
+    recoverCultivationRounding(d.cultivation);
     if(!validCultivation(d.cultivation))return null;
     s.cultivation=d.cultivation;s.world.cultivation=true;
     s.world.chunks.clear();s.world.hotKey=-1;s.world.hotChunk=null;
@@ -122,6 +123,10 @@ export function deserialize(str, make = createState) {
   s.goalsDone = Array.isArray(d.goalsDone)
     ? d.goalsDone.filter((id, i, all) => goalIds.includes(id) && all.indexOf(id) === i)
     : goalIds.slice(0, clampInt(isNum(s.goalIndex) ? s.goalIndex : 0, 0, goalIds.length));
+  if(s.cultivation&&!s.cultivation.completed&&s.goalsDone.includes('master')){
+    s.goalsDone=s.goalsDone.filter(id=>id!=='master');
+    if(s.cultivation.restored&&!s.goalsDone.includes('cultivationRepair'))s.goalsDone.push('cultivationRepair');
+  }
   s.goalIndex = s.goalsDone.length;
   s.discovered = { ore: !!(d.discovered && d.discovered.ore), crystal: !!(d.discovered && d.discovered.crystal) };
   s.extractors = (d.extractors || [])

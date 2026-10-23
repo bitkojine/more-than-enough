@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.135.0] - 2026-10-23
+
+### Added
+- A complete cultivation win: three visible physical machine repairs, followed
+  by activation with viable crystal, closed shutters and active cooling.
+- Persistent world completion, Beyond access and empty-handed next worlds;
+  completed worlds remain archived. The final story reveal remains undecided.
+- A bounded fresh-world playtest runner using observed terrain, shipped player
+  movement/actions, normal crafting/construction and the canonical clock.
+  It tests manual strategy, not the unadapted legacy AUTO brain.
+
+### Fixed
+- Underground metal/crystal discovery advances new-world milestones, so a
+  completed world no longer tells the player to discover metal.
+- Crystal weighted averages could exceed 100% by floating-point roundoff and
+  make earned worlds unreadable. Transfers stay bounded; affected earlier saves
+  recover their condition without accepting materially invalid values.
+- Earlier first-section repairs and milestones retain their earned progress.
+  Damaged final machine components can be rebuilt rather than blocking a world.
+
+
 ## [0.134.1] - 2026-10-23
 
 ### Changed

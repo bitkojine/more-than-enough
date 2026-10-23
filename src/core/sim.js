@@ -246,10 +246,10 @@ export function revealAround(s, radius = exploreRadius(s) * lightScale(s), work 
     for (let x = left; x <= right; x++) {
       if (work) work.tiles = (work.tiles || 0) + 1;
       markExplored(w, x, y, p.z);
-      if (p.z !== SURFACE) continue;
-      const t = tileAt(w, x, y, SURFACE);
-      if (t === T.ORE) s.discovered.ore = true;
-      if (t === T.CRYSTAL) s.discovered.crystal = true;
+      if (p.z !== SURFACE && !s.cultivation) continue;
+      const t = tileAt(w, x, y, p.z);
+      if (t === T.ORE || (s.cultivation && t === T.ORE_SEAM)) s.discovered.ore = true;
+      if (t === T.CRYSTAL || (s.cultivation && t === T.GEODE)) s.discovered.crystal = true;
     }
   };
   for (let y = top; y <= py + r; y++) {

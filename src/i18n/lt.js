@@ -2,11 +2,17 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.134.1": "Visi vieno žaidėjo pasauliai naudoja įprastą išsaugojimą, archyvą ir atsarginių kopijų importą. Senos eksperimentinės nuorodos pašalintos; ankstesnius pasaulius vis dar galima atkurti.",
+  "news.0.135.0": "Atkurk tris fizines mašinos dalis, laikyk jų kristalus vėsiai ir sandariai, tada paleisk mašiną ir užbaik pasaulį. Užbaigti pasauliai lieka archyve, o naujas prasideda tuščiomis rankomis. Kristalų pernešimas ir ankstesni suapvalinti išsaugojimai dabar atkuriami saugiai.",
+  "cr.reason.completed": "Šis pasaulis jau užbaigtas.",
+  "cr.reason.close": "Pirmiausia uždaryk apsaugines sklendes.",
+  "cr.reason.sections": "Pirmiausia atkurk visas mašinos dalis.",
+  "cr.goal.activate": "Atkurk visas tris mašinos dalis, tada paleisk ją su sveikais kristalais, vėsinimu ir uždarytomis sklendėmis.",
+  "cr.sections": "Atkurtos dalys: {n}/{total}",
+  "cr.activated": "Mašina pabudo. Pasaulis užbaigtas. Tyrinėk toliau arba skiltyje „Toliau“ pradėk naują pasaulį tuščiomis rankomis.",
+  "cr.activate": "Paleisti mašiną",
   "reason.depotUnavailable": "Surinkimo sandėliams reikia vieno žaidėjo pasaulio su vietiniu surinkimu.",
   "reason.localLogistics": "Šiame pasaulyje naudojami fiziniai surinkimo sandėliai.",
 
-  "news.0.134.0": "Pažįstamas pasaulis dabar veda į gelmes: metalo kasyba, vėsios tamsios kristalų kameros, apsaugotas pernešimas ir pirmas mašinos atkūrimas. Nauji pasauliai prasideda tuščiomis rankomis; ankstesni išsaugoti.",
   "cr.shade": "Uždengti / atidengti šviesą",
   "cr.title": "Mieganti mašina",
   "cr.subtitle": "Statyk viršuje. Augink tamsoje. Atrask gelmėse.",
@@ -66,9 +72,9 @@ export default {
   "cr.goal.metal": "Leiskis praėjimu. Kask metalą ir pradėk gamybą.",
   "cr.goal.chamber": "Leiskis dar giliau. Pastatyk auginimo kamerą ir aušinimo bokštą šalia.",
   "cr.goal.plant": "Paimk laukinį mėginį. Išjunk žibintą, atverk kamerą, pasodink, prireikus prižiūrėk ir užverk.",
-  "cr.goal.repair": "Augink kristalus. Atnešk 6 bent 60% kokybės kristalus, 16 metalo ir 16 akmens prie aušinamos mašinos dalies.",
-  "cr.goal.done": "Pirmoji dalis atkurta. Laikyk jos kristalus vėsiai ir tamsoje. Tai pirmas žaidžiamas skyrius; pabaiga dar kuriama.",
-  "cr.discovery": "Po korpusu slypi išsišakojančių ertmių žemėlapis. Tai ne paprastas variklis. Jo kūrėjai palaikė kažką gyvą. Pirmas atkūrimo etapas baigtas.",
+  "cr.goal.repair": "Atkurk tris fizines mašinos dalis naudodamas apsaugotus kristalus, metalą ir akmenį. Receptus rasi apžiūrėjęs mašiną.",
+  "cr.goal.done": "Mašina paleista. Pasaulis užbaigtas.",
+  "cr.discovery": "Dar viena dalis atsiliepia. Šakotos ertmės supa kažką gyvo; visa mašinos paskirtis dar neatskleista.",
   "cr.closed": "Sandaru / tamsu",
   "cr.opened": "Sklendės atvertos",
   "cr.health": "Kolonijos atsparumas: {n}%",

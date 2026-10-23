@@ -128,7 +128,7 @@ export function embarkGain(s) {
 // The Insight reward still uses the lifetime total.
 // Never in a shared world: Embark is for playing alone.
 export function canEmbark(s) {
-  return !s.shared && !s.cultivation && worldMastered(s);
+  return !s.shared && (s.cultivation ? s.cultivation.completed===true : worldMastered(s));
 }
 
 // Starts empty-handed, keeping lifetime records and known mushroom kinds.

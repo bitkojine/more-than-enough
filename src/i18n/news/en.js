@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.134.1": "All solo worlds now share the normal save, archive and backup-import flow. Retired experimental links are gone; earlier worlds remain recoverable.",
+  "news.0.134.0": "The existing world now leads underground: metal mining, dark cooled crystal chambers, protected handling and the first machine restoration. New worlds start empty-handed; earlier worlds remain preserved.",
+
   "news.0.133.1": "White chalk construction plans, coverage lines and drawing trails, with chalk accents in Build.",
   "news.0.133.0": "Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.",
 
