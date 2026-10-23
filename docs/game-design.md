@@ -1,6 +1,6 @@
 # MORE THAN ENOUGH — Game Design Document
 
-Updated 2026-10-23 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The earlier physical-progression design is retained below as historical context. Decisions in the current section take precedence over earlier proposals.
+Updated 2026-10-23 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
 
 ## Evolve the existing game — confirmed implementation constraint
 
@@ -9,8 +9,7 @@ exploration, controls and recognizable game client. The resource, cultivation,
 logistics and restoration redesign must evolve those systems. Do not replace
 them with a newly built map, character, interface or separate playable prototype.
 Use one main game and ship accepted changes to main. Earlier worlds remain
-preserved. A replacement client/world attempted during development was rejected
-before commit or deployment; it is not the implementation direction.
+preserved.
 
 ## Current redesign — confirmed decisions, 2026-10-23
 
@@ -47,6 +46,8 @@ Restoring the dormant underground machine is the world-completion objective. The
 The earlier alternative of intermediate repairs primarily activating useful lifts, pumps and passages was not selected; nor was landscape restoration selected as the main repair payoff. Exact machine purpose, repair stages, discovery delivery and final activation are still open. Completing all legacy upgrade tracks is not the intended new-model victory condition.
 
 ### Retained requirements
+No wood or tree cutting. Each purchased equipment or building tier needs a distinct physical visual identity.
+
 Every new world starts empty-handed; only knowledge and records carry over. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. White chalk accents suit planning and construction where readable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
 ### Recommendations awaiting confirmation
@@ -123,164 +124,3 @@ of bounded reach/throughput, not a finished multi-layer transport network.
 Environment work runs at 250ms deadlines using derived local spatial indexes;
 rendering is independent. The full simulation still has tick-based scheduling,
 so seconds-per-full-world performance is unproven and remains an explicit goal.
-
-## Earlier physical-progression design — historical context
-
-The sections below capture the 2026-10-22 design and prototype work. Where they leave resource geography, crystal production or the completion project open, the confirmed redesign above now supersedes them. Remaining implementation details are not automatically accepted by retaining this history.
-
-## Requirements established by the player
-- Every new world begins with no tools, equipment or buildings; useful objects must be made from scratch. Only knowledge and records carry over.
-- Every purchase produces an actual item the character uses or a real structure in the world. Purchased global multipliers, menu unlocks and stat perks do not meet this rule.
-- Each production building's resource must be visually recognizable. Support structures must communicate their service equally clearly.
-- Building, exploration and gathering all matter. Thoughtful decisions should be substantially stronger than repetitive gathering, which remains a useful fallback.
-- Passive production can support brief pauses. Long inactivity should not dominate progression.
-- Balance the meaningful gameplay we have. Forty hours is a future content goal, not a duration to create by raising prices or adding waiting.
-- AUTO is primarily a fair development/test tool; final player availability is undecided. Human enjoyment is the design target.
-- Existing worlds and earned progress must remain intact. Save formats stay frozen. Multiplayer hardening is deferred.
-- No wood or tree cutting. Mycelium supplies binding, fiber and other organic construction roles.
-
-Carry-over is knowledge and records only: known recipes, discovered collections and the history of preserved worlds can remain. No free equipment, construction, automatic collection or production/stat bonuses enter a new world. Knowing a recipe does not supply its materials or workshop. Existing archived worlds and earned possessions within those worlds remain intact.
-
-## Proposed player promise
-Start with your hands and learn to turn a wilderness into a useful, understandable production system. Each new object gives you a capability you can see and use. Automation frees attention for better building and exploration decisions.
-
-## Consistent physical vocabulary
-
-| Kind | What the player gets | What distinguishes it |
-|---|---|---|
-| Equipment | Basket, pick, footwear, lamp or transport item | The character equips/uses it; its capability has a visible action or effect. |
-| Producer | Fungal bed, quarry, ore mine, crystal producer | A recognizable resource output, often attached to a suitable natural site. |
-| Workshop / processor | A physical crafting place, or a machine with a real recipe | It makes usable objects or consumes explicit inputs for explicit outputs. A structure with no input must not be called a converter. |
-| Support / infrastructure | Production support, lighting, charging, navigation or logistics structure | Its service and the things it affects are visible. |
-| World project | A substantial placed construction | Gives later production a concrete purpose; candidate form for the eventual Abundance Engine. |
-
-These describe function. Material output, site restrictions and progression stage are separate dimensions. A category does not require four symmetric copies or extra currencies. Not every category needs to exist in the first prototype.
-
-## A first-play sequence to prototype
-
-### 1. Empty hands, visible opportunities
-The character has no manufactured tools. They can walk, inspect visible objects, gather accessible fungi, and pick up loose surface stone. No bare-handed ore/crystal mining, quarrying solid rock, excavation or swimming with an automatically supplied boat.
-
-The world must visually distinguish loose gatherable material from a deposit that requires a tool. Existing surface stone can supply the first recipe only if its art/action makes picking up loose stone credible. Otherwise add a compatible explicit loose-stone representation; do not imply the player punches bedrock into a tool.
-
-Hands carry the small quantities needed to bootstrap crafting. A basket must not be a requirement to collect the materials for a basket. Avoid introducing inventory-capacity micromanagement just to justify the item.
-
-### 2. A first useful choice
-Two proposed hand-crafted objects:
-- Fungal-fiber basket: organic material only. Makes fungal gathering more effective; visibly carried and used.
-- Stone pick: loose stone and fungal binding. Opens work on tougher deposits such as accessible ore; visibly equipped and used.
-
-Exact prices and yields are untested. Neither first recipe requires ore, a refinery, a purchased blueprint or a pre-existing workbench. Both objects are attainable from the initial bare-handed gathering set. The basket route emphasizes quicker gathering; the pick route emphasizes access and exploration. Neither should be a trap or long mandatory detour.
-
-Crafting by hand is an explicit player action producing an owned item, not an abstract capability purchase. A later workshop can make more complex objects.
-
-### 3. A first physical producer
-A fungal growing bed is a candidate first producer using early material, with recognizable fungal growth at empty and full states. It provides a useful trickle while the player works elsewhere. It must not make passive waiting the practical route to the next object.
-
-Developing stone production is the next candidate path. A quarry belongs on a stone site and visibly produces stone. Whether it requires a better pick or a crafted machine is a recipe/access decision to test; do not require a material obtainable only from a quarry to build the first quarry.
-
-The player chooses where to establish production and which resource to develop first. Unlocks follow actual equipment, discoveries and constructed objects. There is no separately bought permission to make a building.
-
-### 4. Improve a system through placement
-First production-system experiment: a Quarry and a provisional Stoneworks support structure.
-- The Quarry is the producer. Stoneworks visibly improves nearby stone production.
-- A useful site serves an appropriate group of quarries. Cost and travel create a choice about where and when to build.
-- Its appearance and selection overlay communicate the stone-related service and which producers benefit.
-- It is a physical alternative to an invisible stone-refinery multiplier.
-- No input consumption is implied unless a real recipe is implemented.
-- Bonus size, influence radius, capacity, overlap rules and costs remain hypotheses. Test that it offers alternatives rather than making a single dense cluster mandatory.
-
-This is a prototype with existing resources, not a commitment to copy the pair into every resource family.
-
-## Dependency graph for that opening
-
-```mermaid
-flowchart LR
-  H[Empty hands] --> F[Gather accessible fungi]
-  H --> S[Pick up loose stone]
-  F --> B[Craft basket]
-  F --> P[Craft stone pick]
-  S --> P
-  B --> FG[Gather fungi more efficiently]
-  P --> O[Access suitable ore deposits]
-  F --> G[Build fungal growing bed]
-  P --> Q[Establish quarry: exact recipe to test]
-  O --> W[Craft production machinery: exact recipe to test]
-  Q --> SW[Place Stoneworks to improve stone production]
-  W --> SW
-```
-
-Edges express capability/material dependencies, not fixed prices, forced purchase order or target minutes. Basic gathering remains possible without the basket. First tool recipes and the first workshop must have no dependency cycle.
-
-## What must change from the current game
-
-| Current system | Design problem | Replacement direction |
-|---|---|---|
-| Basic basket/pickaxe/boots/Overclock levels exist from spawn | Ownership, base capability and upgrade level are conflated | Represent absence explicitly and give bare hands their own actions. Existing level-1 equipment in legacy saves is not silently stripped. |
-| Global refinery purchases | No placed structure or used item | Resource-specific physical machinery/support or a visible upgrade to a producer. |
-| Overclock | Invisible global production multiplier | A concrete machine or physical equipment upgrade with clear affected producers. |
-| Blueprint purchases | Pay for a boolean/menu permission | Crafting access follows a workshop, equipment or discovery. |
-| Global instant Logistics | No physical source of the service | An actual logistics structure or equipment; its reach and behavior must be designed before showing transport visuals. |
-| Repeated Abundance levels | Abstract endgame spending | Physical project and visible stages/capabilities; final project design still open. |
-| Purchased permanent perks | Abstract stat/knowledge flags | Earn useful objects/services inside the current world. Future new-world starts carry no equipment or stat bonuses. Preserve legacy earned benefits in their existing worlds during transition. |
-| Independent producers called converters | No consumption despite the category name | Honest producer category initially; redesign or consolidate overlapping roles deliberately. |
-| Brickyard, Foundry, Observatory produce stone, ore, crystal from no inputs | Names suggest different outputs/functions | Choose actual roles first, then names and art. No cosmetic relabeling of false recipes. |
-| Empty building stages after Logistics | Output identity can depend on a buffer that is always empty | Permanent resource material/shape in every stage, with status shown independently. |
-| Character always holds a phone/laptop; device battery controls light | A supplied item conflicts with an empty-handed start | Open design decision: keep it explicitly outside the character's possessions as interface fiction, or replace its in-world function with crafted equipment. No exception assumed. |
-| Boat appears on water after footwear unlock | Transport is supplied without being made | Own and use a crafted transport item, or redesign water traversal. Boot crafting alone must not conjure a boat. |
-
-## Visual acceptance criteria
-At actual phone scale and normal zoom, an unlabeled object communicates its main resource or service. Material shape and silhouette do the primary work; color reinforces them. Use consistent resource artwork between deposits, output, inventory and building cues. Empty/idle states, Logistics, reduced motion and grayscale must preserve recognition.
-
-Equipment appears only when owned and appropriate to the action. Bare-handed gathering has a distinct animation. Support structures show affected producers on selection. Building levels change visible machinery/forms without obscuring output identity. Avoid promising item flow, electrical connections or storage behavior with art when no such rules exist.
-
-## First implementation slice
-1. Establish explicit equipment ownership and bare-handed capabilities in shared canonical rules without changing old worlds' earned equipment.
-2. Implement a first empty-handed start and the two hand-crafted objects. Update actual character visuals and blocked-action feedback.
-3. Human-test recognition and the initial choice. Use bounded seed checks to establish reachable bootstrap materials and absence of crafting deadlocks.
-4. Prototype the Quarry/Stoneworks interaction independently, then compare it with routine gathering and waiting on the saved 6/12/16-hour study fixtures.
-5. Integrate a compatible physical upgrade path only after the interaction earns its place. Expand to other resources or endgame projects based on findings.
-
-Do not attempt the entire purchase migration in one change. This is a redesign of ownership and progression, not setting all tool levels to zero: current tool lookups, access gates, animation, mastery, save validation and fair AUTO all assume owned starting tools.
-
-## Preservation and testing
-- No world resets, save-format bumps or loss of existing equipment, buildings, balances, unlocks or earned multipliers.
-- Distinguish a newly created empty-handed world from an old save whose missing new fields must retain legacy behavior. Migration semantics must be explicit and idempotent.
-- Same actions, recipes and information permissions for humans and AUTO. AUTO must learn the opening through the same legal commands; test wins are a reliability check, not a fun metric.
-- Keep production relationships indexed; update local relationships at construction/upgrade boundaries rather than scanning building pairs every tick.
-- Quick tests cover bare-handed access, no free gear, affordable first recipes, forbidden advanced actions, used-item visuals and legacy loading. Long batches remain manual/CI work after bounded tests.
-- No arbitrary action quota, maintenance click tax, forced underground grinding or price inflation to manufacture activity or hours.
-
-## Questions left open
-1. Resolved: every new world starts empty-handed; knowledge and records only carry over.
-2. What is the place of the phone/laptop and battery fiction under the empty-handed rule?
-3. Is Stoneworks local support the right first production interaction? Scope is small enough to test, not yet proven enjoyable.
-4. Resolved in the 2026-10-23 redesign: restoring a dormant underground machine defines victory. Its purpose, exact completion stages and next-world motivation remain open.
-
-Related design inventory: /workspace/building-system-design-2026-10-22.md.
-Evidence: /workspace/progression-study-2026-10-22/REPORT.md.
-
-## Implementation update
-The empty-handed opening and first basket/pick crafting slice is now implemented
-and tested in the working tree. Existing saves retain their owned gear. Every
-new world carries only knowledge and records. See the exact scope, validation
-and remaining physical/visual work in
-/workspace/empty-handed-opening-2026-10-22.md. Quarry/Stoneworks is now an implemented, bounded-tested prototype on
-prototype/empty-handed-stoneworks (ad77a95); generic later tool tiers and abstract legacy upgrades are not
-claimed to meet the new physical-identity requirement yet.
-
-
-## Confirmed support-facility direction and purchase redesign
-Player decision, 2026-10-22: production progression should emphasize building and
-improving support facilities serving nearby producers. Avoid a duplicate set of
-individual producer tiers and global production-buff chains.
-
-The next-system design is specified in
-the earlier physical-purchase inventory retained in the development workspace. It maps every abstract
-purchase to a physical acquisition, consolidation or retirement; proposes a
-collection depot as the next bounded prototype; removes paid recipe permissions;
-and replaces the new-model global engine chain with a finite physical project.
-These replacements are designed, not implemented. Prices/radii/roster and project
-fiction remain provisional. Existing worlds retain their earned benefits and
-compatible completion path. An explicit model/capability boundary is necessary;
-emptyStart does not identify worlds without earned legacy upgrades.

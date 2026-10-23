@@ -140,7 +140,7 @@ output/service stays recognizable at every tier, including empty states and
 reduced motion. This is the redesign target; legacy abstract purchases and
 generic later-tier artwork remain to be replaced in subsequent slices.
 
-- **Stoneworks prototype:** Build separates support buildings from producers.
+- **Stoneworks:** Build separates support buildings from producers.
   Its row explains the two-tile, non-stacking quarry service and previews the
   local incremental stone rate. Dashed links identify affected quarries while
   building and when standing near a workshop; hidden buildings stay hidden.
@@ -149,17 +149,13 @@ generic later-tier artwork remain to be replaced in subsequent slices.
   notes remain in the startup dictionaries. The archive uses the same
   versioned asset URLs as the rest of the deploy.
 
-### Physical collection prototype
-Nerds links to `?depots` in a separate tab. Its title identifies the separate
-solo save; normal save/backup adoption cannot move a world across these slots.
-The prototype has no room connection. Build lists Collection Depot under
-support buildings, with its material recipe and additional producer count.
-A dashed eight-tile boundary and recipient links preview coverage before
-placement and show nearby depots afterward. Permanent material bins identify
-collection even when no output is waiting. No carts or journey times are implied.
-Unserved producers keep their output and can be collected normally.
-Producer sprites in this prototype retain permanent resource plaques even
-when automatically collected, so empty buffers do not hide material identity.
+### Physical collection
+Build lists Collection Depot under support buildings, with its material recipe
+and additional producer count. Chalk boundaries and recipient links preview
+its eight-tile coverage. Permanent material bins identify collection even when
+no output is waiting. No carts or journey times are implied. Unserved producers
+keep output for normal collection. All solo worlds use the normal save/import
+and archive flow; older depot save keys remain readable for recovery.
 
 ### White chalk planning language
 Construction previews, service links, recipient outlines and depot coverage use

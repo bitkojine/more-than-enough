@@ -10,7 +10,7 @@ test('main game loads earlier worlds unchanged and archives them before another 
  const archive=values.get('mte.solo.world.77');assert.ok(archive);
  const next=C.createState(88,{cultivation:true});assert.equal(storage.saveGame(next),null);
  assert.equal(values.get('mte.solo.world.77'),archive);assert.ok(values.get('mte.solo.world.88'));
- assert.equal(storage.loadGame().state.seed,88);assert.equal(storage.DEPOT_PROTOTYPE,false);
+ assert.equal(storage.loadGame().state.seed,88);
 });
 test('future capabilities are retained aside and a fresh normal world uses cultivation',()=>{
  values.clear();const d=JSON.parse(C.serialize(C.createState(5)));d.logisticsModel='future-depot';const raw=JSON.stringify(d);values.set('more-than-enough-save',raw);

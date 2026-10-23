@@ -6,7 +6,7 @@
  * (server/src/shadow.js), and putting an old copy back would be cheating.
  * The moderator backs up shared worlds (server/src/backup.js). */
 
-import { usesDepots, serialize, deserialize } from '../core/index.js';
+import { serialize, deserialize } from '../core/index.js';
 import { t } from '../i18n/i18n.js';
 
 export const SOLO_KIND = 'mte-solo-world';
@@ -59,7 +59,6 @@ export function createBackup({ el, game, ask, toast, version }) {
     if (!file || game.state.shared) return;
     const next = fromBackup(await file.text().catch(() => ''));
     if (!next) return toast(t('backup.unreadable'));
-    if(usesDepots(next)!==usesDepots(game.state))return toast(t('prototype.storageMismatch'));
     const yes = await ask({ title: t('backup.ask.title'), text: t('backup.ask.text'), yes: t('backup.ask.yes') });
     if (!yes || game.state.shared) return;
     download(game.state); // the world you're in, kept as a file first

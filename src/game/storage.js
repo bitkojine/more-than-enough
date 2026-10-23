@@ -3,7 +3,6 @@
 
 import { serialize, deserialize, createState, SAVE_VERSION, OLDEST_SAVE } from '../core/index.js';
 
-export const DEPOT_PROTOTYPE = false; // All new features belong to the main game.
 const SAVE_KEY = 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
 const ASIDE_KEY = 'more-than-enough-save-aside';
@@ -24,7 +23,7 @@ export function randomSeed() {
     const seed=(Math.random()*4294967295)>>>0;
     if(!read('mte.solo.world.'+seed)&&!read('mte.depot-v1.world.'+seed))return seed;
   }
-  throw new Error('No unused prototype seed'); // i18n-ok: diagnostic
+  throw new Error('No unused world seed'); // i18n-ok: diagnostic
 
 }
 

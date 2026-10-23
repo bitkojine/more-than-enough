@@ -83,7 +83,6 @@ try {
 }
 look.use(defaultPack);
 
-document.getElementById('btnDepotPrototype')?.remove();
 // The developer viewer boots before loading or connecting any player world.
 if (new URLSearchParams(location.search).has('autoplay')) {
   const { startAutoplayLab } = await import('./autoplay-lab.js');

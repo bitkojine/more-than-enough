@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.133.1": "White chalk construction plans, coverage lines and drawing trails, with chalk accents in Build.",
+  "news.0.133.0": "Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.",
+
   "news.0.131.8": "Final refinery levels have a gentler price increase. Completing every world upgrade now unlocks Embark immediately, without an extra production-total requirement.",
   "news.0.131.7": "AUTO skips exhausted areas when searching for resources. Simulation milestone checks avoid unnecessary production updates.",
   "news.0.131.6": "Held Gather now keeps the same pace as AUTO. AUTO uses only known chargers, stops its own walk when menus open, and leaves a manually chosen route alone when released. Nerds now offers a live super-speed AUTO viewer.",

@@ -140,7 +140,7 @@ export function buy(s, id) {
   const u = Object.hasOwn(REGISTRY, id) ? REGISTRY[id] : null;
   if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
   if (u.retired) return { ok: false, reason: t('reason.retiredUpgrade') };
-  if (id==='logistics' && usesDepots(s)) return {ok:false,reason:t('reason.depotPrototype')};
+  if (id==='logistics' && usesDepots(s)) return {ok:false,reason:t('reason.localLogistics')};
   const cost = upgradeCost(s, id);
   if (cost === null) return { ok: false, reason: t(u.max === 1 ? 'reason.owned' : 'reason.maxed') };
   if (!canBuy(s, id)) {

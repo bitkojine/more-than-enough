@@ -204,7 +204,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const rate = def.depot ? esc(t('building.depot.desc')) : def.support ? esc(t('building.' + key + '.desc')) : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
-    const preview = def.depot && spot ? '<br>' + esc(t('prototype.depot.count',{n:Core.depotGain(s,spot)})) : def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
+    const preview = def.depot && spot ? '<br>' + esc(t('building.depot.count',{n:Core.depotGain(s,spot)})) : def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
     return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
   }
 

@@ -1,5 +1,8 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.133.1": "Baltos kreidos statybų planai, aptarnavimo linijos ir piešiami takai, su kreidos akcentais statybų lange.",
+  "news.0.133.0": "Išbandyk fizinį surinkimo sandėlį kūrėjų skiltyje. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.",
+
   "news.0.131.8": "Paskutinių perdirbimo lygių kainos auga lėčiau. Užbaigus visus pasaulio patobulinimus galima iš karto iškeliauti, be papildomo surinktų išteklių reikalavimo.",
   "news.0.131.7": "Ieškodamas išteklių AUTO praleidžia išsemtas vietas. Simuliacijos pasiekimų patikros išvengia nereikalingų gamybos atnaujinimų.",
   "news.0.131.6": "Laikomas rinkimo mygtukas dabar veikia tokiu pačiu tempu kaip automatinis žaidimas. Automatinis žaidimas renkasi tik žinomus įkroviklius, sustabdo savo ėjimą atidarius meniu ir paleidus mygtuką neatšaukia rankiniu būdu pasirinkto maršruto. Galima stebėti itin greitą AUTO.",

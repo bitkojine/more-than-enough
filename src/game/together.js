@@ -20,7 +20,7 @@ import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
 import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
-import { loadGame, DEPOT_PROTOTYPE } from './storage.js';
+import { loadGame } from './storage.js';
 import { createActor } from './render/motion.js';
 import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
 
@@ -204,7 +204,7 @@ function cleanAway(d) {
 /* ------------------------------------------------------------------ */
 
 export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}, closeSheet = () => {}, showPlayers = () => {}, onAway = () => {} }) {
-  const service = DEPOT_PROTOTYPE ? null : roomService();
+  const service = roomService();
   let ws = null;
   let room = null;          // the shared world you're in (or joining)
   let back = null;          // the shared world you're still in while a link takes you to another

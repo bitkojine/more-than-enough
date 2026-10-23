@@ -7,7 +7,7 @@ and stone, mine metal below, and cultivate living crystal in dark cooled chamber
 Build protected storage/transport and restore the first section of a dormant
 machine. The full restoration and ending are still in development.
 
-The normal URL is the game; no prototype flags are required. Existing saved
+The normal URL opens the game. Existing saved
 worlds keep their terrain, earned progress and earlier economy. Settings → Nerds
 can start another archived solo world. AUTO and multiplayer have not yet been
 adapted to new-world cultivation. See [the GDD](docs/game-design.md) for confirmed

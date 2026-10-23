@@ -287,7 +287,7 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
-  if(process.env.MTE_CULTIVATION_ONLY!=='1'){
+  if(process.env.MTE_CULTIVATION_ONLY!=='1'&&process.env.MTE_DEPOT_ONLY!=='1'){
     const core=await import('../src/core/index.js');const raw=core.serialize(core.createState((Date.now()>>>0)||1));
     await evalJS('localStorage.setItem("more-than-enough-save",'+JSON.stringify(raw)+')');
   }
@@ -330,15 +330,14 @@ async function main() {
   // A bounded integration fixture, deliberately separate from fresh-world
   // AUTO evaluations. Checks the live browser host after Logistics unlocks.
   if (process.env.MTE_DEPOT_ONLY === '1') {
-    console.log('\n== Physical Logistics: isolated save and real placement ==');
+    console.log('\n== Physical Logistics: normal saves and real placement ==');
     await evalJS('MTE_GAME.save()');
-    ok(await evalJS('document.getElementById("btnDepotPrototype").getAttribute("href")==="?depots"'),'Nerds links to a separate prototype');
+    ok(await evalJS('![...document.querySelectorAll("a")].some(a=>a.getAttribute("href")=="?depots")'),'Nerds has no separate collection entry point');
     var normalSeed=await evalJS('MTE_GAME.getState().seed');
     await navigate('http://127.0.0.1:' + PORT + '/index.html?depots');
-    var normalRaw=await evalJS('localStorage.getItem("more-than-enough-save")');
-    ok(await evalJS('MTE_GAME.core.usesDepots(MTE_GAME.getState())'),'prototype has explicit local Logistics rules');
-    ok(await evalJS('!MTE_GAME.together.available'),'prototype cannot connect to multiplayer');
-    ok(await evalJS('Object.values(MTE_GAME.getState().tools).every(n=>n===0)&&Object.values(MTE_GAME.getState().inv).every(n=>n===0)'),'prototype starts empty-handed without grants');
+    ok(await evalJS('MTE_GAME.core.usesDepots(MTE_GAME.getState())'),'normal world has local collection rules');
+    ok(await evalJS('!MTE_GAME.together.available'),'local collection cannot connect to unsupported multiplayer');
+    ok(await evalJS('Object.values(MTE_GAME.getState().tools).every(n=>n===0)&&Object.values(MTE_GAME.getState().inv).every(n=>n===0)'),'normal world starts empty-handed without grants');
     await evalJS(`(function(){var c=MTE_GAME.core,s=MTE_GAME.getState();
       c.step(s,1/120,{visualEvents:false});
       var x=Math.floor(s.player.x),y=Math.floor(s.player.y);
@@ -361,26 +360,26 @@ async function main() {
     await evalJS('document.getElementById("btnClose").click();MTE_GAME.hud.newWorld()');
     await sleep(150);await shot('depot-built.png');
     await evalJS('document.getElementById("btnUpgrade").click()');
-    ok(await evalJS('!document.querySelector("button[data-kind=unlock][data-id=logistics]")'),'prototype does not sell the old abstract Logistics unlock');
+    ok(await evalJS('!document.querySelector("button[data-kind=unlock][data-id=logistics]")'),'physical collection replaces the abstract Logistics purchase');
     await evalJS('document.getElementById("btnClose").click();MTE_GAME.save()');
     var depotSeed=await evalJS('MTE_GAME.getState().seed');
-    ok(await evalJS('!!localStorage.getItem("mte.depot-v1.world."+MTE_GAME.getState().seed)'),'prototype world has a retained per-seed archive');
-    ok(await evalJS('localStorage.getItem("more-than-enough-save")')===normalRaw,'ordinary save remains byte-for-byte untouched');
+    ok(await evalJS('!!localStorage.getItem("mte.solo.world."+MTE_GAME.getState().seed)'),'normal world has a retained per-seed archive');
+    eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-save")).seed'),normalSeed,'collection uses the normal save slot');
     await navigate('http://127.0.0.1:' + PORT + '/index.html?depots');
-    eq(await evalJS('MTE_GAME.getState().seed'),depotSeed,'prototype reload resumes the same world');
+    eq(await evalJS('MTE_GAME.getState().seed'),depotSeed,'old bookmark resumes the same normal world');
     ok(await evalJS('MTE_GAME.core.usesDepots(MTE_GAME.getState())&&MTE_GAME.core.extractorCount(MTE_GAME.getState(),"depot")===1'),'save reload preserves rule marker and depot');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
     await navigate('http://127.0.0.1:' + PORT + '/index.html?depots&lang=lt');
     await evalJS('document.getElementById("btnBuild").click()');
     await sleep(200);
     await evalJS('document.querySelector("button[data-id=depot]").scrollIntoView({block:"center"})');
-    ok(await evalJS('document.documentElement.lang==="lt"'),'prototype labels load in Lithuanian');
+    ok(await evalJS('document.documentElement.lang==="lt"'),'collection labels load in Lithuanian');
     ok(await evalJS('(function(){var r=document.querySelector("button[data-id=depot]").closest(".row").getBoundingClientRect();return r.left>=0&&r.right<=innerWidth;})()'),'depot row fits a 320px phone');
     ok(await evalJS('(function(){var r=document.querySelector("button[data-id=depot]").getBoundingClientRect();return r.width>=44&&r.height>=44&&r.left>=0&&r.right<=innerWidth;})()'),'phone placement control remains reachable');
     await shot('depot-phone-lt.png');
     await navigate('http://127.0.0.1:' + PORT + '/index.html');
     eq(await evalJS('MTE_GAME.getState().seed'),normalSeed,'returning opens the original ordinary world');
-    ok(await evalJS('!MTE_GAME.core.usesDepots(MTE_GAME.getState())'),'ordinary world keeps its existing rules');
+    ok(await evalJS('MTE_GAME.core.usesDepots(MTE_GAME.getState())'),'normal world keeps the same collection rules');
     eq(pageErrors.length,0,'no browser runtime errors');
     console.log((failures?'DEPOT BROWSER FAILURES':'DEPOT BROWSER TESTS PASSED')+' — '+checks+' checks');
     process.exit(failures?1:0);

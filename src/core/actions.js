@@ -310,7 +310,7 @@ function canBuildAt(s, key, x, y) {
 export function place(s, key, at = null) {
   const def = EXTRACTORS[key];
   if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
-  if (def.depot && (!usesDepots(s) || s.shared || (!s.cultivation&&s.player.z!==SURFACE))) return {ok:false,reason:t('reason.depotPrototype')};
+  if (def.depot && (!usesDepots(s) || s.shared || (!s.cultivation&&s.player.z!==SURFACE))) return {ok:false,reason:t('reason.depotUnavailable')};
   if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
   if (at && !canBuildAt(s, key, at.x, at.y)) return { ok: false, reason: t('reason.noSpot') };
   at = at || buildTarget(s, key);

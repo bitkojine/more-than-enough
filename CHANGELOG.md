@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.134.1] - 2026-10-23
+
+### Changed
+- Removed the retired depot entry point, runtime flags and obsolete experimental
+  wording from the normal game, wiki and design documentation.
+- Backup imports accept both earlier and cultivation worlds through the normal
+  confirmation and outgoing-world backup flow. Earlier depot save keys remain
+  readable for recovery; normal saves and per-seed archives are preserved.
+- Historical release notes load with the release archive instead of startup.
+
+
 ## [0.134.0] - 2026-10-23
 
 ### Added
