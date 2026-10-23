@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.136.1] - 2026-10-23
+
+### Changed
+- Character presentation has its own real-time clock and distance-driven stride
+  phase, shared by the main client, developer viewer and remote actor views.
+  Rendering never advances the pose. Blocked movement and boat travel use
+  planted feet; layer changes, teleports and suspended frames reset the stride.
+- Mining and gathering have an explicit recovery phase; construction plays two
+  authored taps instead of holding one strike throughout. Existing custom
+  characters retain their silhouette and legacy tool animation.
+- Recorded the visual-quality direction, production acceptance criteria and
+  remaining animation/lighting work in the Game Design Document.
+
+
 ## [0.136.0] - 2026-10-23
 
 ### Changed

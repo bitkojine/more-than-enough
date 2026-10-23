@@ -27,9 +27,10 @@ export const ACT_TIME = Object.freeze({
  * What a character is doing, kept on the device that draws them: the act
  * playing (if any) and how long they have stood still.
  */
-export function createActor() {
+export function createActor({ clock = () => performance.now() / 1000 } = {}) {
   let kind = null, at = 0, n = 0, stillAt = 0, heardN = null;
-  const now = () => performance.now() / 1000;
+  const now = clock;
+  let last = null, phase = 0;
   const actor = {
     // Starts an act (one of ACTS) now.
     act(k) {
@@ -49,11 +50,24 @@ export function createActor() {
     get sent() { return { a: kind, n }; },
     // What to draw this frame: the act and how far into it, and how long
     // they have been standing still.
-    view(moving) {
+    view(moving, position = null) {
       const t = now();
+      let walking = moving;
+      if (position) {
+        const dt = last ? t - last.time : 0;
+        const distance = last ? Math.hypot(position.x-last.x, position.y-last.y) : 0;
+        // Presentation only: a stride is 1.2 world tiles, independent of FPS,
+        // zoom and game speed. Never animate teleports or time away as steps.
+        const continuous = last && position.z === last.z && dt >= 0 && dt <= .25 && distance <= 1.5;
+        walking = !!(moving && continuous && distance > 1e-6);
+        if (!moving || !continuous) phase = 0;
+        else if (walking) phase = (phase + distance / 1.2) % 1;
+        last = {x:position.x,y:position.y,z:position.z,time:t};
+      }
+
       if (moving) stillAt = t;
       const busy = kind && t - at < ACT_TIME[kind];
-      return { act: busy ? kind : null, t: busy ? t - at : 0, idle: t - stillAt };
+      return { act: busy ? kind : null, t: busy ? t - at : 0, idle: t - stillAt, clock:t, stride:position?phase:null, walking };
     }
   };
   return actor;

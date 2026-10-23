@@ -1124,7 +1124,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     view() {
       const out = [];
       for (const [id, f] of friends) {
-        if (f.shown) out.push({ id, c: f.c, color: friendColor(f.c), name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m) });
+        if (f.shown) out.push({ id, c: f.c, color: friendColor(f.c), name: nameOf(id), st: stateOf(f), since: f.since, ...f.shown, actor: f.actor.view(f.shown.m,f.shown) });
       }
       return out;
     },

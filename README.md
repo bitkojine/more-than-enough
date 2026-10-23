@@ -423,4 +423,9 @@ Character raster sources live in `art/characters/`. With ImageMagick installed,
 feet/scale and encodes the production WebP textures. Size-preserving SVG image
 containers keep the existing texture-pack loader compatible; the character
 artwork inside them is raster, not a vector redraw. Review real rendering with
-`MTE_CHARACTER_ONLY=1 npm run test:e2e` (set `CHROME_PATH` when needed).
+`MTE_CHARACTER_ONLY=1 npm run test:e2e` (set `CHROME_PATH` when needed). Add
+`MTE_RECORD_MOTION=1 MTE_SHOT_DIR=/tmp/mte-motion-review` to capture 72 PNG
+frames at 30 FPS, exercising the actual renderer with a 10000x game clock.
+Encode for review with `ffmpeg -framerate 30 -i /tmp/mte-motion-review/motion-frames/%03d.png -c:v libx264 -pix_fmt yuv420p /tmp/mte-motion-review/motion.mp4`.
+This is an optional visual fixture, not a fair-play or win simulation.
+

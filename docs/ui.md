@@ -235,3 +235,15 @@ cargo takes visual priority; showing every inventory item at once is avoided.
 Custom body overrides keep their own silhouette. Device-holding legacy worlds
 retain the compatible original body/hand alignment. Review the actual renderer
 at small and close scales, both facings, stride contacts, actions and boat deck.
+
+
+Character locomotion is sampled by `createActor().view(moving, position)` in
+`src/game/render/motion.js`. Its real-time clock is separate from simulation
+time. A full stride covers 1.2 world tiles; zoom, game speed and display rate
+never determine foot cadence. Blocked movement and riding select planted feet.
+Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase rather
+than turning a teleport or resumed tab into rapid steps. The actor view is
+sampled once by the host, then reused for every render pass. Work clips use the
+shared `ACT_TIME` durations and authored anticipation/contact/recovery; build
+plays two taps. No crossfades of complete figures (which produce double limbs).
+This is a discrete key-pose system, not yet a full skeletal animation system.

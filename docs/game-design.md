@@ -128,3 +128,58 @@ of bounded reach/throughput, not a finished multi-layer transport network.
 Environment work runs at 250ms deadlines using derived local spatial indexes;
 rendering is independent. The full simulation still has tick-based scheduling,
 so seconds-per-full-world performance is unproven and remains an explicit goal.
+
+
+## Visual quality and animation direction
+
+The owner wants the polish of high-quality shipped games while preserving this
+universe and the orange wanderer. Generated raster artwork is welcome; SVG is
+not a quality goal. Quality means the whole moving scene holds together, rather
+than detailed individual pictures alone. White chalk remains appropriate for
+plans and construction overlays.
+
+Useful design references are Ori's readable silhouette and separation from the
+background, Hades' clear anticipation/contact/recovery and restrained impact
+hierarchy, and Factorio's visually legible production and physical flow. These
+are principles to adapt to this game's camera and quiet exploration, not a
+request to copy their assets or add their engine complexity. External engine
+documentation was inaccessible in the current environment; these references
+are design direction, not a claim of a newly completed comparative study.
+
+Production rules:
+- Gameplay owns position, inventory, actions, visibility and environmental
+  conditions. Presentation consumes those facts; animation never delays or
+  grants an action. Headless simulations do not create presentation actors.
+- Each actor owns a real-time visual clock and distance-based locomotion phase.
+  Simulation acceleration, repeated render passes and device FPS must not
+  change cadence for the same movement. Stop and boat poses plant the feet.
+- Poses have consistent body proportions, sole registration, grip and facing.
+  Action anticipation, contact and recovery use one shared duration definition.
+  Complete painted silhouettes use authored keys, not ghosting crossfades.
+- Resources and structures must read at normal gameplay scale. Material shapes,
+  output locations and moving machinery explain function before decorative
+  detail. Equipment shown must be earned; environmental cues must remain fair.
+- Review in the real client: small/large scale, both facings, movement, stopping,
+  work, carrying, boat, occlusion, bright terrain and dark caves. Review motion
+  at 30/60/144 FPS. Keep startup size bounded and reuse cached raster assets;
+  no per-frame asset decoding or work proportional to the whole explored world.
+
+Implemented: complete generated key poses, registered soles, distance-based
+strides, a presentation clock, blocked/boat foot planting, discontinuity resets,
+work recovery and two construction taps. This is an incremental foundation,
+not a claim that the graphics now equal AAA games.
+
+Next production work, in order:
+1. Expand authored movement/action coverage: more intermediate walk/stop keys,
+   separate climbing/collection/construction poses and earned equipment tiers.
+   Current two-stride poses and discrete work recovery can still snap.
+2. Add reviewed per-clip contact/hand/head anchors and a clip metadata pipeline
+   before adding more outfit variants; avoid hardcoded per-outfit exceptions.
+3. Unify terrain/building/character material rendering, light direction and
+   contact shadows. Preserve darkness gameplay and legibility; atmospheric
+   effects must not reveal hidden resources or obscure thermal warnings.
+4. Couple impact audio, dust and machinery motion to presentation events with
+   budgets and reduced-motion controls. Keep simulation and rendering separate.
+5. Establish representative scene captures and motion recordings, with explicit
+   visual review and frame-time measurements on a modest phone. Passing tests
+   alone does not establish animation or art quality.

@@ -5,7 +5,7 @@
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
 import { pose } from './motion.js';
-import { characterSprite } from './character-sprite.js';
+import { characterSprite, characterFrame } from './character-sprite.js';
 
 const TAU = Math.PI * 2;
 
@@ -76,14 +76,14 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   const u = cam.tilePx;
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
   const walk = look.frames(appearance.id, 'image');
-  const frame=appearance.actionFrame!==null&&appearance.actionFrame!==undefined?Math.min(appearance.actionFrame,walk.pics.length-1):
-    moving&&walk.pics.length>1?(appearance.composed?Math.floor(s.time*(walk.fps||8))%walk.pics.length:1+Math.floor(s.time*(walk.fps||6))%(walk.pics.length-1)):0;
+  const time=actor.clock??s.time;
+  const frame=characterFrame(appearance,walk,actor,{moving,water,time});
   const body = walk.pics[frame];
-  const p = pose(actor, { moving, boat: water, steady, time: s.time, seed, equipment });
+  const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
   // Painted poses already contain the lean and foot placement. Do not stack
   // the old icon-puppet bob/rotation on them or planted feet drift.
   if(appearance.composed&&(!actor.act||['swing','pick','build'].includes(actor.act))){p.dy=0;p.rot=water?p.rock:0;}
-  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock) : 0;
+  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
   if (!deck) shadow(ctx, cam, sx, sy, (appearance.composed?.625:body.units) * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
   const dir = flip ? -1 : 1, feet = sy - deck;
@@ -104,9 +104,9 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
 // The boat under someone on water, bobbing and rocking by `rock` radians,
 // with its shadow. Returns how far above (sx, sy) its deck is, for them to
 // stand or lie on.
-function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0) {
+function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0, time = s.time) {
   const u = cam.tilePx;
-  const bob = Math.sin(s.time * 2.6 + x * 7.3) * u * 0.04;
+  const bob = Math.sin(time * 2.6 + x * 7.3) * u * 0.04;
   const boat = look.pick('character.boat', 'image');
   shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
   ctx.save();

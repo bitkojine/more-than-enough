@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.136.1": "Walking now follows distance travelled, feet stop against walls and on boats, and work poses settle back after each action. Character motion stays calm during fast simulations.",
   "news.0.136.0": "The orange wanderer now uses painted character poses: fitted fieldwork gear, proper walking feet, two-handed mining, bare-handed and basket gathering, and careful crystal carrying. Floating equipment icons are gone.",
   "cr.reason.completed": "This world is already complete.",
   "cr.reason.close": "Close the protective shutters first.",

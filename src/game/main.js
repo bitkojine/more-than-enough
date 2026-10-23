@@ -531,7 +531,7 @@ function view() {
   return {
     facing: controller.facing,
     moving,
-    actor: actor.view(moving),
+    actor: actor.view(moving,s.player),
     yard,
     harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
     auto: autoPlaying && perfect.badge !== 'ui.embark' ? t('button.perfect') : '',

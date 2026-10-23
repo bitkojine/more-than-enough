@@ -35,3 +35,27 @@ test('motion: a friend\'s act plays once per new count, never on first sight', (
   mine.act('dance');
   assert.deepEqual(mine.sent, { a: 'pick', n: 1 }, 'unknown acts are ignored');
 });
+
+test('locomotion follows travelled distance at 30, 60 and 144 FPS', () => {
+  for (const fps of [30,60,144]) {
+    let time=0; const a=createActor({clock:()=>time});
+    a.view(false,{x:0,y:0,z:0});
+    let v;
+    for(let i=1;i<=fps;i++) { time=i/fps;v=a.view(true,{x:.9*i/fps,y:0,z:0}); }
+    assert.ok(Math.abs(v.stride-.75)<1e-10,'same distance, same stride at '+fps);
+    const blocked=a.view(true,{x:.9,y:0,z:0});
+    assert.equal(blocked.walking,false,'holding movement against a wall is not walking');
+    assert.equal(blocked.stride,v.stride,'drawing without displacement cannot advance steps');
+    assert.equal(a.view(false,{x:.9,y:0,z:0}).stride,0,'stopping plants the idle feet');
+  }
+});
+
+test('locomotion ignores layer transitions, teleports and suspended frames',()=>{
+  let time=0;const a=createActor({clock:()=>time});
+  a.view(false,{x:0,y:0,z:0});time=.1;
+  assert.ok(a.view(true,{x:.3,y:0,z:0}).stride>0);
+  time=.2;assert.equal(a.view(true,{x:100,y:0,z:0}).stride,0);
+  time=.3;assert.equal(a.view(true,{x:100.3,y:0,z:-1}).stride,0);
+  time=100;const v=a.view(true,{x:100.6,y:0,z:-1});
+  assert.equal(v.stride,0);assert.equal(v.walking,false);assert.equal(v.clock,100);
+});

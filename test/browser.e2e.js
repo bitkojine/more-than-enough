@@ -307,7 +307,7 @@ async function main() {
           const state={...MTE_GAME.getState(),time,emptyStart:true,player:{x:col===6?waterAt.x+.5:.5,y:col===6?waterAt.y+.5:.5,z:0},tools:{basket:0,pickaxe:0,boots:0,overclock:0,...tools},cultivation:cargo,inv:{mycelium:0,stone:0,ore:0,crystal:0}};
           const cam={tilePx:u,depthPx:u*.5,z:0,project:()=>({x,y})};
           g.strokeStyle='#718079';g.lineWidth=1;g.beginPath();g.moveTo(x-55,y+1);g.lineTo(x+55,y+1);g.stroke();
-          drawPlayer(g,cam,state,look,{facing:{x:flip?-1:1,y:0},moving,sign:0,device:null,actor:actor?{...actor,t:row===2&&col===2?.03:actor.t}:{act:null,t:0,idle:0}});
+          drawPlayer(g,cam,state,look,{facing:{x:flip?-1:1,y:0},moving,sign:0,device:null,actor:actor?{...actor,t:row===2&&col===2?.03:actor.t,clock:time,stride:(time*2)%1,walking:moving}:{act:null,t:0,idle:0,clock:time,stride:(time*2)%1,walking:moving}});
         }
       }
       const ids=['wanderer','worker','miner','forager','courier','specimen','lamplighter','bareForager'];let pictures=0;
@@ -315,6 +315,41 @@ async function main() {
       return pictures;
     })()`);
     ok(review>=18,'all production poses contain rendered pixels');await shot('character-contact-sheet.png');
+    if(process.env.MTE_RECORD_MOTION==='1'){
+      // A deterministic visual fixture, not a gameplay/win evaluation. Capture
+      // real renderer pixels; encoding is an optional external developer step.
+      const frames=await evalJS(`(async()=>{
+        const {drawPlayer}=await import('./src/game/render/sprites.js');
+        const {createActor}=await import('./src/game/render/motion.js');
+        const canvas=document.createElement('canvas');canvas.width=960;canvas.height=320;
+        const g=canvas.getContext('2d'),look=MTE_GAME.look,base=MTE_GAME.getState();
+        let clock=0;const actors=[0,1,2].map(()=>createActor({clock:()=>clock}));
+        const frames=[];
+        for(let i=0;i<72;i++){
+          clock=i/30;g.fillStyle='#343b37';g.fillRect(0,0,960,320);
+          g.fillStyle='#eee8db';g.font='20px Georgia';g.fillText('Real renderer — locomotion / work / sealed cargo',28,34);
+          for(let col=0;col<3;col++){
+            const moving=col!==1&&clock>.25&&clock<1.9;
+            const x=Math.max(0,Math.min(1.65,clock-.25))*.9;
+            const position={x:x+.5,y:.5,z:0};
+            if(col===1&&(i===12||i===30||i===48))actors[col].act('swing');
+            const actor=actors[col].view(moving,position);
+            const state={...base,time:clock*10000,emptyStart:true,player:position,
+              tools:{basket:1,pickaxe:1,boots:0,overclock:0},inv:{...base.inv,crystal:0},
+              cultivation:col===2?{gear:{carrier:true},starter:{health:100}}:null};
+            const sx=160+col*320,sy=235;
+            g.strokeStyle='#718079';g.beginPath();g.moveTo(sx-100,sy+1);g.lineTo(sx+100,sy+1);g.stroke();
+            drawPlayer(g,{tilePx:128,depthPx:64,z:0,project:()=>({x:sx,y:sy})},state,look,
+              {facing:{x:1,y:0},moving,sign:0,device:null,actor});
+          }
+          frames.push(canvas.toDataURL('image/png').split(',')[1]);
+        }
+        return frames;
+      })()`);
+      fs.mkdirSync(path.join(SHOT_DIR,'motion-frames'),{recursive:true});
+      frames.forEach((frame,i)=>fs.writeFileSync(path.join(SHOT_DIR,'motion-frames',String(i).padStart(3,'0')+'.png'),Buffer.from(frame,'base64')));
+      ok(frames.length===72,'captured 30 FPS motion review using a 10000x game clock');
+    }
     eq(pageErrors.length,0,'no character renderer errors');
     console.log((failures?'CHARACTER BROWSER FAILURES':'CHARACTER BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }

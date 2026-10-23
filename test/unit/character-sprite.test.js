@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {characterSprite} from '../../src/game/render/character-sprite.js';
+import {characterSprite,characterFrame} from '../../src/game/render/character-sprite.js';
 const look={overrides:()=>false};
 const gear={basket:2,pickaxe:3,boots:2};
 const choose=(extra={})=>characterSprite({look,...extra});
@@ -23,4 +23,20 @@ test('mining uses authored grips and custom characters retain their own silhouet
  const custom={overrides:id=>id==='character.wanderer'};
  assert.deepEqual(choose({look:custom,equipment:gear}),{id:'character.wanderer',composed:false});
  assert.equal(choose({device:'phone'}).id,'character.legacyWanderer');
+});
+
+test('authored work recovers to the real held outfit and building has two taps',()=>{
+ assert.equal(choose({equipment:gear,actor:{act:'swing',t:.29}}).id,'character.worker');
+ assert.equal(choose({actor:{act:'pick',t:.44}}).id,'character.wanderer');
+ assert.equal(choose({equipment:gear,actor:{act:'build',t:.4}}).actionFrame,0);
+ assert.equal(choose({equipment:gear,actor:{act:'build',t:.5}}).actionFrame,1);
+});
+
+test('pose sampling stays grounded on boats and is independent of game time',()=>{
+ const clip={pics:[0,1,2,3],fps:8},appearance={composed:true};
+ for(const time of [0,10,1e8]){
+  assert.equal(characterFrame(appearance,clip,{stride:.3,walking:true},{moving:true,time}),1);
+  assert.equal(characterFrame(appearance,clip,{stride:.7,walking:true},{moving:true,water:true,time}),0);
+  assert.equal(characterFrame(appearance,clip,{stride:.7,walking:false},{moving:true,time}),0);
+ }
 });
