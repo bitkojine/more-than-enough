@@ -172,13 +172,15 @@ Production rules:
 
 Implemented: complete generated key poses, registered soles, distance-based
 strides, a presentation clock, blocked/boat foot planting, discontinuity resets,
+eight distinct drawings for each of the eight walk/work contexts, full authored
 work recovery and two construction taps. This is an incremental foundation,
 not a claim that the graphics now equal AAA games.
 
 Next production work, in order:
 1. Expand authored movement/action coverage: more intermediate walk/stop keys,
    separate climbing/collection/construction poses and earned equipment tiers.
-   Current two-stride poses and discrete work recovery can still snap.
+   The eight-frame loops improve the initial two-stride poses; transitions between
+   separate contexts can still snap and need authored coverage.
 2. Add reviewed per-clip contact/hand/head anchors and a clip metadata pipeline
    before adding more outfit variants; avoid hardcoded per-outfit exceptions.
 3. Unify terrain/building/character material rendering, light direction and
@@ -189,3 +191,8 @@ Next production work, in order:
 5. Establish representative scene captures and motion recordings, with explicit
    visual review and frame-time measurements on a modest phone. Passing tests
    alone does not establish animation or art quality.
+
+The fuller 64-drawing animation set intentionally expands startup to about
+1.02 MB compressed within a 1150 KB budget. This is a measured art-quality
+tradeoff; additional clips should use asset streaming before continuing to
+expand the initial pack. Frame decoding remains cached, outside the tick loop.

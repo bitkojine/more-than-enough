@@ -4,7 +4,7 @@ const root=fileURLToPath(new URL('../',import.meta.url));
 const temp=(process.env.MTE_ART_WORKSPACE?resolve(process.env.MTE_ART_WORKSPACE):fs.mkdtempSync(join(tmpdir(),'mte-character-art-')) )+'/';
 fs.mkdirSync(temp,{recursive:true});
 fs.mkdirSync(root+'packs/default/characters/painted',{recursive:true});
-const sources=[[root+'art/characters/fieldwork-source.png','fieldwork',{'idle':3,'walk-a':1,'walk-b':2,'worker-idle':4,'worker-walk-a':5,'worker-walk-b':6,'mine-windup':7,'mine-strike':8,'gather':9}],[root+'art/characters/carrying-source.png','carrying',{'courier-idle':3,'courier-walk-a':2,'courier-walk-b':1,'starter-idle':8,'starter-walk-a':6,'starter-walk-b':7,'lantern-idle':10,'lantern-walk-a':12,'lantern-walk-b':11}],[root+'art/characters/bare-gather-source.png','bare-gather',{'gather-bare':1}]];
+const sources=[[root+'art/characters/fieldwork-source.png','fieldwork',{'idle':3,'worker-idle':4}],[root+'art/characters/carrying-source.png','carrying',{'courier-idle':3,'starter-idle':8,'lantern-idle':10}]];
 const report=[];
 for(const [source,label,names]of sources){
  const info=run('magick',[source,'-alpha','extract','-threshold','70%','-define','connected-components:verbose=true','-connected-components','8','null:'],{encoding:'utf8'});

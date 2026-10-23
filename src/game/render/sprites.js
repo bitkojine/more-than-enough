@@ -75,7 +75,9 @@ export function drawPlayer(ctx, cam, s, look, view) {
 function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
   const u = cam.tilePx;
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
-  const walk = look.frames(appearance.id, 'image');
+  const planted=appearance.actionProgress==null&&(!moving||water||actor.walking===false);
+  const hasStand=look.has(appearance.id,'stand')&&(!look.overrides(appearance.id)||look.overrides(appearance.id,'stand'));
+  const walk = look.frames(appearance.id,planted&&hasStand?'stand':'image');
   const time=actor.clock??s.time;
   const frame=characterFrame(appearance,walk,actor,{moving,water,time});
   const body = walk.pics[frame];
@@ -93,7 +95,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   ctx.translate(fx, fy);
   ctx.rotate(rot);
   const facing = !appearance.composed&&p.turn ? !flip : flip;
-  const pictureHeight = standWithHeld(ctx, look, body, device, 0, appearance.composed?u/64:0, u, facing);
+  const pictureHeight = standWithHeld(ctx, look, body, device, 0, appearance.composed&&!look.overrides(appearance.id)?u*(body.units*body.aspect-71/64):0, u, facing);
   const tall=appearance.composed?u*60/64:pictureHeight;
   if(!appearance.composed&&p.tool&&(!equipment||equipment[p.tool.kind]>0))drawTool(ctx,look,body,u,p.tool,facing?-1:1,equipment?.[p.tool.kind]??1);
   ctx.restore();

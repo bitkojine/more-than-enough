@@ -244,6 +244,15 @@ never determine foot cadence. Blocked movement and riding select planted feet.
 Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase rather
 than turning a teleport or resumed tab into rapid steps. The actor view is
 sampled once by the host, then reused for every render pass. Work clips use the
-shared `ACT_TIME` durations and authored anticipation/contact/recovery; build
-plays two taps. No crossfades of complete figures (which produce double limbs).
+shared `ACT_TIME` durations and sample all eight drawings across authored
+anticipation/contact/recovery; build plays two complete taps.
+Each of the five walking contexts has eight distinct sequential drawings.
+The optional character `stand` slot supplies a separate resting figure so
+standing stills never get inserted between walking keys. Custom image overrides
+without their own `stand` slot retain their own first image at rest. No crossfades of complete figures (which produce double limbs).
 This is a discrete key-pose system, not yet a full skeletal animation system.
+
+Painted work frames have extra transparent canvas below the registered sole
+baseline, so low tool tips remain complete. The renderer derives the drawing
+offset from picture dimensions and that sole baseline; transparent margins
+never lift the feet or change the body scale.

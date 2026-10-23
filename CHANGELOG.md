@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.137.0] - 2026-10-23
+
+### Changed
+- Eight distinct sequential drawings per clip: empty-handed/fieldwork walking,
+  sealed/exposed crystal carrying, lantern walking, mining, bare-handed gathering
+  and basket gathering. Standing frames are separate from the walk cycles.
+- Work samples the full authored timeline, including in-betweens and recovery,
+  rather than switching between wind-up/strike or holding a crouched still.
+- Expanded the intentional startup budget to 1150 KB compressed for the 64
+  4x raster drawings (measured about 1017 KB, still four requests).
+- Added a reproducible animation-sheet packer and source masters. The browser
+  review rejects sparse or duplicated clips and captures all eight contexts.
+
+
 ## [0.136.1] - 2026-10-23
 
 ### Changed

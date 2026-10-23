@@ -428,3 +428,11 @@ artwork inside them is raster, not a vector redraw. Review real rendering with
 frames at 30 FPS, exercising the actual renderer with a 10000x game clock.
 Encode for review with `ffmpeg -framerate 30 -i /tmp/mte-motion-review/motion-frames/%03d.png -c:v libx264 -pix_fmt yuv420p /tmp/mte-motion-review/motion.mp4`.
 This is an optional visual fixture, not a fair-play or win simulation.
+
+Generated sequential animation sheets are in `art/characters/animation.json`.
+`node scripts/pack-character-animation.mjs` rebuilds all 64 distinct drawings;
+pass a clip name (for example `walk`) to rebuild only that clip. This
+manual asset-production step requires ImageMagick. It preserves a common scale
+per sheet and registers figures before WebP encoding. The default character
+`image` slot is the eight-frame moving/working clip; optional `stand` supplies
+resting artwork. The browser character check rejects repeated-frame padding.

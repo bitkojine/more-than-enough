@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const BUDGET_KB = 525; // v0.136.0: user-requested generated 4x raster character poses, replacing icon attachments
+const BUDGET_KB = 1150; // v0.137.0: 64 distinct 4x raster animation drawings; intentional animation-quality budget
 const MAX_REQUESTS = 6;
 
 test('the first load is few requests and fits the size budget', (t) => {

@@ -17,19 +17,21 @@ test('whole-figure poses show only owned equipment and actual cargo',()=>{
  assert.equal(choose({cargo}).id,'character.lamplighter');
  assert.equal(choose({cargo,crystal:2}).id,'character.courier');
 });
-test('mining uses authored grips and custom characters retain their own silhouette',()=>{
- assert.equal(choose({equipment:gear,actor:{act:'swing',t:.01}}).actionFrame,0);
- assert.equal(choose({equipment:gear,actor:{act:'swing',t:.2}}).actionFrame,1);
+test('work plays all authored frames, including recovery, and custom characters retain their silhouette',()=>{
+ const clip={pics:Array.from({length:8},(_,i)=>i),fps:24};
+ for(const [act,duration]of [['swing',.3],['pick',.45]]){
+  const frames=new Set();
+  for(let i=0;i<60;i++){
+   const actor={act,t:duration*i/60};const appearance=choose({equipment:gear,actor});
+   frames.add(characterFrame(appearance,clip,actor));
+  }
+  assert.equal(frames.size,8,'all eight '+act+' drawings are actually sampled');
+ }
+ assert.equal(choose({equipment:gear,actor:{act:'swing',t:.29}}).id,'character.miner');
+ assert.equal(choose({equipment:gear,actor:{act:'build',t:.4}}).actionProgress,(.4/.7*2)%1);
  const custom={overrides:id=>id==='character.wanderer'};
  assert.deepEqual(choose({look:custom,equipment:gear}),{id:'character.wanderer',composed:false});
  assert.equal(choose({device:'phone'}).id,'character.legacyWanderer');
-});
-
-test('authored work recovers to the real held outfit and building has two taps',()=>{
- assert.equal(choose({equipment:gear,actor:{act:'swing',t:.29}}).id,'character.worker');
- assert.equal(choose({actor:{act:'pick',t:.44}}).id,'character.wanderer');
- assert.equal(choose({equipment:gear,actor:{act:'build',t:.4}}).actionFrame,0);
- assert.equal(choose({equipment:gear,actor:{act:'build',t:.5}}).actionFrame,1);
 });
 
 test('pose sampling stays grounded on boats and is independent of game time',()=>{

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.137.0": "Ėjimas, nešimas, kasimas ir rinkimas dabar turi po aštuonis skirtingus ciklo kadrus su tarpinėmis pozomis. Ėjimo nebepertraukia stovėjimo kadrai, o darbo judesiai baigiami nupieštu grįžimu į ramybės pozą.",
   "news.0.136.1": "Žingsniai dabar atitinka nueitą atstumą. Atsirėmus į sieną ir plaukiant valtele kojos nebežingsniuoja, o darbo judesiai grįžta į ramybės pozą. Spartus modeliavimas nepagreitina veikėjo judesių.",
   "news.0.136.0": "Oranžinis keliautojas dabar turi tapytas pozas: prigludusią darbo įrangą, taisyklingus žingsnius, kasimą abiem rankomis, rinkimą plikomis rankomis ar į krepšį ir atsargų kristalų nešimą. Pakibusių įrangos ikonų nebėra.",
   "cr.reason.completed": "Šis pasaulis jau užbaigtas.",

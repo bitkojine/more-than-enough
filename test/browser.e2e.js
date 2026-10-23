@@ -311,7 +311,10 @@ async function main() {
         }
       }
       const ids=['wanderer','worker','miner','forager','courier','specimen','lamplighter','bareForager'];let pictures=0;
-      for(const id of ids)for(const pic of look.frames('character.'+id,'image').pics){const bitmap=look.bitmap(pic,160);const data=bitmap.getContext('2d').getImageData(0,0,bitmap.width,bitmap.height).data;if(!data.some((n,i)=>i%4===3&&n>128))throw Error('Empty raster sprite: '+id);pictures++;}
+      for(const id of ids){const clip=look.frames('character.'+id,'image');if(clip.pics.length<8||new Set(clip.pics.map(p=>p.url)).size<8)throw Error('Sparse or duplicated clip: '+id);}for(const id of ids)for(const pic of look.frames('character.'+id,'image').pics){const bitmap=look.bitmap(pic,160);const data=bitmap.getContext('2d').getImageData(0,0,bitmap.width,bitmap.height).data;if(!data.some((n,i)=>i%4===3&&n>128))throw Error('Empty raster sprite: '+id);
+        for(let x=0;x<bitmap.width;x++)if(data[x*4+3]>128||data[((bitmap.height-1)*bitmap.width+x)*4+3]>128)throw Error('Vertically clipped pose: '+id);
+        for(let y=0;y<bitmap.height;y++)if(data[(y*bitmap.width)*4+3]>128||data[(y*bitmap.width+bitmap.width-1)*4+3]>128)throw Error('Horizontally clipped pose: '+id);
+        pictures++;}
       return pictures;
     })()`);
     ok(review>=18,'all production poses contain rendered pixels');await shot('character-contact-sheet.png');
@@ -321,23 +324,24 @@ async function main() {
       const frames=await evalJS(`(async()=>{
         const {drawPlayer}=await import('./src/game/render/sprites.js');
         const {createActor}=await import('./src/game/render/motion.js');
-        const canvas=document.createElement('canvas');canvas.width=960;canvas.height=320;
+        const canvas=document.createElement('canvas');canvas.width=960;canvas.height=640;
         const g=canvas.getContext('2d'),look=MTE_GAME.look,base=MTE_GAME.getState();
-        let clock=0;const actors=[0,1,2].map(()=>createActor({clock:()=>clock}));
+        let clock=0;const actors=Array.from({length:8},()=>0).map(()=>createActor({clock:()=>clock}));
         const frames=[];
         for(let i=0;i<72;i++){
-          clock=i/30;g.fillStyle='#343b37';g.fillRect(0,0,960,320);
-          g.fillStyle='#eee8db';g.font='20px Georgia';g.fillText('Real renderer — locomotion / work / sealed cargo',28,34);
-          for(let col=0;col<3;col++){
-            const moving=col!==1&&clock>.25&&clock<1.9;
+          clock=i/30;g.fillStyle='#343b37';g.fillRect(0,0,960,640);
+          g.fillStyle='#eee8db';g.font='20px Georgia';g.fillText('Real renderer — eight distinct drawings per clip',28,34);
+          for(let col=0;col<8;col++){
+            const moving=col<5&&clock>.25&&clock<1.9;
             const x=Math.max(0,Math.min(1.65,clock-.25))*.9;
             const position={x:x+.5,y:.5,z:0};
-            if(col===1&&(i===12||i===30||i===48))actors[col].act('swing');
+            if(col>=5&&(i===12||i===32||i===52))actors[col].act(col===5?'swing':'pick');
             const actor=actors[col].view(moving,position);
             const state={...base,time:clock*10000,emptyStart:true,player:position,
-              tools:{basket:1,pickaxe:1,boots:0,overclock:0},inv:{...base.inv,crystal:0},
-              cultivation:col===2?{gear:{carrier:true},starter:{health:100}}:null};
-            const sx=160+col*320,sy=235;
+              tools:{basket:col===0||col===6?0:1,pickaxe:col===0||col===6?0:1,boots:0,overclock:0},inv:{...base.inv,crystal:0},
+              cultivation:col===2||col===3?{gear:{carrier:col===2},starter:{health:100}}:col===4?{gear:{lantern:true},lantern:true}:null};
+            const sx=120+(col%4)*240,sy=275+Math.floor(col/4)*285;
+            g.fillStyle='#eee8db';g.font='14px system-ui';g.fillText(['Bare walk','Fieldwork','Sealed cargo','Exposed starter','Lantern','Mining','Bare gather','Basket gather'][col],sx-80,sy-160);
             g.strokeStyle='#718079';g.beginPath();g.moveTo(sx-100,sy+1);g.lineTo(sx+100,sy+1);g.stroke();
             drawPlayer(g,{tilePx:128,depthPx:64,z:0,project:()=>({x:sx,y:sy})},state,look,
               {facing:{x:1,y:0},moving,sign:0,device:null,actor});
