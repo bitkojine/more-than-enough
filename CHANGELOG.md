@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.138.2] - 2026-10-23
+
+- Slowed walking animation another tenfold: a complete cycle spans 24 tiles,
+  about 6.5 seconds at base walking speed. Movement and action timing are unchanged.
+- Applied the same walking slowdown to legacy/custom procedural bob and
+  clock-based sprite fallback, which have independent playback paths.
+- Browser cadence check exercises the actor and actual atlas frame selection
+  at 30, 60 and 144 FPS, rather than reviewing only manually chosen poses.
+
+
 ## [0.138.1] - 2026-10-23
 
 - Halved walking-animation cadence: one full cycle per 2.4 travelled tiles.

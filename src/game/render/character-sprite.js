@@ -1,4 +1,4 @@
-import { ACT_TIME } from './motion.js';
+import { ACT_TIME, WALK_ANIMATION_RATE } from './motion.js';
 
 /* Whole-figure artwork owns the silhouette and the grip. Inventory pictures
  * never become costume layers. The original body remains a compatibility
@@ -28,6 +28,6 @@ export function characterFrame(appearance, clip, actor, {moving=false,water=fals
   if(appearance.actionProgress!=null)return Math.min(clip.pics.length-1,Math.floor(appearance.actionProgress*clip.pics.length));
   if(!moving||water||actor.walking===false||clip.pics.length<2)return 0;
   if(actor.stride!=null)return Math.floor(actor.stride*clip.pics.length)%clip.pics.length;
-  return appearance.composed?Math.floor(time*(clip.fps||8))%clip.pics.length:
-    1+Math.floor(time*(clip.fps||6))%(clip.pics.length-1);
+  return appearance.composed?Math.floor(time*(clip.fps||8)*WALK_ANIMATION_RATE)%clip.pics.length:
+    1+Math.floor(time*(clip.fps||6)*WALK_ANIMATION_RATE)%(clip.pics.length-1);
 }

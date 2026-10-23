@@ -314,6 +314,17 @@ async function main() {
       frames.push(canvas.toDataURL('image/png').split(',')[1]);}
       return {count,stats:look.directional.stats,frames};
     })()`);
+    const cadence=await evalJS(`(async()=>{
+      const {createActor}=await import('./src/game/render/motion.js');
+      const {directionalFrame}=await import('./src/game/render/directional-art.js');
+      const clip=await MTE_GAME.look.directional.load('bare','walk','s');
+      return [30,60,144].map(fps=>{
+        let time=0;const actor=createActor({clock:()=>time});actor.view(false,{x:0,y:0,z:0});
+        let view;for(let i=1;i<=fps;i++){time=i/fps;view=actor.view(true,{x:3.7*i/fps,y:0,z:0});}
+        return {fps,phase:view.stride,frame:clip.pics.indexOf(directionalFrame(clip,view.stride))};
+      });
+    })()`);
+    for(const sample of cadence){ok(Math.abs(sample.phase-3.7/24)<1e-9,'one second advances only 0.154 cycles at '+sample.fps+' FPS');eq(sample.frame,2,'rendered walk reaches frame 2 of 16 after one second at '+sample.fps+' FPS');}
     eq(review.count,128,'all eight directions decode sixteen raster frames');
     eq(review.stats.errors.length,0,'no atlas loading errors');
     ok(review.stats.bytes<=64*1024*1024,'decoded atlases stay within memory budget');

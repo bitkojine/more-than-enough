@@ -42,3 +42,8 @@ test('pose sampling stays grounded on boats and is independent of game time',()=
   assert.equal(characterFrame(appearance,clip,{stride:.7,walking:false},{moving:true,time}),0);
  }
 });
+
+test('clock-based walking fallback keeps the relaxed cadence without a distance sample',()=>{
+  const clip={pics:Array.from({length:16},()=>({})),fps:8};
+  assert.equal(characterFrame({composed:true},clip,{}, {moving:true,time:1.25}),1);
+});
