@@ -5,6 +5,7 @@
  * worlds already replaced, and a save from a newer game than this one is set
  * aside until the update arrives (src/game/storage.js). */
 
+import {validCultivation} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -12,7 +13,7 @@ import { ExploredChunks } from './explored-index.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
-import { GOALS } from './goals.js';
+import { GOALS, CULTIVATION_GOALS } from './goals.js';
 import { WORLD_FORMAT } from './format.js';
 
 // The room service knows it too (format.js).
@@ -33,6 +34,7 @@ export function serialize(s) {
   economyForState(s)?.snapshot();
   return JSON.stringify({
     v: SAVE_VERSION,
+    ...(s.cultivation?{cultivation:s.cultivation}:{}),
     seed: s.seed, ...(s.logisticsModel ? { logisticsModel: s.logisticsModel } : {}), ...(s.emptyStart ? { emptyStart: true } : {}),
     mods: [...s.world.mods],
     explored: [...s.world.explored].map(([k, mask]) => [k, bytesToB64(mask)]),
@@ -72,6 +74,11 @@ export function deserialize(str, make = createState) {
   s.emptyStart = d.emptyStart === true;
   if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
   if (d.logisticsModel) s.logisticsModel = d.logisticsModel;
+  if(d.cultivation){
+    if(!validCultivation(d.cultivation))return null;
+    s.cultivation=d.cultivation;s.world.cultivation=true;
+    s.world.chunks.clear();s.world.hotKey=-1;s.world.hotChunk=null;
+  }
   const w = s.world;
   w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
   w.explored = new ExploredChunks();
@@ -111,7 +118,7 @@ export function deserialize(str, make = createState) {
   if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
   // Milestones reached; a save from before they counted in any order has
   // only how many, which were the first ones listed.
-  const goalIds = GOALS.map((g) => g.id);
+  const goalIds = (s.cultivation?CULTIVATION_GOALS:GOALS).map((g) => g.id);
   s.goalsDone = Array.isArray(d.goalsDone)
     ? d.goalsDone.filter((id, i, all) => goalIds.includes(id) && all.indexOf(id) === i)
     : goalIds.slice(0, clampInt(isNum(s.goalIndex) ? s.goalIndex : 0, 0, goalIds.length));

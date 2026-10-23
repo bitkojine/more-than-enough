@@ -78,6 +78,7 @@ export function createPerfect({ game, controller, hud }) {
 
     // Pressed: act at once; holding repeats it in tick().
     press() {
+      if(state().cultivation)return;
       keepAwake(true);
       if (cooldown <= CLOCK_EPSILON && !controller.walking) act(false);
     },
@@ -94,6 +95,7 @@ export function createPerfect({ game, controller, hud }) {
     // Every frame. `holding`: the button is held, nothing in the way (no
     // dialog, no sheet) and the player isn't steering or working a tile.
     tick(dt, holding) {
+      if(state().cultivation)return;
       const remaining = cooldown;
       cooldown -= dt;
       if (holding) {

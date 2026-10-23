@@ -1199,3 +1199,6 @@ a.setRow { text-decoration: none; }
   border-radius: 15px 18px 14px 17px;
   box-shadow: inset 0 0 0 1px rgba(245,242,233,0.025);
 }
+
+#btnPerfect[hidden] { display: none; }
+.crystalTolerance { display:block; width:100%; max-width:160px; height:12px; }

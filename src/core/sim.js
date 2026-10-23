@@ -1,6 +1,7 @@
 /* Time and motion: the per-tick simulation, movement and fog reveal.
  * Deterministic: no clocks, no Math.random. */
 
+import {stepCultivation} from './cultivation.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
@@ -37,6 +38,7 @@ export function canBatchEconomy(s, count) { return haulingEconomyAvailable(s) &&
 
 export function step(s, dt, { visualEvents = true } = {}) {
   if (dt > MAX_STEP) dt = MAX_STEP;
+  if(s.cultivation)stepCultivation(s,dt);
   noteWhere(s); // a shared world's room follows where you are (acts.js)
   const economy = economyForState(s) || (usesDepots(s) && Math.abs(dt*60-Math.round(dt*60))<1e-9 ? startEventEconomy(s) : null);
   if (economy) {
@@ -140,7 +142,7 @@ export function awayProduce(s, seconds, allowed = !FREEZE_AWAY) {
 }
 
 export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
-  if (!allowed) return null; // freeze season: time away makes nothing
+  if (s.cultivation || !allowed) return null; // freeze season: time away makes nothing
   if (!(seconds >= AWAY_MIN)) return null;
   const sec = Math.min(AWAY_CAP, seconds);
   if (usesDepots(s)) economyForState(s)?.stop();

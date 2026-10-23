@@ -147,11 +147,11 @@ export function drawLighting(ctx, cam, s, look, lights, device) {
       ctx.globalCompositeOperation = 'source-over';
     }
   }
-  const dark = under ? UNDERGROUND_DARK : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
+  const dark = under ? (s.cultivation&&!s.cultivation.lantern?0.58:UNDERGROUND_DARK) : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
   if (dark < 0.01) return;
 
   const all = lights.slice();
-  if (Core.isDark(s)) {
+  if (Core.isDark(s)&&(!s.cultivation||s.cultivation.lantern)) {
     // Kept usable when zoomed far out, where tiles are tiny.
     all.push({
       x: s.player.x, y: s.player.y, r: (under ? MINE_SCREEN_LIGHT : SCREEN_LIGHT) * Core.lightScale(s),

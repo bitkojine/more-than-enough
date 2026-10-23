@@ -287,8 +287,45 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
+  if(process.env.MTE_CULTIVATION_ONLY!=='1'){
+    const core=await import('../src/core/index.js');const raw=core.serialize(core.createState((Date.now()>>>0)||1));
+    await evalJS('localStorage.setItem("more-than-enough-save",'+JSON.stringify(raw)+')');
+  }
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await evalJS('!!window.MTE_GAME'), 'game booted');
+  if(process.env.MTE_CULTIVATION_ONLY==='1'){
+    console.log('\n== Cultivation in the original client ==');
+    ok(await evalJS('!!MTE_GAME.getState().cultivation'),'normal game starts with cultivation rules');
+    ok(await evalJS('document.getElementById("game") instanceof HTMLCanvasElement && !!MTE_GAME.look'),'original canvas and texture-pack renderer retained');
+    ok(await evalJS('MTE_GAME.getState().tools.pickaxe===0&&MTE_GAME.getState().inv.ore===0'),'empty-handed opening retained');
+    await shot('cultivation-surface.png');
+    await evalJS('document.getElementById("btnUpgrade").click()');
+    ok(await evalJS('!!document.querySelector("[data-kind=cultivation][data-id=carrier]")'),'equipment added to original Upgrade sheet');
+    ok(await evalJS('!document.querySelector("[data-kind=resup]")'),'new world has no abstract refinement purchases');
+    await evalJS('document.getElementById("btnClose").click()');
+    // Funded UI fixture only: tests controls and renderer, not fair fresh play.
+    await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();for(const r of c.RESOURCES)c.earn(s,r,300,'hand');for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){const t=c.tileAt(s.world,x,y,-2);if(!c.TILE_INFO[t].rise&&!c.TILE_INFO[t].descend){c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}}s.player={x:.5,y:.5,z:-2};})()`);
+    await evalJS('document.getElementById("btnBuild").click()');
+    await evalJS('document.querySelector("[data-kind=cultivation][data-id=chamber]").click()');
+    ok(await evalJS('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")'),'real Build control constructs chamber in original world');
+    ok(await evalJS('MTE_GAME.getState().inv.ore===292'),'construction spends ordinary metal inventory: '+await evalJS('MTE_GAME.getState().inv.ore'));
+    await evalJS('[...document.querySelectorAll("[data-action=shutter]")].find(e=>e.dataset.x==="0"&&e.dataset.y==="0").click()');
+    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'original sheet controls real shutters');
+    ok(await evalJS('document.getElementById("sheetBody").textContent.includes("Temperature")'),'inspection shows exact temperature');
+    await evalJS('MTE_GAME.save()');var seed=await evalJS('MTE_GAME.getState().seed');
+    await evalJS('document.getElementById("btnClose").click()');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
+    await sleep(300);await shot('cultivation-existing-art.png');
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt');
+    eq(await evalJS('MTE_GAME.getState().seed'),seed,'same original world resumes');
+    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'shutters survive ordinary save/reload');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
+    await evalJS('document.getElementById("btnBuild").click()');await sleep(250);await shot('cultivation-phone-lt.png');
+    ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'Lithuanian phone fits');
+    if(pageErrors.length)console.log(pageErrors.join(' | '));
+    eq(pageErrors.length,0,'no original-client runtime errors');
+    console.log((failures?'CULTIVATION BROWSER FAILURES':'CULTIVATION BROWSER TESTS PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   ok(await evalJS('MTE_GAME.getState().emptyStart && Object.values(MTE_GAME.getState().tools).every(n=>n===0)'), 'fresh browser world starts without tools');
   // A bounded integration fixture, deliberately separate from fresh-world
   // AUTO evaluations. Checks the live browser host after Logistics unlocks.
@@ -806,6 +843,8 @@ async function main() {
   await sleep(180);
   var trailEndInv = JSON.parse(await stateSummary()).inv.mycelium;
   ok(trailEndInv > trailStartInv + 1, 'releasing a Trail gathers its highlighted resource tiles (' + trailStartInv + ' -> ' + trailEndInv + ')');
+  await evalJS('(()=>{const s=MTE_GAME.getState(),c=MTE_GAME.core;const at=c.nearestTile(s.player.x,s.player.y,20,(x,y)=>c.tileAt(s.world,x,y,0)===c.T.FOREST&&c.richness(s.world,x,y,0)>=10);if(at)MTE_GAME.setPlayer(at.x+.5,at.y+.5);})()');
+  await sleep(200);
   var tapGatherBefore = trailEndInv;
   await tap(195, 422);
   await sleep(150);
@@ -1273,7 +1312,7 @@ async function main() {
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   ok(await waitFor('/^Your saved world couldn\'t be opened/.test(document.getElementById("toast").textContent)', 3000), 'a damaged save says it could not be opened');
   // A format 10 world, set aside by v0.109.0 and played further, comes back.
-  await evalJS('(() => { const s = JSON.parse(localStorage.getItem("more-than-enough-save")); s.v = 10; s.seed = 4242; s.stats.playedMs = 9e7; localStorage.setItem("more-than-enough-save-aside", JSON.stringify(s)); })()');
+  await evalJS('(() => { const s = JSON.parse(localStorage.getItem("more-than-enough-save")); s.v = 10; delete s.cultivation; delete s.logisticsModel; s.seed = 4242; s.stats.playedMs = 9e7; localStorage.setItem("more-than-enough-save-aside", JSON.stringify(s)); })()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await sleep(300);
   eq(await evalJS('MTE_GAME.getState().seed'), 4242, 'the world played further comes back from one side');
@@ -1606,7 +1645,7 @@ async function main() {
   await evalJS('document.getElementById("btnClose").click()');
   await navigate2('http://127.0.0.1:' + PORT + '/wiki/');
   ok(await waitFor('document.body.dataset.filled === "true"', 8000), 'the wiki fills itself in Lithuanian');
-  eq(await evalJS('document.documentElement.lang + " " + document.querySelector("#toc a").textContent'), 'lt Pradžia', 'the wiki follows the chosen language');
+  eq(await evalJS('document.documentElement.lang + " " + document.querySelector("#toc a").textContent'), 'lt Gyvieji kristalai ir mieganti mašina', 'the wiki follows the chosen language');
   await evalJS('document.getElementById("language").click()');
   ok(await waitFor('document.documentElement.lang === "en" && document.body.dataset.filled === "true"', 8000), "the wiki's own Language button switches back to English");
   await navigate('http://127.0.0.1:' + PORT + '/');

@@ -3,27 +3,17 @@ import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 const values=new Map();
 globalThis.localStorage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
-const normal=await import('../../src/game/storage.js');
-globalThis.location={search:'?depots'};
-const experimental=await import('../../src/game/storage.js?depot-storage-test');
-delete globalThis.location;
-
-test('prototype saves and per-seed archive never replace the ordinary world',()=>{
+const storage=await import('../../src/game/storage.js');
+test('main game loads earlier worlds unchanged and archives them before another is saved',()=>{
  values.clear();const original=C.serialize(C.createState(77));values.set('more-than-enough-save',original);
- const a=experimental.loadGame().state;assert.equal(a.logisticsModel,C.DEPOT_MODEL);
- assert.equal(experimental.saveGame(a),null);
- const raw=values.get('mte.depot-v1.save');assert.equal(values.get('more-than-enough-save'),original);
- assert.equal(values.get('mte.depot-v1.world.'+a.seed),raw);
- assert.equal(experimental.loadGame().state.seed,a.seed);
- const next=C.createState(88);next.logisticsModel=C.DEPOT_MODEL;assert.equal(experimental.saveGame(next),null);
- assert.equal(values.get('mte.depot-v1.world.'+a.seed),raw,'previous experimental world stays archived');
- assert.equal(normal.loadGame().state.seed,77);
- assert.ok(normal.saveGame(next)?.error,'a normal save slot rejects experimental state');
- assert.equal(values.get('more-than-enough-save'),original);
+ const old=storage.loadGame().state;assert.equal(old.seed,77);assert.equal(old.cultivation,undefined);assert.equal(storage.saveGame(old),null);
+ const archive=values.get('mte.solo.world.77');assert.ok(archive);
+ const next=C.createState(88,{cultivation:true});assert.equal(storage.saveGame(next),null);
+ assert.equal(values.get('mte.solo.world.77'),archive);assert.ok(values.get('mte.solo.world.88'));
+ assert.equal(storage.loadGame().state.seed,88);assert.equal(storage.DEPOT_PROTOTYPE,false);
 });
-test('cross-slot adoption is rejected and a future capability is preserved to one side',()=>{
- values.clear();assert.equal(experimental.adopt(C.serialize(C.createState(4))),null);
- const d=JSON.parse(C.serialize(C.createState(5)));d.logisticsModel='future-depot';const raw=JSON.stringify(d);
- values.set('mte.depot-v1.save',raw);const loaded=experimental.loadGame();
- assert.equal(loaded.state.logisticsModel,C.DEPOT_MODEL);assert.equal(values.get('mte.depot-v1.aside'),raw);
+test('future capabilities are retained aside and a fresh normal world uses cultivation',()=>{
+ values.clear();const d=JSON.parse(C.serialize(C.createState(5)));d.logisticsModel='future-depot';const raw=JSON.stringify(d);values.set('more-than-enough-save',raw);
+ const loaded=storage.loadGame();assert.ok(loaded.state.cultivation);assert.equal(values.get('more-than-enough-save-aside'),raw);
+ assert.equal(storage.adopt(C.serialize(loaded.state)).seed,loaded.state.seed);
 });

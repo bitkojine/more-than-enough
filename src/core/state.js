@@ -1,5 +1,6 @@
 /* The game state, and the prestige loop that replaces it with a fresh world. */
 
+import {newCultivation} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
@@ -55,10 +56,11 @@ function perResource(value) {
 }
 
 /** @returns {State} */
-export function createState(seed) {
-  const world = createWorld(seed);
+export function createState(seed, {cultivation=false}={}) {
+  const world = createWorld(seed,cultivation);
   const spawn = findSpawn(world);
   const s = blankState(world, { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE });
+  if(cultivation){s.cultivation=newCultivation();s.logisticsModel='depot-v1';}
   // Home ground, where your stockpile stands, is in view from the start, and
   // the land just around it, so there's something to go and gather.
   const r = HOME_HALF + HOME_VIEW;
@@ -126,14 +128,14 @@ export function embarkGain(s) {
 // The Insight reward still uses the lifetime total.
 // Never in a shared world: Embark is for playing alone.
 export function canEmbark(s) {
-  return !s.shared && worldMastered(s);
+  return !s.shared && !s.cultivation && worldMastered(s);
 }
 
 // Starts empty-handed, keeping lifetime records and known mushroom kinds.
 export function embark(s, seed) {
   if (!canEmbark(s)) return { ok: false, reason: t('reason.embark') };
   const gained = embarkGain(s);
-  const fresh = createState(seed);
+  const fresh = createState(seed,{cultivation:!!s.cultivation});
   if (s.logisticsModel) fresh.logisticsModel=s.logisticsModel;
   // New worlds carry records and knowledge only, never equipment or bonuses.
   // The old world retains its Insight and perks in its preserved save.

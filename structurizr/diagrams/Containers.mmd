@@ -7,10 +7,10 @@ graph LR
 
     1["<div style='font-weight: bold'>Player</div><div style='font-size: 70%; margin-top: 0px'>[Person]</div><div style='font-size: 80%; margin-top:10px'>Plays the game on a phone or<br />desktop browser.</div>"]
     style 1 fill:#08427b,stroke:#052e56,color:#ffffff
-    32["<div style='font-weight: bold'>Room Service</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Lets friends play one world<br />together (server/): a<br />Cloudflare Worker that makes<br />rooms and a Durable Object<br />per shared world that keeps<br />the world and each player's<br />progress, checks every<br />message, and relays positions<br />and edits between up to 100<br />players. The moderator can<br />make a copy of a world to<br />play as one of its players<br />(server/src/copy.js), apart<br />from the real one, download a<br />whole world as a backup file<br />and put a world that's gone<br />back from one<br />(server/src/backup.js), and<br />has a page listing every<br />world's players, sortable by<br />progress<br />(server/src/admin.js). See<br />server/README.md for the<br />rules and security limits.</div>"]
-    style 32 fill:#1168bd,stroke:#0b4884,color:#ffffff
-    33["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses and the deploy<br />pipeline. Zero dependencies.</div>"]
-    style 33 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
+    33["<div style='font-weight: bold'>Room Service</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Lets friends play one world<br />together (server/): a<br />Cloudflare Worker that makes<br />rooms and a Durable Object<br />per shared world that keeps<br />the world and each player's<br />progress, checks every<br />message, and relays positions<br />and edits between up to 100<br />players. The moderator can<br />make a copy of a world to<br />play as one of its players<br />(server/src/copy.js), apart<br />from the real one, download a<br />whole world as a backup file<br />and put a world that's gone<br />back from one<br />(server/src/backup.js), and<br />has a page listing every<br />world's players, sortable by<br />progress<br />(server/src/admin.js). See<br />server/README.md for the<br />rules and security limits.</div>"]
+    style 33 fill:#1168bd,stroke:#0b4884,color:#ffffff
+    34["<div style='font-weight: bold'>Development Tooling</div><div style='font-size: 70%; margin-top: 0px'>[Software System]</div><div style='font-size: 80%; margin-top:10px'>Test harnesses and the deploy<br />pipeline. Zero dependencies.</div>"]
+    style 34 fill:#6f4f9e,stroke:#4d376e,color:#ffffff
 
     subgraph 3 ["MORE THAN ENOUGH"]
       style 3 fill:#ffffff,stroke:#0b4884,color:#0b4884
@@ -37,9 +37,9 @@ graph LR
     23-. "<div>Names things (tiles,<br />buildings, milestones) by key</div><div style='font-size: 70%'></div>" .->22
     21-. "<div>Asks for every word by key;<br />its articles live there</div><div style='font-size: 70%'></div>" .->22
     4-. "<div>Drives actions and step();<br />reads state every frame</div><div style='font-size: 70%'></div>" .->23
-    4-. "<div>Makes and joins rooms; relays<br />positions, edits and progress</div><div style='font-size: 70%'>[HTTPS + WebSocket]</div>" .->32
+    4-. "<div>Makes and joins rooms; relays<br />positions, edits and progress</div><div style='font-size: 70%'>[HTTPS + WebSocket]</div>" .->33
     23-. "<div>Returns state; emits<br />transient events on<br />auto-collect</div><div style='font-size: 70%'></div>" .->4
-    33-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->23
-    33-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
+    34-. "<div>Imports src/core/index.js and<br />steps it directly</div><div style='font-size: 70%'></div>" .->23
+    34-. "<div>Loads index.html; asserts<br />through window.MTE_GAME</div><div style='font-size: 70%'></div>" .->4
 
   end

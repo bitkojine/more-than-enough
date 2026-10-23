@@ -1,9 +1,17 @@
 # MORE THAN ENOUGH
 
-A small, complete, mobile-first browser game about turning a hostile wilderness
-into an absurd surplus. Explore an endless, ever-different world, forage mycelium and mine
-stone / ore / crystal, craft better tools, automate with extractors, and chase
-the Abundance Engine.
+A mobile-first browser game about turning a wilderness into a settlement.
+The familiar artwork, character, endless layered world and controls now support
+an underground restoration chapter: start empty-handed, gather surface mycelium
+and stone, mine metal below, and cultivate living crystal in dark cooled chambers.
+Build protected storage/transport and restore the first section of a dormant
+machine. The full restoration and ending are still in development.
+
+The normal URL is the game; no prototype flags are required. Existing saved
+worlds keep their terrain, earned progress and earlier economy. Settings → Nerds
+can start another archived solo world. AUTO and multiplayer have not yet been
+adapted to new-world cultivation. See [the GDD](docs/game-design.md) for confirmed
+choices and the current implementation boundary.
 
 ## How to launch
 

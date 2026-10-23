@@ -1,6 +1,7 @@
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
+import {takeStarter,cultivationAt} from './cultivation.js';
 import { usesDepots, depotGain } from './logistics.js';
 import { startEventEconomy } from './sim.js';
 import { economyForState } from './economy-context.js';
@@ -145,6 +146,10 @@ export function findLoot(s, type, z) {
 export function harvestAt(s, x, y) {
   x = Math.floor(x); y = Math.floor(y);
   if (!canHarvest(s, x, y)) return null;
+  if(s.cultivation&&tileAt(s.world,x,y,s.player.z)===T.GEODE){
+    if(takeStarter(s,x,y)!=='ok')return null;
+    return {x,y,z:s.player.z,type:T.GEODE,res:null,amount:0,found:{}};
+  }
   noteAct(s, 'h', x, y);
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
@@ -275,7 +280,11 @@ export function extractorAt(s, x, y, z) {
 function buildableTile(s, def, x, y) {
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
-  const fits = def.tile === null ? !!TILE_INFO[type].land : type === def.tile && richness(s.world, x, y, z) > 0;
+  if(s.cultivation){
+    if(!['garden','quarry','mine','stoneworks','depot'].includes(Object.keys(EXTRACTORS).find(k=>EXTRACTORS[k]===def)))return false;
+    if(cultivationAt(s,x,y,z))return false;
+  }
+  const fits = s.cultivation&&def===EXTRACTORS.mine?z<0&&type===T.ORE_SEAM&&richness(s.world,x,y,z)>0: s.cultivation&&def.tile===null?!!TILE_INFO[type].walk&&!TILE_INFO[type].rise&&!TILE_INFO[type].descend: def.tile === null ? !!TILE_INFO[type].land : type === def.tile && richness(s.world, x, y, z) > 0;
   return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
 }
 
@@ -301,7 +310,7 @@ function canBuildAt(s, key, x, y) {
 export function place(s, key, at = null) {
   const def = EXTRACTORS[key];
   if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
-  if (def.depot && (!usesDepots(s) || s.shared || s.player.z!==SURFACE)) return {ok:false,reason:t('reason.depotPrototype')};
+  if (def.depot && (!usesDepots(s) || s.shared || (!s.cultivation&&s.player.z!==SURFACE))) return {ok:false,reason:t('reason.depotPrototype')};
   if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
   if (at && !canBuildAt(s, key, at.x, at.y)) return { ok: false, reason: t('reason.noSpot') };
   at = at || buildTarget(s, key);
@@ -314,6 +323,7 @@ export function place(s, key, at = null) {
   const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
   if (s.me) e.owner = s.me;
   s.extractors.push(e);
+  if(s.cultivation&&key==='mine')setRichness(s.world,e.x,e.y,e.z,0);
   economyForState(s)?.reconfigure();
   if (s.world.edits) s.world.edits.push(['x', key, e.x, e.y, e.z]);
   s.stats.built += 1;

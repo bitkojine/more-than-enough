@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.134.0] - 2026-10-23
+
+### Added
+- Living-crystal cultivation inside the existing game client, art, endless world,
+  character, movement, terrain and cave connections. New worlds keep mycelium
+  and stone on the surface; metal is mined underground and wild colonies are deep.
+- Physical cooled/shuttered chambers, protected vaults, sealed transfer conduits,
+  crafted lanterns and carriers, colony tending and renewable wild starters.
+- Carried and stored crystal quality, exposure damage, usable degraded crystal
+  reinforcement, and one discoverable/restorable underground machine section.
+  The first chapter is playable; the final restoration/ending remains unfinished.
+- Solo-world archives and starting another world in the existing Nerds panel.
+  Old worlds retain terrain/progress and earlier completion rules.
+
+### Changed
+- New-world Build/Upgrade sheets sell physical equipment and infrastructure,
+  replacing abstract production upgrades in that progression. Normal main-game
+  saves support local depots; the separate depot entry point is retired.
+- Environmental queries use derived local heat/light indexes. The existing shared
+  simulation clock runs facility deadlines independently of rendering.
+- AUTO and multiplayer remain available for earlier worlds; they are not yet
+  connected to the new cultivation progression. No new-model AUTO win is claimed.
+
+
 ## [0.133.1] - 2026-10-23
 
 ### Changed

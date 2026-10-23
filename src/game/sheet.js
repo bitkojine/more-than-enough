@@ -152,7 +152,32 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
   }
 
+  const crystalName=k=>t('cr.'+k);
+  const crystalCost=(s,k)=>price(s.inv,Core.CULTIVATION_RECIPES[k]);
+  function crystalButton(type,id,x,y,label){return button(`data-kind="cultivation" data-action="${type}" data-id="${id||''}" data-x="${x}" data-y="${y}"`,label||crystalName(type),true);}
+  function crystalRows(s){
+    const c=s.cultivation,p=s.player;let html=`<div class="section">${crystalName('deep')}</div>`;
+    html+=row(pic('resource.crystal'),crystalName('crystal'),(c.starter?t('cr.specimen',{n:Math.floor(c.starter.health)}):t('cr.quality',{n:Math.floor(c.quality)}))+`<meter class="crystalTolerance" min="0" max="100" value="${c.starter?.health??c.quality}"></meter>`,crystalButton('lantern','',Math.floor(p.x),Math.floor(p.y),crystalName(c.lantern?'lightOn':'lightOff')));
+    for(const kind of ['chamber','cooler','vault','conduit'])html+=row(pic(Core.CULTIVATION_LOOK[kind],'image'),crystalName(kind),crystalName(kind+'.desc')+'<br>'+crystalCost(s,kind),crystalButton('build',kind,Math.floor(p.x),Math.floor(p.y),t('sheet.place')));
+    for(const b of c.facilities)if(b.z===p.z&&Math.hypot(b.x+.5-p.x,b.y+.5-p.y)<=1.65){
+      let sub=crystalName(Core.cultivationStatus(s,b))+'<br>'+t('cr.temperature',{n:b.temperature.toFixed(1)})+'<br>'+t('cr.buffer',{n:b.buffer.toFixed(1)})+' · '+t('cr.quality',{n:Math.floor(b.quality)});
+      if(b.health!==undefined)sub+='<br>'+t('cr.health',{n:Math.floor(b.health)});
+      if(['chamber','vault','machine'].includes(b.kind))sub+='<br>'+crystalName(b.closed?'closed':'opened');
+      html+=row(pic(Core.CULTIVATION_LOOK[b.kind],'image'),crystalName(b.kind),sub,crystalButton('shutter','',b.x,b.y));
+      const acts=b.kind==='chamber'?['plant','tend','collect','reinforce']:b.kind==='vault'?['collect','store','reinforce']:b.kind==='machine'?['repair']:[];
+      for(const act of acts.filter(a=>!(a==='reinforce'&&b.reinforced)&&!(a==='plant'&&b.health>0)&&!(a==='tend'&&!b.needsTend)))html+=row('',crystalName(act),Core.CULTIVATION_RECIPES[act]?crystalCost(s,act):'',crystalButton(act,'',b.x,b.y));
+    }
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const x=Math.floor(p.x)+dx,y=Math.floor(p.y)+dy;
+      if(Core.PROPS[s.world.props.get(Core.packKey(x,y,p.z))]?.light)html+=row('',t('cr.shade'),'',crystalButton('shade','',x,y,t('cr.shade')));
+      if(Core.wildColony(s,x,y))html+=row(pic('tile.geode','top'),crystalName('wild'),'',crystalButton('starter','',x,y,crystalName('gather')));
+    }
+    if(c.restored)html+=`<div class="row"><p>${crystalName('discovery')}</p></div>`;
+    return html;
+  }
   function renderUpgrades(s) {
+    if(s.cultivation)return ['basket','pickaxe','boots'].map(k=>upgradeRow(s,k)).join('')+['lantern','carrier'].map(k=>row(pic(Core.CULTIVATION_LOOK[k],k==='carrier'?'icon':'image'),crystalName(k),crystalName(k+'.desc')+'<br>'+crystalCost(s,k),s.cultivation.gear[k]?doneButton(crystalName('owned')):crystalButton('craft',k,Math.floor(s.player.x),Math.floor(s.player.y),crystalName(k)))).join('');
+
     let html = `<div class="section">${t('sheet.section.world')}</div>`;
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
       const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
@@ -204,6 +229,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderBuild(s) {
+    if(s.cultivation)return '<div class="chalkPlan">'+['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+crystalRows(s)+'</div>';
+
     return `<div class="chalkPlan"><div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.support')}</div>` + Core.SUPPORT_BUILDINGS.map((k) => extractorRow(s, k)).join('') +
@@ -376,7 +403,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       else { expanded[family] = target.getAttribute('aria-expanded') !== 'true'; render(); }
       return;
     }
-    if (kind === 'build') actions.place(id);
+    if(kind==='cultivation'){actions.cultivation({type:target.dataset.action,kind:id,x:Number(target.dataset.x),y:Number(target.dataset.y)});}
+    else if (kind === 'build') actions.place(id);
     else if (kind === 'prop') actions.placeProp(id);
     else if (kind === 'embark') actions.embark();
     else if (kind) actions.buy(id);

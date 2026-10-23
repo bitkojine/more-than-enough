@@ -71,15 +71,27 @@ export const GOALS = [
   { id: 'forever', text: t('goal.forever'), done: () => false }
 ];
 
+export const CULTIVATION_GOALS=[
+ {id:'forage',text:t('cr.goal.start'),reached:t('goal.forage.reached'),done:s=>s.stats.foraged>0},
+ {id:'pickaxe',text:t('goal.pickaxe'),reached:t('goal.pickaxe.reached'),buy:'pickaxe',done:s=>s.tools.pickaxe>=2},
+ {id:'garden',text:t('goal.garden'),reached:t('goal.garden.reached'),build:'garden',done:has('garden')},
+ {id:'ore',text:t('cr.goal.metal'),reached:t('goal.ore.reached'),done:s=>s.discovered.ore},
+ {id:'cultivationDeep',text:t('cr.goal.chamber'),reached:t('cr.deep'),done:s=>s.underground.deepest<=-2},
+ {id:'cultivationChamber',text:t('cr.goal.plant'),reached:t('cr.chamber'),done:s=>s.cultivation.facilities.some(b=>b.kind==='chamber'&&b.health>0)},
+ {id:'crystal',text:t('cr.goal.repair'),reached:t('goal.crystal.reached'),done:s=>s.stats.crystal>0},
+ {id:'master',text:t('cr.goal.repair'),reached:t('cr.goal.done'),done:s=>s.cultivation.restored}
+];
+
 // How many milestones there are to reach: every one but the last, which goes
 // on forever. A shared world has no Embark (Watch's choice: those are hidden
 // there), so its milestones end before "Master the world".
 export function goalsTotal(s) {
+  if(s.cultivation)return CULTIVATION_GOALS.length;
   return s.shared ? GOALS.findIndex((g) => g.id === 'master') : GOALS.length - 1;
 }
 
 // The milestones there are to reach in this world.
-const reachable = (s) => GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
+const reachable = (s) => s.cultivation?CULTIVATION_GOALS:GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
 
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.

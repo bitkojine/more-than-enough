@@ -212,5 +212,5 @@ export function extractorCount(s, key) {
 }
 
 export function extractorCost(s, key) {
-  return scaleCost(EXTRACTORS[key].baseCost, Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
+  return scaleCost(s.cultivation&&key==='stoneworks'?{mycelium:20,stone:12,ore:4}:EXTRACTORS[key].baseCost, Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
 }

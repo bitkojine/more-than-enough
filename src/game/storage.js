@@ -1,14 +1,13 @@
 /* localStorage persistence. Every access is guarded: private browsing and full
  * quotas throw, and the game must keep running regardless. */
 
-import { DEPOT_MODEL, usesDepots } from '../core/logistics.js';
 import { serialize, deserialize, createState, SAVE_VERSION, OLDEST_SAVE } from '../core/index.js';
 
-export const DEPOT_PROTOTYPE = new URLSearchParams(globalThis.location?.search || '').has('depots');
-const SAVE_KEY = DEPOT_PROTOTYPE ? 'mte.depot-v1.save' : 'more-than-enough-save';
+export const DEPOT_PROTOTYPE = false; // All new features belong to the main game.
+const SAVE_KEY = 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
-const ASIDE_KEY = DEPOT_PROTOTYPE ? 'mte.depot-v1.aside' : 'more-than-enough-save-aside';
-function freshWorld() { const s=createState(randomSeed()); if(DEPOT_PROTOTYPE)s.logisticsModel=DEPOT_MODEL; return s; }
+const ASIDE_KEY = 'more-than-enough-save-aside';
+function freshWorld() { return createState(randomSeed(),{cultivation:true}); }
 const VIEW_KEY = 'more-than-enough-view';
 
 function read(key) {
@@ -23,7 +22,7 @@ function write(key, value) {
 export function randomSeed() {
   for(let i=0;i<100;i++){
     const seed=(Math.random()*4294967295)>>>0;
-    if(!DEPOT_PROTOTYPE || !read('mte.depot-v1.world.'+seed))return seed;
+    if(!read('mte.solo.world.'+seed)&&!read('mte.depot-v1.world.'+seed))return seed;
   }
   throw new Error('No unused prototype seed'); // i18n-ok: diagnostic
 
@@ -44,14 +43,14 @@ export function savedElsewhere() {
 // `conflict` holds that tab's save). `force` writes regardless.
 // Returns null when saved, { conflict } or { error }.
 export function saveGame(state, force = false) {
-  if (usesDepots(state)!==DEPOT_PROTOTYPE || (DEPOT_PROTOTYPE && state.shared)) return {error:new Error('Save slot mismatch')}; // i18n-ok: storage diagnostic
+  if (state.cultivation&&state.shared) return {error:new Error('Save slot mismatch')}; // i18n-ok: storage diagnostic
   if (!force) {
     const other = savedElsewhere();
     if (other) return { conflict: other };
   }
   const raw = serialize(state);
-  if (DEPOT_PROTOTYPE) {
-    const archived=write('mte.depot-v1.world.'+state.seed,raw);
+  {
+    const archived=write('mte.solo.world.'+state.seed,raw);
     if(archived)return {error:archived};
   }
   const err = write(SAVE_KEY, raw);
@@ -64,7 +63,6 @@ export function saveGame(state, force = false) {
 // this version of the game can't read it.
 export function adopt(raw) {
   const state = deserialize(raw);
-  if (state && usesDepots(state)!==DEPOT_PROTOTYPE)return null;
   if (state) known = raw;
   return state;
 }
@@ -91,7 +89,11 @@ export function loadGame() {
   known = raw;
   const aside = read(ASIDE_KEY);
   const back = aside && deserialize(aside);
-  const state = raw && deserialize(raw);
+  let state = raw && deserialize(raw);
+  if(state&&!state.cultivation){
+    const archived=read('mte.solo.world.'+state.seed),saved=archived&&deserialize(archived);
+    if(saved?.cultivation){write(ASIDE_KEY,raw);state=saved;if(!write(SAVE_KEY,archived))known=archived;}
+  }
   if (state && !(back && further(back, state))) return { state, lost: false };
   if (back) {
     // Back in use first, then the other set aside: closing the game in
@@ -142,3 +144,9 @@ export function loadView() {
 export function saveView(view) {
   write(VIEW_KEY, JSON.stringify(view));
 }
+
+// Retained solo worlds share one normal client; these are archives, not modes.
+export function soloArchives(){
+ try{return Object.keys(localStorage).filter(k=>k.startsWith('mte.solo.world.')||k.startsWith('mte.depot-v1.world.')||k==='mte.depot-v1.save').flatMap(k=>{const raw=read(k);try{const d=JSON.parse(raw);return Number.isInteger(d.seed)?[{seed:d.seed,raw}]:[];}catch{return [];}});}catch{return [];}
+}
+export function newSoloWorld(){return freshWorld();}

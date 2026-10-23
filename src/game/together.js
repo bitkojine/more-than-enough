@@ -1033,7 +1033,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     history.replaceState(null, '', location.pathname + location.search);
     const m = JOIN_RE.exec(raw);
     if (!m) { hud.toast(t('together.toast.badLink')); return false; }
-    if (!service) { hud.toast(t('together.toast.unavailable')); return false; }
+    if (!service || Core.usesDepots(game.state)) { hud.toast(t('together.toast.unavailable')); return false; }
     join(m[1], m[2], atStart ? playing() : null);
     return true;
   }
@@ -1085,7 +1085,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   }
 
   return {
-    get available() { return !!service; },
+    get available() { return !!service && !Core.usesDepots(game.state); },
     get active() { return !!game.state.shared; },
     // The world you're in, by name, for Settings.
     get worldName() { return game.state.shared ? worldName(game.state.shared) : t('worlds.own'); },
@@ -1102,7 +1102,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     joinFromLink,
     // The game opened: through a friend's link, else back into the shared
     // world you were in, if any.
-    open() { if (!joinFromLink(true)) resume(); },
+    open() { if(Core.usesDepots(game.state))return; if (!joinFromLink(true)) resume(); },
     showInvite,
     listInvites,
     copyLink,

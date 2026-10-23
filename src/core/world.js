@@ -47,8 +47,8 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  */
 
 /** @returns {World} */
-export function createWorld(seed) {
-  return { seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new ExploredChunks(), revealed: 0, holes: new Set(), props: new VersionedMap(), edits: null, hotKey: -1, hotChunk: null };
+export function createWorld(seed, cultivation=false) {
+  return { cultivation, seed: (seed >>> 0) || 1, chunks: new Map(), mods: new Map(), explored: new ExploredChunks(), revealed: 0, holes: new Set(), props: new VersionedMap(), edits: null, hotKey: -1, hotChunk: null };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -61,6 +61,12 @@ function chunkAt(w, x, y, z) {
     w.chunks.delete(key);
   } else {
     chunk = generateChunk(w.seed, chunkCoord(x), chunkCoord(y), z);
+    if(w.cultivation)for(let i=0;i<chunk.type.length;i++){
+      const t=chunk.type[i];
+      if(z===0&&(t===T.ORE||t===T.CRYSTAL))chunk.type[i]=T.STONE;
+      if(z===-1&&(t===T.CRYSTAL_SEAM||t===T.GEODE))chunk.type[i]=T.STONE_SEAM;
+      if(z<=-2&&t===T.CRYSTAL_SEAM)chunk.type[i]=T.GEODE;
+    }
     if (w.chunks.size >= MAX_CACHED_CHUNKS) w.chunks.delete(w.chunks.keys().next().value);
   }
   w.chunks.set(key, chunk);

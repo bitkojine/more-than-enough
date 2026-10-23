@@ -171,3 +171,27 @@ retain surface green/underground amber fill. Build uses chalk underlines and qui
 white card outlines on dark slate. Material colors, readable type, prices and
 status feedback remain distinct. No new fonts, textures, animated grain or
 flashing. The coverage-ring path is cached at the current zoom.
+
+
+## Living-crystal chapter in the existing client
+The existing canvas, terrain art, texture packs, character, movement, cave
+transitions, HUD, music and sheets stay in use. New-world Build keeps gardens,
+quarries, underground mines, Stoneworks and physical depots. It adds chambers,
+cooling towers, vaults and conduits, plus inspect/actions for nearby facilities
+and observed wild colonies. Equipment lives in Upgrade, including crafted
+lanterns and sealed carriers. No separate map or client is used.
+
+A chamber's local section shows temperature, shutter state, tolerance, stored
+output and quality. Sprite shutters/fans/cracks/warning triangles distinguish
+new machinery while retaining existing building art. Carried crystal/specimens
+show a tolerance bar beside the character; sound and toast warnings supplement
+visual cues. With the lantern off, the underground remains readable with ambient
+presentation light that does not count as simulated exposure. Crafted lanterns,
+placed lights and surface daylight do count. Placed lights can be covered with
+an owned mycelium hood and uncovered again through nearby Build actions.
+
+New-world milestones lead through the first restoration chapter. Earlier worlds
+retain earlier milestones and rules. AUTO is hidden for cultivation worlds;
+keyboard AUTO also cannot run the incompatible old planner. Room entry is blocked
+until the new progression is supported by multiplayer. Nerds provides normal
+solo-world creation and retained solo archives, not experimental game modes.

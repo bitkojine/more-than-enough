@@ -128,6 +128,7 @@ export function upgradeCost(s, id) {
 }
 
 export function canBuy(s, id) {
+  if(s.cultivation&&!['basket','pickaxe','boots'].includes(id))return false;
   if(id==='logistics' && usesDepots(s))return false;
   if (REGISTRY[id]?.retired) return false;
   const cost = upgradeCost(s, id);

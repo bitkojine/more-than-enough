@@ -43,6 +43,12 @@ kind of knowledge lives.
 
 ## Design rules
 
+- Evolve the existing game's universe, artwork, character, renderer, movement
+  and controls. Integrate the resource/cultivation redesign into that game;
+  do not replace it with a new client/world or separate playable prototypes.
+- Confirmed design decisions and open questions live in `docs/game-design.md`.
+
+
 - Use white chalk drawing accents where useful, especially construction and
   planning overlays. Preserve resource identity, readable text, non-color status
   cues and contrast on bright terrain. Prefer stable, inexpensive vector marks.
@@ -85,6 +91,7 @@ kind of knowledge lives.
 
 | Kind | Place |
 | --- | --- |
+| Confirmed design and open questions | `docs/game-design.md` |
 | What the game does | the code and its tests |
 | Rules for players, every table and number | the wiki (`wiki/`), read live from `src/core/` |
 | How it's built | `structurizr/workspace.dsl` |
@@ -94,7 +101,7 @@ kind of knowledge lives.
 | Ideas nobody has committed to | the wiki's Ideas page (`wiki/ideas.js`) |
 | Bugs and ideas to pick up | GitHub issues |
 
-Plans, reports and progress notes don't go in the repo. When you change
+The owner-requested Game Design Document lives in the repo. Other plans, reports and progress notes do not. When you change
 behavior, update the doc that describes it in the same commit; when a doc
 turns out wrong or dead, fix or delete it. `npm test` fails when a doc or the
 architecture model names a file that doesn't exist.

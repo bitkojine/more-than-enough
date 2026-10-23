@@ -177,6 +177,7 @@ function constant(name) {
   return name.split('.').reduce((v, k) => v[k], Core);
 }
 
+TABLES.cultivation=()=>table(heads('thing','cost','whatItDoes'),['chamber','cooler','vault','conduit','lantern','carrier'].map(k=>[t('cr.'+k),costText(Core.CULTIVATION_RECIPES[k]),t('cr.'+k+'.desc')]));
 async function fill() {
   await loadDefaultPack();
   for (const node of document.querySelectorAll('[data-table]')) node.innerHTML = TABLES[node.dataset.table]();
@@ -195,10 +196,12 @@ async function fill() {
 // Addresses: #article, #article/n (the n-th passage of an article, from a
 // search result) and #search/words.
 // Each article's words come from the dictionaries, in the reader's language.
+const chapter=document.createElement('article');chapter.id='cultivation';document.querySelector('main').prepend(chapter);
 const articles = [...document.querySelectorAll('article')];
 for (const a of articles) {
   a.dataset.title = t(`wiki.article.${a.id}.title`);
   a.innerHTML = t(`wiki.article.${a.id}`);
+  if(a.id!=='cultivation')a.insertAdjacentHTML('afterbegin',`<p class="note">${t('wiki.legacyRules')}</p>`);
 }
 localizePage();
 document.getElementById('language').addEventListener('click', () => setLanguage(nextLanguage()));

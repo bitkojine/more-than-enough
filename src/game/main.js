@@ -30,7 +30,7 @@ import { render } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
-import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView } from './storage.js';
+import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloArchives, newSoloWorld } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createBackup } from './backup.js';
@@ -83,6 +83,7 @@ try {
 }
 look.use(defaultPack);
 
+document.getElementById('btnDepotPrototype')?.remove();
 // The developer viewer boots before loading or connecting any player world.
 if (new URLSearchParams(location.search).has('autoplay')) {
   const { startAutoplayLab } = await import('./autoplay-lab.js');
@@ -134,11 +135,6 @@ for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) {
 }
 
 const loaded = loadGame();
-if (Core.usesDepots(loaded.state)) {
-  document.title=t('prototype.depot.title');
-  const label=document.createElement('p'); label.className='prototypeLabel'; label.textContent=t('prototype.depot.title');
-  document.getElementById('nerdsPanel').prepend(label);
-}
 
 let simulation = null, simulationClock = null;
 let saveDue = false;
@@ -204,6 +200,7 @@ const game = {
   // Alone or together: the settings that differ.
   changedMode() {
     const shared = !!game.state.shared;
+    el.perfect.hidden=!!game.state.cultivation;el.autoTip.hidden=!!game.state.cultivation;
     el.invitesBtn.hidden = !shared;
     el.playersBtn.hidden = !shared;
     el.worldsBtn.hidden = !together.available;
@@ -300,7 +297,7 @@ const sheet = createSheet(el, {
     if (tab === 'players') together.listPlayers();
     if (tab === 'news') news.render();
   },
-  actions: { buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
+  actions: { cultivation(cmd){const result=Core.cultivationCommand(game.state,cmd);hud.toast(t('cr.'+(result==='discovery'?'discovery':'reason.'+result)));game.saveSoon();hud.update(game.state);}, buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
@@ -478,9 +475,17 @@ function showCopy() {
   el.copyBadge.hidden = false;
 }
 
+let crystalWarning=0;
 let autoPlaying = false; // AUTO is held and playing (its tag shows over you)
 simulation = createSimulation({ game, controller, autoplay: perfect, input,
-  canAutoplay: () => !blocked(), afterCore: (dt) => together.tick(dt),
+  canAutoplay: () => !blocked(), afterCore: (dt) => {
+    together.tick(dt);crystalWarning-=dt;
+    const c=game.state.cultivation;
+    if(c&&crystalWarning<=0){
+      crystalWarning=5;
+      if(c.starter?.health<35||(game.state.inv.crystal>0&&c.quality<35)||c.facilities.some(b=>b.health>0&&b.temperature>22)){hud.toast(t('cr.danger'));audio.dig();}
+    }
+  },
   onEvents(events, s) {
     for (const e of events) if (e.z === s.player.z) fx.flyersFrom(e.x, e.y, e.res, e.amt);
   }
@@ -688,7 +693,21 @@ updater.start();
 // Just updated itself: the version number rolls over to the new one.
 news.play();
 if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
+if(game.state.cultivation){el.perfect.hidden=true;el.autoTip.hidden=true;document.getElementById('btnAutoplayLab').hidden=true;}
 requestAnimationFrame(frame);
+
+// Normal solo-world creation and archives, using the existing Settings panel.
+const soloControls=document.createElement('div');soloControls.className='setGroup';
+const refreshSoloControls=()=>{
+  soloControls.innerHTML=`<button id="newSoloWorld" class="setRow">${t('cr.newWorld')}</button>`+soloArchives().map(w=>`<button class="setRow" data-solo-seed="${w.seed}">${t('cr.saved',{seed:w.seed})}</button>`).join('');
+};
+document.getElementById('nerdsPanel').append(soloControls);refreshSoloControls();
+soloControls.addEventListener('click',e=>{
+ const btn=e.target.closest('button');if(!btn||game.state.shared)return;
+ game.saveNow();if(saveError||fork.open)return;
+ const next=btn.id==='newSoloWorld'?newSoloWorld():Core.deserialize(soloArchives().find(w=>w.seed===Number(btn.dataset.soloSeed))?.raw);
+ if(next){game.replace(next);refreshSoloControls();}
+});
 
 // A small hook so the browser tests can inspect and adjust the real game.
 window.MTE_GAME = {

@@ -8,6 +8,7 @@
  * row (target outlines, buildings, the player) is drawn right after it, so
  * blocks nearer the viewer cover it. */
 
+import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
@@ -35,10 +36,11 @@ export function render(cam, s, fx, view, look) {
   // alive), and the beacons.
   const { buildings, built, friends: friendRows, aloft, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
+  const crystalRows=cultivationRows(s,cam.z);
   const lights = [], beacons = [];
   for (const { x, y, kind } of placed) {
     const def = Core.PROPS[kind];
-    if (def.light) {
+    if (def.light && !s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]) {
       const flicker = kind === 'glowcap' ? FLICKER * Math.sin(s.time * 1.6 + x * 1.7 + y * 2.3) : 0;
       lights.push({ x: x + 0.5, y: y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
     }
@@ -55,8 +57,16 @@ export function render(cam, s, fx, view, look) {
     drawHighlights(ctx, cam, s, view, y);
     const row = buildings.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
+    for(const b of crystalRows.get(y)||[])drawCultivation(ctx,cam,s,look,b);
     const props = propRows.get(y);
-    if (props) for (const [x, kind] of props) drawProp(ctx, cam, s, look, kind, x, y);
+    if (props) for (const [x, kind] of props) {
+      drawProp(ctx,cam,s,look,kind,x,y);
+      if(s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]){
+        const p=cam.project(x+.5,y+.6,cam.z),u=cam.tilePx;
+        ctx.fillStyle='#283337';ctx.strokeStyle='#b8c7b2';ctx.lineWidth=1;
+        ctx.beginPath();ctx.moveTo(p.x-u*.23,p.y-u*.3);ctx.quadraticCurveTo(p.x,p.y-u*.95,p.x+u*.23,p.y-u*.3);ctx.closePath();ctx.fill();ctx.stroke();
+      }
+    }
     const stones = graveRows.get(y);
     if (stones) {
       for (const g of stones) {
@@ -66,7 +76,7 @@ export function render(cam, s, fx, view, look) {
     }
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) you = drawPlayer(ctx, cam, s, look, view);
+    if (y === playerRow) {you = drawPlayer(ctx, cam, s, look, view);drawCrystalCargo(ctx,cam,s,look);}
   });
   for (const f of aloft) friend(f);
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
