@@ -25,7 +25,7 @@ export function recoverCultivationRounding(c){
  const fix=b=>{if(typeof b?.quality==='number'&&b.quality>100&&b.quality<=100+1e-9)b.quality=100;};
  fix(c);if(Array.isArray(c?.facilities))c.facilities.forEach(b=>{fix(b);if(b?.kind==='machine'&&b.sections===undefined)b.sections=c.restored?1:0;});
 }
-export const CULTIVATION_LOOK={chamber:'building.observatory',cooler:'building.stoneworks',vault:'building.depot',conduit:'building.foundry',machine:'building.resonator',carrier:'unlock.logistics',lantern:'mark.lamp'};
+export const CULTIVATION_LOOK={chamber:'building.crystalChamber',cooler:'building.coolingTower',vault:'building.crystalVault',conduit:'building.sealedConduit',machine:'building.sleepingMachine',carrier:'tool.crystalCarrier',lantern:'tool.hoodedLantern'};
 export function newCultivation(){return {model:CULTIVATION_MODEL,facilities:[],wild:{},starter:null,quality:100,gear:{lantern:false,carrier:false},lantern:false,phase:0,clock:0,nextId:1,restored:false};}
 const distance=(a,b)=>Math.abs(a.x-b.x)+Math.abs(a.y-b.y);
 const nearby=(a,b,r)=>a.z===b.z&&distance(a,b)<=r;

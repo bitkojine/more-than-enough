@@ -862,7 +862,7 @@ export default {
         <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is
           one of the resource, the next ten, then a hundred, and so on. Past the end of your list the last picture stands in.
           Draw them standing, about one tile wide; from ten million up the game draws them across their square of ground.</li>
-        <li><code>stages</code>: a building on the map as goods pile up in it, a list of pictures, empty first and full last
+        <li><code>stages</code>: a building on the map as goods pile up in it, empty first and full last. Cultivation uses exact physical states: chamber empty/closed-growing/open, vault and conduit empty/full, machine zero/one/two/three repairs/activated. Optional basket/pick/boot stages list crafted levels from 2 upward. Single-picture icon/image overrides retain their picture
           (the default pack has four: empty, a little, most, full). Nothing waiting shows the first, a full building the last,
           and the ones between share the way up. <code>image</code> stays its picture in the sheet; a pack that draws a building's
           <code>image</code> but not its stages shows that one picture on the map.</li>

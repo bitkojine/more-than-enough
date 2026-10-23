@@ -116,7 +116,9 @@ Each repair reveals a clue. Activating all three restored sections with viable c
 
 Existing global refinery/Overclock/Abundance purchases are absent from new-world
 progression but remain preserved in old worlds. The existing basket/pick/footwear
-chains and their art still need the broader physical-tier identity pass. AUTO
+chains now have distinct physical artwork at every purchased tier; cultivation
+facilities and all five machine repair/activation states also have dedicated
+chalk-and-slate sprites. AUTO
 and multiplayer are not yet adapted to cultivation; no fair new-model AUTO win
 or final-game duration is claimed. Fresh-world manual-strategy playtests reach activation in minutes of game time; this is an early playable chapter, far below the eventual meaningful-content goal. Transfers are currently direct sealed links
 of bounded reach/throughput, not a finished multi-layer transport network.

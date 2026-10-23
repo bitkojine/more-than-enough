@@ -156,3 +156,14 @@ test('look: a player\'s pack that draws a building without stages keeps its own 
   look.use(base, loaded({ 'tile.grass': { top: 'g' } }));
   assert.equal(look.stage('building.garden', 0), 'empty', 'untouched buildings use the default stages');
 });
+
+test('physical tiers and machine repairs retain custom single-picture pack overrides',()=>{
+ const look=createLook();
+ const base=loaded({'tool.pickaxe':{icon:'stone',stages:['stone','forged','braced']},'building.sleepingMachine':{image:'awake',stages:['dormant','one','two','three','awake']}});
+ look.use(base);
+ assert.equal(look.level('tool.pickaxe',1,'icon'),'forged');
+ assert.equal(look.level('building.sleepingMachine',4),'awake');
+ look.use(base,loaded({'tool.pickaxe':{icon:'custom pick'},'building.sleepingMachine':{image:'custom machine'}}));
+ assert.equal(look.level('tool.pickaxe',2,'icon'),'custom pick');
+ assert.equal(look.level('building.sleepingMachine',4),'custom machine');
+});

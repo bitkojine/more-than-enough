@@ -287,6 +287,33 @@ async function main() {
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
+  if(process.env.MTE_ART_ONLY==='1'){
+    console.log('\n== Win-path art: original renderer and sheets ==');
+    await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();
+      // Funded visual fixture; never a fresh-world gameplay evaluation.
+      for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}
+      s.player={x:.5,y:2.5,z:-2};s.tools.pickaxe=3;s.tools.basket=2;s.tools.boots=2;
+      s.cultivation.facilities=[{kind:'chamber',x:-2,y:0,id:1,health:100,buffer:5,closed:true},{kind:'cooler',x:-1,y:-1,id:2,buffer:0},{kind:'vault',x:1,y:0,id:3,buffer:5,closed:true},{kind:'conduit',x:0,y:0,id:4,buffer:0,from:1,to:3},{kind:'machine',x:2,y:1,id:5,health:0,buffer:0,closed:true,sections:0}].map(b=>({...b,z:-2,temperature:18,quality:100}));s.cultivation.nextId=6;s.cultivation.gear.carrier=true;s.cultivation.gear.lantern=true;
+      MTE_GAME.setPlayer(.5,2.5);MTE_GAME.setZoom(1.6);MTE_GAME.hud.newWorld();})()`);
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
+    await sleep(300);await shot('fresh-win-path-world.png');
+    ok(await evalJS('new Set(Object.values(MTE_GAME.core.CULTIVATION_LOOK)).size===7'),'every cultivation object has its own catalog identity');
+    ok(await evalJS('new Set([0,1,2,3,4].map(i=>MTE_GAME.look.level(MTE_GAME.core.CULTIVATION_LOOK.machine,i).url)).size===5'),'machine has five distinct physical restoration pictures');
+    for(var phase=0;phase<=4;phase++){
+      await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="machine");b.sections=Math.min(3,'+phase+');b.health='+ (phase?100:0)+';s.cultivation.completed='+ (phase===4)+';})()');
+      await sleep(60);await shot('machine-stage-'+phase+'.png');
+    }
+    await evalJS('document.getElementById("btnUpgrade").click()');await sleep(150);
+    ok(await evalJS('[...document.querySelectorAll("#sheetBody img")].every(i=>i.complete&&i.naturalWidth>0)'),'equipment art loads in Upgrade');
+    await shot('fresh-equipment.png');
+    await evalJS('document.getElementById("btnClose").click();document.getElementById("btnBuild").click()');await sleep(150);
+    ok(await evalJS('[...document.querySelectorAll("#sheetBody img")].every(i=>i.complete&&i.naturalWidth>0)'),'all new facility art loads in Build');
+    await shot('fresh-facilities.png');
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
+    await sleep(150);ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'fresh art fits phone Build sheet');await shot('fresh-facilities-phone.png');
+    eq(pageErrors.length,0,'no renderer or picture-loading errors');
+    console.log((failures?'ART BROWSER FAILURES':'ART BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_CULTIVATION_RUN){
     const run=JSON.parse(fs.readFileSync(process.env.MTE_CULTIVATION_RUN,'utf8'));
     if(run.result!=='won'||!run.activationSave)throw Error('A completed canonical playtest checkpoint is required');

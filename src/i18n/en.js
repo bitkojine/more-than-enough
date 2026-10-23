@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.135.1": "Fresh chalk-and-slate artwork follows the whole restoration journey: gathering, tools, cooling, crystal handling and the machine. Every crafted tool tier and machine repair has a distinct physical appearance.",
   "news.0.135.0": "Restore three physical machine sections, keep their crystal cool and sealed, then activate the machine to complete your world. Completed worlds stay archived; the next starts empty-handed. Crystal transfers and earlier rounded saves now reload safely.",
   "cr.reason.completed": "This world is already complete.",
   "cr.reason.close": "Close the protective shutters first.",

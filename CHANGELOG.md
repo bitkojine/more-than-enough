@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.135.1] - 2026-10-23
+
+### Changed
+- Fresh chalk-and-slate vector artwork for the restoration route: four resource
+  icons and action controls, mushrooms, stone/metal deposits, cave/shaft entrances and steel ladders,
+  surface producers, depots, Stoneworks, and all basket/pick/boot purchase tiers.
+- Crystal chambers, cooling towers, vaults, sealed conduits, carriers and lanterns
+  now have dedicated catalog identities and bespoke sprites. The dormant
+  machine has five physical states through repair and activation.
+- Stone/mycelium early tool tiers match their metal-free recipes.
+  Equipped baskets and boots appear on the existing character, and held picks
+  match their crafted tier. The Upgrade sheet previews the next physical tier.
+- Existing one-picture texture-pack overrides remain respected. Game rules,
+  saved progress, the character and the existing world/controls are retained.
+
+
 ## [0.135.0] - 2026-10-23
 
 ### Added

@@ -1,5 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" fill="#5a4836"/>
-<ellipse cx="32" cy="32" rx="25" ry="25" fill="#e2c06a" stroke="#5e4518" stroke-width="2"/>
-<ellipse cx="32" cy="32" rx="20" ry="20" fill="#8a6236" stroke="#4a3018" stroke-width="2"/>
-<g stroke="#4a3018" stroke-width="2"><path d="M18 24h28M14 32h36M18 40h28"/></g>
-<g fill="#e2c06a" stroke="#5e4518" stroke-width="1.5"><circle cx="32" cy="12" r="2.5"/><circle cx="32" cy="52" r="2.5"/><circle cx="12" cy="32" r="2.5"/><circle cx="52" cy="32" r="2.5"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+<g stroke-linejoin="round" stroke-linecap="round"><rect x="0" y="0" width="64" height="64" rx="0" fill="#5a4836" stroke="#172326" stroke-width="2"/><path d="M6 19L22 9H46L58 24L54 49L40 58H17L5 42Z" fill="#46565b" stroke="#172326" stroke-width="2"/><path d="M15 22L25 16H43L50 27L46 45L37 50H21L13 38Z" fill="#273d42" stroke="#172326" stroke-width="2"/><path d="M16 24H47M14 33H48M17 42H44" fill="none" stroke="#809295" stroke-width="5"/><circle cx="10" cy="21" r="1.6" fill="#809295" stroke="#172326" stroke-width="2"/><circle cx="49" cy="16" r="1.6" fill="#809295" stroke="#172326" stroke-width="2"/><circle cx="53" cy="44" r="1.6" fill="#809295" stroke="#172326" stroke-width="2"/><circle cx="17" cy="52" r="1.6" fill="#809295" stroke="#172326" stroke-width="2"/><path d="M19 12H39M10 44L17 49" fill="none" stroke="#eee9dc" stroke-width="1.2"/></g>
+</svg>

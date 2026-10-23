@@ -186,6 +186,15 @@ export function createLook() {
       return pics[Math.min(n - 2, 1 + Math.floor(share * (n - 2)))];
     },
 
+    // Exact physical tier/repair state. Existing custom one-picture packs keep
+    // their icon/image instead of being overwritten by default tier artwork.
+    level(id, index, slot = 'image') {
+      const own = over && over.slots.get(id);
+      if (own && own[slot] && !own.stages) return own[slot].pics[0];
+      const stages = entry(id, 'stages');
+      return stages ? stages.pics[Math.max(0, Math.min(index, stages.pics.length - 1))] : look.pick(id, slot);
+    },
+
     // Every frame of (id, slot), for things that animate on their own clock.
     frames(id, slot) {
       const e = entry(id, slot);
@@ -193,7 +202,8 @@ export function createLook() {
     },
 
     // A URL for an <img> (the first picture of the slot).
-    src(id, slot = 'icon') {
+    src(id, slot = 'icon', level = null) {
+      if(level!==null)return look.level(id,level,slot)?.url||'';
       const e = entry(id, slot);
       const pic = e && e.pics.find(Boolean);
       return pic ? pic.url : '';
@@ -241,6 +251,6 @@ export function createLook() {
 }
 
 // An <img> for a thing's icon (or `slot`), for HTML built as strings.
-export function iconHtml(look, id, cls = 'ico', slot = 'icon') {
-  return `<img class="${cls}" src="${look.src(id, slot)}" alt="" draggable="false">`;
+export function iconHtml(look, id, cls = 'ico', slot = 'icon', level = null) {
+  return `<img class="${cls}" src="${look.src(id, slot, level)}" alt="" draggable="false">`;
 }

@@ -29,7 +29,7 @@ let look = null;
 let newIds = new Set();
 const NEW_TAG = `<span class="newTag">${t('badge.new')}</span>`;
 const newTag = (id) => newIds.has(id) ? ' ' + NEW_TAG : '';
-const pic = (id, slot) => iconHtml(look, id, 'ico', slot);
+const pic = (id, slot, level=null) => iconHtml(look, id, 'ico', slot, level);
 const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
 
@@ -109,14 +109,15 @@ const DESCRIBE = {
 
 function upgradeRow(s, id) {
   const u = Core.UPGRADES[id];
+  const artwork=pic(u.look,'icon',u.kind==='tool'&&['basket','pickaxe','boots'].includes(id)?Math.max(0,Math.min(s.tools[id]-1,Core.TOOLS[id].levels.length-2)):null);
   const d = DESCRIBE[u.kind](s, id);
-  if (u.retired) return row(pic(u.look), esc(u.name), d.sub, doneButton(t('sheet.retired')));
+  if (u.retired) return row(artwork, esc(u.name), d.sub, doneButton(t('sheet.retired')));
   const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '') + newTag(id);
   const cost = Core.upgradeCost(s, id);
-  if (cost === null) return row(pic(u.look), name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
+  if (cost === null) return row(artwork, name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
   const affordable = Core.canBuy(s, id);
   const tag = u.currency === 'insight' ? price({ insight: s.insight }, { insight: cost }) : price(s.inv, cost);
-  return row(pic(u.look), name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
+  return row(artwork, name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
 }
 
 // Beyond (embarking and perks) stays out of sight until a world is

@@ -6,42 +6,89 @@
  "looks": {
   "tile.grass": {
    "color": "#56803a",
-   "top": ["ground/grass-1.svg", "ground/grass-2.svg", "ground/grass-3.svg"],
+   "top": [
+    "ground/grass-1.svg",
+    "ground/grass-2.svg",
+    "ground/grass-3.svg"
+   ],
    "face": "faces/turf.svg"
   },
   "tile.home": {
    "color": "#a8875c",
-   "top": ["ground/home-1.svg", "ground/home-2.svg"],
+   "top": [
+    "ground/home-1.svg",
+    "ground/home-2.svg"
+   ],
    "face": "faces/earth.svg"
   },
   "tile.forest": {
    "color": "#3a5a2c",
-   "top": ["ground/forest-1.svg", "ground/forest-2.svg"],
+   "top": [
+    "ground/forest-1.svg",
+    "ground/forest-2.svg"
+   ],
    "face": "faces/turf.svg"
   },
   "forest.pine": {
    "top": "ground/forest-pine.svg",
-   "stand": ["props/pine.svg", "props/pine.svg", "props/pine.svg", "props/pines.svg", "props/pines.svg", "props/spruce.svg", "props/spruce.svg"]
+   "stand": [
+    "props/pine.svg",
+    "props/pine.svg",
+    "props/pine.svg",
+    "props/pines.svg",
+    "props/pines.svg",
+    "props/spruce.svg",
+    "props/spruce.svg"
+   ]
   },
   "forest.birch": {
    "top": "ground/forest-birch.svg",
-   "stand": ["props/birch.svg", "props/birch.svg", "props/birch.svg", "props/birch.svg", "props/pine.svg"]
+   "stand": [
+    "props/birch.svg",
+    "props/birch.svg",
+    "props/birch.svg",
+    "props/birch.svg",
+    "props/pine.svg"
+   ]
   },
   "forest.oak": {
-   "stand": ["props/oak.svg", "props/oak.svg", "props/oak.svg", "props/apple.svg", "props/birch.svg"]
+   "stand": [
+    "props/oak.svg",
+    "props/oak.svg",
+    "props/oak.svg",
+    "props/apple.svg",
+    "props/birch.svg"
+   ]
   },
   "forest.maple": {
    "top": "ground/forest-maple.svg",
-   "stand": ["props/maple.svg", "props/maple.svg", "props/maple-gold.svg", "props/maple-gold.svg", "props/oak.svg"]
+   "stand": [
+    "props/maple.svg",
+    "props/maple.svg",
+    "props/maple-gold.svg",
+    "props/maple-gold.svg",
+    "props/oak.svg"
+   ]
   },
   "forest.mixed": {
-   "stand": ["props/pine.svg", "props/spruce.svg", "props/birch.svg", "props/oak.svg", "props/apple.svg", "props/maple.svg", "props/pines.svg"]
+   "stand": [
+    "props/pine.svg",
+    "props/spruce.svg",
+    "props/birch.svg",
+    "props/oak.svg",
+    "props/apple.svg",
+    "props/maple.svg",
+    "props/pines.svg"
+   ]
   },
   "tile.stone": {
    "color": "#747a70",
    "top": "ground/stone.svg",
    "face": "faces/earth.svg",
-   "stand": ["props/boulder.svg", "props/boulders.svg"],
+   "stand": [
+    "props/boulder.svg",
+    "props/boulders.svg"
+   ],
    "cut": "props/pebbles.svg"
   },
   "tile.ore": {
@@ -55,13 +102,20 @@
    "color": "#5b4a5c",
    "top": "ground/crystal.svg",
    "face": "faces/crystal.svg",
-   "stand": ["props/crystals.svg", "props/crystals-2.svg"],
+   "stand": [
+    "props/crystals.svg",
+    "props/crystals-2.svg"
+   ],
    "cut": "props/crystal-cut.svg"
   },
   "tile.water": {
    "color": "#2f6a93",
    "top": {
-    "frames": ["ground/water-1.svg", "ground/water-2.svg", "ground/water-3.svg"],
+    "frames": [
+     "ground/water-1.svg",
+     "ground/water-2.svg",
+     "ground/water-3.svg"
+    ],
     "fps": 1.5
    }
   },
@@ -207,57 +261,165 @@
    "color": "#c9a6ff"
   },
   "pile.mycelium": {
-   "tiers": ["piles/mycelium-0.svg", "piles/mycelium-1.svg", "piles/mycelium-2.svg", "piles/mycelium-3.svg", "piles/mycelium-4.svg", "piles/mycelium-5.svg", "piles/mycelium-6.svg", "piles/mycelium-7.svg", "piles/mycelium-8.svg", "piles/mycelium-9.svg", "piles/mycelium-10.svg", "piles/mycelium-11.svg", "piles/mycelium-12.svg"]
+   "tiers": [
+    "piles/mycelium-0.svg",
+    "piles/mycelium-1.svg",
+    "piles/mycelium-2.svg",
+    "piles/mycelium-3.svg",
+    "piles/mycelium-4.svg",
+    "piles/mycelium-5.svg",
+    "piles/mycelium-6.svg",
+    "piles/mycelium-7.svg",
+    "piles/mycelium-8.svg",
+    "piles/mycelium-9.svg",
+    "piles/mycelium-10.svg",
+    "piles/mycelium-11.svg",
+    "piles/mycelium-12.svg"
+   ]
   },
   "pile.stone": {
-   "tiers": ["piles/stone-0.svg", "piles/stone-1.svg", "piles/stone-2.svg", "piles/stone-3.svg", "piles/stone-4.svg", "piles/stone-5.svg", "piles/stone-6.svg", "piles/stone-7.svg", "piles/stone-8.svg", "piles/stone-9.svg", "piles/stone-10.svg", "piles/stone-11.svg", "piles/stone-12.svg"]
+   "tiers": [
+    "piles/stone-0.svg",
+    "piles/stone-1.svg",
+    "piles/stone-2.svg",
+    "piles/stone-3.svg",
+    "piles/stone-4.svg",
+    "piles/stone-5.svg",
+    "piles/stone-6.svg",
+    "piles/stone-7.svg",
+    "piles/stone-8.svg",
+    "piles/stone-9.svg",
+    "piles/stone-10.svg",
+    "piles/stone-11.svg",
+    "piles/stone-12.svg"
+   ]
   },
   "pile.ore": {
-   "tiers": ["piles/ore-0.svg", "piles/ore-1.svg", "piles/ore-2.svg", "piles/ore-3.svg", "piles/ore-4.svg", "piles/ore-5.svg", "piles/ore-6.svg", "piles/ore-7.svg", "piles/ore-8.svg", "piles/ore-9.svg", "piles/ore-10.svg", "piles/ore-11.svg", "piles/ore-12.svg"]
+   "tiers": [
+    "piles/ore-0.svg",
+    "piles/ore-1.svg",
+    "piles/ore-2.svg",
+    "piles/ore-3.svg",
+    "piles/ore-4.svg",
+    "piles/ore-5.svg",
+    "piles/ore-6.svg",
+    "piles/ore-7.svg",
+    "piles/ore-8.svg",
+    "piles/ore-9.svg",
+    "piles/ore-10.svg",
+    "piles/ore-11.svg",
+    "piles/ore-12.svg"
+   ]
   },
   "pile.crystal": {
-   "tiers": ["piles/crystal-0.svg", "piles/crystal-1.svg", "piles/crystal-2.svg", "piles/crystal-3.svg", "piles/crystal-4.svg", "piles/crystal-5.svg", "piles/crystal-6.svg", "piles/crystal-7.svg", "piles/crystal-8.svg", "piles/crystal-9.svg", "piles/crystal-10.svg", "piles/crystal-11.svg", "piles/crystal-12.svg"]
+   "tiers": [
+    "piles/crystal-0.svg",
+    "piles/crystal-1.svg",
+    "piles/crystal-2.svg",
+    "piles/crystal-3.svg",
+    "piles/crystal-4.svg",
+    "piles/crystal-5.svg",
+    "piles/crystal-6.svg",
+    "piles/crystal-7.svg",
+    "piles/crystal-8.svg",
+    "piles/crystal-9.svg",
+    "piles/crystal-10.svg",
+    "piles/crystal-11.svg",
+    "piles/crystal-12.svg"
+   ]
   },
-  "building.depot": {"image":"buildings/depot.svg","stages":["buildings/depot.svg"]},
+  "building.depot": {
+   "image": "buildings/depot.svg",
+   "stages": [
+    "buildings/depot.svg"
+   ]
+  },
   "building.garden": {
    "image": "buildings/garden.svg",
-   "stages": ["buildings/garden-empty.svg", "buildings/garden-little.svg", "buildings/garden-most.svg", "buildings/garden.svg"]
+   "stages": [
+    "buildings/garden-empty.svg",
+    "buildings/garden-little.svg",
+    "buildings/garden-most.svg",
+    "buildings/garden.svg"
+   ]
   },
   "building.stoneworks": {
    "image": "buildings/stoneworks.svg",
-   "stages": ["buildings/stoneworks.svg"]
+   "stages": [
+    "buildings/stoneworks.svg"
+   ]
   },
   "building.quarry": {
    "image": "buildings/quarry.svg",
-   "stages": ["buildings/quarry-empty.svg", "buildings/quarry-little.svg", "buildings/quarry-most.svg", "buildings/quarry.svg"]
+   "stages": [
+    "buildings/quarry-empty.svg",
+    "buildings/quarry-little.svg",
+    "buildings/quarry-most.svg",
+    "buildings/quarry.svg"
+   ]
   },
   "building.mine": {
    "image": "buildings/mine.svg",
-   "stages": ["buildings/mine-empty.svg", "buildings/mine-little.svg", "buildings/mine-most.svg", "buildings/mine.svg"]
+   "stages": [
+    "buildings/mine-empty.svg",
+    "buildings/mine-little.svg",
+    "buildings/mine-most.svg",
+    "buildings/mine.svg"
+   ]
   },
   "building.resonator": {
    "image": "buildings/resonator.svg",
-   "stages": ["buildings/resonator-empty.svg", "buildings/resonator-little.svg", "buildings/resonator-most.svg", "buildings/resonator.svg"]
+   "stages": [
+    "buildings/resonator-empty.svg",
+    "buildings/resonator-little.svg",
+    "buildings/resonator-most.svg",
+    "buildings/resonator.svg"
+   ]
   },
   "building.compost": {
    "image": "buildings/compost.svg",
-   "stages": ["buildings/compost-empty.svg", "buildings/compost-little.svg", "buildings/compost-most.svg", "buildings/compost.svg"]
+   "stages": [
+    "buildings/compost-empty.svg",
+    "buildings/compost-little.svg",
+    "buildings/compost-most.svg",
+    "buildings/compost.svg"
+   ]
   },
   "building.brickyard": {
    "image": "buildings/brickyard.svg",
-   "stages": ["buildings/brickyard-empty.svg", "buildings/brickyard-little.svg", "buildings/brickyard-most.svg", "buildings/brickyard.svg"]
+   "stages": [
+    "buildings/brickyard-empty.svg",
+    "buildings/brickyard-little.svg",
+    "buildings/brickyard-most.svg",
+    "buildings/brickyard.svg"
+   ]
   },
   "building.foundry": {
    "image": "buildings/foundry.svg",
-   "stages": ["buildings/foundry-empty.svg", "buildings/foundry-little.svg", "buildings/foundry-most.svg", "buildings/foundry.svg"]
+   "stages": [
+    "buildings/foundry-empty.svg",
+    "buildings/foundry-little.svg",
+    "buildings/foundry-most.svg",
+    "buildings/foundry.svg"
+   ]
   },
   "building.observatory": {
    "image": "buildings/observatory.svg",
-   "stages": ["buildings/observatory-empty.svg", "buildings/observatory-little.svg", "buildings/observatory-most.svg", "buildings/observatory.svg"]
+   "stages": [
+    "buildings/observatory-empty.svg",
+    "buildings/observatory-little.svg",
+    "buildings/observatory-most.svg",
+    "buildings/observatory.svg"
+   ]
   },
   "character.wanderer": {
    "image": {
-    "frames": ["characters/wanderer.svg", "characters/wanderer-walk-1.svg", "characters/wanderer.svg", "characters/wanderer-walk-2.svg"],
+    "frames": [
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-1.svg",
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-2.svg"
+    ],
     "fps": 8
    }
   },
@@ -299,7 +461,10 @@
   },
   "mark.wheel": {
    "image": {
-    "frames": ["props/wheel-1.svg", "props/wheel-2.svg"],
+    "frames": [
+     "props/wheel-1.svg",
+     "props/wheel-2.svg"
+    ],
     "fps": 3
    }
   },
@@ -334,13 +499,33 @@
    "icon": "icons/embark.svg"
   },
   "tool.basket": {
-   "icon": "icons/basket.svg"
+   "icon": "icons/basket.svg",
+   "stages": [
+    "cultivation/basket-2.svg",
+    "cultivation/basket-3.svg",
+    "cultivation/basket-4.svg",
+    "cultivation/basket-5.svg",
+    "cultivation/basket-6.svg"
+   ]
   },
   "tool.pickaxe": {
-   "icon": "icons/pickaxe.svg"
+   "icon": "icons/pickaxe.svg",
+   "stages": [
+    "cultivation/pickaxe-2.svg",
+    "cultivation/pickaxe-3.svg",
+    "cultivation/pickaxe-4.svg",
+    "cultivation/pickaxe-5.svg",
+    "cultivation/pickaxe-6.svg"
+   ]
   },
   "tool.boots": {
-   "icon": "icons/boots.svg"
+   "icon": "icons/boots.svg",
+   "stages": [
+    "cultivation/boots-2.svg",
+    "cultivation/boots-3.svg",
+    "cultivation/boots-4.svg",
+    "cultivation/boots-5.svg"
+   ]
   },
   "tool.overclock": {
    "icon": "icons/overclock.svg"
@@ -422,6 +607,60 @@
   },
   "color.dialFull": {
    "color": "#ffd166"
+  },
+  "building.crystalChamber": {
+   "image": "cultivation/chamber-grown.svg",
+   "stages": [
+    "cultivation/chamber-empty.svg",
+    "cultivation/chamber-grown.svg",
+    "cultivation/chamber-open.svg"
+   ]
+  },
+  "building.coolingTower": {
+   "image": "cultivation/cooler.svg",
+   "stages": [
+    "cultivation/cooler.svg"
+   ]
+  },
+  "building.crystalVault": {
+   "image": "cultivation/vault-full.svg",
+   "stages": [
+    "cultivation/vault-empty.svg",
+    "cultivation/vault-full.svg"
+   ]
+  },
+  "building.sealedConduit": {
+   "image": "cultivation/conduit-full.svg",
+   "stages": [
+    "cultivation/conduit-empty.svg",
+    "cultivation/conduit-full.svg"
+   ]
+  },
+  "building.sleepingMachine": {
+   "image": "cultivation/machine-4.svg",
+   "stages": [
+    "cultivation/machine-0.svg",
+    "cultivation/machine-1.svg",
+    "cultivation/machine-2.svg",
+    "cultivation/machine-3.svg",
+    "cultivation/machine-4.svg"
+   ]
+  },
+  "tool.crystalCarrier": {
+   "icon": "cultivation/carrier.svg",
+   "image": "cultivation/carrier.svg",
+   "stages": [
+    "cultivation/carrier-empty.svg",
+    "cultivation/carrier.svg"
+   ]
+  },
+  "tool.hoodedLantern": {
+   "icon": "cultivation/lantern.svg",
+   "image": "cultivation/lantern.svg",
+   "stages": [
+    "cultivation/lantern-off.svg",
+    "cultivation/lantern.svg"
+   ]
   }
  }
 }

@@ -65,7 +65,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Cultivation machinery uses existing texture-pack art with shutters, fans and condition overlays. Planning overlays use stable white chalk vectors with contrasting backing and cached coverage-ring paths. Never text to read." "JavaScript" {
+                render = component "Renderer" "Draws one frame back to front: terrain for the camera's layer row by row (tops and south faces; zoomed out, the same tiles drawn once into an off-screen map shown scaled) with highlights, extractors and the player drawn in their row; on the surface, clouds over the land not yet explored (fog); then the Trail, particles, floating text, flyers, day/night lighting and the joystick. Changing layers, it slides the old frame away past the rock in between (descent). Cultivation machinery uses dedicated chalk-and-slate texture-pack sprites, exact repair/occupancy states and condition overlays. Equipped/held tools use their physical purchase tier, honoring single-picture custom overrides. Planning overlays use stable white chalk vectors with contrasting backing and cached coverage-ring paths. Never text to read." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"
@@ -149,7 +149,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat/light, damage, tending, renewable wild colonies, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Original texture-pack buildings gain physical shutters/fans and condition marks in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
+                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat/light, damage, tending, renewable wild colonies, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/cultivation.js, src/game/render/cultivation.js"

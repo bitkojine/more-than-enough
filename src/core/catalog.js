@@ -28,6 +28,7 @@
  * subset and the default fills the rest. Everything here is plain data so
  * the wiki can list it. */
 
+import { CULTIVATION_LOOK } from './cultivation.js';
 import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL, RESOURCE_LOWER, RESOURCE_OF } from './tiles.js';
 import { t, capitalize, LOCALE } from '../i18n/i18n.js';
 import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS, GEAR } from './content.js';
@@ -134,6 +135,11 @@ for (const key of Object.keys(EXTRACTORS)) {
   add('building', key, e.name, does, req('image', 'stages'));
 }
 
+for(const [kind,id] of Object.entries(CULTIVATION_LOOK)){
+  const [group,key]=id.split('.');
+  add(group,key,t('cr.'+kind),t(kind==='machine'?'cr.goal.activate':'cr.'+kind+'.desc'),group==='building'?req('image','stages'):{...req('icon','image'),...opt('stages')});
+}
+
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), req('image'));
 add('character', 'phone', t('look.character.phone'), t('look.character.phone.does'), req('image', 'color'));
 add('character', 'laptop', t('look.character.laptop'), t('look.character.laptop.does'), req('image', 'color'));
@@ -151,7 +157,7 @@ add('mark', 'wheel', t('look.mark.wheel'), t('look.mark.wheel.does'), req('image
 const UI = ['perfect', 'explore', 'wait', 'build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
 for (const key of UI) add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));
 
-for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), req('icon'));
+for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), {...req('icon'),...(['basket','pickaxe','boots'].includes(key)?opt('stages'):{})});
 for (const r of RESOURCES) add('refinery', r, REFINERIES[r].name, t('look.refinery.does', { res: RESOURCE_OF[r] }), req('icon'));
 add('engine', 'abundance', ABUNDANCE.name, t('sentence', { text: ABUNDANCE.desc }), req('icon'));
 for (const key of Object.keys(UNLOCKS)) add('unlock', key, UNLOCKS[key].name, t('sentence', { text: UNLOCKS[key].desc }), req('icon'));

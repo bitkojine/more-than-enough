@@ -853,7 +853,7 @@ export default {
         <li><code>tiers</code>: <a href="#stockpile">atsargų</a> krūvos – paveikslėlių sąrašas nuo mažiausio: pirmas reiškia
           vieną ištekliaus vienetą, kitas – dešimt, tada šimtą ir t. t. Už sąrašo galo naudojamas paskutinis paveikslėlis.
           Piešk jas stačias, maždaug vieno langelio pločio; nuo dešimties milijonų žaidimas jas piešia per visą jų žemės kvadratą.</li>
-        <li><code>stages</code>: pastatas žemėlapyje, kai jame kaupiasi produkcija – paveikslėlių sąrašas nuo tuščio iki pilno
+        <li><code>stages</code>: pastato produkcija nuo tuščio iki pilno. Auginimo statiniai naudoja tikslias fizines būsenas: kamera tuščia / uždaryta su kolonija / atvira, saugykla ir vamzdis tušti / pilni, mašina nuo nulio iki trijų atkurtų dalių ir paleista. Pasirenkamos krepšio, kirtiklio ir batų pakopos prasideda nuo pagaminto 2 lygio. Vieno paveikslėlio pakuotės išlaiko savo ikoną ar vaizdą
           (numatytajame pakete jų keturi: tuščias, šiek tiek, beveik pilnas, pilnas). Kai nieko nelaukia, rodomas pirmas, pilnas
           pastatas – paskutinis, o tarpiniai pasidalija kelią aukštyn. <code>image</code> lieka jo paveikslėlis lape; paketas,
           kuris nupiešia pastato <code>image</code>, bet ne jo etapus, žemėlapyje rodo tą vieną paveikslėlį.</li>

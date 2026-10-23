@@ -87,8 +87,20 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, flip, moving, water, devi
   ctx.translate(fx, fy);
   ctx.rotate(rot);
   const facing = p.turn ? !flip : flip;
+  if(equipment?.pickaxe>0&&p.tool?.kind!=='pickaxe'){
+    const pick=look.level('tool.pickaxe',Math.max(0,equipment.pickaxe-2),'icon');
+    look.draw(ctx,pick,(facing?-1:1)*u*.16-u*.19,-u*.76,u*.38,u*.38);
+  }
   const tall = standWithHeld(ctx, look, body, device, 0, 0, u, facing);
-  if (p.tool && (!equipment || equipment[p.tool.kind] > 0)) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1);
+  if(equipment?.boots>0){
+    const boots=look.level('tool.boots',Math.max(0,equipment.boots-2),'icon');
+    look.draw(ctx,boots,-u*.17,-u*.17,u*.34,u*.22);
+  }
+  if(equipment?.basket>0&&p.tool?.kind!=='basket'){
+    const basket=look.level('tool.basket',Math.max(0,equipment.basket-2),'icon');
+    look.draw(ctx,basket,(facing?1:-1)*u*.18-u*.15,-u*.48,u*.3,u*.3);
+  }
+  if (p.tool && (!equipment || equipment[p.tool.kind] > 0)) drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1, equipment?.[p.tool.kind]??1);
   ctx.restore();
   const sin = Math.sin(rot), cos = Math.cos(rot);
   return { x: fx + sin * tall, top: fy - cos * tall, foot: fy, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
@@ -131,9 +143,9 @@ const HAND = { x: 0.35, y: 0.43 };
 // tool's icon: the pickaxe held by the grip near its handle's end and
 // turned by `angle` (0 points it up and forward), the basket hanging from
 // the hand.
-function drawTool(ctx, look, body, u, tool, dir) {
+function drawTool(ctx, look, body, u, tool, dir, level) {
   const w = body.units * u, h = w * body.aspect;
-  const pic = look.pick('tool.' + tool.kind, 'icon');
+  const pic = look.level('tool.' + tool.kind, Math.max(0,level-2), 'icon');
   ctx.save();
   ctx.translate(dir * w * HAND.x, -h * HAND.y);
   ctx.scale(dir, 1);

@@ -199,3 +199,22 @@ activation lights all three. After repairs, Activate appears only on the machine
 The core requires viable crystal, closed shutters and current cooling. Completion
 is announced as a milestone and stays saved; Beyond offers the normal confirmed
 empty-handed next world while preserving the completed world’s archive.
+
+### Restoration-route artwork
+The Lanternlight pack uses off-white chalk contours over slate/steel surfaces,
+pale mycelium bindings, pink branching living crystal and cool blue-green fins.
+Each cultivation facility has a dedicated catalog identity: ribbed shuttered
+chambers with a crystal emblem, broad-fan cooling towers, narrow insulated vaults,
+paired sealed transport pipes and the socketed ancient machine. The carrier is
+a clasped specimen capsule; the lantern has a hood and crossed protective bars.
+The machine’s five sprite states show zero/one/two/three restored modules and
+activation. Chamber states show empty, occupied/closed and open; vaults/conduits
+show empty and holding crystal. Material emblems remain readable when sealed.
+Early picks use stone and mycelium bindings, early boots use woven fibre with
+later stone reinforcement; metal appears only at tiers whose recipes include it.
+Baskets retain fibre/stone construction throughout their current recipe chain.
+Every basket/pick/boot purchase tier changes physical hardware; Upgrade previews
+the next tier, held tools show the owned tier, and purchased baskets/boots remain
+visible on the original character. Empty-handed characters show neither.
+All sprites stay in the normal texture-pack loader/raster cache. Optional tool
+`stages` run from crafted level 2 upward; single-icon overrides remain respected.
