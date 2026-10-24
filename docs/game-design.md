@@ -478,3 +478,14 @@ the extruded rectangular shoes with rounded boot lasts: a smooth toe, narrower
 heel and curved instep over a slim brown sole. Ankle pivots, facing, movement
 and action timing remain the same. Geometry stays inside the gait's existing
 conservative foot-clearance envelope; the footfall solver still owns contact.
+
+
+The owner requests an always-present outline around the whole character.
+In v0.143.2 the default rig derives one continuous dark ink contour from the
+finished figure's alpha image. It covers the hood, cloak, gloves, wraps, boots
+and visible tools/cargo at a consistent image-space width. Per-piece expanded
+hulls are removed; the deliberate inner face opening remains. A single cached
+multisampled render target and contour pass preserve the flat palette. This
+changes presentation only; it adds no collision area, time, inventory or actions.
+Rendered-edge checks cover headings, gait, work and cargo and reproduce the
+previous missing-outline failure. Custom packs retain their authored artwork.

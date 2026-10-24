@@ -19,11 +19,6 @@ export function createRiggedCharacter(){
  // responses to curved surfaces. The world's day/night overlay still applies
  // to the composited character together with trees, rocks and buildings.
  const material=color=>new T.MeshBasicMaterial({color,toneMapped:false});
- const outlineMaterial=new T.MeshBasicMaterial({color:0x1d1712,side:T.BackSide,toneMapped:false});
- // Expand in local space before Three applies skinning: cloak outlines follow
- // the same bone weights as the cloth, including during turns and actions.
- outlineMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = position + normal * 0.026;');};
- outlineMaterial.customProgramCacheKey=()=> 'wanderer-flat-outline-v2';
  const orange=material(0xc8743a),inner=material(0x1d1712),black=material(0x3a2a1c),cream=material(0xeeeadf),linen=material(0xded4b7),thread=material(0xefe1bc);
  const bones=[],bone=(name,parent,x=0,y=0,z=0)=>{const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);bones.push(b);return b;};
  const root=bone('root',model),hips=bone('hips',root,0,.51),spine=bone('spine',hips,0,.38),neck=bone('neck',spine,0,.18),head=bone('head',neck,0,.30);
@@ -38,9 +33,7 @@ export function createRiggedCharacter(){
   for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;idx.push(a,b,a+1,b,b+1,a+1);}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
  }
- const ink=(g,parent,x=0,y=0,z=0)=>mesh(g,outlineMaterial,parent,x,y,z);
  const hood=hoodGeometry();mesh(hood,orange,head);
- ink(hood,head);
  const inside=inner.clone();inside.side=T.BackSide;mesh(hood,inside,head);
  // The original art has a pointed arch, broad lower cheeks and flat oval
  // eyes. A shallow pear-shaped mask avoids the former protruding egg shape.
@@ -103,7 +96,7 @@ export function createRiggedCharacter(){
  function arm(side){
   const upper=bone(side>0?'leftUpperArm':'rightUpperArm',spine,side*.295,.13,0),lower=bone(side>0?'leftForearm':'rightForearm',upper,0,-.20,0),hand=bone(side>0?'leftHand':'rightHand',lower,0,-.16,0);
   upper.rotation.z=side*.36;
-  const sleeve=mesh(new T.CylinderGeometry(.10,.125,.27,32,6),orange,upper,0,-.12,0);sleeve.scale.z=.95;ink(sleeve.geometry,upper,0,-.12,0).scale.copy(sleeve.scale);
+  const sleeve=mesh(new T.CylinderGeometry(.10,.125,.27,32,6),orange,upper,0,-.12,0);sleeve.scale.z=.95;
   const cuff=mesh(new T.TorusGeometry(.118,.006,8,32),thread,upper,0,-.255,0);cuff.rotation.x=Math.PI/2;
   mesh(new T.CylinderGeometry(.052,.055,.12,16),black,lower,0,-.10,0);
   ellipsoid(hand,black,0,-.02,0,.108,.115,.087);ellipsoid(hand,black,-side*.076,-.005,.040,.040,.060,.040);
@@ -132,7 +125,7 @@ export function createRiggedCharacter(){
   mesh(new T.CylinderGeometry(.074,.066,LEG_LENGTH-.025,24),linen,lower,0,-LEG_LENGTH/2,0);
   for(let i=0;i<4;i++){const band=mesh(new T.TorusGeometry(.073-i*.0015,.0035,6,32),cream,lower,0,-.045-i*.05,0);band.rotation.x=Math.PI/2+.04;}
   mesh(shoeGeometry(.205,.30,.022,{sole:true}),soleMaterial,foot,0,-.086,0);
-  const shoe=mesh(shoeGeometry(.19,.25,.062),black,foot,0,-.055,0);ink(shoe.geometry,foot,0,-.055,0);
+  mesh(shoeGeometry(.19,.25,.062),black,foot,0,-.055,0);
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);
@@ -154,13 +147,41 @@ export function createRiggedCharacter(){
   const tier=pickaxeTier(level);
   if(equippedPickaxe&&equippedPickaxe.tier!==tier){equippedPickaxe.root.removeFromParent();equippedPickaxe=null;}
   if(!tier){toolBack.visible=false;return;}
-  if(!pickaxes.has(tier))pickaxes.set(tier,createPickaxeModel(tier));
+  if(!pickaxes.has(tier)){
+   const asset=createPickaxeModel(tier);
+   // The complete-figure pass supplies the tool's outer ink here. Keep the
+   // canonical asset's own hull for its independently baked inventory views.
+   for(const child of asset.root.children)if(child.material?.side===T.BackSide)child.visible=false;
+   pickaxes.set(tier,asset);
+  }
   equippedPickaxe=pickaxes.get(tier);
   const stowed=steady||carrying||['pick','collect','up','down','cheer'].includes(action),socket=stowed?toolBack:toolGrip;toolBack.visible=stowed;
   if(equippedPickaxe.root.parent!==socket)socket.add(equippedPickaxe.root);
  }
  model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);hem.bind(skeleton);patch.bind(skeleton);
- const coatInk=new T.SkinnedMesh(coatGeometry,outlineMaterial);model.add(coatInk);coatInk.bind(skeleton);
+ // A single screen-space contour surrounds the completed figure, including
+ // fingers, wraps, soles and real carried equipment. It does not depend on
+ // separate per-mesh hulls or change width as a curved surface turns away.
+ const silhouette=new T.WebGLRenderTarget(320,384,{samples:4,depthBuffer:true});
+ silhouette.texture.colorSpace=T.SRGBColorSpace;
+ const outlineScene=new T.Scene(),outlineCamera=new T.OrthographicCamera(-1,1,1,-1,0,1);
+ const outlineMaterial=new T.ShaderMaterial({
+  uniforms:{image:{value:silhouette.texture},step:{value:new T.Vector2(4/320,4/384)},ink:{value:new T.Color(0x1d1712)}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}', // i18n-ok: GPU shader source, not player text.
+  fragmentShader:`uniform sampler2D image;uniform vec2 step;uniform vec3 ink;varying vec2 vUv; // i18n-ok: GPU shader source, not player text.
+   void main(){vec4 source=texture2D(image,vUv);float edge=source.a;
+    for(int i=0;i<16;i++){float a=float(i)*6.28318530718/16.;edge=max(edge,texture2D(image,vUv+vec2(cos(a),sin(a))*step).a);}
+    float alpha=source.a+edge*(1.-source.a);
+    vec3 color=(source.rgb+ink*edge*(1.-source.a))/max(alpha,.00001);
+    gl_FragColor=vec4(color,alpha);
+    #include <colorspace_fragment>
+    #include <premultiplied_alpha_fragment>
+   }`,
+  transparent:true,premultipliedAlpha:true,depthTest:false,depthWrite:false
+ });
+ const outlineQuad=new T.Mesh(new T.PlaneGeometry(2,2),outlineMaterial);outlineScene.add(outlineQuad);
+ // Keep budgets honest across both passes, rather than reporting only the quad.
+ renderer.info.autoReset=false;
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
  let lost=false,renders=0,direction='s';canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
@@ -187,14 +208,14 @@ export function createRiggedCharacter(){
    leftArm.upper.rotation.z=.36+p.armSpread;rightArm.upper.rotation.z=-.36-p.armSpread;
    leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm;leftArm.lower.rotation.x=p.leftElbow;rightArm.lower.rotation.x=p.rightElbow;leftArm.hand.rotation.x=p.leftWrist;rightArm.hand.rotation.x=p.rightWrist;
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
-   scene.updateMatrixWorld(true);renderer.render(scene,camera);renders++;
+   scene.updateMatrixWorld(true);renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
   inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:at(equippedPickaxe.root),socket:at(equippedPickaxe.root.parent),hand:at(rightArm.hand)}:null,cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
-  get stats(){return {renders,bones:bones.length,skinnedMeshes:4,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
+  dispose(){for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

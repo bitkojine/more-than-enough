@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.143.2] - 2026-10-24
+
+- Replaced Mica's incomplete per-piece outline hulls with a unified ink contour
+  around the finished character, including hands, leg wraps, boots and cargo.
+- Kept the exact flat world palette, eight directions and existing action timing.
+- Added a rendered-edge regression check across facing, walking, work and cargo;
+  it catches the previous missing outlines. GPU budgets count both render passes.
+- Static layout checks finish the sheet opening transition before measuring,
+  avoiding false off-screen failures under software rendering.
+
+
 ## [0.143.1] - 2026-10-24
 
 - Reshaped Mica's rectangular shoes as rounded work boots with narrower heels,

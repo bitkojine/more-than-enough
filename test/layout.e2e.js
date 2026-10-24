@@ -275,7 +275,11 @@ async function main() {
       for (let i = 0; i < 80 && !(await evaluate('!!window.MTE_GAME').catch(() => false)); i++) await sleep(100);
       for (const state of STATES) {
         await evaluate('(' + enter + ')(' + JSON.stringify(state) + ')');
-        await sleep(450);  // sheets slide in, the HUD updates
+        await sleep(450);  // let the HUD update
+        // This is a static layout audit, not an animation test. Under software
+        // WebGL a wall-time delay can still sample the sheet mid-transition.
+        // Finish only its transform transition; real overflow remains checked.
+        await evaluate("document.getElementById('sheet').getAnimations().filter(a => a.transitionProperty === 'transform').forEach(a => a.finish())");
         checks++;
         for (const p of await evaluate('(' + problems + ')()')) found.push(where + ' ' + state + ': ' + p);
         if (SHOT_DIR) {

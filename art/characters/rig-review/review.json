@@ -1,16 +1,16 @@
 {
-  "version": "0.143.1",
+  "version": "0.143.2",
   "status": "first integrated Mica identity pass; art direction remains provisional",
   "sources": {
     "src/game/render/rig-motion.js": "4d6f1963e484c671fc3e7dab2b8fb8cdf3da177fb4fc46b7a7442276ff6e1a23",
-    "src/game/render/rigged-character.js": "a717a634ca12247487ee1f680f682ea1db1d81b84a3c46aa4cfeb7e3561af881",
+    "src/game/render/rigged-character.js": "8f4d29b92a9c987417e2a843423a8c7dadd29af39dc6734aa8503731dd3875dc",
     "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
     "src/game/render/sprites.js": "b49bd38c2c0ae7babd43f149dff3967486698216ee317fefd9f45a76f372bf74",
     "src/game/render/character-direction.js": "3510f6fde74cdb5b6d98b1d1b1df1a6724d3d67b54750569e2db942fb5c21a4e",
     "src/game/render/pickaxe-model.js": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "4b3f20f1ce6b35f12440628394131425f3f59e486e5fd880be504830f31ef31b",
+  "playbackSha256": "7d5f116ce18cccee0c4a09f613287ff76e5244758a688386bcc88c85cf7b1a85",
   "capture": "40 phase samples from the current actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; current Mica bare east-facing walk, not a pickaxe swing capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
@@ -26,7 +26,8 @@
     "Mica mesh-eye blink at explicit time; compact proportions, split cloth hem and skin-bound repair patch reviewed in all headings",
     "protective two-hand specimen/sealed carrying, pickaxe stowing and existing GPU budgets in all eight headings; empty-handed rendering remains empty",
     "carrying preserves foot targets, steady mode and working-action precedence; idle curiosity/blinks leave both feet planted",
-    "rounded boot lasts, narrow heels and slim brown soles visually reviewed through eight headings and forty walk phases, keeping the existing clearance envelope"
+    "rounded boot lasts, narrow heels and slim brown soles visually reviewed through eight headings and forty walk phases, keeping the existing clearance envelope",
+    "whole-figure ink silhouette across 20 heading/gait/work/cargo fixtures; pixel coverage fails on the prior renderer and passes on the unified contour, preserving exact sRGB material colors"
   ],
   "limits": [
     "pickaxe and actual crystal cargo have physical hand/back models; remaining equipment models are unfinished",
@@ -38,12 +39,12 @@
     "sha256": "d26f3fcfa52c29aed32488b993a33921a9b99567c6f2f83536360928c3ffc81a",
     "features": "pointed arch, broad lower ivory mask, larger flat black oval eyes and shallow profile"
   },
-  "presentation": "unlit flat-fill shaders, solid ivory mask, world-art orange and dark-brown ink contours, shared world lighting overlay",
+  "presentation": "unlit flat-fill shaders and exact sRGB world palette; one alpha-derived dark ink contour around the complete posed figure, using a cached multisampled 320x384 target and one contour quad; rendering budgets include both passes",
   "worldArtReferences": [
     "packs/default/props/oak.svg",
     "packs/default/props/birch.svg",
     "packs/default/characters/wanderer.svg"
   ],
-  "motion": "21 bones, four skinned meshes including hem/outline and repair patch; pure two-bone leg IK, secondary cloak/body motion, explicit-time blinking and curious idle, existing work timing and protective cargo hold",
+  "motion": "21 bones, three skinned meshes (coat, hem and repair patch), with a separate complete-figure alpha outline pass; pure two-bone leg IK, secondary cloak/body motion, explicit-time blinking and curious idle, existing work timing and protective cargo hold",
   "facing": "eight snapped world headings shared with directional sprite art; continuous movement and smooth internal joint articulation"
 }

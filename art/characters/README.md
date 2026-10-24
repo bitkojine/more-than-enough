@@ -8,10 +8,11 @@ pure gait/IK is in `src/game/render/rig-motion.js`. Preserve the existing orange
 hood, cream mask and outfit. Change shared geometry or motion constraints once,
 then inspect every direction in the game. The displayed heading snaps to eight
 world directions, with free movement and smooth internal joint motion. Pickaxes now have a shared model and a hand/back attachment;
-other equipment and cargo still need physical models and appropriate joints.
+actual crystal cargo has exposed/sealed carrying models; remaining equipment
+coverage is still unfinished.
 The 21-bone rig includes four weighted cloak panels, torso/head counterbalance,
 elbow/wrist follow-through, idle breath and distinct work-action performances.
-Keep cloak trim and outlines on the same skin weights, and verify action
+Keep cloak trim and repair patches on the same skin weights, and verify action
 endpoints, loop continuity and sole clearance alongside visual motion review.
 
 The character uses the 3D rig for spatial posing, not a realistic 3D finish.
@@ -36,7 +37,8 @@ checks complement, rather than replace, visual review.
 
 `src/game/render/pickaxe-model.js` owns all six tier silhouettes, materials
 and a local grip at (0,0,0). It uses flat vertex colours and an ink shell,
-merged into two draws. The character caches earned tiers and attaches the
+merged into two draws for independent views. The unified character contour
+hides that instance's ink shell to avoid a double outline. The character caches earned tiers and attaches the
 model to its palm or back socket. No icon is pasted onto the character.
 
 Regenerate the six default-pack icons from this same model with:
@@ -147,8 +149,8 @@ it must never be labelled complete by counting mirrored east artwork as north.
 The integrated rig is the working character Mica, the Mender (v0.143.0). The GDD
 records the replaceable identity and backstory. The live visual pass uses a soft
 asymmetric hood, rounded shallow face with mesh eyes, compact proportions,
-broad mittens/boots, split hem and skinned repair patch. Four skinned meshes
-share the same skeleton. Blink and idle attention use explicit presentation time;
+broad mittens/boots, split hem and skinned repair patch. Three skinned meshes
+share the same skeleton; a later whole-figure pass supplies the silhouette outline. Blink and idle attention use explicit presentation time;
 there is no per-frame face texture upload. Actual carried crystal selects a
 cached exposed specimen or sealed container and a protective two-hand pose.
 
@@ -160,3 +162,12 @@ The v0.143.1 foot correction uses rounded, ring-built work-boot geometry with
 a narrower heel and curved instep. Thin brown soles replace the earlier square
 cream platforms. Existing ankle pivots and the gait clearance envelope remain.
 The retained walk review is regenerated from this geometry.
+
+The v0.143.2 outline follows the completed character image, replacing individual
+expanded mesh hulls. A cached 320×384 multisampled color target feeds one alpha
+contour shader, covering every visible part and carried object with the same
+source-image ink width. The sRGB target preserves exact material colors. No CPU
+pixel readback or per-frame model construction is used in normal rendering.
+Three skinned meshes remain (coat, hem and patch); GPU statistics include both
+the source and contour pass. `MTE_OUTLINE_ONLY=1 MTE_RIG_ONLY=1 npm run test:e2e`
+runs the bounded pixel-edge regression, including poses with tools and cargo.

@@ -439,6 +439,20 @@ async function main() {
     ok(headings.retained,'zero facing retains the last displayed direction');
     const cadence=await evalJS(`(async()=>{const {createActor}=await import('./src/game/render/motion.js');return [30,60,144].map(fps=>{let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});let v;for(let i=1;i<=fps;i++){time=i/fps;v=a.view(true,{x:3.7*i/fps,y:0,z:0});}return {fps,phase:v.rigStride};});})()`);
     for(const sample of cadence)ok(Math.abs(sample.phase-(3.7/2.4%1))<1e-9,'faster walk phase matches base-speed travel at '+sample.fps+' FPS');
+    const contour=await evalJS(`(async()=>{
+     const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),poses=[];
+     for(let i=0;i<8;i++){const a=i*Math.PI/4;poses.push({facing:{x:Math.cos(a),y:Math.sin(a)}});}
+     for(const phase of [0,.25,.5,.75])poses.push({facing:{x:1,y:0},walking:true,phase});
+     for(const cargo of ['specimen','sealed'])for(const x of [-1,1])poses.push({facing:{x,y:1},cargo,pickaxe:2});
+     for(const action of ['pick','swing','build','cheer'])poses.push({facing:{x:0,y:1},action,progress:.4,pickaxe:2});
+     const results=[];for(const pose of poses){g.clearRect(0,0,256,256);rig.draw(g,128,240,160,pose);const p=g.getImageData(0,0,256,256).data;let edges=0,gaps=0;
+      for(let y=1;y<255;y++)for(let x=1;x<255;x++){const i=(y*256+x)*4;if(p[i+3]<128)continue;if(![-4,4,-1024,1024].some(d=>p[i+d+3]<128))continue;edges++;if(p[i]>38||p[i+1]>32||p[i+2]>27)gaps++;}
+      results.push({edges,gaps});
+     }return results;
+    })()`);
+    ok(contour.every(p=>p.edges>100),'outline coverage samples the whole rendered figure across headings, gait, work and cargo');
+    ok(contour.every(p=>p.gaps===0),'every sampled silhouette edge is ink, including gloves and soles'+(contour.some(p=>p.gaps)?JSON.stringify(contour):''));
+    if(process.env.MTE_OUTLINE_ONLY==='1'){console.log((failures?'OUTLINE BROWSER FAILURES':'OUTLINE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);}
     await shot('rigged-character-review.png');
     const mica=await evalJS(`(async()=>{
       const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
