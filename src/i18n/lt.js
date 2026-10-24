@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.147.0": "Dabar gali priartinti daug arčiau, kol Mica užims daugiau nei pusę ekrano: {phone:išskėsk du pirštus|laptop:sukink ratuką} ar spausk +, kad iš arti pamatytum veidą, rankas ir siūles. Taip arti Mica atrodo ryškiai, o vaizdas centruojamas į Micą, kad niekas nebūtų nukirpta.",
   "news.0.146.0": "Rodant į daiktus pasaulyje – ramiau: paprasta žemė ir tavo iškasti tuneliai nebeiššoka su užrašu. Ką nors pasako tik telkiniai, radiniai, keliai tarp sluoksnių ir pastatai, paprastais žodžiais, o telkinys pasako, jei jam dar reikia geresnio įrankio.",
   "news.0.145.0": "Žaidimas atsidaro daug greičiau: dabar jis atsisiunčia maždaug ketvirtadalį to, ką anksčiau, nes išvalyti seni veikėjo piešiniai. Žaidime niekas nebesinešioja ekrano. Senesniuose pasauliuose Mica vietoj jų nešasi žibintą, o baterija dabar yra žibinto įkrova: ji vis dar senka tamsoje ir prisipildo prie plaukiojančių saulės plokščių ir vandens ratų.",
   "news.0.144.0": "Mica dabar kasa abiem rankomis laikydamas įrankio kotą, renka į pagamintą krepšį ir statydamas atlaisvina rankas. Įsigytas žibintas matomas ant diržo. Kartojant rinkimą judesys užbaigiamas, o ne pradedamas iš naujo jo viduryje.",

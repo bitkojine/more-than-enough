@@ -211,7 +211,7 @@ export function createRiggedCharacter(){
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}', // i18n-ok: GPU shader source, not player text.
   fragmentShader:`uniform sampler2D image;uniform vec2 step;uniform vec3 ink;varying vec2 vUv; // i18n-ok: GPU shader source, not player text.
    void main(){vec4 source=texture2D(image,vUv);float edge=source.a;
-    for(int i=0;i<16;i++){float a=float(i)*6.28318530718/16.;edge=max(edge,texture2D(image,vUv+vec2(cos(a),sin(a))*step).a);}
+    for(int i=0;i<16;i++){float a=float(i)*6.28318530718/16.;vec2 d=vec2(cos(a),sin(a))*step;edge=max(edge,max(texture2D(image,vUv+d).a,texture2D(image,vUv+d*.5).a));}
     float alpha=source.a+edge*(1.-source.a);
     vec3 color=(source.rgb+ink*edge*(1.-source.a))/max(alpha,.00001);
     gl_FragColor=vec4(color,alpha);
@@ -225,6 +225,15 @@ export function createRiggedCharacter(){
  renderer.info.autoReset=false;
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
+ // Zoomed in, the surface renders at more pixels so Mica stays sharp: `res`
+ // times the 320x384 layout, stepped by halves so a pinch doesn't reallocate
+ // every frame, and capped so a zoomed-in old phone isn't filling 4 MP.
+ // Everything else keeps working in layout pixels.
+ const MAX_RES=4;let res=1;
+ function fit(device){
+  const want=Math.min(MAX_RES,Math.max(1,Math.ceil(device/384*2)/2));
+  if(want>res||want<res*.6){res=want;renderer.setSize(320*res,384*res,false);silhouette.setSize(320*res,384*res);}
+ }
  let lost=false,renders=0,direction='s',renderedAction=null,renderedProgress=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
  function poseLeg(target,rig,hipY){
   const knee=new T.Vector3(0,target.knee.y-hipY,target.knee.z),ankle=new T.Vector3(0,target.foot.y-target.knee.y,target.foot.z-target.knee.z);
@@ -255,6 +264,7 @@ export function createRiggedCharacter(){
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
    if(!steady)constrainWork(action,progress,{basket:basketHeld,work,carrying:!!cargoKind});
    scene.updateMatrixWorld(true);basketGrip.quaternion.copy(leftArm.hand.getWorldQuaternion(new T.Quaternion())).invert().multiply(model.getWorldQuaternion(new T.Quaternion()));
+   const m=ctx.getTransform();fit(u*1.22*Math.hypot(m.a,m.b));
    scene.updateMatrixWorld(true);renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
@@ -262,7 +272,7 @@ export function createRiggedCharacter(){
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
   inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),guide:equippedPickaxe.root.localToWorld(new T.Vector3(0,GUIDE_GRIP,0)).toArray(),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
-  get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
+  get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,res,lost};},
   dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

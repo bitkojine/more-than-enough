@@ -13,7 +13,12 @@
 import { RELIEF_MIN, RELIEF_MAX } from '../core/index.js';
 import { drawDpr } from './quality.js';
 
-const ZOOM_MAX = 3;          // 3x in
+// Zoomed right in, a tile may be this share of the screen's height: Mica,
+// just under a tile tall, then fills well over half of it (the renderer
+// centres the view on Mica's middle), close enough to see the face, grips and
+// stitching. Never less than 3x in.
+const MAX_TILE_SHARE = 0.62;
+const ZOOM_MIN_MAX = 3;
 const MIN_TILE_PX = 3;       // floor on tile size: the practical zoom-out limit
 const PITCH = 0.225;          // radians from straight down (~13°)
 // One layer's height, in tile lengths. The wanderer stands just under a tile
@@ -56,9 +61,14 @@ export function createCamera(canvas) {
 
     setZoom(z) {
       if (!(z > 0)) return;
-      cam.zoom = Math.min(ZOOM_MAX, Math.max(MIN_TILE_PX / cam.baseTilePx, z));
+      cam.zoom = Math.min(cam.maxZoom(), Math.max(MIN_TILE_PX / cam.baseTilePx, z));
       cam.tilePx = cam.baseTilePx * cam.zoom;
       shape();
+    },
+
+    // The closest zoom for this viewport (see MAX_TILE_SHARE).
+    maxZoom() {
+      return Math.max(ZOOM_MIN_MAX, cam.height * MAX_TILE_SHARE / cam.baseTilePx);
     },
 
     // The pitch angle, for drawing things that stand upright.

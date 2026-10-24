@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.147.0] - 2026-10-24
+
+- Zoom reaches much closer (Watch: "we need to be able to zoom in much more
+  on the player character, to see all the details"). The limit was a flat 3x;
+  now a tile may be 62% of the screen's height (`MAX_TILE_SHARE` in
+  `src/game/camera.js`, never under 3x): about 9.7x on a portrait phone, 8.7x
+  on a laptop, 7x on a landscape phone. Pinch, wheel and the + button all
+  use it; the readout shows one decimal past 3x.
+- From 2x the view eases from Mica's feet to their middle (in full by 5x,
+  `BODY_MID` in `src/game/render/renderer.js`), so the head isn't cut off.
+- The 3D rig renders at the on-screen size: its 320x384 surface grows in
+  half steps up to 4x (1280x1536) with the device pixels it covers, so
+  quality.js's lower resolution on slow phones also keeps the rig cheap.
+  The outline samples a second, inner ring so it stays solid when its
+  radius spans more pixels.
+
 ## [0.146.0] - 2026-10-24
 
 - World hover tooltips speak only when there is something to say (Watch:

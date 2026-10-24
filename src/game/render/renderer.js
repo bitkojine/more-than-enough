@@ -19,10 +19,15 @@ import { drawDepots, drawSupports, drawHighlights, drawTrail, drawLighting, draw
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in tiles
 const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign
+const BODY_MID = 0.47;       // tiles above the feet: the middle of you, centred when zoomed right in
 
 export function render(cam, s, fx, view, look) {
   const ctx = cam.ctx;
   cam.follow(s.player);
+  // Zoomed in close, the view centres on your middle instead of your feet, so
+  // all of you stays on screen. From 2x it eases in, in full by 5x.
+  const close = Math.min(1, Math.max(0, (cam.zoom - 2) / 3));
+  if (close > 0) cam.y -= close * BODY_MID * cam.tilePx / cam.depthPx;
   // Holding up your sign, the view pans so you stand low on the screen and
   // the sign is clear of the top bar and the messages under it.
   if (view.sign > 0) {
