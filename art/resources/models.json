@@ -1,0 +1,296 @@
+{
+  "format": 1,
+  "source": "src/game/render/resource-models.js",
+  "sourceSha256": "5a1a92d4657e0ff0cfcb8b923e60ef062eb3c51015669b9a658ba8b44b752dfc",
+  "finish": "3D-authored faces and curves projected into flat outlined SVGs; no per-resource WebGL runtime",
+  "assets": [
+    {
+      "resource": "mycelium",
+      "file": "packs/default/icons/mycelium.svg",
+      "options": {},
+      "size": {},
+      "sha256": "cff1321ab346db1f4520f1117be84af367ecc7e248e1903bdf79522827b15a9d"
+    },
+    {
+      "resource": "stone",
+      "file": "packs/default/icons/stone.svg",
+      "options": {},
+      "size": {},
+      "sha256": "03496c6b36d985d5ee1aeab9cfa535573972dac0774fd1d977b6eb0172afa483"
+    },
+    {
+      "resource": "ore",
+      "file": "packs/default/icons/ore.svg",
+      "options": {},
+      "size": {},
+      "sha256": "2f19287997d09a37b682aacad4602d2d63fc9a74d288694a7e2a735c8db530bf"
+    },
+    {
+      "resource": "crystal",
+      "file": "packs/default/icons/crystal.svg",
+      "options": {},
+      "size": {},
+      "sha256": "54f48a7f670a470823df149540bda1d7e5d6570a257a9659c94b321d2f5a2bb3"
+    },
+    {
+      "resource": "stone",
+      "file": "packs/default/props/boulder.svg",
+      "options": {},
+      "size": {
+        "width": 52,
+        "height": 40,
+        "grounded": true
+      },
+      "sha256": "912d25d11eb5177f51e9c92819b060ee8d21cbd1e8c57fa3ff85e8ee1dc1ef33"
+    },
+    {
+      "resource": "stone",
+      "file": "packs/default/props/boulders.svg",
+      "options": {
+        "variant": 1
+      },
+      "size": {
+        "width": 62,
+        "height": 42,
+        "grounded": true
+      },
+      "sha256": "6bc0943f0fb51153eec82ce777700d26b034bf3bd749bce91f38c6a4f93d788a"
+    },
+    {
+      "resource": "stone",
+      "file": "packs/default/props/pebbles.svg",
+      "options": {
+        "depleted": true
+      },
+      "size": {
+        "width": 42,
+        "height": 22,
+        "grounded": true
+      },
+      "sha256": "81915e20a4092d9fd248cfeed96a4d86605f325729ee08a4a00dd7a56e047852"
+    },
+    {
+      "resource": "ore",
+      "file": "packs/default/props/ore-rock.svg",
+      "options": {
+        "form": "deposit"
+      },
+      "size": {
+        "width": 52,
+        "height": 44,
+        "grounded": true
+      },
+      "sha256": "1c02299b98fa8f938c6087762f5833878562c7bd83561206de79ec50098ed7ca"
+    },
+    {
+      "resource": "ore",
+      "file": "packs/default/props/ore-rock-cut.svg",
+      "options": {
+        "depleted": true
+      },
+      "size": {
+        "width": 44,
+        "height": 24,
+        "grounded": true
+      },
+      "sha256": "68038b3b639c7f6b425b0fe907cd82a382de8be40c2377bd5b66ce80a26b7672"
+    },
+    {
+      "resource": "crystal",
+      "file": "packs/default/props/crystals.svg",
+      "options": {},
+      "size": {
+        "width": 48,
+        "height": 58,
+        "grounded": true
+      },
+      "sha256": "730cb8cea81138e77f90e9c93eccad47893a8c5415633a115e45add197544640"
+    },
+    {
+      "resource": "crystal",
+      "file": "packs/default/props/crystals-2.svg",
+      "options": {
+        "variant": 1
+      },
+      "size": {
+        "width": 52,
+        "height": 60,
+        "grounded": true
+      },
+      "sha256": "aee8ac589f03c27ad93eb9ae1d928bd15ef054bfb9c107ed81270d8ca8eba1bc"
+    },
+    {
+      "resource": "crystal",
+      "file": "packs/default/props/crystal-cut.svg",
+      "options": {
+        "depleted": true
+      },
+      "size": {
+        "width": 42,
+        "height": 25,
+        "grounded": true
+      },
+      "sha256": "4ae1f401db8118a88e334c02ca239f284b0d7ff0667d6941ed9848d70296d8b2"
+    },
+    {
+      "resource": "mycelium",
+      "tier": 0,
+      "file": "packs/default/piles/mycelium-0.svg",
+      "size": {
+        "width": 24,
+        "height": 24
+      },
+      "sha256": "77d1573f390bdd6ccf04f4904070e4a3dc6986810796ae3148e1a8b473472734"
+    },
+    {
+      "resource": "mycelium",
+      "tier": 1,
+      "file": "packs/default/piles/mycelium-1.svg",
+      "size": {
+        "width": 40,
+        "height": 30
+      },
+      "sha256": "e72a159993d5b8fd2b8626edd024bcaa55c1a6ae5a6b4846cb0e16a5f18702c7"
+    },
+    {
+      "resource": "mycelium",
+      "tier": 2,
+      "file": "packs/default/piles/mycelium-2.svg",
+      "size": {
+        "width": 44,
+        "height": 40
+      },
+      "sha256": "69a7781fdf279fa4069b0cd98c49fc7ee6dfe667e2fb918c787e4643eee9bcb4"
+    },
+    {
+      "resource": "mycelium",
+      "tier": 3,
+      "file": "packs/default/piles/mycelium-3.svg",
+      "size": {
+        "width": 66,
+        "height": 50
+      },
+      "sha256": "56b35c01db8ab163e885046da372e46a8e91d2829550c5b674d6bca1bb35c24c"
+    },
+    {
+      "resource": "stone",
+      "tier": 0,
+      "file": "packs/default/piles/stone-0.svg",
+      "size": {
+        "width": 26,
+        "height": 22
+      },
+      "sha256": "bb8905f7055a84117e924be25a26895cd6497588d978939e779c87b7574c0c68"
+    },
+    {
+      "resource": "stone",
+      "tier": 1,
+      "file": "packs/default/piles/stone-1.svg",
+      "size": {
+        "width": 40,
+        "height": 34
+      },
+      "sha256": "0bc268d539d6bb9fe46aaadaa4d7e4c9d30a3bad9437e2716b0c418cae225b73"
+    },
+    {
+      "resource": "stone",
+      "tier": 2,
+      "file": "packs/default/piles/stone-2.svg",
+      "size": {
+        "width": 54,
+        "height": 48
+      },
+      "sha256": "5303957147ad8d09615ba2be718d539caceea4a216ce5cc228cda8ab4adf515c"
+    },
+    {
+      "resource": "stone",
+      "tier": 3,
+      "file": "packs/default/piles/stone-3.svg",
+      "size": {
+        "width": 66,
+        "height": 50
+      },
+      "sha256": "cbe911d738bdcb83b1ee28822066c5ecef802394f82277047244e6f9e0766a1e"
+    },
+    {
+      "resource": "ore",
+      "tier": 0,
+      "file": "packs/default/piles/ore-0.svg",
+      "size": {
+        "width": 24,
+        "height": 20
+      },
+      "sha256": "5c0d5a535339de6577306c6212477ecd94bce8d4eb4a8f1c12718c564f2e98d8"
+    },
+    {
+      "resource": "ore",
+      "tier": 1,
+      "file": "packs/default/piles/ore-1.svg",
+      "size": {
+        "width": 38,
+        "height": 30
+      },
+      "sha256": "ffe780c33c73f3deede09d0905eb2a67b7e1f3d1bb23a40fefc10d2d887f8792"
+    },
+    {
+      "resource": "ore",
+      "tier": 2,
+      "file": "packs/default/piles/ore-2.svg",
+      "size": {
+        "width": 52,
+        "height": 44
+      },
+      "sha256": "ceaf9af6d0ac90132309273c948bdc74b78f5edbd6027441d9a1310a3c6af2da"
+    },
+    {
+      "resource": "ore",
+      "tier": 3,
+      "file": "packs/default/piles/ore-3.svg",
+      "size": {
+        "width": 66,
+        "height": 52
+      },
+      "sha256": "7f88a1ff20b392f16c1d3b361d5e66bae3d02b3ee623ad0a8d30357574e22bbb"
+    },
+    {
+      "resource": "crystal",
+      "tier": 0,
+      "file": "packs/default/piles/crystal-0.svg",
+      "size": {
+        "width": 20,
+        "height": 26
+      },
+      "sha256": "6f6c86ca91506d8bf816bbfcdb3aa3ed5c8ac86285028cd271b321cc31993585"
+    },
+    {
+      "resource": "crystal",
+      "tier": 1,
+      "file": "packs/default/piles/crystal-1.svg",
+      "size": {
+        "width": 34,
+        "height": 34
+      },
+      "sha256": "79713efc06e0b31905500457aae0563869d9284f533de40dd80a5832698ee8fc"
+    },
+    {
+      "resource": "crystal",
+      "tier": 2,
+      "file": "packs/default/piles/crystal-2.svg",
+      "size": {
+        "width": 48,
+        "height": 48
+      },
+      "sha256": "d1a7e245d4597e8e2f2c04b64c53c58b3bd5771ab2d3037339e71d13fdeeeca2"
+    },
+    {
+      "resource": "crystal",
+      "tier": 3,
+      "file": "packs/default/piles/crystal-3.svg",
+      "size": {
+        "width": 64,
+        "height": 52
+      },
+      "sha256": "cf76d4a2464f560c63a01efc28d846a74086d05806acdb5981123968eb65fb87"
+    }
+  ]
+}

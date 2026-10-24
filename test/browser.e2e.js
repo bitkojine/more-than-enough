@@ -131,7 +131,7 @@ async function main() {
   // headless chrome
   var profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-chrome-'));
   var chrome = cp.spawn(CHROME, [
-    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
+    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'||process.env.MTE_RESOURCE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
@@ -294,6 +294,31 @@ async function main() {
     ok(await evalJS('MTE_GAME.bench(2)>0'),'the original world renderer keeps drawing');
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
+  if(process.env.MTE_RESOURCE_ONLY==='1'){
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false},session);
+   const result=await evalJS(`(async()=>{
+    const T=await import('./src/vendor/three/three.module.js'),{createResourceModel,resourceCamera,resourceSVG,createResourcePile,resourcePileSVG,RESOURCE_MODEL_KEYS}=await import('./src/game/render/resource-models.js');
+    const c=document.createElement('canvas');c.width=1440;c.height=1100;c.id='__resourceReview';c.style='position:fixed;inset:0;z-index:99999;width:1440px;height:1100px';document.body.append(c);const g=c.getContext('2d');g.fillStyle='#b69b6a';g.fillRect(0,0,1440,1100);g.font='22px system-ui';g.fillStyle='#1d1712';g.fillText('Shared 3D resource models → flat vector game art',25,30);
+    const renderer=new T.WebGLRenderer({alpha:true,antialias:true});renderer.setSize(256,256,false);renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
+    const scene=new T.Scene(),camera=resourceCamera(),stats=[],svgPixels=[];const image=async(svg,x,y,w,h)=>{const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);await img.decode();g.drawImage(img,x,y,w,h);const probe=document.createElement('canvas');probe.width=probe.height=32;const pg=probe.getContext('2d');pg.drawImage(img,0,0,32,32);const pixels=pg.getImageData(0,0,32,32).data;let n=0;for(let i=3;i<pixels.length;i+=4)if(pixels[i]>128)n++;svgPixels.push(n);};
+    for(let i=0;i<4;i++){
+     const key=RESOURCE_MODEL_KEYS[i],x=180+i*360,asset=createResourceModel(key);scene.add(asset.root);renderer.render(scene,camera);g.drawImage(renderer.domElement,x-128,70,256,256);
+     const bounds=new T.Box3().setFromObject(asset.root);stats.push({key,depth:bounds.max.z-bounds.min.z,meshes:asset.root.children.length});scene.remove(asset.root);
+     g.fillStyle='#1d1712';g.font='19px system-ui';g.fillText(key==='ore'?'Metal (ore)':key,x-100,55);g.fillText('3D source',x-55,330);
+     const svg=resourceSVG(asset);await image(svg,x-96,370,192,192);await image(svg,x-16,580,32,32);g.fillText('Vector finish / 32px icon',x-110,645);asset.dispose();
+     const worldId=['pile.mycelium','tile.stone','tile.ore','tile.crystal'][i],pic=i===0?MTE_GAME.look.tier(worldId,0):MTE_GAME.look.pick(worldId,'stand');MTE_GAME.look.stand(g,pic,x,960,170);g.fillText('Actual world asset',x-85,1005);
+    }
+    // Resource art must be legible as opaque shapes, including nested SVG uses.
+    const pile=createResourcePile('mycelium',3),p=resourcePileSVG(pile,{width:196,height:179});await image(p,0,0,1,1);pile.dispose();renderer.dispose();return {stats,svgPixels};
+   })()`);
+   eq(result.stats.length,4,'four resource source models load');ok(result.stats.every(s=>s.depth>.1&&s.meshes>0),'all four are actual volumetric geometry');
+   ok(result.svgPixels.every(n=>n>40),'finished vector resources contain readable opaque shapes at 32px');
+   await shot('resource-models-review.png');
+   const pileCheck=await evalJS(`(async()=>{const {createResourcePile,resourcePileSVG,RESOURCE_MODEL_KEYS}=await import('./src/game/render/resource-models.js');const c=document.getElementById('__resourceReview'),g=c.getContext('2d');g.fillStyle='#b69b6a';g.fillRect(0,0,1440,1100);g.fillStyle='#1d1712';g.font='20px system-ui';g.fillText('Same models: representative stockpile magnitudes',25,30);let drawn=0;
+    for(let r=0;r<4;r++)for(let j=0;j<4;j++){const key=RESOURCE_MODEL_KEYS[r],tier=[0,1,2,3][j],asset=createResourcePile(key,tier),img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(resourcePileSVG(asset,{width:180,height:150}));await img.decode();g.drawImage(img,55+j*350,70+r*250,180,150);g.fillStyle='#1d1712';g.fillText(key+' · tier '+tier,55+j*350,240+r*250);asset.dispose();drawn++;}return drawn;})()`);
+   eq(pileCheck,16,'all resource families render nested stockpile symbols');await shot('resource-stockpile-review.png');
+   await evalJS("document.getElementById('__resourceReview').remove();MTE_GAME.setZoom(1.8)");await sleep(300);await shot('resources-in-world.png');eq(pageErrors.length,0,'resource models and vector sprites have no browser exceptions');console.log((failures?'RESOURCE BROWSER FAILURES':'RESOURCE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_PICKAXE_ONLY==='1'){
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1150,deviceScaleFactor:1,mobile:false},session);

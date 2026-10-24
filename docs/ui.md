@@ -258,3 +258,13 @@ missing WebGL or a lost context. No new player-facing setup is required.
 Review the real client at native and close scales, all directions, start/stop,
 complete loops, boat and terrain occlusion. Use numerical joint/ground tests
 alongside visible review; pixel counts cannot prove animation quality.
+
+
+Resource pictures use four shared 3D source models finished as flat vector art.
+Their icons, deposits/depleted views and small stockpiles share silhouettes and
+material colours. Mycelium remains distinct from stone/metal/living crystal;
+individual fungal species retain their restored artwork. Resource art is baked
+into the existing texture pack, including ordinary inventory icons and gathering
+feedback; it creates no per-object 3D renderer. Warm pre-v0.135.1 scenery and
+building art supplies the reference palette/contours. Larger stockpile landmarks
+and all physical inventory quantities/footprints retain their existing meaning.

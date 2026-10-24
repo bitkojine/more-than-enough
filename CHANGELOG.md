@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.142.0] - 2026-10-24
+
+- Restored the earlier warm world art for existing buildings, terrain,
+  mushrooms and icons, keeping current gameplay and facility state mappings.
+- Added real 3D source models for mycelium, stone, metal and living crystal.
+  Shared geometry exports 28 flat vector icons, deposits, depleted views and
+  small stockpiles with crisp, rounded contours.
+- Preserved large illustrated stockpile landmarks, stockpile footprints,
+  earned progress and crystal light/heat rules. Resource views are baked
+  offline; ordinary world rendering needs no additional WebGL contexts.
+
 ## [0.141.0] - 2026-10-24
 
 - Added a canonical 3D pickaxe model for all six tiers, shared by held

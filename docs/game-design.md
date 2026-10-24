@@ -281,3 +281,34 @@ sockets, bracing and ferrules. No timber or crystal components are introduced.
 Icon export records source and image hashes in `art/characters/pickaxe-model.json`
 so model changes cannot silently leave stale inventory art. Other equipment
 and building/icon families still await migration to this workflow.
+
+
+### Resource models and earlier art direction (2026-10-24)
+
+The owner rejected the broad v0.135.1 refresh and prefers the earlier warmer
+Lanternlight art. Existing building/terrain/mushroom/icon SVGs are restored from
+v0.135.0 where later work has not replaced them. Dedicated newer facility states,
+the current character rig and shared pickaxe model remain. White chalk stays
+useful in construction/planning; it does not replace each material's identity.
+
+`src/game/render/resource-models.js` owns four actual volumetric models:
+mycelium (cream hyphae and red fruiting bodies), stone (warm grey facets), metal
+(orange mineral nodules and darker host rock; save key remains `ore`) and living
+crystal (pink branching prisms). They use authored flat face colours and explicit
+base/collection anchors. Static materials do not need moving skeletons.
+
+The same vertices and 3D curve controls produce projected SVG art through
+`scripts/resource-art.mjs`: four inventory icons, stone/metal/crystal deposit
+and depleted views, and each resource's small stockpile tiers 0–3. Rounded
+screen-space contours finish the 3D projection as a deliberately 2D drawing.
+Fungal species keep the restored individual artwork; mycelium's model supplies
+the shared material icon and stockpile views. Larger illustrated stockpile
+landmarks remain a separate art family. Existing stockpile footprints are kept
+in `art/resources/pile-sizes.json`; generated asset provenance is recorded in
+`art/resources/models.json`.
+
+All views are baked offline, with bounded instances for stockpiles. The normal
+client still draws cached texture-pack images; simulations do no model work.
+No generation, resource locations, collection/yield rules, saves, purchases,
+crystal protection or colony recovery rules change. Crystal colour is not light:
+the models have no emissive light sources and provide no environmental protection.
