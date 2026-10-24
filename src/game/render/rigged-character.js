@@ -17,16 +17,16 @@ export function createRiggedCharacter(){
  const key=new T.DirectionalLight(0xffebd5,2.4);key.position.set(-3,5,6);scene.add(key);
  const rim=new T.DirectionalLight(0xd9e7ff,.9);rim.position.set(4,2,-3);scene.add(rim);
  const material=(color,roughness=.85)=>new T.MeshStandardMaterial({color,roughness,metalness:0});
- const orange=material(0xe95b0f),inner=material(0x30231c),black=material(0x282723),cream=material(0xefe1bc),linen=material(0xded4b7),thread=material(0xf5e3b8),eye=material(0x120f0c,.45);
+ const orange=material(0xe95b0f),inner=material(0x30231c),black=material(0x282723),cream=material(0xefe1bc),linen=material(0xded4b7),thread=material(0xf5e3b8);
  const bones=[],bone=(name,parent,x=0,y=0,z=0)=>{const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);bones.push(b);return b;};
  const root=bone('root',model),hips=bone('hips',root,0,.58),spine=bone('spine',hips,0,.45),neck=bone('neck',spine,0,.25),head=bone('head',neck,0,.32);
  const mesh=(g,m,parent,x=0,y=0,z=0)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;};
  const ellipsoid=(parent,m,x,y,z,rx,ry,rz)=>{const o=mesh(new T.SphereGeometry(1,32,24),m,parent,x,y,z);o.scale.set(rx,ry,rz);return o;};
  function hoodGeometry(){
-  const controls=[[.30,.40,.26,0],[.36,.45,.20,0],[.43,.47,.02,0],[.45,.43,-.20,0],[.34,.31,-.40,.13],[.12,.14,-.50,.23],[.001,.001,-.53,.25]],pos=[],idx=[],segments=64;
+  const controls=[[.33,.445,.17,0],[.36,.45,.12,0],[.43,.47,.02,0],[.45,.43,-.20,0],[.34,.31,-.40,.13],[.12,.14,-.50,.23],[.001,.001,-.53,.25]],pos=[],idx=[],segments=64;
   const interpolate=(a,b,c,d,t)=>.5*((2*b)+(-a+c)*t+(2*a-5*b+4*c-d)*t*t+(-a+3*b-3*c+d)*t*t*t);
   const rings=Array.from({length:33},(_,i)=>{const f=i/32*(controls.length-1),k=Math.min(controls.length-2,Math.floor(f)),t=f-k;return controls[k].map((_,j)=>interpolate(controls[Math.max(0,k-1)][j],controls[k][j],controls[k+1][j],controls[Math.min(controls.length-1,k+2)][j],t));});
-  for(const [rx,ry,z,cy]of rings)for(let i=0;i<=segments;i++){const a=i/segments*Math.PI*2;pos.push(rx*Math.cos(a),cy+ry*Math.sin(a),z);}
+  for(const [j,[rx,ry,z,cy]]of rings.entries())for(let i=0;i<=segments;i++){const a=i/segments*Math.PI*2,pear=1-.35*Math.sin(a)*Math.max(0,1-j/12);pos.push(rx*Math.cos(a)*pear,cy+ry*Math.sin(a),z);}
   for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;idx.push(a,b,a+1,b,b+1,a+1);}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
  }
@@ -34,11 +34,29 @@ export function createRiggedCharacter(){
  const outlineMaterial=new T.MeshBasicMaterial({color:0x302017,side:T.BackSide});
  const hoodOutline=hood.clone(),hp=hoodOutline.attributes.position,hn=hoodOutline.attributes.normal;for(let i=0;i<hp.count;i++)hp.setXYZ(i,hp.getX(i)+hn.getX(i)*.012,hp.getY(i)+hn.getY(i)*.012,hp.getZ(i)+hn.getZ(i)*.012);mesh(hoodOutline,outlineMaterial,head);
  const inside=inner.clone();inside.side=T.BackSide;mesh(hood,inside,head);
- const lip=mesh(new T.TorusGeometry(1,.10,12,64),inner,head,0,0,.275);lip.scale.set(.30,.40,.30);
- ellipsoid(head,cream,0,0,.26,.275,.355,.22);
- for(const x of [-.09,.09])ellipsoid(head,eye,x,.06,.477,.024,.042,.014);
+ // The original art has a pointed arch, broad lower cheeks and flat oval
+ // eyes. A shallow pear-shaped mask avoids the former protruding egg shape.
+ function faceGeometry(size=1,depth=.16,rows=12){
+  const positions=[],uv=[],indices=[],segments=64;
+  for(let j=0;j<=rows;j++)for(let i=0;i<=segments;i++){
+   const r=j/rows,a=i/segments*Math.PI*2,x=size*r*.25*Math.cos(a)*(1-.35*Math.sin(a)),y=size*r*.35*Math.sin(a);
+   positions.push(x,y,.18+depth*(1-r*r));uv.push((x+.3)/.6,(y+.4)/.8);
+  }
+  for(let j=0;j<rows;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;indices.push(a,b,a+1,b,b+1,a+1);}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();return g;
+ }
+ const faceCanvas=document.createElement('canvas');faceCanvas.width=256;faceCanvas.height=512;
+ const fg=faceCanvas.getContext('2d'),paper=fg.createLinearGradient(0,0,0,512);paper.addColorStop(0,'#fff2dc');paper.addColorStop(1,'#f2dfbf');fg.fillStyle=paper;fg.fillRect(0,0,256,512);
+ fg.fillStyle='#171411';for(const x of [-.085,.085]){fg.beginPath();fg.ellipse((x+.3)/.6*256,(.4-.045)/.8*512,.030/.6*256,.059/.8*512,0,0,Math.PI*2);fg.fill();}
+ const faceMap=new T.CanvasTexture(faceCanvas);faceMap.colorSpace=T.SRGBColorSpace;faceMap.anisotropy=4;
+ const faceMaterial=new T.MeshBasicMaterial({map:faceMap,toneMapped:false});
+ mesh(faceGeometry(1.22,0,1),inner,head,0,0,-.012);
+ mesh(faceGeometry(),faceMaterial,head);
+ const arch=[];for(let i=0;i<64;i++){const a=i/64*Math.PI*2;arch.push(new T.Vector3(1.22*.25*Math.cos(a)*(1-.35*Math.sin(a)),1.22*.35*Math.sin(a),.176));}
+ mesh(new T.TubeGeometry(new T.CatmullRomCurve3(arch,true),128,.014,8,true),inner,head);
  // Soft collar joins hood and cloak rather than adding a floating costume icon.
- const collar=mesh(new T.TorusGeometry(.235,.065,12,48),orange,neck,0,-.025,0);collar.rotation.x=Math.PI/2;
+ const collarPath=[[-.24,0,0],[-.17,-.015,.16],[0,-.10,.23],[.17,-.015,.16],[.24,0,0],[.17,.02,-.15],[0,.025,-.21],[-.17,.02,-.15]].map(p=>new T.Vector3(...p));
+ mesh(new T.TubeGeometry(new T.CatmullRomCurve3(collarPath,true),64,.038,10,true),orange,neck);
  const bodyMat=orange.clone();bodyMat.side=T.DoubleSide;
  const positions=[],indices=[],skinIndices=[],skinWeights=[],segments=64,rows=16;
  for(let j=0;j<=rows;j++){
@@ -105,6 +123,6 @@ export function createRiggedCharacter(){
   },
   inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y};},
   get stats(){return {renders,bones:bones.length,skinnedMeshes:1,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

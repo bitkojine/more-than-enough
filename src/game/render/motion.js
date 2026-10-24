@@ -10,7 +10,7 @@
 import { ACT_COUNT } from '../../net/protocol.js';
 
 const TAU = Math.PI * 2;
-export const WALK_ANIMATION_RATE = 0.1;
+export const WALK_ANIMATION_RATE = 1;
 const WALK_CYCLE_TILES = 2.4 / WALK_ANIMATION_RATE;
 const WALK_RATE = 12 * WALK_ANIMATION_RATE;      // radians per second of the step bob (one step per half turn)
 
@@ -58,7 +58,7 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
       if (position) {
         const dt = last ? t - last.time : 0;
         const distance = last ? Math.hypot(position.x-last.x, position.y-last.y) : 0;
-        // Presentation only: a full walk cycle spans 24 world tiles, independent of FPS,
+        // Presentation only: a full walk cycle spans 2.4 world tiles, independent of FPS,
         // zoom and game speed. Never animate teleports or time away as steps.
         const continuous = last && position.z === last.z && dt >= 0 && dt <= .25 && distance <= 1.5;
         walking = !!(moving && continuous && distance > 1e-6);

@@ -315,18 +315,20 @@ async function main() {
       return {stats:rig.stats,pixels:opaque>1000,pose:rig.inspect()};
     })()`);
     ok(review.stats.bones>=17,'character uses a joint hierarchy');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    const cadence=await evalJS(`(async()=>{const {createActor}=await import('./src/game/render/motion.js');return [30,60,144].map(fps=>{let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});let v;for(let i=1;i<=fps;i++){time=i/fps;v=a.view(true,{x:3.7*i/fps,y:0,z:0});}return {fps,phase:v.rigStride};});})()`);
+    for(const sample of cadence)ok(Math.abs(sample.phase-(3.7/2.4%1))<1e-9,'faster walk phase matches base-speed travel at '+sample.fps+' FPS');
     await shot('rigged-character-review.png');
     if(process.env.MTE_RECORD_MOTION==='1'){
       const frames=await evalJS(`(async()=>{
         const rig=await MTE_GAME.look.rigReady,canvas=document.createElement('canvas');canvas.width=720;canvas.height=480;const g=canvas.getContext('2d'),frames=[];
-        for(let i=0;i<200;i++){
+        for(let i=0;i<40;i++){
           g.fillStyle='#293232';g.fillRect(0,0,720,480);g.fillStyle='#eee7d5';g.font='16px system-ui';g.fillText('Same 3D rig · original game scale / close view',25,30);
-          for(const [x,y,u]of [[180,330,64],[490,390,280]]){g.strokeStyle='#899789';g.beginPath();g.moveTo(x-130,y);g.lineTo(x+130,y);g.stroke();rig.draw(g,x,y,u,{facing:{x:1,y:0},phase:i/200,walking:true});}
+          for(const [x,y,u]of [[180,330,64],[490,390,280]]){g.strokeStyle='#899789';g.beginPath();g.moveTo(x-130,y);g.lineTo(x+130,y);g.stroke();rig.draw(g,x,y,u,{facing:{x:1,y:0},phase:i/40,walking:true});}
           frames.push(canvas.toDataURL('image/png').split(',')[1]);
         }return frames;
       })()`);
       fs.mkdirSync(path.join(SHOT_DIR,'motion-frames'),{recursive:true});frames.forEach((f,i)=>fs.writeFileSync(path.join(SHOT_DIR,'motion-frames',String(i).padStart(3,'0')+'.png'),Buffer.from(f,'base64')));
-      eq(frames.length,200,'captured continuous joint motion across a complete loop');
+      eq(frames.length,40,'captured continuous joint motion across a complete loop');
     }
     await evalJS("document.getElementById('__rigReview').remove();MTE_GAME.setZoom(1.8)");await sleep(300);await shot('rig-in-world.png');
     eq(pageErrors.length,0,'no rig renderer exceptions');console.log((failures?'RIG BROWSER FAILURES':'RIG BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);

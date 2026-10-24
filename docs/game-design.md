@@ -217,10 +217,10 @@ functions are in `src/game/render/rig-motion.js`. Art guidance is in
 action performances remain work; this first version is not a claim of finished
 production character art or realistic cloth simulation.
 
-Presentation observes the existing distance-based phase. The requested slow
-cycle remains 24 world tiles, roughly 6.5 seconds at base speed. Consequently,
-this slow-leg/unchanged-movement combination is stylized and does not claim
-world-space foot locking. IK preserves limb lengths and keeps soles above the
+Presentation observes the existing distance-based phase. The owner requested a tenfold cadence increase in 0.139.1:
+a cycle now covers 2.4 world tiles, roughly 0.65 seconds at base speed.
+Movement speed remains unchanged; the gait remains stylized rather than a
+claim of world-space foot locking. IK preserves limb lengths and keeps soles above the
 local ground plane. Animation never changes gameplay timing or simulation state.
 
 A lazy Three.js module renders onto one reusable WebGL surface, composited at
@@ -233,3 +233,8 @@ real-client review at native/close scales and across the full motion loop.
 The former 216-clip sprite production matrix is retired, not a remaining
 release requirement. Its sources and texture-pack compatibility tools remain
 available as historical art, not as an active character-production strategy.
+
+The 0.139.1 face follows the original turnaround: an arched dark opening,
+pear-shaped warm ivory mask with broad lower cheeks, shallow depth and larger
+flat black oval eyes. The eye artwork follows the curved 3D mask surface, so
+profile and three-quarter views retain the same identity.

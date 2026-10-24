@@ -42,7 +42,7 @@ test('locomotion follows travelled distance at 30, 60 and 144 FPS', () => {
     a.view(false,{x:0,y:0,z:0});
     let v;
     for(let i=1;i<=fps;i++) { time=i/fps;v=a.view(true,{x:.9*i/fps,y:0,z:0}); }
-    assert.ok(Math.abs(v.stride-.0375)<1e-10,'same distance, same stride at '+fps);
+    assert.ok(Math.abs(v.stride-.375)<1e-10,'same distance, same stride at '+fps);
     const blocked=a.view(true,{x:.9,y:0,z:0});
     assert.equal(blocked.walking,false,'holding movement against a wall is not walking');
     assert.equal(blocked.stride,v.stride,'drawing without displacement cannot advance steps');

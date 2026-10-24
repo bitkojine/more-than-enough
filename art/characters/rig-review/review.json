@@ -1,24 +1,29 @@
 {
-  "version": "0.139.0",
+  "version": "0.139.1",
   "status": "first integrated rig; production model polish remains work",
   "sources": {
     "src/game/render/rig-motion.js": "e23f1a9223b5e9ef6869e84d16d2d4eb356a3014da80699742e4c6f6f44d58af",
-    "src/game/render/rigged-character.js": "c4a7a4038e531a7712db1bf0dbad199396f063785ecca1bc8c11331f5dd9b74b",
-    "src/game/render/motion.js": "2a55fa054a081015a861134505eac79863d5da08099e3552ec963b12e70dd174",
+    "src/game/render/rigged-character.js": "258a168e3a80646db463c68bad57b090ba19a8780dcf54458c7d3a2a831c01a8",
+    "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
     "src/game/render/sprites.js": "d3440a17b5d50c96ed70a8c13c9ffdd863cb0e2a929cc6c2bc89545d1ebc1d35"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "48239250ee248de3c960138952ff35b13ed56d6b59f25e1462d17dedf0f9aeec",
-  "capture": "200 phase samples from the actual 3D renderer, native and enlarged, encoded at 30 FPS; visual fixture, not live-input gameplay capture",
+  "playbackSha256": "f6a92a59a7ff7b122338fd8b3bdd3f1f32064131aed2232bb973582c5f3b3832",
+  "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
     "same rig in eight directions and both gait halves; opaque WebGL output and geometry/draw-call budgets",
-    "restoration/save/activation/next-world browser regression with WebGL enabled",
-    "static-facing fallback with WebGL unavailable"
+    "current faster phase verified at 30, 60 and 144 FPS",
+    "static-facing fallback and restoration regression passed in initial rig release"
   ],
   "limits": [
     "bare model only; no physical equipment/cargo models yet",
-    "requested slow gait with unchanged movement is stylized; not world-space foot locking",
+    "stylized gait; not a world-space foot-locking system",
     "procedural geometry and materials remain a first playable art pass"
-  ]
+  ],
+  "faceReference": {
+    "file": "art/characters/turnaround-v2.png",
+    "sha256": "d26f3fcfa52c29aed32488b993a33921a9b99567c6f2f83536360928c3ffc81a",
+    "features": "pointed arch, broad lower ivory mask, larger flat black oval eyes and shallow profile"
+  }
 }

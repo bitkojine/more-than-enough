@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.139.1] - 2026-10-24
+
+- Matched the original face silhouette with an arched hood opening, broader
+  lower mask, shallow ivory face and larger flat black oval eyes.
+- Increased walking cadence tenfold to one cycle per 2.4 tiles, roughly
+  0.65 seconds at base speed. Movement speed and action timing are unchanged.
+
+
 ## [0.139.0] - 2026-10-24
 
 - Replaced default player sprite playback with one articulated 3D orange

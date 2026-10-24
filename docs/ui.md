@@ -232,8 +232,8 @@ richer action animations follow this first version. Custom character texture
 packs and legacy friend poses keep their established alignment and artwork.
 
 `createActor().view(moving, position)` still supplies one real-time clock and
-travelled-distance phase per actor. A full cycle covers 24 world tiles at the
-owner's requested slow pace. Stopping, boats and blocked movement plant the
+travelled-distance phase per actor. A full cycle covers 2.4 world tiles, ten times the previous
+walking cadence at the owner's request. Stopping, boats and blocked movement plant the
 feet. Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase.
 The rig evaluates continuous two-bone IK and opposite arm swing; rendering must
 never advance game ticks. Existing `ACT_TIME` controls action feedback.
