@@ -9,14 +9,22 @@ export function createRiggedCharacter(){
  if(!context)return null;
  const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias:true,powerPreference:'low-power'});
  renderer.setSize(320,384,false);renderer.setPixelRatio(1);renderer.setClearColor(0,0);
- renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.0;
+ renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
  const scene=new T.Scene(),model=new T.Group();scene.add(model);
  const camera=new T.OrthographicCamera(-1.146,1.146,1.375,-1.375,.1,30);
  camera.position.set(0,2.8,7);camera.lookAt(0,1.0,0);camera.updateMatrixWorld();
- scene.add(new T.HemisphereLight(0xfff0d8,0x586b72,1.7));
- const key=new T.DirectionalLight(0xffebd5,2.4);key.position.set(-3,5,6);scene.add(key);
- const rim=new T.DirectionalLight(0xd9e7ff,.9);rim.position.set(4,2,-3);scene.add(rim);
- const material=(color,roughness=.85)=>new T.MeshStandardMaterial({color,roughness,metalness:0});
+ // Two discrete ink values, no glossy highlights or photographic tone mapping.
+ // Lighting stays in camera/world space while the skeleton turns beneath it.
+ const bands=new T.DataTexture(new Uint8Array([115,115,255,255]),4,1,T.RedFormat);
+ bands.minFilter=T.NearestFilter;bands.magFilter=T.NearestFilter;bands.generateMipmaps=false;bands.needsUpdate=true;
+ scene.add(new T.AmbientLight(0xffffff,.28));
+ const key=new T.DirectionalLight(0xffffff,2.25);key.position.set(-3,5,6);scene.add(key);
+ const material=color=>new T.MeshToonMaterial({color,gradientMap:bands,toneMapped:false});
+ const outlineMaterial=new T.MeshBasicMaterial({color:0x302017,side:T.BackSide,toneMapped:false});
+ // Expand in local space before Three applies skinning: cloak outlines follow
+ // the same bone weights as the cloth, including during turns and actions.
+ outlineMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = position + normal * 0.009;');};
+ outlineMaterial.customProgramCacheKey=()=> 'wanderer-ink-outline-v1';
  const orange=material(0xe95b0f),inner=material(0x30231c),black=material(0x282723),cream=material(0xefe1bc),linen=material(0xded4b7),thread=material(0xf5e3b8);
  const bones=[],bone=(name,parent,x=0,y=0,z=0)=>{const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);bones.push(b);return b;};
  const root=bone('root',model),hips=bone('hips',root,0,.58),spine=bone('spine',hips,0,.45),neck=bone('neck',spine,0,.25),head=bone('head',neck,0,.32);
@@ -30,9 +38,9 @@ export function createRiggedCharacter(){
   for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;idx.push(a,b,a+1,b,b+1,a+1);}
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(pos,3));g.setIndex(idx);g.computeVertexNormals();return g;
  }
+ const ink=(g,parent,x=0,y=0,z=0)=>mesh(g,outlineMaterial,parent,x,y,z);
  const hood=hoodGeometry();mesh(hood,orange,head);
- const outlineMaterial=new T.MeshBasicMaterial({color:0x302017,side:T.BackSide});
- const hoodOutline=hood.clone(),hp=hoodOutline.attributes.position,hn=hoodOutline.attributes.normal;for(let i=0;i<hp.count;i++)hp.setXYZ(i,hp.getX(i)+hn.getX(i)*.012,hp.getY(i)+hn.getY(i)*.012,hp.getZ(i)+hn.getZ(i)*.012);mesh(hoodOutline,outlineMaterial,head);
+ ink(hood,head);
  const inside=inner.clone();inside.side=T.BackSide;mesh(hood,inside,head);
  // The original art has a pointed arch, broad lower cheeks and flat oval
  // eyes. A shallow pear-shaped mask avoids the former protruding egg shape.
@@ -78,7 +86,7 @@ export function createRiggedCharacter(){
  function arm(side){
   const upper=bone(side>0?'leftUpperArm':'rightUpperArm',spine,side*.295,.13,0),lower=bone(side>0?'leftForearm':'rightForearm',upper,0,-.20,0),hand=bone(side>0?'leftHand':'rightHand',lower,0,-.16,0);
   upper.rotation.z=side*.36;
-  const sleeve=mesh(new T.CylinderGeometry(.10,.125,.27,32,6),orange,upper,0,-.12,0);sleeve.scale.z=.95;
+  const sleeve=mesh(new T.CylinderGeometry(.10,.125,.27,32,6),orange,upper,0,-.12,0);sleeve.scale.z=.95;ink(sleeve.geometry,upper,0,-.12,0).scale.copy(sleeve.scale);
   const cuff=mesh(new T.TorusGeometry(.118,.006,8,32),thread,upper,0,-.255,0);cuff.rotation.x=Math.PI/2;
   mesh(new T.CylinderGeometry(.052,.055,.12,16),black,lower,0,-.10,0);
   ellipsoid(hand,black,0,-.02,0,.085,.10,.07);ellipsoid(hand,black,-side*.061,-.005,.036,.034,.055,.034);
@@ -95,11 +103,12 @@ export function createRiggedCharacter(){
   mesh(new T.CylinderGeometry(.074,.066,LEG_LENGTH-.025,24),linen,lower,0,-LEG_LENGTH/2,0);
   for(let i=0;i<4;i++){const band=mesh(new T.TorusGeometry(.073-i*.0015,.0035,6,32),cream,lower,0,-.045-i*.05,0);band.rotation.x=Math.PI/2+.04;}
   mesh(shoeGeometry(.20,.30,.024),cream,foot,0,-.078,0);
-  mesh(shoeGeometry(.19,.285,.050),black,foot,0,-.049,0);
+  const shoe=mesh(shoeGeometry(.19,.285,.050),black,foot,0,-.049,0);ink(shoe.geometry,foot,0,-.049,0);
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);
  model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);
+ const coatInk=new T.SkinnedMesh(coatGeometry,outlineMaterial);model.add(coatInk);coatInk.bind(skeleton);
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
  let lost=false,renders=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
@@ -122,7 +131,7 @@ export function createRiggedCharacter(){
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
   inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y};},
-  get stats(){return {renders,bones:bones.length,skinnedMeshes:1,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  get stats(){return {renders,bones:bones.length,skinnedMeshes:2,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
+  dispose(){bands.dispose();faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

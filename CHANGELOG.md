@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.139.2] - 2026-10-24
+
+- Changed the rigged wanderer to two-tone cel shading with ink contours,
+  preserving the original ivory face and orange palette without glossy lighting.
+- Kept continuous 3D posing, all directions and the existing walking cadence.
+
 ## [0.139.1] - 2026-10-24
 
 - Matched the original face silhouette with an arched hood opening, broader

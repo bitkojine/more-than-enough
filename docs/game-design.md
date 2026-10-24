@@ -206,6 +206,12 @@ shoes. Keep the existing world, renderer, controls and rules. Do not create a
 separate playable prototype. Facing is continuous around the full circle;
 movement and actual action targets determine heading, and stopping retains it.
 
+The character uses the 3D rig for spatial posing, not a realistic 3D finish.
+Two-band nearest-filtered toon shading, restrained fixed white lighting,
+flat painted eyes/mask and dark silhouette contours give it an illustrated 2D
+appearance. No specular highlights, rim lighting or filmic tone mapping.
+Contours share the cloak skeleton; geometry and movement remain unchanged.
+
 The first integrated version is an empty-handed rig: seventeen bones, a skinned
 cloak, rounded hood and mask, jointed arms, and two-bone leg IK with alternating
 stance/swing trajectories. A short real-time start/stop blend settles the last

@@ -226,6 +226,12 @@ mask, gloves, leg wraps and shoes retain the established identity. Bones share
 one anatomical model across every direction. Do not add the old procedural
 walking bob or discrete sprite frames on top of skeletal walking.
 
+The character uses the 3D rig for spatial posing, not a realistic 3D finish.
+Two-band nearest-filtered toon shading, restrained fixed white lighting,
+flat painted eyes/mask and dark silhouette contours give it an illustrated 2D
+appearance. No specular highlights, rim lighting or filmic tone mapping.
+Contours share the cloak skeleton; geometry and movement remain unchanged.
+
 The initial rig has no rendered tools or cargo attachments. Inventory, earned
 equipment and interactions retain their state. Physical equipment modeling and
 richer action animations follow this first version. Custom character texture

@@ -1,20 +1,21 @@
 {
-  "version": "0.139.1",
+  "version": "0.139.2",
   "status": "first integrated rig; production model polish remains work",
   "sources": {
     "src/game/render/rig-motion.js": "e23f1a9223b5e9ef6869e84d16d2d4eb356a3014da80699742e4c6f6f44d58af",
-    "src/game/render/rigged-character.js": "258a168e3a80646db463c68bad57b090ba19a8780dcf54458c7d3a2a831c01a8",
+    "src/game/render/rigged-character.js": "e02dda673b8d63dc67efbc3c607c33ba26d13cc137afcf3b7dccd8e746192628",
     "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
     "src/game/render/sprites.js": "d3440a17b5d50c96ed70a8c13c9ffdd863cb0e2a929cc6c2bc89545d1ebc1d35"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "f6a92a59a7ff7b122338fd8b3bdd3f1f32064131aed2232bb973582c5f3b3832",
+  "playbackSha256": "95e97b2f645eaeedcf6c83558f543adf345cbdc3ef775dff2abded1aa946cb80",
   "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
     "same rig in eight directions and both gait halves; opaque WebGL output and geometry/draw-call budgets",
     "current faster phase verified at 30, 60 and 144 FPS",
-    "static-facing fallback and restoration regression passed in initial rig release"
+    "static-facing fallback and restoration regression passed in initial rig release",
+    "two flat orange shader values dominate the rendered cloth; eight directions and full loop visually reviewed"
   ],
   "limits": [
     "bare model only; no physical equipment/cargo models yet",
@@ -25,5 +26,6 @@
     "file": "art/characters/turnaround-v2.png",
     "sha256": "d26f3fcfa52c29aed32488b993a33921a9b99567c6f2f83536360928c3ffc81a",
     "features": "pointed arch, broad lower ivory mask, larger flat black oval eyes and shallow profile"
-  }
+  },
+  "presentation": "two-band toon shader, flat painted mask, shared skinned ink outline, no gloss or photographic tone mapping"
 }

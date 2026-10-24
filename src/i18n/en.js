@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.139.2": "The wanderer now uses flat cel shading and dark ink contours: the 3D rig keeps every direction consistent while looking illustrated.",
   "news.0.139.1": "The wanderer’s face is closer to the original artwork: an arched hood opening, warm ivory mask and larger oval eyes. Walking animation is ten times faster; movement speed stays the same.",
   "news.0.139.0": "The orange wanderer now uses a 3D skeleton: smooth walking and turning in every direction, in the same world. This first version is empty-handed; equipment models will follow.",
   "news.0.138.2": "Walking animation is ten times slower again, with unchanged movement speed.",

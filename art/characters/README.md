@@ -9,6 +9,12 @@ hood, cream mask and outfit. Change shared geometry or motion constraints once,
 then inspect every direction in the game. The rig is bare for this first version;
 equipment, cargo and richer actions need physical models and appropriate joints.
 
+The character uses the 3D rig for spatial posing, not a realistic 3D finish.
+Two-band nearest-filtered toon shading, restrained fixed white lighting,
+flat painted eyes/mask and dark silhouette contours give it an illustrated 2D
+appearance. No specular highlights, rim lighting or filmic tone mapping.
+Contours share the cloak skeleton; geometry and movement remain unchanged.
+
 The model is authored as procedural geometry, not a finished imported production
 asset. Three.js r180 is vendored unchanged with its MIT license. One reused
 WebGL surface is composited into the current client. Headless playtests never
