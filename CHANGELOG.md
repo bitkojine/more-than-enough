@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.145.0] - 2026-10-24
+
+- First load is 262 KB gzipped, down from 1148 KB. The painted 2D character
+  poses (about 830 KB) and the eight still direction figures (about 80 KB)
+  were packed into every first load although the 3D rig draws Mica. While the
+  rig loads Mica isn't drawn, so no other figure flashes up; without WebGL,
+  with a player's own pack, and for friends, the 2D wanderer stands in.
+- No phones or laptops in the game (Watch: a device in hand and a "battery
+  low" warning made players think of their real device). Characters no longer
+  hold one, in any world; in older worlds Mica carries a lantern, lit in the
+  dark. The battery is the lantern's charge, with the same rules, in the HUD,
+  toast, wiki and docs. Text still adapts to the player's real controls.
+- Positions no longer carry `dev`; the room drops it from older clients.
+- Retired looks (painted poses, direction stills, phone, laptop) go in
+  `RETIRED_LOOKS`, so a player's pack that names them still loads. The player
+  light colour is its own look, `character.light`.
+- Removed the retired sprite workflow: the unused directional atlas loader,
+  four art packers and production-contract scripts with their tests,
+  `npm run art:check`/`art:prompt`, and about 50 MB of source sheets, frames
+  and drafts under `art/characters/` (`turnaround-v2.png` stays as the look
+  reference). The first-load budget drops from 1150 KB to 300 KB, and a test
+  fails on any default-pack file that `pack.json` doesn't use.
+
+
 ## [0.144.0] - 2026-10-24
 
 - Replaced free arm flailing with constrained two-hand mining, a clear side

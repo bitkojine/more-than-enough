@@ -1,6 +1,5 @@
-/* Light: day and night, when it's dark, and the battery of the phone or
- * laptop in your hands. Its screen is what lights the dark, and that runs
- * the battery down; water power you build on the surface (PROPS with
+/* Light: day and night, when it's dark, and the battery of the lantern you
+ * carry. It is what lights the dark, and that runs the battery down; water power you build on the surface (PROPS with
  * `charge`) fills it up again. A low battery only shrinks your light: it
  * never stops you doing anything. Nothing charges or drains while you're
  * away. */
@@ -14,8 +13,8 @@ export function daylight(t) {
   return 0.5 + 0.5 * Math.cos((t / DAY_LENGTH) * Math.PI * 2);
 }
 
-// Underground is dark; so is the forest at night. Then the screen of what
-// the wanderer plays on (phone or laptop) is what lights the way.
+// Underground is dark; so is the forest at night. Then your lantern lights
+// the way.
 export function isDark(s, time = s.time) {
   return s.player.z < SURFACE || daylight(time) < 0.6;
 }

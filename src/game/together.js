@@ -622,7 +622,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
           const k = Math.min(1, dt * 12);
           f.shown.x += (f.p.x - f.shown.x) * k;
           f.shown.y += (f.p.y - f.shown.y) * k;
-          f.shown.fx = f.p.fx; f.shown.m = f.p.m; f.shown.sign = f.p.sign; f.shown.dev = f.p.dev; f.shown.gear = f.p.gear;
+          f.shown.fx = f.p.fx; f.shown.m = f.p.m; f.shown.sign = f.p.sign; f.shown.gear = f.p.gear;
         }
       }
     }
@@ -638,7 +638,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (timers.pos <= 0) {
       timers.pos = POS_EVERY;
       const p = s.player, f = game.facing();
-      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, dev: s.emptyStart ? null : DEVICE, gear: (s.tools.basket > 0 ? 1 : 0) | (s.tools.pickaxe > 0 ? 2 : 0), ...game.act() };
+      const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, gear: (s.tools.basket > 0 ? 1 : 0) | (s.tools.pickaxe > 0 ? 2 : 0), ...game.act() };
       const text = JSON.stringify(cleanPos(pos));
       if (text !== lastPos || timers.beat <= 0) {
         lastPos = text;

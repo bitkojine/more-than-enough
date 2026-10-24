@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.145.0": "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",
   "news.0.144.0": "Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.",
   "news.0.143.2": "Mica now has one continuous dark outline around his whole silhouette, including hands, leg wraps, rounded boots and carried objects. It stays consistent while he turns, walks and works.",
   "news.0.143.1": "Mica’s boots now have rounded toes, narrower heels and a curved instep, with thin brown soles instead of square cream platforms.",
@@ -170,9 +171,9 @@ export default {
   "prop.flag": "Marker flag",
   "prop.flag.does": "Shows through the dark, to find your way back",
   "prop.solar": "Floating solar panel",
-  "prop.solar.does": "Floats on water and charges your {phone:phone|laptop:laptop} near it while the sun is up",
+  "prop.solar.does": "Floats on water and charges your lantern near it while the sun is up",
   "prop.wheel": "Water wheel",
-  "prop.wheel.does": "Turns in a river and charges your {phone:phone|laptop:laptop} near it, day and night",
+  "prop.wheel.does": "Turns in a river and charges your lantern near it, day and night",
 
   "tile.cache": "Buried cache",
   "tile.geode": "Geode",
@@ -486,10 +487,8 @@ export default {
   "look.mark.solar.does": "A solar panel on a steel float, out on the water. Animate it with frames if you like.",
   "look.mark.wheel": "Water wheel",
   "look.mark.wheel.does": "A steel water wheel standing in a river. Give it frames to turn it.",
-  "look.character.phone": "Phone",
-  "look.character.phone.does": "Held by everyone playing on a phone, so friends in a shared world can tell at a glance. Drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. Its screen lights the way at night and underground; the colour is its light.",
-  "look.character.laptop": "Laptop",
-  "look.character.laptop.does": "Held by everyone playing on a laptop or computer, so friends in a shared world can tell at a glance. Drawn over the wanderer at the same size and place (so it lines up with their hand), and mirrored with them. Its screen lights the way at night and underground; the colour is its light.",
+  "look.character.light": "Lantern light",
+  "look.character.light.does": "The light of the lantern Mica carries, in the dark of night and in the mine. The colour tints its pool of light.",
   "look.character.boat": "Boat",
   "look.character.boat.does": "Carries you over water. Drawn facing right and to the same scale as the wanderer (who stands in it at full size, {pct}% of its height up from the bottom), so make the mast taller than them.",
   "look.ui.build": "Build",
@@ -573,7 +572,7 @@ export default {
   "game.framed": "More Than Enough only runs in its own tab: {phone:tap|laptop:click} to open it",
 
   "toast.away": "While you were away ({time}) your buildings made {made}",
-  "toast.batteryLow": "Your {phone:phone|laptop:laptop} is running low, so its light is shrinking. Charge it by a floating solar panel or water wheel (Build).",
+  "toast.batteryLow": "Your lantern is running low, so its light is shrinking. Charge it by a floating solar panel or water wheel (Build).",
   "toast.saveFailed": "Saving failed — progress is not being kept ({error})",
 
   "sheet.drag.pull": "pull the map",
@@ -683,8 +682,8 @@ export default {
   "button.climbUp.aria": "Climb up the ladder",
 
   "hud.milestoneOf": "{n} of {total}",
-  "hud.battery": "Battery {n}%",
-  "hud.batteryCharging": "Battery {n}%, charging",
+  "hud.battery": "Lantern {n}%",
+  "hud.batteryCharging": "Lantern {n}%, charging",
   "hud.chip": "{res}: see what earns it",
   "hud.statement": "Earnings statement",
 

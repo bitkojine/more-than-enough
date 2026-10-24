@@ -405,7 +405,7 @@ export default {
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
           viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; {phone:bakstelk|laptop:spustelk} ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
-        <li><strong>Tamsa</strong> sutemus, su ekrano šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
+        <li><strong>Tamsa</strong> sutemus, su žibinto šviesos ratu aplink tave. Žr. <a href="#world">Pasaulis</a>.</li>
         <li><strong>Debesys</strong>: žemė, kurios dar neištyrinėjai.</li>
       </ul>
 
@@ -447,7 +447,7 @@ export default {
         <tbody>
           <tr><td>FPS</td><td>Kadrai per sekundę per paskutines ~2 sekundes. 60 – sklandu daugumoje ekranų.</td></tr>
           <tr><td>frame / worst</td><td>Vidutinis laikas tarp kadrų ir ilgiausias pavienis tarpas (strigtelėjimas).</td></tr>
-          <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, baterijai.</td></tr>
+          <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, žibintui.</td></tr>
           <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina, kol vaizdą perima tolimas žemėlapis.</td></tr>
           <tr><td>tiles</td><td>Langeliai ekrane.</td></tr>
           <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
@@ -516,7 +516,7 @@ export default {
       <h2>Vanduo</h2>
       <p>Plaukti gali visur, kur yra vandens; tavo greitis ten – <span data-k="SWIM_SPEED" data-f="pct"></span> ėjimo greičio.
         Plauksi mažyte valtimi. Pastatų ant vandens nestatoma, bet vandens energija – taip: Statybos lapo skiltyje
-        <strong>Ant vandens</strong> šiuos daiktus padedi ten, kur plūduriuoji, po vieną langelyje, kad krautum bateriją (žr. žemiau).
+        <strong>Ant vandens</strong> šiuos daiktus padedi ten, kur plūduriuoji, po vieną langelyje, kad krautum žibintą (žr. žemiau).
         Niekas nežvejoja: vanduo paliekamas tiems, kas jame gyvena.</p>
       <div data-table="waterPower"></div>
 
@@ -530,14 +530,14 @@ export default {
 
       <h2>Diena ir naktis</h2>
       <p>Visa para trunka <span data-k="DAY_LENGTH"></span> s, o naujas pasaulis prasideda vidurdienį. Dienos šviesios ir šiltos.
-        Po sutemų pasaulis paskęsta tamsoje ir tavo {phone:telefono|laptop:kompiuterio} ekranas apšviečia ratą aplink tave, tad dirbti gali visada.</p>
+        Po sutemų pasaulis paskęsta tamsoje ir tavo žibintas apšviečia ratą aplink tave, tad dirbti gali visada.</p>
 
-      <h2>Tavo baterija</h2>
-      <p>Šviesdamas tamsoje tavo {phone:telefonas|laptop:kompiuteris} eikvoja bateriją: pilnos užtenka <span data-k="BATTERY_LIFE"></span>
+      <h2>Tavo žibintas</h2>
+      <p>Šviesdamas tamsoje tavo žibintas eikvoja bateriją: pilnos užtenka <span data-k="BATTERY_LIFE"></span>
         s tamsos, naktį ar kasykloje. Dieną ji neseka, o kol tavęs nėra, jai nieko nenutinka. Kai lieka
         <span data-k="BATTERY_LOW" data-f="pct"></span>, tavo šviesa ima trauktis, kol, baterijai išsikrovus, siekia tik
         <span data-k="BATTERY_DIM" data-f="pct"></span> įprasto atstumo: matai mažiau, o rūkas prasisklaido mažesniame plote.
-        Daryti nieko ji netrukdo. Kai baterija nepilna, ji rodoma kairiajame ekrano krašte.</p>
+        Daryti nieko ji netrukdo. Kai žibintas nepilnai įkrautas, jo įkrova rodoma kairiajame ekrano krašte.</p>
       <p>Ją įkrauna tik vandens energija: stovėk ne toliau kaip <span data-k="CHARGE_RANGE"></span> langelio nuo plaukiojančios
         saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
         <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>`,
@@ -649,14 +649,14 @@ export default {
       <h2>Daiktų dėjimas kasykloje</h2>
       <p>Po žeme pastatų nėra, bet Statybos lapo skiltyje <strong>Kasykloje</strong> šiuos daiktus gali padėti ant tunelio
         grindų ten, kur stovi, po vieną langelyje. Jie lieka visam laikui. Šviesos pasiekiamumas nurodytas langeliais; tavo
-        ekranas apšviečia maždaug 1,7.</p>
+        žibintas apšviečia maždaug 1,7.</p>
       <div data-table="props"></div>
       <p><strong>Žymės vėliavėlė</strong> rodoma kaip smeigtukas, matomas pro tamsą virš jos vietos, o kai ji už ekrano ribų,
         smeigtukas laukia ekrano krašte ir rodo kelią atgal iki jos.</p>
 
       <h2>Taisyklės po žeme</h2>
       <ul>
-        <li>Čia visada tamsu. Ekranas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
+        <li>Čia visada tamsu. Žibintas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
           atgal, vėl paskęsta tamsoje. Švytukės ir lempos laiko savo ruožą apšviestą, o dienos šviesa krinta pro angas,
           kuriomis nusileidai.</li>
         <li>Logistika ir čia, apačioje, parveža produkciją iš tavo stovyklų paviršiuje. Be jos jos tiesiog prisipildo, kol esi apačioje.</li>
@@ -877,7 +877,7 @@ export default {
         kas stovi.</p>
 
       <h2>Ką žaidimas piešia pats</h2>
-      <p>Kai kas visuose paketuose išlieka toks pat, nes parodo, kaip veikia žaidimas: šešėliai, diena ir naktis, ekrano šviesa
+      <p>Kai kas visuose paketuose išlieka toks pat, nes parodo, kaip veikia žaidimas: šešėliai, diena ir naktis, žibinto šviesa
         aplink tave, taikinių kontūrai ir Takai, ciferblatas virš pastato, kuris pildosi kaupiantis produkcijai, skardžių blėsimas
         tamsoje ir skraidantys skaičiai. Jų spalvos imamos iš paketo, kur tai prasminga (ištekliaus spalva nuspalvina jo
         kibirkštis; šviesos šulinio spalva apšviečia angas lubose).</p>

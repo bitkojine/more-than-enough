@@ -52,7 +52,7 @@ export const PROPS = {
 
 /* ------------------------------------------------------------ battery */
 
-// The phone or laptop in your hands lights the dark, and that runs its
+// The lantern you carry lights the dark, and that runs its
 // battery down (Watch, 2026-10-18). It drains only while it's dark (night,
 // the mine), never while you're away, and only water power charges it.
 // Below BATTERY_LOW your light starts to shrink, down to BATTERY_DIM of its

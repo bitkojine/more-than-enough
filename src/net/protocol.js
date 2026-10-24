@@ -75,8 +75,6 @@ export function cleanInviteAsk(d) {
 }
 
 export const STATUS = Object.freeze(['online', 'away', 'lost', 'offline']);
-// What a player is playing on, shown as what their character holds.
-export const DEVICES = Object.freeze(['phone', 'laptop']);
 // What a player can be seen doing (src/game/render/motion.js animates them).
 export const ACTS = Object.freeze(['swing', 'pick', 'collect', 'build', 'cheer', 'down', 'up']);
 export const ACT_COUNT = 1000;  // acts are counted round this, so a new one shows
@@ -129,13 +127,13 @@ export function parse(raw, maxBytes = LIMITS.messageBytes) {
 /* ------------------------------------------------------------- pieces */
 
 // A position: where, which way facing, walking or not, holding up the sign,
-// what they play on (null if unknown), optional basket/pick ownership bits,
-// and their latest act with its count. Missing gear means a legacy client.
+// optional basket/pick ownership bits, and their latest act with its count.
+// Missing gear means a legacy client. Older clients also send `dev` (the phone
+// or laptop characters held until v0.145.0); it is dropped.
 export function cleanPos(p) {
   if (!isObj(p) || !inXY(p.x) || !inXY(p.y) || !inZ(p.z)) return null;
   const f = (v) => (isNum(v) ? Math.max(-1, Math.min(1, round(v, 100))) : 0);
   return { x: round(p.x, 1000), y: round(p.y, 1000), z: p.z, fx: f(p.fx), fy: f(p.fy), m: p.m === true, sign: p.sign === true,
-    dev: DEVICES.includes(p.dev) ? p.dev : null,
     ...(isInt(p.gear) && p.gear >= 0 && p.gear <= 3 ? { gear: p.gear } : {}),
     a: ACTS.includes(p.a) ? p.a : null, n: isInt(p.n) && p.n >= 0 && p.n < ACT_COUNT ? p.n : 0 };
 }

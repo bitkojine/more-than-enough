@@ -141,19 +141,7 @@ for(const [kind,id] of Object.entries(CULTIVATION_LOOK)){
 }
 
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), {...req('image'),...opt('stand')});
-for(const [key,name,does] of [
- ['legacyWanderer','look.character.wanderer','look.character.wanderer.does'],
- ['worker','look.character.wanderer','cr.goal.start'],
- ['miner','tool.pickaxe','tool.pickaxe.desc'],
- ['forager','tool.basket','tool.basket.desc'],
- ['bareForager','look.character.wanderer','cr.goal.start'],
- ['courier','cr.carrier','cr.carrier.desc'],
- ['specimen','cr.wild','cr.goal.plant'],
- ['lamplighter','cr.lantern','cr.lantern.desc']
-])add('character',key,t(name),t(does),{...req('image'),...opt('stand')});
-for(const direction of ['N','NE','E','SE','S','SW','W','NW'])add('character','direction'+direction,t('look.character.wanderer'),t('look.character.wanderer.does'),req('image'));
-add('character', 'phone', t('look.character.phone'), t('look.character.phone.does'), req('image', 'color'));
-add('character', 'laptop', t('look.character.laptop'), t('look.character.laptop.does'), req('image', 'color'));
+add('character', 'light', t('look.character.light'), t('look.character.light.does'), req('color'));
 add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));
 
 add('mark', 'hole', t('look.mark.hole'), t('look.mark.hole.does'), req('top', 'color'));
@@ -183,7 +171,13 @@ export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));
 
 // Things the game no longer draws. A pack that still has them (one saved or
 // exported before they went) loads as before; they are just ignored.
-export const RETIRED_LOOKS = new Set(['color.visited', 'color.cavity', 'color.edge']);
+// The character.* ones: painted 2D poses and still figures the 3D rig
+// replaced, and the phone and laptop characters used to hold (v0.145.0).
+export const RETIRED_LOOKS = new Set(['color.visited', 'color.cavity', 'color.edge',
+  'character.legacyWanderer', 'character.worker', 'character.miner', 'character.forager',
+  'character.bareForager', 'character.courier', 'character.specimen', 'character.lamplighter',
+  'character.phone', 'character.laptop',
+  ...['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].map((d) => 'character.direction' + d)]);
 
 // The look id for a tile type and for a resource.
 export const tileLook = (t) => 'tile.' + TILE_KEY[t];

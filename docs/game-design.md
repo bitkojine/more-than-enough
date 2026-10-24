@@ -50,6 +50,15 @@ No wood or tree cutting. Each purchased equipment or building tier needs a disti
 
 Every new world starts empty-handed; only knowledge and records carry over. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. White chalk accents suit planning and construction where readable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
+### No phones or laptops in the world — confirmed, 2026-10-24
+Characters no longer carry a phone or laptop, in any world. A device in hand
+and a "battery low" warning made players think of their real device (Watch).
+Charging stays, because players enjoy it: in older worlds Mica carries a
+lantern, and the old device battery is that lantern's charge, with the same
+drain in the dark and the same recharging by floating solar panels and water
+wheels. Text may still adapt to the player's real controls
+(`{phone:…|laptop:…}`).
+
 ### Recommendations awaiting confirmation
 These are design recommendations, not approved rules:
 - Clear warning signs and enough time to respond before a colony dies.
@@ -204,7 +213,7 @@ walk sequences and the cost of regenerating them. Use one 3D model and skeletal
 rig, preserving the orange hood, cream mask, dark gloves, cream leg wraps and
 shoes. Keep the existing world, renderer, controls and rules. Do not create a
 separate playable prototype. Displayed facing snaps to eight world directions (N, NE, E, SE, S, SW, W, NW),
-using the existing directional-art sectors. Movement/action vectors select the
+using the eight sectors of `src/game/render/character-direction.js`. Movement/action vectors select the
 nearest direction; zero input retains the last heading. No interpolation through
 intermediate facing angles. Movement and targeting remain unrestricted; internal
 skeletal articulation and the flat shading remain smooth and unchanged.

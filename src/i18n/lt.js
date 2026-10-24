@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.145.0": "Žaidimas atsidaro daug greičiau: dabar jis atsisiunčia maždaug ketvirtadalį to, ką anksčiau, nes išvalyti seni veikėjo piešiniai. Žaidime niekas nebesinešioja ekrano. Senesniuose pasauliuose Mica vietoj jų nešasi žibintą, o baterija dabar yra žibinto įkrova: ji vis dar senka tamsoje ir prisipildo prie plaukiojančių saulės plokščių ir vandens ratų.",
   "news.0.144.0": "Mica dabar kasa abiem rankomis laikydamas įrankio kotą, renka į pagamintą krepšį ir statydamas atlaisvina rankas. Įsigytas žibintas matomas ant diržo. Kartojant rinkimą judesys užbaigiamas, o ne pradedamas iš naujo jo viduryje.",
   "news.0.143.2": "Mica dabar turi vientisą tamsų viso silueto kontūrą, įskaitant rankas, kojų apvijas, apvalius batus ir nešamus daiktus. Kontūras išlieka nuoseklus sukantis, einant ir dirbant.",
   "news.0.143.1": "Mica batai dabar turi apvalius priekius, siauresnius kulnus ir išlenktą keltį. Kvadratines šviesias platformas pakeitė ploni rudi padai.",
@@ -170,9 +171,9 @@ export default {
   "prop.flag": "Žymės vėliavėlė",
   "prop.flag.does": "Matoma pro tamsą, kad rastum kelią atgal",
   "prop.solar": "Plaukiojanti saulės plokštė",
-  "prop.solar.does": "Plūduriuoja vandenyje ir, kol šviečia saulė, įkrauna šalia esantį tavo {phone:telefoną|laptop:kompiuterį}",
+  "prop.solar.does": "Plūduriuoja vandenyje ir, kol šviečia saulė, įkrauna šalia esantį tavo žibintą",
   "prop.wheel": "Vandens ratas",
-  "prop.wheel.does": "Sukasi upėje ir dieną bei naktį įkrauna šalia esantį tavo {phone:telefoną|laptop:kompiuterį}",
+  "prop.wheel.does": "Sukasi upėje ir dieną bei naktį įkrauna šalia esantį tavo žibintą",
 
   "tile.cache": "Užkasta slėptuvė",
   "tile.geode": "Geoda",
@@ -486,10 +487,8 @@ export default {
   "look.mark.solar.does": "Saulės plokštė ant plieninės plūdės vandenyje. Jei nori, pagyvink ją kadrais.",
   "look.mark.wheel": "Vandens ratas",
   "look.mark.wheel.does": "Plieninis vandens ratas upėje. Duok jam kadrų, kad suktųsi.",
-  "look.character.phone": "Telefonas",
-  "look.character.phone.does": "Jį laiko visi, kurie žaidžia telefonu, kad draugai bendrame pasaulyje iš karto matytų. Piešiamas virš klajūno tokio pat dydžio ir toje pačioje vietoje (kad atitiktų ranką) ir atspindimas kartu. Jo ekranas apšviečia kelią naktį ir po žeme; spalva – jo šviesa.",
-  "look.character.laptop": "Nešiojamasis kompiuteris",
-  "look.character.laptop.does": "Jį laiko visi, kurie žaidžia nešiojamuoju ar kitu kompiuteriu, kad draugai bendrame pasaulyje iš karto matytų. Piešiamas virš klajūno tokio pat dydžio ir toje pačioje vietoje (kad atitiktų ranką) ir atspindimas kartu. Jo ekranas apšviečia kelią naktį ir po žeme; spalva – jo šviesa.",
+  "look.character.light": "Žibinto šviesa",
+  "look.character.light.does": "Žibinto, kurį nešasi Mica, šviesa nakties tamsoje ir kasykloje. Spalva nuspalvina jos šviesos ratą.",
   "look.character.boat": "Valtis",
   "look.character.boat.does": "Perneša tave per vandenį. Piešiama veidu į dešinę ir tokiu pat masteliu kaip klajūnas (jis stovi joje visu ūgiu, {pct} % jos aukščio nuo dugno), tad stiebą piešk aukštesnį už jį.",
   "look.ui.build": "Statyti",
@@ -573,7 +572,7 @@ export default {
   "game.framed": "„Daugiau nei gana“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum",
 
   "toast.away": "Kol tavęs nebuvo ({time}), tavo pastatai pagamino: {made}",
-  "toast.batteryLow": "Tavo {phone:telefonas|laptop:kompiuteris} senka, tad jo šviesa mažėja. Įkrauk jį prie plaukiojančios saulės plokštės ar vandens rato (Statyti).",
+  "toast.batteryLow": "Tavo žibintas senka, tad jo šviesa mažėja. Įkrauk jį prie plaukiojančios saulės plokštės ar vandens rato (Statyti).",
   "toast.saveFailed": "Nepavyko išsaugoti – pažanga nesaugoma ({error})",
 
   "sheet.drag.pull": "tempti žemėlapį",
@@ -683,8 +682,8 @@ export default {
   "button.climbUp.aria": "Lipti aukštyn kopėčiomis",
 
   "hud.milestoneOf": "{n} iš {total}",
-  "hud.battery": "Baterija {n} %",
-  "hud.batteryCharging": "Baterija {n} %, kraunasi",
+  "hud.battery": "Žibintas {n} %",
+  "hud.batteryCharging": "Žibintas {n} %, kraunasi",
   "hud.chip": "{res}: žiūrėti, kas tai uždirba",
   "hud.statement": "Uždarbio ataskaita",
 

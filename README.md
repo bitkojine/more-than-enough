@@ -85,8 +85,8 @@ you add or change any text, write it in both languages in the same commit.
 `src/i18n/i18n.js`, `?device=phone` or `?device=laptop` in the address to
 try the other). Anything that differs is written as a choice,
 `{phone:tap|laptop:click}` or `on this {phone:phone|laptop:computer}`, and
-`t()` keeps only the part for this device. Your character holds the same
-device.
+`t()` keeps only the part for this device. (Only the text: since v0.145.0
+nobody in the game holds a phone or laptop.)
 
 Nothing can go untranslated quietly:
 
@@ -418,28 +418,5 @@ The runner reserves a new seed, starts empty-handed and records its commands,
 clock advances, milestones, pre-activation checkpoint and completed save outside
 the repository. It uses observed terrain and never grants resources or teleports.
 
-Character raster sources live in `art/characters/`. With ImageMagick installed,
-`node scripts/pack-character-art.mjs` extracts the authored figures, registers
-feet/scale and encodes the production WebP textures. Size-preserving SVG image
-containers keep the existing texture-pack loader compatible; the character
-artwork inside them is raster, not a vector redraw. Review real rendering with
-`MTE_CHARACTER_ONLY=1 npm run test:e2e` (set `CHROME_PATH` when needed). Add
-`MTE_RECORD_MOTION=1 MTE_SHOT_DIR=/tmp/mte-motion-review` to capture 72 PNG
-frames at 30 FPS, exercising the actual renderer with a 10000x game clock.
-Encode for review with `ffmpeg -framerate 30 -i /tmp/mte-motion-review/motion-frames/%03d.png -c:v libx264 -pix_fmt yuv420p /tmp/mte-motion-review/motion.mp4`.
-This is an optional visual fixture, not a fair-play or win simulation.
-
-Generated sequential animation sheets are in `art/characters/animation.json`.
-`node scripts/pack-character-animation.mjs` rebuilds all 64 distinct drawings;
-pass a clip name (for example `walk`) to rebuild only that clip. This
-manual asset-production step requires ImageMagick. It preserves a common scale
-per sheet and registers figures before WebP encoding. The default character
-`image` slot is the eight-frame moving/working clip; optional `stand` supplies
-resting artwork. The browser character check rejects repeated-frame padding.
-
-Eight-direction frame-by-frame production uses
-[the character production contract](art/characters/README.md).
-`npm run art:check` reports accepted coverage; `-- --complete` is the strict
-completion gate. `npm run art:prompt -- bare walk ne` emits a reference-bound
-prompt. This tooling is separate from the currently shipped side-view clips;
-a valid manifest does not imply directional artwork is complete.
+The character is a 3D rig drawn flat; how it is built and reviewed is in
+[art/characters/README.md](art/characters/README.md).

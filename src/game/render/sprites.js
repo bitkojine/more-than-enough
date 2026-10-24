@@ -5,9 +5,7 @@
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
 import { pose, ACT_TIME } from './motion.js';
-import { characterDirection } from './character-direction.js';
-import { directionalFrame } from './directional-art.js';
-import { characterSprite, characterFrame } from './character-sprite.js';
+import { characterFrame } from './character-sprite.js';
 
 const TAU = Math.PI * 2;
 
@@ -56,70 +54,57 @@ export function drawExtractor(ctx, cam, s, look, e) {
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * TAU); ctx.closePath(); ctx.fill();
 }
 
-// Mica faces movement and work targets, acting through the existing rig.
-// Earned cargo uses protective carrying poses; legacy device worlds and custom
-// packs keep their compatibility sprites. Returns head/hand anchors for signs.
+// Mica faces movement and work targets, acting through the 3D rig. While
+// the rig is still loading Mica isn't drawn (only their shadow), so no other
+// figure flashes up first; without WebGL, and with a player's own pack, the
+// pack's 2D wanderer stands in. Returns head/hand anchors for signs.
 export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const facing=view.actor?.act&&view.actor.facing?view.actor.facing:view.facing;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
-    x: p.x, sx, sy, direction:characterDirection(facing), facingVector:facing, flip: facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
-    device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal
+    x: p.x, sx, sy, mica: true, facingVector:facing, flip: facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
+    actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal,
+    // Older worlds light the dark with a lantern Mica always carries.
+    lantern: s.cultivation ? { has: !!s.cultivation.gear?.lantern, on: !!s.cultivation.lantern } : { has: true, on: Core.isDark(s) }
   });
 }
 
 // Someone standing at (sx, sy) on screen, or on their boat on water: their
-// picture posed for what they're doing (see motion.js), with what they hold
-// and any tool in hand. `nod` tips them forward a little more (dozing).
+// picture posed for what they're doing (see motion.js), with any tool in
+// hand. `nod` tips them forward a little more (dozing). Everyone (you and
+// friends, awake, dozing or asleep) is drawn at one size, `u` px per tile.
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, facingVector=null, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false } }) {
   const u = cam.tilePx;
-  if(look.rig&&direction&&!look.custom){
+  if(look.rig&&mica&&!look.custom){
     const motion=pose(actor,{moving,boat:water,steady,time:actor.clock??s.time,seed,equipment});
     const deck=water?drawBoat(ctx,cam,s,look,x,sx,sy,flip,motion.rock,actor.clock??s.time):0;
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
-    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:!!cargo?.gear?.lantern,lanternOn:!!cargo?.lantern,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
     ctx.restore();if(location)return location;
   }
-  const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
-  const planted=appearance.actionProgress==null&&(!moving||water||actor.walking===false);
-  const hasStand=look.has(appearance.id,'stand')&&(!look.overrides(appearance.id)||look.overrides(appearance.id,'stand'));
-  const walk = look.frames(appearance.id,planted&&hasStand?'stand':'image');
+  const id='character.wanderer';
+  const planted=!moving||water||actor.walking===false;
+  const walk = look.frames(id,planted&&look.has(id,'stand')?'stand':'image');
   const time=actor.clock??s.time;
-  const frame=characterFrame(appearance,walk,actor,{moving,water,time});
-  let body = walk.pics[frame];
-  // First directional release is deliberately the unequipped figure, even
-  // when earned tools exist. Inventory and rules retain all earned equipment.
-  const baseDirectional=direction&&!device&&!look.custom;
-  const stepping=moving&&!water&&actor.walking!==false;
-  if(baseDirectional)body=look.frames('character.direction'+direction.toUpperCase(),'image').pics[0];
-  const directional=baseDirectional&&stepping?look.directional?.get('bare','walk',direction):null;
-  if(directional){
-    const progress=actor.stride??0;
-    body=directionalFrame(directional,progress);
-  }
+  const body = walk.pics[characterFrame(walk,actor,{moving,water,time})];
+  const loading=mica&&!look.custom&&!look.rigSettled;
   const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
-  // Painted poses already contain the lean and foot placement. Do not stack
-  // the old icon-puppet bob/rotation on them or planted feet drift.
-  if(appearance.composed&&(!actor.act||['swing','pick'].includes(actor.act))){p.dy=0;p.rot=water?p.rock:0;}
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
-  if (!deck) shadow(ctx, cam, sx, sy, (appearance.composed?.625:body.units) * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
+  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
   const dir = flip ? -1 : 1, feet = sy - deck;
   const fx = sx + p.dx * u * dir, fy = feet + p.dy * u, rot = (p.rot + nod) * dir;
   ctx.save();
   if (p.clip) { ctx.beginPath(); ctx.rect(sx - u * 2, feet - u * 4, u * 4, u * 4); ctx.clip(); }
   ctx.translate(fx, fy);
   ctx.rotate(rot);
-  const facing = baseDirectional?false:!appearance.composed&&p.turn ? !flip : flip;
-  const offsetX=directional?u*(body.units/2-body.root[0]/(body.scale*64)):0;
-  const offsetY=directional?u*(body.units*body.aspect-body.root[1]/(body.scale*64)):appearance.composed&&!look.overrides(appearance.id)?u*(body.units*body.aspect-71/64):0;
-  const pictureHeight = standWithHeld(ctx, look, body, device, offsetX,offsetY,u,facing);
-  const tall=appearance.composed?u*60/64:pictureHeight;
-  if(!appearance.composed&&p.tool&&(!equipment||equipment[p.tool.kind]>0))drawTool(ctx,look,body,u,p.tool,facing?-1:1,equipment?.[p.tool.kind]??1);
+  const facing = p.turn ? !flip : flip;
+  const tall = loading ? body.units * body.aspect * u : look.stand(ctx, body, 0, 0, u, facing);
+  if(!loading&&p.tool&&(!equipment||equipment[p.tool.kind]>0))drawTool(ctx,look,body,u,p.tool,facing?-1:1,equipment?.[p.tool.kind]??1);
   ctx.restore();
   const sin = Math.sin(rot), cos = Math.cos(rot);
   return { x: fx + sin * tall, top: fy - cos * tall, foot: fy, handsX: fx + sin * tall * HANDS, hands: fy - cos * tall * HANDS };
@@ -139,19 +124,6 @@ function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0, time = s.time) {
   const h = look.stand(ctx, boat, 0, 0, u, flip);
   ctx.restore();
   return h * BOAT_DECK - bob;
-}
-
-// A figure and what they hold (a phone or a laptop, or nothing for a friend
-// on an older game), drawn over them at the same size and place so it lines
-// up with their hand. Returns their height. Everyone (you and friends, awake,
-// dozing or asleep) is drawn at this one size, `u` px per tile.
-function standWithHeld(ctx, look, body, device, x, y, size, flip) {
-  const tall = look.stand(ctx, body, x, y, size, flip);
-  if (device) {
-    const pic = look.pick('character.' + device, 'image');
-    look.stand(ctx, pic, x, y, size * body.units / pic.units, flip);
-  }
-  return tall;
 }
 
 // Where the wanderer's front hand is on their picture, as a share of its
@@ -254,7 +226,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const flip = facesLeft(f);
   const water = Core.swimsAt(s.world, f.x, f.y, cam.z);
   if (f.st === 'offline') {
-    const body = look.frames(look.overrides('character.wanderer')?'character.wanderer':'character.legacyWanderer', 'image').pics[0];
+    const body = look.frames('character.wanderer', 'image').pics[0];
     const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
     return drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
   }
@@ -268,7 +240,7 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   // Away: dozing on their feet, leaning forward a little and nodding.
   const nod = f.st === 'away' ? 0.1 + 0.05 * Math.sin(time * 1.3) : 0;
   const { x: hx, top: head, handsX, hands } = drawCharacter(ctx, cam, s, look, {
-    x: f.x, sx, sy, flip, moving: f.st === 'online' && f.m, water, device: f.dev, nod,
+    x: f.x, sx, sy, flip, moving: f.st === 'online' && f.m, water, nod,
     equipment: f.gear === undefined ? null : { basket: f.gear & 1, pickaxe: f.gear & 2 },
     actor: f.st === 'online' ? f.actor : STILL, steady: f.sign, seed: f.c * 2.3 + 1
   });
@@ -325,7 +297,7 @@ function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy, onGround) {
   ctx.save();
   ctx.translate(feet, sy - thick * 0.22);
   ctx.rotate(head * Math.PI / 2);
-  standWithHeld(ctx, look, body, f.dev, 0, 0, u, head > 0);
+  look.stand(ctx, body, 0, 0, u, head > 0);
   ctx.restore();
   // The blanket over their legs, breathing; the head stays out on the pillow.
   ctx.save();

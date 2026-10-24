@@ -7,20 +7,22 @@
  *    by import), and the pack is named up front so it downloads alongside;
  *  - the whole first load (page, stylesheet, modules, pack), gzipped as
  *    GitHub Pages serves it, stays under a budget. Raise BUDGET_KB only on
- *    purpose: every 10 KB is ~60 ms more on slow 3G before anyone can play.
+ *    purpose: every 10 KB is ~60 ms more on slow 3G before anyone can play;
+ *  - every file in the default pack is one pack.json uses, so nothing unused
+ *    sits in the repo or (worse) in the first load, and every file it names exists.
  * Needs `npm ci` (staging bundles with esbuild). */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
-const BUDGET_KB = 1150; // v0.137.0: 64 distinct 4x raster animation drawings; intentional animation-quality budget
+const BUDGET_KB = 300; // v0.145.0: 262 KB once the painted poses (the 3D rig draws Mica) were dropped
 const MAX_REQUESTS = 6;
 
 test('the first load is few requests and fits the size budget', (t) => {
@@ -63,4 +65,14 @@ test('the first load is few requests and fits the size budget', (t) => {
   t.diagnostic(`first load: ${urls.length + 1} requests, ${kb.toFixed(1)} KB gzipped`);
   assert.ok(urls.length + 1 <= MAX_REQUESTS, `${urls.length + 1} requests at first load (max ${MAX_REQUESTS})`);
   assert.ok(kb <= BUDGET_KB, `first load is ${kb.toFixed(1)} KB gzipped, over the ${BUDGET_KB} KB budget`);
+});
+
+test('the default pack holds only files its pack.json uses, and all of them exist', () => {
+  const dir = join(ROOT, 'packs', 'default');
+  const named = new Set(JSON.stringify(JSON.parse(readFileSync(join(dir, 'pack.json'), 'utf8')).looks)
+    .match(/[^"]+\.(svg|png|webp|jpe?g|gif)(?=")/g));
+  const files = readdirSync(dir, { recursive: true, withFileTypes: true }).filter((e) => e.isFile())
+    .map((e) => relative(dir, join(e.parentPath, e.name)).split(sep).join('/')).filter((f) => f !== 'pack.json');
+  assert.deepEqual(files.filter((f) => !named.has(f)), [], 'files in packs/default/ that pack.json never uses: delete them or use them');
+  assert.deepEqual([...named].filter((f) => !files.includes(f)), [], 'pack.json names files that do not exist');
 });

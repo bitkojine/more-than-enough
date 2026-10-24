@@ -72,8 +72,8 @@ place it belongs here rather than adding a button where there is room.
 ### Messages
 - A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.
 
-### The battery
-- The battery of the device in your hands sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
+### The lantern's charge
+- The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
 - The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section, above *In the mine*, saying where they go while you aren't there.
 
 ### Depth
@@ -126,8 +126,8 @@ place it belongs here rather than adding a button where there is room.
 New worlds begin with uncrafted tools. Upgrade rows say Not crafted until the
 first paid craft; the existing Craft action makes the first basket/pick from
 fungi and loose surface stone. Bare-handed surface gathering uses a picking
-pose; a basket or pick appears only when owned. Empty-start characters do not
-hold a supplied phone/laptop. Legacy saves retain their existing equipment.
+pose; a basket or pick appears only when owned. No character holds a phone or
+laptop (Watch, 2026-10-24): older worlds carry a lantern instead. Legacy saves retain their existing equipment.
 The new-world Beyond panel shows lifetime records and an empty-handed Embark
 action, without legacy Insight/perk purchases. Legacy worlds keep their perk UI.
 

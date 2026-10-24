@@ -415,25 +415,15 @@
   "character.wanderer": {
    "image": {
     "frames": [
-     "characters/painted/walk-0.svg",
-     "characters/painted/walk-1.svg",
-     "characters/painted/walk-2.svg",
-     "characters/painted/walk-3.svg",
-     "characters/painted/walk-4.svg",
-     "characters/painted/walk-5.svg",
-     "characters/painted/walk-6.svg",
-     "characters/painted/walk-7.svg"
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-1.svg",
+     "characters/wanderer.svg",
+     "characters/wanderer-walk-2.svg"
     ],
-    "fps": 16
-   },
-   "stand": "characters/painted/idle.svg"
+    "fps": 8
+   }
   },
-  "character.phone": {
-   "image": "characters/phone.svg",
-   "color": "#cfe6ff"
-  },
-  "character.laptop": {
-   "image": "characters/laptop.svg",
+  "character.light": {
    "color": "#cfe6ff"
   },
   "character.boat": {
@@ -666,150 +656,6 @@
     "cultivation/lantern-off.svg",
     "cultivation/lantern.svg"
    ]
-  },
-  "character.legacyWanderer": {
-   "image": {
-    "frames": [
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-1.svg",
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-2.svg"
-    ],
-    "fps": 8
-   }
-  },
-  "character.worker": {
-   "image": {
-    "frames": [
-     "characters/painted/worker-walk-0.svg",
-     "characters/painted/worker-walk-1.svg",
-     "characters/painted/worker-walk-2.svg",
-     "characters/painted/worker-walk-3.svg",
-     "characters/painted/worker-walk-4.svg",
-     "characters/painted/worker-walk-5.svg",
-     "characters/painted/worker-walk-6.svg",
-     "characters/painted/worker-walk-7.svg"
-    ],
-    "fps": 16
-   },
-   "stand": "characters/painted/worker-idle.svg"
-  },
-  "character.courier": {
-   "image": {
-    "frames": [
-     "characters/painted/courier-walk-0.svg",
-     "characters/painted/courier-walk-1.svg",
-     "characters/painted/courier-walk-2.svg",
-     "characters/painted/courier-walk-3.svg",
-     "characters/painted/courier-walk-4.svg",
-     "characters/painted/courier-walk-5.svg",
-     "characters/painted/courier-walk-6.svg",
-     "characters/painted/courier-walk-7.svg"
-    ],
-    "fps": 16
-   },
-   "stand": "characters/painted/courier-idle.svg"
-  },
-  "character.specimen": {
-   "image": {
-    "frames": [
-     "characters/painted/starter-walk-0.svg",
-     "characters/painted/starter-walk-1.svg",
-     "characters/painted/starter-walk-2.svg",
-     "characters/painted/starter-walk-3.svg",
-     "characters/painted/starter-walk-4.svg",
-     "characters/painted/starter-walk-5.svg",
-     "characters/painted/starter-walk-6.svg",
-     "characters/painted/starter-walk-7.svg"
-    ],
-    "fps": 16
-   },
-   "stand": "characters/painted/starter-idle.svg"
-  },
-  "character.lamplighter": {
-   "image": {
-    "frames": [
-     "characters/painted/lantern-walk-0.svg",
-     "characters/painted/lantern-walk-1.svg",
-     "characters/painted/lantern-walk-2.svg",
-     "characters/painted/lantern-walk-3.svg",
-     "characters/painted/lantern-walk-4.svg",
-     "characters/painted/lantern-walk-5.svg",
-     "characters/painted/lantern-walk-6.svg",
-     "characters/painted/lantern-walk-7.svg"
-    ],
-    "fps": 16
-   },
-   "stand": "characters/painted/lantern-idle.svg"
-  },
-  "character.miner": {
-   "image": {
-    "frames": [
-     "characters/painted/mine-0.svg",
-     "characters/painted/mine-1.svg",
-     "characters/painted/mine-2.svg",
-     "characters/painted/mine-3.svg",
-     "characters/painted/mine-4.svg",
-     "characters/painted/mine-5.svg",
-     "characters/painted/mine-6.svg",
-     "characters/painted/mine-7.svg"
-    ],
-    "fps": 24
-   }
-  },
-  "character.forager": {
-   "image": {
-    "frames": [
-     "characters/painted/gather-0.svg",
-     "characters/painted/gather-1.svg",
-     "characters/painted/gather-2.svg",
-     "characters/painted/gather-3.svg",
-     "characters/painted/gather-4.svg",
-     "characters/painted/gather-5.svg",
-     "characters/painted/gather-6.svg",
-     "characters/painted/gather-7.svg"
-    ],
-    "fps": 24
-   }
-  },
-  "character.bareForager": {
-   "image": {
-    "frames": [
-     "characters/painted/gather-bare-0.svg",
-     "characters/painted/gather-bare-1.svg",
-     "characters/painted/gather-bare-2.svg",
-     "characters/painted/gather-bare-3.svg",
-     "characters/painted/gather-bare-4.svg",
-     "characters/painted/gather-bare-5.svg",
-     "characters/painted/gather-bare-6.svg",
-     "characters/painted/gather-bare-7.svg"
-    ],
-    "fps": 24
-   }
-  },
-  "character.directionN": {
-   "image": "characters/directions/n.svg"
-  },
-  "character.directionNE": {
-   "image": "characters/directions/ne.svg"
-  },
-  "character.directionE": {
-   "image": "characters/directions/e.svg"
-  },
-  "character.directionSE": {
-   "image": "characters/directions/se.svg"
-  },
-  "character.directionS": {
-   "image": "characters/directions/s.svg"
-  },
-  "character.directionSW": {
-   "image": "characters/directions/sw.svg"
-  },
-  "character.directionW": {
-   "image": "characters/directions/w.svg"
-  },
-  "character.directionNW": {
-   "image": "characters/directions/nw.svg"
   }
  }
 }

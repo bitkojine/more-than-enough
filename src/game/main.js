@@ -84,9 +84,11 @@ try {
 }
 look.use(defaultPack);
 // The 3D character is a lazy presentation module, shared with the dev viewer.
+// Until it settles Mica isn't drawn (render/sprites.js); if it fails, the
+// pack's 2D wanderer stands in.
 look.rigReady=import('./render/rigged-character.js').then(({createRiggedCharacter})=>{
   look.rig=createRiggedCharacter();return look.rig;
-}).catch(error=>{look.rigError=String(error);return null;});
+}).catch(error=>{look.rigError=String(error);return null;}).finally(()=>{look.rigSettled=true;});
 
 // The developer viewer boots before loading or connecting any player world.
 if (new URLSearchParams(location.search).has('autoplay')) {
@@ -553,8 +555,7 @@ function view() {
     me: together.me,   // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,
-    signCaption: t('together.sign'),
-    device: DEVICE // what you hold, and whose screen lights the dark
+    signCaption: t('together.sign')
   };
 }
 

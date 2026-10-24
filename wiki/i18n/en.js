@@ -412,7 +412,7 @@ export default {
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
           in the top-left corner counts the milestones you've reached and glows after a new one; {phone:tap|laptop:click} it to see them all in the
           <strong>Awards</strong> tab.</li>
-        <li><strong>Darkness</strong> after dusk, with a pool of screen light around you. See <a href="#world">The world</a>.</li>
+        <li><strong>Darkness</strong> after dusk, with a pool of lantern light around you. See <a href="#world">The world</a>.</li>
         <li><strong>Clouds</strong>: land you haven't explored yet.</li>
       </ul>
 
@@ -454,7 +454,7 @@ export default {
         <tbody>
           <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
           <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
-          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, the battery.</td></tr>
+          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, the lantern.</td></tr>
           <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it, until the far view takes over.</td></tr>
           <tr><td>tiles</td><td>Tiles on screen.</td></tr>
           <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
@@ -523,7 +523,7 @@ export default {
       <h2>Water</h2>
       <p>You can swim anywhere there's water, at <span data-k="SWIM_SPEED" data-f="pct"></span> of your walking speed. You'll be
         riding a little boat. No buildings go on water, but water power does: the Build sheet's <strong>On the water</strong>
-        section puts these down where you float, one per tile, to charge your battery (see below). Nobody fishes: the water is left
+        section puts these down where you float, one per tile, to charge your lantern (see below). Nobody fishes: the water is left
         to whatever lives in it.</p>
       <div data-table="waterPower"></div>
 
@@ -537,15 +537,15 @@ export default {
 
       <h2>Day and night</h2>
       <p>A full day lasts <span data-k="DAY_LENGTH"></span> seconds and a new world starts at noon. Days are bright and warm.
-        After dusk the world fades into darkness and the screen of your {phone:phone|laptop:laptop} lights a pool around you, so you can always
+        After dusk the world fades into darkness and the lantern you carry lights a pool around you, so you can always
         keep working.</p>
 
-      <h2>Your battery</h2>
-      <p>Lighting the dark runs your {phone:phone|laptop:laptop}'s battery down: a full one lasts <span data-k="BATTERY_LIFE"></span>
+      <h2>Your lantern</h2>
+      <p>Lighting the dark runs your lantern's battery down: a full one lasts <span data-k="BATTERY_LIFE"></span>
         seconds of dark, at night or in the mine. By day it doesn't drain, and nothing happens to it while you're away. Once
         it's down to <span data-k="BATTERY_LOW" data-f="pct"></span> your light starts to shrink, to
         <span data-k="BATTERY_DIM" data-f="pct"></span> of its reach when it's flat, so you see less and the fog lifts over less.
-        It never stops you doing anything. The battery shows on the left edge once it isn't full.</p>
+        It never stops you doing anything. Its charge shows on the left edge once it isn't full.</p>
       <p>Only water power charges it: stand within <span data-k="CHARGE_RANGE"></span> tiles of a floating solar panel while the
         sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
         charger charges anyone.</p>`,
@@ -658,7 +658,7 @@ export default {
 
       <h2>Placing things in the mine</h2>
       <p>No buildings go underground, but the Build sheet's <strong>In the mine</strong> section places these on the tunnel
-        floor where you stand, one per tile. They stay for good. Light reach is in tiles; your screen reaches
+        floor where you stand, one per tile. They stay for good. Light reach is in tiles; your lantern reaches
         about 1.7.</p>
       <div data-table="props"></div>
       <p>A <strong>marker flag</strong> shows as a pin through the dark over where it stands, and when it's off screen the
@@ -666,7 +666,7 @@ export default {
 
       <h2>Rules underground</h2>
       <ul>
-        <li>It's always dark down here. Your screen lights only a small pool at your feet, so tunnels you dug a few steps back
+        <li>It's always dark down here. Your lantern lights only a small pool at your feet, so tunnels you dug a few steps back
           sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
         <li>Logistics hauls from your surface camps down here too. Without it they simply fill up while you're below.</li>
@@ -886,7 +886,7 @@ export default {
         that stands.</p>
 
       <h2>What the game draws itself</h2>
-      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the screen light
+      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the lantern light
         around you, target outlines and Trails, the dial over a building that fills as it holds output, the fading of cliffs into
         the dark, and the floating numbers. Their colours come from the pack where it makes sense (a resource's colour tints its
         sparks; the skylight's colour lights holes in the ceiling).</p>

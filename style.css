@@ -310,7 +310,7 @@ body.signing #btnVersion { visibility: hidden; }
 #depth small { font-size: 8px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; opacity: .85; }
 #depth b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
 #depth[hidden], #depthGauge[hidden], #battery[hidden] { display: none; }
-/* The battery of the device in your hands, once it isn't full: a little
+/* The charge of the lantern you carry, once it isn't full: a little
    battery that empties, green, then amber when the light starts to shrink,
    red when nearly flat. Narrow as the depth pill, so friends' chips keep
    clear of it. */
