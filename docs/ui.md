@@ -214,50 +214,33 @@ Early picks use stone and mycelium bindings, early boots use woven fibre with
 later stone reinforcement; metal appears only at tiers whose recipes include it.
 Baskets retain fibre/stone construction throughout their current recipe chain.
 Every basket/pick/boot purchase tier has distinct inventory artwork; Upgrade
-previews the next tier. The character uses generated full-figure raster poses,
-not those inventory icons. Context selects fieldwork, mining, gathering, carrying
-or lantern use; only earned equipment and actual cargo select those poses.
-Bare-handed gathering has its own pose. The current painted body sets cover
-the stone-tool restoration route; later equipment body variations remain work.
-All sprites stay in the normal texture-pack loader/raster cache. Optional tool
-`stages` run from crafted level 2 upward; single-icon overrides remain respected.
+previews the next tier. Texture-pack identities remain available to custom
+packs and the legacy compatibility renderer.
 
 ### Character presentation
-The original orange-hooded identity remains. Production poses are generated
-raster artwork, authored as complete figures with grips, sleeves, straps and
-feet; the PNG masters live in `art/characters/`. All frames share world scale
-and a registered sole baseline. The renderer mirrors the whole figure and
-uses the same actor/boat transform for the figure and its cargo feedback.
-Walking and working artwork already includes body lean; do not add the former
-icon-puppet bob/rotation on top. Exposed starters and sealed capsules are painted
-in the hands, rather than drawn independently in world space. Active action or
-cargo takes visual priority; showing every inventory item at once is avoided.
-Custom body overrides keep their own silhouette. Device-holding legacy worlds
-retain the compatible original body/hand alignment. Review the actual renderer
-at small and close scales, both facings, stride contacts, actions and boat deck.
 
+The default player uses a 3D skeletal orange wanderer, composited into the
+existing row-sorted 2D world. It faces actual movement/action vectors continuously,
+retains heading when stopped and stands on the existing boat deck. Its hood,
+mask, gloves, leg wraps and shoes retain the established identity. Bones share
+one anatomical model across every direction. Do not add the old procedural
+walking bob or discrete sprite frames on top of skeletal walking.
 
-Character locomotion is sampled by `createActor().view(moving, position)` in
-`src/game/render/motion.js`. Its real-time clock is separate from simulation
-time. A full stride covers 1.2 world tiles; zoom, game speed and display rate
-never determine foot cadence. Blocked movement and riding select planted feet.
-Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase rather
-than turning a teleport or resumed tab into rapid steps. The actor view is
-sampled once by the host, then reused for every render pass. Work clips use the
-shared `ACT_TIME` durations and sample all eight drawings across authored
-anticipation/contact/recovery; build plays two complete taps.
-Each of the five walking contexts has eight distinct sequential drawings.
-The optional character `stand` slot supplies a separate resting figure so
-standing stills never get inserted between walking keys. Custom image overrides
-without their own `stand` slot retain their own first image at rest. No crossfades of complete figures (which produce double limbs).
-This is a discrete key-pose system, not yet a full skeletal animation system.
+The initial rig has no rendered tools or cargo attachments. Inventory, earned
+equipment and interactions retain their state. Physical equipment modeling and
+richer action animations follow this first version. Custom character texture
+packs and legacy friend poses keep their established alignment and artwork.
 
-Painted work frames have extra transparent canvas below the registered sole
-baseline, so low tool tips remain complete. The renderer derives the drawing
-offset from picture dimensions and that sole baseline; transparent margins
-never lift the feet or change the body scale.
+`createActor().view(moving, position)` still supplies one real-time clock and
+travelled-distance phase per actor. A full cycle covers 24 world tiles at the
+owner's requested slow pace. Stopping, boats and blocked movement plant the
+feet. Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase.
+The rig evaluates continuous two-bone IK and opposite arm swing; rendering must
+never advance game ticks. Existing `ACT_TIME` controls action feedback.
 
-The first eight-direction character release uses bare-character artwork in
-all equipment states; inventory and interactions retain earned equipment.
-Walking faces actual movement, actions face targets, and stopping retains
-facing. Tool and carrying illustrations are deferred for this initial release.
+The WebGL renderer reuses one 320×384 surface. The 3D module loads separately
+from the initial game bundle; static eight-direction facing art covers loading,
+missing WebGL or a lost context. No new player-facing setup is required.
+Review the real client at native and close scales, all directions, start/stop,
+complete loops, boat and terrain occlusion. Use numerical joint/ground tests
+alongside visible review; pixel counts cannot prove animation quality.

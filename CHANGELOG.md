@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.139.0] - 2026-10-24
+
+- Replaced default player sprite playback with one articulated 3D orange
+  wanderer in the existing world renderer. Continuous facing, opposite arm
+  swing, two-bone leg IK and a skinned cloak replace generated pose sequences.
+- Fixed idle flashes between simulation ticks, with a brief presentation-only
+  start/stop blend.
+- Kept the requested slow distance-based gait; movement and action rules are
+  unchanged. Equipment models remain deferred; earned progress is preserved.
+- Reuses one 320×384 WebGL surface. Three.js r180 (MIT) loads in a separate
+  roughly 140 KB compressed module, with a 180 KB regression budget.
+- Static facing art remains available during loading/context loss; custom packs
+  and legacy friend presentation retain their compatibility renderer.
+- Added numerical gait/ground-contact tests and a real WebGL browser review
+  across orientations, both gait halves and 200 continuous motion samples.
+
+
 ## [0.138.2] - 2026-10-23
 
 - Slowed walking animation another tenfold: a complete cycle spans 24 tiles,

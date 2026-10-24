@@ -22,7 +22,6 @@ import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf.js';
 import { createQuality, frameDue, FULL_FPS, CALM_FPS, CALM_AFTER_S } from './quality.js';
-import { createDirectionalArt } from './render/directional-art.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { loadSavedPack } from './look/store.js';
@@ -83,8 +82,10 @@ try {
   throw err;
 }
 look.use(defaultPack);
-const directionalUrl=new URL('../../packs/directional/index.json',import.meta.url);directionalUrl.search=new URL(import.meta.url).search;
-look.directional=createDirectionalArt({manifestUrl:directionalUrl.href});
+// The 3D character is a lazy presentation module, shared with the dev viewer.
+look.rigReady=import('./render/rigged-character.js').then(({createRiggedCharacter})=>{
+  look.rig=createRiggedCharacter();return look.rig;
+}).catch(error=>{look.rigError=String(error);return null;});
 
 // The developer viewer boots before loading or connecting any player world.
 if (new URLSearchParams(location.search).has('autoplay')) {

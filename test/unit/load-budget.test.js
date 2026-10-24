@@ -56,6 +56,9 @@ test('the first load is few requests and fits the size budget', (t) => {
   // Size and count of everything a fresh browser fetches before the game starts.
   const css = [...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
   const urls = [...new Set([...css, ...modules, ...preloaded])];
+  const rigKB=gzipSync(file('src/game/render/rigged-character.js')).length/1024;
+  t.diagnostic(`lazy 3D character: ${rigKB.toFixed(1)} KB gzipped`);
+  assert.ok(rigKB<=180, 'lazy 3D presentation module exceeds its 180 KB budget');
   const kb = (gzipSync(page).length + urls.reduce((n, u) => n + gzipSync(file(u)).length, 0)) / 1024;
   t.diagnostic(`first load: ${urls.length + 1} requests, ${kb.toFixed(1)} KB gzipped`);
   assert.ok(urls.length + 1 <= MAX_REQUESTS, `${urls.length + 1} requests at first load (max ${MAX_REQUESTS})`);

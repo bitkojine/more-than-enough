@@ -183,7 +183,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
   - `update.js`, `news.js` — the self-update on every deploy, the version badge and the What's new changelog
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
-- `src/vendor/` — other people's code, copied unchanged (the QR code generator)
+- `src/vendor/` — other people's code, copied unchanged: the QR code generator and Three.js r180 (MIT, license in `src/vendor/three/LICENSE`), used by the lazy 3D character renderer
 - `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
 - `index.html`, `style.css` — shell and mobile-first styling
 - `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)

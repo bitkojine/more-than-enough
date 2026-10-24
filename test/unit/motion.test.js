@@ -59,3 +59,14 @@ test('locomotion ignores layer transitions, teleports and suspended frames',()=>
   time=100;const v=a.view(true,{x:100.6,y:0,z:-1});
   assert.equal(v.stride,0);assert.equal(v.walking,false);assert.equal(v.clock,100);
 });
+
+
+test('rig locomotion holds between simulation samples and settles without inventing travel',()=>{
+  let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});
+  time=.1;const moved=a.view(true,{x:.3,y:0,z:0});assert.ok(moved.walkBlend>0);
+  time=.11;const same=a.view(true,{x:.3,y:0,z:0});assert.equal(same.walking,false);
+  assert.equal(same.rigStride,moved.rigStride);assert.ok(same.walkBlend>=moved.walkBlend,'no idle flash between ticks');
+  let stopped;for(let i=1;i<=40;i++){time=.11+i/60;stopped=a.view(false,{x:.3,y:0,z:0});}
+  assert.equal(stopped.walkBlend,0);assert.equal(stopped.rigStride,moved.rigStride);
+  time+=.01;const jumped=a.view(true,{x:100,y:0,z:0});assert.equal(jumped.walkBlend,0);
+});

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.139.0": "Oranžinis keliautojas dabar turi trimatį skeletą: sklandžiai eina ir sukasi visomis kryptimis tame pačiame pasaulyje. Ši pirmoji versija be įrangos modelių; jie bus pridėti vėliau.",
   "news.0.138.2": "Ėjimo animacija dar dešimt kartų lėtesnė. Judėjimo greitis nepasikeitė.",
   "news.0.138.1": "Ėjimo animacija dabar atkuriama perpus lėčiau, todėl žingsniai ramesni. Judėjimo greitis nepasikeitė.",
   "news.0.138.0": "Keliautojas dabar žvelgia aštuoniomis kryptimis, kiekvienai skirta šešiolika ėjimo piešinių. Rinkdamas ir statydamas atsisuka į tikslą. Ši pirmoji versija vaizduoja tuščias rankas; įrankių ir nešimo piešiniai bus pridėti vėliau.",

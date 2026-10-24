@@ -133,5 +133,6 @@
     "sources": "art/characters/directional/clips.json",
     "runtime": "packs/directional/index.json",
     "fullProductionAcceptance": false
-  }
+  },
+  "workflowStatus": "retired: owner switched to 3D skeletal character on 2026-10-24"
 }

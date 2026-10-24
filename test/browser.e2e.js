@@ -130,7 +130,7 @@ async function main() {
   // headless chrome
   var profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-chrome-'));
   var chrome = cp.spawn(CHROME, [
-    '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
@@ -284,54 +284,52 @@ async function main() {
   var results = {};
 
   /* ------------------------------------------------------------- boot */
+  if(process.env.MTE_NO_WEBGL==='1')await cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:"const originalGetContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'?null:originalGetContext.call(this,type,...args)}"},session);
   console.log('\n== Boot & render ==');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
   await evalJS('localStorage.clear()');
-  if(process.env.MTE_DIRECTION_ONLY==='1'){
-    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1200,height:900,deviceScaleFactor:1,mobile:false},session);
+  if(process.env.MTE_NO_WEBGL==='1'){
+    eq(await evalJS('(async()=>await MTE_GAME.look.rigReady===null)()'),true,'unavailable WebGL selects the static fallback');
+    ok(await evalJS('MTE_GAME.bench(2)>0'),'the original world renderer keeps drawing');
+    eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
+    console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
+  if(process.env.MTE_RIG_ONLY==='1'){
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1150,deviceScaleFactor:1,mobile:false},session);
     const review=await evalJS(`(async()=>{
+      const rig=await MTE_GAME.look.rigReady;if(!rig)throw Error(MTE_GAME.look.rigError||'Rig unavailable');
       const {drawPlayer}=await import('./src/game/render/sprites.js');
-      const dirs=['n','ne','e','se','s','sw','w','nw'],vectors=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
-      const look=MTE_GAME.look,base=MTE_GAME.getState();
-      const clips=await Promise.all(dirs.map(d=>look.directional.load('bare','walk',d)));
-      const canvas=document.createElement('canvas');canvas.width=1200;canvas.height=900;
-      canvas.style='position:fixed;inset:0;z-index:99999;width:1200px;height:900px';document.body.append(canvas);
-      const g=canvas.getContext('2d');g.fillStyle='#252b2b';g.fillRect(0,0,1200,900);g.font='18px system-ui';
-      let count=0;const frames=[];
-      for(let phase=0;phase<16;phase++){g.fillStyle='#252b2b';g.fillRect(0,0,1200,900);
-      for(let i=0;i<8;i++){
-        const clip=clips[i];if(!clip||clip.pics.length!==16||new Set(clip.pics.map(p=>p.rect.join(','))).size!==16)throw Error('Missing sixteen-frame direction '+dirs[i]);
-        for(const pic of clip.pics){const b=look.bitmap(pic,160),data=b.getContext('2d').getImageData(0,0,b.width,b.height).data;
-          if(!data.some((n,j)=>j%4===3&&n>128))throw Error('Empty direction '+dirs[i]);if(phase===0)count++;}
-        const x=150+(i%4)*300,y=360+Math.floor(i/4)*420;
-        g.fillStyle='#eee8db';g.fillText(dirs[i].toUpperCase()+' — rest / walk',x-115,y-270);
-        const state={...base,emptyStart:true,player:{x:.5,y:.5,z:0},tools:{basket:0,pickaxe:0,boots:0,overclock:0},cultivation:null};
-        for(let col=0;col<2;col++){
-          const sx=x-65+col*130;g.strokeStyle='#718079';g.beginPath();g.moveTo(sx-55,y+1);g.lineTo(sx+55,y+1);g.stroke();
-          drawPlayer(g,{tilePx:128,depthPx:64,z:0,project:()=>({x:sx,y})},state,look,{facing:{x:vectors[i][0],y:vectors[i][1]},moving:!!col,sign:0,device:null,actor:{act:null,t:0,idle:0,clock:0,stride:phase/16,walking:!!col}});
-        }
+      const canvas=document.createElement('canvas');canvas.width=1440;canvas.height=1150;canvas.id='__rigReview';canvas.style='position:fixed;inset:0;z-index:99999;width:1440px;height:1150px';document.body.append(canvas);
+      const g=canvas.getContext('2d'),look=MTE_GAME.look,base=MTE_GAME.getState();
+      g.fillStyle='#293232';g.fillRect(0,0,1440,1150);g.font='20px system-ui';g.fillStyle='#eee7d5';g.fillText('Actual game renderer — articulated 3D wanderer',35,35);
+      const dirs=['N','NE','E','SE','S','SW','W','NW'],v=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
+      for(let i=0;i<12;i++){
+        const row=Math.floor(i/4),col=i%4,x=180+col*360,y=345+row*365;
+        const direction=i<8?v[i]:[1,0],phase=i<8?0:(i-8)/4;
+        g.fillStyle='#eee7d5';g.fillText(i<8?dirs[i]+' · standing':['Contact A','Passing A','Contact B','Passing B'][i-8],x-100,y-275);
+        g.strokeStyle='#8c998b';g.beginPath();g.moveTo(x-130,y);g.lineTo(x+130,y);g.stroke();
+        drawPlayer(g,{tilePx:250,depthPx:125,z:base.player.z,project:()=>({x,y})},{...base,emptyStart:true,tools:{basket:0,pickaxe:0,boots:0,overclock:0},cultivation:null},look,{facing:{x:direction[0],y:direction[1]},moving:i>=8,sign:0,device:null,actor:{act:null,t:0,idle:0,clock:0,stride:phase,walking:i>=8}});
       }
-      frames.push(canvas.toDataURL('image/png').split(',')[1]);}
-      return {count,stats:look.directional.stats,frames};
+      const pixels=g.getImageData(0,0,1440,1150).data;
+      const probe=document.createElement('canvas');probe.width=256;probe.height=256;const pg=probe.getContext('2d');rig.draw(pg,128,240,160,{facing:{x:1,y:0},phase:.25,walking:true});const alpha=pg.getImageData(0,0,256,256).data;let opaque=0;for(let i=3;i<alpha.length;i+=4)if(alpha[i]>128)opaque++;
+      return {stats:rig.stats,pixels:opaque>1000,pose:rig.inspect()};
     })()`);
-    const cadence=await evalJS(`(async()=>{
-      const {createActor}=await import('./src/game/render/motion.js');
-      const {directionalFrame}=await import('./src/game/render/directional-art.js');
-      const clip=await MTE_GAME.look.directional.load('bare','walk','s');
-      return [30,60,144].map(fps=>{
-        let time=0;const actor=createActor({clock:()=>time});actor.view(false,{x:0,y:0,z:0});
-        let view;for(let i=1;i<=fps;i++){time=i/fps;view=actor.view(true,{x:3.7*i/fps,y:0,z:0});}
-        return {fps,phase:view.stride,frame:clip.pics.indexOf(directionalFrame(clip,view.stride))};
-      });
-    })()`);
-    for(const sample of cadence){ok(Math.abs(sample.phase-3.7/24)<1e-9,'one second advances only 0.154 cycles at '+sample.fps+' FPS');eq(sample.frame,2,'rendered walk reaches frame 2 of 16 after one second at '+sample.fps+' FPS');}
-    eq(review.count,128,'all eight directions decode sixteen raster frames');
-    eq(review.stats.errors.length,0,'no atlas loading errors');
-    ok(review.stats.bytes<=64*1024*1024,'decoded atlases stay within memory budget');
-    await shot('eight-direction-character.png');
-    if(process.env.MTE_RECORD_MOTION==='1'){fs.mkdirSync(path.join(SHOT_DIR,'motion-frames'),{recursive:true});review.frames.forEach((f,i)=>fs.writeFileSync(path.join(SHOT_DIR,'motion-frames',String(i).padStart(3,'0')+'.png'),Buffer.from(f,'base64')));}
-    eq(pageErrors.length,0,'no directional renderer errors');
-    console.log((failures?'DIRECTION BROWSER FAILURES':'DIRECTION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+    ok(review.stats.bones>=17,'character uses a joint hierarchy');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    await shot('rigged-character-review.png');
+    if(process.env.MTE_RECORD_MOTION==='1'){
+      const frames=await evalJS(`(async()=>{
+        const rig=await MTE_GAME.look.rigReady,canvas=document.createElement('canvas');canvas.width=720;canvas.height=480;const g=canvas.getContext('2d'),frames=[];
+        for(let i=0;i<200;i++){
+          g.fillStyle='#293232';g.fillRect(0,0,720,480);g.fillStyle='#eee7d5';g.font='16px system-ui';g.fillText('Same 3D rig · original game scale / close view',25,30);
+          for(const [x,y,u]of [[180,330,64],[490,390,280]]){g.strokeStyle='#899789';g.beginPath();g.moveTo(x-130,y);g.lineTo(x+130,y);g.stroke();rig.draw(g,x,y,u,{facing:{x:1,y:0},phase:i/200,walking:true});}
+          frames.push(canvas.toDataURL('image/png').split(',')[1]);
+        }return frames;
+      })()`);
+      fs.mkdirSync(path.join(SHOT_DIR,'motion-frames'),{recursive:true});frames.forEach((f,i)=>fs.writeFileSync(path.join(SHOT_DIR,'motion-frames',String(i).padStart(3,'0')+'.png'),Buffer.from(f,'base64')));
+      eq(frames.length,200,'captured continuous joint motion across a complete loop');
+    }
+    await evalJS("document.getElementById('__rigReview').remove();MTE_GAME.setZoom(1.8)");await sleep(300);await shot('rig-in-world.png');
+    eq(pageErrors.length,0,'no rig renderer exceptions');console.log((failures?'RIG BROWSER FAILURES':'RIG BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_CHARACTER_ONLY==='1'){
     console.log('\n== Painted character: whole-figure poses at gameplay scales ==');
@@ -431,6 +429,7 @@ async function main() {
     console.log((failures?'ART BROWSER FAILURES':'ART BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_CULTIVATION_RUN){
+    if(process.env.MTE_WEBGL==='1')ok(await evalJS('(async()=>!!await MTE_GAME.look.rigReady)()'),'3D character is available during the restoration win regression');
     const run=JSON.parse(fs.readFileSync(process.env.MTE_CULTIVATION_RUN,'utf8'));
     if(run.result!=='won'||!run.activationSave)throw Error('A completed canonical playtest checkpoint is required');
     await evalJS('localStorage.setItem("more-than-enough-save",'+JSON.stringify(run.activationSave)+')');

@@ -32,7 +32,7 @@ export const ACT_TIME = Object.freeze({
 export function createActor({ clock = () => performance.now() / 1000 } = {}) {
   let kind = null, at = 0, n = 0, stillAt = 0, heardN = null;
   const now = clock;
-  let last = null, phase = 0;
+  let last = null, phase = 0, rigPhase = 0, walkBlend = 0;
   const actor = {
     // Starts an act (one of ACTS) now.
     act(k) {
@@ -64,12 +64,22 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
         walking = !!(moving && continuous && distance > 1e-6);
         if (!moving || !continuous) phase = 0;
         else if (walking) phase = (phase + distance / WALK_CYCLE_TILES) % 1;
+        // The latest simulation movement flag remains true between tick samples.
+        // Keep the rig pose there; no-displacement render passes cannot become
+        // an idle flash. Settle the last phase on a real stop without stepping.
+        if(!continuous){rigPhase=0;walkBlend=0;}
+        else {
+          if(walking)rigPhase=phase;
+          const target=moving?1:0;
+          walkBlend+=(target-walkBlend)*(1-Math.exp(-dt*18));
+          if(walkBlend<.001)walkBlend=0;
+        }
         last = {x:position.x,y:position.y,z:position.z,time:t};
       }
 
       if (moving) stillAt = t;
       const busy = kind && t - at < ACT_TIME[kind];
-      return { act: busy ? kind : null, t: busy ? t - at : 0, idle: t - stillAt, clock:t, stride:position?phase:null, walking };
+      return { act: busy ? kind : null, t: busy ? t - at : 0, idle: t - stillAt, clock:t, stride:position?phase:null, rigStride:rigPhase, walkBlend, walking };
     }
   };
   return actor;

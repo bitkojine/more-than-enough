@@ -197,38 +197,39 @@ The fuller 64-drawing animation set intentionally expands startup to about
 tradeoff; additional clips should use asset streaming before continuing to
 expand the initial pack. Frame decoding remains cached, outside the tick loop.
 
-## Confirmed eight-direction frame-by-frame character production
+## Confirmed 3D character rig (2026-10-24)
 
-The owner chose complete frame-by-frame sprites, explicitly accepting the
-large amount of artwork. Keep the existing painted wanderer; do not switch to
-a skeletal puppet, 3D character or icon attachments. Eight directions are
-required: N, NE, E, SE, S, SW, W, NW. Walking faces movement; collecting,
-mining and building face their actual target; stopping retains the last facing.
+The owner superseded the frame-by-frame sprite plan after reviewing incoherent
+walk sequences and the cost of regenerating them. Use one 3D model and skeletal
+rig, preserving the orange hood, cream mask, dark gloves, cream leg wraps and
+shoes. Keep the existing world, renderer, controls and rules. Do not create a
+separate playable prototype. Facing is continuous around the full circle;
+movement and actual action targets determine heading, and stopping retains it.
 
-Consistency is a production requirement: a versioned eight-view model sheet,
-shared camera/palette/proportions/handedness, explicit source-space anchors,
-matched stride phases, named physical loadout variants, sequential drawings,
-recorded timings/contact frames and playback review. Source or metadata changes
-invalidate the review. A master prompt is helpful, but cannot guarantee visual
-consistency without review.
+The first integrated version is an empty-handed rig: seventeen bones, a skinned
+cloak, rounded hood and mask, jointed arms, and two-bone leg IK with alternating
+stance/swing trajectories. A short real-time start/stop blend settles the last
+pose without an idle flash between simulation ticks. Anatomy and proportions are shared across directions.
+No generated frame ordering, silhouette crossfades or per-frame model creation.
+The model's source is `src/game/render/rigged-character.js`; the pure motion
+functions are in `src/game/render/rig-motion.js`. Art guidance is in
+`art/characters/README.md`. Model polish, equipment/cargo attachments and richer
+action performances remain work; this first version is not a claim of finished
+production character art or realistic cloth simulation.
 
-The production contract is `art/characters/production.json`; the workflow and
-acceptance rules are in `art/characters/README.md`. The CLI validates coverage
-and produces reference-bound prompts. The initial matrix contains 216 clips
-across five loadout contexts; further earned equipment tiers and combinations
-must be registered explicitly. Idle/action targets start at 12 drawings and
-walking/construction at 16; these are minimum authoring targets, not proof of
-smoothness. Existing eight-frame side-view artwork remains legacy coverage.
+Presentation observes the existing distance-based phase. The requested slow
+cycle remains 24 world tiles, roughly 6.5 seconds at base speed. Consequently,
+this slow-leg/unchanged-movement combination is stylized and does not claim
+world-space foot locking. IK preserves limb lengths and keeps soles above the
+local ground plane. Animation never changes gameplay timing or simulation state.
 
-Current boundary (0.138.0): the owner approved shipping the bare character
-first, deferring tools and carrying artwork. All eight views have sixteen
-walking drawings and a separate static rest pose, using turnaround-v2.png.
-Actions turn toward actual targets but full directional work animations and
-animated idles remain unfinished. Earned equipment and all game rules remain
-intact. Custom packs and legacy device presentation retain their compatibility
-renderer. This is the existing game, with no separate playable prototype.
+A lazy Three.js module renders onto one reusable WebGL surface, composited at
+the character's normal depth in the 2D world. WebGL failure/context loss uses
+static facing art; custom texture packs retain their compatibility path. The
+module does not enter headless simulations. Keep the initial-load budget, a
+separate 180 KB compressed 3D-module budget, bounded geometry/draw calls, and
+real-client review at native/close scales and across the full motion loop.
 
-Atlases load only when needed, through a bounded decoder queue and 64 MiB
-cache. Walking uses actual travelled distance, with a relaxed full cycle per 24
-world tiles (0.138.2), roughly 6.5 seconds at base walking speed; presentation never advances
-simulation time. The full 216-clip production goal is still incomplete.
+The former 216-clip sprite production matrix is retired, not a remaining
+release requirement. Its sources and texture-pack compatibility tools remain
+available as historical art, not as an active character-production strategy.

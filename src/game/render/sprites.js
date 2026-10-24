@@ -4,7 +4,7 @@
 
 import * as Core from '../../core/index.js';
 import { rgba } from './palette.js';
-import { pose } from './motion.js';
+import { pose, ACT_TIME } from './motion.js';
 import { characterDirection } from './character-direction.js';
 import { directionalFrame } from './directional-art.js';
 import { characterSprite, characterFrame } from './character-sprite.js';
@@ -65,7 +65,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
-    x: p.x, sx, sy, direction:characterDirection(view.facing), flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
+    x: p.x, sx, sy, direction:characterDirection(view.facing), facingVector:view.facing, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
     device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal
   });
 }
@@ -74,8 +74,17 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // picture posed for what they're doing (see motion.js), with what they hold
 // and any tool in hand. `nod` tips them forward a little more (dozing).
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, facingVector=null, flip, moving, water, device, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0 }) {
   const u = cam.tilePx;
+  if(look.rig&&direction&&!look.custom){
+    const motion=pose(actor,{moving,boat:water,steady,time:actor.clock??s.time,seed,equipment});
+    const deck=water?drawBoat(ctx,cam,s,look,x,sx,sy,flip,motion.rock,actor.clock??s.time):0;
+    if(!deck)shadow(ctx,cam,sx,sy,u*.26);
+    ctx.save();
+    if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1)});
+    ctx.restore();if(location)return location;
+  }
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
   const planted=appearance.actionProgress==null&&(!moving||water||actor.walking===false);
   const hasStand=look.has(appearance.id,'stand')&&(!look.overrides(appearance.id)||look.overrides(appearance.id,'stand'));

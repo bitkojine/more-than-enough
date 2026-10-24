@@ -1,6 +1,27 @@
 # Character art production
 
-The chosen approach is complete frame-by-frame painted sprites, including
+## Current: one 3D rig
+
+On 2026-10-24 the owner replaced the sprite-generation strategy with a 3D rig.
+The active model and skeletal hierarchy live in `src/game/render/rigged-character.js`;
+pure gait/IK is in `src/game/render/rig-motion.js`. Preserve the existing orange
+hood, cream mask and outfit. Change shared geometry or motion constraints once,
+then inspect every direction in the game. The rig is bare for this first version;
+equipment, cargo and richer actions need physical models and appropriate joints.
+
+The model is authored as procedural geometry, not a finished imported production
+asset. Three.js r180 is vendored unchanged with its MIT license. One reused
+WebGL surface is composited into the current client. Headless playtests never
+create the 3D renderer. Use `MTE_RIG_ONLY=1 npm run test:e2e` for the browser
+review and add `MTE_RECORD_MOTION=1` to capture a complete continuous loop.
+Shared anatomy and continuous joint evaluation replace the old disconnected
+poses. Frame counts alone are not a motion-quality measure. Numerical
+checks complement, rather than replace, visual review.
+
+## Retired sprite workflow
+
+
+The former approach was complete frame-by-frame painted sprites, including
 separate drawings for all eight directions. A skeletal rig or separately
 attached inventory pictures is not the production target.
 
