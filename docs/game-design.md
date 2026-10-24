@@ -207,10 +207,13 @@ separate playable prototype. Facing is continuous around the full circle;
 movement and actual action targets determine heading, and stopping retains it.
 
 The character uses the 3D rig for spatial posing, not a realistic 3D finish.
-Two-band nearest-filtered toon shading, restrained fixed white lighting,
-flat painted eyes/mask and dark silhouette contours give it an illustrated 2D
-appearance. No specular highlights, rim lighting or filmic tone mapping.
-Contours share the cloak skeleton; geometry and movement remain unchanged.
+Unlit flat-fill shaders use the default world art’s warm orange, ivory and
+dark-brown palette, with bold silhouette contours matching trees and rocks.
+No directional light bands, gradients, specular highlights or filmic tone mapping.
+The shared world lighting overlay still applies after compositing. Contours
+share the cloak skeleton; geometry and movement remain unchanged. References:
+`packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
+`packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
 
 The first integrated version is an empty-handed rig: seventeen bones, a skinned
 cloak, rounded hood and mask, jointed arms, and two-bone leg IK with alternating

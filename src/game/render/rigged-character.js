@@ -13,19 +13,16 @@ export function createRiggedCharacter(){
  const scene=new T.Scene(),model=new T.Group();scene.add(model);
  const camera=new T.OrthographicCamera(-1.146,1.146,1.375,-1.375,.1,30);
  camera.position.set(0,2.8,7);camera.lookAt(0,1.0,0);camera.updateMatrixWorld();
- // Two discrete ink values, no glossy highlights or photographic tone mapping.
- // Lighting stays in camera/world space while the skeleton turns beneath it.
- const bands=new T.DataTexture(new Uint8Array([115,115,255,255]),4,1,T.RedFormat);
- bands.minFilter=T.NearestFilter;bands.magFilter=T.NearestFilter;bands.generateMipmaps=false;bands.needsUpdate=true;
- scene.add(new T.AmbientLight(0xffffff,.28));
- const key=new T.DirectionalLight(0xffffff,2.25);key.position.set(-3,5,6);scene.add(key);
- const material=color=>new T.MeshToonMaterial({color,gradientMap:bands,toneMapped:false});
- const outlineMaterial=new T.MeshBasicMaterial({color:0x302017,side:T.BackSide,toneMapped:false});
+ // Match the default world's painted SVGs: authored flat fills, not light
+ // responses to curved surfaces. The world's day/night overlay still applies
+ // to the composited character together with trees, rocks and buildings.
+ const material=color=>new T.MeshBasicMaterial({color,toneMapped:false});
+ const outlineMaterial=new T.MeshBasicMaterial({color:0x1d1712,side:T.BackSide,toneMapped:false});
  // Expand in local space before Three applies skinning: cloak outlines follow
  // the same bone weights as the cloth, including during turns and actions.
- outlineMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = position + normal * 0.009;');};
- outlineMaterial.customProgramCacheKey=()=> 'wanderer-ink-outline-v1';
- const orange=material(0xe95b0f),inner=material(0x30231c),black=material(0x282723),cream=material(0xefe1bc),linen=material(0xded4b7),thread=material(0xf5e3b8);
+ outlineMaterial.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = position + normal * 0.026;');};
+ outlineMaterial.customProgramCacheKey=()=> 'wanderer-flat-outline-v2';
+ const orange=material(0xc8743a),inner=material(0x1d1712),black=material(0x3a2a1c),cream=material(0xeeeadf),linen=material(0xded4b7),thread=material(0xefe1bc);
  const bones=[],bone=(name,parent,x=0,y=0,z=0)=>{const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);bones.push(b);return b;};
  const root=bone('root',model),hips=bone('hips',root,0,.58),spine=bone('spine',hips,0,.45),neck=bone('neck',spine,0,.25),head=bone('head',neck,0,.32);
  const mesh=(g,m,parent,x=0,y=0,z=0)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;};
@@ -54,8 +51,8 @@ export function createRiggedCharacter(){
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();return g;
  }
  const faceCanvas=document.createElement('canvas');faceCanvas.width=256;faceCanvas.height=512;
- const fg=faceCanvas.getContext('2d'),paper=fg.createLinearGradient(0,0,0,512);paper.addColorStop(0,'#fff2dc');paper.addColorStop(1,'#f2dfbf');fg.fillStyle=paper;fg.fillRect(0,0,256,512);
- fg.fillStyle='#171411';for(const x of [-.085,.085]){fg.beginPath();fg.ellipse((x+.3)/.6*256,(.4-.045)/.8*512,.030/.6*256,.059/.8*512,0,0,Math.PI*2);fg.fill();}
+ const fg=faceCanvas.getContext('2d');fg.fillStyle='#efe1bc';fg.fillRect(0,0,256,512);
+ fg.fillStyle='#1d1712';for(const x of [-.085,.085]){fg.beginPath();fg.ellipse((x+.3)/.6*256,(.4-.045)/.8*512,.030/.6*256,.059/.8*512,0,0,Math.PI*2);fg.fill();}
  const faceMap=new T.CanvasTexture(faceCanvas);faceMap.colorSpace=T.SRGBColorSpace;faceMap.anisotropy=4;
  const faceMaterial=new T.MeshBasicMaterial({map:faceMap,toneMapped:false});
  mesh(faceGeometry(1.22,0,1),inner,head,0,0,-.012);
@@ -132,6 +129,6 @@ export function createRiggedCharacter(){
   },
   inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y};},
   get stats(){return {renders,bones:bones.length,skinnedMeshes:2,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){bands.dispose();faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

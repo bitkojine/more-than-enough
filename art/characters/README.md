@@ -10,10 +10,13 @@ then inspect every direction in the game. The rig is bare for this first version
 equipment, cargo and richer actions need physical models and appropriate joints.
 
 The character uses the 3D rig for spatial posing, not a realistic 3D finish.
-Two-band nearest-filtered toon shading, restrained fixed white lighting,
-flat painted eyes/mask and dark silhouette contours give it an illustrated 2D
-appearance. No specular highlights, rim lighting or filmic tone mapping.
-Contours share the cloak skeleton; geometry and movement remain unchanged.
+Unlit flat-fill shaders use the default world art’s warm orange, ivory and
+dark-brown palette, with bold silhouette contours matching trees and rocks.
+No directional light bands, gradients, specular highlights or filmic tone mapping.
+The shared world lighting overlay still applies after compositing. Contours
+share the cloak skeleton; geometry and movement remain unchanged. References:
+`packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
+`packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
 
 The model is authored as procedural geometry, not a finished imported production
 asset. Three.js r180 is vendored unchanged with its MIT license. One reused

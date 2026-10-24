@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.139.3] - 2026-10-24
+
+- Matched the character to the default world art: flat painted fills, warm
+  orange and brown palette, stronger contours and solid ivory face.
+- Removed directional shading and face gradients; the world’s shared lighting
+  overlay still affects the character. Skeletal motion stays unchanged.
+
 ## [0.139.2] - 2026-10-24
 
 - Changed the rigged wanderer to two-tone cel shading with ink contours,
