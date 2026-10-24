@@ -155,3 +155,8 @@ cached exposed specimen or sealed container and a protective two-hand pose.
 Review records and the current walk clip live in `art/characters/rig-review/`.
 These are evidence of bounded rendering and reviewed poses, not a claim of final
 art quality or world-space foot locking. Other equipment coverage is unfinished.
+
+The v0.143.1 foot correction uses rounded, ring-built work-boot geometry with
+a narrower heel and curved instep. Thin brown soles replace the earlier square
+cream platforms. Existing ankle pivots and the gait clearance envelope remain.
+The retained walk review is regenerated from this geometry.

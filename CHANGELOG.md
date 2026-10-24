@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.143.1] - 2026-10-24
+
+- Reshaped Mica's rectangular shoes as rounded work boots with narrower heels,
+  curved insteps and slim brown soles instead of square cream platforms.
+- Preserved the existing ankle pivot, walk timing, foot-clearance envelope,
+  eight directions and flat illustrated materials.
+
+
 ## [0.143.0] - 2026-10-24
 
 - Introduced Mica, the Mender as the wanderer's working identity, with a full

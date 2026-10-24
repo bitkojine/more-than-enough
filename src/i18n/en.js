@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.143.1": "Mica’s boots now have rounded toes, narrower heels and a curved instep, with thin brown soles instead of square cream platforms.",
   "news.0.143.0": "Meet Mica, the Mender. A softer hood, compact proportions, sturdy boots and a repaired coat bring the wanderer closer to the illustrated world. Curious idle gestures, blinking and careful crystal-carrying poses add personality. Inspect him to learn who he is.",
   "help.resource.mycelium": "Surface-grown fibres for bindings, cultivation beds and flexible building parts.",
   "help.resource.stone": "Gather surface stone for foundations, workshops and chamber walls.",

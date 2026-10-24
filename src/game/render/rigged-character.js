@@ -109,18 +109,30 @@ export function createRiggedCharacter(){
   ellipsoid(hand,black,0,-.02,0,.108,.115,.087);ellipsoid(hand,black,-side*.076,-.005,.040,.040,.060,.040);
   return {upper,lower,hand};
  }
- function shoeGeometry(width,length,depth){
-  const x=-width/2,y=-length*.67,r=.04,shape=new T.Shape();
-  shape.moveTo(x+r,y);shape.lineTo(x+width-r,y);shape.quadraticCurveTo(x+width,y,x+width,y+r);shape.lineTo(x+width,y+length-r);shape.quadraticCurveTo(x+width,y+length,x+width-r,y+length);shape.lineTo(x+r,y+length);shape.quadraticCurveTo(x,y+length,x,y+length-r);shape.lineTo(x,y+r);shape.quadraticCurveTo(x,y,x+r,y);
-  const g=new T.ExtrudeGeometry(shape,{depth,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.009,bevelThickness:.008,curveSegments:12});g.rotateX(-Math.PI/2);g.computeVertexNormals();return g;
+ // Rounded boot lasts: broad toe, narrower heel and a curved instep. Rings
+ // replace the old extruded rectangle; all points stay inside the existing
+ // conservative ankle/sole clearance envelope used by the walk solver.
+ function shoeGeometry(width,length,height,{sole=false}={}){
+  const rings=sole?[[.96,0,0],[1,.35,0],[.99,.8,0],[.96,1,0]]:[[1,0,0],[.99,.32,-.005],[.88,.68,-.03],[.63,.91,-.09],[.31,1,-.12]];
+  const points=[],indices=[],segments=32;
+  for(const [scale,h,shift]of rings)for(let i=0;i<=segments;i++){
+   const a=i/segments*Math.PI*2,c=Math.cos(a),heel=.78+.22*(c+1)/2;
+   const x=Math.sin(a)*width*.5*heel*scale,z=length*(.17+shift)+c*length*.5*scale;
+   points.push(x,h*height+(sole?.006*Math.max(0,c)**2:0),z);
+  }
+  for(let j=0;j<rings.length-1;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;indices.push(a,a+1,b,a+1,b+1,b);}
+  const bottom=points.length/3;points.push(0,0,length*.17);const top=points.length/3;points.push(0,height,length*.05);
+  for(let i=0;i<segments;i++){indices.push(bottom,i+1,i);const a=(rings.length-1)*(segments+1)+i;indices.push(top,a,a+1);}
+  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(points,3));g.setIndex(indices);g.computeVertexNormals();return g;
  }
+ const soleMaterial=material(0x66503c);
  function leg(side){
   const upper=bone(side>0?'leftThigh':'rightThigh',hips,side*.125,0,0),lower=bone(side>0?'leftShin':'rightShin',upper,0,-LEG_LENGTH,0),foot=bone(side>0?'leftFoot':'rightFoot',lower,0,-LEG_LENGTH,0);
   mesh(new T.CylinderGeometry(.083,.074,LEG_LENGTH,24),black,upper,0,-LEG_LENGTH/2,0);
   mesh(new T.CylinderGeometry(.074,.066,LEG_LENGTH-.025,24),linen,lower,0,-LEG_LENGTH/2,0);
   for(let i=0;i<4;i++){const band=mesh(new T.TorusGeometry(.073-i*.0015,.0035,6,32),cream,lower,0,-.045-i*.05,0);band.rotation.x=Math.PI/2+.04;}
-  mesh(shoeGeometry(.24,.30,.024),cream,foot,0,-.078,0);
-  const shoe=mesh(shoeGeometry(.23,.285,.050),black,foot,0,-.049,0);ink(shoe.geometry,foot,0,-.049,0);
+  mesh(shoeGeometry(.205,.30,.022,{sole:true}),soleMaterial,foot,0,-.086,0);
+  const shoe=mesh(shoeGeometry(.19,.25,.062),black,foot,0,-.055,0);ink(shoe.geometry,foot,0,-.055,0);
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);

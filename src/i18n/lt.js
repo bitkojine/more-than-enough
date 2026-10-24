@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.143.1": "Mica batai dabar turi apvalius priekius, siauresnius kulnus ir išlenktą keltį. Kvadratines šviesias platformas pakeitė ploni rudi padai.",
   "news.0.143.0": "Susipažinkite su Mica, Taisytoju. Minkštesnis gobtuvas, kompaktiškos proporcijos, tvirti batai ir lopytas apsiaustas priartina klajūną prie piešto pasaulio. Smalsūs judesiai ramybės metu, mirksėjimas ir atsargus kristalo nešimas suteikia jam charakterio. Apžiūrėkite jį, kad sužinotumėte daugiau.",
   "help.resource.mycelium": "Paviršiuje augantys pluoštai rišimui, auginimo lysvėms ir lanksčioms statinių dalims.",
   "help.resource.stone": "Paviršiuje rinkite akmenį pamatams, dirbtuvėms ir kamerų sienoms.",

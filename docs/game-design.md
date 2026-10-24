@@ -471,3 +471,10 @@ description. The full backstory remains a provisional development brief; no
 new narrative quests, dialogue or machine ending have been added. The existing
 compatibility sprites remain for custom packs, legacy friends and WebGL fallback.
 Review personality at real world scale as well as in enlargements.
+
+
+The owner found Mica's feet too box-like. The v0.143.1 presentation replaces
+the extruded rectangular shoes with rounded boot lasts: a smooth toe, narrower
+heel and curved instep over a slim brown sole. Ankle pivots, facing, movement
+and action timing remain the same. Geometry stays inside the gait's existing
+conservative foot-clearance envelope; the footfall solver still owns contact.
