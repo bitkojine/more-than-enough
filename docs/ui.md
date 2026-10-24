@@ -285,7 +285,10 @@ for the mycelium material model, including inventory and small stockpile views.
 ### Optional inspection
 Shared tooltips in `src/game/tooltips.js` appear after 400ms hovering over
 icons, controls or explored terrain/buildings; keyboard focus shows control
-information immediately. Names and descriptions come from the localized core
+information immediately. In the world they speak only when there is something
+to say: buildings, deposits with some left, finds and ways between layers, each
+with its name and one short line (plus the tool it needs while the player lacks
+it). Plain ground, dug tunnels, rock, walls and water show nothing. Names and descriptions come from the localized core
 catalog, with resource-specific uses. This owner-requested on-demand learning
 layer supersedes the earlier rule that explanations belong only in the wiki;
 the normal HUD remains concise. Escape, interaction, scrolling and leaving the

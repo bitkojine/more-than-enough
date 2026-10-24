@@ -714,8 +714,9 @@ soloControls.addEventListener('click',e=>{
  if(next){game.replace(next);refreshSoloControls();}
 });
 
-// A small hook so the browser tests can inspect and adjust the real game.
 createTooltips({canvas:el.canvas,cam,state:()=>game.state});
+
+// A small hook so the browser tests can inspect and adjust the real game.
 
 window.MTE_GAME = {
   core: Core,

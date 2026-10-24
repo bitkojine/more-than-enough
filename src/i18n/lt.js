@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.146.0": "Rodant į daiktus pasaulyje – ramiau: paprasta žemė ir tavo iškasti tuneliai nebeiššoka su užrašu. Ką nors pasako tik telkiniai, radiniai, keliai tarp sluoksnių ir pastatai, paprastais žodžiais, o telkinys pasako, jei jam dar reikia geresnio įrankio.",
   "news.0.145.0": "Žaidimas atsidaro daug greičiau: dabar jis atsisiunčia maždaug ketvirtadalį to, ką anksčiau, nes išvalyti seni veikėjo piešiniai. Žaidime niekas nebesinešioja ekrano. Senesniuose pasauliuose Mica vietoj jų nešasi žibintą, o baterija dabar yra žibinto įkrova: ji vis dar senka tamsoje ir prisipildo prie plaukiojančių saulės plokščių ir vandens ratų.",
   "news.0.144.0": "Mica dabar kasa abiem rankomis laikydamas įrankio kotą, renka į pagamintą krepšį ir statydamas atlaisvina rankas. Įsigytas žibintas matomas ant diržo. Kartojant rinkimą judesys užbaigiamas, o ne pradedamas iš naujo jo viduryje.",
   "news.0.143.2": "Mica dabar turi vientisą tamsų viso silueto kontūrą, įskaitant rankas, kojų apvijas, apvalius batus ir nešamus daiktus. Kontūras išlieka nuoseklus sukantis, einant ir dirbant.",
@@ -435,7 +436,8 @@ export default {
   "group.color": "Spalvos",
   "group.color.blurb": "Tamsa, debesys ir šviesa.",
 
-  "tileDoes.walkSlow": "Galima eiti, bet lėtai; per vandenį plauki valtimi.",
+  "tileDoes.walkSlow": "Lėtai: per vandenį plauki valtimi.",
+  "tileHint.find": "Radinys: vienu kasimu iškart gausi {loot}.",
   "reason.gear": "Reikia: {tool}, lyg. {lv}",
   "sheet.opens": "Atveria: {what}",
   "door.ore": "rūda",
@@ -445,14 +447,13 @@ export default {
   "door.water": "vanduo",
   "tileDoes.needs": "Reikia: {tool}, lyg. {lv}.",
   "tileDoes.deepShaft": "Nuo {from} sluoksnio ir giliau reikia: {tool}, lyg. {lv}.",
-  "tileDoes.walk": "Galima vaikščioti.",
   "tileDoes.solid": "Kieta uoliena, kol jos neiškasi.",
   "tileDoes.impassable": "Neįveikiama.",
   "tileDoes.spent": "Niekada neatauga: ką surenki, to nebelieka, tad naujų telkinių ieškok tyrinėdamas.",
   "tileDoes.forage": "Jo medžiai niekada nekertami: renki miško paklotę, o medžiai lieka stovėti.",
   "tileDoes.land": "Ant jo galima statyti keitiklius.",
   "tileDoes.descend": "Kelias žemyn į sluoksnį apačioje.",
-  "tileDoes.rise": "Kopėčios aukštyn iki viršutinio sluoksnio kelio žemyn.",
+  "tileDoes.rise": "Kopėčios aukštyn į viršutinį sluoksnį.",
   "tileDoes.shaft": "Kelias žemyn į sluoksnį apačioje, kai jį atidarai vienu kasimu.",
   "tileDoes.cave": "Tik pro jas, išbarstytas po mišką, pateksi į kasyklą: žemyn kasti negali.",
   "tileDoes.bedrock": "Neiškasama.",

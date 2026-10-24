@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.146.0] - 2026-10-24
+
+- World hover tooltips speak only when there is something to say (Watch:
+  "it describes everything I hover over, even the tunnel I just dug"). Plain
+  ground, tunnels, soil, rock, walls, water and the home square stay quiet;
+  deposits with some left, finds, ways between layers and buildings show their
+  name and one short line (`tileHint` in `src/core/catalog.js`). A deposit adds
+  the tool it needs only while you lack it. Emptied deposits say nothing.
+- The catalog no longer calls ground "Walkable" (wiki and tooltips alike).
+
+
 ## [0.145.0] - 2026-10-24
 
 - First load is 262 KB gzipped, down from 1148 KB. The painted 2D character

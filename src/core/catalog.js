@@ -68,7 +68,7 @@ function tileDoes(type) {
   const info = TILE_INFO[type];
   const out = [];
   if (info.swim) out.push(t('tileDoes.walkSlow'));
-  else if (info.walk) out.push(t('tileDoes.walk'));
+  else if (info.walk) { /* ground you walk on goes without saying */ }
   else if (info.solid) out.push(t('tileDoes.solid'));
   else out.push(t('tileDoes.impassable'));
   if (info.res) out.push(t('tileDoes.yields', { res: RESOURCE_OF[info.res] }));
@@ -93,6 +93,19 @@ function tileDoes(type) {
   if (info.height >= 1) out.push(t('tileDoes.tall'));
   if (type === T.HOME) out.push(t('tileDoes.home'));
   return out.join(' ');
+}
+
+// The one line worth saying about a tile when someone points at it in the
+// world, or null for plain ground, tunnels and walls: what gathering it gives,
+// what a find holds, or where a way between layers leads.
+export function tileHint(type) {
+  const info = TILE_INFO[type];
+  if (info.find) return t('tileHint.find', { loot: Object.keys(FINDS[type].loot).map((r) => RESOURCE_OF[r]).join(', ') });
+  if (info.res) return t('tileDoes.yields', { res: RESOURCE_OF[info.res] });
+  if (type === T.SHAFT) return t('tileDoes.shaft');
+  if (info.descend) return t('tileDoes.descend');
+  if (info.rise) return t('tileDoes.rise');
+  return null;
 }
 
 function tileSlots(t) {

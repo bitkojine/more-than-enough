@@ -11,8 +11,13 @@ export function describeLook(id){
 export function describeWorld(s,x,y,z){
  if(!Core.isExplored(s.world,x,y,z))return null;
  const facility=Core.cultivationAt(s,x,y,z),building=Core.extractorAt(s,x,y,z);
- const id=facility?Core.CULTIVATION_LOOK[facility.kind]:building?'building.'+building.key:Core.tileLook(Core.tileAt(s.world,x,y,z));
- return describeLook(id);
+ if(facility||building)return describeLook(facility?Core.CULTIVATION_LOOK[facility.kind]:'building.'+building.key);
+ // Ground only speaks up when there is something to it: a deposit with some
+ // left, a find, or a way between layers. Plain ground and dug tunnels stay quiet.
+ const type=Core.tileAt(s.world,x,y,z),info=Core.TILE_INFO[type],hint=Core.tileHint(type);
+ if(!hint||info.harvest&&Core.richness(s.world,x,y,z)<=0)return null;
+ const gear=Core.gearFor(s,x,y,z),short=gear&&(s.tools[gear.tool]||0)<gear.level;
+ return {name:Core.TILE_NAME[type],description:short?hint+' '+t('tileDoes.needs',{tool:Core.TOOLS[gear.tool].name,lv:gear.level}):hint};
 }
 export function createTooltips({canvas,cam,state}){
  const box=document.createElement('div');box.id='inspectTooltip';box.role='tooltip';box.hidden=true;

@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.146.0": "Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.",
   "news.0.145.0": "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",
   "news.0.144.0": "Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.",
   "news.0.143.2": "Mica now has one continuous dark outline around his whole silhouette, including hands, leg wraps, rounded boots and carried objects. It stays consistent while he turns, walks and works.",
@@ -435,7 +436,8 @@ export default {
   "group.color": "Colours",
   "group.color.blurb": "The dark, the clouds and the light.",
 
-  "tileDoes.walkSlow": "Walkable, slowly; you float across in a boat.",
+  "tileDoes.walkSlow": "Slow going: you float across in a boat.",
+  "tileHint.find": "A find: one dig pays out {loot} all at once.",
   "reason.gear": "Needs {tool} Lv {lv}",
   "sheet.opens": "Opens {what}",
   "door.ore": "ore",
@@ -445,14 +447,13 @@ export default {
   "door.water": "the water",
   "tileDoes.needs": "Needs {tool} Lv {lv}.",
   "tileDoes.deepShaft": "From layer {from} down it needs {tool} Lv {lv}.",
-  "tileDoes.walk": "Walkable.",
   "tileDoes.solid": "Solid rock until you dig it out.",
   "tileDoes.impassable": "Impassable.",
   "tileDoes.spent": "Never grows back: what you gather is gone for good, so new deposits are found by exploring.",
   "tileDoes.forage": "Its trees are never cut: you forage the forest floor, and the trees stand for good.",
   "tileDoes.land": "Converters can be built on it.",
   "tileDoes.descend": "A way down to the layer below.",
-  "tileDoes.rise": "A ladder up to the way down of the layer above.",
+  "tileDoes.rise": "A ladder up to the layer above.",
   "tileDoes.shaft": "A way down to the layer below once one dig opens it.",
   "tileDoes.cave": "The only ways into the mine are these, scattered through the forest: you can't dig down.",
   "tileDoes.bedrock": "Cannot be dug.",
