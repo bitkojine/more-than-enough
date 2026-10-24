@@ -203,8 +203,11 @@ The owner superseded the frame-by-frame sprite plan after reviewing incoherent
 walk sequences and the cost of regenerating them. Use one 3D model and skeletal
 rig, preserving the orange hood, cream mask, dark gloves, cream leg wraps and
 shoes. Keep the existing world, renderer, controls and rules. Do not create a
-separate playable prototype. Facing is continuous around the full circle;
-movement and actual action targets determine heading, and stopping retains it.
+separate playable prototype. Displayed facing snaps to eight world directions (N, NE, E, SE, S, SW, W, NW),
+using the existing directional-art sectors. Movement/action vectors select the
+nearest direction; zero input retains the last heading. No interpolation through
+intermediate facing angles. Movement and targeting remain unrestricted; internal
+skeletal articulation and the flat shading remain smooth and unchanged.
 
 The character uses the 3D rig for spatial posing, not a realistic 3D finish.
 Unlit flat-fill shaders use the default world art’s warm orange, ivory and

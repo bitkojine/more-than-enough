@@ -6,7 +6,8 @@ On 2026-10-24 the owner replaced the sprite-generation strategy with a 3D rig.
 The active model and skeletal hierarchy live in `src/game/render/rigged-character.js`;
 pure gait/IK is in `src/game/render/rig-motion.js`. Preserve the existing orange
 hood, cream mask and outfit. Change shared geometry or motion constraints once,
-then inspect every direction in the game. The rig is bare for this first version;
+then inspect every direction in the game. The displayed heading snaps to eight
+world directions, with free movement and smooth internal joint motion. The rig is bare for this first version;
 equipment and cargo still need physical models and appropriate joints.
 The 21-bone rig includes four weighted cloak panels, torso/head counterbalance,
 elbow/wrist follow-through, idle breath and distinct work-action performances.

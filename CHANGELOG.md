@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.140.1] - 2026-10-24
+
+- Snapped the rig’s displayed facing to N, NE, E, SE, S, SW, W and NW, using
+  the same sectors as directional sprite art. Stops retain the last heading.
+- Preserved free movement, action targeting, flat shading and skeletal motion.
+
 ## [0.140.0] - 2026-10-24
 
 - Added torso weight shifts, counterbalancing head motion, articulated elbows

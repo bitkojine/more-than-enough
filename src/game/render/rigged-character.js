@@ -2,6 +2,7 @@
  * Geometry is authored once. Bones/IK own motion; there is no frame atlas. */
 import * as T from '../../vendor/three/three.module.js';
 import {rigPose,LEG_LENGTH} from './rig-motion.js';
+import {characterDirection,CHARACTER_DIRECTIONS} from './character-direction.js';
 const DOWN=new T.Vector3(0,-1,0);
 export function createRiggedCharacter(){
  const canvas=document.createElement('canvas');
@@ -118,7 +119,7 @@ export function createRiggedCharacter(){
  const coatInk=new T.SkinnedMesh(coatGeometry,outlineMaterial);model.add(coatInk);coatInk.bind(skeleton);
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
- let lost=false,renders=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
+ let lost=false,renders=0,direction='s';canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
  function poseLeg(target,rig,hipY){
   const knee=new T.Vector3(0,target.knee.y-hipY,target.knee.z),ankle=new T.Vector3(0,target.foot.y-target.knee.y,target.foot.z-target.knee.z);
   const q1=new T.Quaternion().setFromUnitVectors(DOWN,knee.normalize()),q2=new T.Quaternion().setFromUnitVectors(DOWN,ankle.normalize());
@@ -133,7 +134,10 @@ export function createRiggedCharacter(){
    head.rotation.set(p.headPitch,p.headYaw,p.headRoll);
    clothFront.rotation.x=p.clothFront;clothBack.rotation.x=p.clothBack;
    clothLeft.rotation.z=p.clothLeft;clothRight.rotation.z=p.clothRight;
-   model.rotation.y=Math.atan2(facing.x,facing.y);poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
+   // Use the same eight world sectors as directional sprite art. Only the
+   // displayed heading snaps; movement and action targeting keep their vectors.
+   direction=characterDirection(facing,direction);
+   model.rotation.y=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(direction)*Math.PI/4;poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
    leftArm.upper.rotation.z=.36+p.armSpread;rightArm.upper.rotation.z=-.36-p.armSpread;
    leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm;leftArm.lower.rotation.x=p.leftElbow;rightArm.lower.rotation.x=p.rightElbow;leftArm.hand.rotation.x=p.leftWrist;rightArm.hand.rotation.x=p.rightWrist;
    scene.updateMatrixWorld(true);renderer.render(scene,camera);renders++;
@@ -142,7 +146,7 @@ export function createRiggedCharacter(){
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
   get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
   dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };

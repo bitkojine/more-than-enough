@@ -220,7 +220,7 @@ packs and the legacy compatibility renderer.
 ### Character presentation
 
 The default player uses a 3D skeletal orange wanderer, composited into the
-existing row-sorted 2D world. It faces actual movement/action vectors continuously,
+existing row-sorted 2D world. It snaps movement/action facing to the nearest of eight world directions,
 retains heading when stopped and stands on the existing boat deck. Its hood,
 mask, gloves, leg wraps and shoes retain the established identity. Bones share
 one anatomical model across every direction. Do not add the old procedural

@@ -321,6 +321,22 @@ async function main() {
       return {paintedFacing,stats:rig.stats,pixels:opaque>1000,flatPalette:orangePixels>500&&flatPixels/orangePixels>.80,pose:rig.inspect()};
     })()`);
     ok(review.flatPalette,'cloth is predominantly one flat painted fill');ok(review.paintedFacing.every(n=>n>500),'world-palette orange stays unchanged across all eight headings');ok(review.stats.bones>=21,'character includes four articulated cloak panels');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    const headings=await evalJS(`(async()=>{
+      const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),yaws=[],differences=[];let samePixels=true;
+      for(let i=0;i<8;i++){
+       let first=null;for(const offset of [-.30,.30]){
+        const angle=i*Math.PI/4+offset;g.clearRect(0,0,256,256);
+        rig.draw(g,128,240,160,{facing:{x:Math.cos(angle),y:Math.sin(angle)},phase:.2,walking:true});yaws.push(rig.inspect().yaw);
+        const data=g.getImageData(0,0,256,256).data;if(first){let count=0,max=0;for(let j=0;j<data.length;j++)if(first[j]!==data[j]){count++;max=Math.max(max,Math.abs(first[j]-data[j]));}differences.push({heading:i,count,max});// GPU readback may round a handful of edge channels by one byte.
+        samePixels&&=max<=1&&count<=32;}else first=data;
+       }
+      }
+      const last=rig.inspect().yaw;rig.draw(g,128,240,160,{facing:{x:0,y:0}});
+      return {yaws,samePixels,differences,retained:rig.inspect().yaw===last};
+    })()`);
+    ok(new Set(headings.yaws).size===8&&headings.yaws.every((y,i)=>Math.abs(y/(Math.PI/4)-Math.round(y/(Math.PI/4)))<1e-9&&y===headings.yaws[i-i%2]),'free movement vectors render exactly eight snapped headings');
+    ok(headings.samePixels,'different movement angles within a sector render the same facing'+(headings.samePixels?'':JSON.stringify(headings.differences)));
+    ok(headings.retained,'zero facing retains the last displayed direction');
     const cadence=await evalJS(`(async()=>{const {createActor}=await import('./src/game/render/motion.js');return [30,60,144].map(fps=>{let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});let v;for(let i=1;i<=fps;i++){time=i/fps;v=a.view(true,{x:3.7*i/fps,y:0,z:0});}return {fps,phase:v.rigStride};});})()`);
     for(const sample of cadence)ok(Math.abs(sample.phase-(3.7/2.4%1))<1e-9,'faster walk phase matches base-speed travel at '+sample.fps+' FPS');
     await shot('rigged-character-review.png');
