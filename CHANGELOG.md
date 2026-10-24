@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.142.2] - 2026-10-24
+
+- Enlarged resource HUD icons from 15–17px to 28px on phones and 32px on desktop.
+- Stacked phone counts below their icons; kept compact landscape layouts without shrinking the art.
+- Added shared localized hover/focus tooltips for icons, controls and explored world tiles/buildings; passive resource and shop images support touch inspection.
+- Reused catalog descriptions and indexed world lookups, with no hidden terrain reads or gameplay actions from inspection.
+
 ## [0.142.1] - 2026-10-24
 
 - Simplified the four inventory resource forms for native-size readability,

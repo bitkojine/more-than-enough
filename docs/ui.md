@@ -83,7 +83,7 @@ place it belongs here rather than adding a button where there is room.
 
 ### Resource bar
 - Tapping a chip opens the **earnings statement** at that resource; a small green chart at the bar's end (narrower than a chip) opens it at the top. The bar is the way in: no button of its own (Watch, 2026-10-19).
-- One chip per resource: icon and count on one row, the per-second rate centred under the whole chip. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Past a thousand trillion a number goes scientific and keeps one digit (1e15), so it never grows past four characters either. Below 375px each chip stacks icon over count and leaves the rate out. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.
+- One chip per resource: a 32px icon and count on one row on desktop, the per-second rate centred under the whole chip. At widths up to 600px, a 28px icon sits above the count in a 64px bar, keeping both legible without squeezing counts. Counts and rates are abbreviated to at most three digits (`fmtShort` / `fmtRate` in `src/game/format.js`: 9999, 45k, 4.7M, 12T; Lithuanian K, M, G, T), so the bar fits from 320px up in both languages. Past a thousand trillion a number goes scientific and keeps one digit (1e15), so it never grows past four characters either. Short landscape screens (up to 400px high) use a 50px bar and leave the rate out; icon size is preserved. Text that still doesn't fit is cut with an ellipsis, never spilled into the next chip.
 
 ### The earnings statement
 - A sheet titled *Earnings* with no tabs (`src/game/statement.js`, numbers from `src/core/ledger.js`), live while open. On top a three-way switch, per second, minute or hour, kept on the phone.
@@ -280,3 +280,18 @@ These are offline art choices, with no per-frame lights or simulation work.
 
 The owner selected mushroom caps and stems without exposed root/hypha shapes
 for the mycelium material model, including inventory and small stockpile views.
+
+
+### Optional inspection
+Shared tooltips in `src/game/tooltips.js` appear after 400ms hovering over
+icons, controls or explored terrain/buildings; keyboard focus shows control
+information immediately. Names and descriptions come from the localized core
+catalog, with resource-specific uses. This owner-requested on-demand learning
+layer supersedes the earlier rule that explanations belong only in the wiki;
+the normal HUD remains concise. Escape, interaction, scrolling and leaving the
+window dismiss the tooltip. Its noninteractive surface cannot intercept input.
+On touchscreens, holding a resource chip or passive shop illustration for 550ms
+shows its information and consumes that gesture's click; movement cancels it.
+World/action-button holds retain their gameplay behavior. World lookup rejects
+unexplored cells first, then uses indexed facility/building lookups. It never
+reveals hidden terrain, spends resources, advances time or changes a save.

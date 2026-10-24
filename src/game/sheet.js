@@ -3,8 +3,8 @@
  * tab; src/game/statement.js) and
  * Settings (opened by the gear; its controls are static, in index.html). It
  * renders from state and reports what the player picked through `actions`.
- * Rows carry names, levels, numbers and prices only; what things do is for
- * the player to discover (or read in the wiki). */
+ * Rows keep names, levels, numbers and prices concise. Optional inspection
+ * reuses catalog descriptions; longer explanations remain in the wiki. */
 
 import * as Core from '../core/index.js';
 import { fmt, fmtRate, fmtMult, esc } from './format.js';

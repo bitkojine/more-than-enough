@@ -324,3 +324,11 @@ These are offline art choices, with no per-frame lights or simulation work.
 
 The owner selected mushroom caps and stems without exposed root/hypha shapes
 for the mycelium material model, including inventory and small stockpile views.
+
+
+The owner requests optional tooltips so players can learn what things are by
+inspecting them. Hover/focus explanations share the localized content catalog;
+resources explain their roles, and world inspection is restricted to explored
+terrain and visible buildings. Passive resource/shop illustrations also support
+touch holds; gameplay holds retain their existing actions. This replaces the
+earlier wiki-only explanation restriction while keeping normal play uncluttered.

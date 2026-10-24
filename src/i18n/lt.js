@@ -2,6 +2,12 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "help.resource.mycelium": "Paviršiuje augantys pluoštai rišimui, auginimo lysvėms ir lanksčioms statinių dalims.",
+  "help.resource.stone": "Paviršiuje rinkite akmenį pamatams, dirbtuvėms ir kamerų sienoms.",
+  "help.resource.ore": "Metalas įrankiams, karkasams ir mechanizmams. Naujuose pasauliuose jo telkiniai yra po žeme.",
+  "help.resource.crystal": "Gyvasis kristalas auga giliose, tamsiose ir vėsinamose kamerose. Saugokite jį nuo šviesos ir karščio laikydami, gabendami ir naudodami.",
+
+  "news.0.142.2": "Viršutinės juostos išteklių ikonos didesnės. Užvedę žymeklį ant ikonų, valdiklių ar ištirtos vietovės matysite pavadinimus ir paaiškinimus. Jie rodomi ir pasirinkus valdiklį. Jutikliniame ekrane palaikykite ištekliaus laukelį ar parduotuvės iliustraciją.",
   "news.0.142.1": "Mažos išteklių ikonos aiškesnės: aiškios grybų kepurėlės ir kotai, netaisyklingesnis akmuo, vienas pagrindinis metalo gabalas ir paprastesnė kristalo šaka. Kiekviena ikona turi atskirą rakursą; smulkias briaunų linijas keičia aiškios šviesios ir tamsios plokštumos.",
   "news.0.142.0": "Grįžo šiltesni ankstesni pasaulio piešiniai. Grybiena, akmuo, metalas ir gyvasis kristalas dabar turi bendrus 3D modelius, iš kurių kuriamos derančios plokščios ikonos, telkiniai ir mažos atsargos su aiškiais kontūrais.",
   "news.0.141.0": "Pagamintas kirtiklis dabar matomas keliautojo rankoje ir juda kartu su ja. Visos šešios pakopos turi to paties modelio sugeneruotas ikonas bei skirtingą akmens ar metalo konstrukciją. Renkant rankomis ir kopiant įrankis laikomas ant nugaros.",

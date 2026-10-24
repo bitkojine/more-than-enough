@@ -55,7 +55,7 @@ game they ship with.
 **Design rule:** almost nothing to read in-game. Labels, names, numbers and
 prices are fine, and so is a one-line hint where playtests showed players get
 stuck (why a building can't go here, that holding Gather keeps going);
-sentences that teach belong in the wiki. When you add or
+Long explanations belong in the wiki; optional hover/focus inspection can explain what an icon, control or explored object is without adding permanent HUD text. When you add or
 change a mechanic, update the wiki article that covers it.
 
 **Scale rule:** every tile (block) is 1 m × 1 m × 1 m. Any distance shown

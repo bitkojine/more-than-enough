@@ -295,6 +295,33 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_HELP_ONLY==='1'){
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:375,height:667,deviceScaleFactor:1,mobile:false},session);
+   await sleep(150);
+   eq(await evalJS("document.querySelector('.chip .ic').getBoundingClientRect().width"),28,'phone resource icons remain 28px');
+   const chip=await evalJS("(()=>{const r=document.querySelector('.chip[data-res]').getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()");
+   await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:chip.x,y:chip.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden",2000);
+   ok(await evalJS("!document.getElementById('inspectTooltip').hidden&&document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.RESOURCE_LABEL.mycelium)"),'hover explains the resource');
+   ok(await evalJS("getComputedStyle(document.getElementById('inspectTooltip')).pointerEvents==='none'"),'tooltip cannot intercept game input');
+   await shot('hud-resource-tooltip.png');
+   await evalJS("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
+   ok(await evalJS("document.getElementById('inspectTooltip').hidden"),'Escape dismisses inspection');
+   await evalJS("document.getElementById('btnSettings').focus()");await sleep(60);
+   ok(await evalJS("!document.getElementById('inspectTooltip').hidden&&document.getElementById('btnSettings').getAttribute('aria-describedby').includes('inspectTooltip')"),'keyboard focus exposes accessible control information');
+   await evalJS("document.getElementById('btnSettings').blur()");
+   ok(await evalJS("!document.getElementById('btnSettings').hasAttribute('aria-describedby')"),'focus exit restores accessible description');
+   await evalJS("(()=>{const a=document.querySelector('.chip[data-res]');a.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',clientX:100,clientY:40}));})()");await sleep(650);
+   ok(await evalJS("!document.getElementById('inspectTooltip').hidden"),'passive touch hold opens resource inspection');
+   ok(await evalJS("(()=>{const a=document.querySelector('.chip[data-res]');a.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerType:'touch'}));return !a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));})()"),'inspection hold consumes its click');
+   await evalJS("document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);await sleep(100);
+   eq(await evalJS("document.querySelector('.chip .ic').getBoundingClientRect().width"),32,'desktop resource icons remain 32px');
+   const cell=await evalJS("(()=>{const s=MTE_GAME.getState(),x=Math.floor(s.player.x),y=Math.floor(s.player.y);return MTE_GAME.project(x+.5,y+.5,s.player.z);})()");
+   await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cell.x,y:cell.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden",2000);
+   ok(await evalJS("!document.getElementById('inspectTooltip').hidden"),'explored world terrain is inspectable');
+   eq(pageErrors.length,0,'inspection has no browser exceptions');
+   console.log((failures?'HELP BROWSER FAILURES':'HELP BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_RESOURCE_ONLY==='1'){
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1100,deviceScaleFactor:1,mobile:false},session);
    const result=await evalJS(`(async()=>{

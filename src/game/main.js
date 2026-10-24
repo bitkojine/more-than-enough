@@ -11,6 +11,7 @@ import { createAudio } from './audio.js';
 import { sceneFor } from './music/score.js';
 import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
+import { createTooltips } from './tooltips.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createFresh } from './fresh.js';
@@ -713,6 +714,8 @@ soloControls.addEventListener('click',e=>{
 });
 
 // A small hook so the browser tests can inspect and adjust the real game.
+createTooltips({canvas:el.canvas,cam,state:()=>game.state});
+
 window.MTE_GAME = {
   core: Core,
   look,

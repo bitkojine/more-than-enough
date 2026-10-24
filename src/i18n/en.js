@@ -2,6 +2,12 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "help.resource.mycelium": "Surface-grown fibres for bindings, cultivation beds and flexible building parts.",
+  "help.resource.stone": "Gather surface stone for foundations, workshops and chamber walls.",
+  "help.resource.ore": "Metal for tools, frames and machinery. New worlds place its deposits underground.",
+  "help.resource.crystal": "Living crystal grows in deep, dark, cooled chambers. Protect it from light and heat during storage, transport and use.",
+
+  "news.0.142.2": "Top-bar resource icons are larger. Hover over icons, controls or explored terrain for names and details; focused controls show hints too. Hold a resource chip or a shop illustration to inspect it on a touchscreen.",
   "news.0.142.1": "Resource icons are easier to read at small sizes: clear mushroom caps and stems, a less boxy stone, one dominant metal nodule and a simpler crystal fork. Each icon has its own view; broad, consistent light and dark planes replace noisy facet lines.",
   "news.0.142.0": "The warmer earlier world artwork is back. Mycelium, stone, metal and living crystal now have shared 3D source models, projected into matching flat icons, deposits and small stockpiles with clean drawn outlines.",
   "news.0.141.0": "Earned pickaxes now appear in the wanderer’s hand and swing with the arm. All six tiers have matching model-generated icons, with distinct stone and metal construction. Hand gathering and climbing stow the tool on the back.",

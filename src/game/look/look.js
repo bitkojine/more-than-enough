@@ -258,5 +258,5 @@ export function createLook() {
 
 // An <img> for a thing's icon (or `slot`), for HTML built as strings.
 export function iconHtml(look, id, cls = 'ico', slot = 'icon', level = null) {
-  return `<img class="${cls}" src="${look.src(id, slot, level)}" alt="" draggable="false">`;
+  return `<img class="${cls}" data-help="${id}" src="${look.src(id, slot, level)}" alt="" draggable="false">`;
 }
