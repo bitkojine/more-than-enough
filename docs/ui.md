@@ -237,14 +237,17 @@ share the cloak skeleton; geometry and movement remain unchanged. References:
 
 The initial rig has no rendered tools or cargo attachments. Inventory, earned
 equipment and interactions retain their state. Physical equipment modeling and
-richer action animations follow this first version. Custom character texture
+further action polish remain future work. Custom character texture
 packs and legacy friend poses keep their established alignment and artwork.
 
 `createActor().view(moving, position)` still supplies one real-time clock and
 travelled-distance phase per actor. A full cycle covers 2.4 world tiles, ten times the previous
 walking cadence at the owner's request. Stopping, boats and blocked movement plant the
 feet. Layer changes, jumps over 1.5 tiles and gaps over 250 ms reset the phase.
-The rig evaluates continuous two-bone IK and opposite arm swing; rendering must
+The rig layers torso sway/twist, hood counterbalance, flexing elbows/wrists and
+four skinned cloak panels over continuous leg IK. Idle breath uses presentation
+time; steady sign and boat poses suppress it. Work actions have distinct
+anticipation/contact/recovery, sharing existing action durations. Rendering must
 never advance game ticks. Existing `ACT_TIME` controls action feedback.
 
 The WebGL renderer reuses one 320×384 surface. The 3D module loads separately

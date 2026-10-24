@@ -25,6 +25,7 @@ export function createRiggedCharacter(){
  const orange=material(0xc8743a),inner=material(0x1d1712),black=material(0x3a2a1c),cream=material(0xeeeadf),linen=material(0xded4b7),thread=material(0xefe1bc);
  const bones=[],bone=(name,parent,x=0,y=0,z=0)=>{const b=new T.Bone();b.name=name;b.position.set(x,y,z);parent.add(b);bones.push(b);return b;};
  const root=bone('root',model),hips=bone('hips',root,0,.58),spine=bone('spine',hips,0,.45),neck=bone('neck',spine,0,.25),head=bone('head',neck,0,.32);
+ const clothFront=bone('cloakFront',hips,0,.32),clothBack=bone('cloakBack',hips,0,.32),clothLeft=bone('cloakLeft',hips,0,.32),clothRight=bone('cloakRight',hips,0,.32);
  const mesh=(g,m,parent,x=0,y=0,z=0)=>{const o=new T.Mesh(g,m);o.position.set(x,y,z);parent.add(o);return o;};
  const ellipsoid=(parent,m,x,y,z,rx,ry,rz)=>{const o=mesh(new T.SphereGeometry(1,32,24),m,parent,x,y,z);o.scale.set(rx,ry,rz);return o;};
  function hoodGeometry(){
@@ -63,23 +64,32 @@ export function createRiggedCharacter(){
  const collarPath=[[-.24,0,0],[-.17,-.015,.16],[0,-.10,.23],[.17,-.015,.16],[.24,0,0],[.17,.02,-.15],[0,.025,-.21],[-.17,.02,-.15]].map(p=>new T.Vector3(...p));
  mesh(new T.TubeGeometry(new T.CatmullRomCurve3(collarPath,true),64,.038,10,true),orange,neck);
  const bodyMat=orange.clone();bodyMat.side=T.DoubleSide;
- const positions=[],indices=[],skinIndices=[],skinWeights=[],segments=64,rows=16;
+ const positions=[],indices=[],segments=64,rows=16;
  for(let j=0;j<=rows;j++){
   const t=j/rows,y=.59+t*.66,r=.425-.20*t+.015*Math.sin(t*Math.PI);
   for(let i=0;i<=segments;i++){
    const a=i/segments*Math.PI*2,x=Math.sin(a)*r,z=Math.cos(a)*r*.76;
    positions.push(x,y,z);
-   const upper=Math.min(1,Math.max(0,(t-.25)/.6));skinIndices.push(bones.indexOf(hips),bones.indexOf(spine),0,0);skinWeights.push(1-upper,upper,0,0);
   }
  }
  for(let j=0;j<rows;j++)for(let i=0;i<segments;i++){const a=j*(segments+1)+i,b=a+segments+1;indices.push(a,a+1,b,a+1,b+1,b);}
- const coatGeometry=new T.BufferGeometry();coatGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));coatGeometry.setAttribute('skinIndex',new T.Uint16BufferAttribute(skinIndices,4));coatGeometry.setAttribute('skinWeight',new T.Float32BufferAttribute(skinWeights,4));coatGeometry.setIndex(indices);coatGeometry.computeVertexNormals();
+ // Four weighted skirt panels lag behind the torso. Outline and hem use
+ // exactly the same weights, so decoration cannot float above moving cloth.
+ function clothGeometry(g){
+  const skinIndices=[],skinWeights=[],v=g.attributes.position;
+  for(let i=0;i<v.count;i++){
+   const t=(v.getY(i)-.59)/.66,a=Math.atan2(v.getX(i),v.getZ(i)/.76);
+   const upper=Math.min(1,Math.max(0,(t-.25)/.6)),cloth=(1-upper)*Math.max(0,1-t/.7);
+   const side=Math.abs(Math.sin(a)),front=Math.abs(Math.cos(a)),sum=side+front||1;
+   skinIndices.push(bones.indexOf(hips),bones.indexOf(spine),bones.indexOf(Math.sin(a)>=0?clothLeft:clothRight),bones.indexOf(Math.cos(a)>=0?clothFront:clothBack));
+   skinWeights.push(1-upper-cloth,upper,cloth*side/sum,cloth*front/sum);
+  }
+  g.setAttribute('skinIndex',new T.Uint16BufferAttribute(skinIndices,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(skinWeights,4));return g;
+ }
+ const coatGeometry=new T.BufferGeometry();coatGeometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));coatGeometry.setIndex(indices);coatGeometry.computeVertexNormals();clothGeometry(coatGeometry);
  const coat=new T.SkinnedMesh(coatGeometry,bodyMat);model.add(coat);
- const seamMat=material(0xb34c15);
- const frontSeam=mesh(new T.CylinderGeometry(.004,.004,.62,8),seamMat,hips,0,.32,.268);frontSeam.rotation.x=-.15;
- const hem=new T.InstancedMesh(new T.CylinderGeometry(.0025,.0025,.028,6),thread,44);hips.add(hem);
- const dummy=new T.Object3D();
- for(let i=0;i<44;i++){const a=i/44*Math.PI*2;dummy.position.set(.416*Math.sin(a),.04,.316*Math.cos(a));dummy.rotation.set(0,0,Math.PI/2);dummy.updateMatrix();hem.setMatrixAt(i,dummy.matrix);}
+ const hemGeometry=new T.CylinderGeometry(.420,.425,.012,64,1,true);hemGeometry.scale(1,1,.76);hemGeometry.translate(0,.603,0);clothGeometry(hemGeometry);
+ const hem=new T.SkinnedMesh(hemGeometry,thread);model.add(hem);
  function arm(side){
   const upper=bone(side>0?'leftUpperArm':'rightUpperArm',spine,side*.295,.13,0),lower=bone(side>0?'leftForearm':'rightForearm',upper,0,-.20,0),hand=bone(side>0?'leftHand':'rightHand',lower,0,-.16,0);
   upper.rotation.z=side*.36;
@@ -104,7 +114,7 @@ export function createRiggedCharacter(){
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);
- model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);
+ model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);hem.bind(skeleton);
  const coatInk=new T.SkinnedMesh(coatGeometry,outlineMaterial);model.add(coatInk);coatInk.bind(skeleton);
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
@@ -116,19 +126,24 @@ export function createRiggedCharacter(){
   rig.foot.quaternion.copy(q2).invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),target.foot.pitch));
  }
  return {
-  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0}={}){
+  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false}={}){
    if(lost)return null;
-   const p=rigPose({phase,walking,blend,action,progress});hips.position.y=p.hipY;spine.rotation.x=p.lean;
+   const p=rigPose({phase,walking,blend,action,progress,time,steady});hips.position.y=p.hipY;
+   spine.rotation.set(p.lean,p.twist,p.roll);spine.position.y=.45+p.breath;
+   head.rotation.set(p.headPitch,p.headYaw,p.headRoll);
+   clothFront.rotation.x=p.clothFront;clothBack.rotation.x=p.clothBack;
+   clothLeft.rotation.z=p.clothLeft;clothRight.rotation.z=p.clothRight;
    model.rotation.y=Math.atan2(facing.x,facing.y);poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
-   leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm+p.reach;leftArm.lower.rotation.x=-.10;rightArm.lower.rotation.x=-.10;
+   leftArm.upper.rotation.z=.36+p.armSpread;rightArm.upper.rotation.z=-.36-p.armSpread;
+   leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm;leftArm.lower.rotation.x=p.leftElbow;rightArm.lower.rotation.x=p.rightElbow;leftArm.hand.rotation.x=p.leftWrist;rightArm.hand.rotation.x=p.rightWrist;
    scene.updateMatrixWorld(true);renderer.render(scene,camera);renders++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y};},
-  get stats(){return {renders,bones:bones.length,skinnedMeshes:2,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
   dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

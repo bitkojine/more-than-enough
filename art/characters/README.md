@@ -7,7 +7,11 @@ The active model and skeletal hierarchy live in `src/game/render/rigged-characte
 pure gait/IK is in `src/game/render/rig-motion.js`. Preserve the existing orange
 hood, cream mask and outfit. Change shared geometry or motion constraints once,
 then inspect every direction in the game. The rig is bare for this first version;
-equipment, cargo and richer actions need physical models and appropriate joints.
+equipment and cargo still need physical models and appropriate joints.
+The 21-bone rig includes four weighted cloak panels, torso/head counterbalance,
+elbow/wrist follow-through, idle breath and distinct work-action performances.
+Keep cloak trim and outlines on the same skin weights, and verify action
+endpoints, loop continuity and sole clearance alongside visual motion review.
 
 The character uses the 3D rig for spatial posing, not a realistic 3D finish.
 Unlit flat-fill shaders use the default world art’s warm orange, ivory and

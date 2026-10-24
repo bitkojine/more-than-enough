@@ -320,10 +320,28 @@ async function main() {
       rig.draw(pg,128,240,160,{facing:{x:1,y:0},phase:.25,walking:true});
       return {paintedFacing,stats:rig.stats,pixels:opaque>1000,flatPalette:orangePixels>500&&flatPixels/orangePixels>.80,pose:rig.inspect()};
     })()`);
-    ok(review.flatPalette,'cloth is predominantly one flat painted fill');ok(review.paintedFacing.every(n=>n>500),'world-palette orange stays unchanged across all eight headings');ok(review.stats.bones>=17,'character uses a joint hierarchy');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    ok(review.flatPalette,'cloth is predominantly one flat painted fill');ok(review.paintedFacing.every(n=>n>500),'world-palette orange stays unchanged across all eight headings');ok(review.stats.bones>=21,'character includes four articulated cloak panels');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
     const cadence=await evalJS(`(async()=>{const {createActor}=await import('./src/game/render/motion.js');return [30,60,144].map(fps=>{let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});let v;for(let i=1;i<=fps;i++){time=i/fps;v=a.view(true,{x:3.7*i/fps,y:0,z:0});}return {fps,phase:v.rigStride};});})()`);
     for(const sample of cadence)ok(Math.abs(sample.phase-(3.7/2.4%1))<1e-9,'faster walk phase matches base-speed travel at '+sample.fps+' FPS');
     await shot('rigged-character-review.png');
+    const secondary=await evalJS(`(async()=>{
+      const rig=await MTE_GAME.look.rigReady,canvas=document.getElementById('__rigReview'),g=canvas.getContext('2d');
+      const poses=[];for(const phase of [.15,.55]){rig.draw(g,180,345,250,{phase,walking:true,facing:{x:1,y:0}});poses.push(rig.inspect());}
+      g.fillStyle='#293232';g.fillRect(0,0,1440,1150);g.font='20px system-ui';g.fillStyle='#eee7d5';g.fillText('Actual rig — anticipation, contact and recovery',35,35);
+      const actions=['pick','collect','swing','build'];
+      for(let i=0;i<12;i++){const row=Math.floor(i/4),col=i%4,x=180+col*360,y=345+row*365,action=actions[col],progress=[.22,.55,.82][row];
+       g.fillStyle='#eee7d5';g.fillText(action+' · '+progress,x-100,y-275);rig.draw(g,x,y,250,{action,progress,facing:{x:1,y:1}});}
+      return poses;
+    })()`);
+    ok(secondary[0].cloak.some((a,i)=>Math.abs(a-secondary[1].cloak[i])>.02),'actual skinned cloak follows through between steps');
+    ok(secondary[0].spine.some((a,i)=>Math.abs(a-secondary[1].spine[i])>.02),'actual torso shifts weight between steps');
+    ok(secondary[0].head.some((a,i)=>Math.abs(a-secondary[1].head[i])>.01),'actual hood counterbalances the torso');
+    await shot('rig-action-review.png');
+    await evalJS(`(async()=>{const rig=await MTE_GAME.look.rigReady,g=document.getElementById('__rigReview').getContext('2d');g.fillStyle='#293232';g.fillRect(0,0,1440,1150);g.font='20px system-ui';
+     for(let i=0;i<12;i++){const row=Math.floor(i/4),col=i%4,x=180+col*360,y=345+row*365,action=['cheer','up','down',null][col],progress=[.22,.55,.82][row];g.fillStyle='#eee7d5';g.fillText((action||'idle')+' · '+progress,x-100,y-275);rig.draw(g,x,y,250,{action,progress,time:progress*3,facing:{x:1,y:1}});}})()`);
+    await shot('rig-climb-idle-review.png');
+
+
     if(process.env.MTE_RECORD_MOTION==='1'){
       const frames=await evalJS(`(async()=>{
         const rig=await MTE_GAME.look.rigReady,canvas=document.createElement('canvas');canvas.width=720;canvas.height=480;const g=canvas.getContext('2d'),frames=[];

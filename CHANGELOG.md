@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.140.0] - 2026-10-24
+
+- Added torso weight shifts, counterbalancing head motion, articulated elbows
+  and wrists, idle breathing and four weighted cloak panels with follow-through.
+- Added distinct action poses with anticipation, contact and recovery for
+  gathering, collecting, striking, building, climbing, landing and celebrating.
+- Kept flat world-matched shaders, distance-based cadence, planted-foot IK,
+  and gameplay action timing. Cloak outlines and hem share cloth weights.
+
 ## [0.139.3] - 2026-10-24
 
 - Matched the character to the default world art: flat painted fills, warm

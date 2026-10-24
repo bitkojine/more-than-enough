@@ -1,24 +1,27 @@
 {
-  "version": "0.139.3",
+  "version": "0.140.0",
   "status": "first integrated rig; production model polish remains work",
   "sources": {
-    "src/game/render/rig-motion.js": "e23f1a9223b5e9ef6869e84d16d2d4eb356a3014da80699742e4c6f6f44d58af",
-    "src/game/render/rigged-character.js": "e1e7c62027c79a75d5079073ce632ee43500a97d565504e0582f3667fb3cbbd8",
+    "src/game/render/rig-motion.js": "5fdcc6d390912163d515a7abc91824bf12c673f2a9e6b6e5f831a1aa71a55f6e",
+    "src/game/render/rigged-character.js": "3d7b13c94f8e7b0650d03106fb814fada1a2fc6288b0637a4ac5b8d43711b5e7",
     "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
-    "src/game/render/sprites.js": "d3440a17b5d50c96ed70a8c13c9ffdd863cb0e2a929cc6c2bc89545d1ebc1d35"
+    "src/game/render/sprites.js": "4fc27a6cf7642ed321429d02d20ef15504b1414b6c08676849c243e32594b8b5"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "92ec5615f9c703fc25ba23598fcf59b1aa81494ddcc40c4117483da5f19217de",
+  "playbackSha256": "6c030ed09e221458faed8d86defc9cc5fd1a911c835b92d51d6c95cbd7ccc83f",
   "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
     "same rig in eight directions and both gait halves; opaque WebGL output and geometry/draw-call budgets",
     "current faster phase verified at 30, 60 and 144 FPS",
     "static-facing fallback and restoration regression passed in initial rig release",
-    "one dominant painted cloth fill; exact world-palette orange present in all eight headings; reviewed native in-world view and full loop"
+    "one dominant painted cloth fill; exact world-palette orange present in all eight headings; reviewed native in-world view and full loop",
+    "secondary pose loop continuity, action anticipation/endpoints, crouching IK and idle/steady mode",
+    "actual rendered torso, head and four cloak panel transforms vary through gait",
+    "visual action contact sheets: pick, collect, swing, build, cheer, up, down and idle"
   ],
   "limits": [
-    "bare model only; no physical equipment/cargo models yet",
+    "no physical equipment/cargo models yet; action performances use the bare rig",
     "stylized gait; not a world-space foot-locking system",
     "procedural geometry and materials remain a first playable art pass"
   ],
@@ -32,5 +35,6 @@
     "packs/default/props/oak.svg",
     "packs/default/props/birch.svg",
     "packs/default/characters/wanderer.svg"
-  ]
+  ],
+  "motion": "21 bones, four weighted cloak panels with shared hem/outline skinning; torso/head counterbalance, flexing elbows/wrists, explicit-time idle breath and distinct work performances"
 }

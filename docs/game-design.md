@@ -215,15 +215,23 @@ share the cloak skeleton; geometry and movement remain unchanged. References:
 `packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
 `packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
 
-The first integrated version is an empty-handed rig: seventeen bones, a skinned
+The first integrated version is an empty-handed rig: twenty-one bones, a skinned
 cloak, rounded hood and mask, jointed arms, and two-bone leg IK with alternating
 stance/swing trajectories. A short real-time start/stop blend settles the last
 pose without an idle flash between simulation ticks. Anatomy and proportions are shared across directions.
 No generated frame ordering, silhouette crossfades or per-frame model creation.
+
+The 0.140.0 motion pass adds torso roll/twist, counterbalancing hood motion,
+flexing elbows and wrists, and four weighted cloak panels with delayed gait
+curves. The skinned hem and outline share the cloth weights. Work actions have
+separate anticipation/contact/recovery poses; leg IK compensates for crouching.
+Idle breathing/head motion use explicit presentation time; steady sign/boat
+poses suppress idle motion. All curves are deterministic, bounded and evaluated
+from phase/action progress, without a cloth physics solver or simulation work.
+Walk follow-through fades through the existing start/stop blend.
 The model's source is `src/game/render/rigged-character.js`; the pure motion
 functions are in `src/game/render/rig-motion.js`. Art guidance is in
-`art/characters/README.md`. Model polish, equipment/cargo attachments and richer
-action performances remain work; this first version is not a claim of finished
+`art/characters/README.md`. Model polish and equipment/cargo attachments remain work; this first version is not a claim of finished
 production character art or realistic cloth simulation.
 
 Presentation observes the existing distance-based phase. The owner requested a tenfold cadence increase in 0.139.1:
