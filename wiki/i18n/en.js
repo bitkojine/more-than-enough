@@ -626,11 +626,13 @@ export default {
         wall.</p>
 
       <h2>Digging</h2>
-      <p>Underground, everything is solid and you can only walk through tunnels you dig. The easy way is to <strong>walk into
+      <p>Underground, everything is solid and you can only walk through tunnels you dig, except the small <strong>cave</strong>
+        that opens around you wherever you arrive on a layer, so you always have room to look around. The easy way is to <strong>hold
+        Gather</strong>: it mines the rock around you, a find first, then a seam, then plain rock. You can also <strong>walk into
         the rock</strong>: keep pushing the stick (or holding a direction key) against a wall for <span data-k="DRILL_TIME"></span>
         seconds and the tile in front of you is dug out, so you tunnel as you go. You can also dig a tile by <strong>{phone:tapping|laptop:clicking}</strong>
         it within reach, or with a <strong>Trail</strong> across nearby rock. Bedrock never gives, and a shaft only opens to a
-        deliberate {phone:tap|laptop:click}, or Auto-play digging its way to a find or a shaft. Holding Gather on its own never digs.</p>
+        deliberate {phone:tap|laptop:click}, or Auto-play digging its way to a find or a shaft; holding Gather never opens a shaft.</p>
       <p>Each dig clears one tile into tunnel. Seams pay out like surface deposits, using your Basket or Pickaxe level. Plain
         soil holds nothing: its dirt is tossed aside with a <em>+0</em>, and digging it only clears the way. Tunnels stay
         where you dug them, on every layer.</p>

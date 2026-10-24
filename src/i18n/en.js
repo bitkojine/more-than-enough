@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.148.0": "Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.",
   "news.0.147.0": "You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.",
   "news.0.146.0": "Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.",
   "news.0.145.0": "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",

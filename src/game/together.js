@@ -215,7 +215,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   let retry = 0, retryTimer = null;
   const friends = new Map();  // id -> {c, st, p, shown, heard, since, actor}
   const timers = { pos: 0, beat: 0, edits: 0, save: 0, fog: 0 };
-  let lastPos = '', lastSave = '';
+  let lastPos = '', lastSave = '', sentZ = null; // sentZ: the layer the room last heard you on
   let invite = null;        // {code, until} while the QR is up
   let turnedAway = null;    // why the room said your invite link no longer works
   let signT = 0;            // 0..1: how far up your sign is
@@ -556,7 +556,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (game.state.shared === room) game.state.acts = w.acts ? (game.state.acts || []) : null;
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
-    lastPos = ''; lastSave = '';
+    lastPos = ''; lastSave = ''; sentZ = null;
     if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
     game.changedMode();
@@ -635,13 +635,17 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       if ((pingT -= dt) <= 0) { pingT = PING_EVERY; ws.send(PING); }
     }
     for (const k in timers) timers[k] -= dt;
-    if (timers.pos <= 0) {
+    // A new layer goes to the room at once, before any edit made there (an
+    // arrival opens a cave around you): edits are checked against where the
+    // room last had you.
+    if (timers.pos <= 0 || sentZ !== s.player.z) {
       timers.pos = POS_EVERY;
       const p = s.player, f = game.facing();
       const pos = { x: p.x, y: p.y, z: p.z, fx: f.x, fy: f.y, m: game.moving(), sign: signT > 0, gear: (s.tools.basket > 0 ? 1 : 0) | (s.tools.pickaxe > 0 ? 2 : 0), ...game.act() };
       const text = JSON.stringify(cleanPos(pos));
       if (text !== lastPos || timers.beat <= 0) {
         lastPos = text;
+        sentZ = s.player.z;
         timers.beat = HEARTBEAT;
         send({ t: 'pos', p: cleanPos(pos) });
       }

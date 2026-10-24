@@ -616,11 +616,13 @@ export default {
         grindis, o tavo tuneliai įkirsti į ją. Kasdamas išskaptuoji erdvę uolienoje; sienos niekada nestatai.</p>
 
       <h2>Kasimas</h2>
-      <p>Po žeme viskas kieta, ir vaikščioti gali tik savo iškastais tuneliais. Paprasčiausia – <strong>eiti tiesiai į
+      <p>Po žeme viskas kieta, ir vaikščioti gali tik savo iškastais tuneliais, išskyrus nedidelį <strong>urvą</strong>, kuris
+        atsiveria aplink tave visur, kur atsiduri sluoksnyje, tad visada turi vietos apsidairyti. Paprasčiausia – <strong>laikyti
+        Rinkti</strong>: taip iškasi uolieną aplink save, pirmiausia radinį, tada gyslą, tada paprastą uolieną. Taip pat gali <strong>eiti tiesiai į
         uolieną</strong>: laikyk valdymo svirtelę (arba krypties klavišą) atrėmęs į sieną <span data-k="DRILL_TIME"></span>
         s, ir priešais tave esantis langelis iškasamas, tad tunelį kasi eidamas. Langelį gali iškasti ir <strong>{phone:bakstelėdamas|laptop:spustelėdamas}</strong>
         jį, kai jis pasiekiamas, arba <strong>Taku</strong> per netoliese esančią uolieną. Pamatinė uoliena niekada nepasiduoda, o
-        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip kasama tik tada, kai Autožaidimas prasikasa iki radinio ar šachtos. Vien laikant Rinkti niekas neiškasama.</p>
+        šachta atsiveria tik tyčia {phone:bakstelėjus|laptop:spustelėjus}. Kitaip ji atsiveria tik tada, kai Autožaidimas prasikasa iki radinio ar šachtos; laikant Rinkti šachta niekada neatsiveria.</p>
       <p>Kiekvienas kasimas paverčia vieną langelį tuneliu. Gyslos duoda kaip paviršiaus telkiniai, pagal tavo Krepšio ar
         Kirtiklio lygį. Paprastame grunte nieko nėra: jo žemės nusviedžiamos į šalį su <em>+0</em>, o kasimas tik praskina kelią.
         Tuneliai lieka ten, kur juos iškasei, kiekviename sluoksnyje.</p>

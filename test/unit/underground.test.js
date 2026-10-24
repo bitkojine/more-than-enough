@@ -9,6 +9,15 @@ function neighbours(s) {
   return [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => ({ x: px + dx, y: py + dy, dx, dy }));
 }
 
+// Stands the player on open floor at the edge of the arrival cave, beside a
+// wall of `types` (plain soil by default). Returns that wall tile.
+function atWall(s, types = [T.SOIL]) {
+  const floor = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].walk &&
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => types.includes(typeAt(st, x + dx, y + dy))), 20);
+  standOn(s, floor);
+  return neighbours(s).find((t) => types.includes(typeAt(s, t.x, t.y)));
+}
+
 test('going down the cave mouth you stand in lands at the foot of a ladder back up', () => {
   const s = away(C.createState(31415));
   const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
@@ -24,7 +33,7 @@ test('tunnels must be dug before they can be walked', () => {
   const s = away(C.createState(31415));
   s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
-  const n = neighbours(s).find((t) => typeAt(s, t.x, t.y) !== T.BEDROCK && typeAt(s, t.x, t.y) !== T.SHAFT);
+  const n = atWall(s);
   const start = { ...s.player };
   C.move(s, n.dx, n.dy, 0.3);
   assert.deepEqual([s.player.x, s.player.y], [start.x, start.y], 'solid rock blocks movement');
@@ -53,19 +62,88 @@ test('digging a seam yields its resource; soil and bedrock behave', () => {
   assert.equal(C.harvestAt(s, bedrock.x, bedrock.y), null, 'bedrock cannot be dug');
 });
 
-test('holding Gather never auto-digs; digging is a deliberate choice', () => {
-  const s = away(C.createState(31415));
+test('every arrival underground opens a small cave of the plain soil around it, nothing more', () => {
+  for (const seed of [31415, 5, 2718, 99]) {
+    const s = away(C.createState(seed));
+    const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
+    const before = C.caveTiles(s.seed, fx, fy).map((t) => ({ ...t, type: C.tileAt(s.world, t.x, t.y, -1) }));
+    s.world.edits = [];
+    C.goDown(s);
+    for (const t of before) {
+      const now = typeAt(s, t.x, t.y);
+      if (t.type === T.SOIL) assert.equal(now, T.TUNNEL, `seed ${seed}: soil at ${t.x},${t.y} opened`);
+      else assert.equal(now, t.type, `seed ${seed}: ${t.type} at ${t.x},${t.y} kept as generated`);
+    }
+    const open = before.filter((t) => C.TILE_INFO[typeAt(s, t.x, t.y)].walk).length;
+    assert.ok(open >= 8, `seed ${seed}: room to walk around (${open} tiles)`);
+    assert.ok(s.world.edits.length > 0 && s.world.edits.every((e) => e[0] === 'm' && e[2] === 0), 'kept as saved digs');
+    const edits = s.world.edits.length;
+    C.goUp(s); C.goDown(s);
+    assert.equal(s.world.edits.length, edits, 'coming back opens nothing twice');
+  }
+});
+
+test('holding Gather underground mines around you: finds, then seams, then plain rock', () => {
+  const s = away(C.createState(5));
   C.goDown(s);
-  assert.equal(C.harvestTarget(s), null);
-  assert.equal(C.harvest(s), null);
+  const wall = atWall(s);
+  assert.equal(C.harvestTarget(s), null, 'no pickaxe, no digging');
+  s.tools.pickaxe = 1;
+  const t = C.harvestTarget(s);
+  assert.ok(t, 'with a pick, Gather digs the rock beside you');
+  assert.equal(C.TILE_INFO[typeAt(s, t.x, t.y)].solid, true);
+  assert.ok(C.harvest(s), 'and digs it');
+  // A seam in reach comes before plain rock, a find before both.
+  const seam = findNear(s, (st, x, y) => typeAt(st, x, y) === T.ORE_SEAM, 40);
+  s.tools.pickaxe = 2;
+  C.setRichness(s.world, seam.x, seam.y - 1, -1, 0);
+  C.setRichness(s.world, seam.x - 1, seam.y - 1, -1, 0);
+  standOn(s, { x: seam.x, y: seam.y - 1 });
+  assert.deepEqual(C.harvestTarget(s), { x: seam.x, y: seam.y, res: 'ore' });
+  assert.ok(wall);
+  // A shaft is never dug by holding Gather.
+  const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 60);
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]) C.setRichness(s.world, shaft.x + dx, shaft.y + dy, -1, 0);
+  standOn(s, { x: shaft.x + 1, y: shaft.y });
+  for (let i = 0; i < 20; i++) { const h = C.harvestTarget(s); if (!h) break; assert.notEqual(typeAt(s, h.x, h.y), T.SHAFT); C.harvest(s); }
+  // A wild crystal colony is only taken on purpose, never by holding Gather.
+  const c = away(C.createState(77, { cultivation: true }));
+  c.player.z = -2; c.tools.pickaxe = 3;
+  const geode = findNear(c, (st, x, y) => typeAt(st, x, y) === T.GEODE, 60);
+  for (const [dx, dy] of [[0, -1], [1, -1], [-1, -1], [0, -2]]) C.setRichness(c.world, geode.x + dx, geode.y + dy, -2, 0);
+  standOn(c, { x: geode.x, y: geode.y - 1 });
+  for (let i = 0; i < 12; i++) { const g = C.harvestTarget(c); if (!g) break; assert.notEqual(typeAt(c, g.x, g.y), T.GEODE); C.harvest(c); }
+  assert.equal(typeAt(c, geode.x, geode.y), T.GEODE);
+  // On the surface nothing changes: only deposits you can walk among.
+  const top = away(C.createState(31415));
+  const h = C.harvestTarget(top);
+  assert.ok(!h || !C.TILE_INFO[typeAt(top, h.x, h.y)].solid);
+});
+
+test('in the middle of a cave, Gather heads for the best rock in sight it can walk straight to', () => {
+  const s = away(C.createState(5));
+  C.goDown(s);
+  s.tools.pickaxe = 2;
+  C.revealAround(s);
+  assert.equal(C.harvestTarget(s), null, 'nothing in reach from the middle of the cave');
+  const to = C.nearestDig(s);
+  assert.ok(to, 'but rock in sight');
+  assert.ok(C.isExplored(s.world, to.x, to.y, s.player.z), 'only rock already seen');
+  assert.ok(C.TILE_INFO[typeAt(s, to.stand.x, to.stand.y)].walk, 'from open floor');
+  assert.ok(Math.hypot(to.stand.x - to.x, to.stand.y - to.y) <= C.REACH, 'within reach of it');
+  standOn(s, to.stand);
+  assert.ok(C.canHarvest(s, to.x, to.y));
+  s.tools.pickaxe = 0;
+  standOn(s, { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
+  assert.equal(C.nearestDig(s), null, 'nothing a missing pick could dig');
 });
 
 test('a Trail digs the rock it crosses but never opens a shaft', () => {
   const s = away(C.createState(2718));
   s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
-  const p = s.player;
-  const stroke = [{ x: p.x - 1.5, y: p.y }, { x: p.x + 1.5, y: p.y }];
+  const wall = atWall(s), p = s.player;
+  const stroke = [{ x: p.x, y: p.y }, { x: wall.x + 0.5, y: wall.y + 0.5 }];
   const targets = C.sweepTargets(s, stroke);
   for (const t of targets) assert.notEqual(typeAt(s, t.x, t.y), T.SHAFT);
   assert.ok(targets.length > 0);
@@ -291,7 +369,7 @@ test('underground, pushing into rock drills it after a moment; bedrock and shaft
   s.tools.pickaxe = 1; // explicit legacy basic pick for this digging fixture
   C.goDown(s);
   const progress = { x: 0, y: 0, t: 0 };
-  const n = neighbours(s).find((t) => [T.SOIL, T.STONE_SEAM, T.ORE_SEAM].includes(typeAt(s, t.x, t.y)));
+  const n = atWall(s, [T.SOIL, T.STONE_SEAM]);
   assert.ok(n, 'a diggable wall beside the chamber');
   const steps = Math.floor(C.DRILL_TIME / 0.05) - 1;
   for (let i = 0; i < steps; i++) assert.equal(C.drill(s, progress, n.dx, n.dy, 0.05), null, 'not yet');

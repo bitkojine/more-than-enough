@@ -990,8 +990,12 @@ async function main() {
   eq(await evalJS('[].map.call(document.querySelectorAll("#depthGauge i"),function(i){return i.className||"-";}).join(" ")'), 'forest here deeper', 'the depth gauge shows the forest, you a layer under it, and deeper still');
   eq(await evalJS('document.getElementById("place").hidden ? "" : document.getElementById("place").textContent'), 'UndergroundLayer 1', 'arriving names the layer');
   eq(await evalJS('document.getElementById("mineLabel").textContent'), 'CLIMB UP', 'at the foot of the ladder you came down, the layer button climbs up');
+  eq(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,n=0;c.caveTiles(s.seed,Math.floor(p.x),Math.floor(p.y)).forEach(function(t){if(c.TILE_INFO[c.tileAt(s.world,t.x,t.y,-1)].walk)n++;});return n>=8;})()'), true, 'arriving opens a small cave around you, never just the tile you stand on');
+  // To the cave's edge, beside a wall of plain soil or stone, to dig it.
+  var toWall = '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,d=[[1,0],[-1,0],[0,1],[0,-1]];var t=c.nearestTile(p.x,p.y,20,function(x,y){if(!c.TILE_INFO[c.tileAt(s.world,x,y,-1)].walk)return false;return d.some(function(v){var w=c.tileAt(s.world,x+v[0],y+v[1],-1);return w===c.T.SOIL||w===c.T.STONE_SEAM;});});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);return true;})()';
+  await evalJS(toWall);
   await sleep(120); // let the camera settle on the new layer
-  var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t!==c.T.BEDROCK&&t!==c.T.SHAFT){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
+  var mineSpot = await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()');
   var ms = JSON.parse(mineSpot);
   await tap(ms.sx, ms.sy);
   eq(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' + ms.x + ',' + ms.y + ',-1)===c.T.TUNNEL;})()'), true, 'tapping a nearby tile uses the same Gather action to dig');
@@ -1001,6 +1005,7 @@ async function main() {
   ok((minePosAfter.x - minePos.x) * ms.dx + (minePosAfter.y - minePos.y) * ms.dy > 0.05, 'same thumb joystick moves into the freshly dug underground tunnel');
   eq(minePosAfter.z, -1, 'digging an ordinary tile does not change layers');
   // Drill: holding the stick against a wall digs through it, no tapping.
+  await evalJS(toWall);
   var wall = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);MTE_GAME.setPlayer(px+0.5,py+0.5);var dirs=[[1,0],[-1,0],[0,1],[0,-1]];for(var i=0;i<4;i++){var x=px+dirs[i][0],y=py+dirs[i][1],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM||t===c.T.ORE_SEAM){return JSON.stringify({x:x,y:y,dx:dirs[i][0],dy:dirs[i][1]});}}return "null";})()'));
   ok(!!wall, 'a diggable wall next to the wanderer');
   if (wall) {

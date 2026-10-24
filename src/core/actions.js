@@ -7,7 +7,7 @@ import { startEventEconomy } from './sim.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
-import { tileAt, richness, setRichness, holeBelow, wayUp } from './world.js';
+import { tileAt, richness, setRichness, holeBelow, wayUp, isExplored } from './world.js';
 import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
@@ -96,14 +96,67 @@ function tilesInReach(s) {
   return out.sort((a, b) => a.d2 - b.d2);
 }
 
-// What holding Gather works on: the nearest deposit you can walk among. Solid
-// rock is never auto-targeted; digging is always a deliberate choice.
+// What holding Gather works on: on the surface, the nearest deposit you can
+// walk among. Underground it mines the rock around you (players asked for
+// this, Watch 2026-10-24): a find first, then a seam, then plain rock, nearest
+// first in each. A shaft still needs a deliberate tap, and a wild crystal
+// colony is never taken by holding Gather.
 export function harvestTarget(s) {
+  const z = s.player.z;
+  let best = null, rank = 0;
   for (const t of tilesInReach(s)) {
-    const type = tileAt(s.world, t.x, t.y, s.player.z);
-    if (!TILE_INFO[type].solid && canHarvest(s, t.x, t.y)) return { x: t.x, y: t.y, res: TILE_INFO[type].res };
+    const type = tileAt(s.world, t.x, t.y, z), info = TILE_INFO[type];
+    if (!canHarvest(s, t.x, t.y)) continue;
+    if (!info.solid) return { x: t.x, y: t.y, res: info.res };
+    const r = z === SURFACE ? 0 : digRank(s, t.x, t.y);
+    if (r > rank) { best = { x: t.x, y: t.y, res: info.res || null }; rank = r; }
   }
-  return null;
+  return best;
+}
+
+// Whether holding Gather underground would dig tile (x, y), and how much it
+// is worth to: 3 a find, 2 a seam, 1 plain rock, 0 not at all.
+function digRank(s, x, y) {
+  const type = tileAt(s.world, x, y, s.player.z), info = TILE_INFO[type];
+  if (!info.solid || info.sweep === false || (s.cultivation && type === T.GEODE)) return 0;
+  return info.find ? 3 : info.res ? 2 : 1;
+}
+
+// Whether the straight walk from the player to the middle of tile (x, y)
+// crosses only floor (so walking there can't stall on a wall).
+function clearWalk(s, x, y) {
+  const p = s.player, tx = x + 0.5, ty = y + 0.5;
+  const n = Math.ceil(Math.hypot(tx - p.x, ty - p.y) / 0.25);
+  for (let i = 1; i <= n; i++) {
+    const t = TILE_INFO[tileAt(s.world, Math.floor(p.x + (tx - p.x) * i / n), Math.floor(p.y + (ty - p.y) * i / n), p.z)];
+    if (!t.walk || t.swim) return false;
+  }
+  return true;
+}
+
+// Underground, with nothing to dig in reach (in the middle of a cave): the
+// rock you've seen within `radius` that Gather heads for and digs, the most
+// worth digging first, then the nearest, with `stand`, open floor in reach of
+// it that you can walk straight to. Only rock already seen counts.
+export const DIG_SEEK_RADIUS = 6;
+export function nearestDig(s, radius = DIG_SEEK_RADIUS) {
+  const p = s.player, cx = Math.floor(p.x), cy = Math.floor(p.y);
+  let best = null;
+  for (let y = cy - radius; y <= cy + radius; y++) {
+    for (let x = cx - radius; x <= cx + radius; x++) {
+      if (!isExplored(s.world, x, y, p.z) || !harvestable(s, x, y) || gearNeeded(s, x, y)) continue;
+      const rank = digRank(s, x, y);
+      if (!rank || (best && rank < best.rank)) continue;
+      for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+        const sx = x + dx, sy = y + dy;
+        const d2 = tileDist2(p, sx, sy, p.z);
+        if (best && rank === best.rank && d2 >= best.d2) continue;
+        if (!isExplored(s.world, sx, sy, p.z) || !clearWalk(s, sx, sy)) continue;
+        best = { x, y, stand: { x: sx, y: sy }, rank, d2 };
+      }
+    }
+  }
+  return best && { x: best.x, y: best.y, stand: best.stand };
 }
 
 // How far Explore looks for something to head to, in tiles: about what a

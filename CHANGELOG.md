@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.148.0] - 2026-10-24
+
+- Holding Gather underground mines the rock around you (players asked for it,
+  Watch: "similar to how it collects resources on the surface"): a find
+  first, then a seam, then plain rock, nearest first. A shaft still needs a
+  deliberate tap, and a wild crystal colony is never taken by holding Gather.
+  Before, Gather did nothing underground, and a playtest held it for a minute
+  for zero.
+- Every arrival on an underground layer opens a small cave around you
+  (`caveTiles` in `src/core/underground.js`: the tiles within 2 steps, and
+  some at 3 by the world seed). Every arrival used to land in a one-tile
+  pocket. Only plain soil is cleared, as saved digs, so seams, finds,
+  bedrock, ways and worlds already played keep everything they had; without
+  a pickaxe you can still walk around and climb back up.
+- Shared worlds: a new layer reaches the room at once, before any dig made
+  there, so the arrival cave is never mistaken for digging out of reach.
+
+
 ## [0.147.0] - 2026-10-24
 
 - Zoom reaches much closer (Watch: "we need to be able to zoom in much more

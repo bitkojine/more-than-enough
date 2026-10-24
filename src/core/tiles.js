@@ -7,8 +7,8 @@
  *            (home ground: kept for the stockpile)
  *   swim     walkable, but slow (water)
  *   harvest  gathering works it, lowering its richness by one for good
- *   solid    a harvestable tile you cannot stand on (underground rock); it must
- *            be chosen deliberately with a tap or a Trail, never auto-targeted
+ *   solid    a harvestable tile you cannot stand on (underground rock); holding
+ *            Gather digs the rock around you, finds and seams first
  *   res      the resource a harvest yields (none for plain soil)
  *   forage   what stands on it is never worked out (trees stay standing):
  *            you gather what grows at its foot, and that is what runs out

@@ -8,7 +8,8 @@
  * one within reach. */
 
 import { SURFACE, Z_MIN, tileDist2, packKey, chunkCoord } from './coords.js';
-import { TILE_INFO } from './tiles.js';
+import { T, TILE_INFO } from './tiles.js';
+import { hash2 } from './noise.js';
 import { tileAt, setRichness, holeBelow, wayUp } from './world.js';
 import { REACH, PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
@@ -23,13 +24,41 @@ export function isUnderground(s) {
 const feet = (s) => ({ x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
 
 // Clears the tile at the player's feet (a shaft not yet opened, say) and
-// centres them on it, so a fresh arrival always has room to stand.
+// centres them on it, then opens a small cave around it, so an arrival is
+// never walled into the one tile they stand on, even with no pickaxe yet
+// (Watch, 2026-10-24).
 function arriveAt(s, x, y, z) {
   if (z < SURFACE && !TILE_INFO[tileAt(s.world, x, y, z)].walk) setRichness(s.world, x, y, z, 0);
+  if (z < SURFACE) openCave(s, x, y, z);
   s.player.x = x + 0.5;
   s.player.y = y + 0.5;
   s.player.z = z;
   s.underground.deepest = Math.min(s.underground.deepest, z);
+}
+
+// The arrival cave: every tile within CAVE_RADIUS steps of (x, y), and some
+// one step further out, chosen by the world seed so each cave has its own
+// shape. Only plain soil is cleared: seams, finds, bedrock, shafts and ways
+// stay as generated, so the cave gives nothing away for free. In a saved
+// edit, like any dig, so worlds already played keep everything they had.
+export const CAVE_RADIUS = 2;
+export function caveTiles(seed, x, y) {
+  const out = [];
+  for (let dy = -CAVE_RADIUS - 1; dy <= CAVE_RADIUS + 1; dy++) {
+    for (let dx = -CAVE_RADIUS - 1; dx <= CAVE_RADIUS + 1; dx++) {
+      const d = Math.abs(dx) + Math.abs(dy);
+      if (d <= CAVE_RADIUS || (d === CAVE_RADIUS + 1 && hash2(x + dx, y + dy, seed + 5309) < 0.4)) out.push({ x: x + dx, y: y + dy });
+    }
+  }
+  return out;
+}
+
+function openCave(s, x, y, z) {
+  for (const t of caveTiles(s.seed, x, y)) {
+    if (tileAt(s.world, t.x, t.y, z) !== T.SOIL) continue; // dug soil reads as tunnel
+    if (s.extractors.some((e) => e.x === t.x && e.y === t.y && e.z === z)) continue;
+    setRichness(s.world, t.x, t.y, z, 0);
+  }
 }
 
 // Drops through (x, y) and on through every hole already stacked beneath it.

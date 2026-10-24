@@ -118,13 +118,15 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   }
 
   // Walk to (tx, ty); with `work`, work it once it's in reach.
-  function walkToward(tx, ty, work) {
-    walkTo = { id: ++walkSerial, x: tx + 0.5, y: ty + 0.5, work: work ? { x: tx, y: ty } : null };
+  // `stand`: walk there instead, and work (tx, ty) from it.
+  function walkToward(tx, ty, work, stand = null) {
+    const to = stand || { x: tx, y: ty };
+    walkTo = { id: ++walkSerial, x: to.x + 0.5, y: to.y + 0.5, work: work ? { x: tx, y: ty } : null };
     stalled = 0;
   }
 
   // What Gather does right now: empty nearby extractors, else work the
-  // nearest deposit. Underground there is no automatic target.
+  // nearest deposit; underground, dig the rock around you.
   function act() {
     if (Core.collectTarget(state())) return collectNearby();
     const r = Core.harvest(state());
@@ -153,12 +155,23 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   // Explore pressed with nothing in reach (a new player's first press, in
   // the bare clearing at home): head for the nearest resource in sight and
-  // work it on arrival, as a tap on it would. Nothing in sight: say how to walk.
-  function explore() {
+  // work it on arrival, as a tap on it would; underground, for the rock most
+  // worth digging in sight. Nothing in sight: say how to walk, or which tool
+  // the rock around you takes.
+  function explore(quiet = false) {
     const s = state();
-    const to = s.player.z === Core.SURFACE && Core.nearestWork(s);
-    if (to) walkToward(to.x, to.y, true);
+    const to = s.player.z === Core.SURFACE ? Core.nearestWork(s) : Core.nearestDig(s);
+    if (to) walkToward(to.x, to.y, true, to.stand);
+    else if (quiet) return;
     else if (!Core.isUnderground(s)) hud.toast(t('tip.walk'));
+    else {
+      // Rock all around but no pick to dig it with: say which tool it takes.
+      const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
+      for (let y = py - 3; y <= py + 3; y++) for (let x = px - 3; x <= px + 3; x++) {
+        const g = Core.harvestable(s, x, y) && Core.gearNeeded(s, x, y);
+        if (g) return needsGear(g);
+      }
+    }
   }
 
   const controller = {
@@ -224,8 +237,13 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const remaining = cooldown;
       cooldown -= dt;
       const overdue = remaining > CLOCK_EPSILON ? Math.max(0, -cooldown) : 0;
-      // The first gather of a hold is press()'s; these are its repeats.
-      if (holding && cooldown <= CLOCK_EPSILON && act()) { cooldown = GATHER_COOLDOWN - overdue; gathered(true); }
+      // The first gather of a hold is press()'s; these are its repeats. With
+      // nothing left in reach, a hold heads for the next thing in sight, as
+      // the first press did (quietly: the press already said if there's none).
+      if (holding && cooldown <= CLOCK_EPSILON) {
+        if (act()) { cooldown = GATHER_COOLDOWN - overdue; gathered(true); }
+        else if (!walkTo) { cooldown = GATHER_COOLDOWN; explore(true); }
+      }
       if (holdAt && cooldown <= CLOCK_EPSILON) {
         const w = cam.unproject(holdAt.x, holdAt.y);
         const tx = Math.floor(w.x), ty = Math.floor(w.y);
