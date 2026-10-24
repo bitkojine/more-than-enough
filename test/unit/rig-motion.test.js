@@ -70,3 +70,18 @@ test('idle breath and head movement use supplied presentation time; steady mode 
  assert.deepEqual(a.left,b.left);assert.deepEqual(a.right,b.right);
  assert.deepEqual(rigPose({time:.5,steady:true}),rigPose({time:1.7,steady:true}));
 });
+
+test('Mica carrying poses protect the hands without changing travel or overriding work',()=>{
+ for(const walking of [false,true])for(const phase of [0,.2,.5,.9]){
+  const a=rigPose({walking,phase,time:4}),b=rigPose({walking,phase,time:4,carrying:true});
+  assert.deepEqual(a.left,b.left);assert.deepEqual(a.right,b.right);close(a.hipY,b.hipY);
+  assert.ok(b.leftArm<-.4&&b.rightArm<-.4);assert.ok(b.armSpread<-.5);
+ }
+ assert.deepEqual(rigPose({carrying:true,action:'swing',progress:.4}),rigPose({action:'swing',progress:.4}));
+ assert.deepEqual(rigPose({carrying:true,steady:true}),rigPose({steady:true}));
+});
+test('Mica blinking and curious idle are bounded presentation gestures with planted feet',()=>{
+ const a=rigPose({time:0}),b=rigPose({time:4});assert.notEqual(a.headRoll,b.headRoll);assert.deepEqual(a.left,b.left);assert.deepEqual(a.right,b.right);
+ assert.ok(rigPose({time:3.1}).blink<.1);close(rigPose({time:3.3}).blink,1);
+ for(let i=0;i<1000;i++){const p=rigPose({time:i*.01});assert.ok(p.blink>=.05&&p.blink<=1);assert.ok(Math.abs(p.headRoll)<.08);}
+});

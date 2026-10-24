@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.143.0": "Meet Mica, the Mender. A softer hood, compact proportions, sturdy boots and a repaired coat bring the wanderer closer to the illustrated world. Curious idle gestures, blinking and careful crystal-carrying poses add personality. Inspect him to learn who he is.",
   "help.resource.mycelium": "Surface-grown fibres for bindings, cultivation beds and flexible building parts.",
   "help.resource.stone": "Gather surface stone for foundations, workshops and chamber walls.",
   "help.resource.ore": "Metal for tools, frames and machinery. New worlds place its deposits underground.",
@@ -464,8 +465,8 @@ export default {
   "look.pile.does": "Your {res} in the stockpile: one pile for each unit of the two leading digits you own, bigger piles for bigger powers of ten. Ten of a kind merge into one of the next.",
   "look.converter.does": "Makes {res} on any open land.",
   "look.extractor.does": "Makes {res} on {tile}.",
-  "look.character.wanderer": "Wanderer",
-  "look.character.wanderer.does": "You. Drawn facing right and mirrored to walk left. As an animation, the first frame is standing still and the rest loop while you walk.",
+  "look.character.wanderer": "Mica",
+  "look.character.wanderer.does": "A travelling repairer with careful hands and impatient curiosity. He wants to build something that will outlast him.",
   "look.mark.hole": "Hole",
   "look.mark.hole.does": "An opening in the floor down to the layer below (a cave mouth or an open shaft). The colour is the dark inside it.",
   "look.mark.skylight": "Skylight",

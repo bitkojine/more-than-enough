@@ -31,7 +31,14 @@ export function createTooltips({canvas,cam,state}){
  function inspect(e,immediate=false){
   if(e.buttons||e.pointerType==='touch')return;
   let info,key,x=e.clientX,y=e.clientY,target=null;
-  if(e.target===canvas){const r=canvas.getBoundingClientRect(),p=cam.unproject(x-r.left,y-r.top),s=state(),tx=Math.floor(p.x),ty=Math.floor(p.y);key='world:'+tx+','+ty+','+s.player.z;if(key===lastKey)return;info=describeWorld(s,tx,ty,s.player.z);}
+  if(e.target===canvas){
+   const r=canvas.getBoundingClientRect(),s=state(),player=s.player,px=x-r.left,py=y-r.top;
+   const known=Core.isExplored(s.world,Math.floor(player.x),Math.floor(player.y),player.z);
+   const foot=known?cam.project(player.x,player.y,player.z+Core.tileHeight(s.world,Math.floor(player.x),Math.floor(player.y),player.z)):null;
+   if(foot&&Math.abs(px-foot.x)<cam.tilePx*.23&&py<foot.y&&py>foot.y-cam.tilePx*.90){key='character';info=describeLook('character.wanderer');}
+   else{const p=cam.unproject(px,py),tx=Math.floor(p.x),ty=Math.floor(p.y);key='world:'+tx+','+ty+','+player.z;info=key===lastKey?null:describeWorld(s,tx,ty,player.z);}
+   if(key===lastKey)return;
+  }
   else{target=e.target.closest('button,a,[role="button"],[data-help],[data-look]');if(target===anchor&&!box.hidden)return;info=uiInfo(e.target);key=target;}
   hide();if(!info)return;lastKey=key;
   timer=setTimeout(()=>{if(e.target.isConnected)show(info,x,y,target);},immediate?0:400);

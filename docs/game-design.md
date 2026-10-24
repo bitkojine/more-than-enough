@@ -332,3 +332,142 @@ resources explain their roles, and world inspection is restricted to explored
 terrain and visible buildings. Passive resource/shop illustrations also support
 touch holds; gameplay holds retain their existing actions. This replaces the
 earlier wiki-only explanation restriction while keeping normal play uncluttered.
+
+## Character identity — provisional working brief
+
+Owner feedback (24 October 2026): the character has not developed a clear identity
+or feel. The simpler 2D version was more likeable and understandable; moving to
+3D made the unresolved design more apparent. The owner authorized generating
+placeholders for missing decisions rather than blocking progress on a complete
+character definition.
+
+The defaults below are authored placeholders, not final owner-selected lore or
+a new art direction. Replace them independently as playtesting and art review
+teach us more. The written defaults alone do not change movement, equipment,
+saves or the machine ending; implemented presentation is tracked below.
+
+| Missing decision | Working placeholder | How it could show in play |
+| --- | --- | --- |
+| Identity and name | Working name **Mica, the Mender**: a curious, practical travelling repairer. | A recognizable small figure whose earned equipment communicates growing capability. |
+| Temperament | Observant, patient with delicate things, quietly determined. | Attentive head poses, careful crystal handling and a brief satisfied settling pose after construction. |
+| Motivation | Understand the buried machine and make a lasting contribution through repairing it. | Interest in physical discoveries and the work of restoration. The machine's actual purpose and ending stay open. |
+| Relationship to the world | A newcomer learning how this place works through hands-on care and experimentation. | Start empty-handed, learn from discoveries, and build useful equipment and infrastructure. No additional starting tools or progress. |
+| Emotional tone | Warm, approachable and capable, with gentle physical humor. | Small readable reactions to success and recoverable mishaps. Animation must never delay an input or add a gameplay penalty. |
+| Silhouette and proportions | Compact body, a broad soft hood, readable mittens and sturdy boots; a coat whose overlapping pieces feel intentionally made. | Test front, side and back silhouettes at actual world size before adding detail. Treat exact proportions as an art-review question. |
+| Face | Keep the recognizable ivory face and dark eyes as the initial placeholder. Explore warmth through eye placement, head pose and body language. | Expressions must survive the small world view. Facial anatomy, mask interpretation and identity remain open. |
+| Material and palette | Warm orange cloth, ivory face and restrained brown contours sampled against the restored illustrated world. | Broad color regions and consistent outlines. Extra seams and ornaments must earn their readability. |
+| Movement personality | Short purposeful steps, relaxed settling and attentive anticipation before delicate actions. | Preserve eight displayed headings and the shared rig; motion timing follows the actual movement and action rather than adding control latency. |
+| Progression expression | Competence becomes visible through tools, carrying equipment and actions already earned in that world. | Reuse each physical equipment model and its gameplay ownership rules. Character styling grants no equipment or bonuses. |
+| Story delivery | Physical discoveries and brief reactions carry the initial identity. | No new dialogue system or mandatory introductory sequence is needed for this placeholder. |
+
+Working one-line brief: **A small, curious wanderer who learns to care for an
+unfamiliar world by making things, then follows that curiosity below to repair
+its sleeping machine.**
+
+Use this brief to evaluate future art, not as evidence that a redesign is already
+implemented. First judge whether a still silhouette and a few seconds of movement
+communicate the intended feel in the existing world. Keep illustration quality,
+character identity, motion quality and technical rendering as separate review
+questions. The historical comparison is reference material, not an automatic
+choice to restore a particular old renderer.
+
+### Concrete provisional direction: Mica, the Mender
+
+Following the owner's instruction to choose a plausible complete direction and
+revise it later, the current authored working character is **Mica**, nicknamed
+**the Mender**. The name, backstory and choices in this section are provisional;
+they provide a coherent reference for implementation rather than a new list of
+questions for the owner. The first live implementation is tracked below;
+the backstory remains a working reference.
+
+**Who he is.** Mica is a small hooded travelling repairer who has spent his life
+making other people's damaged things useful again. He arrives with practical
+knowledge and the clothes he wears, but no tools, supplies or inherited gear.
+He is an adult expressed through compact illustrated proportions. His competence
+comes from patient observation and work rather than extraordinary powers.
+
+**What he wants.** He wants to complete something that will outlast him. Evidence
+of the buried machine offers a project large enough to matter: understand it,
+build the settlement that can support its repair, and finish the work properly.
+He begins with curiosity, not knowledge of the machine's purpose. Discoveries
+still reveal that purpose progressively; this brief does not decide the ending.
+
+**The contradiction that gives him personality.** His hands are careful, but his
+curiosity is impatient. He can patiently tend a fragile colony, then lean a little
+too far to inspect a curious mechanism. He takes responsibility for his mistakes
+and tries again. These are expressive habits, not forced player errors, damage
+rolls or extra maintenance work.
+
+**Emotional arc.** At first he wants to prove he can fix the impressive broken
+thing. Over the course of restoration, his concern grows to include the living
+colonies and infrastructure that depend on his work. His eventual understanding
+of what the machine does must remain compatible with this movement from personal
+achievement toward care and responsibility. Its final moral framing stays open.
+
+**How he meets the world.** He observes before using force. The forests are places
+to forage and cultivate, not timber to consume. Living crystal calls for gentle,
+protected handling. Familiarity is shown through relaxed, competent action rather
+than additional dialogue or an explanatory speech. He can be funny through quiet
+physical reactions: a little startle, an embarrassed recovery, a pleased step
+back to admire a repair. These never delay or redirect the player's commands.
+
+**Recognizable visual identity.** Preserve the orange hood and ivory face, but
+build a compact, broad silhouette with substantial mittens and sturdy boots.
+The hood is soft and slightly lopsided rather than a perfect dome. The coat has
+an overlapping front and a clear split at the hem, so it reads as worn clothing
+and supports leg motion. One broad repair patch can suggest his habits if it is
+readable; extra tiny seams and charms are unnecessary. Warm ochre-orange cloth,
+ivory and brown outlines should sit beside the restored trees and mushrooms.
+His face remains simple and approachable; eye placement and head angle carry
+attention, with shoulders and hands carrying the larger emotion. Avoid adding
+surface detail to compensate for an unresolved silhouette.
+
+**Animation vocabulary.** Walking is a compact, grounded stride with easy arm
+swing and gentle hood/coat follow-through. Inspecting means a small head tilt and
+forward attention. Gathering uses a deliberate reach; construction ends in a
+brief satisfied release of the shoulders; crystal handling draws the hands in
+protectively. Successful work feels rewarding without becoming a celebration on
+every repetition. These are visual overlays on real actions. Preserve movement
+speed, action deadlines, responsiveness, eight displayed headings and fair rules.
+
+**Progression.** At the start the same character is visible without tools or a
+backpack that implies unearned carrying equipment. Earned baskets, picks and
+protected carriers make his growing capability visible through the shared
+physical models. The character remains identifiable when equipment changes and
+when viewed from behind; upgrades do not replace his personality with a new
+costume theme. Knowledge and records remain the only carry-over to a new world.
+
+**First visual acceptance target.** Use the existing rig and restored world as
+the production base. Review a compact silhouette, a front/side/back face read,
+and idle/walk/gather/carry gestures at actual gameplay scale in all eight
+headings. The initial aim is that he reads as a warm, attentive, capable little
+repairer before the player reads this biography. Background writing is support
+for visible choices, not a substitute for them. No separate playable prototype,
+new renderer or gameplay redesign is required by this brief.
+
+
+### First integrated Mica presentation (v0.143.0)
+
+The owner asked to develop this direction and bring him into the existing world.
+The shared rig now implements a broader asymmetric hood and softer ivory face,
+larger mittens and boots, shorter authored legs and upper body, a split coat hem
+and a broad skinned repair patch. Unlit world-palette fills and eight snapped
+body headings remain. The patch and hem share the coat skeleton.
+
+The pure presentation pose adds a short blink and a finite curious idle tilt.
+Construction recovery includes a small attentive head release within the existing
+action duration. Signing/boat steady mode disables these personality gestures.
+Neither observation nor reaction adds a gameplay action, wait or input delay.
+
+When actual new-world cargo contains a starter or harvested crystal, a protective
+two-hand pose shows an exposed specimen or closed container according to earned
+carrier equipment. Working actions take precedence; pickaxes stow during the
+carry. These are cached, non-emissive models, not new resources or protection.
+The rules still determine exposure and condition. Other equipment models remain
+separate future art work; this pass does not claim complete equipment coverage.
+
+Hover inspection over Mica uses his localized catalog name and a short character
+description. The full backstory remains a provisional development brief; no
+new narrative quests, dialogue or machine ending have been added. The existing
+compatibility sprites remain for custom packs, legacy friends and WebGL fallback.
+Review personality at real world scale as well as in enlargements.

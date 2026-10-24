@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.143.0": "Susipažinkite su Mica, Taisytoju. Minkštesnis gobtuvas, kompaktiškos proporcijos, tvirti batai ir lopytas apsiaustas priartina klajūną prie piešto pasaulio. Smalsūs judesiai ramybės metu, mirksėjimas ir atsargus kristalo nešimas suteikia jam charakterio. Apžiūrėkite jį, kad sužinotumėte daugiau.",
   "help.resource.mycelium": "Paviršiuje augantys pluoštai rišimui, auginimo lysvėms ir lanksčioms statinių dalims.",
   "help.resource.stone": "Paviršiuje rinkite akmenį pamatams, dirbtuvėms ir kamerų sienoms.",
   "help.resource.ore": "Metalas įrankiams, karkasams ir mechanizmams. Naujuose pasauliuose jo telkiniai yra po žeme.",
@@ -464,8 +465,8 @@ export default {
   "look.pile.does": "Tavo atsargos ({res}): po krūvą už kiekvieną dviejų pirmųjų skaitmenų vienetą, didesnės krūvos didesniems dešimties laipsniams. Dešimt vienos rūšies krūvų susilieja į vieną kitos rūšies.",
   "look.converter.does": "Gamina {res} bet kurioje atviroje žemėje.",
   "look.extractor.does": "Gamina {res}; statomas ant langelio „{tile}“.",
-  "look.character.wanderer": "Klajūnas",
-  "look.character.wanderer.does": "Tai tu. Piešiamas veidu į dešinę ir atspindimas einant į kairę. Animacijos pirmas kadras – stovėjimas, kiti kartojasi einant.",
+  "look.character.wanderer": "Mica",
+  "look.character.wanderer.does": "Keliaujantis taisytojas: rankos atsargios, smalsumas nekantrus. Jis nori sukurti ką nors, kas gyvuotų ilgiau už jį.",
   "look.mark.hole": "Anga",
   "look.mark.hole.does": "Anga grindyse į sluoksnį žemiau (urvo anga ar atvira šachta). Spalva – tamsa joje.",
   "look.mark.skylight": "Šviesos šulinys",

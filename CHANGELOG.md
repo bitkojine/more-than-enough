@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.143.0] - 2026-10-24
+
+- Introduced Mica, the Mender as the wanderer's working identity, with a full
+  provisional character brief in the GDD and localized in-world inspection.
+- Reshaped the existing rig with a broad asymmetric hood, shallower round face,
+  larger mittens, shorter legs, sturdy boots and a split, repaired cloth coat.
+- Added explicit-time blinking, quiet curious attention and repair recovery;
+  preserved eight facing sectors, gameplay movement and action timing.
+- Added protective two-hand poses and cached exposed/sealed crystal cargo views
+  driven by actual carried material and earned protection. Pickaxes stow while
+  carrying; empty hands gain no equipment. Cargo visuals do not grant protection.
+- Kept the flat world palette, core rules, saved worlds and existing fallbacks.
+
+
 ## [0.142.2] - 2026-10-24
 
 - Enlarged resource HUD icons from 15–17px to 28px on phones and 32px on desktop.

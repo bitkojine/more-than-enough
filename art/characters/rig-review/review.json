@@ -1,17 +1,17 @@
 {
-  "version": "0.141.0",
-  "status": "first integrated rig; production model polish remains work",
+  "version": "0.143.0",
+  "status": "first integrated Mica identity pass; art direction remains provisional",
   "sources": {
-    "src/game/render/rig-motion.js": "0855c830397bfcf9e2b878612ddae264630627c89e9a95de7fda7f14434b35fd",
-    "src/game/render/rigged-character.js": "d01abfde848fe5e04b08aecabf989e08695ef90ca33d668323a210247dd8d5ca",
+    "src/game/render/rig-motion.js": "4d6f1963e484c671fc3e7dab2b8fb8cdf3da177fb4fc46b7a7442276ff6e1a23",
+    "src/game/render/rigged-character.js": "d617c909955678487e777ee384061c1a2d5debd72c44a0038dac1a8a58c05ec0",
     "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
-    "src/game/render/sprites.js": "3c1afb6c3ca4c9db206149a43d5d3c54aa564b1d811e039d3fcc83c547cdb810",
+    "src/game/render/sprites.js": "b49bd38c2c0ae7babd43f149dff3967486698216ee317fefd9f45a76f372bf74",
     "src/game/render/character-direction.js": "3510f6fde74cdb5b6d98b1d1b1df1a6724d3d67b54750569e2db942fb5c21a4e",
     "src/game/render/pickaxe-model.js": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "6c030ed09e221458faed8d86defc9cc5fd1a911c835b92d51d6c95cbd7ccc83f",
-  "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; cardinal east-facing walk capture retained from 0.140.0 because that heading and gait are unchanged; retained bare walk fixture, not a pickaxe swing capture",
+  "playbackSha256": "0eae132e648635a0079bb63a2ed99f41df21285573422556c297dc3dd0303bb9",
+  "capture": "40 phase samples from the current actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; current Mica bare east-facing walk, not a pickaxe swing capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
     "same rig in eight directions and both gait halves; opaque WebGL output and geometry/draw-call budgets",
@@ -22,10 +22,13 @@
     "actual rendered torso, head and four cloak panel transforms vary through gait",
     "visual action contact sheets: pick, collect, swing, build, cheer, up, down and idle",
     "16 off-axis movement vectors produce exactly eight model headings; paired sector renders match within one-byte GPU edge rounding; zero input retains heading",
-    "six-tier pickaxe shared model/icon export, eight-direction grip attachment, empty-hand and free-hand stowing browser checks"
+    "six-tier pickaxe shared model/icon export, eight-direction grip attachment, empty-hand and free-hand stowing browser checks",
+    "Mica mesh-eye blink at explicit time; compact proportions, split cloth hem and skin-bound repair patch reviewed in all headings",
+    "protective two-hand specimen/sealed carrying, pickaxe stowing and existing GPU budgets in all eight headings; empty-handed rendering remains empty",
+    "carrying preserves foot targets, steady mode and working-action precedence; idle curiosity/blinks leave both feet planted"
   ],
   "limits": [
-    "pickaxe tiers have physical hand/back models; other equipment and cargo models remain unfinished",
+    "pickaxe and actual crystal cargo have physical hand/back models; remaining equipment models are unfinished",
     "stylized gait; not a world-space foot-locking system",
     "procedural geometry and materials remain a first playable art pass"
   ],
@@ -40,6 +43,6 @@
     "packs/default/props/birch.svg",
     "packs/default/characters/wanderer.svg"
   ],
-  "motion": "21 bones, four weighted cloak panels with shared hem/outline skinning; torso/head counterbalance, flexing elbows/wrists, explicit-time idle breath and distinct work performances",
+  "motion": "21 bones, four skinned meshes including hem/outline and repair patch; pure two-bone leg IK, secondary cloak/body motion, explicit-time blinking and curious idle, existing work timing and protective cargo hold",
   "facing": "eight snapped world headings shared with directional sprite art; continuous movement and smooth internal joint articulation"
 }

@@ -319,6 +319,9 @@ async function main() {
    const cell=await evalJS("(()=>{const s=MTE_GAME.getState(),x=Math.floor(s.player.x),y=Math.floor(s.player.y);return MTE_GAME.project(x+.5,y+.5,s.player.z);})()");
    await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cell.x,y:cell.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden",2000);
    ok(await evalJS("!document.getElementById('inspectTooltip').hidden"),'explored world terrain is inspectable');
+   const micaPoint=await evalJS("(()=>{const s=MTE_GAME.getState(),p=s.player,h=p.z+MTE_GAME.core.tileHeight(s.world,Math.floor(p.x),Math.floor(p.y),p.z),v=MTE_GAME.project(p.x,p.y,h);return {x:v.x,y:v.y-MTE_GAME.tilePx()*.4};})()");
+   await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:micaPoint.x,y:micaPoint.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden&&document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.LOOK['character.wanderer'].name)",2000);
+   ok(await evalJS("document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.LOOK['character.wanderer'].does)"),'Mica can be inspected in the world');
    eq(pageErrors.length,0,'inspection has no browser exceptions');
    console.log((failures?'HELP BROWSER FAILURES':'HELP BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
@@ -437,6 +440,25 @@ async function main() {
     const cadence=await evalJS(`(async()=>{const {createActor}=await import('./src/game/render/motion.js');return [30,60,144].map(fps=>{let time=0;const a=createActor({clock:()=>time});a.view(false,{x:0,y:0,z:0});let v;for(let i=1;i<=fps;i++){time=i/fps;v=a.view(true,{x:3.7*i/fps,y:0,z:0});}return {fps,phase:v.rigStride};});})()`);
     for(const sample of cadence)ok(Math.abs(sample.phase-(3.7/2.4%1))<1e-9,'faster walk phase matches base-speed travel at '+sample.fps+' FPS');
     await shot('rigged-character-review.png');
+    const mica=await evalJS(`(async()=>{
+      const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+      rig.draw(g,128,240,160,{time:0});const normal=rig.inspect();rig.draw(g,128,240,160,{time:3.1});const blink=rig.inspect().blink;
+      const cargo=[];for(const kind of ['specimen','sealed'])for(let i=0;i<8;i++){const angle=i*Math.PI/4;rig.draw(g,128,240,160,{facing:{x:Math.cos(angle),y:Math.sin(angle)},cargo:kind,pickaxe:2});cargo.push({kind,pose:rig.inspect(),stats:rig.stats});}
+      rig.draw(g,128,240,160,{});const empty=rig.inspect();
+      return {blink,normal,cargo,empty};
+    })()`);
+    ok(mica.blink<.1,'Mica blinks using the supplied presentation time');
+    ok(mica.cargo.every(v=>v.pose.cargo===v.kind&&v.pose.pickaxe.stowed),'both cargo forms keep a held pickaxe safely stowed in all headings');
+    ok(mica.cargo.every(v=>v.stats.drawCalls<=64&&v.stats.triangles<50000),'carrying models stay within the existing render budgets');
+    ok(!mica.empty.cargo&&!mica.empty.pickaxe,'empty-handed render adds no cargo or equipment');
+    const details=await evalJS(`(async()=>{
+     const rig=await MTE_GAME.look.rigReady,c=document.getElementById('__rigReview'),g=c.getContext('2d');g.fillStyle='#b69b6a';g.fillRect(0,0,c.width,c.height);g.fillStyle='#1d1712';g.font='22px system-ui';g.fillText('Mica — attention, recovery and careful carrying',30,35);
+     const variants=[['Settled',{}],['Curious',{time:4.1}],['Blink',{time:3.1}],['Repair recovery',{action:'build',progress:.87}],['Exposed crystal',{cargo:'specimen'}],['Sealed carrier',{cargo:'sealed'}]];
+     for(let i=0;i<6;i++){const x=245+i%3*475,y=475+Math.floor(i/3)*525;g.fillStyle='#1d1712';g.fillText(variants[i][0],x-120,y-390);rig.draw(g,x,y,350,{facing:{x:0,y:1},...variants[i][1]});rig.draw(g,x+145,y,64,{facing:{x:0,y:1},...variants[i][1]});}
+     return true;
+    })()`);
+    await shot('mica-personality-review.png');
+
     const secondary=await evalJS(`(async()=>{
       const rig=await MTE_GAME.look.rigReady,canvas=document.getElementById('__rigReview'),g=canvas.getContext('2d');
       const poses=[];for(const phase of [.15,.55]){rig.draw(g,180,345,250,{phase,walking:true,facing:{x:1,y:0}});poses.push(rig.inspect());}

@@ -295,3 +295,10 @@ shows its information and consumes that gesture's click; movement cancels it.
 World/action-button holds retain their gameplay behavior. World lookup rejects
 unexplored cells first, then uses indexed facility/building lookups. It never
 reveals hidden terrain, spends resources, advances time or changes a save.
+
+
+Mica's character inspection uses his visible on-screen body region above the
+known player position, before the existing explored-terrain inspection. It shows
+a localized name and short character description without adding permanent HUD
+text or exposing unknown tiles. The existing rig retains eight headings and
+flat world colors; caring gestures and cargo views are presentation only.

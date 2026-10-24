@@ -140,3 +140,18 @@ load/cache bounded direction/loadout chunks. Never embed all thousands of
 frames into the startup pack or decode them per tick. The side-facing renderer remains for custom packs and legacy device
 compatibility. Missing coverage must remain visible to developers;
 it must never be labelled complete by counting mirrored east artwork as north.
+
+
+## Mica identity pass
+
+The integrated rig is the working character Mica, the Mender (v0.143.0). The GDD
+records the replaceable identity and backstory. The live visual pass uses a soft
+asymmetric hood, rounded shallow face with mesh eyes, compact proportions,
+broad mittens/boots, split hem and skinned repair patch. Four skinned meshes
+share the same skeleton. Blink and idle attention use explicit presentation time;
+there is no per-frame face texture upload. Actual carried crystal selects a
+cached exposed specimen or sealed container and a protective two-hand pose.
+
+Review records and the current walk clip live in `art/characters/rig-review/`.
+These are evidence of bounded rendering and reviewed poses, not a claim of final
+art quality or world-space foot locking. Other equipment coverage is unfinished.

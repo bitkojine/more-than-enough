@@ -56,11 +56,9 @@ export function drawExtractor(ctx, cam, s, look, e) {
   ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + p * TAU); ctx.closePath(); ctx.fill();
 }
 
-// The wanderer: facing the way they last walked, stepping through the walk
-// frames while moving and acting out what you do (see motion.js). On water
-// they ride the boat. They always hold what you play on (a phone or a
-// laptop), and its screen lights the dark. Returns where they are (see
-// drawCharacter), for the sign they may hold up.
+// Mica faces movement and work targets, acting through the existing rig.
+// Earned cargo uses protective carrying poses; legacy device worlds and custom
+// packs keep their compatibility sprites. Returns head/hand anchors for signs.
 export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
@@ -82,7 +80,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, facingVec
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
-    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0});
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
     ctx.restore();if(location)return location;
   }
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});

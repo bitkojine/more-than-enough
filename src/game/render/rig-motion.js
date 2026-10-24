@@ -1,5 +1,5 @@
 /* Presentation only. Model faces +Z; +X is its anatomical left. */
-export const LEG_LENGTH=.265;
+export const LEG_LENGTH=.23;
 const TAU=Math.PI*2;
 const ankleY=pitch=>Math.max(.09,.086*Math.cos(pitch)+Math.max(.211*Math.sin(pitch),-.109*Math.sin(pitch)));
 export function legTarget(phase){
@@ -49,10 +49,16 @@ export function actionPose(action,progress){
  }
  return p;
 }
-export function rigPose({phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false}={}){
+export function rigPose({phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,carrying=false}={}){
  const p=((phase%1)+1)%1,w=TAU*p,weight=clamp(blend??(walking?1:0));
  const work=actionPose(action,progress),idle=(1-weight)*(steady?0:1);
- const hipY=.619+weight*(.59-.012*Math.cos(w*2)-.619)-work.crouch;
+ // Quiet attention is presentation-only. Finite windows return to neutral;
+ // signing/boat steady mode disables every personality layer.
+ const window=(at,start,width)=>{const x=(at-start)/width;return x>0&&x<1?Math.sin(Math.PI*x)**2:0;};
+ const curiosity=(action?0:idle)*window(((time%9)+9)%9,2.8,2.6);
+ const blink=steady?1:1-.94*window(((time%4.7)+4.7)%4.7,3.0,.20);
+ const settle=action==='build'?(1-weight)*window(progress,.72,.28):0;
+ const hipY=.549+weight*(.52-.012*Math.cos(w*2)-.549)-work.crouch;
  const target=phase=>{if(!weight)return {y:.09,z:0,pitch:0};const raw=legTarget(phase),pitch=raw.pitch*weight;return {y:Math.max(ankleY(pitch),.09+(raw.y-.09)*weight),z:raw.z*weight,pitch};};
  const left=target(p),right=target(p+.5),swing=weight*(.36*Math.cos(w)+.045*Math.sin(w*3));
  const roll=weight*.055*Math.sin(w),twist=weight*.085*Math.sin(w+.3);
@@ -63,12 +69,19 @@ export function rigPose({phase=0,walking=false,blend=null,action=null,progress=0
   leftWrist:weight*.09*Math.sin(w-.7),rightWrist:-weight*.09*Math.sin(w-.7),
   lean:work.bow+weight*(.045+.025*Math.sin(w*2-.4)),roll,twist:twist+work.twist,
   breath:idle*.006*Math.sin(time*2.1),
-  headPitch:-work.bow*.45+weight*.025*Math.sin(w*2-.8),
-  headRoll:-roll*.7+weight*.018*Math.sin(w-.7),
-  headYaw:-twist*.6+idle*.035*Math.sin(time*.7),
+  headPitch:-work.bow*.45+weight*.025*Math.sin(w*2-.8)-.055*curiosity-.045*settle,
+  headRoll:-roll*.7+weight*.018*Math.sin(w-.7)+.07*curiosity,
+  headYaw:-twist*.6+idle*.035*Math.sin(time*.7)+.11*curiosity,blink,
   clothFront:weight*(.035+.055*Math.sin(w*2-.85))+work.bow*.16,
   clothBack:weight*(-.045+.065*Math.sin(w*2-1.3))-work.bow*.12,
   clothLeft:weight*.075*Math.sin(w-.9),clothRight:-weight*.075*Math.sin(w-.9)};
+ if(carrying&&!steady&&!action){
+  // A protective two-hand hold. Travel/feet retain exactly the same targets;
+  // work actions temporarily take precedence over the cargo presentation.
+  pose.leftArm=-.55+swing*.12;pose.rightArm=-.55-swing*.12;
+  pose.leftElbow=pose.rightElbow=-1.05;pose.armSpread=-.87;
+  pose.leftWrist=pose.rightWrist=.04;pose.headPitch+=.035;
+ }
  // Normalize signed zero so a fully settled pose is phase-independent.
  for(const k of Object.keys(pose))if(pose[k]===0)pose[k]=0;
  return pose;
