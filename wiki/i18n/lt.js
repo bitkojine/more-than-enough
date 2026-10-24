@@ -25,7 +25,7 @@ export default {
   "wiki.idea.toolsYouCanSee.pitch": "Kiekvienas Krepšio ir Kirtiklio lygis pakeičia tai, ką klajūnas laiko rankose: nendrių, gluosnio vytelių, bronzos, kristalo. Pažanga matyti ant veikėjo, o ne tik lape.",
   "wiki.idea.toolsYouCanSee.builds": "Įrankių lygiai patobulinimų registre.",
   "wiki.idea.aPackThatFillsUp.title": "Prisipildanti kuprinė",
-  "wiki.idea.aPackThatFillsUp.pitch": "Grybai, akmenys ir žvilgančios rūdos kaupiasi ant kuprinės ar mažų rogučių už tavęs, kai auga atsargos, o kai jų tampa absurdiškai daug – pasipila į vežimą. „Daugiau nei gana“, kurį gali pamatyti.",
+  "wiki.idea.aPackThatFillsUp.pitch": "Grybai, akmenys ir žvilgančios rūdos kaupiasi ant kuprinės ar mažų rogučių už tavęs, kai auga atsargos, o kai jų tampa absurdiškai daug – pasipila į vežimą. „Mica ir Wiki“, kurį gali pamatyti.",
   "wiki.idea.aPackThatFillsUp.builds": "Inventoriaus sumos ir skraidantys ženkleliai, kurie jau dabar lekia į tavo kuprinę.",
   "wiki.idea.buildingsThatGrow.title": "Augantys pastatai",
   "wiki.idea.buildingsThatGrow.pitch": "Gavyklos įgyja matomų dalių, kai pastatai daugiau tos pačios rūšies: pastolių, kaminų, konvejerių galų. Pilna gavykla rūksta ar švyti, todėl visą stovyklą perskaitai vienu žvilgsniu, be jokių žiedų.",
@@ -129,14 +129,14 @@ export default {
   "wiki.slots": "Lizdai: {slots}",
   "wiki.packCopy": "{name} (kopija)",
   "wiki.packBuildFailed": "Nepavyko sudaryti failo: {error}",
-  "wiki.title": "„Daugiau nei gana“ žinynas",
-  "wiki.description": "Viskas apie „Daugiau nei gana“: valdymas, pasaulis, kasykla, pastatai, patobulinimai ir naujo pasaulio ciklas.",
+  "wiki.title": "„Mica ir Wiki“ žinynas",
+  "wiki.description": "Viskas apie „Mica ir Wiki“: valdymas, pasaulis, kasykla, pastatai, patobulinimai ir naujo pasaulio ciklas.",
   "wiki.nav": "Žinynas",
-  "wiki.brand": "DAUGIAU NEI GANA",
+  "wiki.brand": "MICA IR WIKI",
   "wiki.play": "Žaisti",
   "wiki.searchBox": "Ieškoti žinyne",
-  "wiki.searchTitle": "Paieška – „Daugiau nei gana“ žinynas",
-  "wiki.articleTitle": "{article} – „Daugiau nei gana“ žinynas",
+  "wiki.searchTitle": "Paieška – „Mica ir Wiki“ žinynas",
+  "wiki.articleTitle": "{article} – „Mica ir Wiki“ žinynas",
   "wiki.forVersion": "žaidimo v{version}",
   "wiki.loadFailed": "Žinynui nepavyko įkelti lentelių: {error}",
   "wiki.note.swim": "Galima plaukti, {pct} greičio",
@@ -213,10 +213,10 @@ export default {
   "wiki.oneTile": "1 langelis",
   "wiki.tilesSquare": "{n} × {n} langelių",
   "wiki.article.home.title": "Pradžia",
-  "wiki.article.home": `      <h1>„Daugiau nei gana“ žinynas</h1>
+  "wiki.article.home": `      <h1>„Mica ir Wiki“ žinynas</h1>
       <p class="lede">Žaidimas tau nieko nepasako. Bandyk, aiškinkis pats, o kai prireiks smulkmenų, užsuk čia.</p>
       <p><a class="play-hero" href="../"><span aria-hidden="true">&#9654;</span> Žaisk dabar nemokamai, tiesiog naršyklėje</a></p>
-      <p>DAUGIAU NEI GANA – žaidimas apie tai, kaip nesvetingą laukinę gamtą paversti absurdišku pertekliumi. Pradedi tuščiomis
+      <p>„Mica ir Wiki“ – žaidimas apie tai, kaip nesvetingą laukinę gamtą paversti absurdišku pertekliumi. Pradedi tuščiomis
         rankomis begaliniame, atsitiktinai sugeneruotame miške. Rinkis grybieną nuo miško paklotės, rink akmenį, rūdą ir kristalus, gaminkis geresnius įrankius, statyk pastatus, kurie dirba
         tau nesant, kask į uolieną po kojomis ir nesustok, kol visko bus daugiau nei gana. Tada pradėk iš naujo naujame pasaulyje,
         šiek tiek stipresnis.</p>

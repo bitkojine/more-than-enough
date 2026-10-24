@@ -1,4 +1,4 @@
-# Working on MORE THAN ENOUGH
+# Working on MICA AND WIKI
 
 Rules every contributor (human or agent) follows. The README explains the
 project and its own rules (languages, device text, texture packs, versioning,

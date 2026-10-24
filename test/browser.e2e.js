@@ -463,6 +463,19 @@ async function main() {
       return {paintedFacing,stats:rig.stats,pixels:opaque>1000,flatPalette:orangePixels>500&&flatPixels/orangePixels>.80,pose:rig.inspect()};
     })()`);
     ok(review.flatPalette,'cloth is predominantly one flat painted fill');ok(review.paintedFacing.every(n=>n>500),'world-palette orange stays unchanged across all eight headings');ok(review.stats.bones>=21,'character includes four articulated cloak panels');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    // Wiki rides the same rig: drawn on the hood in its own teal, above Mica's
+    // head, turning toward what it looks at and folding its cap.
+    const wikiReview=await evalJS(`(async()=>{
+      const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=256;c.height=320;const g=c.getContext('2d');
+      const at=rig.draw(g,128,300,160,{facing:{x:0,y:1},time:1,wiki:{look:{x:1,y:0}}}),open=rig.inspect().wiki,d=g.getImageData(0,0,256,320).data;let teal=0;
+      for(let i=0;i<d.length;i+=4)if(d[i]===127&&d[i+1]===230&&d[i+2]===196&&d[i+3]===255)teal++;
+      g.clearRect(0,0,256,320);rig.draw(g,128,300,160,{facing:{x:0,y:1},time:1,wiki:{fold:1}});const shut=rig.inspect().wiki;
+      rig.draw(g,128,300,160,{facing:{x:0,y:1},time:1});const hidden=rig.inspect().wiki;
+      return {teal,open,shut,hidden,above:at.wiki&&at.wiki.y<at.top,game:!!MTE_GAME.wiki&&MTE_GAME.wiki.mode};
+    })()`);
+    ok(wikiReview.teal>150,'Wiki is drawn on the hood in its flat teal ('+wikiReview.teal+' px)');ok(wikiReview.above,'Wiki sits above Mica\'s head');
+    ok(Math.abs(wikiReview.open.turn)>1,'Wiki turns toward what it looks at');ok(wikiReview.shut.fold>.3&&wikiReview.open.fold===0,'Wiki folds its cap shut');
+    eq(wikiReview.hidden,null,'without Wiki the rig draws Mica alone');eq(wikiReview.game,'chatty','the game starts with a chatty Wiki');
     const headings=await evalJS(`(async()=>{
       const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),yaws=[],differences=[];let samePixels=true;
       for(let i=0;i<8;i++){
@@ -903,7 +916,7 @@ async function main() {
     'var m=await fetch(document.querySelector("link[rel=manifest]").href).then(function(r){return r.json();});' +
     'var all=links.concat(m.icons.map(function(i){return new URL(i.src,document.querySelector("link[rel=manifest]").href).href;}));' +
     'var bad=[];for(var u of all){var r=await fetch(u);if(!r.ok)bad.push(u);}return JSON.stringify({n:all.length,bad:bad,name:m.name,maskable:m.icons.some(function(i){return i.purpose==="maskable";})});})()'));
-  ok(icons.n >= 6 && icons.bad.length === 0 && icons.name === 'More Than Enough' && icons.maskable, 'favicon, home-screen icon and manifest icons all load (' + JSON.stringify(icons) + ')');
+  ok(icons.n >= 6 && icons.bad.length === 0 && icons.name === 'Mica and Wiki' && icons.maskable, 'favicon, home-screen icon and manifest icons all load (' + JSON.stringify(icons) + ')');
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
   // A new player's first read is what to do: the next milestone.

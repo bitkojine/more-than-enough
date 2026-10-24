@@ -1,6 +1,6 @@
 {
-  "name": "More Than Enough",
-  "short_name": "Enough",
+  "name": "Mica and Wiki",
+  "short_name": "Mica & Wiki",
   "description": "A mobile-first browser game about turning a hostile wilderness into an absurd surplus.",
   "start_url": "./",
   "scope": "./",

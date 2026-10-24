@@ -6,16 +6,20 @@ import {createPickaxeModel,pickaxeTier} from './pickaxe-model.js';
 import {characterDirection,CHARACTER_DIRECTIONS} from './character-direction.js';
 import {UPPER_ARM,FOREARM,GUIDE_GRIP,solveArm,miningStroke,workHands} from './work-motion.js';
 import {createBasketModel,createLanternModel} from './work-equipment.js';
+import {createWikiModel} from './wiki-model.js';
+import {wrapAngle} from './wiki-motion.js';
 const DOWN=new T.Vector3(0,-1,0);
+// The layout surface is 320 x 448 px; the top 64 px make room for Wiki on the hood.
+const W=320,H=448,TOP=1.375+(H-384)/384*2.75;
 export function createRiggedCharacter(){
  const canvas=document.createElement('canvas');
  const context=canvas.getContext('webgl2',{alpha:true,antialias:true,powerPreference:'low-power'});
  if(!context)return null;
  const renderer=new T.WebGLRenderer({canvas,context,alpha:true,antialias:true,powerPreference:'low-power'});
- renderer.setSize(320,384,false);renderer.setPixelRatio(1);renderer.setClearColor(0,0);
+ renderer.setSize(W,H,false);renderer.setPixelRatio(1);renderer.setClearColor(0,0);
  renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
  const scene=new T.Scene(),model=new T.Group();scene.add(model);
- const camera=new T.OrthographicCamera(-1.146,1.146,1.375,-1.375,.1,30);
+ const camera=new T.OrthographicCamera(-1.146,1.146,TOP,-1.375,.1,30);
  camera.position.set(0,2.8,7);camera.lookAt(0,1.0,0);camera.updateMatrixWorld();
  // Match the default world's painted SVGs: authored flat fills, not light
  // responses to curved surfaces. The world's day/night overlay still applies
@@ -163,6 +167,8 @@ export function createRiggedCharacter(){
  const basketGrip=new T.Group();basketGrip.position.set(0,-.015,.02);leftArm.hand.add(basketGrip);
  const basketBack=new T.Group();basketBack.position.set(.29,-.13,-.31);basketBack.rotation.x=.12;spine.add(basketBack);
  const baskets=new Map();let equippedBasket=null,basketHeld=false;
+ // Wiki sits on top of the hood and turns with Mica's head.
+ const wiki=createWikiModel();wiki.root.position.set(.05,.42,-.06);wiki.root.rotation.set(-.12,0,-.10);wiki.root.scale.setScalar(1.75);head.add(wiki.root);wiki.root.visible=false;
  const lanternModel=createLanternModel();lanternModel.root.position.set(.42,-.08,.13);spine.add(lanternModel.root);lanternModel.root.visible=false;
  function equipBasket(level,held){
   const tier=Math.max(0,Math.min(5,Math.floor(Number(level)||0)));basketHeld=!!(tier&&held);
@@ -203,11 +209,11 @@ export function createRiggedCharacter(){
  // A single screen-space contour surrounds the completed figure, including
  // fingers, wraps, soles and real carried equipment. It does not depend on
  // separate per-mesh hulls or change width as a curved surface turns away.
- const silhouette=new T.WebGLRenderTarget(320,384,{samples:4,depthBuffer:true});
+ const silhouette=new T.WebGLRenderTarget(W,H,{samples:4,depthBuffer:true});
  silhouette.texture.colorSpace=T.SRGBColorSpace;
  const outlineScene=new T.Scene(),outlineCamera=new T.OrthographicCamera(-1,1,1,-1,0,1);
  const outlineMaterial=new T.ShaderMaterial({
-  uniforms:{image:{value:silhouette.texture},step:{value:new T.Vector2(4/320,4/384)},ink:{value:new T.Color(0x1d1712)}},
+  uniforms:{image:{value:silhouette.texture},step:{value:new T.Vector2(4/W,4/H)},ink:{value:new T.Color(0x1d1712)}},
   vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}', // i18n-ok: GPU shader source, not player text.
   fragmentShader:`uniform sampler2D image;uniform vec2 step;uniform vec3 ink;varying vec2 vUv; // i18n-ok: GPU shader source, not player text.
    void main(){vec4 source=texture2D(image,vUv);float edge=source.a;
@@ -224,15 +230,15 @@ export function createRiggedCharacter(){
  // Keep budgets honest across both passes, rather than reporting only the quad.
  renderer.info.autoReset=false;
  const anchor=new T.Vector3(0,0,0).project(camera);
- const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
+ const ax=(anchor.x+1)*.5*W,ay=(1-anchor.y)*.5*H;
  // Zoomed in, the surface renders at more pixels so Mica stays sharp: `res`
- // times the 320x384 layout, stepped by halves so a pinch doesn't reallocate
+ // times the 320x448 layout, stepped by halves so a pinch doesn't reallocate
  // every frame, and capped so a zoomed-in old phone isn't filling 4 MP.
  // Everything else keeps working in layout pixels.
  const MAX_RES=4;let res=1;
  function fit(device){
   const want=Math.min(MAX_RES,Math.max(1,Math.ceil(device/384*2)/2));
-  if(want>res||want<res*.6){res=want;renderer.setSize(320*res,384*res,false);silhouette.setSize(320*res,384*res);}
+  if(want>res||want<res*.6){res=want;renderer.setSize(W*res,H*res,false);silhouette.setSize(W*res,H*res);}
  }
  let lost=false,renders=0,direction='s',renderedAction=null,renderedProgress=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
  function poseLeg(target,rig,hipY){
@@ -242,7 +248,7 @@ export function createRiggedCharacter(){
   rig.foot.quaternion.copy(q2).invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),target.foot.pitch));
  }
  return {
-  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null}={}){
+  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null,wiki:wikiState=null}={}){
    if(lost)return null;renderedAction=action;renderedProgress=progress;
    cargoKind=!steady&&!action&&['specimen','sealed'].includes(cargo)?cargo:null;
    cargoRoot.visible=!!cargoKind;specimen.visible=cargoKind==='specimen';sealed.visible=cargoKind==='sealed';
@@ -260,19 +266,23 @@ export function createRiggedCharacter(){
    model.rotation.y=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(direction)*Math.PI/4;poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
    leftArm.upper.rotation.set(p.leftArm,0,.36+p.armSpread);rightArm.upper.rotation.set(p.rightArm,0,-.36-p.armSpread);
    leftArm.lower.rotation.set(p.leftElbow,0,0);rightArm.lower.rotation.set(p.rightElbow,0,0);leftArm.hand.rotation.set(p.leftWrist,0,0);rightArm.hand.rotation.set(p.rightWrist,0,0);
+   // Wiki looks toward a world direction; turn it into hood-relative yaw.
+   wiki.root.visible=!!wikiState;
+   if(wikiState){const look=wikiState.look&&Math.hypot(wikiState.look.x,wikiState.look.y)>1e-6?wrapAngle(Math.atan2(wikiState.look.x,wikiState.look.y)-model.rotation.y-spine.rotation.y-head.rotation.y):null;wiki.pose({time,look,fold:wikiState.fold||0,talk:wikiState.talk??null,rest:!!wikiState.rest});}
    drivingGrip=0;toolGrip.position.set(0,-.02,.025);
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
    if(!steady)constrainWork(action,progress,{basket:basketHeld,work,carrying:!!cargoKind});
    scene.updateMatrixWorld(true);basketGrip.quaternion.copy(leftArm.hand.getWorldQuaternion(new T.Quaternion())).invert().multiply(model.getWorldQuaternion(new T.Quaternion()));
    const m=ctx.getTransform();fit(u*1.22*Math.hypot(m.a,m.b));
    scene.updateMatrixWorld(true);renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
-   const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
-   const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
+   const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,W*scale,H*scale);
+   const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*W-ax)*scale,y:y+((1-p.y)*.5*H-ay)*scale};};
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
-   return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
+   const w=wiki.root.visible?project(wiki.top()):null;
+   return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y,wiki:w&&{x:w.x,y:w.y,r:u*.2}};
   },
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),guide:equippedPickaxe.root.localToWorld(new T.Vector3(0,GUIDE_GRIP,0)).toArray(),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
-  get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,res,lost};},
-  dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),guide:equippedPickaxe.root.localToWorld(new T.Vector3(0,GUIDE_GRIP,0)).toArray(),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,wiki:wiki.root.visible?wiki.inspect():null,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  get stats(){return {renders,bones:bones.length+wiki.bones,skinnedMeshes:5,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,res,lost};},
+  dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();wiki.root.removeFromParent();wiki.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.149.0": "Meet Wiki, the little mycelium sprite riding on Mica's hood. The game is now called Mica and Wiki. Wiki is the game's wiki in person: point at something ({phone:tap Wiki, then tap the thing, or drag from Wiki onto it|laptop:or rest the pointer on it to hear it again}) and Wiki tells you about it in one short line, once each. It shuts its cap near living crystal. Settings \u2192 Wiki talks turns it down to only when asked, or off.",
   "news.0.148.0": "Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.",
   "news.0.147.0": "You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.",
   "news.0.146.0": "Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.",
@@ -570,9 +571,9 @@ export default {
 
   "language.name": "English",
 
-  "game.title": "More Than Enough",
-  "game.shortTitle": "Enough",
-  "game.framed": "More Than Enough only runs in its own tab: {phone:tap|laptop:click} to open it",
+  "game.title": "Mica and Wiki",
+  "game.shortTitle": "Mica & Wiki",
+  "game.framed": "Mica and Wiki only runs in its own tab: {phone:tap|laptop:click} to open it",
 
   "toast.away": "While you were away ({time}) your buildings made {made}",
   "toast.batteryLow": "Your lantern is running low, so its light is shrinking. Charge it by a floating solar panel or water wheel (Build).",
@@ -586,6 +587,16 @@ export default {
   "settings.off": "off",
   "settings.music": "Music",
   "settings.away": "Produce while away",
+  "settings.wiki": "Wiki talks",
+  "settings.wiki.chatty": "chatty",
+  "settings.wiki.quiet": "only when asked",
+  "settings.wiki.off": "off",
+  "wiki.name": "Wiki",
+  "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Tap me, then tap anything|laptop:Point at anything} to ask.",
+  "wiki.ask": "{phone:Tap|laptop:Click} anything and I'll tell you about it.",
+  "wiki.nothing": "Nothing worth telling there.",
+  "wiki.fold": "Living crystal hates light. I'll keep my cap shut while we're near it.",
+  "wiki.more": "More in the wiki ›",
   "lab.title": "Super-speed AUTO",
   "nerds.title": "Nerds",
   "nerds.perf": "Performance panel",

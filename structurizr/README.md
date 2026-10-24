@@ -1,6 +1,6 @@
 # Architecture documentation — Structurizr "models as code"
 
-The system architecture of MORE THAN ENOUGH lives in
+The system architecture of MICA AND WIKI lives in
 [`workspace.dsl`](./workspace.dsl), written in [Structurizr's C4
 DSL](https://docs.structurizr.com/dsl). Every diagram in this repo is *derived*
 from that single file, so the diagrams can never drift from each other — and both

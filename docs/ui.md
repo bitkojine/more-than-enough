@@ -300,6 +300,20 @@ World/action-button holds retain their gameplay behavior. World lookup rejects
 unexplored cells first, then uses indexed facility/building lookups. It never
 reveals hidden terrain, spends resources, advances time or changes a save.
 
+### Wiki
+Wiki (`src/game/wiki.js`) answers for the world itself, so the hover box above
+only covers icons and controls while Wiki talks (Settings → Wiki talks: off
+brings the world box back). Wiki rides on Mica's hood and turns toward what the
+player points at. Its bubble sits just above Wiki, below sheets and above the
+HUD, one name and one short line, with a "More in the wiki" link (the bubble's
+only tappable part). It fades after a few seconds; nothing pauses or waits for
+it. Mouse: a new thing speaks after 400 ms, a known one only gets a glance, and
+resting the pointer 1.2 s says it again. Touch: tap Wiki, then tap a thing (the
+bubble asks for it), or drag from Wiki onto a thing along a white chalk line.
+Those taps belong to Wiki and never walk or gather. Firsts that Mica walks up to
+are said at most once a minute, and never while a milestone banner is up.
+
+
 
 Mica's character inspection uses his visible on-screen body region above the
 known player position, before the existing explored-terrain inspection. It shows

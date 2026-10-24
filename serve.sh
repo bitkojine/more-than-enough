@@ -1,5 +1,5 @@
 #!/bin/sh
-# Serve MORE THAN ENOUGH on your local network so you can play on your phone.
+# Serve MICA AND WIKI on your local network so you can play on your phone.
 # Usage: ./serve.sh [port]   (default port 8000)
 cd "$(dirname "$0")"
 PORT="${1:-8000}"
@@ -16,7 +16,7 @@ if [ -z "$IP" ]; then
 fi
 
 echo ""
-echo "MORE THAN ENOUGH is live on your network:"
+echo "MICA AND WIKI is live on your network:"
 echo "  http://$IP:$PORT"
 echo ""
 echo "Open that URL on your phone (same Wi-Fi) in Safari."

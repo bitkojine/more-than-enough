@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.149.0] - 2026-10-24
+
+- Wiki joins Mica, and the game is renamed **Mica and Wiki** (Watch). Wiki is
+  a small mycelium sprite riding on Mica's hood: the forest's mycelium
+  remembers everything, so Wiki is the game's wiki in person.
+- Wiki is a rigged 3D model like Mica, made the same way and drawn in the same
+  WebGL pass and outline (`src/game/render/wiki-model.js`, pose in
+  `wiki-motion.js`): four bones (base, stalk, cap, rim), a skinned cap whose
+  rim folds down and in, flat oval eyes, a mouth and fibre feet. It sits on the
+  hood bone, so it turns with Mica's head, and looks toward what the player
+  points at. The shared surface grows from 320x384 to 320x448 px to fit it;
+  Mica's scale and anchor are unchanged.
+- Wiki answers for the world instead of the hover box (`src/game/wiki.js`):
+  pointing at a new thing gets one short line after 400 ms, a known thing only
+  a glance, and resting the pointer on it 1.2 s says it again. On a touch
+  screen, tap Wiki and then tap a thing, or drag from Wiki onto it along a
+  white chalk line; those taps never walk or gather. Walking up to something
+  new, Wiki remarks on it at most once a minute, never over a milestone
+  banner. What Wiki has told is kept per browser (`wiki-memory.js`), so it
+  carries over to new worlds, like knowledge. Each line links to the wiki.
+- Wiki gives no light. In crystal worlds it shuts its cap while living crystal
+  is near or carried, as a cue only.
+- Settings → Wiki talks: chatty, only when asked, or off (off brings back the
+  plain hover box for the world). Buttons keep their own tooltips.
+- Renamed in titles only: the page, home screen, wiki, privacy page and
+  README. Save keys, the repository and the domain keep the old name, so every
+  world loads as before.
 ## [0.148.0] - 2026-10-24
 
 - Holding Gather underground mines the rock around you (players asked for it,

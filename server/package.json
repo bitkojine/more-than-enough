@@ -2,7 +2,7 @@
   "name": "mte-rooms",
   "private": true,
   "license": "MIT",
-  "description": "The room service that lets friends play More Than Enough together.",
+  "description": "The room service that lets friends play Mica and Wiki together.",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev --var ALLOW_LOCALHOST:true",

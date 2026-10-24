@@ -132,14 +132,14 @@ export default {
   "wiki.slots": "Slots: {slots}",
   "wiki.packCopy": "{name} (copy)",
   "wiki.packBuildFailed": "Couldn't build the file: {error}",
-  "wiki.title": "More Than Enough Wiki",
-  "wiki.description": "Everything about MORE THAN ENOUGH: controls, the world, the mine, buildings, upgrades and the prestige loop.",
+  "wiki.title": "Mica and Wiki: the wiki",
+  "wiki.description": "Everything about Mica and Wiki: controls, the world, the mine, buildings, upgrades and the prestige loop.",
   "wiki.nav": "Wiki",
-  "wiki.brand": "MORE THAN ENOUGH",
+  "wiki.brand": "MICA AND WIKI",
   "wiki.play": "Play the game",
   "wiki.searchBox": "Search the wiki",
-  "wiki.searchTitle": "Search – More Than Enough Wiki",
-  "wiki.articleTitle": "{article} – More Than Enough Wiki",
+  "wiki.searchTitle": "Search – Mica and Wiki: the wiki",
+  "wiki.articleTitle": "{article} – Mica and Wiki: the wiki",
   "wiki.forVersion": "for game v{version}",
   "wiki.loadFailed": "The wiki couldn't load its tables: {error}",
   "wiki.note.swim": "Swimmable, at {pct} speed",
@@ -216,10 +216,10 @@ export default {
   "wiki.oneTile": "1 tile",
   "wiki.tilesSquare": "{n} × {n} tiles",
   "wiki.article.home.title": "Home",
-  "wiki.article.home": `      <h1>More Than Enough Wiki</h1>
+  "wiki.article.home": `      <h1>Mica and Wiki: the wiki</h1>
       <p class="lede">The game tells you nothing. Poke at it, find out, and come here when you want the details.</p>
       <p><a class="play-hero" href="../"><span aria-hidden="true">&#9654;</span> Play now, free, in your browser</a></p>
-      <p>MORE THAN ENOUGH is about turning a hostile wilderness into an absurd surplus. You start with nothing in an endless,
+      <p>Mica and Wiki is about turning a hostile wilderness into an absurd surplus. You start with nothing in an endless,
         randomly generated forest. Forage mycelium from the forest floor, gather stone, ore and crystal, craft better tools, put up buildings that work while
         you're away, dig into the rock below, and keep going until there's more than enough. Then start over in a new world, a
         little stronger.</p>

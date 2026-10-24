@@ -1,4 +1,4 @@
-# MORE THAN ENOUGH
+# MICA AND WIKI
 
 A mobile-first browser game about turning a wilderness into a settlement.
 The familiar artwork, character, endless layered world and controls now support
@@ -6,6 +6,13 @@ an underground restoration chapter: start empty-handed, gather surface mycelium
 and stone, mine metal below, and cultivate living crystal in dark cooled chambers.
 Build protected storage/transport and restore the first section of a dormant
 machine. The full restoration and ending are still in development.
+
+Mica, the hooded repairer you play, carries Wiki on the hood: a little
+mycelium sprite that is this game's wiki in person. It looks at what you
+point at (or, on a touch screen, what you tap after tapping it) and says one
+short line about things worth knowing, once each. Settings → Wiki talks
+turns it down to only when asked, or off. The game was called More Than
+Enough until v0.149.0; its saves and repository keep that name.
 
 The normal URL opens the game. Existing saved
 worlds keep their terrain, earned progress and earlier economy. Settings → Nerds

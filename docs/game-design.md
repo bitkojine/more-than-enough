@@ -1,4 +1,4 @@
-# MORE THAN ENOUGH — Game Design Document
+# MICA AND WIKI — Game Design Document
 
 Updated 2026-10-23 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
 
@@ -58,6 +58,19 @@ lantern, and the old device battery is that lantern's charge, with the same
 drain in the dark and the same recharging by floating solar panels and water
 wheels. Text may still adapt to the player's real controls
 (`{phone:…|laptop:…}`).
+
+### Mica and Wiki — confirmed, 2026-10-24
+The game is called **Mica and Wiki** (Lithuanian "Mica ir Wiki"; Wiki keeps its
+name in both languages). Wiki is a small mycelium sprite riding on Mica's hood.
+The forest's mycelium connects everything and remembers it, so Wiki is the
+game's wiki in person: it looks at what the player points at and says one short
+line about things worth knowing, once each. Its memory is knowledge, so it
+carries over to new worlds. Wiki gives off no light and shuts its cap near
+living crystal. It is a rigged 3D model made like Mica's. On touch screens,
+tap Wiki and then a thing, or drag from Wiki onto it. Wiki never delays or
+replaces a player action. Open: Wiki's voice and how much more of the story it
+tells, whether friends' Mica carry their own Wiki, and whether the repository
+is renamed (save keys never are).
 
 ### Recommendations awaiting confirmation
 These are design recommendations, not approved rules:

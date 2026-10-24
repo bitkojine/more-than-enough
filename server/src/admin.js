@@ -371,7 +371,7 @@ function client() {
 const SCRIPT = 'var __name = (f) => f;\n(' + client.toString() + ')();';
 
 const BODY = `<form id="gate">
-  <h1>MORE THAN ENOUGH: admin</h1>
+  <h1>MICA AND WIKI: admin</h1>
   <input id="token" type="password" autocomplete="current-password" placeholder="Admin token" aria-label="Admin token" required>
   <label><input id="remember" type="checkbox"> Remember on this device</label>
   <button class="primary" type="submit">Open</button>

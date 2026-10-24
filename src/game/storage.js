@@ -120,9 +120,9 @@ function formatOf(raw) {
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have
-// heard, quality level, whether they know to hold Gather, and whether time
-// away makes anything (freeze season defaults it off): conveniences for this
-// browser, not game state.
+// heard, quality level, whether they know to hold Gather, what Wiki has
+// told them (src/game/wiki-memory.js), and whether time away makes anything
+// (freeze season defaults it off): conveniences for this browser, not game state.
 export function loadView() {
   try {
     const v = JSON.parse(read(VIEW_KEY));
@@ -133,10 +133,11 @@ export function loadView() {
       heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : [],
       quality: Number(v.quality) || 0,
       holdTip: v.holdTip === true,
-      awayProduce: v.awayProduce === true
+      awayProduce: v.awayProduce === true,
+      wiki: v.wiki && typeof v.wiki === 'object' ? v.wiki : null
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, wiki: null };
   }
 }
 

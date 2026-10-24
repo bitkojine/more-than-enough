@@ -57,14 +57,15 @@ export function drawExtractor(ctx, cam, s, look, e) {
 // Mica faces movement and work targets, acting through the 3D rig. While
 // the rig is still loading Mica isn't drawn (only their shadow), so no other
 // figure flashes up first; without WebGL, and with a player's own pack, the
-// pack's 2D wanderer stands in. Returns head/hand anchors for signs.
+// pack's 2D wanderer stands in. Wiki rides on the 3D hood (view.wiki).
+// Returns head/hand anchors for signs, and Wiki's.
 export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const facing=view.actor?.act&&view.actor.facing?view.actor.facing:view.facing;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
     x: p.x, sx, sy, mica: true, facingVector:facing, flip: facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
-    actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal,
+    actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal, wiki: view.wiki ?? null,
     // Older worlds light the dark with a lantern Mica always carries.
     lantern: s.cultivation ? { has: !!s.cultivation.gear?.lantern, on: !!s.cultivation.lantern } : { has: true, on: Core.isDark(s) }
   });
@@ -75,7 +76,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // hand. `nod` tips them forward a little more (dozing). Everyone (you and
 // friends, awake, dozing or asleep) is drawn at one size, `u` px per tile.
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false } }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false }, wiki = null }) {
   const u = cam.tilePx;
   if(look.rig&&mica&&!look.custom){
     const motion=pose(actor,{moving,boat:water,steady,time:actor.clock??s.time,seed,equipment});
@@ -83,7 +84,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVecto
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
-    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,wiki,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
     ctx.restore();if(location)return location;
   }
   const id='character.wanderer';

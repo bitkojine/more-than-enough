@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.149.0": "Susipažink su Wiki – mažu grybienos padarėliu, kuris jodinėja ant Micos gobtuvo. Žaidimas dabar vadinasi „Mica ir Wiki“. Wiki – tai gyvas žaidimo žinynas: parodyk į ką nors ({phone:paliesk Wiki, tada daiktą, arba nutempk nuo Wiki ant jo|laptop:arba palaikyk žymeklį ant jo, kad išgirstum dar kartą}), ir Wiki trumpai papasakos, kiekvieną dalyką po kartą. Prie gyvojo kristalo jis užverčia kepurę. Nustatymuose „Wiki kalba“ gali palikti tik atsakymus paklausus arba jį išjungti.",
   "news.0.148.0": "Po žeme laikant Rinkti dabar iškasama uoliena aplink tave, pirmiausia radiniai ir gyslos, kaip paviršiuje renkami ištekliai. O kur tik nusileidi, aplink tave atsiveria nedidelis urvas, tad niekada neįstringi viename langelyje, ant kurio nusileidai.",
   "news.0.147.0": "Dabar gali priartinti daug arčiau, kol Mica užims daugiau nei pusę ekrano: {phone:išskėsk du pirštus|laptop:sukink ratuką} ar spausk +, kad iš arti pamatytum veidą, rankas ir siūles. Taip arti Mica atrodo ryškiai, o vaizdas centruojamas į Micą, kad niekas nebūtų nukirpta.",
   "news.0.146.0": "Rodant į daiktus pasaulyje – ramiau: paprasta žemė ir tavo iškasti tuneliai nebeiššoka su užrašu. Ką nors pasako tik telkiniai, radiniai, keliai tarp sluoksnių ir pastatai, paprastais žodžiais, o telkinys pasako, jei jam dar reikia geresnio įrankio.",
@@ -570,9 +571,9 @@ export default {
 
   "language.name": "Lietuvių",
 
-  "game.title": "Daugiau nei gana",
-  "game.shortTitle": "Gana",
-  "game.framed": "„Daugiau nei gana“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum",
+  "game.title": "Mica ir Wiki",
+  "game.shortTitle": "Mica ir Wiki",
+  "game.framed": "„Mica ir Wiki“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum",
 
   "toast.away": "Kol tavęs nebuvo ({time}), tavo pastatai pagamino: {made}",
   "toast.batteryLow": "Tavo žibintas senka, tad jo šviesa mažėja. Įkrauk jį prie plaukiojančios saulės plokštės ar vandens rato (Statyti).",
@@ -586,6 +587,16 @@ export default {
   "settings.off": "išjungtas",
   "settings.music": "Muzika",
   "settings.away": "Gaminti, kai toli",
+  "settings.wiki": "Wiki kalba",
+  "settings.wiki.chatty": "plepus",
+  "settings.wiki.quiet": "tik paklaustas",
+  "settings.wiki.off": "išjungta",
+  "wiki.name": "Wiki",
+  "wiki.hello": "Labas, aš Wiki. Grybiena po mišku prisimena viską, ir aš taip pat. {phone:Paliesk mane, tada bet ką|laptop:Parodyk į bet ką}, ir paklausk.",
+  "wiki.ask": "{phone:Paliesk|laptop:Spustelėk} bet ką, ir papasakosiu apie tai.",
+  "wiki.nothing": "Ten nėra ko pasakoti.",
+  "wiki.fold": "Gyvasis kristalas nekenčia šviesos. Kol esame šalia jo, laikysiu kepurę užvertą.",
+  "wiki.more": "Daugiau wiki ›",
   "lab.title": "Itin greitas AUTO",
   "nerds.title": "Moksliukams",
   "nerds.perf": "Našumo skydelis",

@@ -1,4 +1,4 @@
-/* MORE THAN ENOUGH — simulation core. Pure game rules: no DOM, no clock, no
+/* MICA AND WIKI — simulation core. Pure game rules: no DOM, no clock, no
  * Math.random, so it runs identically in the browser and in Node tests. The
  * browser layer (src/game/) drives the game only through these exports. */
 

@@ -64,6 +64,8 @@ export function findElements() {
     musicState: byId('musicState'),
     away: byId('btnAway'),
     awayState: byId('awayState'),
+    wikiMode: byId('btnWiki'),
+    wikiState: byId('wikiState'),
     drag: byId('btnDrag'),
     dragMode: byId('dragMode'),
     toast: byId('toast'),

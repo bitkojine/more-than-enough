@@ -124,5 +124,6 @@ export function render(cam, s, fx, view, look) {
   let sign = null;
   if (view.sign > 0 && view.signFace && you) sign = drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
   drawJoystick(ctx, cam, view);
-  return { tiles, sign };
+  // Wiki on the hood, or Mica's head when the 2D figure stands in.
+  return { tiles, sign, wiki: you ? you.wiki ?? { x: you.x, y: you.top, r: 0 } : null };
 }

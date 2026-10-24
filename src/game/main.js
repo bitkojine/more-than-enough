@@ -1,4 +1,4 @@
-/* MORE THAN ENOUGH — browser entry point. Wires the modules together and runs
+/* MICA AND WIKI — browser entry point. Wires the modules together and runs
  * the frame loop: input -> controller -> core step -> effects -> render. */
 
 // First: an admin's copy swaps this browser's storage before anything reads it.
@@ -12,6 +12,8 @@ import { sceneFor } from './music/score.js';
 import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
 import { createTooltips } from './tooltips.js';
+import { createWiki } from './wiki.js';
+import { WIKI_MODES } from './wiki-memory.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createFresh } from './fresh.js';
@@ -110,6 +112,8 @@ function keepView() {
   savedView.music = audio.music;
   saveView(savedView);
 }
+// Wiki, on Mica's hood, answers for the world; what it has told is kept here.
+const wiki = createWiki({ canvas: el.canvas, cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); } });
 // What you gather flies to its pile in the yard (yard and quality are made
 // just below), as many at once as the device's quality allows.
 const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
@@ -412,6 +416,13 @@ el.away.addEventListener('click', () => {
   together.setAwayProduce(savedView.awayProduce);
   showAway();
 });
+// How much Wiki says on its own: chatty, only when asked, or not at all.
+const showWiki = () => { el.wikiState.textContent = t('settings.wiki.' + wiki.mode); };
+el.wikiMode.addEventListener('click', () => {
+  wiki.setMode(WIKI_MODES[(WIKI_MODES.indexOf(wiki.mode) + 1) % WIKI_MODES.length]);
+  showWiki();
+});
+showWiki();
 // The first time you hear a place's music, it tells you its name (except
 // the very first tune, which plays over a world that says nothing yet).
 audio.onTrack((id) => {
@@ -555,7 +566,8 @@ function view() {
     me: together.me,   // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,
-    signCaption: t('together.sign')
+    signCaption: t('together.sign'),
+    wiki: wiki.pose()
   };
 }
 
@@ -613,7 +625,7 @@ function frame(now) {
     const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
     last = now;
     const t0 = performance.now();
-    if (!document.hidden && !fork.open) updateView(dt);
+    if (!document.hidden && !fork.open) { updateView(dt); wiki.update(dt); }
     yard.update(game.state, dt);
     const t1 = performance.now();
     // Changed layers in this world since the last frame: show the trip.
@@ -625,6 +637,7 @@ function frame(now) {
     shownState = game.state; shownZ = z;
     const stats = render(cam, game.state, fx, view(), look);
     signRect = stats.sign;
+    wiki.place(stats.wiki);
     descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, simulationMs + t1 - t0, performance.now() - t1, stats.tiles);
     simulationMs = 0;
@@ -714,7 +727,7 @@ soloControls.addEventListener('click',e=>{
  if(next){game.replace(next);refreshSoloControls();}
 });
 
-createTooltips({canvas:el.canvas,cam,state:()=>game.state});
+createTooltips({canvas:el.canvas,cam,state:()=>game.state,world:()=>wiki.mode==='off'});
 
 // A small hook so the browser tests can inspect and adjust the real game.
 
@@ -750,6 +763,7 @@ window.MTE_GAME = {
   quality: () => quality.level,
   mapNames: () => worldMap.names(),
   perfVisible: () => perf.visible,
+  wiki,
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)
 };
