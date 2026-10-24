@@ -489,3 +489,36 @@ multisampled render target and contour pass preserve the flat palette. This
 changes presentation only; it adds no collision area, time, inventory or actions.
 Rendered-edge checks cover headings, gait, work and cargo and reproduce the
 previous missing-outline failure. Custom packs retain their authored artwork.
+
+
+### Tool-use correction (v0.144.0)
+
+The owner requests believable use of every visible work tool. Pure work
+constraints in `src/game/render/work-motion.js` solve fixed-length arms toward
+actual grip positions. Mining uses the existing pickaxe geometry, an outward
+wind-up that clears the hood, a driving hand sliding up/down its shaft, a lower
+guide grip, a forward/down stroke and recovery. The torso hinges from the hips;
+all arm axes reset before constraints so a pose cannot inherit old rotations.
+
+`src/game/render/work-equipment.js` supplies bounded cached physical baskets
+for earned levels and a non-emissive hooded lantern for actual cultivation gear.
+The basket follows the left palm throughout gathering and recovery, remaining
+upright while the torso bends. The right hand reaches and returns toward its
+opening. The owned lantern sits outside the coat on the belt and its control
+gesture reaches that model. Neither prop grants yield, capacity or light.
+Construction stows the pickaxe and uses two assembly presses; no unowned hammer
+is invented. Planting/tending, collecting, cargo handling and climbing retain
+appropriate free hands. The compatibility build pose no longer selects mining
+artwork or adds a pickaxe as a hammer. Other authored custom art remains intact.
+
+Repeated work receipts do not restart the active visual cycle. One pending
+cycle coalesces repeat receipts, captures observed facing/work type, and is
+discarded after time away rather than replaying a backlog. Different actions
+can interrupt promptly. These fields stay in presentation memory, not saves or
+wire-format additions. Core action/earn deadlines and input throughput remain
+unchanged. Visual work is not a new requirement to wait before gathering.
+
+Review actual rendered grip contacts, empty-handed cases, direction coverage,
+continuous arcs, planting/tending, belt interaction and complete playback at
+world scale. Keep gameplay interaction range unchanged; this pass does not
+replace the game's abstract reach rule with a physical collision requirement.

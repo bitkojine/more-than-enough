@@ -171,3 +171,20 @@ pixel readback or per-frame model construction is used in normal rendering.
 Three skinned meshes remain (coat, hem and patch); GPU statistics include both
 the source and contour pass. `MTE_OUTLINE_ONLY=1 MTE_RIG_ONLY=1 npm run test:e2e`
 runs the bounded pixel-edge regression, including poses with tools and cargo.
+
+
+## Tool-use constraints
+
+`src/game/render/work-motion.js` owns the pure arm solver and work trajectories;
+`src/game/render/work-equipment.js` owns the cached earned basket/lantern props.
+Driving/guide grips follow the existing pickaxe shaft. Baskets stay palm-bound
+and upright, and lantern controls reach the actual belt prop. Reset every arm
+axis before solving so frame order cannot change the pose. A single pending
+actor cycle prevents repeated receipts from rewinding the current stroke.
+
+`MTE_WORK_ONLY=1 npm run test:e2e` checks grips, stowing, missing gear, actual
+contacts, frame-order independence and GPU budgets. `MTE_RECORD_WORK=1` exports
+optional bounded work-clip captures; native/enlarged playback belongs in
+`art/characters/rig-review/`. Keep the shared eight headings and silhouette
+contour. Review image quality as well as kinematic constraints. Gameplay reach
+remains the canonical abstract reach, not an animation collision check.

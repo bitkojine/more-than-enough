@@ -8,13 +8,14 @@ export function characterSprite({equipment=null,actor={},device=null,cargo=null,
   if(device)return {id:look.overrides(base)?base:'character.legacyWanderer',composed:false};
   let id=base,actionProgress=null;
   const progress=ACT_TIME[actor.act]?Math.max(0,Math.min(1,actor.t/ACT_TIME[actor.act])):1;
-  if(equipment?.pickaxe>0&&['swing','build'].includes(actor.act)){
+  if(equipment?.pickaxe>0&&actor.act==='swing'){
     id='character.miner';
-    actionProgress=actor.act==='build'?Math.min(1,(progress*2)%1):progress;
+    actionProgress=progress;
   }else if(actor.act==='pick'){
     id=equipment?.basket>0?'character.forager':'character.bareForager';
     actionProgress=progress;
   }
+  else if(actor.act==='build'){id=base;}
   else if(cargo&&(cargo.starter||crystal>0))id=cargo.gear.carrier?'character.courier':'character.specimen';
   else if(cargo?.gear.lantern&&cargo.lantern)id='character.lamplighter';
   else if(equipment?.basket>0&&equipment?.pickaxe>0)id='character.worker';

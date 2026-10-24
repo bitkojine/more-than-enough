@@ -24,17 +24,20 @@ export function actionPose(action,progress){
  const t=clamp(progress),envelope=Math.sin(Math.PI*t)**2;
  const p={bow:0,twist:0,crouch:0,left:0,right:0,leftElbow:0,rightElbow:0,spread:0};
  if(action==='pick'){
-  p.bow=.38*envelope;p.crouch=.055*envelope;
+  const reach=ease(t/.22)*(1-ease((t-.45)/.25));p.bow=.65*reach;p.crouch=.14*reach;
   p.right=-.85*envelope;p.rightElbow=-.5*envelope;p.left=-.25*envelope;
  }else if(action==='collect'){
   p.bow=.16*envelope;p.twist=-.12*envelope;
   p.right=-1.1*envelope;p.rightElbow=-.3*envelope;p.left=-.35*envelope;
- }else if(action==='swing'||action==='build'){
+ }else if(action==='build'){
+  const press=Math.sin(Math.PI*t*2)**2;p.bow=.18*envelope+.06*press*envelope;p.crouch=.035*envelope;
+  p.right=-.6*envelope;p.left=-.5*envelope;
+ }else if(action==='swing'){
   const q=action==='build'?(t*2)%1:t;
   const wind=ease(q/.38)*(1-ease((q-.38)/.18));
   const strike=ease((q-.38)/.18)*(1-ease((q-.56)/.44));
   const gate=action==='build'?envelope:1;
-  p.spread=gate*(.9*wind+.20*strike);
+  p.spread=gate*(.12*wind+.06*strike);
   p.bow=gate*(-.10*wind+.26*strike);p.twist=gate*(.13*wind-.10*strike);
   p.crouch=.025*strike*gate;p.right=gate*(-1.65*wind-.85*strike);
   p.left=gate*(-.8*wind-.45*strike);p.rightElbow=-.6*wind*gate;p.leftElbow=-.35*wind*gate;

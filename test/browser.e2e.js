@@ -131,7 +131,7 @@ async function main() {
   // headless chrome
   var profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-chrome-'));
   var chrome = cp.spawn(CHROME, [
-    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'||process.env.MTE_RESOURCE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
+    '--headless=new', ...(process.env.MTE_WORK_ONLY==='1'||process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'||process.env.MTE_RESOURCE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
@@ -394,6 +394,48 @@ async function main() {
     }
     eq(pageErrors.length,0,'pickaxe rendering has no browser exceptions');console.log((failures?'PICKAXE BROWSER FAILURES':'PICKAXE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_WORK_ONLY==='1'){
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1800,height:1500,deviceScaleFactor:1,mobile:false},session);
+   const work=await evalJS(`(async()=>{
+    const rig=await MTE_GAME.look.rigReady;if(!rig)throw Error(MTE_GAME.look.rigError||'Rig unavailable');
+    const c=document.createElement('canvas');c.id='__workReview';c.width=1800;c.height=1500;c.style='position:fixed;inset:0;z-index:99999;width:1800px;height:1500px';document.body.append(c);const g=c.getContext('2d');g.fillStyle='#b69b6a';g.fillRect(0,0,c.width,c.height);g.fillStyle='#1d1712';g.font='22px system-ui';g.fillText('Mica — actual equipment, constrained grips and complete work cycles',25,35);
+    const cases=[['Mining',{action:'swing',pickaxe:4}],['Basket gathering',{action:'pick',basket:3,pickaxe:4}],['Bare-hand gathering',{action:'pick'}],['Manual construction',{action:'build',pickaxe:4,basket:3}],['Lantern control',{action:'collect',work:'lantern',lantern:true,lanternOn:true}]];
+    for(let row=0;row<cases.length;row++)for(let col=0;col<6;col++){const progress=[0,.18,.32,.56,.72,.92][col],x=150+col*300,y=300+row*295;g.fillStyle='#1d1712';g.font='16px system-ui';g.fillText(cases[row][0]+' · '+progress,x-135,y-225);rig.draw(g,x,y,270,{...cases[row][1],progress,facing:{x:1,y:1}});}
+    const grips=[];for(let i=0;i<8;i++){const angle=i*Math.PI/4;for(const progress of [.22,.32,.56,.72]){rig.draw(g,-1000,-1000,160,{pickaxe:4,action:'swing',progress,facing:{x:Math.cos(angle),y:Math.sin(angle)}});const p=rig.inspect();grips.push({right:Math.hypot(...p.pickaxe.grip.map((n,j)=>n-p.rightHand[j])),left:Math.hypot(...p.pickaxe.guide.map((n,j)=>n-p.leftHand[j])),stats:rig.stats});}}
+    rig.draw(g,-1000,-1000,160,{action:'build',progress:.5,pickaxe:4});const build=rig.inspect();rig.draw(g,-1000,-1000,160,{action:'pick',progress:.5,basket:5,pickaxe:6,lantern:true});const basket=rig.inspect(),maxStats=rig.stats;
+    const basketContacts=[];for(const progress of [0,.18,.32,.56,.72,.92]){rig.draw(g,-1000,-1000,160,{action:'pick',progress,basket:3});const p=rig.inspect();basketContacts.push(Math.hypot(...p.basket.grip.map((n,j)=>n-p.leftHand[j])));}
+    rig.draw(g,-1000,-1000,160,{action:'collect',work:'lantern',progress:.5,lantern:true});const lp=rig.inspect(),lanternContact=Math.hypot(...lp.lanternPosition.map((n,j)=>n-lp.leftHand[j]));
+    rig.draw(g,-1000,-1000,160,{});const empty=rig.inspect();rig.draw(g,-1000,-1000,160,{action:'swing',progress:.06,pickaxe:4});const first=rig.inspect();rig.draw(g,-1000,-1000,160,{action:'collect',progress:.8,basket:3});rig.draw(g,-1000,-1000,160,{action:'swing',progress:.06,pickaxe:4});const repeated=rig.inspect();
+    const orderError=Math.max(...first.pickaxe.grip.map((n,j)=>Math.abs(n-repeated.pickaxe.grip[j])),...first.leftHand.map((n,j)=>Math.abs(n-repeated.leftHand[j])));
+    return {grips,build,basket,empty,maxStats,basketContacts,lanternContact,orderError};
+   })()`);
+   ok(work.grips.every(p=>p.right<.04),'mining keeps the driving grip inside the right palm throughout each stroke');
+   ok(work.grips.every(p=>p.left<.025),'the guide hand stays on the shaft in all eight headings'+(work.grips.some(p=>p.left>=.025)?JSON.stringify(work.grips):''));
+   ok(work.grips.every(p=>p.stats.drawCalls<=64&&p.stats.triangles<50000)&&work.maxStats.drawCalls<=64&&work.maxStats.triangles<50000,'working equipment fits existing GPU budgets');
+   ok(work.build.pickaxe.stowed,'construction frees both hands instead of hammering with a pickaxe');
+   ok(work.basket.basket?.held&&work.basket.pickaxe.stowed,'gathering holds the earned basket and stows the pickaxe');
+   ok(work.basketContacts.every(d=>d<.04),'basket stays in the palm throughout reaching and recovery');
+   ok(work.lanternContact<.06,'lantern gesture reaches the actual owned lantern');
+   ok(work.orderError<1e-8,'work poses do not inherit joint rotations from the preceding action');
+   ok(!work.empty.pickaxe&&!work.empty.basket&&!work.empty.lantern,'empty-handed worlds receive no visual equipment');
+   await shot('tool-actions-review.png');
+   if(process.env.MTE_RECORD_WORK==='1'){
+    for(const [key,opts]of Object.entries({mining:{action:'swing',pickaxe:4,basket:3},foraging:{action:'pick',pickaxe:4,basket:3},building:{action:'build',pickaxe:4,basket:3},lantern:{action:'collect',work:'lantern',lantern:true,lanternOn:true}})){
+     const frames=await evalJS(`(async()=>{const rig=await MTE_GAME.look.rigReady,c=document.getElementById('__workReview');c.width=960;c.height=600;const g=c.getContext('2d'),frames=[],opts=${JSON.stringify(opts)};
+      for(let i=0;i<40;i++){g.fillStyle='#b69b6a';g.fillRect(0,0,960,600);g.fillStyle='#1d1712';g.font='22px system-ui';g.fillText('${key} — front, side and actual game scale',25,35);rig.draw(g,220,530,430,{...opts,progress:i/39,facing:{x:0,y:1}});rig.draw(g,610,530,430,{...opts,progress:i/39,facing:{x:1,y:0}});rig.draw(g,850,530,64,{...opts,progress:i/39,facing:{x:1,y:1}});frames.push(c.toDataURL().split(',')[1]);}return frames;})()`);
+     const dir=path.join(SHOT_DIR,'work-frames',key);fs.mkdirSync(dir,{recursive:true});frames.forEach((f,i)=>fs.writeFileSync(path.join(dir,String(i).padStart(3,'0')+'.png'),Buffer.from(f,'base64')));console.log('  captured '+key+' motion review');
+    }
+   }
+   await evalJS("document.getElementById('__workReview').remove()");
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:640,height:480,deviceScaleFactor:1,mobile:false},session);await sleep(150);
+   await key('keyDown',' ','Space',32);const live=[];
+   for(let i=0;i<70;i++){await sleep(80);live.push(await evalJS("(()=>{const s=MTE_GAME.getState(),p=MTE_GAME.look.rig.inspect().work;return {action:p.action,phase:p.progress,total:MTE_GAME.core.RESOURCES.reduce((n,r)=>n+s.inv[r],0)};})()"));}
+   await key('keyUp',' ','Space',32);
+   ok(live.at(-1).total>0,'normal held Gather earns resources in a fresh world without test grants');
+   ok(live.some((s,i)=>s.action==='pick'&&s.phase>.72&&live.slice(i+1).some(n=>n.total>s.total)),'real repeated gathering completes recovery while further actions still succeed');
+   await shot('work-in-live-game.png');
+   eq(pageErrors.length,0,'work animations have no browser exceptions');console.log((failures?'WORK BROWSER FAILURES':'WORK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_RIG_ONLY==='1'){
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1150,deviceScaleFactor:1,mobile:false},session);
     const review=await evalJS(`(async()=>{
@@ -444,7 +486,7 @@ async function main() {
      for(let i=0;i<8;i++){const a=i*Math.PI/4;poses.push({facing:{x:Math.cos(a),y:Math.sin(a)}});}
      for(const phase of [0,.25,.5,.75])poses.push({facing:{x:1,y:0},walking:true,phase});
      for(const cargo of ['specimen','sealed'])for(const x of [-1,1])poses.push({facing:{x,y:1},cargo,pickaxe:2});
-     for(const action of ['pick','swing','build','cheer'])poses.push({facing:{x:0,y:1},action,progress:.4,pickaxe:2});
+     for(const action of ['pick','swing','build','cheer'])poses.push({facing:{x:0,y:1},action,progress:.4,pickaxe:2});poses.push({facing:{x:1,y:1},action:'pick',progress:.5,basket:5,lantern:true});
      const results=[];for(const pose of poses){g.clearRect(0,0,256,256);rig.draw(g,128,240,160,pose);const p=g.getImageData(0,0,256,256).data;let edges=0,gaps=0;
       for(let y=1;y<255;y++)for(let x=1;x<255;x++){const i=(y*256+x)*4;if(p[i+3]<128)continue;if(![-4,4,-1024,1024].some(d=>p[i+d+3]<128))continue;edges++;if(p[i]>38||p[i+1]>32||p[i+2]>27)gaps++;}
       results.push({edges,gaps});

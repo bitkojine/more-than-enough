@@ -1,16 +1,20 @@
 {
-  "version": "0.143.2",
-  "status": "first integrated Mica identity pass; art direction remains provisional",
+  "version": "0.144.0",
+  "status": "integrated constrained work animations; subjective art polish remains reviewable",
   "sources": {
-    "src/game/render/rig-motion.js": "4d6f1963e484c671fc3e7dab2b8fb8cdf3da177fb4fc46b7a7442276ff6e1a23",
-    "src/game/render/rigged-character.js": "8f4d29b92a9c987417e2a843423a8c7dadd29af39dc6734aa8503731dd3875dc",
-    "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
-    "src/game/render/sprites.js": "b49bd38c2c0ae7babd43f149dff3967486698216ee317fefd9f45a76f372bf74",
+    "src/game/render/rig-motion.js": "4696471356f878834c8cc25588f44965f5918ab3dece5259c0dcdda9d84d9e45",
+    "src/game/render/rigged-character.js": "eb7d9c82ae6e8517df2aa5bd65708bb276e328378a2426235fed789481636b73",
+    "src/game/render/motion.js": "b561e40d83c9193039ba2a3c9523de0391696de1c75d1ac5dea9a855ac94d825",
+    "src/game/render/sprites.js": "678b30648124750edd13768fff61fe5d72c0c226145e1370251f4657c6cc7e81",
     "src/game/render/character-direction.js": "3510f6fde74cdb5b6d98b1d1b1df1a6724d3d67b54750569e2db942fb5c21a4e",
-    "src/game/render/pickaxe-model.js": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023"
+    "src/game/render/pickaxe-model.js": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023",
+    "src/game/render/work-motion.js": "543e84e2c8b498d8d8f6c65f4a175d7afdda9cd128a02327c0c9c7704b9c2909",
+    "src/game/render/work-equipment.js": "01044c554cc2fcefde9adc0e1090f144132fdde2dc60012296cceadfa45c3793",
+    "src/game/render/character-sprite.js": "acbb700c9389d07c8a9124f9c18be0b78c20bcc210df098d64d8893a151f530c",
+    "src/game/controller.js": "e90e23c987f84f8fcc92d6fdd652f09fddd5984d6061b4cbf9b80ac32c489cfe"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
-  "playbackSha256": "7d5f116ce18cccee0c4a09f613287ff76e5244758a688386bcc88c85cf7b1a85",
+  "playbackSha256": "77f3ac1ae47f4fd5bc0e2425fbf1ec981a84fd3a8fa091f8d34a35367e4fa28a",
   "capture": "40 phase samples from the current actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; current Mica bare east-facing walk, not a pickaxe swing capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
@@ -27,12 +31,17 @@
     "protective two-hand specimen/sealed carrying, pickaxe stowing and existing GPU budgets in all eight headings; empty-handed rendering remains empty",
     "carrying preserves foot targets, steady mode and working-action precedence; idle curiosity/blinks leave both feet planted",
     "rounded boot lasts, narrow heels and slim brown soles visually reviewed through eight headings and forty walk phases, keeping the existing clearance envelope",
-    "whole-figure ink silhouette across 20 heading/gait/work/cargo fixtures; pixel coverage fails on the prior renderer and passes on the unified contour, preserving exact sRGB material colors"
+    "whole-figure ink silhouette across 20 heading/gait/work/cargo fixtures; pixel coverage fails on the prior renderer and passes on the unified contour, preserving exact sRGB material colors",
+    "fixed-length arm IK; driving and guide grips within reach, head clears hood and follows a continuous forward/down arc",
+    "earned basket remains palm-bound for the complete reach/recovery; lantern hand reaches its actual owned belt model; manual construction stows pickaxe",
+    "all arm axes reset between poses; same work frame is independent of preceding action",
+    "normal held Gather in a fresh world earns without test grants and reaches recovery while further actions continue; same-action receipts coalesce into one pending visual cycle"
   ],
   "limits": [
-    "pickaxe and actual crystal cargo have physical hand/back models; remaining equipment models are unfinished",
+    "pickaxe, basket, hooded lantern and crystal cargo have physical models; custom/legacy compatibility uses its existing authored sprite family",
     "stylized gait; not a world-space foot-locking system",
-    "procedural geometry and materials remain a first playable art pass"
+    "procedural geometry and materials remain a first playable art pass",
+    "gameplay reach remains the existing abstract interaction range, not a new animation collision requirement"
   ],
   "faceReference": {
     "file": "art/characters/turnaround-v2.png",
@@ -46,5 +55,31 @@
     "packs/default/characters/wanderer.svg"
   ],
   "motion": "21 bones, three skinned meshes (coat, hem and repair patch), with a separate complete-figure alpha outline pass; pure two-bone leg IK, secondary cloak/body motion, explicit-time blinking and curious idle, existing work timing and protective cargo hold",
-  "facing": "eight snapped world headings shared with directional sprite art; continuous movement and smooth internal joint articulation"
+  "facing": "eight snapped world headings shared with directional sprite art; continuous movement and smooth internal joint articulation",
+  "workPlayback": {
+    "mining": {
+      "file": "art/characters/rig-review/work-mining.mp4",
+      "sha256": "6fa65a4f7089879a6ce137cf94a4605e4e842ff1bf6b56b6cb9bd26b7354ec0c",
+      "duration": 0.3,
+      "capture": "40 phase samples of actual rig, front/side/native-scale views; encoded at existing visual action duration and resampled to 60fps"
+    },
+    "foraging": {
+      "file": "art/characters/rig-review/work-foraging.mp4",
+      "sha256": "cc03557ca61ecfc822ffbe497f773f28ef61b34a7701bd55bdaf989d6b06807a",
+      "duration": 0.45,
+      "capture": "40 phase samples of actual rig, front/side/native-scale views; encoded at existing visual action duration and resampled to 60fps"
+    },
+    "building": {
+      "file": "art/characters/rig-review/work-building.mp4",
+      "sha256": "c5992a1e2a7a49bf4dd33488497558c1e57de3114cb1dbabd60c9fb6eb576e9f",
+      "duration": 0.7,
+      "capture": "40 phase samples of actual rig, front/side/native-scale views; encoded at existing visual action duration and resampled to 60fps"
+    },
+    "lantern": {
+      "file": "art/characters/rig-review/work-lantern.mp4",
+      "sha256": "7f7857f7fa49e9935f529dc520a5ed85cc1b34dff3706ad45379f679ac689fc4",
+      "duration": 0.4,
+      "capture": "40 phase samples of actual rig, front/side/native-scale views; encoded at existing visual action duration and resampled to 60fps"
+    }
+  }
 }

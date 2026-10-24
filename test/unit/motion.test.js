@@ -70,3 +70,11 @@ test('rig locomotion holds between simulation samples and settles without invent
   assert.equal(stopped.walkBlend,0);assert.equal(stopped.rigStride,moved.rigStride);
   time+=.01;const jumped=a.view(true,{x:100,y:0,z:0});assert.equal(jumped.walkBlend,0);
 });
+
+test('rapid work receipts finish their stroke and retain its captured facing',()=>{
+ let time=0;const a=createActor({clock:()=>time});a.act('swing',{facing:{x:1,y:0}});time=.2;a.act('swing',{facing:{x:0,y:1}});
+ const before=a.view(false);assert.equal(before.t,.2);assert.deepEqual(before.facing,{x:1,y:0});
+ time=ACT_TIME.swing+.01;const next=a.view(false);assert.ok(Math.abs(next.t-.01)<1e-8);assert.deepEqual(next.facing,{x:0,y:1});
+ time=10;assert.equal(a.view(false).act,null,'no old visual backlog after time away');
+ a.act('swing');time+=.1;a.act('up');assert.equal(a.view(false).act,'up','a different action can interrupt promptly');assert.equal(a.view(false).t,0);
+});

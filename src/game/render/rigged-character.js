@@ -4,6 +4,8 @@ import * as T from '../../vendor/three/three.module.js';
 import {rigPose,LEG_LENGTH} from './rig-motion.js';
 import {createPickaxeModel,pickaxeTier} from './pickaxe-model.js';
 import {characterDirection,CHARACTER_DIRECTIONS} from './character-direction.js';
+import {UPPER_ARM,FOREARM,GUIDE_GRIP,solveArm,miningStroke,workHands} from './work-motion.js';
+import {createBasketModel,createLanternModel} from './work-equipment.js';
 const DOWN=new T.Vector3(0,-1,0);
 export function createRiggedCharacter(){
  const canvas=document.createElement('canvas');
@@ -94,7 +96,7 @@ export function createRiggedCharacter(){
  const patchGeometry=new T.BufferGeometry();patchGeometry.setAttribute('position',new T.Float32BufferAttribute(patchPoints,3));patchGeometry.setIndex(patchIndices);patchGeometry.computeVertexNormals();clothGeometry(patchGeometry);
  const patch=new T.SkinnedMesh(patchGeometry,material(0xd18b54));patch.material.side=T.DoubleSide;model.add(patch);
  function arm(side){
-  const upper=bone(side>0?'leftUpperArm':'rightUpperArm',spine,side*.295,.13,0),lower=bone(side>0?'leftForearm':'rightForearm',upper,0,-.20,0),hand=bone(side>0?'leftHand':'rightHand',lower,0,-.16,0);
+  const upper=bone(side>0?'leftUpperArm':'rightUpperArm',spine,side*.26,.13,0),lower=bone(side>0?'leftForearm':'rightForearm',upper,0,-UPPER_ARM,0),hand=bone(side>0?'leftHand':'rightHand',lower,0,-FOREARM,0);
   upper.rotation.z=side*.36;
   const sleeve=mesh(new T.CylinderGeometry(.10,.125,.27,32,6),orange,upper,0,-.12,0);sleeve.scale.z=.95;
   const cuff=mesh(new T.TorusGeometry(.118,.006,8,32),thread,upper,0,-.255,0);cuff.rotation.x=Math.PI/2;
@@ -129,7 +131,7 @@ export function createRiggedCharacter(){
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);
- const toolGrip=new T.Group();toolGrip.position.set(0,-.02,.025);toolGrip.rotation.set(Math.PI+.08,0,.22);rightArm.hand.add(toolGrip);
+ const toolGrip=new T.Group();toolGrip.position.set(0,-.02,.025);toolGrip.rotation.set(1.9,0,.12);rightArm.hand.add(toolGrip);
  const toolBack=new T.Group();toolBack.position.set(0,-.05,-.26);toolBack.rotation.z=-.8;spine.add(toolBack);toolBack.visible=false;
  const holster=mesh(new T.TorusGeometry(.052,.012,6,16),black,toolBack);holster.rotation.x=Math.PI/2;
  // Cargo represents only a real starter or harvested crystal already carried
@@ -142,7 +144,7 @@ export function createRiggedCharacter(){
  mesh(new T.CylinderGeometry(.13,.12,.20,10),black,sealed);
  mesh(new T.CylinderGeometry(.14,.14,.035,10),linen,sealed,0,.105,0);
  mesh(new T.CylinderGeometry(.133,.133,.018,10),linen,sealed,0,-.10,0);
- const pickaxes=new Map();let equippedPickaxe=null;let cargoKind=null;
+ const pickaxes=new Map();let equippedPickaxe=null;let cargoKind=null,drivingGrip=0;
  function equipPickaxe(level,action,steady,carrying=false){
   const tier=pickaxeTier(level);
   if(equippedPickaxe&&equippedPickaxe.tier!==tier){equippedPickaxe.root.removeFromParent();equippedPickaxe=null;}
@@ -155,8 +157,47 @@ export function createRiggedCharacter(){
    pickaxes.set(tier,asset);
   }
   equippedPickaxe=pickaxes.get(tier);
-  const stowed=steady||carrying||['pick','collect','up','down','cheer'].includes(action),socket=stowed?toolBack:toolGrip;toolBack.visible=stowed;
+  const stowed=steady||carrying||['build','pick','collect','up','down','cheer'].includes(action),socket=stowed?toolBack:toolGrip;toolBack.visible=stowed;
   if(equippedPickaxe.root.parent!==socket)socket.add(equippedPickaxe.root);
+ }
+ const basketGrip=new T.Group();basketGrip.position.set(0,-.015,.02);leftArm.hand.add(basketGrip);
+ const basketBack=new T.Group();basketBack.position.set(.29,-.13,-.31);basketBack.rotation.x=.12;spine.add(basketBack);
+ const baskets=new Map();let equippedBasket=null,basketHeld=false;
+ const lanternModel=createLanternModel();lanternModel.root.position.set(.42,-.08,.13);spine.add(lanternModel.root);lanternModel.root.visible=false;
+ function equipBasket(level,held){
+  const tier=Math.max(0,Math.min(5,Math.floor(Number(level)||0)));basketHeld=!!(tier&&held);
+  if(equippedBasket&&equippedBasket.tier!==tier){equippedBasket.root.removeFromParent();equippedBasket=null;}
+  if(!tier)return;
+  if(!baskets.has(tier))baskets.set(tier,createBasketModel(tier));equippedBasket=baskets.get(tier);
+  const parent=held?basketGrip:basketBack;if(equippedBasket.root.parent!==parent)parent.add(equippedBasket.root);
+ }
+ function poseArm(rig,side,target,orientation,weight=1){
+  const shoulder=rig.upper.position.toArray(),solution=solveArm(shoulder,target,side);
+  const q1=new T.Quaternion().setFromUnitVectors(DOWN,solution.elbow.clone().sub(solution.shoulder).normalize());
+  const q2=new T.Quaternion().setFromUnitVectors(DOWN,solution.hand.clone().sub(solution.elbow).normalize());
+  const qHand=q2.clone().invert().multiply(orientation);
+  rig.upper.quaternion.slerp(q1,weight);rig.lower.quaternion.slerp(q1.clone().invert().multiply(q2),weight);rig.hand.quaternion.slerp(qHand,weight);
+ }
+ function constrainWork(action,progress,{basket=false,work=null,carrying=false}={}){
+  spine.updateMatrixWorld(true);
+  if(action==='swing'&&equippedPickaxe){
+   const plan=miningStroke(progress),spineWorld=spine.getWorldQuaternion(new T.Quaternion()),inverse=spineWorld.clone().invert();
+   const basePosition=spine.worldToLocal(toolGrip.getWorldPosition(new T.Vector3()));
+   const baseQ=inverse.clone().multiply(toolGrip.getWorldQuaternion(new T.Quaternion()));
+   const position=basePosition.lerp(plan.position,plan.weight),rotation=baseQ.slerp(plan.quaternion,plan.weight);
+   const gripQ=toolGrip.quaternion.clone(),handQ=rotation.clone().multiply(gripQ.clone().invert());
+   drivingGrip=plan.grip*plan.weight;
+   const offset=new T.Vector3(0,-.02,.025);
+   const right=position.clone().add(new T.Vector3(0,drivingGrip,0).applyQuaternion(rotation)).sub(offset.clone().applyQuaternion(handQ));
+   toolGrip.position.copy(offset).sub(new T.Vector3(0,drivingGrip,0).applyQuaternion(gripQ));
+   const left=position.clone().add(new T.Vector3(0,GUIDE_GRIP,0).applyQuaternion(rotation));
+   const oldLeft=spine.worldToLocal(leftArm.hand.getWorldPosition(new T.Vector3()));
+   poseArm(rightArm,-1,right.toArray(),handQ);
+   poseArm(leftArm,1,oldLeft.lerp(left,plan.weight).toArray(),rotation.clone().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(0,0,1),Math.PI)),plan.weight);
+   return;
+  }
+  const hands=carrying?{weight:1,left:[.12,-.045,.29],right:[-.12,-.045,.29]}:workHands(action,progress,{basket,work});
+  if(hands){const orientation=new T.Quaternion(),leftOrientation=basket?spine.quaternion.clone().invert():orientation;poseArm(leftArm,1,hands.left,leftOrientation,hands.weight);poseArm(rightArm,-1,hands.right,orientation,hands.weight);}
  }
  model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);hem.bind(skeleton);patch.bind(skeleton);
  // A single screen-space contour surrounds the completed figure, including
@@ -184,7 +225,7 @@ export function createRiggedCharacter(){
  renderer.info.autoReset=false;
  const anchor=new T.Vector3(0,0,0).project(camera);
  const ax=(anchor.x+1)*.5*320,ay=(1-anchor.y)*.5*384;
- let lost=false,renders=0,direction='s';canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
+ let lost=false,renders=0,direction='s',renderedAction=null,renderedProgress=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
  function poseLeg(target,rig,hipY){
   const knee=new T.Vector3(0,target.knee.y-hipY,target.knee.z),ankle=new T.Vector3(0,target.foot.y-target.knee.y,target.foot.z-target.knee.z);
   const q1=new T.Quaternion().setFromUnitVectors(DOWN,knee.normalize()),q2=new T.Quaternion().setFromUnitVectors(DOWN,ankle.normalize());
@@ -192,12 +233,15 @@ export function createRiggedCharacter(){
   rig.foot.quaternion.copy(q2).invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),target.foot.pitch));
  }
  return {
-  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0,cargo=null}={}){
-   if(lost)return null;
+  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null}={}){
+   if(lost)return null;renderedAction=action;renderedProgress=progress;
    cargoKind=!steady&&!action&&['specimen','sealed'].includes(cargo)?cargo:null;
    cargoRoot.visible=!!cargoKind;specimen.visible=cargoKind==='specimen';sealed.visible=cargoKind==='sealed';
+   const forage=action==='pick'&&!['plant','tend','starter'].includes(work);
+   equipBasket(basket,forage&&!steady);lanternModel.root.visible=!!lantern;lanternModel.setOn(lanternOn);
    const p=rigPose({phase,walking,blend,action,progress,time,steady,carrying:!!cargoKind});hips.position.y=p.hipY;
-   spine.rotation.set(p.lean,p.twist,p.roll);spine.position.y=.38+p.breath;
+   spine.rotation.set(p.lean,p.twist,p.roll);spine.position.y=.38*Math.cos(p.lean)+p.breath;spine.position.z=.38*Math.sin(p.lean);
+   if(action&&Math.hypot(facing.x,facing.y)>1e-6){const yaw=Math.atan2(facing.x,facing.y),snap=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(characterDirection(facing,direction))*Math.PI/4;spine.rotation.y+=Math.atan2(Math.sin(yaw-snap),Math.cos(yaw-snap))*Math.sin(Math.PI*progress)**2;}
    head.rotation.set(p.headPitch,p.headYaw,p.headRoll);for(const eye of eyes)eye.scale.y=.046*p.blink;
    clothFront.rotation.x=p.clothFront;clothBack.rotation.x=p.clothBack;
    clothLeft.rotation.z=p.clothLeft;clothRight.rotation.z=p.clothRight;
@@ -205,17 +249,20 @@ export function createRiggedCharacter(){
    // displayed heading snaps; movement and action targeting keep their vectors.
    direction=characterDirection(facing,direction);
    model.rotation.y=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(direction)*Math.PI/4;poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
-   leftArm.upper.rotation.z=.36+p.armSpread;rightArm.upper.rotation.z=-.36-p.armSpread;
-   leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm;leftArm.lower.rotation.x=p.leftElbow;rightArm.lower.rotation.x=p.rightElbow;leftArm.hand.rotation.x=p.leftWrist;rightArm.hand.rotation.x=p.rightWrist;
+   leftArm.upper.rotation.set(p.leftArm,0,.36+p.armSpread);rightArm.upper.rotation.set(p.rightArm,0,-.36-p.armSpread);
+   leftArm.lower.rotation.set(p.leftElbow,0,0);rightArm.lower.rotation.set(p.rightElbow,0,0);leftArm.hand.rotation.set(p.leftWrist,0,0);rightArm.hand.rotation.set(p.rightWrist,0,0);
+   drivingGrip=0;toolGrip.position.set(0,-.02,.025);
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
+   if(!steady)constrainWork(action,progress,{basket:basketHeld,work,carrying:!!cargoKind});
+   scene.updateMatrixWorld(true);basketGrip.quaternion.copy(leftArm.hand.getWorldQuaternion(new T.Quaternion())).invert().multiply(model.getWorldQuaternion(new T.Quaternion()));
    scene.updateMatrixWorld(true);renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:at(equippedPickaxe.root),socket:at(equippedPickaxe.root.parent),hand:at(rightArm.hand)}:null,cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),guide:equippedPickaxe.root.localToWorld(new T.Vector3(0,GUIDE_GRIP,0)).toArray(),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
   get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

@@ -302,3 +302,10 @@ known player position, before the existing explored-terrain inspection. It shows
 a localized name and short character description without adding permanent HUD
 text or exposing unknown tiles. The existing rig retains eight headings and
 flat world colors; caring gestures and cargo views are presentation only.
+
+
+Work feedback now keeps one active and at most one coalesced pending animation,
+with its captured observed facing and work type. It does not delay input or
+resource receipts. Mining grips, basket gathering, free-hand assembly and actual
+lantern controls use the shared rig and earned gear. No additional UI controls
+or inventory currencies are introduced.

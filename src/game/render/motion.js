@@ -19,7 +19,7 @@ export const ACT_TIME = Object.freeze({
   swing: 0.3,    // a pickaxe swing: rock, ore, crystal, dirt
   pick: 0.45,    // bending down to pick mushrooms into the basket
   collect: 0.4,  // reaching out to empty a building
-  build: 0.7,    // two hammer taps, putting something up
+  build: 0.7,    // two manual assembly presses, putting something up
   cheer: 0.8,    // two hops: a milestone, an upgrade
   down: 0.95,    // dropping in from above after going down a layer
   up: 0.9        // climbing up out of the way up, hand over hand
@@ -30,30 +30,40 @@ export const ACT_TIME = Object.freeze({
  * playing (if any) and how long they have stood still.
  */
 export function createActor({ clock = () => performance.now() / 1000 } = {}) {
-  let kind = null, at = 0, n = 0, stillAt = 0, heardN = null;
+  let kind = null, at = 0, n = 0, stillAt = 0, heardN = null, detail = null, pending = null;
   const now = clock;
   let last = null, phase = 0, rigPhase = 0, walkBlend = 0;
+  // Repeated receipts coalesce into one pending visual cycle. They never
+  // rewind an unfinished stroke or create a backlog after time away.
+  function advance(t){
+    if(kind&&t-at>=ACT_TIME[kind]){
+      const nextAt=at+ACT_TIME[kind];
+      if(pending&&t-nextAt<ACT_TIME[pending.kind]){kind=pending.kind;detail=pending.detail;at=nextAt;pending=null;}
+      else{kind=null;detail=null;pending=null;}
+    }
+  }
+  function play(k,context,t){advance(t);if(kind===k){pending={kind:k,detail:context};return;}kind=k;detail=context;at=t;pending=null;}
   const actor = {
     // Starts an act (one of ACTS) now.
-    act(k) {
+    act(k, context=null) {
       if (!ACT_TIME[k]) return;
-      kind = k; at = now(); n = (n + 1) % ACT_COUNT;
+      play(k,context,now());n = (n + 1) % ACT_COUNT;
     },
     // A friend's act as their game sent it: plays it when the count moves on.
     heard(k, count) {
       if (count === heardN) return;
       const first = heardN === null;
       heardN = count;
-      if (!first && k) { kind = k; at = now(); }
+      if (!first && ACT_TIME[k]) play(k,null,now());
     },
     // Whether an act is still playing.
-    get busy() { return !!kind && now() - at < ACT_TIME[kind]; },
+    get busy() { const t=now();advance(t);return !!kind; },
     // For the wire: the latest act and its count.
     get sent() { return { a: kind, n }; },
     // What to draw this frame: the act and how far into it, and how long
     // they have been standing still.
     view(moving, position = null) {
-      const t = now();
+      const t = now();advance(t);
       let walking = moving;
       if (position) {
         const dt = last ? t - last.time : 0;
@@ -79,7 +89,7 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
 
       if (moving) stillAt = t;
       const busy = kind && t - at < ACT_TIME[kind];
-      return { act: busy ? kind : null, t: busy ? t - at : 0, idle: t - stillAt, clock:t, stride:position?phase:null, rigStride:rigPhase, walkBlend, walking };
+      return { act: busy ? kind : null, t: busy ? t - at : 0, facing:busy?detail?.facing:null, work:busy?detail?.work:null, idle: t - stillAt, clock:t, stride:position?phase:null, rigStride:rigPhase, walkBlend, walking };
     }
   };
   return actor;
@@ -137,10 +147,10 @@ export function pose(a, { moving = false, boat = false, steady = false, time = 0
       p.dy -= 0.12 * bump(k);
       break;
     case 'build': {
-      // Two taps of the hammer, bending to the work.
+      // Two assembly presses, bending to the work.
       const tap = Math.abs(Math.sin(k * TAU));
       p.rot += 0.14 * bump(k) + 0.1 * tap;
-      p.tool = { kind: 'pickaxe', angle: -0.6 + 1.6 * tap };
+      p.tool = null;
       break;
     }
     case 'cheer':

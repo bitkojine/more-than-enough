@@ -28,7 +28,7 @@ test('work plays all authored frames, including recovery, and custom characters 
   assert.equal(frames.size,8,'all eight '+act+' drawings are actually sampled');
  }
  assert.equal(choose({equipment:gear,actor:{act:'swing',t:.29}}).id,'character.miner');
- assert.equal(choose({equipment:gear,actor:{act:'build',t:.4}}).actionProgress,(.4/.7*2)%1);
+ const assembly=choose({equipment:gear,actor:{act:'build',t:.4}});assert.equal(assembly.id,'character.wanderer');assert.equal(assembly.actionProgress,null,'construction does not replay mining drawings');
  const custom={overrides:id=>id==='character.wanderer'};
  assert.deepEqual(choose({look:custom,equipment:gear}),{id:'character.wanderer',composed:false});
  assert.equal(choose({device:'phone'}).id,'character.legacyWanderer');

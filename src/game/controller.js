@@ -26,6 +26,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   const tally = (res, amount) => fx.tally(player().x, player().y - 0.4, amount, look.color(Core.resourceLook(res)), Core.resourceLook(res));
   const toolLevel = (res) => state().tools[res === 'mycelium' ? 'basket' : 'pickaxe'];
 
+  function performAct(kind,detail={}){actor.act(kind,{...detail,facing:{...controller.facing}});}
+
   function changed() {
     hud.update(state());
     game.saveSoon();
@@ -40,7 +42,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     const next = Core.nextGoal(state());
     reached.forEach((g, i) => hud.milestone(g.reached, from + i + 1, Core.goalsTotal(state()), i === reached.length - 1 && next ? next.text : null));
     fx.celebrate(player().x, player().y);
-    actor.act('cheer');
+    performAct('cheer');
     audio.fanfare();
   }
 
@@ -49,7 +51,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // reads as clearing the way, not as gathering that failed.
   function harvested(r) {
     faceTile(r.x,r.y);
-    actor.act(r.res === 'mycelium' || state().tools.pickaxe === 0 ? 'pick' : 'swing');
+    performAct(r.res === 'mycelium' || state().tools.pickaxe === 0 ? 'pick' : 'swing');
     fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
     if (r.found) {
       fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
@@ -79,7 +81,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     const sources=got.sources;
     const target=at&&sources.find(p=>p.x===at.x&&p.y===at.y)||sources.reduce((best,p)=>!best||Core.tileDist2(player(),p.x,p.y,player().z)<Core.tileDist2(player(),best.x,best.y,player().z)?p:best,null);
     if(target)faceTile(target.x,target.y);
-    actor.act('collect');
+    performAct('collect');
     audio.collect();
     changed();
     return true;
@@ -133,7 +135,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   }
 
   function layerChanged(from) {
-    actor.act(player().z < from ? 'down' : 'up');
+    performAct(player().z < from ? 'down' : 'up');
     fx.clear();
     walkTo = null;
     hud.update(state());
@@ -167,7 +169,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if(['ok','discovery','activated'].includes(result)){
         faceTile(cmd.x??Math.floor(player().x),cmd.y??Math.floor(player().y));
         const action={build:'build',repair:'build',reinforce:'build',craft:'build',collect:'collect',store:'collect',shutter:'collect',shade:'collect',lantern:'collect',plant:'pick',tend:'pick',starter:'pick',activate:'cheer'}[cmd.type];
-        if(action)actor.act(action);
+        if(action)performAct(action,{work:cmd.type});
       }
       return result;
     },
@@ -185,7 +187,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         // Underground, pushing into rock digs it.
         const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
         if (dug) { harvested(dug); changed(); }
-        else if (drilling.t > 0 && !actor.busy) actor.act('swing'); // chipping at the wall
+        else if (drilling.t > 0 && !actor.busy) performAct('swing'); // chipping at the wall
       } else if (walkTo) {
         const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
         // Walking to something tapped: work it as soon as it's in reach.
@@ -291,7 +293,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       }
       if (!count) return;
       if(lastTarget)faceTile(lastTarget.x,lastTarget.y);
-      if (!below) actor.act(gathered.mycelium || state().tools.pickaxe === 0 ? 'pick' : 'swing');
+      if (!below) performAct(gathered.mycelium || state().tools.pickaxe === 0 ? 'pick' : 'swing');
       for (const res of Object.keys(gathered)) tally(res, gathered[res]);
       changed();
     },
@@ -306,7 +308,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const s = state();
       if (!Core.buy(s, id).ok) return false;
       audio.upgrade();
-      actor.act('cheer');
+      performAct('cheer');
       say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
       changed();
       checkGoals();
@@ -319,7 +321,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (!res.ok) return false;
       faceTile(res.x,res.y);
       fx.built(res.x, res.y);
-      actor.act('build');
+      performAct('build');
       audio.build();
       changed();
       return true;
@@ -332,7 +334,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (!res.ok) return false;
       faceTile(res.x,res.y);
       fx.built(res.x, res.y);
-      actor.act('build');
+      performAct('build');
       audio.build();
       changed();
       checkGoals();

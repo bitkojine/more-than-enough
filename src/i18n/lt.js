@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.144.0": "Mica dabar kasa abiem rankomis laikydamas įrankio kotą, renka į pagamintą krepšį ir statydamas atlaisvina rankas. Įsigytas žibintas matomas ant diržo. Kartojant rinkimą judesys užbaigiamas, o ne pradedamas iš naujo jo viduryje.",
   "news.0.143.2": "Mica dabar turi vientisą tamsų viso silueto kontūrą, įskaitant rankas, kojų apvijas, apvalius batus ir nešamus daiktus. Kontūras išlieka nuoseklus sukantis, einant ir dirbant.",
   "news.0.143.1": "Mica batai dabar turi apvalius priekius, siauresnius kulnus ir išlenktą keltį. Kvadratines šviesias platformas pakeitė ploni rudi padai.",
   "news.0.143.0": "Susipažinkite su Mica, Taisytoju. Minkštesnis gobtuvas, kompaktiškos proporcijos, tvirti batai ir lopytas apsiaustas priartina klajūną prie piešto pasaulio. Smalsūs judesiai ramybės metu, mirksėjimas ir atsargus kristalo nešimas suteikia jam charakterio. Apžiūrėkite jį, kad sužinotumėte daugiau.",

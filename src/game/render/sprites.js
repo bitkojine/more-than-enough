@@ -61,9 +61,10 @@ export function drawExtractor(ctx, cam, s, look, e) {
 // packs keep their compatibility sprites. Returns head/hand anchors for signs.
 export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
+  const facing=view.actor?.act&&view.actor.facing?view.actor.facing:view.facing;
   const { x: sx, y: sy } = cam.project(p.x, p.y, groundAt(cam, s, p.x, p.y));
   return drawCharacter(ctx, cam, s, look, {
-    x: p.x, sx, sy, direction:characterDirection(view.facing), facingVector:view.facing, flip: view.facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
+    x: p.x, sx, sy, direction:characterDirection(facing), facingVector:facing, flip: facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
     device: s.emptyStart ? null : view.device, actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal
   });
 }
@@ -80,7 +81,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, facingVec
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
-    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:!!cargo?.gear?.lantern,lanternOn:!!cargo?.lantern,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
     ctx.restore();if(location)return location;
   }
   const appearance=characterSprite({equipment,actor,device,cargo,crystal,look});
@@ -103,7 +104,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, direction=null, facingVec
   const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
   // Painted poses already contain the lean and foot placement. Do not stack
   // the old icon-puppet bob/rotation on them or planted feet drift.
-  if(appearance.composed&&(!actor.act||['swing','pick','build'].includes(actor.act))){p.dy=0;p.rot=water?p.rock:0;}
+  if(appearance.composed&&(!actor.act||['swing','pick'].includes(actor.act))){p.dy=0;p.rot=water?p.rock:0;}
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
   if (!deck) shadow(ctx, cam, sx, sy, (appearance.composed?.625:body.units) * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));

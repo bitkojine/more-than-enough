@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.144.0": "Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.",
   "news.0.143.2": "Mica now has one continuous dark outline around his whole silhouette, including hands, leg wraps, rounded boots and carried objects. It stays consistent while he turns, walks and works.",
   "news.0.143.1": "Mica’s boots now have rounded toes, narrower heels and a curved instep, with thin brown soles instead of square cream platforms.",
   "news.0.143.0": "Meet Mica, the Mender. A softer hood, compact proportions, sturdy boots and a repaired coat bring the wanderer closer to the illustrated world. Curious idle gestures, blinking and careful crystal-carrying poses add personality. Inspect him to learn who he is.",

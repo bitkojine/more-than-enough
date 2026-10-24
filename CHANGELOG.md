@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.144.0] - 2026-10-24
+
+- Replaced free arm flailing with constrained two-hand mining, a clear side
+  wind-up, sliding driving grip, forward strike and smooth recovery.
+- Added actual earned basket and hooded-lantern models, attached grips,
+  gathering/deposit and lantern-control gestures. Empty hands stay empty.
+- Construction, collecting, planting and tending use free-hand poses; the
+  pickaxe stows instead of serving as an improvised hammer.
+- Repeated receipts coalesce into one pending visual cycle instead of rewinding
+  an unfinished action. Each cycle retains its observed work-facing context.
+- Reset all arm axes between poses and hinge torso motion at the hips, keeping
+  hands, cargo and props consistent across frame order and all eight headings.
+- Preserved core rules, action deadlines, earned inventory, saves and gameplay
+  input throughput. Added bounded grip, reach and repeat-cycle regression checks.
+
+
 ## [0.143.2] - 2026-10-24
 
 - Replaced Mica's incomplete per-piece outline hulls with a unified ink contour
