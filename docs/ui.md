@@ -268,3 +268,15 @@ into the existing texture pack, including ordinary inventory icons and gathering
 feedback; it creates no per-object 3D renderer. Warm pre-v0.135.1 scenery and
 building art supplies the reference palette/contours. Larger stockpile landmarks
 and all physical inventory quantities/footprints retain their existing meaning.
+
+Inventory readability uses a compact detail form from the same canonical 3D
+resource source, with per-resource camera, padding and offset profiles. Essential
+crystal branches are thicker and fewer; mushrooms show caps and stems without
+roots; stone is less boxy and metal has a dominant nodule. Facet values follow a fixed baked light direction and three material
+tones. Inventory views suppress internal facet lines; the outer silhouette stays
+outlined. Review actual 24/32/48px icons on both light and dark backgrounds.
+Enlargements diagnose construction, rather than establish small-size readability.
+These are offline art choices, with no per-frame lights or simulation work.
+
+The owner selected mushroom caps and stems without exposed root/hypha shapes
+for the mycelium material model, including inventory and small stockpile views.

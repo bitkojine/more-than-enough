@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.142.1": "Mažos išteklių ikonos aiškesnės: aiškios grybų kepurėlės ir kotai, netaisyklingesnis akmuo, vienas pagrindinis metalo gabalas ir paprastesnė kristalo šaka. Kiekviena ikona turi atskirą rakursą; smulkias briaunų linijas keičia aiškios šviesios ir tamsios plokštumos.",
   "news.0.142.0": "Grįžo šiltesni ankstesni pasaulio piešiniai. Grybiena, akmuo, metalas ir gyvasis kristalas dabar turi bendrus 3D modelius, iš kurių kuriamos derančios plokščios ikonos, telkiniai ir mažos atsargos su aiškiais kontūrais.",
   "news.0.141.0": "Pagamintas kirtiklis dabar matomas keliautojo rankoje ir juda kartu su ja. Visos šešios pakopos turi to paties modelio sugeneruotas ikonas bei skirtingą akmens ar metalo konstrukciją. Renkant rankomis ir kopiant įrankis laikomas ant nugaros.",
   "news.0.140.1": "Keliautojas dabar atsisuka tik aštuoniomis kryptimis, kaip 2D piešinyje. Judėti galima laisvai; plokščios spalvos ir sklandi skeleto animacija išlieka.",

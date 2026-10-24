@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.142.1] - 2026-10-24
+
+- Simplified the four inventory resource forms for native-size readability,
+  with thicker essential features, fewer crystal twigs and individual icon views.
+- Removed confusing root shapes from mycelium views; caps and stems carry
+  their visual identity.
+- Baked coherent three-tone facet values from normals instead of face numbers;
+  inventory icons use broad colour planes and outer contours.
+- Kept the warmer world style, world material identities and offline exports.
+
 ## [0.142.0] - 2026-10-24
 
 - Restored the earlier warm world art for existing buildings, terrain,

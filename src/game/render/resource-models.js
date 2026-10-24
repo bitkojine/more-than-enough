@@ -3,11 +3,18 @@
 import * as T from '../../vendor/three/three.module.js';
 export const RESOURCE_MODEL_KEYS=Object.freeze(['mycelium','stone','ore','crystal']);
 const INK='#1d1712',V=p=>new T.Vector3(...p);
+const LIGHT=new T.Vector3(-.5,.85,.6).normalize();
+export const RESOURCE_ICON_VIEWS=Object.freeze({
+ mycelium:{camera:[.8,1.7,6],padding:3,offset:[0,1]},
+ stone:{camera:[3.8,3.0,5],padding:3,offset:[0,.5]},
+ ore:{camera:[1.7,2.3,5.5],padding:3,offset:[0,.5]},
+ crystal:{camera:[.7,1.6,6],padding:3,offset:[0,0]}
+});
 const palettes={stone:['#9aa096','#c7ccc4','#7f857b'],host:['#66503c','#8a7054','#493b32'],ore:['#d48435','#f2b85c','#995626'],crystal:['#df69ab','#ffc2e6','#ad4f92']};
-export function resourceCamera(){const c=new T.OrthographicCamera(-.85,.85,.85,-.35,.1,20);c.position.set(2.8,2.2,5);c.lookAt(0,.3,0);c.updateMatrixWorld();return c;}
+export function resourceCamera(position=[2.8,2.2,5]){const c=new T.OrthographicCamera(-.85,.85,.85,-.35,.1,20);c.position.set(...position);c.lookAt(0,.3,0);c.updateMatrixWorld();return c;}
 export function createResourceModel(key,{form='specimen',variant=0,depleted=false}={}){
  if(!RESOURCE_MODEL_KEYS.includes(key))throw Error('Unknown resource model: '+key); // i18n-ok: developer-only asset-authoring diagnostic.
- const faces=[],curves=[];let partId=0;const root=new T.Group();root.name='resource-'+key;
+ const compact=form==='icon',faces=[],curves=[];let partId=0;const root=new T.Group();root.name='resource-'+key;
  function solid(points,polys,colors,{offset=[0,0,0],scale=1,rotation=0,lines=true,outline=true}={}){
   const part=partId++;
   const transform=new T.Matrix4().compose(V(offset),new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),rotation),new T.Vector3(scale,scale,scale));
@@ -15,13 +22,15 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
   for(let i=0;i<polys.length;i++){
    const points=polys[i].map(j=>vertices[j].clone()),normal=new T.Vector3().crossVectors(points[1].clone().sub(points[0]),points[2].clone().sub(points[0]));
    const mid=points.reduce((a,b)=>a.add(b),new T.Vector3()).multiplyScalar(1/points.length);
-   if(normal.dot(mid.sub(center))<0)points.reverse();faces.push({points,color:colors[i%colors.length],lines,outline,part});
+   if(normal.dot(mid.sub(center))<0){points.reverse();normal.negate();}
+   const value=normal.normalize().dot(LIGHT),tone=colors.length===1?0:value>.35?1:value<-.25?2:0;
+   faces.push({points,color:colors[tone%colors.length],lines:lines&&!compact,outline,part});
   }
  }
  function rock(offset,scale,palette,rotation=0,decorative=false){
   const bottom=[[-.36,.04,.16],[-.30,.03,-.22],[.18,0,-.28],[.39,.06,.07],[.18,.02,.27]],top=[[-.36,.27,.14],[-.22,.46,-.19],[.17,.38,-.25],[.31,.22,.08],[.08,.38,.23]];
   const points=[...bottom,...top,[-.06,.47,-.02]],polys=[];for(let i=0;i<5;i++){polys.push([i,(i+1)%5,(i+1)%5+5,i+5]);polys.push([i+5,(i+1)%5+5,10]);}
-  solid(points,polys,palette,{offset,scale,rotation,lines:!decorative,outline:!decorative});
+  solid(compact?points.map(([x,y,z],i)=>[x*(i<5?.82:1),y*.72,z*(i<5?.85:1)]):points,polys,palette,{offset,scale,rotation,lines:!decorative,outline:!decorative});
  }
  function prism(a,b,r,palette){
   const start=V(a),end=V(b),axis=end.clone().sub(start).normalize(),side=new T.Vector3(0,0,1).cross(axis).normalize(),other=axis.clone().cross(side).normalize(),points=[];
@@ -39,27 +48,26 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
   for(const dx of [-.045,.045])rock([x+dx,height+radius*.40,z+.04],.042,['#fff0d4'],0,true);
  }
  if(key==='mycelium'){
-  // Branching hyphae and fruiting bodies are one material family, not a new
-  // resource or an implied timber substitute made from wooden sticks.
-  for(let i=0;i<6;i++){
-   const a=i*Math.PI/3,x=Math.cos(a)*.28,z=Math.sin(a)*.21;
-   fibre([[x,.02,z],[x*.8,.10,z*.9],[-x*.35,.08,-z*.35],[-x*.8,.02,-z*.8]],.016);
-   fibre([[x*.5,.06,z*.5],[x*.6,.10,z*.9],[x*.9,.07,z*1.2],[x*1.12,.025,z*1.15]],.010,'#d3c6a3');
-  }
-  if(!depleted){mushroom(-.12,.04,.27,.17,'#c8553d');mushroom(.17,-.08,.17,.12,'#b64c37');}
+  // Caps and stems are the readable material identity. The owner removed
+  // exposed hyphae/root shapes because they confuse small resource icons.
+  if(!depleted){mushroom(-.12,.04,compact?.23:.27,compact?.20:.17,'#c8553d');mushroom(.19,-.08,.16,compact?.10:.12,'#b64c37');}
  }else if(key==='stone'){
   if(depleted){rock([-.18,0,.02],.23,palettes.stone);rock([.19,0,.02],.16,palettes.stone,.6);}
   else{rock([0,0,0],1,palettes.stone,variant*Math.PI/4);if(variant)rock([.34,0,.14],.38,palettes.stone,.6);}
  }else if(key==='ore'){
   if(form==='deposit'&&!depleted){rock([0,0,0],1,palettes.host,variant*Math.PI/4);for(const [x,y,z,s]of [[-.19,.31,.20,.24],[.18,.25,.25,.20],[.04,.46,.02,.25]])rock([x,y,z],s,palettes.ore,.3);}
   else if(depleted){rock([-.12,0,0],.25,palettes.host);rock([.20,0,0],.16,palettes.host);}
-  else{rock([-.12,0,.06],.60,palettes.ore,.5);rock([.21,0,-.05],.42,palettes.ore,.1);}
+  else{rock([-.12,0,.06],compact?.75:.60,palettes.ore,.5);rock([compact?.26:.21,0,-.05],compact?.30:.42,palettes.ore,.1);}
  }else{
   // Living crystal is coloured, never emissive: art does not grant light or
   // exempt colonies/material from the canonical darkness/temperature rules.
   rock([0,0,0],.34,['#756374','#a38b9d','#5b4a5c']);
   if(depleted){prism([0,.06,0],[.01,.18,0],.045,palettes.crystal);}
-  else{
+  else if(compact){
+   prism([0,.05,0],[.01,.59,0],.105,palettes.crystal);
+   prism([0,.22,0],[-.24,.47,.03],.070,palettes.crystal);
+   prism([.01,.34,0],[.24,.59,-.02],.070,palettes.crystal);
+  }else{
    prism([0,.05,0],[.01,.57,0],.062,palettes.crystal);
    prism([0,.20,0],[-.21,.40,.03],.045,palettes.crystal);prism([-.21,.40,.03],[-.25,.59,.02],.040,palettes.crystal);
    prism([.01,.32,0],[.22,.54,-.03],.045,palettes.crystal);prism([.22,.54,-.03],[.31,.68,-.02],.031,palettes.crystal);
@@ -77,14 +85,14 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
 }
 // The fixed-view vector finish gives world-size contours rounded joins and
 // stable native-size thickness. No live renderer is needed by each deposit.
-export function resourceSVG(asset,{width=64,height=64,heading=0,grounded=false}={}){
- const camera=resourceCamera(),rotation=new T.Matrix4().makeRotationY(Math.round(heading)*Math.PI/4),view=new T.Matrix4().multiplyMatrices(camera.matrixWorldInverse,rotation);
- const project=p=>p.clone().applyMatrix4(view),polys=[];
+export function resourceSVG(asset,{width=64,height=64,heading=0,grounded=false,view='world'}={}){
+ const profile=view==='icon'?RESOURCE_ICON_VIEWS[asset.key]:null,camera=resourceCamera(profile?.camera),rotation=new T.Matrix4().makeRotationY(Math.round(heading)*Math.PI/4),viewMatrix=new T.Matrix4().multiplyMatrices(camera.matrixWorldInverse,rotation);
+ const project=p=>p.clone().applyMatrix4(viewMatrix),polys=[];
  for(const f of asset.faces){const p=f.points.map(project),n=new T.Vector3().crossVectors(p[1].clone().sub(p[0]),p[2].clone().sub(p[0]));if(n.z>1e-8)polys.push({points:p,color:f.color,lines:f.lines,outline:f.outline,part:f.part,z:p.reduce((s,v)=>s+v.z,0)/p.length});}
  const curves=asset.curves.map(c=>({...c,points:c.points.map(project),z:c.points.map(project).reduce((s,v)=>s+v.z,0)/4}));
- const points=[...polys.flatMap(p=>p.points),...curves.flatMap(c=>c.points)],xs=points.map(p=>p.x),ys=points.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),padding=4;
+ const points=[...polys.flatMap(p=>p.points),...curves.flatMap(c=>c.points)],xs=points.map(p=>p.x),ys=points.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),padding=profile?.padding??4;
  const scale=Math.min((width-padding*2)/(maxX-minX||1),(height-padding*2)/(maxY-minY||1)),cx=(minX+maxX)/2,cy=(minY+maxY)/2,centerY=grounded?height-1.2-(maxY-minY)*scale/2:height/2;
- const xy=p=>[(width/2+(p.x-cx)*scale).toFixed(1),(centerY-(p.y-cy)*scale).toFixed(1)].join(',');
+ const xy=p=>[(width/2+(p.x-cx)*scale+(profile?.offset[0]??0)*width/64).toFixed(1),(centerY-(p.y-cy)*scale+(profile?.offset[1]??0)*height/64).toFixed(1)].join(',');
  const groups=new Map();for(const p of polys){if(!groups.has(p.part))groups.set(p.part,[]);groups.get(p.part).push(p);}
  const key=p=>p.toArray().map(n=>n.toFixed(6)).join(',');
  const pieces=[...groups.values()].map(group=>{

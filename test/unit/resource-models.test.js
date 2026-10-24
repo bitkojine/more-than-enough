@@ -26,3 +26,16 @@ test('every baked resource asset is reproducible from the recorded canonical sou
  const manifest=JSON.parse(file('art/resources/models.json')),sha=b=>createHash('sha256').update(b).digest('hex');assert.equal(sha(file(manifest.source)),manifest.sourceSha256);assert.equal(manifest.assets.length,28);
  for(const r of manifest.assets){const a=r.tier===undefined?createResourceModel(r.resource,r.options):createResourcePile(r.resource,r.tier);const svg=r.tier===undefined?resourceSVG(a,r.size):resourcePileSVG(a,r.size);assert.equal(svg,file(r.file).toString(),r.file);assert.equal(sha(file(r.file)),r.sha256);a.dispose();}
 });
+
+test('inventory forms remove small branches while retaining real shared-model volume',()=>{
+ for(const key of ['crystal']){const world=createResourceModel(key),icon=createResourceModel(key,{form:'icon'});assert.ok(icon.faces.length+icon.curves.length<world.faces.length+world.curves.length);assert.ok(icon.faces.every(f=>!f.lines),'small icons use value planes and outer contours');world.dispose();icon.dispose();}
+ const a=createResourceModel('stone'),b=createResourceModel('stone',{form:'icon'});assert.ok(new T.Box3().setFromObject(b.root).max.y<new T.Box3().setFromObject(a.root).max.y);a.dispose();b.dispose();
+});
+test('stone values follow a coherent baked light direction instead of face ordering',()=>{
+ const a=createResourceModel('stone'),light=new T.Vector3(-.5,.85,.6).normalize(),rank=a.faces.map(f=>({f,d:new T.Vector3().crossVectors(f.points[1].clone().sub(f.points[0]),f.points[2].clone().sub(f.points[0])).normalize().dot(light)})).sort((a,b)=>a.d-b.d);
+ const luminance=hex=>{const c=new T.Color(hex);return c.r*.2126+c.g*.7152+c.b*.0722;};assert.ok(luminance(rank.at(-1).f.color)>luminance(rank[0].f.color)*1.3);a.dispose();
+});
+
+test('mycelium material views show mushroom caps and stems without root curves',()=>{
+ for(const form of ['specimen','icon']){const a=createResourceModel('mycelium',{form});assert.equal(a.curves.length,0);assert.ok(a.faces.length>0);a.dispose();}
+});

@@ -306,7 +306,7 @@ async function main() {
      const key=RESOURCE_MODEL_KEYS[i],x=180+i*360,asset=createResourceModel(key);scene.add(asset.root);renderer.render(scene,camera);g.drawImage(renderer.domElement,x-128,70,256,256);
      const bounds=new T.Box3().setFromObject(asset.root);stats.push({key,depth:bounds.max.z-bounds.min.z,meshes:asset.root.children.length});scene.remove(asset.root);
      g.fillStyle='#1d1712';g.font='19px system-ui';g.fillText(key==='ore'?'Metal (ore)':key,x-100,55);g.fillText('3D source',x-55,330);
-     const svg=resourceSVG(asset);await image(svg,x-96,370,192,192);await image(svg,x-16,580,32,32);g.fillText('Vector finish / 32px icon',x-110,645);asset.dispose();
+     const icon=createResourceModel(key,{form:'icon'}),svg=resourceSVG(icon,{view:'icon'});icon.dispose();await image(svg,x-96,370,192,192);await image(svg,x-16,580,32,32);g.fillText('Vector finish / 32px icon',x-110,645);asset.dispose();
      const worldId=['pile.mycelium','tile.stone','tile.ore','tile.crystal'][i],pic=i===0?MTE_GAME.look.tier(worldId,0):MTE_GAME.look.pick(worldId,'stand');MTE_GAME.look.stand(g,pic,x,960,170);g.fillText('Actual world asset',x-85,1005);
     }
     // Resource art must be legible as opaque shapes, including nested SVG uses.
@@ -315,6 +315,14 @@ async function main() {
    eq(result.stats.length,4,'four resource source models load');ok(result.stats.every(s=>s.depth>.1&&s.meshes>0),'all four are actual volumetric geometry');
    ok(result.svgPixels.every(n=>n>40),'finished vector resources contain readable opaque shapes at 32px');
    await shot('resource-models-review.png');
+   const beforeIcons=process.env.MTE_ICON_BEFORE_DIR?['mycelium','stone','ore','crystal'].map(k=>'data:image/svg+xml;base64,'+fs.readFileSync(path.join(process.env.MTE_ICON_BEFORE_DIR,k+'.svg')).toString('base64')):null;
+   await evalJS(`(async()=>{const before=${JSON.stringify(beforeIcons)},keys=['mycelium','stone','ore','crystal'],c=document.getElementById('__resourceReview'),g=c.getContext('2d');g.fillStyle='#eee6d4';g.fillRect(0,0,1440,1100);g.font='22px system-ui';g.fillStyle='#1d1712';g.fillText('Resource icon readability — actual display sizes',25,35);
+    const old=[];if(before)for(const src of before){const img=new Image();img.src=src;await img.decode();old.push(img);}
+    for(let i=0;i<4;i++){const x=180+i*360;g.fillStyle='#1d1712';g.font='20px system-ui';g.fillText(keys[i],x-60,80);g.font='16px system-ui';g.fillText(before?'Before          Now':'Current',x-90,110);}
+    for(let r=0;r<4;r++){const size=[24,32,48,128][r],y=200+r*240,bg=r%2?'#24312b':'#b69b6a';g.fillStyle=bg;g.fillRect(0,y-55,1440,190);g.fillStyle=r%2?'#eee6d4':'#1d1712';g.font='16px system-ui';g.fillText(size+'px'+(r===3?' · enlargement for diagnosis':''),20,y-25);
+     for(let i=0;i<4;i++){const x=180+i*360;if(before)g.drawImage(old[i],x-80-size/2,y,size,size);MTE_GAME.look.draw(g,MTE_GAME.look.pick('resource.'+keys[i],'icon'),x+(before?65:0)-size/2,y,size,size);}}
+   })()`);
+   await shot('icon-readability.png');
    const pileCheck=await evalJS(`(async()=>{const {createResourcePile,resourcePileSVG,RESOURCE_MODEL_KEYS}=await import('./src/game/render/resource-models.js');const c=document.getElementById('__resourceReview'),g=c.getContext('2d');g.fillStyle='#b69b6a';g.fillRect(0,0,1440,1100);g.fillStyle='#1d1712';g.font='20px system-ui';g.fillText('Same models: representative stockpile magnitudes',25,30);let drawn=0;
     for(let r=0;r<4;r++)for(let j=0;j<4;j++){const key=RESOURCE_MODEL_KEYS[r],tier=[0,1,2,3][j],asset=createResourcePile(key,tier),img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(resourcePileSVG(asset,{width:180,height:150}));await img.decode();g.drawImage(img,55+j*350,70+r*250,180,150);g.fillStyle='#1d1712';g.fillText(key+' · tier '+tier,55+j*350,240+r*250);asset.dispose();drawn++;}return drawn;})()`);
    eq(pileCheck,16,'all resource families render nested stockpile symbols');await shot('resource-stockpile-review.png');

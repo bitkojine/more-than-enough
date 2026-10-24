@@ -292,7 +292,7 @@ the current character rig and shared pickaxe model remain. White chalk stays
 useful in construction/planning; it does not replace each material's identity.
 
 `src/game/render/resource-models.js` owns four actual volumetric models:
-mycelium (cream hyphae and red fruiting bodies), stone (warm grey facets), metal
+mycelium (red mushroom caps and cream stems), stone (warm grey facets), metal
 (orange mineral nodules and darker host rock; save key remains `ore`) and living
 crystal (pink branching prisms). They use authored flat face colours and explicit
 base/collection anchors. Static materials do not need moving skeletons.
@@ -312,3 +312,15 @@ client still draws cached texture-pack images; simulations do no model work.
 No generation, resource locations, collection/yield rules, saves, purchases,
 crystal protection or colony recovery rules change. Crystal colour is not light:
 the models have no emissive light sources and provide no environmental protection.
+
+Inventory readability uses a compact detail form from the same canonical 3D
+resource source, with per-resource camera, padding and offset profiles. Essential
+crystal branches are thicker and fewer; mushrooms show caps and stems without
+roots; stone is less boxy and metal has a dominant nodule. Facet values follow a fixed baked light direction and three material
+tones. Inventory views suppress internal facet lines; the outer silhouette stays
+outlined. Review actual 24/32/48px icons on both light and dark backgrounds.
+Enlargements diagnose construction, rather than establish small-size readability.
+These are offline art choices, with no per-frame lights or simulation work.
+
+The owner selected mushroom caps and stems without exposed root/hypha shapes
+for the mycelium material model, including inventory and small stockpile views.

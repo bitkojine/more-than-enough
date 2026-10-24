@@ -26,3 +26,15 @@ The model keys are mycelium, stone, ore (metal) and crystal (living crystal).
 Colours are authored material facets, not dynamic light. Crystal is not emissive.
 Individual mushroom species remain separate restored artwork. Review line joins,
 small-scale recognition, depletion and material identity on the actual ground.
+
+Inventory readability uses a compact detail form from the same canonical 3D
+resource source, with per-resource camera, padding and offset profiles. Essential
+crystal branches are thicker and fewer; mushrooms show caps and stems without
+roots; stone is less boxy and metal has a dominant nodule. Facet values follow a fixed baked light direction and three material
+tones. Inventory views suppress internal facet lines; the outer silhouette stays
+outlined. Review actual 24/32/48px icons on both light and dark backgrounds.
+Enlargements diagnose construction, rather than establish small-size readability.
+These are offline art choices, with no per-frame lights or simulation work.
+
+The owner selected mushroom caps and stems without exposed root/hypha shapes
+for the mycelium material model, including inventory and small stockpile views.

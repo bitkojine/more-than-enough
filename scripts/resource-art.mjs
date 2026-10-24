@@ -3,7 +3,7 @@ import fs from 'node:fs';import path from 'node:path';import {createHash}from'no
 import {createResourceModel,resourceSVG,createResourcePile,resourcePileSVG,RESOURCE_MODEL_KEYS}from'../src/game/render/resource-models.js';
 const root=path.resolve(import.meta.dirname,'..'),outputs=[],pileSizes=JSON.parse(fs.readFileSync(path.join(root,'art/resources/pile-sizes.json'),'utf8'));
 function write(key,file,options={},size={}){const asset=createResourceModel(key,options);const svg=resourceSVG(asset,size);asset.dispose();fs.writeFileSync(path.join(root,file),svg);outputs.push({resource:key,file,options,size,sha256:createHash('sha256').update(svg).digest('hex')});}
-for(const key of RESOURCE_MODEL_KEYS)write(key,'packs/default/icons/'+key+'.svg');
+for(const key of RESOURCE_MODEL_KEYS)write(key,'packs/default/icons/'+key+'.svg',{form:'icon'},{view:'icon'});
 for(const [key,file,options,w,h]of [
  ['stone','boulder',{},52,40],['stone','boulders',{variant:1},62,42],['stone','pebbles',{depleted:true},42,22],
  ['ore','ore-rock',{form:'deposit'},52,44],['ore','ore-rock-cut',{depleted:true},44,24],

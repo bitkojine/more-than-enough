@@ -1,36 +1,52 @@
 {
   "format": 1,
   "source": "src/game/render/resource-models.js",
-  "sourceSha256": "5a1a92d4657e0ff0cfcb8b923e60ef062eb3c51015669b9a658ba8b44b752dfc",
+  "sourceSha256": "b2b79251ee61e5cdeba882b4981d488760f0afd70659e0a66e94fb212cd72cdc",
   "finish": "3D-authored faces and curves projected into flat outlined SVGs; no per-resource WebGL runtime",
   "assets": [
     {
       "resource": "mycelium",
       "file": "packs/default/icons/mycelium.svg",
-      "options": {},
-      "size": {},
-      "sha256": "cff1321ab346db1f4520f1117be84af367ecc7e248e1903bdf79522827b15a9d"
+      "options": {
+        "form": "icon"
+      },
+      "size": {
+        "view": "icon"
+      },
+      "sha256": "901ffd5cbf635de43f06c8d06c46b5b2ae5b54c597533ce7bda70accbcaf15b0"
     },
     {
       "resource": "stone",
       "file": "packs/default/icons/stone.svg",
-      "options": {},
-      "size": {},
-      "sha256": "03496c6b36d985d5ee1aeab9cfa535573972dac0774fd1d977b6eb0172afa483"
+      "options": {
+        "form": "icon"
+      },
+      "size": {
+        "view": "icon"
+      },
+      "sha256": "a23b01601a6f30688747776c8cb5fd9a24d53eb297447b862c329a825cbb0229"
     },
     {
       "resource": "ore",
       "file": "packs/default/icons/ore.svg",
-      "options": {},
-      "size": {},
-      "sha256": "2f19287997d09a37b682aacad4602d2d63fc9a74d288694a7e2a735c8db530bf"
+      "options": {
+        "form": "icon"
+      },
+      "size": {
+        "view": "icon"
+      },
+      "sha256": "ac2bdb29b120d9d7a378e06f195be54507a940fa792aed9d6f1a150242077dff"
     },
     {
       "resource": "crystal",
       "file": "packs/default/icons/crystal.svg",
-      "options": {},
-      "size": {},
-      "sha256": "54f48a7f670a470823df149540bda1d7e5d6570a257a9659c94b321d2f5a2bb3"
+      "options": {
+        "form": "icon"
+      },
+      "size": {
+        "view": "icon"
+      },
+      "sha256": "8c776b3659ec0d6f91307819c96d96395792059fcf2f144bb1542b85250dff1e"
     },
     {
       "resource": "stone",
@@ -41,7 +57,7 @@
         "height": 40,
         "grounded": true
       },
-      "sha256": "912d25d11eb5177f51e9c92819b060ee8d21cbd1e8c57fa3ff85e8ee1dc1ef33"
+      "sha256": "9cafa62f686720a630596ca6049bb282fe7e379b52f1fdce021e84da6fde60dd"
     },
     {
       "resource": "stone",
@@ -54,7 +70,7 @@
         "height": 42,
         "grounded": true
       },
-      "sha256": "6bc0943f0fb51153eec82ce777700d26b034bf3bd749bce91f38c6a4f93d788a"
+      "sha256": "ecd7d1706d15e9f991475aec2f72a813da1a6e40405fee0277afebd43133f556"
     },
     {
       "resource": "stone",
@@ -67,7 +83,7 @@
         "height": 22,
         "grounded": true
       },
-      "sha256": "81915e20a4092d9fd248cfeed96a4d86605f325729ee08a4a00dd7a56e047852"
+      "sha256": "ef4523f635268a810fdf1cfa1ee2666c1624d408c744abf91ab6363f14b70d24"
     },
     {
       "resource": "ore",
@@ -80,7 +96,7 @@
         "height": 44,
         "grounded": true
       },
-      "sha256": "1c02299b98fa8f938c6087762f5833878562c7bd83561206de79ec50098ed7ca"
+      "sha256": "f2dbccfa7c69d8af930fc9296633726e0ba6047b81c78ce2f467648b7cdbbab7"
     },
     {
       "resource": "ore",
@@ -93,7 +109,7 @@
         "height": 24,
         "grounded": true
       },
-      "sha256": "68038b3b639c7f6b425b0fe907cd82a382de8be40c2377bd5b66ce80a26b7672"
+      "sha256": "6f70a374f5fe19754f9dbe6ff4d87bb57d130e40077b6d581046ff7a653b9348"
     },
     {
       "resource": "crystal",
@@ -104,7 +120,7 @@
         "height": 58,
         "grounded": true
       },
-      "sha256": "730cb8cea81138e77f90e9c93eccad47893a8c5415633a115e45add197544640"
+      "sha256": "5ce369f6f062f059e89f63b04478cdf606f8c9818fce378ccf00314ddbb23537"
     },
     {
       "resource": "crystal",
@@ -117,7 +133,7 @@
         "height": 60,
         "grounded": true
       },
-      "sha256": "aee8ac589f03c27ad93eb9ae1d928bd15ef054bfb9c107ed81270d8ca8eba1bc"
+      "sha256": "f283bf433ea65587f3ed5b562425bfb90cc6b11b3ab2118dc10c7236539eaf0f"
     },
     {
       "resource": "crystal",
@@ -130,7 +146,7 @@
         "height": 25,
         "grounded": true
       },
-      "sha256": "4ae1f401db8118a88e334c02ca239f284b0d7ff0667d6941ed9848d70296d8b2"
+      "sha256": "570ac4f6bcebc0f459f5f51aa333aadf4e6d93b015d9c959aad6f341ccde1364"
     },
     {
       "resource": "mycelium",
@@ -140,7 +156,7 @@
         "width": 24,
         "height": 24
       },
-      "sha256": "77d1573f390bdd6ccf04f4904070e4a3dc6986810796ae3148e1a8b473472734"
+      "sha256": "7cd54580709947f209c02a47e1af40db15227dfeb2ff5aa0a89ab5a07472abf8"
     },
     {
       "resource": "mycelium",
@@ -150,7 +166,7 @@
         "width": 40,
         "height": 30
       },
-      "sha256": "e72a159993d5b8fd2b8626edd024bcaa55c1a6ae5a6b4846cb0e16a5f18702c7"
+      "sha256": "2f7da0c3715480a259cd6ffb58dd6a792b292c2026607aef577e9f593e109269"
     },
     {
       "resource": "mycelium",
@@ -160,7 +176,7 @@
         "width": 44,
         "height": 40
       },
-      "sha256": "69a7781fdf279fa4069b0cd98c49fc7ee6dfe667e2fb918c787e4643eee9bcb4"
+      "sha256": "d5e949e1040fc1c581990afaae990d9bfbab602374c8bf176a66fb884cc42a3f"
     },
     {
       "resource": "mycelium",
@@ -170,7 +186,7 @@
         "width": 66,
         "height": 50
       },
-      "sha256": "56b35c01db8ab163e885046da372e46a8e91d2829550c5b674d6bca1bb35c24c"
+      "sha256": "4aa5c36ae6e1fc48569a7f5c14b1a1b85225240d57da10a8960a579debb760d2"
     },
     {
       "resource": "stone",
@@ -180,7 +196,7 @@
         "width": 26,
         "height": 22
       },
-      "sha256": "bb8905f7055a84117e924be25a26895cd6497588d978939e779c87b7574c0c68"
+      "sha256": "f79a54fb579a6e2acba7cce0b8c4ad9f6d56b85ca16a2c8324ad154b84fa0203"
     },
     {
       "resource": "stone",
@@ -190,7 +206,7 @@
         "width": 40,
         "height": 34
       },
-      "sha256": "0bc268d539d6bb9fe46aaadaa4d7e4c9d30a3bad9437e2716b0c418cae225b73"
+      "sha256": "88c997868029600ab131848aba88257156d250b67d1cc0a36c55ec1607665a02"
     },
     {
       "resource": "stone",
@@ -200,7 +216,7 @@
         "width": 54,
         "height": 48
       },
-      "sha256": "5303957147ad8d09615ba2be718d539caceea4a216ce5cc228cda8ab4adf515c"
+      "sha256": "909f42bb2295aadd1543f5d6d10c35825b5bb35ea857b9072b05e6955b0bd41f"
     },
     {
       "resource": "stone",
@@ -210,7 +226,7 @@
         "width": 66,
         "height": 50
       },
-      "sha256": "cbe911d738bdcb83b1ee28822066c5ecef802394f82277047244e6f9e0766a1e"
+      "sha256": "7873c72de05d02c69c9b85c3b7c5442b8ea9e515b97c49882bbbe42d86ed3bb6"
     },
     {
       "resource": "ore",
@@ -220,7 +236,7 @@
         "width": 24,
         "height": 20
       },
-      "sha256": "5c0d5a535339de6577306c6212477ecd94bce8d4eb4a8f1c12718c564f2e98d8"
+      "sha256": "c4bf1a009dff8288c1b3eba526296b109e19439549652ac5903fafe607db4dff"
     },
     {
       "resource": "ore",
@@ -230,7 +246,7 @@
         "width": 38,
         "height": 30
       },
-      "sha256": "ffe780c33c73f3deede09d0905eb2a67b7e1f3d1bb23a40fefc10d2d887f8792"
+      "sha256": "411217210db4e1643e5c6fdc0c331220f4ab67916ba2b0b82ff2ed158eef017a"
     },
     {
       "resource": "ore",
@@ -240,7 +256,7 @@
         "width": 52,
         "height": 44
       },
-      "sha256": "ceaf9af6d0ac90132309273c948bdc74b78f5edbd6027441d9a1310a3c6af2da"
+      "sha256": "51cc7e5cfebd163aad08ad6522dbbeeb3a2d43855763cf5bc77fff436ddbd282"
     },
     {
       "resource": "ore",
@@ -250,7 +266,7 @@
         "width": 66,
         "height": 52
       },
-      "sha256": "7f88a1ff20b392f16c1d3b361d5e66bae3d02b3ee623ad0a8d30357574e22bbb"
+      "sha256": "01fd183daa1f40f79798c8df5f9560c958f6aa461e7c90098c000a2029b2ebd5"
     },
     {
       "resource": "crystal",
@@ -260,7 +276,7 @@
         "width": 20,
         "height": 26
       },
-      "sha256": "6f6c86ca91506d8bf816bbfcdb3aa3ed5c8ac86285028cd271b321cc31993585"
+      "sha256": "0d37398393e79e9a9a3d7ecc261e7f666e53671e3ae8a05becbd33d5ad9ea828"
     },
     {
       "resource": "crystal",
@@ -270,7 +286,7 @@
         "width": 34,
         "height": 34
       },
-      "sha256": "79713efc06e0b31905500457aae0563869d9284f533de40dd80a5832698ee8fc"
+      "sha256": "b13d1a9809b8dc9c582635a83cc83485ab8cfeebe4eed253a46d7a2f8f08e3ec"
     },
     {
       "resource": "crystal",
@@ -280,7 +296,7 @@
         "width": 48,
         "height": 48
       },
-      "sha256": "d1a7e245d4597e8e2f2c04b64c53c58b3bd5771ab2d3037339e71d13fdeeeca2"
+      "sha256": "750176dfebf7d085bd6c432bda80302e28ff3e4ce239c40b969b86a75e54413c"
     },
     {
       "resource": "crystal",
@@ -290,7 +306,7 @@
         "width": 64,
         "height": 52
       },
-      "sha256": "cf76d4a2464f560c63a01efc28d846a74086d05806acdb5981123968eb65fb87"
+      "sha256": "1a4f26123425c0c7f9312553b7a42b4e984828dc665ea9dd2a1e68d2370a992e"
     }
   ]
 }

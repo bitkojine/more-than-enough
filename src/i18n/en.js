@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.142.1": "Resource icons are easier to read at small sizes: clear mushroom caps and stems, a less boxy stone, one dominant metal nodule and a simpler crystal fork. Each icon has its own view; broad, consistent light and dark planes replace noisy facet lines.",
   "news.0.142.0": "The warmer earlier world artwork is back. Mycelium, stone, metal and living crystal now have shared 3D source models, projected into matching flat icons, deposits and small stockpiles with clean drawn outlines.",
   "news.0.141.0": "Earned pickaxes now appear in the wanderer’s hand and swing with the arm. All six tiers have matching model-generated icons, with distinct stone and metal construction. Hand gathering and climbing stow the tool on the back.",
   "news.0.140.1": "The wanderer now faces eight fixed directions, like 2D character art. Movement stays free, with the same flat shading and fluid skeletal animation.",
