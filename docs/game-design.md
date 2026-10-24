@@ -234,7 +234,7 @@ from phase/action progress, without a cloth physics solver or simulation work.
 Walk follow-through fades through the existing start/stop blend.
 The model's source is `src/game/render/rigged-character.js`; the pure motion
 functions are in `src/game/render/rig-motion.js`. Art guidance is in
-`art/characters/README.md`. Model polish and equipment/cargo attachments remain work; this first version is not a claim of finished
+`art/characters/README.md`. Model polish and further equipment/cargo attachments remain work; this first version is not a claim of finished
 production character art or realistic cloth simulation.
 
 Presentation observes the existing distance-based phase. The owner requested a tenfold cadence increase in 0.139.1:
@@ -258,3 +258,26 @@ The 0.139.1 face follows the original turnaround: an arched dark opening,
 pear-shaped warm ivory mask with broad lower cheeks, shallow depth and larger
 flat black oval eyes. The eye artwork follows the curved 3D mask surface, so
 profile and three-quarter views retain the same identity.
+
+
+### Shared 3D source, deliberately 2D presentation (2026-10-24)
+
+Confirmed direction: use shared 3D models for consistent proportions, spatial
+relationships, attachments and views throughout visuals and icons. Preserve
+the established universe through flat authored colours, strong outlines and
+fixed views. Articulate parts that move; static icons do not require skeletons
+or live WebGL rendering. Migrate assets incrementally inside the existing game.
+
+The first equipment asset is the pickaxe. `src/game/render/pickaxe-model.js`
+is the canonical source for six physical tiers and their baked icon images.
+The renderer caches each earned tier, attaching its local grip at the right
+palm. Walking carries the tool; swing/build actions use the existing
+anticipation/contact/recovery arm curves. Picking, collecting, climbing,
+landing, cheering and steady sign/boat poses stow it behind the torso.
+Tier zero has no model. Legacy earned levels and custom texture packs retain
+their compatibility behavior; recipes, yields, unlocks and saves are unchanged.
+Early tiers use stone and mineral/fibre construction; later tiers add metal
+sockets, bracing and ferrules. No timber or crystal components are introduced.
+Icon export records source and image hashes in `art/characters/pickaxe-model.json`
+so model changes cannot silently leave stale inventory art. Other equipment
+and building/icon families still await migration to this workflow.

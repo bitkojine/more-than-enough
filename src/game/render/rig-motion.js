@@ -34,6 +34,7 @@ export function actionPose(action,progress){
   const wind=ease(q/.38)*(1-ease((q-.38)/.18));
   const strike=ease((q-.38)/.18)*(1-ease((q-.56)/.44));
   const gate=action==='build'?envelope:1;
+  p.spread=gate*(.9*wind+.20*strike);
   p.bow=gate*(-.10*wind+.26*strike);p.twist=gate*(.13*wind-.10*strike);
   p.crouch=.025*strike*gate;p.right=gate*(-1.65*wind-.85*strike);
   p.left=gate*(-.8*wind-.45*strike);p.rightElbow=-.6*wind*gate;p.leftElbow=-.35*wind*gate;

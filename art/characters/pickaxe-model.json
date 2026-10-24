@@ -1,0 +1,38 @@
+{
+  "format": 1,
+  "source": "src/game/render/pickaxe-model.js",
+  "sourceSha256": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023",
+  "render": "192x192 transparent PNG inside 64x64 SVG; same flat model as held equipment",
+  "assets": [
+    {
+      "tier": 1,
+      "file": "packs/default/icons/pickaxe.svg",
+      "sha256": "452fcd0eb91f7a3e410ab7b59808f360fddc040155a11dc2a26a95fafdf78781"
+    },
+    {
+      "tier": 2,
+      "file": "packs/default/cultivation/pickaxe-2.svg",
+      "sha256": "253693c765b2f5356b3da62b3f9906a2919caaed04add1a00c02e5e4db950669"
+    },
+    {
+      "tier": 3,
+      "file": "packs/default/cultivation/pickaxe-3.svg",
+      "sha256": "d3e7e9ef548e6154f0798f750379cfb356f0de1d95ae2bac7bfe2f9dcadfeec5"
+    },
+    {
+      "tier": 4,
+      "file": "packs/default/cultivation/pickaxe-4.svg",
+      "sha256": "6e582583cb552acf4e144581110c84dcef0207785e928b705a804d4a6f72a9ce"
+    },
+    {
+      "tier": 5,
+      "file": "packs/default/cultivation/pickaxe-5.svg",
+      "sha256": "5ee228053f2b823a7b01679097f225718c3539e57be6f5de5223660eda2ce7a2"
+    },
+    {
+      "tier": 6,
+      "file": "packs/default/cultivation/pickaxe-6.svg",
+      "sha256": "7615cae6ad81288046e9a7fa417e36fb49fb986f289df5ed3c62d803f062a1b8"
+    }
+  ]
+}

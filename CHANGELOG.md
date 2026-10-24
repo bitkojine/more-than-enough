@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.141.0] - 2026-10-24
+
+- Added a canonical 3D pickaxe model for all six tiers, shared by held
+  equipment and baked inventory/upgrade icons. Early tiers use fibre-bound
+  stone; later tiers have forged heads, sockets, bracing and ferrules.
+- Earned tools attach at the palm and follow the swing; gathering, climbing
+  and celebrations stow the pickaxe on the back. Empty hands stay empty.
+- Kept flat shading and eight-direction facing. Each tool costs two draw
+  calls; icons stay ordinary images, with no per-icon WebGL renderer.
+
 ## [0.140.1] - 2026-10-24
 
 - Snapped the rig’s displayed facing to N, NE, E, SE, S, SW, W and NW, using

@@ -2,6 +2,7 @@
  * Geometry is authored once. Bones/IK own motion; there is no frame atlas. */
 import * as T from '../../vendor/three/three.module.js';
 import {rigPose,LEG_LENGTH} from './rig-motion.js';
+import {createPickaxeModel,pickaxeTier} from './pickaxe-model.js';
 import {characterDirection,CHARACTER_DIRECTIONS} from './character-direction.js';
 const DOWN=new T.Vector3(0,-1,0);
 export function createRiggedCharacter(){
@@ -115,6 +116,19 @@ export function createRiggedCharacter(){
   return {upper,lower,foot};
  }
  const leftArm=arm(1),rightArm=arm(-1),leftLeg=leg(1),rightLeg=leg(-1);
+ const toolGrip=new T.Group();toolGrip.position.set(0,-.02,.025);toolGrip.rotation.set(Math.PI+.08,0,.22);rightArm.hand.add(toolGrip);
+ const toolBack=new T.Group();toolBack.position.set(0,-.05,-.26);toolBack.rotation.z=-.8;spine.add(toolBack);toolBack.visible=false;
+ const holster=mesh(new T.TorusGeometry(.052,.012,6,16),black,toolBack);holster.rotation.x=Math.PI/2;
+ const pickaxes=new Map();let equippedPickaxe=null;
+ function equipPickaxe(level,action,steady){
+  const tier=pickaxeTier(level);
+  if(equippedPickaxe&&equippedPickaxe.tier!==tier){equippedPickaxe.root.removeFromParent();equippedPickaxe=null;}
+  if(!tier){toolBack.visible=false;return;}
+  if(!pickaxes.has(tier))pickaxes.set(tier,createPickaxeModel(tier));
+  equippedPickaxe=pickaxes.get(tier);
+  const stowed=steady||['pick','collect','up','down','cheer'].includes(action),socket=stowed?toolBack:toolGrip;toolBack.visible=stowed;
+  if(equippedPickaxe.root.parent!==socket)socket.add(equippedPickaxe.root);
+ }
  model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);hem.bind(skeleton);
  const coatInk=new T.SkinnedMesh(coatGeometry,outlineMaterial);model.add(coatInk);coatInk.bind(skeleton);
  const anchor=new T.Vector3(0,0,0).project(camera);
@@ -127,7 +141,7 @@ export function createRiggedCharacter(){
   rig.foot.quaternion.copy(q2).invert().multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1,0,0),target.foot.pitch));
  }
  return {
-  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false}={}){
+  draw(ctx,x,y,u,{facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0}={}){
    if(lost)return null;
    const p=rigPose({phase,walking,blend,action,progress,time,steady});hips.position.y=p.hipY;
    spine.rotation.set(p.lean,p.twist,p.roll);spine.position.y=.45+p.breath;
@@ -140,14 +154,15 @@ export function createRiggedCharacter(){
    model.rotation.y=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(direction)*Math.PI/4;poseLeg(p.left,leftLeg,p.hipY);poseLeg(p.right,rightLeg,p.hipY);
    leftArm.upper.rotation.z=.36+p.armSpread;rightArm.upper.rotation.z=-.36-p.armSpread;
    leftArm.upper.rotation.x=p.leftArm;rightArm.upper.rotation.x=p.rightArm;leftArm.lower.rotation.x=p.leftElbow;rightArm.lower.rotation.x=p.rightElbow;leftArm.hand.rotation.x=p.leftWrist;rightArm.hand.rotation.x=p.rightWrist;
+   equipPickaxe(pickaxe,action,steady);
    scene.updateMatrixWorld(true);renderer.render(scene,camera);renders++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,320*scale,384*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*320-ax)*scale,y:y+((1-p.y)*.5*384-ay)*scale};};
    const h=project(new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld)),hand=project(rightArm.hand.getWorldPosition(new T.Vector3()));
    return {x:h.x,top:h.y,foot:y,handsX:hand.x,hands:hand.y};
   },
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:at(equippedPickaxe.root),socket:at(equippedPickaxe.root.parent),hand:at(rightArm.hand)}:null,hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
   get stats(){return {renders,bones:bones.length,skinnedMeshes:3,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,lost};},
-  dispose(){faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  dispose(){for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}faceMap.dispose();renderer.dispose();scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

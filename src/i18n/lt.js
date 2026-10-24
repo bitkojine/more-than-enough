@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.141.0": "Pagamintas kirtiklis dabar matomas keliautojo rankoje ir juda kartu su ja. Visos šešios pakopos turi to paties modelio sugeneruotas ikonas bei skirtingą akmens ar metalo konstrukciją. Renkant rankomis ir kopiant įrankis laikomas ant nugaros.",
   "news.0.140.1": "Keliautojas dabar atsisuka tik aštuoniomis kryptimis, kaip 2D piešinyje. Judėti galima laisvai; plokščios spalvos ir sklandi skeleto animacija išlieka.",
   "news.0.140.0": "Keliautojas juda laisviau: pečiai ir gobtuvas atsveria žingsnius, alkūnės bei riešai švelnina rankų mostus, o apsiaustas juda iš paskos. Rinkimas, statyba, kopimas ir džiaugsmas turi skirtingas viso kūno pozas.",
   "news.0.139.3": "Keliautojas dabar dera prie plokščio pasaulio piešinio: šilta oranžinė, vientisa dramblio kaulo spalva, ryškesni rudi kontūrai ir jokio kryptinio apšvietimo.",

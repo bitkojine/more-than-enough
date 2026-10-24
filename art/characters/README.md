@@ -7,8 +7,8 @@ The active model and skeletal hierarchy live in `src/game/render/rigged-characte
 pure gait/IK is in `src/game/render/rig-motion.js`. Preserve the existing orange
 hood, cream mask and outfit. Change shared geometry or motion constraints once,
 then inspect every direction in the game. The displayed heading snaps to eight
-world directions, with free movement and smooth internal joint motion. The rig is bare for this first version;
-equipment and cargo still need physical models and appropriate joints.
+world directions, with free movement and smooth internal joint motion. Pickaxes now have a shared model and a hand/back attachment;
+other equipment and cargo still need physical models and appropriate joints.
 The 21-bone rig includes four weighted cloak panels, torso/head counterbalance,
 elbow/wrist follow-through, idle breath and distinct work-action performances.
 Keep cloak trim and outlines on the same skin weights, and verify action
@@ -31,6 +31,27 @@ review and add `MTE_RECORD_MOTION=1` to capture a complete continuous loop.
 Shared anatomy and continuous joint evaluation replace the old disconnected
 poses. Frame counts alone are not a motion-quality measure. Numerical
 checks complement, rather than replace, visual review.
+
+## Shared pickaxe model and icon export
+
+`src/game/render/pickaxe-model.js` owns all six tier silhouettes, materials
+and a local grip at (0,0,0). It uses flat vertex colours and an ink shell,
+merged into two draws. The character caches earned tiers and attaches the
+model to its palm or back socket. No icon is pasted onto the character.
+
+Regenerate the six default-pack icons from this same model with:
+
+```
+CHROME_PATH=/path/to/chromium MTE_PICKAXE_ONLY=1 MTE_EXPORT_PICKAXE_ICONS=1 npm run test:e2e
+```
+
+Run against the source tree (omit `MTE_SITE`). This renders transparent 192px
+images into the existing SVG icon containers and records source/image hashes
+in `art/characters/pickaxe-model.json`. Icons stay lightweight UI images; the
+inventory never creates its own 3D contexts. Without the export flag the same
+command reviews held tiers, eight facing directions and swing key poses.
+Review native game scale and icon sizes, the hand grip, face clearance and
+stowed tools; numerical attachment checks do not establish visual quality.
 
 ## Retired sprite workflow
 

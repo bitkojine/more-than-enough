@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.141.0": "Earned pickaxes now appear in the wanderer’s hand and swing with the arm. All six tiers have matching model-generated icons, with distinct stone and metal construction. Hand gathering and climbing stow the tool on the back.",
   "news.0.140.1": "The wanderer now faces eight fixed directions, like 2D character art. Movement stays free, with the same flat shading and fluid skeletal animation.",
   "news.0.140.0": "The wanderer moves more naturally: shoulders and hood counterbalance each step, elbows and wrists soften the arm swing, and the cloak follows through. Gathering, building, climbing and celebrations have distinct full-body poses.",
   "news.0.139.3": "The wanderer now matches the world’s flat painted style: warm orange, solid ivory, stronger brown outlines and no directional lighting.",

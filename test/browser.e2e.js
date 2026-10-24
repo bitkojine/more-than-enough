@@ -2,6 +2,7 @@
  * real game through the DevTools Protocol (touch input, keyboard, DOM clicks),
  * verifying gameplay and persistence through the shipped code paths. */
 import cp from 'node:child_process';
+import {createHash} from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -130,7 +131,7 @@ async function main() {
   // headless chrome
   var profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-chrome-'));
   var chrome = cp.spawn(CHROME, [
-    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
+    '--headless=new', ...(process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
@@ -293,6 +294,42 @@ async function main() {
     ok(await evalJS('MTE_GAME.bench(2)>0'),'the original world renderer keeps drawing');
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
+  if(process.env.MTE_PICKAXE_ONLY==='1'){
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1150,deviceScaleFactor:1,mobile:false},session);
+    const result=await evalJS(`(async()=>{
+     const rig=await MTE_GAME.look.rigReady;if(!rig)throw Error(MTE_GAME.look.rigError||'No rig');
+     const {renderPickaxeIcons}=await import('./src/game/render/pickaxe-model.js');const icons=renderPickaxeIcons();
+     const c=document.createElement('canvas');c.width=1440;c.height=1150;c.id='__pickReview';c.style='position:fixed;inset:0;z-index:99999;width:1440px;height:1150px';document.body.append(c);const g=c.getContext('2d');g.fillStyle='#293232';g.fillRect(0,0,1440,1150);g.font='20px system-ui';g.fillStyle='#eee7d5';g.fillText('Same model: held pickaxes and baked tier icons',30,30);
+     const tiers=[];let maxToolDrawCalls=0;for(let i=0;i<6;i++){const x=120+i*240;g.fillStyle='#eee7d5';g.fillText('Tier '+(i+1),x-40,70);rig.draw(g,x,340,220,{pickaxe:i+1,facing:{x:1,y:1}});tiers.push(rig.inspect().pickaxe);maxToolDrawCalls=Math.max(maxToolDrawCalls,rig.stats.drawCalls);const img=new Image();img.src=icons[i];await img.decode();g.drawImage(img,x-70,370,140,140);}
+     const v=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];const grips=[];
+     for(let i=0;i<8;i++){const x=90+i*180;rig.draw(g,x,790,190,{pickaxe:4,facing:{x:v[i][0],y:v[i][1]},action:'swing',progress:.55});grips.push(rig.inspect().pickaxe);}
+     const phases=[.12,.30,.48,.65,.85];for(let i=0;i<phases.length;i++)rig.draw(g,150+i*280,1130,200,{pickaxe:4,facing:{x:1,y:1},action:'swing',progress:phases[i]});
+     rig.draw(g,-1000,-1000,100,{pickaxe:4,action:'pick'});const stowed=rig.inspect().pickaxe;maxToolDrawCalls=Math.max(maxToolDrawCalls,rig.stats.drawCalls);
+     const {drawPlayer}=await import('./src/game/render/sprites.js'),state=MTE_GAME.getState(),before=JSON.stringify(state),cam={tilePx:160,depthPx:80,z:state.player.z,project:()=>({x:-1000,y:-1000})},view={facing:{x:1,y:0},moving:false,device:null,actor:{act:'swing',t:.15,clock:0,stride:0,rigStride:0,walkBlend:0}};
+     drawPlayer(g,cam,{...state,tools:{...state.tools,pickaxe:4}},MTE_GAME.look,view);const integrated=rig.inspect().pickaxe;
+     drawPlayer(g,cam,{...state,tools:{...state.tools,pickaxe:0}},MTE_GAME.look,view);
+     return {maxToolDrawCalls,icons,tiers,grips,stowed,integrated,unchanged:before===JSON.stringify(state),empty:rig.inspect().pickaxe,stats:rig.stats};
+    })()`);
+    eq(result.icons.length,6,'all six icons are baked from the shared model');eq(new Set(result.icons).size,6,'every tier has a distinct rendered silhouette');
+    ok(result.tiers.every((t,i)=>t.tier===i+1),'earned tiers select matching held models');
+    ok(result.grips.every(t=>t.grip.every((n,i)=>Math.abs(n-t.socket[i])<1e-9)),'all eight swings keep the tool attached to its grip socket');
+    ok(result.grips.every(t=>Math.hypot(...t.grip.map((n,i)=>n-t.hand[i]))<.04),'grip stays inside the palm rather than floating beside the character');
+    eq(result.stowed.stowed,true,'hand gathering stows the pickaxe');eq(result.integrated?.tier,4,'the shipped player renderer selects actual earned equipment');eq(result.unchanged,true,'rendering never changes inventory or save state');eq(result.empty,null,'empty-handed character has no pickaxe');ok(result.maxToolDrawCalls<=64,'held tool remains within the draw-call budget');
+    await shot('pickaxe-model-review.png');
+    await evalJS(`(async()=>{const rig=await MTE_GAME.look.rigReady,c=document.getElementById('__pickReview'),g=c.getContext('2d');g.fillStyle='#293232';g.fillRect(0,0,1440,1150);g.font='20px system-ui';g.fillStyle='#eee7d5';g.fillText('Back holster: free hands while gathering, climbing and celebrating',30,35);
+     const v=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1]];
+     for(let i=0;i<8;i++)rig.draw(g,180+i%4*360,480+Math.floor(i/4)*500,330,{pickaxe:4,facing:{x:v[i][0],y:v[i][1]},action:i<4?'pick':'up',progress:.5});})()`);
+    await shot('pickaxe-stow-review.png');
+
+    if(process.env.MTE_EXPORT_PICKAXE_ICONS==='1'){
+     const paths=['icons/pickaxe.svg',...Array.from({length:5},(_,i)=>'cultivation/pickaxe-'+(i+2)+'.svg')];
+     for(let i=0;i<6;i++)fs.writeFileSync(path.join(ROOT,'packs/default',paths[i]),'<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><!-- Generated from src/game/render/pickaxe-model.js; do not hand-edit. --><image width="64" height="64" href="'+result.icons[i]+'"/></svg>\n');
+     const source='src/game/render/pickaxe-model.js',sha=p=>createHash('sha256').update(fs.readFileSync(path.join(ROOT,p))).digest('hex');
+     fs.writeFileSync(path.join(ROOT,'art/characters/pickaxe-model.json'),JSON.stringify({format:1,source,sourceSha256:sha(source),render:'192x192 transparent PNG inside 64x64 SVG; same flat model as held equipment',assets:paths.map((p,i)=>({tier:i+1,file:'packs/default/'+p,sha256:sha('packs/default/'+p)}))},null,2)+'\n');
+
+    }
+    eq(pageErrors.length,0,'pickaxe rendering has no browser exceptions');console.log((failures?'PICKAXE BROWSER FAILURES':'PICKAXE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_RIG_ONLY==='1'){
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1440,height:1150,deviceScaleFactor:1,mobile:false},session);

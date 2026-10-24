@@ -1,16 +1,17 @@
 {
-  "version": "0.140.1",
+  "version": "0.141.0",
   "status": "first integrated rig; production model polish remains work",
   "sources": {
-    "src/game/render/rig-motion.js": "5fdcc6d390912163d515a7abc91824bf12c673f2a9e6b6e5f831a1aa71a55f6e",
-    "src/game/render/rigged-character.js": "61b4e3653425613ff645c1b6aee7214ad57f88ef241745bf55e41563f577b899",
+    "src/game/render/rig-motion.js": "0855c830397bfcf9e2b878612ddae264630627c89e9a95de7fda7f14434b35fd",
+    "src/game/render/rigged-character.js": "d01abfde848fe5e04b08aecabf989e08695ef90ca33d668323a210247dd8d5ca",
     "src/game/render/motion.js": "9d53e86a3165c78101bdea0d0ccdfd3e142d644663eb527f5f1f95869de60336",
-    "src/game/render/sprites.js": "4fc27a6cf7642ed321429d02d20ef15504b1414b6c08676849c243e32594b8b5",
-    "src/game/render/character-direction.js": "3510f6fde74cdb5b6d98b1d1b1df1a6724d3d67b54750569e2db942fb5c21a4e"
+    "src/game/render/sprites.js": "3c1afb6c3ca4c9db206149a43d5d3c54aa564b1d811e039d3fcc83c547cdb810",
+    "src/game/render/character-direction.js": "3510f6fde74cdb5b6d98b1d1b1df1a6724d3d67b54750569e2db942fb5c21a4e",
+    "src/game/render/pickaxe-model.js": "9682e44bb67d946d5eae4c21d0672324bbb5f691447696b91d93c863fdf99023"
   },
   "playback": "art/characters/rig-review/walk-loop.mp4",
   "playbackSha256": "6c030ed09e221458faed8d86defc9cc5fd1a911c835b92d51d6c95cbd7ccc83f",
-  "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; cardinal east-facing walk capture retained from 0.140.0 because that heading and gait are unchanged",
+  "capture": "40 phase samples from the actual 3D renderer, native and enlarged, encoded at nominal base-speed cadence (2.4/3.7 seconds per loop); visual fixture, not live-input gameplay capture; cardinal east-facing walk capture retained from 0.140.0 because that heading and gait are unchanged; retained bare walk fixture, not a pickaxe swing capture",
   "checks": [
     "joint lengths, sole contact, opposite-leg symmetry, loop continuity and idle",
     "same rig in eight directions and both gait halves; opaque WebGL output and geometry/draw-call budgets",
@@ -20,10 +21,11 @@
     "secondary pose loop continuity, action anticipation/endpoints, crouching IK and idle/steady mode",
     "actual rendered torso, head and four cloak panel transforms vary through gait",
     "visual action contact sheets: pick, collect, swing, build, cheer, up, down and idle",
-    "16 off-axis movement vectors produce exactly eight model headings; paired sector renders match within one-byte GPU edge rounding; zero input retains heading"
+    "16 off-axis movement vectors produce exactly eight model headings; paired sector renders match within one-byte GPU edge rounding; zero input retains heading",
+    "six-tier pickaxe shared model/icon export, eight-direction grip attachment, empty-hand and free-hand stowing browser checks"
   ],
   "limits": [
-    "no physical equipment/cargo models yet; action performances use the bare rig",
+    "pickaxe tiers have physical hand/back models; other equipment and cargo models remain unfinished",
     "stylized gait; not a world-space foot-locking system",
     "procedural geometry and materials remain a first playable art pass"
   ],

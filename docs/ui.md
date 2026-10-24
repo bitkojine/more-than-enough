@@ -235,9 +235,11 @@ share the cloak skeleton; geometry and movement remain unchanged. References:
 `packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
 `packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
 
-The initial rig has no rendered tools or cargo attachments. Inventory, earned
-equipment and interactions retain their state. Physical equipment modeling and
-further action polish remain future work. Custom character texture
+Earned pickaxes now use the shared 3D tool model: carried in the palm, moved
+by swing/build actions and stowed behind the torso for free-hand actions.
+Tier zero remains empty-handed. Inventory and upgrade icons are baked from
+the same six tier models. Other equipment and cargo models remain future work.
+Inventory, earned equipment and interactions retain their state. Custom character texture
 packs and legacy friend poses keep their established alignment and artwork.
 
 `createActor().view(moving, position)` still supplies one real-time clock and
