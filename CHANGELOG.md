@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.155.1] - 2026-10-25
+
+Two ways to lose a solo world are closed (the review of v0.131.3–v0.154.0;
+Watch: "make the states of losing data impossible").
+
+### Fixed
+- `saveGame` wrote the world's own copy (`mte.solo.world.<seed>`) before
+  the save and gave up when it failed, so once storage was full nothing
+  was saved again. The save is written first now; the copy after it can
+  fail without stopping it, and says so.
+- Embark and the Nerds world buttons leave a world only once it is saved
+  with its copy (`game.keep()`); Embark used to start the next world
+  without saving the one left, losing its last seconds.
+- `loadGame` wrote over the one set-aside save when a world's own copy took
+  over, and when a second unreadable save came along. Both now keep the
+  other save under its own name (`mte.solo.kept.*`).
+
 ## [0.155.0] - 2026-10-25
 
 Nothing in a shared world deletes a player any more (Watch: "Let's not have

@@ -381,6 +381,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const yes = await ask({ title: t('ask.embark.title'), text: t('ask.embark.empty'), yes: t('ask.embark.yes') });
       const s = state();
       if (!yes || !Core.canEmbark(s)) return;
+      // The world you leave is kept as it is now, or you don't leave it.
+      if (!game.keep()) return;
       const res = Core.embark(s, randomSeed());
       game.replace(res.state);
       audio.fanfare();

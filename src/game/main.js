@@ -188,6 +188,12 @@ const game = {
     }
     saveError = err;
   },
+  // Saves, and says whether the world is safely kept (saved, with its own
+  // copy), so it may be left for another one.
+  keep() {
+    game.saveNow();
+    return !saveError && !fork.open;
+  },
   // Swaps in a different world (embark, a shared world).
   replace(next) {
     problems.crumb('world replaced'); // i18n-ok: a report for developers, in English
@@ -748,7 +754,7 @@ const refreshSoloControls=()=>{
 document.getElementById('nerdsPanel').append(soloControls);refreshSoloControls();
 soloControls.addEventListener('click',e=>{
  const btn=e.target.closest('button');if(!btn||game.state.shared)return;
- game.saveNow();if(saveError||fork.open)return;
+ if(!game.keep())return;
  const next=btn.id==='newSoloWorld'?newSoloWorld():Core.deserialize(soloArchives().find(w=>w.seed===Number(btn.dataset.soloSeed))?.raw);
  if(next){game.replace(next);refreshSoloControls();}
 });

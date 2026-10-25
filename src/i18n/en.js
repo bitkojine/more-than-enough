@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.155.1": "Your world is always saved first. When the device's storage is full, the game still saves the world you're playing, and won't start or switch to another world until the one you're leaving is safely kept.",
   "news.0.155.0": "Nobody loses a character any more. A player caught cheating in a shared world is frozen instead of removed: the character sleeps under a tombstone with everything it had and built, and Watch can wake it up again. Nobody else is taken along with them.",
   "news.0.154.0": "{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.",
   "news.0.153.3": "Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.",

@@ -8,6 +8,10 @@ const SAVE_KEY = 'more-than-enough-save';
 const ASIDE_KEY = 'more-than-enough-save-aside';
 function freshWorld() { return createState(randomSeed(),{cultivation:true}); }
 const VIEW_KEY = 'more-than-enough-view';
+const ARCHIVE_PREFIX = 'mte.solo.world.'; // every solo world's own copy, by seed
+// Saves set aside by loadGame when a world's own copy took over (one per seed,
+// so a set-aside save is never written over by another).
+const KEPT_PREFIX = 'mte.solo.kept.';
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }
@@ -21,7 +25,7 @@ function write(key, value) {
 export function randomSeed() {
   for(let i=0;i<100;i++){
     const seed=(Math.random()*4294967295)>>>0;
-    if(!read('mte.solo.world.'+seed)&&!read('mte.depot-v1.world.'+seed))return seed;
+    if(!read(ARCHIVE_PREFIX+seed)&&!read('mte.depot-v1.world.'+seed))return seed;
   }
   throw new Error('No unused world seed'); // i18n-ok: diagnostic
 
@@ -48,14 +52,16 @@ export function saveGame(state, force = false) {
     if (other) return { conflict: other };
   }
   const raw = serialize(state);
-  {
-    const archived=write('mte.solo.world.'+state.seed,raw);
-    if(archived)return {error:archived};
-  }
+  // The save itself first: nothing else may stand in its way.
   const err = write(SAVE_KEY, raw);
   if (err) return { error: err };
   known = raw;
-  return null;
+  // Then this world's own copy, so it is still there after starting or
+  // switching to another world (Nerds, Embark). A full storage can stop the
+  // copy but never the save; the error says so, and leaving the world waits
+  // until a copy is kept (main.js keep).
+  const copy = write(ARCHIVE_PREFIX + state.seed, raw);
+  return copy ? { error: copy } : null;
 }
 
 // Takes another tab's save as this tab's own. Returns its state, or null if
@@ -90,8 +96,13 @@ export function loadGame() {
   const back = aside && deserialize(aside);
   let state = raw && deserialize(raw);
   if(state&&!state.cultivation){
-    const archived=read('mte.solo.world.'+state.seed),saved=archived&&deserialize(archived);
-    if(saved?.cultivation){write(ASIDE_KEY,raw);state=saved;if(!write(SAVE_KEY,archived))known=archived;}
+    const archived=read(ARCHIVE_PREFIX+state.seed),saved=archived&&deserialize(archived);
+    // The world's own copy took over: what was in use is kept under its own
+    // name, never over the one save already set aside.
+    if (saved?.cultivation && !write(KEPT_PREFIX + state.seed + '.' + Date.now(), raw)) {
+      state = saved;
+      if (!write(SAVE_KEY, archived)) known = archived;
+    }
   }
   if (state && !(back && further(back, state))) return { state, lost: false };
   if (back) {
@@ -101,6 +112,9 @@ export function loadGame() {
     return { state: back, lost: false };
   }
   if (!raw) return { state: freshWorld(), lost: false };
+  // One already set aside (unreadable too, or it would be in use) keeps its
+  // own name before this one takes the slot.
+  if (aside && aside !== raw) write(KEPT_PREFIX + 'aside.' + Date.now(), aside);
   write(ASIDE_KEY, raw);
   return { state: freshWorld(), lost: formatOf(raw) === null ? 'broken' : 'format' };
 }

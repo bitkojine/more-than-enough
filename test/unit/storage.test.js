@@ -8,9 +8,10 @@ import assert from 'node:assert/strict';
 import * as Core from '../../src/core/index.js';
 
 const store = new Map();
+let full = () => false; // a key the faked storage has no room for
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { store.set(k, String(v)); },
+  setItem: (k, v) => { if (full(k)) throw new DOMException('full', 'QuotaExceededError'); store.set(k, String(v)); },
   removeItem: (k) => { store.delete(k); },
   key: (i) => [...store.keys()][i] ?? null,
   get length() { return store.size; }
@@ -21,7 +22,7 @@ const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } = aw
 const SAVE = 'more-than-enough-save', ASIDE = 'more-than-enough-save-aside';
 const otherFormat = JSON.stringify({ v: Core.SAVE_VERSION + 1, seed: 5, inv: { mycelium: 999 } });
 
-beforeEach(() => store.clear());
+beforeEach(() => { store.clear(); full = () => false; });
 
 test('storage: a save it reads is loaded, and nothing is set aside', () => {
   const s = Core.createState(42);
@@ -107,4 +108,40 @@ test('storage: a backup file of your own world loads back as it was, and nothing
     assert.equal(fromBackup(bad), null, bad);
   }
   assert.match(backupName(Date.now()), /^more-than-enough-\d{4}-\d\d-\d\d-\d{4}\.json$/);
+});
+
+test('storage: a full storage that refuses the world\'s own copy never stops the save itself', () => {
+  const s = Core.createState(42, { cultivation: true });
+  s.inv.mycelium = 23;
+  full = (k) => k.startsWith('mte.solo.world.');
+  const r = saveGame(s, true);
+  assert.ok(r && r.error, 'says the copy could not be kept, so the world is not left');
+  assert.equal(Core.deserialize(store.get(SAVE)).inv.mycelium, 23, 'but the save is written');
+  full = () => false;
+  assert.equal(saveGame(s, true), null);
+  assert.equal(Core.deserialize(store.get('mte.solo.world.42')).inv.mycelium, 23, 'and the copy once there is room');
+});
+
+test('storage: a second unreadable save never writes over the one already set aside', () => {
+  store.set(ASIDE, otherFormat);
+  const broken = '{"v": 1, "this is": "broken"';
+  store.set(SAVE, broken);
+  loadGame();
+  assert.equal(store.get(ASIDE), broken);
+  const kept = [...store.entries()].filter(([k]) => k.startsWith('mte.solo.kept.aside.')).map(([, v]) => v);
+  assert.deepEqual(kept, [otherFormat], 'the earlier one is kept under its own name');
+});
+
+test('storage: when a world\'s own copy takes over an older save, that save is kept, not set aside over another', () => {
+  const legacy = Core.createState(42);
+  legacy.inv.mycelium = 5;
+  const grown = Core.createState(42, { cultivation: true });
+  store.set(SAVE, Core.serialize(legacy));
+  store.set('mte.solo.world.42', Core.serialize(grown));
+  store.set(ASIDE, otherFormat);
+  const { state } = loadGame();
+  assert.ok(state.cultivation);
+  assert.equal(store.get(ASIDE), otherFormat, 'what was set aside stays');
+  const kept = [...store.entries()].filter(([k]) => k.startsWith('mte.solo.kept.42.')).map(([, v]) => Core.deserialize(v).inv.mycelium);
+  assert.deepEqual(kept, [5], 'the older save is kept under its own name');
 });
