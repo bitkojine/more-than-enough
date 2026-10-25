@@ -1062,7 +1062,9 @@ async function main() {
   ok(await evalJS('!!localStorage.getItem("more-than-enough-save")'), 'autosave keeps running while Gather is held with no target');
   mineBtn = await rect('#btnMine'); await tap(mineBtn.x, mineBtn.y);
   eq(await evalJS('MTE_GAME.getState().player.z'), -1, 'CLIMB UP climbs back through the shaft you came down');
-  await evalJS('MTE_GAME.setPlayer(' + (entry.x + 4.5) + ',' + (entry.y + 0.5) + ')');
+  // A spot a few steps off with no way between layers in reach (the world is
+  // random: another shaft or ladder can lie right beside the first).
+  ok(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var r=4;r<=12;r++)for(var dy=-r;dy<=r;dy++)for(var dx=-r;dx<=r;dx++){if(Math.max(Math.abs(dx),Math.abs(dy))!==r)continue;MTE_GAME.setPlayer(' + entry.x + '+dx+.5,' + entry.y + '+dy+.5);if(!c.layerWay(s))return true;}return false;})()'), 'there is ground off the ladder with no way between layers in reach');
   await sleep(200);
   ok(await evalJS('document.getElementById("btnMine").hidden'), 'away from the ladder there is no layer button: no digging up');
   await evalJS('MTE_GAME.setPlayer(' + (entry.x + 0.5) + ',' + (entry.y + 0.5) + ')');
@@ -1184,10 +1186,14 @@ async function main() {
   await sleep(180);
   var trailEndInv = JSON.parse(await stateSummary()).inv.mycelium;
   ok(trailEndInv > trailStartInv + 1, 'releasing a Trail gathers its highlighted resource tiles (' + trailStartInv + ' -> ' + trailEndInv + ')');
-  await evalJS('(()=>{const s=MTE_GAME.getState(),c=MTE_GAME.core;const at=c.nearestTile(s.player.x,s.player.y,20,(x,y)=>c.tileAt(s.world,x,y,0)===c.T.FOREST&&c.richness(s.world,x,y,0)>=10);if(at)MTE_GAME.setPlayer(at.x+.5,at.y+.5);})()');
-  await sleep(200);
-  var tapGatherBefore = trailEndInv;
-  await tap(195, 422);
+  // A rich forest tile near by, and a tap where it is drawn (the world is
+  // random: the nearest can be a way off, and the camera may still be moving).
+  var richAt = await evalJS('(()=>{const s=MTE_GAME.getState(),c=MTE_GAME.core;const at=c.nearestTile(s.player.x,s.player.y,60,(x,y)=>c.tileAt(s.world,x,y,0)===c.T.FOREST&&c.richness(s.world,x,y,0)>=10);if(at)MTE_GAME.setPlayer(at.x+.5,at.y+.5);return at;})()');
+  ok(!!richAt, 'a rich forest tile is near enough to try a tap on');
+  await sleep(400);
+  var tapAt = richAt ? await evalJS('(()=>{const s=MTE_GAME.getState(),p=MTE_GAME.project(' + (richAt && richAt.x + .5) + ',' + (richAt && richAt.y + .5) + ',MTE_GAME.core.tileHeight(s.world,' + (richAt && richAt.x) + ',' + (richAt && richAt.y) + ',0));return {x:Math.round(p.x),y:Math.round(p.y)};})()') : { x: 195, y: 422 };
+  var tapGatherBefore = JSON.parse(await stateSummary()).inv.mycelium;
+  await tap(tapAt.x, tapAt.y);
   await sleep(150);
   var tapGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
   ok(tapGatherAfter > tapGatherBefore, 'tapping a resource tile gathers it directly');
