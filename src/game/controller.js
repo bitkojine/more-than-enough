@@ -11,6 +11,7 @@ const CLOCK_EPSILON = 1e-9;
 const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
+const REPLANS = 40;           // times a tapped walk finds a new way when one turns out blocked
 
 // `gathered(held)` hears every gather: `held` when a hold repeated it.
 export function createController({ game, cam, fx, audio, hud, look, ask, actor, gathered = () => {} }) {
@@ -119,10 +120,27 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   // Walk to (tx, ty); with `work`, work it once it's in reach.
   // `stand`: walk there instead, and work (tx, ty) from it.
-  function walkToward(tx, ty, work, stand = null) {
+  // `around`: find the way round whatever is in the way (core paths.js),
+  // as a tap does; else head straight there, as AUTO's single steps do.
+  function walkToward(tx, ty, work, stand = null, around = false) {
     const to = stand || { x: tx, y: ty };
-    walkTo = { id: ++walkSerial, x: to.x + 0.5, y: to.y + 0.5, work: work ? { x: tx, y: ty } : null };
+    walkTo = { id: ++walkSerial, x: to.x + 0.5, y: to.y + 0.5, work: work ? { x: tx, y: ty } : null,
+      goal: to, plan: around ? Core.planWalk(state(), to.x, to.y) : null, replans: 0 };
     stalled = 0;
+  }
+
+  // Where a walk heads this tick: along its way round, planned again when
+  // that turns out blocked (straight at it once there's none). 'done' when
+  // you're beside a goal you can't stand on.
+  function aimOf(w) {
+    if (!w.plan) return w;
+    let aim = Core.walkAim(state(), w.plan);
+    if (aim === null && w.replans++ < REPLANS) {
+      w.plan = Core.planWalk(state(), w.goal.x, w.goal.y);
+      aim = w.plan && Core.walkAim(state(), w.plan);
+    }
+    if (!aim) { w.plan = null; return w; }
+    return aim;
   }
 
   // What Gather does right now: empty nearby extractors, else work the
@@ -161,7 +179,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   function explore(quiet = false) {
     const s = state();
     const to = s.player.z === Core.SURFACE ? Core.nearestWork(s) : Core.nearestDig(s);
-    if (to) walkToward(to.x, to.y, true, to.stand);
+    if (to) walkToward(to.x, to.y, true, to.stand, true);
     else if (quiet) return;
     else if (!Core.isUnderground(s)) hud.toast(t('tip.walk'));
     else {
@@ -202,15 +220,21 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         if (dug) { harvested(dug); changed(); }
         else if (drilling.t > 0 && !actor.busy) performAct('swing'); // chipping at the wall
       } else if (walkTo) {
-        const dx = walkTo.x - p.x, dy = walkTo.y - p.y;
+        const d = Math.hypot(walkTo.x - p.x, walkTo.y - p.y);
         // Walking to something tapped: work it as soon as it's in reach.
         const done = walkTo.work && workAt(walkTo.work.x, walkTo.work.y);
-        const d = Math.hypot(dx, dy);
+        const aim = done || d < ARRIVE_DIST ? null : aimOf(walkTo);
         if (done) { walkTo = null; if (done === true) gathered(false); }
         else if (d < ARRIVE_DIST) walkTo = null;
-        else {
-          Core.move(state(), dx, dy, Math.min(dt, d / Core.walkSpeed(state()))); // never past it
-          if (Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
+        else if (aim === 'done') {
+          // Beside it: water your Boots can't take you onto says so.
+          if (Core.swimsAt(state().world, walkTo.x, walkTo.y, p.z) && !Core.canWade(state())) needsGear({ tool: 'boots', level: Core.GEAR.water });
+          walkTo = null;
+        } else {
+          const dx = aim.x - p.x, dy = aim.y - p.y;
+          const far = aim.x === walkTo.x && aim.y === walkTo.y ? d : Infinity; // never past the end
+          Core.move(state(), dx, dy, Math.min(dt, far / Core.walkSpeed(state())));
+          if (!walkTo.plan && Core.waterAhead(state(), dx, dy)) { needsGear({ tool: 'boots', level: Core.GEAR.water }); walkTo = null; }
           if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
           // Finish on the tick that arrives, so AUTO can choose its next
           // step immediately instead of spending another tick standing still.
@@ -279,7 +303,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (passAt(tx, ty)) return;
       const done = workAt(tx, ty);
       if (done) { if (done === true) gathered(false); return; }
-      walkToward(tx, ty, workable(tx, ty));
+      walkToward(tx, ty, workable(tx, ty), null, true);
     },
 
     // A finished Trail stroke (world points), or null if it was abandoned.

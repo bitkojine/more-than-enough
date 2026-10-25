@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.154.0": "{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.",
   "news.0.153.3": "Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.",
   "news.0.153.2": "The clouds no longer have faint lines running across them.",
   "news.0.153.1": "Clouds no longer flicker when you zoom all the way out. They now stay put on the land as you zoom, and from far away you see bigger cloud shapes.",

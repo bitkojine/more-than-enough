@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.154.0] - 2026-10-25
+
+- A tap or click finds the way there (Watch: "when I click something the
+  character figures out how to get there. and if I run towards a fall
+  because we hit the corner a bit, it should hug the wall and get to where
+  the player most likely wants to go"). `planWalk()` in `src/core/paths.js`
+  plans round what you've seen with the same search AUTO uses; on the
+  surface, unseen ground counts as open (`fog`), so a route never gives away
+  what the fog hides and is planned again when it turns out blocked.
+  `walkAim()` heads for the furthest of the next six route tiles in a clear
+  straight line (`clearLine()` in `src/core/sim.js`), so walks cut straight
+  across open ground and round corners. Gather's walk to the nearest thing
+  in sight uses it too; AUTO's single steps still walk straight. With no way
+  there at all a tap heads straight for it as before.
+- Running into a corner you only clip eases you round it. `move()` in
+  `src/core/sim.js`, blocked heading within 30 degrees of straight on,
+  sidesteps up to 0.45 tiles to the nearer free side, never onto water your
+  Boots can't take, never faster than walking, so a shared world's room
+  takes every step. Walking never drops you down a hole (ways down are
+  taken on purpose), so the "fall" is read as being stopped or turned aside
+  at a corner.
+
 ## [0.153.3] - 2026-10-25
 
 - Zoomed far out, the clouds' edge billows instead of thinning to a bead

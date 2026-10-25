@@ -245,7 +245,10 @@ export default {
 
       <h2>Judėjimas</h2>
       <p>{phone:Padėk pirštą|laptop:Nuspausk pelės mygtuką} <strong>bet kur ant žemėlapio</strong> ir tempk: po {phone:nykščiu|laptop:žymekliu} atsiras virtuali vairasvirtė, kuri seks paskui jį.
-        Arba <strong>{phone:bakstelk|laptop:spustelk} vietą</strong> ir nueisi ten tiesia linija, o jei kas užstos kelią, sustosi.</p>
+        Arba <strong>{phone:bakstelk|laptop:spustelk} vietą</strong> ir pats rasi kelią ten: aplink uolas, sienas ir vandenį, kurio negali
+        perplaukti, o per atvirą žemę tiesiai. Į rūką eini ten, kur atrodo atvira, ir randi naują kelią aplink tai, ką sutinki.</p>
+      <p>Užkliudęs kampą tik kraštu, švelniai jį apeini ir eini toliau palei sieną ta kryptimi, kuria ėjai, o ne sustoji vietoje.
+        Siena, į kurią eini tiesiai, tave vis tiek sustabdo.</p>
       <p>Jei tempimas atrodo atvirkščias, Nustatymuose (krumpliaratis) {phone:bakstelk|laptop:spustelk} <strong>Tempimas</strong> ir perjunk į <em>„tempti žemėlapį“</em>:
         tada žemėlapis seka paskui {phone:pirštą|laptop:žymeklį}, lyg slinktum puslapį, o tu eini priešinga kryptimi. {phone:Bakstelk|laptop:Spustelk} dar kartą, kad grįžtum prie <em>„eiti ta kryptimi“</em>.
         Pasirinkimas įsimenamas šioje naršyklėje.</p>

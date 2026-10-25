@@ -207,20 +207,65 @@ export function walkSpeed(s) {
   return BASE_SPEED * speedMult(s) * (onWater(s) ? SWIM_SPEED : 1);
 }
 
+// Whether the player could stand at (x, y): clear of walls, and not out on
+// water their Boots can't take them onto.
+function standsAt(s, x, y) {
+  return canStand(s, x, y) && !shoreStops(s, x, y);
+}
+
+const CORNER_SLIP = 0.45; // how far off a corner you're eased round it, in tiles
+const CORNER_AIM = 0.5;   // only when heading this close to straight at it (sine)
+
 // Moves the player along (dx, dy), sliding along walls axis by axis.
-// Returns whether the player moved at all.
+// Running into a corner you only clip eases you round it, as far as
+// CORNER_SLIP to the nearer side, so a near miss carries on along the wall
+// the way you were going instead of stopping dead or turning you aside.
+// Never faster than walking. Returns whether the player moved at all.
 export function move(s, dx, dy, dt) {
   const len = Math.hypot(dx, dy);
   if (len < 0.0001) return false;
   dx /= len; dy /= len;
-  const speed = walkSpeed(s);
-  const p = s.player;
-  let moved = false;
-  const nx = p.x + dx * speed * dt;
-  if (canStand(s, nx, p.y) && !shoreStops(s, nx, p.y)) { p.x = nx; moved = true; }
-  const ny = p.y + dy * speed * dt;
-  if (canStand(s, p.x, ny) && !shoreStops(s, p.x, ny)) { p.y = ny; moved = true; }
-  return moved;
+  const step = walkSpeed(s) * dt;
+  const p = s.player, x0 = p.x, y0 = p.y;
+  let movedX = false, movedY = false;
+  const nx = p.x + dx * step;
+  if (standsAt(s, nx, p.y)) { p.x = nx; movedX = true; }
+  const ny = p.y + dy * step;
+  if (standsAt(s, p.x, ny)) { p.y = ny; movedY = true; }
+  const alongX = Math.abs(dx) >= Math.abs(dy);
+  if ((alongX ? movedX : movedY) || Math.abs(alongX ? dy : dx) > CORNER_AIM) return movedX || movedY;
+  // Blocked head on: find the smallest sidestep that clears the corner.
+  const side = rounding(s, x0, y0, alongX, alongX ? dx : dy, alongX ? dy : dx, step);
+  if (!side) return movedX || movedY;
+  const slip = Math.min(step, Math.abs(side));
+  if (alongX) { p.x = x0; p.y = y0 + Math.sign(side) * slip; }
+  else { p.y = y0; p.x = x0 + Math.sign(side) * slip; }
+  return true;
+}
+
+// The sidestep (signed, across the way you're heading) that would let a step
+// ahead through, or 0 when no sidestep up to CORNER_SLIP does. The nearer
+// side wins; on a tie, the side you lean toward.
+function rounding(s, x, y, alongX, ahead, lean, step) {
+  const at = (a, c) => alongX ? standsAt(s, x + a, y + c) : standsAt(s, x + c, y + a);
+  const first = lean < 0 ? -1 : 1;
+  for (let off = 0.05; off <= CORNER_SLIP + 1e-9; off += 0.05) {
+    for (const sign of [first, -first]) {
+      const c = sign * off;
+      if (at(0, c) && at(Math.sign(ahead) * step, c)) return c;
+    }
+  }
+  return 0;
+}
+
+// Whether walking straight from (x0, y0) to (x1, y1) on the player's layer
+// stays clear the whole way (checked every tenth of a tile).
+export function clearLine(s, x0, y0, x1, y1) {
+  const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 0.1);
+  for (let i = 1; i <= n; i++) {
+    if (!standsAt(s, x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)) return false;
+  }
+  return true;
 }
 
 /* ---------------------------------------------------------------- fog */

@@ -248,7 +248,10 @@ export default {
 
       <h2>Moving</h2>
       <p>{phone:Put a finger down|laptop:Press the mouse button} <strong>anywhere on the map</strong> and drag: a virtual joystick appears under your {phone:thumb|laptop:pointer} and follows
-        it. Or <strong>{phone:tap|laptop:click} a spot</strong> and you walk there in a straight line, stopping if something blocks the way.</p>
+        it. Or <strong>{phone:tap|laptop:click} a spot</strong> and you find your own way there, round rock, walls and water you can't
+        cross, straight across open ground. Into the fog you head the way it looks open, and find a new way round anything you come upon.</p>
+      <p>Walking into a corner you only clip eases you round it, so you carry on along the wall the way you were going instead of stopping
+        dead. A wall you walk straight into still stops you.</p>
       <p>If dragging feels backwards, {phone:tap|laptop:click} <strong>Drag</strong> in Settings (the gear) to switch it to <em>pull the map</em>:
         then the map follows your {phone:finger|laptop:pointer}, like scrolling, and you walk the other way. {phone:Tap|laptop:Click} it again for <em>walk that way</em>.
         The choice is remembered in this browser.</p>

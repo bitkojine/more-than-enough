@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.154.0": "{phone:Bakstelk|laptop:Spustelk} vietą, ir Mika pats ras kelią ten: aplink uolas, sienas ir vandenį. Užkliudęs kampą tik kraštu, dabar jį apeini palei sieną, o ne sustoji.",
   "news.0.153.3": "Nutolus toli, debesų kraštas lieka minkštas ir purus, o ne susitraukia į ploną liniją.",
   "news.0.153.2": "Debesyse nebeliko blankių skersinių linijų.",
   "news.0.153.1": "Debesys nebemirga, kai nutoli iki galo. Dabar jie keičiant mastelį lieka vietoje virš žemės, o iš toli matai didesnius debesų pavidalus.",
