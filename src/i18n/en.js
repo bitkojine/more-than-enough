@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.153.1": "Clouds no longer flicker when you zoom all the way out. They now stay put on the land as you zoom, and from far away you see bigger cloud shapes.",
   "news.0.153.0": "{phone:Hold your finger|laptop:Hold the mouse down} on anything to ask Wiki about it, and slide to ask about the next thing. Whatever Wiki is talking about now gets a clear teal outline, so you can see where its focus is. To keep gathering, hold Gather.",
   "news.0.152.2": "Buildings no longer have a resource picture stuck on top of them. Each building\u2019s own look shows what it makes, and Wiki tells you if you point at it.",
   "news.0.152.1": "The white chalk marks are gone: the drawing trail glows again, build previews and links are plain dashed lines, and machines, tools and shelters lost their stray white lines.",

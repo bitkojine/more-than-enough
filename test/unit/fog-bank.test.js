@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamera } from '../../src/game/camera.js';
-import { bankCopy, BANK_MAX } from '../../src/game/render/fog.js';
+import { bankCopy, bankLayers, BANK_MAX } from '../../src/game/render/fog.js';
 
 // iOS Safari gives no canvas more than this many pixels; createPattern on
 // one past it throws InvalidStateError (v0.151.0 crashed zoomed in on Mica).
@@ -26,4 +26,35 @@ test('zoomed all the way in on a big phone, the cloud bank fits any canvas', () 
     assert.ok(Math.abs(copy.w * copy.sx - shown[0]) < 1e-6 && Math.abs(copy.h * copy.sy - shown[1]) < 1e-6);
     assert.ok(shown[0] * shown[1] > IOS_CANVAS_PIXELS || width > 1000, 'the case that crashed is covered');
   }
+});
+
+// v0.152: the bank was sized to the screen, so far out every redraw of the
+// far map (each time the zoom crossed a step) laid different clouds: they
+// flickered, and looked the same at any zoom.
+test('the cloud bank is fixed to the land: its pictures are whole steps of tiles', () => {
+  for (let u = 80; u > 0.5; u *= 0.93) {
+    for (const l of bankLayers(u)) {
+      assert.equal(l.span, 9 * 4 ** l.k, `tile ${u}px`);
+      assert.ok(l.alpha > 0 && l.alpha <= 1);
+    }
+  }
+});
+
+test('close up the bank is one nine-tile picture, as before', () => {
+  for (const u of [36, 48, 54, 200]) assert.deepEqual(bankLayers(u), [{ k: 0, span: 9, alpha: 1 }]);
+});
+
+test('zooming out fades the bigger pictures in without a jump', () => {
+  // What shows: the biggest opaque picture, and how far the next is in.
+  const shows = (u) => {
+    const l = bankLayers(u);
+    return l.length === 1 ? l[0].k : l[0].k + l[1].alpha;
+  };
+  let last = shows(60);
+  for (let u = 60; u > 0.5; u *= 0.99) {
+    const now = shows(u);
+    assert.ok(now >= last - 1e-9 && now - last < 0.02, `tile ${u}px: ${last} -> ${now}`);
+    last = now;
+  }
+  assert.ok(last > 2, 'far out, wider clouds than up close');
 });

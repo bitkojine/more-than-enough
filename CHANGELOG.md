@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.153.1] - 2026-10-25
+
+- Clouds no longer flicker zoomed far out, and they now change with the
+  zoom (Watch: "clouds flicker as we zoom out all the way out. they also
+  seem to look the same at any scale"). The fog bank's picture was sized to
+  the screen (at least 320 CSS px), so every redraw of the far map, each
+  time the zoom crossed a step, laid a differently sized and placed cloud
+  texture. Watch chose (decision card) clouds pinned to the land with bigger
+  shapes fading in: `bankLayers()` in `src/game/render/fog.js` lays the bank
+  in pictures 9 x 4^k tiles wide, the next one fading in as the one below
+  shrinks past 320 px, so nothing changes when the far map redraws and far
+  out shows wider clouds. Up close it is the same nine-tile picture as before.
+
 ## [0.153.0] - 2026-10-25
 
 - Whatever Wiki is talking about is outlined in the world (Watch: "so it's

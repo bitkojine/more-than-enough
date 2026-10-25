@@ -5,6 +5,11 @@
  * along the grid. Clouds are drawn with the ground (and kept in the far map
  * when zoomed out), so they cost about what the tiles under them would.
  *
+ * The bank is fixed to the land, so it zooms with it. Zoomed out, each
+ * time the land shrinks fourfold a picture four times bigger fades in over
+ * it, so far out you see wider cloud shapes instead of a fine weave, and
+ * nothing jumps when the far map redraws at a new size.
+ *
  * Only the surface has clouds: underground, what you haven't seen is rock.
  * The pictures are made once from the texture pack's two cloud colours, lit
  * from the north-west like everything else. */
@@ -15,8 +20,9 @@ const PUFF_PX = 128;    // a puff's picture, in pixels
 const PUFF_SPAN = 1.75; // a puff's width, in tiles
 const PUFFS = 6;        // different puffs
 const BANK_PX = 256;    // the bank's picture, in pixels
-const BANK_SPAN = 9;    // the bank's picture's width, in tiles...
-const BANK_MIN = 320;   // ...but at least this many pixels, so far out it isn't a fine weave
+const BANK_SPAN = 9;    // the bank's smallest picture's width, in tiles
+const BANK_STEP = 4;    // each bigger picture is this many times wider
+const BANK_SHOWN = 320; // a bigger picture is fully in by when the one below shows this small, in CSS pixels
 // The most device pixels a side of the bank's kept copy may have. Zoomed in
 // close the bank shows thousands of pixels wide; a copy that big is past
 // what iOS Safari lets a canvas hold (16.7 M pixels, and then createPattern
@@ -110,7 +116,7 @@ function pictures(look) {
 }
 
 // A picture scaled to w x h pixels, kept for the last few sizes asked for
-// (the view and the far map each want their own).
+// (the view and the far map each want their own, up to two each).
 const scaled = [];
 function sized(pic, w, h) {
   let hit = scaled.find((c) => c.pic === pic && c.w === w && c.h === h);
@@ -120,7 +126,7 @@ function sized(pic, w, h) {
     canvas.getContext('2d').drawImage(pic, 0, 0, canvas.width, canvas.height);
     hit = { pic, w, h, canvas };
     scaled.unshift(hit);
-    scaled.length = Math.min(scaled.length, 3);
+    scaled.length = Math.min(scaled.length, 4);
   }
   return hit.canvas;
 }
@@ -128,6 +134,17 @@ function sized(pic, w, h) {
 // The bank's picture, for the world map's unexplored land.
 export function cloudBank(look) {
   return pictures(look).bank;
+}
+
+// The bank's pictures for tiles u CSS pixels wide, biggest last: each with
+// its width in tiles (always BANK_SPAN times a power of BANK_STEP, so fixed
+// to the land) and how opaque it is laid over the ones before.
+export function bankLayers(u) {
+  const n = Math.max(0, Math.log(BANK_SHOWN / (BANK_SPAN * u)) / Math.log(BANK_STEP));
+  const k = Math.floor(n), t = n - k;
+  const layers = [{ k, span: BANK_SPAN * BANK_STEP ** k, alpha: 1 }];
+  if (t > 0.01) layers.push({ k: k + 1, span: BANK_SPAN * BANK_STEP ** (k + 1), alpha: t });
+  return layers;
 }
 
 // The bank's kept copy for a picture shown w x h device pixels: its size,
@@ -144,27 +161,32 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   const fog = (x, y) => !Core.isExplored(w, x, y, z);
   const { puffs, bank: inside } = pictures(look);
 
-  // The bank, a run of tiles at a time, its picture fixed to the land. The
-  // picture is kept at the size it shows at, in device pixels, so filling
-  // with it is a plain copy rather than a resample of every pixel (up to
-  // BANK_MAX; zoomed in closer it is stretched).
-  const a = ctx.getTransform().a, span = Math.max(BANK_SPAN, BANK_MIN / u);
-  const copy = bankCopy(span * u * a, span * d * a);
-  const fill = ctx.createPattern(sized(inside, copy.w, copy.h), 'repeat');
-  const o = cam.project(0, 0);
-  fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
-  ctx.fillStyle = fill;
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) {
-      if (!fog(x, y)) continue;
-      let end = x;
-      while (end < x1 && fog(end + 1, y)) end++;
-      const p = cam.project(x, y);
-      // Whole pixels, one over, so runs and rows meet without seams.
-      ctx.fillRect(Math.floor(p.x), Math.floor(p.y), Math.ceil((end - x + 1) * u) + 1, Math.ceil(d) + 1);
-      x = end;
+  // The bank, a run of tiles at a time, each of its pictures fixed to the
+  // land (each a little apart, so their swells don't line up). A picture is
+  // kept at the size it shows at, in device pixels, so filling with it is a
+  // plain copy rather than a resample of every pixel (up to BANK_MAX;
+  // zoomed in closer it is stretched).
+  const a = ctx.getTransform().a;
+  for (const { k, span, alpha } of bankLayers(u)) {
+    const copy = bankCopy(span * u * a, span * d * a);
+    const fill = ctx.createPattern(sized(inside, copy.w, copy.h), 'repeat');
+    const o = cam.project(k * 37, k * 53);
+    fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
+    ctx.fillStyle = fill;
+    ctx.globalAlpha = alpha;
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        if (!fog(x, y)) continue;
+        let end = x;
+        while (end < x1 && fog(end + 1, y)) end++;
+        const p = cam.project(x, y);
+        // Whole pixels, one over, so runs and rows meet without seams.
+        ctx.fillRect(Math.floor(p.x), Math.floor(p.y), Math.ceil((end - x + 1) * u) + 1, Math.ceil(d) + 1);
+        x = end;
+      }
     }
   }
+  ctx.globalAlpha = 1;
 
   // Puffs along its edge, north to south so nearer ones cover farther ones.
   const pw = u * PUFF_SPAN, ph = d * PUFF_SPAN;
