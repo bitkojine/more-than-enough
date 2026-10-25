@@ -18,7 +18,7 @@ import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
 import { createFresh } from './fresh.js';
 import { createIncome } from './income.js';
-import { createWorldMap } from './worldmap.js';
+import { createMapView } from './mapview.js';
 import { createController } from './controller.js';
 import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
@@ -29,7 +29,7 @@ import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { loadSavedPack } from './look/store.js';
 import { createYard } from './yard.js';
-import { render } from './render/renderer.js';
+import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
@@ -319,11 +319,7 @@ function showNext() {
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
 const perfect = createPerfect({ game, controller, hud });
 
-const worldMap = createWorldMap(el.worldMap, {
-  getState: () => game.state,
-  look,
-  pill: { root: el.mapLayer, label: el.mapLayerName.firstElementChild, value: el.mapLayerName.lastElementChild, up: el.mapUp, down: el.mapDown }
-});
+const mapView = createMapView({ cam, getState: () => game.state, el, changed: () => { hud.view(cam); keepView(); } });
 const fresh = createFresh();
 const income = createIncome();
 const sheet = createSheet(el, {
@@ -333,7 +329,6 @@ const sheet = createSheet(el, {
   income,
   onTab: (tab) => {
     if (tab === 'awards') hud.awardsSeen();
-    if (tab === 'map') worldMap.show();
     if (tab === 'invites') together.listInvites();
     if (tab === 'worlds') together.listWorlds();
     if (tab === 'players') together.listPlayers();
@@ -393,13 +388,18 @@ const input = createInput({
     blocked,
     dismiss: () => sheet.close(),
     tap(x, y) {
-      // On your sign: copy its link. Anywhere else: the world.
+      // On your sign: copy its link. Anywhere else: the world (not the
+      // world map, which is only for looking).
       const r = signRect;
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
-      else if (!card.tap(x, y)) controller.tap(x, y);
+      else if (!mapView.on() && !card.tap(x, y)) controller.tap(x, y);
     },
+    // Zoomed out to the map, a drag pans it.
+    pans: mapView.pans,
+    pan: mapView.pan,
+    zoomed: mapView.zoomed,
     // A finger held still on the map asks Wiki about what is under it.
-    longPress: (x, y) => wiki.longPress(x, y),
+    longPress: (x, y) => !mapView.on() && wiki.longPress(x, y),
     longPressMove: (x, y) => wiki.longPressMove(x, y),
     longPressEnd: () => wiki.longPressEnd(),
     actionPressed: controller.press,
@@ -421,13 +421,10 @@ el.build.addEventListener('click', () => sheet.toggle('build'));
 el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
 el.settings.addEventListener('click', () => sheet.toggle('settings'));
-el.map.addEventListener('click', () => sheet.toggle('map'));
+el.map.addEventListener('click', () => mapView.button());
 el.versionBtn.addEventListener('click', () => sheet.toggle('news'));
-el.mapIn.addEventListener('click', () => worldMap.zoom(1.5));
-el.mapOut.addEventListener('click', () => worldMap.zoom(1 / 1.5));
-el.mapMe.addEventListener('click', () => worldMap.centre());
-el.mapUp.addEventListener('click', () => worldMap.layer(1));
-el.mapDown.addEventListener('click', () => worldMap.layer(-1));
+el.mapUp.addEventListener('click', () => mapView.layer(1));
+el.mapDown.addEventListener('click', () => mapView.layer(-1));
 el.resources.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (chip) sheet.showStatement(chip.dataset.res || null);
@@ -648,7 +645,8 @@ function view() {
     sign: together.sign,
     signFace: together.signFace,
     signCaption: t('together.sign'),
-    wiki: wiki.pose()
+    wiki: wiki.pose(),
+    map: mapView.look()   // zoomed out to the world map: where it looks, if not at you
   };
 }
 
@@ -707,6 +705,7 @@ function frame(now) {
     last = now;
     const t0 = performance.now();
     if (!document.hidden && !fork.open) { updateView(dt); wiki.update(dt); }
+    mapView.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
     // Changed layers in this world since the last frame: show the trip.
@@ -846,8 +845,9 @@ window.MTE_GAME = {
     return (performance.now() - t0) / n;
   },
   quality: () => quality.level,
-  mapNames: () => worldMap.names(),
-  mapLayer: () => worldMap.shown(),
+  mapNames: () => mapNames(),
+  mapLayer: () => mapView.shown(),
+  mapOn: () => mapView.on(),
   perfVisible: () => perf.visible,
   wiki,
   project: (x, y, h) => cam.project(x, y, h),

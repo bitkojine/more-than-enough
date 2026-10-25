@@ -367,7 +367,7 @@ export default {
         <li><strong>Iškeliauti</strong>. Kai pasaulis paruoštas, Autožaidimas sustoja ir laukia: paveiksliukas tampa Iškeliavimu,
           mygtukas šviečia auksu, o žinutė sako, kad Iškeliauti spaudi tu. Iškeliauk pats, ir jei vis dar laikai, jis tęs naujame pasaulyje.</li>
         <li><strong>Viskas, kas pirma klausia</strong>: jis niekada neatsako į klausimus, tad nedaro nieko, ko negalėtum atšaukti.</li>
-        <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai, pasaulio žemėlapis ar koks klausimas, jis laukia.</li>
+        <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai ar koks klausimas, jis laukia.</li>
         <li>Prisijungimas prie bendro pasaulio ir jo privatumo politika,
           <strong>FBI</strong> pranešimas ir pasirinkimas tarp dviejų išsaugojimų: visa tai tavo.</li>
         <li><strong>Kviesti</strong>, tavo ženklas ir viskas, kas susiję su žaidimu kartu.</li>
@@ -485,9 +485,11 @@ export default {
         įžengi į kraštą, per ekraną parašomas jo vardas ir pradeda groti jo muzika: muzika keičiasi tik peržengus į kitą
         kraštą. Kiekvienas kraštas turi savo žemės pobūdį, o tarp dviejų kraštų driekiasi matoma riba: upė, kurią
         perplauki, arba uolėtas kalvagūbris, akmenų mūras ar gyvatvorė su tarpais praeiti. Pievos mėgsta gyvatvores,
-        viržynai ir aukštumos – mūrus ir kalvagūbrius, ežerynai ir pelkynai – upes. Kiekvienas pasaulis prasideda pievose. <strong>Pasaulio
-        žemėlapis</strong> (mygtukas po mastelio valdikliu) rodo visą tavo ištyrinėtą žemę su matytų kraštų vardais, po tokiais pat debesimis kaip žaidime.
-        Kai jau buvai po žeme, rodyklės jo kampe leidžia pereiti per kiekvieną ištyrinėtą sluoksnį. Kelių aukštyn ir žemyn jame nėra: juos teks atsiminti.</p>
+        viržynai ir aukštumos – mūrus ir kalvagūbrius, ežerynai ir pelkynai – upes. Kiekvienas pasaulis prasideda pievose. Nutolink iki galo, ir žaidimas
+        tampa <strong>pasaulio žemėlapiu</strong> (mygtukas po mastelio valdikliu nuveda ten vienu kartu ir grąžina atgal): visa tavo
+        ištyrinėta žemė su matytų kraštų vardais, namais, slėptuve ir tavimi, po tokiais pat debesimis kaip žaidime. Tempk, kad
+        apsidairytum; tu lieki vietoje. Kai jau buvai po žeme, rodyklės viršutiniame kampe leidžia pereiti per kiekvieną
+        ištyrinėtą sluoksnį. Kelių aukštyn ir žemyn jame nėra: juos teks atsiminti.</p>
       <div data-table="regions"></div>
 
       <h2>Miškai</h2>

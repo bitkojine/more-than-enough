@@ -2,7 +2,9 @@
  * the handlers it was given. It never touches game state itself.
  *
  *   drag anywhere            virtual joystick (moveVector); `invert` pulls
- *                            the map instead (you walk against the drag)
+ *                            the map instead (you walk against the drag);
+ *                            zoomed out to the world map (handlers.pans()),
+ *                            handlers.pan(dx, dy) instead
  *   tap the map              handlers.tap(screenX, screenY)
  *   hold still on the map    a long press: handlers.longPress(x, y) may take
  *                            that finger (Wiki does), then gets its moves
@@ -11,7 +13,8 @@
  *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
  *   hold Perfect / P         `perfect` (handlers.perfectPressed, then the
  *                            main loop plays while held; perfectReleased)
- *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x)
+ *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x); pinch and
+ *                            wheel tell handlers.zoomed(was, x, y) about where
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'back')
  *   F3                       handlers.command('perf') */
 
@@ -23,7 +26,7 @@ const LONG_PRESS_MS = 500;   // held this still this long: a long press
 const TRAIL_MIN_STEP = 0.12; // tiles between recorded Trail points
 
 export function createInput({ canvas, cam, el, handlers }) {
-  const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0 };
+  const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0, pan: null };
   const pointers = new Map();                     // pointerId -> {x, y}, for pinch
   const pinch = { active: false, dist: 0, zoom: 1 };
   let keys = {};
@@ -135,7 +138,7 @@ export function createInput({ canvas, cam, el, handlers }) {
       return;
     }
     const p = canvasPoint(e);
-    Object.assign(joy, { active: true, id: e.pointerId, ox: p.x, oy: p.y, x: 0, y: 0, moved: 0, t: performance.now() });
+    Object.assign(joy, { active: true, id: e.pointerId, ox: p.x, oy: p.y, x: 0, y: 0, moved: 0, t: performance.now(), pan: handlers.pans() ? { ...p } : null });
     clearTimeout(longTimer);
     longTimer = setTimeout(() => {
       if (!joy.active || joy.id !== e.pointerId || joy.moved >= TAP_MAX_MOVE || pinch.active || handlers.blocked()) return;
@@ -157,7 +160,11 @@ export function createInput({ canvas, cam, el, handlers }) {
       e.preventDefault();
       if (pointers.size < 2) return;
       const d = pinchDistance();
-      if (d > 1) cam.setZoom(pinch.zoom * (d / pinch.dist));
+      if (d > 1) {
+        const [a, b] = [...pointers.values()], was = cam.tilePx;
+        cam.setZoom(pinch.zoom * (d / pinch.dist));
+        handlers.zoomed(was, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      }
       handlers.viewChanged();
       return;
     }
@@ -172,6 +179,16 @@ export function createInput({ canvas, cam, el, handlers }) {
     let dx = p.x - joy.ox, dy = p.y - joy.oy;
     const dist = Math.hypot(dx, dy);
     joy.moved = Math.max(joy.moved, dist);
+    // On the world map the finger pans it, and you stay where you are.
+    if (joy.pan) {
+      if (joy.moved >= TAP_MAX_MOVE || joy.pan.moving) {
+        joy.pan.moving = true;
+        handlers.pan(p.x - joy.pan.x, p.y - joy.pan.y);
+        joy.pan.x = p.x; joy.pan.y = p.y;
+      }
+      e.preventDefault();
+      return;
+    }
     if (dist < JOY_DEAD) { joy.x = 0; joy.y = 0; return; }
     if (dist > JOY_MAX) {
       // Recentre so the stick follows the thumb.
@@ -219,7 +236,9 @@ export function createInput({ canvas, cam, el, handlers }) {
   canvas.addEventListener('wheel', (e) => {
     if (handlers.blocked()) return;
     e.preventDefault();
+    const p = canvasPoint(e), was = cam.tilePx;
     cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
+    handlers.zoomed(was, p.x, p.y);
     handlers.viewChanged();
   }, { passive: false });
 
@@ -254,9 +273,12 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   /* -------------------------------------------------------------- zoom */
 
-  el.zoomOut.addEventListener('click', () => { cam.setZoom(cam.zoom / 1.25); handlers.viewChanged(); });
-  el.zoomIn.addEventListener('click', () => { cam.setZoom(cam.zoom * 1.25); handlers.viewChanged(); });
-  el.zoomLevel.addEventListener('click', () => { cam.setZoom(1); handlers.viewChanged(); });
+  // Out on the world map the steps are bigger: it reaches far further.
+  const step = () => (handlers.pans() ? 2 : 1.25);
+  const zoomBy = (f) => { const was = cam.tilePx; cam.setZoom(cam.zoom * f); handlers.zoomed(was, cam.width / 2, cam.height / 2); handlers.viewChanged(); };
+  el.zoomOut.addEventListener('click', () => zoomBy(1 / step()));
+  el.zoomIn.addEventListener('click', () => zoomBy(step()));
+  el.zoomLevel.addEventListener('click', () => zoomBy(1 / cam.zoom));
 
   /* ---------------------------------------------------------- keyboard */
 

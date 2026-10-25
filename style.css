@@ -863,30 +863,21 @@ body.signing #zoomControls { visibility: hidden; }
   display: flex; flex-direction: column; gap: 14px;
   padding: 6px 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
 }
-.setPanel[hidden], #sheetBody[hidden], #mapPanel[hidden] { display: none; }
+.setPanel[hidden], #sheetBody[hidden] { display: none; }
 
-/* The world map fills the sheet; its own zoom sits in the corner like the
-   game's, and a button brings you back to where you are. */
-#mapPanel { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 10px calc(env(safe-area-inset-bottom, 0px) + 10px); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--panel-line); }
-#worldMap { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
-#mapTools {
-  position: absolute; right: 10px; bottom: 10px; width: 40px;
-  display: flex; flex-direction: column;
-  border: 1px solid var(--panel-line); border-radius: 999px; overflow: hidden;
-  background: var(--glass); box-shadow: var(--shadow-1);
-}
-/* Which layer the map shows, top left: the depth pill's look (forest green
-   on the surface), with a step up and down. */
+/* On the map (zoomed out all the way), which layer it shows, in the depth
+   pill's place and look (forest green on the surface), with a step up and
+   down. */
 #mapLayer {
-  position: absolute; left: 10px; top: 10px; width: 52px;
+  width: 52px; pointer-events: auto;
   display: flex; flex-direction: column; align-items: stretch;
   border: 1px solid rgba(225, 181, 105, 0.4); border-radius: 14px; overflow: hidden;
   background: var(--glass); box-shadow: var(--shadow-1);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
   color: var(--earth); text-align: center;
 }
-#mapLayer[hidden] { display: none; }
-#mapLayer button { height: 36px; padding: 0; border: 0; background: none; color: inherit; touch-action: manipulation; }
+#mapLayer[hidden], body.mapping #depth, body.mapping #depthGauge { display: none; }
+#mapLayer button { height: 40px; padding: 0; border: 0; background: none; color: inherit; touch-action: manipulation; }
 #mapLayer button:disabled { opacity: .3; }
 #mapLayer svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
 #mapLayerName { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 34px; padding: 2px 4px; line-height: 1; border-block: 1px solid var(--panel-line); }
@@ -894,10 +885,9 @@ body.signing #zoomControls { visibility: hidden; }
 #mapLayerName small:empty { display: none; }
 #mapLayerName b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
 #mapLayer.forest #mapLayerName b { font-size: 11px; margin-top: 0; color: #8fd35a; }
-#mapTools button { height: 40px; padding: 0; border: 0; background: none; color: var(--ink); font: 600 22px/1 -apple-system, BlinkMacSystemFont, sans-serif; touch-action: manipulation; }
-#mapTools button + button { border-top: 1px solid var(--panel-line); }
-#mapTools svg, #btnMap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; vertical-align: middle; }
+#btnMap svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; vertical-align: middle; }
 #zoomControls #btnMap { border-top: 1px solid var(--panel-line); }
+#zoomControls #btnMap[aria-pressed="true"] { color: #8fd35a; }
 /* Invite links: one card per link, newest first. */
 #invitesPanel { overflow-y: auto; padding: 4px 16px 20px; display: flex; flex-direction: column; gap: 8px; }
 #invitesPanel[hidden] { display: none; }

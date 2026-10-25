@@ -19,7 +19,11 @@ import { drawDpr } from './quality.js';
 // stitching. Never less than 3x in.
 const MAX_TILE_SHARE = 0.62;
 const ZOOM_MIN_MAX = 3;
-const MIN_TILE_PX = 3;       // floor on tile size: the practical zoom-out limit
+// Zoomed out past MAP_PX a tile is a few pixels at most, and the view is the
+// world map (render/atlas.js): every layer as far as you've explored it, down
+// to MIN_TILE_PX, where a phone shows a few kilometres.
+export const MAP_PX = 3;
+const MIN_TILE_PX = 0.25;
 const PITCH = 0.225;          // radians from straight down (~13°)
 // One layer's height, in tile lengths. The wanderer stands just under a tile
 // tall (0.94 in the default pack), so a layer has to be well over that, the

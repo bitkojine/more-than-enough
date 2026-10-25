@@ -236,8 +236,9 @@ export function createHud(el, look) {
     },
 
     view(cam) {
-      // Zoom as a magnification (1×, 1.25×, 0.64×, 8.3×), beside a magnifier.
-      const zoom = number(+cam.zoom.toFixed(cam.zoom >= 3 ? 1 : 2)) + '×';
+      // Zoom as a magnification (1×, 1.25×, 0.64×, 8.3×; out on the world
+      // map two figures, 0.021×), beside a magnifier.
+      const zoom = number(+(cam.zoom < 0.1 ? cam.zoom.toPrecision(2) : cam.zoom.toFixed(cam.zoom >= 3 ? 1 : 2))) + '×';
       setText(el.zoomText, zoom);
       el.zoomLevel.setAttribute('aria-label', t('hud.zoomLevel', { zoom }));
     },

@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.158.0] - 2026-10-25
+
+### Changed
+- The world map sheet is gone: zoomed out all the way, the game view is
+  the world map, on every layer (Watch, 2026-10-25). Zoom now reaches out
+  to a quarter of a pixel a tile (from 3), and below `MAP_PX` (3 px,
+  `src/game/camera.js`) the renderer draws `src/game/render/atlas.js`
+  instead of the land: what you've explored, one pixel per tile, under the
+  same cloud bank and puffs, with emptied deposits faded, region names,
+  home, the hiding place or an arrow to it, you, and friends on that layer.
+  It paints into 128-tile pages rather than one canvas that grew with your
+  travels (which a long trip could push past iOS Safari's canvas limit),
+  and looks for new ground twice a second. `src/game/mapview.js` carries
+  everything else the sheet had: a drag pans the map and leaves you where
+  you are, pinch and scroll zoom about the finger, the layer pill (in the
+  depth pill's place) steps through the layers you've explored, and taps
+  and long presses do nothing there. Zooming back in glides the view home.
+- The map button at the foot of the zoom pill stays, as a shortcut (Watch
+  chose it on a card): it glides the game all the way out in one go; out
+  there, it brings the map back to you if you've panned or changed layer,
+  then glides back to the zoom you had. The zoom pill's steps double on
+  the map, so it doesn't take twenty taps to cross it.
+- Map labels no longer cover each other, the zoom pill or the thumb
+  cluster: the hiding place's comes first, then region names nearest the
+  middle.
+
 ## [0.157.0] - 2026-10-25
 
 Watch asked for Build to be only for building and Upgrade only for

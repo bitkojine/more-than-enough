@@ -374,7 +374,7 @@ export default {
           glows gold, and a message says Embark is yours to press. Embark yourself, and if you're still holding, it carries
           on in the new world.</li>
         <li><strong>Anything that asks first</strong>: it never answers a question, so it never does anything you couldn't take back.</li>
-        <li><strong>Every sheet and dialog</strong>: while Build, Upgrades, Settings, the world map or any question is open, it waits.</li>
+        <li><strong>Every sheet and dialog</strong>: while Build, Upgrades, Settings or any question is open, it waits.</li>
         <li>Joining a shared world and its privacy policy, the
           <strong>FBI</strong> notice, and a choice between two saves: all yours.</li>
         <li><strong>Invite</strong>, your sign and everything about playing together.</li>
@@ -492,10 +492,11 @@ export default {
         name shows across the screen, and its music starts: the music changes only when you cross into another region.
         Every region has its own kind of land, and between two regions runs a border you can see: a river to swim across,
         or a rocky ridge, a dry stone wall or a hedge, each with gaps to walk through. Meadows like hedges, heaths and
-        highlands walls and ridges, lakes and fens rivers. Every world starts in a meadow. The <strong>world map</strong> (the button under
-        the zoom) shows all the land you've explored, with the names of the regions you've seen, under the same clouds as the game.
-        Once you've been underground, the arrows in its corner step down through every layer you've explored. Ways up and down
-        aren't marked on it: you'll have to remember those.</p>
+        highlands walls and ridges, lakes and fens rivers. Every world starts in a meadow. Zoom out all the way and the game becomes the
+        <strong>world map</strong> (the button under the zoom takes you there in one go, and back): all the land you've explored,
+        with the names of the regions you've seen, home, the hiding place and you, under the same clouds as the game. Drag to
+        look around; you stay where you are. Once you've been underground, the arrows in the top corner step through every layer
+        you've explored. Ways up and down aren't marked on it: you'll have to remember those.</p>
       <div data-table="regions"></div>
 
       <h2>Forests</h2>

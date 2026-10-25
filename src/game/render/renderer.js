@@ -13,8 +13,9 @@
 
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
-import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain, drawMerging } from './terrain.js';
+import { FLAT_RISE_PX, MAP_PX } from '../camera.js';
+import { drawTerrain, drawMerging, dropFarMap } from './terrain.js';
+import { createAtlas } from './atlas.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
 import { drawFocus } from './focus.js';
@@ -38,11 +39,18 @@ export function resetCanvas(ctx, dpr) {
 
 const plain = (name, draw) => draw();
 
+// Zoomed out all the way, the view is the world map (atlas.js).
+const atlas = createAtlas();
+export const mapNames = () => atlas.names();
+
 export function render(cam, s, fx, view, look, guard = plain) {
   const ctx = cam.ctx;
   const reset = () => resetCanvas(ctx, cam.dpr);
   const layer = (name, draw) => guard(name, draw, reset);
   cam.follow(s.player);
+  // On the map, panned or on another layer: where it looks.
+  if (view.map) { cam.x = view.map.x; cam.y = view.map.y; cam.z = view.map.z; }
+  if (cam.tilePx < MAP_PX) return renderMap(cam, s, view, look, layer);
   // Zoomed in close, the view centres on your middle instead of your feet, so
   // all of you stays on screen. From 2x it eases in, in full by 5x.
   const close = Math.min(1, Math.max(0, (cam.zoom - 2) / 3));
@@ -151,4 +159,20 @@ export function render(cam, s, fx, view, look, guard = plain) {
   layer('joystick', () => drawJoystick(ctx, cam, view));
   // Wiki on the hood, or Mica's head when the 2D figure stands in.
   return { tiles, sign, wiki: you ? you.wiki ?? { x: you.x, y: you.top, r: 0 } : null };
+}
+
+// The world map: the atlas, friends' badges at the edge, your sign.
+function renderMap(cam, s, view, look, layer) {
+  const ctx = cam.ctx;
+  dropFarMap();
+  ctx.fillStyle = look.color('color.backdrop');
+  ctx.fillRect(0, 0, cam.width, cam.height);
+  const drawn = layer('atlas', () => atlas.draw(ctx, cam, s, look, view)) || { you: null, taken: [] };
+  const { you, taken } = drawn;
+  layer('names', () => {
+    if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
+  });
+  let sign = null;
+  if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
+  return { tiles: 0, sign, wiki: null };
 }

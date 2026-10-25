@@ -133,6 +133,14 @@
     <div id="battery" role="img" hidden><i><b></b></i><span></span></div>
     <div id="depth" hidden><small data-i18n="hud.layer"></small><b></b></div>
     <div id="depthGauge" aria-hidden="true" hidden></div>
+    <!-- On the map (zoomed out all the way): which layer it shows, like the
+         depth pill, with a step up and down through those you've explored
+         (src/game/mapview.js). -->
+    <div id="mapLayer" role="group" hidden>
+      <button id="btnMapUp" type="button" data-i18n-aria-label="map.up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg></button>
+      <div id="mapLayerName"><small></small><b></b></div>
+      <button id="btnMapDown" type="button" data-i18n-aria-label="map.down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
+    </div>
   </div>
 
   <div id="controls" role="group" data-i18n-aria-label="hud.controls">
@@ -188,22 +196,6 @@
       <button id="btnClose" class="hudBtn" type="button" data-i18n-aria-label="sheet.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
     </div>
     <div id="sheetBody"></div>
-    <!-- The world map: what you've explored, region names, home and you. -->
-    <div id="mapPanel" hidden>
-      <canvas id="worldMap"></canvas>
-      <!-- Which layer the map shows, like the depth pill, with a step up
-           and down through the layers you've explored. -->
-      <div id="mapLayer" role="group" hidden>
-        <button id="btnMapUp" type="button" data-i18n-aria-label="map.up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg></button>
-        <div id="mapLayerName"><small></small><b></b></div>
-        <button id="btnMapDown" type="button" data-i18n-aria-label="map.down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
-      </div>
-      <div id="mapTools">
-        <button id="btnMapIn" type="button" data-i18n-aria-label="hud.zoomIn">+</button>
-        <button id="btnMapOut" type="button" data-i18n-aria-label="hud.zoomOut">&minus;</button>
-        <button id="btnMapMe" type="button" data-i18n-aria-label="map.centre"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" /></svg></button>
-      </div>
-    </div>
     <!-- Invite links (playing together): each one, who made it, how many
          joined with it, and a way to stop it. Filled by src/game/together.js. -->
     <div id="invitesPanel" hidden></div>

@@ -314,6 +314,9 @@ function flatColor(look, w, x, y, z) {
 
 const far = createFarMap();
 
+// Frees the far map (zoomed out to the world map, which doesn't use it).
+export const dropFarMap = () => far.drop();
+
 // Draws the visible terrain and calls onRow(y) after each row of tiles.
 // `ground` holds what else stands on tiles: `built` (packed keys of tiles with
 // buildings), the stockpile `yard`, and `shake(key)`, how far a struck tile's

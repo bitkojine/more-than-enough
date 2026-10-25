@@ -1544,15 +1544,23 @@ async function main() {
   await waitFor('document.querySelector("#place strong").textContent === ' + JSON.stringify(next.name), 30000);
   eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name (banner: ' + await evalJS('document.getElementById("milestone").hidden ? "none" : document.getElementById("milestone").textContent') + '; toast: ' + await evalJS('document.getElementById("toast").textContent') + ')');
   await evalJS('MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')');
+  // The world map is the game zoomed out all the way: the map button glides
+  // there, a drag pans it without moving you, and the button comes back.
+  var zoomWas = await evalJS('MTE_GAME.zoom()');
   await evalJS('document.getElementById("btnMap").click()');
-  await sleep(400);
-  ok(await evalJS('!document.getElementById("mapPanel").hidden && document.getElementById("worldMap").width > 100'), 'the map button opens the world map');
+  ok(await waitFor('MTE_GAME.mapOn()', 3000), 'the map button zooms out to the world map');
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")') === false, 'with no sheet over the game');
+  await sleep(600);
   ok(JSON.parse(await evalJS('JSON.stringify(MTE_GAME.mapNames())')).indexOf(home.name) >= 0, 'the map names the home region');
-  await evalJS('document.getElementById("btnMapOut").click(); document.getElementById("btnMapMe").click()');
+  var before = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  await drag(200, 400, 80, 400, 8);
+  var after = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
+  ok(Math.abs(after.x - before.x) < 0.01 && Math.abs(after.y - before.y) < 0.01, 'a drag on the map pans it and leaves you where you are');
+  ok(await evalJS('document.getElementById("btnMap").innerHTML.indexOf("circle") >= 0'), 'panned away, the map button brings the map back to you');
   console.log('  screenshot: ' + await shot('05b-world-map.png'));
   await evalJS('document.getElementById("btnMap").click()');
-  await sleep(300);
-  ok(await evalJS('!document.getElementById("sheet").classList.contains("open")'), 'and the button closes it again');
+  await evalJS('document.getElementById("btnMap").click()');
+  ok(await waitFor('!MTE_GAME.mapOn() && Math.abs(MTE_GAME.zoom() - ' + zoomWas + ') < 0.02', 4000), 'and then back to the zoom you had (' + await evalJS('MTE_GAME.zoom()') + ')');
 
   /* -------------------------------------------------- late-game UI */
   console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
