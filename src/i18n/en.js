@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.153.3": "Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.",
   "news.0.153.2": "The clouds no longer have faint lines running across them.",
   "news.0.153.1": "Clouds no longer flicker when you zoom all the way out. They now stay put on the land as you zoom, and from far away you see bigger cloud shapes.",
   "news.0.153.0": "{phone:Hold your finger|laptop:Hold the mouse down} on anything to ask Wiki about it, and slide to ask about the next thing. Whatever Wiki is talking about now gets a clear teal outline, so you can see where its focus is. To keep gathering, hold Gather.",

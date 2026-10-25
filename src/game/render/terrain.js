@@ -378,7 +378,7 @@ export function drawTerrain(ctx, cam, s, look, ground, onRow) {
     },
     flatColor: (x, y) => flatColor(look, s.world, x, y, z),
     player: s.player,
-    near: Core.exploreRadius(s) + 2
+    near: Core.exploreRadius(s) + 5 // the edge's puffs reach up to 3 tiles out, far out
   });
   for (let y = v.y0; y <= v.y1; y++) onRow(y);
   return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);

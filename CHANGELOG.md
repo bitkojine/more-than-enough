@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.153.3] - 2026-10-25
+
+- Zoomed far out, the clouds' edge billows instead of thinning to a bead
+  line. Watch chose (decision card) puffs that grow far out: `puffSpan()` in
+  `src/game/render/fog.js` keeps each edge puff at least 14 CSS px wide
+  (1.75 tiles up close, as before), so while zoomed out they cover a tile or
+  two of explored land at the border. Puffs of tiles just past an area are
+  drawn too, so slices of the far map meet without seams, and the far map
+  repaints a wider ring around Mica for the same reason.
+
 ## [0.153.2] - 2026-10-25
 
 - The clouds lost the faint line across every row of tiles that v0.153.1

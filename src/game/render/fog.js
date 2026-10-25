@@ -1,7 +1,7 @@
 /* Clouds over the land you haven't explored, like the fog of war in a
  * strategy game. The bank is one seamless cloud picture over every unexplored
  * tile; each tile on its edge also gets a billowing puff a bit bigger than
- * itself, so the edge rolls softly over the known land instead of running
+ * itself (wider far out), so the edge rolls softly over the known land instead of running
  * along the grid. Clouds are drawn with the ground (and kept in the far map
  * when zoomed out), so they cost about what the tiles under them would.
  *
@@ -17,7 +17,8 @@
 import * as Core from '../../core/index.js';
 
 const PUFF_PX = 128;    // a puff's picture, in pixels
-const PUFF_SPAN = 1.75; // a puff's width, in tiles
+const PUFF_SPAN = 1.75; // a puff's width, in tiles...
+const PUFF_MIN = 14;    // ...but at least this many CSS pixels, so far out the edge still billows
 const PUFFS = 6;        // different puffs
 const BANK_PX = 256;    // the bank's picture, in pixels
 const BANK_SPAN = 9;    // the bank's smallest picture's width, in tiles
@@ -136,6 +137,11 @@ export function cloudBank(look) {
   return pictures(look).bank;
 }
 
+// How many tiles wide a puff is for tiles u CSS pixels wide.
+export function puffSpan(u) {
+  return Math.max(PUFF_SPAN, PUFF_MIN / u);
+}
+
 // The bank's pictures for tiles u CSS pixels wide, biggest last: each with
 // its width in tiles (always BANK_SPAN times a power of BANK_STEP, so fixed
 // to the land) and how opaque it is laid over the ones before.
@@ -193,9 +199,11 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   ctx.globalAlpha = 1;
 
   // Puffs along its edge, north to south so nearer ones cover farther ones.
-  const pw = u * PUFF_SPAN, ph = d * PUFF_SPAN;
-  for (let y = y0; y <= y1; y++) {
-    for (let x = x0; x <= x1; x++) {
+  // Far out they're wider than a tile or two, so those of tiles past the
+  // area reaching into it are drawn too.
+  const span = puffSpan(u), pw = u * span, ph = d * span, r = Math.ceil(span / 2 - 0.5);
+  for (let y = y0 - r; y <= y1 + r; y++) {
+    for (let x = x0 - r; x <= x1 + r; x++) {
       if (!fog(x, y) || (fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1))) continue;
       const p = cam.project(x + 0.5, y + 0.5);
       ctx.drawImage(puffs[Math.floor(Core.hash2(x, y, 41) * PUFFS)], p.x - pw / 2, p.y - ph / 2, pw, ph);

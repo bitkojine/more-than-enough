@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.153.3": "Nutolus toli, debesų kraštas lieka minkštas ir purus, o ne susitraukia į ploną liniją.",
   "news.0.153.2": "Debesyse nebeliko blankių skersinių linijų.",
   "news.0.153.1": "Debesys nebemirga, kai nutoli iki galo. Dabar jie keičiant mastelį lieka vietoje virš žemės, o iš toli matai didesnius debesų pavidalus.",
   "news.0.153.0": "{phone:Palaikyk pirštą|laptop:Palaikyk nuspaudęs pelę} ant bet ko ir paklausk Wiki, kas tai, o pastūmęs paklausi apie kitą dalyką. Tai, apie ką Wiki kalba, dabar apvedama ryškiu žalsvu kontūru, tad matai, kur jo dėmesys. Norėdamas rinkti be paliovos, laikyk nuspaudęs „Rinkti“.",

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createCamera } from '../../src/game/camera.js';
-import { bankCopy, bankLayers, BANK_MAX } from '../../src/game/render/fog.js';
+import { bankCopy, bankLayers, puffSpan, BANK_MAX } from '../../src/game/render/fog.js';
 
 // iOS Safari gives no canvas more than this many pixels; createPattern on
 // one past it throws InvalidStateError (v0.151.0 crashed zoomed in on Mica).
@@ -57,4 +57,9 @@ test('zooming out fades the bigger pictures in without a jump', () => {
     last = now;
   }
   assert.ok(last > 2, 'far out, wider clouds than up close');
+});
+
+test('the cloud edge billows far out: a puff is never under 14 px', () => {
+  assert.equal(puffSpan(54), 1.75, 'close up, as before');
+  for (let u = 40; u > 1; u *= 0.9) assert.ok(puffSpan(u) * u >= 14 - 1e-9 && puffSpan(u) >= 1.75);
 });
