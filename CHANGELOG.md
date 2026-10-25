@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.152.2] - 2026-10-25
+
+- Buildings no longer carry a resource icon on a dark square over their
+  art (Watch: "like a picture of stone just slapped on top of the
+  quarry"). v0.133.0 added it so a building whose output is collected
+  automatically, and so always looks empty, still showed what it makes;
+  each building's own art already says that, and Wiki names it for what
+  you point at. Removed from `drawExtractor` in `src/game/render/sprites.js`.
+
 ## [0.152.1] - 2026-10-25
 
 ### Changed

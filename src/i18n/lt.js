@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.152.2": "Ant pastatų nebėra prilipdyto išteklių paveikslėlio. Pats pastatas parodo, ką gamina, o Wiki pasakys, jei į jį parodysi.",
   "news.0.152.1": "Baltos kreidos žymių nebeliko: piešiamas takas vėl šviečia, statybų peržiūros ir jungtys yra paprastos punktyrinės linijos, o mašinos, įrankiai ir slėptuvės nebeturi atsitiktinių baltų brūkšnių.",
   "news.0.152.0": "Kai kas nors nepavyksta, žaidimas nebesustoja, o tęsiasi: sugedusi dalis praleidžiama. Nustatymų skiltyje „Moksliukams“ kiekviena klaida turi mygtuką „Kopijuoti“, tad gali nusiųsti visą ataskaitą, kad ją sutaisytume.",
   "news.0.151.1": "Priartinus vaizdą prie Micos, žaidimas iPhone nebesugenda.",
