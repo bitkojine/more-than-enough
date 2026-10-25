@@ -43,6 +43,7 @@ import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
 import { createBack } from './back.js';
 import { createProblems, where } from './problems.js';
+import { createBuildingCard } from './building-card.js';
 import { fmt, fmtDuration } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
@@ -234,7 +235,7 @@ const game = {
   // Alone or together: the settings that differ.
   changedMode() {
     const shared = !!game.state.shared;
-    el.perfect.hidden=!!game.state.cultivation;el.autoTip.hidden=!!game.state.cultivation;
+    showAuto();
     el.invitesBtn.hidden = !shared;
     el.playersBtn.hidden = !shared;
     el.worldsBtn.hidden = !together.available;
@@ -298,6 +299,7 @@ const AUTO_TAP_S = 0.5;    // released sooner than this: a tap
 const AUTO_TIP_SECONDS = 4;
 let autoDownAt = 0;
 function autoPressed() {
+  if (!autoShown()) { input.perfect = false; return; }  // P with AUTO hidden does nothing
   autoDownAt = performance.now();
   hud.autoTip(0);
   perfect.press();
@@ -337,8 +339,32 @@ const sheet = createSheet(el, {
     if (tab === 'players') together.listPlayers();
     if (tab === 'news') news.render();
   },
-  actions: { cultivation(cmd){const result=controller.cultivation(cmd);hud.toast(t('cr.'+(result==='discovery'?'discovery.'+Core.machineClue(game.state):result==='activated'?'activated':'reason.'+result)));game.saveSoon();controller.checkGoals();hud.update(game.state);}, buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
+  actions: { cultivation: (cmd) => cultivate(cmd), buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
 });
+
+// A crystal-world command, from a sheet, a building's card or the lantern
+// button: done, saved, and said in a toast (a lantern switched needs none).
+function cultivate(cmd) {
+  const result = controller.cultivation(cmd);
+  if (!(cmd.type === 'lantern' && result === 'ok')) hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
+  game.saveSoon();
+  controller.checkGoals();
+  hud.update(game.state);
+}
+// A building's own card, over it in the world.
+const card = createBuildingCard({ cam, state: () => game.state, run: cultivate });
+// The lantern you crafted: one button above Gather switches it (Watch,
+// 2026-10-25), there once it's made; AUTO never shows in a crystal world.
+const toggleLantern = () => { if (game.state.cultivation?.gear.lantern) cultivate({ type: 'lantern' }); };
+el.lantern.addEventListener('click', toggleLantern);
+function showLantern(s) {
+  const c = s.cultivation, on = !!c?.lantern;
+  el.lantern.hidden = !c?.gear.lantern;
+  if (el.lantern.hidden) return;
+  el.lantern.classList.toggle('on', on);
+  el.lantern.setAttribute('aria-pressed', String(on));
+  el.lanternLabel.textContent = t(on ? 'button.lantern.on' : 'button.lantern.off');
+}
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
 
@@ -357,9 +383,10 @@ const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open;
 // steps back a screen or closes.
 function goBack() {
   if (ask.open) ask.cancel();
+  else if (card.open) card.close();
   else sheet.back();
 }
-const back = createBack({ isOpen: () => sheet.isOpen || ask.open, goBack });
+const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open, goBack });
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
@@ -369,7 +396,7 @@ const input = createInput({
       // On your sign: copy its link. Anywhere else: the world.
       const r = signRect;
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
-      else controller.tap(x, y);
+      else if (!card.tap(x, y)) controller.tap(x, y);
     },
     // A finger held still on the map asks Wiki about what is under it.
     longPress: (x, y) => wiki.longPress(x, y),
@@ -383,6 +410,7 @@ const input = createInput({
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'back') goBack();
+      else if (cmd === 'lantern') toggleLantern();
       else sheet.toggle(cmd);
     }
   }
@@ -451,6 +479,21 @@ el.away.addEventListener('click', () => {
   keepView();
   together.setAwayProduce(savedView.awayProduce);
   showAway();
+});
+// AUTO is hidden unless a player turns it on in Nerds (Watch, 2026-10-25),
+// and never in a crystal world, whose rules its planner doesn't know.
+function autoShown() { return savedView.showAuto && !game.state.cultivation; }
+function showAuto() {
+  el.perfect.hidden = !autoShown();
+  el.autoTip.hidden = !autoShown();
+  el.autoLab.hidden = !!game.state.cultivation;
+  el.autoState.textContent = game.state.cultivation ? t('nerds.auto.oldOnly') : t(savedView.showAuto ? 'settings.on' : 'settings.off');
+  el.showAuto.setAttribute('aria-pressed', String(savedView.showAuto));
+}
+el.showAuto.addEventListener('click', () => {
+  savedView.showAuto = !savedView.showAuto;
+  keepView();
+  showAuto();
 });
 // How much Wiki says on its own: chatty, only when asked, or not at all.
 const showWiki = () => { el.wikiState.textContent = t('settings.wiki.' + wiki.mode); };
@@ -570,6 +613,8 @@ function updateView(dt) {
   hud.perfect(perfect.badge, input.perfect);
   sheet.tick();
   back.tick();
+  card.tick();
+  showLantern(s);
 }
 
 // Where the zoom pill sits on the canvas, so a friend's edge badge (and the
@@ -749,7 +794,7 @@ updater.start();
 // Just updated itself: the version number rolls over to the new one.
 news.play();
 if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
-if(game.state.cultivation){el.perfect.hidden=true;el.autoTip.hidden=true;document.getElementById('btnAutoplayLab').hidden=true;}
+showAuto();
 requestAnimationFrame(frame);
 
 // Normal solo-world creation and archives, using the existing Settings panel.
@@ -783,6 +828,8 @@ window.MTE_GAME = {
   save: () => game.saveNow(),
   setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); simulation.invalidate(); },
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
+  setAuto(on) { savedView.showAuto = on; showAuto(); },
+  openCard: (x, y) => card.openAt(x, y),
   flyers: () => fx.flyers,
   audioState: () => audio.state(),
   audio,

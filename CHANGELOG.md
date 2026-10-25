@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.157.0] - 2026-10-25
+
+Watch asked for Build to be only for building and Upgrade only for
+upgrading, with the lantern a top-level control, and chose each new home on
+decision cards with mock screenshots.
+
+### Changed
+- The lantern has its own round button above Gather in crystal worlds, there
+  once crafted: dark with LIGHT OFF, lit gold with LIGHT ON; <kbd>L</kbd>
+  on a keyboard. It sits in AUTO's slot, which a crystal world never shows.
+  The "Lantern off" button in Build's Living crystal row is gone.
+- A building's own actions moved out of Build onto a card over the building
+  (`src/game/building-card.js`): tap a chamber, vault, machine, heart
+  shelter, the hiding place, a placed light or a wild colony beside you and
+  its status and buttons pop up over it (one out of reach: you walk there and
+  it opens on arrival). Shutters say *Open shutters* or *Close shutters*, a
+  light *Cover light* or *Uncover light*, instead of "Open / close". The card
+  keeps between the top bar and the thumb buttons, scrolls on a small screen,
+  and closes on walking away, tapping elsewhere or Back. `cardAt` is pure;
+  the rules stay `Core.cultivationCommand`'s.
+- Build in a crystal world now lists only things to place: the Living
+  crystal and heart status rows, every facility action and the story notes
+  at its foot are gone (the machine's clue is on its card; completion is a
+  milestone and a toast). Upgrade's carrier button says *Craft* like every
+  other craft.
+- What you carry shows its health only on the bar over Mica, now wider and
+  rounded, green, amber under 65% and red under 35% (Watch: no HUD tile).
+- AUTO is hidden by default in every world (Watch: "never show AUTO by
+  default, keep it a Nerd option"). Nerds has an *AUTO button* switch, off
+  unless turned on and kept per device with the other view settings
+  (`showAuto` in `src/game/storage.js`); P does nothing while it's hidden.
+  Crystal worlds still never show it, as its planner only knows the older
+  economy, and the row says so there.
+- docs/ui.md, the wiki's Auto-play and crystal articles and the
+  architecture model follow. The browser test checks AUTO starts hidden,
+  turns it on through `MTE_GAME.setAuto` for its older-world checks, and
+  drives shutters, activation and the lantern through the card and button
+  (`MTE_GAME.openCard`).
+
 ## [0.156.3] - 2026-10-25
 
 ### Fixed

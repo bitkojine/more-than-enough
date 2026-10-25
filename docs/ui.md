@@ -33,7 +33,8 @@ place it belongs here rather than adding a button where there is room.
 │                                   1× │
 │                                   [−]│
 │                                   [▤]│  world map, at the foot of the zoom pill
-│                      [CLIMB] [AUTO]  │  layer button pops in beside AUTO
+│                      [CLIMB] [AUTO]  │  layer button pops in; AUTO only if on in Nerds
+│                              [LIGHT] │  (crystal worlds: the lantern in AUTO's place)
 │ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
 ```
@@ -41,7 +42,7 @@ place it belongs here rather than adding a button where there is room.
 ### Gather, the main action, and AUTO above it
 - **Gather** is the big round button. It shows what holding it does right where you stand: *COLLECT n* beside a building with goods, *GATHER +n* among a deposit (its picture is the resource), plain *GATHER* underground beside rock that pays nothing, *EXPLORE* with nothing in reach (one press walks to the nearest resource), dimmed with nothing around. Holding it repeats about four times a second; sliding off it draws a Trail.
 - **The number on its plate is the short one** (9999, 4.7M, 1e15): a button has little room, and the earnings statement has the exact figures. The plate grows into the free space between the buttons and shrinks to fit when it has to — it never reaches past the screen's edge or over the plate beside it (`--cap-scale`, measured by the HUD).
-- **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) centred right above Gather, there from the first spawn. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
+- **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) centred right above Gather. It's hidden unless the player turns on *AUTO button* on Nerds (off by default, kept on the device; Watch, 2026-10-25), and never shows in a crystal world, whose rules its planner doesn't know. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
 - **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up and a dashed gold ring turns round it (still under reduced motion).
 - **Holding is taught on every tap**: each quick tap (under 0.5 s) pops a bubble over the button, *Hold me down to auto-play* (phone or laptop wording, `tip.auto`), for 4 s (Watch: keep tapping, keep getting the hint).
 - **In the world**: while it's actually playing (held, not paused by your own play, a sheet or Embark) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
@@ -172,28 +173,48 @@ No white chalk (reverted in v0.152.1 at Watch's request).
 The existing canvas, terrain art, texture packs, character, movement, cave
 transitions, HUD, music and sheets stay in use. New-world Build keeps gardens,
 quarries, underground mines, Stoneworks and physical depots. It adds chambers,
-cooling towers, vaults and conduits, plus inspect/actions for nearby facilities
-and observed wild colonies. Equipment lives in Upgrade, including crafted
-lanterns and sealed carriers. No separate map or client is used.
+cooling towers, vaults, conduits and heart shelters, and nothing else: Build
+only places things, Upgrade only crafts and upgrades (Watch, 2026-10-25).
+Equipment lives in Upgrade, including crafted lanterns and sealed carriers.
+No separate map or client is used.
 
-A chamber's local section shows temperature, shutter state, tolerance, stored
+### The lantern button and building cards
+- **The lantern** has its own round button above Gather (Build-sized, where
+  AUTO sits in an older world; AUTO never shows in a crystal world), there
+  once the lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
+  *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. No toast.
+- **A building's card**: tapping a chamber, vault, machine, heart shelter,
+  the hiding place, a placed light or a wild colony beside you (in reach,
+  1.65 m) pops a small card over it: its picture and name, how it is, and
+  its buttons, the main one green (`src/game/building-card.js`). One out of
+  reach: the tap walks you there and the card opens on arrival. It sits
+  between the top bar and the thumb buttons, never over them, above the
+  building if there's room and below it if not, and scrolls on a small
+  screen. Walking away, tapping elsewhere, tapping the building again or
+  Back closes it.
+- **What you carry** (a starter, harvested crystal, the heart) shows its
+  health only on the bar over Mica: wider than a tile's half, green, amber
+  under 65%, red under 35%. A toast warns when it's at risk. No HUD tile.
+
+A chamber's card shows temperature, shutter state, tolerance, stored
 output and quality. Sprite shutters/fans/cracks/warning triangles distinguish
 new machinery while retaining existing building art. Carried crystal/specimens
 show a tolerance bar beside the character; sound and toast warnings supplement
 visual cues. With the lantern off, the underground remains readable with ambient
 presentation light that does not count as simulated exposure. Crafted lanterns,
 placed lights and surface daylight do count. Placed lights can be covered with
-an owned mycelium hood and uncovered again through nearby Build actions.
+an owned mycelium hood and uncovered again from the light's own card.
 
 New-world milestones lead through the first restoration chapter. Earlier worlds
-retain earlier milestones and rules. AUTO is hidden for cultivation worlds;
-keyboard AUTO also cannot run the incompatible old planner. Room entry is blocked
+retain earlier milestones and rules. AUTO is hidden for cultivation worlds,
+even with *AUTO button* on in Nerds; keyboard AUTO also cannot run the
+incompatible old planner. Room entry is blocked
 until the new progression is supported by multiplayer. Nerds provides normal
 solo-world creation and retained solo archives, not experimental game modes.
 
 ### Machine completion
-Nearby Build inspection shows the machine’s restored section count and the
-next physical repair recipe. Three visible casing panels fill with each repair;
+The machine's card shows its restored section count, the next physical
+repair recipe and, once restored, the clue its repair revealed. Three visible casing panels fill with each repair;
 activation lights all three. After repairs, Activate appears only on the machine.
 The core requires viable crystal, closed shutters and current cooling. Completion
 is announced as a milestone and stays saved; Beyond offers the normal confirmed

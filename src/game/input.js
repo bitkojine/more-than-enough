@@ -275,6 +275,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (k === 'p' && !e.repeat && !handlers.blocked()) { input.perfect = true; handlers.perfectPressed(); }
     if (k === 'escape') handlers.command('back');
     if (k === 'b') handlers.command('build');
+    if (k === 'l' && !e.repeat) handlers.command('lantern');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
     if (e.key === 'F3') { e.preventDefault(); if (!e.repeat) handlers.command('perf'); }
   });
@@ -287,7 +288,7 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   // Block browser scrolling and zoom gestures outside the sheet.
   document.addEventListener('touchmove', (e) => {
-    if (e.target && e.target.closest && e.target.closest('#sheet')) return;
+    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard')) return;
     if (e.cancelable) e.preventDefault();
   }, { passive: false });
   document.addEventListener('gesturestart', (e) => e.preventDefault());

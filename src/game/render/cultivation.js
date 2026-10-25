@@ -36,7 +36,11 @@ export function drawCultivation(ctx,cam,s,look,b){
 // The capsule/crystal itself is painted into the selected carrying pose.
 export function drawCrystalCargo(ctx,cam,s,look,character){
  const c=s.cultivation,heart=c?.heart?.where==='carried';if(!c||!character||(!heart&&!c.starter&&s.inv.crystal<=0))return;
- const quality=heart?c.heart.health:c.starter?.health??c.quality,u=cam.tilePx,x=character.x-u*.2,y=character.top-u*.12;
- ctx.fillStyle='#172328';ctx.fillRect(x,y,u*.4,u*.06);
- ctx.fillStyle=quality<35?'#ffc09c':'#c1cef5';ctx.fillRect(x,y,u*.4*quality/100,u*.06);
+ // Big enough to read at any zoom, coloured by how sound it is (Watch,
+ // 2026-10-25: this bar is where what you carry shows its health).
+ const quality=heart?c.heart.health:c.starter?.health??c.quality,u=cam.tilePx;
+ const w=Math.max(36,u*.5),h=Math.max(6,u*.08),x=character.x-w/2,y=character.top-u*.12-h;
+ ctx.fillStyle='rgba(12,18,20,.85)';ctx.beginPath();ctx.roundRect(x-2,y-2,w+4,h+4,(h+4)/2);ctx.fill();
+ ctx.fillStyle=quality<35?'#ff8a72':quality<65?'#f0b552':'#7fd07a';
+ ctx.beginPath();ctx.roundRect(x,y,Math.max(h,w*Math.max(0,Math.min(100,quality))/100),h,h/2);ctx.fill();
 }

@@ -148,10 +148,11 @@ export function loadView() {
       quality: Number(v.quality) || 0,
       holdTip: v.holdTip === true,
       awayProduce: v.awayProduce === true,
+      showAuto: v.showAuto === true,
       wiki: v.wiki && typeof v.wiki === 'object' ? v.wiki : null
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, wiki: null };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, showAuto: false, wiki: null };
   }
 }
 

@@ -220,8 +220,13 @@ async function main() {
     await cdp.send('Page.navigate', { url: url }, session);
     var loaded = await waitFor('!!window.MTE_GAME', 8000);
     if (!loaded) throw new Error('game did not boot at ' + url + '; runtime errors: ' + pageErrors.join(' | ') + '; page: ' + await evalJS('document.body.innerText.slice(0, 1000)'));
+    // AUTO is hidden unless turned on in Nerds; the first boot checks that,
+    // then every boot turns it on so the older-world AUTO checks can press it.
+    if (!autoChecked) { autoChecked = true; ok(await evalJS('document.getElementById("btnPerfect").hidden'), 'AUTO is hidden by default'); }
+    await evalJS('MTE_GAME.setAuto(true)');
     await sleep(400);
   }
+  var autoChecked = false;
 
   async function navigate2(url) {
     await cdp.send('Page.navigate', { url: url }, session);
@@ -597,20 +602,22 @@ async function main() {
     console.log('\n== Fresh playthrough checkpoint: actual activation and next world ==');
     eq(await evalJS('MTE_GAME.getState().seed'),run.seed,'resumes the world played from empty hands');
     ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'repairs alone have not won');
-    await evalJS('document.getElementById("btnBuild").click()');
-    ok(await evalJS('document.getElementById("sheetBody").textContent.includes("3/3")'),'machine shows all three physical repairs');
-    ok(await evalJS('!!document.querySelector("[data-action=activate]")'),'real Build sheet offers activation');
-    await evalJS('document.querySelector("[data-action=activate]").click()');
+    ok(await evalJS('(()=>{const m=MTE_GAME.getState().cultivation.facilities.find(b=>b.kind==="machine");MTE_GAME.openCard(m.x,m.y)})()'),'the machine beside you opens its card');
+    ok(await evalJS('document.getElementById("buildingCard").textContent.includes("3/3")'),'machine shows all three physical repairs');
+    ok(await evalJS('!!document.querySelector("#buildingCard [data-type=activate]")'),'the machine\'s card offers activation');
+    await evalJS('document.querySelector("#buildingCard [data-type=activate]").click()');
     ok(await waitFor('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'real activation button wins the world');
     ok(await evalJS('MTE_GAME.getState().goalsDone.includes("master")'),'completion milestone is recorded immediately');
     ok(await evalJS('MTE_GAME.core.nextGoal(MTE_GAME.getState())===null'),'completion has no stale mining objective');
-    await evalJS('MTE_GAME.save();document.getElementById("btnClose").click()');
+    await evalJS('MTE_GAME.save();MTE_GAME.openCard(-99,-99)');
     await shot('cultivation-world-complete.png');
     await navigate('http://127.0.0.1:'+PORT+'/?lang=lt');
     ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'win survives normal browser reload');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
+    await evalJS('(()=>{const m=MTE_GAME.getState().cultivation.facilities.find(b=>b.kind==="machine");MTE_GAME.openCard(m.x,m.y)})()');await sleep(200);
+    ok(await evalJS('!document.querySelector("#buildingCard [data-type=activate]")'),'completed machine cannot be activated twice');
+    await evalJS('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape"}))');
     await evalJS('document.getElementById("btnBuild").click()');await sleep(200);
-    ok(await evalJS('!document.querySelector("[data-action=activate]")'),'completed machine cannot be activated twice');
     ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'completed Lithuanian sheet fits a phone');
     await shot('cultivation-win-phone-lt.png');
     await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
@@ -647,9 +654,16 @@ async function main() {
     await evalJS('document.querySelector("[data-kind=cultivation][data-id=chamber]").click()');
     ok(await evalJS('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")'),'real Build control constructs chamber in original world');
     ok(await evalJS('MTE_GAME.getState().inv.ore===292'),'construction spends ordinary metal inventory: '+await evalJS('MTE_GAME.getState().inv.ore'));
-    await evalJS('[...document.querySelectorAll("[data-action=shutter]")].find(e=>e.dataset.x==="0"&&e.dataset.y==="0").click()');
-    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'original sheet controls real shutters');
-    ok(await evalJS('document.getElementById("sheetBody").textContent.includes("Temperature")'),'inspection shows exact temperature');
+    ok(await evalJS('!document.querySelector("#sheetBody [data-action=shutter]")'),'Build only places things: no shutters in it');
+    await evalJS('document.getElementById("btnClose").click()');
+    ok(await evalJS('MTE_GAME.openCard(0,0)'),'the chamber beside you opens its card');
+    await evalJS('document.querySelector("#buildingCard [data-type=shutter]").click()');
+    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'the card controls real shutters');
+    ok(await evalJS('document.getElementById("buildingCard").textContent.includes("Temperature")'),'the card shows exact temperature');
+    await evalJS('MTE_GAME.getState().cultivation.gear.lantern=true');await sleep(100);
+    await evalJS('document.getElementById("btnLantern").click()');
+    ok(await evalJS('MTE_GAME.getState().cultivation.lantern===true&&document.getElementById("btnLantern").classList.contains("on")'),'the lantern button above Gather lights the lantern');
+    await evalJS('document.getElementById("btnLantern").click()');
     await evalJS('MTE_GAME.save()');var seed=await evalJS('MTE_GAME.getState().seed');
     await evalJS('document.getElementById("btnClose").click()');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
