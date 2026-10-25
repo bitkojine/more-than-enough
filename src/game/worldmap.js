@@ -272,6 +272,12 @@ export function createWorldMap(canvas, { getState, look, pill }) {
       if (!inside) {
         const dx = tx - W / 2, dy = ty - H / 2, f = Math.min((W / 2 - m) / Math.abs(dx || 1), (H / 2 - m) / Math.abs(dy || 1));
         tx = W / 2 + dx * f; ty = H / 2 + dy * f;
+        // Not under the layer pill: slid along the edge to just past it.
+        const p = pill && !pill.root.hidden && pill.root;
+        if (p) {
+          const right = (p.offsetLeft + p.offsetWidth) * dpr + m, bottom = (p.offsetTop + p.offsetHeight) * dpr + m * 1.5;
+          if (tx < right && ty < bottom) { if (ty <= m + 1) tx = Math.max(tx, right + m); else ty = Math.max(ty, bottom); }
+        }
       }
       ctx.save();
       ctx.translate(tx, ty);

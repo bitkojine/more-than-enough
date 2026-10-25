@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.156.2] - 2026-10-25
+
+### Fixed
+- On the world map, the hiding place's edge arrow and its label could sit
+  under the new layer pill when the hiding place lay up and to the left
+  (seen on the live site after v0.156.0). Clamped to the map's edge, the
+  arrow now slides along it to just past the pill.
+
 ## [0.156.1] - 2026-10-25
 
 ### Fixed
