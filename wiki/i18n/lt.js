@@ -600,8 +600,8 @@ export default {
           šviesos spinduliu (po dar neatverta šachta kopėčios stovi tamsoje). Kur virš angos yra dar viena anga (stulpas
           tiesiai aukštyn ar žemyn), matai abi: duobę, apjuostą į ją besiliejančios šviesos, ir kopėčias, kylančias toliau į
           spindulį.</li>
-        <li>Labai atitolinus vaizdą, kiekvienas tavo sluoksnyje rastas kelias lieka pažymėtas: tamsi duobė su kopėčiomis
-          žemyn, kopėčios aukštyn (šviesoje, jei kelias viršuje atviras) arba abu.</li>
+        <li>Labai atitolinus vaizdą, kelias negauna jokio savo ženklo: jis mažėja kartu su viskuo, todėl kelius randi
+          ieškodamas, o ne pastebi iš toli.</li>
         <li>Viena virš kitos esančios angos sudaro stulpą: įkrisk į viršutinę, ir nukrisi iki pat apačios.</li>
         <li>Leisdamasis žemyn matai kelionę: paliktas sluoksnis nuslenka aukštyn iš akių, pro šalį slenka uoliena su šachta ir
           kopėčiomis per vidurį, o naujas sluoksnis iškyla iš apačios (lipant aukštyn – atvirkščiai). Ilgai krintant pro šalį

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.155.3": "Labai atitolinus vaizdą, kopėčios ir angos nebeturi savo didelių ženklų. Jos mažėja kartu su viskuo, todėl kelius aukštyn ir žemyn teks rasti apsidairant.",
   "news.0.155.2": "Wiki nebeatsako vien todėl, kad žymeklis praslenka virš ko nors. Norėdamas paklausti Wiki apie daiktą, {phone:palaikyk ant jo pirštą|laptop:paspausk ir palaikyk ant jo pelės mygtuką}.",
   "news.0.155.1": "Tavo pasaulis visada išsaugomas pirmiausia. Kai įrenginio saugykla pilna, žaidimas vis tiek išsaugo pasaulį, kuriame žaidi, ir nepradeda kito pasaulio ar neperjungia į jį, kol paliekamas pasaulis nėra saugiai išsaugotas.",
   "news.0.155.0": "Niekas daugiau nepraranda veikėjo. Bendrame pasaulyje sukčiaujantis žaidėjas nebepašalinamas, o užšaldomas: veikėjas miega po antkapiu su viskuo, ką turėjo ir pastatė, o Watch gali jį vėl pažadinti. Kartu su juo niekas kitas nenukenčia.",

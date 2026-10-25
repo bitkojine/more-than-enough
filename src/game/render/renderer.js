@@ -14,7 +14,7 @@
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
+import { drawTerrain, drawMerging } from './terrain.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
 import { drawFocus } from './focus.js';
@@ -121,7 +121,6 @@ export function render(cam, s, fx, view, look, guard = plain) {
   layer('flyers', () => drawFlyers(ctx, cam, look, fx));
   layer('lighting', () => drawLighting(ctx, cam, s, look, lights));
   layer('glints', () => drawGlints(ctx, cam, s, look));
-  layer('farHoles', () => drawFarHoles(ctx, cam, s, look));
   layer('beacons', () => drawBeacons(ctx, cam, s, look, beacons));
   // What Wiki is talking about, outlined over everything in the world.
   if (view.wiki?.focus) layer('focus', () => drawFocus(ctx, cam, s, look, ground, view.wiki.focus, you));

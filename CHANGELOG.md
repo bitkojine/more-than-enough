@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.155.3] - 2026-10-25
+
+Ladders no longer show as marks when zoomed out (Watch: "ladders should not
+show on the game view as icons when we zoom out, it makes it too easy to spot
+them"). Below 24 px a tile, every way up or down you had seen on your layer
+got a fixed-size mark (a dark pit, a ladder, a glow), drawn over the dark, so
+one glance at the zoomed-out view showed where they all were.
+
+### Removed
+- `drawFarHoles` in `src/game/render/terrain.js` and its `farHoles` layer in
+  `renderer.js`. Holes and ladders are drawn with the ground at every zoom and
+  shrink with it like everything else; the world map is unchanged. The wiki's
+  Ways down page says so in both languages.
+
 ## [0.155.2] - 2026-10-25
 
 Hovering no longer asks Wiki anything (Watch: "Wiki should not highlight

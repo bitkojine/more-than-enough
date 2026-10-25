@@ -609,8 +609,8 @@ export default {
           of light (under a shaft not yet opened, the ladder stands in the dark). Where a hole has another hole
           above it (a column straight up or down), you see both: the pit ringed with light pouring into it, and the ladder
           running on up into the beam.</li>
-        <li>Zoomed far out, each way you've found on your layer keeps a mark you can see: a dark pit with a ladder down, a
-          ladder up (in light where the way above is open), or both.</li>
+        <li>Zoomed far out, a way gets no mark of its own: it shrinks with everything else, so ways are found by looking,
+          not spotted from afar.</li>
         <li>Holes stacked on top of each other make a column: drop into the top one and you fall all the way to the bottom.</li>
         <li>Going down, you see the trip: the layer you left slides up out of sight, the rock you pass goes by with the shaft
           and its ladder down the middle, and the new layer comes up from below (the other way when you climb). A long fall
