@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.151.1] - 2026-10-25
+
+- Zooming in close on Mica no longer crashes the game on iPhone Safari
+  ("InvalidStateError" from `createPattern`). The cloud bank over unexplored
+  land kept a copy of its picture at the size it shows at, in device pixels:
+  9 tiles wide. Since v0.147.0 lets you zoom in to about 8.7x, on a phone at
+  3x that copy was some 5,000 x 5,000 pixels, past the 16.7 M pixels iOS
+  Safari allows a canvas, and making a pattern from it threw. The copy now
+  stops at `BANK_MAX` (1,024 pixels a side; the picture itself is 256) and the
+  pattern stretches it, which looks the same. `test/unit/fog-bank.test.js`
+  checks the closest zoom on phone, tablet and laptop screens.
+
 ## [0.151.0] - 2026-10-25
 
 - The story arc "bring the heart home" begins (Watch picked it and set the

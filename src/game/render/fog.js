@@ -17,6 +17,12 @@ const PUFFS = 6;        // different puffs
 const BANK_PX = 256;    // the bank's picture, in pixels
 const BANK_SPAN = 9;    // the bank's picture's width, in tiles...
 const BANK_MIN = 320;   // ...but at least this many pixels, so far out it isn't a fine weave
+// The most device pixels a side of the bank's kept copy may have. Zoomed in
+// close the bank shows thousands of pixels wide; a copy that big is past
+// what iOS Safari lets a canvas hold (16.7 M pixels, and then createPattern
+// throws), and it's only the 256-pixel picture blown up anyway. Past this
+// size the copy stays put and the pattern stretches it instead.
+export const BANK_MAX = 1024;
 
 let made = null;        // { version, puffs, bank }
 
@@ -124,6 +130,13 @@ export function cloudBank(look) {
   return pictures(look).bank;
 }
 
+// The bank's kept copy for a picture shown w x h device pixels: its size,
+// never more than BANK_MAX a side, and how much the pattern stretches it.
+export function bankCopy(w, h) {
+  const cw = Math.max(1, Math.min(BANK_MAX, Math.round(w))), ch = Math.max(1, Math.min(BANK_MAX, Math.round(h)));
+  return { w: cw, h: ch, sx: w / cw, sy: h / ch };
+}
+
 // The clouds over tiles x0..x1, y0..y1 of the layer `cam` looks at.
 export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   if (cam.z !== Core.SURFACE) return;
@@ -133,11 +146,13 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
 
   // The bank, a run of tiles at a time, its picture fixed to the land. The
   // picture is kept at the size it shows at, in device pixels, so filling
-  // with it is a plain copy rather than a resample of every pixel.
+  // with it is a plain copy rather than a resample of every pixel (up to
+  // BANK_MAX; zoomed in closer it is stretched).
   const a = ctx.getTransform().a, span = Math.max(BANK_SPAN, BANK_MIN / u);
-  const fill = ctx.createPattern(sized(inside, Math.round(span * u * a), Math.round(span * d * a)), 'repeat');
+  const copy = bankCopy(span * u * a, span * d * a);
+  const fill = ctx.createPattern(sized(inside, copy.w, copy.h), 'repeat');
   const o = cam.project(0, 0);
-  fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(1 / a));
+  fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
   ctx.fillStyle = fill;
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {

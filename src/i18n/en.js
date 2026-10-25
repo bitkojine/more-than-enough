@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.151.1": "Zooming in close on Mica no longer crashes the game on iPhone.",
   "news.0.151.0": "The buried machine is a teleporter, and its heart has been stolen. After your first repair, find the hiding place far off on the surface (it is marked on your world map), lift the heart into your carrier and walk it home. Sunlight cracks it, so build heart shelters to rest it by day.",
   "news.0.150.1": "Underground, the Gather button no longer reads \u201c+NaNeNaN\u201d next to plain rock. Plain rock gives nothing, so the button now just says Gather.",
   "news.0.150.0": "Rocks, ore, crystals, mushrooms and pickaxes no longer show the lines of their 3D faces. Each one is now flat colour with a single dark outline around the whole thing, like a drawing.",

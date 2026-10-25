@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.151.1": "Priartinus vaizdą prie Micos, žaidimas iPhone nebesugenda.",
   "news.0.151.0": "Užkasta mašina yra teleportas, o jos širdis pavogta. Po pirmojo remonto surask slėptuvę toli paviršiuje (ji pažymėta pasaulio žemėlapyje), įkelk širdį į nešiklį ir parnešk namo. Saulė ją skaldo, tad dieną laikyk ją širdies pastogėse.",
   "news.0.150.1": "Po žeme mygtukas „Rinkti“ prie paprastos uolienos nebe rodo „+NaNeNaN“. Paprasta uoliena nieko neduoda, todėl mygtukas tiesiog sako „Rinkti“.",
   "news.0.150.0": "Akmenys, rūda, kristalai, grybai ir kirtikliai nebeatskleidžia savo 3D sienelių linijų. Dabar kiekvienas nuspalvintas vientisomis spalvomis su vienu tamsiu kontūru aplink visą daiktą, kaip piešinys.",
