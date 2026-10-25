@@ -1196,7 +1196,10 @@ async function main() {
   var heldFrom = JSON.parse(await stateSummary());
   await touch('touchStart', [{ x: 195, y: 422, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
   ok(await waitFor('!!MTE_GAME.wiki.line && !!MTE_GAME.wiki.focus', 3000), 'a long press asks Wiki about the thing and outlines it (' + await evalJS('JSON.stringify(MTE_GAME.wiki.line)') + ')');
-  var ringShown = await evalJS('(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=f.mica?MTE_GAME.project(me.x,me.y):MTE_GAME.project(f.x+.5,f.y+.5),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()');
+  // Once faded in, and where it is drawn: on top of the tile's own height.
+  await waitFor('(function(){var p=MTE_GAME.wiki.pose();return !!(p&&p.focus&&p.focus.alpha>=1);})()', 1000);
+  await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
+  var ringShown = await evalJS('(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=f.mica?MTE_GAME.project(me.x,me.y):MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()');
   ok(ringShown, 'the outline is drawn round it in Wiki teal');
   console.log('  screenshot: ' + await shot('02c-wiki-long-press.png'));
   await sleep(600);

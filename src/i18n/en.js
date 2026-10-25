@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.156.3": "A crystal world whose save has one damaged detail now loads, with that detail mended, instead of being set aside for a new world.",
   "news.0.156.2": "On the world map, the arrow to the hiding place no longer slips under the layer buttons.",
   "news.0.156.1": "{phone:Tapping|laptop:Clicking} the very spot you stand on no longer freezes the game.",
   "news.0.156.0": "The world map now remembers the layers underground too: once you've been down, the arrows in its top corner step through every layer you've explored. Its clouds look just like the ones in the game.",

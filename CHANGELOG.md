@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.156.3] - 2026-10-25
+
+### Fixed
+- A crystal world's save was refused whole when one value in its
+  cultivation was out of range (`validCultivation`, `src/core/save.js`):
+  the world was set aside and a new one started. `mendCultivation`
+  (`src/core/cultivation.js`) now brings each number back inside its range,
+  drops only a part that can't be placed (no position, an unknown kind, two
+  on one cell, a conduit to nothing), gives a repeated id a new one, keeps a
+  world saved as won won, and puts a heart with nowhere to be back in the
+  machine or at the hiding place. Only another model's state, from a newer
+  game, is still set aside. `test/unit/cultivation-mend.test.js` damages
+  saves at random and checks every one loads.
+- The browser test's Wiki-outline check failed now and then: it looked
+  for the ring before it had faded in, and where a flat tile would be on a
+  raised one. It now waits for the fade and looks on top of the tile.
+
+### Security
+- Dependabot alert #3: `undici` below 7.30.1 (three advisories, one high)
+  came in through `wrangler`, the room service's deploy tool; even the
+  newest `wrangler` still pins 7.29.1. `server/package.json` overrides it to
+  7.30.1. The tool only runs on deploy, never in the room service itself.
+
 ## [0.156.2] - 2026-10-25
 
 ### Fixed

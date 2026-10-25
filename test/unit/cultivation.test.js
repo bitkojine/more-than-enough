@@ -66,7 +66,7 @@ test('repeated sealed transfers preserve bounded quality and readable saves',()=
  assert.ok(C.deserialize(C.serialize(s)));
  const old=JSON.parse(C.serialize(s));old.cultivation.quality=100.00000000000024;old.cultivation.facilities[0].quality=100.00000000000024;
  assert.equal(C.deserialize(JSON.stringify(old)).cultivation.quality,100);
- old.cultivation.quality=100.01;assert.equal(C.deserialize(JSON.stringify(old)),null);
+ old.cultivation.quality=100.01;assert.equal(C.deserialize(JSON.stringify(old)).cultivation.quality,100,"out of range is mended, not refused");
 });
 
 test('machine activation requires all physical repairs, cooling, sealed shutters and viable crystal',()=>{

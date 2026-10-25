@@ -5,7 +5,7 @@
  * worlds already replaced, and a save from a newer game than this one is set
  * aside until the update arrives (src/game/storage.js). */
 
-import {validCultivation,recoverCultivationRounding} from './cultivation.js';
+import {validCultivation,mendCultivation} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
@@ -75,9 +75,10 @@ export function deserialize(str, make = createState) {
   if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
   if (d.logisticsModel) s.logisticsModel = d.logisticsModel;
   if(d.cultivation){
-    recoverCultivationRounding(d.cultivation);
-    if(!validCultivation(d.cultivation))return null;
-    s.cultivation=d.cultivation;s.world.cultivation=true;
+    // Mended, never refused for one bad field (cultivation.js).
+    const c=mendCultivation(d.cultivation);
+    if(!c||!validCultivation(c))return null;
+    s.cultivation=c;s.world.cultivation=true;
     s.world.chunks.clear();s.world.hotKey=-1;s.world.hotChunk=null;
   }
   const w = s.world;

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.156.3": "Kristalų pasaulis, kurio išsaugojime sugadinta viena smulkmena, dabar įsikelia su pataisyta smulkmena, užuot buvęs atidėtas ir pakeistas nauju pasauliu.",
   "news.0.156.2": "Pasaulio žemėlapyje rodyklė į slėptuvę nebelenda po sluoksnių mygtukais.",
   "news.0.156.1": "{phone:Bakstelėjus|laptop:Spustelėjus} tą pačią vietą, kur stovi, žaidimas nebesustingsta.",
   "news.0.156.0": "Pasaulio žemėlapis dabar įsimena ir požeminius sluoksnius: kai jau buvai apačioje, rodyklės jo viršutiniame kampe leidžia pereiti per kiekvieną ištyrinėtą sluoksnį. Jo debesys atrodo lygiai kaip žaidime.",
