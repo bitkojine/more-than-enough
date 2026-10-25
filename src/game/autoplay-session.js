@@ -26,7 +26,7 @@ export function createAutoplaySession(seed, seen = () => {}) {
   };
   const auto = createPerfect({ game, controller, hud });
   const zero = { x: 0, y: 0 };
-  const input = { held: false, trail: null, perfect: false, moveVector: () => zero, holdPoint: () => null };
+  const input = { held: false, trail: null, perfect: false, moveVector: () => zero };
   const simulation = createSimulation({ game, controller, autoplay: auto, input });
   Core.revealAround(state); // the normal initial reveal, never a world scan
   return {

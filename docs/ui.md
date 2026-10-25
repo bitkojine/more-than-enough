@@ -294,7 +294,8 @@ the normal HUD remains concise. Escape, interaction, scrolling and leaving the
 window dismiss the tooltip. Its noninteractive surface cannot intercept input.
 On touchscreens, holding a resource chip or passive shop illustration for 550ms
 shows its information and consumes that gesture's click; movement cancels it.
-World/action-button holds retain their gameplay behavior. World lookup rejects
+Action-button holds retain their gameplay behavior; a hold on the world asks
+Wiki (below). World lookup rejects
 unexplored cells first, then uses indexed facility/building lookups. It never
 reveals hidden terrain, spends resources, advances time or changes a save.
 
@@ -306,10 +307,19 @@ player points at. Its bubble sits just above Wiki, below sheets and above the
 HUD, one name and one short line, with a "More in the wiki" link (the bubble's
 only tappable part). It fades after a few seconds; nothing pauses or waits for
 it. Mouse: a new thing speaks after 400 ms, a known one only gets a glance, and
-resting the pointer 1.2 s says it again. Touch: tap Wiki, then tap a thing (the
+resting the pointer 1.2 s says it again. A long press (a finger or the mouse
+held still 0.5 s on the map) asks Wiki about what is under it; sliding on asks
+about the next thing, and the answer stays 3 s after letting go. The long press
+is Wiki's (Watch, 2026-10-25): it never walks or gathers, and keeping on
+gathering is holding Gather. Touch can also tap Wiki, then tap a thing (the
 bubble asks for it), or drag from Wiki onto a thing along a dotted pointer line.
 Those taps belong to Wiki and never walk or gather. Firsts that Mica walks up to
 are said at most once a minute, and never while a milestone banner is up.
+Whatever Wiki is talking about is outlined in the world (`render/focus.js`):
+one ring in Wiki's teal over a dark ink line around the whole thing (what
+stands on the tile, else its square of ground; Mica gets a ring around Mica and
+Wiki), drawn over everything so it shows behind trees and at night, gone with
+the bubble.
 
 
 

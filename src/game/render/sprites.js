@@ -26,8 +26,8 @@ function shadow(ctx, cam, x, y, r) {
 
 // A building standing on its tile, showing what waits in it to be collected
 // (its stages: a garden's mushrooms, a mine's cart of ore), and a small dial
-// over it that fills as it does (gold when full).
-export function drawExtractor(ctx, cam, s, look, e) {
+// over it that fills as it does (gold when full). `shade`: false, no shadow.
+export function drawExtractor(ctx, cam, s, look, e, shade = true) {
   const u = cam.tilePx;
   const ground = cam.project(e.x + 0.5, e.y + FOOT, groundAt(cam, s, e.x, e.y));
   if (ground.x < -u * 2 || ground.y < -u || ground.x > cam.width + u * 2 || ground.y > cam.height + u * 3) return;
@@ -36,7 +36,7 @@ export function drawExtractor(ctx, cam, s, look, e) {
   // hauled building looks empty.
   const p = Core.holdsOutput(s, e) ? Math.min(1, e.buffer / Core.extractorCapacity(s, e.key, e)) : 0;
   const pic = look.stage('building.' + e.key, p);
-  shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
+  if (shade) shadow(ctx, cam, ground.x, ground.y, Math.min(u * 0.5, pic.units * u * 0.45));
   const h = look.stand(ctx, pic, ground.x, ground.y, u);
   // No resource icon on top (v0.133.0 to v0.152.1 drew one): the building's
   // own art says what it makes, and Wiki names it for what you point at.

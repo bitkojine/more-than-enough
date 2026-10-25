@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.153.0": "{phone:Palaikyk pirštą|laptop:Palaikyk nuspaudęs pelę} ant bet ko ir paklausk Wiki, kas tai, o pastūmęs paklausi apie kitą dalyką. Tai, apie ką Wiki kalba, dabar apvedama ryškiu žalsvu kontūru, tad matai, kur jo dėmesys. Norėdamas rinkti be paliovos, laikyk nuspaudęs „Rinkti“.",
   "news.0.152.2": "Ant pastatų nebėra prilipdyto išteklių paveikslėlio. Pats pastatas parodo, ką gamina, o Wiki pasakys, jei į jį parodysi.",
   "news.0.152.1": "Baltos kreidos žymių nebeliko: piešiamas takas vėl šviečia, statybų peržiūros ir jungtys yra paprastos punktyrinės linijos, o mašinos, įrankiai ir slėptuvės nebeturi atsitiktinių baltų brūkšnių.",
   "news.0.152.0": "Kai kas nors nepavyksta, žaidimas nebesustoja, o tęsiasi: sugedusi dalis praleidžiama. Nustatymų skiltyje „Moksliukams“ kiekviena klaida turi mygtuką „Kopijuoti“, tad gali nusiųsti visą ataskaitą, kad ją sutaisytume.",
@@ -619,7 +620,7 @@ export default {
   "settings.wiki.quiet": "tik paklaustas",
   "settings.wiki.off": "išjungta",
   "wiki.name": "Wiki",
-  "wiki.hello": "Labas, aš Wiki. Grybiena po mišku prisimena viską, ir aš taip pat. {phone:Paliesk mane, tada bet ką|laptop:Parodyk į bet ką}, ir paklausk.",
+  "wiki.hello": "Labas, aš Wiki. Grybiena po mišku prisimena viską, ir aš taip pat. {phone:Palaikyk pirštą ant bet ko|laptop:Parodyk į bet ką}, ir paklausk.",
   "wiki.ask": "{phone:Paliesk|laptop:Spustelėk} bet ką, ir papasakosiu apie tai.",
   "wiki.nothing": "Ten nėra ko pasakoti.",
   "wiki.fold": "Gyvasis kristalas nekenčia šviesos. Kol esame šalia jo, laikysiu kepurę užvertą.",
@@ -1018,7 +1019,7 @@ export default {
   "copy.ended": "Kopija baigėsi. Tikrasis pasaulis nieko nesužinojo",
   "together.toast.inviteOld": "Ši kvietimo nuoroda nebegalioja – paprašyk naujos",
   "tip.auto": "{phone:Laikyk nuspaudęs – žais pats|laptop:Laikyk nuspaudęs (ar laikyk P) – žais pats}",
-  "tip.hold": "Patarimas: {phone:laikyk nuspaudęs „Rinkti“ arba pirštą ant ištekliaus|laptop:laikyk nuspaudęs „Rinkti“ ar tarpo klavišą, arba pelę ant ištekliaus} – rinksi be paliovos",
+  "tip.hold": "Patarimas: {phone:laikyk nuspaudęs „Rinkti“|laptop:laikyk nuspaudęs „Rinkti“ ar tarpo klavišą} – rinksi be paliovos",
   "toast.perfect.embark": "Šis pasaulis baigtas: iškeliauti skiltyje „Anapus“ gali tik tu",
   "tip.walk": "Arti nėra ką rinkti: {phone:vilk pirštu per žemėlapį arba bakstelk vietą|laptop:spausk WASD ar rodykles arba spustelk vietą} – eisi ir apsidairysi",
   "together.toast.inviteExpired": "Šios kvietimo nuorodos laikas baigėsi – paprašyk naujos",

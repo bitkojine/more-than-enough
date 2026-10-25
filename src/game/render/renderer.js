@@ -17,6 +17,7 @@ import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawFarHoles, drawMerging } from './terrain.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
+import { drawFocus } from './focus.js';
 import { drawDepots, drawSupports, drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
@@ -76,7 +77,8 @@ export function render(cam, s, fx, view, look, guard = plain) {
     const at = drawFriend(ctx, cam, s, look, f, f.color);
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
-  const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake, layer }, (y) => layer('row', () => {
+  const ground = { built, yard: view.yard, shake: fx.shake, layer };
+  const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, ground, (y) => layer('row', () => {
     drawHighlights(ctx, cam, s, view, y);
     const row = buildings.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
@@ -121,6 +123,8 @@ export function render(cam, s, fx, view, look, guard = plain) {
   layer('glints', () => drawGlints(ctx, cam, s, look));
   layer('farHoles', () => drawFarHoles(ctx, cam, s, look));
   layer('beacons', () => drawBeacons(ctx, cam, s, look, beacons));
+  // What Wiki is talking about, outlined over everything in the world.
+  if (view.wiki?.focus) layer('focus', () => drawFocus(ctx, cam, s, look, ground, view.wiki.focus, you));
   // Everyone's name over their head (yours too, in a shared world, unless
   // your sign is up in front of it). In a crowd, yours first, then the
   // living nearest you, then tombstones: a name that would cover one

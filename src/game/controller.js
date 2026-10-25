@@ -231,9 +231,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (!walkTo) explore();
     },
 
-    // `holdAt`: a finger held still on the map (screen point), or null. It
-    // works that tile over and over, like holding Gather.
-    tick(dt, holding, holdAt) {
+    // Gather held: repeats press(), paced by the cooldown.
+    tick(dt, holding) {
       const remaining = cooldown;
       cooldown -= dt;
       const overdue = remaining > CLOCK_EPSILON ? Math.max(0, -cooldown) : 0;
@@ -243,13 +242,6 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       if (holding && cooldown <= CLOCK_EPSILON) {
         if (act()) { cooldown = GATHER_COOLDOWN - overdue; gathered(true); }
         else if (!walkTo) { cooldown = GATHER_COOLDOWN; explore(true); }
-      }
-      if (holdAt && cooldown <= CLOCK_EPSILON) {
-        const w = cam.unproject(holdAt.x, holdAt.y);
-        const tx = Math.floor(w.x), ty = Math.floor(w.y);
-        const done = workAt(tx, ty);
-        if (done) { cooldown = GATHER_COOLDOWN - overdue; if (done === true) gathered(true); }
-        else if (!walkTo && workable(tx, ty)) walkToward(tx, ty, true);
       }
     },
 

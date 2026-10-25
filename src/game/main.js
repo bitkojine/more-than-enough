@@ -361,6 +361,10 @@ const input = createInput({
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
       else controller.tap(x, y);
     },
+    // A finger held still on the map asks Wiki about what is under it.
+    longPress: (x, y) => wiki.longPress(x, y),
+    longPressMove: (x, y) => wiki.longPressMove(x, y),
+    longPressEnd: () => wiki.longPressEnd(),
     actionPressed: controller.press,
     perfectPressed: autoPressed,
     perfectReleased: autoReleased,

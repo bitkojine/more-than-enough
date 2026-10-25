@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.153.0] - 2026-10-25
+
+- Whatever Wiki is talking about is outlined in the world (Watch: "so it's
+  clear where our focus is"). `src/game/render/focus.js` paints the thing
+  (what stands on its tile without its shadow, else its square of ground and
+  south face; Mica as a capsule taking in Wiki) into a small off-screen
+  canvas, grows it in twelve directions twice (dark ink, then Wiki's teal)
+  and cuts the shape out: one ring around the whole object, never its inner
+  edges. It is repainted only when the scale changes or every 0.4 s, drawn
+  after lighting so it shows at night and through trees in front, and fades
+  in over 0.15 s. Wiki's pose carries the focus (`wiki.focus`); it goes with
+  the bubble. Not chalk: teal over ink, after v0.152.1 took the chalk out.
+- A long press on the map (0.5 s still, touch or mouse) asks Wiki about what
+  is there; sliding asks about the next thing, and the answer stays 3 s after
+  the finger lifts. `src/game/input.js` hands the finger to Wiki
+  (`longPress`, `longPressMove`, `longPressEnd`) and stops steering with it.
+- Watch chose (decision card) that the long press is Wiki's: holding a
+  finger still on a resource no longer keeps Mica gathering it. That gesture
+  (`input.holdPoint`, the `holdAt` branch of `controller.tick`) is gone;
+  holding Gather repeats as before. The hold tip and Wiki's hello say so.
+- `drawStand` (terrain.js) and `drawExtractor` (sprites.js) can leave out
+  the shadow, and `drawStand` says whether it drew anything.
+- e2e: a long press answers, outlines in teal, gathers nothing and doesn't
+  walk (replaces the hold-to-gather check).
+
 ## [0.152.2] - 2026-10-25
 
 - Buildings no longer carry a resource icon on a dark square over their

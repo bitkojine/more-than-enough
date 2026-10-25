@@ -34,9 +34,8 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
       tile = current; revealedX = s.player.x; revealedY = s.player.y; revealedRadius = radius;
       Core.revealAround(s, radius);
     }
-    const hold = input.holdPoint();
-    controller.tick(dt, input.held && !input.trail, hold);
-    autoPlaying = input.perfect && !input.held && !input.trail && !hold && !dir.x && !dir.y && allowed;
+    controller.tick(dt, input.held && !input.trail);
+    autoPlaying = input.perfect && !input.held && !input.trail && !dir.x && !dir.y && allowed;
     autoplay.tick(dt, autoPlaying);
     goalTicks += count;
     if (goalTicks === Math.round(0.4 * TICK_HZ)) { goalTicks = 0; controller.checkGoals(); }
@@ -46,7 +45,7 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
     // Motion, user input, room callbacks and visible feedback retain fine
     // steps. Coalesced intervals end at the earliest action/goal deadline.
     if (s !== state || afterCore || onEvents || controller.walking || !input.perfect || input.held ||
-        input.trail || input.holdPoint() || !canAutoplay() || !Core.canBatchEconomy(s, 1)) return 1;
+        input.trail || !canAutoplay() || !Core.canBatchEconomy(s, 1)) return 1;
     const dir = input.moveVector();
     if (dir.x || dir.y || Core.worldMastered(s)) return 1; // retain first Embark eligibility tick
     const deadline = Math.ceil((autoplay.secondsUntilAct - 1e-9) * TICK_HZ);

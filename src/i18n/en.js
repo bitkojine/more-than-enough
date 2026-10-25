@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.153.0": "{phone:Hold your finger|laptop:Hold the mouse down} on anything to ask Wiki about it, and slide to ask about the next thing. Whatever Wiki is talking about now gets a clear teal outline, so you can see where its focus is. To keep gathering, hold Gather.",
   "news.0.152.2": "Buildings no longer have a resource picture stuck on top of them. Each building\u2019s own look shows what it makes, and Wiki tells you if you point at it.",
   "news.0.152.1": "The white chalk marks are gone: the drawing trail glows again, build previews and links are plain dashed lines, and machines, tools and shelters lost their stray white lines.",
   "news.0.152.0": "When something goes wrong, the game now keeps going instead of stopping: the part that broke is skipped. Settings, Nerds lists each problem with a Copy button, so you can send a full report to get it fixed.",
@@ -619,7 +620,7 @@ export default {
   "settings.wiki.quiet": "only when asked",
   "settings.wiki.off": "off",
   "wiki.name": "Wiki",
-  "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Tap me, then tap anything|laptop:Point at anything} to ask.",
+  "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Hold your finger on anything|laptop:Point at anything} to ask.",
   "wiki.ask": "{phone:Tap|laptop:Click} anything and I'll tell you about it.",
   "wiki.nothing": "Nothing worth telling there.",
   "wiki.fold": "Living crystal hates light. I'll keep my cap shut while we're near it.",
@@ -1018,7 +1019,7 @@ export default {
   "copy.ended": "The copy has ended. The real world never knew",
   "together.toast.inviteOld": "That invite link no longer works: ask for a new one",
   "tip.auto": "{phone:Hold me down to auto-play|laptop:Hold me down, or hold P, to auto-play}",
-  "tip.hold": "Tip: {phone:hold Gather, or keep your finger on a resource,|laptop:hold Gather or Space, or keep the mouse down on a resource,} to keep gathering on its own",
+  "tip.hold": "Tip: {phone:hold Gather|laptop:hold Gather or Space} to keep gathering on its own",
   "toast.perfect.embark": "This world is done: Embark in Beyond is yours to press",
   "tip.walk": "Nothing to gather in sight: {phone:drag on the map, or tap a spot,|laptop:use WASD or the arrow keys, or click a spot,} to walk and look around",
   "together.toast.inviteExpired": "That invite link has expired: ask for a new one",

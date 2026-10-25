@@ -1191,9 +1191,20 @@ async function main() {
   await sleep(150);
   var tapGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
   ok(tapGatherAfter > tapGatherBefore, 'tapping a resource tile gathers it directly');
-  await hold(195, 422, 1400);
-  var holdGatherAfter = JSON.parse(await stateSummary()).inv.mycelium;
-  ok(holdGatherAfter >= tapGatherAfter + 2, 'holding a finger still on a resource keeps gathering it (' + tapGatherAfter + ' -> ' + holdGatherAfter + ')');
+  // A finger held still on a thing asks Wiki: it answers, outlines it, and
+  // Mica neither gathers nor walks.
+  var heldFrom = JSON.parse(await stateSummary());
+  await touch('touchStart', [{ x: 195, y: 422, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+  ok(await waitFor('!!MTE_GAME.wiki.line && !!MTE_GAME.wiki.focus', 3000), 'a long press asks Wiki about the thing and outlines it (' + await evalJS('JSON.stringify(MTE_GAME.wiki.line)') + ')');
+  var ringShown = await evalJS('(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=f.mica?MTE_GAME.project(me.x,me.y):MTE_GAME.project(f.x+.5,f.y+.5),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()');
+  ok(ringShown, 'the outline is drawn round it in Wiki teal');
+  console.log('  screenshot: ' + await shot('02c-wiki-long-press.png'));
+  await sleep(600);
+  await touch('touchEnd', []);
+  var heldTo = JSON.parse(await stateSummary());
+  eq(heldTo.inv.mycelium, heldFrom.inv.mycelium, 'a long press gathers nothing');
+  ok(heldTo.x === heldFrom.x && heldTo.y === heldFrom.y, 'a long press does not walk');
+  ok(await evalJS('!!MTE_GAME.wiki.line'), 'the answer stays up after the finger lifts');
   // A resource out of reach: the tap walks there and gathers it on arrival.
   var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3||c.extractorAt(s,x,y,0))continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
   ok(!!far, 'found a tree across open ground');

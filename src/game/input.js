@@ -4,7 +4,9 @@
  *   drag anywhere            virtual joystick (moveVector); `invert` pulls
  *                            the map instead (you walk against the drag)
  *   tap the map              handlers.tap(screenX, screenY)
- *   hold still on the map    holdPoint() (the main loop works that tile)
+ *   hold still on the map    a long press: handlers.longPress(x, y) may take
+ *                            that finger (Wiki does), then gets its moves
+ *                            and its lift (longPressMove, longPressEnd)
  *   hold Gather / Space      `held` (the main loop repeats the action)
  *   hold Gather, drag off    a Trail (`trail`, then handlers.trailEnded)
  *   hold Perfect / P         `perfect` (handlers.perfectPressed, then the
@@ -17,6 +19,7 @@ const JOY_MAX = 74;          // px from the stick origin to full speed
 const JOY_DEAD = 12;         // px of slack before the stick engages
 const TAP_MAX_MOVE = 14;     // px a tap may wander
 const TAP_MAX_MS = 320;
+const LONG_PRESS_MS = 500;   // held this still this long: a long press
 const TRAIL_MIN_STEP = 0.12; // tiles between recorded Trail points
 
 export function createInput({ canvas, cam, el, handlers }) {
@@ -25,6 +28,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   const pinch = { active: false, dist: 0, zoom: 1 };
   let keys = {};
   let actionPointerId = null;
+  let longTimer = 0, longId = null;               // a press that may become long; the finger a long press took
 
   const input = {
     joy,
@@ -41,13 +45,6 @@ export function createInput({ canvas, cam, el, handlers }) {
       const y = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
       const len = Math.hypot(x, y);
       return len > 1 ? { x: x / len, y: y / len } : { x, y };
-    },
-
-    // Where a finger has been held still on the map for longer than a tap,
-    // in screen pixels, or null.
-    holdPoint() {
-      if (!joy.active || joy.moved >= TAP_MAX_MOVE || performance.now() - joy.t < TAP_MAX_MS || handlers.blocked()) return null;
-      return { x: joy.ox, y: joy.oy };
     },
 
     release() {
@@ -131,6 +128,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (pinch.active || pointers.size >= 2) {
       // A second finger means zoom, not a joystick drag.
       joy.active = false; joy.x = 0; joy.y = 0;
+      clearTimeout(longTimer);
       if (!pinch.active) {
         Object.assign(pinch, { active: true, dist: pinchDistance() || 1, zoom: cam.zoom });
       }
@@ -138,10 +136,23 @@ export function createInput({ canvas, cam, el, handlers }) {
     }
     const p = canvasPoint(e);
     Object.assign(joy, { active: true, id: e.pointerId, ox: p.x, oy: p.y, x: 0, y: 0, moved: 0, t: performance.now() });
+    clearTimeout(longTimer);
+    longTimer = setTimeout(() => {
+      if (!joy.active || joy.id !== e.pointerId || joy.moved >= TAP_MAX_MOVE || pinch.active || handlers.blocked()) return;
+      if (!handlers.longPress(joy.ox, joy.oy)) return;
+      // The finger is the long press's now: it no longer steers.
+      longId = joy.id; joy.active = false; joy.x = 0; joy.y = 0;
+    }, LONG_PRESS_MS);
   }
 
   function onMove(e) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPoint(e));
+    if (e.pointerId === longId) {
+      const p = canvasPoint(e);
+      handlers.longPressMove(p.x, p.y);
+      e.preventDefault();
+      return;
+    }
     if (pinch.active) {
       e.preventDefault();
       if (pointers.size < 2) return;
@@ -175,6 +186,13 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   function onCanvasUp(e) {
     pointers.delete(e.pointerId);
+    if (e.pointerId === longId) {
+      longId = null;
+      const p = canvasPoint(e);
+      handlers.longPressEnd(p.x, p.y, e.type === 'pointercancel');
+      return;
+    }
+    if (e.pointerId === joy.id) clearTimeout(longTimer);
     if (pinch.active) {
       if (pointers.size < 2) pinch.active = false; // ignore the leftover finger
       e.preventDefault();
