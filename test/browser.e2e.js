@@ -1732,7 +1732,9 @@ async function main() {
 
   // Zoom is clamped to a sane range at both ends.
   await evalJS('MTE_GAME.setZoom(999)');
-  ok(await evalJS('MTE_GAME.zoom()') <= 3, 'zoom-in is capped at 3x');
+  var capped = await evalJS('MTE_GAME.zoom()');
+  await evalJS('MTE_GAME.setZoom(99999)');
+  ok(Number.isFinite(capped) && capped === await evalJS('MTE_GAME.zoom()') && await evalJS('MTE_GAME.tilePx() < innerHeight'), 'zoom-in is capped (at ' + capped.toFixed(2) + 'x, a tile smaller than the screen)');
   await evalJS('MTE_GAME.setZoom(0.0001)');
   ok(await evalJS('MTE_GAME.tilePx()') >= 3, 'zoom-out cannot shrink tiles below the floor');
   await evalJS('MTE_GAME.setZoom(1)');
@@ -1772,6 +1774,10 @@ async function main() {
   ok(await waitFor('MTE_GAME.getState().player.z < 0', 5000), 'went down a cave mouth into the mine');
   // The camera moves to the new layer when it next draws: wait for a frame so
   // the wall's screen position below is projected from where it is now shown.
+  await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
+  // Arriving carves a small cave (v0.148.0): stand on open ground just south
+  // of the nearest diggable wall, so there is rock beside the player.
+  await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),p=s.player,z=p.z;var t=C.nearestTile(p.x,p.y,12,function(x,y){var k=C.tileAt(s.world,x,y,z);return C.TILE_INFO[k].solid&&k!==C.T.SHAFT&&C.walkable(s.world,x,y+1,z);});if(t)G.setPlayer(t.x+0.5,t.y+1.5);})()');
   await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
   // A diggable wall beside the player (north first, so it stands in front of the row behind).
   var wall = JSON.parse(await evalJS('(function(){var G=MTE_GAME,C=G.core,s=G.getState(),p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);' +
@@ -2055,10 +2061,13 @@ async function main() {
   await sleep(100);
   eq(await evalJS('document.getElementById("crash").hidden'), true, 'an error from a script that is not the game (Share sheet, extensions) does not stop the game');
   await evalJS('setTimeout(function(){ throw new Error("e2e: deliberate break"); })');
-  ok(await waitFor('!document.getElementById("crash").hidden', 2000), 'an uncaught error shows the crash report');
-  var report = await evalJS('document.querySelector("#crash pre").textContent');
-  ok(report.indexOf('Error: e2e: deliberate break') >= 0, 'the crash report says what broke');
-  ok(report.indexOf('Game v') === 0 && report.indexOf(await evalJS('navigator.userAgent')) > 0, 'the crash report names the game version and the browser');
+  // Since v0.152.0 the game gets past an error after boot and keeps a report
+  // of it (src/game/faults.js); only frames that keep failing show the crash screen.
+  var reportExpr = '(function(){var f=JSON.parse(localStorage.getItem("mte.faults")||"[]").find(function(r){return r.head.indexOf("e2e: deliberate break")>=0;});return f?JSON.stringify(f):"";})()';
+  ok(await waitFor(reportExpr + ' !== ""', 2000), 'an uncaught error is kept as a report');
+  eq(await evalJS('document.getElementById("crash").hidden'), true, 'and the game plays on, with no crash screen');
+  var report = JSON.parse(await evalJS(reportExpr));
+  ok(/^\d+\.\d+\.\d+ \(build /.test(report.context.version) && report.context.browser === await evalJS('navigator.userAgent'), 'the report names the game version and the browser');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('deliberate break') < 0; });
   ok(pageErrors.length === 0, 'no page errors captured' + (pageErrors.length ? ': ' + pageErrors.slice(0, 4).join(' | ') : ''));
 

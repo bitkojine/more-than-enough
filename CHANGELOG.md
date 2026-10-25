@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.156.1] - 2026-10-25
+
+### Fixed
+- A walk planned to the tile you already stand on (a tap on your own spot,
+  Gather's walk underground right after arriving) has no route tiles, and
+  `walkAim` (`src/core/paths.js`) read past the empty route on every frame,
+  so the frame loop failed until the crash screen. Since v0.154.0. It is
+  'done' now.
+- `npm run test:e2e` is green again (it had been red since then): besides
+  that crash, three checks still described older behaviour, so they now
+  test the current behaviour instead. The zoom cap depends on the screen
+  (v0.147.0), arriving underground carves a small cave (v0.148.0), and an
+  error after boot is kept as a report instead of stopping the game
+  (v0.152.0).
+
 ## [0.156.0] - 2026-10-25
 
 The world map shows the layers underground, and its clouds are the game's

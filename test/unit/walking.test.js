@@ -131,3 +131,10 @@ test('no way there at all still heads straight for it, as before', () => {
   assert.equal(c.walking, false, 'gave up once blocked');
   assert.ok(s.player.y > Y0 + 9, 'walked up to the ring');
 });
+
+test('walking: a walk planned to the tile you stand on is done, not a crash', () => {
+  const s = C.createState(7);
+  const w = C.planWalk(s, Math.floor(s.player.x), Math.floor(s.player.y));
+  assert.deepEqual(w.nodes, []);
+  assert.equal(C.walkAim(s, w), 'done');
+});

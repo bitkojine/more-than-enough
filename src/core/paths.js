@@ -156,7 +156,9 @@ export function walkAim(s, w) {
   if (p.z !== w.z) return null;
   const at = routePosition(w, Math.floor(p.x), Math.floor(p.y));
   if (at > w.i) w.i = at;
-  const n = w.nodes.length, end = Math.min(n - 1, w.i + LOOK_AHEAD);
+  const n = w.nodes.length;
+  if (!n) return 'done'; // planned from the goal's own tile: already there
+  const end = Math.min(n - 1, w.i + LOOK_AHEAD);
   for (let j = w.i; j <= end; j++) if (j < n - 1 && !passable(s, w.nodes[j].x, w.nodes[j].y)) return null;
   const goal = w.nodes[n - 1];
   const last = passable(s, goal.x, goal.y) ? n - 1 : n - 2;
