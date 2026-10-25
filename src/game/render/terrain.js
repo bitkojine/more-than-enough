@@ -142,8 +142,8 @@ function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
  * you haven't seen is a dark block (not a drop into nothing), rock you have
  * seen is a little darker than the floors you dug, and no cliffs fall away at
  * the edge of what you know. Digging carves a space out; nothing goes up. */
-const UNSEEN_DIM = 0.4;  // rock you haven't seen, against the colour of the unknown
-const ROCK_SHADE = 0.45; // how much darker the top of seen rock is than open floor
+export const UNSEEN_DIM = 0.4;  // rock you haven't seen, against the colour of the unknown
+export const ROCK_SHADE = 0.45; // how much darker the top of seen rock is than open floor
 
 // How high tile (x, y) stands for drawing (and tapping): its height, or a
 // full layer for rock in the mine you haven't seen yet.

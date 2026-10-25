@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.156.0": "The world map now remembers the layers underground too: once you've been down, the arrows in its top corner step through every layer you've explored. Its clouds look just like the ones in the game.",
   "news.0.155.3": "Zoomed far out, ladders and holes no longer get their own big marks. They shrink with everything else, so the ways up and down have to be found by looking around.",
   "news.0.155.2": "Wiki no longer answers just because the pointer passes over something. To ask Wiki about a thing, {phone:hold your finger on it|laptop:press and hold the mouse button on it}.",
   "news.0.155.1": "Your world is always saved first. When the device's storage is full, the game still saves the world you're playing, and won't start or switch to another world until the one you're leaving is safely kept.",
@@ -730,6 +731,8 @@ export default {
 
   "map.title": "World map",
   "map.centre": "Back to where you are",
+  "map.up": "The layer above",
+  "map.down": "The layer below",
 
 
   "button.climbDown": "CLIMB DOWN",

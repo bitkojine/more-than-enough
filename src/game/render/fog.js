@@ -132,9 +132,31 @@ function sized(pic, w, h) {
   return hit.canvas;
 }
 
-// The bank's picture, for the world map's unexplored land.
-export function cloudBank(look) {
-  return pictures(look).bank;
+// Which of the puffs tile (x, y)'s edge billows with.
+const puffOf = (x, y) => Math.floor(Core.hash2(x, y, 41) * PUFFS);
+
+// The puff picture for tile (x, y) on the edge of the clouds (the world map
+// draws the same ones the view does).
+export function puffFor(look, x, y) {
+  return pictures(look).puffs[puffOf(x, y)];
+}
+
+// The bank's fills for tiles u x d CSS pixels, as patterns for ctx (drawn
+// through its current transform), biggest last, each with how opaque it is
+// laid. Each picture is fixed to the land: project(x, y) is where tile
+// corner (x, y) is in CSS pixels, and they're each a little apart, so their
+// swells don't line up. A picture is kept at the size it shows at, in device
+// pixels, so filling with it is a plain copy rather than a resample of every
+// pixel (up to BANK_MAX; zoomed in closer it is stretched).
+export function bankFills(ctx, look, u, d, project) {
+  const { bank } = pictures(look), a = ctx.getTransform().a;
+  return bankLayers(u).map(({ k, span, alpha }) => {
+    const copy = bankCopy(span * u * a, span * d * a);
+    const fill = ctx.createPattern(sized(bank, copy.w, copy.h), 'repeat');
+    const o = project(k * 37, k * 53);
+    fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
+    return { fill, alpha };
+  });
 }
 
 // How many tiles wide a puff is for tiles u CSS pixels wide.
@@ -165,19 +187,11 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   if (cam.z !== Core.SURFACE) return;
   const w = s.world, z = cam.z, u = cam.tilePx, d = cam.depthPx;
   const fog = (x, y) => !Core.isExplored(w, x, y, z);
-  const { puffs, bank: inside } = pictures(look);
+  const { puffs } = pictures(look);
 
   // The bank, a run of tiles at a time, each of its pictures fixed to the
-  // land (each a little apart, so their swells don't line up). A picture is
-  // kept at the size it shows at, in device pixels, so filling with it is a
-  // plain copy rather than a resample of every pixel (up to BANK_MAX;
-  // zoomed in closer it is stretched).
-  const a = ctx.getTransform().a;
-  for (const { k, span, alpha } of bankLayers(u)) {
-    const copy = bankCopy(span * u * a, span * d * a);
-    const fill = ctx.createPattern(sized(inside, copy.w, copy.h), 'repeat');
-    const o = cam.project(k * 37, k * 53);
-    fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
+  // land (see bankFills).
+  for (const { fill, alpha } of bankFills(ctx, look, u, d, (x, y) => cam.project(x, y))) {
     ctx.fillStyle = fill;
     ctx.globalAlpha = alpha;
     // One path for all the runs, so where they overlap a see-through
@@ -206,7 +220,7 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
     for (let x = x0 - r; x <= x1 + r; x++) {
       if (!fog(x, y) || (fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1))) continue;
       const p = cam.project(x + 0.5, y + 0.5);
-      ctx.drawImage(puffs[Math.floor(Core.hash2(x, y, 41) * PUFFS)], p.x - pw / 2, p.y - ph / 2, pw, ph);
+      ctx.drawImage(puffs[puffOf(x, y)], p.x - pw / 2, p.y - ph / 2, pw, ph);
     }
   }
 }

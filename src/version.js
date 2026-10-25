@@ -1,2 +1,2 @@
 // Single source of truth for the game version (SemVer, see CHANGELOG.md).
-export const VERSION = '0.155.3';
+export const VERSION = '0.156.0';

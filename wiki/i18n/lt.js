@@ -485,7 +485,8 @@ export default {
         kraštą. Kiekvienas kraštas turi savo žemės pobūdį, o tarp dviejų kraštų driekiasi matoma riba: upė, kurią
         perplauki, arba uolėtas kalvagūbris, akmenų mūras ar gyvatvorė su tarpais praeiti. Pievos mėgsta gyvatvores,
         viržynai ir aukštumos – mūrus ir kalvagūbrius, ežerynai ir pelkynai – upes. Kiekvienas pasaulis prasideda pievose. <strong>Pasaulio
-        žemėlapis</strong> (mygtukas po mastelio valdikliu) rodo visą tavo ištyrinėtą žemę su matytų kraštų vardais.</p>
+        žemėlapis</strong> (mygtukas po mastelio valdikliu) rodo visą tavo ištyrinėtą žemę su matytų kraštų vardais, po tokiais pat debesimis kaip žaidime.
+        Kai jau buvai po žeme, rodyklės jo kampe leidžia pereiti per kiekvieną ištyrinėtą sluoksnį. Kelių aukštyn ir žemyn jame nėra: juos teks atsiminti.</p>
       <div data-table="regions"></div>
 
       <h2>Miškai</h2>

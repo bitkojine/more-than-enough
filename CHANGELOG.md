@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.156.0] - 2026-10-25
+
+The world map shows the layers underground, and its clouds are the game's
+(Watch: "the world map should also learn and show the layers underground
+not just surface layer. also make the clouds in the world map look the
+same as in the game view.").
+
+### Added
+- The map paints every layer you've explored, not only the surface: each
+  layer keeps its own canvas, repainted a chunk at a time as before. A
+  layer pill in its top-left corner, in the depth pill's look (*Forest*,
+  then *Layer N*), steps up and down through the explored layers; the map
+  opens on your layer and "back to where you are" returns to it. Region
+  names, home and the hiding place stay on the surface; your dot shows on
+  your own layer.
+- Underground, what you haven't seen is the game's unseen rock, and rock
+  you have seen is darker than the floors, as in the view.
+- The ways between layers (cave mouths, ladder feet, shafts, old holes)
+  aren't marked on the map: they show as the ground beside them.
+  `src/game/worldmap-layers.js` holds this and the rest of the map's pure
+  logic, with `test/unit/worldmap-layers.test.js`.
+
+### Changed
+- The map's clouds were one flat picture of the bank, 120 tiles wide at any
+  zoom, with a hard pixel edge. They are now drawn as the view draws them:
+  the same bank layers fixed to the land (`bankFills`, now shared by both)
+  and the same puffs along the edge, as wide as the view's at that tile
+  size; far out, one puff every few pixels instead of one per tile.
 ## [0.155.3] - 2026-10-25
 
 Ladders no longer show as marks when zoomed out (Watch: "ladders should not

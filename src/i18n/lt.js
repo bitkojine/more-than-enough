@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.156.0": "Pasaulio žemėlapis dabar įsimena ir požeminius sluoksnius: kai jau buvai apačioje, rodyklės jo viršutiniame kampe leidžia pereiti per kiekvieną ištyrinėtą sluoksnį. Jo debesys atrodo lygiai kaip žaidime.",
   "news.0.155.3": "Labai atitolinus vaizdą, kopėčios ir angos nebeturi savo didelių ženklų. Jos mažėja kartu su viskuo, todėl kelius aukštyn ir žemyn teks rasti apsidairant.",
   "news.0.155.2": "Wiki nebeatsako vien todėl, kad žymeklis praslenka virš ko nors. Norėdamas paklausti Wiki apie daiktą, {phone:palaikyk ant jo pirštą|laptop:paspausk ir palaikyk ant jo pelės mygtuką}.",
   "news.0.155.1": "Tavo pasaulis visada išsaugomas pirmiausia. Kai įrenginio saugykla pilna, žaidimas vis tiek išsaugo pasaulį, kuriame žaidi, ir nepradeda kito pasaulio ar neperjungia į jį, kol paliekamas pasaulis nėra saugiai išsaugotas.",
@@ -730,6 +731,8 @@ export default {
 
   "map.title": "Pasaulio žemėlapis",
   "map.centre": "Grįžti ten, kur esi",
+  "map.up": "Aukštesnis sluoksnis",
+  "map.down": "Gilesnis sluoksnis",
 
 
   "button.climbDown": "LIPTI ŽEMYN",

@@ -317,7 +317,11 @@ function showNext() {
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
 const perfect = createPerfect({ game, controller, hud });
 
-const worldMap = createWorldMap(el.worldMap, { getState: () => game.state, look });
+const worldMap = createWorldMap(el.worldMap, {
+  getState: () => game.state,
+  look,
+  pill: { root: el.mapLayer, label: el.mapLayerName.firstElementChild, value: el.mapLayerName.lastElementChild, up: el.mapUp, down: el.mapDown }
+});
 const fresh = createFresh();
 const income = createIncome();
 const sheet = createSheet(el, {
@@ -394,6 +398,8 @@ el.versionBtn.addEventListener('click', () => sheet.toggle('news'));
 el.mapIn.addEventListener('click', () => worldMap.zoom(1.5));
 el.mapOut.addEventListener('click', () => worldMap.zoom(1 / 1.5));
 el.mapMe.addEventListener('click', () => worldMap.centre());
+el.mapUp.addEventListener('click', () => worldMap.layer(1));
+el.mapDown.addEventListener('click', () => worldMap.layer(-1));
 el.resources.addEventListener('click', (e) => {
   const chip = e.target.closest('.chip');
   if (chip) sheet.showStatement(chip.dataset.res || null);
@@ -794,6 +800,7 @@ window.MTE_GAME = {
   },
   quality: () => quality.level,
   mapNames: () => worldMap.names(),
+  mapLayer: () => worldMap.shown(),
   perfVisible: () => perf.visible,
   wiki,
   project: (x, y, h) => cam.project(x, y, h),
