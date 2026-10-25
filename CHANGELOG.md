@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.155.2] - 2026-10-25
+
+Hovering no longer asks Wiki anything (Watch: "Wiki should not highlight
+objects because of hover with mouse. The trigger is click and hold, or tap
+and hold."). Before this, a mouse resting on a thing for 400 ms made Wiki
+answer and outlined it, so moving the mouse across the map set off a stream
+of answers and rings.
+
+### Changed
+- `src/game/wiki.js` no longer listens to the mouse moving over the map:
+  no answer, no outline, no head turn. Pressing and holding (0.5 s, mouse
+  or finger) is how to ask, as touch already did; tapping Wiki and then a
+  thing, or dragging from Wiki onto it, still works.
+- Wiki's hello tells laptop players to press and hold; README and
+  `docs/ui.md` say the same. A browser check holds a hovering mouse still
+  and expects nothing, then a press and hold and expects an answer.
+
 ## [0.155.1] - 2026-10-25
 
 Two ways to lose a solo world are closed (the review of v0.131.3–v0.154.0;

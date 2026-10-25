@@ -1,9 +1,9 @@
 /* Wiki, the mycelium sprite on Mica's hood (drawn by render/wiki-model.js).
  * It looks at what the player points at and says one short line about the
- * things worth knowing: once each, unless asked again. With a mouse, point at
- * something; rest the pointer on it to hear it again. On a touch screen, hold
- * a finger on a thing (slide it to ask about the next), tap Wiki and then tap
- * a thing, or drag from Wiki onto it. Whatever Wiki is talking about is
+ * things worth knowing: once each, unless asked again. Hovering asks nothing
+ * (Watch, 2026-10-25): press and hold the mouse or a finger on a thing (slide
+ * it to ask about the next), tap Wiki and then tap a thing, or drag from Wiki
+ * onto it. Whatever Wiki is talking about is
  * outlined in the world (render/focus.js). Presentation only:
  * nothing here changes the game. What Wiki has told is kept per browser
  * (wiki-memory.js), so it carries over to new worlds like any knowledge. */
@@ -12,8 +12,6 @@ import { t } from '../i18n/i18n.js';
 import { describeLook, describeWorld } from './tooltips.js';
 import { createWikiMemory, WIKI_MODES } from './wiki-memory.js';
 
-const HOVER_MS = 400;        // a new thing under the pointer
-const DWELL_MS = 1200;       // a known thing, when the pointer rests on it
 const ASK_MS = 8000;         // how long a tap on Wiki waits for the next tap
 const LOOK_HOLD_S = 1.5;     // Wiki keeps looking a moment after the pointer leaves
 const REST_AFTER_S = 6;      // then it closes its eyes
@@ -42,7 +40,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
   const started = performance.now() / 1000;
   let clock = 0, scanIn = 0, fold = 0, folding = false;
   let line = null, hideAt = 0, size = null;
-  let lookAt = null, lookedAt = -Infinity, hovering = false, hoverKey = '', hoverTimer = 0;
+  let lookAt = null, lookedAt = -Infinity;
   let anchor = null, asking = false, askTimer = 0, press = null;
   let focus = null, holdKey = '';  // what the outline is around; the tile a long press is on
 
@@ -84,21 +82,6 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
   }
   function look(tile) { lookAt = tile; lookedAt = clock; }
   function stopAsking() { asking = false; clearTimeout(askTimer); if (line && !line.kind && bubble.classList.contains('asking')) hush(); }
-
-  // A mouse: Wiki looks at whatever the pointer is on.
-  canvas.addEventListener('pointermove', (e) => {
-    if (off() || e.pointerType === 'touch' || e.buttons || press) return;
-    hovering = true;
-    const wiki = onWiki(e), tile = wiki ? null : tileUnder(e), key = wiki ? 'wiki' : tile.x + ',' + tile.y;
-    if (tile) look(tile);
-    if (key === hoverKey) return;
-    hoverKey = key; clearTimeout(hoverTimer); hoverTimer = 0;
-    const info = wiki ? hello() : infoAt(tile);
-    if (!info || line?.kind === info.kind && !bubble.hidden) return;
-    const speak = memory.decide(info.kind, 'pointed', clock) === 'speak';
-    hoverTimer = setTimeout(() => { hoverTimer = 0; say(info, speak ? 'pointed' : 'asked', true, tile); }, speak ? HOVER_MS : DWELL_MS);
-  }, { passive: true });
-  canvas.addEventListener('pointerleave', () => { hovering = false; hoverKey = ''; clearTimeout(hoverTimer); hoverTimer = 0; });
 
   // Taps and drags that start on Wiki, or answer a tap on Wiki, are Wiki's:
   // they never reach the game's own walking and gathering input.
@@ -185,7 +168,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
     // that finger: off, it doesn't, and the press is the game's.
     longPress(x, y) {
       if (off()) return false;
-      stopAsking(); clearTimeout(hoverTimer); hoverTimer = 0;
+      stopAsking();
       holdKey = ''; press = { long: true };
       holdAt(x, y, true);
       return true;
@@ -207,9 +190,9 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
       clock = performance.now() / 1000 - started;
       fold += ((folding ? 1 : 0) - fold) * Math.min(1, dt * 4);
       if ((scanIn -= dt) <= 0) { scanIn = SCAN_EVERY_S; scan(); }
-      if (!memory.known.has('wiki.hello') && clock > HELLO_AFTER_S && bubble.hidden && !hoverTimer && !asking && !bannerUp()) say(hello(), 'pointed');
+      if (!memory.known.has('wiki.hello') && clock > HELLO_AFTER_S && bubble.hidden && !asking && !bannerUp()) say(hello(), 'pointed');
       if (line && !asking && !press?.long && clock > hideAt) hush();
-      if (lookAt && !hovering && !press && clock - lookedAt > LOOK_HOLD_S && bubble.hidden) lookAt = null;
+      if (lookAt && !press && clock - lookedAt > LOOK_HOLD_S && bubble.hidden) lookAt = null;
     },
     // Wiki's pose for the rig (null hides Wiki).
     pose() {

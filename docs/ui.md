@@ -303,11 +303,11 @@ reveals hidden terrain, spends resources, advances time or changes a save.
 Wiki (`src/game/wiki.js`) answers for the world itself, so the hover box above
 only covers icons and controls while Wiki talks (Settings → Wiki talks: off
 brings the world box back). Wiki rides on Mica's hood and turns toward what the
-player points at. Its bubble sits just above Wiki, below sheets and above the
+player asks about. Hovering asks nothing (Watch, 2026-10-25): the mouse
+pointer resting on the map neither outlines nor answers. Its bubble sits just above Wiki, below sheets and above the
 HUD, one name and one short line, with a "More in the wiki" link (the bubble's
 only tappable part). It fades after a few seconds; nothing pauses or waits for
-it. Mouse: a new thing speaks after 400 ms, a known one only gets a glance, and
-resting the pointer 1.2 s says it again. A long press (a finger or the mouse
+it. A long press (a finger or the mouse
 held still 0.5 s on the map) asks Wiki about what is under it; sliding on asks
 about the next thing, and the answer stays 3 s after letting go. The long press
 is Wiki's (Watch, 2026-10-25): it never walks or gathers, and keeping on

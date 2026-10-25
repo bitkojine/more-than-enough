@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.155.2": "Wiki no longer answers just because the pointer passes over something. To ask Wiki about a thing, {phone:hold your finger on it|laptop:press and hold the mouse button on it}.",
   "news.0.155.1": "Your world is always saved first. When the device's storage is full, the game still saves the world you're playing, and won't start or switch to another world until the one you're leaving is safely kept.",
   "news.0.155.0": "Nobody loses a character any more. A player caught cheating in a shared world is frozen instead of removed: the character sleeps under a tombstone with everything it had and built, and Watch can wake it up again. Nobody else is taken along with them.",
   "news.0.154.0": "{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.",
@@ -626,7 +627,7 @@ export default {
   "settings.wiki.quiet": "only when asked",
   "settings.wiki.off": "off",
   "wiki.name": "Wiki",
-  "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Hold your finger on anything|laptop:Point at anything} to ask.",
+  "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Hold your finger on anything|laptop:Press and hold the mouse on anything} to ask.",
   "wiki.ask": "{phone:Tap|laptop:Click} anything and I'll tell you about it.",
   "wiki.nothing": "Nothing worth telling there.",
   "wiki.fold": "Living crystal hates light. I'll keep my cap shut while we're near it.",

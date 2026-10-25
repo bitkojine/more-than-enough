@@ -13,9 +13,9 @@ export function createWikiMemory(saved = null) {
   return {
     mode,
     known,
-    // 'speak' or 'glance' (look at it, say nothing). how: 'asked' (a tap on
-    // Wiki, or resting the pointer on a thing), 'pointed' (the pointer just
-    // arrived on it) or 'nearby' (Mica walked up to it).
+    // 'speak' or 'glance' (look at it, say nothing). how: 'asked' (a press
+    // and hold, or a tap on Wiki), 'pointed' (Wiki's own hello) or 'nearby'
+    // (Mica walked up to it).
     decide(kind, how, now) {
       if (this.mode === 'off' || !kind) return 'glance';
       if (how === 'asked') return 'speak';

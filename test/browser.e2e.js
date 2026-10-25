@@ -1205,6 +1205,19 @@ async function main() {
   eq(heldTo.inv.mycelium, heldFrom.inv.mycelium, 'a long press gathers nothing');
   ok(heldTo.x === heldFrom.x && heldTo.y === heldFrom.y, 'a long press does not walk');
   ok(await evalJS('!!MTE_GAME.wiki.line'), 'the answer stays up after the finger lifts');
+  // The mouse resting on a thing asks nothing; pressing and holding it does.
+  var wasMode = await evalJS('MTE_GAME.wiki.mode');
+  await evalJS('MTE_GAME.wiki.setMode("quiet")');
+  await waitFor('!MTE_GAME.wiki.line', 8000);
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 195, y: 422 }, session);
+  await sleep(300);
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 196, y: 423 }, session);
+  await sleep(1600);
+  ok(await evalJS('!MTE_GAME.wiki.line && !MTE_GAME.wiki.focus'), 'hovering the mouse over a thing neither answers nor outlines it');
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: 196, y: 423, button: 'left', buttons: 1, clickCount: 1 }, session);
+  ok(await waitFor('!!MTE_GAME.wiki.line && !!MTE_GAME.wiki.focus', 3000), 'pressing and holding the mouse asks Wiki and outlines the thing');
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: 196, y: 423, button: 'left', buttons: 0, clickCount: 1 }, session);
+  await evalJS('MTE_GAME.wiki.setMode(' + JSON.stringify(wasMode) + ')');
   // A resource out of reach: the tap walks there and gathers it on arrival.
   var far = JSON.parse(await evalJS('(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;for(var y=-60;y<60;y++)for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)!==1||c.richness(s.world,x,y,0)<3||c.extractorAt(s,x,y,0))continue;var ok=true;for(var k=1;k<=4;k++){var t=c.tileAt(s.world,x-k,y,0);if(!c.walkable(s.world,x-k,y,0)||c.TILE_INFO[t].harvest){ok=false;break;}}if(ok){MTE_GAME.setPlayer(x-2.5,y+0.5);c.revealAround(s);return JSON.stringify({x:x,y:y});}}return "null";})()'));
   ok(!!far, 'found a tree across open ground');
