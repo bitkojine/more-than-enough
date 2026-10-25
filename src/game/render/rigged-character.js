@@ -154,11 +154,8 @@ export function createRiggedCharacter(){
   if(equippedPickaxe&&equippedPickaxe.tier!==tier){equippedPickaxe.root.removeFromParent();equippedPickaxe=null;}
   if(!tier){toolBack.visible=false;return;}
   if(!pickaxes.has(tier)){
-   const asset=createPickaxeModel(tier);
-   // The complete-figure pass supplies the tool's outer ink here. Keep the
-   // canonical asset's own hull for its independently baked inventory views.
-   for(const child of asset.root.children)if(child.material?.side===T.BackSide)child.visible=false;
-   pickaxes.set(tier,asset);
+   // The complete-figure pass supplies the tool's outer ink.
+   pickaxes.set(tier,createPickaxeModel(tier));
   }
   equippedPickaxe=pickaxes.get(tier);
   const stowed=steady||carrying||['build','pick','collect','up','down','cheer'].includes(action),socket=stowed?toolBack:toolGrip;toolBack.visible=stowed;

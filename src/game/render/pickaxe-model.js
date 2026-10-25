@@ -39,24 +39,32 @@ export function createPickaxeModel(level){
   plate([[-.07,.39],[-.07,.46],[.07,.46],[.07,.39]],.10,-.05,0x46565b);
   plate([[-.28,.55],[-.12,.60],[.09,.57],[-.09,.55]],.003,.049,0xeeeadf);
  }
- // Merge parts into two draw calls (flat vertex-colour fill + ink shell),
- // regardless of tier. Geometry is built only when this tier is first used.
+ // Merge parts into one flat vertex-colour draw call, regardless of tier. No
+ // ink shell: an inverted hull leaks ink between parts and breaks at sharp
+ // corners. Held, Mica's figure pass draws the outer contour; baked icons
+ // get the same single silhouette in renderPickaxeIcons. Geometry is built
+ // only when this tier is first used.
  const positions=[],normals=[],colors=[];
  for(const {g,color}of parts){const flat=g.index?g.toNonIndexed():g;const p=flat.attributes.position,n=flat.attributes.normal;for(let i=0;i<p.count;i++){positions.push(p.getX(i),p.getY(i),p.getZ(i));normals.push(n.getX(i),n.getY(i),n.getZ(i));colors.push(color.r,color.g,color.b);}if(flat!==g)flat.dispose();g.dispose();}
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(positions,3));geometry.setAttribute('normal',new T.Float32BufferAttribute(normals,3));geometry.setAttribute('color',new T.Float32BufferAttribute(colors,3));
- const fill=new T.MeshBasicMaterial({vertexColors:true,toneMapped:false}),outline=new T.MeshBasicMaterial({color:ink,side:T.BackSide,toneMapped:false});
- outline.onBeforeCompile=shader=>{shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','vec3 transformed = position + normal * 0.018;');};outline.customProgramCacheKey=()=> 'pickaxe-ink-v2';
- const root=new T.Group();root.name='pickaxe-'+tier;root.add(new T.Mesh(geometry,outline),new T.Mesh(geometry,fill));
- return {root,tier,grip:new T.Vector3(),dispose(){geometry.dispose();fill.dispose();outline.dispose();}};
+ const fill=new T.MeshBasicMaterial({vertexColors:true,toneMapped:false});
+ const root=new T.Group();root.name='pickaxe-'+tier;root.add(new T.Mesh(geometry,fill));
+ return {root,tier,grip:new T.Vector3(),dispose(){geometry.dispose();fill.dispose();}};
 }
 // Offline/browser-authoring path only. The shipped UI uses the baked images;
 // it does not create a WebGL renderer for each inventory icon.
 export function renderPickaxeIcons(){
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true});renderer.setSize(192,192,false);renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.NoToneMapping;
  const scene=new T.Scene(),camera=new T.OrthographicCamera(-.53,.53,.53,-.53,.1,10);camera.position.set(0,0,4);camera.lookAt(0,0,0);
+ // One ink silhouette around the whole tool: the flat render is stamped in
+ // ink in a ring of offsets underneath itself, like the figure pass on Mica.
+ const out=document.createElement('canvas');out.width=out.height=192;const g=out.getContext('2d'),stamp=document.createElement('canvas');stamp.width=stamp.height=192;const s=stamp.getContext('2d');
  const icons=[];for(let tier=1;tier<=6;tier++){
   const asset=createPickaxeModel(tier);scene.add(asset.root);asset.root.rotation.set(0,-.3,-.48);asset.root.position.set(-.08,-.17,0);
-  renderer.render(scene,camera);icons.push(renderer.domElement.toDataURL('image/png'));scene.remove(asset.root);asset.dispose();
+  renderer.render(scene,camera);
+  s.clearRect(0,0,192,192);s.globalCompositeOperation='source-over';s.drawImage(renderer.domElement,0,0);s.globalCompositeOperation='source-in';s.fillStyle='#'+new T.Color(ink).getHexString();s.fillRect(0,0,192,192);
+  g.clearRect(0,0,192,192);for(let i=0;i<16;i++){const a=i/16*Math.PI*2;g.drawImage(stamp,Math.cos(a)*4,Math.sin(a)*4);}g.drawImage(renderer.domElement,0,0);
+  icons.push(out.toDataURL('image/png'));scene.remove(asset.root);asset.dispose();
  }
  renderer.dispose();return icons;
 }

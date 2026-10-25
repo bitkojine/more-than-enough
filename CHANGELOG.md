@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.150.0] - 2026-10-24
+
+- No wireframes on 3D models (Watch: "never show wireframes anywhere ... the
+  goal is to make the 3D models feel and look more 2D"). Baked resource art
+  (`resourceSVG` in `src/game/render/resource-models.js`: icons, surface
+  rocks, ore, crystals, piles) drew an ink line along every face edge and
+  around every part. It now draws one ink silhouette under the whole object
+  and flat value planes on top, each stroked only in its own colour.
+- Pickaxes lose their inverted-hull ink shell, which left ink slivers
+  between parts and gaps at corners. Held, Mica's figure pass already
+  outlines the tool; the baked tier icons get one silhouette from a 2D ring
+  of ink stamps (`renderPickaxeIcons`).
+- `test/unit/resource-models.test.js` fails if any baked resource asset has
+  ink inside its silhouette, or a model uses lines or wireframe.
+
 ## [0.149.0] - 2026-10-24
 
 - Wiki joins Mica, and the game is renamed **Mica and Wiki** (Watch). Wiki is

@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.150.0": "Rocks, ore, crystals, mushrooms and pickaxes no longer show the lines of their 3D faces. Each one is now flat colour with a single dark outline around the whole thing, like a drawing.",
   "news.0.149.0": "Meet Wiki, the little mycelium sprite riding on Mica's hood. The game is now called Mica and Wiki. Wiki is the game's wiki in person: point at something ({phone:tap Wiki, then tap the thing, or drag from Wiki onto it|laptop:or rest the pointer on it to hear it again}) and Wiki tells you about it in one short line, once each. It shuts its cap near living crystal. Settings \u2192 Wiki talks turns it down to only when asked, or off.",
   "news.0.148.0": "Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.",
   "news.0.147.0": "You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.",

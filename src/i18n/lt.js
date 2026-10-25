@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.150.0": "Akmenys, rūda, kristalai, grybai ir kirtikliai nebeatskleidžia savo 3D sienelių linijų. Dabar kiekvienas nuspalvintas vientisomis spalvomis su vienu tamsiu kontūru aplink visą daiktą, kaip piešinys.",
   "news.0.149.0": "Susipažink su Wiki – mažu grybienos padarėliu, kuris jodinėja ant Micos gobtuvo. Žaidimas dabar vadinasi „Mica ir Wiki“. Wiki – tai gyvas žaidimo žinynas: parodyk į ką nors ({phone:paliesk Wiki, tada daiktą, arba nutempk nuo Wiki ant jo|laptop:arba palaikyk žymeklį ant jo, kad išgirstum dar kartą}), ir Wiki trumpai papasakos, kiekvieną dalyką po kartą. Prie gyvojo kristalo jis užverčia kepurę. Nustatymuose „Wiki kalba“ gali palikti tik atsakymus paklausus arba jį išjungti.",
   "news.0.148.0": "Po žeme laikant Rinkti dabar iškasama uoliena aplink tave, pirmiausia radiniai ir gyslos, kaip paviršiuje renkami ištekliai. O kur tik nusileidi, aplink tave atsiveria nedidelis urvas, tad niekada neįstringi viename langelyje, ant kurio nusileidai.",
   "news.0.147.0": "Dabar gali priartinti daug arčiau, kol Mica užims daugiau nei pusę ekrano: {phone:išskėsk du pirštus|laptop:sukink ratuką} ar spausk +, kad iš arti pamatytum veidą, rankas ir siūles. Taip arti Mica atrodo ryškiai, o vaizdas centruojamas į Micą, kad niekas nebūtų nukirpta.",

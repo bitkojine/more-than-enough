@@ -15,7 +15,7 @@ export function resourceCamera(position=[2.8,2.2,5]){const c=new T.OrthographicC
 export function createResourceModel(key,{form='specimen',variant=0,depleted=false}={}){
  if(!RESOURCE_MODEL_KEYS.includes(key))throw Error('Unknown resource model: '+key); // i18n-ok: developer-only asset-authoring diagnostic.
  const compact=form==='icon',faces=[],curves=[];let partId=0;const root=new T.Group();root.name='resource-'+key;
- function solid(points,polys,colors,{offset=[0,0,0],scale=1,rotation=0,lines=true,outline=true}={}){
+ function solid(points,polys,colors,{offset=[0,0,0],scale=1,rotation=0}={}){
   const part=partId++;
   const transform=new T.Matrix4().compose(V(offset),new T.Quaternion().setFromAxisAngle(new T.Vector3(0,1,0),rotation),new T.Vector3(scale,scale,scale));
   const vertices=points.map(p=>V(p).applyMatrix4(transform)),center=vertices.reduce((a,b)=>a.add(b),new T.Vector3()).multiplyScalar(1/vertices.length);
@@ -24,13 +24,13 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
    const mid=points.reduce((a,b)=>a.add(b),new T.Vector3()).multiplyScalar(1/points.length);
    if(normal.dot(mid.sub(center))<0){points.reverse();normal.negate();}
    const value=normal.normalize().dot(LIGHT),tone=colors.length===1?0:value>.35?1:value<-.25?2:0;
-   faces.push({points,color:colors[tone%colors.length],lines:lines&&!compact,outline,part});
+   faces.push({points,color:colors[tone%colors.length],part});
   }
  }
- function rock(offset,scale,palette,rotation=0,decorative=false){
+ function rock(offset,scale,palette,rotation=0){
   const bottom=[[-.36,.04,.16],[-.30,.03,-.22],[.18,0,-.28],[.39,.06,.07],[.18,.02,.27]],top=[[-.36,.27,.14],[-.22,.46,-.19],[.17,.38,-.25],[.31,.22,.08],[.08,.38,.23]];
   const points=[...bottom,...top,[-.06,.47,-.02]],polys=[];for(let i=0;i<5;i++){polys.push([i,(i+1)%5,(i+1)%5+5,i+5]);polys.push([i+5,(i+1)%5+5,10]);}
-  solid(compact?points.map(([x,y,z],i)=>[x*(i<5?.82:1),y*.72,z*(i<5?.85:1)]):points,polys,palette,{offset,scale,rotation,lines:!decorative,outline:!decorative});
+  solid(compact?points.map(([x,y,z],i)=>[x*(i<5?.82:1),y*.72,z*(i<5?.85:1)]):points,polys,palette,{offset,scale,rotation});
  }
  function prism(a,b,r,palette){
   const start=V(a),end=V(b),axis=end.clone().sub(start).normalize(),side=new T.Vector3(0,0,1).cross(axis).normalize(),other=axis.clone().cross(side).normalize(),points=[];
@@ -43,9 +43,9 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
   const points=[[x,height+radius*.55,z]],polys=[],n=16;
   for(const [r,y]of [[radius*.7,height+radius*.4],[radius,height]])for(let i=0;i<n;i++)points.push([x+r*Math.cos(i/n*Math.PI*2),y,z+r*Math.sin(i/n*Math.PI*2)]);
   for(let i=0;i<n;i++){const j=(i+1)%n;polys.push([0,1+i,1+j],[1+i,1+n+i,1+n+j,1+j]);}
-  solid(points,polys,[color],{lines:false});
+  solid(points,polys,[color]);
   // Two broad cream spots carry fungal identity at actual inventory sizes.
-  for(const dx of [-.045,.045])rock([x+dx,height+radius*.40,z+.04],.042,['#fff0d4'],0,true);
+  for(const dx of [-.045,.045])rock([x+dx,height+radius*.40,z+.04],.042,['#fff0d4']);
  }
  if(key==='mycelium'){
   // Caps and stems are the readable material identity. The owner removed
@@ -88,21 +88,18 @@ export function createResourceModel(key,{form='specimen',variant=0,depleted=fals
 export function resourceSVG(asset,{width=64,height=64,heading=0,grounded=false,view='world'}={}){
  const profile=view==='icon'?RESOURCE_ICON_VIEWS[asset.key]:null,camera=resourceCamera(profile?.camera),rotation=new T.Matrix4().makeRotationY(Math.round(heading)*Math.PI/4),viewMatrix=new T.Matrix4().multiplyMatrices(camera.matrixWorldInverse,rotation);
  const project=p=>p.clone().applyMatrix4(viewMatrix),polys=[];
- for(const f of asset.faces){const p=f.points.map(project),n=new T.Vector3().crossVectors(p[1].clone().sub(p[0]),p[2].clone().sub(p[0]));if(n.z>1e-8)polys.push({points:p,color:f.color,lines:f.lines,outline:f.outline,part:f.part,z:p.reduce((s,v)=>s+v.z,0)/p.length});}
+ for(const f of asset.faces){const p=f.points.map(project),n=new T.Vector3().crossVectors(p[1].clone().sub(p[0]),p[2].clone().sub(p[0]));if(n.z>1e-8)polys.push({points:p,color:f.color,part:f.part,z:p.reduce((s,v)=>s+v.z,0)/p.length});}
  const curves=asset.curves.map(c=>({...c,points:c.points.map(project),z:c.points.map(project).reduce((s,v)=>s+v.z,0)/4}));
  const points=[...polys.flatMap(p=>p.points),...curves.flatMap(c=>c.points)],xs=points.map(p=>p.x),ys=points.map(p=>p.y),minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys),padding=profile?.padding??4;
  const scale=Math.min((width-padding*2)/(maxX-minX||1),(height-padding*2)/(maxY-minY||1)),cx=(minX+maxX)/2,cy=(minY+maxY)/2,centerY=grounded?height-1.2-(maxY-minY)*scale/2:height/2;
  const xy=p=>[(width/2+(p.x-cx)*scale+(profile?.offset[0]??0)*width/64).toFixed(1),(centerY-(p.y-cy)*scale+(profile?.offset[1]??0)*height/64).toFixed(1)].join(',');
+ // Flat cel finish: one ink silhouette around the whole object, then flat
+ // value planes with no ink between faces or parts. Each fill is stroked in
+ // its own colour so anti-aliased seams never show the mesh underneath.
+ const ink=[...polys.map(p=>`<path d="M${p.points.map(xy).join('L')}Z" fill="${INK}" stroke="${INK}" stroke-width="4.8"/>`),...curves.map(c=>`<path d="M${xy(c.points[0])}C${c.points.slice(1).map(xy).join(' ')}" fill="none" stroke="${INK}" stroke-width="${(c.radius*2*scale+4.8).toFixed(1)}"/>`)].join('');
  const groups=new Map();for(const p of polys){if(!groups.has(p.part))groups.set(p.part,[]);groups.get(p.part).push(p);}
- const key=p=>p.toArray().map(n=>n.toFixed(6)).join(',');
- const pieces=[...groups.values()].map(group=>{
-  const edges=new Map();for(const f of group)for(let i=0;i<f.points.length;i++){const a=f.points[i],b=f.points[(i+1)%f.points.length],id=[key(a),key(b)].sort().join('|');if(edges.has(id))edges.get(id).count++;else edges.set(id,{a,b,count:1});}
-  const fills=group.sort((a,b)=>a.z-b.z).map(p=>`<path d="M${p.points.map(xy).join('L')}Z" fill="${p.color}" stroke="${p.lines?INK:p.color}" stroke-width="${p.lines?'.7':'.5'}"/>`).join('');
-  const contour=group[0].outline?`<path d="${[...edges.values()].filter(e=>e.count===1).map(e=>'M'+xy(e.a)+'L'+xy(e.b)).join('')}" fill="none" stroke="${INK}" stroke-width="1.8"/>`:'';
-  return {z:group.reduce((s,p)=>s+p.z,0)/group.length,svg:fills+contour};
- });
- for(const c of curves){const d=`M${xy(c.points[0])}C${c.points.slice(1).map(xy).join(' ')}`,w=c.radius*2*scale;pieces.push({z:c.z,svg:`<path d="${d}" fill="none" stroke="${INK}" stroke-width="${(w+1.8).toFixed(1)}"/><path d="${d}" fill="none" stroke="${c.color}" stroke-width="${w.toFixed(1)}"/>`});}
- return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><!-- Generated from resource-models.js; edit the 3D source. --><g stroke-linejoin="round" stroke-linecap="round">${pieces.sort((a,b)=>a.z-b.z).map(p=>p.svg).join('')}</g></svg>\n`;
+ const pieces=[...[...groups.values()].map(group=>({z:group.reduce((s,p)=>s+p.z,0)/group.length,svg:group.sort((a,b)=>a.z-b.z).map(p=>`<path d="M${p.points.map(xy).join('L')}Z" fill="${p.color}" stroke="${p.color}" stroke-width="1.2"/>`).join('')})),...curves.map(c=>({z:c.z,svg:`<path d="M${xy(c.points[0])}C${c.points.slice(1).map(xy).join(' ')}" fill="none" stroke="${c.color}" stroke-width="${(c.radius*2*scale).toFixed(1)}"/>`}))];
+ return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><!-- Generated from resource-models.js; edit the 3D source. --><g stroke-linejoin="round" stroke-linecap="round"><g>${ink}</g>${pieces.sort((a,b)=>a.z-b.z).map(p=>p.svg).join('')}</g></svg>\n`;
 
 }
 

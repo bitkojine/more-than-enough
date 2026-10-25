@@ -28,7 +28,7 @@ test('every baked resource asset is reproducible from the recorded canonical sou
 });
 
 test('inventory forms remove small branches while retaining real shared-model volume',()=>{
- for(const key of ['crystal']){const world=createResourceModel(key),icon=createResourceModel(key,{form:'icon'});assert.ok(icon.faces.length+icon.curves.length<world.faces.length+world.curves.length);assert.ok(icon.faces.every(f=>!f.lines),'small icons use value planes and outer contours');world.dispose();icon.dispose();}
+ for(const key of ['crystal']){const world=createResourceModel(key),icon=createResourceModel(key,{form:'icon'});assert.ok(icon.faces.length+icon.curves.length<world.faces.length+world.curves.length);world.dispose();icon.dispose();}
  const a=createResourceModel('stone'),b=createResourceModel('stone',{form:'icon'});assert.ok(new T.Box3().setFromObject(b.root).max.y<new T.Box3().setFromObject(a.root).max.y);a.dispose();b.dispose();
 });
 test('stone values follow a coherent baked light direction instead of face ordering',()=>{
@@ -38,4 +38,16 @@ test('stone values follow a coherent baked light direction instead of face order
 
 test('mycelium material views show mushroom caps and stems without root curves',()=>{
  for(const form of ['specimen','icon']){const a=createResourceModel('mycelium',{form});assert.equal(a.curves.length,0);assert.ok(a.faces.length>0);a.dispose();}
+});
+
+// Watch, 2026-10-24: 3D models read as flat 2D cel art. Ink only ever traces
+// the whole object's silhouette; no face, part or mesh edge is drawn inside it.
+test('baked resource art draws no wireframe: ink only as the whole-object silhouette',()=>{
+ const manifest=JSON.parse(file('art/resources/models.json'));
+ for(const r of manifest.assets){
+  const svg=file(r.file).toString(),body=svg.replace(/<g><path[^]*?<\/g>/,'');
+  assert.match(svg,/<g><path d="[^"]+" fill="#1d1712" stroke="#1d1712"/,r.file+' has one ink silhouette layer under the fills');
+  for(const [,fill,stroke]of body.matchAll(/<path d="[^"]+" fill="([^"]+)" stroke="([^"]+)"/g))assert.equal(stroke,fill,r.file+': a fill may only be stroked in its own colour, never ink');
+ }
+ for(const key of RESOURCE_MODEL_KEYS){const a=createResourceModel(key);a.root.traverse(o=>{assert.ok(!o.isLine&&!o.isLineSegments,key+' has no edge lines');if(o.material)assert.ok(!o.material.wireframe,key+' is not wireframe');});a.dispose();}
 });

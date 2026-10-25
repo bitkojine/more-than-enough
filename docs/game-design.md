@@ -512,6 +512,13 @@ changes presentation only; it adds no collision area, time, inventory or actions
 Rendered-edge checks cover headings, gait, work and cargo and reproduce the
 previous missing-outline failure. Custom packs retain their authored artwork.
 
+No wireframes anywhere (Watch, 2026-10-24: "outlines around the whole
+object? sure. but the goal is to make the 3D models feel and look more 2D").
+Ink traces only the silhouette of a whole object; faces, parts and mesh edges
+are never inked inside it, and shape inside reads from flat value planes
+alone. Since v0.150.0 this covers the baked resource art (icons, surface
+props, piles) and the pickaxe, whose inverted-hull shell was removed.
+
 
 ### Tool-use correction (v0.144.0)
 
