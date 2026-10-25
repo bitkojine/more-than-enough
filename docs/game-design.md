@@ -108,8 +108,32 @@ These are design recommendations, not approved rules:
 - Explain environmental dependency visibly at the consuming structure. Design infrastructure that can support reliable operation; ongoing requirements do not themselves imply manual maintenance clicks or unavoidable periodic failures.
 - Define failure and recovery of installed crystal, particularly in the final machine, without conflating material degradation with death of a cultivated colony. After activation, completion remains an earned record even if later environmental failure damages the installed material.
 
+### Story arc: bring the heart home — confirmed, 2026-10-25
+The new-world game ended too quickly (a bot wins in 6–9 minutes, a person in
+perhaps 30–60), and all of it happened near spawn. The arc spans three places,
+with something to do on the surface and underground: **home** (surface near
+spawn, the settlement), **the far station** (a landmark far off on the surface,
+visible on the world map from the start, suggested 2–3 km out) and **the deep**
+(the buried machine underground near spawn).
+
+The machine is whole except for its heart, a living-crystal lens its builders
+carried to the far station long ago. It cannot be grown; it must be brought home,
+and because light and heat damage it, the journey is the danger. Chapters:
+settle at home; find the machine and make the first repair, whose clue marks the
+far station; travel there and build a camp at the failing station; plan and build
+a dark, cool route home (night travel, cool waystations or a sealed track);
+install the lens with the remaining repairs and activate. The ending is visible
+in the world and on the map, not only a toast.
+
+Length comes from new places, problems and buildings, never from longer prices
+or timers. Each repair needs something different from a different place. The far
+station appears only on land nobody has generated yet, or as saved edits, so no
+played world changes where someone has been. Distances, recipes and how the lens
+degrades in transit are provisional playtest values. Whether the shared world
+gets this arc is undecided.
+
 ### Other design questions still open
-- What is the machine, why did it stop, and what does activating it do?
+- What is the machine for, why did it stop, and what does waking it do beyond lighting up? (Its heart is the lens from the far station; the deeper purpose stays open.)
 - How do players discover its parts and reveal its purpose while retaining agency?
 - Which temperature conditions and machinery interactions create interesting layouts?
 - How are chambers enclosed, cooled and serviced without exposing colonies to damaging light?
