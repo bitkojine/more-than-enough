@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.150.1] - 2026-10-25
+
+- Fixed: underground, next to plain rock, the Gather button read
+  "GATHER +NaNeNaN" (Watch). Plain rock has no resource, and once the event
+  economy was running `buildingRate(s, null)` looked up a rate that doesn't
+  exist and returned `undefined`, so `gatherYield` was NaN and the number
+  formatter printed it as "NaN" + "e" + "NaN". `gatherYield` now pays 0 for no
+  resource (as `harvestAt` already did), the event economy's `buildingRate`
+  answers 0 for a resource it has no buildings of, and the button shows plain
+  "GATHER" when the dig pays nothing.
 ## [0.150.0] - 2026-10-24
 
 - No wireframes on 3D models (Watch: "never show wireframes anywhere ... the

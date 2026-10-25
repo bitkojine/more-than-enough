@@ -59,7 +59,9 @@ export function toolStat(s, id) {
 
 // One gather of `res`: what the tool brings, plus HAND_SHARE seconds of your
 // buildings' output of it, so working by hand always adds to waiting.
+// Plain rock (no resource) pays nothing, as harvestAt pays it.
 export function gatherYield(s, res) {
+  if (!res) return 0;
   return toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield + HAND_SHARE * buildingRate(s, res);
 }
 

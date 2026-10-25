@@ -526,3 +526,19 @@ test('digging out a find pays its loot at once, scaled by layer and tool, and it
   assert.ok(!C.findsNear(s, 40).some((g) => g.x === f.x && g.y === f.y), 'and stops glinting');
   assert.deepEqual(C.findsNear(away(C.createState(1))), [], 'nothing glints on the surface');
 });
+
+test('digging plain rock offers and pays nothing, never NaN, with the event economy running', () => {
+  const s = away(C.createState(5));
+  C.goDown(s);
+  s.tools.pickaxe = 1;
+  atWall(s);
+  s.unlocks.logistics = true;
+  assert.ok(C.startEventEconomy(s), 'the browser runs this economy');
+  const t = C.harvestTarget(s);
+  assert.ok(t && t.res === null, 'plain rock beside you');
+  assert.equal(C.gatherYield(s, t.res), 0, 'the Gather button has no "+n" to show');
+  assert.equal(C.buildingRate(s, 'no-such-resource'), 0);
+  const before = { ...s.inv };
+  assert.equal(C.harvest(s).amount, 0);
+  for (const r of C.RESOURCES) assert.ok(Number.isFinite(s.inv[r]) && s.inv[r] === before[r], r);
+});

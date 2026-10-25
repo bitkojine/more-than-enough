@@ -135,7 +135,7 @@ export function createEventEconomy(state, { tickHz = 60, rateFor, trickleFor, ow
     canAfford(cost) { settle(); return account.canAfford(cost); },
     pay(cost) { settle(); return account.pay(cost); },
     productionRates() { return { ...rates }; },
-    buildingRate(resource) { return buildingRates[resource]; },
+    buildingRate(resource) { return buildingRates[resource] || 0; },
     extractorCount(key) { return counts.get(key) || 0; },
     cacheMastery(value) { mastery = Object.freeze({ ...value }); },
     get mastery() { return mastery; },

@@ -206,7 +206,10 @@ export function createHud(el, look) {
       if (collect) {
         icon = 'ui.collect'; label = t('button.collect', { n: fmtShort(collect.total) }); ready = true;
       } else if (harvest) {
-        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather'; label = t('button.gatherYield', { n: fmtShort(Core.gatherYield(s, harvest.res)) }); ready = true;
+        // Plain rock pays nothing, so it gets no "+n" (it once read +NaNeNaN).
+        icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather';
+        label = harvest.res ? t('button.gatherYield', { n: fmtShort(Core.gatherYield(s, harvest.res)) }) : t('button.gather');
+        ready = true;
       } else if (Core.isUnderground(s)) {
         label = t('button.gather'); ready = true;
       }
