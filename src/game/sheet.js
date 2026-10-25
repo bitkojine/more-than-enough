@@ -159,8 +159,11 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   function crystalRows(s){
     const c=s.cultivation,p=s.player;let html=`<div class="section">${crystalName('deep')}</div>`;
     html+=row(pic('resource.crystal'),crystalName('crystal'),(c.starter?t('cr.specimen',{n:Math.floor(c.starter.health)}):t('cr.quality',{n:Math.floor(c.quality)}))+`<meter class="crystalTolerance" min="0" max="100" value="${c.starter?.health??c.quality}"></meter>`,crystalButton('lantern','',Math.floor(p.x),Math.floor(p.y),crystalName(c.lantern?'lightOn':'lightOff')));
-    for(const kind of ['chamber','cooler','vault','conduit'])html+=row(pic(Core.CULTIVATION_LOOK[kind],'image'),crystalName(kind),crystalName(kind+'.desc')+'<br>'+crystalCost(s,kind),crystalButton('build',kind,Math.floor(p.x),Math.floor(p.y),t('sheet.place')));
+    const h=c.heart,hp=Math.floor(h?.health??100);
+    if(h&&c.restored)html+=row(pic(Core.CULTIVATION_LOOK.station,'image'),crystalName('heart'),(h.where==='carried'?t('cr.heart.carried',{n:hp}):typeof h.where==='number'?t('cr.heart.resting',{n:hp}):crystalName('heart.'+h.where))+(h.where==='installed'?'':`<meter class="crystalTolerance" min="0" max="100" value="${hp}"></meter>`),'');
+    for(const kind of ['chamber','cooler','vault','conduit','shelter'])html+=row(pic(Core.CULTIVATION_LOOK[kind],'image'),crystalName(kind),crystalName(kind+'.desc')+'<br>'+crystalCost(s,kind),crystalButton('build',kind,Math.floor(p.x),Math.floor(p.y),t('sheet.place')));
     for(const b of c.facilities)if(b.z===p.z&&Math.hypot(b.x+.5-p.x,b.y+.5-p.y)<=1.65){
+      if(b.kind==='shelter'){const act=h?.where===b.id?'heart.take':h?.where==='carried'?'heart.rest':'';html+=row(pic(Core.CULTIVATION_LOOK.shelter,'image'),crystalName('shelter'),crystalName('shelter.desc'),act?crystalButton('heart','',b.x,b.y,crystalName(act)):'');continue;}
       let sub=crystalName(Core.cultivationStatus(s,b))+'<br>'+t('cr.temperature',{n:b.temperature.toFixed(1)})+'<br>'+t('cr.buffer',{n:b.buffer.toFixed(1)})+' · '+t('cr.quality',{n:Math.floor(b.quality)});
       if(b.kind==='machine')sub+='<br>'+t('cr.sections',{n:Core.machineSections(b),total:Core.MACHINE_REPAIRS.length});
       if(b.health!==undefined)sub+='<br>'+t('cr.health',{n:Math.floor(b.health)});
@@ -171,11 +174,12 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     }
     for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
       const x=Math.floor(p.x)+dx,y=Math.floor(p.y)+dy;
+      if(Core.heartAt(s,x,y)&&Core.isExplored(s.world,x,y,p.z))html+=row(pic(Core.CULTIVATION_LOOK.station,'image'),crystalName('station'),crystalName('station.desc'),h?.where==='station'?crystalButton('heart','',x,y,crystalName('heart.take')):'');
       if(Core.PROPS[s.world.props.get(Core.packKey(x,y,p.z))]?.light)html+=row('',t('cr.shade'),'',crystalButton('shade','',x,y,t('cr.shade')));
       if(Core.wildColony(s,x,y))html+=row(pic('tile.geode','top'),crystalName('wild'),'',crystalButton('starter','',x,y,crystalName('gather')));
     }
     if(c.completed)html+=`<div class="row"><p>${crystalName('activated')}</p></div>`;
-    if(c.restored)html+=`<div class="row"><p>${crystalName('discovery')}</p></div>`;
+    if(c.restored)html+=`<div class="row"><p>${crystalName('discovery.'+Core.machineClue(s))}</p></div>`;
     return html;
   }
   function renderUpgrades(s) {

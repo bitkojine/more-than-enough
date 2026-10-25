@@ -74,7 +74,9 @@ test('machine activation requires all physical repairs, cooling, sealed shutters
  s.player={x:b.x+.5,y:b.y+.5,z:b.z};const at={x:b.x,y:b.y};
  assert.equal(C.cultivationCommand(s,{type:'activate',...at}),'sections');
  build(s,'cooler',b.x,b.y+1);s.player={x:b.x+.5,y:b.y+.5,z:b.z};
- for(const recipe of C.MACHINE_REPAIRS){const before={...s.inv};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');for(const [r,n]of Object.entries(recipe))assert.equal(s.inv[r],before[r]-n);assert.equal(C.canEmbark(s),false);}
+ for(const [i,recipe] of C.MACHINE_REPAIRS.entries()){
+  if(i===1){assert.equal(cmd(s,'repair',null,b.x,b.y),'heart','the second section needs the stolen heart');s.cultivation.heart={where:'carried',health:C.HEART_MIN-1};assert.equal(cmd(s,'repair',null,b.x,b.y),'cracked');s.cultivation.heart.health=90;}
+  const before={...s.inv};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');for(const [r,n]of Object.entries(recipe))assert.equal(s.inv[r],before[r]-n);assert.equal(C.canEmbark(s),false);}
  cmd(s,'shutter',null,b.x,b.y);assert.equal(cmd(s,'activate',null,b.x,b.y),'close');cmd(s,'shutter',null,b.x,b.y);
  b.quality=10;assert.equal(cmd(s,'activate',null,b.x,b.y),'quality');b.quality=100;b.temperature=30;assert.equal(cmd(s,'activate',null,b.x,b.y),'cooling');b.temperature=18;
  assert.equal(cmd(s,'activate',null,b.x,b.y),'activated');assert.ok(C.canEmbark(s));C.advanceGoals(s);assert.ok(s.goalsDone.includes('master'));

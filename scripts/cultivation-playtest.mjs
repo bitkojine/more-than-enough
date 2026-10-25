@@ -30,7 +30,7 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function act(intent){budget();const result=controller.perform(intent,false);trace.push({intent,result});actions++;if(!result)throw Error('refused '+JSON.stringify(intent));advance(15);return result;}
  function command(type,kind,at=feet()){
   const cmd={type,kind,x:at.x,y:at.y};const result=C.cultivationCommand(state,cmd);trace.push({cultivation:cmd,result});actions++;
-  if(!['ok','discovery','activated'].includes(result))throw Error(result+' '+JSON.stringify(cmd));controller.checkGoals();advance(15);return result;
+  if(!['ok','lifted','discovery','activated'].includes(result))throw Error(result+' '+JSON.stringify(cmd));controller.checkGoals();advance(15);return result;
  }
  function stage(name){if(!name.startsWith('blocked:')){for(const rule of rules)rule.check(state);if(!C.deserialize(C.serialize(state)))throw Error('unreadable stage save');}const point={name,seconds:state.time,inv:{...state.inv},position:{...state.player}};stages.push(point);log(point);}
  function feet(){return {x:Math.floor(state.player.x),y:Math.floor(state.player.y)};}
@@ -40,11 +40,12 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function pass(x,y){const i=info(x,y);return i.walk?(!i.swim||C.canWade(state)):i.solid&&i.harvest&&C.tileAt(state.world,x,y,state.player.z)!==C.T.GEODE&&!C.gearNeeded(state,x,y);}
  // Integer-cost shortest search visits only observed tiles. O(observed tiles)
  // per new target; routes are followed without searching again at every tick.
- function search(predicate,frontier=false){
+ function search(predicate,frontier=false,score=null){
   const origin=feet(),buckets=[[origin]],cost=new Map([[key(origin),0]]),prev=new Map();let best=null,bestScore=Infinity;
   for(let d=0;d<buckets.length&&d<=1200;d++)for(const p of buckets[d]||[]){
    if(cost.get(key(p))!==d)continue;
    if(predicate(p))return {at:p,path:path(p)};
+   if(score){const n=score(p);if(n<bestScore){best=p;bestScore=n;}}
    const ns=[[p.x+1,p.y],[p.x-1,p.y],[p.x,p.y+1],[p.x,p.y-1]];
    if(frontier&&ns.some(([x,y])=>!seen(x,y))){const score=d+(visits.get(key(p)+','+state.player.z)||0)*20;if(score<bestScore){best=p;bestScore=score;}}
    for(const [x,y]of ns){if(Math.abs(x-origin.x)>256||Math.abs(y-origin.y)>256||!seen(x,y)||(!predicate({x,y})&&!pass(x,y)))continue;
@@ -72,12 +73,38 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function buildProducer(kind){const at=seek(p=>{const t=C.tileAt(state.world,p.x,p.y,state.player.z),d=C.EXTRACTORS[kind];return t===d.tile&&C.richness(state.world,p.x,p.y,state.player.z)>0&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!C.holeBelow(state.world,p.x,p.y,state.player.z)&&!C.wayUp(state.world,p.x,p.y,state.player.z);},true);act({type:'place',key:kind,...at});}
  function go(at){const r=search(p=>key(p)===key(at));if(!r)throw Error('unreachable '+JSON.stringify(at));follow(r,true);}
  function buildingSite(near,radius=3,extra=()=>true){return seek(p=>extra(p)&&Math.abs(p.x-near.x)+Math.abs(p.y-near.y)<=radius&&pass(p.x,p.y)&&!info(p.x,p.y).rise&&!info(p.x,p.y).descend&&!C.cultivationAt(state,p.x,p.y)&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!state.world.props.has(C.packKey(p.x,p.y,state.player.z)));}
+ // The hiding place is marked on the world map, so a player knows where it is.
+ const near=(at,r=1.6)=>Math.hypot(at.x+.5-state.player.x,at.y+.5-state.player.y)<=r;
+ function toward(target){
+  for(let i=0;i<3000&&!near(target);i++){
+   const r=search(()=>false,false,p=>Math.hypot(p.x-target.x,p.y-target.y)+(visits.get(key(p)+','+state.player.z)||0)*30);
+   if(!r||!r.path.length){explore();continue;}
+   visits.set(key(r.at)+','+state.player.z,(visits.get(key(r.at)+','+state.player.z)||0)+1);
+   for(const p of r.path.slice(0,64)){walkTile(p);shelterIfCracking();if(near(target))return;}
+  }
+  if(!near(target))throw Error('journey stall');
+ }
+ // Rests a cracking heart in a shelter until night or until it has mended.
+ function shelterIfCracking(){
+  const h=state.cultivation.heart;if(h.where!=='carried'||h.health>=C.HEART_MIN+15||!C.heartLight(state,{...feet(),z:state.player.z}))return;
+  if(state.inv.mycelium<6)gather('mycelium',6);if(state.inv.stone<10)gather('stone',10);
+  const at=buildingSite(feet(),2,p=>!C.heartAt(state,p.x,p.y));go(at);command('build','shelter',at);command('heart',null,at);
+  while(h.health<95&&C.heartLight(state,{...at,z:state.player.z}))advance(60);
+  command('heart',null,at);stage('heart rested');
+ }
+ function climbHome(){while(state.player.z<0){const up=seek(p=>!!info(p.x,p.y).rise,true);act({type:'climb',...up});}}
+ let cave,shaft;
+ function fetchHeart(){
+  const hide=C.hidingPlace(state.world.seed);climbHome();stage('surface again');
+  toward(hide);go(hide);command('heart',null,hide);stage('heart taken');
+  toward(cave);go(cave);act({type:'descend',...cave});stage('heart home');go(shaft);act({type:'descend',...shaft});
+ }
  try{
   stage('empty hands');gather('mycelium',34);buy('basket');gather('mycelium',8);gather('stone',5);buy('pickaxe');
   gather('mycelium',32);buy('boots');gather('mycelium',180);gather('stone',230);buy('pickaxe');buildProducer('garden');buildProducer('quarry');stage('surface settlement');
-  const cave=seek(p=>!!info(p.x,p.y).descend,true);act({type:'descend',...cave});stage('first descent');
+  cave=seek(p=>!!info(p.x,p.y).descend,true);act({type:'descend',...cave});stage('first descent');
   gather('ore',160);stage('metal gathered');
-  const shaft=seek(p=>info(p.x,p.y).descend||C.tileAt(state.world,p.x,p.y,state.player.z)===C.T.SHAFT,true);
+  shaft=seek(p=>info(p.x,p.y).descend||C.tileAt(state.world,p.x,p.y,state.player.z)===C.T.SHAFT,true);
   while(!C.canDescendAt(state,shaft.x,shaft.y))act({type:'harvestAt',...shaft});act({type:'descend',...shaft});stage('deep underground');
   // Reveal a reachable wild colony, never read its position from the seed.
   const wild=seek(p=>C.tileAt(state.world,p.x,p.y,state.player.z)===C.T.GEODE,true);
@@ -95,7 +122,7 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
   while(state.inv.crystal<crystalNeeded){
    if(vault.buffer>=1)command('collect',null,vaultAt);else advance(15);
   }
-  go(machine);for(let i=0;i<C.MACHINE_REPAIRS.length;i++){command('repair',null,machine);stage('machine section '+(i+1)+' restored');}
+  for(let i=0;i<C.MACHINE_REPAIRS.length;i++){if(i===1)fetchHeart();go(machine);command('repair',null,machine);stage('machine section '+(i+1)+' restored');}
   activationSave=C.serialize(state);command('activate',null,machine);stage('machine activated');
   if(!C.canEmbark(state))throw Error('activation did not complete world');
   const saved=C.deserialize(C.serialize(state));if(!saved?.cultivation.completed||!C.canEmbark(saved))throw Error('completion lost on reload');

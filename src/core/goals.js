@@ -79,7 +79,8 @@ export const CULTIVATION_GOALS=[
  {id:'cultivationDeep',text:t('cr.goal.chamber'),reached:t('cr.deep'),done:s=>s.underground.deepest<=-2},
  {id:'cultivationChamber',text:t('cr.goal.plant'),reached:t('cr.chamber'),done:s=>s.cultivation.facilities.some(b=>b.kind==='chamber'&&b.health>0)},
  {id:'crystal',text:t('cr.goal.repair'),reached:t('goal.crystal.reached'),done:s=>s.stats.crystal>0},
- {id:'cultivationRepair',text:t('cr.goal.repair'),reached:t('cr.discovery'),done:s=>s.cultivation.restored},
+ {id:'cultivationRepair',text:t('cr.goal.repair'),reached:t('cr.discovery.1'),done:s=>s.cultivation.restored},
+ {id:'cultivationHeart',text:t('cr.goal.heart'),reached:t('cr.heart.home'),done:s=>s.cultivation.heart?.where==='installed'},
  {id:'master',text:t('cr.goal.activate'),reached:t('cr.goal.done'),done:canEmbark}
 ];
 

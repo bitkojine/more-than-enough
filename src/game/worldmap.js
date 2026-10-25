@@ -12,6 +12,7 @@
 import * as Core from '../core/index.js';
 import { tileColor } from './render/terrain.js';
 import { cloudBank } from './render/fog.js';
+import { t, distance } from '../i18n/i18n.js';
 
 const CS = Core.CHUNK_SIZE;
 const GROW = 32;             // chunks the canvas grows by past what's explored
@@ -157,6 +158,36 @@ export function createWorldMap(canvas, { getState, look }) {
     ctx.moveTo(hx - u, hy); ctx.lineTo(hx, hy - u); ctx.lineTo(hx + u, hy); ctx.lineTo(hx + u * 0.7, hy);
     ctx.lineTo(hx + u * 0.7, hy + u * 0.8); ctx.lineTo(hx - u * 0.7, hy + u * 0.8); ctx.lineTo(hx - u * 0.7, hy); ctx.closePath();
     ctx.stroke(); ctx.fill();
+    // The hiding place, where the last teleport took the machine's heart:
+    // marked from the start in crystal worlds; at the edge, an arrow to it.
+    if (s.cultivation && s.cultivation.heart?.where !== 'installed') {
+      const h = Core.hidingPlace(s.world.seed), m = 18 * dpr;
+      let tx = sx(h.x + 0.5), ty = sy(h.y + 0.5);
+      const inside = tx > m && ty > m && tx < W - m && ty < H - m;
+      if (!inside) {
+        const dx = tx - W / 2, dy = ty - H / 2, f = Math.min((W / 2 - m) / Math.abs(dx || 1), (H / 2 - m) / Math.abs(dy || 1));
+        tx = W / 2 + dx * f; ty = H / 2 + dy * f;
+      }
+      ctx.save();
+      ctx.translate(tx, ty);
+      ctx.strokeStyle = '#eee9dc'; ctx.fillStyle = '#e995c4'; ctx.lineWidth = 2 * dpr;
+      if (inside) {
+        ctx.beginPath(); ctx.moveTo(0, -u); ctx.lineTo(u * 0.7, 0); ctx.lineTo(0, u); ctx.lineTo(-u * 0.7, 0); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, u * 1.7, 0, Math.PI * 2); ctx.setLineDash([3 * dpr, 3 * dpr]); ctx.stroke(); ctx.setLineDash([]);
+      } else {
+        ctx.rotate(Math.atan2(sy(h.y) - H / 2, sx(h.x) - W / 2));
+        ctx.beginPath(); ctx.moveTo(u * 1.6, 0); ctx.lineTo(-u * 0.8, -u * 0.75); ctx.lineTo(-u * 0.3, 0); ctx.lineTo(-u * 0.8, u * 0.75); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+      }
+      ctx.restore();
+      const label = t('cr.station') + ' · ' + distance(Math.hypot(h.x + 0.5 - s.player.x, h.y + 0.5 - s.player.y));
+      ctx.font = `700 ${12 * dpr}px ${KIND_FONT}`; ctx.lineWidth = 3 * dpr; ctx.strokeStyle = LABEL_EDGE; ctx.fillStyle = LABEL_INK;
+      ctx.textAlign = tx < W / 3 ? 'left' : tx > W * 2 / 3 ? 'right' : 'center';
+      const ly = ty + (ty < H / 2 ? 24 : -18) * dpr;
+      ctx.strokeText(label, tx, ly); ctx.fillText(label, tx, ly);
+      ctx.textAlign = 'center';
+    }
     // You: a bright dot with a ring, beating gently.
     const px = sx(s.player.x), py = sy(s.player.y);
     const beat = 1 + 0.25 * Math.sin(performance.now() / 260);

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.151.0] - 2026-10-25
+
+- The story arc "bring the heart home" begins (Watch picked it and set the
+  story: the machine is a teleporter whose heart was stolen in its last
+  teleport). In new crystal worlds the second machine section needs the
+  machine's heart, which waits at a hiding place about 2.5 km from home on
+  the surface. The world map marks it from the start with its distance, and
+  an arrow at the edge when it's off the map.
+- `hidingPlace(seed)` in `src/core/cultivation.js` picks open grass from the
+  seed alone and changes no terrain, so worlds already played are untouched.
+  The heart (`cultivation.heart`) is lifted with the sealed carrier. It cracks
+  in sunlight (`HEART_SUN`, scaled by daylight; nothing at night), beside a
+  lantern and in heat. A heart that cracks right through returns to the
+  hiding place. The new heart shelter (6 mycelium, 10 stone, surface or
+  underground) keeps it safe and mends it (`HEART_MEND`). A heart below
+  `HEART_MIN` won't seat.
+- Saves from before keep their progress: a machine already past its second
+  section counts its heart as home. Each repair now shows its own clue, and
+  a new milestone, "carry the heart home", sits between the first repair and
+  activation.
+- The cultivation playtest bot makes the journey, which takes it about
+  40 game minutes in all (it was 6 to 9). Art: the hiding place and the
+  shelter (`packs/default/cultivation/station-*.svg`, `shelter*.svg`).
+
 ## [0.150.1] - 2026-10-25
 
 - Fixed: underground, next to plain rock, the Gather button read

@@ -112,28 +112,31 @@ These are design recommendations, not approved rules:
 The new-world game ended too quickly (a bot wins in 6–9 minutes, a person in
 perhaps 30–60), and all of it happened near spawn. The arc spans three places,
 with something to do on the surface and underground: **home** (surface near
-spawn, the settlement), **the far station** (a landmark far off on the surface,
-visible on the world map from the start, suggested 2–3 km out) and **the deep**
+spawn, the settlement), **the hiding place** (where the last teleport landed, far off on the
+surface, visible on the world map from the start, suggested 2–3 km out) and **the deep**
 (the buried machine underground near spawn).
 
-The machine is whole except for its heart, a living-crystal lens its builders
-carried to the far station long ago. It cannot be grown; it must be brought home,
-and because light and heat damage it, the journey is the danger. Chapters:
+**The machine is a teleporter** (Watch, 2026-10-25). Its heart, a fragile
+living-crystal core, was stolen: the thief teleported it from the deep at spawn to
+a hiding place far off on the surface. That was the last teleport, because without
+its heart the machine switched off, and with it all teleportation. The heart cannot
+be grown; it must be carried home, and because light and heat damage it, the
+journey is the danger. Waking the machine brings teleportation back. Chapters:
 settle at home; find the machine and make the first repair, whose clue marks the
-far station; travel there and build a camp at the failing station; plan and build
+hiding place; travel to the hiding place and build a camp there; plan and build
 a dark, cool route home (night travel, cool waystations or a sealed track);
 install the lens with the remaining repairs and activate. The ending is visible
 in the world and on the map, not only a toast.
 
 Length comes from new places, problems and buildings, never from longer prices
-or timers. Each repair needs something different from a different place. The far
-station appears only on land nobody has generated yet, or as saved edits, so no
+or timers. Each repair needs something different from a different place. The hiding
+place appears only on land nobody has generated yet, or as saved edits, so no
 played world changes where someone has been. Distances, recipes and how the lens
 degrades in transit are provisional playtest values. Whether the shared world
 gets this arc is undecided.
 
 ### Other design questions still open
-- What is the machine for, why did it stop, and what does waking it do beyond lighting up? (Its heart is the lens from the far station; the deeper purpose stays open.)
+- Who stole the heart and why, and where can teleportation take players once the machine wakes?
 - How do players discover its parts and reveal its purpose while retaining agency?
 - Which temperature conditions and machinery interactions create interesting layouts?
 - How are chambers enclosed, cooled and serviced without exposing colonies to damaging light?
@@ -158,7 +161,7 @@ protected storage and sealed chamber-to-vault transfer, physical tending,
 degraded-crystal storage reinforcement, and three visible machine-section repairs followed by safe activation.
 Installed crystal still needs cooling/darkness. Recipes, 22°C growth limit,
 12°C local cooling, rates and tolerance thresholds are provisional playtest values.
-Each repair reveals a clue. Activating all three restored sections with viable crystal, cooling and closed shutters completes the playable world. The user approved this restoration/activation win on 2026-10-23; it does not decide the final story reveal or machine purpose. Completion remains a permanent record if infrastructure later fails. Earlier first-section repairs count toward the three stages.
+The heart (0.151.0): the hiding place, the carried heart that sunlight, lanterns and heat crack, heart shelters, and the second section seating the heart. Each repair reveals its own clue. Activating all three restored sections with viable crystal, cooling and closed shutters completes the playable world. The user approved this restoration/activation win on 2026-10-23; it does not decide the final story reveal or machine purpose. Completion remains a permanent record if infrastructure later fails. Earlier first-section repairs count toward the three stages.
 
 Existing global refinery/Overclock/Abundance purchases are absent from new-world
 progression but remain preserved in old worlds. The existing basket/pick/footwear

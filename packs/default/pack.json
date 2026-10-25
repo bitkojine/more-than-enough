@@ -641,6 +641,20 @@
     "cultivation/machine-4.svg"
    ]
   },
+  "building.hidingPlace": {
+   "image": "cultivation/station-heart.svg",
+   "stages": [
+    "cultivation/station-empty.svg",
+    "cultivation/station-heart.svg"
+   ]
+  },
+  "building.heartShelter": {
+   "image": "cultivation/shelter.svg",
+   "stages": [
+    "cultivation/shelter.svg",
+    "cultivation/shelter-heart.svg"
+   ]
+  },
   "tool.crystalCarrier": {
    "icon": "cultivation/carrier.svg",
    "image": "cultivation/carrier.svg",
