@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.155.0": "Niekas daugiau nepraranda veikėjo. Bendrame pasaulyje sukčiaujantis žaidėjas nebepašalinamas, o užšaldomas: veikėjas miega po antkapiu su viskuo, ką turėjo ir pastatė, o Watch gali jį vėl pažadinti. Kartu su juo niekas kitas nenukenčia.",
   "news.0.154.0": "{phone:Bakstelk|laptop:Spustelk} vietą, ir Mika pats ras kelią ten: aplink uolas, sienas ir vandenį. Užkliudęs kampą tik kraštu, dabar jį apeini palei sieną, o ne sustoji.",
   "news.0.153.3": "Nutolus toli, debesų kraštas lieka minkštas ir purus, o ne susitraukia į ploną liniją.",
   "news.0.153.2": "Debesyse nebeliko blankių skersinių linijų.",
@@ -843,7 +844,7 @@ export default {
   "fbi.badge": "FBI",
   "fbi.bureau": "Fair-play tyrimų biuras",
   "fbi.title": "Žinome, kad sukčiavai",
-  "fbi.text": "Šio veikėjo pažanga buvo nulaužta, todėl šiame pasaulyje jis užšaldytas. Žaisk sąžiningai ir pradėk iš naujo su nauju veikėju.",
+  "fbi.text": "Šis veikėjas sulaužė sąžiningo žaidimo taisykles, todėl šiame pasaulyje jis užšaldytas. Žaisk sąžiningai ir pradėk iš naujo su nauju veikėju.",
   "fbi.ok": "Gerai, žaisiu sąžiningai",
   "save.aside.broken": "Tavo išsaugoto pasaulio nepavyko atidaryti: išsaugojimas sugadintas. Jis saugiai padėtas į šalį, ir pataisymas gali jį sugrąžinti. Kol kas – naujas pasaulis.",
   "save.aside.format": "Tavo išsaugotas pasaulis iš kitos žaidimo versijos. Jis saugiai padėtas į šalį ir sugrįš po atnaujinimo. Kol kas – naujas pasaulis.",

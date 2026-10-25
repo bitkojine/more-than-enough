@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.155.0": "Nobody loses a character any more. A player caught cheating in a shared world is frozen instead of removed: the character sleeps under a tombstone with everything it had and built, and Watch can wake it up again. Nobody else is taken along with them.",
   "news.0.154.0": "{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.",
   "news.0.153.3": "Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.",
   "news.0.153.2": "The clouds no longer have faint lines running across them.",
@@ -843,7 +844,7 @@ export default {
   "fbi.badge": "FBI",
   "fbi.bureau": "Fair-play Bureau of Investigation",
   "fbi.title": "We know you cheated",
-  "fbi.text": "This character's progress was hacked, so it's frozen in this world. Play fair and start again with a new character.",
+  "fbi.text": "This character broke the fair-play rules, so it's frozen in this world. Play fair and start again with a new character.",
   "fbi.ok": "OK, I'll play fair",
   "save.aside.broken": "Your saved world couldn't be opened: its save is damaged. It's kept safe to one side, and a fix can bring it back. A new world meanwhile.",
   "save.aside.format": "Your saved world is from another version of the game. It's kept safe to one side and comes back after the update. A new world meanwhile.",

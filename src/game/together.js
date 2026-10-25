@@ -29,7 +29,7 @@ const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const PRIVACY_STORE = 'mte.privacy';   // the version of the privacy policy the player agreed to
 // The privacy policy (privacy/index.html). Playing together means agreeing
 // to it; a new version (after a change that matters) asks everyone again.
-export const POLICY_VERSION = '1';
+export const POLICY_VERSION = '2';
 export const policyUrl = () => 'privacy/#' + LANG;
 const INVITE_USES_STORE = 'mte.inviteUses'; // how many people your new invite links let in
 const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes

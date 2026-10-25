@@ -81,16 +81,16 @@ test('copy: nothing done in it reaches the real room', async () => {
   assert.equal(stateOf(r), before, 'making the copy only reads');
   const j = await c.join(adminKey, undefined, at);
   const s = C.joinState(j.welcome, c.id, null, null);
-  // Play in it: progress, steps, digging, building, taking the friend out
-  // (what the moderator's ban does).
+  // Play in it: progress, steps, digging, building, freezing the friend
+  // (what the moderator's freeze does).
   c.message(id, JSON.stringify({ t: 'save', s: C.progressOf(s) }), at);
   c.message(id, JSON.stringify({ t: 'pos', p: { x: s.player.x + 1, y: s.player.y, z: 0 } }), at + 1000);
   c.message(id, JSON.stringify({ t: 'edits', e: [['m', C.packKey(Math.round(s.player.x) + 1, Math.round(s.player.y), 0), 0]] }), at + 1100);
   c.made(id, [['x', 'garden', Math.round(s.player.x) + 3, Math.round(s.player.y) + 3, 0]], at + 1200);
   const friend = [...c.players.keys()].find((p) => p !== id);
-  c.ban(friend, at + 1300, 'mod', 'took them out in the copy');
+  c.freeze(friend, at + 1300, 'froze them in the copy');
   assert.equal(c.ext.length, r.ext.length + 1, 'the copy has a building the real world hasn\'t');
-  assert.equal(c.players.size, r.players.size - 1, 'and lost the friend Watch took out there');
+  assert.ok(c.players.get(friend).frozen && !r.players.get(friend).frozen, 'and froze the friend only there');
   c.left(id, true, at + 2000);
   c.takeWrites();
   assert.equal(stateOf(r), before, 'the real room is exactly as it was');

@@ -12,7 +12,7 @@
  *   GET  /admin/rooms                  every world, in brief
  *   GET  /admin/rooms/<id>/players     who is in one, and how far along
  *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
- *   POST /admin/rooms/<id>/ban         take a player out: {"id", "why"}
+ *   POST /admin/rooms/<id>/ban         the same as freeze (no ban deletes anyone since v0.155.0)
  *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
  *   POST /admin/rooms/<id>/revoke      stop an invite link: {"code"}
@@ -20,7 +20,7 @@
  *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
  *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
  *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
- *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (only marked rooms age out)
+ *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (kept out of the lists)
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), worlds are
  * Watch's to make (the admin token), and everything else is refused. The
@@ -192,9 +192,8 @@ async function admin(request, env, url) {
     try { d = JSON.parse(body); } catch { /* below */ }
     if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
     const why = typeof d.why === 'string' ? d.why : '';
-    const err = m[2] === 'ban' ? await room.modBan(m[1], d.id, why)
-      : m[2] === 'freeze' ? await room.modFreeze(m[1], d.id, why)
-      : await room.modThaw(m[1], d.id);
+    // 'ban' is kept for old tools and freezes: nothing deletes a player.
+    const err = m[2] === 'thaw' ? await room.modThaw(m[1], d.id) : await room.modFreeze(m[1], d.id, why);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
   // Stopping any invite link (only its maker can in the game itself): for a
@@ -207,9 +206,8 @@ async function admin(request, env, url) {
     const err = await room.modRevoke(m[1], d.code);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
-  // Marking a room as the deploy's smoke test (or unmarking one the old way
-  // got marked): only marked rooms age out, so the mark is the moderator's,
-  // from scripts/mark-smoke.mjs, never a guess from the seed.
+  // Marking a room as the deploy's smoke test (or unmarking one): the mark
+  // only keeps it out of the moderator's lists; nothing deletes it.
   if (m[2] === 'smoke' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
@@ -272,8 +270,8 @@ export default {
       // Worlds are made by Watch, by hand, as many as players need
       // (2026-10-20): the door is shut for everyone else before the body is
       // even read, so there is no creation left to flood. The deploy's
-      // smoke test creates under the admin token and marks its own room to
-      // age out (room.js); worlds Watch makes stay unmarked.
+      // smoke test creates under the admin token and marks its own room
+      // (kept out of the moderator's lists, room.js); worlds Watch makes stay unmarked.
       const trusted = await isAdmin(request, env);
       if (!trusted) return respond({ error: 'closed' }, 403, okOrigin);
       const len = Number(request.headers.get('Content-Length') || 0);
@@ -418,7 +416,7 @@ export class Rooms extends DurableObject {
     return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, players: r.players.size, online, bans: r.bans.size, frozen, smk: r.smoke === true };
   }
 
-  // Whether this is still the room `id` (a copy is deleted when its time is up, a smoke-test room after EXPIRE_MS unvisited).
+  // Whether this is still the room `id` (a moderator's copy is deleted when its time is up).
   async brief(id) {
     const exists = this.room.ready && this.room.id === id;
     return exists ? { exists, online: this.room.online() } : { exists };
@@ -465,20 +463,6 @@ export class Rooms extends DurableObject {
     }
     if (rows.length > LOG_CHUNKS) lines.push(JSON.stringify({ e: 'more', since: last + 1 }));
     return lines.join('\n') + '\n';
-  }
-
-  // The moderator takes a player out. Error string or null.
-  async modBan(id, player, why) {
-    if (!this.room.ready || this.room.id !== id) return 'room';
-    if (!this.room.players.has(player)) return 'player';
-    const now = Date.now();
-    const r = this.room.ban(player, now, 'mod', why);
-    for (const msg of r.toAll) this.send(msg, null);
-    this.kick(r.kick);
-    for (const other of r.also) this.kick(other);
-    await this.persist();
-    await this.schedule();
-    return null;
   }
 
   // The moderator freezes a hacked character (Room.freeze).
@@ -584,8 +568,8 @@ export class Rooms extends DurableObject {
     if (r.toSelf) for (const msg of r.toSelf) ws.send(JSON.stringify(msg));
     if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id, r.near);
     if (r.toAll) for (const msg of r.toAll) this.send(msg, null);
-    if (r.kick) this.kick(r.kick);
-    if (r.also) for (const other of r.also) this.kick(other);
+    // The anti-cheat froze them: their game shows the notice, as for the moderator's freeze.
+    if (r.kick) this.kick(r.kick, 4005, 'frozen', { t: 'frozen' });
     if (this.room.log.length >= LOG_FLUSH_EVENTS) await this.flushLog(now);
     await this.schedule();
   }

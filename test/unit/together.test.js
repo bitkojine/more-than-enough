@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, EXPIRE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_BAN, PLAYER_BUILDINGS, PLAYER_TILES, MOD_BUCKETS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
+import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_FREEZE, PLAYER_BUILDINGS, PLAYER_TILES, MOD_BUCKETS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
@@ -240,7 +240,7 @@ test('room: lost connections turn offline after a minute; clean leaves at once',
   assert.equal(r.expireLost(T0 + LOST_TO_OFFLINE_MS)[0].st, 'offline');
   await r.join(maker, undefined, T0);
   assert.equal(r.left(o.id, true, T0).st, 'offline');
-  assert.equal(r.expired(T0 + 100 * EXPIRE_MS), false, 'a players\' world is never deleted (worlds-kept.test.js)');
+  assert.equal(r.expired(T0 + 100 * 365 * 86_400_000), false, 'a players\' world is never deleted (worlds-kept.test.js)');
 });
 
 test('room: numbered edits are answered with their number, applied or refused; others as before', async () => {
@@ -270,18 +270,17 @@ test('room: a write that fails is written again next time, with whatever changed
   const guest = await r.join(key(), invite(r, o.id), T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0);
-  r.ban(guest.id, T0, 'mod', 'test'); // the player goes and the ban comes in the same write
+  r.freeze(guest.id, T0, 'test'); // the player's record and the stopped links come in the same write
   const failed = r.takeWrites();
   const gone = [...failed].filter(([, v]) => v === null).map(([k]) => k);
-  assert.ok(gone.includes('p:' + guest.id) && failed.has('meta'));
+  assert.ok(failed.get('p:' + guest.id) && failed.has('meta'));
   // Storage refused it: nothing landed.
   r.redo(new Map([...failed].filter(([, v]) => v !== null)), gone);
   assert.equal(r.isDirty, true);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 1, 0), 0]] }), T0 + 10);
   const retry = r.takeWrites();
   assert.deepEqual([...retry.keys()].sort(), [...failed.keys()].sort(), 'the same keys again, none lost');
-  assert.equal(retry.get('p:' + guest.id), null, 'the banned player is still deleted');
-  assert.ok(retry.get('meta').bans.includes(guest.id), 'together with the ban');
+  assert.ok(retry.get('p:' + guest.id), 'the frozen player is still written, never deleted');
   assert.equal(retry.get('mods:' + (Core.packKey(2, 1, 0) % MOD_BUCKETS)).length > 0, true, 'and the newer edit rides along');
 });
 
@@ -465,26 +464,32 @@ test('room: an invite lets in only as many people as asked, never unlimited, for
   assert.deepEqual([listed[4], listed[6]], [2, 2], 'the list says how many of how many');
 });
 
-test('room: a removed player stays out, the links they used and made stop, and their buildings go', async () => {
+test('room: a frozen player keeps their character and buildings; their key and the links they made stop', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const code = r.message(o.id, JSON.stringify({ t: 'invite', uses: 10 }), T0).toSelf[0].code;
   const gKey = key();
   const g = await r.join(gKey, code, T0);
   put(r, g.id, 11, 11);
-  assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1);
   const theirs = [invite(r, g.id, T0, { uses: 25 }), invite(r, g.id, T0, { uses: 5, life: 60 })];
-  const out = r.ban(g.id, T0, 'mod', 'removed by the moderator');
+  const out = r.freeze(g.id, T0, 'frozen by the moderator');
   assert.equal(out.kick, g.id);
-  assert.deepEqual(out.toAll, [{ t: 'removed', id: g.id }, { t: 'graves', g: r.graves }]);
-  assert.equal(r.ext.some((e) => e[4] === g.id), false, 'their buildings are gone');
-  assert.equal(r.extTiles.has('11,11,0'), false, 'and their tiles are free');
-  assert.equal((await r.join(gKey, code, T0)).error, 'invite', 'not back with the same key');
-  assert.equal((await r.join(key(), code, T0)).error, 'invite', 'nor with a new key on the same link');
-  for (const c of theirs) assert.equal((await r.join(key(), c, T0)).error, 'invite', 'nor through a link they made');
-  // The ban survives a restart.
+  assert.equal(out.frozen, true);
+  assert.equal(r.players.has(g.id), true, 'the character stays');
+  assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1, 'and so do their buildings');
+  assert.deepEqual(await r.join(gKey, code, T0), { error: 'frozen' }, 'their key only gets the notice');
+  assert.ok((await r.join(key(), code, T0)).id, 'the link they came in with still works for others');
+  for (const c of theirs) assert.equal((await r.join(key(), c, T0)).error, 'invite', 'but links they made stop');
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.equal((await back.join(gKey, invite(back, o.id), T0)).error, 'invite');
+  assert.deepEqual(await back.join(gKey, undefined, T0), { error: 'frozen' }, 'through a restart too');
+});
+
+test('room: nothing in a room deletes a player or their buildings (Watch, 2026-10-20)', () => {
+  const room = readFileSync(new URL('../../server/src/room.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(room, /this\.players\.delete\(/, 'no player is ever removed from a world');
+  assert.doesNotMatch(room, /this\.bans\.add\(/, 'nobody is banned any more: cheaters are frozen');
+  assert.equal(typeof Room.prototype.ban, 'undefined');
+  assert.equal(typeof Room.prototype.banOne, 'undefined');
 });
 
 test("room: a player brings in at most LIMITS.invitesPerDay people a day", async () => {
@@ -506,23 +511,19 @@ test("room: a player brings in at most LIMITS.invitesPerDay people a day", async
   assert.equal(back.players.get(m.id).brought.length, 1);
 });
 
-test("room: a ban takes everyone who came in through the player's links along, and whoever they brought", async () => {
+test("room: freezing a player touches nobody else, not even those who came in through their links", async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
-  const friend = await r.join(key(), invite(r, o.id), T0);
   const bad = await r.join(key(), invite(r, o.id), T0);
   const p1 = await r.join(key(), invite(r, bad.id), T0);
   const p2 = await r.join(key(), invite(r, p1.id), T0);
-  const ok = await r.join(key(), invite(r, friend.id), T0);
-  const out = r.ban(bad.id, T0, 'mod', 'removed by the moderator');
+  const out = r.freeze(bad.id, T0, 'frozen by the moderator');
   assert.equal(out.kick, bad.id);
-  assert.deepEqual(out.also, [p1.id, p2.id]);
-  assert.deepEqual(out.toAll.filter((m) => m.t === 'removed').map((m) => m.id), [bad.id, p1.id, p2.id]);
-  assert.deepEqual([...r.players.keys()].sort(), [o.id, friend.id, ok.id].sort(), 'the ban took only the bad link\'s tree along');
-  assert.ok([bad.id, p1.id, p2.id].every((id) => r.bans.has(id)));
+  assert.equal(out.also, undefined);
+  assert.ok([o.id, p1.id, p2.id].every((id) => r.players.has(id) && !r.players.get(id).frozen), 'their guests play on');
 });
 
-test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned', async () => {
+test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then frozen', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const code = invite(r, o.id);
@@ -536,11 +537,12 @@ test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then banned
   // A jump far beyond the budget is refused.
   pos(x + MOVE_BURST + 50, t + 10);
   assert.equal(r.players.get(c.id).p.x, Math.round(x * 1000) / 1000, 'the jump is not taken');
-  // An edit there doesn't count either, and keeps cheating gets them banned.
+  // An edit there doesn't count either, and keeps cheating gets them frozen.
   let out = {};
-  for (let i = 1; i <= CHEATS_TO_BAN && !out.kick; i++) out = pos(x + 10_000, t + i * 1000);
-  assert.equal(out.kick, c.id, 'banned');
-  assert.equal(r.players.has(c.id), false);
+  for (let i = 1; i <= CHEATS_TO_FREEZE && !out.kick; i++) out = pos(x + 10_000, t + i * 1000);
+  assert.equal(out.kick, c.id, 'frozen');
+  assert.equal(out.frozen, true, 'the game is told it is a freeze');
+  assert.ok(r.players.get(c.id).frozen, 'the character stays, frozen');
   assert.ok(MAX_SPEED > 3.7 * 2.5 * 2, 'faster than the best boots with several Nomad perks');
 });
 
@@ -555,7 +557,7 @@ test('anti-cheat: reconnecting is no teleport; a game that is elsewhere is told 
   const out = pos(90_000.5, T0 + 1000);
   assert.deepEqual(out.toSelf, [{ t: 'place', p: r.players.get(g.id).p }], 'told where the room has them');
   assert.equal(r.players.get(g.id).p.x, 0.5, 'and not moved');
-  for (let i = 1; i <= CHEATS_TO_BAN * 2; i++) assert.ok(!pos(90_000.5, T0 + 1000 + i * 1000).kick, 'never banned for it');
+  for (let i = 1; i <= CHEATS_TO_FREEZE * 2; i++) assert.ok(!pos(90_000.5, T0 + 1000 + i * 1000).kick, 'never frozen for it');
   const edit = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(90_000, 0, 0), 0]] }), T0 + 30_000);
   assert.ok(!edit.toAll && !edit.kick, 'nor can they change the world over there');
   assert.equal(r.watch.get(g.id).cheats, 0, 'none of it counts as cheating');
@@ -624,7 +626,7 @@ test('room: flicking away and back can\'t flood the other players or the log', a
   assert.equal(r.takeLog().filter((x) => x.e === 'st').length, 2);
 });
 
-test('anti-cheat: edits out of reach count, whoever the player is; everyone in through their links goes too', async () => {
+test('anti-cheat: edits out of reach count, whoever the player is; only that player is frozen', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const f = await r.join(key(), invite(r, o.id), T0);
@@ -633,14 +635,13 @@ test('anti-cheat: edits out of reach count, whoever the player is; everyone in t
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
   const far = JSON.stringify({ t: 'edits', e: [['m', Core.packKey(900, 0, 0), 0]] });
   let out = {};
-  for (let i = 0; i < CHEATS_TO_BAN && !out.kick; i++) out = r.message(o.id, far, T0 + i * 1000);
-  assert.equal(out.kick, o.id, 'the maker is banned like anyone');
-  assert.deepEqual(out.also, [f.id, g.id, h.id], 'everyone who came in through their links goes with them');
-  assert.deepEqual([...r.players.keys()], [], 'the whole invite tree was theirs');
-  assert.ok(r.bans.has(o.id));
-  // And the bans survive a restart.
+  for (let i = 0; i < CHEATS_TO_FREEZE && !out.kick; i++) out = r.message(o.id, far, T0 + i * 1000);
+  assert.equal(out.kick, o.id, 'the maker is frozen like anyone');
+  assert.ok(r.players.get(o.id).frozen);
+  assert.ok([f.id, g.id, h.id].every((id) => r.players.has(id) && !r.players.get(id).frozen), 'everyone they brought in plays on');
+  assert.equal(r.bans.size, 0, 'nobody is banned');
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.deepEqual([...back.bans].sort(), [o.id, f.id, g.id, h.id].sort());
+  assert.deepEqual([...back.players.keys()].sort(), [o.id, f.id, g.id, h.id].sort(), 'everyone is still there after a restart');
 });
 
 test('room: the maker has the same caps', async () => {
@@ -691,7 +692,8 @@ test("the privacy policy is in both languages and says how long the room service
   const lt = html.slice(html.indexOf('<article id="lt"'));
   assert.ok(en.length > 1000 && lt.length > 1000, 'an English and a Lithuanian article');
   for (const [part, days] of [[en, ' days'], [lt, ' dien']]) {
-    for (const n of [LOG_DAYS, SECURITY_DAYS, EXPIRE_MS / 86_400_000]) assert.ok(part.includes(n + days), n + days);
+    for (const n of [LOG_DAYS, SECURITY_DAYS]) assert.ok(part.includes(n + days), n + days);
+    assert.doesNotMatch(part, /30 (days|dien)/, 'shared worlds are never deleted for being unvisited');
     assert.ok(part.includes(SAMPLE_MS / 1000 + ' s'), 'how often positions are kept');
   }
 });
@@ -782,7 +784,7 @@ test('audit: progress is logged when it changes, at most once a minute unless a 
   assert.deepEqual(r.takeLog().filter((x) => x.e === 'prog').map((x) => x.ever), [10, 20, 40]);
 });
 
-test('audit: cheats, bans and refused joins are logged with what happened', async () => {
+test('audit: cheats, freezes and refused joins are logged with what happened', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const cKey = key();
@@ -790,15 +792,16 @@ test('audit: cheats, bans and refused joins are logged with what happened', asyn
   const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
   pos(0.5, T0);
   let out = {};
-  for (let i = 1; i <= CHEATS_TO_BAN && !out.kick; i++) out = pos(10_000, T0 + i * 1000);
+  for (let i = 1; i <= CHEATS_TO_FREEZE && !out.kick; i++) out = pos(10_000, T0 + i * 1000);
   await r.join(cKey, undefined, T0 + 60_000);
   r.dropped(o.id, T0);
   const log = r.takeLog();
   const cheats = log.filter((x) => x.e === 'cheat' && x.p === c.id);
-  assert.equal(cheats.length, CHEATS_TO_BAN);
+  assert.equal(cheats.length, CHEATS_TO_FREEZE);
   assert.deepEqual([cheats[0].why, cheats[0].from, cheats[0].to], ['speed', [1, 1, 0], [10000, 1, 0]]);
-  assert.deepEqual(log.filter((x) => x.e === 'ban').map((x) => [x.p, x.by, x.why]), [[c.id, 'auto', 'speed']]);
-  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => [x.p, x.why]), [[c.id, 'banned']]);
+  assert.deepEqual(log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.by, x.why]), [[c.id, 'auto', 'anti-cheat: speed']]);
+  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => [x.p, x.why]), [[c.id, 'frozen']]);
+  assert.equal(log.some((x) => x.e === 'ban'), false);
 });
 
 test('audit: the moderator sees each player, their cheats and progress', async () => {
@@ -808,8 +811,8 @@ test('audit: the moderator sees each player, their cheats and progress', async (
   const [me] = r.roster(T0 + 5000);
   assert.deepEqual([me.id, me.st, me.sessionSecs, me.progress.goal], [o.id, 'online', 5, 3]);
   const g = await r.join(key(), invite(r, o.id), T0);
-  assert.equal(r.ban(g.id, T0, 'mod', 'x'.repeat(500)).kick, g.id);
-  assert.equal(r.takeLog().find((x) => x.e === 'ban').why.length, 200, 'a reason is kept short');
+  assert.equal(r.freeze(g.id, T0, 'x'.repeat(500)).kick, g.id);
+  assert.equal(r.takeLog().find((x) => x.e === 'freeze').why.length, 200, 'a reason is kept short');
 });
 
 test('room: the moderator freezes a hacked character: it stays asleep, but its key gets only "frozen" until thawed', async () => {
@@ -855,35 +858,40 @@ test('room: freezing takes a character out whoever it is; the world passes to no
   assert.equal(r.freeze('nobody', T0).error, 'player');
 });
 
-test('room: a banned character leaves a tombstone where it last stood', async () => {
+test('room: a frozen character leaves a tombstone where it last stood', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   const nowhere = await r.join(key(), invite(r, o.id), T0);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 7.25, y: 2.5, z: 0 } }), T0 + 5);
-  const out = r.ban(g.id, T0 + 10, 'mod', 'test');
-  assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ban']] });
-  r.ban(nowhere.id, T0 + 20, 'mod', 'test');
+  const out = r.freeze(g.id, T0 + 10, 'test');
+  assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ice']] });
+  r.freeze(nowhere.id, T0 + 20, 'test');
   assert.equal(r.graves.length, 1, 'no tombstone for someone who never stood anywhere');
 });
 
-test("room: the newest player takes the free colour of one who was banned", async () => {
+test("room: a frozen character keeps its colour; the newest player takes another", async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const a = await r.join(key(), invite(r, o.id), T0 + 1);
   await r.join(key(), invite(r, o.id), T0 + 2);
   await r.join(key(), invite(r, o.id), T0 + 3);
-  r.ban(a.id, T0 + 4, 'mod', 'x');
+  r.freeze(a.id, T0 + 4, 'x');
   const d = await r.join(key(), invite(r, o.id), T0 + 5);
-  assert.equal(d.welcome.c, a.welcome.c, 'the newest player takes the free colour');
+  assert.notEqual(d.welcome.c, a.welcome.c, 'a frozen character is still there, colour and all');
 });
 
-test('room: a banned key is told it is banned, as an invite that no longer works', async () => {
+test('room: a key banned before v0.155.0 is still told it is banned, as an invite that no longer works', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const gKey = key();
   const g = await r.join(gKey, invite(r, o.id), T0);
-  r.ban(g.id, T0, 'mod', 'x');
+  // What an old ban left in storage: the player gone, their id in meta.bans.
+  r.players.delete(g.id);
+  r.bans.add(g.id);
+  r.dirty.meta = true;
+  const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
+  assert.deepEqual(await back.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
   assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
 });
 

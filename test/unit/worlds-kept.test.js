@@ -6,7 +6,7 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import * as P from '../../src/net/protocol.js';
-import { Room, EXPIRE_MS, SMOKE_SEED } from '../../server/src/room.js';
+import { Room, SMOKE_SEED } from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { OLDEST_SAVE } from '../../src/core/save.js';
@@ -86,35 +86,33 @@ test('worlds kept: the room has no way left to remake or wipe a world', () => {
   }
   const worker = readFileSync(new URL('../../server/src/worker.js', import.meta.url), 'utf8');
   assert.doesNotMatch(worker, /renew|nuke/i, 'the Durable Object never remakes a world');
-  // The only deleteAll left is where a room is meant to go: an expired room
-  // (a copy or a smoke test, see the next test).
+  // The only deleteAll left is where a moderator's copy goes when its time is
+  // up (see the next test).
   assert.equal(worker.match(/deleteAll\(/g).length, 1);
 });
 
-test('worlds kept: a players\' world is never deleted for being unvisited, whatever its seed; only rooms the server marked as smoke tests and copies go', async () => {
+test('worlds kept: no room is ever deleted for being unvisited, whatever its seed or mark; only a moderator\'s copy goes', async () => {
+  const YEARS = 100 * 365 * 86_400_000;
   const { r } = await makeRoom();
-  assert.equal(r.expired(T0 + 1000 * EXPIRE_MS), false);
-  // The seed the deploy's smoke test sends is just a number: a players' world
-  // that happens to have it is kept forever like any other.
+  assert.equal(r.expired(T0 + YEARS), false);
   const seeded = await makeRoom(SMOKE_SEED);
   assert.equal(seeded.r.seed, SMOKE_SEED);
-  assert.equal(seeded.r.expired(T0 + 1000 * EXPIRE_MS), false);
-  // Only the server's own mark (admin token at create, markSmoke after) makes
-  // a room a smoke test, and it says so through a restart too.
+  assert.equal(seeded.r.expired(T0 + YEARS), false, 'the smoke test\'s seed is just a number');
+  // A deploy's smoke-test room is marked (to stay out of the moderator's
+  // lists) but kept too: nothing deletes a room on its own (Watch, 2026-10-20).
   const smoke = await makeRoom(42, { smoke: true });
-  assert.equal(smoke.r.expired(T0 + EXPIRE_MS - 1), false);
-  assert.equal(smoke.r.expired(T0 + EXPIRE_MS), true);
+  assert.equal(smoke.r.smoke, true);
+  assert.equal(smoke.r.expired(T0 + YEARS), false);
   const back = Room.restore(smoke.r.id, smoke.r.takeWrites(), T0 + 1000);
-  assert.equal(back.expired(T0 + 1000 + EXPIRE_MS), true, 'the mark is kept in storage');
-  const seededBack = Room.restore(seeded.r.id, seeded.r.takeWrites(), T0 + 1000);
-  assert.equal(seededBack.expired(T0 + 1000 + 1000 * EXPIRE_MS), false, 'and a players\' world stays unmarked');
+  assert.equal(back.smoke, true, 'the mark is kept in storage');
+  assert.equal(back.expired(T0 + YEARS), false);
   // The body's word alone never marks a room: the worker's admin check does.
   const forged = new Room(P.randomRoomId(), T0);
   assert.equal(await forged.init(JSON.stringify({ t: 'create', key: key(), smoke: true, world: { seed: 7, mods: [], props: [], ext: [] } }), T0), null);
-  assert.equal(forged.expired(T0 + EXPIRE_MS), false, 'a create claiming "smoke" without the admin token changes nothing');
-  // Marking and unmarking is the moderator's alone, and it is logged.
+  assert.equal(forged.smoke, false, 'a create claiming "smoke" without the admin token changes nothing');
+  // Marking is the moderator's alone, and it is logged.
   assert.equal(forged.markSmoke(true, T0 + 1), null);
-  assert.equal(forged.expired(T0 + 1 + EXPIRE_MS), true);
+  assert.equal(forged.expired(T0 + YEARS), false);
   assert.ok(forged.log.some((e) => e.e === 'smoke' && e.smoke === true), 'the marking is in the audit log');
 });
 

@@ -66,6 +66,10 @@ kind of knowledge lives.
   wood's place.
 - Nobody digs between layers. The surface and every mine layer connect only
   through generated ways up and down that players discover.
+- Nothing deletes a player, a character or their buildings (Watch,
+  2026-10-20): cheaters are frozen, and a freeze can be thawed. Nothing
+  deletes a room on its own either (only a moderator's throwaway copy
+  expires); cleaning up is done by hand. Don't build states that lose data.
 - Nobody cheats in a shared world, world owners included. The room's own copy
   of each player's progress is the truth (`server/src/shadow.js`).
 - **Time away makes nothing** (Watch, 2026-10-21, "freeze season"): a game

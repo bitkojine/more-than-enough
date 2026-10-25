@@ -18,7 +18,6 @@ import { baseRichness } from '../../src/core/world.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
-export const EXPIRE_MS = 30 * 24 * 3600_000; // a deploy's smoke-test room nobody visits for 30 days is deleted
 export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
 // Richness edits are stored in this many pieces, each well under a storage
 // value's 128 KiB however full the world (LIMITS.mods). A world stored in
@@ -31,17 +30,17 @@ const REUSE_MS = 3600_000;                   // your sign shows your newest link
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
 export const FAR_MS = 2000;                  // everyone else hears where you are this often
 export const STATUS_MS = 2000;               // a player's away/back changes, at most this often (the game waits it out)
-export const MAX_BANS = 1000;                // removed players a world remembers, to keep out
 export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
 export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log at most this often
 // Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
 // fastest boots with many Nomad perks are well under it); a player's steps
 // draw on a budget of that much distance a second, up to MOVE_BURST, so steps
 // that arrive bunched up after a hiccup still pass. A step past the budget
-// or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_BAN
-// cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) take
-// the player out of the world for good (Watch's rule: nobody cheats in a
-// shared world).
+// or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_FREEZE
+// cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) freeze
+// the character (Watch's rule: nobody cheats in a shared world). A freeze
+// deletes nothing and the moderator can thaw it: nothing in a room ever
+// deletes a player, their progress or their buildings (Watch, 2026-10-20).
 //
 // Reconnecting doesn't start a player afresh: their first step after it may
 // cover only their budget, or the distance they could have walked since
@@ -53,7 +52,7 @@ export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log
 // doesn't refill it either.
 export const MAX_SPEED = 40;
 export const MOVE_BURST = 120;
-export const CHEATS_TO_BAN = 10;
+export const CHEATS_TO_FREEZE = 10;
 export const CHEAT_FORGIVE_MS = 30_000;
 // What one player may add to a world, so one player can't fill it for
 // everyone. What the world held when it was made doesn't count.
@@ -96,16 +95,16 @@ export class Room {
     this.ef = 0;
     this.gen = 0;
     // Whether the server made this room as the deploy's smoke test (set only under
-    // the admin token, see init): marked rooms are the only player-facing rooms that
-    // age out unvisited. Never inferred from the seed: a player's world is
-    // kept forever whatever seed it happens to have.
+    // the admin token, see init): marked rooms stay out of the moderator's
+    // lists. Nothing deletes them, or any other room (Watch, 2026-10-20).
     this.smoke = false;
-    // Players taken out of the world (by Watch or for cheating), who
-    // can't come back with their key.
+    // Players banned before v0.155.0 (bans deleted them then), who still
+    // can't come back with their key. Nothing adds to it any more: cheaters
+    // are frozen instead.
     this.bans = new Set();
     // Tombstones where banned and frozen characters last stood, so everyone
     // knows where they were (Watch's rule): [id, colour, x, y, z, kind],
-    // kind 'ban' or 'ice' (frozen). They go when the world is made again.
+    // kind 'ban' (from before v0.155.0) or 'ice' (frozen).
     this.graves = [];
     // Per player, not kept: their step budget and cheats ({at, budget, fresh, cheats, cheatAt}).
     this.watch = new Map();
@@ -451,17 +450,15 @@ export class Room {
     this.dirty.meta = true;
   }
 
+  // Only a moderator's throwaway copy goes (copy.js): the world it copies is
+  // untouched. Every other room, smoke tests included, is kept until
+  // someone deletes it by hand (Watch, 2026-10-20: no automatic deleting).
   expired(now) {
-    if (this.copy) return now >= this.copy.until;
-    // Only rooms the server marked as deploy smoke tests go; a players' world
-    // is kept forever, whatever its seed (the mark: init under the admin
-    // token, or markSmoke below for rooms made before the flag existed).
-    return this.smoke === true && now - this.last >= EXPIRE_MS;
+    return !!this.copy && now >= this.copy.until;
   }
 
-  // The moderator marks (or unmarks) the room as the deploy's smoke test
-  // (scripts/mark-smoke.mjs): rooms made before the server kept the flag
-  // still age out this way. Logged; never set any other way.
+  // The moderator marks (or unmarks) the room as the deploy's smoke test,
+  // which only keeps it out of the moderator's lists. Logged.
   markSmoke(smoke, now) {
     if (!this.ready) return 'room';
     this.smoke = smoke === true;
@@ -630,8 +627,8 @@ export class Room {
     const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
     if (!far) return out;
     const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
-    const banned = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
-    return banned.kick ? banned : out;
+    const frozen = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
+    return frozen.kick ? frozen : out;
   }
 
   // Tile `key`'s richness in this world now: as edited, else as generated.
@@ -707,7 +704,7 @@ export class Room {
   }
 
   // A cheat by player `id`: counted (one a second at most, older ones
-  // forgiven slowly), and enough of them take the player out for good.
+  // forgiven slowly), and enough of them freeze the character.
   // `why` ('speed' or 'reach') and `detail` go in the audit log.
   cheat(id, now, why, detail = {}) {
     const w = this.watchOf(id, now);
@@ -716,31 +713,8 @@ export class Room {
       w.cheatAt = now;
       this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
     }
-    if (w.cheats >= CHEATS_TO_BAN && this.players.has(id)) return this.ban(id, now, 'auto', why);
+    if (w.cheats >= CHEATS_TO_FREEZE && this.players.has(id) && !this.players.get(id).frozen) return this.freeze(id, now, 'anti-cheat: ' + why, 'auto');
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
-  }
-
-  // Takes a player out of the world for good: their key can't come back,
-  // the link they came in with and every link they made stop, and their
-  // buildings go. So does everyone who came in through their links, and
-  // whoever those brought in (Watch's rule: a bad invite is cleaned up in
-  // one go). `by` is who decided ('auto' for the anti-cheat, 'mod'
-  // for the moderator). Returns {kick, also, toAll}: the player, the others
-  // taken with them, and the news for everyone.
-  ban(id, now, by, why) {
-    const also = [];
-    this.banOne(id, now, by, why);
-    for (let i = 0, from = [id]; i < from.length; i++) {
-      for (const [pid, p] of this.players) {
-        if (p.by !== from[i]) continue;
-        this.banOne(pid, now, by, 'came in through ' + from[i]);
-        also.push(pid);
-        from.push(pid);
-      }
-    }
-    const toAll = [id, ...also].map((x) => ({ t: 'removed', id: x }));
-    toAll.push(this.gravesMsg());
-    return { kick: id, also, toAll };
   }
 
   // Watch stops any invite link, through the moderator's route. The room's
@@ -752,19 +726,19 @@ export class Room {
     return null;
   }
 
-  // The moderator freezes a player whose progress was clearly hacked
-  // (Watch's rule, instead of a ban for an edited save the anti-cheat can't
-  // see). The character stays in the world, asleep where it was, with what
-  // it built, but its key can't play it again: every try shows the game's
-  // joke "FBI" notice, and the player has to start fair with another
-  // character. The links they made stop. Thawing undoes it.
-  // Returns {kick, toAll}, or {error}.
-  freeze(id, now, why) {
+  // Freezes a character: the moderator's call for progress that was clearly
+  // hacked, or the anti-cheat's after CHEATS_TO_FREEZE cheats (`by` 'mod' or
+  // 'auto'). The character stays in the world, asleep where it was, with
+  // everything it has and built, but its key can't play it again: every try
+  // shows the game's joke "FBI" notice. The links they made stop; nobody
+  // else is touched. Thawing undoes all of it, so nothing is ever lost.
+  // Returns {kick, frozen, toAll}, or {error}.
+  freeze(id, now, why, by = 'mod') {
     const pl = this.players.get(id);
     if (!pl) return { error: 'player' };
     if (pl.frozen) return { error: 'frozen' };
     this.sample(id, now, true);
-    this.audit(now, id, 'freeze', { why: String(why || '').slice(0, 200) });
+    this.audit(now, id, 'freeze', { by, why: String(why || '').slice(0, 200) });
     this.bury(id, pl, 'ice');
     pl.frozen = now;
     pl.st = 'offline';
@@ -778,7 +752,7 @@ export class Room {
     // Friends see a tombstone where the character slept ('frozen': its
     // buildings stay, unlike 'removed').
     const toAll = [{ t: 'frozen', id }, this.gravesMsg()];
-    return { kick: id, toAll };
+    return { kick: id, frozen: true, toAll };
   }
 
   // Undoes a freeze: the player may come back to that character, asleep
@@ -806,32 +780,6 @@ export class Room {
 
   gravesMsg() {
     return { t: 'graves', g: this.graves };
-  }
-
-  banOne(id, now, by, why) {
-    const pl = this.players.get(id);
-    if (pl) this.bury(id, pl, 'ban');
-    this.sample(id, now, true);
-    this.audit(now, id, 'ban', { by, why: String(why || '').slice(0, 200) });
-    this.acts.delete(id);
-    this.shadow?.forget(id);
-    this.players.delete(id);
-    this.dirty.players.add(id);
-    this.watch.delete(id);
-    if (this.bans.size >= MAX_BANS) this.bans.delete(this.bans.values().next().value);
-    this.bans.add(id);
-    // The link they came in with stops, and every link they made: a banned
-    // player can't come back through an invite of their own.
-    const via = pl && typeof pl.via === 'string' ? this.invites.get(pl.via) : undefined;
-    if (via) via.off = true;
-    for (const inv of this.invites.values()) if (inv.by === id) inv.off = true;
-    this.dirty.meta = true;
-    const left = this.ext.filter((e) => e[4] !== id);
-    if (left.length !== this.ext.length) {
-      this.ext = left;
-      this.extTiles = new Set(left.map((e) => extAt(e[1], e[2], e[3])));
-      this.dirty.ext = true;
-    }
   }
 
   /* -------------------------------------------------------- audit log */

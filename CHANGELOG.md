@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.155.0] - 2026-10-25
+
+Nothing in a shared world deletes a player any more (Watch: "Let's not have
+any bans that delete data in the game at all. Freeze things yes, but never
+delete. Especially not auto-delete."). Before this, one auto-ban of a
+world's first player took every player who came in through its invite
+links along, deleting all their characters and buildings, because every
+player in a world traces back to its first one.
+
+### Changed
+- The anti-cheat freezes a character after `CHEATS_TO_FREEZE` cheats (was
+  `CHEATS_TO_BAN`, a ban). The character stays asleep under a tombstone
+  with everything it had and built; its game shows the "FBI" notice;
+  the links its player made stop; nobody else is touched. The moderator
+  can thaw it. The log's `freeze` event now says `by` (`auto`, `mod`).
+- `Room.ban` and its cascade through invite links are gone.
+  `POST /admin/rooms/<id>/ban` is kept for old tools and freezes.
+- Keys banned before this version still stay out (`meta.bans` is read,
+  never added to).
+- Smoke-test rooms are no longer deleted after 30 days unvisited: no room
+  is deleted on its own except a moderator's 2-hour copy. The mark only
+  keeps them out of the moderator's lists. `scripts/mark-smoke.mjs` is
+  gone.
+- The privacy policy says a cheater's character is frozen, not removed,
+  and that shared worlds are kept for as long as the game runs (it still
+  said 30 days, wrong since v0.117.0, and named owners). `POLICY_VERSION`
+  is 2, so players are told once.
+- The "FBI" notice says the character broke the fair-play rules, since
+  the anti-cheat now freezes too.
+
 ## [0.154.0] - 2026-10-25
 
 - A tap or click finds the way there (Watch: "when I click something the

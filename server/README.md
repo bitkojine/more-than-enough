@@ -1,8 +1,8 @@
 # The room service
 
 Playing together runs through this: a Cloudflare Worker (`src/worker.js`)
-with one Durable Object per shared world (`Rooms`) and one per visitor
-address for the room-making limit (`Limiter`). A room's rules are plain
+with one Durable Object per shared world (`Rooms`) and one listing them
+all (`Registry`). A room's rules are plain
 JavaScript in `src/room.js`, tested in Node (`test/unit/together.test.js`).
 The wire format and every check on it are in `../src/net/protocol.js`,
 shared with the game.
@@ -87,14 +87,15 @@ again in the game; anything that doesn't fit exactly is dropped.
   `wrangler dev`).
 - **Who can join:** whoever holds a live invite that isn't used up, at most
   100 players a room (`LIMITS.players`). Every player brings in at most
-  5 people a day through their links (`LIMITS.invitesPerDay`). The
-  moderator removes a player: they are banned from the room for good
-  (their key can't come back), the link they joined with and every link
-  they made stop, and their buildings go.
+  5 people a day through their links (`LIMITS.invitesPerDay`). 
+- **Nothing deletes a player (Watch, 2026-10-20):** no ban, no removal,
+  nothing automatic. A cheater is frozen (below): the character, its
+  progress and its buildings stay, and a thaw brings it back. Keys banned
+  before v0.155.0 (when a ban deleted the character) stay out.
 - **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
   budget, so bunched-up steps pass) are refused, and they and edits out of
-  reach count as cheats; `CHEATS_TO_BAN` of them ban the player (Watch's
-  rule: nobody cheats in a shared world). One player adds at most 400 buildings, 2,000
+  reach count as cheats; `CHEATS_TO_FREEZE` of them freeze the character
+  (Watch's rule: nobody cheats in a shared world); nobody else is touched. One player adds at most 400 buildings, 2,000
   props and 60,000 newly changed tiles (`PLAYER_TILES`). Nothing grows back, so a
   tile's richness only goes down: an edit that raises it is refused. Reconnecting starts nothing afresh: the first step after
   it is checked against the time since the last one, and a game that is
@@ -131,31 +132,32 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Steps:** a player's every step goes only to players within 48 tiles on
   their layer; everyone else hears where they are every 2 seconds, so a
   full world doesn't send every step to all 100.
-- **Storage:** a players' world is kept forever, whatever its seed; only
-  rooms the server marked as the deploy's smoke tests (under the admin
-  token when made, or by the moderator) are deleted after 30 days
-  unvisited, and admin copies when their time is up.
+- **Storage:** every room is kept forever, whatever its seed, the deploy's
+  smoke-test rooms too (marked under the admin token, kept out of the
+  moderator's lists). Only an admin copy goes, when its time is up; the
+  world it copies is untouched. Anything else is cleaned up by hand.
 - **The moderator:** the `/admin/` routes answer only a bearer token equal
   to the `ADMIN_TOKEN` Worker secret (set on deploy from the
   `ROOMS_ADMIN_TOKEN` repository secret; at least 32 characters). Without
   it they answer 404, as if they weren't there; only the page at `/admin`
   answers without it, and it holds nothing but a form for the token. They read; what they
-  change is a ban, a freeze or stopping an invite link.
+  change is a freeze, a thaw or stopping an invite link.
   A copy (below) is a room of its own: making and playing it changes
   nothing in the real one.
-- **Turned away:** a banned key gets `{"t": "invite", "why": "banned"}`
+- **Turned away:** a key banned before v0.155.0 gets `{"t": "invite", "why": "banned"}`
   and the socket closes (1008, `invite`); a frozen one gets
   `{"t": "frozen"}` and closes (1008, `frozen`).
-- **Frozen characters:** a character whose player clearly hacked (an
-  edited save or game: the room doesn't take its numbers, but logs the try
-  as `drift`) is frozen by the moderator instead of banned. It stays in the world, asleep, with what it
+- **Frozen characters:** a character is frozen by the anti-cheat (`by`
+  `auto`) or by the moderator when its player clearly hacked (an edited
+  save or game: the room doesn't take its numbers, but logs the try as
+  `drift`). It stays in the world, asleep, with what it
   built, but its key can't play it again (`frozen`, close code 4005): the
   game shows a joke "FBI" notice and goes back to the player's own world.
   The links its player made stop.
-- **Tombstones:** a banned or frozen character leaves a tombstone where it
-  last stood (`graves` in the welcome and in a `graves` message: `[id,
-  colour, x, y, z, 'ban' | 'ice']`, at most 300), until the world is made
-  again; thawing takes it away.
+- **Tombstones:** a frozen character (or one banned before v0.155.0)
+  leaves a tombstone where it last stood (`graves` in the welcome and in a
+  `graves` message: `[id, colour, x, y, z, 'ban' | 'ice']`, at most 300);
+  thawing takes it away.
 
 ## Audit log
 
@@ -188,8 +190,8 @@ enter a shared world, and in Settings.
 | `away` | a player's first progress after coming back, when their buildings made something while they were away (stage 3: up to 8 hours, worked out by the room) | `secs` away |
 | `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
 | `cut` | a connection was closed for breaking the limits | `why` |
-| `ban` | a player is taken out | `by` (`auto`, `mod`), `why` |
-| `freeze`, `thaw` | the moderator freezes a hacked character, or undoes it | `why` |
+| `ban` | only in logs from before v0.155.0: a player was deleted from the world | `by` (`auto`, `mod`), `why` |
+| `freeze`, `thaw` | a character is frozen (by the anti-cheat or the moderator), or thawed | `by` (`auto`, `mod`), `why` |
 | `owner` | only in logs from before v0.131.1: the world passed to a new owner (`p`; null if nobody is left) | `was` |
 | `kept` | a world made under an older format (or with a nuke pending from before nukes ended) is kept and plays on under the current one | `fmt`, `ef` (what it was) |
 | `nuke`, `nukeCall`, `renew` | only in logs from before 2026-10-18: the old nuke | `fmt`, `gen`, `seed` |
@@ -218,9 +220,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `GET /admin/rooms/<id>/log?since=<ms>`: the log as JSON lines: first
   `{"e": "room", ...}`, then the events from `since`, and last
   `{"e": "more", "since": ...}` if there is more to fetch from there.
-- `POST /admin/rooms/<id>/ban` with `{"id": "<player id>", "why": "..."}`:
-  takes a player out for good; everyone who came in through their links
-  goes too.
+- `POST /admin/rooms/<id>/ban`: kept for old tools, the same as `freeze`
+  (it deletes nothing).
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
@@ -249,10 +250,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
   world's (needs `ADMIN_TOKEN`, or the project's proxy). Only the moderator
   backs up a shared world (Watch's choice): it holds everyone's progress.
 - `POST /admin/rooms/<id>/smoke` with `{"smoke": true}` (or `false`): marks
-  (or unmarks) the room as the deploy's smoke test, the only kind of
-  players' room that ages out unvisited. The mark is logged; nothing else
-  sets it (`scripts/mark-smoke.mjs` marked the rooms made before v0.130.1,
-  which had the smoke seed but no flag). Answers `{ok}`.
+  (or unmarks) the room as the deploy's smoke test, which keeps it out of
+  the moderator's lists (it is never deleted). The mark is logged. Answers `{ok}`.
 - `POST /admin/rooms/<id>/restore` with a backup file as the body: puts a
   world that's gone back from it, at its own address, so its players come
   back with their own phones (a player's id comes from the address and
@@ -260,8 +259,8 @@ The moderator's routes (`Authorization: Bearer <token>`):
   `exists` (Watch's choice). Answers `{room}`.
 
 The deploy's smoke test makes a room every time, marked as one by the
-server under the admin token; without the token it makes an ordinary,
-unmarked room, so the CI address's quota matters only there.
+server under the admin token (without the token `POST /rooms` is a 403).
+These rooms are kept like every other; clean them up by hand if they pile up.
 
 ## Running it
 
