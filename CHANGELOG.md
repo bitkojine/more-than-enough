@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.153.2] - 2026-10-25
+
+- The clouds lost the faint line across every row of tiles that v0.153.1
+  brought. Rows of the bank overlap by a pixel so they meet without seams,
+  and the fading-in picture is see-through, so that pixel got it twice.
+  Each picture now fills all its runs as one path.
+
 ## [0.153.1] - 2026-10-25
 
 - Clouds no longer flicker zoomed far out, and they now change with the

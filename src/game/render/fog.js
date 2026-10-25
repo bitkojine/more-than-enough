@@ -174,6 +174,9 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
     fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
     ctx.fillStyle = fill;
     ctx.globalAlpha = alpha;
+    // One path for all the runs, so where they overlap a see-through
+    // picture isn't laid twice (that striped every row).
+    ctx.beginPath();
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         if (!fog(x, y)) continue;
@@ -181,10 +184,11 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
         while (end < x1 && fog(end + 1, y)) end++;
         const p = cam.project(x, y);
         // Whole pixels, one over, so runs and rows meet without seams.
-        ctx.fillRect(Math.floor(p.x), Math.floor(p.y), Math.ceil((end - x + 1) * u) + 1, Math.ceil(d) + 1);
+        ctx.rect(Math.floor(p.x), Math.floor(p.y), Math.ceil((end - x + 1) * u) + 1, Math.ceil(d) + 1);
         x = end;
       }
     }
+    ctx.fill();
   }
   ctx.globalAlpha = 1;
 
