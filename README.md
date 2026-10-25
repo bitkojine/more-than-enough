@@ -189,6 +189,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `yard.js` — keeps the stockpile's piles in step with the inventory: they grow, slide, merge 2048-style and puff as it changes
   - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
   - `update.js`, `news.js` — the self-update on every deploy, the version badge and the What's new changelog
+  - `faults.js`, `problems.js` — getting past an error: a part of the picture that throws is left out, a frame or tap that throws is skipped, and each error becomes a report (what broke, the device, view, place and the last things done) listed under Nerds to copy
 - `src/net/` — the multiplayer wire format and its checks (`protocol.js`, shared with the room service) and where the service runs (`config.js`)
 - `src/vendor/` — other people's code, copied unchanged: the QR code generator and Three.js r180 (MIT, license in `src/vendor/three/LICENSE`), used by the lazy 3D character renderer
 - `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
@@ -203,6 +204,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `test/browser.e2e.js` — headless-Chrome end-to-end test (serves the real
   page, drives touch/keyboard/DOM, checks persistence)
 - `scripts/stage-site.sh` — stages the deployable site (game + wiki) with cache-busted URLs
+- `scripts/decode-stack.mjs` — maps a problem report's minified stack (`main.js:3:224345`) back to source lines with the bundle's source map
 - `structurizr/` — architecture as code: the C4 model
   ([`workspace.dsl`](structurizr/workspace.dsl)) is the single source of truth,
   with committed [Mermaid diagrams](structurizr/diagrams/) rendered straight

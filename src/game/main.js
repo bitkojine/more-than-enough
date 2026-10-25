@@ -42,6 +42,7 @@ import { createTogether, policyUrl } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
 import { createBack } from './back.js';
+import { createProblems, where } from './problems.js';
 import { fmt, fmtDuration } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
@@ -132,6 +133,22 @@ function applyQuality() {
   resize();
 }
 const perf = createPerf(el, el.canvas, audio, quality);
+// A part of the game that throws is got past and kept as a report (Nerds).
+const problems = createProblems({
+  toast: (text) => hud.toast(text),
+  list: el.problems,
+  game: () => {
+    const s = game.state, w = s.world, m = perf.snapshot();
+    return {
+      world: `${s.shared ? 'shared' : 'solo'}, ${w.cultivation ? 'crystal' : 'old economy'}, seed ${w.seed}`, // i18n-ok: a report for developers, in English
+      at: where(s.player),
+      view: `zoom ${cam.zoom.toFixed(2)}x, tile ${cam.tilePx.toFixed(1)} CSS px, canvas ${el.canvas.width}x${el.canvas.height} at ${cam.dpr}x, quality ${quality.level}`, // i18n-ok: a report for developers, in English
+      'game time': s.time.toFixed(1), // i18n-ok: a report for developers, in English
+      frames: `${m.fps.toFixed(0)} fps, worst ${m.worstMs.toFixed(0)} ms`, // i18n-ok: a report for developers, in English
+      open: [sheet.isOpen && 'sheet ' + sheet.tab, descent.active && 'changing layer', fork.open && 'picking a world'].filter(Boolean).join(', ') || 'the map' // i18n-ok: a report for developers, in English
+    };
+  }
+});
 // Plugging in the charger may give a hot or saving phone its speed back
 // (where the browser says so: not Safari).
 if (navigator.getBattery) {
@@ -173,6 +190,7 @@ const game = {
   },
   // Swaps in a different world (embark, a shared world).
   replace(next) {
+    problems.crumb('world replaced'); // i18n-ok: a report for developers, in English
     game.state = next;
     fx.clear();
     yard.reset();
@@ -255,6 +273,8 @@ const fbi = createFbi(el.fbi);
 const updater = createUpdater({ save: () => game.saveNow() });
 const together = createTogether({ game, hud, ask: ask.ask, el, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made, fixed) => sayAway(secs, made, fixed) });
 const actor = createActor(); // what the wanderer is doing, to animate it
+const acted = actor.act.bind(actor);
+actor.act = (kind, context) => { problems.crumb('act ' + kind); return acted(kind, context); };
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
 const HOLD_TIP_SECONDS = 6; // long enough to read
@@ -345,7 +365,7 @@ const input = createInput({
     perfectPressed: autoPressed,
     perfectReleased: autoReleased,
     trailEnded: controller.trailEnded,
-    viewChanged: () => { hud.view(cam); keepView(); },
+    viewChanged: () => { hud.view(cam); keepView(); problems.crumb(`zoom ${cam.zoom.toFixed(2)}x`); },
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'back') goBack();
@@ -372,7 +392,7 @@ el.mine.addEventListener('click', controller.toggleMine);
 el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 el.playersBtn.addEventListener('click', () => sheet.show('players'));
-el.nerdsBtn.addEventListener('click', () => sheet.show('nerds'));
+el.nerdsBtn.addEventListener('click', () => { problems.show(); sheet.show('nerds'); });
 el.perfBtn.addEventListener('click', () => perf.toggle());
 window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
@@ -631,11 +651,12 @@ function frame(now) {
     // Changed layers in this world since the last frame: show the trip.
     const z = game.state.player.z;
     if (game.state === shownState && z !== shownZ) {
+      problems.crumb(`layer ${shownZ} -> ${z}`);
       descent.start(shownZ, z);
       layerArrived(game.state);
     }
     shownState = game.state; shownZ = z;
-    const stats = render(cam, game.state, fx, view(), look);
+    const stats = render(cam, game.state, fx, view(), look, problems.faults.layer);
     signRect = stats.sign;
     wiki.place(stats.wiki);
     descent.draw(cam, look, dt);
@@ -643,10 +664,11 @@ function frame(now) {
     simulationMs = 0;
     if (full) quality.frame(intervalMs);
     perf.tick(dt);
+    problems.faults.frameDone();
   } catch (err) {
-    // Stop here and show what broke, rather than throwing every frame.
-    window.MTE_CRASH(err);
-    return;
+    // Skip the rest of this frame and go on; only frames that keep failing
+    // stop the game, with the crash screen and the report.
+    if (problems.frameFailed(err)) return;
   }
   requestAnimationFrame(frame);
 }

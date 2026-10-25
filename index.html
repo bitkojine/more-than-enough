@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <!-- What the page may load and run (test/unit/security.test.js keeps the
      inline script's hash in step). connect-src names the room service. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-eEhbGB8L7GioktMj0MvqRGI5IC+ZM5LBP0QJJPgTCL4='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-OzlyOKnfBcA9H0X8hIqspDd7Byp3jHy+nL5ANYWs+V8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="no-referrer" />
 <title data-i18n="game.title"></title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -36,8 +36,8 @@
     // carries its own few words in every language; test/unit/i18n.test.js
     // checks they match. The language is picked as src/i18n/i18n.js does.
     var CRASH_TEXT = {
-      en: { title: 'The game broke', reload: 'Reload', game: 'Game', failedToLoad: 'Failed to load', unhandled: 'Unhandled promise rejection' },
-      lt: { title: 'Žaidimas sugedo', reload: 'Perkrauti', game: 'Žaidimas', failedToLoad: 'Nepavyko įkelti', unhandled: 'Neapdorotas pažado atmetimas' }
+      en: { title: 'The game broke', reload: 'Reload', copy: 'Copy report', copied: 'Copied', game: 'Game', failedToLoad: 'Failed to load', unhandled: 'Unhandled promise rejection' },
+      lt: { title: 'Žaidimas sugedo', reload: 'Perkrauti', copy: 'Kopijuoti ataskaitą', copied: 'Nukopijuota', game: 'Žaidimas', failedToLoad: 'Nepavyko įkelti', unhandled: 'Neapdorotas pažado atmetimas' }
     };
     function language() {
       var asked = null;
@@ -69,8 +69,13 @@
       if (!shown) {
         shown = true;
         box.querySelector('strong').textContent = words.title;
-        box.querySelector('button').textContent = words.reload;
-        box.querySelector('button').addEventListener('click', function () { location.reload(); });
+        var buttons = box.querySelectorAll('button');
+        buttons[0].textContent = words.reload;
+        buttons[0].addEventListener('click', function () { location.reload(); });
+        buttons[1].textContent = words.copy;
+        buttons[1].addEventListener('click', function () {
+          if (navigator.clipboard) navigator.clipboard.writeText(pre.textContent).then(function () { buttons[1].textContent = words.copied; }, function () {});
+        });
         pre.textContent = words.game + ' v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
       }
       box.hidden = false;
@@ -91,9 +96,13 @@
           (e.message || '(no message)') + (e.filename ? ' at ' + e.filename + ':' + e.lineno + ':' + e.colno : ''));
         return;
       }
+      // Once the game runs, it gets past an error in a tap or a message and
+      // keeps a report (src/game/problems.js); before that, nothing can.
+      if (window.MTE_FAULT && !shown) return window.MTE_FAULT(e.error, 'event');
       crash(describe(e.error, e.filename && e.filename + ':' + e.lineno + ':' + e.colno));
     }, true);
     window.addEventListener('unhandledrejection', function (e) {
+      if (window.MTE_FAULT && !shown) return window.MTE_FAULT(e.reason, 'promise');
       crash(words.unhandled + ': ' + describe(e.reason));
     });
   })();
@@ -232,6 +241,8 @@
         <a id="btnAutoplayLab" class="setRow" href="?autoplay" target="_blank" rel="noopener"><span data-i18n="lab.title"></span><b aria-hidden="true">&rsaquo;</b></a>
         <button id="btnPerf" class="setRow" type="button" aria-pressed="false"><span data-i18n="nerds.perf"></span><b id="perfState"></b></button>
       </div>
+      <!-- Problems the game got past, each a report to copy (src/game/problems.js). -->
+      <div id="problems" class="setGroup" hidden></div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
       <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
       <input id="backupFile" type="file" accept=".json,application/json" hidden />
@@ -286,7 +297,7 @@
   <div id="crash" role="alert" hidden>
     <strong></strong>
     <pre></pre>
-    <button type="button"></button>
+    <div class="choices"><button type="button"></button><button type="button"></button></div>
   </div>
 
   <script type="module" src="src/game/main.js"></script>

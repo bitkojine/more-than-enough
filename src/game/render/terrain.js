@@ -353,10 +353,13 @@ const far = createFarMap();
 export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   const z = cam.z;
   const v = cam.visibleTiles();
+  // The clouds can fail on their own (a picture too big for the browser, in
+  // v0.151.0) without taking the land with them.
+  const layer = ground.layer || ((name, draw) => draw());
   if (cam.tilePx >= FAR_PX) {
     far.drop();
     drawRows(ctx, cam, s, look, ground, v.x0, v.y0, v.x1, v.y1, STAND_MARGIN, onRow);
-    drawFog(ctx, cam, s, look, v.x0, v.y0, v.x1, v.y1);
+    layer('fog', () => drawFog(ctx, cam, s, look, v.x0, v.y0, v.x1, v.y1));
     return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);
   }
   // Zoomed out: the map, then whatever stands in each row over it. A struck
@@ -365,7 +368,7 @@ export function drawTerrain(ctx, cam, s, look, ground, onRow) {
   far.draw(ctx, cam, s.time, look, {
     paintArea: (c, mc, x0, y0, x1, y1, side) => {
       drawRows(c, mc, s, look, still, x0, y0, x1, y1, side);
-      drawFog(c, mc, s, look, x0, y0, x1, y1);
+      layer('fog', () => drawFog(c, mc, s, look, x0, y0, x1, y1));
     },
     flatColor: (x, y) => flatColor(look, s.world, x, y, z),
     player: s.player,

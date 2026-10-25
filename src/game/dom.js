@@ -20,6 +20,7 @@ export function findElements() {
     settings: byId('btnSettings'),
     settingsPanel: byId('settingsPanel'),
     nerdsPanel: byId('nerdsPanel'),
+    problems: byId('problems'),
     nerdsBtn: byId('btnNerds'),
     perfBtn: byId('btnPerf'),
     perfState: byId('perfState'),

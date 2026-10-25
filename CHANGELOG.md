@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.152.0] - 2026-10-25
+
+- The game gets past a runtime error instead of stopping (Watch asked for
+  it after v0.151.0's zoom crash, where one failing cloud picture took the
+  whole game down). Each part of the picture (terrain, every row, the
+  clouds, lighting, names, the sign, ...) runs through `layer()` in
+  `src/game/faults.js`: one that throws is left out, the canvas is put back
+  (`resetCanvas` in `render/renderer.js`) and the rest of the frame draws.
+  A frame that throws elsewhere is skipped; only `FATAL_FRAMES` (30) failing
+  in a row still show the crash screen. Once the game runs, an error in a
+  tap's handler or a promise is noted too, not a crash (index.html hands it
+  to `window.MTE_FAULT`).
+- Each different error becomes one report: what broke and in which part,
+  how often, the stack, and what was going on (version and build, browser,
+  screen and pixel ratio, the page without its `#`, world kind and seed,
+  position and layer, zoom, tile and canvas size, quality level, frame
+  rate, what was open) and the last 30 things the player did (taps and what
+  they landed on, keys, zooms, acts, layer changes, the page hiding). The
+  first time, a toast says the game kept going. The last five reports stay
+  in this browser (`mte.faults`) and are listed under Nerds, each with Copy;
+  the crash screen has Copy report. Watch chose to keep reports on the
+  device rather than send them to the room service.
+- `scripts/decode-stack.mjs` maps a report's minified stack back to source
+  lines with the bundle's source map (a zero-dependency VLQ decoder). On the
+  v0.151.0 crash it points at `render/fog.js`, `terrain.js`, `renderer.js`.
+- Tests: `test/unit/faults.test.js`, `test/unit/decode-stack.test.js`.
+
 ## [0.151.1] - 2026-10-25
 
 - Zooming in close on Mica no longer crashes the game on iPhone Safari

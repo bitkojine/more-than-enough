@@ -6,7 +6,10 @@
  *
  * Terrain is drawn a row at a time from north to south; whatever stands in a
  * row (target outlines, buildings, the player) is drawn right after it, so
- * blocks nearer the viewer cover it. */
+ * blocks nearer the viewer cover it.
+ *
+ * Each part of the picture runs through `layer` (src/game/faults.js): one
+ * that throws is noted and left out, and the rest of the frame still draws. */
 
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
@@ -21,8 +24,23 @@ const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in 
 const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign
 const BODY_MID = 0.47;       // tiles above the feet: the middle of you, centred when zoomed right in
 
-export function render(cam, s, fx, view, look) {
+// The canvas as a frame starts: nothing saved, no fading or blending, the
+// screen's own scale. Puts it back after a part of the picture throws.
+export function resetCanvas(ctx, dpr) {
+  for (let i = 0; i < 32; i++) ctx.restore(); // a no-op once nothing is saved
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.shadowBlur = 0;
+  ctx.setLineDash?.([]);
+}
+
+const plain = (name, draw) => draw();
+
+export function render(cam, s, fx, view, look, guard = plain) {
   const ctx = cam.ctx;
+  const reset = () => resetCanvas(ctx, cam.dpr);
+  const layer = (name, draw) => guard(name, draw, reset);
   cam.follow(s.player);
   // Zoomed in close, the view centres on your middle instead of your feet, so
   // all of you stays on screen. From 2x it eases in, in full by 5x.
@@ -58,7 +76,7 @@ export function render(cam, s, fx, view, look) {
     const at = drawFriend(ctx, cam, s, look, f, f.color);
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
-  const tiles = drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake }, (y) => {
+  const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, { built, yard: view.yard, shake: fx.shake, layer }, (y) => layer('row', () => {
     drawHighlights(ctx, cam, s, view, y);
     const row = buildings.get(y);
     if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
@@ -82,48 +100,52 @@ export function render(cam, s, fx, view, look) {
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
     if (y === playerRow) {you = drawPlayer(ctx, cam, s, look, view);drawCrystalCargo(ctx,cam,s,look,you);}
-  });
-  for (const f of aloft) friend(f);
+  }))) || 0;
+  layer('aloft', () => { for (const f of aloft) friend(f); });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
-    ctx.globalAlpha = XRAY_ALPHA;
-    drawPlayer(ctx, cam, s, look, view);
-    ctx.globalAlpha = 1;
+    layer('xray', () => {
+      ctx.globalAlpha = XRAY_ALPHA;
+      drawPlayer(ctx, cam, s, look, view);
+      ctx.globalAlpha = 1;
+    });
   }
-  if (cam.z === Core.SURFACE) drawMerging(ctx, cam, s, look, view.yard);
-  drawSupports(ctx, cam, s, view);
-  drawDepots(ctx,cam,s,view);
-  drawTrail(ctx, cam, s, view);
-  drawParticles(ctx, cam, fx);
-  drawFloats(ctx, cam, look, fx);
-  drawFlyers(ctx, cam, look, fx);
-  drawLighting(ctx, cam, s, look, lights);
-  drawGlints(ctx, cam, s, look);
-  drawFarHoles(ctx, cam, s, look);
-  drawBeacons(ctx, cam, s, look, beacons);
+  if (cam.z === Core.SURFACE) layer('merging', () => drawMerging(ctx, cam, s, look, view.yard));
+  layer('supports', () => drawSupports(ctx, cam, s, view));
+  layer('depots', () => drawDepots(ctx, cam, s, view));
+  layer('trail', () => drawTrail(ctx, cam, s, view));
+  layer('particles', () => drawParticles(ctx, cam, fx));
+  layer('floats', () => drawFloats(ctx, cam, look, fx));
+  layer('flyers', () => drawFlyers(ctx, cam, look, fx));
+  layer('lighting', () => drawLighting(ctx, cam, s, look, lights));
+  layer('glints', () => drawGlints(ctx, cam, s, look));
+  layer('farHoles', () => drawFarHoles(ctx, cam, s, look));
+  layer('beacons', () => drawBeacons(ctx, cam, s, look, beacons));
   // Everyone's name over their head (yours too, in a shared world, unless
   // your sign is up in front of it). In a crowd, yours first, then the
   // living nearest you, then tombstones: a name that would cover one
   // already shown waits until its player steps clear.
   const taken = [];
-  if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
-  // While AUTO plays, its tag floats over you (over your name, if shown).
-  if (view.auto && you) drawAutoTag(ctx, you.x, you.top - cam.tilePx * 0.2 - (view.me && !(view.sign > 0) ? 22 : 0), view.auto, s.time, taken);
-  if (tags.length > 1) {
-    const cx = you ? you.x : cam.width / 2, cy = you ? you.top : cam.height / 2;
-    for (const tag of tags) tag.d = Math.hypot(tag.x - cx, tag.y - cy) + (tag.grave ? 1e6 : 0);
-    tags.sort((a, b) => a.d - b.d);
-  }
-  for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color, taken);
-  // Badges at the edge for friends out of sight, kept off you, the names
-  // shown and each other.
-  if (you) taken.push({ l: you.x - cam.tilePx * 0.5, r: you.x + cam.tilePx * 0.5, t: you.top - cam.tilePx * 0.2 - 11, b: you.foot });
-  if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
+  layer('names', () => {
+    if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
+    // While AUTO plays, its tag floats over you (over your name, if shown).
+    if (view.auto && you) drawAutoTag(ctx, you.x, you.top - cam.tilePx * 0.2 - (view.me && !(view.sign > 0) ? 22 : 0), view.auto, s.time, taken);
+    if (tags.length > 1) {
+      const cx = you ? you.x : cam.width / 2, cy = you ? you.top : cam.height / 2;
+      for (const tag of tags) tag.d = Math.hypot(tag.x - cx, tag.y - cy) + (tag.grave ? 1e6 : 0);
+      tags.sort((a, b) => a.d - b.d);
+    }
+    for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color, taken);
+    // Badges at the edge for friends out of sight, kept off you, the names
+    // shown and each other.
+    if (you) taken.push({ l: you.x - cam.tilePx * 0.5, r: you.x + cam.tilePx * 0.5, t: you.top - cam.tilePx * 0.2 - 11, b: you.foot });
+    if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
+  });
   // Your sign last, over the dark and over every name and badge: a QR code
   // has to read at night too, and nothing may cover it.
   let sign = null;
-  if (view.sign > 0 && view.signFace && you) sign = drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption);
-  drawJoystick(ctx, cam, view);
+  if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
+  layer('joystick', () => drawJoystick(ctx, cam, view));
   // Wiki on the hood, or Mica's head when the 2D figure stands in.
   return { tiles, sign, wiki: you ? you.wiki ?? { x: you.x, y: you.top, r: 0 } : null };
 }

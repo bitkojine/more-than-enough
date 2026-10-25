@@ -18,7 +18,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "files" "index.html, style.css, src/game/"
                 }
 
-                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. A frame, a drawing layer or a tap that throws is skipped and kept as a problem report (faults.js, problems.js); only frames failing in a row stop the game. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/main.js"
