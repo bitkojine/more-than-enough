@@ -48,7 +48,7 @@ The earlier alternative of intermediate repairs primarily activating useful lift
 ### Retained requirements
 No wood or tree cutting. Each purchased equipment or building tier needs a distinct physical visual identity.
 
-Every new world starts empty-handed; only knowledge and records carry over. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. White chalk accents suit planning and construction where readable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
+Every new world starts empty-handed; only knowledge and records carry over. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
 ### No phones or laptops in the world — confirmed, 2026-10-24
 Characters no longer carry a phone or laptop, in any world. A device in hand
@@ -169,7 +169,7 @@ chains have distinct inventory artwork at every purchased tier. Generated
 whole-character raster poses now cover the current stone-tool win route; later
 equipment-specific body variations remain to be expanded. Cultivation
 facilities and all five machine repair/activation states also have dedicated
-chalk-and-slate sprites. AUTO
+slate-and-steel sprites. AUTO
 and multiplayer are not yet adapted to cultivation; no fair new-model AUTO win
 or final-game duration is claimed. Fresh-world manual-strategy playtests reach activation in minutes of game time; this is an early playable chapter, far below the eventual meaningful-content goal. Transfers are currently direct sealed links
 of bounded reach/throughput, not a finished multi-layer transport network.
@@ -184,8 +184,7 @@ so seconds-per-full-world performance is unproven and remains an explicit goal.
 The owner wants the polish of high-quality shipped games while preserving this
 universe and the orange wanderer. Generated raster artwork is welcome; SVG is
 not a quality goal. Quality means the whole moving scene holds together, rather
-than detailed individual pictures alone. White chalk remains appropriate for
-plans and construction overlays.
+than detailed individual pictures alone.
 
 Useful design references are Ori's readable silhouette and separation from the
 background, Hades' clear anticipation/contact/recovery and restrained impact
@@ -337,8 +336,8 @@ and building/icon families still await migration to this workflow.
 The owner rejected the broad v0.135.1 refresh and prefers the earlier warmer
 Lanternlight art. Existing building/terrain/mushroom/icon SVGs are restored from
 v0.135.0 where later work has not replaced them. Dedicated newer facility states,
-the current character rig and shared pickaxe model remain. White chalk stays
-useful in construction/planning; it does not replace each material's identity.
+the current character rig and shared pickaxe model remain. The white chalk
+overlays and sprite lines were reverted too (Watch, 2026-10-25, v0.152.1).
 
 `src/game/render/resource-models.js` owns four actual volumetric models:
 mycelium (red mushroom caps and cream stems), stone (warm grey facets), metal

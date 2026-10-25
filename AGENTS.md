@@ -49,9 +49,9 @@ kind of knowledge lives.
 - Confirmed design decisions and open questions live in `docs/game-design.md`.
 
 
-- Use white chalk drawing accents where useful, especially construction and
-  planning overlays. Preserve resource identity, readable text, non-color status
-  cues and contrast on bright terrain. Prefer stable, inexpensive vector marks.
+- No white chalk marks (Watch, 2026-10-25): the v0.133.1/v0.135.1 chalk
+  overlays and sprite lines were reverted. Plans and links use plain colored
+  dashed lines; art keeps one dark ink line around the whole object.
 
 - New worlds start empty-handed; only knowledge and records carry over.
   Existing worlds retain their earned equipment and progress.

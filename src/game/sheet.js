@@ -236,13 +236,13 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderBuild(s) {
-    if(s.cultivation)return '<div class="chalkPlan">'+['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+crystalRows(s)+'</div>';
+    if(s.cultivation)return ['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+crystalRows(s);
 
-    return `<div class="chalkPlan"><div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
+    return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.support')}</div>` + Core.SUPPORT_BUILDINGS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.water')}</div>` + propsOn(true).map((k) => propRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.mine')}</div>` + propsOn(false).map((k) => propRow(s, k)).join('') + '</div>';
+      `<div class="section">${t('sheet.section.mine')}</div>` + propsOn(false).map((k) => propRow(s, k)).join('');
   }
 
   function renderBeyond(s) {

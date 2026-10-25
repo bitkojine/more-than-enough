@@ -153,22 +153,19 @@ generic later-tier artwork remain to be replaced in subsequent slices.
 
 ### Physical collection
 Build lists Collection Depot under support buildings, with its material recipe
-and additional producer count. Chalk boundaries and recipient links preview
+and additional producer count. Dashed boundaries and recipient links preview
 its eight-tile coverage. Permanent material bins identify collection even when
 no output is waiting. No carts or journey times are implied. Unserved producers
 keep output for normal collection. All solo worlds use the normal save/import
 and archive flow; older depot save keys remain readable for recovery.
 
-### White chalk planning language
-Construction previews, service links, recipient outlines and depot coverage use
-soft white chalk with a dark backing stroke for contrast on light ground. Planned
-marks are dashed; existing service marks use longer, nearly continuous strokes.
-The hand variation is static, subtle and decorative: it never alters rule range,
-targets or placement. The live Trail uses the same white chalk; eligible tiles
-retain surface green/underground amber fill. Build uses chalk underlines and quiet
-white card outlines on dark slate. Material colors, readable type, prices and
-status feedback remain distinct. No new fonts, textures, animated grain or
-flashing. The coverage-ring path is cached at the current zoom.
+### Planning marks
+Construction previews outline the free tile in blue. Service links, recipient
+outlines, sealed conduit links and depot coverage are thin dashed lines: pale
+yellow for a placement preview, pale blue or green for what is already built.
+The live Trail is a glowing stroke, blue until it crosses tiles the sweep will
+take, then green on the surface or amber underground, with those tiles filled.
+No white chalk (reverted in v0.152.1 at Watch's request).
 
 
 ## Living-crystal chapter in the existing client
@@ -203,7 +200,7 @@ is announced as a milestone and stays saved; Beyond offers the normal confirmed
 empty-handed next world while preserving the completed world’s archive.
 
 ### Restoration-route artwork
-The Lanternlight pack uses off-white chalk contours over slate/steel surfaces,
+The Lanternlight pack uses slate/steel surfaces with one dark outer ink line,
 pale mycelium bindings, pink branching living crystal and cool blue-green fins.
 Each cultivation facility has a dedicated catalog identity: ribbed shuttered
 chambers with a crystal emblem, broad-fan cooling towers, narrow insulated vaults,
@@ -310,7 +307,7 @@ HUD, one name and one short line, with a "More in the wiki" link (the bubble's
 only tappable part). It fades after a few seconds; nothing pauses or waits for
 it. Mouse: a new thing speaks after 400 ms, a known one only gets a glance, and
 resting the pointer 1.2 s says it again. Touch: tap Wiki, then tap a thing (the
-bubble asks for it), or drag from Wiki onto a thing along a white chalk line.
+bubble asks for it), or drag from Wiki onto a thing along a dotted pointer line.
 Those taps belong to Wiki and never walk or gather. Firsts that Mica walks up to
 are said at most once a minute, and never while a milestone banner is up.
 

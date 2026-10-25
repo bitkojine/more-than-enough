@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.152.1": "The white chalk marks are gone: the drawing trail glows again, build previews and links are plain dashed lines, and machines, tools and shelters lost their stray white lines.",
   "news.0.152.0": "When something goes wrong, the game now keeps going instead of stopping: the part that broke is skipped. Settings, Nerds lists each problem with a Copy button, so you can send a full report to get it fixed.",
   "news.0.151.1": "Zooming in close on Mica no longer crashes the game on iPhone.",
   "news.0.151.0": "The buried machine is a teleporter, and its heart has been stolen. After your first repair, find the hiding place far off on the surface (it is marked on your world map), lift the heart into your carrier and walk it home. Sunlight cracks it, so build heart shelters to rest it by day.",

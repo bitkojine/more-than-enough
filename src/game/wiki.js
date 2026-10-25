@@ -28,7 +28,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
   const name = document.createElement('strong'), text = document.createElement('span'), more = document.createElement('a');
   more.target = '_blank'; more.rel = 'noopener'; more.textContent = t('wiki.more');
   bubble.append(name, text, more);
-  // A white chalk line while dragging from Wiki onto something.
+  // A dotted pointer line while dragging from Wiki onto something.
   const chalk = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   chalk.id = 'wikiChalk'; chalk.setAttribute('aria-hidden', 'true'); chalk.style.display = 'none';
   const stroke = document.createElementNS('http://www.w3.org/2000/svg', 'line');

@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.152.1] - 2026-10-25
+
+### Changed
+- Reverted the white chalk look (v0.133.1 overlays, v0.135.1 sprite lines),
+  which Watch found never looked right. The live Trail is the glowing
+  blue/green/amber stroke again instead of a beaded white chalk line; build
+  targets, Stoneworks support links, depot coverage and recipient outlines,
+  and sealed conduit links are the earlier thin colored dashed lines; the
+  Build sheet drops its chalk underlines and wobbly card borders.
+- The 30 dedicated cultivation sprites (tool and basket/boot tiers, chambers,
+  coolers, vaults, conduits, carriers, lanterns, the machine's five states,
+  shelters and the hiding place) lose their off-white interior strokes,
+  keeping one dark ink line around each object (no-wireframes rule). Their
+  shapes, colors and every physical tier stay as they were; basket weave,
+  drawn only in chalk before, is kept in a darker fibre tone.
+- `src/game/render/chalk.js` is gone; the AGENTS.md "use white chalk" rule
+  is replaced by "no white chalk marks". The Wiki pointer line is unchanged.
+
 ## [0.152.0] - 2026-10-25
 
 - The game gets past a runtime error instead of stopping (Watch asked for
