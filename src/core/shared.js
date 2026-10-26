@@ -112,12 +112,10 @@ export function correctProgress(s, save, sent = null) {
   for (const k of LEVELS) if (!changed(k)) s[k] = r[k];
   if (!changed('goalIndex')) { s.goalsDone = r.goalsDone; s.goalIndex = r.goalIndex; }
   for (const k of ['sources', 'mushrooms', 'mushroomsEver', 'insight', 'totalEver']) s[k] = r[k];
-  // Your buildings, where the room has them. A room before v0.106.0 left
-  // out their kind: the one standing there in this game, then.
-  const here = new Map(s.extractors.map((e) => [spotOf(e), e]));
+  // Your buildings, where the room has them.
   const theirs = new Map();
   for (const e of buildingsIn(save)) {
-    const key = EXTRACTORS[e.k] ? e.k : here.get(spotOf(e))?.key;
+    const key = EXTRACTORS[e.k] ? e.k : null;
     if (key && !theirs.has(spotOf(e))) theirs.set(spotOf(e), { key, res: EXTRACTORS[key].res, x: e.x, y: e.y, z: e.z, buffer: e.b, owner: s.me });
   }
   const had = sent && Array.isArray(sent.built) ? new Set(sent.built) : null;

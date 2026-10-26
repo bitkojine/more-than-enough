@@ -90,8 +90,9 @@ again in the game; anything that doesn't fit exactly is dropped.
   5 people a day through their links (`LIMITS.invitesPerDay`). 
 - **Nothing deletes a player (Watch, 2026-10-20):** no ban, no removal,
   nothing automatic. A cheater is frozen (below): the character, its
-  progress and its buildings stay, and a thaw brings it back. Keys banned
-  before v0.155.0 (when a ban deleted the character) stay out.
+  progress and its buildings stay, and a thaw brings it back. (Before v0.155.0 a ban
+  deleted the character; no room holds such a ban any more, and the
+  list of banned keys is gone since v0.162.0.)
 - **Anti-cheat:** steps faster than `MAX_SPEED` tiles a second (from a
   budget, so bunched-up steps pass) are refused, and they and edits out of
   reach count as cheats; `CHEATS_TO_FREEZE` of them freeze the character
@@ -144,8 +145,7 @@ again in the game; anything that doesn't fit exactly is dropped.
   change is a freeze, a thaw or stopping an invite link.
   A copy (below) is a room of its own: making and playing it changes
   nothing in the real one.
-- **Turned away:** a key banned before v0.155.0 gets `{"t": "invite", "why": "banned"}`
-  and the socket closes (1008, `invite`); a frozen one gets
+- **Turned away:** a frozen key gets
   `{"t": "frozen"}` and closes (1008, `frozen`).
 - **Frozen characters:** a character is frozen by the anti-cheat (`by`
   `auto`) or by the moderator when its player clearly hacked (an edited
@@ -179,7 +179,7 @@ enter a shared world, and in Settings.
 | --- | --- | --- |
 | `create` | the room is made | `seed`, `fmt`, how many `mods`, `props`, `ext` it came with |
 | `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
-| `deny` | someone is turned away | `why`: `banned`, `frozen`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
+| `deny` | someone is turned away | `why`: `frozen`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
 | `build` | a building goes up | `k` (kind, or `?` for one the game doesn't have), `at` |
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
@@ -213,7 +213,7 @@ The moderator's routes (`Authorization: Bearer <token>`):
   named as the game names them (`src/net/naming.js`); the smoke test's
   worlds only with `tests=1`. A room that can't answer comes with `error`.
 - `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
-  `online`, `bans`, `frozen`, `created`, `last`, `smk` — the last says
+  `online`, `frozen`, `created`, `last`, `smk` — the last says
   whether it's the deploy's smoke test).
 - `GET /admin/rooms/<id>/players`: each player now, with their cheat count,
   whether they're `frozen`, and progress.

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.162.0": "Užkulisiuose: išmestas kodas, skirtas susikalbėti su senomis bendrų pasaulių tarnybos versijomis, kurių nebėra. Žaidime niekas nesikeičia.",
   "news.0.161.0": "{phone:Telefonai ir planšetės dabar piešia žaidimą 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl mažiau kaista, o baterija ilgiau laiko.|laptop:Telefonuose ir planšetėse žaidimas dabar piešiamas 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl jie mažiau kaista. Kompiuteryje niekas nesikeičia.}",
   "news.0.160.1": "Žaidimas mažiau apkrauna {phone:telefoną|laptop:kompiuterį}, ir šis mažiau kaista: Miką piešiame vieną kartą per kadrą, o ne du, ir žaidimo išvaizda nė kiek nepasikeitė.",
   "news.0.160.0": "Iškeliavus iš senesnio pasaulio dabar pradedamas kristalų pasaulis, kaip ir visi kiti nauji pasauliai. Paliktas pasaulis lieka išsaugotas su viskuo, ką turėjo, ir į jį gali grįžti per Nustatymai, Moksliukams.",

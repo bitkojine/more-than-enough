@@ -5,7 +5,7 @@
  *
  * It's every entry the room's storage holds, as the room would write it now
  * (copy.js snapshot): the seed and every edit, buildings, props, each
- * player's progress as the room has it, the bans and the tombstones. The
+ * player's progress as the room has it and the tombstones. The
  * invite links are left out: their codes would let whoever has the file
  * into the real world, and they stop working within days anyway.
  *

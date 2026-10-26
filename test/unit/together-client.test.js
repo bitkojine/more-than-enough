@@ -353,27 +353,6 @@ test('client: a lost edit where someone has changed the tile since is not sent o
   assert.equal(w.r.mods.get(key), 7, 'the room keeps what the friend did');
 });
 
-test('client: a room from before pings and acks is never pinged, and edits go out as before', async () => {
-  const w = await makeRoom();
-  const h = harness();
-  location.hash = '#join=' + w.id + '.' + w.code;
-  h.together.joinFromLink();
-  await tick();
-  const socket = open()[0];
-  socket.open();
-  const hello = socket.sent[0];
-  const j = await w.r.join(hello.key, hello.code, T0);
-  const { pong, ack, ...old } = j.welcome; // an older room says neither
-  socket.deliver(old);
-  for (let i = 0; i < 300; i++) h.together.tick(0.1);
-  assert.equal(socket.sent.includes('ping'), false);
-  assert.equal(socket.readyState, 1, 'and silence alone never drops it');
-  mine(h.game, 1);
-  h.together.tick(0.3);
-  const edits = socket.sent.filter((m) => m.t === 'edits');
-  assert.ok(edits.length && edits.every((m) => !('n' in m)));
-});
-
 test('client: what you did goes to the room before the edits it made, and before your progress', async () => {
   const w = await makeRoom();
   const { together, game, id } = await inWorld(w);
@@ -389,20 +368,6 @@ test('client: what you did goes to the room before the edits it made, and before
   const after = socket.sent.slice(socket.sent.length - 2).map((m) => m.t);
   assert.deepEqual(after, ['acts', 'save']);
   pump(w.r, id, socket);
-});
-
-test('client: a room from before acts gets none', async () => {
-  const w = await makeRoom();
-  const h = harness();
-  location.hash = '#join=' + w.id + '.' + w.code;
-  h.together.joinFromLink();
-  await tick();
-  const socket = open()[0];
-  socket.open();
-  const j = await w.r.join(socket.sent[0].key, socket.sent[0].code, T0);
-  const { acts, ...old } = j.welcome;
-  socket.deliver(old);
-  assert.equal(h.game.state.acts, null);
 });
 
 test('client: progress the room can\'t account for is set straight, and stays straight', async () => {

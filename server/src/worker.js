@@ -413,7 +413,7 @@ export class Rooms extends DurableObject {
     for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
-    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, players: r.players.size, online, bans: r.bans.size, frozen, smk: r.smoke === true };
+    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, players: r.players.size, online, frozen, smk: r.smoke === true };
   }
 
   // Whether this is still the room `id` (a moderator's copy is deleted when its time is up).

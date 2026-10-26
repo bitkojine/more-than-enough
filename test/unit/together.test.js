@@ -639,7 +639,7 @@ test('anti-cheat: edits out of reach count, whoever the player is; only that pla
   assert.equal(out.kick, o.id, 'the maker is frozen like anyone');
   assert.ok(r.players.get(o.id).frozen);
   assert.ok([f.id, g.id, h.id].every((id) => r.players.has(id) && !r.players.get(id).frozen), 'everyone they brought in plays on');
-  assert.equal(r.bans.size, 0, 'nobody is banned');
+  assert.equal('bans' in r, false, 'nobody is banned: there is no list of bans');
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
   assert.deepEqual([...back.players.keys()].sort(), [o.id, f.id, g.id, h.id].sort(), 'everyone is still there after a restart');
 });
@@ -879,19 +879,5 @@ test("room: a frozen character keeps its colour; the newest player takes another
   r.freeze(a.id, T0 + 4, 'x');
   const d = await r.join(key(), invite(r, o.id), T0 + 5);
   assert.notEqual(d.welcome.c, a.welcome.c, 'a frozen character is still there, colour and all');
-});
-
-test('room: a key banned before v0.155.0 is still told it is banned, as an invite that no longer works', async () => {
-  const { r, maker } = await makeRoom();
-  const o = await r.join(maker, undefined, T0);
-  const gKey = key();
-  const g = await r.join(gKey, invite(r, o.id), T0);
-  // What an old ban left in storage: the player gone, their id in meta.bans.
-  r.players.delete(g.id);
-  r.bans.add(g.id);
-  r.dirty.meta = true;
-  const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.deepEqual(await back.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
-  assert.deepEqual(await r.join(gKey, undefined, T0), { error: 'invite', why: 'banned' });
 });
 

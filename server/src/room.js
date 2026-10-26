@@ -98,10 +98,6 @@ export class Room {
     // the admin token, see init): marked rooms stay out of the moderator's
     // lists. Nothing deletes them, or any other room (Watch, 2026-10-20).
     this.smoke = false;
-    // Players banned before v0.155.0 (bans deleted them then), who still
-    // can't come back with their key. Nothing adds to it any more: cheaters
-    // are frozen instead.
-    this.bans = new Set();
     // Tombstones where banned and frozen characters last stood, so everyone
     // knows where they were (Watch's rule): [id, colour, x, y, z, kind],
     // kind 'ban' (from before v0.155.0) or 'ice' (frozen).
@@ -135,7 +131,6 @@ export class Room {
     const meta = entries.get('meta');
     if (!meta) return r;
     Object.assign(r, { seed: meta.seed, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, smoke: meta.smk === true, ready: true });
-    r.bans = new Set((meta.bans || []).filter((id) => typeof id === 'string'));
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.copy = meta.copy ?? null;
     // A world made under an older format is kept and plays on under the
@@ -176,7 +171,7 @@ export class Room {
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
-    if (d.meta) out.set('meta', { seed: this.seed, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, bans: [...this.bans], gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
+    if (d.meta) out.set('meta', { seed: this.seed, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
     if (d.buckets.size) {
       const pieces = new Map([...d.buckets].map((b) => [b, []]));
       for (const m of this.mods) pieces.get(bucketOf(m[0]))?.push(m);
@@ -277,9 +272,6 @@ export class Room {
       if (id !== this.copy.key) return { error: 'invite' };
       id = this.copy.as;
     }
-    // Said as an invite that no longer works, with why: games from before
-    // 'banned' was a reason still stop and say the link is no good.
-    if (this.bans.has(id)) { this.audit(now, id, 'deny', { why: 'banned' }); return { error: 'invite', why: 'banned' }; }
     let pl = this.players.get(id);
     // A frozen character can't be played (see freeze): the game shows why.
     if (pl && pl.frozen) { this.audit(now, id, 'deny', { why: 'frozen' }); return { error: 'frozen' }; }

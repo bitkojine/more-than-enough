@@ -64,8 +64,7 @@ const INVITE_WHY = Object.freeze({
   expired: () => t('together.toast.inviteExpired'),
   usedUp: () => t('together.toast.inviteUsedUp'),
   stopped: () => t('together.toast.inviteStopped'),
-  limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay }),
-  banned: () => t('together.toast.removed')   // taken out of that world for good
+  limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay })
 });
 const SIGN_SPEED = 3;                 // the sign goes up in a third of a second
 
@@ -175,17 +174,14 @@ function cleanWelcome(d) {
   const world = cleanWorld({ seed: d.seed, mods: d.mods, props: d.props, ext: d.ext });
   const players = cleanPlayers(d.players);
   const gen = d.gen ?? 0; // how often the world was made again (only by the nuke, gone since v0.117.0)
-  const fmt = d.fmt ?? null; // rooms from before v0.82.2 don't say
-  if (!Number.isSafeInteger(gen) || gen < 0 || (fmt !== null && !Number.isSafeInteger(fmt))) return null;
+  const fmt = d.fmt;
+  if (!Number.isSafeInteger(gen) || gen < 0 || !Number.isSafeInteger(fmt)) return null;
   const save = d.save === null || d.save === undefined ? null : cleanSave(d.save);
   if (!world || !players || (d.save && !save)) return null;
   return {
     you: d.you, c: d.c, seed: world.seed, mods: world.mods, props: world.props,
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
-    time: d.time === undefined ? null : cleanTime(d.time), gen, graves: cleanGraves(d.graves ?? []), fmt,
-    pong: d.pong === true, ack: d.ack === true, // rooms from before v0.85.0 do neither
-    acts: d.acts === true,                      // nor this, before v0.87.0
-    econ: d.econ === true                       // nor keep your progress, before v0.89.0
+    time: d.time === undefined ? null : cleanTime(d.time), gen, graves: cleanGraves(d.graves ?? []), fmt
   };
 }
 
@@ -223,10 +219,10 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   let graves = [];          // tombstones of banned and frozen characters (see cleanGraves)
   // Is the room still there? Seconds of play since it last said anything,
   // and until the next ping; whether it answers pings at all.
-  let silence = 0, pingT = 0, pongs = false;
+  let silence = 0, pingT = 0;
   // Edits sent and not yet answered ({n, e}), when the room answers them:
   // the ones a dead connection swallowed are sent again (see resync).
-  let acks = false, editSeq = 0, unacked = [];
+  let editSeq = 0, unacked = [];
   let sent = [];            // {n, ms, ...Core.sentOf} of the last progress sent, for the room's corrections ('econ')
   let undoneAt = -Infinity; // when the player was last told the room took something back (seconds)
   let sentActs = [];        // acts sent lately: the room may not have them (a dying connection, a restart)
@@ -272,7 +268,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (codeNum === 4005 || reason === 'frozen') { skip(room); refused(); return fbi.show(); }
     // An admin's copy whose time was up (server/src/copy.js): it's gone.
     if (codeNum === 4006) { forget(room); return stop(t('copy.ended')); }
-    if (reason === 'invite' && turnedAway === 'banned') forget(room);
     if (reason === 'invite') return refused(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
     if (reason === 'full') return refused(t('together.toast.full'));
     if (!room) return;
@@ -385,10 +380,9 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       // What you really have, as the room works it out, as of the progress
       // your game sent at play time `ms`: what you got since stays yours.
       if (game.state.shared !== room || !Number.isSafeInteger(d.ms) || !cleanSave(d.s)) return;
-      // Which progress it answers: by its number (several can go at the
-      // same play time, say while the game is hidden), or from a room
-      // before v0.91.1, the newest at that play time.
-      const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : sent.findLast((x) => x.ms === d.ms);
+      // Which progress it answers, by its number (several can go at the
+      // same play time, say while the game is hidden).
+      const at = Number.isSafeInteger(d.n) ? sent.find((x) => x.n === d.n) : null;
       const was = Core.sentOf(game.state);
       if (Core.correctProgress(game.state, d.s, at || null)) game.worldChanged();
       const away = d.away && cleanAway(d.away);
@@ -504,10 +498,10 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     // Made another way than this game makes worlds (an update is rolling
     // out): the same seed would grow different land here than for everyone
     // else, so not until both sides match.
-    if (w.fmt !== null && w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
+    if (w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
     welcomed = true;
     retry = 0;
-    pongs = w.pong; acks = w.ack; pingT = PING_EVERY;
+    pingT = PING_EVERY;
     code = null;  // an invite is for getting in once
     back = null;
     me = w.you; myColor = w.c;
@@ -529,15 +523,12 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     } else {
       unacked = []; // edits for another world, or one made again
       sentActs = [];
-      // Arriving: your progress is the room's (it works it out from what you
-      // did). A room from before that kept whatever came last: then the newer
-      // of its copy and this phone's.
+      // Arriving: your progress is the room's (it works it out from what you did).
       const kept = cleanSave(read(SAVE_PREFIX + room));
-      const local = w.econ ? null : kept;
-      const save = local && (!w.save || playedTime(local) > playedTime(w.save)) ? local : w.save;
+      const save = w.save;
       // This phone last showed far more than the room counts (games before
       // v0.91.1 could run away): say the room's numbers are the real ones.
-      const fixed = w.econ && !renewed && Core.overCounted(kept, w.save);
+      const fixed = !renewed && Core.overCounted(kept, w.save);
       let fog = null;
       try { fog = JSON.parse(read(FOG_PREFIX + room) || 'null'); } catch { fog = null; }
       const mine = w.p || { x: 0, y: 0 };
@@ -553,7 +544,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       policyNotice();
     }
     // The room works out your progress from what you do too (src/core/acts.js).
-    if (game.state.shared === room) game.state.acts = w.acts ? (game.state.acts || []) : null;
+    if (game.state.shared === room) game.state.acts ||= [];
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
     lastPos = ''; lastSave = ''; sentZ = null;
@@ -630,10 +621,8 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     // Counted in play time, so a game that was hidden doesn't come back
     // thinking the room went quiet.
     silence += dt;
-    if (pongs) {
-      if (silence > SILENT_IS_DEAD) return dead();
-      if ((pingT -= dt) <= 0) { pingT = PING_EVERY; ws.send(PING); }
-    }
+    if (silence > SILENT_IS_DEAD) return dead();
+    if ((pingT -= dt) <= 0) { pingT = PING_EVERY; ws.send(PING); }
     for (const k in timers) timers[k] -= dt;
     // A new layer goes to the room at once, before any edit made there (an
     // arrival opens a cave around you): edits are checked against where the
@@ -687,7 +676,6 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   }
 
   function sendEdits(batch) {
-    if (!acks) return send({ t: 'edits', e: batch });
     const n = ++editSeq;
     unacked.push({ n, e: batch });
     if (unacked.length > MAX_UNACKED) unacked.shift();

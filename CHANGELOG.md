@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.162.0] - 2026-10-26
+
+Dead compatibility code goes, from the backwards-compatibility report
+(thread "Map backwards compatibility support"). Each piece handled
+something no room or player has any more; checked against the live room
+service first (170 rooms, every one on format 11, no old-style bans).
+Nothing that holds or reads player data is touched, and
+`test/unit/worlds-kept.test.js` is unchanged.
+
+### Removed
+- The game's handling of rooms from before v0.89.0: a welcome without
+  `fmt`, `pong`, `ack`, `acts` or `econ` (every room has sent all five since
+  2026-10-15). The game now always pings, always numbers its edits, always
+  sends what it did, and always takes the room's copy of its progress.
+- The fallback for an `econ` answer without its progress number (rooms
+  before v0.91.1) and for buildings without a kind (rooms before v0.106.0).
+- The room's list of keys banned before v0.155.0 (`bans` in a room's meta,
+  the `banned` refusal, and the game's answer to it): no room holds one.
+  `GET /admin/rooms` no longer has `bans`. Tombstones stay as they are.
+
+### Kept, on purpose
+- The nuke leftovers the report listed (`gen`, `mte.gen.*`) still matter to
+  a phone that last saw one of the two worlds the nuke remade, and the note
+  for numbers that ran away before v0.91.1 still matters to a phone that
+  hasn't been back since; away time for players who left before v0.100.0
+  and the invite-limit default for old links stay too.
+
 ## [0.161.0] - 2026-10-26
 
 ### Changed
