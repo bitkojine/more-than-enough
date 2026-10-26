@@ -23,7 +23,10 @@
  * would otherwise draw it twice as often for little to see), and CALM_FPS
  * once nothing has been touched for CALM_AFTER_S and nothing of yours is
  * moving. Drawing every frame is what warms a phone; the world still
- * animates, just at half the rate while you're only watching it. */
+ * animates, just at a lower rate while you're only watching it. A phone or
+ * tablet (a touch screen is its main pointer) draws at PHONE_FPS and
+ * PHONE_CALM_FPS, as most mobile games do (Watch, 2026-10-26: phones got hot
+ * fast), and its quality is judged against that pace, not against 60. */
 
 // `flyers`: how many gathered resources float home at once (Watch: busy
 // bases look fuller on fast phones, slow ones save a little more).
@@ -37,8 +40,10 @@ export const MAX_PIXELS = 3_000_000; // device pixels the map is drawn with, at 
 export const FULL_FPS = 60;   // frames drawn a second, at most
 export const CALM_FPS = 30;   // ... while nothing is being touched or moved
 export const CALM_AFTER_S = 3; // seconds without a touch, key or move before calm
-const SLOW_MS = 1000 / 40;  // an average gap between frames above this is too slow
-const SMOOTH_MS = 1000 / 52; // ... and at or below this, smooth (room to try better)
+export const PHONE_FPS = 30;      // FULL_FPS on a phone or tablet
+export const PHONE_CALM_FPS = 10; // CALM_FPS on a phone or tablet
+const SLOW = 40 / 60;       // of the pace: an average frame rate under this is too slow
+const SMOOTH = 52 / 60;     // ... and at or over this, smooth (room to try better)
 const JUDGE_S = 1;          // seconds of frames each judgement averages
 const SETTLE_S = 1.5;       // seconds not judged after starting, a step, or coming back
 const HICCUP_MS = 250;      // a gap this long is a pause (a tab switch, a save), not the pace
@@ -50,12 +55,17 @@ const RETRY_S = 5;          // smooth seconds before a try once the charger is p
 // ms early is on time: frames arrive with the screen's refresh, not exactly).
 export const frameDue = (sinceMs, fps) => sinceMs >= 1000 / fps - 4;
 
+// The frame rates to draw at, { full, calm }: lower on a phone or tablet.
+export const pace = (phone) => phone ? { full: PHONE_FPS, calm: PHONE_CALM_FPS } : { full: FULL_FPS, calm: CALM_FPS };
+
 /**
  * @param {number} remembered the level the last visit settled on (this one starts there)
  * @param {number} screenDpr the screen's own device pixels per CSS pixel
  * @param {() => void} changed called after each step down or up
+ * @param {number} fps the full pace frames are drawn at (pace().full)
  */
-export function createQuality(remembered, screenDpr, changed) {
+export function createQuality(remembered, screenDpr, changed, fps = FULL_FPS) {
+  const SLOW_MS = 1000 / (fps * SLOW), SMOOTH_MS = 1000 / (fps * SMOOTH);
   // Two levels look the same on this screen if it draws them at the same
   // density (a laptop at 1x has nothing to gain from 1.5x): skip over those.
   const looks = (i) => Math.min(LEVELS[i].dpr, screenDpr) + (LEVELS[i].glass ? 'g' : '');

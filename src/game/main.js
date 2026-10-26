@@ -24,7 +24,7 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf.js';
-import { createQuality, frameDue, FULL_FPS, CALM_FPS, CALM_AFTER_S } from './quality.js';
+import { createQuality, frameDue, pace, CALM_AFTER_S } from './quality.js';
 import { createLook } from './look/look.js';
 import { createTextures, loadDefaultPack } from './textures.js';
 import { loadSavedPack } from './look/store.js';
@@ -127,7 +127,9 @@ const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
 const yard = createYard({ fx, look });
 const hud = createHud(el, look);
 // Fewer pixels and no frosted glass on a device that can't keep up.
-const quality = createQuality(savedView.quality, window.devicePixelRatio || 1, applyQuality);
+// A touch screen as the main pointer (a phone, a tablet) draws fewer frames.
+const fps = pace(window.matchMedia?.('(pointer: coarse)').matches); // i18n-ok: a media query
+const quality = createQuality(savedView.quality, window.devicePixelRatio || 1, applyQuality, fps.full);
 function applyQuality() {
   cam.maxDpr = quality.dpr;
   document.documentElement.classList.toggle('no-glass', !quality.glass);
@@ -699,7 +701,7 @@ function frame(now) {
     // held, you or the view on the move, the trip between layers), calm while
     // you watch.
     const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
-    if (last && !frameDue(now - last, full ? FULL_FPS : CALM_FPS)) { requestAnimationFrame(frame); return; }
+    if (last && !frameDue(now - last, full ? fps.full : fps.calm)) { requestAnimationFrame(frame); return; }
     if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
     fullPace = full;
     const intervalMs = last ? now - last : 0;

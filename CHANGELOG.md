@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.161.0] - 2026-10-26
+
+### Changed
+- Phones and tablets draw at most 30 frames a second while you play, and
+  10 once nothing has been touched for 3 s and nothing of yours moves
+  (Watch's choice, 2026-10-26, after phones got hot fast). Computers keep
+  60 and 30. Any device whose main pointer is a touch screen counts
+  (`(pointer: coarse)`); `pace()`, `PHONE_FPS` and `PHONE_CALM_FPS` live in
+  `src/game/quality.js`. The quality ladder judges a device against its own
+  pace (too slow under two thirds of it, smooth from 52/60 of it), so a
+  phone at a steady 30 is on pace and keeps its sharp picture.
+
 ## [0.160.1] - 2026-10-26
 
 ### Fixed

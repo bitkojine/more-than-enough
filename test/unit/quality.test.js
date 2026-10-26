@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuality, drawDpr, frameDue, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, FULL_FPS, CALM_FPS } from '../../src/game/quality.js';
+import { createQuality, drawDpr, frameDue, pace, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, FULL_FPS, CALM_FPS, PHONE_FPS, PHONE_CALM_FPS } from '../../src/game/quality.js';
 
 // Feeds `seconds` of frames `ms` apart.
 function run(q, ms, seconds) {
@@ -113,6 +113,26 @@ test('frames are drawn at most FULL_FPS a second, and CALM_FPS when calm', () =>
   // Calm on 60 Hz: every other refresh.
   assert.ok(!frameDue(1000 / 60, CALM_FPS));
   assert.ok(frameDue(2000 / 60, CALM_FPS));
+});
+
+test('a phone draws at PHONE_FPS, and PHONE_CALM_FPS when calm, to stay cool', () => {
+  assert.deepEqual(pace(true), { full: PHONE_FPS, calm: PHONE_CALM_FPS });
+  assert.deepEqual(pace(false), { full: FULL_FPS, calm: CALM_FPS });
+  assert.ok(PHONE_FPS <= 30 && PHONE_CALM_FPS <= 10, 'about half the frames of a laptop, or fewer');
+  // On a 60 Hz phone: every other refresh, and every sixth when calm.
+  assert.ok(!frameDue(1000 / 60, PHONE_FPS) && frameDue(2000 / 60, PHONE_FPS));
+  assert.ok(!frameDue(5000 / 60, PHONE_CALM_FPS) && frameDue(6000 / 60, PHONE_CALM_FPS));
+});
+
+test('a phone keeping its own pace keeps full quality, and still steps down when it falls behind', () => {
+  const q = createQuality(0, 3, () => {}, PHONE_FPS);
+  run(q, 2000 / 60, 60);
+  assert.equal(q.level, 0, '30 fps is on pace for a phone, not slow');
+  run(q, 1000 / 15, 3);
+  assert.equal(q.level, 1, 'half its pace is too slow');
+  const up = createQuality(1, 3, () => {}, PHONE_FPS);
+  run(up, 2000 / 60, UP_AFTER_S + 5);
+  assert.equal(up.level, 0, 'and at its pace it tries a level better');
 });
 
 test('quality: fewer gathered resources float at once at each lower level', () => {
