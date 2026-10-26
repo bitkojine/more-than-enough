@@ -90,8 +90,10 @@ look.use(defaultPack);
 // The 3D character is a lazy presentation module, shared with the dev viewer.
 // Until it settles Mica isn't drawn (render/sprites.js); if it fails, the
 // pack's 2D wanderer stands in.
+// Clipping is illegal: a local or ?clips build throws when Mica's parts cross.
+const checkClips=['localhost','127.0.0.1'].includes(location.hostname)||new URLSearchParams(location.search).has('clips');
 look.rigReady=import('./render/rigged-character.js').then(({createRiggedCharacter})=>{
-  look.rig=createRiggedCharacter();return look.rig;
+  look.rig=createRiggedCharacter({checkClips});return look.rig;
 }).catch(error=>{look.rigError=String(error);return null;}).finally(()=>{look.rigSettled=true;});
 
 // The developer viewer boots before loading or connecting any player world.

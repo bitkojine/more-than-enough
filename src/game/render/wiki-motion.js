@@ -10,7 +10,7 @@ export const wrapAngle=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // null. rest: nothing has caught Wiki's attention for a while.
 export function wikiPose({time=0,look=null,fold=0,talk=null,rest=false}={}){
  const f=clamp(fold),breath=Math.sin(time*2.2);
- const p={bob:.004*breath,turn:0,lean:.04,capTilt:0,rimScale:1-.34*f,rimDrop:.06*f,capDrop:.03*f,blink:1,mouth:0,squash:1+.015*breath};
+ const p={bob:.004*breath,turn:0,lean:.04,capTilt:0,rimScale:1-.34*f,rimDrop:.035*f,capDrop:.02*f,blink:1,mouth:0,squash:1+.015*breath};
  if(look!==null&&Number.isFinite(look)){
   p.turn=wrapAngle(look);
   // Leaning toward the thing reads at hood scale; a slight cap tilt follows.

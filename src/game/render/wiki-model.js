@@ -9,7 +9,7 @@ export const WIKI_HEIGHT=.31;
 const CAP_Y=.165,RIM=.155;
 export function createWikiModel(){
  const root=new T.Group();root.name='wiki';
- const cap=material(0x7fe6c4),gills=material(0x4fc29d,T.DoubleSide),spot=material(0xf4fff9),stalk=material(0xf2ecd8),ink=material(0x1d1712),fibre=material(0xd9cba6);
+ const spot=material(0xf4fff9),stalk=material(0xf2ecd8),ink=material(0x1d1712),fibre=material(0xd9cba6);
  const bones=[],bone=(name,parent,y=0)=>{const b=new T.Bone();b.name=name;b.position.y=y;parent.add(b);bones.push(b);return b;};
  const base=bone('wikiBase',root),body=bone('wikiStalk',base),top=bone('wikiCap',body,CAP_Y),rim=bone('wikiRim',top);
  const add=(geometry,mat,parent,x=0,y=0,z=0)=>{const mesh=new T.Mesh(geometry,mat);mesh.position.set(x,y,z);parent.add(mesh);return mesh;};
@@ -17,17 +17,22 @@ export function createWikiModel(){
  const profile=[[.050,0],[.062,.035],[.064,.08],[.056,.13],[.046,CAP_Y+.01],[0,CAP_Y+.012]].map(([r,y])=>new T.Vector2(r,y));
  add(new T.LatheGeometry(profile,24),stalk,body);
  // The cap is skinned: its crown follows the cap bone, its rim the rim bone,
- // so folding pulls the rim down and in like a closing umbrella.
- function skinnedCap(points,mat){
-  const g=new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),32),v=g.attributes.position,ids=[],weights=[];
-  for(let i=0;i<v.count;i++){const r=Math.hypot(v.getX(i),v.getZ(i)),w=Math.min(1,Math.max(0,(r/RIM-.35)/.55));ids.push(bones.indexOf(top),bones.indexOf(rim),0,0);weights.push(1-w,w,0,0);}
-  g.setAttribute('skinIndex',new T.Uint16BufferAttribute(ids,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));
-  const mesh=new T.SkinnedMesh(g,mat);root.add(mesh);return mesh;
+ // so folding pulls the rim down and in like a closing umbrella. Gills and
+ // crown are one closed surface, coloured per ring, so the rim is a fold in
+ // the cloth rather than two surfaces meeting edge to edge.
+ function skinnedCap(points,colors){
+  const g=new T.LatheGeometry(points.map(([r,y])=>new T.Vector2(r,y)),32),v=g.attributes.position,ids=[],weights=[],tint=[];
+  for(let i=0;i<v.count;i++){const r=Math.hypot(v.getX(i),v.getZ(i)),w=Math.min(1,Math.max(0,(r/RIM-.35)/.55));ids.push(bones.indexOf(top),bones.indexOf(rim),0,0);weights.push(1-w,w,0,0);tint.push(...colors[i%points.length].toArray());}
+  g.setAttribute('skinIndex',new T.Uint16BufferAttribute(ids,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(weights,4));g.setAttribute('color',new T.Float32BufferAttribute(tint,3));
+  const mesh=new T.SkinnedMesh(g,capMaterial);root.add(mesh);return mesh;
  }
  const dome=[[RIM,-.004],[RIM*.99,.022],[RIM*.9,.065],[RIM*.7,.105],[RIM*.42,.13],[0,.14]].map(([r,y])=>[r,CAP_Y+y]);
- const under=[[.040,CAP_Y+.008],[RIM*.6,CAP_Y-.002],[RIM,CAP_Y-.004]];
+ const under=[[.040,CAP_Y+.008],[RIM*.6,CAP_Y-.002]];
  const domeHeight=f=>{const r=Math.min(RIM,f*RIM);for(let i=1;i<dome.length;i++){const [r0,y0]=dome[i-1],[r1,y1]=dome[i];if(r<=r0&&r>=r1)return y0+(y1-y0)*(r0-r)/(r0-r1||1)-CAP_Y;}return .14;};
- const crown=skinnedCap(dome,cap),gill=skinnedCap(under,gills);
+ const capMaterial=new T.MeshBasicMaterial({vertexColors:true,toneMapped:false,side:T.DoubleSide});
+ const crownColor=new T.Color(0x7fe6c4),gillColor=new T.Color(0x4fc29d);
+ // The rim ring is doubled so the colour changes on a hard edge, not a blend.
+ const crown=skinnedCap([...under,dome[0],...dome],[...under.map(()=>gillColor),gillColor,...dome.map(()=>crownColor)]);
  // Flat spots lie on the crown, where the cap bone alone carries them.
  root.updateMatrixWorld(true);
  for(const [a,r,size]of [[.4,.48,.034],[2.3,.42,.028],[4.1,.36,.030],[5.6,.10,.022],[1.3,.22,.018]]){
@@ -44,7 +49,7 @@ export function createWikiModel(){
   add(new T.TubeGeometry(new T.CatmullRomCurve3(points),6,.007,5,false),fibre,base);
  }
  root.updateMatrixWorld(true);
- const skeleton=new T.Skeleton(bones);crown.bind(skeleton);gill.bind(skeleton);
+ const skeleton=new T.Skeleton(bones);crown.bind(skeleton);
  return {
   root,
   pose(options){
@@ -58,7 +63,9 @@ export function createWikiModel(){
   // A point on top of the cap, for speech bubbles and taps.
   top:()=>top.localToWorld(new T.Vector3(0,.15,0)),
   inspect:()=>({turn:body.rotation.y,lean:body.rotation.x,fold:1-rim.scale.x,blink:eyes[0].scale.y/.021,mouth:mouth.visible}),
+  // The fibre feet ride the base bone; the rest of Wiki rides the stalk.
+  base,body,cap:top,
   bones:bones.length,
-  dispose(){root.traverse(o=>o.geometry?.dispose());for(const m of [cap,gills,spot,stalk,ink,fibre])m.dispose();}
+  dispose(){root.traverse(o=>o.geometry?.dispose());for(const m of [capMaterial,spot,stalk,ink,fibre])m.dispose();}
  };
 }

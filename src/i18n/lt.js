@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.159.0": "Mikos daiktai nebelenda kiaurai apsiausto: kirtiklis, krepšys ir žibintas laikosi prigludę prie jo, kirtikliu mojuojama viena ranka, o Wiki sėdi ant gobtuvo, užuot į jį grimzdęs.",
   "news.0.158.0": "Pasaulio žemėlapis dabar yra pats žaidimas: nutolink iki galo (arba {phone:bakstelk|laptop:spustelk} žemėlapio mygtuką po mastelio valdikliu) ir matysi viską, ką ištyrinėjai, su kraštų vardais, namais ir slėptuve. Tempk, kad apsidairytum, o tu liksi vietoje, rodyklėmis viršutiniame kampe pereik per sluoksnius, o dar kartą {phone:bakstelėjęs|laptop:spustelėjęs} mygtuką grįši atgal.",
   "news.0.157.0": "Žibintas turi savo mygtuką virš „Rinkti“. {phone:Bakstelėk|laptop:Spustelėk} statinį šalia savęs ir atsivers jo kortelė: sklendės, sodinimas, rinkimas ir taisymas dabar ten, o Statyba skirta tik statyti. AUTO paslėptas; senesniame pasaulyje jį įjungsi skiltyje Nustatymai, Moksliukams.",
   "news.0.156.3": "Kristalų pasaulis, kurio išsaugojime sugadinta viena smulkmena, dabar įsikelia su pataisyta smulkmena, užuot buvęs atidėtas ir pakeistas nauju pasauliu.",

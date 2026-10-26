@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.159.0] - 2026-10-26
+
+### Changed
+- Clipping is an illegal state (Watch, 2026-10-25): no two solid parts of
+  Mica, Wiki or the gear they carry may pass through each other, and no
+  model may pass through itself. Mica's rig now lives without a renderer in
+  `src/game/render/rig-model.js`, which names its solids and the joints and
+  grips where two of them are meant to meet. `src/game/render/rig-clips.js`
+  finds every pair of triangles that cross between solids, between parts on
+  different bones of one solid, or where a bending surface folds through
+  itself. `test/unit/rig-clips.test.js` poses the real rig every way the
+  game can (`test/support/rig-poses.js`: walks, every action at every step
+  and facing, gear tiers, Wiki's whole breathing cycle) and fails on any
+  clip; `RIG_SWEEP=full` walks the long sweep. On localhost, or with
+  `?clips`, the game checks one frame in sixty and throws on a clip, which
+  shows up as a problem report.
+- To pass it: the stowed pickaxe, basket and lantern are placed from the
+  coat's own shape (`coatRadius`, `besideCoat`) and sit snug against it,
+  the lantern on the hip; the pickaxe swings one-handed from the end of the
+  shaft (two mittens on the short shaft always crushed together); arms are
+  a little longer and rest a little wider; the coat tapers under the hood;
+  hand targets for every kind of work live in one table, `WORK_HANDS` in
+  `src/game/render/work-motion.js`; the basket is in hand only while the
+  arm is out; Wiki's cap is one skinned lathe and Wiki sits a little higher
+  so its breathing never dips into the hood.
+
 ## [0.158.0] - 2026-10-25
 
 ### Changed

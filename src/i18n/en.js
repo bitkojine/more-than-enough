@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.159.0": "Mica's gear no longer passes through the coat: the pickaxe, basket and lantern ride snug against it, the pickaxe swings one-handed, and Wiki sits on the hood instead of sinking into it.",
   "news.0.158.0": "The world map is now the game itself: zoom out all the way (or {phone:tap|laptop:click} the map button under the zoom) and you see everything you've explored, with region names, home and the hiding place. Drag to look around while you stay put, step through the layers with the arrows in the top corner, and {phone:tap|laptop:click} the button again to come back.",
   "news.0.157.0": "The lantern has its own button above Gather. {phone:Tap|laptop:Click} a building beside you for its card: shutters, planting, collecting and repairs live there now, and Build only builds. AUTO is hidden; turn it on under Settings, Nerds, in an older world.",
   "news.0.156.3": "A crystal world whose save has one damaged detail now loads, with that detail mended, instead of being set aside for a new world.",
