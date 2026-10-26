@@ -146,3 +146,39 @@ test('Perfect puts a solar panel by the shore and charges there when low', () =>
   assert.ok(charged > 0, 'it charged');
   assert.ok(s.battery > 0.9, 'up to full: ' + s.battery);
 });
+
+// The sun clock on the gear: when the sun works and how long till it changes.
+test('the sun clock says when a solar panel charges and how long till that changes', () => {
+  for (let i = 0; i < 960; i++) {
+    const time = i * 0.25 + 0.01;
+    const sun = C.sunWindow(time);
+    assert.equal(sun.up, C.charging('solar', time), 'up matches the panel at ' + time);
+    assert.ok(sun.left > 0 && sun.left <= C.DAY_LENGTH);
+    // Just before the change it's still the same; just after it flipped.
+    assert.equal(C.charging('solar', time + sun.left - 0.01), sun.up);
+    assert.equal(C.charging('solar', time + sun.left + 0.01), !sun.up);
+    assert.ok(sun.phase >= 0 && sun.phase < 1);
+  }
+  // Noon is at the top, a solar panel works about 105 s of the 240 s day,
+  // and the sun that cracks crystal lasts longer.
+  assert.equal(C.sunWindow(0).phase, 0);
+  assert.ok(Math.abs(2 * C.sunWindow(0).half - 104.6) < 0.5);
+  assert.ok(C.sunWindow(0, C.SUN_CRACKS).half > C.sunWindow(0).half);
+  assert.equal(C.sunWindow(-30).phase, C.sunWindow(C.DAY_LENGTH - 30).phase);
+});
+
+test('the countdown shows by a solar panel in reach, but not by a water wheel, nor in the mine', () => {
+  const s = C.createState(19381);
+  s.player = { x: 0.5, y: 0.5, z: 0 };
+  assert.equal(C.solarInReach(s), false, 'no chargers at all');
+  s.world.props.set(C.packKey(2, 0, 0), 'solar');
+  assert.equal(C.solarInReach(s), true, 'a panel two tiles off, at any hour');
+  s.player.x = 6;
+  assert.equal(C.solarInReach(s), false, 'out of reach');
+  s.player.x = 0.5;
+  s.world.props.set(C.packKey(-1, 0, 0), 'wheel');
+  assert.equal(C.solarInReach(s), false, 'a wheel charges at every hour, so nothing to count');
+  s.world.props.delete(C.packKey(-1, 0, 0));
+  s.player.z = -1;
+  assert.equal(C.solarInReach(s), false, 'underground');
+});

@@ -117,6 +117,24 @@ canvas#game {
 }
 body.signing #btnVersion { visibility: hidden; }
 
+/* Beside a solar panel, the countdown to when the sun starts or stops
+   charging it takes the version's place under the gear. */
+#sunTime {
+  align-self: flex-end;
+  margin: -6px max(0px, (100% - 560px) / 2) -2px 0;
+  height: 22px; padding: 0 9px 0 6px;
+  display: flex; align-items: center; gap: 5px;
+  border: 1px solid #4c6496; border-radius: var(--r-pill);
+  background: rgba(10, 14, 12, 0.7);
+  color: var(--ink);
+  font: 700 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+#sunTime[hidden] { display: none; }
+#sunTime.up { border-color: var(--gold); }
+#sunTime i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 1px #14141a; }
+body.sunTime #btnVersion { display: none; }
+
 /* Friends in a shared world, under the top bar on the right: a chip each in
    their colour, showing how they're doing. */
 #friends {
@@ -167,6 +185,17 @@ body.signing #btnVersion { visibility: hidden; }
 }
 .hudBtn:active { transform: scale(0.92); }
 .hudBtn .gear { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* The sun clock round the gear (src/game/hud.js): gold while the sun works,
+   blue the rest of the day, the sun or the moon riding it. */
+.dayRing { position: absolute; inset: -1px; width: calc(100% + 2px); height: calc(100% + 2px); overflow: visible; pointer-events: none; }
+.dayRing path { fill: none; stroke-width: 3; }
+.dayRing .day { stroke: var(--gold); }
+.dayRing .night { stroke: #4c6496; }
+.dayRing .disc { fill: #dfe6f2; stroke: #14141a; stroke-width: 1.2; }
+.dayRing .shade { fill: #1f2a40; }
+.dayRing .sun .disc { fill: var(--gold); }
+.dayRing .sun .shade { display: none; }
 
 /* Milestones reached: a trophy with its count on a badge. It glows after a
    new one until the Awards are opened. */

@@ -59,6 +59,16 @@ drain in the dark and the same recharging by floating solar panels and water
 wheels. Text may still adapt to the player's real controls
 (`{phone:…|laptop:…}`).
 
+### The sun clock — confirmed, 2026-10-26
+Players need to know where in the day they are, above all in early morning,
+when it already looks light but a solar panel isn't charging yet (Watch).
+The Settings gear itself is the clock, so it takes no new space: a ring round
+it, gold while the sun works and blue the rest, with the sun or moon riding
+it, shown always in every world. In a crystal world the gold is the sun that
+cracks crystal and the heart. Beside a solar panel a countdown under the gear
+says how long till it charges, or how long it has left. It's sky, not a
+device in anyone's hand. Layout: `docs/ui.md`.
+
 ### Mica and Wiki — confirmed, 2026-10-24
 The game is called **Mica and Wiki** (Lithuanian "Mica ir Wiki"; Wiki keeps its
 name in both languages). Wiki is a small mycelium sprite riding on Mica's hood.

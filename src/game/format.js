@@ -78,3 +78,9 @@ export function fmtDuration(seconds) {
   if (m < 60) return t('duration.minutes', { m });
   return t('duration.hours', { h: Math.floor(m / 60), m: m % 60 });
 }
+
+// A short wait on a clock: "0:18", "1:12".
+export function fmtClock(seconds) {
+  const s = Math.max(0, Math.ceil(seconds));
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}

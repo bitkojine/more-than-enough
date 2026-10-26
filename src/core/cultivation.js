@@ -4,7 +4,7 @@ import {tileAt,isExplored,richness} from './world.js';
 import {packKey,unpackKey} from './coords.js';
 import {T,TILE_INFO} from './tiles.js';
 import {PROPS} from './content.js';
-import {daylight} from './light.js';
+import {daylight,SUN_CRACKS} from './light.js';
 import {earn,pay as payInventory,canAfford} from './economy.js';
 import {generateChunk} from './terrain.js';
 import {hash2} from './noise.js';
@@ -71,7 +71,7 @@ function index(s){
  indexCache.set(c,v);return v;
 }
 export function cultivationAt(s,x,y,z=s.player.z){return s.cultivation?index(s).cells.get(cell(x,y,z)):null;}
-export function cultivationLight(s,p){return (p.z===0&&daylight(s.time)>.3)||!!index(s).lightCells.get(cell(p.x,p.y,p.z))||(s.cultivation.lantern&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=3);}
+export function cultivationLight(s,p){return (p.z===0&&daylight(s.time)>SUN_CRACKS)||!!index(s).lightCells.get(cell(p.x,p.y,p.z))||(s.cultivation.lantern&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=3);}
 export function cultivationTarget(s,b){return Math.max(4,(b.z<=-2?12:18)+(b.kind==='chamber'||b.kind==='machine'?18:0)+(index(s).heat.get(cell(b.x,b.y,b.z))||0));}
 export function cultivationStatus(s,b){
  if(b.kind==='cooler'||b.kind==='conduit'||b.kind==='shelter')return 'ready';
@@ -178,7 +178,7 @@ function moveHeart(s,x,y,z){
 // How much of the sun's or a lantern's light reaches a carried heart, 0 to 1.
 export function heartLight(s,p){
  const c=s.cultivation;if((c.lantern&&p.z===s.player.z)||index(s).lightCells.get(cell(p.x,p.y,p.z)))return 1;
- return p.z===0?Math.max(0,Math.min(1,(daylight(s.time)-.3)/.7)):0;
+ return p.z===0?Math.max(0,Math.min(1,(daylight(s.time)-SUN_CRACKS)/(1-SUN_CRACKS))):0;
 }
 // Which clue the machine shows: one per restored section, 0 before any.
 export function machineClue(s){const b=s.cultivation?.facilities.find(f=>f.kind==='machine');return b?Math.min(MACHINE_REPAIRS.length,machineSections(b)):0;}

@@ -1,5 +1,36 @@
 # Changelog
 
+## [0.166.0] - 2026-10-26
+
+A sun clock on the Settings gear (Watch: "when near charging battery we
+should show how high the sun is now, and how long till charging will start
+... important in early morning"). Dawn already looks light while a solar
+panel is still idle, and nothing said when it would start. Watch chose each
+part on decision cards: the gear itself is the clock, a ring round it,
+always shown, a countdown by solar panels both ways, crystal worlds too.
+
+### Added
+- A ring round the gear: noon at the top, gold for the part of the day the
+  sun works, blue for the rest, the sun or moon riding it clockwise. In
+  older and shared worlds the gold is when a solar panel charges; in a
+  crystal world it's the longer stretch when the sun cracks crystal and the
+  heart in the open.
+- Within charging reach of a solar panel (and no water wheel, which charges
+  at any hour), a pill under the gear in the version's place: *in 0:18*
+  till the sun starts charging, *1:12 left* till it stops. English and
+  Lithuanian, with spoken labels.
+- `sunWindow(time, level)` and `solarInReach(s)` in `src/core/light.js`; the
+  daylight levels are named (`SOLAR_LIGHT`, `SUN_CRACKS`) instead of being
+  repeated as 0.6 and 0.3, and `cultivation.js` uses the named one.
+- Wiki: *The sun clock* under *Your lantern*; `docs/ui.md` and
+  `docs/game-design.md` say where it lives and why.
+
+### Tests
+- `test/unit/light.test.js`: over a whole day the clock agrees with the
+  panel to the quarter second and the countdown lands on the moment it
+  flips; the pill shows by a panel in reach at any hour, never by a wheel,
+  out of reach or underground.
+
 ## [0.165.0] - 2026-10-26
 
 Every way of working a tile keeps one pace (Watch: "no game action should

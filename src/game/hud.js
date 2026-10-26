@@ -4,7 +4,7 @@
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmtRate, fmtShort } from './format.js';
+import { fmtClock, fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
 const TOAST_SECONDS = 2.4;
@@ -153,6 +153,45 @@ export function createHud(el, look) {
     img.dataset.look = id;
   }
 
+  // The sun clock round the gear (docs/ui.md): gold the part of the day the
+  // sun works (it charges a solar panel; in a crystal world it cracks crystal
+  // in the open), blue the rest, noon at the top, and the sun or the moon
+  // riding the ring where the day is. Beside a solar panel, a pill under it
+  // counts down to when the sun starts or stops charging.
+  const RING = 19;
+  el.settings.insertAdjacentHTML('afterbegin', '<svg class="dayRing" viewBox="-22 -22 44 44" aria-hidden="true">' +
+    '<path class="day" /><path class="night" /><g class="body"><circle class="disc" cy="-19" r="4" /><circle class="shade" cx="1.9" cy="-20.3" r="3.2" /></g></svg>');
+  const ring = el.settings.querySelector('.dayRing'), body = ring.querySelector('.body');
+  const at = (a) => (RING * Math.sin(a)).toFixed(2) + ' ' + (-RING * Math.cos(a)).toFixed(2);
+  const arc = (a0, a1) => `M${at(a0)} A${RING} ${RING} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${at(a1)}`;
+  let lastLevel = -1, lastTurn = '', lastSunTime = '';
+  function updateSun(s) {
+    const level = s.cultivation ? Core.SUN_CRACKS : Core.SOLAR_LIGHT;
+    const sun = Core.sunWindow(s.time, level);
+    if (level !== lastLevel) {
+      lastLevel = level;
+      const a = (sun.half / Core.DAY_LENGTH) * 2 * Math.PI;
+      ring.querySelector('.day').setAttribute('d', arc(-a, a));
+      ring.querySelector('.night').setAttribute('d', arc(a, 2 * Math.PI - a));
+    }
+    const deg = (sun.phase * 360).toFixed(1);
+    if (deg + sun.up !== lastTurn) {
+      lastTurn = deg + sun.up;
+      body.setAttribute('transform', `rotate(${deg})`);
+      body.classList.toggle('sun', sun.up);
+    }
+    const solar = Core.solarInReach(s) ? Core.sunWindow(s.time) : null;
+    const text = solar ? t(solar.up ? 'hud.sunLeft' : 'hud.sunIn', { t: fmtClock(solar.left) }) : '';
+    if (text === lastSunTime) return;
+    lastSunTime = text;
+    el.sunTime.hidden = !text;
+    document.body.classList.toggle('sunTime', !!text);
+    if (!text) return;
+    el.sunTime.classList.toggle('up', solar.up);
+    setText(el.sunTime.lastElementChild, text);
+    el.sunTime.setAttribute('aria-label', t(solar.up ? 'hud.sunLeft.aria' : 'hud.sunIn.aria', { t: fmtClock(solar.left) }));
+  }
+
   const hud = {
     // The pictures loaded: repaint every one.
     repaint() {
@@ -170,6 +209,7 @@ export function createHud(el, look) {
       const below = Core.isUnderground(s);
       inSight = !below && !!Core.nearestWork(s);
       updateBattery(s);
+      updateSun(s);
       el.depth.hidden = !below;
       document.body.classList.toggle('below', below);
       if (below) {

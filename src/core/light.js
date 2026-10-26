@@ -13,24 +13,42 @@ export function daylight(t) {
   return 0.5 + 0.5 * Math.cos((t / DAY_LENGTH) * Math.PI * 2);
 }
 
+// The daylight a solar panel needs; below it the forest is dark.
+export const SOLAR_LIGHT = 0.6;
+// The daylight that reaches crystal in the open in a crystal world
+// (cultivation.js), and cracks a carried crystal or the heart.
+export const SUN_CRACKS = 0.3;
+
 // Underground is dark; so is the forest at night. Then your lantern lights
 // the way.
 export function isDark(s, time = s.time) {
-  return s.player.z < SURFACE || daylight(time) < 0.6;
+  return s.player.z < SURFACE || daylight(time) < SOLAR_LIGHT;
 }
 
 // Whether a charger of `kind` works at game time `time`: solar only by day.
 export function charging(kind, time) {
   const c = PROPS[kind] && PROPS[kind].charge;
-  return c === 'always' || (c === 'day' && daylight(time) >= 0.6);
+  return c === 'always' || (c === 'day' && daylight(time) >= SOLAR_LIGHT);
 }
 
-// The nearest charger within CHARGE_RANGE of you that works now
-// ({x, y, kind}), or null. Anyone's charger charges anyone.
+// The sun clock on the gear (docs/ui.md): the part of each day when
+// daylight is at least `level` is centred on noon and reaches `half` seconds
+// either side of it. `up` says whether it's that part now, `left` the
+// seconds until that changes (to sunset while up, to sunrise while not),
+// and `phase` how far through the day it is, 0 at noon to 1.
+export function sunWindow(time, level = SOLAR_LIGHT) {
+  const half = (Math.acos(2 * level - 1) / (2 * Math.PI)) * DAY_LENGTH;
+  const p = ((time % DAY_LENGTH) + DAY_LENGTH) % DAY_LENGTH;
+  const up = p <= half || p >= DAY_LENGTH - half;
+  const left = !up ? DAY_LENGTH - half - p : p <= half ? half - p : DAY_LENGTH - p + half;
+  return { up, left, half, phase: p / DAY_LENGTH };
+}
+
+// Every charger on the tiles around you that CHARGE_RANGE could reach,
+// working or not ([{x, y, kind}]), kept until you or the props move.
 const chargerCandidates = new WeakMap();
-export function chargerNear(s, time = s.time, work = null) {
+function chargersAround(s, work) {
   const p = s.player;
-  if (p.z !== SURFACE || !s.world.props.size) return null;
   const r = Math.ceil(CHARGE_RANGE), px = Math.floor(p.x), py = Math.floor(p.y);
   const props = s.world.props;
   let cached = chargerCandidates.get(s);
@@ -45,15 +63,41 @@ export function chargerNear(s, time = s.time, work = null) {
     cached = { props, revision: props.revision, x: px, y: py, entries };
     chargerCandidates.set(s, cached);
   }
+  return cached.entries;
+}
+
+const dist2 = (p, { x, y }) => (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
+
+// The nearest charger within CHARGE_RANGE of you that works now
+// ({x, y, kind}), or null. Anyone's charger charges anyone.
+export function chargerNear(s, time = s.time, work = null) {
+  const p = s.player;
+  if (p.z !== SURFACE || !s.world.props.size) return null;
   let best = null, bestD = CHARGE_RANGE * CHARGE_RANGE;
-  for (const candidate of cached.entries) {
+  for (const candidate of chargersAround(s, work)) {
     if (work) work.candidates = (work.candidates || 0) + 1;
     const { x, y, kind } = candidate;
     if (!charging(kind, time)) continue;
-    const d = (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
+    const d = dist2(p, candidate);
     if (d <= bestD) { bestD = d; best = { x, y, kind }; }
   }
   return best;
+}
+
+// Whether you're in reach of a solar panel, so that when the sun charges
+// matters: by day or not, and with no water wheel in reach, which charges
+// at every hour anyway.
+export function solarInReach(s) {
+  const p = s.player;
+  if (p.z !== SURFACE || !s.world.props.size) return false;
+  let solar = false;
+  for (const c of chargersAround(s, null)) {
+    if (dist2(p, c) > CHARGE_RANGE * CHARGE_RANGE) continue;
+    const kind = PROPS[c.kind].charge;
+    if (kind === 'always') return false;
+    if (kind === 'day') solar = true;
+  }
+  return solar;
 }
 
 // One tick: by a working charger the battery fills; in the dark it drains.

@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.166.0": "A sun clock: the ring round the Settings gear is the day, gold while the sun is up enough to charge a solar panel (in crystal worlds, to crack crystal), with the sun or moon on it. Beside a panel, the time till it charges or how long it has left shows under the gear.",
   "news.0.165.0": "Gathering keeps one steady pace: pressing Gather or Space again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than holding Gather down. Just hold it.",
   "news.0.164.0": "Loading your own texture pack is gone, along with Textures in Nerds: hardly anyone used it. The game keeps the one look its makers drew, and your worlds are untouched.",
   "news.0.163.0": "Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.",
@@ -756,6 +757,10 @@ export default {
   "hud.milestoneOf": "{n} of {total}",
   "hud.battery": "Lantern {n}%",
   "hud.batteryCharging": "Lantern {n}%, charging",
+  "hud.sunIn": "in {t}",
+  "hud.sunLeft": "{t} left",
+  "hud.sunIn.aria": "The sun starts charging the solar panel in {t}",
+  "hud.sunLeft.aria": "The sun charges the solar panel for {t} more",
   "hud.chip": "{res}: see what earns it",
   "hud.statement": "Earnings statement",
 

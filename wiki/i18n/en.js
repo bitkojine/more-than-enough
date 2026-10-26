@@ -543,7 +543,13 @@ export default {
         It never stops you doing anything. Its charge shows on the left edge once it isn't full.</p>
       <p>Only water power charges it: stand within <span data-k="CHARGE_RANGE"></span> tiles of a floating solar panel while the
         sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
-        charger charges anyone.</p>`,
+        charger charges anyone.</p>
+      <h2>The sun clock</h2>
+      <p>A day lasts <span data-k="DAY_LENGTH"></span> seconds. The ring round the Settings gear is that day, noon at the top:
+        gold while the sun is high enough to charge a solar panel, blue for the rest, and the sun or the moon rides it to
+        show where the day is. Early morning already looks light, but a panel only charges once the sun reaches the gold.
+        Beside a solar panel, under the gear, the time till it starts charging shows, and while it charges, the time it has
+        left. In a crystal world the gold is the sun that cracks crystal and the heart in the open.</p>`,
   "wiki.article.gathering.title": "Gathering",
   "wiki.article.gathering": `      <h1>Gathering</h1>
       <p class="lede">Four resources, two tools, and deposits that run dry.</p>

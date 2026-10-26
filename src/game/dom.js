@@ -18,6 +18,7 @@ export function findElements() {
     milestone: byId('milestone'),
     awards: byId('btnAwards'),
     settings: byId('btnSettings'),
+    sunTime: byId('sunTime'),
     settingsPanel: byId('settingsPanel'),
     nerdsPanel: byId('nerdsPanel'),
     problems: byId('problems'),

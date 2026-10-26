@@ -535,7 +535,13 @@ export default {
         Daryti nieko ji netrukdo. Kai žibintas nepilnai įkrautas, jo įkrova rodoma kairiajame ekrano krašte.</p>
       <p>Ją įkrauna tik vandens energija: stovėk ne toliau kaip <span data-k="CHARGE_RANGE"></span> langelio nuo plaukiojančios
         saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
-        <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>`,
+        <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>
+      <h2>Saulės laikrodis</h2>
+      <p>Para trunka <span data-k="DAY_LENGTH"></span> s. Žiedas aplink nustatymų krumpliaratį yra ta para, vidurdienis
+        viršuje: auksinis, kol saulė pakankamai aukštai, kad krautų saulės plokštę, mėlynas likusį laiką, o saulė ar mėnulis
+        juo keliauja ir rodo, kuri paros dalis. Ankstų rytą jau atrodo šviesu, bet plokštė ima krauti tik saulei pasiekus
+        auksinę dalį. Šalia saulės plokštės po krumpliaračiu matyti, po kiek laiko ji ims krauti, o kol kraunasi, kiek dar
+        liko. Kristalų pasaulyje auksinė dalis yra saulė, kuri skaldo kristalus ir širdį atvirame lauke.</p>`,
   "wiki.article.gathering.title": "Rinkimas",
   "wiki.article.gathering": `      <h1>Rinkimas</h1>
       <p class="lede">Keturi ištekliai, du įrankiai ir telkiniai, kurie išsenka.</p>

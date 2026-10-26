@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.166.0": "Saulės laikrodis: žiedas aplink nustatymų krumpliaratį yra para, auksinis, kol saulė pakankamai aukštai, kad krautų saulės plokštę (kristalų pasauliuose, kad skaldytų kristalus), o ant jo saulė ar mėnulis. Šalia plokštės po krumpliaračiu matyti, po kiek ji ims krauti ar kiek dar liko.",
   "news.0.165.0": "Rinkimas visada vienodo tempo: spaudinėti Rinkti ar tarpą, {phone:baksnoti|laptop:spaudinėti} langelius ar piešti Takus niekada nebus greičiau nei tiesiog laikyti Rinkti. Tiesiog laikyk.",
   "news.0.164.0": "Savo tekstūrų paketo įkėlimo nebeliko, kartu ir Tekstūrų Moksliukams: beveik niekas jo nenaudojo. Žaidimas lieka vienos išvaizdos, kurią nupiešė jo kūrėjai, o tavo pasauliai lieka tokie, kokie buvo.",
   "news.0.163.0": "Milijardai visomis kalbomis rašomi B, todėl išteklių juosta visur skaitoma vienodai: k, M, B, T.",
@@ -756,6 +757,10 @@ export default {
   "hud.milestoneOf": "{n} iš {total}",
   "hud.battery": "Žibintas {n} %",
   "hud.batteryCharging": "Žibintas {n} %, kraunasi",
+  "hud.sunIn": "po {t}",
+  "hud.sunLeft": "liko {t}",
+  "hud.sunIn.aria": "Saulė pradės krauti saulės plokštę po {t}",
+  "hud.sunLeft.aria": "Saulė dar krauna saulės plokštę {t}",
   "hud.chip": "{res}: žiūrėti, kas tai uždirba",
   "hud.statement": "Uždarbio ataskaita",
 

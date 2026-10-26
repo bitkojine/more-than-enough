@@ -22,7 +22,8 @@ place it belongs here rather than adding a button where there is room.
 ```
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
-│                            v0.124.0 ●│  version, under the gear (● = news)
+│                            v0.124.0 ●│  version, under the gear (● = news); by a
+│                               ● in 0:18│  solar panel, the sun countdown in its place
 │ ▮▯ 62%                               │  battery (once it isn't full), left edge
 │ LAYER 1                              │  depth meter (underground only), under it
 │ ▮                                    │
@@ -77,6 +78,10 @@ place it belongs here rather than adding a button where there is room.
 ### The lantern's charge
 - The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
 - The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section, above *In the mine*, saying where they go while you aren't there.
+
+### The sun clock
+- The Settings gear wears the day as a ring (Watch, 2026-10-26): noon at the top, gold for the part of the day the sun works, blue for the rest, and the sun (in the gold) or the moon (in the blue) riding it clockwise where the day is now. In older and shared worlds the gold is when a solar panel charges (and the lantern doesn't drain); in a crystal world it's the sun that cracks crystal and the heart in the open, which lasts longer. It shows always, on the surface and underground. The gear stays the same size and still opens Settings.
+- Within charging reach of a solar panel, and no water wheel (which charges at every hour), a pill takes the version's place under the gear: a small sun and *in 0:18* until the sun starts charging, then *1:12 left* until it stops. It's status, not a button; the version comes back once you walk off. Early morning is the reason: it already looks light, but the panel isn't charging yet.
 
 ### Depth
 - Underground, the depth meter sits on the left edge under the battery: a pill saying which layer you're on (*Layer 3*: a small capital label over a big number), and under it the layers as a column. The forest is on top in green (grass over earth), then every layer you've been down to in brown, a dashed one for deeper still; yours is lit gold with a small marker pointing at it. Over 12 layers, the column keeps the ones around you. On the surface the whole meter hides.
