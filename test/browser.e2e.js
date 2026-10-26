@@ -1188,6 +1188,16 @@ async function main() {
   console.log('  screenshot: ' + await shot('02b-awards.png'));
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(250);
+  // Every milestone this world has, crystal ones included, lists once reached
+  // (the Awards used to stop opening at the first one the old list lacked).
+  var awardsDone = await evalJS('JSON.stringify(MTE_GAME.getState().goalsDone)');
+  await evalJS('(function(){var s=MTE_GAME.getState(),g=MTE_GAME.core.worldGoals(s);s.goalsDone=g.slice(0,-1).map(function(x){return x.id;});s.goalIndex=s.goalsDone.length;})()');
+  await tap(awardsBtn.x, awardsBtn.y);
+  await sleep(300);
+  ok(await evalJS('(function(){var s=MTE_GAME.getState();return document.getElementById("sheet").classList.contains("open")&&document.querySelectorAll("#sheetBody .row").length===s.goalsDone.length+1;})()'), 'the Awards open with every milestone of this world reached');
+  await evalJS('document.getElementById("btnClose").click()');
+  await evalJS('(function(){var s=MTE_GAME.getState();s.goalsDone=' + awardsDone + ';s.goalIndex=s.goalsDone.length;})()');
+  await sleep(250);
   var trailStartInv = g1.inv.mycelium;
   var trailStart = await rect('#btnAction');
   await touch('touchStart', [{ x: trailStart.x, y: trailStart.y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);

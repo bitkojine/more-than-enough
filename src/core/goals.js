@@ -92,13 +92,15 @@ export function goalsTotal(s) {
   return s.shared ? GOALS.findIndex((g) => g.id === 'master') : GOALS.length - 1;
 }
 
-// The milestones there are to reach in this world.
-const reachable = (s) => s.cultivation?CULTIVATION_GOALS:GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
+// The milestones there are to reach in this world, in order: a crystal world
+// has its own list, a shared one stops before "Master the world", and a depot
+// world names Logistics as its depot.
+export const worldGoals = (s) => s.cultivation?CULTIVATION_GOALS:GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
 
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.
 export function advanceGoals(s) {
-  const pending = reachable(s).filter((g) => !s.goalsDone.includes(g.id));
+  const pending = worldGoals(s).filter((g) => !s.goalsDone.includes(g.id));
   // Only income-dependent predicates need a fresh production observation.
   if (pending.some(g => g.income)) economyForState(s)?.settle();
   const reached = pending.filter(g => g.done(s));
@@ -109,7 +111,7 @@ export function advanceGoals(s) {
 
 // The first milestone still to reach, or null once all are.
 export function nextGoal(s) {
-  return reachable(s).find((g) => !s.goalsDone.includes(g.id)) || null;
+  return worldGoals(s).find((g) => !s.goalsDone.includes(g.id)) || null;
 }
 
 // What reaching `goal` still takes: { cost } (a price, to show as what's still

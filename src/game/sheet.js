@@ -274,13 +274,14 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   // The next milestone and what it still takes, the last one far off, then
   // the ones reached, newest first.
   function renderAwards(s) {
-    const total = Core.goalsTotal(s);
+    const goals = Core.worldGoals(s);
+    const total = goals.length;
     const next = Core.nextGoal(s);
     let html = '';
     if (next) {
       html += `<div class="section">${t('sheet.nextMilestone')}</div>` +
         `<div class="row nextGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(next.text)}</div><div class="sub">${goalNeeds(s, next)}</div></div></div>`;
-      const last = Core.GOALS[total - 1];
+      const last = goals[total - 1];
       const far = last !== next && !s.goalsDone.includes(last.id);
       if (far) {
         html += `<div class="row farGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(last.text)}</div>` +
@@ -291,8 +292,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     }
     html += `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
     for (let i = s.goalsDone.length - 1; i >= 0; i--) {
-      const goal = Core.GOALS.find((g) => g.id === s.goalsDone[i]);
-      html += row(TROPHY, esc(Core.usesDepots(s)&&goal.id==='logistics'?t('goal.depot.reached'):goal.reached), t('sheet.milestone', { n: i + 1 }), '');
+      const goal = goals.find((g) => g.id === s.goalsDone[i]);
+      if (goal) html += row(TROPHY, esc(goal.reached), t('sheet.milestone', { n: i + 1 }), '');
     }
     return html;
   }

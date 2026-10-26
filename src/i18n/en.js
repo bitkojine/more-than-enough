@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.167.2": "Fixed: in a crystal world the Awards stopped opening once you reached the deep chambers. They open again with every milestone listed, and the last one shown is the machine.",
   "news.0.167.1": "Holding Gather, Mica keeps the basket or pickaxe in hand from one stroke to the next instead of putting it away on the back between them.",
   "news.0.167.0": "Build shows only what you can build where you are: on the surface, surface buildings and water power; underground, only what goes in the mine, and crystal rooms only from layer 2 down.",
   "news.0.166.1": "Craft and Place buttons in crystal worlds stay grey until you have everything they cost, so a button that looks ready always works.",

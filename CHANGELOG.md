@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.167.2] - 2026-10-26
+
+The Awards stopped opening (Watch: "can happen that the Awards menu no
+longer opens"). The sheet looked milestones up in the old world's list,
+`GOALS`, but a crystal world has its own, `CULTIVATION_GOALS`. Its first
+four milestones share ids with the old list, so all was well until the
+fifth, *Deep chambers* (`cultivationDeep`): from then on drawing the list
+threw, the sheet kept whatever it showed before, and a problem report
+appeared. The same mix-up named *Unlock Logistics* as the crystal world's
+last milestone.
+
+### Fixed
+- The Awards read the world's own milestones (`worldGoals` in
+  `src/core/goals.js`, the list the game already advances), so every
+  milestone reached lists and the last one shown is activating the machine.
+  A unit test and a browser check open the Awards with every milestone of
+  the world reached.
+
 ## [0.167.1] - 2026-10-26
 
 Tools stay in hand while Gather is held (Watch: "character keeps holstering
