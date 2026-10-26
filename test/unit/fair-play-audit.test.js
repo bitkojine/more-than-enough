@@ -36,7 +36,7 @@ for(const fps of [10,20,30,60,120])test(`manual Gather and AUTO share four held 
  const controller=manual(s,()=>hand++);
  const button=createPerfect({game:{state:C.createState(12345)},hud:{toast(){}},controller:{walking:false,perform(){auto++;return true;}}});
  controller.press();button.press();
- for(let i=0;i<fps;i++){controller.tick(1/fps,true,null);button.tick(1/fps,true);}
+ for(let i=0;i<fps;i++){C.step(s,1/fps);controller.tick(1/fps,true,null);button.tick(1/fps,true);}
  assert.equal(auto,5);assert.equal(hand,auto,'manual hold must not be slower than AUTO');
  button.release();
 });

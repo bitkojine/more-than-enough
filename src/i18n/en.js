@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.165.0": "Gathering keeps one steady pace: pressing Gather or Space again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than holding Gather down. Just hold it.",
   "news.0.164.0": "Loading your own texture pack is gone, along with Textures in Nerds: hardly anyone used it. The game keeps the one look its makers drew, and your worlds are untouched.",
   "news.0.163.0": "Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.",
   "news.0.162.0": "Behind the scenes: code for talking to old versions of the shared-world service, which no longer exist, is gone. Nothing changes in play.",

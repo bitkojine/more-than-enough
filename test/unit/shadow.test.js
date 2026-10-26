@@ -223,7 +223,7 @@ test('shadow: what nobody could do gets nobody anything', async () => {
   // And acts from further ahead than the room's clock.
   const ahead = ['c', ms + 60_000, p.x, p.y, p.z];
   send({ t: 'acts', ms: ms + 1000, a: [...flurry.slice(0, 50), ...flurry.slice(50), leap, ahead] });
-  assert.ok(r.shadow.report(id).refused >= 100 - 40 + 2, 'past the budget, the leap and the future are refused (' + r.shadow.report(id).refused + ')');
+  assert.ok(r.shadow.report(id).refused >= 100 - 1 + 2, 'all but one of the flurry (a turn of the hand, core pace.js), the leap and the future are refused (' + r.shadow.report(id).refused + ')');
 });
 
 test('shadow: buildings go up in the room\'s world from what the room worked out, not from the game\'s edits', async () => {

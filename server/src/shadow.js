@@ -14,14 +14,13 @@
  * from here (room.js), not from the game's edits; gathering's changes to the
  * land still come from the game's edits. */
 
-import { joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, canAfford, extractorCost, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
+import { handClock, handReady, useHand, joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, canAfford, extractorCost, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
 
 const SLACK_MS = 2000;     // play time a game may be ahead of the room's clock (a late message)
-// Gathering by hand: holding Gather works a tile every 0.25 s (the game's
-// GATHER_COOLDOWN), but one Trail stroke works every tile it crosses at once.
-// So a budget: HAND_BURST tiles at once, HAND_RATE a second after that.
-const HAND_BURST = 40;
-const HAND_RATE = 24;
+// Working a tile by hand ('h') takes a turn of the hand, one every
+// HAND_SECONDS of play time however it was done (src/core/pace.js), as in
+// the game. Acts carry play time in whole ms, so a turn may look this early.
+const HAND_SLACK_MS = 2;
 const STRIDE = 40;         // tiles a second anyone may cover between acts (room.js MAX_SPEED)
 const STRIDE_SLACK = 4;    // tiles: rounding, a boat's drift
 
@@ -63,7 +62,7 @@ export class Shadow {
     // Where they were last: where their progress says, or anywhere for the
     // first act of someone new (the game puts them by a friend).
     const last = save ? { x: s.player.x, y: s.player.y, z: s.player.z, ms: s.stats.playedMs } : null;
-    const sh = { s, at, hand: { n: HAND_BURST, ms: s.stats.playedMs }, last, checks: 0, off: 0, refused: 0, why: new Set(), ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
+    const sh = { s, at, hand: handClock(), last, checks: 0, off: 0, refused: 0, why: new Set(), ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
     this.players.set(id, sh);
     return sh;
   }
@@ -125,11 +124,8 @@ export class Shadow {
     const s = sh.s;
     if (a[1] < s.stats.playedMs - 1 || a[1] > limit) return false;
     if (a[0] === 'h') {
-      const h = sh.hand;
-      h.n = Math.min(HAND_BURST, h.n + Math.max(0, a[1] - h.ms) / 1000 * HAND_RATE);
-      h.ms = Math.max(h.ms, a[1]);
-      if (h.n < 1) return false;
-      h.n--;
+      if (!handReady(sh.hand, a[1], HAND_SLACK_MS)) return false;
+      useHand(sh.hand, a[1]);
     }
     const l = sh.last;
     if (!l) return true;

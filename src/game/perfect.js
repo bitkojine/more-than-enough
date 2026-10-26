@@ -12,7 +12,7 @@
 import * as Core from '../core/index.js';
 import { t } from '../i18n/i18n.js';
 
-const ACT_EVERY = 0.25;   // seconds between acts, as holding a tile works it
+const ACT_EVERY = Core.HAND_SECONDS; // seconds between acts: the hand's pace (core pace.js)
 const CLOCK_EPSILON = 1e-9; // exact tick boundaries must not wait an extra frame
 const PEEK_EVERY = 0.5;   // seconds between looks at what holding would do, while not held
 

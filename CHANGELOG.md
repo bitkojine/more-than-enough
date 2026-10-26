@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.165.0] - 2026-10-26
+
+Every way of working a tile keeps one pace (Watch: "no game action should
+motivate players to spam control faster, the speeds of actions are always
+the same"). Before, pressing Space or Gather quickly was up to 15 times
+faster than holding it: a press during the quarter-second wait started an
+Explore walk, and the walk worked the tile on arrival at once. Tapping a
+tile had no wait at all, and a Trail worked every tile it crossed in one go.
+
+### Changed
+- One hand clock (`src/core/pace.js`): a turn every 0.25 s of play time,
+  shared by a Gather press or hold, Space, a tap on a tile, a walk that
+  works a tile on arrival, digging by pushing into a wall, collecting, a
+  Trail and AUTO. Holding keeps exactly that beat; a press or tap that
+  comes early is kept for the next turn, so it is never slower either.
+- A Trail now works the tiles it crossed one a turn, not all at once.
+- The room holds each player's gathers to the same clock (a 2 ms slack for
+  rounded play time) instead of a 40-tile burst and 24 a second. Old games
+  that still send a Trail at once have the extra refused and are set
+  straight, as for any refused act.
+- The wiki says so (Controls: Gather, Trails) and no longer says holding a
+  finger on a tile works it (it asks Wiki since v0.149.0).
+
+### Tests
+- `test/unit/steady-pace.test.js`: pressing every frame, tapping, Trail
+  after Trail and random mixes of all of them over 12 seeds never beat
+  holding Gather (the old controller managed 600, 300 and 1200 tiles in
+  10 s against holding's 41); the room refuses anything past the pace.
+
 ## [0.164.0] - 2026-10-26
 
 Custom texture packs are gone (Watch: "never used ... less attack surface,

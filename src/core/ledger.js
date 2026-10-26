@@ -13,6 +13,7 @@ import {
   extractorRate, placementGain, productionRates, ownBuilding, toolStat, scaleCost, extractorCost, abundanceCost
 } from './economy.js';
 import { buildTarget } from './actions.js';
+import { HANDS_PER_SECOND } from './pace.js';
 import { UPGRADES, PATH_FAMILIES, upgradeLevel } from './upgrades.js';
 
 const zero = () => Object.fromEntries(RESOURCES.map((r) => [r, 0]));
@@ -93,14 +94,13 @@ export function totalSpent(s) {
 
 /* ---------------------------------------------------------------- ROI */
 
-const TAPS = 4; // gathers a second, holding Gather
 
 // What a resource is worth, as how fast you come by it a second: your income
 // of it, or holding Gather for it when that's faster (so the first building of
 // a kind, with no income yet, still has a worth).
 export function worthRates(s) {
   const rates = productionRates(s);
-  for (const r of RESOURCES) rates[r] = Math.max(rates[r], TAPS * toolStat(s, r === 'mycelium' ? 'basket' : 'pickaxe').yield);
+  for (const r of RESOURCES) rates[r] = Math.max(rates[r], HANDS_PER_SECOND * toolStat(s, r === 'mycelium' ? 'basket' : 'pickaxe').yield);
   return rates;
 }
 

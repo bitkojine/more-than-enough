@@ -255,14 +255,16 @@ export default {
         <li>With nothing in reach, it reads <em>EXPLORE</em> and walks you to the nearest resource your tools can work, then gathers it. With nothing around at all, it dims.</li>
       </ul>
       <p>You can also <strong>{phone:tap|laptop:click} a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
-        collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. <strong>{phone:Hold your finger
-        still|laptop:Hold the mouse button down}</strong> on a tile and you keep working it, just like holding Gather. Reach is <span data-k="REACH"></span> tiles
+        collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. Reach is <span data-k="REACH"></span> tiles
         from you to the tile's centre.</p>
+      <p>Every way of working takes the same time: one tile every <span data-k="HAND_SECONDS"></span> seconds. {phone:Tapping|laptop:Pressing}
+        Gather again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than simply holding Gather down, so there's no
+        need to hurry your {phone:thumb|laptop:fingers}.</p>
 
       <h2>Trails</h2>
       <p>Hold Gather, then <strong>slide your {phone:thumb|laptop:pointer} off the button</strong> onto the map and draw. Every resource tile within reach
-        that your stroke passes over lights up green. Let go and each one is gathered once. It's the fastest way to clear a
-        patch around you. Underground the same stroke digs, and glows amber.</p>
+        that your stroke passes over lights up green. Let go and each one is gathered once, one after another at
+        Gather's pace: a handy way to pick which tiles around you to clear. Underground the same stroke digs, and glows amber.</p>
       <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
 
       <h2>Auto-play</h2>

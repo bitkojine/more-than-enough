@@ -44,7 +44,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there round obstacles: planWalk/walkAim in core paths.js, replanned when a hoped-open route through fog turns out blocked), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, a finger held on a tile, AUTO's intents (perform), Trail sweeps, going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there round obstacles: planWalk/walkAim in core paths.js, replanned when a hoped-open route through fog turns out blocked), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, AUTO's intents (perform), Trail sweeps (every way of working a tile takes turns on one hand clock, core pace.js), going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/controller.js"

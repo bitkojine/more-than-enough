@@ -43,8 +43,8 @@ import { autoCollected, canWade, swimsAt, settleEconomy } from './sim.js';
 import { canDescendAt, canClimbAt, canPlaceProp, findsNear } from './underground.js';
 import { charging } from './light.js';
 import { findPath, routePosition } from './paths.js';
+import { HANDS_PER_SECOND } from './pace.js';
 
-const TAPS = 4;               // gathers a second, holding (the game's 0.25 s between them)
 const SEARCH = 120;           // tiles out the brain looks for a deposit or a spot
 const STUCK = 6;              // tries at the same step before a target counts as out of reach
 const PERKS_FIRST = ['memory', 'heirloom', 'cartographer'];
@@ -217,7 +217,7 @@ export function investmentPayback(s, mind, id, rates = productionRates(s)) {
 
 /* ------------------------------------------------------------ planning */
 
-const handRate = (s, mind, res) => TAPS * gatherYield(s, res) * mind.k.walkLoss;
+const handRate = (s, mind, res) => HANDS_PER_SECOND * gatherYield(s, res) * mind.k.walkLoss;
 
 // Rare forage is only a local obstacle; harder rock gates the whole resource.
 // Seeing a rare mushroom must not imply every unexplored forest is locked.

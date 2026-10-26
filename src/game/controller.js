@@ -7,15 +7,18 @@ import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
 import { fmt } from './format.js';
 
-const CLOCK_EPSILON = 1e-9;
-const GATHER_COOLDOWN = 0.25; // seconds between repeated actions while held
 const ARRIVE_DIST = 0.18;     // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35;   // tap-to-walk gives up after this long blocked
 const REPLANS = 40;           // times a tapped walk finds a new way when one turns out blocked
 
 // `gathered(held)` hears every gather: `held` when a hold repeated it.
 export function createController({ game, cam, fx, audio, hud, look, ask, actor, gathered = () => {} }) {
-  let cooldown = 0;
+  // Every way of working a tile takes turns on one clock (core pace.js), so
+  // holding Gather is as fast as it gets: a press, a tap, a Trail, a dug
+  // wall or AUTO waits for the next turn instead of coming sooner.
+  let hand = Core.handClock(), handOf = null;
+  let pressed = false; // a press that came early: done on the next turn
+  let trail = [];      // a Trail's tiles still to work, a turn each
   let walkTo = null, walkSerial = 0;
   let stalled = 0;
   const drilling = { x: 0, y: 0, t: 0 }; // progress into the wall you're pushing
@@ -26,6 +29,12 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // "+n" of a resource over your head, adding up with the gains just before it.
   const tally = (res, amount) => fx.tally(player().x, player().y - 0.4, amount, look.color(Core.resourceLook(res)), Core.resourceLook(res));
   const toolLevel = (res) => state().tools[res === 'mycelium' ? 'basket' : 'pickaxe'];
+
+  function handFree() {
+    if (handOf !== state()) { handOf = state(); hand = Core.handClock(); pressed = false; trail = []; }
+    return Core.handReady(hand, state().stats.playedMs);
+  }
+  const handUsed = () => Core.useHand(hand, state().stats.playedMs);
 
   function performAct(kind,detail={}){actor.act(kind,{...detail,facing:{...controller.facing}});}
 
@@ -75,8 +84,10 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   }
 
   function collectNearby(at=null) {
+    if (!handFree()) return false;
     const got = Core.collect(state());
     if (!got) return false;
+    handUsed();
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
     for (const r of Object.keys(got.gained)) tally(r, got.gained[r]);
     const sources=got.sources;
@@ -95,12 +106,15 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   // Works tile (tx, ty) if it's in reach: collect the building on it, or
   // gather it. Returns true if something was done, 'gear' if it's in reach
-  // but takes a better tool (the player is told which), else false.
+  // but takes a better tool (the player is told which), 'wait' if it's in
+  // reach but this turn of the hand is used, else false.
   function workAt(tx, ty) {
     const near = Core.collectTarget(state());
-    if (near && near.list.some((e) => e.x === tx && e.y === ty)) { faceTile(tx, ty); return collectNearby({x:tx,y:ty}); }
+    const collects = near && near.list.some((e) => e.x === tx && e.y === ty);
+    if (!handFree()) return collects || Core.canHarvest(state(), tx, ty) ? 'wait' : false;
+    if (collects) { faceTile(tx, ty); return collectNearby({x:tx,y:ty}); }
     const r = Core.harvestAt(state(), tx, ty);
-    if (r) { faceTile(tx, ty); harvested(r); changed(); return true; }
+    if (r) { handUsed(); faceTile(tx, ty); harvested(r); changed(); return true; }
     const gear = Core.gearBlocks(state(), tx, ty);
     if (gear) { faceTile(tx, ty); needsGear(gear); return 'gear'; }
     return false;
@@ -146,12 +160,28 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // What Gather does right now: empty nearby extractors, else work the
   // nearest deposit; underground, dig the rock around you.
   function act() {
+    if (!handFree()) return false;
     if (Core.collectTarget(state())) return collectNearby();
     const r = Core.harvest(state());
     if (!r) return false;
+    handUsed();
     harvested(r);
     changed();
     return true;
+  }
+
+  // Works the Trail's next tile still in reach (one turn of the hand).
+  function workTrail() {
+    while (trail.length) {
+      const t = trail.shift();
+      const r = Core.harvestAt(state(), t.x, t.y);
+      if (!r) continue;
+      handUsed();
+      faceTile(t.x, t.y);
+      harvested(r);
+      changed();
+      return;
+    }
   }
 
   function layerChanged(from) {
@@ -216,15 +246,16 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         if (Core.waterAhead(state(), dir.x, dir.y)) needsGear({ tool: 'boots', level: Core.GEAR.water });
         if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
         // Underground, pushing into rock digs it.
-        const dug = Core.drill(state(), drilling, dir.x, dir.y, dt);
-        if (dug) { harvested(dug); changed(); }
+        const dug = handFree() && Core.drill(state(), drilling, dir.x, dir.y, dt);
+        if (dug) { handUsed(); harvested(dug); changed(); }
         else if (drilling.t > 0 && !actor.busy) performAct('swing'); // chipping at the wall
       } else if (walkTo) {
         const d = Math.hypot(walkTo.x - p.x, walkTo.y - p.y);
         // Walking to something tapped: work it as soon as it's in reach.
         const done = walkTo.work && workAt(walkTo.work.x, walkTo.work.y);
         const aim = done || d < ARRIVE_DIST ? null : aimOf(walkTo);
-        if (done) { walkTo = null; if (done === true) gathered(false); }
+        if (done === 'wait') stalled = 0; // in reach: work it on the next turn
+        else if (done) { walkTo = null; if (done === true) gathered(false); }
         else if (d < ARRIVE_DIST) walkTo = null;
         else if (aim === 'done') {
           // Beside it: water your Boots can't take you onto says so.
@@ -249,23 +280,27 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       return moved;
     },
 
-    // Gather pressed: act at once, then the hold repeats via tick().
+    // Gather pressed: act at once, then the hold repeats via tick(). A
+    // press before the hand's next turn is kept for that turn, not done
+    // sooner, so pressing again and again is never faster than holding.
     press() {
-      if (cooldown <= CLOCK_EPSILON && act()) { cooldown = GATHER_COOLDOWN; gathered(false); return; }
+      if (!handFree()) { pressed = true; return; }
+      if (act()) { gathered(false); return; }
       if (!walkTo) explore();
     },
 
-    // Gather held: repeats press(), paced by the cooldown.
+    // Each turn of the hand: a Trail's next tile, else a press that came
+    // early, else the hold's repeat.
     tick(dt, holding) {
-      const remaining = cooldown;
-      cooldown -= dt;
-      const overdue = remaining > CLOCK_EPSILON ? Math.max(0, -cooldown) : 0;
+      if (!handFree()) return;
+      if (trail.length) { workTrail(); return; }
+      if (pressed) { pressed = false; if (act()) gathered(false); else if (!walkTo) explore(true); return; }
       // The first gather of a hold is press()'s; these are its repeats. With
       // nothing left in reach, a hold heads for the next thing in sight, as
       // the first press did (quietly: the press already said if there's none).
-      if (holding && cooldown <= CLOCK_EPSILON) {
-        if (act()) { cooldown = GATHER_COOLDOWN - overdue; gathered(true); }
-        else if (!walkTo) { cooldown = GATHER_COOLDOWN; explore(true); }
+      if (holding) {
+        if (act()) gathered(true);
+        else if (!walkTo) explore(true);
       }
     },
 
@@ -302,34 +337,18 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
       if (passAt(tx, ty)) return;
       const done = workAt(tx, ty);
+      // A tap before the hand's turn works the tile on that turn.
+      if (done === 'wait') { walkToward(tx, ty, true, null, true); return; }
       if (done) { if (done === true) gathered(false); return; }
       walkToward(tx, ty, workable(tx, ty), null, true);
     },
 
-    // A finished Trail stroke (world points), or null if it was abandoned.
+    // A finished Trail stroke (world points), or null if it was abandoned:
+    // the tiles it crossed are worked one a turn, as holding Gather would.
     trailEnded(points) {
-      if (!points) return;
-      const s = state();
-      const below = Core.isUnderground(s);
-      let count = 0,lastTarget=null;
-      const gathered = {};
-      for (const t of Core.sweepTargets(s, points)) {
-        const r = Core.harvestAt(s, t.x, t.y);
-        if (!r) continue;
-        count++;lastTarget=t;
-        if (below) harvested(r);
-        else if (r.amount > 0) {
-          fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
-          gathered[r.res] = (gathered[r.res] || 0) + r.amount;
-          audio.gather(r.res, r.amount, toolLevel(r.res));
-          fx.flyersFrom(r.x, r.y, r.res, r.amount);
-        }
-      }
-      if (!count) return;
-      if(lastTarget)faceTile(lastTarget.x,lastTarget.y);
-      if (!below) performAct(gathered.mycelium || state().tools.pickaxe === 0 ? 'pick' : 'swing');
-      for (const res of Object.keys(gathered)) tally(res, gathered[res]);
-      changed();
+      const free = handFree();
+      if (points) trail = Core.sweepTargets(state(), points);
+      if (free && trail.length) workTrail();
     },
 
     // The layer button: down the way you stand in, or up the ladder.
@@ -395,7 +414,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
     forget() {
       walkTo = null;
-      cooldown = 0;
+      pressed = false;
+      trail = [];
     }
   };
   return controller;

@@ -252,14 +252,16 @@ export default {
         <li>Jei nieko nepasiekiama, jame parašyta <em>TYRINĖTI</em>: jis nuveda prie artimiausio ištekliaus, kurį tavo įrankiai įveikia, ir jį surenka. Jei aplink visai nieko nėra, mygtukas pritemsta.</li>
       </ul>
       <p>Taip pat gali <strong>{phone:bakstelėti|laptop:spustelėti} langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
-        produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. <strong>{phone:Laikyk pirštą
-        nejudantį|laptop:Laikyk nuspaustą pelės mygtuką}</strong> ant langelio ir dirbsi jį toliau, lygiai kaip laikydamas Rinkti. Pasiekiamumas – <span data-k="REACH"></span> langelio
+        produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. Pasiekiamumas – <span data-k="REACH"></span> langelio
         nuo tavęs iki langelio centro.</p>
+      <p>Bet koks darbas trunka tiek pat: vienas langelis kas <span data-k="HAND_SECONDS"></span> s. {phone:Baksnojant|laptop:Spaudinėjant}
+        Rinkti vėl ir vėl, {phone:baksnojant|laptop:spaudinėjant} langelius ar piešiant Takus niekada nebus greičiau nei tiesiog laikant Rinkti, tad
+        skubėti nereikia.</p>
 
       <h2>Takai</h2>
       <p>Laikyk Rinkti, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
-        per kurį pereina tavo brūkšnys, nušvinta žaliai. Atleisk ir kiekvienas jų bus surinktas po kartą. Tai greičiausias būdas išvalyti
-        plotelį aplink save. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
+        per kurį pereina tavo brūkšnys, nušvinta žaliai. Atleisk ir kiekvienas jų bus surinktas po kartą, vienas po kito
+        Rinkti tempu: patogu pasirinkti, kuriuos langelius aplink save išvalyti. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
 
       <h2>Autožaidimas</h2>
