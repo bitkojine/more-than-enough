@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.170.1": "Pataisyta: {phone:bakstelėjimas|laptop:spustelėjimas} ant „Padėti“ nebepataiko ir į žemėlapį, tad naujas pastatas nebeperšoka kitur, kol dar nespėjai pamatyti, kur jis stovi.",
   "news.0.170.0": "Bendrame pasaulyje tai, ką surenki ar pastatai, kol nėra ryšio, išsaugoma tavo {phone:telefone|laptop:kompiuteryje}, todėl uždarius žaidimą prieš vėl prisijungiant nieko nebeatimama. Garsas Microsoft Edge naršyklėje įsijungia nuo pirmo {phone:bakstelėjimo|laptop:paspaudimo}, o ne lieka tylus.",
   "news.0.169.0": "Perkelti dabar galima ir bendruose pasauliuose: {phone:bakstelėk|laptop:spustelėk} savo pastatą, tada kortelėje „Perkelti“. Pasaulis patikrina kiekvieną perkėlimą, tad visi mato tavo pastatą ten, kur jį padėjai.",
   "news.0.168.0": "Statoma dabar žemėlapyje. „Padėti“ skiltyje Statyti uždaro sąrašą, o pastatas atsistoja ten, kur bus, kaip permatomas šešėlis: {phone:bakstelėk|laptop:spustelėk} bet kurį nušvitusį langelį arba nutempk jį, ir Mika nueis ten ir pastatys. {phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė: „Perkelti“ vėl jį pakelia, nemokamai. Akmens dirbtuvės ir sandėlis vietoj brūkšninių linijų rodo, kiek toli siekia, ir mažą ženkliuką ant kiekvieno pastato, kuriam padeda.",

@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.170.1] - 2026-10-26
+
+The browser test failed now and then at "garden camp constructed". The tap
+on Place could land on the map as well once the sheet had closed under it,
+and on a fitting tile there it moved the ghost, sometimes out of reach, so
+Place here walked Mica off instead of building.
+
+### Fixed
+
+- Placing ignores map taps and drags for 0.4 s after it starts
+  (`SETTLE_MS`, `src/game/placing.js`).
+
+### Tests
+
+- Browser: the build step starts on the surface whatever an earlier step
+  left, and waits for the garden to stand (it may be walked to).
+
 ## [0.170.0] - 2026-10-26
 
 Two open GitHub issues fixed, from Watch's review of the issue list.

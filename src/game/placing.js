@@ -17,6 +17,8 @@ import { reachOf } from './reach.js';
 
 const REFRESH_S = 0.3;    // how often the lit tiles are found again
 const MAX_TILES = 6000;   // tiles looked at, at most (zoomed far out)
+const SETTLE_MS = 400;    // map taps ignored this long after it starts: the
+                          // tap on Place (or Move) itself, landing on the map
 
 export function createPlacing({ cam, state, controller, cultivate, toast, done }) {
   const el = document.createElement('div');
@@ -27,7 +29,7 @@ export function createPlacing({ cam, state, controller, cultivate, toast, done }
   // { key } or { kind }, `from` the building being moved (else null), the
   // layer, the tile chosen, and whether Mica is walking there.
   let job = null;
-  let rows = new Map(), age = Infinity, shown = '', dragging = false;
+  let rows = new Map(), age = Infinity, shown = '', dragging = false, startedAt = 0;
 
   const isMove = () => !!job?.from;
   const fits = (s, x, y) => job.key ? Core.extractorFits(s, job.key, x, y, job.from) : !Core.facilitySite(s, job.kind, x, y, job.from);
@@ -70,6 +72,7 @@ export function createPlacing({ cam, state, controller, cultivate, toast, done }
     job = { key: what.key || null, kind: what.kind || null, from, z: s.player.z, at: null, walking: false };
     findFits(s); age = 0;
     job.at = firstSpot(s);
+    startedAt = performance.now();
     document.body.classList.add('placing');
     render();
   }
@@ -167,13 +170,14 @@ export function createPlacing({ cam, state, controller, cultivate, toast, done }
     // Any other tap does nothing (it would walk Mica off).
     tap(sx, sy) {
       if (!job) return false;
+      if (performance.now() - startedAt < SETTLE_MS) return true;
       const s = state(), p = tileAt(sx, sy);
       if (fits(s, p.x, p.y)) choose(p.x, p.y);
       return true;
     },
     // A finger down on the ghost drags it from lit tile to lit tile.
     grab(sx, sy) {
-      if (!job?.at) return false;
+      if (!job?.at || performance.now() - startedAt < SETTLE_MS) return false;
       const p = tileAt(sx, sy);
       dragging = p.x === job.at.x && p.y === job.at.y;
       return dragging;

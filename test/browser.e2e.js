@@ -1355,7 +1355,8 @@ async function main() {
 
   /* ------------------------------------------------------------ build */
   console.log('\n== Build extractor (touch Place) ==');
-  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
+  // On the surface, whatever an earlier step left (a garden goes on forest).
+  var spot2 = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&!s.extractors.some(function(e){return e.x===x&&e.y===y;})){s.player.z=0;MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   await evalJS('MTE_GAME.addRes("mycelium",80)');
   await sleep(150);
   var buildBtn = await rect('#btnBuild');
@@ -1371,9 +1372,10 @@ async function main() {
   ok(await evalJS('!document.getElementById("sheet").classList.contains("open")&&!document.getElementById("placeCard").hidden&&getComputedStyle(document.getElementById("thumbDock")).visibility==="hidden"'), 'Place closes the sheet, shows the placement card and moves the thumb buttons aside');
   var placeHere = await rect('#placeCard [data-do=go]');
   await tap(placeHere.x, placeHere.y);
-  await sleep(250);
+  // Built at once beside you; a tile further off is walked to first.
+  await waitFor('MTE_GAME.getState().extractors.length===1', 6000);
   var b3 = JSON.parse(await stateSummary());
-  eq(b3.ext, 1, 'garden camp constructed');
+  eq(b3.ext, 1, 'garden camp constructed' + (b3.ext ? '' : ' (card: ' + await evalJS('document.getElementById("placeCard").innerText.replace(/\\s+/g," ")') + ')'));
   ok(await evalJS('document.getElementById("placeCard").hidden&&!document.body.classList.contains("placing")'), 'the placement card goes once it stands');
   // Its card has Move: a lit tile beside it, Move here, and it stands there.
   ok(await evalJS('!!document.querySelector("#buildingCard [data-type=move]")'), 'the new garden\'s card opens with Move');
@@ -1381,6 +1383,7 @@ async function main() {
   if (moveTo) {
     moveTo = JSON.parse(moveTo);
     await evalJS('document.querySelector("#buildingCard [data-type=move]").click()');
+    await sleep(500); // placing ignores map taps for a moment (placing.js SETTLE_MS)
     var moveAt = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.project(' + (moveTo.x + 0.5) + ',' + (moveTo.y + 0.5) + '))'));
     await tap(moveAt.x, moveAt.y);
     await sleep(150);
