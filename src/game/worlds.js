@@ -17,7 +17,8 @@ const KEPT = 12;                      // worlds remembered at most
 export const SAVE_PREFIX = 'mte.room.'; // your progress there (a copy)
 export const FOG_PREFIX = 'mte.fog.';   // the map you've explored there
 export const GEN_PREFIX = 'mte.gen.';   // which making of that world those are from (the nuke remade some before v0.117.0)
-const COPIES = [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX];
+export const ACTS_PREFIX = 'mte.acts.'; // what you did there that the room may not have yet
+const COPIES = [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX];
 
 function read(key) {
   try { return localStorage.getItem(key); } catch { return null; }

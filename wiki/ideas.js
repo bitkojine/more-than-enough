@@ -36,6 +36,7 @@ export const IDEAS = [
   { id: 'glowOre', area: 'mechanics', size: 'small' },
   { id: 'littleDiggers', area: 'mechanics', size: 'large' },
   { id: 'weather', area: 'mechanics', size: 'medium' },
+  { id: 'creaturesOfDayAndNight', area: 'mechanics', size: 'large' },
 
   /* --------------------------------------------------------- economy */
   { id: 'visualRecipes', area: 'economy', size: 'medium' },

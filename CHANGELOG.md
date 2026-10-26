@@ -1,7 +1,36 @@
 # Changelog
 
-## [0.169.0] - 2026-10-26
+## [0.170.0] - 2026-10-26
 
+Two open GitHub issues fixed, from Watch's review of the issue list.
+
+### Fixed
+- Shared worlds: progress made offline is no longer lost when the game
+  closes before it reconnects (#4). The acts the room may not have yet
+  (waiting to be sent, or sent in the last minute) are kept on the phone
+  (`mte.acts.<room>`) every save, on going to the background, and every 5 s
+  of play while offline. On arriving, the game takes the ones the room's
+  copy hasn't done (all still waiting, and those sent after the copy's play
+  time), does them again on that copy with the same rules and clock the
+  room uses (`catchUp`), and sends them, so new acts follow in play-time
+  order and the anti-cheat checks are unchanged. Land edits aren't kept:
+  sent late from far away they would count as a reach cheat.
+- Microsoft Edge could stay silent until the tab was muted and unmuted
+  (#1, not reproduced). At the first gesture, a sound context made at load
+  that has played nothing yet is swapped for a fresh one made inside the
+  gesture; one already playing is kept. The music player can now be
+  stopped for good (`stop()`), and the place's music carries over.
+
+### Changed
+- The day-and-night creatures idea (#2) moved from GitHub to the wiki's
+  Ideas page (*Creatures of day and night*), where ideas nobody has
+  committed to live.
+
+### Tests
+- `test/unit/together-client.test.js`: offline play then a closed game
+  keeps everything, whether the page was hidden first or killed without
+  warning, with no drift and nothing refused; acts the room already has
+  are not done twice.
 Move in shared worlds, the second half of building on the map (v0.168.0
 moved buildings only in solo worlds). The room keeps its own copy of each
 player's progress from what they did, so a move is a new act it replays

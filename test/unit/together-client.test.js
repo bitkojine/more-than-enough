@@ -468,6 +468,74 @@ test('client: a room that restarts (a deploy) between your saves loses nothing y
   assert.ok(g.game.state.inv.mycelium >= 9 && g.game.state.inv.stone >= 3, 'and nothing gathered is taken back');
 });
 
+// Plays on with no connection, then the game is gone before it reconnects
+// (closed, or the phone threw the page away): `bye` is how it went. A fresh
+// game on the same phone goes back in.
+async function offlineThenClosed(g, bye) {
+  g.bot.gather('mycelium', 4);
+  g.together.save(g.game.state, true);
+  g.pump();
+  open()[0].lose(1006);          // the network goes
+  g.bot.gather('mycelium', 9);   // played on regardless
+  g.bot.gather('stone', 3);
+  bye();
+  const had = { ...g.game.state.inv };
+  g.together.online();           // its last try...
+  for (const s of open()) s.readyState = 3; // ...dies with the page
+  const h = harness();
+  h.together.open();             // back into the world it was in
+  const me = await serve(g.r, open()[0]);
+  const now = T0 + Math.round(h.game.state.stats.playedMs) + 1000;
+  h.together.tick(0.3);
+  pump(g.r, me, open()[0], now);
+  h.together.save(h.game.state, true);
+  pump(g.r, me, open()[0], now + 100);
+  return { h, had };
+}
+
+test('client: what you did offline is kept when the game closes before it reconnects (issue #4)', async () => {
+  const g = await playing();
+  const { h, had } = await offlineThenClosed(g, () => g.together.away(true)); // hidden first, as phones do
+  assert.ok(had.mycelium >= 9 && had.stone >= 3, 'it gathered while offline');
+  assert.ok(h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5,
+    'back in, nothing gathered offline is taken back (' + h.game.state.inv.mycelium + ' mycelium, ' + h.game.state.inv.stone + ' stone)');
+  assert.deepEqual(driftsIn(g.r), [], 'the room did it all too: no drift');
+  assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing refused or done twice');
+});
+
+test('client: offline acts reach the phone every few seconds, so even a game killed without warning keeps them', async () => {
+  const g = await playing();
+  const { h, had } = await offlineThenClosed(g, () => { for (let i = 0; i < 6; i++) g.together.tick(1); });
+  assert.ok(h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5, 'nothing taken back');
+  assert.deepEqual(driftsIn(g.r), [], 'no drift');
+});
+
+test('client: acts kept on the phone that the room already has are not done twice', async () => {
+  const g = await playing();
+  open()[0].lose(1006);
+  g.bot.gather('mycelium', 6);
+  for (let i = 0; i < 6; i++) g.together.tick(1); // kept on the phone as waiting...
+  await new Promise((res) => setTimeout(res, 1100)); // ...then sent once back
+  await serve(g.r, open()[0]);
+  g.together.tick(0.3);
+  g.pump();
+  g.together.save(g.game.state, true);
+  g.pump(g.clock() + 100);
+  const had = { ...g.game.state.inv };
+  for (const s of open()) s.readyState = 3;          // closed with no warning
+  const h = harness();
+  h.together.open();
+  const me = await serve(g.r, open()[0]);
+  const now = T0 + Math.round(h.game.state.stats.playedMs) + 1000;
+  h.together.tick(0.3);
+  pump(g.r, me, open()[0], now);
+  h.together.save(h.game.state, true);
+  pump(g.r, me, open()[0], now + 100);
+  assert.ok(Math.abs(h.game.state.inv.mycelium - had.mycelium) < 0.5, 'the same mycelium, not more (' + h.game.state.inv.mycelium + ' vs ' + had.mycelium + ')');
+  assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing sent again for the room to refuse');
+  assert.deepEqual(driftsIn(g.r), [], 'no drift');
+});
+
 // What your game shows as yours: buildings by place.
 const mineIn = (s) => s.extractors.filter((e) => e.owner === s.me).map((e) => e.x + ',' + e.y);
 

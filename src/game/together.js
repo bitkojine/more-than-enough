@@ -18,7 +18,7 @@ import { roomService } from '../net/config.js';
 import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
-import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } from './worlds.js';
+import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
 import { loadGame } from './storage.js';
 import { createActor } from './render/motion.js';
@@ -55,6 +55,7 @@ const ACTS_PER_TICK = 4;              // 'acts' messages at most per frame (the 
 const SENT_KEPT = 6;                  // progress sent, remembered for the room's answer to it
 const ACTS_KEPT_MS = 60_000;          // play time of acts kept after sending, to send again if the room missed them
 const ACTS_KEPT_MAX = 6000;           // and at most this many
+const ACTS_WRITE_EVERY = 5;           // seconds of play between keeping unsent acts on the phone while offline
 const MAX_UNACKED = 400;              // batches of edits sent and not yet answered, kept to send again
 const INVITES_WAIT = 8000;           // ms to wait for the invite links before saying they didn't come
 const FORMAT_RETRY = 60_000;          // ms before trying a world again whose room service hasn't updated yet
@@ -227,6 +228,8 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   let editSeq = 0, unacked = [];
   let sent = [];            // {n, ms, ...Core.sentOf} of the last progress sent, for the room's corrections ('econ')
   let undoneAt = -Infinity; // when the player was last told the room took something back (seconds)
+  let actsT = 0;            // seconds until unsent acts are next kept on the phone (offline)
+  let keptWaiting = false;  // the phone holds acts as still to send
   let sentActs = [];        // acts sent lately: the room may not have them (a dying connection, a restart)
   let saveSeq = 0;          // numbers the progress sent
   let fixedNote = false;    // arrived to smaller numbers than this phone showed: the away toast says so too
@@ -518,7 +521,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     // its copies of your progress and map are from a world that's gone.
     const was = read(GEN_PREFIX + room);
     const renewed = was !== null && was !== String(w.gen);
-    if (renewed) { write(SAVE_PREFIX + room, ''); write(FOG_PREFIX + room, ''); }
+    if (renewed) { write(SAVE_PREFIX + room, ''); write(FOG_PREFIX + room, ''); write(ACTS_PREFIX + room, ''); }
     write(GEN_PREFIX + room, String(w.gen));
     if (game.state.shared === room && !renewed) {
       resync(w);
@@ -538,6 +541,11 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
         .sort((a, b) => Math.hypot(a.x - mine.x, a.y - mine.y) - Math.hypot(b.x - mine.x, b.y - mine.y))[0] || w.p;
       const state = Core.joinState({ ...w, save }, room, fog, near);
       if (!state) { stop(t('together.toast.broken')); return; }
+      // What you did here that the room never heard of (played offline,
+      // then the game closed): done again on its copy, and sent to it.
+      const behind = renewed ? [] : keptActs(room, playedTime(save));
+      if (behind.length) catchUp(state, behind, w.time);
+      state.acts = behind;
       game.replace(state);
       game.arrived();
       fixedNote = fixed;
@@ -555,6 +563,49 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
     game.changedMode();
+  }
+
+  // Acts kept on this phone for world `id` (keepActs) that the room hasn't
+  // done: all still waiting to be sent, and those sent after play time
+  // `upTo`, its copy's (sent lately, they may never have arrived).
+  function keptActs(id, upTo) {
+    let kept;
+    try { kept = JSON.parse(read(ACTS_PREFIX + id) || '{}'); } catch { kept = {}; }
+    const ok = (a) => Array.isArray(a) && Core.ACT_KINDS.includes(a[0]) && Number.isFinite(a[1])
+      && Number.isFinite(a[2]) && Number.isFinite(a[3]) && Number.isInteger(a[4]);
+    const list = (v) => (Array.isArray(v) ? v.filter(ok) : []);
+    return [...list(kept?.sent).filter((a) => a[1] > upTo), ...list(kept?.waiting)];
+  }
+
+  // What the room may not have yet (sent lately, or waiting to be sent),
+  // kept on this phone, so a game closed before it reconnects loses none of
+  // it (issue #4). Kept again once acts kept as waiting have gone, so none
+  // is sent twice.
+  function keepActs(s) {
+    if (!s.shared || !s.acts) return;
+    keptWaiting = s.acts.length > 0;
+    write(ACTS_PREFIX + s.shared, JSON.stringify({ sent: sentActs, waiting: s.acts }));
+  }
+
+  // Brings the room's copy of your progress (`s`, just arrived) forward over
+  // `acts` the room has yet to do, the way the room will do them when they
+  // arrive (server/src/shadow.js acts): same rules, same clock, so new acts
+  // come after them and the room takes them in order. The land isn't changed
+  // here: the room's world is the truth for that. Where the two still differ
+  // the room's answer ('econ') sets this game straight.
+  function catchUp(s, acts, roomTime) {
+    const { mods, props, edits } = s.world;
+    s.world.mods = new Map(mods); s.world.props = new Map(props); s.world.edits = null;
+    s.acts = null; // doing them again writes none down
+    const last = acts[acts.length - 1][1];
+    if (roomTime !== null) s.time = roomTime - Math.max(0, last - s.stats.playedMs) / 1000;
+    for (const a of acts) {
+      if (a[1] < s.stats.playedMs - 1) continue; // out of order: the room refuses it too
+      if (a[1] > s.stats.playedMs) Core.playFor(s, (a[1] - s.stats.playedMs) / 1000);
+      Core.replayAct(s, a);
+    }
+    Core.advanceGoals(s);
+    s.world.mods = mods; s.world.props = props; s.world.edits = edits;
   }
 
   // Back after a lost connection: the room's world wins, your progress stays,
@@ -621,7 +672,11 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
         }
       }
     }
-    if (!ws || ws.readyState !== 1 || !welcomed) return;
+    if (!ws || ws.readyState !== 1 || !welcomed) {
+      // No connection: what you do waits in memory, and on the phone too.
+      if ((actsT -= dt) <= 0) { actsT = ACTS_WRITE_EVERY; keepActs(s); }
+      return;
+    }
     // Counted in play time, so a game that was hidden doesn't come back
     // thinking the room went quiet.
     silence += dt;
@@ -676,6 +731,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       const a = now.slice(i, i + n);
       send({ t: 'acts', ms: done && i + n >= now.length ? Math.round(s.stats.playedMs) : a[a.length - 1][1], a });
     }
+    if (keptWaiting) keepActs(s);
     return done;
   }
 
@@ -686,9 +742,15 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     send({ t: 'edits', e: batch, n });
   }
 
-  // Your progress: kept on this phone and sent to the room.
+  // Your progress: kept on this phone and sent to the room, and what you
+  // did that the room may not have yet kept too.
   function save(s, force = false) {
     if (!s.shared) return;
+    sendSave(s, force);
+    keepActs(s);
+  }
+
+  function sendSave(s, force) {
     const progress = Core.progressOf(s);
     write(SAVE_PREFIX + s.shared, progress);
     if (force || timers.fog <= 0) {

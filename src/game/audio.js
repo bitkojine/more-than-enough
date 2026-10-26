@@ -31,6 +31,10 @@ export function createAudio() {
   let scale = null;
   let noteStep = 0;
   let voices = 0;
+  let scene = null;             // where the player is, kept for a fresh context
+  let early = false;            // the context was made before any gesture
+  let gestured = false;
+  let played = false;           // a sound effect has played on this context
 
   function currentScale() {
     const inKey = music && music.scale();
@@ -60,6 +64,7 @@ export function createAudio() {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
     try { ctx = new AC(); } catch { ctx = null; return false; }
+    early = !gestured;
     ctx.onstatechange = () => { if (ctx.state !== 'running') nudge(); };
     return true;
   }
@@ -93,7 +98,22 @@ export function createAudio() {
     return true;
   }
 
+  // Edge can leave a context made at load "running" yet silent until the tab
+  // is muted and unmuted (issue #1). So at the first gesture, a context made
+  // before it that has played nothing yet is swapped for a fresh one, made
+  // inside the gesture the way every browser accepts. One that is already
+  // playing (the browser allowed sound at load) is kept, so nothing restarts.
+  function fresh() {
+    if (!ctx || !early || played || (music && music.playing)) return;
+    const old = ctx;
+    if (music) music.stop();
+    old.onstatechange = null;
+    try { old.close().catch(() => {}); } catch { /* it goes with the page */ }
+    ctx = null; master = null; meter = null; music = null; noise = null;
+  }
+
   function init(e) {
+    if (!gestured) { gestured = true; fresh(); }
     if (!unlock(e) || master) return;
     wire();
   }
@@ -114,6 +134,7 @@ export function createAudio() {
         onStart: (id) => onTrack && onTrack(id)
       });
       music.enabled = musicOn;
+      if (scene) music.want(scene);
     } catch { ctx = null; master = null; music = null; }
   }
 
@@ -124,6 +145,7 @@ export function createAudio() {
   function note(freq, dur, type, vol, harmony, delay, bright) {
     if (!live() || voices > MAX_VOICES) return;
     voices++;
+    played = true;
     try {
       const t = ctx.currentTime + (delay || 0);
       const lp = ctx.createBiquadFilter();
@@ -159,6 +181,7 @@ export function createAudio() {
   // read as mycelium / stone / ore / crystal instead of just a tone.
   function impact(cutoff, dur, vol, q, delay) {
     if (!live()) return;
+    played = true;
     try {
       if (!noise) {
         const len = Math.floor(ctx.sampleRate * 0.5);
@@ -298,7 +321,7 @@ export function createAudio() {
     init, wakeOn, gather, dig, collect, upgrade, build, fanfare,
     // The soundtrack: which place's music to play (score.js sceneFor),
     // whether to play it, and what is playing.
-    scene(id) { if (music) music.want(id); },
+    scene(id) { scene = id; if (music) music.want(id); },
     get music() { return musicOn; },
     set music(v) { musicOn = !!v; if (music) music.enabled = musicOn; },
     track: () => (music ? music.playing : null),

@@ -196,9 +196,11 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
     if (current.cursor < now) current.cursor = now + 0.05; // the clock ran on without us
     while (current.cursor < now + LOOKAHEAD) nextBar();
   }
-  setInterval(tick, 200);
+  const timer = setInterval(tick, 200);
 
   return {
+    // For good: this player's context is being replaced.
+    stop() { clearInterval(timer); end(); },
     // Where the player is now: the music follows once it holds.
     want(id) {
       if (id === wanted || !TRACKS[id]) return;
