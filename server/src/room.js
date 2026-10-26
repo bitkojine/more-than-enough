@@ -10,50 +10,30 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanSave, cleanCreate, playerId, randomRoomId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
+  LIMITS, parse, cleanPos, cleanEdits, cleanSave, cleanCreate, playerId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
 } from '../../src/net/protocol.js';
 import { Shadow, playedIn } from './shadow.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { baseRichness } from '../../src/core/world.js';
 import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
+import { bucketOf, clean, everything, isDirty, keysOf, markKeys, piecesOf, modsIn } from './stored.js';
+import * as Invites from './invites.js';
+import { newWatch, step, countCheat, CHEATS_TO_FREEZE } from './moves.js';
+
+// Split out of this file, and still importable from it.
+export { MOD_BUCKETS } from './stored.js';
+export { INVITE_MS, MAX_INVITES } from './invites.js';
+export { MAX_SPEED, MOVE_BURST, CHEATS_TO_FREEZE, CHEAT_FORGIVE_MS } from './moves.js';
+export { visitor, Bucket, STRIKE_FORGIVE_MS, editBucket } from './limits.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
 export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
-// Richness edits are stored in this many pieces, each well under a storage
-// value's 128 KiB however full the world (LIMITS.mods). A world stored in
-// fewer (16 before v0.126.0) is spread over these on its first write.
-export const MOD_BUCKETS = 512;
-export const INVITE_MS = cleanInviteAsk(null).life * 60_000; // a link works this long unless asked otherwise
-export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
-const INVITE_LIST = 100;                     // newest links sent in one list (fits a message)
-const REUSE_MS = 3600_000;                   // your sign shows your newest link while it has this long left (or half its life)
 export const NEAR = 48;                      // tiles: players this close hear each other's every step
 export const FAR_MS = 2000;                  // everyone else hears where you are this often
 export const STATUS_MS = 2000;               // a player's away/back changes, at most this often (the game waits it out)
 export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
 export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log at most this often
-// Basic anti-cheat. Nobody walks faster than MAX_SPEED tiles a second (the
-// fastest boots with many Nomad perks are well under it); a player's steps
-// draw on a budget of that much distance a second, up to MOVE_BURST, so steps
-// that arrive bunched up after a hiccup still pass. A step past the budget
-// or an edit out of reach is a cheat: the step is refused, and CHEATS_TO_FREEZE
-// cheats (at most one a second, one forgiven every CHEAT_FORGIVE_MS) freeze
-// the character (Watch's rule: nobody cheats in a shared world). A freeze
-// deletes nothing and the moderator can thaw it: nothing in a room ever
-// deletes a player, their progress or their buildings (Watch, 2026-10-20).
-//
-// Reconnecting doesn't start a player afresh: their first step after it may
-// cover only their budget, or the distance they could have walked since
-// the room last saw them. A first step further than that isn't counted as a
-// cheat (a phone that was offline, or another device, may simply be
-// elsewhere): the room tells the game where the player stands (`place`) and
-// refuses their steps and edits, quietly, until one starts from there.
-// Edits draw on a budget per player, not per connection, so a reconnect
-// doesn't refill it either.
-export const MAX_SPEED = 40;
-export const MOVE_BURST = 120;
-export const CHEATS_TO_FREEZE = 10;
-export const CHEAT_FORGIVE_MS = 30_000;
+// Steps and edits are watched (moves.js): enough cheats freeze a character.
 // What one player may add to a world, so one player can't fill it for
 // everyone. What the world held when it was made doesn't count.
 export const PLAYER_BUILDINGS = 400;
@@ -62,11 +42,6 @@ export const PLAYER_PROPS = 2000;
 // back, so this is a whole world's play of gathering (the Perfect bot
 // changes about 15,000 in its ~25 h), with room to roam.
 export const PLAYER_TILES = 60_000;
-// One player brings at most LIMITS.invitesPerDay people into a world through
-// their own links in a day, so one bad invite can't fill a world with others.
-const DAY_MS = 24 * 3600_000;
-
-const bucketOf = (key) => key % MOD_BUCKETS;
 const extAt = (x, y, z) => x + ',' + y + ',' + z;
 
 export class Room {
@@ -86,7 +61,7 @@ export class Room {
     // made it, when, until when it works, how many joined with it, and
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
-    this.invites = new Map();
+    this.invites = new Map();  // see invites.js
     // Every world is kept, always (Watch, 2026-10-18): nothing resets a
     // world, and there is no nuke. `fmt` and `ef` say which WORLD_FORMAT and
     // ECON_FORMAT the room plays by (always the current ones, see restore);
@@ -102,7 +77,7 @@ export class Room {
     // knows where they were (Watch's rule): [id, colour, x, y, z, kind],
     // kind 'ban' (from before v0.155.0) or 'ice' (frozen).
     this.graves = [];
-    // Per player, not kept: their step budget and cheats ({at, budget, fresh, cheats, cheatAt}).
+    // Per player, not kept: their step budget and cheats (moves.js newWatch).
     this.watch = new Map();
     // The audit log (audit.js): events waiting to be written, and per player
     // what they've done since their last sample ({since, at, dist, m, p, x, no, drops, dg, dgAt}).
@@ -113,7 +88,7 @@ export class Room {
     this.shadow = null;
     this.driftAt = new Map(); // when each player's drift was last logged
     // What changed since the last write to storage.
-    this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
+    this.dirty = clean(); // see stored.js
     // An admin's copy of another room (copy.js), or null: {as, key, until}.
     this.copy = null;
   }
@@ -122,7 +97,7 @@ export class Room {
 
   // The storage entries a fresh write needs (all of them).
   static keysFor(room) {
-    return ['meta', 'props', 'ext', ...Array.from({ length: MOD_BUCKETS }, (_, i) => 'mods:' + i), ...[...room.players.keys()].map((id) => 'p:' + id)];
+    return keysOf(room.players.keys());
   }
 
   // Rebuilds a room from what storage holds ({key: value}); not ready if empty.
@@ -141,15 +116,10 @@ export class Room {
       r.dirty.meta = true;
     }
     r.invites = new Map((meta.inv || []).filter(([, v]) => v && typeof v === 'object'));
-    let moved = false; // stored in other pieces than MOD_BUCKETS gives
-    for (const [k, v] of entries) {
-      if (k.startsWith('mods:')) {
-        const b = Number(k.slice(5));
-        for (const [key, rich] of v) { r.mods.set(key, rich); if (bucketOf(key) !== b) moved = true; }
-      } else if (k.startsWith('p:')) r.players.set(k.slice(2), v);
-    }
-    // Every piece written again, so none keeps an edit that now lives in another.
-    if (moved) for (let b = 0; b < MOD_BUCKETS; b++) r.dirty.buckets.add(b);
+    const { mods, moved } = modsIn(entries);
+    r.mods = mods;
+    for (const [k, v] of entries) if (k.startsWith('p:')) r.players.set(k.slice(2), v);
+    if (moved) r.dirty.buckets = everything([]).buckets;
     for (const [key, kind] of entries.get('props') || []) r.props.set(key, kind);
     for (const e of entries.get('ext') || []) { r.ext.push(e); r.extTiles.add(extAt(e[1], e[2], e[3])); }
     return r;
@@ -158,25 +128,20 @@ export class Room {
   // What to write now ({key: value}), and forget it was dirty.
   takeWrites() {
     const out = this.writesOf(this.dirty);
-    this.dirty = { meta: false, buckets: new Set(), props: false, ext: false, players: new Set() };
+    this.dirty = clean();
     return out;
   }
 
   // Every entry storage holds for the room, as copies (for copy.js).
   entries() {
-    const all = { meta: true, buckets: new Set(Array.from({ length: MOD_BUCKETS }, (_, i) => i)), props: true, ext: true, players: new Set(this.players.keys()) };
-    return structuredClone(this.writesOf(all));
+    return structuredClone(this.writesOf(everything(this.players.keys())));
   }
 
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
     if (d.meta) out.set('meta', { seed: this.seed, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
-    if (d.buckets.size) {
-      const pieces = new Map([...d.buckets].map((b) => [b, []]));
-      for (const m of this.mods) pieces.get(bucketOf(m[0]))?.push(m);
-      for (const [b, list] of pieces) out.set('mods:' + b, list);
-    }
+    for (const [k, list] of piecesOf(this.mods, d.buckets)) out.set(k, list);
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
     for (const id of d.players) {
@@ -196,19 +161,11 @@ export class Room {
   // A write that didn't reach storage (keys put, keys deleted): marked
   // dirty again, so the next write carries it with whatever changed since.
   redo(puts, gone) {
-    const d = this.dirty;
-    for (const k of [...puts.keys(), ...gone]) {
-      if (k === 'meta') d.meta = true;
-      else if (k === 'props') d.props = true;
-      else if (k === 'ext') d.ext = true;
-      else if (k.startsWith('mods:')) d.buckets.add(Number(k.slice(5)));
-      else if (k.startsWith('p:')) d.players.add(k.slice(2));
-    }
+    markKeys(this.dirty, [...puts.keys(), ...gone]);
   }
 
   get isDirty() {
-    const d = this.dirty;
-    return d.meta || d.props || d.ext || d.buckets.size > 0 || d.players.size > 0;
+    return isDirty(this.dirty);
   }
 
   /* ----------------------------------------------------------- create */
@@ -250,9 +207,7 @@ export class Room {
     this.created = this.last = now;
     this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
     this.audit(now, first, 'create', { seed: this.seed, fmt: this.fmt, mods: this.mods.size, props: this.props.size, ext: this.ext.length });
-    this.dirty.meta = this.dirty.props = this.dirty.ext = true;
-    for (let b = 0; b < MOD_BUCKETS; b++) this.dirty.buckets.add(b);
-    this.dirty.players.add(first);
+    this.dirty = everything([first]);
     return null;
   }
 
@@ -278,17 +233,17 @@ export class Room {
     const fresh = !pl;
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
-      if (!inv || !this.inviteWorks(inv, now)) {
+      if (!inv || !Invites.works(inv, now)) {
         this.audit(now, id, 'deny', { why: 'invite', code: codeTag(code) });
         // Say why, so a friend knows whether to ask for a new link or more room on it.
-        return { error: 'invite', why: inv ? this.whyNot(inv, now) : undefined };
+        return { error: 'invite', why: inv ? Invites.whyNot(inv, now) : undefined };
       }
       if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
       // Whoever made the link has brought in their share for today.
       const host = this.players.get(inv.by);
       if (host) {
-        const today = (Array.isArray(host.brought) ? host.brought : []).filter((t) => now - t < DAY_MS);
-        if (today.length >= LIMITS.invitesPerDay) {
+        const today = Invites.broughtToday(host, now);
+        if (!today) {
           this.audit(now, id, 'deny', { why: 'limit', code: codeTag(code) });
           return { error: 'invite', why: 'limit' };
         }
@@ -315,7 +270,7 @@ export class Room {
     // copied player, so their own rule stands there too.
     if (!this.copy && awayProduce !== undefined) pl.awayProduce = awayProduce === true;
     // A new connection may stand anywhere its game remembers: its first step is free.
-    this.watch.set(id, { ...this.watchOf(id, now), fresh: true });
+    this.watchOf(id, now).fresh = true;
     pl.st = 'online';
     pl.lostAt = 0;
     this.touch(now);
@@ -325,33 +280,9 @@ export class Room {
     return { id, welcome: this.welcome(id, now) };
   }
 
-  // The invite links someone may see and stop: the ones they made,
-  // newest first.
+  // The invite links someone may see and stop (invites.js listFor).
   inviteList(id) {
-    const list = [];
-    for (const [code, inv] of this.invites) {
-      if (inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, this.maxOf(inv)]);
-    }
-    list.sort((a, b) => b[2] - a[2]);
-    return { t: 'invites', list: list.slice(0, INVITE_LIST) };
-  }
-
-  // How many people a link lets in (links from before the limit: the default).
-  maxOf(inv) {
-    return Number.isSafeInteger(inv.max) ? inv.max : cleanInviteAsk(null).uses;
-  }
-
-  // Whether a link still lets someone new in: not stopped, not expired, not used up.
-  inviteWorks(inv, now) {
-    return !inv.off && inv.until >= now && inv.uses < this.maxOf(inv);
-  }
-
-  // Why a link no longer lets anyone in: 'stopped', 'expired' or 'usedUp'
-  // (or, from join, 'limit': its maker has brought in LIMITS.invitesPerDay today).
-  whyNot(inv, now) {
-    if (inv.off) return 'stopped';
-    if (inv.until < now) return 'expired';
-    return 'usedUp';
+    return Invites.listFor(this.invites, id);
   }
 
   // The world's clock at `now`: seconds of game time, the same for everyone.
@@ -557,22 +488,9 @@ export class Room {
       // new one.
       if (this.copy) return { toSelf: [{ t: 'invitesFull' }] }; // nobody else comes into a copy
       const ask = cleanInviteAsk(d);
-      const lifeMs = ask.life * 60_000;
-      let code = null, newest = 0;
-      for (const [c, inv] of this.invites) {
-        if (inv.by === id && this.inviteWorks(inv, now) && this.maxOf(inv) === ask.uses && inv.life === ask.life &&
-            inv.until - now >= Math.min(REUSE_MS, lifeMs / 2) && inv.made >= newest) { code = c; newest = inv.made; }
-      }
-      if (!code) {
-        if (this.invites.size >= MAX_INVITES) {
-          // Make room by forgetting the oldest link that no longer works.
-          let dead = null;
-          for (const [c, inv] of this.invites) if (!this.inviteWorks(inv, now) && (!dead || inv.made < this.invites.get(dead).made)) dead = c;
-          if (!dead) return { toSelf: [{ t: 'invitesFull' }] };
-          this.invites.delete(dead);
-        }
-        code = randomRoomId();
-        this.invites.set(code, { by: id, made: now, until: now + lifeMs, uses: 0, max: ask.uses, life: ask.life, off: false });
+      const { code, made, full } = Invites.linkFor(this.invites, id, ask, now);
+      if (full) return { toSelf: [{ t: 'invitesFull' }] };
+      if (made) {
         this.dirty.meta = true;
         this.audit(now, id, 'invite', { code: codeTag(code), uses: ask.uses, life: ask.life });
       }
@@ -679,45 +597,20 @@ export class Room {
 
   watchOf(id, now) {
     let w = this.watch.get(id);
-    if (!w) this.watch.set(id, w = { at: now, budget: MOVE_BURST, fresh: true, placing: false, cheats: 0, cheatAt: 0, edits: editBucket(now) });
+    if (!w) this.watch.set(id, w = newWatch(now));
     return w;
   }
 
-  // Whether player `pl` (id `id`) could step to `to`, taking it from their
-  // budget: 'ok', 'far' (a cheat) or 'place' (the first step after
-  // connecting starts somewhere else: not a cheat, see MAX_SPEED). A climb
-  // or fall keeps them on the same spot.
+  // Whether player `pl` (id `id`) could step to `to` (moves.js step).
   canStep(id, pl, to, now) {
-    const w = this.watchOf(id, now), from = pl.p;
-    w.budget = Math.min(MOVE_BURST, w.budget + (now - w.at) / 1000 * MAX_SPEED);
-    w.at = now;
-    if (!from) { w.fresh = w.placing = false; return 'ok'; } // nowhere yet: a new player
-    const dist = Math.hypot(to.x - from.x, to.y - from.y);
-    if (w.fresh || w.placing) {
-      const since = Number.isSafeInteger(pl.at) ? Math.max(0, now - pl.at) / 1000 * MAX_SPEED : 0;
-      const ok = dist <= (w.placing ? w.budget : Math.max(w.budget, since));
-      const was = w.fresh;
-      w.fresh = false;
-      w.placing = !ok;
-      if (!ok) return was ? 'place' : 'wait';
-      w.budget = Math.max(0, w.budget - dist);
-      return 'ok';
-    }
-    if (dist > w.budget) return 'far';
-    w.budget -= dist;
-    return 'ok';
+    return step(this.watchOf(id, now), pl.p, to, pl.at, now);
   }
 
-  // A cheat by player `id`: counted (one a second at most, older ones
-  // forgiven slowly), and enough of them freeze the character.
-  // `why` ('speed' or 'reach') and `detail` go in the audit log.
+  // A cheat by player `id` (moves.js countCheat): enough of them freeze the
+  // character. `why` ('speed' or 'reach') and `detail` go in the audit log.
   cheat(id, now, why, detail = {}) {
     const w = this.watchOf(id, now);
-    if (now - w.cheatAt >= 1000) {
-      w.cheats = Math.max(0, w.cheats - Math.floor((now - w.cheatAt) / CHEAT_FORGIVE_MS)) + 1;
-      w.cheatAt = now;
-      this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
-    }
+    if (countCheat(w, now)) this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
     if (w.cheats >= CHEATS_TO_FREEZE && this.players.has(id) && !this.players.get(id).frozen) return this.freeze(id, now, 'anti-cheat: ' + why, 'auto');
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
   }
@@ -925,43 +818,3 @@ export class Room {
     return false;
   }
 }
-
-// Who's asking, for the limits: the IP address, or for IPv6 its /48 (a
-// home or a phone gets a /64 to a /48, so single addresses, and even single
-// /64s, cost an abuser nothing). Addresses are written out in full first, so
-// "2001:db8::1" and "2001:0db8:0:0::1" are the same visitor.
-export function visitor(ip) {
-  if (!ip) return 'unknown';
-  if (!ip.includes(':')) return ip;
-  const [head, tail = ''] = ip.toLowerCase().split('::');
-  const a = head ? head.split(':') : [];
-  const b = tail ? tail.split(':') : [];
-  const groups = ip.includes('::') ? [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b] : a;
-  return groups.slice(0, 3).map((g) => (parseInt(g, 16) || 0).toString(16)).join(':') + '::/48';
-}
-
-/* A token bucket per connection: LIMITS.ratePerSecond on average, bursts
- * up to LIMITS.rateBurst. A connection that keeps going over is closed:
- * each refusal is a strike, and one strike is forgiven every STRIKE_FORGIVE_MS,
- * so an honest connection that goes over now and then is never cut. */
-export const STRIKE_FORGIVE_MS = 10_000;
-export class Bucket {
-  constructor(now, rate = LIMITS.ratePerSecond, burst = LIMITS.rateBurst) {
-    this.rate = rate;
-    this.burst = burst;
-    this.tokens = burst;
-    this.at = now;
-    this.strikes = 0;
-  }
-
-  take(now, n = 1) {
-    this.strikes = Math.max(0, this.strikes - (now - this.at) / STRIKE_FORGIVE_MS);
-    this.tokens = Math.min(this.burst, this.tokens + (now - this.at) / 1000 * this.rate);
-    this.at = now;
-    if (this.tokens >= n) { this.tokens -= n; return true; }
-    this.strikes++;
-    return false;
-  }
-}
-
-export const editBucket = (now) => new Bucket(now, LIMITS.editsPerSecond, LIMITS.editsBurst);

@@ -116,7 +116,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 together = component "Together" "Playing together (src/game/together.js): joins a shared world from a QR link (#join=room.invite) or opens a moderator's copy of one (#copy=room.key; src/game/copy.js keeps the browser's storage in memory then), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and makes the QR code for the sign your wanderer holds up in the world (src/vendor/qrcode.js). The worlds you've been in, their generated names and the Worlds screen that switches between them are in src/game/worlds.js; the friend chips and the Players screen (everyone in the world) are drawn by src/game/players.js." "JavaScript + WebSocket" {
                     tags "Presentation"
                     properties {
-                        "files" "src/game/together.js, src/game/worlds.js, src/game/players.js, src/net/, src/vendor/qrcode.js"
+                        "files" "src/game/together.js, src/game/outbox.js, src/game/worlds.js, src/game/players.js, src/net/, src/vendor/qrcode.js"
                     }
                 }
             }

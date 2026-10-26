@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.171.4": "Shared worlds: what your game sends a shared world and keeps until it arrives is now tested on its own, so a lost connection loses nothing.",
   "news.0.171.3": "Shared worlds: the room service's saving and loading of every world is now tested before each release.",
   "news.0.171.2": "Shared worlds: the room holds everyone's play time to the real clock, so nobody can earn faster by sending messages faster.",
   "news.0.171.1": "Fixed: a flare saved just as it burnt out now loads as burnt out, exactly as it was saved.",

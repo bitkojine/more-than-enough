@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.171.4": "Bendri pasauliai: tai, ką žaidimas siunčia bendram pasauliui ir saugo, kol pasieks, dabar tikrinama atskirai, kad nutrūkęs ryšys nieko neprarastų.",
   "news.0.171.3": "Bendri pasauliai: kaip kambarių tarnyba išsaugo ir įkelia kiekvieną pasaulį, dabar patikrinama prieš kiekvieną leidimą.",
   "news.0.171.2": "Bendri pasauliai: kambarys visų žaidimo laiką skaičiuoja pagal tikrą laikrodį, todėl niekas negali uždirbti greičiau, siųsdamas žinutes dažniau.",
   "news.0.171.1": "Pataisyta: žiežirba, išsaugota vos jai sudegus, dabar įkeliama sudegusi, lygiai kaip buvo išsaugota.",

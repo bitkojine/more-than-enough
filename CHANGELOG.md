@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.171.4] - 2026-10-26
+
+From the codebase review: the two biggest files split along their seams,
+so the parts can be tested on their own. Nothing a player does changes.
+
+### Changed
+
+- `src/game/together.js`: the reconnect queues moved to
+  `src/game/outbox.js`, which has no DOM, storage or clock, so Node tests
+  it: numbered edits kept until the room answers them, acts sent in order
+  and kept a minute after, acts kept on the phone while offline, saves
+  numbered so the room's correction matches the save it answers, and the
+  resync after a lost connection. `test/unit/outbox.test.js` drives them
+  through the orderings a real connection makes (answers late or never, a
+  backlog, a game closed before it reconnects).
+- `server/src/room.js` (967 lines to 820): the step budget and cheat
+  counting moved to `server/src/moves.js`, invite links to
+  `server/src/invites.js`, the storage layout (pieces, keys, dirty marks)
+  to `server/src/stored.js`, and the rate limits to `server/src/limits.js`.
+  `room.js` still exports every name it did. `test/unit/room-parts.test.js`
+  tries each piece's edges directly.
+
 ## [0.171.3] - 2026-10-26
 
 The codebase review's P0: the room service's Durable Object
