@@ -18,6 +18,7 @@ function deep(z = -2, { cultivation = true } = {}) {
     if (!C.TILE_INFO[t].rise && !C.TILE_INFO[t].descend) { C.setRichness(s.world, x, y, z, 0); C.markExplored(s.world, x, y, z); }
   }
   s.player = { x: 0.5, y: 0.5, z };
+  s.underground.deepest = z;
   return s;
 }
 
@@ -131,3 +132,15 @@ test('a burning flare is saved and loads with what is left of it; old saves have
   assert.equal(C.deserialize(JSON.stringify(old)).flare, C.FLARE_TIME, 'never more than a whole flare');
   assert.equal(back.inv.ore, s.inv.ore);
 });
+
+// The extended property sweep found it (seed 3640888): a flare a hair from
+// out was saved as 0, which loads as no flare, and the save didn't round-trip.
+test('a flare all but burnt out saves as none, so a save round-trips', () => {
+  const s = deep();
+  C.useFlare(s);
+  s.flare = 0.003;
+  const once = C.serialize(s);
+  assert.equal(JSON.parse(once).flare, undefined);
+  assert.equal(C.serialize(C.deserialize(once)), once);
+});
+

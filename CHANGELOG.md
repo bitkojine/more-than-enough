@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.171.1] - 2026-10-26
+
+The extended property sweep (1,500 seeds) failed on v0.171.0 at seed
+3640888: a save did not round-trip.
+
+### Fixed
+
+- A flare under 0.005 s from burnt out was saved as `flare: 0`, which
+  loads as no flare and saves without the field, so the two saves
+  differed. It is now saved only when its rounded time is above 0
+  (`src/core/save.js`).
+
+### Tests
+
+- `test/unit/flare.test.js`: a flare all but burnt out saves as none and
+  the save round-trips; the test world now records the layer it stands on
+  as the deepest reached.
+
 ## [0.171.0] - 2026-10-26
 
 Watch asked for light you craft underground and carry, not torches, that

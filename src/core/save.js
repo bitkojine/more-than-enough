@@ -47,7 +47,7 @@ export function serialize(s) {
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: s.logisticsModel ? e.buffer : +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
-    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(s.flare > 0 ? { flare: +s.flare.toFixed(2) } : {}), ...(s.seen ? { seen: s.seen } : {}),
+    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(+s.flare.toFixed(2) > 0 ? { flare: +s.flare.toFixed(2) } : {}), ...(s.seen ? { seen: s.seen } : {}),
     underground: { deepest: s.underground.deepest }
   });
 }
