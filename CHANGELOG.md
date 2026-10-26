@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.166.1] - 2026-10-26
+
+Craft buttons never look ready without the resources (Watch: "craft
+buttons should never show as active if we don't have the resources to make
+the thing").
+
+### Fixed
+- In a crystal world, Craft (lantern, carrier) on Upgrades and Place
+  (chamber, cooler, vault, conduit, shelter) on Build were always lit, even
+  with an empty pack; pressing one only said you were short. They now grey
+  out until the whole price is in hand, like every other buy button. The
+  rows moved out of `createSheet` into `cultivationUpgradeRows` and
+  `cultivationBuildRows` in `src/game/sheet.js`.
+
+### Tests
+- `test/unit/craft-buttons.test.js`: with nothing in hand no crystal-world
+  button is lit; each lights exactly when its price is in hand and stays
+  grey one of any resource short; tool upgrades follow `canBuy`.
+
 ## [0.166.0] - 2026-10-26
 
 A sun clock on the Settings gear (Watch: "when near charging battery we

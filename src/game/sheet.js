@@ -125,10 +125,38 @@ function upgradeRow(s, id) {
 // shared world, which has no Embark (perks you have still work there).
 const beyondUnlocked = (s) => !s.shared && (s.insight > 0 || s.prestiges > 0 || Core.canEmbark(s));
 
+/* ------------------------------------------------- crystal-world rows */
+
+const crystalName = (k) => t('cr.' + k);
+// Craft and Place are greyed out until you can pay for the thing (Watch,
+// 2026-10-26): a button that looks ready must be ready.
+function crystalButton(s, type, kind, label) {
+  const p = s.player;
+  return button(`data-kind="cultivation" data-action="${type}" data-id="${kind}" data-x="${Math.floor(p.x)}" data-y="${Math.floor(p.y)}"`, label, Core.canAfford(s.inv, Core.CULTIVATION_RECIPES[kind]));
+}
+const crystalRow = (s, kind, slot, btn) => row(pic(Core.CULTIVATION_LOOK[kind], slot), crystalName(kind), crystalName(kind + '.desc') + '<br>' + price(s.inv, Core.CULTIVATION_RECIPES[kind]), btn);
+
+// Upgrades in a crystal world: the three tools, then the gear you craft.
+export function cultivationUpgradeRows(s) {
+  return ['basket', 'pickaxe', 'boots'].map((k) => upgradeRow(s, k)).join('') +
+    ['lantern', 'carrier'].map((k) => crystalRow(s, k, k === 'carrier' ? 'icon' : 'image',
+      s.cultivation.gear[k] ? doneButton(crystalName('owned')) : crystalButton(s, 'craft', k, t('sheet.craft')))).join('');
+}
+
+// Build in a crystal world places things; what a building beside you does
+// is on its own card, tapped in the world (building-card.js).
+export function cultivationBuildRows(s) {
+  return `<div class="section">${crystalName('deep')}</div>` +
+    ['chamber', 'cooler', 'vault', 'conduit', 'shelter'].map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place')))).join('');
+}
+
+// The pictures the sheet draws with (createSheet sets it; tests too).
+export function useLook(l) { look = l; }
+
 /* ----------------------------------------------------------- the sheet */
 
 export function createSheet(el, { getState, actions, look: currentLook, fresh = null, income, onTab = () => {} }) {
-  look = currentLook;
+  useLook(currentLook);
   let open = false;
   let tab = 'upgrades';
   let from = null;  // the screen ‹ goes back to, if this one was opened from it
@@ -153,17 +181,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
   }
 
-  const crystalName=k=>t('cr.'+k);
-  const crystalCost=(s,k)=>price(s.inv,Core.CULTIVATION_RECIPES[k]);
-  function crystalButton(type,id,x,y,label){return button(`data-kind="cultivation" data-action="${type}" data-id="${id||''}" data-x="${x}" data-y="${y}"`,label||crystalName(type),true);}
-  // Build places things; what a building beside you does is on its own
-  // card, tapped in the world (building-card.js).
-  function crystalRows(s){
-    const p=s.player;
-    return `<div class="section">${crystalName('deep')}</div>`+['chamber','cooler','vault','conduit','shelter'].map(kind=>row(pic(Core.CULTIVATION_LOOK[kind],'image'),crystalName(kind),crystalName(kind+'.desc')+'<br>'+crystalCost(s,kind),crystalButton('build',kind,Math.floor(p.x),Math.floor(p.y),t('sheet.place')))).join('');
-  }
   function renderUpgrades(s) {
-    if(s.cultivation)return ['basket','pickaxe','boots'].map(k=>upgradeRow(s,k)).join('')+['lantern','carrier'].map(k=>row(pic(Core.CULTIVATION_LOOK[k],k==='carrier'?'icon':'image'),crystalName(k),crystalName(k+'.desc')+'<br>'+crystalCost(s,k),s.cultivation.gear[k]?doneButton(crystalName('owned')):crystalButton('craft',k,Math.floor(s.player.x),Math.floor(s.player.y),t('sheet.craft')))).join('');
+    if (s.cultivation) return cultivationUpgradeRows(s);
 
     let html = `<div class="section">${t('sheet.section.world')}</div>`;
     for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
@@ -216,7 +235,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderBuild(s) {
-    if(s.cultivation)return ['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+crystalRows(s);
+    if(s.cultivation)return ['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+cultivationBuildRows(s);
 
     return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
       `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.166.1": "Kristalų pasauliuose mygtukai „Gaminti“ ir „Padėti“ lieka pilki, kol neturi visko, ko reikia, tad mygtukas, kuris atrodo paruoštas, visada veikia.",
   "news.0.166.0": "Saulės laikrodis: žiedas aplink nustatymų krumpliaratį yra para, auksinis, kol saulė pakankamai aukštai, kad krautų saulės plokštę (kristalų pasauliuose, kad skaldytų kristalus), o ant jo saulė ar mėnulis. Šalia plokštės po krumpliaračiu matyti, po kiek ji ims krauti ar kiek dar liko.",
   "news.0.165.0": "Rinkimas visada vienodo tempo: spaudinėti Rinkti ar tarpą, {phone:baksnoti|laptop:spaudinėti} langelius ar piešti Takus niekada nebus greičiau nei tiesiog laikyti Rinkti. Tiesiog laikyk.",
   "news.0.164.0": "Savo tekstūrų paketo įkėlimo nebeliko, kartu ir Tekstūrų Moksliukams: beveik niekas jo nenaudojo. Žaidimas lieka vienos išvaizdos, kurią nupiešė jo kūrėjai, o tavo pasauliai lieka tokie, kokie buvo.",
