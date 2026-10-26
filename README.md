@@ -25,9 +25,11 @@ wiki are in English and Lithuanian.
 
 ## Run it locally
 
-Plain HTML, CSS and JavaScript modules: no runtime dependencies and no build
-step. Serve the folder with any static server (browsers won't load modules
-from `file://`):
+Plain HTML, CSS and JavaScript modules that run as they are, with no build
+step and no npm packages in the game. Two libraries are copied into
+`src/vendor/` unchanged: Three.js r180 (the 3D character) and
+qrcode-generator 2.0.4 (invite QR codes). Serve the folder with any static
+server (browsers won't load modules from `file://`):
 
 ```sh
 npm run serve      # python3 -m http.server 8000
@@ -38,8 +40,11 @@ you can open it on your phone. Saves live in the browser's `localStorage`.
 
 ## Test
 
-Node 24 or newer (`.nvmrc` tracks the latest LTS). esbuild is the only dev
-dependency; the deploy uses it to bundle a copy for players.
+Node 24 or newer (`.nvmrc` tracks the latest LTS). Two dev-only packages,
+pinned in their lockfiles: esbuild (`package.json`), which the deploy uses to
+bundle and minify the copy players download, and wrangler
+(`server/package.json`), which runs and deploys the room service on
+Cloudflare.
 
 ```sh
 npm ci
