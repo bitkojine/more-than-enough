@@ -32,7 +32,8 @@ import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
-import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld } from './storage.js';
+import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld, soloSeeds, archivedSave, keepCopy, keepAside } from './storage.js';
+import { roomService } from '../net/config.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createBackup } from './backup.js';
@@ -45,7 +46,7 @@ import { createProblems, where } from './problems.js';
 import { createBuildingCard } from './building-card.js';
 import { createPlacing } from './placing.js';
 import { fmt, fmtDuration } from './format.js';
-import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
+import { t, localizePage, setLanguage, nextLanguage, DEVICE, addStrings } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
 const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
@@ -177,11 +178,12 @@ const loaded = loadGame();
 let simulation = null, simulationClock = null;
 let saveDue = false;
 let saveError = null;
+let sync = null; // your own world on your other devices (sync.js), once loaded (loadSync)
 
 // The one place the current state lives. Everything else reads game.state.
 const game = {
   state: loaded.state,
-  saveSoon() { saveDue = true; },
+  saveSoon() { saveDue = true; sync?.played(); },
   saveNow(force = false) {
     saveDue = false;
     // A shared world is saved to its room (and a copy here), never over your own.
@@ -190,6 +192,7 @@ const game = {
     game.state.seen = Date.now(); // for what your buildings make while you're away (catchUp)
     const r = saveGame(game.state, force);
     if (r && r.conflict) return forked(r.conflict);
+    sync?.saved();
     const err = r && r.error;
     // Say so the moment saving starts failing (and again if it recovers and
     // fails later), so progress is never lost silently.
@@ -213,8 +216,10 @@ const game = {
     const next = soloWorld(seed);
     if (next) game.replace(next);
   },
-  // Swaps in a different world (embark, a shared world).
-  replace(next) {
+  // Swaps in a different world (embark, a shared world). `why`: 'cloud'
+  // (your other device's, sync.js) or 'back' (your own again, after a
+  // shared one); otherwise the player picked it, so it counts as played.
+  replace(next, why = null) {
     problems.crumb('world replaced'); // i18n-ok: a report for developers, in English
     game.state = next;
     fx.clear();
@@ -232,6 +237,7 @@ const game = {
     hud.newWorld();
     hud.update(next);
     game.saveNow();
+    if (!why) sync?.touched();
     game.changedMode();
   },
   // Just arrived in a world new to you (a friend's): what to go for.
@@ -260,6 +266,8 @@ const game = {
     el.playersBtn.hidden = !shared;
     el.worldsBtn.hidden = !shared && !together.available && soloCount() < 2;
     el.worldNow.textContent = together.worldName;
+    el.devicesBtn.hidden = shared || !!copy;
+    if (!shared) syncSoon();
     backup.changedMode();
     together.refresh();
   }
@@ -351,6 +359,7 @@ const sheet = createSheet(el, {
     if (tab === 'worlds') together.listWorlds();
     if (tab === 'players') together.listPlayers();
     if (tab === 'news') news.render();
+    if (tab === 'devices') showDevices();
   },
   // Place (a building, or a crystal-world one) closes the sheet and stands
   // it on the map to be put where you like (placing.js).
@@ -503,6 +512,7 @@ el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 el.playersBtn.addEventListener('click', () => sheet.show('players'));
 el.nerdsBtn.addEventListener('click', () => { problems.show(); sheet.show('nerds'); });
+el.devicesBtn.addEventListener('click', () => sheet.show('devices'));
 el.perfBtn.addEventListener('click', () => perf.toggle());
 window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
@@ -814,13 +824,14 @@ function resize() {
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
-window.addEventListener('pagehide', () => game.saveNow());
+window.addEventListener('pagehide', () => { game.saveNow(); sync?.flush(); });
 // A QR scanned while the game is already open in this tab.
 // A copy link opened over this tab: copies start before anything reads
 // storage (copy.js), so the page loads again for it.
 window.addEventListener('hashchange', () => {
   if (!copy && new URLSearchParams(location.hash.slice(1)).has('copy')) return location.reload();
   together.joinFromLink();
+  linkFromHash();
 });
 // The network came back: reconnect to the shared world now.
 window.addEventListener('online', () => together.online());
@@ -829,8 +840,9 @@ document.addEventListener('visibilitychange', () => {
   lastSimulationNow = 0;
   together.away(document.hidden);
   quality.settle();
-  if (document.hidden) game.saveNow(); else checkFork();
+  if (document.hidden) { game.saveNow(); sync?.flush(); } else { checkFork(); syncSoon(); }
 });
+window.addEventListener('focus', () => syncSoon());
 
 cam.setZoom(savedView.zoom);
 setDrag(savedView.invertDrag);
@@ -853,11 +865,79 @@ if (loaded.lost) {
   game.saveNow();
   hud.toast(t(loaded.lost === 'broken' ? 'save.aside.broken' : 'save.aside.format'));
 }
+
+// Your own world on every device you link (sync.js): never in an admin's
+// copy, a shared world, or while a question about which world to keep is up.
+// Loaded the first time it's needed (sync-lazy.js): this device is linked,
+// opens a link, or shows the Another device screen.
+const SYNC_STORE = 'mte.sync'; // sync.js keeps its key there
+const LINK_HASH = /(^#|&)link=[0-9a-f]{64}(&|$)/;
+function localStore() {
+  try { return localStorage; } catch { return null; }
+}
+let syncModule = null;
+function loadSync() {
+  return syncModule ||= import('./sync-lazy.js').then((m) => {
+    addStrings(m.strings);
+    sync = m.createSync({
+      store: localStore(),
+      fetch: (url, init) => fetch(url, init),
+      service: roomService(),
+      own: () => (copy || game.state.shared || fork.open ? null : game.state),
+      serialize: Core.serialize,
+      deserialize: Core.deserialize,
+      seeds: soloSeeds,
+      archived: archivedSave,
+      copy: keepCopy,
+      aside: keepAside,
+      replace: (s) => game.replace(s, 'cloud'),
+      conflict: ({ mine, other, keepMine, keepOther }) => {
+        input.release();
+        input.releasePerfect();
+        fork.show(mine, other, { keepMine, keepOther, reload: () => location.reload() }, 'device');
+      },
+      said: (what) => hud.toast(t(what === 'arrived' ? 'sync.arrived' : 'sync.full'))
+    });
+    return m;
+  });
+}
+// Focus and coming back to the front come together: one check for both.
+let syncTimer = null;
+function syncSoon() {
+  if (!sync) return;
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(() => sync.check(), 300);
+}
+// The Another device screen: the QR, and whether the world is kept yet.
+async function showDevices() {
+  const m = await loadSync();
+  const key = sync.start();
+  const draw = () => m.renderDevices(el.devicesPanel, { url: m.linkUrl(location, key), okAt: sync.okAt, failed: sync.failed, now: Date.now(), t, ago: fmtDuration });
+  draw();
+  sync.check().then(() => { if (!el.devicesPanel.hidden) draw(); });
+}
+// Opened from the link on your other device (#link=<key>): play that world here.
+async function linkFromHash() {
+  if (!LINK_HASH.test(location.hash)) return;
+  const m = await loadSync();
+  const key = m.linkFrom(location.hash);
+  history.replaceState(null, '', location.pathname + location.search);
+  if (copy || !key) return;
+  const yes = await ask.ask({ title: t('sync.link.title'), text: t('sync.link.text'), yes: t('sync.link.yes') });
+  if (!yes) return;
+  hud.toast(t((await sync.link(key)) ? 'sync.linked' : 'sync.already'));
+}
+// A device linked before: in step from the start.
+let linked = false;
+try { linked = !!localStore()?.getItem(SYNC_STORE); } catch { /* blocked: not linked */ }
+if (!copy && linked) loadSync().then(syncSoon);
+
 game.changedMode();
 showNext();
 // Opened from a friend's QR: join them. Otherwise back into the shared world
 // you were in, if any.
 together.open();
+linkFromHash();
 updater.start();
 // Just updated itself: the version number rolls over to the new one.
 news.play();

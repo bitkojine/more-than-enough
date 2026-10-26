@@ -13,13 +13,13 @@ import { t } from '../i18n/i18n.js';
 import { SHEETS } from './fresh.js';
 import { createStatement } from './statement.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')]]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
-const PANELS = { settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel' };
+const PANELS = { settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel', devices: 'devicesPanel' };
 // The game lists, which show their tabs; every other screen shows its title.
 const TABBED = ['upgrades', 'build', 'beyond', 'awards'];
 // Screens one row inside Settings: opened from there, ‹ goes back to it.
-const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds'];
+const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds', 'devices'];
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 

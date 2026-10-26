@@ -116,7 +116,13 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 together = component "Together" "Playing together (src/game/together.js): joins a shared world from a QR link (#join=room.invite) or opens a moderator's copy of one (#copy=room.key; src/game/copy.js keeps the browser's storage in memory then), relays your position, world edits and progress to the room and applies what it sends after checking it (src/net/protocol.js). Keeps friends and their states (online, away, connection lost, offline) for the renderer and the HUD chips, and makes the QR code for the sign your wanderer holds up in the world (src/vendor/qrcode.js). The worlds you've been in, their generated names and the Worlds screen that switches between them are in src/game/worlds.js; the friend chips and the Players screen (everyone in the world) are drawn by src/game/players.js." "JavaScript + WebSocket" {
                     tags "Presentation"
                     properties {
-                        "files" "src/game/together.js, src/game/outbox.js, src/game/worlds.js, src/game/players.js, src/net/, src/vendor/qrcode.js"
+                        "files" "src/game/together.js, src/game/outbox.js, src/game/worlds.js, src/game/players.js, src/game/qr.js, src/net/, src/vendor/qrcode.js"
+                    }
+                }
+                sync = component "Sync" "Your own world on every device you link (src/game/sync.js): the device that shows the QR on the Another device screen (src/game/devices.js) makes a secret sync key, the one that opens its link (#link=key) takes it. Each keeps the world it plays in the room service's vault while it's played and takes the newest when it comes to the front; the world played last carries on, and only when both played the same world does the which-world question come up (src/game/fork.js). Brings a world back to a browser that forgot it." "JavaScript + HTTPS" {
+                    tags "Presentation"
+                    properties {
+                        "files" "src/game/sync.js, src/game/devices.js, src/game/sync-lazy.js, src/i18n/sync/"
                     }
                 }
             }
@@ -215,7 +221,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------- playing together (system)
-        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one, download a whole world as a backup file and put a world that's gone back from one (server/src/backup.js), and has a page listing every world's players, sortable by progress (server/src/admin.js). See server/README.md for the rules and security limits." {
+        rooms = softwareSystem "Room Service" "Lets friends play one world together (server/): a Cloudflare Worker that makes rooms and a Durable Object per shared world that keeps the world and each player's progress, checks every message, and relays positions and edits between up to 100 players. The moderator can make a copy of a world to play as one of its players (server/src/copy.js), apart from the real one, download a whole world as a backup file and put a world that's gone back from one (server/src/backup.js), and has a page listing every world's players, sortable by progress (server/src/admin.js). It also keeps each player's own world for every device they link, by a secret sync key (server/src/vault.js, src/game/sync.js). See server/README.md for the rules and security limits." {
             tags "Server"
             properties {
                 "files" "server/, src/net/protocol.js"
@@ -254,6 +260,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.wiki -> mte.i18n "Asks for every word by key; its articles live there"
         mte.app -> mte.core "Drives actions and step(); reads state every frame"
         mte.app.together -> rooms "Makes and joins rooms; relays positions, edits and progress" "HTTPS + WebSocket"
+        mte.app.sync -> rooms "Keeps your own world and takes the newest (POST /solo)" "HTTPS"
         mte.app.together -> mte.core.state "Splits and joins shared worlds (shared.js)"
         mte.app.main -> mte.app.autoplayLab "Lazily opens developer-only spectator"
         mte.app.autoplayLab -> mte.app.engine "Advances canonical AUTO ticks without wall-time waiting"

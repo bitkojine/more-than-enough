@@ -4,6 +4,7 @@
  *   POST /rooms                 make a room from a world (the admin token); returns {room}
  *   GET  /rooms/<id>            whether it exists, and how many play there now
  *   GET  /rooms/<id>/ws         join it (WebSocket)
+ *   POST /solo                  your own world, kept for every device you link: pull or push (vault.js)
  *
  * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
  *
@@ -32,8 +33,9 @@ import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSe
 import { snapshot, copyEntries, COPY_MS } from './copy.js';
 import { adminPage, worldOf, isSmokeTest } from './admin.js';
 import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
+import { vaultName, pull, get, push } from './vault.js';
 import { VERSION } from '../../src/version.js';
-import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate } from '../../src/net/protocol.js';
+import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate, SOLO, cleanSoloAsk } from '../../src/net/protocol.js';
 
 const HELLO_MS = 5_000;          // a socket must say who it is within this
 const SOCKETS_PER_VISITOR = 8;   // sockets one visitor may hold in a room
@@ -289,6 +291,18 @@ export default {
       return respond({ room: id }, 201, okOrigin);
     }
 
+    // Your own world, for every device you link (vault.js). The key comes
+    // in the body, never the address, so no log along the way holds it.
+    if (url.pathname === '/solo' && request.method === 'POST') {
+      const body = await readCapped(request, SOLO.bytes + 1024);
+      if (body === null) return respond({ error: 'size' }, 413, okOrigin);
+      const ask = cleanSoloAsk(parse(body, SOLO.bytes + 1024));
+      if (!ask) return respond({ error: 'bad' }, 400, okOrigin);
+      const vault = env.VAULT.get(env.VAULT.idFromName(await vaultName(ask.key)));
+      const out = ask.t === 'pull' ? await vault.pull(ask.have) : ask.t === 'get' ? await vault.get(ask.seed) : await vault.push(ask);
+      return respond(out, out.error ? 409 : 200, okOrigin);
+    }
+
     // Whether a shared world still exists (a game that couldn't get in asks,
     // so it stops offering a world that's gone), and how many play there now
     // (the Worlds list). Only a count: never who.
@@ -332,6 +346,16 @@ export class Registry extends DurableObject {
   async list() {
     return [...(await this.ctx.storage.list({ prefix: 'r:' })).keys()].map((k) => k.slice(2));
   }
+}
+
+/* ------------------------------------------------------------------ */
+
+// One player's own worlds, kept for every device they link (vault.js): one
+// object per sync key, named by its hash.
+export class Vault extends DurableObject {
+  pull(have) { return pull(this.ctx.storage, have); }
+  get(seed) { return get(this.ctx.storage, seed); }
+  push(ask) { return push(this.ctx.storage, ask, Date.now()); }
 }
 
 /* ------------------------------------------------------------------ */

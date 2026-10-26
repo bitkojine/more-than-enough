@@ -17,7 +17,7 @@ import {
 import { roomService } from '../net/config.js';
 import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
-import { qrcode } from '../vendor/qrcode.js';
+import { qrCanvas } from './qr.js';
 import { knownRooms, remember, forget, skip, worldName, soloName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
 import { loadGame, soloWorlds } from './storage.js';
@@ -95,26 +95,6 @@ function playedTime(save) {
     const ms = JSON.parse(save).stats?.playedMs;
     return typeof ms === 'number' ? ms : -1;
   } catch { return -1; }
-}
-
-// A canvas of a QR code for `text`: one pixel per module times SCALE, with
-// the quiet margin scanners need, black on white.
-const QR_SCALE = 8, QR_QUIET = 4;
-function qrCanvas(text) {
-  const qr = qrcode(0, 'M');
-  qr.addData(text);
-  qr.make();
-  const n = qr.getModuleCount();
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = (n + QR_QUIET * 2) * QR_SCALE;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#000';
-  for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) if (qr.isDark(r, c)) ctx.fillRect((c + QR_QUIET) * QR_SCALE, (r + QR_QUIET) * QR_SCALE, QR_SCALE, QR_SCALE);
-  }
-  return canvas;
 }
 
 /* ------------------------------------------------- what the room sends */
@@ -338,7 +318,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     roster = null;
     closeQr();
     renderFriends();
-    if (wasIn) game.replace(loadGame().state);
+    if (wasIn) game.replace(loadGame().state, 'back');
     if (message) hud.toast(message);
     game.changedMode();
   }

@@ -86,6 +86,37 @@ shared with the game.
 All traffic goes through the room: no phone ever learns another's IP
 address.
 
+## Your own world on every device
+
+`POST /solo` keeps a player's own (solo) worlds for every device they link
+(the game's Settings, *Another device*; `src/game/sync.js`), and brings a
+world back to a browser that forgot it (Safari wipes a site's storage after
+7 days unopened). One Durable Object per sync key (`Vault`, `src/vault.js`),
+named by a hash of the key; the key itself is never stored and comes in the
+body, never the address. The sync key is a secret of its own, apart from the
+key that is you in shared worlds: it travels to the other device in a link's
+fragment (`#link=<key>`, the QR).
+
+- `{"t":"pull","key","have":{"seed","rev"}}` answers the world played last:
+  `{cur, rev, at, worlds, save}`, or `{cur, rev, at, worlds, same: true}`
+  when the game said it has that very revision, or `{cur: null}` when
+  nothing is kept yet. `worlds` is every world the key keeps, `{seed: rev}`:
+  a device fetches the ones it lacks, so a browser that forgot everything
+  gets back the worlds Embark left behind too.
+- `{"t":"get","key","seed"}` answers one world: `{seed, rev, at, save}`.
+- `{"t":"push","key","seed","base","save","cur"}` keeps a world grown from
+  revision `base` and answers `{rev}`. If another device kept a newer one
+  since, nothing is written: the answer is `{conflict: true, seed, rev, at,
+  save}`, that copy, and the game asks the player which to keep. `cur: false`
+  keeps a world without making it the one played (a device keeps its own when
+  it is linked to another's).
+
+A solo world is nobody else's, so the vault checks nothing but the shape (a
+JSON object naming its own seed, at most 1 MB: `SOLO` in
+`src/net/protocol.js`). Nothing deletes a world: a key keeps up to 1,000 (against abuse only), and
+then new ones are refused (`{"error":"full"}`). The deploy's smoke test keeps
+one world under a fixed key, so it leaves no new vault behind.
+
 ## Security
 
 Every message is checked on arrival (`protocol.js`), on the server and

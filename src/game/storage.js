@@ -187,16 +187,21 @@ export function soloWorlds() {
     .sort((a, b) => (b.state.seen || 0) - (a.state.seen || 0));
 }
 
-// How many solo worlds there are, without reading each one.
-export function soloCount() {
+// The seeds of every solo world's own copy, without reading each one.
+export function soloSeeds() {
+  const seeds = new Set();
   try {
-    const seeds = new Set();
     for (const k of Object.keys(localStorage)) {
       const m = /^(?:mte\.solo\.world\.|mte\.depot-v1\.world\.)(\d+)$/.exec(k);
-      if (m) seeds.add(m[1]);
+      if (m) seeds.add(Number(m[1]));
     }
-    return Math.max(seeds.size, read(SAVE_KEY) ? 1 : 0);
-  } catch { return 0; }
+  } catch { /* storage blocked */ }
+  return [...seeds];
+}
+
+// How many solo worlds there are, without reading each one.
+export function soloCount() {
+  return Math.max(soloSeeds().length, read(SAVE_KEY) ? 1 : 0);
 }
 
 // One solo world by seed, read fresh, or null.
@@ -206,3 +211,21 @@ export function soloWorld(seed) {
 }
 
 export function newSoloWorld(){return freshWorld();}
+
+// This device's own copy of solo world `seed`, or null (sync.js).
+export function archivedSave(seed) {
+  return read(ARCHIVE_PREFIX + seed) ?? read('mte.depot-v1.world.' + seed);
+}
+
+// Keeps a solo world from your other device (sync.js) as this device's
+// copy of it, to play from Worlds: never the one in play, which goes
+// through saveGame.
+export function keepCopy(seed, raw) {
+  write(ARCHIVE_PREFIX + seed, raw);
+}
+
+// Keeps a copy of world `seed` that's about to be replaced by another
+// device's (sync.js), under its own name: never written over, never deleted.
+export function keepAside(seed, raw) {
+  write(KEPT_PREFIX + seed + '.' + Date.now(), raw);
+}

@@ -207,6 +207,9 @@
     <!-- Worlds: your own and every shared world you've been in, to switch
          between them. Filled by src/game/worlds.js. -->
     <div id="worldsPanel" hidden></div>
+    <!-- Another device: the QR that brings your own world to your other phone
+         or computer, kept in step through the cloud. Filled by src/game/devices.js. -->
+    <div id="devicesPanel" hidden></div>
     <!-- Players: everyone in the shared world you're in, how they're doing
          and how far away; the owner can remove them. Filled by src/game/players.js. -->
     <div id="playersPanel" hidden></div>
@@ -217,6 +220,7 @@
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
         <button id="btnPlayers" class="setRow" type="button" hidden><span data-i18n="players.title"></span><b><span id="playersCount"></span> &rsaquo;</b></button>
         <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>
+        <button id="btnDevices" class="setRow" type="button"><span data-i18n="devices.title"></span><b aria-hidden="true">&rsaquo;</b></button>
       </div>
       <div class="setGroup">
         <button id="btnMute" class="setRow" type="button"><span data-i18n="settings.sound"></span><b id="muteState"></b></button>

@@ -26,7 +26,10 @@ import wikiEn from '../../wiki/i18n/en.js';
 import wikiLt from '../../wiki/i18n/lt.js';
 
 import { loadNews } from '../../src/game/news.js';
+import { addStrings } from '../../src/i18n/i18n.js';
 await loadNews();
+// Loaded with your world on another device, as main.js does (loadSync).
+addStrings((await import('../../src/game/sync-lazy.js')).strings);
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const rel = (p) => relative(ROOT, p);

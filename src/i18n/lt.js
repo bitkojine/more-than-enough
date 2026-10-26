@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.174.0": "Žaisk savo pasaulį ne viename įrenginyje: Nustatymai, Kitas įrenginys rodo QR kodą ir nuorodą kitam įrenginiui. Tęsiasi tas, kurį žaidei paskutinį, o kopija debesyje grąžina pasaulį, jei naršyklė jį pamiršta.",
   "news.0.173.0": "Žinutės: viskas, ką sako Wiki ir žaidimas, dabar patenka į žurnalą apačioje kairėje ir lieka ten, kol perskaitysi. Patempk jį senesnėms eilutėms; Slėpti suskleidžia jį į Žinučių mygtuką, rodantį, kiek naujų.",
   "news.0.172.0": "Kiekvienas tavo žaistas pasaulis lieka tavo. Nustatymai → Pasauliai dabar rodo juos visus pagal pavadinimą ir kiek kiekviename žaidei, o „Žaisti“ sugrąžina tave ten, kur palikai. Iškeliavus joks pasaulis neprarandamas.",
   "news.0.171.4": "Bendri pasauliai: tai, ką žaidimas siunčia bendram pasauliui ir saugo, kol pasieks, dabar tikrinama atskirai, kad nutrūkęs ryšys nieko neprarastų.",
@@ -955,6 +956,7 @@ export default {
   "together.button.down": "Nuleisti",
   "together.button.aria": "Iškelk QR kodą, kad draugas prisijungtų prie tavo pasaulio",
   "together.sign": "Nuskenuok ir prisijunk",
+  "devices.title": "Kitas įrenginys",
   "worlds.title": "Pasauliai",
   "worlds.alone": "Tik tu",
   "worlds.friends": "Draugo pasaulis",

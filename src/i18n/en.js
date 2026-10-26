@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.174.0": "Play your own world on more than one device: Settings, Another device shows a QR code and a link for the other one. Whichever you played last carries on, and the cloud copy brings your world back if a browser forgets it.",
   "news.0.173.0": "Messages: everything Wiki and the game say now goes in a log at the bottom left and stays there until you've read it. Drag it for older lines; Hide folds it into a Messages pill that counts what's new.",
   "news.0.172.0": "Every world you've played stays yours. Settings → Worlds now lists them all by name, with how long you've played each, and Play takes you back, just as you left it. Embark never leaves a world behind for good.",
   "news.0.171.4": "Shared worlds: what your game sends a shared world and keeps until it arrives is now tested on its own, so a lost connection loses nothing.",
@@ -955,6 +956,7 @@ export default {
   "together.button.down": "Lower",
   "together.button.aria": "Hold up a QR code so a friend can join your world",
   "together.sign": "Scan to join my world",
+  "devices.title": "Another device",
   "worlds.title": "Worlds",
   "worlds.alone": "Just you",
   "worlds.friends": "A friend's world",

@@ -92,6 +92,8 @@ export function findElements() {
     worldsBtn: byId('btnWorlds'),
     worldNow: byId('worldNow'),
     worldsPanel: byId('worldsPanel'),
+    devicesBtn: byId('btnDevices'),
+    devicesPanel: byId('devicesPanel'),
     friends: byId('friends')
   };
 }

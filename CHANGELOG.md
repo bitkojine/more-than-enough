@@ -1,5 +1,61 @@
 # Changelog
 
+## [0.174.0] - 2026-10-26
+
+Play your own world on more than one device (Watch, 2026-10-26: "I want
+to be able to play the same singleplayer world both on my mac and on my
+phone"; picked cloud save + QR link). It is also the fix for the P0 found
+the same day: Safari deletes a site's storage after 7 days unopened, and the
+solo world lived only there, so a player who stayed away a week came back to
+an empty new world without a word. Now a linked device gets it back.
+
+### Added
+
+- Settings, **Another device** (own world only): a QR to scan with the
+  other device's camera and the same link to copy (`#link=<key>`, in the
+  fragment, never sent to a server), whether the world is kept in the cloud
+  now, and a word that the code is a secret (`src/game/devices.js`).
+- `src/game/sync.js`: each linked device keeps the world it plays in the
+  room service's vault while it's played (every 20 s, and when the game goes
+  to the background) and takes the newest when it opens, comes to the front,
+  or is touched after 30 s untouched. The world played last carries on
+  without a question; a device not played since it last agreed takes the
+  newest (time away makes nothing, so it has nothing to lose). Only when
+  both played the same world does the two-tab question come up, worded for
+  devices, and the copy not picked is kept on the device
+  (`mte.solo.kept.*`). Every solo world goes, not only the one played: the
+  worlds Embark left behind (Settings → Worlds) reach the vault and come to
+  every linked device, and a world played again on one device is copied
+  over the others' older copy. "Played" means the player did something the game
+  saves for (gathered, built, bought); opening menus doesn't count, so
+  showing the QR on one device and picking up the other never asks. Linking keeps the world that device had (in Nerds,
+  and in the vault if it was played a minute or more), and a key replaced
+  by another link is kept too (`mte.sync.before.*`).
+- Room service: `POST /solo` and a `Vault` Durable Object per sync key,
+  named by its hash (the key is never stored): pull the world played last,
+  get any one world, push one grown from a given revision; a stale push gets the newer copy
+  back instead of writing over it. A key keeps up to 1,000 worlds and none is
+  ever deleted (`server/src/vault.js`, `SOLO` in `src/net/protocol.js`,
+  migration `v4` in `server/wrangler.toml`). The deploy's smoke test keeps
+  and reads back one world under a fixed key.
+- None of it is in the first load (+1.2 KB, for the Settings row and the
+  link check): `src/game/sync-lazy.js` and its words (`src/i18n/sync/`)
+  load the first time this device is linked, opens a link, or shows the
+  screen.
+- `test/unit/sync.test.js`: two devices, each with its own storage and game,
+  through the worker's real route and vault: linking, last played wins,
+  the idle device, both played (each pick), a new world on one device,
+  offline play, a wiped browser linking again, a push overtaken by play, the
+  cap on worlds per key, and the route's guards.
+
+### Changed
+
+- The QR drawing moved from `src/game/together.js` to `src/game/qr.js`,
+  shared by the sign and the Another device screen.
+- `src/game/fork.js` words its question for two devices as well as two tabs.
+- Privacy policy: playing alone sends nothing, unless you choose to play your
+  world on another device; what is kept then, and for how long.
+
 ## [0.173.0] - 2026-10-26
 
 Watch: what Wiki and the milestone messages say went by too fast for some

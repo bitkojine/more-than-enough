@@ -277,6 +277,98 @@ export function editInReach(e, p) {
   return t.z === p.z && Math.abs(t.x + 0.5 - p.x) <= LIMITS.editReach && Math.abs(t.y + 0.5 - p.y) <= LIMITS.editReach;
 }
 
+/* --------------------------------------------- your world, on every device */
+
+// Your own world, kept by the room service so it plays on every device you
+// link (src/game/sync.js, server/src/vault.js). The sync key is a secret of
+// its own, apart from the one that is you in shared worlds: it travels in a
+// link's fragment (#link=…) to your other device, and anyone holding it can
+// read and change your own world, nothing else.
+export const SOLO = Object.freeze({
+  bytes: 1048576,  // one world's save (the same as a whole shared world)
+  worlds: 1000     // worlds one key keeps, against abuse only: none is ever deleted, and past this a new one stays on its device
+});
+export const LINK_RE = /^[0-9a-f]{64}$/;
+const SEED_MAX = 2 ** 32;
+
+// A save the vault may keep for world `seed`: a JSON object naming that seed.
+// The game reads it back through its own checks (src/core/save.js).
+export function cleanSoloSave(s, seed) {
+  if (typeof s !== 'string' || s.length > SOLO.bytes || byteLength(s) > SOLO.bytes) return null;
+  try {
+    const d = JSON.parse(s);
+    return isObj(d) && d.seed === seed ? s : null;
+  } catch { return null; }
+}
+
+const isSeed = (v) => isInt(v) && v >= 0 && v < SEED_MAX;
+const isRev = (v) => isInt(v) && v >= 0;
+
+// A request to the vault (POST /solo), or null:
+//   {t:'pull', key, have?: {seed, rev}}     your newest world (its save only if you haven't got that one)
+//   {t:'get', key, seed}                    one world
+//   {t:'push', key, seed, base, save, cur}  keep this world, grown from revision `base`
+//                                           (`cur` false: keep it, but it isn't the one you play now)
+export function cleanSoloAsk(d) {
+  if (!isObj(d) || typeof d.key !== 'string' || !LINK_RE.test(d.key)) return null;
+  if (d.t === 'pull') {
+    const h = d.have;
+    const have = isObj(h) && isSeed(h.seed) && isRev(h.rev) ? { seed: h.seed, rev: h.rev } : null;
+    return { t: 'pull', key: d.key, have };
+  }
+  if (d.t === 'get') return isSeed(d.seed) ? { t: 'get', key: d.key, seed: d.seed } : null;
+  if (d.t === 'push') {
+    if (!isSeed(d.seed) || !isRev(d.base)) return null;
+    const save = cleanSoloSave(d.save, d.seed);
+    return save ? { t: 'push', key: d.key, seed: d.seed, base: d.base, save, cur: d.cur !== false } : null;
+  }
+  return null;
+}
+
+// What the vault answered, or null if it doesn't fit (a vault a version
+// ahead may add fields; they're ignored):
+//   {cur: null}                                     it keeps nothing yet
+//   {cur, rev, at, worlds, same: true}              you have its newest
+//   {cur, rev, at, worlds, save}                    its newest world
+//                                                   (`worlds`: every world it keeps, {seed: rev})
+//   {seed, rev, at, save}                           the world you asked for (get)
+//   {rev}                                           kept, as revision `rev`
+//   {conflict: true, seed, rev, at, save}           another device kept it since `base`: this is that copy
+//   {error}                                         'full', or the request was refused
+export function cleanSoloAnswer(d) {
+  if (!isObj(d)) return null;
+  if (typeof d.error === 'string') return { error: d.error.slice(0, 40) };
+  if (d.conflict === true) {
+    const save = isSeed(d.seed) ? cleanSoloSave(d.save, d.seed) : null;
+    return save && isRev(d.rev) ? { conflict: true, seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
+  }
+  if ('cur' in d) {
+    if (d.cur === null) return { cur: null };
+    if (!isSeed(d.cur) || !isRev(d.rev)) return null;
+    const base = { cur: d.cur, rev: d.rev, at: isInt(d.at) ? d.at : 0, worlds: cleanRevs(d.worlds) };
+    if (d.same === true) return { ...base, same: true };
+    const save = cleanSoloSave(d.save, d.cur);
+    return save ? { ...base, save } : null;
+  }
+  if ('seed' in d) {
+    const save = isSeed(d.seed) ? cleanSoloSave(d.save, d.seed) : null;
+    return save && isRev(d.rev) ? { seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
+  }
+  return isRev(d.rev) && d.rev > 0 ? { rev: d.rev } : null;
+}
+
+// Every world a vault keeps, {seed: rev}: what fits, nothing else (an
+// answer from before the vault listed them has none).
+function cleanRevs(w) {
+  const out = {};
+  if (!isObj(w)) return out;
+  for (const [k, v] of Object.entries(w).slice(0, SOLO.worlds)) {
+    const seed = Number(k);
+    if (String(seed) === k && isSeed(seed) && isRev(v) && v > 0) out[seed] = v;
+  }
+  return out;
+}
+
 /* ------------------------------------------------------------ helpers */
 
 // Hex of SHA-256 (Web Crypto: the browser, Node and Cloudflare all have it).

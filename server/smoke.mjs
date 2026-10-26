@@ -80,5 +80,25 @@ const token = process.env.ROOMS_ADMIN_TOKEN;
 if (!token) { console.error('ROOMS_ADMIN_TOKEN is needed: worlds are made under it now.'); process.exit(1); }
 
 await roomChecks(service, check, { rand, token, sleep });
+
+// Your own world on your other devices (POST /solo, src/vault.js): kept and
+// given back, and an old copy never written over a newer one. One vault for
+// every deploy (this key), so the checks don't leave a new one each time.
+const SOLO_KEY = '5'.repeat(64), SOLO_SEED = 12345;
+async function solo(body) {
+  const res = await fetch(BASE + '/solo', { method: 'POST', headers: { Origin: ORIGIN, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  return { status: res.status, d: await res.json().catch(() => null) };
+}
+let got = await solo({ t: 'pull', key: SOLO_KEY });
+// Right after a deploy the old version may still answer, without the route.
+for (let i = 0; i < 10 && got.status === 404; i++) { await sleep(3000); got = await solo({ t: 'pull', key: SOLO_KEY }); }
+const base = got.d && got.d.cur === SOLO_SEED ? got.d.rev : 0;
+const soloSave = JSON.stringify({ seed: SOLO_SEED, v: 11, smoke: Date.now() });
+const kept = await solo({ t: 'push', key: SOLO_KEY, seed: SOLO_SEED, base, save: soloSave });
+check(kept.status === 200 && kept.d && kept.d.rev === base + 1, 'solo: a world is kept');
+got = await solo({ t: 'pull', key: SOLO_KEY });
+check(got.d && got.d.save === soloSave, 'solo: and given back');
+const stale = await solo({ t: 'push', key: SOLO_KEY, seed: SOLO_SEED, base, save: soloSave });
+check(stale.d && stale.d.conflict === true, 'solo: an old copy never writes over a newer one');
 console.log(failed ? `${failed} check(s) failed` : 'room service OK');
 process.exit(failed ? 1 : 0);

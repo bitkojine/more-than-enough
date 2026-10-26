@@ -26,6 +26,11 @@ class_name = "Rooms"
 name = "REGISTRY"
 class_name = "Registry"
 
+# Each player's own worlds, for every device they link (src/vault.js).
+[[durable_objects.bindings]]
+name = "VAULT"
+class_name = "Vault"
+
 # The free plan needs SQLite-backed Durable Objects.
 [[migrations]]
 tag = "v1"
@@ -40,3 +45,7 @@ new_sqlite_classes = ["Registry"]
 [[migrations]]
 tag = "v3"
 deleted_classes = ["Limiter"]
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["Vault"]
