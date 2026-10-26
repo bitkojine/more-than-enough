@@ -191,6 +191,14 @@ export function applyEdits(s, edits) {
       if (!EXTRACTORS[key] || s.extractors.some((b) => b.x === x && b.y === y && b.z === z)) continue;
       s.extractors.push({ key, res: EXTRACTORS[key].res, x, y, z, buffer: 0, owner });
       changed = true;
+    } else if (e[0] === 'v') {
+      // A building moved (yours is there already: your game moved it first).
+      const [, x, y, z, tx, ty] = e;
+      const b = s.extractors.find((b) => b.x === x && b.y === y && b.z === z);
+      if (!b || s.extractors.some((o) => o !== b && o.x === tx && o.y === ty && o.z === z)) continue;
+      b.x = tx; b.y = ty;
+      s.extractors = s.extractors.slice(); // every index by tile is made again
+      changed = true;
     }
   }
   return changed;

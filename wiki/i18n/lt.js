@@ -676,7 +676,7 @@ export default {
         kainuoja; <strong>Statyti čia</strong> jį pastato, o jei langelis toliau, nei pasieki, Mika pirma nueina ten. <strong>Atšaukti</strong> arba
         „Atgal“ jį padeda į šalį. Kiekvienas jau turimas tos rūšies pastatas kitą tokį pat padaro &times;<span data-k="EXTRACTOR_GROWTH"></span> brangesnį.</p>
       <p>{phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė. <strong>Perkelti</strong> joje pakelia jį taip pat: perkelti nemokama,
-        ir viskas, kas jame laikoma, keliauja kartu. (Bendrame pasaulyje kol kas negalima.) Kol kortelė atidaryta, blyškus plotas rodo, kiek toli
+        ir viskas, kas jame laikoma, keliauja kartu. Bendrame pasaulyje perkelti gali tik savo pastatus. Kol kortelė atidaryta, blyškus plotas rodo, kiek toli
         pastatas siekia, o mažas ženkliukas pažymi kiekvieną pastatą, kuriam jis padeda: &times;2 ant karjerų, kuriuos dvigubina akmens dirbtuvės,
         dėžė ant gamintojų, iš kurių surenka sandėlis.</p>
 

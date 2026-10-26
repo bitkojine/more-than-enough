@@ -377,6 +377,9 @@ export class Room {
       // The room keeps its own copy of your progress from what you did:
       // games send 'acts' (src/core/acts.js) when it says so.
       acts: true,
+      // ...including moves ('v', a building moved): games offer Move in a
+      // shared world only when it says so (src/core/actions.js moveExtractor).
+      moves: true,
       // ...and that copy is what you have: `save` is it, and 'econ' sets
       // your game straight when it's off (src/game/together.js).
       econ: true
@@ -636,22 +639,32 @@ export class Room {
 
   // Buildings and props player `id` put up, as the room's copy of their
   // progress worked out (shadow.js): into the world, for everyone.
+  // Moves ('v') go out in an edits message of their own: a game before
+  // v0.169.0 drops an edits message holding a kind it doesn't know, and this
+  // way drops only the moves. A move the world had no room for goes back to
+  // the mover's game as a move back.
   made(id, list, now) {
-    const applied = [];
+    const applied = [], moved = [], back = [];
     const act = this.actOf(id, now);
     for (const e of list) {
       if (this.apply(e, id)) {
+        if (e[0] === 'v') { moved.push(e); this.audit(now, id, 'move', { from: [e[1], e[2], e[3]], at: [e[4], e[5], e[3]] }); continue; }
         applied.push(e[0] === 'x' ? [...e, id] : e);
         act[e[0]]++;
         if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
       } else {
         this.shadow?.unmake(id, e); // the world is full: not built after all
+        if (e[0] === 'v') back.push(['v', e[4], e[5], e[3], e[1], e[2]]);
         act.no++;
       }
     }
-    if (!applied.length) return {};
-    this.touch(now);
-    return { toAll: [{ t: 'edits', id, e: applied }] };
+    const toAll = [];
+    if (applied.length) toAll.push({ t: 'edits', id, e: applied });
+    if (moved.length) toAll.push({ t: 'edits', id, e: moved });
+    const out = {};
+    if (toAll.length) { this.touch(now); out.toAll = toAll; }
+    if (back.length) out.toSelf = [{ t: 'edits', id, e: back }];
+    return out;
   }
 
   // Where a player's game differs from the room's copy (shadow.js), in the
@@ -886,6 +899,17 @@ export class Room {
       if (pl) { pl.np = (pl.np || 0) + 1; this.dirty.players.add(by); }
       this.props.set(e[1], e[2]);
       this.dirty.props = true;
+      return true;
+    }
+    if (e[0] === 'v') {
+      // Only your own building moves, and only onto a free tile.
+      const from = extAt(e[1], e[2], e[3]), to = extAt(e[4], e[5], e[3]);
+      const b = this.ext.find((x) => x[1] === e[1] && x[2] === e[2] && x[3] === e[3]);
+      if (!b || b[4] !== by || (to !== from && this.extTiles.has(to))) return false;
+      b[1] = e[4]; b[2] = e[5];
+      this.extTiles.delete(from);
+      this.extTiles.add(to);
+      this.dirty.ext = true;
       return true;
     }
     if (e[0] === 'x') {

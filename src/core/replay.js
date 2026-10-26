@@ -4,7 +4,7 @@
  * game (reach, tools, costs, free tiles), from where the act says they stood. */
 
 import { SURFACE, Z_MIN } from './coords.js';
-import { harvestAt, collect, place } from './actions.js';
+import { harvestAt, collect, place, moveExtractor } from './actions.js';
 import { placeProp } from './underground.js';
 import { buy, UPGRADES } from './upgrades.js';
 import { EXTRACTORS, PROPS } from './content.js';
@@ -36,6 +36,10 @@ export function replayAct(s, a) {
   if (kind === 'h') ok = !!harvestAt(s, a[5], a[6]);
   else if (kind === 'c') ok = !!collect(s);
   else if (kind === 'b') ok = Object.hasOwn(EXTRACTORS, a[5]) && place(s, a[5], { x: a[6], y: a[7] }).ok;
+  else if (kind === 'v') {
+    const e = s.extractors.find((b) => b.x === a[5] && b.y === a[6] && b.z === z && b.owner === s.me);
+    ok = !!e && moveExtractor(s, e, a[7], a[8]).ok;
+  }
   else if (kind === 'p') ok = Object.hasOwn(PROPS, a[5]) && placeProp(s, a[5]).ok;
   else if (kind === 'u') ok = Object.hasOwn(UPGRADES, a[5]) && buy(s, a[5]).ok;
   else if (kind === 'w') return true; // only where they are

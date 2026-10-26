@@ -33,7 +33,6 @@ class Overlay {
   delete(k) { this.own.delete(k); this.gone.add(k); return true; }
 }
 
-const spot = (e) => e.x + ',' + e.y + ',' + e.z;
 
 export class Shadow {
   constructor(seed) {
@@ -58,6 +57,7 @@ export class Shadow {
     const s = joinState({ save, seed: this.base.seed, mods: [], props: [], ext: room.ext, you: id }, room.id, null, null, make);
     if (!s) return null;
     s.world.edits = null;
+    s.roomMoves = true; // this room checks moves (src/core/actions.js moveExtractor)
     const old = this.players.get(id);
     // Where they were last: where their progress says, or anywhere for the
     // first act of someone new (the game puts them by a friend).
@@ -95,7 +95,8 @@ export class Shadow {
     s.time = room.clock(now) - Math.max(0, to - s.stats.playedMs) / 1000;
     // Everyone's buildings stand in the way of new ones; only yours make things for you.
     const mine = s.extractors.filter((e) => e.owner === id);
-    const had = new Set(mine.map(spot));
+    // Each of yours and where it stood: one standing elsewhere after was moved.
+    const had = new Map(mine.map((e) => [e, { x: e.x, y: e.y }]));
     s.extractors = [...mine, ...room.ext.filter((e) => e[4] !== id && EXTRACTORS[e[0]])
       .map(([key, x, y, z, owner]) => ({ key, res: EXTRACTORS[key].res, x, y, z, buffer: 0, owner }))];
     let refused = 0;
@@ -110,7 +111,9 @@ export class Shadow {
     s.extractors = s.extractors.filter((e) => e.owner === id);
     for (const e of s.extractors) e.owner = id;
     const made = [
-      ...s.extractors.filter((e) => !had.has(spot(e))).map((e) => ['x', e.key, e.x, e.y, e.z]),
+      ...s.extractors.filter((e) => !had.has(e)).map((e) => ['x', e.key, e.x, e.y, e.z]),
+      ...s.extractors.filter((e) => had.has(e) && (had.get(e).x !== e.x || had.get(e).y !== e.y))
+        .map((e) => ['v', had.get(e).x, had.get(e).y, e.z, e.x, e.y]),
       ...[...s.world.props.own].filter(([k]) => !room.props.has(k)).map(([k, kind]) => ['p', k, kind])
     ];
     sh.refused += refused;
@@ -135,8 +138,15 @@ export class Shadow {
   }
 
   // A building or prop the room's world had no room for: gone from the copy too.
+  // A move it had no room for: back where it stood.
   unmake(id, e) {
     const sh = this.players.get(id);
+    if (sh && e[0] === 'v') {
+      const b = sh.s.extractors.find((b) => b.x === e[4] && b.y === e[5] && b.z === e[3]);
+      if (b) { b.x = e[1]; b.y = e[2]; sh.s.extractors = sh.s.extractors.slice(); }
+      sh.why.add('full');
+      return;
+    }
     if (!sh || e[0] !== 'x') return;
     sh.s.extractors = sh.s.extractors.filter((b) => !(b.x === e[2] && b.y === e[3] && b.z === e[4]));
     sh.why.add('full');

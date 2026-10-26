@@ -31,7 +31,7 @@ shared with the game.
 5. The room relays positions (about 8 a second) and world edits (echoed to
    everyone in one order, so every phone ends with the same world), and
    **works out each player's progress itself** (`shadow.js`): the game sends
-   what the player did (`acts`: gather, collect, build, place, buy; see
+   what the player did (`acts`: gather, collect, build, move, place, buy; see
    `src/core/acts.js`) and the room does the same with the game's own rules
    on its own copy. That copy is what they have. When the progress a game
    sends (`save`) differs, the room keeps its own and sends the game its
@@ -182,6 +182,7 @@ enter a shared world, and in Settings.
 | `deny` | someone is turned away | `why`: `frozen`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
 | `build` | a building goes up | `k` (kind, or `?` for one the game doesn't have), `at` |
+| `move` | a player moves one of their buildings | `from`, `at` [x, y, z] |
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
 | `st` | away or back | `st` |
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |

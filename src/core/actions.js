@@ -389,12 +389,16 @@ function canBuildAt(s, key, x, y) {
 }
 
 // Moves your building `e` to tile (x, y) of its layer, in reach and where it
-// fits: free, and what it holds goes with it (Watch, 2026-10-26). Not yet in
-// a shared world, whose room doesn't know moves.
+// fits: free, and what it holds goes with it (Watch, 2026-10-26). In a
+// shared world only once its room says it checks moves (s.roomMoves, set on
+// each welcome, src/game/together.js): an older room drops acts it doesn't know.
 export function moveExtractor(s, e, x, y) {
-  if (s.shared || !s.extractors.includes(e) || e.z !== s.player.z || (e.owner && e.owner !== s.me)) return { ok: false, reason: t('reason.cantMove') };
+  if ((s.shared && !s.roomMoves) || !s.extractors.includes(e) || e.z !== s.player.z || (e.owner && e.owner !== s.me)) return { ok: false, reason: t('reason.cantMove') };
   if (e.x === x && e.y === y) return { ok: true, x, y };
   if (!inReach(s, x, y) || !extractorFits(s, e.key, x, y, e)) return { ok: false, reason: t('reason.noSpot') };
+  noteAct(s, 'v', e.x, e.y, x, y);
+  // Built and not yet sent: it goes up where it stands now.
+  for (const d of s.world.edits || []) if (d[0] === 'x' && d[2] === e.x && d[3] === e.y && d[4] === e.z) { d[2] = x; d[3] = y; }
   e.x = x; e.y = y;
   if (s.cultivation && e.key === 'mine') setRichness(s.world, x, y, e.z, 0);
   // A new list: every index of the buildings by tile is made again.

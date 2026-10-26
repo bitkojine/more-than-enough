@@ -366,3 +366,65 @@ test('correctProgress: your building the room has stays; one it never had comes 
   C.correctProgress(s, JSON.stringify(old), was);
   assert.deepEqual(C.takenBack(was, s), { buildings: 1, levels: 0, res: [] });
 });
+
+// Moving a building (Watch, 2026-10-26): the game moves it, sends the act,
+// and the room's copy moves it too; the room's world follows and tells
+// everyone in an edits message of its own (one an older game can drop whole).
+test('shadow: a building moved in a shared world moves in the room too', async () => {
+  const g = await sharedGame(12345);
+  const { s, r, id, sync, send } = g;
+  const welcome = r.welcome(id, g.now());
+  assert.equal(welcome.moves, true, 'the room says it checks moves');
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15);
+  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1);
+  const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
+  assert.ok(built.ok);
+  sync(true);
+  const before = JSON.parse(JSON.stringify(r.welcome(id, g.now()))); // as a game joining now got it
+  const e = C.extractorAt(s, built.x, built.y, C.SURFACE);
+  assert.equal(C.moveExtractor(s, e, built.x, built.y + 1).ok, false, 'not before the room says it checks moves');
+  s.roomMoves = welcome.moves;
+  let to = null;
+  for (let dx = -1; dx <= 1 && !to; dx++) for (let dy = -1; dy <= 1 && !to; dy++) {
+    if ((dx || dy) && C.inReach(s, built.x + dx, built.y + dy) && C.extractorFits(s, 'garden', built.x + dx, built.y + dy, e)) to = { x: built.x + dx, y: built.y + dy };
+  }
+  assert.ok(to, 'a free tile beside it');
+  assert.ok(C.moveExtractor(s, e, to.x, to.y).ok);
+  const acts = C.takeActs(s);
+  assert.deepEqual(acts.at(-1).slice(5), [built.x, built.y, to.x, to.y]);
+  const refused = r.shadow.report(id).refused;
+  const out = send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts });
+  assert.equal(r.shadow.report(id).refused, refused, 'the room took the move');
+  assert.deepEqual(out.toAll, [{ t: 'edits', id, e: [['v', built.x, built.y, C.SURFACE, to.x, to.y]] }]);
+  assert.deepEqual(r.ext.map((x) => x.slice(0, 4)), [['garden', to.x, to.y, C.SURFACE]]);
+  const copy = r.shadow.players.get(id).s;
+  assert.deepEqual(copy.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  assert.equal(r.log.filter((x) => x.e === 'move').length, 1);
+  // Everyone's game moves it on the edit; the mover's has already.
+  const other = C.joinState(r.welcome(id, g.now()), r.id, null, null);
+  assert.deepEqual(other.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  const old = C.joinState(before, r.id, null, null);
+  assert.deepEqual(old.extractors.map((x) => [x.x, x.y]), [[built.x, built.y]]);
+  assert.ok(C.applyEdits(old, out.toAll[0].e));
+  assert.deepEqual(old.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  assert.equal(C.applyEdits(s, out.toAll[0].e), false, 'already moved here');
+  sync(true);
+  assert.equal(drifts(r).length, 0);
+});
+
+test('shadow: the room moves only your own building, and only onto a free tile', async () => {
+  const r = new Room(P.randomRoomId(), T0);
+  r.ext.push(['garden', 1, 1, 0, 'aaaaaaaaaaaa'], ['garden', 2, 1, 0, 'bbbbbbbbbbbb']);
+  r.extTiles.add('1,1,0'); r.extTiles.add('2,1,0');
+  assert.equal(r.apply(['v', 1, 1, 0, 3, 3], 'bbbbbbbbbbbb'), false, 'not yours');
+  assert.equal(r.apply(['v', 1, 1, 0, 2, 1], 'aaaaaaaaaaaa'), false, 'taken');
+  assert.equal(r.apply(['v', 5, 5, 0, 6, 6], 'aaaaaaaaaaaa'), false, 'nothing there');
+  assert.equal(r.apply(['v', 1, 1, 0, 1, 2], 'aaaaaaaaaaaa'), true);
+  assert.deepEqual(r.ext[0], ['garden', 1, 2, 0, 'aaaaaaaaaaaa']);
+  assert.ok(r.extTiles.has('1,2,0') && !r.extTiles.has('1,1,0'));
+  // A move the world had no room for goes back to the mover's game.
+  const out = r.made('aaaaaaaaaaaa', [['v', 1, 2, 0, 2, 1]], T0);
+  assert.deepEqual(out.toSelf, [{ t: 'edits', id: 'aaaaaaaaaaaa', e: [['v', 2, 1, 0, 1, 2]] }]);
+  assert.equal(out.toAll, undefined);
+});

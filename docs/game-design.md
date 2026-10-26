@@ -196,8 +196,9 @@ map as a ghost with a placement card at the bottom; the player picks any
 fitting tile in view (Mica walks there and builds); every building can be
 moved for free from its card, keeping what it holds; what a building reaches
 shows as a soft area with badges on the buildings it helps, only for the one
-in focus, never as lines or dashed boxes. Moving in a shared world comes once
-the room checks moves (open). Layout: docs/ui.md, Placing a building.
+in focus, never as lines or dashed boxes. In a shared world you move only
+your own buildings, and the room checks each move with the same rules
+(v0.169.0). Layout: docs/ui.md, Placing a building.
 
 ## Visual quality and animation direction
 

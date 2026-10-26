@@ -189,7 +189,7 @@ Watch, 2026-10-26, as Clash of Clans, Stardew and Factorio do (`src/game/placing
   the hint line, and the zoom pill stays where it is.
 - A tile out of reach: Place here walks Mica there (the hint says so) and it
   is built on arrival. Back, Cancel or changing layer ends placing.
-- **Move** is on every building's card (yours; not yet in a shared world): the
+- **Move** is on every building's card (yours, in a shared world too): the
   same view, titled *Move: name*, free, and what it holds goes with it.
   Once a building stands, its card opens over it.
 - Props (glowcaps, lamps, solar panels, water wheels) still go where you stand.

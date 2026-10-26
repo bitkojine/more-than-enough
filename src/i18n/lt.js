@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.169.0": "Perkelti dabar galima ir bendruose pasauliuose: {phone:bakstelėk|laptop:spustelėk} savo pastatą, tada kortelėje „Perkelti“. Pasaulis patikrina kiekvieną perkėlimą, tad visi mato tavo pastatą ten, kur jį padėjai.",
   "news.0.168.0": "Statoma dabar žemėlapyje. „Padėti“ skiltyje Statyti uždaro sąrašą, o pastatas atsistoja ten, kur bus, kaip permatomas šešėlis: {phone:bakstelėk|laptop:spustelėk} bet kurį nušvitusį langelį arba nutempk jį, ir Mika nueis ten ir pastatys. {phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė: „Perkelti“ vėl jį pakelia, nemokamai. Akmens dirbtuvės ir sandėlis vietoj brūkšninių linijų rodo, kiek toli siekia, ir mažą ženkliuką ant kiekvieno pastato, kuriam padeda.",
   "news.0.167.2": "Pataisyta: kristalų pasaulyje Apdovanojimai nustodavo atsidaryti, kai pasiekdavai giliąsias kameras. Dabar jie vėl atsidaro su visais etapais, o paskutinis rodomas yra mašina.",
   "news.0.167.1": "Laikant „Rinkti“, Mica nuo vieno judesio iki kito laiko krepšį ar kirtiklį rankoje, o ne kaskart deda jį ant nugaros.",

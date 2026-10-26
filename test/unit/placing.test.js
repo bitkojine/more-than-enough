@@ -2,6 +2,7 @@
  * whoever stands where, and moving one for free with all it holds. The
  * game's placement view (src/game/placing.js) only shows these rules. */
 import { test } from 'node:test';
+import * as P from '../../src/net/protocol.js';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 import { reachOf } from '../../src/game/reach.js';
@@ -47,7 +48,7 @@ test('moving a building is free, keeps what it holds and updates every index', (
   assert.deepEqual(C.deserialize(C.serialize(s)).extractors.map((b) => [b.x, b.y]), [[x + 1, y + 1]]);
 });
 
-test('a move needs the new tile in reach, free and fitting, and is refused in a shared world', () => {
+test('a move needs the new tile in reach, free and fitting, and in a shared world a room that checks moves', () => {
   const { s, x, y } = stoneWorld();
   assert.ok(C.place(s, 'quarry', { x, y: y - 1 }).ok);
   assert.ok(C.place(s, 'quarry', { x: x + 1, y: y - 1 }).ok);
@@ -55,8 +56,19 @@ test('a move needs the new tile in reach, free and fitting, and is refused in a 
   assert.equal(C.moveExtractor(s, e, x + 1, y - 1).ok, false, 'onto another building');
   assert.equal(C.moveExtractor(s, e, x + 4, y).ok, false, 'out of reach');
   s.shared = 'room';
-  assert.equal(C.moveExtractor(s, e, x, y + 1).ok, false, 'the room does not know moves yet');
+  assert.equal(C.moveExtractor(s, e, x, y + 1).ok, false, 'an older room does not know moves');
   assert.equal(e.x, x); assert.equal(e.y, y - 1);
+  s.roomMoves = true;
+  assert.ok(C.moveExtractor(s, e, x, y + 1).ok, 'this room checks them');
+});
+
+test('a move goes on the wire as an act and an edit, and nothing else does', () => {
+  assert.deepEqual(P.cleanAct(['v', 10, 1.5, 2.5, 0, 1, 2, 2, 3]), ['v', 10, 1.5, 2.5, 0, 1, 2, 2, 3]);
+  assert.equal(P.cleanAct(['v', 10, 1.5, 2.5, 0, 1, 2, 2]), null);
+  assert.equal(P.cleanAct(['v', 10, 1.5, 2.5, 0, 1, 2, 2, 0.5]), null);
+  assert.deepEqual(P.cleanEdit(['v', 1, 2, 0, 2, 3]), ['v', 1, 2, 0, 2, 3]);
+  assert.equal(P.cleanEdit(['v', 1, 2, 0, 2]), null);
+  assert.equal(P.cleanEdit(['v', 1, 2, 0, 2, 'x']), null);
 });
 
 test('a Stoneworks moved away stops doubling the quarries it left', () => {

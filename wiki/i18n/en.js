@@ -686,7 +686,7 @@ export default {
         and if the tile is out of reach Mica walks there first. <strong>Cancel</strong> or Back puts it away. Each building you already own of a kind
         makes the next one of that kind cost &times;<span data-k="EXTRACTOR_GROWTH"></span> more.</p>
       <p>{phone:Tap|laptop:Click} one of your buildings for its card. <strong>Move</strong> on it picks it up the same way: moving is free, and what it
-        holds goes with it. (Not yet in a shared world.) While the card is up, a pale area shows how far the building reaches, and a small
+        holds goes with it. In a shared world you move only your own. While the card is up, a pale area shows how far the building reaches, and a small
         badge marks each building it helps: &times;2 on the quarries a Stoneworks doubles, a crate on the producers a depot collects from.</p>
 
       <h2>Extractors</h2>

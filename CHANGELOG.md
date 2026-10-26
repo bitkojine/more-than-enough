@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.169.0] - 2026-10-26
+
+Move in shared worlds, the second half of building on the map (v0.168.0
+moved buildings only in solo worlds). The room keeps its own copy of each
+player's progress from what they did, so a move is a new act it replays
+with the same rules before anyone sees it.
+
+### Added
+
+- A move act, `['v', ms, x, y, z, fx, fy, tx, ty]` (`src/core/acts.js`):
+  `Core.moveExtractor` writes it down, and the room's copy does the same
+  move (`src/core/replay.js`), only for your own building, in reach, onto a
+  tile it fits.
+- A move edit, `['v', x, y, z, tx, ty]`: the room moves the building in its
+  world (only the owner's, only onto a free tile) and tells everyone, in an
+  edits message of its own, so a game one version behind drops only the
+  move. A move the world had no room for goes back to the mover's game as a
+  move back. Audit log: `move`.
+- The welcome says `moves: true`; a game offers Move in a shared world only
+  then (`s.roomMoves`), since an older room drops acts it doesn't know.
+
+### Tests
+
+- Shadow: a garden moved in a shared world moves in the room's copy, its
+  world and every game's, with no refused act and no drift; the room moves
+  only your own building and only onto a free tile.
+- Protocol: move acts and edits are checked like the rest.
+
 ## [0.168.0] - 2026-10-26
 
 Building on the map (Watch: "there's like this whole building move view ...

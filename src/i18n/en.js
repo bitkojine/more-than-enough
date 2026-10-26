@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.169.0": "Move works in shared worlds too: {phone:tap|laptop:click} one of your own buildings, then Move on its card. The world checks each move, so everyone sees your building where you put it.",
   "news.0.168.0": "Building is now done on the map. Place in Build closes the list and the building stands where it would go, as a see-through ghost: {phone:tap|laptop:click} any lit tile, or drag it, and Mica walks there and builds it. {phone:Tap|laptop:Click} your building for its card: Move picks it up again, for free. A Stoneworks or depot shows how far it reaches and a small badge on each building it helps, instead of dashed lines.",
   "news.0.167.2": "Fixed: in a crystal world the Awards stopped opening once you reached the deep chambers. They open again with every milestone listed, and the last one shown is the machine.",
   "news.0.167.1": "Holding Gather, Mica keeps the basket or pickaxe in hand from one stroke to the next instead of putting it away on the back between them.",

@@ -8,11 +8,12 @@
  *   ['h', …, tx, ty]       worked tile (tx, ty) once (gather, dig, a find)
  *   ['c', …]               collected from their buildings in range
  *   ['b', …, key, tx, ty]  put up building `key` on tile (tx, ty)
+ *   ['v', …, fx, fy, tx, ty] moved their building on (fx, fy) to (tx, ty)
  *   ['p', …, kind]         set down prop `kind` where they stand
  *   ['u', …, id]           bought upgrade `id`
  *   ['w', …]               walked here (every WHERE_STEP tiles) */
 
-export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'p', 'u', 'w']);
+export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'v', 'p', 'u', 'w']);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
 const WHERE_STEP = 0.5;   // tiles walked between two 'w' acts
 

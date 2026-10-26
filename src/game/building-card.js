@@ -3,7 +3,7 @@
  * or wild colony beside you pops a small card over it with how it is and
  * what you can do with it, the main thing green. Build only places things;
  * this is where a building's actions live, Move among them (Watch,
- * 2026-10-26; not yet in a shared world). While a card is up, what its
+ * 2026-10-26; in a shared world once its room checks moves). While a card is up, what its
  * building reaches and helps shows on the map (reach.js). Tapping one out of
  * reach walks you there and opens its card on arrival; walking away, tapping
  * elsewhere or Back closes it. The rules are the core's; this only shows them. */
@@ -27,7 +27,7 @@ function extractorCard(s, e) {
   if (e.key === 'depot') lines.push(t('card.collecting', { count: reach.targets.length }));
   if (Core.supportMult(s, e) > 1) lines.push(t('card.doubled'));
   if (Core.usesDepots(s) && Core.depotFor(s, e)) lines.push(t('card.collected'));
-  const actions = s.shared ? [] : [act('move', e.x, e.y, t('card.move'))];
+  const actions = s.shared && !s.roomMoves ? [] : [act('move', e.x, e.y, t('card.move'))];
   return { look: 'building.' + e.key, name: esc(def.name), lines, actions, building: e, key: e.key, work: true };
 }
 

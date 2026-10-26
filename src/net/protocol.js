@@ -23,7 +23,9 @@
  *   room -> game   welcome {...}           the world, its clock and everyone in it
  *                  pos {id, p}             a friend moved (several times a second when near
  *                                          you, every couple of seconds when far)
- *                  edits {id, e: [...]}    the world changed (yours echoed too)
+ *                  edits {id, e: [...]}    the world changed (yours echoed too); moves ('v') come in
+ *                                          an edits message of their own, which a game before
+ *                                          v0.169.0 drops whole, keeping the rest it understands
  *                  status {id, st, c, p?}  a friend's state changed (c: their place, 0, 1, 2…)
  *                  place {p}               you're somewhere else than your game thinks (back from another
  *                                          device, or after playing offline): go there
@@ -142,6 +144,7 @@ export function cleanPos(p) {
 //   ['m', key, richness]        a tile's richness changed
 //   ['p', key, kind]            a prop placed
 //   ['x', kind, x, y, z, owner] a building placed (owner set by the room)
+//   ['v', x, y, z, tx, ty]      the building on (x, y, z) moved to (tx, ty)
 export function cleanEdit(e) {
   if (!Array.isArray(e)) return null;
   if (e[0] === 'm' && e.length === 3 && isKey(e[1]) && isInt(e[2]) && e[2] >= 0 && e[2] <= 255) return ['m', e[1], e[2]];
@@ -151,6 +154,8 @@ export function cleanEdit(e) {
       (e.length === 5 || (typeof e[5] === 'string' && ID_RE.test(e[5])))) {
     return e.slice(0, 6);
   }
+  const tile = (v) => isInt(v) && Math.abs(v) <= XY_MAX;
+  if (e[0] === 'v' && e.length === 6 && tile(e[1]) && tile(e[2]) && inZ(e[3]) && tile(e[4]) && tile(e[5])) return e.slice();
   return null;
 }
 
@@ -165,6 +170,7 @@ export function cleanAct(a) {
   if (a[0] === 'h' && a.length === 7 && tile(a[5]) && tile(a[6])) return [...head, a[5], a[6]];
   if ((a[0] === 'c' || a[0] === 'w') && a.length === 5) return head;
   if (a[0] === 'b' && a.length === 8 && typeof a[5] === 'string' && NAME_RE.test(a[5]) && tile(a[6]) && tile(a[7])) return [...head, a[5], a[6], a[7]];
+  if (a[0] === 'v' && a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8])) return [...head, a[5], a[6], a[7], a[8]];
   if (a[0] === 'p' && a.length === 6 && typeof a[5] === 'string' && NAME_RE.test(a[5])) return [...head, a[5]];
   if (a[0] === 'u' && a.length === 6 && typeof a[5] === 'string' && UPGRADE_RE.test(a[5])) return [...head, a[5]];
   return null;
