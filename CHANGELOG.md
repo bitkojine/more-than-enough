@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.171.2] - 2026-10-26
+
+From the codebase review (2026-10-26): four small fixes it ranked "fix now".
+
+### Fixed
+
+- Shared worlds: the room's copy of a player (`server/src/shadow.js`)
+  granted its 2 s of play-time slack again with every `acts` message, so a
+  game sending 30 messages a second could be credited about 60 s of play
+  per real second, and its buildings produced for all of it. The allowance
+  now carries over between messages: play time may run at most 2 s plus 2%
+  ahead of the room's clock since the copy started, and time not yet played
+  (a hidden game, a lost connection) still counts when it comes in late.
+  No wire change. New tests: many messages, a phone clock 0.5% fast for six
+  hours, and bunched acts after two minutes offline.
+- The crystal playthrough test failed on a busy machine: its 20 s wall
+  budget is now only a hang guard (300 s); the game-time budget is the check.
+- The browser suite expected six buttons in the thumb dock; the flare
+  (v0.171.0) makes seven.
+
+### Added
+
+- A test that every fractional number in a played world (crystal, with a
+  flare burning, and old economy) saves the same after a load at the edges
+  of its rounding. It finds the v0.171.0 flare slip in seconds, in
+  `npm test`, before a deploy instead of after.
+- A structure test that `src/core` reads no clock, randomness, page or
+  browser storage.
+
+### Changed
+
+- AGENTS.md describes `npm run check` as it is: quick by default,
+  `-- full` for the Perfect benchmark.
+
 ## [0.171.1] - 2026-10-26
 
 The extended property sweep (1,500 seeds) failed on v0.171.0 at seed

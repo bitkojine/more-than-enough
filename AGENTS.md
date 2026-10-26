@@ -15,10 +15,10 @@ kind of knowledge lives.
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
   notes as `news.<version>` in `src/i18n/en.js` and `lt.js`. On a version
   clash after a rebase take the next free number and keep both entries.
-- Before pushing: `npm run check`. It runs what CI will (so a red deploy is
-  caught here instead of after a push): `npm test` and the Perfect benchmark
-  when the rules or the brain changed, then stages the site the way the
-  deploy does. `npm run check -- quick` skips the benchmark. Two checks are
+- Before pushing: `npm run check`. It runs `npm test` and stages the site
+  the way the deploy does, so a red deploy is caught here instead of after a
+  push. `npm run check -- full` also runs the Perfect benchmark when the
+  rules or the brain changed, as CI does. Two checks are
   run by hand, not in the gate, because each takes minutes and is not what
   usually breaks a push: `npm run test:layout` after a layout or text-length
   change, and `npm run test:e2e` after a change under `src/game/` (unit tests

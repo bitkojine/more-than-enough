@@ -17,6 +17,10 @@
 import { handClock, handReady, useHand, joinState, blankState, createWorld, playFor, replayAct, advanceGoals, progressOf, produceAway, canAfford, extractorCost, EXTRACTORS, RESOURCES, AWAY_CAP } from '../../src/core/index.js';
 
 const SLACK_MS = 2000;     // play time a game may be ahead of the room's clock (a late message)
+// Play time a game may gain on the room's clock over a long session: a
+// phone's clock runs a little fast or slow, so the slack above is not all
+// used up after hours of honest play. Far beyond any real clock's error.
+const PACE_SLACK = 0.02;
 // Working a tile by hand ('h') takes a turn of the hand, one every
 // HAND_SECONDS of play time however it was done (src/core/pace.js), as in
 // the game. Acts carry play time in whole ms, so a turn may look this early.
@@ -62,7 +66,9 @@ export class Shadow {
     // Where they were last: where their progress says, or anywhere for the
     // first act of someone new (the game puts them by a friend).
     const last = save ? { x: s.player.x, y: s.player.y, z: s.player.z, ms: s.stats.playedMs } : null;
-    const sh = { s, at, hand: handClock(), last, checks: 0, off: 0, refused: 0, why: new Set(), ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
+    // bank: room time not yet played (ms). It carries over from message to
+    // message, so the slack is granted once, not again with every message.
+    const sh = { s, at, bank: 0, hand: handClock(), last, checks: 0, off: 0, refused: 0, why: new Set(), ...(old ? { checks: old.checks, off: old.off, refused: old.refused } : {}) };
     this.players.set(id, sh);
     return sh;
   }
@@ -85,7 +91,13 @@ export class Shadow {
     const sh = this.of(id, room, now);
     if (!sh) return { refused: list.length, made: [] };
     const s = sh.s;
-    const limit = s.stats.playedMs + Math.max(0, now - sh.at) + SLACK_MS;
+    // All the play time since the copy started may run at most a little
+    // ahead of the room's clock in all: what was played beyond the room's
+    // time is owed back, and what wasn't played (a hidden game, a lost
+    // connection) can still be played later, never more than really passed.
+    const bank = sh.bank + Math.max(0, now - sh.at) * (1 + PACE_SLACK);
+    const from = s.stats.playedMs;
+    const limit = from + bank + SLACK_MS;
     sh.at = now;
     s.world = this.view(room);
     // The game's clock is the room's as it plays (keepTime in together.js),
@@ -107,6 +119,7 @@ export class Shadow {
       if (!replayAct(s, a)) { refused++; sh.why.add(whyNot(s, a)); }
     }
     this.until(s, to);
+    sh.bank = Math.max(-SLACK_MS, bank - (s.stats.playedMs - from));
     advanceGoals(s);
     s.extractors = s.extractors.filter((e) => e.owner === id);
     for (const e of s.extractors) e.owner = id;

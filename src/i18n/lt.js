@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.171.2": "Bendri pasauliai: kambarys visų žaidimo laiką skaičiuoja pagal tikrą laikrodį, todėl niekas negali uždirbti greičiau, siųsdamas žinutes dažniau.",
   "news.0.171.1": "Pataisyta: žiežirba, išsaugota vos jai sudegus, dabar įkeliama sudegusi, lygiai kaip buvo išsaugota.",
   "news.0.171.0": "Rūdos žiežirbos: po žeme mygtukas ŽIEŽIRBA virš „Rinkti“ iš 1 metalo pagamina žiežirbą ir uždega ją Micos rankoje{phone:|laptop: (arba spausk F)}. Ji dvi minutes apšviečia toli aplink, paskui sudega ir pasigamini kitą. Po žeme uolą atidengia šviesa: einant žiežirba atidengia visą urvą. Kristalų pasaulyje jos šviesa skaldo kristalus kaip žibinto, tad paspausk dar kartą ir ją užgesink.",
   "news.0.170.2": "Kristalų pasaulio kasykloje be šviesos dabar tamsu, kaip ir turi būti: matyti tik uola šalia Micos. Įjungtas žibintas apšviečia daugiau, o ne mažiau.",

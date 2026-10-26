@@ -175,7 +175,50 @@ test('shadow: play time can\'t run ahead of the room\'s clock', async () => {
   const from = copy.stats.playedMs;
   // A game claims an hour of play a second later.
   r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(from + 3600_000), a: [] }), T0 + Math.round(from) + 1000);
-  assert.ok(copy.stats.playedMs - from <= 1000 + 2000 + 1, 'at most the time that passed, and a little slack');
+  // The slack: 2 s once, and 2% of all the time the copy has been played.
+  assert.ok(copy.stats.playedMs - from <= 1000 + 2000 + 0.02 * (from + 1000) + 1, 'at most the time that passed, and a little slack');
+});
+
+test('shadow: the slack is granted once, not again with every message', async () => {
+  const { s, r, id, sync } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); C.place(s, 'garden'); sync(true);
+  const copy = r.shadow.players.get(id).s;
+  const from = copy.stats.playedMs;
+  // A game sends as many messages as the rate limit lets it for 20 s, each
+  // claiming 5 s more play than the room has worked out.
+  const start = T0 + Math.round(from);
+  const step = 1000 / P.LIMITS.ratePerSecond;
+  for (let i = 1; i <= 20 * P.LIMITS.ratePerSecond; i++) {
+    r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(copy.stats.playedMs + 5000), a: [] }), Math.round(start + i * step));
+  }
+  const gained = copy.stats.playedMs - from;
+  assert.ok(gained <= 20_000 * 1.02 + 2000 + 0.02 * from + 1, `20 s of messages may earn about 20 s of play, not ${Math.round(gained / 1000)} s`);
+});
+
+test('shadow: an honest game whose clock runs a little fast for hours is never held back', async () => {
+  const { s, r, id, sync } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 3); sync(true);
+  const copy = r.shadow.players.get(id).s;
+  const from = copy.stats.playedMs, start = T0 + Math.round(from);
+  // Six hours of acts every 10 s from a phone whose clock runs 0.5% fast.
+  for (let sec = 10; sec <= 6 * 3600; sec += 10) {
+    const ms = Math.round(from + sec * 1000 * 1.005);
+    r.message(id, JSON.stringify({ t: 'acts', ms, a: [] }), start + sec * 1000);
+    assert.equal(copy.stats.playedMs, ms, `the room keeps up after ${sec} s`);
+  }
+});
+
+test('shadow: play kept on the phone through a lost connection still counts when it comes in late', async () => {
+  const { s, r, id, sync } = await sharedGame(12345);
+  const b = createBot(12345, s, sync);
+  b.gather('mycelium', 3); sync(true);
+  const copy = r.shadow.players.get(id).s;
+  const from = copy.stats.playedMs, start = T0 + Math.round(from);
+  // Two minutes offline, then the acts arrive one after another, bunched.
+  for (let i = 1; i <= 12; i++) r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(from + i * 10_000), a: [] }), start + 120_000 + i * 5);
+  assert.equal(copy.stats.playedMs, Math.round(from + 120_000));
 });
 
 test('shadow: hauling with Logistics and overclocked buildings agree too', async () => {

@@ -79,6 +79,18 @@ test('the core never imports game code', () => {
   }
 });
 
+// The rules run the same in the browser, in Node and in the room service
+// (AGENTS.md): no clock, no randomness, no page and no storage of the
+// browser's. Comments may name them; code may not.
+test('the core reads no clock, no randomness and nothing of the browser', () => {
+  const IMPURE = /\b(Date\.now|new Date\b|performance\.now|Math\.random|crypto\.|document\.|window\.|navigator\.|localStorage|sessionStorage|setTimeout|setInterval|requestAnimationFrame|fetch\()/;
+  for (const file of jsFiles(join(ROOT, 'src', 'core'))) {
+    const code = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/.*$/gm, '$1');
+    const bad = code.split('\n').find((l) => IMPURE.test(l));
+    assert.equal(bad, undefined, `${rel(file)} is not pure: ${bad && bad.trim()}`);
+  }
+});
+
 test('the docs and the architecture model name only files that exist', () => {
   const docs = ['README.md', 'AGENTS.md', 'server/README.md', 'structurizr/README.md',
     ...readdirSync(join(ROOT, 'docs')).map((n) => 'docs/' + n)];

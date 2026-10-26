@@ -957,7 +957,7 @@ async function main() {
   ok(await waitFor('document.querySelector("#sheetBody .unit[data-unit=h]").classList.contains("on")', 1000), 'the statement switches to per hour');
   await evalJS('document.querySelector("#sheetBody .unit[data-unit=s]").click()');
   await evalJS('document.getElementById("btnClose").click()');
-  eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 6, 'Gather, Perfect, lantern, build, upgrade and mine share the thumb dock');
+  eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 7, 'Gather, Perfect, lantern, flare, build, upgrade and mine share the thumb dock');
   // Sound: the context exists from load, and the first gesture of any kind
   // gets it running (it used to wait for certain controls).
   ok(await evalJS('MTE_GAME.audioState()') !== 'none', 'the audio context exists before any gesture');

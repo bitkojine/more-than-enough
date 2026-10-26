@@ -116,8 +116,9 @@ again in the game; anything that doesn't fit exactly is dropped.
 - **Ownership:** a building's owner is set by the room, never by the
   player.
 - **Progress:** an act counts only if it could have happened: in play-time
-  order, no more play time than has passed on the room's clock (2 seconds'
-  slack), no further from the last act than `MAX_SPEED` allows, gathering
+  order, no more play time than has passed on the room's clock since the
+  copy started (2 seconds' slack, granted once, and 2% for a phone's clock
+  running fast; unplayed time carries over), no further from the last act than `MAX_SPEED` allows, gathering
   no faster than the game lets anyone, and then by the game's own rules
   (reach, tools, costs, free tiles). Refused acts change nothing and are
   counted for the moderator (`shadow` in the player list).
