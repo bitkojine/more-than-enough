@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.163.0": "Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.",
   "news.0.162.0": "Behind the scenes: code for talking to old versions of the shared-world service, which no longer exist, is gone. Nothing changes in play.",
   "news.0.161.0": "{phone:Phones and tablets now draw the game 30 times a second while you play, and about 10 while nothing moves, so they stay cooler and the battery lasts longer.|laptop:On phones and tablets the game now draws 30 times a second while you play, and about 10 while nothing moves, so they stay cooler. On a computer nothing changes.}",
   "news.0.160.1": "The game works your {phone:phone|laptop:computer} less hard and keeps it cooler: Mica is drawn once a frame instead of twice, with nothing changed in how the game looks.",

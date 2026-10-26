@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.163.0": "Milijardai visomis kalbomis rašomi B, todėl išteklių juosta visur skaitoma vienodai: k, M, B, T.",
   "news.0.162.0": "Užkulisiuose: išmestas kodas, skirtas susikalbėti su senomis bendrų pasaulių tarnybos versijomis, kurių nebėra. Žaidime niekas nesikeičia.",
   "news.0.161.0": "{phone:Telefonai ir planšetės dabar piešia žaidimą 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl mažiau kaista, o baterija ilgiau laiko.|laptop:Telefonuose ir planšetėse žaidimas dabar piešiamas 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl jie mažiau kaista. Kompiuteryje niekas nesikeičia.}",
   "news.0.160.1": "Žaidimas mažiau apkrauna {phone:telefoną|laptop:kompiuterį}, ir šis mažiau kaista: Miką piešiame vieną kartą per kadrą, o ne du, ir žaidimo išvaizda nė kiek nepasikeitė.",
@@ -772,9 +773,9 @@ export default {
   "hud.zoomLevel": "Mastelis {zoom}, {phone:palietus|laptop:spustelėjus} atstatomas",
 
   "num.thousand": " tūkst.",
-  "num.short.thousand": "K",
+  "num.short.thousand": "k",
   "num.short.million": "M",
-  "num.short.billion": "G",
+  "num.short.billion": "B",
   "num.short.trillion": "T",
   "num.million": " mln.",
   "num.billion": " mlrd.",

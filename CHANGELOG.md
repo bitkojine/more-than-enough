@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.163.0] - 2026-10-26
+
+Billions are "B" in every language (Watch, 2026-10-26), replacing the
+2026-10-18 choice of "G" for Lithuanian. The resource bar's short form now
+uses the same letters in both languages: k, M, B, T (Lithuanian thousands
+were "K"), then scientific from 1e15. The full form is unchanged.
+
+### Changed
+- `num.short.billion` and `num.short.thousand` in `src/i18n/lt.js`.
+
 ## [0.162.0] - 2026-10-26
 
 Dead compatibility code goes, from the backwards-compatibility report
