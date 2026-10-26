@@ -605,7 +605,7 @@ async function main() {
     console.log('\n== Fresh playthrough checkpoint: actual activation and next world ==');
     eq(await evalJS('MTE_GAME.getState().seed'),run.seed,'resumes the world played from empty hands');
     ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'repairs alone have not won');
-    ok(await evalJS('(()=>{const m=MTE_GAME.getState().cultivation.facilities.find(b=>b.kind==="machine");MTE_GAME.openCard(m.x,m.y)})()'),'the machine beside you opens its card');
+    ok(await evalJS('(()=>{const m=MTE_GAME.getState().cultivation.facilities.find(b=>b.kind==="machine");return MTE_GAME.openCard(m.x,m.y)})()'),'the machine beside you opens its card');
     ok(await evalJS('document.getElementById("buildingCard").textContent.includes("3/3")'),'machine shows all three physical repairs');
     ok(await evalJS('!!document.querySelector("#buildingCard [data-type=activate]")'),'the machine\'s card offers activation');
     await evalJS('document.querySelector("#buildingCard [data-type=activate]").click()');

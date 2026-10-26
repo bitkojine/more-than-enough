@@ -13,7 +13,8 @@ import {fileURLToPath} from 'node:url';
 import {invariants} from '../test/property/invariants.js';
 import {reserveSeeds} from './playtest.mjs';
 
-export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
+// The wall budget only stops a hung run; the game-time budget is the check.
+export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
  const hash=createHash('sha256');
  for(const name of readdirSync(new URL('../src/core/',import.meta.url)).filter(f=>f.endsWith('.js')).sort())hash.update(name).update(readFileSync(new URL('../src/core/'+name,import.meta.url)));
  for(const name of ['../src/game/controller.js','../src/engine/simulation.js','../src/engine/clock.js','./cultivation-playtest.mjs'])hash.update(name).update(readFileSync(new URL(name,import.meta.url)));
@@ -29,6 +30,8 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function advance(n){budget();trace.push({ticks:n});for(let i=0;i<n;i++){simulation.tick();ticks++;}}
  function act(intent){budget();const result=controller.perform(intent,false);trace.push({intent,result});actions++;if(!result)throw Error('refused '+JSON.stringify(intent));advance(15);return result;}
  function command(type,kind,at=feet()){
+  // A site in the rock is dug out first: buildings stand on open ground.
+  if(type==='build'){let guard=0;while(!info(at.x,at.y).walk){if(++guard>100)throw Error('undiggable site');act({type:'harvestAt',...at});}}
   const cmd={type,kind,x:at.x,y:at.y};const result=C.cultivationCommand(state,cmd);trace.push({cultivation:cmd,result});actions++;
   if(!['ok','lifted','discovery','activated'].includes(result))throw Error(result+' '+JSON.stringify(cmd));controller.checkGoals();advance(15);return result;
  }
@@ -40,14 +43,15 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function pass(x,y){const i=info(x,y);return i.walk?(!i.swim||C.canWade(state)):i.solid&&i.harvest&&C.tileAt(state.world,x,y,state.player.z)!==C.T.GEODE&&!C.gearNeeded(state,x,y);}
  // Integer-cost shortest search visits only observed tiles. O(observed tiles)
  // per new target; routes are followed without searching again at every tick.
- function search(predicate,frontier=false,score=null){
+ // `aim(p)` ranks frontier tiles by where they lead (default: the least visited).
+ function search(predicate,frontier=false,score=null,aim=null){
   const origin=feet(),buckets=[[origin]],cost=new Map([[key(origin),0]]),prev=new Map();let best=null,bestScore=Infinity;
   for(let d=0;d<buckets.length&&d<=1200;d++)for(const p of buckets[d]||[]){
    if(cost.get(key(p))!==d)continue;
    if(predicate(p))return {at:p,path:path(p)};
    if(score){const n=score(p);if(n<bestScore){best=p;bestScore=n;}}
    const ns=[[p.x+1,p.y],[p.x-1,p.y],[p.x,p.y+1],[p.x,p.y-1]];
-   if(frontier&&ns.some(([x,y])=>!seen(x,y))){const score=d+(visits.get(key(p)+','+state.player.z)||0)*20;if(score<bestScore){best=p;bestScore=score;}}
+   if(frontier&&ns.some(([x,y])=>!seen(x,y))){const score=d+(aim?aim(p):(visits.get(key(p)+','+state.player.z)||0)*20);if(score<bestScore){best=p;bestScore=score;}}
    for(const [x,y]of ns){if(Math.abs(x-origin.x)>256||Math.abs(y-origin.y)>256||!seen(x,y)||(!predicate({x,y})&&!pass(x,y)))continue;
     const n={x,y},k=key(n),nd=d+(info(x,y).walk?1:4);if((cost.get(k)??Infinity)<=nd)continue;
     cost.set(k,nd);prev.set(k,p);(buckets[nd]??=[]).push(n);
@@ -71,15 +75,21 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
   }}
  function buy(id){act({type:'buy',id});}
  function buildProducer(kind){const at=seek(p=>{const t=C.tileAt(state.world,p.x,p.y,state.player.z),d=C.EXTRACTORS[kind];return t===d.tile&&C.richness(state.world,p.x,p.y,state.player.z)>0&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!C.holeBelow(state.world,p.x,p.y,state.player.z)&&!C.wayUp(state.world,p.x,p.y,state.player.z);},true);act({type:'place',key:kind,...at});}
- function go(at){const r=search(p=>key(p)===key(at));if(!r)throw Error('unreachable '+JSON.stringify(at));follow(r,true);}
- function buildingSite(near,radius=3,extra=()=>true){return seek(p=>extra(p)&&Math.abs(p.x-near.x)+Math.abs(p.y-near.y)<=radius&&pass(p.x,p.y)&&!info(p.x,p.y).rise&&!info(p.x,p.y).descend&&!C.cultivationAt(state,p.x,p.y)&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!state.world.props.has(C.packKey(p.x,p.y,state.player.z)));}
+ function go(at){let r=search(p=>key(p)===key(at));if(!r){toward(at);r=search(p=>key(p)===key(at));}if(!r)throw Error('unreachable '+JSON.stringify(at));follow(r,true);}
+ // A free tile near `near`, walked to: the machine shows itself only as you
+ // come close, so a tile picked before can be taken by the time you arrive.
+ function buildingSite(near,radius=3,extra=()=>true){if(Math.hypot(near.x-state.player.x,near.y-state.player.y)>32)toward(near);for(let i=0;i<20;i++){const at=seek(p=>extra(p)&&Math.abs(p.x-near.x)+Math.abs(p.y-near.y)<=radius&&pass(p.x,p.y)&&!info(p.x,p.y).rise&&!info(p.x,p.y).descend&&!C.cultivationAt(state,p.x,p.y)&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!state.world.props.has(C.packKey(p.x,p.y,state.player.z)));;go(at);if(!C.cultivationAt(state,at.x,at.y))return at;}throw Error('no free site');}
  // The hiding place is marked on the world map, so a player knows where it is.
  const near=(at,r=1.6)=>Math.hypot(at.x+.5-state.player.x,at.y+.5-state.player.y)<=r;
+ // A long journey on a map you've only partly seen: straight there once the
+ // way is known, else to the edge of the known map that leads closest to it
+ // (counting the way there), so a bay of water or rock is walked round
+ // rather than paced along.
  function toward(target){
+  const aim=p=>2*Math.hypot(p.x-target.x,p.y-target.y);
   for(let i=0;i<3000&&!near(target);i++){
-   const r=search(()=>false,false,p=>Math.hypot(p.x-target.x,p.y-target.y)+(visits.get(key(p)+','+state.player.z)||0)*30);
+   const r=(seen(target.x,target.y)&&search(p=>key(p)===key(target)))||search(()=>false,true,null,aim);
    if(!r||!r.path.length){explore();continue;}
-   visits.set(key(r.at)+','+state.player.z,(visits.get(key(r.at)+','+state.player.z)||0)+1);
    for(const p of r.path.slice(0,64)){walkTile(p);shelterIfCracking();if(near(target))return;}
   }
   if(!near(target))throw Error('journey stall');
@@ -97,7 +107,7 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
  function fetchHeart(){
   const hide=C.hidingPlace(state.world.seed);climbHome();stage('surface again');
   toward(hide);go(hide);command('heart',null,hide);stage('heart taken');
-  toward(cave);go(cave);act({type:'descend',...cave});stage('heart home');go(shaft);act({type:'descend',...shaft});
+  toward(cave);go(cave);act({type:'descend',...cave});stage('heart home');toward(shaft);go(shaft);act({type:'descend',...shaft});
  }
  try{
   stage('empty hands');gather('mycelium',34);buy('basket');gather('mycelium',8);gather('stone',5);buy('pickaxe');
@@ -113,8 +123,8 @@ export function playCultivation(seed,{wallSeconds=20,log=()=>{}}={}){
   const coolAt=buildingSite(roomAt,3);go(coolAt);command('build','cooler',coolAt);
   go(wild);command('starter',null,wild);go(roomAt);command('shutter',null,roomAt);command('plant',null,roomAt);
   const room=C.cultivationAt(state,roomAt.x,roomAt.y);if(room.needsTend)command('tend',null,roomAt);command('shutter',null,roomAt);stage('colony growing');
-  command('craft','carrier');const vaultAt=buildingSite(roomAt,3);go(vaultAt);command('build','vault',vaultAt);
-  const linkAt=buildingSite(roomAt,3,p=>Math.abs(p.x-vaultAt.x)+Math.abs(p.y-vaultAt.y)<=4);go(linkAt);command('build','conduit',linkAt);
+  command('craft','carrier');const vaultAt=buildingSite(roomAt,C.CONDUIT_REACH);go(vaultAt);command('build','vault',vaultAt);
+  const linkAt=buildingSite(roomAt,C.CONDUIT_REACH,p=>Math.abs(p.x-vaultAt.x)+Math.abs(p.y-vaultAt.y)<=C.CONDUIT_REACH);go(linkAt);command('build','conduit',linkAt);
   const machine=state.cultivation.facilities.find(b=>b.kind==='machine');if(!machine)throw Error('machine not discovered');
   const machineCool=buildingSite(machine,3);go(machineCool);command('build','cooler',machineCool);
   const crystalNeeded=C.MACHINE_REPAIRS.reduce((sum,cost)=>sum+cost.crystal,0);
