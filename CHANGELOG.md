@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.160.1] - 2026-10-26
+
+### Fixed
+- Phones ran hot (Watch, 2026-10-26). Measured: drawing is almost all GPU
+  work, JavaScript a few ms a frame, and Mica's 3D figure was rendered twice
+  every frame: once in place and again for the faint figure seen through a
+  wall in front, in the very same pose. Each render is a 4x multisampled
+  pass plus the outline pass, together more than the whole rest of the map.
+  `src/game/render/rigged-character.js` now reuses the picture when the
+  same pose is drawn again in the same frame (and forgets it before the
+  next). A frame costs about 30% less GPU time (Chromium, software GL,
+  390x844 at 2x: 301 ms -> 214 ms per benchmarked frame); nothing looks
+  different. `test/browser.e2e.js` checks one 3D render per frame.
+
 ## [0.160.0] - 2026-10-26
 
 Watch's choice (thread "Map backwards compatibility support"): Embark from

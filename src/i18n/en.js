@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.160.1": "The game works your {phone:phone|laptop:computer} less hard and keeps it cooler: Mica is drawn once a frame instead of twice, with nothing changed in how the game looks.",
   "news.0.160.0": "Embarking from an older world now starts a crystal world, like every other new world. The world you leave stays saved, with all it had, and you can go back to it from Settings, Nerds.",
   "news.0.159.0": "Mica's gear no longer passes through the coat: the pickaxe, basket and lantern ride snug against it, the pickaxe swings one-handed, and Wiki sits on the hood instead of sinking into it.",
   "news.0.158.0": "The world map is now the game itself: zoom out all the way (or {phone:tap|laptop:click} the map button under the zoom) and you see everything you've explored, with region names, home and the hiding place. Drag to look around while you stay put, step through the layers with the arrows in the top corner, and {phone:tap|laptop:click} the button again to come back.",

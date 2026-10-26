@@ -467,6 +467,10 @@ async function main() {
       return {paintedFacing,stats:rig.stats,pixels:opaque>1000,flatPalette:orangePixels>500&&flatPixels/orangePixels>.80,pose:rig.inspect()};
     })()`);
     ok(review.flatPalette,'cloth is predominantly one flat painted fill');ok(review.paintedFacing.every(n=>n>500),'world-palette orange stays unchanged across all eight headings');ok(review.stats.bones>=21,'character includes four articulated cloak panels');ok(review.stats.renders>=12,'all orientations and both gait halves render');ok(review.pixels,'WebGL output contains an opaque character silhouette');ok(review.stats.drawCalls<=64,'rig stays within the draw-call budget');ok(review.stats.triangles<50000,'rig stays within the geometry budget');ok(review.pose.rightFoot[1]>review.pose.leftFoot[1]+.05,'rendered bone hierarchy lifts the opposite foot at passing');eq(review.stats.lost,false,'WebGL context remains healthy');
+    // Heat: Mica seen through a wall in front is the picture already rendered
+    // this frame, never a second 3D render.
+    const once=await evalJS(`(()=>{const rig=MTE_GAME.look.rig,z=MTE_GAME.zoom();MTE_GAME.setZoom(1);MTE_GAME.bench(1);const r=rig.stats.renders,u=rig.stats.reused;MTE_GAME.bench(4);MTE_GAME.setZoom(z);return {renders:rig.stats.renders-r,reused:rig.stats.reused-u};})()`);
+    eq(once.renders,4,'Mica is rendered in 3D once per frame');ok(once.reused>=4,'the faint figure behind walls reuses that render');
     // Wiki rides the same rig: drawn on the hood in its own teal, above Mica's
     // head, turning toward what it looks at and folding its cap.
     const wikiReview=await evalJS(`(async()=>{

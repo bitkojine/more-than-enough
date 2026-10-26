@@ -54,14 +54,23 @@ export function createRiggedCharacter({checkClips=false}={}){
   const want=Math.min(MAX_RES,Math.max(1,Math.ceil(device/384*2)/2));
   if(want>res||want<res*.6){res=want;renderer.setSize(W*res,H*res,false);silhouette.setSize(W*res,H*res);}
  }
- let lost=false,renders=0;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
+ let lost=false,renders=0,reused=0,shown=null;canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();lost=true;});canvas.addEventListener('webglcontextrestored',()=>{lost=false;});
  return {
   draw(ctx,x,y,u,options={}){
    if(lost)return null;
-   rig.pose(options);
-   if(checkClips&&renders%CLIP_EVERY===0){const clips=findClips(rig);if(clips.length)throw new Error('Mica clips: '+clips.map(c=>c.a+'/'+c.b+' at '+c.at.join(',')).join('; ')+' in '+JSON.stringify(options));} // i18n-ok: developer-only fault text.
    const m=ctx.getTransform();fit(u*1.22*Math.hypot(m.a,m.b));
-   renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
+   // The same pose again in this frame (Mica seen faintly through a wall in
+   // front) reuses the picture just rendered: both passes are the GPU's
+   // biggest job in a frame, and doing them twice is what warms a phone.
+   const key=res+JSON.stringify(options);
+   if(key!==shown){
+    rig.pose(options);
+    if(checkClips&&renders%CLIP_EVERY===0){const clips=findClips(rig);if(clips.length)throw new Error('Mica clips: '+clips.map(c=>c.a+'/'+c.b+' at '+c.at.join(',')).join('; ')+' in '+JSON.stringify(options));} // i18n-ok: developer-only fault text.
+    renderer.info.reset();renderer.setRenderTarget(silhouette);renderer.render(scene,camera);renderer.setRenderTarget(null);renderer.render(outlineScene,outlineCamera);renders++;
+    // The picture lasts only until this frame is shown, so forget it after.
+    shown=key;queueMicrotask(()=>{shown=null;});
+   }
+   else reused++;
    const scale=u*1.22/384;ctx.drawImage(canvas,x-ax*scale,y-ay*scale,W*scale,H*scale);
    const project=b=>{const p=b.project(camera);return {x:x+((p.x+1)*.5*W-ax)*scale,y:y+((1-p.y)*.5*H-ay)*scale};};
    const marks=rig.marks(),h=project(marks.head),hand=project(marks.hand),w=marks.wiki&&project(marks.wiki);
@@ -69,7 +78,7 @@ export function createRiggedCharacter({checkClips=false}={}){
   },
   inspect:()=>rig.inspect(),
   model:rig,
-  get stats(){return {renders,bones:rig.bones,skinnedMeshes:5,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,res,lost};},
+  get stats(){return {renders,reused,bones:rig.bones,skinnedMeshes:5,triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,res,lost};},
   dispose(){rig.dispose();silhouette.dispose();outlineQuad.geometry.dispose();outlineMaterial.dispose();renderer.dispose();}
  };
 }
