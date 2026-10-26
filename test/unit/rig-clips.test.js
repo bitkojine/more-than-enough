@@ -52,3 +52,17 @@ test('no pose makes Mica, Wiki or their gear clip',()=>{
  }
  assert.equal(bad.length,0,`${bad.length} poses clip:\n  `+bad.slice(0,12).join('\n  '));
 });
+
+// Watch (2026-10-26): holding Gather, the tool stayed in hand only mid-stroke
+// and went back on Mica's back between strokes, every loop.
+test('Gather held: the tool stays in hand from stroke to stroke',()=>{
+ const flow={joined:true,onward:true};
+ for(const progress of [0,.02,.5,.98,1]){
+  rig.pose({basket:5,pickaxe:6,action:'pick',progress,flow});
+  assert.equal(rig.inspect().basket.held,true,`basket in hand at ${progress}`);
+  rig.pose({pickaxe:6,action:'swing',progress,flow});
+  assert.equal(rig.inspect().pickaxe.stowed,false,`pickaxe in hand at ${progress}`);
+ }
+ rig.pose({basket:5,action:'pick',progress:.99,flow:{joined:true,onward:false}});
+ assert.equal(rig.inspect().basket.held,false,'let go: the last stroke puts the basket away');
+});

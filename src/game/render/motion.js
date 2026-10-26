@@ -30,7 +30,7 @@ export const ACT_TIME = Object.freeze({
  * playing (if any) and how long they have stood still.
  */
 export function createActor({ clock = () => performance.now() / 1000 } = {}) {
-  let kind = null, at = 0, n = 0, stillAt = 0, heardN = null, detail = null, pending = null;
+  let kind = null, at = 0, n = 0, stillAt = 0, heardN = null, detail = null, pending = null, joined = false;
   const now = clock;
   let last = null, phase = 0, rigPhase = 0, walkBlend = 0;
   // Repeated receipts coalesce into one pending visual cycle. They never
@@ -38,11 +38,13 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
   function advance(t){
     if(kind&&t-at>=ACT_TIME[kind]){
       const nextAt=at+ACT_TIME[kind];
-      if(pending&&t-nextAt<ACT_TIME[pending.kind]){kind=pending.kind;detail=pending.detail;at=nextAt;pending=null;}
-      else{kind=null;detail=null;pending=null;}
+      if(pending&&t-nextAt<ACT_TIME[pending.kind]){joined=same(pending);kind=pending.kind;detail=pending.detail;at=nextAt;pending=null;}
+      else{kind=null;detail=null;pending=null;joined=false;}
     }
   }
-  function play(k,context,t){advance(t);if(kind===k){pending={kind:k,detail:context};return;}kind=k;detail=context;at=t;pending=null;}
+  // The next act is the same work again (a pick of the same kind).
+  const same=next=>!!next&&next.kind===kind&&(next.detail?.work??null)===(detail?.work??null);
+  function play(k,context,t){advance(t);if(kind===k){pending={kind:k,detail:context};return;}kind=k;detail=context;at=t;pending=null;joined=false;}
   const actor = {
     // Starts an act (one of ACTS) now.
     act(k, context=null) {
@@ -89,7 +91,9 @@ export function createActor({ clock = () => performance.now() / 1000 } = {}) {
 
       if (moving) stillAt = t;
       const busy = kind && t - at < ACT_TIME[kind];
-      return { act: busy ? kind : null, t: busy ? t - at : 0, facing:busy?detail?.facing:null, work:busy?detail?.work:null, idle: t - stillAt, clock:t, stride:position?phase:null, rigStride:rigPhase, walkBlend, walking };
+      // flow: whether this act runs straight on from one before it and into
+      // one after (Gather held), so the hands stay at the work between them.
+      return { act: busy ? kind : null, t: busy ? t - at : 0, flow: busy && (joined || same(pending)) ? { joined, onward: same(pending) } : null, facing:busy?detail?.facing:null, work:busy?detail?.work:null, idle: t - stillAt, clock:t, stride:position?phase:null, rigStride:rigPhase, walkBlend, walking };
     }
   };
   return actor;

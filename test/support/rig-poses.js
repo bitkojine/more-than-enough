@@ -20,6 +20,8 @@ export function rigPoses({full=false}={}){
   for(const cargo of ['specimen','sealed'])poses.push({...GEAR,walking:true,phase,cargo});
  }
  for(const [action,gear]of ACTIONS)for(const p of progress)for(const facing of facings)poses.push({...gear,action,progress:p,facing,wiki,lantern:true});
+ // Gather held: strokes run on into each other with the tool kept at the work.
+ for(const [action,gear]of ACTIONS.filter(([a])=>['swing','pick'].includes(a)))for(const flow of [{joined:true,onward:true},{joined:true,onward:false},{joined:false,onward:true}])for(const p of progress)poses.push({...gear,action,progress:p,flow,facing:facings[1],wiki,lantern:true});
  for(const level of [1,2,3,4,5,6]){poses.push({pickaxe:level});poses.push({pickaxe:level,action:'swing',progress:.32});}
  for(const time of steps(full?12:4))poses.push({...GEAR,time:time*9,steady:time>.5});
  // Wiki breathes and blinks on its own clock, so sweep a whole cycle of it.

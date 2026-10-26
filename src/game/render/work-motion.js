@@ -4,7 +4,11 @@ import * as T from '../../vendor/three/three.module.js';
 export const UPPER_ARM=.27,FOREARM=.25;
 const V=p=>new T.Vector3(...p),clamp=x=>Math.max(0,Math.min(1,x));
 export const smooth=x=>{const t=clamp(x);return t*t*(3-2*t);};
-export const workWeight=t=>smooth(t/.14)*(1-smooth((t-.84)/.16));
+// How far the hands are at the work. A stroke eases in from rest and back
+// out, except where it runs straight on from or into another of the same
+// (Gather held): there the hands stay at the work, so a tool in hand is never
+// put away between strokes. `flow`: {joined, onward}, from the actor.
+export const workWeight=(t,flow=null)=>(flow?.joined&&t<.5?1:smooth(t/.14))*(flow?.onward&&t>=.5?1:1-smooth((t-.84)/.16));
 export function solveArm(shoulder,target,side){
  const s=V(shoulder),want=V(target),delta=want.clone().sub(s),distance=delta.length();
  const reach=Math.max(Math.abs(UPPER_ARM-FOREARM)+1e-6,Math.min(UPPER_ARM+FOREARM-1e-6,distance));
@@ -26,10 +30,10 @@ export const STROKE=[
  {at:.70,p:[-.195,-.094,.473],d:[.10,-.28,.95],edge:[0,-.96,-.28],grip:-.13},
  {at:1,p:[-.198,-.019,.515],d:[.10,-.10,.99],edge:[0,-1,-.10],grip:-.13}
 ].map(k=>({...k,q:orientation(k.d,k.edge)}));
-export function miningStroke(progress){
+export function miningStroke(progress,flow=null){
  const t=clamp(progress);let i=0;while(i<STROKE.length-2&&t>STROKE[i+1].at)i++;
  const a=STROKE[i],b=STROKE[i+1],f=smooth((t-a.at)/(b.at-a.at));
- return {position:V(a.p).lerp(V(b.p),f),quaternion:a.q.clone().slerp(b.q,f),weight:workWeight(t),grip:a.grip+(b.grip-a.grip)*f};
+ return {position:V(a.p).lerp(V(b.p),f),quaternion:a.q.clone().slerp(b.q,f),weight:workWeight(t,flow),grip:a.grip+(b.grip-a.grip)*f};
 }
 // Where each hand works, chest-local. Hands stay in front of the coat and
 // clear of each other, the hood and the collar (rig-clips.js checks it).
@@ -42,8 +46,8 @@ export const WORK_HANDS={
  lantern:{right:[-.192,-.075,.342],reach:[.16,.06,0]},
  carry:{left:[.17,-.043,.365],right:[-.151,-.088,.416]}
 };
-export function workHands(action,progress,{basket=false,work=null,lantern=null}={}){
- const t=clamp(progress),weight=workWeight(t),beat=Math.sin(Math.PI*t)**2,H=WORK_HANDS;
+export function workHands(action,progress,{basket=false,work=null,lantern=null,flow=null}={}){
+ const t=clamp(progress),weight=workWeight(t,flow),beat=Math.sin(Math.PI*t)**2,H=WORK_HANDS;
  if(action==='pick'){
   if(['plant','tend','starter'].includes(work))return {weight,left:H.tend.left,right:H.tend.right};
   const f=H.forage,deposit=basket?smooth((t-.42)/.20)*(1-smooth((t-.82)/.18)):0;

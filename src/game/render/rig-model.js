@@ -196,10 +196,10 @@ export function createRigModel(){
   const qHand=q2.clone().invert().multiply(orientation);
   rig.upper.quaternion.slerp(q1,weight);rig.lower.quaternion.slerp(q1.clone().invert().multiply(q2),weight);rig.hand.quaternion.slerp(qHand,weight);
  }
- function constrainWork(action,progress,{basket=false,work=null,carrying=false}={}){
+ function constrainWork(action,progress,{basket=false,work=null,carrying=false,flow=null}={}){
   model.updateMatrixWorld(true);
   if(action==='swing'&&equippedPickaxe){
-   const plan=miningStroke(progress),spineWorld=spine.getWorldQuaternion(new T.Quaternion()),inverse=spineWorld.clone().invert();
+   const plan=miningStroke(progress,flow),spineWorld=spine.getWorldQuaternion(new T.Quaternion()),inverse=spineWorld.clone().invert();
    const basePosition=spine.worldToLocal(toolGrip.getWorldPosition(new T.Vector3()));
    const baseQ=inverse.clone().multiply(toolGrip.getWorldQuaternion(new T.Quaternion()));
    const position=basePosition.lerp(plan.position,plan.weight),rotation=baseQ.slerp(plan.quaternion,plan.weight);
@@ -212,7 +212,7 @@ export function createRigModel(){
    poseArm(rightArm,-1,right.toArray(),handQ);
    return;
   }
-  const hands=carrying?{weight:1,...WORK_HANDS.carry}:workHands(action,progress,{basket,work,lantern:spine.worldToLocal(lanternModel.root.getWorldPosition(new T.Vector3())).toArray()});
+  const hands=carrying?{weight:1,...WORK_HANDS.carry}:workHands(action,progress,{basket,work,flow,lantern:spine.worldToLocal(lanternModel.root.getWorldPosition(new T.Vector3())).toArray()});
   if(hands){const orientation=new T.Quaternion(),leftOrientation=basket?spine.quaternion.clone().invert():orientation;poseArm(leftArm,1,hands.left,leftOrientation,hands.weight);poseArm(rightArm,-1,hands.right,orientation,hands.weight);}
  }
  model.updateMatrixWorld(true);const skeleton=new T.Skeleton(bones);coat.bind(skeleton);hem.bind(skeleton);patch.bind(skeleton);
@@ -227,14 +227,14 @@ export function createRigModel(){
  return {
   scene,model,
   // Poses every bone and carried thing for one frame; the same options as draw().
-  pose({facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null,wiki:wikiState=null}={}){
+  pose({facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,flow=null,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null,wiki:wikiState=null}={}){
    renderedAction=action;renderedProgress=progress;renderedWork=work;
    cargoKind=!steady&&!action&&['specimen','sealed'].includes(cargo)?cargo:null;
    cargoRoot.visible=!!cargoKind;specimen.visible=cargoKind==='specimen';sealed.visible=cargoKind==='sealed';
    const forage=action==='pick'&&!['plant','tend','starter'].includes(work);
    // The basket is in hand only while the arm is out in front: hanging low
    // from a hand at Mica's side it would sweep through the flared skirt.
-   equipBasket(basket,forage&&!steady&&workWeight(progress)>.5);lanternModel.root.visible=!!lantern;lanternModel.setOn(lanternOn);
+   equipBasket(basket,forage&&!steady&&workWeight(progress,flow)>.5);lanternModel.root.visible=!!lantern;lanternModel.setOn(lanternOn);
    const p=rigPose({phase,walking,blend,action,progress,time,steady,carrying:!!cargoKind});hips.position.y=p.hipY;
    spine.rotation.set(p.lean,p.twist,p.roll);spine.position.y=.38*Math.cos(p.lean)+p.breath;spine.position.z=.38*Math.sin(p.lean);
    if(action&&Math.hypot(facing.x,facing.y)>1e-6){const yaw=Math.atan2(facing.x,facing.y),snap=Math.PI/2-CHARACTER_DIRECTIONS.indexOf(characterDirection(facing,direction))*Math.PI/4;spine.rotation.y+=Math.atan2(Math.sin(yaw-snap),Math.cos(yaw-snap))*Math.sin(Math.PI*progress)**2;}
@@ -252,7 +252,7 @@ export function createRigModel(){
    if(wikiState){const look=wikiState.look&&Math.hypot(wikiState.look.x,wikiState.look.y)>1e-6?wrapAngle(Math.atan2(wikiState.look.x,wikiState.look.y)-model.rotation.y-spine.rotation.y-head.rotation.y):null;wiki.pose({time,look,fold:wikiState.fold||0,talk:wikiState.talk??null,rest:!!wikiState.rest});}
    drivingGrip=0;toolGrip.position.set(0,-.02,.025);
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
-   if(!steady)constrainWork(action,progress,{basket:basketHeld,work,carrying:!!cargoKind});
+   if(!steady)constrainWork(action,progress,{basket:basketHeld,work,flow,carrying:!!cargoKind});
    scene.updateMatrixWorld(true);basketGrip.quaternion.copy(leftArm.hand.getWorldQuaternion(new T.Quaternion())).invert().multiply(model.getWorldQuaternion(new T.Quaternion()));
    scene.updateMatrixWorld(true);
   },

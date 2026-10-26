@@ -79,7 +79,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVecto
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
-    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,wiki,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
+    const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),flow:actor.flow??null,time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,wiki,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
     ctx.restore();if(location)return location;
   }
   const id='character.wanderer';

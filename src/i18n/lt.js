@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.167.1": "Laikant „Rinkti“, Mica nuo vieno judesio iki kito laiko krepšį ar kirtiklį rankoje, o ne kaskart deda jį ant nugaros.",
   "news.0.167.0": "Statyboje matyti tik tai, ką galima pastatyti ten, kur esi: paviršiuje paviršiaus pastatai ir vandens jėgainės, po žeme tik tai, kas skirta kasyklai, o kristalų patalpos tik nuo 2 sluoksnio gilyn.",
   "news.0.166.1": "Kristalų pasauliuose mygtukai „Gaminti“ ir „Padėti“ lieka pilki, kol neturi visko, ko reikia, tad mygtukas, kuris atrodo paruoštas, visada veikia.",
   "news.0.166.0": "Saulės laikrodis: žiedas aplink nustatymų krumpliaratį yra para, auksinis, kol saulė pakankamai aukštai, kad krautų saulės plokštę (kristalų pasauliuose, kad skaldytų kristalus), o ant jo saulė ar mėnulis. Šalia plokštės po krumpliaračiu matyti, po kiek ji ims krauti ar kiek dar liko.",

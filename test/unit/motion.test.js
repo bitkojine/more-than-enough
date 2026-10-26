@@ -78,3 +78,13 @@ test('rapid work receipts finish their stroke and retain its captured facing',()
  time=10;assert.equal(a.view(false).act,null,'no old visual backlog after time away');
  a.act('swing');time+=.1;a.act('up');assert.equal(a.view(false).act,'up','a different action can interrupt promptly');assert.equal(a.view(false).t,0);
 });
+
+test('Gather held: strokes run on into each other, the first eases in and the last eases out',()=>{
+ let time=0;const a=createActor({clock:()=>time}),work={work:null};
+ a.act('pick',work);assert.equal(a.view(false).flow,null,'a single stroke eases in and out');
+ time=.25;a.act('pick',work);assert.deepEqual(a.view(false).flow,{joined:false,onward:true});
+ time=ACT_TIME.pick+.05;a.act('pick',work);assert.deepEqual(a.view(false).flow,{joined:true,onward:true});
+ time=ACT_TIME.pick*2+.05;assert.deepEqual(a.view(false).flow,{joined:true,onward:false},'let go: the last stroke puts the tool away');
+ time=10;a.act('pick',{work:'plant'});time=10.2;a.act('pick',{work:null});
+ assert.equal(a.view(false).flow,null,'planting then foraging is two different jobs');
+});

@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.167.1] - 2026-10-26
+
+Tools stay in hand while Gather is held (Watch: "character keeps holstering
+tools while we're just holding down spacebar to gather ... the basket keeps
+getting holstered on the back of Mica. fix that for all tools").
+
+### Fixed
+- Every work stroke eased the hands in from rest and back out, and the
+  basket is only in hand while the arm is out in front, so a held Gather put
+  the basket on Mica's back and took it out again every stroke; the pickaxe
+  dropped back to the hip each swing too. The actor now says when a stroke
+  runs straight on from or into the same work (`flow` in
+  `src/game/render/motion.js`), and `workWeight` keeps the hands at the work
+  across that seam. The first stroke still eases in and the last one eases
+  out, so letting go puts the tool away as before.
+
+### Tests
+- `test/unit/motion.test.js`: held strokes report joined/onward, letting go
+  ends the run, and planting then foraging are two jobs.
+- `test/unit/rig-clips.test.js`: the basket and pickaxe stay in hand over
+  the whole stroke while Gather is held; `test/support/rig-poses.js` sweeps
+  the held strokes for clips.
 ## [0.167.0] - 2026-10-26
 
 Build offers only what can be built where you are (Watch: "if some stuff
