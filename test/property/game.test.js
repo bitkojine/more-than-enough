@@ -78,6 +78,13 @@ function oneAct(s, r) {
     C.buy(s, id);
     return;
   }
+  if (choice === 8 && s.extractors.length && r.chance(0.3)) {
+    // Move one of your buildings to a tile beside you (refused where it doesn't fit).
+    const e = r.pick(s.extractors);
+    C.moveExtractor(s, e, Math.floor(s.player.x) + r.int(-2, 2), Math.floor(s.player.y) + r.int(-2, 2));
+    C.step(s, 0.25);
+    return;
+  }
   if (choice === 8) {
     // Put up a building you can afford, on a free tile beside you.
     const key = r.pick(Object.keys(C.EXTRACTORS));

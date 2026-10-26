@@ -30,7 +30,6 @@ export function drawCultivation(ctx,cam,s,look,b){
  const danger=b.temperature>22||b.needsTend||b.health===0;
  if(danger){ctx.fillStyle='#ffc09c';ctx.beginPath();ctx.moveTo(p.x+u*.3,p.y-h-u*.15);ctx.lineTo(p.x+u*.42,p.y-h+u*.08);ctx.lineTo(p.x+u*.18,p.y-h+u*.08);ctx.closePath();ctx.fill();}
  ctx.restore();
- if(b.kind==='conduit')for(const id of [b.from,b.to]){const other=s.cultivation.facilities.find(a=>a.id===id);if(other&&Core.isExplored(s.world,other.x,other.y,other.z)){const q=cam.project(other.x+.5,other.y+.5,other.z);ctx.save();ctx.strokeStyle='#bce8ff';ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();ctx.restore();}}
 }
 // Condition feedback follows the same posed head anchor as the figure.
 // The capsule/crystal itself is painted into the selected carrying pose.

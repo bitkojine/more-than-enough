@@ -78,6 +78,8 @@ export function invariants() {
       seen.add(at);
       if (!C.EXTRACTORS[e.key]) throw new Error(`unknown building ${e.key}`);
       if (!Number.isFinite(e.buffer) || e.buffer < 0) throw new Error(`buffer = ${e.buffer}`);
+      // The index by tile follows a building that moved (actions.moveExtractor).
+      if (C.extractorAt(s, e.x, e.y, e.z) !== e) throw new Error(`the index lost the building at ${at}`);
     }
   });
 

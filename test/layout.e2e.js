@@ -32,7 +32,7 @@ const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.
 // In this order on one page per screen; `rich` and `huge` last, as they
 // can't be undone. `crowd` joins a shared world of 100 (a fake room) and
 // stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement', 'huge'];
+const STATES = ['fresh', 'underground', 'upgrades', 'build', 'placing', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement', 'huge'];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -82,7 +82,7 @@ function problems() {
   // The HUD, while nothing covers it: every button and name plate clear of
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
-    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge')].filter(shown);
+    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard')].filter(shown);
     for (let i = 0; i < targets.length; i++) {
       const a = targets[i], ra = a.getBoundingClientRect();
       if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1) out.push('off screen: ' + name(a));
@@ -141,6 +141,8 @@ async function enter(state) {
   if (document.getElementById('sheet').classList.contains('open')) click('#btnClose');
   if (g.dialogs.ask.open) click('#ask .secondary');
   if (g.dialogs.fbi.open) click('#fbi button');
+  const placing = document.querySelector('#placeCard:not([hidden]) [data-do=cancel]');
+  if (placing) placing.click();
   clearInterval(window.layoutHold);
   if (state === 'rich') for (const r of Object.keys(g.getState().inv)) g.addRes(r, 987654321098);
   // Absurd numbers: the counts in the bar go scientific (1e15), the rate
@@ -180,6 +182,8 @@ async function enter(state) {
   }
   if (state === 'upgrades') click('#btnUpgrade');
   if (state === 'build') click('#btnBuild');
+  // Placing a building: its card docked at the bottom, the zoom pill above it.
+  if (state === 'placing') g.startPlacing({ key: 'garden' });
   if (state === 'awards') click('#btnAwards');
   if (state === 'settings') click('#btnSettings');
   if (state === 'nerds') { click('#btnSettings'); click('#btnNerds'); }

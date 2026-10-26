@@ -655,6 +655,8 @@ async function main() {
     await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();for(const r of c.RESOURCES)c.earn(s,r,300,'hand');for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){const t=c.tileAt(s.world,x,y,-2);if(!c.TILE_INFO[t].rise&&!c.TILE_INFO[t].descend){c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}}s.player={x:.5,y:.5,z:-2};})()`);
     await evalJS('document.getElementById("btnBuild").click()');
     await evalJS('document.querySelector("[data-kind=cultivation][data-id=chamber]").click()');
+    ok(await evalJS('!document.getElementById("sheet").classList.contains("open")&&!document.getElementById("placeCard").hidden'),'Place closes the sheet and shows the placement card');
+    await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
     ok(await evalJS('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")'),'real Build control constructs chamber in original world');
     ok(await evalJS('MTE_GAME.getState().inv.ore===292'),'construction spends ordinary metal inventory: '+await evalJS('MTE_GAME.getState().inv.ore'));
     ok(await evalJS('!document.querySelector("#sheetBody [data-action=shutter]")'),'Build only places things: no shutters in it');
@@ -707,6 +709,7 @@ async function main() {
     await evalJS('document.querySelector("button[data-id=depot]").scrollIntoView({block:"center"})');
     await shot('depot-preview.png');
     await evalJS('document.querySelector("button[data-id=depot]").click()');
+    await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
     eq(await evalJS('MTE_GAME.core.extractorCount(MTE_GAME.getState(),"depot")'),1,'real button constructs a depot');
     ok(await evalJS('MTE_GAME.getState().inv.stone<20&&MTE_GAME.getState().inv.ore===0'),'placement spends its full recipe');
     ok(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState();return !!c.depotFor(s,s.extractors[0])&&!c.depotFor(s,s.extractors[1]);})()'),'coverage includes nearby producer and excludes distant producer');
@@ -756,6 +759,8 @@ async function main() {
     await sleep(200);
     await shot('stoneworks-preview.png');
     await evalJS('document.querySelector("button[data-id=stoneworks]").click()');
+    await shot('stoneworks-placing.png');
+    await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
     eq(await evalJS('MTE_GAME.core.extractorCount(MTE_GAME.getState(),"stoneworks")'),1,'real Place button builds one Stoneworks');
     ok(await evalJS('MTE_GAME.getState().inv.stone < window.__stoneBefore/2'), 'normal placement spends the stone investment');
     ok(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),q=s.extractors.find(e=>e.key==="quarry");return c.supportingBuilding(s,q)?.key==="stoneworks" && c.extractorRate(s,q.key,q)===2*c.extractorRate(s,q.key);})()'), 'placed support links to the quarry and doubles its rate');
@@ -1363,8 +1368,28 @@ async function main() {
   var gardenButton = await rect('.row button[data-id=garden]');
   await tap(gardenButton.x, gardenButton.y);
   await sleep(250);
+  ok(await evalJS('!document.getElementById("sheet").classList.contains("open")&&!document.getElementById("placeCard").hidden&&getComputedStyle(document.getElementById("thumbDock")).visibility==="hidden"'), 'Place closes the sheet, shows the placement card and moves the thumb buttons aside');
+  var placeHere = await rect('#placeCard [data-do=go]');
+  await tap(placeHere.x, placeHere.y);
+  await sleep(250);
   var b3 = JSON.parse(await stateSummary());
   eq(b3.ext, 1, 'garden camp constructed');
+  ok(await evalJS('document.getElementById("placeCard").hidden&&!document.body.classList.contains("placing")'), 'the placement card goes once it stands');
+  // Its card has Move: a lit tile beside it, Move here, and it stands there.
+  ok(await evalJS('!!document.querySelector("#buildingCard [data-type=move]")'), 'the new garden\'s card opens with Move');
+  var moveTo = await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),e=s.extractors[0];for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if((dx||dy)&&c.extractorFits(s,"garden",e.x+dx,e.y+dy)&&c.inReach(s,e.x+dx,e.y+dy))return JSON.stringify({x:e.x+dx,y:e.y+dy});}return null;})()');
+  if (moveTo) {
+    moveTo = JSON.parse(moveTo);
+    await evalJS('document.querySelector("#buildingCard [data-type=move]").click()');
+    var moveAt = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.project(' + (moveTo.x + 0.5) + ',' + (moveTo.y + 0.5) + '))'));
+    await tap(moveAt.x, moveAt.y);
+    await sleep(150);
+    var moveHere = await rect('#placeCard [data-do=go]');
+    await tap(moveHere.x, moveHere.y);
+    await sleep(250);
+    ok(await waitFor('(function(){var e=MTE_GAME.getState().extractors[0];return e.x===' + moveTo.x + '&&e.y===' + moveTo.y + ';})()', 1500), 'Move puts the garden on the tapped tile, for free');
+    await evalJS('var c=document.querySelector("#placeCard:not([hidden]) [data-do=cancel]");if(c)c.click()');
+  }
   var camp = await evalJS('(function(){var e=MTE_GAME.getState().extractors[0];e.buffer=8;MTE_GAME.setPlayer(e.x+0.5,e.y+0.5);return e.x+","+e.y;})()');
   await sleep(400);
   ok(await evalJS('document.getElementById("actionLabel").textContent.indexOf("COLLECT") === 0'), 'Gather control changes to Collect near stored extractor goods (' + camp + ')');
@@ -1617,6 +1642,7 @@ async function main() {
   var canPlace = await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-id=foundry]");return b?!b.disabled:false;})()');
   ok(canPlace, 'Foundry becomes place-able after unlock');
   await evalJS('document.querySelector("#sheetBody button[data-id=foundry]").click()');
+  await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
   await sleep(250);
   ok(await evalJS('MTE_GAME.getState().extractors.length') > extBefore, 'Foundry converter placed on open land');
   await evalJS('document.getElementById("btnClose").click()');

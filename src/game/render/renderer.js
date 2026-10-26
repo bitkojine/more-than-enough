@@ -19,7 +19,8 @@ import { createAtlas } from './atlas.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
 import { drawFocus } from './focus.js';
-import { drawDepots, drawSupports, drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
+import { drawFits, drawGhostSpot, drawReach, ghostAlpha } from './reach.js';
+import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
 const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in tiles
@@ -88,9 +89,19 @@ export function render(cam, s, fx, view, look, guard = plain) {
   const ground = { built, yard: view.yard, shake: fx.shake, layer };
   const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, ground, (y) => layer('row', () => {
     drawHighlights(ctx, cam, s, view, y);
+    drawFits(ctx, cam, s, view, y);
+    // A building being moved stands only as its ghost, where it would go.
+    const moving = view.placing?.from;
     const row = buildings.get(y);
-    if (row) for (const e of row) drawExtractor(ctx, cam, s, look, e);
-    for(const b of crystalRows.get(y)||[])drawCultivation(ctx,cam,s,look,b);
+    if (row) for (const e of row) if (e !== moving) drawExtractor(ctx, cam, s, look, e);
+    for(const b of crystalRows.get(y)||[])if(b!==moving)drawCultivation(ctx,cam,s,look,b);
+    const ghost = view.placing?.ghost;
+    if (ghost && ghost.y === y) {
+      drawGhostSpot(ctx, cam, ghost);
+      ctx.globalAlpha = ghostAlpha;
+      if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);
+      ctx.globalAlpha = 1;
+    }
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) {
       drawProp(ctx,cam,s,look,kind,x,y);
@@ -121,8 +132,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
     });
   }
   if (cam.z === Core.SURFACE) layer('merging', () => drawMerging(ctx, cam, s, look, view.yard));
-  layer('supports', () => drawSupports(ctx, cam, s, view));
-  layer('depots', () => drawDepots(ctx, cam, s, view));
+  layer('reach', () => drawReach(ctx, cam, s, view));
   layer('trail', () => drawTrail(ctx, cam, s, view));
   layer('particles', () => drawParticles(ctx, cam, fx));
   layer('floats', () => drawFloats(ctx, cam, look, fx));

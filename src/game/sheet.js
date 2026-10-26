@@ -30,7 +30,7 @@ let newIds = new Set();
 const NEW_TAG = `<span class="newTag">${t('badge.new')}</span>`;
 const newTag = (id) => newIds.has(id) ? ' ' + NEW_TAG : '';
 export const pic = (id, slot, level=null) => iconHtml(look, id, 'ico', slot, level);
-const icon = (res) => pic(Core.resourceLook(res));
+export const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
 
 function priceTag(text, affordable) {
@@ -213,16 +213,14 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
     const preview = def.depot && spot ? '<br>' + esc(t('building.depot.count',{n:Core.depotGain(s,spot)})) : def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
-    return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def, spot, affordable), place(affordable && !!spot));
+    return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def), place(affordable));
   }
 
-  // Where a building goes. Once you can pay for it but there's nowhere in
-  // reach, why Place is greyed out (a greyed-out button says nothing itself).
-  function where(def, spot, affordable) {
+  // Where a building goes. Place closes the sheet and you pick the tile on
+  // the map (placing.js).
+  function where(def) {
     const tile = def.tile === null ? '' : esc(Core.TILE_NAME[def.tile].toLocaleLowerCase());
-    if (affordable && !spot) return `<span class="where bad">${tile ? t('sheet.notHere', { tile }) : t('sheet.notHereLand')}</span>`;
-    const goes = !tile ? t('sheet.goesAnywhere') : spot ? t('sheet.goesOnHere', { tile }) : t('sheet.goesOn', { tile });
-    return `<span class="where">${goes}</span>`;
+    return `<span class="where">${tile ? t('sheet.goesOn', { tile }) : t('sheet.goesAnywhere')}</span>`;
   }
 
   // Something to place where you stand: in the mine, or water power on the

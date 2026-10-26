@@ -526,6 +526,33 @@ body.sunTime #btnVersion { display: none; }
 .bcard button.alt { background: var(--raised); color: var(--ink); border: 1px solid var(--panel-line); }
 .bcard button:disabled { opacity: 0.55; cursor: default; }
 
+/* Placing a building (src/game/placing.js): its card docks at the bottom,
+   in the thumbs' reach, and Build, Upgrade and Gather step aside meanwhile. */
+.bcard.placing {
+  left: 50%; top: auto; transform: translateX(-50%);
+  bottom: var(--edge-b);
+  width: min(440px, calc(100vw - 24px)); max-width: none;
+  box-shadow: var(--shadow-2);
+}
+.bcard.placing .pc-cost { margin-top: 6px; }
+.bcard.placing .pc-hint { color: var(--ink); }
+.bcard.placing .bc-acts { flex-wrap: nowrap; }
+.bcard.placing .pc-go { flex: 1; }
+body.placing #thumbDock, body.placing #btnInvite { visibility: hidden; }
+@media (min-height: 501px) { body.placing #zoomControls { bottom: calc(var(--edge-b) + var(--place-h, 170px) + 14px); } }
+/* A short landscape screen: the card keeps to the bottom left, short, clear
+   of the zoom pill on the right (which stays where it is). */
+@media (max-height: 500px) {
+  .bcard.placing {
+    left: calc(env(safe-area-inset-left, 0px) + 12px); transform: none;
+    width: min(400px, calc(100vw - 230px)); padding: 8px 10px;
+  }
+  .bcard.placing p { margin-top: 3px; }
+  .bcard.placing .pc-hint { display: none; }
+  .bcard.placing .pc-cost { margin-top: 3px; }
+  .bcard.placing .bc-acts { margin-top: 6px; }
+}
+
 #btnPerfect .tip {
   position: absolute; right: -10px; bottom: calc(100% + 14px);
   background: #fbeec4; color: #33280f; font: 700 14px/1.25 system-ui, sans-serif;

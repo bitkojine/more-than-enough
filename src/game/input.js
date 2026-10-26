@@ -6,6 +6,9 @@
  *                            zoomed out to the world map (handlers.pans()),
  *                            handlers.pan(dx, dy) instead
  *   tap the map              handlers.tap(screenX, screenY)
+ *   press and drag           handlers.grab(x, y) may take the finger
+ *                            (dragging a building being placed), then
+ *                            gets its moves and its lift (grabMove, grabEnd)
  *   hold still on the map    a long press: handlers.longPress(x, y) may take
  *                            that finger (Wiki does), then gets its moves
  *                            and its lift (longPressMove, longPressEnd)
@@ -32,6 +35,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   let keys = {};
   let actionPointerId = null;
   let longTimer = 0, longId = null;               // a press that may become long; the finger a long press took
+  let grabId = null;                              // the finger dragging what handlers.grab took
 
   const input = {
     joy,
@@ -138,6 +142,7 @@ export function createInput({ canvas, cam, el, handlers }) {
       return;
     }
     const p = canvasPoint(e);
+    if (handlers.grab?.(p.x, p.y)) { grabId = e.pointerId; clearTimeout(longTimer); return; }
     Object.assign(joy, { active: true, id: e.pointerId, ox: p.x, oy: p.y, x: 0, y: 0, moved: 0, t: performance.now(), pan: handlers.pans() ? { ...p } : null });
     clearTimeout(longTimer);
     longTimer = setTimeout(() => {
@@ -150,6 +155,12 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   function onMove(e) {
     if (pointers.has(e.pointerId)) pointers.set(e.pointerId, canvasPoint(e));
+    if (e.pointerId === grabId) {
+      const p = canvasPoint(e);
+      handlers.grabMove(p.x, p.y);
+      e.preventDefault();
+      return;
+    }
     if (e.pointerId === longId) {
       const p = canvasPoint(e);
       handlers.longPressMove(p.x, p.y);
@@ -203,6 +214,11 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   function onCanvasUp(e) {
     pointers.delete(e.pointerId);
+    if (e.pointerId === grabId) {
+      grabId = null;
+      handlers.grabEnd();
+      return;
+    }
     if (e.pointerId === longId) {
       longId = null;
       const p = canvasPoint(e);

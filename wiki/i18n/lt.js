@@ -670,9 +670,15 @@ export default {
       <p class="lede">Tegul pasaulis dirba tau.</p>
 
       <h2>Statymas</h2>
-      <p>Atidaryk <strong>STATYTI</strong>, atsistok šalia tinkamo langelio ir {phone:bakstelėk|laptop:spustelėk} <strong>Padėti</strong>. Pastatas atsiras
-        artimiausiame tinkamame laisvame pasiekiamame langelyje; mėlyni kontūrai žemėlapyje rodo, kur. Kiekvienas jau turimas tos
-        rūšies pastatas kitą tokį pat padaro &times;<span data-k="EXTRACTOR_GROWTH"></span> brangesnį.</p>
+      <p>Atidaryk <strong>STATYTI</strong> ir {phone:bakstelėk|laptop:spustelėk} <strong>Padėti</strong>. Sąrašas užsidaro, o pastatas žemėlapyje
+        atsistoja kaip permatomas šešėlis geriausiame laisvame langelyje šalia tavęs. Visi matomi langeliai, ant kurių jis tinka, švelniai nušvinta
+        mėlynai: {phone:bakstelėk|laptop:spustelėk} vieną arba nutempk šešėlį, ir jis atsidurs ten. Kortelė apačioje sako, ką jis ten darytų ir kiek
+        kainuoja; <strong>Statyti čia</strong> jį pastato, o jei langelis toliau, nei pasieki, Mika pirma nueina ten. <strong>Atšaukti</strong> arba
+        „Atgal“ jį padeda į šalį. Kiekvienas jau turimas tos rūšies pastatas kitą tokį pat padaro &times;<span data-k="EXTRACTOR_GROWTH"></span> brangesnį.</p>
+      <p>{phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė. <strong>Perkelti</strong> joje pakelia jį taip pat: perkelti nemokama,
+        ir viskas, kas jame laikoma, keliauja kartu. (Bendrame pasaulyje kol kas negalima.) Kol kortelė atidaryta, blyškus plotas rodo, kiek toli
+        pastatas siekia, o mažas ženkliukas pažymi kiekvieną pastatą, kuriam jis padeda: &times;2 ant karjerų, kuriuos dvigubina akmens dirbtuvės,
+        dėžė ant gamintojų, iš kurių surenka sandėlis.</p>
 
       <h2>Gavyklos</h2>
       <p>Gavyklos stovi ant atitinkamo telkinio ir gamina jo išteklių amžinai. Telkinio jos neišeikvoja.</p>

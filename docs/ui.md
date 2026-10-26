@@ -150,8 +150,9 @@ generic later-tier artwork remain to be replaced in subsequent slices.
 
 - **Stoneworks:** Build separates support buildings from producers.
   Its row explains the two-tile, non-stacking quarry service and previews the
-  local incremental stone rate. Dashed links identify affected quarries while
-  building and when standing near a workshop; hidden buildings stay hidden.
+  local incremental stone rate. Placing or moving one, or with its card up,
+  its reach and a ×2 badge on each quarry it doubles show (Planning marks);
+  hidden buildings stay hidden.
   Stoneworks has its own crusher picture and no output-buffer dial.
 - Historical release-note translations load when What’s new opens; current
   notes remain in the startup dictionaries. The archive uses the same
@@ -167,19 +168,47 @@ and the stoneworks, depot and heart shelter anywhere.
 
 ### Physical collection
 Build lists Collection Depot under support buildings, with its material recipe
-and additional producer count. Dashed boundaries and recipient links preview
-its eight-tile coverage. Permanent material bins identify collection even when
+and additional producer count. Placing it, or with its card up, its eight-tile
+reach shows, with a crate badge on each producer it collects from. Permanent material bins identify collection even when
 no output is waiting. No carts or journey times are implied. Unserved producers
 keep output for normal collection. All solo worlds use the normal save/import
 and archive flow; older depot save keys remain readable for recovery.
 
+### Placing a building
+Watch, 2026-10-26, as Clash of Clans, Stardew and Factorio do (`src/game/placing.js`):
+- **Place** in Build closes the sheet. The building stands on the map as a
+  see-through ghost, on a soft green pool, on the best free tile beside you.
+  Every tile in view it fits on is lit pale blue (no outline); tap one, or
+  drag the ghost, and it goes there. The map stays fully in view.
+- **The placement card** docks at the bottom, in the thumbs' reach (Build,
+  Upgrade and Gather step aside, the zoom pill moves up clear of it): the
+  building's picture and name, what it would do on that tile (its rate, how
+  many quarries it would double, how many producers it would collect from),
+  its price, a one-line hint, then **Cancel** and a green **Place here**.
+- On a short landscape screen the card keeps to the bottom left, without
+  the hint line, and the zoom pill stays where it is.
+- A tile out of reach: Place here walks Mica there (the hint says so) and it
+  is built on arrival. Back, Cancel or changing layer ends placing.
+- **Move** is on every building's card (yours; not yet in a shared world): the
+  same view, titled *Move: name*, free, and what it holds goes with it.
+  Once a building stands, its card opens over it.
+- Props (glowcaps, lamps, solar panels, water wheels) still go where you stand.
+
 ### Planning marks
-Construction previews outline the free tile in blue. Service links, recipient
-outlines, sealed conduit links and depot coverage are thin dashed lines: pale
-yellow for a placement preview, pale blue or green for what is already built.
+Only the one building in focus shows what it reaches: the ghost being placed
+or moved, or the building whose card is up. Never every building near you.
+- **Reach**: a pale blue area, one thin solid edge: a circle for a Stoneworks
+  (2 tiles) or a depot (8), a diamond along the grid for a cooling tower (3
+  steps) or a conduit (4).
+- **What it helps**: a small round badge (dark, green ring) over each
+  building: ×2 on the quarries a Stoneworks doubles, a crate on the producers
+  a depot collects from, a snowflake on what a cooling tower cools, a link on
+  the chamber and vault a conduit joins.
+- No lines between buildings, no dashed boxes round tiles (Watch, 2026-10-26:
+  "a mess"), and no white chalk (reverted in v0.152.1 at Watch's request).
+
 The live Trail is a glowing stroke, blue until it crosses tiles the sweep will
 take, then green on the surface or amber underground, with those tiles filled.
-No white chalk (reverted in v0.152.1 at Watch's request).
 
 
 ## Living-crystal chapter in the existing client
@@ -196,10 +225,13 @@ No separate map or client is used.
   AUTO sits in an older world; AUTO never shows in a crystal world), there
   once the lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
   *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. No toast.
-- **A building's card**: tapping a chamber, vault, machine, heart shelter,
-  the hiding place, a placed light or a wild colony beside you (in reach,
-  1.65 m) pops a small card over it: its picture and name, how it is, and
-  its buttons, the main one green (`src/game/building-card.js`). One out of
+- **A building's card**: tapping one of your buildings, a chamber, vault,
+  machine, heart shelter, the hiding place, a placed light or a wild colony
+  beside you (in reach, 1.65 m) pops a small card over it: its picture and
+  name, how it is, and its buttons, the main one green
+  (`src/game/building-card.js`). Tapping your building also collects what
+  it holds, as before; its card says what it makes and what it helps or
+  what helps it, with **Move**. One out of
   reach: the tap walks you there and the card opens on arrival. It sits
   between the top bar and the thumb buttons, never over them, above the
   building if there's room and below it if not, and scrolls on a small

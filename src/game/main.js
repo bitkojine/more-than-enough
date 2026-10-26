@@ -42,6 +42,7 @@ import { createNews } from './news.js';
 import { createBack } from './back.js';
 import { createProblems, where } from './problems.js';
 import { createBuildingCard } from './building-card.js';
+import { createPlacing } from './placing.js';
 import { fmt, fmtDuration } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE } from '../i18n/i18n.js';
 
@@ -207,6 +208,8 @@ const game = {
     input.release();
     input.releasePerfect();
     sheet.close();
+    placing.cancel();
+    card.close();
     simulation?.invalidate();
     simulationClock?.reset();
     region = shownRegion = null;
@@ -335,7 +338,9 @@ const sheet = createSheet(el, {
     if (tab === 'players') together.listPlayers();
     if (tab === 'news') news.render();
   },
-  actions: { cultivation: (cmd) => cultivate(cmd), buy: controller.buy, place: controller.place, placeProp: controller.placeProp, embark: controller.embark }
+  // Place (a building, or a crystal-world one) closes the sheet and stands
+  // it on the map to be put where you like (placing.js).
+  actions: { cultivation: (cmd) => cmd.type === 'build' ? startPlacing({ kind: cmd.kind }) : cultivate(cmd), buy: controller.buy, place: (key) => startPlacing({ key }), placeProp: controller.placeProp, embark: controller.embark }
 });
 
 // A crystal-world command, from a sheet, a building's card or the lantern
@@ -346,9 +351,22 @@ function cultivate(cmd) {
   game.saveSoon();
   controller.checkGoals();
   hud.update(game.state);
+  return result;
 }
-// A building's own card, over it in the world.
-const card = createBuildingCard({ cam, state: () => game.state, run: cultivate });
+// A building's own card, over it in the world. Its Move starts placing it.
+const card = createBuildingCard({ cam, state: () => game.state, run: (cmd) => {
+  if (cmd.type !== 'move') return cultivate(cmd);
+  const b = card.building();
+  if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);
+} });
+// Placing or moving a building on the map; once it stands, its card opens
+// there, showing what it reaches.
+const placing = createPlacing({ cam, state: () => game.state, controller, cultivate, toast: (text) => hud.toast(text), done: (at) => card.openAt(at.x, at.y) });
+function startPlacing(what, from = null) {
+  sheet.close();
+  card.close();
+  placing.start(what, from);
+}
 // The lantern you crafted: one button above Gather switches it (Watch,
 // 2026-10-25), there once it's made; AUTO never shows in a crystal world.
 const toggleLantern = () => { if (game.state.cultivation?.gear.lantern) cultivate({ type: 'lantern' }); };
@@ -373,10 +391,11 @@ const blocked = () => sheet.isOpen || fork.open || ask.open || fbi.open;
 // steps back a screen or closes.
 function goBack() {
   if (ask.open) ask.cancel();
+  else if (placing.open) placing.cancel();
   else if (card.open) card.close();
   else sheet.back();
 }
-const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open, goBack });
+const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open || placing.open, goBack });
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {
@@ -387,8 +406,17 @@ const input = createInput({
       // world map, which is only for looking).
       const r = signRect;
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
-      else if (!mapView.on() && !card.tap(x, y)) controller.tap(x, y);
+      else if (mapView.on() || placing.tap(x, y)) return;
+      else {
+        const opened = card.tap(x, y);
+        if (opened === 'work') { const w = cam.unproject(x, y); controller.work(Math.floor(w.x), Math.floor(w.y)); }
+        else if (!opened) controller.tap(x, y);
+      }
     },
+    // While placing, a finger on the ghost drags it.
+    grab: (x, y) => !mapView.on() && placing.grab(x, y),
+    grabMove: (x, y) => placing.drag(x, y),
+    grabEnd: () => placing.drop(),
     // Zoomed out to the map, a drag pans it.
     pans: mapView.pans,
     pan: mapView.pan,
@@ -566,7 +594,7 @@ function showCopy() {
 let crystalWarning=0;
 let autoPlaying = false; // AUTO is held and playing (its tag shows over you)
 simulation = createSimulation({ game, controller, autoplay: perfect, input,
-  canAutoplay: () => !blocked(), afterCore: (dt) => {
+  canAutoplay: () => !blocked() && !placing.open, afterCore: (dt) => {
     together.tick(dt);crystalWarning-=dt;
     const c=game.state.cultivation;
     if(c&&crystalWarning<=0){
@@ -606,6 +634,8 @@ function updateView(dt) {
   sheet.tick();
   back.tick();
   card.tick();
+  if (placing.open && blocked()) placing.cancel();   // a sheet or a question came up
+  placing.tick(dt);
   showLantern(s);
 }
 
@@ -626,9 +656,8 @@ function view() {
     yard,
     harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
     auto: autoPlaying && perfect.badge !== 'ui.embark' ? t('button.perfect') : '',
-    showSupports: sheet.isOpen && sheet.tab === 'build',
-    buildTargets: sheet.isOpen && sheet.tab === 'build'
-      ? Core.DEPOSIT_EXTRACTORS.map((k) => Core.buildTarget(s, k)).filter(Boolean) : [],
+    placing: placing.view(),
+    focus: placing.focus() || card.focus(),   // the building whose reach shows
     trail: input.trail,
     trailTargets: trailTargets(input.trail),
     underground,
@@ -822,6 +851,7 @@ window.MTE_GAME = {
   addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
   setAuto(on) { savedView.showAuto = on; showAuto(); },
   openCard: (x, y) => card.openAt(x, y),
+  startPlacing: (what) => startPlacing(what),   // { key } or { kind }, as Place does
   flyers: () => fx.flyers,
   audioState: () => audio.state(),
   audio,

@@ -394,6 +394,29 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       return true;
     },
 
+    // Moves your building `b` (one of your buildings, or a crystal-world
+    // facility) to tile `at` beside you: free (Watch, 2026-10-26).
+    move(b, at) {
+      const s = state();
+      const ok = s.extractors.includes(b) ? Core.moveExtractor(s, b, at.x, at.y).ok : Core.moveFacility(s, b, at.x, at.y) === 'ok';
+      if (!ok) return false;
+      faceTile(at.x, at.y);
+      fx.built(at.x, at.y);
+      performAct('build');
+      audio.build();
+      changed();
+      return true;
+    },
+
+    // Walks to tile (x, y), finding the way round what's in the way.
+    walk(x, y) { walkToward(x, y, false, null, true); },
+    // Works tile (x, y) if it's in reach: collects a building's goods, gathers.
+    work(x, y) {
+      const done = workAt(x, y);
+      if (done === true) gathered(false);
+      return !!done;
+    },
+
     // Embark starts another preserved world, so it asks first.
     async embark() {
       if (!Core.canEmbark(state())) return;

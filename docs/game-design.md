@@ -189,6 +189,16 @@ rendering is independent. The full simulation still has tick-based scheduling,
 so seconds-per-full-world performance is unproven and remains an explicit goal.
 
 
+## Placing and moving buildings — confirmed 2026-10-26
+Watch, on decision cards, learning from Clash of Clans, Stardew, Factorio
+and Islanders: Place closes the Build sheet and the building stands on the
+map as a ghost with a placement card at the bottom; the player picks any
+fitting tile in view (Mica walks there and builds); every building can be
+moved for free from its card, keeping what it holds; what a building reaches
+shows as a soft area with badges on the buildings it helps, only for the one
+in focus, never as lines or dashed boxes. Moving in a shared world comes once
+the room checks moves (open). Layout: docs/ui.md, Placing a building.
+
 ## Visual quality and animation direction
 
 The owner wants the polish of high-quality shipped games while preserving this

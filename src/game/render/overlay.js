@@ -40,39 +40,11 @@ function outlineTile(ctx, cam, s, tx, ty, color) {
   ctx.stroke();
 }
 
-// Target outlines for the tiles in row y (drawn with that row, so blocks in
+// The target outline for the tile in row y (drawn with that row, so blocks in
 // front still cover them).
 export function drawHighlights(ctx, cam, s, view, y) {
   const t = view.harvestTarget;
   if (t && t.y === y) outlineTile(ctx, cam, s, t.x, t.y, 'rgba(200,255,180,0.5)');
-  for (const b of view.buildTargets) if (b.y === y) outlineTile(ctx, cam, s, b.x, b.y, 'rgba(140,220,255,0.6)');
-}
-
-// Dashed physical service links; fog is checked at both ends. Shown while
-// building, including the local placement preview, rather than all the time.
-export function drawSupports(ctx, cam, s, view) {
-  const seen = e => e.z === cam.z && Core.isExplored(s.world, e.x, e.y, e.z);
-  const link = (from, to, preview) => {
-    if (!seen(from) || !seen(to)) return;
-    const a = cam.project(from.x+.5, from.y+.5, from.z), b = cam.project(to.x+.5, to.y+.5, to.z);
-    if (Math.max(a.x,b.x) < 0 || Math.min(a.x,b.x) > cam.width || Math.max(a.y,b.y) < 0 || Math.min(a.y,b.y) > cam.height) return;
-    ctx.strokeStyle = preview ? '#fff0ae' : '#bce8ff';
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-    outlineTile(ctx, cam, s, to.x, to.y, ctx.strokeStyle);
-  };
-  ctx.save(); ctx.lineWidth = 2; ctx.setLineDash([5,4]);
-  for (const e of s.extractors) {
-    if (e.key !== 'quarry' || !seen(e)) continue;
-    const support = Core.supportingBuilding(s,e);
-    if (support && (view.showSupports || Core.tileDist2(s.player,support.x,support.y,support.z)<=36)) link(support,e,false);
-  }
-  const at = view.showSupports && Core.buildTarget(s,'stoneworks');
-  if (at) {
-    const preview = { ...at, key: 'stoneworks', z: s.player.z, owner: s.me || undefined };
-    for (const q of Core.supportTargets(s,preview)) if (!Core.supportingBuilding(s,q)) link(preview,q,true);
-    outlineTile(ctx,cam,s,at.x,at.y,'#fff0ae');
-  }
-  ctx.restore();
 }
 
 // The live Trail: a glowing stroke that turns green (amber underground) once it
@@ -423,26 +395,3 @@ export function drawJoystick(ctx, cam, view) {
   ctx.beginPath(); ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU); ctx.fill();
 }
 
-// Physical collection service: radius and recipients, not fictional cart routes.
-export function drawDepots(ctx,cam,s,view) {
-  if(!Core.usesDepots(s))return;
-  const seen=e=>e.z===cam.z&&Core.isExplored(s.world,e.x,e.y,e.z);
-  const visible=d=>seen(d)&&(view.showSupports||Core.tileDist2(s.player,d.x,d.y,d.z)<=100);
-  const paint=(d,preview)=>{
-    if(!visible(d))return;
-    const p=cam.project(d.x+.5,d.y+.5,d.z),r=Core.EXTRACTORS.depot.depot.radius;
-    ctx.strokeStyle=preview?'#fff0ae':'#d0e7c4';ctx.lineWidth=2;
-    ctx.setLineDash(preview?[3,4]:[8,5]);
-    ctx.beginPath();ctx.ellipse(p.x,p.y,r*cam.tilePx,r*cam.depthPx,0,0,Math.PI*2);ctx.stroke();
-    for(const e of Core.depotTargets(s,d)) {
-      if(!seen(e)||(preview?!!Core.depotFor(s,e):Core.depotFor(s,e)!==d))continue;
-      const q=cam.project(e.x+.5,e.y+.5,e.z);
-      ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.stroke();
-      outlineTile(ctx,cam,s,e.x,e.y,ctx.strokeStyle);
-    }
-  };
-  ctx.save();
-  for(const d of s.extractors)if(d.key==='depot'&&(!d.owner||d.owner===s.me))paint(d,false);
-  if(view.showSupports){const at=Core.buildTarget(s,'depot');if(at)paint({...at,z:s.player.z,owner:s.me||undefined},true);}
-  ctx.restore();
-}

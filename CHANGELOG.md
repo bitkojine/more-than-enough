@@ -1,5 +1,46 @@
 # Changelog
 
+## [0.168.0] - 2026-10-26
+
+Building on the map (Watch: "there's like this whole building move view ...
+But we can never really see all that, because the build menu covers up the
+game view", and "the connections between building look like a mess").
+Every preview was drawn only while the Build sheet was open, under the
+sheet. Watch chose each part on decision cards, learning from Clash of
+Clans, Stardew, Factorio and Islanders.
+
+### Changed
+- Place closes the Build sheet. The building stands on the map as a
+  see-through ghost on the best free tile beside you, every tile in view it
+  fits on lit pale blue; tap one or drag the ghost. A card docked at the
+  bottom says what it would do there, its price, Cancel and Place here; a
+  tile out of reach walks Mica there first. Build, Upgrade and Gather step
+  aside meanwhile, the zoom pill moves up clear of the card, and Back or a
+  sheet ends it (`src/game/placing.js`). Crystal-world buildings too.
+- What a building reaches shows only for the one in focus (placing, moving,
+  or its card up): a pale area with one thin solid edge, and a small badge on
+  each building it helps (×2, a crate, a snowflake, a link). The dashed
+  links, dashed tile boxes, depot rings and conduit lines are gone
+  (`src/game/reach.js`, `src/game/render/reach.js`).
+- Your buildings have a card (tapping one still collects its goods): what it
+  makes, what it helps or what helps it, and Move.
+- Build rows say where a building goes; Place is lit whenever you can pay.
+
+### Added
+- Move, free, keeping what a building holds: `moveExtractor` in
+  `src/core/actions.js`, `moveFacility` and `facilitySite` in
+  `src/core/cultivation.js` (the build command now uses the same site check),
+  `extractorFits` and `inReach`. Not yet in a shared world: the room doesn't
+  replay moves, so that comes in a later release.
+
+### Tests
+- `test/unit/placing.test.js`: fitting tiles, free moves that keep goods and
+  every index, refused moves, a Stoneworks moved out of reach, facility moves
+  and conduit reach. Random play now moves buildings too, and the invariant
+  that no two share a tile also checks the index finds each one.
+- Browser: Place shows the card, Move puts a garden on the tapped tile; the
+  layout check covers the placement card at every size.
+
 ## [0.167.2] - 2026-10-26
 
 The Awards stopped opening (Watch: "can happen that the Awards menu no

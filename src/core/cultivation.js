@@ -102,6 +102,39 @@ export function takeStarter(s,x,y){
 }
 // Crystal rooms are dug in from this layer down; a heart shelter goes anywhere.
 export const DEEP=-2,DEEP_KINDS=['chamber','cooler','vault','conduit'];
+export const BUILT_FACILITIES=Object.freeze(['chamber','cooler','vault','conduit','shelter']);
+export const CONDUIT_REACH=4; // tiles, along the grid, from a conduit to its chamber and vault
+// The chamber and vault a conduit at `at` would join, or null.
+function conduitRoute(s,at,moving=null){
+ const c=s.cultivation,from=c.facilities.find(a=>a!==moving&&a.kind==='chamber'&&nearby(a,at,CONDUIT_REACH)),to=c.facilities.find(a=>a!==moving&&a.kind==='vault'&&nearby(a,at,CONDUIT_REACH));
+ return from&&to?{from,to}:null;
+}
+// Why facility `kind` can't go on tile (x, y) of your layer, or null if it
+// can (reach and price aside). `moving`: one being moved, whose own tile
+// counts as free and whose conduits must still reach it.
+export function facilitySite(s,kind,x,y,moving=null){
+ const c=s.cultivation,z=s.player.z;
+ if(!c||!BUILT_FACILITIES.includes(kind))return 'invalid';
+ if(!isExplored(s.world,x,y,z))return 'unseen';
+ if(z>DEEP&&kind!=='shelter')return 'deep';if(kind==='shelter'&&heartAt(s,x,y,z))return 'occupied';
+ const type=tileAt(s.world,x,y,z),b=cultivationAt(s,x,y,z);
+ if(!TILE_INFO[type].walk||TILE_INFO[type].rise||TILE_INFO[type].descend||(b&&b!==moving)||s.extractors.some(e=>e.x===x&&e.y===y&&e.z===z)||s.world.props.has(packKey(x,y,z)))return 'occupied';
+ const at={x,y,z};
+ if(kind==='conduit'&&!conduitRoute(s,at,moving))return 'route';
+ // A chamber or vault moved out of a conduit's reach would leave it joining nothing.
+ if(moving)for(const d of c.facilities)if(d.kind==='conduit'&&(d.from===moving.id||d.to===moving.id)&&!nearby(d,at,CONDUIT_REACH))return 'route';
+ return null;
+}
+// Moves facility `b` to tile (x, y) of its layer, in reach: free, and all it
+// holds goes with it (Watch, 2026-10-26). A conduit joins what is near it there.
+export function moveFacility(s,b,x,y){
+ const c=s.cultivation;
+ if(!c||s.shared||!c.facilities.includes(b)||!BUILT_FACILITIES.includes(b.kind)||b.z!==s.player.z)return 'invalid';
+ if(Math.hypot(x+.5-s.player.x,y+.5-s.player.y)>1.65)return 'reach';
+ const why=facilitySite(s,b.kind,x,y,b);if(why)return why;
+ if(b.kind==='conduit'){const r=conduitRoute(s,{x,y,z:b.z},b);b.from=r.from.id;b.to=r.to.id;}
+ b.x=x;b.y=y;indexCache.delete(c);return 'ok';
+}
 export function cultivationCommand(s,cmd){
  const c=s.cultivation;if(!c||s.shared)return 'invalid';
  const x=cmd.x??Math.floor(s.player.x),y=cmd.y??Math.floor(s.player.y),z=s.player.z;
@@ -121,15 +154,10 @@ export function cultivationCommand(s,cmd){
   if(!canPay(s,cost))return 'materials';pay(s,cost);c.gear[cmd.kind]=true;return 'ok';
  }
  if(cmd.type==='build'){
-  if(!['chamber','cooler','vault','conduit','shelter'].includes(cmd.kind))return 'invalid';
-  if(z>DEEP&&cmd.kind!=='shelter')return 'deep';if(cmd.kind==='shelter'&&heartAt(s,x,y,z))return 'occupied';const type=tileAt(s.world,x,y,z);
-  if(!TILE_INFO[type].walk||TILE_INFO[type].rise||TILE_INFO[type].descend||b||s.extractors.some(e=>e.x===x&&e.y===y&&e.z===z)||s.world.props.has(packKey(x,y,z)))return 'occupied';
+  const why=facilitySite(s,cmd.kind,x,y);if(why)return why;
   if(!canPay(s,cost))return 'materials';
   const next={kind:cmd.kind,id:c.nextId,x,y,z,temperature:12,closed:true,buffer:0,quality:100};
-  if(cmd.kind==='conduit'){
-   const from=c.facilities.find(a=>a.kind==='chamber'&&nearby(a,next,4)),to=c.facilities.find(a=>a.kind==='vault'&&nearby(a,next,4));
-   if(!from||!to)return 'route';next.from=from.id;next.to=to.id;
-  }
+  if(cmd.kind==='conduit'){const r=conduitRoute(s,next);next.from=r.from.id;next.to=r.to.id;}
   pay(s,cost);c.nextId++;c.facilities.push(next);return 'ok';
  }
  if(!b)return 'building';

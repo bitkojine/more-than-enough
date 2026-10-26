@@ -330,7 +330,8 @@ export function extractorAt(s, x, y, z) {
 // down, nor on a way up. One that works a deposit needs some of it left:
 // nothing grows back, so an emptied deposit is spent for good (Watch,
 // 2026-10-19).
-function buildableTile(s, def, x, y) {
+// `moving`: a building being moved, whose own tile counts as free.
+function buildableTile(s, def, x, y, moving = null) {
   const z = s.player.z;
   const type = tileAt(s.world, x, y, z);
   if(s.cultivation){
@@ -338,7 +339,20 @@ function buildableTile(s, def, x, y) {
     if(cultivationAt(s,x,y,z))return false;
   }
   const fits = s.cultivation&&def===EXTRACTORS.mine?z<0&&type===T.ORE_SEAM&&richness(s.world,x,y,z)>0: s.cultivation&&def.tile===null?!!TILE_INFO[type].walk&&!TILE_INFO[type].rise&&!TILE_INFO[type].descend: def.tile === null ? !!TILE_INFO[type].land : type === def.tile && richness(s.world, x, y, z) > 0;
-  return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
+  const there = extractorAt(s, x, y, z);
+  return fits && (!there || there === moving) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
+}
+
+// Whether building `key` could stand on explored tile (x, y) of your layer,
+// wherever you are (walking there is up to you). `moving`: as above.
+export function extractorFits(s, key, x, y, moving = null) {
+  const def = EXTRACTORS[key];
+  return !!def && isExplored(s.world, x, y, s.player.z) && buildableTile(s, def, x, y, moving);
+}
+
+// Whether tile (x, y) of your layer is close enough to build on or work.
+export function inReach(s, x, y) {
+  return tileDist2(s.player, x, y, s.player.z) <= REACH2;
 }
 
 // Whether `kind` (a building, a prop or a crystal room) can ever be built on
@@ -372,6 +386,21 @@ export function buildTarget(s, key) {
 function canBuildAt(s, key, x, y) {
   const def = EXTRACTORS[key];
   return !!def && tilesInReach(s).some((c) => c.x === x && c.y === y) && buildableTile(s, def, x, y);
+}
+
+// Moves your building `e` to tile (x, y) of its layer, in reach and where it
+// fits: free, and what it holds goes with it (Watch, 2026-10-26). Not yet in
+// a shared world, whose room doesn't know moves.
+export function moveExtractor(s, e, x, y) {
+  if (s.shared || !s.extractors.includes(e) || e.z !== s.player.z || (e.owner && e.owner !== s.me)) return { ok: false, reason: t('reason.cantMove') };
+  if (e.x === x && e.y === y) return { ok: true, x, y };
+  if (!inReach(s, x, y) || !extractorFits(s, e.key, x, y, e)) return { ok: false, reason: t('reason.noSpot') };
+  e.x = x; e.y = y;
+  if (s.cultivation && e.key === 'mine') setRichness(s.world, x, y, e.z, 0);
+  // A new list: every index of the buildings by tile is made again.
+  s.extractors = s.extractors.slice();
+  economyForState(s)?.reconfigure();
+  return { ok: true, x, y };
 }
 
 // Puts up extractor `key` on the nearest free tile, or on `at` ({x, y}) if
