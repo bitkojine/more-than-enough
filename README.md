@@ -196,7 +196,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `packs/default/` — Lanternlight, the game's pictures (`pack.json` + SVG pictures)
 - `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `pictures.js` the game's pictures and the catalog page)
 - `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why; `docs/music.md` — the soundtrack
-- `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
+- `test/unit/` — Node `node:test` suites for the core, the wire format, the room service's rules and its Durable Object's storage (`worker.test.js`, on `test/support/durable.js`)
 - `test/property/` — property tests: random legal play, checked against the
   rules the game must never break (`invariants.js`), 12 seeds per family by
   default and 1,500 in the explicit extended sweep; a failure prints the seed it replays from (`PROP_SEEDS=<seed> npm test`)

@@ -4,6 +4,10 @@ Playing together runs through this: a Cloudflare Worker (`src/worker.js`)
 with one Durable Object per shared world (`Rooms`) and one listing them
 all (`Registry`). A room's rules are plain
 JavaScript in `src/room.js`, tested in Node (`test/unit/together.test.js`).
+The Durable Object itself, which writes every world to storage and reads it
+back, runs for real in Node too (`test/unit/worker.test.js`), on a stand-in
+for Cloudflare's runtime and storage (`test/support/durable.js`) that can
+fail a write and restart the object.
 The wire format and every check on it are in `../src/net/protocol.js`,
 shared with the game.
 

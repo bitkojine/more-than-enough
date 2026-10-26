@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.171.3] - 2026-10-26
+
+The codebase review's P0: the room service's Durable Object
+(`server/src/worker.js`), the only code that writes shared worlds to
+storage and reads them back, had never run in a test.
+
+### Added
+
+- `test/support/durable.js`: enough of Cloudflare's runtime for the real
+  `Rooms` object to run in Node. `cloudflare:workers` resolves to a stub,
+  storage keeps structured copies and commits writes issued together as
+  one (or fails them all, on demand), SQL is `node:sqlite`, and a restart
+  is a new object on the same storage.
+- `test/unit/worker.test.js`: a world played through the object's own
+  socket handler comes back whole after a restart (land, buildings,
+  progress, audit log, and the player lost, not online); a failed write
+  changes nothing and is made with the next one; the most a room can
+  write at once lands whole; a backup restores whole, is all or nothing,
+  and never goes over a live world; a backup with its land in other
+  pieces is written back in every piece; a world nobody played for a year
+  is kept by its alarm; only a moderator's copy is deleted when its time
+  is up. Breaking the retry, the lost-player rule or the keep-every-world
+  rule each fails these tests. `worker.js` line coverage: 0% to 52%; the
+  rest is the HTTP router and admin routes.
+
 ## [0.171.2] - 2026-10-26
 
 From the codebase review (2026-10-26): four small fixes it ranked "fix now".

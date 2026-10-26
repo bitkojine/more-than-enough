@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.171.3": "Shared worlds: the room service's saving and loading of every world is now tested before each release.",
   "news.0.171.2": "Shared worlds: the room holds everyone's play time to the real clock, so nobody can earn faster by sending messages faster.",
   "news.0.171.1": "Fixed: a flare saved just as it burnt out now loads as burnt out, exactly as it was saved.",
   "news.0.171.0": "Ore flares: underground, a FLARE button above Gather makes a flare from 1 metal and lights it in Mica's hand{phone:|laptop: (or press F)}. It lights far around you for two minutes, then burns out and you make another. Underground, light is what uncovers the rock: a flare charts a whole cave as you walk. In a crystal world its light cracks crystal like the lantern's, so press it again to put it out.",
