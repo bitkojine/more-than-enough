@@ -31,6 +31,8 @@ Two open GitHub issues fixed, from Watch's review of the issue list.
   keeps everything, whether the page was hidden first or killed without
   warning, with no drift and nothing refused; acts the room already has
   are not done twice.
+## [0.169.0] - 2026-10-26
+
 Move in shared worlds, the second half of building on the map (v0.168.0
 moved buildings only in solo worlds). The room keeps its own copy of each
 player's progress from what they did, so a move is a new act it replays
