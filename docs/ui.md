@@ -68,7 +68,7 @@ place it belongs here rather than adding a button where there is room.
 - **Beyond** (perks and Embark) stays hidden until the world is mastered, and never shows in a shared world. There are no in-world refunds: Embark is the respec.
 
 ### What's new on Build and Upgrade
-- **NEW** (a small green tag, *NAUJA* in Lithuanian) on BUILD or UPGRADE: something there has become affordable that you couldn't get before. Every new level counts: a building, the next one of a kind, an upgrade's next level; water power and mine lights once you've been on water or underground. Where you stand doesn't matter (Watch, 2026-10-19).
+- **NEW** (a small green tag, *NAUJA* in Lithuanian) on BUILD or UPGRADE: something there has become affordable that you couldn't get before. Every new level counts: a building, the next one of a kind, an upgrade's next level; water power once you've been on water. It counts only what goes on the layer you're on, as Build shows only that (Watch, 2026-10-26); where on the layer you stand doesn't matter (Watch, 2026-10-19).
 - It stays until you open that sheet, where the rows that were new (and their family on the Upgrades map) carry the same tag while the sheet is open. Buying the thing, yourself or by AUTO, clears it too. What's been seen is kept per world on the phone (`src/game/fresh.js`); a world opened for the first time since this shipped starts with what it can afford as seen.
 - The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
 
@@ -77,7 +77,7 @@ place it belongs here rather than adding a button where there is room.
 
 ### The lantern's charge
 - The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
-- The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section, above *In the mine*, saying where they go while you aren't there.
+- The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
 
 ### The sun clock
 - The Settings gear wears the day as a ring (Watch, 2026-10-26): noon at the top, gold for the part of the day the sun works, blue for the rest, and the sun (in the gold) or the moon (in the blue) riding it clockwise where the day is now. In older and shared worlds the gold is when a solar panel charges (and the lantern doesn't drain); in a crystal world it's the sun that cracks crystal and the heart in the open, which lasts longer. It shows always, on the surface and underground. The gear stays the same size and still opens Settings.
@@ -156,6 +156,14 @@ generic later-tier artwork remain to be replaced in subsequent slices.
 - Historical release-note translations load when What’s new opens; current
   notes remain in the startup dictionaries. The archive uses the same
   versioned asset URLs as the rest of the deploy.
+
+### What Build offers
+Build lists only what can stand on the layer you're on (`buildsOnLayer` in
+`src/core/actions.js`; Watch, 2026-10-26), and a section with nothing in it
+has no heading. In older worlds every building and water power are surface
+things and mine lights underground ones. In a crystal world the garden and
+quarry are on the surface, the mine below it, crystal rooms from layer 2 down,
+and the stoneworks, depot and heart shelter anywhere.
 
 ### Physical collection
 Build lists Collection Depot under support buildings, with its material recipe

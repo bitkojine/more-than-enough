@@ -100,6 +100,8 @@ export function takeStarter(s,x,y){
  const w=wildColony(s,x,y);if(!w)return 'site';if(c.starter)return 'carrying';if(w.regrow||w.health<=0)return 'regrow';
  c.starter={health:100};w.health=0;w.regrow=45;exposeCargo(s);return 'ok';
 }
+// Crystal rooms are dug in from this layer down; a heart shelter goes anywhere.
+export const DEEP=-2,DEEP_KINDS=['chamber','cooler','vault','conduit'];
 export function cultivationCommand(s,cmd){
  const c=s.cultivation;if(!c||s.shared)return 'invalid';
  const x=cmd.x??Math.floor(s.player.x),y=cmd.y??Math.floor(s.player.y),z=s.player.z;
@@ -120,7 +122,7 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='build'){
   if(!['chamber','cooler','vault','conduit','shelter'].includes(cmd.kind))return 'invalid';
-  if(z> -2&&cmd.kind!=='shelter')return 'deep';if(cmd.kind==='shelter'&&heartAt(s,x,y,z))return 'occupied';const type=tileAt(s.world,x,y,z);
+  if(z>DEEP&&cmd.kind!=='shelter')return 'deep';if(cmd.kind==='shelter'&&heartAt(s,x,y,z))return 'occupied';const type=tileAt(s.world,x,y,z);
   if(!TILE_INFO[type].walk||TILE_INFO[type].rise||TILE_INFO[type].descend||b||s.extractors.some(e=>e.x===x&&e.y===y&&e.z===z)||s.world.props.has(packKey(x,y,z)))return 'occupied';
   if(!canPay(s,cost))return 'materials';
   const next={kind:cmd.kind,id:c.nextId,x,y,z,temperature:12,closed:true,buffer:0,quality:100};

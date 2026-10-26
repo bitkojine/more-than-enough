@@ -21,18 +21,18 @@ function level(s, sheet, id) {
   return Object.hasOwn(Core.PROPS, id) ? 0 : Core.extractorCount(s, id);
 }
 
-// Everything Build and Upgrade let you have right now: [sheet, id]. Where
-// you stand doesn't matter (that's for the sheet to say); props count once
-// you've been where they go.
+// Everything Build and Upgrade let you have right now: [sheet, id]. Build
+// counts only what goes on the layer you're on, as the sheet shows only
+// that; elsewhere on the layer is for the sheet to say.
 export function offers(s) {
   const out = [];
   for (const k of [...Core.DEPOSIT_EXTRACTORS, ...Core.CONVERTERS]) {
     const def = Core.EXTRACTORS[k];
-    if ((!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k))) out.push(['build', k]);
+    if (Core.buildsOnLayer(s, k) && (!def.unlock || s.unlocks[def.unlock]) && Core.canAfford(s.inv, Core.extractorCost(s, k))) out.push(['build', k]);
   }
   for (const [k, def] of Object.entries(Core.PROPS)) {
-    const been = def.on === 'tunnel' ? s.underground.deepest < Core.SURFACE : s.tools.boots >= Core.GEAR.water;
-    if (been && Core.canAfford(s.inv, def.cost)) out.push(['build', k]);
+    const been = def.on === 'tunnel' || s.tools.boots >= Core.GEAR.water;
+    if (Core.buildsOnLayer(s, k) && been && Core.canAfford(s.inv, def.cost)) out.push(['build', k]);
   }
   for (const f of Core.PATH_FAMILIES) {
     if (f.layer === 'world') for (const id of f.nodes) if (Core.canBuy(s, id)) out.push(['upgrades', id]);

@@ -68,13 +68,13 @@ test('what was seen is kept per world, and an unrecorded world starts with today
   assert.deepEqual(createFresh({ store }).check(other), none, 'a reload remembers it was seen');
 });
 
-test('upgrades count too, and props only once you have been where they go', () => {
+test('upgrades count too, and props only on the layer they go on', () => {
   const s = C.createState(12345);
   const fresh = createFresh({ store: memoryStore() });
   fresh.check(s);
   s.inv.mycelium = 5;
   assert.ok(!offers(s).some(([, id]) => id === 'glowcap'), 'mine lights wait for the mine');
-  s.underground.deepest = C.SURFACE - 1;
+  s.underground.deepest = s.player.z = C.SURFACE - 1;
   assert.ok(offers(s).some(([, id]) => id === 'glowcap'));
   const up = C.PATH_FAMILIES.find((f) => f.id === 'tools').nodes[0];
   Object.assign(s.inv, C.upgradeCost(s, up));

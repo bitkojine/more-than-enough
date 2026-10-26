@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.167.0] - 2026-10-26
+
+Build offers only what can be built where you are (Watch: "if some stuff
+can only be built underground, don't offer to build them in the surface").
+The sheet listed every building on every layer, so underground it was full
+of surface buildings that could never fit, and crystal rooms showed on the
+surface with a Place button that only failed.
+
+### Changed
+- `buildsOnLayer` (src/core/actions.js) says whether a building, prop or
+  crystal room can ever stand on a layer, from the same rules placing uses:
+  deposits and open land are surface things, mine lights and a crystal
+  world's mine go below, crystal rooms from layer 2 down (`DEEP`), and the
+  stoneworks, depot and heart shelter anywhere.
+- Build lists only those, and drops the heading of a section left empty.
+  The NEW tag on Build counts only them too, so it never points at a row
+  the sheet won't show.
+
 ## [0.166.1] - 2026-10-26
 
 Craft buttons never look ready without the resources (Watch: "craft

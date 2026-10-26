@@ -1,14 +1,14 @@
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
-import {takeStarter,cultivationAt} from './cultivation.js';
+import {takeStarter,cultivationAt,DEEP,DEEP_KINDS} from './cultivation.js';
 import { usesDepots, depotGain } from './logistics.js';
 import { startEventEconomy } from './sim.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp, isExplored } from './world.js';
-import { EXTRACTORS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
+import { EXTRACTORS, PROPS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { noteAct } from './acts.js';
@@ -339,6 +339,22 @@ function buildableTile(s, def, x, y) {
   }
   const fits = s.cultivation&&def===EXTRACTORS.mine?z<0&&type===T.ORE_SEAM&&richness(s.world,x,y,z)>0: s.cultivation&&def.tile===null?!!TILE_INFO[type].walk&&!TILE_INFO[type].rise&&!TILE_INFO[type].descend: def.tile === null ? !!TILE_INFO[type].land : type === def.tile && richness(s.world, x, y, z) > 0;
   return fits && !extractorAt(s, x, y, z) && !holeBelow(s.world, x, y, z) && !wayUp(s.world, x, y, z);
+}
+
+// Whether `kind` (a building, a prop or a crystal room) can ever be built on
+// layer z, so Build offers only what fits where you are (Watch, 2026-10-26).
+// Deposits and open land are on the surface; a crystal world's mine works
+// ore seams below it, and its stoneworks, depot and shelter stand anywhere.
+export function buildsOnLayer(s, kind, z = s.player.z) {
+  const under = z < SURFACE;
+  if (Object.hasOwn(PROPS, kind)) return (PROPS[kind].on === 'tunnel') === under;
+  if (s.cultivation) {
+    if (DEEP_KINDS.includes(kind)) return z <= DEEP;
+    if (kind === 'shelter') return true;
+    if (kind === 'mine') return under;
+    return Object.hasOwn(EXTRACTORS, kind) && (EXTRACTORS[kind].tile === null || !under);
+  }
+  return Object.hasOwn(EXTRACTORS, kind) && !under;
 }
 
 // The nearest free tile in reach where extractor `key` could stand.

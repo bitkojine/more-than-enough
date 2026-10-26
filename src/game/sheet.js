@@ -145,9 +145,11 @@ export function cultivationUpgradeRows(s) {
 
 // Build in a crystal world places things; what a building beside you does
 // is on its own card, tapped in the world (building-card.js).
+// Only what goes on your layer: crystal rooms from layer 2 down (Core.DEEP),
+// a heart shelter anywhere.
 export function cultivationBuildRows(s) {
-  return `<div class="section">${crystalName('deep')}</div>` +
-    ['chamber', 'cooler', 'vault', 'conduit', 'shelter'].map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place')))).join('');
+  return (s.player.z <= Core.DEEP ? `<div class="section">${crystalName('deep')}</div>` : '') +
+    ['chamber', 'cooler', 'vault', 'conduit', 'shelter'].filter((k) => Core.buildsOnLayer(s, k)).map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place')))).join('');
 }
 
 // The pictures the sheet draws with (createSheet sets it; tests too).
@@ -235,13 +237,16 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderBuild(s) {
-    if(s.cultivation)return ['garden','quarry','mine','stoneworks','depot'].map(k=>extractorRow(s,k)).join('')+cultivationBuildRows(s);
-
-    return `<div class="section">${t('sheet.section.extractors')}</div>` + Core.DEPOSIT_EXTRACTORS.map((k) => extractorRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.converters')}</div>` + Core.CONVERTERS.map((k) => extractorRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.support')}</div>` + Core.SUPPORT_BUILDINGS.map((k) => extractorRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.water')}</div>` + propsOn(true).map((k) => propRow(s, k)).join('') +
-      `<div class="section">${t('sheet.section.mine')}</div>` + propsOn(false).map((k) => propRow(s, k)).join('');
+    // Only what can stand on the layer you're on: nothing you'd have to go
+    // up or down for, and no heading over an empty section.
+    const here = (keys) => keys.filter((k) => Core.buildsOnLayer(s, k));
+    if(s.cultivation)return here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('')+cultivationBuildRows(s);
+    const section = (title, rows) => rows ? `<div class="section">${t(title)}</div>` + rows : '';
+    return section('sheet.section.extractors', here(Core.DEPOSIT_EXTRACTORS).map((k) => extractorRow(s, k)).join('')) +
+      section('sheet.section.converters', here(Core.CONVERTERS).map((k) => extractorRow(s, k)).join('')) +
+      section('sheet.section.support', here(Core.SUPPORT_BUILDINGS).map((k) => extractorRow(s, k)).join('')) +
+      section('sheet.section.water', here(propsOn(true)).map((k) => propRow(s, k)).join('')) +
+      section('sheet.section.mine', here(propsOn(false)).map((k) => propRow(s, k)).join(''));
   }
 
   function renderBeyond(s) {
