@@ -1,5 +1,6 @@
 /* The shared worlds this phone has been in: which ones, what they're called,
- * and the Worlds screen (Settings) that switches between them and your own.
+ * and the Worlds screen (Settings) that switches between them and your own
+ * worlds.
  *
  * A world's name is made from its id (two words, like "Fern Valley"), the
  * same on every phone and in the player's language. Nobody types it, so no
@@ -11,7 +12,6 @@ import { worldWords } from '../net/naming.js';
 import { t } from '../i18n/i18n.js';
 
 const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
-const KEPT = 12;                      // worlds remembered at most
 // What this phone keeps for each of those worlds (together.js), dropped
 // with the world when it leaves the list.
 export const SAVE_PREFIX = 'mte.room.'; // your progress there (a copy)
@@ -62,7 +62,8 @@ export function knownRooms() {
 
 // Just played in: first on the list.
 export function remember(room) {
-  write(ROOMS_STORE, JSON.stringify([room, ...knownRooms().filter((r) => r !== room)].slice(0, KEPT)));
+  // Never a cap: a world that fell off the list couldn't be gone back to.
+  write(ROOMS_STORE, JSON.stringify([room, ...knownRooms().filter((r) => r !== room)]));
   tidy();
 }
 
@@ -89,15 +90,25 @@ export async function onlineIn(service, id) {
   } catch { return null; }
 }
 
+// A solo world's name, from its seed, in the same style as a shared one's.
+export function soloName(seed) {
+  const { thing, place } = worldWords('solo.' + seed);
+  return t('world.name', { thing: t(thing), place: t(place) });
+}
+
 /* --------------------------------------------------- the Worlds screen */
 
-// Your own world first, then every shared world, newest first: its name,
-// how many are playing there now, and Play (or "You're here").
-// `here`: the world you're in (null alone); `online(id)`: a promise of how
+// Every world of your own on this phone (none is ever lost; the last
+// played first), then every shared world, newest first: its name, a line
+// about it, and Play (or "You're here").
+// `here`: the shared world you're in (null alone); `seed`: the solo world
+// you're in (null in a shared one); `solo`: [{ seed, state }];
+// `rooms`: whether to list shared worlds; `online(id)`: a promise of how
 // many play there now, or null if the room service didn't say;
-// `play(id)` (null: your own); `remove(id)`.
-export function renderWorlds(box, { here, online, play, remove }) {
-  const row = (name, sub, isHere, id) => {
+// `play(id)`; `playSolo(seed)`; `remove(id)`; `played(seconds)`: the time
+// in words; `done(state)`: whether that world is complete.
+export function renderWorlds(box, { here, seed, solo, rooms, online, play, playSolo, remove, played, done }) {
+  const row = (name, sub, isHere, onPlay, onRemove) => {
     const r = document.createElement('div');
     r.className = 'world' + (isHere ? ' here' : '');
     const text = document.createElement('div');
@@ -112,22 +123,30 @@ export function renderWorlds(box, { here, online, play, remove }) {
       tag.textContent = t('worlds.here');
       r.append(tag);
     } else {
-      r.append(button(t('worlds.play'), '', () => play(id)));
-      if (id) r.append(button(t('worlds.remove'), 'stop', () => remove(id)));
+      r.append(button(t('worlds.play'), '', onPlay));
+      if (onRemove) r.append(button(t('worlds.remove'), 'stop', onRemove));
     }
     return { r, small };
   };
-  const own = row(t('worlds.own'), t('worlds.alone'), !here, null);
-  const rows = knownRooms().map((id) => {
+  const own = solo.map((w) => row(soloName(w.seed), soloLine(w.state, played, done), w.seed === seed, () => playSolo(w.seed)).r);
+  const shared = rooms ? knownRooms() : [];
+  const rows = shared.map((id) => {
     const whose = t('worlds.friends');
-    const x = row(worldName(id), whose, id === here, id);
+    const x = row(worldName(id), whose, id === here, () => play(id), () => remove(id));
     online(id).then((n) => { if (n !== null && x.r.isConnected) x.small.textContent = whose + ' · ' + t('worlds.online', { count: n }); });
     return x.r;
   });
   const hint = document.createElement('p');
   hint.className = 'empty';
-  hint.textContent = t(rows.length ? 'worlds.hint' : 'worlds.none');
-  box.replaceChildren(own.r, ...rows, hint);
+  hint.textContent = t('worlds.kept');
+  box.replaceChildren(...own, ...rows, hint);
+}
+
+// "Just you · 2 h 5 min played", and "Complete" once it's done.
+function soloLine(s, played, done) {
+  const parts = [t('worlds.alone'), t('worlds.played', { time: played(s.stats.playedMs / 1000) })];
+  if (done(s)) parts.push(t('worlds.complete'));
+  return parts.join(' · ');
 }
 
 function button(label, cls, onClick) {

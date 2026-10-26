@@ -71,16 +71,15 @@ test('storage: a save set aside that this version can read is taken back (an old
 const roomId = (n) => ('room' + n).padEnd(22, 'x');
 const copies = (id) => [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX].map((p) => p + id);
 
-test('worlds: what is kept for a shared world goes with it when it leaves the list', () => {
+test('worlds: the list has no cap, and what is kept for a shared world goes only when it is removed', () => {
   store.set(SAVE, 'the solo save');
   for (let n = 0; n < 12; n++) {
     remember(roomId(n), false);
     for (const k of copies(roomId(n))) store.set(k, 'kept');
   }
-  remember(roomId(12), false); // a 13th: the oldest falls off
-  assert.equal(knownRooms().includes(roomId(0)), false);
-  for (const k of copies(roomId(0))) assert.equal(store.has(k), false, k + ' dropped with its world');
-  for (const k of copies(roomId(1))) assert.equal(store.has(k), true, k + ' kept: still on the list');
+  remember(roomId(12), false); // a 13th: no cap, the oldest stays (no world is ever lost)
+  assert.equal(knownRooms().length, 13);
+  for (const k of copies(roomId(0))) assert.equal(store.has(k), true, k + ' kept: still on the list');
   forget(roomId(5));
   for (const k of copies(roomId(5))) assert.equal(store.has(k), false, k + ' dropped when the world is forgotten');
   assert.equal(store.get(SAVE), 'the solo save', 'nothing else is touched');

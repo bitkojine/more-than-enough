@@ -607,7 +607,7 @@ test('client: every world has a two-word name, the same each time, and the join 
 
 test('client: a link to a world you are in already takes you there without asking, and you can switch back', async () => {
   const a = await makeRoom(), b = await makeRoom();
-  const { together, asked, toasts } = harness();
+  const { together, asked, toasts, game } = harness();
   // Into a, then b, through their links: one question each, each named.
   for (const w of [a, b]) {
     location.hash = '#join=' + w.id + '.' + w.code;
@@ -616,7 +616,7 @@ test('client: a link to a world you are in already takes you there without askin
     await serve(w.r, open()[0]);
   }
   assert.equal(asked.length, 2);
-  const { worldName } = await import('../../src/game/worlds.js');
+  const { worldName, soloName } = await import('../../src/game/worlds.js');
   assert.ok(toasts.includes("You're in " + worldName(b.id)));
   assert.equal(together.worldName, worldName(b.id));
   // a's old link again: straight back to a, no question.
@@ -637,7 +637,7 @@ test('client: a link to a world you are in already takes you there without askin
   // Back to your own world from the list.
   together.switchTo(null);
   assert.equal(together.active, false);
-  assert.equal(together.worldName, 'Your own world');
+  assert.equal(together.worldName, soloName(game.state.seed), 'your own world, by its name');
 });
 
 test('client: what the room says your buildings made while away lands in your packs, once, and is said', async () => {

@@ -72,6 +72,12 @@ kind of knowledge lives.
   expires); cleaning up is done by hand. Don't build states that lose data.
 - Nobody cheats in a shared world, world owners included. The room's own copy
   of each player's progress is the truth (`server/src/shadow.js`).
+- **No world is ever lost** (Watch, 2026-10-26): players grow attached to the
+  worlds they play in, so the time they put into making one theirs is saved
+  and protected. Embark and starting a new world never lose or destroy
+  anything: the world left behind stays saved exactly as it was, and the
+  player can always go back to it (Settings → Worlds lists every world on
+  the device). Never add a cap, clean-up or path that drops a solo world.
 - **Time away makes nothing** (Watch, 2026-10-21, "freeze season"): a game
   that isn't the active screen is time away, and time away is worth nothing,
   in solo and shared worlds alike. It lives in one place, `FREEZE_AWAY` in

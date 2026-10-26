@@ -31,7 +31,7 @@ import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
-import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloArchives, newSoloWorld } from './storage.js';
+import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld } from './storage.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createBackup } from './backup.js';
@@ -197,6 +197,14 @@ const game = {
     game.saveNow();
     return !saveError && !fork.open;
   },
+  // Back into one of your own worlds (Settings → Worlds): out of a shared
+  // world first, and the world you leave is kept first, or you stay.
+  playSolo(seed) {
+    if (game.state.shared) together.switchTo(null);
+    if (game.state.shared || game.state.seed === seed || !game.keep()) return;
+    const next = soloWorld(seed);
+    if (next) game.replace(next);
+  },
   // Swaps in a different world (embark, a shared world).
   replace(next) {
     problems.crumb('world replaced'); // i18n-ok: a report for developers, in English
@@ -242,7 +250,7 @@ const game = {
     showAuto();
     el.invitesBtn.hidden = !shared;
     el.playersBtn.hidden = !shared;
-    el.worldsBtn.hidden = !together.available;
+    el.worldsBtn.hidden = !shared && !together.available && soloCount() < 2;
     el.worldNow.textContent = together.worldName;
     backup.changedMode();
     together.refresh();
@@ -851,17 +859,13 @@ if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
 showAuto();
 requestAnimationFrame(frame);
 
-// Normal solo-world creation and archives, using the existing Settings panel.
+// A fresh world of your own, on Nerds; the one you leave stays on Worlds.
 const soloControls=document.createElement('div');soloControls.className='setGroup';
-const refreshSoloControls=()=>{
-  soloControls.innerHTML=`<button id="newSoloWorld" class="setRow">${t('cr.newWorld')}</button>`+soloArchives().map(w=>`<button class="setRow" data-solo-seed="${w.seed}">${t('cr.saved',{seed:w.seed})}</button>`).join('');
-};
-document.getElementById('nerdsPanel').append(soloControls);refreshSoloControls();
+soloControls.innerHTML=`<button id="newSoloWorld" class="setRow">${t('cr.newWorld')}</button>`;
+document.getElementById('nerdsPanel').append(soloControls);
 soloControls.addEventListener('click',e=>{
- const btn=e.target.closest('button');if(!btn||game.state.shared)return;
- if(!game.keep())return;
- const next=btn.id==='newSoloWorld'?newSoloWorld():Core.deserialize(soloArchives().find(w=>w.seed===Number(btn.dataset.soloSeed))?.raw);
- if(next){game.replace(next);refreshSoloControls();}
+ if(!e.target.closest('button')||game.state.shared||!game.keep())return;
+ game.replace(newSoloWorld());
 });
 
 createTooltips({canvas:el.canvas,cam,state:()=>game.state,world:()=>wiki.mode==='off'});

@@ -632,6 +632,15 @@ async function main() {
     ok(await evalJS('Object.values(MTE_GAME.getState().tools).every(n=>n===0)&&Object.values(MTE_GAME.getState().inv).every(n=>n===0)'),'next world starts empty-handed');
     ok(await evalJS('!!MTE_GAME.getState().cultivation&&!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'next world keeps new rules and earns its own victory');
     ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.core.deserialize(localStorage.getItem("mte.solo.world.'+run.seed+'")))'),'completed world remains in its archive');
+    // No world is ever lost: the one left is on Worlds, and Play goes back to it as it was.
+    await evalJS('document.getElementById("btnSettings").click()');await sleep(200);
+    ok(await evalJS('!document.getElementById("btnWorlds").hidden'),'Settings offers Worlds once there are two worlds');
+    await evalJS('document.getElementById("btnWorlds").click()');await sleep(200);
+    eq(await evalJS('document.querySelectorAll("#worldsPanel .world").length'),2,'Worlds lists the new world and the one left');
+    await shot('worlds-after-embark-lt.png');
+    await evalJS('document.querySelector("#worldsPanel .world:not(.here) button").click()');
+    ok(await waitFor('MTE_GAME.getState().seed==='+run.seed),'Play goes back to the world left by Embark');
+    ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'the world comes back as it was left, complete');
     eq(pageErrors.length,0,'no browser runtime errors');
     console.log((failures?'CULTIVATION WIN FAILURES':'CULTIVATION WIN PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }

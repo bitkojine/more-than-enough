@@ -18,9 +18,10 @@ import { roomService } from '../net/config.js';
 import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrcode } from '../vendor/qrcode.js';
-import { knownRooms, remember, forget, skip, worldName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
+import { knownRooms, remember, forget, skip, worldName, soloName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
-import { loadGame } from './storage.js';
+import { loadGame, soloWorlds } from './storage.js';
+import { fmtDuration } from './format.js';
 import { createActor } from './render/motion.js';
 import { createOutbox, keptActsFrom, catchUp, resync as resyncState } from './outbox.js';
 import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
@@ -1050,7 +1051,14 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
   function listWorlds() {
     renderWorlds(el.worldsPanel, {
       here: game.state.shared || null,
+      seed: game.state.shared ? null : game.state.seed,
+      solo: soloWorlds(),
+      // Shared worlds can't be reached from a crystal world (yet).
+      rooms: !!game.state.shared || (!!service && !Core.usesDepots(game.state)),
       online: (id) => onlineIn(service, id),
+      playSolo: (seed) => { closeSheet(); game.playSolo(seed); },
+      played: fmtDuration,
+      done: Core.canEmbark,
       play: (id) => { closeSheet(); switchTo(id); },
       remove: async (id) => {
         const world = worldName(id);
@@ -1066,7 +1074,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     get available() { return !!service && !Core.usesDepots(game.state); },
     get active() { return !!game.state.shared; },
     // The world you're in, by name, for Settings.
-    get worldName() { return game.state.shared ? worldName(game.state.shared) : t('worlds.own'); },
+    get worldName() { return game.state.shared ? worldName(game.state.shared) : soloName(game.state.seed); },
     get color() { return myColor; },
     get me() { return game.state.shared && me ? { name: nameOf(me), color: friendColor(myColor) } : null; },
     get sign() { return signT; },

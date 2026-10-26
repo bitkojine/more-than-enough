@@ -160,8 +160,47 @@ export function saveView(view) {
   write(VIEW_KEY, JSON.stringify(view));
 }
 
-// Retained solo worlds share one normal client; these are archives, not modes.
-export function soloArchives(){
- try{return Object.keys(localStorage).filter(k=>k.startsWith('mte.solo.world.')||k.startsWith('mte.depot-v1.world.')||k==='mte.depot-v1.save').flatMap(k=>{const raw=read(k);try{const d=JSON.parse(raw);return Number.isInteger(d.seed)?[{seed:d.seed,raw}]:[];}catch{return [];}});}catch{return [];}
+// Every solo world kept on this device, one per seed, the one in play
+// included: none is ever dropped (AGENTS.md, "No world is ever lost"). Its
+// own copy wins over older depot keys from before v0.141 (still read, never
+// written). `state` is null for a copy this version can't read.
+function soloRaws() {
+  const bySeed = new Map();
+  const take = (raw) => {
+    try { const seed = JSON.parse(raw)?.seed; if (Number.isInteger(seed) && !bySeed.has(seed)) bySeed.set(seed, raw); } catch { /* not a save */ }
+  };
+  let keys = [];
+  try { keys = Object.keys(localStorage); } catch { /* storage blocked */ }
+  const save = read(SAVE_KEY);
+  if (save) take(save);
+  for (const prefix of [ARCHIVE_PREFIX, 'mte.depot-v1.world.']) for (const k of keys) if (k.startsWith(prefix)) take(read(k));
+  if (keys.includes('mte.depot-v1.save')) take(read('mte.depot-v1.save'));
+  return bySeed;
 }
+
+// The solo worlds to list, last played first: { seed, state }.
+export function soloWorlds() {
+  return [...soloRaws()].map(([seed, raw]) => ({ seed, state: deserialize(raw) }))
+    .filter((w) => w.state && !w.state.shared)
+    .sort((a, b) => (b.state.seen || 0) - (a.state.seen || 0));
+}
+
+// How many solo worlds there are, without reading each one.
+export function soloCount() {
+  try {
+    const seeds = new Set();
+    for (const k of Object.keys(localStorage)) {
+      const m = /^(?:mte\.solo\.world\.|mte\.depot-v1\.world\.)(\d+)$/.exec(k);
+      if (m) seeds.add(m[1]);
+    }
+    return Math.max(seeds.size, read(SAVE_KEY) ? 1 : 0);
+  } catch { return 0; }
+}
+
+// One solo world by seed, read fresh, or null.
+export function soloWorld(seed) {
+  const raw = soloRaws().get(seed);
+  return raw ? deserialize(raw) : null;
+}
+
 export function newSoloWorld(){return freshWorld();}

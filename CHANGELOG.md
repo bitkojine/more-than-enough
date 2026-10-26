@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.172.0] - 2026-10-26
+
+No world is ever lost (Watch's rule): players grow attached to the worlds
+they play in, so Embark never loses anything and every world you leave can
+be gone back to.
+
+### Changed
+
+- Settings → Worlds lists every solo world on the device, last played
+  first, each with a two-word name from its seed (like shared worlds), how
+  long it's been played and whether it's complete, and Play. Before, the
+  worlds Embark left were kept (`mte.solo.world.<seed>`) but the only way
+  back was a "Saved · seed N" row on Nerds, and the Worlds row didn't show
+  at all in a crystal world.
+- The Worlds row shows in any solo world once there is more than one world
+  to pick from. Playing your own world from a shared one leaves the shared
+  world first; the world you leave is always kept first, or you stay.
+- Nerds keeps only *Start a fresh world*; its seed rows went to Worlds.
+- The shared-world list has no cap any more: the 13th world you joined
+  used to push the oldest off the list, with no way back without a link.
+- The Embark question says where to find the world again.
+- AGENTS.md and docs/game-design.md state the rule; docs/ui.md describes
+  the screen.
+
 ## [0.171.4] - 2026-10-26
 
 From the codebase review: the two biggest files split along their seams,
