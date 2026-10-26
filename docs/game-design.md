@@ -293,7 +293,7 @@ local ground plane. Animation never changes gameplay timing or simulation state.
 
 A lazy Three.js module renders onto one reusable WebGL surface, composited at
 the character's normal depth in the 2D world. WebGL failure/context loss uses
-static facing art; custom texture packs retain their compatibility path. The
+static facing art. The
 module does not enter headless simulations. Keep the initial-load budget, a
 separate 180 KB compressed 3D-module budget, bounded geometry/draw calls, and
 real-client review at native/close scales and across the full motion loop.
@@ -307,7 +307,7 @@ New gear and poses must pass it; place stowed gear from the coat's shape
 rather than by eye, so it neither clips nor floats.
 
 The former 216-clip sprite production matrix is retired, not a remaining
-release requirement. Its sources and texture-pack compatibility tools remain
+release requirement. Its sources remain
 available as historical art, not as an active character-production strategy.
 
 The 0.139.1 face follows the original turnaround: an arched dark opening,
@@ -330,7 +330,7 @@ The renderer caches each earned tier, attaching its local grip at the right
 palm. Walking carries the tool; swing/build actions use the existing
 anticipation/contact/recovery arm curves. Picking, collecting, climbing,
 landing, cheering and steady sign/boat poses stow it behind the torso.
-Tier zero has no model. Legacy earned levels and custom texture packs retain
+Tier zero has no model. Legacy earned levels retain
 their compatibility behavior; recipes, yields, unlocks and saves are unchanged.
 Early tiers use stone and mineral/fibre construction; later tiers add metal
 sockets, bracing and ferrules. No timber or crystal components are introduced.
@@ -525,7 +525,7 @@ separate future art work; this pass does not claim complete equipment coverage.
 Hover inspection over Mica uses his localized catalog name and a short character
 description. The full backstory remains a provisional development brief; no
 new narrative quests, dialogue or machine ending have been added. The existing
-compatibility sprites remain for custom packs, legacy friends and WebGL fallback.
+compatibility sprites remain for legacy friends and WebGL fallback.
 Review personality at real world scale as well as in enlargements.
 
 
@@ -544,7 +544,7 @@ hulls are removed; the deliberate inner face opening remains. A single cached
 multisampled render target and contour pass preserve the flat palette. This
 changes presentation only; it adds no collision area, time, inventory or actions.
 Rendered-edge checks cover headings, gait, work and cargo and reproduce the
-previous missing-outline failure. Custom packs retain their authored artwork.
+previous missing-outline failure.
 
 No wireframes anywhere (Watch, 2026-10-24: "outlines around the whole
 object? sure. but the goal is to make the 3D models feel and look more 2D").

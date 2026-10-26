@@ -39,15 +39,6 @@ export default {
   "wiki.idea.seasons.title": "Seasons",
   "wiki.idea.seasons.pitch": "Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge swimming, but even purely visual it gives long sessions a sense of time.",
   "wiki.idea.seasons.builds": "The day/night clock.",
-  "wiki.idea.packGallery.title": "Pack gallery",
-  "wiki.idea.packGallery.pitch": "A page in the wiki where players share texture packs with a preview of each, and the game can load one straight from a link. Packs become something people trade, like mods.",
-  "wiki.idea.packGallery.builds": "Texture packs, the pack format and the one-file download.",
-  "wiki.idea.soundPacks.title": "Sound packs",
-  "wiki.idea.soundPacks.pitch": "The same split for sound: the game defines every cue (each material's gather, collect, build, the fanfare, the soundtrack's instruments), and a pack supplies the samples. A pixel-art pack could ship with chiptune bleeps.",
-  "wiki.idea.soundPacks.builds": "The catalog and the audio cues.",
-  "wiki.idea.packsThatChangeWithDepth.title": "Packs that change with depth",
-  "wiki.idea.packsThatChangeWithDepth.pitch": "Let a pack give a thing a different picture per layer band, so stone looks warmer near the surface and colder deep down, without the game learning anything new.",
-  "wiki.idea.packsThatChangeWithDepth.builds": "Texture pack variants and the geology bands.",
   "wiki.idea.distantPlateaus.title": "Distant plateaus",
   "wiki.idea.distantPlateaus.pitch": "Far out in the dark, other islands of land hang at different heights, dimly lit, hinting at biomes you haven't reached. Walking toward one eventually joins it to your plateau.",
   "wiki.idea.distantPlateaus.builds": "Clouds over unexplored land and endless terrain.",
@@ -127,11 +118,8 @@ export default {
   "wiki.search.none": "Not mentioned anywhere in the wiki.",
   "wiki.search.mentions": { one: "{count} mention in {articles}.", other: "{count} mentions in {articles}." },
   "wiki.search.articles": { one: "{count} article", other: "{count} articles" },
-  "wiki.packFailed": "The default texture pack didn't load ({status})",
+  "wiki.packFailed": "The game's pictures didn't load ({status})",
   "wiki.thingCount": { one: "{count} things in {groups} groups.", other: "{count} things in {groups} groups." },
-  "wiki.slots": "Slots: {slots}",
-  "wiki.packCopy": "{name} (copy)",
-  "wiki.packBuildFailed": "Couldn't build the file: {error}",
   "wiki.title": "Mica and Wiki: the wiki",
   "wiki.description": "Everything about Mica and Wiki: controls, the world, the mine, buildings, upgrades and the prestige loop.",
   "wiki.nav": "Wiki",
@@ -238,7 +226,6 @@ export default {
         <li><a href="#beyond"><strong>Beyond</strong><span>Embarking to a new world, Insight and perks.</span></a></li>
         <li><a href="#milestones"><strong>Milestones</strong><span>The path most players end up taking.</span></a></li>
         <li><a href="#things"><strong>Everything in the game</strong><span>Every tile, building and button, with its picture.</span></a></li>
-        <li><a href="#textures"><strong>Texture packs</strong><span>Make the game look the way you want.</span></a></li>
         <li><a href="#saving"><strong>Saving</strong><span>Where your progress lives.</span></a></li>
         <li><a href="#ideas"><strong>Ideas</strong><span>Not in the game: where it could go next.</span></a></li>
       </ul>`,
@@ -431,8 +418,7 @@ export default {
         with something you can buy opens by itself; {phone:tap|laptop:click} its row to open or close it. A button you can press is raised and
         bright green; one you can't afford yet is flat, with a dashed outline.</p>
       <p>The <strong>gear</strong> in the top-right corner opens <strong>Settings</strong>: <strong>Sound</strong>, <strong>Music</strong>, <strong>Drag</strong> (which way dragging moves you, see <a href="#controls">Controls</a>), <strong>Language</strong>, <strong>Wiki</strong> (this page) and the privacy policy.
-        Its last row, <strong>Nerds</strong>, holds the technical things: <strong>Textures</strong>, which shows the texture pack
-        in use and loads your own (see <a href="#textures">Texture packs</a>), <strong>Save a backup</strong> and <strong>Load a backup</strong>
+        Its last row, <strong>Nerds</strong>, holds the technical things: <strong>Save a backup</strong> and <strong>Load a backup</strong>
         (see <a href="#saving">Saving</a>), the <strong>Performance panel</strong> and the game's version.</p>
       <p><strong>Language</strong> switches the whole game, and this wiki, between English and Lithuanian. The game saves,
         reloads in the other language and carries on where you were. The choice is remembered in this browser; until you make
@@ -744,8 +730,7 @@ export default {
         <li>Every pile has its own place, a tile from the next, so none ever stands on another, and a tile of home ground is
           left between the piles and the land around.</li>
       </ul>
-      <p>What every kind of pile looks like comes from the texture pack (the <code>tiers</code> slot of
-        piles in <a href="#things">Everything in the game</a>).</p>`,
+      <p>What every kind of pile looks like is in <a href="#things">Everything in the game</a>.</p>`,
   "wiki.article.upgrades.title": "Upgrades",
   "wiki.article.upgrades": `      <h1>Upgrades</h1>
       <p class="lede">Everything in the Upgrades tab, level by level.</p>
@@ -799,117 +784,8 @@ export default {
       <p>A milestone counts the moment you do it, in any order; the next one shown is the first on this list you haven't reached. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
   "wiki.article.things.title": "Everything in the game",
   "wiki.article.things": `      <h1>Everything in the game</h1>
-      <p class="lede">Every thing you can see, what it is and what it does. The pictures are the default texture pack,
-        Lanternlight.</p>
-      <p>The game decides what exists and what it does; a <a href="#textures">texture pack</a> decides what it looks like. The
-        code next to each name is the id a pack uses for it, and the slots are the pictures and colours a pack can give it.
-        Slots in <code class="req">bold</code> are filled by every pack (the default fills them when yours doesn't).</p>
+      <p class="lede">Every thing you can see, what it is and what it does, with every picture the game draws it with.</p>
       <div data-things></div>`,
-  "wiki.article.textures.title": "Texture packs",
-  "wiki.article.textures": `      <h1>Texture packs</h1>
-      <p class="lede">The game decides what exists and what it does. You decide what it looks like.</p>
-      <p>A texture pack is a <code>pack.json</code> file plus pictures. It can change the picture or colour of anything listed
-        in <a href="#things">Everything in the game</a>: every tile, tree, boulder, building, the wanderer and their boat, every
-        button and icon, and the colours of the dark and the cliffs. A pack can change as much or as little as you like;
-        anything it leaves out keeps the default look.</p>
-
-      <h2>Using a pack</h2>
-      <p>Open Settings (the gear, top-right), then <strong>Nerds</strong>, and {phone:tap|laptop:click} <strong>Textures</strong>. Pick the pack's <code>pack.json</code>,
-        either on its own (if its pictures are inside it) or together with its picture files. The game checks the whole pack
-        first: if anything is wrong it isn't used, and a panel lists every problem, naming the thing and slot that broke. A pack
-        that works is used straight away and remembered in this browser. <strong>Default textures</strong> (shown while your pack is in use) goes back to Lanternlight.</p>
-
-      <h2>Start from the default</h2>
-      <p>The quickest way to make a pack is to copy the default one and change it.</p>
-      <p><button type="button" class="button" data-download-pack>Download Lanternlight as one file</button></p>
-      <p>That file has every picture written inside it as SVG markup, so it works on its own: edit it, change its
-        <code>name</code>, and pick it in the game. The same pack as separate files is in the game's source, in
-        <a href="https://github.com/bitkojine/more-than-enough/tree/main/packs/default"><code>packs/default/</code></a>.</p>
-
-      <h2>pack.json</h2>
-      <pre><code>{
-  "format": 1,
-  "name": "Autumn",
-  "author": "you",
-  "tile": 64,
-  "looks": {
-    "tile.grass":  { "color": "#b8873a", "top": ["grass-a.png", "grass-b.png"] },
-    "tile.forest": { "stand": ["maple.svg", "birch.svg", null] },
-    "mushroom.flyAgaric": { "image": "toadstools.svg" },
-    "tile.water":  { "top": { "frames": ["water-1.png", "water-2.png"], "fps": 2 } },
-    "character.wanderer": { "image": "fox.png" },
-    "color.backdrop": { "color": "#0b0710" }
-  }
-}</code></pre>
-      <ul>
-        <li><code>format</code> is <span data-k="PACK_FORMAT"></span>, the pack format this version of the game reads.</li>
-        <li><code>name</code> is shown on the Textures button. <code>author</code> is optional.</li>
-        <li><code>tile</code> is how many pixels of your pictures make one tile (default <span data-k="DEFAULT_TILE"></span>).
-          A picture that many pixels wide is one tile wide on the map; twice as wide is two tiles.</li>
-        <li><code>pixelated</code>: <code>true</code> keeps pixel art crisp instead of smoothing it when scaled.</li>
-        <li><code>looks</code> maps thing ids to their slots.</li>
-      </ul>
-
-      <h2>Slots</h2>
-      <ul>
-        <li><code>color</code>: a colour like <code>"#4a7a33"</code>. Used far zoomed out, in cliffs, for sparks, and wherever
-          there's no picture.</li>
-        <li><code>top</code>: the ground. Stretched over the whole top of the tile, and squashed by the view's lean, so draw it
-          straight from above. Neighbouring tiles touch, so keep edges plain if you don't want a grid.</li>
-        <li><code>face</code>: the front of a raised tile (mountains, walls in the mine, the shore above water), seen under the
-          raised top. One picture is one layer of height and repeats down taller faces.</li>
-        <li><code>stand</code>: what you gather from the tile, standing on it, like trees and boulders. Only tiles you can gather
-          have it: nothing in the game is decoration you can't pick up, so a pack can't put props on grass, water or tunnels.
-          Drawn upright with its bottom centre on the middle of the tile; it never squashes and may stick out over its neighbours.
-          Stone, ore and crystal wear down as they're mined: drawn smaller the less is left, to half size before they run out.</li>
-        <li><code>cut</code>: what stands on a gathering tile once it's worked out (pebbles, a broken ore rock). Forests have
-          none: their trees are never cut.</li>
-        <li><code>image</code>: buildings, the wanderer, the boat and each kind of mushroom, drawn upright like
-          <code>stand</code>, and shown in the sheet. A mushroom's picture grows at the trees' feet in every forest patch of its
-          kind while some is left, smaller as it runs low.</li>
-        <li><code>icon</code>: a square picture for counters, buttons and the sheet.</li>
-        <li><code>tiers</code>: the <a href="#stockpile">stockpile</a>'s piles, a list of pictures, smallest first: the first is
-          one of the resource, the next ten, then a hundred, and so on. Past the end of your list the last picture stands in.
-          Draw them standing, about one tile wide; from ten million up the game draws them across their square of ground.</li>
-        <li><code>stages</code>: a building on the map as goods pile up in it, empty first and full last. Cultivation uses exact physical states: chamber empty/closed-growing/open, vault and conduit empty/full, machine zero/one/two/three repairs/activated. Optional basket/pick/boot stages list crafted levels from 2 upward. Single-picture icon/image overrides retain their picture
-          (the default pack has four: empty, a little, most, full). Nothing waiting shows the first, a full building the last,
-          and the ones between share the way up. <code>image</code> stays its picture in the sheet; a pack that draws a building's
-          <code>image</code> but not its stages shows that one picture on the map.</li>
-      </ul>
-
-      <h2>Pictures</h2>
-      <p>Each picture can be:</p>
-      <ul>
-        <li>a path next to <code>pack.json</code>: <code>.svg</code>, <code>.png</code>, <code>.webp</code>, <code>.jpg</code> or <code>.gif</code>;</li>
-        <li>SVG markup written straight into the JSON, starting <code>&lt;svg</code> (it needs <code>width</code> and <code>height</code>);</li>
-        <li>a <code>data:image/</code> URL, or an <code>https://</code> address.</li>
-      </ul>
-      <p>Where a slot takes a picture, it can also take:</p>
-      <ul>
-        <li>a <strong>list of variants</strong>: each tile picks one, always the same one for the same spot. <code>null</code> in the
-          list means nothing there, so <code>["oak.png", null, null, null]</code> puts an oak on about a quarter of the forest;</li>
-        <li>an <strong>animation</strong>: <code>{ "frames": [...], "fps": 2 }</code>. Ground animations start at a different frame
-          on each tile so water shimmers. For the wanderer the first frame is standing still and the rest loop while walking.</li>
-      </ul>
-      <p>Draw standing things facing right; the game mirrors them. Leave the shadow out too: the game draws one under everything
-        that stands.</p>
-
-      <h2>What the game draws itself</h2>
-      <p>Some things stay the same in every pack, because they tell you how the game works: shadows, day and night, the lantern light
-        around you, target outlines and Trails, the dial over a building that fills as it holds output, the fading of cliffs into
-        the dark, and the floating numbers. Their colours come from the pack where it makes sense (a resource's colour tints its
-        sparks; the skylight's colour lights holes in the ceiling).</p>
-
-      <h2>When a pack is wrong</h2>
-      <p>Nothing is half-applied. The game lists every problem and keeps the look you had. Typical ones:</p>
-      <ul>
-        <li><code>tile.gras: no such thing in the game</code>: a typo in an id; check the list.</li>
-        <li><code>tile.water icon: Water has no "icon"</code>: that thing doesn't have that slot.</li>
-        <li><code>tile.grass top: "grass.png" was not among the files picked with the pack</code>: pick the pictures too, or
-          write them into the file.</li>
-        <li><code>character.boat image: the picture failed to load or decode</code>: the file isn't a picture the browser can read.</li>
-      </ul>
-      <p>If the default pack itself is broken, the game stops and says what broke rather than drawing a half-empty world.</p>`,
   "wiki.article.saving.title": "Saving",
   "wiki.article.saving": `      <h1>Saving</h1>
       <p class="lede">Automatic, and kept in your browser.</p>

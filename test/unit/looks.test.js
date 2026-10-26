@@ -1,19 +1,42 @@
-/* The catalog of everything in the game, the texture pack format, and the
- * default pack: every thing the game shows has an id, the default pack draws
- * all of it, and a broken pack is caught with a message naming what broke. */
+/* The catalog of everything in the game and the game's one pack
+ * (packs/default/pack.json): every thing the game shows has an id, and the
+ * pack draws all of it, with every slot in the shape the game reads. */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { C } from './helpers.js';
-import { validatePack, pictures, isPicture } from '../../src/game/look/validate.js';
 import { createLook } from '../../src/game/look/look.js';
 
 const PACK_DIR = new URL('../../packs/default/', import.meta.url).pathname;
 const pack = JSON.parse(readFileSync(join(PACK_DIR, 'pack.json'), 'utf8'));
 
-const minimal = (looks = {}) => ({ format: C.PACK_FORMAT, name: 'Test', looks });
+const { pictures } = C;
+
+// Every way the pack could disagree with the catalog, by thing and slot.
+function packProblems(json) {
+  const problems = [];
+  for (const k of Object.keys(json)) if (!['format', 'name', 'author', 'tile', 'pixelated', 'looks'].includes(k)) problems.push('top-level key ' + k);
+  for (const [id, entry] of Object.entries(json.looks)) {
+    const thing = C.LOOK[id];
+    if (!thing) { problems.push(id + ': no such thing'); continue; }
+    for (const [slot, value] of Object.entries(entry)) {
+      const where = `${id} ${slot}`;
+      if (!(slot in thing.slots)) problems.push(where + ': no such slot');
+      else if (slot === 'color') { if (!/^#[0-9a-f]{6}$/i.test(value)) problems.push(where + ': not a colour'); }
+      else if (slot === 'tiers' || slot === 'stages') { if (!(Array.isArray(value) && value.length && !value.includes(null))) problems.push(where + ': not a list of pictures'); }
+      else if (Array.isArray(value) ? !value.some((v) => v !== null) : value && typeof value === 'object' && !(value.frames?.length && value.fps > 0 && value.fps <= 30)) problems.push(where + ': bad variants or frames');
+      for (const p of slot === 'color' ? [] : pictures(value)) if (!/^[\w\-./ ]+\.svg$/.test(p) || p.includes('..')) problems.push(`${where}: ${p} is not an SVG next to pack.json`);
+    }
+  }
+  for (const thing of C.LOOKS) {
+    for (const [slot, required] of Object.entries(thing.slots)) {
+      if (required && json.looks[thing.id]?.[slot] === undefined) problems.push(`${thing.id} ${slot}: missing`);
+    }
+  }
+  return problems;
+}
 
 test('catalog: every thing has a unique id in a known group, with known slots', () => {
   const groups = new Set(C.LOOK_GROUPS.map((g) => g.id));
@@ -50,7 +73,7 @@ test('catalog: only surface deposits that can be worked out have a cut look; for
 });
 
 test('default pack: complete, valid, and every picture it names exists', () => {
-  assert.deepEqual(validatePack(pack, { complete: true }), []);
+  assert.deepEqual(packProblems(pack), []);
   for (const [id, entry] of Object.entries(pack.looks)) {
     for (const [slot, value] of Object.entries(entry)) {
       if (slot === 'color') continue;
@@ -72,60 +95,12 @@ test('default pack: every file in it is used, and every SVG has a size', () => {
   }
 });
 
-test('pack: a partial pack is fine; the default fills the rest', () => {
-  assert.deepEqual(validatePack(minimal({ 'tile.grass': { color: '#123456' } })), []);
-  assert.deepEqual(validatePack(minimal()), []);
-  assert.ok(validatePack(minimal(), { complete: true }).some((p) => p === 'tile.grass top: missing'));
-});
-
-test('pack: a pack saved before a thing was retired still loads', () => {
-  assert.deepEqual(validatePack(minimal({ 'color.edge': { color: '#f0e2b6' }, 'color.visited': { color: '#3d2f21' } })), []);
-  for (const id of C.RETIRED_LOOKS) assert.equal(C.LOOK[id], undefined, id + ' is retired, not drawn');
-  assert.ok(validatePack(minimal({ 'color.nonsense': { color: '#000000' } })).length, 'an unknown thing is still a problem');
-});
-
-test('pack: pictures can be paths, inline SVG, data: or https: URLs; variants and animations', () => {
-  for (const ok of ['a/b.png', 'x.svg', 'data:image/png;base64,AAA', 'https://example.com/t.webp', '<svg width="1" height="1"></svg>']) {
-    assert.ok(isPicture(ok), ok);
-  }
-  for (const bad of ['../up.png', '/abs.png', 'http://insecure.png', 'notes.txt', 'javascript:alert(1)', 42]) {
-    assert.ok(!isPicture(bad), String(bad));
-  }
-  assert.deepEqual(validatePack(minimal({
-    'tile.grass': { top: ['a.png', 'b.png'] },
-    'tile.forest': { stand: ['pine.png', null, null] },
-    'tile.water': { top: { frames: ['w1.png', 'w2.png'], fps: 2 } }
-  })), []);
-});
-
-test('pack: every problem is reported, naming the thing and slot', () => {
-  const problems = validatePack({
-    format: 99, extra: true, name: '',
-    looks: {
-      'tile.gras': { top: 'g.png' },
-      'tile.water': { icon: 'w.png', color: 'blue', top: { frames: [], fps: 0, speed: 1 } },
-      'tile.grass': { stand: 'tuft.png', top: 'grass.txt' },
-      'tile.forest': { stand: [null, null] },
-      'resource.mycelium': 'mycelium.png'
-    }
-  });
-  const expect = [
-    'Unknown top-level key "extra"', '"format" must be 1', '"name" is missing',
-    'tile.gras: no such thing', 'tile.water icon: Water has no "icon"', 'tile.water color: must be a colour',
-    'tile.water top: unknown key "speed"', 'tile.water top: "frames" must be a list', 'tile.water top: "fps" must be',
-    'tile.grass stand: Grass has no "stand"', 'tile.forest stand: every variant is empty', 'tile.grass top: "grass.txt" is not a picture', 'resource.mycelium: must be an object'
-  ];
-  for (const e of expect) assert.ok(problems.some((p) => p.startsWith(e)), `reports: ${e}\n got: ${problems.join('\n')}`);
-  assert.equal(problems.length, expect.length, problems.join('\n'));
-  assert.deepEqual(validatePack(null), ['The pack is not a JSON object']);
-  assert.ok(validatePack({ format: 1, name: 'x' }).includes('"looks" must be an object of thing ids'));
-});
-
-test('pack: a building\'s stages are a list of pictures, empty first', () => {
-  const pack = (stages) => ({ format: 1, name: 'x', looks: { 'building.garden': { stages } } });
-  assert.deepEqual(validatePack(pack(['e.png', 'f.png'])), []);
-  for (const bad of [[], ['e.png', null], 'e.png']) {
-    assert.ok(validatePack(pack(bad)).some((p) => p.startsWith('building.garden stages: must be a list')), JSON.stringify(bad));
+test('default pack: the checker catches what would break the game', () => {
+  const broken = { looks: { ...pack.looks, 'tile.gras': { top: 'g.svg' }, 'tile.water': { ...pack.looks['tile.water'], icon: 'w.svg', color: 'blue' } } };
+  delete broken.looks['tile.grass'];
+  const problems = packProblems(broken);
+  for (const e of ['tile.gras: no such thing', 'tile.water icon: no such slot', 'tile.water color: not a colour', 'tile.grass top: missing']) {
+    assert.ok(problems.includes(e), `reports: ${e}\n got: ${problems.join('\n')}`);
   }
 });
 
@@ -147,23 +122,11 @@ test('look: a building shows the stage for what waits in it, empty when nothing 
   assert.equal(at(0.3), 'full', 'two stages: anything waiting shows the full one');
 });
 
-test('look: a player\'s pack that draws a building without stages keeps its own picture', () => {
+test('physical tiers and machine repairs show their own stage', () => {
   const look = createLook();
-  const base = loaded({ 'building.garden': { image: 'full', stages: ['empty', 'little', 'most', 'full'] } });
-  look.use(base, loaded({ 'building.garden': { image: 'mine' } }));
-  assert.equal(look.stage('building.garden', 0), 'mine');
-  assert.equal(look.stage('building.garden', 1), 'mine');
-  look.use(base, loaded({ 'tile.grass': { top: 'g' } }));
-  assert.equal(look.stage('building.garden', 0), 'empty', 'untouched buildings use the default stages');
-});
-
-test('physical tiers and machine repairs retain custom single-picture pack overrides',()=>{
- const look=createLook();
- const base=loaded({'tool.pickaxe':{icon:'stone',stages:['stone','forged','braced']},'building.sleepingMachine':{image:'awake',stages:['dormant','one','two','three','awake']}});
- look.use(base);
- assert.equal(look.level('tool.pickaxe',1,'icon'),'forged');
- assert.equal(look.level('building.sleepingMachine',4),'awake');
- look.use(base,loaded({'tool.pickaxe':{icon:'custom pick'},'building.sleepingMachine':{image:'custom machine'}}));
- assert.equal(look.level('tool.pickaxe',2,'icon'),'custom pick');
- assert.equal(look.level('building.sleepingMachine',4),'custom machine');
+  look.use(loaded({ 'tool.pickaxe': { icon: 'stone', stages: ['stone', 'forged', 'braced'] }, 'building.sleepingMachine': { image: 'awake', stages: ['dormant', 'one', 'two', 'three', 'awake'] } }));
+  assert.equal(look.level('tool.pickaxe', 1, 'icon'), 'forged');
+  assert.equal(look.level('tool.pickaxe', 9, 'icon'), 'braced', 'past the last stage, the last');
+  assert.equal(look.level('building.sleepingMachine', 0), 'dormant');
+  assert.equal(look.level('building.sleepingMachine', 4), 'awake');
 });

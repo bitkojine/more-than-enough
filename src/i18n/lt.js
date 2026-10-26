@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.164.0": "Savo tekstūrų paketo įkėlimo nebeliko, kartu ir Tekstūrų Moksliukams: beveik niekas jo nenaudojo. Žaidimas lieka vienos išvaizdos, kurią nupiešė jo kūrėjai, o tavo pasauliai lieka tokie, kokie buvo.",
   "news.0.163.0": "Milijardai visomis kalbomis rašomi B, todėl išteklių juosta visur skaitoma vienodai: k, M, B, T.",
   "news.0.162.0": "Užkulisiuose: išmestas kodas, skirtas susikalbėti su senomis bendrų pasaulių tarnybos versijomis, kurių nebėra. Žaidime niekas nesikeičia.",
   "news.0.161.0": "{phone:Telefonai ir planšetės dabar piešia žaidimą 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl mažiau kaista, o baterija ilgiau laiko.|laptop:Telefonuose ir planšetėse žaidimas dabar piešiamas 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl jie mažiau kaista. Kompiuteryje niekas nesikeičia.}",
@@ -610,11 +611,6 @@ export default {
   "sheet.back": "Atgal",
   "sheet.wiki": "Žinynas",
   "sheet.drag": "Tempimas",
-  "sheet.textures": "Tekstūros",
-  "sheet.texturesDefault": "Numatytosios tekstūros",
-
-  "pack.notUsed": "Tekstūrų paketas nepritaikytas",
-  "pack.close": "Uždaryti",
 
   "fork.title": "Šis pasaulis buvo žaidžiamas ir kitoje kortelėje",
 
@@ -751,7 +747,6 @@ export default {
   "map.up": "Aukštesnis sluoksnis",
   "map.down": "Gilesnis sluoksnis",
 
-
   "button.climbDown": "LIPTI ŽEMYN",
   "button.climbDown.aria": "Lipti žemyn kopėčiomis",
   "button.climbUp": "LIPTI AUKŠTYN",
@@ -883,41 +878,9 @@ export default {
   "fork.reload": "Perkrauti",
   "fork.newer": "Kita kortelė išsaugojo naujesne žaidimo versija.",
 
-  "pack.variantsEmpty": "{where}: variantų sąrašas tuščias",
-  "pack.variantsAllEmpty": "{where}: visi variantai tušti",
-  "pack.animationKey": "{where}: nežinomas raktas {keys} (animacija turi „frames“ ir „fps“)",
-  "pack.frames": "{where}: „frames“ turi būti paveikslėlių sąrašas",
-  "pack.fps": "{where}: „fps“ turi būti skaičius nuo 1 iki 30",
-  "pack.notPicture": "{where}: {value} nėra paveikslėlis (kelias, besibaigiantis .svg/.png/.webp/.jpg/.gif, įterptas <svg>, data:image/ ar https://)",
-  "pack.notObject": "Paketas nėra JSON objektas",
-  "pack.topKey": "Nežinomas viršutinio lygio raktas „{key}“ (leidžiami: {allowed})",
-  "pack.format": "„format“ turi būti {format} (šio žaidimo paketų formatas), o ne {got}",
-  "pack.name": "Trūksta „name“",
-  "pack.author": "„author“ turi būti tekstas",
-  "pack.tile": "„tile“ turi būti sveikasis pikselių skaičius nuo 4 iki 1024",
-  "pack.pixelated": "„pixelated“ turi būti true arba false",
-  "pack.looks": "„looks“ turi būti daiktų id objektas",
-  "pack.noThing": "{id}: tokio daikto žaidime nėra (žr. žinyno sąrašą)",
-  "pack.slotsObject": "{id}: turi būti lizdų objektas",
-  "pack.noSlot": "{where}: {name} neturi lizdo „{slot}“ (turi: {slots})",
-  "pack.color": "{where}: turi būti spalva, pvz., „#4a7a33“",
-  "pack.tiers": "{where}: turi būti paveikslėlių sąrašas, po vieną kiekvienam dešimties laipsniui, nuo mažiausio",
-  "pack.stages": "{where}: turi būti paveikslėlių sąrašas, nuo tuščio iki pilno",
-  "pack.missing": "{where}: trūksta",
-  "pack.fileNotPicked": "„{ref}“ nebuvo tarp kartu su paketu pasirinktų failų",
-  "pack.pathInSingleFile": "„{ref}“ yra kelias, bet paketas atėjo kaip vienas failas: įterpk paveikslėlį (žinynas rodo kaip)",
   "pack.pictureFailed": "paveikslėlio nepavyko įkelti ar iškoduoti",
   "pack.pictureNoSize": "paveikslėlis neturi dydžio (SVG reikia width ir height atributų)",
   "pack.inlineSvg": "įterptas SVG",
-  "pack.defaultName": "Žibinto šviesa",
-  "pack.pickOne": "Pasirink vieną pack.json, o ne {n} ({names})",
-  "pack.noJson": "Tarp pasirinktų failų nėra .json: pasirink pack.json (ir jo paveikslėlius)",
-  "pack.badJson": "{name} nėra teisingas JSON: {error}",
-
-  "toast.texturesUnkept": "Tekstūros: {name} (ši naršyklė negali jo išsaugoti: {error})",
-  "toast.textures": "Tekstūros: {name}",
-  "toast.texturesUnforgotten": "Tekstūros: {name} (nepavyko pamiršti senojo paketo: {error})",
-  "toast.texturesUnread": "Tavo tekstūrų paketo nepavyko perskaityti ({error})",
 
   "pack.defaultHttp": "Numatytasis tekstūrų paketas: {url} atsakė {status}",
   "pack.defaultBroken": "Numatytasis tekstūrų paketas sugedęs:\n{problems}",

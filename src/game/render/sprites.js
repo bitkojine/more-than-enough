@@ -1,5 +1,5 @@
 /* Things standing on the terrain: buildings, the wanderer (and their boat),
- * and the transient effects, all drawn from the texture pack. Standing things
+ * and the transient effects, all drawn from the game's pictures. Standing things
  * keep their full height while the ground is foreshortened; their shadows lie flat. */
 
 import * as Core from '../../core/index.js';
@@ -73,7 +73,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
 function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false }, wiki = null }) {
   const u = cam.tilePx;
-  if(look.rig&&mica&&!look.custom){
+  if(look.rig&&mica){
     const motion=pose(actor,{moving,boat:water,steady,time:actor.clock??s.time,seed,equipment});
     const deck=water?drawBoat(ctx,cam,s,look,x,sx,sy,flip,motion.rock,actor.clock??s.time):0;
     if(!deck)shadow(ctx,cam,sx,sy,u*.26);
@@ -87,7 +87,7 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVecto
   const walk = look.frames(id,planted&&look.has(id,'stand')?'stand':'image');
   const time=actor.clock??s.time;
   const body = walk.pics[characterFrame(walk,actor,{moving,water,time})];
-  const loading=mica&&!look.custom&&!look.rigSettled;
+  const loading=mica&&!look.rigSettled;
   const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.

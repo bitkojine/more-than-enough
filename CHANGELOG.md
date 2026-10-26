@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.164.0] - 2026-10-26
+
+Custom texture packs are gone (Watch: "never used ... less attack surface,
+and less code we don't use"). The game has one look, Lanternlight in
+`packs/default/`, and its build pipeline (pictures inlined into `pack.json`,
+the preload, the load budget) is unchanged.
+
+### Removed
+- Textures and Default textures in Nerds, the file picker, the problem
+  report dialog and their strings. The game no longer reads files a player
+  picks as pictures, nor the pack it kept in IndexedDB; a pack an older
+  version saved there is left where it is, never read and never deleted.
+  Saves never named a pack, so every world loads as before (the e2e suite
+  starts the game with an old pack in the browser and checks it draws in
+  its own look).
+- The overlay in the look (`look.custom`, `overrides`, a custom pack's
+  single picture winning over stages and tiers), `src/game/look/store.js`,
+  `src/game/look/validate.js` and `src/game/textures.js`; loading the pack
+  now lives in `src/game/look/look.js`. The shipped pack is checked by
+  `test/unit/looks.test.js` instead of at every start.
+- `RETIRED_LOOKS` and `PACK_FORMAT`, kept only so old player packs still
+  loaded. `pictures()` moved to `src/core/catalog.js`.
+- The wiki's Texture packs article, its one-file pack download, the slot
+  list and ids in Everything in the game, and three pack ideas. The wiki no
+  longer allows `blob:` pictures.
+
 ## [0.163.0] - 2026-10-26
 
 Billions are "B" in every language (Watch, 2026-10-26), replacing the

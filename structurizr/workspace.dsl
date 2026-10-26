@@ -65,7 +65,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                render = component "Renderer" "Draws terrain, props, player and effects in existing back-to-front row order. The default player is Mica, a compact flat orange-hooded repairer with skinned split coat/patch, explicit-time mesh-eye blinks and curious idle/recovery poses, actual-cargo protective carrying and localized inspection, with eight snapped world headings: twenty-one bone hierarchy with four weighted cloak panels, one-handed mining from the shaft's end and fixed-length arm IK to the WORK_HANDS targets in work-motion.js, earned palm-bound baskets and belt lanterns from work-equipment.js, free-hand assembly and a one-cycle coalescing actor queue with captured work facing, torso and head counterbalance, articulated elbows and wrists, and pure two-bone leg IK plus layered action curves from rig-motion.js. rig-model.js builds the rig without a renderer and names its solids and their joints and grips; rig-clips.js finds crossing triangles between them, which the unit sweep and the local dev build treat as a fault. rigged-character.js lazily bundles vendored Three.js and reuses one 320x448 WebGL surface composited into the 2D canvas. Wiki, a four-bone mycelium sprite with a skinned folding cap (wiki-model.js, pure pose in wiki-motion.js), rides the hood bone in the same pass and outline; src/game/wiki.js decides what it looks at and says (a long press on the map asks it), and focus.js rings what it talks about in Wiki teal around the whole object. pickaxe-model.js supplies cached six-tier palm/back equipment and offline-baked matching icons, one flat fill mesh per tier with no ink shell; the character contour outlines it while equipped and a 2D silhouette stamp outlines the icons. Action/boat feedback shares canonical timing; presentation never runs simulation ticks. Mica is not drawn while the rig loads; without WebGL, with a custom texture pack, and for friends, the 2D wanderer stands in. A cached multisampled color target and one alpha-derived screen-space ink pass outline the complete figure, replacing per-piece hulls. Exact sRGB fills are preserved, with no CPU readback in normal rendering. Geometry, combined-pass draw calls and compressed module size are bounded. resource-models.js builds four canonical 3D materials and offline vector views through scripts/resource-art.mjs; icons/deposits/small piles remain cached texture-pack SVGs at runtime, flat value planes over one whole-object ink silhouette with no face or part edges. No player text." "JavaScript" {
+                render = component "Renderer" "Draws terrain, props, player and effects in existing back-to-front row order. The default player is Mica, a compact flat orange-hooded repairer with skinned split coat/patch, explicit-time mesh-eye blinks and curious idle/recovery poses, actual-cargo protective carrying and localized inspection, with eight snapped world headings: twenty-one bone hierarchy with four weighted cloak panels, one-handed mining from the shaft's end and fixed-length arm IK to the WORK_HANDS targets in work-motion.js, earned palm-bound baskets and belt lanterns from work-equipment.js, free-hand assembly and a one-cycle coalescing actor queue with captured work facing, torso and head counterbalance, articulated elbows and wrists, and pure two-bone leg IK plus layered action curves from rig-motion.js. rig-model.js builds the rig without a renderer and names its solids and their joints and grips; rig-clips.js finds crossing triangles between them, which the unit sweep and the local dev build treat as a fault. rigged-character.js lazily bundles vendored Three.js and reuses one 320x448 WebGL surface composited into the 2D canvas. Wiki, a four-bone mycelium sprite with a skinned folding cap (wiki-model.js, pure pose in wiki-motion.js), rides the hood bone in the same pass and outline; src/game/wiki.js decides what it looks at and says (a long press on the map asks it), and focus.js rings what it talks about in Wiki teal around the whole object. pickaxe-model.js supplies cached six-tier palm/back equipment and offline-baked matching icons, one flat fill mesh per tier with no ink shell; the character contour outlines it while equipped and a 2D silhouette stamp outlines the icons. Action/boat feedback shares canonical timing; presentation never runs simulation ticks. Mica is not drawn while the rig loads; without WebGL and for friends, the 2D wanderer stands in. A cached multisampled color target and one alpha-derived screen-space ink pass outline the complete figure, replacing per-piece hulls. Exact sRGB fills are preserved, with no CPU readback in normal rendering. Geometry, combined-pass draw calls and compressed module size are bounded. resource-models.js builds four canonical 3D materials and offline vector views through scripts/resource-art.mjs; icons/deposits/small piles remain cached texture-pack SVGs at runtime, flat value planes over one whole-object ink silhouette with no face or part edges. No player text." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/render/"
@@ -93,10 +93,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                look = component "Look and Texture Packs" "What everything looks like: the default pack (packs/default/) with the player's pack laid over it slot by slot. Validates packs against the Catalog and refuses any with a problem (listing each by thing and slot), loads and rasterises pictures per size, picks variants and animation frames, and remembers the player's pack in IndexedDB. Drawing code and the HUD ask it for colours and pictures by thing id." "JavaScript + IndexedDB" {
+                look = component "Look" "What everything looks like: the game's one pack (packs/default/). Loads and rasterises its pictures per size (a picture that fails to load is a crash), picks variants and animation frames. Drawing code and the HUD ask it for colours and pictures by thing id; players cannot load their own." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/look/, src/game/textures.js"
+                        "ref" "src/game/look/"
                     }
                 }
 
@@ -121,14 +121,14 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            packs = container "Default Texture Pack" "Lanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; players' packs override any part of it." "JSON + SVG" {
+            packs = container "Pictures" "Lanternlight (packs/default/): pack.json mapping every thing in the Catalog to its SVG pictures and colours. Required before the game draws anything; unit tests check it against the Catalog." "JSON + SVG" {
                 tags "Presentation"
                 properties {
                     "files" "packs/default/"
                 }
             }
 
-            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it. Everything in the game is listed from the Catalog with its default pictures, and the texture pack format is documented." "HTML/CSS/JavaScript modules" {
+            wiki = container "Wiki" "The player documentation (wiki/), served next to the game. The game teaches nothing in-game, so every mechanic is written up here; tables and figures are rendered at load time from the Simulation Core's content and tuning, so they can never drift from the game. An Ideas page (ideas.js) collects possible directions for the game, clearly marked as not in it. Everything in the game is listed from the Catalog with its pictures." "HTML/CSS/JavaScript modules" {
                 tags "Presentation"
                 properties {
                     "files" "wiki/"
@@ -198,7 +198,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                catalog = component "Catalog" "Everything that exists in the game, by the id a texture pack knows it by: tiles, resources, buildings, the wanderer, marks, buttons, upgrades, perks and colours, each with what it does and the slots a pack can fill. Built from the other content tables, so a new tile or upgrade can't go undocumented." "JavaScript" {
+                catalog = component "Catalog" "Everything that exists in the game, by the id its pictures are kept under: tiles, resources, buildings, the wanderer, marks, buttons, upgrades, perks and colours, each with what it does and its picture slots. Built from the other content tables, so a new tile or upgrade can't go undocumented." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/catalog.js"
@@ -293,7 +293,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         mte.app.yard -> mte.app.fx "Puffs for vanished and merged piles"
         mte.core.stockpile -> mte.core.world "Reads the size of home ground"
         mte.app.ui -> mte.app.look "Icons by thing id"
-        mte.app.look -> mte.core.catalog "Validates packs against"
+        mte.app.look -> mte.core.catalog "Reads picture slots from"
         mte.app.look -> mte.packs "Loads at boot"
         mte.wiki -> mte.packs "Shows its pictures"
         mte.core.catalog -> mte.core.economy "Lists what the content tables define"
@@ -315,7 +315,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/), the default texture pack (packs/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
+            deploymentNode "GitHub Pages" "Static hosting. CI runs the unit tests, then scripts/stage-site.sh copies the game (index.html, style.css, src/), the game's pictures (packs/) and the wiki (wiki/) and stamps a content hash onto every asset URL and module import." {
                 infrastructureNode "Static Files" "Serves the staged site over HTTPS."
             }
 

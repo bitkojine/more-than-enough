@@ -1081,15 +1081,6 @@ body.signing #zoomControls { visibility: hidden; }
 #fork .title em { margin-left: 6px; font-style: normal; font-size: 12px; color: var(--green); }
 #fork .text { font-size: 13px; color: var(--ink-dim); }
 
-/* A texture pack that didn't load: every problem, by thing and slot. */
-.dialog.warn { border-color: rgba(255, 179, 71, 0.6); background: #1e160a; color: #ffe9cc; }
-.dialog.warn strong { color: #ffc46b; }
-#packReport ul {
-  margin: 0; padding-left: 18px; max-height: 50vh; overflow: auto;
-  font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-  word-break: break-word;
-}
-
 /* Fail loud: the crash report covers the game so nothing broken looks fine. */
 /* Shown instead of the game when another page frames it (src/game/main.js). */
 #framed {

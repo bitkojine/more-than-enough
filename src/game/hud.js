@@ -18,7 +18,7 @@ const LAYER_BUTTON = {
 };
 
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
-// thing's picture from the current texture pack.
+// thing's picture from the game's pack.
 export function paintIcons(look, root = document) {
   for (const img of root.querySelectorAll('img[data-look]')) img.src = look.src(img.dataset.look, img.dataset.slot || 'icon');
 }
@@ -154,7 +154,7 @@ export function createHud(el, look) {
   }
 
   const hud = {
-    // The texture pack changed: repaint every picture.
+    // The pictures loaded: repaint every one.
     repaint() {
       paintIcons(look);
       lastAction = '';

@@ -1,10 +1,10 @@
-/* The wiki's view of texture packs: pictures from the default pack for the
- * tables, the full list of everything in the game (from the core catalog),
- * and the default pack as one downloadable file to start a new pack from. */
+/* The game's own pictures (packs/default/pack.json) for the wiki's tables,
+ * and the full list of everything in the game (from the core catalog). */
 
 import * as Core from '../src/core/index.js';
-import { pictures } from '../src/game/look/validate.js';
 import { t } from './strings.js';
+
+const { pictures } = Core;
 
 const PACK_DIR = '../packs/default/';
 let pack = null;
@@ -33,7 +33,7 @@ export function pictureUrl(id, slot = 'icon') {
   return first ? srcOf(first) : '';
 }
 
-// A thing's colour in the default pack.
+// A thing's colour.
 export const colorOf = (id) => slotOf(id, 'color');
 
 // The URL of a stockpile pile's picture for 10^tier of a resource.
@@ -53,7 +53,7 @@ export function pic(id, slot = 'icon', cls = 'pic', alt = '') {
 
 const SLOT_ORDER = ['top', 'stand', 'cut', 'face', 'image', 'icon', 'tiers', 'stages'];
 
-// What the default pack shows for a thing: each picture slot's pictures
+// What the game shows for a thing: each picture slot's pictures
 // (every variant and frame) and its colour.
 function preview(thing) {
   const look = pack.looks[thing.id] || {};
@@ -68,11 +68,6 @@ function preview(thing) {
   return parts.join('');
 }
 
-function slotList(thing) {
-  return Object.entries(thing.slots)
-    .map(([slot, required]) => (required ? `<code class="req">${slot}</code>` : `<code>${slot}</code>`)).join(' ');
-}
-
 export function renderThings() {
   const count = `<p class="count">${t('wiki.thingCount', { count: Core.LOOKS.length, groups: Core.LOOK_GROUPS.length })}</p>`;
   return count + Core.LOOK_GROUPS.map((g) => {
@@ -80,60 +75,10 @@ export function renderThings() {
       <li class="thing" id="look-${esc(thing.id)}">
         <div class="thing-pics">${preview(thing)}</div>
         <div class="thing-text">
-          <div class="thing-head"><strong>${esc(thing.name)}</strong> <code class="thing-id">${esc(thing.id)}</code></div>
+          <div class="thing-head"><strong>${esc(thing.name)}</strong></div>
           <p>${esc(thing.does)}</p>
-          <p class="thing-slots">${t('wiki.slots', { slots: slotList(thing) })}</p>
         </div>
       </li>`).join('');
     return `<h2 id="group-${g.id}">${esc(g.name)}</h2><p class="area-blurb">${esc(g.blurb)}</p><ul class="things">${rows}</ul>`;
   }).join('');
-}
-
-/* ------------------------------------------- the pack as a single file */
-
-// The default pack with every picture inlined (SVG as markup), so it can be
-// saved, edited and picked in the game as one file.
-export async function bundleDefaultPack() {
-  const out = JSON.parse(JSON.stringify(pack));
-  const cache = new Map();
-  const inline = async (ref) => {
-    if (ref === null || ref.startsWith('<')) return ref;
-    if (!cache.has(ref)) {
-      cache.set(ref, fetch(PACK_DIR + ref).then((r) => {
-        if (!r.ok) throw new Error(`${ref}: ${r.status}`);
-        return r.text();
-      }).then((t) => t.trim()));
-    }
-    return cache.get(ref);
-  };
-  for (const entry of Object.values(out.looks)) {
-    for (const slot of Object.keys(entry)) {
-      const v = entry[slot];
-      if (slot === 'color') continue;
-      if (Array.isArray(v)) entry[slot] = await Promise.all(v.map(inline));
-      else if (v && typeof v === 'object') v.frames = await Promise.all(v.frames.map(inline));
-      else entry[slot] = await inline(v);
-    }
-  }
-  out.name = t('wiki.packCopy', { name: t('pack.defaultName') });
-  return out;
-}
-
-export function wireDownload(button) {
-  button.addEventListener('click', async () => {
-    button.disabled = true;
-    try {
-      const json = await bundleDefaultPack();
-      const blob = new Blob([JSON.stringify(json, null, 1)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'lanternlight-pack.json';
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    } catch (err) {
-      button.insertAdjacentHTML('afterend', `<p class="error">${t('wiki.packBuildFailed', { error: esc(err.message) })}</p>`);
-    } finally {
-      button.disabled = false;
-    }
-  });
 }

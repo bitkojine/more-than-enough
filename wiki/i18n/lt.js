@@ -36,15 +36,6 @@ export default {
   "wiki.idea.seasons.title": "Metų laikai",
   "wiki.idea.seasons.pitch": "Per daugelį žaidimo dienų miškas iš žalio tampa auksinis, paskui plikas ir vėl žalias. Kiekvienas metų laikas galėtų šiek tiek paveikti plaukimą, bet net vien vizualiai jie ilgoms žaidimo sesijoms suteiktų laiko pojūtį.",
   "wiki.idea.seasons.builds": "Dienos ir nakties laikrodis.",
-  "wiki.idea.packGallery.title": "Paketų galerija",
-  "wiki.idea.packGallery.pitch": "Žinyno puslapis, kuriame žaidėjai dalijasi tekstūrų paketais su kiekvieno peržiūra, o žaidimas gali įkelti paketą tiesiai iš nuorodos. Paketai tampa tuo, kuo žmonės mainosi, kaip modifikacijomis.",
-  "wiki.idea.packGallery.builds": "Tekstūrų paketai, paketo formatas ir atsisiuntimas vienu failu.",
-  "wiki.idea.soundPacks.title": "Garsų paketai",
-  "wiki.idea.soundPacks.pitch": "Toks pat padalijimas garsui: žaidimas apibrėžia kiekvieną garso signalą (kiekvienos medžiagos rinkimą, paėmimą, statybą, fanfarą, muzikos instrumentus), o paketas pateikia įrašus. Pikselių grafikos paketas galėtų atkeliauti su čiptiūno pypsėjimais.",
-  "wiki.idea.soundPacks.builds": "Katalogas ir garso signalai.",
-  "wiki.idea.packsThatChangeWithDepth.title": "Paketai, kurie keičiasi su gyliu",
-  "wiki.idea.packsThatChangeWithDepth.pitch": "Leisk paketui duoti daiktui skirtingą paveikslėlį kiekvienai sluoksnių juostai, kad akmuo prie paviršiaus atrodytų šiltesnis, o giliai – šaltesnis, ir žaidimui nereikėtų mokytis nieko naujo.",
-  "wiki.idea.packsThatChangeWithDepth.builds": "Tekstūrų paketų variantai ir geologinės juostos.",
   "wiki.idea.distantPlateaus.title": "Tolimi plokščiakalniai",
   "wiki.idea.distantPlateaus.pitch": "Toli tamsoje skirtinguose aukščiuose kabo kitos žemės salos, blankiai apšviestos, užsimenančios apie biomus, kurių dar nepasiekei. Einant link vienos, ji galiausiai prisijungia prie tavo plokščiakalnio.",
   "wiki.idea.distantPlateaus.builds": "Debesys virš neištyrinėtos žemės ir begalinis reljefas.",
@@ -124,11 +115,8 @@ export default {
   "wiki.search.none": "Žinyne niekur neminima.",
   "wiki.search.mentions": { one: "{count} paminėjimas: {articles}.", few: "{count} paminėjimai: {articles}.", many: "{count} paminėjimo: {articles}.", other: "{count} paminėjimų: {articles}." },
   "wiki.search.articles": { one: "{count} straipsnis", few: "{count} straipsniai", many: "{count} straipsnio", other: "{count} straipsnių" },
-  "wiki.packFailed": "Numatytasis tekstūrų paketas neįsikėlė ({status})",
+  "wiki.packFailed": "Žaidimo paveikslėliai neįsikėlė ({status})",
   "wiki.thingCount": { one: "{count} daiktas, grupių: {groups}.", few: "{count} daiktai, grupių: {groups}.", many: "{count} daikto, grupių: {groups}.", other: "{count} daiktų, grupių: {groups}." },
-  "wiki.slots": "Lizdai: {slots}",
-  "wiki.packCopy": "{name} (kopija)",
-  "wiki.packBuildFailed": "Nepavyko sudaryti failo: {error}",
   "wiki.title": "„Mica ir Wiki“ žinynas",
   "wiki.description": "Viskas apie „Mica ir Wiki“: valdymas, pasaulis, kasykla, pastatai, patobulinimai ir naujo pasaulio ciklas.",
   "wiki.nav": "Žinynas",
@@ -235,7 +223,6 @@ export default {
         <li><a href="#beyond"><strong>Anapus</strong><span>Iškeliavimas į naują pasaulį, įžvalga ir privalumai.</span></a></li>
         <li><a href="#milestones"><strong>Etapai</strong><span>Kelias, kuriuo galiausiai eina dauguma žaidėjų.</span></a></li>
         <li><a href="#things"><strong>Viskas žaidime</strong><span>Kiekvienas langelis, pastatas ir mygtukas su paveikslėliu.</span></a></li>
-        <li><a href="#textures"><strong>Tekstūrų paketai</strong><span>Tegul žaidimas atrodo taip, kaip tau patinka.</span></a></li>
         <li><a href="#saving"><strong>Išsaugojimas</strong><span>Kur saugoma tavo pažanga.</span></a></li>
         <li><a href="#ideas"><strong>Idėjos</strong><span>To žaidime nėra: kur jis galėtų pasukti toliau.</span></a></li>
       </ul>`,
@@ -424,8 +411,7 @@ export default {
         kurioje yra ką nusipirkti, atsiveria pati; {phone:bakstelk|laptop:spustelk} jos eilutę, kad atvertum ar suskleistum. Mygtukas, kurį gali paspausti, iškilus ir
         ryškiai žalias; tas, kurio dar neįperki, plokščias, su punktyriniu kontūru.</p>
       <p><strong>Krumpliaratis</strong> viršutiniame dešiniajame kampe atveria <strong>Nustatymus</strong>: <strong>Garsas</strong>, <strong>Muzika</strong>, <strong>Tempimas</strong> (į kurią pusę tave neša tempimas, žr. <a href="#controls">Valdymas</a>), <strong>Kalba</strong>, <strong>Žinynas</strong> (šis puslapis) ir privatumo politika.
-        Paskutinė eilutė, <strong>Moksliukams</strong>, slepia techninius dalykus: <strong>Tekstūros</strong>, kur matyti naudojamas
-        tekstūrų paketas ir galima įkelti savo (žr. <a href="#textures">Tekstūrų paketai</a>), <strong>Išsaugoti atsarginę kopiją</strong> ir
+        Paskutinė eilutė, <strong>Moksliukams</strong>, slepia techninius dalykus: <strong>Išsaugoti atsarginę kopiją</strong> ir
         <strong>Įkelti atsarginę kopiją</strong> (žr. <a href="#saving">Išsaugojimas</a>), <strong>Našumo skydelis</strong> ir žaidimo versija.</p>
       <p><strong>Kalba</strong> perjungia visą žaidimą ir šį žinyną tarp anglų ir lietuvių kalbų. Žaidimas išsisaugo,
         persikrauna kita kalba ir tęsia ten, kur buvai. Pasirinkimas įsimenamas šioje naršyklėje; kol nepasirinkai,
@@ -735,8 +721,7 @@ export default {
         <li>Kiekviena krūva turi savo vietą, per langelį nuo kitos, tad nė viena nestovi ant kitos, o tarp krūvų ir aplinkinės
           žemės paliekamas namų žemės langelis.</li>
       </ul>
-      <p>Kaip atrodo kiekvienos rūšies krūva, nustato tekstūrų paketas (krūvų lizdas <code>tiers</code>
-        skyriuje <a href="#things">Viskas žaidime</a>).</p>`,
+      <p>Kaip atrodo kiekvienos rūšies krūva, matyti skyriuje <a href="#things">Viskas žaidime</a>.</p>`,
   "wiki.article.upgrades.title": "Patobulinimai",
   "wiki.article.upgrades": `      <h1>Patobulinimai</h1>
       <p class="lede">Viskas, kas yra Patobulinimų skirtuke, lygis po lygio.</p>
@@ -790,117 +775,8 @@ export default {
       <p>Etapas įskaitomas vos jį pasiekus, bet kuria tvarka; kitas rodomas pirmasis šio sąrašo etapas, kurio dar nepasiekei. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
   "wiki.article.things.title": "Viskas žaidime",
   "wiki.article.things": `      <h1>Viskas žaidime</h1>
-      <p class="lede">Kiekvienas daiktas, kurį gali pamatyti: kas tai ir ką jis daro. Paveikslėliai – iš numatytojo tekstūrų paketo
-        „Žibinto šviesa“.</p>
-      <p>Žaidimas nusprendžia, kas egzistuoja ir ką tai daro, o <a href="#textures">tekstūrų paketas</a> – kaip tai atrodo.
-        Kodas šalia kiekvieno pavadinimo yra id, kuriuo paketas jį žymi, o lizdai – paveikslėliai ir spalvos, kuriuos paketas gali jam suteikti.
-        <code class="req">Paryškinti</code> lizdai užpildomi kiekviename pakete (jei tavasis jų neužpildo, užpildo numatytasis).</p>
+      <p class="lede">Kiekvienas daiktas, kurį gali pamatyti: kas tai ir ką jis daro, su visais paveikslėliais, kuriais žaidimas jį piešia.</p>
       <div data-things></div>`,
-  "wiki.article.textures.title": "Tekstūrų paketai",
-  "wiki.article.textures": `      <h1>Tekstūrų paketai</h1>
-      <p class="lede">Žaidimas sprendžia, kas egzistuoja ir ką tai daro. Tu sprendi, kaip tai atrodo.</p>
-      <p>Tekstūrų paketas – tai <code>pack.json</code> failas ir paveikslėliai. Jis gali pakeisti bet ko, kas išvardyta skyriuje
-        <a href="#things">Viskas žaidime</a>, paveikslėlį ar spalvą: kiekvieno langelio, medžio, riedulio, pastato, klajūno ir jo valties, kiekvieno
-        mygtuko ir piktogramos, taip pat tamsos ir skardžių spalvas. Paketas gali keisti tiek, kiek nori, – daug ar mažai;
-        visa, ko jis nepalieka, atrodo kaip numatyta.</p>
-
-      <h2>Kaip naudoti paketą</h2>
-      <p>Atidaryk Nustatymus (krumpliaratis viršuje dešinėje), tada <strong>Moksliukams</strong>, ir paspausk <strong>Tekstūros</strong>. Pasirink paketo <code>pack.json</code>:
-        vieną (jei paveikslėliai yra jo viduje) arba kartu su paveikslėlių failais. Žaidimas pirmiausia patikrina visą
-        paketą: jei kas nors negerai, jis nenaudojamas, o skydelyje išvardijamos visos problemos, nurodant sugedusį daiktą ir lizdą. Veikiantis
-        paketas pritaikomas iškart ir įsimenamas šioje naršyklėje. <strong>Numatytosios tekstūros</strong> (rodoma, kol naudojamas tavo paketas) grąžina Žibinto šviesą.</p>
-
-      <h2>Pradėk nuo numatytojo</h2>
-      <p>Greičiausiai paketą susikursi nusikopijavęs numatytąjį ir jį pakeitęs.</p>
-      <p><button type="button" class="button" data-download-pack>Atsisiųsti Žibinto šviesą vienu failu</button></p>
-      <p>Šiame faile kiekvienas paveikslėlis įrašytas viduje kaip SVG kodas, todėl jis veikia savarankiškai: redaguok jį, pakeisk jo
-        <code>name</code> ir pasirink jį žaidime. Tas pats paketas atskirais failais yra žaidimo išeitiniame kode, aplanke
-        <a href="https://github.com/bitkojine/more-than-enough/tree/main/packs/default"><code>packs/default/</code></a>.</p>
-
-      <h2>pack.json</h2>
-      <pre><code>{
-  "format": 1,
-  "name": "Ruduo",
-  "author": "tu",
-  "tile": 64,
-  "looks": {
-    "tile.grass":  { "color": "#b8873a", "top": ["grass-a.png", "grass-b.png"] },
-    "tile.forest": { "stand": ["maple.svg", "birch.svg", null] },
-    "mushroom.flyAgaric": { "image": "toadstools.svg" },
-    "tile.water":  { "top": { "frames": ["water-1.png", "water-2.png"], "fps": 2 } },
-    "character.wanderer": { "image": "fox.png" },
-    "color.backdrop": { "color": "#0b0710" }
-  }
-}</code></pre>
-      <ul>
-        <li><code>format</code> yra <span data-k="PACK_FORMAT"></span> – paketo formatas, kurį skaito ši žaidimo versija.</li>
-        <li><code>name</code> rodomas ant mygtuko „Tekstūros“. <code>author</code> nebūtinas.</li>
-        <li><code>tile</code> – kiek tavo paveikslėlių pikselių sudaro vieną langelį (numatyta <span data-k="DEFAULT_TILE"></span>).
-          Tiek pikselių pločio paveikslėlis žemėlapyje užima vieno langelio plotį; dvigubai platesnis – dviejų.</li>
-        <li><code>pixelated</code>: <code>true</code> išlaiko pikselių grafiką ryškią, užuot ją išlyginus keičiant mastelį.</li>
-        <li><code>looks</code> susieja daiktų id su jų lizdais.</li>
-      </ul>
-
-      <h2>Lizdai</h2>
-      <ul>
-        <li><code>color</code>: spalva, pvz., <code>"#4a7a33"</code>. Naudojama labai nutolinus vaizdą, skarduose, kibirkštims ir visur,
-          kur nėra paveikslėlio.</li>
-        <li><code>top</code>: žemė. Ištempiama per visą langelio viršų ir suplojama dėl vaizdo pasvirimo, todėl piešk ją
-          tiesiai iš viršaus. Gretimi langeliai liečiasi, tad palik kraštus paprastus, jei nenori tinklelio.</li>
-        <li><code>face</code>: iškilusio langelio priekis (kalnai, sienos kasykloje, krantas virš vandens), matomas po
-          iškilusiu viršumi. Vienas paveikslėlis – vienas aukščio sluoksnis; aukštesniuose šonuose jis kartojasi žemyn.</li>
-        <li><code>stand</code>: tai, ką renki iš langelio ir kas ant jo stovi, pvz., medžiai ir rieduliai. Jį turi tik langeliai, iš kurių galima
-          rinkti: žaidime nėra jokių dekoracijų, kurių negalėtum paimti, todėl paketas negali dėti rekvizito ant žolės, vandens ar tunelių.
-          Piešiamas stačias, apačios viduriu langelio centre; niekada nesuplojamas ir gali kyšoti virš kaimynų.
-          Akmuo, rūda ir kristalas kasant dyla: kuo mažiau liko, tuo mažesni piešiami, iki pusės dydžio, kol išsenka.</li>
-        <li><code>cut</code>: tai, kas stovi ant rinkimo langelio, kai jis išsemtas (akmenukai, suskilusi rūdos uola). Miškai šio
-          lizdo neturi: jų medžiai niekada nenukertami.</li>
-        <li><code>image</code>: pastatai, klajūnas, valtis ir kiekviena grybų rūšis, piešiami stati kaip
-          <code>stand</code> ir rodomi lape. Grybo paveikslėlis auga prie medžių kamienų kiekviename jo rūšies miško plote, kol
-          grybų dar yra, ir mažėja, kai jų lieka nedaug.</li>
-        <li><code>icon</code>: kvadratinis paveikslėlis skaitikliams, mygtukams ir lapui.</li>
-        <li><code>tiers</code>: <a href="#stockpile">atsargų</a> krūvos – paveikslėlių sąrašas nuo mažiausio: pirmas reiškia
-          vieną ištekliaus vienetą, kitas – dešimt, tada šimtą ir t. t. Už sąrašo galo naudojamas paskutinis paveikslėlis.
-          Piešk jas stačias, maždaug vieno langelio pločio; nuo dešimties milijonų žaidimas jas piešia per visą jų žemės kvadratą.</li>
-        <li><code>stages</code>: pastato produkcija nuo tuščio iki pilno. Auginimo statiniai naudoja tikslias fizines būsenas: kamera tuščia / uždaryta su kolonija / atvira, saugykla ir vamzdis tušti / pilni, mašina nuo nulio iki trijų atkurtų dalių ir paleista. Pasirenkamos krepšio, kirtiklio ir batų pakopos prasideda nuo pagaminto 2 lygio. Vieno paveikslėlio pakuotės išlaiko savo ikoną ar vaizdą
-          (numatytajame pakete jų keturi: tuščias, šiek tiek, beveik pilnas, pilnas). Kai nieko nelaukia, rodomas pirmas, pilnas
-          pastatas – paskutinis, o tarpiniai pasidalija kelią aukštyn. <code>image</code> lieka jo paveikslėlis lape; paketas,
-          kuris nupiešia pastato <code>image</code>, bet ne jo etapus, žemėlapyje rodo tą vieną paveikslėlį.</li>
-      </ul>
-
-      <h2>Paveikslėliai</h2>
-      <p>Kiekvienas paveikslėlis gali būti:</p>
-      <ul>
-        <li>kelias į failą šalia <code>pack.json</code>: <code>.svg</code>, <code>.png</code>, <code>.webp</code>, <code>.jpg</code> arba <code>.gif</code>;</li>
-        <li>SVG kodas, įrašytas tiesiai į JSON, prasidedantis <code>&lt;svg</code> (jam reikia <code>width</code> ir <code>height</code>);</li>
-        <li><code>data:image/</code> URL arba <code>https://</code> adresas.</li>
-      </ul>
-      <p>Kur lizdas priima paveikslėlį, jis taip pat priima:</p>
-      <ul>
-        <li><strong>variantų sąrašą</strong>: kiekvienas langelis pasirenka vieną, toje pačioje vietoje visada tą patį. <code>null</code>
-          sąraše reiškia, kad ten nieko nėra, todėl <code>["oak.png", null, null, null]</code> ąžuolą pastato maždaug ketvirtadalyje miško;</li>
-        <li><strong>animaciją</strong>: <code>{ "frames": [...], "fps": 2 }</code>. Žemės animacijos kiekviename langelyje prasideda nuo skirtingo
-          kadro, todėl vanduo mirguliuoja. Klajūno pirmas kadras – stovėjimas vietoje, o kiti kartojasi jam einant.</li>
-      </ul>
-      <p>Stovinčius daiktus piešk atsuktus į dešinę – žaidimas juos atspindi. Šešėlio taip pat nepiešk: žaidimas jį nupiešia po viskuo,
-        kas stovi.</p>
-
-      <h2>Ką žaidimas piešia pats</h2>
-      <p>Kai kas visuose paketuose išlieka toks pat, nes parodo, kaip veikia žaidimas: šešėliai, diena ir naktis, žibinto šviesa
-        aplink tave, taikinių kontūrai ir Takai, ciferblatas virš pastato, kuris pildosi kaupiantis produkcijai, skardžių blėsimas
-        tamsoje ir skraidantys skaičiai. Jų spalvos imamos iš paketo, kur tai prasminga (ištekliaus spalva nuspalvina jo
-        kibirkštis; šviesos šulinio spalva apšviečia angas lubose).</p>
-
-      <h2>Kai paketas su klaidomis</h2>
-      <p>Niekas nepritaikoma per pusę. Žaidimas išvardija visas problemas ir palieka buvusią išvaizdą. Dažniausios:</p>
-      <ul>
-        <li><code>tile.gras: tokio daikto žaidime nėra (žr. žinyno sąrašą)</code>: rašybos klaida id; patikrink sąrašą.</li>
-        <li><code>tile.water icon: Vanduo neturi lizdo „icon“ (turi: color, top, face)</code>: tas daiktas tokio lizdo neturi.</li>
-        <li><code>tile.grass top: „grass.png“ nebuvo tarp kartu su paketu pasirinktų failų</code>: pasirink ir paveikslėlius arba
-          įrašyk juos į failą.</li>
-        <li><code>character.boat image: paveikslėlio nepavyko įkelti ar iškoduoti</code>: failas nėra paveikslėlis, kurį naršyklė gali perskaityti.</li>
-      </ul>
-      <p>Jei sugedęs pats numatytasis paketas, žaidimas sustoja ir pasako, kas sugedo, užuot piešęs pustuštį pasaulį.</p>`,
   "wiki.article.saving.title": "Išsaugojimas",
   "wiki.article.saving": `      <h1>Išsaugojimas</h1>
       <p class="lede">Automatinis ir laikomas tavo naršyklėje.</p>

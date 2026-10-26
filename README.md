@@ -112,21 +112,20 @@ Nothing can go untranslated quietly:
 Switching language saves the game and reloads the page in the new language,
 so names built into the content tables at load are always in one language.
 
-## Texture packs
+## Pictures
 
-The game defines what exists and what it does; a **texture pack** defines what
-it looks like. `src/core/catalog.js` lists every thing in the game (tiles,
-resources, buildings, the wanderer, buttons, upgrades, colours) with the
-slots a pack can fill, and `packs/default/` (Lanternlight) draws all of it as
-SVG world art and generated raster character poses. Players load their own pack from the sheet (Textures); the
-format is documented in the wiki's **Texture packs** article, and **Everything
-in the game** lists the catalog with its default pictures.
+The game has one look, the one its makers drew; players can't load their own.
+`src/core/catalog.js` lists every thing in the game (tiles, resources,
+buildings, the wanderer, buttons, upgrades, colours) with the slots it has,
+and `packs/default/` (Lanternlight) draws all of it as SVG pictures and
+colours in `pack.json`. The wiki's **Everything in the game** lists the
+catalog with its pictures.
 
 Drawing code never names a file or a colour: it asks the look
 (`src/game/look/`) for a thing's picture by id. When you add something that
-can be seen, add it to the catalog and draw it in the default pack; the unit
-tests fail until the default pack is complete, and flag pictures nothing uses.
-No emoji: every icon comes from the pack.
+can be seen, add it to the catalog and draw it in the pack; the unit tests
+fail until the pack is complete, and flag pictures nothing uses. No emoji:
+every icon comes from the pack.
 
 ## Versioning
 
@@ -174,7 +173,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `actions.js`, `underground.js`, `sim.js` — gathering/digging/building, moving between layers, the per-tick simulation
   - `perfect.js`, `paths.js` — Auto-play's brain (the AUTO button, `perfect` in the code): the next thing to do (walk, gather, collect, buy, build, go down or up, wait), from what you've explored, and routes across a layer
   - `state.js`, `goals.js`, `save.js` — the state object, prestige, milestones, save format and validation
-  - `catalog.js` — everything that exists, by the id a texture pack uses for it
+  - `catalog.js` — everything that exists, by the id its pictures are kept under
   - `stockpile.js` — what you own as piles on home ground, on a log scale (one pile per unit of the two leading digits, a fixed block of slots per resource)
   - `mushrooms.js` — the kinds of mushroom, where each grows, and which one a tile holds
   - `shared.js` — a shared world: splitting a state into the world and your own progress, applying friends' edits and the room's corrections
@@ -184,7 +183,7 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
   - `main.js` — entry point and frame loop; `controller.js` applies player intents to the core; `perfect.js` — the AUTO button (Auto-play), carrying out the brain's intents while held
   - `input.js`, `camera.js` — touch/keyboard to intents; world (x, y, height) ↔ screen, with zoom and a fixed slight lean; picking hits the block you see
   - `render/`, `effects.js`, `hud.js`, `sheet.js` (`fresh.js`: when Build and Upgrade say NEW), `audio.js`, `storage.js`, `fork.js`, `ask.js`
-  - `look/` — loading, checking and drawing texture packs; `textures.js` — picking, remembering and reporting packs in the game
+  - `look/` — loading and drawing the game's pictures
   - `music/` — the soundtrack: composed tracks (`score.js`), the synthesized band, and the player that follows you from place to place (see [docs/music.md](docs/music.md))
   - `yard.js` — keeps the stockpile's piles in step with the inventory: they grow, slide, merge 2048-style and puff as it changes
   - `together.js` — playing together: the room connection, friends and their states, the QR sign; `worlds.js` — the worlds you've been in and switching between them; `players.js` — the friend chips and the Players screen
@@ -194,8 +193,8 @@ in `src/game/news.js` and its player-facing notes as `news.<version>` in
 - `src/vendor/` — other people's code, copied unchanged: the QR code generator and Three.js r180 (MIT, license in `src/vendor/three/LICENSE`), used by the lazy 3D character renderer
 - `server/` — the room service for playing together: a Cloudflare Worker with a Durable Object per shared world (see [`server/README.md`](server/README.md))
 - `index.html`, `style.css` — shell and mobile-first styling
-- `packs/default/` — Lanternlight, the default texture pack (`pack.json` + SVG pictures)
-- `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `textures.js` the catalog page and pack download)
+- `packs/default/` — Lanternlight, the game's pictures (`pack.json` + SVG pictures)
+- `wiki/` — the player wiki (`index.html` is the shell, the articles are in `i18n/en.js` and `i18n/lt.js`, `wiki.js` fills them in and renders tables from the core, `ideas.js` holds the Ideas sketchbook, `pictures.js` the game's pictures and the catalog page)
 - `docs/ui.md` — the UI system: where the HUD, thumb cluster, sheets and dialogs go, and why; `docs/music.md` — the soundtrack
 - `test/unit/` — Node `node:test` suites for the core, the wire format and the room service's rules
 - `test/property/` — property tests: random legal play, checked against the

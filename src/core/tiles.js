@@ -50,7 +50,7 @@ export const T = {
   WALL: 21, HEDGE: 22
 };
 
-// Each type's name, and the key a texture pack knows it by (look id "tile.<key>").
+// Each type's name, and the key its pictures are kept under (look id "tile.<key>").
 export const TILE_NAME = [];
 export const TILE_KEY = [];
 [

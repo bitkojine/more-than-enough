@@ -1,4 +1,4 @@
-/* One frame, back to front, drawn in the current texture pack (`look`).
+/* One frame, back to front, drawn from the game's pictures (`look`).
  * `view` carries the UI state the picture depends on
  * (targets, the Trail, the joystick) so drawing never reaches into input or
  * the sheet. Nothing drawn here is text to read. Returns frame stats

@@ -22,7 +22,7 @@ const rand = Math.random;
 const TAU = Math.PI * 2;
 
 /**
- * @param {object} look  the texture pack: sparks take their resource's colour from it
+ * @param {object} look  the game's pictures: sparks take their resource's colour from it
  * @param {(res: string) => {x: number, y: number}} landing  where a flyer of
  *   `res` lands: a spot in the stockpile
  * @param {(x: number, y: number) => boolean} seen  whether a world point is on

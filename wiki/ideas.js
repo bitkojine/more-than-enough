@@ -21,10 +21,6 @@ export const IDEAS = [
   { id: 'crystalsThatLightTheDark', area: 'look', size: 'small' },
   { id: 'seasons', area: 'look', size: 'medium' },
 
-  { id: 'packGallery', area: 'look', size: 'medium' },
-  { id: 'soundPacks', area: 'look', size: 'medium' },
-  { id: 'packsThatChangeWithDepth', area: 'look', size: 'small' },
-
   /* ----------------------------------------------------------- depth */
   { id: 'distantPlateaus', area: 'depth', size: 'medium' },
   { id: 'waterfallsOffTheEdge', area: 'depth', size: 'medium' },

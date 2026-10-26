@@ -4,12 +4,12 @@
 import * as Core from '../src/core/index.js';
 import { VERSION } from '../src/version.js';
 import { renderIdeas } from './ideas.js';
-import { loadDefaultPack, pic, colorOf, tierUrl, renderThings, wireDownload } from './textures.js';
+import { loadDefaultPack, pic, colorOf, tierUrl, renderThings } from './pictures.js';
 import { find, renderResults, passages, mark, unmark } from './search.js';
 import { t, localizePage, setLanguage, nextLanguage, number, LOCALE } from './strings.js';
 
 const { T, TILE_NAME } = Core;
-// Pictures come from the default texture pack.
+// Pictures come from the game's own pack.
 const icon = (res) => pic(Core.resourceLook(res), 'icon', 'pic', Core.RESOURCE_LABEL[res]);
 const tileName = (type) => pic(Core.tileLook(type), 'top') + ' ' + TILE_NAME[type];
 const num = (n) => number(Number.isInteger(n) ? n : Math.round(n * 1000) / 1000);
@@ -187,7 +187,6 @@ async function fill() {
   }
   for (const node of document.querySelectorAll('[data-ideas]')) node.innerHTML = renderIdeas();
   for (const node of document.querySelectorAll('[data-things]')) node.innerHTML = renderThings();
-  for (const node of document.querySelectorAll('[data-download-pack]')) wireDownload(node);
   document.querySelector('.version').textContent = t('wiki.forVersion', { version: VERSION });
 }
 

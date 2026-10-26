@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.164.0": "Loading your own texture pack is gone, along with Textures in Nerds: hardly anyone used it. The game keeps the one look its makers drew, and your worlds are untouched.",
   "news.0.163.0": "Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.",
   "news.0.162.0": "Behind the scenes: code for talking to old versions of the shared-world service, which no longer exist, is gone. Nothing changes in play.",
   "news.0.161.0": "{phone:Phones and tablets now draw the game 30 times a second while you play, and about 10 while nothing moves, so they stay cooler and the battery lasts longer.|laptop:On phones and tablets the game now draws 30 times a second while you play, and about 10 while nothing moves, so they stay cooler. On a computer nothing changes.}",
@@ -610,11 +611,6 @@ export default {
   "sheet.back": "Back",
   "sheet.wiki": "Wiki",
   "sheet.drag": "Drag",
-  "sheet.textures": "Textures",
-  "sheet.texturesDefault": "Default textures",
-
-  "pack.notUsed": "Texture pack not used",
-  "pack.close": "Close",
 
   "fork.title": "This world was also played in another tab",
 
@@ -751,7 +747,6 @@ export default {
   "map.up": "The layer above",
   "map.down": "The layer below",
 
-
   "button.climbDown": "CLIMB DOWN",
   "button.climbDown.aria": "Climb down the ladder",
   "button.climbUp": "CLIMB UP",
@@ -883,41 +878,9 @@ export default {
   "fork.reload": "Reload",
   "fork.newer": "The other tab saved with a newer version of the game.",
 
-  "pack.variantsEmpty": "{where}: the list of variants is empty",
-  "pack.variantsAllEmpty": "{where}: every variant is empty",
-  "pack.animationKey": "{where}: unknown key {keys} (an animation has \"frames\" and \"fps\")",
-  "pack.frames": "{where}: \"frames\" must be a list of pictures",
-  "pack.fps": "{where}: \"fps\" must be a number from 1 to 30",
-  "pack.notPicture": "{where}: {value} is not a picture (a path ending .svg/.png/.webp/.jpg/.gif, inline <svg>, data:image/ or https://)",
-  "pack.notObject": "The pack is not a JSON object",
-  "pack.topKey": "Unknown top-level key \"{key}\" (allowed: {allowed})",
-  "pack.format": "\"format\" must be {format} (this game's pack format), not {got}",
-  "pack.name": "\"name\" is missing",
-  "pack.author": "\"author\" must be text",
-  "pack.tile": "\"tile\" must be a whole number of pixels from 4 to 1024",
-  "pack.pixelated": "\"pixelated\" must be true or false",
-  "pack.looks": "\"looks\" must be an object of thing ids",
-  "pack.noThing": "{id}: no such thing in the game (see the wiki's list)",
-  "pack.slotsObject": "{id}: must be an object of slots",
-  "pack.noSlot": "{where}: {name} has no \"{slot}\" (it has {slots})",
-  "pack.color": "{where}: must be a colour like \"#4a7a33\"",
-  "pack.tiers": "{where}: must be a list of pictures, one per power of ten, smallest first",
-  "pack.stages": "{where}: must be a list of pictures, empty first, full last",
-  "pack.missing": "{where}: missing",
-  "pack.fileNotPicked": "\"{ref}\" was not among the files picked with the pack",
-  "pack.pathInSingleFile": "\"{ref}\" is a path, but the pack came as a single file: inline it (the wiki shows how)",
   "pack.pictureFailed": "the picture failed to load or decode",
   "pack.pictureNoSize": "the picture has no size (an SVG needs width and height attributes)",
   "pack.inlineSvg": "inline SVG",
-  "pack.defaultName": "Lanternlight",
-  "pack.pickOne": "Pick one pack.json, not {n} ({names})",
-  "pack.noJson": "No .json file among the picked files: pick the pack.json (and its pictures)",
-  "pack.badJson": "{name} is not valid JSON: {error}",
-
-  "toast.texturesUnkept": "Textures: {name} (this browser can't keep it: {error})",
-  "toast.textures": "Textures: {name}",
-  "toast.texturesUnforgotten": "Textures: {name} (couldn't forget the old pack: {error})",
-  "toast.texturesUnread": "Your texture pack couldn't be read ({error})",
 
   "pack.defaultHttp": "Default texture pack: {url} answered {status}",
   "pack.defaultBroken": "Default texture pack is broken:\n{problems}",

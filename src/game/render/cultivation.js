@@ -1,4 +1,4 @@
-/* New machinery uses the existing texture pack and projection, with physical
+/* New machinery uses the existing pack and projection, with physical
  * shutters, cooling fans and condition marks added to the familiar buildings. */
 import * as Core from '../../core/index.js';
 export function cultivationRows(s,z){

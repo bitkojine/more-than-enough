@@ -25,9 +25,7 @@ import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf.js';
 import { createQuality, frameDue, pace, CALM_AFTER_S } from './quality.js';
-import { createLook } from './look/look.js';
-import { createTextures, loadDefaultPack } from './textures.js';
-import { loadSavedPack } from './look/store.js';
+import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
 import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
@@ -73,20 +71,19 @@ const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 window.MTE_VERSION = VERSION;  // for the crash report
 
-// Nothing is drawn until the default texture pack is in. If it can't load,
+// Nothing is drawn until the game's pictures are in. If they can't load,
 // that's a crash: say exactly what broke.
+// The pack's URL carries this module's ?v= cache-busting hash (the deployed
+// game is one bundle in main.js's place, so this resolves the same there).
 const look = createLook();
-// The player's own pack (if any) is read from this browser's database while
-// the default one loads, not after it.
-const savedPack = loadSavedPack();
-let defaultPack;
+const packUrl = new URL('../../packs/default/pack.json', import.meta.url);
+packUrl.search = new URL(import.meta.url).search;
 try {
-  defaultPack = await loadDefaultPack();
+  look.use(await loadDefaultPack(packUrl.href));
 } catch (err) {
   window.MTE_CRASH(err.message);
   throw err;
 }
-look.use(defaultPack);
 // The 3D character is a lazy presentation module, shared with the dev viewer.
 // Until it settles Mica isn't drawn (render/sprites.js); if it fails, the
 // pack's 2D wanderer stands in.
@@ -366,12 +363,6 @@ function showLantern(s) {
 }
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
-
-const textures = createTextures({
-  el, look, defaultPack,
-  changed: () => { hud.repaint(); sheet.render(); },
-  toast: hud.toast
-});
 
 const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : []);
 
@@ -777,7 +768,6 @@ showAway();
 perf.toggle(new URLSearchParams(location.search).has('perf'));
 applyQuality();
 hud.repaint();
-await textures.restore(savedPack);
 hud.update(game.state);
 hud.updateButtons(game.state);
 hud.perfect(perfect.badge, false);
@@ -820,7 +810,6 @@ createTooltips({canvas:el.canvas,cam,state:()=>game.state,world:()=>wiki.mode===
 window.MTE_GAME = {
   core: Core,
   look,
-  textures,
   yard,
   getState: () => game.state,
   together,

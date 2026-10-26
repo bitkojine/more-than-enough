@@ -1,45 +1,22 @@
-/* What everything looks like right now: the default texture pack, with the
- * player's pack (if any) laid over it slot by slot. Drawing code asks the
- * look for colours and pictures by thing id and never names a file.
+/* What everything looks like: the game's own pictures and colours
+ * (packs/default/pack.json). Drawing code asks the look for colours and
+ * pictures by thing id and never names a file.
  *
  * Pictures are rasterised once per size (rounded up to a power of two) and
  * reused, so drawing a tile is a single drawImage however complex its SVG. */
 
 import { hash2, DEFAULT_TILE } from '../../core/index.js';
-import { validatePack, pictures } from './validate.js';
+import { pictures } from '../../core/index.js';
 import { t } from '../../i18n/i18n.js';
 
 const MIN_BUCKET = 4, MAX_BUCKET = 1024;
 
 const svgUrl = (markup) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.trim());  // i18n-ok: a URL
 
-function readAsDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
-  });
-}
-
-// A file the player picked whose path (or file name) matches `path`.
-function pickedFile(files, path) {
-  const name = path.split('/').pop();
-  return files.find((f) => (f.webkitRelativePath || '').endsWith('/' + path) || f.name === path) ||
-    files.find((f) => f.name === name) || null;
-}
-
-// The URL to load a picture from. `base` is the pack's own URL (its query
+// The URL to load a picture from. `base` is pack.json's own URL (its query
 // string carries the deploy's cache-busting hash on to every file).
-async function urlFor(ref, base, files) {
+function urlFor(ref, base) {
   if (/^\s*<svg/.test(ref)) return svgUrl(ref);
-  if (ref.startsWith('data:') || ref.startsWith('https://')) return ref;
-  if (files) {
-    const f = pickedFile(files, ref);
-    if (!f) throw new Error(t('pack.fileNotPicked', { ref }));
-    return readAsDataUrl(f);
-  }
-  if (!base) throw new Error(t('pack.pathInSingleFile', { ref }));
   const url = new URL(ref, base);
   url.search = new URL(base).search;
   return url.href;
@@ -59,21 +36,17 @@ function makePicture(img, url, tile, pixelated) {
   return { img, url, units: w / tile, aspect: h / w, pixelated, cache: new Map() };
 }
 
-/* Loads and checks a pack. Resolves to { pack, problems }: `pack` is null
- * whenever there is any problem, so a broken pack is never half-applied.
- *   base      the URL pack.json came from (relative paths resolve against it)
- *   files     files picked alongside a pack.json (paths resolve among them)
- *   complete  every required slot must be filled (the default pack) */
-export async function loadPack(json, { base = null, files = null, complete = false } = {}) {
-  const problems = validatePack(json, { complete });
-  if (problems.length) return { pack: null, problems };
+/* Loads every picture of the pack that came from `base`. Resolves to
+ * { pack, problems }: `pack` is null whenever a picture failed to load. */
+export async function loadPack(json, base) {
+  const problems = [];
   const tile = json.tile || DEFAULT_TILE;
   const pixelated = !!json.pixelated;
   const loaded = new Map(); // ref -> Promise<picture>
   const load = (ref) => {
     if (!loaded.has(ref)) {
-      loaded.set(ref, urlFor(ref, base, files).then(async (url) => {
-        const img = await loadImage(url);
+      const url = urlFor(ref, base);
+      loaded.set(ref, loadImage(url).then((img) => {
         if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) throw new Error(t('pack.pictureNoSize'));
         return makePicture(img, url, tile, pixelated);
       }));
@@ -100,57 +73,38 @@ export async function loadPack(json, { base = null, files = null, complete = fal
   }
   await Promise.all(jobs);
   if (problems.length) return { pack: null, problems };
-  return { pack: { name: json.name, author: json.author || '', pixelated, slots, json }, problems };
+  return { pack: { slots }, problems };
 }
 
-/* Packs the player picked as files into one self-contained pack (every path
- * replaced by the file's contents), so it can be remembered and reloaded
- * without the files. Throws, naming the file, if one is missing. */
-export async function inlinePack(json, files) {
-  const out = JSON.parse(JSON.stringify(json));
-  const inline = async (ref) => (ref === null || !/^[^:<]+$/.test(ref) ? ref : urlFor(ref, null, files));
-  for (const entry of Object.values(out.looks || {})) {
-    for (const slot of Object.keys(entry)) {
-      const v = entry[slot];
-      if (slot === 'color') continue;
-      if (Array.isArray(v)) entry[slot] = await Promise.all(v.map(inline));
-      else if (v && typeof v === 'object') v.frames = await Promise.all((v.frames || []).map(inline));
-      else entry[slot] = await inline(v);
-    }
-  }
-  return out;
+// Loads the game's pack from `url`; throws (naming every picture that broke)
+// if it is broken, which is a crash: a half-drawn world is never shown.
+export async function loadDefaultPack(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(t('pack.defaultHttp', { url, status: res.status }));
+  const { pack, problems } = await loadPack(await res.json(), url);
+  if (!pack) throw new Error(t('pack.defaultBroken', { problems: problems.join('\n') }));
+  return pack;
 }
 
 /* ------------------------------------------------------------ the look */
 
 export function createLook() {
-  let base = null; // the default pack
-  let over = null; // the player's pack, or null
+  let pack = null;
 
-  const entry = (id, slot) => (over && over.slots.get(id) && over.slots.get(id)[slot]) || base.slots.get(id)[slot];
+  const entry = (id, slot) => pack.slots.get(id)[slot];
   const dpr = () => Math.min(2, window.devicePixelRatio || 1);
 
   const look = {
     // Bumped on every change, so anything that caches pictures can tell.
     version: 0,
 
-    // The default pack's name is the game's own, so it is translated.
-    get name() { return over ? over.name : t('pack.defaultName'); },
-    get custom() { return !!over; },
-    get pack() { return over; },
-
-    use(defaultPack, playerPack = null) {
-      base = defaultPack;
-      over = playerPack;
+    use(loadedPack) {
+      pack = loadedPack;
       look.version++;
     },
 
     color(id) {
       return entry(id, 'color');
-    },
-
-    overrides(id, slot = 'image') {
-      return !!over?.slots.get(id)?.[slot];
     },
 
     has(id, slot) {
@@ -179,22 +133,16 @@ export function createLook() {
     // A building's picture with `share` of its room holding output waiting
     // to be collected (0 = nothing waiting, 1 = full): the first of its
     // stages when empty, the last when full, the ones between on the way
-    // up. A player's pack that draws the building but not its stages keeps
-    // its one picture.
+    // up.
     stage(id, share) {
-      const own = over && over.slots.get(id);
-      if (own && own.image && !own.stages) return own.image.pics[0];
       const pics = entry(id, 'stages').pics, n = pics.length;
       if (share <= 0) return pics[0];
       if (share >= 1 || n <= 2) return pics[n - 1];
       return pics[Math.min(n - 2, 1 + Math.floor(share * (n - 2)))];
     },
 
-    // Exact physical tier/repair state. Existing custom one-picture packs keep
-    // their icon/image instead of being overwritten by default tier artwork.
+    // Exact physical tier/repair state.
     level(id, index, slot = 'image') {
-      const own = over && over.slots.get(id);
-      if (own && own[slot] && !own.stages) return own[slot].pics[0];
       const stages = entry(id, 'stages');
       return stages ? stages.pics[Math.max(0, Math.min(index, stages.pics.length - 1))] : look.pick(id, slot);
     },

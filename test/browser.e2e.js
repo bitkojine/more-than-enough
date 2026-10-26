@@ -1385,12 +1385,12 @@ async function main() {
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear switches the sheet to Settings');
   ok(await evalJS('document.getElementById("sheetBody").hidden && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Settings shows no game list and no tabs');
   // The technical things wait one row further in, under Nerds.
-  ok(await evalJS('document.getElementById("btnTextures").offsetParent === null && document.getElementById("version").offsetParent === null'), 'Settings keeps textures and the version out of sight');
+  ok(await evalJS('document.getElementById("btnBackupSave").offsetParent === null && document.getElementById("version").offsetParent === null'), 'Settings keeps backups and the version out of sight');
   await evalJS('document.getElementById("btnNerds").click()');
   await sleep(100);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Nerds', 'Nerds opens its own screen');
   ok(await evalJS('document.getElementById("sheetTitle").offsetParent !== null && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Nerds shows its title, not the game tabs');
-  ok(await evalJS('document.getElementById("btnTextures").offsetParent !== null && document.getElementById("btnMute").offsetParent === null'), 'Nerds shows Textures, not the everyday settings');
+  ok(await evalJS('document.getElementById("btnBackupSave").offsetParent !== null && document.getElementById("btnMute").offsetParent === null'), 'Nerds shows backups, not the everyday settings');
   ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Nerds');
   eq(await evalJS('document.getElementById("perfState").textContent'), 'off', 'the performance panel switch starts off');
   await evalJS('document.getElementById("btnPerf").click()');
@@ -1844,68 +1844,25 @@ async function main() {
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'F3 closes it again');
 
-  /* ----------------------------------------------------------- textures */
-  console.log('\n== Texture packs ==');
+  /* ------------------------------------------------------------ pictures */
+  console.log('\n== Pictures ==');
+  // A texture pack an older version kept in this browser is left where it
+  // is and never used: the game has one look.
+  await evalJS('new Promise(function(done){var r=indexedDB.open("more-than-enough",1);r.onupgradeneeded=function(){r.result.createObjectStore("packs");};' +
+    'r.onsuccess=function(){var tx=r.result.transaction("packs","readwrite");tx.objectStore("packs").put({format:1,name:"Old pack",looks:{"color.backdrop":{color:"#123456"}}},"player");tx.oncomplete=function(){r.result.close();done(true);};};})');
   await navigate('http://127.0.0.1:' + PORT + '/');
-  eq(await evalJS('MTE_GAME.look.name'), 'Lanternlight', 'the game starts in the default texture pack');
+  ok(await waitFor('window.MTE_GAME && document.getElementById("crash").hidden', 3000), 'the game starts with an old texture pack still in the browser');
+  ok(await evalJS('MTE_GAME.look.color("color.backdrop") !== "#123456"'), 'and draws in its own look, not the old pack');
   ok(await waitFor('[...document.querySelectorAll("img[data-look]")].every(function(i){return i.complete && i.naturalWidth > 0;})', 3000),
     'every picture on the HUD and buttons comes from the pack and has loaded');
   eq(await evalJS('document.querySelectorAll("#resources .chip img.ic").length'), 4, 'each resource counter shows its pack icon');
   ok(await evalJS('!/\\p{Extended_Pictographic}/u.test(document.getElementById("controls").textContent + document.getElementById("resources").textContent)'),
     'no emoji left on the buttons or counters');
-  eq(await evalJS('document.getElementById("packName").textContent'), 'Lanternlight', 'the Textures button names the pack in use');
-  eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), true, '"Default textures" only shows while another pack is in use');
   eq(await evalJS('document.getElementById("btnBackupSave").hidden || document.getElementById("btnBackupLoad").hidden'), false, 'your own world has Save a backup and Load a backup');
   // The sheet's rows use the pack's pictures too.
   await evalJS('document.getElementById("btnBuild").click()');
   ok(await waitFor('document.querySelectorAll("#sheetBody .row .ic img").length >= 8', 2000), 'the Build sheet shows each building\'s picture');
   await evalJS('document.getElementById("btnClose").click()');
-
-  // A pack picked as files: helpers build File objects in the page.
-  var pickPack = function (pack, extra) {
-    return evalJS('(function(){var files=[new File([' + JSON.stringify(JSON.stringify(pack)) + '],"pack.json",{type:"application/json"})];' +
-      (extra || []).map(function (f) { return 'files.push(new File([' + JSON.stringify(f.text) + '],' + JSON.stringify(f.name) + ',{type:"image/svg+xml"}));'; }).join('') +
-      'return MTE_GAME.textures.fromFiles(files).then(function(){return true;});})()');
-  };
-  var dot = function (fill) { return '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="' + fill + '"/></svg>'; };
-
-  await pickPack({ format: 1, name: 'Broken', looks: { 'tile.gras': { top: 'g.png' }, 'tile.water': { icon: 'w.png' }, 'color.backdrop': { color: 'black' } } });
-  ok(await waitFor('!document.getElementById("packReport").hidden', 2000), 'a broken pack opens the problem report');
-  var report = await evalJS('[...document.querySelectorAll("#packReport li")].map(function(li){return li.textContent;})');
-  ok(report.length === 3 && /^tile\.gras: no such thing/.test(report[0]) && /^tile\.water icon:/.test(report[1]) && /^color\.backdrop color:/.test(report[2]),
-    'the report lists every problem by thing and slot (' + report.join(' | ') + ')');
-  eq(await evalJS('MTE_GAME.look.name'), 'Lanternlight', 'a broken pack is not used at all');
-  await evalJS('document.querySelector("#packReport button").click()');
-  ok(await evalJS('document.getElementById("packReport").hidden'), 'the report closes');
-
-  await pickPack({ format: 1, name: 'Missing file', looks: { 'resource.mycelium': { icon: 'mycelium.svg' } } });
-  ok(await waitFor('/mycelium\\.svg" was not among the files picked/.test(document.getElementById("packReport").textContent)', 2000),
-    'a picture that wasn\'t picked with the pack is named in the report');
-  await evalJS('document.querySelector("#packReport button").click()');
-
-  var myceliumBefore = await evalJS('document.querySelector("#resources img.ic").src');
-  await pickPack({ format: 1, name: 'Test pack', looks: {
-    'resource.mycelium': { icon: 'mycelium.svg' },
-    'resource.stone': { icon: dot('#ff00ff') },
-    'color.backdrop': { color: '#123456' },
-    'tile.grass': { top: ['mycelium.svg', null], color: '#aa2200' }
-  } }, [{ name: 'mycelium.svg', text: dot('#00ff00') }]);
-  ok(await waitFor('MTE_GAME.look.name === "Test pack"', 3000), 'a good pack (a pack.json plus a picture file, and inline SVG) is used straight away');
-  eq(await evalJS('document.getElementById("packName").textContent'), 'Test pack', 'the Textures button shows its name');
-  ok(await evalJS('document.querySelector("#resources img.ic").src') !== myceliumBefore, 'the mycelium counter switches to the pack\'s picture');
-  eq(await evalJS('MTE_GAME.look.color("color.backdrop")'), '#123456', 'the pack\'s colours are used');
-  eq(await evalJS('MTE_GAME.look.color("tile.forest")'), '#3a5a2c', 'anything the pack leaves out keeps the default look');
-  eq(await evalJS('document.getElementById("btnTexturesDefault").hidden'), false, '"Default textures" appears');
-  ok(await waitFor('/^Textures: Test pack/.test(document.getElementById("toast").textContent)', 1000), 'a toast confirms the pack');
-  eq(await evalJS('document.getElementById("crash").hidden'), true, 'the map keeps drawing in the new pack');
-
-  await navigate('http://127.0.0.1:' + PORT + '/');
-  ok(await waitFor('MTE_GAME.look.name === "Test pack"', 3000), 'the pack is remembered after a reload');
-  await evalJS('document.getElementById("btnTexturesDefault").click()');
-  ok(await waitFor('MTE_GAME.look.name === "Lanternlight" && document.getElementById("btnTexturesDefault").hidden', 2000), '"Default textures" goes back to Lanternlight');
-  await navigate('http://127.0.0.1:' + PORT + '/');
-  ok(await waitFor('window.MTE_GAME && MTE_GAME.look.name === "Lanternlight"', 3000), 'and the old pack is forgotten (' + await evalJS('window.MTE_GAME ? MTE_GAME.look.name : "no game"') + ')');
-  pageErrors = pageErrors.filter(function (e) { return e.indexOf('Texture pack not used') < 0; });
 
   /* ---------------------------------------------------------- stockpile */
   console.log('\n== Stockpile ==');
@@ -1975,10 +1932,6 @@ async function main() {
   ok(await waitFor('/Not mentioned/.test(document.getElementById("results").textContent)', 2000), 'a word the wiki never uses says so');
   await evalJS('(function(){var b=document.getElementById("search");b.value="";b.dispatchEvent(new Event("input"));})()');
   ok(await waitFor('document.getElementById("results").hidden && !document.getElementById("home").hidden && document.querySelectorAll("#toc li:not([hidden])").length === document.querySelectorAll("article").length', 2000), 'clearing the search returns to the wiki');
-  await evalJS('location.hash = "#textures"');
-  // The same module instance the wiki loaded (a staged site stamps ?v= on it).
-  var bundled = await evalJS('import(performance.getEntriesByType("resource").map(function(e){return e.name;}).filter(function(n){return /\\/wiki\\/textures\\.js/.test(n);})[0] || "/wiki/textures.js").then(function(m){return m.bundleDefaultPack();}).then(function(p){return {n:Object.keys(p.looks).length, svg:JSON.stringify(p).indexOf("<svg")>0, paths:JSON.stringify(p).split(".svg").length > 1};})');
-  ok(bundled.n === things && bundled.svg && !bundled.paths, 'the default pack downloads as one file with every picture inside it');
 
   console.log('\n== Sound on a fresh page ==');
   // Each way of starting to play must also start the sound, on a page that

@@ -1,5 +1,5 @@
 /* Colour helpers shared by everything that draws the ground. The colours
- * themselves come from the texture pack (look.js). */
+ * themselves come from the game's pack (look.js). */
 
 import * as Core from '../../core/index.js';
 

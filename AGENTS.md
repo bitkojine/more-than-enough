@@ -1,7 +1,7 @@
 # Working on MICA AND WIKI
 
 Rules every contributor (human or agent) follows. The README explains the
-project and its own rules (languages, device text, texture packs, versioning,
+project and its own rules (languages, device text, pictures, versioning,
 tests); this file adds what isn't written anywhere else and says where each
 kind of knowledge lives.
 

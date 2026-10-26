@@ -232,10 +232,6 @@
     <!-- For nerds: the technical things most players never need. -->
     <div id="nerdsPanel" class="setPanel" hidden>
       <div class="setGroup">
-        <button id="btnTextures" class="setRow" type="button"><span data-i18n="sheet.textures"></span><b id="packName"></b></button>
-        <button id="btnTexturesDefault" class="setRow" type="button" hidden><span data-i18n="sheet.texturesDefault"></span></button>
-      </div>
-      <div class="setGroup">
         <button id="btnBackupSave" class="setRow" type="button"><span data-i18n="backup.save"></span><b aria-hidden="true">&darr;</b></button>
         <button id="btnBackupLoad" class="setRow" type="button"><span data-i18n="backup.load"></span><b aria-hidden="true">&uarr;</b></button>
       </div>
@@ -247,7 +243,6 @@
       <!-- Problems the game got past, each a report to copy (src/game/problems.js). -->
       <div id="problems" class="setGroup" hidden></div>
       <div id="version"><span id="brand" translate="no">byrforr</span><span id="verText"></span></div>
-      <input id="packFile" type="file" accept=".json,application/json,image/*" multiple hidden />
       <input id="backupFile" type="file" accept=".json,application/json" hidden />
     </div>
   </div>
@@ -256,13 +251,6 @@
   <!-- An admin's copy of a shared world (src/game/copy.js): says so all the time. -->
   <div id="copyBadge" role="status" hidden></div>
   <div id="place" role="status" aria-live="polite" hidden><small></small><strong></strong></div>
-  <div id="packReport" class="scrim" role="alert" hidden>
-    <div class="dialog warn">
-      <strong data-i18n="pack.notUsed"></strong>
-      <ul></ul>
-      <div class="choices"><button type="button" class="secondary" data-i18n="pack.close"></button></div>
-    </div>
-  </div>
   <!-- A frozen character (its progress was hacked): a joke "FBI" badge, the
        Fair-play Bureau of Investigation, and the only way on is back to
        your own world. src/game/fbi.js -->

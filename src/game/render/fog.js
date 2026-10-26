@@ -11,7 +11,7 @@
  * nothing jumps when the far map redraws at a new size.
  *
  * Only the surface has clouds: underground, what you haven't seen is rock.
- * The pictures are made once from the texture pack's two cloud colours, lit
+ * The pictures are made once from the pack's two cloud colours, lit
  * from the north-west like everything else. */
 
 import * as Core from '../../core/index.js';

@@ -10,7 +10,7 @@ place it belongs here rather than adding a button where there is room.
 3. **Status top, actions bottom.** Read-only info (currencies, depth, trophies) lives in a top bar; things you press live at the bottom.
 4. **One currency bar.** All resources in one capsule, tap to see details. (Every F2P game.)
 5. **Settings behind a gear.** Sound, music, controls, language, wiki: one Settings screen from a gear in the top-right. Irreversible actions ask first, in-game.
-5a. **Technical things under Nerds.** Most players never need texture packs or the performance panel, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
+5a. **Technical things under Nerds.** Most players never need backups or the performance panel, so they sit on the *Nerds* screen, the last row of Settings, not on Settings itself. Anything new that only a tinkerer would touch (backups, diagnostics) goes there too.
 6. **Badges, not prose, and only looking clears them.** A badge on a button says "something new here for you" and stays until you open what it points to; walking, spending or waiting never hide it. What you can do *right now, right here* shows where you do it (lit buttons in a sheet, Gather's label, Climb popping in), not as a badge. Green is something to do, gold is something reached or to read.
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
 8. **Every sheet looks the same.** Header (title + close ×), tabs, scrolling body. Swipe down or tap outside to close. A screen opened from Settings (Nerds, Worlds, Players, Invite links) has ‹ before its title, back to Settings.
@@ -109,7 +109,7 @@ place it belongs here rather than adding a button where there is room.
 - **Settings** keeps the rest: *Worlds*, *Players* and *Invite links*. *Privacy policy* is a link row beside the wiki, opening `privacy/` in the player's language. *Produce while away* (with Sound and Music) is a switch row, on or off, and it's a choice for this device: off, time away makes nothing; on, your buildings and the Abundance Engine keep working while the game isn't the active screen, up to eight hours, in every world, yours and shared alike.
 - **Super-speed AUTO** (Nerds) opens a separate developer viewer tab (`?autoplay`). It runs a fresh single-player world with the shipped AUTO held, shows the normal map and resource HUD, and offers Pause/Resume, 1×/100×/1000×/10000×/Maximum, New fresh world and downloads from the retained-world archive. Maximum uses bounded simulation work between draws; displayed speed is measured, not guaranteed. Hidden tabs pause without catch-up. The viewer stops when Embark becomes available, never confirms it, never connects to rooms, and keeps its worlds in a separate IndexedDB archive without changing normal saves. It shows state samples, not every skipped animation. Its styles (`autoplay-lab.css`) load only in the viewer.
 - **Problems the game got past** (Nerds, below the performance panel, only when there are any): an error the game skipped over (a part of the picture, a frame, a tap) says so once in a toast and is listed here, one line each with **Copy**, which copies a full report to send to whoever fixes the game (`src/game/problems.js`). Reports are in English, for developers, and stay on the device. The crash screen, shown only when frames keep failing, has **Copy report** too.
-- **Save a backup** and **Load a backup** (Nerds, under *Textures*, in your own world only) save your world as a file on your device and play one from a file (`src/game/backup.js`). Loading asks first and saves the world you're in as a file before it, so neither is lost. A shared world has neither: its progress is the room's, and the moderator backs it up (server/README.md).
+- **Save a backup** and **Load a backup** (Nerds, in your own world only) save your world as a file on your device and play one from a file (`src/game/backup.js`). Loading asks first and saves the world you're in as a file before it, so neither is lost. A shared world has neither: its progress is the room's, and the moderator backs it up (server/README.md).
 - **The privacy policy** is accepted in the same question that starts or joins a shared world: one line says so, a link under it opens the policy, and Cancel keeps you playing alone. No separate consent screen.
 - **Names**: every player gets a nature name (Moss, Fern, Fox…; in Lithuanian Samana, Papartis, Lapė…) picked from their id, never two alike in a world and the same on every phone. Names, never numbers or ids, label friends everywhere.
 - **Friends** are chips under the top bar on the right, one per friend in their colour with their name, showing their state: online, away (z), connection lost (blinking), offline (hollow). Tapping one says how they're doing there. At most five chips show, awake friends first, and only as many as fit beside the depth meter; the rest fold into a "+N" chip that opens *Players*.
@@ -170,7 +170,7 @@ No white chalk (reverted in v0.152.1 at Watch's request).
 
 
 ## Living-crystal chapter in the existing client
-The existing canvas, terrain art, texture packs, character, movement, cave
+The existing canvas, terrain art, the pack's pictures, character, movement, cave
 transitions, HUD, music and sheets stay in use. New-world Build keeps gardens,
 quarries, underground mines, Stoneworks and physical depots. It adds chambers,
 cooling towers, vaults, conduits and heart shelters, and nothing else: Build
@@ -234,8 +234,7 @@ Early picks use stone and mycelium bindings, early boots use woven fibre with
 later stone reinforcement; metal appears only at tiers whose recipes include it.
 Baskets retain fibre/stone construction throughout their current recipe chain.
 Every basket/pick/boot purchase tier has distinct inventory artwork; Upgrade
-previews the next tier. Texture-pack identities remain available to custom
-packs and the legacy compatibility renderer.
+previews the next tier.
 
 ### Character presentation
 
@@ -259,8 +258,8 @@ Earned pickaxes now use the shared 3D tool model: carried in the palm, moved
 by swing/build actions and stowed behind the torso for free-hand actions.
 Tier zero remains empty-handed. Inventory and upgrade icons are baked from
 the same six tier models. Other equipment and cargo models remain future work.
-Inventory, earned equipment and interactions retain their state. Custom character texture
-packs and legacy friend poses keep their established alignment and artwork.
+Inventory, earned equipment and interactions retain their state. Legacy friend poses keep their
+established alignment and artwork.
 
 `createActor().view(moving, position)` still supplies one real-time clock and
 travelled-distance phase per actor. A full cycle covers 2.4 world tiles, ten times the previous
@@ -284,7 +283,7 @@ Resource pictures use four shared 3D source models finished as flat vector art.
 Their icons, deposits/depleted views and small stockpiles share silhouettes and
 material colours. Mycelium remains distinct from stone/metal/living crystal;
 individual fungal species retain their restored artwork. Resource art is baked
-into the existing texture pack, including ordinary inventory icons and gathering
+into the existing pack, including ordinary inventory icons and gathering
 feedback; it creates no per-object 3D renderer. Warm pre-v0.135.1 scenery and
 building art supplies the reference palette/contours. Larger stockpile landmarks
 and all physical inventory quantities/footprints retain their existing meaning.

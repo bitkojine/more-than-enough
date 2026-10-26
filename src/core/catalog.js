@@ -1,7 +1,8 @@
-/* Everything that exists in the game, by the id a texture pack knows it by.
+/* Everything that exists in the game, by the id its look is kept under in
+ * packs/default/pack.json.
  *
- * The game decides what each thing is and what it does; a texture pack
- * decides what it looks like. Each thing names the slots a pack can fill:
+ * The game decides what each thing is and what it does; the pack holds what
+ * it looks like. Each thing names the slots the pack fills:
  *
  *   color  '#rrggbb'. Used far out, for sparks and as a fallback.
  *   top    the ground: an image stretched over the tile's top (squashed by
@@ -24,9 +25,8 @@
  *          one tile wide; piles of 10^7 and more cover a square of tiles
  *          (see pileSpan) and their picture is drawn that many tiles wide.
  *
- * Required slots must be in the default pack; a player's pack can fill any
- * subset and the default fills the rest. Everything here is plain data so
- * the wiki can list it. */
+ * Required slots must be in the pack (test/unit/looks.test.js checks it).
+ * Everything here is plain data so the wiki can list it. */
 
 import { CULTIVATION_LOOK } from './cultivation.js';
 import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL, RESOURCE_LOWER, RESOURCE_OF } from './tiles.js';
@@ -36,9 +36,8 @@ import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
 import { MUSHROOMS } from './mushrooms.js';
 
-export const PACK_FORMAT = 1;  // the texture pack format this version reads
 export const BOAT_DECK = 0.16; // where the wanderer stands on the boat, up from its bottom
-export const DEFAULT_TILE = 64; // a pack's picture pixels per tile, unless it says otherwise
+export const DEFAULT_TILE = 64; // the pack's picture pixels per tile, unless it says otherwise
 export const SLOTS = ['color', 'top', 'face', 'stand', 'cut', 'image', 'icon', 'tiers', 'stages'];
 
 // The groups, in the order the wiki lists them.
@@ -182,15 +181,13 @@ for (const key of COLORS) add('color', key, t('look.color.' + key), t('look.colo
 export const LOOKS = things;
 export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));
 
-// Things the game no longer draws. A pack that still has them (one saved or
-// exported before they went) loads as before; they are just ignored.
-// The character.* ones: painted 2D poses and still figures the 3D rig
-// replaced, and the phone and laptop characters used to hold (v0.145.0).
-export const RETIRED_LOOKS = new Set(['color.visited', 'color.cavity', 'color.edge',
-  'character.legacyWanderer', 'character.worker', 'character.miner', 'character.forager',
-  'character.bareForager', 'character.courier', 'character.specimen', 'character.lamplighter',
-  'character.phone', 'character.laptop',
-  ...['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'].map((d) => 'character.direction' + d)]);
+// Every picture an image value refers to, in order (variants' nulls skipped):
+// one picture, a list of variants, or { frames, fps } to animate.
+export function pictures(value) {
+  if (Array.isArray(value)) return value.filter((v) => v !== null);
+  if (value && typeof value === 'object') return value.frames || [];
+  return [value];
+}
 
 // The look id for a tile type and for a resource.
 export const tileLook = (t) => 'tile.' + TILE_KEY[t];

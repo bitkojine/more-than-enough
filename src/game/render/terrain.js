@@ -11,7 +11,7 @@
  * ground once the rows are done. In the mine, unexplored tiles are dark rock
  * (see drawUnseenRock).
  *
- * What everything looks like comes from the texture pack (look.js): a tile's
+ * What everything looks like comes from the game's pack (look.js): a tile's
  * top picture is stretched over its top face (`u` wide, `g * u` deep, where g
  * is the view's foreshortening), its face picture repeats down its south face,
  * and what stands on it (trees, boulders) is drawn upright after the whole

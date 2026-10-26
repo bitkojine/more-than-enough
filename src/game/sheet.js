@@ -23,7 +23,7 @@ const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds'];
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
-// Set by createSheet: pictures come from the current texture pack.
+// Set by createSheet: pictures come from the game's pack.
 let look = null;
 // What's new on the sheet showing (src/game/fresh.js): ids to tag NEW.
 let newIds = new Set();

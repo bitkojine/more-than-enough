@@ -195,7 +195,7 @@ td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ------------------------------------------------------------- pictures */
 
-/* Pictures from the default texture pack, inline with text. */
+/* The game's pictures, inline with text. */
 .pic { width: 1.35em; height: 1.35em; object-fit: contain; vertical-align: -0.32em; }
 h3 .pic { width: 1.6em; height: 1.6em; }
 
@@ -220,9 +220,6 @@ h3 .pic { width: 1.6em; height: 1.6em; }
 .thing-text { min-width: 0; }
 .thing-text p { margin: 4px 0 0; font-size: 14px; }
 .thing-head strong { color: var(--gold); }
-.thing-id { font-size: 12px; color: var(--ink-dim); }
-.thing-slots { color: var(--ink-dim); font-size: 13px; }
-code.req { font-weight: 800; color: var(--ink); }
 
 /* Stockpile piles in the tiers table. */
 img.pile { height: 44px; max-width: 70px; object-fit: contain; vertical-align: bottom; }
