@@ -110,6 +110,14 @@ fragment (`#link=<key>`, the QR).
   save}`, that copy, and the game asks the player which to keep. `cur: false`
   keeps a world without making it the one played (a device keeps its own when
   it is linked to another's).
+- `{"t":"me","key","me":{"key","rooms"}|null}` is your character in shared
+  worlds: the key that is you there and the worlds it plays in. The first
+  device to send one sets it and the vault never replaces it, only adds the
+  worlds the same character plays in; the answer is the vault's, `{me}` (or
+  `{me: null}`). A linked device that never played a shared world takes it;
+  one with a character of its own asks the player once. It is stored sealed
+  (AES-GCM with a key made from the sync key, which is never stored), so the
+  stored copy can't be read without the sync key.
 
 A solo world is nobody else's, so the vault checks nothing but the shape (a
 JSON object naming its own seed, at most 1 MB: `SOLO` in

@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.175.0] - 2026-10-26
+
+Your character in the shared world moves between devices too (the Safari
+storage P0, item 3: a wiped or new phone made a new key, and the old
+character could never be played again).
+
+### Added
+
+- The vault keeps your character beside your own worlds: the key that is
+  you in shared worlds and the worlds it plays in (`{"t":"me"}`,
+  `server/src/vault.js`), sealed with a key made from the sync key so the
+  stored copy can't be read without it. The first device sets it and the
+  vault never replaces it, only adds worlds.
+- A linked device that never played a shared world becomes that character
+  (`src/game/sync.js` character, `together.js` becomeCharacter) and lists its
+  worlds in Settings, Worlds. One with a character of its own is asked once,
+  *Play as that one*; the key it had is kept (`mte.key.before.<time>`), and
+  its character sleeps in the world as every character does.
+- Privacy page, server README and `docs/ui.md` say so; the deploy's smoke
+  test asks the vault for a character.
+
 ## [0.174.1] - 2026-10-26
 
 The game asks the browser to keep its storage (`navigator.storage.persist`,

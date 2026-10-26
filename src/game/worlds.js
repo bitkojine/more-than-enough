@@ -67,6 +67,14 @@ export function remember(room) {
   tidy();
 }
 
+// Worlds your character plays in on your other device (sync.js): added
+// after the ones on this list.
+export function rememberAll(rooms) {
+  const list = knownRooms();
+  const more = rooms.filter((r) => ROOM_ID_RE.test(r) && !list.includes(r));
+  if (more.length) write(ROOMS_STORE, JSON.stringify([...list, ...more]));
+}
+
 // Off the list: a world you can't go back to, or one you removed.
 export function forget(room) {
   write(ROOMS_STORE, JSON.stringify(knownRooms().filter((r) => r !== room)));

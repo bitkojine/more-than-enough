@@ -4,7 +4,7 @@
  *   POST /rooms                 make a room from a world (the admin token); returns {room}
  *   GET  /rooms/<id>            whether it exists, and how many play there now
  *   GET  /rooms/<id>/ws         join it (WebSocket)
- *   POST /solo                  your own world, kept for every device you link: pull or push (vault.js)
+ *   POST /solo                  your own world (and your character), kept for every device you link: pull, get, push, me (vault.js)
  *
  * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
  *
@@ -33,7 +33,7 @@ import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSe
 import { snapshot, copyEntries, COPY_MS } from './copy.js';
 import { adminPage, worldOf, isSmokeTest } from './admin.js';
 import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
-import { vaultName, pull, get, push } from './vault.js';
+import { vaultName, pull, get, push, me } from './vault.js';
 import { VERSION } from '../../src/version.js';
 import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate, SOLO, cleanSoloAsk } from '../../src/net/protocol.js';
 
@@ -299,7 +299,8 @@ export default {
       const ask = cleanSoloAsk(parse(body, SOLO.bytes + 1024));
       if (!ask) return respond({ error: 'bad' }, 400, okOrigin);
       const vault = env.VAULT.get(env.VAULT.idFromName(await vaultName(ask.key)));
-      const out = ask.t === 'pull' ? await vault.pull(ask.have) : ask.t === 'get' ? await vault.get(ask.seed) : await vault.push(ask);
+      const out = ask.t === 'pull' ? await vault.pull(ask.have) : ask.t === 'get' ? await vault.get(ask.seed)
+        : ask.t === 'me' ? await vault.me(ask.key, ask.me) : await vault.push(ask);
       return respond(out, out.error ? 409 : 200, okOrigin);
     }
 
@@ -356,6 +357,7 @@ export class Vault extends DurableObject {
   pull(have) { return pull(this.ctx.storage, have); }
   get(seed) { return get(this.ctx.storage, seed); }
   push(ask) { return push(this.ctx.storage, ask, Date.now()); }
+  me(key, mine) { return me(this.ctx.storage, key, mine); }
 }
 
 /* ------------------------------------------------------------------ */

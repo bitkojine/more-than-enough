@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.175.0": "Tavo veikėjas bendrame pasaulyje dabar keliauja kartu į įrenginį, kurį susieji per Nustatymai, Kitas įrenginys, tad ir jame ten žaidi tuo pačiu veikėju.",
   "news.0.174.1": "Žaidimas dabar prašo naršyklės išsaugoti jo įrašus, o ne ištrinti juos, kai įrenginyje pritrūksta vietos.",
   "news.0.174.0": "Žaisk savo pasaulį ne viename įrenginyje: Nustatymai, Kitas įrenginys rodo QR kodą ir nuorodą kitam įrenginiui. Tęsiasi tas, kurį žaidei paskutinį, o kopija debesyje grąžina pasaulį, jei naršyklė jį pamiršta.",
   "help.resource.mycelium": "Paviršiuje augantys pluoštai rišimui, auginimo lysvėms ir lanksčioms statinių dalims.",

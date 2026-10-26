@@ -20,7 +20,7 @@ import { registerCloudflare, Storage, start } from '../support/durable.js';
 
 registerCloudflare();
 const worker = await import('../../server/src/worker.js');
-const { push, pull, vaultName } = await import('../../server/src/vault.js');
+const { push, pull, vaultName, me: vaultMe } = await import('../../server/src/vault.js');
 
 const ORIGIN = 'https://play.robertasrudys.com';
 const SERVICE = 'https://rooms.example';
@@ -88,8 +88,30 @@ function device(service, seed) {
     aside: (seed, raw) => store.setItem('mte.solo.kept.' + seed + '.' + clock, raw),
     replace: (s) => { d.state = s; d.save(); },
     conflict: (c) => { d.asked = c; },
-    said: (w) => d.said.push(w)
+    said: (w) => d.said.push(w),
+    // As together.js character and becomeCharacter: the key that is you in
+    // shared worlds and the worlds you've been in.
+    me: () => {
+      const key = store.getItem('mte.key'), rooms = JSON.parse(store.getItem('mte.rooms') || '[]');
+      return key && rooms.length ? { key, rooms } : null;
+    },
+    becomeMe: (m) => {
+      const old = store.getItem('mte.key');
+      if (old && old !== m.key) store.setItem('mte.key.before.' + clock, old);
+      store.setItem('mte.key', m.key);
+      const list = JSON.parse(store.getItem('mte.rooms') || '[]');
+      store.setItem('mte.rooms', JSON.stringify([...list, ...m.rooms.filter((r) => !list.includes(r))]));
+    },
+    askMe: async () => { d.askedMe++; return d.meAnswer; }
   });
+  d.askedMe = 0;
+  d.meAnswer = false;
+  // Plays in a shared world as character `key` (null: the one it has).
+  d.joined = (room, key = null) => {
+    if (key) store.setItem('mte.key', key);
+    const list = JSON.parse(store.getItem('mte.rooms') || '[]');
+    store.setItem('mte.rooms', JSON.stringify([room, ...list.filter((r) => r !== room)]));
+  };
   // Playing: an action, then some play (gathering, time).
   d.play = (ms = 90_000, mycelium = 5) => {
     d.sync.played();
@@ -457,6 +479,62 @@ test('the route: only the game, only clean requests, and the key never stored', 
   assert.match(await vaultName(key), /^solo\|[0-9a-f]{64}$/);
   assert.ok(!(await vaultName(key)).includes(key));
   void service;
+});
+
+const KEY_A = 'a'.repeat(64), KEY_B = 'b'.repeat(64);
+const ROOM_1 = 'R'.repeat(22), ROOM_2 = 'S'.repeat(22);
+
+test('a linked device that never played a shared world becomes your character there', async () => {
+  const service = cloud();
+  const mac = device(service), phone = device(service);
+  mac.joined(ROOM_1, KEY_A);
+  mac.play();
+  const key = mac.sync.start();
+  await mac.sync.check();
+  await phone.sync.link(key);
+  assert.equal(phone.store.getItem('mte.key'), KEY_A, 'the phone plays as the Mac\'s character');
+  assert.deepEqual(JSON.parse(phone.store.getItem('mte.rooms')), [ROOM_1], 'and knows its world');
+  assert.ok(phone.said.includes('me'));
+  assert.equal(phone.askedMe, 0, 'without a question');
+  // The Mac's character goes into a second world: the phone gets it too.
+  mac.joined(ROOM_2);
+  mac.play();
+  await mac.sync.check();
+  clock += IDLE_MS;
+  phone.play();
+  await phone.sync.check();
+  assert.deepEqual(JSON.parse(phone.store.getItem('mte.rooms')).sort(), [ROOM_1, ROOM_2].sort());
+});
+
+test('two devices with characters of their own: asked once, and neither character is lost', async () => {
+  const service = cloud();
+  const mac = device(service), phone = device(service), pad = device(service);
+  mac.joined(ROOM_1, KEY_A);
+  phone.joined(ROOM_1, KEY_B);
+  pad.joined(ROOM_1, KEY_B);
+  mac.play();
+  const key = mac.sync.start();
+  await mac.sync.check();
+  // The phone says no: it stays itself, and isn't asked again.
+  await phone.sync.link(key);
+  await new Promise((r) => setTimeout(r));
+  assert.equal(phone.askedMe, 1);
+  assert.equal(phone.store.getItem('mte.key'), KEY_B);
+  phone.joined(ROOM_2);
+  phone.play();
+  await phone.sync.check();
+  await new Promise((r) => setTimeout(r));
+  assert.equal(phone.askedMe, 1, 'asked once');
+  const [storage] = service.storages.values();
+  const box = await storage.get('me');
+  assert.ok(!JSON.stringify(box).includes(KEY_A) && !JSON.stringify([...box.data]).includes(KEY_A), 'the character is kept sealed');
+  assert.equal((await vaultMe(storage, key, null)).me.key, KEY_A, 'the vault keeps the first character, never another device\'s');
+  // The pad says yes: it plays as the Mac's character, and keeps its own key.
+  pad.meAnswer = true;
+  await pad.sync.link(key);
+  await new Promise((r) => setTimeout(r));
+  assert.equal(pad.store.getItem('mte.key'), KEY_A);
+  assert.equal(pad.store.getItem('mte.key.before.' + clock), KEY_B, 'the character it had is kept');
 });
 
 test('answers that don\'t fit are refused by the game', () => {

@@ -11,7 +11,11 @@
  * Nothing here deletes a world: a key keeps up to SOLO.worlds of them, and
  * then new ones stop.
  *
- * Storage: `meta` {cur, revs} (the world played last, and every world kept
+ * It keeps your character in shared worlds too (`me`): the first device to
+ * have one sets it, and the vault never changes it after, only adds the
+ * worlds it plays in; a linked device that has none takes it.
+ *
+ * Storage: `me` {iv, data} (sealed {key, rooms}), `meta` {cur, revs} (the world played last, and every world kept
  * with its revision) and `w:<seed>` {rev, at, save}. `storage` is the
  * object's own (get/put), and the get-then-put of one request runs without
  * another in between (a Durable Object's input gate). */
@@ -44,6 +48,47 @@ export async function pull(storage, have) {
 export async function get(storage, seed) {
   const w = await storage.get('w:' + seed);
   return w ? { seed, rev: w.rev, at: w.at, save: w.save } : { error: 'none' };
+}
+
+// Your character is kept sealed (AES-GCM) with a key made from the sync
+// key, which only comes with each request: what's stored can't be read
+// without it, so the key that is you in shared worlds is never kept in the
+// clear (rooms keep only a hash of it, protocol.js playerId).
+async function sealKey(key) {
+  const raw = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('mte-me|' + key));
+  return crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+}
+async function seal(key, me) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await sealKey(key), new TextEncoder().encode(JSON.stringify(me)));
+  return { iv: [...iv], data: new Uint8Array(data) };
+}
+async function unseal(key, box) {
+  try {
+    const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(box.iv) }, await sealKey(key), box.data);
+    return JSON.parse(new TextDecoder().decode(data));
+  } catch { return null; }
+}
+
+// Your character (a checked 'me' ask, with its sync key): `mine` is kept if
+// the vault has no character yet; its worlds are added if it's the same
+// one. Answers the vault's.
+export async function me(storage, key, mine) {
+  const box = await storage.get('me');
+  const had = box ? await unseal(key, box) : null;
+  if (!had) {
+    if (mine && !box) await storage.put('me', await seal(key, mine));
+    return { me: box ? null : mine || null };
+  }
+  if (mine && mine.key === had.key) {
+    const rooms = [...new Set([...mine.rooms, ...had.rooms])].slice(0, SOLO.rooms);
+    if (rooms.length !== had.rooms.length) {
+      const next = { key: had.key, rooms };
+      await storage.put('me', await seal(key, next));
+      return { me: next };
+    }
+  }
+  return { me: had };
 }
 
 // Keeps a world (a checked push, protocol.js cleanSoloAsk) at `now`.

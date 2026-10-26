@@ -18,7 +18,7 @@ import { roomService } from '../net/config.js';
 import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
 import { qrCanvas } from './qr.js';
-import { knownRooms, remember, forget, skip, worldName, soloName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
+import { knownRooms, remember, rememberAll, forget, skip, worldName, soloName, renderWorlds, onlineIn, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
 import { loadGame, soloWorlds } from './storage.js';
 import { fmtDuration } from './format.js';
@@ -27,6 +27,7 @@ import { createOutbox, keptActsFrom, catchUp, resync as resyncState } from './ou
 import { t, number, DEVICE, LANG } from '../i18n/i18n.js';
 
 const KEY_STORE = 'mte.key';          // your secret: who you are to every room
+const KEY_BEFORE = 'mte.key.before.'; // one this device had before your other device's came (kept)
 const PLAYING_STORE = 'mte.playing';  // the shared world you're in, if any
 const PRIVACY_STORE = 'mte.privacy';   // the version of the privacy policy the player agreed to
 // The privacy policy (privacy/index.html). Playing together means agreeing
@@ -87,6 +88,23 @@ function myKey() {
     write(KEY_STORE, key);
   }
   return key;
+}
+
+// Your character, if this device has played in a shared world: its key and
+// those worlds (sync.js keeps it for your other devices).
+export function character() {
+  const key = read(KEY_STORE), rooms = knownRooms();
+  return key && KEY_RE.test(key) && rooms.length ? { key, rooms } : null;
+}
+
+// Plays as your character from your other device here (sync.js), and adds
+// the worlds it plays in. A different one this device had is kept beside it,
+// never dropped; it sleeps in its world as every character does.
+export function becomeCharacter(me) {
+  const old = read(KEY_STORE);
+  if (old && old !== me.key) write(KEY_BEFORE + Date.now(), old);
+  write(KEY_STORE, me.key);
+  rememberAll(me.rooms);
 }
 
 // The time stamp in a progress string, to tell which copy is newer.

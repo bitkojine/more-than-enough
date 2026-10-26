@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.175.0": "Your character in the shared world now comes along to a device you link from Settings, Another device, so it plays as you there too.",
   "news.0.174.1": "The game now asks your browser to keep its saves instead of clearing them when the device runs short of space.",
   "news.0.174.0": "Play your own world on more than one device: Settings, Another device shows a QR code and a link for the other one. Whichever you played last carries on, and the cloud copy brings your world back if a browser forgets it.",
   "help.resource.mycelium": "Surface-grown fibres for bindings, cultivation beds and flexible building parts.",

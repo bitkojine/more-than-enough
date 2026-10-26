@@ -18,6 +18,12 @@
  * it, so a browser that forgot everything gets them all back. Nothing is
  * ever deleted.
  *
+ * Your character in shared worlds comes along too: the vault keeps the key
+ * that is you there (and the worlds it plays in) from the first device that
+ * had one, and a linked device that never played a shared world becomes
+ * that character. One that has a character of its own is asked once; the
+ * one it leaves is kept on it (main.js becomeMe), and sleeps in the world.
+ *
  * What it keeps here, per seed: the vault's revision this device's copy
  * matches, and whether it was played since (`dirty`). A world the vault
  * never had counts as played. Everything outside (storage, the network, the
@@ -25,7 +31,7 @@
 
 import { cleanSoloAnswer, LINK_RE, randomHex } from '../net/protocol.js';
 
-const STORE = 'mte.sync';               // {key, w: {<seed>: {rev, dirty}}}
+const STORE = 'mte.sync';               // {key, w: {<seed>: {rev, dirty}}, meNo?: the other device's character, declined}
 const BEFORE = 'mte.sync.before.';      // a key this device had before a link brought another (kept)
 export const PUSH_EVERY = 20_000;       // ms between keeping the world being played
 export const IDLE_MS = 30_000;          // unplayed this long, a device asks for the newest before playing on
@@ -59,7 +65,10 @@ export function linkFrom(hash) {
  * @param {(seed: number, raw: string) => void} o.aside  keeps a copy that's about to be replaced
  * @param {(s: object) => void} o.replace  plays the world the vault gave
  * @param {(c: {mine: object, other: object|null, keepMine: Function, keepOther: Function}) => void} o.conflict
- * @param {(what: string) => void} [o.said]  'arrived' (a world from your other device), 'full'
+ * @param {(what: string) => void} [o.said]  'arrived' (a world from your other device), 'full', 'me' (your character)
+ * @param {() => {key: string, rooms: string[]}|null} [o.me]  your character, if this device played a shared world
+ * @param {(me: {key: string, rooms: string[]}) => void} [o.becomeMe]  plays as that character here (or adds its worlds)
+ * @param {() => Promise<boolean>} [o.askMe]  whether to play as your other device's character instead of this one's
  */
 export function createSync(o) {
   const now = o.now || Date.now;
@@ -71,6 +80,7 @@ export function createSync(o) {
   let idleCheck = false;  // asking for the newest after an unplayed spell
   let lastPlayed = now();
   let okAt = 0, failed = false, saidFull = false;
+  let meAsking = false;   // the question about which character is open
 
   function load() {
     try {
@@ -196,6 +206,31 @@ export function createSync(o) {
     o.copy(seed, save);
   }
 
+  // Your character, each check: this device's goes to the vault (kept if
+  // the vault has none, its worlds added if it's the same), and the vault's
+  // is taken by a device that has none or, if the player says so, by one
+  // that has its own.
+  async function character(d) {
+    if (!o.me || meAsking) return;
+    const mine = o.me();
+    const a = await request({ t: 'me', key: d.key, me: mine });
+    if (!a || !('me' in a) || !a.me) return; // out of reach, a vault from before characters, or none yet
+    if (!mine || mine.key === a.me.key) {
+      o.becomeMe(a.me);
+      if (!mine) o.said?.('me');
+      return;
+    }
+    const dd = load();
+    if (!dd || dd.meNo === a.me.key) return; // said no before
+    meAsking = true;
+    o.askMe().then((yes) => {
+      meAsking = false;
+      if (yes) return o.becomeMe(a.me);
+      const d2 = load();
+      if (d2) { d2.meNo = a.me.key; keep(d2); }
+    }, () => { meAsking = false; });
+  }
+
   function run(job) {
     if (busy) return busy.then(() => run(job));
     busy = job().finally(() => { busy = null; });
@@ -209,6 +244,7 @@ export function createSync(o) {
       let d = load();
       const s = o.own();
       if (!d || paused || !s) return;
+      await character(d);
       // Every other world this device played (or the vault never had).
       for (const seed of new Set([...o.seeds(), ...Object.keys(d.w).map(Number)])) {
         if (seed === s.seed || !dirty(load() || d, seed)) continue;

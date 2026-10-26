@@ -38,7 +38,7 @@ import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
 import { createBackup } from './backup.js';
 import { createFbi } from './fbi.js';
-import { createTogether, policyUrl } from './together.js';
+import { createTogether, policyUrl, character, becomeCharacter } from './together.js';
 import { createUpdater, takeUpdatedFrom } from './update.js';
 import { createNews } from './news.js';
 import { createBack } from './back.js';
@@ -896,7 +896,10 @@ function loadSync() {
         input.releasePerfect();
         fork.show(mine, other, { keepMine, keepOther, reload: () => location.reload() }, 'device');
       },
-      said: (what) => hud.toast(t(what === 'arrived' ? 'sync.arrived' : 'sync.full'))
+      said: (what) => hud.toast(t(what === 'arrived' ? 'sync.arrived' : what === 'me' ? 'sync.me' : 'sync.full')),
+      me: character,
+      becomeMe: becomeCharacter,
+      askMe: () => ask.ask({ title: t('sync.me.title'), text: t('sync.me.text'), yes: t('sync.me.yes') })
     });
     return m;
   });

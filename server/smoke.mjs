@@ -100,5 +100,7 @@ got = await solo({ t: 'pull', key: SOLO_KEY });
 check(got.d && got.d.save === soloSave, 'solo: and given back');
 const stale = await solo({ t: 'push', key: SOLO_KEY, seed: SOLO_SEED, base, save: soloSave });
 check(stale.d && stale.d.conflict === true, 'solo: an old copy never writes over a newer one');
+const me = await solo({ t: 'me', key: SOLO_KEY, me: null });
+check(me.status === 200 && me.d && 'me' in me.d, 'solo: the vault answers for your character');
 console.log(failed ? `${failed} check(s) failed` : 'room service OK');
 process.exit(failed ? 1 : 0);

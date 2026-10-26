@@ -42,7 +42,7 @@
 
 <h2>Playing alone</h2>
 <p>Your world, progress and settings are saved in your browser's own storage on your device. They are not sent anywhere. Clearing the site's data in your browser deletes them.</p>
-<p>Only if you choose to play your world on another device too (Settings, Another device) is it kept on our server as well: your world's save, under a random secret key made on your device and shared only through the code you show your other device. The server stores a hash of the key, never the key, and nothing else about you. It keeps the world for as long as the game runs, so a device that forgot it can get it back; ask us to delete it.</p>
+<p>Only if you choose to play your world on another device too (Settings, Another device) is it kept on our server as well: your world's save, under a random secret key made on your device and shared only through the code you show your other device. The server stores a hash of the key, never the key. If you also play in a shared world, the secret that is your character there and the worlds it plays in are kept too, sealed so they can't be read without your key, so your other device plays as the same character. Nothing else about you is kept. It keeps the world for as long as the game runs, so a device that forgot it can get it back; ask us to delete it.</p>
 
 <h2>Playing together</h2>
 <p>A shared world runs on our server (a Cloudflare Worker). Joining or making one means you accept this policy; if you don't, you can still play alone. The server keeps:</p>
@@ -103,7 +103,7 @@
 
 <h2>Žaidžiant vienam</h2>
 <p>Tavo pasaulis, pažanga ir nustatymai saugomi tavo naršyklės saugykloje tavo įrenginyje. Jie niekur nesiunčiami. Išvalius svetainės duomenis naršyklėje, jie ištrinami.</p>
-<p>Tik jei pats nusprendi žaisti savo pasaulį ir kitame įrenginyje (Nustatymai, Kitas įrenginys), jis saugomas ir mūsų serveryje: tavo pasaulio išsaugojimas su atsitiktiniu slaptu raktu, sukurtu tavo įrenginyje ir perduodamu tik per kodą, kurį parodai kitam savo įrenginiui. Serveris saugo rakto maišos reikšmę, niekada ne patį raktą, ir nieko kito apie tave. Pasaulį jis saugo tol, kol veikia žaidimas, kad jį pamiršęs įrenginys galėtų jį susigrąžinti; paprašyk mūsų, jei nori jį ištrinti.</p>
+<p>Tik jei pats nusprendi žaisti savo pasaulį ir kitame įrenginyje (Nustatymai, Kitas įrenginys), jis saugomas ir mūsų serveryje: tavo pasaulio išsaugojimas su atsitiktiniu slaptu raktu, sukurtu tavo įrenginyje ir perduodamu tik per kodą, kurį parodai kitam savo įrenginiui. Serveris saugo rakto maišos reikšmę, niekada ne patį raktą. Jei žaidi ir bendrame pasaulyje, saugoma ir paslaptis, kuri yra tavo veikėjas ten, bei pasauliai, kuriuose jis žaidžia, užrakinti taip, kad be tavo rakto jų perskaityti negalima, kad kitas įrenginys žaistų tuo pačiu veikėju. Nieko kito apie tave nesaugoma. Pasaulį jis saugo tol, kol veikia žaidimas, kad jį pamiršęs įrenginys galėtų jį susigrąžinti; paprašyk mūsų, jei nori jį ištrinti.</p>
 
 <h2>Žaidžiant kartu</h2>
 <p>Bendras pasaulis veikia mūsų serveryje („Cloudflare Worker“). Prisijungdamas prie jo ar jį kurdamas sutinki su šia politika; jei nesutinki, vis tiek gali žaisti vienas. Serveris saugo:</p>

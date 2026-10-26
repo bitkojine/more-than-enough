@@ -282,11 +282,14 @@ export function editInReach(e, p) {
 // Your own world, kept by the room service so it plays on every device you
 // link (src/game/sync.js, server/src/vault.js). The sync key is a secret of
 // its own, apart from the one that is you in shared worlds: it travels in a
-// link's fragment (#link=…) to your other device, and anyone holding it can
-// read and change your own world, nothing else.
+// link's fragment (#link=…) to your other device. The vault also keeps your
+// character in shared worlds (that key, and the worlds it plays in), so the
+// linked device plays as you there too: anyone holding the sync key can play
+// your own worlds and your character.
 export const SOLO = Object.freeze({
   bytes: 1048576,  // one world's save (the same as a whole shared world)
-  worlds: 1000     // worlds one key keeps, against abuse only: none is ever deleted, and past this a new one stays on its device
+  worlds: 1000,    // worlds one key keeps, against abuse only: none is ever deleted, and past this a new one stays on its device
+  rooms: 100       // shared worlds kept with your character (there is one shared world now)
 });
 export const LINK_RE = /^[0-9a-f]{64}$/;
 const SEED_MAX = 2 ** 32;
@@ -317,6 +320,13 @@ export function cleanSoloAsk(d) {
     return { t: 'pull', key: d.key, have };
   }
   if (d.t === 'get') return isSeed(d.seed) ? { t: 'get', key: d.key, seed: d.seed } : null;
+  // Your character: kept if the vault has none yet (or has this one), and
+  // the vault's answered.
+  if (d.t === 'me') {
+    if (d.me === undefined || d.me === null) return { t: 'me', key: d.key, me: null };
+    const me = cleanMe(d.me);
+    return me ? { t: 'me', key: d.key, me } : null;
+  }
   if (d.t === 'push') {
     if (!isSeed(d.seed) || !isRev(d.base)) return null;
     const save = cleanSoloSave(d.save, d.seed);
@@ -334,10 +344,16 @@ export function cleanSoloAsk(d) {
 //   {seed, rev, at, save}                           the world you asked for (get)
 //   {rev}                                           kept, as revision `rev`
 //   {conflict: true, seed, rev, at, save}           another device kept it since `base`: this is that copy
+//   {me: {key, rooms} | null}                       your character, kept from the first device that had one
 //   {error}                                         'full', or the request was refused
 export function cleanSoloAnswer(d) {
   if (!isObj(d)) return null;
   if (typeof d.error === 'string') return { error: d.error.slice(0, 40) };
+  if ('me' in d) {
+    if (d.me === null) return { me: null };
+    const me = cleanMe(d.me);
+    return me ? { me } : null;
+  }
   if (d.conflict === true) {
     const save = isSeed(d.seed) ? cleanSoloSave(d.save, d.seed) : null;
     return save && isRev(d.rev) ? { conflict: true, seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
@@ -355,6 +371,14 @@ export function cleanSoloAnswer(d) {
     return save && isRev(d.rev) ? { seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
   }
   return isRev(d.rev) && d.rev > 0 ? { rev: d.rev } : null;
+}
+
+// Your character in shared worlds: its key and the worlds it plays in,
+// newest first (what fits).
+function cleanMe(m) {
+  if (!isObj(m) || typeof m.key !== 'string' || !KEY_RE.test(m.key) || !Array.isArray(m.rooms)) return null;
+  const rooms = [...new Set(m.rooms.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r)))].slice(0, SOLO.rooms);
+  return { key: m.key, rooms };
 }
 
 // Every world a vault keeps, {seed: rev}: what fits, nothing else (an
