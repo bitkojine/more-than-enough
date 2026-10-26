@@ -32,7 +32,7 @@ import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
-import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld, soloSeeds, archivedSave, keepCopy, keepAside } from './storage.js';
+import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld, soloSeeds, archivedSave, keepCopy, keepAside, keepStorage } from './storage.js';
 import { roomService } from '../net/config.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
@@ -183,7 +183,7 @@ let sync = null; // your own world on your other devices (sync.js), once loaded 
 // The one place the current state lives. Everything else reads game.state.
 const game = {
   state: loaded.state,
-  saveSoon() { saveDue = true; sync?.played(); },
+  saveSoon() { saveDue = true; sync?.played(); keepStorage(); },
   saveNow(force = false) {
     saveDue = false;
     // A shared world is saved to its room (and a copy here), never over your own.

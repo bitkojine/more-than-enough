@@ -7,7 +7,9 @@
  *
  * Every release adds its version to NEWS (newest first) and its notes to the
  * dictionaries as "news.<version>": what a player will notice, one thing per
- * line, in plain words. npm test fails when the current VERSION has none. */
+ * line, in plain words. npm test fails when the current VERSION has none.
+ * Older releases' notes move to src/i18n/news/ (loaded only with this panel)
+ * so they don't weigh on the first load. */
 
 import { t, addStrings } from '../i18n/i18n.js';
 
@@ -17,6 +19,7 @@ export function loadNews() {
 }
 
 export const NEWS = [
+  '0.174.1',
   '0.174.0',
   '0.173.0',
   '0.172.0',

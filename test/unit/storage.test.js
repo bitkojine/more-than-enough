@@ -16,7 +16,7 @@ globalThis.localStorage = {
   key: (i) => [...store.keys()][i] ?? null,
   get length() { return store.size; }
 };
-const { loadGame, saveGame } = await import('../../src/game/storage.js');
+const { loadGame, saveGame, keepStorage } = await import('../../src/game/storage.js');
 const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } = await import('../../src/game/worlds.js');
 
 const SAVE = 'more-than-enough-save', ASIDE = 'more-than-enough-save-aside';
@@ -143,4 +143,12 @@ test('storage: when a world\'s own copy takes over an older save, that save is k
   assert.equal(store.get(ASIDE), otherFormat, 'what was set aside stays');
   const kept = [...store.entries()].filter(([k]) => k.startsWith('mte.solo.kept.42.')).map(([, v]) => Core.deserialize(v).inv.mycelium);
   assert.deepEqual(kept, [5], 'the older save is kept under its own name');
+});
+
+test('asks the browser once to keep the storage, and never throws', async () => {
+  let asked = 0;
+  const nav = { storage: { persisted: async () => false, persist: async () => { asked++; return true; } } };
+  assert.equal(await keepStorage(nav), true);
+  assert.equal(await keepStorage(nav), null); // once a session
+  assert.equal(asked, 1);
 });

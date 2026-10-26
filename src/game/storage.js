@@ -229,3 +229,22 @@ export function keepCopy(seed, raw) {
 export function keepAside(seed, raw) {
   write(KEPT_PREFIX + seed + '.' + Date.now(), raw);
 }
+
+// Asks the browser to keep this site's storage rather than clear it when the
+// device runs short of space (navigator.storage.persist). Once a session, the
+// first time the world is played, so a browser that asks the player (Firefox)
+// asks about a game they're playing. Chrome and Safari decide on their own:
+// a Home Screen game and a site used often are kept. Safari's 7-day clearing
+// of a site not opened is not lifted by it; the cloud copy (sync.js) is the
+// answer to that. `nav` is for tests.
+let keepAsked = false;
+export async function keepStorage(nav = globalThis.navigator) {
+  if (keepAsked) return null;
+  keepAsked = true;
+  try {
+    const s = nav && nav.storage;
+    if (!s || !s.persist) return null;
+    if (s.persisted && await s.persisted()) return true;
+    return await s.persist();
+  } catch { return null; }
+}

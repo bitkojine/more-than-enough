@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.174.1] - 2026-10-26
+
+The game asks the browser to keep its storage (`navigator.storage.persist`,
+`keepStorage` in `src/game/storage.js`), once a session when the world is
+first played, so a browser short of space keeps the saves rather than
+clearing them (part of the Safari storage P0). Chrome and Safari decide on
+their own (a Home Screen game is kept); Firefox may ask the player. It does
+not lift Safari's 7-day clearing of a site not opened: the cloud copy
+(v0.174.0) covers that.
+
+The release notes of v0.136.0 to v0.173.0 move from `src/i18n/en.js` and
+`lt.js` to `src/i18n/news/`, loaded only when What's new opens: the first
+load was at its 300 KB budget.
+
 ## [0.174.0] - 2026-10-26
 
 Play your own world on more than one device (Watch, 2026-10-26: "I want
