@@ -776,11 +776,11 @@ export default {
       <p class="lede">Pradėk kitą pasaulį tuščiomis rankomis, su įgytomis žiniomis.</p>
       <h2>Iškeliavimas</h2>
       <p>Užbaik visus pasaulio patobulinimus ir pasiek Gausos variklio <span data-k="EMBARK_ABUNDANCE"></span> lygį.
-        Tuomet gali iš karto iškeliauti. Patvirtinus naujame pasaulyje nėra įrankių, išteklių, pastatų, privalumų,
+        Tuomet gali iš karto iškeliauti. Patvirtinus pradedamas naujas kristalų pasaulis, kad ir kokį pasaulį palieki; jame nėra įrankių, išteklių, pastatų, privalumų,
         Įžvalgos ar automatinės Logistikos. Išlieka viso laiko įrašai ir žinomos grybų rūšys. Ankstesni pasauliai išsaugomi.</p>
       <h2>Senieji pasauliai</h2>
       <p>Seni įrašai išlaiko įrankius, privalumus, Įžvalgą ir uždirbtą pažangą. Jų skirtuke Anapus lieka senieji
-        privalumai, tačiau iškeliavus į kitą pasaulį jų poveikis nepersikelia.</p>
+        privalumai, tačiau iškeliavus jų poveikis nepersikelia: kitas pasaulis bus kristalų pasaulis, o senasis lieka išsaugotas toks, koks buvo.</p>
       <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Etapai",
   "wiki.article.milestones": `      <h1>Etapai</h1>

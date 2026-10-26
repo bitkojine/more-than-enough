@@ -135,8 +135,9 @@ export function canEmbark(s) {
 export function embark(s, seed) {
   if (!canEmbark(s)) return { ok: false, reason: t('reason.embark') };
   const gained = embarkGain(s);
-  const fresh = createState(seed,{cultivation:!!s.cultivation});
-  if (s.logisticsModel) fresh.logisticsModel=s.logisticsModel;
+  // Every next world is a crystal world, an old-economy one's too (Watch,
+  // 2026-10-26): the world left behind stays saved and playable as it was.
+  const fresh = createState(seed,{cultivation:true});
   // New worlds carry records and knowledge only, never equipment or bonuses.
   // The old world retains its Insight and perks in its preserved save.
   fresh.prestiges = s.prestiges + 1;

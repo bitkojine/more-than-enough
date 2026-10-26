@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.160.0] - 2026-10-26
+
+Watch's choice (thread "Map backwards compatibility support"): Embark from
+an old-economy world starts a crystal world, so the old economy stops
+making new solo worlds of its own. Before this, `embark` in
+`src/core/state.js` kept the world's kind, and every Embark from an old
+world started another old-economy world.
+
+### Changed
+- `embark` always makes a crystal world (depot logistics with it). The
+  world left behind is saved first as before (`game.keep()`), untouched, and
+  stays playable from Nerds; shared worlds have no Embark, so nothing there
+  changes. AUTO stops at Embark as always and doesn't run in the new world.
+- The wiki's Beyond page and the GDD say so.
+- `test/unit/empty-start.test.js`: an old-economy world embarks into a
+  crystal world and stays an old-economy world itself.
+
 ## [0.159.0] - 2026-10-26
 
 ### Changed

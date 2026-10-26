@@ -51,6 +51,8 @@ test('every subsequent world starts with no perks, equipment, inventory or autom
  assert.ok(Object.values(next.tools).every(n=>n===0));assert.ok(Object.values(next.perks).every(n=>n===0));
  assert.ok(Object.values(next.inv).every(n=>n===0));assert.equal(next.unlocks.logistics,false);assert.equal(next.insight,0);
  assert.deepEqual(next.mushroomsEver,['morel']);assert.equal(next.totalEver,1e12);
+ assert.ok(!s.cultivation&&next.cultivation,'an old-economy world embarks into a crystal world');
+ assert.equal(C.usesDepots(next),true);assert.equal(C.serialize(s),before,'and stays an old-economy world itself');
 });
 
 test('the shipped AUTO crafts its first equipment through the canonical purchase rules',()=>{

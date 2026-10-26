@@ -785,11 +785,11 @@ export default {
       <p class="lede">Start another world empty-handed, with what you have learned.</p>
       <h2>Embarking</h2>
       <p>Complete every world upgrade and bring the Abundance Engine to level <span data-k="EMBARK_ABUNDANCE"></span>.
-        Embark then opens immediately. Confirming starts a new world without tools, inventory, buildings, perks,
+        Embark then opens immediately. Confirming starts a new crystal world, whatever kind of world you leave, without tools, inventory, buildings, perks,
         Insight or automatic Logistics. Lifetime records and known mushroom kinds carry over. Previous worlds remain saved.</p>
       <h2>Legacy worlds</h2>
       <p>Existing saves keep their equipment, perks, Insight and earned progress. Their Beyond tab still offers the legacy
-        perks below, but those bonuses do not follow you when you embark into another world.</p>
+        perks below, but those bonuses do not follow you when you embark: the next world is a crystal world, and the old one stays saved as it was.</p>
       <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Milestones",
   "wiki.article.milestones": `      <h1>Milestones</h1>
