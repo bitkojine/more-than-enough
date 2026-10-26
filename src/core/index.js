@@ -17,6 +17,7 @@ export * from './drill.js';
 export * from './actions.js';
 export * from './underground.js';
 export * from './light.js';
+export * from './flare.js';
 export * from './goals.js';
 export * from './save.js';
 export * from './stockpile.js';

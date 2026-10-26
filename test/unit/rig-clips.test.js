@@ -30,7 +30,7 @@ test('the detector catches a lantern hung through the coat',()=>{
 
 test('only joints and grips may touch, and every seam stays small',()=>{
  const names=new Set(rig.solids().map(s=>s.name));
- for(const pose of [{},{pickaxe:6,basket:5,lantern:true,wiki:{},cargo:'sealed'},{pickaxe:6,action:'swing',progress:.5},{basket:5,action:'pick',progress:.5},{lantern:true,action:'collect',work:'lantern',progress:.5}]){
+ for(const pose of [{},{pickaxe:6,basket:5,lantern:true,wiki:{},cargo:'sealed'},{pickaxe:6,action:'swing',progress:.5},{basket:5,action:'pick',progress:.5},{lantern:true,action:'collect',work:'lantern',progress:.5},{flare:true},{flare:true,basket:5,action:'pick',progress:.5}]){
   rig.pose(pose);
   for(const name of rig.solids().map(s=>s.name))names.add(name);
   for(const c of rig.contacts()){
@@ -42,7 +42,7 @@ test('only joints and grips may touch, and every seam stays small',()=>{
 });
 // Pairs that may meet anywhere: a hand and its arm, the collar where it is
 // sewn on, Wiki's fibre feet on the hood, and a hand holding its gear.
-const WHOLE=new Set(['leftArm/leftHand','rightArm/rightHand','collar/coat','collar/head','wikiFeet/head','rightHand/pickaxe','leftHand/basket','leftHand/cargo','rightHand/cargo','leftHand/lantern']);
+const WHOLE=new Set(['leftArm/leftHand','rightArm/rightHand','collar/coat','collar/head','wikiFeet/head','rightHand/pickaxe','leftHand/basket','leftHand/cargo','rightHand/cargo','leftHand/lantern','leftHand/flare','rightHand/flare']);
 
 test('no pose makes Mica, Wiki or their gear clip',()=>{
  const bad=[];

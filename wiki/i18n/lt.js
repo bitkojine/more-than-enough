@@ -539,6 +539,18 @@ export default {
       <p>Ją įkrauna tik vandens energija: stovėk ne toliau kaip <span data-k="CHARGE_RANGE"></span> langelio nuo plaukiojančios
         saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
         <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>
+      <h2>Rūdos žiežirbos</h2>
+      <p>Žiežirba yra metalinė lazdelė su rūdos dulkėmis. Vienu {phone:bakstelėjimu|laptop:paspaudimu} ant apvalaus mygtuko
+        <strong>ŽIEŽIRBA</strong> virš „Rinkti“{phone:|laptop: (arba <kbd>F</kbd>)}, kuris rodomas po žeme arba kol
+        žiežirba dega, pasigamini ją iš <span data-k="FLARE_COST.ore"></span> metalo ir uždegi Micos rankoje. Ji apšviečia
+        <span data-k="FLARE_LIGHT"></span> langelių aplink tave <span data-k="FLARE_TIME"></span> s žaidimo: žiedas aplink
+        mygtuką ir laikas ant jo sudega kartu su ja, o pabaigoje ji spragsi. Paskui jos nebėra ir pasigamini kitą. Žibintas
+        visam laikui apšviečia arti, o žiežirba kurį laiką toli: apžiūrėti urvą ar ilgą tunelį. Kol tavęs nėra, ji nedega.</p>
+      <p>Po žeme būtent šviesa atidengia uolą aplink tave ir įrašo ją į žemėlapį: einant žiežirba atidengia
+        <span data-k="FLARE_LIGHT"></span> langelių aplink. Kristalų pasaulyje žibintas atidengia
+        <span data-k="MINE_EXPLORE_RADIUS"></span> langelius, o be jokios šviesos įžiūri tik langelius šalia savęs.
+        Žiežirbos šviesa skaldo kristalus, daigus ir širdį kaip žibinto, tad šalia jų paspausk mygtuką dar kartą ir užgesink:
+        likusi žiežirba sudega veltui. Bendruose pasauliuose kol kas nėra.</p>
       <h2>Saulės laikrodis</h2>
       <p>Para trunka <span data-k="DAY_LENGTH"></span> s. Žiedas aplink nustatymų krumpliaratį yra ta para, vidurdienis
         viršuje: auksinis, kol saulė pakankamai aukštai, kad krautų saulės plokštę, mėlynas likusį laiką, o saulė ar mėnulis
@@ -665,6 +677,8 @@ export default {
         <li>Čia visada tamsu. Žibintas apšviečia tik nedidelį ratą prie tavo kojų, tad tuneliai, iškasti keliais žingsniais
           atgal, vėl paskęsta tamsoje. Švytukės ir lempos laiko savo ruožą apšviestą, o dienos šviesa krinta pro angas,
           kuriomis nusileidai.</li>
+        <li>Rūdos žiežirba kurį laiką apšviečia toli aplink ir atidengia uolą tiek, kiek siekia. Žr.
+          <a href="#world">Pasaulis</a>.</li>
         <li>Logistika ir čia, apačioje, parveža produkciją iš tavo stovyklų paviršiuje. Be jos jos tiesiog prisipildo, kol esi apačioje.</li>
         <li>Diena ir naktis keičiasi kaip įprasta: šviesa pro angą į mišką naktį blėsta.</li>
       </ul>`,

@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.171.0": "Ore flares: underground, a FLARE button above Gather makes a flare from 1 metal and lights it in Mica's hand{phone:|laptop: (or press F)}. It lights far around you for two minutes, then burns out and you make another. Underground, light is what uncovers the rock: a flare charts a whole cave as you walk. In a crystal world its light cracks crystal like the lantern's, so press it again to put it out.",
   "news.0.170.2": "With no light in the mine of a crystal world, it's now as dark as it should be: only the rock right beside Mica shows. Switching the lantern on lights more, no longer less.",
   "news.0.170.1": "Fixed: the {phone:tap|laptop:click} on Place no longer also lands on the map and moves the new building somewhere else before you have seen where it stands.",
   "news.0.170.0": "In a shared world, what you gather or build while the connection is down is kept on your {phone:phone|laptop:computer}, so closing the game before it reconnects no longer takes it back. Sound on Microsoft Edge starts with your first {phone:tap|laptop:click} instead of staying silent.",
@@ -199,6 +200,16 @@ export default {
   "button.lantern.on": "LIGHT ON",
   "button.lantern.off": "LIGHT OFF",
   "button.lantern.aria": "Lantern: switch it on or off",
+  "button.flare": "FLARE",
+  "button.flare.aria": "Ore flare: make one from 1 metal and light it",
+  "button.flare.lit.aria": "Ore flare burning, {time} left: put it out",
+  "flare.name": "Ore flare",
+  "flare.does": "A metal stick of ore dust you make and light in one go. It lights far around you for a while, then burns out and you make another.",
+  "toast.flare.materials": "A flare takes 1 metal. Mine some ore first.",
+  "toast.flare.burntOut": "Your flare burnt out. Make another with FLARE.",
+  "toast.flare.first": "A flare lights far for a while. Underground, what it lights goes on your map; near crystal, put it out with the same button.",
+  "look.character.flareLight": "Flare light",
+  "look.character.flareLight.does": "The warm light of a burning ore flare in Mica's hand. The colour tints its pool of light.",
   "cr.shutter.open": "Open shutters",
   "cr.shutter.close": "Close shutters",
   "cr.cover": "Cover light",

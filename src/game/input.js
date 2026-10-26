@@ -314,6 +314,7 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (k === 'escape') handlers.command('back');
     if (k === 'b') handlers.command('build');
     if (k === 'l' && !e.repeat) handlers.command('lantern');
+    if (k === 'f' && !e.repeat) handlers.command('flare');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
     if (e.key === 'F3') { e.preventDefault(); if (!e.repeat) handlers.command('perf'); }
   });

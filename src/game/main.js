@@ -380,6 +380,36 @@ function showLantern(s) {
   el.lanternLabel.textContent = t(on ? 'button.lantern.on' : 'button.lantern.off');
 }
 
+// The ore flare (Watch, 2026-10-26): one button makes a flare from metal and
+// lights it, or puts out the one burning. It shows underground, and while
+// one burns; never in a shared world, whose room doesn't check flares yet.
+let flareWas = 0;
+function useFlare() {
+  const s = game.state, result = Core.useFlare(s);
+  if (result === 'materials') hud.toast(t('toast.flare.materials'));
+  else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'), 8);
+  flareWas = s.flare;
+  if (result === 'lit' || result === 'out') game.saveSoon();
+  showFlare(s);
+}
+el.flare.addEventListener('click', useFlare);
+let flareWorld = null;
+function showFlare(s) {
+  if (flareWas > 0 && !(s.flare > 0) && flareWorld === s) hud.toast(t('toast.flare.burntOut'));
+  flareWas = s.flare; flareWorld = s;
+  const on = s.flare > 0;
+  el.flare.hidden = !!s.shared || !(on || s.player.z < Core.SURFACE);
+  if (el.flare.hidden) return;
+  el.flare.classList.toggle('on', on);
+  el.flare.setAttribute('aria-pressed', String(on));
+  const left = Math.ceil(s.flare), time = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); // i18n-ok: a clock
+  el.flare.style.setProperty('--left', on ? (s.flare / Core.FLARE_TIME).toFixed(3) : '1');
+  const label = on ? time : t('button.flare');
+  if (el.flareLabel.textContent === label) return;
+  el.flareLabel.textContent = label;
+  el.flare.setAttribute('aria-label', on ? t('button.flare.lit.aria', { time }) : t('button.flare.aria'));
+}
+
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
 
 const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : []);
@@ -434,6 +464,7 @@ const input = createInput({
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'back') goBack();
       else if (cmd === 'lantern') toggleLantern();
+      else if (cmd === 'flare') useFlare();
       else sheet.toggle(cmd);
     }
   }
@@ -637,6 +668,7 @@ function updateView(dt) {
   if (placing.open && blocked()) placing.cancel();   // a sheet or a question came up
   placing.tick(dt);
   showLantern(s);
+  showFlare(s);
 }
 
 // Where the zoom pill sits on the canvas, so a friend's edge badge (and the

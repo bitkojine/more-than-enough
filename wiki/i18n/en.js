@@ -547,6 +547,19 @@ export default {
       <p>Only water power charges it: stand within <span data-k="CHARGE_RANGE"></span> tiles of a floating solar panel while the
         sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
         charger charges anyone.</p>
+      <h2>Ore flares</h2>
+      <p>A flare is a metal stick of ore dust. One {phone:tap|laptop:click} on the round <strong>FLARE</strong> button above
+        Gather{phone:|laptop: (or <kbd>F</kbd>)}, there underground or while a flare burns, makes one from
+        <span data-k="FLARE_COST.ore"></span> metal and lights it in Mica's hand. It lights
+        <span data-k="FLARE_LIGHT"></span> tiles around you for <span data-k="FLARE_TIME"></span> seconds of play, the ring
+        round the button and the time on it burning down, and it sputters near the end. Then it's gone and you make another.
+        The lantern lights close by for good; a flare lights far for a while, to scout a cave or a long tunnel. Time away
+        burns none of it.</p>
+      <p>Underground, light is what uncovers the rock around you and puts it on your map: a flare uncovers
+        <span data-k="FLARE_LIGHT"></span> tiles round you as you walk. In a crystal world the lantern uncovers
+        <span data-k="MINE_EXPLORE_RADIUS"></span> tiles, and with no light at all you only make out the tiles right beside
+        you. A flare's light cracks crystal, specimens and the heart like the lantern's does, so near them press it again to
+        put it out: the rest of that flare is spent. Not in shared worlds yet.</p>
       <h2>The sun clock</h2>
       <p>A day lasts <span data-k="DAY_LENGTH"></span> seconds. The ring round the Settings gear is that day, noon at the top:
         gold while the sun is high enough to charge a solar panel, blue for the rest, and the sun or the moon rides it to
@@ -675,6 +688,8 @@ export default {
         <li>It's always dark down here. Your lantern lights only a small pool at your feet, so tunnels you dug a few steps back
           sink into the dark again. Glowcaps and lamps keep their stretch lit, and daylight falls through the holes you came
           down.</li>
+        <li>An ore flare lights far round you for a while and uncovers the rock as far as it reaches. See
+          <a href="#world">The world</a>.</li>
         <li>Logistics hauls from your surface camps down here too. Without it they simply fill up while you're below.</li>
         <li>Day and night carry on as usual: light through a hole to the forest fades at night.</li>
       </ul>`,

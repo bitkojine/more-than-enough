@@ -3,7 +3,7 @@
 import {tileAt,isExplored,richness} from './world.js';
 import {packKey,unpackKey} from './coords.js';
 import {T,TILE_INFO} from './tiles.js';
-import {PROPS} from './content.js';
+import {PROPS,FLARE_LIGHT} from './content.js';
 import {daylight,SUN_CRACKS} from './light.js';
 import {earn,pay as payInventory,canAfford} from './economy.js';
 import {generateChunk} from './terrain.js';
@@ -71,7 +71,9 @@ function index(s){
  indexCache.set(c,v);return v;
 }
 export function cultivationAt(s,x,y,z=s.player.z){return s.cultivation?index(s).cells.get(cell(x,y,z)):null;}
-export function cultivationLight(s,p){return (p.z===0&&daylight(s.time)>SUN_CRACKS)||!!index(s).lightCells.get(cell(p.x,p.y,p.z))||(s.cultivation.lantern&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=3);}
+// A burning flare in your hand lights FLARE_LIGHT tiles round you (flare.js).
+const inFlare=(s,p)=>s.flare>0&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=FLARE_LIGHT;
+export function cultivationLight(s,p){return (p.z===0&&daylight(s.time)>SUN_CRACKS)||!!index(s).lightCells.get(cell(p.x,p.y,p.z))||(s.cultivation.lantern&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=3)||inFlare(s,p);}
 export function cultivationTarget(s,b){return Math.max(4,(b.z<=-2?12:18)+(b.kind==='chamber'||b.kind==='machine'?18:0)+(index(s).heat.get(cell(b.x,b.y,b.z))||0));}
 export function cultivationStatus(s,b){
  if(b.kind==='cooler'||b.kind==='conduit'||b.kind==='shelter')return 'ready';
@@ -87,6 +89,8 @@ function expose(s,b){
  if(b.health>0){b.health=Math.max(0,b.health-1);if(b.kind==='chamber')b.needsTend=true;}
  if(b.buffer)b.quality=Math.max(10,b.quality-1);
 }
+// A light just lit: what you carry and every open facility in it feel it at once.
+export function lightCrystal(s){exposeCargo(s);for(const b of s.cultivation.facilities)expose(s,b);}
 function exposeCargo(s){const c=s.cultivation,p={x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:s.player.z};if(!c.gear.carrier&&cultivationLight(s,p)){if(c.starter)c.starter.health=Math.max(0,c.starter.health-1);if(s.inv.crystal)c.quality=Math.max(10,c.quality-1);}}
 
 export function wildColony(s,x,y,z=s.player.z){
@@ -148,7 +152,7 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='starter')return takeStarter(s,x,y);
  if(cmd.type==='heart')return moveHeart(s,x,y,z);
- if(cmd.type==='lantern'){if(!c.gear.lantern)return 'equipment';c.lantern=!c.lantern;exposeCargo(s);if(c.lantern)for(const b of c.facilities)expose(s,b);return 'ok';}
+ if(cmd.type==='lantern'){if(!c.gear.lantern)return 'equipment';c.lantern=!c.lantern;if(c.lantern)lightCrystal(s);else exposeCargo(s);return 'ok';}
  if(cmd.type==='craft'){
   if(!['carrier','lantern'].includes(cmd.kind)||c.gear[cmd.kind])return 'invalid';
   if(!canPay(s,cost))return 'materials';pay(s,cost);c.gear[cmd.kind]=true;return 'ok';
@@ -207,7 +211,7 @@ function moveHeart(s,x,y,z){
 }
 // How much of the sun's or a lantern's light reaches a carried heart, 0 to 1.
 export function heartLight(s,p){
- const c=s.cultivation;if((c.lantern&&p.z===s.player.z)||index(s).lightCells.get(cell(p.x,p.y,p.z)))return 1;
+ const c=s.cultivation;if((c.lantern&&p.z===s.player.z)||inFlare(s,p)||index(s).lightCells.get(cell(p.x,p.y,p.z)))return 1;
  return p.z===0?Math.max(0,Math.min(1,(daylight(s.time)-SUN_CRACKS)/(1-SUN_CRACKS))):0;
 }
 // Which clue the machine shows: one per restored section, 0 before any.

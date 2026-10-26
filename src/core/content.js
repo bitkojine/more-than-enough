@@ -64,6 +64,19 @@ export const BATTERY_DIM = 0.4;
 export const CHARGE_TIME = 10;     // seconds by a working charger from flat to full
 export const CHARGE_RANGE = 2.5;   // tiles from a charger it reaches
 
+/* -------------------------------------------------------------- flares */
+
+// A flare (Watch, 2026-10-26): a metal stick of ore dust you make and light
+// in one go, carry in your hand, and that sparks a wide warm light until it
+// burns down; then you make another. The lantern lights close by for good, a
+// flare lights far for a while. Underground, light is what uncovers the rock
+// around you; in a crystal world a flare's light cracks crystal like the
+// lantern's, so you can put it out early (the rest of it is spent).
+export const FLARE_COST = { ore: 1 };
+export const FLARE_TIME = 120;     // seconds of play a flare burns
+export const FLARE_LIGHT = 8;      // tiles it lights and uncovers around you
+export const UNLIT_RADIUS = 1.5;   // tiles you uncover underground with no light at all
+
 /* -------------------------------------------------------------- finds */
 
 // Things hidden in the rock, a few to every 16x16 area of each layer, that

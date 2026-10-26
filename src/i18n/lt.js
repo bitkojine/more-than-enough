@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.171.0": "Rūdos žiežirbos: po žeme mygtukas ŽIEŽIRBA virš „Rinkti“ iš 1 metalo pagamina žiežirbą ir uždega ją Micos rankoje{phone:|laptop: (arba spausk F)}. Ji dvi minutes apšviečia toli aplink, paskui sudega ir pasigamini kitą. Po žeme uolą atidengia šviesa: einant žiežirba atidengia visą urvą. Kristalų pasaulyje jos šviesa skaldo kristalus kaip žibinto, tad paspausk dar kartą ir ją užgesink.",
   "news.0.170.2": "Kristalų pasaulio kasykloje be šviesos dabar tamsu, kaip ir turi būti: matyti tik uola šalia Micos. Įjungtas žibintas apšviečia daugiau, o ne mažiau.",
   "news.0.170.1": "Pataisyta: {phone:bakstelėjimas|laptop:spustelėjimas} ant „Padėti“ nebepataiko ir į žemėlapį, tad naujas pastatas nebeperšoka kitur, kol dar nespėjai pamatyti, kur jis stovi.",
   "news.0.170.0": "Bendrame pasaulyje tai, ką surenki ar pastatai, kol nėra ryšio, išsaugoma tavo {phone:telefone|laptop:kompiuteryje}, todėl uždarius žaidimą prieš vėl prisijungiant nieko nebeatimama. Garsas Microsoft Edge naršyklėje įsijungia nuo pirmo {phone:bakstelėjimo|laptop:paspaudimo}, o ne lieka tylus.",
@@ -199,6 +200,16 @@ export default {
   "button.lantern.on": "ŠVIEČIA",
   "button.lantern.off": "UŽGESĘS",
   "button.lantern.aria": "Žibintas: įjungti arba išjungti",
+  "button.flare": "ŽIEŽIRBA",
+  "button.flare.aria": "Rūdos žiežirba: pasigaminti iš 1 metalo ir uždegti",
+  "button.flare.lit.aria": "Rūdos žiežirba dega, liko {time}: užgesinti",
+  "flare.name": "Rūdos žiežirba",
+  "flare.does": "Metalinė lazdelė su rūdos dulkėmis, kurią pasigamini ir uždegi vienu kartu. Ji kurį laiką apšviečia toli aplink, paskui sudega ir pasigamini kitą.",
+  "toast.flare.materials": "Žiežirbai reikia 1 metalo. Pirma iškask rūdos.",
+  "toast.flare.burntOut": "Tavo žiežirba sudegė. Pasigamink kitą mygtuku ŽIEŽIRBA.",
+  "toast.flare.first": "Žiežirba kurį laiką šviečia toli. Po žeme tai, ką ji apšviečia, atsiranda tavo žemėlapyje; prie kristalų užgesink ją tuo pačiu mygtuku.",
+  "look.character.flareLight": "Žiežirbos šviesa",
+  "look.character.flareLight.does": "Šilta degančios rūdos žiežirbos šviesa Micos rankoje. Spalva nuspalvina jos šviesos ratą.",
   "cr.shutter.open": "Atverti sklendes",
   "cr.shutter.close": "Užverti sklendes",
   "cr.cover": "Uždengti šviesą",

@@ -7,7 +7,7 @@ import {rigPose,LEG_LENGTH} from './rig-motion.js';
 import {createPickaxeModel,pickaxeTier} from './pickaxe-model.js';
 import {characterDirection,CHARACTER_DIRECTIONS} from './character-direction.js';
 import {UPPER_ARM,FOREARM,solveArm,miningStroke,workHands,workWeight,WORK_HANDS} from './work-motion.js';
-import {createBasketModel,createLanternModel} from './work-equipment.js';
+import {createBasketModel,createLanternModel,createFlareModel} from './work-equipment.js';
 import {createWikiModel} from './wiki-model.js';
 import {wrapAngle} from './wiki-motion.js';
 const DOWN=new T.Vector3(0,-1,0);
@@ -26,6 +26,9 @@ export function besideCoat(angle,y,gap){
 }
 // The lantern's ring sits this high on the hip; its widest part hangs this far
 // below the ring; the skirt sways about this much while walking.
+// The flare: where it sits in the left mitten and how it leans out of it,
+// and where it tucks into the belt while that hand is busy.
+const FLARE_SIZE=.7,FLARE_GRIP=[0,-.03,.02],FLARE_TILT=[.8,0,-1.2],FLARE_BELT_SIDE=-1.55,FLARE_BELT_Y=.05,FLARE_BELT_GAP=.11,FLARE_BELT_TILT=[0,0,0];
 const LANTERN_SIDE=2.2,LANTERN_RING=.16,LANTERN_DROP=.22,LANTERN_RADIUS=.09,SKIRT_SWAY=.045;
 // The sleeve meets the coat within this distance of the shoulder joint.
 // Arms hang this far out (radians) so sleeves and mittens clear the coat.
@@ -182,6 +185,18 @@ export function createRigModel(){
  // Wiki sits on top of the hood and turns with Mica's head.
  const wiki=createWikiModel();wiki.root.position.set(.05,.48,0);wiki.root.rotation.set(-.12,0,-.10);wiki.root.scale.setScalar(1.75);head.add(wiki.root);wiki.root.visible=false;
  const lanternModel=createLanternModel();lanternModel.root.name='lantern';lanternHip.add(lanternModel.root);lanternModel.root.visible=false;
+ // A burning flare is held in the left hand. While that hand works the
+ // lantern the right one takes it; while it holds the basket or the cargo,
+ // it rides tucked in the belt instead.
+ const flareGrip=new T.Group();flareGrip.name='flareGrip';flareGrip.position.set(...FLARE_GRIP);flareGrip.rotation.set(...FLARE_TILT);flareGrip.scale.setScalar(FLARE_SIZE);leftArm.hand.add(flareGrip);
+ const flareRight=new T.Group();flareRight.name='flareRight';flareRight.position.set(-FLARE_GRIP[0],FLARE_GRIP[1],FLARE_GRIP[2]);flareRight.rotation.set(FLARE_TILT[0],-FLARE_TILT[1],-FLARE_TILT[2]);flareRight.scale.setScalar(FLARE_SIZE);rightArm.hand.add(flareRight);
+ const flareBelt=new T.Group();flareBelt.name='flareBelt';flareBelt.position.copy(besideCoat(FLARE_BELT_SIDE,FLARE_BELT_Y,FLARE_BELT_GAP));flareBelt.rotation.set(...FLARE_BELT_TILT);flareBelt.scale.setScalar(FLARE_SIZE);hips.add(flareBelt);
+ const flareModel=createFlareModel();flareModel.root.name='flare';flareGrip.add(flareModel.root);flareModel.root.visible=false;let flareHand=null;
+ // `where`: 'left', 'right' or 'belt'.
+ function equipFlare(lit,time,where){
+  flareModel.root.visible=!!lit;flareHand=lit&&where!=='belt'?where:null;if(!lit)return;
+  const parent=where==='left'?flareGrip:where==='right'?flareRight:flareBelt;if(flareModel.root.parent!==parent)parent.add(flareModel.root);flareModel.setBurn(time);
+ }
  function equipBasket(level,held){
   const tier=Math.max(0,Math.min(5,Math.floor(Number(level)||0)));basketHeld=!!(tier&&held);
   if(equippedBasket&&equippedBasket.tier!==tier){equippedBasket.root.removeFromParent();equippedBasket=null;}
@@ -227,7 +242,7 @@ export function createRigModel(){
  return {
   scene,model,
   // Poses every bone and carried thing for one frame; the same options as draw().
-  pose({facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,flow=null,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,cargo=null,wiki:wikiState=null}={}){
+  pose({facing={x:0,y:1},phase=0,walking=false,blend=null,action=null,progress=0,flow=null,time=0,steady=false,pickaxe=0,basket=0,work=null,lantern=false,lanternOn=false,flare=false,cargo=null,wiki:wikiState=null}={}){
    renderedAction=action;renderedProgress=progress;renderedWork=work;
    cargoKind=!steady&&!action&&['specimen','sealed'].includes(cargo)?cargo:null;
    cargoRoot.visible=!!cargoKind;specimen.visible=cargoKind==='specimen';sealed.visible=cargoKind==='sealed';
@@ -252,17 +267,18 @@ export function createRigModel(){
    if(wikiState){const look=wikiState.look&&Math.hypot(wikiState.look.x,wikiState.look.y)>1e-6?wrapAngle(Math.atan2(wikiState.look.x,wikiState.look.y)-model.rotation.y-spine.rotation.y-head.rotation.y):null;wiki.pose({time,look,fold:wikiState.fold||0,talk:wikiState.talk??null,rest:!!wikiState.rest});}
    drivingGrip=0;toolGrip.position.set(0,-.02,.025);
    equipPickaxe(pickaxe,action,steady,!!cargoKind);
+   equipFlare(flare,time,basketHeld||cargoKind?'belt':action==='collect'&&work==='lantern'?'right':'left');
    if(!steady)constrainWork(action,progress,{basket:basketHeld,work,flow,carrying:!!cargoKind});
    scene.updateMatrixWorld(true);basketGrip.quaternion.copy(leftArm.hand.getWorldQuaternion(new T.Quaternion())).invert().multiply(model.getWorldQuaternion(new T.Quaternion()));
    scene.updateMatrixWorld(true);
   },
   // World points the 2D world needs: the top of the hood, the tool hand, Wiki's cap.
   marks(){return {head:new T.Vector3(0,.48,0).applyMatrix4(head.matrixWorld),hand:rightArm.hand.getWorldPosition(new T.Vector3()),wiki:wiki.root.visible?wiki.top():null};},
-  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,wiki:wiki.root.visible?wiki.inspect():null,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
+  inspect(){const at=b=>b.getWorldPosition(new T.Vector3()).toArray();return {work:{action:renderedAction,progress:renderedProgress},leftFoot:at(leftLeg.foot),rightFoot:at(rightLeg.foot),leftKnee:at(leftLeg.lower),rightKnee:at(rightLeg.lower),pickaxe:equippedPickaxe?{tier:equippedPickaxe.tier,stowed:equippedPickaxe.root.parent===toolBack,grip:equippedPickaxe.root.localToWorld(new T.Vector3(0,drivingGrip,0)).toArray(),socket:equippedPickaxe.root.parent===toolBack?at(toolBack):rightArm.hand.localToWorld(new T.Vector3(0,-.02,.025)).toArray(),hand:at(rightArm.hand),head:equippedPickaxe.root.localToWorld(new T.Vector3(0,.50,0)).toArray()}:null,basket:equippedBasket?{tier:equippedBasket.tier,held:basketHeld,grip:at(equippedBasket.root)}:null,lantern:lanternModel.root.visible,flare:flareModel.root.visible?{held:!!flareHand,hand:flareHand,tip:flareModel.root.localToWorld(new T.Vector3(0,.38,0)).toArray()}:null,wiki:wiki.root.visible?wiki.inspect():null,lanternPosition:at(lanternModel.root),cargo:cargoKind,blink:eyes[0].scale.y/.046,leftHand:at(leftArm.hand),rightHand:at(rightArm.hand),hipY:hips.position.y,yaw:model.rotation.y,head:head.rotation.toArray().slice(0,3),spine:spine.rotation.toArray().slice(0,3),cloak:[clothFront.rotation.x,clothBack.rotation.x,clothLeft.rotation.z,clothRight.rotation.z]};},
   // Every visible mesh, grouped into the solid things that must never pass
   // through one another (rig-clips.js). A group is one rigid or jointed piece.
   solids(){
-   const owner=new Map([[coat,'coat'],[hem,'coat'],[patch,'coat'],[neck,'collar'],[head,'head'],[wiki.root,'wiki'],[wiki.body,'wiki'],[wiki.base,'wikiFeet'],[leftArm.upper,'leftArm'],[rightArm.upper,'rightArm'],[leftArm.hand,'leftHand'],[rightArm.hand,'rightHand'],[leftLeg.upper,'leftLeg'],[rightLeg.upper,'rightLeg'],[toolGrip,'pickaxe'],[toolBack,'pickaxe'],[basketGrip,'basket'],[basketBack,'basket'],[lanternModel.root,'lantern'],[cargoRoot,'cargo']]);
+   const owner=new Map([[coat,'coat'],[hem,'coat'],[patch,'coat'],[neck,'collar'],[head,'head'],[wiki.root,'wiki'],[wiki.body,'wiki'],[wiki.base,'wikiFeet'],[leftArm.upper,'leftArm'],[rightArm.upper,'rightArm'],[leftArm.hand,'leftHand'],[rightArm.hand,'rightHand'],[leftLeg.upper,'leftLeg'],[rightLeg.upper,'rightLeg'],[toolGrip,'pickaxe'],[toolBack,'pickaxe'],[basketGrip,'basket'],[basketBack,'basket'],[lanternModel.root,'lantern'],[flareModel.root,'flare'],[cargoRoot,'cargo']]);
    const groups=new Map();
    scene.traverseVisible(o=>{if(!o.isMesh)return;let a=o;while(a&&!owner.has(a))a=a.parent;if(!a)return;const name=owner.get(a);if(!groups.has(name))groups.set(name,[]);groups.get(name).push(o);});
    return [...groups].map(([name,meshes])=>({name,meshes}));
@@ -286,9 +302,10 @@ export function createRigModel(){
    if(basketHeld)list.push({a:'leftHand',b:'basket'});
    if(cargoKind)list.push({a:'leftHand',b:'cargo'},{a:'rightHand',b:'cargo'});
    if(renderedAction==='collect'&&renderedWork==='lantern')list.push({a:'leftHand',b:'lantern'});
+   if(flareHand&&flareModel.root.visible)list.push({a:flareHand+'Hand',b:'flare'}); // i18n-ok: solid names for the clip test.
    return list;
   },
   bones:bones.length+wiki.bones,
-  dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();wiki.root.removeFromParent();wiki.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
+  dispose(){for(const asset of baskets.values()){asset.root.removeFromParent();asset.dispose();}lanternModel.root.removeFromParent();lanternModel.dispose();flareModel.root.removeFromParent();flareModel.dispose();wiki.root.removeFromParent();wiki.dispose();for(const asset of pickaxes.values()){asset.root.removeFromParent();asset.dispose();}scene.traverse(o=>{o.geometry?.dispose();if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])m.dispose();});}
  };
 }

@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.171.0] - 2026-10-26
+
+Watch asked for light you craft underground and carry, not torches, that
+lights the way for a while and then has to be made again, and chose the
+design on decision cards: an ore flare (a metal stick of ore dust), kept
+beside the lantern for a different job, light that uncovers the map, a
+flare that cracks crystal but can be put out, made and lit in one tap,
+only ever in hand, in every single-player world first.
+
+### Added
+
+- Ore flares (`src/core/flare.js`). `useFlare` makes one from
+  `FLARE_COST` (1 metal) and lights it, or puts out the one burning (the
+  rest is spent). It burns `FLARE_TIME` (120 s) of play in `step`, so time
+  away burns none, and is saved as `flare` (seconds left; older saves have
+  none). Not in shared worlds yet: their room doesn't replay it, so it
+  refuses there and the button hides.
+- Light uncovers the mine: `sightRadius` is how far the land is revealed.
+  In the dark a flare reaches `FLARE_LIGHT` (8 tiles). Underground in a
+  crystal world the lantern reaches its usual 3 and no light only
+  `UNLIT_RADIUS` (1.5); older worlds keep their lantern reach, shrinking
+  with its charge.
+- In a crystal world a burning flare's light cracks crystal, specimens,
+  open facilities and the heart within `FLARE_LIGHT` like the lantern's,
+  at once when lit (`lightCrystal`) and every tick after.
+- The FLARE button (`#btnFlare`, key F) sits in the column above Gather,
+  above LIGHT or AUTO when either shows. Underground or while a flare
+  burns; orange while lit, with a ring and an m:ss plate burning down.
+  Toasts: the first flare's tip, no metal, burnt out.
+- The flare's light pool (look `character.flareLight`), flickering and
+  sputtering in its last 15 s; icon looks `tool.flare` (lit and out).
+- Mica holds the flare in the left mitten, tucked into the belt at the
+  right hip while that hand holds the basket, cargo or the lantern
+  (`createFlareModel`, `rig-model.js`); the clip sweep poses every action
+  with and without it.
+
+### Tests
+
+- `test/unit/flare.test.js`: price, put out and spent, no metal, burn
+  down, shared refusal, reveal reach in crystal and older worlds, crystal
+  and heart damage, save round trip and clamping.
+- `test/support/rig-poses.js` sweeps every pose with a flare too.
 ## [0.170.2] - 2026-10-26
 
 Watch: the mine of a crystal world looked too well lit with no light, and

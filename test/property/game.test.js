@@ -76,6 +76,8 @@ function oneAct(s, r) {
     // Buy the next upgrade of a family, if affordable (buy refuses otherwise).
     const id = r.pick(['basket', 'pickaxe', 'boots', 'overclock', ...C.RESOURCES, 'abundance']);
     C.buy(s, id);
+    // Now and then light a flare, or put out the one burning.
+    if (r.chance(0.1)) C.useFlare(s);
     return;
   }
   if (choice === 8 && s.extractors.length && r.chance(0.3)) {

@@ -154,6 +154,8 @@ for(const [kind,id] of Object.entries(CULTIVATION_LOOK)){
 
 add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), {...req('image'),...opt('stand')});
 add('character', 'light', t('look.character.light'), t('look.character.light.does'), req('color'));
+add('character', 'flareLight', t('look.character.flareLight'), t('look.character.flareLight.does'), req('color'));
+add('tool', 'flare', t('flare.name'), t('flare.does'), {...req('icon','image'),...opt('stages')});
 add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));
 
 add('mark', 'hole', t('look.mark.hole'), t('look.mark.hole.does'), req('top', 'color'));

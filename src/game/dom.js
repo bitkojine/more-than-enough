@@ -42,6 +42,8 @@ export function findElements() {
     perfect: byId('btnPerfect'),
     lantern: byId('btnLantern'),
     lanternLabel: byId('lanternLabel'),
+    flare: byId('btnFlare'),
+    flareLabel: byId('flareLabel'),
     showAuto: byId('btnShowAuto'),
     autoState: byId('autoState'),
     autoLab: byId('btnAutoplayLab'),

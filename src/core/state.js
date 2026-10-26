@@ -43,6 +43,7 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {number} goalIndex
  * @property {number} time                         game seconds
  * @property {number} battery                      your lantern's charge, 0 (flat) to 1 (full)
+ * @property {number} flare                        seconds left of the flare in your hand, 0 when none
  * @property {number} [seen]                     when this world was last open (ms since 1970, set by the game: core keeps no clock)
  * @property {{deepest: number}} underground     the deepest layer reached so far
  * @property {string} [shared]                   the room of a shared world (not set when alone)
@@ -87,7 +88,7 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
     totalEver: 0,
     perks: Object.fromEntries(Object.keys(PERKS).map((k) => [k, 0])),
     extractors: [],
-    stats: { ...perResource(0), foraged: 0, gathers: 0, finds: 0, collected: 0, built: 0, playedMs: 0 },
+    stats: { ...perResource(0), foraged: 0, gathers: 0, finds: 0, collected: 0, built: 0, flares: 0, playedMs: 0 },
     // Where this world's resources came from ({res: {source: amount}}), how
     // much of each kind of mushroom you've picked here, and every kind you've
     // ever found, in any world.
@@ -99,6 +100,7 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
     goalIndex: 0,   // how many: goalsDone.length
     time: 0,
     battery: 1,     // the lantern's charge, 0..1 (light.js)
+    flare: 0,       // seconds left of the flare in your hand, 0 when none (flare.js)
     underground: { deepest: SURFACE },
     events: []
   };

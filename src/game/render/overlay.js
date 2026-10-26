@@ -102,6 +102,7 @@ const UNDERGROUND_DARK = 0.95;  // how dark the mine is away from any light
 const NIGHT_DARK = 0.9;         // how dark the forest gets at midnight
 const MASK_SCALE = 0.25;        // the dark mask's resolution against the screen
 const TINT = 0.12;              // how warm a light's pool is
+const FLARE_SPUTTER = 15;       // seconds before a flare burns out that it sputters
 
 let mask = null;
 
@@ -125,6 +126,7 @@ export function drawLighting(ctx, cam, s, look, lights) {
       ctx.globalCompositeOperation = 'source-over';
     }
   }
+  const flare = s.flare > 0 && Core.isDark(s);
   const dark = under ? UNDERGROUND_DARK : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
   if (dark < 0.01) return;
 
@@ -136,10 +138,21 @@ export function drawLighting(ctx, cam, s, look, lights) {
       color: look.color('character.light'), min: Math.min(W, H) * (under ? 0.12 : 0.28) * Core.lightScale(s), core: under ? 0.3 : 0.5
     });
   }
-  if (under && s.cultivation && !s.cultivation.lantern) {
+  if (under && s.cultivation && !s.cultivation.lantern && !flare) {
     // No light at all: the mine is as dark as ever, and only the rock right
     // beside Mica shows, dimly. A light only ever shows more (Watch, 2026-10-26).
     all.push({ x: s.player.x, y: s.player.y, r: UNLIT_SIGHT, color: look.color('character.light'), min: Math.min(W, H) * 0.07, core: 0.2, strength: 0.6 });
+  }
+  if (flare) {
+    // The flare in Mica's hand: wide and warm, flickering, and sputtering
+    // in its last FLARE_SPUTTER seconds so you see it's about to go.
+    const now = s.time, end = Math.min(1, s.flare / FLARE_SPUTTER);
+    const flicker = 1 + 0.035 * Math.sin(now * 13.1) + 0.02 * Math.sin(now * 29.7);
+    all.push({
+      x: s.player.x, y: s.player.y, r: Core.FLARE_LIGHT * flicker * (0.75 + 0.25 * end),
+      color: look.color('character.flareLight'), core: 0.45,
+      strength: end < 1 ? 0.55 + 0.45 * end * (0.75 + 0.25 * Math.sin(now * 23)) : 1
+    });
   }
   if (under) {
     const sky = look.color('mark.skylight');

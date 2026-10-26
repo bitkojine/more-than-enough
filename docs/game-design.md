@@ -59,6 +59,20 @@ drain in the dark and the same recharging by floating solar panels and water
 wheels. Text may still adapt to the player's real controls
 (`{phone:…|laptop:…}`).
 
+### Ore flares — confirmed, 2026-10-26
+Light you make underground and carry, not torches, that lights the way for a
+while and then has to be made again (Watch, chosen on decision cards). A
+flare is a metal stick of ore dust, made from metal and lit in one tap, held
+only in Mica's hand (never set down), burning out after about two minutes of
+play. The lantern stays: it lights a small pool for good, a flare lights much
+further for a while. Underground, light is what uncovers the rock and puts it
+on the map (about 8 tiles for a flare, the lantern's usual reach, only the
+tiles beside you with no light in a crystal world). In a crystal world a
+flare's light cracks crystal like the lantern's, and it can be put out early,
+the rest spent. Every world gets flares: single-player worlds first; the
+shared world later, when Watch says, once the room checks them. Price and
+burn time are playtest values.
+
 ### The sun clock — confirmed, 2026-10-26
 Players need to know where in the day they are, above all in early morning,
 when it already looks light but a solar panel isn't charging yet (Watch).

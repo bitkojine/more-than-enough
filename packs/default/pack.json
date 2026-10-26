@@ -426,6 +426,9 @@
   "character.light": {
    "color": "#cfe6ff"
   },
+  "character.flareLight": {
+   "color": "#ffb35c"
+  },
   "character.boat": {
    "image": "characters/boat.svg"
   },
@@ -669,6 +672,14 @@
    "stages": [
     "cultivation/lantern-off.svg",
     "cultivation/lantern.svg"
+   ]
+  },
+  "tool.flare": {
+   "icon": "cultivation/flare.svg",
+   "image": "cultivation/flare.svg",
+   "stages": [
+    "cultivation/flare-out.svg",
+    "cultivation/flare.svg"
    ]
   }
  }

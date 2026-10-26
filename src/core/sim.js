@@ -10,7 +10,8 @@ import {
   AWAY_CAP, AWAY_MIN, FREEZE_AWAY, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
 } from './content.js';
 import { extractorRate, supportMult, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
-import { tickBattery, lightScale } from './light.js';
+import { tickBattery } from './light.js';
+import { burnFlare, sightRadius } from './flare.js';
 import { economyForState } from './economy-context.js';
 import { haulingEconomyAvailable, haulsBuilding, usesDepots } from './logistics.js';
 import { extractorCapacity } from './economy.js';
@@ -38,6 +39,7 @@ export function canBatchEconomy(s, count) { return haulingEconomyAvailable(s) &&
 
 export function step(s, dt, { visualEvents = true } = {}) {
   if (dt > MAX_STEP) dt = MAX_STEP;
+  burnFlare(s, dt);
   if(s.cultivation)stepCultivation(s,dt);
   noteWhere(s); // a shared world's room follows where you are (acts.js)
   const economy = economyForState(s) || (usesDepots(s) && Math.abs(dt*60-Math.round(dt*60))<1e-9 ? startEventEconomy(s) : null);
@@ -271,12 +273,12 @@ export function clearLine(s, x0, y0, x1, y1) {
 /* ---------------------------------------------------------------- fog */
 
 // Only the surface has fog. Revealing ore or crystal marks it discovered,
-// which drives the early goals and the compass hint. In the dark a low
-// battery lifts it over less (battery.js).
+// which drives the early goals and the compass hint. How far it lifts is
+// sightRadius (flare.js): in the dark, as far as your light reaches.
 // Derived visibility coverage, never serialized. Consecutive circles differ
 // only at their edges: O(radius + newly covered tiles), not O(radius²).
 const revealCoverage = new WeakMap();
-export function revealAround(s, radius = exploreRadius(s) * lightScale(s), work = null) {
+export function revealAround(s, radius = sightRadius(s), work = null) {
   const p = s.player, w = s.world, r = Math.ceil(radius), r2 = radius * radius;
   const px = Math.floor(p.x), py = Math.floor(p.y), top = py - r;
   const revision = w.explored.revision;

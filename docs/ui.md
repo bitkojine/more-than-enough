@@ -35,6 +35,7 @@ place it belongs here rather than adding a button where there is room.
 │                                   [−]│
 │                                   [▤]│  map button: out to the world map and back
 │                      [CLIMB] [AUTO]  │  layer button pops in; AUTO only if on in Nerds
+│                              [FLARE] │  underground or while one burns; above LIGHT/AUTO
 │                              [LIGHT] │  (crystal worlds: the lantern in AUTO's place)
 │ ( QR )   [BUILD] [UPGRADE] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
@@ -225,6 +226,14 @@ No separate map or client is used.
   AUTO sits in an older world; AUTO never shows in a crystal world), there
   once the lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
   *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. No toast.
+- **The ore flare** (Watch, 2026-10-26) has its own Build-sized round
+  button in the same column: in the LIGHT/AUTO slot above Gather when that
+  is free, one step above it when not. It shows underground, and anywhere
+  while a flare burns, never in a shared world (not there yet). *FLARE*
+  makes one from metal and lights it, <kbd>F</kbd> too; lit, it glows
+  orange, a gold ring round it and the m:ss on its plate burn down, and
+  tapping it puts the flare out. A toast teaches it the first time, says
+  when there's no metal and when it burnt out.
 - **A building's card**: tapping one of your buildings, a chamber, vault,
   machine, heart shelter, the hiding place, a placed light or a wild colony
   beside you (in reach, 1.65 m) pops a small card over it: its picture and

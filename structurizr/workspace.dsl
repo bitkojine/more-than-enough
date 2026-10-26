@@ -170,10 +170,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income and battery; movement and fog reveal. Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Cultivation runs local environment deadlines at 250ms in the same canonical step. Battery intervals support quiet-tick batching and reuse nearby charger candidates with exact range and daylight checks. Reveal compares exact circle row intervals and visits newly covered edges. Resource streams settle together with targeted manual balance updates. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income, battery and the burning flare; movement and fog reveal as far as your light reaches (sightRadius). Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Cultivation runs local environment deadlines at 250ms in the same canonical step. Battery intervals support quiet-tick batching and reuse nearby charger candidates with exact range and daylight checks. Reveal compares exact circle row intervals and visits newly covered edges. Resource streams settle together with targeted manual balance updates. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/sim.js, light.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"
+                        "ref" "src/core/sim.js, light.js, flare.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"
                     }
                 }
 

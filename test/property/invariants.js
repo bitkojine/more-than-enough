@@ -21,6 +21,13 @@ export function invariants() {
     if(s.cultivation&&C.canEmbark(s)!==(!s.shared&&s.cultivation.completed===true))throw new Error('Cultivation completion mismatch');
   });
 
+  // --- a flare burns between none and one whole flare, and never in a
+  // shared world, whose room doesn't check flares (flare.js).
+  invariant('a flare burns between 0 and FLARE_TIME seconds, never in a shared world', (s) => {
+    if (!finite(s.flare) || s.flare < 0 || s.flare > C.FLARE_TIME) throw new Error(`flare = ${s.flare}`);
+    if (s.shared && s.flare > 0) throw new Error('a flare burns in a shared world');
+  });
+
   // --- resources and money: never negative, never NaN (economy.js: pay()
   // refuses a cost you can't afford, copyNumbers keeps numbers finite).
   invariant('every resource count is finite and never negative', (s) => {

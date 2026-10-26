@@ -29,7 +29,7 @@ export function createSimulation({ game, controller, autoplay, input, canAutopla
     if (onEvents && s.events.length) onEvents(s.events, s);
     s.events.length = 0;
     const current = Core.packKey(Math.floor(s.player.x), Math.floor(s.player.y), s.player.z);
-    const radius = Core.exploreRadius(s) * Core.lightScale(s);
+    const radius = Core.sightRadius(s);
     if (tile !== current || s.player.x !== revealedX || s.player.y !== revealedY || radius > revealedRadius) {
       tile = current; revealedX = s.player.x; revealedY = s.player.y; revealedRadius = radius;
       Core.revealAround(s, radius);

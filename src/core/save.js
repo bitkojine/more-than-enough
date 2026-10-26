@@ -10,7 +10,7 @@ import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
 import { ExploredChunks } from './explored-index.js';
-import { EXTRACTORS, TOOLS, REFINERIES, PROPS } from './content.js';
+import { EXTRACTORS, TOOLS, REFINERIES, PROPS, FLARE_TIME } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
 import { createState } from './state.js';
 import { GOALS, CULTIVATION_GOALS } from './goals.js';
@@ -47,7 +47,7 @@ export function serialize(s) {
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: s.logisticsModel ? e.buffer : +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
     stats: s.stats, discovered: s.discovered,
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
-    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(s.seen ? { seen: s.seen } : {}),
+    goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(s.flare > 0 ? { flare: +s.flare.toFixed(2) } : {}), ...(s.seen ? { seen: s.seen } : {}),
     underground: { deepest: s.underground.deepest }
   });
 }
@@ -118,6 +118,7 @@ export function deserialize(str, make = createState) {
     if (isNum(d[k])) s[k] = d[k];
   }
   if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
+  if (isNum(d.flare)) s.flare = Math.max(0, Math.min(FLARE_TIME, d.flare)); // the flare in your hand, still burning
   // Milestones reached; a save from before they counted in any order has
   // only how many, which were the first ones listed.
   const goalIds = (s.cultivation?CULTIVATION_GOALS:GOALS).map((g) => g.id);
