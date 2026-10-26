@@ -245,8 +245,9 @@ A chamber's card shows temperature, shutter state, tolerance, stored
 output and quality. Sprite shutters/fans/cracks/warning triangles distinguish
 new machinery while retaining existing building art. Carried crystal/specimens
 show a tolerance bar beside the character; sound and toast warnings supplement
-visual cues. With the lantern off, the underground remains readable with ambient
-presentation light that does not count as simulated exposure. Crafted lanterns,
+visual cues. With the lantern off the mine is as dark as with it on, and only
+the rock right beside Mica shows, dimly; a light only ever shows more (Watch,
+2026-10-26). That glimmer does not count as simulated exposure. Crafted lanterns,
 placed lights and surface daylight do count. Placed lights can be covered with
 an owned mycelium hood and uncovered again from the light's own card.
 

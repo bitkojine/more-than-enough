@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.170.2": "Kristalų pasaulio kasykloje be šviesos dabar tamsu, kaip ir turi būti: matyti tik uola šalia Micos. Įjungtas žibintas apšviečia daugiau, o ne mažiau.",
   "news.0.170.1": "Pataisyta: {phone:bakstelėjimas|laptop:spustelėjimas} ant „Padėti“ nebepataiko ir į žemėlapį, tad naujas pastatas nebeperšoka kitur, kol dar nespėjai pamatyti, kur jis stovi.",
   "news.0.170.0": "Bendrame pasaulyje tai, ką surenki ar pastatai, kol nėra ryšio, išsaugoma tavo {phone:telefone|laptop:kompiuteryje}, todėl uždarius žaidimą prieš vėl prisijungiant nieko nebeatimama. Garsas Microsoft Edge naršyklėje įsijungia nuo pirmo {phone:bakstelėjimo|laptop:paspaudimo}, o ne lieka tylus.",
   "news.0.169.0": "Perkelti dabar galima ir bendruose pasauliuose: {phone:bakstelėk|laptop:spustelėk} savo pastatą, tada kortelėje „Perkelti“. Pasaulis patikrina kiekvieną perkėlimą, tad visi mato tavo pastatą ten, kur jį padėjai.",

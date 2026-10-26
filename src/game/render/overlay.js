@@ -96,6 +96,7 @@ export function drawTrail(ctx, cam, s, view) {
  * glowcap to keep a stretch of tunnel lit. */
 const LANTERN_LIGHT = 3.0;      // how far your lantern lights the night forest, in tiles
 const MINE_LANTERN_LIGHT = 1.7; // how far it lights in the mine
+const UNLIT_SIGHT = 1.1;        // what you make out in the mine with no light, in tiles
 const SKYLIGHT_LIGHT = 2.0;     // how far light falling through a hole spreads
 const UNDERGROUND_DARK = 0.95;  // how dark the mine is away from any light
 const NIGHT_DARK = 0.9;         // how dark the forest gets at midnight
@@ -124,7 +125,7 @@ export function drawLighting(ctx, cam, s, look, lights) {
       ctx.globalCompositeOperation = 'source-over';
     }
   }
-  const dark = under ? (s.cultivation&&!s.cultivation.lantern?0.58:UNDERGROUND_DARK) : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
+  const dark = under ? UNDERGROUND_DARK : Math.max(0, (0.6 - dl) / 0.6) * NIGHT_DARK;
   if (dark < 0.01) return;
 
   const all = lights.slice();
@@ -134,6 +135,11 @@ export function drawLighting(ctx, cam, s, look, lights) {
       x: s.player.x, y: s.player.y, r: (under ? MINE_LANTERN_LIGHT : LANTERN_LIGHT) * Core.lightScale(s),
       color: look.color('character.light'), min: Math.min(W, H) * (under ? 0.12 : 0.28) * Core.lightScale(s), core: under ? 0.3 : 0.5
     });
+  }
+  if (under && s.cultivation && !s.cultivation.lantern) {
+    // No light at all: the mine is as dark as ever, and only the rock right
+    // beside Mica shows, dimly. A light only ever shows more (Watch, 2026-10-26).
+    all.push({ x: s.player.x, y: s.player.y, r: UNLIT_SIGHT, color: look.color('character.light'), min: Math.min(W, H) * 0.07, core: 0.2, strength: 0.6 });
   }
   if (under) {
     const sky = look.color('mark.skylight');

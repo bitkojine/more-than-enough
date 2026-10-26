@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.170.2] - 2026-10-26
+
+Watch: the mine of a crystal world looked too well lit with no light, and
+switching the lantern on made it darker, showing only what it lit.
+
+### Fixed
+
+- With the lantern off the mine is drawn as dark as with it on
+  (`src/game/render/overlay.js`): only a dim glimmer of the rock right
+  beside Mica shows (1.1 tiles), so a light only ever shows more. Before,
+  an unlit mine was a light 58% veil over everything and the lit one 95%
+  dark with a pool. The glimmer is drawing only; it is not light that
+  cracks crystal. `docs/ui.md` says so.
+
 ## [0.170.1] - 2026-10-26
 
 The browser test failed now and then at "garden camp constructed". The tap

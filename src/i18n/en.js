@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.170.2": "With no light in the mine of a crystal world, it's now as dark as it should be: only the rock right beside Mica shows. Switching the lantern on lights more, no longer less.",
   "news.0.170.1": "Fixed: the {phone:tap|laptop:click} on Place no longer also lands on the map and moves the new building somewhere else before you have seen where it stands.",
   "news.0.170.0": "In a shared world, what you gather or build while the connection is down is kept on your {phone:phone|laptop:computer}, so closing the game before it reconnects no longer takes it back. Sound on Microsoft Edge starts with your first {phone:tap|laptop:click} instead of staying silent.",
   "news.0.169.0": "Move works in shared worlds too: {phone:tap|laptop:click} one of your own buildings, then Move on its card. The world checks each move, so everyone sees your building where you put it.",
