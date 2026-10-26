@@ -13,6 +13,7 @@ import { createEffects } from './effects.js';
 import { createHud } from './hud.js';
 import { createTooltips } from './tooltips.js';
 import { createWiki } from './wiki.js';
+import { createMessages } from './messages.js';
 import { WIKI_MODES } from './wiki-memory.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
@@ -115,7 +116,14 @@ function keepView() {
   saveView(savedView);
 }
 // Wiki, on Mica's hood, answers for the world; what it has told is kept here.
-const wiki = createWiki({ canvas: el.canvas, cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); } });
+// What the game says, Wiki included, goes in the message log; whether it's
+// open is this browser's, and each world keeps its own lines.
+const messages = createMessages({
+  world: () => game.state ? game.state.shared || 'solo.' + game.state.seed : null,
+  feet: () => { const p = game.state?.player, r = el.canvas.getBoundingClientRect(), at = p && cam.project(p.x, p.y + 0.3); return at && { x: r.left + at.x, y: r.top + at.y }; },
+  open: savedView.logOpen, keepOpen: (on) => { savedView.logOpen = on; saveView(savedView); }
+});
+const wiki = createWiki({ canvas: el.canvas, cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); }, messages });
 // What you gather flies to its pile in the yard (yard and quality are made
 // just below), as many at once as the device's quality allows.
 const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
@@ -123,7 +131,7 @@ const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
   return p.x > -ON_SCREEN_PX && p.y > -ON_SCREEN_PX && p.x < cam.width + ON_SCREEN_PX && p.y < cam.height + ON_SCREEN_PX;
 }, () => quality.flyers);
 const yard = createYard({ fx, look });
-const hud = createHud(el, look);
+const hud = createHud(el, look, messages);
 // Fewer pixels and no frosted glass on a device that can't keep up.
 // A touch screen as the main pointer (a phone, a tablet) draws fewer frames.
 const fps = pace(window.matchMedia?.('(pointer: coarse)').matches); // i18n-ok: a media query
@@ -296,15 +304,13 @@ const acted = actor.act.bind(actor);
 actor.act = (kind, context) => { problems.crumb('act ' + kind); return acted(kind, context); };
 // Players who gather a tap at a time are told, once, that holding keeps going.
 const HOLD_TIP_AFTER = 8;   // single gathers before the tip
-const HOLD_TIP_SECONDS = 6; // long enough to read
-const ASIDE_SECONDS = 9;   // the note that your save was kept to one side
 let singleGathers = 0;
 function gathered(held) {
   if (savedView.holdTip) return;
-  if (!held && (++singleGathers < HOLD_TIP_AFTER || hud.celebrating)) return;
+  if (!held && ++singleGathers < HOLD_TIP_AFTER) return;
   savedView.holdTip = true;  // found it, or told now: never again
   saveView(savedView);
-  if (!held) hud.toast(t('tip.hold'), HOLD_TIP_SECONDS);
+  if (!held) hud.toast(t('tip.hold'));
 }
 // Every quick tap on AUTO says, in a bubble over it, that it plays while held.
 const AUTO_TAP_S = 0.5;    // released sooner than this: a tap
@@ -326,7 +332,7 @@ const NEXT_SHOWN_BELOW = 3; // milestones reached, after which players know wher
 function showNext() {
   controller.checkGoals(); // one reached right here says what's next itself
   const next = Core.nextGoal(game.state);
-  if (next && !hud.celebrating && game.state.goalIndex < NEXT_SHOWN_BELOW) hud.nextUp(next.text);
+  if (next && game.state.goalIndex < NEXT_SHOWN_BELOW) hud.nextUp(next.text);
 }
 const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
 const perfect = createPerfect({ game, controller, hud });
@@ -352,10 +358,11 @@ const sheet = createSheet(el, {
 });
 
 // A crystal-world command, from a sheet, a building's card or the lantern
-// button: done, saved, and said in a toast (a lantern switched needs none).
+// button: done, saved, and said in the log, unless it just worked (a plain
+// "Done." after every press would bury what matters).
 function cultivate(cmd) {
   const result = controller.cultivation(cmd);
-  if (!(cmd.type === 'lantern' && result === 'ok')) hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
+  if (result !== 'ok') hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
   game.saveSoon();
   controller.checkGoals();
   hud.update(game.state);
@@ -395,7 +402,7 @@ let flareWas = 0;
 function useFlare() {
   const s = game.state, result = Core.useFlare(s);
   if (result === 'materials') hud.toast(t('toast.flare.materials'));
-  else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'), 8);
+  else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'));
   flareWas = s.flare;
   if (result === 'lit' || result === 'out') game.saveSoon();
   showFlare(s);
@@ -582,7 +589,7 @@ el.language.addEventListener('click', () => {
 // Work that runs on its own cadence rather than every frame.
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
-  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); } }
+  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let moving = false;
@@ -597,8 +604,7 @@ function regionTick(s, dt) {
   const here = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
   if (!region || here.key !== region.key) { region = here; regionHeld = 0; }
   regionHeld += dt;
-  // A milestone banner first: the two would sit on top of each other.
-  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && !hud.celebrating && (!shownRegion || shownRegion.key !== region.key)) {
+  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && (!shownRegion || shownRegion.key !== region.key)) {
     shownRegion = region;
     hud.place(region.kind, region.name);
   }
@@ -728,11 +734,11 @@ function catchUp(seconds) {
   if (made) sayAway(seconds, made);
 }
 // `fixed`: arriving in a shared world also set your numbers straight
-// (together.js), so the toast says that too, and stays up longer.
+// (together.js), so the note says that too.
 function sayAway(seconds, made, fixed = false) {
   const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) => t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] }));
   const away = t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') });
-  if (parts.length) hud.toast(fixed ? away + '. ' + t('together.toast.fixed') : away, fixed ? 9 : undefined);
+  if (parts.length) hud.toast(fixed ? away + '. ' + t('together.toast.fixed') : away);
   hud.update(game.state);
   game.saveSoon();
 }
@@ -845,7 +851,7 @@ hud.perfect(perfect.badge, false);
 // reads it loads (src/game/storage.js). Meanwhile a new world, and a word.
 if (loaded.lost) {
   game.saveNow();
-  hud.toast(t(loaded.lost === 'broken' ? 'save.aside.broken' : 'save.aside.format'), ASIDE_SECONDS);
+  hud.toast(t(loaded.lost === 'broken' ? 'save.aside.broken' : 'save.aside.format'));
 }
 game.changedMode();
 showNext();
@@ -909,6 +915,7 @@ window.MTE_GAME = {
   mapOn: () => mapView.on(),
   perfVisible: () => perf.visible,
   wiki,
+  messages,
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)
 };

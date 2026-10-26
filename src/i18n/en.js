@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.173.0": "Messages: everything Wiki and the game say now goes in a log at the bottom left and stays there until you've read it. Drag it for older lines; Hide folds it into a Messages pill that counts what's new.",
   "news.0.172.0": "Every world you've played stays yours. Settings → Worlds now lists them all by name, with how long you've played each, and Play takes you back, just as you left it. Embark never leaves a world behind for good.",
   "news.0.171.4": "Shared worlds: what your game sends a shared world and keeps until it arrives is now tested on its own, so a lost connection loses nothing.",
   "news.0.171.3": "Shared worlds: the room service's saving and loading of every world is now tested before each release.",
@@ -670,6 +671,9 @@ export default {
   "wiki.nothing": "Nothing worth telling there.",
   "wiki.fold": "Living crystal hates light. I'll keep my cap shut while we're near it.",
   "wiki.more": "More in the wiki ›",
+  "log.title": "Messages",
+  "log.hide": "Hide ✕",
+  "log.unread": {"one": "Messages, {count} new", "other": "Messages, {count} new"},
   "lab.title": "Super-speed AUTO",
   "nerds.auto": "AUTO button",
   "nerds.auto.oldOnly": "older worlds only",

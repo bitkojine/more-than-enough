@@ -951,10 +951,10 @@ async function main() {
   // No hand-holding: nothing to read on screen, no tutorial, no prompts.
   ok(await evalJS('!document.getElementById("tutorial") && !document.getElementById("trailHint") && !document.getElementById("goal")'), 'the game ships no tutorial, hint or goal banner');
   // A new player's first read is what to do: the next milestone.
-  ok(await evalJS('!document.getElementById("milestone").hidden && (/next milestone/i.test(document.querySelector("#milestone small").textContent) || /^Next: ./.test(document.querySelector("#milestone .next").textContent))'),
-    'a new world names the next milestone (' + await evalJS('document.getElementById("milestone").textContent') + ')');
+  ok(await evalJS('!document.getElementById("log").hidden && MTE_GAME.messages.lines.some(function(l){return /^(goal|milestone): ./.test(l);})'),
+    'a new world names the next milestone in the message log (' + await evalJS('JSON.stringify(MTE_GAME.messages.lines)') + ')');
   ok(await evalJS('document.getElementById("depth").hidden'), 'the depth marker stays hidden on the surface');
-  eq(await evalJS('document.getElementById("toast").textContent'), '', 'a fresh world shows no message');
+  ok(await evalJS('!MTE_GAME.messages.lines.some(function(l){return /^game:/.test(l);})'), 'a fresh world shows no notice');
   var chips = await evalJS('document.querySelectorAll("#resources .chip[data-res]").length');
   eq(chips, 4, 'four resource chips visible');
   // Tapping a counter opens the earnings statement at it, every kind of mushroom included.
@@ -1179,9 +1179,9 @@ async function main() {
   // with nothing built around it (a building's tile can't be gathered by hand).
   await evalJS('(function(){var p=' + JSON.stringify(spot) + '.split(",").map(Number),s=MTE_GAME.getState();s.extractors=s.extractors.filter(function(e){return Math.max(Math.abs(e.x-p[0]),Math.abs(e.y-p[1]))>3;});MTE_GAME.setPlayer(p[0]+0.5,p[1]+0.5);})()');
   await sleep(150);
-  // A milestone reached (gathering, or ore spotted on the way) is celebrated with a banner naming it.
-  ok(await waitFor('(function(){var s=MTE_GAME.getState(),txt=document.querySelector("#milestone strong").textContent;return !document.getElementById("milestone").hidden&&MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&g.reached===txt;});})()', 2000),
-    'reaching a milestone shows a banner naming it (' + await evalJS('document.getElementById("milestone").textContent') + ')');
+  // A milestone reached (gathering, or ore spotted on the way) goes in the log, naming it.
+  ok(await waitFor('(function(){var s=MTE_GAME.getState();return MTE_GAME.core.GOALS.some(function(g){return s.goalsDone.indexOf(g.id)>=0&&MTE_GAME.messages.lines.some(function(l){return l.indexOf("milestone: "+g.reached)===0;});});})()', 2000),
+    'reaching a milestone puts a line naming it in the log (' + await evalJS('JSON.stringify(MTE_GAME.messages.lines)') + ')');
   var g0 = JSON.parse(await stateSummary());
   await startListening();
   await hold(act.x, act.y, 2200); // hold to auto-repeat gather
@@ -1189,7 +1189,7 @@ async function main() {
   var g1 = JSON.parse(await stateSummary());
   ok(g1.inv.mycelium > g0.inv.mycelium, 'holding GATHER collected mycelium (' + g0.inv.mycelium + ' -> ' + g1.inv.mycelium + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
-  ok(/of \d+/.test(await evalJS('document.querySelector("#milestone .of").textContent')), 'the banner says which milestone of how many');
+  ok(/of \d+/.test(await evalJS('document.querySelector("#logLines .msg.milestone .who").textContent')), 'the line says which milestone of how many');
   // Milestones count in any order: walking may have already found ore.
   ok(await waitFor('MTE_GAME.getState().goalIndex >= 1 && document.getElementById("awardCount").textContent === String(MTE_GAME.getState().goalIndex)', 1000), 'the trophy counter counts the milestone');
   ok(await evalJS('document.getElementById("btnAwards").classList.contains("new")'), 'and glows until the awards are looked at');
@@ -1592,7 +1592,7 @@ async function main() {
   var was = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   var next = JSON.parse(await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),x=0;s.player.z=0;while(c.regionAt(s.world.seed,x,0).key==="0,0")x++;x+=10;MTE_GAME.setPlayer(x+0.5,0.5);return JSON.stringify(c.regionAt(s.world.seed,x,0));})()'));
   await waitFor('document.querySelector("#place strong").textContent === ' + JSON.stringify(next.name), 30000);
-  eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name (banner: ' + await evalJS('document.getElementById("milestone").hidden ? "none" : document.getElementById("milestone").textContent') + '; toast: ' + await evalJS('document.getElementById("toast").textContent') + ')');
+  eq(await evalJS('document.querySelector("#place strong").textContent'), next.name, 'walking into a region shows its name (log: ' + await evalJS('MTE_GAME.messages.last') + ')');
   await evalJS('MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')');
   // The world map is the game zoomed out all the way: the map button glides
   // there, a drag pans it without moving you, and the button comes back.
@@ -1750,14 +1750,14 @@ async function main() {
   // The save of a world made by a much older game (a format no longer kept).
   await evalJS('localStorage.setItem("more-than-enough-save", JSON.stringify({ v: 1, seed: 5, inv: { mycelium: 999999 } }))');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
-  ok(await waitFor('/kept safe to one side/.test(document.getElementById("toast").textContent)', 3000), 'a note says the save is kept to one side');
+  ok(await waitFor('MTE_GAME.messages.lines.some(function(l){return /kept safe to one side/.test(l);})', 3000), 'a note says the save is kept to one side');
   ok(await evalJS('!document.getElementById("nuke")'), 'there is no nuke screen any more');
   ok(await evalJS('MTE_GAME.getState().inv.mycelium') < 999999, 'a new world meanwhile');
   eq(await evalJS('JSON.parse(localStorage.getItem("more-than-enough-save-aside")).v'), 1, 'the old world\'s save is kept to one side, not written over');
   // A damaged save: the note says what happened.
   await evalJS('localStorage.setItem("more-than-enough-save", "{\\"v\\":1")');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
-  ok(await waitFor('/^Your saved world couldn\'t be opened/.test(document.getElementById("toast").textContent)', 3000), 'a damaged save says it could not be opened');
+  ok(await waitFor('MTE_GAME.messages.lines.some(function(l){return /^game: Your saved world couldn\'t be opened/.test(l);})', 3000), 'a damaged save says it could not be opened');
   // A format 10 world, set aside by v0.109.0 and played further, comes back.
   await evalJS('(() => { const s = JSON.parse(localStorage.getItem("more-than-enough-save")); s.v = 10; delete s.cultivation; delete s.logisticsModel; s.seed = 4242; s.stats.playedMs = 9e7; localStorage.setItem("more-than-enough-save-aside", JSON.stringify(s)); })()');
   await navigate('http://127.0.0.1:' + PORT + '/index.html');
@@ -2079,7 +2079,7 @@ async function main() {
   ok(await evalJS('document.getElementById("crash").hidden && MTE_GAME.getState().inv.mycelium === 0'), 'with storage blocked the game starts a new world and does not break');
   await evalJS(pressExplore);
   ok(await waitFor('(function(){var i=MTE_GAME.getState().inv;return i.mycelium+i.stone>0;})()', 8000), 'and can be played');
-  ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'it says progress is not being saved');
+  ok(await evalJS('MTE_GAME.messages.lines.some(function(l){return l.indexOf("game: Saving failed")===0;})'), 'it says progress is not being saved');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
   await cdp.send('Page.removeScriptToEvaluateOnNewDocument', { identifier: noStorage.identifier }, session);
 
@@ -2087,7 +2087,7 @@ async function main() {
   await navigate('http://127.0.0.1:' + PORT + '/');
   eq(await evalJS('document.getElementById("crash").hidden'), true, 'the crash report stays hidden while nothing is broken');
   await evalJS('(function(){var real=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new DOMException("full","QuotaExceededError");};MTE_GAME.save();Storage.prototype.setItem=real;})()');
-  ok((await evalJS('document.getElementById("toast").textContent')).indexOf('Saving failed') === 0, 'a save that fails says so');
+  ok(await evalJS('MTE_GAME.messages.lines.some(function(l){return l.indexOf("game: Saving failed")===0;})'), 'a save that fails says so');
   pageErrors = pageErrors.filter(function (e) { return e.indexOf('Saving failed') < 0; });
   // What iOS Safari reports when the Share sheet's own scripts throw in the
   // page: a hidden cross-origin error. It isn't the game's, so play goes on.

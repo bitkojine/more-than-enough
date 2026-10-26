@@ -135,7 +135,8 @@ function formatOf(raw) {
 
 // The viewer's zoom, drag direction, music choice, the tracks they have
 // heard, quality level, whether they know to hold Gather, what Wiki has
-// told them (src/game/wiki-memory.js), and whether time away makes anything
+// told them (src/game/wiki-memory.js), whether the message log is open, and
+// whether time away makes anything
 // (freeze season defaults it off): conveniences for this browser, not game state.
 export function loadView() {
   try {
@@ -149,10 +150,11 @@ export function loadView() {
       holdTip: v.holdTip === true,
       awayProduce: v.awayProduce === true,
       showAuto: v.showAuto === true,
-      wiki: v.wiki && typeof v.wiki === 'object' ? v.wiki : null
+      wiki: v.wiki && typeof v.wiki === 'object' ? v.wiki : null,
+      logOpen: v.logOpen !== false
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, showAuto: false, wiki: null };
+    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, showAuto: false, wiki: null, logOpen: true };
   }
 }
 

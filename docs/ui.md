@@ -27,13 +27,13 @@ place it belongs here rather than adding a button where there is room.
 │ ▮▯ 62%                               │  battery (once it isn't full), left edge
 │ LAYER 1                              │  depth meter (underground only), under it
 │ ▮                                    │
-│ ▮          (milestone banner)        │
+│ ▮                                    │
 │                                      │
 │               map                    │
-│                                   [+]│  zoom: slim vertical pill, right edge
-│                                   1× │
-│                                   [−]│
-│                                   [▤]│  map button: out to the world map and back
+│ ┌─ message log ──────────────┐   [+]│  the log: last 3 lines, left of the zoom pill
+│ │ Wiki: …                    │   1× │  zoom: slim vertical pill, right edge
+│ │ Milestone reached 3 of 12: │   [−]│
+│ └────────────────── Hide ✕ ──┘   [▤]│  map button: out to the world map and back
 │                      [CLIMB] [AUTO]  │  layer button pops in; AUTO only if on in Nerds
 │                              [FLARE] │  underground or while one burns; above LIGHT/AUTO
 │                              [LIGHT] │  (crystal worlds: the lantern in AUTO's place)
@@ -48,7 +48,7 @@ place it belongs here rather than adding a button where there is room.
 - **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up and a dashed gold ring turns round it (still under reduced motion).
 - **Holding is taught on every tap**: each quick tap (under 0.5 s) pops a bubble over the button, *Hold me down to auto-play* (phone or laptop wording, `tip.auto`), for 4 s (Watch: keep tapping, keep getting the hint).
 - **In the world**: while it's actually playing (held, not paused by your own play, a sheet or Embark) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
-- **Embark is yours**: when the world is ready, AUTO stops, its badge turns to Embark and the button pulses gold, with a toast once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
+- **Embark is yours**: when the world is ready, AUTO stops, its badge turns to Embark and the button pulses gold, with a line in the log once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
 
 ### Tokens
 - Surfaces: `--surface` (glass panel), `--surface-raised`, `--line`.
@@ -59,7 +59,7 @@ place it belongs here rather than adding a button where there is room.
 
 ### Other screens
 - **Zoom** (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
-- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The milestone banner drops its trophy and becomes a thin strip, so it stays above your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
+- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The message log moves to the left of the screen, beside your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Tabs** size to their words (Lithuanian's are long), a little smaller on phones.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, a shared world full to its 100 players (chips and the Players screen) and a world with absurd numbers (the counts in scientific form, the Gather plate at its widest), and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows, a plate shrunk to a smudge and dialog buttons out of view. Run it after any change to the layout.
@@ -74,11 +74,14 @@ place it belongs here rather than adding a button where there is room.
 - The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
 
 ### Messages
-- A toast (one line of status) sits under the top bar, and under the milestone banner while one is up, never on top of it. Sheets and dialogs are solid: nothing on the map shows through a list.
+- **The message log** (Watch, 2026-10-26, like Old School RuneScape's chat box; `src/game/messages.js`): everything the game says goes in one log, a dark panel at the bottom left. In portrait it sits above the thumb cluster and left of the zoom pill; on short (landscape) and wide screens it keeps to the left of the screen, beside your character, above Invite when that's there. Each line has its colour: Wiki's in teal (*Wiki:* the thing, its line, *More in the wiki ›*), milestones in gold with a trophy (*Milestone reached 3 of 12:* what you did, then what's next; early on *Next milestone:*), and the game's own notices in plain ink (a low lantern, something you can't do yet, a save that failed, a friend arriving). There are no toasts or banners on top of the map any more.
+- **Nothing goes by itself.** The open log shows the last three lines, newest at the bottom, never taller than the room under your character's feet (or under the depth meter and the top bar); dragging or scrolling inside it goes back through older ones, and older lines are dimmer. The same line again stacks as ×2 rather than filling the log, and a long press sliding over the map keeps rewriting its one line. A press that simply worked says nothing (no "Done.").
+- **Hide ✕** folds it into a small **Messages** pill in the same corner; while folded, new lines only raise the count on the pill, in Wiki's teal, and nothing opens it but a tap (Watch's choice). A new player starts with it open; open or folded is kept on the device, and so are the last 50 lines of each world. It hides while you place a building, hold up your sign or look at the world map.
+- Sheets and dialogs are solid: nothing on the map shows through a list.
 
 ### The lantern's charge
 - The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
-- The first time it gets low (and again after each charge back above that), one toast says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
+- The first time it gets low (and again after each charge back above that), one line in the log says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
 
 ### The sun clock
 - The Settings gear wears the day as a ring (Watch, 2026-10-26): noon at the top, gold for the part of the day the sun works, blue for the rest, and the sun (in the gold) or the moon (in the blue) riding it clockwise where the day is now. In older and shared worlds the gold is when a solar panel charges (and the lantern doesn't drain); in a crystal world it's the sun that cracks crystal and the heart in the open, which lasts longer. It shows always, on the surface and underground. The gear stays the same size and still opens Settings.
@@ -86,8 +89,7 @@ place it belongs here rather than adding a button where there is room.
 
 ### Depth
 - Underground, the depth meter sits on the left edge under the battery: a pill saying which layer you're on (*Layer 3*: a small capital label over a big number), and under it the layers as a column. The forest is on top in green (grass over earth), then every layer you've been down to in brown, a dashed one for deeper still; yours is lit gold with a small marker pointing at it. Over 12 layers, the column keeps the ones around you. On the surface the whole meter hides.
-- Arriving on another layer names it briefly where region names go: *Underground* over *Layer 3*, or *Forest* over the region's name when you come up. It sits under the milestone banner while one is up.
-- On a narrow screen underground, the milestone banner moves right to clear the meter and toasts narrow, rather than covering it.
+- Arriving on another layer names it briefly where region names go: *Underground* over *Layer 3*, or *Forest* over the region's name when you come up.
 
 ### Resource bar
 - Tapping a chip opens the **earnings statement** at that resource; a small green chart at the bar's end (narrower than a chip) opens it at the top. The bar is the way in: no button of its own (Watch, 2026-10-19).
@@ -107,24 +109,24 @@ place it belongs here rather than adding a button where there is room.
 
 ### Playing together
 - **Invite** is a main action, as big as Gather, in the bottom-left corner (the left thumb), in the sign's friendly sky blue, and only inside a shared world: worlds are made by Watch now, so outside one there is no sign to hold up. Tapping it holds up your sign. While the sign is up the button turns white and reads *Lower*; tap it again to put the sign down. It's never in a menu.
-- **The QR lives in the world**: your wanderer holds a sign up in both hands in front of them with the real, scannable code on it and *Scan to join my world* along the bottom, as big as fits (about 60% of the screen's width). The view pans so you stand low on the screen and the sign is clear of the top bar and messages. It's drawn over the night's darkness so it scans at any hour. Tapping the sign copies its link (a toast says so), for a friend who isn't there to scan it. Nothing covers it: it's drawn over names and edge badges, and the zoom buttons hide while it's up. Friends see you holding a small one, with their name above it.
+- **The QR lives in the world**: your wanderer holds a sign up in both hands in front of them with the real, scannable code on it and *Scan to join my world* along the bottom, as big as fits (about 60% of the screen's width). The view pans so you stand low on the screen and the sign is clear of the top bar and messages. It's drawn over the night's darkness so it scans at any hour. Tapping the sign copies its link (the log says so), for a friend who isn't there to scan it. Nothing covers it: it's drawn over names and edge badges, and the zoom buttons hide while it's up. Friends see you holding a small one, with their name above it.
 - **Invite links** (Settings, in a shared world) is a sheet screen like Discord's: the links you made, newest first, with how many joined with each and how long it still works, and *Show* (holds it up on your sign) and *Stop* (asks first). At the top, like Discord's invite settings, two pickers for new links: how many people they let in (1, 2, 3, 5, 10, 25; never unlimited) and how long they work (30 min, 1 h, 6 h, 1 day or 7 days; 7 days unless picked). A link is used up, expired or stopped; lowering the sign doesn't stop it.
 - **Worlds** (Settings, top row, showing the world you're in by name) is a sheet screen listing every world of your own on this device, last played first, then every shared world you've been in, newest first: its name, a line about it (*Just you · 2 h 5 min played · Complete*, or how many play there now), and *Play* (or a green *You're here*). No world is ever lost (Watch, 2026-10-26): a world left by Embark or *Start a fresh world* (Nerds) stays here as it was, and has no *Remove*. *Remove* takes a shared world off the list (asks first; you'd need a new link to go back); the list has no cap. Switching never asks: each world keeps its own character and progress. Shared worlds aren't listed from a crystal world. The row shows once there's more than one world to pick from.
-- **World names**: every world gets a two-word name, a shared one from its id and your own from its seed (Fern Valley, Glowcap Lake…; in Lithuanian Paparčių slėnis, Švytukių ežeras…), the same on every phone. Nobody types or renames it. The join question and the arrival toast say it; a link to a world you're already in takes you straight there.
+- **World names**: every world gets a two-word name, a shared one from its id and your own from its seed (Fern Valley, Glowcap Lake…; in Lithuanian Paparčių slėnis, Švytukių ežeras…), the same on every phone. Nobody types or renames it. The join question and the arrival line in the log say it; a link to a world you're already in takes you straight there.
 - **Players** (Settings, in a shared world, with how many there are) is a sheet screen listing everyone in the world: you first, then those awake, then those asleep, nearest first, each with their colour, name, how they're doing and how far away they are (and how many layers up or down). The friends' "+N" chip opens it too.
 - **Settings** keeps the rest: *Worlds*, *Players* and *Invite links*. *Privacy policy* is a link row beside the wiki, opening `privacy/` in the player's language. *Produce while away* (with Sound and Music) is a switch row, on or off, and it's a choice for this device: off, time away makes nothing; on, your buildings and the Abundance Engine keep working while the game isn't the active screen, up to eight hours, in every world, yours and shared alike.
 - **Super-speed AUTO** (Nerds) opens a separate developer viewer tab (`?autoplay`). It runs a fresh single-player world with the shipped AUTO held, shows the normal map and resource HUD, and offers Pause/Resume, 1×/100×/1000×/10000×/Maximum, New fresh world and downloads from the retained-world archive. Maximum uses bounded simulation work between draws; displayed speed is measured, not guaranteed. Hidden tabs pause without catch-up. The viewer stops when Embark becomes available, never confirms it, never connects to rooms, and keeps its worlds in a separate IndexedDB archive without changing normal saves. It shows state samples, not every skipped animation. Its styles (`autoplay-lab.css`) load only in the viewer.
-- **Problems the game got past** (Nerds, below the performance panel, only when there are any): an error the game skipped over (a part of the picture, a frame, a tap) says so once in a toast and is listed here, one line each with **Copy**, which copies a full report to send to whoever fixes the game (`src/game/problems.js`). Reports are in English, for developers, and stay on the device. The crash screen, shown only when frames keep failing, has **Copy report** too.
+- **Problems the game got past** (Nerds, below the performance panel, only when there are any): an error the game skipped over (a part of the picture, a frame, a tap) says so once in the log and is listed here, one line each with **Copy**, which copies a full report to send to whoever fixes the game (`src/game/problems.js`). Reports are in English, for developers, and stay on the device. The crash screen, shown only when frames keep failing, has **Copy report** too.
 - **Save a backup** and **Load a backup** (Nerds, in your own world only) save your world as a file on your device and play one from a file (`src/game/backup.js`). Loading asks first and saves the world you're in as a file before it, so neither is lost. A shared world has neither: its progress is the room's, and the moderator backs it up (server/README.md).
 - **The privacy policy** is accepted in the same question that starts or joins a shared world: one line says so, a link under it opens the policy, and Cancel keeps you playing alone. No separate consent screen.
 - **Names**: every player gets a nature name (Moss, Fern, Fox…; in Lithuanian Samana, Papartis, Lapė…) picked from their id, never two alike in a world and the same on every phone. Names, never numbers or ids, label friends everywhere.
 - **Friends** are chips under the top bar on the right, one per friend in their colour with their name, showing their state: online, away (z), connection lost (blinking), offline (hollow). Tapping one says how they're doing there. At most five chips show, awake friends first, and only as many as fit beside the depth meter; the rest fold into a "+N" chip that opens *Players*.
 - **In the world** everyone in a shared world (you too) has their name over their head on a tag in their colour, the same size at every zoom and drawn over the night; yours hides while your sign is up. A friend also has a ring of their colour at their feet. In a crowd, a name that would cover another waits until its player steps clear: yours always shows, then the nearest. Away: smaller, with drifting z's. Connection lost: flickering under a spinning arc. Offline: asleep on the ground where they left, like a sleeper in Rust, under a blanket of their colour that rises and falls, with slow big Z's; always solid, never hidden. Back: a burst of sparkles. Off screen or on another layer: their badge at the screen's edge (a circle in their colour with their wanderer's face, and their name on a tag), an arrow on its rim pointing their way, a small up or down arrow for another layer, and under the name a dark pill with how far they are (a tile is 1 m: "240 m", "1.2 km") plus, on another layer, an up or down triangle and how many layers; faded grey while they sleep. Only the six nearest get a badge, those on your layer first; a badge that would cover another, a name or you gives way to the next nearest.
 
-- **Admin copies** (the moderator's copy of a shared world, played as one player): an amber frame round the whole screen and a small label along its foot, under the thumb cluster, saying whose copy it is and that nothing is kept. Always on top, taps go through. When the copy is deleted, a toast says it ended and the game goes back to a world of its own (`src/game/copy.js`).
+- **Admin copies** (the moderator's copy of a shared world, played as one player): an amber frame round the whole screen and a small label along its foot, under the thumb cluster, saying whose copy it is and that nothing is kept. Always on top, taps go through. When the copy is deleted, the log says it ended and the game goes back to a world of its own (`src/game/copy.js`).
 - **Frozen characters** (progress clearly hacked; the moderator freezes them instead of banning): whenever the player tries to play that character, all they get is the "FBI" notice, centre stage over a police-blue map, above everything: a joke badge of the *Fair-play Bureau of Investigation* (a glowcap in a gold ring, flashing red and blue, never a real seal), *We know you cheated*, a line saying to play fair with a new character, and one button back to their own world (`src/game/fbi.js`). Friends see a tombstone where it stood.
 - **Tombstones**: a frozen character (or one banned before v0.155.0) leaves a grey headstone on a little mound where it last stood, with a cross, a band in its colour and its name tag over it, so everyone knows where it was. A frozen one is sealed in a block of ice that catches the light. Its name stays taken. Tombstones go only when a frozen character is thawed.
-- **A save it can't read** (damaged, or from a newer version than the page open): a toast says it's kept safe to one side and a new world starts meanwhile. There is no nuke and no screen to press through: worlds are never started over (`src/game/storage.js`).
+- **A save it can't read** (damaged, or from a newer version than the page open): the log says it's kept safe to one side and a new world starts meanwhile. There is no nuke and no screen to press through: worlds are never started over (`src/game/storage.js`).
 
 ### What's new
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
@@ -225,14 +227,14 @@ No separate map or client is used.
 - **The lantern** has its own round button above Gather (Build-sized, where
   AUTO sits in an older world; AUTO never shows in a crystal world), there
   once the lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
-  *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. No toast.
+  *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. Nothing in the log.
 - **The ore flare** (Watch, 2026-10-26) has its own Build-sized round
   button in the same column: in the LIGHT/AUTO slot above Gather when that
   is free, one step above it when not. It shows underground, and anywhere
   while a flare burns, never in a shared world (not there yet). *FLARE*
   makes one from metal and lights it, <kbd>F</kbd> too; lit, it glows
   orange, a gold ring round it and the m:ss on its plate burn down, and
-  tapping it puts the flare out. A toast teaches it the first time, says
+  tapping it puts the flare out. A line in the log teaches it the first time, says
   when there's no metal and when it burnt out.
 - **A building's card**: tapping one of your buildings, a chamber, vault,
   machine, heart shelter, the hiding place, a placed light or a wild colony
@@ -248,12 +250,12 @@ No separate map or client is used.
   Back closes it.
 - **What you carry** (a starter, harvested crystal, the heart) shows its
   health only on the bar over Mica: wider than a tile's half, green, amber
-  under 65%, red under 35%. A toast warns when it's at risk. No HUD tile.
+  under 65%, red under 35%. A line in the log warns when it's at risk. No HUD tile.
 
 A chamber's card shows temperature, shutter state, tolerance, stored
 output and quality. Sprite shutters/fans/cracks/warning triangles distinguish
 new machinery while retaining existing building art. Carried crystal/specimens
-show a tolerance bar beside the character; sound and toast warnings supplement
+show a tolerance bar beside the character; sound and warnings in the log supplement
 visual cues. With the lantern off the mine is as dark as with it on, and only
 the rock right beside Mica shows, dimly; a light only ever shows more (Watch,
 2026-10-26). That glimmer does not count as simulated exposure. Crafted lanterns,
@@ -379,22 +381,22 @@ Wiki (`src/game/wiki.js`) answers for the world itself, so the hover box above
 only covers icons and controls while Wiki talks (Settings → Wiki talks: off
 brings the world box back). Wiki rides on Mica's hood and turns toward what the
 player asks about. Hovering asks nothing (Watch, 2026-10-25): the mouse
-pointer resting on the map neither outlines nor answers. Its bubble sits just above Wiki, below sheets and above the
-HUD, one name and one short line, with a "More in the wiki" link (the bubble's
-only tappable part). It fades after a few seconds; nothing pauses or waits for
-it. A long press (a finger or the mouse
+pointer resting on the map neither outlines nor answers. What Wiki says goes in
+the message log (above, Messages), one teal line each: the thing's name, one
+short line and a "More in the wiki" link, kept there to read. A long press (a finger or the mouse
 held still 0.5 s on the map) asks Wiki about what is under it; sliding on asks
 about the next thing, and the answer stays 3 s after letting go. The long press
 is Wiki's (Watch, 2026-10-25): it never walks or gathers, and keeping on
 gathering is holding Gather. Touch can also tap Wiki, then tap a thing (the
-bubble asks for it), or drag from Wiki onto a thing along a dotted pointer line.
+log asks for it), or drag from Wiki onto a thing along a dotted pointer line.
 Those taps belong to Wiki and never walk or gather. Firsts that Mica walks up to
-are said at most once a minute, and never while a milestone banner is up.
+are said at most once a minute.
 Whatever Wiki is talking about is outlined in the world (`render/focus.js`):
 one ring in Wiki's teal over a dark ink line around the whole thing (what
 stands on the tile, else its square of ground; Mica gets a ring around Mica and
-Wiki), drawn over everything so it shows behind trees and at night, gone with
-the bubble.
+Wiki), drawn over everything so it shows behind trees and at night, gone a few
+seconds after Wiki finishes talking. Dragging from Wiki draws a dotted line in
+Wiki's teal (never white chalk).
 
 
 

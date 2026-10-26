@@ -290,31 +290,6 @@ body.sunTime #btnVersion { display: none; }
 #perf[data-grade="ok"] { border-left-color: var(--gold); }
 #perf[data-grade="bad"] { border-left-color: #ff5a5a; }
 
-/* A milestone reached: a banner under the top bar, a few seconds each. It
-   lets taps through to the map; the trophy button lists them all. */
-#milestone {
-  pointer-events: none;
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  margin-top: 4px; padding: 10px 22px 12px; max-width: 90%;
-  background: linear-gradient(180deg, rgb(58, 44, 16), rgb(28, 22, 10));
-  border: 1px solid rgba(255, 209, 102, 0.6); border-radius: var(--r-md);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 209, 102, 0.18);
-  text-align: center;
-  animation: milestone-in .35s cubic-bezier(.2, 1.4, .4, 1);
-}
-#milestone[hidden] { display: none; }
-/* Underground on a narrow screen, the banner moves over to clear the depth
-   meter down the left edge rather than cover it. */
-@media (max-width: 700px) {
-  body.below #milestone { margin-left: 66px; max-width: calc(100% - 66px); }
-}
-#milestone .trophy { width: 30px; height: 30px; color: var(--gold); filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.6)); }
-#milestone small { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
-#milestone strong { font-size: 17px; line-height: 1.25; color: #fff3d6; }
-#milestone .next { font-size: 13px; line-height: 1.3; color: rgba(255, 243, 214, 0.75); }
-#milestone .next:empty { display: none; }
-@keyframes milestone-in { from { opacity: 0; transform: translateY(-14px) scale(.85); } 60% { transform: scale(1.06); } to { opacity: 1; transform: none; } }
-
 /* Underground: which layer you're on ("Layer 3"), and the layers as a
    column under it: the forest on top in green, every layer you've been down
    to, a dashed one for deeper still, and yours lit with a marker. Going down
@@ -1041,25 +1016,83 @@ body.signing #zoomControls { visibility: hidden; }
 #version #brand { color: #e8d9a8; letter-spacing: 0.12em; }
 #version span + span::before { content: '\00B7'; margin: 0 6px; opacity: 0.6; }
 
-/* --------------------------------------------------------------- toast */
+/* ------------------------------------------------------- message log */
 
-/* Status messages drop in under the top bar, out of the thumb's way. */
-#toast {
-  position: absolute; left: 50%; top: calc(var(--edge-t) + 56px);
-  transform: translate(-50%, -8px);
-  background: rgba(20, 26, 22, 0.95);
-  border: 1px solid var(--panel-line);
-  border-radius: 12px;
-  padding: 9px 15px;
-  font-size: 13.5px; font-weight: 700; color: var(--ink);
-  opacity: 0; pointer-events: none;
-  transition: opacity .18s ease, transform .18s ease;
-  z-index: 40;
-  max-width: 88%;
-  text-align: center;
+/* Everything the game says, Wiki included, in one log at the bottom left
+   (src/game/messages.js, Watch 2026-10-26): newest at the bottom, the last
+   three in view, older ones a drag away. Nothing fades: Hide folds it into
+   the Messages pill, which counts what came in since. In portrait it sits
+   above the thumb cluster, left of the zoom pill; on short screens and wide
+   ones it keeps to the left of the screen, beside Mica. */
+#log, #logPill {
+  position: absolute; z-index: 14;
+  left: var(--edge-l);
+  bottom: calc(var(--edge-b) + var(--act) + 78px);
 }
-#toast.show { opacity: 1; transform: translate(-50%, 0); }
-@media (max-width: 700px) { body.below #toast { max-width: calc(100% - 140px); } }
+#log {
+  right: calc(var(--edge-r) + (var(--act) - 42px) / 2 + 52px);
+  max-width: 420px;
+  display: flex; flex-direction: column;
+  background: rgba(12, 17, 14, 0.86);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  border: 1px solid var(--panel-line); border-radius: var(--r-sm);
+  box-shadow: var(--shadow-1);
+  font-size: 13.5px; line-height: 1.35; color: var(--ink);
+  text-align: left;
+}
+#log[hidden], #logPill[hidden] { display: none; }
+#logLines {
+  overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
+  padding: 8px 10px 2px;
+  display: flex; flex-direction: column; gap: 5px;
+  /* An older line half out of view fades out at the top edge. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 10px);
+}
+#logLines .msg { margin: 0; overflow-wrap: anywhere; }
+#logLines .msg:not(:nth-last-child(-n+3)) { opacity: 0.6; }
+#logLines .msg.game { color: #d7dfd4; }
+#logLines .who { font-weight: 700; }
+#logLines .wiki .who { color: #9ff5d6; }
+#logLines .wiki strong { font-weight: 700; }
+#logLines .milestone .who, #logLines .goal .who { color: var(--gold); }
+#logLines .trophy { width: 14px; height: 14px; margin-right: 3px; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#logLines a { color: var(--gold); font-weight: 600; white-space: nowrap; }
+#logLines .times { color: var(--ink-dim); font-weight: 700; font-size: 12px; }
+.logFoot { display: flex; justify-content: flex-end; border-top: 1px solid var(--panel-line); margin: 3px 10px 0; }
+#logHide {
+  min-height: 30px; padding: 0 2px 0 16px;
+  border: 0; background: none; color: var(--ink-dim);
+  font: inherit; font-size: 12.5px; font-weight: 700;
+  touch-action: manipulation; cursor: pointer;
+}
+#logPill {
+  display: flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 12px 0 14px;
+  border: 1px solid var(--panel-line); border-radius: var(--r-pill);
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-1);
+  color: var(--ink); font: inherit; font-size: 13.5px; font-weight: 700;
+  touch-action: manipulation; cursor: pointer;
+}
+#logPill .count {
+  min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px;
+  display: grid; place-items: center;
+  background: #7fe6c4; color: #0f201a; font-size: 12.5px; font-weight: 900;
+}
+#logPill .count[hidden] { display: none; }
+/* Placing a building, holding up the sign or on the world map, the screen
+   is for that. */
+body.placing #log, body.placing #logPill, body.signing #log, body.signing #logPill,
+body.mapping #log, body.mapping #logPill { visibility: hidden; }
+/* Short screens (landscape phones) and wide ones: down the left side,
+   beside Mica rather than under them, above Invite when it's there. */
+@media (max-height: 500px), (min-width: 900px) {
+  #log, #logPill { bottom: var(--edge-b); }
+  #log { right: auto; width: min(380px, 40vw); }
+  body.inviting #log, body.inviting #logPill { bottom: calc(var(--edge-b) + var(--act) + 16px); }
+}
 
 /* A region's name as you walk into it: big and quiet across the upper
    middle of the map, fading in and away on its own. Taps go through. */
@@ -1136,11 +1169,6 @@ body.signing #zoomControls { visibility: hidden; }
   .dialog { padding: 14px 18px; gap: 8px; max-width: 520px; }
   .dialog p { font-size: 13.5px; line-height: 1.35; margin-bottom: 0; }
   #fbi .fbiBadge { width: min(90px, 22vh); }
-  /* The milestone banner stays a thin strip above you, not over you. */
-  #milestone { padding: 5px 16px 6px; gap: 1px; }
-  #milestone .trophy { display: none; }
-  #milestone strong { font-size: 15px; }
-  #milestone .next { font-size: 12px; }
 }
 
 /* Two tabs saved the same world: pick which to keep, one card each. */
@@ -1202,7 +1230,6 @@ body.signing #zoomControls { visibility: hidden; }
 @media (max-height: 500px) {
   :root { --act: 72px; --sub: 50px; --gap: 10px; --edge-b: calc(env(safe-area-inset-bottom, 0px) + 14px); }
   /* Zoom lies down: a column this tall would reach the top bar. */
-  /* Low enough to clear a milestone banner, above the climb button. */
   #zoomControls {
     right: var(--edge-r); bottom: calc(var(--edge-b) + var(--act) + 62px); /* over the layer button */
     width: auto; height: 40px; flex-direction: row;
@@ -1318,21 +1345,6 @@ a.setRow { text-decoration: none; }
 #inspectTooltip strong, #inspectTooltip span { display: block; }
 #inspectTooltip span { color: var(--ink-dim); margin-top: 3px; }
 
-/* Wiki's speech bubble, above Wiki on Mica's hood (src/game/wiki.js). Under
- * sheets, never in the way of a tap: only its wiki link takes one. */
-.wikiBubble {
-  position: fixed; z-index: 25; pointer-events: none; left: 0; top: 0;
-  max-width: min(260px, calc(100vw - 16px)); padding: 9px 12px 10px;
-  border-radius: 14px; background: #181511; color: var(--ink);
-  box-shadow: var(--shadow-1);
-  font: 14px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-}
-.wikiBubble[hidden] { display: none; }
-.wikiBubble strong { display: block; font-size: 13px; color: #9ff5d6; margin-bottom: 2px; }
-.wikiBubble span { display: block; }
-.wikiBubble a { display: inline-block; margin-top: 6px; color: var(--gold); font-weight: 600; font-size: 13px; pointer-events: auto; }
-.wikiBubble a[hidden] { display: none; }
-.wikiBubble.asking { background: #f6efdc; color: #1d1712; font-weight: 700; }
-.wikiBubble.asking strong { color: #2f6b56; }
+/* Dragging from Wiki onto a thing: a dotted line in Wiki's teal. */
 #wikiChalk { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 25; pointer-events: none; }
-#wikiChalk line { stroke: rgba(255,255,255,0.85); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 7; }
+#wikiChalk line { stroke: #7fe6c4; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 2 7; }

@@ -397,7 +397,7 @@ export default {
           produkciją parveža <strong>Logistika</strong>, visada atrodo tuščias, nes jame nieko nelaukia. Kasamos uolos taip pat
           mažėja, o miško grybai traukiasi, kai juos renki.</li>
         <li><strong>Lankais nuskriejantys mažyčiai paveikslėliai</strong>: ką ką tik surinkai, skrendantis į savo krūvą tavo <a href="#stockpile">atsargose</a>. Kai namai toli, jie išskrenda už ekrano namų kryptimi.</li>
-        <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir po viršutine juosta pasirodanti <strong>Etapo</strong> juosta su jo pavadinimu
+        <li><strong>Auksinis kibirkščių pliūpsnis</strong>, fanfaros ir auksinė <strong>Etapo</strong> eilutė žinučių žurnale su jo pavadinimu
           ir numeriu iš kelių: pasiekei <a href="#milestones">etapą</a>. <strong>Taurė</strong>
           viršutiniame kairiajame kampe skaičiuoja pasiektus etapus ir sušvinta po naujo; {phone:bakstelk|laptop:spustelk} ją ir pamatysi visus skirtuke
           <strong>Apdovanojimai</strong>.</li>
@@ -800,7 +800,7 @@ export default {
       <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Etapai",
   "wiki.article.milestones": `      <h1>Etapai</h1>
-      <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir juosta su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;
+      <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir auksine eilute žinučių žurnale su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;
         pasiekus etapą, taurė šviečia, kol atsidarai Apdovanojimus.</p>
       <div data-table="milestones"></div>
       <p>Etapas įskaitomas vos jį pasiekus, bet kuria tvarka; kitas rodomas pirmasis šio sąrašo etapas, kurio dar nepasiekei. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,

@@ -1,14 +1,13 @@
 /* The heads-up display: the resource bar (tap it for the earnings
- * statement), the trophy button, the depth meter, the thumb cluster and
- * status toasts. Layout rules: docs/ui.md. The game hardly explains itself in
+ * statement), the trophy button, the depth meter and the thumb cluster.
+ * What it says (milestones, notices) goes in the message log (messages.js).
+ * Layout rules: docs/ui.md. The game hardly explains itself in
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
 import { fmtClock, fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 
-const TOAST_SECONDS = 2.4;
-const MILESTONE_SECONDS = 6;
 const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
 // The layer button, by what it will do: [icon, label, aria-label].
@@ -23,35 +22,9 @@ export function paintIcons(look, root = document) {
   for (const img of root.querySelectorAll('img[data-look]')) img.src = look.src(img.dataset.look, img.dataset.slot || 'icon');
 }
 
-export function createHud(el, look) {
+export function createHud(el, look, messages) {
   const chips = {};
-  let toastLeft = 0, autoTipLeft = 0;
-  const milestones = []; // reached, waiting to be shown
-  let milestoneLeft = 0;
-  let showing = null; // the number of the milestone on the banner (0: only what's next)
-
-  function nextMilestone() {
-    const next = milestones.shift();
-    showing = next ? next.number : null;
-    el.milestone.hidden = !next;
-    milestoneLeft = next ? MILESTONE_SECONDS : 0;
-    if (!next) return placeToast();
-    // A milestone reached says what comes next; at the start, what's next is all it says.
-    el.milestone.querySelector('.label').textContent = t(next.number ? 'hud.milestone' : 'hud.nextMilestone');
-    el.milestone.querySelector('.of').textContent = next.number ? t('hud.milestoneOf', { n: next.number, total: next.total }) : '';
-    el.milestone.querySelector('strong').textContent = next.text;
-    el.milestone.querySelector('.next').textContent = next.then ? t('hud.then', { goal: next.then }) : '';
-    // Restart the entrance animation for each one.
-    el.milestone.style.animation = 'none';
-    void el.milestone.offsetWidth;
-    el.milestone.style.animation = '';
-    placeToast();
-  }
-  // A message goes under the milestone banner while one is up, not over it.
-  function placeToast() {
-    const m = el.milestone;
-    el.toast.style.top = m.hidden ? '' : m.offsetTop + m.offsetHeight + 8 + 'px';
-  }
+  let autoTipLeft = 0;
   let lastAction = '', lastPerfect = '';
   let inSight = false; // something to gather in sight for Explore to head to
 
@@ -119,7 +92,7 @@ export function createHud(el, look) {
     el.battery.setAttribute('aria-label', t(charging ? 'hud.batteryCharging' : 'hud.battery', { n: number(pct) }));
     if (s.battery < Core.BATTERY_LOW && !charging && !warned) {
       warned = true;
-      hud.toast(t('toast.batteryLow'), 6);
+      hud.toast(t('toast.batteryLow'));
     } else if (s.battery >= Core.BATTERY_LOW) warned = false;
   }
 
@@ -287,32 +260,20 @@ export function createHud(el, look) {
     // no longer fit, so it is measured again.
     fit() { fitCap(); },
 
-    // Status only (e.g. a save that couldn't be read), never instructions.
-    // A milestone reached (the `number`th of `total`): a banner under the counters for
-    // MILESTONE_SECONDS, several in a row taking turns, and the trophy
-    // counter glows until the Awards are looked at.
+    // A milestone reached (the `number`th of `total`): a gold line in the
+    // log, and the trophy counter glows until the Awards are looked at.
     // `then`: the milestone after it, if any.
     milestone(text, number, total, then = null) {
-      // Reached ones take over from a banner that only said what's next.
-      for (let i = milestones.length - 1; i >= 0; i--) if (!milestones[i].number) milestones.splice(i, 1);
-      milestones.push({ text, number, total, then });
+      messages.add({ kind: 'milestone', text, of: t('hud.milestoneOf', { n: number, total }), then });
       el.awards.classList.add('new');
-      if (milestoneLeft <= 0 || showing === 0) nextMilestone();
     },
 
-    // The milestone to go for, in the same banner: a new character's first
-    // sight, so the first thing they read is what to do.
-    nextUp(text) {
-      milestones.push({ text, number: 0 });
-      if (milestoneLeft <= 0) nextMilestone();
-    },
+    // The milestone to go for: a new character's first sight, so the first
+    // thing they read is what to do.
+    nextUp(text) { messages.add({ kind: 'goal', text }); },
 
-    // Another world swapped in: milestones from the old one mean nothing here.
-    newWorld() {
-      milestones.length = 0;
-      nextMilestone();
-      el.awards.classList.remove('new');
-    },
+    // Another world swapped in (its log is its own).
+    newWorld() { el.awards.classList.remove('new'); },
 
     // The Awards were looked at.
     awardsSeen() {
@@ -333,9 +294,6 @@ export function createHud(el, look) {
       el.place.classList.toggle('brief', brief);
       el.place.querySelector('small').textContent = kind;
       el.place.querySelector('strong').textContent = name;
-      // Under the milestone banner while one is up, not over it.
-      const under = el.milestone.hidden ? 0 : el.milestone.getBoundingClientRect().bottom + 12;
-      el.place.style.top = under > innerHeight * 0.24 ? under + 'px' : '';
       el.place.hidden = false;
       el.place.style.animation = 'none';
       void el.place.offsetWidth;
@@ -349,20 +307,11 @@ export function createHud(el, look) {
       autoTipLeft = seconds;
     },
 
-    toast(msg, seconds = TOAST_SECONDS) {
-      el.toast.textContent = msg;
-      el.toast.classList.add('show');
-      placeToast();
-      toastLeft = seconds;
-    },
-
-    // A milestone banner is up (a hint would only be covered by it).
-    get celebrating() { return milestoneLeft > 0; },
+    // A notice from the game (status, never instructions): a line in the log.
+    toast(msg) { messages.add({ kind: 'game', text: msg }); },
 
     tick(dt) {
-      if (toastLeft > 0 && (toastLeft -= dt) <= 0) el.toast.classList.remove('show');
       if (autoTipLeft > 0 && (autoTipLeft -= dt) <= 0) el.autoTip.hidden = true;
-      if (milestoneLeft > 0 && (milestoneLeft -= dt) <= 0) nextMilestone();
     }
   };
   return hud;

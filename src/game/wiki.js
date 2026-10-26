@@ -3,8 +3,9 @@
  * things worth knowing: once each, unless asked again. Hovering asks nothing
  * (Watch, 2026-10-25): press and hold the mouse or a finger on a thing (slide
  * it to ask about the next), tap Wiki and then tap a thing, or drag from Wiki
- * onto it. Whatever Wiki is talking about is
- * outlined in the world (render/focus.js). Presentation only:
+ * onto it. What Wiki says goes in the message log (messages.js), where it
+ * stays to be read; whatever Wiki is talking about is
+ * outlined in the world (render/focus.js) while it talks. Presentation only:
  * nothing here changes the game. What Wiki has told is kept per browser
  * (wiki-memory.js), so it carries over to new worlds like any knowledge. */
 import * as Core from '../core/index.js';
@@ -15,31 +16,25 @@ import { createWikiMemory, WIKI_MODES } from './wiki-memory.js';
 const ASK_MS = 8000;         // how long a tap on Wiki waits for the next tap
 const LOOK_HOLD_S = 1.5;     // Wiki keeps looking a moment after the pointer leaves
 const REST_AFTER_S = 6;      // then it closes its eyes
-const HELLO_AFTER_S = 8;     // its first hello waits for the first milestone banner
+const HELLO_AFTER_S = 8;     // its first hello waits a moment after the game opens
 const SCAN_EVERY_S = 0.5;    // looking around Mica for firsts and for crystal
 const FOLD_NEAR = 2;         // tiles: living crystal this close shuts Wiki's cap
 const DRAG_PX = 10;
 const FOCUS_IN_S = 0.15;     // the outline fades in this fast
 const LINGER_S = 3;          // a long press's answer stays this long after the finger lifts
 
-export function createWiki({ canvas, cam, state, saved, keep }) {
+export function createWiki({ canvas, cam, state, saved, keep, messages }) {
   const memory = createWikiMemory(saved);
-  const bubble = document.createElement('div');
-  bubble.id = 'wikiBubble'; bubble.className = 'wikiBubble'; bubble.hidden = true;
-  bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-live', 'polite');
-  const name = document.createElement('strong'), text = document.createElement('span'), more = document.createElement('a');
-  more.target = '_blank'; more.rel = 'noopener'; more.textContent = t('wiki.more');
-  bubble.append(name, text, more);
   // A dotted pointer line while dragging from Wiki onto something.
   const chalk = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   chalk.id = 'wikiChalk'; chalk.setAttribute('aria-hidden', 'true'); chalk.style.display = 'none';
   const stroke = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   chalk.append(stroke);
-  document.body.append(bubble, chalk);
+  document.body.append(chalk);
 
   const started = performance.now() / 1000;
   let clock = 0, scanIn = 0, fold = 0, folding = false;
-  let line = null, hideAt = 0, size = null;
+  let line = null, hideAt = 0, talking = false, pressNo = 0;
   let lookAt = null, lookedAt = -Infinity;
   let anchor = null, asking = false, askTimer = 0, press = null;
   let focus = null, holdKey = '';  // what the outline is around; the tile a long press is on
@@ -47,25 +42,23 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
   const hello = () => ({ kind: 'wiki.hello', name: t('wiki.name'), description: t('wiki.hello') });
   const nothing = () => ({ kind: null, name: t('wiki.name'), description: t('wiki.nothing') });
   const off = () => memory.mode === 'off';
-  // Wiki doesn't talk over a milestone banner on its own (src/game/hud.js).
-  const banner = document.getElementById('milestone');
-  const bannerUp = () => !!banner && !banner.hidden;
 
   // `tile`: where in the world the thing is ({x, y}), to outline it.
+  // Into the log, and Wiki talks (and rings the thing) for a while. A long
+  // press that slides over the map keeps rewriting its one line.
   function say(info, how, link = true, tile = null) {
     if (!info) return;
-    line = info; size = null;
+    line = info;
     focus = !tile || !info.kind ? null : info.kind === 'character.wanderer' ? { mica: true, at: clock } : { x: tile.x, y: tile.y, z: state().player.z, at: clock };
-    name.textContent = info.name; text.textContent = info.description || '';
-    more.hidden = !link || !info.kind || info.kind.startsWith('wiki.');
-    if (!more.hidden) more.href = 'wiki/#search/' + encodeURIComponent(info.name);
-    bubble.classList.toggle('asking', !link);
-    bubble.hidden = false;
+    const linked = link && info.kind && !info.kind.startsWith('wiki.');
+    const own = info.name === t('wiki.name');
+    messages.add({ kind: 'wiki', name: own ? '' : info.name, text: info.description || '', link: linked ? 'wiki/#search/' + encodeURIComponent(info.name) : '' }, press?.long ? 'press' + pressNo : null);
+    talking = true;
     line.started = clock;
     hideAt = clock + Math.max(4, 1.5 + (info.description || '').length * 0.05);
     if (info.kind) { memory.told(info.kind, how, clock); keep(memory.save()); }
   }
-  function hush() { line = null; focus = null; bubble.hidden = true; }
+  function hush() { line = null; focus = null; talking = false; }
   function consider(info, how) { if (info && memory.decide(info.kind, how, clock) === 'speak') say(info, how); }
 
   function canvasPoint(e) { const r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
@@ -81,7 +74,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
     return Math.hypot(p.x - anchor.x, p.y - anchor.y - anchor.r * 0.6) < Math.max(anchor.r * 1.5, 24);
   }
   function look(tile) { lookAt = tile; lookedAt = clock; }
-  function stopAsking() { asking = false; clearTimeout(askTimer); if (line && !line.kind && bubble.classList.contains('asking')) hush(); }
+  function stopAsking() { asking = false; clearTimeout(askTimer); if (line && !line.kind && line.asking) hush(); }
 
   // Taps and drags that start on Wiki, or answer a tap on Wiki, are Wiki's:
   // they never reach the game's own walking and gathering input.
@@ -118,7 +111,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
     if (asking) { stopAsking(); return; }
     asking = true; clearTimeout(askTimer);
     askTimer = setTimeout(stopAsking, ASK_MS);
-    say({ kind: null, name: t('wiki.name'), description: t('wiki.ask') }, 'asked', false);
+    say({ kind: null, name: t('wiki.name'), description: t('wiki.ask'), asking: true }, 'asked', false);
   };
   window.addEventListener('pointerup', release, true);
   window.addEventListener('pointercancel', release, true);
@@ -139,9 +132,8 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
     }
     const first = near && !folding;
     folding = near;
-    if (bannerUp()) return;
     if (first) consider({ kind: 'wiki.fold', name: t('wiki.name'), description: t('wiki.fold') }, 'nearby');
-    if (bubble.hidden && !asking && memory.mode === 'chatty') {
+    if (!talking && !asking && memory.mode === 'chatty') {
       for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
         if (!dx && !dy) continue;
         const tile = { x: px + dx, y: py + dy }, info = describeWorld(s, tile.x, tile.y, p.z);
@@ -169,7 +161,7 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
     longPress(x, y) {
       if (off()) return false;
       stopAsking();
-      holdKey = ''; press = { long: true };
+      holdKey = ''; press = { long: true }; pressNo++;
       holdAt(x, y, true);
       return true;
     },
@@ -190,9 +182,9 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
       clock = performance.now() / 1000 - started;
       fold += ((folding ? 1 : 0) - fold) * Math.min(1, dt * 4);
       if ((scanIn -= dt) <= 0) { scanIn = SCAN_EVERY_S; scan(); }
-      if (!memory.known.has('wiki.hello') && clock > HELLO_AFTER_S && bubble.hidden && !asking && !bannerUp()) say(hello(), 'pointed');
+      if (!memory.known.has('wiki.hello') && clock > HELLO_AFTER_S && !talking && !asking) say(hello(), 'pointed');
       if (line && !asking && !press?.long && clock > hideAt) hush();
-      if (lookAt && !press && clock - lookedAt > LOOK_HOLD_S && bubble.hidden) lookAt = null;
+      if (lookAt && !press && clock - lookedAt > LOOK_HOLD_S && !talking) lookAt = null;
     },
     // Wiki's pose for the rig (null hides Wiki).
     pose() {
@@ -200,27 +192,19 @@ export function createWiki({ canvas, cam, state, saved, keep }) {
       const p = state().player;
       return {
         look: lookAt ? { x: lookAt.x + 0.5 - p.x, y: lookAt.y + 0.5 - p.y } : null,
-        fold, talk: line && !bubble.hidden ? clock - line.started : null,
+        fold, talk: line && talking ? clock - line.started : null,
         rest: !lookAt && clock - lookedAt > REST_AFTER_S,
         // What Wiki is talking about, outlined: a tile or Mica, and how far faded in.
-        focus: focus && !bubble.hidden ? { ...focus, alpha: Math.min(1, (clock - focus.at) / FOCUS_IN_S) } : null
+        focus: focus && talking ? { ...focus, alpha: Math.min(1, (clock - focus.at) / FOCUS_IN_S) } : null
       };
     },
     // After drawing: where Wiki is on the canvas ({x, y, r}), or Mica's head
-    // when the 2D figure stands in. The bubble follows it.
-    place(at) {
-      anchor = at;
-      if (bubble.hidden || !at) return;
-      if (!size) size = { w: bubble.offsetWidth, h: bubble.offsetHeight };
-      const r = canvas.getBoundingClientRect(), x = r.left + at.x, y = r.top + at.y;
-      let top = y - size.h - 14;
-      if (top < 8) top = y + at.r * 2 + 14;
-      bubble.style.left = Math.max(8, Math.min(innerWidth - size.w - 8, x - size.w / 2)) + 'px';
-      bubble.style.top = top + 'px';
-    },
+    // when the 2D figure stands in, for taps and drags that start on it.
+    place(at) { anchor = at; },
     // For tests: whether Wiki is holding a tap for its next answer.
     get asking() { return asking; },
-    get line() { return bubble.hidden ? null : line && { kind: line.kind, name: line.name, text: line.description }; },
-    get focus() { return bubble.hidden ? null : focus; }
+    // What Wiki is saying now (it stays in the log after).
+    get line() { return !talking ? null : line && { kind: line.kind, name: line.name, text: line.description }; },
+    get focus() { return !talking ? null : focus; }
   };
 }

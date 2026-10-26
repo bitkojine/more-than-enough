@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.173.0] - 2026-10-26
+
+Watch: what Wiki and the milestone messages say went by too fast for some
+players to read, and covered the game. Designed with Watch one question at
+a time: a message log like Old School RuneScape's, which players put away
+themselves.
+
+### Added
+
+- The message log (`src/game/messages.js`): Wiki's lines, milestones and
+  the game's notices all go in one dark panel at the bottom left (above the
+  thumb cluster and left of the zoom pill in portrait, down the left side
+  on landscape and wide screens), each in its colour: Wiki teal, milestone
+  gold with a trophy, notices plain. Nothing fades: the last three lines
+  show, never taller than the room under Mica's feet, and dragging inside
+  goes back through older ones. Repeats stack as ×2; a long press sliding
+  over the map rewrites its one line.
+- Hide folds it into a Messages pill; folded, new lines only raise the
+  count until the pill is tapped (Watch's choice). A new player starts
+  with it open. Open or folded is kept on the device, and so are the last 50
+  lines of each world (`mte.log.<world>`).
+
+### Changed
+
+- Toasts, the milestone banner and Wiki's speech bubble are gone; all of
+  them are lines in the log. `hud.toast()` and `hud.milestone()` write to it,
+  so nothing that calls them changed. A crystal-world command that simply
+  worked no longer says "Done.".
+- Region and layer names no longer wait for a milestone banner, and Wiki's
+  hello and firsts no longer hold back for one.
+- Wiki's drag pointer line is Wiki teal, not white (the no-white-chalk rule).
+- `npm run test:layout` checks the log and its pill against every button.
+
 ## [0.172.0] - 2026-10-26
 
 No world is ever lost (Watch's rule): players grow attached to the worlds

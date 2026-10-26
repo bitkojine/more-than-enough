@@ -47,7 +47,6 @@ const MAX_PENDING_EDITS = 20000;      // kept while the connection is down
 const RECONNECT_MAX = 15;             // seconds between tries, at most
 const PING_EVERY = 5;                 // seconds of play between asking the room if it's there
 const SILENT_IS_DEAD = 15;            // seconds of play without a word from the room: the connection is gone
-const FIXED_SECONDS = 9;              // how long the note that your numbers were set straight stays up
 const UNDONE_SECONDS = 8;             // how long the note that the room took something back stays up
 const UNDONE_QUIET = 20;              // seconds after one such note before the next
 // Why the room refused something (server/src/shadow.js whyNot), the most
@@ -537,7 +536,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       game.replace(state);
       game.arrived();
       fixedNote = fixed;
-      if (fixed) hud.toast(t('together.toast.in', { world: worldName(room) }) + '. ' + t('together.toast.fixed'), FIXED_SECONDS);
+      if (fixed) hud.toast(t('together.toast.in', { world: worldName(room) }) + '. ' + t('together.toast.fixed'));
       else hud.toast(t('together.toast.in', { world: worldName(room) }));
       policyNotice();
     }

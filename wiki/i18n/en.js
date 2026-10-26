@@ -404,7 +404,7 @@ export default {
           <strong>Logistics</strong> hauls in always looks empty, since nothing waits in it. Rocks you mine wear smaller and
           a forest's mushrooms shrink as you forage them, the same way.</li>
         <li><strong>Little sprites arcing away</strong>: what you just gathered, flying to its pile in your <a href="#stockpile">stockpile</a>. When home is far, they fly off screen in its direction.</li>
-        <li><strong>A golden burst of sparks</strong>, a fanfare and a <strong>Milestone</strong> banner under the top bar naming
+        <li><strong>A golden burst of sparks</strong>, a fanfare and a gold <strong>Milestone</strong> line in the message log naming
           it and which one of how many it is: you've reached a <a href="#milestones">milestone</a>. The <strong>trophy</strong>
           in the top-left corner counts the milestones you've reached and glows after a new one; {phone:tap|laptop:click} it to see them all in the
           <strong>Awards</strong> tab.</li>
@@ -809,7 +809,7 @@ export default {
       <div data-table="perks"></div>`,
   "wiki.article.milestones.title": "Milestones",
   "wiki.article.milestones": `      <h1>Milestones</h1>
-      <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a banner naming it. The Awards tab shows the next one, what it still takes, and the last one far off;
+      <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a gold line in the message log naming it. The Awards tab shows the next one, what it still takes, and the last one far off;
         the trophy glows after you reach one, until you open the Awards.</p>
       <div data-table="milestones"></div>
       <p>A milestone counts the moment you do it, in any order; the next one shown is the first on this list you haven't reached. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
