@@ -2,6 +2,8 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {playCultivation} from '../../scripts/cultivation-playtest.mjs';
 import * as C from '../../src/core/index.js';
+import {createController} from '../../src/game/controller.js';
+import {createSimulation} from '../../src/engine/simulation.js';
 
 // The wall budget only stops a hung run: the game-time budget is the check,
 // so a slow or busy machine can't fail it.
@@ -37,4 +39,19 @@ test('a played world saves the same after loading, whatever fractions it holds',
  assert.ok(tried>=40,`only ${tried} fractions were tried: the states no longer reach what they did`);
  assert.ok(states[0].flare>0&&!Number.isInteger(states[0].flare),'the flare is burning, part way');
  assert.deepEqual(slips,[],'these values save differently after a load');
+});
+
+
+test('recorded fresh journey replays every controller command and tick to the same win',()=>{
+ const state=C.deserialize(run.initialSave),noop=()=>{},proxy=new Proxy({},{get:()=>noop});
+ assert.ok(Object.values(state.inv).every(n=>n===0)&&Object.values(state.tools).every(n=>n===0));
+ const game={state,saveSoon:noop,saveNow:noop},controller=createController({game,cam:{},fx:proxy,audio:proxy,hud:proxy,look:{color:()=>''},actor:{act:noop},ask:async()=>false});
+ const simulation=createSimulation({game,controller,autoplay:{tick:noop},input:{perfect:false,held:false,trail:null,holdPoint:()=>null,moveVector:()=>({x:0,y:0})}});
+ let actions=0,ticks=0;
+ for(const entry of run.trace){
+  if(entry.ticks){for(let i=0;i<entry.ticks;i++)simulation.tick();ticks+=entry.ticks;}
+  else{const result=entry.intent?controller.perform(entry.intent,false):controller.cultivation(entry.cultivation);assert.equal(result,entry.result);if(entry.cultivation)controller.checkGoals();actions++;}
+ }
+ assert.equal(actions,run.actions);assert.equal(ticks,run.ticks);
+ assert.equal(C.serialize(state),run.save);assert.ok(C.canEmbark(state));
 });

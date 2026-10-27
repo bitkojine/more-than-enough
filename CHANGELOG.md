@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.177.3] - 2026-10-27
+
+- Move the carrying right-hand target outward so its elbow clears the coat
+  through breathing and walk-to-idle blends. Preserve grip, gait and timing.
+- The current-world playtester now uses the cultivation controller, records
+  its empty initial save, and coalesces adjacent tick records without losing
+  command boundaries or game time.
+- Add a loopback-only deterministic client replay host. It pauses the wall-time
+  adapter and accepts ordinary controller/UI commands and fixed ticks.
+- Full replay tests reject stale rules/strategy, reproduce all actions from
+  empty hands, compare all saved gameplay fields, and check caught faults,
+  actual completion reload and absence of replay controls in ordinary play.
+  Only the browser last-saved wall timestamp is excluded from state parity.
+- Add carrying transition and complete trace replay regressions.
+
 ## [0.177.2] - 2026-10-27
 
 - Paint all floor tiles before standing objects, preventing north/south row

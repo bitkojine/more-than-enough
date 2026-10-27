@@ -19,7 +19,7 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
  for(const name of readdirSync(new URL('../src/core/',import.meta.url)).filter(f=>f.endsWith('.js')).sort())hash.update(name).update(readFileSync(new URL('../src/core/'+name,import.meta.url)));
  for(const name of ['../src/game/controller.js','../src/engine/simulation.js','../src/engine/clock.js','./cultivation-playtest.mjs'])hash.update(name).update(readFileSync(new URL(name,import.meta.url)));
  const sourceHash=hash.digest('hex');
- const started=performance.now(),state=C.createState(seed,{cultivation:true}),trace=[],stages=[];
+ const started=performance.now(),state=C.createState(seed,{cultivation:true}),initialSave=C.serialize(state),trace=[],stages=[];
  const rules=invariants();
  const noop=()=>{},proxy=new Proxy({}, {get:()=>noop});
  const game={state,saveSoon:noop,saveNow:noop};
@@ -27,12 +27,13 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
  const simulation=createSimulation({game,controller,autoplay:{tick:noop},input:{perfect:false,held:false,trail:null,holdPoint:()=>null,moveVector:()=>({x:0,y:0})}});
  const visits=new Map();let actions=0,ticks=0,activationSave=null;
  function budget(){if(performance.now()-started>wallSeconds*1000)throw Error('wall-budget');if(state.time>7200)throw Error('game-time-budget');}
- function advance(n){budget();trace.push({ticks:n});for(let i=0;i<n;i++){simulation.tick();ticks++;}}
+ function advance(n){budget();if(trace.at(-1)?.ticks)trace.at(-1).ticks+=n;else trace.push({ticks:n});for(let i=0;i<n;i++){simulation.tick();ticks++;}}
  function act(intent){budget();const result=controller.perform(intent,false);trace.push({intent,result});actions++;if(!result)throw Error('refused '+JSON.stringify(intent));advance(15);return result;}
  function command(type,kind,at=feet()){
+  budget();
   // A site in the rock is dug out first: buildings stand on open ground.
   if(type==='build'){let guard=0;while(!info(at.x,at.y).walk){if(++guard>100)throw Error('undiggable site');act({type:'harvestAt',...at});}}
-  const cmd={type,kind,x:at.x,y:at.y};const result=C.cultivationCommand(state,cmd);trace.push({cultivation:cmd,result});actions++;
+  const cmd={type,kind,x:at.x,y:at.y};const result=controller.cultivation(cmd);trace.push({cultivation:cmd,result});actions++;
   if(!['ok','lifted','discovery','activated'].includes(result))throw Error(result+' '+JSON.stringify(cmd));controller.checkGoals();advance(15);return result;
  }
  function stage(name){if(!name.startsWith('blocked:')){for(const rule of rules)rule.check(state);if(!C.deserialize(C.serialize(state)))throw Error('unreadable stage save');}const point={name,seconds:state.time,inv:{...state.inv},position:{...state.player}};stages.push(point);log(point);}
@@ -139,7 +140,7 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   const next=C.embark(saved,(seed%4294967294)+1);if(!next.ok||Object.values(next.state.inv).some(n=>n!==0)||Object.values(next.state.tools).some(n=>n!==0))throw Error('next world not empty-handed');
   return finish('won');
  }catch(e){stage('blocked: '+e.message);return finish('blocked',e.message);}
- function finish(result,error){return {seed,result,error,version:VERSION,sourceHash,driver:'manual strategy through shipped controller; no AUTO claim',win:'machine activation and Core.canEmbark',seconds:state.time,wallMs:performance.now()-started,actions,ticks,stages,trace,activationSave,save:C.serialize(state)};}
+ function finish(result,error){return {seed,result,error,version:VERSION,sourceHash,driver:'manual strategy through shipped controller; no AUTO claim',win:'machine activation and Core.canEmbark',seconds:state.time,wallMs:performance.now()-started,actions,ticks,stages,trace,initialSave,activationSave,save:C.serialize(state)};}
 }
 
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

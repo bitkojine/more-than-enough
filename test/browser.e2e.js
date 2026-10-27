@@ -291,9 +291,56 @@ async function main() {
 
   /* ------------------------------------------------------------- boot */
   if(process.env.MTE_NO_WEBGL==='1')await cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:"const originalGetContext=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(type,...args){return type==='webgl2'?null:originalGetContext.call(this,type,...args)}"},session);
+  let playthrough=null,replayInit=null;
+  if(process.env.MTE_PLAYTHROUGH_RUN){
+    playthrough=JSON.parse(fs.readFileSync(process.env.MTE_PLAYTHROUGH_RUN,'utf8'));
+    if(playthrough.result!=='won'||!playthrough.initialSave||!Array.isArray(playthrough.trace))throw Error('A fresh current-world playthrough trace is required');
+    // Refuse stale rules or a changed strategy, even if its old ending still loads.
+    const fingerprint=createHash('sha256'),sourceRoot=path.resolve(import.meta.dirname,'..');
+    for(const name of fs.readdirSync(path.join(sourceRoot,'src/core')).filter(f=>f.endsWith('.js')).sort())fingerprint.update(name).update(fs.readFileSync(path.join(sourceRoot,'src/core',name)));
+    for(const name of ['src/game/controller.js','src/engine/simulation.js','src/engine/clock.js','scripts/cultivation-playtest.mjs'])fingerprint.update(name.startsWith('scripts/')?'./'+name.slice(8):'../'+name).update(fs.readFileSync(path.join(sourceRoot,name)));
+    if(fingerprint.digest('hex')!==playthrough.sourceHash)throw Error('Playthrough source fingerprint changed; record a new run');
+    replayInit=await cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:'localStorage.clear();localStorage.setItem("more-than-enough-save",'+JSON.stringify(playthrough.initialSave)+');'},session);
+  }
   console.log('\n== Boot & render ==');
-  await navigate('http://127.0.0.1:' + PORT + '/index.html');
-  await evalJS('localStorage.clear()');
+  await navigate('http://127.0.0.1:' + PORT + '/index.html'+(playthrough?'?playtestReplay':''));
+  if(!playthrough)await evalJS('localStorage.clear()');
+  if(playthrough){
+    await cdp.send('Page.removeScriptToEvaluateOnNewDocument',{identifier:replayInit.identifier},session);
+    console.log('\n== Complete current-world controller replay ==');
+    ok(await evalJS('!!MTE_GAME.playtest'),'only the local replay host pauses wall-clock ticking');
+    ok(await evalJS('(async()=>!!await MTE_GAME.look.rigReady)()'),'actual 3D character renderer is ready');
+    const initial=await evalJS('({seed:MTE_GAME.getState().seed,time:MTE_GAME.getState().time,inv:MTE_GAME.getState().inv,tools:MTE_GAME.getState().tools})');
+    eq(initial.seed,playthrough.seed,'starts the same reserved seed');eq(initial.time,0,'no unrecorded wall-clock ticks');ok(Object.values(initial.inv).every(n=>n===0)&&Object.values(initial.tools).every(n=>n===0),'replay begins empty-handed');
+    await evalJS('window.__playthrough={trace:'+JSON.stringify(playthrough.trace)+',at:0,left:0,ticks:0,actions:0,frames:0}');
+    let replay;
+    const replayStarted=Date.now();
+    do{
+      replay=await evalJS(`(async()=>{const p=__playthrough,h=MTE_GAME.playtest;let budget=2000;
+       while(p.at<p.trace.length&&budget>0){const e=p.trace[p.at];if(e.ticks){if(!p.left)p.left=e.ticks;const n=Math.min(budget,p.left);h.ticks(n);p.ticks+=n;p.left-=n;budget-=n;if(!p.left)p.at++;}
+        else{const result=e.intent?h.perform(e.intent):h.cultivation(e.cultivation);if(JSON.stringify(result)!==JSON.stringify(e.result))throw Error('Replay command mismatch at '+p.at+': '+JSON.stringify(e));p.actions++;p.at++;}}
+       MTE_GAME.bench(1);p.frames++;await new Promise(requestAnimationFrame);
+       if(h.faults().length)throw Error('Caught client fault: '+JSON.stringify(h.faults().map(f=>({head:f.head,where:f.where}))));
+       return {at:p.at,total:p.trace.length,ticks:p.ticks,actions:p.actions,frames:p.frames,won:MTE_GAME.core.canEmbark(MTE_GAME.getState())};})()`);
+      if(replay.frames%10===0||replay.at===replay.total)console.log('  replay '+replay.at+'/'+replay.total+' entries, '+(replay.ticks/60).toFixed(1)+' game seconds, '+replay.frames+' rendered frames');
+      if(Date.now()-replayStarted>90000)throw Error('Full browser replay exceeded its wall budget');
+    }while(replay.at<replay.total);
+    ok(replay.won,'complete journey reaches machine activation through real client commands');eq(replay.actions,playthrough.actions,'every recorded player command replayed');eq(replay.ticks,playthrough.ticks,'every simulation tick replayed');
+    const finalSave=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');fs.writeFileSync(path.join(SHOT_DIR,'replayed-save.json'),finalSave);
+    // Only the browser's last-saved wall timestamp differs; every gameplay
+    // field, explored tile, balance, condition and completion flag must match.
+    const gameplaySave=raw=>{const parsed=JSON.parse(raw);delete parsed.seen;return JSON.stringify(parsed);};
+    eq(createHash('sha256').update(gameplaySave(finalSave)).digest('hex'),createHash('sha256').update(gameplaySave(playthrough.save)).digest('hex'),'browser and headless gameplay saves match exactly (excluding last-saved wall timestamp)');
+    ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.core.deserialize(MTE_GAME.core.serialize(MTE_GAME.getState())))'),'win survives serialization and reload');
+    eq(await evalJS('MTE_GAME.playtest.faults().length'),0,'no swallowed renderer or UI faults');eq(pageErrors.length,0,'no uncaught browser errors');await evalJS('MTE_GAME.save()');await shot('full-current-world-win.png');
+    await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
+    ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'actual client reload preserves completion');
+    eq(await evalJS('MTE_GAME.getState().seed'),playthrough.seed,'reload keeps the completed world');
+    eq(await evalJS('MTE_GAME.playtest.faults().length'),0,'reload has no recorded faults');
+    await navigate('http://127.0.0.1:'+PORT+'/');eq(await evalJS('MTE_GAME.playtest'),null,'ordinary play has no replay controls');
+    fs.writeFileSync(path.join(SHOT_DIR,'replay-result.json'),JSON.stringify({...replay,wallMs:Date.now()-replayStarted,seed:playthrough.seed,sourceHash:playthrough.sourceHash,failures,pageErrors},null,2));
+    console.log((failures?'PLAYTHROUGH BROWSER FAILURES':'PLAYTHROUGH BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_NO_WEBGL==='1'){
     eq(await evalJS('(async()=>await MTE_GAME.look.rigReady===null)()'),true,'unavailable WebGL selects the static fallback');
     ok(await evalJS('MTE_GAME.bench(2)>0'),'the original world renderer keeps drawing');

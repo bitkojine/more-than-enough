@@ -634,3 +634,19 @@ The faint visibility pass paints the figure without a second ground shadow,
 including aboard a boat. Building-placement ghosts follow the same occlusion;
 Wiki focus keeps its independent outline path and map mode is unchanged.
 Rendering faults restore clipping state. No rules, saves or timings change.
+
+
+### Current-world playtest contract
+
+A developer playtester may choose ordinary player actions to validate a
+cultivation world. This is separate from legacy AUTO, which does not act in
+these worlds. Begin empty-handed on a reserved fresh seed, use observed terrain
+and public map markers, and obey the shared controller/rules for all movement,
+gathering, purchases, construction and cultivation. Acceleration advances game
+ticks without waiting for wall time; it grants no resources or extra actions.
+A win requires restoring all three machine sections, installing a viable heart
+and safely activating the machine. Verify completion after saving and loading.
+The real client should replay the entire recorded journey, retain every saved
+gameplay field and report no caught or uncaught faults; a near-win checkpoint
+is only an ending check. The replay clock/command hook is local-development
+only and does not enable AUTO or new player-facing controls.

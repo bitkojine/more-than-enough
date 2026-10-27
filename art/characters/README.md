@@ -122,3 +122,9 @@ renderer against a complete-floor reference across north/south row crossings
 at three zoom levels. It also checks higher walls and unseen underground rock.
 Use `MTE_SITE=site` for the deployable build. The default quick gate includes
 bounded floor-order and canvas-state tests; no long simulation is needed.
+
+
+Carrying transitions are checked with breathing active, including settled and
+half-blended gait. `test/unit/rig-clips.test.js` preserves the right-arm/coat
+intersection found during full-world replay; the correction moves the grip
+target outward instead of broadening permitted joints or disabling checks.

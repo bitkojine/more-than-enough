@@ -738,6 +738,9 @@ function view() {
   };
 }
 
+// Local-only deterministic replay: the test drives normal commands and ticks.
+const playtestReplay=['localhost','127.0.0.1'].includes(location.hostname)&&new URLSearchParams(location.search).has('playtestReplay');
+
 let last = 0;
 let lastSimulationNow = 0, simulationMs = 0;
 let lastWall = 0; // Date.now() at the last frame shown
@@ -768,7 +771,7 @@ function frame(now) {
     const simStart = performance.now();
     const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
     lastSimulationNow = now;
-    if (document.hidden || fork.open) {
+    if (document.hidden || fork.open || playtestReplay) {
       simulationClock.reset();
       if (fork.open && !document.hidden) lastWall = Date.now();
     }
@@ -970,6 +973,17 @@ createTooltips({canvas:el.canvas,cam,state:()=>game.state,world:()=>wiki.mode===
 // A small hook so the browser tests can inspect and adjust the real game.
 
 window.MTE_GAME = {
+  // No world replacement or grants: seed selection happens before boot via a
+  // newly created, empty save. Production, movement and costs remain canonical.
+  playtest: playtestReplay ? {
+    perform: intent => controller.perform(intent,false),
+    cultivation: cmd => cultivate(cmd),
+    ticks(count) {
+      if(!Number.isSafeInteger(count)||count<0||count>6000)throw new Error('playtest-tick-count'); // i18n-ok: developer diagnostic
+      simulationClock.advanceTicks(count);
+    },
+    faults: () => problems.faults.list()
+  } : null,
   core: Core,
   look,
   yard,

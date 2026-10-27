@@ -229,7 +229,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         }
 
         // ------------------------------------------ dev tooling (system)
-        tools = softwareSystem "Development Tooling" "Test harnesses, deploy pipeline, benchmarks and art tools (3D-baked resource icons, rig and pickaxe reviews in art/)." {
+        tools = softwareSystem "Development Tooling" "Test harnesses, deploy pipeline, benchmarks and art tools (3D-baked resource icons, rig and pickaxe reviews in art/). scripts/cultivation-playtest.mjs drives current-rule fresh worlds through controller commands and records the empty save and exact action/tick trace. A localhost-only playtestReplay host in src/game/main.js pauses the wall-clock adapter, replays the full journey through normal controller/UI handlers and validates state parity, caught faults and actual reload in test/browser.e2e.js. Legacy AUTO remains separate." {
             tags "Tooling"
 
             coreTests = container "Unit Tests" "node:test suites driving the Simulation Core directly: world generation and layers, actions, economy and the progression map, prestige, underground travel and cross-layer regressions, saves and validation, and bot playthroughs with real pathfinding." "Node.js LTS" {

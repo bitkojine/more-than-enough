@@ -66,3 +66,14 @@ test('Gather held: the tool stays in hand from stroke to stroke',()=>{
  rig.pose({basket:5,action:'pick',progress:.99,flow:{joined:true,onward:false}});
  assert.equal(rig.inspect().basket.held,false,'let go: the last stroke puts the basket away');
 });
+
+
+// Full-world replay found the carrying elbow just inside the coat as the
+// walk blend settled while breathing. Gait-only samples at time 0 missed it.
+test('carrying arms clear the coat while breathing through walk-to-idle blends',()=>{
+ const times=[0,17.2264,Math.PI/4.2,3*Math.PI/4.2];
+ for(const cargo of ['sealed','specimen'])for(const blend of [0,.5,1])for(const phase of [0,.25])for(const time of times){
+  const pose={walking:true,phase,blend,time,pickaxe:3,basket:2,cargo};rig.pose(pose);
+  assert.deepEqual(findClips(rig),[],JSON.stringify(pose));
+ }
+});

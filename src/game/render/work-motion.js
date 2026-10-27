@@ -44,7 +44,8 @@ export const WORK_HANDS={
  collect:{left:[.213,-.075,.426],right:[-.182,-.011,.361],reach:.058},
  // The left hand meets the lantern's ring from outside, so the arm stays clear of the coat.
  lantern:{right:[-.192,-.075,.342],reach:[.16,.06,0]},
- carry:{left:[.17,-.043,.365],right:[-.151,-.088,.416]}
+ // Keep the driving elbow outside the breathing coat when the gait settles.
+ carry:{left:[.17,-.043,.365],right:[-.18,-.088,.416]}
 };
 export function workHands(action,progress,{basket=false,work=null,lantern=null,flow=null}={}){
  const t=clamp(progress),weight=workWeight(t,flow),beat=Math.sin(Math.PI*t)**2,H=WORK_HANDS;

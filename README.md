@@ -55,6 +55,26 @@ npm run test:layout   # real Chrome: every screen at 12 sizes, both languages
 npm run test:extended # the long 1,500-seed property sweep
 ```
 
+Current-world end-to-end playtests use the manual-action strategy, not legacy
+AUTO (which is disabled in cultivation worlds). Reserve fresh seeds in the same
+archive as other playtests:
+
+```sh
+node scripts/cultivation-playtest.mjs ../.mte-playtests
+CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_PLAYTHROUGH_RUN=../.mte-playtests/SEED.json npm run test:e2e
+```
+
+The browser replays the whole trace from the empty initial save through normal
+controller commands and the UI cultivation handler. A localhost-only
+`?playtestReplay` host pauses wall-clock advancement while fixed ticks run fast;
+rendering samples the journey, and both uncaught errors and recorded client
+faults fail it. Completion must survive an actual reload. Gameplay save parity
+excludes only the browser's last-saved wall timestamp. `MTE_SITE=site` tests the
+staged client; the source rules/strategy fingerprint must still match the run.
+No grants, teleports, hidden-terrain reads or near-win checkpoint starts count
+as a fresh-world win.
+
+
 Benchmarks and playtest runners are in `scripts/`; each explains itself at the
 top of the file. `node scripts/perfect-bench.mjs --check` (the AUTO benchmark)
 runs in CI after rule changes; record a reviewed new baseline with `--write`.
