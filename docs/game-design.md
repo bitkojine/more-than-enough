@@ -620,3 +620,17 @@ Review actual rendered grip contacts, empty-handed cases, direction coverage,
 continuous arcs, planting/tending, belt interaction and complete playback at
 world scale. Keep gameplay interaction range unchanged; this pass does not
 replace the game's abstract reach rule with a physical collision requirement.
+
+
+### Ground and standing-object layering (v0.177.2)
+
+Paint the floor before standing objects, retaining their north-to-south row
+order against scenery. A flat tile must never erase feet or shadows that
+extend across its edge. Genuinely higher foreground terrain masks overlapping
+pixels with local, viewport-bounded height queries. Unseen mine rock uses the
+existing uniform wall height; it never exposes hidden geology. Overlapping
+terrain masks subtract a union, with no canvas save/clip on clear ground.
+The faint visibility pass paints the figure without a second ground shadow,
+including aboard a boat. Building-placement ghosts follow the same occlusion;
+Wiki focus keeps its independent outline path and map mode is unchanged.
+Rendering faults restore clipping state. No rules, saves or timings change.

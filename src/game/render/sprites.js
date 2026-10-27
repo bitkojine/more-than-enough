@@ -63,7 +63,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
     actor: view.actor, steady: view.sign > 0, equipment: s.tools, cargo:s.cultivation, crystal:s.inv.crystal, wiki: view.wiki ?? null,
     // Older worlds light the dark with a lantern Mica always carries.
     lantern: s.cultivation ? { has: !!s.cultivation.gear?.lantern, on: !!s.cultivation.lantern } : { has: true, on: Core.isDark(s) },
-    flare: s.flare > 0
+    flare: s.flare > 0, castShadow: view.shadow!==false
   });
 }
 
@@ -72,12 +72,12 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // hand. `nod` tips them forward a little more (dozing). Everyone (you and
 // friends, awake, dozing or asleep) is drawn at one size, `u` px per tile.
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false }, flare = false, wiki = null }) {
+function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVector=null, flip, moving, water, actor, steady = false, seed = 0, nod = 0, equipment = null, cargo = null, crystal = 0, lantern = { has: false, on: false }, flare = false, wiki = null, castShadow = true }) {
   const u = cam.tilePx;
   if(look.rig&&mica){
     const motion=pose(actor,{moving,boat:water,steady,time:actor.clock??s.time,seed,equipment});
-    const deck=water?drawBoat(ctx,cam,s,look,x,sx,sy,flip,motion.rock,actor.clock??s.time):0;
-    if(!deck)shadow(ctx,cam,sx,sy,u*.26);
+    const deck=water?drawBoat(ctx,cam,s,look,x,sx,sy,flip,motion.rock,actor.clock??s.time,castShadow):0;
+    if(!deck&&castShadow)shadow(ctx,cam,sx,sy,u*.26);
     ctx.save();
     if(motion.clip){ctx.beginPath();ctx.rect(sx-u*2,sy-u*4,u*4,u*4);ctx.clip();}
     const location=look.rig.draw(ctx,sx,sy-deck+(actor.act?motion.dy*u:0),u,{facing:facingVector??{x:0,y:1},phase:actor.rigStride??actor.stride??0,walking:moving&&!water,blend:water?0:actor.walkBlend??null,action:actor.act,progress:actor.t/(ACT_TIME[actor.act]||1),flow:actor.flow??null,time:actor.clock??0,steady:steady||water,pickaxe:equipment?.pickaxe??0,basket:equipment?.basket??0,work:actor.work??null,lantern:lantern.has,lanternOn:lantern.on,flare,wiki,cargo:cargo&&(cargo.starter||crystal>0)?(cargo.gear?.carrier?'sealed':'specimen'):null});
@@ -90,9 +90,9 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVecto
   const body = walk.pics[characterFrame(walk,actor,{moving,water,time})];
   const loading=mica&&!look.rigSettled;
   const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
-  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time) : 0;
+  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time, castShadow) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
-  if (!deck) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
+  if (!deck&&castShadow) shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
   const dir = flip ? -1 : 1, feet = sy - deck;
   const fx = sx + p.dx * u * dir, fy = feet + p.dy * u, rot = (p.rot + nod) * dir;
   ctx.save();
@@ -110,11 +110,11 @@ function drawCharacter(ctx, cam, s, look, { x, sx, sy, mica = false, facingVecto
 // The boat under someone on water, bobbing and rocking by `rock` radians,
 // with its shadow. Returns how far above (sx, sy) its deck is, for them to
 // stand or lie on.
-function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0, time = s.time) {
+function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0, time = s.time, castShadow = true) {
   const u = cam.tilePx;
   const bob = Math.sin(time * 2.6 + x * 7.3) * u * 0.04;
   const boat = look.pick('character.boat', 'image');
-  shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
+  if(castShadow)shadow(ctx, cam, sx, sy, boat.units * u * 0.45);
   ctx.save();
   ctx.translate(sx, sy + bob);
   ctx.rotate(rock * (flip ? -1 : 1));

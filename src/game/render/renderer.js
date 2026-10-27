@@ -4,9 +4,8 @@
  * the sheet. Nothing drawn here is text to read. Returns frame stats
  * ({ tiles }) for the performance panel.
  *
- * Terrain is drawn a row at a time from north to south; whatever stands in a
- * row (target outlines, buildings, the player) is drawn right after it, so
- * blocks nearer the viewer cover it.
+ * Floors finish first, then standing objects draw north to south. Only
+ * genuinely higher foreground terrain clips them; flat floor never cuts feet.
  *
  * Each part of the picture runs through `layer` (src/game/faults.js): one
  * that throws is noted and left out, and the rest of the frame still draws. */
@@ -14,7 +13,7 @@
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain, drawMerging, dropFarMap } from './terrain.js';
+import { drawTerrain, drawMerging, dropFarMap, onGround } from './terrain.js';
 import { createAtlas } from './atlas.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
@@ -83,7 +82,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
   let you = null;    // where your head and hands are, for your name and sign
   const tags = [];   // friends' names, drawn last, over the night
   const friend = (f) => {
-    const at = drawFriend(ctx, cam, s, look, f, f.color);
+    const at = onGround(ctx,cam,s,f.x,f.y,()=>drawFriend(ctx, cam, s, look, f, f.color));
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
   const ground = { built, yard: view.yard, shake: fx.shake, layer };
@@ -93,41 +92,43 @@ export function render(cam, s, fx, view, look, guard = plain) {
     // A building being moved stands only as its ghost, where it would go.
     const moving = view.placing?.from;
     const row = buildings.get(y);
-    if (row) for (const e of row) if (e !== moving) drawExtractor(ctx, cam, s, look, e);
-    for(const b of crystalRows.get(y)||[])if(b!==moving)drawCultivation(ctx,cam,s,look,b);
+    if (row) for (const e of row) if (e !== moving) onGround(ctx,cam,s,e.x+.5,e.y+.6,()=>drawExtractor(ctx, cam, s, look, e));
+    for(const b of crystalRows.get(y)||[])if(b!==moving)onGround(ctx,cam,s,b.x+.5,b.y+.65,()=>drawCultivation(ctx,cam,s,look,b));
     const ghost = view.placing?.ghost;
     if (ghost && ghost.y === y) {
       drawGhostSpot(ctx, cam, ghost);
       ctx.globalAlpha = ghostAlpha;
-      if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);
+      onGround(ctx,cam,s,ghost.x+.5,ghost.y+.6,()=>{if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);});
       ctx.globalAlpha = 1;
     }
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) {
+      onGround(ctx,cam,s,x+.5,y+.6,()=>{
       drawProp(ctx,cam,s,look,kind,x,y);
       if(s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]){
         const p=cam.project(x+.5,y+.6,cam.z),u=cam.tilePx;
         ctx.fillStyle='#283337';ctx.strokeStyle='#b8c7b2';ctx.lineWidth=1;
         ctx.beginPath();ctx.moveTo(p.x-u*.23,p.y-u*.3);ctx.quadraticCurveTo(p.x,p.y-u*.95,p.x+u*.23,p.y-u*.3);ctx.closePath();ctx.fill();ctx.stroke();
       }
+      });
     }
     const stones = graveRows.get(y);
     if (stones) {
       for (const g of stones) {
-        const at = drawGrave(ctx, cam, s, g);
+        const at = onGround(ctx,cam,s,g.x,g.y,()=>drawGrave(ctx, cam, s, g));
         if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
       }
     }
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) {you = drawPlayer(ctx, cam, s, look, view);drawCrystalCargo(ctx,cam,s,look,you);}
+    if (y === playerRow) {you = onGround(ctx,cam,s,s.player.x,s.player.y,()=>drawPlayer(ctx, cam, s, look, view));drawCrystalCargo(ctx,cam,s,look,you);}
   }))) || 0;
   layer('aloft', () => { for (const f of aloft) friend(f); });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     layer('xray', () => {
       ctx.globalAlpha = XRAY_ALPHA;
-      drawPlayer(ctx, cam, s, look, view);
+      drawPlayer(ctx, cam, s, look, {...view,shadow:false});
       ctx.globalAlpha = 1;
     });
   }

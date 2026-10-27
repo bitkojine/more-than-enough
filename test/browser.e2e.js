@@ -131,7 +131,7 @@ async function main() {
   // headless chrome
   var profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-chrome-'));
   var chrome = cp.spawn(CHROME, [
-    '--headless=new', ...(process.env.MTE_WORK_ONLY==='1'||process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'||process.env.MTE_RESOURCE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
+    '--headless=new', ...(process.env.MTE_LAYER_ONLY==='1'||process.env.MTE_WORK_ONLY==='1'||process.env.MTE_RIG_ONLY==='1'||process.env.MTE_WEBGL==='1'||process.env.MTE_PICKAXE_ONLY==='1'||process.env.MTE_RESOURCE_ONLY==='1'?['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']:['--disable-gpu']), '--no-first-run', '--no-default-browser-check',
     '--disable-extensions', '--disable-background-networking', '--mute-audio',
     // Sound only after a gesture, as on real phones and desktops (headless
     // Chrome would otherwise let any page play at once).
@@ -398,6 +398,59 @@ async function main() {
 
     }
     eq(pageErrors.length,0,'pickaxe rendering has no browser exceptions');console.log((failures?'PICKAXE BROWSER FAILURES':'PICKAXE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
+  if(process.env.MTE_LAYER_ONLY==='1'){
+   console.log('\n== Ground/character compositing');
+   await evalJS(`(async()=>{
+    const [{createCamera},{render},{drawTerrain,onGround},{drawPlayer},{drawLighting}]=await Promise.all([import('./src/game/camera.js'),import('./src/game/render/renderer.js'),import('./src/game/render/terrain.js'),import('./src/game/render/sprites.js'),import('./src/game/render/overlay.js')]);
+    const C=MTE_GAME.core,rig=await MTE_GAME.look.rigReady;if(!rig)throw Error('No character rig');
+    const state=C.createState(91385);state.emptyStart=true;state.cultivation=null;state.extractors=[];state.world.props.clear();state.world.holes.clear();
+    for(let y=-12;y<=12;y++)for(let x=-12;x<=12;x++){C.markExplored(state.world,x,y,0);C.tileAt(state.world,x,y,0);}
+    for(const chunk of state.world.chunks.values())chunk.type.fill(C.T.GRASS);
+    const canvas=document.createElement('canvas');canvas.width=800;canvas.height=600;canvas.id='__layerReview';document.body.append(canvas);
+    const cam=createCamera(canvas);cam.width=800;cam.height=600;cam.baseTilePx=64;
+    const reference=document.createElement('canvas');reference.width=800;reference.height=600;
+    const look={...MTE_GAME.look,rig: MTE_GAME.look.rig,pick:(id,slot,...args)=>['stand','cut'].includes(slot)&&id.startsWith('tile.')?null:MTE_GAME.look.pick(id,slot,...args)};
+    const yard={piles:new Map(),covered:new Set(),merging:()=>[]},fx={particles:[],floats:[],flyers:[],shake:()=>0};
+    const view={facing:{x:0,y:1},moving:true,actor:{act:null,t:0,clock:0,rigStride:0,walkBlend:1},yard,sign:0,joy:{active:false},friends:[],graves:[],buildTargets:[],trailTargets:[]};
+    window.__layers={C,state,canvas,reference,cam,look,yard,fx,view,render,drawTerrain,drawPlayer,drawLighting,onGround};
+   })()`);
+   for(const zoom of [.75,2,3])for(const dir of [-1,1]){
+    const result=await evalJS(`(()=>{const a=__layers,{state,canvas,reference,cam,look,yard,fx,view}=a;cam.setZoom(${zoom});view.facing={x:0,y:${dir}};let mismatch=0,samples=0;
+     for(const [i,y] of [.86,.94,.985,.999,1.001,1.015,1.06,1.14].entries()){
+      state.player.x=.5;state.player.y=y;view.actor.rigStride=i/8;view.actor.clock=i/60;
+      a.render(cam,state,fx,view,look);
+      const full=cam.ctx.getImageData(0,0,800,600).data,ctx=reference.getContext('2d'),rc={...cam,ctx};ctx.clearRect(0,0,800,600);ctx.fillStyle=look.color('color.backdrop');ctx.fillRect(0,0,800,600);
+      a.drawTerrain(ctx,rc,state,look,{built:new Set(),yard,shake:()=>0},()=>{});
+      a.drawPlayer(ctx,rc,state,look,view);ctx.globalAlpha=.35;a.drawPlayer(ctx,rc,state,look,{...view,shadow:false});ctx.globalAlpha=1;
+      a.drawLighting(ctx,rc,state,look,[],null);
+      const expected=ctx.getImageData(0,0,800,600).data,u=cam.tilePx,p=cam.project(state.player.x,state.player.y,0);
+      for(let py=Math.floor(p.y-u*.25);py<=Math.ceil(p.y+u*.25);py++)for(let px=Math.floor(p.x-u*.6);px<=Math.ceil(p.x+u*.6);px++){
+       const k=(py*800+px)*4;if(Math.max(...[0,1,2].map(c=>Math.abs(full[k+c]-expected[k+c])))>1)mismatch++;samples++;
+      }
+     }return {mismatch,samples};})()`);
+    eq(result.mismatch,0,'complete feet and single shadow across row crossings, '+(dir<0?'north':'south')+', zoom '+zoom);
+   }
+   const picture=await evalJS("__layers.canvas.toDataURL('image/png').split(',')[1]");fs.writeFileSync(path.join(SHOT_DIR,'ground-layering.png'),Buffer.from(picture,'base64'));
+   const wallImage=await evalJS(`(()=>{const a=__layers,{C,state,cam,look,view,yard,fx,reference}=a;cam.setZoom(2);state.player={x:.5,y:.985,z:0};view.facing={x:0,y:1};view.actor.rigStride=.2;
+    C.tileAt(state.world,0,1,0);state.world.hotChunk.type[C.chunkIndex(0,1)]=C.T.WALL;
+    a.render(cam,state,fx,view,look);const full=cam.ctx.getImageData(0,0,800,600).data,g=reference.getContext('2d'),rc={...cam,ctx:g};g.clearRect(0,0,800,600);g.fillStyle=look.color('color.backdrop');g.fillRect(0,0,800,600);
+    a.drawTerrain(g,rc,state,look,{built:new Set(),yard,shake:()=>0},()=>{});g.globalAlpha=.35;a.drawPlayer(g,rc,state,look,{...view,shadow:false});g.globalAlpha=1;a.drawLighting(g,rc,state,look,[]);
+    const ghost=g.getImageData(0,0,800,600).data;g.clearRect(0,0,800,600);a.drawPlayer(g,rc,state,look,{...view,shadow:false});const sprite=g.getImageData(0,0,800,600).data,q=cam.project(0,1,.5);let pixels=0,mismatch=0;
+    for(let y=Math.ceil(q.y+2);y<Math.min(600,q.y+cam.depthPx);y++)for(let x=Math.ceil(q.x+2);x<q.x+cam.tilePx-2;x++){const k=(y*800+x)*4;if(sprite[k+3]<254)continue;pixels++;if([0,1,2].some(c=>Math.abs(full[k+c]-ghost[k+c])>1))mismatch++;}
+    C.tileAt(state.world,0,1,0);state.world.hotChunk.type[C.chunkIndex(0,1)]=C.T.GRASS;return {pixels,mismatch};})()`);
+   ok(wallImage.pixels>10&&wallImage.mismatch===0,'real foreground wall hides the body, leaving only the faint visibility pass');
+   const masks=await evalJS(`(()=>{const a=__layers,{C,state,cam,canvas}=a,g=cam.ctx;cam.setZoom(2);state.player={x:.5,y:.96,z:0};cam.follow(state.player);
+    const set=(x,y,z,type)=>{C.markExplored(state.world,x,y,z);C.tileAt(state.world,x,y,z);state.world.hotChunk.type[C.chunkIndex(x,y)]=type;};
+    set(0,1,0,C.T.WALL);const q=cam.project(0,1,.5);g.fillStyle='#00ff00';g.fillRect(0,0,800,600);a.onGround(g,cam,state,.5,.96,()=>{g.fillStyle='#ff0000';g.fillRect(0,0,800,600);});
+    const at=(x,y)=>Array.from(g.getImageData(Math.floor(x),Math.floor(y),1,1).data).slice(0,3).join(',');
+    const raised=at(q.x+20,q.y+5)==='0,255,0',above=at(q.x+20,q.y-5)==='255,0,0';
+    set(0,2,0,C.T.ROCK);const back=cam.project(0,2,C.tileHeight(state.world,0,2,0));g.fillStyle='#00ff00';g.fillRect(0,0,800,600);a.onGround(g,cam,state,.5,.96,()=>{g.fillStyle='#ff0000';g.fillRect(0,0,800,600);});const overlap=back.y+2<q.y+cam.depthPx&&at(q.x+20,back.y+2)==='0,255,0';set(0,2,0,C.T.GRASS);
+    set(0,1,0,C.T.GRASS);g.fillStyle='#00ff00';g.fillRect(0,0,800,600);a.onGround(g,cam,state,.5,.96,()=>{g.fillStyle='#ff0000';g.fillRect(0,0,800,600);});const floor=at(400,305)==='255,0,0';
+    cam.z=-1;set(0,0,-1,C.T.TUNNEL);state.world.explored.clear();C.markExplored(state.world,0,0,-1);const wall=cam.project(0,1,0);g.fillStyle='#00ff00';g.fillRect(0,0,800,600);a.onGround(g,cam,state,.5,.96,()=>{g.fillStyle='#ff0000';g.fillRect(0,0,800,600);});
+    const unknown=at(wall.x+20,wall.y+5)==='0,255,0';return {raised,above,overlap,floor,unknown};})()`);
+   ok(masks.raised&&masks.above,'higher foreground block hides only the overlapping part');ok(masks.overlap,'overlapping foreground masks leave no see-through hole');ok(masks.floor,'equal-height ground does not occlude the figure');ok(masks.unknown,'unexplored underground rock remains an opaque wall');
+   eq(pageErrors.length,0,'layering fixtures have no browser exceptions');console.log((failures?'LAYER BROWSER FAILURES':'LAYER BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_WORK_ONLY==='1'){
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1800,height:1500,deviceScaleFactor:1,mobile:false},session);

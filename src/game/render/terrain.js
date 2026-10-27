@@ -4,8 +4,8 @@
  *
  * Rows are drawn north to south. Each tile draws its top, then its south face
  * down to the top of the tile in front, so nearer blocks cover farther ones.
- * After each row the caller draws whatever stands in it (the player,
- * buildings), which lets walls hide what is behind them.
+ * Floors finish first. Standing objects retain north-to-south order, clipped
+ * against genuinely higher foreground terrain rather than equal-height floor.
  *
  * In the forest, unexplored tiles are under clouds (fog.js), drawn over the
  * ground once the rows are done. In the mine, unexplored tiles are dark rock
@@ -262,7 +262,11 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   if (!Core.isExplored(w, x, y, z)) return false;
   const key = Core.packKey(x, y, z);
   const pile = z === Core.SURFACE && ground.yard.piles.get(key);
-  if (pile) { drawPile(ctx, cam, s, look, ground.yard, pile, undefined, shade); return true; }
+  if (pile) {
+    const at=ground.yard.at(pile,s.time),draw=()=>drawPile(ctx,cam,s,look,ground.yard,pile,at,shade);
+    if(ground.clip)onGround(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2)});else draw();
+    return true;
+  }
   if (z === Core.SURFACE && ground.yard.covered.has(key)) return false; // under a big pile
   if (Core.holeBelow(w, x, y, z) || ground.built.has(key)) return false;
   const t = Core.tileAt(w, x, y, z);
@@ -271,6 +275,7 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   const slot = Core.LOOK[id].slots.cut !== undefined && left <= 0 ? 'cut' : 'stand';
   const pic = pickFor(look, w, t, slot, x, y, s.time);
   if (!pic) return false;
+  const draw=()=>{
   const u = cam.tilePx, d = cam.depthPx;
   const { sx, sy } = tileTop(cam, w, x, y, z);
   const size = slot === 'stand' && WEARS.has(t) ? u * (MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z))) : u;
@@ -287,6 +292,8 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
     if (crop) look.stand(ctx, crop, fx + (tv(x, y, 23) - 0.5) * u * 0.4, fy + d * CROP_AHEAD, u * grown, tv(x, y, 29) < 0.5);
   }
   return true;
+  };
+  return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect)}):draw();
 }
 
 // Rows y0..y1 of ground, north to south, with what stands on them (and on
@@ -294,11 +301,42 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
 // onRow(y) after each row.
 function drawRows(ctx, cam, s, look, ground, x0, y0, x1, y1, side, onRow) {
   const z = cam.z;
-  for (let y = y0; y <= y1; y++) {
+  // Finish all floor rows before any object can overhang their boundaries.
+  for (let y = y0; y <= y1; y++)
     for (let x = x0; x <= x1; x++) drawTile(ctx, cam, s, look, x, y, z);
-    for (let x = x0 - side; x <= x1 + side; x++) drawStand(ctx, cam, s, look, ground, x, y, z);
+  const objects={...ground,clip:true};
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0 - side; x <= x1 + side; x++) drawStand(ctx, cam, s, look, objects, x, y, z);
     if (onRow) onRow(y);
   }
+}
+
+// Draw a standing object against the already-painted terrain. Only genuinely
+// higher foreground blocks occlude it. The query covers its local footprint,
+// not the explored world; cost is bounded at every zoom. Successive clips
+// subtract the union of overlapping blocks (one even-odd path would XOR them).
+export function onGround(ctx,cam,s,x,y,draw,{width=2,height=4}={}) {
+  let clipped=false;
+  if(cam.risePx>FLAT_RISE_PX){
+    const z=cam.z,w=s.world,h=groundHeight(w,Math.floor(x),Math.floor(y),z);
+    const p=cam.project(x,y,z+h),u=cam.tilePx,d=cam.depthPx;
+    const left=p.x-width*u,right=p.x+width*u,top=p.y-height*u,bottom=p.y+u;
+    const lift=(Core.RELIEF_MAX-Core.RELIEF_MIN)*cam.risePx/d;
+    const last=Math.min(Math.ceil(y+1+lift),Math.ceil(y+(cam.height-p.y)/d+lift));
+    const firstX=Math.max(Math.floor(x-width),Math.floor(x-p.x/u)-1);
+    const lastX=Math.min(Math.ceil(x+width),Math.ceil(x+(cam.width-p.x)/u));
+    for(let ty=Math.floor(y)+1;ty<=last;ty++)for(let tx=firstX;tx<=lastX;tx++){
+      if(z===Core.SURFACE&&!Core.isExplored(w,tx,ty,z))continue;
+      const higher=groundHeight(w,tx,ty,z);if(higher<=h+1e-6)continue;
+      const a=cam.project(tx,ty,z+higher),front=groundHeight(w,tx,ty+1,z);
+      const b=a.y+d+Math.max(0,higher-front)*cam.risePx+1;
+      if(a.x>right||a.x+u+1<left||a.y>bottom||b<top)continue;
+      if(!clipped){ctx.save();clipped=true;}
+      ctx.beginPath();ctx.rect(0,0,cam.width,cam.height);
+      ctx.rect(a.x,a.y,u+1,b-a.y);ctx.clip('evenodd');
+    }
+  }
+  try{return draw();}finally{if(clipped)ctx.restore();}
 }
 
 // A type of tile's colour in one flat swatch (the world map's), or null.

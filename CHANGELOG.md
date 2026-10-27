@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.177.2] - 2026-10-27
+
+- Paint all floor tiles before standing objects, preventing north/south row
+  crossings from slicing Mica’s boots and shadow.
+- Preserve higher foreground terrain occlusion with local, viewport-bounded
+  masks for scenery, characters, buildings and placement ghosts. Wiki focus
+  drawing, map mode and renderer fault isolation keep their existing paths.
+- Omit character and boat shadows from the faint visibility pass.
+- Add pixel comparisons at three zoom levels and bounded regressions for
+  floor order, walls, unseen mine rock and canvas-state recovery.
+
 ## [0.177.1] - 2026-10-27
 
 Your own world on two linked devices could lose play on a slow connection,

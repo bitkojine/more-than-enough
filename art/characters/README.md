@@ -113,3 +113,12 @@ optional bounded work-clip captures; native/enlarged playback belongs in
 `art/characters/rig-review/`. Keep the shared eight headings and silhouette
 contour. Review image quality as well as kinematic constraints. Gameplay reach
 remains the canonical abstract reach, not an animation collision check.
+
+
+## World compositing regression
+
+`MTE_LAYER_ONLY=1 npm run test:e2e` checks the current rig in the real world
+renderer against a complete-floor reference across north/south row crossings
+at three zoom levels. It also checks higher walls and unseen underground rock.
+Use `MTE_SITE=site` for the deployable build. The default quick gate includes
+bounded floor-order and canvas-state tests; no long simulation is needed.
