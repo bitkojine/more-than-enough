@@ -325,9 +325,10 @@ export function createInput({ canvas, cam, el, handlers }) {
   });
   window.addEventListener('blur', () => { input.release(); input.releasePerfect(); keys = {}; });
 
-  // Block browser scrolling and zoom gestures outside the sheet.
+  // Block browser scrolling and zoom gestures outside the sheet, the
+  // building card and the message log, which scroll themselves.
   document.addEventListener('touchmove', (e) => {
-    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard')) return;
+    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard, #log')) return;
     if (e.cancelable) e.preventDefault();
   }, { passive: false });
   document.addEventListener('gesturestart', (e) => e.preventDefault());

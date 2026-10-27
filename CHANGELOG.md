@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.176.1] - 2026-10-27
+
+The message log's top line sat against its top edge, and on a phone the
+log couldn't be scrolled back at all (Watch, 2026-10-27).
+
+### Fixed
+
+- A finger dragged on the log now scrolls it: the page-wide `touchmove`
+  block in `src/game/input.js` (no browser scroll or zoom over the map)
+  exempted the sheet and the building card but not `#log`, so on touch
+  screens the history was out of reach. `test/browser.e2e.js` drags it.
+- A new line no longer jumps a log being read back to the bottom; it stays
+  put until the log is reopened.
+
+- The log is sized from the first shown line's top plus the list's own top
+  padding, so that line keeps 10 px above it like the sides; before, the
+  padding was scrolled out of view and the line sat inside the top fade.
+  The fade now stays within that padding.
+- A "Next milestone" line no longer follows a milestone that already said
+  "Next:" the same goal (as on opening a game right after reaching one).
+
 ## [0.176.0] - 2026-10-27
 
 The last piece of the Safari storage P0 (Watch chose on 2026-10-27: one Wiki

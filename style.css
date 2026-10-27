@@ -1043,11 +1043,12 @@ body.signing #zoomControls { visibility: hidden; }
 #log[hidden], #logPill[hidden] { display: none; }
 #logLines {
   overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
-  padding: 8px 10px 2px;
+  padding: 10px 10px 2px;
   display: flex; flex-direction: column; gap: 5px;
-  /* An older line half out of view fades out at the top edge. */
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 10px);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 10px);
+  /* An older line half out of view fades out at the top edge. The fade
+     stays inside the top padding, so the first line in view is never in it. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
 }
 #logLines .msg { margin: 0; overflow-wrap: anywhere; }
 #logLines .msg:not(:nth-last-child(-n+3)) { opacity: 0.6; }

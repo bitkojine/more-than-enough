@@ -58,7 +58,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   pill.append(pillName, count);
   root.append(box, pill);
 
-  let key = null, lines = [], unread = 0, last = '';
+  let key = null, lines = [], unread = 0, last = '', pad = null;
 
   // Another world's lines. What was said before any world loaded (a save
   // that couldn't be read) belongs to the first one.
@@ -86,7 +86,11 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     count.hidden = !unread;
     pill.setAttribute('aria-label', unread ? t('log.unread', { count: unread }) : t('log.title'));
   }
+  // Someone reading back through older lines stays where they are when a
+  // new one comes in; otherwise the newest is in view.
+  let reading = false;
   function render() {
+    reading = !!last && !box.hidden && list.scrollTop + list.clientHeight < list.scrollHeight - 30;
     list.innerHTML = lines.map((l) => `<p class="msg ${l.kind}">${lineHtml(l)}</p>`).join('');
     show(); last = ''; fit();
   }
@@ -105,12 +109,16 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     const f = feet();
     if (f && f.x > r.left - 30 && f.x < r.right + 30) top = Math.max(top, f.y);
     const room = r.bottom - foot.offsetHeight - top - CLEAR_PX;
+    // From the first shown line's top to the end, plus the list's own top
+    // padding, so that line keeps the same room above it as at the sides.
     const first = items[Math.max(0, items.length - SHOWN)];
-    const want = first ? list.scrollHeight - first.offsetTop + 2 : 0;
+    pad ??= parseFloat(globalThis.getComputedStyle?.(list).paddingTop) || 0;
+    const want = first ? list.scrollHeight - (first.offsetTop - list.offsetTop) + pad : 0;
     const h = Math.max(Math.min(want, room), Math.min(want, 40)) | 0;
     const stamp = h + ':' + list.scrollHeight;
     if (stamp === last) return;
-    const atEnd = !last || list.scrollTop + list.clientHeight >= list.scrollHeight - 30;
+    const atEnd = last ? list.scrollTop + list.clientHeight >= list.scrollHeight - 30 : !reading;
+    reading = false;
     last = stamp;
     list.style.maxHeight = h + 'px';
     if (atEnd) list.scrollTop = list.scrollHeight;
@@ -134,6 +142,8 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       const tail = lines.at(-1);
       const entry = { kind: KINDS.includes(line.kind) ? line.kind : 'game', text: String(line.text), n: 1 };
       for (const k of ['name', 'link', 'of', 'then']) if (line[k]) entry[k] = String(line[k]);
+      // A milestone just said what's next ("Next: ..."): no second line for it.
+      if (entry.kind === 'goal' && tail?.kind === 'milestone' && tail.then === entry.text) return;
       if (group && tail?.group === group) { Object.assign(tail, entry); }
       else if (tail && lineHtml({ ...tail, n: 1 }) === lineHtml(entry)) tail.n++;
       else { lines.push(entry); if (lines.length > KEEP) lines.splice(0, lines.length - KEEP); if (!open) unread++; }

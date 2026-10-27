@@ -1190,6 +1190,22 @@ async function main() {
   ok(g1.inv.mycelium > g0.inv.mycelium, 'holding GATHER collected mycelium (' + g0.inv.mycelium + ' -> ' + g1.inv.mycelium + ')');
   console.log('  screenshot: ' + await shot('02a-milestone.png'));
   ok(/of \d+/.test(await evalJS('document.querySelector("#logLines .msg.milestone .who").textContent')), 'the line says which milestone of how many');
+  // A finger dragged down the log goes back through older lines (the page's
+  // own scroll block once swallowed it), and a new line doesn't pull it back.
+  await evalJS('(function(){for(var i=1;i<=10;i++)MTE_GAME.hud.toast("Older line "+i);})()');
+  await sleep(300);
+  var logBox = await rect('#logLines');
+  var logBack = '(function(){var l=document.getElementById("logLines");return Math.round(l.scrollHeight-l.clientHeight-l.scrollTop);})()';
+  await drag(logBox.x, logBox.y - logBox.h / 2 + 6, logBox.x, logBox.y + logBox.h / 2 + 140, 20, 16);
+  await sleep(400);
+  var scrolledBack = await evalJS(logBack);
+  ok(scrolledBack > 40, 'dragging down the log scrolls back through older lines (' + scrolledBack + ' px)');
+  await evalJS('MTE_GAME.hud.toast("A new line")');
+  await sleep(200);
+  ok(await evalJS(logBack) > 40, 'and a new line keeps the place being read');
+  await evalJS('document.getElementById("logHide").click();document.getElementById("logPill").click()');
+  await sleep(200);
+  ok(await evalJS(logBack) <= 2, 'reopening the log shows the newest again');
   // Milestones count in any order: walking may have already found ore.
   ok(await waitFor('MTE_GAME.getState().goalIndex >= 1 && document.getElementById("awardCount").textContent === String(MTE_GAME.getState().goalIndex)', 1000), 'the trophy counter counts the milestone');
   ok(await evalJS('document.getElementById("btnAwards").classList.contains("new")'), 'and glows until the awards are looked at');

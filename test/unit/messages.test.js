@@ -84,3 +84,13 @@ test('a long press sliding over the map rewrites its one line', () => {
 test('names and words from the world are escaped, never markup', () => {
   assert.doesNotMatch(lineHtml({ kind: 'wiki', name: '<img>', text: '<b>x</b>' }), /<img>|<b>x/);
 });
+
+test('a milestone that names what is next is not followed by the same goal again', () => {
+  const root = fakePage();
+  const log = createMessages({ world: () => 'solo.1', store: memoryStore(), root });
+  log.add({ kind: 'milestone', text: 'Foraged mycelium', of: '1 of 10', then: 'Craft a Pickaxe upgrade' });
+  log.add({ kind: 'goal', text: 'Craft a Pickaxe upgrade' });
+  assert.deepEqual(log.lines, ['milestone: Foraged mycelium. Craft a Pickaxe upgrade']);
+  log.add({ kind: 'goal', text: 'Build a dryer' });
+  assert.equal(log.lines.length, 2);
+});
