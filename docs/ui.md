@@ -389,25 +389,16 @@ short line and a "More in the wiki" link, kept there to read. A long press (a fi
 held still 0.5 s on the map) asks Wiki about what is under it; sliding on asks
 about the next thing, and the answer stays 3 s after letting go. The long press
 is Wiki's (Watch, 2026-10-25): it never walks or gathers, and keeping on
-gathering is holding Gather. Touch can also tap Wiki, then tap a thing (the
-log asks for it), or drag from Wiki onto a thing along a dotted pointer line.
-Those taps belong to Wiki and never walk or gather. Firsts that Mica walks up to
-are said at most once a minute.
+gathering is holding Gather. Mica and Wiki have no pointer targets (Watch,
+2026-10-27): short and long clicks/taps, hover and drags all reach the underlying
+world. There is no character inspection, tap-to-ask mode or character drag line.
+Firsts that Mica walks up to are said at most once a minute.
 Whatever Wiki is talking about is outlined in the world (`render/focus.js`):
-one ring in Wiki's teal over a dark ink line around the whole thing (what
-stands on the tile, else its square of ground; Mica gets a ring around Mica and
-Wiki), drawn over everything so it shows behind trees and at night, gone a few
-seconds after Wiki finishes talking. Dragging from Wiki draws a dotted line in
-Wiki's teal (never white chalk).
-
-
-
-Mica's character inspection uses his visible on-screen body region above the
-known player position, before the existing explored-terrain inspection. It shows
-a localized name and short character description without adding permanent HUD
-text or exposing unknown tiles. The existing rig retains eight headings and
-flat world colors; caring gestures and cargo views are presentation only.
-
+one ring in Wiki's teal over a dark ink line around what stands on the tile,
+else its square of ground. It is drawn over everything so it shows behind
+obstacles and at night, gone a few seconds after Wiki finishes talking.
+The existing rig retains eight headings and flat world colors; caring gestures
+and cargo views are presentation only.
 
 Work feedback now keeps one active and at most one coalesced pending animation,
 with its captured observed facing and work type. It does not delay input or

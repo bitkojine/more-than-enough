@@ -142,7 +142,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
   layer('glints', () => drawGlints(ctx, cam, s, look));
   layer('beacons', () => drawBeacons(ctx, cam, s, look, beacons));
   // What Wiki is talking about, outlined over everything in the world.
-  if (view.wiki?.focus) layer('focus', () => drawFocus(ctx, cam, s, look, ground, view.wiki.focus, you));
+  if (view.wiki?.focus) layer('focus', () => drawFocus(ctx, cam, s, look, ground, view.wiki.focus));
   // Everyone's name over their head (yours too, in a shared world, unless
   // your sign is up in front of it). In a crowd, yours first, then the
   // living nearest you, then tombstones: a name that would cover one
@@ -168,8 +168,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
   let sign = null;
   if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
   layer('joystick', () => drawJoystick(ctx, cam, view));
-  // Wiki on the hood, or Mica's head when the 2D figure stands in.
-  return { tiles, sign, wiki: you ? you.wiki ?? { x: you.x, y: you.top, r: 0 } : null };
+  return { tiles, sign };
 }
 
 // The world map: the atlas, friends' badges at the edge, your sign.
@@ -185,5 +184,5 @@ function renderMap(cam, s, view, look, layer) {
   });
   let sign = null;
   if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
-  return { tiles: 0, sign, wiki: null };
+  return { tiles: 0, sign };
 }

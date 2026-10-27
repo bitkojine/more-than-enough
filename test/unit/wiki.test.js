@@ -4,6 +4,7 @@ import * as C from '../../src/core/index.js';
 import {createWikiMemory,UNPROMPTED_GAP_S,WIKI_MODES} from '../../src/game/wiki-memory.js';
 import {wikiPose,wrapAngle} from '../../src/game/render/wiki-motion.js';
 import {describeWorld} from '../../src/game/tooltips.js';
+import {createWiki} from '../../src/game/wiki.js';
 
 test('Wiki says a thing once, then only glances, unless asked',()=>{
  const m=createWikiMemory();
@@ -56,4 +57,18 @@ test('every world answer carries a kind for Wiki to remember',()=>{
  let found=0;
  for(let dx=-30;dx<=30;dx++)for(let dy=-30;dy<=30;dy++){C.markExplored(s.world,x+dx,y+dy,z);const info=describeWorld(s,x+dx,y+dy,z);if(info){found++;assert.match(info.kind,/^(tile|building)\./);}}
  assert.ok(found>0);
+});
+
+
+test('Wiki has no character pointer surface and inspects world contents on Mica’s tile',()=>{
+ const s=C.createState(11,{cultivation:true}),x=Math.floor(s.player.x),y=Math.floor(s.player.y),said=[];
+ C.tileAt(s.world,x,y,0);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.STONE;C.setRichness(s.world,x,y,0,10);
+ // No document or canvas is supplied: character-specific DOM listeners and
+ // hit regions must never be installed by Wiki.
+ const wiki=createWiki({cam:{unproject:(x,y)=>({x,y})},state:()=>s,saved:{mode:'quiet'},keep(){},messages:{add:line=>said.push(line)}});
+ assert.equal(wiki.place,undefined);assert.equal(wiki.asking,undefined);
+ assert.ok(wiki.longPress(s.player.x,s.player.y));assert.equal(wiki.line.kind,'tile.stone');
+ assert.deepEqual([wiki.focus.x,wiki.focus.y,wiki.focus.z],[x,y,0]);assert.equal(wiki.focus.mica,undefined);
+ wiki.longPressEnd();assert.ok(said.length>0);
+ s.cultivation.starter={health:100};wiki.update(.5);wiki.update(.5);assert.ok(wiki.pose().fold>0,'automatic crystal awareness still works');
 });

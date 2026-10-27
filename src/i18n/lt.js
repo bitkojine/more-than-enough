@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.177.5": "Mica ir Wiki nebeperima valdymo gestų. Jie pasiekia po veikėjais esantį pasaulį. Palaikykite nuspaudę pasaulio objektą, kad Wiki jį paaiškintų; automatinės pastabos lieka.",
   "news.0.177.4": "Geodų kortelės dabar atsidaro nesustabdydamos žaidimo. Neįkelti paveikslėliai nebetrukdo naudoti valdiklių, o klaidos ataskaitoje nurodomas paveikslėlis, užklausa ir vieta pasaulyje.",
   "news.0.177.3": "Nešdamas kristalus Mica nebekiša dešinės rankos pro apsiaustą, kai sulėtina žingsnį ar sustoja.",
   "news.0.177.2": "Mica batai ir šešėlis nebekarpomi einant per žemės langelių kraštus. Aukštesnės sienos jį vis dar tinkamai užstoja, o blankus vaizdas pro kliūtis nebeprideda antro šešėlio.",
@@ -607,7 +608,6 @@ export default {
   "settings.wiki.off": "išjungta",
   "wiki.name": "Wiki",
   "wiki.hello": "Labas, aš Wiki. Grybiena po mišku prisimena viską, ir aš taip pat. {phone:Palaikyk pirštą ant bet ko|laptop:Paspausk ir palaikyk pelę ant bet ko}, ir paklausk.",
-  "wiki.ask": "{phone:Paliesk|laptop:Spustelėk} bet ką, ir papasakosiu apie tai.",
   "wiki.nothing": "Ten nėra ko pasakoti.",
   "wiki.fold": "Gyvasis kristalas nekenčia šviesos. Kol esame šalia jo, laikysiu kepurę užvertą.",
   "wiki.more": "Daugiau wiki ›",

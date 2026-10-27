@@ -1,5 +1,5 @@
 /* What Wiki is talking about, outlined: one ring around the whole of it
- * (whatever stands on its tile, else its square of ground, or Mica), never its
+ * (whatever stands on its tile, else its square of ground), never its
  * inner edges: Wiki's own teal over a dark ink line, so it reads on bright
  * ground and at night alike, and says whose focus it is. The thing is painted once into a small off-screen canvas,
  * grown a few pixels in every direction for the ring, and its own shape cut
@@ -71,26 +71,10 @@ export function drawRing(ctx, cam, box, key, paint, alpha = 1) {
   ctx.restore();
 }
 
-// The outline for Wiki's focus ({x, y, z} a tile, or {mica}). `ground` is
-// what drawTerrain was given; `you`, where Mica was drawn.
-export function drawFocus(ctx, cam, s, look, ground, focus, you) {
+// The outline for Wiki's world focus ({x, y, z}); characters have no focus.
+export function drawFocus(ctx, cam, s, look, ground, focus) {
   if (!focus) return;
   const u = cam.tilePx, d = cam.depthPx;
-  if (focus.mica) {
-    if (!you) return;
-    // Wiki rides on top, so the ring takes it in too.
-    const half = u * 0.24, top = you.top - u * (you.wiki ? 0.3 : 0.06), foot = you.foot ?? you.top + u;
-    const box = { x: you.x - half, y: top, w: half * 2, h: foot - top + u * 0.06 };
-    drawRing(ctx, cam, box, 'mica', (g) => {
-      g.fillStyle = '#000';
-      g.beginPath();
-      g.ellipse(you.x, top + half, half, half, 0, Math.PI, 0);
-      g.lineTo(you.x + half, foot);
-      g.ellipse(you.x, foot, half, half * 0.4, 0, 0, Math.PI);
-      g.closePath(); g.fill();
-    }, focus.alpha);
-    return;
-  }
   const { x, y, z } = focus;
   if (z !== cam.z || !Core.isExplored(s.world, x, y, z)) return;
   const showsHeight = cam.risePx > FLAT_RISE_PX;

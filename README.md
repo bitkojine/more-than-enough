@@ -16,8 +16,8 @@ save keys keep that name.
 
 There is no tutorial. Drag anywhere on the map to walk (or use WASD / the arrow keys), hold
 **Gather** to work what's around you, and use **Build** and **Upgrade** as
-they unlock. To learn what something is, press and hold on it, or tap Wiki and
-then the thing. Invite friends into a shared world with **Invite**.
+they unlock. To learn what something is, press and hold on it. Mica and Wiki never capture pointer input;
+all gestures reach the world beneath them. Invite friends into a shared world with **Invite**.
 
 Everything else is in the **[wiki](https://play.robertasrudys.com/wiki/)**
 (`wiki/`), whose tables are read live from the game's rules. The game and the

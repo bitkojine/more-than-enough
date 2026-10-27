@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.177.5": "Mica and Wiki no longer intercept pointer gestures. Everything goes to the world beneath them. Hold on a world object to ask Wiki about it; automatic comments remain.",
   "news.0.177.4": "Geode cards now open without stopping the game. Missing pictures leave readable controls, and problem reports identify the picture, request and place in your world.",
   "news.0.177.3": "Mica keeps his right arm clear of his coat while carrying crystal, including when slowing down or coming to a stop.",
   "news.0.177.2": "Mica’s boots and shadow stay intact when walking across ground tiles. Higher walls still hide him correctly, and the faint view through obstacles no longer adds a second shadow.",
@@ -607,7 +608,6 @@ export default {
   "settings.wiki.off": "off",
   "wiki.name": "Wiki",
   "wiki.hello": "Hello, I'm Wiki. The mycelium under the forest remembers everything, and so do I. {phone:Hold your finger on anything|laptop:Press and hold the mouse on anything} to ask.",
-  "wiki.ask": "{phone:Tap|laptop:Click} anything and I'll tell you about it.",
   "wiki.nothing": "Nothing worth telling there.",
   "wiki.fold": "Living crystal hates light. I'll keep my cap shut while we're near it.",
   "wiki.more": "More in the wiki ›",

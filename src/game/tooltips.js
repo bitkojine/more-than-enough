@@ -40,10 +40,7 @@ export function createTooltips({canvas,cam,state,world=()=>true}){
   if(e.target===canvas){
    if(!world()){hide();return;}
    const r=canvas.getBoundingClientRect(),s=state(),player=s.player,px=x-r.left,py=y-r.top;
-   const known=Core.isExplored(s.world,Math.floor(player.x),Math.floor(player.y),player.z);
-   const foot=known?cam.project(player.x,player.y,player.z+Core.tileHeight(s.world,Math.floor(player.x),Math.floor(player.y),player.z)):null;
-   if(foot&&Math.abs(px-foot.x)<cam.tilePx*.23&&py<foot.y&&py>foot.y-cam.tilePx*.90){key='character';info=describeLook('character.wanderer');}
-   else{const p=cam.unproject(px,py),tx=Math.floor(p.x),ty=Math.floor(p.y);key='world:'+tx+','+ty+','+player.z;info=key===lastKey?null:describeWorld(s,tx,ty,player.z);}
+   const p=cam.unproject(px,py),tx=Math.floor(p.x),ty=Math.floor(p.y);key='world:'+tx+','+ty+','+player.z;info=key===lastKey?null:describeWorld(s,tx,ty,player.z);
    if(key===lastKey)return;
   }
   else{target=e.target.closest('button,a,[role="button"],[data-help],[data-look]');if(target===anchor&&!box.hidden)return;info=uiInfo(e.target);key=target;}

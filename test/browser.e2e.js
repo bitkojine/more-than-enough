@@ -373,6 +373,55 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_CHARACTER_INPUT_ONLY==='1'){
+   console.log('\n== Characters do not intercept world gestures ==');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);
+   ok(await evalJS('(async()=>!!await MTE_GAME.look.rigReady)()'),'real Mica and Wiki rig is ready');
+   // Isolated input fixture: a flat, clear neighborhood avoids random terrain
+   // blocking movement. This is not a gameplay/win evaluation.
+   await evalJS(`(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core,p=s.player;for(let y=Math.floor(p.y)-5;y<=p.y+5;y++)for(let x=Math.floor(p.x)-5;x<=p.x+5;x++){C.tileAt(s.world,x,y,p.z);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.GRASS;C.markExplored(s.world,x,y,p.z);}MTE_GAME.setZoom(2);})()`);await sleep(800);
+   await evalJS(`(async()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;MTE_GAME.wiki.setMode('quiet');s.tools.pickaxe=1;MTE_GAME.setZoom(2);
+    const base={...s.player};window.__characterBase=base;
+    const {drawPlayer}=await import('./src/game/render/sprites.js'),c=document.createElement('canvas');c.width=1024;c.height=768;
+    const u=MTE_GAME.tilePx(),cam={tilePx:u,depthPx:u*Math.cos(MTE_GAME.pitch()),z:base.z,project:MTE_GAME.project};
+    const at=drawPlayer(c.getContext('2d'),cam,s,MTE_GAME.look,{facing:{x:0,y:1},moving:false,actor:{act:null,t:0,clock:performance.now()/1000,rigStride:0,walkBlend:0},wiki:MTE_GAME.wiki.pose()});
+    const foot=MTE_GAME.project(base.x,base.y,base.z),points={Mica:{x:foot.x,y:foot.y-u*.45},Wiki:{x:at.wiki.x,y:at.wiki.y+at.wiki.r*.6}};
+    for(const p of Object.values(points)){const w=MTE_GAME.unproject(p.x,p.y),x=Math.floor(w.x),y=Math.floor(w.y);C.markExplored(s.world,x,y,base.z);C.tileAt(s.world,x,y,base.z);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.STONE;C.setRichness(s.world,x,y,base.z,50);p.tile={x,y};}
+    window.__characterPoints=points;})()`);await sleep(500);
+   for(const name of ['Mica','Wiki']){
+    const p=await evalJS('__characterPoints.'+name);
+    await evalJS('MTE_GAME.wiki.setMode("off");MTE_GAME.wiki.setMode("quiet")');
+    await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:p.x,y:p.y},session);await sleep(500);
+    const hover=await evalJS('({line:MTE_GAME.wiki.line,hidden:document.getElementById("inspectTooltip").hidden,text:document.getElementById("inspectTooltip").textContent,mode:MTE_GAME.wiki.mode})');
+    ok((!hover.line||hover.line.kind==='wiki.hello')&&hover.hidden,name+' hover has no character response (automatic greeting allowed)');
+    for(const method of ['mouse','touch']){
+     await sleep(400);const before=await evalJS('MTE_GAME.getState().inv.stone');
+     if(method==='mouse'){await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,x:p.x,y:p.y},session);await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,x:p.x,y:p.y},session);}else await tap(p.x,p.y);
+     ok(await waitFor('MTE_GAME.getState().inv.stone>'+before,1500),method+' quick gesture through '+name+' gathers the underlying resource');
+    }
+    for(const method of ['mouse','touch']){
+     if(method==='mouse')await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,x:p.x,y:p.y},session);else await touch('touchStart',[{x:p.x,y:p.y,id:1}]);
+     await sleep(650);ok(await evalJS('MTE_GAME.wiki.line?.kind==="tile.stone"&&!MTE_GAME.wiki.focus?.mica'),method+' long gesture through '+name+' inspects only world contents');
+     if(method==='mouse')await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,x:p.x,y:p.y},session);else await touch('touchEnd',[]);
+    }
+    for(const method of ['mouse','touch']){
+     await evalJS('MTE_GAME.setPlayer(__characterBase.x,__characterBase.y)');await sleep(300);
+     const before=await evalJS('({...MTE_GAME.getState().player})');
+     if(method==='mouse'){await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',buttons:1,clickCount:1,x:p.x,y:p.y},session);await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',button:'left',buttons:1,x:p.x+50,y:p.y},session);}else{await touch('touchStart',[{x:p.x,y:p.y,id:1}]);await touch('touchMove',[{x:p.x+50,y:p.y,id:1}]);}
+     await sleep(450);const after=await evalJS('({...MTE_GAME.getState().player})');
+     if(method==='mouse')await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',buttons:0,clickCount:1,x:p.x+50,y:p.y},session);else await touch('touchEnd',[]);
+     ok(Math.hypot(after.x-before.x,after.y-before.y)>.05,method+' drag starting on '+name+' steers normally');
+    }
+    await evalJS('MTE_GAME.setPlayer(__characterBase.x,__characterBase.y)');
+    // Quiet mode still lets a world answer linger; switch off/on to clear it.
+    await evalJS('MTE_GAME.wiki.setMode("off");MTE_GAME.wiki.setMode("quiet")');await sleep(300);
+   }
+   await evalJS('MTE_GAME.wiki.setMode("off")');const p=await evalJS('__characterPoints.Mica');await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:p.x,y:p.y},session);await sleep(600);
+   ok(await evalJS('!document.getElementById("inspectTooltip").hidden&&document.getElementById("inspectTooltip").textContent.includes(MTE_GAME.core.TILE_NAME[MTE_GAME.core.T.STONE])'),'world hover information passes through Mica when tooltips are enabled');
+   ok(await evalJS('!document.getElementById("wikiChalk")&&!("asking" in MTE_GAME.wiki)&&!("place" in MTE_GAME.wiki)'),'character drag overlay, ask mode and hit-anchor API are removed');
+   eq(await evalJS('JSON.parse(localStorage.getItem("mte.faults")||"[]").length'),0,'character gesture checks record no client faults');eq(pageErrors.length,0,'character gesture checks have no browser exceptions');
+   console.log((failures?'CHARACTER INPUT FAILURES':'CHARACTER INPUT PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_HELP_ONLY==='1'){
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:375,height:667,deviceScaleFactor:1,mobile:false},session);
    await sleep(150);
@@ -398,8 +447,8 @@ async function main() {
    await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:cell.x,y:cell.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden",2000);
    ok(await evalJS("!document.getElementById('inspectTooltip').hidden"),'explored world terrain is inspectable');
    const micaPoint=await evalJS("(()=>{const s=MTE_GAME.getState(),p=s.player,h=p.z+MTE_GAME.core.tileHeight(s.world,Math.floor(p.x),Math.floor(p.y),p.z),v=MTE_GAME.project(p.x,p.y,h);return {x:v.x,y:v.y-MTE_GAME.tilePx()*.4};})()");
-   await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:micaPoint.x,y:micaPoint.y},session);await waitFor("!document.getElementById('inspectTooltip').hidden&&document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.LOOK['character.wanderer'].name)",2000);
-   ok(await evalJS("document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.LOOK['character.wanderer'].does)"),'Mica can be inspected in the world');
+   await cdp.send('Input.dispatchMouseEvent',{type:'mouseMoved',x:micaPoint.x,y:micaPoint.y},session);await sleep(500);
+   ok(await evalJS("document.getElementById('inspectTooltip').hidden||!document.getElementById('inspectTooltip').textContent.includes(MTE_GAME.core.LOOK['character.wanderer'].does)"),'Mica has no character hover tooltip');
    eq(pageErrors.length,0,'inspection has no browser exceptions');
    console.log((failures?'HELP BROWSER FAILURES':'HELP BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
@@ -1388,7 +1437,7 @@ async function main() {
   // Once faded in, and where it is drawn: on top of the tile's own height.
   await waitFor('(function(){var p=MTE_GAME.wiki.pose();return !!(p&&p.focus&&p.focus.alpha>=1);})()', 1000);
   await evalJS('new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})');
-  var ringShown = await evalJS('(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=f.mica?MTE_GAME.project(me.x,me.y):MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()');
+  var ringShown = await evalJS('(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()');
   ok(ringShown, 'the outline is drawn round it in Wiki teal');
   console.log('  screenshot: ' + await shot('02c-wiki-long-press.png'));
   await sleep(600);

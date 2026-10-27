@@ -90,9 +90,11 @@ The forest's mycelium connects everything and remembers it, so Wiki is the
 game's wiki in person: it looks at what the player points at and says one short
 line about things worth knowing, once each. Its memory is knowledge, so it
 carries over to new worlds. Wiki gives off no light and shuts its cap near
-living crystal. It is a rigged 3D model made like Mica's. On touch screens,
-tap Wiki and then a thing, or drag from Wiki onto it. Wiki never delays or
-replaces a player action. Open: Wiki's voice and how much more of the story it
+living crystal. It is a rigged 3D model made like Mica's. Confirmed 2026-10-27:
+Mica and Wiki have no click, tap, hover, long-press or drag targets. Every
+pointer gesture reaches the world beneath them. World long presses still ask
+Wiki about the terrain or structure there; automatic comments remain. Wiki
+never delays or replaces a player action. Open: Wiki's voice and how much more of the story it
 tells, whether friends' Mica carry their own Wiki, and whether the repository
 is renamed (save keys never are).
 

@@ -132,7 +132,7 @@ const homeHint = createHomeHint({
   standalone: navigator.standalone === true || !!window.matchMedia?.('(display-mode: standalone)').matches, // i18n-ok: a media query
   say: () => messages.add({ kind: 'wiki', name: t('homeHint.title'), text: t('homeHint.text') })
 });
-const wiki = createWiki({ canvas: el.canvas, cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); }, messages });
+const wiki = createWiki({ cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); }, messages });
 // What you gather flies to its pile in the yard (yard and quality are made
 // just below), as many at once as the device's quality allows.
 const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
@@ -810,7 +810,6 @@ function frame(now) {
     shownState = game.state; shownZ = z;
     const stats = render(cam, game.state, fx, view(), look, problems.faults.layer);
     signRect = stats.sign;
-    wiki.place(stats.wiki);
     descent.draw(cam, look, dt);
     if (intervalMs > 0) perf.frame(intervalMs, simulationMs + t1 - t0, performance.now() - t1, stats.tiles);
     simulationMs = 0;

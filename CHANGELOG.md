@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.177.5] - 2026-10-27
+
+- Remove all Mica/Wiki pointer hit targets, Wiki tap-to-ask and drag capture,
+  character hover inspection and character focus outlines. All mouse/touch
+  gestures pass through to the world, including world long-press inspection.
+- Keep automatic Wiki comments, memories, modes and character animation.
+- Cover mouse/touch taps, long presses, hover and drags through both characters
+  in the real client, plus DOM-free Wiki regression coverage.
+
 ## [0.177.4] - 2026-10-27
 
 - Fix wild Geode cards requesting a nonexistent image slot: use their real top
