@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.177.4] - 2026-10-27
+
+- Fix wild Geode cards requesting a nonexistent image slot: use their real top
+  picture. The former empty image URL triggered a fatal page-load report.
+- The shared HTML picture helper never emits empty URLs, including missing
+  IDs/slots. It retains labels and layout with a placeholder and records the
+  exact logical picture request. Card-picture tests cover every current family.
+- Optional resource failures after boot go to Problems instead of stopping
+  play; early optional failures queue bounded reports until world context exists.
+  Required startup script/style failures remain fatal.
+- Resource diagnostics name tag, raw request, resolved URL, catalog ID, slot,
+  element/container, entry module/build and available HTTP status. Reports retain
+  world/position context and world-coordinate map taps. Fatal reports also
+  identify the page and entry module. Strip invite fragments and bound inline
+  payloads; pack startup failures include the failing URL.
+- Add actual mouse-click Geode reproduction through a played world, native
+  failed-download injection and bootstrap/CSP/missing-slot regression checks.
+
 ## [0.177.3] - 2026-10-27
 
 - Move the carrying right-hand target outward so its elbow clears the coat

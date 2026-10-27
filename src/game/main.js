@@ -470,6 +470,7 @@ const input = createInput({
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
       else if (mapView.on() || placing.tap(x, y)) return;
       else {
+        const at=cam.unproject(x,y);problems.crumb(`map tap ${Math.floor(at.x)}, ${Math.floor(at.y)}, layer ${at.z}`); // i18n-ok: world coordinates in a developer report
         const opened = card.tap(x, y);
         if (opened === 'work') { const w = cam.unproject(x, y); controller.work(Math.floor(w.x), Math.floor(w.y)); }
         else if (!opened) controller.tap(x, y);

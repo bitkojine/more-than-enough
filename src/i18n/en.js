@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.177.4": "Geode cards now open without stopping the game. Missing pictures leave readable controls, and problem reports identify the picture, request and place in your world.",
   "news.0.177.3": "Mica keeps his right arm clear of his coat while carrying crystal, including when slowing down or coming to a stop.",
   "news.0.177.2": "Mica’s boots and shadow stay intact when walking across ground tiles. Higher walls still hide him correctly, and the faint view through obstacles no longer adds a second shadow.",
   "homeHint.title": "Keep this world",

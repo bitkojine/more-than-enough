@@ -414,3 +414,15 @@ with its captured observed facing and work type. It does not delay input or
 resource receipts. Mining grips, basket gathering, free-hand assembly and actual
 lantern controls use the shared rig and earned gear. No additional UI controls
 or inventory currencies are introduced.
+
+
+Resource failure handling: a wild-colony card uses the Geode's `top` picture;
+other cards request their declared picture slot. Missing IDs/slots leave a
+sized, tooltip-capable placeholder and the card's text/actions. A failed optional
+image download stays nonfatal and is listed under Problems. Reports identify
+asset tag, raw request, resolved URL, picture ID/slot, element/container, entry
+module/build, HTTP status when available, world seed, player position and recent
+world-coordinate map taps. Before the world reporter exists, optional errors
+queue a bounded list; required startup scripts/styles and an unavailable
+essential pack still fail loudly with asset/page/build details. Invite fragments
+and unbounded inline-image contents never enter these resource diagnostics.

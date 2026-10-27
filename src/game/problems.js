@@ -93,6 +93,8 @@ export function createProblems({ game, toast, list }) {
   // Errors outside a frame (a tap's handler, a message from the room) are
   // got past too, once the game is running (index.html sends them here).
   window.MTE_FAULT = (err, where) => faults.record(err, where);
+  // World/controller declarations finish synchronously after this reporter.
+  queueMicrotask(()=>{for(const pending of (window.MTE_RESOURCE_ERRORS||[]).splice(0))faults.record(pending.error,pending.where);});
 
   return {
     faults,

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { C } from './helpers.js';
-import { createLook } from '../../src/game/look/look.js';
+import { createLook, iconHtml } from '../../src/game/look/look.js';
 
 const PACK_DIR = new URL('../../packs/default/', import.meta.url).pathname;
 const pack = JSON.parse(readFileSync(join(PACK_DIR, 'pack.json'), 'utf8'));
@@ -129,4 +129,20 @@ test('physical tiers and machine repairs show their own stage', () => {
   assert.equal(look.level('tool.pickaxe', 9, 'icon'), 'braced', 'past the last stage, the last');
   assert.equal(look.level('building.sleepingMachine', 0), 'dormant');
   assert.equal(look.level('building.sleepingMachine', 4), 'awake');
+});
+
+
+test('missing HTML pictures never emit an empty src and report the logical request',()=>{
+ const look=createLook(),faults=[],previous=globalThis.MTE_FAULT;
+ look.use(loaded({'tile.geode':{top:{url:'https://assets.test/geode.svg'}}}));
+ globalThis.MTE_FAULT=(err,where)=>faults.push({err,where});
+ try{
+  for(const [id,slot]of [['tile.geode','image'],['tile.typo','image']]){
+   const html=iconHtml(look,id,'ico',slot);
+   assert.ok(html.startsWith('<span '));assert.ok(!html.includes('src='));
+   const f=faults.at(-1);assert.equal(f.err.name,'PictureUnavailableError');assert.match(f.err.message,new RegExp(id.replace('.','\\.')));assert.ok(f.err.message.includes('slot=image'));assert.equal(f.where,'picture');
+  }
+  assert.ok(iconHtml(look,'tile.geode','ico','top').includes('src="https://assets.test/geode.svg"'));
+  assert.equal(faults.length,2,'valid artwork creates no fault');
+ }finally{if(previous===undefined)delete globalThis.MTE_FAULT;else globalThis.MTE_FAULT=previous;}
 });

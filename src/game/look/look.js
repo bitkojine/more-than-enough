@@ -8,6 +8,7 @@
 import { hash2, DEFAULT_TILE } from '../../core/index.js';
 import { pictures } from '../../core/index.js';
 import { t } from '../../i18n/i18n.js';
+import { esc } from '../format.js';
 
 const MIN_BUCKET = 4, MAX_BUCKET = 1024;
 
@@ -26,7 +27,7 @@ function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(t('pack.pictureFailed')));
+    img.onerror = () => reject(new Error(t('pack.pictureFailed')+' — '+url.split('#')[0].slice(0,500))); // i18n-ok: asset URL in a diagnostic
     img.src = url;
   });
 }
@@ -206,5 +207,16 @@ export function createLook() {
 
 // An <img> for a thing's icon (or `slot`), for HTML built as strings.
 export function iconHtml(look, id, cls = 'ico', slot = 'icon', level = null) {
-  return `<img class="${cls}" data-help="${id}" src="${look.src(id, slot, level)}" alt="" draggable="false">`;
+  let src,cause;
+  try{src=look.src(id,slot,level);}catch(err){cause=err;}
+  const attrs=`class="${esc(cls)}" data-help="${esc(id)}" data-picture-slot="${esc(slot)}"`;
+  if(typeof src!=='string'||!src.trim()){
+    const err=new Error(`Missing game picture: id=${id}, slot=${slot}, level=${level??'default'}${cause?'; lookup failed: '+cause.message:''}`); // i18n-ok: developer diagnostic
+    err.name='PictureUnavailableError';
+    if(typeof globalThis.MTE_FAULT==='function')globalThis.MTE_FAULT(err,'picture'); // i18n-ok: developer diagnostic location
+    else if(Array.isArray(globalThis.MTE_RESOURCE_ERRORS)&&globalThis.MTE_RESOURCE_ERRORS.length<8)globalThis.MTE_RESOURCE_ERRORS.push({error:err,where:'picture'}); // i18n-ok: developer diagnostic location
+    // No request to the document URL; retain layout, label and tooltip.
+    return `<span ${attrs} data-picture-missing="true" aria-hidden="true"></span>`;
+  }
+  return `<img ${attrs} src="${esc(src)}" alt="" draggable="false">`;
 }

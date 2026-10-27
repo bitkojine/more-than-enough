@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.177.4": "Geodų kortelės dabar atsidaro nesustabdydamos žaidimo. Neįkelti paveikslėliai nebetrukdo naudoti valdiklių, o klaidos ataskaitoje nurodomas paveikslėlis, užklausa ir vieta pasaulyje.",
   "news.0.177.3": "Nešdamas kristalus Mica nebekiša dešinės rankos pro apsiaustą, kai sulėtina žingsnį ar sustoja.",
   "news.0.177.2": "Mica batai ir šešėlis nebekarpomi einant per žemės langelių kraštus. Aukštesnės sienos jį vis dar tinkamai užstoja, o blankus vaizdas pro kliūtis nebeprideda antro šešėlio.",
   "homeHint.title": "Išsaugok šį pasaulį",

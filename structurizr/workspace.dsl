@@ -93,7 +93,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                look = component "Look" "What everything looks like: the game's one pack (packs/default/). Loads and rasterises its pictures per size (a picture that fails to load is a crash), picks variants and animation frames. Drawing code and the HUD ask it for colours and pictures by thing id; players cannot load their own." "JavaScript" {
+                look = component "Look" "What everything looks like: the game's one pack (packs/default/). Loads and rasterises its pictures per size, picks variants and animation frames. An unavailable essential startup pack fails with picture/URL details. HTML pictures never emit empty URLs: missing IDs/slots keep labels/layout with a placeholder and a structured fault. Optional DOM resource errors remain nonfatal, with bounded pre-boot queuing and element/request/catalog/build/HTTP diagnostics carried into Problems with world context and map-tap breadcrumbs. Card picture-slot and actual Geode mouse-click tests guard the path. Drawing code and the HUD ask it for colours and pictures by thing id; players cannot load their own." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/look/"

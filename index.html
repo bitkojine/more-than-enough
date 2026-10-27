@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <!-- What the page may load and run (test/unit/security.test.js keeps the
      inline script's hash in step). connect-src names the room service. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-OzlyOKnfBcA9H0X8hIqspDd7Byp3jHy+nL5ANYWs+V8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ysIZMaYoy11udIiKvc2F3SXt2jOED5ecEPe8qAvMtg8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="no-referrer" />
 <title data-i18n="game.title"></title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -60,6 +60,19 @@
       if (stack.indexOf(head) === 0) stack = stack.slice(head.length).replace(/^\n/, '');
       return head + (stack ? '\n' + stack : where ? '\n  at ' + where : '');
     }
+    // Optional resources may fail before the full reporter is installed.
+    // Keep a bounded queue; Problems drains it once world context exists.
+    window.MTE_RESOURCE_ERRORS = [];
+    // Reports never copy invite fragments or unbounded inline image payloads.
+    function reportRef(value) {
+      if (value == null) return value;
+      var text = String(value).split('#')[0];
+      return text.length > 500 ? text.slice(0, 500) + '… [' + text.length + ' characters]' : text;
+    }
+    function entryModule() {
+      var el = document.querySelector('script[type="module"][src]');
+      return el ? el.src : '(not available)';
+    }
     var shown = false;
     function crash(what) {
       var box = document.getElementById('crash');
@@ -76,7 +89,7 @@
         buttons[1].addEventListener('click', function () {
           if (navigator.clipboard) navigator.clipboard.writeText(pre.textContent).then(function () { buttons[1].textContent = words.copied; }, function () {});
         });
-        pre.textContent = words.game + ' v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\n\n';
+        pre.textContent = words.game + ' v' + (window.MTE_VERSION || '?') + ', ' + new Date().toISOString() + '\n' + navigator.userAgent + '\npage: ' + location.origin + location.pathname + location.search + '\nentry module: ' + entryModule() + '\n\n';
       }
       box.hidden = false;
       pre.textContent += text + '\n\n';
@@ -86,7 +99,30 @@
     function ours(url) { return !url || url.indexOf(location.origin + '/') === 0; }
     window.addEventListener('error', function (e) {
       var el = e.target;
-      if (el && el !== window && (el.src || el.href)) return crash(words.failedToLoad + ' ' + (el.src || el.href));
+      if (el && el !== window && (el.src || el.href || el.tagName === 'IMG')) {
+        var tag = String(el.tagName || 'resource').toUpperCase();
+        var attr = tag === 'LINK' ? 'href' : 'src';
+        var raw = el.getAttribute ? el.getAttribute(attr) : null;
+        var url = el.currentSrc || el.src || el.href || '(empty)';
+        var picture = el.getAttribute && el.getAttribute('data-help');
+        var slot = el.getAttribute && el.getAttribute('data-picture-slot');
+        var timings = window.performance && window.performance.getEntriesByName ? window.performance.getEntriesByName(url) : [];
+        var timing = timings[timings.length - 1];
+        var status = timing && timing.responseStatus > 0 ? timing.responseStatus : '(not exposed by browser)';
+        var parent = el.parentElement || el;
+        var owner = parent.closest && parent.closest('[id]');
+        var detail = words.failedToLoad + '\nresource tag: ' + tag + '\nrequested ' + attr + ': ' + JSON.stringify(reportRef(raw)) + '\nresolved URL: ' + reportRef(url) +
+          '\npicture: ' + (picture || '(not supplied)') + '\nslot: ' + (slot || '(not supplied)') +
+          '\nHTTP status: ' + status + '\nelement: ' + tag + (el.id ? '#' + el.id : '') + (owner && owner !== el ? ' inside #' + owner.id : '') + '\nentry module: ' + entryModule();
+        var err = new Error(detail); err.name = 'ResourceLoadError';
+        // A missing optional picture must not turn a working world into a
+        // fatal screen. Required startup scripts/styles still fail loudly.
+        if (tag === 'IMG' && el.style) el.style.visibility = 'hidden';
+        if (window.MTE_FAULT && !shown) return window.MTE_FAULT(err, 'resource ' + tag);
+        if (tag === 'SCRIPT' || (tag === 'LINK' && el.rel === 'stylesheet')) return crash(describe(err));
+        if (window.MTE_RESOURCE_ERRORS.length < 8) window.MTE_RESOURCE_ERRORS.push({error:err,where:'resource ' + tag});
+        return;
+      }
       // An error the browser hides from us ("Script error.", no error object)
       // or one from another origin was thrown by code that isn't the game:
       // iOS Safari runs its own and share extensions' scripts in the page when

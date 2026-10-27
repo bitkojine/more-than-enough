@@ -71,6 +71,12 @@ rendering samples the journey, and both uncaught errors and recorded client
 faults fail it. Completion must survive an actual reload. Gameplay save parity
 excludes only the browser's last-saved wall timestamp. `MTE_SITE=site` tests the
 staged client; the source rules/strategy fingerprint must still match the run.
+Add `MTE_GEODE_ONLY=1` to replay only as far as the first wild-colony interaction,
+then click the actual map tile and inject resource failures. It verifies that
+the Geode card loads and that missing artwork produces a detailed nonfatal
+report. The fast unit gate also checks every card family's picture slots, the
+shared empty-URL guard and startup resource-error routing.
+
 No grants, teleports, hidden-terrain reads or near-win checkpoint starts count
 as a fresh-world win.
 

@@ -67,7 +67,7 @@ export function cardAt(s, x, y) {
     const covered = !!c.shaded?.[key], paid = c.shaded && key in c.shaded;
     return { look: 'mark.' + s.world.props.get(key), name: esc(prop.name), lines: [], actions: [act('shade', x, y, t(covered ? 'cr.uncover' : 'cr.cover'), paid ? null : Core.CULTIVATION_RECIPES.shade)] };
   }
-  if (Core.wildColony(s, x, y)) return { look: 'tile.geode', name: name('wild'), lines: [], actions: [act('starter', x, y, name('gather'))] };
+  if (Core.wildColony(s, x, y)) return { look: 'tile.geode', slot: 'top', name: name('wild'), lines: [], actions: [act('starter', x, y, name('gather'))] };
   return null;
 }
 
@@ -83,7 +83,7 @@ export function createBuildingCard({ cam, state, run }) {
   function render() {
     const s = state(), card = open && cardAt(s, open.x, open.y);
     if (!card || s.player.z !== open.z || !near(s, open.x, open.y)) return close();
-    const html = `<div class="bc-head">${pic(card.look, 'image')}<strong>${card.name}</strong></div>` +
+    const html = `<div class="bc-head">${pic(card.look, card.slot || 'image')}<strong>${card.name}</strong></div>` +
       (card.lines.length ? `<p>${card.lines.join('<br>')}</p>` : '') +
       (card.actions.length ? '<div class="bc-acts">' + card.actions.map((a, i) =>
         `<div class="bc-act"><button type="button" class="${i ? 'alt' : ''}" data-i="${i}" data-type="${a.type}"${a.cost && !Core.canAfford(s.inv, a.cost) ? ' disabled' : ''}>${a.label}</button>${a.cost ? price(s.inv, a.cost) : ''}</div>`).join('') + '</div>' : '');

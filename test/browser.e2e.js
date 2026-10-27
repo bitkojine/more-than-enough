@@ -118,6 +118,7 @@ async function asciiArt(evalJS) {
 }
 
 async function main() {
+  if(process.env.MTE_GEODE_ONLY==='1'&&!process.env.MTE_PLAYTHROUGH_RUN)throw Error('MTE_GEODE_ONLY requires a recorded MTE_PLAYTHROUGH_RUN');
   fs.mkdirSync(SHOT_DIR, { recursive: true });
 
   // Clear any stale headless browsers we launched previously; they eat the CPU
@@ -312,7 +313,10 @@ async function main() {
     ok(await evalJS('(async()=>!!await MTE_GAME.look.rigReady)()'),'actual 3D character renderer is ready');
     const initial=await evalJS('({seed:MTE_GAME.getState().seed,time:MTE_GAME.getState().time,inv:MTE_GAME.getState().inv,tools:MTE_GAME.getState().tools})');
     eq(initial.seed,playthrough.seed,'starts the same reserved seed');eq(initial.time,0,'no unrecorded wall-clock ticks');ok(Object.values(initial.inv).every(n=>n===0)&&Object.values(initial.tools).every(n=>n===0),'replay begins empty-handed');
-    await evalJS('window.__playthrough={trace:'+JSON.stringify(playthrough.trace)+',at:0,left:0,ticks:0,actions:0,frames:0}');
+    const starterIndex=playthrough.trace.findIndex(e=>e.cultivation?.type==='starter'),starter=starterIndex>=0?playthrough.trace[starterIndex].cultivation:null;
+    const recordedTrace=process.env.MTE_GEODE_ONLY==='1'?playthrough.trace.slice(0,starterIndex):playthrough.trace;
+    if(process.env.MTE_GEODE_ONLY==='1'&&!starter)throw Error('Trace has no Geode interaction');
+    await evalJS('window.__playthrough={trace:'+JSON.stringify(recordedTrace)+',at:0,left:0,ticks:0,actions:0,frames:0}');
     let replay;
     const replayStarted=Date.now();
     do{
@@ -325,6 +329,28 @@ async function main() {
       if(replay.frames%10===0||replay.at===replay.total)console.log('  replay '+replay.at+'/'+replay.total+' entries, '+(replay.ticks/60).toFixed(1)+' game seconds, '+replay.frames+' rendered frames');
       if(Date.now()-replayStarted>90000)throw Error('Full browser replay exceeded its wall budget');
     }while(replay.at<replay.total);
+    if(process.env.MTE_GEODE_ONLY==='1'){
+      console.log('\n== Actual Geode click ==');
+      ok(await evalJS('typeof MTE_CRASH==="function"&&Array.isArray(window.MTE_RESOURCE_ERRORS)'), 'the CSP permits the real bootstrap error handler');
+      const point=await evalJS('(()=>{const s=MTE_GAME.getState(),x='+starter.x+',y='+starter.y+',h=s.player.z+MTE_GAME.core.tileHeight(s.world,x,y,s.player.z);return MTE_GAME.project(x+.5,y+.5,h)})()');
+      await cdp.send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,x:point.x,y:point.y},session);
+      await cdp.send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,x:point.x,y:point.y},session);await sleep(500);
+      const card=await evalJS('(()=>{const card=document.getElementById("buildingCard"),img=card?.querySelector("img");return {open:card&&!card.hidden,src:img?.getAttribute("src"),resolved:img?.src,loaded:!!img?.naturalWidth,crash:!document.getElementById("crash").hidden,report:document.querySelector("#crash pre").textContent,faults:MTE_GAME.playtest.faults()}})()');
+      console.log('  Geode click result '+JSON.stringify(card));
+      ok(card.open,'actual map click opens the wild-colony card');ok(!!card.src&&card.loaded,'Geode card has a real loaded picture');ok(!card.crash,'clicking the Geode does not show the fatal crash screen');eq(card.faults.length,0,'Geode click records no runtime faults');
+      fs.writeFileSync(path.join(SHOT_DIR,'geode-click-result.json'),JSON.stringify(card,null,2));await shot('geode-click.png');
+      await evalJS('(()=>{const img=document.createElement("img");img.id="__brokenGeodePicture";img.dataset.help="tile.geode";img.dataset.pictureSlot="top";img.src="/__test_missing_geode.svg";document.getElementById("buildingCard").append(img)})()');
+      ok(await waitFor('MTE_GAME.playtest.faults().some(f=>f.where==="resource IMG")',3000),'a real failed picture download enters the structured fault reporter');
+      const resource=await evalJS('MTE_GAME.playtest.faults().find(f=>f.where==="resource IMG")');
+      if(!resource)console.log('  resource diagnostic '+JSON.stringify(await evalJS('({faults:MTE_GAME.playtest.faults(),pending:(window.MTE_RESOURCE_ERRORS||[]).map(e=>({where:e.where,message:e.error.message})),image:document.getElementById("__brokenGeodePicture")?.outerHTML,crash:document.getElementById("crash").hidden})')));
+      ok(resource&&['tile.geode','slot: top','__test_missing_geode.svg','buildingCard','entry module:'].every(s=>resource.head.includes(s)),'resource report identifies picture, slot, element, failed URL and build source');
+      ok(resource?.context.world?.includes(String(playthrough.seed))&&resource?.context.at&&resource?.crumbs.some(c=>c.text.includes('map tap')),'resource report retains world seed, player position and the map click');
+      ok(await evalJS('document.getElementById("crash").hidden&&MTE_GAME.bench(1)>0'),'a failed optional picture keeps the world rendering');
+      const missingSlot=await evalJS('(async()=>{const {iconHtml}=await import("./src/game/look/look.js");const html=iconHtml(MTE_GAME.look,"tile.geode","ico","image");return {html,faults:MTE_GAME.playtest.faults().filter(f=>f.head.includes("PictureUnavailableError"))}})()');
+      ok(missingSlot.html.startsWith('<span ')&&!missingSlot.html.includes('src=')&&missingSlot.faults.length===1,'invalid slot requests create a safe placeholder and a named fault, never an empty image');
+      fs.writeFileSync(path.join(SHOT_DIR,'resource-fault.json'),JSON.stringify(resource||null,null,2));
+      if(resource){const report=await evalJS('(async()=>{const {report}=await import("./src/game/faults.js");return report(MTE_GAME.playtest.faults().find(f=>f.where==="resource IMG"))})()');fs.writeFileSync(path.join(SHOT_DIR,'resource-report.txt'),report);}console.log((failures?'GEODE BROWSER FAILURES':'GEODE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+    }
     ok(replay.won,'complete journey reaches machine activation through real client commands');eq(replay.actions,playthrough.actions,'every recorded player command replayed');eq(replay.ticks,playthrough.ticks,'every simulation tick replayed');
     const finalSave=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');fs.writeFileSync(path.join(SHOT_DIR,'replayed-save.json'),finalSave);
     // Only the browser's last-saved wall timestamp differs; every gameplay
