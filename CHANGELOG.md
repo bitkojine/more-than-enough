@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.177.1] - 2026-10-27
+
+Your own world on two linked devices could lose play on a slow connection,
+with no copy kept anywhere. A random two-device sweep of `src/game/sync.js`
+(play, background, idle spells, new worlds, going back, either answer to
+the which-world question, requests held up) lost play in 21 of 150 runs.
+
+### Fixed
+
+- Play while a device fetched the newest after an unplayed spell wasn't
+  counted: when the answer came, the other device's copy replaced it
+  silently. It counts now, so the player is asked which copy to keep.
+- The which-world question offered (and kept aside) the copy taken when its
+  push went out, not the one played since; picking the other device's copy
+  then wrote over the newer one. It uses what is on the device now.
+- The play that wakes a device after an unplayed spell went uncounted for
+  good if the player switched worlds before the answer came. It counts
+  unless the newest from the vault took its place (time away makes nothing).
+- Tests: `test/unit/sync.test.js` adds two slow-connection cases and a
+  seeded random two-device sweep (`PROP_SEEDS` widens it); both fail on the
+  old code.
+
 ## [0.177.0] - 2026-10-27
 
 The world map can be zoomed much further in, to explore it in detail; it

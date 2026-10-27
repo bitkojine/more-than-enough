@@ -17,6 +17,7 @@ import * as C from '../../src/core/index.js';
 import * as P from '../../src/net/protocol.js';
 import { createSync, linkFrom, linkUrl, IDLE_MS, LINK_PLAYED } from '../../src/game/sync.js';
 import { registerCloudflare, Storage, start } from '../support/durable.js';
+import { rng, seeds } from '../property/random.js';
 
 registerCloudflare();
 const worker = await import('../../server/src/worker.js');
@@ -545,4 +546,118 @@ test('answers that don\'t fit are refused by the game', () => {
   assert.deepEqual(P.cleanSoloAnswer({ error: 'full' }), { error: 'full' });
   assert.equal(linkFrom('#link=abc'), null);
   assert.equal(linkFrom('#join=x.y'), null);
+});
+
+// A device on a slow connection: while held, its requests wait (the room
+// service gets them only once released), as on a phone with one bar.
+function slow(service) {
+  let gate = null, open = () => {};
+  return {
+    hold() { gate ||= new Promise((r) => { open = r; }); },
+    release() { gate = null; open(); },
+    async fetch(u, i) { if (gate) await gate; return service.fetch(u, i); }
+  };
+}
+const settle = () => new Promise((r) => setTimeout(r));
+// The furthest played copy of world `seed` anywhere on device `d`.
+function furthest(d, seed) {
+  let most = d.state.seed === seed ? played(d) : 0;
+  for (const raw of d.store.map.values()) {
+    try { const s = JSON.parse(raw); if (s && s.seed === seed && s.stats) most = Math.max(most, s.stats.playedMs); } catch { /* not a save */ }
+  }
+  return most;
+}
+
+test('played on while the newest is slow to come: asked, not replaced', async () => {
+  const service = cloud(), net = slow(service);
+  const mac = device(service), phone = device(net);
+  mac.play();
+  const key = mac.sync.start();
+  await mac.sync.check();
+  await phone.sync.link(key);
+  mac.play(60_000, 4);
+  await mac.sync.flush(); // the Mac goes to the background: its copy is the newest
+  clock += IDLE_MS * 2;
+  net.hold();
+  phone.play(2_000, 1); // picked up again: the newest is asked for first...
+  for (let i = 0; i < 10; i++) { phone.play(3_000, 1); await settle(); } // ...and the answer is slow
+  const mine = played(phone);
+  net.release();
+  await phone.sync.check();
+  assert.ok(phone.asked, 'both were played: the phone asks');
+  assert.equal(furthest(phone, phone.state.seed), mine, 'and what was played meanwhile is still on the phone');
+});
+
+test('the question offers the copy played now, not the one that was on its way', async () => {
+  const service = cloud(), net = slow(service);
+  const mac = device(service), phone = device(net);
+  mac.play();
+  const key = mac.sync.start();
+  await mac.sync.check();
+  await phone.sync.link(key);
+  mac.play(60_000, 4);
+  await mac.sync.flush();
+  phone.play(10_000, 1);
+  net.hold();
+  const push = phone.sync.flush(); // its copy goes out slowly...
+  for (let i = 0; i < 5; i++) phone.play(3_000, 1); // ...while the phone plays on
+  const mine = played(phone);
+  net.release();
+  await push;
+  assert.ok(phone.asked);
+  assert.equal(phone.asked.mine.stats.playedMs, mine, 'the question shows what was played last');
+  phone.pick('other');
+  const kept = phone.store.keys().filter((k) => k.startsWith('mte.solo.kept.'));
+  assert.equal(kept.length, 1);
+  assert.equal(JSON.parse(phone.store.getItem(kept[0])).stats.playedMs, mine, 'the copy kept aside is the newest');
+});
+
+// Two linked devices played at random, on slow and quick answers: playing,
+// going to the background, coming back after a while, new worlds, going back
+// to old ones, and answering the which-world question either way. Whatever
+// happens, every bit of play is still somewhere: on a device (kept aside
+// counts) or in the vault. The play that wakes a device after a spell
+// unplayed may give way to the newest (time away makes nothing): one act.
+test('random play on two devices never loses a world\'s play', async () => {
+  for (const seed of seeds(12)) {
+    const r = rng(seed), service = cloud();
+    const nets = [slow(service), slow(service)];
+    const devs = nets.map((n, i) => device(n, 1000 + i));
+    const best = new Map(), log = [];
+    const note = (d) => best.set(d.state.seed, Math.max(best.get(d.state.seed) || 0, played(d)));
+    devs[0].play(); note(devs[0]);
+    const key = devs[0].sync.start();
+    await devs[0].sync.check();
+    devs[1].play(LINK_PLAYED + 10_000); note(devs[1]);
+    await devs[1].sync.link(key);
+    const pending = [];
+    for (let step = 0; step < 80; step++) {
+      const i = r.int(0, 1), d = devs[i], op = r.pick(['play', 'play', 'play', 'check', 'flush', 'idle', 'slow', 'new', 'back', 'pick', 'pick']);
+      log.push(i + op);
+      if (op === 'play' && !d.asked) {
+        for (let n = r.int(1, 12); n > 0 && !d.asked; n--) { d.play(r.int(1_000, 3_000), 1); note(d); if (r.chance(0.3)) await settle(); }
+      } else if (op === 'check') pending.push(d.sync.check());
+      else if (op === 'flush') pending.push(d.sync.flush());
+      else if (op === 'idle') clock += IDLE_MS + 1_000;
+      else if (op === 'slow') { if (r.chance(0.5)) nets[i].hold(); else nets[i].release(); }
+      else if (op === 'new' && !d.asked) { d.state = C.createState(r.int(5, 2 ** 31), { cultivation: true }); d.save(); d.sync.touched(); }
+      else if (op === 'back' && !d.asked) {
+        const raw = d.store.getItem('mte.solo.world.' + r.pick([...best.keys()]));
+        const s = raw && C.deserialize(raw);
+        if (s && s.seed !== d.state.seed) { d.save(); d.state = s; d.save(); d.sync.touched(); }
+      } else if (op === 'pick' && d.asked) d.pick(r.chance(0.5) ? 'mine' : 'other');
+      if (r.chance(0.5)) await settle(); // answers that came in meanwhile
+      const vault = new Map();
+      for (const st of service.storages.values()) for (const s of best.keys()) {
+        const w = await st.get('w:' + s);
+        if (w) vault.set(s, Math.max(vault.get(s) || 0, JSON.parse(w.save).stats.playedMs));
+      }
+      for (const [s, most] of best) {
+        const now = Math.max(vault.get(s) || 0, ...devs.map((x) => furthest(x, s)));
+        assert.ok(now >= most - 3_000, `seed ${seed}: world ${s} was played to ${most} ms, now ${now} ms at most\n  ${log.join(' ')}`);
+      }
+    }
+    for (const n of nets) n.release();
+    await Promise.all(pending);
+  }
 });

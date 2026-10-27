@@ -81,6 +81,7 @@ export function createSync(o) {
   let lastPlayed = now();
   let okAt = 0, failed = false, saidFull = false;
   let meAsking = false;   // the question about which character is open
+  let adopted = null;     // the world last replaced by the vault's copy
 
   function load() {
     try {
@@ -154,7 +155,12 @@ export function createSync(o) {
   // Both devices played world `seed` since they last agreed: the player
   // picks. The copy not picked stays on this device (aside). `play`: the
   // world is (or becomes) the one played; otherwise it's only kept.
+  // `mineRaw` was taken when the request went out, and the world may have
+  // been played (or left for another) while it was under way: what's here
+  // now is what the player picks between and what is kept.
   function ask(seed, mineRaw, a, play) {
+    const s = o.own();
+    mineRaw = (s && s.seed === seed ? o.serialize(s) : o.archived(seed)) ?? mineRaw;
     const mine = o.deserialize(mineRaw);
     if (!mine) return;
     paused = true;
@@ -192,6 +198,7 @@ export function createSync(o) {
     if (!d) return false;
     d.w[seed] = { rev, dirty: false };
     keep(d);
+    adopted = seed;
     o.replace(s);
     return true;
   }
@@ -335,14 +342,19 @@ export function createSync(o) {
       const t = now(), idle = t - lastPlayed >= IDLE_MS;
       lastPlayed = t;
       const d = load(), s = o.own();
-      if (!d || !s || idleCheck || paused) return;
-      if (flight === s.seed) return mark(s.seed);
+      if (!d || !s || paused) return;
+      // Played on while the newest is still on its way: this play counts,
+      // so a newer copy from your other device asks instead of replacing it.
+      if (idleCheck || flight === s.seed) return mark(s.seed);
       if (!dirty(d, s.seed)) {
         if (!idle) return mark(s.seed);
         idleCheck = true;
+        adopted = null;
+        // The play that woke it counts too, unless the newest came instead
+        // (the world may have been left for another meanwhile).
         check().finally(() => {
           idleCheck = false;
-          if (o.own() === s) mark(s.seed);
+          if (adopted !== s.seed) mark(s.seed);
         });
       }
     },
