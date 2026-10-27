@@ -4,6 +4,7 @@
 export default {
   "homeHint.title": "Keep this world",
   "homeHint.text": "Add Mica to your Home Screen (Share, then Add to Home Screen): Safari forgets a site left for a week, never a Home Screen game.",
+  "news.0.177.0": "Zoom much further into the world map to explore it tile by tile: it stays the map until 0.37×, and the game view takes over from there.",
   "news.0.176.1": "{phone:Drag down|laptop:Scroll up} in the message log to read older messages; a new one no longer pulls you back down. The top line has room above it now, and a milestone that says what's next no longer gets a second line saying it again.",
   "news.0.176.0": "On an iPhone or iPad in Safari, Wiki now reminds you once to add Mica to your Home Screen, so Safari never forgets your world.",
   "news.0.175.0": "Your character in the shared world now comes along to a device you link from Settings, Another device, so it plays as you there too.",

@@ -13,7 +13,7 @@
 
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
-import { FLAT_RISE_PX, MAP_PX } from '../camera.js';
+import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawMerging, dropFarMap } from './terrain.js';
 import { createAtlas } from './atlas.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
@@ -51,7 +51,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
   cam.follow(s.player);
   // On the map, panned or on another layer: where it looks.
   if (view.map) { cam.x = view.map.x; cam.y = view.map.y; cam.z = view.map.z; }
-  if (cam.tilePx < MAP_PX) return renderMap(cam, s, view, look, layer);
+  if (cam.mapping()) return renderMap(cam, s, view, look, layer);
   // Zoomed in close, the view centres on your middle instead of your feet, so
   // all of you stays on screen. From 2x it eases in, in full by 5x.
   const close = Math.min(1, Math.max(0, (cam.zoom - 2) / 3));

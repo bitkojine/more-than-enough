@@ -15,7 +15,6 @@
  * your layer. */
 
 import * as Core from '../core/index.js';
-import { MAP_PX } from './camera.js';
 import { mapLayers, stepLayer } from './worldmap-layers.js';
 import { t, number } from '../i18n/i18n.js';
 
@@ -32,7 +31,7 @@ export function createMapView({ cam, getState, el, changed }) {
   let mapZoom = null;      // the zoom the map was last left at
   let lastPill = '', lastButton = '';
 
-  const on = () => cam.tilePx < MAP_PX;
+  const on = () => cam.mapping();
   const here = () => getState().player;
 
   function glideTo(zoom) { goal = zoom; }
@@ -58,9 +57,10 @@ export function createMapView({ cam, getState, el, changed }) {
     // (sx, sy): on the map, that point stays under the finger.
     zoomed(was, sx, sy) {
       goal = null;
-      if (cam.tilePx >= MAP_PX && was >= MAP_PX) return;
+      if (!on() && !cam.mapping(was / cam.baseTilePx)) return;
       const p = pan || { x: here().x, y: here().y };
       const dx = sx - cam.width / 2, dy = sy - cam.height / 2;
+      if (!dx && !dy) return; // about the middle: it stays where it looks
       const wx = p.x + dx / was, wy = p.y + dy / (was * cam.depthPx / cam.tilePx);
       pan = { x: wx - dx / cam.tilePx, y: wy - dy / cam.depthPx };
     },

@@ -4,6 +4,7 @@
 export default {
   "homeHint.title": "Išsaugok šį pasaulį",
   "homeHint.text": "Pridėk Mica prie pradžios ekrano (Bendrinti, tada Pridėti prie pradžios ekrano): Safari pamiršta savaitę neatidarytą svetainę, bet niekada žaidimo pradžios ekrane.",
+  "news.0.177.0": "Pasaulio žemėlapį dabar gali priartinti daug labiau ir tyrinėti langelis po langelio: žemėlapis lieka iki 0,37×, o nuo ten vėl rodomas žaidimo vaizdas.",
   "news.0.176.1": "{phone:Brauk žemyn|laptop:Slink aukštyn} žinučių žurnale ir skaityk senesnes žinutes; nauja žinutė nebetraukia tavęs atgal žemyn. Žurnale virš viršutinės eilutės dabar tiek pat vietos, kiek šonuose, o pasiektas etapas, kuris jau pasako, kas toliau, nebegauna antros eilutės su tuo pačiu.",
   "news.0.176.0": "iPhone ar iPad Safari naršyklėje Wiki dabar vieną kartą primena pridėti Mica prie pradžios ekrano, kad Safari niekada nepamirštų tavo pasaulio.",
   "news.0.175.0": "Tavo veikėjas bendrame pasaulyje dabar keliauja kartu į įrenginį, kurį susieji per Nustatymai, Kitas įrenginys, tad ir jame ten žaidi tuo pačiu veikėju.",

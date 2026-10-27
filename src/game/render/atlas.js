@@ -1,9 +1,9 @@
-/* Zoomed out all the way (a tile under MAP_PX), the view is the world map:
- * the layer you look at as far as you've explored it, one pixel per tile; on
- * the surface, the names of the regions you've set foot in or seen, home and
- * the hiding place; you, and friends on that layer. This replaced the world
- * map sheet (v0.158.0): src/game/mapview.js pans it, steps through the
- * layers and brings you back.
+/* Zoomed out past MAP_ZOOM (camera.js), the view is the world map: the
+ * layer you look at as far as you've explored it, a square of colour per
+ * tile; on the surface, the names of the regions you've set foot in or seen,
+ * home and the hiding place; you, and friends on that layer. This replaced
+ * the world map sheet (v0.158.0): src/game/mapview.js pans it, steps through
+ * the layers and brings you back.
  *
  * What you haven't explored looks as it does closer in: clouds on the
  * surface (the same bank and edge puffs, fixed to the land), unseen rock

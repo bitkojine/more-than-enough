@@ -1834,7 +1834,7 @@ async function main() {
   await evalJS('MTE_GAME.setZoom(99999)');
   ok(Number.isFinite(capped) && capped === await evalJS('MTE_GAME.zoom()') && await evalJS('MTE_GAME.tilePx() < innerHeight'), 'zoom-in is capped (at ' + capped.toFixed(2) + 'x, a tile smaller than the screen)');
   await evalJS('MTE_GAME.setZoom(0.0001)');
-  ok(await evalJS('MTE_GAME.tilePx()') >= 3, 'zoom-out cannot shrink tiles below the floor');
+  ok(await evalJS('MTE_GAME.tilePx()') >= 0.25, 'zoom-out cannot shrink tiles below the floor');
   await evalJS('MTE_GAME.setZoom(1)');
   await sleep(120);
 
@@ -1843,7 +1843,7 @@ async function main() {
   var errBase = pageErrors.length;
   var hSpot = await evalJS('(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>0){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()');
   ok(!!hSpot, 'stood on a gatherable tile for the highlight test (' + hSpot + ')');
-  await evalJS('MTE_GAME.setZoom(0.0001)'); // all the way out: tiles ~3px
+  await evalJS('MTE_GAME.setZoom(0.0001)'); // all the way out: the world map, tiles a quarter pixel
   await sleep(250);
   var hTime = await evalJS('MTE_GAME.getState().time');
   await sleep(400);

@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.177.0] - 2026-10-27
+
+The world map can be zoomed much further in, to explore it in detail; it
+only gives way to the game view at 0.37× (Watch, 2026-10-27).
+
+### Changed
+
+- The map now shows below 0.37× as the zoom pill reads it (`MAP_ZOOM` and
+  `cam.mapping()` in `src/game/camera.js`), not below 3 px a tile (about
+  0.06× on a phone). Close in, each explored tile is a crisp square of its
+  colour (the atlas pages are drawn unsmoothed), so pinch, scroll and the
+  zoom pill reach about 18 px a tile on the map before the game view takes
+  over. The game view is never drawn further out than that, which is also
+  the cheaper path on old phones.
+
+### Fixed
+
+- Zooming with the zoom pill onto the map no longer counts as panning it
+  away: a zoom about the screen's middle leaves the map on you, so the map
+  button goes back to your zoom instead of first turning to a crosshair
+  (`src/game/mapview.js`).
+- `test/browser.e2e.js` expected the farthest zoom to keep tiles at 3 px;
+  since v0.158.0 it goes down to a quarter pixel.
+
 ## [0.176.1] - 2026-10-27
 
 The message log's top line sat against its top edge, and on a phone the

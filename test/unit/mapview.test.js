@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as Core from '../../src/core/index.js';
-import { createCamera, MAP_PX } from '../../src/game/camera.js';
+import { createCamera, MAP_ZOOM } from '../../src/game/camera.js';
 import { createMapView } from '../../src/game/mapview.js';
 import { edgePoint } from '../../src/game/render/atlas.js';
 
@@ -31,13 +31,32 @@ test('the map button glides all the way out to the map, and back to the zoom you
   cam.setZoom(1.6);
   mv.button();
   settle();
-  assert.ok(mv.on() && cam.tilePx < MAP_PX, 'out on the map');
+  assert.ok(mv.on() && cam.zoom < MAP_ZOOM, 'out on the map');
   assert.equal(el.map.attrs['aria-pressed'], 'true');
   mv.button();
   settle();
   assert.ok(!mv.on());
   assert.equal(cam.zoom, 1.6);
   assert.equal(el.map.attrs['aria-pressed'], 'false');
+});
+
+test('the map lasts until 0.37x on the zoom pill, then the game view takes over', () => {
+  const { cam, mv } = setup();
+  cam.setZoom(0.36);
+  assert.ok(mv.on(), 'zoomed well into the map, still the map');
+  cam.setZoom(0.37);
+  assert.ok(!mv.on(), 'the game view from 0.37x');
+});
+
+test('zooming the map about its middle (the zoom pill) leaves it on you', () => {
+  const { cam, mv, el } = setup();
+  cam.setZoom(0.4);
+  const was = cam.tilePx;
+  cam.setZoom(0.32);
+  mv.zoomed(was, cam.width / 2, cam.height / 2);
+  mv.tick(0.016);
+  assert.equal(mv.look(), null);
+  assert.match(el.map.innerHTML, /M3 6/, 'the map button still goes back, not to you');
 });
 
 test('a drag pans the map without moving you; the button brings it back first', () => {

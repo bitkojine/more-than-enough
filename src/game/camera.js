@@ -19,10 +19,12 @@ import { drawDpr } from './quality.js';
 // stitching. Never less than 3x in.
 const MAX_TILE_SHARE = 0.62;
 const ZOOM_MIN_MAX = 3;
-// Zoomed out past MAP_PX a tile is a few pixels at most, and the view is the
-// world map (render/atlas.js): every layer as far as you've explored it, down
-// to MIN_TILE_PX, where a phone shows a few kilometres.
-export const MAP_PX = 3;
+// Zoomed out past MAP_ZOOM (as the zoom pill reads it) the view is the world
+// map (render/atlas.js): every layer as far as you've explored it, from a
+// tile a square of colour you can pick out (Watch, 2026-10-27: zoom well into
+// the map to explore it in detail) down to MIN_TILE_PX, where a phone shows a
+// few kilometres.
+export const MAP_ZOOM = 0.37;
 const MIN_TILE_PX = 0.25;
 const PITCH = 0.225;          // radians from straight down (~13°)
 // One layer's height, in tile lengths. The wanderer stands just under a tile
@@ -73,6 +75,11 @@ export function createCamera(canvas) {
     // The closest zoom for this viewport (see MAX_TILE_SHARE).
     maxZoom() {
       return Math.max(ZOOM_MIN_MAX, cam.height * MAX_TILE_SHARE / cam.baseTilePx);
+    },
+
+    // Whether the view is the world map, at this zoom (default: the zoom now).
+    mapping(zoom = cam.zoom) {
+      return zoom < MAP_ZOOM;
     },
 
     // The pitch angle, for drawing things that stand upright.
