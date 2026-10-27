@@ -14,6 +14,7 @@ import { createHud } from './hud.js';
 import { createTooltips } from './tooltips.js';
 import { createWiki } from './wiki.js';
 import { createMessages } from './messages.js';
+import { createHomeHint } from './home-hint.js';
 import { WIKI_MODES } from './wiki-memory.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
@@ -123,6 +124,13 @@ const messages = createMessages({
   world: () => game.state ? game.state.shared || 'solo.' + game.state.seed : null,
   feet: () => { const p = game.state?.player, r = el.canvas.getBoundingClientRect(), at = p && cam.project(p.x, p.y + 0.3); return at && { x: r.left + at.x, y: r.top + at.y }; },
   open: savedView.logOpen, keepOpen: (on) => { savedView.logOpen = on; saveView(savedView); }
+});
+// In Safari on an iPhone, once: add the game to the Home Screen, or Safari
+// may forget every world (home-hint.js).
+const homeHint = createHomeHint({
+  store: localStore(),
+  standalone: navigator.standalone === true || !!window.matchMedia?.('(display-mode: standalone)').matches, // i18n-ok: a media query
+  say: () => messages.add({ kind: 'wiki', name: t('homeHint.title'), text: t('homeHint.text') })
 });
 const wiki = createWiki({ canvas: el.canvas, cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); }, messages });
 // What you gather flies to its pile in the yard (yard and quality are made
@@ -599,7 +607,7 @@ el.language.addEventListener('click', () => {
 // Work that runs on its own cadence rather than every frame.
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
-  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); } }
+  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); if (!copy) homeHint.check(game.state.goalIndex, performance.now()); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let moving = false;

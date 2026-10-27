@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.176.0] - 2026-10-27
+
+The last piece of the Safari storage P0 (Watch chose on 2026-10-27: one Wiki
+line, after a milestone). Safari on an iPhone or iPad deletes a site's
+storage after 7 days of use without opening it; a game on the Home Screen is
+exempt.
+
+### Added
+
+- `src/game/home-hint.js`: in iOS Safari outside the Home Screen, Wiki says
+  once per device, as a milestone is reached (or a minute into a game already
+  past one), "Keep this world. Add Mica to your Home Screen (Share, then Add
+  to Home Screen)...", in the message log. Never in other browsers, never
+  again after (`mte.homeHint`). `docs/ui.md` says where.
+
 ## [0.175.0] - 2026-10-26
 
 Your character in the shared world moves between devices too (the Safari
