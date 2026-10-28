@@ -55,11 +55,7 @@ jobs:
           MTE_SITE: site
           MTE_WEBGL: '1'
           MTE_SHOT_DIR: ${{ runner.temp }}/render-checks
-        run: |
-          MTE_ILLUMINATION_ONLY=1 npm run test:e2e
-          MTE_LAYER_ONLY=1 npm run test:e2e
-          MTE_RENDER_PERF_ONLY=1 npm run test:e2e
-          MTE_HUD_ONLY=1 npm run test:e2e
+        run: node scripts/check-render-host.mjs
 
       - name: Keep visual and performance evidence
         if: always()
