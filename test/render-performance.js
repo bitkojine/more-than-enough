@@ -16,6 +16,10 @@ export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
   window.__renderPerformance={s,cam,ctx,view,fx,render,drawTerrain,C,
    size(w,h,dpr){Object.assign(cam,{width:w,height:h,baseTilePx:48,dpr});canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);},
    sample(z,time,zoom,moving=false){s.player={x:.5,y:.5,z};s.time=time;cam.setZoom(zoom);render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);
+    // Warm the exact trajectory: its first visit may legitimately create
+    // different light-bucket pictures. drift() separately budgets cold work.
+    for(let i=0;i<2;i++){if(moving){s.player.x+=.07;s.player.y+=.03;}render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);}
+    s.player.x=.5;s.player.y=.5;
     const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0};const start=performance.now();for(let i=0;i<2;i++){if(moving){s.player.x+=.07;s.player.y+=.03;}render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);}const result={z,time,zoom,moving,ms:(performance.now()-start)/2,...work};work=null;const after=MTE_GAME.look.lightingWork();return {...result,...after,tintBuilds:after.tintBuilds-before.tintBuilds};},
    drift(){s.player={x:.5,y:.5,z:0};cam.setZoom(1);const rows=[];for(let i=0;i<12;i++){s.time=62+i*2;s.player.x+=.03;const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0};const start=performance.now();render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);const row={time:s.time,ms:performance.now()-start,...work,tints:MTE_GAME.look.lightingWork().tintBuilds-before.tintBuilds};work=null;rows.push(row);}return rows;}
   };

@@ -15,7 +15,8 @@ const MAX_CHIPS = 5;   // friends shown by name under the top bar, when they fit
 // chip, `more()` on the "+N", which opens the Players screen.
 export function setChipCompact(box, compact) {
   const state = box[chipState];
-  if (!state || state.compact === compact) return;
+  if (!state?.list) { box[chipState] = { compact }; return; }
+  if (state.compact === compact) return;
   renderChips(box, state.list, { ...state.handlers, compact });
 }
 
