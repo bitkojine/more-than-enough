@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.179.4] - 2026-10-28
+
+- Move zoom, reset and world-map controls into one horizontal row directly
+  beneath the four main resources on every screen size, including placement.
+- Check the row stays horizontal and below the resource bar in layout tests.
+  Compact the depth gauge on very short screens to clear messages and placement.
+
 ## [0.179.3] - 2026-10-28
 
 - Suppress repeated game warnings for ten seconds before storage or rendering,

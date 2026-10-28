@@ -22,7 +22,8 @@ place it belongs here rather than adding a button where there is room.
 ```
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
-│                            v0.124.0 ●│  version, under the gear (● = news); by a
+│         [+] [1×] [−] [▤]             │  zoom and map: horizontal below resources
+│                            v0.179.4 ●│  version, under the gear (● = news); by a
 │                               ● in 0:18│  solar panel, the sun countdown in its place
 │ ▮▯ 62%                               │  battery (once it isn't full), left edge
 │ LAYER 1                              │  depth meter (underground only), under it
@@ -30,10 +31,10 @@ place it belongs here rather than adding a button where there is room.
 │ ▮                                    │
 │                                      │
 │               map                    │
-│ ┌─ message log ──────────────┐   [+]│  the log: last 3 lines, left of the zoom pill
-│ │ Wiki: …                    │   1× │  zoom: slim vertical pill, right edge
-│ │ Milestone reached 3 of 12: │   [−]│
-│ └────────────────── Hide ✕ ──┘   [▤]│  map button: out to the world map and back
+│ ┌─ message log ──────────────┐       │  the log: last 3 lines
+│ │ Wiki: …                    │       │
+│ │ Milestone reached 3 of 12: │       │
+│ └────────────────── Hide ✕ ──┘       │
 │                      [CLIMB] [AUTO]  │  layer button pops in; AUTO only if on in Nerds
 │                              [FLARE] │  underground or while one burns; above LIGHT/AUTO
 │                              [LIGHT] │  (crystal worlds: the lantern in AUTO's place)
@@ -55,11 +56,11 @@ place it belongs here rather than adding a button where there is room.
 - Ink: `--ink`, `--ink-dim`; accents: `--accent` (green, action), `--gold` (awards), `--earth` (depth), `--danger`.
 - Radii: `--r-sm 10px`, `--r-md 14px`, `--r-lg 20px`, `--r-pill 999px`.
 - Shadows: `--shadow-1` (HUD), `--shadow-2` (sheets/dialogs).
-- Touch targets ≥ 44px (the slim zoom pill 40px); the main action 84px (76px under 375px wide, 72px on short landscape screens).
+- Touch targets ≥ 44px (the horizontal zoom row 40px); the main action 84px (76px under 375px wide, 72px on short landscape screens).
 
 ### Other screens
-- **Zoom** (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
-- **Landscape phones** (height under 500px): the thumb cluster shrinks and the zoom pill lies down as a row above it, since a column would reach the top bar. The message log moves to the left of the screen, beside your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
+- **Zoom** (Watch, 2026-10-28): the +, magnification/reset, −, and map buttons always form one horizontal row directly beneath the four resource counters, in portrait, landscape, desktop, and building placement. The row is anchored to the resource bar rather than the thumb controls. Zoom (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
+- **Landscape phones** (height under 500px): the thumb cluster shrinks; zoom stays horizontally beneath the resources. At heights up to 400px the depth gauge compacts beside the battery/layer labels to clear Messages and placement cards. The message log moves to the left of the screen, beside your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Tabs** size to their words (Lithuanian's are long), a little smaller on phones.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, a shared world full to its 100 players (chips and the Players screen) and a world with absurd numbers (the counts in scientific form, the Gather plate at its widest), and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows, a plate shrunk to a smudge and dialog buttons out of view. Run it after any change to the layout.
@@ -74,7 +75,7 @@ place it belongs here rather than adding a button where there is room.
 - The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
 
 ### Messages
-- **The message log** (Watch, 2026-10-26, like Old School RuneScape's chat box; `src/game/messages.js`): everything the game says goes in one log, a dark panel at the bottom left. In portrait it sits above the thumb cluster and left of the zoom pill; on short (landscape) and wide screens it keeps to the left of the screen, beside your character, above Invite when that's there. Each line has its colour: Wiki's in teal (*Wiki:* the thing, its line, *More in the wiki ›*), milestones in gold with a trophy (*Milestone reached 3 of 12:* what you did, then what's next; early on *Next milestone:*), and the game's own notices in plain ink (a low lantern, something you can't do yet, a save that failed, a friend arriving). The collapsed log previews new lines above Messages.
+- **The message log** (Watch, 2026-10-26, like Old School RuneScape's chat box; `src/game/messages.js`): everything the game says goes in one log, a dark panel at the bottom left. In portrait it sits above the thumb cluster ; on short (landscape) and wide screens it keeps to the left of the screen, beside your character, above Invite when that's there. Each line has its colour: Wiki's in teal (*Wiki:* the thing, its line, *More in the wiki ›*), milestones in gold with a trophy (*Milestone reached 3 of 12:* what you did, then what's next; early on *Next milestone:*), and the game's own notices in plain ink (a low lantern, something you can't do yet, a save that failed, a friend arriving). The collapsed log previews new lines above Messages.
 - **Nothing goes by itself.** The open log shows the last three lines, newest at the bottom, never taller than the room under your character's feet (or under the depth meter and the top bar); dragging or scrolling inside it goes back through older ones (a new line then keeps your place; reopening the log shows the newest), and older lines are dimmer. Repeated game notices are suppressed for ten seconds before any saving, rendering or unread update; later reminders may stack as ×2 rather than filling the log, and a long press sliding over the map keeps rewriting its one line. A press that simply worked says nothing (no "Done.").
 - **Hide ✕** folds it into a small **Messages** pill in the same corner; while folded, new lines raise the count and appear in a small rounded bubble just above the pill (Watch, 2026-10-28). Each stays readable for about 2–4 seconds (up to six for long text), then shrinks down into Messages. At most four previews wait behind the current one; overflowing bursts retain the newest pending previews, and every line stays available in the log. The bubble never intercepts world gestures. Reduced motion removes the movement. Opening the log or switching worlds clears previews; saved history never replays. Nothing opens the full log but a tap. A new player starts with it open; open or folded is kept on the device, and so are the last 50 lines of each world. It hides while you place a building, hold up your sign or look at the world map.
 - **Keep this world** (Watch, 2026-10-27): in Safari on an iPhone or iPad, not opened from the Home Screen, Wiki says once per device, as a milestone is reached (or a minute into a game already past one), to add Mica to the Home Screen, because Safari forgets a site left unopened for a week (`src/game/home-hint.js`). It is a line in the log like any other, never a dialog.

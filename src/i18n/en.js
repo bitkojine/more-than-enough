@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.179.4": "Zoom controls now sit in a horizontal row beneath the four resources, at every screen size.",
   "news.0.179.3": "Repeated warnings stay quiet between reminders. With Messages folded, new lines appear in a small bubble, then settle into the button. The full log keeps them for later.",
   "news.0.179.2": "Smoother evenings: trees, mushrooms and buildings reuse shaded artwork instead of repainting temporary canvases every frame. Lighting keeps its shape as you move.",
   "news.0.179.1": "Darkness now follows raised block faces instead of cutting across them. Mica, mushrooms and buildings keep consistent lighting, bright tile seams are gone, and wall contact shadows fade softly.",

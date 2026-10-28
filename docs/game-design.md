@@ -741,3 +741,8 @@ only and does not enable AUTO or new player-facing controls.
   short queue. Reading time is about 2–4 seconds, longer for long text.
 - The persistent log remains available for reading at the player's pace;
   previews do not intercept movement or other world gestures.
+
+### Zoom controls (Watch, 2026-10-28)
+
+The game-view zoom panel is always horizontal and directly below the four
+main resource counters, including portrait phones, landscape and desktop.

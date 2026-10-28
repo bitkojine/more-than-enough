@@ -377,6 +377,19 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_ZOOM_ONLY==='1'){
+   for(const [width,height] of [[320,568],[568,320],[390,844],[1366,768]]){
+    await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<900},session);
+    ok(await evalJS('(()=>{const z=document.getElementById("zoomControls"),r=document.getElementById("resources").getBoundingClientRect(),b=z.getBoundingClientRect(),buttons=[...z.children].map(e=>e.getBoundingClientRect());return b.top>=r.bottom&&b.left>=r.left-1&&b.right<=r.right+1&&buttons.every(e=>Math.abs(e.top-buttons[0].top)<1&&e.width>=40&&e.height>=40);})()'),'horizontal zoom beneath resources at '+width+'×'+height);
+   }
+   const before=await evalJS('MTE_GAME.zoom()');let b=await rect('#btnZoomIn');await tap(b.x,b.y);
+   ok(await waitFor('MTE_GAME.zoom()>'+before,2000),'relocated zoom-in responds to touch');
+   b=await rect('#zoomLevel');await tap(b.x,b.y);ok(await waitFor('Math.abs(MTE_GAME.zoom()-1)<.01',2000),'relocated reset returns to 1×');
+   b=await rect('#btnMap');await tap(b.x,b.y);ok(await waitFor('MTE_GAME.mapOn()',2000),'relocated map button opens the world map');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},session);
+   await shot('horizontal-zoom-phone.png');eq(pageErrors.length,0,'relocated controls have no browser exceptions');
+   console.log((failures?'ZOOM BROWSER FAILURES':'ZOOM BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_MESSAGES_ONLY==='1'){
    console.log('\n== Message reminders and collapsed previews ==');
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},session);

@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.179.4": "Vaizdo mastelio mygtukai dabar visada išdėstyti horizontaliai po keturiais ištekliais, bet kokio dydžio ekrane.",
   "news.0.179.3": "Pasikartojantys perspėjimai tarp priminimų nutyla. Kai žinučių sąrašas suskleistas, naujos žinutės trumpai pasirodo burbule ir nusileidžia į mygtuką. Sąraše jas galima perskaityti vėliau.",
   "news.0.179.2": "Sklandesni vakarai: medžiai, grybai ir pastatai naudoja jau patamsintus vaizdus, užuot kas kadrą perpiešę laikinus paviršius. Judant apšvietimas išlieka taisyklingas.",
   "news.0.179.1": "Tamsa dabar tiksliai dengia iškilusių blokų paviršius. Mica, grybai ir pastatai apšviečiami vientisai, tarp plytelių nebėra šviesių siūlių, o šešėliai prie sienų švelniai išblunka.",

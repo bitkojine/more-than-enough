@@ -83,6 +83,13 @@ function problems() {
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
     const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill')].filter(shown);
+    const zoom = document.getElementById('zoomControls'), resources = document.getElementById('resources');
+    if (shown(zoom)) {
+      const z = zoom.getBoundingClientRect(), r = resources.getBoundingClientRect();
+      const buttons = [...zoom.children].map(b => b.getBoundingClientRect());
+      if (z.top < r.bottom || z.left < r.left - 1 || z.right > r.right + 1) out.push('zoom is not beneath resources');
+      if (buttons.some(b => Math.abs(b.top - buttons[0].top) > 1)) out.push('zoom is not horizontal');
+    }
     for (let i = 0; i < targets.length; i++) {
       const a = targets[i], ra = a.getBoundingClientRect();
       if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1) out.push('off screen: ' + name(a));
