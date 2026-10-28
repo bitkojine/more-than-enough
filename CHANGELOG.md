@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.180.5] - 2026-10-29
+
+- Paint the news dot above the version pill. The dot shares the pill's
+  top-right corner, and the pill's background covered most of it, so only
+  the sliver outside the rounded corner stayed visible. Give the dot its own
+  layer over the pill and its update ring, and hold that layering in the
+  browser fixture.
+
 ## [0.180.4] - 2026-10-29
 
 - Make the gear and the version label one Settings-column unit: the label is

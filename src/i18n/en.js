@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.4": "The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.",
+  "news.0.180.5": "The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.",
   "hud.equipment": "Equipment",
   "hud.settlement": "Settlement",
   "hud.improvements": "Improve existing buildings",

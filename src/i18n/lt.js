@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.4": "Versijos numeris dabar yra tvarkinga apvalių galų juostelė tiesiai po Nustatymų ratuku, su tarpu aplink skaičius ir tuo pačiu auksiniu švytėjimu po atnaujinimo.",
+  "news.0.180.5": "Auksinis taškas, žymintis naują versiją, dabar matomas visas ant versijos juostelės, o ne nukirptas jos kampe.",
   "hud.equipment": "Įranga",
   "hud.settlement": "Gyvenvietė",
   "hud.improvements": "Gerinti esamus pastatus",

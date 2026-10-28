@@ -113,9 +113,14 @@ canvas#game {
 }
 #btnVersion .now, #btnVersion .was { display: block; width: 100%; padding: 4px 0; }
 #btnVersion .was { position: absolute; left: 0; top: 0; opacity: 0; }
+/* The dot sits on the pill's top-right corner, so it must paint above it:
+   a pseudo-element comes before the positioned .pill in tree order, and
+   without a layer of its own the pill's background covers most of it, leaving
+   only the sliver that pokes through the rounded corner. Raise it over both
+   the pill and its update ring. */
 #btnVersion.fresh::before {
   content: ''; position: absolute; top: 0; right: 1px; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--gold); box-shadow: 0 0 6px var(--gold);
+  background: var(--gold); box-shadow: 0 0 6px var(--gold); z-index: 2;
 }
 #btnVersion.rolling .pill { animation: ver-glow 2.4s ease-out 0.8s backwards; }
 #btnVersion.rolling .was { animation: ver-out 0.4s ease-in 0.8s backwards; }

@@ -8,6 +8,16 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     ok(measured.aligned&&measured.touch&&measured.fits,'version fits font fallback '+font+' '+JSON.stringify(measured));
   }
   await evalJS('document.getElementById("btnVersion").style.fontFamily=""');
+  const versionDot = await evalJS(`(()=>{
+    const v=document.getElementById('btnVersion'),had=v.classList.contains('fresh');
+    v.classList.add('fresh');
+    const dot=getComputedStyle(v,'::before'),pill=getComputedStyle(v.querySelector('.pill'));
+    const layer=st=>st.zIndex==='auto'?0:Number(st.zIndex);
+    const snapshot={content:dot.content,position:dot.position,dot:layer(dot),pill:layer(pill)};
+    if(!had)v.classList.remove('fresh');
+    return snapshot;
+  })()`);
+  ok(versionDot.content!=='none'&&versionDot.position==='absolute'&&versionDot.dot>versionDot.pill,'the news dot paints above the version pill, not under its rounded corner '+JSON.stringify(versionDot));
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));
     MTE_GAME.wiki.setMode('quiet');
