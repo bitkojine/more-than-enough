@@ -30,6 +30,7 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     if (tray.hidden === !on) return;
     if (on) beforeOpen();
     tray.hidden = !on; body.classList.toggle('equipment-open', on);
+    if (on) messages.setCompact(true, { resetPeek: true });
     el.upgrade.setAttribute('aria-expanded', String(on));
     mark();
   };
@@ -58,14 +59,17 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     const edgeBottom = Math.max(0, innerHeight - action.bottom);
     const act = action.height;
     const short = innerHeight <= 500;
-    const messageBottom = edgeBottom + act + (short ? 16 : 78);
+    // Equipment shares the HUD with Messages rather than hiding it. On tall
+    // screens its tray spans the message column, so reserve space above it.
+    const messageBottom = Math.max(edgeBottom + act + (short ? 16 : 78),
+      !tray.hidden && !short ? innerHeight - tray.getBoundingClientRect().top + 8 : 0);
     const topEnd = top.getBoundingClientRect().bottom;
     const bars = el.depthGauge.hidden ? 0 : el.depthGauge.children.length;
     const status = el.depth.hidden ? 0 : 48 + (bars ? bars * 11 + 18 : 0);
     const plan = hudSpacePlan({ room: innerHeight - messageBottom - topEnd - 8,
       status, performance: visible(el.perf) ? 110 : 0,
       friends: visible(document.getElementById('friends')) ? 34 : 0,
-      messages: !tray.hidden ? 0 : messages.open ? 100 : 44 });
+      messages: !tray.hidden ? 44 : messages.open ? 100 : 44 });
     if (body.classList.contains('placing') || (!tray.hidden && short)) {
       plan.level = Math.max(3, plan.level); plan.performance = true; plan.status = true; plan.friends = true;
     }
@@ -73,7 +77,7 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
       lastLevel = plan.level; body.dataset.hudLevel = String(plan.level);
       setChipCompact(document.getElementById('friends'), plan.friends);
     }
-    messages.setCompact(plan.messages);
+    messages.setCompact(plan.messages || !tray.hidden);
     body.classList.toggle('hud-reading', tray.hidden && plan.messages && messages.expanded && !body.classList.contains('placing'));
     const safeTop = Math.max(topEnd, secondary.getBoundingClientRect().bottom) + 10;
     css('--hud-message-bottom', messageBottom + 'px');
@@ -91,5 +95,5 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     el.perf.setAttribute('aria-label', el.perf.textContent.split('\n')[0]);
     messages.fit();
   }
-  return { tick, invalidate: mark, close: () => setGear(false), toggle: () => setGear(tray.hidden), get level() { return lastLevel; }, get measurements() { return measurements; } };
+  return { tick, invalidate: mark, close: () => setGear(false), toggle: () => setGear(tray.hidden), get open() { return !tray.hidden; }, get level() { return lastLevel; }, get measurements() { return measurements; } };
 }

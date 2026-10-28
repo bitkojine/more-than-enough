@@ -196,8 +196,8 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       document.body.classList.toggle('inviting', !!invite && !invite.hidden);
       sync(); fit(); advancePreview();
     },
-    setCompact(on) {
-      if (compact === on) return;
+    setCompact(on, { resetPeek = false } = {}) {
+      if (compact === on && !resetPeek) return;
       compact = on; peek = false;
       if (expanded()) { unread = 0; clearPreview(); }
       show(); last = ''; fit();

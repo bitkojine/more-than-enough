@@ -21,11 +21,17 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     eq(state.collisions.length,0,'combined HUD groups clear each other at '+width+'×'+height+' '+state.collisions);
     eq(state.offscreen.length,0,'combined HUD groups stay on screen at '+width+'×'+height+' '+state.offscreen);
     const gearButton=await rect('#btnUpgrade');await tap(gearButton.x,gearButton.y);
-    await evalJS('MTE_GAME.hudLayout.tick()');
+    await evalJS('document.getElementById("btnLantern").hidden=false;document.getElementById("btnFlare").hidden=false;MTE_GAME.hudLayout.tick()');
     ok(await evalJS('!document.getElementById("equipmentTray").hidden&&document.getElementById("btnUpgrade").getAttribute("aria-expanded")==="true"'),'Equipment opens compact first at '+width+'×'+height);
     const tray=await evalJS(`(()=>{const t=document.getElementById('equipmentTray').getBoundingClientRect(),a=document.getElementById('btnMine').getBoundingClientRect(),top=document.getElementById('topbar').getBoundingClientRect();return t.top>=top.bottom&&t.bottom<=innerHeight&&t.left>=0&&t.right<=innerWidth&&(t.right<=a.left||t.left>=a.right||t.bottom<=a.top||t.top>=a.bottom);})()`);
     ok(tray,'Equipment tray clears navigation and immediate action at '+width+'×'+height);
+    ok(await evalJS(`(()=>{const p=document.getElementById('logPill'),b=p.getBoundingClientRect(),t=document.getElementById('equipmentTray').getBoundingClientRect();return !p.hidden&&getComputedStyle(p).visibility==='visible'&&b.top>=0&&b.bottom<=innerHeight&&(b.right<=t.left||b.left>=t.right||b.bottom<=t.top||b.top>=t.bottom);})()`),'Messages stays visible and clears Equipment at '+width+'×'+height);
+    ok(await evalJS(`(()=>{const t=document.getElementById('equipmentTray'),b=t.getBoundingClientRect(),buttons=[...t.querySelectorAll('button')].filter(e=>!e.hidden).map(e=>e.getBoundingClientRect()),p=document.getElementById('logPill').getBoundingClientRect(),s=document.getElementById('hudSecondary').getBoundingClientRect(),overlap=(a,b)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;return buttons.every(a=>a.width>=44&&a.height>=44&&a.top>=b.top&&a.bottom<=b.bottom&&a.left>=b.left&&a.right<=b.right)&&buttons.every((a,i)=>buttons.every((c,j)=>i===j||!overlap(a,c)))&&!overlap(p,s)&&!document.getElementById('btnEquipmentClose').textContent.includes('×');})()`),'Equipment has readable dismissal, separate touch targets and no scrolling to reach actions at '+width+'×'+height);
     await shot('hud-groups-'+width+'x'+height+'.png');
+    const messageButton=await rect('#logPill');await tap(messageButton.x,messageButton.y);
+    await evalJS('MTE_GAME.hudLayout.tick()');
+    ok(await evalJS('document.getElementById("equipmentTray").hidden&&MTE_GAME.messages.expanded&&!document.getElementById("log").hidden'),'Messages tap closes Equipment and opens the log at '+width+'×'+height);
+    await evalJS('document.getElementById("btnUpgrade").click();MTE_GAME.hudLayout.tick()');
     await evalJS('document.getElementById("btnEquipmentClose").click();MTE_GAME.hudLayout.tick()');
   }
   eq(await evalJS('(()=>{MTE_GAME.hudLayout.tick();const n=MTE_GAME.hudLayout.measurements;for(let i=0;i<100;i++)MTE_GAME.hudLayout.tick();return MTE_GAME.hudLayout.measurements-n;})()'),0,'settled layout performs no additional measurements across 100 ticks');
@@ -52,4 +58,8 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   ok(await evalJS(`MTE_GAME.core.cultivationAt(MTE_GAME.getState(),${siteX},1).reinforced&&MTE_GAME.core.atInteraction(MTE_GAME.getState(),${siteX},1)`),'Mica walks to the selected site and reinforces it');
   ok(await evalJS(`(()=>{const before=${stock},s=MTE_GAME.getState(),cost=MTE_GAME.core.CULTIVATION_RECIPES.reinforce;return Object.keys(cost).every(r=>Math.abs(before[r]-s.inv[r]-cost[r])<1e-6);})()`),'site improvement pays the canonical cost once');
   await evalJS('MTE_GAME.hudLayout.tick()');
+  await evalJS('document.getElementById("btnLantern").hidden=true;document.getElementById("btnFlare").hidden=true;document.getElementById("btnUpgrade").click();MTE_GAME.hudLayout.tick()');
+  ok(await evalJS('getComputedStyle(document.querySelector(".equipmentActions")).display==="none"&&!document.getElementById("btnEquipmentCraft").hidden'),'Equipment without quick actions shows crafting without empty tool slots');
+  await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'},session);
+  ok(await evalJS('!MTE_GAME.hudLayout.open&&document.activeElement.id==="btnUpgrade"'),'Escape closes Equipment and returns focus to its button');
 }

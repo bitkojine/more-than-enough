@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.180.1] - 2026-10-28
+
+- Replace Equipment's flat button strip with a named compact card. Put a
+  labeled Close control in the header, group light and flare actions, and
+  separate crafting navigation. Keep every target at least 44 pixels and
+  adapt short landscape screens without scrolling to reach actions.
+- Keep Messages accessible while Equipment is open. Fold the log without
+  changing its saved preference; tapping Messages closes Equipment and opens
+  the log. Support phone/browser Back to dismiss Equipment.
+- Remove obsolete flare positioning and check actual equipment targets,
+  empty equipment states, message access and dismissal in browser fixtures.
+
 ## [0.180.0] - 2026-10-28
 
 - Give the HUD shared space allocation and purpose-based groups. Collapse

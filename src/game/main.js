@@ -456,9 +456,10 @@ function goBack() {
   if (ask.open) ask.cancel();
   else if (placing.open) placing.cancel();
   else if (card.open) card.close();
+  else if (hudLayout.open) hudLayout.close();
   else sheet.back();
 }
-const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open || placing.open, goBack });
+const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open || placing.open || hudLayout.open, goBack });
 const input = createInput({
   canvas: el.canvas, cam, el,
   handlers: {

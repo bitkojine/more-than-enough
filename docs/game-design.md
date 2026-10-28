@@ -775,7 +775,13 @@ Open design questions:
 - Message arrival presentation on crowded screens remains deferred. The
   existing queue and animation remain, constrained to allocated HUD space.
 
-Equipment opens a compact tray first; crafting is a deliberate second step.
+Equipment opens a compact card first; crafting is a deliberate second step.
+The card names the group and separates its actual tools from crafting and
+dismissal. Close is a quiet, labeled header action, never an equal equipment
+slot or a standalone multiplication sign. All targets remain at least 44 pixels.
+The Equipment button highlights and toggles its card; outside input, Escape
+and phone/browser Back also dismiss it. Short landscape screens place Craft
+beside the tools rather than requiring scrolling to reach it.
 Settlement combines construction and improvements in one menu, with existing
 sites named by their coordinates on the current layer. Improvements use normal
 approach-before-action commands. This is a presentation reorganization: costs,
@@ -786,7 +792,8 @@ The world-status and metadata groups share one secondary row below resources
 and zoom. At tight sizes, performance becomes a one-line details link, friends
 become a count, and the layer gauge folds while the layer/map control remains.
 Automatic log compaction does not overwrite the player's saved preference; a
-player can still explicitly open Messages. Equipment is a deliberate disclosure:
-while its tray is open it takes priority over the log preview, as placement does.
+player can still explicitly open Messages. Opening Equipment folds the log but
+keeps the Messages button and its previews visible, reserving space above the
+tray on tall screens. Tapping Messages closes Equipment and opens the log.
 No warning opens the tray. Immediate actions and group buttons retain their
 slots across compaction; viewport changes adapt dimensions, not their order.

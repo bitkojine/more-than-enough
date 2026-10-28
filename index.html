@@ -219,15 +219,20 @@
   </div>
 
   <section id="equipmentTray" role="group" data-i18n-aria-label="hud.equipment" hidden>
+    <header class="equipmentHeader">
+      <strong data-i18n="hud.equipment"></strong>
     <div id="battery" role="img" hidden><i><b></b></i><span></span></div>
+      <button id="btnEquipmentClose" type="button" data-i18n="sheet.close"></button>
+    </header>
+    <div class="equipmentActions">
       <button id="btnLantern" class="btn" type="button" aria-pressed="false" data-i18n-aria-label="button.lantern.aria" hidden>
         <img class="big" data-look="tool.hoodedLantern" data-slot="image" alt=""><span class="cap" id="lanternLabel"></span>
       </button>
       <button id="btnFlare" class="btn" type="button" aria-pressed="false" data-i18n-aria-label="button.flare.aria" hidden>
         <img class="big" data-look="tool.flare" data-slot="image" alt=""><span class="cap" id="flareLabel"></span>
       </button>
-    <button id="btnEquipmentCraft" type="button" data-i18n="sheet.craft"></button>
-    <button id="btnEquipmentClose" type="button" data-i18n-aria-label="sheet.close">×</button>
+    </div>
+    <button id="btnEquipmentCraft" type="button"><img data-look="tool.basket" alt=""><span data-i18n="sheet.craft"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
   </section>
 
   <!-- Every list in the game is this one sheet: tabs (or, for a screen

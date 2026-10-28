@@ -481,8 +481,6 @@ body.sunTime #btnVersion { display: none; }
 /* The lantern, in AUTO's place above Gather (the two never share a world):
    dark while off, lit gold while on. */
 #btnLantern {
-  width: var(--sub); height: var(--sub);
-  right: calc((var(--act) - var(--sub)) / 2); bottom: calc(var(--act) + 8px);
   background: radial-gradient(circle at 50% 32%, rgba(64, 64, 60, 0.95), rgba(22, 22, 20, 0.95));
   border: 2px solid rgba(255, 255, 255, 0.3);
 }
@@ -496,12 +494,9 @@ body.sunTime #btnVersion { display: none; }
    LIGHT (or AUTO) when not. Unlit it says FLARE; burning it glows orange and
    a ring round it, and the time on its plate, burn down with the flare. */
 #btnFlare {
-  width: var(--sub); height: var(--sub);
-  right: calc((var(--act) - var(--sub)) / 2); bottom: calc(var(--act) + 8px);
   background: radial-gradient(circle at 50% 32%, rgba(92, 70, 50, 0.95), rgba(30, 22, 16, 0.95));
   border: 2px solid rgba(255, 179, 92, 0.45);
 }
-#btnPerfect:not([hidden]) ~ #btnFlare, #btnLantern:not([hidden]) ~ #btnFlare { bottom: calc(var(--act) + var(--sub) + 8px + var(--gap)); }
 #btnFlare .big { width: 30px; height: 30px; }
 #btnFlare .cap { color: #ffe2bd; background: #2e1d10; border-color: rgba(255, 179, 92, 0.45); font-variant-numeric: tabular-nums; }
 #btnFlare.on { border-color: #ffcf6a; background: radial-gradient(circle at 50% 32%, rgba(214, 128, 48, 0.98), rgba(84, 40, 12, 0.98)); box-shadow: var(--shadow-1), 0 0 18px 4px rgba(255, 160, 70, 0.5); }
@@ -1415,29 +1410,55 @@ body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { dis
 #equipmentTray {
   position: absolute; z-index: 22; right: var(--edge-r); left: auto;
   bottom: calc(var(--edge-b) + var(--act) + var(--sub) + 36px);
-  display: flex; align-items: stretch; gap: 6px;
-  width: min(420px, calc(100vw - var(--edge-l) - var(--edge-r)));
-  max-height: var(--hud-tray-room, 100px); overflow: auto;
-  padding: 4px; border: 1px solid var(--panel-line); border-radius: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+  width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r)));
+  max-height: var(--hud-tray-room, 240px); overflow: auto;
+  padding: 8px 12px 12px; border: 1px solid var(--panel-line); border-radius: 16px;
   background: var(--panel); box-shadow: var(--shadow-1); pointer-events: auto;
 }
 #equipmentTray[hidden] { display: none; }
-#equipmentTray > button { position: relative; inset: auto; flex: 1 0 44px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 2px 4px; border: 1px solid var(--panel-line); border-radius: 9px; background: var(--raised); color: var(--ink); font: 700 12px/1.1 system-ui; display: flex; flex-direction: column; gap: 1px; align-items: center; justify-content: center; touch-action: manipulation; }
-#equipmentTray .big { width: 23px; height: 23px; }
-#equipmentTray .cap { position: static; transform: none; border: 0; background: none; padding: 0; font-size: 9px; }
-#equipmentTray #battery { position: static; flex: 0 0 44px; height: 44px; margin: 0; padding: 4px 2px; }
-#equipmentTray > [hidden] { display: none; }
-body.equipment-open #log, body.equipment-open #logPill, body.equipment-open #logBubble { visibility: hidden; }
+#equipmentTray button { position: relative; inset: auto; min-width: 44px; min-height: 44px; border: 1px solid var(--panel-line); border-radius: 10px; background: var(--raised); color: var(--ink); font: 700 13px/1.2 system-ui; touch-action: manipulation; }
+.equipmentHeader { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.equipmentHeader strong { flex: 1; min-width: 0; font-size: 15px; }
+#equipmentTray #btnEquipmentClose { padding: 8px; border-color: transparent; background: transparent; color: var(--ink-dim); font-weight: 500; }
+.equipmentActions { display: flex; gap: 8px; }
+.equipmentActions:not(:has(> button:not([hidden]))) { display: none; }
+.equipmentActions:has(> button:not([hidden])) { min-height: 64px; }
+#equipmentTray .equipmentActions > button { flex: 1 1 0; width: auto; height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 6px; }
+#equipmentTray button[aria-pressed="true"] { border-color: var(--green); background: #294536; }
+#equipmentTray .big { width: 30px; height: 30px; }
+#equipmentTray .cap { position: static; transform: none; border: 0; background: none; padding: 0; font-size: 11px; }
+#equipmentTray #battery { position: static; flex: 0 0 40px; height: 36px; margin: 0; padding: 2px; border: 0; background: none; }
+#equipmentTray [hidden] { display: none; }
+#equipmentTray .equipmentActions > button[hidden] { display: none; }
+#equipmentTray #btnEquipmentCraft { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; text-align: left; }
+#btnEquipmentCraft img { width: 24px; height: 24px; }
+#btnEquipmentCraft span { flex: 1; }
+#btnEquipmentCraft svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+#equipmentTray:not(:has(.equipmentActions > button:not([hidden]))) #btnEquipmentCraft { grid-column: 1 / -1; }
+#btnUpgrade[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--gold); }
 #log, #logPill, body.inviting #log, body.inviting #logPill { bottom: var(--hud-message-bottom, calc(var(--edge-b) + var(--act) + 78px)); }
 #log { right: auto; width: min(380px, calc(100vw - var(--edge-l) - var(--edge-r) - 76px)); }
 #logBubble, body.inviting #logBubble { bottom: calc(var(--hud-message-bottom, 180px) + 52px); max-height: var(--hud-preview-room, 200px); overflow: hidden; }
 #performanceDetails { padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
 body.placing #depthGauge { display: none; }
 .bcard.placing { max-height: calc(100dvh - var(--hud-top-end, 100px) - var(--edge-b) - 12px); overflow-y: auto; }
+@media (min-height: 501px) and (max-height: 600px) {
+  #equipmentTray { gap: 4px; padding: 6px; }
+  #equipmentTray .equipmentActions { min-height: 44px; }
+  #equipmentTray .equipmentActions > button { height: 44px; flex-direction: row; gap: 6px; }
+  #equipmentTray .big { width: 24px; height: 24px; }
+}
 @media (max-height: 500px) {
   #log { width: min(380px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
   #logBubble { max-width: min(340px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
-  #equipmentTray { top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: auto; right: auto; left: calc(var(--edge-l) + 64px); width: calc(100vw - var(--edge-l) - var(--edge-r) - 64px); }
+  #equipmentTray { top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: auto; right: calc(var(--edge-r) + var(--act) + 12px); left: auto; width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r) - var(--act) - 140px)); max-height: calc(100dvh - var(--hud-topbar-end, 100px) - var(--edge-b) - var(--act) - 8px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .equipmentHeader { grid-column: 1 / -1; }
+  #equipmentTray .equipmentActions { grid-column: 1; }
+  #equipmentTray #btnEquipmentCraft { grid-column: 2; grid-row: 2; }
+  #equipmentTray .equipmentActions > button { height: 52px; }
+  .equipmentActions:has(> button:not([hidden])) { min-height: 52px; }
+  #equipmentTray { gap: 4px; padding: 4px 8px 8px; }
   body.equipment-open #hudMeta { visibility: hidden; }
   body.equipment-open #depthGauge { display: none; }
 }

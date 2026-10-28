@@ -138,6 +138,10 @@ test('automatic compaction preserves the saved disclosure choice and allows expl
   assert.ok(byId(root,'log').hidden); assert.deepEqual(kept, []);
   byId(root,'logPill').listeners.click();
   assert.ok(log.expanded, 'explicit disclosure works even on a compact screen');
+  const saved = kept.slice();
+  log.setCompact(true, { resetPeek: true });
+  assert.equal(log.expanded, false, 'opening another disclosure folds an explicitly opened compact log');
+  assert.deepEqual(kept, saved, 'folding for another disclosure preserves the saved choice');
   log.setCompact(false); assert.ok(log.expanded);
   log.setOpen(false); log.setCompact(true); log.setCompact(false);
   assert.equal(log.expanded, false, 'making room does not reopen a user-folded log');

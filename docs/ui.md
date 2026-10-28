@@ -25,10 +25,16 @@ letting optional panels float independently. Resources and the horizontal
 zoom/map row remain at the top. World status and optional metadata share a
 secondary row. Gather, the contextual ladder action, Settlement and Equipment
 keep fixed action slots. Equipment's compact charge badge remains visible while
-its tray is closed; battery details, lantern and flare controls live in the tray.
-The tray opens only on request, closes on Escape, outside input or its Close
-button, and links to equipment crafting. Opening it dismisses the selected
-building card. Focus returns to Equipment on Close/Escape.
+its card is closed; battery details, lantern and flare controls live in the card.
+The compact card has an Equipment heading, charge status and a quiet, labeled
+Close control in its header. Dismissal never occupies an equipment slot. Actual
+equipment actions sit below; Craft is a separate navigation row with a basket
+and chevron. On short landscape screens Craft sits beside the equipment actions
+so every control remains reachable without scrolling. Targets remain at least
+44 pixels, including Close. The active Equipment button is highlighted and
+toggles the card closed. Escape, phone/browser Back and outside input also
+close it. Opening it dismisses the selected building card. Focus returns to
+Equipment on Close/Escape.
 
 Collapse order is performance details → friend names → secondary world-status
 details → expanded Messages. Compaction is based on available room, never on
@@ -37,8 +43,10 @@ sheet; folded friend chips retain the accurate player count and their Players
 link; the layer label opens the map. Automatic message compaction preserves the
 saved open/folded choice and still permits explicit opening. Existing message
 queue/timing is unchanged; previews are clipped to allocated space pending the
-later message-arrival design. Equipment and placement own the disclosure area
-while active. The short-screen tray shares the status row beside the layer
+later message-arrival design. Equipment folds the log without changing its saved
+preference, keeping Messages and its previews visible above the tray on tall
+screens. Tapping Messages dismisses Equipment and opens the log. Placement owns
+the disclosure area while active. The short-screen tray shares the status row beside the layer
 label and keeps clear of the contextual action.
 
 Settlement contains construction and current-layer building improvements in one
