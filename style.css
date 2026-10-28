@@ -1024,7 +1024,7 @@ body.signing #zoomControls { visibility: hidden; }
    the Messages pill, which counts what came in since. In portrait it sits
    above the thumb cluster, left of the zoom pill; on short screens and wide
    ones it keeps to the left of the screen, beside Mica. */
-#log, #logPill {
+#log, #logPill, #logBubble {
   position: absolute; z-index: 14;
   left: var(--edge-l);
   bottom: calc(var(--edge-b) + var(--act) + 78px);
@@ -1040,7 +1040,7 @@ body.signing #zoomControls { visibility: hidden; }
   font-size: 13.5px; line-height: 1.35; color: var(--ink);
   text-align: left;
 }
-#log[hidden], #logPill[hidden] { display: none; }
+#log[hidden], #logPill[hidden], #logBubble[hidden] { display: none; }
 #logLines {
   overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y;
   padding: 10px 10px 2px;
@@ -1050,16 +1050,16 @@ body.signing #zoomControls { visibility: hidden; }
   -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
   mask-image: linear-gradient(to bottom, transparent 0, #000 8px);
 }
-#logLines .msg { margin: 0; overflow-wrap: anywhere; }
-#logLines .msg:not(:nth-last-child(-n+3)) { opacity: 0.6; }
-#logLines .msg.game { color: #d7dfd4; }
-#logLines .who { font-weight: 700; }
-#logLines .wiki .who { color: #9ff5d6; }
-#logLines .wiki strong { font-weight: 700; }
-#logLines .milestone .who, #logLines .goal .who { color: var(--gold); }
-#logLines .trophy { width: 14px; height: 14px; margin-right: 3px; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-#logLines a { color: var(--gold); font-weight: 600; white-space: nowrap; }
-#logLines .times { color: var(--ink-dim); font-weight: 700; font-size: 12px; }
+:is(#logLines, #logBubble) .msg { margin: 0; overflow-wrap: anywhere; }
+:is(#logLines, #logBubble) .msg:not(:nth-last-child(-n+3)) { opacity: 0.6; }
+:is(#logLines, #logBubble) .msg.game { color: #d7dfd4; }
+:is(#logLines, #logBubble) .who { font-weight: 700; }
+:is(#logLines, #logBubble) .wiki .who { color: #9ff5d6; }
+:is(#logLines, #logBubble) .wiki strong { font-weight: 700; }
+:is(#logLines, #logBubble) .milestone .who, :is(#logLines, #logBubble) .goal .who { color: var(--gold); }
+:is(#logLines, #logBubble) .trophy { width: 14px; height: 14px; margin-right: 3px; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+:is(#logLines, #logBubble) a { color: var(--gold); font-weight: 600; white-space: nowrap; }
+:is(#logLines, #logBubble) .times { color: var(--ink-dim); font-weight: 700; font-size: 12px; }
 .logFoot { display: flex; justify-content: flex-end; border-top: 1px solid var(--panel-line); margin: 3px 10px 0; }
 #logHide {
   min-height: 30px; padding: 0 2px 0 16px;
@@ -1083,16 +1083,41 @@ body.signing #zoomControls { visibility: hidden; }
   background: #7fe6c4; color: #0f201a; font-size: 12.5px; font-weight: 900;
 }
 #logPill .count[hidden] { display: none; }
+/* Preview stays above its destination and never intercepts world gestures. */
+#logBubble {
+  bottom: calc(var(--edge-b) + var(--act) + 130px);
+  max-width: min(340px, calc(100vw - var(--edge-l) - var(--edge-r) - 58px));
+  padding: 10px 13px; border: 1px solid #71958a; border-radius: 17px 17px 17px 5px;
+  background: #17271f; color: var(--ink); box-shadow: var(--shadow-1);
+  font-size: 13.5px; line-height: 1.35; overflow-wrap: anywhere;
+  pointer-events: none; transform-origin: 24px bottom;
+}
+#logBubble.arriving { animation: message-arrive 180ms ease-out both; }
+#logBubble.settling { animation: message-settle 360ms ease-in both; }
+@keyframes message-arrive {
+  from { opacity: 0; transform: translateY(7px) scale(.94); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes message-settle {
+  to { opacity: 0; transform: translateY(34px) scale(.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  #logBubble.arriving, #logBubble.settling { animation: none; }
+  #logBubble.settling { opacity: 0; }
+}
 /* Placing a building, holding up the sign or on the world map, the screen
    is for that. */
 body.placing #log, body.placing #logPill, body.signing #log, body.signing #logPill,
-body.mapping #log, body.mapping #logPill { visibility: hidden; }
+body.mapping #log, body.mapping #logPill,
+body.placing #logBubble, body.signing #logBubble, body.mapping #logBubble { visibility: hidden; }
 /* Short screens (landscape phones) and wide ones: down the left side,
    beside Mica rather than under them, above Invite when it's there. */
 @media (max-height: 500px), (min-width: 900px) {
-  #log, #logPill { bottom: var(--edge-b); }
+  #log, #logPill, #logBubble { bottom: var(--edge-b); }
+  #logBubble { bottom: calc(var(--edge-b) + 52px); max-width: min(340px, 40vw); }
   #log { right: auto; width: min(380px, 40vw); }
-  body.inviting #log, body.inviting #logPill { bottom: calc(var(--edge-b) + var(--act) + 16px); }
+  body.inviting #log, body.inviting #logPill, body.inviting #logBubble { bottom: calc(var(--edge-b) + var(--act) + 16px); }
+  body.inviting #logBubble { bottom: calc(var(--edge-b) + var(--act) + 68px); }
 }
 
 /* A region's name as you walk into it: big and quiet across the upper

@@ -731,3 +731,13 @@ The real client should replay the entire recorded journey, retain every saved
 gameplay field and report no caught or uncaught faults; a near-win checkpoint
 is only an ending check. The replay clock/command hook is local-development
 only and does not enable AUTO or new player-facing controls.
+
+### Message feedback (Watch, 2026-10-28)
+
+- A repeated blocked-action notice gives its first warning immediately, then
+  occasional reminders (initial tuning: ten seconds), without per-tick log spam.
+- With Messages collapsed, each new message briefly appears in a cute rounded
+  bubble just above the button, then animates into it. Different messages use a
+  short queue. Reading time is about 2–4 seconds, longer for long text.
+- The persistent log remains available for reading at the player's pace;
+  previews do not intercept movement or other world gestures.

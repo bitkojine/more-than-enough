@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.179.3": "Repeated warnings stay quiet between reminders. With Messages folded, new lines appear in a small bubble, then settle into the button. The full log keeps them for later.",
   "news.0.179.2": "Smoother evenings: trees, mushrooms and buildings reuse shaded artwork instead of repainting temporary canvases every frame. Lighting keeps its shape as you move.",
   "news.0.179.1": "Darkness now follows raised block faces instead of cutting across them. Mica, mushrooms and buildings keep consistent lighting, bright tile seams are gone, and wall contact shadows fade softly.",
   "news.0.179.0": "Light follows passages, stops at rock and travels through open ladder holes. Crystal takes less damage in faint light. Inspect chambers to see exposure; sealed carriers now protect the heart too. Mica still discovers the map himself.",

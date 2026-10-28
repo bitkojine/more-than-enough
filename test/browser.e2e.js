@@ -377,6 +377,36 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_MESSAGES_ONLY==='1'){
+   console.log('\n== Message reminders and collapsed previews ==');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true},session);
+   await evalJS(`(()=>{MTE_GAME.wiki.setMode('quiet');MTE_GAME.messages.setOpen(false);const s=MTE_GAME.getState(),C=MTE_GAME.core;s.world.props.clear();s.world.holes.clear();s.tools.boots=0;for(let y=-3;y<=3;y++)for(let x=-3;x<=3;x++){C.tileAt(s.world,x,y,0);s.world.hotChunk.type[C.chunkIndex(x,y)]=x===1?C.T.WATER:C.T.SOIL;}MTE_GAME.setPlayer(.8,.5);})()`);
+   await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'d',code:'KeyD',windowsVirtualKeyCode:68},session);
+   await sleep(800);
+   await cdp.send('Input.dispatchKeyEvent',{type:'keyUp',key:'d',code:'KeyD',windowsVirtualKeyCode:68},session);
+   ok(await evalJS('MTE_GAME.messages.lines.some(l=>/Boots/.test(l))'),'holding movement against water produces a gear warning');
+   ok(await evalJS('!document.querySelector("#logLines .times")'),'held movement does not inflate repeat counts');
+   await evalJS('MTE_GAME.messages.setOpen(true);MTE_GAME.messages.setOpen(false);MTE_GAME.hud.toast("A new message for the bubble")');
+   ok(await waitFor('!document.getElementById("logBubble").hidden',1000),'a collapsed log previews new text');
+   ok(await evalJS('document.getElementById("log").hidden'),'the full log remains collapsed');
+   ok(await evalJS('getComputedStyle(document.getElementById("logBubble")).pointerEvents==="none"'),'bubble passes world input through');
+   await sleep(200);
+   ok(await evalJS('(()=>{const b=document.getElementById("logBubble").getBoundingClientRect(),p=document.getElementById("logPill").getBoundingClientRect();return b.bottom<p.top&&b.left>=0&&b.right<=innerWidth&&b.top>=0;})()'),'phone bubble fits above Messages');
+   await shot('message-bubble-phone.png');
+   await evalJS('MTE_GAME.hud.toast("Another message queued behind it")');
+   ok(await evalJS('document.getElementById("logBubble").textContent.includes("A new message")'),'a different message waits its turn');
+   ok(await waitFor('document.getElementById("logBubble").className==="settling"',7000),'preview animates toward Messages after reading time');
+   ok(await waitFor('document.getElementById("logBubble").textContent.includes("Another message")',1500),'next queued preview follows the settling animation');
+   await cdp.send('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]},session);
+   eq(await evalJS('getComputedStyle(document.getElementById("logBubble")).animationName'),'none','reduced motion disables bubble movement');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
+   ok(await evalJS('(()=>{const b=document.getElementById("logBubble").getBoundingClientRect(),p=document.getElementById("logPill").getBoundingClientRect();return b.bottom<p.top&&b.top>=0&&b.right<=innerWidth;})()'),'desktop bubble fits above Messages');
+   await shot('message-bubble-desktop.png');
+   await evalJS('MTE_GAME.messages.setOpen(true)');
+   ok(await evalJS('document.getElementById("logBubble").hidden&&MTE_GAME.messages.lines.some(l=>l.includes("Another message"))'),'opening clears previews and retains all log text');
+   eq(pageErrors.length,0,'message feedback has no browser exceptions');
+   console.log((failures?'MESSAGE BROWSER FAILURES':'MESSAGE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_RENDER_PERF_ONLY==='1'){
    console.log('\n== Bounded render performance across layers and day phases ==');
    const {runRenderPerformance}=await import('./render-performance.js');

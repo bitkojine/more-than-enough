@@ -1,19 +1,14 @@
-/* The message log (Watch, 2026-10-26): everything the game says to the
- * player, in one place at the bottom left, like Old School RuneScape's chat
- * box. Wiki's lines, milestones and the game's own notices (a low lantern,
- * something you can't do yet, a save that failed) each go in as a line, in
- * their own colour, and stay: nothing fades or hides by itself, so there is
- * all the time to read it. The open log shows the last three; dragging (or
- * scrolling) inside it goes back through older ones. Hide folds it into a
- * small Messages pill, where new lines only raise the count, until the
- * pill is tapped (Watch's choice). Whether it's open is kept on this device,
- * and so are the last lines of each world. Presentation only. Layout:
- * docs/ui.md, Messages. */
+/* One persistent message log per world. Folded logs preview new lines in a
+ * small, non-interactive bubble that settles into Messages. Repeated game
+ * notices are rate-limited before storage, rendering or announcements. */
 import { t } from '../i18n/i18n.js';
 
 const STORE = 'mte.log.';
 const KEEP = 50;      // lines kept per world
 const SHOWN = 3;      // lines the open log shows without scrolling
+const REMINDER_MS = 10000;
+const PREVIEW_QUEUE = 4; // pending previews; overflow stays in the full log
+const SETTLE_MS = 360;
 const CLEAR_PX = 12;  // kept between the log and Mica's feet, or the HUD above
 
 const TROPHY = '<svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z"/></svg>';
@@ -42,7 +37,7 @@ export function lineHtml(line) {
 // `feet()`: Mica's feet on the screen ({x, y}), for the log to stay under.
 // `open`: whether it starts open (a new player's does); `keepOpen(open)`
 // remembers the choice.
-export function createMessages({ world = () => null, feet = () => null, open = true, keepOpen = () => {}, store = localStore(), root = document.body } = {}) {
+export function createMessages({ world = () => null, feet = () => null, open = true, keepOpen = () => {}, store = localStore(), root = document.body, now = () => performance.now() } = {}) {
   const box = document.createElement('section');
   box.id = 'log'; box.setAttribute('aria-label', t('log.title'));
   const list = document.createElement('div');
@@ -56,15 +51,49 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   const pillName = document.createElement('span'); pillName.textContent = t('log.title');
   const count = document.createElement('b'); count.className = 'count';
   pill.append(pillName, count);
-  root.append(box, pill);
+  const bubble = document.createElement('div');
+  bubble.id = 'logBubble'; bubble.hidden = true;
+  bubble.setAttribute('role', 'status'); bubble.setAttribute('aria-live', 'polite');
+  root.append(box, pill, bubble);
 
   let key = null, lines = [], unread = 0, last = '', pad = null;
+  const notices = new Map();
+  let previews = [], preview = null, previewUntil = 0, settling = false;
+  function clearPreview() {
+    previews = []; preview = null; settling = false;
+    bubble.hidden = true; bubble.innerHTML = '';
+  }
+  function nextPreview(at) {
+    preview = previews.shift() || null; settling = false;
+    bubble.hidden = !preview;
+    if (!preview) { bubble.innerHTML = ''; return; }
+    bubble.className = 'arriving';
+    bubble.innerHTML = `<p class="msg ${preview.kind}">${lineHtml(preview)}</p>`;
+    previewUntil = at + Math.min(6000, 1800 + preview.text.length * 25);
+  }
+  function previewLine(entry, at, replace) {
+    if (open) return;
+    if (replace && preview) {
+      previews = []; preview = null;
+    }
+    previews.push({ ...entry, n: 1 });
+    if (previews.length > PREVIEW_QUEUE) previews.shift();
+    if (!preview) nextPreview(at);
+  }
+  function advancePreview() {
+    if (!preview || open) return;
+    const at = now();
+    if (at < previewUntil) return;
+    if (!settling) {
+      settling = true; bubble.className = 'settling'; previewUntil = at + SETTLE_MS;
+    } else nextPreview(at);
+  }
 
   // Another world's lines. What was said before any world loaded (a save
   // that couldn't be read) belongs to the first one.
   function load(k) {
     const early = key === null ? lines : [];
-    key = k; lines = [];
+    key = k; lines = []; notices.clear(); clearPreview();
     try {
       const raw = k && store && JSON.parse(store.getItem(STORE + k));
       if (Array.isArray(raw)) lines = raw.filter((l) => l && KINDS.includes(l.kind) && typeof l.text === 'string');
@@ -125,7 +154,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   }
 
   function setOpen(on) {
-    open = on; if (on) unread = 0;
+    open = on; if (on) { unread = 0; clearPreview(); }
     keepOpen(on); show(); last = ''; fit();
   }
   hide.addEventListener('click', () => setOpen(false));
@@ -142,19 +171,28 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       const tail = lines.at(-1);
       const entry = { kind: KINDS.includes(line.kind) ? line.kind : 'game', text: String(line.text), n: 1 };
       for (const k of ['name', 'link', 'of', 'then']) if (line[k]) entry[k] = String(line[k]);
+      const at = now();
+      // Bound both work and memory, even for warnings generated every frame.
+      // Only game notices are throttled: milestones and Wiki are distinct events.
+      if (entry.kind === 'game') {
+        const seen = notices.get(entry.text);
+        if (seen !== undefined && at - seen < REMINDER_MS) return;
+        notices.delete(entry.text); notices.set(entry.text, at);
+        if (notices.size > KEEP) notices.delete(notices.keys().next().value);
+      }
       // A milestone just said what's next ("Next: ..."): no second line for it.
       if (entry.kind === 'goal' && tail?.kind === 'milestone' && tail.then === entry.text) return;
       if (group && tail?.group === group) { Object.assign(tail, entry); }
       else if (tail && lineHtml({ ...tail, n: 1 }) === lineHtml(entry)) tail.n++;
       else { lines.push(entry); if (lines.length > KEEP) lines.splice(0, lines.length - KEEP); if (!open) unread++; }
       if (group) lines.at(-1).group = group; else delete lines.at(-1).group;
-      save(); render();
+      save(); render(); previewLine(entry, at, group && tail?.group === group);
     },
     // Each frame or so: another world's lines, and the room the log has.
     tick() {
       const invite = document.getElementById('btnInvite');
       document.body.classList.toggle('inviting', !!invite && !invite.hidden);
-      sync(); fit();
+      sync(); fit(); advancePreview();
     },
     get open() { return open; },
     setOpen,

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.179.3] - 2026-10-28
+
+- Suppress repeated game warnings for ten seconds before storage or rendering,
+  including holding movement against water without the required boots.
+- Preview new messages above the collapsed Messages button, queue short bursts,
+  and gently shrink each bubble into the button. Preserve the full log, world
+  isolation, world input, and reduced-motion support.
+
 ## [0.179.2] - 2026-10-28
 
 - Fix severe surface sunset rendering slowdown: share shaded static pictures
