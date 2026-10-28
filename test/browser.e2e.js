@@ -373,6 +373,41 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_ILLUMINATION_ONLY==='1'){
+   console.log('\n== Canonical light: terrain, holes, crystal, and renderer ==');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);
+   await evalJS(`(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;MTE_GAME.wiki.setMode('quiet');s.world.props.clear();s.world.holes.clear();s.cultivation.facilities=[];s.cultivation.lantern=false;s.flare=0;s.time=120;
+    // Isolated authored visual fixture, not a fair-play win evaluation.
+    for(const z of [-1,-2])for(let y=-16;y<32;y++)for(let x=-16;x<32;x++){C.tileAt(s.world,x,y,z);const i=C.chunkIndex(x,y);s.world.hotChunk.type[i]=C.T.SOIL;s.world.hotChunk.rich[i]=1;}
+    for(let y=-7;y<=7;y++)for(let x=-9;x<=9;x++)C.markExplored(s.world,x,y,-2);
+    window.__lightFloor=(x,y,z=-2)=>C.setRichness(s.world,x,y,z,0);
+    for(let x=-6;x<=0;x++)__lightFloor(x,0);for(let y=0;y<=4;y++)__lightFloor(0,y);
+    for(let y=0;y<=2;y++)for(let x=3;x<=5;x++)__lightFloor(x,y);
+    s.world.props.set(C.packKey(-6,0,-2),'lamp');s.player={x:.5,y:3.5,z:-2};MTE_GAME.setPlayer(.5,3.5);MTE_GAME.setZoom(1.25);})()`);await sleep(1800);
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),0,1,-2).block'),2,'light bends around the open corridor corner');
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),3,1,-2).block'),0,'sealed pocket is dark behind rock');
+   ok(await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core,w={};C.illuminationAt(s,0,1,-2);C.illuminationAt(s,0,1,-2,w);return Object.keys(w).length===0})()'),'unchanged browser queries do no propagation');
+   await shot('light-corridor-and-sealed-pocket.png');
+   const pixels=await evalJS(`(async()=>{const {drawLighting}=await import('./src/game/render/lighting.js'),s=MTE_GAME.getState(),C=MTE_GAME.core,c=document.createElement('canvas');c.width=300;c.height=240;const g=c.getContext('2d');g.fillStyle='#ffffff';g.fillRect(0,0,300,240);
+    const cam={width:300,height:240,z:-2,tilePx:20,depthPx:20,visibleTiles:()=>({x0:-7,x1:6,y0:-2,y1:6}),project:(x,y)=>({x:(x+7)*20,y:(y+2)*20})};drawLighting(g,cam,s,MTE_GAME.look);
+    const pixel=(x,y)=>g.getImageData((x+7)*20+10,(y+2)*20+10,1,1).data[0];return {lit:pixel(-5,0),dark:pixel(4,1)};})()`);
+   ok(pixels.lit>pixels.dark+80,'actual lighting canvas shows lit passage brighter than the sealed pocket');
+   await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.world.props.clear();__lightFloor(-3,0,-1);s.world.holes.add(C.packKey(-3,0,-1));})()');
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),-3,0,-2).level'),0,'open deep hole creates no light from a dark room above');
+   await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.world.props.set(C.packKey(-3,0,-1),"lamp");})()');
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),-3,0,-2).block'),8,'upper lamp illuminates through the opening');
+   await sleep(200);await shot('light-from-upper-lamp.png');
+   await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.world.props.clear();s.world.holes.add(C.packKey(-3,0,0));s.time=0;})()');
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),-3,0,-2).sky'),15,'continuous sky column reaches the deeper layer');
+   await sleep(200);await shot('light-stacked-skylight-noon.png');
+   await evalJS('MTE_GAME.getState().time=120');
+   eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),-3,0,-2).level'),0,'night removes the physical sky contribution');
+   await sleep(200);await shot('light-stacked-skylight-night.png');
+   ok(await evalJS('(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);for(let i=0;i<10;i++)MTE_GAME.bench(1);return before===MTE_GAME.core.serialize(s)})()'),'rendering physical light preserves the gameplay save');
+   ok(await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.cultivation.gear.carrier=true;s.cultivation.heart={where:"carried",health:100};s.time=0;return C.heartLight(s,{x:0,y:0,z:0})===0})()'),'sealed carrier protects the heart');
+   eq(await evalJS('JSON.parse(localStorage.getItem("mte.faults")||"[]").length'),0,'lighting records no caught client faults');eq(pageErrors.length,0,'lighting has no browser exceptions');
+   console.log((failures?'LIGHT BROWSER FAILURES':'LIGHT BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_INTERACTION_ONLY==='1'){
    console.log('\n== Approach before world actions ==');
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);await sleep(200);

@@ -21,6 +21,13 @@ export function invariants() {
     if(s.cultivation&&C.canEmbark(s)!==(!s.shared&&s.cultivation.completed===true))throw new Error('Cultivation completion mismatch');
   });
 
+  invariant('physical light is bounded and sealed carriers protect the heart', (s) => {
+    if(!s.cultivation)return;
+    const p=s.player,l=C.illuminationAt(s,p.x,p.y,p.z);
+    if(!Number.isInteger(l.sky)||!Number.isInteger(l.block)||!finite(l.level)||l.sky<0||l.block<0||l.level<0||l.sky>C.LIGHT_MAX||l.block>C.LIGHT_MAX||l.level>C.LIGHT_MAX)throw new Error('Invalid physical light');
+    if(s.cultivation.gear.carrier&&C.heartLight(s,{x:Math.floor(p.x),y:Math.floor(p.y),z:p.z})!==0)throw new Error('Sealed heart exposed to light');
+  });
+
   // --- a flare burns between none and one whole flare, and never in a
   // shared world, whose room doesn't check flares (flare.js).
   invariant('a flare burns between 0 and FLARE_TIME seconds, never in a shared world', (s) => {

@@ -2,10 +2,10 @@
  * separate map, movement system or renderer; no DOM or wall-time dependency. */
 import {atInteraction} from './interaction.js';
 import {tileAt,isExplored,richness} from './world.js';
-import {packKey,unpackKey} from './coords.js';
+import {packKey} from './coords.js';
 import {T,TILE_INFO} from './tiles.js';
-import {PROPS,FLARE_LIGHT} from './content.js';
-import {daylight,SUN_CRACKS} from './light.js';
+import {PROPS} from './content.js';
+import {illuminationAt,invalidateIllumination,LIGHT_MAX} from './illumination.js';
 import {earn,pay as payInventory,canAfford} from './economy.js';
 import {generateChunk} from './terrain.js';
 import {hash2} from './noise.js';
@@ -63,18 +63,17 @@ function index(s){
  const c=s.cultivation;let v=indexCache.get(c);
  const propsVersion=s.world.props.revision??s.world.props.size;
  if(v&&v.n===c.facilities.length&&v.mines===s.extractors.length&&v.props===s.world.props&&v.version===propsVersion)return v;
- v={n:c.facilities.length,mines:s.extractors.length,props:s.world.props,version:propsVersion,cells:new Map(),ids:new Map(),lightCells:new Map(),heat:new Map(),routes:[]};
+ v={n:c.facilities.length,mines:s.extractors.length,props:s.world.props,version:propsVersion,cells:new Map(),ids:new Map(),heat:new Map(),routes:[]};
  const heat=(b,n,r)=>{for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(Math.abs(dx)+Math.abs(dy)<=r){const k=cell(b.x+dx,b.y+dy,b.z);v.heat.set(k,(v.heat.get(k)||0)+n);}};
  for(const b of c.facilities){v.cells.set(cell(b.x,b.y,b.z),b);v.ids.set(b.id,b);if(b.kind==='cooler')heat(b,-12,3);}
  for(const b of s.extractors)if(b.key==='mine')heat(b,10,3);
- for(const [k,kind] of s.world.props){if(c.shaded?.[k])continue;const radius=PROPS[kind]?.light;if(!radius)continue;const p=unpackKey(k),r=Math.ceil(radius);for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(Math.hypot(dx,dy)<=radius)v.lightCells.set(cell(p.x+dx,p.y+dy,p.z),true);}
  for(const b of c.facilities)if(b.kind==='conduit'){const from=v.ids.get(b.from),to=v.ids.get(b.to);if(from&&to)v.routes.push({from,to});}
  indexCache.set(c,v);return v;
 }
 export function cultivationAt(s,x,y,z=s.player.z){return s.cultivation?index(s).cells.get(cell(x,y,z)):null;}
-// A burning flare in your hand lights FLARE_LIGHT tiles round you (flare.js).
-const inFlare=(s,p)=>s.flare>0&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=FLARE_LIGHT;
-export function cultivationLight(s,p){return (p.z===0&&daylight(s.time)>SUN_CRACKS)||!!index(s).lightCells.get(cell(p.x,p.y,p.z))||(s.cultivation.lantern&&p.z===s.player.z&&Math.hypot(p.x+.5-s.player.x,p.y+.5-s.player.y)<=3)||inFlare(s,p);}
+// Physical exposure uses the same propagated field as the world renderer.
+export function cultivationExposure(s,p){return illuminationAt(s,p.x,p.y,p.z).level/LIGHT_MAX;}
+export function cultivationLight(s,p){return cultivationExposure(s,p)>0;}
 export function cultivationTarget(s,b){return Math.max(4,(b.z<=-2?12:18)+(b.kind==='chamber'||b.kind==='machine'?18:0)+(index(s).heat.get(cell(b.x,b.y,b.z))||0));}
 export function cultivationStatus(s,b){
  if(b.kind==='cooler'||b.kind==='conduit'||b.kind==='shelter')return 'ready';
@@ -86,13 +85,17 @@ const canPay=(s,cost)=>canAfford(s.inv,cost);
 function pay(s,cost){payInventory(s.inv,cost);if(!s.inv.crystal)s.cultivation.quality=100;}
 function earned(s,res,n){earn(s,res,n,'buildings');}
 function expose(s,b){
- if(!cultivationLight(s,b)||b.closed)return;
- if(b.health>0){b.health=Math.max(0,b.health-1);if(b.kind==='chamber')b.needsTend=true;}
- if(b.buffer)b.quality=Math.max(10,b.quality-1);
+ const strength=cultivationExposure(s,b);if(!strength||b.closed)return;
+ if(b.health>0){b.health=Math.max(0,b.health-strength);if(b.kind==='chamber')b.needsTend=true;}
+ if(b.buffer)b.quality=Math.max(10,b.quality-strength);
 }
 // A light just lit: what you carry and every open facility in it feel it at once.
 export function lightCrystal(s){exposeCargo(s);for(const b of s.cultivation.facilities)expose(s,b);}
-function exposeCargo(s){const c=s.cultivation,p={x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:s.player.z};if(!c.gear.carrier&&cultivationLight(s,p)){if(c.starter)c.starter.health=Math.max(0,c.starter.health-1);if(s.inv.crystal)c.quality=Math.max(10,c.quality-1);}}
+function exposeCargo(s){
+ const c=s.cultivation,p={x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:s.player.z};
+ const strength=c.gear.carrier?0:cultivationExposure(s,p);
+ if(strength){if(c.starter)c.starter.health=Math.max(0,c.starter.health-strength);if(s.inv.crystal)c.quality=Math.max(10,c.quality-strength);}
+}
 
 export function wildColony(s,x,y,z=s.player.z){
  if(!s.cultivation||z> -2||!isExplored(s.world,x,y,z)||tileAt(s.world,x,y,z)!==T.GEODE)return null;
@@ -150,7 +153,7 @@ export function cultivationCommand(s,cmd){
  if(cmd.type==='shade'){
   const k=packKey(x,y,z);if(!PROPS[s.world.props.get(k)]?.light)return 'site';
   c.shaded??={};if(!(k in c.shaded)){if(!canPay(s,CULTIVATION_RECIPES.shade))return 'materials';pay(s,CULTIVATION_RECIPES.shade);}
-  c.shaded[k]=!c.shaded[k];indexCache.delete(c);return 'ok';
+  c.shaded[k]=!c.shaded[k];indexCache.delete(c);invalidateIllumination(s,x,y,z);return 'ok';
  }
  if(cmd.type==='starter')return takeStarter(s,x,y);
  if(cmd.type==='heart')return moveHeart(s,x,y,z);
@@ -211,10 +214,10 @@ function moveHeart(s,x,y,z){
  if(h.where===b.id){h.where='carried';return 'lifted';}
  if(h.where!=='carried')return 'gone';h.where=b.id;return 'ok';
 }
-// How much of the sun's or a lantern's light reaches a carried heart, 0 to 1.
+// A sealed carrier protects the heart exactly as it protects ordinary crystal.
 export function heartLight(s,p){
- const c=s.cultivation;if((c.lantern&&p.z===s.player.z)||inFlare(s,p)||index(s).lightCells.get(cell(p.x,p.y,p.z)))return 1;
- return p.z===0?Math.max(0,Math.min(1,(daylight(s.time)-SUN_CRACKS)/(1-SUN_CRACKS))):0;
+ if(s.cultivation.gear.carrier)return 0;
+ return Math.min(1,illuminationAt(s,p.x,p.y,p.z).level/LIGHT_MAX);
 }
 // Which clue the machine shows: one per restored section, 0 before any.
 export function machineClue(s){const b=s.cultivation?.facilities.find(f=>f.kind==='machine');return b?Math.min(MACHINE_REPAIRS.length,machineSections(b)):0;}
@@ -234,7 +237,7 @@ export function stepCultivation(s,dt){
  // The host may batch a quiet interval without touching any terrain cells.
  const p={x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:s.player.z};
  const heat=Math.max(0,cultivationTarget(s,p)-22)*.8;
- const carriedDamage=heat+(!c.gear.carrier&&cultivationLight(s,p)?9:0);
+ const carriedDamage=heat+(c.gear.carrier?0:9*cultivationExposure(s,p));
  if(c.starter){c.starter.health-=carriedDamage*seconds;if(c.starter.health<=0)c.starter=null;}
  if(s.inv.crystal)c.quality=Math.max(10,c.quality-carriedDamage*seconds);
  if(c.heart?.where==='carried'){
@@ -244,11 +247,11 @@ export function stepCultivation(s,dt){
  }else if(typeof c.heart?.where==='number')c.heart.health=Math.min(100,c.heart.health+HEART_MEND*seconds);
  for(const w of Object.values(c.wild)){
   if(w.regrow>0){w.regrow=Math.max(0,w.regrow-seconds);if(!w.regrow)w.health=100;}
-  else {w.health=Math.max(0,w.health-((cultivationLight(s,w)?9:0)+Math.max(0,cultivationTarget(s,w)-22)*.8)*seconds);if(!w.health)w.regrow=45;}
+  else {w.health=Math.max(0,w.health-((9*cultivationExposure(s,w))+Math.max(0,cultivationTarget(s,w)-22)*.8)*seconds);if(!w.health)w.regrow=45;}
  }
  for(const b of c.facilities){
   const target=cultivationTarget(s,b);b.temperature=target+(b.temperature-target)*Math.exp(-seconds/6);
-  const damage=(Math.max(0,b.temperature-22)*.8)+(!b.closed&&cultivationLight(s,b)?9:0);
+  const damage=(Math.max(0,b.temperature-22)*.8)+(b.closed?0:9*cultivationExposure(s,b));
   if(b.buffer)b.quality=Math.max(10,b.quality-damage*seconds);
   if(b.health>0){
    if(damage){b.health=Math.max(0,b.health-damage*seconds);if(b.kind==='chamber')b.needsTend=true;}

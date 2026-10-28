@@ -16,7 +16,7 @@ test('surface materials bootstrap existing crafted picks without metal or a new 
 });
 test('chambers need cooling; light damages and physical tending gates healing',()=>{
  const s=fixture(),b=build(s,'chamber');build(s,'cooler',0,2);s.player.x=.5;s.player.y=.5;s.cultivation.starter={health:100};assert.equal(cmd(s,'shutter',null,0,0),'ok');assert.equal(cmd(s,'plant',null,0,0),'ok');cmd(s,'shutter',null,0,0);run(s,10);assert.ok(b.buffer>2.9);assert.equal(b.health,100);
- assert.equal(cmd(s,'craft','lantern',0,0),'ok');cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);run(s,2);assert.ok(b.health<90);assert.ok(b.needsTend);cmd(s,'shutter',null,0,0);const health=b.health;run(s,2);assert.equal(b.health,health);cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);assert.equal(cmd(s,'tend',null,0,0),'ok');run(s,4);assert.ok(b.health>health);
+ assert.equal(cmd(s,'craft','lantern',0,0),'ok');cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);run(s,2);assert.ok(b.health<100);assert.ok(b.needsTend);cmd(s,'shutter',null,0,0);const health=b.health;run(s,2);assert.equal(b.health,health);cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);assert.equal(cmd(s,'tend',null,0,0),'ok');run(s,4);assert.ok(b.health>health);
 });
 test('heat kills colonies and degraded harvested crystal still reinforces physical storage',()=>{
  const s=fixture(),b=build(s,'chamber');s.cultivation.starter={health:100};cmd(s,'shutter',null,0,0);cmd(s,'plant',null,0,0);cmd(s,'shutter',null,0,0);run(s,30);assert.equal(b.health,0);
@@ -47,7 +47,7 @@ test('the indexed economy preserves crystal recipe payments across ticks and rel
  assert.equal(cmd(s,'craft','carrier',0,0),'ok');assert.equal(s.inv.ore,before-12);run(s,1);assert.equal(s.inv.ore,before-12);assert.equal(C.deserialize(C.serialize(s)).inv.ore,before-12);
 });
 
-test('opening a lit chamber causes damage even before another environmental tick',()=>{const s=fixture(),b=build(s,'chamber');b.health=100;cmd(s,'craft','lantern',0,0);cmd(s,'lantern',null,0,0);assert.equal(b.health,100);cmd(s,'shutter',null,0,0);assert.equal(b.health,99);assert.ok(b.needsTend);});
+test('opening a lit chamber causes damage even before another environmental tick',()=>{const s=fixture(),b=build(s,'chamber');b.health=100;cmd(s,'craft','lantern',0,0);cmd(s,'lantern',null,0,0);assert.equal(b.health,100);cmd(s,'shutter',null,0,0);assert.equal(b.health,100-C.cultivationExposure(s,b));assert.ok(b.needsTend);});
 
 test('covering a placed light is a physical paid hood, then toggles without another charge',()=>{
  const s=fixture(),at=C.packKey(0,0,-2);s.world.props.set(at,'glowcap');assert.ok(C.cultivationLight(s,{x:0,y:0,z:-2}));const before=s.inv.mycelium;

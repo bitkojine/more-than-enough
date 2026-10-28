@@ -12,6 +12,7 @@ import { t } from '../i18n/i18n.js';
 import { esc, fmtRate } from './format.js';
 import { pic, price, icon } from './sheet.js';
 import { reachOf } from './reach.js';
+import {describeLight} from './light-info.js';
 
 const name = (k) => t('cr.' + k);
 const near = (s, x, y) => Core.atInteraction(s,x,y);
@@ -49,6 +50,7 @@ export function cardAt(s, x, y) {
     if (b.health !== undefined) lines.push(t('cr.health', { n: Math.floor(b.health) }));
     const shuttered = ['chamber', 'vault', 'machine'].includes(b.kind);
     if (shuttered) lines.push(name(b.closed ? 'closed' : 'opened'));
+    if(shuttered)lines.push(describeLight(s,x,y,z,b.closed));
     if (b.kind === 'machine' && c.restored) lines.push(name('discovery.' + Core.machineClue(s)));
     if (b.kind === 'machine' && c.completed) lines.push(name('activated'));
     const acts = b.kind === 'chamber' ? ['plant', 'tend', 'collect', 'reinforce'] : b.kind === 'vault' ? ['collect', 'store', 'reinforce']
@@ -66,7 +68,7 @@ export function cardAt(s, x, y) {
     const covered = !!c.shaded?.[key], paid = c.shaded && key in c.shaded;
     return { look: 'mark.' + s.world.props.get(key), name: esc(prop.name), lines: [], actions: [act('shade', x, y, t(covered ? 'cr.uncover' : 'cr.cover'), paid ? null : Core.CULTIVATION_RECIPES.shade)] };
   }
-  if (Core.wildColony(s, x, y)) return { look: 'tile.geode', slot: 'top', name: name('wild'), lines: [], actions: [act('starter', x, y, name('gather'))] };
+  if (Core.wildColony(s, x, y)) return { look: 'tile.geode', slot: 'top', name: name('wild'), lines: [describeLight(s,x,y,z)], actions: [act('starter', x, y, name('gather'))] };
   return null;
 }
 

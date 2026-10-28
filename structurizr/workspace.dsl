@@ -155,17 +155,17 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat/light, damage, tending, renewable wild colonies, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
+                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat and shared propagated physical light, proportional exposure damage, tending, renewable wild colonies, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
                     tags "Core Engine"
                     properties {
                         "ref" "src/core/cultivation.js, src/game/render/cultivation.js"
                     }
                 }
 
-                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache. Explored chunks and observed resource types have derived spatial indexes, including one/two-unit reserve masks that remove exhausted deposits from searches; Map-compatible prop mutation epochs invalidate charger candidates." "JavaScript" {
+                world = component "Layered World" "Coordinates and key packing (x, y, z), tile rules as data (TILE_INFO), and chunked terrain: the forest surface at z = 0 from noise octaves, solid geology below with one shaft per chunk. Chunks are generated lazily and LRU-cached; player edits (richness mods), per-layer fog and the holes between layers live outside the cache. Explored chunks and observed resource types have derived spatial indexes, including one/two-unit reserve masks that remove exhausted deposits from searches; Map/Set-compatible geometry and prop notifications invalidate dependent light fields and charger candidates." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js, explored-index.js, observed-types.js, versioned-map.js"
+                        "ref" "src/core/coords.js, noise.js, tiles.js, terrain.js, world.js, explored-index.js, observed-types.js, versioned-map.js, versioned-set.js"
                     }
                 }
 
@@ -176,10 +176,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income, battery and the burning flare; movement and fog reveal as far as your light reaches (sightRadius). Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Cultivation runs local environment deadlines at 250ms in the same canonical step. Battery intervals support quiet-tick batching and reuse nearby charger candidates with exact range and daylight checks. Reveal compares exact circle row intervals and visits newly covered edges. Resource streams settle together with targeted manual balance updates. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
+                step = component "Simulation Step" "step(s, dt): production, logistics, abundance income, battery and the burning flare; movement and fog reveal as far as your light reaches (sightRadius). Browser and AUTO hosts enable cumulative solo production after Logistics: grouped rates, cached counts/mastery, command/query settlements, and buffer snapshots at saves or rate changes. Visual events query nearby tile buckets. Cultivation runs local environment deadlines at 250ms in the same canonical step. Chunk-cached sky/artificial illumination follows rock and open ladder connections; direct sky columns retain strength, diffuse paths attenuate, and local dependency invalidation rebuilds fields from surviving sources. Carried fields change only at source tile/strength changes. Sun phases reuse sky access; rendering and proportional crystal exposure consume the same field, with player awareness and remembered exploration separate. Battery intervals support quiet-tick batching and reuse nearby charger candidates with exact range and daylight checks. Reveal compares exact circle row intervals and visits newly covered edges. Resource streams settle together with targeted manual balance updates. Variable-step/shared callers and extreme arithmetic retain the legacy economy." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/sim.js, light.js, flare.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"
+                        "ref" "src/core/sim.js, light.js, illumination.js, flare.js, event-economy.js, economy-context.js, production-ledger.js, resource-ledger.js"
                     }
                 }
 

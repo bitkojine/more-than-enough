@@ -20,6 +20,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { shade, tv, rgba } from './palette.js';
+import {lightBrightness} from './lighting.js';
 import { createFarMap } from './farmap.js';
 import { drawFog } from './fog.js';
 
@@ -100,27 +101,29 @@ function drawBeam(ctx, light, sx, cy, u, rise) {
 // A hole in the ceiling: light from the layer above pooling on the floor, and
 // the ladder standing in it, up to the opening where heights show. Under a shaft
 // not yet opened, the ladder stands in the dark.
-function drawSkylight(ctx, look, sx, sy, u, g, rise, lit = true) {
+function drawSkylight(ctx, look, sx, sy, u, g, rise, strength = 1) {
   const light = look.color('mark.skylight');
   const cx = sx + u * 0.5, cy = sy + u * g * 0.5;
   const showsHeight = rise > FLAT_RISE_PX;
-  if (lit) {
+  if (strength > 0) {
+    ctx.save();ctx.globalAlpha *= strength;
     drawPool(ctx, light, cx, cy, u, g, 0.45);
     if (showsHeight) drawBeam(ctx, light, sx, cy, u, rise);
+    ctx.restore();
   }
   drawLadder(ctx, look, cx, showsHeight ? cy - rise : sy + u * g * 0.1, sy + u * g * 0.85, u);
 }
 
 // A hole with a hole above it: the pit, ringed with the light falling into
 // it, a glow down its middle, and the ladder running on up into the beam.
-function drawThroughShaft(ctx, look, sx, sy, u, d, rise) {
+function drawThroughShaft(ctx, look, sx, sy, u, d, rise, strength) {
   const light = look.color('mark.skylight'), g = d / u;
   const cx = sx + u * 0.5, cy = sy + d * 0.5;
-  drawPool(ctx, light, cx, cy, u, g, 0.5);
+  drawPool(ctx, light, cx, cy, u, g, 0.5 * strength);
   look.draw(ctx, look.pick('mark.hole', 'top'), sx, sy, u + 1, d + 1);
-  drawPool(ctx, light, cx, cy, u * 0.4, g, 0.35);
+  drawPool(ctx, light, cx, cy, u * 0.4, g, 0.35 * strength);
   const showsHeight = rise > FLAT_RISE_PX;
-  if (showsHeight) drawBeam(ctx, light, sx, cy, u, rise);
+  if (showsHeight && strength > 0) {ctx.save();ctx.globalAlpha *= strength;drawBeam(ctx, light, sx, cy, u, rise);ctx.restore();}
   drawLadder(ctx, look, cx, showsHeight ? cy - rise : sy + d * 0.02, sy + d * 0.85, u);
 }
 
@@ -218,9 +221,10 @@ function drawTile(ctx, cam, s, look, x, y, z) {
     ctx.fillRect(sx, sy, u + 1, d * 0.2);
   }
   const down = Core.holeBelow(w, x, y, z), up = Core.holeAbove(w, x, y, z);
-  if (down && up) drawThroughShaft(ctx, look, sx, sy, u, d, cam.risePx);
+  const incoming=up?lightBrightness(Core.illuminationAt(s,x,y,z+1).level):0;
+  if (down && up) drawThroughShaft(ctx, look, sx, sy, u, d, cam.risePx, incoming);
   else if (down) drawPit(ctx, look, sx, sy, u, d, cam.risePx);
-  else if (up) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx);
+  else if (up) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx, incoming);
   else if (Core.wayUp(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx, false);
 }
 

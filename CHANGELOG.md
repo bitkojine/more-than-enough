@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.179.0] - 2026-10-28
+
+- Replace independent visual pools and exposure circles with a shared physical
+  sky/artificial light field. Opaque rock blocks transmission; light follows
+  corridors and open ladder connections, with strongest-path attenuation.
+  Direct clear sky columns reach all depths. Dark upper rooms create no glow.
+- Cache bounded chunk fields and their geometry dependencies, rebuild only
+  affected fields after edits/source changes, and reuse sky access across day
+  phases. Carried fields change at tile/charge-level boundaries. No save format
+  changes or stored lighting caches; all worlds and earned progress remain.
+- Scale all crystal light damage by physical intensity. Closed shutters protect
+  contents; sealed carriers also protect the heart. Off lanterns conserve charge.
+- Draw terrain/ladder lighting from the same field; keep unlit readability and
+  Mica's permanent exploration separate. Lights do not remotely reveal the map.
+  Cards and tooltips explain outside light and protected interiors in English
+  and Lithuanian.
+- Add bounded geometry, alternate-source, mutation, save, scaling and real-canvas
+  browser checks, including stacked sky openings and cross-layer lamp light.
+
 ## [0.178.0] - 2026-10-28
 
 - Share physical contact checks across gathering, digging, building, cultivation,

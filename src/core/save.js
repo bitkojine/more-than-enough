@@ -9,6 +9,8 @@ import {validCultivation,mendCultivation} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';
+import { VersionedMap } from './versioned-map.js';
+import { VersionedSet } from './versioned-set.js';
 import { ExploredChunks } from './explored-index.js';
 import { EXTRACTORS, TOOLS, REFINERIES, PROPS, FLARE_TIME } from './content.js';
 import { MUSHROOMS } from './mushrooms.js';
@@ -82,7 +84,7 @@ export function deserialize(str, make = createState) {
     s.world.chunks.clear();s.world.hotKey=-1;s.world.hotChunk=null;
   }
   const w = s.world;
-  w.mods = new Map((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
+  w.mods = new VersionedMap((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
   w.explored = new ExploredChunks();
   for (const [k, b64] of d.explored || []) {
     try {
@@ -91,11 +93,11 @@ export function deserialize(str, make = createState) {
     } catch { /* skip a corrupt mask */ }
   }
   const holeLayerOk = (k) => { const z = unpackKey(k).z; return z <= SURFACE && z > Z_MIN; };
-  w.holes = new Set((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
+  w.holes = new VersionedSet((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
   // Tunnel props in the mine, water power on the surface.
   const propOk = ([k, kind]) => isInt(k) && Object.hasOwn(PROPS, kind) &&
     (PROPS[kind].on === 'tunnel' ? unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN : unpackKey(k).z === SURFACE);
-  w.props = new Map((d.props || []).filter((p) => Array.isArray(p) && propOk(p)));
+  w.props = new VersionedMap((d.props || []).filter((p) => Array.isArray(p) && propOk(p)));
 
   if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
     s.player = { x: d.player.x, y: d.player.y, z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE };

@@ -106,7 +106,7 @@ export function tickBattery(s, dt) {
   const economy = economyForState(s);
   if (economy) { tickEventBattery(s, economy, Math.round(dt * 60)); return; }
   if (chargerNear(s)) s.battery = Math.min(1, s.battery + dt / CHARGE_TIME);
-  else if (isDark(s)) s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
+  else if (isDark(s) && (!s.cultivation || s.cultivation.lantern)) s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
 }
 
 const batteryEpochs = new WeakMap();
@@ -125,7 +125,7 @@ function tickEventBattery(s, economy, count) {
   }
   const rateAt = tick => {
     const time = economy.timeAt(tick);
-    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) ? -1 / BATTERY_LIFE : 0;
+    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) && (!s.cultivation || s.cultivation.lantern) ? -1 / BATTERY_LIFE : 0;
   };
   const apply = (first, last, rate) => {
     if (rate !== epoch.rate) { epoch.at = first - 1; epoch.opening = epoch.value; epoch.rate = rate; }

@@ -430,3 +430,9 @@ cancels the action. Cards open only after arrival; they do not open after builds
 or moves. Manual collection targets one contacted building. Trails approach each
 observed target and retain the hand clock. Crafting and carried equipment need
 no destination; infrastructure keeps its own service ranges and keeps running.
+
+Physical light inspection (2026-10-28): chamber/vault/machine cards show outside
+light level (0–15), whether it comes from sunlight or artificial sources, and
+whether closed shutters protect the interior. Wild-colony cards and meaningful
+world tooltips share this information. Use existing cards/tooltips; no separate
+lighting panel. Unknown terrain remains unknown; no character hit targets.

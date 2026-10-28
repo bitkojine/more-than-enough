@@ -22,7 +22,6 @@ import { drawFits, drawGhostSpot, drawReach, ghostAlpha } from './reach.js';
 import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
 
 const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const FLICKER = 0.25;        // how much a glowcap's reach swells and fades, in tiles
 const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign
 const BODY_MID = 0.47;       // tiles above the feet: the middle of you, centred when zoomed right in
 
@@ -69,13 +68,9 @@ export function render(cam, s, fx, view, look, guard = plain) {
   const { buildings, built, friends: friendRows, aloft, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
   const crystalRows=cultivationRows(s,cam.z);
-  const lights = [], beacons = [];
+  const beacons = [];
   for (const { x, y, kind } of placed) {
     const def = Core.PROPS[kind];
-    if (def.light && !s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]) {
-      const flicker = kind === 'glowcap' ? FLICKER * Math.sin(s.time * 1.6 + x * 1.7 + y * 2.3) : 0;
-      lights.push({ x: x + 0.5, y: y + 0.5, r: def.light + flicker, color: look.color('mark.' + kind) });
-    }
     if (def.beacon) beacons.push({ x, y, kind });
   }
 
@@ -138,7 +133,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
   layer('particles', () => drawParticles(ctx, cam, fx));
   layer('floats', () => drawFloats(ctx, cam, look, fx));
   layer('flyers', () => drawFlyers(ctx, cam, look, fx));
-  layer('lighting', () => drawLighting(ctx, cam, s, look, lights));
+  layer('lighting', () => drawLighting(ctx, cam, s, look));
   layer('glints', () => drawGlints(ctx, cam, s, look));
   layer('beacons', () => drawBeacons(ctx, cam, s, look, beacons));
   // What Wiki is talking about, outlined over everything in the world.

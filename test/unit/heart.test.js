@@ -28,11 +28,12 @@ test('new worlds start with the heart at the hiding place; older saves keep thei
  bad.heart={where:'carried',health:120};assert.equal(C.validCultivation(bad),false);
 });
 
-test('taking the heart needs a sealed carrier, and sunlight cracks it while carried',()=>{
+test('taking the heart needs a sealed carrier, which protects it from sunlight',()=>{
  const {s,h}=atHidingPlace();
  assert.equal(cmd(s,'heart',null,h.x,h.y),'equipment');assert.equal(cmd(s,'craft','carrier'),'ok');
  assert.equal(cmd(s,'heart',null,h.x,h.y),'lifted');assert.equal(s.cultivation.heart.where,'carried');assert.equal(cmd(s,'heart',null,h.x,h.y),'gone');
- s.time=0;run(s,10);const noon=100-s.cultivation.heart.health;assert.ok(Math.abs(noon-C.HEART_SUN*10)<.05,'full sun: '+noon);
+ s.time=0;run(s,10);assert.equal(s.cultivation.heart.health,100,'the sealed carrier blocks sunlight');
+ s.cultivation.gear.carrier=false;run(s,10);const noon=100-s.cultivation.heart.health;assert.ok(Math.abs(noon-C.HEART_SUN*10)<.05,'unprotected full sun: '+noon);
  s.time=C.DAY_LENGTH/2;const before=s.cultivation.heart.health;run(s,10);assert.equal(s.cultivation.heart.health,before,'nothing at night');
  assert.ok(C.deserialize(C.serialize(s)).cultivation.heart.where==='carried');
 });
@@ -44,7 +45,7 @@ test('a shelter keeps the heart safe and mends it; a heart cracked through retur
  s.cultivation.heart.health=60;s.time=0;assert.equal(cmd(s,'heart',null,at.x,at.y),'ok');assert.equal(s.cultivation.heart.where,shelter.id);
  run(s,20);assert.ok(Math.abs(s.cultivation.heart.health-(60+C.HEART_MEND*20))<.05,'mends in the shelter, even at noon');
  assert.ok(C.deserialize(C.serialize(s)),'a resting heart saves');
- assert.equal(cmd(s,'heart',null,at.x,at.y),'lifted');s.cultivation.heart.health=.5;run(s,10);
+ assert.equal(cmd(s,'heart',null,at.x,at.y),'lifted');s.cultivation.heart.health=.5;s.cultivation.gear.carrier=false;run(s,10);
  assert.deepEqual(s.cultivation.heart,{where:'station',health:100});assert.equal(s.cultivation.heartLost,1);
 });
 

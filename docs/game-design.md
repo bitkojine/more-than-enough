@@ -1,6 +1,6 @@
 # MICA AND WIKI — Game Design Document
 
-Updated 2026-10-23 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
+Updated 2026-10-28 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
 
 ## Evolve the existing game — confirmed implementation constraint
 
@@ -83,6 +83,48 @@ cracks crystal and the heart. Beside a solar panel a countdown under the gear
 says how long till it charges, or how long it has left. It's sky, not a
 device in anyone's hand. Layout: `docs/ui.md`.
 
+### Physical light and exploration — confirmed, 2026-10-28
+Lighting follows connected spaces, inspired by Minecraft's small, predictable
+rules. Rock blocks transmission; open corridors carry weakening light around
+corners. A ladder is not a light source. An open hole connects adjacent layers:
+light below depends on real sources above or below, never a fixed per-hole glow.
+A continuous, clear shaft to the surface carries direct skylight to every depth;
+light spreading sideways or crossing a connection after leaving that direct
+column weakens. Depth alone does not protect an open chamber.
+
+Any nonzero physical light damages living crystal. Fainter light damages more
+slowly than stronger light. Closed facility shutters protect that facility's
+contents, not the entire surrounding passage. A sealed carrier protects both
+ordinary crystal and the stolen heart from light; it does not defeat heat.
+Cooling remains an independent infrastructure system. Injury/tending, recovery,
+renewable wild colonies, machine restoration and permanent completion remain.
+
+Exploration requires Mica, not just light (Watch). Placed lights keep working
+when he leaves, including across openings, but never remotely reveal terrain or
+new layers. Remembered exploration and the small visibility aid around unlit
+Mica are distinct from physical light; neither is a source or crystal exposure.
+Brightness/zoom and rendering cannot change the simulation or reveal unknown
+terrain. The lantern switch conserves battery when off.
+
+Implementation: `src/core/illumination.js` is the authoritative sky/artificial
+field for rendering, exposure and inspection. Direct sky access is cached
+independently of the sun clock. Levels are bounded to 0–15; artificial light
+loses one level per cardinal step or open layer connection. Provisional full
+source strengths are 4 for a lantern, 9 for a flare/lamp and 6 for a glowcap.
+The existing sun threshold 0.3 remains: effective sunlight scales from zero
+there to full at noon. At full level 15, exposed crystal loses 9 condition
+points per active second; other strengths scale proportionally. Immediate
+handling exposure scales too. Source ranges and rates are playtest tuning.
+The renderer lifts low levels for readable flat art without altering exposure.
+
+Derived chunk fields record geometry dependencies. Digging/opening/covering a
+source invalidates only dependent fields; the next query reconstructs them
+from surviving sources, handling both increases and decreases. Carried light
+has a bounded independent field keyed by source tile and quantized charge.
+Unchanged ticks, frames, sun phases and distant edits do not repropagate.
+Caches are bounded, never saved; every existing world's terrain, edits,
+equipment and completion stay intact, and save format identifiers stay frozen.
+
 ### Mica and Wiki — confirmed, 2026-10-24
 The game is called **Mica and Wiki** (Lithuanian "Mica ir Wiki"; Wiki keeps its
 name in both languages). Wiki is a small mycelium sprite riding on Mica's hood.
@@ -145,7 +187,7 @@ These are design recommendations, not approved rules:
 3. Heat warnings: visual and sound cues first; inspect a chamber for exact temperature.
 
 ### Crystal handling and repair — confirmed decisions, 2026-10-23
-- First starter: players carefully carry a specimen with a short exposure budget before sealed transport is built. A protective carrier is not a prerequisite for the first specimen. Exact exposure limits, light sources, temperature effects and handling controls remain unspecified.
+- First starter: players carefully carry a specimen with a short exposure budget before sealed transport is built. A protective carrier is not a prerequisite for the first specimen. Physical light and protection follow the confirmed lighting rules above; exposure and thermal tuning remain provisional.
 - All crystal stays sensitive, including harvested construction material. Protected storage and transport are required; harvested crystal must not be treated as a stable, globally available inventory balance that bypasses exposure.
 - A surviving damaged colony needs a physical repair/tending action before it can heal. Safe conditions alone do not automatically initiate recovery. Repair equipment/materials, healing duration and possible automation remain open.
 - Dead colonies still require replacement starters from renewable wild colonies. Tending a surviving colony is distinct from reviving a dead one.
@@ -153,7 +195,7 @@ These are design recommendations, not approved rules:
 ### Implications to resolve — not additional approved mechanics
 - Plan a feasible early collection route within the specimen's exposure budget; later sealed infrastructure should remove repeated hazardous hand-carrying. Exact route guarantees and infrastructure behavior need design.
 - Define protection at every material handoff: harvesting, storage, transport, delivery and installation in the final machine. Installed crystal has a confirmed continuing cooling/darkness requirement; its delivery and installation procedures remain open.
-- Decide how carried light, inspection and the player's view interact with actual light exposure. Seeing the game should not implicitly be assigned an exposure rule.
+- Physical light is shared by carried sources, exposure and inspection; the player's visibility assistance is separate. Seeing the game does not itself expose crystal.
 - Damaged harvested crystal has a confirmed lower-effectiveness construction use. Exact quality handling, possible repair/reseeding and eligible uses remain open. Colony healing rules do not automatically apply to harvested material.
 - Define physical tending as a meaningful action with observable results; avoid assuming a recurring click quota or abstract repair payment.
 

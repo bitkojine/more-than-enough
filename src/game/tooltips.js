@@ -2,6 +2,7 @@
  * wiki/content tables; unexplored world cells are rejected before any lookup. */
 import * as Core from '../core/index.js';
 import {t} from '../i18n/i18n.js';
+import {describeLight} from './light-info.js';
 
 export function describeLook(id){
  const item=Core.LOOK[id];if(!item)return null;
@@ -11,13 +12,14 @@ export function describeLook(id){
 export function describeWorld(s,x,y,z){
  if(!Core.isExplored(s.world,x,y,z))return null;
  const facility=Core.cultivationAt(s,x,y,z),building=Core.extractorAt(s,x,y,z);
- if(facility||building){const id=facility?Core.CULTIVATION_LOOK[facility.kind]:'building.'+building.key,info=describeLook(id);return info&&{...info,kind:id};}
+ if(facility||building){const id=facility?Core.CULTIVATION_LOOK[facility.kind]:'building.'+building.key,info=describeLook(id);return info&&{...info,kind:id,description:info.description+(facility?' '+describeLight(s,x,y,z,facility.closed):'')};}
  // Ground only speaks up when there is something to it: a deposit with some
  // left, a find, or a way between layers. Plain ground and dug tunnels stay quiet.
  const type=Core.tileAt(s.world,x,y,z),info=Core.TILE_INFO[type],hint=Core.tileHint(type);
  if(!hint||info.harvest&&Core.richness(s.world,x,y,z)<=0)return null;
+ const lighting=s.cultivation&&(info.rise||info.descend||info.find)?' '+describeLight(s,x,y,z):'';
  const gear=Core.gearFor(s,x,y,z),short=gear&&(s.tools[gear.tool]||0)<gear.level;
- return {kind:'tile.'+Core.TILE_KEY[type]+(short?'.short':''),name:Core.TILE_NAME[type],description:short?hint+' '+t('tileDoes.needs',{tool:Core.TOOLS[gear.tool].name,lv:gear.level}):hint};
+ return {kind:'tile.'+Core.TILE_KEY[type]+(short?'.short':''),name:Core.TILE_NAME[type],description:(short?hint+' '+t('tileDoes.needs',{tool:Core.TOOLS[gear.tool].name,lv:gear.level}):hint)+lighting};
 }
 // world(): false while Wiki answers for the world itself (src/game/wiki.js).
 export function createTooltips({canvas,cam,state,world=()=>true}){

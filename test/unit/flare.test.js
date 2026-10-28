@@ -114,7 +114,7 @@ test('the heart and carried crystal feel a flare', () => {
   s.cultivation.heart = { where: 'carried', health: 100 };
   assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), 0);
   C.useFlare(s);
-  assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), 1);
+  assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), (C.FLARE_LIGHT+1)/C.LIGHT_MAX);
   run(s, 1);
   assert.ok(s.cultivation.heart.health < 100);
 });
