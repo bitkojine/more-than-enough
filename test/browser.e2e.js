@@ -388,8 +388,8 @@ async function main() {
    eq(await evalJS('MTE_GAME.core.illuminationAt(MTE_GAME.getState(),3,1,-2).block'),0,'sealed pocket is dark behind rock');
    ok(await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core,w={};C.illuminationAt(s,0,1,-2);C.illuminationAt(s,0,1,-2,w);return Object.keys(w).length===0})()'),'unchanged browser queries do no propagation');
    await shot('light-corridor-and-sealed-pocket.png');
-   const pixels=await evalJS(`(async()=>{const {drawLighting}=await import('./src/game/render/lighting.js'),s=MTE_GAME.getState(),C=MTE_GAME.core,c=document.createElement('canvas');c.width=300;c.height=240;const g=c.getContext('2d');g.fillStyle='#ffffff';g.fillRect(0,0,300,240);
-    const cam={width:300,height:240,z:-2,tilePx:20,depthPx:20,visibleTiles:()=>({x0:-7,x1:6,y0:-2,y1:6}),project:(x,y)=>({x:(x+7)*20,y:(y+2)*20})};drawLighting(g,cam,s,MTE_GAME.look);
+   const pixels=await evalJS(`(async()=>{const {shadeFace}=await import('./src/game/render/lighting.js'),s=MTE_GAME.getState(),c=document.createElement('canvas');c.width=300;c.height=240;const g=c.getContext('2d');g.fillStyle='#ffffff';g.fillRect(0,0,300,240);
+    const cam={width:300,height:240,z:-2};for(let y=-2;y<=6;y++)for(let x=-7;x<=6;x++)shadeFace(g,cam,s,x,y,{x:(x+7)*20,y:(y+2)*20,width:20,height:20});
     const pixel=(x,y)=>g.getImageData((x+7)*20+10,(y+2)*20+10,1,1).data[0];return {lit:pixel(-5,0),dark:pixel(4,1)};})()`);
    ok(pixels.lit>pixels.dark+80,'actual lighting canvas shows lit passage brighter than the sealed pocket');
    await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.world.props.clear();__lightFloor(-3,0,-1);s.world.holes.add(C.packKey(-3,0,-1));})()');
@@ -406,6 +406,41 @@ async function main() {
    ok(await evalJS('(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);for(let i=0;i<10;i++)MTE_GAME.bench(1);return before===MTE_GAME.core.serialize(s)})()'),'rendering physical light preserves the gameplay save');
    ok(await evalJS('(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;s.cultivation.gear.carrier=true;s.cultivation.heart={where:"carried",health:100};s.time=0;return C.heartLight(s,{x:0,y:0,z:0})===0})()'),'sealed carrier protects the heart');
    eq(await evalJS('JSON.parse(localStorage.getItem("mte.faults")||"[]").length'),0,'lighting records no caught client faults');eq(pageErrors.length,0,'lighting has no browser exceptions');
+   console.log('\n== Face lighting, equal-light seams, whole objects, and camera phases ==');
+   const renderChecks=await evalJS(`(async()=>{
+    const C=MTE_GAME.core,s=C.deserialize(C.serialize(MTE_GAME.getState())),{drawTerrain,onGround}=await import('./src/game/render/terrain.js'),L=await import('./src/game/render/lighting.js'),{createCamera}=await import('./src/game/camera.js');
+    s.world.props.clear();s.world.holes.clear();s.world.mods.clear();s.cultivation.lantern=false;s.flare=0;s.player={x:100,y:100,z:-2};
+    for(let y=-16;y<16;y++)for(let x=-16;x<16;x++){C.tileAt(s.world,x,y,-2);const i=C.chunkIndex(x,y);s.world.hotChunk.type[i]=C.T.SOIL;s.world.hotChunk.rich[i]=1;C.markExplored(s.world,x,y,-2);}
+    for(let y=1;y<=3;y++)for(let x=-3;x<=3;x++)C.setRichness(s.world,x,y,-2,0);
+    s.world.props.set(C.packKey(0,1,-2),'lamp');
+    const c=document.createElement('canvas');c.width=641;c.height=393;const g=c.getContext('2d'),cam=createCamera(c);Object.assign(cam,{width:641,height:393,baseTilePx:96,x:.5,y:1.5,z:-2});cam.setZoom(1);
+    const ground={yard:{piles:new Map(),covered:new Set()},built:new Set(),shake:()=>0},pixel=(x,y)=>Array.from(g.getImageData(Math.round(x),Math.round(y),1,1).data),phases=[];
+    for(const phase of [0,.125,.375,.75]){cam.x=.5+phase/96;cam.y=1.5+phase/96;g.clearRect(0,0,c.width,c.height);drawTerrain(g,cam,s,MTE_GAME.look,ground);const p=cam.project(0,0,-1);phases.push({lit:pixel(p.x+48,p.y+10)[0],dark:pixel(p.x+48,p.y-10)[0],face:pixel(p.x+48,p.y+cam.depthPx+15)[0]});}
+    const raised=c.toDataURL();
+    // Constant white artwork makes even a one-pixel bright seam measurable.
+    s.world.props.clear();for(let x=-10;x<=11;x++)C.setRichness(s.world,x,0,-2,0);s.world.props.set(C.packKey(-8,0,-2),'lamp');s.world.props.set(C.packKey(9,0,-2),'lamp');
+    const seamPhases=[];for(const offset of [0,.125,.375,.75]){g.clearRect(0,0,c.width,c.height);const flat={...cam,tilePx:64,depthPx:64,project:(x,y)=>({x:(x+4)*64+offset,y:(y+1)*64+offset})};for(let x=-4;x<=5;x++){const p=flat.project(x,0),bounds=L.faceRect(g,p.x,p.y,65,65);g.fillStyle='#fff';g.fillRect(bounds.x,bounds.y,bounds.width,bounds.height);L.shadeFace(g,flat,s,x,0,bounds);}const interior=pixel(288,96)[0],edge=[];for(let x=317;x<=326;x++)edge.push(pixel(x,96)[0]);seamPhases.push({offset,interior,edge});}
+    const seam=c.toDataURL();
+    // One dim source tile, but a tall object crosses several unlit screen rows.
+    const p=cam.project(.5,.5,-2),top=p.y-80,save=C.serialize(s);g.fillStyle='#294963';g.fillRect(0,0,c.width,c.height);
+    const untouched=pixel(p.x+60,top+30),anchor=L.lightObject(g,cam,s,.5,.5,ctx=>{ctx.fillStyle='#fff';ctx.fillRect(p.x-10,top,20,80);return 42;});
+    const objectPixels=[pixel(p.x,top+15)[0],pixel(p.x,top+40)[0],pixel(p.x,top+65)[0]],backgroundPreserved=JSON.stringify(untouched)===JSON.stringify(pixel(p.x+60,top+30));
+    const dprObjects=[];for(const scale of [.75,1,1.5,2]){const c2=document.createElement('canvas');c2.width=Math.ceil(cam.width*scale);c2.height=Math.ceil(cam.height*scale);const g2=c2.getContext('2d');g2.setTransform(scale,0,0,scale,0,0);L.lightObject(g2,cam,s,.5,.5,ctx=>{ctx.fillStyle='#fff';ctx.fillRect(p.x-10,top,20,80);});dprObjects.push([15,40,65].map(d=>g2.getImageData(Math.round(p.x*scale),Math.round((top+d)*scale),1,1).data[0]));}
+    // Foreground clipping must survive the temporary object surface.
+    const savedAfterRender=save===C.serialize(s);C.setRichness(s.world,0,1,-2,1);g.fillStyle='#00ff00';g.fillRect(0,0,c.width,c.height);onGround(g,cam,s,.5,.98,ctx=>{ctx.fillStyle='#fff';ctx.fillRect(p.x-10,top,20,cam.height);},{lit:true});
+    const wall=cam.project(0,1,-1),clipped=pixel(wall.x+48,wall.y+cam.depthPx/2)[1]===255;C.setRichness(s.world,0,1,-2,0);C.setRichness(s.world,0,0,-2,1);const contactLook={color:()=> '#ffffff',pick:()=>null};s.world.props.set(C.packKey(0,1,-2),'lamp');g.clearRect(0,0,c.width,c.height);drawTerrain(g,cam,s,contactLook,ground);const floor=cam.project(0,1,-2),contact=[2,6,14,25].map(d=>pixel(floor.x+48,floor.y+d)[0]);
+    return {phases,seamPhases,objectPixels,dprObjects,backgroundPreserved,anchor,savePreserved:savedAfterRender,clipped,contact,raised,seam};})()`);
+   ok(renderChecks.phases.every(p=>p.lit>50&&p.dark<20&&p.face>25),'raised top and south face use their own light at fractional camera positions on an odd viewport');
+   ok(renderChecks.seamPhases.every(p=>Math.max(...p.edge)<=p.interior+2),'equal dim tiles have no bright shared stripe across camera phases');
+   ok(Math.max(...renderChecks.objectPixels)-Math.min(...renderChecks.objectPixels)<=1,'tall dim object keeps one brightness across unrelated screen rows');
+   ok(renderChecks.dprObjects.every(values=>values.every(n=>Math.abs(n-136)<=1)),'whole-object tint stays aligned at fractional and retina pixel densities');
+   ok(renderChecks.backgroundPreserved&&renderChecks.anchor===42,'object tint leaves background and returned anchors intact');
+   ok(renderChecks.contact[0]<renderChecks.contact[1]&&Math.abs(renderChecks.contact[2]-renderChecks.contact[3])<=2,'contact shadow fades out before the old rectangular strip');
+   ok(renderChecks.savePreserved,'face and object rendering preserve the gameplay save');
+   ok(renderChecks.clipped,'higher foreground rock still clips the lit object');
+   for(const name of ['raised','seam'])fs.writeFileSync(path.join(SHOT_DIR,'fixed-'+name+'.png'),Buffer.from(renderChecks[name].split(',')[1],'base64'));
+   delete renderChecks.raised;delete renderChecks.seam;fs.writeFileSync(path.join(SHOT_DIR,'render-checks.json'),JSON.stringify(renderChecks,null,2));
+
    console.log((failures?'LIGHT BROWSER FAILURES':'LIGHT BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_INTERACTION_ONLY==='1'){

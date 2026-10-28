@@ -1,6 +1,5 @@
-/* Terrain: one tile at a time up close; zoomed out, the same tiles drawn into
- * an off-screen map that is shown scaled (farmap.js), so the cost of a frame
- * stays bounded however far you pinch out.
+/* Terrain: visible faces are shaded immediately after their artwork. The
+ * atlas handles distant map zoom; gameplay terrain stays live as lights move.
  *
  * Rows are drawn north to south. Each tile draws its top, then its south face
  * down to the top of the tile in front, so nearer blocks cover farther ones.
@@ -20,14 +19,11 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { shade, tv, rgba } from './palette.js';
-import {lightBrightness} from './lighting.js';
-import { createFarMap } from './farmap.js';
+import {lightBrightness,shadeFace,lightObject,faceRect} from './lighting.js';
 import { drawFog } from './fog.js';
 
-const FAR_PX = 14;          // below this tile size, show the off-screen map
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
 const RIM = 'rgba(255,255,255,0.09)';   // light catching a block's top edge
-const CONTACT = 'rgba(0,0,0,0.28)';     // shade at the foot of a taller block
 const SHADOW = 'rgba(0,0,0,0.28)';      // under things standing on the ground
 const VARIATION = 0.035;    // up to this much darker, per tile, so ground doesn't look like a grid
 const FOOT = 0.6;           // where on a tile's depth standing things put their feet
@@ -155,18 +151,22 @@ export function groundHeight(w, x, y, z) {
 }
 
 // An unseen tile of the mine: a dark block of rock.
-function drawUnseenRock(ctx, cam, look, w, x, y, z) {
+function drawUnseenRock(ctx, cam, look, s, x, y, z) {
+  const w=s.world;
   const u = cam.tilePx, d = cam.depthPx;
   const showsHeight = cam.risePx > FLAT_RISE_PX;
-  const p = cam.project(x, y, z + (showsHeight ? 1 : 0));
+  const projected=cam.project(x,y,z+(showsHeight?1:0));
+  const p=faceRect(ctx,projected.x,projected.y,u+1,d+1);
   const rock = look.color('color.unknown');
   const front = showsHeight ? groundHeight(w, x, y + 1, z) : 1;
   if (front < 1) {
     ctx.fillStyle = shade(rock, tv(x, y, 8), UNSEEN_DIM * FACE_DIM);
     ctx.fillRect(p.x, p.y + d, u + 1, (1 - front) * cam.risePx + 1);
+    shadeFace(ctx,cam,s,x,y,{x:p.x,y:p.y+d,width:u+1,height:(1-front)*cam.risePx+1});
   }
   ctx.fillStyle = shade(rock, tv(x, y, 7), UNSEEN_DIM);
-  ctx.fillRect(p.x, p.y, u + 1, d + 1);
+  ctx.fillRect(p.x,p.y,p.width,p.height);
+  shadeFace(ctx,cam,s,x,y,p);
 }
 
 // Where tile (x, y)'s top sits on screen, and its height.
@@ -183,42 +183,47 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   const under = z < Core.SURFACE;
   if (!Core.isExplored(w, x, y, z)) {
     // In the forest, clouds come over it later; in the mine, rock.
-    if (under) drawUnseenRock(ctx, cam, look, w, x, y, z);
+    if (under) drawUnseenRock(ctx, cam, look, s, x, y, z);
     return;
   }
   const t = Core.tileAt(w, x, y, z);
   const id = TILE_LOOK[t];
   const showsHeight = cam.risePx > FLAT_RISE_PX;
-  const { h, sx, sy } = tileTop(cam, w, x, y, z);
+  const tile=tileTop(cam,w,x,y,z),h=tile.h;
+  const topBounds=faceRect(ctx,tile.sx,tile.sy,u+1,d+1),{x:sx,y:sy}=topBounds;
   const color = look.color(id);
 
   // The south face, down to the top of the tile in front, lit along its rim.
   const front = showsHeight ? groundHeight(w, x, y + 1, z) : Math.min(h, 0);
   if (h > front) {
-    const faceH = (h - front) * cam.risePx;
+    const faceBounds=faceRect(ctx,sx,sy+d,u+1,(h-front)*cam.risePx+1),faceH=faceBounds.height-1;
     const face = look.pick(id, 'face', x, y, s.time);
-    if (face) drawFace(ctx, look, face, sx, sy + d, u, faceH, cam.risePx);
+    if (face) drawFace(ctx,look,face,faceBounds.x,faceBounds.y,u,faceH,cam.risePx);
     else {
       ctx.fillStyle = shade(color, tv(x, y, 8), FACE_DIM);
-      ctx.fillRect(sx, sy + d, u + 1, faceH + 1);
+      ctx.fillRect(faceBounds.x,faceBounds.y,faceBounds.width,faceBounds.height);
     }
     ctx.fillStyle = RIM;
-    ctx.fillRect(sx, sy + d, u + 1, Math.min(faceH, Math.max(1, u * 0.035)));
+    ctx.fillRect(faceBounds.x,faceBounds.y,faceBounds.width,Math.min(faceH,Math.max(1,u*.035)));
+    shadeFace(ctx,cam,s,x,y,faceBounds);
   }
 
   const top = pickFor(look, w, t, 'top', x, y, s.time);
-  if (top) look.draw(ctx, top, sx, sy, u + 1, d + 1);
-  else { ctx.fillStyle = color; ctx.fillRect(sx, sy, u + 1, d + 1); }
+  if (top) look.draw(ctx,top,sx,sy,topBounds.width,topBounds.height);
+  else { ctx.fillStyle = color; ctx.fillRect(sx,sy,topBounds.width,topBounds.height); }
   ctx.fillStyle = `rgba(0,0,0,${(tv(x, y, 7) * VARIATION).toFixed(3)})`;
-  ctx.fillRect(sx, sy, u + 1, d + 1);
+  ctx.fillRect(sx,sy,topBounds.width,topBounds.height);
   if (under && !Core.TILE_INFO[t].walk) {
     ctx.fillStyle = `rgba(0,0,0,${ROCK_SHADE})`;
-    ctx.fillRect(sx, sy, u + 1, d + 1);
+    ctx.fillRect(sx,sy,topBounds.width,topBounds.height);
   }
   // A taller block behind casts a little shade on this top's far edge.
   if (showsHeight && groundHeight(w, x, y - 1, z) > h + 0.05) {
-    ctx.fillStyle = CONTACT;
-    ctx.fillRect(sx, sy, u + 1, d * 0.2);
+    const gap=groundHeight(w,x,y-1,z)-h;
+    const length=Math.min(d*.08,gap*cam.risePx*.35);
+    const contact=ctx.createLinearGradient(0,sy,0,sy+length);
+    contact.addColorStop(0,'rgba(0,0,0,0.18)');contact.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=contact;ctx.fillRect(sx,sy,u+1,length);
   }
   const down = Core.holeBelow(w, x, y, z), up = Core.holeAbove(w, x, y, z);
   const incoming=up?lightBrightness(Core.illuminationAt(s,x,y,z+1).level):0;
@@ -226,6 +231,7 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   else if (down) drawPit(ctx, look, sx, sy, u, d, cam.risePx);
   else if (up) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx, incoming);
   else if (Core.wayUp(w, x, y, z)) drawSkylight(ctx, look, sx, sy, u, g, cam.risePx, false);
+  shadeFace(ctx,cam,s,x,y,topBounds);
 }
 
 // A stockpile pile standing in the middle of its square of tiles, as big as
@@ -252,7 +258,7 @@ function drawPile(ctx, cam, s, look, yard, p, at = yard.at(p, s.time), shade = t
 
 // Piles sliding into a bigger one (ten becoming one), over the ground.
 export function drawMerging(ctx, cam, s, look, yard) {
-  for (const m of yard.merging(s.time)) drawPile(ctx, cam, s, look, yard, m.pile, m);
+  for (const m of yard.merging(s.time)) lightObject(ctx,cam,s,m.x+m.pile.span/2,m.y+m.pile.span-1+FOOT,c=>drawPile(c,cam,s,look,yard,m.pile,m),{width:Math.max(2,m.pile.span),height:Math.max(4,m.pile.span*2)});
 }
 
 // Whatever stands on tile (x, y): a stockpile pile, else its stand picture
@@ -267,8 +273,8 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   const key = Core.packKey(x, y, z);
   const pile = z === Core.SURFACE && ground.yard.piles.get(key);
   if (pile) {
-    const at=ground.yard.at(pile,s.time),draw=()=>drawPile(ctx,cam,s,look,ground.yard,pile,at,shade);
-    if(ground.clip)onGround(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2)});else draw();
+    const at=ground.yard.at(pile,s.time),draw=c=>drawPile(c,cam,s,look,ground.yard,pile,at,shade);
+    if(ground.clip)onGround(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2),lit:true});else lightObject(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2)});
     return true;
   }
   if (z === Core.SURFACE && ground.yard.covered.has(key)) return false; // under a big pile
@@ -279,7 +285,7 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   const slot = Core.LOOK[id].slots.cut !== undefined && left <= 0 ? 'cut' : 'stand';
   const pic = pickFor(look, w, t, slot, x, y, s.time);
   if (!pic) return false;
-  const draw=()=>{
+  const draw=(ctx)=>{
   const u = cam.tilePx, d = cam.depthPx;
   const { sx, sy } = tileTop(cam, w, x, y, z);
   const size = slot === 'stand' && WEARS.has(t) ? u * (MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z))) : u;
@@ -297,7 +303,7 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   }
   return true;
   };
-  return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect)}):draw();
+  return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect),lit:true}):lightObject(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect)});
 }
 
 // Rows y0..y1 of ground, north to south, with what stands on them (and on
@@ -319,7 +325,7 @@ function drawRows(ctx, cam, s, look, ground, x0, y0, x1, y1, side, onRow) {
 // higher foreground blocks occlude it. The query covers its local footprint,
 // not the explored world; cost is bounded at every zoom. Successive clips
 // subtract the union of overlapping blocks (one even-odd path would XOR them).
-export function onGround(ctx,cam,s,x,y,draw,{width=2,height=4}={}) {
+export function onGround(ctx,cam,s,x,y,draw,{width=2,height=4,lit=false}={}) {
   let clipped=false;
   if(cam.risePx>FLAT_RISE_PX){
     const z=cam.z,w=s.world,h=groundHeight(w,Math.floor(x),Math.floor(y),z);
@@ -340,7 +346,7 @@ export function onGround(ctx,cam,s,x,y,draw,{width=2,height=4}={}) {
       ctx.rect(a.x,a.y,u+1,b-a.y);ctx.clip('evenodd');
     }
   }
-  try{return draw();}finally{if(clipped)ctx.restore();}
+  try{return lit?lightObject(ctx,cam,s,x,y,draw,{width,height}):draw(ctx);}finally{if(clipped)ctx.restore();}
 }
 
 // A type of tile's colour in one flat swatch (the world map's), or null.
@@ -348,45 +354,12 @@ export function tileColor(look, type) {
   return look.color(TILE_LOOK[type]);
 }
 
-// A tile's flat colour for the far map's first quick draw, or null for none.
-function flatColor(look, w, x, y, z) {
-  if (Core.isExplored(w, x, y, z)) return look.color(TILE_LOOK[Core.tileAt(w, x, y, z)]);
-  return look.color(z < Core.SURFACE ? 'color.unknown' : 'color.cloud');
-}
-
-const far = createFarMap();
-
-// Frees the far map (zoomed out to the world map, which doesn't use it).
-export const dropFarMap = () => far.drop();
-
-// Draws the visible terrain and calls onRow(y) after each row of tiles.
-// `ground` holds what else stands on tiles: `built` (packed keys of tiles with
-// buildings), the stockpile `yard`, and `shake(key)`, how far a struck tile's
-// rock or tree is jolted (-1..1). Returns how many tiles are on screen.
+// The atlas owns distant map rendering. Keeping gameplay faces live avoids
+// caching the light from an earlier lantern position or daylight phase.
 export function drawTerrain(ctx, cam, s, look, ground, onRow) {
-  const z = cam.z;
-  const v = cam.visibleTiles();
-  // The clouds can fail on their own (a picture too big for the browser, in
-  // v0.151.0) without taking the land with them.
-  const layer = ground.layer || ((name, draw) => draw());
-  if (cam.tilePx >= FAR_PX) {
-    far.drop();
-    drawRows(ctx, cam, s, look, ground, v.x0, v.y0, v.x1, v.y1, STAND_MARGIN, onRow);
-    layer('fog', () => drawFog(ctx, cam, s, look, v.x0, v.y0, v.x1, v.y1));
-    return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);
-  }
-  // Zoomed out: the map, then whatever stands in each row over it. A struck
-  // rock's jolt is too small to see from here, and would stay in the map.
-  const still = { ...ground, shake: () => 0 };
-  far.draw(ctx, cam, s.time, look, {
-    paintArea: (c, mc, x0, y0, x1, y1, side) => {
-      drawRows(c, mc, s, look, still, x0, y0, x1, y1, side);
-      layer('fog', () => drawFog(c, mc, s, look, x0, y0, x1, y1));
-    },
-    flatColor: (x, y) => flatColor(look, s.world, x, y, z),
-    player: s.player,
-    near: Core.exploreRadius(s) + 5 // the edge's puffs reach up to 3 tiles out, far out
-  });
-  for (let y = v.y0; y <= v.y1; y++) onRow(y);
-  return (v.y1 - v.y0 + 1) * (v.x1 - v.x0 + 1);
+  const v=cam.visibleTiles();
+  drawRows(ctx,cam,s,look,ground,v.x0,v.y0,v.x1,v.y1,STAND_MARGIN,onRow);
+  const layer=ground.layer||((name,draw)=>draw());
+  layer('fog',()=>drawFog(ctx,cam,s,look,v.x0,v.y0,v.x1,v.y1));
+  return (v.y1-v.y0+1)*(v.x1-v.x0+1);
 }

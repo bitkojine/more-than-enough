@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.179.1] - 2026-10-28
+
+- Shade raised terrain tops and south faces in their own projected bounds and
+  painter order. Replace the quarter-resolution flat darkness mask, eliminating
+  height offsets, overlapping bright stripes and odd-viewport rescaling drift.
+- Light complete standing objects at their physical location on a reusable,
+  viewport-clipped transparent patch. Preserve foreground clipping, shadows,
+  cargo, placement opacity and returned character anchors.
+- Replace hard rectangular wall-contact shadows with short, height-dependent
+  fading gradients. Keep gameplay terrain live; the atlas handles distant views.
+- Add real-canvas regression checks for raised faces, fractional camera phases,
+  dim seams, tall objects, transparent backgrounds, contact falloff and clipping.
+  Run the bounded lighting and layering browser checks before every deployment.
+  Physical illumination, crystal exposure, discovery and saves are unchanged.
+
 ## [0.179.0] - 2026-10-28
 
 - Replace independent visual pools and exposure circles with a shared physical

@@ -35,6 +35,37 @@ jobs:
       - name: Unit tests
         run: npm test
 
+  # Bounded visual regressions protect the geometry/compositing contract without
+  # running a full-world simulation or the broad interactive browser suite.
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
+
+      - name: Stage the site
+        run: npm run stage
+
+      - name: Check light and foreground compositing
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+          MTE_SITE: site
+          MTE_WEBGL: '1'
+          MTE_SHOT_DIR: ${{ runner.temp }}/render-checks
+        run: |
+          MTE_ILLUMINATION_ONLY=1 npm run test:e2e
+          MTE_LAYER_ONLY=1 npm run test:e2e
+
+      - name: Keep visual failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: render-checks
+          path: ${{ runner.temp }}/render-checks
+
   # Four fixed seeds must finish with legal behavior. Timing comparisons apply
   # only under the same canonical rules; rebalancing reports new durations.
   # Runs only when the rules, brain or baseline may have changed.
@@ -64,7 +95,7 @@ jobs:
         run: node scripts/perfect-bench.mjs --check
 
   deploy:
-    needs: [test, perfect]
+    needs: [test, perfect, render]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

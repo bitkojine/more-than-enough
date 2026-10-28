@@ -85,6 +85,11 @@ Benchmarks and playtest runners are in `scripts/`; each explains itself at the
 top of the file. `node scripts/perfect-bench.mjs --check` (the AUTO benchmark)
 runs in CI after rule changes; record a reviewed new baseline with `--write`.
 
+The deploy gate also runs the bounded lighting and foreground-compositing browser
+fixtures against the staged site (`MTE_ILLUMINATION_ONLY=1` and
+`MTE_LAYER_ONLY=1`). Their failure captures are retained as CI artifacts. The
+broad browser suite and long property sweeps remain separate from quick iteration.
+
 ## Rules for changes
 
 - **Every word in two languages.** Code never writes player text: it calls

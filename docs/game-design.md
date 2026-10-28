@@ -103,6 +103,9 @@ Exploration requires Mica, not just light (Watch). Placed lights keep working
 when he leaves, including across openings, but never remotely reveal terrain or
 new layers. Remembered exploration and the small visibility aid around unlit
 Mica are distinct from physical light; neither is a source or crystal exposure.
+Rendering applies this light to each projected terrain face and whole standing
+object at its physical location. Contact shadows are decorative soft grounding,
+not directional cast shadows; they never alter physical light or crystal damage.
 Brightness/zoom and rendering cannot change the simulation or reveal unknown
 terrain. The lantern switch conserves battery when off.
 

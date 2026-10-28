@@ -436,3 +436,12 @@ light level (0–15), whether it comes from sunlight or artificial sources, and
 whether closed shutters protect the interior. Wild-colony cards and meaningful
 world tooltips share this information. Use existing cards/tooltips; no separate
 lighting panel. Unknown terrain remains unknown; no character hit targets.
+
+Terrain lighting correction (2026-10-28): darkness is composited immediately
+after each terrain top or south face, using the same device-pixel-aligned
+bounds as its artwork. Standing objects receive one tint at their physical
+location on a viewport-clipped transparent patch; foreground terrain clipping
+still applies. No final floor-grid mask slices through raised blocks or tall
+objects. Wall contact shade is a short fading gradient, proportional to the
+height difference and capped at 8% of tile depth, rather than a hard 20% strip.
+Gameplay terrain is live at every gameplay zoom; the atlas owns map zoom.

@@ -10,10 +10,11 @@
  * Each part of the picture runs through `layer` (src/game/faults.js): one
  * that throws is noted and left out, and the rest of the frame still draws. */
 
+import {lightObject} from './lighting.js';
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
-import { drawTerrain, drawMerging, dropFarMap, onGround } from './terrain.js';
+import { drawTerrain, drawMerging, onGround } from './terrain.js';
 import { createAtlas } from './atlas.js';
 import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
 import { scene } from './scene.js';
@@ -77,9 +78,10 @@ export function render(cam, s, fx, view, look, guard = plain) {
   let you = null;    // where your head and hands are, for your name and sign
   const tags = [];   // friends' names, drawn last, over the night
   const friend = (f) => {
-    const at = onGround(ctx,cam,s,f.x,f.y,()=>drawFriend(ctx, cam, s, look, f, f.color));
+    const at = onGround(ctx,cam,s,f.x,f.y,c=>drawFriend(c, cam, s, look, f, f.color),{lit:true});
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
+  const standing=(x,y,draw)=>onGround(ctx,cam,s,x,y,draw,{lit:true});
   const ground = { built, yard: view.yard, shake: fx.shake, layer };
   const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, ground, (y) => layer('row', () => {
     drawHighlights(ctx, cam, s, view, y);
@@ -87,18 +89,18 @@ export function render(cam, s, fx, view, look, guard = plain) {
     // A building being moved stands only as its ghost, where it would go.
     const moving = view.placing?.from;
     const row = buildings.get(y);
-    if (row) for (const e of row) if (e !== moving) onGround(ctx,cam,s,e.x+.5,e.y+.6,()=>drawExtractor(ctx, cam, s, look, e));
-    for(const b of crystalRows.get(y)||[])if(b!==moving)onGround(ctx,cam,s,b.x+.5,b.y+.65,()=>drawCultivation(ctx,cam,s,look,b));
+    if (row) for (const e of row) if (e !== moving) standing(e.x+.5,e.y+.6,ctx=>drawExtractor(ctx, cam, s, look, e));
+    for(const b of crystalRows.get(y)||[])if(b!==moving)standing(b.x+.5,b.y+.65,ctx=>drawCultivation(ctx,cam,s,look,b));
     const ghost = view.placing?.ghost;
     if (ghost && ghost.y === y) {
       drawGhostSpot(ctx, cam, ghost);
       ctx.globalAlpha = ghostAlpha;
-      onGround(ctx,cam,s,ghost.x+.5,ghost.y+.6,()=>{if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);});
+      standing(ghost.x+.5,ghost.y+.6,ctx=>{if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);});
       ctx.globalAlpha = 1;
     }
     const props = propRows.get(y);
     if (props) for (const [x, kind] of props) {
-      onGround(ctx,cam,s,x+.5,y+.6,()=>{
+      standing(x+.5,y+.6,ctx=>{
       drawProp(ctx,cam,s,look,kind,x,y);
       if(s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]){
         const p=cam.project(x+.5,y+.6,cam.z),u=cam.tilePx;
@@ -110,20 +112,20 @@ export function render(cam, s, fx, view, look, guard = plain) {
     const stones = graveRows.get(y);
     if (stones) {
       for (const g of stones) {
-        const at = onGround(ctx,cam,s,g.x,g.y,()=>drawGrave(ctx, cam, s, g));
+        const at = standing(g.x,g.y,ctx=>drawGrave(ctx, cam, s, g));
         if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
       }
     }
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) {you = onGround(ctx,cam,s,s.player.x,s.player.y,()=>drawPlayer(ctx, cam, s, look, view));drawCrystalCargo(ctx,cam,s,look,you);}
+    if (y === playerRow) {you = standing(s.player.x,s.player.y,ctx=>{const at=drawPlayer(ctx,cam,s,look,view);drawCrystalCargo(ctx,cam,s,look,at);return at;});}
   }))) || 0;
   layer('aloft', () => { for (const f of aloft) friend(f); });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     layer('xray', () => {
       ctx.globalAlpha = XRAY_ALPHA;
-      drawPlayer(ctx, cam, s, look, {...view,shadow:false});
+      lightObject(ctx,cam,s,s.player.x,s.player.y,c=>drawPlayer(c,cam,s,look,{...view,shadow:false}));
       ctx.globalAlpha = 1;
     });
   }
@@ -169,7 +171,6 @@ export function render(cam, s, fx, view, look, guard = plain) {
 // The world map: the atlas, friends' badges at the edge, your sign.
 function renderMap(cam, s, view, look, layer) {
   const ctx = cam.ctx;
-  dropFarMap();
   ctx.fillStyle = look.color('color.backdrop');
   ctx.fillRect(0, 0, cam.width, cam.height);
   const drawn = layer('atlas', () => atlas.draw(ctx, cam, s, look, view)) || { you: null, taken: [] };
