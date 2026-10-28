@@ -162,20 +162,10 @@
       </div>
       <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
     </div>
-    <!-- The version, always in view. After an update it rolls from the old
-         number to the new one and keeps a dot until you look; tapping it
-         opens the changelog. Never a dialog (src/game/news.js). -->
-    <button id="btnVersion" type="button" translate="no"><span class="was" aria-hidden="true"></span><span class="now"></span></button>
-    <!-- Beside a solar panel, how long till the sun charges it or till it
-         stops: status, in the version's place while it shows (docs/ui.md). -->
-    <div id="sunTime" role="status" hidden><i aria-hidden="true"></i><span></span></div>
-    <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
-    <pre id="perf" aria-live="off" hidden></pre>
-  </div>
+    <div id="hudSecondary">
+<div id="depthMeter" aria-live="polite">
 
-  <div id="depthMeter" aria-live="polite">
-    <div id="battery" role="img" hidden><i><b></b></i><span></span></div>
-    <div id="depth" hidden><small data-i18n="hud.layer"></small><b></b></div>
+    <button id="depth" type="button" hidden><small data-i18n="hud.layer"></small><b></b></button>
     <div id="depthGauge" aria-hidden="true" hidden></div>
     <!-- On the map (zoomed out all the way): which layer it shows, like the
          depth pill, with a step up and down through those you've explored
@@ -186,6 +176,20 @@
       <button id="btnMapDown" type="button" data-i18n-aria-label="map.down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg></button>
     </div>
   </div>
+      <div id="hudMeta">
+    <!-- The version, always in view. After an update it rolls from the old
+         number to the new one and keeps a dot until you look; tapping it
+         opens the changelog. Never a dialog (src/game/news.js). -->
+    <button id="btnVersion" type="button" translate="no"><span class="was" aria-hidden="true"></span><span class="now"></span></button>
+    <!-- Beside a solar panel, how long till the sun charges it or till it
+         stops: status, in the version's place while it shows (docs/ui.md). -->
+    <div id="sunTime" role="status" hidden><i aria-hidden="true"></i><span></span></div>
+    <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
+    <pre id="perf" aria-live="off" hidden></pre>
+      </div>
+    </div>
+  </div>
+
 
   <div id="controls" role="group" data-i18n-aria-label="hud.controls">
 
@@ -196,11 +200,11 @@
       <svg class="big" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z" fill="none" stroke="currentColor" stroke-width="2" /><path d="M5.5 5.5h2v2h-2zM16.5 5.5h2v2h-2zM5.5 16.5h2v2h-2zM14 14h3v3h-3zM18 18h3v3h-3zM18 14h3v2h-3zM14 18h2v3h-2z" fill="currentColor" /></svg><span class="cap" id="inviteLabel"></span>
     </button>
     <div id="thumbDock">
-      <button id="btnBuild" class="btn" type="button" data-i18n-aria-label="button.build.aria">
-        <img class="big" data-look="ui.build" alt=""><span class="cap" data-i18n="button.build"></span><span class="newTag" data-i18n="badge.new"></span>
+      <button id="btnBuild" class="btn" type="button" data-i18n-aria-label="hud.settlement">
+        <img class="big" data-look="ui.build" alt=""><span class="cap" data-i18n="hud.settlement"></span><span class="newTag" data-i18n="badge.new"></span>
       </button>
-      <button id="btnUpgrade" class="btn" type="button" data-i18n-aria-label="button.upgrade.aria">
-        <img class="big" data-look="ui.upgrade" alt=""><span class="cap" data-i18n="button.upgrade"></span><span class="newTag" data-i18n="badge.new"></span>
+      <button id="btnUpgrade" class="btn" type="button" data-i18n-aria-label="hud.equipment" aria-controls="equipmentTray" aria-expanded="false">
+        <img class="big" data-look="tool.basket" alt=""><span class="cap" data-i18n="hud.equipment"></span><span id="gearStatus" class="gearStatus" hidden></span><span class="newTag" data-i18n="badge.new"></span>
       </button>
       <button id="btnMine" class="btn" type="button" hidden>
         <img class="big" id="mineIcon" data-look="ui.climbDown" alt=""><span class="cap" id="mineLabel"></span>
@@ -208,17 +212,23 @@
       <button id="btnPerfect" class="btn" type="button" data-i18n-aria-label="button.perfect.aria">
         <img class="big" data-look="ui.perfect" alt=""><img class="badge" id="perfectBadge" data-look="ui.explore" alt=""><span class="cap" data-i18n="button.perfect"></span><span class="tip" id="autoTip" role="status" hidden></span>
       </button>
+      <button id="btnAction" class="btn" type="button">
+        <img class="big" id="actionIcon" data-look="ui.gather" alt=""><span class="cap" id="actionLabel"></span>
+      </button>
+    </div>
+  </div>
+
+  <section id="equipmentTray" role="group" data-i18n-aria-label="hud.equipment" hidden>
+    <div id="battery" role="img" hidden><i><b></b></i><span></span></div>
       <button id="btnLantern" class="btn" type="button" aria-pressed="false" data-i18n-aria-label="button.lantern.aria" hidden>
         <img class="big" data-look="tool.hoodedLantern" data-slot="image" alt=""><span class="cap" id="lanternLabel"></span>
       </button>
       <button id="btnFlare" class="btn" type="button" aria-pressed="false" data-i18n-aria-label="button.flare.aria" hidden>
         <img class="big" data-look="tool.flare" data-slot="image" alt=""><span class="cap" id="flareLabel"></span>
       </button>
-      <button id="btnAction" class="btn" type="button">
-        <img class="big" id="actionIcon" data-look="ui.gather" alt=""><span class="cap" id="actionLabel"></span>
-      </button>
-    </div>
-  </div>
+    <button id="btnEquipmentCraft" type="button" data-i18n="sheet.craft"></button>
+    <button id="btnEquipmentClose" type="button" data-i18n-aria-label="sheet.close">×</button>
+  </section>
 
   <!-- Every list in the game is this one sheet: tabs (or, for a screen
        outside them, its title) beside a ×, and a scrolling body. A screen
@@ -230,14 +240,15 @@
       <button id="btnBack" class="hudBtn" type="button" data-i18n-aria-label="sheet.back" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
       <div id="sheetTitle"></div>
       <div id="tabs" role="tablist">
-        <button class="tab active" type="button" role="tab" data-tab="upgrades" data-i18n="sheet.upgrades"></button>
-        <button class="tab" type="button" role="tab" data-tab="build" data-i18n="sheet.build"></button>
+        <button class="tab active" type="button" role="tab" data-tab="upgrades" data-i18n="hud.equipment"></button>
+        <button class="tab" type="button" role="tab" data-tab="build" data-i18n="hud.settlement"></button>
         <button class="tab" id="tabBeyond" type="button" role="tab" data-tab="beyond" data-i18n="sheet.beyond"></button>
         <button class="tab" type="button" role="tab" data-tab="awards" data-i18n="sheet.awards"></button>
       </div>
       <button id="btnClose" class="hudBtn" type="button" data-i18n-aria-label="sheet.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
     </div>
     <div id="sheetBody"></div>
+    <div id="performancePanel" hidden><pre id="performanceDetails"></pre></div>
     <!-- Invite links (playing together): each one, who made it, how many
          joined with it, and a way to stop it. Filled by src/game/together.js. -->
     <div id="invitesPanel" hidden></div>

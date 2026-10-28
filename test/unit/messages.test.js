@@ -128,3 +128,17 @@ test('collapsed previews queue, settle into Messages, clear on opening and never
   world = 'two'; log.tick(); assert.ok(bubble.hidden);
   world = 'one'; log.tick(); assert.ok(bubble.hidden, 'loading saved history never shows previews');
 });
+
+test('automatic compaction preserves the saved disclosure choice and allows explicit opening', () => {
+  const kept = [], root = fakePage();
+  const log = createMessages({ root, store: memoryStore(), keepOpen: on => kept.push(on) });
+  log.add({ text: 'Hello' });
+  log.setCompact(true);
+  assert.equal(log.open, true); assert.equal(log.expanded, false);
+  assert.ok(byId(root,'log').hidden); assert.deepEqual(kept, []);
+  byId(root,'logPill').listeners.click();
+  assert.ok(log.expanded, 'explicit disclosure works even on a compact screen');
+  log.setCompact(false); assert.ok(log.expanded);
+  log.setOpen(false); log.setCompact(true); log.setCompact(false);
+  assert.equal(log.expanded, false, 'making room does not reopen a user-folded log');
+});

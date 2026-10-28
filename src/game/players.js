@@ -5,14 +5,23 @@
 
 import { t, distance } from '../i18n/i18n.js';
 
+// DOM-scoped presentation state works in bundled and native-module hosts.
+const chipState = Symbol.for('mte.friend-chips');
 const MAX_CHIPS = 5;   // friends shown by name under the top bar, when they fit
 
 /* ------------------------------------------------- chips under the top bar */
 
 // `list`: friends to show, in order ({id, name, st, color}); `tap(id)` on a
 // chip, `more()` on the "+N", which opens the Players screen.
-export function renderChips(box, list, { tap, more }) {
-  const chips = list.slice(0, MAX_CHIPS).map((f) => {
+export function setChipCompact(box, compact) {
+  const state = box[chipState];
+  if (!state || state.compact === compact) return;
+  renderChips(box, state.list, { ...state.handlers, compact });
+}
+
+export function renderChips(box, list, { tap, more, compact = box[chipState]?.compact || false }) {
+  box[chipState] = { list, handlers: { tap, more }, compact };
+  const chips = list.slice(0, compact ? 0 : MAX_CHIPS).map((f) => {
     const chip = button('', 'friend ' + f.st, () => tap(f.id));
     chip.style.setProperty('--friend', f.color);
     chip.setAttribute('aria-label', f.name + ', ' + t('together.state.' + f.st));

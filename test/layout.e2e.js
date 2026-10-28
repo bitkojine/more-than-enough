@@ -62,6 +62,7 @@ function connect(url) {
 
 // Runs in the page; returns a list of problems in the current state.
 function problems() {
+  window.layoutHoldNow?.();
   const out = [];
   const vw = innerWidth, vh = innerHeight;
   const name = (el) => el.id ? '#' + el.id : (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : el.tagName.toLowerCase()) +
@@ -82,7 +83,7 @@ function problems() {
   // The HUD, while nothing covers it: every button and name plate clear of
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
-    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill')].filter(shown);
+    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill, #equipmentTray button, #gearStatus, #sunTime, #perf')].filter(shown);
     const zoom = document.getElementById('zoomControls'), resources = document.getElementById('resources');
     if (shown(zoom)) {
       const z = zoom.getBoundingClientRect(), r = resources.getBoundingClientRect();
@@ -151,6 +152,15 @@ async function enter(state) {
   const placing = document.querySelector('#placeCard:not([hidden]) [data-do=cancel]');
   if (placing) placing.click();
   clearInterval(window.layoutHold);
+  window.layoutHoldNow = null;
+  if (window.layoutUndergroundDOM) {
+    for (const [id, original] of Object.entries(window.layoutUndergroundDOM)) {
+      const node=document.getElementById(id);node.hidden=original.hidden;if(original.html!==null)node.innerHTML=original.html;else document.getElementById('mineLabel').textContent=original.label;node.className=original.cls;
+    }
+    window.layoutUndergroundDOM=null;
+    document.body.classList.toggle('below',g.getState().player.z<0);
+    g.hudLayout.invalidate();g.hudLayout.tick();g.messages.tick();
+  }
   if (state === 'rich') for (const r of Object.keys(g.getState().inv)) g.addRes(r, 987654321098);
   // Absurd numbers: the counts in the bar go scientific (1e15), the rate
   // under them does too, and the plate under Gather is held at its widest —
@@ -173,9 +183,10 @@ async function enter(state) {
   // Underground beside a ladder: the depth meter and the climb button, held
   // up against the HUD's own updates while the check runs.
   if (state === 'underground') {
+    window.layoutUndergroundDOM=Object.fromEntries(['battery','depth','depthGauge','btnMine'].map(id=>{const e=document.getElementById(id);return[id,{hidden:e.hidden,html:id==='btnMine'?null:e.innerHTML,label:id==='btnMine'?document.getElementById('mineLabel').textContent:'',cls:e.className}];}));
     const hold = () => {
       document.getElementById('depth').lastElementChild.textContent = '12';  // i18n-ok: test fixture
-      document.getElementById('depthGauge').innerHTML = '<i class="forest"></i><i></i><i class="here"></i><i class="deeper"></i>';
+      document.getElementById('depthGauge').innerHTML = Array.from({length:12},(_,i)=>'<i'+(i===6?' class="here"':'')+'></i>').join('');
       document.body.classList.add('below');
       const battery = document.getElementById('battery');
       battery.className = 'low';
@@ -183,11 +194,13 @@ async function enter(state) {
       battery.querySelector('span').textContent = '23%';  // i18n-ok: test fixture
       for (const id of ['battery', 'depth', 'depthGauge', 'btnMine']) document.getElementById(id).hidden = false;
       document.getElementById('mineLabel').textContent = t('button.climbDown');
+      g.hudLayout.invalidate();g.hudLayout.tick();g.messages.tick();
     };
     hold();
+    window.layoutHoldNow=hold;
     window.layoutHold = setInterval(hold, 10);
   }
-  if (state === 'upgrades') click('#btnUpgrade');
+  if (state === 'upgrades') { click('#btnUpgrade'); click('#btnEquipmentCraft'); }
   if (state === 'build') click('#btnBuild');
   // Placing a building: its card docked at the bottom, the zoom pill above it.
   if (state === 'placing') g.startPlacing({ key: 'garden' });

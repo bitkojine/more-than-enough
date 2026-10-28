@@ -2,6 +2,12 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "hud.equipment": "Equipment",
+  "hud.settlement": "Settlement",
+  "hud.improvements": "Improve existing buildings",
+  "hud.site": "{name} · {x}, {y}",
+  "hud.details": "Details",
+  "news.0.180.0": "Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.",
   "news.0.179.4": "Zoom controls now sit in a horizontal row beneath the four resources, at every screen size.",
   "news.0.179.3": "Repeated warnings stay quiet between reminders. With Messages folded, new lines appear in a small bubble, then settle into the button. The full log keeps them for later.",
   "news.0.179.2": "Smoother evenings: trees, mushrooms and buildings reuse shaded artwork instead of repainting temporary canvases every frame. Lighting keeps its shape as you move.",

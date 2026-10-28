@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.180.0] - 2026-10-28
+
+- Give the HUD shared space allocation and purpose-based groups. Collapse
+  performance details, friend names, world-status details and expanded Messages
+  in that order; preserve the player's saved message preference and explicit
+  access to compacted details. Essential controls retain fixed positions.
+- Open Equipment as a compact lantern/flare tray, with a separate crafting
+  view. Keep a compact charge indicator on its button. Warnings never open it.
+- Combine construction and building improvements in Settlement; keep gear in
+  Equipment. Site improvements still walk to the site through the normal
+  controller. Preserve existing worlds, equipment and seen-offer history.
+- Add bounded combined-state browser coverage to the deployment gate, with
+  small portrait, landscape and desktop fixtures and normal action handlers.
+
 ## [0.179.4] - 2026-10-28
 
 - Move zoom, reset and world-map controls into one horizontal row directly

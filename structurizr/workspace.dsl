@@ -79,10 +79,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                ui = component "HUD and Sheet" "Resource chips and rates, the depth marker, the contextual thumb buttons, the message log (everything the game and Wiki say, kept per world on the device until the player folds it away), and the bottom sheet: the Progression map (family rails over the upgrade registry), Build, Beyond and the earnings statement (income per building with charts kept per world, payback, best buys, spending), with NEW on Build and Upgrade until what became affordable is looked at; the phone's Back steps back through it. Keeps normal play concise; delegated hover/focus and passive touch inspection reuse localized catalog descriptions, rejecting unexplored cells before indexed world lookup." "JavaScript" {
+                ui = component "HUD and Sheet" "Semantic HUD groups share a bounded space policy: resources and horizontal navigation at the top, world status and metadata in one row, and fixed essential action slots. Optional detail collapses in order: performance, friend names, status, Messages. Explicit Equipment disclosure opens a compact lights tray with a separate crafting view; Settlement combines construction and current-layer site improvements through approach-before-action controller commands. Automatic compaction preserves message preferences and never reveals controls because of warnings. Localized inspection, persistent per-world messages, seen-offer migration, earnings and the shared sheet remain integrated." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/hud.js, src/game/messages.js, src/game/home-hint.js, src/game/sheet.js, src/game/building-card.js, src/game/placing.js, src/game/reach.js, src/game/statement.js, src/game/income.js, src/game/fresh.js, src/game/back.js, src/game/tooltips.js"
+                        "ref" "src/game/hud.js, src/game/hud-layout.js, src/game/messages.js, src/game/home-hint.js, src/game/sheet.js, src/game/building-card.js, src/game/placing.js, src/game/reach.js, src/game/statement.js, src/game/income.js, src/game/fresh.js, src/game/back.js, src/game/tooltips.js"
                     }
                 }
 

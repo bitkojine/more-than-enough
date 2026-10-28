@@ -57,6 +57,8 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   root.append(box, pill, bubble);
 
   let key = null, lines = [], unread = 0, last = '', pad = null;
+  let compact = false, peek = false;
+  const expanded = () => open && (!compact || peek);
   const notices = new Map();
   let previews = [], preview = null, previewUntil = 0, settling = false;
   function clearPreview() {
@@ -72,7 +74,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     previewUntil = at + Math.min(6000, 1800 + preview.text.length * 25);
   }
   function previewLine(entry, at, replace) {
-    if (open) return;
+    if (expanded()) return;
     if (replace && preview) {
       previews = []; preview = null;
     }
@@ -81,7 +83,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     if (!preview) nextPreview(at);
   }
   function advancePreview() {
-    if (!preview || open) return;
+    if (!preview || expanded()) return;
     const at = now();
     if (at < previewUntil) return;
     if (!settling) {
@@ -99,7 +101,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       if (Array.isArray(raw)) lines = raw.filter((l) => l && KINDS.includes(l.kind) && typeof l.text === 'string');
     } catch { /* unreadable: start empty */ }
     lines = lines.concat(early).slice(-KEEP);
-    unread = open ? 0 : early.length;
+    unread = expanded() ? 0 : early.length;
     if (early.length) save();
     render();
   }
@@ -109,8 +111,8 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   function sync() { const k = world(); if (k !== key) load(k); }
 
   function show() {
-    box.hidden = !open || !lines.length;
-    pill.hidden = open || !lines.length;
+    box.hidden = !expanded() || !lines.length;
+    pill.hidden = expanded() || !lines.length;
     count.textContent = unread ? String(unread) : '';
     count.hidden = !unread;
     pill.setAttribute('aria-label', unread ? t('log.unread', { count: unread }) : t('log.title'));
@@ -131,7 +133,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     if (box.hidden) return;
     const r = box.getBoundingClientRect(), items = list.children;
     let top = 0;
-    for (const id of ['topbar', 'depthMeter']) {
+    for (const id of ['topbar', 'hudSecondary']) {
       const o = document.getElementById(id)?.getBoundingClientRect();
       if (o && o.height && o.right > r.left && o.left < r.right) top = Math.max(top, o.bottom);
     }
@@ -143,7 +145,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     const first = items[Math.max(0, items.length - SHOWN)];
     pad ??= parseFloat(globalThis.getComputedStyle?.(list).paddingTop) || 0;
     const want = first ? list.scrollHeight - (first.offsetTop - list.offsetTop) + pad : 0;
-    const h = Math.max(Math.min(want, room), Math.min(want, 40)) | 0;
+    const h = Math.max(0, Math.min(want, room)) | 0;
     const stamp = h + ':' + list.scrollHeight;
     if (stamp === last) return;
     const atEnd = last ? list.scrollTop + list.clientHeight >= list.scrollHeight - 30 : !reading;
@@ -154,7 +156,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
   }
 
   function setOpen(on) {
-    open = on; if (on) { unread = 0; clearPreview(); }
+    open = on; peek = on; if (on) { unread = 0; clearPreview(); }
     keepOpen(on); show(); last = ''; fit();
   }
   hide.addEventListener('click', () => setOpen(false));
@@ -184,7 +186,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       if (entry.kind === 'goal' && tail?.kind === 'milestone' && tail.then === entry.text) return;
       if (group && tail?.group === group) { Object.assign(tail, entry); }
       else if (tail && lineHtml({ ...tail, n: 1 }) === lineHtml(entry)) tail.n++;
-      else { lines.push(entry); if (lines.length > KEEP) lines.splice(0, lines.length - KEEP); if (!open) unread++; }
+      else { lines.push(entry); if (lines.length > KEEP) lines.splice(0, lines.length - KEEP); if (!expanded()) unread++; }
       if (group) lines.at(-1).group = group; else delete lines.at(-1).group;
       save(); render(); previewLine(entry, at, group && tail?.group === group);
     },
@@ -194,8 +196,15 @@ export function createMessages({ world = () => null, feet = () => null, open = t
       document.body.classList.toggle('inviting', !!invite && !invite.hidden);
       sync(); fit(); advancePreview();
     },
+    setCompact(on) {
+      if (compact === on) return;
+      compact = on; peek = false;
+      if (expanded()) { unread = 0; clearPreview(); }
+      show(); last = ''; fit();
+    },
+    get expanded() { return expanded(); },
     get open() { return open; },
-    setOpen,
+    setOpen, fit,
     get unread() { return unread; },
     // For tests: the lines as plain text, oldest first.
     get lines() { return lines.map((l) => l.kind + ': ' + (l.name ? l.name + '. ' : '') + l.text + (l.then ? '. ' + l.then : '')); },

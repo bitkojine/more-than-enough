@@ -17,7 +17,7 @@ const localStore = () => { try { return globalThis.localStorage; } catch { retur
 // How far along thing `id` on `sheet` is: the next one of a building, an
 // upgrade's level. A prop (water power, mine lights) is new only once.
 function level(s, sheet, id) {
-  if (sheet === 'upgrades') return Core.upgradeLevel(s, id);
+  if (Object.hasOwn(Core.UPGRADES, id)) return Core.upgradeLevel(s, id);
   return Object.hasOwn(Core.PROPS, id) ? 0 : Core.extractorCount(s, id);
 }
 
@@ -35,7 +35,7 @@ export function offers(s) {
     if (Core.buildsOnLayer(s, k) && been && Core.canAfford(s.inv, def.cost)) out.push(['build', k]);
   }
   for (const f of Core.PATH_FAMILIES) {
-    if (f.layer === 'world') for (const id of f.nodes) if (Core.canBuy(s, id)) out.push(['upgrades', id]);
+    if (f.layer === 'world') for (const id of f.nodes) if (Core.canBuy(s, id)) out.push([Core.UPGRADES[id].kind === 'tool' ? 'upgrades' : 'build', id]);
   }
   return out;
 }
@@ -62,6 +62,14 @@ export function createFresh({ store = localStore() } = {}) {
     let kept = null;
     try { kept = JSON.parse(store && store.getItem(STORE + w)); } catch { kept = null; }
     seen = kept && typeof kept === 'object' ? kept : {};
+    // Keep prior discoveries when settlement upgrades move out of Equipment.
+    for (const [key, value] of Object.entries(seen)) {
+      const [sheet, id] = key.split(':');
+      if (sheet === 'upgrades' && Core.UPGRADES[id] && Core.UPGRADES[id].kind !== 'tool') {
+        seen['build:' + id] = Math.max(seen['build:' + id] ?? -1, value);
+        delete seen[key];
+      }
+    }
     if (!kept) {
       for (const [sheet, id] of offers(s)) seen[sheet + ':' + id] = level(s, sheet, id);
       save();

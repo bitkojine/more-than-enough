@@ -81,3 +81,13 @@ test('upgrades count too, and props only on the layer they go on', () => {
   assert.equal(fresh.check(s).upgrades, true);
   assert.ok(fresh.see(s, 'upgrades').has(up));
 });
+
+test('old settlement upgrade discoveries survive moving them out of Equipment', () => {
+  const s = C.createState(12345), store = memoryStore(), tools = { ...s.tools };
+  for (const key of C.RESOURCES) s.inv[key] = 1e6;
+  store.setItem('mte.seen.solo.'+s.seed, JSON.stringify({'upgrades:compost': 0, 'upgrades:basket': 0}));
+  const fresh=createFresh({store}); fresh.check(s);
+  assert.deepEqual(s.tools, tools, 'menu migration preserves earned equipment');
+  assert.ok(offers(s).some(([sheet,id])=>sheet==='build'&&id==='compost'));
+  assert.ok(!fresh.see(s,'build').has('compost'), 'an already-seen settlement upgrade does not become NEW again');
+});

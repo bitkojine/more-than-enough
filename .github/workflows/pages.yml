@@ -59,6 +59,7 @@ jobs:
           MTE_ILLUMINATION_ONLY=1 npm run test:e2e
           MTE_LAYER_ONLY=1 npm run test:e2e
           MTE_RENDER_PERF_ONLY=1 npm run test:e2e
+          MTE_HUD_ONLY=1 npm run test:e2e
 
       - name: Keep visual and performance evidence
         if: always()

@@ -1386,3 +1386,77 @@ a.setRow { text-decoration: none; }
 #inspectTooltip span { color: var(--ink-dim); margin-top: 3px; }
 
 /* Dragging from Wiki onto a thing: a dotted line in Wiki's teal. */
+
+/* Shared semantic HUD layout. The top row owns resources/navigation; the
+   secondary row owns world status and optional metadata. Immediate actions
+   keep fixed slots, and disclosures consume space rather than adding floats. */
+#hudSecondary { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; }
+#hudMeta { min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; gap: 4px 6px; }
+#hudMeta #btnVersion, #hudMeta #sunTime { align-self: auto; margin: 0; }
+#hudMeta #friends { flex: 1 0 100%; max-width: 100%; margin: 0; }
+#hudMeta #perf { flex: 1 0 100%; min-width: 0; max-width: 100%; margin: 0; cursor: pointer; pointer-events: auto; }
+#depthMeter { position: static; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+#depth { font: inherit; min-height: 44px; pointer-events: auto; touch-action: manipulation; cursor: pointer; }
+#mapLayer { margin: 0; }
+body[data-hud-level="1"] #hudMeta #perf, body[data-hud-level="2"] #hudMeta #perf,
+body[data-hud-level="3"] #hudMeta #perf, body[data-hud-level="4"] #hudMeta #perf {
+  flex: 0 1 150px; height: 28px; line-height: 18px; padding: 4px 7px; white-space: pre; overflow: hidden;
+}
+body[data-hud-level="2"] #hudMeta #friends,
+body[data-hud-level="3"] #hudMeta #friends,
+body[data-hud-level="4"] #hudMeta #friends { flex: 0 1 auto; }
+body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { display: none; }
+#gearStatus { position: absolute; top: -6px; right: -6px; padding: 2px 4px; border-radius: 8px; background: #263a2d; color: var(--ink); font: 700 10px/1.2 system-ui; }
+#gearStatus.low { background: #5a3426; color: #ffe3a4; }
+#gearStatus[hidden] { display: none; }
+#btnMine { right: 0; bottom: calc(var(--act) + 20px); }
+#btnPerfect { right: calc(var(--act) + var(--gap)); bottom: calc(var(--act) + 20px); }
+#btnPerfect .tip { right: 0; bottom: calc(100% + 12px); max-width: min(280px, calc(100vw - 40px)); white-space: normal; }
+#equipmentTray {
+  position: absolute; z-index: 22; right: var(--edge-r); left: auto;
+  bottom: calc(var(--edge-b) + var(--act) + var(--sub) + 36px);
+  display: flex; align-items: stretch; gap: 6px;
+  width: min(420px, calc(100vw - var(--edge-l) - var(--edge-r)));
+  max-height: var(--hud-tray-room, 100px); overflow: auto;
+  padding: 4px; border: 1px solid var(--panel-line); border-radius: 14px;
+  background: var(--panel); box-shadow: var(--shadow-1); pointer-events: auto;
+}
+#equipmentTray[hidden] { display: none; }
+#equipmentTray > button { position: relative; inset: auto; flex: 1 0 44px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 2px 4px; border: 1px solid var(--panel-line); border-radius: 9px; background: var(--raised); color: var(--ink); font: 700 12px/1.1 system-ui; display: flex; flex-direction: column; gap: 1px; align-items: center; justify-content: center; touch-action: manipulation; }
+#equipmentTray .big { width: 23px; height: 23px; }
+#equipmentTray .cap { position: static; transform: none; border: 0; background: none; padding: 0; font-size: 9px; }
+#equipmentTray #battery { position: static; flex: 0 0 44px; height: 44px; margin: 0; padding: 4px 2px; }
+#equipmentTray > [hidden] { display: none; }
+body.equipment-open #log, body.equipment-open #logPill, body.equipment-open #logBubble { visibility: hidden; }
+#log, #logPill, body.inviting #log, body.inviting #logPill { bottom: var(--hud-message-bottom, calc(var(--edge-b) + var(--act) + 78px)); }
+#log { right: auto; width: min(380px, calc(100vw - var(--edge-l) - var(--edge-r) - 76px)); }
+#logBubble, body.inviting #logBubble { bottom: calc(var(--hud-message-bottom, 180px) + 52px); max-height: var(--hud-preview-room, 200px); overflow: hidden; }
+#performanceDetails { padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+body.placing #depthGauge { display: none; }
+.bcard.placing { max-height: calc(100dvh - var(--hud-top-end, 100px) - var(--edge-b) - 12px); overflow-y: auto; }
+@media (max-height: 500px) {
+  #log { width: min(380px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
+  #logBubble { max-width: min(340px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
+  #equipmentTray { top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: auto; right: auto; left: calc(var(--edge-l) + 64px); width: calc(100vw - var(--edge-l) - var(--edge-r) - 64px); }
+  body.equipment-open #hudMeta { visibility: hidden; }
+  body.equipment-open #depthGauge { display: none; }
+}
+
+@media (max-height: 500px) { #btnMine, #btnPerfect { bottom: calc(var(--act) + 12px); } }
+
+/* Explicit reading owns the same bounded disclosure area as Equipment. */
+body.hud-reading #hudSecondary { display: none; }
+
+/* Group names keep room to read without shrinking their text. */
+#btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2 + 12px); }
+
+#equipmentTray #btnEquipmentCraft { min-width: 64px; }
+body.equipment-open #autoTip { visibility: hidden; }
+
+#log { max-height: var(--hud-message-room, 100dvh); }
+
+#equipmentTray #btnFlare.on::before {
+  inset: auto 4px 1px; height: 2px; border-radius: 1px;
+  background: linear-gradient(to right, #ffcf6a calc(var(--left, 1) * 100%), transparent 0);
+  -webkit-mask: none; mask: none;
+}

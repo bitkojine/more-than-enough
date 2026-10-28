@@ -377,6 +377,15 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_HUD_ONLY==='1'){
+    await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
+    const {checkHudLayout}=await import('./hud-layout.browser.js');
+    await checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect});
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
+    await checkHudLayout({evalJS,ok,eq,cdp,session,shot:name=>shot('lt-'+name),tap,rect});
+    eq(pageErrors.length,0,'semantic HUD has no browser exceptions');
+    console.log((failures?'HUD BROWSER FAILURES':'HUD BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_ZOOM_ONLY==='1'){
    for(const [width,height] of [[320,568],[568,320],[390,844],[1366,768]]){
     await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<900},session);
@@ -926,7 +935,7 @@ async function main() {
       await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="machine");b.sections=Math.min(3,'+phase+');b.health='+ (phase?100:0)+';s.cultivation.completed='+ (phase===4)+';})()');
       await sleep(60);await shot('machine-stage-'+phase+'.png');
     }
-    await evalJS('document.getElementById("btnUpgrade").click()');await sleep(150);
+    await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');await sleep(150);
     ok(await evalJS('[...document.querySelectorAll("#sheetBody img")].every(i=>i.complete&&i.naturalWidth>0)'),'equipment art loads in Upgrade');
     await shot('fresh-equipment.png');
     await evalJS('document.getElementById("btnClose").click();document.getElementById("btnBuild").click()');await sleep(150);
@@ -955,7 +964,7 @@ async function main() {
     ok(await evalJS('MTE_GAME.core.nextGoal(MTE_GAME.getState())===null'),'completion has no stale mining objective');
     await evalJS('MTE_GAME.save();MTE_GAME.openCard(-99,-99)');
     await shot('cultivation-world-complete.png');
-    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt');
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
     ok(await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),'win survives normal browser reload');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
     await evalJS('(()=>{const m=MTE_GAME.getState().cultivation.facilities.find(b=>b.kind==="machine");MTE_GAME.openCard(m.x,m.y)})()');await sleep(200);
@@ -997,7 +1006,7 @@ async function main() {
     ok(await evalJS('document.getElementById("game") instanceof HTMLCanvasElement && !!MTE_GAME.look'),'original canvas and texture-pack renderer retained');
     ok(await evalJS('MTE_GAME.getState().tools.pickaxe===0&&MTE_GAME.getState().inv.ore===0'),'empty-handed opening retained');
     await shot('cultivation-surface.png');
-    await evalJS('document.getElementById("btnUpgrade").click()');
+    await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
     ok(await evalJS('!!document.querySelector("[data-kind=cultivation][data-id=carrier]")'),'equipment added to original Upgrade sheet');
     ok(await evalJS('!document.querySelector("[data-kind=resup]")'),'new world has no abstract refinement purchases');
     await evalJS('document.getElementById("btnClose").click()');
@@ -1033,7 +1042,7 @@ async function main() {
     await evalJS('document.getElementById("btnClose").click()');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
     await sleep(300);await shot('cultivation-existing-art.png');
-    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt');
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
     eq(await evalJS('MTE_GAME.getState().seed'),seed,'same original world resumes');
     ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'shutters survive ordinary save/reload');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
@@ -1077,7 +1086,7 @@ async function main() {
     ok(await evalJS('MTE_GAME.getState().extractors[1].buffer>20'),'unserved producer retains its output');
     await evalJS('document.getElementById("btnClose").click();MTE_GAME.hud.newWorld()');
     await sleep(150);await shot('depot-built.png');
-    await evalJS('document.getElementById("btnUpgrade").click()');
+    await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
     ok(await evalJS('!document.querySelector("button[data-kind=unlock][data-id=logistics]")'),'physical collection replaces the abstract Logistics purchase');
     await evalJS('document.getElementById("btnClose").click();MTE_GAME.save()');
     var depotSeed=await evalJS('MTE_GAME.getState().seed');
@@ -1138,11 +1147,11 @@ async function main() {
   }
   if (process.env.MTE_OPENING_ONLY === '1') {
     console.log('\n== Empty-handed opening: real crafting controls ==');
-    await evalJS('document.getElementById("btnUpgrade").click()');
+    await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
     await sleep(200);
     ok(await evalJS('document.querySelector("button[data-id=pickaxe]").disabled'), 'first pick cannot be crafted for free');
     ok(await evalJS('document.querySelector("button[data-id=pickaxe]").closest(".row").textContent.includes("Not crafted")'), 'uncrafted equipment is identified');
-    await evalJS('document.getElementById("btnClose").click();MTE_GAME.addRes("mycelium",42);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+    await evalJS('document.getElementById("btnClose").click();MTE_GAME.addRes("mycelium",42);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
     await sleep(200);
     await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click()');
     eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'paid first pick is crafted through the real button');
@@ -1364,7 +1373,7 @@ async function main() {
   ok(await evalJS('document.getElementById("btnMine").hidden'), 'no layer button on home ground');
   // This underground integration fixture needs a crafted pick. The separate
   // opening fixture verifies that the player starts without one.
-  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   await sleep(150);
   await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click();document.getElementById("btnClose").click()');
   eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'craft a pick before the underground digging fixture');
@@ -1699,6 +1708,7 @@ async function main() {
   console.log('\n== Upgrade (craft an Basket) ==');
   var upgradeControl = await rect('#btnUpgrade');
   await tap(upgradeControl.x, upgradeControl.y);
+  var craftGearControl=await rect('#btnEquipmentCraft');await tap(craftGearControl.x,craftGearControl.y);
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened');
   var axeCraft = await evalJS('(function(){var b=document.querySelector(".row button[data-id=basket]");return b?{disabled:b.disabled}:"missing";})()');
@@ -1790,6 +1800,7 @@ async function main() {
   console.log('\n== BUILD / UPGRADE buttons switch tabs ==');
   var upBtn = await rect('#btnUpgrade');
   await tap(upBtn.x, upBtn.y);
+  var craftGear=await rect('#btnEquipmentCraft');await tap(craftGear.x,craftGear.y);
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
   eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
@@ -1984,7 +1995,7 @@ async function main() {
   /* -------------------------------------------------- late-game UI */
   console.log('\n== Late-game UI (refinery chains, converters, Beyond) ==');
   await evalJS('MTE_GAME.addRes("mycelium",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);');
-  await evalJS('document.getElementById("btnUpgrade").click()');
+  await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   await sleep(300);
   ok(await evalJS('["refining","abundance","unlocks"].every(function(f){var b=document.querySelector("#sheetBody button[data-family="+f+"]");return b&&b.getAttribute("aria-expanded")==="true";})'),
     'families with something to buy open by themselves');
@@ -2010,7 +2021,7 @@ async function main() {
   var foundryLocked = await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-id=foundry]");return b?{disabled:b.disabled,text:b.textContent}:null;})()');
   ok(foundryLocked && foundryLocked.disabled, 'Foundry converter is locked until its blueprint is crafted');
   await evalJS('document.getElementById("btnClose").click()');
-  await evalJS('document.getElementById("btnUpgrade").click()');
+  await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   await sleep(250);
   await evalJS('document.querySelector("#sheetBody button[data-kind=unlock][data-id=foundry]").click()');
   await sleep(200);
@@ -2215,7 +2226,7 @@ async function main() {
   // Underground: a tap on the top of a wall digs that wall.
   // Embark above created another empty-handed world. This later fixture
   // must make its own pick as well; no equipment carries over.
-  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click()');
+  await evalJS('MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   await sleep(150);
   await evalJS('document.querySelector("button[data-kind=tool][data-id=pickaxe]").click();document.getElementById("btnClose").click()');
   eq(await evalJS('MTE_GAME.getState().tools.pickaxe'), 2, 'craft another pick after the empty-handed restart');
@@ -2401,17 +2412,17 @@ async function main() {
     'if(new RegExp("(^|[^\\\\p{L}])"+v.replace(/[.*+?^${}()|[\\]\\\\]/g,"\\\\$&")+"($|[^\\\\p{L}])","u").test(text))left.push(v);}done(JSON.stringify(left));});})';
   var langBefore = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   eq(await evalJS('document.documentElement.lang'), 'en', 'the game starts in the browser\'s language, English');
-  await evalJS('document.getElementById("btnUpgrade").click()');
+  await evalJS('document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   await evalJS('document.getElementById("btnLanguage").click()');
   ok(await waitFor('document.documentElement.lang === "lt" && !!window.MTE_GAME', 8000), 'the Language button reloads the game in Lithuanian');
   await sleep(400);
   var langAfter = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   ok(Math.abs(langAfter.x - langBefore.x) < 0.01 && Math.abs(langAfter.y - langBefore.y) < 0.01 && langAfter.z === langBefore.z, 'switching language keeps the world and where you stand');
-  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'TOBULINTI', 'the thumb buttons speak Lithuanian');
+  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'Įranga', 'the thumb buttons speak Lithuanian');
   eq(await evalJS('localStorage.getItem("mte.lang")'), 'lt', 'the choice is remembered');
   var ltLeft = [];
   for (var tabName of ['upgrades', 'build', 'awards', 'collected']) {
-    await evalJS(tabName === 'collected' ? 'document.querySelector("#resources .chip").click()' : 'document.getElementById("sheet").classList.contains("open") || document.getElementById("btnUpgrade").click(); document.querySelector(".tab[data-tab=' + tabName + ']").click()');
+    await evalJS(tabName === 'collected' ? 'document.querySelector("#resources .chip").click()' : 'document.getElementById("sheet").classList.contains("open") || document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click(); document.querySelector(".tab[data-tab=' + tabName + ']").click()');
     await sleep(200);
     ltLeft = ltLeft.concat(JSON.parse(await evalJS(englishLeft)));
   }
@@ -2424,7 +2435,7 @@ async function main() {
   await evalJS('document.getElementById("language").click()');
   ok(await waitFor('document.documentElement.lang === "en" && document.body.dataset.filled === "true"', 8000), "the wiki's own Language button switches back to English");
   await navigate('http://127.0.0.1:' + PORT + '/');
-  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'UPGRADE', 'and the game follows');
+  eq(await evalJS('document.querySelector("#btnUpgrade .cap").textContent'), 'Equipment', 'and the game follows');
 
   console.log('\n== A new player: the first press, leaving, coming back ==');
   // The very first thing a new player does is press the big button, standing

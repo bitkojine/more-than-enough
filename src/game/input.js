@@ -300,6 +300,8 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   const isActionKey = (e) => e.key === ' ' || e.key === 'Enter';  // i18n-ok: a key name
   window.addEventListener('keydown', (e) => {
+    // Native focused controls own Space; it must not also trigger Gather.
+    if (isActionKey(e) && e.target?.closest?.('button, [role="button"]')) return;
     const k = e.key.toLowerCase();
     keys[k] = true;
     if (isActionKey(e)) {
@@ -328,7 +330,7 @@ export function createInput({ canvas, cam, el, handlers }) {
   // Block browser scrolling and zoom gestures outside the sheet, the
   // building card and the message log, which scroll themselves.
   document.addEventListener('touchmove', (e) => {
-    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard, #log')) return;
+    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard, #log, #equipmentTray')) return;
     if (e.cancelable) e.preventDefault();
   }, { passive: false });
   document.addEventListener('gesturestart', (e) => e.preventDefault());

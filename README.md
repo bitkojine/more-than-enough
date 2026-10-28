@@ -55,6 +55,18 @@ npm run test:layout   # real Chrome: every screen at 12 sizes, both languages
 npm run test:extended # the long 1,500-seed property sweep
 ```
 
+The combined HUD gate is bounded and uses presentation fixtures rather than
+long game runs:
+
+```sh
+CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_HUD_ONLY=1 npm run test:e2e
+```
+
+It checks six viewport sizes in both languages, compact Equipment touch input,
+Settlement contents, overlapping groups, and cached layout work. The deploy
+runs it alongside rendering checks. `test:layout` separately checks the wider
+set of menus, placement, dialogs and shared-world crowds.
+
 Current-world end-to-end playtests use the manual-action strategy, not legacy
 AUTO (which is disabled in cultivation worlds). Reserve fresh seeds in the same
 archive as other playtests:

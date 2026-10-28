@@ -187,7 +187,7 @@ export function createHud(el, look, messages) {
       document.body.classList.toggle('below', below);
       if (below) {
         setText(el.depth.lastElementChild, number(Core.SURFACE - s.player.z));
-        el.depth.setAttribute('aria-label', t('hud.layerN', { n: Core.SURFACE - s.player.z }));
+        el.depth.setAttribute('aria-label', t('hud.layerN', { n: Core.SURFACE - s.player.z }) + '. ' + t('map.title'));
       }
       updateGauge(s);
     },

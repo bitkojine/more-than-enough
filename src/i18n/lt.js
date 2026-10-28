@@ -2,6 +2,12 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "hud.equipment": "Įranga",
+  "hud.settlement": "Gyvenvietė",
+  "hud.improvements": "Gerinti esamus pastatus",
+  "hud.site": "{name} · {x}, {y}",
+  "hud.details": "Išsamiau",
+  "news.0.180.0": "Įranga atveria nedidelį šviesos priemonių skydelį, iš kurio galima pereiti prie gamybos. Gyvenvietėje rasite statybą ir pastatų gerinimą. Kai ekrane ankšta, papildoma informacija suskleidžiama nustatyta tvarka, o pagrindiniai mygtukai lieka vietoje.",
   "news.0.179.4": "Vaizdo mastelio mygtukai dabar visada išdėstyti horizontaliai po keturiais ištekliais, bet kokio dydžio ekrane.",
   "news.0.179.3": "Pasikartojantys perspėjimai tarp priminimų nutyla. Kai žinučių sąrašas suskleistas, naujos žinutės trumpai pasirodo burbule ir nusileidžia į mygtuką. Sąraše jas galima perskaityti vėliau.",
   "news.0.179.2": "Sklandesni vakarai: medžiai, grybai ir pastatai naudoja jau patamsintus vaizdus, užuot kas kadrą perpiešę laikinus paviršius. Judant apšvietimas išlieka taisyklingas.",

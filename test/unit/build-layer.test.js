@@ -41,11 +41,11 @@ test('a crystal room the list hides on a layer is one the rules refuse there', (
   }
 });
 
-test('NEW on Build counts only what goes on your layer', () => {
+test('NEW on Settlement construction counts only what goes on your layer', () => {
   const s = C.createState(7);
   for (const r of C.RESOURCES) C.earn(s, r, 1e6, 'hand');
   for (const u of Object.keys(C.UNLOCKS)) s.unlocks[u] = true;
-  const build = () => offers(s).filter(([sheet]) => sheet === 'build').map(([, id]) => id);
+  const build = () => offers(s).filter(([sheet,id]) => sheet === 'build' && !C.UPGRADES[id]).map(([, id]) => id);
   assert.ok(build().every((k) => C.PROPS[k]?.on !== 'tunnel'));
   assert.ok(build().includes('garden'));
   s.player.z = -1;

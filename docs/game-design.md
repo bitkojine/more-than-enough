@@ -746,3 +746,47 @@ only and does not enable AUTO or new player-facing controls.
 
 The game-view zoom panel is always horizontal and directly below the four
 main resource counters, including portrait phones, landscape and desktop.
+
+### HUD grouping and collapse hierarchy (Watch, 2026-10-28)
+
+Implemented in v0.180.0:
+
+- Resources and essential action buttons remain visible. Battery, depth,
+  friends and developer stats may collapse into compact indicators.
+- Group controls by their purpose and the player's task, not merely by
+  where they happen to sit on screen.
+- Construction and building improvements share a Settlement menu. Equipment
+  crafting and equipment upgrades belong under Equipment (confirmed by Watch).
+- When space runs out, collapse developer stats first, then friend names,
+  secondary status details, and expanded Messages. Essential actions remain
+  accessible. Collapsing hides detail, not access to the underlying feature.
+- Secondary equipment actions may live behind one expandable Equipment
+  control. Gather and the relevant ladder action remain directly accessible.
+- Keep controls predictable: warnings do not automatically expand Equipment,
+  reveal extra controls, or rearrange the HUD. The player explicitly opens
+  collapsed groups. The current small set of equipment warning cases does
+  not justify context-triggered exceptions (confirmed by Watch).
+- Defer the design of arriving-message previews on crowded screens; the
+  existing bubble behavior remains the current implementation until that
+  decision is revisited.
+
+Open design questions:
+
+- Message arrival presentation on crowded screens remains deferred. The
+  existing queue and animation remain, constrained to allocated HUD space.
+
+Equipment opens a compact tray first; crafting is a deliberate second step.
+Settlement combines construction and improvements in one menu, with existing
+sites named by their coordinates on the current layer. Improvements use normal
+approach-before-action commands. This is a presentation reorganization: costs,
+physical rules, save formats, and purchased equipment do not change.
+
+The shared HUD policy bounds optional detail by the available vertical room.
+The world-status and metadata groups share one secondary row below resources
+and zoom. At tight sizes, performance becomes a one-line details link, friends
+become a count, and the layer gauge folds while the layer/map control remains.
+Automatic log compaction does not overwrite the player's saved preference; a
+player can still explicitly open Messages. Equipment is a deliberate disclosure:
+while its tray is open it takes priority over the log preview, as placement does.
+No warning opens the tray. Immediate actions and group buttons retain their
+slots across compaction; viewport changes adapt dimensions, not their order.

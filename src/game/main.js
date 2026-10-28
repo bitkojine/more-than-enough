@@ -10,6 +10,7 @@ import { createCamera } from './camera.js';
 import { createAudio } from './audio.js';
 import { sceneFor } from './music/score.js';
 import { createEffects } from './effects.js';
+import { createHudLayout } from './hud-layout.js';
 import { createHud } from './hud.js';
 import { createTooltips } from './tooltips.js';
 import { createWiki } from './wiki.js';
@@ -371,7 +372,7 @@ const sheet = createSheet(el, {
   },
   // Place (a building, or a crystal-world one) closes the sheet and stands
   // it on the map to be put where you like (placing.js).
-  actions: { cultivation: (cmd) => cmd.type === 'build' ? startPlacing({ kind: cmd.kind }) : cultivate(cmd), buy: controller.buy, place: (key) => startPlacing({ key }), placeProp: controller.placeProp, embark: controller.embark }
+  actions: { cultivation: (cmd) => { if (cmd.type === 'build') return startPlacing({ kind: cmd.kind }); if (cmd.type !== 'craft') sheet.close(); return cultivate(cmd); }, buy: controller.buy, place: (key) => startPlacing({ key }), placeProp: controller.placeProp, embark: controller.embark }
 });
 
 // A crystal-world command, from a sheet, a building's card or the lantern
@@ -498,6 +499,7 @@ const input = createInput({
       else if (cmd === 'back') goBack();
       else if (cmd === 'lantern') toggleLantern();
       else if (cmd === 'flare') useFlare();
+      else if (cmd === 'upgrades') hudLayout.toggle();
       else sheet.toggle(cmd);
     }
   }
@@ -505,7 +507,12 @@ const input = createInput({
 
 
 el.build.addEventListener('click', () => sheet.toggle('build'));
-el.upgrade.addEventListener('click', () => sheet.toggle('upgrades'));
+const hudLayout = createHudLayout({ el, messages,
+  beforeOpen: () => { sheet.close(); card.close(); },
+  openCrafting: () => sheet.show('upgrades'),
+  openPerformance: () => { el.performanceDetails.textContent = el.perf.textContent; sheet.show('performance'); }
+});
+el.depth.addEventListener('click', () => mapView.button());
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
 el.settings.addEventListener('click', () => sheet.toggle('settings'));
 el.map.addEventListener('click', () => mapView.button());
@@ -702,6 +709,7 @@ function updateView(dt) {
   placing.tick(dt);
   showLantern(s);
   showFlare(s);
+  hudLayout.tick();
 }
 
 // Where the zoom pill sits on the canvas, so a friend's edge badge (and the
@@ -1021,6 +1029,7 @@ window.MTE_GAME = {
   perfVisible: () => perf.visible,
   wiki,
   messages,
+  hudLayout,
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)
 };

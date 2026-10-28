@@ -13,10 +13,11 @@ import { t } from '../i18n/i18n.js';
 import { SHEETS } from './fresh.js';
 import { createStatement } from './statement.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
+const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['performance', t('nerds.perf')], ['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
-const PANELS = { settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel', devices: 'devicesPanel' };
+const PANELS = { performance: 'performancePanel', settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel', devices: 'devicesPanel' };
 // The game lists, which show their tabs; every other screen shows its title.
+TITLES.build = t('hud.settlement'); TITLES.upgrades = t('hud.equipment');
 const TABBED = ['upgrades', 'build', 'beyond', 'awards'];
 // Screens one row inside Settings: opened from there, ‹ goes back to it.
 const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds', 'devices'];
@@ -183,11 +184,11 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
   }
 
-  function renderUpgrades(s) {
-    if (s.cultivation) return cultivationUpgradeRows(s);
+  function renderUpgrades(s, settlement = false) {
+    if (s.cultivation) return settlement ? '' : cultivationUpgradeRows(s);
 
     let html = `<div class="section">${t('sheet.section.world')}</div>`;
-    for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world')) {
+    for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world' && (settlement ? fam.id !== 'tools' : fam.id === 'tools'))) {
       const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
       const count = f.id === 'abundance' ? () => t('sheet.level', { lv: s.abundanceLv }) : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
@@ -234,7 +235,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   }
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
-  function renderBuild(s) {
+  function renderConstruction(s) {
     // Only what can stand on the layer you're on: nothing you'd have to go
     // up or down for, and no heading over an empty section.
     const here = (keys) => keys.filter((k) => Core.buildsOnLayer(s, k));
@@ -245,6 +246,21 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
       section('sheet.section.support', here(Core.SUPPORT_BUILDINGS).map((k) => extractorRow(s, k)).join('')) +
       section('sheet.section.water', here(propsOn(true)).map((k) => propRow(s, k)).join('')) +
       section('sheet.section.mine', here(propsOn(false)).map((k) => propRow(s, k)).join(''));
+  }
+
+  function renderBuild(s) {
+    let html = renderConstruction(s);
+    if (!s.cultivation) return html + renderUpgrades(s, true);
+    const improvements = s.cultivation.facilities.filter(b => b.z === s.player.z).map(b => {
+      const action = ['chamber','vault'].includes(b.kind) && !b.reinforced ? 'reinforce'
+        : b.kind === 'machine' && Core.machineRepairCost(b) ? 'repair' : null;
+      if (!action) return '';
+      const cost = action === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES.reinforce;
+      const title = t('hud.site', { name: crystalName(b.kind), x: b.x, y: b.y });
+      return row(pic(Core.CULTIVATION_LOOK[b.kind], 'image'), esc(title), price(s.inv, cost),
+        button(`data-kind="cultivation" data-action="${action}" data-id="${b.kind}" data-x="${b.x}" data-y="${b.y}"`, crystalName(action), Core.canAfford(s.inv, cost)));
+    }).join('');
+    return html + (improvements ? `<div class="section">${t('hud.improvements')}</div>` + improvements : '');
   }
 
   function renderBeyond(s) {
