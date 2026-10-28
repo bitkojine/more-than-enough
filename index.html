@@ -235,8 +235,8 @@
     <button id="btnEquipmentCraft" type="button"><img data-look="tool.basket" alt=""><span data-i18n="sheet.craft"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
   </section>
 
-  <!-- Every list in the game is this one sheet: tabs (or, for a screen
-       outside them, its title) beside a ×, and a scrolling body. A screen
+  <!-- Every menu uses this sheet: its title beside a close control and a
+       scrolling body. Dedicated buttons open each menu. A screen
        opened from Settings has ‹ before its title, back to Settings. Swipe it
        down by the handle or tap the map to close. -->
   <div id="sheet" aria-hidden="true">
@@ -244,12 +244,6 @@
     <div id="sheetHead">
       <button id="btnBack" class="hudBtn" type="button" data-i18n-aria-label="sheet.back" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg></button>
       <div id="sheetTitle"></div>
-      <div id="tabs" role="tablist">
-        <button class="tab active" type="button" role="tab" data-tab="upgrades" data-i18n="hud.equipment"></button>
-        <button class="tab" type="button" role="tab" data-tab="build" data-i18n="hud.settlement"></button>
-        <button class="tab" id="tabBeyond" type="button" role="tab" data-tab="beyond" data-i18n="sheet.beyond"></button>
-        <button class="tab" type="button" role="tab" data-tab="awards" data-i18n="sheet.awards"></button>
-      </div>
       <button id="btnClose" class="hudBtn" type="button" data-i18n-aria-label="sheet.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
     </div>
     <div id="sheetBody"></div>
@@ -270,6 +264,7 @@
     <div id="newsPanel" hidden></div>
     <div id="settingsPanel" class="setPanel" hidden>
       <div class="setGroup">
+        <button id="btnBeyond" class="setRow" type="button" hidden><span data-i18n="sheet.beyond"></span><b aria-hidden="true">&rsaquo;</b></button>
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
         <button id="btnPlayers" class="setRow" type="button" hidden><span data-i18n="players.title"></span><b><span id="playersCount"></span> &rsaquo;</b></button>
         <button id="btnInvites" class="setRow" type="button" hidden><span data-i18n="invites.title"></span><b aria-hidden="true">&rsaquo;</b></button>

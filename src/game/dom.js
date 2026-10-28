@@ -68,7 +68,7 @@ export function findElements() {
     sheetGrab: byId('sheetGrab'),
     sheetTitle: byId('sheetTitle'),
     sheetBody: byId('sheetBody'),
-    tabs: [...document.querySelectorAll('#tabs .tab')],
+    beyond: byId('btnBeyond'),
     close: byId('btnClose'),
     back: byId('btnBack'),
     mute: byId('btnMute'),

@@ -1,6 +1,6 @@
 /* The bottom sheet: Upgrades (the progression map), Build, Beyond, Awards,
  * the earnings statement (opened by tapping the resource bar, so it has no
- * tab; src/game/statement.js) and
+ * separate menu button; src/game/statement.js) and
  * Settings (opened by the gear; its controls are static, in index.html). It
  * renders from state and reports what the player picked through `actions`.
  * Rows keep names, levels, numbers and prices concise. Optional inspection
@@ -16,11 +16,10 @@ import { createStatement } from './statement.js';
 const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['performance', t('nerds.perf')], ['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
 const PANELS = { performance: 'performancePanel', settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel', devices: 'devicesPanel' };
-// The game lists, which show their tabs; every other screen shows its title.
+// Every menu has its own title and dedicated entry button.
 TITLES.build = t('hud.settlement'); TITLES.upgrades = t('hud.equipment');
-const TABBED = ['upgrades', 'build', 'beyond', 'awards'];
 // Screens one row inside Settings: opened from there, ‹ goes back to it.
-const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds', 'devices'];
+const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds', 'devices', 'beyond'];
 const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
@@ -166,9 +165,8 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   // Progression families showing their buy rows. One the player hasn't
   // opened or closed opens by itself while it has something to buy.
   const expanded = { tools: true };
-  const beyondTab = el.tabs.find((t) => t.dataset.tab === 'beyond');
   let beyondShownUnlocked = beyondUnlocked(getState());
-  beyondTab.hidden = !beyondShownUnlocked;
+  el.beyond.hidden = !beyondShownUnlocked;
 
   function rail(nodes) {
     return '<span class="rail">' + nodes.map((n) => `<span class="node ${n.state}" aria-hidden="true" title="${esc(n.name)}"></span>`).join('') + '</span>';
@@ -381,9 +379,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     tab = next;
     from = parent;
     el.sheetTitle.textContent = TITLES[tab];
-    for (const t of el.tabs) t.classList.toggle('active', t.dataset.tab === tab);
     el.sheet.dataset.tab = tab;
-    el.sheet.classList.toggle('titled', !TABBED.includes(tab));
     el.back.hidden = !from;
     for (const [screen, panel] of Object.entries(PANELS)) el[panel].hidden = screen !== tab;
     el.sheetBody.hidden = !!PANELS[tab];
@@ -393,6 +389,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
 
   // A screen inside Settings opened from Settings remembers it, for ‹.
   function show(next) {
+    el.beyond.hidden = !beyondUnlocked(getState());
     const parent = open && tab === 'settings' && IN_SETTINGS.includes(next) ? 'settings' : null;
     open = true;
     el.sheet.classList.add('open');
@@ -425,7 +422,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     if (!target || target.disabled) return;
     const { kind, id, family } = target.dataset;
     if (family) {
-      if (family === 'legacy') setTab('beyond');
+      if (family === 'legacy') setTab('beyond', tab);
       else { expanded[family] = target.getAttribute('aria-expanded') !== 'true'; render(); }
       return;
     }
@@ -436,7 +433,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     else if (kind) actions.buy(id);
     if (open) render();
   });
-  el.tabs.forEach((t) => t.addEventListener('click', () => setTab(t.dataset.tab)));
+  el.beyond.addEventListener('click', () => show('beyond'));
   el.close.addEventListener('click', close);
   el.back.addEventListener('click', back);
 
@@ -469,12 +466,12 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     get isOpen() { return open; },
     get tab() { return tab; },
     show, close, back, toggle, render, showStatement,
-    // Reveal the Beyond tab's contents live once the prestige loop unlocks.
+    // Keep the dedicated Beyond entry in step with the world's unlock state.
     tick() {
       const shown = beyondUnlocked(getState());
       if (shown !== beyondShownUnlocked) {
         beyondShownUnlocked = shown;
-        beyondTab.hidden = !shown;
+        el.beyond.hidden = !shown;
         if (!shown && tab === 'beyond') setTab('upgrades');
         else if (open) render();
       }

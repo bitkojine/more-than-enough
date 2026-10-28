@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.180.2] - 2026-10-28
+
+- Remove the shared menu tabs. Equipment, Settlement and Awards open from
+  their dedicated buttons, with each menu displaying its own localized title.
+- Give unlocked solo-world Beyond a dedicated Settings row, with Back
+  returning to Settings. Preserve the legacy progression shortcut and its
+  return path, existing unlock rules and saved seen-offer history.
+- Remove obsolete tab markup, styles and handlers. Check direct menu access,
+  localized titles, Beyond unlocks and return navigation in browser fixtures.
+
 ## [0.180.1] - 2026-10-28
 
 - Replace Equipment's flat button strip with a named compact card. Put a

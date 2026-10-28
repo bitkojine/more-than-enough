@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.1": "Įrangos skydelyje aiškiau atskirti pavadinimas, uždarymas, šviesos priemonės ir gamyba. Žinučių mygtukas lieka pasiekiamas: atvėrus jį, įranga užsidaro ir atsiveria žinutės. Grįžimo mygtukas taip pat uždaro įrangą.",
+  "news.0.180.2": "Meniu nebeturi bendrų kortelių. Įranga → Gaminti, Gyvenvietė ir taurės mygtukas atveria atskirus meniu. Atrakintas Anapus meniu pasiekiamas per Nustatymus, o grįžimo mygtukas sugrąžina į juos.",
   "hud.equipment": "Įranga",
   "hud.settlement": "Gyvenvietė",
   "hud.improvements": "Gerinti esamus pastatus",

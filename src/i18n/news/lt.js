@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.1": "Įrangos skydelyje aiškiau atskirti pavadinimas, uždarymas, šviesos priemonės ir gamyba. Žinučių mygtukas lieka pasiekiamas: atvėrus jį, įranga užsidaro ir atsiveria žinutės. Grįžimo mygtukas taip pat uždaro įrangą.",
   "news.0.180.0": "Įranga atveria nedidelį šviesos priemonių skydelį, iš kurio galima pereiti prie gamybos. Gyvenvietėje rasite statybą ir pastatų gerinimą. Kai ekrane ankšta, papildoma informacija suskleidžiama nustatyta tvarka, o pagrindiniai mygtukai lieka vietoje.",
   "news.0.179.4": "Vaizdo mastelio mygtukai dabar visada išdėstyti horizontaliai po keturiais ištekliais, bet kokio dydžio ekrane.",
   "news.0.179.3": "Pasikartojantys perspėjimai tarp priminimų nutyla. Kai žinučių sąrašas suskleistas, naujos žinutės trumpai pasirodo burbule ir nusileidžia į mygtuką. Sąraše jas galima perskaityti vėliau.",

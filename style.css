@@ -663,45 +663,18 @@ body.signing #zoomControls { visibility: hidden; }
 }
 #sheetGrab:active span { background: rgba(255, 255, 255, 0.4); }
 
-/* The tabs, or a screen's own title, with × on the right. */
+/* Every menu shows its own title, with Close on the right. */
 #sheetHead {
   flex: 0 0 auto;
   display: flex; align-items: center; gap: 10px;
   padding: 0 12px 8px;
 }
 #sheetTitle { flex: 1 1 auto; padding-left: 6px; font-size: 20px; font-weight: 800; color: var(--ink); }
-#sheet:not(.titled) #sheetTitle, #sheet.titled #tabs, #btnBack[hidden] { display: none; }
+#btnBack[hidden] { display: none; }
 #btnBack:not([hidden]) + #sheetTitle { padding-left: 0; }
 #sheet[data-tab="map"] { height: min(88vh, 900px); max-width: 900px; }
 #btnClose, #btnBack { flex: 0 0 auto; width: 40px; height: 40px; box-shadow: none; background: var(--raised); }
 #btnClose svg, #btnBack svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-
-/* Tabs: one segmented control under the title. */
-#tabs {
-  flex: 1 1 auto; min-width: 0;
-  display: flex; gap: 2px;
-  padding: 3px;
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid var(--panel-line);
-}
-#tabs [hidden] { display: none; }
-.tab {
-  flex: 1 1 auto;
-  min-width: 0; height: 38px; padding: 0 6px;
-  border: 0; border-radius: 9px;
-  background: none;
-  color: var(--ink-dim);
-  font: 800 13.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  touch-action: manipulation; cursor: pointer;
-  transition: background .15s ease, color .15s ease;
-}
-/* Phones: a little smaller, so every tab's whole name fits (Lithuanian's
-   are long: Patobulinimai, Apdovanojimai). */
-@media (max-width: 413px) { .tab { font-size: 12.5px; } }
-@media (max-width: 374px) { .tab { font-size: 11.5px; padding: 0 3px; letter-spacing: -0.01em; } }
-.tab.active { color: #0c1a0e; background: var(--green); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); }
 
 #sheetBody {
   overflow-y: auto;
@@ -1260,7 +1233,6 @@ body.placing #logBubble, body.signing #logBubble, body.mapping #logBubble { visi
 @media (max-height: 500px) {
   :root { --act: 72px; --sub: 50px; --gap: 10px; --edge-b: calc(env(safe-area-inset-bottom, 0px) + 14px); }
   #sheet { height: 88vh; }
-  .tab { height: 34px; }
   .setRow { min-height: 44px; }
 }
 

@@ -105,7 +105,7 @@ function problems() {
   }
 
   // Words cut short with an ellipsis (or clipped) anywhere a player reads.
-  for (const el of document.querySelectorAll('.tab, .chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
+  for (const el of document.querySelectorAll('.chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
     if (!shown(el) || !el.textContent.trim()) continue;
     if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push('cut short: ' + name(el));
   }

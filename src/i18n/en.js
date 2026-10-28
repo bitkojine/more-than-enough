@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.1": "Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.",
+  "news.0.180.2": "Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.",
   "hud.equipment": "Equipment",
   "hud.settlement": "Settlement",
   "hud.improvements": "Improve existing buildings",

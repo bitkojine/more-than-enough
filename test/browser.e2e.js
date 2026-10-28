@@ -208,6 +208,19 @@ async function main() {
     return r.result.value;
   };
 
+  // Navigate through the actual dedicated menu buttons, never removed tabs.
+  async function openMenu(name) {
+    const entry = {
+      upgrades: 'document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()',
+      build: 'document.getElementById("btnBuild").click()',
+      awards: 'document.getElementById("btnAwards").click()',
+      beyond: 'document.getElementById("btnSettings").click();document.getElementById("btnBeyond").click()',
+      collected: 'document.querySelector("#resources .chip").click()'
+    }[name];
+    if (!entry) throw new Error('Unknown menu: ' + name);
+    await evalJS('document.getElementById("btnClose").click();' + entry);
+  }
+
   async function waitFor(expr, timeout) {
     var end = Date.now() + (timeout || 8000);
     while (Date.now() < end) {
@@ -973,7 +986,7 @@ async function main() {
     await evalJS('document.getElementById("btnBuild").click()');await sleep(200);
     ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'completed Lithuanian sheet fits a phone');
     await shot('cultivation-win-phone-lt.png');
-    await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+    await openMenu('beyond');
     ok(await evalJS('!document.querySelector("[data-kind=embark]").disabled'),'Beyond offers an empty-handed next world');
     await evalJS('document.querySelector("[data-kind=embark]").click()');
     ok(await waitFor('!document.getElementById("ask").hidden'),'next world asks for confirmation');
@@ -1749,7 +1762,7 @@ async function main() {
   await tap(buildBtn.x, buildBtn.y);
   await sleep(300);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'build sheet opened via touch tap');
-  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'Build tab is highlighted when opened via the button');
+  eq(await evalJS('document.getElementById("sheet").dataset.tab'), 'build', 'Settlement menu opens through its button');
   var placeReady = await evalJS('(function(){var b=document.querySelector(".row button[data-id=garden]");return b?!b.disabled:false;})()');
   ok(placeReady, 'Mushroom Garden can be placed on the current tile');
   var gardenButton = await rect('.row button[data-id=garden]');
@@ -1797,26 +1810,26 @@ async function main() {
   ok(collectAfter.buf[0] < 4, 'Collect drains the nearby buffer while production continues (' + collectAfter.buf[0].toFixed(2) + ' remains)');
   await sleep(200);
 
-  console.log('\n== BUILD / UPGRADE buttons switch tabs ==');
+  console.log('\n== Dedicated buttons open their menus ==');
   var upBtn = await rect('#btnUpgrade');
   await tap(upBtn.x, upBtn.y);
   var craftGear=await rect('#btnEquipmentCraft');await tap(craftGear.x,craftGear.y);
   await sleep(250);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'upgrade sheet opened via touch tap');
-  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'upgrades', 'Upgrades tab is highlighted when opened via the button');
+  eq(await evalJS('document.getElementById("sheet").dataset.tab'), 'upgrades', 'Equipment crafting opens through its button');
   // Settings live behind the gear, not under every list.
   ok(await evalJS('document.getElementById("btnMute").offsetParent === null'), 'settings are not shown with the game lists');
   var gear = await rect('#btnSettings');
   await tap(gear.x, gear.y);
   await sleep(250);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Settings', 'the gear switches the sheet to Settings');
-  ok(await evalJS('document.getElementById("sheetBody").hidden && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Settings shows no game list and no tabs');
+  ok(await evalJS('document.getElementById("sheetBody").hidden && !document.getElementById("tabs")'), 'Settings shows no game list and no tabs');
   // The technical things wait one row further in, under Nerds.
   ok(await evalJS('document.getElementById("btnBackupSave").offsetParent === null && document.getElementById("version").offsetParent === null'), 'Settings keeps backups and the version out of sight');
   await evalJS('document.getElementById("btnNerds").click()');
   await sleep(100);
   eq(await evalJS('document.getElementById("sheetTitle").textContent'), 'Nerds', 'Nerds opens its own screen');
-  ok(await evalJS('document.getElementById("sheetTitle").offsetParent !== null && getComputedStyle(document.getElementById("tabs")).display === "none"'), 'Nerds shows its title, not the game tabs');
+  ok(await evalJS('document.getElementById("sheetTitle").offsetParent !== null && !document.getElementById("tabs")'), 'Nerds shows its title, not the game tabs');
   ok(await evalJS('document.getElementById("btnBackupSave").offsetParent !== null && document.getElementById("btnMute").offsetParent === null'), 'Nerds shows backups, not the everyday settings');
   ok(/v\d+\.\d+\.\d+/.test(await evalJS('document.getElementById("version").textContent')), 'the version is shown in Nerds');
   eq(await evalJS('document.getElementById("perfState").textContent'), 'off', 'the performance panel switch starts off');
@@ -1854,19 +1867,19 @@ async function main() {
   eq(await evalJS('document.getElementById("muteState").textContent'), 'on', 'Sound control unmutes with one tap');
   eq(await evalJS('document.getElementById("wikiLink").getAttribute("href")'), 'wiki/', 'the sheet links to the wiki');
   eq(await evalJS('document.getElementById("wikiLink").target'), '_blank', 'the wiki opens outside the game');
-  await evalJS('document.querySelector("#tabs .tab[data-tab=upgrades]").click()');
+  await openMenu('upgrades');
   var audioState = await evalJS('MTE_GAME.audioState()');
   console.log('  audio state after gestures: ' + audioState);
   ok(audioState !== 'none', 'audio context is created by early gestures (was: ' + audioState + ')');
   // Embarking is the end of a world: no sign of it while you're upgrading.
-  ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'the Beyond tab stays hidden while there are upgrades to buy');
+  ok(await evalJS('document.getElementById("btnBeyond").hidden'), 'the Beyond button stays hidden while there are upgrades to buy');
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'), 4, 'the progression map shows only the four world families');
   await sleep(200);
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
   await sleep(300);
-  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'B key keeps the sheet open while switching tabs');
-  eq(await evalJS('document.querySelector("#tabs .tab.active").dataset.tab'), 'build', 'B key switches an open sheet to the Build tab');
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")'), 'B key keeps the sheet open while switching menus');
+  eq(await evalJS('document.getElementById("sheet").dataset.tab'), 'build', 'B key opens Settlement in the shared sheet');
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
   await sleep(300);
@@ -2042,18 +2055,18 @@ async function main() {
 
   await evalJS('(function(){var s=MTE_GAME.getState();s.stats.mycelium=MTE_GAME.core.EMBARK_MIN_TOTAL;})()');
   await sleep(500);
-  ok(await evalJS('document.getElementById("tabBeyond").hidden'), 'a huge haul alone does not reveal Beyond');
+  ok(await evalJS('document.getElementById("btnBeyond").hidden'), 'a huge haul alone does not reveal Beyond');
   // Master the world: every tool, refinery and unlock, Abundance to the embark level.
   await evalJS('(function(){var s=MTE_GAME.getState(),C=MTE_GAME.core;for(var k in s.tools)s.tools[k]=C.TOOLS[k].levels.length;for(k in s.resUp)s.resUp[k]=C.REFINERIES[k].levels.length;for(k in s.unlocks)s.unlocks[k]=true;s.abundanceLv=C.EMBARK_ABUNDANCE;})()');
-  ok(await waitFor('!document.getElementById("tabBeyond").hidden', 1500), 'mastering the world reveals the Beyond tab');
-  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+  ok(await waitFor('!document.getElementById("btnBeyond").hidden', 1500), 'mastering the world reveals the Beyond button');
+  await openMenu('beyond');
   await sleep(250);
   eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 0, 'new worlds do not offer legacy carry-over perks');
-  await evalJS('MTE_GAME.getState().emptyStart=false;document.querySelector(".tab[data-tab=beyond]").click()');
-  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 3, 'three active legacy perks offered in the Beyond tab');
+  await evalJS('MTE_GAME.getState().emptyStart=false');await openMenu('beyond');
+  eq(await evalJS('document.querySelectorAll("#sheetBody button[data-kind=perk]").length'), 3, 'three active legacy perks offered in the Beyond button');
   ok(await evalJS('(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'), 'Embark is enabled in a mastered world with enough gathered');
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
-  await evalJS('document.querySelector(".tab[data-tab=beyond]").click()');
+  await openMenu('beyond');
   await sleep(200);
   var legacyBefore = await evalJS('MTE_GAME.getState().perks.legacy');
   await evalJS('document.querySelector("#sheetBody button[data-kind=perk][data-id=legacy]").click()');
@@ -2082,7 +2095,7 @@ async function main() {
   eq(afterEmbark.insight, 0, 'new worlds carry no spendable Insight');
   ok(await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'), 'carried lifetime progress cannot enable immediate re-embark');
   eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
-  ok(await evalJS('!document.getElementById("tabBeyond").hidden'), 'after an Embark, Beyond stays for the perks');
+  ok(await evalJS('!document.getElementById("btnBeyond").hidden'), 'after an Embark, Beyond stays for the perks');
 
   /* --------------------------- Logistics hauls from anywhere (v0.111.0) */
   console.log('\n== Logistics auto-collect works at any distance ==');
@@ -2422,7 +2435,7 @@ async function main() {
   eq(await evalJS('localStorage.getItem("mte.lang")'), 'lt', 'the choice is remembered');
   var ltLeft = [];
   for (var tabName of ['upgrades', 'build', 'awards', 'collected']) {
-    await evalJS(tabName === 'collected' ? 'document.querySelector("#resources .chip").click()' : 'document.getElementById("sheet").classList.contains("open") || document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click(); document.querySelector(".tab[data-tab=' + tabName + ']").click()');
+    await openMenu(tabName);
     await sleep(200);
     ltLeft = ltLeft.concat(JSON.parse(await evalJS(englishLeft)));
   }

@@ -776,6 +776,12 @@ Open design questions:
   existing queue and animation remain, constrained to allocated HUD space.
 
 Equipment opens a compact card first; crafting is a deliberate second step.
+Menus have dedicated entrances rather than shared navigation tabs (confirmed
+by Watch, 2026-10-28). Equipment → Craft, Settlement and the trophy open their
+own titled menus. Beyond has a dedicated Settings button when unlocked in a
+solo world, with Back returning to Settings. Existing legacy progression
+shortcuts remain available. Removing tabs changes navigation, not unlocks,
+world rules, earned progress or saved seen-offer keys.
 The card names the group and separates its actual tools from crafting and
 dismissal. Close is a quiet, labeled header action, never an equal equipment
 slot or a standalone multiplication sign. All targets remain at least 44 pixels.

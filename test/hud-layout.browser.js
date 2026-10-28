@@ -1,5 +1,6 @@
 /* Bounded combined-state regression fixtures; presentation, not a fair-play run. */
 export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
+  eq(await evalJS('document.querySelectorAll("#tabs,[role=tab],[role=tablist]").length'),0,'menus have no shared tab bar');
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));
     MTE_GAME.wiki.setMode('quiet');
@@ -41,7 +42,8 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   eq(await evalJS('MTE_GAME.getState().cultivation.lantern'),!before,'tray lantern uses the canonical action');
   await evalJS('document.getElementById("btnEquipmentCraft").click()');
   ok(await evalJS('document.getElementById("sheet").dataset.tab==="upgrades"&&!!document.querySelector("#sheetBody [data-id=pickaxe]")&&!document.querySelector("#sheetBody [data-kind=build]")'),'Equipment crafting contains gear, not construction');
-  await evalJS('for(const r of MTE_GAME.core.RESOURCES)MTE_GAME.getState().inv[r]=10000;document.querySelector(".tab[data-tab=upgrades]").click()');
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'),await evalJS('document.querySelector("#btnUpgrade .cap").textContent'),'Equipment opens with its own localized title');
+  await evalJS('for(const r of MTE_GAME.core.RESOURCES)MTE_GAME.getState().inv[r]=10000;document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()');
   const toolBefore=await evalJS('MTE_GAME.getState().tools.pickaxe');
   await evalJS('document.querySelector("#sheetBody button[data-id=pickaxe]").click()');
   ok(await evalJS('MTE_GAME.getState().tools.pickaxe')>toolBefore,'Equipment crafting buys real gear through the normal controller');
@@ -49,6 +51,7 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   const fixture=await evalJS(`(()=>{document.getElementById('btnClose').click();const s=MTE_GAME.getState(),C=MTE_GAME.core;MTE_GAME.setPlayer(${siteX}+.5,.5);for(let y=-1;y<=5;y++)for(let x=${siteX}-1;x<=${siteX}+4;x++){C.tileAt(s.world,x,y,s.player.z);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.TUNNEL;}C.revealAround(s);const built=C.cultivationCommand(s,{type:'build',kind:'vault',x:${siteX},y:1});MTE_GAME.setPlayer(${siteX}+.5,4.5);C.revealAround(s);document.getElementById('btnBuild').click();return built;})()`);
   eq(fixture,'ok','site fixture uses canonical construction');
   ok(await evalJS('document.getElementById("sheet").dataset.tab==="build"&&!!document.querySelector("#sheetBody [data-action=build]")&&!!document.querySelector("#sheetBody [data-action=reinforce]")&&!document.querySelector("#sheetBody [data-id=pickaxe]")'),'Settlement combines construction and site improvements, excluding gear');
+  eq(await evalJS('document.getElementById("sheetTitle").textContent'),await evalJS('document.querySelector("#btnBuild .cap").textContent'),'Settlement opens with its own localized title');
   await shot('settlement-menu.png');
   const stock=await evalJS('JSON.stringify(MTE_GAME.getState().inv)');
   await evalJS(`[...document.querySelectorAll("#sheetBody button")].find(b=>b.dataset.action==="reinforce"&&b.dataset.x==="${siteX}"&&b.dataset.y==="1").click()`);
@@ -62,4 +65,17 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   ok(await evalJS('getComputedStyle(document.querySelector(".equipmentActions")).display==="none"&&!document.getElementById("btnEquipmentCraft").hidden'),'Equipment without quick actions shows crafting without empty tool slots');
   await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape'},session);
   ok(await evalJS('!MTE_GAME.hudLayout.open&&document.activeElement.id==="btnUpgrade"'),'Escape closes Equipment and returns focus to its button');
+  const awardButton=await rect('#btnAwards');await tap(awardButton.x,awardButton.y);
+  ok(await evalJS('(async()=>document.getElementById("sheet").dataset.tab==="awards"&&document.getElementById("sheetTitle").textContent===(await import("/src/i18n/i18n.js")).t("sheet.awards"))()'),'trophy button opens the titled Awards menu directly');
+  await evalJS('document.getElementById("btnClose").click();document.getElementById("btnSettings").click()');
+  ok(await evalJS('document.getElementById("btnBeyond").hidden'),'unfinished current worlds keep Beyond hidden in Settings');
+  await evalJS('(()=>{const s=MTE_GAME.getState();window.menuEligibility={completed:s.cultivation.completed,shared:s.shared};s.cultivation.completed=true;document.getElementById("btnClose").click();document.getElementById("btnSettings").click()})()');
+  ok(await evalJS('!document.getElementById("btnBeyond").hidden'),'completed worlds expose the dedicated Beyond button in Settings');
+  const beyond=await rect('#btnBeyond');await tap(beyond.x,beyond.y);
+  ok(await evalJS('document.getElementById("sheet").dataset.tab==="beyond"&&!document.getElementById("btnBack").hidden&&!!document.querySelector("#sheetBody [data-kind=embark]")'),'Beyond opens through its dedicated button and retains next-world access');
+  const back=await rect('#btnBack');await tap(back.x,back.y);
+  eq(await evalJS('document.getElementById("sheet").dataset.tab'),'settings','Beyond Back returns to Settings');
+  await evalJS('MTE_GAME.getState().shared=true;document.getElementById("btnClose").click();document.getElementById("btnSettings").click()');
+  ok(await evalJS('document.getElementById("btnBeyond").hidden'),'shared worlds do not expose Beyond');
+  await evalJS('Object.assign(MTE_GAME.getState(),{shared:window.menuEligibility.shared});MTE_GAME.getState().cultivation.completed=window.menuEligibility.completed;delete window.menuEligibility;document.getElementById("btnClose").click()');
 }
