@@ -153,7 +153,7 @@ test('shadow: a tile with a building on it can\'t be gathered by hand', async ()
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 15);
-  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1);
+  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1, true);
   const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
   assert.ok(built.ok);
   sync(true);
@@ -420,7 +420,7 @@ test('shadow: a building moved in a shared world moves in the room too', async (
   assert.equal(welcome.moves, true, 'the room says it checks moves');
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 15);
-  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1);
+  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1, true);
   const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
   assert.ok(built.ok);
   sync(true);

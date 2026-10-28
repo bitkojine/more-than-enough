@@ -5,10 +5,11 @@ import {takeStarter,cultivationAt,DEEP,DEEP_KINDS} from './cultivation.js';
 import { usesDepots, depotGain } from './logistics.js';
 import { startEventEconomy } from './sim.js';
 import { economyForState } from './economy-context.js';
+import {atInteraction} from './interaction.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp, isExplored } from './world.js';
-import { EXTRACTORS, PROPS, UNLOCKS, REACH, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
+import { EXTRACTORS, PROPS, UNLOCKS, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
 import { canAfford, pay, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { noteAct } from './acts.js';
@@ -16,8 +17,6 @@ import { t } from '../i18n/i18n.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
 export const SWEEP_RADIUS = 0.6;
-
-const REACH2 = REACH * REACH;
 
 /* ------------------------------------------------------------- harvest */
 
@@ -75,12 +74,12 @@ export function toolOpens(tool, level) {
 // The tool level that's all that keeps you from working tile (x, y), right
 // there in reach, or null.
 export function gearBlocks(s, x, y) {
-  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 ? gearNeeded(s, x, y) : null;
+  return harvestable(s, x, y) && atInteraction(s, x, y) ? gearNeeded(s, x, y) : null;
 }
 
 // A tile on the player's layer that Gather could work right now.
 export function canHarvest(s, x, y) {
-  return harvestable(s, x, y) && tileDist2(s.player, x, y, s.player.z) <= REACH2 && !gearNeeded(s, x, y);
+  return harvestable(s, x, y) && atInteraction(s, x, y) && !gearNeeded(s, x, y);
 }
 
 // Tiles within reach of the player, nearest first.
@@ -90,7 +89,7 @@ function tilesInReach(s) {
   for (let y = cy - 2; y <= cy + 2; y++) {
     for (let x = cx - 2; x <= cx + 2; x++) {
       const d2 = tileDist2(p, x, y, p.z);
-      if (d2 <= REACH2) out.push({ x, y, d2 });
+      if (atInteraction(s,x,y)) out.push({ x, y, d2 });
     }
   }
   return out.sort((a, b) => a.d2 - b.d2);
@@ -147,7 +146,7 @@ export function nearestDig(s, radius = DIG_SEEK_RADIUS) {
       if (!isExplored(s.world, x, y, p.z) || !harvestable(s, x, y) || gearNeeded(s, x, y)) continue;
       const rank = digRank(s, x, y);
       if (!rank || (best && rank < best.rank)) continue;
-      for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+      for (const [dx, dy] of [[0, 1], [0, -1], [1, 0], [-1, 0]]) {
         const sx = x + dx, sy = y + dy;
         const d2 = tileDist2(p, sx, sy, p.z);
         if (best && rank === best.rank && d2 >= best.d2) continue;
@@ -243,50 +242,75 @@ export function harvest(s) {
 export function sweepTargets(s, points) {
   if (!points.length) return [];
   const r2 = SWEEP_RADIUS * SWEEP_RADIUS;
-  const crossed = (cx, cy) => {
-    for (let i = 0; i < points.length; i++) {
-      const a = points[i], b = points[Math.min(i + 1, points.length - 1)];
-      const sx = b.x - a.x, sy = b.y - a.y, len2 = sx * sx + sy * sy;
-      const t = len2 ? Math.max(0, Math.min(1, ((cx - a.x) * sx + (cy - a.y) * sy) / len2)) : 0;
-      const ox = cx - (a.x + t * sx), oy = cy - (a.y + t * sy);
-      if (ox * ox + oy * oy <= r2) return true;
+  // Visit only a narrow band along the stroke, O(stroke length), rather
+  // than its bounding rectangle. Selection is not permission to act: the
+  // controller must approach each observed target before harvesting it.
+  const cells=new Map();
+  for(let i=0;i<points.length;i++){
+    const a=points[i],b=points[Math.min(i+1,points.length-1)],steps=Math.max(1,Math.ceil(Math.hypot(b.x-a.x,b.y-a.y)*2));
+    for(let n=0;n<=steps;n++){
+      const x=Math.floor(a.x+(b.x-a.x)*n/steps),y=Math.floor(a.y+(b.y-a.y)*n/steps);
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        const cx=x+dx+.5,cy=y+dy+.5,sx=b.x-a.x,sy=b.y-a.y,len=sx*sx+sy*sy;
+        const t=len?Math.max(0,Math.min(1,((cx-a.x)*sx+(cy-a.y)*sy)/len)):0;
+        if((cx-a.x-t*sx)**2+(cy-a.y-t*sy)**2<=r2)cells.set((x+dx)+','+(y+dy),{x:x+dx,y:y+dy});
+      }
     }
-    return false;
-  };
-  return tilesInReach(s)
-    .filter((t) => canHarvest(s, t.x, t.y) && TILE_INFO[tileAt(s.world, t.x, t.y, s.player.z)].sweep !== false)
-    .filter((t) => crossed(t.x + 0.5, t.y + 0.5))
-    .map((t) => ({ x: t.x, y: t.y, res: TILE_INFO[tileAt(s.world, t.x, t.y, s.player.z)].res || null }));
+  }
+  return [...cells.values()]
+    .filter(t=>isExplored(s.world,t.x,t.y,s.player.z))
+    .filter(t=>harvestable(s,t.x,t.y)&&!gearNeeded(s,t.x,t.y)&&TILE_INFO[tileAt(s.world,t.x,t.y,s.player.z)].sweep!==false)
+    .sort((a,b)=>tileDist2(s.player,a.x,a.y,s.player.z)-tileDist2(s.player,b.x,b.y,s.player.z)||a.y-b.y||a.x-b.x)
+    .map(t=>({...t,res:TILE_INFO[tileAt(s.world,t.x,t.y,s.player.z)].res||null}));
 }
 
 /* ------------------------------------------------------------- collect */
 
-export function collectTarget(s) {
-  const p = s.player, range2 = COLLECT_RANGE * COLLECT_RANGE;
+export function collectTarget(s, at = null) {
+  const p = s.player;
   const index = tileIndex(s), found = [];
+  // Before targeted collection was advertised, a c record emptied a 1.7-tile
+  // group. Send that old shape only when it would affect exactly one building
+  // and that building is in physical contact. No remote pickup or inventory
+  // divergence during a client/service rollout.
+  if(s.shared&&!s.roomCollectAt){
+    let legacy=0;
+    for(let y=Math.ceil(p.y-2.2);y<=Math.floor(p.y+1.2);y++)for(let x=Math.ceil(p.x-2.2);x<=Math.floor(p.x+1.2);x++){
+      if(tileDist2(p,x,y,p.z)>1.7**2)continue;
+      for(const entry of index.entries.get(x+','+y+','+p.z)||[])if(ownBuilding(s,entry.e)&&entry.e.buffer>=1&&++legacy>1)return null;
+    }
+  }
+
   // Collection has a fixed spatial radius. Query those tile buckets instead
   // of filtering every building in the world on each AUTO decision.
   for (let y = Math.ceil(p.y - COLLECT_RANGE - 0.5); y <= Math.floor(p.y + COLLECT_RANGE - 0.5); y++) {
     for (let x = Math.ceil(p.x - COLLECT_RANGE - 0.5); x <= Math.floor(p.x + COLLECT_RANGE - 0.5); x++) {
-      if (tileDist2(p, x, y, p.z) > range2) continue;
+      if (!atInteraction(s,x,y) || at && (at.x!==x || at.y!==y)) continue;
       const entries = index.entries.get(x + ',' + y + ',' + p.z);
       if (entries) for (const entry of entries) if (ownBuilding(s, entry.e) && entry.e.buffer >= 1) found.push(entry);
     }
   }
   if (!found.length) return null;
-  // Preserve the original building order, including kept saves with duplicate
-  // coordinates. That also preserves collection and floating-point order.
-  found.sort((a, b) => a.i - b.i);
-  const list = found.map(entry => entry.e);
-  return { total: Math.floor(list.reduce((n, e) => n + e.buffer, 0)), list };
+  // Nearest contact wins; stored order breaks ties, including duplicate
+  // coordinates in kept saves. One linear pass, not a sort or area pickup.
+  let chosen=found[0],distance=tileDist2(p,chosen.e.x,chosen.e.y,p.z);
+  for(let i=1;i<found.length;i++){
+    const entry=found[i],d=tileDist2(p,entry.e.x,entry.e.y,p.z);
+    if(d<distance||d===distance&&entry.i<chosen.i){chosen=entry;distance=d;}
+  }
+  return {total:Math.floor(chosen.e.buffer),list:[chosen.e]};
 }
 
-// Empties whole units from every extractor in range. Returns
+// Empties whole units from one contacted extractor. Returns
 // { gained: {res: amount}, sources: [{x, y, res, amt}] } or null.
-export function collect(s) {
-  const t = collectTarget(s);
+export function collect(s, at = null) {
+  // An older room understands untargeted c records only. The candidate guard permits only an unambiguous
+  // single-building pickup; never send an unknown shape.
+  if(s.shared&&!s.roomCollectAt)at=null;
+  const t = collectTarget(s, at);
   if (!t) return null;
-  noteAct(s, 'c');
+  if(s.roomCollectAt)noteAct(s,'c',t.list[0].x,t.list[0].y);
+  else noteAct(s, 'c');
   const gained = {}, sources = [];
   for (const e of t.list) {
     const amt = Math.floor(e.buffer);
@@ -352,7 +376,7 @@ export function extractorFits(s, key, x, y, moving = null) {
 
 // Whether tile (x, y) of your layer is close enough to build on or work.
 export function inReach(s, x, y) {
-  return tileDist2(s.player, x, y, s.player.z) <= REACH2;
+  return atInteraction(s, x, y);
 }
 
 // Whether `kind` (a building, a prop or a crystal room) can ever be built on
@@ -394,7 +418,7 @@ function canBuildAt(s, key, x, y) {
 // each welcome, src/game/together.js): an older room drops acts it doesn't know.
 export function moveExtractor(s, e, x, y) {
   if ((s.shared && !s.roomMoves) || !s.extractors.includes(e) || e.z !== s.player.z || (e.owner && e.owner !== s.me)) return { ok: false, reason: t('reason.cantMove') };
-  if (e.x === x && e.y === y) return { ok: true, x, y };
+  if (e.x === x && e.y === y) return { ok: inReach(s,x,y), x, y };
   if (!inReach(s, x, y) || !extractorFits(s, e.key, x, y, e)) return { ok: false, reason: t('reason.noSpot') };
   noteAct(s, 'v', e.x, e.y, x, y);
   // Built and not yet sent: it goes up where it stands now.

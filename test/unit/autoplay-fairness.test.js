@@ -74,7 +74,7 @@ test('AUTO cannot immediately climb a nearby ladder hidden by the current light 
   C.setRichness(s.world, Math.floor(s.player.x), Math.floor(s.player.y), -1, 0);
   C.revealAround(s);
   assert.equal(C.isExplored(s.world, ladder.x, ladder.y, -1), false);
-  assert.equal(C.canClimbAt(s, ladder.x, ladder.y), true, 'fixture ladder is in action reach but unseen');
+  assert.equal(C.canClimbAt(s, ladder.x, ladder.y), false, 'diagonal, unseen ladders are outside physical contact');
   const mind = C.newMind(); C.nextIntent(s, mind);
   for (const r of C.RESOURCES) s.inv[r] = 1e6;
   mind.goal = { kind: 'build', id: 'garden', level: 0, cost: C.extractorCost(s, 'garden') };

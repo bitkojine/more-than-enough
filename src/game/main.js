@@ -378,15 +378,15 @@ const sheet = createSheet(el, {
 // button: done, saved, and said in the log, unless it just worked (a plain
 // "Done." after every press would bury what matters).
 function cultivate(cmd) {
-  const result = controller.cultivation(cmd);
-  if (result !== 'ok') hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
-  game.saveSoon();
-  controller.checkGoals();
-  hud.update(game.state);
-  return result;
+  return controller.cultivation(cmd, (result) => {
+    if (result !== 'ok') hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
+    game.saveSoon();
+    controller.checkGoals();
+    hud.update(game.state);
+  });
 }
 // A building's own card, over it in the world. Its Move starts placing it.
-const card = createBuildingCard({ cam, state: () => game.state, run: (cmd) => {
+const card = createBuildingCard({ cam, state: () => game.state, approach: (x,y,run) => controller.approach(x,y,run), walking: () => controller.walking, work: (x,y) => controller.perform({type:'harvestAt',x,y},false), run: (cmd) => {
   if (cmd.type !== 'move') return cultivate(cmd);
   const b = card.building();
   if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);

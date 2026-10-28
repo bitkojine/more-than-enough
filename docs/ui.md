@@ -193,7 +193,8 @@ Watch, 2026-10-26, as Clash of Clans, Stardew and Factorio do (`src/game/placing
 - On a short landscape screen the card keeps to the bottom left, without
   the hint line, and the zoom pill stays where it is.
 - A tile out of reach: Place here walks Mica there (the hint says so) and it
-  is built on arrival. Back, Cancel or changing layer ends placing.
+  is built on arrival beside the site. Mica faces the site before building.
+  New movement cancels the queued build; Back, Cancel or changing layer ends placing.
 - **Move** is on every building's card (yours, in a shared world too): the
   same view, titled *Move: name*, free, and what it holds goes with it.
   Completing placement or a move closes the placement view and returns to play.
@@ -418,3 +419,14 @@ world-coordinate map taps. Before the world reporter exists, optional errors
 queue a bounded list; required startup scripts/styles and an unavailable
 essential pack still fail loudly with asset/page/build details. Invite fragments
 and unbounded inline-image contents never enter these resource diagnostics.
+
+### Approach and act
+Every personal world action uses the shared contact predicate in
+`src/core/interaction.js`. Selecting a distant object queues travel to observed
+cardinal-side floor, then the action. Mica faces it before acting. The controller
+routes a constant number of contact candidates once per order, not every tick.
+New steering, a replacement order, changing layer/world, or an unreachable path
+cancels the action. Cards open only after arrival; they do not open after builds
+or moves. Manual collection targets one contacted building. Trails approach each
+observed target and retain the hand clock. Crafting and carried equipment need
+no destination; infrastructure keeps its own service ranges and keeps running.

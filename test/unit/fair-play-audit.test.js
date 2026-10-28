@@ -23,7 +23,7 @@ test('an unseen charger cannot turn travel to a known charger into a charge deci
  assert.equal(C.isExplored(a.world,hidden.x,hidden.y,0),false);
  a.world.props.set(C.packKey(known.x,known.y,0),'wheel');
  const b=C.deserialize(C.serialize(a));b.world.props.set(C.packKey(hidden.x,hidden.y,0),'wheel');
- assert.ok(C.chargerNear(b),'physics can charge from an unseen nearby wheel');
+ assert.equal(C.chargerNear(b),null,'distant hidden wheels cannot charge the player');
  const intent=s=>C.nextIntent(s,C.newMind());
  assert.deepEqual(intent(b),intent(a),'only observable chargers may steer AUTO');
 });

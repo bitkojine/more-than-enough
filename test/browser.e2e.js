@@ -373,6 +373,37 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_INTERACTION_ONLY==='1'){
+   console.log('\n== Approach before world actions ==');
+   await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);await sleep(200);
+   // Funded, flat input fixture; not a fair-play seed or win evaluation.
+   await evalJS(`(()=>{const s=MTE_GAME.getState(),C=MTE_GAME.core;MTE_GAME.wiki.setMode('quiet');s.player={x:.5,y:.5,z:0};s.tools.pickaxe=2;for(const r of C.RESOURCES)C.earn(s,r,100,'hand');
+    for(let y=-5;y<=5;y++)for(let x=-5;x<=8;x++){C.tileAt(s.world,x,y,0);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.GRASS;C.markExplored(s.world,x,y,0);}
+    C.tileAt(s.world,4,0,0);s.world.hotChunk.type[C.chunkIndex(4,0)]=C.T.STONE;C.setRichness(s.world,4,0,0,20);MTE_GAME.setPlayer(.5,.5);MTE_GAME.setZoom(1.5);})()`);await sleep(500);
+   async function worldTap(x,y){const p=await evalJS('MTE_GAME.project('+x+'+.5,'+y+'+.5,MTE_GAME.getState().player.z)');await tap(p.x,p.y);}
+   const before=await evalJS('MTE_GAME.getState().inv.stone');await worldTap(4,0);
+   eq(await evalJS('MTE_GAME.getState().inv.stone'),before,'distant gathering pays nothing before approach');
+   ok(await waitFor('MTE_GAME.getState().inv.stone>'+before,5000),'one world tap approaches and gathers');
+   ok(await evalJS('MTE_GAME.core.atInteraction(MTE_GAME.getState(),4,0)'),'gathering finishes in physical contact');
+   await evalJS('MTE_GAME.setPlayer(.5,.5);MTE_GAME.startPlacing({kind:"shelter"})');await sleep(500);await worldTap(4,2);
+   const costBefore=await evalJS('({...MTE_GAME.getState().inv})');const go=await rect('#placeCard [data-do=go]');await tap(go.x,go.y);
+   eq(await evalJS('MTE_GAME.getState().inv.stone'),costBefore.stone,'distant construction does not spend before approach');
+   ok(await waitFor('!!MTE_GAME.core.cultivationAt(MTE_GAME.getState(),4,2)',5000),'one placement confirmation walks over and builds');
+   ok(await evalJS('MTE_GAME.core.atInteraction(MTE_GAME.getState(),4,2)&&document.getElementById("placeCard").hidden&&document.getElementById("buildingCard").hidden'),'construction finishes beside the site and returns directly to play');
+   await evalJS('MTE_GAME.setPlayer(.5,.5)');await sleep(500);await worldTap(4,2);
+   ok(await evalJS('document.getElementById("buildingCard").hidden'),'a distant building card stays closed during approach');
+   ok(await waitFor('!document.getElementById("buildingCard").hidden',5000),'selecting a distant building opens its card on arrival');
+   await evalJS('document.getElementById("btnClose").click();MTE_GAME.setPlayer(.5,.5);MTE_GAME.getState().extractors.push({key:"garden",res:"mycelium",x:4,y:-2,z:0,buffer:5})');await sleep(500);
+   const goodsBefore=await evalJS('MTE_GAME.getState().inv.mycelium');await worldTap(4,-2);
+   eq(await evalJS('MTE_GAME.getState().inv.mycelium'),goodsBefore,'a distant producer yields nothing before approach');
+   ok(await waitFor('MTE_GAME.getState().inv.mycelium>'+goodsBefore,5000),'one distant producer selection approaches and collects it');
+   ok(await evalJS('MTE_GAME.core.atInteraction(MTE_GAME.getState(),4,-2)&&!document.getElementById("buildingCard").hidden'),'producer card opens beside the collected building');
+   await evalJS('document.getElementById("btnClose").click();MTE_GAME.setPlayer(.5,.5);const s=MTE_GAME.getState(),C=MTE_GAME.core;s.extractors=[];C.tileAt(s.world,4,-2,0);s.world.hotChunk.type[C.chunkIndex(4,-2)]=C.T.CAVE');await sleep(500);await worldTap(4,-2);
+   eq(await evalJS('MTE_GAME.getState().player.z'),0,'ladder/cave selection does not change layer at a distance');
+   ok(await waitFor('MTE_GAME.getState().player.z<0',5000),'one selection approaches and uses the way between layers');
+   eq(await evalJS('JSON.parse(localStorage.getItem("mte.faults")||"[]").length'),0,'approach interactions record no client faults');eq(pageErrors.length,0,'approach interactions have no browser exceptions');
+   console.log((failures?'INTERACTION BROWSER FAILURES':'INTERACTION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_CHARACTER_INPUT_ONLY==='1'){
    console.log('\n== Characters do not intercept world gestures ==');
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);

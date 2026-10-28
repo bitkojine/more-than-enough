@@ -34,7 +34,7 @@ export function replayAct(s, a) {
   revealAround(s);
   let ok = false;
   if (kind === 'h') ok = !!harvestAt(s, a[5], a[6]);
-  else if (kind === 'c') ok = !!collect(s);
+  else if (kind === 'c') {const targeted=a.length===7;if(targeted)s.roomCollectAt=true;ok=!!collect(s,targeted?{x:a[5],y:a[6]}:null);}
   else if (kind === 'b') ok = Object.hasOwn(EXTRACTORS, a[5]) && place(s, a[5], { x: a[6], y: a[7] }).ok;
   else if (kind === 'v') {
     const e = s.extractors.find((b) => b.x === a[5] && b.y === a[6] && b.z === z && b.owner === s.me);

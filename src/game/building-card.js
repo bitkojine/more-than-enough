@@ -13,9 +13,8 @@ import { esc, fmtRate } from './format.js';
 import { pic, price, icon } from './sheet.js';
 import { reachOf } from './reach.js';
 
-const REACH = 1.65;   // what cultivationCommand accepts, tile centre to you
 const name = (k) => t('cr.' + k);
-const near = (s, x, y) => Math.hypot(x + 0.5 - s.player.x, y + 0.5 - s.player.y) <= REACH;
+const near = (s, x, y) => Core.atInteraction(s,x,y);
 const act = (type, x, y, label, cost = null) => ({ type, x, y, label, cost });
 
 // One of your buildings: what it makes, what it helps or what helps it, and Move.
@@ -71,7 +70,7 @@ export function cardAt(s, x, y) {
   return null;
 }
 
-export function createBuildingCard({ cam, state, run }) {
+export function createBuildingCard({ cam, state, run, approach, walking, work }) {
   const el = document.createElement('div');
   el.id = 'buildingCard'; el.className = 'bcard'; el.hidden = true;
   el.setAttribute('role', 'dialog');
@@ -128,8 +127,9 @@ export function createBuildingCard({ cam, state, run }) {
       if (!card) { pending = null; close(); return false; }
       if (open && open.x === x && open.y === y) { close(); return card.work ? 'work' : true; }
       // One of your buildings: its card, and its goods collected as before.
-      if (near(s, x, y)) { pending = null; open = { x, y, z: s.player.z }; render(); return card.work ? 'work' : true; }
+      if (near(s, x, y)) { if(approach)approach(x,y,()=>true); pending = null; open = { x, y, z: s.player.z }; render(); return card.work ? 'work' : true; }
       close(); pending = { x, y, z: s.player.z };
+      if(approach){if(!approach(x,y,()=>{if(pending){open=pending;pending=null;render();if(cardAt(state(),x,y)?.work)work?.(x,y);}return true;}))pending=null;return true;}
       return false;
     },
     // Opens the card of tile (x, y) if it has one in reach (for the tests).
@@ -149,7 +149,7 @@ export function createBuildingCard({ cam, state, run }) {
     building() { return open ? cardAt(state(), open.x, open.y)?.building ?? null : null; },
     tick() {
       const s = state();
-      if (pending && (s.player.z !== pending.z)) pending = null;
+      if (pending && (s.player.z !== pending.z || walking && !walking())) pending = null;
       if (pending && near(s, pending.x, pending.y)) { open = pending; pending = null; }
       if (open) render();
     },

@@ -6,7 +6,7 @@ function reference(s,time){
  const r=Math.ceil(C.CHARGE_RANGE),px=Math.floor(p.x),py=Math.floor(p.y);
  let best=null,distance=C.CHARGE_RANGE**2;
  for(let y=py-r;y<=py+r;y++)for(let x=px-r;x<=px+r;x++){
-  const kind=s.world.props.get(C.packKey(x,y,0));if(!kind||!C.charging(kind,time))continue;
+  const kind=s.world.props.get(C.packKey(x,y,0));if(!kind||!C.charging(kind,time)||!C.atInteraction(s,x,y))continue;
   const d=(x+.5-p.x)**2+(y+.5-p.y)**2;if(d<=distance){distance=d;best={x,y,kind};}
  }return best;
 }

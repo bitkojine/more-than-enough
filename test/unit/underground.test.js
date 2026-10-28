@@ -15,6 +15,7 @@ function atWall(s, types = [T.SOIL]) {
   const floor = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].walk &&
     [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => types.includes(typeAt(st, x + dx, y + dy))), 20);
   standOn(s, floor);
+  C.revealAround(s);
   return neighbours(s).find((t) => types.includes(typeAt(s, t.x, t.y)));
 }
 
@@ -182,6 +183,7 @@ test('there is no digging up: every way up is a ladder beneath a way down', () =
   C.goDown(s);
   const shaft = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SHAFT, 40);
   C.setRichness(s.world, shaft.x, shaft.y, -1, 0);
+  C.setRichness(s.world, shaft.x+1, shaft.y, -1, 0);
   standOn(s, { x: shaft.x + 1, y: shaft.y });
   C.descendAt(s, shaft.x, shaft.y);
   assert.equal(s.player.z, -2);

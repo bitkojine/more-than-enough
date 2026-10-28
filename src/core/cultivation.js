@@ -1,5 +1,6 @@
 /* Living crystal extends the existing world, inventory and commands. No
  * separate map, movement system or renderer; no DOM or wall-time dependency. */
+import {atInteraction} from './interaction.js';
 import {tileAt,isExplored,richness} from './world.js';
 import {packKey,unpackKey} from './coords.js';
 import {T,TILE_INFO} from './tiles.js';
@@ -99,7 +100,7 @@ export function wildColony(s,x,y,z=s.player.z){
 }
 export function takeStarter(s,x,y){
  const c=s.cultivation,p={x,y,z:s.player.z};
- if(!c||Math.hypot(x+.5-s.player.x,y+.5-s.player.y)>1.65)return 'reach';
+ if(!c||!atInteraction(s,x,y))return 'reach';
  if(s.tools.pickaxe<3)return 'equipment';
  const w=wildColony(s,x,y);if(!w)return 'site';if(c.starter)return 'carrying';if(w.regrow||w.health<=0)return 'regrow';
  c.starter={health:100};w.health=0;w.regrow=45;exposeCargo(s);return 'ok';
@@ -134,7 +135,7 @@ export function facilitySite(s,kind,x,y,moving=null){
 export function moveFacility(s,b,x,y){
  const c=s.cultivation;
  if(!c||s.shared||!c.facilities.includes(b)||!BUILT_FACILITIES.includes(b.kind)||b.z!==s.player.z)return 'invalid';
- if(Math.hypot(x+.5-s.player.x,y+.5-s.player.y)>1.65)return 'reach';
+ if(!atInteraction(s,x,y))return 'reach';
  const why=facilitySite(s,b.kind,x,y,b);if(why)return why;
  if(b.kind==='conduit'){const r=conduitRoute(s,{x,y,z:b.z},b);b.from=r.from.id;b.to=r.to.id;}
  b.x=x;b.y=y;indexCache.delete(c);return 'ok';
@@ -143,7 +144,8 @@ export function cultivationCommand(s,cmd){
  const c=s.cultivation;if(!c||s.shared)return 'invalid';
  const x=cmd.x??Math.floor(s.player.x),y=cmd.y??Math.floor(s.player.y),z=s.player.z;
  if(!Number.isInteger(x)||!Number.isInteger(y)||!isExplored(s.world,x,y,z))return 'unseen';
- if(Math.hypot(x+.5-s.player.x,y+.5-s.player.y)>1.65)return 'reach';
+ if(cmd.type==='build'){const why=facilitySite(s,cmd.kind,x,y);if(why)return why;}
+ if(!atInteraction(s,x,y))return 'reach';
  const b=cultivationAt(s,x,y,z),cost=CULTIVATION_RECIPES[cmd.kind||cmd.type];
  if(cmd.type==='shade'){
   const k=packKey(x,y,z);if(!PROPS[s.world.props.get(k)]?.light)return 'site';

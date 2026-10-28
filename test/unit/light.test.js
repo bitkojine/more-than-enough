@@ -171,8 +171,8 @@ test('the countdown shows by a solar panel in reach, but not by a water wheel, n
   const s = C.createState(19381);
   s.player = { x: 0.5, y: 0.5, z: 0 };
   assert.equal(C.solarInReach(s), false, 'no chargers at all');
-  s.world.props.set(C.packKey(2, 0, 0), 'solar');
-  assert.equal(C.solarInReach(s), true, 'a panel two tiles off, at any hour');
+  s.world.props.set(C.packKey(1, 0, 0), 'solar');
+  assert.equal(C.solarInReach(s), true, 'a panel beside you, at any hour');
   s.player.x = 6;
   assert.equal(C.solarInReach(s), false, 'out of reach');
   s.player.x = 0.5;

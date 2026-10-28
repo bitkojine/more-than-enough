@@ -7,8 +7,8 @@ import { t } from '../i18n/i18n.js';
 
 export const EXPLORE_RADIUS = 6;
 export const MINE_EXPLORE_RADIUS = 3; // underground you only see the rock close by
-export const REACH = 1.65;            // how far the player can gather, dig or build
-export const COLLECT_RANGE = 1.7;
+export const REACH = 1.2;             // contact broad phase; cardinal adjacency is also required
+export const COLLECT_RANGE = REACH;
 // Waiting must never beat doing something (Watch, 2026-10-18), so hands keep
 // up with buildings: each gather (and each find's loot) also brings in this
 // many seconds of what your buildings make of that resource.

@@ -85,7 +85,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   function collectNearby(at=null) {
     if (!handFree()) return false;
-    const got = Core.collect(state());
+    const got = Core.collect(state(),at);
     if (!got) return false;
     handUsed();
     for (const src of got.sources) fx.flyersFrom(src.x, src.y, src.res, src.amt);
@@ -109,7 +109,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // but takes a better tool (the player is told which), 'wait' if it's in
   // reach but this turn of the hand is used, else false.
   function workAt(tx, ty) {
-    const near = Core.collectTarget(state());
+    const near = Core.collectTarget(state(),{x:tx,y:ty});
     const collects = near && near.list.some((e) => e.x === tx && e.y === ty);
     if (!handFree()) return collects || Core.canHarvest(state(), tx, ty) ? 'wait' : false;
     if (collects) { faceTile(tx, ty); return collectNearby({x:tx,y:ty}); }
@@ -148,19 +148,41 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // you're beside a goal you can't stand on.
   function aimOf(w) {
     if (!w.plan) return w;
-    let aim = Core.walkAim(state(), w.plan);
+    let aim = w.plan.nodes.length ? Core.walkAim(state(), w.plan) : {x:w.x,y:w.y};
     if (aim === null && w.replans++ < REPLANS) {
       w.plan = Core.planWalk(state(), w.goal.x, w.goal.y);
       aim = w.plan && Core.walkAim(state(), w.plan);
+    }
+    if(aim==='done'){
+      const nodes=w.plan.nodes,goal=nodes.at(-1),stop=goal&&Core.walkable(state().world,goal.x,goal.y,player().z)?goal:nodes.at(-2)||w.plan.from;
+      if(stop&&Math.hypot(stop.x+.5-player().x,stop.y+.5-player().y)>=ARRIVE_DIST)aim={x:stop.x+.5,y:stop.y+.5};
     }
     if (!aim) { w.plan = null; return w; }
     return aim;
   }
 
+  // One approach/action path for UI and automation. Four observed contact
+  // sites are routed once per order, never searched again on ordinary ticks.
+  function approach(x,y,action){
+    walkTo=null;
+    if(Core.atInteraction(state(),x,y)){faceTile(x,y);return action();}
+    const s=state();let best=null;
+    for(const site of Core.interactionSites(s,x,y)){
+      if(Core.swimsAt(s.world,site.x+.5,site.y+.5,s.player.z)&&!Core.canWade(s))continue;
+      const plan=Core.planWalk(s,site.x,site.y);if(!plan)continue;
+      const cost=plan.nodes.length+Math.hypot(site.x+.5-player().x,site.y+.5-player().y)*.001;
+      if(!best||cost<best.cost)best={site,plan,cost};
+    }
+    if(!best)return false;
+    walkToward(best.site.x,best.site.y,false);
+    walkTo.plan=best.plan;walkTo.action={x,y,run:action,state:s,z:player().z};
+    return 'walking';
+  }
+
   // What Gather does right now: empty nearby extractors, else work the
   // nearest deposit; underground, dig the rock around you.
   function act() {
-    if (!handFree()) return false;
+    if (!handFree() || walkTo?.action) return false;
     if (Core.collectTarget(state())) return collectNearby();
     const r = Core.harvest(state());
     if (!r) return false;
@@ -172,8 +194,14 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
   // Works the Trail's next tile still in reach (one turn of the hand).
   function workTrail() {
+    if(walkTo?.action)return;
     while (trail.length) {
-      const t = trail.shift();
+      const t = trail[0];
+      if(!Core.atInteraction(state(),t.x,t.y)){
+        if(Core.harvestable(state(),t.x,t.y)&&!Core.gearNeeded(state(),t.x,t.y)){if(!approach(t.x,t.y,()=>true))trail.shift();return;}
+        trail.shift();continue;
+      }
+      trail.shift();
       const r = Core.harvestAt(state(), t.x, t.y);
       if (!r) continue;
       handUsed();
@@ -196,6 +224,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   // Through a way between layers within reach: down a hole, or up a ladder.
   function passAt(x, y) {
     const from = player().z;
+    if(!Core.atInteraction(state(),x,y))return false;
+    faceTile(x,y);
     if (!Core.descendAt(state(), x, y) && !Core.climbAt(state(), x, y)) return false;
     layerChanged(from);
     return true;
@@ -225,13 +255,21 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
   const controller = {
     facing: { x: 0, y: 1 },
     checkGoals,
-    cultivation(cmd){
+    approach,
+    cultivation(cmd,finished=null){
+      const x=cmd.x??Math.floor(player().x),y=cmd.y??Math.floor(player().y);
+      if(!['craft','lantern'].includes(cmd.type)){
+        if(!Core.atInteraction(state(),x,y)){const queued=approach(x,y,()=>controller.cultivation(cmd,finished));if(!queued)finished?.('reach');return queued||'reach';}
+        walkTo=null;
+      }
       const result=Core.cultivationCommand(state(),cmd);
       if(['ok','lifted','discovery','activated'].includes(result)){
         faceTile(cmd.x??Math.floor(player().x),cmd.y??Math.floor(player().y));
         const action={build:'build',repair:'build',reinforce:'build',craft:'build',collect:'collect',store:'collect',shutter:'collect',shade:'collect',lantern:'collect',plant:'pick',tend:'pick',starter:'pick',heart:'pick',activate:'cheer'}[cmd.type];
         if(action)performAct(action,{work:cmd.type});
+        changed();checkGoals();
       }
+      finished?.(result);
       return result;
     },
 
@@ -241,7 +279,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const p = player();
       const before = { x: p.x, y: p.y };
       if (dir.x || dir.y) {
-        walkTo = null;
+        walkTo = null;trail=[];pressed=false;
         Core.move(state(), dir.x, dir.y, dt);
         if (Core.waterAhead(state(), dir.x, dir.y)) needsGear({ tool: 'boots', level: Core.GEAR.water });
         if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
@@ -250,6 +288,11 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
         if (dug) { handUsed(); harvested(dug); changed(); }
         else if (drilling.t > 0 && !actor.busy) performAct('swing'); // chipping at the wall
       } else if (walkTo) {
+        const pending=walkTo.action;
+        if(pending&&(pending.state!==state()||pending.z!==p.z)){walkTo=null;return false;}
+        if(pending&&Core.atInteraction(state(),pending.x,pending.y)){
+          faceTile(pending.x,pending.y);const run=pending.run;walkTo=null;run();return false;
+        }
         const d = Math.hypot(walkTo.x - p.x, walkTo.y - p.y);
         // Walking to something tapped: work it as soon as it's in reach.
         const done = walkTo.work && workAt(walkTo.work.x, walkTo.work.y);
@@ -269,7 +312,10 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
           if(p.x!==before.x||p.y!==before.y)controller.facing = {x:p.x-before.x,y:p.y-before.y};
           // Finish on the tick that arrives, so AUTO can choose its next
           // step immediately instead of spending another tick standing still.
-          if (walkTo && !walkTo.work && Math.hypot(walkTo.x - p.x, walkTo.y - p.y) < ARRIVE_DIST) walkTo = null;
+          if (walkTo && !walkTo.work && Math.hypot(walkTo.x - p.x, walkTo.y - p.y) < ARRIVE_DIST) {
+            const next=walkTo.action;walkTo=null;
+            if(next&&Core.atInteraction(state(),next.x,next.y)){faceTile(next.x,next.y);next.run();}
+          }
         }
       }
       const moved = Math.abs(p.x - before.x) + Math.abs(p.y - before.y) > 0.0004;
@@ -314,15 +360,16 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     perform(intent, held) {
       switch (intent.type) {
         case 'walk': walkToward(intent.x, intent.y, false); return true;
-        case 'harvestAt': {
-          const done = workAt(intent.x, intent.y) === true;
-          if (done) gathered(held);
-          return done;
-        }
+        case 'harvestAt': return approach(intent.x,intent.y,()=>{
+          const done=workAt(intent.x,intent.y);
+          if(done===true)gathered(held);
+          if(done==='wait')walkToward(intent.x,intent.y,true,null,true);
+          return !!done;
+        });
         case 'collect': return collectNearby();
         case 'buy': return controller.buy(intent.id);
-        case 'place': return controller.place(intent.key, { x: intent.x, y: intent.y });
-        case 'descend': case 'climb': return passAt(intent.x, intent.y);
+        case 'place': return approach(intent.x,intent.y,()=>controller.place(intent.key, { x: intent.x, y: intent.y }));
+        case 'descend': case 'climb': return approach(intent.x,intent.y,()=>passAt(intent.x,intent.y));
         case 'prop': return controller.placeProp(intent.kind);
         case 'charge': return !!Core.chargerNear(state());
         default: return false;
@@ -335,12 +382,14 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     tap(sx, sy) {
       const w = cam.unproject(sx, sy);
       const tx = Math.floor(w.x), ty = Math.floor(w.y);
-      if (passAt(tx, ty)) return;
-      const done = workAt(tx, ty);
-      // A tap before the hand's turn works the tile on that turn.
-      if (done === 'wait') { walkToward(tx, ty, true, null, true); return; }
-      if (done) { if (done === true) gathered(false); return; }
-      walkToward(tx, ty, workable(tx, ty), null, true);
+      if(!Core.isExplored(state().world,tx,ty,player().z)){walkToward(tx,ty,false,null,true);return;}
+      const type=Core.TILE_INFO[Core.tileAt(state().world,tx,ty,player().z)];
+      if(type.rise||type.descend){approach(tx,ty,()=>passAt(tx,ty));return;}
+      if(workable(tx,ty)){
+        approach(tx,ty,()=>{const done=workAt(tx,ty);if(done==='wait')walkToward(tx,ty,true,null,true);else if(done===true)gathered(false);return done;});
+        return;
+      }
+      walkToward(tx,ty,false,null,true);
     },
 
     // A finished Trail stroke (world points), or null if it was abandoned:
@@ -353,8 +402,8 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
 
     // The layer button: down the way you stand in, or up the ladder.
     toggleMine() {
-      const from = player().z;
-      if (Core.takeWay(state())) layerChanged(from);
+      const way=Core.layerWay(state());
+      if(way)approach(way.x,way.y,()=>passAt(way.x,way.y));
     },
 
     buy(id) {
@@ -409,7 +458,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
     },
 
     // Walks to tile (x, y), finding the way round what's in the way.
-    walk(x, y) { walkToward(x, y, false, null, true); },
+    walk(x, y) { trail=[];walkToward(x, y, false, null, true); },
     // Works tile (x, y) if it's in reach: collects a building's goods, gathers.
     work(x, y) {
       const done = workAt(x, y);

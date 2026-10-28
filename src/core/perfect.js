@@ -33,6 +33,7 @@
 import { SURFACE, CHUNK_SIZE, tileDist2, packKey, unpackKey } from './coords.js';
 import { T, TILE_INFO, RESOURCES } from './tiles.js';
 import { tileAt, richness, isExplored, nearestTile, nearestExploredTile, holeBelow, wayUp, waysIn, walkable, findSpawn, observationVersion } from './world.js';
+import {atInteraction} from './interaction.js';
 import { EXTRACTORS, REACH, BASE_SPEED, EMBARK_ABUNDANCE, GEAR, FINDS, PROPS, FINDS_PER_CHUNK, GLINT_RANGE, CHARGE_RANGE } from './content.js';
 import { UPGRADES, isMaxed, upgradeCost, upgradeLevel, canBuy, worldMastered } from './upgrades.js';
 import { usesDepots, depotFor, depotGain } from './logistics.js';
@@ -566,7 +567,7 @@ function obtain(s, mind, goal) {
   if (s.player.z !== SURFACE) return up(s, mind) || idle(s, mind);
   const spot = buildSpot(s, mind, goal.id);
   if (!spot) { mind.goal = null; return idle(s, mind); }
-  if (tileDist2(s.player, spot.x, spot.y, SURFACE) <= REACH * REACH && dist(s, spot.x, spot.y) <= 1.2) {
+  if (atInteraction(s,spot.x,spot.y)) {
     return { type: 'place', key: goal.id, x: spot.x, y: spot.y, badge: 'ui.build' };
   }
   return walkTo(s, mind, spot.x, spot.y, 'ui.build') || idle(s, mind);
@@ -642,7 +643,7 @@ function power(s, mind) {
   const badge = 'mark.' + s.world.props.get(key(c.x, c.y, SURFACE));
   // Physics can charge from an unseen prop, but AUTO may only decide to
   // wait beside the observed charger it actually selected.
-  if (tileDist2(s.player, c.x, c.y, SURFACE) <= CHARGE_RANGE * CHARGE_RANGE) return { type: 'charge', badge };
+  if (atInteraction(s,c.x,c.y)) return { type: 'charge', badge };
   const step = walkTo(s, mind, c.x, c.y, badge);
   if (!step) mind.charger = null;
   return step;

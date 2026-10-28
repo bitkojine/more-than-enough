@@ -25,7 +25,7 @@ test('heat kills colonies and degraded harvested crystal still reinforces physic
 test('wild colonies renew after taking a starter; sealed handling protects carried material',()=>{
  const s=fixture();let found;
  for(let y=20;y<100&&!found;y++)for(let x=20;x<100&&!found;x++)if(C.tileAt(s.world,x,y,-2)===C.T.GEODE)found={x,y};
- assert.ok(found);s.player={x:found.x+.5,y:found.y+.5,z:-2};C.markExplored(s.world,found.x,found.y,-2);
+ assert.ok(found);C.setRichness(s.world,found.x+1,found.y,-2,0);s.player={x:found.x+1.5,y:found.y+.5,z:-2};C.markExplored(s.world,found.x,found.y,-2);
  assert.equal(C.takeStarter(s,found.x,found.y),'ok');s.cultivation.starter=null;assert.equal(C.takeStarter(s,found.x,found.y),'regrow');run(s,46);assert.equal(C.takeStarter(s,found.x,found.y),'ok');
  assert.equal(cmd(s,'craft','carrier',found.x,found.y),'ok');cmd(s,'craft','lantern',found.x,found.y);cmd(s,'lantern',null,found.x,found.y);const q=s.cultivation.quality;run(s,2);assert.equal(s.cultivation.starter.health,100);assert.equal(s.cultivation.quality,q);
 });

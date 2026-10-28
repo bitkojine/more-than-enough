@@ -338,3 +338,13 @@ Missing bits retain legacy presentation; older clients can ignore the field.
 This is visual state, never authority for gathering or purchases. Actual tool
 levels are validated through canonical replay and saves. New saves mark
 `emptyStart: true`; absent markers retain legacy positive tool defaults.
+
+Targeted personal collections: welcome advertises `collectAt: true`. New
+`c` acts may append integer target tile coordinates after the ordinary five
+fields. The room replays the selected single building with the shared contact
+rule. Five-field `c` remains valid and chooses the nearest contacted building.
+Clients send the extended shape only after the advertised capability; when
+connected to an older room they use a legacy record only when its former
+group range contains exactly one buffered building and it is physically
+contacted. Ambiguous groups await the updated service rather than collecting
+remotely or allowing the two copies of inventory to diverge.

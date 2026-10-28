@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.178.0": "Prieš rinkdamas, statydamas, paimdamas produkciją, lipdamas kopėčiomis ar prižiūrėdamas kristalus, Mica prieina prie objekto ir į jį atsisuka. Vienas pasirinkimas apima ėjimą ir veiksmą; judėjimas jį atšaukia. Gaminti galima bet kur, o infrastruktūra veikia ir jums tyrinėjant.",
   "news.0.177.6": "Pastačius ar perkėlus pastatą galima iškart žaisti toliau. Informacijos kortelė su perkėlimo veiksmu atsidaro tik vėliau pasirinkus pastatą.",
   "news.0.177.5": "Mica ir Wiki nebeperima valdymo gestų. Jie pasiekia po veikėjais esantį pasaulį. Palaikykite nuspaudę pasaulio objektą, kad Wiki jį paaiškintų; automatinės pastabos lieka.",
   "news.0.177.4": "Geodų kortelės dabar atsidaro nesustabdydamos žaidimo. Neįkelti paveikslėliai nebetrukdo naudoti valdiklių, o klaidos ataskaitoje nurodomas paveikslėlis, užklausa ir vieta pasaulyje.",

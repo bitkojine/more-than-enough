@@ -193,7 +193,8 @@ test('mycelium from a spore bed underground does not count as gathering from the
   s.player.z = -4;
   s.tools.pickaxe = 1; // legacy basic pick; the test concerns income classification
   const sporeBed = findNear(s, (st, x, y) => typeAt(st, x, y) === T.SPORE_BED && richAt(st, x, y) > 0);
-  standOn(s, sporeBed);
+  C.setRichness(s.world,sporeBed.x+1,sporeBed.y,s.player.z,0);
+  standOn(s, {x:sporeBed.x+1,y:sporeBed.y});
   assert.equal(C.harvestAt(s, sporeBed.x, sporeBed.y).res, 'mycelium');
   assert.equal(s.stats.mycelium, 1);
   assert.deepEqual(C.advanceGoals(s), [], 'the forest milestone waits for a forest');

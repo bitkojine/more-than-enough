@@ -98,6 +98,40 @@ never delays or replaces a player action. Open: Wiki's voice and how much more o
 tells, whether friends' Mica carry their own Wiki, and whether the repository
 is renamed (save keys never are).
 
+### Physical interactions — confirmed, 2026-10-28
+Mica first walks beside a world object, faces it, then performs the action.
+One selection queues the approach and action. New movement or another order
+cancels the pending action; changing worlds/layers or an unreachable approach
+never completes it remotely. No teleporting to a ladder before approaching it.
+
+The canonical contact predicate is `src/core/interaction.js`: Mica stands on
+walkable floor on the same layer, in the object's tile or its cardinal neighbor,
+within the contact bound. Diagonal proximity and reaching across another tile
+never count. Routes prefer observed neighboring floor, with ordinary collision,
+fog and water rules. Existing saves inside a walkable object's footprint stay
+usable; new approaches prefer a side rather than walking through the object.
+
+| Action family | Physical rule |
+| --- | --- |
+| Gather, dig, find, wild starter, Trail | Approach each target before one paced hand action; rock is worked from open floor. |
+| Manual building collection | Approach and empty one selected building; no area-wide manual collection. |
+| Build or relocate | Visit the destination before spending/building; relocation starts from the original building's locally opened card. Completion returns to play with cards closed. |
+| Shutters, shades, planting, tending, storing, reinforcement | Stand beside the particular object before changing it. |
+| Heart pickup/rest, machine repair and activation | Visit the hiding place, shelter or machine first. |
+| Ladder, cave or shaft passage | Approach the selected way, then change layers; a distant selection queues both. |
+| Personal gear crafting/equipping, carried lantern/flare | Available wherever Mica stands; these operate on what he carries. New-world upgrades are personal tool crafting. |
+| Production, depot hauling, conduits, cooling, support and light fields | Infrastructure keeps working independently of Mica; its operating area is not personal interaction reach. |
+| Lantern recharging | Mica must be beside the charger; the device still obeys daylight. |
+| Inspection, planning, menus and world records | Read-only interface actions need no travel. A building's action card opens on arrival; world inspection reveals no unexplored information. |
+
+Legacy progression purchases remain their existing inventory/progression actions;
+this change does not remove earned upgrades, reset worlds, or turn infrastructure
+service radii into player reach. Shared collection includes optional target
+coordinates only when the room advertises support; older rooms accept the legacy record only when exactly one legacy-range
+building would be collected and it is physically contacted. Ambiguous groups
+wait for the updated service rather than collecting remotely or disagreeing. Multiplayer hardening remains
+separately deferred; this is the shared gameplay contact rule, not a new anti-cheat claim.
+
 ### Recommendations awaiting confirmation
 These are design recommendations, not approved rules:
 - Clear warning signs and enough time to respond before a colony dies.

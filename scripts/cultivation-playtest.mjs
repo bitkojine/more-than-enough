@@ -28,7 +28,7 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
  const visits=new Map();let actions=0,ticks=0,activationSave=null;
  function budget(){if(performance.now()-started>wallSeconds*1000)throw Error('wall-budget');if(state.time>7200)throw Error('game-time-budget');}
  function advance(n){budget();if(trace.at(-1)?.ticks)trace.at(-1).ticks+=n;else trace.push({ticks:n});for(let i=0;i<n;i++){simulation.tick();ticks++;}}
- function act(intent){budget();const result=controller.perform(intent,false);trace.push({intent,result});actions++;if(!result)throw Error('refused '+JSON.stringify(intent));advance(15);return result;}
+ function act(intent){budget();const result=controller.perform(intent,false);trace.push({intent,result});actions++;if(!result)throw Error('refused '+JSON.stringify(intent));if(result==='walking'){let n=0;while(controller.walking){advance(1);if(++n>12000)throw Error('action approach stall');}}advance(15);return result;}
  function command(type,kind,at=feet()){
   budget();
   // A site in the rock is dug out first: buildings stand on open ground.
@@ -67,7 +67,7 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   act({type:'walk',...p});let n=0;while(controller.walking){advance(1);if(++n>240)throw Error('movement stall');}
   const f=feet();if(key(f)!==key(p))throw Error('failed route '+JSON.stringify({p,f}));
  }
- function follow(route,stopNear=false){for(const p of route.path){if(stopNear&&Math.hypot(route.at.x+.5-state.player.x,route.at.y+.5-state.player.y)<=1.6)break;walkTile(p);}}
+ function follow(route,stopNear=false){for(const p of route.path){if(stopNear&&C.atInteraction(state,route.at.x,route.at.y))break;walkTile(p);}}
  function explore(){const r=search(()=>false,true);if(!r)throw Error('no exploration frontier');visits.set(key(r.at)+','+state.player.z,(visits.get(key(r.at)+','+state.player.z)||0)+1);follow(r);}
  function seek(predicate,stopNear=false){for(let i=0;i<600;i++){const route=search(predicate);if(route){follow(route,stopNear);return route.at;}explore();}throw Error('no target');}
  function gather(res,n){let tries=0;while(state.inv[res]+1e-8<n){if(++tries>2000)throw Error('gather stall '+res);
@@ -81,7 +81,7 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
  // come close, so a tile picked before can be taken by the time you arrive.
  function buildingSite(near,radius=3,extra=()=>true){if(Math.hypot(near.x-state.player.x,near.y-state.player.y)>32)toward(near);for(let i=0;i<20;i++){const at=seek(p=>extra(p)&&Math.abs(p.x-near.x)+Math.abs(p.y-near.y)<=radius&&pass(p.x,p.y)&&!info(p.x,p.y).rise&&!info(p.x,p.y).descend&&!C.cultivationAt(state,p.x,p.y)&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!state.world.props.has(C.packKey(p.x,p.y,state.player.z)));;go(at);if(!C.cultivationAt(state,at.x,at.y))return at;}throw Error('no free site');}
  // The hiding place is marked on the world map, so a player knows where it is.
- const near=(at,r=1.6)=>Math.hypot(at.x+.5-state.player.x,at.y+.5-state.player.y)<=r;
+ const near=at=>C.atInteraction(state,at.x,at.y);
  // A long journey on a map you've only partly seen: straight there once the
  // way is known, else to the edge of the known map that leads closest to it
  // (counting the way there), so a bay of water or rock is walked round

@@ -258,15 +258,14 @@ export default {
         <li>With nothing in reach, it reads <em>EXPLORE</em> and walks you to the nearest resource your tools can work, then gathers it. With nothing around at all, it dims.</li>
       </ul>
       <p>You can also <strong>{phone:tap|laptop:click} a tile</strong> directly: a resource within reach gets gathered, a building within reach gets
-        collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. Reach is <span data-k="REACH"></span> tiles
-        from you to the tile's centre.</p>
+        collected. {phone:Tap|laptop:Click} one farther away and you walk over and gather or collect it when you get there. Mica first walks beside the object and faces it.</p>
       <p>Every way of working takes the same time: one tile every <span data-k="HAND_SECONDS"></span> seconds. {phone:Tapping|laptop:Pressing}
         Gather again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than simply holding Gather down, so there's no
         need to hurry your {phone:thumb|laptop:fingers}.</p>
 
       <h2>Trails</h2>
-      <p>Hold Gather, then <strong>slide your {phone:thumb|laptop:pointer} off the button</strong> onto the map and draw. Every resource tile within reach
-        that your stroke passes over lights up green. Let go and each one is gathered once, one after another at
+      <p>Hold Gather, then <strong>slide your {phone:thumb|laptop:pointer} off the button</strong> onto the map and draw. Every explored resource tile
+        that your stroke passes over lights up green. Mica walks to each before working it. Let go and each one is gathered once, one after another at
         Gather's pace: a handy way to pick which tiles around you to clear. Underground the same stroke digs, and glows amber.</p>
       <p>A tile counts as crossed when its centre is within <span data-k="SWEEP_RADIUS"></span> tiles of your stroke.</p>
 
@@ -544,7 +543,7 @@ export default {
         it's down to <span data-k="BATTERY_LOW" data-f="pct"></span> your light starts to shrink, to
         <span data-k="BATTERY_DIM" data-f="pct"></span> of its reach when it's flat, so you see less and the fog lifts over less.
         It never stops you doing anything. Its charge shows on the left edge once it isn't full.</p>
-      <p>Only water power charges it: stand within <span data-k="CHARGE_RANGE"></span> tiles of a floating solar panel while the
+      <p>Only water power charges it: stand beside a floating solar panel while the
         sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
         charger charges anyone.</p>
       <h2>Ore flares</h2>
@@ -725,8 +724,8 @@ export default {
         Settings has <em>Produce while away</em>, off by default; turn it on and time away counts again, up to eight hours.</p>
 
       <h2>Collecting</h2>
-      <p>Stand within <span data-k="COLLECT_RANGE"></span> tiles of a building and press Gather (it reads <em>COLLECT</em>) or {phone:tap|laptop:click}
-        the building. You take every whole unit from every building in that range at once.</p>
+      <p>Stand beside a building and press Gather (it reads <em>COLLECT</em>) or {phone:tap|laptop:click}
+        the building. Mica takes the whole units from that one building. Select a distant building and he walks beside it first.</p>
 
       <h2>Logistics</h2>
       <p>Once you unlock <strong>Logistics</strong>, every building of yours sends its goods straight into your packs as

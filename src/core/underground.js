@@ -7,11 +7,12 @@
  * goDown()/goUp() take the way where you stand; descendAt()/climbAt() take
  * one within reach. */
 
+import {atInteraction} from './interaction.js';
 import { SURFACE, Z_MIN, tileDist2, packKey, chunkCoord } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { hash2 } from './noise.js';
 import { tileAt, setRichness, holeBelow, wayUp } from './world.js';
-import { REACH, PROPS, GLINT_RANGE } from './content.js';
+import { PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
 import { landAt } from './regions.js';
 import { canAfford, pay } from './economy.js';
@@ -103,7 +104,7 @@ export function goUp(s) {
 // A hole at (x, y) in the player's floor, within reach.
 export function canDescendAt(s, x, y) {
   const p = s.player;
-  return p.z > Z_MIN && holeBelow(s.world, x, y, p.z) && tileDist2(p, x, y, p.z) <= REACH * REACH;
+  return p.z > Z_MIN && holeBelow(s.world, x, y, p.z) && atInteraction(s,x,y);
 }
 
 // Drops through the hole at (x, y) to the same spot below (and further, if
@@ -118,7 +119,7 @@ export function descendAt(s, x, y) {
 // The foot of a ladder up at (x, y) on the player's layer, within reach.
 export function canClimbAt(s, x, y) {
   const p = s.player;
-  return wayUp(s.world, x, y, p.z) && !!TILE_INFO[tileAt(s.world, x, y, p.z)].walk && tileDist2(p, x, y, p.z) <= REACH * REACH;
+  return wayUp(s.world, x, y, p.z) && !!TILE_INFO[tileAt(s.world, x, y, p.z)].walk && atInteraction(s,x,y);
 }
 
 // Climbs the ladder at (x, y) to the same spot on the layer above.

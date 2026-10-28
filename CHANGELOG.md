@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.178.0] - 2026-10-28
+
+- Share physical contact checks across gathering, digging, building, cultivation,
+  ladders, manual collection, relocation destinations and recharging. Require
+  same-layer walkable floor at the object or a cardinal side; no diagonal reach.
+- Queue approaches and actions through the controller, face the object on arrival,
+  and cancel pending work on movement, replacement orders or layer/world changes.
+  Correct route completion so entering a tile does not stop short of contact.
+- Open distant building cards on arrival. Keep placement completion unobstructed.
+- Collect one contacted building per hand action; add optional target coordinates
+  advertised by the room; older-room records are allowed only for an
+  unambiguous single contacted building, preventing group-pickup divergence.
+- Trails approach each observed target; select along the stroke instead of
+  scanning its bounding rectangle. Preserve the shared hand clock.
+- Keep crafting, carried equipment and automated infrastructure independent of
+  travel. Record the full action-family audit and decisions in the GDD.
+- Update playtest routing, rule fixtures and regression coverage for contact,
+  cancellation, unreachable targets, UI approaches and targeted replay.
+
 ## [0.177.6] - 2026-10-28
 
 - Return directly to play after placing or moving a building. Remove the

@@ -39,6 +39,8 @@ test('moving a building is free, keeps what it holds and updates every index', (
   const e = C.extractorAt(s, x, y - 1, 0);
   e.buffer = 7.5;
   const inv = { ...s.inv };
+  assert.equal(C.moveExtractor(s,e,x+1,y+1).ok,false,'diagonal distance is not contact');
+  s.player.x=x+1.5;
   assert.ok(C.moveExtractor(s, e, x + 1, y + 1).ok);
   assert.deepEqual(s.inv, inv, 'free');
   assert.equal(e.x, x + 1); assert.equal(e.y, y + 1);
@@ -51,7 +53,9 @@ test('moving a building is free, keeps what it holds and updates every index', (
 test('a move needs the new tile in reach, free and fitting, and in a shared world a room that checks moves', () => {
   const { s, x, y } = stoneWorld();
   assert.ok(C.place(s, 'quarry', { x, y: y - 1 }).ok);
+  s.player.x=x+1.5;
   assert.ok(C.place(s, 'quarry', { x: x + 1, y: y - 1 }).ok);
+  s.player.x=x+.5;
   const e = C.extractorAt(s, x, y - 1, 0);
   assert.equal(C.moveExtractor(s, e, x + 1, y - 1).ok, false, 'onto another building');
   assert.equal(C.moveExtractor(s, e, x + 4, y).ok, false, 'out of reach');

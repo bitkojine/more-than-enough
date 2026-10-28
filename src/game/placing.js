@@ -68,6 +68,7 @@ export function createPlacing({ cam, state, controller, cultivate, toast }) {
 
   function start(what, from = null) {
     const s = state();
+    if(from&&!Core.atInteraction(s,from.x,from.y,from.z)){toast(t('place.far'));return;}
     controller.stop();
     job = { key: what.key || null, kind: what.kind || null, from, z: s.player.z, at: null, walking: false };
     findFits(s); age = 0;
@@ -135,7 +136,7 @@ export function createPlacing({ cam, state, controller, cultivate, toast }) {
   function go() {
     if (!job?.at) return;
     if (Core.inReach(state(), job.at.x, job.at.y)) return finish();
-    controller.walk(job.at.x, job.at.y);
+    if(!controller.approach(job.at.x,job.at.y,()=>{if(job)finish();return true;})){toast(t('place.far'));return;}
     job.walking = true;
     render();
   }
@@ -193,7 +194,6 @@ export function createPlacing({ cam, state, controller, cultivate, toast }) {
       if (s.player.z !== job.z || (job.from && !s.extractors.includes(job.from) && !s.cultivation?.facilities.includes(job.from))) return end();
       if ((age += dt) >= REFRESH_S) { age = 0; findFits(s); }
       if (job.walking) {
-        if (Core.inReach(s, job.at.x, job.at.y)) { controller.stop(); return finish(); }
         if (!controller.walking) { job.walking = false; toast(t('place.far')); }
       }
       render();

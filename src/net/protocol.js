@@ -167,7 +167,7 @@ export function cleanAct(a) {
   if (!Array.isArray(a) || !isInt(a[1]) || a[1] < 0 || !inXY(a[2]) || !inXY(a[3]) || !inZ(a[4])) return null;
   const head = [a[0], a[1], round(a[2], 1000), round(a[3], 1000), a[4]];
   const tile = (v) => isInt(v) && Math.abs(v) <= XY_MAX;
-  if (a[0] === 'h' && a.length === 7 && tile(a[5]) && tile(a[6])) return [...head, a[5], a[6]];
+  if ((a[0] === 'h' || a[0] === 'c') && a.length === 7 && tile(a[5]) && tile(a[6])) return [...head, a[5], a[6]];
   if ((a[0] === 'c' || a[0] === 'w') && a.length === 5) return head;
   if (a[0] === 'b' && a.length === 8 && typeof a[5] === 'string' && NAME_RE.test(a[5]) && tile(a[6]) && tile(a[7])) return [...head, a[5], a[6], a[7]];
   if (a[0] === 'v' && a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8])) return [...head, a[5], a[6], a[7], a[8]];

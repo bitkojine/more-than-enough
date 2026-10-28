@@ -4,6 +4,7 @@
  * never stops you doing anything. Nothing charges or drains while you're
  * away. */
 
+import {atInteraction} from './interaction.js';
 import { SURFACE, packKey } from './coords.js';
 import { PROPS, DAY_LENGTH, BATTERY_LIFE, BATTERY_LOW, BATTERY_DIM, CHARGE_TIME, CHARGE_RANGE } from './content.js';
 import { economyForState } from './economy-context.js';
@@ -77,7 +78,7 @@ export function chargerNear(s, time = s.time, work = null) {
   for (const candidate of chargersAround(s, work)) {
     if (work) work.candidates = (work.candidates || 0) + 1;
     const { x, y, kind } = candidate;
-    if (!charging(kind, time)) continue;
+    if (!charging(kind, time)||!atInteraction(s,x,y)) continue;
     const d = dist2(p, candidate);
     if (d <= bestD) { bestD = d; best = { x, y, kind }; }
   }
@@ -92,7 +93,7 @@ export function solarInReach(s) {
   if (p.z !== SURFACE || !s.world.props.size) return false;
   let solar = false;
   for (const c of chargersAround(s, null)) {
-    if (dist2(p, c) > CHARGE_RANGE * CHARGE_RANGE) continue;
+    if (!atInteraction(s,c.x,c.y)) continue;
     const kind = PROPS[c.kind].charge;
     if (kind === 'always') return false;
     if (kind === 'day') solar = true;

@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 
 function reference(s) {
-  const list = s.extractors.filter(e => C.ownBuilding(s, e) && e.buffer >= 1 && C.tileDist2(s.player, e.x, e.y, e.z) <= C.COLLECT_RANGE ** 2);
+  const list = s.extractors.filter(e => C.ownBuilding(s, e) && e.buffer >= 1 && C.atInteraction(s,e.x,e.y,e.z));
+  list.sort((a,b)=>C.tileDist2(s.player,a.x,a.y,a.z)-C.tileDist2(s.player,b.x,b.y,b.z));
+  list.splice(1);
   return list.length ? { total: Math.floor(list.reduce((n, e) => n + e.buffer, 0)), list } : null;
 }
 

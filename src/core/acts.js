@@ -6,7 +6,7 @@
  * An act: [kind, ms, x, y, z, ...args], where ms is the player's play time
  * (stats.playedMs) and x, y, z where they stood:
  *   ['h', …, tx, ty]       worked tile (tx, ty) once (gather, dig, a find)
- *   ['c', …]               collected from their buildings in range
+ *   ['c', …, tx?, ty?]     collected one contacted building (target if supported)
  *   ['b', …, key, tx, ty]  put up building `key` on tile (tx, ty)
  *   ['v', …, fx, fy, tx, ty] moved their building on (fx, fy) to (tx, ty)
  *   ['p', …, kind]         set down prop `kind` where they stand

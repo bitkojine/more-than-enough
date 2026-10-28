@@ -255,14 +255,13 @@ export default {
         <li>Jei nieko nepasiekiama, jame parašyta <em>TYRINĖTI</em>: jis nuveda prie artimiausio ištekliaus, kurį tavo įrankiai įveikia, ir jį surenka. Jei aplink visai nieko nėra, mygtukas pritemsta.</li>
       </ul>
       <p>Taip pat gali <strong>{phone:bakstelėti|laptop:spustelėti} langelį</strong> tiesiogiai: pasiekiamą išteklių surinksi, iš pasiekiamo pastato paimsi
-        produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. Pasiekiamumas – <span data-k="REACH"></span> langelio
-        nuo tavęs iki langelio centro.</p>
+        produkciją. {phone:Bakstelk|laptop:Spustelk} tolimesnį – nueisi prie jo ir, atėjęs, surinksi ar paimsi. Mica pirmiausia prieina prie objekto ir į jį atsisuka.</p>
       <p>Bet koks darbas trunka tiek pat: vienas langelis kas <span data-k="HAND_SECONDS"></span> s. {phone:Baksnojant|laptop:Spaudinėjant}
         Rinkti vėl ir vėl, {phone:baksnojant|laptop:spaudinėjant} langelius ar piešiant Takus niekada nebus greičiau nei tiesiog laikant Rinkti, tad
         skubėti nereikia.</p>
 
       <h2>Takai</h2>
-      <p>Laikyk Rinkti, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas pasiekiamas išteklių langelis,
+      <p>Laikyk Rinkti, tada <strong>nuslysk {phone:nykščiu|laptop:žymekliu} nuo mygtuko</strong> ant žemėlapio ir piešk. Kiekvienas ištirtas išteklių langelis,
         per kurį pereina tavo brūkšnys, nušvinta žaliai. Atleisk ir kiekvienas jų bus surinktas po kartą, vienas po kito
         Rinkti tempu: patogu pasirinkti, kuriuos langelius aplink save išvalyti. Po žeme tas pats brūkšnys kasa ir švyti gintaro spalva.</p>
       <p>Langelis laikomas perbrauktu, kai jo centras yra ne toliau kaip <span data-k="SWEEP_RADIUS"></span> langelio nuo tavo brūkšnio.</p>
@@ -536,7 +535,7 @@ export default {
         <span data-k="BATTERY_LOW" data-f="pct"></span>, tavo šviesa ima trauktis, kol, baterijai išsikrovus, siekia tik
         <span data-k="BATTERY_DIM" data-f="pct"></span> įprasto atstumo: matai mažiau, o rūkas prasisklaido mažesniame plote.
         Daryti nieko ji netrukdo. Kai žibintas nepilnai įkrautas, jo įkrova rodoma kairiajame ekrano krašte.</p>
-      <p>Ją įkrauna tik vandens energija: stovėk ne toliau kaip <span data-k="CHARGE_RANGE"></span> langelio nuo plaukiojančios
+      <p>Ją įkrauna tik vandens energija: stovėk prie plaukiojančios
         saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
         <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>
       <h2>Rūdos žiežirbos</h2>
@@ -715,8 +714,8 @@ export default {
         Nustatymuose yra <em>Gaminti, kai toli</em>, išjungta pagal nutylėjimą; įjunk, ir neatrodo laikas vėl skaičiuojamas, iki aštuonių valandų.</p>
 
       <h2>Paėmimas</h2>
-      <p>Atsistok iki <span data-k="COLLECT_RANGE"></span> langelių nuo pastato ir spausk Rinkti (mygtukas rodo <em>PAIMTI</em>) arba
-        {phone:bakstelėk|laptop:spustelėk} jį. Iš karto paimi visus sveikus vienetus iš visų tame spindulyje esančių pastatų.</p>
+      <p>Atsistok prie pastato ir spausk Rinkti (mygtukas rodo <em>PAIMTI</em>) arba
+        {phone:bakstelėk|laptop:spustelėk} jį. Mica paima visus sveikus vienetus iš vieno pastato. Pasirinkus tolimesnį pastatą, pirmiausia prie jo nueina.</p>
 
       <h2>Logistika</h2>
       <p>Atrakinus <strong>Logistiką</strong>, kiekvienas tavo pastatas siunčia produkciją tiesiai tau į kuprinę, vos ją

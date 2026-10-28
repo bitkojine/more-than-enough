@@ -44,7 +44,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there round obstacles: planWalk/walkAim in core paths.js, replanned when a hoped-open route through fog turns out blocked), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, AUTO's intents (perform), Trail sweeps (every way of working a tile takes turns on one hand clock, core pace.js), going down and up between layers, buying, building, embarking, resetting. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
+                controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there round obstacles: planWalk/walkAim in core paths.js, replanned when a hoped-open route through fog turns out blocked), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, AUTO's intents (perform), Trail sweeps (every way of working a tile takes turns on one hand clock, core pace.js), going down and up between layers, buying, building, embarking, resetting. One queued approach/action routes observed cardinal contact sites once per order, faces the object, then calls the Core. New movement, orders or layer/world changes cancel it. Crafting and carried equipment need no destination. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
                         "ref" "src/game/controller.js"
@@ -183,10 +183,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                actions = component "Actions" "Harvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus travel between layers through holes (dig down from the forest, climb up through the ceiling, drop through holes and shafts). All work on the player's own layer." "JavaScript" {
+                actions = component "Actions" "Harvest (gather deposits on the surface, dig rock underground), Trail sweep targets, collect, and build; plus travel between layers through holes (dig down from the forest, climb up through the ceiling, drop through holes and shafts). All personal world actions share interaction.js: walkable same-layer contact on the object's tile or a cardinal side; no diagonal or distant reach. Collection empties one contacted building. Infrastructure remains independent of player contact." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/actions.js, underground.js"
+                        "ref" "src/core/actions.js, src/core/interaction.js, underground.js"
                     }
                 }
 

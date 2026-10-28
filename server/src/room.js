@@ -311,6 +311,7 @@ export class Room {
       // ...including moves ('v', a building moved): games offer Move in a
       // shared world only when it says so (src/core/actions.js moveExtractor).
       moves: true,
+      collectAt: true, // targeted single-building collections (optional c coordinates)
       // ...and that copy is what you have: `save` is it, and 'econ' sets
       // your game straight when it's off (src/game/together.js).
       econ: true

@@ -3,6 +3,7 @@
  * browser layer (src/game/) drives the game only through these exports. */
 
 export * from './coords.js';
+export * from './interaction.js';
 export { hash2 } from './noise.js';
 export { shaftInChunk, caveInChunk, WAYS_APART, wayDownInChunk, wayUpInChunk, findsInChunk, GEOLOGY, geologyShare, DEPOSIT, WEALTH, SURFACE_SHARE, farness, FOREST_KINDS, forestKind, HOME_HALF } from './terrain.js';
 export * from './tiles.js';

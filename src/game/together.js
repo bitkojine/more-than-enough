@@ -178,7 +178,8 @@ function cleanWelcome(d) {
     ext: world.ext, players, save, p: d.p ? cleanPos(d.p) : null,
     time: d.time === undefined ? null : cleanTime(d.time), gen, graves: cleanGraves(d.graves ?? []), fmt,
     // The room checks moves (v0.169.0): only then may a building move here.
-    moves: d.moves === true
+    moves: d.moves === true,
+    collectAt: d.collectAt === true
   };
 }
 
@@ -541,7 +542,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
     // The room works out your progress from what you do too (src/core/acts.js).
     if (game.state.shared === room) game.state.acts ||= [];
     // ...moves too, when it says so (src/core/actions.js moveExtractor).
-    if (game.state.shared === room) game.state.roomMoves = w.moves;
+    if (game.state.shared === room) {game.state.roomMoves = w.moves;game.state.roomCollectAt = w.collectAt;}
     if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
     keepTime();
     lastPos = ''; lastSave = ''; sentZ = null;
