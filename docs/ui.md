@@ -71,7 +71,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
 │         [+] [1×] [−] [▤]             │  zoom and map: horizontal below resources
-│                            v0.180.2 ●│  fixed Settings column (● = news)
+│                            0.180.3 ●│  fixed Settings column (● = news)
 │                               ● in 0:18│  independent solar status when nearby
 │ ▮▯ 62%                               │  compact charge on Equipment; details in its tray
 │ LAYER 1                              │  depth meter (underground only), under it
@@ -182,7 +182,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### What's new
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
-- **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label directly below it. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. A gold dot is overlaid, never added to the label's width. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
+- **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label directly below it. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. The compact label shows the full version number without a redundant prefix, leaving room for wider system fonts. A gold dot is overlaid, never added to the label's width. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
 - **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
 
 ### Empty-handed starts and equipment

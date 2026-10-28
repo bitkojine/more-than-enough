@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.180.3] - 2026-10-28
+## [0.180.3] - 2026-10-29
 
 - Keep Messages and preview anchors fixed when Equipment opens. Define
   viewport regions independently of panel state; separate panel policy from
@@ -12,6 +12,8 @@
   card regions, with Invite beside Messages.
 - Give the version/changelog label a permanent Settings-column slot matching
   the gear's width, within a full touch target. Solar status never replaces it.
+- Show the compact version number without a redundant prefix so wider system
+  fonts also fit. Exercise six font fallbacks and report exact fit measurements.
 - Check fixed anchors, simultaneous desktop panels, readable logs, metadata
   clearance and changelog access across nine viewport sizes in both languages.
   Report layout-audit progress and timing after every viewport.

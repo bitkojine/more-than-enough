@@ -140,11 +140,11 @@ test('the badge always shows the version, with a dot while there is news not yet
   store.setItem('mte.newsSeen', older);
   const badge = fakeBadge();
   const news = createNews({ badge, panel: null, version: now, store });
-  assert.equal(badge.parts['.now'].textContent, 'v' + now);
+  assert.equal(badge.parts['.now'].textContent, now);
   assert.equal(news.from, older);
   assert.ok(news.fresh && badge.classes.has('fresh'));
   news.play();
-  assert.equal(badge.parts['.was'].textContent, 'v' + older);
+  assert.equal(badge.parts['.was'].textContent, older);
   assert.ok(badge.classes.has('rolling'));
   assert.equal(store.getItem('mte.ranVersion'), now, 'the next start on this version rolls nothing over');
   const again = createNews({ badge: fakeBadge(), panel: null, version: now, store });
@@ -155,6 +155,6 @@ test('the badge always shows the version, with a dot while there is news not yet
 test('with storage blocked the badge still shows the version, with nothing new', () => {
   const badge = fakeBadge();
   const news = createNews({ badge, panel: null, version: NEWS[0], store: null });
-  assert.equal(badge.parts['.now'].textContent, 'v' + NEWS[0]);
+  assert.equal(badge.parts['.now'].textContent, NEWS[0]);
   assert.equal(news.fresh, false);
 });

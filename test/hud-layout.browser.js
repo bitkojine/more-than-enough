@@ -1,6 +1,13 @@
 /* Bounded combined-state regression fixtures; presentation, not a fair-play run. */
 export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
+  const versionMeasure = `(()=>{const v=document.getElementById('btnVersion'),b=v.getBoundingClientRect(),g=document.getElementById('btnSettings').getBoundingClientRect(),n=v.querySelector('.now');return{aligned:Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom,touch:b.height>=44,fits:n.scrollWidth<=n.clientWidth,text:n.textContent,textWidth:n.scrollWidth,labelWidth:n.clientWidth,font:getComputedStyle(v).fontFamily,button:b.toJSON(),gear:g.toJSON()};})()`;
   eq(await evalJS('document.querySelectorAll("#tabs,[role=tab],[role=tablist]").length'),0,'menus have no shared tab bar');
+  for(const font of ['system-ui','sans-serif','Arial','"DejaVu Sans"','"Liberation Sans"','"Noto Sans"']){
+    await evalJS(`document.getElementById('btnVersion').style.fontFamily=${JSON.stringify(font)}`);
+    const measured=await evalJS(versionMeasure);
+    ok(measured.aligned&&measured.touch&&measured.fits,'version fits font fallback '+font+' '+JSON.stringify(measured));
+  }
+  await evalJS('document.getElementById("btnVersion").style.fontFamily=""');
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));
     MTE_GAME.wiki.setMode('quiet');
@@ -22,7 +29,8 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     eq(state.collisions.length,0,'combined HUD groups clear each other at '+width+'×'+height+' '+state.collisions);
     eq(state.offscreen.length,0,'combined HUD groups stay on screen at '+width+'×'+height+' '+state.offscreen);
     const versionAnchor=await evalJS('(()=>{const v=document.getElementById("btnVersion").getBoundingClientRect();return{x:v.x,y:v.y,width:v.width};})()');
-    ok(await evalJS('(()=>{const v=document.getElementById("btnVersion"),b=v.getBoundingClientRect(),g=document.getElementById("btnSettings").getBoundingClientRect(),n=v.querySelector(".now");return Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom&&b.height>=44&&n.scrollWidth<=n.clientWidth;})()'),'version fits directly under Settings with a full touch target at '+width+'×'+height);
+    const measuredVersion=await evalJS(versionMeasure);
+    ok(measuredVersion.aligned&&measuredVersion.touch&&measuredVersion.fits,'version fits directly under Settings with a full touch target at '+width+'×'+height+' '+JSON.stringify(measuredVersion));
     await evalJS(`MTE_GAME.messages.add({text:'A new message at ${width} by ${height}: your latest discovery remains here while Equipment opens.'});MTE_GAME.messages.tick()`);
     const anchors=await evalJS('(()=>{const p=document.getElementById("logPill").getBoundingClientRect(),b=document.getElementById("logBubble").getBoundingClientRect();return{x:p.x,y:p.y,bottom:b.bottom};})()');
     const gearButton=await rect('#btnUpgrade');await tap(gearButton.x,gearButton.y);

@@ -294,7 +294,7 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
   write(store, RAN_STORE, version);
   write(store, SEEN_STORE, seen);
 
-  now.textContent = 'v' + version;
+  now.textContent = version;
   const unseen = () => newsSince(seen, version);
   function mark() {
     const fresh = unseen().length > 0;
@@ -306,7 +306,7 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
   // The old number rolls up and away, the new one rolls in and glows.
   function play() {
     if (!from) return;
-    was.textContent = 'v' + from;
+    was.textContent = from;
     badge.classList.remove('rolling');
     void badge.offsetWidth;  // restart the animation
     badge.classList.add('rolling');
