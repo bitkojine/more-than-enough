@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.180.4] - 2026-10-29
+
+- Make the gear and the version label one Settings-column unit: the label is
+  a padded pill a few pixels beneath the gear, so a taller resources row can
+  no longer push the two apart.
+- Keep the pill's roll and glow on the label itself. The touch target no
+  longer clips it into a wedge, the digits keep side padding without tabular
+  figures, and an update rings the pill rather than the touch target.
+- Hold the label snug under the gear in the browser fixture (a measured gap,
+  not just "somewhere below") so the placement cannot drift again.
+
 ## [0.180.3] - 2026-10-29
 
 - Keep Messages and preview anchors fixed when Equipment opens. Define
@@ -12,8 +23,6 @@
   card regions, with Invite beside Messages.
 - Give the version/changelog label a permanent Settings-column slot matching
   the gear's width, within a full touch target. Solar status never replaces it.
-- Keep the gear and its label one unit in that column: the label is a padded
-  pill sitting a few pixels under the gear, so the two never drift apart.
 - Show the compact version number without a redundant prefix so wider system
   fonts also fit. Exercise six font fallbacks and report exact fit measurements.
 - Check fixed anchors, simultaneous desktop panels, readable logs, metadata

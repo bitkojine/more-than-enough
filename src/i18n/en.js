@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.3": "Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.",
+  "news.0.180.4": "The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.",
   "hud.equipment": "Equipment",
   "hud.settlement": "Settlement",
   "hud.improvements": "Improve existing buildings",

@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.3": "Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.",
   "news.0.180.2": "Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.",
   "news.0.180.1": "Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.",
   "news.0.180.0": "Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.",

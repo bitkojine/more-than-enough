@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.3": "Atvėrus Įrangą, Žinučių mygtukas ir peržiūros lieka vietoje. Didesniuose ekranuose žinutės lieka kairėje, o meniu atsidaro dešinėje. Versijos numeris visada yra po Nustatymais; saulės būsena jo nebepakeičia.",
+  "news.0.180.4": "Versijos numeris dabar yra tvarkinga apvalių galų juostelė tiesiai po Nustatymų ratuku, su tarpu aplink skaičius ir tuo pačiu auksiniu švytėjimu po atnaujinimo.",
   "hud.equipment": "Įranga",
   "hud.settlement": "Gyvenvietė",
   "hud.improvements": "Gerinti esamus pastatus",

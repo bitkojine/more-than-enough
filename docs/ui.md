@@ -71,7 +71,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
 │         [+] [1×] [−] [▤]             │  zoom and map: horizontal below resources
-│                            0.180.3 ●│  fixed Settings column (● = news)
+│                            0.180.4 ●│  fixed Settings column (● = news)
 │                               ● in 0:18│  independent solar status when nearby
 │ ▮▯ 62%                               │  compact charge on Equipment; details in its tray
 │ LAYER 1                              │  depth meter (underground only), under it

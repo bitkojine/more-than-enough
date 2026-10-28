@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.3": "Atvėrus Įrangą, Žinučių mygtukas ir peržiūros lieka vietoje. Didesniuose ekranuose žinutės lieka kairėje, o meniu atsidaro dešinėje. Versijos numeris visada yra po Nustatymais; saulės būsena jo nebepakeičia.",
   "news.0.180.2": "Meniu nebeturi bendrų kortelių. Įranga → Gaminti, Gyvenvietė ir taurės mygtukas atveria atskirus meniu. Atrakintas Anapus meniu pasiekiamas per Nustatymus, o grįžimo mygtukas sugrąžina į juos.",
   "news.0.180.1": "Įrangos skydelyje aiškiau atskirti pavadinimas, uždarymas, šviesos priemonės ir gamyba. Žinučių mygtukas lieka pasiekiamas: atvėrus jį, įranga užsidaro ir atsiveria žinutės. Grįžimo mygtukas taip pat uždaro įrangą.",
   "news.0.180.0": "Įranga atveria nedidelį šviesos priemonių skydelį, iš kurio galima pereiti prie gamybos. Gyvenvietėje rasite statybą ir pastatų gerinimą. Kai ekrane ankšta, papildoma informacija suskleidžiama nustatyta tvarka, o pagrindiniai mygtukai lieka vietoje.",
