@@ -12,6 +12,8 @@
   card regions, with Invite beside Messages.
 - Give the version/changelog label a permanent Settings-column slot matching
   the gear's width, within a full touch target. Solar status never replaces it.
+- Keep the gear and its label one unit in that column: the label is a padded
+  pill sitting a few pixels under the gear, so the two never drift apart.
 - Show the compact version number without a redundant prefix so wider system
   fonts also fit. Exercise six font fallbacks and report exact fit measurements.
 - Check fixed anchors, simultaneous desktop panels, readable logs, metadata

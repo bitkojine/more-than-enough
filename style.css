@@ -82,39 +82,50 @@ canvas#game {
 }
 #btnAwards { grid-column: 1; grid-row: 1; }
 #resources { grid-column: 2; grid-row: 1; }
-#btnSettings { grid-column: 3; grid-row: 1; }
+/* Settings and the version under it are one unit and always move together:
+   the gear fills the 44px column, the badge hangs just below it, so a taller
+   resources row can't push the label away from the gear. */
+#settingsColumn {
+  grid-column: 3; grid-row: 1; position: relative;
+  width: var(--hud-icon-size); height: var(--hud-icon-size);
+}
 
 /* The version, always in view under the gear (src/game/news.js): small and
    quiet, a dot once there's something new, and after an update the old
    number rolls away as the new one rolls in and glows. The visual label is
-   compact inside a full touch target matching the Settings column. */
+   compact inside a full touch target matching the Settings column, with a
+   little air between it and the gear. */
 #btnVersion {
-  grid-column: 3; grid-row: 2; position: relative;
-  width: var(--hud-icon-size); height: var(--hud-icon-size); margin: 0; padding: 5px 0 0;
+  position: absolute; top: calc(100% + 4px); right: 0;
+  width: var(--hud-icon-size); height: var(--hud-icon-size); margin: 0; padding: 0;
   display: flex; align-items: flex-start; justify-content: center;
-  border: 1px solid transparent; border-radius: var(--r-pill);
-  background: none;
+  border: 0; background: none;
   color: var(--ink-dim);
-  font: 700 9.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  letter-spacing: 0; font-variant-numeric: tabular-nums;
-  overflow: hidden;
+  font: 700 8.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0;
   pointer-events: auto; touch-action: manipulation; cursor: pointer;
 }
-#btnVersion .now, #btnVersion .was { width: 100%; padding: 4px 0; border-radius: var(--r-pill); background: rgba(10, 14, 12, 0.35); }
-#btnVersion .was { position: absolute; left: 0; top: 5px; opacity: 0; }
+/* The label clips its own roll; the touch target must not, or it cuts the
+   pill into a wedge. */
+#btnVersion .pill {
+  position: relative; width: 100%; overflow: hidden;
+  border-radius: var(--r-pill); background: rgba(10, 14, 12, 0.35);
+}
+#btnVersion .now, #btnVersion .was { display: block; width: 100%; padding: 4px 0; }
+#btnVersion .was { position: absolute; left: 0; top: 0; opacity: 0; }
 #btnVersion.fresh::before {
   content: ''; position: absolute; top: 0; right: 1px; width: 4px; height: 4px; border-radius: 50%;
   background: var(--gold); box-shadow: 0 0 6px var(--gold);
 }
-#btnVersion.rolling { animation: ver-glow 2.4s ease-out 0.8s backwards; }
+#btnVersion.rolling .pill { animation: ver-glow 2.4s ease-out 0.8s backwards; }
 #btnVersion.rolling .was { animation: ver-out 0.4s ease-in 0.8s backwards; }
 #btnVersion.rolling .now { animation: ver-in 0.6s cubic-bezier(.2, 1.4, .4, 1) 1.1s backwards; }
 @keyframes ver-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-120%); } }
 @keyframes ver-in { from { opacity: 0; transform: translateY(120%); } to { opacity: 1; transform: none; } }
 @keyframes ver-glow {
-  0%, 25% { color: var(--ink-dim); border-color: transparent; box-shadow: none; }
-  40% { color: var(--gold); border-color: var(--gold); box-shadow: 0 0 14px rgba(255, 209, 102, 0.7); }
-  100% { color: var(--ink-dim); border-color: transparent; box-shadow: none; }
+  0%, 25% { color: var(--ink-dim); box-shadow: none; }
+  40% { color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(255, 209, 102, 0.7); }
+  100% { color: var(--ink-dim); box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   #btnVersion.rolling .was, #btnVersion.rolling .now { animation: none; }

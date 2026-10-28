@@ -1,6 +1,6 @@
 /* Bounded combined-state regression fixtures; presentation, not a fair-play run. */
 export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
-  const versionMeasure = `(()=>{const v=document.getElementById('btnVersion'),b=v.getBoundingClientRect(),g=document.getElementById('btnSettings').getBoundingClientRect(),n=v.querySelector('.now');return{aligned:Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom,touch:b.height>=44,fits:n.scrollWidth<=n.clientWidth,text:n.textContent,textWidth:n.scrollWidth,labelWidth:n.clientWidth,font:getComputedStyle(v).fontFamily,button:b.toJSON(),gear:g.toJSON()};})()`;
+  const versionMeasure = `(()=>{const v=document.getElementById('btnVersion'),b=v.getBoundingClientRect(),g=document.getElementById('btnSettings').getBoundingClientRect(),n=v.querySelector('.now');return{aligned:Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom&&b.top-g.bottom<=8,touch:b.height>=44,fits:n.scrollWidth<=n.clientWidth,text:n.textContent,textWidth:n.scrollWidth,labelWidth:n.clientWidth,font:getComputedStyle(v).fontFamily,gap:+(b.top-g.bottom).toFixed(1),button:b.toJSON(),gear:g.toJSON()};})()`;
   eq(await evalJS('document.querySelectorAll("#tabs,[role=tab],[role=tablist]").length'),0,'menus have no shared tab bar');
   for(const font of ['system-ui','sans-serif','Arial','"DejaVu Sans"','"Liberation Sans"','"Noto Sans"']){
     await evalJS(`document.getElementById('btnVersion').style.fontFamily=${JSON.stringify(font)}`);
