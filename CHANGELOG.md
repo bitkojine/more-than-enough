@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.177.6] - 2026-10-28
+
+- Return directly to play after placing or moving a building. Remove the
+  completion callback that automatically opened its information/Move card.
+- Keep explicit building selection and card actions; browser regressions check
+  that placement leaves both cards closed and a later world tap opens the card.
+
 ## [0.177.5] - 2026-10-27
 
 - Remove all Mica/Wiki pointer hit targets, Wiki tap-to-ask and drag capture,

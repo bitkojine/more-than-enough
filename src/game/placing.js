@@ -20,7 +20,7 @@ const MAX_TILES = 6000;   // tiles looked at, at most (zoomed far out)
 const SETTLE_MS = 400;    // map taps ignored this long after it starts: the
                           // tap on Place (or Move) itself, landing on the map
 
-export function createPlacing({ cam, state, controller, cultivate, toast, done }) {
+export function createPlacing({ cam, state, controller, cultivate, toast }) {
   const el = document.createElement('div');
   el.id = 'placeCard'; el.className = 'bcard placing'; el.hidden = true; // i18n-ok: an id and class names
   el.setAttribute('role', 'dialog');
@@ -130,7 +130,6 @@ export function createPlacing({ cam, state, controller, cultivate, toast, done }
     else ok = cultivate({ type: 'build', kind: job.kind, x: at.x, y: at.y }) === 'ok';
     if (!ok) { job.walking = false; findFits(s); if (!fits(s, at.x, at.y)) job.at = firstSpot(s); return render(); }
     end();
-    done(at);
   }
 
   function go() {

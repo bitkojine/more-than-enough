@@ -842,10 +842,13 @@ async function main() {
     ok(await evalJS('!document.getElementById("sheet").classList.contains("open")&&!document.getElementById("placeCard").hidden'),'Place closes the sheet and shows the placement card');
     await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
     ok(await evalJS('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")'),'real Build control constructs chamber in original world');
+    ok(await evalJS('document.getElementById("placeCard").hidden&&document.getElementById("buildingCard").hidden&&!document.body.classList.contains("placing")'),'placement returns to play without opening the information/Move card');
     ok(await evalJS('MTE_GAME.getState().inv.ore===292'),'construction spends ordinary metal inventory: '+await evalJS('MTE_GAME.getState().inv.ore'));
     ok(await evalJS('!document.querySelector("#sheetBody [data-action=shutter]")'),'Build only places things: no shutters in it');
-    await evalJS('document.getElementById("btnClose").click()');
-    ok(await evalJS('MTE_GAME.openCard(0,0)'),'the chamber beside you opens its card');
+    await sleep(500);
+    const chamberPoint=await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="chamber");return MTE_GAME.project(b.x+.5,b.y+.5,b.z+MTE_GAME.core.tileHeight(s.world,b.x,b.y,b.z))})()');
+    await tap(chamberPoint.x,chamberPoint.y);
+    ok(await waitFor('!document.getElementById("buildingCard").hidden',2000),'selecting the chamber later opens its information/Move card');
     await evalJS('document.querySelector("#buildingCard [data-type=shutter]").click()');
     ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'the card controls real shutters');
     ok(await evalJS('document.getElementById("buildingCard").textContent.includes("Temperature")'),'the card shows exact temperature');
@@ -1577,8 +1580,10 @@ async function main() {
   var b3 = JSON.parse(await stateSummary());
   eq(b3.ext, 1, 'garden camp constructed' + (b3.ext ? '' : ' (card: ' + await evalJS('document.getElementById("placeCard").innerText.replace(/\\s+/g," ")') + ')'));
   ok(await evalJS('document.getElementById("placeCard").hidden&&!document.body.classList.contains("placing")'), 'the placement card goes once it stands');
-  // Its card has Move: a lit tile beside it, Move here, and it stands there.
-  ok(await evalJS('!!document.querySelector("#buildingCard [data-type=move]")'), 'the new garden\'s card opens with Move');
+  // Placement leaves play unobstructed; inspection/Move is an explicit choice.
+  ok(await evalJS('document.getElementById("buildingCard").hidden'), 'the new garden does not automatically open its card');
+  await evalJS('(()=>{const e=MTE_GAME.getState().extractors[0];MTE_GAME.openCard(e.x,e.y)})()');
+  ok(await evalJS('!!document.querySelector("#buildingCard [data-type=move]")'), 'selecting the garden later offers Move');
   var moveTo = await evalJS('(function(){var c=MTE_GAME.core,s=MTE_GAME.getState(),e=s.extractors[0];for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++){if((dx||dy)&&c.extractorFits(s,"garden",e.x+dx,e.y+dy)&&c.inReach(s,e.x+dx,e.y+dy))return JSON.stringify({x:e.x+dx,y:e.y+dy});}return null;})()');
   if (moveTo) {
     moveTo = JSON.parse(moveTo);

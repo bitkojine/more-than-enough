@@ -391,9 +391,9 @@ const card = createBuildingCard({ cam, state: () => game.state, run: (cmd) => {
   const b = card.building();
   if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);
 } });
-// Placing or moving a building on the map; once it stands, its card opens
-// there, showing what it reaches.
-const placing = createPlacing({ cam, state: () => game.state, controller, cultivate, toast: (text) => hud.toast(text), done: (at) => card.openAt(at.x, at.y) });
+// Placing or moving a building on the map returns directly to play.
+// Its information/Move card opens only when the player selects it later.
+const placing = createPlacing({ cam, state: () => game.state, controller, cultivate, toast: (text) => hud.toast(text) });
 function startPlacing(what, from = null) {
   sheet.close();
   card.close();

@@ -196,7 +196,8 @@ Watch, 2026-10-26, as Clash of Clans, Stardew and Factorio do (`src/game/placing
   is built on arrival. Back, Cancel or changing layer ends placing.
 - **Move** is on every building's card (yours, in a shared world too): the
   same view, titled *Move: name*, free, and what it holds goes with it.
-  Once a building stands, its card opens over it.
+  Completing placement or a move closes the placement view and returns to play.
+  The information card stays closed until the player selects the building.
 - Props (glowcaps, lamps, solar panels, water wheels) still go where you stand.
 
 ### Planning marks

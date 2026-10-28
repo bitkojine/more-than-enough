@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.177.6": "Placing or moving a building now returns straight to play. Its information and Move card opens only when you select the building later.",
   "news.0.177.5": "Mica and Wiki no longer intercept pointer gestures. Everything goes to the world beneath them. Hold on a world object to ask Wiki about it; automatic comments remain.",
   "news.0.177.4": "Geode cards now open without stopping the game. Missing pictures leave readable controls, and problem reports identify the picture, request and place in your world.",
   "news.0.177.3": "Mica keeps his right arm clear of his coat while carrying crystal, including when slowing down or coming to a stop.",
