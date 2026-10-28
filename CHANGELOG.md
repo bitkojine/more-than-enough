@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.179.2] - 2026-10-28
+
+- Fix severe surface sunset rendering slowdown: share shaded static pictures
+  by source bitmap and one of 64 display-light buckets, not per world object.
+  Retain at most 8M shaded pixels and 128 entries; preserve transparency and
+  foreground clipping. The animated character keeps whole-object tinting on
+  a capacity-reused patch. Physical illumination and exposure are unchanged.
+- Add bounded phone/desktop render performance gates across daylight, dusk,
+  night, dawn, zoom, and camera motion. Exercise all 513 supported depths in
+  small fixtures. Limit warm canvas churn and cache memory, record frame times,
+  and verify moving sunset work scales with distinct artwork. These run before
+  deployment alongside the existing visual correctness checks.
+- Check static image reuse, alpha preservation and restoration after a failed
+  draw, including the actual bundled look and lighting paths.
+
 ## [0.179.1] - 2026-10-28
 
 - Shade raised terrain tops and south faces in their own projected bounds and

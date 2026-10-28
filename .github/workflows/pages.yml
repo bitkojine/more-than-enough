@@ -58,9 +58,10 @@ jobs:
         run: |
           MTE_ILLUMINATION_ONLY=1 npm run test:e2e
           MTE_LAYER_ONLY=1 npm run test:e2e
+          MTE_RENDER_PERF_ONLY=1 npm run test:e2e
 
-      - name: Keep visual failure evidence
-        if: failure()
+      - name: Keep visual and performance evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: render-checks

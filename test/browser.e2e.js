@@ -238,9 +238,13 @@ async function main() {
     await cdp.send('Input.dispatchTouchEvent', { type: type, touchPoints: points }, session);
   }
   async function tap(x, y) {
-    await touch('touchStart', [{ x: x, y: y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
-    await sleep(40);
-    await touch('touchEnd', []);
+    // CDP messages are sent in order. Queue the release before waiting for
+    // renderer acknowledgement: a slow software frame must not turn the
+    // harness's quick tap into a >320 ms hold.
+    await Promise.all([
+      touch('touchStart', [{ x: x, y: y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]),
+      touch('touchEnd', [])
+    ]);
   }
   async function hold(x, y, ms) {
     await touch('touchStart', [{ x: x, y: y, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
@@ -373,6 +377,13 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_RENDER_PERF_ONLY==='1'){
+   console.log('\n== Bounded render performance across layers and day phases ==');
+   const {runRenderPerformance}=await import('./render-performance.js');
+   await runRenderPerformance({evalJS,ok,cdp,session,shotDir:SHOT_DIR});
+   eq(pageErrors.length,0,'performance fixtures have no browser exceptions');
+   console.log((failures?'RENDER PERFORMANCE FAILURES':'RENDER PERFORMANCE PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_ILLUMINATION_ONLY==='1'){
    console.log('\n== Canonical light: terrain, holes, crystal, and renderer ==');
    await cdp.send('Emulation.setDeviceMetricsOverride',{width:1024,height:768,deviceScaleFactor:1,mobile:false},session);
@@ -435,6 +446,17 @@ async function main() {
    ok(Math.max(...renderChecks.objectPixels)-Math.min(...renderChecks.objectPixels)<=1,'tall dim object keeps one brightness across unrelated screen rows');
    ok(renderChecks.dprObjects.every(values=>values.every(n=>Math.abs(n-136)<=1)),'whole-object tint stays aligned at fractional and retina pixel densities');
    ok(renderChecks.backgroundPreserved&&renderChecks.anchor===42,'object tint leaves background and returned anchors intact');
+   const spriteCache=await evalJS(`(async()=>{const L=await import('./src/game/render/lighting.js'),C=MTE_GAME.core,s=C.createState(581),cam={z:-2},source=document.createElement('canvas');source.width=16;source.height=16;const g=source.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,8,16);g.globalAlpha=.5;g.fillRect(8,0,8,16);
+    const canvas=document.createElement('canvas');canvas.width=32;canvas.height=32;const ctx=canvas.getContext('2d'),pic={img:source,aspect:1,units:1,cache:new Map()},before=MTE_GAME.look.lightingWork();
+    for(let i=0;i<100;i++){ctx.clearRect(0,0,32,32);L.spriteLight(ctx,cam,s,100+i,100,c=>MTE_GAME.look.draw(c,pic,0,0,16,16));}
+    const after=MTE_GAME.look.lightingWork(),dark=Array.from(ctx.getImageData(3,8,1,1).data),translucent=Array.from(ctx.getImageData(12,8,1,1).data);let unwound=false;
+    try{L.spriteLight(ctx,cam,s,100,100,()=>{throw Error('fixture');});}catch{unwound=!L.hasSpriteLight(ctx);}
+    const ink=L.spriteLight(ctx,cam,s,100,100,c=>L.litInk(c,'#ffffff'));return {dark,ink,alpha:translucent[3],builds:after.tintBuilds-before.tintBuilds,hits:after.tintHits-before.tintHits,unwound};})()`);
+   ok(spriteCache.builds===1&&spriteCache.hits===99,'one shaded bitmap serves a hundred independent static objects');
+   ok(spriteCache.dark[0]>=15&&spriteCache.dark[0]<=18&&spriteCache.alpha===128,'static sprite tint preserves darkness and partial transparency');
+   ok(spriteCache.unwound,'sprite-light scope is restored when drawing throws');
+   ok(spriteCache.ink==='rgb('+spriteCache.dark.slice(0,3).join(',')+')','physical vector details share the bitmap tint');
+
    ok(renderChecks.contact[0]<renderChecks.contact[1]&&Math.abs(renderChecks.contact[2]-renderChecks.contact[3])<=2,'contact shadow fades out before the old rectangular strip');
    ok(renderChecks.savePreserved,'face and object rendering preserve the gameplay save');
    ok(renderChecks.clipped,'higher foreground rock still clips the lit object');
@@ -937,25 +959,32 @@ async function main() {
     ok(await evalJS('!document.querySelector("[data-kind=resup]")'),'new world has no abstract refinement purchases');
     await evalJS('document.getElementById("btnClose").click()');
     // Funded UI fixture only: tests controls and renderer, not fair fresh play.
-    await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();for(const r of c.RESOURCES)c.earn(s,r,300,'hand');for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){const t=c.tileAt(s.world,x,y,-2);if(!c.TILE_INFO[t].rise&&!c.TILE_INFO[t].descend){c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}}s.player={x:.5,y:.5,z:-2};})()`);
+    await evalJS(`(()=>{const c=MTE_GAME.core,s=MTE_GAME.getState();for(const r of c.RESOURCES)c.earn(s,r,300,'hand');s.world.props.clear();s.world.holes.clear();for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){c.tileAt(s.world,x,y,-2);const i=c.chunkIndex(x,y);s.world.hotChunk.type[i]=c.T.SOIL;s.world.hotChunk.rich[i]=30;c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}s.player={x:.5,y:.5,z:-2};MTE_GAME.setPlayer(.5,.5);})()`);
+    await sleep(1800); // settle the real layer-transition picture before tapping
     await evalJS('document.getElementById("btnBuild").click()');
     await evalJS('document.querySelector("[data-kind=cultivation][data-id=chamber]").click()');
     ok(await evalJS('!document.getElementById("sheet").classList.contains("open")&&!document.getElementById("placeCard").hidden'),'Place closes the sheet and shows the placement card');
     await evalJS('document.querySelector("#placeCard [data-do=go]").click()');
-    ok(await evalJS('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")'),'real Build control constructs chamber in original world');
+    const chamberBuilt=await waitFor('MTE_GAME.getState().cultivation.facilities.some(b=>b.kind==="chamber")',6000);
+    ok(chamberBuilt,'real Build control constructs chamber after any required approach');
+    if(!chamberBuilt)throw new Error('Chamber placement did not complete after approach: '+await stateSummary());
     ok(await evalJS('document.getElementById("placeCard").hidden&&document.getElementById("buildingCard").hidden&&!document.body.classList.contains("placing")'),'placement returns to play without opening the information/Move card');
     ok(await evalJS('MTE_GAME.getState().inv.ore===292'),'construction spends ordinary metal inventory: '+await evalJS('MTE_GAME.getState().inv.ore'));
     ok(await evalJS('!document.querySelector("#sheetBody [data-action=shutter]")'),'Build only places things: no shutters in it');
     await sleep(500);
     const chamberPoint=await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="chamber");return MTE_GAME.project(b.x+.5,b.y+.5,b.z+MTE_GAME.core.tileHeight(s.world,b.x,b.y,b.z))})()');
+    await evalJS(`(()=>{window.__chamberEvents=[];for(const type of ['pointerdown','pointerup','pointercancel'])window.addEventListener(type,e=>__chamberEvents.push({type,target:e.target.id,x:e.clientX,y:e.clientY,now:performance.now()}),true);})()`);
     await tap(chamberPoint.x,chamberPoint.y);
-    ok(await waitFor('!document.getElementById("buildingCard").hidden',2000),'selecting the chamber later opens its information/Move card');
+    const chamberCardOpen=await waitFor('!document.getElementById("buildingCard").hidden',2000);
+    ok(chamberCardOpen,'selecting the chamber later opens its information/Move card');
+    if(!chamberCardOpen){await shot('chamber-tap-failure.png');console.log('Chamber tap diagnostic '+JSON.stringify(await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="chamber"),p=MTE_GAME.project(b.x+.5,b.y+.5,b.z);return {player:s.player,building:b,point:p,picked:MTE_GAME.unproject(p.x,p.y),element:document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300),body:document.body.className,events:window.__chamberEvents,sheet:document.getElementById("sheet").className,faults:JSON.parse(localStorage.getItem("mte.faults")||"[]")}})()')));throw Error('Chamber card failed to open; see diagnostic and screenshot');}
     await evalJS('document.querySelector("#buildingCard [data-type=shutter]").click()');
     ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'the card controls real shutters');
     ok(await evalJS('document.getElementById("buildingCard").textContent.includes("Temperature")'),'the card shows exact temperature');
-    await evalJS('MTE_GAME.getState().cultivation.gear.lantern=true');await sleep(100);
+    await evalJS('MTE_GAME.getState().cultivation.gear.lantern=true');
+    ok(await waitFor('!document.getElementById("btnLantern").hidden',3000),'crafted lantern control becomes visible');
     await evalJS('document.getElementById("btnLantern").click()');
-    ok(await evalJS('MTE_GAME.getState().cultivation.lantern===true&&document.getElementById("btnLantern").classList.contains("on")'),'the lantern button above Gather lights the lantern');
+    ok(await waitFor('MTE_GAME.getState().cultivation.lantern===true&&document.getElementById("btnLantern").classList.contains("on")',3000),'the lantern button above Gather lights the lantern');
     await evalJS('document.getElementById("btnLantern").click()');
     await evalJS('MTE_GAME.save()');var seed=await evalJS('MTE_GAME.getState().seed');
     await evalJS('document.getElementById("btnClose").click()');

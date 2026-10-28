@@ -445,3 +445,10 @@ still applies. No final floor-grid mask slices through raised blocks or tall
 objects. Wall contact shade is a short fading gradient, proportional to the
 height difference and capped at 8% of tile depth, rather than a hard 20% strip.
 Gameplay terrain is live at every gameplay zoom; the atlas owns map zoom.
+
+Shaded static artwork (2026-10-28): terrain resources, piles, placed props and
+buildings reuse transparent shaded bitmaps by source picture/size and one of
+64 display-opacity buckets. These are visual buckets, not physical light
+levels. The shared LRU retains at most 8M pixels and 128 pictures. Mica still
+uses whole-object compositing; its patch grows in capacity rather than resizing
+for every object. Ground, foreground clipping and discovery keep their rules.

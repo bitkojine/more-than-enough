@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.179.2": "Sklandesni vakarai: medžiai, grybai ir pastatai naudoja jau patamsintus vaizdus, užuot kas kadrą perpiešę laikinus paviršius. Judant apšvietimas išlieka taisyklingas.",
   "news.0.179.1": "Tamsa dabar tiksliai dengia iškilusių blokų paviršius. Mica, grybai ir pastatai apšviečiami vientisai, tarp plytelių nebėra šviesių siūlių, o šešėliai prie sienų švelniai išblunka.",
   "news.0.179.0": "Šviesa sklinda praėjimais ir pro atviras kopėčių angas, o uola ją užstoja. Silpna šviesa kristalus žaloja lėčiau. Kamerų kortelės rodo apšvietimą; sandarūs dėklai saugo ir širdį. Žemėlapį vis tiek atranda pats Mica.",
   "light.level": "Šviesa išorėje: {n}/{max}",

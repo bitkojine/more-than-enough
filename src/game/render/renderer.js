@@ -10,7 +10,7 @@
  * Each part of the picture runs through `layer` (src/game/faults.js): one
  * that throws is noted and left out, and the rest of the frame still draws. */
 
-import {lightObject} from './lighting.js';
+import {lightObject,litInk} from './lighting.js';
 import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
@@ -81,7 +81,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
     const at = onGround(ctx,cam,s,f.x,f.y,c=>drawFriend(c, cam, s, look, f, f.color),{lit:true});
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
-  const standing=(x,y,draw)=>onGround(ctx,cam,s,x,y,draw,{lit:true});
+  const standing=(x,y,draw,composite=false)=>onGround(ctx,cam,s,x,y,draw,{lit:composite?true:'sprites'});
   const ground = { built, yard: view.yard, shake: fx.shake, layer };
   const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, ground, (y) => layer('row', () => {
     drawHighlights(ctx, cam, s, view, y);
@@ -104,7 +104,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
       drawProp(ctx,cam,s,look,kind,x,y);
       if(s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]){
         const p=cam.project(x+.5,y+.6,cam.z),u=cam.tilePx;
-        ctx.fillStyle='#283337';ctx.strokeStyle='#b8c7b2';ctx.lineWidth=1;
+        ctx.fillStyle=litInk(ctx,'#283337');ctx.strokeStyle=litInk(ctx,'#b8c7b2');ctx.lineWidth=1;
         ctx.beginPath();ctx.moveTo(p.x-u*.23,p.y-u*.3);ctx.quadraticCurveTo(p.x,p.y-u*.95,p.x+u*.23,p.y-u*.3);ctx.closePath();ctx.fill();ctx.stroke();
       }
       });
@@ -112,13 +112,13 @@ export function render(cam, s, fx, view, look, guard = plain) {
     const stones = graveRows.get(y);
     if (stones) {
       for (const g of stones) {
-        const at = standing(g.x,g.y,ctx=>drawGrave(ctx, cam, s, g));
+        const at = standing(g.x,g.y,ctx=>drawGrave(ctx, cam, s, g),true);
         if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
       }
     }
     const friends = friendRows.get(y);
     if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) {you = standing(s.player.x,s.player.y,ctx=>{const at=drawPlayer(ctx,cam,s,look,view);drawCrystalCargo(ctx,cam,s,look,at);return at;});}
+    if (y === playerRow) {you = standing(s.player.x,s.player.y,ctx=>{const at=drawPlayer(ctx,cam,s,look,view);drawCrystalCargo(ctx,cam,s,look,at);return at;},true);}
   }))) || 0;
   layer('aloft', () => { for (const f of aloft) friend(f); });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.

@@ -9,6 +9,7 @@ import { hash2, DEFAULT_TILE } from '../../core/index.js';
 import { pictures } from '../../core/index.js';
 import { t } from '../../i18n/i18n.js';
 import { esc } from '../format.js';
+import {hasSpriteLight,litPicture,lightingWork} from '../render/lighting.js';
 
 const MIN_BUCKET = 4, MAX_BUCKET = 1024;
 
@@ -96,6 +97,7 @@ export function createLook() {
   const dpr = () => Math.min(2, window.devicePixelRatio || 1);
 
   const look = {
+    lightingWork,
     // Bumped on every change, so anything that caches pictures can tell.
     version: 0,
 
@@ -182,9 +184,9 @@ export function createLook() {
 
     // Draws a picture into a rectangle.
     draw(ctx, pic, x, y, w, h) {
-      if(pic.rect){ctx.drawImage(pic.img,...pic.rect,x,y,w,h);return;}
+      if(pic.rect&&!hasSpriteLight(ctx)){ctx.drawImage(pic.img,...pic.rect,x,y,w,h);return;}
       if (pic.pixelated) ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(look.bitmap(pic, w), x, y, w, h);
+      ctx.drawImage(litPicture(ctx,look.bitmap(pic,w)),x,y,w,h);
       if (pic.pixelated) ctx.imageSmoothingEnabled = true;
     },
 

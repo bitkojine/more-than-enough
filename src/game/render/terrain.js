@@ -19,7 +19,7 @@
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { shade, tv, rgba } from './palette.js';
-import {lightBrightness,shadeFace,lightObject,faceRect} from './lighting.js';
+import {lightBrightness,shadeFace,lightObject,faceRect,spriteLight} from './lighting.js';
 import { drawFog } from './fog.js';
 
 const FACE_DIM = 0.58;      // south faces are this much darker than tops
@@ -258,7 +258,7 @@ function drawPile(ctx, cam, s, look, yard, p, at = yard.at(p, s.time), shade = t
 
 // Piles sliding into a bigger one (ten becoming one), over the ground.
 export function drawMerging(ctx, cam, s, look, yard) {
-  for (const m of yard.merging(s.time)) lightObject(ctx,cam,s,m.x+m.pile.span/2,m.y+m.pile.span-1+FOOT,c=>drawPile(c,cam,s,look,yard,m.pile,m),{width:Math.max(2,m.pile.span),height:Math.max(4,m.pile.span*2)});
+  for (const m of yard.merging(s.time)) spriteLight(ctx,cam,s,m.x+m.pile.span/2,m.y+m.pile.span-1+FOOT,c=>drawPile(c,cam,s,look,yard,m.pile,m));
 }
 
 // Whatever stands on tile (x, y): a stockpile pile, else its stand picture
@@ -274,7 +274,7 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   const pile = z === Core.SURFACE && ground.yard.piles.get(key);
   if (pile) {
     const at=ground.yard.at(pile,s.time),draw=c=>drawPile(c,cam,s,look,ground.yard,pile,at,shade);
-    if(ground.clip)onGround(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2),lit:true});else lightObject(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2)});
+    if(ground.clip)onGround(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw,{width:Math.max(2,pile.span),height:Math.max(4,pile.span*2),lit:'sprites'});else spriteLight(ctx,cam,s,at.x+pile.span/2,at.y+pile.span-1+FOOT,draw);
     return true;
   }
   if (z === Core.SURFACE && ground.yard.covered.has(key)) return false; // under a big pile
@@ -303,7 +303,7 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   }
   return true;
   };
-  return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect),lit:true}):lightObject(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect)});
+  return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect),lit:'sprites'}):spriteLight(ctx,cam,s,x+.5,y+FOOT,draw);
 }
 
 // Rows y0..y1 of ground, north to south, with what stands on them (and on
@@ -346,7 +346,7 @@ export function onGround(ctx,cam,s,x,y,draw,{width=2,height=4,lit=false}={}) {
       ctx.rect(a.x,a.y,u+1,b-a.y);ctx.clip('evenodd');
     }
   }
-  try{return lit?lightObject(ctx,cam,s,x,y,draw,{width,height}):draw(ctx);}finally{if(clipped)ctx.restore();}
+  try{return lit==='sprites'?spriteLight(ctx,cam,s,x,y,draw):lit?lightObject(ctx,cam,s,x,y,draw,{width,height}):draw(ctx);}finally{if(clipped)ctx.restore();}
 }
 
 // A type of tile's colour in one flat swatch (the world map's), or null.

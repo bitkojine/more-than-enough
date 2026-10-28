@@ -87,7 +87,10 @@ runs in CI after rule changes; record a reviewed new baseline with `--write`.
 
 The deploy gate also runs the bounded lighting and foreground-compositing browser
 fixtures against the staged site (`MTE_ILLUMINATION_ONLY=1` and
-`MTE_LAYER_ONLY=1`). Their failure captures are retained as CI artifacts. The
+`MTE_LAYER_ONLY=1`). `MTE_RENDER_PERF_ONLY=1` checks dense phone/desktop scenes
+through day, sunset, night and dawn, camera movement, and all 513 supported
+depths with tiny fixtures. Canvas-allocation and cache-memory limits gate deploy;
+frame timings are recorded without claiming hardware-independent FPS. Their failure captures are retained as CI artifacts. The
 broad browser suite and long property sweeps remain separate from quick iteration.
 
 ## Rules for changes
