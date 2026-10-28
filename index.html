@@ -161,6 +161,8 @@
         <button id="btnMap" type="button" data-i18n-aria-label="map.title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" /><path d="M9 4v14M15 6v14" /></svg></button>
       </div>
       <button id="btnSettings" class="hudBtn" type="button" data-i18n-aria-label="settings.title"><svg class="gear" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></button>
+      <!-- Changelog: fixed under Settings in the same grid column. -->
+      <button id="btnVersion" type="button" translate="no"><span class="was" aria-hidden="true"></span><span class="now"></span></button>
     </div>
     <div id="hudSecondary">
 <div id="depthMeter" aria-live="polite">
@@ -177,12 +179,8 @@
     </div>
   </div>
       <div id="hudMeta">
-    <!-- The version, always in view. After an update it rolls from the old
-         number to the new one and keeps a dot until you look; tapping it
-         opens the changelog. Never a dialog (src/game/news.js). -->
-    <button id="btnVersion" type="button" translate="no"><span class="was" aria-hidden="true"></span><span class="now"></span></button>
     <!-- Beside a solar panel, how long till the sun charges it or till it
-         stops: status, in the version's place while it shows (docs/ui.md). -->
+         stops: independent world status; never replaces the version. -->
     <div id="sunTime" role="status" hidden><i aria-hidden="true"></i><span></span></div>
     <div id="friends" role="group" data-i18n-aria-label="together.friends" hidden></div>
     <pre id="perf" aria-live="off" hidden></pre>

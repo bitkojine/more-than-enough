@@ -25,6 +25,20 @@ function memoryStore() {
 }
 const byId = (root, id) => root.children.find((c) => c.id === id);
 
+test('the log keeps its assigned region instead of following other screen geometry', () => {
+  const root = fakePage(), log = createMessages({ root, store: memoryStore() });
+  const box = byId(root, 'log'), list = box.children[0], foot = box.children[1];
+  list.children = [{ offsetTop: 0 }]; list.offsetTop = 0; list.scrollHeight = 200;
+  foot.offsetHeight = 30;
+  log.fit(160);
+  assert.equal(list.style.maxHeight, '118px');
+  box.getBoundingClientRect = () => ({ left: 0, right: 300, bottom: 80 });
+  log.fit();
+  assert.equal(list.style.maxHeight, '118px', 'unrelated geometry cannot shrink the assigned region');
+  log.fit(120);
+  assert.equal(list.style.maxHeight, '78px', 'a deliberate viewport-region change resizes the log');
+});
+
 test('lines stay, repeated notices are suppressed, and the log keeps only the newest', () => {
   const root = fakePage(), store = memoryStore();
   const log = createMessages({ world: () => 'solo.1', store, root });

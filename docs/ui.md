@@ -20,8 +20,9 @@ place it belongs here rather than adding a button where there is room.
 
 ### Shared HUD groups (v0.180.0)
 
-`src/game/hud-layout.js` allocates space for the semantic groups rather than
-letting optional panels float independently. Resources and the horizontal
+`src/game/hud-layout.js` defines stable regions from the viewport and permanent
+controls. `src/game/hud-panels.js` handles disclosure policy independently of
+geometry. Opening Equipment never changes the Messages or preview anchors. Resources and the horizontal
 zoom/map row remain at the top. World status and optional metadata share a
 secondary row. Gather, the contextual ladder action, Settlement and Equipment
 keep fixed action slots. Equipment's compact charge badge remains visible while
@@ -33,7 +34,8 @@ and chevron. On short landscape screens Craft sits beside the equipment actions
 so every control remains reachable without scrolling. Targets remain at least
 44 pixels, including Close. The active Equipment button is highlighted and
 toggles the card closed. Escape, phone/browser Back and outside input also
-close it. Opening it dismisses the selected building card. Focus returns to
+close it; on roomy screens, interacting with the left message log preserves
+the right-side Equipment card. Opening it dismisses the selected building card. Focus returns to
 Equipment on Close/Escape.
 
 Collapse order is performance details → friend names → secondary world-status
@@ -41,13 +43,21 @@ details → expanded Messages. Compaction is based on available room, never on
 warning urgency. Performance's compact line opens full details in the shared
 sheet; folded friend chips retain the accurate player count and their Players
 link; the layer label opens the map. Automatic message compaction preserves the
-saved open/folded choice and still permits explicit opening. Existing message
-queue/timing is unchanged; previews are clipped to allocated space pending the
-later message-arrival design. Equipment folds the log without changing its saved
-preference, keeping Messages and its previews visible above the tray on tall
-screens. Tapping Messages dismisses Equipment and opens the log. Placement owns
-the disclosure area while active. The short-screen tray shares the status row beside the layer
-label and keeps clear of the contextual action.
+saved open/folded choice and still permits explicit opening. Compact screens
+start with compact status, and Equipment and the expanded log share disclosure
+space. Roomy screens (at least 1024px wide, more than 500px tall) let the left
+log and right Equipment card or menu coexist. Menus become bounded right-side
+panels there; small screens retain bottom sheets and the compact Equipment
+card. Opening a panel never moves Messages, its preview anchor or essential
+controls. Placement owns the disclosure area while active.
+
+Previews stay above their fixed Messages button, with up to three lines and
+the full text retained in the log. Queue and timing stay unchanged. Portrait
+screens reserve an 80px preview band below the card; landscape screens reserve
+a 64px left preview column, with Messages at the lower left and Invite beside
+it. Layout bounds are established even when no preview or card is visible,
+so arrivals and opening menus do not rearrange the HUD. Short landscape cards
+share the upper area beside the layer label and clear the contextual action.
 
 Settlement contains construction and current-layer building improvements in one
 menu. Existing chambers/vaults offer reinforcement, and the machine offers its
@@ -61,8 +71,8 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 ┌──────────────────────────────────────┐
 │ [🏆 3]  [🍄40 │🪨40 │🟠40 │💎40]  [⚙] │  top bar (safe area)
 │         [+] [1×] [−] [▤]             │  zoom and map: horizontal below resources
-│                            v0.179.4 ●│  version, under the gear (● = news); by a
-│                               ● in 0:18│  solar panel, the sun countdown in its place
+│                            v0.180.2 ●│  fixed Settings column (● = news)
+│                               ● in 0:18│  independent solar status when nearby
 │ ▮▯ 62%                               │  compact charge on Equipment; details in its tray
 │ LAYER 1                              │  depth meter (underground only), under it
 │ ▮                                    │
@@ -98,7 +108,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### Other screens
 - **Zoom** (Watch, 2026-10-28): the +, magnification/reset, −, and map buttons always form one horizontal row directly beneath the four resource counters, in portrait, landscape, desktop, and building placement. The row is anchored to the resource bar rather than the thumb controls. Zoom (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
-- **Landscape phones** (height under 500px): the thumb cluster shrinks; zoom stays horizontally beneath the resources. At heights up to 400px the depth gauge compacts beside the battery/layer labels to clear Messages and placement cards. The message log moves to the left of the screen, beside your character. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
+- **Landscape phones** (height up to 500px): the thumb cluster shrinks; zoom stays horizontally beneath the resources. Status stays compact, Messages anchors at the lower left and Invite sits beside it. Previews have a reserved left column; the Equipment card sits to its right. The expanded log uses the card region, clearing Invite and the action dock. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, a shared world full to its 100 players (chips and the Players screen) and a world with absurd numbers (the counts in scientific form, the Gather plate at its widest), and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows, a plate shrunk to a smudge and dialog buttons out of view. Run it after any change to the layout.
 
@@ -115,7 +125,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### Messages
 - **The message log** (Watch, 2026-10-26, like Old School RuneScape's chat box; `src/game/messages.js`): everything the game says goes in one log, a dark panel at the bottom left. In portrait it sits above the thumb cluster ; on short (landscape) and wide screens it keeps to the left of the screen, beside your character, above Invite when that's there. Each line has its colour: Wiki's in teal (*Wiki:* the thing, its line, *More in the wiki ›*), milestones in gold with a trophy (*Milestone reached 3 of 12:* what you did, then what's next; early on *Next milestone:*), and the game's own notices in plain ink (a low lantern, something you can't do yet, a save that failed, a friend arriving). The collapsed log previews new lines above Messages.
-- **Nothing goes by itself.** The open log shows the last three lines, newest at the bottom, never taller than the room under your character's feet (or under the depth meter and the top bar); dragging or scrolling inside it goes back through older ones (a new line then keeps your place; reopening the log shows the newest), and older lines are dimmer. Repeated game notices are suppressed for ten seconds before any saving, rendering or unread update; later reminders may stack as ×2 rather than filling the log, and a long press sliding over the map keeps rewriting its one line. A press that simply worked says nothing (no "Done.").
+- **Nothing goes by itself.** The open log shows the last three lines, newest at the bottom, bounded by its assigned viewport region; character movement never resizes it; dragging or scrolling inside it goes back through older ones (a new line then keeps your place; reopening the log shows the newest), and older lines are dimmer. Repeated game notices are suppressed for ten seconds before any saving, rendering or unread update; later reminders may stack as ×2 rather than filling the log, and a long press sliding over the map keeps rewriting its one line. A press that simply worked says nothing (no "Done.").
 - **Hide ✕** folds it into a small **Messages** pill in the same corner; while folded, new lines raise the count and appear in a small rounded bubble just above the pill (Watch, 2026-10-28). Each stays readable for about 2–4 seconds (up to six for long text), then shrinks down into Messages. At most four previews wait behind the current one; overflowing bursts retain the newest pending previews, and every line stays available in the log. The bubble never intercepts world gestures. Reduced motion removes the movement. Opening the log or switching worlds clears previews; saved history never replays. Nothing opens the full log but a tap. A new player starts with it open; open or folded is kept on the device, and so are the last 50 lines of each world. It hides while you place a building, hold up your sign or look at the world map.
 - **Keep this world** (Watch, 2026-10-27): in Safari on an iPhone or iPad, not opened from the Home Screen, Wiki says once per device, as a milestone is reached (or a minute into a game already past one), to add Mica to the Home Screen, because Safari forgets a site left unopened for a week (`src/game/home-hint.js`). It is a line in the log like any other, never a dialog.
 - Sheets and dialogs are solid: nothing on the map shows through a list.
@@ -126,7 +136,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### The sun clock
 - The Settings gear wears the day as a ring (Watch, 2026-10-26): noon at the top, gold for the part of the day the sun works, blue for the rest, and the sun (in the gold) or the moon (in the blue) riding it clockwise where the day is now. In older and shared worlds the gold is when a solar panel charges (and the lantern doesn't drain); in a crystal world it's the sun that cracks crystal and the heart in the open, which lasts longer. It shows always, on the surface and underground. The gear stays the same size and still opens Settings.
-- Within charging reach of a solar panel, and no water wheel (which charges at every hour), a pill takes the version's place under the gear: a small sun and *in 0:18* until the sun starts charging, then *1:12 left* until it stops. It's status, not a button; the version comes back once you walk off. Early morning is the reason: it already looks light, but the panel isn't charging yet.
+- Within charging reach of a solar panel, and no water wheel (which charges at every hour), a world-status pill shows a small sun and *in 0:18* until the sun starts charging, then *1:12 left* until it stops. It is status, not a button, and never replaces the version. Early morning is the reason: it already looks light, but the panel isn't charging yet.
 
 ### Depth
 - Underground, the depth meter sits on the left edge under the battery: a pill saying which layer you're on (*Layer 3*: a small capital label over a big number), and under it the layers as a column. The forest is on top in green (grass over earth), then every layer you've been down to in brown, a dashed one for deeper still; yours is lit gold with a small marker pointing at it. Over 12 layers, the column keeps the ones around you. On the surface the whole meter hides.
@@ -172,7 +182,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### What's new
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
-- **The version is always in view**: a small, quiet pill under the gear, so players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
+- **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label directly below it. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. A gold dot is overlaid, never added to the label's width. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
 - **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
 
 ### Empty-handed starts and equipment

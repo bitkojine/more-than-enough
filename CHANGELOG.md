@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.180.3] - 2026-10-28
+
+- Keep Messages and preview anchors fixed when Equipment opens. Define
+  viewport regions independently of panel state; separate panel policy from
+  geometry. Compact screens share expanded disclosure space, while roomy
+  desktop logs coexist with right-side Equipment cards and menu panels.
+- Keep log height within its assigned region rather than following Mica's
+  screen position. Preserve message history, queue timing and saved disclosure
+  preferences. Give short landscape controls distinct status, preview and
+  card regions, with Invite beside Messages.
+- Give the version/changelog label a permanent Settings-column slot matching
+  the gear's width, within a full touch target. Solar status never replaces it.
+- Check fixed anchors, simultaneous desktop panels, readable logs, metadata
+  clearance and changelog access across nine viewport sizes in both languages.
+  Report layout-audit progress and timing after every viewport.
+
 ## [0.180.2] - 2026-10-28
 
 - Remove the shared menu tabs. Equipment, Settlement and Awards open from

@@ -123,7 +123,6 @@ function keepView() {
 // open is this browser's, and each world keeps its own lines.
 const messages = createMessages({
   world: () => game.state ? game.state.shared || 'solo.' + game.state.seed : null,
-  feet: () => { const p = game.state?.player, r = el.canvas.getBoundingClientRect(), at = p && cam.project(p.x, p.y + 0.3); return at && { x: r.left + at.x, y: r.top + at.y }; },
   open: savedView.logOpen, keepOpen: (on) => { savedView.logOpen = on; saveView(savedView); }
 });
 // In Safari on an iPhone, once: add the game to the Home Screen, or Safari

@@ -9,21 +9,29 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     s.cultivation.gear.lantern=true;s.cultivation.lantern=false;s.flare=60;
     const C=MTE_GAME.core,px=Math.floor(s.player.x),py=Math.floor(s.player.y);C.tileAt(s.world,px,py,s.player.z);s.world.hotChunk.type[C.chunkIndex(px,py)]=C.T.TUNNEL;C.revealAround(s);MTE_GAME.hud.update(s);document.getElementById('btnMine').hidden=false;
     const {t}=await import('/src/i18n/i18n.js');document.getElementById('lanternLabel').textContent=t('button.lantern.off');document.getElementById('flareLabel').textContent='1:00';
-    document.getElementById('btnLantern').hidden=false;document.getElementById('btnFlare').hidden=false;
+    document.getElementById('btnLantern').hidden=false;document.getElementById('btnFlare').hidden=false;document.getElementById('btnInvite').hidden=false;
     MTE_GAME.messages.setOpen(true);MTE_GAME.messages.add({text:'A message retained in the log'});
     document.getElementById('perf').hidden=false;document.getElementById('perf').textContent='FPS 30 / 30\\nrender 7.8 ms\\nsimulation 0.4 ms\\nquality 1×';
     const {renderChips}=await import('/src/game/players.js');document.getElementById('friends').hidden=false;
     renderChips(document.getElementById('friends'),Array.from({length:99},(_,i)=>({id:String(i),name:'Mica '+i,st:'online',color:'#a5d79c'})),{tap(){},more(){}});
   })()`);
-  for(const [width,height] of [[320,568],[390,844],[568,320],[667,375],[932,430],[1366,768]]) {
+  for(const [width,height] of [[320,568],[390,844],[568,320],[667,375],[932,430],[1024,501],[1024,768],[1366,768],[1920,1080]]) {
     await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<1000},session);
-    await evalJS('MTE_GAME.hudLayout.invalidate();MTE_GAME.hudLayout.tick();MTE_GAME.messages.tick()');
+    await evalJS('MTE_GAME.messages.setOpen(false);MTE_GAME.hudLayout.invalidate();MTE_GAME.hudLayout.tick();MTE_GAME.messages.tick()');
     const state=await evalJS(`(()=>{const shown=e=>!e.hidden&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&getComputedStyle(e).display!=='none';const ids=['topbar','hudSecondary','btnBuild','btnUpgrade','btnAction','btnMine','log','logPill'];const r=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]).filter(([,e])=>shown(e)).map(([id,e])=>[id,e.getBoundingClientRect().toJSON()]));const overlap=(a,b)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;const collisions=[];for(const [a,b] of [['hudSecondary','log'],['hudSecondary','logPill'],['hudSecondary','btnMine'],['topbar','btnMine'],['log','btnMine'],['logPill','btnMine']])if(r[a]&&r[b]&&overlap(r[a],r[b]))collisions.push(a+'/'+b);return{collisions,offscreen:Object.entries(r).filter(([,b])=>b.x<0||b.y<0||b.right>innerWidth+1||b.bottom>innerHeight+1).map(([id])=>id),level:MTE_GAME.hudLayout.level};})()`);
     eq(state.collisions.length,0,'combined HUD groups clear each other at '+width+'×'+height+' '+state.collisions);
     eq(state.offscreen.length,0,'combined HUD groups stay on screen at '+width+'×'+height+' '+state.offscreen);
+    const versionAnchor=await evalJS('(()=>{const v=document.getElementById("btnVersion").getBoundingClientRect();return{x:v.x,y:v.y,width:v.width};})()');
+    ok(await evalJS('(()=>{const v=document.getElementById("btnVersion"),b=v.getBoundingClientRect(),g=document.getElementById("btnSettings").getBoundingClientRect(),n=v.querySelector(".now");return Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom&&b.height>=44&&n.scrollWidth<=n.clientWidth;})()'),'version fits directly under Settings with a full touch target at '+width+'×'+height);
+    await evalJS(`MTE_GAME.messages.add({text:'A new message at ${width} by ${height}: your latest discovery remains here while Equipment opens.'});MTE_GAME.messages.tick()`);
+    const anchors=await evalJS('(()=>{const p=document.getElementById("logPill").getBoundingClientRect(),b=document.getElementById("logBubble").getBoundingClientRect();return{x:p.x,y:p.y,bottom:b.bottom};})()');
     const gearButton=await rect('#btnUpgrade');await tap(gearButton.x,gearButton.y);
     await evalJS('document.getElementById("btnLantern").hidden=false;document.getElementById("btnFlare").hidden=false;MTE_GAME.hudLayout.tick()');
     ok(await evalJS('!document.getElementById("equipmentTray").hidden&&document.getElementById("btnUpgrade").getAttribute("aria-expanded")==="true"'),'Equipment opens compact first at '+width+'×'+height);
+    eq(JSON.stringify(await evalJS('(()=>{const v=document.getElementById("btnVersion").getBoundingClientRect();return{x:v.x,y:v.y,width:v.width};})()')),JSON.stringify(versionAnchor),'Equipment leaves the version in its fixed slot at '+width+'×'+height);
+    eq(JSON.stringify(await evalJS('(()=>{const p=document.getElementById("logPill").getBoundingClientRect(),b=document.getElementById("logBubble").getBoundingClientRect();return{x:p.x,y:p.y,bottom:b.bottom};})()')),JSON.stringify(anchors),'opening Equipment preserves Messages and preview anchors at '+width+'×'+height);
+    ok(await evalJS('(()=>{const a=document.getElementById("logBubble").getBoundingClientRect(),b=document.getElementById("equipmentTray").getBoundingClientRect();return a.right<=b.left||a.left>=b.right||a.bottom<=b.top||a.top>=b.bottom;})()'),'message preview stays clear of Equipment at '+width+'×'+height);
+    ok(await evalJS('(()=>{const a=document.getElementById("hudMeta").getBoundingClientRect(),b=document.getElementById("equipmentTray").getBoundingClientRect();return a.right<=b.left||a.left>=b.right||a.bottom<=b.top||a.top>=b.bottom;})()'),'metadata stays clear of Equipment at '+width+'×'+height);
     const tray=await evalJS(`(()=>{const t=document.getElementById('equipmentTray').getBoundingClientRect(),a=document.getElementById('btnMine').getBoundingClientRect(),top=document.getElementById('topbar').getBoundingClientRect();return t.top>=top.bottom&&t.bottom<=innerHeight&&t.left>=0&&t.right<=innerWidth&&(t.right<=a.left||t.left>=a.right||t.bottom<=a.top||t.top>=a.bottom);})()`);
     ok(tray,'Equipment tray clears navigation and immediate action at '+width+'×'+height);
     ok(await evalJS(`(()=>{const p=document.getElementById('logPill'),b=p.getBoundingClientRect(),t=document.getElementById('equipmentTray').getBoundingClientRect();return !p.hidden&&getComputedStyle(p).visibility==='visible'&&b.top>=0&&b.bottom<=innerHeight&&(b.right<=t.left||b.left>=t.right||b.bottom<=t.top||b.top>=t.bottom);})()`),'Messages stays visible and clears Equipment at '+width+'×'+height);
@@ -31,8 +39,18 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     await shot('hud-groups-'+width+'x'+height+'.png');
     const messageButton=await rect('#logPill');await tap(messageButton.x,messageButton.y);
     await evalJS('MTE_GAME.hudLayout.tick()');
-    ok(await evalJS('document.getElementById("equipmentTray").hidden&&MTE_GAME.messages.expanded&&!document.getElementById("log").hidden'),'Messages tap closes Equipment and opens the log at '+width+'×'+height);
-    await evalJS('document.getElementById("btnUpgrade").click();MTE_GAME.hudLayout.tick()');
+    const wide=width>=1024&&height>500;
+    ok(await evalJS(`document.getElementById("equipmentTray").hidden===${!wide}&&MTE_GAME.messages.expanded&&!document.getElementById("log").hidden`),'Messages opens with '+(wide?'Equipment still open':'the compact card dismissed')+' at '+width+'×'+height);
+    ok(await evalJS('(()=>{const a=document.getElementById("log").getBoundingClientRect(),b=document.getElementById("btnInvite").getBoundingClientRect(),list=document.getElementById("logLines");return (a.right<=b.left||a.left>=b.right||a.bottom<=b.top||a.top>=b.bottom)&&list.clientHeight>=18;})()'),'the expanded log is readable and clears Invite at '+width+'×'+height);
+    if(wide){
+      await shot('desktop-independent-log-and-equipment.png');
+      await evalJS('document.getElementById("btnBuild").click();MTE_GAME.hudLayout.tick()');
+      ok(await evalJS('(()=>{const l=document.getElementById("log").getBoundingClientRect(),s=document.getElementById("sheet").getBoundingClientRect();return MTE_GAME.messages.expanded&&l.right<s.left&&s.right<=innerWidth;})()'),'desktop Settlement occupies the right region while the left log stays open');
+      await shot('desktop-independent-log-and-settlement.png');
+      await evalJS('document.getElementById("btnClose").click()');
+    }
+    await evalJS('MTE_GAME.hudLayout.close();document.getElementById("btnUpgrade").click();MTE_GAME.hudLayout.tick()');
+    if(wide)ok(await evalJS('MTE_GAME.messages.expanded&&MTE_GAME.hudLayout.open'),'opening Equipment preserves an already open desktop log');
     await evalJS('document.getElementById("btnEquipmentClose").click();MTE_GAME.hudLayout.tick()');
   }
   eq(await evalJS('(()=>{MTE_GAME.hudLayout.tick();const n=MTE_GAME.hudLayout.measurements;for(let i=0;i<100;i++)MTE_GAME.hudLayout.tick();return MTE_GAME.hudLayout.measurements-n;})()'),0,'settled layout performs no additional measurements across 100 ticks');
@@ -78,4 +96,9 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   await evalJS('MTE_GAME.getState().shared=true;document.getElementById("btnClose").click();document.getElementById("btnSettings").click()');
   ok(await evalJS('document.getElementById("btnBeyond").hidden'),'shared worlds do not expose Beyond');
   await evalJS('Object.assign(MTE_GAME.getState(),{shared:window.menuEligibility.shared});MTE_GAME.getState().cultivation.completed=window.menuEligibility.completed;delete window.menuEligibility;document.getElementById("btnClose").click()');
+  await evalJS('document.getElementById("sunTime").hidden=false;document.getElementById("sunTime").lastElementChild.textContent="0:30"');
+  ok(await evalJS('(()=>{const v=document.getElementById("btnVersion"),b=v.getBoundingClientRect(),g=document.getElementById("btnSettings").getBoundingClientRect();return getComputedStyle(v).display!=="none"&&getComputedStyle(v).visibility==="visible"&&b.top>=g.bottom&&Math.abs(b.left-g.left)<1;})()'),'solar countdown never replaces the version slot');
+  const version=await rect('#btnVersion');await tap(version.x,version.y);
+  ok(await evalJS('document.getElementById("sheet").classList.contains("open")&&document.getElementById("sheet").dataset.tab==="news"'),'the compact version button still opens the changelog');
+  await evalJS('document.getElementById("btnClose").click();document.getElementById("sunTime").hidden=true');
 }

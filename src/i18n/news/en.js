@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.2": "Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.",
   "news.0.180.1": "Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.",
   "news.0.180.0": "Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.",
   "news.0.179.4": "Zoom controls now sit in a horizontal row beneath the four resources, at every screen size.",

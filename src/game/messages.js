@@ -9,7 +9,7 @@ const SHOWN = 3;      // lines the open log shows without scrolling
 const REMINDER_MS = 10000;
 const PREVIEW_QUEUE = 4; // pending previews; overflow stays in the full log
 const SETTLE_MS = 360;
-const CLEAR_PX = 12;  // kept between the log and Mica's feet, or the HUD above
+const CLEAR_PX = 12;  // padding within the log's assigned region
 
 const TROPHY = '<svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3"/><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z"/></svg>';
 
@@ -34,10 +34,9 @@ export function lineHtml(line) {
 }
 
 // `world()`: which world's lines to show (a key, or null before one loads).
-// `feet()`: Mica's feet on the screen ({x, y}), for the log to stay under.
 // `open`: whether it starts open (a new player's does); `keepOpen(open)`
 // remembers the choice.
-export function createMessages({ world = () => null, feet = () => null, open = true, keepOpen = () => {}, store = localStore(), root = document.body, now = () => performance.now() } = {}) {
+export function createMessages({ world = () => null, open = true, keepOpen = () => {}, store = localStore(), root = document.body, now = () => performance.now() } = {}) {
   const box = document.createElement('section');
   box.id = 'log'; box.setAttribute('aria-label', t('log.title'));
   const list = document.createElement('div');
@@ -58,6 +57,7 @@ export function createMessages({ world = () => null, feet = () => null, open = t
 
   let key = null, lines = [], unread = 0, last = '', pad = null;
   let compact = false, peek = false;
+  let regionRoom = null;
   const expanded = () => open && (!compact || peek);
   const notices = new Map();
   let previews = [], preview = null, previewUntil = 0, settling = false;
@@ -126,20 +126,18 @@ export function createMessages({ world = () => null, feet = () => null, open = t
     show(); last = ''; fit();
   }
 
-  // The last SHOWN lines tall, no taller than the room between what's
-  // above it (Mica's feet when the log is under them, the depth meter, the
-  // top bar) and its own foot, and scrolled to the newest.
-  function fit() {
+  // Last SHOWN lines, bounded by the viewport region supplied by the layout.
+  // Movement and unrelated panels never change the log's available room.
+  function fit(availableRoom) {
+    if (Number.isFinite(availableRoom)) regionRoom = Math.max(0, availableRoom);
     if (box.hidden) return;
     const r = box.getBoundingClientRect(), items = list.children;
     let top = 0;
-    for (const id of ['topbar', 'hudSecondary']) {
+    for (const id of regionRoom === null ? ['topbar', 'hudSecondary'] : []) {
       const o = document.getElementById(id)?.getBoundingClientRect();
       if (o && o.height && o.right > r.left && o.left < r.right) top = Math.max(top, o.bottom);
     }
-    const f = feet();
-    if (f && f.x > r.left - 30 && f.x < r.right + 30) top = Math.max(top, f.y);
-    const room = r.bottom - foot.offsetHeight - top - CLEAR_PX;
+    const room = (regionRoom ?? r.bottom - top) - foot.offsetHeight - CLEAR_PX;
     // From the first shown line's top to the end, plus the list's own top
     // padding, so that line keeps the same room above it as at the sides.
     const first = items[Math.max(0, items.length - SHOWN)];

@@ -158,7 +158,6 @@ export function createHud(el, look, messages) {
     if (text === lastSunTime) return;
     lastSunTime = text;
     el.sunTime.hidden = !text;
-    document.body.classList.toggle('sunTime', !!text);
     if (!text) return;
     el.sunTime.classList.toggle('up', solar.up);
     setText(el.sunTime.lastElementChild, text);

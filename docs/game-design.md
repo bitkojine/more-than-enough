@@ -79,8 +79,9 @@ when it already looks light but a solar panel isn't charging yet (Watch).
 The Settings gear itself is the clock, so it takes no new space: a ring round
 it, gold while the sun works and blue the rest, with the sun or moon riding
 it, shown always in every world. In a crystal world the gold is the sun that
-cracks crystal and the heart. Beside a solar panel a countdown under the gear
-says how long till it charges, or how long it has left. It's sky, not a
+cracks crystal and the heart. Beside a solar panel a countdown in world status
+says how long till it charges, or how long it has left. The version remains
+in its own fixed slot under Settings (updated by Watch, 2026-10-28). It's sky, not a
 device in anyone's hand. Layout: `docs/ui.md`.
 
 ### Physical light and exploration — confirmed, 2026-10-28
@@ -772,8 +773,40 @@ Implemented in v0.180.0:
 
 Open design questions:
 
-- Message arrival presentation on crowded screens remains deferred. The
-  existing queue and animation remain, constrained to allocated HUD space.
+- Further visual styling of message arrivals remains deferred. The existing
+  queue and animation remain; stable anchors and regions are confirmed below.
+
+Stable HUD regions (confirmed by Watch, 2026-10-28):
+
+- Opening Equipment must not move the Messages button or its preview anchor.
+  This applies to mobile and desktop. The current global vertical reservation
+  causes an unrelated left-side control to move even when the right-side card
+  has ample horizontal room; that behavior is to be replaced.
+- Design mobile and desktop as deliberate arrangements of the same semantic
+  groups. Use available desktop width; do not apply narrow-screen compromises
+  indiscriminately. Keep essential controls predictable and dedicated menu
+  entrances intact.
+- Define stable HUD regions and explicit panel behavior before adding further
+  overlap exceptions. Verify position stability as well as visibility,
+  reachability and non-overlap.
+- The version/changelog control always occupies the Settings column directly
+  below the gear and matches its width. Its compact label sits within a full
+  touch target; a news badge cannot enlarge the column. Solar status and
+  opening menus never replace, hide or relocate it (Watch, 2026-10-28).
+- Equipment remains a small card anchored to its action region on phones.
+  Previews remain above the fixed Messages button. On roomy desktop screens,
+  the left message log can stay open alongside Equipment or a right-side menu.
+- Compact screens share expanded disclosure space, so opening Equipment may
+  fold the log without changing its saved preference. That policy never moves
+  the Messages button, its preview anchor or other essential controls.
+- Short landscape screens put Messages at the lower left, with Invite beside
+  it, and reserve a left preview column clear of the right-side card. The
+  expanded log shares the card region and clears Invite and the action dock. Portrait
+  screens reserve a preview band below the card. These regions depend on the
+  viewport and permanent controls, never on which panel is open.
+- Implementation: 1024px wide and more than 500px tall uses independent left
+  and right regions; smaller/shorter screens default to compact status. The
+  right-side desktop sheet leaves the resources and action dock accessible.
 
 Equipment opens a compact card first; crafting is a deliberate second step.
 Menus have dedicated entrances rather than shared navigation tabs (confirmed
@@ -798,8 +831,9 @@ The world-status and metadata groups share one secondary row below resources
 and zoom. At tight sizes, performance becomes a one-line details link, friends
 become a count, and the layer gauge folds while the layer/map control remains.
 Automatic log compaction does not overwrite the player's saved preference; a
-player can still explicitly open Messages. Opening Equipment folds the log but
-keeps the Messages button and its previews visible, reserving space above the
-tray on tall screens. Tapping Messages closes Equipment and opens the log.
+player can still explicitly open Messages. On compact screens, opening Equipment
+folds the log and opening Messages dismisses Equipment. On roomy screens both
+can stay open. Messages and preview anchors stay fixed in either case; no
+component is positioned from another component's open card bounds.
 No warning opens the tray. Immediate actions and group buttons retain their
 slots across compaction; viewport changes adapt dimensions, not their order.

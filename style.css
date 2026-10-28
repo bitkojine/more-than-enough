@@ -32,6 +32,7 @@
   --act: 84px;
   --sub: 56px;
   --gap: 14px;
+  --hud-icon-size: 44px;
 }
 
 .no-glass { --blur: none; }
@@ -85,25 +86,24 @@ canvas#game {
 
 /* The version, always in view under the gear (src/game/news.js): small and
    quiet, a dot once there's something new, and after an update the old
-   number rolls away as the new one rolls in and glows. Its touch area is
-   bigger than it looks. */
+   number rolls away as the new one rolls in and glows. The visual label is
+   compact inside a full touch target matching the Settings column. */
 #btnVersion {
-  position: relative; align-self: flex-end;
-  margin: -6px max(0px, (100% - 560px) / 2) -2px 0;
-  height: 20px; padding: 0 8px;
-  display: flex; align-items: center; gap: 5px;
+  grid-column: 3; grid-row: 2; position: relative;
+  width: var(--hud-icon-size); height: var(--hud-icon-size); margin: 0; padding: 5px 0 0;
+  display: flex; align-items: flex-start; justify-content: center;
   border: 1px solid transparent; border-radius: var(--r-pill);
-  background: rgba(10, 14, 12, 0.35);
+  background: none;
   color: var(--ink-dim);
-  font: 700 11px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  letter-spacing: 0.04em; font-variant-numeric: tabular-nums;
+  font: 700 9.5px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0; font-variant-numeric: tabular-nums;
   overflow: hidden;
   pointer-events: auto; touch-action: manipulation; cursor: pointer;
 }
-#btnVersion::after { content: ''; position: absolute; inset: -12px -6px; }
-#btnVersion .was { position: absolute; left: 8px; opacity: 0; }
+#btnVersion .now, #btnVersion .was { width: 100%; padding: 4px 0; border-radius: var(--r-pill); background: rgba(10, 14, 12, 0.35); }
+#btnVersion .was { position: absolute; left: 0; top: 5px; opacity: 0; }
 #btnVersion.fresh::before {
-  content: ''; order: 2; width: 6px; height: 6px; border-radius: 50%;
+  content: ''; position: absolute; top: 0; right: 1px; width: 4px; height: 4px; border-radius: 50%;
   background: var(--gold); box-shadow: 0 0 6px var(--gold);
 }
 #btnVersion.rolling { animation: ver-glow 2.4s ease-out 0.8s backwards; }
@@ -119,10 +119,8 @@ canvas#game {
 @media (prefers-reduced-motion: reduce) {
   #btnVersion.rolling .was, #btnVersion.rolling .now { animation: none; }
 }
-body.signing #btnVersion { visibility: hidden; }
 
-/* Beside a solar panel, the countdown to when the sun starts or stops
-   charging it takes the version's place under the gear. */
+/* Beside a solar panel, an independent world-status countdown. */
 #sunTime {
   align-self: flex-end;
   margin: -6px max(0px, (100% - 560px) / 2) -2px 0;
@@ -137,7 +135,6 @@ body.signing #btnVersion { visibility: hidden; }
 #sunTime[hidden] { display: none; }
 #sunTime.up { border-color: var(--gold); }
 #sunTime i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 1px #14141a; }
-body.sunTime #btnVersion { display: none; }
 
 /* Friends in a shared world, under the top bar on the right: a chip each in
    their colour, showing how they're doing. */
@@ -177,7 +174,7 @@ body.sunTime #btnVersion { display: none; }
 .hudBtn {
   position: relative;
   flex: 0 0 auto;
-  width: 44px; height: 44px; padding: 0;
+  width: var(--hud-icon-size); height: var(--hud-icon-size); padding: 0;
   display: grid; place-items: center;
   border: 1px solid var(--panel-line); border-radius: 50%;
   background: var(--glass);
@@ -1004,11 +1001,12 @@ body.signing #zoomControls { visibility: hidden; }
 #log, #logPill, #logBubble {
   position: absolute; z-index: 14;
   left: var(--edge-l);
-  bottom: calc(var(--edge-b) + var(--act) + 78px);
+  bottom: var(--hud-message-bottom, calc(var(--edge-b) + var(--act) + 16px));
 }
 #log {
-  right: calc(var(--edge-r) + (var(--act) - 42px) / 2 + 52px);
-  max-width: 420px;
+  bottom: var(--hud-log-bottom, var(--hud-message-bottom, 120px));
+  right: auto; width: min(380px, calc(100vw - var(--edge-l) - var(--edge-r) - 76px));
+  max-width: 420px; max-height: var(--hud-message-room, 100dvh);
   display: flex; flex-direction: column;
   background: rgba(12, 17, 14, 0.86);
   -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
@@ -1062,7 +1060,8 @@ body.signing #zoomControls { visibility: hidden; }
 #logPill .count[hidden] { display: none; }
 /* Preview stays above its destination and never intercepts world gestures. */
 #logBubble {
-  bottom: calc(var(--edge-b) + var(--act) + 130px);
+  bottom: calc(var(--hud-message-bottom, 120px) + 52px);
+  max-height: var(--hud-preview-room, 80px); overflow: hidden;
   max-width: min(340px, calc(100vw - var(--edge-l) - var(--edge-r) - 58px));
   padding: 10px 13px; border: 1px solid #71958a; border-radius: 17px 17px 17px 5px;
   background: #17271f; color: var(--ink); box-shadow: var(--shadow-1);
@@ -1087,16 +1086,6 @@ body.signing #zoomControls { visibility: hidden; }
 body.placing #log, body.placing #logPill, body.signing #log, body.signing #logPill,
 body.mapping #log, body.mapping #logPill,
 body.placing #logBubble, body.signing #logBubble, body.mapping #logBubble { visibility: hidden; }
-/* Short screens (landscape phones) and wide ones: down the left side,
-   beside Mica rather than under them, above Invite when it's there. */
-@media (max-height: 500px), (min-width: 900px) {
-  #log, #logPill, #logBubble { bottom: var(--edge-b); }
-  #logBubble { bottom: calc(var(--edge-b) + 52px); max-width: min(340px, 40vw); }
-  #log { right: auto; width: min(380px, 40vw); }
-  body.inviting #log, body.inviting #logPill, body.inviting #logBubble { bottom: calc(var(--edge-b) + var(--act) + 16px); }
-  body.inviting #logBubble { bottom: calc(var(--edge-b) + var(--act) + 68px); }
-}
-
 /* A region's name as you walk into it: big and quiet across the upper
    middle of the map, fading in and away on its own. Taps go through. */
 #place {
@@ -1359,7 +1348,7 @@ a.setRow { text-decoration: none; }
    keep fixed slots, and disclosures consume space rather than adding floats. */
 #hudSecondary { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; align-items: start; }
 #hudMeta { min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; gap: 4px 6px; }
-#hudMeta #btnVersion, #hudMeta #sunTime { align-self: auto; margin: 0; }
+#hudMeta #sunTime { align-self: auto; margin: 0; }
 #hudMeta #friends { flex: 1 0 100%; max-width: 100%; margin: 0; }
 #hudMeta #perf { flex: 1 0 100%; min-width: 0; max-width: 100%; margin: 0; cursor: pointer; pointer-events: auto; }
 #depthMeter { position: static; display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -1380,11 +1369,12 @@ body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { dis
 #btnPerfect { right: calc(var(--act) + var(--gap)); bottom: calc(var(--act) + 20px); }
 #btnPerfect .tip { right: 0; bottom: calc(100% + 12px); max-width: min(280px, calc(100vw - 40px)); white-space: normal; }
 #equipmentTray {
+  --equipment-bottom: calc(var(--hud-message-bottom, 120px) + var(--hud-preview-room, 80px) + 64px);
   position: absolute; z-index: 22; right: var(--edge-r); left: auto;
-  bottom: calc(var(--edge-b) + var(--act) + var(--sub) + 36px);
+  bottom: var(--equipment-bottom);
   display: flex; flex-direction: column; gap: 8px;
-  width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r)));
-  max-height: var(--hud-tray-room, 240px); overflow: auto;
+  width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r) - 64px));
+  max-height: calc(100dvh - var(--equipment-bottom) - var(--hud-topbar-end, 100px) - 8px); overflow: auto;
   padding: 8px 12px 12px; border: 1px solid var(--panel-line); border-radius: 16px;
   background: var(--panel); box-shadow: var(--shadow-1); pointer-events: auto;
 }
@@ -1409,9 +1399,7 @@ body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { dis
 #btnEquipmentCraft svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
 #equipmentTray:not(:has(.equipmentActions > button:not([hidden]))) #btnEquipmentCraft { grid-column: 1 / -1; }
 #btnUpgrade[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--gold); }
-#log, #logPill, body.inviting #log, body.inviting #logPill { bottom: var(--hud-message-bottom, calc(var(--edge-b) + var(--act) + 78px)); }
-#log { right: auto; width: min(380px, calc(100vw - var(--edge-l) - var(--edge-r) - 76px)); }
-#logBubble, body.inviting #logBubble { bottom: calc(var(--hud-message-bottom, 180px) + 52px); max-height: var(--hud-preview-room, 200px); overflow: hidden; }
+#logBubble .msg { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
 #performanceDetails { padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
 body.placing #depthGauge { display: none; }
 .bcard.placing { max-height: calc(100dvh - var(--hud-top-end, 100px) - var(--edge-b) - 12px); overflow-y: auto; }
@@ -1422,31 +1410,43 @@ body.placing #depthGauge { display: none; }
   #equipmentTray .big { width: 24px; height: 24px; }
 }
 @media (max-height: 500px) {
-  #log { width: min(380px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
-  #logBubble { max-width: min(340px, calc(100vw - var(--act) - var(--sub) * 2 - var(--gap) * 2 - 44px)); }
-  #equipmentTray { top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: auto; right: calc(var(--edge-r) + var(--act) + 12px); left: auto; width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r) - var(--act) - 140px)); max-height: calc(100dvh - var(--hud-topbar-end, 100px) - var(--edge-b) - var(--act) - 8px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  :root { --hud-card-width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r) - var(--act) - 140px)); }
+  #hudSecondary { align-self: flex-start; width: calc(100vw - var(--edge-r) - var(--act) - 24px - var(--hud-card-width)); }
+  #log { left: auto; right: calc(var(--edge-r) + var(--act) + 12px); width: var(--hud-card-width); }
+  #logBubble { width: min(240px, calc(100vw - var(--edge-l) - var(--edge-r) - var(--act) - 336px)); max-width: none; padding: 6px 9px; font-size: 12px; }
+  #btnInvite { left: calc(var(--edge-l) + 152px); }
+  #logPill { max-width: 140px; }
+  #hudMeta { width: 100%; max-width: 104px; justify-self: start; justify-content: flex-start; gap: 4px; }
+  #hudMeta #perf { flex: 0 1 96px; }
+  #equipmentTray { top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: auto; right: calc(var(--edge-r) + var(--act) + 12px); left: auto; width: var(--hud-card-width); max-height: calc(100dvh - var(--hud-topbar-end, 100px) - var(--edge-b) - var(--act) - 8px); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .equipmentHeader { grid-column: 1 / -1; }
   #equipmentTray .equipmentActions { grid-column: 1; }
   #equipmentTray #btnEquipmentCraft { grid-column: 2; grid-row: 2; }
   #equipmentTray .equipmentActions > button { height: 52px; }
   .equipmentActions:has(> button:not([hidden])) { min-height: 52px; }
   #equipmentTray { gap: 4px; padding: 4px 8px 8px; }
-  body.equipment-open #hudMeta { visibility: hidden; }
-  body.equipment-open #depthGauge { display: none; }
 }
 
 @media (max-height: 500px) { #btnMine, #btnPerfect { bottom: calc(var(--act) + 12px); } }
 
-/* Explicit reading owns the same bounded disclosure area as Equipment. */
-body.hud-reading #hudSecondary { display: none; }
+/* Roomy hosts use independent left communication and right menu regions. */
+@media (min-width: 1024px) and (min-height: 501px) {
+  #hudMeta { max-width: 340px; justify-self: end; }
+  #log { width: min(340px, 30vw); }
+  #equipmentTray { --equipment-bottom: calc(var(--edge-b) + var(--act) + var(--sub) + 28px); }
+  #sheet, #sheet[data-tab="map"] { left: auto; right: var(--edge-r); top: calc(var(--hud-topbar-end, 100px) + 8px); bottom: calc(var(--edge-b) + var(--act) + 16px); width: min(420px, 40vw); max-width: none; height: auto; max-height: none; margin: 0; border-radius: var(--r-lg); border-bottom: 1px solid var(--panel-line); }
+  #sheet:not(.open) { visibility: hidden; pointer-events: none; transform: translateX(calc(100% + var(--edge-r))); }
+  #sheetGrab { cursor: default; }
+}
+@media (min-width: 1024px) and (min-height: 501px) and (max-height: 600px) {
+  #hudMeta { flex-wrap: nowrap; max-width: 380px; align-items: center; }
+}
 
 /* Group names keep room to read without shrinking their text. */
 #btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2 + 12px); }
 
 #equipmentTray #btnEquipmentCraft { min-width: 64px; }
-body.equipment-open #autoTip { visibility: hidden; }
 
-#log { max-height: var(--hud-message-room, 100dvh); }
 
 #equipmentTray #btnFlare.on::before {
   inset: auto 4px 1px; height: 2px; border-radius: 1px;

@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.2": "Meniu nebeturi bendrų kortelių. Įranga → Gaminti, Gyvenvietė ir taurės mygtukas atveria atskirus meniu. Atrakintas Anapus meniu pasiekiamas per Nustatymus, o grįžimo mygtukas sugrąžina į juos.",
+  "news.0.180.3": "Atvėrus Įrangą, Žinučių mygtukas ir peržiūros lieka vietoje. Didesniuose ekranuose žinutės lieka kairėje, o meniu atsidaro dešinėje. Versijos numeris visada yra po Nustatymais; saulės būsena jo nebepakeičia.",
   "hud.equipment": "Įranga",
   "hud.settlement": "Gyvenvietė",
   "hud.improvements": "Gerinti esamus pastatus",

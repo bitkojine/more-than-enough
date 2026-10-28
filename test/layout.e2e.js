@@ -291,6 +291,7 @@ async function main() {
       await cdp.send('Page.enable', {}, s);
       await cdp.send('Page.navigate', { url: 'http://127.0.0.1:' + PORT + '/?lang=' + lang }, s);
       const where = lang + ' ' + w + 'x' + h;
+      const started = Date.now(), before = found.length;
       const evaluate = async (expr) => {
         const r = await cdp.send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }, s);
         if (r.exceptionDetails) throw new Error(where + ': ' + (r.exceptionDetails.exception?.description || r.exceptionDetails.text));
@@ -311,6 +312,7 @@ async function main() {
           fs.writeFileSync(path.join(SHOT_DIR, lang + '-' + w + 'x' + h + '-' + state + '.png'), Buffer.from(data, 'base64'));
         }
       }
+      console.log('checked ' + where + ': ' + STATES.length + ' states, ' + (found.length - before) + ' problems (' + ((Date.now() - started) / 1000).toFixed(1) + 's)');
       await cdp.send('Target.closeTarget', { targetId });
       await cdp.send('Target.disposeBrowserContext', { browserContextId });
     }

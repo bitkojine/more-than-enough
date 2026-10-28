@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.2": "Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.",
+  "news.0.180.3": "Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.",
   "hud.equipment": "Equipment",
   "hud.settlement": "Settlement",
   "hud.improvements": "Improve existing buildings",

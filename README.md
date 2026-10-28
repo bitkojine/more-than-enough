@@ -62,7 +62,8 @@ long game runs:
 CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_HUD_ONLY=1 npm run test:e2e
 ```
 
-It checks six viewport sizes in both languages, compact Equipment touch input,
+It checks nine viewport sizes in both languages, stable Messages and version
+anchors, compact Equipment touch input, simultaneous desktop panels,
 Settlement contents, overlapping groups, and cached layout work. The deploy
 runs it alongside rendering checks. `test:layout` separately checks the wider
 set of menus, placement, dialogs and shared-world crowds.
@@ -104,6 +105,8 @@ through day, sunset, night and dawn, camera movement, and all 513 supported
 depths with tiny fixtures. Canvas-allocation and cache-memory limits gate deploy;
 frame timings are recorded without claiming hardware-independent FPS. Their failure captures are retained as CI artifacts. The
 broad browser suite and long property sweeps remain separate from quick iteration.
+The layout sweep reports each viewport as it finishes, including elapsed time
+and problems, so a long audit does not look like a silent hang.
 
 ## Rules for changes
 
