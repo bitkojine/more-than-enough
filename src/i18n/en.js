@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Activate the machine to unlock this.",
   "progression.requirement": "Activate the machine to unlock.",
   "progression.locked": "Locked",
+  "news.0.181.7": "Long menu content now scrolls inside its panel instead of overflowing onto the game. Performance details keep their header and Close button fixed while you inspect every observation.",
   "news.0.181.6": "Performance warnings now leave the action buttons clear on short landscape layouts. The compact pill stays readable, with full-size inspection and collapse controls.",
   "news.0.181.5": "Performance diagnostics now show live timing breakdowns, warnings and copyable reports. Enable them in Nerds to automatically see a compact card when the game slows down.",
   "news.0.181.4": "Mica carries one active light at a time: flares switch the lantern off, and switching back extinguishes the flare. Both work on every layer. Solar panels and water wheels are back in surface Build, available before machine activation.",

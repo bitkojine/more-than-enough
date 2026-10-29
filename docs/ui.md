@@ -593,3 +593,13 @@ The warning card clears visible action controls. In shallow landscape it sits
 to the left of visible ladder/AUTO controls and above the primary action row, uses a short
 numeric pill, and omits the graph to keep its controls reachable. The same
 full-size pill and graph remain available on taller screens.
+
+Every shared-sheet screen uses the same `.sheetContent` scroll boundary,
+including Performance, Settings, player lists and release notes. The content
+flex item has zero minimum height and width so it can shrink to the available
+space. The shell clips to its rounded bounds; the grab handle and header stay
+outside the scroll area. Long content scrolls inside the panel, with its last
+row reachable and Close fixed in place. Layout checks enforce this boundary
+for every opened menu; diagnostics additionally exercise top and bottom content
+at the reported 1470×779 desktop size, small portrait and landscape sizes, in
+both languages.

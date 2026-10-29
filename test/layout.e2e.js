@@ -104,6 +104,18 @@ function problems() {
     }
   }
 
+  // A shared sheet keeps all content inside its own scrolling body, including
+  // menu-specific panels that bypass sheetBody. Never paint onto the game.
+  if (sheetOpen) {
+    const shell=document.getElementById('sheet'),bounds=shell.getBoundingClientRect(),head=document.getElementById('sheetHead').getBoundingClientRect();
+    for(const panel of shell.children) {
+      if(panel.id==='sheetHead'||panel.id==='sheetGrab'||!shown(panel))continue;
+      const r=panel.getBoundingClientRect();
+      if(r.top<head.bottom-1||r.bottom>bounds.bottom+1||r.left<bounds.left-1||r.right>bounds.right+1)out.push('content escapes sheet: '+name(panel));
+    }
+    if(shell.scrollHeight>shell.clientHeight+1)out.push('sheet shell overflows instead of scrolling its content');
+  }
+
   // Words cut short with an ellipsis (or clipped) anywhere a player reads.
   for (const el of document.querySelectorAll('.chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
     if (!shown(el) || !el.textContent.trim()) continue;

@@ -40,6 +40,17 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     await new Promise(r=>setTimeout(r,400));
     ok(await evalJS('document.querySelectorAll(".perfPhase").length===8&&document.querySelectorAll(".perfIncident").length>0'),lang+': live sheet has phase timings and retained observations');
     ok(await evalJS('!document.getElementById("performanceDetails").textContent.includes("perf.")'),lang+': labels resolve');
+    for(const [width,height] of [[1470,779],[320,568],[568,320],[1366,768]]){
+      await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600},session);
+      await new Promise(r=>setTimeout(r,180));
+      await evalJS('__perfFixture.details();document.getElementById("performancePanel").scrollTop=0');
+      const containment=await evalJS('(()=>{const s=document.getElementById("sheet"),p=document.getElementById("performancePanel"),a=s.getBoundingClientRect(),b=p.getBoundingClientRect(),head=document.getElementById("sheetHead").getBoundingClientRect();return {bounded:b.top>=head.bottom-1&&b.bottom<=a.bottom+1&&b.left>=a.left&&b.right<=a.right,scrollable:p.scrollHeight>p.clientHeight&&["auto","scroll"].includes(getComputedStyle(p).overflowY),horizontal:p.scrollWidth<=p.clientWidth+1,shell:s.scrollHeight<=s.clientHeight+1};})()');
+      ok(containment.bounded&&containment.scrollable&&containment.horizontal&&containment.shell,`${lang}: full details stay inside a scrollable sheet at ${width}×${height} ${JSON.stringify(containment)}`);
+      if(width===1470)await shot(`performance-details-${lang}-top.png`);
+      const reach=await evalJS('(()=>{const p=document.getElementById("performancePanel"),button=document.getElementById("btnClose"),before=button.getBoundingClientRect().top;p.scrollTop=p.scrollHeight;const last=document.querySelector(".perfIncident:last-child"),a=last.getBoundingClientRect(),b=p.getBoundingClientRect(),c=button.getBoundingClientRect();return p.scrollTop>0&&a.top>=b.top-1&&a.bottom<=b.bottom+1&&c.top===before&&button.contains(document.elementFromPoint(c.left+c.width/2,c.top+c.height/2));})()');
+      ok(reach,`${lang}: bottom observations and fixed Close remain reachable at ${width}×${height}`);
+      if(width===1470)await shot(`performance-details-${lang}-bottom.png`);
+    }
     await evalJS('window.__perfReport=null;Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>{window.__perfReport=JSON.parse(text)}}});document.querySelector(".perfCopy").click()');
     ok(await evalJS('__perfReport&&__perfReport.version&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
     ok(await evalJS('(()=>{const row=document.querySelector(".perfPhase");document.getElementById("btnClose").click();__perfFixture.tick(1);return row===document.querySelector(".perfPhase");})()'),lang+': closing details stops rebuilding hidden timing rows');

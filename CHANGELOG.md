@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.7] - 2026-10-29
+
+- Give every shared-sheet menu a bounded scrolling content region, including
+  Performance. Allow flex content to shrink while the header stays fixed and
+  the rounded shell contains all painting.
+- Check menu containment and scrollability, reaching the final observations
+  and Close, in English and Lithuanian at phone and desktop sizes.
+
 ## [0.181.6] - 2026-10-29
 
 - Keep performance warning cards clear of visible action controls. On shallow

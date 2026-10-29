@@ -246,23 +246,23 @@
       <div id="sheetTitle"></div>
       <button id="btnClose" class="hudBtn" type="button" data-i18n-aria-label="sheet.close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg></button>
     </div>
-    <div id="sheetBody"></div>
-    <div id="performancePanel" hidden><div id="performanceDetails"></div></div>
+    <div id="sheetBody" class="sheetContent"></div>
+    <div id="performancePanel" class="sheetContent" hidden><div id="performanceDetails"></div></div>
     <!-- Invite links (playing together): each one, who made it, how many
          joined with it, and a way to stop it. Filled by src/game/together.js. -->
-    <div id="invitesPanel" hidden></div>
+    <div id="invitesPanel" class="sheetContent" hidden></div>
     <!-- Worlds: your own and every shared world you've been in, to switch
          between them. Filled by src/game/worlds.js. -->
-    <div id="worldsPanel" hidden></div>
+    <div id="worldsPanel" class="sheetContent" hidden></div>
     <!-- Another device: the QR that brings your own world to your other phone
          or computer, kept in step through the cloud. Filled by src/game/devices.js. -->
-    <div id="devicesPanel" hidden></div>
+    <div id="devicesPanel" class="sheetContent" hidden></div>
     <!-- Players: everyone in the shared world you're in, how they're doing
          and how far away; the owner can remove them. Filled by src/game/players.js. -->
-    <div id="playersPanel" hidden></div>
+    <div id="playersPanel" class="sheetContent" hidden></div>
     <!-- What's new: every release's notes, newest first. Filled by src/game/news.js. -->
-    <div id="newsPanel" hidden></div>
-    <div id="settingsPanel" class="setPanel" hidden>
+    <div id="newsPanel" class="sheetContent" hidden></div>
+    <div id="settingsPanel" class="setPanel sheetContent" hidden>
       <div class="setGroup">
         <button id="btnBeyond" class="setRow" type="button" hidden><span data-i18n="sheet.beyond"></span><b aria-hidden="true">&rsaquo;</b></button>
         <button id="btnWorlds" class="setRow" type="button" hidden><span data-i18n="worlds.title"></span><b><span id="worldNow"></span> &rsaquo;</b></button>
@@ -291,7 +291,7 @@
       </div>
     </div>
     <!-- For nerds: the technical things most players never need. -->
-    <div id="nerdsPanel" class="setPanel" hidden>
+    <div id="nerdsPanel" class="setPanel sheetContent" hidden>
       <div class="setGroup">
         <button id="btnBackupSave" class="setRow" type="button"><span data-i18n="backup.save"></span><b aria-hidden="true">&darr;</b></button>
         <button id="btnBackupLoad" class="setRow" type="button"><span data-i18n="backup.load"></span><b aria-hidden="true">&uarr;</b></button>
