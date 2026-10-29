@@ -87,22 +87,21 @@ test('older worlds keep their lantern reach; a flare adds its wide light in the 
   assert.equal(C.sightRadius(s), C.exploreRadius(s));
 });
 
-test('a flare cracks crystal in its light like the lantern, even with the lantern off', () => {
+test('a flare illuminates a chamber without damaging its protected colony', () => {
   const s = deep();
   s.player.x = 0.5; s.player.y = 0.5;
   assert.equal(cmd(s, 'build', 'chamber', 1, 0), 'ok');
   const b = C.cultivationAt(s, 1, 0);
   b.health = 100;
-  cmd(s, 'shutter', null, 1, 0); // open, in the dark: safe
   assert.equal(C.cultivationLight(s, b), false);
   run(s, 1);
   const safe = b.health;
   C.useFlare(s);
   assert.equal(C.cultivationLight(s, b), true);
-  assert.ok(b.health < safe, 'lighting it beside an open chamber hurts at once');
+  assert.equal(b.health, safe, 'lighting it does not expose protected contents');
   const lit = b.health;
   run(s, 1);
-  assert.ok(b.health < lit, 'and keeps hurting while it burns');
+  assert.equal(b.health, lit, 'contents remain protected while it burns');
   C.useFlare(s);
   assert.equal(C.cultivationLight(s, b), false, 'put out, the chamber is dark again');
   // Out of reach, a tile more than FLARE_LIGHT away stays dark.

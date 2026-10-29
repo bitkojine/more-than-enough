@@ -203,7 +203,7 @@ export function createPlacing({ cam, state, controller, cultivate, toast }) {
       const s = state(), at = job.at;
       const ghost = !at ? null : job.from ? { ...job.from, x: at.x, y: at.y } : job.key
         ? { key: job.key, res: Core.EXTRACTORS[job.key].res, x: at.x, y: at.y, z: job.z, buffer: 0 }
-        : { kind: job.kind, x: at.x, y: at.y, z: job.z, closed: true, buffer: 0 };
+        : { kind: job.kind, x: at.x, y: at.y, z: job.z, buffer: 0 };
       if (ghost && job.from) ghost.buffer = 0;
       return { rows, ghost, from: job.from, z: s.player.z };
     },

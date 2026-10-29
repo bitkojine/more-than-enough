@@ -610,8 +610,7 @@
    "image": "cultivation/chamber-grown.svg",
    "stages": [
     "cultivation/chamber-empty.svg",
-    "cultivation/chamber-grown.svg",
-    "cultivation/chamber-open.svg"
+    "cultivation/chamber-grown.svg"
    ]
   },
   "building.coolingTower": {

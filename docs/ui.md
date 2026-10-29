@@ -319,8 +319,8 @@ No separate map or client is used.
   health only on the bar over Mica: wider than a tile's half, green, amber
   under 65%, red under 35%. A line in the log warns when it's at risk. No HUD tile.
 
-A chamber's card shows temperature, shutter state, tolerance, stored
-output and quality. Sprite shutters/fans/cracks/warning triangles distinguish
+A chamber's card shows temperature, tolerance, stored
+output and quality. Sprite fans/cracks/warning triangles distinguish
 new machinery while retaining existing building art. Carried crystal/specimens
 show a tolerance bar beside the character; sound and warnings in the log supplement
 visual cues. With the lantern off the mine is as dark as with it on, and only
@@ -340,19 +340,19 @@ solo-world creation and retained solo archives, not experimental game modes.
 The machine's card shows its restored section count, the next physical
 repair recipe and, once restored, the clue its repair revealed. Three visible casing panels fill with each repair;
 activation lights all three. After repairs, Activate appears only on the machine.
-The core requires viable crystal, closed shutters and current cooling. Completion
+The core requires viable crystal and current cooling. Completion
 is announced as a milestone and stays saved; Beyond offers the normal confirmed
 empty-handed next world while preserving the completed world’s archive.
 
 ### Restoration-route artwork
 The Lanternlight pack uses slate/steel surfaces with one dark outer ink line,
 pale mycelium bindings, pink branching living crystal and cool blue-green fins.
-Each cultivation facility has a dedicated catalog identity: ribbed shuttered
+Each cultivation facility has a dedicated catalog identity: ribbed lightproof
 chambers with a crystal emblem, broad-fan cooling towers, narrow insulated vaults,
 paired sealed transport pipes and the socketed ancient machine. The carrier is
 a clasped specimen capsule; the lantern has a hood and crossed protective bars.
 The machine’s five sprite states show zero/one/two/three restored modules and
-activation. Chamber states show empty, occupied/closed and open; vaults/conduits
+activation. Chamber states show empty and occupied; vaults/conduits
 show empty and holding crystal. Material emblems remain readable when sealed.
 Early picks use stone and mycelium bindings, early boots use woven fibre with
 later stone reinforcement; metal appears only at tiers whose recipes include it.
@@ -496,7 +496,7 @@ no destination; infrastructure keeps its own service ranges and keeps running.
 
 Physical light inspection (2026-10-28): chamber/vault/machine cards show outside
 light level (0–15), whether it comes from sunlight or artificial sources, and
-whether closed shutters protect the interior. Wild-colony cards and meaningful
+the automatic light protection of the interior. Wild-colony cards and meaningful
 world tooltips share this information. Use existing cards/tooltips; no separate
 lighting panel. Unknown terrain remains unknown; no character hit targets.
 
@@ -520,3 +520,9 @@ Affordability notifications are removed (2026-10-29): no NEW labels on buttons,
 rows, progression families or release notes. No per-world offer tracking runs.
 Existing unused seen-offer storage is left untouched; game saves are unchanged.
 A replacement readiness system is deferred.
+
+Facility protection (2026-10-29): no shutter buttons, open/closed label or open
+sprite state. Chambers, vaults and the machine always show protected interiors.
+Plant, tend, collect, store, reinforce, repair and activate retain their normal
+contact rules. Cooling and cargo protection remain separate. Existing open or
+closed saves resume with their buildings and progress intact.

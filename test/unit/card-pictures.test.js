@@ -14,7 +14,7 @@ function check(card){
 test('all facility, wild-colony and light cards request real catalog pictures',()=>{
  for(const kind of [...C.BUILT_FACILITIES,'machine']){
   const s=C.createState(11,{cultivation:true});s.player.z=-2;C.markExplored(s.world,0,0,-2);
-  s.cultivation.facilities.push({kind,id:1,x:0,y:0,z:-2,temperature:12,buffer:0,quality:100,closed:true,sections:0});
+  s.cultivation.facilities.push({kind,id:1,x:0,y:0,z:-2,temperature:12,buffer:0,quality:100,sections:0});
   check(cardAt(s,0,0));
  }
  const wild=C.createState(11,{cultivation:true});wild.player.z=-2;C.markExplored(wild.world,0,0,-2);C.tileAt(wild.world,0,0,-2);wild.world.hotChunk.type[C.chunkIndex(0,0)]=C.T.GEODE;C.setRichness(wild.world,0,0,-2,10);

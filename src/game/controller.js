@@ -265,7 +265,7 @@ export function createController({ game, cam, fx, audio, hud, look, ask, actor, 
       const result=Core.cultivationCommand(state(),cmd);
       if(['ok','lifted','discovery','activated'].includes(result)){
         faceTile(cmd.x??Math.floor(player().x),cmd.y??Math.floor(player().y));
-        const action={build:'build',repair:'build',reinforce:'build',craft:'build',collect:'collect',store:'collect',shutter:'collect',shade:'collect',lantern:'collect',plant:'pick',tend:'pick',starter:'pick',heart:'pick',activate:'cheer'}[cmd.type];
+        const action={build:'build',repair:'build',reinforce:'build',craft:'build',collect:'collect',store:'collect',shade:'collect',lantern:'collect',plant:'pick',tend:'pick',starter:'pick',heart:'pick',activate:'cheer'}[cmd.type];
         if(action)performAct(action,{work:cmd.type});
         changed();checkGoals();
       }

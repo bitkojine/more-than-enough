@@ -48,16 +48,13 @@ export function cardAt(s, x, y) {
     const lines = [name(Core.cultivationStatus(s, b)), t('cr.temperature', { n: b.temperature.toFixed(1) }), t('cr.buffer', { n: b.buffer.toFixed(1) }) + ' · ' + t('cr.quality', { n: Math.floor(b.quality) })];
     if (b.kind === 'machine') lines.push(t('cr.sections', { n: Core.machineSections(b), total: Core.MACHINE_REPAIRS.length }));
     if (b.health !== undefined) lines.push(t('cr.health', { n: Math.floor(b.health) }));
-    const shuttered = ['chamber', 'vault', 'machine'].includes(b.kind);
-    if (shuttered) lines.push(name(b.closed ? 'closed' : 'opened'));
-    if(shuttered)lines.push(describeLight(s,x,y,z,b.closed));
+    if (['chamber', 'vault', 'machine'].includes(b.kind)) lines.push(describeLight(s,x,y,z,true));
     if (b.kind === 'machine' && c.restored) lines.push(name('discovery.' + Core.machineClue(s)));
     if (b.kind === 'machine' && c.completed) lines.push(name('activated'));
     const acts = b.kind === 'chamber' ? ['plant', 'tend', 'collect', 'reinforce'] : b.kind === 'vault' ? ['collect', 'store', 'reinforce']
       : b.kind === 'machine' ? (Core.machineRepairCost(b) ? ['repair'] : c.completed ? [] : ['activate']) : [];
     const actions = acts.filter((a) => !(a === 'reinforce' && b.reinforced) && !(a === 'plant' && b.health > 0) && !(a === 'tend' && !b.needsTend))
       .map((a) => act(a, x, y, name(a), a === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES[a] || null));
-    if (shuttered) actions.push(act('shutter', x, y, name(b.closed ? 'shutter.open' : 'shutter.close')));
     if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(act('move', x, y, t('card.move')));
     if (b.kind === 'cooler') lines.push(t('card.cooling', { count: reachOf(s, { kind: 'cooler', x, y, z, building: b }).targets.length }));
     return { look: Core.CULTIVATION_LOOK[b.kind], name: name(b.kind), lines, actions, building: b, kind: b.kind };

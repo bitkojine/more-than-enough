@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.180.9] - 2026-10-29
+
+- Remove manual shutters, their controls/state/art variant, and access or
+  machine-completion requirements. Chambers, vaults and the machine now
+  intrinsically protect their contents and interactions from light.
+- Preserve heat damage, cooling, tending injuries, exposed cargo/wild-colony
+  light damage, carrier protection and heart requirements. Old open and
+  closed saves retain buildings, contents, routes and restoration progress.
+- Update localized cards, tooltips, wiki, game design and the canonical
+  fresh-world playtest route; verify light/heat separation and save migration.
+
 ## [0.180.8] - 2026-10-29
 
 - Keep unread version digits gold with their border and dot until the release

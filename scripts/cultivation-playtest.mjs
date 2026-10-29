@@ -122,8 +122,8 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   stage('wild colony discovered');
   const roomAt=buildingSite(feet(),3);go(roomAt);command('build','chamber',roomAt);
   const coolAt=buildingSite(roomAt,3);go(coolAt);command('build','cooler',coolAt);
-  go(wild);command('starter',null,wild);go(roomAt);command('shutter',null,roomAt);command('plant',null,roomAt);
-  const room=C.cultivationAt(state,roomAt.x,roomAt.y);if(room.needsTend)command('tend',null,roomAt);command('shutter',null,roomAt);stage('colony growing');
+  go(wild);command('starter',null,wild);go(roomAt);command('plant',null,roomAt);
+  const room=C.cultivationAt(state,roomAt.x,roomAt.y);if(room.needsTend)command('tend',null,roomAt);stage('colony growing');
   command('craft','carrier');const vaultAt=buildingSite(roomAt,C.CONDUIT_REACH);go(vaultAt);command('build','vault',vaultAt);
   const linkAt=buildingSite(roomAt,C.CONDUIT_REACH,p=>Math.abs(p.x-vaultAt.x)+Math.abs(p.y-vaultAt.y)<=C.CONDUIT_REACH);go(linkAt);command('build','conduit',linkAt);
   const machine=state.cultivation.facilities.find(b=>b.kind==='machine');if(!machine)throw Error('machine not discovered');

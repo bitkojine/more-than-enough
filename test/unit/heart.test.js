@@ -22,7 +22,7 @@ test('the hiding place is open grass far from home, fixed by the seed',()=>{
 test('new worlds start with the heart at the hiding place; older saves keep their progress',()=>{
  const s=C.createState(7,{cultivation:true});assert.deepEqual(s.cultivation.heart,{where:'station',health:100});
  const old=JSON.parse(JSON.stringify(s.cultivation));delete old.heart;C.recoverCultivationRounding(old);assert.equal(old.heart.where,'station');
- const done=JSON.parse(JSON.stringify(s.cultivation));delete done.heart;done.facilities.push({kind:'machine',sections:2,id:done.nextId++,x:0,y:0,z:-2,temperature:18,closed:true,health:100,quality:100,buffer:0});
+ const done=JSON.parse(JSON.stringify(s.cultivation));delete done.heart;done.facilities.push({kind:'machine',sections:2,id:done.nextId++,x:0,y:0,z:-2,temperature:18,health:100,quality:100,buffer:0});
  C.recoverCultivationRounding(done);assert.equal(done.heart.where,'installed','a machine past its second section already has its heart');assert.ok(C.validCultivation(done));
  const bad=JSON.parse(JSON.stringify(s.cultivation));bad.heart={where:'pocket',health:50};assert.equal(C.validCultivation(bad),false);
  bad.heart={where:'carried',health:120};assert.equal(C.validCultivation(bad),false);

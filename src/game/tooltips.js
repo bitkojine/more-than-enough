@@ -12,7 +12,7 @@ export function describeLook(id){
 export function describeWorld(s,x,y,z){
  if(!Core.isExplored(s.world,x,y,z))return null;
  const facility=Core.cultivationAt(s,x,y,z),building=Core.extractorAt(s,x,y,z);
- if(facility||building){const id=facility?Core.CULTIVATION_LOOK[facility.kind]:'building.'+building.key,info=describeLook(id);return info&&{...info,kind:id,description:info.description+(facility?' '+describeLight(s,x,y,z,facility.closed):'')};}
+ if(facility||building){const id=facility?Core.CULTIVATION_LOOK[facility.kind]:'building.'+building.key,info=describeLook(id);return info&&{...info,kind:id,description:info.description+(facility?' '+describeLight(s,x,y,z,['chamber','vault','machine'].includes(facility.kind)):'')};}
  // Ground only speaks up when there is something to it: a deposit with some
  // left, a find, or a way between layers. Plain ground and dug tunnels stay quiet.
  const type=Core.tileAt(s.world,x,y,z),info=Core.TILE_INFO[type],hint=Core.tileHint(type);

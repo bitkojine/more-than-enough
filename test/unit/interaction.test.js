@@ -63,7 +63,7 @@ test('a distant ladder tap approaches before changing layers; one tap completes 
 test('every targeted cultivation action rejects remote coordinates before spending or changing a building',()=>{
  const s=site();for(const r of C.RESOURCES)s.inv[r]=100;
  const before=C.serialize(s);
- for(const type of ['shade','starter','heart','shutter','plant','tend','collect','store','reinforce','repair','activate']){
+ for(const type of ['shade','starter','heart','plant','tend','collect','store','reinforce','repair','activate']){
   assert.equal(C.cultivationCommand(s,{type,x:4,y:0}),'reach',type);
   assert.equal(C.serialize(s),before,type+' leaves the world intact');
  }

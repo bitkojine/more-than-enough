@@ -1,5 +1,5 @@
 /* New machinery uses the existing pack and projection, with physical
- * shutters, cooling fans and condition marks added to the familiar buildings. */
+ * cooling fans and condition marks added to the familiar buildings. */
 import * as Core from '../../core/index.js';
 import {litInk} from './lighting.js';
 export function cultivationRows(s,z){
@@ -15,17 +15,12 @@ export function drawCultivation(ctx,cam,s,look,b){
  const id=Core.CULTIVATION_LOOK[b.kind];
  const heart=s.cultivation.heart?.where;
  const phase=b.kind==='machine'?(s.cultivation.completed?4:Core.machineSections(b)):b.kind==='station'?(heart==='station'?1:0):b.kind==='shelter'?(heart===b.id?1:0):
-  b.kind==='chamber'?(!b.closed?2:b.health>0?1:0):b.buffer>0?1:0;
+  b.kind==='chamber'?(b.health>0?1:0):b.buffer>0?1:0;
  const pic=look.level(id,phase),h=look.stand(ctx,pic,p.x,p.y,u);
  ctx.save();ctx.strokeStyle=litInk(ctx,'#eee9dc');ctx.lineWidth=Math.max(1,u*.025);
  if(b.kind==='chamber'&&b.health!==undefined&&b.health<60){
   ctx.strokeStyle=litInk(ctx,'#ffc09c');const x=p.x-u*.18,y=p.y-h*.45;
   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+u*.1,y+u*.12);ctx.lineTo(x-u*.03,y+u*.22);ctx.stroke();
- }
- // Unsealed vault/machine doors retain an unmistakable open-hatch mark.
- if(!b.closed&&['vault','machine'].includes(b.kind)){
-  ctx.strokeStyle=litInk(ctx,'#eee9dc');ctx.strokeRect(p.x-u*.12,p.y-h*.42,u*.24,u*.18);
-  ctx.beginPath();ctx.moveTo(p.x+u*.12,p.y-h*.42);ctx.lineTo(p.x+u*.24,p.y-h*.48);ctx.lineTo(p.x+u*.24,p.y-h*.27);ctx.stroke();
  }
  if(b.reinforced){ctx.strokeRect(p.x-u*.3,p.y-h*.2,u*.6,u*.12);}
  const danger=b.temperature>22||b.needsTend||b.health===0;

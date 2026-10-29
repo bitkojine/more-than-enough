@@ -64,12 +64,12 @@ test('source hood and chunk boundaries use the same authoritative field',()=>{
  s.cultivation.shaded[key]=false;C.invalidateIllumination(s,1005,1000,-2);assert.equal(light(s,1009,1000).block,5);
 });
 
-test('any propagated light damages exposed crystal; closed shutters and carriers block exposure',()=>{
+test('built facilities block physical light automatically; exposed cargo still needs a carrier',()=>{
  const s=room();for(let x=1000;x<=1008;x++)floor(s,x,1000);s.world.props.set(C.packKey(1000,1000,-2),'lamp');
- const b={kind:'chamber',id:s.cultivation.nextId++,x:1008,y:1000,z:-2,health:100,temperature:12,closed:false,quality:100,buffer:0};
- s.cultivation.facilities.push(b,{kind:'cooler',id:s.cultivation.nextId++,x:1008,y:1001,z:-2,temperature:12,closed:true,quality:100,buffer:0});
- assert.equal(light(s,b.x,b.y).level,1);assert.equal(C.cultivationLight(s,b),true);C.stepCultivation(s,.25);assert.ok(b.health<100);
- b.closed=true;const health=b.health;C.stepCultivation(s,.25);assert.equal(b.health,health);
+ const b={kind:'chamber',id:s.cultivation.nextId++,x:1008,y:1000,z:-2,health:100,temperature:12,quality:100,buffer:0};
+ s.cultivation.facilities.push(b,{kind:'cooler',id:s.cultivation.nextId++,x:1008,y:1001,z:-2,temperature:12,quality:100,buffer:0});
+ assert.equal(light(s,b.x,b.y).level,1);C.stepCultivation(s,.25);assert.equal(b.health,100);
+ s.cultivation.starter={health:100};C.stepCultivation(s,.25);assert.ok(s.cultivation.starter.health<100);
  s.cultivation.heart={where:'carried',health:100};s.cultivation.gear.carrier=true;s.cultivation.starter={health:100};C.stepCultivation(s,.25);
  assert.equal(s.cultivation.heart.health,100);assert.equal(s.cultivation.starter.health,100);
 });
@@ -83,12 +83,10 @@ test('light fields are derived; save and reload reproduce light without serializ
  const copy=C.deserialize(before);assert.deepEqual(C.illuminationAt(copy,p.x,p.y,p.z),first);assert.equal(C.serialize(copy),before);
 });
 
-test('faint light remains harmful but scales damage with physical intensity',()=>{
+test('faint light still damages wild colonies more slowly than bright light',()=>{
  const s=room();for(let x=1000;x<=1008;x++)floor(s,x,1000);s.world.props.set(C.packKey(1000,1000,-2),'lamp');
- const chamber=x=>({kind:'chamber',id:s.cultivation.nextId++,x,y:1000,z:-2,health:100,temperature:12,closed:false,quality:100,buffer:0});
- const bright=chamber(1000),faint=chamber(1008);s.cultivation.facilities.push(bright,faint);
- for(const x of [1000,1008])s.cultivation.facilities.push({kind:'cooler',id:s.cultivation.nextId++,x,y:1001,z:-2,temperature:12,closed:true,quality:100,buffer:0});
- C.stepCultivation(s,.25);
+ const wild=x=>({x,y:1000,z:-2,health:100,regrow:0});const bright=wild(1000),faint=wild(1008);
+ s.cultivation.wild={bright,faint};C.stepCultivation(s,.25);
  assert.ok(faint.health<100);assert.ok(bright.health<faint.health);
  assert.ok(Math.abs((100-bright.health)/(100-faint.health)-9)<1e-9);
 });

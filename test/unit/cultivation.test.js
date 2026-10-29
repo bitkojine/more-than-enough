@@ -14,12 +14,15 @@ test('main-rule terrain retains the existing endless generator but locates resou
 test('surface materials bootstrap existing crafted picks without metal or a new map',()=>{
  const s=C.createState(7,{cultivation:true});C.earn(s,'mycelium',8,'hand');C.earn(s,'stone',5,'hand');assert.ok(C.buy(s,'pickaxe').ok);assert.equal(s.tools.pickaxe,2);assert.equal(s.inv.ore,0);assert.equal(C.canBuy(s,'overclock'),false);
 });
-test('chambers need cooling; light damages and physical tending gates healing',()=>{
- const s=fixture(),b=build(s,'chamber');build(s,'cooler',0,2);s.player.x=.5;s.player.y=.5;s.cultivation.starter={health:100};assert.equal(cmd(s,'shutter',null,0,0),'ok');assert.equal(cmd(s,'plant',null,0,0),'ok');cmd(s,'shutter',null,0,0);run(s,10);assert.ok(b.buffer>2.9);assert.equal(b.health,100);
- assert.equal(cmd(s,'craft','lantern',0,0),'ok');cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);run(s,2);assert.ok(b.health<100);assert.ok(b.needsTend);cmd(s,'shutter',null,0,0);const health=b.health;run(s,2);assert.equal(b.health,health);cmd(s,'lantern',null,0,0);cmd(s,'shutter',null,0,0);assert.equal(cmd(s,'tend',null,0,0),'ok');run(s,4);assert.ok(b.health>health);
+test('chambers protect from light automatically; heat injuries still need tending',()=>{
+ const s=fixture(),b=build(s,'chamber');build(s,'cooler',0,2);s.player.x=.5;s.player.y=.5;s.cultivation.starter={health:100};
+ assert.equal(cmd(s,'plant',null,0,0),'ok');run(s,10);assert.ok(b.buffer>2.9);assert.equal(b.health,100);
+ assert.equal(cmd(s,'craft','lantern',0,0),'ok');cmd(s,'lantern',null,0,0);run(s,2);assert.ok(C.cultivationLight(s,b));assert.equal(b.health,100);assert.ok(!b.needsTend);
+ b.temperature=30;run(s,1);assert.ok(b.health<100);assert.ok(b.needsTend);run(s,12);const health=b.health;run(s,2);assert.equal(b.health,health);
+ assert.equal(cmd(s,'tend',null,0,0),'ok','protected tending works with a nearby lantern');run(s,4);assert.ok(b.health>health);
 });
 test('heat kills colonies and degraded harvested crystal still reinforces physical storage',()=>{
- const s=fixture(),b=build(s,'chamber');s.cultivation.starter={health:100};cmd(s,'shutter',null,0,0);cmd(s,'plant',null,0,0);cmd(s,'shutter',null,0,0);run(s,30);assert.equal(b.health,0);
+ const s=fixture(),b=build(s,'chamber');s.cultivation.starter={health:100};cmd(s,'plant',null,0,0);run(s,30);assert.equal(b.health,0);
  s.cultivation.quality=10;assert.equal(cmd(s,'reinforce',null,0,0),'ok');assert.ok(b.reinforced);
 });
 test('wild colonies renew after taking a starter; sealed handling protects carried material',()=>{
@@ -29,13 +32,13 @@ test('wild colonies renew after taking a starter; sealed handling protects carri
  assert.equal(C.takeStarter(s,found.x,found.y),'ok');s.cultivation.starter=null;assert.equal(C.takeStarter(s,found.x,found.y),'regrow');run(s,46);assert.equal(C.takeStarter(s,found.x,found.y),'ok');
  assert.equal(cmd(s,'craft','carrier',found.x,found.y),'ok');cmd(s,'craft','lantern',found.x,found.y);cmd(s,'lantern',null,found.x,found.y);const q=s.cultivation.quality;run(s,2);assert.equal(s.cultivation.starter.health,100);assert.equal(s.cultivation.quality,q);
 });
-test('sealed transfer preserves actual output; saves retain routes, quality, injury and shutters',()=>{
+test('sealed transfer preserves actual output; saves retain routes, quality, injury without shutter state',()=>{
  const s=fixture(),room=build(s,'chamber',0,0),vault=build(s,'vault',2,0);build(s,'conduit',1,0);room.buffer=10;run(s,5);assert.ok(vault.buffer>3);assert.ok(Math.abs(room.buffer+vault.buffer-10)<1e-8);
  s.cultivation.quality=31;room.needsTend=true;const raw=C.serialize(s),loaded=C.deserialize(raw);assert.ok(loaded);assert.deepEqual(loaded.cultivation,s.cultivation);assert.equal(loaded.world.cultivation,true);
 });
 test('one original-world cultivation loop reaches the first machine section through canonical commands',()=>{
  // Deliberately funded integration layout, not a fresh AUTO-win claim.
- const s=fixture(),room=build(s,'chamber',0,0);build(s,'cooler',0,2);s.player={x:.5,y:.5,z:-2};s.cultivation.starter={health:100};cmd(s,'shutter',null,0,0);cmd(s,'plant',null,0,0);cmd(s,'shutter',null,0,0);s.inv.crystal=0;run(s,21);cmd(s,'shutter',null,0,0);assert.equal(cmd(s,'collect',null,0,0),'ok');assert.ok(s.inv.crystal>=6);
+ const s=fixture(),room=build(s,'chamber',0,0);build(s,'cooler',0,2);s.player={x:.5,y:.5,z:-2};s.cultivation.starter={health:100};cmd(s,'plant',null,0,0);s.inv.crystal=0;run(s,21);assert.equal(cmd(s,'collect',null,0,0),'ok');assert.ok(s.inv.crystal>=6);
  const machine=s.cultivation.facilities.find(b=>b.kind==='machine');assert.ok(machine);build(s,'cooler',machine.x,machine.y+1);s.player={x:machine.x+.5,y:machine.y+.5,z:-2};assert.equal(cmd(s,'repair',null,machine.x,machine.y),'discovery');assert.ok(s.cultivation.restored);assert.ok(C.deserialize(C.serialize(s)).cultivation.restored);
 });
 test('crystal commands cannot reach through fog, build above ground or bypass quality',()=>{
@@ -47,7 +50,24 @@ test('the indexed economy preserves crystal recipe payments across ticks and rel
  assert.equal(cmd(s,'craft','carrier',0,0),'ok');assert.equal(s.inv.ore,before-12);run(s,1);assert.equal(s.inv.ore,before-12);assert.equal(C.deserialize(C.serialize(s)).inv.ore,before-12);
 });
 
-test('opening a lit chamber causes damage even before another environmental tick',()=>{const s=fixture(),b=build(s,'chamber');b.health=100;cmd(s,'craft','lantern',0,0);cmd(s,'lantern',null,0,0);assert.equal(b.health,100);cmd(s,'shutter',null,0,0);assert.equal(b.health,100-C.cultivationExposure(s,b));assert.ok(b.needsTend);});
+test('facilities protect stock but unprotected collected cargo still suffers light damage',()=>{
+ const s=fixture(),b=build(s,'chamber');build(s,'cooler',0,2);const vault=build(s,'vault',2,0);s.player={x:.5,y:.5,z:-2};
+ b.health=100;b.buffer=8;s.inv.crystal=0;s.cultivation.quality=100;cmd(s,'craft','lantern',0,0);cmd(s,'lantern',null,0,0);
+ assert.equal(cmd(s,'collect',null,0,0),'ok','no carrier or opening requirement');assert.equal(s.inv.crystal,8);run(s,1);assert.ok(s.cultivation.quality<100);assert.equal(b.health,100);
+ s.player.x=2.5;assert.equal(cmd(s,'store',null,2,0),'ok');assert.equal(vault.buffer,8);const q=vault.quality;run(s,1);assert.equal(vault.quality,q,'stored stock is protected from light');
+ assert.equal(cmd(s,'collect',null,2,0),'ok');assert.equal(vault.buffer,0);
+});
+
+test('old open and closed facilities load without shutter state or loss of progress',()=>{
+ for(const closed of [false,true])for(const kind of ['chamber','vault','machine']){
+  const s=fixture(),b=build(s,'chamber');b.kind=kind;b.closed=closed;b.health=82;b.buffer=12;b.quality=76;b.needsTend=true;
+  if(kind==='machine'){b.sections=3;s.cultivation.restored=true;s.cultivation.completed=true;s.cultivation.heart={where:'installed',health:91};}
+  const loaded=C.deserialize(C.serialize(s));assert.ok(loaded);const room=C.cultivationAt(loaded,b.x,b.y,b.z);
+  assert.ok(!Object.hasOwn(room,'closed'));assert.equal(room.health,82);assert.equal(room.buffer,12);assert.equal(room.quality,76);assert.equal(room.needsTend,true);assert.deepEqual(loaded.inv,s.inv);
+  if(kind==='machine'){assert.ok(C.canEmbark(loaded));assert.equal(room.sections,3);assert.deepEqual(loaded.cultivation.heart,s.cultivation.heart);}
+  assert.equal(cmd(loaded,'shutter',null,b.x,b.y),'invalid','retired commands cannot change a building');
+ }
+});
 
 test('covering a placed light is a physical paid hood, then toggles without another charge',()=>{
  const s=fixture(),at=C.packKey(0,0,-2);s.world.props.set(at,'glowcap');assert.ok(C.cultivationLight(s,{x:0,y:0,z:-2}));const before=s.inv.mycelium;
@@ -69,7 +89,7 @@ test('repeated sealed transfers preserve bounded quality and readable saves',()=
  old.cultivation.quality=100.01;assert.equal(C.deserialize(JSON.stringify(old)).cultivation.quality,100,"out of range is mended, not refused");
 });
 
-test('machine activation requires all physical repairs, cooling, sealed shutters and viable crystal',()=>{
+test('machine activation requires all physical repairs, cooling and viable crystal',()=>{
  const s=fixture();C.step(s,.25,{visualEvents:false});const b=s.cultivation.facilities.find(b=>b.kind==='machine');assert.ok(b);
  s.player={x:b.x+.5,y:b.y+.5,z:b.z};const at={x:b.x,y:b.y};
  assert.equal(C.cultivationCommand(s,{type:'activate',...at}),'sections');
@@ -77,7 +97,6 @@ test('machine activation requires all physical repairs, cooling, sealed shutters
  for(const [i,recipe] of C.MACHINE_REPAIRS.entries()){
   if(i===1){assert.equal(cmd(s,'repair',null,b.x,b.y),'heart','the second section needs the stolen heart');s.cultivation.heart={where:'carried',health:C.HEART_MIN-1};assert.equal(cmd(s,'repair',null,b.x,b.y),'cracked');s.cultivation.heart.health=90;}
   const before={...s.inv};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');for(const [r,n]of Object.entries(recipe))assert.equal(s.inv[r],before[r]-n);assert.equal(C.canEmbark(s),false);}
- cmd(s,'shutter',null,b.x,b.y);assert.equal(cmd(s,'activate',null,b.x,b.y),'close');cmd(s,'shutter',null,b.x,b.y);
  b.quality=10;assert.equal(cmd(s,'activate',null,b.x,b.y),'quality');b.quality=100;b.temperature=30;assert.equal(cmd(s,'activate',null,b.x,b.y),'cooling');b.temperature=18;
  assert.equal(cmd(s,'activate',null,b.x,b.y),'activated');assert.ok(C.canEmbark(s));C.advanceGoals(s);assert.ok(s.goalsDone.includes('master'));
  const loaded=C.deserialize(C.serialize(s));assert.ok(C.canEmbark(loaded));assert.equal(loaded.cultivation.completedAt,s.cultivation.completedAt);

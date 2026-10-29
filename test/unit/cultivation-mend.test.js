@@ -5,7 +5,7 @@ import * as C from '../../src/core/index.js';
 // A crystal world with one of every part, saved.
 function world(){
  const s=C.createState(7,{cultivation:true}),c=s.cultivation;
- const add=(kind,x,more={})=>{const b={kind,id:c.nextId++,x,y:0,z:-2,temperature:18,closed:true,health:100,quality:90,buffer:3,...more};c.facilities.push(b);return b;};
+ const add=(kind,x,more={})=>{const b={kind,id:c.nextId++,x,y:0,z:-2,temperature:18,health:100,quality:90,buffer:3,...more};c.facilities.push(b);return b;};
  const room=add('chamber',0),vault=add('vault',4);add('conduit',2,{from:room.id,to:vault.id});add('cooler',6);add('machine',8,{sections:1});
  const shelter=add('shelter',10,{z:0});c.heart={where:shelter.id,health:70};c.wild.a={x:20,y:5,z:-3,health:80,regrow:0};c.starter={health:60};
  s.inv.crystal=5;s.stats.playedMs=3600e3;return s;

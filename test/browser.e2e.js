@@ -947,7 +947,7 @@ async function main() {
       // Funded visual fixture; never a fresh-world gameplay evaluation.
       for(let y=-6;y<=6;y++)for(let x=-6;x<=6;x++){c.setRichness(s.world,x,y,-2,0);c.markExplored(s.world,x,y,-2);}
       s.player={x:.5,y:2.5,z:-2};s.tools.pickaxe=3;s.tools.basket=2;s.tools.boots=2;
-      s.cultivation.facilities=[{kind:'chamber',x:-2,y:0,id:1,health:100,buffer:5,closed:true},{kind:'cooler',x:-1,y:-1,id:2,buffer:0},{kind:'vault',x:1,y:0,id:3,buffer:5,closed:true},{kind:'conduit',x:0,y:0,id:4,buffer:0,from:1,to:3},{kind:'machine',x:2,y:1,id:5,health:0,buffer:0,closed:true,sections:0}].map(b=>({...b,z:-2,temperature:18,quality:100}));s.cultivation.nextId=6;s.cultivation.gear.carrier=true;s.cultivation.gear.lantern=true;
+      s.cultivation.facilities=[{kind:'chamber',x:-2,y:0,id:1,health:100,buffer:5},{kind:'cooler',x:-1,y:-1,id:2,buffer:0},{kind:'vault',x:1,y:0,id:3,buffer:5},{kind:'conduit',x:0,y:0,id:4,buffer:0,from:1,to:3},{kind:'machine',x:2,y:1,id:5,health:0,buffer:0,sections:0}].map(b=>({...b,z:-2,temperature:18,quality:100}));s.cultivation.nextId=6;s.cultivation.gear.carrier=true;s.cultivation.gear.lantern=true;
       MTE_GAME.setPlayer(.5,2.5);MTE_GAME.setZoom(1.6);MTE_GAME.hud.newWorld();})()`);
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:1366,height:768,deviceScaleFactor:1,mobile:false},session);
     await sleep(300);await shot('fresh-win-path-world.png');
@@ -1052,8 +1052,7 @@ async function main() {
     const chamberCardOpen=await waitFor('!document.getElementById("buildingCard").hidden',2000);
     ok(chamberCardOpen,'selecting the chamber later opens its information/Move card');
     if(!chamberCardOpen){await shot('chamber-tap-failure.png');console.log('Chamber tap diagnostic '+JSON.stringify(await evalJS('(()=>{const s=MTE_GAME.getState(),b=s.cultivation.facilities.find(b=>b.kind==="chamber"),p=MTE_GAME.project(b.x+.5,b.y+.5,b.z);return {player:s.player,building:b,point:p,picked:MTE_GAME.unproject(p.x,p.y),element:document.elementFromPoint(p.x,p.y)?.outerHTML.slice(0,300),body:document.body.className,events:window.__chamberEvents,sheet:document.getElementById("sheet").className,faults:JSON.parse(localStorage.getItem("mte.faults")||"[]")}})()')));throw Error('Chamber card failed to open; see diagnostic and screenshot');}
-    await evalJS('document.querySelector("#buildingCard [data-type=shutter]").click()');
-    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'the card controls real shutters');
+    ok(await evalJS('!document.querySelector("#buildingCard [data-type=shutter]")'),'building card has no removed shutter controls');
     ok(await evalJS('document.getElementById("buildingCard").textContent.includes("Temperature")'),'the card shows exact temperature');
     await evalJS('MTE_GAME.getState().cultivation.gear.lantern=true');
     ok(await waitFor('!document.getElementById("btnLantern").hidden',3000),'crafted lantern control becomes visible');
@@ -1066,7 +1065,7 @@ async function main() {
     await sleep(300);await shot('cultivation-existing-art.png');
     await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
     eq(await evalJS('MTE_GAME.getState().seed'),seed,'same original world resumes');
-    ok(await evalJS('MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0).closed===false'),'shutters survive ordinary save/reload');
+    ok(await evalJS('!Object.hasOwn(MTE_GAME.core.cultivationAt(MTE_GAME.getState(),0,0),"closed")'),'chamber survives reload without removed shutter state');
     await cdp.send('Emulation.setDeviceMetricsOverride',{width:320,height:568,deviceScaleFactor:1,mobile:true},session);
     await evalJS('document.getElementById("btnBuild").click()');await sleep(250);await shot('cultivation-phone-lt.png');
     ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'Lithuanian phone fits');

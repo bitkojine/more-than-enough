@@ -51,7 +51,7 @@ export function recoverCultivationRounding(c){
  // Worlds from before the heart: a machine already past its second section has it.
  if(c&&typeof c==='object'&&!c.heart&&Array.isArray(c.facilities))c.heart=c.completed||c.facilities.some(b=>b?.kind==='machine'&&(b.sections??0)>=2)?{where:'installed',health:100}:newHeart();
  const fix=b=>{if(typeof b?.quality==='number'&&b.quality>100&&b.quality<=100+1e-9)b.quality=100;};
- fix(c);if(Array.isArray(c?.facilities))c.facilities.forEach(b=>{fix(b);if(b?.kind==='machine'&&b.sections===undefined)b.sections=c.restored?1:0;});
+ fix(c);if(Array.isArray(c?.facilities))c.facilities.forEach(b=>{fix(b);if(b&&typeof b==='object')delete b.closed;if(b?.kind==='machine'&&b.sections===undefined)b.sections=c.restored?1:0;});
 }
 export const CULTIVATION_LOOK={chamber:'building.crystalChamber',cooler:'building.coolingTower',vault:'building.crystalVault',conduit:'building.sealedConduit',machine:'building.sleepingMachine',carrier:'tool.crystalCarrier',lantern:'tool.hoodedLantern',station:'building.hidingPlace',shelter:'building.heartShelter'};
 export function newCultivation(){return {model:CULTIVATION_MODEL,facilities:[],wild:{},starter:null,quality:100,gear:{lantern:false,carrier:false},lantern:false,phase:0,clock:0,nextId:1,restored:false,heart:newHeart()};}
@@ -78,19 +78,15 @@ export function cultivationTarget(s,b){return Math.max(4,(b.z<=-2?12:18)+(b.kind
 export function cultivationStatus(s,b){
  if(b.kind==='cooler'||b.kind==='conduit'||b.kind==='shelter')return 'ready';
  if(b.health===0)return 'dead';if(b.temperature>22)return 'hot';
- if(!b.closed&&cultivationLight(s,b))return 'light';if(b.needsTend)return 'injured';
+ if(b.needsTend)return 'injured';
  if(b.kind==='chamber'&&b.health===undefined)return 'empty';return 'growing';
 }
 const canPay=(s,cost)=>canAfford(s.inv,cost);
 function pay(s,cost){payInventory(s.inv,cost);if(!s.inv.crystal)s.cultivation.quality=100;}
 function earned(s,res,n){earn(s,res,n,'buildings');}
-function expose(s,b){
- const strength=cultivationExposure(s,b);if(!strength||b.closed)return;
- if(b.health>0){b.health=Math.max(0,b.health-strength);if(b.kind==='chamber')b.needsTend=true;}
- if(b.buffer)b.quality=Math.max(10,b.quality-strength);
-}
-// A light just lit: what you carry and every open facility in it feel it at once.
-export function lightCrystal(s){exposeCargo(s);for(const b of s.cultivation.facilities)expose(s,b);}
+// Built facilities always protect their contents from light. Lighting changes
+// still expose unprotected cargo; wild colonies use the physical light field.
+export function lightCrystal(s){exposeCargo(s);}
 function exposeCargo(s){
  const c=s.cultivation,p={x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:s.player.z};
  const strength=c.gear.carrier?0:cultivationExposure(s,p);
@@ -165,26 +161,25 @@ export function cultivationCommand(s,cmd){
  if(cmd.type==='build'){
   const why=facilitySite(s,cmd.kind,x,y);if(why)return why;
   if(!canPay(s,cost))return 'materials';
-  const next={kind:cmd.kind,id:c.nextId,x,y,z,temperature:12,closed:true,buffer:0,quality:100};
+  const next={kind:cmd.kind,id:c.nextId,x,y,z,temperature:12,buffer:0,quality:100};
   if(cmd.kind==='conduit'){const r=conduitRoute(s,next);next.from=r.from.id;next.to=r.to.id;}
   pay(s,cost);c.nextId++;c.facilities.push(next);return 'ok';
  }
  if(!b)return 'building';
- if(cmd.type==='shutter'&&['chamber','vault','machine'].includes(b.kind)){b.closed=!b.closed;expose(s,b);return 'ok';}
  if(cmd.type==='plant'&&b.kind==='chamber'){
-  if(!c.starter)return 'starter';if(b.health>0)return 'occupied';if(b.closed)return 'open';
-  b.health=c.starter.health;b.needsTend=b.health<100;b.temperature=cultivationTarget(s,b);c.starter=null;expose(s,b);return 'ok';
+  if(!c.starter)return 'starter';if(b.health>0)return 'occupied';
+  b.health=c.starter.health;b.needsTend=b.health<100;b.temperature=cultivationTarget(s,b);c.starter=null;return 'ok';
  }
  if(cmd.type==='tend'&&b.kind==='chamber'){
-  if(!b.health)return 'dead';if(b.closed)return 'open';if(cultivationLight(s,b)||b.temperature>22)return 'unsafe';
+  if(!b.health)return 'dead';if(b.temperature>22)return 'unsafe';
   if(!canPay(s,CULTIVATION_RECIPES.tend))return 'materials';pay(s,CULTIVATION_RECIPES.tend);b.needsTend=false;return 'ok';
  }
  if(cmd.type==='collect'&&['chamber','vault'].includes(b.kind)){
-  if(b.closed&&!c.gear.carrier)return 'open';if(b.buffer<1)return 'empty';
+  if(b.buffer<1)return 'empty';
   c.quality=s.inv.crystal?qualityMean(c.quality,s.inv.crystal,b.quality,b.buffer):b.quality;earned(s,'crystal',b.buffer);b.buffer=0;exposeCargo(s);return 'ok';
  }
  if(cmd.type==='store'&&b.kind==='vault'){
-  if(b.closed&&!c.gear.carrier)return 'open';const n=Math.min(s.inv.crystal,(b.reinforced?40:20)-b.buffer);if(n<=0)return 'empty';
+  const n=Math.min(s.inv.crystal,(b.reinforced?40:20)-b.buffer);if(n<=0)return 'empty';
   b.quality=b.buffer?qualityMean(b.quality,b.buffer,c.quality,n):c.quality;b.buffer+=n;pay(s,{crystal:n});return 'ok';
  }
  if(cmd.type==='reinforce'&&['chamber','vault'].includes(b.kind)){
@@ -193,14 +188,14 @@ export function cultivationCommand(s,cmd){
  if(cmd.type==='repair'&&b.kind==='machine'){
   const recipe=machineRepairCost(b);if(!recipe)return 'repaired';
   if(c.quality<60)return 'quality';if(cultivationTarget(s,b)>22)return 'cooling';
-  if(!b.closed)return 'close';
+
   const heart=machineSections(b)===1;if(heart&&c.heart?.where!=='carried')return 'heart';if(heart&&c.heart.health<HEART_MIN)return 'cracked';
   if(!canPay(s,recipe))return 'materials';const quality=c.quality;pay(s,recipe);if(heart)c.heart={where:'installed',health:c.heart.health};
   b.sections=Math.min(MACHINE_REPAIRS.length,machineSections(b)+1);b.health=100;b.quality=quality;b.temperature=cultivationTarget(s,b);c.restored=true;return 'discovery';
  }
  if(cmd.type==='activate'&&b.kind==='machine'){
   if(c.completed)return 'completed';if(machineSections(b)<MACHINE_REPAIRS.length)return 'sections';
-  if(!b.closed)return 'close';if(b.health<=0||b.quality<60)return 'quality';
+  if(b.health<=0||b.quality<60)return 'quality';
   if(cultivationTarget(s,b)>22||b.temperature>22)return 'cooling';
   c.completed=true;c.completedAt=s.time;return 'activated';
  }
@@ -226,7 +221,7 @@ function discoverMachine(s){
  const x=Math.floor(s.player.x),y=Math.floor(s.player.y),z=s.player.z;
  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
   const px=x+dx,py=y+dy;if(!isExplored(s.world,px,py,z)||tileAt(s.world,px,py,z)!==T.TUNNEL||cultivationAt(s,px,py,z))continue;
-  c.facilities.push({kind:'machine',sections:0,id:c.nextId++,x:px,y:py,z,temperature:30,closed:true,health:0,quality:100,buffer:0});return;
+  c.facilities.push({kind:'machine',sections:0,id:c.nextId++,x:px,y:py,z,temperature:30,health:0,quality:100,buffer:0});return;
  }
 }
 export function stepCultivation(s,dt){
@@ -251,7 +246,7 @@ export function stepCultivation(s,dt){
  }
  for(const b of c.facilities){
   const target=cultivationTarget(s,b);b.temperature=target+(b.temperature-target)*Math.exp(-seconds/6);
-  const damage=(Math.max(0,b.temperature-22)*.8)+(b.closed?0:9*cultivationExposure(s,b));
+  const damage=Math.max(0,b.temperature-22)*.8;
   if(b.buffer)b.quality=Math.max(10,b.quality-damage*seconds);
   if(b.health>0){
    if(damage){b.health=Math.max(0,b.health-damage*seconds);if(b.kind==='chamber')b.needsTend=true;}

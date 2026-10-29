@@ -1,6 +1,6 @@
 # MICA AND WIKI — Game Design Document
 
-Updated 2026-10-28 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
+Updated 2026-10-29 (Europe/Vilnius). The confirmed redesign below is the current design direction, not a description of shipped mechanics. The implementation boundary at the end distinguishes the playable first chapter from the remaining design work.
 
 ## Evolve the existing game — confirmed implementation constraint
 
@@ -21,7 +21,7 @@ Start empty-handed on the surface and build a settlement capable of restoring a 
 | Resource | Main location | Intended role | Visual direction |
 |---|---|---|---|
 | Mycelium | Surface | Baskets, bindings, cultivation beds and flexible components | Pale woven fibres and branching growth |
-| Stone | Mainly surface; also present underground | Foundations, workshops, chamber walls and shutters | Heavy blocks and slabs |
+| Stone | Mainly surface; also present underground | Foundations, workshops, chamber walls and protective casings | Heavy blocks and slabs |
 | Metal | Underground, accessible before deep crystal | Picks, lifts, collection machinery and structural equipment | Frames, gears, rails and cables |
 | Living crystal | Deep underground | Advanced devices and restoration of the machine | Distinct branching crystalline forms |
 
@@ -91,11 +91,11 @@ corners. A ladder is not a light source. An open hole connects adjacent layers:
 light below depends on real sources above or below, never a fixed per-hole glow.
 A continuous, clear shaft to the surface carries direct skylight to every depth;
 light spreading sideways or crossing a connection after leaving that direct
-column weakens. Depth alone does not protect an open chamber.
+column weakens. Depth alone does not protect exposed wild colonies or unprotected cargo.
 
 Any nonzero physical light damages living crystal. Fainter light damages more
-slowly than stronger light. Closed facility shutters protect that facility's
-contents, not the entire surrounding passage. A sealed carrier protects both
+slowly than stronger light. Facilities automatically protect their contents from light, including during
+planting, tending and transfers; the surrounding passage remains illuminated. A sealed carrier protects both
 ordinary crystal and the stolen heart from light; it does not defeat heat.
 Cooling remains an independent infrastructure system. Injury/tending, recovery,
 renewable wild colonies, machine restoration and permanent completion remain.
@@ -245,7 +245,7 @@ gets this arc is undecided.
 - Who stole the heart and why, and where can teleportation take players once the machine wakes?
 - How do players discover its parts and reveal its purpose while retaining agency?
 - Which temperature conditions and machinery interactions create interesting layouts?
-- How are chambers enclosed, cooled and serviced without exposing colonies to damaging light?
+- How do placement and cooling communicate safe conditions clearly now that facilities automatically protect their contents?
 - How long can the first carried specimen tolerate exposure, and how does the player judge and plan a safe route?
 - What light sources cause damage, how quickly does it accumulate, and what physical tending enables surviving-colony healing?
 - How do wild colonies regenerate, and how do players locate a recovery source without hidden-information shortcuts?
@@ -267,7 +267,7 @@ protected storage and sealed chamber-to-vault transfer, physical tending,
 degraded-crystal storage reinforcement, and three visible machine-section repairs followed by safe activation.
 Installed crystal still needs cooling/darkness. Recipes, 22°C growth limit,
 12°C local cooling, rates and tolerance thresholds are provisional playtest values.
-The heart (0.151.0): the hiding place, the carried heart that sunlight, lanterns and heat crack, heart shelters, and the second section seating the heart. Each repair reveals its own clue. Activating all three restored sections with viable crystal, cooling and closed shutters completes the playable world. The user approved this restoration/activation win on 2026-10-23; it does not decide the final story reveal or machine purpose. Completion remains a permanent record if infrastructure later fails. Earlier first-section repairs count toward the three stages.
+The heart (0.151.0): the hiding place, the carried heart that sunlight, lanterns and heat crack, heart shelters, and the second section seating the heart. Each repair reveals its own clue. Activating all three restored sections with viable crystal, cooling completes the playable world. The user approved this restoration/activation win on 2026-10-23; it does not decide the final story reveal or machine purpose. Completion remains a permanent record if infrastructure later fails. Earlier first-section repairs count toward the three stages.
 
 Existing global refinery/Overclock/Abundance purchases are absent from new-world
 progression but remain preserved in old worlds. The existing basket/pick/footwear
@@ -864,3 +864,16 @@ Remove all NEW badges from HUD controls, crafting/construction lists, progressio
 families and release notes. Remove their affordability polling and tracking.
 Do not add a replacement readiness notification system yet. Existing saves
 and unused notification-history storage remain intact.
+
+### Remove manual shutters — confirmed, 2026-10-29
+
+Remove facility open/close controls, state, visual variants and machine repair /
+activation prerequisites. Crystal chambers, vaults and the machine intrinsically
+block light for their contents and interactions. This replaces the earlier
+manual access/exposure tradeoff. Planting, tending and transfers need no toggle;
+tending requires safe temperature, not darkness outside the building.
+
+Cooling, heat damage, tending injuries, wild-colony light sensitivity, exposed
+cargo damage, carrier protection and the stolen-heart requirements remain.
+Old open and closed saves load with their contents, health, quality, routes and
+restoration intact; retire only the obsolete facility flag. No format bump.
