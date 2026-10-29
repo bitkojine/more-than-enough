@@ -2,16 +2,19 @@
  * win claims. Resource-work limits are deterministic; timings are also saved. */
 import fs from 'node:fs';
 import path from 'node:path';
+// A fixed biome-boundary world, independent of random startup terrain and discovery.
 export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
+ const seed=Number(process.env.MTE_RENDER_PERF_SEED||33);
+ if(!Number.isInteger(seed)||seed<0||seed>0xffffffff)throw new Error('MTE_RENDER_PERF_SEED must be an unsigned 32-bit integer');
  await evalJS(`(async()=>{
   const [{createCamera},{render},{drawTerrain}]=await Promise.all([import('./src/game/camera.js'),import('./src/game/render/renderer.js'),import('./src/game/render/terrain.js')]);await MTE_GAME.look.rigReady;
-  const C=MTE_GAME.core,s=C.deserialize(C.serialize(MTE_GAME.getState()));s.extractors=[];s.world.props.clear();s.world.holes.clear();s.cultivation.facilities=[];s.cultivation.lantern=false;s.flare=0;
+  const C=MTE_GAME.core,s=C.createState(${seed},{cultivation:true});s.extractors=[];s.world.props.clear();s.world.holes.clear();s.cultivation.facilities=[];s.cultivation.lantern=false;s.flare=0;
   for(const z of [0,-1,-4,-512])for(let y=-12;y<=12;y++)for(let x=-12;x<=12;x++){C.tileAt(s.world,x,y,z);const i=C.chunkIndex(x,y);s.world.hotChunk.type[i]=z===0?C.T.FOREST:C.T.TUNNEL;s.world.hotChunk.rich[i]=30;C.markExplored(s.world,x,y,z);if(z<0&&(x+y)%7===0)s.world.props.set(C.packKey(x,y,z),'glowcap');}
   for(const z of [0,-1,-4,-512])for(const x of [-4,0,4])for(const y of [-4,0,4])s.cultivation.facilities.push({id:100+s.cultivation.facilities.length,kind:z===0?'shelter':['chamber','cooler','vault'][Math.abs(x+y)%3],x,y,z,temperature:18,buffer:0,quality:100,health:100,reinforced:true});
   const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d'),cam=createCamera(canvas);
   const fx={particles:[],floats:[],flyers:[],shake:()=>0},view={facing:{x:0,y:1},moving:false,actor:{act:null,t:0,clock:0,rigStride:0,walkBlend:0},yard:{piles:new Map(),covered:new Set(),merging:()=>[]},sign:0,joy:{active:false},friends:[],graves:[],buildTargets:[],trailTargets:[]};
   const width=Object.getOwnPropertyDescriptor(HTMLCanvasElement.prototype,'width'),draw=CanvasRenderingContext2D.prototype.drawImage;let work=null;
-  Object.defineProperty(HTMLCanvasElement.prototype,'width',{...width,set(v){if(work)work.resizes++;return width.set.call(this,v);}});
+  Object.defineProperty(HTMLCanvasElement.prototype,'width',{...width,set(v){if(work){work.resizes++;if(work.resizeSites.length<2)work.resizeSites.push({width:v,stack:new Error().stack.slice(0,500)});}return width.set.call(this,v);}});
   CanvasRenderingContext2D.prototype.drawImage=function(...args){if(work&&args[0] instanceof HTMLCanvasElement){work.copies++;}return draw.apply(this,args);};
   window.__renderPerformance={s,cam,ctx,view,fx,render,drawTerrain,C,
    size(w,h,dpr){Object.assign(cam,{width:w,height:h,baseTilePx:48,dpr});canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);},
@@ -20,8 +23,8 @@ export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
     // different light-bucket pictures. drift() separately budgets cold work.
     for(let i=0;i<2;i++){if(moving){s.player.x+=.07;s.player.y+=.03;}render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);}
     s.player.x=.5;s.player.y=.5;
-    const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0};const start=performance.now();for(let i=0;i<2;i++){if(moving){s.player.x+=.07;s.player.y+=.03;}render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);}const result={z,time,zoom,moving,ms:(performance.now()-start)/2,...work};work=null;const after=MTE_GAME.look.lightingWork();return {...result,...after,tintBuilds:after.tintBuilds-before.tintBuilds};},
-   drift(){s.player={x:.5,y:.5,z:0};cam.setZoom(1);const rows=[];for(let i=0;i<12;i++){s.time=62+i*2;s.player.x+=.03;const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0};const start=performance.now();render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);const row={time:s.time,ms:performance.now()-start,...work,tints:MTE_GAME.look.lightingWork().tintBuilds-before.tintBuilds};work=null;rows.push(row);}return rows;}
+    const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0,resizeSites:[]};const start=performance.now();for(let i=0;i<2;i++){if(moving){s.player.x+=.07;s.player.y+=.03;}render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);}const result={seed:s.world.seed,z,time,zoom,moving,ms:(performance.now()-start)/2,...work};work=null;const after=MTE_GAME.look.lightingWork();return {...result,...after,tintBuilds:after.tintBuilds-before.tintBuilds};},
+   drift(){s.player={x:.5,y:.5,z:0};cam.setZoom(1);const rows=[];for(let i=0;i<12;i++){s.time=62+i*2;s.player.x+=.03;const before=MTE_GAME.look.lightingWork();work={resizes:0,copies:0,resizeSites:[]};const start=performance.now();render(cam,s,fx,view,MTE_GAME.look);ctx.getImageData(0,0,1,1);const row={time:s.time,ms:performance.now()-start,...work,tints:MTE_GAME.look.lightingWork().tintBuilds-before.tintBuilds};work=null;rows.push(row);}return rows;}
   };
  })()`);
  const rows=[];
@@ -31,7 +34,7 @@ export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
   await evalJS(`__renderPerformance.size(${w},${h},${dpr})`);
   for(const z of [0,-1,-4,-512])for(const time of z===0?[0,60,72,84,120,156,168,180]:[0,72,120,180])for(const zoom of zooms){
    const row={label,...await evalJS(`__renderPerformance.sample(${z},${time},${zoom},true)`)};rows.push(row);
-   ok(row.resizes<=8,`${label} z=${z} time=${time} zoom=${zoom}: warm drawing avoids per-object canvas resize (${row.resizes}; ${row.ms.toFixed(1)} ms/frame)`);
+   ok(row.resizes<=8,`${label} z=${z} time=${time} zoom=${zoom}: warm drawing avoids per-object canvas resize (${row.resizes}; ${row.ms.toFixed(1)} ms/frame; seed ${row.seed}; ${JSON.stringify(row.resizeSites)})`);
    ok(row.tintPixels<=8*1024*1024&&row.tintEntries<=128,'shaded-art cache stays within its pixel and entry budget');
   }
  }
@@ -49,5 +52,5 @@ export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
  }
  ok(layers.reduce((a,b)=>a+b,0)===513*4,'all 513 supported surface/underground depths render across four day phases');
  ok(rows.every(r=>r.ms<1000)&&drift.every(r=>r.ms<1500),'bounded scenes avoid multi-second frame stalls');
- fs.writeFileSync(path.join(shotDir,'render-performance.json'),JSON.stringify({rows,drift,depthPhaseChecks:layers.reduce((a,b)=>a+b,0)},null,2));
+ fs.writeFileSync(path.join(shotDir,'render-performance.json'),JSON.stringify({seed,rows,drift,depthPhaseChecks:layers.reduce((a,b)=>a+b,0)},null,2));
 }

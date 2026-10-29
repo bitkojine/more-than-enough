@@ -68,6 +68,14 @@ Settlement contents, overlapping groups, and cached layout work. The deploy
 runs it alongside rendering checks. `test:layout` separately checks the wider
 set of menus, placement, dialogs and shared-world crowds.
 
+Rendering-performance checks use biome-boundary seed 33 as a reproducible
+allocation workload. Set `MTE_RENDER_PERF_SEED` to investigate the world seed
+from a copied performance report; failures include resize call sites:
+
+```sh
+CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_RENDER_PERF_ONLY=1 MTE_RENDER_PERF_SEED=23 npm run test:e2e
+```
+
 Fullscreen has a separate bounded real-browser check:
 
 ```sh
