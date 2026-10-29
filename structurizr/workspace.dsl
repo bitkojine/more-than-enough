@@ -18,10 +18,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "files" "index.html, style.css, src/game/"
                 }
 
-                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. A frame, a drawing layer or a tap that throws is skipped and kept as a problem report (faults.js, problems.js); only frames failing in a row stop the game. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
+                main = component "Main Loop" "Wires the modules together and owns the current state (game.state, replaced on embark/reset). Schedules the shared fixed-tick engine independently of drawing. All devices render at most 30 FPS through a shared strict deadline pacer, which waits near refresh boundaries without drawing early. Each simulation tick steers, steps the Core, reveals fog, works held input and ticks AUTO; presentation separately updates effects, save/HUD timers and rendering. A frame, a drawing layer or a tap that throws is skipped and kept as a problem report (faults.js, problems.js); only frames failing in a row stop the game. Exposes window.MTE_GAME for the browser tests." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/main.js"
+                        "ref" "src/game/main.js, src/game/quality.js"
                     }
                 }
 
@@ -31,7 +31,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                autoplayLab = component "AUTO Developer Viewer" "Lazy single-player viewer booted before normal world loading. Lazily loads viewer-only styles and labels. Runs the shipped AUTO session in bounded real-time work slices at selectable speed, renders the normal client view, and retains separate IndexedDB worlds. The evaluation runner imports the same session." "JavaScript" {
+                autoplayLab = component "AUTO Developer Viewer" "Lazy single-player viewer booted before normal world loading. Lazily loads viewer-only styles and labels. Runs the shipped AUTO session in bounded real-time work slices at selectable speed, renders the normal client view under the shared 30 FPS cap, and retains separate IndexedDB worlds. The evaluation runner imports the same session." "JavaScript" {
                     properties {
                         "files" "src/game/autoplay-lab.js, src/game/autoplay-session.js, src/game/autoplay-store.js, autoplay-seeds.js, autoplay-text.js, ./autoplay-lab.css, src/i18n/autoplay/en.js, lt.js"
                     }

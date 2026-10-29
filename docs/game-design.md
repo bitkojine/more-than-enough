@@ -941,3 +941,9 @@ performance degrades, only while diagnostics are enabled. The player can
 collapse it into a pill; a new cause or significantly worse slowdown may
 reopen it. Keep measurements and smaller observations available for debugging
 in both languages. This tool changes no simulation rules or saved progress.
+
+### Rendering limit (2026-10-29)
+
+Cap game rendering at 30 FPS on every device and in the developer super-speed
+viewer. There is no higher-rate option. Rendering limits never slow canonical
+simulation ticks or restrict headless simulation throughput.

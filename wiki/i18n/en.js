@@ -440,25 +440,26 @@ export default {
         Turn it off with <strong>Music</strong> in Settings; <strong>Sound</strong> turns everything off.</p>
 
       <h2>Performance panel</h2>
-      <p>A tool for tuning the game, kept out of the way while you play. Press <kbd>F3</kbd> to see how well the game runs on
-        your device, and again to hide it, or switch <strong>Performance panel</strong> in Settings, Nerds. Its left
-        edge is green at 55 fps or more, yellow from 30, red below.</p>
+      <p>Enable diagnostics with <kbd>F3</kbd> or <strong>Performance panel</strong> in Settings → Nerds.
+        The choice is kept on this device. While enabled, a slowdown opens a compact warning card. Collapse it into
+        a pill; it reopens only for a new cause or a substantially worse slowdown.</p>
+      <p>Game rendering is capped at <strong>30 FPS on every device</strong>, including the super-speed viewer.
+        Idle rendering can drop to 10 FPS. Simulations keep their own fixed tick rate; the rendering cap never limits
+        headless simulation speed.</p>
       <div class="table"><table>
-        <thead><tr><th>Line</th><th>Means</th></tr></thead>
-        <tbody>
-          <tr><td>FPS</td><td>Frames per second over the last ~2 seconds. 60 is smooth on most screens.</td></tr>
-          <tr><td>frame / worst</td><td>Average time between frames, and the longest single gap (a stutter).</td></tr>
-          <tr><td>logic</td><td>Time per frame spent running the game: movement, buildings, the lantern.</td></tr>
-          <tr><td>draw</td><td>Time per frame spent drawing the map. Zooming out raises it, until the far view takes over.</td></tr>
-          <tr><td>tiles</td><td>Tiles on screen.</td></tr>
-          <tr><td>sound</td><td>Whether sound is playing (<code>running</code>) or held back by the browser (<code>suspended</code>), how many
-            touches have tried to start it and the last kind, and the browser's last refusal if any.</td></tr>
-          <tr><td>screen / canvas</td><td>Your screen size and pixel density, and the size the map is drawn at.</td></tr>
-          <tr><td>quality</td><td>0 is full detail. On a device that can't keep up, the game steps it down on its own, up to 3:
-            the buttons lose their frosted glass and the map is drawn with fewer pixels, so it runs smoothly.</td></tr>
-          <tr><td>cores, memory, heap</td><td>Your device's processor cores and memory, and the game's memory use, where the browser reports them.</td></tr>
-        </tbody>
-      </table></div>
+        <thead><tr><th>Measurement</th><th>Meaning</th></tr></thead><tbody>
+          <tr><td>FPS / target</td><td>The observed frame rate and the current intentional limit. A lower idle limit is not lag.</td></tr>
+          <tr><td>Frame times</td><td>Average, 95th percentile and longest frame interval over the last two seconds.</td></tr>
+          <tr><td>CPU breakdown</td><td>Simulation, UI, scene preparation, terrain, standing objects, lighting overlays,
+            effects and other drawing. Nested work is counted once. GPU work, browser layout and device scheduling
+            are not measured directly; unexplained delays are labelled unattributed.</td></tr>
+          <tr><td>Observations</td><td>Smaller costs and repeated hitches remain available to inspect even without an automatic warning.</td></tr>
+          <tr><td>Context</td><td>Layer, position, daylight, zoom, canvas size, quality, sound state and available device information.</td></tr>
+          <tr><td>Copy report</td><td>Copies measured timings, recent incidents, context, world seed and build information.
+            Nothing is uploaded automatically and diagnostics never change your world.</td></tr>
+          <tr><td>Quality</td><td>0 is full detail. When a device cannot keep up, quality can step down to 3,
+            reducing blur and rendering resolution.</td></tr>
+        </tbody></table></div>
 
       <h2>If something breaks</h2>
       <p>If the game hits an error it stops and shows a red <strong>The game broke</strong> panel saying what went wrong (the

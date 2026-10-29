@@ -470,7 +470,7 @@ async function main() {
    eq(pageErrors.length,0,'message feedback has no browser exceptions');
    console.log((failures?'MESSAGE BROWSER FAILURES':'MESSAGE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
-  if(process.env.MTE_PERF_ONLY==='1'){
+  if(process.env.MTE_PERF_ONLY==='1'||process.env.MTE_FPS_ONLY==='1'){
    const {checkPerformancePanel}=await import('./performance-panel.browser.js');
    await checkPerformancePanel({evalJS,ok,cdp,session,shot});
    eq(pageErrors.length,0,'performance diagnostics have no browser exceptions');
@@ -1238,8 +1238,8 @@ async function main() {
     console.log((failures ? 'ENGINE BROWSER FAILURES' : 'ENGINE BROWSER TESTS PASSED') + ' — ' + checks + ' checks');
     process.exit(failures ? 1 : 0);
   }
-  if (process.env.MTE_LAB_ONLY === '1') {
-    console.log('\n== Super-speed AUTO: live client, archive and full fresh win ==');
+  if (process.env.MTE_LAB_ONLY === '1' || process.env.MTE_LAB_PACING_ONLY === '1') {
+    console.log(process.env.MTE_LAB_PACING_ONLY==='1'?'\n== Super-speed viewer: bounded rendering cap ==':'\n== Super-speed AUTO: live client, archive and full fresh win ==');
     var normalSave = await evalJS('localStorage.getItem("more-than-enough-save")');
     ok(await evalJS('document.getElementById("btnAutoplayLab").getAttribute("href") === "?autoplay"'), 'Nerds has a developer viewer link');
     await navigate2('http://127.0.0.1:' + PORT + '/index.html?autoplay');
@@ -1252,6 +1252,15 @@ async function main() {
     var labPaused = await evalJS('MTE_LAB.getState().stats.playedMs');
     await sleep(500);
     eq(await evalJS('MTE_LAB.getState().stats.playedMs'), labPaused, 'pause stops simulation time');
+    if(process.env.MTE_LAB_PACING_ONLY==='1'){
+      const frames=await evalJS(`new Promise(resolve=>{let count=0;const start=performance.now(),observer=new MutationObserver(()=>count++);observer.observe(document.getElementById('labStatus'),{childList:true});setTimeout(()=>{observer.disconnect();resolve({count,elapsed:performance.now()-start});},1500);})`);
+      ok(frames.count>0&&frames.count<=Math.ceil(frames.elapsed*30/1000)+2,'viewer rendering stays under its 30 FPS budget ('+frames.count+' updates in '+Math.round(frames.elapsed)+' ms)');
+      eq(await evalJS('MTE_LAB.getState().stats.playedMs'),labPaused,'rendering does not advance a paused simulation');
+      ok(await evalJS('localStorage.getItem("more-than-enough-save")')===normalSave,'viewer preserves the normal world');
+      eq(pageErrors.length,0,'capped viewer has no browser exceptions');
+      console.log((failures?'LAB PACING FAILURES':'LAB PACING PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+    }
+
     await evalJS('document.getElementById("labSpeed").value="1";document.getElementById("labSpeed").dispatchEvent(new Event("change"));document.getElementById("labPause").click()');
     var labSlow = await evalJS('MTE_LAB.getState().stats.playedMs');
     await sleep(1100);

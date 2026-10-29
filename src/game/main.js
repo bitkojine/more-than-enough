@@ -27,7 +27,7 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf-host.js';
-import { createQuality, frameDue, pace, CALM_AFTER_S } from './quality.js';
+import { createQuality, frameWait, pace, CALM_AFTER_S } from './quality.js';
 import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
 import { render, mapNames } from './render/renderer.js';
@@ -783,7 +783,8 @@ function sayAway(seconds, made, fixed = false) {
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
 let fullPace = true;            // the last frame was drawn at full pace
-function frame(now) {
+function frame() {
+    const now = performance.now();
   try {
     const simStart = performance.now();
     const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
@@ -806,7 +807,12 @@ function frame(now) {
     // held, you or the view on the move, the trip between layers), calm while
     // you watch.
     const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
-    if (last && !frameDue(now - last, full ? fps.full : fps.calm)) { requestAnimationFrame(frame); return; }
+    const wait = last ? frameWait(now - last, full ? fps.full : fps.calm) : 0;
+    if (wait !== 0) {
+      if (wait > 0) setTimeout(frame, wait);
+      else requestAnimationFrame(frame);
+      return;
+    }
     if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
     fullPace = full;
     const intervalMs = last ? now - last : 0;

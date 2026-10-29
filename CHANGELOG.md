@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.8] - 2026-10-29
+
+- Cap game rendering at 30 FPS on every device and in the super-speed viewer.
+  Remove early frame admission; wait out near deadlines instead of overshooting
+  the cap or losing a whole display refresh.
+- Keep simulation ticks independent, align diagnostics and adaptive quality with
+  the capped target, and update the performance guide in both languages.
+
 ## [0.181.7] - 2026-10-29
 
 - Give every shared-sheet menu a bounded scrolling content region, including

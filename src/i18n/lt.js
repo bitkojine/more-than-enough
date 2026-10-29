@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Paleisk mašiną, kad tai atrakintum.",
   "progression.requirement": "Bus atrakinta paleidus mašiną.",
   "progression.locked": "Užrakinta",
+  "news.0.181.8": "Žaidimo vaizdas visuose įrenginiuose atnaujinamas ne dažniau kaip 30 kadrų per sekundę, taip pat ir pagreitintos peržiūros lange. Simuliacijos žingsniai nuo vaizdo atnaujinimo nepriklauso.",
   "news.0.181.7": "Ilgas meniu turinys dabar slenka savo skydelyje, o ne išsilieja ant žaidimo. Peržiūrint našumo duomenis ir pastebėjimus, antraštė ir uždarymo mygtukas lieka vietoje.",
   "news.0.181.6": "Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.",
   "news.0.181.5": "Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.",

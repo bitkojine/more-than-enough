@@ -433,25 +433,26 @@ export default {
         Išjungti ją gali Nustatymuose, mygtuku <strong>Muzika</strong>; <strong>Garsas</strong> išjungia viską.</p>
 
       <h2>Našumo skydelis</h2>
-      <p>Įrankis žaidimui derinti, žaidžiant netrukdantis. Paspausk <kbd>F3</kbd> ir pamatysi, kaip gerai žaidimas veikia tavo
-        įrenginyje, paspausk dar kartą, kad paslėptum, arba įjunk jį Nustatymuose, skiltyje <strong>Moksliukams</strong>. Kairysis skydelio
-        kraštas žalias, kai yra 55 kadrai per sekundę ar daugiau, geltonas nuo 30, raudonas žemiau.</p>
+      <p>Diagnostiką įjunk su <kbd>F3</kbd> arba Nustatymų skiltyje <strong>Moksliukams → Našumo skydelis</strong>.
+        Pasirinkimas išsaugomas šiame įrenginyje. Kai diagnostika įjungta, sulėtėjus žaidimui atsiveria nedidelė įspėjimo
+        kortelė. Ją gali suskleisti į indikatorių; ji vėl atsivers tik aptikus kitą priežastį arba gerokai didesnį sulėtėjimą.</p>
+      <p>Visuose įrenginiuose žaidimo vaizdas atnaujinamas <strong>ne dažniau kaip 30 kadrų per sekundę</strong>, taip pat ir
+        pagreitintos peržiūros lange. Ramybės metu dažnis gali sumažėti iki 10 FPS. Simuliacija turi atskirą pastovų žingsnių
+        dažnį; vaizdo atnaujinimo riba neriboja simuliacijų be vaizdavimo spartos.</p>
       <div class="table"><table>
-        <thead><tr><th>Eilutė</th><th>Reiškia</th></tr></thead>
-        <tbody>
-          <tr><td>FPS</td><td>Kadrai per sekundę per paskutines ~2 sekundes. 60 – sklandu daugumoje ekranų.</td></tr>
-          <tr><td>frame / worst</td><td>Vidutinis laikas tarp kadrų ir ilgiausias pavienis tarpas (strigtelėjimas).</td></tr>
-          <tr><td>logic</td><td>Laikas per kadrą, skirtas žaidimui vykdyti: judėjimui, pastatams, žibintui.</td></tr>
-          <tr><td>draw</td><td>Laikas per kadrą, skirtas žemėlapiui piešti. Nutolinimas jį ilgina, kol vaizdą perima tolimas žemėlapis.</td></tr>
-          <tr><td>tiles</td><td>Langeliai ekrane.</td></tr>
-          <tr><td>sound</td><td>Ar garsas groja (<code>running</code>), ar naršyklė jį sulaiko (<code>suspended</code>), kiek
-            prisilietimų bandė jį paleisti ir paskutinio rūšis, taip pat paskutinis naršyklės atsisakymas, jei buvo.</td></tr>
-          <tr><td>screen / canvas</td><td>Tavo ekrano dydis ir taškų tankis bei dydis, kuriuo piešiamas žemėlapis.</td></tr>
-          <tr><td>kokybė</td><td>0 – visa detalė. Jei įrenginys nespėja, žaidimas pats ją sumažina, iki 3: mygtukai
-            netenka matinio stiklo, o žemėlapis piešiamas mažesniu taškų skaičiumi, kad žaidimas veiktų sklandžiai.</td></tr>
-          <tr><td>cores, memory, heap</td><td>Tavo įrenginio procesoriaus branduoliai ir atmintis bei žaidimo naudojama atmintis, jei naršyklė tai praneša.</td></tr>
-        </tbody>
-      </table></div>
+        <thead><tr><th>Matavimas</th><th>Reikšmė</th></tr></thead><tbody>
+          <tr><td>FPS / tikslas</td><td>Išmatuotas kadrų dažnis ir numatyta riba. Mažesnė ramybės riba nėra sulėtėjimas.</td></tr>
+          <tr><td>Kadrų trukmė</td><td>Vidurkis, 95-asis procentilis ir ilgiausias tarpas tarp kadrų per paskutines dvi sekundes.</td></tr>
+          <tr><td>Procesoriaus darbas</td><td>Simuliacija, sąsaja, scenos paruošimas, reljefas, stovintys objektai,
+            apšvietimo efektai, kiti efektai ir piešimas. Įdėtinis darbas skaičiuojamas vieną kartą. Vaizdo plokštės darbas,
+            naršyklės maketavimas ir įrenginio planavimo delsa tiesiogiai nematuojami; nenustatyta delsa taip ir pažymima.</td></tr>
+          <tr><td>Pastebėjimai</td><td>Mažesnės sąnaudos ir pasikartojantys strigtelėjimai lieka peržiūrai net ir be automatinio įspėjimo.</td></tr>
+          <tr><td>Aplinkybės</td><td>Sluoksnis, padėtis, dienos šviesa, mastelis, drobės dydis, kokybė, garso būsena ir prieinama įrenginio informacija.</td></tr>
+          <tr><td>Kopijuoti ataskaitą</td><td>Kopijuojami darbo laikai, pastarieji pastebėjimai, aplinkybės, pasaulio sėkla ir
+            versijos duomenys. Niekas automatiškai nesiunčiama, diagnostika nekeičia tavo pasaulio.</td></tr>
+          <tr><td>Kokybė</td><td>0 reiškia visas detales. Įrenginiui nespėjant kokybė gali sumažėti iki 3:
+            mažinamas suliejimas ir vaizdavimo raiška.</td></tr>
+        </tbody></table></div>
 
       <h2>Jei kas nors sugenda</h2>
       <p>Jei žaidime įvyksta klaida, jis sustoja ir parodo raudoną skydelį <strong>Žaidimas sugedo</strong>, kuriame nurodyta, kas nutiko

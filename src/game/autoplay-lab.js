@@ -5,6 +5,7 @@ import * as Core from '../core/index.js';
 import { TICK_HZ } from '../engine/clock.js';
 import { createAutoplaySession } from './autoplay-session.js';
 import { openAutoplayStore } from './autoplay-store.js';
+import {frameWait,FULL_FPS} from './quality.js';
 import { createCamera } from './camera.js';
 import { createHud } from './hud.js';
 import { createEffects } from './effects.js';
@@ -105,10 +106,12 @@ export async function startAutoplayLab({ el, look }) {
   addEventListener('pagehide', () => save());
   try { store = await openAutoplayStore(); await newWorld(); }
   catch (err) { failure = t('lab.storageError'); console.error(err); }
-  function frame(now) {
+  function frame() {
+    const now = performance.now();
     try {
       const elapsed = last ? Math.min(0.1,(now-last)/1000) : 0;
-      if (last && now-last < 33) { requestAnimationFrame(frame); return; }
+      const wait=last?frameWait(now-last,FULL_FPS):0;
+      if(wait!==0){if(wait>0)setTimeout(frame,wait);else requestAnimationFrame(frame);return;}
       last = now;
       if (session && !paused && !won && !failure && !document.hidden) {
         if (speed.value !== 'max') pending += elapsed * Number(speed.value) * TICK_HZ;
