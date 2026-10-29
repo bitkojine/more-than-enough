@@ -23,6 +23,13 @@ export function latestRuns(runs, skip = []) {
   return [...seen.values()];
 }
 
+// Manual recovery deployments are as real as push-triggered ones. Looking
+// only at pushes leaves a repaired service permanently marked as failed.
+export async function latestWorkflowRuns(repo, request = getJSON, headers = {}) {
+  const list = await request(`https://api.github.com/repos/${repo}/actions/runs?branch=main&per_page=50`, headers);
+  return latestRuns(list.workflow_runs, ['Live check']);
+}
+
 /** Every problem the facts show, as lines for a person to read. */
 export function problems({ runs = [], runsError, site, rooms }) {
   const out = [];
@@ -54,8 +61,7 @@ async function facts() {
   const auth = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {};
   let runs = [], runsError;
   try {
-    const list = await getJSON(`https://api.github.com/repos/${REPO}/actions/runs?branch=main&event=push&per_page=50`, auth);
-    runs = latestRuns(list.workflow_runs, ['Live check']);
+    runs = await latestWorkflowRuns(REPO, getJSON, auth);
   } catch (e) { runsError = e.message; }
 
   const site = { want: execFileSync('sh', ['scripts/site-hash.sh'], { encoding: 'utf8' }).trim(), ageMin: minutesSince('HEAD') };

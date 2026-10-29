@@ -15,7 +15,7 @@ kind of knowledge lives.
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
   notes as `news.<version>` in `src/i18n/en.js` and `lt.js`. On a version
   clash after a rebase take the next free number and keep both entries.
-- Before pushing: `npm run check`. It runs `npm test` and stages the site
+- Before pushing changes to shipped code or build inputs: `npm run check`. It runs `npm test` and stages the site
   the way the deploy does, so a red deploy is caught here instead of after a
   push. `npm run check -- full` also runs the Perfect benchmark when the
   rules or the brain changed, as CI does. Two checks are
@@ -31,6 +31,15 @@ kind of knowledge lives.
   explicit long sweep of arithmetic, saves or shared-world round-trips.
   Local feedback uses 12 seeds per family; the 1,500-seed sweep runs separately
   in CI and manually, never as a prerequisite for interactive iteration.
+- Keep verification proportional to impact (owner, 2026-10-29). Use focused
+  checks while editing and broaden for shared rules, saves, rendering or
+  uncertain dependencies. Reuse passing results while their inputs remain
+  unchanged. Documentation and CI-status-only changes need their relevant
+  checks, not another game simulation/render sweep; verify the shipped-source
+  hash is unchanged before skipping a product build. Keep long sweeps in
+  asynchronous CI/manual runs. Dependency/AST analysis helps select tests but
+  does not prove semantic equivalence. Batch release files before pushing so
+  metadata follow-ups do not restart the same pipeline.
 - CI runs `node scripts/perfect-bench.mjs --check` after core changes and
   will not deploy if it fails. Run it locally explicitly when needed. Completion
   and behavior checks always apply; timing regression checks apply only when

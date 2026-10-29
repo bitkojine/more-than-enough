@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { problems, latestRuns, GRACE_MIN } from '../../scripts/live-check.mjs';
+import { problems, latestRuns, latestWorkflowRuns, GRACE_MIN } from '../../scripts/live-check.mjs';
 
 const run = (name, conclusion, status = 'completed') => ({ name, conclusion, status, html_url: 'u' });
 const site = { up: true, live: 'a', want: 'a', ageMin: 99 };
@@ -26,4 +26,20 @@ test('live check: a stale site or room service counts only after the grace time'
 
 test('live check: a service that does not answer is always a problem', () => {
   assert.equal(problems({ site: { up: false, error: 'x', ageMin: 0 }, rooms: { up: false, error: 'y', ageMin: 0 } }).length, 2);
+});
+
+
+test('live check accepts manual recovery and still reports subsequent failures',async()=>{
+ const request=rows=>async url=>{
+  const query=new URL(url).searchParams;
+  assert.equal(query.get('branch'),'main','only the release branch is relevant');
+  return {workflow_runs:rows.filter(r=>!query.has('event')||r.event===query.get('event'))};
+ };
+ const recovered={...run('Room service','success'),event:'workflow_dispatch'};
+ const failed={...run('Room service','failure'),event:'push'};
+ const runs=await latestWorkflowRuns('bitkojine/more-than-enough',request([recovered,failed]));
+ assert.deepEqual(problems({runs,site,rooms}),[],'manual recovery supersedes the earlier failed push');
+ assert.equal(problems({runs:await latestWorkflowRuns('bitkojine/more-than-enough',request([failed,recovered]))}).length,1,'a newer failed push cannot be hidden by an older successful manual run');
+ const manualFailure={...run('Room service','failure'),event:'workflow_dispatch'};
+ assert.equal(problems({runs:await latestWorkflowRuns('bitkojine/more-than-enough',request([manualFailure,recovered]))}).length,1,'manual failures count too');
 });
