@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.7": "Removed NEW labels from controls, crafting and construction lists, and release notes. Prices and available actions remain visible in their menus.",
   "news.0.180.6": "Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.",
   "news.0.180.5": "The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.",
   "news.0.180.4": "The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.",

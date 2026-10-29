@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.7": "Removed NEW labels from controls, crafting and construction lists, and release notes. Prices and available actions remain visible in their menus.",
+  "news.0.180.8": "The version number stays gold, along with its border and dot, until you read the release notes.",
   "fullscreen.label": "Full screen",
   "fullscreen.changing": "Changing…",
   "fullscreen.unsupported": "Help",

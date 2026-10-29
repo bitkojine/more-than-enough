@@ -23,15 +23,17 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
     const v=document.getElementById('btnVersion'),had=v.classList.contains('fresh');
     v.classList.add('fresh');
     const ring=getComputedStyle(v.querySelector('.pill'),'::after'),dot=getComputedStyle(v,'::before');
-    const snapshot={had,content:ring.content,position:ring.position,border:ring.borderTopWidth,color:ring.borderTopColor,gold:getComputedStyle(v).getPropertyValue('--gold').trim(),insets:[ring.top,ring.right,ring.bottom,ring.left],ring:Number(ring.zIndex),dot:Number(dot.zIndex),pointer:ring.pointerEvents};
+    const snapshot={had,number:getComputedStyle(v.querySelector('.now')).color,content:ring.content,position:ring.position,border:ring.borderTopWidth,color:ring.borderTopColor,gold:getComputedStyle(v).getPropertyValue('--gold').trim(),insets:[ring.top,ring.right,ring.bottom,ring.left],ring:Number(ring.zIndex),dot:Number(dot.zIndex),pointer:ring.pointerEvents};
     if(!had)v.classList.remove('fresh');
     return snapshot;
   })()`);
   ok(versionRing.content!=='none'&&versionRing.position==='absolute'&&versionRing.border==='1px'&&versionRing.color==='rgb(255, 209, 102)'&&versionRing.insets.every(x=>x==='0px')&&versionRing.ring>0&&versionRing.dot>versionRing.ring&&versionRing.pointer==='none','unread gold border covers the complete pill above its labels and below its dot '+JSON.stringify(versionRing));
+  eq(versionRing.number,'rgb(255, 209, 102)','unread version digits stay gold');
   await evalJS("document.getElementById('btnVersion').classList.add('fresh')");
   await shot('version-unread-border.png');
   await evalJS("document.getElementById('btnVersion').classList.remove('fresh')");
   ok(await evalJS("getComputedStyle(document.querySelector('#btnVersion .pill'),'::after').content==='none'"),'reading release notes removes the unread border');
+  ok(await evalJS("getComputedStyle(document.querySelector('#btnVersion .now')).color!=='rgb(255, 209, 102)'"),'read version digits return to their quiet color');
   if(versionRing.had)await evalJS("document.getElementById('btnVersion').classList.add('fresh')");
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));

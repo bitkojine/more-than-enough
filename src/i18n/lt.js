@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.7": "Pašalintos NAUJA žymos nuo valdiklių, gamybos ir statybos sąrašų bei leidimo aprašymų. Kainos ir galimi veiksmai tebėra matomi meniu.",
+  "news.0.180.8": "Versijos numeris kartu su rėmeliu ir tašku lieka auksinis, kol perskaitote leidimo aprašymą.",
   "fullscreen.label": "Visas ekranas",
   "fullscreen.changing": "Keičiama…",
   "fullscreen.unsupported": "Pagalba",

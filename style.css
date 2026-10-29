@@ -113,6 +113,7 @@ canvas#game {
 }
 /* Unread status belongs to the visible pill, not its larger touch target.
    Paint the ring over the clipped rolling labels; keep the dot above both. */
+#btnVersion.fresh .pill { color: var(--gold); }
 #btnVersion.fresh .pill::after {
   content: ''; position: absolute; inset: 0; z-index: 1;
   border: 1px solid var(--gold); border-radius: inherit; pointer-events: none;
@@ -134,9 +135,9 @@ canvas#game {
 @keyframes ver-out { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-120%); } }
 @keyframes ver-in { from { opacity: 0; transform: translateY(120%); } to { opacity: 1; transform: none; } }
 @keyframes ver-glow {
-  0%, 25% { color: var(--ink-dim); box-shadow: none; }
-  40% { color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(255, 209, 102, 0.7); }
-  100% { color: var(--ink-dim); box-shadow: none; }
+  0%, 25% { box-shadow: none; }
+  40% { box-shadow: 0 0 0 1px var(--gold), 0 0 14px rgba(255, 209, 102, 0.7); }
+  100% { box-shadow: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   #btnVersion.rolling .was, #btnVersion.rolling .now { animation: none; }

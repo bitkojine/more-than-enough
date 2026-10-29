@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.180.8] - 2026-10-29
+
+- Keep unread version digits gold with their border and dot until the release
+  notes are read. Limit the update animation to its shadow so it cannot
+  override the unread text color. Check unread and read colors in the browser.
+
 ## [0.180.7] - 2026-10-29
 
 - Remove NEW badges from controls, purchase rows, progression families and

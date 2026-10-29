@@ -19,6 +19,7 @@ export function loadNews() {
 }
 
 export const NEWS = [
+  '0.180.8',
   '0.180.7',
   '0.180.6',
   '0.180.5',
