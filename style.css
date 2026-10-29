@@ -432,22 +432,6 @@ canvas#game {
   white-space: nowrap; color: #c9d6c6;
   pointer-events: none;
 }
-/* NEW: something on that sheet became affordable that you couldn't get
-   before; it stays until you look (src/game/fresh.js). The same tag marks
-   those rows inside the sheet. */
-.newTag {
-  display: inline-block; padding: 2px 5px; border-radius: var(--r-pill);
-  background: #7fe06e; color: #08200b; border: 1.5px solid #0c140e;
-  font: 900 9px/1.1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
-  letter-spacing: 0.04em; vertical-align: middle; white-space: nowrap;
-}
-.btn .newTag {
-  display: none; position: absolute; top: -6px; right: -8px;
-  box-shadow: 0 0 8px rgba(127, 224, 110, 0.8);
-  pointer-events: none;
-}
-.btn.has .newTag { display: block; }
-
 #btnBuild, #btnUpgrade, #btnMine { width: var(--sub); height: var(--sub); }
 #btnUpgrade { right: calc(var(--act) + var(--gap)); bottom: calc((var(--act) - var(--sub)) / 2); }
 #btnBuild { right: calc(var(--act) + var(--sub) + var(--gap) * 2); bottom: calc((var(--act) - var(--sub)) / 2); }
@@ -1302,11 +1286,6 @@ body.placing #logBubble, body.signing #logBubble, body.mapping #logBubble { visi
 #newsPanel section.fresh { border-color: rgba(255, 209, 102, 0.6); box-shadow: 0 0 12px rgba(255, 209, 102, 0.12); }
 #newsPanel h3 { margin: 0 0 4px; display: flex; align-items: baseline; gap: 6px; font-size: 13px; letter-spacing: 0.04em; color: var(--ink); }
 #newsPanel h3 small { font-size: 11px; font-weight: 600; color: var(--green); }
-#newsPanel h3 em {
-  margin-left: auto; padding: 2px 7px; border-radius: var(--r-pill);
-  background: var(--gold); color: #2a1e06;
-  font: 800 10px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
-}
 #newsPanel ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.45; color: var(--ink-dim); }
 #newsPanel .fresh ul { color: var(--ink); }
 #newsPanel li + li { margin-top: 4px; }

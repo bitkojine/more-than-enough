@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.6": "Nustatymuose galite įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.",
   "news.0.180.5": "Auksinis taškas, žymintis naują versiją, dabar matomas visas ant versijos juostelės, o ne nukirptas jos kampe.",
   "news.0.180.4": "Versijos numeris dabar yra tvarkinga apvalių galų juostelė tiesiai po Nustatymų ratuku, su tarpu aplink skaičius ir tuo pačiu auksiniu švytėjimu po atnaujinimo.",
   "news.0.180.3": "Atvėrus Įrangą, Žinučių mygtukas ir peržiūros lieka vietoje. Didesniuose ekranuose žinutės lieka kairėje, o meniu atsidaro dešinėje. Versijos numeris visada yra po Nustatymais; saulės būsena jo nebepakeičia.",

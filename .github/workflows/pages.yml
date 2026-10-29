@@ -32,6 +32,16 @@ jobs:
       - name: Node version
         run: node --version
 
+      - name: Static analysis debt report
+        run: npm run analyze -- --output /tmp/static-analysis
+
+      - name: Keep static analysis diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: static-analysis
+          path: /tmp/static-analysis
+
       - name: Unit tests
         run: npm test
 

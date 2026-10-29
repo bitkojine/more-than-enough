@@ -857,3 +857,10 @@ slots across compaction; viewport changes adapt dimensions, not their order.
 - Browser compatibility reference: [MDN browser-compat-data](https://github.com/mdn/browser-compat-data/blob/main/api/Element.json),
   `requestFullscreen` (checked 2026-10-29): Safari on iOS
   supports it on iPad, with a system exit overlay, but not on iPhone.
+
+### Purchase notifications — confirmed, 2026-10-29
+
+Remove all NEW badges from HUD controls, crafting/construction lists, progression
+families and release notes. Remove their affordability polling and tracking.
+Do not add a replacement readiness notification system yet. Existing saves
+and unused notification-history storage remain intact.

@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.6": "Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.",
+  "news.0.180.7": "Removed NEW labels from controls, crafting and construction lists, and release notes. Prices and available actions remain visible in their menus.",
   "fullscreen.label": "Full screen",
   "fullscreen.changing": "Changing…",
   "fullscreen.unsupported": "Help",
@@ -1057,8 +1057,6 @@ export default {
   "news.badge": "Version {v}: see what's new",
   "news.badgeNew": "Version {v}, something new: see what's new",
   "news.playing": "playing now",
-  "news.new": "New",
-  "badge.new": "NEW",
   "news.full": "Every change, for developers",
   "news.shareIdea": "Share an idea",
 };

@@ -2,7 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.6": "Nustatymuose galite įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.",
+  "news.0.180.7": "Pašalintos NAUJA žymos nuo valdiklių, gamybos ir statybos sąrašų bei leidimo aprašymų. Kainos ir galimi veiksmai tebėra matomi meniu.",
   "fullscreen.label": "Visas ekranas",
   "fullscreen.changing": "Keičiama…",
   "fullscreen.unsupported": "Pagalba",
@@ -1057,8 +1057,6 @@ export default {
   "news.badge": "Versija {v}: žiūrėti, kas naujo",
   "news.badgeNew": "Versija {v}, yra naujienų: žiūrėti, kas naujo",
   "news.playing": "žaidi dabar",
-  "news.new": "Nauja",
-  "badge.new": "NAUJA",
   "news.full": "Visi pakeitimai, kūrėjams",
   "news.shareIdea": "Pasiūlyti idėją",
 };

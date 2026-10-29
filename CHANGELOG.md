@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.180.7] - 2026-10-29
+
+- Remove NEW badges from controls, purchase rows, progression families and
+  release notes, along with their affordability polling and seen-offer tracker.
+  Leave existing world data and unused notification history intact.
+- Add fast host-aware ESLint diagnostics and CI artifacts for correctness,
+  unused code, function complexity, nesting, size and parameters. Report
+  existing debt explicitly; only parsing failures block this new report.
+
 ## [0.180.6] - 2026-10-29
 
 - Add Settings → Full screen for the entire game, with browser-exit synchronization,

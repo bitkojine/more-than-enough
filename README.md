@@ -162,3 +162,16 @@ shared rules or the server, the room service.
 ## License
 
 MIT, see [LICENSE](LICENSE). Fork it, change it, ship your own version.
+
+### Static analysis
+
+Run `npm run analyze -- --output /tmp/mte-analysis` for ESLint recommended
+correctness checks, unused code, cyclomatic complexity (over 15), nesting
+(over 4), parameters (over 5), and function size (over 120 code lines).
+The text report ranks files and lists exact source locations; JSON supports
+further investigation. Runtime globals are scoped by host; vendored libraries
+and generated assets are excluded. CI uploads the same report on every run.
+Existing findings are visible debt, not a lint-clean gate: only parse failures
+fail this command for now. Triage findings before choosing enforcement budgets;
+complexity counts are investigation signals, not proof of bugs or performance.
+This bounded analysis does not run simulations or ship dependencies to players.

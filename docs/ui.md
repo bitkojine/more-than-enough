@@ -63,8 +63,7 @@ Settlement contains construction and current-layer building improvements in one
 menu. Existing chambers/vaults offer reinforcement, and the machine offers its
 next repair. Site actions close the sheet and approach the site before spending.
 Legacy settlement progression remains available there; tools and crafted gear
-are in Equipment. The internal `build`/`upgrades` keys remain compatible with
-stored seen-offer history, migrating settlement discoveries without new spam.
+are in Equipment. Internal `build`/`upgrades` keys identify these screens.
 
 ### Layout (portrait phone)
 ```
@@ -129,14 +128,12 @@ instead of presenting a fake native on/off toggle. Help wraps and scrolls inside
 Settings on small portrait and landscape screens.
 
 ### Equipment, Settlement and Beyond
-- **Dedicated entrances, no tab bar** (Watch, 2026-10-28): Equipment → Craft opens the Equipment list; Settlement opens construction and improvements; the trophy opens Awards. Each sheet always displays its own localized title. The internal screen keys stay compatible with saved seen-offer history.
+- **Dedicated entrances, no tab bar** (Watch, 2026-10-28): Equipment → Craft opens the Equipment list; Settlement opens construction and improvements; the trophy opens Awards. Each sheet always displays its own localized title.
 - **Beyond** has a dedicated Settings row only once unlocked in a solo world. Back returns to Settings. The legacy progression family's existing shortcut remains available and returns to the menu it came from.
 - **Upgrades is a progression map**, not a shop list: one row per family (`PATH_FAMILIES` in `src/core/upgrades.js`) with its count (`3/8`); tapping a family opens its buy rows, and families with something to buy start open. Rows and the map read the same upgrade registry, so they can't disagree.
 - **Beyond** (perks and Embark) stays hidden until the world is mastered, and never shows in a shared world. There are no in-world refunds: Embark is the respec.
 
 ### What's new on Build and Upgrade
-- **NEW** (a small green tag, *NAUJA* in Lithuanian) on BUILD or UPGRADE: something there has become affordable that you couldn't get before. Every new level counts: a building, the next one of a kind, an upgrade's next level; water power once you've been on water. It counts only what goes on the layer you're on, as Build shows only that (Watch, 2026-10-26); where on the layer you stand doesn't matter (Watch, 2026-10-19).
-- It stays until you open that sheet, where the rows that were new (and their family on the Upgrades map) carry the same tag while the sheet is open. Buying the thing, yourself or by AUTO, clears it too. What's been seen is kept per world on the phone (`src/game/fresh.js`); a world opened for the first time since this shipped starts with what it can afford as seen.
 - The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
 
 ### Messages
@@ -199,7 +196,7 @@ Settings on small portrait and landscape screens.
 ### What's new
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
 - **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label as one unit, the label a few pixels beneath the gear. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. The compact label shows the full version number without a redundant prefix, leaving room for wider system fonts. A gold dot is overlaid, never added to the label's width, and painted above the pill so its rounded corner cannot cut into it. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot and gold contour stay on it until the player looks. The contour overlays the rolling labels inside the visible pill, below the dot; the larger touch target stays unchanged. Reduced motion gets the glow only.
-- **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
+- **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
 
 ### Empty-handed starts and equipment
 New worlds begin with uncrafted tools. Upgrade rows say Not crafted until the
@@ -518,3 +515,8 @@ buildings reuse transparent shaded bitmaps by source picture/size and one of
 levels. The shared LRU retains at most 8M pixels and 128 pictures. Mica still
 uses whole-object compositing; its patch grows in capacity rather than resizing
 for every object. Ground, foreground clipping and discovery keep their rules.
+
+Affordability notifications are removed (2026-10-29): no NEW labels on buttons,
+rows, progression families or release notes. No per-world offer tracking runs.
+Existing unused seen-offer storage is left untouched; game saves are unchanged.
+A replacement readiness system is deferred.

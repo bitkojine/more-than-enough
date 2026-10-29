@@ -19,6 +19,7 @@ export function loadNews() {
 }
 
 export const NEWS = [
+  '0.180.7',
   '0.180.6',
   '0.180.5',
   '0.180.4',
@@ -333,7 +334,6 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
       const head = document.createElement('h3');
       head.textContent = 'v' + v;
       if (v === version) head.append(' ', Object.assign(document.createElement('small'), { textContent: t('news.playing') }));
-      if (fresh.has(v)) head.append(' ', Object.assign(document.createElement('em'), { textContent: t('news.new') }));
       const items = document.createElement('ul');
       items.append(...t('news.' + v).split('\n').map((line) => {
         const li = document.createElement('li');

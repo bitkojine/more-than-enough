@@ -20,7 +20,6 @@ import { createHomeHint } from './home-hint.js';
 import { WIKI_MODES } from './wiki-memory.js';
 import { createInput } from './input.js';
 import { createSheet } from './sheet.js';
-import { createFresh } from './fresh.js';
 import { createIncome } from './income.js';
 import { createMapView } from './mapview.js';
 import { createController } from './controller.js';
@@ -355,12 +354,10 @@ const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.
 const perfect = createPerfect({ game, controller, hud });
 
 const mapView = createMapView({ cam, getState: () => game.state, el, changed: () => { hud.view(cam); keepView(); } });
-const fresh = createFresh();
 const income = createIncome();
 const sheet = createSheet(el, {
   getState: () => game.state,
   look,
-  fresh,
   income,
   onTab: (tab) => {
     if (tab === 'awards') hud.awardsSeen();
@@ -620,7 +617,7 @@ el.language.addEventListener('click', () => {
 // Work that runs on its own cadence rather than every frame.
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
-  { every: 0.25, run: () => { hud.update(game.state); hud.fresh(fresh.check(game.state, sheet.isOpen ? sheet.tab : null)); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); if (!copy) homeHint.check(game.state.goalIndex, performance.now()); } }
+  { every: 0.25, run: () => { hud.update(game.state); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); if (!copy) homeHint.check(game.state.goalIndex, performance.now()); } }
 ].map((t) => ({ ...t, left: t.every }));
 
 let moving = false;

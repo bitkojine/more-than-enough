@@ -1,5 +1,6 @@
 /* Bounded combined-state regression fixtures; presentation, not a fair-play run. */
 export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
+  eq(await evalJS(`document.querySelectorAll('.newTag,[data-i18n="badge.new"]').length`),0,'HUD has no NEW badges');
   const versionMeasure = `(()=>{const v=document.getElementById('btnVersion'),b=v.getBoundingClientRect(),g=document.getElementById('btnSettings').getBoundingClientRect(),n=v.querySelector('.now');return{aligned:Math.abs(b.width-g.width)<1&&Math.abs((b.left+b.right)-(g.left+g.right))<1&&b.top>=g.bottom&&b.top-g.bottom<=8,touch:b.height>=44,fits:n.scrollWidth<=n.clientWidth,text:n.textContent,textWidth:n.scrollWidth,labelWidth:n.clientWidth,font:getComputedStyle(v).fontFamily,gap:+(b.top-g.bottom).toFixed(1),button:b.toJSON(),gear:g.toJSON()};})()`;
   eq(await evalJS('document.querySelectorAll("#tabs,[role=tab],[role=tablist]").length'),0,'menus have no shared tab bar');
   for(const font of ['system-ui','sans-serif','Arial','"DejaVu Sans"','"Liberation Sans"','"Noto Sans"']){
@@ -132,5 +133,6 @@ export async function checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect}) {
   ok(await evalJS('(()=>{const v=document.getElementById("btnVersion"),b=v.getBoundingClientRect(),g=document.getElementById("btnSettings").getBoundingClientRect();return getComputedStyle(v).display!=="none"&&getComputedStyle(v).visibility==="visible"&&b.top>=g.bottom&&Math.abs(b.left-g.left)<1;})()'),'solar countdown never replaces the version slot');
   const version=await rect('#btnVersion');await tap(version.x,version.y);
   ok(await evalJS('document.getElementById("sheet").classList.contains("open")&&document.getElementById("sheet").dataset.tab==="news"'),'the compact version button still opens the changelog');
+  eq(await evalJS('document.querySelectorAll(".newTag,#newsPanel h3 em").length'),0,'menus and release notes have no NEW labels');
   await evalJS('document.getElementById("btnClose").click();document.getElementById("sunTime").hidden=true');
 }

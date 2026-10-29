@@ -10,7 +10,6 @@ import * as Core from '../core/index.js';
 import { fmt, fmtRate, fmtMult, esc } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t } from '../i18n/i18n.js';
-import { SHEETS } from './fresh.js';
 import { createStatement } from './statement.js';
 
 const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['performance', t('nerds.perf')], ['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
@@ -25,10 +24,6 @@ const PERK_FAMILY = Core.pathFamily('perks');
 
 // Set by createSheet: pictures come from the game's pack.
 let look = null;
-// What's new on the sheet showing (src/game/fresh.js): ids to tag NEW.
-let newIds = new Set();
-const NEW_TAG = `<span class="newTag">${t('badge.new')}</span>`;
-const newTag = (id) => newIds.has(id) ? ' ' + NEW_TAG : '';
 export const pic = (id, slot, level=null) => iconHtml(look, id, 'ico', slot, level);
 export const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
@@ -112,7 +107,7 @@ function upgradeRow(s, id) {
   const artwork=pic(u.look,'icon',u.kind==='tool'&&['basket','pickaxe','boots'].includes(id)?Math.max(0,Math.min(s.tools[id]-1,Core.TOOLS[id].levels.length-2)):null);
   const d = DESCRIBE[u.kind](s, id);
   if (u.retired) return row(artwork, esc(u.name), d.sub, doneButton(t('sheet.retired')));
-  const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '') + newTag(id);
+  const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
   const cost = Core.upgradeCost(s, id);
   if (cost === null) return row(artwork, name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
   const affordable = Core.canBuy(s, id);
@@ -157,7 +152,7 @@ export function useLook(l) { look = l; }
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions, look: currentLook, fresh = null, income, onTab = () => {} }) {
+export function createSheet(el, { getState, actions, look: currentLook, income, onTab = () => {} }) {
   useLook(currentLook);
   let open = false;
   let tab = 'upgrades';
@@ -177,7 +172,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     return `<button class="railHead${p.canBuy ? ' ready' : ''}${extra.cls || ''}" type="button" data-family="${extra.target || familyId}"` +
       (extra.expandable ? ` aria-expanded="${extra.open}"` : '') + '>' +
       `<span class="fh-ic">${pic(famLook)}</span>` +
-      `<span class="fh-main"><span class="fh-nm">${esc(name)}${p.nodes.some((n) => newIds.has(n.key)) ? ' ' + NEW_TAG : ''}</span>${rail(p.nodes)}</span>` +
+      `<span class="fh-main"><span class="fh-nm">${esc(name)}</span>${rail(p.nodes)}</span>` +
       `<span class="fh-count">${countText(p)}</span>` +
       `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
   }
@@ -203,7 +198,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const def = Core.EXTRACTORS[key];
     if (def.depot && !Core.usesDepots(s)) return '';
     const count = Core.extractorCount(s, key);
-    const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '') + newTag(key);
+    const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
     const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
     if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
@@ -229,7 +224,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
     const here = Core.canPlaceProp(s, kind);
     const ok = here && Core.canAfford(s.inv, def.cost);
     const where = def.on === 'tunnel' || here ? '' : `<br><span class="where">${t('sheet.goesOn.' + def.on, { tool: Core.TOOLS.boots.name, lv: Core.GEAR.water })}</span>`;
-    return row(pic('mark.' + kind, 'image'), def.name + newTag(kind), def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
+    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
   }
   const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
@@ -314,13 +309,7 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   statement.attach(el.sheetBody, { rerender: () => render(), go: (next) => setTab(next) });
   const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, statement: statement.render };
 
-  // Looking at Build or Upgrades sees what's new there.
-  function noteNew() {
-    newIds = fresh && open && SHEETS.includes(tab) ? fresh.see(getState(), tab) : new Set();
-  }
-
   function render() {
-    noteNew();
     el.sheetBody.innerHTML = PANELS[tab] ? '' : RENDER[tab](getState());
   }
 
@@ -339,7 +328,6 @@ export function createSheet(el, { getState, actions, look: currentLook, fresh = 
   }
   function refresh() {
     if (PANELS[tab]) return;
-    noteNew();
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
     // The statement: swap in just the rows, charts and cards that changed.

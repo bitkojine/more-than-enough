@@ -12,12 +12,16 @@
     "test:layout": "node test/layout.e2e.js",
     "check": "sh scripts/check.sh",
     "stage": "sh scripts/stage-site.sh site",
-    "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js"
+    "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js",
+    "analyze": "node scripts/analyze.mjs"
   },
   "engines": {
     "node": ">=24"
   },
   "devDependencies": {
-    "esbuild": "0.25.10"
+    "@eslint/js": "^10.0.1",
+    "esbuild": "0.25.10",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0"
   }
 }

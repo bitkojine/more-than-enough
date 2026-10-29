@@ -191,12 +191,6 @@ export function createHud(el, look, messages) {
       updateGauge(s);
     },
 
-    // NEW on BUILD and UPGRADE (src/game/fresh.js says when).
-    fresh(news) {
-      el.build.classList.toggle('has', news.build);
-      el.upgrade.classList.toggle('has', news.upgrades);
-    },
-
     // AUTO (the Perfect button) above Gather: its badge shows what holding
     // it does right now (`badge`, a look id), a gold ring turns while it's
     // held, and it glows when the world is ready to Embark, which is yours

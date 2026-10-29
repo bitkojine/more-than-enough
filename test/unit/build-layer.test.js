@@ -2,7 +2,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
-import { offers } from '../../src/game/fresh.js';
 
 const on = (s, z) => (k) => C.buildsOnLayer(s, k, z);
 const kinds = (s, z, list) => list.filter(on(s, z));
@@ -39,15 +38,4 @@ test('a crystal room the list hides on a layer is one the rules refuse there', (
       assert.equal(C.cultivationCommand(s, { type: 'build', kind, x: 0, y: 0 }), 'deep');
     }
   }
-});
-
-test('NEW on Settlement construction counts only what goes on your layer', () => {
-  const s = C.createState(7);
-  for (const r of C.RESOURCES) C.earn(s, r, 1e6, 'hand');
-  for (const u of Object.keys(C.UNLOCKS)) s.unlocks[u] = true;
-  const build = () => offers(s).filter(([sheet,id]) => sheet === 'build' && !C.UPGRADES[id]).map(([, id]) => id);
-  assert.ok(build().every((k) => C.PROPS[k]?.on !== 'tunnel'));
-  assert.ok(build().includes('garden'));
-  s.player.z = -1;
-  assert.deepEqual(build(), Object.keys(C.PROPS).filter((k) => C.PROPS[k].on === 'tunnel'));
 });

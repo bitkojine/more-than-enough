@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.6": "Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.",
   "news.0.180.5": "The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.",
   "news.0.180.4": "The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.",
   "news.0.180.3": "Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.",
