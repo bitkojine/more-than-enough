@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Activate the machine to unlock this.",
   "progression.requirement": "Activate the machine to unlock.",
   "progression.locked": "Locked",
+  "news.0.181.9": "The game now targets 30 FPS on every device even while standing still. Idle frame-rate reduction has been removed.",
   "news.0.181.8": "Game rendering is capped at 30 FPS on every device, including the super-speed viewer. Simulations retain their independent tick rate.",
   "news.0.181.7": "Long menu content now scrolls inside its panel instead of overflowing onto the game. Performance details keep their header and Close button fixed while you inspect every observation.",
   "news.0.181.6": "Performance warnings now leave the action buttons clear on short landscape layouts. The compact pill stays readable, with full-size inspection and collapse controls.",

@@ -1,9 +1,10 @@
+import {RENDER_FPS} from './quality.js';
 /* Bounded, browser-independent measurements. Timings are CPU time, not GPU time.
  * A window never mixes deliberate frame rates or background suspension gaps. */
 export const PERF_PHASES = ['simulation','presentation','scene','terrain','actors','lighting','effects','other'];
 const LIMIT=600, HISTORY=60, INCIDENTS=20;
 export function createPerfMonitor() {
-  let samples=[],cursor=0,clock=0,history=[],incidents=[],target=30,elapsed=0,settle=1000,ack=new Map(),latest=null;
+  let samples=[],cursor=0,clock=0,history=[],incidents=[],target=RENDER_FPS,elapsed=0,settle=1000,ack=new Map(),latest=null;
   const ordered=()=>samples.length<LIMIT?samples:samples.slice(cursor).concat(samples.slice(0,cursor));
   const summarize=()=>{
     const window=ordered().filter(s=>clock-s.end<2000);

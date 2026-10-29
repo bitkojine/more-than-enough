@@ -444,11 +444,11 @@ export default {
         The choice is kept on this device. While enabled, a slowdown opens a compact warning card. Collapse it into
         a pill; it reopens only for a new cause or a substantially worse slowdown.</p>
       <p>Game rendering is capped at <strong>30 FPS on every device</strong>, including the super-speed viewer.
-        Idle rendering can drop to 10 FPS. Simulations keep their own fixed tick rate; the rendering cap never limits
+        Standing still keeps the same 30 FPS target. Simulations keep their own fixed tick rate; the rendering cap never limits
         headless simulation speed.</p>
       <div class="table"><table>
         <thead><tr><th>Measurement</th><th>Meaning</th></tr></thead><tbody>
-          <tr><td>FPS / target</td><td>The observed frame rate and the current intentional limit. A lower idle limit is not lag.</td></tr>
+          <tr><td>FPS / target</td><td>The observed frame rate and the fixed 30 FPS target.</td></tr>
           <tr><td>Frame times</td><td>Average, 95th percentile and longest frame interval over the last two seconds.</td></tr>
           <tr><td>CPU breakdown</td><td>Simulation, UI, scene preparation, terrain, standing objects, lighting overlays,
             effects and other drawing. Nested work is counted once. GPU work, browser layout and device scheduling

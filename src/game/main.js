@@ -27,7 +27,7 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf-host.js';
-import { createQuality, frameWait, pace, CALM_AFTER_S } from './quality.js';
+import { createQuality, frameWait, RENDER_FPS } from './quality.js';
 import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
 import { render, mapNames } from './render/renderer.js';
@@ -142,9 +142,7 @@ const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
 const yard = createYard({ fx, look });
 const hud = createHud(el, look, messages);
 // Fewer pixels and no frosted glass on a device that can't keep up.
-// A touch screen as the main pointer (a phone, a tablet) draws fewer frames.
-const fps = pace(window.matchMedia?.('(pointer: coarse)').matches); // i18n-ok: a media query
-const quality = createQuality(savedView.quality, window.devicePixelRatio || 1, applyQuality, fps.full);
+const quality = createQuality(savedView.quality, window.devicePixelRatio || 1, applyQuality);
 function applyQuality() {
   cam.maxDpr = quality.dpr;
   document.documentElement.classList.toggle('no-glass', !quality.glass);
@@ -174,13 +172,6 @@ const problems = createProblems({
 if (navigator.getBattery) {
   navigator.getBattery().then((b) => b.addEventListener('chargingchange', () => { if (b.charging) quality.retry(); }), () => {});
 }
-// The last touch, click, key or wheel: the map is drawn at full pace for a
-// few seconds after one, and calmly (fewer frames, less heat) otherwise.
-let lastTouch = 0;
-for (const ev of ['pointerdown', 'pointermove', 'keydown', 'wheel']) {
-  window.addEventListener(ev, () => { lastTouch = performance.now(); }, { capture: true, passive: true });
-}
-
 const loaded = loadGame();
 
 let simulation = null, simulationClock = null;
@@ -782,7 +773,6 @@ function sayAway(seconds, made, fixed = false) {
 }
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
-let fullPace = true;            // the last frame was drawn at full pace
 function frame() {
     const now = performance.now();
   try {
@@ -803,18 +793,12 @@ function frame() {
       else simulationClock.advance(elapsed);
     }
     simulationMs += performance.now() - simStart;
-    // Full pace while you play (a touch or key just now, Gather or Perfect
-    // held, you or the view on the move, the trip between layers), calm while
-    // you watch.
-    const full = moving || input.held || input.perfect || now - lastTouch < CALM_AFTER_S * 1000 || descent.active;
-    const wait = last ? frameWait(now - last, full ? fps.full : fps.calm) : 0;
+    const wait = last ? frameWait(now - last) : 0;
     if (wait !== 0) {
       if (wait > 0) setTimeout(frame, wait);
       else requestAnimationFrame(frame);
       return;
     }
-    if (full && !fullPace) quality.settle(); // calm frames are slow on purpose: don't judge by them
-    fullPace = full;
     const intervalMs = last ? now - last : 0;
     const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
     last = now;
@@ -838,11 +822,11 @@ function frame() {
     const drawMs=performance.now()-t1;
     if(phaseTimings)phaseTimings.other=(phaseTimings.other||0)+Math.max(0,drawMs-Object.values(phaseTimings).reduce((a,b)=>a+b,0));
     if (intervalMs > 0 && !document.hidden && !fork.open && !playtestReplay) perf.frame(intervalMs, simulationMs + t1 - t0, drawMs, stats.tiles,{
-      simulation:simulationMs,phases:phaseTimings,target:full?fps.full:fps.calm,
+      simulation:simulationMs,phases:phaseTimings,target:RENDER_FPS,
       context:{seed:game.state.world.seed,layer:z,gameTime:game.state.time,daylight:Core.daylight(game.state.time),x:game.state.player.x,y:game.state.player.y,viewLayer:cam.z,zoom:cam.zoom,moving,quality:quality.level}
     });
     simulationMs = 0;
-    if (full) quality.frame(intervalMs);
+    quality.frame(intervalMs);
     perf.tick(dt);
     problems.faults.frameDone();
   } catch (err) {

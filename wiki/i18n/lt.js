@@ -437,11 +437,11 @@ export default {
         Pasirinkimas išsaugomas šiame įrenginyje. Kai diagnostika įjungta, sulėtėjus žaidimui atsiveria nedidelė įspėjimo
         kortelė. Ją gali suskleisti į indikatorių; ji vėl atsivers tik aptikus kitą priežastį arba gerokai didesnį sulėtėjimą.</p>
       <p>Visuose įrenginiuose žaidimo vaizdas atnaujinamas <strong>ne dažniau kaip 30 kadrų per sekundę</strong>, taip pat ir
-        pagreitintos peržiūros lange. Ramybės metu dažnis gali sumažėti iki 10 FPS. Simuliacija turi atskirą pastovų žingsnių
+        pagreitintos peržiūros lange. Stovint vietoje išlieka tas pats 30 FPS tikslas. Simuliacija turi atskirą pastovų žingsnių
         dažnį; vaizdo atnaujinimo riba neriboja simuliacijų be vaizdavimo spartos.</p>
       <div class="table"><table>
         <thead><tr><th>Matavimas</th><th>Reikšmė</th></tr></thead><tbody>
-          <tr><td>FPS / tikslas</td><td>Išmatuotas kadrų dažnis ir numatyta riba. Mažesnė ramybės riba nėra sulėtėjimas.</td></tr>
+          <tr><td>FPS / tikslas</td><td>Išmatuotas kadrų dažnis ir pastovus 30 FPS tikslas.</td></tr>
           <tr><td>Kadrų trukmė</td><td>Vidurkis, 95-asis procentilis ir ilgiausias tarpas tarp kadrų per paskutines dvi sekundes.</td></tr>
           <tr><td>Procesoriaus darbas</td><td>Simuliacija, sąsaja, scenos paruošimas, reljefas, stovintys objektai,
             apšvietimo efektai, kiti efektai ir piešimas. Įdėtinis darbas skaičiuojamas vieną kartą. Vaizdo plokštės darbas,

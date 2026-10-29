@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.181.9] - 2026-10-29
+
+- Remove idle and device-specific rendering rates. Normal play and the
+  super-speed viewer always target 30 FPS, whether acting or standing still.
+- Remove activity tracking and idle quality exclusions; diagnostics and
+  adaptive detail use the same fixed target. Simulation ticks remain unchanged.
+
 ## [0.181.8] - 2026-10-29
 
 - Cap game rendering at 30 FPS on every device and in the super-speed viewer.

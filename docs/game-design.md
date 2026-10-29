@@ -944,6 +944,6 @@ in both languages. This tool changes no simulation rules or saved progress.
 
 ### Rendering limit (2026-10-29)
 
-Cap game rendering at 30 FPS on every device and in the developer super-speed
-viewer. There is no higher-rate option. Rendering limits never slow canonical
+Target 30 FPS on every device and in the developer super-speed viewer, both
+while acting and while standing still. There is no idle throttling or rate option. Rendering limits never slow canonical
 simulation ticks or restrict headless simulation throughput.

@@ -561,8 +561,8 @@ only when diagnostics are enabled. Collapse acknowledges the measured cause;
 only a new cause or a slowdown more than 1.5 times as severe reopens it.
 Warnings and smaller observations remain in bounded history.
 
-Frame pacing is compared with the actual 30/30 FPS desktop or 30/10 FPS phone
-active/idle target. Startup, changed pacing and hidden/picker time get a fresh
+Frame pacing is compared with the same 30 FPS target on every device, whether
+Mica is moving or standing still. Startup and hidden/picker time get a fresh
 one-second settling period. Visible hitches still count. Sustained frames
 more than 12% over budget, measured work exceeding the budget, or hitches
 longer than both 100 ms and three frame budgets raise warnings. Individual
@@ -609,6 +609,6 @@ both languages.
 All devices render at most 30 game frames per second, including the super-speed
 viewer. The shared pacing helper admits no early frames. A near-deadline timer
 avoids missing an entire display refresh just because it arrived slightly early.
-Idle rendering may be lower (10 FPS on touch devices). Quality and diagnostics
-use these actual targets. Canonical simulation still advances fixed 60 Hz ticks
+Standing still keeps the same 30 FPS target. Quality and diagnostics
+use that fixed target. Canonical simulation still advances fixed 60 Hz ticks
 from elapsed time; headless simulations have no rendering cap.

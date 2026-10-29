@@ -9,8 +9,9 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     ok(await evalJS('MTE_GAME.perfVisible()&&!document.getElementById("perf").hidden&&!!document.querySelector(".perfPill")'),lang+': F3 lazy-loads the actual diagnostics tool');
     for(let i=0;i<50;i++){if(await evalJS('MTE_GAME.perf().count>0'))break;await new Promise(r=>setTimeout(r,100));}
     ok(await evalJS('MTE_GAME.perf().count>0'),lang+': actual game loop records phase samples');
+    await new Promise(r=>setTimeout(r,3500)); // Longer than the former idle threshold.
     const pacing=await evalJS('(()=>{const m=MTE_GAME.perf();return {target:m.target,fps:m.fps,count:m.count,frameMs:m.frameMs};})()');
-    ok(pacing.target>0&&pacing.target<=30&&pacing.fps<=30.01,lang+': real game rendering respects the 30 FPS cap '+JSON.stringify(pacing));
+    ok(pacing.target===30&&pacing.fps<=30.01,lang+': idle game still targets 30 FPS '+JSON.stringify(pacing));
     ok(await evalJS('(()=>{document.dispatchEvent(new Event("visibilitychange"));return MTE_GAME.perf().count===0;})()'),lang+': tab visibility changes discard suspended timing gaps');
     await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);
     await cdp.send('Input.dispatchKeyEvent',{type:'keyUp',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);

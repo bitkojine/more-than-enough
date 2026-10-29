@@ -1,3 +1,4 @@
+import {RENDER_FPS} from './quality.js';
 /* Opt-in diagnostics; bounded measurements and slow, independent HUD updates. */
 import {t,addStrings} from '../i18n/i18n.js';
 import en from '../i18n/perf/en.js';
@@ -27,7 +28,7 @@ export function createPerf(el,canvas,audio,quality) {
       tiles=drawn;logicMs=logic;drawMs=draw;context=meta.context||context;
       if(!perf.visible)return;
       if(world!==context.seed){world=context.seed;monitor.reset();}
-      const issue=monitor.sample(interval,{simulation:meta.simulation||0,presentation:Math.max(0,logic-(meta.simulation||0)),...meta.phases},meta.target||30,context);
+      const issue=monitor.sample(interval,{simulation:meta.simulation||0,presentation:Math.max(0,logic-(meta.simulation||0)),...meta.phases},meta.target||RENDER_FPS,context);
       if(issue){open=true;card.hidden=false;refresh=0;}
     },
     suspend(){monitor.reset();},
