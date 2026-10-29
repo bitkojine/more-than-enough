@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
+import {unlockOptional} from './helpers.js';
 const cmd=(s,type,kind,x,y)=>C.cultivationCommand(s,{type,kind,x,y});
 function openSite(s,z=-2){for(let y=-8;y<=8;y++)for(let x=-8;x<=8;x++){const t=C.tileAt(s.world,x,y,z);if(!C.TILE_INFO[t].rise&&!C.TILE_INFO[t].descend){C.setRichness(s.world,x,y,z,0);C.markExplored(s.world,x,y,z);}}s.player={x:.5,y:.5,z};}
 function fixture(){const s=C.createState(7,{cultivation:true});s.tools.pickaxe=3;for(const r of C.RESOURCES)C.earn(s,r,300,'hand');openSite(s);return s;}
@@ -23,7 +24,7 @@ test('chambers protect from light automatically; heat injuries still need tendin
 });
 test('heat kills colonies and degraded harvested crystal still reinforces physical storage',()=>{
  const s=fixture(),b=build(s,'chamber');s.cultivation.starter={health:100};cmd(s,'plant',null,0,0);run(s,30);assert.equal(b.health,0);
- s.cultivation.quality=10;assert.equal(cmd(s,'reinforce',null,0,0),'ok');assert.ok(b.reinforced);
+ s.cultivation.quality=10;assert.equal(cmd(s,'reinforce',null,0,0),'locked');unlockOptional(s);assert.equal(cmd(s,'reinforce',null,0,0),'ok');assert.ok(b.reinforced);
 });
 test('wild colonies renew after taking a starter; sealed handling protects carried material',()=>{
  const s=fixture();let found;
@@ -33,7 +34,7 @@ test('wild colonies renew after taking a starter; sealed handling protects carri
  assert.equal(cmd(s,'craft','carrier',found.x,found.y),'ok');cmd(s,'craft','lantern',found.x,found.y);cmd(s,'lantern',null,found.x,found.y);const q=s.cultivation.quality;run(s,2);assert.equal(s.cultivation.starter.health,100);assert.equal(s.cultivation.quality,q);
 });
 test('sealed transfer preserves actual output; saves retain routes, quality, injury without shutter state',()=>{
- const s=fixture(),room=build(s,'chamber',0,0),vault=build(s,'vault',2,0);build(s,'conduit',1,0);room.buffer=10;run(s,5);assert.ok(vault.buffer>3);assert.ok(Math.abs(room.buffer+vault.buffer-10)<1e-8);
+ const s=unlockOptional(fixture()),room=build(s,'chamber',0,0),vault=build(s,'vault',2,0);build(s,'conduit',1,0);room.buffer=10;run(s,5);assert.ok(vault.buffer>3);assert.ok(Math.abs(room.buffer+vault.buffer-10)<1e-8);
  s.cultivation.quality=31;room.needsTend=true;const raw=C.serialize(s),loaded=C.deserialize(raw);assert.ok(loaded);assert.deepEqual(loaded.cultivation,s.cultivation);assert.equal(loaded.world.cultivation,true);
 });
 test('one original-world cultivation loop reaches the first machine section through canonical commands',()=>{
@@ -51,7 +52,7 @@ test('the indexed economy preserves crystal recipe payments across ticks and rel
 });
 
 test('facilities protect stock but unprotected collected cargo still suffers light damage',()=>{
- const s=fixture(),b=build(s,'chamber');build(s,'cooler',0,2);const vault=build(s,'vault',2,0);s.player={x:.5,y:.5,z:-2};
+ const s=unlockOptional(fixture()),b=build(s,'chamber');build(s,'cooler',0,2);const vault=build(s,'vault',2,0);s.player={x:.5,y:.5,z:-2};
  b.health=100;b.buffer=8;s.inv.crystal=0;s.cultivation.quality=100;cmd(s,'craft','lantern',0,0);cmd(s,'lantern',null,0,0);
  assert.equal(cmd(s,'collect',null,0,0),'ok','no carrier or opening requirement');assert.equal(s.inv.crystal,8);run(s,1);assert.ok(s.cultivation.quality<100);assert.equal(b.health,100);
  s.player.x=2.5;assert.equal(cmd(s,'store',null,2,0),'ok');assert.equal(vault.buffer,8);const q=vault.quality;run(s,1);assert.equal(vault.quality,q,'stored stock is protected from light');
@@ -65,12 +66,12 @@ test('old open and closed facilities load without shutter state or loss of progr
   const loaded=C.deserialize(C.serialize(s));assert.ok(loaded);const room=C.cultivationAt(loaded,b.x,b.y,b.z);
   assert.ok(!Object.hasOwn(room,'closed'));assert.equal(room.health,82);assert.equal(room.buffer,12);assert.equal(room.quality,76);assert.equal(room.needsTend,true);assert.deepEqual(loaded.inv,s.inv);
   if(kind==='machine'){assert.ok(C.canEmbark(loaded));assert.equal(room.sections,3);assert.deepEqual(loaded.cultivation.heart,s.cultivation.heart);}
-  assert.equal(cmd(loaded,'shutter',null,b.x,b.y),'invalid','retired commands cannot change a building');
+  assert.ok(['invalid','locked'].includes(cmd(loaded,'shutter',null,b.x,b.y)),'retired commands cannot change a building');
  }
 });
 
 test('covering a placed light is a physical paid hood, then toggles without another charge',()=>{
- const s=fixture(),at=C.packKey(0,0,-2);s.world.props.set(at,'glowcap');assert.ok(C.cultivationLight(s,{x:0,y:0,z:-2}));const before=s.inv.mycelium;
+ const s=unlockOptional(fixture()),at=C.packKey(0,0,-2);s.world.props.set(at,'glowcap');assert.ok(C.cultivationLight(s,{x:0,y:0,z:-2}));const before=s.inv.mycelium;
  assert.equal(cmd(s,'shade',null,0,0),'ok');assert.equal(s.inv.mycelium,before-1);assert.equal(C.cultivationLight(s,{x:0,y:0,z:-2}),false);cmd(s,'shade',null,0,0);assert.ok(C.cultivationLight(s,{x:0,y:0,z:-2}));assert.equal(s.inv.mycelium,before-1);
 });
 test('environmental state is independent of browser-style observation cadence',()=>{
@@ -80,7 +81,7 @@ test('environmental state is independent of browser-style observation cadence',(
 });
 
 test('repeated sealed transfers preserve bounded quality and readable saves',()=>{
- const s=fixture(),room=build(s,'chamber'),vault=build(s,'vault',2,0);build(s,'conduit',1,0);build(s,'cooler',0,2);
+ const s=unlockOptional(fixture()),room=build(s,'chamber'),vault=build(s,'vault',2,0);build(s,'conduit',1,0);build(s,'cooler',0,2);
  room.health=100;room.needsTend=false;cmd(s,'craft','carrier');
  for(let i=0;i<1000;i++){C.step(s,.25,{visualEvents:false});if(vault.buffer>=1){s.player.x=2.5;s.player.y=.5;assert.equal(cmd(s,'collect',null,2,0),'ok');}assert.ok(s.cultivation.quality<=100);}
  assert.ok(C.deserialize(C.serialize(s)));

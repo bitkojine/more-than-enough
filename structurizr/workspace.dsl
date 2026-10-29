@@ -9,7 +9,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
         dev = person "Developer" "Builds and maintains the game and its test suites."
 
         // -------------------------------------------- the game (system)
-        mte = softwareSystem "MORE THAN ENOUGH" "An idle/incremental browser game: explore an endless seeded world in layers (the forest at z = 0, mine layers below), gather mycelium/stone/ore/crystal, craft tools, automate production with extractors, and chase the Abundance Engine. Pre-1.0 (0.x line); zero dependencies, plain HTML/CSS/JavaScript modules, no build step." {
+        mte = softwareSystem "MORE THAN ENOUGH" "A mobile-first browser game: explore seeded layers, gather resources, grow living crystal and restore an underground teleporter. The first chapter focuses on manual gathering and the minimum win kit; machine activation unlocks later automation. Legacy worlds retain their earlier rules. Plain HTML/CSS/JavaScript with a bundled static client and development-only tooling." {
             tags "Game"
 
             app = container "Web Application" "The presentation layer (index.html, style.css, src/game/). Owns the DOM, the canvas, input, audio, HUD and sheets, and localStorage. Reads state from the Simulation Core every frame and changes it only through the Core's exports." "HTML/CSS/JavaScript modules" {
@@ -155,10 +155,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     "invariant" "no DOM, no Date.now, no Math.random; every position is (x, y, z) and every range check is per layer"
                 }
 
-                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat and shared propagated physical light, proportional exposure damage, tending, renewable wild colonies, intrinsically lightproof facility interiors without shutter controls/state, heat-sensitive contents and exposed-cargo light damage, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
+                cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat and shared propagated physical light, proportional exposure damage, tending, renewable wild colonies, a pure chapter-availability policy with effective tool caps and canonical action locks until activation, paused optional automation with preserved earned state, intrinsically lightproof facility interiors without shutter controls/state, heat-sensitive contents and exposed-cargo light damage, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/cultivation.js, src/game/render/cultivation.js"
+                        "ref" "src/core/cultivation.js, src/core/progression.js, src/game/render/cultivation.js"
                     }
                 }
 

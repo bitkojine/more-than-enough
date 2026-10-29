@@ -13,7 +13,7 @@ test('every world lists its own milestones, ending at the one that masters it',(
   assert.equal(goals.at(-1).id,kind==='shared'?'refined10':'master',kind);
   for(const g of goals)assert.ok(g.reached,`${kind}: ${g.id} says it is reached`);
  }
- assert.deepEqual(C.worldGoals(worlds.crystal).map(g=>g.id),C.CULTIVATION_GOALS.map(g=>g.id));
+ assert.deepEqual(C.worldGoals(worlds.crystal).map(g=>g.id),C.CULTIVATION_GOALS.filter(g=>g.id!=='garden').map(g=>g.id));
 });
 
 test('every milestone a crystal world marks done is one its Awards can list',()=>{

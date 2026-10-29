@@ -1,10 +1,11 @@
+import {unlockOptional} from './helpers.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 import {cleanAct} from '../../src/net/protocol.js';
 import {createController} from '../../src/game/controller.js';
 function site(){
- const s=C.createState(12345,{cultivation:true});
+ const s=unlockOptional(C.createState(12345,{cultivation:true}));
  for(let y=-5;y<=5;y++)for(let x=-5;x<=8;x++){C.tileAt(s.world,x,y,0);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.GRASS;C.markExplored(s.world,x,y,0);}
  s.player={x:.5,y:.5,z:0};return s;
 }

@@ -2,7 +2,11 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.9": "Removed building shutters. Chambers, vaults and the machine automatically protect their contents from light. Plant, tend and transfer without opening or closing anything. Cooling still matters; protect exposed cargo with a carrier.",
+  "progression.furtherUpgrades": "Later upgrades",
+  "cr.reason.locked": "Activate the machine to unlock this.",
+  "progression.requirement": "Activate the machine to unlock.",
+  "progression.locked": "Locked",
+  "news.0.181.0": "Focus on gathering, crystal cultivation and restoring the machine. Optional buildings, baskets, flares and later tool upgrades show locks until activation. Existing equipment and buildings are kept; shelters remain available for heart recovery.",
   "fullscreen.label": "Full screen",
   "fullscreen.changing": "Changing…",
   "fullscreen.unsupported": "Help",
@@ -97,7 +101,7 @@ export default {
   "cr.goal.chamber": "Descend again. Build a growing chamber and a cooling tower nearby.",
   "cr.goal.plant": "Take a wild starter, plant it in a cooled chamber, and tend it if injured.",
   "cr.goal.repair": "Restore the machine’s three physical sections with protected crystal, metal and stone. Inspect it for each recipe.",
-  "cr.goal.done": "Machine activated. World complete.",
+  "cr.goal.done": "Machine activated. World complete; optional systems unlocked.",
   "cr.health": "Colony tolerance: {n}%",
   "cr.quality": "Crystal quality: {n}%",
   "cr.temperature": "Temperature: {n}°C",
@@ -176,14 +180,14 @@ export default {
   "cr.heart.rest": "Rest the heart here",
   "cr.heart.lost": "The heart cracked right through. Its light fled back to the hiding place.",
   "cr.heart.home": "The heart is home. The machine stirs.",
-  "cr.goal.heart": "Find the hiding place on your map and carry the heart home in a sealed carrier. It blocks light; keep the heart cool and use shelters to mend damage.",
+  "cr.goal.heart": "Find the hiding place on your map and carry the heart home in a sealed carrier. It blocks light; keep the heart cool.",
   "cr.reason.lifted": "You lift the heart into the carrier, protected from light. Keep it cool.",
   "cr.reason.gone": "The heart isn’t here.",
   "cr.reason.heart": "This section needs the machine’s heart. It was teleported to a hiding place, marked on your map.",
   "cr.reason.cracked": "The heart is too cracked to seat. Rest it in a shelter to mend it first.",
   "cr.discovery.1": "The machine shudders, and a map glows on its face. It is a teleporter. Its heart was stolen and sent far off on the surface, in the last teleport it ever made.",
   "cr.discovery.2": "The heart settles into the machine. Light runs along its arms for the first time in an age.",
-  "cr.discovery.3": "The last section locks into place. Close it, keep it cool, and the machine can wake.",
+  "cr.discovery.3": "The last section locks into place. Keep the machine cool, and it can wake.",
 
   "building.depot": "Collection Depot",
   "building.depot.desc": "Collects output from your producers within 8 tiles on this layer. Overlap never collects twice.",

@@ -75,7 +75,6 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
    act({type:'harvestAt',...at});
   }}
  function buy(id){act({type:'buy',id});}
- function buildProducer(kind){const at=seek(p=>{const t=C.tileAt(state.world,p.x,p.y,state.player.z),d=C.EXTRACTORS[kind];return t===d.tile&&C.richness(state.world,p.x,p.y,state.player.z)>0&&!C.extractorAt(state,p.x,p.y,state.player.z)&&!C.holeBelow(state.world,p.x,p.y,state.player.z)&&!C.wayUp(state.world,p.x,p.y,state.player.z);},true);act({type:'place',key:kind,...at});}
  function go(at){let r=search(p=>key(p)===key(at));if(!r){toward(at);r=search(p=>key(p)===key(at));}if(!r)throw Error('unreachable '+JSON.stringify(at));follow(r,true);}
  // A free tile near `near`, walked to: the machine shows itself only as you
  // come close, so a tile picked before can be taken by the time you arrive.
@@ -91,17 +90,9 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   for(let i=0;i<3000&&!near(target);i++){
    const r=(seen(target.x,target.y)&&search(p=>key(p)===key(target)))||search(()=>false,true,null,aim);
    if(!r||!r.path.length){explore();continue;}
-   for(const p of r.path.slice(0,64)){walkTile(p);shelterIfCracking();if(near(target))return;}
+   for(const p of r.path.slice(0,64)){walkTile(p);if(near(target))return;}
   }
   if(!near(target))throw Error('journey stall');
- }
- // Rests a cracking heart in a shelter until night or until it has mended.
- function shelterIfCracking(){
-  const h=state.cultivation.heart;if(h.where!=='carried'||h.health>=C.HEART_MIN+15||!C.heartLight(state,{...feet(),z:state.player.z}))return;
-  if(state.inv.mycelium<6)gather('mycelium',6);if(state.inv.stone<10)gather('stone',10);
-  const at=buildingSite(feet(),2,p=>!C.heartAt(state,p.x,p.y));go(at);command('build','shelter',at);command('heart',null,at);
-  while(h.health<95&&C.heartLight(state,{...at,z:state.player.z}))advance(60);
-  command('heart',null,at);stage('heart rested');
  }
  function climbHome(){while(state.player.z<0){const up=seek(p=>!!info(p.x,p.y).rise,true);act({type:'climb',...up});}}
  let cave,shaft;
@@ -111,10 +102,10 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   toward(cave);go(cave);act({type:'descend',...cave});stage('heart home');toward(shaft);go(shaft);act({type:'descend',...shaft});
  }
  try{
-  stage('empty hands');gather('mycelium',34);buy('basket');gather('mycelium',8);gather('stone',5);buy('pickaxe');
-  gather('mycelium',32);buy('boots');gather('mycelium',180);gather('stone',230);buy('pickaxe');buildProducer('garden');buildProducer('quarry');stage('surface settlement');
+  stage('empty hands');gather('mycelium',8);gather('stone',5);buy('pickaxe');
+  gather('mycelium',32);buy('boots');gather('mycelium',70);gather('stone',140);buy('pickaxe');stage('minimum equipment');
   cave=seek(p=>!!info(p.x,p.y).descend,true);act({type:'descend',...cave});stage('first descent');
-  gather('ore',160);stage('metal gathered');
+  gather('ore',120);stage('metal gathered');
   shaft=seek(p=>info(p.x,p.y).descend||C.tileAt(state.world,p.x,p.y,state.player.z)===C.T.SHAFT,true);
   while(!C.canDescendAt(state,shaft.x,shaft.y))act({type:'harvestAt',...shaft});act({type:'descend',...shaft});stage('deep underground');
   // Reveal a reachable wild colony, never read its position from the seed.
@@ -124,14 +115,13 @@ export function playCultivation(seed,{wallSeconds=300,log=()=>{}}={}){
   const coolAt=buildingSite(roomAt,3);go(coolAt);command('build','cooler',coolAt);
   go(wild);command('starter',null,wild);go(roomAt);command('plant',null,roomAt);
   const room=C.cultivationAt(state,roomAt.x,roomAt.y);if(room.needsTend)command('tend',null,roomAt);stage('colony growing');
-  command('craft','carrier');const vaultAt=buildingSite(roomAt,C.CONDUIT_REACH);go(vaultAt);command('build','vault',vaultAt);
-  const linkAt=buildingSite(roomAt,C.CONDUIT_REACH,p=>Math.abs(p.x-vaultAt.x)+Math.abs(p.y-vaultAt.y)<=C.CONDUIT_REACH);go(linkAt);command('build','conduit',linkAt);
+  command('craft','carrier');
   const machine=state.cultivation.facilities.find(b=>b.kind==='machine');if(!machine)throw Error('machine not discovered');
   const machineCool=buildingSite(machine,3);go(machineCool);command('build','cooler',machineCool);
   const crystalNeeded=C.MACHINE_REPAIRS.reduce((sum,cost)=>sum+cost.crystal,0);
-  const vault=C.cultivationAt(state,vaultAt.x,vaultAt.y);go(vaultAt);
+  go(roomAt);
   while(state.inv.crystal<crystalNeeded){
-   if(vault.buffer>=1)command('collect',null,vaultAt);else advance(15);
+   if(room.buffer>=1)command('collect',null,roomAt);else advance(15);
   }
   for(let i=0;i<C.MACHINE_REPAIRS.length;i++){if(i===1)fetchHeart();go(machine);command('repair',null,machine);stage('machine section '+(i+1)+' restored');}
   activationSave=C.serialize(state);command('activate',null,machine);stage('machine activated');

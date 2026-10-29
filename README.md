@@ -175,3 +175,10 @@ Existing findings are visible debt, not a lint-clean gate: only parse failures
 fail this command for now. Triage findings before choosing enforcement budgets;
 complexity counts are investigation signals, not proof of bugs or performance.
 This bounded analysis does not run simulations or ship dependencies to players.
+
+Focused chapter availability is shared by menus and canonical actions in
+`src/core/progression.js`. Unfinished crystal worlds keep the minimum manual
+win route; activation unlocks later systems without losing earned state.
+`CHROME_PATH=/path/to/chromium MTE_PROGRESSION_ONLY=1 npm run test:e2e` checks
+locked catalogs, rejected bypasses, real card activation and reload preservation
+in both languages. CI runs this bounded check with the rendering/HUD gate.

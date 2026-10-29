@@ -1,3 +1,4 @@
+import { toolPurchaseLocked } from './progression.js';
 /* Everything the player can buy that isn't a building, in one registry.
  *
  * Each upgrade has the same shape, so buying, the progression map and the
@@ -128,6 +129,7 @@ export function upgradeCost(s, id) {
 }
 
 export function canBuy(s, id) {
+  if (toolPurchaseLocked(s,id)) return false;
   if(s.cultivation&&!['basket','pickaxe','boots'].includes(id))return false;
   if(id==='logistics' && usesDepots(s))return false;
   if (REGISTRY[id]?.retired) return false;
@@ -139,6 +141,7 @@ export function canBuy(s, id) {
 export function buy(s, id) {
   const u = Object.hasOwn(REGISTRY, id) ? REGISTRY[id] : null;
   if (!u) return { ok: false, reason: t('reason.unknownUpgrade') };
+  if (toolPurchaseLocked(s,id)) return {ok:false,reason:t('progression.requirement')};
   if (u.retired) return { ok: false, reason: t('reason.retiredUpgrade') };
   if (id==='logistics' && usesDepots(s)) return {ok:false,reason:t('reason.localLogistics')};
   const cost = upgradeCost(s, id);

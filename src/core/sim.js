@@ -1,3 +1,4 @@
+import { focusedChapter, effectiveToolLevel } from './progression.js';
 /* Time and motion: the per-tick simulation, movement and fog reveal.
  * Deterministic: no clocks, no Math.random. */
 
@@ -81,12 +82,13 @@ const SHOW2 = 12 * 12; // tiles away a haul is still shown flying in
 // Whether a building holds output that waits for you to collect it (a whole
 // unit or more, and nothing is hauling it in).
 export function holdsOutput(s, e) {
-  return e.buffer >= 1 && !autoCollected(s, e);
+  return !focusedChapter(s) && e.buffer >= 1 && !autoCollected(s, e);
 }
 
 const productionScratch = new WeakMap();
 
 function produce(s, dt, visualEvents) {
+  if (focusedChapter(s)) return;
   if (!s.extractors.length) return;
   let scratch = productionScratch.get(s);
   if (!scratch) {
@@ -187,7 +189,7 @@ export function swimsAt(world, x, y, z) {
 
 // Whether your Boots take you onto water (see GEAR.water).
 export function canWade(s) {
-  return s.tools.boots >= GEAR.water;
+  return effectiveToolLevel(s,'boots') >= GEAR.water;
 }
 
 // Whether a step to (x, y) would take you from land onto water you can't

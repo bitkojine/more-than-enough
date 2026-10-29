@@ -47,7 +47,7 @@ import { createBack } from './back.js';
 import { createProblems, where } from './problems.js';
 import { createBuildingCard } from './building-card.js';
 import { createPlacing } from './placing.js';
-import { fmt, fmtDuration } from './format.js';
+import { fmt, fmtDuration, lockIcon } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE, addStrings } from '../i18n/i18n.js';
 
 const SAVE_EVERY = 3;       // seconds between autosaves
@@ -416,7 +416,8 @@ function showLantern(s) {
 let flareWas = 0;
 function useFlare() {
   const s = game.state, result = Core.useFlare(s);
-  if (result === 'materials') hud.toast(t('toast.flare.materials'));
+  if (result === 'locked') hud.toast(t('progression.requirement'));
+  else if (result === 'materials') hud.toast(t('toast.flare.materials'));
   else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'));
   flareWas = s.flare;
   if (result === 'lit' || result === 'out') game.saveSoon();
@@ -427,17 +428,21 @@ let flareWorld = null;
 function showFlare(s) {
   if (flareWas > 0 && !(s.flare > 0) && flareWorld === s) hud.toast(t('toast.flare.burntOut'));
   flareWas = s.flare; flareWorld = s;
-  const on = s.flare > 0;
+  const locked = Core.contentLocked(s,'flare'), on = Core.flareLit(s);
+  el.flare.disabled = locked;
   el.flare.hidden = !!s.shared || !(on || s.player.z < Core.SURFACE);
   if (el.flare.hidden) return;
   el.flare.classList.toggle('on', on);
   el.flare.setAttribute('aria-pressed', String(on));
   const left = Math.ceil(s.flare), time = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); // i18n-ok: a clock
   el.flare.style.setProperty('--left', on ? (s.flare / Core.FLARE_TIME).toFixed(3) : '1');
-  const label = on ? time : t('button.flare');
-  if (el.flareLabel.textContent === label) return;
-  el.flareLabel.textContent = label;
-  el.flare.setAttribute('aria-label', on ? t('button.flare.lit.aria', { time }) : t('button.flare.aria'));
+  const label = locked ? t('progression.locked') : on ? time : t('button.flare');
+  el.flare.classList.toggle('progressionLocked',locked);
+  const labelState = (locked?'locked:':'')+label;
+  if (el.flareLabel.dataset.state === labelState) return;
+  el.flareLabel.dataset.state = labelState;
+  el.flareLabel.innerHTML = locked ? lockIcon+' '+t('button.flare') : label;
+  el.flare.setAttribute('aria-label', locked ? t('progression.requirement') : on ? t('button.flare.lit.aria', { time }) : t('button.flare.aria'));
 }
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
@@ -936,7 +941,7 @@ function syncSoon() {
 async function showDevices() {
   const m = await loadSync();
   const key = sync.start();
-  const draw = () => m.renderDevices(el.devicesPanel, { url: m.linkUrl(location, key), okAt: sync.okAt, failed: sync.failed, now: Date.now(), t, ago: fmtDuration });
+  const draw = () => m.renderDevices(el.devicesPanel, { url: m.linkUrl(location, key), okAt: sync.okAt, failed: sync.failed, now: Date.now(), t, ago: fmtDuration, lockIcon });
   draw();
   sync.check().then(() => { if (!el.devicesPanel.hidden) draw(); });
 }

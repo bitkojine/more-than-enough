@@ -1,3 +1,4 @@
+import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 /* Living crystal extends the existing world, inventory and commands. No
  * separate map, movement system or renderer; no DOM or wall-time dependency. */
 import {atInteraction} from './interaction.js';
@@ -62,12 +63,12 @@ const indexCache=new WeakMap();
 function index(s){
  const c=s.cultivation;let v=indexCache.get(c);
  const propsVersion=s.world.props.revision??s.world.props.size;
- if(v&&v.n===c.facilities.length&&v.mines===s.extractors.length&&v.props===s.world.props&&v.version===propsVersion)return v;
- v={n:c.facilities.length,mines:s.extractors.length,props:s.world.props,version:propsVersion,cells:new Map(),ids:new Map(),heat:new Map(),routes:[]};
+ if(v&&v.n===c.facilities.length&&v.mines===s.extractors.length&&v.props===s.world.props&&v.version===propsVersion&&v.focused===focusedChapter(s))return v;
+ v={focused:focusedChapter(s),n:c.facilities.length,mines:s.extractors.length,props:s.world.props,version:propsVersion,cells:new Map(),ids:new Map(),heat:new Map(),routes:[]};
  const heat=(b,n,r)=>{for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++)if(Math.abs(dx)+Math.abs(dy)<=r){const k=cell(b.x+dx,b.y+dy,b.z);v.heat.set(k,(v.heat.get(k)||0)+n);}};
  for(const b of c.facilities){v.cells.set(cell(b.x,b.y,b.z),b);v.ids.set(b.id,b);if(b.kind==='cooler')heat(b,-12,3);}
- for(const b of s.extractors)if(b.key==='mine')heat(b,10,3);
- for(const b of c.facilities)if(b.kind==='conduit'){const from=v.ids.get(b.from),to=v.ids.get(b.to);if(from&&to)v.routes.push({from,to});}
+ for(const b of s.extractors)if(b.key==='mine'&&!contentLocked(s,'mine'))heat(b,10,3);
+ for(const b of c.facilities)if(b.kind==='conduit'&&!contentLocked(s,'conduit')){const from=v.ids.get(b.from),to=v.ids.get(b.to);if(from&&to)v.routes.push({from,to});}
  indexCache.set(c,v);return v;
 }
 export function cultivationAt(s,x,y,z=s.player.z){return s.cultivation?index(s).cells.get(cell(x,y,z)):null;}
@@ -100,7 +101,7 @@ export function wildColony(s,x,y,z=s.player.z){
 export function takeStarter(s,x,y){
  const c=s.cultivation,p={x,y,z:s.player.z};
  if(!c||!atInteraction(s,x,y))return 'reach';
- if(s.tools.pickaxe<3)return 'equipment';
+ if(effectiveToolLevel(s,'pickaxe')<3)return 'equipment';
  const w=wildColony(s,x,y);if(!w)return 'site';if(c.starter)return 'carrying';if(w.regrow||w.health<=0)return 'regrow';
  c.starter={health:100};w.health=0;w.regrow=45;exposeCargo(s);return 'ok';
 }
@@ -132,6 +133,7 @@ export function facilitySite(s,kind,x,y,moving=null){
 // Moves facility `b` to tile (x, y) of its layer, in reach: free, and all it
 // holds goes with it (Watch, 2026-10-26). A conduit joins what is near it there.
 export function moveFacility(s,b,x,y){
+ if(contentLocked(s,b?.kind))return 'locked';
  const c=s.cultivation;
  if(!c||s.shared||!c.facilities.includes(b)||!BUILT_FACILITIES.includes(b.kind)||b.z!==s.player.z)return 'invalid';
  if(!atInteraction(s,x,y))return 'reach';
@@ -141,6 +143,7 @@ export function moveFacility(s,b,x,y){
 }
 export function cultivationCommand(s,cmd){
  const c=s.cultivation;if(!c||s.shared)return 'invalid';
+ if(contentLocked(s,cmd.type)||cmd.type==='build'&&contentLocked(s,cmd.kind))return 'locked';
  const x=cmd.x??Math.floor(s.player.x),y=cmd.y??Math.floor(s.player.y),z=s.player.z;
  if(!Number.isInteger(x)||!Number.isInteger(y)||!isExplored(s.world,x,y,z))return 'unseen';
  if(cmd.type==='build'){const why=facilitySite(s,cmd.kind,x,y);if(why)return why;}
@@ -166,6 +169,7 @@ export function cultivationCommand(s,cmd){
   pay(s,cost);c.nextId++;c.facilities.push(next);return 'ok';
  }
  if(!b)return 'building';
+ if(contentLocked(s,b.kind))return 'locked';
  if(cmd.type==='plant'&&b.kind==='chamber'){
   if(!c.starter)return 'starter';if(b.health>0)return 'occupied';
   b.health=c.starter.health;b.needsTend=b.health<100;b.temperature=cultivationTarget(s,b);c.starter=null;return 'ok';
@@ -207,6 +211,7 @@ function moveHeart(s,x,y,z){
  if(heartAt(s,x,y,z)){if(h.where!=='station')return 'gone';if(!c.gear.carrier)return 'equipment';h.where='carried';return 'lifted';}
  if(b?.kind!=='shelter')return 'site';
  if(h.where===b.id){h.where='carried';return 'lifted';}
+ if(contentLocked(s,'shelter'))return 'locked';
  if(h.where!=='carried')return 'gone';h.where=b.id;return 'ok';
 }
 // A sealed carrier protects the heart exactly as it protects ordinary crystal.
@@ -239,19 +244,20 @@ export function stepCultivation(s,dt){
   c.heart.health-=(heat+HEART_SUN*heartLight(s,p))*seconds;
   // A heart that cracks right through falls apart and its light returns to the hiding place.
   if(c.heart.health<=0){c.heart=newHeart();c.heartLost=(c.heartLost||0)+1;}
- }else if(typeof c.heart?.where==='number')c.heart.health=Math.min(100,c.heart.health+HEART_MEND*seconds);
+ }else if(typeof c.heart?.where==='number'&&!contentLocked(s,'shelter'))c.heart.health=Math.min(100,c.heart.health+HEART_MEND*seconds);
  for(const w of Object.values(c.wild)){
   if(w.regrow>0){w.regrow=Math.max(0,w.regrow-seconds);if(!w.regrow)w.health=100;}
   else {w.health=Math.max(0,w.health-((9*cultivationExposure(s,w))+Math.max(0,cultivationTarget(s,w)-22)*.8)*seconds);if(!w.health)w.regrow=45;}
  }
  for(const b of c.facilities){
+  if(contentLocked(s,b.kind))continue;
   const target=cultivationTarget(s,b);b.temperature=target+(b.temperature-target)*Math.exp(-seconds/6);
   const damage=Math.max(0,b.temperature-22)*.8;
   if(b.buffer)b.quality=Math.max(10,b.quality-damage*seconds);
   if(b.health>0){
    if(damage){b.health=Math.max(0,b.health-damage*seconds);if(b.kind==='chamber')b.needsTend=true;}
    else if(!b.needsTend)b.health=Math.min(100,b.health+4*seconds);
-   if(b.kind==='chamber'&&b.health>0&&!b.needsTend&&b.temperature<=22){if(!b.buffer)b.quality=100;b.buffer=Math.min(b.reinforced?40:20,b.buffer+.3*seconds);}
+   if(b.kind==='chamber'&&b.health>0&&!b.needsTend&&b.temperature<=22){if(!b.buffer)b.quality=100;const cap=b.reinforced&&!contentLocked(s,'reinforce')?40:20;if(b.buffer<cap)b.buffer=Math.min(cap,b.buffer+.3*seconds);}
   }
  }
  for(const {from,to} of index(s).routes){const n=Math.max(0,Math.min(from.buffer,.8*seconds,(to.reinforced?40:20)-to.buffer));if(n){to.quality=to.buffer?qualityMean(to.quality,to.buffer,from.quality,n):from.quality;to.buffer+=n;from.buffer-=n;}}

@@ -1,3 +1,4 @@
+import {unlockOptional} from './helpers.js';
 // Bug (Watch, 2026-10-26): a craft button must never look ready while you
 // can't pay for the thing. Every Craft, Place and upgrade button on the
 // crystal-world sheets is greyed out until the price is in hand, and lit
@@ -25,7 +26,7 @@ test('with nothing in hand, no craft, place or upgrade button looks ready', () =
 
 test('each crystal-world button lights exactly when its price is in hand', () => {
   for (const kind of ['lantern', 'carrier', 'chamber', 'cooler', 'vault', 'conduit', 'shelter']) {
-    const recipe = C.CULTIVATION_RECIPES[kind], s = world();
+    const recipe = C.CULTIVATION_RECIPES[kind], s = unlockOptional(world());
     const html = () => kind === 'lantern' || kind === 'carrier' ? cultivationUpgradeRows(s) : cultivationBuildRows(s);
     const shown = () => buttons(html()).find((b) => b.id === kind);
     // One short of any single resource is still greyed out.

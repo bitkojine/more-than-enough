@@ -208,3 +208,13 @@ export function performIntent(s, intent) {
   }
   throw new Error('unknown intent ' + intent.type);
 }
+
+// Funded post-win test state, not a claim of playing a fresh world to completion.
+export function unlockOptional(s) {
+  if (!s.cultivation) return s;
+  const c=s.cultivation;
+  let machine=c.facilities.find(b=>b.kind==='machine');
+  if(!machine){machine={kind:'machine',id:c.nextId++,x:900000,y:900000,z:-2,temperature:18,quality:100,health:100,buffer:0};c.facilities.push(machine);}
+  machine.sections=3;c.restored=true;c.completed=true;c.heart={where:'installed',health:100};
+  return s;
+}

@@ -1457,3 +1457,10 @@ body.placing #depthGauge { display: none; }
   background: linear-gradient(to right, #ffcf6a calc(var(--left, 1) * 100%), transparent 0);
   -webkit-mask: none; mask: none;
 }
+
+/* Future chapter content stays visible without looking purchasable. */
+.lockIcon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; vertical-align: -2px; }
+.progressionLocked { color: var(--ink-dim); }
+.buy.progressionLocked { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.unlockRequirement { color: var(--gold); }
+.bc-act small { display: block; font-size: 12px; color: var(--ink-dim); }

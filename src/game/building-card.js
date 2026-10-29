@@ -9,7 +9,7 @@
  * elsewhere or Back closes it. The rules are the core's; this only shows them. */
 import * as Core from '../core/index.js';
 import { t } from '../i18n/i18n.js';
-import { esc, fmtRate } from './format.js';
+import { esc, fmtRate, lockIcon } from './format.js';
 import { pic, price, icon } from './sheet.js';
 import { reachOf } from './reach.js';
 import {describeLight} from './light-info.js';
@@ -21,6 +21,7 @@ const act = (type, x, y, label, cost = null) => ({ type, x, y, label, cost });
 // One of your buildings: what it makes, what it helps or what helps it, and Move.
 function extractorCard(s, e) {
   const def = Core.EXTRACTORS[e.key], lines = [];
+  if (Core.contentLocked(s,e.key)) return {look:'building.'+e.key,name:esc(def.name),lines:[lockIcon+' '+t('progression.requirement'),t('cr.buffer',{n:e.buffer.toFixed(1)})],actions:[],building:e,key:e.key};
   if (def.rate > 0) lines.push(`+${fmtRate(Core.extractorRate(s, e.key, e))} ${icon(def.res)}/s`);
   const reach = reachOf(s, { key: e.key, x: e.x, y: e.y, z: e.z, building: e });
   if (e.key === 'stoneworks') lines.push(t('card.doubling', { count: reach.targets.length }));
@@ -40,6 +41,7 @@ export function cardAt(s, x, y) {
   if (e && (!e.owner || e.owner === s.me)) return extractorCard(s, e);
   if (!c) return null;
   const h = c.heart, b = Core.cultivationAt(s, x, y, z);
+  if (b && Core.contentLocked(s,b.kind)) return {look:Core.CULTIVATION_LOOK[b.kind],name:name(b.kind),lines:[lockIcon+' '+t('progression.requirement'),name(b.kind+'.desc')],actions:b.kind==='shelter'&&h?.where===b.id?[act('heart',x,y,name('heart.take'))]:[],building:b,kind:b.kind};
   if (b && b.kind === 'shelter') {
     const what = h?.where === b.id ? 'heart.take' : h?.where === 'carried' ? 'heart.rest' : '';
     return { look: Core.CULTIVATION_LOOK.shelter, name: name('shelter'), lines: [name('shelter.desc')], actions: [...(what ? [act('heart', x, y, name(what))] : []), act('move', x, y, t('card.move'))], building: b, kind: b.kind };
@@ -54,7 +56,7 @@ export function cardAt(s, x, y) {
     const acts = b.kind === 'chamber' ? ['plant', 'tend', 'collect', 'reinforce'] : b.kind === 'vault' ? ['collect', 'store', 'reinforce']
       : b.kind === 'machine' ? (Core.machineRepairCost(b) ? ['repair'] : c.completed ? [] : ['activate']) : [];
     const actions = acts.filter((a) => !(a === 'reinforce' && b.reinforced) && !(a === 'plant' && b.health > 0) && !(a === 'tend' && !b.needsTend))
-      .map((a) => act(a, x, y, name(a), a === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES[a] || null));
+      .map((a) => ({...act(a, x, y, name(a), a === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES[a] || null),locked:Core.contentLocked(s,a)}));
     if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(act('move', x, y, t('card.move')));
     if (b.kind === 'cooler') lines.push(t('card.cooling', { count: reachOf(s, { kind: 'cooler', x, y, z, building: b }).targets.length }));
     return { look: Core.CULTIVATION_LOOK[b.kind], name: name(b.kind), lines, actions, building: b, kind: b.kind };
@@ -63,7 +65,7 @@ export function cardAt(s, x, y) {
   const key = Core.packKey(x, y, z), prop = Core.PROPS[s.world.props.get(key)];
   if (prop?.light) {
     const covered = !!c.shaded?.[key], paid = c.shaded && key in c.shaded;
-    return { look: 'mark.' + s.world.props.get(key), name: esc(prop.name), lines: [], actions: [act('shade', x, y, t(covered ? 'cr.uncover' : 'cr.cover'), paid ? null : Core.CULTIVATION_RECIPES.shade)] };
+    return { look: 'mark.' + s.world.props.get(key), name: esc(prop.name), lines: [], actions: [act('shade', x, y, t(covered ? 'cr.uncover' : 'cr.cover'), paid ? null : Core.CULTIVATION_RECIPES.shade)].map(a=>({...a,locked:Core.contentLocked(s,a.type)})) };
   }
   if (Core.wildColony(s, x, y)) return { look: 'tile.geode', slot: 'top', name: name('wild'), lines: [describeLight(s,x,y,z)], actions: [act('starter', x, y, name('gather'))] };
   return null;
@@ -84,7 +86,7 @@ export function createBuildingCard({ cam, state, run, approach, walking, work })
     const html = `<div class="bc-head">${pic(card.look, card.slot || 'image')}<strong>${card.name}</strong></div>` +
       (card.lines.length ? `<p>${card.lines.join('<br>')}</p>` : '') +
       (card.actions.length ? '<div class="bc-acts">' + card.actions.map((a, i) =>
-        `<div class="bc-act"><button type="button" class="${i ? 'alt' : ''}" data-i="${i}" data-type="${a.type}"${a.cost && !Core.canAfford(s.inv, a.cost) ? ' disabled' : ''}>${a.label}</button>${a.cost ? price(s.inv, a.cost) : ''}</div>`).join('') + '</div>' : '');
+        `<div class="bc-act"><button type="button" class="${i ? 'alt' : ''}" data-i="${i}" data-type="${a.type}"${a.locked || a.cost && !Core.canAfford(s.inv, a.cost) ? ' disabled' : ''}>${a.locked?lockIcon:''}${a.label}</button>${a.locked?'<small>'+t('progression.requirement')+'</small>':a.cost ? price(s.inv, a.cost) : ''}</div>`).join('') + '</div>' : '');
     if (html !== shown) { el.innerHTML = html; shown = html; }
     el.hidden = false;
     // Over the building, between the top bar and the thumb buttons (never

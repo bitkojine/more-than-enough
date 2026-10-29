@@ -2,7 +2,11 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.9": "Pašalintos statinių sklendės. Kameros, saugyklos ir mašina automatiškai saugo turinį nuo šviesos. Sodink, prižiūrėk ir perkelk nieko neatverdamas ir neužverdamas. Aušinimas lieka svarbus; atvirą krovinį saugok nešykle.",
+  "progression.furtherUpgrades": "Vėlesni patobulinimai",
+  "cr.reason.locked": "Paleisk mašiną, kad tai atrakintum.",
+  "progression.requirement": "Bus atrakinta paleidus mašiną.",
+  "progression.locked": "Užrakinta",
+  "news.0.181.0": "Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žybsnius ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; slėptuvės lieka prieinamos širdžiai gydyti.",
   "fullscreen.label": "Visas ekranas",
   "fullscreen.changing": "Keičiama…",
   "fullscreen.unsupported": "Pagalba",
@@ -97,7 +101,7 @@ export default {
   "cr.goal.chamber": "Leiskis dar giliau. Pastatyk auginimo kamerą ir aušinimo bokštą šalia.",
   "cr.goal.plant": "Paimk laukinį mėginį, pasodink jį aušinamoje kameroje ir prižiūrėk, jei sužalotas.",
   "cr.goal.repair": "Atkurk tris fizines mašinos dalis naudodamas apsaugotus kristalus, metalą ir akmenį. Receptus rasi apžiūrėjęs mašiną.",
-  "cr.goal.done": "Mašina paleista. Pasaulis užbaigtas.",
+  "cr.goal.done": "Mašina paleista. Pasaulis užbaigtas; papildomos sistemos atrakintos.",
   "cr.health": "Kolonijos atsparumas: {n}%",
   "cr.quality": "Kristalų kokybė: {n}%",
   "cr.temperature": "Temperatūra: {n}°C",
@@ -176,14 +180,14 @@ export default {
   "cr.heart.rest": "Padėti širdį čia",
   "cr.heart.lost": "Širdis perskilo kiaurai. Jos šviesa grįžo į slėptuvę.",
   "cr.heart.home": "Širdis namie. Mašina sujuda.",
-  "cr.goal.heart": "Rask žemėlapyje slėptuvę ir parnešk širdį sandariame dėkle. Jis užstoja šviesą; saugok nuo karščio ir taisyk žalą pastogėse.",
+  "cr.goal.heart": "Rask žemėlapyje pažymėtą slėptuvę ir parnešk širdį sandarioje nešyklėje. Ji užstoja šviesą; saugok širdį nuo karščio.",
   "cr.reason.lifted": "Įkeli širdį į dėklą, apsaugotą nuo šviesos. Saugok nuo karščio.",
   "cr.reason.gone": "Širdies čia nėra.",
   "cr.reason.heart": "Šiai daliai reikia mašinos širdies. Ji nuteleportuota į slėptuvę, pažymėtą žemėlapyje.",
   "cr.reason.cracked": "Širdis per daug įskilusi, kad tilptų. Pirma leisk jai pagyti pastogėje.",
   "cr.discovery.1": "Mašina sudreba, ir jos priekyje sušvinta žemėlapis. Tai teleportas. Jo širdis buvo pavogta ir nusiųsta toli į paviršių, paskutiniu teleportu, kokį jis kada nors padarė.",
   "cr.discovery.2": "Širdis įsitaiso mašinoje. Pirmą kartą per amžius jos rankomis nubėga šviesa.",
-  "cr.discovery.3": "Paskutinė dalis užsifiksuoja. Uždaryk ją, laikyk vėsiai, ir mašina galės pabusti.",
+  "cr.discovery.3": "Paskutinė dalis užsifiksuoja. Laikyk mašiną vėsiai, ir ji galės pabusti.",
 
   "building.depot": "Surinkimo sandėlis",
   "building.depot.desc": "Surenka tavo gamintojų produkciją 8 langelių spinduliu šiame sluoksnyje. Persidengiantys plotai nesurenka dukart.",

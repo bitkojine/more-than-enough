@@ -1,3 +1,4 @@
+import {unlockOptional} from './helpers.js';
 // Build offers only what can stand on the layer you're on (Watch, 2026-10-26).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -28,7 +29,7 @@ test('crystal worlds: garden and quarry up top, mine below, crystal rooms from l
 });
 
 test('a crystal room the list hides on a layer is one the rules refuse there', () => {
-  const s = C.createState(7, { cultivation: true });
+  const s = unlockOptional(C.createState(7, { cultivation: true }));
   for (const r of C.RESOURCES) C.earn(s, r, 300, 'hand');
   for (const z of [0, -1]) {
     s.player = { x: 0.5, y: 0.5, z };

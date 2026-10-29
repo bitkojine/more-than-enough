@@ -16,6 +16,7 @@ const COOLED = ['chamber', 'vault', 'machine', 'shelter'];
 const steps = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 
 export function reachOf(s, f) {
+  if(Core.contentLocked(s,f.key||f.kind))return null;
   const b = f.building || null, at = { x: f.x, y: f.y, z: f.z, owner: b ? b.owner : (s.me || undefined) };
   // Taken by another building already, for a preview: this one wouldn't help it.
   const free = (by) => !by || by === b;

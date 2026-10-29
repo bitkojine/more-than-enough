@@ -1,3 +1,4 @@
+import { contentLocked } from './progression.js';
 /* Flares (Watch, 2026-10-26): a metal stick of ore dust, made and lit in
  * one go, carried in your hand, burning down in FLARE_TIME seconds of play.
  * It lights FLARE_LIGHT tiles around you; underground that light is what
@@ -12,12 +13,13 @@ import { canAfford, pay, exploreRadius } from './economy.js';
 import { isDark, lightScale } from './light.js';
 import { lightCrystal } from './cultivation.js';
 
-export const flareLit = (s) => s.flare > 0;
+export const flareLit = (s) => !contentLocked(s,'flare') && s.flare > 0;
 
 // Makes and lights a flare, or puts out the one in your hand: 'lit', 'out',
 // 'materials' (no metal) or 'invalid' (a shared world: its room doesn't
 // check flares yet).
 export function useFlare(s) {
+  if (contentLocked(s,'flare')) return 'locked';
   if (s.flare > 0) { s.flare = 0; return 'out'; }
   if (s.shared) return 'invalid';
   if (!canAfford(s.inv, FLARE_COST)) return 'materials';
@@ -30,7 +32,7 @@ export function useFlare(s) {
 
 // Burns the flare down by dt seconds of play; time away burns none.
 export function burnFlare(s, dt) {
-  if (s.flare > 0) s.flare = Math.max(0, s.flare - dt);
+  if (flareLit(s)) s.flare = Math.max(0, s.flare - dt);
 }
 
 // How far around you the land is uncovered, in tiles. In the dark a flare
@@ -39,7 +41,7 @@ export function burnFlare(s, dt) {
 // beside you. Older worlds always carry their lantern, shrinking with its
 // charge (light.js).
 export function sightRadius(s) {
-  const flare = s.flare > 0 && isDark(s) ? FLARE_LIGHT : 0;
+  const flare = flareLit(s) && isDark(s) ? FLARE_LIGHT : 0;
   if (s.cultivation && s.player.z < SURFACE && !s.cultivation.lantern) return Math.max(UNLIT_RADIUS, flare);
   return Math.max(exploreRadius(s) * lightScale(s), flare);
 }

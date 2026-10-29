@@ -1,3 +1,4 @@
+import {unlockOptional} from './helpers.js';
 /* Ore flares (core flare.js): made and lit in one go from metal, carried,
  * burning down; underground their light uncovers the rock, and in a crystal
  * world it cracks crystal like the lantern's (Watch, 2026-10-26). */
@@ -10,7 +11,7 @@ const cmd = (s, type, kind, x = 0, y = 0) => C.cultivationCommand(s, { type, kin
 const run = (s, secs) => { for (let i = 0; i < Math.round(secs * 4); i++) C.step(s, 0.25, { visualEvents: false }); };
 // A crystal world with the player down on layer `z`, a cleared site round them.
 function deep(z = -2, { cultivation = true } = {}) {
-  const s = C.createState(7, { cultivation });
+  const s = unlockOptional(C.createState(7, { cultivation }));
   s.tools.pickaxe = 3;
   for (const r of C.RESOURCES) C.earn(s, r, 300, 'hand');
   for (let y = -8; y <= 8; y++) for (let x = -8; x <= 8; x++) {

@@ -1,3 +1,4 @@
+import {unlockOptional} from './helpers.js';
 /* Placing and moving buildings (Watch, 2026-10-26): where a building fits,
  * whoever stands where, and moving one for free with all it holds. The
  * game's placement view (src/game/placing.js) only shows these rules. */
@@ -105,7 +106,7 @@ function deep() {
 const build = (s, kind, x, y) => { s.player.x = x + 0.5; s.player.y = y + 0.5; assert.equal(C.cultivationCommand(s, { type: 'build', kind, x, y }), 'ok'); return C.cultivationAt(s, x, y); };
 
 test('a crystal-world facility moves with what it holds, and a conduit keeps its chamber and vault', () => {
-  const s = deep();
+  const s = unlockOptional(deep());
   const room = build(s, 'chamber', 0, 0), vault = build(s, 'vault', 2, 0), pipe = build(s, 'conduit', 1, 0);
   room.buffer = 4;
   s.player.x = 0.5; s.player.y = 0.5;

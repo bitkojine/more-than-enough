@@ -877,3 +877,29 @@ Cooling, heat damage, tending injuries, wild-colony light sensitivity, exposed
 cargo damage, carrier protection and the stolen-heart requirements remain.
 Old open and closed saves load with their contents, health, quality, routes and
 restoration intact; retire only the obsolete facility flag. No format bump.
+
+### Focus the playable win route — decisions in progress, 2026-10-29
+
+Confirmed by the player: use the strict minimum needed to activate the machine;
+manual gathering supplies the win. Optional producer, support and storage
+systems (except heart shelters, kept for recovery) remain in the game and visibly locked for later progression. Propose
+meaningful provisional unlock requirements rather than a vague future label.
+Optional actions are locked even for previously earned items/buildings, but
+every building, stored resource, upgrade, route and completed world is kept.
+
+Resolved choices: machine activation unlocks optional systems for post-win play.
+Until then, optional producers, depots, vaults and conduits pause without losing
+stored output, routes or upgrades. Their optional interactions are also locked.
+The minimum kit keeps a lantern for readable exploration and heart shelters for
+recovery, including existing hearts too damaged to install. Shelter storage,
+healing and retrieval remain available throughout the chapter.
+
+Basket purchases and use, flares, reinforcement, ordinary producer/support
+buildings, vaults and conduits unlock after activation. Picks work through the
+starter tier (internal level 3) and boots through their first crafted water-walking
+tier (level 2); further upgrades unlock after activation. Higher earned tools
+remain saved but use the chapter's effective tier until then. Old inventory and
+buffers are never trimmed when a temporary capacity is lower. Completed and
+legacy worlds retain their appropriate progression; the focus applies to
+unfinished living-crystal worlds. Guidance asks for manual gathering, never a
+locked producer. All locks are canonical core checks shared with the UI.

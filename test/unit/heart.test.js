@@ -1,3 +1,4 @@
+import {unlockOptional} from './helpers.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
@@ -39,7 +40,7 @@ test('taking the heart needs a sealed carrier, which protects it from sunlight',
 });
 
 test('a shelter keeps the heart safe and mends it; a heart cracked through returns to the hiding place',()=>{
- const {s,h}=atHidingPlace();cmd(s,'craft','carrier');cmd(s,'heart',null,h.x,h.y);
+ const {s,h}=atHidingPlace();unlockOptional(s);s.cultivation.heart={where:'station',health:100};cmd(s,'craft','carrier');cmd(s,'heart',null,h.x,h.y);
  const at={x:h.x+1,y:h.y+1};assert.equal(cmd(s,'build','shelter',h.x,h.y),'occupied');assert.equal(cmd(s,'build','shelter',at.x,at.y),'ok');
  const shelter=C.cultivationAt(s,at.x,at.y,0);assert.equal(shelter.kind,'shelter');
  s.cultivation.heart.health=60;s.time=0;assert.equal(cmd(s,'heart',null,at.x,at.y),'ok');assert.equal(s.cultivation.heart.where,shelter.id);

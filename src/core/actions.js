@@ -1,3 +1,4 @@
+import { contentLocked, focusedChapter, effectiveToolLevel } from './progression.js';
 /* What the player does to the world: harvest tiles, collect from extractors,
  * and build. Every action works on the player's own layer. */
 
@@ -39,7 +40,7 @@ const rare = (k) => !!(k && MUSHROOMS[k].magic);
 // any will do. See GEAR.
 export function gearFor(s, x, y, z) {
   const type = tileAt(s.world, x, y, z);
-  if (TILE_INFO[type].solid && s.tools.pickaxe === 0) return { tool: 'pickaxe', level: 2 };
+  if (TILE_INFO[type].solid && effectiveToolLevel(s,'pickaxe') === 0) return { tool: 'pickaxe', level: 2 };
   if (GEAR.rock[type]) return { tool: 'pickaxe', level: GEAR.rock[type] };
   if (type === T.SHAFT) {
     const layer = SURFACE - z;
@@ -53,7 +54,7 @@ export function gearFor(s, x, y, z) {
 // The tool level tile (x, y) on your layer still needs, or null if you have it.
 export function gearNeeded(s, x, y) {
   const g = gearFor(s, x, y, s.player.z);
-  return g && s.tools[g.tool] < g.level ? g : null;
+  return g && effectiveToolLevel(s,g.tool) < g.level ? g : null;
 }
 
 // What reaching level `level` of tool `tool` opens, as door ids for the
@@ -267,6 +268,7 @@ export function sweepTargets(s, points) {
 /* ------------------------------------------------------------- collect */
 
 export function collectTarget(s, at = null) {
+  if (focusedChapter(s)) return null;
   const p = s.player;
   const index = tileIndex(s), found = [];
   // Before targeted collection was advertised, a c record emptied a 1.7-tile
@@ -417,6 +419,7 @@ function canBuildAt(s, key, x, y) {
 // shared world only once its room says it checks moves (s.roomMoves, set on
 // each welcome, src/game/together.js): an older room drops acts it doesn't know.
 export function moveExtractor(s, e, x, y) {
+  if (contentLocked(s,e?.key)) return {ok:false,reason:t('progression.requirement')};
   if ((s.shared && !s.roomMoves) || !s.extractors.includes(e) || e.z !== s.player.z || (e.owner && e.owner !== s.me)) return { ok: false, reason: t('reason.cantMove') };
   if (e.x === x && e.y === y) return { ok: inReach(s,x,y), x, y };
   if (!inReach(s, x, y) || !extractorFits(s, e.key, x, y, e)) return { ok: false, reason: t('reason.noSpot') };
@@ -436,6 +439,7 @@ export function moveExtractor(s, e, x, y) {
 export function place(s, key, at = null) {
   const def = EXTRACTORS[key];
   if (!def) return { ok: false, reason: t('reason.unknownBuilding') };
+  if (contentLocked(s,key)) return {ok:false,reason:t('progression.requirement')};
   if (def.depot && (!usesDepots(s) || s.shared || (!s.cultivation&&s.player.z!==SURFACE))) return {ok:false,reason:t('reason.depotUnavailable')};
   if (def.unlock && !s.unlocks[def.unlock]) return { ok: false, reason: t('reason.needUnlock', { name: UNLOCKS[def.unlock].name }) };
   if (at && !canBuildAt(s, key, at.x, at.y)) return { ok: false, reason: t('reason.noSpot') };

@@ -1,3 +1,4 @@
+import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 /* Costs, yields and production multipliers. */
 
 import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS, HAND_SHARE } from './content.js';
@@ -54,7 +55,7 @@ export function scaleCost(cost, factor) {
 // Level zero is bare hands/barefoot/base machinery: no owned item.
 // Level one is retained for legacy basic equipment; first crafting reaches two.
 export function toolStat(s, id) {
-  return TOOLS[id].levels[Math.max(0, s.tools[id] - 1)];
+  return TOOLS[id].levels[Math.max(0, effectiveToolLevel(s,id) - 1)];
 }
 
 // One gather of `res`: what the tool brings, plus HAND_SHARE seconds of your
@@ -107,6 +108,7 @@ export function productionMult(s, res) {
 
 // Passive per-second gain of each resource from the Abundance Engine.
 export function abundanceTrickle(s) {
+  if (focusedChapter(s)) return 0;
   return s.abundanceLv * legacyMult(s);
 }
 
@@ -145,7 +147,7 @@ export function supportTargets(s, at) {
   return out;
 }
 export function supportingBuilding(s, e) { return supportLayout(s).links.get(e) || null; }
-export function supportMult(s, e) { return e?.key === 'quarry' && supportingBuilding(s, e) ? EXTRACTORS.stoneworks.support.mult : 1; }
+export function supportMult(s, e) { return !focusedChapter(s) && e?.key === 'quarry' && supportingBuilding(s, e) ? EXTRACTORS.stoneworks.support.mult : 1; }
 export function supportGain(s, at) {
   return supportTargets(s, { key: 'stoneworks', z: s.player.z, owner: s.me || undefined, ...at })
     .filter(q => !supportingBuilding(s, q)).length * EXTRACTORS.quarry.rate * productionMult(s, 'stone');
@@ -153,6 +155,7 @@ export function supportGain(s, at) {
 
 export function extractorRate(s, key, instance = null) {
   const def = EXTRACTORS[key];
+  if (contentLocked(s,key)) return 0;
   return def.rate * productionMult(s, def.res) * supportMult(s, instance);
 }
 

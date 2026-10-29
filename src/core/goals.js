@@ -74,6 +74,7 @@ export const GOALS = [
 export const CULTIVATION_GOALS=[
  {id:'forage',text:t('cr.goal.start'),reached:t('goal.forage.reached'),done:s=>s.stats.foraged>0},
  {id:'pickaxe',text:t('goal.pickaxe'),reached:t('goal.pickaxe.reached'),buy:'pickaxe',done:s=>s.tools.pickaxe>=2},
+ // Retained for earned awards in old saves; never required by new guidance.
  {id:'garden',text:t('goal.garden'),reached:t('goal.garden.reached'),build:'garden',done:has('garden')},
  {id:'ore',text:t('cr.goal.metal'),reached:t('goal.ore.reached'),done:s=>s.discovered.ore||s.stats.ore>0},
  {id:'cultivationDeep',text:t('cr.goal.chamber'),reached:t('cr.deep'),done:s=>s.underground.deepest<=-2},
@@ -88,14 +89,14 @@ export const CULTIVATION_GOALS=[
 // on forever. A shared world has no Embark (Watch's choice: those are hidden
 // there), so its milestones end before "Master the world".
 export function goalsTotal(s) {
-  if(s.cultivation)return CULTIVATION_GOALS.length;
+  if(s.cultivation)return CULTIVATION_GOALS.length-(s.goalsDone.includes('garden')?0:1);
   return s.shared ? GOALS.findIndex((g) => g.id === 'master') : GOALS.length - 1;
 }
 
 // The milestones there are to reach in this world, in order: a crystal world
 // has its own list, a shared one stops before "Master the world", and a depot
 // world names Logistics as its depot.
-export const worldGoals = (s) => s.cultivation?CULTIVATION_GOALS:GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
+export const worldGoals = (s) => s.cultivation?CULTIVATION_GOALS.filter(g=>g.id!=='garden'||s.goalsDone.includes(g.id)):GOALS.slice(0, goalsTotal(s)).map(g=>usesDepots(s)&&g.id==='logistics' ? {...g,text:t('goal.depot'),reached:t('goal.depot.reached'),buy:undefined,build:'depot'} : g);
 
 // Marks every milestone that's now done, in any order, and keeps goalIndex as
 // how many are. Returns the goals just reached, in the order they're listed.

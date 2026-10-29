@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  "news.0.180.9": "Pašalintos statinių sklendės. Kameros, saugyklos ir mašina automatiškai saugo turinį nuo šviesos. Sodink, prižiūrėk ir perkelk nieko neatverdamas ir neužverdamas. Aušinimas lieka svarbus; atvirą krovinį saugok nešykle.",
   "news.0.180.8": "Versijos numeris kartu su rėmeliu ir tašku lieka auksinis, kol perskaitote leidimo aprašymą.",
   "news.0.180.7": "Pašalintos NAUJA žymos nuo valdiklių, gamybos ir statybos sąrašų bei leidimo aprašymų. Kainos ir galimi veiksmai tebėra matomi meniu.",
   "news.0.180.6": "Nustatymuose galite įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.",

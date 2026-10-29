@@ -526,3 +526,15 @@ sprite state. Chambers, vaults and the machine always show protected interiors.
 Plant, tend, collect, store, reinforce, repair and activate retain their normal
 contact rules. Cooling and cargo protection remain separate. Existing open or
 closed saves resume with their buildings and progress intact.
+
+Focused chapter (2026-10-29): unfinished crystal worlds show optional catalog
+entries with a shared monochrome lock and “Activate the machine to unlock.”
+Required underground construction comes first; later rows retain their artwork
+and purpose but show no actionable price or working purchase control. Equipment
+keeps picks, boots, lantern and carrier first; basket and flare entries stay
+visible but locked. Further tool upgrades are distinguished from usable earned
+starter tools. Disabled flare controls show a lock; the real core rejects its
+shortcut too. Locked existing producer/storage cards expose their retained
+contents and unlock condition without work or Move actions. Chamber
+reinforcement remains visible but locked. Shelters remain usable for recovery.
+Machine activation unlocks these systems without discarding any saved property.

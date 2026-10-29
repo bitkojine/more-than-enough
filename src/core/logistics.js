@@ -1,3 +1,4 @@
+import { focusedChapter } from './progression.js';
 /* Physical collection coverage. Derived once per layout; no per-tick scans. */
 import { economyForState } from './economy-context.js';
 import { EXTRACTORS } from './content.js';
@@ -34,10 +35,11 @@ export function depotTargets(s,at) {
 }
 export const depotFor = (s,e) => layout(s).served.get(e) || null;
 export function haulsBuilding(s,e) {
+  if (focusedChapter(s)) return false;
   if (e.owner && e.owner!==s.me) return false;
   return usesDepots(s) ? !!depotFor(s,e) : !!s.unlocks.logistics;
 }
-export const haulingEconomyAvailable = s => !s.shared && (usesDepots(s) || s.unlocks.logistics);
+export const haulingEconomyAvailable = s => !focusedChapter(s) && !s.shared && (usesDepots(s) || s.unlocks.logistics);
 export function depotGain(s,at) {
   if(!at)return 0;
   return depotTargets(s,{z:s.player.z,owner:s.me||undefined,...at}).filter(e=>!depotFor(s,e)).length;

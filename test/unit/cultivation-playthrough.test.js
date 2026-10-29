@@ -14,7 +14,7 @@ test('empty-handed cultivation world reaches activation through shipped movement
  assert.ok(Object.values(run.stages[0].inv).every(n=>n===0));assert.ok(run.trace.every(e=>!e.intent||e.result));
  const before=C.deserialize(run.activationSave),after=C.deserialize(run.save);assert.ok(before);assert.equal(C.canEmbark(before),false);assert.ok(C.canEmbark(after));
  assert.equal(C.nextGoal(after),null,'a completed world does not still ask the player to discover metal');
- assert.equal(after.cultivation.facilities.find(b=>b.kind==='machine').sections,3);assert.ok(after.extractors.some(b=>b.key==='garden'));assert.ok(after.extractors.some(b=>b.key==='quarry'));
+ assert.equal(after.cultivation.facilities.find(b=>b.kind==='machine').sections,3);assert.equal(after.extractors.length,0,'the focused route uses no optional producers');assert.ok(after.cultivation.facilities.every(b=>['chamber','cooler','machine'].includes(b.kind)));
 });
 
 // Every number a played world holds as a fraction (timers, charges, piles,
@@ -22,9 +22,15 @@ test('empty-handed cultivation world reaches activation through shipped movement
 // The long property sweep found one such slip only after a deploy (v0.171.1:
 // a flare almost burnt out); this finds that kind in a second, before one.
 test('a played world saves the same after loading, whatever fractions it holds',()=>{
- const lit=C.deserialize(run.activationSave);lit.inv.ore=(lit.inv.ore||0)+C.FLARE_COST.ore;assert.ok(C.useFlare(lit));C.burnFlare(lit,7.3);
+ const lit=C.deserialize(run.save);lit.inv.ore=(lit.inv.ore||0)+C.FLARE_COST.ore;assert.ok(C.useFlare(lit));C.burnFlare(lit,7.3);
  const old=C.createState(4242);for(let i=0;i<4000;i++)C.step(old,0.25);
- const states=[lit,C.deserialize(run.save),old];
+ // Later systems still belong to the save contract even though the focused
+ // journey no longer builds them. Include representative post-win fractions.
+ const expanded=C.deserialize(run.save),c=expanded.cultivation,room=c.facilities.find(b=>b.kind==='chamber');
+ expanded.extractors.push({key:'garden',res:'mycelium',x:900001,y:900001,z:0,buffer:1.2345});
+ const vault={kind:'vault',id:c.nextId++,x:900000,y:900000,z:-2,temperature:18.123,quality:83.456,buffer:12.345};
+ c.facilities.push(vault,{kind:'conduit',id:c.nextId++,x:900000,y:899999,z:-2,temperature:12.345,quality:100,buffer:0,from:room.id,to:vault.id});
+ const states=[lit,C.deserialize(run.save),expanded,old];
  const leaves=(o,path=[],out=[])=>{for(const [k,v] of Object.entries(o)){
   if(!path.length&&['world','acts','edits'].includes(k))continue;
   if(typeof v==='number')out.push([o,k,[...path,k].join('.')]);

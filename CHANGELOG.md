@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.181.0] - 2026-10-29
+
+- Focus unfinished living-crystal worlds on manual gathering and the machine
+  win route. Keep essential pick/boots tiers, lantern, carrier, chamber,
+  cooling and heart shelters available.
+- Show optional buildings, baskets, flares, reinforcement and further tool
+  upgrades behind visible locks with a machine-activation unlock requirement.
+  Enforce availability in pure shared core rules and the client.
+- Pause optional automation, heat, transfers and effective tool bonuses while
+  locked, preserving all earned equipment, stored contents, routes and upgrades.
+  Activation restores their functionality; legacy worlds keep prior rules.
+- Retain earned producer milestones without requiring locked construction.
+  Validate the focused fresh-world route, post-win unlock and save preservation.
+
 ## [0.180.9] - 2026-10-29
 
 - Remove manual shutters, their controls/state/art variant, and access or

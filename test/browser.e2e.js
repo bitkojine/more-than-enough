@@ -399,6 +399,15 @@ async function main() {
     eq(pageErrors.length,0,'fullscreen has no browser exceptions');
     console.log((failures?'FULLSCREEN BROWSER FAILURES':'FULLSCREEN BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_PROGRESSION_ONLY==='1'){
+    const {checkProgression}=await import('./progression.browser.js');
+    for(const lang of ['en','lt']){
+      await navigate('http://127.0.0.1:'+PORT+'/?lang='+lang+'&playtestReplay');
+      await checkProgression({evalJS,ok,eq,cdp,session,shot:name=>shot(lang+'-'+name),navigate:path=>navigate('http://127.0.0.1:'+PORT+'/'+path)});
+    }
+    eq(pageErrors.length,0,'chapter progression has no browser exceptions');
+    console.log((failures?'PROGRESSION BROWSER FAILURES':'PROGRESSION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_HUD_ONLY==='1'){
     await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
     const {checkHudLayout}=await import('./hud-layout.browser.js');

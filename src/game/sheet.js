@@ -7,7 +7,7 @@
  * reuses catalog descriptions; longer explanations remain in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmtRate, fmtMult, esc } from './format.js';
+import { fmt, fmtRate, fmtMult, esc, lockIcon } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t } from '../i18n/i18n.js';
 import { createStatement } from './statement.js';
@@ -103,6 +103,7 @@ const DESCRIBE = {
 };
 
 function upgradeRow(s, id) {
+  if (Core.toolPurchaseLocked(s,id)) return lockedRow('tool.'+id,'icon',Core.TOOLS[id].name+(id==='basket'?'':' · '+t('progression.furtherUpgrades')),Core.TOOLS[id].desc);
   const u = Core.UPGRADES[id];
   const artwork=pic(u.look,'icon',u.kind==='tool'&&['basket','pickaxe','boots'].includes(id)?Math.max(0,Math.min(s.tools[id]-1,Core.TOOLS[id].levels.length-2)):null);
   const d = DESCRIBE[u.kind](s, id);
@@ -129,13 +130,18 @@ function crystalButton(s, type, kind, label) {
   const p = s.player;
   return button(`data-kind="cultivation" data-action="${type}" data-id="${kind}" data-x="${Math.floor(p.x)}" data-y="${Math.floor(p.y)}"`, label, Core.canAfford(s.inv, Core.CULTIVATION_RECIPES[kind]));
 }
-const crystalRow = (s, kind, slot, btn) => row(pic(Core.CULTIVATION_LOOK[kind], slot), crystalName(kind), crystalName(kind + '.desc') + '<br>' + price(s.inv, Core.CULTIVATION_RECIPES[kind]), btn);
+export function lockedRow(lookId, slot, name, purpose) {
+  return row(pic(lookId,slot),esc(name),esc(purpose)+'<br><span class="unlockRequirement">'+t('progression.requirement')+'</span>',
+    `<button class="buy progressionLocked" disabled data-locked="${esc(lookId)}" aria-label="${esc(name+'. '+t('progression.locked')+'. '+t('progression.requirement'))}">${lockIcon}<span>${t('progression.locked')}</span></button>`);
+}
+const crystalRow = (s, kind, slot, btn) => Core.contentLocked(s,kind) ? lockedRow(Core.CULTIVATION_LOOK[kind],slot,crystalName(kind),crystalName(kind+'.desc')) : row(pic(Core.CULTIVATION_LOOK[kind], slot), crystalName(kind), crystalName(kind + '.desc') + '<br>' + price(s.inv, Core.CULTIVATION_RECIPES[kind]), btn);
 
 // Upgrades in a crystal world: the three tools, then the gear you craft.
 export function cultivationUpgradeRows(s) {
-  return ['basket', 'pickaxe', 'boots'].map((k) => upgradeRow(s, k)).join('') +
+  return ['pickaxe', 'boots'].map((k) => upgradeRow(s, k)).join('') +
     ['lantern', 'carrier'].map((k) => crystalRow(s, k, k === 'carrier' ? 'icon' : 'image',
-      s.cultivation.gear[k] ? doneButton(crystalName('owned')) : crystalButton(s, 'craft', k, t('sheet.craft')))).join('');
+      s.cultivation.gear[k] ? doneButton(crystalName('owned')) : crystalButton(s, 'craft', k, t('sheet.craft')))).join('') +
+    upgradeRow(s,'basket') + (Core.contentLocked(s,'flare') ? lockedRow('tool.flare','image',t('flare.name'),t('flare.does')) : '');
 }
 
 // Build in a crystal world places things; what a building beside you does
@@ -195,6 +201,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   }
 
   function extractorRow(s, key) {
+    if (Core.contentLocked(s,key)) return lockedRow('building.'+key,'image',Core.EXTRACTORS[key].name,t(({garden:'cr.bed.desc',quarry:'cr.quarry.desc',mine:'cr.mine.desc',stoneworks:'building.stoneworks.desc',depot:'building.depot.desc'})[key]));
     const def = Core.EXTRACTORS[key];
     if (def.depot && !Core.usesDepots(s)) return '';
     const count = Core.extractorCount(s, key);
@@ -232,7 +239,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     // Only what can stand on the layer you're on: nothing you'd have to go
     // up or down for, and no heading over an empty section.
     const here = (keys) => keys.filter((k) => Core.buildsOnLayer(s, k));
-    if(s.cultivation)return here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('')+cultivationBuildRows(s);
+    if(s.cultivation)return cultivationBuildRows(s)+here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('');
     const section = (title, rows) => rows ? `<div class="section">${t(title)}</div>` + rows : '';
     return section('sheet.section.extractors', here(Core.DEPOSIT_EXTRACTORS).map((k) => extractorRow(s, k)).join('')) +
       section('sheet.section.converters', here(Core.CONVERTERS).map((k) => extractorRow(s, k)).join('')) +
@@ -248,6 +255,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
       const action = ['chamber','vault'].includes(b.kind) && !b.reinforced ? 'reinforce'
         : b.kind === 'machine' && Core.machineRepairCost(b) ? 'repair' : null;
       if (!action) return '';
+      if (Core.contentLocked(s,action)) return lockedRow(Core.CULTIVATION_LOOK[b.kind],'image',t('hud.site',{name:crystalName(b.kind),x:b.x,y:b.y}),crystalName(action));
       const cost = action === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES.reinforce;
       const title = t('hud.site', { name: crystalName(b.kind), x: b.x, y: b.y });
       return row(pic(Core.CULTIVATION_LOOK[b.kind], 'image'), esc(title), price(s.inv, cost),
