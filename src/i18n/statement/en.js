@@ -1,8 +1,6 @@
 /* Earnings-only text, loaded with the panel. */
 export default {
   "ledger.unit.s": "/s",
-  "ledger.unit.min": "/min",
-  "ledger.unit.h": "/h",
   "ledger.productionNote": "Production happens at buildings; stock and packs are separate. Charts sample this device’s production on linear scales and real elapsed time. Gaps have no observations, not assumed output.",
   "ledger.packsStock": "Packs: {packs} · Waiting in buildings: {stock}",
   "ledger.stockNote": "Stored resources are separate from Mica’s packs. Collect them, or use available transport.",

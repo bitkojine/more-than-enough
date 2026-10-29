@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.181.2] - 2026-10-29
+
+- Show Earnings rates per second only; remove the unit selector, saved
+  preference handling, unused styles and minute/hour rate translations.
+
+
 ## [0.181.1] - 2026-10-29
 
 - Reconcile Earnings with living-crystal worlds: current production, waiting

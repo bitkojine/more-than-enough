@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Paleisk mašiną, kad tai atrakintum.",
   "progression.requirement": "Bus atrakinta paleidus mašiną.",
   "progression.locked": "Užrakinta",
+  "news.0.181.2": "Pajamose našumas rodomas tik per sekundę. Pašalintas minučių ir valandų pasirinkimas.",
   "news.0.181.1": "Pajamose atskirta gamyba, laukiantys ištekliai ir atsargos, įtrauktos kristalų kameros ir paaiškintos gamybos sustojimo priežastys. Registruojami tikri mokėjimai, senesnio turto įverčiai pažymėti. Pasiūlymai atitinka meniu, grafikuose matyti nulinė gamyba ir tikras laikas.",
   "news.0.181.0": "Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žybsnius ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; slėptuvės lieka prieinamos širdžiai gydyti.",
   "fullscreen.label": "Visas ekranas",

@@ -1,8 +1,6 @@
 /* Earnings-only text, loaded with the panel. */
 export default {
   "ledger.unit.s": "/s",
-  "ledger.unit.min": "/min",
-  "ledger.unit.h": "/val.",
   "ledger.productionNote": "Gamyba vyksta statiniuose; jų ištekliai ir atsargos atskirti. Šiame įrenginyje matuojamos gamybos grafiko skalės tiesinės, laikas tikras. Tarpai reiškia, kad matavimų nėra, o ne numanomą gamybą.",
   "ledger.packsStock": "Atsargos: {packs} · Statiniuose laukia: {stock}",
   "ledger.stockNote": "Statiniuose saugomi ištekliai nepriklauso Micos nešamoms atsargoms. Surink juos arba naudok prieinamą transportą.",

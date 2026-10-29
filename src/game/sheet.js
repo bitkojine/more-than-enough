@@ -320,7 +320,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     if(statementAttempts++)url.searchParams.set('retry',String(statementAttempts));
     return statementLoading=import(url.href).then(({createStatement})=>{
       statement=createStatement({look,pic,icon,price,row,income});
-      statement.attach(el.sheetBody,{rerender:()=>render(),go:next=>setTab(next)});
+      statement.attach(el.sheetBody,{go:next=>setTab(next)});
       if(open && tab==='statement'){render();highlightResource(statementResource);}
     },error=>{
       statementLoading=null;statementError=String(error);

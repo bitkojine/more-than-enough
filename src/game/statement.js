@@ -9,17 +9,6 @@ import en from '../i18n/statement/en.js';
 import lt from '../i18n/statement/lt.js';
 addStrings({en,lt});
 
-// Per second, minute or hour: the switch at the top, kept on this phone.
-export const UNITS = { s: 1, min: 60, h: 3600 };
-const UNIT_STORE = 'mte.statementUnit';
-// Some private modes throw on merely touching localStorage.
-function savedUnit() {
-  try { const u = globalThis.localStorage?.getItem(UNIT_STORE); return Object.hasOwn(UNITS, u) ? u : 's'; } catch { return 's'; }
-}
-function saveUnit(unit) {
-  try { globalThis.localStorage?.setItem(UNIT_STORE, unit); } catch { /* blocked: per second next time */ }
-}
-
 const BEST_SHOWN = 6;
 
 // How soon something pays back: "40 s", "12 min", "2 h 5 min", "3 d 4 h".
@@ -35,16 +24,9 @@ export function fmtPayback(sec) {
 // `pic(id, slot)`, `icon(res)`, `price(have, cost)` and `row(...)` are the
 // sheet's own, so the statement looks like every other list.
 export function createStatement({ look, pic, icon, price, row, income }) {
-  let unit = savedUnit();
-
-  const rate = (perSecond) => fmtRate(perSecond * UNITS[unit]) + t('ledger.unit.' + unit);
+  const rate = (perSecond) => fmtRate(perSecond) + t('ledger.unit.s');
   const cost = (c) => `<span class="price ready">${Object.keys(c).filter((r) => c[r] > 0).map((r) =>
     `<span class="amt spent" style="--res:${look.color(Core.resourceLook(r))}">${icon(r)}<span class="n">${fmt(c[r])}</span></span>`).join('')}</span>`;
-
-  function units() {
-    return '<div class="units" role="group">' + Object.keys(UNITS).map((u) =>
-      `<button type="button" class="unit${u === unit ? ' on' : ''}" data-unit="${u}" aria-pressed="${u === unit}">${t('ledger.unit.' + u)}</button>`).join('') + '</div>';
-  }
 
   // Sampled production on linear axes, retaining zeroes and real elapsed time.
   function chart(s, res) {
@@ -69,7 +51,7 @@ export function createStatement({ look, pic, icon, price, row, income }) {
     const area=segments.map(p=>p.line+`V${H}H${p.start.toFixed(1)}Z`).join('');
     const data = points.map((p, i) => [+(xs[i] / span).toFixed(4), p.rate, p.at]);
     const color = look.color(Core.resourceLook(res));
-    return `<div class="chart" style="--res:${color}" data-points='${JSON.stringify(data)}' data-unit="${unit}">` +
+    return `<div class="chart" style="--res:${color}" data-points='${JSON.stringify(data)}'>` +
       `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true"><path class="area" d="${area}"/><path class="line" d="${d}"/></svg>` +
       `<span class="y hi">${rate(hi)}</span><span class="y lo">${rate(lo)}</span>` +
       `<span class="x from">${t('ledger.elapsedAgo', { time: fmtPayback(span / 1000) })}</span><span class="x now">${t('ledger.now')}</span>` +
@@ -158,7 +140,7 @@ export function createStatement({ look, pic, icon, price, row, income }) {
 
   function render(s) {
     const inc = Core.incomeStatement(s);
-    let html = units() + `<p class="statementNote">${t('ledger.productionNote')}</p><div class="section">${t('ledger.income')}</div>`;
+    let html = `<p class="statementNote">${t('ledger.productionNote')}</p><div class="section">${t('ledger.income')}</div>`;
     for (const r of Core.RESOURCES) html += incomeSection(s,r,inc[r]);
     html += bestBuys(s) + account(s);
     html += `<p class="statementNote">${t(s.spending?.complete?'ledger.fullRecord':'ledger.partialRecord')}</p>`;
@@ -218,9 +200,8 @@ export function createStatement({ look, pic, icon, price, row, income }) {
   return {
     render,
     hide,
-    // Wires the statement's own controls into the sheet body: the unit
-    // switch (re-render), Best buys' buttons (`go(sheet)`), the charts' tips.
-    attach(body, { rerender, go }) {
+    // Wires investment links and chart inspection into the sheet body.
+    attach(body, { go }) {
       cross = document.createElement('i');
       tip = document.createElement('span');
       cross.className = 'chartCross'; // i18n-ok: class names
@@ -231,8 +212,7 @@ export function createStatement({ look, pic, icon, price, row, income }) {
       body.addEventListener('click', (e) => {
         const b = e.target.closest && e.target.closest('button');
         if (!b) return;
-        if (b.dataset.unit) { unit = b.dataset.unit; saveUnit(unit); rerender(); }
-        else if (b.dataset.goto) go(b.dataset.goto);
+        if (b.dataset.goto) go(b.dataset.goto);
       });
       body.addEventListener('pointermove', (e) => {
         const c = e.target.closest && e.target.closest('.chart[data-points]');

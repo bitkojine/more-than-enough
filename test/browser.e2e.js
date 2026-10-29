@@ -1352,10 +1352,8 @@ async function main() {
   var stoneChip = await rect('.chip[data-res=stone]');
   await tap(stoneChip.x, stoneChip.y);
   ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Earnings" && !!document.getElementById("col-stone")', 1500), 'tapping a resource counter opens the earnings statement');
-  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .colHead").length === 4 && !!document.querySelector("#sheetBody .units") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'the statement has a section per resource, the unit switch and a collapsed mushroom catalogue');
-  await evalJS('document.querySelector("#sheetBody .unit[data-unit=h]").click()');
-  ok(await waitFor('document.querySelector("#sheetBody .unit[data-unit=h]").classList.contains("on")', 1000), 'the statement switches to per hour');
-  await evalJS('document.querySelector("#sheetBody .unit[data-unit=s]").click()');
+  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .colHead").length === 4 && !document.querySelector("#sheetBody .units") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'the statement has a section per resource, per-second rates and a collapsed mushroom catalogue');
+
   await evalJS('document.getElementById("btnClose").click()');
   eq(await evalJS('document.querySelectorAll("#thumbDock .btn").length'), 7, 'Gather, Perfect, lantern, flare, build, upgrade and mine share the thumb dock');
   // Sound: the context exists from load, and the first gesture of any kind

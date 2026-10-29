@@ -40,6 +40,7 @@ export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,na
     const before=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
     await evalJS('document.querySelector("#resources .chip[data-res=crystal]").click()');
     ok(await waitFor('document.querySelectorAll("#sheetBody .colHead").length===4&&!!document.querySelector("#sheetBody details.mushroomCollection:not([open])")',2000),'Earnings retains four resource sections and a collapsed collection at '+width);
+    ok(await evalJS('!document.querySelector("#sheetBody [data-unit],#sheetBody .units")&&document.querySelector("#col-crystal .headRate").textContent.includes("/s")'),'Earnings only shows per-second rates');
     ok(await evalJS('!document.querySelector("#sheetBody [data-goto]")'),'unfinished worlds have no unavailable investment links');
     ok(await evalJS('document.querySelector("#sheetBody").textContent.includes("18")&&document.querySelector("#sheetBody").textContent.includes("12")'),'Earnings includes chamber conditions and locked vault stock');
     ok(await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())')===before,'opening Earnings changes no saved gameplay');
