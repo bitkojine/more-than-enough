@@ -49,7 +49,7 @@ jobs:
       - name: Stage the site
         run: npm run stage
 
-      - name: Check light and foreground compositing
+      - name: Check rendering, HUD and fullscreen
         env:
           CHROME_PATH: /usr/bin/google-chrome
           MTE_SITE: site

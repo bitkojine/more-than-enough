@@ -11,6 +11,7 @@ import { createAudio } from './audio.js';
 import { sceneFor } from './music/score.js';
 import { createEffects } from './effects.js';
 import { createHudLayout } from './hud-layout.js';
+import { createFullscreen } from './fullscreen.js';
 import { createHud } from './hud.js';
 import { createTooltips } from './tooltips.js';
 import { createWiki } from './wiki.js';
@@ -511,6 +512,10 @@ const hudLayout = createHudLayout({ el, messages,
   beforeOpen: () => { sheet.close(); card.close(); },
   openCrafting: () => sheet.show('upgrades'),
   openPerformance: () => { el.performanceDetails.textContent = el.perf.textContent; sheet.show('performance'); }
+});
+const fullscreen = createFullscreen({ button: el.fullscreen, state: el.fullscreenState, hint: el.fullscreenHint,
+  changed: () => { resize(); hudLayout.invalidate(); hudLayout.tick(); },
+  report: error => problems.crumb('fullscreen: ' + String(error?.stack || error)) // i18n-ok: developer diagnostic breadcrumb.
 });
 el.depth.addEventListener('click', () => mapView.button());
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
@@ -1030,6 +1035,7 @@ window.MTE_GAME = {
   wiki,
   messages,
   hudLayout,
+  fullscreen,
   project: (x, y, h) => cam.project(x, y, h),
   unproject: (sx, sy) => cam.unproject(sx, sy)
 };

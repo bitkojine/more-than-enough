@@ -837,3 +837,23 @@ can stay open. Messages and preview anchors stay fixed in either case; no
 component is positioned from another component's open card bounds.
 No warning opens the tray. Immediate actions and group buttons retain their
 slots across compaction; viewport changes adapt dimensions, not their order.
+
+
+### Fullscreen — confirmed, 2026-10-29
+
+- Settings includes a full-screen control for the whole client: the world,
+  HUD, menus and dialogs. The actual browser state determines its on/off value.
+- Enter only through an explicit user gesture. Do not persist or automatically
+  restore fullscreen, reload the world or change game rules on entry/exit.
+- Support standard and prefixed Safari fullscreen APIs. Browser-initiated exits
+  update Settings. Permission failures remain recoverable and explain the issue.
+- Support all four orientations and available viewport sizes without locking
+  orientation; keep existing safe-area and responsive-layout behavior. The
+  installed-app manifest explicitly allows any orientation.
+- Platforms may forbid webpage fullscreen: current iPhone Safari is one. Keep
+  the Settings entry useful with Home Screen/install instructions instead of
+  pretending to fullscreen. Installed or system-controlled views explain their
+  controls; the webpage cannot force those modes to exit.
+- Browser compatibility reference: [MDN browser-compat-data](https://github.com/mdn/browser-compat-data/blob/main/api/Element.json),
+  `requestFullscreen` (checked 2026-10-29): Safari on iOS
+  supports it on iPad, with a system exit overlay, but not on iPhone.

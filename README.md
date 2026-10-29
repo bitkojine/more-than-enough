@@ -68,6 +68,18 @@ Settlement contents, overlapping groups, and cached layout work. The deploy
 runs it alongside rendering checks. `test:layout` separately checks the wider
 set of menus, placement, dialogs and shared-world crowds.
 
+Fullscreen has a separate bounded real-browser check:
+
+```sh
+CHROME_PATH=/path/to/chromium MTE_FULLSCREEN_ONLY=1 npm run test:e2e
+```
+
+It enters/exits through Settings, rotates through all four orientations at
+phone/tablet/desktop sizes, checks fallback help and preserves the serialized
+world. Native tests run in Chromium; unit tests cover prefixed Safari APIs,
+unsupported/installed modes, rejected requests and external exits. CI runs
+this alongside the rendering and HUD gate.
+
 Current-world end-to-end playtests use the manual-action strategy, not legacy
 AUTO (which is disabled in cultivation worlds). Reserve fresh seeds in the same
 archive as other playtests:

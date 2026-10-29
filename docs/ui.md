@@ -112,6 +112,22 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 - **Narrow phones** (under 375px): resource chips stack picture over count without rates, and the cluster is a little smaller so Invite keeps clear of Build.
 - **Checking it**: `npm run test:layout` opens the real game at 12 screen sizes in both languages, through the HUD, underground, every sheet and every dialog, a shared world full to its 100 players (chips and the Players screen) and a world with absurd numbers (the counts in scientific form, the Gather plate at its widest), and fails on overlapping or off-screen buttons, small targets, cut-off words, squashed rows, a plate shrunk to a smudge and dialog buttons out of view. Run it after any change to the layout.
 
+### Fullscreen
+
+Settings → Full screen (`src/game/fullscreen.js`) toggles the whole document,
+including the HUD and menus. It uses the standard API or prefixed Safari API
+from the original gesture. The button reads actual browser state and updates
+on browser exits; pending requests cannot be duplicated. Errors remain inline
+and recoverable, with diagnostic breadcrumbs. No fullscreen preference is
+saved and no orientation is locked. Fullscreen/display-mode events refresh the
+existing viewport layout; safe-area insets stay in force.
+
+Where webpage fullscreen is unavailable, the same entry opens localized help.
+For iPhone Safari it explains Share → Add to Home Screen and launching the saved
+icon. Installed and system-managed views explain their platform controls
+instead of presenting a fake native on/off toggle. Help wraps and scrolls inside
+Settings on small portrait and landscape screens.
+
 ### Equipment, Settlement and Beyond
 - **Dedicated entrances, no tab bar** (Watch, 2026-10-28): Equipment → Craft opens the Equipment list; Settlement opens construction and improvements; the trophy opens Awards. Each sheet always displays its own localized title. The internal screen keys stay compatible with saved seen-offer history.
 - **Beyond** has a dedicated Settings row only once unlocked in a solo world. Back returns to Settings. The legacy progression family's existing shortcut remains available and returns to the menu it came from.
@@ -182,7 +198,7 @@ stored seen-offer history, migrating settlement discoveries without new spam.
 
 ### What's new
 - **Never a dialog.** Updates never stop play: the game updates itself at once (`src/game/update.js`) and nothing pops up (Watch, 2026-10-19).
-- **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label as one unit, the label a few pixels beneath the gear. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. The compact label shows the full version number without a redundant prefix, leaving room for wider system fonts. A gold dot is overlaid, never added to the label's width, and painted above the pill so its rounded corner cannot cut into it. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot stays on it until the player looks. Reduced motion gets the glow only.
+- **The version has a permanent slot** (Watch, 2026-10-28): the top-bar Settings column owns the gear and its changelog label as one unit, the label a few pixels beneath the gear. The label fits the gear's 44px width inside a full 44px touch target, using the shared `--hud-icon-size` token. The compact label shows the full version number without a redundant prefix, leaving room for wider system fonts. A gold dot is overlaid, never added to the label's width, and painted above the pill so its rounded corner cannot cut into it. Solar status, optional metadata, menu opening and compaction cannot move or hide it. Players and developers always know which version is running. After an update (in the tab, or coming back on a newer version) the old number rolls up and away, the new one rolls in and glows gold for a moment, then a gold dot and gold contour stay on it until the player looks. The contour overlays the rolling labels inside the visible pill, below the dot; the larger touch target stays unchanged. Reduced motion gets the glow only.
 - **Tapping it opens What's new**, a sheet like Settings: *Share an idea* (the repo's GitHub issues) on top, then every release's player notes, newest first, the one being played labelled, the ones not yet seen marked *New* and outlined in gold; at the bottom a link to the technical `CHANGELOG.md` on GitHub. Opening it counts as seen. A first ever start has nothing new. The version also stays on Nerds. Every release adds its version to `NEWS` in `src/game/news.js` and its notes as `news.<version>` in both dictionaries: what a player will notice, one line each, in plain words.
 
 ### Empty-handed starts and equipment

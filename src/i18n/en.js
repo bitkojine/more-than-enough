@@ -2,7 +2,16 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.180.5": "The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.",
+  "news.0.180.6": "Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.",
+  "fullscreen.label": "Full screen",
+  "fullscreen.changing": "Changing…",
+  "fullscreen.unsupported": "Help",
+  "fullscreen.app": "App view",
+  "fullscreen.system": "System",
+  "fullscreen.unsupportedHelp": "This browser cannot fullscreen a webpage. On iPhone, open the game in Safari, choose Share → Add to Home Screen, then launch the saved icon. Elsewhere, use the browser’s fullscreen controls or install the game from its menu.",
+  "fullscreen.appHelp": "The game is already open as an installed app, without browser tabs or an address bar. Use system controls to leave this app view.",
+  "fullscreen.systemHelp": "Your browser or system controls this fullscreen view. Use its fullscreen control to leave it.",
+  "fullscreen.failed": "Your browser could not change fullscreen. Try again, or use its own fullscreen control.",
   "hud.equipment": "Equipment",
   "hud.settlement": "Settlement",
   "hud.improvements": "Improve existing buildings",

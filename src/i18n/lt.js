@@ -2,7 +2,16 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  "news.0.180.5": "Auksinis taškas, žymintis naują versiją, dabar matomas visas ant versijos juostelės, o ne nukirptas jos kampe.",
+  "news.0.180.6": "Nustatymuose galite įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.",
+  "fullscreen.label": "Visas ekranas",
+  "fullscreen.changing": "Keičiama…",
+  "fullscreen.unsupported": "Pagalba",
+  "fullscreen.app": "Programėlė",
+  "fullscreen.system": "Sistema",
+  "fullscreen.unsupportedHelp": "Ši naršyklė negali atverti tinklalapio per visą ekraną. „iPhone“ įrenginyje atverkite žaidimą per „Safari“, pasirinkite Bendrinti → Įtraukti į pradžios ekraną ir paleiskite išsaugotą piktogramą. Kitur naudokite naršyklės viso ekrano valdiklį arba įdiekite žaidimą per jos meniu.",
+  "fullscreen.appHelp": "Žaidimas jau atvertas kaip įdiegta programėlė, be naršyklės kortelių ir adreso juostos. Norėdami išeiti iš šio rodinio, naudokite sistemos valdiklius.",
+  "fullscreen.systemHelp": "Šį viso ekrano rodinį valdo naršyklė arba sistema. Norėdami išeiti, naudokite jos viso ekrano valdiklį.",
+  "fullscreen.failed": "Naršyklė negalėjo pakeisti viso ekrano režimo. Bandykite dar kartą arba naudokite jos viso ekrano valdiklį.",
   "hud.equipment": "Įranga",
   "hud.settlement": "Gyvenvietė",
   "hud.improvements": "Gerinti esamus pastatus",

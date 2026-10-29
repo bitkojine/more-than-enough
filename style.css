@@ -111,6 +111,12 @@ canvas#game {
   position: relative; width: 100%; overflow: hidden;
   border-radius: var(--r-pill); background: rgba(10, 14, 12, 0.35);
 }
+/* Unread status belongs to the visible pill, not its larger touch target.
+   Paint the ring over the clipped rolling labels; keep the dot above both. */
+#btnVersion.fresh .pill::after {
+  content: ''; position: absolute; inset: 0; z-index: 1;
+  border: 1px solid var(--gold); border-radius: inherit; pointer-events: none;
+}
 #btnVersion .now, #btnVersion .was { display: block; width: 100%; padding: 4px 0; }
 #btnVersion .was { position: absolute; left: 0; top: 0; opacity: 0; }
 /* The dot sits on the pill's top-right corner, so it must paint above it:
@@ -982,6 +988,8 @@ body.signing #zoomControls { visibility: hidden; }
   touch-action: manipulation; cursor: pointer;
 }
 .setRow[hidden], .setGroup[hidden] { display: none; }
+.settingsHint { margin: 0; padding: 8px 16px 14px; color: var(--ink-dim); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.settingsHint[hidden] { display: none; }
 .setRow + .setRow { border-top: 1px solid var(--panel-line); }
 .setRow:active { background: var(--raised); }
 .setRow b {

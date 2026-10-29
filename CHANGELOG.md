@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.180.6] - 2026-10-29
+
+- Add Settings → Full screen for the entire game, with browser-exit synchronization,
+  unrestricted orientation, recoverable errors and Home Screen guidance where
+  native webpage fullscreen is unavailable.
+- Restore a persistent gold border on unread release notes. Draw the contour
+  over the rolling version text and below its notification dot without changing
+  the pill size or touch target. Cover both states in the browser gate.
+
 ## [0.180.5] - 2026-10-29
 
 - Paint the news dot above the version pill. The dot shares the pill's

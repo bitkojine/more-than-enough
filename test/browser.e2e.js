@@ -390,6 +390,15 @@ async function main() {
     eq(pageErrors.length,0,'fallback has no runtime errors');await shot('no-webgl-fallback.png');
     console.log((failures?'FALLBACK BROWSER FAILURES':'FALLBACK BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_FULLSCREEN_ONLY==='1'){
+    await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
+    const {checkFullscreen}=await import('./fullscreen.browser.js');
+    await checkFullscreen({evalJS,waitFor,ok,eq,cdp,session,tap,rect,shot});
+    await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
+    await checkFullscreen({evalJS,waitFor,ok,eq,cdp,session,tap,rect,shot:name=>shot('lt-'+name)});
+    eq(pageErrors.length,0,'fullscreen has no browser exceptions');
+    console.log((failures?'FULLSCREEN BROWSER FAILURES':'FULLSCREEN BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_HUD_ONLY==='1'){
     await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
     const {checkHudLayout}=await import('./hud-layout.browser.js');
