@@ -933,3 +933,11 @@ placement and contact rules apply: solar on water, wheel on a river, stand
 beside the charger, ten seconds from empty to full, solar by day and wheel
 at any hour. They were unintentionally omitted by the crystal-world menu
 early return in commit 560abcf; charging was never deliberately retired.
+
+### Opt-in performance warnings (2026-10-29)
+
+Developer diagnostics automatically open a compact, non-pausing card when
+performance degrades, only while diagnostics are enabled. The player can
+collapse it into a pill; a new cause or significantly worse slowdown may
+reopen it. Keep measurements and smaller observations available for debugging
+in both languages. This tool changes no simulation rules or saved progress.

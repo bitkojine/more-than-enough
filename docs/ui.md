@@ -31,7 +31,8 @@ The compact card has an Equipment heading, charge status and a quiet, labeled
 Close control in its header. Dismissal never occupies an equipment slot. Actual
 equipment actions sit below; Craft is a separate navigation row with a basket
 and chevron. On short landscape screens Craft sits beside the equipment actions
-so every control remains reachable without scrolling. Targets remain at least
+so every control normally remains reachable without scrolling. Opt-in
+diagnostics may require the bounded scrolling exception described below. Targets remain at least
 44 pixels, including Close. The active Equipment button is highlighted and
 toggles the card closed. Escape, phone/browser Back and outside input also
 close it; on roomy screens, interacting with the left message log preserves
@@ -40,8 +41,8 @@ Equipment on Close/Escape.
 
 Collapse order is performance details → friend names → secondary world-status
 details → expanded Messages. Compaction is based on available room, never on
-warning urgency. Performance's compact line opens full details in the shared
-sheet; folded friend chips retain the accurate player count and their Players
+warning urgency. Performance's pill opens its compact diagnostic card, whose
+Inspect action opens live details in the shared sheet; folded friend chips retain the accurate player count and their Players
 link; the layer label opens the map. Automatic message compaction preserves the
 saved open/folded choice and still permits explicit opening. Compact screens
 start with compact status, and Equipment and the expanded log share disclosure
@@ -546,3 +547,44 @@ shortcut too. Locked existing producer/storage cards expose their retained
 contents and unlock condition without work or Move actions. Chamber
 reinforcement remains visible but locked. Shelters remain usable for recovery.
 Machine activation unlocks these systems without discarding any saved property.
+
+### Performance diagnostics
+
+Performance is opt-in through Settings → Nerds, F3 or `?perf`. The device remembers
+the switch. Disabled diagnostics never automatically open. Enabling loads the
+tool and its translations separately from normal startup. A failed optional
+load leaves gameplay running and can be retried by switching off/on.
+
+The stable pill expands to a compact warning card without pausing the game or
+moving Messages/Equipment. Actual sustained lag automatically opens that card
+only when diagnostics are enabled. Collapse acknowledges the measured cause;
+only a new cause or a slowdown more than 1.5 times as severe reopens it.
+Warnings and smaller observations remain in bounded history.
+
+Frame pacing is compared with the actual 60/30 FPS desktop or 30/10 FPS phone
+active/idle target. Startup, changed pacing and hidden/picker time get a fresh
+one-second settling period. Visible hitches still count. Sustained frames
+more than 12% over budget, measured work exceeding the budget, or hitches
+longer than both 100 ms and three frame budgets raise warnings. Individual
+phase costs above both 2 ms and 10% of the budget create smaller observations.
+
+Live details show average, 95th percentile and worst frame times over the
+last two seconds; exclusive
+simulation, UI/view, scene, terrain, standing objects, lighting, effects and
+other-drawing CPU times; diagnostics display overhead; rendering dimensions,
+quality, audio state, available device memory/cores, layer, seed, position,
+daylight and zoom. Nested rendering is subtracted from its parent. Browser
+layout, GPU work and operating-system scheduling are not directly measured;
+slow frames with little measured work are labelled unattributed.
+
+At most 600 frame samples, 60 one-second graph points and 20 observations
+are retained in memory. Copy report includes the version/build, device,
+context and preceding graph points captured with each observation. Nothing
+is uploaded automatically and no world state is modified. The display updates
+at most four times a second. English and Lithuanian use wrapping layout rows,
+not whitespace-padded labels; compact cards scroll inside the viewport.
+
+When diagnostics and other metadata fill a short screen, the Equipment card
+keeps its bottom anchor and caps its scrollable height below the metadata's
+measured bottom edge. This prevents the larger diagnostic pill overlapping
+Equipment without shifting Messages or shrinking touch targets.

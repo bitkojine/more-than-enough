@@ -296,23 +296,8 @@ canvas#game {
   .chip .rate { display: none; }
 }
 
-/* Performance panel: F3, or ?perf in the address. */
-#perf {
-  align-self: flex-end;
-  margin: 0;
-  padding: 7px 9px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-left: 3px solid var(--green);
-  border-radius: 8px;
-  background: rgba(8, 12, 10, 0.82);
-  color: #d6e4d3;
-  font: 10.5px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
-  white-space: pre;
-  pointer-events: none;
-}
+/* Opt-in diagnostics: the disclosure lives in the metadata row. */
 #perf[hidden] { display: none; }
-#perf[data-grade="ok"] { border-left-color: var(--gold); }
-#perf[data-grade="bad"] { border-left-color: #ff5a5a; }
 
 /* Underground: which layer you're on ("Layer 3"), and the layers as a
    column under it: the forest on top in green, every layer you've been down
@@ -1346,14 +1331,10 @@ a.setRow { text-decoration: none; }
 #hudMeta { min-width: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: flex-start; gap: 4px 6px; }
 #hudMeta #sunTime { align-self: auto; margin: 0; }
 #hudMeta #friends { flex: 1 0 100%; max-width: 100%; margin: 0; }
-#hudMeta #perf { flex: 1 0 100%; min-width: 0; max-width: 100%; margin: 0; cursor: pointer; pointer-events: auto; }
+#hudMeta #perf { position: relative; flex: 0 1 auto; min-width: 0; max-width: 100%; margin: 0; pointer-events: auto; }
 #depthMeter { position: static; display: flex; flex-direction: column; align-items: center; gap: 6px; }
 #depth { font: inherit; min-height: 44px; pointer-events: auto; touch-action: manipulation; cursor: pointer; }
 #mapLayer { margin: 0; }
-body[data-hud-level="1"] #hudMeta #perf, body[data-hud-level="2"] #hudMeta #perf,
-body[data-hud-level="3"] #hudMeta #perf, body[data-hud-level="4"] #hudMeta #perf {
-  flex: 0 1 150px; height: 28px; line-height: 18px; padding: 4px 7px; white-space: pre; overflow: hidden;
-}
 body[data-hud-level="2"] #hudMeta #friends,
 body[data-hud-level="3"] #hudMeta #friends,
 body[data-hud-level="4"] #hudMeta #friends { flex: 0 1 auto; }
@@ -1370,7 +1351,7 @@ body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { dis
   bottom: var(--equipment-bottom);
   display: flex; flex-direction: column; gap: 8px;
   width: min(300px, calc(100vw - var(--edge-l) - var(--edge-r) - 64px));
-  max-height: calc(100dvh - var(--equipment-bottom) - var(--hud-topbar-end, 100px) - 8px); overflow: auto;
+  max-height: calc(100dvh - var(--equipment-bottom) - var(--hud-meta-end, 100px) - 8px); overflow: auto;
   padding: 8px 12px 12px; border: 1px solid var(--panel-line); border-radius: 16px;
   background: var(--panel); box-shadow: var(--shadow-1); pointer-events: auto;
 }
@@ -1396,7 +1377,7 @@ body[data-hud-level="3"] #depthGauge, body[data-hud-level="4"] #depthGauge { dis
 #equipmentTray:not(:has(.equipmentActions > button:not([hidden]))) #btnEquipmentCraft { grid-column: 1 / -1; }
 #btnUpgrade[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--gold); }
 #logBubble .msg { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-#performanceDetails { padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; }
+#performanceDetails { padding: 12px; overflow-wrap: anywhere; font-size: 13px; }
 body.placing #depthGauge { display: none; }
 .bcard.placing { max-height: calc(100dvh - var(--hud-top-end, 100px) - var(--edge-b) - 12px); overflow-y: auto; }
 @media (min-height: 501px) and (max-height: 600px) {
@@ -1462,3 +1443,22 @@ body.placing #depthGauge { display: none; }
 .mushroomCollection { margin-top: 16px; }
 .mushroomCollection > summary { padding: 12px 4px; cursor: pointer; font-weight: 700; }
 .statementRate { display: block; margin-top: 3px; color: var(--green); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+/* Diagnostics has its own anchored disclosure; it never shifts Messages. */
+#perf button, .perfCard button, .perfCopy { min-height: 44px; border: 1px solid var(--panel-line); border-radius: 14px; background: var(--panel); color: var(--ink); padding: 8px 12px; font: 600 12px/1.35 system-ui; cursor: pointer; touch-action: manipulation; }
+#perf .perfPill { min-height: 44px; max-width: 100%; border-radius: 24px; overflow-wrap: anywhere; }
+#perf[data-grade="ok"] .perfPill { border-color: var(--gold); }
+#perf[data-grade="bad"] .perfPill { border-color: #ff867d; color: #ffb9a8; }
+.perfCard { position: fixed; z-index: 24; top: var(--hud-top-end, 140px); right: var(--edge-r); width: min(300px, calc(100vw - 32px)); max-height: max(80px, calc(100dvh - var(--hud-top-end, 140px) - 16px)); overflow: auto; border: 1px solid var(--panel-line); border-radius: 18px; padding: 12px; background: var(--panel); box-shadow: var(--shadow-1); font: 13px/1.45 system-ui; }
+.perfCard[hidden] { display: none; }
+.perfCard p { margin: 8px 0; overflow-wrap: anywhere; }
+.perfGraph { width: 100%; height: 52px; display: block; }
+.perfActions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.perfStats { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px 12px; }
+.perfStats dt, .perfStats dd { margin: 0; overflow-wrap: anywhere; }
+.perfStats dd { text-align: right; font-variant-numeric: tabular-nums; }
+.perfPhase { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 3px 12px; padding: 8px; border-bottom: 1px solid var(--panel-line); background: linear-gradient(to right, #80cc7022 var(--cost), transparent var(--cost)); }
+.perfPhase span { overflow-wrap: anywhere; }
+.perfPhase small { grid-column: 1 / -1; color: var(--ink-dim); }
+.perfPhase b { font-variant-numeric: tabular-nums; }
+.perfIncident { border-left: 3px solid var(--gold); padding-left: 8px; overflow-wrap: anywhere; }

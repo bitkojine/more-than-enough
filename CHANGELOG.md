@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.181.5] - 2026-10-29
+
+- Redesign opt-in performance diagnostics with a collapsible warning card,
+  live exclusive CPU breakdowns, recent observations and copyable reports.
+- Judge frame pacing against the actual phone/desktop and active/idle target.
+  Acknowledged warnings reopen only for new causes or substantially worse lag.
+- Load the diagnostic tool and its bilingual text only when enabled; retain
+  bounded history and distinguish unmeasured browser/device delays.
+
 ## [0.181.4] - 2026-10-29
 
 - Enforce one active carried light across commands, battery use, illumination,

@@ -26,7 +26,7 @@ import { createController } from './controller.js';
 import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
-import { createPerf } from './perf.js';
+import { createPerf } from './perf-host.js';
 import { createQuality, frameDue, pace, CALM_AFTER_S } from './quality.js';
 import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
@@ -513,8 +513,7 @@ const input = createInput({
 el.build.addEventListener('click', () => sheet.toggle('build'));
 const hudLayout = createHudLayout({ el, messages,
   beforeOpen: () => { sheet.close(); card.close(); },
-  openCrafting: () => sheet.show('upgrades'),
-  openPerformance: () => { el.performanceDetails.textContent = el.perf.textContent; sheet.show('performance'); }
+  openCrafting: () => sheet.show('upgrades')
 });
 const fullscreen = createFullscreen({ button: el.fullscreen, state: el.fullscreenState, hint: el.fullscreenHint,
   changed: () => { resize(); hudLayout.invalidate(); hudLayout.tick(); },
@@ -538,6 +537,7 @@ el.playersBtn.addEventListener('click', () => sheet.show('players'));
 el.nerdsBtn.addEventListener('click', () => { problems.show(); sheet.show('nerds'); });
 el.devicesBtn.addEventListener('click', () => sheet.show('devices'));
 el.perfBtn.addEventListener('click', () => perf.toggle());
+el.perf.addEventListener('perfdetails', () => { sheet.show('performance'); perf.details(); });
 window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
@@ -790,6 +790,7 @@ function frame(now) {
     lastSimulationNow = now;
     if (document.hidden || fork.open || playtestReplay) {
       simulationClock.reset();
+      perf.suspend();
       if (fork.open && !document.hidden) lastWall = Date.now();
     }
     else {
@@ -824,10 +825,16 @@ function frame(now) {
       layerArrived(game.state);
     }
     shownState = game.state; shownZ = z;
-    const stats = render(cam, game.state, fx, view(), look, problems.faults.layer);
+    const phaseTimings=perf.visible?{}:null;
+    const stats = render(cam, game.state, fx, view(), look, problems.faults.layer,phaseTimings);
     signRect = stats.sign;
     descent.draw(cam, look, dt);
-    if (intervalMs > 0) perf.frame(intervalMs, simulationMs + t1 - t0, performance.now() - t1, stats.tiles);
+    const drawMs=performance.now()-t1;
+    if(phaseTimings)phaseTimings.other=(phaseTimings.other||0)+Math.max(0,drawMs-Object.values(phaseTimings).reduce((a,b)=>a+b,0));
+    if (intervalMs > 0 && !document.hidden && !fork.open && !playtestReplay) perf.frame(intervalMs, simulationMs + t1 - t0, drawMs, stats.tiles,{
+      simulation:simulationMs,phases:phaseTimings,target:full?fps.full:fps.calm,
+      context:{seed:game.state.world.seed,layer:z,gameTime:game.state.time,daylight:Core.daylight(game.state.time),x:game.state.player.x,y:game.state.player.y,viewLayer:cam.z,zoom:cam.zoom,moving,quality:quality.level}
+    });
     simulationMs = 0;
     if (full) quality.frame(intervalMs);
     perf.tick(dt);
@@ -863,6 +870,7 @@ window.addEventListener('hashchange', () => {
 // The network came back: reconnect to the shared world now.
 window.addEventListener('online', () => together.online());
 document.addEventListener('visibilitychange', () => {
+  perf.suspend();
   simulationClock.reset();
   lastSimulationNow = 0;
   together.away(document.hidden);
@@ -879,7 +887,7 @@ together.setAwayProduce(savedView.awayProduce);
 showAway();
 // The performance panel is for whoever is tuning the game, not for play:
 // F3 or its switch in Nerds toggles it, and ?perf in the address opens it.
-perf.toggle(new URLSearchParams(location.search).has('perf'));
+perf.toggle(new URLSearchParams(location.search).has('perf') || perf.enabled());
 applyQuality();
 hud.repaint();
 hud.update(game.state);

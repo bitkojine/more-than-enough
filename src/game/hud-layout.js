@@ -31,7 +31,7 @@ export function hudSpacePlan({ room, status = 0, performance = 0, friends = 0, m
   return { level, performance: level >= 1, friends: level >= 2, status: level >= 3, messages: level >= 4 };
 }
 
-export function createHudLayout({ el, messages, openCrafting, openPerformance, beforeOpen = () => {} }) {
+export function createHudLayout({ el, messages, openCrafting, beforeOpen = () => {} }) {
   const body = document.body, top = document.getElementById('topbar');
   const secondary = document.getElementById('hudSecondary');
   const tray = el.equipmentTray;
@@ -41,9 +41,6 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
   const css = (name, value) => { if (body.style.getPropertyValue(name) !== value) body.style.setProperty(name, value); };
   const panels = createHudPanels({ el, messages, beforeOpen, openCrafting, changed: mark,
     isWide: () => wideHud(innerWidth, innerHeight) });
-  el.perf.tabIndex = 0; el.perf.setAttribute('role', 'button');
-  el.perf.addEventListener('click', openPerformance);
-  el.perf.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPerformance(); } }); // i18n-ok: keyboard event key names.
   const resize = new ResizeObserver(mark);
   for (const node of [top, secondary, tray]) resize.observe(node);
   window.addEventListener('resize', mark);
@@ -63,7 +60,7 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     const bars = el.depthGauge.hidden ? 0 : el.depthGauge.children.length;
     const status = el.depth.hidden ? 0 : 48 + (bars ? bars * 11 + 18 : 0);
     const plan = hudSpacePlan({ room: innerHeight - messageBottom - topEnd - 8,
-      status, performance: visible(el.perf) ? 110 : 0,
+      status, performance: visible(el.perf) ? 44 : 0,
       friends: visible(document.getElementById('friends')) ? 34 : 0,
       messages: Math.max(52 + regions.previewHeight, messages.open ? 180 : 0) });
     if (body.classList.contains('placing') || !regions.wide) {
@@ -83,11 +80,11 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     css('--hud-preview-room', regions.previewHeight + 'px');
     css('--hud-top-end', safeTop + 'px');
     css('--hud-topbar-end', topEnd + 'px');
+    css('--hud-meta-end', Math.max(topEnd, document.getElementById('hudMeta').getBoundingClientRect().bottom) + 8 + 'px');
     if (el.gearStatus.hidden !== el.battery.hidden) el.gearStatus.hidden = el.battery.hidden;
     const charge = el.battery.querySelector('span').textContent;
     if (el.gearStatus.textContent !== charge) el.gearStatus.textContent = charge;
     el.gearStatus.classList.toggle('low', el.battery.classList.contains('low'));
-    el.perf.setAttribute('aria-label', el.perf.textContent.split('\n')[0]);
     messages.fit(logRoom);
   }
   return { tick, invalidate: mark, close: panels.close, toggle: panels.toggle, get open() { return panels.open; }, get level() { return lastLevel; }, get measurements() { return measurements; } };

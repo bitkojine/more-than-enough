@@ -470,6 +470,12 @@ async function main() {
    eq(pageErrors.length,0,'message feedback has no browser exceptions');
    console.log((failures?'MESSAGE BROWSER FAILURES':'MESSAGE BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_PERF_ONLY==='1'){
+   const {checkPerformancePanel}=await import('./performance-panel.browser.js');
+   await checkPerformancePanel({evalJS,ok,cdp,session,shot});
+   eq(pageErrors.length,0,'performance diagnostics have no browser exceptions');
+   console.log((failures?'PERFORMANCE PANEL FAILURES':'PERFORMANCE PANEL PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_RENDER_PERF_ONLY==='1'){
    console.log('\n== Bounded render performance across layers and day phases ==');
    const {runRenderPerformance}=await import('./render-performance.js');
@@ -2281,7 +2287,7 @@ async function main() {
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
   ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'F3 opens the panel, showing FPS');
   var perfText = await evalJS('document.getElementById("perf").textContent');
-  ok(['frame', 'logic', 'draw', 'tiles', 'screen', 'canvas'].every(function (k) { return perfText.indexOf(k) >= 0; }), 'the panel shows frame time, logic, draw, tiles, screen and canvas');
+  ok(perfText.includes('Performance') && perfText.includes('FPS'), 'the compact panel shows performance and actual/target FPS');
   var snap = await evalJS('MTE_GAME.perf()');
   ok(snap.fps > 0 && snap.tiles > 0 && snap.drawMs > 0, 'the figures are live (' + Math.round(snap.fps) + ' fps, ' + snap.tiles + ' tiles, draw ' + snap.drawMs.toFixed(2) + ' ms)');
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);

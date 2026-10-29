@@ -43,10 +43,17 @@ const plain = (name, draw) => draw();
 const atlas = createAtlas();
 export const mapNames = () => atlas.names();
 
-export function render(cam, s, fx, view, look, guard = plain) {
+export function render(cam, s, fx, view, look, guard = plain, timings = null) {
   const ctx = cam.ctx;
   const reset = () => resetCanvas(ctx, cam.dpr);
-  const layer = (name, draw) => guard(name, draw, reset);
+  const stack=[];
+  const category=name=>name==='terrain'?'terrain':name==='row'||name==='xray'||name==='aloft'?'actors':name==='lighting'||name==='glints'?'lighting':name==='particles'||name==='floats'||name==='flyers'?'effects':'other';
+  const layer = (name, draw) => {
+    if(!timings)return guard(name,draw,reset);
+    const started=performance.now(),entry={children:0};stack.push(entry);
+    try{return guard(name,draw,reset);}
+    finally{const duration=performance.now()-started;stack.pop();if(stack.length)stack.at(-1).children+=duration;const key=category(name);timings[key]=(timings[key]||0)+Math.max(0,duration-entry.children);}
+  };
   cam.follow(s.player);
   // On the map, panned or on another layer: where it looks.
   if (view.map) { cam.x = view.map.x; cam.y = view.map.y; cam.z = view.map.z; }
@@ -66,6 +73,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
 
   // Props that light, as lights (a glowcap pulses slowly, like something
   // alive), and the beacons.
+  const sceneStart=timings?performance.now():0;
   const { buildings, built, friends: friendRows, aloft, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
   const crystalRows=cultivationRows(s,cam.z);
@@ -75,6 +83,7 @@ export function render(cam, s, fx, view, look, guard = plain) {
     if (def.beacon) beacons.push({ x, y, kind });
   }
 
+  if(timings)timings.scene=performance.now()-sceneStart;
   let you = null;    // where your head and hands are, for your name and sign
   const tags = [];   // friends' names, drawn last, over the night
   const friend = (f) => {

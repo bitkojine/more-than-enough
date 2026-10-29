@@ -29,6 +29,7 @@ import { loadNews } from '../../src/game/news.js';
 import { addStrings } from '../../src/i18n/i18n.js';
 await loadNews();
 await import('../../src/game/statement.js');
+await import('../../src/game/perf.js');
 // Loaded with your world on another device, as main.js does (loadSync).
 addStrings((await import('../../src/game/sync-lazy.js')).strings);
 

@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const modes = ['ILLUMINATION', 'LAYER', 'RENDER_PERF', 'HUD', 'FULLSCREEN', 'PROGRESSION'];
+const modes = ['ILLUMINATION', 'LAYER', 'RENDER_PERF', 'HUD', 'PERF', 'FULLSCREEN', 'PROGRESSION'];
 const outputDir = process.env.MTE_SHOT_DIR || path.resolve('render-checks');
 mkdirSync(outputDir, { recursive: true });
 for (const mode of modes) {

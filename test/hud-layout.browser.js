@@ -47,7 +47,7 @@ export async function checkHudLayout({evalJS,waitFor,ok,eq,cdp,session,shot,tap,
     const {t}=await import('/src/i18n/i18n.js');document.getElementById('lanternLabel').textContent=t('button.lantern.off');document.getElementById('flareLabel').textContent='1:00';
     document.getElementById('btnLantern').hidden=false;document.getElementById('btnFlare').hidden=false;document.getElementById('btnInvite').hidden=false;
     MTE_GAME.messages.setOpen(true);MTE_GAME.messages.add({text:'A message retained in the log'});
-    document.getElementById('perf').hidden=false;document.getElementById('perf').textContent='FPS 30 / 30\\nrender 7.8 ms\\nsimulation 0.4 ms\\nquality 1×';
+    document.getElementById('perf').hidden=false;document.getElementById('perf').replaceChildren(Object.assign(document.createElement('button'),{className:'perfPill',textContent:t('nerds.perf')+' · FPS 30 / 30'}));
     const {renderChips}=await import('/src/game/players.js');document.getElementById('friends').hidden=false;
     renderChips(document.getElementById('friends'),Array.from({length:99},(_,i)=>({id:String(i),name:'Mica '+i,st:'online',color:'#a5d79c'})),{tap(){},more(){}});
   })()`);
@@ -72,7 +72,19 @@ export async function checkHudLayout({evalJS,waitFor,ok,eq,cdp,session,shot,tap,
     const tray=await evalJS(`(()=>{const t=document.getElementById('equipmentTray').getBoundingClientRect(),a=document.getElementById('btnMine').getBoundingClientRect(),top=document.getElementById('topbar').getBoundingClientRect();return t.top>=top.bottom&&t.bottom<=innerHeight&&t.left>=0&&t.right<=innerWidth&&(t.right<=a.left||t.left>=a.right||t.bottom<=a.top||t.top>=a.bottom);})()`);
     ok(tray,'Equipment tray clears navigation and immediate action at '+width+'×'+height);
     ok(await evalJS(`(()=>{const p=document.getElementById('logPill'),b=p.getBoundingClientRect(),t=document.getElementById('equipmentTray').getBoundingClientRect();return !p.hidden&&getComputedStyle(p).visibility==='visible'&&b.top>=0&&b.bottom<=innerHeight&&(b.right<=t.left||b.left>=t.right||b.bottom<=t.top||b.top>=t.bottom);})()`),'Messages stays visible and clears Equipment at '+width+'×'+height);
-    ok(await evalJS(`(()=>{const t=document.getElementById('equipmentTray'),b=t.getBoundingClientRect(),buttons=[...t.querySelectorAll('button')].filter(e=>!e.hidden).map(e=>e.getBoundingClientRect()),p=document.getElementById('logPill').getBoundingClientRect(),s=document.getElementById('hudSecondary').getBoundingClientRect(),overlap=(a,b)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;return buttons.every(a=>a.width>=44&&a.height>=44&&a.top>=b.top&&a.bottom<=b.bottom&&a.left>=b.left&&a.right<=b.right)&&buttons.every((a,i)=>buttons.every((c,j)=>i===j||!overlap(a,c)))&&!overlap(p,s)&&!document.getElementById('btnEquipmentClose').textContent.includes('×');})()`),'Equipment has readable dismissal, separate touch targets and no scrolling to reach actions at '+width+'×'+height);
+    ok(await evalJS(`(()=>{
+      const t=document.getElementById('equipmentTray'),b=t.getBoundingClientRect(),controls=[...t.querySelectorAll('button')].filter(e=>!e.hidden),buttons=controls.map(e=>e.getBoundingClientRect()),p=document.getElementById('logPill').getBoundingClientRect(),s=document.getElementById('hudSecondary').getBoundingClientRect();
+      const overlap=(a,b)=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;
+      const inside=a=>a.top>=b.top&&a.bottom<=b.bottom&&a.left>=b.left&&a.right<=b.right;
+      const original=t.scrollTop,diagnostics=!document.getElementById('perf').hidden;
+      const reachable=controls.every(e=>{
+        if(diagnostics)e.scrollIntoView({block:'nearest',inline:'nearest'});
+        const a=e.getBoundingClientRect(),hit=document.elementFromPoint(a.left+a.width/2,a.top+a.height/2);
+        return a.width>=44&&a.height>=44&&inside(a)&&e.contains(hit);
+      });
+      t.scrollTop=original;
+      return reachable&&buttons.every((a,i)=>buttons.every((c,j)=>i===j||!overlap(a,c)))&&!overlap(p,s)&&!document.getElementById('btnEquipmentClose').textContent.includes('×');
+    })()`),'Equipment has readable dismissal and every full-size action stays reachable with diagnostics at '+width+'×'+height);
     await shot('hud-groups-'+width+'x'+height+'.png');
     const messageButton=await rect('#logPill');await tap(messageButton.x,messageButton.y);
     await evalJS('MTE_GAME.hudLayout.tick()');
