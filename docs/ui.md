@@ -128,6 +128,11 @@ instead of presenting a fake native on/off toggle. Help wraps and scrolls inside
 Settings on small portrait and landscape screens.
 
 ### Equipment, Settlement and Beyond
+Equipment remains accessible while viewing the world map: its compact card
+and Craft menu open over the map without changing zoom or moving Mica. Map
+view is a camera mode, not an exclusive HUD interaction. Placement, signing
+and opening a full sheet still close the compact Equipment card.
+
 - **Dedicated entrances, no tab bar** (Watch, 2026-10-28): Equipment → Craft opens the Equipment list; Settlement opens construction and improvements; the trophy opens Awards. Each sheet always displays its own localized title.
 - **Beyond** has a dedicated Settings row only once unlocked in a solo world. Back returns to Settings. The legacy progression family's existing shortcut remains available and returns to the menu it came from.
 - **Upgrades is a progression map**, not a shop list: one row per family (`PATH_FAMILIES` in `src/core/upgrades.js`) with its count (`3/8`); tapping a family opens its buy rows, and families with something to buy start open. Rows and the map read the same upgrade registry, so they can't disagree.

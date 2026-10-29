@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.3] - 2026-10-29
+
+- Allow the compact Equipment card to remain open in world map view, so its
+  Craft button reaches the full Equipment menu without leaving the map.
+- Cover real map entry, pointer input and repeated HUD updates on phone,
+  landscape and desktop in both languages.
+
+
 ## [0.181.2] - 2026-10-29
 
 - Show Earnings rates per second only; remove the unit selector, saved

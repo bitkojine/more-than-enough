@@ -409,12 +409,21 @@ async function main() {
     eq(unexpected.length,0,'chapter progression has no unexpected browser errors (Earnings download failure is injected)');
     console.log((failures?'PROGRESSION BROWSER FAILURES':'PROGRESSION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
+  if(process.env.MTE_MAP_EQUIPMENT_ONLY==='1'){
+    const {checkMapEquipment}=await import('./map-equipment.browser.js');
+    for(const lang of ['en','lt']){
+      await navigate('http://127.0.0.1:'+PORT+'/?lang='+lang+'&playtestReplay');
+      await checkMapEquipment({evalJS,waitFor,ok,cdp,session,tap,rect,shot:name=>shot(lang+'-'+name)});
+    }
+    eq(pageErrors.length,0,'map Equipment has no browser exceptions');
+    console.log((failures?'MAP EQUIPMENT FAILURES':'MAP EQUIPMENT PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
+  }
   if(process.env.MTE_HUD_ONLY==='1'){
     await navigate('http://127.0.0.1:'+PORT+'/?playtestReplay');
     const {checkHudLayout}=await import('./hud-layout.browser.js');
-    await checkHudLayout({evalJS,ok,eq,cdp,session,shot,tap,rect});
+    await checkHudLayout({evalJS,waitFor,ok,eq,cdp,session,shot,tap,rect});
     await navigate('http://127.0.0.1:'+PORT+'/?lang=lt&playtestReplay');
-    await checkHudLayout({evalJS,ok,eq,cdp,session,shot:name=>shot('lt-'+name),tap,rect});
+    await checkHudLayout({evalJS,waitFor,ok,eq,cdp,session,shot:name=>shot('lt-'+name),tap,rect});
     eq(pageErrors.length,0,'semantic HUD has no browser exceptions');
     console.log((failures?'HUD BROWSER FAILURES':'HUD BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }

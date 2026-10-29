@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Activate the machine to unlock this.",
   "progression.requirement": "Activate the machine to unlock.",
   "progression.locked": "Locked",
+  "news.0.181.3": "Equipment now stays open in world map view. Open the compact Equipment card and its full crafting menu without leaving the map.",
   "news.0.181.2": "Earnings now shows rates per second only. Removed the per-minute and per-hour selector.",
   "news.0.181.1": "Earnings now separates production, waiting stock and packs, includes crystal chambers and explains stopped production. Spending records actual payments; older holdings estimates are labelled. Recommendations match available menus, and charts preserve zero output and elapsed time.",
   "news.0.181.0": "Focus on gathering, crystal cultivation and restoring the machine. Optional buildings, baskets, flares and later tool upgrades show locks until activation. Existing equipment and buildings are kept; shelters remain available for heart recovery.",

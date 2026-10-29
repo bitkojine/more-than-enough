@@ -53,7 +53,7 @@ export function createHudLayout({ el, messages, openCrafting, openPerformance, b
     if (stamp !== signature) { signature = stamp; mark(); }
     if (!dirty) return;
     dirty = false; measurements++;
-    if (el.sheet.classList.contains('open') || body.classList.contains('placing') || body.classList.contains('signing') || body.classList.contains('mapping')) panels.close();
+    if (el.sheet.classList.contains('open') || body.classList.contains('placing') || body.classList.contains('signing')) panels.close();
     const action = el.action.getBoundingClientRect();
     const edgeBottom = Math.max(0, innerHeight - action.bottom);
     const act = action.height;
