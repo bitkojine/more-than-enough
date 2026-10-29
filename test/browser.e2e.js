@@ -403,9 +403,10 @@ async function main() {
     const {checkProgression}=await import('./progression.browser.js');
     for(const lang of ['en','lt']){
       await navigate('http://127.0.0.1:'+PORT+'/?lang='+lang+'&playtestReplay');
-      await checkProgression({evalJS,ok,eq,cdp,session,shot:name=>shot(lang+'-'+name),navigate:path=>navigate('http://127.0.0.1:'+PORT+'/'+path)});
+      await checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot:name=>shot(lang+'-'+name),navigate:path=>navigate('http://127.0.0.1:'+PORT+'/'+path)});
     }
-    eq(pageErrors.length,0,'chapter progression has no browser exceptions');
+    const unexpected=pageErrors.filter(e=>!e.startsWith('Earnings module failed to load ')&&!e.includes('net::ERR_BLOCKED_BY_CLIENT'));
+    eq(unexpected.length,0,'chapter progression has no unexpected browser errors (Earnings download failure is injected)');
     console.log((failures?'PROGRESSION BROWSER FAILURES':'PROGRESSION BROWSER PASSED')+' — '+checks+' checks');process.exit(failures?1:0);
   }
   if(process.env.MTE_HUD_ONLY==='1'){
@@ -1347,11 +1348,11 @@ async function main() {
   ok(await evalJS('!MTE_GAME.messages.lines.some(function(l){return /^game:/.test(l);})'), 'a fresh world shows no notice');
   var chips = await evalJS('document.querySelectorAll("#resources .chip[data-res]").length');
   eq(chips, 4, 'four resource chips visible');
-  // Tapping a counter opens the earnings statement at it, every kind of mushroom included.
+  // Tapping a counter opens Earnings, with the collection retained in a disclosure.
   var stoneChip = await rect('.chip[data-res=stone]');
   await tap(stoneChip.x, stoneChip.y);
-  ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Earnings"', 1500), 'tapping a resource counter opens the earnings statement');
-  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .colHead").length === 4 && !!document.querySelector("#sheetBody .units") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'the statement has a section per resource, the unit switch and a card per kind of mushroom');
+  ok(await waitFor('document.getElementById("sheet").classList.contains("open") && document.getElementById("sheetTitle").textContent === "Earnings" && !!document.getElementById("col-stone")', 1500), 'tapping a resource counter opens the earnings statement');
+  ok(await evalJS('!!document.getElementById("col-stone") && document.querySelectorAll("#sheetBody .colHead").length === 4 && !!document.querySelector("#sheetBody .units") && document.querySelectorAll("#sheetBody .card").length === MTE_GAME.core.MUSHROOM_KEYS.length'), 'the statement has a section per resource, the unit switch and a collapsed mushroom catalogue');
   await evalJS('document.querySelector("#sheetBody .unit[data-unit=h]").click()');
   ok(await waitFor('document.querySelector("#sheetBody .unit[data-unit=h]").classList.contains("on")', 1000), 'the statement switches to per hour');
   await evalJS('document.querySelector("#sheetBody .unit[data-unit=s]").click()');

@@ -11,7 +11,7 @@ import { SURFACE, tileDist2 } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { tileAt, richness, setRichness, holeBelow, wayUp, isExplored } from './world.js';
 import { EXTRACTORS, PROPS, UNLOCKS, COLLECT_RANGE, FINDS, GEAR, RARE_PAYS } from './content.js';
-import { canAfford, pay, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
+import { canAfford, spend, costText, gatherYield, extractorCost, supportGain, earn, ownBuilding } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { noteAct } from './acts.js';
 import { t } from '../i18n/i18n.js';
@@ -449,7 +449,7 @@ export function place(s, key, at = null) {
   if (!canAfford(s.inv, cost)) return { ok: false, reason: t('reason.need', { cost: costText(cost) }) };
   noteAct(s, 'b', key, at.x, at.y);
   if (usesDepots(s)) startEventEconomy(s);
-  pay(s.inv, cost);
+  spend(s, cost, 'buildings');
   const e = { key, res: def.res, x: at.x, y: at.y, z: s.player.z, buffer: 0 };
   if (s.me) e.owner = s.me;
   s.extractors.push(e);

@@ -15,7 +15,7 @@ import { tileAt, setRichness, holeBelow, wayUp } from './world.js';
 import { PROPS, GLINT_RANGE } from './content.js';
 import { findsInChunk } from './terrain.js';
 import { landAt } from './regions.js';
-import { canAfford, pay } from './economy.js';
+import { canAfford, spend } from './economy.js';
 import { noteAct } from './acts.js';
 
 export function isUnderground(s) {
@@ -176,7 +176,7 @@ export function canPlaceProp(s, kind) {
 export function placeProp(s, kind) {
   if (!canPlaceProp(s, kind) || !canAfford(s.inv, PROPS[kind].cost)) return { ok: false };
   noteAct(s, 'p', kind);
-  pay(s.inv, PROPS[kind].cost);
+  spend(s, PROPS[kind].cost, 'props');
   const { x, y } = feet(s);
   const key = packKey(x, y, s.player.z);
   s.world.props.set(key, kind);

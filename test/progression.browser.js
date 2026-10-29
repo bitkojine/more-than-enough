@@ -1,6 +1,6 @@
 /* Funded UI fixture for chapter locks; the separate fresh-world trace proves
  * the real journey. Both owned items and direct core calls are checked here. */
-export async function checkProgression({evalJS,ok,eq,cdp,session,shot,navigate}) {
+export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,navigate}) {
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));
     const s=MTE_GAME.getState(),C=MTE_GAME.core;
@@ -26,6 +26,25 @@ export async function checkProgression({evalJS,ok,eq,cdp,session,shot,navigate})
     ok(await evalJS('!!document.querySelector("#sheetBody [data-id=chamber]:not(:disabled)")&&!!document.querySelector("#sheetBody [data-id=cooler]:not(:disabled)")&&!!document.querySelector("#sheetBody [data-id=shelter]:not(:disabled)")'),'required production, cooling and recovery remain available');
     ok(await evalJS('document.documentElement.scrollWidth<=innerWidth'),'locked menus fit the viewport');
     await shot('focused-settlement-'+width+'.png');
+    await evalJS('document.getElementById("btnClose").click()');
+    await new Promise(r=>setTimeout(r,250));
+    if(width===320){
+      await cdp.send('Network.enable',{},session);
+      await cdp.send('Network.setBlockedURLs',{urls:['*statement.js*']},session);
+      await evalJS('document.querySelector("#resources .chip.ledger").click()');
+      ok(await waitFor('!!document.querySelector("#sheetBody pre")',2000),'a failed Earnings download shows a recoverable explanation');
+      ok(await evalJS('MTE_GAME.playtest.faults().some(f=>f.where.includes("earnings/load")&&f.where.includes("statement.js")&&f.context.version)'), 'failed panel download records the asset and game context');
+      await cdp.send('Network.setBlockedURLs',{urls:[]},session);
+      await evalJS('document.getElementById("btnClose").click()');
+    }
+    const before=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
+    await evalJS('document.querySelector("#resources .chip[data-res=crystal]").click()');
+    ok(await waitFor('document.querySelectorAll("#sheetBody .colHead").length===4&&!!document.querySelector("#sheetBody details.mushroomCollection:not([open])")',2000),'Earnings retains four resource sections and a collapsed collection at '+width);
+    ok(await evalJS('!document.querySelector("#sheetBody [data-goto]")'),'unfinished worlds have no unavailable investment links');
+    ok(await evalJS('document.querySelector("#sheetBody").textContent.includes("18")&&document.querySelector("#sheetBody").textContent.includes("12")'),'Earnings includes chamber conditions and locked vault stock');
+    ok(await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())')===before,'opening Earnings changes no saved gameplay');
+    ok(await waitFor('Array.from(document.querySelectorAll("#sheetBody .row")).every(e=>e.getBoundingClientRect().right<=innerWidth+1)&&document.documentElement.scrollWidth<=innerWidth',1500),'Earnings rows fit phone and desktop after the opening animation');
+    await shot('focused-earnings-'+width+'.png');
     await evalJS('document.getElementById("btnClose").click()');
   }
   eq(await evalJS('MTE_GAME.core.useFlare(MTE_GAME.getState())'),'locked','core blocks the flare shortcut too');

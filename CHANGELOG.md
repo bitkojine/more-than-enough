@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.181.1] - 2026-10-29
+
+- Reconcile Earnings with living-crystal worlds: current production, waiting
+  stock and packs; chamber conditions, paused and full producers, and correct
+  starter-gathering explanations.
+- Record actual categorized payments in saves, excluding storage transfers;
+  distinguish partial older records and current-holdings estimates.
+- Restrict investment suggestions to available menu entries and layers; label
+  payback assumptions. Keep the mushroom catalogue collapsed pending design.
+- Use sampled linear charts with zero output and uncompressed elapsed time.
+
+
 ## [0.181.0] - 2026-10-29
 
 - Focus unfinished living-crystal worlds on manual gathering and the machine

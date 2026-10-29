@@ -10,7 +10,6 @@ import * as Core from '../core/index.js';
 import { fmt, fmtRate, fmtMult, esc, lockIcon } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t } from '../i18n/i18n.js';
-import { createStatement } from './statement.js';
 
 const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['performance', t('nerds.perf')], ['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
 // Screens that are a panel of their own rather than rendered rows.
@@ -313,9 +312,24 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     return html;
   }
 
-  const statement = createStatement({ look, pic, icon, price, row, income });
-  statement.attach(el.sheetBody, { rerender: () => render(), go: (next) => setTab(next) });
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, statement: statement.render };
+  let statement, statementLoading, statementResource, statementError, statementAttempts=0;
+  function loadStatement() {
+    if(statementLoading)return statementLoading;
+    statementError=null;
+    const url=new URL('./statement.js',import.meta.url);url.search=new URL(import.meta.url).search;
+    if(statementAttempts++)url.searchParams.set('retry',String(statementAttempts));
+    return statementLoading=import(url.href).then(({createStatement})=>{
+      statement=createStatement({look,pic,icon,price,row,income});
+      statement.attach(el.sheetBody,{rerender:()=>render(),go:next=>setTab(next)});
+      if(open && tab==='statement'){render();highlightResource(statementResource);}
+    },error=>{
+      statementLoading=null;statementError=String(error);
+      globalThis.MTE_FAULT?.(error,'earnings/load '+url.href);
+      console.error('Earnings module failed to load',url.href,error);
+      if(open && tab==='statement')render();
+    });
+  }
+  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, statement: s=>statement?statement.render(s):`<p class="statementNote">${t(statementError?'sheet.statementFailed':'sheet.statementLoading')}</p>${statementError?'<pre>'+esc(statementError)+'</pre>':''}` };
 
   function render() {
     el.sheetBody.innerHTML = PANELS[tab] ? '' : RENDER[tab](getState());
@@ -330,7 +344,8 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     [...now.children].forEach((n, i) => {
       const o = was.children[i];
       if (o.outerHTML === n.outerHTML || o.classList.contains('lit')) return;
-      if (n.classList.contains('cards')) patch(o, n);
+      if(o.tagName==='DETAILS'){n.open=o.open;patch(o,n);}
+      else if (n.classList.contains('cards')) patch(o, n);
       else o.replaceWith(n.cloneNode(true));
     });
   }
@@ -361,7 +376,12 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
 
   // Opens the statement at resource `res`, briefly lit so the eye finds it.
   function showStatement(res) {
+    statementResource=res;
     show('statement');
+    if(!statement){void loadStatement();return;}
+    highlightResource(res);
+  }
+  function highlightResource(res) {
     if (!res) { el.sheetBody.scrollTop = 0; return; }
     const head = el.sheetBody.querySelector('#col-' + res);
     if (!head) return;
@@ -371,7 +391,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   }
 
   function setTab(next, parent = null) {
-    statement.hide();
+    statement?.hide();
     tab = next;
     from = parent;
     el.sheetTitle.textContent = TITLES[tab];
@@ -394,7 +414,7 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   }
 
   function close() {
-    statement.hide();
+    statement?.hide();
     open = false;
     el.sheet.classList.remove('open');
     el.sheet.setAttribute('aria-hidden', 'true');

@@ -20,7 +20,7 @@ test('chambers protect from light automatically; heat injuries still need tendin
  assert.equal(cmd(s,'plant',null,0,0),'ok');run(s,10);assert.ok(b.buffer>2.9);assert.equal(b.health,100);
  assert.equal(cmd(s,'craft','lantern',0,0),'ok');cmd(s,'lantern',null,0,0);run(s,2);assert.ok(C.cultivationLight(s,b));assert.equal(b.health,100);assert.ok(!b.needsTend);
  b.temperature=30;run(s,1);assert.ok(b.health<100);assert.ok(b.needsTend);run(s,12);const health=b.health;run(s,2);assert.equal(b.health,health);
- assert.equal(cmd(s,'tend',null,0,0),'ok','protected tending works with a nearby lantern');run(s,4);assert.ok(b.health>health);
+ assert.equal(cmd(s,'tend',null,0,0),'ok','protected tending works with a nearby lantern');assert.deepEqual(s.spending.totals.care,C.CULTIVATION_RECIPES.tend);run(s,4);assert.ok(b.health>health);
 });
 test('heat kills colonies and degraded harvested crystal still reinforces physical storage',()=>{
  const s=fixture(),b=build(s,'chamber');s.cultivation.starter={health:100};cmd(s,'plant',null,0,0);run(s,30);assert.equal(b.health,0);
@@ -99,6 +99,7 @@ test('machine activation requires all physical repairs, cooling and viable cryst
   if(i===1){assert.equal(cmd(s,'repair',null,b.x,b.y),'heart','the second section needs the stolen heart');s.cultivation.heart={where:'carried',health:C.HEART_MIN-1};assert.equal(cmd(s,'repair',null,b.x,b.y),'cracked');s.cultivation.heart.health=90;}
   const before={...s.inv};assert.equal(cmd(s,'repair',null,b.x,b.y),'discovery');for(const [r,n]of Object.entries(recipe))assert.equal(s.inv[r],before[r]-n);assert.equal(C.canEmbark(s),false);}
  b.quality=10;assert.equal(cmd(s,'activate',null,b.x,b.y),'quality');b.quality=100;b.temperature=30;assert.equal(cmd(s,'activate',null,b.x,b.y),'cooling');b.temperature=18;
+ assert.deepEqual(s.spending.totals.restoration,{stone:72,ore:72,crystal:26},'all three actual repairs enter spending');
  assert.equal(cmd(s,'activate',null,b.x,b.y),'activated');assert.ok(C.canEmbark(s));C.advanceGoals(s);assert.ok(s.goalsDone.includes('master'));
  const loaded=C.deserialize(C.serialize(s));assert.ok(C.canEmbark(loaded));assert.equal(loaded.cultivation.completedAt,s.cultivation.completedAt);
  b.health=0;assert.ok(C.canEmbark(s),'completion is a permanent record even if infrastructure later fails');

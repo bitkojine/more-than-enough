@@ -903,3 +903,11 @@ buffers are never trimmed when a temporary capacity is lower. Completed and
 legacy worlds retain their appropriate progression; the focus applies to
 unfinished living-crystal worlds. Guidance asks for manual gathering, never a
 locked producer. All locks are canonical core checks shared with the UI.
+
+### Earnings clarity (2026-10-29)
+
+The owner chose separate views of production, resources waiting in buildings,
+and packs. Spending records actual payments from this update onward, with
+older saves explicitly partial and reconstructed holdings labelled estimates.
+The mushroom-species catalogue's permanent home remains undecided: retain it
+in a collapsed section for now and ask the owner about placement later.

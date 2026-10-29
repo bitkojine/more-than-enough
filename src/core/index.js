@@ -37,3 +37,5 @@ export * from './ledger.js';
 export * from './cultivation.js';
 
 export * from './progression.js';
+
+export { recordedSpending } from './spending.js';

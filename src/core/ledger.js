@@ -1,18 +1,16 @@
-/* The earnings statement: what makes each resource and how fast, what the
- * world has cost you so far, and how soon each thing earns its price back.
- *
- * Everything here is worked out from the state as it stands, nothing is
- * recorded: every price is fixed by level, so what you've spent is the sum of
- * the prices of what you own (at today's prices), in solo and shared worlds
- * alike. */
+/* Current production and rough investment quotes. spendingStatement is a
+ * reconstruction of current holdings at current prices, never a transaction
+ * history; actual payments live separately in spending.js. */
 
-import { EXTRACTORS, PROPS, ABUNDANCE, EXTRACTOR_GROWTH, HAND_SHARE, REFINERIES, TOOLS } from './content.js';
+import { EXTRACTORS, PROPS, ABUNDANCE, EXTRACTOR_GROWTH, REFINERIES, TOOLS } from './content.js';
 import { RESOURCES } from './tiles.js';
 import {
   refineryMult, overclockMult, abundanceMult, legacyMult, productionMult, abundanceTrickle,
-  extractorRate, placementGain, productionRates, ownBuilding, toolStat, scaleCost, extractorCost, abundanceCost
+  extractorBaseCost, extractorRate, extractorCapacity, gatherYield, placementGain, productionRates, ownBuilding, toolStat, scaleCost, extractorCost, abundanceCost
 } from './economy.js';
-import { buildTarget } from './actions.js';
+import { buildTarget, buildsOnLayer } from './actions.js';
+import { contentLocked } from './progression.js';
+import { cultivationStatus, crystalCapacity, crystalGrowthRate } from './cultivation.js';
 import { HANDS_PER_SECOND } from './pace.js';
 import { UPGRADES, PATH_FAMILIES, upgradeLevel } from './upgrades.js';
 
@@ -40,7 +38,21 @@ export function incomeStatement(s) {
       if (!count) continue;
       const outputs = members.map(e => extractorRate(s,key,e));
       const rate = outputs.reduce((n,v) => n+v,0);
-      lines.push({ key, count, each: rate / count, rate, average: outputs.some(v => v !== outputs[0]) });
+      const buffered = members.reduce((n,e) => n + e.buffer, 0);
+      const current = members.reduce((n,e,i) => n + (e.buffer >= extractorCapacity(s,key,e) ? 0 : outputs[i]),0);
+      lines.push({ key, count, each: rate / count, rate: current, potential: rate, buffered,
+        status: contentLocked(s,key) ? 'locked' : current > 0 ? 'producing' : rate > 0 ? 'full' : 'support',
+        average: outputs.some(v => v !== outputs[0]) });
+    }
+    if (res === 'crystal' && s.cultivation) for (const b of s.cultivation.facilities) {
+      if (!['chamber','vault'].includes(b.kind)) continue;
+      const status = contentLocked(s,b.kind) ? 'locked' : cultivationStatus(s,b);
+      const capacity = crystalCapacity(s,b);
+      const growth = contentLocked(s,b.kind) ? 0 : crystalGrowthRate(b);
+      const growing = growth > 0;
+      lines.push({key:b.kind, facility:true, count:1, each:0, rate:b.buffer < capacity ? growth : 0,
+        buffered:b.buffer, capacity, status:growing && b.buffer >= capacity ? 'full' : b.kind === 'vault' && status === 'growing' ? 'storage' : status,
+        x:b.x,y:b.y,z:b.z,temperature:b.temperature,quality:b.quality});
     }
     const engine = abundanceTrickle(s);
     if (engine > 0) lines.push({ key: 'engine', count: s.abundanceLv, each: legacyMult(s), rate: engine });
@@ -48,7 +60,8 @@ export function incomeStatement(s) {
       rate: lines.reduce((n, l) => n + l.rate, 0),
       lines,
       mult: { refinery: refineryMult(s, res), overclock: overclockMult(s), abundance: abundanceMult(s), legacy: legacyMult(s), total: productionMult(s, res) },
-      hand: toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield + HAND_SHARE * lines.filter((l) => l.key !== 'engine').reduce((n, l) => n + l.rate, 0)
+      hand: s.cultivation && res === 'crystal' ? null : gatherYield(s,res),
+      buffered: lines.reduce((n,l) => n + (l.buffered || 0),0)
     };
   }
   return out;
@@ -65,7 +78,7 @@ export function spendingStatement(s) {
   for (const key of Object.keys(EXTRACTORS)) {
     const n = s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
     const cost = zero();
-    for (let i = 0; i < n; i++) add(cost, scaleCost(EXTRACTORS[key].baseCost, Math.pow(EXTRACTOR_GROWTH, i)));
+    for (let i = 0; i < n; i++) add(cost, scaleCost(extractorBaseCost(s,key), Math.pow(EXTRACTOR_GROWTH, i)));
     if (n) buildings[key] = cost;
   }
   out.push({ id: 'buildings', cost: Object.values(buildings).reduce((a, c) => add(a, c), zero()), parts: buildings });
@@ -101,6 +114,7 @@ export function totalSpent(s) {
 export function worthRates(s) {
   const rates = productionRates(s);
   for (const r of RESOURCES) rates[r] = Math.max(rates[r], HANDS_PER_SECOND * toolStat(s, r === 'mycelium' ? 'basket' : 'pickaxe').yield);
+  if (s.cultivation) rates.crystal = incomeStatement(s).crystal.rate;
   return rates;
 }
 
@@ -117,7 +131,7 @@ export function costSeconds(cost, rates) {
 // `cost`, both valued in seconds of your income (Watch's choice, 2026-10-19).
 export function payback(cost, gain, rates) {
   let worth = 0;
-  for (const r in gain) if (gain[r] > 0) worth += gain[r] / rates[r];
+  for (const r in gain) if (gain[r] > 0) { if (!(rates[r] > 0)) return Infinity; worth += gain[r] / rates[r]; }
   return worth > 0 ? costSeconds(cost, rates) / worth : Infinity;
 }
 
@@ -138,20 +152,21 @@ export function bestBuys(s) {
   const rates = worthRates(s), made = buildingRates(s), out = [];
   for (const key of Object.keys(EXTRACTORS)) {
     const def = EXTRACTORS[key];
-    if (def.depot) continue;
+    if (def.depot || contentLocked(s,key) || !buildsOnLayer(s,key)) continue;
+    if (s.cultivation && !['garden','quarry','mine','stoneworks'].includes(key)) continue;
     if (def.unlock && !s.unlocks[def.unlock]) continue;
     if (def.res in s.discovered && !s.discovered[def.res] && def.tile !== null) continue;
     out.push({ kind: 'building', id: key, cost: extractorCost(s, key), gain: { [def.res]: placementGain(s, key, buildTarget(s, key)) } });
   }
-  for (const res of RESOURCES) {
+  if (!s.cultivation) for (const res of RESOURCES) {
     const next = REFINERIES[res].levels[s.resUp[res]];
     if (next) out.push({ kind: 'upgrade', id: res, cost: next.cost, gain: { [res]: made[res] * (next.mult - 1) } });
   }
   const oc = TOOLS.overclock.levels;
-  if (s.tools.overclock < oc.length) out.push({ kind: 'upgrade', id: 'overclock', cost: oc[Math.max(1, s.tools.overclock)].cost, gain: scaled(made, oc[Math.max(1, s.tools.overclock)].mult / overclockMult(s) - 1) });
+  if (!s.cultivation && s.tools.overclock < oc.length) out.push({ kind: 'upgrade', id: 'overclock', cost: oc[Math.max(1, s.tools.overclock)].cost, gain: scaled(made, oc[Math.max(1, s.tools.overclock)].mult / overclockMult(s) - 1) });
   const engine = scaled(made, ABUNDANCE.prodMult - 1);
   for (const r of RESOURCES) engine[r] += legacyMult(s);
-  out.push({ kind: 'upgrade', id: 'abundance', cost: abundanceCost(s), gain: engine });
+  if (!s.cultivation) out.push({ kind: 'upgrade', id: 'abundance', cost: abundanceCost(s), gain: engine });
   for (const b of out) b.payback = payback(b.cost, b.gain, rates);
   return out.filter((b) => b.payback < Infinity).sort((a, b) => a.payback - b.payback);
 }

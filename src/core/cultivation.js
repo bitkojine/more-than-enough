@@ -7,10 +7,13 @@ import {packKey} from './coords.js';
 import {T,TILE_INFO} from './tiles.js';
 import {PROPS} from './content.js';
 import {illuminationAt,invalidateIllumination,LIGHT_MAX} from './illumination.js';
-import {earn,pay as payInventory,canAfford} from './economy.js';
+import {earn,spend as payInventory,canAfford} from './economy.js';
 import {generateChunk} from './terrain.js';
 import {hash2} from './noise.js';
 import {CHUNK_SIZE,chunkCoord,chunkIndex} from './coords.js';
+export const CRYSTAL_GROWTH_RATE=.3;
+export function crystalCapacity(s,b){return b.reinforced&&!contentLocked(s,'reinforce')?40:20;}
+export function crystalGrowthRate(b){return b.kind==='chamber'&&b.health>0&&!b.needsTend&&b.temperature<=22?CRYSTAL_GROWTH_RATE:0;}
 export const CULTIVATION_MODEL='living-crystal-1';
 export const CULTIVATION_RECIPES={
   chamber:{mycelium:8,stone:14,ore:8},cooler:{stone:10,ore:6},
@@ -83,7 +86,7 @@ export function cultivationStatus(s,b){
  if(b.kind==='chamber'&&b.health===undefined)return 'empty';return 'growing';
 }
 const canPay=(s,cost)=>canAfford(s.inv,cost);
-function pay(s,cost){payInventory(s.inv,cost);if(!s.inv.crystal)s.cultivation.quality=100;}
+function pay(s,cost,category='buildings'){payInventory(s,cost,category);if(!s.inv.crystal)s.cultivation.quality=100;}
 function earned(s,res,n){earn(s,res,n,'buildings');}
 // Built facilities always protect their contents from light. Lighting changes
 // still expose unprotected cargo; wild colonies use the physical light field.
@@ -159,7 +162,7 @@ export function cultivationCommand(s,cmd){
  if(cmd.type==='lantern'){if(!c.gear.lantern)return 'equipment';c.lantern=!c.lantern;if(c.lantern)lightCrystal(s);else exposeCargo(s);return 'ok';}
  if(cmd.type==='craft'){
   if(!['carrier','lantern'].includes(cmd.kind)||c.gear[cmd.kind])return 'invalid';
-  if(!canPay(s,cost))return 'materials';pay(s,cost);c.gear[cmd.kind]=true;return 'ok';
+  if(!canPay(s,cost))return 'materials';pay(s,cost,'tools');c.gear[cmd.kind]=true;return 'ok';
  }
  if(cmd.type==='build'){
   const why=facilitySite(s,cmd.kind,x,y);if(why)return why;
@@ -176,7 +179,7 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='tend'&&b.kind==='chamber'){
   if(!b.health)return 'dead';if(b.temperature>22)return 'unsafe';
-  if(!canPay(s,CULTIVATION_RECIPES.tend))return 'materials';pay(s,CULTIVATION_RECIPES.tend);b.needsTend=false;return 'ok';
+  if(!canPay(s,CULTIVATION_RECIPES.tend))return 'materials';pay(s,CULTIVATION_RECIPES.tend,'care');b.needsTend=false;return 'ok';
  }
  if(cmd.type==='collect'&&['chamber','vault'].includes(b.kind)){
   if(b.buffer<1)return 'empty';
@@ -184,7 +187,7 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='store'&&b.kind==='vault'){
   const n=Math.min(s.inv.crystal,(b.reinforced?40:20)-b.buffer);if(n<=0)return 'empty';
-  b.quality=b.buffer?qualityMean(b.quality,b.buffer,c.quality,n):c.quality;b.buffer+=n;pay(s,{crystal:n});return 'ok';
+  b.quality=b.buffer?qualityMean(b.quality,b.buffer,c.quality,n):c.quality;b.buffer+=n;pay(s,{crystal:n},null);return 'ok';
  }
  if(cmd.type==='reinforce'&&['chamber','vault'].includes(b.kind)){
   if(b.reinforced)return 'occupied';if(!canPay(s,CULTIVATION_RECIPES.reinforce))return 'materials';pay(s,CULTIVATION_RECIPES.reinforce);b.reinforced=true;return 'ok';
@@ -194,7 +197,7 @@ export function cultivationCommand(s,cmd){
   if(c.quality<60)return 'quality';if(cultivationTarget(s,b)>22)return 'cooling';
 
   const heart=machineSections(b)===1;if(heart&&c.heart?.where!=='carried')return 'heart';if(heart&&c.heart.health<HEART_MIN)return 'cracked';
-  if(!canPay(s,recipe))return 'materials';const quality=c.quality;pay(s,recipe);if(heart)c.heart={where:'installed',health:c.heart.health};
+  if(!canPay(s,recipe))return 'materials';const quality=c.quality;pay(s,recipe,'restoration');if(heart)c.heart={where:'installed',health:c.heart.health};
   b.sections=Math.min(MACHINE_REPAIRS.length,machineSections(b)+1);b.health=100;b.quality=quality;b.temperature=cultivationTarget(s,b);c.restored=true;return 'discovery';
  }
  if(cmd.type==='activate'&&b.kind==='machine'){
@@ -257,7 +260,7 @@ export function stepCultivation(s,dt){
   if(b.health>0){
    if(damage){b.health=Math.max(0,b.health-damage*seconds);if(b.kind==='chamber')b.needsTend=true;}
    else if(!b.needsTend)b.health=Math.min(100,b.health+4*seconds);
-   if(b.kind==='chamber'&&b.health>0&&!b.needsTend&&b.temperature<=22){if(!b.buffer)b.quality=100;const cap=b.reinforced&&!contentLocked(s,'reinforce')?40:20;if(b.buffer<cap)b.buffer=Math.min(cap,b.buffer+.3*seconds);}
+   if(crystalGrowthRate(b)){if(!b.buffer)b.quality=100;const cap=crystalCapacity(s,b);if(b.buffer<cap)b.buffer=Math.min(cap,b.buffer+crystalGrowthRate(b)*seconds);}
   }
  }
  for(const {from,to} of index(s).routes){const n=Math.max(0,Math.min(from.buffer,.8*seconds,(to.reinforced?40:20)-to.buffer));if(n){to.quality=to.buffer?qualityMean(to.quality,to.buffer,from.quality,n):from.quality;to.buffer+=n;from.buffer-=n;}}

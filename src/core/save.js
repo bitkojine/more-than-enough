@@ -1,3 +1,4 @@
+import { loadSpending, spendingSnapshot } from './spending.js';
 /* Save format. A save is the seed plus every player edit, so the world can be
  * regenerated exactly. Every world is kept (format.js): a save from format
  * OLDEST_SAVE on loads and plays on (format 10 worlds were set aside by
@@ -47,7 +48,7 @@ export function serialize(s) {
     abundanceLv: s.abundanceLv, insight: s.insight, prestiges: s.prestiges, totalEver: s.totalEver,
     perks: s.perks,
     extractors: s.extractors.map((e) => ({ k: e.key, x: e.x, y: e.y, z: e.z, b: s.logisticsModel ? e.buffer : +e.buffer.toFixed(2), ...(e.owner ? { o: e.owner } : {}) })),
-    stats: s.stats, discovered: s.discovered,
+    stats: s.stats, discovered: s.discovered, spending: spendingSnapshot(s.spending),
     sources: s.sources, mushrooms: s.mushrooms, mushroomsEver: s.mushroomsEver,
     goalIndex: s.goalIndex, goalsDone: s.goalsDone, time: s.time, battery: +s.battery.toFixed(4), ...(+s.flare.toFixed(2) > 0 ? { flare: +s.flare.toFixed(2) } : {}), ...(s.seen ? { seen: s.seen } : {}),
     underground: { deepest: s.underground.deepest }
@@ -119,6 +120,7 @@ export function deserialize(str, make = createState) {
   for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time', 'seen']) {
     if (isNum(d[k])) s[k] = d[k];
   }
+  loadSpending(s,d.spending);
   if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
   if (isNum(d.flare)) s.flare = Math.max(0, Math.min(FLARE_TIME, d.flare)); // the flare in your hand, still burning
   // Milestones reached; a save from before they counted in any order has

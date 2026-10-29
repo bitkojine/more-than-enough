@@ -1,5 +1,6 @@
 /* The game state, and the prestige loop that replaces it with a fresh world. */
 
+import { bindSpending } from './spending.js';
 import {newCultivation} from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE } from './coords.js';
@@ -73,8 +74,9 @@ export function createState(seed, {cultivation=false}={}) {
 // A state with nothing done yet, in `world`, standing at `player`. Cheap: it
 // looks at no land (the room's copies of players start from these).
 export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
-  return {
+  const state = {
     seed: world.seed,
+    spending: {since:0,complete:true,totals:{}},
     emptyStart: true,
     world,
     player,
@@ -104,6 +106,8 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
     underground: { deepest: SURFACE },
     events: []
   };
+  bindSpending(state);
+  return state;
 }
 
 /* -------------------------------------------------------------- prestige */

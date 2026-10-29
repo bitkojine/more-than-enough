@@ -9,7 +9,7 @@ import { contentLocked } from './progression.js';
 
 import { SURFACE } from './coords.js';
 import { FLARE_COST, FLARE_TIME, FLARE_LIGHT, UNLIT_RADIUS } from './content.js';
-import { canAfford, pay, exploreRadius } from './economy.js';
+import { canAfford, spend, exploreRadius } from './economy.js';
 import { isDark, lightScale } from './light.js';
 import { lightCrystal } from './cultivation.js';
 
@@ -23,7 +23,7 @@ export function useFlare(s) {
   if (s.flare > 0) { s.flare = 0; return 'out'; }
   if (s.shared) return 'invalid';
   if (!canAfford(s.inv, FLARE_COST)) return 'materials';
-  pay(s.inv, FLARE_COST);
+  spend(s, FLARE_COST, 'tools');
   s.flare = FLARE_TIME;
   s.stats.flares = (s.stats.flares || 0) + 1;
   if (s.cultivation) lightCrystal(s);

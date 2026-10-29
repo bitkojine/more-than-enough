@@ -1,3 +1,4 @@
+import { recordSpending, bindSpending } from './spending.js';
 import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 /* Costs, yields and production multipliers. */
 
@@ -32,12 +33,21 @@ export function canAfford(inv, cost) {
   return true;
 }
 
-export function pay(inv, cost) {
+export function pay(inv, cost, category = 'other') {
   const indexed = economyForInventory(inv);
-  if (indexed) return indexed.pay(cost);
-  if (!canAfford(inv, cost)) return false;
-  for (const r in cost) inv[r] -= cost[r];
+  if (indexed) { if (!indexed.pay(cost)) return false; }
+  else {
+    if (!canAfford(inv, cost)) return false;
+    for (const r in cost) inv[r] -= cost[r];
+  }
+  recordSpending(inv,cost,category);
   return true;
+}
+
+// Commands carry state explicitly; this also supports cloned simulation states.
+export function spend(s,cost,category) {
+  bindSpending(s);
+  return pay(s.inv,cost,category);
 }
 
 export function costText(cost) {
@@ -216,6 +226,10 @@ export function extractorCount(s, key) {
   return s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
 }
 
+export function extractorBaseCost(s,key) {
+  return s.cultivation&&key==='stoneworks'?{mycelium:20,stone:12,ore:4}:EXTRACTORS[key].baseCost;
+}
+
 export function extractorCost(s, key) {
-  return scaleCost(s.cultivation&&key==='stoneworks'?{mycelium:20,stone:12,ore:4}:EXTRACTORS[key].baseCost, Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
+  return scaleCost(extractorBaseCost(s,key), Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
 }

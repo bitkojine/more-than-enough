@@ -13,7 +13,7 @@ import { usesDepots, hasDepot } from './logistics.js';
 import { economyForState } from './economy-context.js';
 import { TOOLS, UNLOCKS, ABUNDANCE, REFINERIES, PERKS, EMBARK_ABUNDANCE } from './content.js';
 import { RESOURCES } from './tiles.js';
-import { canAfford, pay, costText, abundanceCost } from './economy.js';
+import { canAfford, spend, costText, abundanceCost } from './economy.js';
 import { noteAct } from './acts.js';
 import { t } from '../i18n/i18n.js';
 
@@ -151,7 +151,7 @@ export function buy(s, id) {
   }
   noteAct(s, 'u', id);
   if (u.currency === 'insight') s.insight -= cost;
-  else pay(s.inv, cost);
+  else spend(s, cost, u.family);
   u.apply(s);
   economyForState(s)?.reconfigure();
   return { ok: true, id, level: upgradeLevel(s, id) };

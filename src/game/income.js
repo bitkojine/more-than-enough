@@ -7,7 +7,7 @@
 
 import * as Core from '../core/index.js';
 
-const STORE = 'mte.income.';
+const STORE = 'mte.income.v2.';
 export const MAX_SAMPLES = 480;
 const EVERY = 60000;  // ms between samples while income holds steady
 const SOON = 3000;    // ms after the last sample a jump in income is noted
@@ -45,8 +45,10 @@ export function createIncome({ store = localStore() } = {}) {
     // Notes the income of world `s` at `now` if it's time to.
     note(s, now) {
       load(s);
-      const rates = Core.productionRates(s);
       const last = samples[samples.length - 1];
+      if(last && now-last[0]<SOON)return false;
+      const statement = Core.incomeStatement(s);
+      const rates = Object.fromEntries(Core.RESOURCES.map(r=>[r,statement[r].rate]));
       const jumped = last && Core.RESOURCES.some((r, i) => Math.abs(rates[r] - last[i + 1]) > JUMP * Math.max(last[i + 1], 0.01));
       if (last && now - last[0] < EVERY && !(jumped && now - last[0] >= SOON)) return false;
       samples.push([now, ...Core.RESOURCES.map((r) => round(rates[r]))]);

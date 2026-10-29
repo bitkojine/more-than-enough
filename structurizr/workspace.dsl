@@ -211,10 +211,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (income lines, spending at today's prices, payback in seconds of your own income). Stoneworks supplies a non-stacking same-owner quarry bonus within two tiles. A derived tile index caches service links per layout; both scalar and event economies use instance rates. Physical solo depots use an eight-tile same-owner/layer collection index; overlapping depots never duplicate transfers. Also embark/prestige and the goal track." "JavaScript" {
+                economy = component "Economy and Upgrades" "Content tables, costs and multipliers, and one registry of every purchase (tools, refineries, the Abundance Engine, unlocks, perks) that buying, the progression map and the sheet all share; the ledger (current production including crystal chambers, waiting stock and estimated resource payback); spending.js records actual categorized payments with explicit partial history for old saves. Stoneworks supplies a non-stacking same-owner quarry bonus within two tiles. A derived tile index caches service links per layout; both scalar and event economies use instance rates. Physical solo depots use an eight-tile same-owner/layer collection index; overlapping depots never duplicate transfers. Also embark/prestige and the goal track." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/content.js, economy.js, logistics.js, ledger.js, upgrades.js, goals.js, state.js"
+                        "ref" "src/core/content.js, economy.js, logistics.js, ledger.js, spending.js, upgrades.js, goals.js, state.js"
                     }
                 }
             }

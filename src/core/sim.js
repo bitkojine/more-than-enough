@@ -1,3 +1,4 @@
+import { bindSpending } from './spending.js';
 import { focusedChapter, effectiveToolLevel } from './progression.js';
 /* Time and motion: the per-tick simulation, movement and fog reveal.
  * Deterministic: no clocks, no Math.random. */
@@ -23,6 +24,7 @@ const MAX_STEP = 0.25;
 // The shared engine activates hauling after one normalizing legacy tick.
 // Direct variable-step/core replay callers retain their existing contract.
 export function startEventEconomy(s) {
+  bindSpending(s);
   const current = economyForState(s);
   if (current) return current;
   if (!haulingEconomyAvailable(s) || !Number.isFinite(abundanceTrickle(s)) ||
