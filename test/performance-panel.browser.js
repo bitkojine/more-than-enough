@@ -29,9 +29,11 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     ok(await evalJS('!document.querySelector(".perfCard").hidden'),lang+': new expensive cause reopens');
     for(const [w,h]of [[320,568],[568,320],[1366,768]]){
       await cdp.send('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:1,mobile:w<600},session);
-      await evalJS('__perfFixture.expand();__perfFixture.tick(1)');
+      await evalJS('document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();__perfFixture.expand();__perfFixture.tick(1)');
       await new Promise(r=>setTimeout(r,150));
       ok(await evalJS('(()=>{const r=document.querySelector(".perfCard").getBoundingClientRect();const visible=document.elementFromPoint(r.left+r.width/2,r.top+10);return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&document.querySelector(".perfCard").contains(visible);})()'),`${lang}: warning fits ${w}×${h}`);
+      ok(await evalJS('(()=>{document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();const a=document.querySelector(".perfCard").getBoundingClientRect(),overlap=b=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;return ["btnBuild","btnUpgrade","btnAction","btnMine","btnPerfect"].map(id=>document.getElementById(id)).filter(e=>!e.hidden).map(e=>e.getBoundingClientRect()).filter(r=>r.height>0).every(b=>!overlap(b));})()'),`${lang}: warning leaves essential controls clear at ${w}×${h}`);
+      ok(await evalJS('(()=>{const p=document.querySelector(".perfPill");return p.getBoundingClientRect().height<=50&&p.scrollWidth<=p.clientWidth;})()'),`${lang}: compact pill stays readable at ${w}×${h}`);
       await shot(`performance-${lang}-${w}.png`);
     }
     await evalJS('document.querySelector(".perfActions button").click();__perfFixture.details();');

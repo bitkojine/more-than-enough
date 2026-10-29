@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.6] - 2026-10-29
+
+- Keep performance warning cards clear of visible action controls. On shallow
+  landscape screens, shorten the pill, omit the graph and reserve the ladder
+  and primary action regions while retaining full-size card controls.
+- Test visible warning cards against action bounds in both languages, alongside
+  readable compact pills and the existing combined HUD checks.
+
 ## [0.181.5] - 2026-10-29
 
 - Redesign opt-in performance diagnostics with a collapsible warning card,

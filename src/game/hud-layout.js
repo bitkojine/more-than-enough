@@ -80,6 +80,12 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
     css('--hud-preview-room', regions.previewHeight + 'px');
     css('--hud-top-end', safeTop + 'px');
     css('--hud-topbar-end', topEnd + 'px');
+    const primary=[action,...[el.build,el.upgrade].filter(n=>!n.hidden).map(n=>n.getBoundingClientRect())].filter(r=>r.height>0);
+    const secondaryActions=[el.mine,el.perfect].filter(n=>!n.hidden).map(n=>n.getBoundingClientRect()).filter(r=>r.height>0);
+    const primaryTop=Math.min(innerHeight,...primary.map(r=>r.top));
+    css('--hud-primary-top',primaryTop+'px');
+    css('--hud-action-top',Math.min(primaryTop,...secondaryActions.map(r=>r.top))+'px');
+    css('--hud-secondary-left',Math.min(innerWidth,...secondaryActions.map(r=>r.left))+'px');
     css('--hud-meta-end', Math.max(topEnd, document.getElementById('hudMeta').getBoundingClientRect().bottom) + 8 + 'px');
     if (el.gearStatus.hidden !== el.battery.hidden) el.gearStatus.hidden = el.battery.hidden;
     const charge = el.battery.querySelector('span').textContent;

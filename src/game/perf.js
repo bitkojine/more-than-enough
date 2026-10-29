@@ -15,6 +15,7 @@ export function createPerf(el,canvas,audio,quality) {
   graph.width=280;graph.height=52;graph.setAttribute('role','img');
   const actions=node('div','perfActions'),inspect=node('button','',t('perf.inspect')),collapse=node('button','',t('perf.collapse'));
   actions.append(inspect,collapse);card.append(heading,summary,graph,actions);el.perf.append(pill);card.id='perfWarning';document.body.append(card);card.hidden=true;
+  const pillName=node('span','perfName',t('nerds.perf')+' · FPS'),pillValue=node('span','perfValue');pill.append(pillName,pillValue);
   pill.type=inspect.type=collapse.type='button';
   pill.setAttribute('aria-controls','perfWarning');heading.id='perfWarningTitle';card.setAttribute('aria-labelledby',heading.id);
   const details=el.performanceDetails;details.replaceChildren();
@@ -44,7 +45,7 @@ export function createPerf(el,canvas,audio,quality) {
   copy.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(JSON.stringify({version:VERSION,build:new URL(import.meta.url).searchParams.get('v')||null,at:new Date().toISOString(),userAgent:navigator.userAgent,measurement:'CPU timings; browser/GPU delays are not directly measured',...perf.snapshot()},null,2));copy.textContent=t('perf.copied');}catch{copy.textContent=t('perf.copyFailed');}}); // i18n-ok: machine-readable developer report.
   function render(){
     const m=perf.snapshot(),issue=m.latest,warning=issue?.warning;
-    el.perf.dataset.grade=warning?'bad':issue?'ok':'good';pill.textContent=`${warning?'⚠ '+m.incidents.filter(i=>i.warning).length+' · ':''}${t('nerds.perf')} · FPS ${m.fps.toFixed(0)} / ${m.target}`;
+    el.perf.dataset.grade=warning?'bad':issue?'ok':'good';pillValue.textContent=`${warning?'⚠ '+m.incidents.filter(i=>i.warning).length+' · ':''}${m.fps.toFixed(0)} / ${m.target}`;pill.setAttribute('aria-label',`${t('nerds.perf')} · FPS ${m.fps.toFixed(0)} / ${m.target}`);
     pill.setAttribute('aria-expanded',String(open));
     heading.textContent=t(warning?'perf.slow':issue?'perf.watch':'perf.healthy');
     summary.textContent=issue?`${label(issue.cause)} · ${ms(issue.cause==='unattributed'?Math.max(0,issue.frameMs-issue.cpuMs):issue.phases[0].ms)} · ${t('perf.target')} ${m.target} FPS`:t('perf.pacing',{n:m.target});

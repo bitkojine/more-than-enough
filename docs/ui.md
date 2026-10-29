@@ -588,3 +588,8 @@ When diagnostics and other metadata fill a short screen, the Equipment card
 keeps its bottom anchor and caps its scrollable height below the metadata's
 measured bottom edge. This prevents the larger diagnostic pill overlapping
 Equipment without shifting Messages or shrinking touch targets.
+
+The warning card clears visible action controls. In shallow landscape it sits
+to the left of visible ladder/AUTO controls and above the primary action row, uses a short
+numeric pill, and omits the graph to keep its controls reachable. The same
+full-size pill and graph remain available on taller screens.

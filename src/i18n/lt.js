@@ -6,6 +6,7 @@ export default {
   "cr.reason.locked": "Paleisk mašiną, kad tai atrakintum.",
   "progression.requirement": "Bus atrakinta paleidus mašiną.",
   "progression.locked": "Užrakinta",
+  "news.0.181.6": "Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.",
   "news.0.181.5": "Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.",
   "news.0.181.4": "Vienu metu Mica naudoja vieną šviesą: žiežirba išjungia žibintą, o įjungus žibintą žiežirba užgęsta. Abu veikia visuose sluoksniuose. Saulės plokštės ir vandens ratai vėl prieinami paviršiaus statybose dar prieš paleidžiant mašiną.",
   "news.0.181.3": "Įrangos meniu dabar lieka atvertas pasaulio žemėlapyje. Neišeidamas iš žemėlapio gali atverti mažąją įrangos kortelę ir visą gamybos meniu.",

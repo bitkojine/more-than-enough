@@ -2285,7 +2285,7 @@ async function main() {
   console.log('\n== Performance panel ==');
   eq(await evalJS('document.getElementById("perf").hidden'), true, 'the performance panel starts closed');
   await key('keyDown', 'F3', 'F3', 114); await key('keyUp', 'F3', 'F3', 114);
-  ok(await waitFor('!document.getElementById("perf").hidden && /FPS\\s+\\d+/.test(document.getElementById("perf").textContent)', 2000), 'F3 opens the panel, showing FPS');
+  ok(await waitFor('!document.getElementById("perf").hidden && !!document.querySelector(".perfValue") && MTE_GAME.perf().fps > 0', 2000), 'F3 opens the panel, showing FPS');
   var perfText = await evalJS('document.getElementById("perf").textContent');
   ok(perfText.includes('Performance') && perfText.includes('FPS'), 'the compact panel shows performance and actual/target FPS');
   var snap = await evalJS('MTE_GAME.perf()');

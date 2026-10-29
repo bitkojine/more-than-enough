@@ -1446,14 +1446,14 @@ body.placing #depthGauge { display: none; }
 
 /* Diagnostics has its own anchored disclosure; it never shifts Messages. */
 #perf button, .perfCard button, .perfCopy { min-height: 44px; border: 1px solid var(--panel-line); border-radius: 14px; background: var(--panel); color: var(--ink); padding: 8px 12px; font: 600 12px/1.35 system-ui; cursor: pointer; touch-action: manipulation; }
-#perf .perfPill { min-height: 44px; max-width: 100%; border-radius: 24px; overflow-wrap: anywhere; }
+#perf .perfPill { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 44px; max-width: 100%; border-radius: 24px; overflow-wrap: anywhere; }
 #perf[data-grade="ok"] .perfPill { border-color: var(--gold); }
 #perf[data-grade="bad"] .perfPill { border-color: #ff867d; color: #ffb9a8; }
-.perfCard { position: fixed; z-index: 24; top: var(--hud-top-end, 140px); right: var(--edge-r); width: min(300px, calc(100vw - 32px)); max-height: max(80px, calc(100dvh - var(--hud-top-end, 140px) - 16px)); overflow: auto; border: 1px solid var(--panel-line); border-radius: 18px; padding: 12px; background: var(--panel); box-shadow: var(--shadow-1); font: 13px/1.45 system-ui; }
+.perfCard { --perf-top: var(--hud-top-end, 140px); position: fixed; z-index: 24; top: var(--perf-top); right: var(--edge-r); width: min(300px, calc(100vw - 32px)); max-height: max(72px, calc(var(--hud-action-top, 100dvh) - var(--perf-top) - 8px)); overflow: auto; border: 1px solid var(--panel-line); border-radius: 18px; padding: 12px; background: var(--panel); box-shadow: var(--shadow-1); font: 13px/1.45 system-ui; }
 .perfCard[hidden] { display: none; }
 .perfCard p { margin: 8px 0; overflow-wrap: anywhere; }
 .perfGraph { width: 100%; height: 52px; display: block; }
-.perfActions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.perfActions { position: sticky; bottom: 0; background: var(--panel); display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .perfStats { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px 12px; }
 .perfStats dt, .perfStats dd { margin: 0; overflow-wrap: anywhere; }
 .perfStats dd { text-align: right; font-variant-numeric: tabular-nums; }
@@ -1462,3 +1462,13 @@ body.placing #depthGauge { display: none; }
 .perfPhase small { grid-column: 1 / -1; color: var(--ink-dim); }
 .perfPhase b { font-variant-numeric: tabular-nums; }
 .perfIncident { border-left: 3px solid var(--gold); padding-left: 8px; overflow-wrap: anywhere; }
+
+.perfValue { white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-height: 500px) {
+  #perf .perfName { display: none; }
+  #perf .perfPill { padding: 6px 8px; }
+  .perfCard { --perf-top: calc(var(--hud-topbar-end, 100px) + 8px); right: max(var(--edge-r), calc(100vw - var(--hud-secondary-left, 100vw) + 8px)); width: min(300px, calc(var(--hud-secondary-left, 100vw) - var(--edge-l) - 132px)); max-height: max(72px, calc(var(--hud-primary-top, 100dvh) - var(--perf-top) - 8px)); padding: 8px; font-size: 12px; }
+  .perfCard p { margin: 4px 0; font-size: 11px; }
+  .perfCard .perfGraph { display: none; }
+  .perfActions { margin-top: 4px; }
+}
