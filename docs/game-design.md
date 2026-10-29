@@ -64,7 +64,8 @@ Light you make underground and carry, not torches, that lights the way for a
 while and then has to be made again (Watch, chosen on decision cards). A
 flare is a metal stick of ore dust, made from metal and lit in one tap, held
 only in Mica's hand (never set down), burning out after about two minutes of
-play. The lantern stays: it lights a small pool for good, a flare lights much
+play. Both carried lights work on every layer; the lantern lights a small
+pool and a flare lights much
 further for a while. Underground, light is what uncovers the rock and puts it
 on the map (about 8 tiles for a flare, the lantern's usual reach, only the
 tiles beside you with no light in a crystal world). In a crystal world a
@@ -890,7 +891,8 @@ every building, stored resource, upgrade, route and completed world is kept.
 Resolved choices: machine activation unlocks optional systems for post-win play.
 Until then, optional producers, depots, vaults and conduits pause without losing
 stored output, routes or upgrades. Their optional interactions are also locked.
-The minimum kit keeps a lantern for readable exploration and heart shelters for
+The minimum kit keeps a lantern, surface solar panels and water wheels for
+recharging, and heart shelters for
 recovery, including existing hearts too damaged to install. Shelter storage,
 healing and retrieval remain available throughout the chapter.
 
@@ -911,3 +913,23 @@ and packs. Spending records actual payments from this update onward, with
 older saves explicitly partial and reconstructed holdings labelled estimates.
 The mushroom-species catalogue's permanent home remains undecided: retain it
 in a collapsed section for now and ask the owner about placement later.
+
+### One carried light and charging — confirmed 2026-10-29
+
+Mica may have one active carried light: lantern or flare. Igniting a flare
+switches off the lantern; switching on the lantern extinguishes and spends the
+remaining flare. Failed actions leave the working light alone. In legacy
+worlds the automatic lantern resumes after a flare burns out. Paused locked
+flares remain saved without occupying the active slot; activation cannot
+create two sources. Old overlapping saves select the remaining flare while
+retaining equipment, charge and resources. Sunlight and placed lamps remain
+independent world sources; this is not a one-light-per-world restriction.
+
+Both light controls are available on every layer, with identical progression
+and material rules. Flares remain optional content unlocked by activation.
+Solar panels and water wheels are essential infrastructure available before
+the win in new worlds: Build → On the water on the surface. Existing physical
+placement and contact rules apply: solar on water, wheel on a river, stand
+beside the charger, ten seconds from empty to full, solar by day and wheel
+at any hour. They were unintentionally omitted by the crystal-world menu
+early return in commit 560abcf; charging was never deliberately retired.

@@ -1,3 +1,4 @@
+import { contentLocked } from './progression.js';
 /* Light: day and night, when it's dark, and the battery of the lantern you
  * carry. It is what lights the dark, and that runs the battery down; water power you build on the surface (PROPS with
  * `charge`) fills it up again. A low battery only shrinks your light: it
@@ -8,6 +9,16 @@ import {atInteraction} from './interaction.js';
 import { SURFACE, packKey } from './coords.js';
 import { PROPS, DAY_LENGTH, BATTERY_LIFE, BATTERY_LOW, BATTERY_DIM, CHARGE_TIME, CHARGE_RANGE } from './content.js';
 import { economyForState } from './economy-context.js';
+
+// One authoritative carried source for simulation, battery, UI and rendering.
+// Paused flares remain saved but do not take the lantern's active slot.
+export function activeCarriedLight(s) {
+  if(!contentLocked(s,'flare') && s.flare>0)return 'flare';
+  return !s.cultivation || s.cultivation.lantern ? 'lantern' : null;
+}
+export function normalizeCarriedLight(s) {
+  if(s.cultivation && activeCarriedLight(s)==='flare')s.cultivation.lantern=false;
+}
 
 // 1 at time 0 (noon) ... 0 at DAY_LENGTH / 2 (midnight).
 export function daylight(t) {
@@ -106,7 +117,7 @@ export function tickBattery(s, dt) {
   const economy = economyForState(s);
   if (economy) { tickEventBattery(s, economy, Math.round(dt * 60)); return; }
   if (chargerNear(s)) s.battery = Math.min(1, s.battery + dt / CHARGE_TIME);
-  else if (isDark(s) && (!s.cultivation || s.cultivation.lantern)) s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
+  else if (isDark(s) && activeCarriedLight(s)==='lantern') s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
 }
 
 const batteryEpochs = new WeakMap();
@@ -125,7 +136,7 @@ function tickEventBattery(s, economy, count) {
   }
   const rateAt = tick => {
     const time = economy.timeAt(tick);
-    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) && (!s.cultivation || s.cultivation.lantern) ? -1 / BATTERY_LIFE : 0;
+    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) && activeCarriedLight(s)==='lantern' ? -1 / BATTERY_LIFE : 0;
   };
   const apply = (first, last, rate) => {
     if (rate !== epoch.rate) { epoch.at = first - 1; epoch.opening = epoch.value; epoch.rate = rate; }

@@ -13,7 +13,7 @@ import {
 } from './content.js';
 import { extractorRate, supportMult, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
 import { tickBattery } from './light.js';
-import { burnFlare, sightRadius } from './flare.js';
+import { burnFlare, sightRadius, flareEndsWithin } from './flare.js';
 import { economyForState } from './economy-context.js';
 import { haulingEconomyAvailable, haulsBuilding, usesDepots } from './logistics.js';
 import { extractorCapacity } from './economy.js';
@@ -36,7 +36,11 @@ export function startEventEconomy(s) {
 }
 
 export function settleEconomy(s) { economyForState(s)?.settle(); }
-export function canBatchEconomy(s, count) { return haulingEconomyAvailable(s) && !!economyForState(s)?.canAdvanceTicks(count); }
+export function canBatchEconomy(s, count) {
+  // A legacy lantern resumes on the exact tick its flare burns out.
+  // Keep that boundary individual rather than applying one rate to a batch.
+  return !flareEndsWithin(s,count/60) && haulingEconomyAvailable(s) && !!economyForState(s)?.canAdvanceTicks(count);
+}
 
 /* --------------------------------------------------------------- step */
 

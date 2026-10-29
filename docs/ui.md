@@ -149,8 +149,9 @@ and opening a full sheet still close the compact Equipment card.
 - Sheets and dialogs are solid: nothing on the map shows through a list.
 
 ### The lantern's charge
+- Equipment offers carried light controls on every layer. Lantern and flare are mutually exclusive: lighting one switches off the other, and returning to the lantern spends the remaining flare. Controls and the character use the same canonical active-source query.
 - The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
-- The first time it gets low (and again after each charge back above that), one line in the log says the light is shrinking and where to charge it. Solar panels and water wheels are in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
+- The first time it gets low (and again after each charge back above that), one line in the log says the light is shrinking and where to charge it. Solar panels and water wheels are available before machine activation, in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
 
 ### The sun clock
 - The Settings gear wears the day as a ring (Watch, 2026-10-26): noon at the top, gold for the part of the day the sun works, blue for the rest, and the sun (in the gold) or the moon (in the blue) riding it clockwise where the day is now. In older and shared worlds the gold is when a solar panel charges (and the lantern doesn't drain); in a crystal world it's the sun that cracks crystal and the heart in the open, which lasts longer. It shows always, on the surface and underground. The gear stays the same size and still opens Settings.

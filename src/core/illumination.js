@@ -1,4 +1,3 @@
-import { contentLocked } from './progression.js';
 /* Authoritative physical light, independent of drawing, fog and frame rate.
  * Sky access and installed light are demand-cached in 16x16 chunks. Each
  * field records the geometry chunks it read, so edits invalidate only fields
@@ -10,7 +9,7 @@ import {SURFACE,Z_MIN,CHUNK_SIZE,chunkCoord,chunkIndex,packKey,unpackKey} from '
 import {tileAt,holeAbove,holeBelow} from './world.js';
 import {TILE_INFO} from './tiles.js';
 import {PROPS,FLARE_LIGHT} from './content.js';
-import {daylight,SUN_CRACKS,isDark,lightScale} from './light.js';
+import {daylight,SUN_CRACKS,isDark,lightScale,activeCarriedLight} from './light.js';
 import {VersionedMap} from './versioned-map.js';
 import {VersionedSet} from './versioned-set.js';
 
@@ -129,9 +128,9 @@ function installed(c,cx,cy,z,work) {
   return keep(c,id,field);
 }
 export function carriedLightLevel(s) {
-  const on=s.cultivation?s.cultivation.lantern:isDark(s);
-  const lantern=on?Math.ceil(LANTERN_LEVEL*lightScale(s)):0;
-  return Math.max(lantern,!contentLocked(s,'flare')&&s.flare>0?Math.min(LIGHT_MAX,FLARE_LIGHT+1):0);
+  const source=activeCarriedLight(s);
+  if(source==='flare')return Math.min(LIGHT_MAX,FLARE_LIGHT+1);
+  return source==='lantern' && (s.cultivation || isDark(s)) ? Math.ceil(LANTERN_LEVEL*lightScale(s)) : 0;
 }
 function carried(c,s,work) {
   const {z}=s.player,x=Math.floor(s.player.x),y=Math.floor(s.player.y),level=carriedLightLevel(s);

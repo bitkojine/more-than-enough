@@ -399,10 +399,10 @@ function startPlacing(what, from = null) {
 }
 // The lantern you crafted: one button above Gather switches it (Watch,
 // 2026-10-25), there once it's made; AUTO never shows in a crystal world.
-const toggleLantern = () => { if (game.state.cultivation?.gear.lantern) cultivate({ type: 'lantern' }); };
+const toggleLantern = () => { if (game.state.cultivation?.gear.lantern) { cultivate({ type: 'lantern' }); flareWas=game.state.flare; showLantern(game.state); showFlare(game.state); } };
 el.lantern.addEventListener('click', toggleLantern);
 function showLantern(s) {
-  const c = s.cultivation, on = !!c?.lantern;
+  const c = s.cultivation, on = Core.activeCarriedLight(s)==='lantern';
   el.lantern.hidden = !c?.gear.lantern;
   if (el.lantern.hidden) return;
   el.lantern.classList.toggle('on', on);
@@ -421,6 +421,7 @@ function useFlare() {
   else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'));
   flareWas = s.flare;
   if (result === 'lit' || result === 'out') game.saveSoon();
+  showLantern(s);
   showFlare(s);
 }
 el.flare.addEventListener('click', useFlare);
@@ -430,7 +431,7 @@ function showFlare(s) {
   flareWas = s.flare; flareWorld = s;
   const locked = Core.contentLocked(s,'flare'), on = Core.flareLit(s);
   el.flare.disabled = locked;
-  el.flare.hidden = !!s.shared || !(on || s.player.z < Core.SURFACE);
+  el.flare.hidden = !!s.shared;
   if (el.flare.hidden) return;
   el.flare.classList.toggle('on', on);
   el.flare.setAttribute('aria-pressed', String(on));
@@ -997,6 +998,7 @@ window.MTE_GAME = {
       if(!Number.isSafeInteger(count)||count<0||count>6000)throw new Error('playtest-tick-count'); // i18n-ok: developer diagnostic
       simulationClock.advanceTicks(count);
     },
+    present: () => updateView(0),
     faults: () => problems.faults.list()
   } : null,
   core: Core,

@@ -62,7 +62,7 @@ export function drawPlayer(ctx, cam, s, look, view) {
     x: p.x, sx, sy, mica: true, facingVector:facing, flip: facing.x < -0.01, moving: view.moving, water: Core.onWater(s),
     actor: view.actor, steady: view.sign > 0, equipment: {basket:Core.effectiveToolLevel(s,'basket'),pickaxe:Core.effectiveToolLevel(s,'pickaxe'),boots:Core.effectiveToolLevel(s,'boots')}, cargo:s.cultivation, crystal:s.inv.crystal, wiki: view.wiki ?? null,
     // Older worlds light the dark with a lantern Mica always carries.
-    lantern: s.cultivation ? { has: !!s.cultivation.gear?.lantern, on: !!s.cultivation.lantern } : { has: true, on: Core.isDark(s) },
+    lantern: s.cultivation ? { has: !!s.cultivation.gear?.lantern, on: Core.activeCarriedLight(s)==='lantern' } : { has: true, on: Core.isDark(s)&&Core.activeCarriedLight(s)==='lantern' },
     flare: Core.flareLit(s), castShadow: view.shadow!==false
   });
 }

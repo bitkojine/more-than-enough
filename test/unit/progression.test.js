@@ -44,9 +44,9 @@ test('locked automation freezes its contents and heat; active chambers keep grow
 
 test('actual activation unlocks existing equipment, purchases and paused production without resetting progress',()=>{
  const s=site(),machine=facility(s,'machine',0,0,{sections:3,health:100});facility(s,'cooler',0,1);
- s.cultivation.heart={where:'installed',health:88};s.tools.basket=6;s.flare=52;
+ s.cultivation.heart={where:'installed',health:88};s.tools.basket=6;s.flare=52;s.cultivation.gear.lantern=true;s.cultivation.lantern=true;
  const producer={key:'quarry',res:'stone',x:2,y:0,z:-2,buffer:5};s.extractors.push(producer);
- assert.equal(command(s,'activate'),'activated');assert.equal(C.focusedChapter(s),false);assert.equal(C.contentLocked(s,'vault'),false);assert.equal(C.effectiveToolLevel(s,'basket'),6);assert.equal(C.flareLit(s),true);
+ assert.equal(command(s,'activate'),'activated');assert.equal(C.focusedChapter(s),false);assert.equal(C.contentLocked(s,'vault'),false);assert.equal(C.effectiveToolLevel(s,'basket'),6);assert.equal(C.flareLit(s),true);assert.equal(s.cultivation.lantern,false,'unpausing a saved flare cannot create a second carried light');
  C.step(s,.25,{visualEvents:false});assert.ok(producer.buffer>5);assert.equal(machine.sections,3);assert.equal(s.cultivation.heart.health,88);
  const copy=C.deserialize(C.serialize(s));assert.ok(C.canEmbark(copy));assert.equal(copy.tools.basket,6);assert.equal(copy.extractors.length,1);
 });

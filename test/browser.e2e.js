@@ -403,7 +403,7 @@ async function main() {
     const {checkProgression}=await import('./progression.browser.js');
     for(const lang of ['en','lt']){
       await navigate('http://127.0.0.1:'+PORT+'/?lang='+lang+'&playtestReplay');
-      await checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot:name=>shot(lang+'-'+name),navigate:path=>navigate('http://127.0.0.1:'+PORT+'/'+path)});
+      await checkProgression({evalJS,waitFor,ok,eq,cdp,session,tap,rect,shot:name=>shot(lang+'-'+name),navigate:path=>navigate('http://127.0.0.1:'+PORT+'/'+path)});
     }
     const unexpected=pageErrors.filter(e=>!e.startsWith('Earnings module failed to load ')&&!e.includes('net::ERR_BLOCKED_BY_CLIENT'));
     eq(unexpected.length,0,'chapter progression has no unexpected browser errors (Earnings download failure is injected)');

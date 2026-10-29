@@ -1,6 +1,7 @@
+import {checkLightControls} from './light-controls.browser.js';
 /* Funded UI fixture for chapter locks; the separate fresh-world trace proves
  * the real journey. Both owned items and direct core calls are checked here. */
-export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,navigate}) {
+export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,navigate,tap,rect}) {
   await evalJS(`(async()=>{
     window.requestAnimationFrame=()=>0;await new Promise(r=>setTimeout(r,100));
     const s=MTE_GAME.getState(),C=MTE_GAME.core;
@@ -9,7 +10,7 @@ export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,na
     for(let y=-4;y<=4;y++)for(let x=-4;x<=6;x++){C.tileAt(s.world,x,y,-2);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.TUNNEL;C.markExplored(s.world,x,y,-2);}
     const c=s.cultivation,base={z:-2,temperature:18,quality:100,buffer:0};
     c.facilities=[{...base,kind:'machine',id:1,x:0,y:0,health:100,sections:3},{...base,kind:'cooler',id:2,x:0,y:1},{...base,kind:'chamber',id:3,x:2,y:0,health:100,buffer:2},{...base,kind:'vault',id:4,x:3,y:0,buffer:12},{...base,kind:'conduit',id:5,x:3,y:1,from:3,to:4}];
-    c.nextId=6;c.completed=false;c.restored=true;c.heart={where:'installed',health:100};
+    c.nextId=6;c.gear={lantern:false,carrier:false};c.lantern=false;c.completed=false;c.restored=true;c.heart={where:'installed',health:100};
     s.extractors=[{key:'garden',res:'mycelium',x:2,y:0,z:0,buffer:9}];MTE_GAME.hud.update(s);
   })()`);
   const owned=await evalJS('JSON.stringify({tools:MTE_GAME.getState().tools,buffer:MTE_GAME.getState().extractors[0].buffer,vault:MTE_GAME.getState().cultivation.facilities[3].buffer,flare:MTE_GAME.getState().flare})');
@@ -62,4 +63,5 @@ export async function checkProgression({evalJS,waitFor,ok,eq,cdp,session,shot,na
   const lang=await evalJS('document.documentElement.lang');
   await navigate('?lang='+lang+'&playtestReplay');
   ok(await evalJS('MTE_GAME.getState().cultivation.completed&&MTE_GAME.getState().tools.basket===6&&MTE_GAME.getState().extractors[0].buffer===9'),'actual reload retains completion, earned gear and saved buffers');
+  await checkLightControls({evalJS,waitFor,ok,cdp,session,tap,rect,shot});
 }

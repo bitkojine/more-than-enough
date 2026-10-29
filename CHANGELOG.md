@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.181.4] - 2026-10-29
+
+- Enforce one active carried light across commands, battery use, illumination,
+  controls, saves and character rendering. Switching to the lantern
+  extinguishes the flare; preserve paused flares and repair older overlaps.
+- Restore solar panels and water wheels to new-world surface construction,
+  including unfinished worlds. Keep canonical water/river sites and charging.
+- Keep flare burnout on an individual tick in fast simulations, preserving
+  exact battery behavior and removing floating-point timer residue.
+- Show flare controls on every layer; keep unlock and shared-world rules.
+- Add light-state invariants, surface/depth and day/night checks, and real
+  browser checks for building a charger and switching lights on every layer.
+
+
 ## [0.181.3] - 2026-10-29
 
 - Allow the compact Equipment card to remain open in world map view, so its

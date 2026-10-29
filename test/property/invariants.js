@@ -35,6 +35,10 @@ export function invariants() {
     if (s.shared && s.flare > 0) throw new Error('a flare burns in a shared world');
   });
 
+  invariant('Mica never has two active carried lights',s=>{
+    if(s.cultivation?.lantern&&C.flareLit(s))throw new Error('Lantern and flare are both active');
+  });
+
   // --- resources and money: never negative, never NaN (economy.js: pay()
   // refuses a cost you can't afford, copyNumbers keeps numbers finite).
   invariant('every resource count is finite and never negative', (s) => {

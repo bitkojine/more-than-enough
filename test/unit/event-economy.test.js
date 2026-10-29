@@ -227,3 +227,15 @@ test('stationary battery batches match individual ticks across daylight and char
     }
   }
 });
+
+
+test('quiet batches preserve the exact lantern battery transition when a flare burns out',()=>{
+ for(const remaining of [.1,.25,1.5,2.001]) {
+  const a=productionFixture();a.time=C.DAY_LENGTH/2;a.flare=remaining;
+  C.step(a,1/60,{visualEvents:false});const b=structuredClone(a);C.startEventEconomy(a);C.startEventEconomy(b);
+  if(b.flare<=.25)assert.equal(C.canBatchEconomy(b,15),false,'a batch must not cross the carried-source deadline');
+  for(let tick=0;tick<240;tick++)C.step(a,1/60,{visualEvents:false});
+  for(let tick=0;tick<240;){let count=Math.min(15,240-tick);while(count>1&&!C.canBatchEconomy(b,count))count--;C.step(b,count/60,{visualEvents:false});tick+=count;}
+  assert.equal(a.flare,0);assert.equal(b.flare,0);assert.equal(b.battery,a.battery);assert.equal(C.serialize(b),C.serialize(a));
+ }
+});

@@ -238,8 +238,9 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     // Only what can stand on the layer you're on: nothing you'd have to go
     // up or down for, and no heading over an empty section.
     const here = (keys) => keys.filter((k) => Core.buildsOnLayer(s, k));
-    if(s.cultivation)return cultivationBuildRows(s)+here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('');
     const section = (title, rows) => rows ? `<div class="section">${t(title)}</div>` + rows : '';
+    if(s.cultivation)return cultivationBuildRows(s)+here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('')+
+      section('sheet.section.water',here(propsOn(true)).filter(k=>Core.PROPS[k].charge).map(k=>propRow(s,k)).join(''));
     return section('sheet.section.extractors', here(Core.DEPOSIT_EXTRACTORS).map((k) => extractorRow(s, k)).join('')) +
       section('sheet.section.converters', here(Core.CONVERTERS).map((k) => extractorRow(s, k)).join('')) +
       section('sheet.section.support', here(Core.SUPPORT_BUILDINGS).map((k) => extractorRow(s, k)).join('')) +

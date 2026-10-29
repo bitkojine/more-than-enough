@@ -68,7 +68,7 @@ test('underground in a crystal world light uncovers: none the tiles beside you, 
   assert.equal(C.sightRadius(s), C.MINE_EXPLORE_RADIUS);
   C.useFlare(s);
   assert.equal(C.sightRadius(s), C.FLARE_LIGHT);
-  cmd(s, 'lantern');
+  assert.equal(s.cultivation.lantern,false,'lighting the flare switches off the lantern');
   assert.equal(C.sightRadius(s), C.FLARE_LIGHT, 'the flare alone reaches as far');
   // The reveal itself: a tile FLARE_LIGHT - 1 away is uncovered once the flare is lit.
   const far = { x: Math.floor(s.player.x) + C.FLARE_LIGHT - 1, y: Math.floor(s.player.y) + 12 };

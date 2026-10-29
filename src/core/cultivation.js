@@ -1,3 +1,4 @@
+import { activeCarriedLight, normalizeCarriedLight } from './light.js';
 import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 /* Living crystal extends the existing world, inventory and commands. No
  * separate map, movement system or renderer; no DOM or wall-time dependency. */
@@ -159,7 +160,7 @@ export function cultivationCommand(s,cmd){
  }
  if(cmd.type==='starter')return takeStarter(s,x,y);
  if(cmd.type==='heart')return moveHeart(s,x,y,z);
- if(cmd.type==='lantern'){if(!c.gear.lantern)return 'equipment';c.lantern=!c.lantern;if(c.lantern)lightCrystal(s);else exposeCargo(s);return 'ok';}
+ if(cmd.type==='lantern'){if(!c.gear.lantern)return 'equipment';c.lantern=activeCarriedLight(s)!=='lantern';if(c.lantern){if(!contentLocked(s,'flare'))s.flare=0;lightCrystal(s);}else exposeCargo(s);return 'ok';}
  if(cmd.type==='craft'){
   if(!['carrier','lantern'].includes(cmd.kind)||c.gear[cmd.kind])return 'invalid';
   if(!canPay(s,cost))return 'materials';pay(s,cost,'tools');c.gear[cmd.kind]=true;return 'ok';
@@ -204,7 +205,7 @@ export function cultivationCommand(s,cmd){
   if(c.completed)return 'completed';if(machineSections(b)<MACHINE_REPAIRS.length)return 'sections';
   if(b.health<=0||b.quality<60)return 'quality';
   if(cultivationTarget(s,b)>22||b.temperature>22)return 'cooling';
-  c.completed=true;c.completedAt=s.time;return 'activated';
+  c.completed=true;normalizeCarriedLight(s);c.completedAt=s.time;return 'activated';
  }
  return 'invalid';
 }

@@ -1,3 +1,4 @@
+import { normalizeCarriedLight } from './light.js';
 import { loadSpending, spendingSnapshot } from './spending.js';
 /* Save format. A save is the seed plus every player edit, so the world can be
  * regenerated exactly. Every world is kept (format.js): a save from format
@@ -123,6 +124,7 @@ export function deserialize(str, make = createState) {
   loadSpending(s,d.spending);
   if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
   if (isNum(d.flare)) s.flare = Math.max(0, Math.min(FLARE_TIME, d.flare)); // the flare in your hand, still burning
+  normalizeCarriedLight(s);
   // Milestones reached; a save from before they counted in any order has
   // only how many, which were the first ones listed.
   const goalIds = (s.cultivation?CULTIVATION_GOALS:GOALS).map((g) => g.id);
