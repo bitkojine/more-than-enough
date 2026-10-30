@@ -46,17 +46,18 @@ export function createPerfMonitor() {
       const avg=recent.reduce((a,s)=>a+s.interval,0)/recent.length,budget=1000/target;
       const costs=PERF_PHASES.map(key=>({key,ms:recent.reduce((a,s)=>a+s.phases[key],0)/recent.length})).sort((a,b)=>b.ms-a.ms);
       const cpu=costs.reduce((a,p)=>a+p.ms,0),ratio=Math.max(avg/budget,interval/budget/2);
-      const warning=avg>budget*1.12||interval>=Math.max(100,budget*3)||cpu>budget;
-      const small=costs[0].ms>Math.max(2,budget*.1);
       const timing=timingSummary(recent),overTarget=Math.max(0,avg-budget);
+      const loopOverBudget=timing.available&&timing.callbackWorkMs>budget;
+      const warning=avg>budget*1.12||interval>=Math.max(100,budget*3)||cpu>budget||loopOverBudget;
+      const small=costs[0].ms>Math.max(2,budget*.1);
       const lateTimer=timing.available&&timing.timerLateMs>=Math.max(1,overTarget*.5);
       // A largest cost below budget is an observation, not a proven cause.
       // Deliberate cap waiting is never called unexplained browser/GPU work.
       const cadence=avg>budget*1.04;
-      const cause=warning?(cpu>budget?costs[0].key:lateTimer?'scheduler':'unattributed')
+      const cause=warning?(cpu>budget?costs[0].key:loopOverBudget?'loop':lateTimer?'scheduler':'unattributed')
         :cadence?(lateTimer?'scheduler':'cadence'):costs[0].key;
-      const evidence=cpu>budget?'cpu-over-budget':lateTimer&&cadence?'late-timer'
-        :cadence?'interval-over-target':'cost-observation';
+      const evidence=cpu>budget?'cpu-over-budget':loopOverBudget?'loop-over-budget':lateTimer&&cadence?'late-timer'
+        :cadence?'interval-over-target':warning?'unexplained-hitch':'cost-observation';
       const issue={cause,warning,evidence,pacing:timing,overTargetMs:overTarget,ratio,frameMs:avg,worstMs:Math.max(...recent.map(s=>s.interval)),cpuMs:cpu,phases:costs,preceding:history.slice(-10),context:{...context},at:Date.now()};
       history.push({ms:avg,budget});if(history.length>HISTORY)history.shift();
       latest=warning||small||cadence?issue:null;

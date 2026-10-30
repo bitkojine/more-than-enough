@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.181.11] - 2026-10-30
+
+- Stop presenting normal 30 FPS cap waiting as unexplained device delay or
+  implying a cheap CPU phase caused a slow frame. Separate CPU budget overruns,
+  cadence observations, measured timer lateness and unknown delivery causes.
+- Measure whole-loop work, outside-loop time, calculated cap allowance, excess
+  interval, timer lateness and RAF timestamp age. Surface unprofiled loop work
+  when it exceeds budget; distinguish device and actual canvas density.
+- Explain the timing evidence and its limits in English and Lithuanian. Keep
+  the scheduler, fixed 30 FPS cap, simulation and saved worlds unchanged.
+
 ## [0.181.10] - 2026-10-30
 
 - Skip wholly offscreen scenery before shading, foreground queries and drawing.

@@ -9,6 +9,7 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     ok(await evalJS('MTE_GAME.perfVisible()&&!document.getElementById("perf").hidden&&!!document.querySelector(".perfPill")'),lang+': F3 lazy-loads the actual diagnostics tool');
     for(let i=0;i<50;i++){if(await evalJS('MTE_GAME.perf().count>0'))break;await new Promise(r=>setTimeout(r,100));}
     ok(await evalJS('MTE_GAME.perf().count>0'),lang+': actual game loop records phase samples');
+    ok(await evalJS('(()=>{const m=MTE_GAME.perf();return m.pacing.available&&m.pacing.callbackWorkMs>=0&&m.pacing.outsideLoopMs>=0&&m.pacing.timerLateMs>=0&&m.pacing.overTargetMs>=0;})()'),lang+': real host records callback work, waiting allowance and late deliveries');
     await new Promise(r=>setTimeout(r,3500)); // Longer than the former idle threshold.
     const pacing=await evalJS('(()=>{const m=MTE_GAME.perf();return {target:m.target,fps:m.fps,count:m.count,frameMs:m.frameMs};})()');
     ok(pacing.target===30&&pacing.fps<=30.01,lang+': idle game still targets 30 FPS '+JSON.stringify(pacing));
@@ -25,6 +26,9 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     })()`);
     await evalJS('__perfFeed(1000/30,100,30,{terrain:1})');
     ok(await evalJS('document.querySelector(".perfCard").hidden'),lang+': intentional 30 FPS does not auto-open');
+    await evalJS('__perfFeed(36.3,100,30,{terrain:3.73,actors:2})');
+    ok(await evalJS('__perfFixture.snapshot().latest.cause==="cadence"&&document.querySelector(".perfCard").hidden'),lang+': low CPU and slower cadence remain a non-opening observation');
+    ok(await evalJS('(()=>{const text=document.querySelector(".perfDiagnosis").textContent;return text.includes("2.97 ms")&&text.includes("6.73 ms");})()'),lang+': normal frame-cap waiting is not presented as unexplained delay');
     await evalJS('__perfFeed(50,100,30,{terrain:38})');
     ok(await evalJS('!document.querySelector(".perfCard").hidden&&document.getElementById("perf").dataset.grade==="bad"'),lang+': actual slow terrain opens warning');
     await evalJS('__perfFixture.collapse();__perfFeed(50,100,30,{terrain:38})');
@@ -56,7 +60,7 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
       if(width===1470)await shot(`performance-details-${lang}-bottom.png`);
     }
     await evalJS('window.__perfReport=null;Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>{window.__perfReport=JSON.parse(text)}}});document.querySelector(".perfCopy").click()');
-    ok(await evalJS('__perfReport&&__perfReport.version&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
+    ok(await evalJS('__perfReport&&__perfReport.version&&__perfReport.pacing.available===false&&__perfReport.cpuMs>0&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
     ok(await evalJS('(()=>{const row=document.querySelector(".perfPhase");document.getElementById("btnClose").click();__perfFixture.tick(1);return row===document.querySelector(".perfPhase");})()'),lang+': closing details stops rebuilding hidden timing rows');
     const before=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
     ok(await evalJS('(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);__perfFeed(50,100,30,{terrain:38});__perfFixture.snapshot();return before===MTE_GAME.core.serialize(s);})()'),lang+': observing diagnostics preserves the exact world save');

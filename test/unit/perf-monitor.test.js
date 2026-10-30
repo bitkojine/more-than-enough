@@ -33,3 +33,10 @@ test('measured late timers are retained separately from spare frame budget',()=>
  assert.ok(s.pacing.overTargetMs<5,'normal waiting is not an unexplained 31 ms delay');
  m.reset();assert.equal(m.snapshot().pacing.available,false);
 });
+
+
+test('whole-loop work above budget is not blamed on GPU or a cheap CPU phase',()=>{
+ const m=createPerfMonitor(),timing={callbackWorkMs:38,outsideLoopMs:12,capAllowanceMs:0,overTargetMs:50-1000/30,timerLateMs:0,timerLateWorstMs:0,timerCallbacks:0,rafCallbacks:1,rafAgeMs:0};
+ for(let i=0;i<180;i++)m.sample(50,{terrain:4,actors:2},30,{},timing);
+ assert.equal(m.snapshot().latest.cause,'loop');assert.equal(m.snapshot().latest.evidence,'loop-over-budget');
+});

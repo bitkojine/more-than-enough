@@ -575,7 +575,20 @@ other-drawing CPU times; diagnostics display overhead; rendering dimensions,
 quality, audio state, available device memory/cores, layer, seed, position,
 daylight and zoom. Nested rendering is subtracted from its parent. Browser
 layout, GPU work and operating-system scheduling are not directly measured;
-slow frames with little measured work are labelled unattributed.
+slow frame intervals are not assigned to a cheap CPU phase. Reports include
+whole-loop callback work, time outside the loop, the calculated normal wait
+allowance for the 30 FPS cap, interval excess, requested-timer lateness and
+RAF timestamp age. Outside-loop time is not claimed to be GPU delay or idle
+time; lateness overlaps it and must not be added. CPU phase averages describe
+rendered frames; delivery measurements cover the preceding rendered interval.
+Missing callback measurements are shown as unavailable, never invented zeros.
+Timer lateness is evidence, not proof of the entire slow-frame cause. If whole
+callbacks exceed budget while named phases are cheap, flag the unprofiled
+loop/diagnostics work. Smaller cadence shortfalls (more than 4% over the target
+interval) are observations; they do not automatically open the warning card.
+CPU-cost observations explicitly say that cost alone does not establish the
+cause of slow frames. Device density and actual canvas rendering density are
+shown separately.
 
 At most 600 frame samples, 60 one-second graph points and 20 observations
 are retained in memory. Copy report includes the version/build, device,
@@ -608,7 +621,8 @@ both languages.
 
 All devices render at most 30 game frames per second, including the super-speed
 viewer. The shared pacing helper admits no early frames. A near-deadline timer
-avoids missing an entire display refresh just because it arrived slightly early.
+tries to avoid missing an entire display refresh after an early callback;
+actual timer lateness is measured rather than assuming ideal delivery.
 Standing still keeps the same 30 FPS target. Quality and diagnostics
 use that fixed target. Canonical simulation still advances fixed 60 Hz ticks
 from elapsed time; headless simulations have no rendering cap.

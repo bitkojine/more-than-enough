@@ -453,7 +453,10 @@ export default {
           <tr><td>CPU breakdown</td><td>Simulation, UI, scene preparation, terrain, standing objects, lighting overlays,
             effects and other drawing. Nested work is counted once. GPU work, browser layout and device scheduling
             are not measured directly; unexplained delays are labelled unattributed.</td></tr>
-          <tr><td>Observations</td><td>Smaller costs and repeated hitches remain available to inspect even without an automatic warning.</td></tr>
+          <tr><td>Frame delivery</td><td>Separates game-loop work, time outside it, the normal waiting allowance for
+            the 30 FPS cap and the interval above target. Timer lateness and display callback age are separate evidence,
+            not additional time to add. Outside-loop time is not a measurement of GPU delay.</td></tr>
+          <tr><td>Observations</td><td>The largest small CPU cost is not automatically the cause of low FPS. Smaller costs and repeated hitches remain available to inspect even without an automatic warning.</td></tr>
           <tr><td>Context</td><td>Layer, position, daylight, zoom, canvas size, quality, sound state and available device information.</td></tr>
           <tr><td>Copy report</td><td>Copies measured timings, recent incidents, context, world seed and build information.
             Nothing is uploaded automatically and diagnostics never change your world.</td></tr>
