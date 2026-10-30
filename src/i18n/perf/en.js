@@ -59,5 +59,5 @@ export default {
   "perf.context": "Capture context",
   "perf.incidents": "Recent observations",
   "perf.none": "No performance issues recorded.",
-  "perf.diagnostics": "Diagnostics overhead",
+  "perf.diagnostics": "Diagnostics display overhead",
 };

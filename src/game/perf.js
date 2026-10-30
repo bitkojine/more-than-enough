@@ -42,7 +42,7 @@ export function createPerf(el,canvas,audio,quality) {
       if(issue){open=true;card.hidden=false;refresh=0;}
     },
     suspend(){monitor.reset();},
-    snapshot(){const m=monitor.snapshot();return {...m,logicMs,drawMs,tiles,screen:`${innerWidth}×${innerHeight}`,canvas:`${canvas.width}×${canvas.height}`,quality:quality.level,dpr:devicePixelRatio||1,renderDpr:innerWidth>0?canvas.width/innerWidth:null,cores:navigator.hardwareConcurrency||null,memoryGb:navigator.deviceMemory||null,heapMb:performance.memory?performance.memory.usedJSHeapSize/1048576:null,sound:audio.state(),soundTrace:audio.trace(),context};},
+    snapshot(){const m=monitor.snapshot();return {...m,diagnosticsDisplayMs:perf.overheadMs||0,logicMs,drawMs,tiles,screen:`${innerWidth}×${innerHeight}`,canvas:`${canvas.width}×${canvas.height}`,quality:quality.level,dpr:devicePixelRatio||1,renderDpr:innerWidth>0?canvas.width/innerWidth:null,cores:navigator.hardwareConcurrency||null,memoryGb:navigator.deviceMemory||null,heapMb:performance.memory?performance.memory.usedJSHeapSize/1048576:null,sound:audio.state(),soundTrace:audio.trace(),context};},
     toggle(show=!perf.visible){perf.visible=show;el.perf.hidden=!show;el.perfState.textContent=t(show?'settings.on':'settings.off');el.perfBtn.setAttribute('aria-pressed',String(show));monitor.reset();open=false;card.hidden=true;refresh=0;try{localStorage.setItem(PREF,String(show));}catch{/* Optional diagnostics preference. */}},
     enabled(){try{return localStorage.getItem(PREF)==='true';}catch{return false;}},
     expand(){open=true;card.hidden=false;render();},
@@ -70,7 +70,7 @@ export function createPerf(el,canvas,audio,quality) {
       const row=(key,value)=>{stats.append(node('dt','',label(key)),node('dd','',value));};
       row('frame',ms(m.frameMs));row('p95',ms(m.p95));row('worst',ms(m.worstMs));row('target',`${m.target} FPS · ${ms(m.budget)}`);
       row('cpuTotal',ms(m.cpuMs));
-      row('tiles',String(tiles));row('screen',m.screen);row('canvas',`${m.canvas} · ${m.renderDpr?.toFixed(2)||'?'}×`);row('deviceDpr',`${m.dpr}×`);row('quality',String(m.quality));row('diagnostics',ms(perf.overheadMs||0));if(m.cores)row('cores',String(m.cores));if(m.memoryGb)row('memory',m.memoryGb+' GB');row('sound',`${m.sound} · ${m.soundTrace.wakes}`);
+      row('tiles',String(tiles));row('screen',m.screen);row('canvas',`${m.canvas} · ${m.renderDpr?.toFixed(2)||'?'}×`);row('deviceDpr',`${m.dpr}×`);row('quality',String(m.quality));row('diagnostics',ms(m.diagnosticsDisplayMs));if(m.cores)row('cores',String(m.cores));if(m.memoryGb)row('memory',m.memoryGb+' GB');row('sound',`${m.sound} · ${m.soundTrace.wakes}`);
       if(m.heapMb!==null)row('heap',m.heapMb.toFixed(1)+' MB');frag.append(stats,node('h3','',t('perf.delivery')));
       const delivery=node('dl','perfStats');
       if(m.pacing.available){

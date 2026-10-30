@@ -59,5 +59,5 @@ export default {
   "perf.context": "Fiksavimo aplinkybės",
   "perf.incidents": "Pastarieji pastebėjimai",
   "perf.none": "Našumo problemų neužfiksuota.",
-  "perf.diagnostics": "Diagnostikos sąnaudos",
+  "perf.diagnostics": "Diagnostikos rodymo sąnaudos",
 };

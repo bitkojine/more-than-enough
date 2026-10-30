@@ -60,7 +60,7 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
       if(width===1470)await shot(`performance-details-${lang}-bottom.png`);
     }
     await evalJS('window.__perfReport=null;Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>{window.__perfReport=JSON.parse(text)}}});document.querySelector(".perfCopy").click()');
-    ok(await evalJS('__perfReport&&__perfReport.version&&__perfReport.pacing.available===false&&__perfReport.cpuMs>0&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
+    ok(await evalJS('__perfReport&&__perfReport.version&&Number.isFinite(__perfReport.diagnosticsDisplayMs)&&Number.isFinite(__perfReport.renderDpr)&&__perfReport.pacing.available===false&&__perfReport.cpuMs>0&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
     ok(await evalJS('(()=>{const row=document.querySelector(".perfPhase");document.getElementById("btnClose").click();__perfFixture.tick(1);return row===document.querySelector(".perfPhase");})()'),lang+': closing details stops rebuilding hidden timing rows');
     const before=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
     ok(await evalJS('(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);__perfFeed(50,100,30,{terrain:38});__perfFixture.snapshot();return before===MTE_GAME.core.serialize(s);})()'),lang+': observing diagnostics preserves the exact world save');
