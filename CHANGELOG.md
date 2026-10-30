@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.181.10] - 2026-10-30
+
+- Skip wholly offscreen scenery before shading, foreground queries and drawing.
+  Preserve tall and wide artwork, mushroom overhangs, animated piles, shadows
+  and antialiasing margins; keep the fixed 30 FPS target.
+- Add viewport-edge regression checks and image-submission limits to the
+  bounded rendering gate, alongside existing allocation and memory limits.
+
 ## [0.181.9] - 2026-10-29
 
 - Remove idle and device-specific rendering rates. Normal play and the

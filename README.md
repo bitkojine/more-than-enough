@@ -122,7 +122,8 @@ The deploy gate also runs the bounded lighting and foreground-compositing browse
 fixtures against the staged site (`MTE_ILLUMINATION_ONLY=1` and
 `MTE_LAYER_ONLY=1`). `MTE_RENDER_PERF_ONLY=1` checks dense phone/desktop scenes
 through day, sunset, night and dawn, camera movement, and all 513 supported
-depths with tiny fixtures. Canvas-allocation and cache-memory limits gate deploy;
+depths with tiny fixtures. Image-submission limits catch offscreen scenery work;
+canvas-allocation and cache-memory limits also gate deploy;
 frame timings are recorded without claiming hardware-independent FPS. Their failure captures are retained as CI artifacts. The
 broad browser suite and long property sweeps remain separate from quick iteration.
 The layout sweep reports each viewport as it finishes, including elapsed time

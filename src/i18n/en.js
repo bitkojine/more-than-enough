@@ -2,6 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  "news.0.181.10": "Scenery outside the screen is no longer drawn unnecessarily. Trees, mushrooms and resource piles keep their visible overhangs and shadows while rendering does less work.",
   "progression.furtherUpgrades": "Later upgrades",
   "cr.reason.locked": "Activate the machine to unlock this.",
   "progression.requirement": "Activate the machine to unlock.",

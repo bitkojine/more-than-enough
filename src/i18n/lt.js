@@ -2,6 +2,7 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  "news.0.181.10": "Už ekrano ribų esantys objektai nebepiešiami be reikalo. Išsikišusios medžių, grybų ir išteklių krūvų dalys bei šešėliai lieka matomi, o piešimui reikia mažiau darbo.",
   "progression.furtherUpgrades": "Vėlesni patobulinimai",
   "cr.reason.locked": "Paleisk mašiną, kad tai atrakintum.",
   "progression.requirement": "Bus atrakinta paleidus mašiną.",

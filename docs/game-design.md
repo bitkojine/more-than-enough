@@ -717,6 +717,11 @@ The faint visibility pass paints the figure without a second ground shadow,
 including aboard a boat. Building-placement ghosts follow the same occlusion;
 Wiki focus keeps its independent outline path and map mode is unchanged.
 Rendering faults restore clipping state. No rules, saves or timings change.
+Scenery wholly outside the viewport is rejected before light and foreground
+queries or drawing. Bounds include upright art, mushroom overhangs, shake,
+ground shadows and an antialiasing margin; an offscreen foot alone never
+justifies hiding a visible tree or deposit. Animated stockpile bounds include
+their current position and size. Rendering still targets 30 FPS everywhere.
 
 
 ### Current-world playtest contract

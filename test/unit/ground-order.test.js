@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
-import {drawTerrain,onGround} from '../../src/game/render/terrain.js';
+import {drawTerrain,onGround,sceneryVisible} from '../../src/game/render/terrain.js';
 
 function fixture(){
  const s=C.createState(91385);s.world.holes.clear();s.world.props.clear();
@@ -27,4 +27,18 @@ test('flat floors do not create clipping state; raised terrain restores it if dr
  const failure=new Error('broken drawing');
  assert.throws(()=>onGround(ctx,cam,s,.5,.98,()=>{throw failure;}),e=>e===failure);
  assert.equal(saves,1);assert.equal(restores,1);assert.ok(clips>0,'foreground wall still masks the drawing');
+});
+
+
+test('scenery culling keeps overhangs, shadows and antialiasing at every edge',()=>{
+ const cam={width:100,height:100,tilePx:20,depthPx:10},pic={units:1,aspect:2};
+ assert.equal(sceneryVisible(cam,pic,50,150,20),false);
+ assert.equal(sceneryVisible(cam,pic,50,140,20),true,'tall art reaches above its offscreen foot');
+ assert.equal(sceneryVisible(cam,pic,-12,50,20),true,'antialiasing margin at left edge');
+ assert.equal(sceneryVisible(cam,pic,-13,50,20),false);
+ assert.equal(sceneryVisible(cam,pic,113,50,20),false);
+ assert.equal(sceneryVisible(cam,pic,113,50,20,15),true,'wide shadow enters from right');
+ assert.equal(sceneryVisible(cam,pic,50,-4,20),false);
+ assert.equal(sceneryVisible(cam,pic,50,-4,20,15),true,'shadow below an offscreen foot remains');
+ assert.equal(sceneryVisible(cam,pic,50,143,20),false);
 });

@@ -234,6 +234,16 @@ function drawTile(ctx, cam, s, look, x, y, z) {
   shadeFace(ctx,cam,s,x,y,topBounds);
 }
 
+// Include the whole upright picture, its ground shadow and an antialiasing
+// margin. Test screen pixels before tint lookups, occlusion queries or drawing;
+// a tile's foot can be off screen while its tall art still reaches into view.
+export function sceneryVisible(cam, pic, fx, fy, size, shadow = 0) {
+  const half = Math.max(pic.units * size / 2, shadow), pad = 2;
+  return fx + half >= -pad && fx - half <= cam.width + pad &&
+    fy + shadow * .38 * cam.depthPx / cam.tilePx >= -pad &&
+    fy - Math.max(pic.units * size * pic.aspect, shadow * .38 * cam.depthPx / cam.tilePx) <= cam.height + pad;
+}
+
 // A stockpile pile standing in the middle of its square of tiles, as big as
 // the square, growing in if it's new, sliding if it moves. `at` overrides
 // where it stands and how big it is (a pile sliding into a merge).
@@ -249,6 +259,7 @@ function drawPile(ctx, cam, s, look, yard, p, at = yard.at(p, s.time), shade = t
   if (size < 1) return;
   const fx = foot.x, fy = foot.y;
   const r = Math.min(u * 0.48 * p.span, pic.units * size * 0.45);
+  if (!sceneryVisible(cam,pic,fx,fy,size,shade?r:0)) return;
   if (shade) {
     ctx.fillStyle = SHADOW;
     ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
@@ -285,22 +296,24 @@ export function drawStand(ctx, cam, s, look, ground, x, y, z, shade = true) {
   const slot = Core.LOOK[id].slots.cut !== undefined && left <= 0 ? 'cut' : 'stand';
   const pic = pickFor(look, w, t, slot, x, y, s.time);
   if (!pic) return false;
-  const draw=(ctx)=>{
   const u = cam.tilePx, d = cam.depthPx;
   const { sx, sy } = tileTop(cam, w, x, y, z);
   const size = slot === 'stand' && WEARS.has(t) ? u * (MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z))) : u;
   const fx = sx + u / 2 + ground.shake(key) * SHAKE * u, fy = sy + d * FOOT;
   const r = Math.min(u * 0.45, pic.units * size * 0.42);
+  const crop = Core.TILE_INFO[t].forage && left > 0
+    ? look.pick(Core.mushroomLook(Core.mushroomAt(w.seed, t, x, y, z)), 'image', x, y, s.time) : null;
+  const grown = crop ? MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z)) : 0;
+  const cropX = fx + (tv(x, y, 23) - 0.5) * u * 0.4, cropY = fy + d * CROP_AHEAD;
+  if (!sceneryVisible(cam,pic,fx,fy,size,shade?r:0) &&
+      !(crop && sceneryVisible(cam,crop,cropX,cropY,u*grown))) return false;
+  const draw=(ctx)=>{
   if (shade) {
     ctx.fillStyle = SHADOW;
     ctx.beginPath(); ctx.ellipse(fx, fy, r, r * 0.38 * (d / u), 0, 0, TAU); ctx.fill();
   }
   look.stand(ctx, pic, fx, fy, size, tv(x, y, 17) < 0.5);
-  if (Core.TILE_INFO[t].forage && left > 0) {
-    const crop = look.pick(Core.mushroomLook(Core.mushroomAt(w.seed, t, x, y, z)), 'image', x, y, s.time);
-    const grown = MINED_MIN + (1 - MINED_MIN) * Math.min(1, left / Core.baseRichness(w, x, y, z));
-    if (crop) look.stand(ctx, crop, fx + (tv(x, y, 23) - 0.5) * u * 0.4, fy + d * CROP_AHEAD, u * grown, tv(x, y, 29) < 0.5);
-  }
+  if (crop) look.stand(ctx,crop,cropX,cropY,u*grown,tv(x,y,29)<0.5);
   return true;
   };
   return ground.clip?onGround(ctx,cam,s,x+.5,y+FOOT,draw,{width:Math.max(2,pic.units),height:Math.max(4,pic.units*pic.aspect),lit:'sprites'}):spriteLight(ctx,cam,s,x+.5,y+FOOT,draw);

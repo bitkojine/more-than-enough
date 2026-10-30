@@ -36,6 +36,8 @@ export async function runRenderPerformance({evalJS,ok,cdp,session,shotDir}){
    const row={label,...await evalJS(`__renderPerformance.sample(${z},${time},${zoom},true)`)};rows.push(row);
    ok(row.resizes<=8,`${label} z=${z} time=${time} zoom=${zoom}: warm drawing avoids per-object canvas resize (${row.resizes}; ${row.ms.toFixed(1)} ms/frame; seed ${row.seed}; ${JSON.stringify(row.resizeSites)})`);
    ok(row.tintPixels<=8*1024*1024&&row.tintEntries<=128,'shaded-art cache stays within its pixel and entry budget');
+   if(label==='phone'&&z===0)ok(row.copies<=(zoom<1?2200:300),
+    `phone surface zoom=${zoom}: scenery outside the viewport avoids image submissions (${row.copies} over two frames)`);
   }
  }
  // Exercise the changing fade, not only frozen noon/midnight screenshots.
