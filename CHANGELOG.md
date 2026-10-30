@@ -7,6 +7,9 @@
   and antialiasing margins; keep the fixed 30 FPS target.
 - Add viewport-edge regression checks and image-submission limits to the
   bounded rendering gate, alongside existing allocation and memory limits.
+- Dense phone fixtures submit 35% fewer terrain images at normal zoom and 67%
+  fewer at close zoom. Before/after pixels match across 48 dense and natural
+  surface/underground cases; these are draw-count gains, not device FPS claims.
 
 ## [0.181.9] - 2026-10-29
 
