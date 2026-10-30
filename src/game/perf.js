@@ -28,7 +28,7 @@ export function createPerf(el,canvas,audio,quality) {
       tiles=drawn;logicMs=logic;drawMs=draw;context=meta.context||context;
       if(!perf.visible)return;
       if(world!==context.seed){world=context.seed;monitor.reset();}
-      const issue=monitor.sample(interval,{simulation:meta.simulation||0,presentation:Math.max(0,logic-(meta.simulation||0)),...meta.phases},meta.target||RENDER_FPS,context);
+      const issue=monitor.sample(interval,{simulation:meta.simulation||0,presentation:Math.max(0,logic-(meta.simulation||0)),...meta.phases},meta.target||RENDER_FPS,context,meta.pacing);
       if(issue){open=true;card.hidden=false;refresh=0;}
     },
     suspend(){monitor.reset();},

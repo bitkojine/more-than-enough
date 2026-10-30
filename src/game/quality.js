@@ -137,3 +137,32 @@ export function drawDpr(levelDpr, screenDpr, cssWidth, cssHeight) {
   const fit = Math.max(1, Math.sqrt(MAX_PIXELS / Math.max(1, cssWidth * cssHeight)));
   return Math.min(levelDpr, screenDpr, fit);
 }
+
+// Interval accounting for developer diagnostics. CPU is time inside game-loop
+// callbacks; outsideLoopMs includes intentional waiting AND unmeasured browser
+// work. capAllowanceMs is the spare budget, not a measured idle/GPU duration.
+// Timer lateness and RAF callback age overlap that interval; never add them.
+export function createFrameTiming() {
+  let previous=null,entered=null,work=0,timerLate=0,timerWorst=0,timers=0,rafs=0,rafAge=0;
+  const clear=()=>{work=timerLate=timerWorst=timers=rafs=rafAge=0;};
+  return {
+    reset(){previous=entered=null;clear();},
+    enter(now,kind,due=null,stamp=null){
+      entered=now;
+      if(kind==='timer'){const late=Math.max(0,now-due);timerLate+=late;timerWorst=Math.max(timerWorst,late);timers++;}
+      else {rafs++;rafAge+=Math.max(0,now-(stamp??now));}
+    },
+    leave(now){if(entered!==null)work+=Math.max(0,now-entered);entered=null;},
+    rendered(now){
+      const interval=previous===null?0:now-previous,budget=1000/RENDER_FPS;
+      const cpu=Math.min(interval,work);
+      const result=interval>0&&interval<1000?{
+        callbackWorkMs:cpu,outsideLoopMs:Math.max(0,interval-cpu),
+        capAllowanceMs:Math.max(0,budget-cpu),overTargetMs:Math.max(0,interval-budget),
+        timerLateMs:timerLate,timerLateWorstMs:timerWorst,timerCallbacks:timers,
+        rafCallbacks:rafs,rafAgeMs:rafs?rafAge/rafs:0
+      }:null;
+      previous=now;clear();return result;
+    }
+  };
+}

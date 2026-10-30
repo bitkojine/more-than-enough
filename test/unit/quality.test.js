@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuality, drawDpr, frameDue, frameWait, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, RENDER_FPS } from '../../src/game/quality.js';
+import { createQuality, drawDpr, frameDue, frameWait, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, RENDER_FPS, createFrameTiming } from '../../src/game/quality.js';
 
 // Feeds `seconds` of frames `ms` apart.
 function run(q, ms, seconds) {
@@ -142,4 +142,25 @@ test('quality: fewer gathered resources float at once at each lower level', () =
   assert.deepEqual(b, [...b].sort((x, y) => y - x));
   assert.ok(b.at(-1) >= 10, 'the slowest phone still sees some');
   assert.equal(createQuality(LEVELS.length - 1, 2, () => {}).flyers, b.at(-1));
+});
+
+
+test('frame accounting separates normal cap allowance from late timer delivery',()=>{
+ const p=createFrameTiming();p.enter(0,'raf',null,0);assert.equal(p.rendered(0),null);p.leave(6);
+ p.enter(17,'raf',null,16.7);p.leave(17.5);
+ p.enter(37,'timer',33.5);const t=p.rendered(37);
+ assert.equal(t.callbackWorkMs,6.5);assert.equal(t.outsideLoopMs,30.5);
+ assert.ok(Math.abs(t.capAllowanceMs-(1000/30-6.5))<1e-9);
+ assert.ok(Math.abs(t.overTargetMs-(37-1000/30))<1e-9);
+ assert.equal(t.timerLateMs,3.5);assert.equal(t.timerLateWorstMs,3.5);
+ assert.equal(t.timerCallbacks,1);assert.equal(t.rafCallbacks,1);
+ p.leave(43);p.reset();p.enter(10000,'raf',null,9999);assert.equal(p.rendered(10000),null);
+});
+
+test('normal capped waiting is not scheduler lateness and costs stay bounded',()=>{
+ const p=createFrameTiming();p.enter(100,'raf',null,100);p.rendered(100);p.leave(106);
+ p.enter(100+1000/30,'timer',100+1000/30);const t=p.rendered(100+1000/30);
+ assert.equal(t.timerLateMs,0);assert.ok(t.overTargetMs<1e-9);
+ assert.ok(Math.abs(t.outsideLoopMs-t.capAllowanceMs)<1e-9);
+ p.leave(150);p.enter(10000,'raf',null,10000);assert.equal(p.rendered(10000),null,'suspension gap is not a timing sample');
 });

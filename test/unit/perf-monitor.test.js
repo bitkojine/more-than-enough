@@ -8,3 +8,28 @@ test('minor costs are retained without opening warnings',()=>{const m=createPerf
 test('unmeasured frame delay is not attributed to a cheap renderer',()=>{const m=createPerfMonitor();const alerts=feed(m,60,80,60,{terrain:1});assert.ok(alerts.some(a=>a.cause==='unattributed'));});
 test('visible hitch is captured, suspension and pace changes settle again',()=>{const m=createPerfMonitor();feed(m,1000/60,100);assert.ok(m.sample(300,{terrain:200},60));m.reset();assert.equal(m.sample(10000,{terrain:1},60),null);assert.equal(feed(m,100,5,10).length,0);});
 test('storage and report sizes remain bounded on long sessions',()=>{const m=createPerfMonitor();feed(m,40,10000,60,{terrain:25});const s=m.snapshot();assert.equal(s.count,600);assert.ok(s.history.length<=60);assert.ok(s.incidents.length<=20);assert.equal(s.latest.context.layer,-4);});
+
+
+test('a cheap renderer never becomes the claimed cause of a slow frame',()=>{
+ const m=createPerfMonitor();const alerts=feed(m,50,120,30,{terrain:15,actors:5});
+ assert.ok(alerts.length);assert.equal(m.snapshot().latest.cause,'unattributed');
+ assert.equal(m.snapshot().latest.overTargetMs,50-1000/30);
+ assert.equal(m.snapshot().pacing.available,false,'old reports have no invented scheduling measurements');
+});
+
+test('the reported iPhone CPU costs expose a cadence shortfall, not a terrain bottleneck',()=>{
+ const m=createPerfMonitor();feed(m,36.3,180,30,{terrain:3.73,actors:2,simulation:.125,presentation:.3,other:.345});
+ assert.equal(m.snapshot().latest.cause,'cadence');assert.equal(m.snapshot().latest.warning,false);
+ assert.equal(m.snapshot().latest.evidence,'interval-over-target');
+ assert.ok(Math.abs(m.snapshot().cpuMs-6.5)<1e-9);
+});
+
+test('measured late timers are retained separately from spare frame budget',()=>{
+ const m=createPerfMonitor();const timing={callbackWorkMs:7,outsideLoopMs:31,capAllowanceMs:1000/30-7,overTargetMs:38-1000/30,timerLateMs:4,timerLateWorstMs:4,timerCallbacks:1,rafCallbacks:1,rafAgeMs:.2};
+ for(let i=0;i<180;i++)m.sample(38,{terrain:4,actors:2},30,{},timing);
+ const s=m.snapshot();assert.equal(s.latest.cause,'scheduler');assert.equal(s.latest.evidence,'late-timer');
+ assert.equal(s.pacing.timerLateMs,4);assert.equal(s.pacing.outsideLoopMs,31);
+ assert.ok(Math.abs(s.pacing.capAllowanceMs-(1000/30-7))<1e-9);
+ assert.ok(s.pacing.overTargetMs<5,'normal waiting is not an unexplained 31 ms delay');
+ m.reset();assert.equal(m.snapshot().pacing.available,false);
+});

@@ -27,7 +27,7 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf-host.js';
-import { createQuality, frameWait, RENDER_FPS } from './quality.js';
+import { createQuality, frameWait, RENDER_FPS, createFrameTiming } from './quality.js';
 import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
 import { render, mapNames } from './render/renderer.js';
@@ -749,6 +749,18 @@ function view() {
 // Local-only deterministic replay: the test drives normal commands and ticks.
 const playtestReplay=['localhost','127.0.0.1'].includes(location.hostname)&&new URLSearchParams(location.search).has('playtestReplay');
 
+const frameTiming=createFrameTiming();
+// Scheduling is unchanged. Observe requested timer deadlines and display
+// callback timestamps separately from the work performed inside the loop.
+function requestFrame(wait=0) {
+  const due=performance.now()+wait;
+  const run=(kind,stamp=null)=>{
+    const now=performance.now();frameTiming.enter(now,kind,due,stamp);
+    try{frame(now);}finally{frameTiming.leave(performance.now());}
+  };
+  if(wait>0)setTimeout(()=>run('timer'),wait);
+  else requestAnimationFrame(stamp=>run('raf',stamp));
+}
 let last = 0;
 let lastSimulationNow = 0, simulationMs = 0;
 let lastWall = 0; // Date.now() at the last frame shown
@@ -773,8 +785,7 @@ function sayAway(seconds, made, fixed = false) {
 }
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
-function frame() {
-    const now = performance.now();
+function frame(now) {
   try {
     const simStart = performance.now();
     const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
@@ -782,6 +793,7 @@ function frame() {
     if (document.hidden || fork.open || playtestReplay) {
       simulationClock.reset();
       perf.suspend();
+      frameTiming.reset();
       if (fork.open && !document.hidden) lastWall = Date.now();
     }
     else {
@@ -795,13 +807,13 @@ function frame() {
     simulationMs += performance.now() - simStart;
     const wait = last ? frameWait(now - last) : 0;
     if (wait !== 0) {
-      if (wait > 0) setTimeout(frame, wait);
-      else requestAnimationFrame(frame);
+      requestFrame(wait>0?wait:0);
       return;
     }
     const intervalMs = last ? now - last : 0;
     const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
     last = now;
+    const pacing=frameTiming.rendered(now);
     const t0 = performance.now();
     if (!document.hidden && !fork.open) { updateView(dt); wiki.update(dt); }
     mapView.tick(dt);
@@ -822,7 +834,7 @@ function frame() {
     const drawMs=performance.now()-t1;
     if(phaseTimings)phaseTimings.other=(phaseTimings.other||0)+Math.max(0,drawMs-Object.values(phaseTimings).reduce((a,b)=>a+b,0));
     if (intervalMs > 0 && !document.hidden && !fork.open && !playtestReplay) perf.frame(intervalMs, simulationMs + t1 - t0, drawMs, stats.tiles,{
-      simulation:simulationMs,phases:phaseTimings,target:RENDER_FPS,
+      simulation:simulationMs,phases:phaseTimings,target:RENDER_FPS,pacing,
       context:{seed:game.state.world.seed,layer:z,gameTime:game.state.time,daylight:Core.daylight(game.state.time),x:game.state.player.x,y:game.state.player.y,viewLayer:cam.z,zoom:cam.zoom,moving,quality:quality.level}
     });
     simulationMs = 0;
@@ -834,7 +846,7 @@ function frame() {
     // stop the game, with the crash screen and the report.
     if (problems.frameFailed(err)) return;
   }
-  requestAnimationFrame(frame);
+  requestFrame();
 }
 
 /* -------------------------------------------------------------- boot */
@@ -971,7 +983,7 @@ updater.start();
 news.play();
 if (game.state.seen) catchUp((Date.now() - game.state.seen) / 1000);
 showAuto();
-requestAnimationFrame(frame);
+requestFrame();
 
 // A fresh world of your own, on Nerds; the one you leave stays on Worlds.
 const soloControls=document.createElement('div');soloControls.className='setGroup';
