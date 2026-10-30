@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
-import {drawTerrain,onGround,sceneryVisible} from '../../src/game/render/terrain.js';
+import {drawTerrain,drawStand,onGround,sceneryVisible} from '../../src/game/render/terrain.js';
 
 function fixture(){
  const s=C.createState(91385);s.world.holes.clear();s.world.props.clear();
@@ -41,4 +41,20 @@ test('scenery culling keeps overhangs, shadows and antialiasing at every edge',(
  assert.equal(sceneryVisible(cam,pic,50,-4,20),false);
  assert.equal(sceneryVisible(cam,pic,50,-4,20,15),true,'shadow below an offscreen foot remains');
  assert.equal(sceneryVisible(cam,pic,50,143,20),false);
+});
+
+
+test('offscreen scenery skips drawing but a visible mushroom overhang keeps its row',()=>{
+ const s=C.createState(33),z=0,x=0,y=0;
+ C.tileAt(s.world,x,y,z);s.world.hotChunk.type[C.chunkIndex(x,y)]=C.T.FOREST;
+ s.world.hotChunk.rich[C.chunkIndex(x,y)]=30;C.markExplored(s.world,x,y,z);
+ let px=-100,draws=0;
+ const cam={z,width:100,height:100,tilePx:20,depthPx:20,risePx:0,project:()=>({x:px-10,y:38})};
+ const ctx={beginPath(){},ellipse(){},fill(){}},ground={built:new Set(),yard:{piles:new Map(),covered:new Set()},shake:()=>0,clip:true};
+ const look={pick:(id,slot)=>({units:slot==='image'?4:1,aspect:1}),stand(){draws++;}};
+ assert.equal(drawStand(ctx,cam,s,look,ground,x,y,z),false);
+ assert.equal(draws,0,'wholly invisible art never reaches drawing');
+ px=-30;
+ assert.equal(drawStand(ctx,cam,s,look,ground,x,y,z),true);
+ assert.equal(draws,2,'a mushroom extending past its invisible tree remains visible');
 });
