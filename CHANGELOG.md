@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.181.14] - 2026-10-31
+
+- Fix the open message log covering AUTO on phones (portrait): with AUTO
+  shown (Nerds), the log now stands above the buttons that rise over Gather
+  when they reach into its corner (`clearOfActions` in hud-layout.js). Found
+  by the browser suite, whose AUTO hold landed on the log.
+- The audio meter keeps the largest analyser window (~0.7 s), so a short
+  click is still measured on a page too busy to sample often. Only tests read
+  it.
+- The browser suite passes again (338 checks, was 37 failures and a crash
+  halfway). Most failures were one cascade: held Gather now walks to the
+  nearest resource, so the next CLIMB UP tap found no ladder and later
+  sections ran underground. Other drift fixed: lantern and flare live in the
+  Equipment card, Build lists only what stands on your layer, Equipment
+  holds only the tools family, Embark starts a crystal world (its checks now
+  run after the old-economy sections), and the night check sampled clouds.
+- Waits in the browser suite stretch up to 3x on machines that draw few
+  frames (a GPU-less headless browser draws ~10 a second) instead of failing.
+- CI runs the browser suite on every push against the staged site
+  (`browser.yml`), re-running once in a new world before it counts as red. It
+  never blocks a deploy and live-check leaves it out.
+
 ## [0.181.13] - 2026-10-31
 
 - Split the largest modules along their seams, behaviour unchanged:

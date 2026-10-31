@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.181.14':
+    'Kai Moksliukų skiltyje įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
   'news.0.181.13':
     'Užkulisiuose: kvietimų nuorodų skydelis ir nustatymų jungikliai dabar turi savo tvarkingas kodo dalis su naujais testais. Žaidime niekas nepasikeičia.',
   'news.0.181.12':
