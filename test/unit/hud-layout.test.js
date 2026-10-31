@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { hudSpacePlan, hudRegions, HUD_COLLAPSE_ORDER } from '../../src/game/hud-layout.js';
+import {
+  clearOfActions,
+  hudSpacePlan,
+  hudRegions,
+  HUD_COLLAPSE_ORDER
+} from '../../src/game/hud-layout.js';
 
 test('stable HUD regions distinguish roomy screens from tall phones and short landscape', () => {
   const frame = { edgeBottom: 20, action: 84 };
@@ -98,4 +103,29 @@ test('friends arriving after compaction keep the compact count and Players acces
   } finally {
     globalThis.document = original;
   }
+});
+
+test('the open log stands above AUTO or the climb button when they reach into its corner', () => {
+  const portrait = hudRegions({ width: 390, height: 844, edgeBottom: 20, action: 88 });
+  const log = { left: 12, right: 302, width: 290 };
+  const auto = { left: 230, right: 290, top: 640, height: 60 };
+  const climb = { left: 318, right: 378, top: 640, height: 60 };
+  assert.equal(clearOfActions(portrait, log, [], 844), portrait.logBottom, 'nothing above Gather');
+  assert.equal(clearOfActions(portrait, log, [climb], 844), portrait.logBottom, 'climb is clear');
+  assert.equal(
+    clearOfActions(portrait, log, [auto, climb], 844),
+    844 - 640 + 8,
+    'AUTO is under it'
+  );
+  assert.equal(
+    clearOfActions(portrait, { left: 0, right: 0, width: 0 }, [auto], 844),
+    portrait.logBottom,
+    'a hidden log keeps its place'
+  );
+  const landscape = hudRegions({ width: 844, height: 390, edgeBottom: 12, action: 72 });
+  assert.equal(
+    clearOfActions(landscape, log, [auto], 390),
+    landscape.logBottom,
+    'short screens keep their own layout'
+  );
 });

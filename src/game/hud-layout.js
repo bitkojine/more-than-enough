@@ -17,6 +17,16 @@ export function hudRegions({ width, height, edgeBottom, action }) {
   return { wide, landscape, messageBottom, logBottom, previewHeight };
 }
 
+// In portrait the log sits on the thumb cluster's row, left of Gather. The
+// buttons that rise above Gather (AUTO, the climb button) can reach into its
+// corner: then the log stands above them instead of covering them.
+export function clearOfActions(regions, log, actions, height = innerHeight) {
+  if (regions.landscape || regions.wide || !log.width) return regions.logBottom;
+  const under = actions.filter((r) => r.left < log.right && r.right > log.left);
+  if (!under.length) return regions.logBottom;
+  return Math.max(regions.logBottom, height - Math.min(...under.map((r) => r.top)) + 8);
+}
+
 // O(1), independent of world size. Groups yield detail in one fixed order.
 export function hudSpacePlan({ room, status = 0, performance = 0, friends = 0, messages = 0 }) {
   const fits = () => Math.max(status, 24 + performance + friends) + messages + 12 <= room;
@@ -41,6 +51,7 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
   const body = document.body,
     top = document.getElementById('topbar');
   const secondary = document.getElementById('hudSecondary');
+  const logEl = document.getElementById('log');
   const tray = el.equipmentTray;
   let dirty = true,
     signature = '',
@@ -131,12 +142,17 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
     }
     panels.apply(plan.messages);
     const safeTop = Math.max(topEnd, secondary.getBoundingClientRect().bottom) + 10;
+    const secondaryActions = [el.mine, el.perfect]
+      .filter((n) => !n.hidden)
+      .map((n) => n.getBoundingClientRect())
+      .filter((r) => r.height > 0);
+    const logBottom = clearOfActions(regions, logEl.getBoundingClientRect(), secondaryActions);
     const logRoom = Math.max(
       40,
-      innerHeight - regions.logBottom - (regions.landscape ? topEnd + 8 : safeTop)
+      innerHeight - logBottom - (regions.landscape ? topEnd + 8 : safeTop)
     );
     css('--hud-message-bottom', messageBottom + 'px');
-    css('--hud-log-bottom', regions.logBottom + 'px');
+    css('--hud-log-bottom', logBottom + 'px');
     css('--hud-message-room', logRoom + 'px');
     // Existing bubble timing/queue is unchanged; its paint stays in HUD space.
     css('--hud-preview-room', regions.previewHeight + 'px');
@@ -146,10 +162,6 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
       action,
       ...[el.build, el.upgrade].filter((n) => !n.hidden).map((n) => n.getBoundingClientRect())
     ].filter((r) => r.height > 0);
-    const secondaryActions = [el.mine, el.perfect]
-      .filter((n) => !n.hidden)
-      .map((n) => n.getBoundingClientRect())
-      .filter((r) => r.height > 0);
     const primaryTop = Math.min(innerHeight, ...primary.map((r) => r.top));
     css('--hud-primary-top', primaryTop + 'px');
     css('--hud-action-top', Math.min(primaryTop, ...secondaryActions.map((r) => r.top)) + 'px');
