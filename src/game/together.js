@@ -22,15 +22,12 @@ import {
   KEY_RE,
   ID_RE,
   randomHex,
-  INVITE_USES,
-  INVITE_LIVES,
-  cleanInviteAsk,
   PING
 } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
 import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
-import { playedTime, cleanInvites, cleanGraves, cleanWelcome, cleanAway } from './room-messages.js';
+import { playedTime, cleanGraves, cleanWelcome, cleanAway } from './room-messages.js';
 import { qrCanvas } from './qr.js';
 import {
   knownRooms,
@@ -48,6 +45,7 @@ import {
   ACTS_PREFIX
 } from './worlds.js';
 import { renderChips, renderPlayers } from './players.js';
+import { createInviteList } from './invite-list.js';
 import { loadGame, soloWorlds } from './storage.js';
 import { fmtDuration } from './format.js';
 import { createActor } from './render/motion.js';
@@ -62,8 +60,6 @@ const PRIVACY_STORE = 'mte.privacy'; // the version of the privacy policy the pl
 // to it; a new version (after a change that matters) asks everyone again.
 export const POLICY_VERSION = '2';
 export const policyUrl = () => 'privacy/#' + LANG;
-const INVITE_USES_STORE = 'mte.inviteUses'; // how many people your new invite links let in
-const INVITE_LIFE_STORE = 'mte.inviteLife'; // and for how many minutes
 
 const WELCOME_BYTES = 8_000_000; // the most a room's welcome may be
 const POS_EVERY = 0.125; // seconds between position updates
@@ -82,7 +78,6 @@ const UNDONE_QUIET = 20; // seconds after one such note before the next
 // telling first; 'count' when it said nothing (only the counts differed).
 const UNDONE_WHY = ['full', 'spot', 'cost', 'pace'];
 const ACTS_WRITE_EVERY = 5; // seconds of play between keeping unsent acts on the phone while offline
-const INVITES_WAIT = 8000; // ms to wait for the invite links before saying they didn't come
 const FORMAT_RETRY = 60_000; // ms before trying a world again whose room service hasn't updated yet
 const AWAY_EVERY = 2100; // ms between away/back changes (the room takes one per STATUS_MS)
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
@@ -491,12 +486,7 @@ export function createTogether({
       openQr(d.code, d.until);
     }
     if (d.t === 'invitesFull') hud.toast(t('invites.full'));
-    if (d.t === 'invites') {
-      clearTimeout(invitesTimer);
-      const list = cleanInvites(d.list);
-      if (list) renderInvites(list);
-      else el.invitesPanel.replaceChildren(note(t('invites.failed')));
-    }
+    if (d.t === 'invites') invites.received(d.list);
   }
 
   // Whether the next away toast should also say your numbers were set straight (once).
@@ -830,16 +820,7 @@ export function createTogether({
       hud.toast(t('together.toast.offline'));
       return;
     }
-    send({ t: 'invite', ...inviteAsk() });
-  }
-
-  // How many people your new links let in and for how long (Invite links),
-  // remembered on this device. Never unlimited.
-  function inviteAsk() {
-    return cleanInviteAsk({
-      uses: Number(read(INVITE_USES_STORE)),
-      life: Number(read(INVITE_LIFE_STORE))
-    });
+    send({ t: 'invite', ...invites.asked() });
   }
 
   // The room gave us an invite: up goes the sign with its code. Your
@@ -875,143 +856,24 @@ export function createTogether({
 
   /* ------------------------------------------------------ invite links */
 
-  // The invite links you made, with how many joined with each, and Show and
-  // Stop. Built from elements and text only, never HTML.
-  // Never "loading" for ever: no answer in a few seconds says so.
-  let invitesTimer = 0;
-  function listInvites() {
-    clearTimeout(invitesTimer);
-    const online = !!ws && ws.readyState === 1 && welcomed;
-    el.invitesPanel.replaceChildren(note(t(online ? 'invites.loading' : 'together.toast.offline')));
-    if (!online) return;
-    send({ t: 'invites' });
-    invitesTimer = setTimeout(
-      () => el.invitesPanel.replaceChildren(note(t('invites.failed'))),
-      INVITES_WAIT
-    );
-  }
-
-  function note(text) {
-    const p = document.createElement('p');
-    p.className = 'empty';
-    p.textContent = text;
-    return p;
-  }
-
-  // Picks for new links, like Discord's: how many people, for how long.
-  function askRow(label, values, current, text, store, list) {
-    const row = document.createElement('div');
-    row.className = 'inviteAsk';
-    const name = document.createElement('span');
-    name.textContent = label;
-    const pick = document.createElement('div');
-    pick.className = 'pick';
-    pick.setAttribute('role', 'radiogroup');
-    pick.setAttribute('aria-label', label);
-    for (const v of values) {
-      const b = button(text(v), v === current ? 'on' : '', () => {
-        write(store, String(v));
-        if (invite) closeQr(); // the sign's link was made the old way
-        renderInvites(list);
-      });
-      b.setAttribute('role', 'radio');
-      b.setAttribute('aria-checked', String(v === current));
-      pick.append(b);
+  const invites = createInviteList({
+    panel: el.invitesPanel,
+    online: () => !!ws && ws.readyState === 1 && welcomed,
+    send,
+    ask,
+    read,
+    write,
+    me: () => me,
+    colorOf: (id) => (id === me ? myColor : friends.get(id)?.c),
+    nameOf,
+    paint: friendColor,
+    sign: () => invite,
+    dropSign: closeQr,
+    show(inviteCode, until) {
+      closeSheet();
+      openQr(inviteCode, until);
     }
-    row.append(name, pick);
-    return row;
-  }
-
-  function lifeText(min) {
-    return min < 60
-      ? t('invites.minutes', { n: min })
-      : min < 1440
-        ? t('invites.hours', { n: min / 60 })
-        : t('invites.days', { count: min / 1440 });
-  }
-
-  function renderInvites(list) {
-    const box = el.invitesPanel;
-    const ask = inviteAsk();
-    const asks = [
-      askRow(t('invites.ask.uses'), INVITE_USES, ask.uses, String, INVITE_USES_STORE, list),
-      askRow(t('invites.ask.life'), INVITE_LIVES, ask.life, lifeText, INVITE_LIFE_STORE, list)
-    ];
-    if (!list.length) {
-      box.replaceChildren(...asks, note(t('invites.empty')));
-      return;
-    }
-    const now = Date.now();
-    box.replaceChildren(
-      ...asks,
-      ...list.map((inv) => {
-        const works = !inv.off && inv.until > now && inv.uses < inv.max;
-        const row = document.createElement('div');
-        row.className = 'invite' + (works ? '' : ' dead');
-        const by = inv.by === me ? myColor : friends.get(inv.by)?.c;
-        row.style.setProperty('--friend', by === undefined ? 'var(--ink-dim)' : friendColor(by));
-        const dot = document.createElement('i');
-        const text = document.createElement('div');
-        const title = document.createElement('strong');
-        title.textContent =
-          inv.by === me
-            ? t('invites.yours')
-            : t('invites.theirs', { name: nameOf(inv.by) || t('invites.someone') });
-        const sub = document.createElement('small');
-        const state = inv.off
-          ? t('invites.stopped')
-          : inv.until <= now
-            ? t('invites.expired')
-            : inv.uses >= inv.max
-              ? t('invites.usedUp')
-              : t('invites.left', { time: timeLeft(inv.until - now) });
-        sub.textContent = t('invites.uses', { n: inv.uses, max: inv.max }) + ' · ' + state;
-        text.append(title, sub);
-        row.append(dot, text);
-        if (works) {
-          if (inv.by === me)
-            row.append(
-              button(t('invites.show'), '', () => {
-                closeSheet();
-                openQr(inv.code, inv.until);
-              })
-            );
-          row.append(button(t('invites.stop'), 'stop', () => revoke(inv.code)));
-        }
-        return row;
-      })
-    );
-  }
-
-  function button(label, cls, onClick) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = cls;
-    b.textContent = label;
-    b.addEventListener('click', onClick);
-    return b;
-  }
-
-  function timeLeft(ms) {
-    const min = Math.max(1, Math.round(ms / 60_000));
-    return min < 60
-      ? t('invites.minutes', { n: min })
-      : min < 2880
-        ? t('invites.hours', { n: Math.round(min / 60) })
-        : t('invites.days', { count: Math.round(min / 1440) });
-  }
-
-  async function revoke(inviteCode) {
-    const yes = await ask({
-      title: t('invites.stopAsk.title'),
-      text: t('invites.stopAsk.text'),
-      yes: t('invites.stopAsk.yes'),
-      danger: true
-    });
-    if (!yes) return;
-    if (invite && invite.code === inviteCode) closeQr();
-    send({ t: 'revoke', code: inviteCode });
-  }
+  });
 
   // The main Invite button: holds up your sign, or puts it down. It is only
   // there inside a shared world: worlds are made by Watch now, so there is
@@ -1291,7 +1153,7 @@ export function createTogether({
       if (!joinFromLink(true)) resume();
     },
     showInvite,
-    listInvites,
+    listInvites: () => invites.open(),
     copyLink,
     away(hidden) {
       sendAway();
