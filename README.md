@@ -200,3 +200,15 @@ win route; activation unlocks later systems without losing earned state.
 `CHROME_PATH=/path/to/chromium MTE_PROGRESSION_ONLY=1 npm run test:e2e` checks
 locked catalogs, rejected bypasses, real card activation and reload preservation
 in both languages. CI runs this bounded check with the rendering/HUD gate.
+
+### Coverage and file size
+
+`npm run test:coverage` runs the unit and property tests with Node's own
+coverage (no extra tools) and fails under the line, branch and function
+floors in `package.json`; CI runs it in place of `npm test`. Raise a floor
+when coverage grows, never lower it. It counts only modules the tests load:
+browser-only files such as `src/game/main.js` are not in the number yet.
+
+`test/unit/file-size.test.js` keeps source files at 600 lines or fewer.
+Files already larger are listed with their size when the check arrived; they
+may shrink but not grow, so new work splits them along their seams.

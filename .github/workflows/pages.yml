@@ -45,8 +45,11 @@ jobs:
       - name: Lint and formatting (errors fail; warnings may only go down)
         run: npm run lint
 
-      - name: Unit tests
-        run: npm test
+      # The same tests as npm test, with line, branch and function coverage
+      # of every module they load. Falling under the floors in package.json
+      # fails the job; raise the floors as coverage grows, never lower them.
+      - name: Unit tests with coverage
+        run: npm run test:coverage
 
   # Bounded visual regressions protect the geometry/compositing contract without
   # running a full-world simulation or the broad interactive browser suite.

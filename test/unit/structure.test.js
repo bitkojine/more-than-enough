@@ -1,5 +1,5 @@
-/* The code's shape, checked so it can't quietly rot. The project has no
- * linter (its one dev dependency, esbuild, only stages the site), so these few rules are enforced here:
+/* The code's shape, checked so it can't quietly rot. Alongside ESLint and
+ * Prettier (npm run lint) and the size limits (file-size.test.js), these rules hold:
  *  - no function name is declared twice in a file: a later declaration
  *    silently replaces the earlier one (this once made the game silent);
  *  - no import cycles among the source modules;
