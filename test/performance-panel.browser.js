@@ -9,7 +9,7 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
     ok(await evalJS('MTE_GAME.perfVisible()&&!document.getElementById("perf").hidden&&!!document.querySelector(".perfPill")'),lang+': F3 lazy-loads the actual diagnostics tool');
     for(let i=0;i<50;i++){if(await evalJS('MTE_GAME.perf().count>0'))break;await new Promise(r=>setTimeout(r,100));}
     ok(await evalJS('MTE_GAME.perf().count>0'),lang+': actual game loop records phase samples');
-    ok(await evalJS('(()=>{const m=MTE_GAME.perf();return m.pacing.available&&m.pacing.callbackWorkMs>=0&&m.pacing.outsideLoopMs>=0&&m.pacing.timerLateMs>=0&&m.pacing.overTargetMs>=0;})()'),lang+': real host records callback work, waiting allowance and late deliveries');
+    ok(await evalJS('(()=>{const m=MTE_GAME.perf();return m.pacing.available&&m.pacing.callbackWorkMs>=0&&m.pacing.outsideLoopMs>=0&&m.pacing.rafCallbacks>=1&&m.pacing.overTargetMs>=0;})()'),lang+': real host records callback work, waiting allowance and display callbacks');
     await new Promise(r=>setTimeout(r,3500)); // Longer than the former idle threshold.
     const pacing=await evalJS('(()=>{const m=MTE_GAME.perf();return {target:m.target,fps:m.fps,count:m.count,frameMs:m.frameMs};})()');
     ok(pacing.target===30&&pacing.fps<=30.01,lang+': idle game still targets 30 FPS '+JSON.stringify(pacing));

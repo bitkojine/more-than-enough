@@ -2,7 +2,7 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "news.0.181.11": "Performance diagnostics now separate game work, normal frame-cap waiting and late callbacks. Small CPU costs are observations, not assumed slowdown causes. Reports include delivery timing and the actual canvas density.",
+  "news.0.181.11": "Smoother pictures: the game now holds a steady 30 frames a second where it used to land a little under it. Performance diagnostics also separate game work from normal frame-cap waiting and report the actual canvas density.",
   "news.0.181.10": "Scenery outside the screen is no longer drawn unnecessarily. Trees, mushrooms and resource piles keep their visible overhangs and shadows while rendering does less work.",
   "progression.furtherUpgrades": "Later upgrades",
   "cr.reason.locked": "Activate the machine to unlock this.",

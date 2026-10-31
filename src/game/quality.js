@@ -41,14 +41,28 @@ export const UP_AFTER_S = 20;  // seconds of smooth frames before trying a level
 export const UP_MAX_S = 600;   // the longest wait between tries, after failed ones
 const RETRY_S = 5;          // smooth seconds before a try once the charger is plugged in
 
-// Strict admission: never draw early, even when a caller requests a higher rate.
-export const frameDue = sinceMs => sinceMs >= 1000 / RENDER_FPS;
-
-// Near a deadline, wait the remaining milliseconds instead of drawing early
-// or missing a whole display refresh. -1 means wait for the next animation frame.
-export function frameWait(sinceMs) {
-  const remaining = 1000 / RENDER_FPS - sinceMs;
-  return remaining <= 0 ? 0 : remaining <= 16 ? Math.ceil(remaining) : -1;
+// Display-aligned 30 FPS pacing. Frames are drawn only in animation-frame
+// callbacks, judged by the callback's vsync timestamp. Each drawn frame moves
+// the deadline one budget on, so the average never exceeds RENDER_FPS; a
+// callback up to PACE_SLACK_MS before the deadline still counts, so vsync
+// jitter no longer pushes a frame a whole refresh late. A frame that lands
+// late moves the next deadline by at most PACE_SLACK_MS of catch-up, so a
+// display whose refresh does not divide 30 FPS stays even instead of bursting.
+// Before (timers near the deadline): ~28 FPS on 60/120 Hz with ordinary jitter.
+export const PACE_SLACK_MS = 4;
+export function createFramePacer(fps = RENDER_FPS) {
+  const step = 1000 / fps;
+  let next = null;
+  return {
+    reset() { next = null; },
+    /** @param {number} stamp the animation-frame timestamp (ms) */
+    due(stamp) {
+      if (next === null) { next = stamp + step; return true; }
+      if (stamp < next - PACE_SLACK_MS) return false;
+      next = Math.max(next + step, stamp + step - PACE_SLACK_MS);
+      return true;
+    },
+  };
 }
 
 /**
@@ -141,17 +155,14 @@ export function drawDpr(levelDpr, screenDpr, cssWidth, cssHeight) {
 // Interval accounting for developer diagnostics. CPU is time inside game-loop
 // callbacks; outsideLoopMs includes intentional waiting AND unmeasured browser
 // work. capAllowanceMs is the spare budget, not a measured idle/GPU duration.
-// Timer lateness and RAF callback age overlap that interval; never add them.
+// Display callback age (callback start minus its vsync timestamp) overlaps that
+// interval; never add it.
 export function createFrameTiming() {
-  let previous=null,entered=null,work=0,timerLate=0,timerWorst=0,timers=0,rafs=0,rafAge=0;
-  const clear=()=>{work=timerLate=timerWorst=timers=rafs=rafAge=0;};
+  let previous=null,entered=null,work=0,rafs=0,rafAge=0;
+  const clear=()=>{work=rafs=rafAge=0;};
   return {
     reset(){previous=entered=null;clear();},
-    enter(now,kind,due=null,stamp=null){
-      entered=now;
-      if(kind==='timer'){const late=Math.max(0,now-due);timerLate+=late;timerWorst=Math.max(timerWorst,late);timers++;}
-      else {rafs++;rafAge+=Math.max(0,now-(stamp??now));}
-    },
+    enter(now,stamp=now){entered=now;rafs++;rafAge+=Math.max(0,now-stamp);},
     leave(now){if(entered!==null)work+=Math.max(0,now-entered);entered=null;},
     rendered(now){
       const interval=previous===null?0:now-previous,budget=1000/RENDER_FPS;
@@ -159,7 +170,6 @@ export function createFrameTiming() {
       const result=interval>0&&interval<1000?{
         callbackWorkMs:cpu,outsideLoopMs:Math.max(0,interval-cpu),
         capAllowanceMs:Math.max(0,budget-cpu),overTargetMs:Math.max(0,interval-budget),
-        timerLateMs:timerLate,timerLateWorstMs:timerWorst,timerCallbacks:timers,
         rafCallbacks:rafs,rafAgeMs:rafs?rafAge/rafs:0
       }:null;
       previous=now;clear();return result;

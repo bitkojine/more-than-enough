@@ -3,14 +3,11 @@ import {RENDER_FPS} from './quality.js';
  * A window never mixes deliberate frame rates or background suspension gaps. */
 export const PERF_PHASES = ['simulation','presentation','scene','terrain','actors','lighting','effects','other'];
 const LIMIT=600, HISTORY=60, INCIDENTS=20;
-const TIMING_KEYS=['callbackWorkMs','outsideLoopMs','capAllowanceMs','overTargetMs','timerLateMs','timerLateWorstMs','timerCallbacks','rafCallbacks','rafAgeMs'];
+const TIMING_KEYS=['callbackWorkMs','outsideLoopMs','capAllowanceMs','overTargetMs','rafCallbacks','rafAgeMs'];
 function timingSummary(samples) {
   const measured=samples.filter(s=>s.pacing);
   const result={available:measured.length>0,samples:measured.length};
-  for(const key of TIMING_KEYS)result[key]=measured.length
-    ? key==='timerLateWorstMs'?Math.max(...measured.map(s=>s.pacing[key]))
-      : measured.reduce((sum,s)=>sum+s.pacing[key],0)/measured.length
-    : null;
+  for(const key of TIMING_KEYS)result[key]=measured.length?measured.reduce((sum,s)=>sum+s.pacing[key],0)/measured.length:null;
   return result;
 }
 function cleanTiming(value) {
@@ -50,13 +47,11 @@ export function createPerfMonitor() {
       const loopOverBudget=timing.available&&timing.callbackWorkMs>budget;
       const warning=avg>budget*1.12||interval>=Math.max(100,budget*3)||cpu>budget||loopOverBudget;
       const small=costs[0].ms>Math.max(2,budget*.1);
-      const lateTimer=timing.available&&timing.timerLateMs>=Math.max(1,overTarget*.5);
       // A largest cost below budget is an observation, not a proven cause.
       // Deliberate cap waiting is never called unexplained browser/GPU work.
       const cadence=avg>budget*1.04;
-      const cause=warning?(cpu>budget?costs[0].key:loopOverBudget?'loop':lateTimer?'scheduler':'unattributed')
-        :cadence?(lateTimer?'scheduler':'cadence'):costs[0].key;
-      const evidence=cpu>budget?'cpu-over-budget':loopOverBudget?'loop-over-budget':lateTimer&&cadence?'late-timer'
+      const cause=warning?(cpu>budget?costs[0].key:loopOverBudget?'loop':'unattributed'):cadence?'cadence':costs[0].key;
+      const evidence=cpu>budget?'cpu-over-budget':loopOverBudget?'loop-over-budget'
         :cadence?'interval-over-target':warning?'unexplained-hitch':'cost-observation';
       const issue={cause,warning,evidence,pacing:timing,overTargetMs:overTarget,ratio,frameMs:avg,worstMs:Math.max(...recent.map(s=>s.interval)),cpuMs:cpu,phases:costs,preceding:history.slice(-10),context:{...context},at:Date.now()};
       history.push({ms:avg,budget});if(history.length>HISTORY)history.shift();

@@ -577,12 +577,12 @@ daylight and zoom. Nested rendering is subtracted from its parent. Browser
 layout, GPU work and operating-system scheduling are not directly measured;
 slow frame intervals are not assigned to a cheap CPU phase. Reports include
 whole-loop callback work, time outside the loop, the calculated normal wait
-allowance for the 30 FPS cap, interval excess, requested-timer lateness and
-RAF timestamp age. Outside-loop time is not claimed to be GPU delay or idle
-time; lateness overlaps it and must not be added. CPU phase averages describe
+allowance for the 30 FPS cap, interval excess, display callbacks per drawn
+frame and RAF timestamp age. Outside-loop time is not claimed to be GPU delay
+or idle time; callback age overlaps it and must not be added. CPU phase averages describe
 rendered frames; delivery measurements cover the preceding rendered interval.
 Missing callback measurements are shown as unavailable, never invented zeros.
-Timer lateness is evidence, not proof of the entire slow-frame cause. If whole
+If whole
 callbacks exceed budget while named phases are cheap, flag the unprofiled
 loop/diagnostics work. Smaller cadence shortfalls (more than 4% over the target
 interval) are observations; they do not automatically open the warning card.
@@ -620,9 +620,14 @@ both languages.
 ### Global rendering cap (2026-10-29)
 
 All devices render at most 30 game frames per second, including the super-speed
-viewer. The shared pacing helper admits no early frames. A near-deadline timer
-tries to avoid missing an entire display refresh after an early callback;
-actual timer lateness is measured rather than assuming ideal delivery.
+viewer. Frames are drawn only in animation-frame callbacks, judged by their
+vsync timestamp (`createFramePacer` in `src/game/quality.js`, shared with the
+viewer). Each drawn frame moves the deadline exactly one 30 FPS budget on, so
+the average never exceeds 30; a refresh up to 4 ms before the deadline still
+draws, so ordinary vsync jitter no longer costs a whole refresh. A late frame
+catches up by at most those 4 ms, so a display whose refresh does not divide
+30 stays even. (The earlier timer-based cap measured about 28 FPS on 60 and
+120 Hz screens with normal jitter; an iPhone report showed ~27.5.)
 Standing still keeps the same 30 FPS target. Quality and diagnostics
 use that fixed target. Canonical simulation still advances fixed 60 Hz ticks
 from elapsed time; headless simulations have no rendering cap.

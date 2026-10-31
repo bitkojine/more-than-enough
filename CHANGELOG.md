@@ -1,15 +1,23 @@
 # Changelog
 
-## [0.181.11] - 2026-10-30
+## [0.181.11] - 2026-10-31
 
+- Hold a steady 30 FPS. Frames are now drawn only on display refreshes, chosen
+  by their vsync timestamp (`createFramePacer`), with each frame moving the
+  deadline exactly one budget on. The old timer-based cap pushed a frame a
+  whole refresh late whenever a callback arrived slightly early or a timer
+  fired late: about 28 FPS on 60/120 Hz screens, ~27.5 in an iPhone report.
+  The average still never exceeds 30. The autoplay viewer shares the pacer.
+  Timer-lateness diagnostics are gone with the timers; display callbacks per
+  drawn frame and callback age remain.
 - Stop presenting normal 30 FPS cap waiting as unexplained device delay or
   implying a cheap CPU phase caused a slow frame. Separate CPU budget overruns,
-  cadence observations, measured timer lateness and unknown delivery causes.
+  cadence observations and unknown delivery causes.
 - Measure whole-loop work, outside-loop time, calculated cap allowance, excess
-  interval, timer lateness and RAF timestamp age. Surface unprofiled loop work
+  interval and RAF timestamp age. Surface unprofiled loop work
   when it exceeds budget; distinguish device and actual canvas density.
 - Explain the timing evidence and its limits in English and Lithuanian. Keep
-  the scheduler, fixed 30 FPS cap, simulation and saved worlds unchanged.
+  the 30 FPS cap, simulation and saved worlds unchanged.
 
 ## [0.181.10] - 2026-10-30
 

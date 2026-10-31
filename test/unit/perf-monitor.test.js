@@ -24,19 +24,18 @@ test('the reported iPhone CPU costs expose a cadence shortfall, not a terrain bo
  assert.ok(Math.abs(m.snapshot().cpuMs-6.5)<1e-9);
 });
 
-test('measured late timers are retained separately from spare frame budget',()=>{
- const m=createPerfMonitor();const timing={callbackWorkMs:7,outsideLoopMs:31,capAllowanceMs:1000/30-7,overTargetMs:38-1000/30,timerLateMs:4,timerLateWorstMs:4,timerCallbacks:1,rafCallbacks:1,rafAgeMs:.2};
- for(let i=0;i<180;i++)m.sample(38,{terrain:4,actors:2},30,{},timing);
- const s=m.snapshot();assert.equal(s.latest.cause,'scheduler');assert.equal(s.latest.evidence,'late-timer');
- assert.equal(s.pacing.timerLateMs,4);assert.equal(s.pacing.outsideLoopMs,31);
+test('callback timing is retained separately from spare frame budget',()=>{
+ const m=createPerfMonitor();const timing={callbackWorkMs:7,outsideLoopMs:31,capAllowanceMs:1000/30-7,overTargetMs:36-1000/30,rafCallbacks:2,rafAgeMs:.2};
+ for(let i=0;i<180;i++)m.sample(36,{terrain:4,actors:2},30,{},timing);
+ const s=m.snapshot();assert.equal(s.latest.cause,'cadence');assert.equal(s.latest.evidence,'interval-over-target');
+ assert.equal(s.pacing.rafCallbacks,2);assert.equal(s.pacing.outsideLoopMs,31);assert.equal(s.latest.warning,false);
  assert.ok(Math.abs(s.pacing.capAllowanceMs-(1000/30-7))<1e-9);
  assert.ok(s.pacing.overTargetMs<5,'normal waiting is not an unexplained 31 ms delay');
  m.reset();assert.equal(m.snapshot().pacing.available,false);
 });
 
-
 test('whole-loop work above budget is not blamed on GPU or a cheap CPU phase',()=>{
- const m=createPerfMonitor(),timing={callbackWorkMs:38,outsideLoopMs:12,capAllowanceMs:0,overTargetMs:50-1000/30,timerLateMs:0,timerLateWorstMs:0,timerCallbacks:0,rafCallbacks:1,rafAgeMs:0};
+ const m=createPerfMonitor(),timing={callbackWorkMs:38,outsideLoopMs:12,capAllowanceMs:0,overTargetMs:50-1000/30,rafCallbacks:1,rafAgeMs:0};
  for(let i=0;i<180;i++)m.sample(50,{terrain:4,actors:2},30,{},timing);
  assert.equal(m.snapshot().latest.cause,'loop');assert.equal(m.snapshot().latest.evidence,'loop-over-budget');
 });

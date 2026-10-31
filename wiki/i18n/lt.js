@@ -447,7 +447,7 @@ export default {
             apšvietimo efektai, kiti efektai ir piešimas. Įdėtinis darbas skaičiuojamas vieną kartą. Vaizdo plokštės darbas,
             naršyklės maketavimas ir įrenginio planavimo delsa tiesiogiai nematuojami; nenustatyta delsa taip ir pažymima.</td></tr>
           <tr><td>Kadrų pristatymas</td><td>Atskiriamas žaidimo ciklo darbas, laikas už jo ribų, įprasto laukimo
-            rezervas ties 30 FPS ir intervalas virš tikslo. Laikmačių vėlavimas ir vaizdo iškvietimo amžius yra atskiri
+            rezervas ties 30 FPS ir intervalas virš tikslo. Vaizdo iškvietimo amžius yra atskiri
             duomenys, o ne papildomas sumuojamas laikas. Laikas už ciklo ribų nėra vaizdo plokštės delsos matavimas.</td></tr>
           <tr><td>Pastebėjimai</td><td>Didžiausios nedidelės procesoriaus sąnaudos savaime nepaaiškina mažo FPS. Mažesnės sąnaudos ir pasikartojantys strigtelėjimai lieka peržiūrai net ir be automatinio įspėjimo.</td></tr>
           <tr><td>Aplinkybės</td><td>Sluoksnis, padėtis, dienos šviesa, mastelis, drobės dydis, kokybė, garso būsena ir prieinama įrenginio informacija.</td></tr>

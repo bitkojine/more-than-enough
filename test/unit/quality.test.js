@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuality, drawDpr, frameDue, frameWait, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, RENDER_FPS, createFrameTiming } from '../../src/game/quality.js';
+import { createQuality, drawDpr, createFramePacer, PACE_SLACK_MS, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, RENDER_FPS, createFrameTiming } from '../../src/game/quality.js';
 
 // Feeds `seconds` of frames `ms` apart.
 function run(q, ms, seconds) {
@@ -105,25 +105,50 @@ test('plugging in the charger tries a better level within seconds', () => {
   assert.equal(q.level, 1);
 });
 
-test('there is one fixed 30 FPS rendering target, without early admission', () => {
-  assert.equal(RENDER_FPS,30);
-  for(const since of [0,1000/120,1000/60,1000/33,1000/30-.001])assert.equal(frameDue(since),false);
-  assert.equal(frameDue(1000/30),true);
+// Animation-frame stamps on an `hz` display for `ms`, each up to `jitter` ms
+// off its vsync (seeded, so every run is the same).
+function refreshes(hz, ms, jitter = 0, seed = 7) {
+  let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  const out = [];
+  for (let i = 0; i * 1000 / hz < ms; i++) out.push(i * 1000 / hz + (rnd() - .5) * 2 * jitter);
+  return out;
+}
+function paced(stamps) { const p = createFramePacer(); return stamps.filter(s => p.due(s)); }
+
+test('there is one fixed 30 FPS rendering target', () => {
+  assert.equal(RENDER_FPS, 30);
+  const p = createFramePacer();
+  assert.equal(p.due(0), true, 'the first frame draws at once');
+  for (const at of [1000/120, 1000/60, 1000/30 - PACE_SLACK_MS - .01]) assert.equal(p.due(at), false);
+  assert.equal(p.due(1000/30 - 1), true, 'a refresh a little before the deadline still draws');
 });
 
-test('deadline pacing stays capped and close to 30 on regular and high-refresh screens',()=>{
-  for(const hz of [60,75,90,120,144,165,240]){
-    const drawn=[];let last=0,now=0;
-    for(let steps=0;now<10000&&steps<5000;steps++){
-      const wait=frameWait(now-last);
-      if(wait===0){drawn.push(now);last=now;now=(Math.floor(now*hz/1000+1e-8)+1)*1000/hz;}
-      else if(wait>0)now+=wait;
-      else now=(Math.floor(now*hz/1000+1e-8)+1)*1000/hz;
-    }
-    assert.ok(now>=10000,'bounded refresh simulation completes');
-    assert.ok(drawn.length>=280 && drawn.length<=300,'near target on '+hz+' Hz: '+drawn.length);
-    for(let i=1;i<drawn.length;i++)assert.ok(drawn[i]-drawn[i-1]>=1000/30-1e-9);
+test('pacing holds 30 FPS on common displays, even with vsync jitter', () => {
+  for (const hz of [30, 60, 90, 120, 144, 165, 240]) for (const jitter of [0, 1.5]) {
+    const n = paced(refreshes(hz, 10000, hz === 30 ? .5 : jitter)).length;
+    // The old timer-based cap drew about 280-296 here on 60/120 Hz.
+    assert.ok(n >= 297 && n <= 301, `${hz} Hz, jitter ${jitter} ms: ${n} frames in 10 s`);
   }
+});
+
+test('pacing never averages above 30 FPS, however often frames are offered', () => {
+  for (const hz of [60, 75, 120, 240, 1000]) {
+    const drawn = paced(refreshes(hz, 60000, 2));
+    for (let i = 0; i < drawn.length; i += 30) {
+      const span = drawn.slice(i, i + 31);
+      if (span.length === 31) assert.ok(span.at(-1) - span[0] >= 1000 - 2 * PACE_SLACK_MS - 4, `${hz} Hz: 30 frames took ${span.at(-1) - span[0]} ms`);
+    }
+    for (let i = 1; i < drawn.length; i++) assert.ok(drawn[i] - drawn[i-1] >= 1000/30 - 2 * PACE_SLACK_MS - 4, 'no burst of early frames');
+  }
+});
+
+test('a display that cannot divide 30 FPS stays even, and pauses do not cause bursts', () => {
+  const at50 = paced(refreshes(50, 10000));
+  for (let i = 1; i < at50.length; i++) assert.equal(Math.round(at50[i] - at50[i-1]), 40, '50 Hz draws every second refresh');
+  const p = createFramePacer(); p.due(0);
+  assert.equal(p.due(5000), true, 'back from a pause');
+  assert.equal(p.due(5000 + 1000/60), false, 'no catch-up burst after it');
+  p.reset(); assert.equal(p.due(5001), true);
 });
 
 test('quality targets 30 FPS for every device and can recover at that pace', () => {
@@ -145,22 +170,20 @@ test('quality: fewer gathered resources float at once at each lower level', () =
 });
 
 
-test('frame accounting separates normal cap allowance from late timer delivery',()=>{
- const p=createFrameTiming();p.enter(0,'raf',null,0);assert.equal(p.rendered(0),null);p.leave(6);
- p.enter(17,'raf',null,16.7);p.leave(17.5);
- p.enter(37,'timer',33.5);const t=p.rendered(37);
- assert.equal(t.callbackWorkMs,6.5);assert.equal(t.outsideLoopMs,30.5);
+test('frame accounting separates normal cap allowance from loop work',()=>{
+ const p=createFrameTiming();p.enter(0,0);assert.equal(p.rendered(0),null);p.leave(6);
+ p.enter(17,16.7);p.leave(17.5);
+ p.enter(33.6,33.3);const t=p.rendered(33.3);
+ assert.equal(t.callbackWorkMs,6.5);assert.ok(Math.abs(t.outsideLoopMs-26.8)<1e-9);
  assert.ok(Math.abs(t.capAllowanceMs-(1000/30-6.5))<1e-9);
- assert.ok(Math.abs(t.overTargetMs-(37-1000/30))<1e-9);
- assert.equal(t.timerLateMs,3.5);assert.equal(t.timerLateWorstMs,3.5);
- assert.equal(t.timerCallbacks,1);assert.equal(t.rafCallbacks,1);
- p.leave(43);p.reset();p.enter(10000,'raf',null,9999);assert.equal(p.rendered(10000),null);
+ assert.equal(t.overTargetMs,0);
+ assert.equal(t.rafCallbacks,2);assert.ok(Math.abs(t.rafAgeMs-.3)<1e-9);
+ p.leave(43);p.reset();p.enter(10000,9999);assert.equal(p.rendered(10000),null);
 });
 
-test('normal capped waiting is not scheduler lateness and costs stay bounded',()=>{
- const p=createFrameTiming();p.enter(100,'raf',null,100);p.rendered(100);p.leave(106);
- p.enter(100+1000/30,'timer',100+1000/30);const t=p.rendered(100+1000/30);
- assert.equal(t.timerLateMs,0);assert.ok(t.overTargetMs<1e-9);
- assert.ok(Math.abs(t.outsideLoopMs-t.capAllowanceMs)<1e-9);
- p.leave(150);p.enter(10000,'raf',null,10000);assert.equal(p.rendered(10000),null,'suspension gap is not a timing sample');
+test('a suspension gap is not a timing sample',()=>{
+ const p=createFrameTiming();p.enter(100,100);p.rendered(100);p.leave(106);
+ p.enter(100+1000/30,100+1000/30);const t=p.rendered(100+1000/30);
+ assert.ok(t.overTargetMs<1e-9);assert.ok(Math.abs(t.outsideLoopMs-t.capAllowanceMs)<1e-9);
+ p.leave(150);p.enter(10000,10000);assert.equal(p.rendered(10000),null);
 });

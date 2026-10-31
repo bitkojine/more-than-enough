@@ -27,7 +27,7 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 import { createTickClock } from '../engine/clock.js';
 import { createPerf } from './perf-host.js';
-import { createQuality, frameWait, RENDER_FPS, createFrameTiming } from './quality.js';
+import { createQuality, createFramePacer, RENDER_FPS, createFrameTiming } from './quality.js';
 import { createLook, loadDefaultPack } from './look/look.js';
 import { createYard } from './yard.js';
 import { render, mapNames } from './render/renderer.js';
@@ -749,17 +749,14 @@ function view() {
 // Local-only deterministic replay: the test drives normal commands and ticks.
 const playtestReplay=['localhost','127.0.0.1'].includes(location.hostname)&&new URLSearchParams(location.search).has('playtestReplay');
 
-const frameTiming=createFrameTiming();
-// Scheduling is unchanged. Observe requested timer deadlines and display
-// callback timestamps separately from the work performed inside the loop.
-function requestFrame(wait=0) {
-  const due=performance.now()+wait;
-  const run=(kind,stamp=null)=>{
-    const now=performance.now();frameTiming.enter(now,kind,due,stamp);
-    try{frame(now);}finally{frameTiming.leave(performance.now());}
-  };
-  if(wait>0)setTimeout(()=>run('timer'),wait);
-  else requestAnimationFrame(stamp=>run('raf',stamp));
+const frameTiming=createFrameTiming(), pacer=createFramePacer();
+// Every callback is an animation frame; the pacer picks which ones draw, by
+// their vsync timestamp. Diagnostics see the work done inside each callback.
+function requestFrame() {
+  requestAnimationFrame(stamp=>{
+    const now=performance.now();frameTiming.enter(now,stamp);
+    try{frame(now,stamp);}finally{frameTiming.leave(performance.now());}
+  });
 }
 let last = 0;
 let lastSimulationNow = 0, simulationMs = 0;
@@ -785,7 +782,7 @@ function sayAway(seconds, made, fixed = false) {
 }
 let shownState = null, shownZ = 0; // the world and layer the last frame showed
 let signRect = null;            // where your sign stood in the last frame, for taps on it
-function frame(now) {
+function frame(now, stamp = now) {
   try {
     const simStart = performance.now();
     const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
@@ -805,15 +802,11 @@ function frame(now) {
       else simulationClock.advance(elapsed);
     }
     simulationMs += performance.now() - simStart;
-    const wait = last ? frameWait(now - last) : 0;
-    if (wait !== 0) {
-      requestFrame(wait>0?wait:0);
-      return;
-    }
-    const intervalMs = last ? now - last : 0;
+    if (!pacer.due(stamp)) { requestFrame(); return; }
+    const intervalMs = last ? stamp - last : 0;
     const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
-    last = now;
-    const pacing=frameTiming.rendered(now);
+    last = stamp;
+    const pacing=frameTiming.rendered(stamp);
     const t0 = performance.now();
     if (!document.hidden && !fork.open) { updateView(dt); wiki.update(dt); }
     mapView.tick(dt);

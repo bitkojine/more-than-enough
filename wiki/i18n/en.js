@@ -454,7 +454,7 @@ export default {
             effects and other drawing. Nested work is counted once. GPU work, browser layout and device scheduling
             are not measured directly; unexplained delays are labelled unattributed.</td></tr>
           <tr><td>Frame delivery</td><td>Separates game-loop work, time outside it, the normal waiting allowance for
-            the 30 FPS cap and the interval above target. Timer lateness and display callback age are separate evidence,
+            the 30 FPS cap and the interval above target. Display callback age is separate evidence,
             not additional time to add. Outside-loop time is not a measurement of GPU delay.</td></tr>
           <tr><td>Observations</td><td>The largest small CPU cost is not automatically the cause of low FPS. Smaller costs and repeated hitches remain available to inspect even without an automatic warning.</td></tr>
           <tr><td>Context</td><td>Layer, position, daylight, zoom, canvas size, quality, sound state and available device information.</td></tr>

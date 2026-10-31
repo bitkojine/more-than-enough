@@ -28,7 +28,6 @@ export function createPerf(el,canvas,audio,quality) {
     if(issue.evidence==='cpu-over-budget')return t('perf.cpuOverBudget',{cpu:ms(issue.cpuMs),budget:ms(m.budget)});
     if(issue.evidence==='loop-over-budget')return t('perf.loopOverBudget',{cpu:ms(issue.pacing.callbackWorkMs),budget:ms(m.budget)});
     if(issue.evidence==='unexplained-hitch')return t('perf.hitchUnknown',{worst:ms(issue.worstMs)});
-    if(issue.evidence==='late-timer')return t('perf.timerEvidence',{late:ms(issue.pacing.timerLateMs),excess:ms(issue.overTargetMs)});
     if(issue.evidence==='interval-over-target')return t('perf.deliveryUnknown',{excess:ms(issue.overTargetMs),cpu:ms(issue.cpuMs)});
     return t('perf.costObservation',{name:label(issue.cause),cost:ms(issue.phases[0].ms),budget:ms(m.budget)});
   }
@@ -74,8 +73,8 @@ export function createPerf(el,canvas,audio,quality) {
       if(m.heapMb!==null)row('heap',m.heapMb.toFixed(1)+' MB');frag.append(stats,node('h3','',t('perf.delivery')));
       const delivery=node('dl','perfStats');
       if(m.pacing.available){
-        for(const key of ['callbackWorkMs','outsideLoopMs','capAllowanceMs','overTargetMs','timerLateMs','timerLateWorstMs','rafAgeMs'])delivery.append(node('dt','',label(key)),node('dd','',ms(m.pacing[key])));
-        delivery.append(node('dt','',label('callbacks')),node('dd','',`${m.pacing.rafCallbacks.toFixed(1)} / ${m.pacing.timerCallbacks.toFixed(1)}`));
+        for(const key of ['callbackWorkMs','outsideLoopMs','capAllowanceMs','overTargetMs','rafAgeMs'])delivery.append(node('dt','',label(key)),node('dd','',ms(m.pacing[key])));
+        delivery.append(node('dt','',label('callbacks')),node('dd','',m.pacing.rafCallbacks.toFixed(1)));
       }
       frag.append(m.pacing.available?delivery:node('p','',t('perf.noTiming')),node('p','',t('perf.deliveryNote')),node('h3','',t('perf.breakdown')));
       for(const p of m.phases){const r=node('div','perfPhase');r.append(node('span','',label(p.key)),node('b','',ms(p.ms)),node('small','',`${t('perf.worst')} ${ms(p.worst)}`));r.style.setProperty('--cost',Math.min(100,p.ms/m.budget*100)+'%');frag.append(r);}
