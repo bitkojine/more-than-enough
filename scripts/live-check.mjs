@@ -30,8 +30,9 @@ export async function latestWorkflowRuns(repo, request = getJSON, headers = {}) 
     `https://api.github.com/repos/${repo}/actions/runs?branch=main&per_page=50`,
     headers
   );
-  // Commit messages flags style, not a deploy: it never opens a live-check issue.
-  return latestRuns(list.workflow_runs, ['Live check', 'Commit messages']);
+  // Commit messages and the browser suite flag problems in their own runs;
+  // neither deploys anything, so neither opens a live-check issue.
+  return latestRuns(list.workflow_runs, ['Live check', 'Commit messages', 'Browser suite']);
 }
 
 /** Every problem the facts show, as lines for a person to read. */

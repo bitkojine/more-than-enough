@@ -33,8 +33,11 @@ kind of knowledge lives.
   run by hand, not in the gate, because each takes minutes and is not what
   usually breaks a push: `npm run test:layout` after a layout or text-length
   change, and `npm run test:e2e` after a change under `src/game/` (unit tests
-  don't load browser code). The e2e suite plays in a randomly seeded world, so
-  a failure there means "re-run and look", not "CI would have caught it".
+  don't load browser code). CI also runs the whole browser suite on every
+  push (`browser.yml`, beside the deploy, not blocking it); a red run there
+  failed twice in two random worlds, so look at it the same day. A check
+  that waits for the game uses `waitFor`, whose deadline stretches when the
+  machine draws few frames, never a bare `sleep` before an assertion.
 - `test/property/` searches for rule breaks that the example tests in
   `test/unit/` didn't happen to try: it plays thousands of random legal games
   and holds every invariant in `test/property/invariants.js` after each step.

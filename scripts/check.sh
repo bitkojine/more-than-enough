@@ -23,14 +23,13 @@
 # Deliberately not in the gate, because each takes minutes and none is what
 # usually breaks a push — run them by hand when you touch what they cover:
 #   - npm run test:layout   every screen at 12 sizes × 2 languages (~4 min).
-#                           Run after a layout or text-length change.
-#   - npm run test:e2e      gameplay in real Chrome. It plays in a randomly
-#                           seeded world, so checks that depend on the world
-#                           it happens to draw fail on some runs and not
-#                           others: a failure means "re-run and look", not
-#                           "CI would have caught it". Run after a change
-#                           under src/game/. Use MTE_LAYOUT_SCREENS=320x568,
-#                           375x667,430x932,1366x768 for a quicker layout pass.
+#                           Run after a layout or text-length change. Use
+#                           MTE_LAYOUT_SCREENS=320x568,375x667,430x932,1366x768
+#                           for a quicker pass.
+#   - npm run test:e2e      gameplay in real Chrome, in a randomly seeded
+#                           world. CI runs it too (browser.yml, re-run once
+#                           when red, never blocking a deploy). Run it after
+#                           a change under src/game/.
 set -eu
 cd "$(dirname "$0")/.."
 QUICK="${1:-}"
