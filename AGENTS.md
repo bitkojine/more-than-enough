@@ -15,6 +15,13 @@ kind of knowledge lives.
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
   notes as `news.<version>` in `src/i18n/en.js` and `lt.js`. On a version
   clash after a rebase take the next free number and keep both entries.
+- Commit messages explain why (Watch, 2026-10-31). Subject: what changed,
+  in the imperative. Body: why it was needed, what was wrong before, how you
+  checked it, and anything a reviewer might trip over. A commit over 20
+  changed lines without a body is flagged by `commits.yml`
+  (`scripts/commit-messages.mjs`); trailers like `Co-Authored-By:` don't
+  count as a body. A release commit says what it ships and why, not only
+  its version.
 - Code is laid out by Prettier: run `npm run format` before committing.
   `npm run lint` (part of `npm run check`) fails on unformatted code, on any
   ESLint error, and on more ESLint warnings than the budget in

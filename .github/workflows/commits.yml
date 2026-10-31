@@ -1,0 +1,27 @@
+# Flags commits whose message doesn't say why (scripts/commit-messages.mjs,
+# AGENTS.md "Commit messages"). Its own workflow, so a red mark here never
+# holds up a deploy; scripts/live-check.mjs leaves it out for the same reason.
+name: Commit messages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  messages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Every commit over 20 changed lines explains why
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: node scripts/commit-messages.mjs "$BASE" "$HEAD"

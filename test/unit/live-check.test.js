@@ -89,3 +89,8 @@ test('live check accepts manual recovery and still reports subsequent failures',
     'manual failures count too'
   );
 });
+
+test('a flagged commit message is not a failed deploy', async () => {
+  const request = async () => ({ workflow_runs: [run('Commit messages', 'failure')] });
+  assert.deepEqual(await latestWorkflowRuns('bitkojine/more-than-enough', request), []);
+});
