@@ -4426,11 +4426,24 @@ async function main() {
     await evalJS('document.getElementById("btnBeyond").hidden'),
     'the Beyond button stays hidden while there are upgrades to buy'
   );
+  // Since v0.181.0's unified settlement menus, Equipment holds the tools and
+  // Build holds the other world families (sheet.js renderUpgrades).
   eq(
-    await evalJS('document.querySelectorAll("#sheetBody button[data-family]").length'),
-    4,
-    'the progression map shows only the four world families'
+    await evalJS(
+      'Array.from(document.querySelectorAll("#sheetBody button[data-family]")).map(function(b){return b.dataset.family;}).join()'
+    ),
+    'tools',
+    'Equipment shows only the tools family'
   );
+  await openMenu('build');
+  eq(
+    await evalJS(
+      'Array.from(document.querySelectorAll("#sheetBody button[data-family]")).map(function(b){return b.dataset.family;}).join()'
+    ),
+    'refining,abundance,unlocks',
+    'Build shows the other three world families'
+  );
+  await openMenu('upgrades');
   await sleep(200);
   await key('keyDown', 'b', 'KeyB', 66);
   await key('keyUp', 'b', 'KeyB', 66);
@@ -4668,9 +4681,7 @@ async function main() {
   await evalJS(
     'MTE_GAME.addRes("mycelium",900000); MTE_GAME.addRes("stone",900000); MTE_GAME.addRes("ore",900000); MTE_GAME.addRes("crystal",90000);'
   );
-  await evalJS(
-    'document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()'
-  );
+  await openMenu('build');
   await sleep(300);
   ok(
     await evalJS(
@@ -4725,18 +4736,14 @@ async function main() {
     foundryLocked && foundryLocked.disabled,
     'Foundry converter is locked until its blueprint is crafted'
   );
-  await evalJS('document.getElementById("btnClose").click()');
-  await evalJS(
-    'document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()'
-  );
-  await sleep(250);
+  // The blueprint row sits in Build's Unlocks family, beside the building.
   await evalJS(
     'document.querySelector("#sheetBody button[data-kind=unlock][data-id=foundry]").click()'
   );
   await sleep(200);
   ok(
     await evalJS('!!MTE_GAME.getState().unlocks.foundry'),
-    'Foundry blueprint unlocked from Upgrades'
+    'Foundry blueprint unlocked from Build'
   );
   await evalJS('document.getElementById("btnClose").click()');
   await sleep(200);
