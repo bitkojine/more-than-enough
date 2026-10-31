@@ -26,7 +26,12 @@ function topRect(cam, s, tx, ty, inset) {
   const h = cam.z + Core.tileHeight(s.world, tx, ty, cam.z);
   const p = cam.project(tx, ty, h);
   const g = cam.depthPx / cam.tilePx;
-  return { x: p.x + inset, y: p.y + inset * g, w: cam.tilePx - inset * 2, h: cam.depthPx - inset * 2 * g };
+  return {
+    x: p.x + inset,
+    y: p.y + inset * g,
+    w: cam.tilePx - inset * 2,
+    h: cam.depthPx - inset * 2 * g
+  };
 }
 
 // Outline one tile's top. The inset is clamped so a sub-pixel tile when
@@ -58,8 +63,16 @@ export function drawTrail(ctx, cam, s, view) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.strokeStyle = hits ? (dig ? 'rgba(255,205,125,0.95)' : 'rgba(157,255,117,0.95)') : 'rgba(120,232,255,0.88)';
-  ctx.shadowColor = hits ? (dig ? 'rgba(255,190,90,0.9)' : 'rgba(143,255,88,0.9)') : 'rgba(88,215,255,0.85)';
+  ctx.strokeStyle = hits
+    ? dig
+      ? 'rgba(255,205,125,0.95)'
+      : 'rgba(157,255,117,0.95)'
+    : 'rgba(120,232,255,0.88)';
+  ctx.shadowColor = hits
+    ? dig
+      ? 'rgba(255,190,90,0.9)'
+      : 'rgba(143,255,88,0.9)'
+    : 'rgba(88,215,255,0.85)';
   ctx.lineWidth = Math.max(5, Math.min(12, u * 0.18));
   ctx.shadowBlur = 18;
   ctx.beginPath();
@@ -86,21 +99,28 @@ export function drawTrail(ctx, cam, s, view) {
 }
 
 // Physical light is drawn from the shared core field.
-export {drawLighting} from './lighting.js';
+export { drawLighting } from './lighting.js';
 
 /* Finds glinting in the dark: a twinkle over each find still in the rock
  * within range, drawn over the dark (and over ground you haven't uncovered)
  * so there's always something close to dig toward. Fainter further off. */
-const GLINT_SIZE = 0.2;   // the twinkle's arm, in tiles
+const GLINT_SIZE = 0.2; // the twinkle's arm, in tiles
 
 // A four-pointed twinkle of arm r at (x, y).
 function star(ctx, x, y, r, color) {
   const k = r * 0.22;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo(x, y - r); ctx.lineTo(x + k, y - k); ctx.lineTo(x + r, y); ctx.lineTo(x + k, y + k);
-  ctx.lineTo(x, y + r); ctx.lineTo(x - k, y + k); ctx.lineTo(x - r, y); ctx.lineTo(x - k, y - k);
-  ctx.closePath(); ctx.fill();
+  ctx.moveTo(x, y - r);
+  ctx.lineTo(x + k, y - k);
+  ctx.lineTo(x + r, y);
+  ctx.lineTo(x + k, y + k);
+  ctx.lineTo(x, y + r);
+  ctx.lineTo(x - k, y + k);
+  ctx.lineTo(x - r, y);
+  ctx.lineTo(x - k, y - k);
+  ctx.closePath();
+  ctx.fill();
 }
 
 export function drawGlints(ctx, cam, s, look) {
@@ -129,8 +149,8 @@ export function drawGlints(ctx, cam, s, look) {
 /* Beacons (marker flags): a pin of the flag's colour over the dark wherever
  * one stands on screen, so you can find your way back to it. Kept on screen
  * at the edge, pointing the way, when it's off it. */
-const BEACON_PIN = 7;     // the pin's radius, in CSS pixels
-const BEACON_EDGE = 28;   // how far in from the screen's edge an off-screen pin sits
+const BEACON_PIN = 7; // the pin's radius, in CSS pixels
+const BEACON_EDGE = 28; // how far in from the screen's edge an off-screen pin sits
 
 export function drawBeacons(ctx, cam, s, look, beacons) {
   for (const b of beacons) {
@@ -138,7 +158,10 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
     const p = cam.project(b.x + 0.5, b.y + 0.5, cam.z);
     const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
     const x = Math.max(BEACON_EDGE, Math.min(cam.width - BEACON_EDGE, p.x));
-    const y = Math.max(BEACON_EDGE, Math.min(cam.height - BEACON_EDGE, p.y - (off ? 0 : cam.tilePx * 1.1)));
+    const y = Math.max(
+      BEACON_EDGE,
+      Math.min(cam.height - BEACON_EDGE, p.y - (off ? 0 : cam.tilePx * 1.1))
+    );
     const pulse = 0.5 + 0.5 * Math.sin(s.time * 2.4 + b.x + b.y);
     const halo = ctx.createRadialGradient(x, y, 0, x, y, BEACON_PIN * 3);
     halo.addColorStop(0, rgba(color, 0.35 + 0.25 * pulse));
@@ -151,7 +174,8 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
     ctx.beginPath();
     if (off) {
       // An arrowhead at the edge, pointing at the flag.
-      const a = Math.atan2(p.y - y, p.x - x), r = BEACON_PIN * 1.4;
+      const a = Math.atan2(p.y - y, p.x - x),
+        r = BEACON_PIN * 1.4;
       ctx.moveTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
       ctx.lineTo(x + Math.cos(a + 2.4) * r, y + Math.sin(a + 2.4) * r);
       ctx.lineTo(x + Math.cos(a - 2.4) * r, y + Math.sin(a - 2.4) * r);
@@ -159,7 +183,8 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
     } else {
       ctx.arc(x, y, BEACON_PIN, 0, TAU);
     }
-    ctx.fill(); ctx.stroke();
+    ctx.fill();
+    ctx.stroke();
   }
 }
 
@@ -172,18 +197,20 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 // in the world only the nearest few get a badge, so the edges stay readable,
 // and a badge that would cover another, or anything in `taken` (boxes round
 // you and the names shown), gives way to the next nearest.
-const BADGE = 22;          // the badge's radius, in CSS pixels
+const BADGE = 22; // the badge's radius, in CSS pixels
 const MAX_BADGES = 6;
 export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = []) {
   const edge = BADGE + 14;
   const face = look.pick('character.wanderer', 'image');
-  const cx = cam.width / 2, cy = cam.height / 2;
+  const cx = cam.width / 2,
+    cy = cam.height / 2;
   const away = [];
   for (const f of friends) {
     const p = cam.project(f.x, f.y, cam.z);
     const other = f.z !== cam.z;
     const off = p.x < 0 || p.y < 0 || p.x > cam.width || p.y > cam.height;
-    if (off || other) away.push({ f, p, other, off, d: Math.hypot(p.x - cx, p.y - cy) + (other ? 1e6 : 0) });
+    if (off || other)
+      away.push({ f, p, other, off, d: Math.hypot(p.x - cx, p.y - cy) + (other ? 1e6 : 0) });
   }
   away.sort((a, b) => a.d - b.d);
   const placed = [...taken];
@@ -194,15 +221,26 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = [])
     let y = Math.max(edge + 92, Math.min(cam.height - edge - 130, p.y)); // below the top bar and chips
     if (!off) y -= cam.tilePx * 1.4; // on another layer, right above where they are
     // Beside the zoom pill, not under it: the badge, its name and distance.
-    if (clear && x + edge + 16 > clear.left && y + BADGE + 40 > clear.top && y - BADGE - 40 < clear.bottom) x = Math.min(x, clear.left - edge - 16);
-    const a = Math.atan2(p.y - y, p.x - x);   // which way they are
+    if (
+      clear &&
+      x + edge + 16 > clear.left &&
+      y + BADGE + 40 > clear.top &&
+      y - BADGE - 40 < clear.bottom
+    )
+      x = Math.min(x, clear.left - edge - 16);
+    const a = Math.atan2(p.y - y, p.x - x); // which way they are
     // Their name goes under the badge, or over it when the arrow points down,
     // and the distance beyond it: all that must be clear of the others.
     const nameUp = off && Math.sin(a) > 0.4;
     ctx.font = '800 11px system-ui, sans-serif'; // i18n-ok: a font
     const tw = Math.ceil(ctx.measureText(f.name).width) + 12;
     const half = Math.max(BADGE + 12, tw / 2) + 2;
-    const box = { l: x - half, r: x + half, t: y - BADGE - (nameUp ? 38 : 14), b: y + BADGE + (nameUp ? 14 : 38) };
+    const box = {
+      l: x - half,
+      r: x + half,
+      t: y - BADGE - (nameUp ? 38 : 14),
+      b: y + BADGE + (nameUp ? 14 : 38)
+    };
     if (placed.some((o) => o.l < box.r && box.l < o.r && o.t < box.b && box.t < o.b)) continue;
     placed.push(box);
     shown++;
@@ -214,14 +252,19 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = [])
     ctx.fillStyle = color;
     ctx.strokeStyle = 'rgba(10,8,6,0.85)';
     ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(x, y, BADGE, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, BADGE, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
     ctx.fillStyle = '#f4efe4';
-    ctx.beginPath(); ctx.arc(x, y, BADGE - 4, 0, TAU); ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x, y, BADGE - 4, 0, TAU);
+    ctx.fill();
     ctx.save();
     ctx.clip();
     if (asleep && 'filter' in ctx) ctx.filter = 'grayscale(1)';
     // Their head fills the circle: the figure, big, with its top near the rim.
-    const size = BADGE * 4.6 / (face.units * face.aspect);
+    const size = (BADGE * 4.6) / (face.units * face.aspect);
     look.stand(ctx, face, x, y - BADGE * 0.9 + BADGE * 4.6, size);
     ctx.restore();
     // Their name on a tag, as on their chip in the top bar: under the badge,
@@ -232,48 +275,64 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = [])
     ctx.textBaseline = 'middle';
     const tx = Math.max(tw / 2 + 4, Math.min(cam.width - tw / 2 - 4, x));
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.roundRect(tx - tw / 2, ty - 8, tw, 16, 8); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.roundRect(tx - tw / 2, ty - 8, tw, 16, 8);
+    ctx.fill();
+    ctx.stroke();
     ctx.fillStyle = '#0c0a08';
     ctx.fillText(f.name, tx, ty + 0.5);
     // How far: a dark pill beyond the name, away from the badge, with the
     // layers between you (an up or down triangle and how many) on another layer.
     const below = ty > y;
     const dy = ty + (below ? 17 : -17);
-    const dz = Math.abs(f.z - cam.z), up = f.z > cam.z;
+    const dz = Math.abs(f.z - cam.z),
+      up = f.z > cam.z;
     const far = distance(Math.hypot(f.x - s.player.x, f.y - s.player.y));
     ctx.font = '700 10px system-ui, sans-serif'; // i18n-ok: a font
     const layers = dz ? number(dz) : '';
-    const fw = ctx.measureText(far).width, lw = dz ? ctx.measureText(layers).width + 13 : 0;
+    const fw = ctx.measureText(far).width,
+      lw = dz ? ctx.measureText(layers).width + 13 : 0;
     const dw = Math.ceil(fw + lw) + 12;
     const dx = Math.max(dw / 2 + 4, Math.min(cam.width - dw / 2 - 4, x));
     ctx.fillStyle = 'rgba(12,10,8,0.82)';
-    ctx.beginPath(); ctx.roundRect(dx - dw / 2, dy - 7, dw, 14, 7); ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(dx - dw / 2, dy - 7, dw, 14, 7);
+    ctx.fill();
     ctx.fillStyle = '#f4efe4';
     ctx.textAlign = 'left';
     const left = dx - dw / 2 + 6;
     ctx.fillText(far, left, dy + 0.5);
     if (dz) {
-      const ax = left + fw + 7, r = 3.6;
+      const ax = left + fw + 7,
+        r = 3.6;
       ctx.beginPath();
       ctx.moveTo(ax, dy + (up ? -r : r));
       ctx.lineTo(ax + r, dy + (up ? r * 0.7 : -r * 0.7));
       ctx.lineTo(ax - r, dy + (up ? r * 0.7 : -r * 0.7));
-      ctx.closePath(); ctx.fill();
+      ctx.closePath();
+      ctx.fill();
       ctx.fillText(layers, ax + r + 2, dy + 0.5);
     }
     ctx.textAlign = 'center';
     ctx.strokeStyle = 'rgba(10,8,6,0.85)';
     if (other) {
       // Up or down: which way the layer they're on is.
-      const up = f.z > cam.z, ax = x + BADGE * 0.78, ay = y - BADGE * 0.78, r = 7;
+      const up = f.z > cam.z,
+        ax = x + BADGE * 0.78,
+        ay = y - BADGE * 0.78,
+        r = 7;
       ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(ax, ay, r + 2, 0, TAU); ctx.fill(); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(ax, ay, r + 2, 0, TAU);
+      ctx.fill();
+      ctx.stroke();
       ctx.fillStyle = '#0c0a08';
       ctx.beginPath();
       ctx.moveTo(ax, ay + (up ? -r * 0.7 : r * 0.7));
       ctx.lineTo(ax + r * 0.65, ay + (up ? r * 0.45 : -r * 0.45));
       ctx.lineTo(ax - r * 0.65, ay + (up ? r * 0.45 : -r * 0.45));
-      ctx.closePath(); ctx.fill();
+      ctx.closePath();
+      ctx.fill();
     }
     // The arrow on the rim, toward them.
     if (off) {
@@ -284,7 +343,9 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = [])
       ctx.moveTo(x + Math.cos(a) * (BADGE + 12), y + Math.sin(a) * (BADGE + 12));
       ctx.lineTo(x + Math.cos(a + 0.45) * (BADGE + 1), y + Math.sin(a + 0.45) * (BADGE + 1));
       ctx.lineTo(x + Math.cos(a - 0.45) * (BADGE + 1), y + Math.sin(a - 0.45) * (BADGE + 1));
-      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
     }
     ctx.restore();
   }
@@ -295,8 +356,11 @@ export function drawJoystick(ctx, cam, view) {
   if (!joy.active) return;
   ctx.strokeStyle = 'rgba(190,220,190,0.35)';
   ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(joy.ox, joy.oy, 62, 0, TAU); ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(joy.ox, joy.oy, 62, 0, TAU);
+  ctx.stroke();
   ctx.fillStyle = 'rgba(120,190,130,0.55)';
-  ctx.beginPath(); ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(joy.ox + joy.x * 62, joy.oy + joy.y * 62, 26, 0, TAU);
+  ctx.fill();
 }
-

@@ -27,8 +27,13 @@ export function worldOf(s) {
 // Your buildings come along by kind and place, with their waiting output.
 export function progressOf(s) {
   const d = JSON.parse(serialize(s));
-  delete d.mods; delete d.props; delete d.explored; delete d.holes;
-  d.extractors = d.extractors.filter((e) => e.o === s.me).map((e) => ({ k: e.k, x: e.x, y: e.y, z: e.z, b: e.b }));
+  delete d.mods;
+  delete d.props;
+  delete d.explored;
+  delete d.holes;
+  d.extractors = d.extractors
+    .filter((e) => e.o === s.me)
+    .map((e) => ({ k: e.k, x: e.x, y: e.y, z: e.z, b: e.b }));
   return JSON.stringify(d);
 }
 
@@ -45,11 +50,18 @@ const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 export function joinState(welcome, room, fog, near, make = undefined) {
   let mine = {};
   if (typeof welcome.save === 'string') {
-    try { mine = JSON.parse(welcome.save); } catch { mine = {}; }
+    try {
+      mine = JSON.parse(welcome.save);
+    } catch {
+      mine = {};
+    }
     if (!isObj(mine)) mine = {};
   }
-  const waiting = new Map((Array.isArray(mine.extractors) ? mine.extractors : [])
-    .filter(isObj).map((e) => [e.x + ',' + e.y + ',' + e.z, e.b]));
+  const waiting = new Map(
+    (Array.isArray(mine.extractors) ? mine.extractors : [])
+      .filter(isObj)
+      .map((e) => [e.x + ',' + e.y + ',' + e.z, e.b])
+  );
   const d = {
     ...mine,
     v: SAVE_VERSION,
@@ -59,7 +71,11 @@ export function joinState(welcome, room, fog, near, make = undefined) {
     holes: [],
     explored: Array.isArray(fog) ? fog : [],
     extractors: (Array.isArray(welcome.ext) ? welcome.ext : []).map((e) => ({
-      k: e[0], x: e[1], y: e[2], z: e[3], o: e[4],
+      k: e[0],
+      x: e[1],
+      y: e[2],
+      z: e[3],
+      o: e[4],
       b: e[4] === welcome.you ? waiting.get(e[1] + ',' + e[2] + ',' + e[3]) || 0 : 0
     }))
   };
@@ -79,11 +95,26 @@ export function joinState(welcome, room, fog, near, make = undefined) {
 // are both seen, not one drawn over the other (on them if there's no room).
 // `taken`: where everyone already in the world stands, so friends joining
 // one after another each get a spot of their own, not one on top of another.
-const SIDES = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1], [2, 0], [-2, 0], [0, 2], [0, -2]];
+const SIDES = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+  [1, 1],
+  [-1, 1],
+  [1, -1],
+  [-1, -1],
+  [2, 0],
+  [-2, 0],
+  [0, 2],
+  [0, -2]
+];
 export function beside(w, p, taken = []) {
   const free = (x, y) => walkable(w, Math.floor(x), Math.floor(y), p.z);
-  const clear = (x, y) => !taken.some((o) => o.z === p.z && Math.abs(o.x - x) < 0.75 && Math.abs(o.y - y) < 0.75);
-  const spot = SIDES.find(([dx, dy]) => free(p.x + dx, p.y + dy) && clear(p.x + dx, p.y + dy)) ||
+  const clear = (x, y) =>
+    !taken.some((o) => o.z === p.z && Math.abs(o.x - x) < 0.75 && Math.abs(o.y - y) < 0.75);
+  const spot =
+    SIDES.find(([dx, dy]) => free(p.x + dx, p.y + dy) && clear(p.x + dx, p.y + dy)) ||
     SIDES.slice(0, 4).find(([dx, dy]) => free(p.x + dx, p.y + dy));
   return spot ? { x: p.x + spot[0], y: p.y + spot[1], z: p.z } : { x: p.x, y: p.y, z: p.z };
 }
@@ -91,8 +122,15 @@ export function beside(w, p, taken = []) {
 // Where the players in a welcome stand (its `players`, a Map or an object of
 // {p: {x, y, z}}), for beside().
 function playersIn(welcome) {
-  const list = welcome.players instanceof Map ? [...welcome.players.values()] : isObj(welcome.players) ? Object.values(welcome.players) : [];
-  return list.filter((f) => isObj(f) && isObj(f.p) && Number.isFinite(f.p.x) && Number.isFinite(f.p.y)).map((f) => f.p);
+  const list =
+    welcome.players instanceof Map
+      ? [...welcome.players.values()]
+      : isObj(welcome.players)
+        ? Object.values(welcome.players)
+        : [];
+  return list
+    .filter((f) => isObj(f) && isObj(f.p) && Number.isFinite(f.p.x) && Number.isFinite(f.p.y))
+    .map((f) => f.p);
 }
 
 // Sets your progress straight from the room's numbers (`save`, the room's
@@ -102,7 +140,9 @@ function playersIn(welcome) {
 // changed since it was sent (the room hasn't heard of that yet: it's on its
 // way, and the room answers it on its own). False if it can't be read.
 export function correctProgress(s, save, sent = null) {
-  const r = deserialize(save, (seed) => blankState({ seed, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() }));
+  const r = deserialize(save, (seed) =>
+    blankState({ seed, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() })
+  );
   if (!r) return false;
   for (const k of RESOURCES) {
     const since = sent && Number.isFinite(sent.inv?.[k]) ? s.inv[k] - sent.inv[k] : 0;
@@ -110,17 +150,35 @@ export function correctProgress(s, save, sent = null) {
   }
   const changed = (k) => !!sent && k in sent && JSON.stringify(s[k]) !== JSON.stringify(sent[k]);
   for (const k of LEVELS) if (!changed(k)) s[k] = r[k];
-  if (!changed('goalIndex')) { s.goalsDone = r.goalsDone; s.goalIndex = r.goalIndex; }
+  if (!changed('goalIndex')) {
+    s.goalsDone = r.goalsDone;
+    s.goalIndex = r.goalIndex;
+  }
   for (const k of ['sources', 'mushrooms', 'mushroomsEver', 'insight', 'totalEver']) s[k] = r[k];
   // Your buildings, where the room has them.
   const theirs = new Map();
   for (const e of buildingsIn(save)) {
     const key = EXTRACTORS[e.k] ? e.k : null;
-    if (key && !theirs.has(spotOf(e))) theirs.set(spotOf(e), { key, res: EXTRACTORS[key].res, x: e.x, y: e.y, z: e.z, buffer: e.b, owner: s.me });
+    if (key && !theirs.has(spotOf(e)))
+      theirs.set(spotOf(e), {
+        key,
+        res: EXTRACTORS[key].res,
+        x: e.x,
+        y: e.y,
+        z: e.z,
+        buffer: e.b,
+        owner: s.me
+      });
   }
   const had = sent && Array.isArray(sent.built) ? new Set(sent.built) : null;
-  const since = had ? s.extractors.filter((e) => e.owner === s.me && !had.has(spotOf(e)) && !theirs.has(spotOf(e))) : [];
-  s.extractors = [...s.extractors.filter((e) => e.owner !== s.me && !theirs.has(spotOf(e))), ...theirs.values(), ...since];
+  const since = had
+    ? s.extractors.filter((e) => e.owner === s.me && !had.has(spotOf(e)) && !theirs.has(spotOf(e)))
+    : [];
+  s.extractors = [
+    ...s.extractors.filter((e) => e.owner !== s.me && !theirs.has(spotOf(e))),
+    ...theirs.values(),
+    ...since
+  ];
   return true;
 }
 
@@ -131,17 +189,31 @@ const spotOf = (e) => e.x + ',' + e.y + ',' + e.z;
 // The buildings in a save (JSON), as written: {k, x, y, z, b}.
 function buildingsIn(save) {
   let d;
-  try { d = JSON.parse(save); } catch { return []; }
+  try {
+    d = JSON.parse(save);
+  } catch {
+    return [];
+  }
   const isInt = Number.isSafeInteger;
   return (isObj(d) && Array.isArray(d.extractors) ? d.extractors : [])
     .filter((e) => isObj(e) && isInt(e.x) && isInt(e.y))
-    .map((e) => ({ k: e.k, x: e.x, y: e.y, z: isInt(e.z) ? e.z : SURFACE, b: Number.isFinite(e.b) ? e.b : 0 }));
+    .map((e) => ({
+      k: e.k,
+      x: e.x,
+      y: e.y,
+      z: isInt(e.z) ? e.z : SURFACE,
+      b: Number.isFinite(e.b) ? e.b : 0
+    }));
 }
 
 // What your game has that a correction from the room could change (and
 // correctProgress keeps if it changed since): kept with each progress sent.
 export function sentOf(s) {
-  const out = { inv: { ...s.inv }, goalIndex: s.goalIndex, built: s.extractors.filter((e) => e.owner === s.me).map(spotOf) };
+  const out = {
+    inv: { ...s.inv },
+    goalIndex: s.goalIndex,
+    built: s.extractors.filter((e) => e.owner === s.me).map(spotOf)
+  };
   for (const k of LEVELS) out[k] = JSON.parse(JSON.stringify(s[k] ?? null));
   return out;
 }
@@ -154,9 +226,12 @@ export function takenBack(was, s) {
   const buildings = was.built.filter((k) => !now.has(k)).length;
   let levels = (s.abundanceLv || 0) < (was.abundanceLv || 0) ? 1 : 0;
   for (const k of ['tools', 'unlocks', 'resUp', 'perks']) {
-    for (const [id, lv] of Object.entries(was[k] || {})) if (Number(s[k]?.[id] || 0) < Number(lv || 0)) levels++;
+    for (const [id, lv] of Object.entries(was[k] || {}))
+      if (Number(s[k]?.[id] || 0) < Number(lv || 0)) levels++;
   }
-  const res = RESOURCES.filter((r) => (was.inv[r] || 0) - (s.inv[r] || 0) > Math.max(10, 0.05 * (was.inv[r] || 0)));
+  const res = RESOURCES.filter(
+    (r) => (was.inv[r] || 0) - (s.inv[r] || 0) > Math.max(10, 0.05 * (was.inv[r] || 0))
+  );
   return buildings || levels || res.length ? { buildings, levels, res } : null;
 }
 
@@ -165,10 +240,19 @@ export function takenBack(was, s) {
 // buildings. Games before v0.91.1 could run away from the room's count, so
 // arriving back says the room's numbers are the real ones.
 export function overCounted(local, room) {
-  const parse = (v) => { try { const d = JSON.parse(v); return isObj(d) ? d : null; } catch { return null; } };
-  const a = parse(local), b = parse(room);
+  const parse = (v) => {
+    try {
+      const d = JSON.parse(v);
+      return isObj(d) ? d : null;
+    } catch {
+      return null;
+    }
+  };
+  const a = parse(local),
+    b = parse(room);
   if (!a || !b) return false;
-  const total = (d) => RESOURCES.reduce((n, r) => n + (Number(d.inv?.[r]) > 0 ? Number(d.inv[r]) : 0), 0);
+  const total = (d) =>
+    RESOURCES.reduce((n, r) => n + (Number(d.inv?.[r]) > 0 ? Number(d.inv[r]) : 0), 0);
   const built = (d) => (Array.isArray(d.extractors) ? d.extractors.length : 0);
   return total(a) > 2 * total(b) + 1000 || built(a) > built(b) + 5;
 }
@@ -185,18 +269,24 @@ export function applyEdits(s, edits) {
       putRichness(w, e[1], x, y, z, e[2]);
       changed = true;
     } else if (e[0] === 'p') {
-      if (PROPS[e[2]] && !w.props.has(e[1])) { w.props.set(e[1], e[2]); changed = true; }
+      if (PROPS[e[2]] && !w.props.has(e[1])) {
+        w.props.set(e[1], e[2]);
+        changed = true;
+      }
     } else if (e[0] === 'x') {
       const [, key, x, y, z, owner] = e;
-      if (!EXTRACTORS[key] || s.extractors.some((b) => b.x === x && b.y === y && b.z === z)) continue;
+      if (!EXTRACTORS[key] || s.extractors.some((b) => b.x === x && b.y === y && b.z === z))
+        continue;
       s.extractors.push({ key, res: EXTRACTORS[key].res, x, y, z, buffer: 0, owner });
       changed = true;
     } else if (e[0] === 'v') {
       // A building moved (yours is there already: your game moved it first).
       const [, x, y, z, tx, ty] = e;
       const b = s.extractors.find((b) => b.x === x && b.y === y && b.z === z);
-      if (!b || s.extractors.some((o) => o !== b && o.x === tx && o.y === ty && o.z === z)) continue;
-      b.x = tx; b.y = ty;
+      if (!b || s.extractors.some((o) => o !== b && o.x === tx && o.y === ty && o.z === z))
+        continue;
+      b.x = tx;
+      b.y = ty;
       s.extractors = s.extractors.slice(); // every index by tile is made again
       changed = true;
     }

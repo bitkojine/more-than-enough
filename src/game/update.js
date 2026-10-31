@@ -13,14 +13,18 @@
 
 import { VERSION } from '../version.js';
 
-const CHECK_EVERY = 60_000;   // ms between checks while the game is in view
-const RETRY_AFTER = 60_000;   // ms before reloading for the same build again
+const CHECK_EVERY = 60_000; // ms between checks while the game is in view
+const RETRY_AFTER = 60_000; // ms before reloading for the same build again
 const RELOADED_STORE = 'mte.reloadedFor';
-const FROM_STORE = 'mte.updatedFrom';  // the version played before the update
+const FROM_STORE = 'mte.updatedFrom'; // the version played before the update
 
 // The build stamped on a module URL, or null when run from source.
 export function stampOf(url) {
-  try { return new URL(url).searchParams.get('v'); } catch { return null; }
+  try {
+    return new URL(url).searchParams.get('v');
+  } catch {
+    return null;
+  }
 }
 
 // The build the site serves now, or null if it can't be read.
@@ -34,7 +38,11 @@ async function siteBuild() {
 // Reload into the new build: the page itself is fetched past the browser's
 // cache first, so the reload can't come back with the old one.
 async function hardReload() {
-  try { await fetch(location.pathname + location.search, { cache: 'reload' }); } catch { /* reload anyway */ }
+  try {
+    await fetch(location.pathname + location.search, { cache: 'reload' });
+  } catch {
+    /* reload anyway */
+  }
   location.reload();
 }
 
@@ -45,10 +53,16 @@ function reloadedRecently(build, store, now) {
   try {
     const [b, at] = (store.getItem(RELOADED_STORE) || '').split(' ');
     return b === build && now - Number(at) < RETRY_AFTER;
-  } catch { return false; }
+  } catch {
+    return false;
+  }
 }
 function noteReload(build, store, now) {
-  try { store.setItem(RELOADED_STORE, build + ' ' + now); } catch { /* storage off: no loop guard */ }
+  try {
+    store.setItem(RELOADED_STORE, build + ' ' + now);
+  } catch {
+    /* storage off: no loop guard */
+  }
 }
 
 // The version this tab played before the game updated itself, or null; read
@@ -58,7 +72,9 @@ export function takeUpdatedFrom(store = globalThis.sessionStorage) {
     const from = store.getItem(FROM_STORE);
     store.removeItem(FROM_STORE);
     return from || null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 export function createUpdater({
@@ -82,18 +98,29 @@ export function createUpdater({
       leaving = true;
       noteReload(build, store, now());
       // Kept from the first of several updates in a row, so nothing is missed.
-      try { if (!store.getItem(FROM_STORE)) store.setItem(FROM_STORE, version); } catch { /* no notes then */ }
+      try {
+        if (!store.getItem(FROM_STORE)) store.setItem(FROM_STORE, version);
+      } catch {
+        /* no notes then */
+      }
       save();
       await reload();
-    } catch { /* offline or mid-deploy: the next check tries again */ }
-    finally { checking = false; }
+    } catch {
+      /* offline or mid-deploy: the next check tries again */
+    } finally {
+      checking = false;
+    }
   }
 
   function start() {
     if (!running) return;
     check();
-    setInterval(() => { if (!document.hidden) check(); }, CHECK_EVERY);
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+    setInterval(() => {
+      if (!document.hidden) check();
+    }, CHECK_EVERY);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) check();
+    });
     window.addEventListener('online', check);
   }
 

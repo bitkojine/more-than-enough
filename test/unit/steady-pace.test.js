@@ -17,13 +17,16 @@ const feedback = () => new Proxy({}, { get: () => () => {} });
 // A player in the middle of a patch of forest that never runs out.
 function grove() {
   const s = C.createState(12345);
-  const X = 300, Y = 300;
-  for (let y = Y - 3; y <= Y + 3; y++) for (let x = X - 3; x <= X + 3; x++) {
-    C.tileAt(s.world, x, y, 0);
-    s.world.chunks.get(C.packKey(C.chunkCoord(x), C.chunkCoord(y), 0)).type[C.chunkIndex(x, y)] = C.T.FOREST;
-    C.setRichness(s.world, x, y, 0, 1e6);
-    C.markExplored(s.world, x, y, 0);
-  }
+  const X = 300,
+    Y = 300;
+  for (let y = Y - 3; y <= Y + 3; y++)
+    for (let x = X - 3; x <= X + 3; x++) {
+      C.tileAt(s.world, x, y, 0);
+      s.world.chunks.get(C.packKey(C.chunkCoord(x), C.chunkCoord(y), 0)).type[C.chunkIndex(x, y)] =
+        C.T.FOREST;
+      C.setRichness(s.world, x, y, 0, 1e6);
+      C.markExplored(s.world, x, y, 0);
+    }
   s.player = { x: X + 0.5, y: Y + 0.5, z: 0 };
   return { s, X, Y };
 }
@@ -34,8 +37,15 @@ function grove() {
 // tiles worked.
 function play(each, holding = () => false) {
   const { s, X, Y } = grove();
-  const c = createController({ game: { state: s, saveSoon() {} }, fx: feedback(), hud: feedback(), audio: feedback(),
-    look: { color: () => '' }, actor: { act() {} }, cam: { unproject: (x, y) => ({ x, y }) } });
+  const c = createController({
+    game: { state: s, saveSoon() {} },
+    fx: feedback(),
+    hud: feedback(),
+    audio: feedback(),
+    look: { color: () => '' },
+    actor: { act() {} },
+    cam: { unproject: (x, y) => ({ x, y }) }
+  });
   for (let i = 0; i < SECONDS * 60; i++) {
     each(c, i, X, Y);
     c.steer(DT, { x: 0, y: 0 });
@@ -45,12 +55,27 @@ function play(each, holding = () => false) {
   return s.stats.gathers;
 }
 
-const held = () => play((c, i) => { if (i === 0) c.press(); }, () => true);
+const held = () =>
+  play(
+    (c, i) => {
+      if (i === 0) c.press();
+    },
+    () => true
+  );
 // A stroke across the tiles round the player.
-const stroke = (X, Y) => [{ x: X - 0.5, y: Y + 0.5 }, { x: X + 1.5, y: Y + 0.5 }, { x: X + 1.5, y: Y + 1.5 }, { x: X - 0.5, y: Y + 1.5 }];
+const stroke = (X, Y) => [
+  { x: X - 0.5, y: Y + 0.5 },
+  { x: X + 1.5, y: Y + 0.5 },
+  { x: X + 1.5, y: Y + 1.5 },
+  { x: X - 0.5, y: Y + 1.5 }
+];
 
 test('pace: holding Gather works a tile four times a second, on the beat', () => {
-  assert.equal(held(), SECONDS * C.HANDS_PER_SECOND + 1, 'the press, then a repeat every quarter second');
+  assert.equal(
+    held(),
+    SECONDS * C.HANDS_PER_SECOND + 1,
+    'the press, then a repeat every quarter second'
+  );
 });
 
 test('pace: pressing Gather or Space every frame is no faster than holding it, and no slower', () => {
@@ -62,39 +87,53 @@ test('pace: pressing Gather or Space every frame is no faster than holding it, a
 
 test('pace: tapping a tile again and again is no faster than holding Gather', () => {
   const hold = held();
-  const taps = play((c, i, X, Y) => { if (i % 2 === 0) c.tap(X + 1, Y); });
+  const taps = play((c, i, X, Y) => {
+    if (i % 2 === 0) c.tap(X + 1, Y);
+  });
   assert.ok(taps <= hold, `taps ${taps} > hold ${hold}`);
   assert.ok(taps >= hold - 1, 'a tap during the wait is kept for the next turn');
 });
 
 test('pace: a Trail works its tiles a turn each, so stroke after stroke is no faster', () => {
   const hold = held();
-  const one = play((c, i, X, Y) => { if (i === 0) c.trailEnded(stroke(X, Y)); });
+  const one = play((c, i, X, Y) => {
+    if (i === 0) c.trailEnded(stroke(X, Y));
+  });
   assert.equal(one, 6, 'one stroke still works each tile it crossed');
-  const strokes = play((c, i, X, Y) => { if (i % 3 === 0) c.trailEnded(stroke(X, Y)); });
+  const strokes = play((c, i, X, Y) => {
+    if (i % 3 === 0) c.trailEnded(stroke(X, Y));
+  });
   assert.ok(strokes <= hold, `strokes ${strokes} > hold ${hold}`);
 });
 
 test('pace: every way at once, at random moments, is never faster than holding', () => {
   const hold = held();
   for (let seed = 1; seed <= 12; seed++) {
-    let r = seed * 2654435761 >>> 0;
-    const rand = () => ((r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 2 ** 32);
+    let r = (seed * 2654435761) >>> 0;
+    const rand = () => (r = (Math.imul(r, 1664525) + 1013904223) >>> 0) / 2 ** 32;
     const holding = new Set();
-    const n = play((c, i, X, Y) => {
-      const k = rand();
-      if (k < 0.2) c.press();
-      else if (k < 0.3) c.tap(X + Math.floor(rand() * 3) - 1, Y + Math.floor(rand() * 3) - 1);
-      else if (k < 0.33) c.trailEnded(stroke(X, Y));
-      if (rand() < 0.5) holding.add(i);
-    }, (i) => holding.has(i));
+    const n = play(
+      (c, i, X, Y) => {
+        const k = rand();
+        if (k < 0.2) c.press();
+        else if (k < 0.3) c.tap(X + Math.floor(rand() * 3) - 1, Y + Math.floor(rand() * 3) - 1);
+        else if (k < 0.33) c.trailEnded(stroke(X, Y));
+        if (rand() < 0.5) holding.add(i);
+      },
+      (i) => holding.has(i)
+    );
     assert.ok(n <= hold, `seed ${seed}: ${n} > ${hold}`);
   }
 });
 
 test('pace: a forgotten world leaves no early press or Trail waiting', () => {
   const n = play((c, i, X, Y) => {
-    if (i === 0) { c.press(); c.press(); c.trailEnded(stroke(X, Y)); c.forget(); }
+    if (i === 0) {
+      c.press();
+      c.press();
+      c.trailEnded(stroke(X, Y));
+      c.forget();
+    }
   });
   assert.equal(n, 1, 'only the press that came on its turn');
 });

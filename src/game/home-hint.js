@@ -5,7 +5,7 @@
  * on iOS, and never when the game already runs from the Home Screen. */
 
 const STORE = 'mte.homeHint'; // set once Wiki has said it
-const AFTER_MS = 60_000;      // a game opened past its first milestone waits this long
+const AFTER_MS = 60_000; // a game opened past its first milestone waits this long
 
 // Whether this browser is Safari on an iPhone, iPad or iPod, outside the Home Screen.
 export function needsHomeScreen(nav, standalone) {
@@ -19,7 +19,11 @@ export function needsHomeScreen(nav, standalone) {
 // now and then.
 export function createHomeHint({ store, nav = globalThis.navigator, standalone = false, say }) {
   let done = !needsHomeScreen(nav, standalone);
-  try { if (!done && store.getItem(STORE)) done = true; } catch { done = true; }
+  try {
+    if (!done && store.getItem(STORE)) done = true;
+  } catch {
+    done = true;
+  }
   let atOpen = null; // milestones reached when the game opened
   return {
     // Says it as a milestone is reached, or a while after opening a game
@@ -29,7 +33,11 @@ export function createHomeHint({ store, nav = globalThis.navigator, standalone =
       if (atOpen === null) atOpen = reached;
       if (reached < 1 || (reached === atOpen && msOpen < AFTER_MS)) return false;
       done = true;
-      try { store.setItem(STORE, '1'); } catch { /* blocked: said this visit */ }
+      try {
+        store.setItem(STORE, '1');
+      } catch {
+        /* blocked: said this visit */
+      }
       say();
       return true;
     }

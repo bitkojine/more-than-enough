@@ -20,17 +20,28 @@ const T0 = 1_700_000_000_000;
 const realNow = Date.now;
 let clock = T0;
 Date.now = () => clock;
-test.after(() => { Date.now = realNow; });
+test.after(() => {
+  Date.now = realNow;
+});
 
 // A shared world made in a room, its creator connected and playing it the
 // way a game does (together.js): moves, acts, edits, and now and then its
 // progress, all through the Durable Object's own socket handler.
 async function playedRoom(seed = 12345) {
   clock = T0;
-  const storage = new Storage(), env = makeEnv();
+  const storage = new Storage(),
+    env = makeEnv();
   const room = await start(Rooms, storage, env);
-  const id = P.randomRoomId(), key = P.randomHex(32);
-  assert.equal(await room.create(id, JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }), true), null);
+  const id = P.randomRoomId(),
+    key = P.randomHex(32);
+  assert.equal(
+    await room.create(
+      id,
+      JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }),
+      true
+    ),
+    null
+  );
   await env.REGISTRY.get().add(id); // as POST /rooms does
   const g = { storage, env, room, id, key };
   await connect(g);
@@ -48,7 +59,9 @@ async function connect(g) {
   const s = C.joinState(welcome, g.id, null, null);
   s.time = welcome.time;
   s.acts = [];
-  g.ws = ws; g.s = s; g.pid = ws.deserializeAttachment().id;
+  g.ws = ws;
+  g.s = s;
+  g.pid = ws.deserializeAttachment().id;
   g.base = clock - Math.round(s.stats.playedMs); // wall time = base + play time
   return g;
 }
@@ -60,9 +73,15 @@ async function sync(g, save = false) {
   C.advanceGoals(g.s);
   g.room.room.players.get(g.pid).p = P.cleanPos(g.s.player); // where they walked (the room's step budget isn't what's tested)
   const acts = C.takeActs(g.s);
-  for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage) await send({ t: 'acts', ms: Math.round(g.s.stats.playedMs), a: acts.slice(i, i + P.LIMITS.actsPerMessage) });
+  for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage)
+    await send({
+      t: 'acts',
+      ms: Math.round(g.s.stats.playedMs),
+      a: acts.slice(i, i + P.LIMITS.actsPerMessage)
+    });
   const edits = C.takeEdits(g.s);
-  for (let i = 0; i < edits.length; i += P.LIMITS.editsPerMessage) await send({ t: 'edits', e: edits.slice(i, i + P.LIMITS.editsPerMessage) });
+  for (let i = 0; i < edits.length; i += P.LIMITS.editsPerMessage)
+    await send({ t: 'edits', e: edits.slice(i, i + P.LIMITS.editsPerMessage) });
   if (save) await send({ t: 'save', s: C.progressOf(g.s) });
 }
 
@@ -87,7 +106,10 @@ async function stored(storage) {
 test('worker: a shared world comes back whole after the room restarts', async () => {
   const g = await playedRoom();
   await play(g, 30);
-  assert.ok(g.room.room.mods.size > 0 && g.room.room.ext.length > 0, 'the play made edits and a building');
+  assert.ok(
+    g.room.room.mods.size > 0 && g.room.room.ext.length > 0,
+    'the play made edits and a building'
+  );
   await g.room.alarm(); // the room writes what changed
   assert.equal(g.room.room.isDirty, false);
   const before = await stored(g.storage);
@@ -104,14 +126,21 @@ test('worker: a shared world comes back whole after the room restarts', async ()
   assert.deepEqual(new Map(r.mods), new Map(g.room.room.mods), 'every edit to the land');
   assert.deepEqual(r.ext, g.room.room.ext, 'every building');
   assert.equal(r.players.get(g.pid).save, player.save, 'their progress, as the room kept it');
-  assert.equal(r.players.get(g.pid).st, 'lost', 'someone online when the room stopped is lost, not still online');
+  assert.equal(
+    r.players.get(g.pid).st,
+    'lost',
+    'someone online when the room stopped is lost, not still online'
+  );
 
   // And the player comes back to it: the same progress, the same world.
   const back = await connect({ ...g, room: again });
   assert.equal(back.s.extractors.length, g.s.extractors.length);
   const kept = JSON.parse(player.save);
   for (const res of C.RESOURCES) assert.equal(back.s.inv[res], kept.inv[res] ?? 0, res);
-  assert.ok(C.RESOURCES.some((res) => kept.inv[res] > 0), 'they had something to come back to');
+  assert.ok(
+    C.RESOURCES.some((res) => kept.inv[res] > 0),
+    'they had something to come back to'
+  );
   // The audit log was kept too.
   const log = await again.exportLog(g.id, 0);
   assert.match(log, /"e":"join"/);
@@ -132,7 +161,11 @@ test('worker: a write that fails is made with the next one, and nothing is lost'
   await play(g, 4);
   await g.room.alarm();
   const after = await start(Rooms, g.storage, g.env);
-  assert.deepEqual(new Map(after.room.mods), new Map(g.room.room.mods), 'edits from before and after the failure');
+  assert.deepEqual(
+    new Map(after.room.mods),
+    new Map(g.room.room.mods),
+    'edits from before and after the failure'
+  );
   assert.deepEqual(after.room.ext, g.room.room.ext);
   assert.equal(after.room.players.get(g.pid).save, g.room.room.players.get(g.pid).save);
 });
@@ -144,7 +177,8 @@ test('worker: the most a room ever writes at once lands whole', async () => {
   await play(g, 3);
   const r = g.room.room;
   for (let b = 0; b < MOD_BUCKETS; b++) r.dirty.buckets.add(b);
-  for (let i = 0; i < P.LIMITS.players; i++) r.players.set('pad' + i, { st: 'offline', save: null });
+  for (let i = 0; i < P.LIMITS.players; i++)
+    r.players.set('pad' + i, { st: 'offline', save: null });
   for (const id of r.players.keys()) r.dirty.players.add(id);
   r.dirty.meta = r.dirty.props = r.dirty.ext = true;
   await g.room.persist();
@@ -196,7 +230,11 @@ test('worker: a backup whose land is stored in other pieces is written back in p
   await play(g);
   const entries = await g.room.snapshot(g.id);
   const all = [];
-  for (const [k, v] of entries) if (k.startsWith('mods:')) { all.push(...v); entries.delete(k); }
+  for (const [k, v] of entries)
+    if (k.startsWith('mods:')) {
+      all.push(...v);
+      entries.delete(k);
+    }
   entries.set('mods:0', all);
   const storage = new Storage();
   const fresh = await start(Rooms, storage, g.env);
@@ -221,7 +259,7 @@ test('worker: a world nobody has played for a year is kept by its alarm', async 
   assert.ok(g.env.rooms.has(g.id), 'still in the registry');
 });
 
-test('worker: only a moderator\'s copy is deleted, once its time is up', async () => {
+test("worker: only a moderator's copy is deleted, once its time is up", async () => {
   const g = await playedRoom();
   await play(g, 3);
   const r = g.room.room;

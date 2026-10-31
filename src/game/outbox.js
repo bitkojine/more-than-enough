@@ -18,24 +18,33 @@
 import * as Core from '../core/index.js';
 import { LIMITS } from '../net/protocol.js';
 
-export const SENT_KEPT = 6;          // progress sent, remembered for the room's answer to it
-export const ACTS_KEPT_MS = 60_000;  // play time of acts kept after sending, to send again if the room missed them
-export const ACTS_KEPT_MAX = 6000;   // and at most this many
-export const MAX_UNACKED = 400;      // batches of edits sent and not yet answered, kept to send again
-export const ACTS_PER_TICK = 4;      // 'acts' messages at most per frame (the room allows 30 messages a second)
+export const SENT_KEPT = 6; // progress sent, remembered for the room's answer to it
+export const ACTS_KEPT_MS = 60_000; // play time of acts kept after sending, to send again if the room missed them
+export const ACTS_KEPT_MAX = 6000; // and at most this many
+export const MAX_UNACKED = 400; // batches of edits sent and not yet answered, kept to send again
+export const ACTS_PER_TICK = 4; // 'acts' messages at most per frame (the room allows 30 messages a second)
 
 export function createOutbox() {
-  let editSeq = 0, unacked = [];
-  let saveSeq = 0, sent = [];  // {n, ms, ...Core.sentOf} of the last progress sent
-  let sentActs = [];           // acts sent lately: the room may not have them
-  let keptWaiting = false;     // the phone holds acts as still to send
+  let editSeq = 0,
+    unacked = [];
+  let saveSeq = 0,
+    sent = []; // {n, ms, ...Core.sentOf} of the last progress sent
+  let sentActs = []; // acts sent lately: the room may not have them
+  let keptWaiting = false; // the phone holds acts as still to send
 
   return {
     // Leaving the shared world: nothing of it is still to send.
-    reset() { unacked = []; sent = []; sentActs = []; },
+    reset() {
+      unacked = [];
+      sent = [];
+      sentActs = [];
+    },
 
     // Arriving in a world other than the one these were for (or one made again).
-    newWorld() { unacked = []; sentActs = []; },
+    newWorld() {
+      unacked = [];
+      sentActs = [];
+    },
 
     /* ------------------------------------------------------------ edits */
 
@@ -56,13 +65,21 @@ export function createOutbox() {
     // sent that the room never answered and has nothing in place of. The
     // queue is emptied: they go out again as new edits.
     lostEdits(w) {
-      const has = new Set([...w.mods.map(([k]) => 'm' + k), ...w.props.map(([k]) => 'p' + k), ...w.ext.map((e) => 'x' + e[1] + ',' + e[2] + ',' + e[3])]);
-      const lost = unacked.flatMap((u) => u.e).filter((e) => !has.has(e[0] === 'x' ? 'x' + e[2] + ',' + e[3] + ',' + e[4] : e[0] + e[1]));
+      const has = new Set([
+        ...w.mods.map(([k]) => 'm' + k),
+        ...w.props.map(([k]) => 'p' + k),
+        ...w.ext.map((e) => 'x' + e[1] + ',' + e[2] + ',' + e[3])
+      ]);
+      const lost = unacked
+        .flatMap((u) => u.e)
+        .filter((e) => !has.has(e[0] === 'x' ? 'x' + e[2] + ',' + e[3] + ',' + e[4] : e[0] + e[1]));
       unacked = [];
       return lost;
     },
 
-    get unacked() { return unacked.length; },
+    get unacked() {
+      return unacked.length;
+    },
 
     /* ------------------------------------------------------------- acts */
 
@@ -82,7 +99,10 @@ export function createOutbox() {
       const messages = [];
       for (let i = 0; i < now.length; i += n) {
         const a = now.slice(i, i + n);
-        messages.push({ ms: done && i + n >= now.length ? Math.round(s.stats.playedMs) : a[a.length - 1][1], a });
+        messages.push({
+          ms: done && i + n >= now.length ? Math.round(s.stats.playedMs) : a[a.length - 1][1],
+          a
+        });
       }
       return { messages, done };
     },
@@ -103,7 +123,9 @@ export function createOutbox() {
 
     // Whether the phone holds acts as still to send (then they're kept
     // again once sent, so none goes twice).
-    get keptWaiting() { return keptWaiting; },
+    get keptWaiting() {
+      return keptWaiting;
+    },
 
     /* ------------------------------------------------------------ saves */
 
@@ -136,9 +158,18 @@ export function createOutbox() {
 // after `upTo`. Anything malformed is left out.
 export function keptActsFrom(raw, upTo) {
   let kept;
-  try { kept = JSON.parse(raw || '{}'); } catch { kept = {}; }
-  const ok = (a) => Array.isArray(a) && Core.ACT_KINDS.includes(a[0]) && Number.isFinite(a[1])
-    && Number.isFinite(a[2]) && Number.isFinite(a[3]) && Number.isInteger(a[4]);
+  try {
+    kept = JSON.parse(raw || '{}');
+  } catch {
+    kept = {};
+  }
+  const ok = (a) =>
+    Array.isArray(a) &&
+    Core.ACT_KINDS.includes(a[0]) &&
+    Number.isFinite(a[1]) &&
+    Number.isFinite(a[2]) &&
+    Number.isFinite(a[3]) &&
+    Number.isInteger(a[4]);
   const list = (v) => (Array.isArray(v) ? v.filter(ok) : []);
   return [...list(kept?.sent).filter((a) => a[1] > upTo), ...list(kept?.waiting)];
 }
@@ -151,7 +182,9 @@ export function keptActsFrom(raw, upTo) {
 // the room's answer ('econ') sets the game straight.
 export function catchUp(s, acts, roomTime) {
   const { mods, props, edits } = s.world;
-  s.world.mods = new Map(mods); s.world.props = new Map(props); s.world.edits = null;
+  s.world.mods = new Map(mods);
+  s.world.props = new Map(props);
+  s.world.edits = null;
   s.acts = null; // doing them again writes none down
   const last = acts[acts.length - 1][1];
   if (roomTime !== null) s.time = roomTime - Math.max(0, last - s.stats.playedMs) / 1000;
@@ -161,7 +194,9 @@ export function catchUp(s, acts, roomTime) {
     Core.replayAct(s, a);
   }
   Core.advanceGoals(s);
-  s.world.mods = mods; s.world.props = props; s.world.edits = edits;
+  s.world.mods = mods;
+  s.world.props = props;
+  s.world.edits = edits;
 }
 
 // Back after a lost connection to the world `w` (the welcome), as player
@@ -169,15 +204,22 @@ export function catchUp(s, acts, roomTime) {
 // meanwhile goes again (edits the room never answered, acts it may not
 // have). `playedUpTo`: the play time of the room's copy of your progress.
 export function resync(s, w, me, outbox, playedUpTo) {
-  const waiting = new Map(s.extractors.filter((e) => e.owner === me).map((e) => [e.x + ',' + e.y + ',' + e.z, e.buffer]));
+  const waiting = new Map(
+    s.extractors.filter((e) => e.owner === me).map((e) => [e.x + ',' + e.y + ',' + e.z, e.buffer])
+  );
   const lost = outbox.lostEdits(w);
   outbox.resendActs(s, playedUpTo);
   const pending = [...lost, ...Core.takeEdits(s)];
   s.world.mods = new Map();
   s.world.props = new Map();
   s.extractors = [];
-  Core.applyEdits(s, [...w.mods.map(([k, v]) => ['m', k, v]), ...w.props.map(([k, v]) => ['p', k, v]), ...w.ext.map((e) => ['x', ...e])]);
-  for (const e of s.extractors) if (e.owner === me) e.buffer = waiting.get(e.x + ',' + e.y + ',' + e.z) || 0;
+  Core.applyEdits(s, [
+    ...w.mods.map(([k, v]) => ['m', k, v]),
+    ...w.props.map(([k, v]) => ['p', k, v]),
+    ...w.ext.map((e) => ['x', ...e])
+  ]);
+  for (const e of s.extractors)
+    if (e.owner === me) e.buffer = waiting.get(e.x + ',' + e.y + ',' + e.z) || 0;
   s.world.edits = pending;
   for (const e of pending) Core.applyEdits(s, [e[0] === 'x' ? [...e, me] : e]);
 }

@@ -11,7 +11,11 @@ import { t } from '../i18n/i18n.js';
 const SHOWN = 1; // decimals of a position in a report
 
 let store = null;
-try { store = window.localStorage; } catch { store = null; }
+try {
+  store = window.localStorage;
+} catch {
+  store = null;
+}
 
 // What a tap landed on, in a few words: a button's id or what it is for.
 function label(target) {
@@ -19,7 +23,12 @@ function label(target) {
   if (!el) return 'page';
   if (el.id === 'game') return 'map';
   const what = el.id ? '#' + el.id : el.tagName.toLowerCase();
-  const data = el.dataset ? Object.entries(el.dataset).filter(([k]) => !k.startsWith('i18n')).map(([k, v]) => `${k}=${v}`).join(' ') : '';
+  const data = el.dataset
+    ? Object.entries(el.dataset)
+        .filter(([k]) => !k.startsWith('i18n'))
+        .map(([k, v]) => `${k}=${v}`)
+        .join(' ')
+    : '';
   return data ? `${what} [${data}]` : what;
 }
 
@@ -38,7 +47,8 @@ export function createProblems({ game, toast, list }) {
       version: `${VERSION} (build ${build})`,
       browser: navigator.userAgent,
       language: navigator.language,
-      screen: `${window.innerWidth}x${window.innerHeight} CSS px at ${window.devicePixelRatio || 1}x` + // i18n-ok: a report for developers, in English
+      screen:
+        `${window.innerWidth}x${window.innerHeight} CSS px at ${window.devicePixelRatio || 1}x` + // i18n-ok: a report for developers, in English
         (screen.orientation ? `, ${screen.orientation.type}` : ''),
       page: location.pathname + location.search, // never the #: invite links carry secrets there
       'playing for': `${Math.round((Date.now() - started) / 1000)} s`, // i18n-ok: a report for developers, in English
@@ -55,10 +65,28 @@ export function createProblems({ game, toast, list }) {
   });
 
   // Taps, keys and the page coming and going, for "before it".
-  window.addEventListener('pointerdown', (e) => faults.crumb(`${e.pointerType || 'pointer'} down on ${label(e.target)} at ${Math.round(e.clientX)},${Math.round(e.clientY)}`), { capture: true, passive: true }); // i18n-ok: a report for developers, in English
-  window.addEventListener('keydown', (e) => faults.crumb(`key ${e.key}`), { capture: true, passive: true });
-  window.addEventListener('resize', () => faults.crumb(`resize ${window.innerWidth}x${window.innerHeight}`), { passive: true });
-  document.addEventListener('visibilitychange', () => faults.crumb(document.hidden ? 'page hidden' : 'page shown')); // i18n-ok: a report for developers, in English
+  window.addEventListener(
+    'pointerdown',
+    (e) =>
+      faults.crumb(
+        // i18n-ok: a report for developers, in English
+        `${e.pointerType || 'pointer'} down on ${label(e.target)} at ${Math.round(e.clientX)},${Math.round(e.clientY)}`
+      ),
+    { capture: true, passive: true }
+  );
+  window.addEventListener('keydown', (e) => faults.crumb(`key ${e.key}`), {
+    capture: true,
+    passive: true
+  });
+  window.addEventListener(
+    'resize',
+    () => faults.crumb(`resize ${window.innerWidth}x${window.innerHeight}`),
+    { passive: true }
+  );
+  document.addEventListener('visibilitychange', () =>
+    // i18n-ok: a report for developers, in English
+    faults.crumb(document.hidden ? 'page hidden' : 'page shown')
+  );
 
   function show() {
     const all = faults.list();
@@ -76,7 +104,12 @@ export function createProblems({ game, toast, list }) {
       copy.type = 'button';
       copy.textContent = t('problems.copy');
       copy.addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(faults.report(f)); copy.textContent = t('problems.copied'); } catch { copy.textContent = t('problems.copyFailed'); }
+        try {
+          await navigator.clipboard.writeText(faults.report(f));
+          copy.textContent = t('problems.copied');
+        } catch {
+          copy.textContent = t('problems.copyFailed');
+        }
       });
       row.append(text, copy);
       return row;
@@ -85,7 +118,10 @@ export function createProblems({ game, toast, list }) {
     clear.type = 'button';
     clear.className = 'setRow';
     clear.textContent = t('problems.clear');
-    clear.addEventListener('click', () => { faults.clear(); show(); });
+    clear.addEventListener('click', () => {
+      faults.clear();
+      show();
+    });
     list.replaceChildren(head, ...rows, clear);
   }
   show();
@@ -94,7 +130,10 @@ export function createProblems({ game, toast, list }) {
   // got past too, once the game is running (index.html sends them here).
   window.MTE_FAULT = (err, where) => faults.record(err, where);
   // World/controller declarations finish synchronously after this reporter.
-  queueMicrotask(()=>{for(const pending of (window.MTE_RESOURCE_ERRORS||[]).splice(0))faults.record(pending.error,pending.where);});
+  queueMicrotask(() => {
+    for (const pending of (window.MTE_RESOURCE_ERRORS || []).splice(0))
+      faults.record(pending.error, pending.where);
+  });
 
   return {
     faults,

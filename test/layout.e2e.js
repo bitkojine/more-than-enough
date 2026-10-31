@@ -18,21 +18,53 @@ const ROOT = path.resolve(import.meta.dirname, '..');
 const PORT = 8600 + Math.floor(Math.random() * 300);
 const CDP_PORT = 9800 + Math.floor(Math.random() * 300);
 const SHOT_DIR = process.env.MTE_SHOT_DIR || '';
-const CHROME = process.env.CHROME_PATH || (process.platform === 'darwin'
-  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-  : 'google-chrome');
+const CHROME =
+  process.env.CHROME_PATH ||
+  (process.platform === 'darwin'
+    ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+    : 'google-chrome');
 
 const LANGS = ['en', 'lt'];
 // MTE_LAYOUT_SCREENS=320x568,568x320 checks just those.
-const SCREENS = process.env.MTE_LAYOUT_SCREENS ? process.env.MTE_LAYOUT_SCREENS.split(',').map((s) => s.split('x').map(Number)) : [
-  [320, 568], [375, 667], [390, 844], [430, 932],   // phones, portrait
-  [568, 320], [667, 375], [844, 390], [932, 430],   // phones, landscape
-  [768, 1024], [1024, 768], [1366, 768], [1920, 1080]
-];
+const SCREENS = process.env.MTE_LAYOUT_SCREENS
+  ? process.env.MTE_LAYOUT_SCREENS.split(',').map((s) => s.split('x').map(Number))
+  : [
+      [320, 568],
+      [375, 667],
+      [390, 844],
+      [430, 932], // phones, portrait
+      [568, 320],
+      [667, 375],
+      [844, 390],
+      [932, 430], // phones, landscape
+      [768, 1024],
+      [1024, 768],
+      [1366, 768],
+      [1920, 1080]
+    ];
 // In this order on one page per screen; `rich` and `huge` last, as they
 // can't be undone. `crowd` joins a shared world of 100 (a fake room) and
 // stays in it.
-const STATES = ['fresh', 'underground', 'upgrades', 'build', 'placing', 'awards', 'settings', 'nerds', 'worlds', 'map', 'ask', 'fbi', 'news', 'crowd', 'players', 'rich', 'statement', 'huge'];
+const STATES = [
+  'fresh',
+  'underground',
+  'upgrades',
+  'build',
+  'placing',
+  'awards',
+  'settings',
+  'nerds',
+  'worlds',
+  'map',
+  'ask',
+  'fbi',
+  'news',
+  'crowd',
+  'players',
+  'rich',
+  'statement',
+  'huge'
+];
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -47,15 +79,32 @@ function connect(url) {
     const p = msg.id && pending.get(msg.id);
     if (!p) return;
     pending.delete(msg.id);
-    if (msg.error) p.rej(new Error(JSON.stringify(msg.error))); else p.res(msg.result);
+    if (msg.error) p.rej(new Error(JSON.stringify(msg.error)));
+    else p.res(msg.result);
   };
-  const send = (method, params = {}, sessionId) => new Promise((res, rej) => {
-    const n = ++id;
-    const timer = setTimeout(() => { pending.delete(n); rej(new Error('Chrome did not answer ' + method)); }, 20000);
-    pending.set(n, { res: (v) => { clearTimeout(timer); res(v); }, rej: (e) => { clearTimeout(timer); rej(e); } });
-    ws.send(JSON.stringify({ id: n, method, params, sessionId }));
+  const send = (method, params = {}, sessionId) =>
+    new Promise((res, rej) => {
+      const n = ++id;
+      const timer = setTimeout(() => {
+        pending.delete(n);
+        rej(new Error('Chrome did not answer ' + method));
+      }, 20000);
+      pending.set(n, {
+        res: (v) => {
+          clearTimeout(timer);
+          res(v);
+        },
+        rej: (e) => {
+          clearTimeout(timer);
+          rej(e);
+        }
+      });
+      ws.send(JSON.stringify({ id: n, method, params, sessionId }));
+    });
+  return new Promise((res, rej) => {
+    ws.onopen = () => res({ send, close: () => ws.close() });
+    ws.onerror = () => rej(new Error('ws error'));
   });
-  return new Promise((res, rej) => { ws.onopen = () => res({ send, close: () => ws.close() }); ws.onerror = () => rej(new Error('ws error')); });
 }
 
 /* ---------------------------------------- what's broken, measured in-page */
@@ -64,9 +113,15 @@ function connect(url) {
 function problems() {
   window.layoutHoldNow?.();
   const out = [];
-  const vw = innerWidth, vh = innerHeight;
-  const name = (el) => el.id ? '#' + el.id : (el.className && typeof el.className === 'string' ? '.' + el.className.split(' ')[0] : el.tagName.toLowerCase()) +
-    (el.textContent.trim() ? ' "' + el.textContent.trim().slice(0, 24) + '"' : '');
+  const vw = innerWidth,
+    vh = innerHeight;
+  const name = (el) =>
+    el.id
+      ? '#' + el.id
+      : (el.className && typeof el.className === 'string'
+          ? '.' + el.className.split(' ')[0]
+          : el.tagName.toLowerCase()) +
+        (el.textContent.trim() ? ' "' + el.textContent.trim().slice(0, 24) + '"' : '');
   const shown = (el) => {
     if (!el.getClientRects().length) return false;
     for (let e = el; e; e = e.parentElement) {
@@ -76,71 +131,118 @@ function problems() {
     const r = el.getBoundingClientRect();
     return r.width > 0 && r.height > 0;
   };
-  const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
+  const overlap = (a, b) =>
+    Math.min(a.right, b.right) - Math.max(a.left, b.left) > 1 &&
+    Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 1;
   const sheetOpen = document.getElementById('sheet').classList.contains('open');
   const dialog = [...document.querySelectorAll('.scrim')].find((s) => !s.hidden);
 
   // The HUD, while nothing covers it: every button and name plate clear of
   // the others, on the screen, and big enough for a thumb.
   if (!sheetOpen && !dialog) {
-    const targets = [...document.querySelectorAll('#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill, #equipmentTray button, #gearStatus, #sunTime, #perf')].filter(shown);
-    const zoom = document.getElementById('zoomControls'), resources = document.getElementById('resources');
+    const targets = [
+      ...document.querySelectorAll(
+        '#topbar button, #btnVersion, #friends .friend, #controls button, #controls .cap, #battery, #depth, #depthGauge, #placeCard, #log, #logPill, #equipmentTray button, #gearStatus, #sunTime, #perf'
+      )
+    ].filter(shown);
+    const zoom = document.getElementById('zoomControls'),
+      resources = document.getElementById('resources');
     if (shown(zoom)) {
-      const z = zoom.getBoundingClientRect(), r = resources.getBoundingClientRect();
-      const buttons = [...zoom.children].map(b => b.getBoundingClientRect());
-      if (z.top < r.bottom || z.left < r.left - 1 || z.right > r.right + 1) out.push('zoom is not beneath resources');
-      if (buttons.some(b => Math.abs(b.top - buttons[0].top) > 1)) out.push('zoom is not horizontal');
+      const z = zoom.getBoundingClientRect(),
+        r = resources.getBoundingClientRect();
+      const buttons = [...zoom.children].map((b) => b.getBoundingClientRect());
+      if (z.top < r.bottom || z.left < r.left - 1 || z.right > r.right + 1)
+        out.push('zoom is not beneath resources');
+      if (buttons.some((b) => Math.abs(b.top - buttons[0].top) > 1))
+        out.push('zoom is not horizontal');
     }
     for (let i = 0; i < targets.length; i++) {
-      const a = targets[i], ra = a.getBoundingClientRect();
-      if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1) out.push('off screen: ' + name(a));
+      const a = targets[i],
+        ra = a.getBoundingClientRect();
+      if (ra.left < -1 || ra.top < -1 || ra.right > vw + 1 || ra.bottom > vh + 1)
+        out.push('off screen: ' + name(a));
       for (let j = i + 1; j < targets.length; j++) {
         const b = targets[j];
         if (a.contains(b) || b.contains(a)) continue;
-        if (overlap(ra, b.getBoundingClientRect())) out.push('overlap: ' + name(a) + ' and ' + name(b));
+        if (overlap(ra, b.getBoundingClientRect()))
+          out.push('overlap: ' + name(a) + ' and ' + name(b));
       }
-      const small = a.matches('.hudBtn, .btn') ? 44 : a.matches('#zoomControls button:not(#zoomLevel)') ? 40 : 0;
-      if (small && (ra.width < small - 0.5 || ra.height < small - 0.5)) out.push('too small to tap: ' + name(a) + ' ' + Math.round(ra.width) + 'x' + Math.round(ra.height));
+      const small = a.matches('.hudBtn, .btn')
+        ? 44
+        : a.matches('#zoomControls button:not(#zoomLevel)')
+          ? 40
+          : 0;
+      if (small && (ra.width < small - 0.5 || ra.height < small - 0.5))
+        out.push(
+          'too small to tap: ' + name(a) + ' ' + Math.round(ra.width) + 'x' + Math.round(ra.height)
+        );
     }
   }
 
   // A shared sheet keeps all content inside its own scrolling body, including
   // menu-specific panels that bypass sheetBody. Never paint onto the game.
   if (sheetOpen) {
-    const shell=document.getElementById('sheet'),bounds=shell.getBoundingClientRect(),head=document.getElementById('sheetHead').getBoundingClientRect();
-    for(const panel of shell.children) {
-      if(panel.id==='sheetHead'||panel.id==='sheetGrab'||!shown(panel))continue;
-      const r=panel.getBoundingClientRect();
-      if(r.top<head.bottom-1||r.bottom>bounds.bottom+1||r.left<bounds.left-1||r.right>bounds.right+1)out.push('content escapes sheet: '+name(panel));
+    const shell = document.getElementById('sheet'),
+      bounds = shell.getBoundingClientRect(),
+      head = document.getElementById('sheetHead').getBoundingClientRect();
+    for (const panel of shell.children) {
+      if (panel.id === 'sheetHead' || panel.id === 'sheetGrab' || !shown(panel)) continue;
+      const r = panel.getBoundingClientRect();
+      if (
+        r.top < head.bottom - 1 ||
+        r.bottom > bounds.bottom + 1 ||
+        r.left < bounds.left - 1 ||
+        r.right > bounds.right + 1
+      )
+        out.push('content escapes sheet: ' + name(panel));
     }
-    if(shell.scrollHeight>shell.clientHeight+1)out.push('sheet shell overflows instead of scrolling its content');
+    if (shell.scrollHeight > shell.clientHeight + 1)
+      out.push('sheet shell overflows instead of scrolling its content');
   }
 
   // Words cut short with an ellipsis (or clipped) anywhere a player reads.
-  for (const el of document.querySelectorAll('.chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button')) {
+  for (const el of document.querySelectorAll(
+    '.chip .val, .chip .rate, .setRow > *, .row .nm, .player strong, .player small, .railHead .fh-nm, #sheetTitle, .dialog strong, .dialog p, .dialog button'
+  )) {
     if (!shown(el) || !el.textContent.trim()) continue;
-    if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.push('cut short: ' + name(el));
+    if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible')
+      out.push('cut short: ' + name(el));
   }
 
   // Rows squashed: each settings row whole inside its group, each buy (or
   // Remove) button inside its row.
   for (const row of document.querySelectorAll('.setRow, .row .buy, .player button')) {
     if (!shown(row)) continue;
-    const box = row.parentElement.closest('.setGroup, .row, .player').getBoundingClientRect(), r = row.getBoundingClientRect();
-    if (r.top < box.top - 1 || r.bottom > box.bottom + 1 || r.left < box.left - 1 || r.right > box.right + 1) out.push('squashed: ' + name(row));
+    const box = row.parentElement.closest('.setGroup, .row, .player').getBoundingClientRect(),
+      r = row.getBoundingClientRect();
+    if (
+      r.top < box.top - 1 ||
+      r.bottom > box.bottom + 1 ||
+      r.left < box.left - 1 ||
+      r.right > box.right + 1
+    )
+      out.push('squashed: ' + name(row));
   }
 
   // A dialog's buttons are on screen without scrolling.
   for (const b of document.querySelectorAll('.scrim:not([hidden]) .choices button')) {
     const r = b.getBoundingClientRect();
-    if (shown(b) && (r.bottom > vh + 1 || r.bottom > b.closest('.dialog').getBoundingClientRect().bottom + 1)) out.push('below the fold: ' + name(b));
+    if (
+      shown(b) &&
+      (r.bottom > vh + 1 || r.bottom > b.closest('.dialog').getBoundingClientRect().bottom + 1)
+    )
+      out.push('below the fold: ' + name(b));
   }
 
   // The open sheet and dialog fit the screen.
-  for (const el of [sheetOpen && document.getElementById('sheet'), dialog && dialog.querySelector('.dialog')]) {
+  for (const el of [
+    sheetOpen && document.getElementById('sheet'),
+    dialog && dialog.querySelector('.dialog')
+  ]) {
     if (!el) continue;
     const r = el.getBoundingClientRect();
-    if (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1) out.push('off screen: ' + name(el));
+    if (r.left < -1 || r.top < -1 || r.right > vw + 1 || r.bottom > vh + 1)
+      out.push('off screen: ' + name(el));
   }
 
   // The plate under the big action may shrink to keep its words on the
@@ -167,11 +269,17 @@ async function enter(state) {
   window.layoutHoldNow = null;
   if (window.layoutUndergroundDOM) {
     for (const [id, original] of Object.entries(window.layoutUndergroundDOM)) {
-      const node=document.getElementById(id);node.hidden=original.hidden;if(original.html!==null)node.innerHTML=original.html;else document.getElementById('mineLabel').textContent=original.label;node.className=original.cls;
+      const node = document.getElementById(id);
+      node.hidden = original.hidden;
+      if (original.html !== null) node.innerHTML = original.html;
+      else document.getElementById('mineLabel').textContent = original.label;
+      node.className = original.cls;
     }
-    window.layoutUndergroundDOM=null;
-    document.body.classList.toggle('below',g.getState().player.z<0);
-    g.hudLayout.invalidate();g.hudLayout.tick();g.messages.tick();
+    window.layoutUndergroundDOM = null;
+    document.body.classList.toggle('below', g.getState().player.z < 0);
+    g.hudLayout.invalidate();
+    g.hudLayout.tick();
+    g.messages.tick();
   }
   if (state === 'rich') for (const r of Object.keys(g.getState().inv)) g.addRes(r, 987654321098);
   // Absurd numbers: the counts in the bar go scientific (1e15), the rate
@@ -180,14 +288,25 @@ async function enter(state) {
   if (state === 'huge') {
     const st = g.getState();
     for (const r of Object.keys(st.inv)) g.addRes(r, 1.2e15);
-    st.perks.legacy = 120;   // the multiplier that makes what is produced big
+    st.perks.legacy = 120; // the multiplier that makes what is produced big
     st.tools.overclock = 6;
     for (const r of g.core.RESOURCES) st.resUp[r] = 10;
-    for (const key of Object.keys(g.core.EXTRACTORS)) for (let i = 0; i < 3; i++) st.extractors.push({ key, res: g.core.EXTRACTORS[key].res, x: 200 + i, y: 200, z: 0, buffer: 0 });
+    for (const key of Object.keys(g.core.EXTRACTORS))
+      for (let i = 0; i < 3; i++)
+        st.extractors.push({
+          key,
+          res: g.core.EXTRACTORS[key].res,
+          x: 200 + i,
+          y: 200,
+          z: 0,
+          buffer: 0
+        });
     const { fmtShort } = await import('/src/game/format.js');
     const hold = () => {
-      document.getElementById('actionLabel').textContent = t('button.gatherYield', { n: fmtShort(9999) });
-      g.hud.fit();   // the plate measures itself against the screen
+      document.getElementById('actionLabel').textContent = t('button.gatherYield', {
+        n: fmtShort(9999)
+      });
+      g.hud.fit(); // the plate measures itself against the screen
     };
     hold();
     window.layoutHold = setInterval(hold, 10);
@@ -195,33 +314,61 @@ async function enter(state) {
   // Underground beside a ladder: the depth meter and the climb button, held
   // up against the HUD's own updates while the check runs.
   if (state === 'underground') {
-    window.layoutUndergroundDOM=Object.fromEntries(['battery','depth','depthGauge','btnMine'].map(id=>{const e=document.getElementById(id);return[id,{hidden:e.hidden,html:id==='btnMine'?null:e.innerHTML,label:id==='btnMine'?document.getElementById('mineLabel').textContent:'',cls:e.className}];}));
+    window.layoutUndergroundDOM = Object.fromEntries(
+      ['battery', 'depth', 'depthGauge', 'btnMine'].map((id) => {
+        const e = document.getElementById(id);
+        return [
+          id,
+          {
+            hidden: e.hidden,
+            html: id === 'btnMine' ? null : e.innerHTML,
+            label: id === 'btnMine' ? document.getElementById('mineLabel').textContent : '',
+            cls: e.className
+          }
+        ];
+      })
+    );
     const hold = () => {
-      document.getElementById('depth').lastElementChild.textContent = '12';  // i18n-ok: test fixture
-      document.getElementById('depthGauge').innerHTML = Array.from({length:12},(_,i)=>'<i'+(i===6?' class="here"':'')+'></i>').join('');
+      document.getElementById('depth').lastElementChild.textContent = '12'; // i18n-ok: test fixture
+      document.getElementById('depthGauge').innerHTML = Array.from(
+        { length: 12 },
+        (_, i) => '<i' + (i === 6 ? ' class="here"' : '') + '></i>'
+      ).join('');
       document.body.classList.add('below');
       const battery = document.getElementById('battery');
       battery.className = 'low';
       battery.querySelector('b').style.width = '23%';
-      battery.querySelector('span').textContent = '23%';  // i18n-ok: test fixture
-      for (const id of ['battery', 'depth', 'depthGauge', 'btnMine']) document.getElementById(id).hidden = false;
+      battery.querySelector('span').textContent = '23%'; // i18n-ok: test fixture
+      for (const id of ['battery', 'depth', 'depthGauge', 'btnMine'])
+        document.getElementById(id).hidden = false;
       document.getElementById('mineLabel').textContent = t('button.climbDown');
-      g.hudLayout.invalidate();g.hudLayout.tick();g.messages.tick();
+      g.hudLayout.invalidate();
+      g.hudLayout.tick();
+      g.messages.tick();
     };
     hold();
-    window.layoutHoldNow=hold;
+    window.layoutHoldNow = hold;
     window.layoutHold = setInterval(hold, 10);
   }
-  if (state === 'upgrades') { click('#btnUpgrade'); click('#btnEquipmentCraft'); }
+  if (state === 'upgrades') {
+    click('#btnUpgrade');
+    click('#btnEquipmentCraft');
+  }
   if (state === 'build') click('#btnBuild');
   // Placing a building: its card docked at the bottom, the zoom pill above it.
   if (state === 'placing') g.startPlacing({ key: 'garden' });
   if (state === 'awards') click('#btnAwards');
   if (state === 'settings') click('#btnSettings');
-  if (state === 'nerds') { click('#btnSettings'); click('#btnNerds'); }
+  if (state === 'nerds') {
+    click('#btnSettings');
+    click('#btnNerds');
+  }
   // Three shared worlds (made-up ids: their names are what's checked).
   if (state === 'worlds') {
-    localStorage.setItem('mte.rooms', JSON.stringify(['AAAAAAAAAAAAAAAAAAAAAA', 'thunderfallsXXXXXXXXXX', 'zzzzzzzzzzzzzzzzzzzzzz']));
+    localStorage.setItem(
+      'mte.rooms',
+      JSON.stringify(['AAAAAAAAAAAAAAAAAAAAAA', 'thunderfallsXXXXXXXXXX', 'zzzzzzzzzzzzzzzzzzzzzz'])
+    );
     click('#btnSettings');
     click('#btnWorlds');
   }
@@ -231,34 +378,86 @@ async function enter(state) {
     const id = (n) => n.toString(16).padStart(16, '0');
     const players = {};
     for (let i = 1; i < 100; i++) {
-      const a = i * 2.4, r = 1 + (i % 25);
-      players[id(i * 7919)] = { c: i, st: ['online', 'online', 'away', 'lost', 'offline'][i % 5], p: { x: Math.cos(a) * r, y: Math.sin(a) * r, z: i % 6 ? 0 : -1 } };
+      const a = i * 2.4,
+        r = 1 + (i % 25);
+      players[id(i * 7919)] = {
+        c: i,
+        st: ['online', 'online', 'away', 'lost', 'offline'][i % 5],
+        p: { x: Math.cos(a) * r, y: Math.sin(a) * r, z: i % 6 ? 0 : -1 }
+      };
     }
-    const welcome = { t: 'welcome', you: id(1), owner: id(1), c: 0, seed: 12345, mods: [], props: [], ext: [], players, save: null, p: { x: 0.5, y: 0.5, z: 0 } };
+    const welcome = {
+      t: 'welcome',
+      you: id(1),
+      owner: id(1),
+      c: 0,
+      seed: 12345,
+      mods: [],
+      props: [],
+      ext: [],
+      players,
+      save: null,
+      p: { x: 0.5, y: 0.5, z: 0 }
+    };
     window.WebSocket = class {
-      constructor() { this.readyState = 0; setTimeout(() => { this.readyState = 1; this.onopen?.(); }); }
-      send(text) { if (text.includes('"hello"')) setTimeout(() => this.onmessage?.({ data: JSON.stringify(welcome) })); }
-      close() { this.readyState = 3; }
+      constructor() {
+        this.readyState = 0;
+        setTimeout(() => {
+          this.readyState = 1;
+          this.onopen?.();
+        });
+      }
+      send(text) {
+        if (text.includes('"hello"'))
+          setTimeout(() => this.onmessage?.({ data: JSON.stringify(welcome) }));
+      }
+      close() {
+        this.readyState = 3;
+      }
     };
     g.together.switchTo('AAAAAAAAAAAAAAAAAAAAAA');
-    await new Promise((r) => setTimeout(r, 1500));  // the world is made and everyone placed
+    await new Promise((r) => setTimeout(r, 1500)); // the world is made and everyone placed
   }
   if (state === 'players') {
     click('#btnSettings');
     click('#btnPlayers');
   }
   if (state === 'map') click('#btnMap');
-  if (state === 'ask') g.dialogs.ask.ask({ title: t('together.join.title', { world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') }) }), text: t('together.join.text') + ' ' + t('privacy.join'), yes: t('together.join.yes'), link: { href: '#', text: t('privacy.link') } });  // the longest question
+  if (state === 'ask')
+    g.dialogs.ask.ask({
+      title: t('together.join.title', {
+        world: t('world.name', { thing: t('world.thing.firefly'), place: t('world.place.falls') })
+      }),
+      text: t('together.join.text') + ' ' + t('privacy.join'),
+      yes: t('together.join.yes'),
+      link: { href: '#', text: t('privacy.link') }
+    }); // the longest question
   if (state === 'fbi') g.dialogs.fbi.show();
   if (state === 'news') click('#btnVersion');
   // The statement of a world well under way: every kind of building, levels
   // bought, and an hour of income behind it for the charts.
   if (state === 'statement') {
     const st = g.getState();
-    Object.assign(st.unlocks, { compost: true, brickyard: true, foundry: true, observatory: true, logistics: true });
+    Object.assign(st.unlocks, {
+      compost: true,
+      brickyard: true,
+      foundry: true,
+      observatory: true,
+      logistics: true
+    });
     Object.assign(st.discovered, { ore: true, crystal: true });
-    for (const key of Object.keys(g.core.EXTRACTORS)) for (let i = 0; i < 3; i++) st.extractors.push({ key, res: g.core.EXTRACTORS[key].res, x: 200 + i, y: 200, z: 0, buffer: 0 });
-    st.tools.overclock = 4; st.abundanceLv = 2;
+    for (const key of Object.keys(g.core.EXTRACTORS))
+      for (let i = 0; i < 3; i++)
+        st.extractors.push({
+          key,
+          res: g.core.EXTRACTORS[key].res,
+          x: 200 + i,
+          y: 200,
+          z: 0,
+          buffer: 0
+        });
+    st.tools.overclock = 4;
+    st.abundanceLv = 2;
     for (let i = 0; i <= 8; i++) {
       for (const r of g.core.RESOURCES) st.resUp[r] = i;
       g.income.note(st, Date.now() + (i + 1) * 400000); // after the samples the game itself took
@@ -270,21 +469,47 @@ async function enter(state) {
 /* -------------------------------------------------------------------- run */
 
 async function main() {
-  const server = cp.spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore' });
+  const server = cp.spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], {
+    cwd: ROOT,
+    stdio: 'ignore'
+  });
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'mte-layout-'));
-  const chrome = cp.spawn(CHROME, ['--headless=new', '--disable-gpu', '--no-first-run', '--mute-audio', '--hide-scrollbars',
-    '--remote-debugging-port=' + CDP_PORT, '--user-data-dir=' + profile, 'about:blank'], { stdio: 'ignore', detached: true });
+  const chrome = cp.spawn(
+    CHROME,
+    [
+      '--headless=new',
+      '--disable-gpu',
+      '--no-first-run',
+      '--mute-audio',
+      '--hide-scrollbars',
+      '--remote-debugging-port=' + CDP_PORT,
+      '--user-data-dir=' + profile,
+      'about:blank'
+    ],
+    { stdio: 'ignore', detached: true }
+  );
   const cleanup = () => {
-    try { process.kill(-chrome.pid, 'SIGKILL'); } catch { }
-    try { server.kill('SIGKILL'); } catch { }
+    try {
+      process.kill(-chrome.pid, 'SIGKILL');
+    } catch {}
+    try {
+      server.kill('SIGKILL');
+    } catch {}
   };
   process.on('exit', cleanup);
 
   let version = null;
   for (let i = 0; i < 60 && !version; i++) {
-    try { version = await (await fetch('http://127.0.0.1:' + CDP_PORT + '/json/version')).json(); } catch { await sleep(250); }
+    try {
+      version = await (await fetch('http://127.0.0.1:' + CDP_PORT + '/json/version')).json();
+    } catch {
+      await sleep(250);
+    }
   }
-  if (!version) { console.error('Chrome did not start (set CHROME_PATH).'); process.exit(2); }
+  if (!version) {
+    console.error('Chrome did not start (set CHROME_PATH).');
+    process.exit(2);
+  }
   const cdp = await connect(version.webSocketDebuggerUrl);
   if (SHOT_DIR) fs.mkdirSync(SHOT_DIR, { recursive: true });
 
@@ -295,36 +520,72 @@ async function main() {
       const phone = Math.min(w, h) < 600;
       // Every screen starts from a new game, in its own storage.
       const { browserContextId } = await cdp.send('Target.createBrowserContext');
-      const { targetId } = await cdp.send('Target.createTarget', { url: 'about:blank', browserContextId });
+      const { targetId } = await cdp.send('Target.createTarget', {
+        url: 'about:blank',
+        browserContextId
+      });
       const { sessionId: s } = await cdp.send('Target.attachToTarget', { targetId, flatten: true });
-      await cdp.send('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: SHOT_DIR ? 2 : 1, mobile: phone }, s);
-      await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: phone, maxTouchPoints: 5 }, s);
+      await cdp.send(
+        'Emulation.setDeviceMetricsOverride',
+        { width: w, height: h, deviceScaleFactor: SHOT_DIR ? 2 : 1, mobile: phone },
+        s
+      );
+      await cdp.send(
+        'Emulation.setTouchEmulationEnabled',
+        { enabled: phone, maxTouchPoints: 5 },
+        s
+      );
       await cdp.send('Emulation.setFocusEmulationEnabled', { enabled: true }, s);
       await cdp.send('Page.enable', {}, s);
       await cdp.send('Page.navigate', { url: 'http://127.0.0.1:' + PORT + '/?lang=' + lang }, s);
       const where = lang + ' ' + w + 'x' + h;
-      const started = Date.now(), before = found.length;
+      const started = Date.now(),
+        before = found.length;
       const evaluate = async (expr) => {
-        const r = await cdp.send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }, s);
-        if (r.exceptionDetails) throw new Error(where + ': ' + (r.exceptionDetails.exception?.description || r.exceptionDetails.text));
+        const r = await cdp.send(
+          'Runtime.evaluate',
+          { expression: expr, awaitPromise: true, returnByValue: true },
+          s
+        );
+        if (r.exceptionDetails)
+          throw new Error(
+            where + ': ' + (r.exceptionDetails.exception?.description || r.exceptionDetails.text)
+          );
         return r.result.value;
       };
-      for (let i = 0; i < 80 && !(await evaluate('!!window.MTE_GAME').catch(() => false)); i++) await sleep(100);
+      for (let i = 0; i < 80 && !(await evaluate('!!window.MTE_GAME').catch(() => false)); i++)
+        await sleep(100);
       for (const state of STATES) {
         await evaluate('(' + enter + ')(' + JSON.stringify(state) + ')');
-        await sleep(450);  // let the HUD update
+        await sleep(450); // let the HUD update
         // This is a static layout audit, not an animation test. Under software
         // WebGL a wall-time delay can still sample the sheet mid-transition.
         // Finish only its transform transition; real overflow remains checked.
-        await evaluate("document.getElementById('sheet').getAnimations().filter(a => a.transitionProperty === 'transform').forEach(a => a.finish())");
+        await evaluate(
+          "document.getElementById('sheet').getAnimations().filter(a => a.transitionProperty === 'transform').forEach(a => a.finish())"
+        );
         checks++;
-        for (const p of await evaluate('(' + problems + ')()')) found.push(where + ' ' + state + ': ' + p);
+        for (const p of await evaluate('(' + problems + ')()'))
+          found.push(where + ' ' + state + ': ' + p);
         if (SHOT_DIR) {
           const { data } = await cdp.send('Page.captureScreenshot', { format: 'png' }, s);
-          fs.writeFileSync(path.join(SHOT_DIR, lang + '-' + w + 'x' + h + '-' + state + '.png'), Buffer.from(data, 'base64'));
+          fs.writeFileSync(
+            path.join(SHOT_DIR, lang + '-' + w + 'x' + h + '-' + state + '.png'),
+            Buffer.from(data, 'base64')
+          );
         }
       }
-      console.log('checked ' + where + ': ' + STATES.length + ' states, ' + (found.length - before) + ' problems (' + ((Date.now() - started) / 1000).toFixed(1) + 's)');
+      console.log(
+        'checked ' +
+          where +
+          ': ' +
+          STATES.length +
+          ' states, ' +
+          (found.length - before) +
+          ' problems (' +
+          ((Date.now() - started) / 1000).toFixed(1) +
+          's)'
+      );
       await cdp.send('Target.closeTarget', { targetId });
       await cdp.send('Target.disposeBrowserContext', { browserContextId });
     }
@@ -339,4 +600,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch((err) => { console.error(err); process.exit(2); });
+main().catch((err) => {
+  console.error(err);
+  process.exit(2);
+});

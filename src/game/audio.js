@@ -9,10 +9,10 @@ import { createMusic } from './music/player.js';
 
 // Pentatonic keys the melody can drift into (all consonant, no wrong notes).
 const SCALES = [
-  [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25], // C major
-  [220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33], // A minor
-  [349.23, 392.00, 440.00, 523.25, 587.33, 698.46, 783.99, 880.00], // F major
-  [293.66, 329.63, 392.00, 440.00, 493.88, 587.33, 659.25, 783.99]  // D minor
+  [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25], // C major
+  [220.0, 261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33], // A minor
+  [349.23, 392.0, 440.0, 523.25, 587.33, 698.46, 783.99, 880.0], // F major
+  [293.66, 329.63, 392.0, 440.0, 493.88, 587.33, 659.25, 783.99] // D minor
 ];
 const MAX_VOICES = 26;
 
@@ -22,24 +22,30 @@ const pick = (list) => list[(rand() * list.length) | 0];
 export function createAudio() {
   let ctx = null;
   let master = null;
-  let meter = null;             // analyser on the output
+  let meter = null; // analyser on the output
   let music = null;
-  let musicOn = true;           // the player's choice, kept until music exists
-  let onTrack = null;           // told when a track starts
-  let noise = null;             // shared white-noise buffer for impact transients
+  let musicOn = true; // the player's choice, kept until music exists
+  let onTrack = null; // told when a track starts
+  let noise = null; // shared white-noise buffer for impact transients
   let muted = false;
   let scale = null;
   let noteStep = 0;
   let voices = 0;
-  let scene = null;             // where the player is, kept for a fresh context
-  let early = false;            // the context was made before any gesture
+  let scene = null; // where the player is, kept for a fresh context
+  let early = false; // the context was made before any gesture
   let gestured = false;
-  let played = false;           // a sound effect has played on this context
+  let played = false; // a sound effect has played on this context
 
   function currentScale() {
     const inKey = music && music.scale();
-    if (inKey) { scale = inKey; return scale; }
-    if (!scale) { scale = pick(SCALES); noteStep = 0; }
+    if (inKey) {
+      scale = inKey;
+      return scale;
+    }
+    if (!scale) {
+      scale = pick(SCALES);
+      noteStep = 0;
+    }
     return scale;
   }
 
@@ -63,22 +69,35 @@ export function createAudio() {
     if (ctx) return true;
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return false;
-    try { ctx = new AC(); } catch { ctx = null; return false; }
+    try {
+      ctx = new AC();
+    } catch {
+      ctx = null;
+      return false;
+    }
     early = !gestured;
-    ctx.onstatechange = () => { if (ctx.state !== 'running') nudge(); };
+    ctx.onstatechange = () => {
+      if (ctx.state !== 'running') nudge();
+    };
     return true;
   }
 
   // Resume, with no gesture to hand: works once the page has had one.
   function nudge() {
     if (!ctx || ctx.state === 'running' || document.hidden) return;
-    try { ctx.resume().catch((err) => traceError('nudge', err)); } catch { /* the next gesture will */ }
+    try {
+      ctx.resume().catch((err) => traceError('nudge', err));
+    } catch {
+      /* the next gesture will */
+    }
   }
 
   // What the sound last did, for the performance panel: the last gesture
   // that tried to wake it, and the last refusal.
   const trace = { wakes: 0, last: '', error: '' };
-  function traceError(what, err) { trace.error = what + ': ' + (err && (err.name || err.message) || err); }
+  function traceError(what, err) {
+    trace.error = what + ': ' + ((err && (err.name || err.message)) || err);
+  }
 
   // Inside a gesture: resume, plus a one-sample silent buffer, the trick that
   // wakes mobile Safari when resume() alone is ignored.
@@ -87,13 +106,19 @@ export function createAudio() {
     if (ctx.state !== 'running') {
       trace.wakes++;
       trace.last = (e && e.type) || '?';
-      try { ctx.resume().catch((err) => traceError(trace.last, err)); } catch { /* keep going */ }
+      try {
+        ctx.resume().catch((err) => traceError(trace.last, err));
+      } catch {
+        /* keep going */
+      }
       try {
         const src = ctx.createBufferSource();
         src.buffer = ctx.createBuffer(1, 1, 22050);
         src.connect(ctx.destination);
         src.start(0);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     return true;
   }
@@ -108,12 +133,23 @@ export function createAudio() {
     const old = ctx;
     if (music) music.stop();
     old.onstatechange = null;
-    try { old.close().catch(() => {}); } catch { /* it goes with the page */ }
-    ctx = null; master = null; meter = null; music = null; noise = null;
+    try {
+      old.close().catch(() => {});
+    } catch {
+      /* it goes with the page */
+    }
+    ctx = null;
+    master = null;
+    meter = null;
+    music = null;
+    noise = null;
   }
 
   function init(e) {
-    if (!gestured) { gestured = true; fresh(); }
+    if (!gestured) {
+      gestured = true;
+      fresh();
+    }
     if (!unlock(e) || master) return;
     wire();
   }
@@ -135,7 +171,11 @@ export function createAudio() {
       });
       music.enabled = musicOn;
       if (scene) music.want(scene);
-    } catch { ctx = null; master = null; music = null; }
+    } catch {
+      ctx = null;
+      master = null;
+      music = null;
+    }
   }
 
   // Only while the clock runs: notes queued on a stalled context would all
@@ -160,8 +200,11 @@ export function createAudio() {
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(v, t + 0.006);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(lp); lp.connect(g); g.connect(master);
-      o.start(t); o.stop(t + dur + 0.03);
+      o.connect(lp);
+      lp.connect(g);
+      g.connect(master);
+      o.start(t);
+      o.stop(t + dur + 0.03);
       if (harmony) {
         const h = ctx.createOscillator();
         h.type = o.type;
@@ -170,11 +213,20 @@ export function createAudio() {
         hg.gain.setValueAtTime(0.0001, t);
         hg.gain.exponentialRampToValueAtTime(v * (0.3 + rand() * 0.2), t + 0.006);
         hg.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        h.connect(hg); hg.connect(master);
-        h.start(t); h.stop(t + dur + 0.03);
+        h.connect(hg);
+        hg.connect(master);
+        h.start(t);
+        h.stop(t + dur + 0.03);
       }
-      setTimeout(() => { voices--; }, (dur + 0.15) * 1000);
-    } catch { voices--; }
+      setTimeout(
+        () => {
+          voices--;
+        },
+        (dur + 0.15) * 1000
+      );
+    } catch {
+      voices--;
+    }
   }
 
   // A short filtered noise burst: the percussive transient that makes a hit
@@ -199,9 +251,14 @@ export function createAudio() {
       const g = ctx.createGain();
       g.gain.setValueAtTime(Math.max(0.0001, vol), t);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      src.connect(bp); bp.connect(g); g.connect(master);
-      src.start(t); src.stop(t + dur + 0.02);
-    } catch { /* ignore */ }
+      src.connect(bp);
+      bp.connect(g);
+      g.connect(master);
+      src.start(t);
+      src.stop(t + dur + 0.02);
+    } catch {
+      /* ignore */
+    }
   }
 
   // Each material has its own voice: mycelium pops softly, stone cracks dryly,
@@ -257,16 +314,24 @@ export function createAudio() {
     const dir = rand() < 0.55 ? 1 : -1;
     for (let i = 0; i < n; i++) {
       let f = sc[(start + dir * i + sc.length * n) % sc.length];
-      f *= f <= 600 ? 2 : (rand() < 0.5 ? 1.5 : 1); // sparkle register
-      note(f, 0.09 + rand() * 0.05, 'triangle', 0.085, rand() < 0.3 ? 1.5 : 0, i * (0.035 + rand() * 0.025));
+      f *= f <= 600 ? 2 : rand() < 0.5 ? 1.5 : 1; // sparkle register
+      note(
+        f,
+        0.09 + rand() * 0.05,
+        'triangle',
+        0.085,
+        rand() < 0.3 ? 1.5 : 0,
+        i * (0.035 + rand() * 0.025)
+      );
     }
     noteStep = (start + dir * n + sc.length * n) % sc.length;
     if (dir === 1 && start + n >= sc.length) phraseEnd();
   }
 
   function upgrade() {
-    const b = pick([233.08, 261.63, 311.13, 349.23, 392.00]);
-    const chord = rand() < 0.34 ? [1.25, 1.5, 2] : rand() < 0.5 ? [1.5, 1.875, 2.5] : [1.125, 1.5, 2];
+    const b = pick([233.08, 261.63, 311.13, 349.23, 392.0]);
+    const chord =
+      rand() < 0.34 ? [1.25, 1.5, 2] : rand() < 0.5 ? [1.5, 1.875, 2.5] : [1.125, 1.5, 2];
     note(b, 0.35, 'triangle', 0.08, 0, 0);
     note(b * chord[0], 0.35, 'triangle', 0.07, 0, 0.02 + rand() * 0.02);
     note(b * chord[1], 0.4, 'triangle', 0.07, 0, 0.05 + rand() * 0.03);
@@ -286,21 +351,32 @@ export function createAudio() {
   }
 
   function fanfare() {
-    const b = pick([392.00, 440.00, 523.25, 587.33]);
-    if (rand() < 0.55) { // rising arpeggio
+    const b = pick([392.0, 440.0, 523.25, 587.33]);
+    if (rand() < 0.55) {
+      // rising arpeggio
       note(b, 0.28 + rand() * 0.06, 'triangle', 0.09, 0, 0);
       note(b * 1.25, 0.28, 'triangle', 0.08, 0, 0.06);
       note(b * 1.5, 0.3, 'triangle', 0.08, 0, 0.12);
       note(b * 2, 0.5, 'triangle', 0.1, rand() < 0.8 ? 1.5 : 0, 0.2);
-    } else { // twinkling run with an octave leap at the end
-      for (let i = 0; i < 5; i++) note(b * Math.pow(2, i / 12) * (i === 4 ? 2 : 1), 0.22, 'triangle', 0.07, 0, i * 0.055);
+    } else {
+      // twinkling run with an octave leap at the end
+      for (let i = 0; i < 5; i++)
+        note(b * Math.pow(2, i / 12) * (i === 4 ? 2 : 1), 0.22, 'triangle', 0.07, 0, i * 0.055);
     }
   }
 
   // Every kind of press, in the capture phase so it runs before handlers
   // that call preventDefault(). (Which of these count as a gesture differs by
   // browser: pointerup and touchend are the ones a tap on a phone gives.)
-  for (const ev of ['pointerdown', 'pointerup', 'touchstart', 'touchend', 'mousedown', 'keydown', 'click']) {
+  for (const ev of [
+    'pointerdown',
+    'pointerup',
+    'touchstart',
+    'touchend',
+    'mousedown',
+    'keydown',
+    'click'
+  ]) {
     window.addEventListener(ev, init, { capture: true, passive: true });
   }
 
@@ -315,19 +391,43 @@ export function createAudio() {
   document.addEventListener('visibilitychange', nudge);
   window.addEventListener('focus', nudge);
   setInterval(nudge, 1000);
-  if (create()) { wire(); nudge(); }
+  if (create()) {
+    wire();
+    nudge();
+  }
 
   return {
-    init, wakeOn, gather, dig, collect, upgrade, build, fanfare,
+    init,
+    wakeOn,
+    gather,
+    dig,
+    collect,
+    upgrade,
+    build,
+    fanfare,
     // The soundtrack: which place's music to play (score.js sceneFor),
     // whether to play it, and what is playing.
-    scene(id) { scene = id; if (music) music.want(id); },
-    get music() { return musicOn; },
-    set music(v) { musicOn = !!v; if (music) music.enabled = musicOn; },
+    scene(id) {
+      scene = id;
+      if (music) music.want(id);
+    },
+    get music() {
+      return musicOn;
+    },
+    set music(v) {
+      musicOn = !!v;
+      if (music) music.enabled = musicOn;
+    },
     track: () => (music ? music.playing : null),
-    onTrack(fn) { onTrack = fn; },
-    get muted() { return muted; },
-    set muted(v) { muted = v; },
+    onTrack(fn) {
+      onTrack = fn;
+    },
+    get muted() {
+      return muted;
+    },
+    set muted(v) {
+      muted = v;
+    },
     state: () => (ctx ? ctx.state : 'none'),
     trace: () => trace,
     // The loudest sample in the last ~40ms of output (0 = silence).

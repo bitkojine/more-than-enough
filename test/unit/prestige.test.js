@@ -26,7 +26,7 @@ test('embarking needs world mastery without a production-total waiting gate', ()
   assert.equal(C.canEmbark(s), false, 'shared worlds cannot embark');
   s.shared = null;
   s.stats.mycelium = C.EMBARK_MIN_TOTAL;
-  assert.equal(C.embarkGain(s), 22, 'floor(sqrt(500)) for one world\'s worth');
+  assert.equal(C.embarkGain(s), 22, "floor(sqrt(500)) for one world's worth");
   s.stats.mycelium = 4 * C.EMBARK_MIN_TOTAL;
   assert.equal(C.embarkGain(s), 44, 'the square root after that');
 });
@@ -92,7 +92,8 @@ test('perks and free starting equipment do not carry into the next world', () =>
   s.insight = 10;
   master(s);
   s.stats.mycelium = C.EMBARK_MIN_TOTAL;
-  s.perks.memory = 1; s.perks.heirloom = 1; // preserved ownership from legacy saves
+  s.perks.memory = 1;
+  s.perks.heirloom = 1; // preserved ownership from legacy saves
   assert.equal(C.buy(s, 'cartographer').ok, true);
   const before = s.insight;
   assert.equal(C.buy(s, 'memory').ok, false);
@@ -103,7 +104,7 @@ test('perks and free starting equipment do not carry into the next world', () =>
   assert.equal(next.tools.basket, 0);
   assert.equal(next.tools.pickaxe, 0);
   assert.equal(C.exploreRadius(next), C.EXPLORE_RADIUS);
-  assert.ok(Object.values(next.perks).every(n => n === 0));
+  assert.ok(Object.values(next.perks).every((n) => n === 0));
   assert.equal(s.perks.memory, 1, 'the previous world keeps its earned perks');
 });
 
@@ -113,12 +114,18 @@ test('milestones count in any order, and the next one says what it still takes',
   assert.equal(C.nextGoal(s).id, 'forage');
   s.stats.foraged = 1;
   s.tools.basket = 2;
-  assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['forage', 'basket']);
+  assert.deepEqual(
+    C.advanceGoals(s).map((g) => g.id),
+    ['forage', 'basket']
+  );
   assert.equal(s.goalIndex, 2);
 
   // A garden before the Pickaxe still counts (a player built three while stuck on it).
   s.extractors.push({ key: 'garden', res: 'mycelium', x: 3, y: 3, z: C.SURFACE, buffer: 0 });
-  assert.deepEqual(C.advanceGoals(s).map((g) => g.id), ['garden']);
+  assert.deepEqual(
+    C.advanceGoals(s).map((g) => g.id),
+    ['garden']
+  );
   assert.equal(s.goalIndex, 3);
   assert.equal(C.nextGoal(s).id, 'stone');
   s.stats.stone = 5;
@@ -128,10 +135,28 @@ test('milestones count in any order, and the next one says what it still takes',
   assert.deepEqual(C.goalNeeds(s, next), { cost: C.TOOLS.pickaxe.levels[1].cost });
 
   // A converter's milestone asks for its blueprint first.
-  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.UNLOCKS.compost.cost });
+  assert.deepEqual(
+    C.goalNeeds(
+      s,
+      C.GOALS.find((g) => g.id === 'compost')
+    ),
+    { cost: C.UNLOCKS.compost.cost }
+  );
   s.unlocks.compost = true;
-  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'compost')), { cost: C.extractorCost(s, 'compost') });
-  assert.deepEqual(C.goalNeeds(s, C.GOALS.find((g) => g.id === 'structures')), { n: 1, of: 25 });
+  assert.deepEqual(
+    C.goalNeeds(
+      s,
+      C.GOALS.find((g) => g.id === 'compost')
+    ),
+    { cost: C.extractorCost(s, 'compost') }
+  );
+  assert.deepEqual(
+    C.goalNeeds(
+      s,
+      C.GOALS.find((g) => g.id === 'structures')
+    ),
+    { n: 1, of: 25 }
+  );
 });
 
 // Watch (2026-10-19): a milestone reached is congratulated as done, in the
@@ -141,7 +166,11 @@ test('every milestone that can be reached says so in its own past-tense words, i
     assert.ok(g.reached && g.reached !== g.text, `${g.id} has no words for being reached`);
     for (const [code, { strings }] of Object.entries(LANGUAGES)) {
       assert.ok(strings[`goal.${g.id}.reached`], `${code} ${g.id} has no reached words`);
-      assert.notEqual(strings[`goal.${g.id}.reached`], strings[`goal.${g.id}`], `${code} ${g.id} reads like the objective`);
+      assert.notEqual(
+        strings[`goal.${g.id}.reached`],
+        strings[`goal.${g.id}`],
+        `${code} ${g.id} reads like the objective`
+      );
     }
   }
 });

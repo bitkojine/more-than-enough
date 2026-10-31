@@ -7,13 +7,14 @@
 
 import * as Core from '../core/index.js';
 
-const REFRESH = 0.2;     // seconds between layout checks while amounts change
-const GROW_TIME = 0.35;  // seconds a new pile takes to grow to full size
-const SLIDE_TIME = 0.8;  // seconds a pile takes to slide to a new spot or into a merge
+const REFRESH = 0.2; // seconds between layout checks while amounts change
+const GROW_TIME = 0.35; // seconds a new pile takes to grow to full size
+const SLIDE_TIME = 0.8; // seconds a pile takes to slide to a new spot or into a merge
 const MERGED_SHRINK = 0.35; // how small a merging pile gets as it reaches the bigger one
 
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t));
-const dist2 = (a, b) => (a.x + a.span / 2 - b.x - b.span / 2) ** 2 + (a.y + a.span / 2 - b.y - b.span / 2) ** 2;
+const dist2 = (a, b) =>
+  (a.x + a.span / 2 - b.x - b.span / 2) ** 2 + (a.y + a.span / 2 - b.y - b.span / 2) ** 2;
 const middleOf = (p) => ({ x: p.x + p.span / 2, y: p.y + p.span / 2 });
 
 export function createYard({ fx, look }) {
@@ -39,7 +40,8 @@ export function createYard({ fx, look }) {
     for (const p of layout) {
       // Drawn with the row of its front edge, so it covers what's behind it.
       const key = Core.packKey(p.x + (p.span >> 1), p.y + p.span - 1, Core.SURFACE);
-      for (let y = p.y; y < p.y + p.span; y++) for (let x = p.x; x < p.x + p.span; x++) under.add(Core.packKey(x, y, Core.SURFACE));
+      for (let y = p.y; y < p.y + p.span; y++)
+        for (let x = p.x; x < p.x + p.span; x++) under.add(Core.packKey(x, y, Core.SURFACE));
       const old = piles.get(key);
       if (old && old.res === p.res && old.tier === p.tier && old.x === p.x && old.y === p.y) {
         next.set(key, old);
@@ -50,10 +52,17 @@ export function createYard({ fx, look }) {
     const born = [];
     for (const [key, p] of placed) {
       let from = null;
-      for (const o of left) if (o.res === p.res && o.tier === p.tier && (!from || dist2(o, p) < dist2(from, p))) from = o;
+      for (const o of left)
+        if (o.res === p.res && o.tier === p.tier && (!from || dist2(o, p) < dist2(from, p)))
+          from = o;
       if (from) {
         left.delete(from);
-        next.set(key, show ? { ...p, born: from.born, from: { x: from.x, y: from.y }, moved: now } : { ...p, born: from.born });
+        next.set(
+          key,
+          show
+            ? { ...p, born: from.born, from: { x: from.x, y: from.y }, moved: now }
+            : { ...p, born: from.born }
+        );
       } else {
         const q = { ...p, born: quiet ? -Infinity : now };
         next.set(key, q);
@@ -66,7 +75,8 @@ export function createYard({ fx, look }) {
     for (const o of left) {
       if (!show) continue;
       let into = null;
-      for (const q of born) if (q.res === o.res && q.tier > o.tier && (!into || dist2(o, q) < dist2(o, into))) into = q;
+      for (const q of born)
+        if (q.res === o.res && q.tier > o.tier && (!into || dist2(o, q) < dist2(o, into))) into = q;
       if (into) {
         into.born = now + SLIDE_TIME;
         merging.push({ ...o, to: into, start: now });
@@ -119,7 +129,11 @@ export function createYard({ fx, look }) {
         const t = (time - p.moved) / SLIDE_TIME;
         if (t < 1) {
           const k = ease(Math.max(0, t));
-          return { x: p.from.x + (p.x - p.from.x) * k, y: p.from.y + (p.y - p.from.y) * k, size: this.growth(p, time) };
+          return {
+            x: p.from.x + (p.x - p.from.x) * k,
+            y: p.from.y + (p.y - p.from.y) * k,
+            size: this.growth(p, time)
+          };
         }
       }
       return { x: p.x, y: p.y, size: this.growth(p, time) };
@@ -129,7 +143,8 @@ export function createYard({ fx, look }) {
     *merging(time) {
       for (const m of merging) {
         const k = ease(Math.min(1, (time - m.start) / SLIDE_TIME));
-        const to = middleOf(m.to), half = m.span / 2;
+        const to = middleOf(m.to),
+          half = m.span / 2;
         yield {
           pile: m,
           x: m.x + (to.x - half - m.x) * k,
@@ -147,7 +162,11 @@ export function createYard({ fx, look }) {
       return best ? { x: best.x + best.span / 2, y: best.y + best.span / 2 } : middle;
     },
 
-    get piles() { return piles; },
-    get covered() { return covered; }
+    get piles() {
+      return piles;
+    },
+    get covered() {
+      return covered;
+    }
   };
 }

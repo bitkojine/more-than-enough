@@ -1,7 +1,7 @@
 {
   "format": 1,
   "source": "src/game/render/pickaxe-model.js",
-  "sourceSha256": "133f6f254b6d6eafe0a180c03d4253642b7a902f9a1a8708a235e5a58f725c21",
+  "sourceSha256": "0c58b5deff33db3494484f91ab3c355811fd0e5c886888cbdc4d469fb83de453",
   "render": "192x192 transparent PNG inside 64x64 SVG; same flat model as held equipment",
   "assets": [
     {

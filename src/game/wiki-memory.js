@@ -8,7 +8,9 @@ export const UNPROMPTED_GAP_S = 60;
 
 export function createWikiMemory(saved = null) {
   const mode = WIKI_MODES.includes(saved?.mode) ? saved.mode : 'chatty';
-  const known = new Set(Array.isArray(saved?.known) ? saved.known.filter((k) => typeof k === 'string').slice(-500) : []);
+  const known = new Set(
+    Array.isArray(saved?.known) ? saved.known.filter((k) => typeof k === 'string').slice(-500) : []
+  );
   let lastUnprompted = -Infinity;
   return {
     mode,
@@ -24,9 +26,14 @@ export function createWikiMemory(saved = null) {
       return 'speak';
     },
     told(kind, how, now) {
-      if (kind) { known.delete(kind); known.add(kind); }
+      if (kind) {
+        known.delete(kind);
+        known.add(kind);
+      }
       if (how === 'nearby') lastUnprompted = now;
     },
-    save() { return { mode: this.mode, known: [...known].slice(-500) }; }
+    save() {
+      return { mode: this.mode, known: [...known].slice(-500) };
+    }
   };
 }

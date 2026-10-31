@@ -12,14 +12,18 @@
 import { TRACKS, MODES, parseSection, triad, degreeNote } from './score.js';
 import { INSTRUMENTS } from './instruments.js';
 
-const LOOKAHEAD = 0.6;   // seconds of music queued ahead of the clock
-const SETTLE = 1.5;      // seconds a new place must hold before the music changes
+const LOOKAHEAD = 0.6; // seconds of music queued ahead of the clock
+const SETTLE = 1.5; // seconds a new place must hold before the music changes
 const FADE_IN = 1.5;
-const FADE_OUT = 0.9;    // time constant of the old track's fade
-const BREATH_BARS = 2;   // accompaniment alone between rounds of a track
+const FADE_OUT = 0.9; // time constant of the old track's fade
+const BREATH_BARS = 2; // accompaniment alone between rounds of a track
 
 const rand = Math.random;
-const into = (midi, low) => { while (midi < low) midi += 12; while (midi >= low + 12) midi -= 12; return midi; };
+const into = (midi, low) => {
+  while (midi < low) midi += 12;
+  while (midi >= low + 12) midi -= 12;
+  return midi;
+};
 
 // A room's echo: two channels of noise dying away, darker as it fades.
 function impulse(ctx, seconds, decay) {
@@ -30,7 +34,7 @@ function impulse(ctx, seconds, decay) {
     let prev = 0;
     for (let i = 0; i < len; i++) {
       const k = i / len;
-      prev += ((rand() * 2 - 1) - prev) * (0.9 - 0.75 * k);
+      prev += (rand() * 2 - 1 - prev) * (0.9 - 0.75 * k);
       d[i] = prev * Math.pow(1 - k, decay);
     }
   }
@@ -39,15 +43,16 @@ function impulse(ctx, seconds, decay) {
 
 export function createMusic(ctx, out, { canPlay, onStart }) {
   const bus = ctx.createGain();
-  bus.gain.value = 0.26;    // under the sound effects, not over them
+  bus.gain.value = 0.26; // under the sound effects, not over them
   bus.connect(out);
   const verb = ctx.createConvolver();
   verb.buffer = impulse(ctx, 3, 2.4);
   verb.connect(bus);
 
   let enabled = true;
-  let current = null;           // the track playing: see begin()
-  let wanted = null, wantedAt = 0;
+  let current = null; // the track playing: see begin()
+  let wanted = null,
+    wantedAt = 0;
 
   function begin(id) {
     const track = TRACKS[id];
@@ -61,8 +66,21 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
     gain.connect(send);
     send.connect(verb);
     const sections = {};
-    for (const [key, sec] of Object.entries(track.sections)) sections[key] = parseSection(track, sec);
-    current = { id, track, sections, gain, send, cursor: at, formAt: 0, barAt: 0, round: 0, heard: {}, style: null };
+    for (const [key, sec] of Object.entries(track.sections))
+      sections[key] = parseSection(track, sec);
+    current = {
+      id,
+      track,
+      sections,
+      gain,
+      send,
+      cursor: at,
+      formAt: 0,
+      barAt: 0,
+      round: 0,
+      heard: {},
+      style: null
+    };
     if (onStart) onStart(id);
   }
 
@@ -73,7 +91,13 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
     gain.gain.cancelScheduledValues(now);
     gain.gain.setValueAtTime(Math.max(0.0001, gain.gain.value), now);
     gain.gain.setTargetAtTime(0.0001, now, FADE_OUT);
-    setTimeout(() => { gain.disconnect(); send.disconnect(); }, (cursor - now + FADE_OUT * 6) * 1000);
+    setTimeout(
+      () => {
+        gain.disconnect();
+        send.disconnect();
+      },
+      (cursor - now + FADE_OUT * 6) * 1000
+    );
     current = null;
   }
 
@@ -82,8 +106,17 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
   function play(name, t, midi, seconds, vel) {
     const p = current;
     try {
-      INSTRUMENTS[name](ctx, p.gain, t + (rand() - 0.5) * 0.012, midi, seconds, vel * (0.88 + rand() * 0.24));
-    } catch { /* a note lost is better than the music stopping */ }
+      INSTRUMENTS[name](
+        ctx,
+        p.gain,
+        t + (rand() - 0.5) * 0.012,
+        midi,
+        seconds,
+        vel * (0.88 + rand() * 0.24)
+      );
+    } catch {
+      /* a note lost is better than the music stopping */
+    }
   }
 
   // How this pass through a section is played. The first time: as written.
@@ -111,14 +144,28 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
       const accent = n.at === 0 ? 1 : n.at % 1 === 0 ? 0.9 : 0.8;
       const next = notes[i + 1];
       // A passing note between two notes a third apart, now and then.
-      if (style !== 'plain' && next && next.deg !== null && n.beats >= 1 && next.oct === n.oct &&
-          Math.abs(next.deg - n.deg) === 2 && rand() < 0.35) {
+      if (
+        style !== 'plain' &&
+        next &&
+        next.deg !== null &&
+        n.beats >= 1 &&
+        next.oct === n.oct &&
+        Math.abs(next.deg - n.deg) === 2 &&
+        rand() < 0.35
+      ) {
         play(voice, t, midi, len / 2, accent);
-        play(voice, t + len / 2, degreeNote(track, (n.deg + next.deg) / 2, n.oct) + up, len / 2, 0.75);
+        play(
+          voice,
+          t + len / 2,
+          degreeNote(track, (n.deg + next.deg) / 2, n.oct) + up,
+          len / 2,
+          0.75
+        );
       } else {
         play(voice, t, midi, len * 0.95, accent);
       }
-      if (style === 'third') play(echo, t + 0.01, degreeNote(track, n.deg - 2, n.oct) + up, len * 0.9, 0.45);
+      if (style === 'third')
+        play(echo, t + 0.01, degreeNote(track, n.deg - 2, n.oct) + up, len * 0.9, 0.45);
     });
   }
 
@@ -134,28 +181,53 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
       const span = ch.beats * spb;
       if (bass) {
         for (let u = 0; u < ch.beats; u += group) {
-          play(bass, start + u * spb, u % (group * 2) === 0 ? root : root + 7, group * spb, u === 0 ? 0.9 : 0.7);
+          play(
+            bass,
+            start + u * spb,
+            u % (group * 2) === 0 ? root : root + 7,
+            group * spb,
+            u === 0 ? 0.9 : 0.7
+          );
         }
       }
       if (pad) for (const m of chord) play('pad', start, m, span, 0.8);
       if (drum) {
-        for (let u = 0; u < ch.beats; u += 3) play('drum', start + u * spb, 0, 0.3, u === 0 ? 1 : 0.6);
+        for (let u = 0; u < ch.beats; u += 3)
+          play('drum', start + u * spb, 0, 0.3, u === 0 ? 1 : 0.6);
       }
       const notes = [chord[0], chord[1], chord[2], chord[0] + 12, chord[1] + 12, chord[2] + 12];
       if (comp === 'arp') {
         const order = [0, 2, 3, 4, 5, 4, 3, 2];
-        for (let k = 0; k < ch.beats * 2; k++) play('harp', start + k * spb / 2, notes[order[k % order.length]], spb, k === 0 ? 0.45 : 0.32);
+        for (let k = 0; k < ch.beats * 2; k++)
+          play(
+            'harp',
+            start + (k * spb) / 2,
+            notes[order[k % order.length]],
+            spb,
+            k === 0 ? 0.45 : 0.32
+          );
       } else if (comp === 'waltz') {
-        for (let u = 1; u < ch.beats; u++) chord.forEach((m, k) => play('harp', start + u * spb + k * 0.012, m + 12, spb, 0.24));
+        for (let u = 1; u < ch.beats; u++)
+          chord.forEach((m, k) => play('harp', start + u * spb + k * 0.012, m + 12, spb, 0.24));
       } else if (comp === 'oompah') {
         for (let u = 0; u < ch.beats; u++) {
-          if (u % 3) chord.forEach((m, k) => play('harp', start + u * spb + k * 0.008, m, spb * 0.8, 0.2));
+          if (u % 3)
+            chord.forEach((m, k) => play('harp', start + u * spb + k * 0.008, m, spb * 0.8, 0.2));
         }
       } else if (comp === 'ostinato') {
         const order = [0, 0, 2, 3, 0, 2, 1, 2];
-        for (let k = 0; k < ch.beats * 2; k++) play('harp', start + k * spb / 2, notes[order[k % order.length]] - 12, spb / 2, k % 2 ? 0.26 : 0.36);
+        for (let k = 0; k < ch.beats * 2; k++)
+          play(
+            'harp',
+            start + (k * spb) / 2,
+            notes[order[k % order.length]] - 12,
+            spb / 2,
+            k % 2 ? 0.26 : 0.36
+          );
       } else if (comp === 'drone') {
-        [0, 2, 4].forEach((n, k) => { if (k < ch.beats) play('harp', start + k * spb, notes[n], spb * 2, 0.28); });
+        [0, 2, 4].forEach((n, k) => {
+          if (k < ch.beats) play('harp', start + k * spb, notes[n], spb * 2, 0.28);
+        });
       }
     }
   }
@@ -180,13 +252,19 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
     if (p.barAt >= length) {
       p.heard[key] = (p.heard[key] || 0) + 1;
       p.barAt = 0;
-      if (++p.formAt >= track.form.length) { p.formAt = 0; p.round++; }
+      if (++p.formAt >= track.form.length) {
+        p.formAt = 0;
+        p.round++;
+      }
     }
   }
 
   function tick() {
     const ok = enabled && canPlay() && !document.hidden;
-    if (!ok) { end(); return; }
+    if (!ok) {
+      end();
+      return;
+    }
     const now = ctx.currentTime;
     if (wanted && (!current || (current.id !== wanted && now - wantedAt >= SETTLE))) {
       end();
@@ -200,17 +278,27 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
 
   return {
     // For good: this player's context is being replaced.
-    stop() { clearInterval(timer); end(); },
+    stop() {
+      clearInterval(timer);
+      end();
+    },
     // Where the player is now: the music follows once it holds.
     want(id) {
       if (id === wanted || !TRACKS[id]) return;
       wanted = id;
       wantedAt = ctx.currentTime;
     },
-    get enabled() { return enabled; },
-    set enabled(v) { enabled = !!v; tick(); },
+    get enabled() {
+      return enabled;
+    },
+    set enabled(v) {
+      enabled = !!v;
+      tick();
+    },
     // The track playing, or null.
-    get playing() { return current ? current.id : null; },
+    get playing() {
+      return current ? current.id : null;
+    },
     // Eight pitches (Hz) of the playing track's pentatonic scale around
     // middle C, for sound effects that should sit in its key; null if silent.
     scale() {

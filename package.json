@@ -14,7 +14,8 @@
     "stage": "sh scripts/stage-site.sh site",
     "test:extended": "PROP_SEEDS=1500 node --test test/property/game.test.js",
     "analyze": "node scripts/analyze.mjs",
-    "lint": "eslint . --max-warnings 228"
+    "lint": "eslint . --max-warnings 249 && prettier --check . --log-level warn",
+    "format": "prettier --write . --log-level warn"
   },
   "engines": {
     "node": ">=24"

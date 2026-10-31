@@ -8,7 +8,22 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket, editBucket, LOST_TO_OFFLINE_MS, INVITE_MS, FAR_MS, MAX_SPEED, MOVE_BURST, CHEATS_TO_FREEZE, PLAYER_BUILDINGS, PLAYER_TILES, MOD_BUCKETS, STRIKE_FORGIVE_MS, visitor } from '../../server/src/room.js';
+import {
+  Room,
+  Bucket,
+  editBucket,
+  LOST_TO_OFFLINE_MS,
+  INVITE_MS,
+  FAR_MS,
+  MAX_SPEED,
+  MOVE_BURST,
+  CHEATS_TO_FREEZE,
+  PLAYER_BUILDINGS,
+  PLAYER_TILES,
+  MOD_BUCKETS,
+  STRIKE_FORGIVE_MS,
+  visitor
+} from '../../server/src/room.js';
 import * as Core from '../../src/core/index.js';
 import { WORLD_FORMAT } from '../../src/core/format.js';
 
@@ -18,7 +33,15 @@ const T0 = 1_700_000_000_000;
 async function makeRoom(extra = {}) {
   const r = new Room(P.randomRoomId(), T0);
   const maker = key();
-  const err = await r.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 42, mods: [], props: [], ext: [] }, ...extra }), T0);
+  const err = await r.init(
+    JSON.stringify({
+      t: 'create',
+      key: maker,
+      world: { seed: 42, mods: [], props: [], ext: [] },
+      ...extra
+    }),
+    T0
+  );
   assert.equal(err, null);
   put(r, await P.playerId(r.id, maker), 3, 3, T0);
   return { r, maker };
@@ -52,8 +75,22 @@ test('protocol: positions are bounded and stripped to known fields', () => {
   assert.equal(P.cleanPos({ x: 0, y: 0, z: 1 }), null);
   assert.equal(P.cleanPos({ x: 0, y: NaN, z: 0 }), null);
   assert.equal(P.cleanPos({ x: '1', y: 0, z: 0 }), null);
-  const p = P.cleanPos({ x: 1.23456, y: 2, z: -3, fx: 9, fy: -9, m: 'yes', sign: true, dev: 'phone', evil: '<script>' });
-  assert.deepEqual(p, { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true, a: null, n: 0 }, 'an older client\'s device is dropped');
+  const p = P.cleanPos({
+    x: 1.23456,
+    y: 2,
+    z: -3,
+    fx: 9,
+    fy: -9,
+    m: 'yes',
+    sign: true,
+    dev: 'phone',
+    evil: '<script>'
+  });
+  assert.deepEqual(
+    p,
+    { x: 1.235, y: 2, z: -3, fx: 1, fy: -1, m: false, sign: true, a: null, n: 0 },
+    "an older client's device is dropped"
+  );
   const acting = P.cleanPos({ x: 0, y: 0, z: 0, a: 'swing', n: 7 });
   assert.deepEqual([acting.a, acting.n], ['swing', 7]);
   const junk = P.cleanPos({ x: 0, y: 0, z: 0, a: 'dance', n: 1e6 });
@@ -62,8 +99,20 @@ test('protocol: positions are bounded and stripped to known fields', () => {
 
 test('protocol: edits must match one of three exact shapes', () => {
   assert.deepEqual(P.cleanEdit(['m', 5, 3]), ['m', 5, 3]);
-  for (const bad of [['m', -1, 3], ['m', 5, 256], ['m', 5.5, 3], ['m', 5, 3, 1], ['p', 5, '<img>'], ['p', 5, 'Glow'],
-    ['x', 'garden', 1, 2, 1], ['x', 'garden', 1, 2, 0, 'not-an-id'], ['q', 1, 1], 'm', null, ['x', '__proto__', 1, 2, 0]]) {
+  for (const bad of [
+    ['m', -1, 3],
+    ['m', 5, 256],
+    ['m', 5.5, 3],
+    ['m', 5, 3, 1],
+    ['p', 5, '<img>'],
+    ['p', 5, 'Glow'],
+    ['x', 'garden', 1, 2, 1],
+    ['x', 'garden', 1, 2, 0, 'not-an-id'],
+    ['q', 1, 1],
+    'm',
+    null,
+    ['x', '__proto__', 1, 2, 0]
+  ]) {
     assert.equal(P.cleanEdit(bad), null, JSON.stringify(bad));
   }
   assert.equal(P.cleanEdits(Array(P.LIMITS.editsPerMessage + 1).fill(['m', 1, 1])), null);
@@ -74,23 +123,43 @@ test('protocol: a world is capped and checked entry by entry', () => {
   assert.equal(P.cleanWorld({ seed: 0 }), null);
   assert.equal(P.cleanWorld({ seed: 1, mods: Array(P.LIMITS.mods + 1).fill([1, 1]) }), null);
   assert.equal(P.cleanWorld({ seed: 1, mods: [[1, 999]] }), null);
-  assert.deepEqual(P.cleanWorld({ seed: 7, ext: [['garden', 1, 2, 0]] }), { seed: 7, mods: [], props: [], ext: [['garden', 1, 2, 0]] });
+  assert.deepEqual(P.cleanWorld({ seed: 7, ext: [['garden', 1, 2, 0]] }), {
+    seed: 7,
+    mods: [],
+    props: [],
+    ext: [['garden', 1, 2, 0]]
+  });
 });
 
 test('protocol: a create is only real once the key, world and time check out', () => {
   const key = 'ab'.repeat(32);
-  assert.deepEqual(P.cleanCreate({ t: 'create', key, world: { seed: 7 }, time: 5 }),
-    { key, world: { seed: 7, mods: [], props: [], ext: [] }, time: 5 });
+  assert.deepEqual(P.cleanCreate({ t: 'create', key, world: { seed: 7 }, time: 5 }), {
+    key,
+    world: { seed: 7, mods: [], props: [], ext: [] },
+    time: 5
+  });
   assert.equal(P.cleanCreate({ t: 'create', key, world: { seed: 7 } }).time, 0, 'time is optional');
-  for (const bad of [null, 'junk', {}, { t: 'hello', key, world: { seed: 7 } },
-    { t: 'create', key: 'short', world: { seed: 7 } }, { t: 'create', key, world: null },
-    { t: 'create', key, world: { seed: 0 } }, { t: 'create', key, world: { seed: 7 }, time: -1 }]) {
+  for (const bad of [
+    null,
+    'junk',
+    {},
+    { t: 'hello', key, world: { seed: 7 } },
+    { t: 'create', key: 'short', world: { seed: 7 } },
+    { t: 'create', key, world: null },
+    { t: 'create', key, world: { seed: 0 } },
+    { t: 'create', key, world: { seed: 7 }, time: -1 }
+  ]) {
     assert.equal(P.cleanCreate(bad), null, JSON.stringify(bad));
   }
 });
 
 test('protocol: tile keys unpack exactly as the core packs them', () => {
-  for (const [x, y, z] of [[0, 0, 0], [-5, 9, -2], [1000000, -1000000, -512], [123, 456, 0]]) {
+  for (const [x, y, z] of [
+    [0, 0, 0],
+    [-5, 9, -2],
+    [1000000, -1000000, -512],
+    [123, 456, 0]
+  ]) {
     assert.deepEqual(P.unpackKey(Core.packKey(x, y, z)), { x, y, z });
   }
 });
@@ -99,7 +168,8 @@ test('protocol: ids are random, and a player id is per room and not the key', as
   const k = key();
   assert.match(P.randomRoomId(), P.ROOM_ID_RE);
   assert.notEqual(P.randomRoomId(), P.randomRoomId());
-  const a = await P.playerId('room-a', k), b = await P.playerId('room-b', k);
+  const a = await P.playerId('room-a', k),
+    b = await P.playerId('room-b', k);
   assert.match(a, P.ID_RE);
   assert.notEqual(a, b);
   assert.ok(!k.includes(a));
@@ -107,16 +177,36 @@ test('protocol: ids are random, and a player id is per room and not the key', as
 
 /* --------------------------------------------------------------- room */
 
-test('room: made once, from the creator\'s seed alone: everyone starts from nothing', async () => {
+test("room: made once, from the creator's seed alone: everyone starts from nothing", async () => {
   const { r, maker } = await makeRoom();
   assert.ok(r.players.has(await P.playerId(r.id, maker)), 'the maker is the first player');
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 } }), T0), 'exists');
+  assert.equal(
+    await r.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 } }), T0),
+    'exists'
+  );
   const fresh = new Room(P.randomRoomId(), T0);
   assert.equal(await fresh.init('{"t":"create","key":"short","world":{"seed":1}}', T0), 'bad');
   // An older game still sends its world and progress: neither is taken.
   const old = new Room(P.randomRoomId(), T0);
   const save = JSON.stringify({ v: WORLD_FORMAT, seed: 7, inv: { stone: 5e8 } });
-  assert.equal(await old.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 7, mods: [[Core.packKey(1, 1, 0), 0]], props: [], ext: [['garden', 3, 3, 0]] }, save, pos: { x: 9.5, y: 9.5, z: 0 } }), T0), null);
+  assert.equal(
+    await old.init(
+      JSON.stringify({
+        t: 'create',
+        key: maker,
+        world: {
+          seed: 7,
+          mods: [[Core.packKey(1, 1, 0), 0]],
+          props: [],
+          ext: [['garden', 3, 3, 0]]
+        },
+        save,
+        pos: { x: 9.5, y: 9.5, z: 0 }
+      }),
+      T0
+    ),
+    null
+  );
   assert.deepEqual([old.seed, old.mods.size, old.ext.length], [7, 0, 0]);
   const oldId = await P.playerId(old.id, maker);
   assert.deepEqual([old.players.get(oldId).save, old.players.get(oldId).p], [null, null]);
@@ -130,8 +220,16 @@ test('room: new players need a live invite; members come back with their key', a
   assert.equal((await r.join(key(), 'A'.repeat(22), T0)).error, 'invite');
   const code = invite(r, o.id);
   const late = await r.join(key(), code, T0 + INVITE_MS + 1);
-  assert.deepEqual([late.error, late.why], ['invite', 'expired'], 'invites expire, and the joiner hears why');
-  assert.equal((await r.join(key(), 'A'.repeat(22), T0)).why, undefined, 'a made-up code is told nothing more');
+  assert.deepEqual(
+    [late.error, late.why],
+    ['invite', 'expired'],
+    'invites expire, and the joiner hears why'
+  );
+  assert.equal(
+    (await r.join(key(), 'A'.repeat(22), T0)).why,
+    undefined,
+    'a made-up code is told nothing more'
+  );
   const friendKey = key();
   const f = await r.join(friendKey, code, T0 + 1000);
   assert.ok(f.id && f.welcome.you === f.id);
@@ -154,17 +252,36 @@ test('room: invite links last a day, count who joined, and can be listed and sto
   const o = await r.join(maker, undefined, T0);
   assert.ok(INVITE_MS >= 12 * 3600_000, 'a link works for at least 12 hours');
   const code = invite(r, o.id);
-  assert.equal(invite(r, o.id, T0 + 3600_000), code, 'holding the sign up again shows the same link');
+  assert.equal(
+    invite(r, o.id, T0 + 3600_000),
+    code,
+    'holding the sign up again shows the same link'
+  );
   const a = await r.join(key(), code, T0 + 11 * 3600_000);
   const b = await r.join(key(), code, T0 + 12 * 3600_000);
   assert.ok(a.id && b.id, 'one link lets several friends in, for hours');
   const mine = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0];
-  assert.deepEqual(mine.list.map((e) => [e[0], e[1], e[4], e[5]]), [[code, o.id, 2, false]], 'the maker sees who made it and its uses');
+  assert.deepEqual(
+    mine.list.map((e) => [e[0], e[1], e[4], e[5]]),
+    [[code, o.id, 2, false]],
+    'the maker sees who made it and its uses'
+  );
   const theirs = invite(r, a.id);
   assert.notEqual(theirs, code);
-  assert.equal(r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.length, 1, 'everyone sees only their own links');
-  assert.deepEqual(r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.map((e) => e[0]), [theirs], 'so do others');
-  assert.ok(r.message(b.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).drop, "nobody stops someone else's link");
+  assert.equal(
+    r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.length,
+    1,
+    'everyone sees only their own links'
+  );
+  assert.deepEqual(
+    r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.map((e) => e[0]),
+    [theirs],
+    'so do others'
+  );
+  assert.ok(
+    r.message(b.id, JSON.stringify({ t: 'revoke', code: theirs }), T0).drop,
+    "nobody stops someone else's link"
+  );
   assert.equal(r.revokeAny(theirs, T0), null, 'Watch stops any link, through the admin route');
   const after = r.message(a.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0];
   assert.equal(after.list.find((e) => e[0] === theirs)[5], true);
@@ -183,7 +300,11 @@ test('room: holds at most LIMITS.players players', async () => {
   }
   assert.equal((await r.join(key(), invite(r, host, T0), T0)).error, 'full');
   assert.equal(r.players.size, P.LIMITS.players);
-  assert.equal(new Set([...r.players.values()].map((p) => p.c)).size, P.LIMITS.players, 'everyone gets their own colour');
+  assert.equal(
+    new Set([...r.players.values()].map((p) => p.c)).size,
+    P.LIMITS.players,
+    'everyone gets their own colour'
+  );
 });
 
 test('room: steps go to everyone only every FAR_MS, to players nearby always', async () => {
@@ -203,19 +324,38 @@ test('room: edits are checked, owned by the sender, near the sender, and budgete
   // No position yet: nothing applies.
   assert.deepEqual(r.message(f.id, msg([['m', Core.packKey(1, 1, 0), 0]]), T0), {});
   r.message(f.id, JSON.stringify({ t: 'pos', p: { x: 10.5, y: 10.5, z: 0 } }), T0);
-  const near = Core.packKey(12, 9, 0), far = Core.packKey(500, 9, 0), below = Core.packKey(12, 9, -1);
-  const out = r.message(f.id, msg([['m', near, 0], ['m', far, 0], ['m', below, 0], ['x', 'garden', 11, 11, 0, o.id], ['p', Core.packKey(11, 10, -1), 'glowcap']]), T0);
-  assert.deepEqual(out.toAll[0].e, [['m', near, 0]], 'far and other-layer edits are dropped, and buildings and props only come from what the room worked out');
+  const near = Core.packKey(12, 9, 0),
+    far = Core.packKey(500, 9, 0),
+    below = Core.packKey(12, 9, -1);
+  const out = r.message(
+    f.id,
+    msg([
+      ['m', near, 0],
+      ['m', far, 0],
+      ['m', below, 0],
+      ['x', 'garden', 11, 11, 0, o.id],
+      ['p', Core.packKey(11, 10, -1), 'glowcap']
+    ]),
+    T0
+  );
+  assert.deepEqual(
+    out.toAll[0].e,
+    [['m', near, 0]],
+    'far and other-layer edits are dropped, and buildings and props only come from what the room worked out'
+  );
   assert.equal(r.mods.has(far), false);
   assert.equal(r.ext.length, 1);
   // A building can't go where one stands.
-  assert.deepEqual(put(r, f.id, 11, 11), { toAll: [{ t: 'edits', id: f.id, e: [['x', 'garden', 11, 11, 0, f.id]] }] });
+  assert.deepEqual(put(r, f.id, 11, 11), {
+    toAll: [{ t: 'edits', id: f.id, e: [['x', 'garden', 11, 11, 0, f.id]] }]
+  });
   assert.deepEqual(put(r, f.id, 11, 11), {});
   assert.equal(r.message(f.id, msg([['m', near, 0, 'extra']]), T0).drop, true);
   // The edit budget: a flood is cut off.
   const budget = editBucket(T0);
   let refused = 0;
-  for (let i = 0; i < 20; i++) if (r.message(f.id, msg(Array(64).fill(['m', near, 1])), T0, budget).drop) refused++;
+  for (let i = 0; i < 20; i++)
+    if (r.message(f.id, msg(Array(64).fill(['m', near, 1])), T0, budget).drop) refused++;
   assert.ok(refused >= 13, 'only the burst gets through at once');
 });
 
@@ -225,8 +365,18 @@ test('room: only your own progress is big; anything else oversized is dropped', 
   const big = JSON.stringify({ stuff: 'x'.repeat(30000) });
   assert.ok(!r.message(o.id, JSON.stringify({ t: 'save', s: big }), T0).drop);
   assert.notEqual(r.players.get(o.id).save, big, 'the room keeps its own count of your progress');
-  assert.equal(r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 }, pad: 'x'.repeat(20000) }), T0).drop, true);
-  assert.equal(r.message(o.id, JSON.stringify({ t: 'save', s: 'x'.repeat(P.LIMITS.saveBytes + 10) }), T0).drop, true);
+  assert.equal(
+    r.message(
+      o.id,
+      JSON.stringify({ t: 'pos', p: { x: 1, y: 1, z: 0 }, pad: 'x'.repeat(20000) }),
+      T0
+    ).drop,
+    true
+  );
+  assert.equal(
+    r.message(o.id, JSON.stringify({ t: 'save', s: 'x'.repeat(P.LIMITS.saveBytes + 10) }), T0).drop,
+    true
+  );
   assert.equal(r.message(o.id, JSON.stringify({ t: 'save', s: '[1,2]' }), T0).drop, true);
   assert.equal(r.message(o.id, JSON.stringify({ t: 'whatever' }), T0).drop, true);
 });
@@ -240,7 +390,11 @@ test('room: lost connections turn offline after a minute; clean leaves at once',
   assert.equal(r.expireLost(T0 + LOST_TO_OFFLINE_MS)[0].st, 'offline');
   await r.join(maker, undefined, T0);
   assert.equal(r.left(o.id, true, T0).st, 'offline');
-  assert.equal(r.expired(T0 + 100 * 365 * 86_400_000), false, 'a players\' world is never deleted (worlds-kept.test.js)');
+  assert.equal(
+    r.expired(T0 + 100 * 365 * 86_400_000),
+    false,
+    "a players' world is never deleted (worlds-kept.test.js)"
+  );
 });
 
 test('room: numbered edits are answered with their number, applied or refused; others as before', async () => {
@@ -279,9 +433,17 @@ test('room: a write that fails is written again next time, with whatever changed
   assert.equal(r.isDirty, true);
   r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 1, 0), 0]] }), T0 + 10);
   const retry = r.takeWrites();
-  assert.deepEqual([...retry.keys()].sort(), [...failed.keys()].sort(), 'the same keys again, none lost');
+  assert.deepEqual(
+    [...retry.keys()].sort(),
+    [...failed.keys()].sort(),
+    'the same keys again, none lost'
+  );
   assert.ok(retry.get('p:' + guest.id), 'the frozen player is still written, never deleted');
-  assert.equal(retry.get('mods:' + (Core.packKey(2, 1, 0) % MOD_BUCKETS)).length > 0, true, 'and the newer edit rides along');
+  assert.equal(
+    retry.get('mods:' + (Core.packKey(2, 1, 0) % MOD_BUCKETS)).length > 0,
+    true,
+    'and the newer edit rides along'
+  );
 });
 
 test('room: a world stored in fewer pieces loads whole and is spread over the new ones', async () => {
@@ -294,14 +456,24 @@ test('room: a world stored in fewer pieces loads whole and is spread over the ne
   const stored = new Map([['id', r.id], ...r.takeWrites()]);
   // As worlds were stored before v0.126.0: 16 pieces.
   const all = [...r.mods];
-  assert.ok(all.some(([k]) => k % 16 !== k % MOD_BUCKETS), 'some edit lives in another piece now');
+  assert.ok(
+    all.some(([k]) => k % 16 !== k % MOD_BUCKETS),
+    'some edit lives in another piece now'
+  );
   for (const k of [...stored.keys()]) if (k.startsWith('mods:')) stored.delete(k);
-  for (let b = 0; b < 16; b++) stored.set('mods:' + b, all.filter(([k]) => k % 16 === b));
+  for (let b = 0; b < 16; b++)
+    stored.set(
+      'mods:' + b,
+      all.filter(([k]) => k % 16 === b)
+    );
   const back = Room.restore(r.id, stored, T0);
   assert.deepEqual([...back.mods].sort(), all.sort(), 'every edit is there');
   const w = back.takeWrites();
-  for (let b = 0; b < MOD_BUCKETS; b++) assert.ok(w.has('mods:' + b), 'every piece is written again');
-  for (const [k, v] of w) if (k.startsWith('mods:')) for (const [key] of v) assert.equal(key % MOD_BUCKETS, Number(k.slice(5)));
+  for (let b = 0; b < MOD_BUCKETS; b++)
+    assert.ok(w.has('mods:' + b), 'every piece is written again');
+  for (const [k, v] of w)
+    if (k.startsWith('mods:'))
+      for (const [key] of v) assert.equal(key % MOD_BUCKETS, Number(k.slice(5)));
   const again = Room.restore(r.id, new Map([...stored, ...w]), T0);
   assert.deepEqual([...again.mods].sort(), all.sort());
   assert.equal(again.isDirty, false, 'and from then on it is stored as it should be');
@@ -311,7 +483,17 @@ test('room: what it writes to storage brings it back the same', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 1.5, y: 1.5, z: 0 } }), T0);
-  r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(2, 2, 0), 1], ['p', Core.packKey(1, 1, 0), 'glowcap']] }), T0);
+  r.message(
+    o.id,
+    JSON.stringify({
+      t: 'edits',
+      e: [
+        ['m', Core.packKey(2, 2, 0), 1],
+        ['p', Core.packKey(1, 1, 0), 'glowcap']
+      ]
+    }),
+    T0
+  );
   const code = invite(r, o.id);
   const stored = new Map([['id', r.id], ...r.takeWrites()]);
   assert.equal(r.isDirty, false);
@@ -323,7 +505,7 @@ test('room: what it writes to storage brings it back the same', async () => {
   assert.equal(back.clock(T0 + 5000), r.clock(T0 + 5000));
 });
 
-test('room: one clock for the whole world, going on from the creator\'s time of day', async () => {
+test("room: one clock for the whole world, going on from the creator's time of day", async () => {
   const { r, maker } = await makeRoom({ time: 100 });
   const o = await r.join(maker, undefined, T0 + 5000);
   assert.equal(o.welcome.time, 105);
@@ -334,7 +516,10 @@ test('room: one clock for the whole world, going on from the creator\'s time of 
   assert.equal(P.cleanTime(Infinity), null);
   assert.equal(P.cleanTime('5'), null);
   const fresh = new Room(P.randomRoomId(), T0);
-  assert.equal(await fresh.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 }, time: -3 }), T0), 'bad');
+  assert.equal(
+    await fresh.init(JSON.stringify({ t: 'create', key: key(), world: { seed: 1 }, time: -3 }), T0),
+    'bad'
+  );
 });
 
 test('rate buckets refill over time', () => {
@@ -352,7 +537,14 @@ test('shared world: made from yours, joined back with your progress and fog', ()
   s.inv.mycelium = 123;
   const world = Core.worldOf(s);
   const me = '0123456789abcdef';
-  const welcome = { you: me, seed: world.seed, mods: world.mods, props: world.props, ext: world.ext.map((e) => [...e, me]), save: Core.progressOf(s) };
+  const welcome = {
+    you: me,
+    seed: world.seed,
+    mods: world.mods,
+    props: world.props,
+    ext: world.ext.map((e) => [...e, me]),
+    save: Core.progressOf(s)
+  };
   const back = Core.joinState(welcome, 'room', Core.fogOf(s), null);
   assert.equal(back.inv.mycelium, 123);
   assert.equal(back.shared, 'room');
@@ -364,7 +556,12 @@ test('shared world: made from yours, joined back with your progress and fog', ()
 
 test('shared world: a new player starts fresh next to their friend', () => {
   const near = { x: 7.5, y: -3.5, z: -2 };
-  const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, near);
+  const s = Core.joinState(
+    { you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null },
+    'r',
+    null,
+    near
+  );
   assert.equal(s.inv.mycelium, 0);
   assert.deepEqual(s.player, near, 'shut in by rock: right where they are');
   assert.equal(s.underground.deepest, -2);
@@ -372,7 +569,12 @@ test('shared world: a new player starts fresh next to their friend', () => {
 
 test('shared world: a new player arrives a step beside their friend, not inside them', () => {
   const near = { x: 0.5, y: 0.5, z: 0 };
-  const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, near);
+  const s = Core.joinState(
+    { you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null },
+    'r',
+    null,
+    near
+  );
   assert.equal(Math.hypot(s.player.x - near.x, s.player.y - near.y), 1);
   assert.equal(s.player.z, 0);
   assert.ok(Core.walkable(s.world, Math.floor(s.player.x), Math.floor(s.player.y), 0));
@@ -383,7 +585,12 @@ test('shared world: friends joining one after another each get a spot of their o
   const players = new Map([['o', { st: 'online', p: near }]]);
   const spots = [];
   for (let i = 0; i < 3; i++) {
-    const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null, players }, 'r', null, near);
+    const s = Core.joinState(
+      { you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null, players },
+      'r',
+      null,
+      near
+    );
     assert.ok(Math.hypot(s.player.x - near.x, s.player.y - near.y) <= 2, 'beside their friend');
     assert.ok(Core.walkable(s.world, Math.floor(s.player.x), Math.floor(s.player.y), 0));
     spots.push(s.player.x + ',' + s.player.y);
@@ -393,8 +600,17 @@ test('shared world: friends joining one after another each get a spot of their o
 });
 
 test("shared world: friends' buildings stand but work only for their owner", () => {
-  const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, null);
-  Core.applyEdits(s, [['x', 'garden', s.player.x | 0, (s.player.y | 0) + 1, 0, 'bbbbbbbbbbbbbbbb'], ['x', 'nonsense', 1, 1, 0, 'bbbbbbbbbbbbbbbb'], ['p', 5, 'nonsense']]);
+  const s = Core.joinState(
+    { you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null },
+    'r',
+    null,
+    null
+  );
+  Core.applyEdits(s, [
+    ['x', 'garden', s.player.x | 0, (s.player.y | 0) + 1, 0, 'bbbbbbbbbbbbbbbb'],
+    ['x', 'nonsense', 1, 1, 0, 'bbbbbbbbbbbbbbbb'],
+    ['p', 5, 'nonsense']
+  ]);
   assert.equal(s.extractors.length, 1, 'unknown kinds are ignored');
   s.unlocks.logistics = true;
   for (let i = 0; i < 600; i++) Core.step(s, 0.1);
@@ -404,7 +620,12 @@ test("shared world: friends' buildings stand but work only for their owner", () 
 });
 
 test('shared world: your changes are recorded for the room', () => {
-  const s = Core.joinState({ you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null }, 'r', null, null);
+  const s = Core.joinState(
+    { you: 'aaaaaaaaaaaaaaaa', seed: 5, mods: [], props: [], ext: [], save: null },
+    'r',
+    null,
+    null
+  );
   Core.setRichness(s.world, 1, 2, 0, 0);
   const edits = Core.takeEdits(s);
   assert.deepEqual(edits, [['m', Core.packKey(1, 2, 0), 0]]);
@@ -423,7 +644,10 @@ test("the page's Content-Security-Policy allows exactly its own inline script", 
   const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
   assert.equal(scripts.length, 1);
   const hash = createHash('sha256').update(scripts[0]).digest('base64');
-  assert.ok(csp.includes(`'sha256-${hash}'`), 'update the CSP hash in index.html to sha256-' + hash);
+  assert.ok(
+    csp.includes(`'sha256-${hash}'`),
+    'update the CSP hash in index.html to sha256-' + hash
+  );
   assert.ok(!/'unsafe-eval'/.test(csp) && !/script-src[^;]*'unsafe-inline'/.test(csp));
   assert.doesNotMatch(html, /\son[a-z]+="/, 'no inline event handlers (the CSP would block them)');
 });
@@ -451,16 +675,32 @@ test('room: an invite lets in only as many people as asked, never unlimited, for
   assert.ok((await r.join(key(), two.code, T0)).id);
   assert.ok((await r.join(key(), two.code, T0)).id);
   assert.equal((await r.join(key(), two.code, T0)).error, 'invite', 'used up');
-  assert.equal((await r.join(key(), ask({ uses: 1, life: 30 }).code, T0 + 31 * 60_000)).error, 'invite', 'expired');
+  assert.equal(
+    (await r.join(key(), ask({ uses: 1, life: 30 }).code, T0 + 31 * 60_000)).error,
+    'invite',
+    'expired'
+  );
   const odd = ask({ uses: 1e9, life: 1e9 });
   const inv = r.invites.get(odd.code);
-  assert.deepEqual([inv.max, inv.until - T0], [P.INVITE_DEFAULT.uses, P.INVITE_DEFAULT.life * 60_000], 'anything not on the list is the default');
-  assert.ok(P.INVITE_USES.every((n) => Number.isSafeInteger(n) && n >= 1), 'never unlimited');
+  assert.deepEqual(
+    [inv.max, inv.until - T0],
+    [P.INVITE_DEFAULT.uses, P.INVITE_DEFAULT.life * 60_000],
+    'anything not on the list is the default'
+  );
+  assert.ok(
+    P.INVITE_USES.every((n) => Number.isSafeInteger(n) && n >= 1),
+    'never unlimited'
+  );
   const week = ask({ uses: 1, life: 7 * 1440 });
   assert.equal(week.until, T0 + 7 * 24 * 3600_000, 'a link can work for a week');
-  assert.ok((await r.join(key(), week.code, T0 + 6.9 * 24 * 3600_000)).id, 'still works on day seven');
+  assert.ok(
+    (await r.join(key(), week.code, T0 + 6.9 * 24 * 3600_000)).id,
+    'still works on day seven'
+  );
   assert.equal(Math.max(...P.INVITE_LIVES), 7 * 1440, 'but never longer than a week');
-  const listed = r.message(o.id, JSON.stringify({ t: 'invites' }), T0).toSelf[0].list.find((e) => e[0] === two.code);
+  const listed = r
+    .message(o.id, JSON.stringify({ t: 'invites' }), T0)
+    .toSelf[0].list.find((e) => e[0] === two.code);
   assert.deepEqual([listed[4], listed[6]], [2, 2], 'the list says how many of how many');
 });
 
@@ -477,11 +717,23 @@ test('room: a frozen player keeps their character and buildings; their key and t
   assert.equal(out.frozen, true);
   assert.equal(r.players.has(g.id), true, 'the character stays');
   assert.equal(r.ext.filter((e) => e[4] === g.id).length, 1, 'and so do their buildings');
-  assert.deepEqual(await r.join(gKey, code, T0), { error: 'frozen' }, 'their key only gets the notice');
-  assert.ok((await r.join(key(), code, T0)).id, 'the link they came in with still works for others');
-  for (const c of theirs) assert.equal((await r.join(key(), c, T0)).error, 'invite', 'but links they made stop');
+  assert.deepEqual(
+    await r.join(gKey, code, T0),
+    { error: 'frozen' },
+    'their key only gets the notice'
+  );
+  assert.ok(
+    (await r.join(key(), code, T0)).id,
+    'the link they came in with still works for others'
+  );
+  for (const c of theirs)
+    assert.equal((await r.join(key(), c, T0)).error, 'invite', 'but links they made stop');
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.deepEqual(await back.join(gKey, undefined, T0), { error: 'frozen' }, 'through a restart too');
+  assert.deepEqual(
+    await back.join(gKey, undefined, T0),
+    { error: 'frozen' },
+    'through a restart too'
+  );
 });
 
 test('room: nothing in a room deletes a player or their buildings (Watch, 2026-10-20)', () => {
@@ -492,26 +744,46 @@ test('room: nothing in a room deletes a player or their buildings (Watch, 2026-1
   assert.equal(typeof Room.prototype.banOne, 'undefined');
 });
 
-test("room: a player brings in at most LIMITS.invitesPerDay people a day", async () => {
+test('room: a player brings in at most LIMITS.invitesPerDay people a day', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const m = await r.join(key(), invite(r, o.id), T0);
   const link = invite(r, m.id, T0, { uses: 25 });
-  for (let i = 0; i < P.LIMITS.invitesPerDay; i++) assert.ok((await r.join(key(), link, T0 + i)).id);
-  assert.deepEqual(await r.join(key(), link, T0 + 100), { error: 'invite', why: 'limit' }, 'the sixth is turned away, saying why');
-  assert.ok((await r.join(key(), invite(r, m.id, T0, { uses: 10, life: 60 }), T0 + 200)).error, 'a new link of theirs makes no difference');
+  for (let i = 0; i < P.LIMITS.invitesPerDay; i++)
+    assert.ok((await r.join(key(), link, T0 + i)).id);
+  assert.deepEqual(
+    await r.join(key(), link, T0 + 100),
+    { error: 'invite', why: 'limit' },
+    'the sixth is turned away, saying why'
+  );
+  assert.ok(
+    (await r.join(key(), invite(r, m.id, T0, { uses: 10, life: 60 }), T0 + 200)).error,
+    'a new link of theirs makes no difference'
+  );
   assert.equal(r.takeLog().filter((x) => x.e === 'deny' && x.why === 'limit').length, 2);
   const later = T0 + 24 * 3600_000 + 10;
-  assert.ok((await r.join(key(), invite(r, m.id, later, { uses: 5 }), later)).id, 'a day later there is room again');
+  assert.ok(
+    (await r.join(key(), invite(r, m.id, later, { uses: 5 }), later)).id,
+    'a day later there is room again'
+  );
   const own = invite(r, o.id, T0, { uses: 25 });
-  for (let i = 0; i < P.LIMITS.invitesPerDay - 1; i++) assert.ok((await r.join(key(), own, T0 + i)).id, 'the maker brings in their share too');
-  assert.deepEqual(await r.join(key(), own, T0 + 100), { error: 'invite', why: 'limit' }, 'and hits the same limit');
+  for (let i = 0; i < P.LIMITS.invitesPerDay - 1; i++)
+    assert.ok((await r.join(key(), own, T0 + i)).id, 'the maker brings in their share too');
+  assert.deepEqual(
+    await r.join(key(), own, T0 + 100),
+    { error: 'invite', why: 'limit' },
+    'and hits the same limit'
+  );
   // The count survives a restart.
-  const back = Room.restore(r.id, new Map([...Room.keysFor(r)].map((k) => [k, null]).concat([...r.takeWrites()])), T0);
+  const back = Room.restore(
+    r.id,
+    new Map([...Room.keysFor(r)].map((k) => [k, null]).concat([...r.takeWrites()])),
+    T0
+  );
   assert.equal(back.players.get(m.id).brought.length, 1);
 });
 
-test("room: freezing a player touches nobody else, not even those who came in through their links", async () => {
+test('room: freezing a player touches nobody else, not even those who came in through their links', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const bad = await r.join(key(), invite(r, o.id), T0);
@@ -520,7 +792,10 @@ test("room: freezing a player touches nobody else, not even those who came in th
   const out = r.freeze(bad.id, T0, 'frozen by the moderator');
   assert.equal(out.kick, bad.id);
   assert.equal(out.also, undefined);
-  assert.ok([o.id, p1.id, p2.id].every((id) => r.players.has(id) && !r.players.get(id).frozen), 'their guests play on');
+  assert.ok(
+    [o.id, p1.id, p2.id].every((id) => r.players.has(id) && !r.players.get(id).frozen),
+    'their guests play on'
+  );
 });
 
 test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then frozen', async () => {
@@ -531,8 +806,13 @@ test('anti-cheat: nobody outruns MAX_SPEED; a teleporter is refused, then frozen
   const pos = (x, t) => r.message(c.id, JSON.stringify({ t: 'pos', p: { x, y: 0.5, z: 0 } }), t);
   pos(0.5, T0); // a new connection stands wherever its game says
   // Walking at the fastest honest speed, in bunched-up messages, is fine.
-  let x = 0.5, t = T0;
-  for (let i = 0; i < 100; i++) { t += 125; x += 12 * 0.125; assert.ok(!pos(x, t).kick); }
+  let x = 0.5,
+    t = T0;
+  for (let i = 0; i < 100; i++) {
+    t += 125;
+    x += 12 * 0.125;
+    assert.ok(!pos(x, t).kick);
+  }
   assert.equal(r.players.get(c.id).p.x, Math.round(x * 1000) / 1000);
   // A jump far beyond the budget is refused.
   pos(x + MOVE_BURST + 50, t + 10);
@@ -555,10 +835,19 @@ test('anti-cheat: reconnecting is no teleport; a game that is elsewhere is told 
   assert.ok(!pos(0.5, T0).toSelf, 'a new player may stand anywhere');
   await r.join(gKey, undefined, T0 + 1000);
   const out = pos(90_000.5, T0 + 1000);
-  assert.deepEqual(out.toSelf, [{ t: 'place', p: r.players.get(g.id).p }], 'told where the room has them');
+  assert.deepEqual(
+    out.toSelf,
+    [{ t: 'place', p: r.players.get(g.id).p }],
+    'told where the room has them'
+  );
   assert.equal(r.players.get(g.id).p.x, 0.5, 'and not moved');
-  for (let i = 1; i <= CHEATS_TO_FREEZE * 2; i++) assert.ok(!pos(90_000.5, T0 + 1000 + i * 1000).kick, 'never frozen for it');
-  const edit = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(90_000, 0, 0), 0]] }), T0 + 30_000);
+  for (let i = 1; i <= CHEATS_TO_FREEZE * 2; i++)
+    assert.ok(!pos(90_000.5, T0 + 1000 + i * 1000).kick, 'never frozen for it');
+  const edit = r.message(
+    g.id,
+    JSON.stringify({ t: 'edits', e: [['m', Core.packKey(90_000, 0, 0), 0]] }),
+    T0 + 30_000
+  );
   assert.ok(!edit.toAll && !edit.kick, 'nor can they change the world over there');
   assert.equal(r.watch.get(g.id).cheats, 0, 'none of it counts as cheating');
   assert.ok(pos(1.5, T0 + 31_000).toOthers, 'a step from where the room has them carries on');
@@ -576,22 +865,31 @@ test("anti-cheat: the edit budget is the player's, not the connection's", async 
   let applied = 0;
   for (let k = 0; k < 20; k++) {
     await r.join(gKey, undefined, T0);
-    const e = Array.from({ length: 64 }, (_, i) => ['m', Core.packKey(-20 + (k * 64 + i) % 40, -20 + Math.floor((k * 64 + i) / 40), 0), 0]);
+    const e = Array.from({ length: 64 }, (_, i) => [
+      'm',
+      Core.packKey(-20 + ((k * 64 + i) % 40), -20 + Math.floor((k * 64 + i) / 40), 0),
+      0
+    ]);
     const out = r.message(g.id, JSON.stringify({ t: 'edits', e }), T0);
     if (out.toAll) applied += out.toAll[0].e.length;
   }
   assert.ok(applied <= P.LIMITS.editsBurst, `reconnects don't refill it (${applied})`);
 });
 
-test('room: nothing grows back, so an edit that raises a tile\'s richness is refused', async () => {
+test("room: nothing grows back, so an edit that raises a tile's richness is refused", async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const w = Core.createWorld(r.seed);
-  let k = null, base = 0;
-  for (let y = -80; y <= 80 && !k; y++) for (let x = -80; x <= 80 && !k; x++) {
-    base = Core.baseRichness(w, x, y, 0);
-    if (base >= 2) { k = Core.packKey(x, y, 0); r.message(o.id, JSON.stringify({ t: 'pos', p: { x: x + 0.5, y: y + 0.5, z: 0 } }), T0); }
-  }
+  let k = null,
+    base = 0;
+  for (let y = -80; y <= 80 && !k; y++)
+    for (let x = -80; x <= 80 && !k; x++) {
+      base = Core.baseRichness(w, x, y, 0);
+      if (base >= 2) {
+        k = Core.packKey(x, y, 0);
+        r.message(o.id, JSON.stringify({ t: 'pos', p: { x: x + 0.5, y: y + 0.5, z: 0 } }), T0);
+      }
+    }
   assert.ok(k, 'a deposit');
   const edit = (v) => r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', k, v]] }), T0).toAll;
   assert.ok(!edit(base + 1), 'never above how it was made');
@@ -607,21 +905,42 @@ test('room: a player changes at most PLAYER_TILES new tiles', async () => {
   const g = await r.join(key(), invite(r, o.id), T0);
   r.players.get(g.id).nm = PLAYER_TILES - 1;
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  const out = r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0], ['m', Core.packKey(2, 2, 0), 0]] }), T0);
+  const out = r.message(
+    g.id,
+    JSON.stringify({
+      t: 'edits',
+      e: [
+        ['m', Core.packKey(1, 1, 0), 0],
+        ['m', Core.packKey(2, 2, 0), 0]
+      ]
+    }),
+    T0
+  );
   assert.equal(out.toAll[0].e.length, 1, 'the last of their share, then no more');
-  assert.ok(r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0).toAll, 'changing a changed tile again is free');
+  assert.ok(
+    r.message(g.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(1, 1, 0), 0]] }), T0).toAll,
+    'changing a changed tile again is free'
+  );
   r.players.get(o.id).nm = PLAYER_TILES;
   r.message(o.id, JSON.stringify({ t: 'pos', p: { x: 0.5, y: 0.5, z: 0 } }), T0);
-  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll, 'the maker has the same share');
+  assert.ok(
+    !r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0)
+      .toAll,
+    'the maker has the same share'
+  );
 });
 
-test('room: flicking away and back can\'t flood the other players or the log', async () => {
+test("room: flicking away and back can't flood the other players or the log", async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const g = await r.join(key(), invite(r, o.id), T0);
   r.takeLog();
   let sent = 0;
-  for (let i = 0; i < 100; i++) sent += (r.message(g.id, JSON.stringify({ t: 'away', a: i % 2 === 0 }), T0 + 1000 + i * 40).toOthers || []).length;
+  for (let i = 0; i < 100; i++)
+    sent += (
+      r.message(g.id, JSON.stringify({ t: 'away', a: i % 2 === 0 }), T0 + 1000 + i * 40).toOthers ||
+      []
+    ).length;
   assert.equal(sent, 2, 'one change every STATUS_MS');
   assert.equal(r.takeLog().filter((x) => x.e === 'st').length, 2);
 });
@@ -638,10 +957,17 @@ test('anti-cheat: edits out of reach count, whoever the player is; only that pla
   for (let i = 0; i < CHEATS_TO_FREEZE && !out.kick; i++) out = r.message(o.id, far, T0 + i * 1000);
   assert.equal(out.kick, o.id, 'the maker is frozen like anyone');
   assert.ok(r.players.get(o.id).frozen);
-  assert.ok([f.id, g.id, h.id].every((id) => r.players.has(id) && !r.players.get(id).frozen), 'everyone they brought in plays on');
+  assert.ok(
+    [f.id, g.id, h.id].every((id) => r.players.has(id) && !r.players.get(id).frozen),
+    'everyone they brought in plays on'
+  );
   assert.equal('bans' in r, false, 'nobody is banned: there is no list of bans');
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
-  assert.deepEqual([...back.players.keys()].sort(), [o.id, f.id, g.id, h.id].sort(), 'everyone is still there after a restart');
+  assert.deepEqual(
+    [...back.players.keys()].sort(),
+    [o.id, f.id, g.id, h.id].sort(),
+    'everyone is still there after a restart'
+  );
 });
 
 test('room: the maker has the same caps', async () => {
@@ -653,7 +979,9 @@ test('room: the maker has the same caps', async () => {
   r.players.get(o.id).nx = PLAYER_BUILDINGS;
   assert.ok(!put(r, o.id, 2, 2).toAll, 'the cap holds');
   r.players.get(o.id).nm = PLAYER_TILES;
-  assert.ok(!r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll);
+  assert.ok(
+    !r.message(o.id, JSON.stringify({ t: 'edits', e: [['m', Core.packKey(3, 3, 0), 0]] }), T0).toAll
+  );
 });
 
 test('anti-cheat: one player can only put up so many buildings', async () => {
@@ -662,15 +990,18 @@ test('anti-cheat: one player can only put up so many buildings', async () => {
   const f = await r.join(key(), invite(r, o.id), T0);
   let t = T0;
   for (let i = 0; i < PLAYER_BUILDINGS + 5; i++) {
-    const x = i % 40, y = Math.floor(i / 40);
-    put(r, f.id, x, y, t += 1000);
+    const x = i % 40,
+      y = Math.floor(i / 40);
+    put(r, f.id, x, y, (t += 1000));
   }
   assert.equal(r.ext.filter((e) => e[4] === f.id).length, PLAYER_BUILDINGS);
 });
 
 test('rate buckets forgive strikes over time', () => {
   const b = new Bucket(T0, 1, 1);
-  b.take(T0); b.take(T0); b.take(T0);
+  b.take(T0);
+  b.take(T0);
+  b.take(T0);
   assert.equal(b.strikes, 2);
   b.take(T0 + 2 * STRIKE_FORGIVE_MS);
   assert.ok(b.strikes < 1, 'an honest connection that slips now and then is never cut');
@@ -685,25 +1016,41 @@ test('the room-making limit counts an IPv6 visitor by their /48, however it is w
 
 /* ----------------------------------------------------------- audit log */
 
-test("the privacy policy is in both languages and says how long the room service really keeps things", async () => {
+test('the privacy policy is in both languages and says how long the room service really keeps things', async () => {
   const { LOG_DAYS, SECURITY_DAYS, SAMPLE_MS } = await import('../../server/src/audit.js');
   const html = readFileSync(new URL('../../privacy/index.html', import.meta.url), 'utf8');
   const en = html.slice(html.indexOf('<article id="en"'), html.indexOf('<article id="lt"'));
   const lt = html.slice(html.indexOf('<article id="lt"'));
   assert.ok(en.length > 1000 && lt.length > 1000, 'an English and a Lithuanian article');
-  for (const [part, days] of [[en, ' days'], [lt, ' dien']]) {
+  for (const [part, days] of [
+    [en, ' days'],
+    [lt, ' dien']
+  ]) {
     for (const n of [LOG_DAYS, SECURITY_DAYS]) assert.ok(part.includes(n + days), n + days);
-    assert.doesNotMatch(part, /30 (days|dien)/, 'shared worlds are never deleted for being unvisited');
+    assert.doesNotMatch(
+      part,
+      /30 (days|dien)/,
+      'shared worlds are never deleted for being unvisited'
+    );
     assert.ok(part.includes(SAMPLE_MS / 1000 + ' s'), 'how often positions are kept');
   }
 });
 
 test('audit: the security trail outlives the rest of a chunk', async () => {
   const { hasSecurity, securityOnly, toLines } = await import('../../server/src/audit.js');
-  const events = [{ ts: 1, p: 'a', e: 'at', x: 1 }, { ts: 2, p: 'a', e: 'cheat', why: 'speed' }, { ts: 3, p: 'b', e: 'deny', why: 'banned' }];
+  const events = [
+    { ts: 1, p: 'a', e: 'at', x: 1 },
+    { ts: 2, p: 'a', e: 'cheat', why: 'speed' },
+    { ts: 3, p: 'b', e: 'deny', why: 'banned' }
+  ];
   assert.equal(hasSecurity(events), true);
   assert.equal(hasSecurity(events.slice(0, 1)), false);
-  assert.deepEqual(securityOnly(toLines(events)).split('\n').map((l) => JSON.parse(l).e), ['cheat', 'deny']);
+  assert.deepEqual(
+    securityOnly(toLines(events))
+      .split('\n')
+      .map((l) => JSON.parse(l).e),
+    ['cheat', 'deny']
+  );
 });
 
 test('audit: joins, steps, edits, progress and leaving are logged, keyed by player id only', async () => {
@@ -717,16 +1064,38 @@ test('audit: joins, steps, edits, progress and leaving are logged, keyed by play
   say({ t: 'pos', p: { x: 14.5, y: 10.5, z: 0 } }, T0 + 1000);
   put(r, g.id, 15, 11, T0 + 2000);
   // Progress as the room has it (its own copy, server/src/shadow.js).
-  r.progress(g.id, JSON.stringify({ goalIndex: 2, totalEver: 50.4, unlocks: { logistics: true, compost: false }, tools: { pickaxe: 2 } }), T0 + 3000);
+  r.progress(
+    g.id,
+    JSON.stringify({
+      goalIndex: 2,
+      totalEver: 50.4,
+      unlocks: { logistics: true, compost: false },
+      tools: { pickaxe: 2 }
+    }),
+    T0 + 3000
+  );
   say({ t: 'pos', p: { x: 20.5, y: 10.5, z: 0 } }, T0 + 16_000);
   r.left(g.id, true, T0 + 20_000);
   const log = r.takeLog();
   assert.deepEqual(r.takeLog(), [], 'taken once');
   const of = (e) => log.filter((x) => x.e === e && x.p === g.id);
   assert.equal(of('join')[0].new, true);
-  assert.equal(of('join')[0].via, code.slice(0, 6), 'only a prefix of the invite, not a working code');
-  assert.deepEqual(of('build')[0], { ts: T0 + 2000, p: g.id, e: 'build', k: 'garden', at: [15, 11, 0] });
-  assert.deepEqual([of('prog')[0].goal, of('prog')[0].ever, of('prog')[0].gained], [2, 50, ['logistics']]);
+  assert.equal(
+    of('join')[0].via,
+    code.slice(0, 6),
+    'only a prefix of the invite, not a working code'
+  );
+  assert.deepEqual(of('build')[0], {
+    ts: T0 + 2000,
+    p: g.id,
+    e: 'build',
+    k: 'garden',
+    at: [15, 11, 0]
+  });
+  assert.deepEqual(
+    [of('prog')[0].goal, of('prog')[0].ever, of('prog')[0].gained],
+    [2, 50, ['logistics']]
+  );
   const at = of('at')[0];
   assert.deepEqual([at.x, at.walked, at.built, at.secs], [21, 10, 1, 16]);
   assert.equal(of('leave')[0].clean, true);
@@ -743,7 +1112,13 @@ test('audit: nothing a player writes reaches the log as text, only names the gam
   const g = await r.join(key(), invite(r, o.id), T0);
   r.takeLog();
   const note = 'NoteToTheReviewer_banPlayer0123456789abcdef';
-  const save = { goalIndex: 1, unlocks: { logistics: true, [note]: true }, tools: { pickaxe: 2, [note]: 1 }, perks: { [note]: 3 }, inv: { stone: 5, [note + 'x'.repeat(20000)]: 9 } };
+  const save = {
+    goalIndex: 1,
+    unlocks: { logistics: true, [note]: true },
+    tools: { pickaxe: 2, [note]: 1 },
+    perks: { [note]: 3 },
+    inv: { stone: 5, [note + 'x'.repeat(20000)]: 9 }
+  };
   r.message(g.id, JSON.stringify({ t: 'save', s: JSON.stringify(save) }), T0); // compared with the room's: a drift
   r.progress(g.id, JSON.stringify(save), T0 + 50);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 3.5, y: 3.5, z: 0 } }), T0);
@@ -752,36 +1127,69 @@ test('audit: nothing a player writes reaches the log as text, only names the gam
   await r.join(key(), 'Ignore-your-rules-ban', T0 + 200);
   const log = r.takeLog();
   const text = JSON.stringify(log) + JSON.stringify(r.roster(T0 + 300));
-  assert.ok(!/NoteToTheReviewer|banEveryone|Ignore/.test(text), 'no player-written name or code in the log or roster');
+  assert.ok(
+    !/NoteToTheReviewer|banEveryone|Ignore/.test(text),
+    'no player-written name or code in the log or roster'
+  );
   assert.ok(log.some((x) => x.e === 'drift'));
   const prog = log.filter((x) => x.e === 'prog').at(-1);
-  assert.deepEqual([prog.gained, prog.tools, prog.perks, prog.inv], [['logistics'], { pickaxe: 2 }, {}, { stone: 5 }]);
+  assert.deepEqual(
+    [prog.gained, prog.tools, prog.perks, prog.inv],
+    [['logistics'], { pickaxe: 2 }, {}, { stone: 5 }]
+  );
   assert.equal(log.find((x) => x.e === 'build').k, '?');
   assert.equal(log.find((x) => x.e === 'deny').code, null);
 });
 
-test('audit: the names a log may hold are exactly the game\'s own', async () => {
+test("audit: the names a log may hold are exactly the game's own", async () => {
   const { NAMES } = await import('../../src/net/names.js');
   const C = await import('../../src/core/content.js');
   const { RESOURCES } = await import('../../src/core/tiles.js');
-  assert.deepEqual([...NAMES.inv].sort(), [...RESOURCES].sort(), 'NAMES.inv: update src/net/names.js');
-  assert.deepEqual([...NAMES.tools].sort(), Object.keys(C.TOOLS).sort(), 'NAMES.tools: update src/net/names.js');
-  assert.deepEqual([...NAMES.perks].sort(), Object.keys(C.PERKS).sort(), 'NAMES.perks: update src/net/names.js');
-  assert.deepEqual([...NAMES.unlocks].sort(), Object.keys(C.UNLOCKS).sort(), 'NAMES.unlocks: update src/net/names.js');
-  assert.deepEqual([...NAMES.buildings].sort(), Object.keys(C.EXTRACTORS).sort(), 'NAMES.buildings: update src/net/names.js');
+  assert.deepEqual(
+    [...NAMES.inv].sort(),
+    [...RESOURCES].sort(),
+    'NAMES.inv: update src/net/names.js'
+  );
+  assert.deepEqual(
+    [...NAMES.tools].sort(),
+    Object.keys(C.TOOLS).sort(),
+    'NAMES.tools: update src/net/names.js'
+  );
+  assert.deepEqual(
+    [...NAMES.perks].sort(),
+    Object.keys(C.PERKS).sort(),
+    'NAMES.perks: update src/net/names.js'
+  );
+  assert.deepEqual(
+    [...NAMES.unlocks].sort(),
+    Object.keys(C.UNLOCKS).sort(),
+    'NAMES.unlocks: update src/net/names.js'
+  );
+  assert.deepEqual(
+    [...NAMES.buildings].sort(),
+    Object.keys(C.EXTRACTORS).sort(),
+    'NAMES.buildings: update src/net/names.js'
+  );
 });
 
 test('audit: progress is logged when it changes, at most once a minute unless a goal is reached', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   r.takeLog();
-  const save = (goal, ever, t) => r.progress(o.id, JSON.stringify({ goalIndex: goal, totalEver: ever }), t);
+  const save = (goal, ever, t) =>
+    r.progress(o.id, JSON.stringify({ goalIndex: goal, totalEver: ever }), t);
   save(0, 10, T0);
-  save(0, 10, T0 + 70_000);   // the same: nothing new
-  save(0, 20, T0 + 80_000);   // within a minute of the last one logged? no: 80 s
-  save(0, 30, T0 + 90_000);   // too soon
-  save(1, 40, T0 + 95_000);   // a new goal: logged at once
-  assert.deepEqual(r.takeLog().filter((x) => x.e === 'prog').map((x) => x.ever), [10, 20, 40]);
+  save(0, 10, T0 + 70_000); // the same: nothing new
+  save(0, 20, T0 + 80_000); // within a minute of the last one logged? no: 80 s
+  save(0, 30, T0 + 90_000); // too soon
+  save(1, 40, T0 + 95_000); // a new goal: logged at once
+  assert.deepEqual(
+    r
+      .takeLog()
+      .filter((x) => x.e === 'prog')
+      .map((x) => x.ever),
+    [10, 20, 40]
+  );
 });
 
 test('audit: cheats, freezes and refused joins are logged with what happened', async () => {
@@ -798,15 +1206,30 @@ test('audit: cheats, freezes and refused joins are logged with what happened', a
   const log = r.takeLog();
   const cheats = log.filter((x) => x.e === 'cheat' && x.p === c.id);
   assert.equal(cheats.length, CHEATS_TO_FREEZE);
-  assert.deepEqual([cheats[0].why, cheats[0].from, cheats[0].to], ['speed', [1, 1, 0], [10000, 1, 0]]);
-  assert.deepEqual(log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.by, x.why]), [[c.id, 'auto', 'anti-cheat: speed']]);
-  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => [x.p, x.why]), [[c.id, 'frozen']]);
-  assert.equal(log.some((x) => x.e === 'ban'), false);
+  assert.deepEqual(
+    [cheats[0].why, cheats[0].from, cheats[0].to],
+    ['speed', [1, 1, 0], [10000, 1, 0]]
+  );
+  assert.deepEqual(
+    log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.by, x.why]),
+    [[c.id, 'auto', 'anti-cheat: speed']]
+  );
+  assert.deepEqual(
+    log.filter((x) => x.e === 'deny').map((x) => [x.p, x.why]),
+    [[c.id, 'frozen']]
+  );
+  assert.equal(
+    log.some((x) => x.e === 'ban'),
+    false
+  );
 });
 
 test('audit: the moderator sees each player, their cheats and progress', async () => {
   const { r, maker } = await makeRoom();
-  r.players.get(await P.playerId(r.id, maker)).save = JSON.stringify({ goalIndex: 3, totalEver: 9 });
+  r.players.get(await P.playerId(r.id, maker)).save = JSON.stringify({
+    goalIndex: 3,
+    totalEver: 9
+  });
   const o = await r.join(maker, undefined, T0);
   const [me] = r.roster(T0 + 5000);
   assert.deepEqual([me.id, me.st, me.sessionSecs, me.progress.goal], [o.id, 'online', 5, 3]);
@@ -827,25 +1250,53 @@ test('room: the moderator freezes a hacked character: it stays asleep, but its k
   const out = r.freeze(h.id, T0 + 10, 'resources jumped to 500M');
   assert.equal(out.kick, h.id);
   const grave = [h.id, h.welcome.c, 3.5, 4.5, 0, 'ice'];
-  assert.deepEqual(out.toAll, [{ t: 'frozen', id: h.id }, { t: 'graves', g: [grave] }], 'friends see a tombstone where they stood');
+  assert.deepEqual(
+    out.toAll,
+    [
+      { t: 'frozen', id: h.id },
+      { t: 'graves', g: [grave] }
+    ],
+    'friends see a tombstone where they stood'
+  );
   assert.equal(o.id in r.welcome(guest.id, T0).players, true);
   assert.equal(h.id in r.welcome(guest.id, T0).players, false, 'not a sleeper any more');
   assert.deepEqual(r.welcome(guest.id, T0).graves, [grave]);
-  assert.ok(r.players.has(h.id) && r.players.has(guest.id), 'the character stays, and so do their guests');
-  assert.deepEqual(await r.join(hKey, undefined, T0 + 20), { error: 'frozen' }, 'their key only gets the notice');
+  assert.ok(
+    r.players.has(h.id) && r.players.has(guest.id),
+    'the character stays, and so do their guests'
+  );
+  assert.deepEqual(
+    await r.join(hKey, undefined, T0 + 20),
+    { error: 'frozen' },
+    'their key only gets the notice'
+  );
   assert.equal((await r.join(key(), theirs, T0 + 20)).error, 'invite', 'their links stop');
   assert.deepEqual(r.freeze(h.id, T0 + 30, 'again'), { error: 'frozen' });
   assert.equal(r.roster(T0).find((p) => p.id === h.id).frozen, true);
   const log = r.takeLog();
-  assert.deepEqual(log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.why]), [[h.id, 'resources jumped to 500M']]);
-  assert.deepEqual(log.filter((x) => x.e === 'deny').map((x) => x.why), ['frozen', 'invite']);
+  assert.deepEqual(
+    log.filter((x) => x.e === 'freeze').map((x) => [x.p, x.why]),
+    [[h.id, 'resources jumped to 500M']]
+  );
+  assert.deepEqual(
+    log.filter((x) => x.e === 'deny').map((x) => x.why),
+    ['frozen', 'invite']
+  );
   // It survives a restart, and thawing undoes it.
   const back = Room.restore(r.id, new Map(r.takeWrites()), T0);
   assert.deepEqual(await back.join(hKey, undefined, T0 + 40), { error: 'frozen' });
   assert.deepEqual(back.graves, [grave], 'the tombstone survives a restart');
-  assert.deepEqual(back.thaw(h.id, T0 + 50).toAll[0], { t: 'graves', g: [] }, 'thawing takes the tombstone away');
+  assert.deepEqual(
+    back.thaw(h.id, T0 + 50).toAll[0],
+    { t: 'graves', g: [] },
+    'thawing takes the tombstone away'
+  );
   assert.equal(back.thaw(h.id, T0 + 50).error, 'not frozen');
-  assert.equal((await back.join(hKey, undefined, T0 + 60)).id, h.id, 'thawed, they can play it again');
+  assert.equal(
+    (await back.join(hKey, undefined, T0 + 60)).id,
+    h.id,
+    'thawed, they can play it again'
+  );
 });
 
 test('room: freezing takes a character out whoever it is; the world passes to nobody', async () => {
@@ -854,7 +1305,10 @@ test('room: freezing takes a character out whoever it is; the world passes to no
   const a = await r.join(key(), invite(r, o.id), T0);
   r.freeze(a.id, T0, 'hacked');
   const out = r.freeze(o.id, T0 + 1, 'hacked');
-  assert.deepEqual(out.toAll.filter((m) => m.t !== 'graves'), [{ t: 'frozen', id: o.id }]);
+  assert.deepEqual(
+    out.toAll.filter((m) => m.t !== 'graves'),
+    [{ t: 'frozen', id: o.id }]
+  );
   assert.equal(r.freeze('nobody', T0).error, 'player');
 });
 
@@ -865,12 +1319,15 @@ test('room: a frozen character leaves a tombstone where it last stood', async ()
   const nowhere = await r.join(key(), invite(r, o.id), T0);
   r.message(g.id, JSON.stringify({ t: 'pos', p: { x: 7.25, y: 2.5, z: 0 } }), T0 + 5);
   const out = r.freeze(g.id, T0 + 10, 'test');
-  assert.deepEqual(out.toAll.find((m) => m.t === 'graves'), { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ice']] });
+  assert.deepEqual(
+    out.toAll.find((m) => m.t === 'graves'),
+    { t: 'graves', g: [[g.id, g.welcome.c, 7.25, 2.5, 0, 'ice']] }
+  );
   r.freeze(nowhere.id, T0 + 20, 'test');
   assert.equal(r.graves.length, 1, 'no tombstone for someone who never stood anywhere');
 });
 
-test("room: a frozen character keeps its colour; the newest player takes another", async () => {
+test('room: a frozen character keeps its colour; the newest player takes another', async () => {
   const { r, maker } = await makeRoom();
   const o = await r.join(maker, undefined, T0);
   const a = await r.join(key(), invite(r, o.id), T0 + 1);
@@ -880,4 +1337,3 @@ test("room: a frozen character keeps its colour; the newest player takes another
   const d = await r.join(key(), invite(r, o.id), T0 + 5);
   assert.notEqual(d.welcome.c, a.welcome.c, 'a frozen character is still there, colour and all');
 });
-

@@ -9,11 +9,17 @@ import * as Core from '../core/index.js';
 
 const STORE = 'mte.income.v2.';
 export const MAX_SAMPLES = 480;
-const EVERY = 60000;  // ms between samples while income holds steady
-const SOON = 3000;    // ms after the last sample a jump in income is noted
-const JUMP = 0.02;    // a change in any resource's income of this share is a jump
+const EVERY = 60000; // ms between samples while income holds steady
+const SOON = 3000; // ms after the last sample a jump in income is noted
+const JUMP = 0.02; // a change in any resource's income of this share is a jump
 
-const localStore = () => { try { return globalThis.localStorage; } catch { return null; } };
+const localStore = () => {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+};
 const worldOf = (s) => s.shared || 'solo.' + s.seed;
 const round = (n) => (n < 100 ? Math.round(n * 1000) / 1000 : Math.round(n));
 
@@ -28,17 +34,30 @@ export function createIncome({ store = localStore() } = {}) {
     samples = [];
     try {
       const saved = JSON.parse(store?.getItem(STORE + w) || '[]');
-      if (Array.isArray(saved)) samples = saved.filter((p) => Array.isArray(p) && p.length === Core.RESOURCES.length + 1 && p.every(Number.isFinite));
-    } catch { /* unreadable: start afresh */ }
+      if (Array.isArray(saved))
+        samples = saved.filter(
+          (p) =>
+            Array.isArray(p) && p.length === Core.RESOURCES.length + 1 && p.every(Number.isFinite)
+        );
+    } catch {
+      /* unreadable: start afresh */
+    }
   }
 
   function save() {
-    try { store?.setItem(STORE + world, JSON.stringify(samples)); } catch { /* full or blocked: kept for this visit only */ }
+    try {
+      store?.setItem(STORE + world, JSON.stringify(samples));
+    } catch {
+      /* full or blocked: kept for this visit only */
+    }
   }
 
   function thin() {
     const half = samples.length >> 1;
-    samples = samples.slice(0, half).filter((_, i) => i % 2 === 0).concat(samples.slice(half));
+    samples = samples
+      .slice(0, half)
+      .filter((_, i) => i % 2 === 0)
+      .concat(samples.slice(half));
   }
 
   return {
@@ -46,10 +65,14 @@ export function createIncome({ store = localStore() } = {}) {
     note(s, now) {
       load(s);
       const last = samples[samples.length - 1];
-      if(last && now-last[0]<SOON)return false;
+      if (last && now - last[0] < SOON) return false;
       const statement = Core.incomeStatement(s);
-      const rates = Object.fromEntries(Core.RESOURCES.map(r=>[r,statement[r].rate]));
-      const jumped = last && Core.RESOURCES.some((r, i) => Math.abs(rates[r] - last[i + 1]) > JUMP * Math.max(last[i + 1], 0.01));
+      const rates = Object.fromEntries(Core.RESOURCES.map((r) => [r, statement[r].rate]));
+      const jumped =
+        last &&
+        Core.RESOURCES.some(
+          (r, i) => Math.abs(rates[r] - last[i + 1]) > JUMP * Math.max(last[i + 1], 0.01)
+        );
       if (last && now - last[0] < EVERY && !(jumped && now - last[0] >= SOON)) return false;
       samples.push([now, ...Core.RESOURCES.map((r) => round(rates[r]))]);
       if (samples.length > MAX_SAMPLES) thin();

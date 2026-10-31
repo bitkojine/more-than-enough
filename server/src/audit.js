@@ -14,14 +14,14 @@
 import { NAMES } from '../../src/net/names.js';
 import { ROOM_ID_RE } from '../../src/net/protocol.js';
 
-export const LOG_DAYS = 14;                 // events older than this are deleted
-export const SECURITY_DAYS = 90;            // except the security trail, kept this long
+export const LOG_DAYS = 14; // events older than this are deleted
+export const SECURITY_DAYS = 90; // except the security trail, kept this long
 // The security trail: cheats, bans, freezes, people turned away, connections cut.
 export const SECURITY_EVENTS = new Set(['cheat', 'ban', 'freeze', 'thaw', 'deny', 'cut', 'drift']);
-export const SAMPLE_MS = 15_000;            // where each moving player is, this often
-export const PROG_MS = 60_000;              // a player's progress, at most this often
-export const LOG_FLUSH_MS = 30_000;         // events reach storage this soon (and when the last player leaves)
-export const LOG_FLUSH_EVENTS = 500;        // or once this many are waiting
+export const SAMPLE_MS = 15_000; // where each moving player is, this often
+export const PROG_MS = 60_000; // a player's progress, at most this often
+export const LOG_FLUSH_MS = 30_000; // events reach storage this soon (and when the last player leaves)
+export const LOG_FLUSH_EVENTS = 500; // or once this many are waiting
 
 const round = (v) => Math.round(v);
 
@@ -31,12 +31,18 @@ const round = (v) => Math.round(v);
 // left out. Null if it isn't readable.
 export function digestOf(save) {
   let d;
-  try { d = JSON.parse(save); } catch { return null; }
+  try {
+    d = JSON.parse(save);
+  } catch {
+    return null;
+  }
   if (!d || typeof d !== 'object') return null;
   const num = (v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
   const known = (o, names) => {
     if (!o || typeof o !== 'object') return [];
-    return Object.keys(o).filter((k) => names.includes(k)).sort();
+    return Object.keys(o)
+      .filter((k) => names.includes(k))
+      .sort();
   };
   const nums = (o, names) => {
     const out = {};
@@ -79,7 +85,8 @@ export function sameDigest(a, b) {
 
 // A short, safe prefix of an invite code: enough to tell links apart in the
 // log, not enough to use one.
-export const codeTag = (code) => (typeof code === 'string' && ROOM_ID_RE.test(code) ? code.slice(0, 6) : null);
+export const codeTag = (code) =>
+  typeof code === 'string' && ROOM_ID_RE.test(code) ? code.slice(0, 6) : null;
 
 // Events as JSON lines.
 export const toLines = (events) => events.map((e) => JSON.stringify(e)).join('\n');
@@ -90,7 +97,14 @@ export const hasSecurity = (events) => events.some((e) => SECURITY_EVENTS.has(e.
 // Only the security trail's lines of a chunk of JSON lines (for keeping it
 // after the rest of the chunk is LOG_DAYS old).
 export function securityOnly(lines) {
-  return lines.split('\n').filter((line) => {
-    try { return SECURITY_EVENTS.has(JSON.parse(line).e); } catch { return false; }
-  }).join('\n');
+  return lines
+    .split('\n')
+    .filter((line) => {
+      try {
+        return SECURITY_EVENTS.has(JSON.parse(line).e);
+      } catch {
+        return false;
+      }
+    })
+    .join('\n');
 }

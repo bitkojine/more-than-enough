@@ -24,7 +24,7 @@ import { SOLO, sha256Hex } from '../../src/net/protocol.js';
 
 // The vault's name for a key.
 export async function vaultName(key) {
-  return 'solo|' + await sha256Hex('mte-solo|' + key);
+  return 'solo|' + (await sha256Hex('mte-solo|' + key));
 }
 
 async function metaOf(storage) {
@@ -41,7 +41,9 @@ export async function pull(storage, have) {
   const w = await storage.get('w:' + meta.cur);
   if (!w) return { cur: null };
   const base = { cur: meta.cur, rev: w.rev, at: w.at, worlds: meta.revs };
-  return have && have.seed === meta.cur && have.rev === w.rev ? { ...base, same: true } : { ...base, save: w.save };
+  return have && have.seed === meta.cur && have.rev === w.rev
+    ? { ...base, same: true }
+    : { ...base, save: w.save };
 }
 
 // One world, by seed.
@@ -60,14 +62,24 @@ async function sealKey(key) {
 }
 async function seal(key, me) {
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, await sealKey(key), new TextEncoder().encode(JSON.stringify(me)));
+  const data = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    await sealKey(key),
+    new TextEncoder().encode(JSON.stringify(me))
+  );
   return { iv: [...iv], data: new Uint8Array(data) };
 }
 async function unseal(key, box) {
   try {
-    const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(box.iv) }, await sealKey(key), box.data);
+    const data = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: new Uint8Array(box.iv) },
+      await sealKey(key),
+      box.data
+    );
     return JSON.parse(new TextDecoder().decode(data));
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // Your character (a checked 'me' ask, with its sync key): `mine` is kept if
@@ -97,10 +109,14 @@ export async function push(storage, ask, now) {
   const had = await storage.get('w:' + ask.seed);
   // Another device kept this world since the game's copy: it gets that copy
   // back, and nothing is written over.
-  if (had && had.rev !== ask.base) return { conflict: true, seed: ask.seed, rev: had.rev, at: had.at, save: had.save };
+  if (had && had.rev !== ask.base)
+    return { conflict: true, seed: ask.seed, rev: had.rev, at: had.at, save: had.save };
   if (!had && Object.keys(meta.revs).length >= SOLO.worlds) return { error: 'full' };
   const rev = (had ? had.rev : 0) + 1;
   const cur = ask.cur || meta.cur === null ? ask.seed : meta.cur;
-  await storage.put({ ['w:' + ask.seed]: { rev, at: now, save: ask.save }, meta: { cur, revs: { ...meta.revs, [ask.seed]: rev } } });
+  await storage.put({
+    ['w:' + ask.seed]: { rev, at: now, save: ask.save },
+    meta: { cur, revs: { ...meta.revs, [ask.seed]: rev } }
+  });
   return { rev };
 }

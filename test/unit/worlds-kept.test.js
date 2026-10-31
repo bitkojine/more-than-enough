@@ -14,13 +14,20 @@ import { OLDEST_SAVE } from '../../src/core/save.js';
 const store = new Map();
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { store.set(k, String(v)); },
-  removeItem: (k) => { store.delete(k); },
+  setItem: (k, v) => {
+    store.set(k, String(v));
+  },
+  removeItem: (k) => {
+    store.delete(k);
+  },
   key: (i) => [...store.keys()][i] ?? null,
-  get length() { return store.size; }
+  get length() {
+    return store.size;
+  }
 };
 const { loadGame } = await import('../../src/game/storage.js');
-const SAVE = 'more-than-enough-save', ASIDE = 'more-than-enough-save-aside';
+const SAVE = 'more-than-enough-save',
+  ASIDE = 'more-than-enough-save-aside';
 beforeEach(() => store.clear());
 
 const T0 = 1_700_000_000_000;
@@ -29,7 +36,19 @@ const key = () => P.randomHex(32);
 async function makeRoom(seed = 42, { smoke = false } = {}) {
   const r = new Room(P.randomRoomId(), T0);
   const maker = key();
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: maker, ...(smoke ? { smoke: true } : {}), world: { seed, mods: [], props: [], ext: [] } }), T0, smoke), null);
+  assert.equal(
+    await r.init(
+      JSON.stringify({
+        t: 'create',
+        key: maker,
+        ...(smoke ? { smoke: true } : {}),
+        world: { seed, mods: [], props: [], ext: [] }
+      }),
+      T0,
+      smoke
+    ),
+    null
+  );
   return { r, maker };
 }
 
@@ -61,23 +80,42 @@ test('worlds kept: a shared world from an older format plays on, with no nuke, a
   // As a world made before v0.109.0 is stored, with a nuke already called.
   Object.assign(writes.get('meta'), { fmt: 10, ef: 0, call: { fmt: 11, at: T0 }, nk: [a] });
   const back = Room.restore(r.id, writes, T0 + 1000);
-  assert.deepEqual([back.fmt, back.ef, back.seed, back.props.size], [WORLD_FORMAT, ECON_FORMAT, 42, 1], 'same world, same land, nothing lost');
-  assert.ok(back.log.some((e) => e.e === 'kept'), 'logged once as kept');
+  assert.deepEqual(
+    [back.fmt, back.ef, back.seed, back.props.size],
+    [WORLD_FORMAT, ECON_FORMAT, 42, 1],
+    'same world, same land, nothing lost'
+  );
+  assert.ok(
+    back.log.some((e) => e.e === 'kept'),
+    'logged once as kept'
+  );
   const joined = await back.join(maker, null, T0 + 2000);
   assert.equal(joined.called, undefined, 'nothing is called');
-  assert.deepEqual([joined.welcome.nuke, joined.welcome.fmt, joined.welcome.gen, joined.welcome.seed], [null, WORLD_FORMAT, 0, 42]);
+  assert.deepEqual(
+    [joined.welcome.nuke, joined.welcome.fmt, joined.welcome.gen, joined.welcome.seed],
+    [null, WORLD_FORMAT, 0, 42]
+  );
   const meta = back.takeWrites().get('meta');
-  assert.deepEqual([meta.fmt, meta.ef, 'call' in meta, 'nk' in meta], [WORLD_FORMAT, ECON_FORMAT, false, false], 'the old nuke is gone from storage too');
+  assert.deepEqual(
+    [meta.fmt, meta.ef, 'call' in meta, 'nk' in meta],
+    [WORLD_FORMAT, ECON_FORMAT, false, false],
+    'the old nuke is gone from storage too'
+  );
 });
 
 test('worlds kept: pressing the nuke from an old game changes nothing', async () => {
   const { r, maker } = await makeRoom();
   const a = (await r.join(maker, null, T0)).id;
   r.made(a, [['p', Core.packKey(2, 2, 0), 'glowcap']], T0);
-  for (let i = 0; i < 3; i++) assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0 + i), {});
+  for (let i = 0; i < 3; i++)
+    assert.deepEqual(r.message(a, JSON.stringify({ t: 'nuke' }), T0 + i), {});
   assert.deepEqual([r.seed, r.props.size, r.gen], [42, 1, 0]);
   const forged = await r.join(maker, null, T0, 99999);
-  assert.equal(forged.welcome.nuke, null, 'a hello claiming a far newer game changes nothing either');
+  assert.equal(
+    forged.welcome.nuke,
+    null,
+    'a hello claiming a far newer game changes nothing either'
+  );
 });
 
 test('worlds kept: the room has no way left to remake or wipe a world', () => {
@@ -91,13 +129,13 @@ test('worlds kept: the room has no way left to remake or wipe a world', () => {
   assert.equal(worker.match(/deleteAll\(/g).length, 1);
 });
 
-test('worlds kept: no room is ever deleted for being unvisited, whatever its seed or mark; only a moderator\'s copy goes', async () => {
+test("worlds kept: no room is ever deleted for being unvisited, whatever its seed or mark; only a moderator's copy goes", async () => {
   const YEARS = 100 * 365 * 86_400_000;
   const { r } = await makeRoom();
   assert.equal(r.expired(T0 + YEARS), false);
   const seeded = await makeRoom(SMOKE_SEED);
   assert.equal(seeded.r.seed, SMOKE_SEED);
-  assert.equal(seeded.r.expired(T0 + YEARS), false, 'the smoke test\'s seed is just a number');
+  assert.equal(seeded.r.expired(T0 + YEARS), false, "the smoke test's seed is just a number");
   // A deploy's smoke-test room is marked (to stay out of the moderator's
   // lists) but kept too: nothing deletes a room on its own (Watch, 2026-10-20).
   const smoke = await makeRoom(42, { smoke: true });
@@ -108,12 +146,30 @@ test('worlds kept: no room is ever deleted for being unvisited, whatever its see
   assert.equal(back.expired(T0 + YEARS), false);
   // The body's word alone never marks a room: the worker's admin check does.
   const forged = new Room(P.randomRoomId(), T0);
-  assert.equal(await forged.init(JSON.stringify({ t: 'create', key: key(), smoke: true, world: { seed: 7, mods: [], props: [], ext: [] } }), T0), null);
-  assert.equal(forged.smoke, false, 'a create claiming "smoke" without the admin token changes nothing');
+  assert.equal(
+    await forged.init(
+      JSON.stringify({
+        t: 'create',
+        key: key(),
+        smoke: true,
+        world: { seed: 7, mods: [], props: [], ext: [] }
+      }),
+      T0
+    ),
+    null
+  );
+  assert.equal(
+    forged.smoke,
+    false,
+    'a create claiming "smoke" without the admin token changes nothing'
+  );
   // Marking is the moderator's alone, and it is logged.
   assert.equal(forged.markSmoke(true, T0 + 1), null);
   assert.equal(forged.expired(T0 + YEARS), false);
-  assert.ok(forged.log.some((e) => e.e === 'smoke' && e.smoke === true), 'the marking is in the audit log');
+  assert.ok(
+    forged.log.some((e) => e.e === 'smoke' && e.smoke === true),
+    'the marking is in the audit log'
+  );
 });
 
 test('worlds kept: no solo world is lost on load; one set aside that was played further comes back', () => {
@@ -143,7 +199,11 @@ test('worlds kept: a world started by an Embark is never swapped for an older on
   old.stats.playedMs = 50 * 3600_000;
   store.set(SAVE, Core.serialize(embarked));
   store.set(ASIDE, Core.serialize(old));
-  assert.equal(loadGame().state.seed, 8, 'more Embarks means further along, whatever the play clock says');
+  assert.equal(
+    loadGame().state.seed,
+    8,
+    'more Embarks means further along, whatever the play clock says'
+  );
 });
 
 test('worlds kept: no file anywhere in the game or room service names the nuke any more', () => {
@@ -152,7 +212,8 @@ test('worlds kept: no file anywhere in the game or room service names the nuke a
     for (const f of readdirSync(new URL('../../' + dir, import.meta.url))) {
       if (!f.endsWith('.js')) continue;
       const src = readFileSync(new URL('../../' + dir + '/' + f, import.meta.url), 'utf8');
-      for (const bad of ['renew(', 'callNuke', 'nukeDue', 'NUKE_AFK_MS']) assert.ok(!src.includes(bad), dir + '/' + f + ' has ' + bad);
+      for (const bad of ['renew(', 'callNuke', 'nukeDue', 'NUKE_AFK_MS'])
+        assert.ok(!src.includes(bad), dir + '/' + f + ' has ' + bad);
     }
   }
 });

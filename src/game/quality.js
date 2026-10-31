@@ -32,14 +32,14 @@ export const LEVELS = [
 ];
 export const MAX_PIXELS = 3_000_000; // device pixels the map is drawn with, at most
 export const RENDER_FPS = 30; // one rendering target for all devices and activity states
-const SLOW = 2 / 3;       // of the pace: an average frame rate under this is too slow
-const SMOOTH = 13 / 15;     // ... and at or over this, smooth (room to try better)
-const JUDGE_S = 1;          // seconds of frames each judgement averages
-const SETTLE_S = 1.5;       // seconds not judged after starting, a step, or coming back
-const HICCUP_MS = 250;      // a gap this long is a pause (a tab switch, a save), not the pace
-export const UP_AFTER_S = 20;  // seconds of smooth frames before trying a level better
-export const UP_MAX_S = 600;   // the longest wait between tries, after failed ones
-const RETRY_S = 5;          // smooth seconds before a try once the charger is plugged in
+const SLOW = 2 / 3; // of the pace: an average frame rate under this is too slow
+const SMOOTH = 13 / 15; // ... and at or over this, smooth (room to try better)
+const JUDGE_S = 1; // seconds of frames each judgement averages
+const SETTLE_S = 1.5; // seconds not judged after starting, a step, or coming back
+const HICCUP_MS = 250; // a gap this long is a pause (a tab switch, a save), not the pace
+export const UP_AFTER_S = 20; // seconds of smooth frames before trying a level better
+export const UP_MAX_S = 600; // the longest wait between tries, after failed ones
+const RETRY_S = 5; // smooth seconds before a try once the charger is plugged in
 
 // Display-aligned 30 FPS pacing. Frames are drawn only in animation-frame
 // callbacks, judged by the callback's vsync timestamp. Each drawn frame moves
@@ -54,14 +54,19 @@ export function createFramePacer(fps = RENDER_FPS) {
   const step = 1000 / fps;
   let next = null;
   return {
-    reset() { next = null; },
+    reset() {
+      next = null;
+    },
     /** @param {number} stamp the animation-frame timestamp (ms) */
     due(stamp) {
-      if (next === null) { next = stamp + step; return true; }
+      if (next === null) {
+        next = stamp + step;
+        return true;
+      }
       if (stamp < next - PACE_SLACK_MS) return false;
       next = Math.max(next + step, stamp + step - PACE_SLACK_MS);
       return true;
-    },
+    }
   };
 }
 
@@ -71,24 +76,32 @@ export function createFramePacer(fps = RENDER_FPS) {
  * @param {() => void} changed called after each step down or up
  */
 export function createQuality(remembered, screenDpr, changed) {
-  const SLOW_MS = 1000 / (RENDER_FPS * SLOW), SMOOTH_MS = 1000 / (RENDER_FPS * SMOOTH);
+  const SLOW_MS = 1000 / (RENDER_FPS * SLOW),
+    SMOOTH_MS = 1000 / (RENDER_FPS * SMOOTH);
   // Two levels look the same on this screen if it draws them at the same
   // density (a laptop at 1x has nothing to gain from 1.5x): skip over those.
   const looks = (i) => Math.min(LEVELS[i].dpr, screenDpr) + (LEVELS[i].glass ? 'g' : '');
   const last = LEVELS.length - 1;
   let level = Math.min(last, Math.max(0, remembered | 0));
-  let settle = 0, sum = 0, frames = 0;
-  let smooth = 0;           // ms of smooth frames in a row at this level
+  let settle = 0,
+    sum = 0,
+    frames = 0;
+  let smooth = 0; // ms of smooth frames in a row at this level
   let upAfter = UP_AFTER_S * 1000;
-  let trying = false;       // this level is a try, not yet proven
+  let trying = false; // this level is a try, not yet proven
 
-  function start() { settle = SETTLE_S * 1000; sum = 0; frames = 0; }
+  function start() {
+    settle = SETTLE_S * 1000;
+    sum = 0;
+    frames = 0;
+  }
 
   // Moves `dir` (+1 down, -1 up) to the next level that looks different.
   function step(dir) {
     const was = looks(level);
     let to = level;
-    do to += dir; while (to > 0 && to < last && looks(to) === was);
+    do to += dir;
+    while (to > 0 && to < last && looks(to) === was);
     if (to < 0 || to > last || looks(to) === was) return false;
     level = to;
     smooth = 0;
@@ -106,26 +119,46 @@ export function createQuality(remembered, screenDpr, changed) {
       step(+1);
       return;
     }
-    if (avg > SMOOTH_MS) { smooth = 0; return; }
+    if (avg > SMOOTH_MS) {
+      smooth = 0;
+      return;
+    }
     smooth += ms;
-    if (trying && smooth >= UP_AFTER_S * 1000) { trying = false; upAfter = UP_AFTER_S * 1000; }
+    if (trying && smooth >= UP_AFTER_S * 1000) {
+      trying = false;
+      upAfter = UP_AFTER_S * 1000;
+    }
     if (!trying && smooth >= upAfter && step(-1)) trying = true;
   }
 
   const quality = {
-    get level() { return level; },
-    get dpr() { return LEVELS[level].dpr; },
-    get glass() { return LEVELS[level].glass; },
-    get flyers() { return LEVELS[level].flyers; },
+    get level() {
+      return level;
+    },
+    get dpr() {
+      return LEVELS[level].dpr;
+    },
+    get glass() {
+      return LEVELS[level].glass;
+    },
+    get flyers() {
+      return LEVELS[level].flyers;
+    },
 
     // One frame drawn at full pace, intervalMs after the last one.
     frame(intervalMs) {
       if (!(intervalMs > 0) || intervalMs > HICCUP_MS) return;
-      if (settle > 0) { settle -= intervalMs; return; }
-      sum += intervalMs; frames++;
+      if (settle > 0) {
+        settle -= intervalMs;
+        return;
+      }
+      sum += intervalMs;
+      frames++;
       if (sum < JUDGE_S * 1000) return;
-      const avg = sum / frames, ms = sum;
-      sum = 0; frames = 0;
+      const avg = sum / frames,
+        ms = sum;
+      sum = 0;
+      frames = 0;
       judge(avg, ms);
     },
 
@@ -158,21 +191,46 @@ export function drawDpr(levelDpr, screenDpr, cssWidth, cssHeight) {
 // Display callback age (callback start minus its vsync timestamp) overlaps that
 // interval; never add it.
 export function createFrameTiming() {
-  let previous=null,entered=null,work=0,rafs=0,rafAge=0;
-  const clear=()=>{work=rafs=rafAge=0;};
+  let previous = null,
+    entered = null,
+    work = 0,
+    rafs = 0,
+    rafAge = 0;
+  const clear = () => {
+    work = rafs = rafAge = 0;
+  };
   return {
-    reset(){previous=entered=null;clear();},
-    enter(now,stamp=now){entered=now;rafs++;rafAge+=Math.max(0,now-stamp);},
-    leave(now){if(entered!==null)work+=Math.max(0,now-entered);entered=null;},
-    rendered(now){
-      const interval=previous===null?0:now-previous,budget=1000/RENDER_FPS;
-      const cpu=Math.min(interval,work);
-      const result=interval>0&&interval<1000?{
-        callbackWorkMs:cpu,outsideLoopMs:Math.max(0,interval-cpu),
-        capAllowanceMs:Math.max(0,budget-cpu),overTargetMs:Math.max(0,interval-budget),
-        rafCallbacks:rafs,rafAgeMs:rafs?rafAge/rafs:0
-      }:null;
-      previous=now;clear();return result;
+    reset() {
+      previous = entered = null;
+      clear();
+    },
+    enter(now, stamp = now) {
+      entered = now;
+      rafs++;
+      rafAge += Math.max(0, now - stamp);
+    },
+    leave(now) {
+      if (entered !== null) work += Math.max(0, now - entered);
+      entered = null;
+    },
+    rendered(now) {
+      const interval = previous === null ? 0 : now - previous,
+        budget = 1000 / RENDER_FPS;
+      const cpu = Math.min(interval, work);
+      const result =
+        interval > 0 && interval < 1000
+          ? {
+              callbackWorkMs: cpu,
+              outsideLoopMs: Math.max(0, interval - cpu),
+              capAllowanceMs: Math.max(0, budget - cpu),
+              overTargetMs: Math.max(0, interval - budget),
+              rafCallbacks: rafs,
+              rafAgeMs: rafs ? rafAge / rafs : 0
+            }
+          : null;
+      previous = now;
+      clear();
+      return result;
     }
   };
 }

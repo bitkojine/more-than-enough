@@ -13,8 +13,15 @@ export function visitor(ip) {
   const [head, tail = ''] = ip.toLowerCase().split('::');
   const a = head ? head.split(':') : [];
   const b = tail ? tail.split(':') : [];
-  const groups = ip.includes('::') ? [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b] : a;
-  return groups.slice(0, 3).map((g) => (parseInt(g, 16) || 0).toString(16)).join(':') + '::/48';
+  const groups = ip.includes('::')
+    ? [...a, ...Array(Math.max(0, 8 - a.length - b.length)).fill('0'), ...b]
+    : a;
+  return (
+    groups
+      .slice(0, 3)
+      .map((g) => (parseInt(g, 16) || 0).toString(16))
+      .join(':') + '::/48'
+  );
 }
 
 /* A token bucket per connection: LIMITS.ratePerSecond on average, bursts
@@ -33,9 +40,12 @@ export class Bucket {
 
   take(now, n = 1) {
     this.strikes = Math.max(0, this.strikes - (now - this.at) / STRIKE_FORGIVE_MS);
-    this.tokens = Math.min(this.burst, this.tokens + (now - this.at) / 1000 * this.rate);
+    this.tokens = Math.min(this.burst, this.tokens + ((now - this.at) / 1000) * this.rate);
     this.at = now;
-    if (this.tokens >= n) { this.tokens -= n; return true; }
+    if (this.tokens >= n) {
+      this.tokens -= n;
+      return true;
+    }
     this.strikes++;
     return false;
   }

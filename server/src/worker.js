@@ -29,23 +29,45 @@
 
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, NEAR, visitor } from './room.js';
-import { LOG_DAYS, SECURITY_DAYS, LOG_FLUSH_MS, LOG_FLUSH_EVENTS, toLines, hasSecurity, securityOnly } from './audit.js';
+import {
+  LOG_DAYS,
+  SECURITY_DAYS,
+  LOG_FLUSH_MS,
+  LOG_FLUSH_EVENTS,
+  toLines,
+  hasSecurity,
+  securityOnly
+} from './audit.js';
 import { snapshot, copyEntries, COPY_MS } from './copy.js';
 import { adminPage, worldOf, isSmokeTest } from './admin.js';
 import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
 import { vaultName, pull, get, push, me } from './vault.js';
 import { VERSION } from '../../src/version.js';
-import { LIMITS, ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId, sha256Hex, PING, PONG, parse, cleanCreate, SOLO, cleanSoloAsk } from '../../src/net/protocol.js';
+import {
+  LIMITS,
+  ROOM_ID_RE,
+  ID_RE,
+  randomRoomId,
+  randomHex,
+  playerId,
+  sha256Hex,
+  PING,
+  PONG,
+  parse,
+  cleanCreate,
+  SOLO,
+  cleanSoloAsk
+} from '../../src/net/protocol.js';
 
-const HELLO_MS = 5_000;          // a socket must say who it is within this
-const SOCKETS_PER_VISITOR = 8;   // sockets one visitor may hold in a room
+const HELLO_MS = 5_000; // a socket must say who it is within this
+const SOCKETS_PER_VISITOR = 8; // sockets one visitor may hold in a room
 const STRANGERS_PER_VISITOR = 3; // of them, ones that haven't said who they are yet
-const PERSIST_MS = 2_000;        // edits reach storage this soon
+const PERSIST_MS = 2_000; // edits reach storage this soon
 const MAX_SOCKETS = LIMITS.players * 2;
-const LOG_CHUNKS = 500;          // log chunks one export reads; the rest comes with the next `since`
-const PRUNE_MS = 3600_000;       // old log is deleted this often
-const PUT_MAX = 100;             // entries storage takes in one put (it allows 128)
-const COPY_ENDED = 4006;         // a copy's sockets close with this when it's deleted
+const LOG_CHUNKS = 500; // log chunks one export reads; the rest comes with the next `since`
+const PRUNE_MS = 3600_000; // old log is deleted this often
+const PUT_MAX = 100; // entries storage takes in one put (it allows 128)
+const COPY_ENDED = 4006; // a copy's sockets close with this when it's deleted
 
 // Whether a player at `p` is near enough to `q` to hear its every step.
 function isNear(p, q) {
@@ -60,16 +82,23 @@ const SECURITY_HEADERS = {
 
 function allowedOrigin(env, origin) {
   if (!origin) return false;
-  const list = String(env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const list = String(env.ALLOWED_ORIGINS || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (list.includes(origin)) return true;
   // Local development only when the deployment says so.
-  return env.ALLOW_LOCALHOST === 'true' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/.test(origin);
+  return (
+    env.ALLOW_LOCALHOST === 'true' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/.test(origin)
+  );
 }
 
 // A short, salted hash of a visitor for a room's socket limits: enough to
 // count sockets, without the room keeping anyone's address.
 async function visitorTag(room, request) {
-  return (await sha256Hex('mte-visitor|' + room + '|' + visitor(request.headers.get('CF-Connecting-IP')))).slice(0, 12);
+  return (
+    await sha256Hex('mte-visitor|' + room + '|' + visitor(request.headers.get('CF-Connecting-IP')))
+  ).slice(0, 12);
 }
 
 // The request body as text, or null once it passes `max` bytes (read in
@@ -83,13 +112,23 @@ async function readCapped(request, max) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > max) { await reader.cancel(); return null; }
+    if (size > max) {
+      await reader.cancel();
+      return null;
+    }
     parts.push(value);
   }
   const all = new Uint8Array(size);
   let at = 0;
-  for (const p of parts) { all.set(p, at); at += p.byteLength; }
-  try { return new TextDecoder('utf-8', { fatal: true }).decode(all); } catch { return null; }
+  for (const p of parts) {
+    all.set(p, at);
+    at += p.byteLength;
+  }
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(all);
+  } catch {
+    return null;
+  }
 }
 
 // Whether a request carries the moderator's token. Without an ADMIN_TOKEN
@@ -111,33 +150,44 @@ async function admin(request, env, url) {
     const rooms = [];
     for (const id of await registry.list()) {
       const s = await env.ROOMS.get(env.ROOMS.idFromName(id)).summary();
-      if (s) rooms.push(s); else await registry.remove(id);
+      if (s) rooms.push(s);
+      else await registry.remove(id);
     }
     return respond({ rooms }, 200, null);
   }
   if (url.pathname === '/admin/players' && request.method === 'GET') {
     const tests = url.searchParams.get('tests') === '1';
     const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
-    const rooms = await Promise.all((await registry.list()).map(async (id) => {
-      const room = env.ROOMS.get(env.ROOMS.idFromName(id));
-      try {
-        const o = await room.overview(id, tests);
-        return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
-      } catch (e) {
-        // A busy room can run the code from before a deploy for a while:
-        // asked the older way; failing that, it says so and the rest still shows.
+    const rooms = await Promise.all(
+      (await registry.list()).map(async (id) => {
+        const room = env.ROOMS.get(env.ROOMS.idFromName(id));
         try {
-          const summary = await room.summary();
-          if (!summary || (isSmokeTest(summary) && !tests)) return null;
-          return worldOf(summary, await room.roster(id) || [], await room.graves(id) || []);
-        } catch {
-          return { id, error: String(e && e.message || e).slice(0, 200), players: [], name: { en: id, lt: id }, last: 0 };
+          const o = await room.overview(id, tests);
+          return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
+        } catch (e) {
+          // A busy room can run the code from before a deploy for a while:
+          // asked the older way; failing that, it says so and the rest still shows.
+          try {
+            const summary = await room.summary();
+            if (!summary || (isSmokeTest(summary) && !tests)) return null;
+            return worldOf(summary, (await room.roster(id)) || [], (await room.graves(id)) || []);
+          } catch {
+            return {
+              id,
+              error: String((e && e.message) || e).slice(0, 200),
+              players: [],
+              name: { en: id, lt: id },
+              last: 0
+            };
+          }
         }
-      }
-    }));
+      })
+    );
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);
   }
-  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|revoke|graves|copy|backup|restore|smoke)$/);
+  const m = url.pathname.match(
+    /^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|revoke|graves|copy|backup|restore|smoke)$/
+  );
   if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
   const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
   if (m[2] === 'players' && request.method === 'GET') {
@@ -152,13 +202,23 @@ async function admin(request, env, url) {
     const since = Math.max(0, Number(url.searchParams.get('since')) || 0);
     const text = await room.exportLog(m[1], since);
     if (text === null) return respond({ error: 'room' }, 404, null);
-    return new Response(text, { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' } });
+    return new Response(text, {
+      status: 200,
+      headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' }
+    });
   }
   if (m[2] === 'backup' && request.method === 'GET') {
     const entries = await room.snapshot(m[1]);
     if (!entries) return respond({ error: 'room' }, 404, null);
     const now = Date.now();
-    return new Response(backupOf(entries, m[1], now, VERSION), { status: 200, headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json', 'Content-Disposition': 'attachment; filename="' + backupName(m[1], now) + '"' } });
+    return new Response(backupOf(entries, m[1], now, VERSION), {
+      status: 200,
+      headers: {
+        ...SECURITY_HEADERS,
+        'Content-Type': 'application/json',
+        'Content-Disposition': 'attachment; filename="' + backupName(m[1], now) + '"'
+      }
+    });
   }
   if (m[2] === 'restore' && request.method === 'POST') {
     const body = await readCapped(request, BACKUP_MAX);
@@ -174,28 +234,47 @@ async function admin(request, env, url) {
   if (m[2] === 'copy' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
-    try { d = JSON.parse(body); } catch { /* below */ }
-    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
+    try {
+      d = JSON.parse(body);
+    } catch {
+      /* below */
+    }
+    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
+      return respond({ error: 'bad' }, 400, null);
     const entries = await room.snapshot(m[1]);
     if (!entries) return respond({ error: 'room' }, 404, null);
     // A key of its own for the copy, handed to the moderator only: the
     // player's own never leaves their phone (the room has its hash).
-    const copy = randomRoomId(), key = randomHex(32), until = Date.now() + COPY_MS;
+    const copy = randomRoomId(),
+      key = randomHex(32),
+      until = Date.now() + COPY_MS;
     const made = copyEntries(entries, d.id, await playerId(copy, key), until);
     if (!made) return respond({ error: 'player' }, 409, null);
     const err = await env.ROOMS.get(env.ROOMS.idFromName(copy)).adopt(copy, made);
     if (err) return respond({ error: err }, 409, null);
-    const game = String(env.ALLOWED_ORIGINS || '').split(',')[0].trim();
-    return respond({ room: copy, key, until, link: game + '/#copy=' + copy + '.' + key + '&of=' + m[1] }, 200, null);
+    const game = String(env.ALLOWED_ORIGINS || '')
+      .split(',')[0]
+      .trim();
+    return respond(
+      { room: copy, key, until, link: game + '/#copy=' + copy + '.' + key + '&of=' + m[1] },
+      200,
+      null
+    );
   }
   if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
-    try { d = JSON.parse(body); } catch { /* below */ }
-    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id)) return respond({ error: 'bad' }, 400, null);
+    try {
+      d = JSON.parse(body);
+    } catch {
+      /* below */
+    }
+    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
+      return respond({ error: 'bad' }, 400, null);
     const why = typeof d.why === 'string' ? d.why : '';
     // 'ban' is kept for old tools and freezes: nothing deletes a player.
-    const err = m[2] === 'thaw' ? await room.modThaw(m[1], d.id) : await room.modFreeze(m[1], d.id, why);
+    const err =
+      m[2] === 'thaw' ? await room.modThaw(m[1], d.id) : await room.modFreeze(m[1], d.id, why);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
   // Stopping any invite link (only its maker can in the game itself): for a
@@ -203,8 +282,13 @@ async function admin(request, env, url) {
   if (m[2] === 'revoke' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
-    try { d = JSON.parse(body); } catch { /* below */ }
-    if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code)) return respond({ error: 'bad' }, 400, null);
+    try {
+      d = JSON.parse(body);
+    } catch {
+      /* below */
+    }
+    if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code))
+      return respond({ error: 'bad' }, 400, null);
     const err = await room.modRevoke(m[1], d.code);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
@@ -213,7 +297,11 @@ async function admin(request, env, url) {
   if (m[2] === 'smoke' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
     let d = null;
-    try { d = JSON.parse(body); } catch { /* below */ }
+    try {
+      d = JSON.parse(body);
+    } catch {
+      /* below */
+    }
     if (!d || typeof d.smoke !== 'boolean') return respond({ error: 'bad' }, 400, null);
     const err = await room.modSmoke(m[1], d.smoke);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
@@ -252,7 +340,8 @@ export default {
     }
 
     // The commit it was deployed from (rooms.yml), for scripts/live-check.mjs.
-    if (url.pathname === '/') return respond({ ok: true, commit: env.COMMIT || null }, 200, okOrigin);
+    if (url.pathname === '/')
+      return respond({ ok: true, commit: env.COMMIT || null }, 200, okOrigin);
     // The moderator's page holds nothing until the token is typed in it.
     if (url.pathname === '/admin' && request.method === 'GET') {
       const { html, headers } = await adminPage();
@@ -263,7 +352,11 @@ export default {
     if (url.pathname.startsWith('/admin/')) {
       if (!(await isAdmin(request, env))) return respond({ error: 'not found' }, 404, null);
       // A failure says what went wrong, to the moderator only.
-      try { return await admin(request, env, url); } catch (e) { return respond({ error: String(e && e.message || e).slice(0, 300) }, 500, null); }
+      try {
+        return await admin(request, env, url);
+      } catch (e) {
+        return respond({ error: String((e && e.message) || e).slice(0, 300) }, 500, null);
+      }
     }
     // Browsers always send Origin on these; anything else isn't the game.
     if (!okOrigin) return respond({ error: 'origin' }, 403, null);
@@ -282,7 +375,8 @@ export default {
       if (body === null) return respond({ error: 'size' }, 413, okOrigin);
       // A body must be a create a room can actually be made from, or it is
       // refused here without a room ever being touched.
-      if (!cleanCreate(parse(body, LIMITS.createBytes))) return respond({ error: 'bad' }, 400, okOrigin);
+      if (!cleanCreate(parse(body, LIMITS.createBytes)))
+        return respond({ error: 'bad' }, 400, okOrigin);
       const id = randomRoomId();
       const room = env.ROOMS.get(env.ROOMS.idFromName(id));
       const err = await room.create(id, body, trusted);
@@ -299,8 +393,14 @@ export default {
       const ask = cleanSoloAsk(parse(body, SOLO.bytes + 1024));
       if (!ask) return respond({ error: 'bad' }, 400, okOrigin);
       const vault = env.VAULT.get(env.VAULT.idFromName(await vaultName(ask.key)));
-      const out = ask.t === 'pull' ? await vault.pull(ask.have) : ask.t === 'get' ? await vault.get(ask.seed)
-        : ask.t === 'me' ? await vault.me(ask.key, ask.me) : await vault.push(ask);
+      const out =
+        ask.t === 'pull'
+          ? await vault.pull(ask.have)
+          : ask.t === 'get'
+            ? await vault.get(ask.seed)
+            : ask.t === 'me'
+              ? await vault.me(ask.key, ask.me)
+              : await vault.push(ask);
       return respond(out, out.error ? 409 : 200, okOrigin);
     }
 
@@ -310,13 +410,18 @@ export default {
     const there = url.pathname.match(/^\/rooms\/([^/]+)$/);
     if (there && request.method === 'GET') {
       if (!ROOM_ID_RE.test(there[1])) return respond({ exists: false }, 200, okOrigin);
-      return respond(await env.ROOMS.get(env.ROOMS.idFromName(there[1])).brief(there[1]), 200, okOrigin);
+      return respond(
+        await env.ROOMS.get(env.ROOMS.idFromName(there[1])).brief(there[1]),
+        200,
+        okOrigin
+      );
     }
 
     const m = url.pathname.match(/^\/rooms\/([^/]+)\/ws$/);
     if (m && request.method === 'GET') {
       if (!ROOM_ID_RE.test(m[1])) return respond({ error: 'room' }, 404, okOrigin);
-      if (request.headers.get('Upgrade') !== 'websocket') return respond({ error: 'upgrade' }, 426, okOrigin);
+      if (request.headers.get('Upgrade') !== 'websocket')
+        return respond({ error: 'upgrade' }, 426, okOrigin);
       const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
       // The room learns its own id only from here, never from a player.
       const headers = new Headers(request.headers);
@@ -354,10 +459,18 @@ export class Registry extends DurableObject {
 // One player's own worlds, kept for every device they link (vault.js): one
 // object per sync key, named by its hash.
 export class Vault extends DurableObject {
-  pull(have) { return pull(this.ctx.storage, have); }
-  get(seed) { return get(this.ctx.storage, seed); }
-  push(ask) { return push(this.ctx.storage, ask, Date.now()); }
-  me(key, mine) { return me(this.ctx.storage, key, mine); }
+  pull(have) {
+    return pull(this.ctx.storage, have);
+  }
+  get(seed) {
+    return get(this.ctx.storage, seed);
+  }
+  push(ask) {
+    return push(this.ctx.storage, ask, Date.now());
+  }
+  me(key, mine) {
+    return me(this.ctx.storage, key, mine);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -369,15 +482,21 @@ export class Rooms extends DurableObject {
     super(ctx, env);
     this.room = null;
     this.buckets = new Map(); // socket -> Bucket (resets on hibernation, which is fine)
-    this.registered = false;  // in the Registry, as far as this copy knows
-    this.prunedAt = 0;        // when old log was last deleted
+    this.registered = false; // in the Registry, as far as this copy knows
+    this.prunedAt = 0; // when old log was last deleted
     // The audit log: chunks of JSON lines, each stamped with its first event.
     // Not in the key-value storage, so loading a room never reads it.
     // `sec`: the chunk has security events (kept SECURITY_DAYS); `trimmed`:
     // the rest of it has gone.
-    ctx.storage.sql.exec('CREATE TABLE IF NOT EXISTS audit (ts INTEGER NOT NULL, lines TEXT NOT NULL, sec INTEGER NOT NULL DEFAULT 0, trimmed INTEGER NOT NULL DEFAULT 0)');
+    ctx.storage.sql.exec(
+      'CREATE TABLE IF NOT EXISTS audit (ts INTEGER NOT NULL, lines TEXT NOT NULL, sec INTEGER NOT NULL DEFAULT 0, trimmed INTEGER NOT NULL DEFAULT 0)'
+    );
     for (const col of ['sec', 'trimmed']) {
-      try { ctx.storage.sql.exec(`ALTER TABLE audit ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 0`); } catch { /* already there */ }
+      try {
+        ctx.storage.sql.exec(`ALTER TABLE audit ADD COLUMN ${col} INTEGER NOT NULL DEFAULT 0`);
+      } catch {
+        /* already there */
+      }
     }
     // A game asks 'ping' now and then and the room answers 'pong' without
     // waking up (see PING in src/net/protocol.js): that's how a game notices
@@ -391,9 +510,15 @@ export class Rooms extends DurableObject {
     const roomId = entries.get('id');
     this.room = Room.restore(roomId || '', entries, Date.now());
     // After a restart, players whose socket is gone are lost, not online.
-    const live = new Set(this.ctx.getWebSockets().map((ws) => (ws.deserializeAttachment() || {}).id).filter(Boolean));
+    const live = new Set(
+      this.ctx
+        .getWebSockets()
+        .map((ws) => (ws.deserializeAttachment() || {}).id)
+        .filter(Boolean)
+    );
     for (const [id, p] of this.room.players) {
-      if ((p.st === 'online' || p.st === 'away') && !live.has(id)) this.room.left(id, false, Date.now());
+      if ((p.st === 'online' || p.st === 'away') && !live.has(id))
+        this.room.left(id, false, Date.now());
     }
   }
 
@@ -402,7 +527,10 @@ export class Rooms extends DurableObject {
     if (this.room.ready) return 'exists';
     this.room.id = id;
     const err = await this.room.init(body, Date.now(), trusted);
-    if (err) { this.room = Room.restore('', new Map(), Date.now()); return err; }
+    if (err) {
+      this.room = Room.restore('', new Map(), Date.now());
+      return err;
+    }
     this.registered = true;
     await this.persist({ id }); // with the room itself, in one go
     return null;
@@ -423,7 +551,8 @@ export class Rooms extends DurableObject {
     if (this.room.ready) return 'exists';
     const all = [...entries, ['id', id]];
     const ops = [];
-    for (let i = 0; i < all.length; i += PUT_MAX) ops.push(this.ctx.storage.put(Object.fromEntries(all.slice(i, i + PUT_MAX))));
+    for (let i = 0; i < all.length; i += PUT_MAX)
+      ops.push(this.ctx.storage.put(Object.fromEntries(all.slice(i, i + PUT_MAX))));
     await Promise.all(ops);
     await this.load(); // as after a restart: whoever was in is gone now
     await this.persist();
@@ -439,7 +568,18 @@ export class Rooms extends DurableObject {
     for (const p of r.players.values()) if (p.st === 'online' || p.st === 'away') online++;
     let frozen = 0;
     for (const p of r.players.values()) if (p.frozen) frozen++;
-    return { id: r.id, created: r.created, last: r.last, seed: r.seed, gen: r.gen, fmt: r.fmt, players: r.players.size, online, frozen, smk: r.smoke === true };
+    return {
+      id: r.id,
+      created: r.created,
+      last: r.last,
+      seed: r.seed,
+      gen: r.gen,
+      fmt: r.fmt,
+      players: r.players.size,
+      online,
+      frozen,
+      smk: r.smoke === true
+    };
   }
 
   // Whether this is still the room `id` (a moderator's copy is deleted when its time is up).
@@ -477,14 +617,25 @@ export class Rooms extends DurableObject {
     await this.flushLog(Date.now(), true);
     const head = { e: 'room', ...(await this.summary()), now: Date.now(), since };
     // A chunk starts at its first event, so the one before `since` may hold later events.
-    const first = this.ctx.storage.sql.exec('SELECT MAX(rowid) AS r FROM audit WHERE ts <= ?', since).one().r ?? 0;
-    const rows = this.ctx.storage.sql.exec('SELECT rowid AS r, lines FROM audit WHERE rowid >= ? ORDER BY rowid LIMIT ?', first, LOG_CHUNKS + 1).toArray();
+    const first =
+      this.ctx.storage.sql.exec('SELECT MAX(rowid) AS r FROM audit WHERE ts <= ?', since).one().r ??
+      0;
+    const rows = this.ctx.storage.sql
+      .exec(
+        'SELECT rowid AS r, lines FROM audit WHERE rowid >= ? ORDER BY rowid LIMIT ?',
+        first,
+        LOG_CHUNKS + 1
+      )
+      .toArray();
     const lines = [JSON.stringify(head)];
     let last = since;
     for (const row of rows.slice(0, LOG_CHUNKS)) {
       for (const line of row.lines.split('\n')) {
         const ts = Number(line.slice(6, line.indexOf(','))); // every line starts {"ts":<ms>,
-        if (ts >= since) { lines.push(line); last = ts; }
+        if (ts >= since) {
+          lines.push(line);
+          last = ts;
+        }
       }
     }
     if (rows.length > LOG_CHUNKS) lines.push(JSON.stringify({ e: 'more', since: last + 1 }));
@@ -532,24 +683,47 @@ export class Rooms extends DurableObject {
   // many are waiting, or now (`force`). Old log goes now and then.
   async flushLog(now, force = false) {
     const log = this.room.log;
-    if (log.length && (force || log.length >= LOG_FLUSH_EVENTS || now - log[0].ts >= LOG_FLUSH_MS)) {
+    if (
+      log.length &&
+      (force || log.length >= LOG_FLUSH_EVENTS || now - log[0].ts >= LOG_FLUSH_MS)
+    ) {
       const events = this.room.takeLog();
-      this.ctx.storage.sql.exec('INSERT INTO audit (ts, lines, sec) VALUES (?, ?, ?)', events[0].ts, toLines(events), hasSecurity(events) ? 1 : 0);
+      this.ctx.storage.sql.exec(
+        'INSERT INTO audit (ts, lines, sec) VALUES (?, ?, ?)',
+        events[0].ts,
+        toLines(events),
+        hasSecurity(events) ? 1 : 0
+      );
     }
     if (now - this.prunedAt >= PRUNE_MS) {
       this.prunedAt = now;
-      const day = 24 * 3600_000, sql = this.ctx.storage.sql;
-      sql.exec('DELETE FROM audit WHERE ts < ? OR (sec = 0 AND ts < ?)', now - SECURITY_DAYS * day, now - LOG_DAYS * day);
+      const day = 24 * 3600_000,
+        sql = this.ctx.storage.sql;
+      sql.exec(
+        'DELETE FROM audit WHERE ts < ? OR (sec = 0 AND ts < ?)',
+        now - SECURITY_DAYS * day,
+        now - LOG_DAYS * day
+      );
       // Chunks with security events keep just those once the rest is old.
-      for (const row of sql.exec('SELECT rowid AS r, lines FROM audit WHERE sec = 1 AND trimmed = 0 AND ts < ?', now - LOG_DAYS * day).toArray()) {
-        sql.exec('UPDATE audit SET lines = ?, trimmed = 1 WHERE rowid = ?', securityOnly(row.lines), row.r);
+      for (const row of sql
+        .exec(
+          'SELECT rowid AS r, lines FROM audit WHERE sec = 1 AND trimmed = 0 AND ts < ?',
+          now - LOG_DAYS * day
+        )
+        .toArray()) {
+        sql.exec(
+          'UPDATE audit SET lines = ?, trimmed = 1 WHERE rowid = ?',
+          securityOnly(row.lines),
+          row.r
+        );
       }
     }
   }
 
   async fetch(request) {
     const id = request.headers.get('X-Room-Id');
-    if (!this.room.ready || this.room.id !== id) return new Response('no such room', { status: 404 }); // i18n-ok: an HTTP status body
+    if (!this.room.ready || this.room.id !== id)
+      return new Response('no such room', { status: 404 }); // i18n-ok: an HTTP status body
     // Rooms made before the Registry add themselves when next visited
     // (never a copy: it's nobody's world).
     if (!this.registered && !this.room.copy) {
@@ -562,7 +736,10 @@ export class Rooms extends DurableObject {
     // fewer still that haven't said who they are.
     const v = request.headers.get('X-Visitor') || '';
     const theirs = sockets.map((ws) => ws.deserializeAttachment() || {}).filter((a) => a.v === v);
-    if (theirs.length >= SOCKETS_PER_VISITOR || theirs.filter((a) => !a.id).length >= STRANGERS_PER_VISITOR) {
+    if (
+      theirs.length >= SOCKETS_PER_VISITOR ||
+      theirs.filter((a) => !a.id).length >= STRANGERS_PER_VISITOR
+    ) {
       return new Response('busy', { status: 429 }); // i18n-ok: an HTTP status body
     }
     const [client, server] = Object.values(new WebSocketPair());
@@ -576,7 +753,7 @@ export class Rooms extends DurableObject {
     const now = Date.now();
     if (typeof raw !== 'string') return ws.close(1003, 'text only');
     let bucket = this.buckets.get(ws);
-    if (!bucket) this.buckets.set(ws, bucket = new Bucket(now));
+    if (!bucket) this.buckets.set(ws, (bucket = new Bucket(now)));
     const att = ws.deserializeAttachment() || {};
     if (!bucket.take(now)) {
       if (att.id) this.room.dropped(att.id, now);
@@ -605,7 +782,12 @@ export class Rooms extends DurableObject {
     for (const other of this.ctx.getWebSockets()) {
       if ((other.deserializeAttachment() || {}).id !== id) continue;
       other.serializeAttachment({ id: null, at: 0 });
-      if (last) try { other.send(JSON.stringify(last)); } catch { /* closing */ }
+      if (last)
+        try {
+          other.send(JSON.stringify(last));
+        } catch {
+          /* closing */
+        }
       other.close(code, reason);
     }
   }
@@ -618,7 +800,12 @@ export class Rooms extends DurableObject {
 
   async hello(ws, raw, now) {
     let d = null;
-    if (raw.length <= 256) try { d = JSON.parse(raw); } catch { /* below */ }
+    if (raw.length <= 256)
+      try {
+        d = JSON.parse(raw);
+      } catch {
+        /* below */
+      }
     if (!d || d.t !== 'hello') return ws.close(1008, 'hello first');
     // Freeze season: whether this player wants time away to make anything.
     // Only `true` counts. A game from before the setting says nothing at all,
@@ -645,7 +832,11 @@ export class Rooms extends DurableObject {
 
   async webSocketClose(ws, code, reason) {
     this.closed(ws, code === 1000 && reason === 'bye');
-    try { ws.close(1000); } catch { /* already closed */ }
+    try {
+      ws.close(1000);
+    } catch {
+      /* already closed */
+    }
     await this.afterClose();
   }
 
@@ -659,7 +850,8 @@ export class Rooms extends DurableObject {
   async afterClose() {
     if (!this.room.ready) return; // deleted (a copy whose time was up)
     const now = Date.now();
-    if (!this.ctx.getWebSockets().some((ws) => (ws.deserializeAttachment() || {}).id)) await this.flushLog(now, true);
+    if (!this.ctx.getWebSockets().some((ws) => (ws.deserializeAttachment() || {}).id))
+      await this.flushLog(now, true);
     await this.schedule();
   }
 
@@ -681,7 +873,11 @@ export class Rooms extends DurableObject {
       const id = (ws.deserializeAttachment() || {}).id;
       if (!id || id === except) continue;
       if (near && !isNear(this.room.players.get(id)?.p, near)) continue;
-      try { ws.send(text); } catch { /* closing */ }
+      try {
+        ws.send(text);
+      } catch {
+        /* closing */
+      }
     }
   }
 
@@ -714,7 +910,8 @@ export class Rooms extends DurableObject {
     if (this.room.log.length) at = Math.min(at, Math.max(now, this.room.log[0].ts + LOG_FLUSH_MS));
     const lost = this.room.nextLostDeadline();
     if (lost !== null) at = Math.min(at, lost);
-    if (this.ctx.getWebSockets().some((ws) => !(ws.deserializeAttachment() || {}).id)) at = Math.min(at, now + HELLO_MS);
+    if (this.ctx.getWebSockets().some((ws) => !(ws.deserializeAttachment() || {}).id))
+      at = Math.min(at, now + HELLO_MS);
     if (this.room.copy) at = Math.min(at, Math.max(now, this.room.copy.until));
     const current = await this.ctx.storage.getAlarm();
     if (current === null || current > at) await this.ctx.storage.setAlarm(at);
@@ -723,7 +920,11 @@ export class Rooms extends DurableObject {
   async alarm() {
     const now = Date.now();
     // A copy goes when its time is up, even while it's played.
-    if (this.room.ready && this.room.expired(now) && (this.room.copy || this.ctx.getWebSockets().length === 0)) {
+    if (
+      this.room.ready &&
+      this.room.expired(now) &&
+      (this.room.copy || this.ctx.getWebSockets().length === 0)
+    ) {
       const id = this.room.id;
       for (const ws of this.ctx.getWebSockets()) {
         ws.serializeAttachment({ id: null, at: 0 });

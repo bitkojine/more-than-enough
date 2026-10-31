@@ -11,18 +11,30 @@ const store = new Map();
 let full = () => false; // a key the faked storage has no room for
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { if (full(k)) throw new DOMException('full', 'QuotaExceededError'); store.set(k, String(v)); },
-  removeItem: (k) => { store.delete(k); },
+  setItem: (k, v) => {
+    if (full(k)) throw new DOMException('full', 'QuotaExceededError');
+    store.set(k, String(v));
+  },
+  removeItem: (k) => {
+    store.delete(k);
+  },
   key: (i) => [...store.keys()][i] ?? null,
-  get length() { return store.size; }
+  get length() {
+    return store.size;
+  }
 };
 const { loadGame, saveGame, keepStorage } = await import('../../src/game/storage.js');
-const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } = await import('../../src/game/worlds.js');
+const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } =
+  await import('../../src/game/worlds.js');
 
-const SAVE = 'more-than-enough-save', ASIDE = 'more-than-enough-save-aside';
+const SAVE = 'more-than-enough-save',
+  ASIDE = 'more-than-enough-save-aside';
 const otherFormat = JSON.stringify({ v: Core.SAVE_VERSION + 1, seed: 5, inv: { mycelium: 999 } });
 
-beforeEach(() => { store.clear(); full = () => false; });
+beforeEach(() => {
+  store.clear();
+  full = () => false;
+});
 
 test('storage: a save it reads is loaded, and nothing is set aside', () => {
   const s = Core.createState(42);
@@ -34,7 +46,7 @@ test('storage: a save it reads is loaded, and nothing is set aside', () => {
   assert.equal(store.has(ASIDE), false);
 });
 
-test('storage: a save it can\'t read is set aside before the new world is saved over it', () => {
+test("storage: a save it can't read is set aside before the new world is saved over it", () => {
   store.set(SAVE, otherFormat);
   const { state, lost } = loadGame();
   assert.equal(lost, 'format', 'made by another version');
@@ -48,7 +60,12 @@ test('storage: a broken save is set aside too, and told apart from one made by a
   store.set(SAVE, cut);
   assert.equal(loadGame().lost, 'broken');
   assert.equal(store.get(ASIDE), cut);
-  for (const raw of ['null', '[]', '{"seed":3}', JSON.stringify({ v: Core.SAVE_VERSION, seed: 'x' })]) {
+  for (const raw of [
+    'null',
+    '[]',
+    '{"seed":3}',
+    JSON.stringify({ v: Core.SAVE_VERSION, seed: 'x' })
+  ]) {
     store.set(SAVE, raw);
     assert.equal(loadGame().lost, 'broken', raw);
   }
@@ -58,12 +75,12 @@ test('storage: a save set aside that this version can read is taken back (an old
   const s = Core.createState(7);
   s.inv.stone = 123;
   const mine = Core.serialize(s);
-  store.set(ASIDE, mine);     // the newest game's save, set aside by an old page
+  store.set(ASIDE, mine); // the newest game's save, set aside by an old page
   store.set(SAVE, otherFormat); // the fresh world that old page made
   const { state, lost } = loadGame();
   assert.equal(lost, false, 'your world is back');
   assert.equal(state.inv.stone, 123);
-  assert.equal(store.get(ASIDE), otherFormat, 'the old page\'s world is set aside in its place');
+  assert.equal(store.get(ASIDE), otherFormat, "the old page's world is set aside in its place");
   assert.equal(saveGame(state), null);
   assert.equal(Core.deserialize(store.get(SAVE)).inv.stone, 123, 'and saved as your game again');
 });
@@ -79,9 +96,11 @@ test('worlds: the list has no cap, and what is kept for a shared world goes only
   }
   remember(roomId(12), false); // a 13th: no cap, the oldest stays (no world is ever lost)
   assert.equal(knownRooms().length, 13);
-  for (const k of copies(roomId(0))) assert.equal(store.has(k), true, k + ' kept: still on the list');
+  for (const k of copies(roomId(0)))
+    assert.equal(store.has(k), true, k + ' kept: still on the list');
   forget(roomId(5));
-  for (const k of copies(roomId(5))) assert.equal(store.has(k), false, k + ' dropped when the world is forgotten');
+  for (const k of copies(roomId(5)))
+    assert.equal(store.has(k), false, k + ' dropped when the world is forgotten');
   assert.equal(store.get(SAVE), 'the solo save', 'nothing else is touched');
 });
 
@@ -102,14 +121,27 @@ test('storage: a backup file of your own world loads back as it was, and nothing
   assert.equal(back.inv.mycelium, 17);
   assert.equal(back.prestiges, 2);
   assert.equal(Core.serialize(back), Core.serialize(s), 'the whole world');
-  assert.equal(fromBackup(Core.serialize(s)).inv.mycelium, 17, 'a save as the browser keeps it reads too');
-  for (const bad of ['', 'nope', 'null', '[]', '{}', otherFormat, JSON.stringify({ kind: 'mte-solo-world', save: otherFormat }), JSON.stringify({ kind: 'mte-shared-world', entries: [] })]) {
+  assert.equal(
+    fromBackup(Core.serialize(s)).inv.mycelium,
+    17,
+    'a save as the browser keeps it reads too'
+  );
+  for (const bad of [
+    '',
+    'nope',
+    'null',
+    '[]',
+    '{}',
+    otherFormat,
+    JSON.stringify({ kind: 'mte-solo-world', save: otherFormat }),
+    JSON.stringify({ kind: 'mte-shared-world', entries: [] })
+  ]) {
     assert.equal(fromBackup(bad), null, bad);
   }
   assert.match(backupName(Date.now()), /^more-than-enough-\d{4}-\d\d-\d\d-\d{4}\.json$/);
 });
 
-test('storage: a full storage that refuses the world\'s own copy never stops the save itself', () => {
+test("storage: a full storage that refuses the world's own copy never stops the save itself", () => {
   const s = Core.createState(42, { cultivation: true });
   s.inv.mycelium = 23;
   full = (k) => k.startsWith('mte.solo.world.');
@@ -118,7 +150,11 @@ test('storage: a full storage that refuses the world\'s own copy never stops the
   assert.equal(Core.deserialize(store.get(SAVE)).inv.mycelium, 23, 'but the save is written');
   full = () => false;
   assert.equal(saveGame(s, true), null);
-  assert.equal(Core.deserialize(store.get('mte.solo.world.42')).inv.mycelium, 23, 'and the copy once there is room');
+  assert.equal(
+    Core.deserialize(store.get('mte.solo.world.42')).inv.mycelium,
+    23,
+    'and the copy once there is room'
+  );
 });
 
 test('storage: a second unreadable save never writes over the one already set aside', () => {
@@ -127,11 +163,13 @@ test('storage: a second unreadable save never writes over the one already set as
   store.set(SAVE, broken);
   loadGame();
   assert.equal(store.get(ASIDE), broken);
-  const kept = [...store.entries()].filter(([k]) => k.startsWith('mte.solo.kept.aside.')).map(([, v]) => v);
+  const kept = [...store.entries()]
+    .filter(([k]) => k.startsWith('mte.solo.kept.aside.'))
+    .map(([, v]) => v);
   assert.deepEqual(kept, [otherFormat], 'the earlier one is kept under its own name');
 });
 
-test('storage: when a world\'s own copy takes over an older save, that save is kept, not set aside over another', () => {
+test("storage: when a world's own copy takes over an older save, that save is kept, not set aside over another", () => {
   const legacy = Core.createState(42);
   legacy.inv.mycelium = 5;
   const grown = Core.createState(42, { cultivation: true });
@@ -141,13 +179,23 @@ test('storage: when a world\'s own copy takes over an older save, that save is k
   const { state } = loadGame();
   assert.ok(state.cultivation);
   assert.equal(store.get(ASIDE), otherFormat, 'what was set aside stays');
-  const kept = [...store.entries()].filter(([k]) => k.startsWith('mte.solo.kept.42.')).map(([, v]) => Core.deserialize(v).inv.mycelium);
+  const kept = [...store.entries()]
+    .filter(([k]) => k.startsWith('mte.solo.kept.42.'))
+    .map(([, v]) => Core.deserialize(v).inv.mycelium);
   assert.deepEqual(kept, [5], 'the older save is kept under its own name');
 });
 
 test('asks the browser once to keep the storage, and never throws', async () => {
   let asked = 0;
-  const nav = { storage: { persisted: async () => false, persist: async () => { asked++; return true; } } };
+  const nav = {
+    storage: {
+      persisted: async () => false,
+      persist: async () => {
+        asked++;
+        return true;
+      }
+    }
+  };
   assert.equal(await keepStorage(nav), true);
   assert.equal(await keepStorage(nav), null); // once a session
   assert.equal(asked, 1);

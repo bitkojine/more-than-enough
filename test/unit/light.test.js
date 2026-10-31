@@ -7,19 +7,30 @@ import assert from 'node:assert/strict';
 import { C, T, typeAt, findNear, standOn, away, holdPerfect } from './helpers.js';
 
 const { SURFACE } = C;
-const NOON = 0, MIDNIGHT = C.DAY_LENGTH / 2;
+const NOON = 0,
+  MIDNIGHT = C.DAY_LENGTH / 2;
 
 // Water on the surface with land beside it, near spawn.
 function shore(s) {
   const land = (x, y) => C.walkable(s.world, x, y, SURFACE) && !C.swimsAt(s.world, x, y, SURFACE);
-  return findNear(s, (st, x, y) => typeAt(st, x, y, SURFACE) === T.WATER && (land(x + 1, y) || land(x - 1, y) || land(x, y + 1) || land(x, y - 1)), 200);
+  return findNear(
+    s,
+    (st, x, y) =>
+      typeAt(st, x, y, SURFACE) === T.WATER &&
+      (land(x + 1, y) || land(x - 1, y) || land(x, y + 1) || land(x, y - 1)),
+    200
+  );
 }
 
 // A tile of a river between regions: walking out from the origin along a row.
 function river(seed) {
   for (const dir of [1, -1]) {
     for (let x = 0; Math.abs(x) < 2000; x += dir) {
-      if (C.landAt(seed, x, 0).border === 'river' && C.tileAt(C.createWorld(seed), x, 0, SURFACE) === T.WATER) return { x, y: 0 };
+      if (
+        C.landAt(seed, x, 0).border === 'river' &&
+        C.tileAt(C.createWorld(seed), x, 0, SURFACE) === T.WATER
+      )
+        return { x, y: 0 };
     }
   }
   return null;
@@ -33,7 +44,10 @@ test('the battery drains only in the dark, at one BATTERY_LIFE from full to flat
   assert.equal(s.battery, 1, 'daylight needs no screen');
   s.time = MIDNIGHT;
   for (let i = 0; i < 40; i++) C.step(s, 0.25);
-  assert.ok(Math.abs(s.battery - (1 - 10 / C.BATTERY_LIFE)) < 1e-9, 'ten seconds of night: ' + s.battery);
+  assert.ok(
+    Math.abs(s.battery - (1 - 10 / C.BATTERY_LIFE)) < 1e-9,
+    'ten seconds of night: ' + s.battery
+  );
   s.battery = 0.001;
   for (let i = 0; i < 40; i++) C.step(s, 0.25);
   assert.equal(s.battery, 0, 'never below flat');
@@ -63,7 +77,11 @@ test('a low battery only shrinks your light, in the dark', () => {
     t.world.explored.clear();
     C.revealAround(t);
     let n = 0;
-    for (let y = -12; y <= 12; y++) for (let x = -12; x <= 12; x++) n += C.isExplored(t.world, Math.floor(t.player.x) + x, Math.floor(t.player.y) + y, SURFACE) ? 1 : 0;
+    for (let y = -12; y <= 12; y++)
+      for (let x = -12; x <= 12; x++)
+        n += C.isExplored(t.world, Math.floor(t.player.x) + x, Math.floor(t.player.y) + y, SURFACE)
+          ? 1
+          : 0;
     return n;
   };
   assert.ok(lit(0) < lit(1) / 3, 'flat: ' + lit(0) + ' tiles, full: ' + lit(1));
@@ -129,11 +147,17 @@ test('Perfect puts a solar panel by the shore and charges there when low', () =>
   s.tools.boots = C.GEAR.water;
   Object.assign(s.inv, { stone: 100, ore: 100 });
   const w = shore(s);
-  for (let y = -40; y <= 40; y++) for (let x = -40; x <= 40; x++) C.markExplored(s.world, w.x + x, w.y + y, SURFACE);
+  for (let y = -40; y <= 40; y++)
+    for (let x = -40; x <= 40; x++) C.markExplored(s.world, w.x + x, w.y + y, SURFACE);
   s.time = NOON;
   s.battery = 0.8;
   const mind = C.newMind();
-  holdPerfect(s, 120, { mind, seen(intent) { if (intent.type === 'prop') assert.equal(intent.kind, 'solar'); } });
+  holdPerfect(s, 120, {
+    mind,
+    seen(intent) {
+      if (intent.type === 'prop') assert.equal(intent.kind, 'solar');
+    }
+  });
   const panels = [...s.world.props].filter(([, k]) => k === 'solar');
   assert.equal(panels.length, 1, 'one panel, near home');
 
@@ -142,7 +166,12 @@ test('Perfect puts a solar panel by the shore and charges there when low', () =>
   s.player.x += 15;
   s.battery = 0.3;
   let charged = 0;
-  holdPerfect(s, 40, { mind, seen(intent) { if (intent.type === 'charge') charged++; } });
+  holdPerfect(s, 40, {
+    mind,
+    seen(intent) {
+      if (intent.type === 'charge') charged++;
+    }
+  });
   assert.ok(charged > 0, 'it charged');
   assert.ok(s.battery > 0.9, 'up to full: ' + s.battery);
 });

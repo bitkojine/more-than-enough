@@ -40,44 +40,81 @@ function localService() {
     // Everyone waiting in `next`: woken whenever a message lands or the
     // socket closes, so a message that arrives later still resolves.
     const waiters = new Set();
-    const wake = () => { for (const w of [...waiters]) w(); };
-    const push = (m) => { msgs.push(m); wake(); };
+    const wake = () => {
+      for (const w of [...waiters]) w();
+    };
+    const push = (m) => {
+      msgs.push(m);
+      wake();
+    };
 
     const conn = {
       // Resolves with the first message of `type` (or null after `ms`).
-      next: (type, ms = 1000) => new Promise((resolve) => {
-        const look = () => {
-          const m = msgs.find((x) => x.t === type);
-          if (m) { waiters.delete(look); clearTimeout(timer); resolve(m); }
-          else if (closeReason) { waiters.delete(look); clearTimeout(timer); resolve(null); }
-        };
-        const timer = setTimeout(() => { waiters.delete(look); resolve(msgs.find((x) => x.t === type) || null); }, ms);
-        waiters.add(look);
-        look();
-      }),
+      next: (type, ms = 1000) =>
+        new Promise((resolve) => {
+          const look = () => {
+            const m = msgs.find((x) => x.t === type);
+            if (m) {
+              waiters.delete(look);
+              clearTimeout(timer);
+              resolve(m);
+            } else if (closeReason) {
+              waiters.delete(look);
+              clearTimeout(timer);
+              resolve(null);
+            }
+          };
+          const timer = setTimeout(() => {
+            waiters.delete(look);
+            resolve(msgs.find((x) => x.t === type) || null);
+          }, ms);
+          waiters.add(look);
+          look();
+        }),
       send: async (raw) => {
-        if (raw === 'ping') { push({ t: 'pong' }); return {}; }
-        const out = room.message(conn.id, typeof raw === 'string' ? raw : JSON.stringify(raw), tick());
-        if (out && out.toSelf) for (const m of out.toSelf) push(m);
-        if (out && out.toOthers) for (const other of live.get(id).values()) {
-          if (other.id !== conn.id) other._push(out.toOthers);
+        if (raw === 'ping') {
+          push({ t: 'pong' });
+          return {};
         }
+        const out = room.message(
+          conn.id,
+          typeof raw === 'string' ? raw : JSON.stringify(raw),
+          tick()
+        );
+        if (out && out.toSelf) for (const m of out.toSelf) push(m);
+        if (out && out.toOthers)
+          for (const other of live.get(id).values()) {
+            if (other.id !== conn.id) other._push(out.toOthers);
+          }
         return out || {};
       },
-      close: () => { if (closeReason) return; closeReason = '1000 bye'; live.get(id)?.delete(conn.id); wake(); },
+      close: () => {
+        if (closeReason) return;
+        closeReason = '1000 bye';
+        live.get(id)?.delete(conn.id);
+        wake();
+      },
       get closed() {
         return new Promise((resolve) => {
           if (closeReason) return resolve(closeReason);
-          waiters.add(() => { if (closeReason) resolve(closeReason); });
+          waiters.add(() => {
+            if (closeReason) resolve(closeReason);
+          });
         });
       },
       id: null,
-      _push: (ms) => { for (const m of ms) push(m); }
+      _push: (ms) => {
+        for (const m of ms) push(m);
+      }
     };
     // Join is async, like the live handshake: the welcome (or the refusal)
     // lands in the queue a moment later.
     room.join(key, code, tick()).then((o) => {
-      if (o.error) { closeReason = '1008 ' + o.error; wake(); return; }
+      if (o.error) {
+        closeReason = '1008 ' + o.error;
+        wake();
+        return;
+      }
       conn.id = o.id;
       if (!live.has(id)) live.set(id, new Map());
       live.get(id).set(o.id, conn);
@@ -139,8 +176,13 @@ function localService() {
 test('smoke: the room service passes the same checks the deploy runs', async () => {
   const service = localService();
   const failed = [];
-  const check = (ok, what) => { if (!ok) failed.push(what); };
-  const rand = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const check = (ok, what) => {
+    if (!ok) failed.push(what);
+  };
+  const rand = (n) =>
+    [...crypto.getRandomValues(new Uint8Array(n))]
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
   const sleep = () => Promise.resolve(); // in process there is no rollout to wait out
   await roomChecks(service, check, { rand, token: TOKEN, sleep });
   assert.deepEqual(failed, [], failed.join('; '));

@@ -23,7 +23,8 @@ export function mapLayers(w, here = Core.SURFACE) {
 // The layer next to z up (dir 1) or down (dir -1) among `layers`, or z.
 export function stepLayer(layers, z, dir) {
   const i = layers.indexOf(z);
-  if (i < 0) return layers.reduce((best, k) => Math.abs(k - z) < Math.abs(best - z) ? k : best, layers[0]);
+  if (i < 0)
+    return layers.reduce((best, k) => (Math.abs(k - z) < Math.abs(best - z) ? k : best), layers[0]);
   return layers[Math.min(layers.length - 1, Math.max(0, i - dir))];
 }
 
@@ -35,7 +36,12 @@ function isWay(w, x, y, z) {
 // between layers the ground beside it.
 export function shownType(w, x, y, z) {
   if (!isWay(w, x, y, z)) return Core.tileAt(w, x, y, z);
-  for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+  for (const [dx, dy] of [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1]
+  ]) {
     if (!isWay(w, x + dx, y + dy, z)) return Core.tileAt(w, x + dx, y + dy, z);
   }
   return z < Core.SURFACE ? T.TUNNEL : T.GRASS;
@@ -48,7 +54,8 @@ export function edgeTiles(w, cx, cy, z) {
   const fog = (x, y) => !Core.isExplored(w, x, y, z);
   for (let y = cy * CS; y < (cy + 1) * CS; y++) {
     for (let x = cx * CS; x < (cx + 1) * CS; x++) {
-      if (fog(x, y) && !(fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1))) out.push(x, y);
+      if (fog(x, y) && !(fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1)))
+        out.push(x, y);
     }
   }
   return out;
@@ -57,7 +64,8 @@ export function edgeTiles(w, cx, cy, z) {
 // One edge tile per step x step square, so zoomed far out the map draws a
 // puff every few pixels rather than one per tile, thousands to a pixel.
 export function sampleEdges(edges, step) {
-  const seen = new Set(), out = [];
+  const seen = new Set(),
+    out = [];
   for (const list of edges) {
     for (let i = 0; i < list.length; i += 2) {
       const key = Math.floor(list[i] / step) + ',' + Math.floor(list[i + 1] / step);

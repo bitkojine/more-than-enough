@@ -33,7 +33,11 @@ export const LANGUAGE_KEY = 'mte.lang';
 const FALLBACK = 'en';
 
 function storage() {
-  try { return globalThis.localStorage || null; } catch { return null; }
+  try {
+    return globalThis.localStorage || null;
+  } catch {
+    return null;
+  }
 }
 
 // ?lang= in the address, else the player's choice, else the browser's
@@ -44,12 +48,18 @@ function detect() {
   const asked = globalThis.location && new URLSearchParams(globalThis.location.search).get('lang');
   if (asked) return asked;
   let saved;
-  try { saved = storage() && storage().getItem(LANGUAGE_KEY); } catch { saved = null; }
+  try {
+    saved = storage() && storage().getItem(LANGUAGE_KEY);
+  } catch {
+    saved = null;
+  }
   if (saved && LANGUAGES[saved]) return saved;
   const nav = globalThis.navigator;
   const wanted = nav ? [...(nav.languages || []), nav.language] : [];
   for (const w of wanted) {
-    const code = String(w || '').slice(0, 2).toLowerCase();
+    const code = String(w || '')
+      .slice(0, 2)
+      .toLowerCase();
     if (LANGUAGES[code]) return code;
   }
   return FALLBACK;
@@ -61,15 +71,19 @@ function detect() {
 export const DEVICES = ['phone', 'laptop'];
 function detectDevice() {
   const env = globalThis.process && globalThis.process.env && globalThis.process.env.MTE_DEVICE;
-  const asked = env || (globalThis.location && new URLSearchParams(globalThis.location.search).get('device'));
+  const asked =
+    env || (globalThis.location && new URLSearchParams(globalThis.location.search).get('device'));
   if (DEVICES.includes(asked)) return asked;
-  const touch = typeof globalThis.matchMedia === 'function' && globalThis.matchMedia('(pointer: coarse)').matches; // i18n-ok: a media query
+  const touch =
+    typeof globalThis.matchMedia === 'function' &&
+    globalThis.matchMedia('(pointer: coarse)').matches; // i18n-ok: a media query
   return touch || !globalThis.matchMedia ? 'phone' : 'laptop';
 }
 export const DEVICE = detectDevice();
 
 export const LANG = detect();
-if (!LANGUAGES[LANG]) throw new Error(`Unknown language "${LANG}" (known: ${Object.keys(LANGUAGES).join(', ')})`);
+if (!LANGUAGES[LANG])
+  throw new Error(`Unknown language "${LANG}" (known: ${Object.keys(LANGUAGES).join(', ')})`);
 export const LOCALE = LANGUAGES[LANG].locale;
 const strings = LANGUAGES[LANG].strings;
 const plurals = new Intl.PluralRules(LOCALE);
@@ -88,12 +102,14 @@ export function addStrings(byLang) {
 
 // {phone:…|laptop:…}: the part for this device.
 export const DEVICE_CHOICE = /\{phone:([^{}|]*)\|laptop:([^{}]*)\}/g;
-const forDevice = (text) => text.replace(DEVICE_CHOICE, (_, phone, laptop) => (DEVICE === 'phone' ? phone : laptop));
+const forDevice = (text) =>
+  text.replace(DEVICE_CHOICE, (_, phone, laptop) => (DEVICE === 'phone' ? phone : laptop));
 
 function fill(template, key, params) {
   template = forDevice(template);
   return template.replace(/\{(\w+)\}/g, (_, name) => {
-    if (!params || !(name in params)) throw new Error(`Translation "${key}" (${LANG}) needs {${name}}`);
+    if (!params || !(name in params))
+      throw new Error(`Translation "${key}" (${LANG}) needs {${name}}`);
     return String(params[name]);
   });
 }
@@ -101,11 +117,14 @@ function fill(template, key, params) {
 // The text for `key` in the current language.
 export function t(key, params) {
   const value = strings[key];
-  if (value === undefined) throw new Error(`Missing translation: "${key}" in ${LANGUAGES[LANG].name} (${LANG})`);
+  if (value === undefined)
+    throw new Error(`Missing translation: "${key}" in ${LANGUAGES[LANG].name} (${LANG})`);
   if (typeof value === 'string') return params ? fill(value, key, params) : forDevice(value);
-  if (!params || typeof params.count !== 'number') throw new Error(`Translation "${key}" is a plural: pass {count}`);
+  if (!params || typeof params.count !== 'number')
+    throw new Error(`Translation "${key}" is a plural: pass {count}`);
   const form = value[plurals.select(params.count)];
-  if (form === undefined) throw new Error(`Translation "${key}" (${LANG}) has no "${plurals.select(params.count)}" form`);
+  if (form === undefined)
+    throw new Error(`Translation "${key}" (${LANG}) has no "${plurals.select(params.count)}" form`);
   return fill(form, key, params);
 }
 
@@ -121,7 +140,13 @@ export function listOr(items) {
 export const capitalize = (s) => s.charAt(0).toLocaleUpperCase(LOCALE) + s.slice(1);
 
 // Numbers as the language writes them (1,234.5 / 1 234,5).
-export const number = (n, digits) => n.toLocaleString(LOCALE, digits === undefined ? undefined : { minimumFractionDigits: digits, maximumFractionDigits: digits });
+export const number = (n, digits) =>
+  n.toLocaleString(
+    LOCALE,
+    digits === undefined
+      ? undefined
+      : { minimumFractionDigits: digits, maximumFractionDigits: digits }
+  );
 
 // A distance, from tiles (every tile is 1 m x 1 m x 1 m): whole metres up
 // to a kilometre, then kilometres (one decimal under 10 km).
@@ -161,7 +186,8 @@ export function localizePage(root = globalThis.document) {
   for (const node of root.querySelectorAll('*')) {
     for (const attr of node.getAttributeNames()) {
       if (attr === 'data-i18n') node.textContent = t(node.getAttribute(attr));
-      else if (attr.startsWith('data-i18n-')) node.setAttribute(attr.slice(10), t(node.getAttribute(attr)));
+      else if (attr.startsWith('data-i18n-'))
+        node.setAttribute(attr.slice(10), t(node.getAttribute(attr)));
     }
   }
 }

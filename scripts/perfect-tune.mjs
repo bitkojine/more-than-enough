@@ -18,12 +18,21 @@ import { KNOBS } from '../src/core/perfect.js';
 import { bench, check, pickSeeds } from './perfect-bench.mjs';
 
 const GAIN = 0.003; // a try must be this much quicker (0.3%) to be kept
-const args = Object.fromEntries(process.argv.slice(2).join(' ').split('--').filter(Boolean).map((a) => {
-  const [k, ...v] = a.trim().split(' ');
-  return [k, v.join(' ')];
-}));
+const args = Object.fromEntries(
+  process.argv
+    .slice(2)
+    .join(' ')
+    .split('--')
+    .filter(Boolean)
+    .map((a) => {
+      const [k, ...v] = a.trim().split(' ');
+      return [k, v.join(' ')];
+    })
+);
 const seeds = pickSeeds(args.seeds || '4');
-const held = pickSeeds('8').filter((x) => !seeds.includes(x)).slice(0, 4);
+const held = pickSeeds('8')
+  .filter((x) => !seeds.includes(x))
+  .slice(0, 4);
 const passes = Number(args.passes || 3);
 const log = (m) => process.stderr.write(m + '\n');
 const hours = (sec) => (sec / 3600).toFixed(2) + ' h';
@@ -39,7 +48,8 @@ async function score(knobs, on, cap) {
 const capFor = (r) => 1.25 * Math.max(...r.runs.map((x) => x.embark));
 let best = { ...KNOBS, ...JSON.parse(args.from || '{}') };
 let top = await score(best, seeds, 60 * 3600);
-if (!isFinite(top.t)) throw new Error('the starting knobs fail the benchmark: ' + top.why.join('; '));
+if (!isFinite(top.t))
+  throw new Error('the starting knobs fail the benchmark: ' + top.why.join('; '));
 log('start ' + hours(top.t) + ' ' + JSON.stringify(best));
 const start = top.t;
 
@@ -50,9 +60,13 @@ for (let pass = 0; pass < passes && step >= 0.1; pass++) {
     for (const f of [1 + step, 1 - step]) {
       const tryK = { ...best, [name]: +(best[name] * f).toPrecision(3) };
       const got = await score(tryK, seeds, capFor(top.r));
-      log(`  ${name} ${best[name]} -> ${tryK[name]}: ${isFinite(got.t) ? hours(got.t) : 'fails (' + got.why[0] + ')'}`);
+      log(
+        `  ${name} ${best[name]} -> ${tryK[name]}: ${isFinite(got.t) ? hours(got.t) : 'fails (' + got.why[0] + ')'}`
+      );
       if (got.t < top.t * (1 - GAIN)) {
-        best = tryK; top = got; gained = true;
+        best = tryK;
+        top = got;
+        gained = true;
         log(`kept ${name} = ${best[name]}: ${hours(top.t)}`);
         break;
       }

@@ -1,210 +1,263 @@
 /* The wiki's own words in Lithuanian: the same keys as wiki/i18n/en.js. */
 
 export default {
-  "wiki.article.cultivation.title": "Gyvieji kristalai ir mieganti mašina",
-  "wiki.article.cultivation": "<h1>Gyvieji kristalai ir mieganti mašina</h1><p>Pažįstamame pasaulyje prasideda naujas požeminis skyrius. Pradėk tuščiomis rankomis, surink grybieną ir akmenį paviršiuje, pasigamink kirtiklį, kask metalą, tada leiskis giliau ieškoti laukinių kristalų ir miegančios mašinos.</p><h2>Pirmojo skyriaus tikslas</h2><p>Medžiagas rink rankomis. Prieinami metalui ir mėginiams reikalingi kirtikliai, pirmi ėjimą vandeniu leidžiantys batai, žibintas, saulės plokštės, vandens ratai, nešyklė, auginimo kamera, aušinimas ir širdies slėptuvės. Papildomi gamintojai, dirbtuvės, surinkimo sandėliai, kristalų saugyklos, vamzdžiai, krepšiai, žybsniai, sutvirtinimas ir vėlesni įrankių patobulinimai užrakinti iki mašinos paleidimo. Jų automatika sustoja, bet turimi daiktai, produkcija ir jungtys išsaugomi. Paleidus mašiną jie vėl veikia. Senesni pasauliai išlaiko ankstesnę eigą.</p><h2>Augink vėsioje tamsoje</h2><p>Gelmėse pastatyk auginimo kamerą ir aušinimą šalia. Pasodink laukinį mėginį. Kameros, saugyklos ir mašina automatiškai saugo vidų nuo šviesos; atverti ar užverti nieko nereikia. Fizinė šviesa žaloja laukines kolonijas ir neapsaugotą krovinį; silpnesnė žaloja lėčiau. Uola užstoja šviesą, atviri praėjimai ją praleidžia už kampų, o atviros kopėčių angos sujungia sluoksnius. Atviru šuliniu saulės šviesa pasiekia bet kokį gylį. Statinių vidus visada saugo turinį nuo šviesos, taip pat sodinant ir prižiūrint. Kameros kortelėje matysi šviesą išorėje ir apsaugą. Dirbdamas atvirai išjunk žibintą, atvėsinęs prižiūrėk sužalotas gyvas kolonijas. Laukinės kolonijos atauga, todėl gali atsigauti net praradęs auginamas kolonijas.</p><p>Aušinimo bokštas sumažina temperatūrą 12°C iki trijų žingsnių atstumu. Augimui reikia ne daugiau kaip 22°C. Kasyklos šildo aplinką. Šviesa ir karštis žaloja net surinktus kristalus. Nešyklės sulaiko šviesą, bet ne karštį. Pastatytą šviestuvą šalia savęs gali uždengti jį {phone:bakstelėjęs|laptop:spustelėjęs}.</p><h2>Apsaugota statyba</h2><p>Saugyklos kaupia kristalus. Sandarūs vamzdžiai perduoda produkciją tarp kameros ir saugyklos, iki keturių žingsnių nuo kiekvienos. Suprastėję kristalai vis dar tinka talpai sutvirtinti. Mišinių kokybė sveriama pagal kiekį.</p><div data-table=\"cultivation\"></div><h2>Atkūrimas ir užbaigimas</h2><p>Atkurk tris fizines mašinos dalis: pirmai reikia 16 akmens, 16 metalo ir 6 kristalų, antrai 24 / 24 / 8, trečiai 32 / 32 / 12. Kristalų kokybė turi siekti bent 60%. Pastatyk aušinimą. Paleisk atkurtą mašiną su gyvybingais kristalais ir ne didesne kaip 22°C temperatūra, kad užbaigtum pasaulį. Įmontuotus kristalus vis dar reikia saugoti, tačiau pelnytas užbaigimas lieka įrašuose. Skiltyje „Toliau“ pradėsi naują pasaulį tuščiomis rankomis; užbaigtas pasaulis liks archyve.</p><h2>Pavogta širdis</h2><p>Mašina yra teleportas. Jos širdis buvo pavogta ir paskutiniu teleportu, kokį mašina kada nors padarė, nusiųsta į slėptuvę maždaug už 2,5 km paviršiuje. Be širdies mašina ir visa teleportacija užgeso. Pirmasis remontas parodo, kur ji dingo, o pasaulio žemėlapis nuo pat pradžių žymi slėptuvę ir atstumą iki jos.</p><p>Antrajai daliai reikia pačios širdies, sveikos bent 50%. Įkelk ją į sandarų kristalų nešiklį ir parnešk namo. Sandarus dėklas saugo ir širdį nuo saulės, lempų, žibinto bei žiežirbos šviesos. Karštis virš 22°C vis dar žaloja. Be dėklo apsaugos šviesos žala priklauso nuo stiprumo, iki 0,15% per sekundę ryškiausioje šviesoje. Širdies pastogę (6 grybienos, 10 akmens) gali statyti paviršiuje arba po žeme: joje padėta širdis saugi ir gyja po 0,25% per sekundę. Jei širdis perskyla kiaurai, ji subyra, o jos šviesa grįžta į slėptuvę, tad gali ją parnešti iš naujo.</p><p>{phone:Bakstelėk|laptop:Spustelėk} statinį šalia savęs ir pamatysi jo kortelę: temperatūrą, atsparumą, produkciją ir ką su juo gali daryti. Statyba skirta tik statyti; Patobulinimuose yra įranga. Pasigamintas žibintas turi savo mygtuką virš „Rinkti“ ({phone:bakstelėk jį|laptop:arba spausk <kbd>L</kbd>}), kuriuo jį įjungi ir išjungi. Nustatymų kūrėjų skiltyje galima pradėti kitą archyvuojamą pasaulį. Ankstesni pasauliai išlaiko savo taisykles. AUTO ir bendras žaidimas dar nepritaikyti naujam auginimui.</p>",
-  "wiki.legacyRules": "Šios lentelės aprašo ankstesnių išsaugotų pasaulių ekonomiką. Naujiems pasauliams skaityk apie gyvuosius kristalus ir miegančią mašiną.",
+  'wiki.article.cultivation.title': 'Gyvieji kristalai ir mieganti mašina',
+  'wiki.article.cultivation':
+    '<h1>Gyvieji kristalai ir mieganti mašina</h1><p>Pažįstamame pasaulyje prasideda naujas požeminis skyrius. Pradėk tuščiomis rankomis, surink grybieną ir akmenį paviršiuje, pasigamink kirtiklį, kask metalą, tada leiskis giliau ieškoti laukinių kristalų ir miegančios mašinos.</p><h2>Pirmojo skyriaus tikslas</h2><p>Medžiagas rink rankomis. Prieinami metalui ir mėginiams reikalingi kirtikliai, pirmi ėjimą vandeniu leidžiantys batai, žibintas, saulės plokštės, vandens ratai, nešyklė, auginimo kamera, aušinimas ir širdies slėptuvės. Papildomi gamintojai, dirbtuvės, surinkimo sandėliai, kristalų saugyklos, vamzdžiai, krepšiai, žybsniai, sutvirtinimas ir vėlesni įrankių patobulinimai užrakinti iki mašinos paleidimo. Jų automatika sustoja, bet turimi daiktai, produkcija ir jungtys išsaugomi. Paleidus mašiną jie vėl veikia. Senesni pasauliai išlaiko ankstesnę eigą.</p><h2>Augink vėsioje tamsoje</h2><p>Gelmėse pastatyk auginimo kamerą ir aušinimą šalia. Pasodink laukinį mėginį. Kameros, saugyklos ir mašina automatiškai saugo vidų nuo šviesos; atverti ar užverti nieko nereikia. Fizinė šviesa žaloja laukines kolonijas ir neapsaugotą krovinį; silpnesnė žaloja lėčiau. Uola užstoja šviesą, atviri praėjimai ją praleidžia už kampų, o atviros kopėčių angos sujungia sluoksnius. Atviru šuliniu saulės šviesa pasiekia bet kokį gylį. Statinių vidus visada saugo turinį nuo šviesos, taip pat sodinant ir prižiūrint. Kameros kortelėje matysi šviesą išorėje ir apsaugą. Dirbdamas atvirai išjunk žibintą, atvėsinęs prižiūrėk sužalotas gyvas kolonijas. Laukinės kolonijos atauga, todėl gali atsigauti net praradęs auginamas kolonijas.</p><p>Aušinimo bokštas sumažina temperatūrą 12°C iki trijų žingsnių atstumu. Augimui reikia ne daugiau kaip 22°C. Kasyklos šildo aplinką. Šviesa ir karštis žaloja net surinktus kristalus. Nešyklės sulaiko šviesą, bet ne karštį. Pastatytą šviestuvą šalia savęs gali uždengti jį {phone:bakstelėjęs|laptop:spustelėjęs}.</p><h2>Apsaugota statyba</h2><p>Saugyklos kaupia kristalus. Sandarūs vamzdžiai perduoda produkciją tarp kameros ir saugyklos, iki keturių žingsnių nuo kiekvienos. Suprastėję kristalai vis dar tinka talpai sutvirtinti. Mišinių kokybė sveriama pagal kiekį.</p><div data-table="cultivation"></div><h2>Atkūrimas ir užbaigimas</h2><p>Atkurk tris fizines mašinos dalis: pirmai reikia 16 akmens, 16 metalo ir 6 kristalų, antrai 24 / 24 / 8, trečiai 32 / 32 / 12. Kristalų kokybė turi siekti bent 60%. Pastatyk aušinimą. Paleisk atkurtą mašiną su gyvybingais kristalais ir ne didesne kaip 22°C temperatūra, kad užbaigtum pasaulį. Įmontuotus kristalus vis dar reikia saugoti, tačiau pelnytas užbaigimas lieka įrašuose. Skiltyje „Toliau“ pradėsi naują pasaulį tuščiomis rankomis; užbaigtas pasaulis liks archyve.</p><h2>Pavogta širdis</h2><p>Mašina yra teleportas. Jos širdis buvo pavogta ir paskutiniu teleportu, kokį mašina kada nors padarė, nusiųsta į slėptuvę maždaug už 2,5 km paviršiuje. Be širdies mašina ir visa teleportacija užgeso. Pirmasis remontas parodo, kur ji dingo, o pasaulio žemėlapis nuo pat pradžių žymi slėptuvę ir atstumą iki jos.</p><p>Antrajai daliai reikia pačios širdies, sveikos bent 50%. Įkelk ją į sandarų kristalų nešiklį ir parnešk namo. Sandarus dėklas saugo ir širdį nuo saulės, lempų, žibinto bei žiežirbos šviesos. Karštis virš 22°C vis dar žaloja. Be dėklo apsaugos šviesos žala priklauso nuo stiprumo, iki 0,15% per sekundę ryškiausioje šviesoje. Širdies pastogę (6 grybienos, 10 akmens) gali statyti paviršiuje arba po žeme: joje padėta širdis saugi ir gyja po 0,25% per sekundę. Jei širdis perskyla kiaurai, ji subyra, o jos šviesa grįžta į slėptuvę, tad gali ją parnešti iš naujo.</p><p>{phone:Bakstelėk|laptop:Spustelėk} statinį šalia savęs ir pamatysi jo kortelę: temperatūrą, atsparumą, produkciją ir ką su juo gali daryti. Statyba skirta tik statyti; Patobulinimuose yra įranga. Pasigamintas žibintas turi savo mygtuką virš „Rinkti“ ({phone:bakstelėk jį|laptop:arba spausk <kbd>L</kbd>}), kuriuo jį įjungi ir išjungi. Nustatymų kūrėjų skiltyje galima pradėti kitą archyvuojamą pasaulį. Ankstesni pasauliai išlaiko savo taisykles. AUTO ir bendras žaidimas dar nepritaikyti naujam auginimui.</p>',
+  'wiki.legacyRules':
+    'Šios lentelės aprašo ankstesnių išsaugotų pasaulių ekonomiką. Naujiems pasauliams skaityk apie gyvuosius kristalus ir miegančią mašiną.',
 
-  "wiki.depotCollection": "Surinkimo sandėliai surenka savų gamintojų produkciją aštuonių langelių spinduliu tame pačiame sluoksnyje. Persidengimas nedubliuoja produkcijos; neaptarnaujami gamintojai ją išlaiko. Naudojami įprasti vieno žaidėjo įrašai ir archyvai. Ankstesni pasauliai išlaiko uždirbtą visuotinę logistiką.",
-  "wiki.area.look": "Kaip viskas atrodo",
-  "wiki.area.look.blurb": "Klajūnas, daiktai, pastatai ir pats pasaulis.",
-  "wiki.area.depth": "Aukštis ir gylis",
-  "wiki.area.depth.blurb": "Debesys, kasykla ir sluoksniai – dar toliau.",
-  "wiki.area.mechanics": "Mechanikos",
-  "wiki.area.mechanics.blurb": "Nauji dalykai rankoms ir galvai.",
-  "wiki.area.economy": "Ekonomika ir pažanga",
-  "wiki.area.economy.blurb": "Ko sieki statydamas ir kaip auga perteklius.",
-  "wiki.area.big": "Drąsūs šuoliai",
-  "wiki.area.big.blurb": "Pokyčiai, kurie paverstų tai kitu žaidimu. Kai kurie tyčia beprotiški.",
-  "wiki.size.small": "Mažas",
-  "wiki.size.medium": "Vidutinis",
-  "wiki.size.large": "Didelis",
-  "wiki.size.huge": "Milžiniškas",
-  "wiki.buildsOn": "Remiasi: {builds}",
-  "wiki.idea.toolsYouCanSee.title": "Matomi įrankiai",
-  "wiki.idea.toolsYouCanSee.pitch": "Kiekvienas Krepšio ir Kirtiklio lygis pakeičia tai, ką klajūnas laiko rankose: nendrių, gluosnio vytelių, bronzos, kristalo. Pažanga matyti ant veikėjo, o ne tik lape.",
-  "wiki.idea.toolsYouCanSee.builds": "Įrankių lygiai patobulinimų registre.",
-  "wiki.idea.aPackThatFillsUp.title": "Prisipildanti kuprinė",
-  "wiki.idea.aPackThatFillsUp.pitch": "Grybai, akmenys ir žvilgančios rūdos kaupiasi ant kuprinės ar mažų rogučių už tavęs, kai auga atsargos, o kai jų tampa absurdiškai daug – pasipila į vežimą. „Mica ir Wiki“, kurį gali pamatyti.",
-  "wiki.idea.aPackThatFillsUp.builds": "Inventoriaus sumos ir skraidantys ženkleliai, kurie jau dabar lekia į tavo kuprinę.",
-  "wiki.idea.buildingsThatGrow.title": "Augantys pastatai",
-  "wiki.idea.buildingsThatGrow.pitch": "Gavyklos įgyja matomų dalių, kai pastatai daugiau tos pačios rūšies: pastolių, kaminų, konvejerių galų. Pilna gavykla rūksta ar švyti, todėl visą stovyklą perskaitai vienu žvilgsniu, be jokių žiedų.",
-  "wiki.idea.buildingsThatGrow.builds": "Gavyklų skaičius ir buferio užpildymas.",
-  "wiki.idea.crystalsThatLightTheDark.title": "Tamsą apšviečiantys kristalai",
-  "wiki.idea.crystalsThatLightTheDark.pitch": "Kristalo langeliai ir gyslos naktį ir po žeme švyti, apšviesdami aplinkinę žemę ir skardžius, kuriuose yra. Radęs kristalo gyslą, tamsų žemėlapio kampą paverti orientyru.",
-  "wiki.idea.crystalsThatLightTheDark.builds": "Naktinis apšvietimas ir kristalo langeliai.",
-  "wiki.idea.seasons.title": "Metų laikai",
-  "wiki.idea.seasons.pitch": "Per daugelį žaidimo dienų miškas iš žalio tampa auksinis, paskui plikas ir vėl žalias. Kiekvienas metų laikas galėtų šiek tiek paveikti plaukimą, bet net vien vizualiai jie ilgoms žaidimo sesijoms suteiktų laiko pojūtį.",
-  "wiki.idea.seasons.builds": "Dienos ir nakties laikrodis.",
-  "wiki.idea.distantPlateaus.title": "Tolimi plokščiakalniai",
-  "wiki.idea.distantPlateaus.pitch": "Toli tamsoje skirtinguose aukščiuose kabo kitos žemės salos, blankiai apšviestos, užsimenančios apie biomus, kurių dar nepasiekei. Einant link vienos, ji galiausiai prisijungia prie tavo plokščiakalnio.",
-  "wiki.idea.distantPlateaus.builds": "Debesys virš neištyrinėtos žemės ir begalinis reljefas.",
-  "wiki.idea.waterfallsOffTheEdge.title": "Kriokliai nuo krašto",
-  "wiki.idea.waterfallsOffTheEdge.pitch": "Kur upė ar ežeras pasiekia žinomo pasaulio kraštą, vanduo per skardį krinta į tamsą, o purslai gaudo šviesą. Po žeme vanduo, pasiekęs angą, krinta į žemesnį sluoksnį.",
-  "wiki.idea.waterfallsOffTheEdge.builds": "Vandens langeliai, skardžiai ir angos.",
-  "wiki.idea.tunnelsInTheCliffFace.title": "Tuneliai skardyje",
-  "wiki.idea.tunnelsInTheCliffFace.pitch": "Prie žinomo pasaulio krašto iškasti tuneliai matyti kaip angos skardyje po juo, tad nuo paviršiaus gali pamatyti, kur eina tavo kasykla.",
-  "wiki.idea.tunnelsInTheCliffFace.builds": "Skardžiai jau rodo, ką radai kiekviename sluoksnyje.",
-  "wiki.idea.turnTheView.title": "Pasuk vaizdą",
-  "wiki.idea.turnTheView.pitch": "Sukinėk kamerą ketvirčiais apsisukimo ir žiūrėk į plokščiakalnį iš kitos pusės. Reikia nupiešti rytinius, vakarinius ir šiaurinius šonus, bet tada pasaulis atrodo kaip tikras daiktas, kurį gali apeiti aplink.",
-  "wiki.idea.turnTheView.builds": "Kameros projekcijos ir atvirkštinės projekcijos siūlė.",
-  "wiki.idea.deepBiomes.title": "Gilieji biomai",
-  "wiki.idea.deepBiomes.pitch": "Kas kelis sluoksnius uoliena pakeičia pobūdį: šaknimis suraizgytas gruntas, švytinčių grybų urvai, šaltas mėlynas ledas, šilta magmos uoliena, o labai giliai – užkasti griuvėsiai. Kiekvienas su savo spalvomis, garsais ir vienu nauju ištekliumi.",
-  "wiki.idea.deepBiomes.builds": "Geologijos lentelė jau atrakina uolienų tipus pagal gylį.",
-  "wiki.idea.buildingUpward.title": "Statyba aukštyn",
-  "wiki.idea.buildingUpward.pitch": "Sluoksniai virš paviršiaus: pastoliai, bokštai ir stebėjimo bokšteliai, iš toli išsklaidantys rūką. Koordinačių sistema jau leidžia z virš 0.",
-  "wiki.idea.buildingUpward.builds": "Sluoksniuotas (x, y, z) pasaulis ir tyrinėjimo spindulys.",
-  "wiki.idea.liftsInHoleColumns.title": "Keltuvai angų kolonose",
-  "wiki.idea.liftsInHoleColumns.pitch": "Pastatyk gervę virš angų kolonos – ji iškels į paviršių tai, ką pagamina tavo požeminės gavyklos, o kartu ir tave. Gilus kasimas tampa logistikos galvosūkiu, o ne ilgu lipimu.",
-  "wiki.idea.liftsInHoleColumns.builds": "Angos, kolonos ir Logistika.",
-  "wiki.idea.minecartRails.title": "Vagonėlių bėgiai",
-  "wiki.idea.minecartRails.pitch": "Tiesk bėgius tuneliais; vagonėliai patys rieda su rūda iki keltuvo. Bėgius tiesti galėtų tas pats Tako gestas: nubrėžk maršrutą nykščiu.",
-  "wiki.idea.minecartRails.builds": "Takai ir iškasti tuneliai.",
-  "wiki.idea.caveInsAndMyceliumProps.title": "Griūtys ir grybienos ramsčiai",
-  "wiki.idea.caveInsAndMyceliumProps.pitch": "Dideli atviri urvai girgžda ir gali sugriūti, jei neparemti užaugintais grybienos stulpais. Taip grybiena gauna priežastį keliauti po žeme, o kasyklos išdėstymas tampa pasirinkimu.",
-  "wiki.idea.caveInsAndMyceliumProps.builds": "Iškasti langeliai ir grybiena.",
-  "wiki.idea.glowOre.title": "Švytinti rūda",
-  "wiki.idea.glowOre.pitch": "Reta rūda, kurią matai tik naktį ar tamsoje, silpnai mirguliuojančią. Apdovanoja už buvimą lauke naktį ir kasyklos tyrinėjimą apgraibomis.",
-  "wiki.idea.glowOre.builds": "Diena, naktis ir rūkas.",
-  "wiki.idea.littleDiggers.title": "Mažieji kasėjai",
-  "wiki.idea.littleDiggers.pitch": "Tamsoje gyvenantys mažyliai: kurmiai, kurie patys kasa tunelius, ar vagišiai, graužiantys pilnus gavyklų buferius. Priežastis laikyti stovyklą tvarkingą ir šiek tiek gyvybės pasaulyje.",
-  "wiki.idea.littleDiggers.builds": "Gavyklų buferiai ir tuneliai.",
-  "wiki.idea.weather.title": "Orai",
-  "wiki.idea.weather.pitch": "Lietus pripildo tvenkinius; sausros sumažina ežerus ir atveria naujus kelius. Orai atslenka matomais debesimis, tad matai, kas artėja.",
-  "wiki.idea.weather.builds": "Vandens langeliai.",
-  "wiki.idea.visualRecipes.title": "Vaizdiniai receptai",
-  "wiki.idea.visualRecipes.pitch": "Darbastalis, ant kurio dedi išteklius ir matai, kas išeina: tik piktogramos, jokių žodžių, atrandama bandant derinius. Puikiai tinka taisyklei „išsiaiškink pats“.",
-  "wiki.idea.visualRecipes.builds": "Keitikliai ir taisyklė „be teksto“.",
-  "wiki.idea.roads.title": "Keliai",
-  "wiki.idea.roads.pitch": "Grįsti takai, kuriuos tiesi tarp pastatų: jais eini greičiau. Stovykla tampa tavo paties suprojektuotu tinklu.",
-  "wiki.idea.roads.builds": "Judėjimo greitis.",
-  "wiki.idea.caravansAtTheEdge.title": "Karavanai pakraštyje",
-  "wiki.idea.caravansAtTheEdge.pitch": "Kartkartėmis žinomo pasaulio pakraštyje pasirodo karavanas ir iškeičia vieną išteklių į kitą. Kuo toliau tyrinėji, tuo didesni karavanai.",
-  "wiki.idea.caravansAtTheEdge.builds": "Rūko kraštai ir ištekliai.",
-  "wiki.idea.trophiesOnThePlateau.title": "Trofėjai plokščiakalnyje",
-  "wiki.idea.trophiesOnThePlateau.pitch": "Etapai palieka pasaulyje fizinį ženklą: akmenų piramidę, statulą, uždegtą švyturį, tad tavo istorija stovi žemėlapyje, o ne sąraše.",
-  "wiki.idea.trophiesOnThePlateau.builds": "Etapai (tikslai) ir jų šventimas.",
-  "wiki.idea.insightAsConstellations.title": "Įžvalga kaip žvaigždynai",
-  "wiki.idea.insightAsConstellations.pitch": "Už Įžvalgą pirkti privalumai atsiranda kaip žvaigždės naktiniame danguje ir sudaro žvaigždynus virš pasaulių, į kuriuos iškeliauji. Prestižo sluoksnis tampa tuo, į ką žiūri aukštyn.",
-  "wiki.idea.insightAsConstellations.builds": "Įžvalga, privalumai ir naktis.",
-  "wiki.idea.aMountainColony.title": "Kalno kolonija",
-  "wiki.idea.aMountainColony.pitch": "Atvyksta naujakuriai ir apsigyvena tavo iškastuose tuneliuose; darbus jiems skiri, padėdamas įrankius šalia jų. Žaidimas iš vieno klajūno virsta maža visuomene kalno viduje.",
-  "wiki.idea.aMountainColony.builds": "Tuneliai, pastatai ir gamyba.",
-  "wiki.idea.everyEmbarkIsANewMountain.title": "Kiekvienas iškeliavimas – naujas kalnas",
-  "wiki.idea.everyEmbarkIsANewMountain.pitch": "Atsiremk į plokščiakalnį: kiekvienas pasaulis – vienas kalnas su viršūne, forma ir gylio riba, o Iškeliauti reiškia nusileisti ir nueiti iki kitos viršūnės. Trumpi žaidimai, stipri meta pažanga.",
-  "wiki.idea.everyEmbarkIsANewMountain.builds": "Iškeliavimas ir Įžvalga.",
-  "wiki.idea.visitAFriendSPlateau.title": "Aplankyk draugo plokščiakalnį",
-  "wiki.idea.visitAFriendSPlateau.pitch": "Pasidalyk savo pasaulio nuoroda; draugai gali vaikščioti tavo plokščiakalniu, palikti dovaną tavo stovykloje ar iškasti angą, kuri atsiranda tavo kasykloje. Asinchroniškai, be paskyrų – išsaugojimo formatas jau dabar kompaktiškai talpina visą pasaulį.",
-  "wiki.idea.visitAFriendSPlateau.builds": "Pasauliai iš sėklų ir kompaktiški išsaugojimai.",
-  "wiki.idea.theWorldThatRemembers.title": "Pasaulis, kuris prisimena",
-  "wiki.idea.theWorldThatRemembers.pitch": "Kai iškeliauji, senas pasaulis lieka ir gerokai vėliau gali būti vėl surastas: apaugusios stovyklos, sugriuvę tuneliai, tavo paties trofėjai. Prestižas tampa archeologija.",
-  "wiki.idea.theWorldThatRemembers.builds": "Sėklos, išsaugojimai ir iškeliavimas.",
-  "wiki.idea.downIsTheWholeGame.title": "Žemyn – tai visas žaidimas",
-  "wiki.idea.downIsTheWholeGame.pitch": "Apversk dėmesį: paviršius – maža pradinė pieva, o tikrasis žaidimas yra leidimasis, sluoksnis po sluoksnio, kiekvienas – atskiras urvas, kurį reikia apšviesti, iškasti ir sujungti angomis. Paviršius tampa namų baze.",
-  "wiki.idea.downIsTheWholeGame.builds": "Sluoksniai, angos ir kasyklos rūkas.",
-  "wiki.idea.noNumbersAtAll.title": "Jokių skaičių",
-  "wiki.idea.noNumbersAtAll.pitch": "Eik toliau nei „be mokomojo režimo“: paslėpk visus skaitiklius ir leisk krūvų dydžiui, pastatų švytėjimui ir tunelių ilgiui pasakyti, kaip tau sekasi. Žinynas skaičius pasilieka tiems, kurie jų nori.",
-  "wiki.idea.noNumbersAtAll.builds": "Taisyklė „be teksto“ ir žinynas.",
-  "wiki.idea.aSharedBank.title": "Bendras bankas",
-  "wiki.idea.aSharedBank.pitch": "Bendrame pasaulyje – bankas, į kurį visi gali dėti ir iš kurio imti, kad draugai galėtų sumesti išteklius kam nors dideliam arba padėti naujokui pradėti.",
-  "wiki.idea.aSharedBank.builds": "Bendri pasauliai, sandėlis ir kiemas.",
-  "wiki.idea.playtesterBots.title": "Robotai bandytojai",
-  "wiki.idea.playtesterBots.pitch": "Robotai, kurie prisijungia prie bendro pasaulio ir žaidžia, kai nieko nėra: renka, stato, keliauja ir praneša, kur įstrigo ar kas sugedo, kad bėdos išaiškėtų anksčiau nei jas ras žaidėjai.",
-  "wiki.idea.playtesterBots.builds": "Roboto žaidimo testas ir bendri pasauliai.",
-  "wiki.idea.creaturesOfDayAndNight.title": "Dienos ir nakties būtybės",
-  "wiki.idea.creaturesOfDayAndNight.pitch": "Būtybės, kurias galima atrasti ir iš kurių galima mokytis, paimtos iš angelų ir demonų taro lentelės: 72 dienos angelai iš Šem HaMeforaš ir 72 nakties demonai iš Ars Goetia, po du kiekvienoje mažosios arkanos kortoje (36 dekanai). Kurios pasirodo, priklauso nuo dienos ir nakties.",
-  "wiki.idea.creaturesOfDayAndNight.builds": "Dienos ir nakties ciklas ir Wiki, kuris jau papasakoja apie tai, į ką rodai.",
-  "wiki.search.head": "Paieška: „{query}“",
-  "wiki.search.none": "Žinyne niekur neminima.",
-  "wiki.search.mentions": { one: "{count} paminėjimas: {articles}.", few: "{count} paminėjimai: {articles}.", many: "{count} paminėjimo: {articles}.", other: "{count} paminėjimų: {articles}." },
-  "wiki.search.articles": { one: "{count} straipsnis", few: "{count} straipsniai", many: "{count} straipsnio", other: "{count} straipsnių" },
-  "wiki.packFailed": "Žaidimo paveikslėliai neįsikėlė ({status})",
-  "wiki.thingCount": { one: "{count} daiktas, grupių: {groups}.", few: "{count} daiktai, grupių: {groups}.", many: "{count} daikto, grupių: {groups}.", other: "{count} daiktų, grupių: {groups}." },
-  "wiki.title": "„Mica ir Wiki“ žinynas",
-  "wiki.description": "Viskas apie „Mica ir Wiki“: valdymas, pasaulis, kasykla, pastatai, patobulinimai ir naujo pasaulio ciklas.",
-  "wiki.nav": "Žinynas",
-  "wiki.brand": "MICA IR WIKI",
-  "wiki.play": "Žaisti",
-  "wiki.searchBox": "Ieškoti žinyne",
-  "wiki.searchTitle": "Paieška – „Mica ir Wiki“ žinynas",
-  "wiki.articleTitle": "{article} – „Mica ir Wiki“ žinynas",
-  "wiki.forVersion": "žaidimo v{version}",
-  "wiki.loadFailed": "Žinynui nepavyko įkelti lentelių: {error}",
-  "wiki.note.swim": "Galima plaukti, {pct} greičio",
-  "wiki.note.walk": "Galima vaikščioti",
-  "wiki.note.solid": "Kieta, kol neiškasi",
-  "wiki.note.impassable": "Neįveikiama",
-  "wiki.note.yields": "duoda: {res}",
-  "wiki.note.empty": "nieko neturi: kasant tik praskinamas kelias",
-  "wiki.note.neverRegrows": "niekada neatauga",
-  "wiki.note.land": "gali stovėti keitikliai",
-  "wiki.note.home": "čia laikomos tavo atsargos",
-  "wiki.note.descend": "nusileidi į sluoksnį žemiau",
-  "wiki.note.rise": "užlipi į sluoksnį aukščiau",
-  "wiki.note.shaft": "atsidaro vienu kasimu",
-  "wiki.note.find": "radinys: blyksi tamsoje, vienas kasimas atiduoda visą jo turinį (žr. Radiniai)",
-  "wiki.note.bedrock": "neiškasama",
-  "wiki.col.tile": "Langelis",
-  "wiki.col.land": "Žemės pobūdis",
-  "wiki.col.music": "Muzika",
-  "wiki.biome.meadow": "Atviros pievos su giraitėmis, po truputį visko",
-  "wiki.biome.woods": "Tankūs miškai, grybų visur, mineralų mažai",
-  "wiki.biome.lakes": "Ežerai ir salos; reikės kantrybės arba valties",
-  "wiki.biome.highlands": "Kalnai ir turtingos mineralų žemės, medžių mažai",
-  "wiki.biome.fen": "Šlapi miškai ir balos, akmens beveik nėra",
-  "wiki.biome.heath": "Plyni, vėjuoti ir akmenuoti tyrai, beveik be medžių",
-  "wiki.col.richness": "Turtingumas",
-  "wiki.col.notes": "Pastabos",
-  "wiki.col.share": "Langelių dalis (sekliai → giliai)",
-  "wiki.col.foundOn": "Randama",
-  "wiki.col.mushroom": "Grybas",
-  "wiki.col.grows": "Auga",
-  "wiki.col.howCommon": "Kaip dažnas",
-  "wiki.col.whatItIs": "Kas tai",
-  "wiki.col.thing": "Daiktas",
-  "wiki.col.cost": "Kaina",
-  "wiki.col.light": "Šviesos siekis",
-  "wiki.col.whatItDoes": "Ką daro",
-  "wiki.col.find": "Radinys",
-  "wiki.col.loot": "Turinys 1 sluoksnyje, už kiekvieną įrankio derliaus tašką",
-  "wiki.col.level": "Lygis",
-  "wiki.col.effect": "Poveikis",
-  "wiki.col.opens": "Atveria",
-  "wiki.col.building": "Pastatas",
-  "wiki.col.standsOn": "Stovi ant",
-  "wiki.col.makes": "Gamina",
-  "wiki.col.baseRate": "Bazinis greitis",
-  "wiki.col.holds": "Talpa",
-  "wiki.col.firstCosts": "Pirmas kainuoja",
-  "wiki.col.needs": "Reikia",
-  "wiki.col.unlock": "Atrakinimas",
-  "wiki.col.trickle": "Srovelė",
-  "wiki.col.production": "Gamyba",
-  "wiki.col.levelCost": "Šio lygio kaina",
-  "wiki.col.step": "Žingsnis",
-  "wiki.col.total": "Iš viso",
-  "wiki.col.perk": "Privalumas",
-  "wiki.col.insightCost": "Kaina įžvalgomis",
-  "wiki.col.pileIs": "Viena krūva yra",
-  "wiki.col.ground": "Plotas",
-  "wiki.everyLayer": "kiekviename sluoksnyje",
-  "wiki.fromLayer": "nuo {layer} sluoksnio ir giliau",
-  "wiki.soilShare": "apie {pct} 1 sluoksnyje, giliau mažiau",
-  "wiki.common": "dažnas",
-  "wiki.fairlyCommon": "gana dažnas",
-  "wiki.uncommon": "retokas",
-  "wiki.rare": "retas",
-  "wiki.sporeBedsFrom": "sporų guoliai, nuo {layer} sluoksnio ir giliau",
-  "wiki.sporeBeds": "sporų guoliai",
-  "wiki.perSwing": "{n} per kirtį",
-  "wiki.startingTool": "senasis bazinis įrankis",
-  "wiki.trickle": "+{n}/s kiekvieno",
-  "wiki.perkRepeat": "{n}, paskui +1 už kiekvieną turimą lygį",
-  "wiki.perkOnce": "{n} (vieną kartą)",
-  "wiki.oneTile": "1 langelis",
-  "wiki.tilesSquare": "{n} × {n} langelių",
-  "wiki.article.home.title": "Pradžia",
-  "wiki.article.home": `      <h1>„Mica ir Wiki“ žinynas</h1>
+  'wiki.depotCollection':
+    'Surinkimo sandėliai surenka savų gamintojų produkciją aštuonių langelių spinduliu tame pačiame sluoksnyje. Persidengimas nedubliuoja produkcijos; neaptarnaujami gamintojai ją išlaiko. Naudojami įprasti vieno žaidėjo įrašai ir archyvai. Ankstesni pasauliai išlaiko uždirbtą visuotinę logistiką.',
+  'wiki.area.look': 'Kaip viskas atrodo',
+  'wiki.area.look.blurb': 'Klajūnas, daiktai, pastatai ir pats pasaulis.',
+  'wiki.area.depth': 'Aukštis ir gylis',
+  'wiki.area.depth.blurb': 'Debesys, kasykla ir sluoksniai – dar toliau.',
+  'wiki.area.mechanics': 'Mechanikos',
+  'wiki.area.mechanics.blurb': 'Nauji dalykai rankoms ir galvai.',
+  'wiki.area.economy': 'Ekonomika ir pažanga',
+  'wiki.area.economy.blurb': 'Ko sieki statydamas ir kaip auga perteklius.',
+  'wiki.area.big': 'Drąsūs šuoliai',
+  'wiki.area.big.blurb': 'Pokyčiai, kurie paverstų tai kitu žaidimu. Kai kurie tyčia beprotiški.',
+  'wiki.size.small': 'Mažas',
+  'wiki.size.medium': 'Vidutinis',
+  'wiki.size.large': 'Didelis',
+  'wiki.size.huge': 'Milžiniškas',
+  'wiki.buildsOn': 'Remiasi: {builds}',
+  'wiki.idea.toolsYouCanSee.title': 'Matomi įrankiai',
+  'wiki.idea.toolsYouCanSee.pitch':
+    'Kiekvienas Krepšio ir Kirtiklio lygis pakeičia tai, ką klajūnas laiko rankose: nendrių, gluosnio vytelių, bronzos, kristalo. Pažanga matyti ant veikėjo, o ne tik lape.',
+  'wiki.idea.toolsYouCanSee.builds': 'Įrankių lygiai patobulinimų registre.',
+  'wiki.idea.aPackThatFillsUp.title': 'Prisipildanti kuprinė',
+  'wiki.idea.aPackThatFillsUp.pitch':
+    'Grybai, akmenys ir žvilgančios rūdos kaupiasi ant kuprinės ar mažų rogučių už tavęs, kai auga atsargos, o kai jų tampa absurdiškai daug – pasipila į vežimą. „Mica ir Wiki“, kurį gali pamatyti.',
+  'wiki.idea.aPackThatFillsUp.builds':
+    'Inventoriaus sumos ir skraidantys ženkleliai, kurie jau dabar lekia į tavo kuprinę.',
+  'wiki.idea.buildingsThatGrow.title': 'Augantys pastatai',
+  'wiki.idea.buildingsThatGrow.pitch':
+    'Gavyklos įgyja matomų dalių, kai pastatai daugiau tos pačios rūšies: pastolių, kaminų, konvejerių galų. Pilna gavykla rūksta ar švyti, todėl visą stovyklą perskaitai vienu žvilgsniu, be jokių žiedų.',
+  'wiki.idea.buildingsThatGrow.builds': 'Gavyklų skaičius ir buferio užpildymas.',
+  'wiki.idea.crystalsThatLightTheDark.title': 'Tamsą apšviečiantys kristalai',
+  'wiki.idea.crystalsThatLightTheDark.pitch':
+    'Kristalo langeliai ir gyslos naktį ir po žeme švyti, apšviesdami aplinkinę žemę ir skardžius, kuriuose yra. Radęs kristalo gyslą, tamsų žemėlapio kampą paverti orientyru.',
+  'wiki.idea.crystalsThatLightTheDark.builds': 'Naktinis apšvietimas ir kristalo langeliai.',
+  'wiki.idea.seasons.title': 'Metų laikai',
+  'wiki.idea.seasons.pitch':
+    'Per daugelį žaidimo dienų miškas iš žalio tampa auksinis, paskui plikas ir vėl žalias. Kiekvienas metų laikas galėtų šiek tiek paveikti plaukimą, bet net vien vizualiai jie ilgoms žaidimo sesijoms suteiktų laiko pojūtį.',
+  'wiki.idea.seasons.builds': 'Dienos ir nakties laikrodis.',
+  'wiki.idea.distantPlateaus.title': 'Tolimi plokščiakalniai',
+  'wiki.idea.distantPlateaus.pitch':
+    'Toli tamsoje skirtinguose aukščiuose kabo kitos žemės salos, blankiai apšviestos, užsimenančios apie biomus, kurių dar nepasiekei. Einant link vienos, ji galiausiai prisijungia prie tavo plokščiakalnio.',
+  'wiki.idea.distantPlateaus.builds': 'Debesys virš neištyrinėtos žemės ir begalinis reljefas.',
+  'wiki.idea.waterfallsOffTheEdge.title': 'Kriokliai nuo krašto',
+  'wiki.idea.waterfallsOffTheEdge.pitch':
+    'Kur upė ar ežeras pasiekia žinomo pasaulio kraštą, vanduo per skardį krinta į tamsą, o purslai gaudo šviesą. Po žeme vanduo, pasiekęs angą, krinta į žemesnį sluoksnį.',
+  'wiki.idea.waterfallsOffTheEdge.builds': 'Vandens langeliai, skardžiai ir angos.',
+  'wiki.idea.tunnelsInTheCliffFace.title': 'Tuneliai skardyje',
+  'wiki.idea.tunnelsInTheCliffFace.pitch':
+    'Prie žinomo pasaulio krašto iškasti tuneliai matyti kaip angos skardyje po juo, tad nuo paviršiaus gali pamatyti, kur eina tavo kasykla.',
+  'wiki.idea.tunnelsInTheCliffFace.builds': 'Skardžiai jau rodo, ką radai kiekviename sluoksnyje.',
+  'wiki.idea.turnTheView.title': 'Pasuk vaizdą',
+  'wiki.idea.turnTheView.pitch':
+    'Sukinėk kamerą ketvirčiais apsisukimo ir žiūrėk į plokščiakalnį iš kitos pusės. Reikia nupiešti rytinius, vakarinius ir šiaurinius šonus, bet tada pasaulis atrodo kaip tikras daiktas, kurį gali apeiti aplink.',
+  'wiki.idea.turnTheView.builds': 'Kameros projekcijos ir atvirkštinės projekcijos siūlė.',
+  'wiki.idea.deepBiomes.title': 'Gilieji biomai',
+  'wiki.idea.deepBiomes.pitch':
+    'Kas kelis sluoksnius uoliena pakeičia pobūdį: šaknimis suraizgytas gruntas, švytinčių grybų urvai, šaltas mėlynas ledas, šilta magmos uoliena, o labai giliai – užkasti griuvėsiai. Kiekvienas su savo spalvomis, garsais ir vienu nauju ištekliumi.',
+  'wiki.idea.deepBiomes.builds': 'Geologijos lentelė jau atrakina uolienų tipus pagal gylį.',
+  'wiki.idea.buildingUpward.title': 'Statyba aukštyn',
+  'wiki.idea.buildingUpward.pitch':
+    'Sluoksniai virš paviršiaus: pastoliai, bokštai ir stebėjimo bokšteliai, iš toli išsklaidantys rūką. Koordinačių sistema jau leidžia z virš 0.',
+  'wiki.idea.buildingUpward.builds': 'Sluoksniuotas (x, y, z) pasaulis ir tyrinėjimo spindulys.',
+  'wiki.idea.liftsInHoleColumns.title': 'Keltuvai angų kolonose',
+  'wiki.idea.liftsInHoleColumns.pitch':
+    'Pastatyk gervę virš angų kolonos – ji iškels į paviršių tai, ką pagamina tavo požeminės gavyklos, o kartu ir tave. Gilus kasimas tampa logistikos galvosūkiu, o ne ilgu lipimu.',
+  'wiki.idea.liftsInHoleColumns.builds': 'Angos, kolonos ir Logistika.',
+  'wiki.idea.minecartRails.title': 'Vagonėlių bėgiai',
+  'wiki.idea.minecartRails.pitch':
+    'Tiesk bėgius tuneliais; vagonėliai patys rieda su rūda iki keltuvo. Bėgius tiesti galėtų tas pats Tako gestas: nubrėžk maršrutą nykščiu.',
+  'wiki.idea.minecartRails.builds': 'Takai ir iškasti tuneliai.',
+  'wiki.idea.caveInsAndMyceliumProps.title': 'Griūtys ir grybienos ramsčiai',
+  'wiki.idea.caveInsAndMyceliumProps.pitch':
+    'Dideli atviri urvai girgžda ir gali sugriūti, jei neparemti užaugintais grybienos stulpais. Taip grybiena gauna priežastį keliauti po žeme, o kasyklos išdėstymas tampa pasirinkimu.',
+  'wiki.idea.caveInsAndMyceliumProps.builds': 'Iškasti langeliai ir grybiena.',
+  'wiki.idea.glowOre.title': 'Švytinti rūda',
+  'wiki.idea.glowOre.pitch':
+    'Reta rūda, kurią matai tik naktį ar tamsoje, silpnai mirguliuojančią. Apdovanoja už buvimą lauke naktį ir kasyklos tyrinėjimą apgraibomis.',
+  'wiki.idea.glowOre.builds': 'Diena, naktis ir rūkas.',
+  'wiki.idea.littleDiggers.title': 'Mažieji kasėjai',
+  'wiki.idea.littleDiggers.pitch':
+    'Tamsoje gyvenantys mažyliai: kurmiai, kurie patys kasa tunelius, ar vagišiai, graužiantys pilnus gavyklų buferius. Priežastis laikyti stovyklą tvarkingą ir šiek tiek gyvybės pasaulyje.',
+  'wiki.idea.littleDiggers.builds': 'Gavyklų buferiai ir tuneliai.',
+  'wiki.idea.weather.title': 'Orai',
+  'wiki.idea.weather.pitch':
+    'Lietus pripildo tvenkinius; sausros sumažina ežerus ir atveria naujus kelius. Orai atslenka matomais debesimis, tad matai, kas artėja.',
+  'wiki.idea.weather.builds': 'Vandens langeliai.',
+  'wiki.idea.visualRecipes.title': 'Vaizdiniai receptai',
+  'wiki.idea.visualRecipes.pitch':
+    'Darbastalis, ant kurio dedi išteklius ir matai, kas išeina: tik piktogramos, jokių žodžių, atrandama bandant derinius. Puikiai tinka taisyklei „išsiaiškink pats“.',
+  'wiki.idea.visualRecipes.builds': 'Keitikliai ir taisyklė „be teksto“.',
+  'wiki.idea.roads.title': 'Keliai',
+  'wiki.idea.roads.pitch':
+    'Grįsti takai, kuriuos tiesi tarp pastatų: jais eini greičiau. Stovykla tampa tavo paties suprojektuotu tinklu.',
+  'wiki.idea.roads.builds': 'Judėjimo greitis.',
+  'wiki.idea.caravansAtTheEdge.title': 'Karavanai pakraštyje',
+  'wiki.idea.caravansAtTheEdge.pitch':
+    'Kartkartėmis žinomo pasaulio pakraštyje pasirodo karavanas ir iškeičia vieną išteklių į kitą. Kuo toliau tyrinėji, tuo didesni karavanai.',
+  'wiki.idea.caravansAtTheEdge.builds': 'Rūko kraštai ir ištekliai.',
+  'wiki.idea.trophiesOnThePlateau.title': 'Trofėjai plokščiakalnyje',
+  'wiki.idea.trophiesOnThePlateau.pitch':
+    'Etapai palieka pasaulyje fizinį ženklą: akmenų piramidę, statulą, uždegtą švyturį, tad tavo istorija stovi žemėlapyje, o ne sąraše.',
+  'wiki.idea.trophiesOnThePlateau.builds': 'Etapai (tikslai) ir jų šventimas.',
+  'wiki.idea.insightAsConstellations.title': 'Įžvalga kaip žvaigždynai',
+  'wiki.idea.insightAsConstellations.pitch':
+    'Už Įžvalgą pirkti privalumai atsiranda kaip žvaigždės naktiniame danguje ir sudaro žvaigždynus virš pasaulių, į kuriuos iškeliauji. Prestižo sluoksnis tampa tuo, į ką žiūri aukštyn.',
+  'wiki.idea.insightAsConstellations.builds': 'Įžvalga, privalumai ir naktis.',
+  'wiki.idea.aMountainColony.title': 'Kalno kolonija',
+  'wiki.idea.aMountainColony.pitch':
+    'Atvyksta naujakuriai ir apsigyvena tavo iškastuose tuneliuose; darbus jiems skiri, padėdamas įrankius šalia jų. Žaidimas iš vieno klajūno virsta maža visuomene kalno viduje.',
+  'wiki.idea.aMountainColony.builds': 'Tuneliai, pastatai ir gamyba.',
+  'wiki.idea.everyEmbarkIsANewMountain.title': 'Kiekvienas iškeliavimas – naujas kalnas',
+  'wiki.idea.everyEmbarkIsANewMountain.pitch':
+    'Atsiremk į plokščiakalnį: kiekvienas pasaulis – vienas kalnas su viršūne, forma ir gylio riba, o Iškeliauti reiškia nusileisti ir nueiti iki kitos viršūnės. Trumpi žaidimai, stipri meta pažanga.',
+  'wiki.idea.everyEmbarkIsANewMountain.builds': 'Iškeliavimas ir Įžvalga.',
+  'wiki.idea.visitAFriendSPlateau.title': 'Aplankyk draugo plokščiakalnį',
+  'wiki.idea.visitAFriendSPlateau.pitch':
+    'Pasidalyk savo pasaulio nuoroda; draugai gali vaikščioti tavo plokščiakalniu, palikti dovaną tavo stovykloje ar iškasti angą, kuri atsiranda tavo kasykloje. Asinchroniškai, be paskyrų – išsaugojimo formatas jau dabar kompaktiškai talpina visą pasaulį.',
+  'wiki.idea.visitAFriendSPlateau.builds': 'Pasauliai iš sėklų ir kompaktiški išsaugojimai.',
+  'wiki.idea.theWorldThatRemembers.title': 'Pasaulis, kuris prisimena',
+  'wiki.idea.theWorldThatRemembers.pitch':
+    'Kai iškeliauji, senas pasaulis lieka ir gerokai vėliau gali būti vėl surastas: apaugusios stovyklos, sugriuvę tuneliai, tavo paties trofėjai. Prestižas tampa archeologija.',
+  'wiki.idea.theWorldThatRemembers.builds': 'Sėklos, išsaugojimai ir iškeliavimas.',
+  'wiki.idea.downIsTheWholeGame.title': 'Žemyn – tai visas žaidimas',
+  'wiki.idea.downIsTheWholeGame.pitch':
+    'Apversk dėmesį: paviršius – maža pradinė pieva, o tikrasis žaidimas yra leidimasis, sluoksnis po sluoksnio, kiekvienas – atskiras urvas, kurį reikia apšviesti, iškasti ir sujungti angomis. Paviršius tampa namų baze.',
+  'wiki.idea.downIsTheWholeGame.builds': 'Sluoksniai, angos ir kasyklos rūkas.',
+  'wiki.idea.noNumbersAtAll.title': 'Jokių skaičių',
+  'wiki.idea.noNumbersAtAll.pitch':
+    'Eik toliau nei „be mokomojo režimo“: paslėpk visus skaitiklius ir leisk krūvų dydžiui, pastatų švytėjimui ir tunelių ilgiui pasakyti, kaip tau sekasi. Žinynas skaičius pasilieka tiems, kurie jų nori.',
+  'wiki.idea.noNumbersAtAll.builds': 'Taisyklė „be teksto“ ir žinynas.',
+  'wiki.idea.aSharedBank.title': 'Bendras bankas',
+  'wiki.idea.aSharedBank.pitch':
+    'Bendrame pasaulyje – bankas, į kurį visi gali dėti ir iš kurio imti, kad draugai galėtų sumesti išteklius kam nors dideliam arba padėti naujokui pradėti.',
+  'wiki.idea.aSharedBank.builds': 'Bendri pasauliai, sandėlis ir kiemas.',
+  'wiki.idea.playtesterBots.title': 'Robotai bandytojai',
+  'wiki.idea.playtesterBots.pitch':
+    'Robotai, kurie prisijungia prie bendro pasaulio ir žaidžia, kai nieko nėra: renka, stato, keliauja ir praneša, kur įstrigo ar kas sugedo, kad bėdos išaiškėtų anksčiau nei jas ras žaidėjai.',
+  'wiki.idea.playtesterBots.builds': 'Roboto žaidimo testas ir bendri pasauliai.',
+  'wiki.idea.creaturesOfDayAndNight.title': 'Dienos ir nakties būtybės',
+  'wiki.idea.creaturesOfDayAndNight.pitch':
+    'Būtybės, kurias galima atrasti ir iš kurių galima mokytis, paimtos iš angelų ir demonų taro lentelės: 72 dienos angelai iš Šem HaMeforaš ir 72 nakties demonai iš Ars Goetia, po du kiekvienoje mažosios arkanos kortoje (36 dekanai). Kurios pasirodo, priklauso nuo dienos ir nakties.',
+  'wiki.idea.creaturesOfDayAndNight.builds':
+    'Dienos ir nakties ciklas ir Wiki, kuris jau papasakoja apie tai, į ką rodai.',
+  'wiki.search.head': 'Paieška: „{query}“',
+  'wiki.search.none': 'Žinyne niekur neminima.',
+  'wiki.search.mentions': {
+    one: '{count} paminėjimas: {articles}.',
+    few: '{count} paminėjimai: {articles}.',
+    many: '{count} paminėjimo: {articles}.',
+    other: '{count} paminėjimų: {articles}.'
+  },
+  'wiki.search.articles': {
+    one: '{count} straipsnis',
+    few: '{count} straipsniai',
+    many: '{count} straipsnio',
+    other: '{count} straipsnių'
+  },
+  'wiki.packFailed': 'Žaidimo paveikslėliai neįsikėlė ({status})',
+  'wiki.thingCount': {
+    one: '{count} daiktas, grupių: {groups}.',
+    few: '{count} daiktai, grupių: {groups}.',
+    many: '{count} daikto, grupių: {groups}.',
+    other: '{count} daiktų, grupių: {groups}.'
+  },
+  'wiki.title': '„Mica ir Wiki“ žinynas',
+  'wiki.description':
+    'Viskas apie „Mica ir Wiki“: valdymas, pasaulis, kasykla, pastatai, patobulinimai ir naujo pasaulio ciklas.',
+  'wiki.nav': 'Žinynas',
+  'wiki.brand': 'MICA IR WIKI',
+  'wiki.play': 'Žaisti',
+  'wiki.searchBox': 'Ieškoti žinyne',
+  'wiki.searchTitle': 'Paieška – „Mica ir Wiki“ žinynas',
+  'wiki.articleTitle': '{article} – „Mica ir Wiki“ žinynas',
+  'wiki.forVersion': 'žaidimo v{version}',
+  'wiki.loadFailed': 'Žinynui nepavyko įkelti lentelių: {error}',
+  'wiki.note.swim': 'Galima plaukti, {pct} greičio',
+  'wiki.note.walk': 'Galima vaikščioti',
+  'wiki.note.solid': 'Kieta, kol neiškasi',
+  'wiki.note.impassable': 'Neįveikiama',
+  'wiki.note.yields': 'duoda: {res}',
+  'wiki.note.empty': 'nieko neturi: kasant tik praskinamas kelias',
+  'wiki.note.neverRegrows': 'niekada neatauga',
+  'wiki.note.land': 'gali stovėti keitikliai',
+  'wiki.note.home': 'čia laikomos tavo atsargos',
+  'wiki.note.descend': 'nusileidi į sluoksnį žemiau',
+  'wiki.note.rise': 'užlipi į sluoksnį aukščiau',
+  'wiki.note.shaft': 'atsidaro vienu kasimu',
+  'wiki.note.find':
+    'radinys: blyksi tamsoje, vienas kasimas atiduoda visą jo turinį (žr. Radiniai)',
+  'wiki.note.bedrock': 'neiškasama',
+  'wiki.col.tile': 'Langelis',
+  'wiki.col.land': 'Žemės pobūdis',
+  'wiki.col.music': 'Muzika',
+  'wiki.biome.meadow': 'Atviros pievos su giraitėmis, po truputį visko',
+  'wiki.biome.woods': 'Tankūs miškai, grybų visur, mineralų mažai',
+  'wiki.biome.lakes': 'Ežerai ir salos; reikės kantrybės arba valties',
+  'wiki.biome.highlands': 'Kalnai ir turtingos mineralų žemės, medžių mažai',
+  'wiki.biome.fen': 'Šlapi miškai ir balos, akmens beveik nėra',
+  'wiki.biome.heath': 'Plyni, vėjuoti ir akmenuoti tyrai, beveik be medžių',
+  'wiki.col.richness': 'Turtingumas',
+  'wiki.col.notes': 'Pastabos',
+  'wiki.col.share': 'Langelių dalis (sekliai → giliai)',
+  'wiki.col.foundOn': 'Randama',
+  'wiki.col.mushroom': 'Grybas',
+  'wiki.col.grows': 'Auga',
+  'wiki.col.howCommon': 'Kaip dažnas',
+  'wiki.col.whatItIs': 'Kas tai',
+  'wiki.col.thing': 'Daiktas',
+  'wiki.col.cost': 'Kaina',
+  'wiki.col.light': 'Šviesos siekis',
+  'wiki.col.whatItDoes': 'Ką daro',
+  'wiki.col.find': 'Radinys',
+  'wiki.col.loot': 'Turinys 1 sluoksnyje, už kiekvieną įrankio derliaus tašką',
+  'wiki.col.level': 'Lygis',
+  'wiki.col.effect': 'Poveikis',
+  'wiki.col.opens': 'Atveria',
+  'wiki.col.building': 'Pastatas',
+  'wiki.col.standsOn': 'Stovi ant',
+  'wiki.col.makes': 'Gamina',
+  'wiki.col.baseRate': 'Bazinis greitis',
+  'wiki.col.holds': 'Talpa',
+  'wiki.col.firstCosts': 'Pirmas kainuoja',
+  'wiki.col.needs': 'Reikia',
+  'wiki.col.unlock': 'Atrakinimas',
+  'wiki.col.trickle': 'Srovelė',
+  'wiki.col.production': 'Gamyba',
+  'wiki.col.levelCost': 'Šio lygio kaina',
+  'wiki.col.step': 'Žingsnis',
+  'wiki.col.total': 'Iš viso',
+  'wiki.col.perk': 'Privalumas',
+  'wiki.col.insightCost': 'Kaina įžvalgomis',
+  'wiki.col.pileIs': 'Viena krūva yra',
+  'wiki.col.ground': 'Plotas',
+  'wiki.everyLayer': 'kiekviename sluoksnyje',
+  'wiki.fromLayer': 'nuo {layer} sluoksnio ir giliau',
+  'wiki.soilShare': 'apie {pct} 1 sluoksnyje, giliau mažiau',
+  'wiki.common': 'dažnas',
+  'wiki.fairlyCommon': 'gana dažnas',
+  'wiki.uncommon': 'retokas',
+  'wiki.rare': 'retas',
+  'wiki.sporeBedsFrom': 'sporų guoliai, nuo {layer} sluoksnio ir giliau',
+  'wiki.sporeBeds': 'sporų guoliai',
+  'wiki.perSwing': '{n} per kirtį',
+  'wiki.startingTool': 'senasis bazinis įrankis',
+  'wiki.trickle': '+{n}/s kiekvieno',
+  'wiki.perkRepeat': '{n}, paskui +1 už kiekvieną turimą lygį',
+  'wiki.perkOnce': '{n} (vieną kartą)',
+  'wiki.oneTile': '1 langelis',
+  'wiki.tilesSquare': '{n} × {n} langelių',
+  'wiki.article.home.title': 'Pradžia',
+  'wiki.article.home': `      <h1>„Mica ir Wiki“ žinynas</h1>
       <p class="lede">Žaidimas tau nieko nepasako. Bandyk, aiškinkis pats, o kai prireiks smulkmenų, užsuk čia.</p>
       <p><a class="play-hero" href="../"><span aria-hidden="true">&#9654;</span> Žaisk dabar nemokamai, tiesiog naršyklėje</a></p>
       <p>„Mica ir Wiki“ – žaidimas apie tai, kaip nesvetingą laukinę gamtą paversti absurdišku pertekliumi. Pradedi tuščiomis
@@ -229,8 +282,8 @@ export default {
         <li><a href="#saving"><strong>Išsaugojimas</strong><span>Kur saugoma tavo pažanga.</span></a></li>
         <li><a href="#ideas"><strong>Idėjos</strong><span>To žaidime nėra: kur jis galėtų pasukti toliau.</span></a></li>
       </ul>`,
-  "wiki.article.controls.title": "Valdymas",
-  "wiki.article.controls": `      <h1>Valdymas</h1>
+  'wiki.article.controls.title': 'Valdymas',
+  'wiki.article.controls': `      <h1>Valdymas</h1>
       <p class="lede">{phone:Viską pasieksi vienu nykščiu.|laptop:Viskas veikia su pele ar jutikliniu kilimėliu, tinka ir klaviatūra.}</p>
 
       <h2>Judėjimas</h2>
@@ -318,8 +371,8 @@ export default {
           <tr><td><kbd>Esc</kbd></td><td>Uždaryti lapą</td></tr>
         </tbody>
       </table></div>}`,
-  "wiki.article.perfect.title": "Autožaidimas",
-  "wiki.article.perfect": `      <h1>Autožaidimas</h1>
+  'wiki.article.perfect.title': 'Autožaidimas',
+  'wiki.article.perfect': `      <h1>Autožaidimas</h1>
       <p class="lede">Laikyk mygtuką „Auto“ virš „Rinkti“ ir žaidimas žais pats: nuo pirmo žingsnio naujame pasaulyje iki pat Iškeliavimo.</p>
       <p>„Auto“ paslėptas, kol neįjungsi <strong>AUTO mygtuko</strong> skiltyje Nustatymai, Moksliukams. Jis veikia tik senesniuose pasauliuose: kristalų pasauliuose jo nėra.</p>
 
@@ -368,8 +421,8 @@ export default {
         <li><strong>Tempas</strong>: jis žaidžia gerai, bet ne tobulai. Nuo naujo pasaulio iki Iškeliavimo jam reikia pusantros–dviejų
           parų laikymo, maždaug tiek, kiek ir nuosekliam žaidėjui, iš dalies todėl, kad jis žino tik tai, ką matė.</li>
       </ul>`,
-  "wiki.article.screen.title": "Ekranas",
-  "wiki.article.screen": `      <h1>Ekranas</h1>
+  'wiki.article.screen.title': 'Ekranas',
+  'wiki.article.screen': `      <h1>Ekranas</h1>
       <p class="lede">Žaidime nėra jokio teksto skaityti. Štai ką reiškia viskas, ką matai.</p>
 
       <h2>Išteklių skaitikliai</h2>
@@ -461,8 +514,8 @@ export default {
       <p>Jei žaidime įvyksta klaida, jis sustoja ir parodo raudoną skydelį <strong>Žaidimas sugedo</strong>, kuriame nurodyta, kas nutiko
         (klaida, vieta kode, žaidimo versija ir tavo naršyklė), su mygtuku „Įkelti iš naujo“. Klaidos iš ne žaidimo scenarijų,
         pavyzdžiui, tų, kuriuos paleidžia „Safari“ bendrinimo meniu, nepaisomos. Jei išsaugojimas nustoja veikti (saugykla pilna ar užblokuota), apie tai iškart pranešama.</p>`,
-  "wiki.article.world.title": "Pasaulis",
-  "wiki.article.world": `      <h1>Pasaulis</h1>
+  'wiki.article.world.title': 'Pasaulis',
+  'wiki.article.world': `      <h1>Pasaulis</h1>
       <p class="lede">Begalinis į visas puses, kaskart kitoks, ir driekiasi ne tik į šalis, bet ir gilyn.</p>
 
       <h2>Išdėstymas</h2>
@@ -558,8 +611,8 @@ export default {
         juo keliauja ir rodo, kuri paros dalis. Ankstų rytą jau atrodo šviesu, bet plokštė ima krauti tik saulei pasiekus
         auksinę dalį. Šalia saulės plokštės po krumpliaračiu matyti, po kiek laiko ji ims krauti, o kol kraunasi, kiek dar
         liko. Kristalų pasaulyje auksinė dalis yra saulė, kuri skaldo kristalus ir širdį atvirame lauke.</p>`,
-  "wiki.article.gathering.title": "Rinkimas",
-  "wiki.article.gathering": `      <h1>Rinkimas</h1>
+  'wiki.article.gathering.title': 'Rinkimas',
+  'wiki.article.gathering': `      <h1>Rinkimas</h1>
       <p class="lede">Keturi ištekliai, du įrankiai ir telkiniai, kurie išsenka.</p>
 
       <h2>Ištekliai</h2>
@@ -585,8 +638,8 @@ export default {
       <p>Rūda atrodo kaip oranžiniais taškeliais išmarginti akmenys, o kristalai – kaip blyškiai mėlynos kristalų sankaupos. Rūda driekiasi gyslomis
         mineralinėse žemėse, o kristalai slypi turtingiausių gyslų širdyje, niekada ne prie namų. Jei šalia nė vieno nėra, eik
         tiesia linija – rūkas daug ką slepia, o kuo toliau eini, tuo turtingesnė žemė.</p>`,
-  "wiki.article.mine.title": "Kasykla",
-  "wiki.article.mine": `      <h1>Kasykla</h1>
+  'wiki.article.mine.title': 'Kasykla',
+  'wiki.article.mine': `      <h1>Kasykla</h1>
       <p class="lede">Kieta uoliena po mišku, sluoksnis po sluoksnio, tiek giliai, kiek tik rasi kelią.</p>
 
       <h2>Keliai žemyn ir atgal aukštyn</h2>
@@ -683,8 +736,8 @@ export default {
         <li>Logistika ir čia, apačioje, parveža produkciją iš tavo stovyklų paviršiuje. Be jos jos tiesiog prisipildo, kol esi apačioje.</li>
         <li>Diena ir naktis keičiasi kaip įprasta: saulės šviesa sklinda tikromis atviromis jungtimis ir naktį blėsta. Anga po tamsiu kambariu šviesos nesukuria; lempa virš atviros angos gali apšviesti apačią.</li>
       </ul>`,
-  "wiki.article.buildings.title": "Pastatai",
-  "wiki.article.buildings": `      <h1>Pastatai</h1>
+  'wiki.article.buildings.title': 'Pastatai',
+  'wiki.article.buildings': `      <h1>Pastatai</h1>
       <p class="lede">Tegul pasaulis dirba tau.</p>
 
       <h2>Statymas</h2>
@@ -723,8 +776,8 @@ export default {
       <p>Atrakinus <strong>Logistiką</strong>, kiekvienas tavo pastatas siunčia produkciją tiesiai tau į kuprinę, vos ją
         pagamina, kad ir kur būtum, net po žeme. Nereikia stovėti prie bazės: eik tyrinėti, rinkti ar kasti, ir nieko, ką
         pagamina tavo pastatai, neprarasi.</p>`,
-  "wiki.article.stockpile.title": "Atsargos",
-  "wiki.article.stockpile": `      <h1>Atsargos</h1>
+  'wiki.article.stockpile.title': 'Atsargos',
+  'wiki.article.stockpile': `      <h1>Atsargos</h1>
       <p class="lede">Viskas, ką turi, stovi ant žemės aplink namus, ir kuo turtingesnis esi, tuo didingiau tai auga.</p>
       <p>Kiekviename pasaulyje pradedi ant <strong>namų žemės</strong> kvadrato, kurio kraštinė – <span data-k="HOME_SIDE"></span> langeliai:
         suplūktos žemės, kur niekas neauga, nieko negalima rinkti, nieko nestatoma ir neatsiveria joks kelias tarp sluoksnių.
@@ -754,8 +807,8 @@ export default {
           žemės paliekamas namų žemės langelis.</li>
       </ul>
       <p>Kaip atrodo kiekvienos rūšies krūva, matyti skyriuje <a href="#things">Viskas žaidime</a>.</p>`,
-  "wiki.article.upgrades.title": "Patobulinimai",
-  "wiki.article.upgrades": `      <h1>Patobulinimai</h1>
+  'wiki.article.upgrades.title': 'Patobulinimai',
+  'wiki.article.upgrades': `      <h1>Patobulinimai</h1>
       <p class="lede">Viskas, kas yra Patobulinimų skirtuke, lygis po lygio.</p>
 
       <h2>Įrankiai</h2>
@@ -788,8 +841,8 @@ export default {
         visų pastatų produkciją iš <span data-k="ABUNDANCE.prodMult"></span>. Kiekvienas lygis kainuoja
         &times;<span data-k="ABUNDANCE.growth"></span> daugiau nei ankstesnis. Tavo pirmieji lygiai:</p>
       <div data-table="abundance"></div>`,
-  "wiki.article.beyond.title": "Anapus",
-  "wiki.article.beyond": `      <h1>Anapus</h1>
+  'wiki.article.beyond.title': 'Anapus',
+  'wiki.article.beyond': `      <h1>Anapus</h1>
       <p class="lede">Pradėk kitą pasaulį tuščiomis rankomis, su įgytomis žiniomis.</p>
       <h2>Iškeliavimas</h2>
       <p>Užbaik visus pasaulio patobulinimus ir pasiek Gausos variklio <span data-k="EMBARK_ABUNDANCE"></span> lygį.
@@ -799,18 +852,18 @@ export default {
       <p>Seni įrašai išlaiko įrankius, privalumus, Įžvalgą ir uždirbtą pažangą. Jų skirtuke Anapus lieka senieji
         privalumai, tačiau iškeliavus jų poveikis nepersikelia: kitas pasaulis bus kristalų pasaulis, o senasis lieka išsaugotas toks, koks buvo.</p>
       <div data-table="perks"></div>`,
-  "wiki.article.milestones.title": "Etapai",
-  "wiki.article.milestones": `      <h1>Etapai</h1>
+  'wiki.article.milestones.title': 'Etapai',
+  'wiki.article.milestones': `      <h1>Etapai</h1>
       <p class="lede">Žaidimas kiekvieną etapą švenčia kibirkščių pliūpsniu, fanfaromis ir auksine eilute žinučių žurnale su jo pavadinimu. Skirtukas Apdovanojimai rodo kitą etapą, ko jam dar trūksta, ir tolimą paskutinįjį;
         pasiekus etapą, taurė šviečia, kol atsidarai Apdovanojimus.</p>
       <div data-table="milestones"></div>
       <p>Etapas įskaitomas vos jį pasiekus, bet kuria tvarka; kitas rodomas pirmasis šio sąrašo etapas, kurio dar nepasiekei. Iškeliavus jie prasideda iš naujo. Bendrame pasaulyje iškeliauti negalima, tad ten jie baigiasi prieš etapą „Įvaldyk pasaulį“.</p>`,
-  "wiki.article.things.title": "Viskas žaidime",
-  "wiki.article.things": `      <h1>Viskas žaidime</h1>
+  'wiki.article.things.title': 'Viskas žaidime',
+  'wiki.article.things': `      <h1>Viskas žaidime</h1>
       <p class="lede">Kiekvienas daiktas, kurį gali pamatyti: kas tai ir ką jis daro, su visais paveikslėliais, kuriais žaidimas jį piešia.</p>
       <div data-things></div>`,
-  "wiki.article.saving.title": "Išsaugojimas",
-  "wiki.article.saving": `      <h1>Išsaugojimas</h1>
+  'wiki.article.saving.title': 'Išsaugojimas',
+  'wiki.article.saving': `      <h1>Išsaugojimas</h1>
       <p class="lede">Automatinis ir laikomas tavo naršyklėje.</p>
       <ul>
         <li>Žaidimas išsaugomas kas kelias sekundes, iškart po kiekvieno svarbaus įvykio ir kai išeini iš puslapio.</li>
@@ -831,8 +884,8 @@ export default {
           naršyklėje ar įrenginyje. Pirma paklausia ir išsaugo pasaulį, kuriame esi, kaip failą, tad nė vienas nedingsta.
           Bendras pasaulis jų neturi: jo pažangą saugo pats pasaulis, o atsargines kopijas daro moderatorius.</li>
       </ul>`,
-  "wiki.article.ideas.title": "Idėjos",
-  "wiki.article.ideas": `      <h1>Idėjos</h1>
+  'wiki.article.ideas.title': 'Idėjos',
+  'wiki.article.ideas': `      <h1>Idėjos</h1>
       <p class="lede">Eskizų sąsiuvinis apie tai, kur žaidimas galėtų pasukti toliau: kaip viskas galėtų atrodyti, naujos mechanikos ir keli
         tokie dideli pokyčiai, kad tai taptų visai kitu žaidimu.</p>
       <div class="note note-ideas"><strong>Nieko iš to žaidime nėra.</strong> Tai galimybės, ne pažadai. Kai kas gal bus

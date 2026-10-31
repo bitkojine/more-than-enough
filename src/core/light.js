@@ -5,19 +5,27 @@ import { contentLocked } from './progression.js';
  * never stops you doing anything. Nothing charges or drains while you're
  * away. */
 
-import {atInteraction} from './interaction.js';
+import { atInteraction } from './interaction.js';
 import { SURFACE, packKey } from './coords.js';
-import { PROPS, DAY_LENGTH, BATTERY_LIFE, BATTERY_LOW, BATTERY_DIM, CHARGE_TIME, CHARGE_RANGE } from './content.js';
+import {
+  PROPS,
+  DAY_LENGTH,
+  BATTERY_LIFE,
+  BATTERY_LOW,
+  BATTERY_DIM,
+  CHARGE_TIME,
+  CHARGE_RANGE
+} from './content.js';
 import { economyForState } from './economy-context.js';
 
 // One authoritative carried source for simulation, battery, UI and rendering.
 // Paused flares remain saved but do not take the lantern's active slot.
 export function activeCarriedLight(s) {
-  if(!contentLocked(s,'flare') && s.flare>0)return 'flare';
+  if (!contentLocked(s, 'flare') && s.flare > 0) return 'flare';
   return !s.cultivation || s.cultivation.lantern ? 'lantern' : null;
 }
 export function normalizeCarriedLight(s) {
-  if(s.cultivation && activeCarriedLight(s)==='flare')s.cultivation.lantern=false;
+  if (s.cultivation && activeCarriedLight(s) === 'flare') s.cultivation.lantern = false;
 }
 
 // 1 at time 0 (noon) ... 0 at DAY_LENGTH / 2 (midnight).
@@ -61,17 +69,26 @@ export function sunWindow(time, level = SOLAR_LIGHT) {
 const chargerCandidates = new WeakMap();
 function chargersAround(s, work) {
   const p = s.player;
-  const r = Math.ceil(CHARGE_RANGE), px = Math.floor(p.x), py = Math.floor(p.y);
+  const r = Math.ceil(CHARGE_RANGE),
+    px = Math.floor(p.x),
+    py = Math.floor(p.y);
   const props = s.world.props;
   let cached = chargerCandidates.get(s);
-  if (!cached || typeof props.revision !== 'number' || cached.props !== props ||
-      cached.revision !== props.revision || cached.x !== px || cached.y !== py) {
+  if (
+    !cached ||
+    typeof props.revision !== 'number' ||
+    cached.props !== props ||
+    cached.revision !== props.revision ||
+    cached.x !== px ||
+    cached.y !== py
+  ) {
     const entries = [];
-    for (let y = py - r; y <= py + r; y++) for (let x = px - r; x <= px + r; x++) {
-      if (work) work.lookups = (work.lookups || 0) + 1;
-      const kind = props.get(packKey(x, y, SURFACE));
-      if (PROPS[kind]?.charge) entries.push({ x, y, kind });
-    }
+    for (let y = py - r; y <= py + r; y++)
+      for (let x = px - r; x <= px + r; x++) {
+        if (work) work.lookups = (work.lookups || 0) + 1;
+        const kind = props.get(packKey(x, y, SURFACE));
+        if (PROPS[kind]?.charge) entries.push({ x, y, kind });
+      }
     cached = { props, revision: props.revision, x: px, y: py, entries };
     chargerCandidates.set(s, cached);
   }
@@ -85,13 +102,17 @@ const dist2 = (p, { x, y }) => (x + 0.5 - p.x) ** 2 + (y + 0.5 - p.y) ** 2;
 export function chargerNear(s, time = s.time, work = null) {
   const p = s.player;
   if (p.z !== SURFACE || !s.world.props.size) return null;
-  let best = null, bestD = CHARGE_RANGE * CHARGE_RANGE;
+  let best = null,
+    bestD = CHARGE_RANGE * CHARGE_RANGE;
   for (const candidate of chargersAround(s, work)) {
     if (work) work.candidates = (work.candidates || 0) + 1;
     const { x, y, kind } = candidate;
-    if (!charging(kind, time)||!atInteraction(s,x,y)) continue;
+    if (!charging(kind, time) || !atInteraction(s, x, y)) continue;
     const d = dist2(p, candidate);
-    if (d <= bestD) { bestD = d; best = { x, y, kind }; }
+    if (d <= bestD) {
+      bestD = d;
+      best = { x, y, kind };
+    }
   }
   return best;
 }
@@ -104,7 +125,7 @@ export function solarInReach(s) {
   if (p.z !== SURFACE || !s.world.props.size) return false;
   let solar = false;
   for (const c of chargersAround(s, null)) {
-    if (!atInteraction(s,c.x,c.y)) continue;
+    if (!atInteraction(s, c.x, c.y)) continue;
     const kind = PROPS[c.kind].charge;
     if (kind === 'always') return false;
     if (kind === 'day') solar = true;
@@ -115,9 +136,13 @@ export function solarInReach(s) {
 // One tick: by a working charger the battery fills; in the dark it drains.
 export function tickBattery(s, dt) {
   const economy = economyForState(s);
-  if (economy) { tickEventBattery(s, economy, Math.round(dt * 60)); return; }
+  if (economy) {
+    tickEventBattery(s, economy, Math.round(dt * 60));
+    return;
+  }
   if (chargerNear(s)) s.battery = Math.min(1, s.battery + dt / CHARGE_TIME);
-  else if (isDark(s) && activeCarriedLight(s)==='lantern') s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
+  else if (isDark(s) && activeCarriedLight(s) === 'lantern')
+    s.battery = Math.max(0, s.battery - dt / BATTERY_LIFE);
 }
 
 const batteryEpochs = new WeakMap();
@@ -128,30 +153,43 @@ const batteryEpochs = new WeakMap();
 // most one day/night transition can occur inside a stationary batch.
 function tickEventBattery(s, economy, count) {
   if (!count) return;
-  const end = economy.tick, start = end - count;
+  const end = economy.tick,
+    start = end - count;
   let epoch = batteryEpochs.get(s);
   if (!epoch || epoch.economy !== economy || epoch.last !== start || epoch.value !== s.battery) {
     epoch = { economy, at: start, opening: s.battery, rate: null, last: start, value: s.battery };
     batteryEpochs.set(s, epoch);
   }
-  const rateAt = tick => {
+  const rateAt = (tick) => {
     const time = economy.timeAt(tick);
-    return chargerNear(s, time) ? 1 / CHARGE_TIME : isDark(s, time) && activeCarriedLight(s)==='lantern' ? -1 / BATTERY_LIFE : 0;
+    return chargerNear(s, time)
+      ? 1 / CHARGE_TIME
+      : isDark(s, time) && activeCarriedLight(s) === 'lantern'
+        ? -1 / BATTERY_LIFE
+        : 0;
   };
   const apply = (first, last, rate) => {
-    if (rate !== epoch.rate) { epoch.at = first - 1; epoch.opening = epoch.value; epoch.rate = rate; }
-    epoch.value = Math.max(0, Math.min(1, epoch.opening + (last - epoch.at) * rate / 60));
+    if (rate !== epoch.rate) {
+      epoch.at = first - 1;
+      epoch.opening = epoch.value;
+      epoch.rate = rate;
+    }
+    epoch.value = Math.max(0, Math.min(1, epoch.opening + ((last - epoch.at) * rate) / 60));
     epoch.last = last;
   };
-  const firstRate = rateAt(start + 1), lastRate = count === 1 ? firstRate : rateAt(end);
+  const firstRate = rateAt(start + 1),
+    lastRate = count === 1 ? firstRate : rateAt(end);
   if (firstRate === lastRate) apply(start + 1, end, firstRate);
   else {
-    let lo = start + 2, hi = end;
+    let lo = start + 2,
+      hi = end;
     while (lo < hi) {
       const mid = Math.floor((lo + hi) / 2);
-      if (rateAt(mid) === firstRate) lo = mid + 1; else hi = mid;
+      if (rateAt(mid) === firstRate) lo = mid + 1;
+      else hi = mid;
     }
-    apply(start + 1, lo - 1, firstRate); apply(lo, end, lastRate);
+    apply(start + 1, lo - 1, firstRate);
+    apply(lo, end, lastRate);
   }
   s.battery = epoch.value;
 }
@@ -161,5 +199,5 @@ function tickEventBattery(s, economy, count) {
 // needs no screen, so by day it's always 1.
 export function lightScale(s) {
   if (!isDark(s) || s.battery >= BATTERY_LOW) return 1;
-  return BATTERY_DIM + (1 - BATTERY_DIM) * Math.max(0, s.battery) / BATTERY_LOW;
+  return BATTERY_DIM + ((1 - BATTERY_DIM) * Math.max(0, s.battery)) / BATTERY_LOW;
 }

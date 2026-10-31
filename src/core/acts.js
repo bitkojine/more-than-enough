@@ -15,7 +15,7 @@
 
 export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'v', 'p', 'u', 'w']);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
-const WHERE_STEP = 0.5;   // tiles walked between two 'w' acts
+const WHERE_STEP = 0.5; // tiles walked between two 'w' acts
 
 const r3 = (v) => Math.round(v * 1000) / 1000;
 
@@ -30,7 +30,8 @@ export function noteAct(s, kind, ...args) {
 // Where the player is now, if they've walked WHERE_STEP since the last act.
 export function noteWhere(s) {
   if (!Array.isArray(s.acts)) return;
-  const p = s.player, l = s.actedAt;
+  const p = s.player,
+    l = s.actedAt;
   if (!l || l.z !== p.z || Math.hypot(p.x - l.x, p.y - l.y) >= WHERE_STEP) noteAct(s, 'w');
 }
 

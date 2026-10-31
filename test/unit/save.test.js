@@ -7,13 +7,15 @@ const roundTrip = (s) => C.deserialize(C.serialize(s));
 test('a save restores the world, the economy and the player', () => {
   const s = away(C.createState(4242));
   Object.assign(s.inv, { mycelium: 123, ore: 7 });
-  s.tools.basket = 3; s.tools.overclock = 2;
+  s.tools.basket = 3;
+  s.tools.overclock = 2;
   s.unlocks.logistics = true;
   s.perks.legacy = 2;
   s.extractors.push(mushroomGarden(48, 50, 12.5));
   s.goalsDone = ['forage', 'basket', 'stone', 'garden', 'pickaxe'];
   s.goalIndex = 5;
-  s.player.x = 51.25; s.player.y = 47.75;
+  s.player.x = 51.25;
+  s.player.y = 47.75;
   C.setRichness(s.world, 49, 49, 0, 2);
   C.setRichness(s.world, -5000, 4000, 0, 1);
   C.setRichness(s.world, 3, 3, -2, 0);
@@ -41,7 +43,8 @@ test('a save restores the world, the economy and the player', () => {
 
 test('an underground expedition survives a reload, holes and mine fog included', () => {
   const s = away(C.createState(4242));
-  const fx = Math.floor(s.player.x), fy = Math.floor(s.player.y);
+  const fx = Math.floor(s.player.x),
+    fy = Math.floor(s.player.y);
   C.goDown(s);
   C.revealAround(s);
   s.underground.deepest = -5;
@@ -51,7 +54,11 @@ test('an underground expedition survives a reload, holes and mine fog included',
   assert.ok(C.holeBelow(r.world, fx, fy, 0), 'the cave mouth down from the forest is still there');
   assert.ok(C.isExplored(r.world, fx + 1, fy, -1), 'so is what you saw underground');
   C.goUp(r);
-  assert.deepEqual([Math.floor(r.player.x), Math.floor(r.player.y), r.player.z], [fx, fy, 0], 'climbs back out the same way');
+  assert.deepEqual(
+    [Math.floor(r.player.x), Math.floor(r.player.y), r.player.z],
+    [fx, fy, 0],
+    'climbs back out the same way'
+  );
 });
 
 test('a reloaded save keeps producing', () => {
@@ -75,12 +82,27 @@ test('unreadable saves and saves from other format versions are rejected', () =>
 });
 
 test('corrupt fields fall back to defaults instead of breaking the game', () => {
-  const r = C.deserialize(JSON.stringify({
-    v: C.SAVE_VERSION, seed: 9, inv: { mycelium: 'lots' }, player: { x: 1.5, y: 2.5, z: 99 },
-    tools: { basket: 99, pickaxe: -3 }, resUp: { mycelium: 1e9 },
-    extractors: [{ k: 'nope', x: 0, y: 0 }, { k: 'quarry', x: 1.5, y: 0 }],
-    mods: [[1, -4], ['x', 2]], explored: [[1, '!!']], underground: { deepest: 3 }, holes: ['x', 1.5]
-  }));
+  const r = C.deserialize(
+    JSON.stringify({
+      v: C.SAVE_VERSION,
+      seed: 9,
+      inv: { mycelium: 'lots' },
+      player: { x: 1.5, y: 2.5, z: 99 },
+      tools: { basket: 99, pickaxe: -3 },
+      resUp: { mycelium: 1e9 },
+      extractors: [
+        { k: 'nope', x: 0, y: 0 },
+        { k: 'quarry', x: 1.5, y: 0 }
+      ],
+      mods: [
+        [1, -4],
+        ['x', 2]
+      ],
+      explored: [[1, '!!']],
+      underground: { deepest: 3 },
+      holes: ['x', 1.5]
+    })
+  );
   assert.equal(r.inv.mycelium, 0);
   assert.equal(r.tools.basket, C.TOOLS.basket.levels.length);
   assert.equal(r.tools.pickaxe, 1);
@@ -93,4 +115,3 @@ test('corrupt fields fall back to defaults instead of breaking the game', () => 
   assert.equal(r.underground.deepest, 0);
   assert.equal(r.world.holes.size, 0);
 });
-

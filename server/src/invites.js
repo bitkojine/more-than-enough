@@ -7,9 +7,9 @@
 import { LIMITS, cleanInviteAsk, randomRoomId } from '../../src/net/protocol.js';
 
 export const INVITE_MS = cleanInviteAsk(null).life * 60_000; // a link works this long unless asked otherwise
-export const MAX_INVITES = 200;              // links a world keeps (working or not), to list and manage
-export const INVITE_LIST = 100;              // newest links sent in one list (fits a message)
-export const REUSE_MS = 3600_000;            // your sign shows your newest link while it has this long left (or half its life)
+export const MAX_INVITES = 200; // links a world keeps (working or not), to list and manage
+export const INVITE_LIST = 100; // newest links sent in one list (fits a message)
+export const REUSE_MS = 3600_000; // your sign shows your newest link while it has this long left (or half its life)
 // One player brings at most LIMITS.invitesPerDay people into a world through
 // their own links in a day, so one bad invite can't fill a world with others.
 export const DAY_MS = 24 * 3600_000;
@@ -36,7 +36,8 @@ export function whyNot(inv, now) {
 export function listFor(invites, id) {
   const list = [];
   for (const [code, inv] of invites) {
-    if (inv.by === id) list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, maxOf(inv)]);
+    if (inv.by === id)
+      list.push([code, inv.by, inv.made, inv.until, inv.uses, inv.off, maxOf(inv)]);
   }
   list.sort((a, b) => b[2] - a[2]);
   return { t: 'invites', list: list.slice(0, INVITE_LIST) };
@@ -49,20 +50,39 @@ export function listFor(invites, id) {
 // `invites`), or {full} when every link kept still works.
 export function linkFor(invites, id, ask, now, newCode = randomRoomId) {
   const lifeMs = ask.life * 60_000;
-  let code = null, newest = 0;
+  let code = null,
+    newest = 0;
   for (const [c, inv] of invites) {
-    if (inv.by === id && works(inv, now) && maxOf(inv) === ask.uses && inv.life === ask.life &&
-        inv.until - now >= Math.min(REUSE_MS, lifeMs / 2) && inv.made >= newest) { code = c; newest = inv.made; }
+    if (
+      inv.by === id &&
+      works(inv, now) &&
+      maxOf(inv) === ask.uses &&
+      inv.life === ask.life &&
+      inv.until - now >= Math.min(REUSE_MS, lifeMs / 2) &&
+      inv.made >= newest
+    ) {
+      code = c;
+      newest = inv.made;
+    }
   }
   if (code) return { code, made: false };
   if (invites.size >= MAX_INVITES) {
     let dead = null;
-    for (const [c, inv] of invites) if (!works(inv, now) && (!dead || inv.made < invites.get(dead).made)) dead = c;
+    for (const [c, inv] of invites)
+      if (!works(inv, now) && (!dead || inv.made < invites.get(dead).made)) dead = c;
     if (!dead) return { full: true };
     invites.delete(dead);
   }
   code = newCode();
-  invites.set(code, { by: id, made: now, until: now + lifeMs, uses: 0, max: ask.uses, life: ask.life, off: false });
+  invites.set(code, {
+    by: id,
+    made: now,
+    until: now + lifeMs,
+    uses: 0,
+    max: ask.uses,
+    life: ask.life,
+    off: false
+  });
   return { code, made: true };
 }
 

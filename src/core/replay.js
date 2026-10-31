@@ -29,18 +29,25 @@ export function playFor(s, seconds) {
 export function replayAct(s, a) {
   const [kind, , x, y, z] = a;
   if (z > SURFACE || z < Z_MIN) return false;
-  s.player.x = x; s.player.y = y; s.player.z = z;
+  s.player.x = x;
+  s.player.y = y;
+  s.player.z = z;
   s.underground.deepest = Math.min(s.underground.deepest, z);
   revealAround(s);
   let ok = false;
   if (kind === 'h') ok = !!harvestAt(s, a[5], a[6]);
-  else if (kind === 'c') {const targeted=a.length===7;if(targeted)s.roomCollectAt=true;ok=!!collect(s,targeted?{x:a[5],y:a[6]}:null);}
-  else if (kind === 'b') ok = Object.hasOwn(EXTRACTORS, a[5]) && place(s, a[5], { x: a[6], y: a[7] }).ok;
+  else if (kind === 'c') {
+    const targeted = a.length === 7;
+    if (targeted) s.roomCollectAt = true;
+    ok = !!collect(s, targeted ? { x: a[5], y: a[6] } : null);
+  } else if (kind === 'b')
+    ok = Object.hasOwn(EXTRACTORS, a[5]) && place(s, a[5], { x: a[6], y: a[7] }).ok;
   else if (kind === 'v') {
-    const e = s.extractors.find((b) => b.x === a[5] && b.y === a[6] && b.z === z && b.owner === s.me);
+    const e = s.extractors.find(
+      (b) => b.x === a[5] && b.y === a[6] && b.z === z && b.owner === s.me
+    );
     ok = !!e && moveExtractor(s, e, a[7], a[8]).ok;
-  }
-  else if (kind === 'p') ok = Object.hasOwn(PROPS, a[5]) && placeProp(s, a[5]).ok;
+  } else if (kind === 'p') ok = Object.hasOwn(PROPS, a[5]) && placeProp(s, a[5]).ok;
   else if (kind === 'u') ok = Object.hasOwn(UPGRADES, a[5]) && buy(s, a[5]).ok;
   else if (kind === 'w') return true; // only where they are
   if (ok) advanceGoals(s);

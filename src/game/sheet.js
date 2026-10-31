@@ -11,19 +11,43 @@ import { fmt, fmtRate, fmtMult, esc, lockIcon } from './format.js';
 import { iconHtml } from './look/look.js';
 import { t } from '../i18n/i18n.js';
 
-const TITLES = Object.fromEntries(['upgrades', 'build', 'beyond', 'awards', 'statement'].map((k) => [k, t('sheet.' + k)]).concat([['performance', t('nerds.perf')], ['settings', t('settings.title')], ['invites', t('invites.title')], ['worlds', t('worlds.title')], ['players', t('players.title')], ['nerds', t('nerds.title')], ['news', t('news.title')], ['devices', t('devices.title')]]));
+const TITLES = Object.fromEntries(
+  ['upgrades', 'build', 'beyond', 'awards', 'statement']
+    .map((k) => [k, t('sheet.' + k)])
+    .concat([
+      ['performance', t('nerds.perf')],
+      ['settings', t('settings.title')],
+      ['invites', t('invites.title')],
+      ['worlds', t('worlds.title')],
+      ['players', t('players.title')],
+      ['nerds', t('nerds.title')],
+      ['news', t('news.title')],
+      ['devices', t('devices.title')]
+    ])
+);
 // Screens that are a panel of their own rather than rendered rows.
-const PANELS = { performance: 'performancePanel', settings: 'settingsPanel', invites: 'invitesPanel', worlds: 'worldsPanel', players: 'playersPanel', nerds: 'nerdsPanel', news: 'newsPanel', devices: 'devicesPanel' };
+const PANELS = {
+  performance: 'performancePanel',
+  settings: 'settingsPanel',
+  invites: 'invitesPanel',
+  worlds: 'worldsPanel',
+  players: 'playersPanel',
+  nerds: 'nerdsPanel',
+  news: 'newsPanel',
+  devices: 'devicesPanel'
+};
 // Every menu has its own title and dedicated entry button.
-TITLES.build = t('hud.settlement'); TITLES.upgrades = t('hud.equipment');
+TITLES.build = t('hud.settlement');
+TITLES.upgrades = t('hud.equipment');
 // Screens one row inside Settings: opened from there, ‹ goes back to it.
 const IN_SETTINGS = ['worlds', 'players', 'invites', 'nerds', 'devices', 'beyond'];
-const TROPHY = '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
+const TROPHY =
+  '<svg class="trophy ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg>';
 const PERK_FAMILY = Core.pathFamily('perks');
 
 // Set by createSheet: pictures come from the game's pack.
 let look = null;
-export const pic = (id, slot, level=null) => iconHtml(look, id, 'ico', slot, level);
+export const pic = (id, slot, level = null) => iconHtml(look, id, 'ico', slot, level);
 export const icon = (res) => pic(Core.resourceLook(res));
 const insight = () => pic('resource.insight');
 
@@ -42,16 +66,25 @@ export function price(have, cost) {
     const id = r === 'insight' ? 'resource.insight' : Core.resourceLook(r);
     return `<span class="amt ${cls}" style="--res:${look.color(id)}">${pic(id)}<span class="n">${text}</span></span>`;
   };
-  return `<span class="price ${ready ? 'ready' : 'short'}">` + (ready ? '' : `<span class="still">${t('sheet.stillNeed')}</span>`) + keys.map((r) => {
-    if (ready) return pill(r, fmt(cost[r]), 'cost');
-    const short = Math.ceil(cost[r] - have[r]);
-    return short > 0 ? pill(r, fmt(short), 'need') : pill(r, '✓', 'met');
-  }).join('') + '</span>';
+  return (
+    `<span class="price ${ready ? 'ready' : 'short'}">` +
+    (ready ? '' : `<span class="still">${t('sheet.stillNeed')}</span>`) +
+    keys
+      .map((r) => {
+        if (ready) return pill(r, fmt(cost[r]), 'cost');
+        const short = Math.ceil(cost[r] - have[r]);
+        return short > 0 ? pill(r, fmt(short), 'need') : pill(r, '✓', 'met');
+      })
+      .join('') +
+    '</span>'
+  );
 }
 
 function row(rowIcon, name, sub, button) {
-  return `<div class="row"><div class="ic">${rowIcon}</div>` +
-    `<div class="main"><div class="nm">${name}</div><div class="sub">${sub}</div></div>${button}</div>`;
+  return (
+    `<div class="row"><div class="ic">${rowIcon}</div>` +
+    `<div class="main"><div class="nm">${name}</div><div class="sub">${sub}</div></div>${button}</div>`
+  );
 }
 
 function button(attrs, label, enabled) {
@@ -71,12 +104,19 @@ const DESCRIBE = {
   tool(s, id) {
     const levels = Core.TOOLS[id].levels;
     const lv = Math.max(1, s.tools[id]);
-    const head = s.tools[id] === 0 ? t('sheet.notCrafted') : t('sheet.levelOf', { lv, max: levels.length });
+    const head =
+      s.tools[id] === 0 ? t('sheet.notCrafted') : t('sheet.levelOf', { lv, max: levels.length });
     if (lv >= levels.length) return { sub: head };
-    const cur = levels[lv - 1], next = levels[lv];
-    const effect = next.yield !== undefined ? arrow(cur.yield, next.yield) : arrow('&times;' + cur.mult, '&times;' + next.mult);
+    const cur = levels[lv - 1],
+      next = levels[lv];
+    const effect =
+      next.yield !== undefined
+        ? arrow(cur.yield, next.yield)
+        : arrow('&times;' + cur.mult, '&times;' + next.mult);
     const doors = Core.toolOpens(id, lv + 1);
-    const opens = doors.length ? `<br><span class="ok">${t('sheet.opens', { what: doors.map(doorName).join(', ') })}</span>` : '';
+    const opens = doors.length
+      ? `<br><span class="ok">${t('sheet.opens', { what: doors.map(doorName).join(', ') })}</span>`
+      : '';
     return { sub: `${head} &middot; ${effect}${opens}`, label: t('sheet.craft') };
   },
   resup(s, res) {
@@ -85,11 +125,17 @@ const DESCRIBE = {
     const mult = Core.refineryMult(s, res);
     const head = t('sheet.levelOf', { lv, max: levels.length });
     if (lv >= levels.length) return { sub: `${head} &middot; &times;${fmtMult(mult)}` };
-    return { sub: `${head} &middot; ${arrow('&times;' + fmtMult(mult), '&times;' + fmtMult(mult * levels[lv].mult))}`, label: t('sheet.refine') };
+    return {
+      sub: `${head} &middot; ${arrow('&times;' + fmtMult(mult), '&times;' + fmtMult(mult * levels[lv].mult))}`,
+      label: t('sheet.refine')
+    };
   },
   abundance(s) {
     const lv = s.abundanceLv;
-    return { sub: `${t('sheet.level', { lv })} &middot; +${lv}/s &middot; &times;${fmtMult(Core.abundanceMult(s))}`, label: lv === 0 ? t('sheet.buildIt') : t('sheet.level', { lv: lv + 1 }) };
+    return {
+      sub: `${t('sheet.level', { lv })} &middot; +${lv}/s &middot; &times;${fmtMult(Core.abundanceMult(s))}`,
+      label: lv === 0 ? t('sheet.buildIt') : t('sheet.level', { lv: lv + 1 })
+    };
   },
   unlock() {
     return { sub: '', label: t('sheet.unlock') };
@@ -97,22 +143,46 @@ const DESCRIBE = {
   perk(s, id) {
     const lv = s.perks[id];
     const repeat = Core.PERKS[id].repeat;
-    return { sub: repeat && lv ? t('sheet.level', { lv }) : '', label: repeat && lv ? t('sheet.level', { lv: lv + 1 }) : t('sheet.buy') };
+    return {
+      sub: repeat && lv ? t('sheet.level', { lv }) : '',
+      label: repeat && lv ? t('sheet.level', { lv: lv + 1 }) : t('sheet.buy')
+    };
   }
 };
 
 function upgradeRow(s, id) {
-  if (Core.toolPurchaseLocked(s,id)) return lockedRow('tool.'+id,'icon',Core.TOOLS[id].name+(id==='basket'?'':' · '+t('progression.furtherUpgrades')),Core.TOOLS[id].desc);
+  if (Core.toolPurchaseLocked(s, id))
+    return lockedRow(
+      'tool.' + id,
+      'icon',
+      Core.TOOLS[id].name + (id === 'basket' ? '' : ' · ' + t('progression.furtherUpgrades')),
+      Core.TOOLS[id].desc
+    );
   const u = Core.UPGRADES[id];
-  const artwork=pic(u.look,'icon',u.kind==='tool'&&['basket','pickaxe','boots'].includes(id)?Math.max(0,Math.min(s.tools[id]-1,Core.TOOLS[id].levels.length-2)):null);
+  const artwork = pic(
+    u.look,
+    'icon',
+    u.kind === 'tool' && ['basket', 'pickaxe', 'boots'].includes(id)
+      ? Math.max(0, Math.min(s.tools[id] - 1, Core.TOOLS[id].levels.length - 2))
+      : null
+  );
   const d = DESCRIBE[u.kind](s, id);
   if (u.retired) return row(artwork, esc(u.name), d.sub, doneButton(t('sheet.retired')));
   const name = esc(u.name) + (u.kind === 'resup' ? ` <span class="tag">${icon(id)}</span>` : '');
   const cost = Core.upgradeCost(s, id);
-  if (cost === null) return row(artwork, name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
+  if (cost === null)
+    return row(artwork, name, d.sub, doneButton(t(u.max === 1 ? 'sheet.owned' : 'sheet.max')));
   const affordable = Core.canBuy(s, id);
-  const tag = u.currency === 'insight' ? price({ insight: s.insight }, { insight: cost }) : price(s.inv, cost);
-  return row(artwork, name, d.sub ? d.sub + '<br>' + tag : tag, button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable));
+  const tag =
+    u.currency === 'insight'
+      ? price({ insight: s.insight }, { insight: cost })
+      : price(s.inv, cost);
+  return row(
+    artwork,
+    name,
+    d.sub ? d.sub + '<br>' + tag : tag,
+    button(`data-kind="${u.kind}" data-id="${id}"`, d.label, affordable)
+  );
 }
 
 // Beyond (embarking and perks) stays out of sight until a world is
@@ -127,20 +197,54 @@ const crystalName = (k) => t('cr.' + k);
 // 2026-10-26): a button that looks ready must be ready.
 function crystalButton(s, type, kind, label) {
   const p = s.player;
-  return button(`data-kind="cultivation" data-action="${type}" data-id="${kind}" data-x="${Math.floor(p.x)}" data-y="${Math.floor(p.y)}"`, label, Core.canAfford(s.inv, Core.CULTIVATION_RECIPES[kind]));
+  return button(
+    `data-kind="cultivation" data-action="${type}" data-id="${kind}" data-x="${Math.floor(p.x)}" data-y="${Math.floor(p.y)}"`,
+    label,
+    Core.canAfford(s.inv, Core.CULTIVATION_RECIPES[kind])
+  );
 }
 export function lockedRow(lookId, slot, name, purpose) {
-  return row(pic(lookId,slot),esc(name),esc(purpose)+'<br><span class="unlockRequirement">'+t('progression.requirement')+'</span>',
-    `<button class="buy progressionLocked" disabled data-locked="${esc(lookId)}" aria-label="${esc(name+'. '+t('progression.locked')+'. '+t('progression.requirement'))}">${lockIcon}<span>${t('progression.locked')}</span></button>`);
+  return row(
+    pic(lookId, slot),
+    esc(name),
+    esc(purpose) +
+      '<br><span class="unlockRequirement">' +
+      t('progression.requirement') +
+      '</span>',
+    `<button class="buy progressionLocked" disabled data-locked="${esc(lookId)}" aria-label="${esc(name + '. ' + t('progression.locked') + '. ' + t('progression.requirement'))}">${lockIcon}<span>${t('progression.locked')}</span></button>`
+  );
 }
-const crystalRow = (s, kind, slot, btn) => Core.contentLocked(s,kind) ? lockedRow(Core.CULTIVATION_LOOK[kind],slot,crystalName(kind),crystalName(kind+'.desc')) : row(pic(Core.CULTIVATION_LOOK[kind], slot), crystalName(kind), crystalName(kind + '.desc') + '<br>' + price(s.inv, Core.CULTIVATION_RECIPES[kind]), btn);
+const crystalRow = (s, kind, slot, btn) =>
+  Core.contentLocked(s, kind)
+    ? lockedRow(Core.CULTIVATION_LOOK[kind], slot, crystalName(kind), crystalName(kind + '.desc'))
+    : row(
+        pic(Core.CULTIVATION_LOOK[kind], slot),
+        crystalName(kind),
+        crystalName(kind + '.desc') + '<br>' + price(s.inv, Core.CULTIVATION_RECIPES[kind]),
+        btn
+      );
 
 // Upgrades in a crystal world: the three tools, then the gear you craft.
 export function cultivationUpgradeRows(s) {
-  return ['pickaxe', 'boots'].map((k) => upgradeRow(s, k)).join('') +
-    ['lantern', 'carrier'].map((k) => crystalRow(s, k, k === 'carrier' ? 'icon' : 'image',
-      s.cultivation.gear[k] ? doneButton(crystalName('owned')) : crystalButton(s, 'craft', k, t('sheet.craft')))).join('') +
-    upgradeRow(s,'basket') + (Core.contentLocked(s,'flare') ? lockedRow('tool.flare','image',t('flare.name'),t('flare.does')) : '');
+  return (
+    ['pickaxe', 'boots'].map((k) => upgradeRow(s, k)).join('') +
+    ['lantern', 'carrier']
+      .map((k) =>
+        crystalRow(
+          s,
+          k,
+          k === 'carrier' ? 'icon' : 'image',
+          s.cultivation.gear[k]
+            ? doneButton(crystalName('owned'))
+            : crystalButton(s, 'craft', k, t('sheet.craft'))
+        )
+      )
+      .join('') +
+    upgradeRow(s, 'basket') +
+    (Core.contentLocked(s, 'flare')
+      ? lockedRow('tool.flare', 'image', t('flare.name'), t('flare.does'))
+      : '')
+  );
 }
 
 // Build in a crystal world places things; what a building beside you does
@@ -148,20 +252,30 @@ export function cultivationUpgradeRows(s) {
 // Only what goes on your layer: crystal rooms from layer 2 down (Core.DEEP),
 // a heart shelter anywhere.
 export function cultivationBuildRows(s) {
-  return (s.player.z <= Core.DEEP ? `<div class="section">${crystalName('deep')}</div>` : '') +
-    ['chamber', 'cooler', 'vault', 'conduit', 'shelter'].filter((k) => Core.buildsOnLayer(s, k)).map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place')))).join('');
+  return (
+    (s.player.z <= Core.DEEP ? `<div class="section">${crystalName('deep')}</div>` : '') +
+    ['chamber', 'cooler', 'vault', 'conduit', 'shelter']
+      .filter((k) => Core.buildsOnLayer(s, k))
+      .map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place'))))
+      .join('')
+  );
 }
 
 // The pictures the sheet draws with (createSheet sets it; tests too).
-export function useLook(l) { look = l; }
+export function useLook(l) {
+  look = l;
+}
 
 /* ----------------------------------------------------------- the sheet */
 
-export function createSheet(el, { getState, actions, look: currentLook, income, onTab = () => {} }) {
+export function createSheet(
+  el,
+  { getState, actions, look: currentLook, income, onTab = () => {} }
+) {
   useLook(currentLook);
   let open = false;
   let tab = 'upgrades';
-  let from = null;  // the screen ‹ goes back to, if this one was opened from it
+  let from = null; // the screen ‹ goes back to, if this one was opened from it
   // Progression families showing their buy rows. One the player hasn't
   // opened or closed opens by itself while it has something to buy.
   const expanded = { tools: true };
@@ -169,51 +283,110 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   el.beyond.hidden = !beyondShownUnlocked;
 
   function rail(nodes) {
-    return '<span class="rail">' + nodes.map((n) => `<span class="node ${n.state}" aria-hidden="true" title="${esc(n.name)}"></span>`).join('') + '</span>';
+    return (
+      '<span class="rail">' +
+      nodes
+        .map(
+          (n) => `<span class="node ${n.state}" aria-hidden="true" title="${esc(n.name)}"></span>`
+        )
+        .join('') +
+      '</span>'
+    );
   }
 
   function familyHead(familyId, name, famLook, countText, extra) {
     const p = Core.pathProgress(getState(), familyId);
-    return `<button class="railHead${p.canBuy ? ' ready' : ''}${extra.cls || ''}" type="button" data-family="${extra.target || familyId}"` +
-      (extra.expandable ? ` aria-expanded="${extra.open}"` : '') + '>' +
+    return (
+      `<button class="railHead${p.canBuy ? ' ready' : ''}${extra.cls || ''}" type="button" data-family="${extra.target || familyId}"` +
+      (extra.expandable ? ` aria-expanded="${extra.open}"` : '') +
+      '>' +
       `<span class="fh-ic">${pic(famLook)}</span>` +
       `<span class="fh-main"><span class="fh-nm">${esc(name)}</span>${rail(p.nodes)}</span>` +
       `<span class="fh-count">${countText(p)}</span>` +
-      `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`;
+      `<span class="chev" aria-hidden="true">${extra.open ? '▾' : '▸'}</span></button>`
+    );
   }
 
   function renderUpgrades(s, settlement = false) {
     if (s.cultivation) return settlement ? '' : cultivationUpgradeRows(s);
 
     let html = `<div class="section">${t('sheet.section.world')}</div>`;
-    for (const f of Core.PATH_FAMILIES.filter((fam) => fam.layer === 'world' && (settlement ? fam.id !== 'tools' : fam.id === 'tools'))) {
+    for (const f of Core.PATH_FAMILIES.filter(
+      (fam) => fam.layer === 'world' && (settlement ? fam.id !== 'tools' : fam.id === 'tools')
+    )) {
       const isOpen = expanded[f.id] ?? Core.pathProgress(s, f.id).canBuy;
-      const count = f.id === 'abundance' ? () => t('sheet.level', { lv: s.abundanceLv }) : (p) => p.owned + '/' + p.total;
+      const count =
+        f.id === 'abundance'
+          ? () => t('sheet.level', { lv: s.abundanceLv })
+          : (p) => p.owned + '/' + p.total;
       html += familyHead(f.id, f.name, f.look, count, { expandable: true, open: isOpen });
-      if (isOpen) html += '<div class="familyBody">' + f.nodes.filter(id=>id!=='logistics'||!Core.usesDepots(s)).map((id) => upgradeRow(s, id)).join('') + '</div>';
+      if (isOpen)
+        html +=
+          '<div class="familyBody">' +
+          f.nodes
+            .filter((id) => id !== 'logistics' || !Core.usesDepots(s))
+            .map((id) => upgradeRow(s, id))
+            .join('') +
+          '</div>';
     }
     if (beyondUnlocked(s)) {
       html += `<div class="section">${t('sheet.section.legacy')}</div>`;
-      html += familyHead('perks', PERK_FAMILY.name, PERK_FAMILY.look, (p) => p.owned + '/' + p.total, { target: 'legacy', cls: ' legacy', open: false });
+      html += familyHead(
+        'perks',
+        PERK_FAMILY.name,
+        PERK_FAMILY.look,
+        (p) => p.owned + '/' + p.total,
+        { target: 'legacy', cls: ' legacy', open: false }
+      );
     }
     return html;
   }
 
   function extractorRow(s, key) {
-    if (Core.contentLocked(s,key)) return lockedRow('building.'+key,'image',Core.EXTRACTORS[key].name,t(({garden:'cr.bed.desc',quarry:'cr.quarry.desc',mine:'cr.mine.desc',stoneworks:'building.stoneworks.desc',depot:'building.depot.desc'})[key]));
+    if (Core.contentLocked(s, key))
+      return lockedRow(
+        'building.' + key,
+        'image',
+        Core.EXTRACTORS[key].name,
+        t(
+          {
+            garden: 'cr.bed.desc',
+            quarry: 'cr.quarry.desc',
+            mine: 'cr.mine.desc',
+            stoneworks: 'building.stoneworks.desc',
+            depot: 'building.depot.desc'
+          }[key]
+        )
+      );
     const def = Core.EXTRACTORS[key];
     if (def.depot && !Core.usesDepots(s)) return '';
     const count = Core.extractorCount(s, key);
     const name = esc(def.name) + (count ? ` <span class="tag">×${count}</span>` : '');
-    const place = (enabled, label = t('sheet.place')) => button(`data-kind="build" data-id="${key}"`, label, enabled);
+    const place = (enabled, label = t('sheet.place')) =>
+      button(`data-kind="build" data-id="${key}"`, label, enabled);
     const picture = pic('building.' + key, 'image');
-    if (def.unlock && !s.unlocks[def.unlock]) return row(picture, name, '', place(false, t('sheet.locked')));
+    if (def.unlock && !s.unlocks[def.unlock])
+      return row(picture, name, '', place(false, t('sheet.locked')));
     const spot = Core.buildTarget(s, key);
-    const rate = def.depot ? esc(t('building.depot.desc')) : def.support ? esc(t('building.' + key + '.desc')) : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
+    const rate = def.depot
+      ? esc(t('building.depot.desc'))
+      : def.support
+        ? esc(t('building.' + key + '.desc'))
+        : `+${fmtRate(Core.placementGain(s, key, spot))} ${icon(def.res)}/s`;
     const cost = Core.extractorCost(s, key);
     const affordable = Core.canAfford(s.inv, cost);
-    const preview = def.depot && spot ? '<br>' + esc(t('building.depot.count',{n:Core.depotGain(s,spot)})) : def.support && spot ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s` : '';
-    return row(picture, name, rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def), place(affordable));
+    const preview =
+      def.depot && spot
+        ? '<br>' + esc(t('building.depot.count', { n: Core.depotGain(s, spot) }))
+        : def.support && spot
+          ? `<br>+${fmtRate(Core.supportGain(s, spot))} ${icon('stone')}/s`
+          : '';
+    return row(
+      picture,
+      name,
+      rate + preview + '<br>' + price(s.inv, cost) + '<br>' + where(def),
+      place(affordable)
+    );
   }
 
   // Where a building goes. Place closes the sheet and you pick the tile on
@@ -229,53 +402,143 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     const def = Core.PROPS[kind];
     const here = Core.canPlaceProp(s, kind);
     const ok = here && Core.canAfford(s.inv, def.cost);
-    const where = def.on === 'tunnel' || here ? '' : `<br><span class="where">${t('sheet.goesOn.' + def.on, { tool: Core.TOOLS.boots.name, lv: Core.GEAR.water })}</span>`;
-    return row(pic('mark.' + kind, 'image'), def.name, def.does + '<br>' + price(s.inv, def.cost) + where, button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok));
+    const where =
+      def.on === 'tunnel' || here
+        ? ''
+        : `<br><span class="where">${t('sheet.goesOn.' + def.on, { tool: Core.TOOLS.boots.name, lv: Core.GEAR.water })}</span>`;
+    return row(
+      pic('mark.' + kind, 'image'),
+      def.name,
+      def.does + '<br>' + price(s.inv, def.cost) + where,
+      button(`data-kind="prop" data-id="${kind}"`, t('sheet.place'), ok)
+    );
   }
-  const propsOn = (water) => Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
+  const propsOn = (water) =>
+    Object.keys(Core.PROPS).filter((k) => (Core.PROPS[k].on !== 'tunnel') === water);
 
   function renderConstruction(s) {
     // Only what can stand on the layer you're on: nothing you'd have to go
     // up or down for, and no heading over an empty section.
     const here = (keys) => keys.filter((k) => Core.buildsOnLayer(s, k));
-    const section = (title, rows) => rows ? `<div class="section">${t(title)}</div>` + rows : '';
-    if(s.cultivation)return cultivationBuildRows(s)+here(['garden','quarry','mine','stoneworks','depot']).map(k=>extractorRow(s,k)).join('')+
-      section('sheet.section.water',here(propsOn(true)).filter(k=>Core.PROPS[k].charge).map(k=>propRow(s,k)).join(''));
-    return section('sheet.section.extractors', here(Core.DEPOSIT_EXTRACTORS).map((k) => extractorRow(s, k)).join('')) +
-      section('sheet.section.converters', here(Core.CONVERTERS).map((k) => extractorRow(s, k)).join('')) +
-      section('sheet.section.support', here(Core.SUPPORT_BUILDINGS).map((k) => extractorRow(s, k)).join('')) +
-      section('sheet.section.water', here(propsOn(true)).map((k) => propRow(s, k)).join('')) +
-      section('sheet.section.mine', here(propsOn(false)).map((k) => propRow(s, k)).join(''));
+    const section = (title, rows) => (rows ? `<div class="section">${t(title)}</div>` + rows : '');
+    if (s.cultivation)
+      return (
+        cultivationBuildRows(s) +
+        here(['garden', 'quarry', 'mine', 'stoneworks', 'depot'])
+          .map((k) => extractorRow(s, k))
+          .join('') +
+        section(
+          'sheet.section.water',
+          here(propsOn(true))
+            .filter((k) => Core.PROPS[k].charge)
+            .map((k) => propRow(s, k))
+            .join('')
+        )
+      );
+    return (
+      section(
+        'sheet.section.extractors',
+        here(Core.DEPOSIT_EXTRACTORS)
+          .map((k) => extractorRow(s, k))
+          .join('')
+      ) +
+      section(
+        'sheet.section.converters',
+        here(Core.CONVERTERS)
+          .map((k) => extractorRow(s, k))
+          .join('')
+      ) +
+      section(
+        'sheet.section.support',
+        here(Core.SUPPORT_BUILDINGS)
+          .map((k) => extractorRow(s, k))
+          .join('')
+      ) +
+      section(
+        'sheet.section.water',
+        here(propsOn(true))
+          .map((k) => propRow(s, k))
+          .join('')
+      ) +
+      section(
+        'sheet.section.mine',
+        here(propsOn(false))
+          .map((k) => propRow(s, k))
+          .join('')
+      )
+    );
   }
 
   function renderBuild(s) {
     let html = renderConstruction(s);
     if (!s.cultivation) return html + renderUpgrades(s, true);
-    const improvements = s.cultivation.facilities.filter(b => b.z === s.player.z).map(b => {
-      const action = ['chamber','vault'].includes(b.kind) && !b.reinforced ? 'reinforce'
-        : b.kind === 'machine' && Core.machineRepairCost(b) ? 'repair' : null;
-      if (!action) return '';
-      if (Core.contentLocked(s,action)) return lockedRow(Core.CULTIVATION_LOOK[b.kind],'image',t('hud.site',{name:crystalName(b.kind),x:b.x,y:b.y}),crystalName(action));
-      const cost = action === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES.reinforce;
-      const title = t('hud.site', { name: crystalName(b.kind), x: b.x, y: b.y });
-      return row(pic(Core.CULTIVATION_LOOK[b.kind], 'image'), esc(title), price(s.inv, cost),
-        button(`data-kind="cultivation" data-action="${action}" data-id="${b.kind}" data-x="${b.x}" data-y="${b.y}"`, crystalName(action), Core.canAfford(s.inv, cost)));
-    }).join('');
-    return html + (improvements ? `<div class="section">${t('hud.improvements')}</div>` + improvements : '');
+    const improvements = s.cultivation.facilities
+      .filter((b) => b.z === s.player.z)
+      .map((b) => {
+        const action =
+          ['chamber', 'vault'].includes(b.kind) && !b.reinforced
+            ? 'reinforce'
+            : b.kind === 'machine' && Core.machineRepairCost(b)
+              ? 'repair'
+              : null;
+        if (!action) return '';
+        if (Core.contentLocked(s, action))
+          return lockedRow(
+            Core.CULTIVATION_LOOK[b.kind],
+            'image',
+            t('hud.site', { name: crystalName(b.kind), x: b.x, y: b.y }),
+            crystalName(action)
+          );
+        const cost =
+          action === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES.reinforce;
+        const title = t('hud.site', { name: crystalName(b.kind), x: b.x, y: b.y });
+        return row(
+          pic(Core.CULTIVATION_LOOK[b.kind], 'image'),
+          esc(title),
+          price(s.inv, cost),
+          button(
+            `data-kind="cultivation" data-action="${action}" data-id="${b.kind}" data-x="${b.x}" data-y="${b.y}"`,
+            crystalName(action),
+            Core.canAfford(s.inv, cost)
+          )
+        );
+      })
+      .join('');
+    return (
+      html +
+      (improvements ? `<div class="section">${t('hud.improvements')}</div>` + improvements : '')
+    );
   }
 
   function renderBeyond(s) {
     const can = Core.canEmbark(s);
     const m = Core.worldMastery(s);
     const progress = `${m.done} / ${m.total}`;
-    const embark = row(pic('ui.embark'), t('sheet.embark'), can ? t('world.emptyStart') : progress,
-      button('data-kind="embark"', t('sheet.embark'), can));
-    if (s.emptyStart) return `<div class="section">${t('sheet.section.newWorld')}</div>` + embark +
-      row('', t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '', '');
-    return `<div class="section">${t('res.insight')}</div>` +
-      row(insight(), fmt(s.insight), t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '') +
-      `<div class="section">${t('sheet.section.newWorld')}</div>` + embark +
-      `<div class="section">${t('path.perks')}</div>` + PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('');
+    const embark = row(
+      pic('ui.embark'),
+      t('sheet.embark'),
+      can ? t('world.emptyStart') : progress,
+      button('data-kind="embark"', t('sheet.embark'), can)
+    );
+    if (s.emptyStart)
+      return (
+        `<div class="section">${t('sheet.section.newWorld')}</div>` +
+        embark +
+        row('', t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '', '')
+      );
+    return (
+      `<div class="section">${t('res.insight')}</div>` +
+      row(
+        insight(),
+        fmt(s.insight),
+        t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }),
+        ''
+      ) +
+      `<div class="section">${t('sheet.section.newWorld')}</div>` +
+      embark +
+      `<div class="section">${t('path.perks')}</div>` +
+      PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('')
+    );
   }
 
   // What a milestone still takes: a price as what's still needed, or a
@@ -294,16 +557,19 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     const next = Core.nextGoal(s);
     let html = '';
     if (next) {
-      html += `<div class="section">${t('sheet.nextMilestone')}</div>` +
+      html +=
+        `<div class="section">${t('sheet.nextMilestone')}</div>` +
         `<div class="row nextGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(next.text)}</div><div class="sub">${goalNeeds(s, next)}</div></div></div>`;
       const last = goals[total - 1];
       const far = last !== next && !s.goalsDone.includes(last.id);
       if (far) {
-        html += `<div class="row farGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(last.text)}</div>` +
+        html +=
+          `<div class="row farGoal"><div class="ic">${TROPHY}</div><div class="main"><div class="nm">${esc(last.text)}</div>` +
           `<div class="sub">${t('sheet.farMilestone')}${Core.goalNeeds(s, last) ? ' &middot; ' + goalNeeds(s, last) : ''}</div></div></div>`;
       }
       const left = total - s.goalIndex - (far ? 2 : 1);
-      if (left > 0) html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: left })}</div></div></div>`;
+      if (left > 0)
+        html += `<div class="row awardsLeft"><div class="ic">${TROPHY}</div><div class="main"><div class="sub">${t('sheet.milestonesLeft', { count: left })}</div></div></div>`;
     }
     html += `<div class="section">${t('sheet.milestones', { n: Math.min(s.goalIndex, total), total })}</div>`;
     for (let i = s.goalsDone.length - 1; i >= 0; i--) {
@@ -313,24 +579,45 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     return html;
   }
 
-  let statement, statementLoading, statementResource, statementError, statementAttempts=0;
+  let statement,
+    statementLoading,
+    statementResource,
+    statementError,
+    statementAttempts = 0;
   function loadStatement() {
-    if(statementLoading)return statementLoading;
-    statementError=null;
-    const url=new URL('./statement.js',import.meta.url);url.search=new URL(import.meta.url).search;
-    if(statementAttempts++)url.searchParams.set('retry',String(statementAttempts));
-    return statementLoading=import(url.href).then(({createStatement})=>{
-      statement=createStatement({look,pic,icon,price,row,income});
-      statement.attach(el.sheetBody,{go:next=>setTab(next)});
-      if(open && tab==='statement'){render();highlightResource(statementResource);}
-    },error=>{
-      statementLoading=null;statementError=String(error);
-      globalThis.MTE_FAULT?.(error,'earnings/load '+url.href);
-      console.error('Earnings module failed to load',url.href,error);
-      if(open && tab==='statement')render();
-    });
+    if (statementLoading) return statementLoading;
+    statementError = null;
+    const url = new URL('./statement.js', import.meta.url);
+    url.search = new URL(import.meta.url).search;
+    if (statementAttempts++) url.searchParams.set('retry', String(statementAttempts));
+    return (statementLoading = import(url.href).then(
+      ({ createStatement }) => {
+        statement = createStatement({ look, pic, icon, price, row, income });
+        statement.attach(el.sheetBody, { go: (next) => setTab(next) });
+        if (open && tab === 'statement') {
+          render();
+          highlightResource(statementResource);
+        }
+      },
+      (error) => {
+        statementLoading = null;
+        statementError = String(error);
+        globalThis.MTE_FAULT?.(error, 'earnings/load ' + url.href);
+        console.error('Earnings module failed to load', url.href, error);
+        if (open && tab === 'statement') render();
+      }
+    ));
   }
-  const RENDER = { upgrades: renderUpgrades, build: renderBuild, beyond: renderBeyond, awards: renderAwards, statement: s=>statement?statement.render(s):`<p class="statementNote">${t(statementError?'sheet.statementFailed':'sheet.statementLoading')}</p>${statementError?'<pre>'+esc(statementError)+'</pre>':''}` };
+  const RENDER = {
+    upgrades: renderUpgrades,
+    build: renderBuild,
+    beyond: renderBeyond,
+    awards: renderAwards,
+    statement: (s) =>
+      statement
+        ? statement.render(s)
+        : `<p class="statementNote">${t(statementError ? 'sheet.statementFailed' : 'sheet.statementLoading')}</p>${statementError ? '<pre>' + esc(statementError) + '</pre>' : ''}`
+  };
 
   function render() {
     el.sheetBody.innerHTML = PANELS[tab] ? '' : RENDER[tab](getState());
@@ -341,12 +628,17 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   // swapped out from under a finger mid-tap.
   let nextRefresh = 0;
   function patch(was, now) {
-    if (was.children.length !== now.children.length) { was.innerHTML = now.innerHTML; return; }
+    if (was.children.length !== now.children.length) {
+      was.innerHTML = now.innerHTML;
+      return;
+    }
     [...now.children].forEach((n, i) => {
       const o = was.children[i];
       if (o.outerHTML === n.outerHTML || o.classList.contains('lit')) return;
-      if(o.tagName==='DETAILS'){n.open=o.open;patch(o,n);}
-      else if (n.classList.contains('cards')) patch(o, n);
+      if (o.tagName === 'DETAILS') {
+        n.open = o.open;
+        patch(o, n);
+      } else if (n.classList.contains('cards')) patch(o, n);
       else o.replaceWith(n.cloneNode(true));
     });
   }
@@ -355,18 +647,31 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     const tmp = document.createElement('div');
     tmp.innerHTML = RENDER[tab](getState());
     // The statement: swap in just the rows, charts and cards that changed.
-    if (tab === 'statement') { patch(el.sheetBody, tmp); return; }
-    const was = el.sheetBody.querySelectorAll('.row, .railHead'), now = tmp.querySelectorAll('.row, .railHead');
-    if (was.length !== now.length) { render(); return; }
+    if (tab === 'statement') {
+      patch(el.sheetBody, tmp);
+      return;
+    }
+    const was = el.sheetBody.querySelectorAll('.row, .railHead'),
+      now = tmp.querySelectorAll('.row, .railHead');
+    if (was.length !== now.length) {
+      render();
+      return;
+    }
     now.forEach((n, i) => {
       const o = was[i];
       if (o.innerHTML === n.innerHTML && o.className === n.className) return;
-      if (o.matches('.railHead')) { o.className = n.className; o.innerHTML = n.innerHTML; return; }
+      if (o.matches('.railHead')) {
+        o.className = n.className;
+        o.innerHTML = n.innerHTML;
+        return;
+      }
       for (const part of ['.ic', '.nm', '.sub']) {
-        const a = o.querySelector(part), b = n.querySelector(part);
+        const a = o.querySelector(part),
+          b = n.querySelector(part);
         if (a && b && a.innerHTML !== b.innerHTML) a.innerHTML = b.innerHTML;
       }
-      const a = o.querySelector('button'), b = n.querySelector('button');
+      const a = o.querySelector('button'),
+        b = n.querySelector('button');
       if (a && b) {
         a.disabled = b.disabled;
         a.className = b.className;
@@ -377,13 +682,19 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
 
   // Opens the statement at resource `res`, briefly lit so the eye finds it.
   function showStatement(res) {
-    statementResource=res;
+    statementResource = res;
     show('statement');
-    if(!statement){void loadStatement();return;}
+    if (!statement) {
+      void loadStatement();
+      return;
+    }
     highlightResource(res);
   }
   function highlightResource(res) {
-    if (!res) { el.sheetBody.scrollTop = 0; return; }
+    if (!res) {
+      el.sheetBody.scrollTop = 0;
+      return;
+    }
     const head = el.sheetBody.querySelector('#col-' + res);
     if (!head) return;
     el.sheetBody.scrollTop = head.offsetTop - el.sheetBody.offsetTop;
@@ -440,11 +751,20 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
     const { kind, id, family } = target.dataset;
     if (family) {
       if (family === 'legacy') setTab('beyond', tab);
-      else { expanded[family] = target.getAttribute('aria-expanded') !== 'true'; render(); }
+      else {
+        expanded[family] = target.getAttribute('aria-expanded') !== 'true';
+        render();
+      }
       return;
     }
-    if(kind==='cultivation'){actions.cultivation({type:target.dataset.action,kind:id,x:Number(target.dataset.x),y:Number(target.dataset.y)});}
-    else if (kind === 'build') actions.place(id);
+    if (kind === 'cultivation') {
+      actions.cultivation({
+        type: target.dataset.action,
+        kind: id,
+        x: Number(target.dataset.x),
+        y: Number(target.dataset.y)
+      });
+    } else if (kind === 'build') actions.place(id);
     else if (kind === 'prop') actions.placeProp(id);
     else if (kind === 'embark') actions.embark();
     else if (kind) actions.buy(id);
@@ -455,9 +775,13 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   el.back.addEventListener('click', back);
 
   // Swipe the sheet down by its grab handle to dismiss it.
-  let dragging = false, startY = 0, dy = 0;
+  let dragging = false,
+    startY = 0,
+    dy = 0;
   el.sheetGrab.addEventListener('pointerdown', (e) => {
-    dragging = true; startY = e.clientY; dy = 0;
+    dragging = true;
+    startY = e.clientY;
+    dy = 0;
     if (el.sheetGrab.setPointerCapture) el.sheetGrab.setPointerCapture(e.pointerId);
     el.sheet.style.transition = 'none';
     e.preventDefault();
@@ -480,9 +804,18 @@ export function createSheet(el, { getState, actions, look: currentLook, income, 
   setTab(tab);
 
   return {
-    get isOpen() { return open; },
-    get tab() { return tab; },
-    show, close, back, toggle, render, showStatement,
+    get isOpen() {
+      return open;
+    },
+    get tab() {
+      return tab;
+    },
+    show,
+    close,
+    back,
+    toggle,
+    render,
+    showStatement,
     // Keep the dedicated Beyond entry in step with the world's unlock state.
     tick() {
       const shown = beyondUnlocked(getState());

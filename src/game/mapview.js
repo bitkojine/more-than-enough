@@ -18,23 +18,26 @@ import * as Core from '../core/index.js';
 import { mapLayers, stepLayer } from './worldmap-layers.js';
 import { t, number } from '../i18n/i18n.js';
 
-const MAP_TILE_PX = 1;     // how far out the map button goes the first time, in CSS pixels a tile
-const GLIDE = 10;          // how fast the zoom and the view glide to where they're going, per second
+const MAP_TILE_PX = 1; // how far out the map button goes the first time, in CSS pixels a tile
+const GLIDE = 10; // how fast the zoom and the view glide to where they're going, per second
 const ICON_MAP = '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" /><path d="M9 4v14M15 6v14" />';
 const ICON_ME = '<circle cx="12" cy="12" r="3.5" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" />';
 
 export function createMapView({ cam, getState, el, changed }) {
-  let pan = null;          // where the map looks ({ x, y }), or null: at you
-  let z = null;            // the layer it shows, or null: yours
-  let goal = null;         // the zoom the view is gliding to, or null
-  let before = 1;          // the zoom you had before the map
-  let mapZoom = null;      // the zoom the map was last left at
-  let lastPill = '', lastButton = '';
+  let pan = null; // where the map looks ({ x, y }), or null: at you
+  let z = null; // the layer it shows, or null: yours
+  let goal = null; // the zoom the view is gliding to, or null
+  let before = 1; // the zoom you had before the map
+  let mapZoom = null; // the zoom the map was last left at
+  let lastPill = '',
+    lastButton = '';
 
   const on = () => cam.mapping();
   const here = () => getState().player;
 
-  function glideTo(zoom) { goal = zoom; }
+  function glideTo(zoom) {
+    goal = zoom;
+  }
 
   const mv = {
     on,
@@ -59,9 +62,11 @@ export function createMapView({ cam, getState, el, changed }) {
       goal = null;
       if (!on() && !cam.mapping(was / cam.baseTilePx)) return;
       const p = pan || { x: here().x, y: here().y };
-      const dx = sx - cam.width / 2, dy = sy - cam.height / 2;
+      const dx = sx - cam.width / 2,
+        dy = sy - cam.height / 2;
       if (!dx && !dy) return; // about the middle: it stays where it looks
-      const wx = p.x + dx / was, wy = p.y + dy / (was * cam.depthPx / cam.tilePx);
+      const wx = p.x + dx / was,
+        wy = p.y + dy / ((was * cam.depthPx) / cam.tilePx);
       pan = { x: wx - dx / cam.tilePx, y: wy - dy / cam.depthPx };
     },
 
@@ -69,9 +74,10 @@ export function createMapView({ cam, getState, el, changed }) {
     button() {
       if (!on()) {
         before = cam.zoom;
-        glideTo((mapZoom ?? MAP_TILE_PX / cam.baseTilePx));
+        glideTo(mapZoom ?? MAP_TILE_PX / cam.baseTilePx);
       } else if (pan || z !== null) {
-        pan = null; z = null;
+        pan = null;
+        z = null;
       } else {
         mapZoom = cam.zoom;
         glideTo(before);
@@ -103,7 +109,8 @@ export function createMapView({ cam, getState, el, changed }) {
         if (goal === null) before = cam.zoom;
         if (z !== null) z = null;
         if (pan) {
-          const p = here(), k = 1 - Math.exp(-GLIDE * dt);
+          const p = here(),
+            k = 1 - Math.exp(-GLIDE * dt);
           pan = { x: pan.x + (p.x - pan.x) * k, y: pan.y + (p.y - pan.y) * k };
           if (Math.hypot(pan.x - p.x, pan.y - p.y) * cam.tilePx < 0.5) pan = null;
         }
@@ -114,8 +121,10 @@ export function createMapView({ cam, getState, el, changed }) {
     // The layer pill (in place of the depth pill, on the map, once you've
     // been underground) and the map button's face.
     sync() {
-      const s = getState(), map = on();
-      const all = mapLayers(s.world, s.player.z), shown = z ?? s.player.z;
+      const s = getState(),
+        map = on();
+      const all = mapLayers(s.world, s.player.z),
+        shown = z ?? s.player.z;
       const pill = map && all.length > 1 ? all.join() + '|' + shown : '';
       if (pill !== lastPill) {
         lastPill = pill;
@@ -125,8 +134,13 @@ export function createMapView({ cam, getState, el, changed }) {
           const under = shown < Core.SURFACE;
           el.mapLayer.classList.toggle('forest', !under);
           el.mapLayerName.firstElementChild.textContent = under ? t('hud.layer') : '';
-          el.mapLayerName.lastElementChild.textContent = under ? number(Core.SURFACE - shown) : t('hud.forest');
-          el.mapLayerName.setAttribute('aria-label', under ? t('hud.layerN', { n: Core.SURFACE - shown }) : t('hud.forest'));
+          el.mapLayerName.lastElementChild.textContent = under
+            ? number(Core.SURFACE - shown)
+            : t('hud.forest');
+          el.mapLayerName.setAttribute(
+            'aria-label',
+            under ? t('hud.layerN', { n: Core.SURFACE - shown }) : t('hud.forest')
+          );
           el.mapUp.disabled = stepLayer(all, shown, 1) === shown;
           el.mapDown.disabled = stepLayer(all, shown, -1) === shown;
         }
@@ -135,7 +149,8 @@ export function createMapView({ cam, getState, el, changed }) {
       const face = (map ? 'map' : '') + (away ? 'away' : '');
       if (face !== lastButton) {
         lastButton = face;
-        el.map.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + (away ? ICON_ME : ICON_MAP) + '</svg>';
+        el.map.innerHTML =
+          '<svg viewBox="0 0 24 24" aria-hidden="true">' + (away ? ICON_ME : ICON_MAP) + '</svg>';
         el.map.setAttribute('aria-pressed', String(map));
         el.map.setAttribute('aria-label', t(away ? 'map.centre' : map ? 'map.back' : 'map.title'));
       }

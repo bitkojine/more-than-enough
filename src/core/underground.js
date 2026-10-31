@@ -7,7 +7,7 @@
  * goDown()/goUp() take the way where you stand; descendAt()/climbAt() take
  * one within reach. */
 
-import {atInteraction} from './interaction.js';
+import { atInteraction } from './interaction.js';
 import { SURFACE, Z_MIN, tileDist2, packKey, chunkCoord } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { hash2 } from './noise.js';
@@ -48,7 +48,8 @@ export function caveTiles(seed, x, y) {
   for (let dy = -CAVE_RADIUS - 1; dy <= CAVE_RADIUS + 1; dy++) {
     for (let dx = -CAVE_RADIUS - 1; dx <= CAVE_RADIUS + 1; dx++) {
       const d = Math.abs(dx) + Math.abs(dy);
-      if (d <= CAVE_RADIUS || (d === CAVE_RADIUS + 1 && hash2(x + dx, y + dy, seed + 5309) < 0.4)) out.push({ x: x + dx, y: y + dy });
+      if (d <= CAVE_RADIUS || (d === CAVE_RADIUS + 1 && hash2(x + dx, y + dy, seed + 5309) < 0.4))
+        out.push({ x: x + dx, y: y + dy });
     }
   }
   return out;
@@ -104,13 +105,14 @@ export function goUp(s) {
 // A hole at (x, y) in the player's floor, within reach.
 export function canDescendAt(s, x, y) {
   const p = s.player;
-  return p.z > Z_MIN && holeBelow(s.world, x, y, p.z) && atInteraction(s,x,y);
+  return p.z > Z_MIN && holeBelow(s.world, x, y, p.z) && atInteraction(s, x, y);
 }
 
 // Drops through the hole at (x, y) to the same spot below (and further, if
 // more holes are stacked under it).
 export function descendAt(s, x, y) {
-  x = Math.floor(x); y = Math.floor(y);
+  x = Math.floor(x);
+  y = Math.floor(y);
   if (!canDescendAt(s, x, y)) return false;
   fall(s, x, y);
   return true;
@@ -119,12 +121,17 @@ export function descendAt(s, x, y) {
 // The foot of a ladder up at (x, y) on the player's layer, within reach.
 export function canClimbAt(s, x, y) {
   const p = s.player;
-  return wayUp(s.world, x, y, p.z) && !!TILE_INFO[tileAt(s.world, x, y, p.z)].walk && atInteraction(s,x,y);
+  return (
+    wayUp(s.world, x, y, p.z) &&
+    !!TILE_INFO[tileAt(s.world, x, y, p.z)].walk &&
+    atInteraction(s, x, y)
+  );
 }
 
 // Climbs the ladder at (x, y) to the same spot on the layer above.
 export function climbAt(s, x, y) {
-  x = Math.floor(x); y = Math.floor(y);
+  x = Math.floor(x);
+  y = Math.floor(y);
   if (!canClimbAt(s, x, y)) return false;
   arriveAt(s, x, y, s.player.z + 1);
   return true;
@@ -138,14 +145,20 @@ export function climbAt(s, x, y) {
  * @returns {{up: boolean, x: number, y: number} | null}
  */
 export function layerWay(s) {
-  const p = s.player, px = Math.floor(p.x), py = Math.floor(p.y);
-  let best = null, bestD = Infinity;
+  const p = s.player,
+    px = Math.floor(p.x),
+    py = Math.floor(p.y);
+  let best = null,
+    bestD = Infinity;
   for (let y = py - 2; y <= py + 2; y++) {
     for (let x = px - 2; x <= px + 2; x++) {
       const d = x === px && y === py ? -1 : tileDist2(p, x, y, p.z);
       if (d >= bestD) continue;
       const up = canClimbAt(s, x, y);
-      if (up || canDescendAt(s, x, y)) { best = { up, x, y }; bestD = d; }
+      if (up || canDescendAt(s, x, y)) {
+        best = { up, x, y };
+        bestD = d;
+      }
     }
   }
   return best;
@@ -165,9 +178,18 @@ export function takeWay(s) {
 // (a water wheel only on a river, whose water flows).
 export function canPlaceProp(s, kind) {
   if (!Object.hasOwn(PROPS, kind)) return false;
-  const { x, y } = feet(s), z = s.player.z, w = s.world, on = PROPS[kind].on;
+  const { x, y } = feet(s),
+    z = s.player.z,
+    w = s.world,
+    on = PROPS[kind].on;
   if (w.props.has(packKey(x, y, z))) return false;
-  if (on === 'tunnel') return isUnderground(s) && !!TILE_INFO[tileAt(w, x, y, z)].walk && !holeBelow(w, x, y, z) && !wayUp(w, x, y, z);
+  if (on === 'tunnel')
+    return (
+      isUnderground(s) &&
+      !!TILE_INFO[tileAt(w, x, y, z)].walk &&
+      !holeBelow(w, x, y, z) &&
+      !wayUp(w, x, y, z)
+    );
   if (z !== SURFACE || !TILE_INFO[tileAt(w, x, y, z)].swim) return false;
   return on === 'water' || landAt(w.seed, x, y).border === 'river';
 }
@@ -191,9 +213,12 @@ export function placeProp(s, kind) {
 // to dig toward. Returns [{x, y, type, d}], d the distance in tiles.
 export function findsNear(s, range = GLINT_RANGE) {
   if (!isUnderground(s)) return [];
-  const p = s.player, out = [];
-  const c0x = chunkCoord(Math.floor(p.x - range)), c1x = chunkCoord(Math.floor(p.x + range));
-  const c0y = chunkCoord(Math.floor(p.y - range)), c1y = chunkCoord(Math.floor(p.y + range));
+  const p = s.player,
+    out = [];
+  const c0x = chunkCoord(Math.floor(p.x - range)),
+    c1x = chunkCoord(Math.floor(p.x + range));
+  const c0y = chunkCoord(Math.floor(p.y - range)),
+    c1y = chunkCoord(Math.floor(p.y + range));
   for (let cy = c0y; cy <= c1y; cy++) {
     for (let cx = c0x; cx <= c1x; cx++) {
       for (const f of findsInChunk(s.world.seed, cx, cy, p.z)) {

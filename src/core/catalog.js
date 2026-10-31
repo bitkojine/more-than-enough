@@ -29,9 +29,27 @@
  * Everything here is plain data so the wiki can list it. */
 
 import { CULTIVATION_LOOK } from './cultivation.js';
-import { T, TILE_INFO, TILE_KEY, TILE_NAME, RESOURCES, RESOURCE_LABEL, RESOURCE_LOWER, RESOURCE_OF } from './tiles.js';
+import {
+  T,
+  TILE_INFO,
+  TILE_KEY,
+  TILE_NAME,
+  RESOURCES,
+  RESOURCE_LABEL,
+  RESOURCE_LOWER,
+  RESOURCE_OF
+} from './tiles.js';
 import { t, capitalize, LOCALE } from '../i18n/i18n.js';
-import { EXTRACTORS, TOOLS, UNLOCKS, PERKS, ABUNDANCE, REFINERIES, FINDS, GEAR } from './content.js';
+import {
+  EXTRACTORS,
+  TOOLS,
+  UNLOCKS,
+  PERKS,
+  ABUNDANCE,
+  REFINERIES,
+  FINDS,
+  GEAR
+} from './content.js';
 import { PATH_FAMILIES } from './upgrades.js';
 import { FOREST_KINDS, forestKind } from './terrain.js';
 import { MUSHROOMS } from './mushrooms.js';
@@ -67,12 +85,15 @@ function tileDoes(type) {
   const info = TILE_INFO[type];
   const out = [];
   if (info.swim) out.push(t('tileDoes.walkSlow'));
-  else if (info.walk) { /* ground you walk on goes without saying */ }
-  else if (info.solid) out.push(t('tileDoes.solid'));
+  else if (info.walk) {
+    /* ground you walk on goes without saying */
+  } else if (info.solid) out.push(t('tileDoes.solid'));
   else out.push(t('tileDoes.impassable'));
   if (info.res) out.push(t('tileDoes.yields', { res: RESOURCE_OF[info.res] }));
   if (info.find) {
-    const loot = Object.keys(FINDS[type].loot).map((r) => RESOURCE_LOWER[r]).join(', ');
+    const loot = Object.keys(FINDS[type].loot)
+      .map((r) => RESOURCE_LOWER[r])
+      .join(', ');
     out.push(t('tileDoes.find', { loot }));
   }
   if (info.forage) out.push(t('tileDoes.forage'));
@@ -80,11 +101,13 @@ function tileDoes(type) {
   if (info.land) out.push(t('tileDoes.land'));
   if (info.descend) out.push(t('tileDoes.descend'));
   if (info.rise) out.push(t('tileDoes.rise'));
-  if (GEAR.rock[type]) out.push(t('tileDoes.needs', { tool: TOOLS.pickaxe.name, lv: GEAR.rock[type] }));
+  if (GEAR.rock[type])
+    out.push(t('tileDoes.needs', { tool: TOOLS.pickaxe.name, lv: GEAR.rock[type] }));
   if (info.swim) out.push(t('tileDoes.needs', { tool: TOOLS.boots.name, lv: GEAR.water }));
   if (type === T.SHAFT) {
     out.push(t('tileDoes.shaft'));
-    for (const g of GEAR.shafts) out.push(t('tileDoes.deepShaft', { from: g.from, tool: TOOLS.pickaxe.name, lv: g.level }));
+    for (const g of GEAR.shafts)
+      out.push(t('tileDoes.deepShaft', { from: g.from, tool: TOOLS.pickaxe.name, lv: g.level }));
   }
   if (type === T.CAVE) out.push(t('tileDoes.cave'));
   if (type === T.BEDROCK) out.push(t('tileDoes.bedrock'));
@@ -99,7 +122,12 @@ function tileDoes(type) {
 // what a find holds, or where a way between layers leads.
 export function tileHint(type) {
   const info = TILE_INFO[type];
-  if (info.find) return t('tileHint.find', { loot: Object.keys(FINDS[type].loot).map((r) => RESOURCE_OF[r]).join(', ') });
+  if (info.find)
+    return t('tileHint.find', {
+      loot: Object.keys(FINDS[type].loot)
+        .map((r) => RESOURCE_OF[r])
+        .join(', ')
+    });
   if (info.res) return t('tileDoes.yields', { res: RESOURCE_OF[info.res] });
   if (type === T.SHAFT) return t('tileDoes.shaft');
   if (info.descend) return t('tileDoes.descend');
@@ -119,44 +147,92 @@ function tileSlots(t) {
 }
 
 const things = [];
-const add = (group, key, name, does, slots) => things.push({ id: `${group}.${key}`, group, key, name, does, slots });
+const add = (group, key, name, does, slots) =>
+  things.push({ id: `${group}.${key}`, group, key, name, does, slots });
 
-for (let type = 0; type < TILE_KEY.length; type++) add('tile', TILE_KEY[type], TILE_NAME[type], tileDoes(type), tileSlots(type));
+for (let type = 0; type < TILE_KEY.length; type++)
+  add('tile', TILE_KEY[type], TILE_NAME[type], tileDoes(type), tileSlots(type));
 // A forest kind's trees (stand), and optionally its own ground (top);
 // anything it leaves out comes from tile.forest.
 for (const key of Object.keys(FOREST_KINDS)) {
-  add('forest', key, FOREST_KINDS[key].name, t('look.forest.does', { does: FOREST_KINDS[key].does }), { ...req('stand'), ...opt('top') });
+  add(
+    'forest',
+    key,
+    FOREST_KINDS[key].name,
+    t('look.forest.does', { does: FOREST_KINDS[key].does }),
+    { ...req('stand'), ...opt('top') }
+  );
 }
 
 // Each kind of mushroom: a little clump of it, drawn at the trees' feet on
 // the map while a forest patch has some left (smaller as it runs low), and
 // in the earnings statement.
-for (const key of Object.keys(MUSHROOMS)) add('mushroom', key, MUSHROOMS[key].name, MUSHROOMS[key].does, req('image'));
+for (const key of Object.keys(MUSHROOMS))
+  add('mushroom', key, MUSHROOMS[key].name, MUSHROOMS[key].does, req('image'));
 
-for (const r of RESOURCES) add('resource', r, RESOURCE_LABEL[r], t('look.resource.does'), req('icon', 'color'));
+for (const r of RESOURCES)
+  add('resource', r, RESOURCE_LABEL[r], t('look.resource.does'), req('icon', 'color'));
 add('resource', 'insight', t('res.insight'), t('look.insight.does'), req('icon', 'color'));
 
 for (const r of RESOURCES) {
-  add('pile', r, capitalize(t('look.pile', { res: RESOURCE_OF[r] })), t('look.pile.does', { res: RESOURCE_LOWER[r] }), req('tiers'));
+  add(
+    'pile',
+    r,
+    capitalize(t('look.pile', { res: RESOURCE_OF[r] })),
+    t('look.pile.does', { res: RESOURCE_LOWER[r] }),
+    req('tiers')
+  );
 }
 
 for (const key of Object.keys(EXTRACTORS)) {
   const e = EXTRACTORS[key];
-  const does = e.depot ? t('building.depot.desc') : e.support ? t('building.' + key + '.desc') : e.tile === null ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
-    : t('look.extractor.does', { res: RESOURCE_OF[e.res], tile: TILE_NAME[e.tile].toLocaleLowerCase(LOCALE) });
+  const does = e.depot
+    ? t('building.depot.desc')
+    : e.support
+      ? t('building.' + key + '.desc')
+      : e.tile === null
+        ? t('look.converter.does', { res: RESOURCE_OF[e.res] })
+        : t('look.extractor.does', {
+            res: RESOURCE_OF[e.res],
+            tile: TILE_NAME[e.tile].toLocaleLowerCase(LOCALE)
+          });
   add('building', key, e.name, does, req('image', 'stages'));
 }
 
-for(const [kind,id] of Object.entries(CULTIVATION_LOOK)){
-  const [group,key]=id.split('.');
-  add(group,key,t('cr.'+kind),t(kind==='machine'?'cr.goal.activate':'cr.'+kind+'.desc'),group==='building'?req('image','stages'):{...req('icon','image'),...opt('stages')});
+for (const [kind, id] of Object.entries(CULTIVATION_LOOK)) {
+  const [group, key] = id.split('.');
+  add(
+    group,
+    key,
+    t('cr.' + kind),
+    t(kind === 'machine' ? 'cr.goal.activate' : 'cr.' + kind + '.desc'),
+    group === 'building' ? req('image', 'stages') : { ...req('icon', 'image'), ...opt('stages') }
+  );
 }
 
-add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), {...req('image'),...opt('stand')});
+add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), {
+  ...req('image'),
+  ...opt('stand')
+});
 add('character', 'light', t('look.character.light'), t('look.character.light.does'), req('color'));
-add('character', 'flareLight', t('look.character.flareLight'), t('look.character.flareLight.does'), req('color'));
-add('tool', 'flare', t('flare.name'), t('flare.does'), {...req('icon','image'),...opt('stages')});
-add('character', 'boat', t('look.character.boat'), t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }), req('image'));
+add(
+  'character',
+  'flareLight',
+  t('look.character.flareLight'),
+  t('look.character.flareLight.does'),
+  req('color')
+);
+add('tool', 'flare', t('flare.name'), t('flare.does'), {
+  ...req('icon', 'image'),
+  ...opt('stages')
+});
+add(
+  'character',
+  'boat',
+  t('look.character.boat'),
+  t('look.character.boat.does', { pct: Math.round(BOAT_DECK * 100) }),
+  req('image')
+);
 
 add('mark', 'hole', t('look.mark.hole'), t('look.mark.hole.does'), req('top', 'color'));
 add('mark', 'skylight', t('look.mark.skylight'), t('look.mark.skylight.does'), req('color'));
@@ -167,18 +243,44 @@ add('mark', 'flag', t('look.mark.flag'), t('look.mark.flag.does'), req('image', 
 add('mark', 'solar', t('look.mark.solar'), t('look.mark.solar.does'), req('image'));
 add('mark', 'wheel', t('look.mark.wheel'), t('look.mark.wheel.does'), req('image'));
 
-const UI = ['perfect', 'explore', 'wait', 'build', 'upgrade', 'climbDown', 'climb', 'gather', 'collect', 'embark'];
-for (const key of UI) add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));
+const UI = [
+  'perfect',
+  'explore',
+  'wait',
+  'build',
+  'upgrade',
+  'climbDown',
+  'climb',
+  'gather',
+  'collect',
+  'embark'
+];
+for (const key of UI)
+  add('ui', key, t('look.ui.' + key), t('look.ui.' + key + '.does'), req('icon'));
 
-for (const key of Object.keys(TOOLS)) add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), {...req('icon'),...(['basket','pickaxe','boots'].includes(key)?opt('stages'):{})});
-for (const r of RESOURCES) add('refinery', r, REFINERIES[r].name, t('look.refinery.does', { res: RESOURCE_OF[r] }), req('icon'));
+for (const key of Object.keys(TOOLS))
+  add('tool', key, TOOLS[key].name, t('sentence', { text: TOOLS[key].desc }), {
+    ...req('icon'),
+    ...(['basket', 'pickaxe', 'boots'].includes(key) ? opt('stages') : {})
+  });
+for (const r of RESOURCES)
+  add(
+    'refinery',
+    r,
+    REFINERIES[r].name,
+    t('look.refinery.does', { res: RESOURCE_OF[r] }),
+    req('icon')
+  );
 add('engine', 'abundance', ABUNDANCE.name, t('sentence', { text: ABUNDANCE.desc }), req('icon'));
-for (const key of Object.keys(UNLOCKS)) add('unlock', key, UNLOCKS[key].name, t('sentence', { text: UNLOCKS[key].desc }), req('icon'));
-for (const key of Object.keys(PERKS)) add('perk', key, PERKS[key].name, t('sentence', { text: PERKS[key].desc }), req('icon'));
+for (const key of Object.keys(UNLOCKS))
+  add('unlock', key, UNLOCKS[key].name, t('sentence', { text: UNLOCKS[key].desc }), req('icon'));
+for (const key of Object.keys(PERKS))
+  add('perk', key, PERKS[key].name, t('sentence', { text: PERKS[key].desc }), req('icon'));
 for (const f of PATH_FAMILIES) add('path', f.id, f.name, t('look.path.does'), req('icon'));
 
 const COLORS = ['backdrop', 'unknown', 'cloud', 'cloudShade', 'dial', 'dialFull'];
-for (const key of COLORS) add('color', key, t('look.color.' + key), t('look.color.' + key + '.does'), req('color'));
+for (const key of COLORS)
+  add('color', key, t('look.color.' + key), t('look.color.' + key + '.does'), req('color'));
 
 export const LOOKS = things;
 export const LOOK = Object.fromEntries(things.map((t) => [t.id, t]));

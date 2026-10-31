@@ -18,10 +18,19 @@ import { DatabaseSync } from 'node:sqlite';
 
 // Call once, before importing worker.js.
 export function registerCloudflare() {
-  const stub = 'data:text/javascript,' + encodeURIComponent('export class DurableObject { constructor(ctx, env) { this.ctx = ctx; this.env = env; } }');
+  const stub =
+    'data:text/javascript,' +
+    encodeURIComponent(
+      'export class DurableObject { constructor(ctx, env) { this.ctx = ctx; this.env = env; } }'
+    );
   const hooks = `export async function resolve(spec, ctx, next) { return spec === 'cloudflare:workers' ? { url: ${JSON.stringify(stub)}, shortCircuit: true } : next(spec, ctx); }`;
   register('data:text/javascript,' + encodeURIComponent(hooks));
-  globalThis.WebSocketRequestResponsePair ??= class { constructor(request, response) { this.request = request; this.response = response; } };
+  globalThis.WebSocketRequestResponsePair ??= class {
+    constructor(request, response) {
+      this.request = request;
+      this.response = response;
+    }
+  };
 }
 
 export class Storage {
@@ -29,8 +38,8 @@ export class Storage {
     this.data = new Map();
     this.alarm = null;
     this.db = new DatabaseSync(':memory:');
-    this.batch = null;    // writes waiting to commit together
-    this.failing = 0;     // commits still to fail
+    this.batch = null; // writes waiting to commit together
+    this.failing = 0; // commits still to fail
     this.commits = 0;
     this.sql = {
       exec: (query, ...params) => {
@@ -42,38 +51,52 @@ export class Storage {
   }
 
   // The next `n` commits fail, and write nothing.
-  failNext(n = 1) { this.failing += n; }
+  failNext(n = 1) {
+    this.failing += n;
+  }
 
   // Queues a write; writes queued in the same turn commit together.
   write(apply) {
     if (!this.batch) {
-      const batch = this.batch = { ops: [], done: null };
-      batch.done = new Promise((resolve, reject) => queueMicrotask(() => {
-        this.batch = null;
-        if (this.failing > 0) { this.failing--; return reject(new Error('storage: the write failed')); }
-        for (const op of batch.ops) op();
-        this.commits++;
-        resolve();
-      }));
+      const batch = (this.batch = { ops: [], done: null });
+      batch.done = new Promise((resolve, reject) =>
+        queueMicrotask(() => {
+          this.batch = null;
+          if (this.failing > 0) {
+            this.failing--;
+            return reject(new Error('storage: the write failed'));
+          }
+          for (const op of batch.ops) op();
+          this.commits++;
+          resolve();
+        })
+      );
     }
     this.batch.ops.push(apply);
     return this.batch.done;
   }
 
   async get(key) {
-    if (Array.isArray(key)) return new Map(key.filter((k) => this.data.has(k)).map((k) => [k, structuredClone(this.data.get(k))]));
+    if (Array.isArray(key))
+      return new Map(
+        key.filter((k) => this.data.has(k)).map((k) => [k, structuredClone(this.data.get(k))])
+      );
     return structuredClone(this.data.get(key));
   }
 
   put(key, value) {
     const entries = typeof key === 'string' ? [[key, value]] : Object.entries(key);
     const copies = entries.map(([k, v]) => [k, structuredClone(v)]);
-    return this.write(() => { for (const [k, v] of copies) this.data.set(k, v); });
+    return this.write(() => {
+      for (const [k, v] of copies) this.data.set(k, v);
+    });
   }
 
   delete(key) {
     const keys = Array.isArray(key) ? key : [key];
-    return this.write(() => { for (const k of keys) this.data.delete(k); });
+    return this.write(() => {
+      for (const k of keys) this.data.delete(k);
+    });
   }
 
   async list({ prefix = '' } = {}) {
@@ -82,30 +105,60 @@ export class Storage {
   }
 
   deleteAll() {
-    return this.write(() => { this.data.clear(); this.db.exec('DROP TABLE IF EXISTS audit'); });
+    return this.write(() => {
+      this.data.clear();
+      this.db.exec('DROP TABLE IF EXISTS audit');
+    });
   }
 
-  async getAlarm() { return this.alarm; }
-  async setAlarm(at) { this.alarm = at; }
-  async deleteAlarm() { this.alarm = null; }
+  async getAlarm() {
+    return this.alarm;
+  }
+  async setAlarm(at) {
+    this.alarm = at;
+  }
+  async deleteAlarm() {
+    this.alarm = null;
+  }
 }
 
 // A hibernatable WebSocket, as the Durable Object sees its end.
 export class Socket {
-  constructor(ctx) { this.ctx = ctx; this.sent = []; this.att = null; this.closed = null; }
-  serializeAttachment(a) { this.att = structuredClone(a); }
-  deserializeAttachment() { return structuredClone(this.att); }
-  send(text) { if (this.closed) throw new Error('closed'); this.sent.push(JSON.parse(text)); }
-  close(code, reason) { this.closed ??= { code, reason }; this.ctx.sockets.delete(this); }
+  constructor(ctx) {
+    this.ctx = ctx;
+    this.sent = [];
+    this.att = null;
+    this.closed = null;
+  }
+  serializeAttachment(a) {
+    this.att = structuredClone(a);
+  }
+  deserializeAttachment() {
+    return structuredClone(this.att);
+  }
+  send(text) {
+    if (this.closed) throw new Error('closed');
+    this.sent.push(JSON.parse(text));
+  }
+  close(code, reason) {
+    this.closed ??= { code, reason };
+    this.ctx.sockets.delete(this);
+  }
   // Messages it was sent of type `t`.
-  got(t) { return this.sent.filter((m) => m.t === t); }
+  got(t) {
+    return this.sent.filter((m) => m.t === t);
+  }
 }
 
 export function makeCtx(storage, sockets = new Set()) {
   const ctx = {
-    storage, sockets, ready: null,
+    storage,
+    sockets,
+    ready: null,
     getWebSockets: () => [...ctx.sockets],
-    acceptWebSocket: (ws) => { ctx.sockets.add(ws); },
+    acceptWebSocket: (ws) => {
+      ctx.sockets.add(ws);
+    },
     setWebSocketAutoResponse: () => {},
     blockConcurrencyWhile: (fn) => (ctx.ready = fn())
   };
@@ -115,7 +168,15 @@ export function makeCtx(storage, sockets = new Set()) {
 // The registry every room tells it's there (worker.js Registry), as a Set.
 export function makeEnv() {
   const rooms = new Set();
-  const registry = { add: async (id) => { rooms.add(id); }, remove: async (id) => { rooms.delete(id); }, list: async () => [...rooms] };
+  const registry = {
+    add: async (id) => {
+      rooms.add(id);
+    },
+    remove: async (id) => {
+      rooms.delete(id);
+    },
+    list: async () => [...rooms]
+  };
   return { rooms, REGISTRY: { idFromName: (n) => n, get: () => registry } };
 }
 

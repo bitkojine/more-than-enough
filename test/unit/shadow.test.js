@@ -19,7 +19,13 @@ const SAVE_EVERY_MS = 10_000;
 async function sharedGame(seed, awayProduce = false) {
   const r = new Room(P.randomRoomId(), T0);
   const key = P.randomHex(32);
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }), T0), null);
+  assert.equal(
+    await r.init(
+      JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] } }),
+      T0
+    ),
+    null
+  );
   const j = await r.join(key, undefined, T0, awayProduce);
   const s = C.joinState(j.welcome, r.id, null, null);
   s.time = j.welcome.time; // the game keeps the room's clock (together.js keepTime)
@@ -42,15 +48,23 @@ async function sharedGame(seed, awayProduce = false) {
     const pl = r.players.get(id);
     pl.p = P.cleanPos(s.player);
     const acts = C.takeActs(s);
-    for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage) send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts.slice(i, i + P.LIMITS.actsPerMessage) });
+    for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage)
+      send({
+        t: 'acts',
+        ms: Math.round(s.stats.playedMs),
+        a: acts.slice(i, i + P.LIMITS.actsPerMessage)
+      });
     const list = C.takeEdits(s);
-    for (let i = 0; i < list.length; i += P.LIMITS.editsPerMessage) send({ t: 'edits', e: list.slice(i, i + P.LIMITS.editsPerMessage) });
+    for (let i = 0; i < list.length; i += P.LIMITS.editsPerMessage)
+      send({ t: 'edits', e: list.slice(i, i + P.LIMITS.editsPerMessage) });
     if (force || s.stats.playedMs - savedAt >= SAVE_EVERY_MS) {
       savedAt = s.stats.playedMs;
       send({ t: 'save', s: C.progressOf(s) });
     }
   }
-  const away = (ms) => { off += ms; };
+  const away = (ms) => {
+    off += ms;
+  };
   return { r, s, id, key, sync, send, now, away };
 }
 
@@ -63,7 +77,11 @@ test('shadow: the Perfect button, held, plays a shared world the room agrees wit
   const g = await sharedGame(777);
   const { s, r, id, sync } = g;
   let n = 0;
-  holdPerfect(s, 20 * 60, { tick: () => { if (++n % 5 === 0) sync(); } });
+  holdPerfect(s, 20 * 60, {
+    tick: () => {
+      if (++n % 5 === 0) sync();
+    }
+  });
   sync(true);
   const report = r.shadow.report(id);
   assert.ok(report.checks >= 20, 'the room checked often (' + report.checks + ')');
@@ -73,9 +91,13 @@ test('shadow: the Perfect button, held, plays a shared world the room agrees wit
   // and never a level.
   for (const d of drifts(r)) {
     assert.deepEqual(d.levels, [], JSON.stringify(d));
-    for (const [, theirs, ours] of d.res) assert.ok(Math.abs(theirs - ours) <= 10, JSON.stringify(d));
+    for (const [, theirs, ours] of d.res)
+      assert.ok(Math.abs(theirs - ours) <= 10, JSON.stringify(d));
   }
-  assert.ok(s.extractors.length >= 4 && s.tools.pickaxe >= 2, 'it really played (' + s.extractors.length + ' buildings)');
+  assert.ok(
+    s.extractors.length >= 4 && s.tools.pickaxe >= 2,
+    'it really played (' + s.extractors.length + ' buildings)'
+  );
 });
 
 test('shadow: a game played fairly, from nothing to its first buildings, agrees with the room', async () => {
@@ -83,11 +105,25 @@ test('shadow: a game played fairly, from nothing to its first buildings, agrees 
   const { s, r, id, sync } = g;
   const b = createBot(12345, s, sync);
   const { gather, standBy, free } = b;
-  gather('mycelium', 6); C.buy(s, 'basket'); sync();
-  gather('mycelium', 8); C.buy(s, 'boots'); sync();
-  gather('mycelium', 10); gather('stone', 6); C.buy(s, 'pickaxe'); sync();
-  gather('mycelium', 15); standBy(free(T.FOREST)); assert.ok(C.place(s, 'garden').ok); sync();
-  gather('mycelium', 30); gather('stone', 15); standBy(free(T.STONE)); assert.ok(C.place(s, 'quarry').ok); sync();
+  gather('mycelium', 6);
+  C.buy(s, 'basket');
+  sync();
+  gather('mycelium', 8);
+  C.buy(s, 'boots');
+  sync();
+  gather('mycelium', 10);
+  gather('stone', 6);
+  C.buy(s, 'pickaxe');
+  sync();
+  gather('mycelium', 15);
+  standBy(free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
+  sync();
+  gather('mycelium', 30);
+  gather('stone', 15);
+  standBy(free(T.STONE));
+  assert.ok(C.place(s, 'quarry').ok);
+  sync();
   // Let them make things, and collect.
   for (let i = 0; i < 600; i++) {
     C.step(s, 0.1);
@@ -98,12 +134,16 @@ test('shadow: a game played fairly, from nothing to its first buildings, agrees 
   const report = r.shadow.report(id);
   assert.ok(report.checks >= 5, 'the room checked often (' + report.checks + ')');
   assert.equal(report.refused, 0, 'every act was allowed');
-  assert.deepEqual(drifts(r), [], 'and the room\'s copy matched every time: ' + JSON.stringify(drifts(r)));
+  assert.deepEqual(
+    drifts(r),
+    [],
+    "and the room's copy matched every time: " + JSON.stringify(drifts(r))
+  );
   assert.equal(report.off, 0);
   assert.ok(s.stats.built >= 2 && s.tools.pickaxe >= 2, 'it really played');
 });
 
-test('shadow: progress that doesn\'t follow from what was done is logged, not kept, and the game is set straight', async () => {
+test("shadow: progress that doesn't follow from what was done is logged, not kept, and the game is set straight", async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 6);
@@ -117,11 +157,18 @@ test('shadow: progress that doesn\'t follow from what was done is logged, not ke
   const d = drifts(r);
   assert.equal(d.length, 1);
   assert.deepEqual(d[0].res.find((x) => x[0] === 'stone').slice(1), [500_000_000, s.inv.stone]);
-  assert.deepEqual(d[0].levels.find((x) => x[0] === 'tool.pickaxe'), ['tool.pickaxe', 6, 1]);
+  assert.deepEqual(
+    d[0].levels.find((x) => x[0] === 'tool.pickaxe'),
+    ['tool.pickaxe', 6, 1]
+  );
   assert.equal(r.shadow.report(id).off, 1);
   assert.ok(r.roster(g0()).find((p) => p.id === id).shadow.off === 1, 'the moderator sees it');
   const kept = JSON.parse(r.players.get(id).save);
-  assert.deepEqual([kept.inv.stone, kept.tools.pickaxe], [s.inv.stone, 1], 'the room keeps its own numbers');
+  assert.deepEqual(
+    [kept.inv.stone, kept.tools.pickaxe],
+    [s.inv.stone, 1],
+    'the room keeps its own numbers'
+  );
   assert.equal(out.toSelf[0].t, 'econ');
   assert.equal(out.toSelf[0].ms, Math.round(hacked.stats.playedMs));
   // The game takes them, keeping what it got since it sent its progress.
@@ -139,50 +186,76 @@ test('shadow: acts the rules refuse change nothing and are counted', async () =>
   sync(true);
   const before = JSON.stringify(r.shadow.players.get(id).s.inv);
   const p = s.player;
-  send({ t: 'acts', ms: 1000, a: [
-    ['h', 500, p.x, p.y, p.z, Math.floor(p.x) + 40, Math.floor(p.y)], // far out of reach
-    ['u', 600, p.x, p.y, p.z, 'abundance'],                          // can't afford it
-    ['u', 700, p.x, p.y, p.z, 'constructor'],                        // no such upgrade
-    ['b', 800, p.x, p.y, p.z, 'garden', Math.floor(p.x), Math.floor(p.y)] // can't afford it
-  ] });
+  send({
+    t: 'acts',
+    ms: 1000,
+    a: [
+      ['h', 500, p.x, p.y, p.z, Math.floor(p.x) + 40, Math.floor(p.y)], // far out of reach
+      ['u', 600, p.x, p.y, p.z, 'abundance'], // can't afford it
+      ['u', 700, p.x, p.y, p.z, 'constructor'], // no such upgrade
+      ['b', 800, p.x, p.y, p.z, 'garden', Math.floor(p.x), Math.floor(p.y)] // can't afford it
+    ]
+  });
   assert.equal(r.shadow.report(id).refused, 4);
   assert.equal(JSON.stringify(r.shadow.players.get(id).s.inv), before);
 });
 
-test('shadow: a tile with a building on it can\'t be gathered by hand', async () => {
+test("shadow: a tile with a building on it can't be gathered by hand", async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 15);
-  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1, true);
+  b.standBy(
+    (st, x, y) =>
+      C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1,
+    true
+  );
   const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
   assert.ok(built.ok);
   sync(true);
   const copy = r.shadow.players.get(id).s;
-  assert.ok(C.richness(copy.world, built.x, built.y, C.SURFACE) > 0, 'there is something left to gather');
-  const refused = r.shadow.report(id).refused, before = copy.inv.mycelium;
+  assert.ok(
+    C.richness(copy.world, built.x, built.y, C.SURFACE) > 0,
+    'there is something left to gather'
+  );
+  const refused = r.shadow.report(id).refused,
+    before = copy.inv.mycelium;
   // A game that ignores the rule works the building's tile anyway.
-  const ms = Math.round(s.stats.playedMs) + 250, p = s.player;
+  const ms = Math.round(s.stats.playedMs) + 250,
+    p = s.player;
   send({ t: 'acts', ms, a: [['h', ms, p.x, p.y, p.z, built.x, built.y]] });
   assert.equal(r.shadow.report(id).refused, refused + 1);
   assert.equal(copy.inv.mycelium, before);
 });
 
-test('shadow: play time can\'t run ahead of the room\'s clock', async () => {
+test("shadow: play time can't run ahead of the room's clock", async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); C.place(s, 'garden'); sync(true);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  C.place(s, 'garden');
+  sync(true);
   const copy = r.shadow.players.get(id).s;
   const from = copy.stats.playedMs;
   // A game claims an hour of play a second later.
-  r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(from + 3600_000), a: [] }), T0 + Math.round(from) + 1000);
+  r.message(
+    id,
+    JSON.stringify({ t: 'acts', ms: Math.round(from + 3600_000), a: [] }),
+    T0 + Math.round(from) + 1000
+  );
   // The slack: 2 s once, and 2% of all the time the copy has been played.
-  assert.ok(copy.stats.playedMs - from <= 1000 + 2000 + 0.02 * (from + 1000) + 1, 'at most the time that passed, and a little slack');
+  assert.ok(
+    copy.stats.playedMs - from <= 1000 + 2000 + 0.02 * (from + 1000) + 1,
+    'at most the time that passed, and a little slack'
+  );
 });
 
 test('shadow: the slack is granted once, not again with every message', async () => {
   const { s, r, id, sync } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); C.place(s, 'garden'); sync(true);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  C.place(s, 'garden');
+  sync(true);
   const copy = r.shadow.players.get(id).s;
   const from = copy.stats.playedMs;
   // A game sends as many messages as the rate limit lets it for 20 s, each
@@ -190,18 +263,27 @@ test('shadow: the slack is granted once, not again with every message', async ()
   const start = T0 + Math.round(from);
   const step = 1000 / P.LIMITS.ratePerSecond;
   for (let i = 1; i <= 20 * P.LIMITS.ratePerSecond; i++) {
-    r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(copy.stats.playedMs + 5000), a: [] }), Math.round(start + i * step));
+    r.message(
+      id,
+      JSON.stringify({ t: 'acts', ms: Math.round(copy.stats.playedMs + 5000), a: [] }),
+      Math.round(start + i * step)
+    );
   }
   const gained = copy.stats.playedMs - from;
-  assert.ok(gained <= 20_000 * 1.02 + 2000 + 0.02 * from + 1, `20 s of messages may earn about 20 s of play, not ${Math.round(gained / 1000)} s`);
+  assert.ok(
+    gained <= 20_000 * 1.02 + 2000 + 0.02 * from + 1,
+    `20 s of messages may earn about 20 s of play, not ${Math.round(gained / 1000)} s`
+  );
 });
 
 test('shadow: an honest game whose clock runs a little fast for hours is never held back', async () => {
   const { s, r, id, sync } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 3); sync(true);
+  b.gather('mycelium', 3);
+  sync(true);
   const copy = r.shadow.players.get(id).s;
-  const from = copy.stats.playedMs, start = T0 + Math.round(from);
+  const from = copy.stats.playedMs,
+    start = T0 + Math.round(from);
   // Six hours of acts every 10 s from a phone whose clock runs 0.5% fast.
   for (let sec = 10; sec <= 6 * 3600; sec += 10) {
     const ms = Math.round(from + sec * 1000 * 1.005);
@@ -213,24 +295,39 @@ test('shadow: an honest game whose clock runs a little fast for hours is never h
 test('shadow: play kept on the phone through a lost connection still counts when it comes in late', async () => {
   const { s, r, id, sync } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 3); sync(true);
+  b.gather('mycelium', 3);
+  sync(true);
   const copy = r.shadow.players.get(id).s;
-  const from = copy.stats.playedMs, start = T0 + Math.round(from);
+  const from = copy.stats.playedMs,
+    start = T0 + Math.round(from);
   // Two minutes offline, then the acts arrive one after another, bunched.
-  for (let i = 1; i <= 12; i++) r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(from + i * 10_000), a: [] }), start + 120_000 + i * 5);
+  for (let i = 1; i <= 12; i++)
+    r.message(
+      id,
+      JSON.stringify({ t: 'acts', ms: Math.round(from + i * 10_000), a: [] }),
+      start + 120_000 + i * 5
+    );
   assert.equal(copy.stats.playedMs, Math.round(from + 120_000));
 });
 
 test('shadow: hauling with Logistics and overclocked buildings agree too', async () => {
   const { s, r, id, sync } = await sharedGame(12345);
   const { buyNow, buildNow, standBy } = createBot(12345, s, sync);
-  buyNow('basket'); buyNow('boots'); buyNow('pickaxe');
-  assert.ok(buildNow('garden').ok && buildNow('quarry').ok && buildNow('mine').ok, 'a garden, a quarry and a mine');
+  buyNow('basket');
+  buyNow('boots');
+  buyNow('pickaxe');
+  assert.ok(
+    buildNow('garden').ok && buildNow('quarry').ok && buildNow('mine').ok,
+    'a garden, a quarry and a mine'
+  );
   assert.ok(buyNow('logistics').ok, 'Logistics');
   assert.ok(buyNow('overclock').ok);
   // Back to the quarry, so Logistics hauls from it.
   assert.ok(standBy((st, x, y) => (C.extractorAt(st, x, y, 0) || {}).key === 'quarry'));
-  for (let i = 0; i < 1200; i++) { C.step(s, 0.1); if (i % 3 === 2) sync(); }
+  for (let i = 0; i < 1200; i++) {
+    C.step(s, 0.1);
+    if (i % 3 === 2) sync();
+  }
   sync(true);
   const report = r.shadow.report(id);
   assert.equal(report.refused, 0);
@@ -238,13 +335,17 @@ test('shadow: hauling with Logistics and overclocked buildings agree too', async
   assert.ok(s.sources.stone.buildings > 0, 'buildings made things');
 });
 
-test('shadow: play before the game\'s first message counts from when it came in', async () => {
+test("shadow: play before the game's first message counts from when it came in", async () => {
   const { s, r, id, sync, send } = await sharedGame(12345);
   // A while of gathering go by before the game says anything.
   const b = createBot(12345, s, () => {});
-  b.gather('mycelium', 6); C.buy(s, 'basket');
-  b.gather('mycelium', 8); C.buy(s, 'boots');
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 6);
+  C.buy(s, 'basket');
+  b.gather('mycelium', 8);
+  C.buy(s, 'boots');
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   for (let i = 0; i < 100; i++) C.step(s, 0.1);
   assert.ok(s.stats.playedMs > 5000, 'it played a while (' + s.stats.playedMs + ' ms)');
   sync(true);
@@ -258,44 +359,70 @@ test('shadow: what nobody could do gets nobody anything', async () => {
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 4);
   sync(true);
-  const p = s.player, ms = Math.round(s.stats.playedMs) + 1000;
+  const p = s.player,
+    ms = Math.round(s.stats.playedMs) + 1000;
   // A hundred gathers in one moment, more than any Trail stroke works.
-  const flurry = Array.from({ length: 100 }, (_, i) => ['h', ms, p.x, p.y, p.z, Math.floor(p.x) + (i % 3) - 1, Math.floor(p.y) + (Math.floor(i / 3) % 3) - 1]);
+  const flurry = Array.from({ length: 100 }, (_, i) => [
+    'h',
+    ms,
+    p.x,
+    p.y,
+    p.z,
+    Math.floor(p.x) + (i % 3) - 1,
+    Math.floor(p.y) + (Math.floor(i / 3) % 3) - 1
+  ]);
   // And a step of a kilometre in a second, to gather over there.
   const leap = ['h', ms + 1000, p.x + 1000, p.y, p.z, Math.floor(p.x) + 1000, Math.floor(p.y)];
   // And acts from further ahead than the room's clock.
   const ahead = ['c', ms + 60_000, p.x, p.y, p.z];
   send({ t: 'acts', ms: ms + 1000, a: [...flurry.slice(0, 50), ...flurry.slice(50), leap, ahead] });
-  assert.ok(r.shadow.report(id).refused >= 100 - 1 + 2, 'all but one of the flurry (a turn of the hand, core pace.js), the leap and the future are refused (' + r.shadow.report(id).refused + ')');
+  assert.ok(
+    r.shadow.report(id).refused >= 100 - 1 + 2,
+    'all but one of the flurry (a turn of the hand, core pace.js), the leap and the future are refused (' +
+      r.shadow.report(id).refused +
+      ')'
+  );
 });
 
-test('shadow: buildings go up in the room\'s world from what the room worked out, not from the game\'s edits', async () => {
+test("shadow: buildings go up in the room's world from what the room worked out, not from the game's edits", async () => {
   const { s, r, id, sync, send, now } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
   // A hacked game's edit: a building it never paid for.
   send({ t: 'pos', p: P.cleanPos(s.player) });
   send({ t: 'edits', e: [['x', 'garden', Math.floor(s.player.x) + 1, Math.floor(s.player.y), 0]] });
   assert.equal(r.ext.length, 0);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST));
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
   assert.ok(C.place(s, 'garden').ok);
   const e = s.extractors.find((x) => x.owner === id);
   const acts = C.takeActs(s);
-  const out = r.message(id, JSON.stringify({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts }), now());
-  assert.deepEqual(r.ext.map((x) => x.slice(1, 5)), [[e.x, e.y, e.z, id]], 'the garden they paid for stands');
+  const out = r.message(
+    id,
+    JSON.stringify({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts }),
+    now()
+  );
+  assert.deepEqual(
+    r.ext.map((x) => x.slice(1, 5)),
+    [[e.x, e.y, e.z, id]],
+    'the garden they paid for stands'
+  );
   assert.deepEqual(out.toAll[0].e, [['x', 'garden', e.x, e.y, e.z, id]], 'and everyone hears');
 });
 
 // What the game does with the room's answers to its progress (together.js).
 function hear(s, out) {
   for (const m of out.toSelf || []) {
-    if (m.t === 'away') for (const r of C.RESOURCES) if (m.made[r] > 0) C.earn(s, r, m.made[r], 'buildings');
+    if (m.t === 'away')
+      for (const r of C.RESOURCES) if (m.made[r] > 0) C.earn(s, r, m.made[r], 'buildings');
   }
 }
 
 test('shadow: buildings in a shared world keep working while their owner is away, up to 8 hours, once', async () => {
   const { s, r, id, key, sync, send, now, away } = await sharedGame(12345, true);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   sync(true);
   const rate = C.extractorRate(s, 'garden');
   r.left(id, false, now());
@@ -307,7 +434,10 @@ test('shadow: buildings in a shared world keep working while their owner is away
   assert.ok(m, 'the game hears what was made: ' + JSON.stringify(out));
   assert.ok(Math.abs(m.secs - 3600) <= 1, 'an hour away (' + m.secs + ')');
   assert.ok(Math.abs(m.made.mycelium - rate * 3600) < 1, 'what the garden makes in an hour');
-  assert.ok(r.log.some((e) => e.e === 'away' && e.p === id), 'and the log says so');
+  assert.ok(
+    r.log.some((e) => e.e === 'away' && e.p === id),
+    'and the log says so'
+  );
   hear(s, out);
   assert.ok(s.inv.mycelium - before > rate * 3500);
   // The room keeps it, and the game and the room still agree.
@@ -326,14 +456,19 @@ test('shadow: buildings in a shared world keep working while their owner is away
 test('shadow: freeze season — a shared world makes nothing while their owner is away by default', async () => {
   const { s, r, id, key, sync, send, now, away } = await sharedGame(12345); // no opt-in: frozen
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   sync(true);
   const before = s.inv.mycelium;
   r.left(id, false, now());
   away(3600_000); // an hour with the game closed
   await r.join(key, undefined, now()); // still nothing said: frozen
   const out = send({ t: 'save', s: C.progressOf(s) });
-  assert.ok(!(out.toSelf || []).some((x) => x.t === 'away'), 'no away credit: ' + JSON.stringify(out));
+  assert.ok(
+    !(out.toSelf || []).some((x) => x.t === 'away'),
+    'no away credit: ' + JSON.stringify(out)
+  );
   assert.ok(!r.log.some((e) => e.e === 'away' && e.p === id), 'and the log says nothing was made');
   assert.ok(Math.abs(s.inv.mycelium - before) < 1e-6, 'the packs did not change');
 });
@@ -341,7 +476,9 @@ test('shadow: freeze season — a shared world makes nothing while their owner i
 test('shadow: freeze season — turning it on while playing is honoured at once', async () => {
   const { s, r, id, key, sync, send, now, away } = await sharedGame(12345); // starts frozen
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   sync(true);
   const rate = C.extractorRate(s, 'garden');
   r.left(id, false, now()); // leaves while frozen
@@ -349,13 +486,18 @@ test('shadow: freeze season — turning it on while playing is honoured at once'
   await r.join(key, undefined, now(), true); // Settings turned it on since
   const out = send({ t: 'save', s: C.progressOf(s) });
   const m = (out.toSelf || []).find((x) => x.t === 'away');
-  assert.ok(m && Math.abs(m.made.mycelium - rate * 3600) < 1, 'opted in, so the hour counts: ' + JSON.stringify(out));
+  assert.ok(
+    m && Math.abs(m.made.mycelium - rate * 3600) < 1,
+    'opted in, so the hour counts: ' + JSON.stringify(out)
+  );
 });
 
 test('shadow: a game that played on through a lost connection was not away', async () => {
   const { s, r, id, key, sync, send, now } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   sync(true);
   r.left(id, false, now());
   // A minute of play with nobody to hear it, then back.
@@ -363,36 +505,61 @@ test('shadow: a game that played on through a lost connection was not away', asy
   await r.join(key, undefined, now());
   sync(true);
   const out = send({ t: 'save', s: C.progressOf(s) });
-  assert.ok(!(out.toSelf || []).some((x) => x.t === 'away'), 'nothing extra for time spent playing');
+  assert.ok(
+    !(out.toSelf || []).some((x) => x.t === 'away'),
+    'nothing extra for time spent playing'
+  );
   assert.deepEqual(drifts(r), []);
 });
 
 test('shadow: someone who left before rooms noted when is away since their last progress', async () => {
   const { s, r, id, key, sync, send, now, away } = await sharedGame(12345);
   const b = createBot(12345, s, sync);
-  b.gather('mycelium', 15); b.standBy(b.free(T.FOREST)); assert.ok(C.place(s, 'garden').ok);
+  b.gather('mycelium', 15);
+  b.standBy(b.free(T.FOREST));
+  assert.ok(C.place(s, 'garden').ok);
   sync(true);
   const rate = C.extractorRate(s, 'garden');
   const left = now();
   r.left(id, true, left);
   delete r.players.get(id).gone; // as a room from before v0.100.0 kept them
-  r.shadow.forget(id);           // and a restarted room starts its copy from the save
+  r.shadow.forget(id); // and a restarted room starts its copy from the save
   away(3600_000);
   await r.join(key, undefined, now(), true);
   const m = (send({ t: 'save', s: C.progressOf(s) }).toSelf || []).find((x) => x.t === 'away');
   assert.ok(m, 'their buildings made something meanwhile');
   const since = (now() - r.players.get(id).savedAt) / 1000;
-  assert.ok(m.secs >= 3600 && m.secs <= 3600 + 15, 'from their last progress (' + m.secs + ', ' + since + ')');
+  assert.ok(
+    m.secs >= 3600 && m.secs <= 3600 + 15,
+    'from their last progress (' + m.secs + ', ' + since + ')'
+  );
   assert.ok(m.made.mycelium >= rate * 3600 - 1);
 });
 
 test('overCounted: a phone that showed far more than the room counts', () => {
-  const save = (inv, n = 0) => JSON.stringify({ inv, extractors: Array.from({ length: n }, () => ({})) });
-  assert.ok(C.overCounted(save({ mycelium: 1.4e14 }, 327), save({ mycelium: 1.8e8 }, 186)), 'the runaway of v0.91.0');
-  assert.ok(C.overCounted(save({ mycelium: 10 }, 20), save({ mycelium: 10 }, 10)), 'buildings only the phone had');
-  assert.ok(!C.overCounted(save({ mycelium: 1200 }, 3), save({ mycelium: 1000 }, 3)), 'a little ahead is just timing');
-  assert.ok(!C.overCounted(save({ mycelium: 500 }), save({ mycelium: 1 })), 'small numbers never count');
-  assert.ok(!C.overCounted(null, save({})) && !C.overCounted('{bad', save({})) && !C.overCounted(save({}), null));
+  const save = (inv, n = 0) =>
+    JSON.stringify({ inv, extractors: Array.from({ length: n }, () => ({})) });
+  assert.ok(
+    C.overCounted(save({ mycelium: 1.4e14 }, 327), save({ mycelium: 1.8e8 }, 186)),
+    'the runaway of v0.91.0'
+  );
+  assert.ok(
+    C.overCounted(save({ mycelium: 10 }, 20), save({ mycelium: 10 }, 10)),
+    'buildings only the phone had'
+  );
+  assert.ok(
+    !C.overCounted(save({ mycelium: 1200 }, 3), save({ mycelium: 1000 }, 3)),
+    'a little ahead is just timing'
+  );
+  assert.ok(
+    !C.overCounted(save({ mycelium: 500 }), save({ mycelium: 1 })),
+    'small numbers never count'
+  );
+  assert.ok(
+    !C.overCounted(null, save({})) &&
+      !C.overCounted('{bad', save({})) &&
+      !C.overCounted(save({}), null)
+  );
 });
 
 test('correctProgress: your building the room has stays; one it never had comes down, and that is said', () => {
@@ -403,7 +570,10 @@ test('correctProgress: your building the room has stays; one it never had comes 
   const old = JSON.parse(C.progressOf(s));
   old.extractors = old.extractors.map((e) => ({ ...e, b: 5 }));
   assert.ok(C.correctProgress(s, JSON.stringify(old), was));
-  assert.deepEqual(s.extractors.map((e) => [e.key, e.x, e.y, e.buffer]), [['quarry', 3, 4, 5]]);
+  assert.deepEqual(
+    s.extractors.map((e) => [e.key, e.x, e.y, e.buffer]),
+    [['quarry', 3, 4, 5]]
+  );
   assert.equal(C.takenBack(was, s), null, 'nothing taken back');
   old.extractors = [];
   C.correctProgress(s, JSON.stringify(old), was);
@@ -420,18 +590,32 @@ test('shadow: a building moved in a shared world moves in the room too', async (
   assert.equal(welcome.moves, true, 'the room says it checks moves');
   const b = createBot(12345, s, sync);
   b.gather('mycelium', 15);
-  b.standBy((st, x, y) => C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1, true);
+  b.standBy(
+    (st, x, y) =>
+      C.tileAt(st.world, x, y, C.SURFACE) === T.FOREST && C.richness(st.world, x, y, C.SURFACE) > 1,
+    true
+  );
   const built = C.place(s, 'garden', { x: Math.floor(s.player.x), y: Math.floor(s.player.y) });
   assert.ok(built.ok);
   sync(true);
   const before = JSON.parse(JSON.stringify(r.welcome(id, g.now()))); // as a game joining now got it
   const e = C.extractorAt(s, built.x, built.y, C.SURFACE);
-  assert.equal(C.moveExtractor(s, e, built.x, built.y + 1).ok, false, 'not before the room says it checks moves');
+  assert.equal(
+    C.moveExtractor(s, e, built.x, built.y + 1).ok,
+    false,
+    'not before the room says it checks moves'
+  );
   s.roomMoves = welcome.moves;
   let to = null;
-  for (let dx = -1; dx <= 1 && !to; dx++) for (let dy = -1; dy <= 1 && !to; dy++) {
-    if ((dx || dy) && C.inReach(s, built.x + dx, built.y + dy) && C.extractorFits(s, 'garden', built.x + dx, built.y + dy, e)) to = { x: built.x + dx, y: built.y + dy };
-  }
+  for (let dx = -1; dx <= 1 && !to; dx++)
+    for (let dy = -1; dy <= 1 && !to; dy++) {
+      if (
+        (dx || dy) &&
+        C.inReach(s, built.x + dx, built.y + dy) &&
+        C.extractorFits(s, 'garden', built.x + dx, built.y + dy, e)
+      )
+        to = { x: built.x + dx, y: built.y + dy };
+    }
   assert.ok(to, 'a free tile beside it');
   assert.ok(C.moveExtractor(s, e, to.x, to.y).ok);
   const acts = C.takeActs(s);
@@ -439,18 +623,35 @@ test('shadow: a building moved in a shared world moves in the room too', async (
   const refused = r.shadow.report(id).refused;
   const out = send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts });
   assert.equal(r.shadow.report(id).refused, refused, 'the room took the move');
-  assert.deepEqual(out.toAll, [{ t: 'edits', id, e: [['v', built.x, built.y, C.SURFACE, to.x, to.y]] }]);
-  assert.deepEqual(r.ext.map((x) => x.slice(0, 4)), [['garden', to.x, to.y, C.SURFACE]]);
+  assert.deepEqual(out.toAll, [
+    { t: 'edits', id, e: [['v', built.x, built.y, C.SURFACE, to.x, to.y]] }
+  ]);
+  assert.deepEqual(
+    r.ext.map((x) => x.slice(0, 4)),
+    [['garden', to.x, to.y, C.SURFACE]]
+  );
   const copy = r.shadow.players.get(id).s;
-  assert.deepEqual(copy.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  assert.deepEqual(
+    copy.extractors.map((x) => [x.x, x.y]),
+    [[to.x, to.y]]
+  );
   assert.equal(r.log.filter((x) => x.e === 'move').length, 1);
   // Everyone's game moves it on the edit; the mover's has already.
   const other = C.joinState(r.welcome(id, g.now()), r.id, null, null);
-  assert.deepEqual(other.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  assert.deepEqual(
+    other.extractors.map((x) => [x.x, x.y]),
+    [[to.x, to.y]]
+  );
   const old = C.joinState(before, r.id, null, null);
-  assert.deepEqual(old.extractors.map((x) => [x.x, x.y]), [[built.x, built.y]]);
+  assert.deepEqual(
+    old.extractors.map((x) => [x.x, x.y]),
+    [[built.x, built.y]]
+  );
   assert.ok(C.applyEdits(old, out.toAll[0].e));
-  assert.deepEqual(old.extractors.map((x) => [x.x, x.y]), [[to.x, to.y]]);
+  assert.deepEqual(
+    old.extractors.map((x) => [x.x, x.y]),
+    [[to.x, to.y]]
+  );
   assert.equal(C.applyEdits(s, out.toAll[0].e), false, 'already moved here');
   sync(true);
   assert.equal(drifts(r).length, 0);
@@ -459,7 +660,8 @@ test('shadow: a building moved in a shared world moves in the room too', async (
 test('shadow: the room moves only your own building, and only onto a free tile', async () => {
   const r = new Room(P.randomRoomId(), T0);
   r.ext.push(['garden', 1, 1, 0, 'aaaaaaaaaaaa'], ['garden', 2, 1, 0, 'bbbbbbbbbbbb']);
-  r.extTiles.add('1,1,0'); r.extTiles.add('2,1,0');
+  r.extTiles.add('1,1,0');
+  r.extTiles.add('2,1,0');
   assert.equal(r.apply(['v', 1, 1, 0, 3, 3], 'bbbbbbbbbbbb'), false, 'not yours');
   assert.equal(r.apply(['v', 1, 1, 0, 2, 1], 'aaaaaaaaaaaa'), false, 'taken');
   assert.equal(r.apply(['v', 5, 5, 0, 6, 6], 'aaaaaaaaaaaa'), false, 'nothing there');

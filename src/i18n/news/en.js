@@ -1,239 +1,457 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
-  "news.0.180.9": "Removed building shutters. Chambers, vaults and the machine automatically protect their contents from light. Plant, tend and transfer without opening or closing anything. Cooling still matters; protect exposed cargo with a carrier.",
-  "news.0.180.8": "The version number stays gold, along with its border and dot, until you read the release notes.",
-  "news.0.180.7": "Removed NEW labels from controls, crafting and construction lists, and release notes. Prices and available actions remain visible in their menus.",
-  "news.0.180.6": "Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.",
-  "news.0.180.5": "The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.",
-  "news.0.180.4": "The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.",
-  "news.0.180.3": "Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.",
-  "news.0.180.2": "Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.",
-  "news.0.180.1": "Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.",
-  "news.0.180.0": "Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.",
-  "news.0.179.4": "Zoom controls now sit in a horizontal row beneath the four resources, at every screen size.",
-  "news.0.179.3": "Repeated warnings stay quiet between reminders. With Messages folded, new lines appear in a small bubble, then settle into the button. The full log keeps them for later.",
-  "news.0.179.2": "Smoother evenings: trees, mushrooms and buildings reuse shaded artwork instead of repainting temporary canvases every frame. Lighting keeps its shape as you move.",
-  "news.0.179.1": "Darkness now follows raised block faces instead of cutting across them. Mica, mushrooms and buildings keep consistent lighting, bright tile seams are gone, and wall contact shadows fade softly.",
-  "news.0.179.0": "Light follows passages, stops at rock and travels through open ladder holes. Crystal takes less damage in faint light. Inspect chambers to see exposure; sealed carriers now protect the heart too. Mica still discovers the map himself.",
-  "news.0.178.0": "Mica walks beside an object and faces it before gathering, building, collecting, using a ladder or tending crystal. One selection handles the approach and action; moving cancels it. Craft anywhere, and let your infrastructure keep working while you explore.",
-  "news.0.177.6": "Placing or moving a building now returns straight to play. Its information and Move card opens only when you select the building later.",
-  "news.0.177.5": "Mica and Wiki no longer intercept pointer gestures. Everything goes to the world beneath them. Hold on a world object to ask Wiki about it; automatic comments remain.",
-  "news.0.177.4": "Geode cards now open without stopping the game. Missing pictures leave readable controls, and problem reports identify the picture, request and place in your world.",
-  "news.0.177.3": "Mica keeps his right arm clear of his coat while carrying crystal, including when slowing down or coming to a stop.",
-  "news.0.177.2": "Mica’s boots and shadow stay intact when walking across ground tiles. Higher walls still hide him correctly, and the faint view through obstacles no longer adds a second shadow.",
-  "news.0.177.1": "Playing one world on two devices: play you do while the game is still fetching your other device's newest copy is now kept. If both devices played, you're asked which to keep, and the question shows what you played last.",
-  "news.0.177.0": "Zoom much further into the world map to explore it tile by tile: it stays the map until 0.37×, and the game view takes over from there.",
-  "news.0.176.1": "{phone:Drag down|laptop:Scroll up} in the message log to read older messages; a new one no longer pulls you back down. The top line has room above it now, and a milestone that says what's next no longer gets a second line saying it again.",
-  "news.0.176.0": "On an iPhone or iPad in Safari, Wiki now reminds you once to add Mica to your Home Screen, so Safari never forgets your world.",
-  "news.0.175.0": "Your character in the shared world now comes along to a device you link from Settings, Another device, so it plays as you there too.",
-  "news.0.174.1": "The game now asks your browser to keep its saves instead of clearing them when the device runs short of space.",
-  "news.0.174.0": "Play your own world on more than one device: Settings, Another device shows a QR code and a link for the other one. Whichever you played last carries on, and the cloud copy brings your world back if a browser forgets it.",
-  "news.0.173.0": "Messages: everything Wiki and the game say now goes in a log at the bottom left and stays there until you've read it. Drag it for older lines; Hide folds it into a Messages pill that counts what's new.",
-  "news.0.172.0": "Every world you've played stays yours. Settings → Worlds now lists them all by name, with how long you've played each, and Play takes you back, just as you left it. Embark never leaves a world behind for good.",
-  "news.0.171.4": "Shared worlds: what your game sends a shared world and keeps until it arrives is now tested on its own, so a lost connection loses nothing.",
-  "news.0.171.3": "Shared worlds: the room service's saving and loading of every world is now tested before each release.",
-  "news.0.171.2": "Shared worlds: the room holds everyone's play time to the real clock, so nobody can earn faster by sending messages faster.",
-  "news.0.171.1": "Fixed: a flare saved just as it burnt out now loads as burnt out, exactly as it was saved.",
-  "news.0.171.0": "Ore flares: underground, a FLARE button above Gather makes a flare from 1 metal and lights it in Mica's hand{phone:|laptop: (or press F)}. It lights far around you for two minutes, then burns out and you make another. Underground, light is what uncovers the rock: a flare charts a whole cave as you walk. In a crystal world its light cracks crystal like the lantern's, so press it again to put it out.",
-  "news.0.170.2": "With no light in the mine of a crystal world, it's now as dark as it should be: only the rock right beside Mica shows. Switching the lantern on lights more, no longer less.",
-  "news.0.170.1": "Fixed: the {phone:tap|laptop:click} on Place no longer also lands on the map and moves the new building somewhere else before you have seen where it stands.",
-  "news.0.170.0": "In a shared world, what you gather or build while the connection is down is kept on your {phone:phone|laptop:computer}, so closing the game before it reconnects no longer takes it back. Sound on Microsoft Edge starts with your first {phone:tap|laptop:click} instead of staying silent.",
-  "news.0.169.0": "Move works in shared worlds too: {phone:tap|laptop:click} one of your own buildings, then Move on its card. The world checks each move, so everyone sees your building where you put it.",
-  "news.0.168.0": "Building is now done on the map. Place in Build closes the list and the building stands where it would go, as a see-through ghost: {phone:tap|laptop:click} any lit tile, or drag it, and Mica walks there and builds it. {phone:Tap|laptop:Click} your building for its card: Move picks it up again, for free. A Stoneworks or depot shows how far it reaches and a small badge on each building it helps, instead of dashed lines.",
-  "news.0.167.2": "Fixed: in a crystal world the Awards stopped opening once you reached the deep chambers. They open again with every milestone listed, and the last one shown is the machine.",
-  "news.0.167.1": "Holding Gather, Mica keeps the basket or pickaxe in hand from one stroke to the next instead of putting it away on the back between them.",
-  "news.0.167.0": "Build shows only what you can build where you are: on the surface, surface buildings and water power; underground, only what goes in the mine, and crystal rooms only from layer 2 down.",
-  "news.0.166.1": "Craft and Place buttons in crystal worlds stay grey until you have everything they cost, so a button that looks ready always works.",
-  "news.0.166.0": "A sun clock: the ring round the Settings gear is the day, gold while the sun is up enough to charge a solar panel (in crystal worlds, to crack crystal), with the sun or moon on it. Beside a panel, the time till it charges or how long it has left shows under the gear.",
-  "news.0.165.0": "Gathering keeps one steady pace: pressing Gather or Space again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than holding Gather down. Just hold it.",
-  "news.0.164.0": "Loading your own texture pack is gone, along with Textures in Nerds: hardly anyone used it. The game keeps the one look its makers drew, and your worlds are untouched.",
-  "news.0.163.0": "Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.",
-  "news.0.162.0": "Behind the scenes: code for talking to old versions of the shared-world service, which no longer exist, is gone. Nothing changes in play.",
-  "news.0.161.0": "{phone:Phones and tablets now draw the game 30 times a second while you play, and about 10 while nothing moves, so they stay cooler and the battery lasts longer.|laptop:On phones and tablets the game now draws 30 times a second while you play, and about 10 while nothing moves, so they stay cooler. On a computer nothing changes.}",
-  "news.0.160.1": "The game works your {phone:phone|laptop:computer} less hard and keeps it cooler: Mica is drawn once a frame instead of twice, with nothing changed in how the game looks.",
-  "news.0.160.0": "Embarking from an older world now starts a crystal world, like every other new world. The world you leave stays saved, with all it had, and you can go back to it from Settings, Nerds.",
-  "news.0.159.0": "Mica's gear no longer passes through the coat: the pickaxe, basket and lantern ride snug against it, the pickaxe swings one-handed, and Wiki sits on the hood instead of sinking into it.",
-  "news.0.158.0": "The world map is now the game itself: zoom out all the way (or {phone:tap|laptop:click} the map button under the zoom) and you see everything you've explored, with region names, home and the hiding place. Drag to look around while you stay put, step through the layers with the arrows in the top corner, and {phone:tap|laptop:click} the button again to come back.",
-  "news.0.157.0": "The lantern has its own button above Gather. {phone:Tap|laptop:Click} a building beside you for its card: shutters, planting, collecting and repairs live there now, and Build only builds. AUTO is hidden; turn it on under Settings, Nerds, in an older world.",
-  "news.0.156.3": "A crystal world whose save has one damaged detail now loads, with that detail mended, instead of being set aside for a new world.",
-  "news.0.156.2": "On the world map, the arrow to the hiding place no longer slips under the layer buttons.",
-  "news.0.156.1": "{phone:Tapping|laptop:Clicking} the very spot you stand on no longer freezes the game.",
-  "news.0.156.0": "The world map now remembers the layers underground too: once you've been down, the arrows in its top corner step through every layer you've explored. Its clouds look just like the ones in the game.",
-  "news.0.155.3": "Zoomed far out, ladders and holes no longer get their own big marks. They shrink with everything else, so the ways up and down have to be found by looking around.",
-  "news.0.155.2": "Wiki no longer answers just because the pointer passes over something. To ask Wiki about a thing, {phone:hold your finger on it|laptop:press and hold the mouse button on it}.",
-  "news.0.155.1": "Your world is always saved first. When the device's storage is full, the game still saves the world you're playing, and won't start or switch to another world until the one you're leaving is safely kept.",
-  "news.0.155.0": "Nobody loses a character any more. A player caught cheating in a shared world is frozen instead of removed: the character sleeps under a tombstone with everything it had and built, and Watch can wake it up again. Nobody else is taken along with them.",
-  "news.0.154.0": "{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.",
-  "news.0.153.3": "Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.",
-  "news.0.153.2": "The clouds no longer have faint lines running across them.",
-  "news.0.153.1": "Clouds no longer flicker when you zoom all the way out. They now stay put on the land as you zoom, and from far away you see bigger cloud shapes.",
-  "news.0.153.0": "{phone:Hold your finger|laptop:Hold the mouse down} on anything to ask Wiki about it, and slide to ask about the next thing. Whatever Wiki is talking about now gets a clear teal outline, so you can see where its focus is. To keep gathering, hold Gather.",
-  "news.0.152.2": "Buildings no longer have a resource picture stuck on top of them. Each building\u2019s own look shows what it makes, and Wiki tells you if you point at it.",
-  "news.0.152.1": "The white chalk marks are gone: the drawing trail glows again, build previews and links are plain dashed lines, and machines, tools and shelters lost their stray white lines.",
-  "news.0.152.0": "When something goes wrong, the game now keeps going instead of stopping: the part that broke is skipped. Settings, Nerds lists each problem with a Copy button, so you can send a full report to get it fixed.",
-  "news.0.151.1": "Zooming in close on Mica no longer crashes the game on iPhone.",
-  "news.0.151.0": "The buried machine is a teleporter, and its heart has been stolen. After your first repair, find the hiding place far off on the surface (it is marked on your world map), lift the heart into your carrier and walk it home. Sunlight cracks it, so build heart shelters to rest it by day.",
-  "news.0.150.1": "Underground, the Gather button no longer reads \u201c+NaNeNaN\u201d next to plain rock. Plain rock gives nothing, so the button now just says Gather.",
-  "news.0.150.0": "Rocks, ore, crystals, mushrooms and pickaxes no longer show the lines of their 3D faces. Each one is now flat colour with a single dark outline around the whole thing, like a drawing.",
-  "news.0.149.0": "Meet Wiki, the little mycelium sprite riding on Mica's hood. The game is now called Mica and Wiki. Wiki is the game's wiki in person: point at something ({phone:tap Wiki, then tap the thing, or drag from Wiki onto it|laptop:or rest the pointer on it to hear it again}) and Wiki tells you about it in one short line, once each. It shuts its cap near living crystal. Settings \u2192 Wiki talks turns it down to only when asked, or off.",
-  "news.0.148.0": "Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.",
-  "news.0.147.0": "You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.",
-  "news.0.146.0": "Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.",
-  "news.0.145.0": "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",
-  "news.0.144.0": "Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.",
-  "news.0.143.2": "Mica now has one continuous dark outline around his whole silhouette, including hands, leg wraps, rounded boots and carried objects. It stays consistent while he turns, walks and works.",
-  "news.0.143.1": "Mica’s boots now have rounded toes, narrower heels and a curved instep, with thin brown soles instead of square cream platforms.",
-  "news.0.143.0": "Meet Mica, the Mender. A softer hood, compact proportions, sturdy boots and a repaired coat bring the wanderer closer to the illustrated world. Curious idle gestures, blinking and careful crystal-carrying poses add personality. Inspect him to learn who he is.",
-  "news.0.142.2": "Top-bar resource icons are larger. Hover over icons, controls or explored terrain for names and details; focused controls show hints too. Hold a resource chip or a shop illustration to inspect it on a touchscreen.",
-  "news.0.142.1": "Resource icons are easier to read at small sizes: clear mushroom caps and stems, a less boxy stone, one dominant metal nodule and a simpler crystal fork. Each icon has its own view; broad, consistent light and dark planes replace noisy facet lines.",
-  "news.0.142.0": "The warmer earlier world artwork is back. Mycelium, stone, metal and living crystal now have shared 3D source models, projected into matching flat icons, deposits and small stockpiles with clean drawn outlines.",
-  "news.0.141.0": "Earned pickaxes now appear in the wanderer’s hand and swing with the arm. All six tiers have matching model-generated icons, with distinct stone and metal construction. Hand gathering and climbing stow the tool on the back.",
-  "news.0.140.1": "The wanderer now faces eight fixed directions, like 2D character art. Movement stays free, with the same flat shading and fluid skeletal animation.",
-  "news.0.140.0": "The wanderer moves more naturally: shoulders and hood counterbalance each step, elbows and wrists soften the arm swing, and the cloak follows through. Gathering, building, climbing and celebrations have distinct full-body poses.",
-  "news.0.139.3": "The wanderer now matches the world’s flat painted style: warm orange, solid ivory, stronger brown outlines and no directional lighting.",
-  "news.0.139.2": "The wanderer now uses flat cel shading and dark ink contours: the 3D rig keeps every direction consistent while looking illustrated.",
-  "news.0.139.1": "The wanderer’s face is closer to the original artwork: an arched hood opening, warm ivory mask and larger oval eyes. Walking animation is ten times faster; movement speed stays the same.",
-  "news.0.139.0": "The orange wanderer now uses a 3D skeleton: smooth walking and turning in every direction, in the same world. This first version is empty-handed; equipment models will follow.",
-  "news.0.138.2": "Walking animation is ten times slower again, with unchanged movement speed.",
-  "news.0.138.1": "Walking animation now plays at half its previous pace for calmer steps. Your movement speed stays the same.",
-  "news.0.138.0": "The wanderer now faces eight directions, with sixteen walking drawings in each direction. Gathering and building turn toward their targets. This first version uses the empty-handed appearance; tool and carrying artwork will follow.",
-  "news.0.137.0": "Walking, carrying, mining and gathering now use eight distinct drawings per cycle, including real in-between poses. Standing pictures no longer interrupt walking, and work plays through to its drawn recovery.",
-  "news.0.136.1": "Walking now follows distance travelled, feet stop against walls and on boats, and work poses settle back after each action. Character motion stays calm during fast simulations.",
-  "news.0.136.0": "The orange wanderer now uses painted character poses: fitted fieldwork gear, proper walking feet, two-handed mining, bare-handed and basket gathering, and careful crystal carrying. Floating equipment icons are gone.",
-  "news.0.132.0": "Start empty-handed and craft your first tools. New worlds carry only knowledge and records. Place Stoneworks near quarries to double their output; the Build panel shows its links and local gain.",
-  "news.0.135.1": "Fresh chalk-and-slate artwork follows the whole restoration journey: gathering, tools, cooling, crystal handling and the machine. Every crafted tool tier and machine repair has a distinct physical appearance.",
-  "news.0.135.0": "Restore three physical machine sections, keep their crystal cool and sealed, then activate the machine to complete your world. Completed worlds stay archived; the next starts empty-handed. Crystal transfers and earlier rounded saves now reload safely.",
+  'news.0.180.9':
+    'Removed building shutters. Chambers, vaults and the machine automatically protect their contents from light. Plant, tend and transfer without opening or closing anything. Cooling still matters; protect exposed cargo with a carrier.',
+  'news.0.180.8':
+    'The version number stays gold, along with its border and dot, until you read the release notes.',
+  'news.0.180.7':
+    'Removed NEW labels from controls, crafting and construction lists, and release notes. Prices and available actions remain visible in their menus.',
+  'news.0.180.6':
+    'Settings now includes Full screen, with Home Screen guidance where browsers cannot fullscreen a webpage. Unread release notes keep a gold border around the version label until you read them.',
+  'news.0.180.5':
+    'The gold dot that marks a new version now sits fully on top of the version label instead of being cut off at its corner.',
+  'news.0.180.4':
+    'The version number now sits as a tidy pill right under the Settings gear, with room around the digits and the same gold glow after an update.',
+  'news.0.180.3':
+    'Messages and previews stay in place when Equipment opens. On larger screens, the message log stays on the left while menus open on the right. The version label has a permanent spot beneath Settings; solar status never replaces it.',
+  'news.0.180.2':
+    'Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.',
+  'news.0.180.1':
+    'Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.',
+  'news.0.180.0':
+    'Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.',
+  'news.0.179.4':
+    'Zoom controls now sit in a horizontal row beneath the four resources, at every screen size.',
+  'news.0.179.3':
+    'Repeated warnings stay quiet between reminders. With Messages folded, new lines appear in a small bubble, then settle into the button. The full log keeps them for later.',
+  'news.0.179.2':
+    'Smoother evenings: trees, mushrooms and buildings reuse shaded artwork instead of repainting temporary canvases every frame. Lighting keeps its shape as you move.',
+  'news.0.179.1':
+    'Darkness now follows raised block faces instead of cutting across them. Mica, mushrooms and buildings keep consistent lighting, bright tile seams are gone, and wall contact shadows fade softly.',
+  'news.0.179.0':
+    'Light follows passages, stops at rock and travels through open ladder holes. Crystal takes less damage in faint light. Inspect chambers to see exposure; sealed carriers now protect the heart too. Mica still discovers the map himself.',
+  'news.0.178.0':
+    'Mica walks beside an object and faces it before gathering, building, collecting, using a ladder or tending crystal. One selection handles the approach and action; moving cancels it. Craft anywhere, and let your infrastructure keep working while you explore.',
+  'news.0.177.6':
+    'Placing or moving a building now returns straight to play. Its information and Move card opens only when you select the building later.',
+  'news.0.177.5':
+    'Mica and Wiki no longer intercept pointer gestures. Everything goes to the world beneath them. Hold on a world object to ask Wiki about it; automatic comments remain.',
+  'news.0.177.4':
+    'Geode cards now open without stopping the game. Missing pictures leave readable controls, and problem reports identify the picture, request and place in your world.',
+  'news.0.177.3':
+    'Mica keeps his right arm clear of his coat while carrying crystal, including when slowing down or coming to a stop.',
+  'news.0.177.2':
+    'Mica’s boots and shadow stay intact when walking across ground tiles. Higher walls still hide him correctly, and the faint view through obstacles no longer adds a second shadow.',
+  'news.0.177.1':
+    "Playing one world on two devices: play you do while the game is still fetching your other device's newest copy is now kept. If both devices played, you're asked which to keep, and the question shows what you played last.",
+  'news.0.177.0':
+    'Zoom much further into the world map to explore it tile by tile: it stays the map until 0.37×, and the game view takes over from there.',
+  'news.0.176.1':
+    "{phone:Drag down|laptop:Scroll up} in the message log to read older messages; a new one no longer pulls you back down. The top line has room above it now, and a milestone that says what's next no longer gets a second line saying it again.",
+  'news.0.176.0':
+    'On an iPhone or iPad in Safari, Wiki now reminds you once to add Mica to your Home Screen, so Safari never forgets your world.',
+  'news.0.175.0':
+    'Your character in the shared world now comes along to a device you link from Settings, Another device, so it plays as you there too.',
+  'news.0.174.1':
+    'The game now asks your browser to keep its saves instead of clearing them when the device runs short of space.',
+  'news.0.174.0':
+    'Play your own world on more than one device: Settings, Another device shows a QR code and a link for the other one. Whichever you played last carries on, and the cloud copy brings your world back if a browser forgets it.',
+  'news.0.173.0':
+    "Messages: everything Wiki and the game say now goes in a log at the bottom left and stays there until you've read it. Drag it for older lines; Hide folds it into a Messages pill that counts what's new.",
+  'news.0.172.0':
+    "Every world you've played stays yours. Settings → Worlds now lists them all by name, with how long you've played each, and Play takes you back, just as you left it. Embark never leaves a world behind for good.",
+  'news.0.171.4':
+    'Shared worlds: what your game sends a shared world and keeps until it arrives is now tested on its own, so a lost connection loses nothing.',
+  'news.0.171.3':
+    "Shared worlds: the room service's saving and loading of every world is now tested before each release.",
+  'news.0.171.2':
+    "Shared worlds: the room holds everyone's play time to the real clock, so nobody can earn faster by sending messages faster.",
+  'news.0.171.1':
+    'Fixed: a flare saved just as it burnt out now loads as burnt out, exactly as it was saved.',
+  'news.0.171.0':
+    "Ore flares: underground, a FLARE button above Gather makes a flare from 1 metal and lights it in Mica's hand{phone:|laptop: (or press F)}. It lights far around you for two minutes, then burns out and you make another. Underground, light is what uncovers the rock: a flare charts a whole cave as you walk. In a crystal world its light cracks crystal like the lantern's, so press it again to put it out.",
+  'news.0.170.2':
+    "With no light in the mine of a crystal world, it's now as dark as it should be: only the rock right beside Mica shows. Switching the lantern on lights more, no longer less.",
+  'news.0.170.1':
+    'Fixed: the {phone:tap|laptop:click} on Place no longer also lands on the map and moves the new building somewhere else before you have seen where it stands.',
+  'news.0.170.0':
+    'In a shared world, what you gather or build while the connection is down is kept on your {phone:phone|laptop:computer}, so closing the game before it reconnects no longer takes it back. Sound on Microsoft Edge starts with your first {phone:tap|laptop:click} instead of staying silent.',
+  'news.0.169.0':
+    'Move works in shared worlds too: {phone:tap|laptop:click} one of your own buildings, then Move on its card. The world checks each move, so everyone sees your building where you put it.',
+  'news.0.168.0':
+    'Building is now done on the map. Place in Build closes the list and the building stands where it would go, as a see-through ghost: {phone:tap|laptop:click} any lit tile, or drag it, and Mica walks there and builds it. {phone:Tap|laptop:Click} your building for its card: Move picks it up again, for free. A Stoneworks or depot shows how far it reaches and a small badge on each building it helps, instead of dashed lines.',
+  'news.0.167.2':
+    'Fixed: in a crystal world the Awards stopped opening once you reached the deep chambers. They open again with every milestone listed, and the last one shown is the machine.',
+  'news.0.167.1':
+    'Holding Gather, Mica keeps the basket or pickaxe in hand from one stroke to the next instead of putting it away on the back between them.',
+  'news.0.167.0':
+    'Build shows only what you can build where you are: on the surface, surface buildings and water power; underground, only what goes in the mine, and crystal rooms only from layer 2 down.',
+  'news.0.166.1':
+    'Craft and Place buttons in crystal worlds stay grey until you have everything they cost, so a button that looks ready always works.',
+  'news.0.166.0':
+    'A sun clock: the ring round the Settings gear is the day, gold while the sun is up enough to charge a solar panel (in crystal worlds, to crack crystal), with the sun or moon on it. Beside a panel, the time till it charges or how long it has left shows under the gear.',
+  'news.0.165.0':
+    'Gathering keeps one steady pace: pressing Gather or Space again and again, {phone:tapping|laptop:clicking} tiles or drawing Trails is never faster than holding Gather down. Just hold it.',
+  'news.0.164.0':
+    'Loading your own texture pack is gone, along with Textures in Nerds: hardly anyone used it. The game keeps the one look its makers drew, and your worlds are untouched.',
+  'news.0.163.0':
+    'Billions are written B in every language, so the resource bar reads the same everywhere: k, M, B, T.',
+  'news.0.162.0':
+    'Behind the scenes: code for talking to old versions of the shared-world service, which no longer exist, is gone. Nothing changes in play.',
+  'news.0.161.0':
+    '{phone:Phones and tablets now draw the game 30 times a second while you play, and about 10 while nothing moves, so they stay cooler and the battery lasts longer.|laptop:On phones and tablets the game now draws 30 times a second while you play, and about 10 while nothing moves, so they stay cooler. On a computer nothing changes.}',
+  'news.0.160.1':
+    'The game works your {phone:phone|laptop:computer} less hard and keeps it cooler: Mica is drawn once a frame instead of twice, with nothing changed in how the game looks.',
+  'news.0.160.0':
+    'Embarking from an older world now starts a crystal world, like every other new world. The world you leave stays saved, with all it had, and you can go back to it from Settings, Nerds.',
+  'news.0.159.0':
+    "Mica's gear no longer passes through the coat: the pickaxe, basket and lantern ride snug against it, the pickaxe swings one-handed, and Wiki sits on the hood instead of sinking into it.",
+  'news.0.158.0':
+    "The world map is now the game itself: zoom out all the way (or {phone:tap|laptop:click} the map button under the zoom) and you see everything you've explored, with region names, home and the hiding place. Drag to look around while you stay put, step through the layers with the arrows in the top corner, and {phone:tap|laptop:click} the button again to come back.",
+  'news.0.157.0':
+    'The lantern has its own button above Gather. {phone:Tap|laptop:Click} a building beside you for its card: shutters, planting, collecting and repairs live there now, and Build only builds. AUTO is hidden; turn it on under Settings, Nerds, in an older world.',
+  'news.0.156.3':
+    'A crystal world whose save has one damaged detail now loads, with that detail mended, instead of being set aside for a new world.',
+  'news.0.156.2':
+    'On the world map, the arrow to the hiding place no longer slips under the layer buttons.',
+  'news.0.156.1':
+    '{phone:Tapping|laptop:Clicking} the very spot you stand on no longer freezes the game.',
+  'news.0.156.0':
+    "The world map now remembers the layers underground too: once you've been down, the arrows in its top corner step through every layer you've explored. Its clouds look just like the ones in the game.",
+  'news.0.155.3':
+    'Zoomed far out, ladders and holes no longer get their own big marks. They shrink with everything else, so the ways up and down have to be found by looking around.',
+  'news.0.155.2':
+    'Wiki no longer answers just because the pointer passes over something. To ask Wiki about a thing, {phone:hold your finger on it|laptop:press and hold the mouse button on it}.',
+  'news.0.155.1':
+    "Your world is always saved first. When the device's storage is full, the game still saves the world you're playing, and won't start or switch to another world until the one you're leaving is safely kept.",
+  'news.0.155.0':
+    'Nobody loses a character any more. A player caught cheating in a shared world is frozen instead of removed: the character sleeps under a tombstone with everything it had and built, and Watch can wake it up again. Nobody else is taken along with them.',
+  'news.0.154.0':
+    '{phone:Tap|laptop:Click} a spot and Mica finds the way there, round rocks, walls and water. Running into a corner you only clip now eases you round it along the wall instead of stopping you.',
+  'news.0.153.3':
+    'Zoomed far out, the edge of the clouds stays soft and puffy instead of shrinking to a thin line.',
+  'news.0.153.2': 'The clouds no longer have faint lines running across them.',
+  'news.0.153.1':
+    'Clouds no longer flicker when you zoom all the way out. They now stay put on the land as you zoom, and from far away you see bigger cloud shapes.',
+  'news.0.153.0':
+    '{phone:Hold your finger|laptop:Hold the mouse down} on anything to ask Wiki about it, and slide to ask about the next thing. Whatever Wiki is talking about now gets a clear teal outline, so you can see where its focus is. To keep gathering, hold Gather.',
+  'news.0.152.2':
+    'Buildings no longer have a resource picture stuck on top of them. Each building\u2019s own look shows what it makes, and Wiki tells you if you point at it.',
+  'news.0.152.1':
+    'The white chalk marks are gone: the drawing trail glows again, build previews and links are plain dashed lines, and machines, tools and shelters lost their stray white lines.',
+  'news.0.152.0':
+    'When something goes wrong, the game now keeps going instead of stopping: the part that broke is skipped. Settings, Nerds lists each problem with a Copy button, so you can send a full report to get it fixed.',
+  'news.0.151.1': 'Zooming in close on Mica no longer crashes the game on iPhone.',
+  'news.0.151.0':
+    'The buried machine is a teleporter, and its heart has been stolen. After your first repair, find the hiding place far off on the surface (it is marked on your world map), lift the heart into your carrier and walk it home. Sunlight cracks it, so build heart shelters to rest it by day.',
+  'news.0.150.1':
+    'Underground, the Gather button no longer reads \u201c+NaNeNaN\u201d next to plain rock. Plain rock gives nothing, so the button now just says Gather.',
+  'news.0.150.0':
+    'Rocks, ore, crystals, mushrooms and pickaxes no longer show the lines of their 3D faces. Each one is now flat colour with a single dark outline around the whole thing, like a drawing.',
+  'news.0.149.0':
+    "Meet Wiki, the little mycelium sprite riding on Mica's hood. The game is now called Mica and Wiki. Wiki is the game's wiki in person: point at something ({phone:tap Wiki, then tap the thing, or drag from Wiki onto it|laptop:or rest the pointer on it to hear it again}) and Wiki tells you about it in one short line, once each. It shuts its cap near living crystal. Settings \u2192 Wiki talks turns it down to only when asked, or off.",
+  'news.0.148.0':
+    'Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.',
+  'news.0.147.0':
+    'You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.',
+  'news.0.146.0':
+    'Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.',
+  'news.0.145.0':
+    "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",
+  'news.0.144.0':
+    'Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.',
+  'news.0.143.2':
+    'Mica now has one continuous dark outline around his whole silhouette, including hands, leg wraps, rounded boots and carried objects. It stays consistent while he turns, walks and works.',
+  'news.0.143.1':
+    'Mica’s boots now have rounded toes, narrower heels and a curved instep, with thin brown soles instead of square cream platforms.',
+  'news.0.143.0':
+    'Meet Mica, the Mender. A softer hood, compact proportions, sturdy boots and a repaired coat bring the wanderer closer to the illustrated world. Curious idle gestures, blinking and careful crystal-carrying poses add personality. Inspect him to learn who he is.',
+  'news.0.142.2':
+    'Top-bar resource icons are larger. Hover over icons, controls or explored terrain for names and details; focused controls show hints too. Hold a resource chip or a shop illustration to inspect it on a touchscreen.',
+  'news.0.142.1':
+    'Resource icons are easier to read at small sizes: clear mushroom caps and stems, a less boxy stone, one dominant metal nodule and a simpler crystal fork. Each icon has its own view; broad, consistent light and dark planes replace noisy facet lines.',
+  'news.0.142.0':
+    'The warmer earlier world artwork is back. Mycelium, stone, metal and living crystal now have shared 3D source models, projected into matching flat icons, deposits and small stockpiles with clean drawn outlines.',
+  'news.0.141.0':
+    'Earned pickaxes now appear in the wanderer’s hand and swing with the arm. All six tiers have matching model-generated icons, with distinct stone and metal construction. Hand gathering and climbing stow the tool on the back.',
+  'news.0.140.1':
+    'The wanderer now faces eight fixed directions, like 2D character art. Movement stays free, with the same flat shading and fluid skeletal animation.',
+  'news.0.140.0':
+    'The wanderer moves more naturally: shoulders and hood counterbalance each step, elbows and wrists soften the arm swing, and the cloak follows through. Gathering, building, climbing and celebrations have distinct full-body poses.',
+  'news.0.139.3':
+    'The wanderer now matches the world’s flat painted style: warm orange, solid ivory, stronger brown outlines and no directional lighting.',
+  'news.0.139.2':
+    'The wanderer now uses flat cel shading and dark ink contours: the 3D rig keeps every direction consistent while looking illustrated.',
+  'news.0.139.1':
+    'The wanderer’s face is closer to the original artwork: an arched hood opening, warm ivory mask and larger oval eyes. Walking animation is ten times faster; movement speed stays the same.',
+  'news.0.139.0':
+    'The orange wanderer now uses a 3D skeleton: smooth walking and turning in every direction, in the same world. This first version is empty-handed; equipment models will follow.',
+  'news.0.138.2': 'Walking animation is ten times slower again, with unchanged movement speed.',
+  'news.0.138.1':
+    'Walking animation now plays at half its previous pace for calmer steps. Your movement speed stays the same.',
+  'news.0.138.0':
+    'The wanderer now faces eight directions, with sixteen walking drawings in each direction. Gathering and building turn toward their targets. This first version uses the empty-handed appearance; tool and carrying artwork will follow.',
+  'news.0.137.0':
+    'Walking, carrying, mining and gathering now use eight distinct drawings per cycle, including real in-between poses. Standing pictures no longer interrupt walking, and work plays through to its drawn recovery.',
+  'news.0.136.1':
+    'Walking now follows distance travelled, feet stop against walls and on boats, and work poses settle back after each action. Character motion stays calm during fast simulations.',
+  'news.0.136.0':
+    'The orange wanderer now uses painted character poses: fitted fieldwork gear, proper walking feet, two-handed mining, bare-handed and basket gathering, and careful crystal carrying. Floating equipment icons are gone.',
+  'news.0.132.0':
+    'Start empty-handed and craft your first tools. New worlds carry only knowledge and records. Place Stoneworks near quarries to double their output; the Build panel shows its links and local gain.',
+  'news.0.135.1':
+    'Fresh chalk-and-slate artwork follows the whole restoration journey: gathering, tools, cooling, crystal handling and the machine. Every crafted tool tier and machine repair has a distinct physical appearance.',
+  'news.0.135.0':
+    'Restore three physical machine sections, keep their crystal cool and sealed, then activate the machine to complete your world. Completed worlds stay archived; the next starts empty-handed. Crystal transfers and earlier rounded saves now reload safely.',
 
-  "news.0.134.1": "All solo worlds now share the normal save, archive and backup-import flow. Retired experimental links are gone; earlier worlds remain recoverable.",
-  "news.0.134.0": "The existing world now leads underground: metal mining, dark cooled crystal chambers, protected handling and the first machine restoration. New worlds start empty-handed; earlier worlds remain preserved.",
+  'news.0.134.1':
+    'All solo worlds now share the normal save, archive and backup-import flow. Retired experimental links are gone; earlier worlds remain recoverable.',
+  'news.0.134.0':
+    'The existing world now leads underground: metal mining, dark cooled crystal chambers, protected handling and the first machine restoration. New worlds start empty-handed; earlier worlds remain preserved.',
 
-  "news.0.133.1": "White chalk construction plans, coverage lines and drawing trails, with chalk accents in Build.",
-  "news.0.133.0": "Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.",
+  'news.0.133.1':
+    'White chalk construction plans, coverage lines and drawing trails, with chalk accents in Build.',
+  'news.0.133.0':
+    'Try a physical collection depot from Nerds. The prototype uses a separate solo save; existing Logistics is unchanged.',
 
-  "news.0.131.8": "Final refinery levels have a gentler price increase. Completing every world upgrade now unlocks Embark immediately, without an extra production-total requirement.",
-  "news.0.131.7": "AUTO skips exhausted areas when searching for resources. Simulation milestone checks avoid unnecessary production updates.",
-  "news.0.131.6": "Held Gather now keeps the same pace as AUTO. AUTO uses only known chargers, stops its own walk when menus open, and leaves a manually chosen route alone when released. Nerds now offers a live super-speed AUTO viewer.",
-  "news.0.131.5": "Exploration, charger checks and production accounting now do less repeated work, keeping the same visibility, battery and resource rules.",
-  "news.0.131.4": "Game updates now run at a steady pace independently of drawing, with faster production calculations. Auto-play favors surface gathering and production, and weighs building repayment before buying more buildings. Auto-play no longer sees hidden rock or unseen chargers. Auto-play remembers finds while walking around rock instead of turning back when their glint leaves view. Auto-play no longer paces at the wrong mine shaft when it needs to return to the surface. Auto-play keeps its pace and moves on without pausing at each step. It looks for ordinary forage instead of waiting beside rare mushrooms, switches resources once a price is covered, and retries routes after a gear upgrade.",
-  "news.0.131.3": "It’s freeze season, so nothing is made while the game isn’t the open screen: close it, come back tomorrow, and your buildings kept your pace but made nothing. If you’d rather have them work while you’re away, turn on “Produce while away” in Settings. Very big numbers fit too: past a trillion the counts in the bar go scientific (1e15) instead of being cut short, and the Gather button’s label stays on the screen.",
-  "news.0.131.2": "A full stockpile now shows whole in the resource bar on a narrow screen — the biggest counts were getting their last letter clipped.",
-  "news.0.131.1": "Shared worlds belong to everyone in them now: there are no owners. Players no longer shows an “owner” tag, Invite links shows only the links you made yourself, and nobody removes a player from inside the game any more. Watch looks after every world — stopping links that get out and taking out players who cheat.",
-  "news.0.131.0": "Worlds to play together in are now made by Watch, one at a time as they're needed: there is no “go online” button any more. The Invite sign still holds up your invite once you're in a shared world, and a friend's link takes you into one. Playing alone is exactly as before — your own world stays yours.",
-  "news.0.130.2": "The hourly limits on new rooms now count only rooms that really get made: a failed or junk attempt never spends your share — or anyone's.",
-  "news.0.130.1": "Shared worlds are safer: the room service now marks its own test rooms itself, so a world of yours can never be mistaken for one and kept any less carefully. Every world is kept, forever.",
-  "news.0.130.0": "{phone:Tap|laptop:Click} the resource bar (or the small chart at its end) for your earnings: what each resource earns a second, a minute or an hour, from which buildings, how soon each earns its price back, a chart of your income as you play, the best things to buy next, and what this world has earned and cost you.",
-  "news.0.129.0": "BUILD and UPGRADE now say NEW when something there has become affordable, and keep saying it until you look, instead of a green dot that came and went as you walked. The rows that are new say so too.",
-  "news.0.128.0": "Refinery levels 6 to 10 cost more, a little more at each level. Played as well as it can be, a world now takes about 40 hours again. What you already own stays yours.",
-  "news.0.127.2": "Every quick {phone:tap|laptop:click} on AUTO now reminds you to hold it down, not just the first few.",
-  "news.0.127.1": "Auto-play no longer gets stuck trying to put a building on a deposit you've emptied. It picks one with something left, further out if it must.",
-  "news.0.127.0": "Perfect is now called AUTO (Auto-play). It plays only while you hold it down: a quick {phone:tap|laptop:click} reminds you to hold it, a gold ring turns round the button while you do, and a gold AUTO tag floats over your character while it plays.",
-  "news.0.126.0": "Nothing grows back any more. What you gather is gone for good and the land shows it, so your trail shows where you've been. New deposits are found by exploring further.\nThe world map fades the deposits you've emptied.\nA building needs some of its deposit left to go on it, and then works forever without using it up.",
-  "news.0.125.0": "Land you haven't explored now lies under clouds, like the fog of war in a strategy game. They roll back as you explore, darken at night with everything else, and cover the world map's blank too.",
-  "news.0.124.0": "Updates never stop your game any more: no box to read or close. The version number under the gear is always there, rolls over to the new one when the game updates, and keeps a gold dot until you look.\n{phone:Tap|laptop:Click} the version to see everything that changed, newest first, with what's new since you last looked marked New.",
-  "news.0.123.0": "A milestone you reach is now congratulated as done, in the past tense: “Built a Mushroom Garden”, not “Build a Mushroom Garden”. The list of milestones reached reads the same way. What comes next still reads as something to do.",
-  "news.0.122.0": "Nerds, Worlds, Players and Invite links have a back arrow to Settings.\n{phone:Back on your phone|laptop:Escape, or the browser's Back,} now goes back through menus and questions one step at a time instead of leaving the game.",
-  "news.0.121.2": "Fast devices now show up to 80 resources floating home at once, and slower ones fewer, so busy bases look full wherever the game runs smoothly.",
-  "news.0.121.1": "Floating resources around you always show now. Far from spawn, the ones drifting home off screen used to take every slot, so a building you had just placed could float nothing for a while.",
-  "news.0.121.0": "Perfect plays better: it digs for finds in the mine much more often and gets a world ready to Embark about a third sooner.",
-  "news.0.120.1": "The Nerds screen now shows its own title instead of the game tabs.",
-  "news.0.120.0": "You can save your world as a file on your {phone:phone|laptop:computer} and play it again from that file, on any device: Settings, Nerds, Save a backup.",
-  "news.0.119.0": "Settings is simpler: texture packs, the performance panel and the version moved to a new Nerds screen, its last row.",
-  "news.0.118.0": "Underground, the top left now says which layer you are on, with the forest in green at the top of the layer column and a marker by yours. Each new layer shows its name as you arrive.",
-  "news.0.117.1": "The big red nuke screen is gone from the game too. If a save ever can't be opened, a short note says it's kept safe to one side.",
-  "news.0.117.0": "Your worlds are safe for good: no update will ever start your world over again, alone or shared. The nuke is gone.\nIf the last big update started you on a new world, the one you had played longer comes back.",
-  "news.0.116.0": "Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.",
-  "news.0.115.0": "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
-  "news.0.114.0": "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
-  "news.0.113.1": "Fixed: with lots of buildings near spawn, floating resources flickered by the buildings and never reached the stockpile. Now every one floats all the way home.",
-  "news.0.113.0": "Buildings now show what waits in them: a garden is bare until mushrooms grow in it, a mine's cart heaps up with ore, bricks, blocks, ingots and crystal shards stack up beside the others. Once you collect, they look empty again, so you can tell at a glance which ones have something for you. With Logistics they stay empty, since everything is already on its way to you.",
-  "news.0.112.0": "What you gather now floats home to your stockpile at a calm pace, a little slower than you walk, instead of zipping off in a flicker. Follow it and it leads you back to spawn.\nRuns of swings and busy buildings send their haul in bundles, so a steady stream reads as a trail home.",
-  "news.0.111.0": "Waiting is never the best move any more. Every swing now also brings in a share of what your buildings make of that resource, and finds in the mine grow the same way, so gathering always speeds you up, however big your camps get.\nLogistics now hauls from all your buildings wherever you are, even down in the mine, so there's no need to stand around your base: go and explore, gather or dig, and nothing is lost. Buildings make a little less on their own to keep the world about as long.",
-  "news.0.110.1": "Perfect no longer gets stuck going up and down the mine ladder. Near a cave mouth it used to pop down for a moment and straight back up, again and again; now it only goes down when the trip is worth the climb back, and stays to dig.",
-  "news.0.110.0": "Meet Perfect, the new big button. Hold it and the game plays itself: it explores, gathers, collects, buys, builds and goes down the mine, from your very first step. Let go and it stops. The little picture on the button shows what it's doing.\nEverything you did by hand still works alongside it: steer, {phone:tap|laptop:click} or hold a tile, or draw a Trail, and Perfect waits until you're done.\nIt only knows what you've explored, and it never presses Embark: when the world is ready it stops and the button glows gold, and Embark is yours to press.",
-  "news.0.109.0": "Home is now a square town, 23 tiles a side, and your stockpile stays inside it. Two roads cross in the middle, and each resource has its own block: mycelium north-west, stone north-east, ore south-east, crystal south-west. Every pile has its own place, so nothing ever spills onto the land around home or stands on another pile, and a lone capital gets a whole corner to itself.\nYou start on the edge of the square, by the nearest forest.\nThe world is made a little differently for this, so solo worlds start fresh and shared worlds get the nuke.",
-  "news.0.108.0": "Your stockpile grows into a kingdom: from ten million up, every power of ten has its own picture, climbing from a hamlet to a village, town, walled city, citadel and finally a crowned capital, each in its resource's style (a glowing mushroom capital, a stone palace, a golden-domed foundry, a crystal palace).",
-  "news.0.107.0": "The stockpile around home is calm again, however rich you get. Each resource keeps to its own side of home (mycelium north, stone east, ore south, crystal west), piles keep a little space between them, and only your two biggest kinds of pile stand, so there are at most 18 per resource instead of a crowd of hundreds.\nLike in 2048, ten piles now merge into one bigger pile: they slide together and the bigger one pops up where they meet. When the yard tidies itself, piles slide to their new spots instead of jumping.",
-  "news.0.106.0": "In a shared world, your buildings no longer vanish a moment after you put them up. When the world set your numbers straight, your game also lost every building of yours from your screen, though they still stood in the world.\nWhen the world does take something back, a building, an upgrade or some resources, a note now says what and why: someone else got to that spot first, the world counted fewer resources than your game showed, or your connection was too weak for it to count what you did.",
-  "news.0.105.1": "Behind the scenes: a fix to the admin's page for opening a copy of a shared world.",
-  "news.0.105.0": "The game is easier on your {phone:phone|laptop:computer}'s battery and keeps it cooler: while you just watch, it draws the map half as often, and never more than 60 times a second.\nIf the game had to lower its picture quality, it now raises it again once your {phone:phone|laptop:computer} can keep up, for example after it cools down or is plugged in.",
-  "news.0.104.1": "Behind the scenes: the admin's list of shared worlds now also shows worlds that are busy while the server updates.",
-  "news.0.104.0": "Behind the scenes: the game's admin has a page listing every shared world and everyone in it, to keep an eye on fair play. It shows only what the server already keeps: your character's name, progress and play time, never your real name or address.",
-  "news.0.103.2": "Behind the scenes: the admin's copy of a shared world can now also show what a player's own game would show on coming back, like What's new and a note about numbers that were never real.",
-  "news.0.103.1": "In a shared world, nothing you gather is taken back any more when your connection drops for a moment or the server updates: what the server missed is sent again when you're back.",
-  "news.0.103.0": "Behind the scenes: to check what coming back to a shared world is like, the game's admin can now play a throwaway copy of it. Nothing done in a copy touches your real character or world, and the copy deletes itself after two hours.",
-  "news.0.102.2": "Fixed a note from version 0.79.0 that promised coming back to a shared world from another device. Your character lives in this browser; another tab of it works.",
-  "news.0.102.1": "Shared worlds you've left behind no longer take up space in your browser: what the game kept for one goes when it drops off your Worlds list or you remove it.",
-  "news.0.102.0": "Coming back to a shared world where an older version showed you more than you really had, a message now says the numbers you see are your real ones. If you left a shared world before away time was counted, your buildings now make up to 8 hours' worth when you return.",
-  "news.0.101.2": "If your saved world is damaged, the game now says so, instead of saying an update needs a new world.",
-  "news.0.101.1": "A saved world this version of the game can't open is now kept to one side instead of being written over, so a fix can bring it back. If the site briefly hands out an older page after an update, your world comes back on the next load instead of being lost.",
-  "news.0.101.0": "Shared worlds with many players stay easy to read: Players in Settings lists everyone, how they're doing and how far away they are, and the world's owner can remove anyone there. {phone:Tap|laptop:Click} the +N beside your friends to open it.\nNames over heads no longer pile up in a crowd, and badges at the edge of the screen no longer cover each other or you.",
-  "news.0.100.1": "In a shared world, other players' buildings, lamps, flags and tombstones stay hidden in the dark until you explore that land, instead of floating in the void.",
-  "news.0.100.0": "Your buildings in a shared world now keep working while you are away, up to 8 hours, just like in your own world. When you come back, a message says what they made.",
-  "news.0.99.0": "Every shared world now has its own name, like Fern Valley, so you always know which world you are joining. Settings has a new Worlds list with your own world and every shared world you have joined, and how many are playing in each. {phone:Tap|laptop:Click} Play to switch between them.",
-  "news.0.98.0": "Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. Losing the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.",
-  "news.0.97.0": "A new milestone marks the long middle of a world: every refinery at level 9, about halfway between the Abundance Engine at V and every refinery at level 10.",
-  "news.0.96.0": "Your buildings keep working while you are away. Close the game, come back later, and what they made in up to 8 hours is waiting in your packs, along with what the Abundance Engine made. This is for your own world; shared worlds don't have it yet.",
-  "news.0.95.0": "A new world now opens by naming your first milestone, and each milestone you reach says what comes next.\nThe big Explore button always does something: with nothing in reach, it walks you to the nearest mushrooms or stone and gathers them.\nJoining a friend's world puts you right beside them instead of inside them.",
-  "news.0.94.0": "A world now lasts far longer: mastering one takes about 40 hours of play instead of well under one. At the start something new still comes every minute or two; later on the big upgrades come further apart, each one a bigger step.\nFour new milestones mark the long road: every refinery at level 5, every tool at its top level, the Abundance Engine at V, and every refinery at level 10.\nWhat you already own stays yours. Only what you buy from now on costs more.",
-  "news.0.93.0": "Every screen size looks right now: on a short, wide screen the zoom buttons lie in a row instead of running into Settings, and every dialog fits with its buttons in view.\nSettings no longer hides Language and the privacy policy on short screens.\nOn the narrowest screens the Invite button keeps clear of Build.\nVery big numbers stay readable: after billions the counters go on to trillions (T).",
-  "news.0.92.0": "The game downloads less and opens faster again: about 40% less to download before you can play.\nThe wiki shows its pictures again.",
-  "news.0.91.1": "In shared worlds, when your game's numbers and the world's count disagree, your game now takes the world's count at once and keeps it, instead of drifting further apart.",
-  "news.0.91.0": "The game opens faster, most of all on a slow connection or an older {phone:phone|laptop:computer}: its pictures now come in one go instead of one by one.",
-  "news.0.90.0": "Invite links can now work for up to a week: pick 7 days in Settings, Invite links. New links last a week unless you pick less.",
-  "news.0.89.0": "Shared worlds are now fair for everyone: the world itself keeps count of what each player gathers, builds and buys, by the game's own rules, so an edited save or game gets nothing there.\nEveryone starts a shared world from nothing, its owner too. Going online starts a new world, and your own world stays as it is for when you play alone.\nEvery shared world starts over once with this update.",
-  "news.0.88.0": "Upgraded buildings now hold more, so they no longer fill up in a blink and stop. The income at the top is now what you really get, however far you have upgraded.",
-  "news.0.87.0": "Shared worlds now keep their own count of what everyone gathers, builds and buys, worked out from what each player did with the game's own rules. For now it only notes when someone's progress doesn't add up (like an edited save), so the fair-play team can look. Playing fairly changes nothing.",
-  "news.0.86.1": "The counters at the top no longer run into each other. Big incomes are shortened like the amounts (+7.7M/s), and each one sits under its own count.",
-  "news.0.86.0": "Tools now open new things, not only bigger numbers. Ore needs Pickaxe level 2, crystal and geodes level 3, and the shafts down from the deep layers a better Pickaxe still. Boots level 2 take you onto water, rivers included. Basket level 4 picks rare mushrooms, which give three times as much.\nThe Upgrades tab says what each level opens, and {phone:tapping|laptop:clicking} something your tools can't handle yet says what it takes.",
-  "news.0.84.0": "The trophy now shows your next milestone: {phone:tap|laptop:click} it to see what it still takes, like the stone you're short for a better Pickaxe. A green dot on it means you have everything the next one needs.\nMilestones now count in any order, so a garden built early is no longer forgotten.",
-  "news.0.85.0": "Playing together copes better with a bad connection: when it quietly dies (say you switch to another network), the game notices within seconds and reconnects, and the digging and building you did meanwhile still reaches the shared world.\n{phone:Tapping|laptop:Clicking} Back to the shared world or Invite twice while it connects no longer trips over itself.\nOpening a friend's link and saying no, or finding the link no longer works, takes you back into the shared world you were in, not to playing alone.\nWith the game open in two tabs, the one in a shared world no longer stops to ask which solo world to keep.",
-  "news.0.83.0": "Putting your world online now moves it there with your character, instead of leaving a copy behind: playing alone afterwards starts a new world.\nShared worlds no longer show Embark or the milestone that needs it, since you can only embark when playing alone.",
-  "news.0.82.2": "While an update rolls out, a shared world waits until your game has the update too, so everyone sees the same land.\nBack to the shared world forgets a world that is gone, and tries your other worlds before one that froze your character.",
-  "news.0.82.1": "Opening the game in a second tab, or a hiccup while it starts, no longer makes it forget the shared world you play in.\nAn invite link that no longer works keeps you in the shared world you were in, instead of sending you to your own.\nSomeone taken out of a shared world is told so when they try to come back, not to ask for a new link, and Back to the shared world no longer takes them there.\nA quick look at another app no longer shows you to friends as having lost your connection.\nThe 25 structures milestone counts only your own buildings.",
-  "news.0.82.0": "A banned or frozen character now leaves a tombstone where it last stood, with its name on it, so everyone knows where they were. Frozen ones are sealed in ice.",
-  "news.0.81.0": "Characters with hacked progress in a shared world are now frozen: whoever tries to play one gets a visit from the Fair-play Bureau of Investigation and has to start again, fairly, with a new character.",
-  "news.0.80.2": "The old room service address is switched off, so every shared world now goes through the protected one.",
-  "news.0.80.1": "Shared worlds now run at rooms.robertasrudys.com, behind Cloudflare's protection, so floods of traffic are stopped before they can take multiplayer down.",
-  "news.0.80.0": "No cheating in shared worlds, not even for the world's owner: owners follow the same anti-cheat and the same building and digging limits as everyone else.\nIf an owner is removed for cheating, the world passes to whoever joined it first, and everyone keeps playing.",
-  "news.0.79.1": "Shared worlds keep running smoothly even if someone tries to flood them with away/back messages.",
-  "news.0.79.0": "Shared worlds are harder to cheat in: leaving and rejoining no longer lets anyone jump across the map or change the world faster.\nIf you come back after playing offline, or from another tab, the game moves you to where the shared world last saw you.\nEach player can change up to 10,000 new tiles in a world, so nobody can use up a world's space for everyone else.",
-  "news.0.78.0": "Shared worlds are harder to flood with strangers: a player who isn't the world's owner can bring in up to 5 people a day through their invite links.\nWhen someone is removed from a world, their invite links stop working, and everyone who came in through those links is removed with them.",
-  "news.0.77.1": "Shared worlds are safer: the server's play log now only keeps names the game itself uses, so nothing a player sends can sneak extra text into it.",
-  "news.0.77.0": "Friends' badges at the edge of the screen now say how far away they are, in metres or kilometres (every block is 1 m), so you know how far you'd walk to meet them. On another layer, the badge also shows how many layers up or down.\nBadges no longer hide under the zoom buttons.",
-  "news.0.76.0": "The Build list says what you still need, where each building goes, and why you can't place it where you stand. An invite link that no longer works says whether it expired, filled up or was stopped. Older devices settle on smooth quality faster, and big screens draw fewer pixels.",
-  "news.0.75.1": "A new logo: two glowing mushrooms instead of a pile of logs, because nobody here cuts trees. You'll see it on your home screen, in your browser tab and on shared links.",
-  "news.0.75.0": "The game now has a privacy policy. Joining or opening a shared world accepts it (Cancel keeps you playing alone), and Settings has a link to read it in full.",
-  "news.0.74.1": "Records of cheating in shared worlds are now kept for 90 days, so repeat cheaters can be spotted; the rest of the play log still goes after 14.",
-  "news.0.74.0": "Shared worlds now keep a play log for 14 days, so cheaters are caught quickly and we learn what to make better. It holds no names or addresses; Settings says what's in it.",
-  "news.0.73.0": "Smoother on older devices: when frames come too slowly, the game draws the map with fewer pixels and plainer buttons until it keeps up.",
-  "news.0.72.2": "Invite links no longer get stuck on “Loading”: if they don't come, it says so.",
-  "news.0.72.1": "The game has its own address now: play.robertasrudys.com. The old one takes you there.\nOn the new address you start fresh, and so does playing together.",
-  "news.0.72.0": "Invite links now let in only a few people: in Invite links you pick how many (1 to 25, never unlimited) and how long they work (30 minutes to a day).\nA player removed from a world stays out, the link they came in with stops, and their buildings go.\nBasic anti-cheat: anyone who teleports or changes the world far from where they stand is taken out of the world.",
-  "news.0.71.1": "Only an update can set off the nuke in a shared world; no player can.",
-  "news.0.71.0": "The Nuke button left Settings. Now, when an update changes how worlds are made, a big red button takes the middle of the screen and everyone presses it.\nIt's pressed for anyone away or offline, and for everyone after a minute. Then you all start fresh together in a brand-new world with everything new.",
-  "news.0.70.1": "Players' names no longer cover the QR sign, so it always scans.",
-  "news.0.70.0": "The big red Nuke button (Settings) makes the world again from scratch with everything new in the game, and you start over.\nIn a shared world it's a vote: once everyone has pressed it, the world is made anew and you all start fresh together. You can see who has pressed it, and take your vote back.",
-  "news.0.69.0": "Regions are bigger: each takes over two minutes to walk across.\nThis update starts a new world.",
-  "news.0.68.0": "{phone:Tap|laptop:Click} your invite sign to copy its link and send it to a friend.",
-  "news.0.67.0": "Up to 100 players can now share one world.\nThe top bar shows five friends and a +N for the rest; only the nearest friends get a badge at the screen's edge.",
-  "news.0.66.0": "New music: heaths play Heather and Stone, highlands The High Road and fens Mistwater.",
-  "news.0.65.0": "Some regions are now walled in by dry stone walls or hedges, with gaps to walk through.\nThis update starts a new world.",
-  "news.0.64.0": "Invite links last a whole day, and lowering your sign no longer stops them.\nSettings → Invite links: see every link, how many friends joined with each, and stop any of them.",
-  "news.0.63.0": "This card: after the game updates itself, it shows what's new.\nThe game always runs the newest version: it updates itself as soon as one is out.",
-  "news.0.62.0": "A world map: the button at the foot of the zoom shows all the land you've explored, region names, home and you.\nRegion names no longer show over an open menu.",
-  "news.0.61.0": "The land is made of big named regions (meadows, woods, lake country, highlands, fens, heath), with rivers and ridges between them.\nWalking into a region shows its name.\nThe music changes only when you enter a new region.\nThis update starts a new world.",
-  "news.0.60.2": "In a shared world everyone's name floats over their head.",
-  "news.0.60.1": "The game's words fit what you play on.",
-  "news.0.60.0": "A soundtrack: every kind of place has its own tune, and the game tells you a track's name the first time you hear it.\nMusic in Settings shows what's playing and turns it off.",
-  "news.0.59.2": "A redrawn pickaxe: steel head, steel handle, wrapped grip.",
-  "news.0.59.1": "Friends have names like Moss, Fern and Fox instead of numbers.",
-  "news.0.59.0": "Resources come in clusters, so you have to explore: richer deposits further from home, crystal only far out.\nUnderground, ore and crystal run in veins and get commoner the deeper you go.\nThis update starts a new world.",
-  "news.0.58.0": "Characters act out what they do: swinging the pickaxe, foraging, building, hopping for joy, climbing between layers.",
-  "news.0.57.2": "Friends off screen show as a badge at the edge, pointing their way.",
-  "news.0.57.1": "A friendlier sky-blue invite sign, held up in both hands.",
-  "news.0.57.0": "Invite is a big button in the bottom-left corner, and your character holds up the QR code in the world.",
-  "news.0.56.1": "Away and asleep friends are drawn full size, and friends ride boats on water.",
-  "news.0.56.0": "One sky for everyone: in a shared world it's day or night for all players at once.",
-  "news.0.55.0": "Your character holds the {phone:phone|laptop:laptop} you play on, and its screen lights the way at night and underground.",
-  "news.0.54.0": "In a shared world you can see who's playing on what."
+  'news.0.131.8':
+    'Final refinery levels have a gentler price increase. Completing every world upgrade now unlocks Embark immediately, without an extra production-total requirement.',
+  'news.0.131.7':
+    'AUTO skips exhausted areas when searching for resources. Simulation milestone checks avoid unnecessary production updates.',
+  'news.0.131.6':
+    'Held Gather now keeps the same pace as AUTO. AUTO uses only known chargers, stops its own walk when menus open, and leaves a manually chosen route alone when released. Nerds now offers a live super-speed AUTO viewer.',
+  'news.0.131.5':
+    'Exploration, charger checks and production accounting now do less repeated work, keeping the same visibility, battery and resource rules.',
+  'news.0.131.4':
+    'Game updates now run at a steady pace independently of drawing, with faster production calculations. Auto-play favors surface gathering and production, and weighs building repayment before buying more buildings. Auto-play no longer sees hidden rock or unseen chargers. Auto-play remembers finds while walking around rock instead of turning back when their glint leaves view. Auto-play no longer paces at the wrong mine shaft when it needs to return to the surface. Auto-play keeps its pace and moves on without pausing at each step. It looks for ordinary forage instead of waiting beside rare mushrooms, switches resources once a price is covered, and retries routes after a gear upgrade.',
+  'news.0.131.3':
+    'It’s freeze season, so nothing is made while the game isn’t the open screen: close it, come back tomorrow, and your buildings kept your pace but made nothing. If you’d rather have them work while you’re away, turn on “Produce while away” in Settings. Very big numbers fit too: past a trillion the counts in the bar go scientific (1e15) instead of being cut short, and the Gather button’s label stays on the screen.',
+  'news.0.131.2':
+    'A full stockpile now shows whole in the resource bar on a narrow screen — the biggest counts were getting their last letter clipped.',
+  'news.0.131.1':
+    'Shared worlds belong to everyone in them now: there are no owners. Players no longer shows an “owner” tag, Invite links shows only the links you made yourself, and nobody removes a player from inside the game any more. Watch looks after every world — stopping links that get out and taking out players who cheat.',
+  'news.0.131.0':
+    "Worlds to play together in are now made by Watch, one at a time as they're needed: there is no “go online” button any more. The Invite sign still holds up your invite once you're in a shared world, and a friend's link takes you into one. Playing alone is exactly as before — your own world stays yours.",
+  'news.0.130.2':
+    "The hourly limits on new rooms now count only rooms that really get made: a failed or junk attempt never spends your share — or anyone's.",
+  'news.0.130.1':
+    'Shared worlds are safer: the room service now marks its own test rooms itself, so a world of yours can never be mistaken for one and kept any less carefully. Every world is kept, forever.',
+  'news.0.130.0':
+    '{phone:Tap|laptop:Click} the resource bar (or the small chart at its end) for your earnings: what each resource earns a second, a minute or an hour, from which buildings, how soon each earns its price back, a chart of your income as you play, the best things to buy next, and what this world has earned and cost you.',
+  'news.0.129.0':
+    'BUILD and UPGRADE now say NEW when something there has become affordable, and keep saying it until you look, instead of a green dot that came and went as you walked. The rows that are new say so too.',
+  'news.0.128.0':
+    'Refinery levels 6 to 10 cost more, a little more at each level. Played as well as it can be, a world now takes about 40 hours again. What you already own stays yours.',
+  'news.0.127.2':
+    'Every quick {phone:tap|laptop:click} on AUTO now reminds you to hold it down, not just the first few.',
+  'news.0.127.1':
+    "Auto-play no longer gets stuck trying to put a building on a deposit you've emptied. It picks one with something left, further out if it must.",
+  'news.0.127.0':
+    'Perfect is now called AUTO (Auto-play). It plays only while you hold it down: a quick {phone:tap|laptop:click} reminds you to hold it, a gold ring turns round the button while you do, and a gold AUTO tag floats over your character while it plays.',
+  'news.0.126.0':
+    "Nothing grows back any more. What you gather is gone for good and the land shows it, so your trail shows where you've been. New deposits are found by exploring further.\nThe world map fades the deposits you've emptied.\nA building needs some of its deposit left to go on it, and then works forever without using it up.",
+  'news.0.125.0':
+    "Land you haven't explored now lies under clouds, like the fog of war in a strategy game. They roll back as you explore, darken at night with everything else, and cover the world map's blank too.",
+  'news.0.124.0':
+    "Updates never stop your game any more: no box to read or close. The version number under the gear is always there, rolls over to the new one when the game updates, and keeps a gold dot until you look.\n{phone:Tap|laptop:Click} the version to see everything that changed, newest first, with what's new since you last looked marked New.",
+  'news.0.123.0':
+    'A milestone you reach is now congratulated as done, in the past tense: “Built a Mushroom Garden”, not “Build a Mushroom Garden”. The list of milestones reached reads the same way. What comes next still reads as something to do.',
+  'news.0.122.0':
+    "Nerds, Worlds, Players and Invite links have a back arrow to Settings.\n{phone:Back on your phone|laptop:Escape, or the browser's Back,} now goes back through menus and questions one step at a time instead of leaving the game.",
+  'news.0.121.2':
+    'Fast devices now show up to 80 resources floating home at once, and slower ones fewer, so busy bases look full wherever the game runs smoothly.',
+  'news.0.121.1':
+    'Floating resources around you always show now. Far from spawn, the ones drifting home off screen used to take every slot, so a building you had just placed could float nothing for a while.',
+  'news.0.121.0':
+    'Perfect plays better: it digs for finds in the mine much more often and gets a world ready to Embark about a third sooner.',
+  'news.0.120.1': 'The Nerds screen now shows its own title instead of the game tabs.',
+  'news.0.120.0':
+    'You can save your world as a file on your {phone:phone|laptop:computer} and play it again from that file, on any device: Settings, Nerds, Save a backup.',
+  'news.0.119.0':
+    'Settings is simpler: texture packs, the performance panel and the version moved to a new Nerds screen, its last row.',
+  'news.0.118.0':
+    'Underground, the top left now says which layer you are on, with the forest in green at the top of the layer column and a marker by yours. Each new layer shows its name as you arrive.',
+  'news.0.117.1':
+    "The big red nuke screen is gone from the game too. If a save ever can't be opened, a short note says it's kept safe to one side.",
+  'news.0.117.0':
+    'Your worlds are safe for good: no update will ever start your world over again, alone or shared. The nuke is gone.\nIf the last big update started you on a new world, the one you had played longer comes back.',
+  'news.0.116.0':
+    'Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.',
+  'news.0.115.0':
+    "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
+  'news.0.114.0':
+    "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
+  'news.0.113.1':
+    'Fixed: with lots of buildings near spawn, floating resources flickered by the buildings and never reached the stockpile. Now every one floats all the way home.',
+  'news.0.113.0':
+    "Buildings now show what waits in them: a garden is bare until mushrooms grow in it, a mine's cart heaps up with ore, bricks, blocks, ingots and crystal shards stack up beside the others. Once you collect, they look empty again, so you can tell at a glance which ones have something for you. With Logistics they stay empty, since everything is already on its way to you.",
+  'news.0.112.0':
+    'What you gather now floats home to your stockpile at a calm pace, a little slower than you walk, instead of zipping off in a flicker. Follow it and it leads you back to spawn.\nRuns of swings and busy buildings send their haul in bundles, so a steady stream reads as a trail home.',
+  'news.0.111.0':
+    "Waiting is never the best move any more. Every swing now also brings in a share of what your buildings make of that resource, and finds in the mine grow the same way, so gathering always speeds you up, however big your camps get.\nLogistics now hauls from all your buildings wherever you are, even down in the mine, so there's no need to stand around your base: go and explore, gather or dig, and nothing is lost. Buildings make a little less on their own to keep the world about as long.",
+  'news.0.110.1':
+    'Perfect no longer gets stuck going up and down the mine ladder. Near a cave mouth it used to pop down for a moment and straight back up, again and again; now it only goes down when the trip is worth the climb back, and stays to dig.',
+  'news.0.110.0':
+    "Meet Perfect, the new big button. Hold it and the game plays itself: it explores, gathers, collects, buys, builds and goes down the mine, from your very first step. Let go and it stops. The little picture on the button shows what it's doing.\nEverything you did by hand still works alongside it: steer, {phone:tap|laptop:click} or hold a tile, or draw a Trail, and Perfect waits until you're done.\nIt only knows what you've explored, and it never presses Embark: when the world is ready it stops and the button glows gold, and Embark is yours to press.",
+  'news.0.109.0':
+    'Home is now a square town, 23 tiles a side, and your stockpile stays inside it. Two roads cross in the middle, and each resource has its own block: mycelium north-west, stone north-east, ore south-east, crystal south-west. Every pile has its own place, so nothing ever spills onto the land around home or stands on another pile, and a lone capital gets a whole corner to itself.\nYou start on the edge of the square, by the nearest forest.\nThe world is made a little differently for this, so solo worlds start fresh and shared worlds get the nuke.',
+  'news.0.108.0':
+    "Your stockpile grows into a kingdom: from ten million up, every power of ten has its own picture, climbing from a hamlet to a village, town, walled city, citadel and finally a crowned capital, each in its resource's style (a glowing mushroom capital, a stone palace, a golden-domed foundry, a crystal palace).",
+  'news.0.107.0':
+    'The stockpile around home is calm again, however rich you get. Each resource keeps to its own side of home (mycelium north, stone east, ore south, crystal west), piles keep a little space between them, and only your two biggest kinds of pile stand, so there are at most 18 per resource instead of a crowd of hundreds.\nLike in 2048, ten piles now merge into one bigger pile: they slide together and the bigger one pops up where they meet. When the yard tidies itself, piles slide to their new spots instead of jumping.',
+  'news.0.106.0':
+    'In a shared world, your buildings no longer vanish a moment after you put them up. When the world set your numbers straight, your game also lost every building of yours from your screen, though they still stood in the world.\nWhen the world does take something back, a building, an upgrade or some resources, a note now says what and why: someone else got to that spot first, the world counted fewer resources than your game showed, or your connection was too weak for it to count what you did.',
+  'news.0.105.1':
+    "Behind the scenes: a fix to the admin's page for opening a copy of a shared world.",
+  'news.0.105.0':
+    "The game is easier on your {phone:phone|laptop:computer}'s battery and keeps it cooler: while you just watch, it draws the map half as often, and never more than 60 times a second.\nIf the game had to lower its picture quality, it now raises it again once your {phone:phone|laptop:computer} can keep up, for example after it cools down or is plugged in.",
+  'news.0.104.1':
+    "Behind the scenes: the admin's list of shared worlds now also shows worlds that are busy while the server updates.",
+  'news.0.104.0':
+    "Behind the scenes: the game's admin has a page listing every shared world and everyone in it, to keep an eye on fair play. It shows only what the server already keeps: your character's name, progress and play time, never your real name or address.",
+  'news.0.103.2':
+    "Behind the scenes: the admin's copy of a shared world can now also show what a player's own game would show on coming back, like What's new and a note about numbers that were never real.",
+  'news.0.103.1':
+    "In a shared world, nothing you gather is taken back any more when your connection drops for a moment or the server updates: what the server missed is sent again when you're back.",
+  'news.0.103.0':
+    "Behind the scenes: to check what coming back to a shared world is like, the game's admin can now play a throwaway copy of it. Nothing done in a copy touches your real character or world, and the copy deletes itself after two hours.",
+  'news.0.102.2':
+    'Fixed a note from version 0.79.0 that promised coming back to a shared world from another device. Your character lives in this browser; another tab of it works.',
+  'news.0.102.1':
+    "Shared worlds you've left behind no longer take up space in your browser: what the game kept for one goes when it drops off your Worlds list or you remove it.",
+  'news.0.102.0':
+    "Coming back to a shared world where an older version showed you more than you really had, a message now says the numbers you see are your real ones. If you left a shared world before away time was counted, your buildings now make up to 8 hours' worth when you return.",
+  'news.0.101.2':
+    'If your saved world is damaged, the game now says so, instead of saying an update needs a new world.',
+  'news.0.101.1':
+    "A saved world this version of the game can't open is now kept to one side instead of being written over, so a fix can bring it back. If the site briefly hands out an older page after an update, your world comes back on the next load instead of being lost.",
+  'news.0.101.0':
+    "Shared worlds with many players stay easy to read: Players in Settings lists everyone, how they're doing and how far away they are, and the world's owner can remove anyone there. {phone:Tap|laptop:Click} the +N beside your friends to open it.\nNames over heads no longer pile up in a crowd, and badges at the edge of the screen no longer cover each other or you.",
+  'news.0.100.1':
+    "In a shared world, other players' buildings, lamps, flags and tombstones stay hidden in the dark until you explore that land, instead of floating in the void.",
+  'news.0.100.0':
+    'Your buildings in a shared world now keep working while you are away, up to 8 hours, just like in your own world. When you come back, a message says what they made.',
+  'news.0.99.0':
+    'Every shared world now has its own name, like Fern Valley, so you always know which world you are joining. Settings has a new Worlds list with your own world and every shared world you have joined, and how many are playing in each. {phone:Tap|laptop:Click} Play to switch between them.',
+  'news.0.98.0':
+    'Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. Losing the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.',
+  'news.0.97.0':
+    'A new milestone marks the long middle of a world: every refinery at level 9, about halfway between the Abundance Engine at V and every refinery at level 10.',
+  'news.0.96.0':
+    "Your buildings keep working while you are away. Close the game, come back later, and what they made in up to 8 hours is waiting in your packs, along with what the Abundance Engine made. This is for your own world; shared worlds don't have it yet.",
+  'news.0.95.0':
+    "A new world now opens by naming your first milestone, and each milestone you reach says what comes next.\nThe big Explore button always does something: with nothing in reach, it walks you to the nearest mushrooms or stone and gathers them.\nJoining a friend's world puts you right beside them instead of inside them.",
+  'news.0.94.0':
+    'A world now lasts far longer: mastering one takes about 40 hours of play instead of well under one. At the start something new still comes every minute or two; later on the big upgrades come further apart, each one a bigger step.\nFour new milestones mark the long road: every refinery at level 5, every tool at its top level, the Abundance Engine at V, and every refinery at level 10.\nWhat you already own stays yours. Only what you buy from now on costs more.',
+  'news.0.93.0':
+    'Every screen size looks right now: on a short, wide screen the zoom buttons lie in a row instead of running into Settings, and every dialog fits with its buttons in view.\nSettings no longer hides Language and the privacy policy on short screens.\nOn the narrowest screens the Invite button keeps clear of Build.\nVery big numbers stay readable: after billions the counters go on to trillions (T).',
+  'news.0.92.0':
+    'The game downloads less and opens faster again: about 40% less to download before you can play.\nThe wiki shows its pictures again.',
+  'news.0.91.1':
+    "In shared worlds, when your game's numbers and the world's count disagree, your game now takes the world's count at once and keeps it, instead of drifting further apart.",
+  'news.0.91.0':
+    'The game opens faster, most of all on a slow connection or an older {phone:phone|laptop:computer}: its pictures now come in one go instead of one by one.',
+  'news.0.90.0':
+    'Invite links can now work for up to a week: pick 7 days in Settings, Invite links. New links last a week unless you pick less.',
+  'news.0.89.0':
+    "Shared worlds are now fair for everyone: the world itself keeps count of what each player gathers, builds and buys, by the game's own rules, so an edited save or game gets nothing there.\nEveryone starts a shared world from nothing, its owner too. Going online starts a new world, and your own world stays as it is for when you play alone.\nEvery shared world starts over once with this update.",
+  'news.0.88.0':
+    'Upgraded buildings now hold more, so they no longer fill up in a blink and stop. The income at the top is now what you really get, however far you have upgraded.',
+  'news.0.87.0':
+    "Shared worlds now keep their own count of what everyone gathers, builds and buys, worked out from what each player did with the game's own rules. For now it only notes when someone's progress doesn't add up (like an edited save), so the fair-play team can look. Playing fairly changes nothing.",
+  'news.0.86.1':
+    'The counters at the top no longer run into each other. Big incomes are shortened like the amounts (+7.7M/s), and each one sits under its own count.',
+  'news.0.86.0':
+    "Tools now open new things, not only bigger numbers. Ore needs Pickaxe level 2, crystal and geodes level 3, and the shafts down from the deep layers a better Pickaxe still. Boots level 2 take you onto water, rivers included. Basket level 4 picks rare mushrooms, which give three times as much.\nThe Upgrades tab says what each level opens, and {phone:tapping|laptop:clicking} something your tools can't handle yet says what it takes.",
+  'news.0.84.0':
+    "The trophy now shows your next milestone: {phone:tap|laptop:click} it to see what it still takes, like the stone you're short for a better Pickaxe. A green dot on it means you have everything the next one needs.\nMilestones now count in any order, so a garden built early is no longer forgotten.",
+  'news.0.85.0':
+    "Playing together copes better with a bad connection: when it quietly dies (say you switch to another network), the game notices within seconds and reconnects, and the digging and building you did meanwhile still reaches the shared world.\n{phone:Tapping|laptop:Clicking} Back to the shared world or Invite twice while it connects no longer trips over itself.\nOpening a friend's link and saying no, or finding the link no longer works, takes you back into the shared world you were in, not to playing alone.\nWith the game open in two tabs, the one in a shared world no longer stops to ask which solo world to keep.",
+  'news.0.83.0':
+    'Putting your world online now moves it there with your character, instead of leaving a copy behind: playing alone afterwards starts a new world.\nShared worlds no longer show Embark or the milestone that needs it, since you can only embark when playing alone.',
+  'news.0.82.2':
+    'While an update rolls out, a shared world waits until your game has the update too, so everyone sees the same land.\nBack to the shared world forgets a world that is gone, and tries your other worlds before one that froze your character.',
+  'news.0.82.1':
+    'Opening the game in a second tab, or a hiccup while it starts, no longer makes it forget the shared world you play in.\nAn invite link that no longer works keeps you in the shared world you were in, instead of sending you to your own.\nSomeone taken out of a shared world is told so when they try to come back, not to ask for a new link, and Back to the shared world no longer takes them there.\nA quick look at another app no longer shows you to friends as having lost your connection.\nThe 25 structures milestone counts only your own buildings.',
+  'news.0.82.0':
+    'A banned or frozen character now leaves a tombstone where it last stood, with its name on it, so everyone knows where they were. Frozen ones are sealed in ice.',
+  'news.0.81.0':
+    'Characters with hacked progress in a shared world are now frozen: whoever tries to play one gets a visit from the Fair-play Bureau of Investigation and has to start again, fairly, with a new character.',
+  'news.0.80.2':
+    'The old room service address is switched off, so every shared world now goes through the protected one.',
+  'news.0.80.1':
+    "Shared worlds now run at rooms.robertasrudys.com, behind Cloudflare's protection, so floods of traffic are stopped before they can take multiplayer down.",
+  'news.0.80.0':
+    "No cheating in shared worlds, not even for the world's owner: owners follow the same anti-cheat and the same building and digging limits as everyone else.\nIf an owner is removed for cheating, the world passes to whoever joined it first, and everyone keeps playing.",
+  'news.0.79.1':
+    'Shared worlds keep running smoothly even if someone tries to flood them with away/back messages.',
+  'news.0.79.0':
+    "Shared worlds are harder to cheat in: leaving and rejoining no longer lets anyone jump across the map or change the world faster.\nIf you come back after playing offline, or from another tab, the game moves you to where the shared world last saw you.\nEach player can change up to 10,000 new tiles in a world, so nobody can use up a world's space for everyone else.",
+  'news.0.78.0':
+    "Shared worlds are harder to flood with strangers: a player who isn't the world's owner can bring in up to 5 people a day through their invite links.\nWhen someone is removed from a world, their invite links stop working, and everyone who came in through those links is removed with them.",
+  'news.0.77.1':
+    "Shared worlds are safer: the server's play log now only keeps names the game itself uses, so nothing a player sends can sneak extra text into it.",
+  'news.0.77.0':
+    "Friends' badges at the edge of the screen now say how far away they are, in metres or kilometres (every block is 1 m), so you know how far you'd walk to meet them. On another layer, the badge also shows how many layers up or down.\nBadges no longer hide under the zoom buttons.",
+  'news.0.76.0':
+    "The Build list says what you still need, where each building goes, and why you can't place it where you stand. An invite link that no longer works says whether it expired, filled up or was stopped. Older devices settle on smooth quality faster, and big screens draw fewer pixels.",
+  'news.0.75.1':
+    "A new logo: two glowing mushrooms instead of a pile of logs, because nobody here cuts trees. You'll see it on your home screen, in your browser tab and on shared links.",
+  'news.0.75.0':
+    'The game now has a privacy policy. Joining or opening a shared world accepts it (Cancel keeps you playing alone), and Settings has a link to read it in full.',
+  'news.0.74.1':
+    'Records of cheating in shared worlds are now kept for 90 days, so repeat cheaters can be spotted; the rest of the play log still goes after 14.',
+  'news.0.74.0':
+    "Shared worlds now keep a play log for 14 days, so cheaters are caught quickly and we learn what to make better. It holds no names or addresses; Settings says what's in it.",
+  'news.0.73.0':
+    'Smoother on older devices: when frames come too slowly, the game draws the map with fewer pixels and plainer buttons until it keeps up.',
+  'news.0.72.2': "Invite links no longer get stuck on “Loading”: if they don't come, it says so.",
+  'news.0.72.1':
+    'The game has its own address now: play.robertasrudys.com. The old one takes you there.\nOn the new address you start fresh, and so does playing together.',
+  'news.0.72.0':
+    'Invite links now let in only a few people: in Invite links you pick how many (1 to 25, never unlimited) and how long they work (30 minutes to a day).\nA player removed from a world stays out, the link they came in with stops, and their buildings go.\nBasic anti-cheat: anyone who teleports or changes the world far from where they stand is taken out of the world.',
+  'news.0.71.1': 'Only an update can set off the nuke in a shared world; no player can.',
+  'news.0.71.0':
+    "The Nuke button left Settings. Now, when an update changes how worlds are made, a big red button takes the middle of the screen and everyone presses it.\nIt's pressed for anyone away or offline, and for everyone after a minute. Then you all start fresh together in a brand-new world with everything new.",
+  'news.0.70.1': "Players' names no longer cover the QR sign, so it always scans.",
+  'news.0.70.0':
+    "The big red Nuke button (Settings) makes the world again from scratch with everything new in the game, and you start over.\nIn a shared world it's a vote: once everyone has pressed it, the world is made anew and you all start fresh together. You can see who has pressed it, and take your vote back.",
+  'news.0.69.0':
+    'Regions are bigger: each takes over two minutes to walk across.\nThis update starts a new world.',
+  'news.0.68.0':
+    '{phone:Tap|laptop:Click} your invite sign to copy its link and send it to a friend.',
+  'news.0.67.0':
+    "Up to 100 players can now share one world.\nThe top bar shows five friends and a +N for the rest; only the nearest friends get a badge at the screen's edge.",
+  'news.0.66.0':
+    'New music: heaths play Heather and Stone, highlands The High Road and fens Mistwater.',
+  'news.0.65.0':
+    'Some regions are now walled in by dry stone walls or hedges, with gaps to walk through.\nThis update starts a new world.',
+  'news.0.64.0':
+    'Invite links last a whole day, and lowering your sign no longer stops them.\nSettings → Invite links: see every link, how many friends joined with each, and stop any of them.',
+  'news.0.63.0':
+    "This card: after the game updates itself, it shows what's new.\nThe game always runs the newest version: it updates itself as soon as one is out.",
+  'news.0.62.0':
+    "A world map: the button at the foot of the zoom shows all the land you've explored, region names, home and you.\nRegion names no longer show over an open menu.",
+  'news.0.61.0':
+    'The land is made of big named regions (meadows, woods, lake country, highlands, fens, heath), with rivers and ridges between them.\nWalking into a region shows its name.\nThe music changes only when you enter a new region.\nThis update starts a new world.',
+  'news.0.60.2': "In a shared world everyone's name floats over their head.",
+  'news.0.60.1': "The game's words fit what you play on.",
+  'news.0.60.0':
+    "A soundtrack: every kind of place has its own tune, and the game tells you a track's name the first time you hear it.\nMusic in Settings shows what's playing and turns it off.",
+  'news.0.59.2': 'A redrawn pickaxe: steel head, steel handle, wrapped grip.',
+  'news.0.59.1': 'Friends have names like Moss, Fern and Fox instead of numbers.',
+  'news.0.59.0':
+    'Resources come in clusters, so you have to explore: richer deposits further from home, crystal only far out.\nUnderground, ore and crystal run in veins and get commoner the deeper you go.\nThis update starts a new world.',
+  'news.0.58.0':
+    'Characters act out what they do: swinging the pickaxe, foraging, building, hopping for joy, climbing between layers.',
+  'news.0.57.2': 'Friends off screen show as a badge at the edge, pointing their way.',
+  'news.0.57.1': 'A friendlier sky-blue invite sign, held up in both hands.',
+  'news.0.57.0':
+    'Invite is a big button in the bottom-left corner, and your character holds up the QR code in the world.',
+  'news.0.56.1': 'Away and asleep friends are drawn full size, and friends ride boats on water.',
+  'news.0.56.0':
+    "One sky for everyone: in a shared world it's day or night for all players at once.",
+  'news.0.55.0':
+    'Your character holds the {phone:phone|laptop:laptop} you play on, and its screen lights the way at night and underground.',
+  'news.0.54.0': "In a shared world you can see who's playing on what."
 };

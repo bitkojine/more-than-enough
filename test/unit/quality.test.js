@@ -1,6 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createQuality, drawDpr, createFramePacer, PACE_SLACK_MS, LEVELS, MAX_PIXELS, UP_AFTER_S, UP_MAX_S, RENDER_FPS, createFrameTiming } from '../../src/game/quality.js';
+import {
+  createQuality,
+  drawDpr,
+  createFramePacer,
+  PACE_SLACK_MS,
+  LEVELS,
+  MAX_PIXELS,
+  UP_AFTER_S,
+  UP_MAX_S,
+  RENDER_FPS,
+  createFrameTiming
+} from '../../src/game/quality.js';
 
 // Feeds `seconds` of frames `ms` apart.
 function run(q, ms, seconds) {
@@ -45,7 +56,11 @@ test('levels that look the same on this screen are skipped', () => {
 });
 
 test('a visit starts at the level the last one settled on', () => {
-  assert.equal(createQuality(2, 2, () => {}).level, 2, 'an old phone does not lag through the same steps on every load');
+  assert.equal(
+    createQuality(2, 2, () => {}).level,
+    2,
+    'an old phone does not lag through the same steps on every load'
+  );
   assert.equal(createQuality(0, 2, () => {}).level, 0);
   assert.equal(createQuality(99, 2, () => {}).level, LEVELS.length - 1);
   assert.equal(createQuality(undefined, 2, () => {}).level, 0);
@@ -54,7 +69,10 @@ test('a visit starts at the level the last one settled on', () => {
 test('a big screen is drawn with at most MAX_PIXELS, but never under 1x for that alone', () => {
   assert.equal(drawDpr(2, 3, 412, 915), 2, 'a phone keeps its sharpness');
   const mac = drawDpr(2, 2, 1440, 900);
-  assert.ok(mac < 2 && Math.abs(1440 * 900 * mac * mac - MAX_PIXELS) < 1, 'a Retina laptop window is capped');
+  assert.ok(
+    mac < 2 && Math.abs(1440 * 900 * mac * mac - MAX_PIXELS) < 1,
+    'a Retina laptop window is capped'
+  );
   assert.equal(drawDpr(2, 2, 5000, 3000), 1);
   assert.equal(drawDpr(0.75, 2, 412, 915), 0.75, 'a struggling device still goes under 1x');
   assert.equal(drawDpr(2, 1, 800, 600), 1);
@@ -87,9 +105,12 @@ test('a try that is too slow steps straight back and waits twice as long before 
   // Each failure doubles the wait, up to UP_MAX_S, so it never flickers.
   let tries = 0;
   for (let i = 0; i < 10; i++) {
-    run(q, 2000 / RENDER_FPS, 3);   // back down
+    run(q, 2000 / RENDER_FPS, 3); // back down
     let s = 0;
-    while (q.level === 1 && s < UP_MAX_S + 10) { run(q, 1000 / RENDER_FPS, 1); s++; }
+    while (q.level === 1 && s < UP_MAX_S + 10) {
+      run(q, 1000 / RENDER_FPS, 1);
+      s++;
+    }
     if (q.level === 0) tries++;
     assert.ok(s <= UP_MAX_S + 5, 'the wait never grows past UP_MAX_S (' + s + ' s)');
   }
@@ -108,27 +129,33 @@ test('plugging in the charger tries a better level within seconds', () => {
 // Animation-frame stamps on an `hz` display for `ms`, each up to `jitter` ms
 // off its vsync (seeded, so every run is the same).
 function refreshes(hz, ms, jitter = 0, seed = 7) {
-  let r = seed; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
+  let r = seed;
+  const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
   const out = [];
-  for (let i = 0; i * 1000 / hz < ms; i++) out.push(i * 1000 / hz + (rnd() - .5) * 2 * jitter);
+  for (let i = 0; (i * 1000) / hz < ms; i++) out.push((i * 1000) / hz + (rnd() - 0.5) * 2 * jitter);
   return out;
 }
-function paced(stamps) { const p = createFramePacer(); return stamps.filter(s => p.due(s)); }
+function paced(stamps) {
+  const p = createFramePacer();
+  return stamps.filter((s) => p.due(s));
+}
 
 test('there is one fixed 30 FPS rendering target', () => {
   assert.equal(RENDER_FPS, 30);
   const p = createFramePacer();
   assert.equal(p.due(0), true, 'the first frame draws at once');
-  for (const at of [1000/120, 1000/60, 1000/30 - PACE_SLACK_MS - .01]) assert.equal(p.due(at), false);
-  assert.equal(p.due(1000/30 - 1), true, 'a refresh a little before the deadline still draws');
+  for (const at of [1000 / 120, 1000 / 60, 1000 / 30 - PACE_SLACK_MS - 0.01])
+    assert.equal(p.due(at), false);
+  assert.equal(p.due(1000 / 30 - 1), true, 'a refresh a little before the deadline still draws');
 });
 
 test('pacing holds 30 FPS on common displays, even with vsync jitter', () => {
-  for (const hz of [30, 60, 90, 120, 144, 165, 240]) for (const jitter of [0, 1.5]) {
-    const n = paced(refreshes(hz, 10000, hz === 30 ? .5 : jitter)).length;
-    // The old timer-based cap drew about 280-296 here on 60/120 Hz.
-    assert.ok(n >= 297 && n <= 301, `${hz} Hz, jitter ${jitter} ms: ${n} frames in 10 s`);
-  }
+  for (const hz of [30, 60, 90, 120, 144, 165, 240])
+    for (const jitter of [0, 1.5]) {
+      const n = paced(refreshes(hz, 10000, hz === 30 ? 0.5 : jitter)).length;
+      // The old timer-based cap drew about 280-296 here on 60/120 Hz.
+      assert.ok(n >= 297 && n <= 301, `${hz} Hz, jitter ${jitter} ms: ${n} frames in 10 s`);
+    }
 });
 
 test('pacing never averages above 30 FPS, however often frames are offered', () => {
@@ -136,19 +163,30 @@ test('pacing never averages above 30 FPS, however often frames are offered', () 
     const drawn = paced(refreshes(hz, 60000, 2));
     for (let i = 0; i < drawn.length; i += 30) {
       const span = drawn.slice(i, i + 31);
-      if (span.length === 31) assert.ok(span.at(-1) - span[0] >= 1000 - 2 * PACE_SLACK_MS - 4, `${hz} Hz: 30 frames took ${span.at(-1) - span[0]} ms`);
+      if (span.length === 31)
+        assert.ok(
+          span.at(-1) - span[0] >= 1000 - 2 * PACE_SLACK_MS - 4,
+          `${hz} Hz: 30 frames took ${span.at(-1) - span[0]} ms`
+        );
     }
-    for (let i = 1; i < drawn.length; i++) assert.ok(drawn[i] - drawn[i-1] >= 1000/30 - 2 * PACE_SLACK_MS - 4, 'no burst of early frames');
+    for (let i = 1; i < drawn.length; i++)
+      assert.ok(
+        drawn[i] - drawn[i - 1] >= 1000 / 30 - 2 * PACE_SLACK_MS - 4,
+        'no burst of early frames'
+      );
   }
 });
 
 test('a display that cannot divide 30 FPS stays even, and pauses do not cause bursts', () => {
   const at50 = paced(refreshes(50, 10000));
-  for (let i = 1; i < at50.length; i++) assert.equal(Math.round(at50[i] - at50[i-1]), 40, '50 Hz draws every second refresh');
-  const p = createFramePacer(); p.due(0);
+  for (let i = 1; i < at50.length; i++)
+    assert.equal(Math.round(at50[i] - at50[i - 1]), 40, '50 Hz draws every second refresh');
+  const p = createFramePacer();
+  p.due(0);
   assert.equal(p.due(5000), true, 'back from a pause');
-  assert.equal(p.due(5000 + 1000/60), false, 'no catch-up burst after it');
-  p.reset(); assert.equal(p.due(5001), true);
+  assert.equal(p.due(5000 + 1000 / 60), false, 'no catch-up burst after it');
+  p.reset();
+  assert.equal(p.due(5001), true);
 });
 
 test('quality targets 30 FPS for every device and can recover at that pace', () => {
@@ -164,26 +202,45 @@ test('quality targets 30 FPS for every device and can recover at that pace', () 
 
 test('quality: fewer gathered resources float at once at each lower level', () => {
   const b = LEVELS.map((l) => l.flyers);
-  assert.deepEqual(b, [...b].sort((x, y) => y - x));
+  assert.deepEqual(
+    b,
+    [...b].sort((x, y) => y - x)
+  );
   assert.ok(b.at(-1) >= 10, 'the slowest phone still sees some');
   assert.equal(createQuality(LEVELS.length - 1, 2, () => {}).flyers, b.at(-1));
 });
 
-
-test('frame accounting separates normal cap allowance from loop work',()=>{
- const p=createFrameTiming();p.enter(0,0);assert.equal(p.rendered(0),null);p.leave(6);
- p.enter(17,16.7);p.leave(17.5);
- p.enter(33.6,33.3);const t=p.rendered(33.3);
- assert.equal(t.callbackWorkMs,6.5);assert.ok(Math.abs(t.outsideLoopMs-26.8)<1e-9);
- assert.ok(Math.abs(t.capAllowanceMs-(1000/30-6.5))<1e-9);
- assert.equal(t.overTargetMs,0);
- assert.equal(t.rafCallbacks,2);assert.ok(Math.abs(t.rafAgeMs-.3)<1e-9);
- p.leave(43);p.reset();p.enter(10000,9999);assert.equal(p.rendered(10000),null);
+test('frame accounting separates normal cap allowance from loop work', () => {
+  const p = createFrameTiming();
+  p.enter(0, 0);
+  assert.equal(p.rendered(0), null);
+  p.leave(6);
+  p.enter(17, 16.7);
+  p.leave(17.5);
+  p.enter(33.6, 33.3);
+  const t = p.rendered(33.3);
+  assert.equal(t.callbackWorkMs, 6.5);
+  assert.ok(Math.abs(t.outsideLoopMs - 26.8) < 1e-9);
+  assert.ok(Math.abs(t.capAllowanceMs - (1000 / 30 - 6.5)) < 1e-9);
+  assert.equal(t.overTargetMs, 0);
+  assert.equal(t.rafCallbacks, 2);
+  assert.ok(Math.abs(t.rafAgeMs - 0.3) < 1e-9);
+  p.leave(43);
+  p.reset();
+  p.enter(10000, 9999);
+  assert.equal(p.rendered(10000), null);
 });
 
-test('a suspension gap is not a timing sample',()=>{
- const p=createFrameTiming();p.enter(100,100);p.rendered(100);p.leave(106);
- p.enter(100+1000/30,100+1000/30);const t=p.rendered(100+1000/30);
- assert.ok(t.overTargetMs<1e-9);assert.ok(Math.abs(t.outsideLoopMs-t.capAllowanceMs)<1e-9);
- p.leave(150);p.enter(10000,10000);assert.equal(p.rendered(10000),null);
+test('a suspension gap is not a timing sample', () => {
+  const p = createFrameTiming();
+  p.enter(100, 100);
+  p.rendered(100);
+  p.leave(106);
+  p.enter(100 + 1000 / 30, 100 + 1000 / 30);
+  const t = p.rendered(100 + 1000 / 30);
+  assert.ok(t.overTargetMs < 1e-9);
+  assert.ok(Math.abs(t.outsideLoopMs - t.capAllowanceMs) < 1e-9);
+  p.leave(150);
+  p.enter(10000, 10000);
+  assert.equal(p.rendered(10000), null);
 });

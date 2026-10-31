@@ -26,7 +26,7 @@ const ZOOM_MIN_MAX = 3;
 // few kilometres.
 export const MAP_ZOOM = 0.37;
 const MIN_TILE_PX = 0.25;
-const PITCH = 0.225;          // radians from straight down (~13°)
+const PITCH = 0.225; // radians from straight down (~13°)
 // One layer's height, in tile lengths. The wanderer stands just under a tile
 // tall (0.94 in the default pack), so a layer has to be well over that, the
 // wanderer plus headroom, for a dug tunnel to read as a space you can walk in.
@@ -38,16 +38,18 @@ export function createCamera(canvas) {
   const ctx = canvas.getContext('2d');
   const cam = {
     ctx,
-    width: 0,            // viewport size in CSS pixels
+    width: 0, // viewport size in CSS pixels
     height: 0,
-    dpr: 1,              // device pixels per CSS pixel the map is drawn at
-    maxDpr: 2,           // ...at most (lower on a device that can't keep up, or a big screen; see quality.js)
-    baseTilePx: 48,      // tile size at 1x zoom for this viewport
+    dpr: 1, // device pixels per CSS pixel the map is drawn at
+    maxDpr: 2, // ...at most (lower on a device that can't keep up, or a big screen; see quality.js)
+    baseTilePx: 48, // tile size at 1x zoom for this viewport
     zoom: 1,
-    tilePx: 48,          // tile width in CSS pixels
-    depthPx: 48,         // a tile's on-screen depth (north to south)
-    risePx: 0,           // on-screen lift per layer of height
-    x: 0, y: 0, z: 0,    // the world point at the centre of the screen
+    tilePx: 48, // tile width in CSS pixels
+    depthPx: 48, // a tile's on-screen depth (north to south)
+    risePx: 0, // on-screen lift per layer of height
+    x: 0,
+    y: 0,
+    z: 0, // the world point at the centre of the screen
     // (x, y) -> height of that tile's top above the floor of layer cam.z.
     // Set by the game; picking uses it to hit the face you actually see.
     relief: () => 0,
@@ -55,7 +57,12 @@ export function createCamera(canvas) {
     resize() {
       cam.width = window.innerWidth;
       cam.height = window.innerHeight;
-      const dpr = cam.dpr = drawDpr(cam.maxDpr, window.devicePixelRatio || 1, cam.width, cam.height);
+      const dpr = (cam.dpr = drawDpr(
+        cam.maxDpr,
+        window.devicePixelRatio || 1,
+        cam.width,
+        cam.height
+      ));
       canvas.width = Math.round(cam.width * dpr);
       canvas.height = Math.round(cam.height * dpr);
       canvas.style.width = cam.width + 'px';
@@ -74,7 +81,7 @@ export function createCamera(canvas) {
 
     // The closest zoom for this viewport (see MAX_TILE_SHARE).
     maxZoom() {
-      return Math.max(ZOOM_MIN_MAX, cam.height * MAX_TILE_SHARE / cam.baseTilePx);
+      return Math.max(ZOOM_MIN_MAX, (cam.height * MAX_TILE_SHARE) / cam.baseTilePx);
     },
 
     // Whether the view is the world map, at this zoom (default: the zoom now).
@@ -89,7 +96,9 @@ export function createCamera(canvas) {
 
     // The world is endless: the camera always centres on its target.
     follow(p) {
-      cam.x = p.x; cam.y = p.y; cam.z = p.z;
+      cam.x = p.x;
+      cam.y = p.y;
+      cam.z = p.z;
     },
 
     // World (x, y) at height h (default: the floor of the camera's layer).
@@ -110,7 +119,11 @@ export function createCamera(canvas) {
       if (cam.risePx <= FLAT_RISE_PX) return { x, y: rowY, z: cam.z, h: 0 };
       const k = cam.risePx / cam.depthPx; // rows of lift per layer of height
       const tx = Math.floor(x);
-      for (let ty = Math.floor(rowY + RELIEF_MAX * k); ty >= Math.floor(rowY + RELIEF_MIN * k); ty--) {
+      for (
+        let ty = Math.floor(rowY + RELIEF_MAX * k);
+        ty >= Math.floor(rowY + RELIEF_MIN * k);
+        ty--
+      ) {
         const h = cam.relief(tx, ty);
         const top = rowY + h * k; // where the screen point lands on this tile's top
         if (top < ty) continue;
@@ -125,12 +138,14 @@ export function createCamera(canvas) {
     visibleTiles() {
       const k = cam.risePx / cam.depthPx;
       const left = (0 - cam.width / 2) / cam.tilePx + cam.x;
-      const right = (cam.width / 2) / cam.tilePx + cam.x;
+      const right = cam.width / 2 / cam.tilePx + cam.x;
       const top = (0 - cam.height / 2) / cam.depthPx + cam.y;
-      const bottom = (cam.height / 2) / cam.depthPx + cam.y;
+      const bottom = cam.height / 2 / cam.depthPx + cam.y;
       return {
-        x0: Math.floor(left) - 1, x1: Math.ceil(right) + 1,
-        y0: Math.floor(top + RELIEF_MIN * k) - 1, y1: Math.ceil(bottom + RELIEF_MAX * k) + 2
+        x0: Math.floor(left) - 1,
+        x1: Math.ceil(right) + 1,
+        y0: Math.floor(top + RELIEF_MIN * k) - 1,
+        y1: Math.ceil(bottom + RELIEF_MAX * k) + 2
       };
     }
   };

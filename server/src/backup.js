@@ -32,10 +32,16 @@ export function backupOf(entries, id, now, version) {
 // is a world, never an admin's copy.
 export function entriesOf(text, id) {
   let d;
-  try { d = JSON.parse(text); } catch { return null; }
+  try {
+    d = JSON.parse(text);
+  } catch {
+    return null;
+  }
   if (!d || d.kind !== BACKUP_KIND || !Array.isArray(d.entries)) return null;
   if (id !== undefined && d.room !== id) return null;
-  const entries = new Map(d.entries.filter((e) => Array.isArray(e) && typeof e[0] === 'string' && e[0] !== 'id'));
+  const entries = new Map(
+    d.entries.filter((e) => Array.isArray(e) && typeof e[0] === 'string' && e[0] !== 'id')
+  );
   const meta = entries.get('meta');
   if (!meta || typeof meta !== 'object') return null;
   const { copy, ...rest } = meta;
@@ -45,7 +51,13 @@ export function entriesOf(text, id) {
 
 // The file name a backup of room `id` made at `now` is saved under.
 export function backupName(id, now) {
-  return 'mte-world-' + id + '-' + new Date(now).toISOString().slice(0, 16).replace(/[:T]/g, '-') + '.json';
+  return (
+    'mte-world-' +
+    id +
+    '-' +
+    new Date(now).toISOString().slice(0, 16).replace(/[:T]/g, '-') +
+    '.json'
+  );
 }
 
 // The largest backup a restore takes (a Durable Object's call carries at

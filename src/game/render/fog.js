@@ -16,13 +16,13 @@
 
 import * as Core from '../../core/index.js';
 
-const PUFF_PX = 128;    // a puff's picture, in pixels
+const PUFF_PX = 128; // a puff's picture, in pixels
 const PUFF_SPAN = 1.75; // a puff's width, in tiles...
-const PUFF_MIN = 14;    // ...but at least this many CSS pixels, so far out the edge still billows
-const PUFFS = 6;        // different puffs
-const BANK_PX = 256;    // the bank's picture, in pixels
-const BANK_SPAN = 9;    // the bank's smallest picture's width, in tiles
-const BANK_STEP = 4;    // each bigger picture is this many times wider
+const PUFF_MIN = 14; // ...but at least this many CSS pixels, so far out the edge still billows
+const PUFFS = 6; // different puffs
+const BANK_PX = 256; // the bank's picture, in pixels
+const BANK_SPAN = 9; // the bank's smallest picture's width, in tiles
+const BANK_STEP = 4; // each bigger picture is this many times wider
 const BANK_SHOWN = 320; // a bigger picture is fully in by when the one below shows this small, in CSS pixels
 // The most device pixels a side of the bank's kept copy may have. Zoomed in
 // close the bank shows thousands of pixels wide; a copy that big is past
@@ -31,7 +31,7 @@ const BANK_SHOWN = 320; // a bigger picture is fully in by when the one below sh
 // size the copy stays put and the pattern stretches it instead.
 export const BANK_MAX = 1024;
 
-let made = null;        // { version, puffs, bank }
+let made = null; // { version, puffs, bank }
 
 const smooth = (t) => (t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t));
 const channel = (hex, i) => parseInt(hex.slice(i, i + 2), 16);
@@ -41,8 +41,12 @@ const channel = (hex, i) => parseInt(hex.slice(i, i + 2), 16);
 function noise(n, size, seed) {
   const h = (a, b) => Core.hash2(((a % n) + n) % n, ((b % n) + n) % n, seed);
   return (x, y) => {
-    const fx = x * n / size, fy = y * n / size, x0 = Math.floor(fx), y0 = Math.floor(fy);
-    const tx = smooth(fx - x0), ty = smooth(fy - y0);
+    const fx = (x * n) / size,
+      fy = (y * n) / size,
+      x0 = Math.floor(fx),
+      y0 = Math.floor(fy);
+    const tx = smooth(fx - x0),
+      ty = smooth(fy - y0);
     const top = h(x0, y0) + (h(x0 + 1, y0) - h(x0, y0)) * tx;
     const bot = h(x0, y0 + 1) + (h(x0 + 1, y0 + 1) - h(x0, y0 + 1)) * tx;
     return top + (bot - top) * ty;
@@ -68,7 +72,9 @@ function picture(size, light, dark, shadeAt) {
       const [k, a] = shadeAt(x, y);
       if (a <= 0) continue;
       const o = (y * size + x) * 4;
-      img.data[o] = mix(1, k); img.data[o + 1] = mix(3, k); img.data[o + 2] = mix(5, k);
+      img.data[o] = mix(1, k);
+      img.data[o + 1] = mix(3, k);
+      img.data[o + 2] = mix(5, k);
       img.data[o + 3] = 255 * a;
     }
   }
@@ -82,16 +88,28 @@ function puff(v, light, dark) {
   const rnd = (i) => Core.hash2(v, i, 97);
   const billows = [{ x: 0.5, y: 0.5, r: 0.44 }];
   for (let i = 0; i < 5; i++) {
-    const a = rnd(i) * Math.PI * 2, d = 0.12 + rnd(i + 10) * 0.12;
-    billows.push({ x: 0.5 + Math.cos(a) * d, y: 0.5 + Math.sin(a) * d * 0.9, r: 0.17 + rnd(i + 20) * 0.11 });
+    const a = rnd(i) * Math.PI * 2,
+      d = 0.12 + rnd(i + 10) * 0.12;
+    billows.push({
+      x: 0.5 + Math.cos(a) * d,
+      y: 0.5 + Math.sin(a) * d * 0.9,
+      r: 0.17 + rnd(i + 20) * 0.11
+    });
   }
   const n = fbm(PUFF_PX, 5 + v * 11, 6);
   return picture(PUFF_PX, light, dark, (px, py) => {
-    const x = (px + 0.5) / PUFF_PX, y = (py + 0.5) / PUFF_PX;
-    let inside = -1, lit = 0;
+    const x = (px + 0.5) / PUFF_PX,
+      y = (py + 0.5) / PUFF_PX;
+    let inside = -1,
+      lit = 0;
     for (const b of billows) {
-      const dx = x - b.x, dy = y - b.y, f = 1 - Math.hypot(dx, dy) / b.r;
-      if (f > inside) { inside = f; lit = (-dx - dy * 1.3) / b.r; }
+      const dx = x - b.x,
+        dy = y - b.y,
+        f = 1 - Math.hypot(dx, dy) / b.r;
+      if (f > inside) {
+        inside = f;
+        lit = (-dx - dy * 1.3) / b.r;
+      }
     }
     const grain = n(px, py) - 0.5;
     const k = 0.62 + lit * 0.32 + grain * 0.4 + smooth(inside / 0.5) * 0.12;
@@ -103,15 +121,21 @@ function puff(v, light, dark) {
 function bank(light, dark) {
   const n = fbm(BANK_PX, 1, 4);
   return picture(BANK_PX, light, dark, (x, y) => {
-    const v = n(x, y), lit = (v - n(x + 6, y + 8)) * 5;
+    const v = n(x, y),
+      lit = (v - n(x + 6, y + 8)) * 5;
     return [Math.min(1, Math.max(0, 0.7 + (v - 0.5) * 0.6 + lit * 0.4)), 1];
   });
 }
 
 function pictures(look) {
   if (!made || made.version !== look.version) {
-    const light = look.color('color.cloud'), dark = look.color('color.cloudShade');
-    made = { version: look.version, puffs: Array.from({ length: PUFFS }, (_, v) => puff(v, light, dark)), bank: bank(light, dark) };
+    const light = look.color('color.cloud'),
+      dark = look.color('color.cloudShade');
+    made = {
+      version: look.version,
+      puffs: Array.from({ length: PUFFS }, (_, v) => puff(v, light, dark)),
+      bank: bank(light, dark)
+    };
   }
   return made;
 }
@@ -123,7 +147,8 @@ function sized(pic, w, h) {
   let hit = scaled.find((c) => c.pic === pic && c.w === w && c.h === h);
   if (!hit) {
     const canvas = document.createElement('canvas');
-    canvas.width = Math.max(1, w); canvas.height = Math.max(1, h);
+    canvas.width = Math.max(1, w);
+    canvas.height = Math.max(1, h);
     canvas.getContext('2d').drawImage(pic, 0, 0, canvas.width, canvas.height);
     hit = { pic, w, h, canvas };
     scaled.unshift(hit);
@@ -149,12 +174,17 @@ export function puffFor(look, x, y) {
 // pixels, so filling with it is a plain copy rather than a resample of every
 // pixel (up to BANK_MAX; zoomed in closer it is stretched).
 export function bankFills(ctx, look, u, d, project) {
-  const { bank } = pictures(look), a = ctx.getTransform().a;
+  const { bank } = pictures(look),
+    a = ctx.getTransform().a;
   return bankLayers(u).map(({ k, span, alpha }) => {
     const copy = bankCopy(span * u * a, span * d * a);
     const fill = ctx.createPattern(sized(bank, copy.w, copy.h), 'repeat');
     const o = project(k * 37, k * 53);
-    fill.setTransform(new DOMMatrix().translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a).scale(copy.sx / a, copy.sy / a));
+    fill.setTransform(
+      new DOMMatrix()
+        .translate(Math.round(o.x * a) / a, Math.round(o.y * a) / a)
+        .scale(copy.sx / a, copy.sy / a)
+    );
     return { fill, alpha };
   });
 }
@@ -169,7 +199,8 @@ export function puffSpan(u) {
 // to the land) and how opaque it is laid over the ones before.
 export function bankLayers(u) {
   const n = Math.max(0, Math.log(BANK_SHOWN / (BANK_SPAN * u)) / Math.log(BANK_STEP));
-  const k = Math.floor(n), t = n - k;
+  const k = Math.floor(n),
+    t = n - k;
   const layers = [{ k, span: BANK_SPAN * BANK_STEP ** k, alpha: 1 }];
   if (t > 0.01) layers.push({ k: k + 1, span: BANK_SPAN * BANK_STEP ** (k + 1), alpha: t });
   return layers;
@@ -178,14 +209,18 @@ export function bankLayers(u) {
 // The bank's kept copy for a picture shown w x h device pixels: its size,
 // never more than BANK_MAX a side, and how much the pattern stretches it.
 export function bankCopy(w, h) {
-  const cw = Math.max(1, Math.min(BANK_MAX, Math.round(w))), ch = Math.max(1, Math.min(BANK_MAX, Math.round(h)));
+  const cw = Math.max(1, Math.min(BANK_MAX, Math.round(w))),
+    ch = Math.max(1, Math.min(BANK_MAX, Math.round(h)));
   return { w: cw, h: ch, sx: w / cw, sy: h / ch };
 }
 
 // The clouds over tiles x0..x1, y0..y1 of the layer `cam` looks at.
 export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   if (cam.z !== Core.SURFACE) return;
-  const w = s.world, z = cam.z, u = cam.tilePx, d = cam.depthPx;
+  const w = s.world,
+    z = cam.z,
+    u = cam.tilePx,
+    d = cam.depthPx;
   const fog = (x, y) => !Core.isExplored(w, x, y, z);
   const { puffs } = pictures(look);
 
@@ -204,7 +239,12 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
         while (end < x1 && fog(end + 1, y)) end++;
         const p = cam.project(x, y);
         // Whole pixels, one over, so runs and rows meet without seams.
-        ctx.rect(Math.floor(p.x), Math.floor(p.y), Math.ceil((end - x + 1) * u) + 1, Math.ceil(d) + 1);
+        ctx.rect(
+          Math.floor(p.x),
+          Math.floor(p.y),
+          Math.ceil((end - x + 1) * u) + 1,
+          Math.ceil(d) + 1
+        );
         x = end;
       }
     }
@@ -215,10 +255,14 @@ export function drawFog(ctx, cam, s, look, x0, y0, x1, y1) {
   // Puffs along its edge, north to south so nearer ones cover farther ones.
   // Far out they're wider than a tile or two, so those of tiles past the
   // area reaching into it are drawn too.
-  const span = puffSpan(u), pw = u * span, ph = d * span, r = Math.ceil(span / 2 - 0.5);
+  const span = puffSpan(u),
+    pw = u * span,
+    ph = d * span,
+    r = Math.ceil(span / 2 - 0.5);
   for (let y = y0 - r; y <= y1 + r; y++) {
     for (let x = x0 - r; x <= x1 + r; x++) {
-      if (!fog(x, y) || (fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1))) continue;
+      if (!fog(x, y) || (fog(x - 1, y) && fog(x + 1, y) && fog(x, y - 1) && fog(x, y + 1)))
+        continue;
       const p = cam.project(x + 0.5, y + 0.5);
       ctx.drawImage(puffs[puffOf(x, y)], p.x - pw / 2, p.y - ph / 2, pw, ph);
     }

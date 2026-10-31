@@ -10,13 +10,41 @@
  * their secret key. */
 
 import {
-  LIMITS, parse, cleanPos, cleanEdits, cleanSave, cleanCreate, playerId, editInReach, cleanInviteAsk, unpackKey, KEY_RE, cleanActs
+  LIMITS,
+  parse,
+  cleanPos,
+  cleanEdits,
+  cleanSave,
+  cleanCreate,
+  playerId,
+  editInReach,
+  cleanInviteAsk,
+  unpackKey,
+  KEY_RE,
+  cleanActs
 } from '../../src/net/protocol.js';
 import { Shadow, playedIn } from './shadow.js';
 import { WORLD_FORMAT, ECON_FORMAT } from '../../src/core/format.js';
 import { baseRichness } from '../../src/core/world.js';
-import { SAMPLE_MS, PROG_MS, digestOf, progressEvent, sameDigest, codeTag, kindTag } from './audit.js';
-import { bucketOf, clean, everything, isDirty, keysOf, markKeys, piecesOf, modsIn } from './stored.js';
+import {
+  SAMPLE_MS,
+  PROG_MS,
+  digestOf,
+  progressEvent,
+  sameDigest,
+  codeTag,
+  kindTag
+} from './audit.js';
+import {
+  bucketOf,
+  clean,
+  everything,
+  isDirty,
+  keysOf,
+  markKeys,
+  piecesOf,
+  modsIn
+} from './stored.js';
 import * as Invites from './invites.js';
 import { newWatch, step, countCheat, CHEATS_TO_FREEZE } from './moves.js';
 
@@ -26,13 +54,13 @@ export { INVITE_MS, MAX_INVITES } from './invites.js';
 export { MAX_SPEED, MOVE_BURST, CHEATS_TO_FREEZE, CHEAT_FORGIVE_MS } from './moves.js';
 export { visitor, Bucket, STRIKE_FORGIVE_MS, editBucket } from './limits.js';
 
-export const LOST_TO_OFFLINE_MS = 60_000;   // connection lost this long: offline
-export const SMOKE_SEED = 12345;               // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
-export const NEAR = 48;                      // tiles: players this close hear each other's every step
-export const FAR_MS = 2000;                  // everyone else hears where you are this often
-export const STATUS_MS = 2000;               // a player's away/back changes, at most this often (the game waits it out)
-export const MAX_GRAVES = 300;               // tombstones a world keeps (the oldest go first)
-export const DRIFT_LOG_MS = 60_000;          // a player's drift goes in the log at most this often
+export const LOST_TO_OFFLINE_MS = 60_000; // connection lost this long: offline
+export const SMOKE_SEED = 12345; // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
+export const NEAR = 48; // tiles: players this close hear each other's every step
+export const FAR_MS = 2000; // everyone else hears where you are this often
+export const STATUS_MS = 2000; // a player's away/back changes, at most this often (the game waits it out)
+export const MAX_GRAVES = 300; // tombstones a world keeps (the oldest go first)
+export const DRIFT_LOG_MS = 60_000; // a player's drift goes in the log at most this often
 // Steps and edits are watched (moves.js): enough cheats freeze a character.
 // What one player may add to a world, so one player can't fill it for
 // everyone. What the world held when it was made doesn't count.
@@ -51,17 +79,17 @@ export class Room {
     this.seed = 0;
     this.created = now;
     this.last = now;
-    this.dawn = now;             // when (ms) the world's clock read 0; it never stops
+    this.dawn = now; // when (ms) the world's clock read 0; it never stops
     this.mods = new Map();
     this.props = new Map();
-    this.ext = [];               // [kind, x, y, z, owner]
+    this.ext = []; // [kind, x, y, z, owner]
     this.extTiles = new Set();
-    this.players = new Map();    // id -> {c, st, p, save, lostAt, gone}
+    this.players = new Map(); // id -> {c, st, p, save, lostAt, gone}
     // Invite links (the code in a QR) -> {by, made, until, uses, off}: who
     // made it, when, until when it works, how many joined with it, and
     // whether it was stopped. Only a new player needs one; anyone already in
     // the world comes back with their key.
-    this.invites = new Map();  // see invites.js
+    this.invites = new Map(); // see invites.js
     // Every world is kept, always (Watch, 2026-10-18): nothing resets a
     // world, and there is no nuke. `fmt` and `ef` say which WORLD_FORMAT and
     // ECON_FORMAT the room plays by (always the current ones, see restore);
@@ -105,7 +133,17 @@ export class Room {
     const r = new Room(id, now);
     const meta = entries.get('meta');
     if (!meta) return r;
-    Object.assign(r, { seed: meta.seed, created: meta.created, last: meta.last, dawn: meta.dawn ?? meta.created, gen: meta.gen ?? 0, fmt: meta.fmt ?? 0, ef: meta.ef ?? 0, smoke: meta.smk === true, ready: true });
+    Object.assign(r, {
+      seed: meta.seed,
+      created: meta.created,
+      last: meta.last,
+      dawn: meta.dawn ?? meta.created,
+      gen: meta.gen ?? 0,
+      fmt: meta.fmt ?? 0,
+      ef: meta.ef ?? 0,
+      smoke: meta.smk === true,
+      ready: true
+    });
     r.graves = Array.isArray(meta.gv) ? meta.gv : [];
     r.copy = meta.copy ?? null;
     // A world made under an older format is kept and plays on under the
@@ -121,7 +159,10 @@ export class Room {
     for (const [k, v] of entries) if (k.startsWith('p:')) r.players.set(k.slice(2), v);
     if (moved) r.dirty.buckets = everything([]).buckets;
     for (const [key, kind] of entries.get('props') || []) r.props.set(key, kind);
-    for (const e of entries.get('ext') || []) { r.ext.push(e); r.extTiles.add(extAt(e[1], e[2], e[3])); }
+    for (const e of entries.get('ext') || []) {
+      r.ext.push(e);
+      r.extTiles.add(extAt(e[1], e[2], e[3]));
+    }
     return r;
   }
 
@@ -140,7 +181,20 @@ export class Room {
   // The entries the parts marked in `d` take ({key: value}).
   writesOf(d) {
     const out = new Map();
-    if (d.meta) out.set('meta', { seed: this.seed, created: this.created, last: this.last, dawn: this.dawn, inv: [...this.invites], gen: this.gen, fmt: this.fmt, ef: this.ef, smk: this.smoke === true, gv: this.graves, ...(this.copy ? { copy: this.copy } : {}) });
+    if (d.meta)
+      out.set('meta', {
+        seed: this.seed,
+        created: this.created,
+        last: this.last,
+        dawn: this.dawn,
+        inv: [...this.invites],
+        gen: this.gen,
+        fmt: this.fmt,
+        ef: this.ef,
+        smk: this.smoke === true,
+        gv: this.graves,
+        ...(this.copy ? { copy: this.copy } : {})
+      });
     for (const [k, list] of piecesOf(this.mods, d.buckets)) out.set(k, list);
     if (d.props) out.set('props', [...this.props]);
     if (d.ext) out.set('ext', this.ext);
@@ -151,7 +205,10 @@ export class Room {
       const pl = this.players.get(id);
       if (pl && this.shadow?.has(id)) {
         const now = this.saveFor(id, pl);
-        if (now) { pl.save = now; pl.savedAt = this.shadow.atOf(id) ?? pl.savedAt; }
+        if (now) {
+          pl.save = now;
+          pl.savedAt = this.shadow.atOf(id) ?? pl.savedAt;
+        }
       }
       out.set('p:' + id, pl || null); // null: delete
     }
@@ -183,7 +240,9 @@ export class Room {
     // made from the creator's seed alone, and their save and edits are not
     // taken (an older game still sends them).
     const world = c.world;
-    world.mods = []; world.props = []; world.ext = [];
+    world.mods = [];
+    world.props = [];
+    world.ext = [];
     const save = null;
     const pos = null;
     const time = c.time;
@@ -205,8 +264,14 @@ export class Room {
     this.players.set(first, { c: 0, st: 'offline', p: pos, save, lostAt: 0 });
     this.ready = true;
     this.created = this.last = now;
-    this.dawn = now - time * 1000;   // the world goes on from the creator's time of day
-    this.audit(now, first, 'create', { seed: this.seed, fmt: this.fmt, mods: this.mods.size, props: this.props.size, ext: this.ext.length });
+    this.dawn = now - time * 1000; // the world goes on from the creator's time of day
+    this.audit(now, first, 'create', {
+      seed: this.seed,
+      fmt: this.fmt,
+      mods: this.mods.size,
+      props: this.props.size,
+      ext: this.ext.length
+    });
     this.dirty = everything([first]);
     return null;
   }
@@ -229,7 +294,10 @@ export class Room {
     }
     let pl = this.players.get(id);
     // A frozen character can't be played (see freeze): the game shows why.
-    if (pl && pl.frozen) { this.audit(now, id, 'deny', { why: 'frozen' }); return { error: 'frozen' }; }
+    if (pl && pl.frozen) {
+      this.audit(now, id, 'deny', { why: 'frozen' });
+      return { error: 'frozen' };
+    }
     const fresh = !pl;
     if (!pl) {
       const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
@@ -238,7 +306,10 @@ export class Room {
         // Say why, so a friend knows whether to ask for a new link or more room on it.
         return { error: 'invite', why: inv ? Invites.whyNot(inv, now) : undefined };
       }
-      if (this.players.size >= LIMITS.players) { this.audit(now, id, 'deny', { why: 'full' }); return { error: 'full' }; }
+      if (this.players.size >= LIMITS.players) {
+        this.audit(now, id, 'deny', { why: 'full' });
+        return { error: 'full' };
+      }
       // Whoever made the link has brought in their share for today.
       const host = this.players.get(inv.by);
       if (host) {
@@ -262,7 +333,8 @@ export class Room {
     }
     // Left before rooms noted when (v0.100.0): away since their last progress,
     // so their buildings make what they would have meanwhile too (shadow.js away).
-    if (!fresh && pl.st === 'offline' && !pl.gone && pl.save && Number.isFinite(pl.savedAt)) pl.gone = [pl.savedAt, playedIn(pl.save)];
+    if (!fresh && pl.st === 'offline' && !pl.gone && pl.save && Number.isFinite(pl.savedAt))
+      pl.gone = [pl.savedAt, playedIn(pl.save)];
     // Freeze season: their own choice for time away, whatever they came in
     // with this time (they may have changed it in Settings since). A game
     // from before the setting says nothing, and then the room keeps what it
@@ -276,7 +348,13 @@ export class Room {
     this.touch(now);
     this.dirty.players.add(id);
     this.acts.set(id, this.newAct(now, this.acts.get(id)));
-    this.audit(now, id, 'join', { new: fresh, c: pl.c, ...(fresh ? { via: codeTag(pl.via) } : {}), at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null, online: this.online() });
+    this.audit(now, id, 'join', {
+      new: fresh,
+      c: pl.c,
+      ...(fresh ? { via: codeTag(pl.via) } : {}),
+      at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null,
+      online: this.online()
+    });
     return { id, welcome: this.welcome(id, now) };
   }
 
@@ -292,19 +370,31 @@ export class Room {
 
   welcome(id, now) {
     const others = {};
-    for (const [pid, p] of this.players) if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
+    for (const [pid, p] of this.players)
+      if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
     const me = this.players.get(id);
     return {
-      t: 'welcome', you: id, c: me.c, seed: this.seed,
-      mods: [...this.mods], props: [...this.props], ext: this.ext,
-      players: others, save: this.saveFor(id, me), p: me.p, time: this.clock(now), gen: this.gen, nuke: null,
+      t: 'welcome',
+      you: id,
+      c: me.c,
+      seed: this.seed,
+      mods: [...this.mods],
+      props: [...this.props],
+      ext: this.ext,
+      players: others,
+      save: this.saveFor(id, me),
+      p: me.p,
+      time: this.clock(now),
+      gen: this.gen,
+      nuke: null,
       graves: this.graves,
       // The world format it plays by: a game on another one can't grow the
       // same land (src/game/together.js).
       fmt: this.fmt,
       // This room answers PING (worker.js) and acknowledges numbered edits
       // ('ack'): games only rely on either when the room says so.
-      pong: true, ack: true,
+      pong: true,
+      ack: true,
       // The room keeps its own copy of your progress from what you did:
       // games send 'acts' (src/core/acts.js) when it says so.
       acts: true,
@@ -323,7 +413,11 @@ export class Room {
   saveFor(id, me) {
     if (!this.shadow?.has(id)) return me.save;
     let kept;
-    try { kept = me.save && JSON.parse(me.save); } catch { kept = null; }
+    try {
+      kept = me.save && JSON.parse(me.save);
+    } catch {
+      kept = null;
+    }
     return cleanSave(this.shadow.saveOf(id, kept)) || me.save;
   }
 
@@ -338,7 +432,11 @@ export class Room {
     if (!p) return null;
     this.sample(id, now, true);
     const act = this.acts.get(id);
-    this.audit(now, id, 'leave', { clean, secs: act ? Math.round((now - act.since) / 1000) : null, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null });
+    this.audit(now, id, 'leave', {
+      clean,
+      secs: act ? Math.round((now - act.since) / 1000) : null,
+      at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null
+    });
     p.st = clean ? 'offline' : 'lost';
     p.lostAt = clean ? 0 : now;
     // Away from here (unless still away since an earlier leave): when, and
@@ -410,7 +508,10 @@ export class Room {
       if (step === 'place') return { toSelf: [{ t: 'place', p: pl.p }] };
       if (step === 'wait') return {};
       if (step === 'far') {
-        return this.cheat(id, now, 'speed', { from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z], to: [Math.round(p.x), Math.round(p.y), p.z] });
+        return this.cheat(id, now, 'speed', {
+          from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z],
+          to: [Math.round(p.x), Math.round(p.y), p.z]
+        });
       }
       pl.at = now;
       const act = this.actOf(id, now);
@@ -438,7 +539,13 @@ export class Room {
       // Their game's progress is only compared: the room keeps its own.
       const save = cleanSave(d.s);
       if (!save) return { drop: true };
-      const { drift, why, save: ours, ms, away } = this.shadowOf().settle(id, save, now, this, pl.gone, pl.awayProduce === true);
+      const {
+        drift,
+        why,
+        save: ours,
+        ms,
+        away
+      } = this.shadowOf().settle(id, save, now, this, pl.gone, pl.awayProduce === true);
       const kept = ours && cleanSave(ours);
       if (!kept) return {};
       pl.save = kept;
@@ -455,7 +562,18 @@ export class Room {
       // ...unless their game is off: then it's told what they really have
       // (that included), as of the progress it sent, and why, if the room
       // refused something (shadow.js whyNot): the game tells the player.
-      return { toSelf: [{ t: 'econ', ms, s: kept, ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}), ...(said ? { away: said } : {}), ...(why.length ? { why } : {}) }] };
+      return {
+        toSelf: [
+          {
+            t: 'econ',
+            ms,
+            s: kept,
+            ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}),
+            ...(said ? { away: said } : {}),
+            ...(why.length ? { why } : {})
+          }
+        ]
+      };
     }
     if (d.t === 'acts') {
       const list = cleanActs(d.a);
@@ -503,7 +621,11 @@ export class Room {
       // through the admin route (modRevoke).
       const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
       if (!inv || inv.by !== id) return { drop: true };
-      if (!inv.off) { inv.off = true; this.dirty.meta = true; this.audit(now, id, 'revoke', { code: codeTag(d.code) }); }
+      if (!inv.off) {
+        inv.off = true;
+        this.dirty.meta = true;
+        this.audit(now, id, 'revoke', { code: codeTag(d.code) });
+      }
       return { toSelf: [this.inviteList(id)] };
     }
     // There is no nuke any more: an old game pressing it changes nothing.
@@ -527,11 +649,17 @@ export class Room {
     for (const e of list) {
       // Buildings and props come from the room's copy of what they did (made).
       if (e[0] !== 'm') continue;
-      if (!editInReach(e, pl.p)) { if (pl.p) far = e; continue; }
+      if (!editInReach(e, pl.p)) {
+        if (pl.p) far = e;
+        continue;
+      }
       // Nothing grows back (src/core/sim.js), so a tile's richness only ever
       // goes down: an edit raising it is refused (an old game regrowing it,
       // or someone refilling a deposit).
-      if (e[2] > this.richnessAt(e[1])) { act.no++; continue; }
+      if (e[2] > this.richnessAt(e[1])) {
+        act.no++;
+        continue;
+      }
       if (this.apply(e, id)) {
         applied.push(e);
         act.m++;
@@ -541,7 +669,11 @@ export class Room {
     const out = applied.length ? { toAll: [{ t: 'edits', id, e: applied }] } : {};
     if (!far) return out;
     const t = far[0] === 'x' ? { x: far[2], y: far[3], z: far[4] } : unpackKey(far[1]);
-    const frozen = this.cheat(id, now, 'reach', { kind: far[0], at: [t.x, t.y, t.z], from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] });
+    const frozen = this.cheat(id, now, 'reach', {
+      kind: far[0],
+      at: [t.x, t.y, t.z],
+      from: [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z]
+    });
     return frozen.kick ? frozen : out;
   }
 
@@ -553,7 +685,7 @@ export class Room {
   }
 
   shadowOf() {
-    return this.shadow ||= new Shadow(this.seed);
+    return (this.shadow ||= new Shadow(this.seed));
   }
 
   // Buildings and props player `id` put up, as the room's copy of their
@@ -563,14 +695,21 @@ export class Room {
   // way drops only the moves. A move the world had no room for goes back to
   // the mover's game as a move back.
   made(id, list, now) {
-    const applied = [], moved = [], back = [];
+    const applied = [],
+      moved = [],
+      back = [];
     const act = this.actOf(id, now);
     for (const e of list) {
       if (this.apply(e, id)) {
-        if (e[0] === 'v') { moved.push(e); this.audit(now, id, 'move', { from: [e[1], e[2], e[3]], at: [e[4], e[5], e[3]] }); continue; }
+        if (e[0] === 'v') {
+          moved.push(e);
+          this.audit(now, id, 'move', { from: [e[1], e[2], e[3]], at: [e[4], e[5], e[3]] });
+          continue;
+        }
         applied.push(e[0] === 'x' ? [...e, id] : e);
         act[e[0]]++;
-        if (e[0] === 'x') this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
+        if (e[0] === 'x')
+          this.audit(now, id, 'build', { k: kindTag(e[1]), at: [e[2], e[3], e[4]] });
       } else {
         this.shadow?.unmake(id, e); // the world is full: not built after all
         if (e[0] === 'v') back.push(['v', e[4], e[5], e[3], e[1], e[2]]);
@@ -581,7 +720,10 @@ export class Room {
     if (applied.length) toAll.push({ t: 'edits', id, e: applied });
     if (moved.length) toAll.push({ t: 'edits', id, e: moved });
     const out = {};
-    if (toAll.length) { this.touch(now); out.toAll = toAll; }
+    if (toAll.length) {
+      this.touch(now);
+      out.toAll = toAll;
+    }
     if (back.length) out.toSelf = [{ t: 'edits', id, e: back }];
     return out;
   }
@@ -598,7 +740,7 @@ export class Room {
 
   watchOf(id, now) {
     let w = this.watch.get(id);
-    if (!w) this.watch.set(id, w = newWatch(now));
+    if (!w) this.watch.set(id, (w = newWatch(now)));
     return w;
   }
 
@@ -612,7 +754,8 @@ export class Room {
   cheat(id, now, why, detail = {}) {
     const w = this.watchOf(id, now);
     if (countCheat(w, now)) this.audit(now, id, 'cheat', { why, n: w.cheats, ...detail });
-    if (w.cheats >= CHEATS_TO_FREEZE && this.players.has(id) && !this.players.get(id).frozen) return this.freeze(id, now, 'anti-cheat: ' + why, 'auto');
+    if (w.cheats >= CHEATS_TO_FREEZE && this.players.has(id) && !this.players.get(id).frozen)
+      return this.freeze(id, now, 'anti-cheat: ' + why, 'auto');
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
   }
 
@@ -621,7 +764,11 @@ export class Room {
   revokeAny(code, now) {
     const inv = typeof code === 'string' ? this.invites.get(code) : undefined;
     if (!inv) return 'link';
-    if (!inv.off) { inv.off = true; this.dirty.meta = true; this.audit(now, null, 'revoke', { code: codeTag(code), by: 'mod' }); }
+    if (!inv.off) {
+      inv.off = true;
+      this.dirty.meta = true;
+      this.audit(now, null, 'revoke', { code: codeTag(code), by: 'mod' });
+    }
     return null;
   }
 
@@ -703,12 +850,24 @@ export class Room {
   }
 
   newAct(now, old) {
-    return { since: now, at: now, dist: 0, layers: 0, m: 0, p: 0, x: 0, no: 0, drops: 0, dg: old ? old.dg : null, dgAt: old ? old.dgAt : 0 };
+    return {
+      since: now,
+      at: now,
+      dist: 0,
+      layers: 0,
+      m: 0,
+      p: 0,
+      x: 0,
+      no: 0,
+      drops: 0,
+      dg: old ? old.dg : null,
+      dgAt: old ? old.dgAt : 0
+    };
   }
 
   actOf(id, now) {
     let a = this.acts.get(id);
-    if (!a) this.acts.set(id, a = this.newAct(now));
+    if (!a) this.acts.set(id, (a = this.newAct(now)));
     return a;
   }
 
@@ -717,15 +876,22 @@ export class Room {
   // and the time between samples show where people spend their time and
   // where they get stuck.
   sample(id, now, force = false) {
-    const a = this.acts.get(id), pl = this.players.get(id);
+    const a = this.acts.get(id),
+      pl = this.players.get(id);
     if (!a || !pl || (!force && now - a.at < SAMPLE_MS)) return;
     const busy = a.dist >= 0.5 || a.layers || a.m || a.p || a.x || a.no || a.drops;
     if (busy || !force) {
       const p = pl.p;
       this.audit(now, id, 'at', {
         ...(p ? { x: Math.round(p.x), y: Math.round(p.y), z: p.z, act: p.a || null } : {}),
-        secs: Math.round((now - a.at) / 1000), walked: Math.round(a.dist), layers: a.layers,
-        dug: a.m, props: a.p, built: a.x, refused: a.no, drops: a.drops
+        secs: Math.round((now - a.at) / 1000),
+        walked: Math.round(a.dist),
+        layers: a.layers,
+        dug: a.m,
+        props: a.p,
+        built: a.x,
+        refused: a.no,
+        drops: a.drops
       });
     }
     Object.assign(a, { at: now, dist: 0, layers: 0, m: 0, p: 0, x: 0, no: 0, drops: 0 });
@@ -753,10 +919,18 @@ export class Room {
   roster(now) {
     const out = [];
     for (const [id, p] of this.players) {
-      const w = this.watch.get(id), a = this.acts.get(id);
+      const w = this.watch.get(id),
+        a = this.acts.get(id);
       out.push({
-        id, c: p.c, st: p.st, at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
-        cheats: w ? w.cheats : 0, frozen: !!p.frozen, via: codeTag(p.via), sessionSecs: a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
+        id,
+        c: p.c,
+        st: p.st,
+        at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
+        cheats: w ? w.cheats : 0,
+        frozen: !!p.frozen,
+        via: codeTag(p.via),
+        sessionSecs:
+          a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,
         progress: p.save ? digestOf(p.save) : null,
         shadow: this.shadow?.report(id) ?? null // the room's own copy: checks, how many were off, acts refused
       });
@@ -781,7 +955,10 @@ export class Room {
     if (e[0] === 'm') {
       if (!this.mods.has(e[1])) {
         if (this.mods.size >= LIMITS.mods || (pl && (pl.nm || 0) >= PLAYER_TILES)) return false;
-        if (pl) { pl.nm = (pl.nm || 0) + 1; this.dirty.players.add(by); }
+        if (pl) {
+          pl.nm = (pl.nm || 0) + 1;
+          this.dirty.players.add(by);
+        }
       }
       this.mods.set(e[1], e[2]);
       this.dirty.buckets.add(bucketOf(e[1]));
@@ -790,17 +967,22 @@ export class Room {
     if (e[0] === 'p') {
       if (this.props.has(e[1]) || this.props.size >= LIMITS.props) return false;
       if (pl && (pl.np || 0) >= PLAYER_PROPS) return false;
-      if (pl) { pl.np = (pl.np || 0) + 1; this.dirty.players.add(by); }
+      if (pl) {
+        pl.np = (pl.np || 0) + 1;
+        this.dirty.players.add(by);
+      }
       this.props.set(e[1], e[2]);
       this.dirty.props = true;
       return true;
     }
     if (e[0] === 'v') {
       // Only your own building moves, and only onto a free tile.
-      const from = extAt(e[1], e[2], e[3]), to = extAt(e[4], e[5], e[3]);
+      const from = extAt(e[1], e[2], e[3]),
+        to = extAt(e[4], e[5], e[3]);
       const b = this.ext.find((x) => x[1] === e[1] && x[2] === e[2] && x[3] === e[3]);
       if (!b || b[4] !== by || (to !== from && this.extTiles.has(to))) return false;
-      b[1] = e[4]; b[2] = e[5];
+      b[1] = e[4];
+      b[2] = e[5];
       this.extTiles.delete(from);
       this.extTiles.add(to);
       this.dirty.ext = true;
@@ -810,7 +992,10 @@ export class Room {
       const at = extAt(e[2], e[3], e[4]);
       if (this.extTiles.has(at) || this.ext.length >= LIMITS.extractors) return false;
       if (pl && (pl.nx || 0) >= PLAYER_BUILDINGS) return false;
-      if (pl) { pl.nx = (pl.nx || 0) + 1; this.dirty.players.add(by); }
+      if (pl) {
+        pl.nx = (pl.nx || 0) + 1;
+        this.dirty.players.add(by);
+      }
       this.ext.push([e[1], e[2], e[3], e[4], by]);
       this.extTiles.add(at);
       this.dirty.ext = true;

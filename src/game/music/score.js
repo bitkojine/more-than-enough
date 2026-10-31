@@ -36,7 +36,11 @@ export const TRACKS = {
   // Open land by day: a bright, singable tune over a harp, the "you have
   // just arrived somewhere friendly" feeling.
   meadow: {
-    name: 'music.meadow', tempo: 92, meter: 4, root: 74, mode: 'ionian',
+    name: 'music.meadow',
+    tempo: 92,
+    meter: 4,
+    root: 74,
+    mode: 'ionian',
     band: { lead: 'flute', echo: 'harp', comp: 'arp', bass: 'bass', pad: false, drum: false },
     space: 0.28,
     form: ['I', 'A', 'A', 'B', 'A'],
@@ -44,12 +48,14 @@ export const TRACKS = {
       I: { chords: '1 | 4 | 1 | 5', melody: '-/4 | -/4 | -/4 | -/4' },
       A: {
         chords: '1 | 5 | 6 | 4 | 1 | 5 | 4 5 | 1',
-        melody: '3/1.5 2/.5 1 2 | 2/1.5 1/.5 7, 5, | 1 3 6/1.5 5/.5 | 4 3 1/2 | ' +
+        melody:
+          '3/1.5 2/.5 1 2 | 2/1.5 1/.5 7, 5, | 1 3 6/1.5 5/.5 | 4 3 1/2 | ' +
           '3/1.5 2/.5 1 2 | 3 5 4 2 | 1 2/.5 3/.5 2 7, | 1/3 -/1'
       },
       B: {
         chords: '4 | 1 | 4 | 5 | 6 | 3 | 4 | 5',
-        melody: "6/1.5 5/.5 4 6 | 5/2 3 1 | 6/1.5 1'/.5 6 5 | 5/2 4 2 | " +
+        melody:
+          "6/1.5 5/.5 4 6 | 5/2 3 1 | 6/1.5 1'/.5 6 5 | 5/2 4 2 | " +
           "3/1.5 4/.5 5 6 | 7 6 5/2 | 4 6 1' 6 | 5/3 -/1"
       }
     }
@@ -57,7 +63,11 @@ export const TRACKS = {
 
   // Under the trees by day: a folk waltz in dorian, lute and recorder.
   forest: {
-    name: 'music.forest', tempo: 108, meter: 3, root: 74, mode: 'dorian',
+    name: 'music.forest',
+    tempo: 108,
+    meter: 3,
+    root: 74,
+    mode: 'dorian',
     band: { lead: 'flute', echo: 'harp', comp: 'waltz', bass: 'bass', pad: true, drum: false },
     space: 0.35,
     form: ['I', 'A', 'A', 'B', 'A'],
@@ -69,14 +79,20 @@ export const TRACKS = {
       },
       B: {
         chords: '3 | 7 | 4 | 5 | 3 | 7 | 4 5 | 1',
-        melody: "5 1' 6/.5 5/.5 | 7/1.5 6/.5 5 | 4 5 6 | 5/2 -/1 | 1'/1.5 7/.5 6 | 5 3 4 | 2 3 4 | 1/3"
+        melody:
+          "5 1' 6/.5 5/.5 | 7/1.5 6/.5 5 | 4 5 6 | 5/2 -/1 | 1'/1.5 7/.5 6 | 5 3 4 | 2 3 4 | 1/3"
       }
     }
   },
 
   // Out on the water: a rowing jig in 6/8, squeezebox over an oom-pah.
   water: {
-    name: 'music.water', tempo: 270, meter: 6, root: 67, mode: 'mixolydian', gain: 0.8,
+    name: 'music.water',
+    tempo: 270,
+    meter: 6,
+    root: 67,
+    mode: 'mixolydian',
+    gain: 0.8,
     band: { lead: 'reed', echo: 'flute', comp: 'oompah', bass: 'bass', pad: false, drum: true },
     space: 0.22,
     form: ['I', 'A', 'B', 'A', 'B'],
@@ -84,12 +100,14 @@ export const TRACKS = {
       I: { chords: '1 | 7 | 1 | 7', melody: '-/6 | -/6 | -/6 | -/6' },
       A: {
         chords: '1 | 1 | 7 | 7 | 1 | 4 | 5 7 | 1',
-        melody: '1/2 1 3/2 1 | 5/2 4 3/2 2 | 7,/2 2 4/2 2 | 4/2 6 5/2 4 | ' +
+        melody:
+          '1/2 1 3/2 1 | 5/2 4 3/2 2 | 7,/2 2 4/2 2 | 4/2 6 5/2 4 | ' +
           '3/2 4 5/2 3 | 4/2 3 4/2 6 | 5/3 4/2 2 | 1/3 -/3'
       },
       B: {
         chords: '4 | 1 | 7 | 1 | 4 | 1 | 5 7 | 1',
-        melody: "1'/2 1' 7/2 6 | 5/3 3/3 | 4/2 4 2/2 7, | 1/2 2 3/3 | " +
+        melody:
+          "1'/2 1' 7/2 6 | 5/3 3/3 | 4/2 4 2/2 7, | 1/2 2 3/3 | " +
           "1'/2 7 6/2 5 | 3/2 5 1'/3 | 7/3 6/2 4 | 5/2 2 1/3"
       }
     }
@@ -98,7 +116,12 @@ export const TRACKS = {
   // The heath by day: wide and windswept, a lone flute over held strings
   // and slow plucked chords, in mixolydian.
   heath: {
-    name: 'music.heath', tempo: 84, meter: 4, root: 74, mode: 'mixolydian', gain: 1.4,
+    name: 'music.heath',
+    tempo: 84,
+    meter: 4,
+    root: 74,
+    mode: 'mixolydian',
+    gain: 1.4,
     band: { lead: 'flute', echo: 'bell', comp: 'drone', bass: 'bass', pad: true, drum: false },
     space: 0.4,
     form: ['I', 'A', 'A', 'B', 'A'],
@@ -106,12 +129,14 @@ export const TRACKS = {
       I: { chords: '1 | 7 | 1 | 7', melody: '-/4 | -/4 | -/4 | -/4' },
       A: {
         chords: '1 | 7 | 4 | 1 | 1 | 7 | 5 4 | 1',
-        melody: "5/2 3 1 | 4/1.5 2/.5 7,/2 | 1 4 6/1.5 5/.5 | 5/3 -/1 | " +
+        melody:
+          '5/2 3 1 | 4/1.5 2/.5 7,/2 | 1 4 6/1.5 5/.5 | 5/3 -/1 | ' +
           "3/1.5 4/.5 5 1' | 7/2 6 4 | 5 2 1 6, | 1/4"
       },
       B: {
         chords: '4 | 1 | 7 | 1 | 4 | 1 | 2 | 7',
-        melody: "1' 6 4 6 | 5/2 3/2 | 4 2 7, 2 | 3/3 -/1 | 6/1.5 1'/.5 2' 1' | 5/2 3 5 | 2 4 6 4 | 4/3 -/1"
+        melody:
+          "1' 6 4 6 | 5/2 3/2 | 4 2 7, 2 | 3/3 -/1 | 6/1.5 1'/.5 2' 1' | 5/2 3 5 | 2 4 6 4 | 4/3 -/1"
       }
     }
   },
@@ -119,7 +144,12 @@ export const TRACKS = {
   // The highlands by day: a proud march on pipes over a drone and a drum,
   // in dorian.
   highlands: {
-    name: 'music.highlands', tempo: 96, meter: 4, root: 69, mode: 'dorian', gain: 1.1,
+    name: 'music.highlands',
+    tempo: 96,
+    meter: 4,
+    root: 69,
+    mode: 'dorian',
+    gain: 1.1,
     band: { lead: 'reed', echo: 'flute', comp: 'drone', bass: 'bass', pad: true, drum: true },
     space: 0.3,
     form: ['I', 'A', 'A', 'B', 'A', 'B'],
@@ -127,12 +157,14 @@ export const TRACKS = {
       I: { chords: '1 | 1 | 7 | 1', melody: '-/4 | -/4 | -/4 | -/4' },
       A: {
         chords: '1 | 1 | 7 | 7 | 1 | 1 | 7 4 | 1',
-        melody: "1/.5 2/.5 3 5 3 | 5/1.5 6/.5 5 3 | 2/2 7, 2 | 4/1.5 2/.5 7,/2 | " +
+        melody:
+          '1/.5 2/.5 3 5 3 | 5/1.5 6/.5 5 3 | 2/2 7, 2 | 4/1.5 2/.5 7,/2 | ' +
           "1/.5 2/.5 3 5 1' | 7/1.5 5/.5 6 5 | 2 7, 4 6 | 1/3 -/1"
       },
       B: {
         chords: '3 | 7 | 4 | 1 | 3 | 7 | 4 7 | 1',
-        melody: "5/1.5 5/.5 1' 7 | 7/2 5 2 | 6/1.5 4/.5 1 4 | 5/3 -/1 | " +
+        melody:
+          "5/1.5 5/.5 1' 7 | 7/2 5 2 | 6/1.5 4/.5 1 4 | 5/3 -/1 | " +
           "1'/1.5 2'/.5 3' 1' | 7/1.5 1'/.5 7 5 | 4 6 2 7, | 1/4"
       }
     }
@@ -141,7 +173,12 @@ export const TRACKS = {
   // The fens by day: still water and mist, a low flute over rippling harp
   // in a slow 6/8, in lydian (the dreamy raised fourth).
   fen: {
-    name: 'music.fen', tempo: 150, meter: 6, root: 65, mode: 'lydian', gain: 1.1,
+    name: 'music.fen',
+    tempo: 150,
+    meter: 6,
+    root: 65,
+    mode: 'lydian',
+    gain: 1.1,
     band: { lead: 'flute', echo: 'bell', comp: 'arp', bass: 'bass', pad: true, drum: false },
     space: 0.55,
     form: ['I', 'A', 'B', 'A'],
@@ -149,18 +186,25 @@ export const TRACKS = {
       I: { chords: '1 | 2 | 1 | 2', melody: '-/6 | -/6 | -/6 | -/6' },
       A: {
         chords: '1 | 2 | 1 | 2 | 6 | 3 | 2 5 | 1',
-        melody: "5/3 3/2 1 | 2/3 4/2 6 | 5/2 6 5/2 3 | 4/6 | 6/3 1'/2 6 | 5/2 3 7,/3 | 2/2 4 5/3 | 1/6"
+        melody:
+          "5/3 3/2 1 | 2/3 4/2 6 | 5/2 6 5/2 3 | 4/6 | 6/3 1'/2 6 | 5/2 3 7,/3 | 2/2 4 5/3 | 1/6"
       },
       B: {
         chords: '6 | 3 | 2 | 1 | 6 | 3 | 2 | 5',
-        melody: "1'/3 6/2 4 | 5/3 3/3 | 4/2 6 2'/3 | 1'/3 5/3 | 6/2 1' 3'/3 | 2'/2 1' 7/3 | 6/3 4/3 | 5/6"
+        melody:
+          "1'/3 6/2 4 | 5/3 3/3 | 4/2 6 2'/3 | 1'/3 5/3 | 6/2 1' 3'/3 | 2'/2 1' 7/3 | 6/3 4/3 | 5/6"
       }
     }
   },
 
   // The surface at night: a slow music-box lullaby over soft strings.
   night: {
-    name: 'music.night', tempo: 66, meter: 4, root: 81, mode: 'aeolian', gain: 2.6,
+    name: 'music.night',
+    tempo: 66,
+    meter: 4,
+    root: 81,
+    mode: 'aeolian',
+    gain: 2.6,
     band: { lead: 'bell', echo: 'harp', comp: 'arp', bass: false, pad: true, drum: false },
     space: 0.45,
     form: ['I', 'A', 'B', 'A'],
@@ -172,7 +216,8 @@ export const TRACKS = {
       },
       B: {
         chords: '6 | 7 | 1 | 1 | 4 | 6 | 7 | 7',
-        melody: "3'/2 1' 6 | 2'/2 7 5 | 1'/1.5 7/.5 6 5 | 3/3 -/1 | 4 6 1' 6 | 5/2 3 1 | 2/1.5 3/.5 2 7, | 2/3 -/1"
+        melody:
+          "3'/2 1' 6 | 2'/2 7 5 | 1'/1.5 7/.5 6 5 | 3/3 -/1 | 4 6 1' 6 | 5/2 3 1 | 2/1.5 3/.5 2 7, | 2/3 -/1"
       }
     }
   },
@@ -180,7 +225,11 @@ export const TRACKS = {
   // The first mine layers: a busy, curious tune on mallets over a
   // plucked ostinato, the sound of people at work underground.
   mines: {
-    name: 'music.mines', tempo: 100, meter: 4, root: 76, mode: 'dorian',
+    name: 'music.mines',
+    tempo: 100,
+    meter: 4,
+    root: 76,
+    mode: 'dorian',
     band: { lead: 'mallet', echo: 'flute', comp: 'ostinato', bass: 'bass', pad: true, drum: false },
     space: 0.5,
     form: ['I', 'A', 'A', 'B', 'A'],
@@ -188,12 +237,14 @@ export const TRACKS = {
       I: { chords: '1 | 1 | 7 | 7', melody: '-/4 | -/4 | -/4 | -/4' },
       A: {
         chords: '1 | 1 | 7 | 7 | 4 | 4 | 3 7 | 1',
-        melody: '1/.5 3/.5 5 4/.5 3/.5 1 | 2 3 2 7, | 1/.5 7,/.5 6, 7, 2 | 7,/3 -/1 | ' +
+        melody:
+          '1/.5 3/.5 5 4/.5 3/.5 1 | 2 3 2 7, | 1/.5 7,/.5 6, 7, 2 | 7,/3 -/1 | ' +
           '4/.5 5/.5 6 5/.5 4/.5 3 | 1 3 4/2 | 3 5 4 2 | 1/3 -/1'
       },
       B: {
         chords: '3 | 7 | 4 | 1 | 3 | 7 | 4 | 5',
-        melody: "5/1.5 3/.5 5 1' | 7/2 6 5 | 6/1.5 5/.5 4 6 | 5/3 -/1 | " +
+        melody:
+          "5/1.5 3/.5 5 1' | 7/2 6 5 | 6/1.5 5/.5 4 6 | 5/3 -/1 | " +
           "3' 2' 1' 5 | 7/1.5 1'/.5 7 6 | 4 6 5 4 | 2/2 7, 5,"
       }
     }
@@ -201,7 +252,12 @@ export const TRACKS = {
 
   // Deep below: slow, sparse and strange, bells in a huge dark space.
   deep: {
-    name: 'music.deep', tempo: 60, meter: 3, root: 69, mode: 'phrygian', gain: 1.5,
+    name: 'music.deep',
+    tempo: 60,
+    meter: 3,
+    root: 69,
+    mode: 'phrygian',
+    gain: 1.5,
     band: { lead: 'bell', echo: 'harp', comp: 'drone', bass: 'bass', pad: true, drum: false },
     space: 0.65,
     form: ['I', 'A', 'B', 'A'],
@@ -236,15 +292,18 @@ export function degreeNote(track, degree, octave = 0) {
 // One bar of melody: [{deg, oct, at, beats}] (deg null for a rest).
 export function parseBar(text) {
   let at = 0;
-  return text.trim().split(/\s+/).map((tok) => {
-    const m = NOTE.exec(tok);
-    if (!m) throw new Error('bad note ' + JSON.stringify(tok)); // i18n-ok: a composer's error, checked by the tests
-    const beats = m[3] ? Number(m[3]) : 1;
-    const oct = [...m[2]].reduce((o, c) => o + (c === "'" ? 1 : -1), 0);
-    const note = { deg: m[1] === '-' ? null : Number(m[1]), oct, at, beats };
-    at += beats;
-    return note;
-  });
+  return text
+    .trim()
+    .split(/\s+/)
+    .map((tok) => {
+      const m = NOTE.exec(tok);
+      if (!m) throw new Error('bad note ' + JSON.stringify(tok)); // i18n-ok: a composer's error, checked by the tests
+      const beats = m[3] ? Number(m[3]) : 1;
+      const oct = [...m[2]].reduce((o, c) => o + (c === "'" ? 1 : -1), 0);
+      const note = { deg: m[1] === '-' ? null : Number(m[1]), oct, at, beats };
+      at += beats;
+      return note;
+    });
 }
 
 // A section, ready to play: bars of {notes, chords: [{deg, at, beats}]}.
@@ -271,14 +330,22 @@ export function triad(track, deg) {
 export function checkTrack(track) {
   const problems = [];
   if (!MODES[track.mode]) problems.push('unknown mode ' + track.mode); // i18n-ok: a composer's error, checked by the tests
-  for (const id of track.form) if (!track.sections[id]) problems.push('form names missing section ' + id); // i18n-ok: a composer's error, checked by the tests
+  for (const id of track.form)
+    if (!track.sections[id]) problems.push('form names missing section ' + id); // i18n-ok: a composer's error, checked by the tests
   for (const [id, sec] of Object.entries(track.sections)) {
     let bars;
-    try { bars = parseSection(track, sec); } catch (err) { problems.push(id + ': ' + err.message); continue; }
+    try {
+      bars = parseSection(track, sec);
+    } catch (err) {
+      problems.push(id + ': ' + err.message);
+      continue;
+    }
     bars.forEach((bar, i) => {
       const sum = bar.notes.reduce((n, x) => n + x.beats, 0);
-      if (Math.abs(sum - track.meter) > 1e-9) problems.push(`${id} bar ${i + 1} lasts ${sum} beats, not ${track.meter}`); // i18n-ok: a composer's error, checked by the tests
-      for (const c of bar.chords) if (!(c.deg >= 1 && c.deg <= 7)) problems.push(`${id} bar ${i + 1} has chord ${c.deg}`); // i18n-ok: a composer's error, checked by the tests
+      if (Math.abs(sum - track.meter) > 1e-9)
+        problems.push(`${id} bar ${i + 1} lasts ${sum} beats, not ${track.meter}`); // i18n-ok: a composer's error, checked by the tests
+      for (const c of bar.chords)
+        if (!(c.deg >= 1 && c.deg <= 7)) problems.push(`${id} bar ${i + 1} has chord ${c.deg}`); // i18n-ok: a composer's error, checked by the tests
     });
   }
   return problems;

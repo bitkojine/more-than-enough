@@ -10,14 +10,19 @@ import { fmt, fmtDuration, esc } from './format.js';
 import { t } from '../i18n/i18n.js';
 
 function summary(s) {
-  const parts = [t('fork.played', { time: fmtDuration(s.time) }), t('fork.gathered', { n: fmt(Core.lifetimeTotal(s)) })];
+  const parts = [
+    t('fork.played', { time: fmtDuration(s.time) }),
+    t('fork.gathered', { n: fmt(Core.lifetimeTotal(s)) })
+  ];
   if (s.prestiges > 0) parts.push(t('fork.embarks', { count: s.prestiges }));
   return parts.join(' · ');
 }
 
 // Positive when a is further along than b.
 function compare(a, b) {
-  return (a.prestiges - b.prestiges) || (Core.lifetimeTotal(a) - Core.lifetimeTotal(b)) || (a.time - b.time);
+  return (
+    a.prestiges - b.prestiges || Core.lifetimeTotal(a) - Core.lifetimeTotal(b) || a.time - b.time
+  );
 }
 
 export function createFork(box) {
@@ -38,8 +43,10 @@ export function createFork(box) {
         <span class="text">${esc(text)}</span>
       </button>`;
     body.innerHTML = other
-      ? card('other', t(k + 'other'), summary(other), otherAhead) + card('mine', t(k + 'mine'), summary(mine), !otherAhead)
-      : card('reload', t('fork.reload'), t(k + 'newer'), true) + card('mine', t(k + 'mine'), summary(mine), false);
+      ? card('other', t(k + 'other'), summary(other), otherAhead) +
+        card('mine', t(k + 'mine'), summary(mine), !otherAhead)
+      : card('reload', t('fork.reload'), t(k + 'newer'), true) +
+        card('mine', t(k + 'mine'), summary(mine), false);
     box.hidden = false;
     open = true;
     for (const b of body.querySelectorAll('button')) {
@@ -51,5 +58,10 @@ export function createFork(box) {
     }
   }
 
-  return { show, get open() { return open; } };
+  return {
+    show,
+    get open() {
+      return open;
+    }
+  };
 }

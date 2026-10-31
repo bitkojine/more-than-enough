@@ -9,7 +9,9 @@ const SPAN = HALF * 2;
 export class ExploredChunks extends Map {
   #layers = new Map();
   #revision = 0;
-  get revision() { return this.#revision; }
+  get revision() {
+    return this.#revision;
+  }
 
   constructor(entries = []) {
     super();
@@ -21,12 +23,19 @@ export class ExploredChunks extends Map {
     if (!Number.isSafeInteger(key) || key < 0) return super.set(key, mask);
     const { x, y, z } = unpackKey(key);
     let node = this.#layers.get(z);
-    if (!node) { node = { children: [], count: 0 }; this.#layers.set(z, node); }
+    if (!node) {
+      node = { children: [], count: 0 };
+      this.#layers.set(z, node);
+    }
     const added = !this.has(key);
-    let ox = -HALF, oy = -HALF, size = SPAN;
+    let ox = -HALF,
+      oy = -HALF,
+      size = SPAN;
     if (added) node.count++;
     while (size > 1) {
-      const half = size / 2, right = x >= ox + half, down = y >= oy + half;
+      const half = size / 2,
+        right = x >= ox + half,
+        down = y >= oy + half;
       const index = (down ? 2 : 0) + (right ? 1 : 0);
       if (right) ox += half;
       if (down) oy += half;
@@ -43,17 +52,23 @@ export class ExploredChunks extends Map {
     this.#revision++;
     if (!Number.isSafeInteger(key) || key < 0) return true;
     const { x, y, z } = unpackKey(key);
-    let node = this.#layers.get(z), ox = -HALF, oy = -HALF, size = SPAN;
+    let node = this.#layers.get(z),
+      ox = -HALF,
+      oy = -HALF,
+      size = SPAN;
     const path = [];
     node.count--;
     while (size > 1) {
-      const half = size / 2, right = x >= ox + half, down = y >= oy + half;
+      const half = size / 2,
+        right = x >= ox + half,
+        down = y >= oy + half;
       const index = (down ? 2 : 0) + (right ? 1 : 0);
       path.push([node, index]);
       if (right) ox += half;
       if (down) oy += half;
       size = half;
-      node = node.children[index]; node.count--;
+      node = node.children[index];
+      node.count--;
     }
     delete node.entry;
     for (let i = path.length - 1; i >= 0; i--) {
@@ -64,7 +79,11 @@ export class ExploredChunks extends Map {
     return true;
   }
 
-  clear() { super.clear(); this.#layers.clear(); this.#revision++; }
+  clear() {
+    super.clear();
+    this.#layers.clear();
+    this.#revision++;
+  }
 
   // Inclusive chunk rectangle. Work counters are optional test diagnostics.
   visit(z, left, top, right, bottom, visitor, work = null) {
@@ -74,7 +93,9 @@ export class ExploredChunks extends Map {
       if (x > right || y > bottom || x + size <= left || y + size <= top) return;
       if (size === 1) {
         if (work) work.chunks++;
-        const e = node.entry; visitor(e.x, e.y, e.mask); return;
+        const e = node.entry;
+        visitor(e.x, e.y, e.mask);
+        return;
       }
       const half = size / 2;
       visit(node.children[0], x, y, half);
@@ -89,9 +110,14 @@ export class ExploredChunks extends Map {
   // radius; branches strictly farther away cannot improve that answer.
   visitNearest(z, px, py, maxRadius, visitor, work = null) {
     let radius = maxRadius;
-    const lowerBound = (x, y, size) => Math.max(
-      x * CHUNK_SIZE - px, px - ((x + size) * CHUNK_SIZE - 1),
-      y * CHUNK_SIZE - py, py - ((y + size) * CHUNK_SIZE - 1), 0);
+    const lowerBound = (x, y, size) =>
+      Math.max(
+        x * CHUNK_SIZE - px,
+        px - ((x + size) * CHUNK_SIZE - 1),
+        y * CHUNK_SIZE - py,
+        py - ((y + size) * CHUNK_SIZE - 1),
+        0
+      );
     const visit = (node, x, y, size, lower) => {
       if (!node) return;
       if (work) work.nodes++;
@@ -102,11 +128,14 @@ export class ExploredChunks extends Map {
         radius = Math.min(radius, visitor(e.x, e.y, e.mask));
         return;
       }
-      const half = size / 2, children = [];
-      for (let i = 0; i < 4; i++) if (node.children[i]) {
-        const cx = x + (i % 2) * half, cy = y + (i >> 1) * half;
-        children.push({ node: node.children[i], x: cx, y: cy, lower: lowerBound(cx, cy, half) });
-      }
+      const half = size / 2,
+        children = [];
+      for (let i = 0; i < 4; i++)
+        if (node.children[i]) {
+          const cx = x + (i % 2) * half,
+            cy = y + (i >> 1) * half;
+          children.push({ node: node.children[i], x: cx, y: cy, lower: lowerBound(cx, cy, half) });
+        }
       children.sort((a, b) => a.lower - b.lower);
       for (const c of children) visit(c.node, c.x, c.y, half, c.lower);
     };
@@ -129,7 +158,9 @@ export function visitExploredChunks(map, z, left, top, right, bottom, visitor, w
 
 export function visitNearestExploredChunks(map, z, px, py, maxRadius, visitor, work = null) {
   if (map instanceof ExploredChunks) return map.visitNearest(z, px, py, maxRadius, visitor, work);
-  const left = Math.floor((px - maxRadius) / CHUNK_SIZE), right = Math.floor((px + maxRadius) / CHUNK_SIZE);
-  const top = Math.floor((py - maxRadius) / CHUNK_SIZE), bottom = Math.floor((py + maxRadius) / CHUNK_SIZE);
+  const left = Math.floor((px - maxRadius) / CHUNK_SIZE),
+    right = Math.floor((px + maxRadius) / CHUNK_SIZE);
+  const top = Math.floor((py - maxRadius) / CHUNK_SIZE),
+    bottom = Math.floor((py + maxRadius) / CHUNK_SIZE);
   return visitExploredChunks(map, z, left, top, right, bottom, visitor, work);
 }

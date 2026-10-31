@@ -16,7 +16,14 @@ export function productionFixture() {
   const kinds = Object.keys(C.EXTRACTORS);
   s.extractors = Array.from({ length: 180 }, (_, i) => {
     const key = kinds[i % kinds.length];
-    return { key, res: C.EXTRACTORS[key].res, x: i % 15 - 7, y: Math.floor(i / 15) - 6, z: 0, buffer: i * 0.1875 };
+    return {
+      key,
+      res: C.EXTRACTORS[key].res,
+      x: (i % 15) - 7,
+      y: Math.floor(i / 15) - 6,
+      z: 0,
+      buffer: i * 0.1875
+    };
   });
   return s;
 }

@@ -50,7 +50,8 @@ export function tileOf(v) {
 // "within range" checks can never reach across layers.
 export function layerDist2(ax, ay, az, bx, by, bz) {
   if (az !== bz) return Infinity;
-  const dx = ax - bx, dy = ay - by;
+  const dx = ax - bx,
+    dy = ay - by;
   return dx * dx + dy * dy;
 }
 

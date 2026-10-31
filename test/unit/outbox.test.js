@@ -8,8 +8,14 @@ import assert from 'node:assert/strict';
 import { C } from './helpers.js';
 import { LIMITS } from '../../src/net/protocol.js';
 import {
-  createOutbox, keptActsFrom, resync,
-  SENT_KEPT, ACTS_KEPT_MS, ACTS_KEPT_MAX, MAX_UNACKED, ACTS_PER_TICK
+  createOutbox,
+  keptActsFrom,
+  resync,
+  SENT_KEPT,
+  ACTS_KEPT_MS,
+  ACTS_KEPT_MAX,
+  MAX_UNACKED,
+  ACTS_PER_TICK
 } from '../../src/game/outbox.js';
 
 // A player state that has done `n` walks, one every `gap` ms of play.
@@ -39,10 +45,20 @@ test('outbox: edits are numbered in order and forgotten once the room answers th
 
 test('outbox: a lost edit is not sent again where the room already has something', () => {
   const o = createOutbox();
-  o.edit([['m', 10, 1], ['p', 11, 1], ['x', 'garden', 5, 6, 0]]);
-  o.edit([['m', 12, 1], ['x', 'garden', 7, 8, 0]]);
+  o.edit([
+    ['m', 10, 1],
+    ['p', 11, 1],
+    ['x', 'garden', 5, 6, 0]
+  ]);
+  o.edit([
+    ['m', 12, 1],
+    ['x', 'garden', 7, 8, 0]
+  ]);
   const w = { mods: [[10, 3]], props: [[11, 0]], ext: [['garden', 5, 6, 0, 'someone']] };
-  assert.deepEqual(o.lostEdits(w), [['m', 12, 1], ['x', 'garden', 7, 8, 0]]);
+  assert.deepEqual(o.lostEdits(w), [
+    ['m', 12, 1],
+    ['x', 'garden', 7, 8, 0]
+  ]);
 });
 
 test('outbox: at most MAX_UNACKED batches wait for an answer', () => {
@@ -58,14 +74,16 @@ test('outbox: a long backlog of acts goes a few messages a tick, never ahead of 
   const s = walked(total);
   const o = createOutbox();
   const sentAll = [];
-  let ticks = 0, done = false;
+  let ticks = 0,
+    done = false;
   while (!done) {
     const t = o.takeActs(s);
     ticks++;
     assert.ok(t.messages.length <= ACTS_PER_TICK);
     for (const m of t.messages) {
       assert.ok(m.a.length <= per);
-      if (t.done && m === t.messages[t.messages.length - 1]) assert.equal(m.ms, s.stats.playedMs, 'the last carries the play time now');
+      if (t.done && m === t.messages[t.messages.length - 1])
+        assert.equal(m.ms, s.stats.playedMs, 'the last carries the play time now');
       else assert.equal(m.ms, m.a[m.a.length - 1][1], 'others are as of their own last act');
       sentAll.push(...m.a);
     }
@@ -73,7 +91,11 @@ test('outbox: a long backlog of acts goes a few messages a tick, never ahead of 
   }
   assert.equal(ticks, 3);
   assert.equal(sentAll.length, total);
-  assert.deepEqual(sentAll.map((a) => a[1]), [...sentAll.map((a) => a[1])].sort((x, y) => x - y), 'in order');
+  assert.deepEqual(
+    sentAll.map((a) => a[1]),
+    [...sentAll.map((a) => a[1])].sort((x, y) => x - y),
+    'in order'
+  );
   assert.deepEqual(o.takeActs(s), { messages: [], done: true });
 });
 
@@ -83,7 +105,10 @@ test('outbox: back after a lost connection, acts the room has not done go again,
   o.takeActs(s);
   s.acts.push(['w', 20_500, 99, 0, 0]); // done while the connection was down
   o.resendActs(s, 14_000); // the room's copy is as of 14 s
-  assert.deepEqual(s.acts.map((a) => a[1]), [15_000, 16_000, 17_000, 18_000, 19_000, 20_500]);
+  assert.deepEqual(
+    s.acts.map((a) => a[1]),
+    [15_000, 16_000, 17_000, 18_000, 19_000, 20_500]
+  );
   o.resendActs(s, 0);
   assert.equal(s.acts.length, 6, 'sent again once, not every time');
 });
@@ -93,7 +118,11 @@ test('outbox: acts are kept a minute of play after sending, and at most ACTS_KEP
   const s = walked(100, 1000); // 100 s of play
   while (!o.takeActs(s).done);
   o.resendActs(s, -1);
-  assert.equal(s.acts[0][1], s.stats.playedMs - ACTS_KEPT_MS, 'older ones the room has had long enough');
+  assert.equal(
+    s.acts[0][1],
+    s.stats.playedMs - ACTS_KEPT_MS,
+    'older ones the room has had long enough'
+  );
 
   const o2 = createOutbox();
   const big = walked(ACTS_KEPT_MAX + 300, 1);
@@ -109,19 +138,32 @@ test('outbox: acts kept on the phone come back the way they were, and junk is le
   s.acts.push(['w', 10_500, 1, 1, 0]);
   const raw = o.kept(s);
   assert.equal(o.keptWaiting, true);
-  assert.deepEqual(keptActsFrom(raw, 7_000).map((a) => a[1]), [8_000, 9_000, 10_500]);
+  assert.deepEqual(
+    keptActsFrom(raw, 7_000).map((a) => a[1]),
+    [8_000, 9_000, 10_500]
+  );
   assert.deepEqual(keptActsFrom(raw, Infinity), [['w', 10_500, 1, 1, 0]], 'waiting ones always');
 
-  for (const bad of [null, '', 'not json', '[]', '{"sent":5}', 'null']) assert.deepEqual(keptActsFrom(bad, 0), [], String(bad));
-  const mixed = JSON.stringify({ sent: [['w', 5, 1, 1, 0], ['zz', 6, 1, 1, 0], ['w', 'x', 1, 1, 0], 'w'], waiting: [['w', 7, 1, 1, 0.5], ['h', 8, 1, 2, 3]] });
-  assert.deepEqual(keptActsFrom(mixed, 0), [['w', 5, 1, 1, 0], ['h', 8, 1, 2, 3]]);
+  for (const bad of [null, '', 'not json', '[]', '{"sent":5}', 'null'])
+    assert.deepEqual(keptActsFrom(bad, 0), [], String(bad));
+  const mixed = JSON.stringify({
+    sent: [['w', 5, 1, 1, 0], ['zz', 6, 1, 1, 0], ['w', 'x', 1, 1, 0], 'w'],
+    waiting: [
+      ['w', 7, 1, 1, 0.5],
+      ['h', 8, 1, 2, 3]
+    ]
+  });
+  assert.deepEqual(keptActsFrom(mixed, 0), [
+    ['w', 5, 1, 1, 0],
+    ['h', 8, 1, 2, 3]
+  ]);
 
   s.acts = [];
   o.kept(s);
   assert.equal(o.keptWaiting, false);
 });
 
-test('outbox: the room\'s answer is matched to the progress it answers, while it is remembered', () => {
+test("outbox: the room's answer is matched to the progress it answers, while it is remembered", () => {
   const o = createOutbox();
   const s = C.createState(7);
   const ns = [];
@@ -130,7 +172,10 @@ test('outbox: the room\'s answer is matched to the progress it answers, while it
     s.inv.mycelium = i;
     ns.push(o.save(s));
   }
-  assert.deepEqual(ns, ns.map((_, i) => i + 1));
+  assert.deepEqual(
+    ns,
+    ns.map((_, i) => i + 1)
+  );
   assert.equal(o.answered(1), null, 'too old: forgotten');
   assert.equal(o.answered(2), null);
   const x = o.answered(5);
@@ -145,7 +190,8 @@ test('outbox: what buildings made while away is counted in every save the room m
   const o = createOutbox();
   const s = C.createState(7);
   s.inv.mycelium = 3;
-  o.save(s); o.save(s);
+  o.save(s);
+  o.save(s);
   o.earnedAway({ mycelium: 5, crystal: 0, junk: 4 });
   assert.equal(o.answered(1).inv.mycelium, 8);
   assert.equal(o.answered(2).inv.mycelium, 8);
@@ -162,25 +208,35 @@ test('outbox: leaving forgets everything; a new world forgets what was for the o
   assert.equal(o.unacked, 0);
   o.resendActs(s, -1);
   assert.equal(s.acts.length, 0);
-  assert.ok(o.answered(1), 'progress is the player\'s own, kept across worlds');
+  assert.ok(o.answered(1), "progress is the player's own, kept across worlds");
   o.reset();
   assert.equal(o.answered(1), null);
 });
 
-test('outbox: resync takes the room\'s world, keeps your progress and sends again what it lacks', () => {
+test("outbox: resync takes the room's world, keeps your progress and sends again what it lacks", () => {
   const s = C.createState(7);
   s.me = 'me';
   s.acts = [];
   s.world.edits = [];
   const o = createOutbox();
-  const at = (k) => { const { x, y, z } = C.unpackKey(k); return C.baseRichness(s.world, x, y, z) + 7; }; // not the land as made
-  o.edit([['m', 500, at(500)]]);  // never answered
+  const at = (k) => {
+    const { x, y, z } = C.unpackKey(k);
+    return C.baseRichness(s.world, x, y, z) + 7;
+  }; // not the land as made
+  o.edit([['m', 500, at(500)]]); // never answered
   s.world.edits.push(['m', 600, at(600)]); // not sent yet
   const keep = { ...s.inv };
   resync(s, { mods: [[700, at(700)]], props: [], ext: [] }, 'me', o, 0);
   assert.deepEqual(s.inv, keep);
-  assert.deepEqual(s.world.edits, [['m', 500, at(500)], ['m', 600, at(600)]], 'to send again, oldest first');
-  assert.ok(s.world.mods.has(700), 'the room\'s world');
+  assert.deepEqual(
+    s.world.edits,
+    [
+      ['m', 500, at(500)],
+      ['m', 600, at(600)]
+    ],
+    'to send again, oldest first'
+  );
+  assert.ok(s.world.mods.has(700), "the room's world");
   assert.ok(s.world.mods.has(500) && s.world.mods.has(600), 'with yours over it');
   assert.equal(o.unacked, 0);
 });

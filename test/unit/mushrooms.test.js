@@ -7,19 +7,28 @@ const forest = (s, x, y) => typeAt(s, x, y) === T.FOREST && richAt(s, x, y) > 0;
 test('every forest tile grows one kind of mushroom, from what its kind of forest grows, and keeps it', () => {
   const s = C.createState(4242);
   const seen = new Set();
-  for (let y = -150; y < 150; y += 3) for (let x = -150; x < 150; x += 3) {
-    if (typeAt(s, x, y, 0) !== T.FOREST) continue;
-    const k = C.mushroomAt(s.seed, T.FOREST, x, y, 0);
-    assert.ok(C.MUSHROOMS[k].kinds.includes(C.forestKind(s.seed, x, y)), `${k} grows in this forest`);
-    assert.equal(C.mushroomAt(s.seed, T.FOREST, x, y, 0), k, 'the same tile always grows the same kind');
-    seen.add(k);
-  }
+  for (let y = -150; y < 150; y += 3)
+    for (let x = -150; x < 150; x += 3) {
+      if (typeAt(s, x, y, 0) !== T.FOREST) continue;
+      const k = C.mushroomAt(s.seed, T.FOREST, x, y, 0);
+      assert.ok(
+        C.MUSHROOMS[k].kinds.includes(C.forestKind(s.seed, x, y)),
+        `${k} grows in this forest`
+      );
+      assert.equal(
+        C.mushroomAt(s.seed, T.FOREST, x, y, 0),
+        k,
+        'the same tile always grows the same kind'
+      );
+      seen.add(k);
+    }
   assert.ok(seen.size >= 8, 'a stretch of forest grows many kinds (' + seen.size + ')');
   assert.equal(C.mushroomAt(s.seed, T.STONE, 0, 0, 0), null, 'nothing grows on stone');
 });
 
 test('spore beds grow cave mushrooms, the crystal cap only deep down', () => {
-  const caveAt = (layer) => new Set(Array.from({ length: 400 }, (_, i) => C.mushroomAt(9, T.SPORE_BED, i, i * 7, -layer)));
+  const caveAt = (layer) =>
+    new Set(Array.from({ length: 400 }, (_, i) => C.mushroomAt(9, T.SPORE_BED, i, i * 7, -layer)));
   for (const k of caveAt(4)) assert.equal(C.MUSHROOMS[k].where, 'cave');
   assert.ok(!caveAt(4).has('crystalCap'));
   assert.ok(caveAt(8).has('crystalCap'));
@@ -28,7 +37,8 @@ test('spore beds grow cave mushrooms, the crystal cap only deep down', () => {
 test('every kind of mushroom has a picture and a name, and some are magic', () => {
   for (const k of C.MUSHROOM_KEYS) assert.ok(C.LOOK[C.mushroomLook(k)], k);
   assert.ok(C.MUSHROOM_KEYS.filter((k) => C.MUSHROOMS[k].magic).length >= 2);
-  for (const kind of Object.keys(C.FOREST_KINDS)) assert.ok(C.forestMushrooms(kind).length >= 5, kind);
+  for (const kind of Object.keys(C.FOREST_KINDS))
+    assert.ok(C.forestMushrooms(kind).length >= 5, kind);
 });
 
 test('foraging counts the kind picked and celebrates only the first of each kind, ever', () => {

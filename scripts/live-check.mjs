@@ -26,7 +26,10 @@ export function latestRuns(runs, skip = []) {
 // Manual recovery deployments are as real as push-triggered ones. Looking
 // only at pushes leaves a repaired service permanently marked as failed.
 export async function latestWorkflowRuns(repo, request = getJSON, headers = {}) {
-  const list = await request(`https://api.github.com/repos/${repo}/actions/runs?branch=main&per_page=50`, headers);
+  const list = await request(
+    `https://api.github.com/repos/${repo}/actions/runs?branch=main&per_page=50`,
+    headers
+  );
   return latestRuns(list.workflow_runs, ['Live check']);
 }
 
@@ -35,21 +38,29 @@ export function problems({ runs = [], runsError, site, rooms }) {
   const out = [];
   if (runsError) out.push(`couldn't read the workflow runs: ${runsError}`);
   for (const r of runs) {
-    if (r.status === 'completed' && !OK.has(r.conclusion)) out.push(`${r.name}: the latest run on main ${r.conclusion} (${r.html_url})`);
+    if (r.status === 'completed' && !OK.has(r.conclusion))
+      out.push(`${r.name}: the latest run on main ${r.conclusion} (${r.html_url})`);
   }
   if (site) {
     if (!site.up) out.push(`the game site doesn't answer: ${site.error}`);
-    else if (site.live !== site.want && site.ageMin > GRACE_MIN) out.push(`the game site serves build ${site.live}, main would deploy ${site.want} (main is ${Math.round(site.ageMin)} min old)`);
+    else if (site.live !== site.want && site.ageMin > GRACE_MIN)
+      out.push(
+        `the game site serves build ${site.live}, main would deploy ${site.want} (main is ${Math.round(site.ageMin)} min old)`
+      );
   }
   if (rooms) {
     if (!rooms.up) out.push(`the room service doesn't answer: ${rooms.error}`);
-    else if (rooms.ageMin > GRACE_MIN && !rooms.current) out.push(`the room service runs ${rooms.live || 'an unnamed commit'}, not ${rooms.want} or newer (${Math.round(rooms.ageMin)} min old)`);
+    else if (rooms.ageMin > GRACE_MIN && !rooms.current)
+      out.push(
+        `the room service runs ${rooms.live || 'an unnamed commit'}, not ${rooms.want} or newer (${Math.round(rooms.ageMin)} min old)`
+      );
   }
   return out;
 }
 
 const git = (...a) => execFileSync('git', a, { encoding: 'utf8' }).trim();
-const minutesSince = (sha) => (Date.now() / 1000 - Number(git('log', '-1', '--format=%ct', sha))) / 60;
+const minutesSince = (sha) =>
+  (Date.now() / 1000 - Number(git('log', '-1', '--format=%ct', sha))) / 60;
 
 async function getJSON(url, headers = {}) {
   const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
@@ -58,24 +69,59 @@ async function getJSON(url, headers = {}) {
 }
 
 async function facts() {
-  const auth = process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {};
-  let runs = [], runsError;
+  const auth = process.env.GITHUB_TOKEN
+    ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
+    : {};
+  let runs = [],
+    runsError;
   try {
     runs = await latestWorkflowRuns(REPO, getJSON, auth);
-  } catch (e) { runsError = e.message; }
+  } catch (e) {
+    runsError = e.message;
+  }
 
-  const site = { want: execFileSync('sh', ['scripts/site-hash.sh'], { encoding: 'utf8' }).trim(), ageMin: minutesSince('HEAD') };
-  try { site.live = (await getJSON(`${SITE}/build.json?now=${Date.now()}`)).build; site.up = true; } catch (e) { site.error = e.message; }
+  const site = {
+    want: execFileSync('sh', ['scripts/site-hash.sh'], { encoding: 'utf8' }).trim(),
+    ageMin: minutesSince('HEAD')
+  };
+  try {
+    site.live = (await getJSON(`${SITE}/build.json?now=${Date.now()}`)).build;
+    site.up = true;
+  } catch (e) {
+    site.error = e.message;
+  }
 
   // The paths rooms.yml deploys on, read from the workflow so they can't differ.
-  const paths = JSON.parse(readFileSync('.github/workflows/rooms.yml', 'utf8').match(/paths: (\[.*\])/)[1].replace(/'/g, '"'));
-  const want = git('log', '-1', '--format=%H', 'HEAD', '--', ...paths.map((p) => p.replace(/\/\*\*$/, '')));
+  const paths = JSON.parse(
+    readFileSync('.github/workflows/rooms.yml', 'utf8')
+      .match(/paths: (\[.*\])/)[1]
+      .replace(/'/g, '"')
+  );
+  const want = git(
+    'log',
+    '-1',
+    '--format=%H',
+    'HEAD',
+    '--',
+    ...paths.map((p) => p.replace(/\/\*\*$/, ''))
+  );
   const rooms = { want, ageMin: minutesSince(want) };
   try {
     rooms.live = (await getJSON(`${ROOMS}/`)).commit || null;
     rooms.up = true;
-    rooms.current = !!rooms.live && (() => { try { git('merge-base', '--is-ancestor', want, rooms.live); return true; } catch { return false; } })();
-  } catch (e) { rooms.error = e.message; }
+    rooms.current =
+      !!rooms.live &&
+      (() => {
+        try {
+          git('merge-base', '--is-ancestor', want, rooms.live);
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+  } catch (e) {
+    rooms.error = e.message;
+  }
   return { runs, runsError, site, rooms };
 }
 

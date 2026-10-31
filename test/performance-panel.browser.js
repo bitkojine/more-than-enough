@@ -1,23 +1,75 @@
 /* Bounded diagnostics fixtures; injected timings never alter game rules. */
-export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
-  for(const lang of ['en','lt']){
-    await cdp.send('Page.navigate',{url:await evalJS(`location.origin+location.pathname+'?lang=${lang}'`)},session);
-    for(let i=0;i<100;i++){if(await evalJS('!!window.MTE_GAME'))break;await new Promise(r=>setTimeout(r,100));}
-    await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);
-    await cdp.send('Input.dispatchKeyEvent',{type:'keyUp',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);
-    for(let i=0;i<100;i++){if(await evalJS('!!document.querySelector(".perfPill")'))break;await new Promise(r=>setTimeout(r,100));}
-    ok(await evalJS('MTE_GAME.perfVisible()&&!document.getElementById("perf").hidden&&!!document.querySelector(".perfPill")'),lang+': F3 lazy-loads the actual diagnostics tool');
-    for(let i=0;i<50;i++){if(await evalJS('MTE_GAME.perf().count>0'))break;await new Promise(r=>setTimeout(r,100));}
-    ok(await evalJS('MTE_GAME.perf().count>0'),lang+': actual game loop records phase samples');
-    ok(await evalJS('(()=>{const m=MTE_GAME.perf();return m.pacing.available&&m.pacing.callbackWorkMs>=0&&m.pacing.outsideLoopMs>=0&&m.pacing.rafCallbacks>=1&&m.pacing.overTargetMs>=0;})()'),lang+': real host records callback work, waiting allowance and display callbacks');
-    await new Promise(r=>setTimeout(r,3500)); // Longer than the former idle threshold.
-    const pacing=await evalJS('(()=>{const m=MTE_GAME.perf();return {target:m.target,fps:m.fps,count:m.count,frameMs:m.frameMs};})()');
-    ok(pacing.target===30&&pacing.fps<=30.01,lang+': idle game still targets 30 FPS '+JSON.stringify(pacing));
-    ok(await evalJS('(()=>{document.dispatchEvent(new Event("visibilitychange"));return MTE_GAME.perf().count===0;})()'),lang+': tab visibility changes discard suspended timing gaps');
-    await cdp.send('Input.dispatchKeyEvent',{type:'keyDown',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);
-    await cdp.send('Input.dispatchKeyEvent',{type:'keyUp',key:'F3',code:'F3',windowsVirtualKeyCode:114},session);
-    ok(await evalJS('!MTE_GAME.perfVisible()&&document.getElementById("perf").hidden'),lang+': F3 disables automatic warnings');
-    if(process.env.MTE_FPS_ONLY==='1')continue;
+export async function checkPerformancePanel({ evalJS, ok, cdp, session, shot }) {
+  for (const lang of ['en', 'lt']) {
+    await cdp.send(
+      'Page.navigate',
+      { url: await evalJS(`location.origin+location.pathname+'?lang=${lang}'`) },
+      session
+    );
+    for (let i = 0; i < 100; i++) {
+      if (await evalJS('!!window.MTE_GAME')) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    await cdp.send(
+      'Input.dispatchKeyEvent',
+      { type: 'keyDown', key: 'F3', code: 'F3', windowsVirtualKeyCode: 114 },
+      session
+    );
+    await cdp.send(
+      'Input.dispatchKeyEvent',
+      { type: 'keyUp', key: 'F3', code: 'F3', windowsVirtualKeyCode: 114 },
+      session
+    );
+    for (let i = 0; i < 100; i++) {
+      if (await evalJS('!!document.querySelector(".perfPill")')) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    ok(
+      await evalJS(
+        'MTE_GAME.perfVisible()&&!document.getElementById("perf").hidden&&!!document.querySelector(".perfPill")'
+      ),
+      lang + ': F3 lazy-loads the actual diagnostics tool'
+    );
+    for (let i = 0; i < 50; i++) {
+      if (await evalJS('MTE_GAME.perf().count>0')) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    ok(await evalJS('MTE_GAME.perf().count>0'), lang + ': actual game loop records phase samples');
+    ok(
+      await evalJS(
+        '(()=>{const m=MTE_GAME.perf();return m.pacing.available&&m.pacing.callbackWorkMs>=0&&m.pacing.outsideLoopMs>=0&&m.pacing.rafCallbacks>=1&&m.pacing.overTargetMs>=0;})()'
+      ),
+      lang + ': real host records callback work, waiting allowance and display callbacks'
+    );
+    await new Promise((r) => setTimeout(r, 3500)); // Longer than the former idle threshold.
+    const pacing = await evalJS(
+      '(()=>{const m=MTE_GAME.perf();return {target:m.target,fps:m.fps,count:m.count,frameMs:m.frameMs};})()'
+    );
+    ok(
+      pacing.target === 30 && pacing.fps <= 30.01,
+      lang + ': idle game still targets 30 FPS ' + JSON.stringify(pacing)
+    );
+    ok(
+      await evalJS(
+        '(()=>{document.dispatchEvent(new Event("visibilitychange"));return MTE_GAME.perf().count===0;})()'
+      ),
+      lang + ': tab visibility changes discard suspended timing gaps'
+    );
+    await cdp.send(
+      'Input.dispatchKeyEvent',
+      { type: 'keyDown', key: 'F3', code: 'F3', windowsVirtualKeyCode: 114 },
+      session
+    );
+    await cdp.send(
+      'Input.dispatchKeyEvent',
+      { type: 'keyUp', key: 'F3', code: 'F3', windowsVirtualKeyCode: 114 },
+      session
+    );
+    ok(
+      await evalJS('!MTE_GAME.perfVisible()&&document.getElementById("perf").hidden'),
+      lang + ': F3 disables automatic warnings'
+    );
+    if (process.env.MTE_FPS_ONLY === '1') continue;
     await evalJS(`(async()=>{
       const {createPerf}=await import('./src/game/perf.js');
       const root=document.getElementById('perf'),details=document.getElementById('performanceDetails');
@@ -25,48 +77,149 @@ export async function checkPerformancePanel({evalJS,ok,cdp,session,shot}) {
       __perfFixture.toggle(true);window.__perfFeed=(ms,n,target,costs)=>{for(let i=0;i<n;i++)__perfFixture.frame(ms,1,Object.values(costs).reduce((a,b)=>a+b,0),100,{target,phases:costs,context:{seed:123,layer:-4,daylight:0}});__perfFixture.tick(1);};
     })()`);
     await evalJS('__perfFeed(1000/30,100,30,{terrain:1})');
-    ok(await evalJS('document.querySelector(".perfCard").hidden'),lang+': intentional 30 FPS does not auto-open');
+    ok(
+      await evalJS('document.querySelector(".perfCard").hidden'),
+      lang + ': intentional 30 FPS does not auto-open'
+    );
     await evalJS('__perfFeed(36.3,100,30,{terrain:3.73,actors:2})');
-    ok(await evalJS('__perfFixture.snapshot().latest.cause==="cadence"&&document.querySelector(".perfCard").hidden'),lang+': low CPU and slower cadence remain a non-opening observation');
-    ok(await evalJS('(()=>{const text=document.querySelector(".perfDiagnosis").textContent;return text.includes("2.97 ms")&&text.includes("6.73 ms");})()'),lang+': normal frame-cap waiting is not presented as unexplained delay');
+    ok(
+      await evalJS(
+        '__perfFixture.snapshot().latest.cause==="cadence"&&document.querySelector(".perfCard").hidden'
+      ),
+      lang + ': low CPU and slower cadence remain a non-opening observation'
+    );
+    ok(
+      await evalJS(
+        '(()=>{const text=document.querySelector(".perfDiagnosis").textContent;return text.includes("2.97 ms")&&text.includes("6.73 ms");})()'
+      ),
+      lang + ': normal frame-cap waiting is not presented as unexplained delay'
+    );
     await evalJS('__perfFeed(50,100,30,{terrain:38})');
-    ok(await evalJS('!document.querySelector(".perfCard").hidden&&document.getElementById("perf").dataset.grade==="bad"'),lang+': actual slow terrain opens warning');
+    ok(
+      await evalJS(
+        '!document.querySelector(".perfCard").hidden&&document.getElementById("perf").dataset.grade==="bad"'
+      ),
+      lang + ': actual slow terrain opens warning'
+    );
     await evalJS('__perfFixture.collapse();__perfFeed(50,100,30,{terrain:38})');
-    ok(await evalJS('document.querySelector(".perfCard").hidden'),lang+': collapse prevents repeat warning');
+    ok(
+      await evalJS('document.querySelector(".perfCard").hidden'),
+      lang + ': collapse prevents repeat warning'
+    );
     await evalJS('__perfFeed(80,100,30,{lighting:65})');
-    ok(await evalJS('!document.querySelector(".perfCard").hidden'),lang+': new expensive cause reopens');
-    for(const [w,h]of [[320,568],[568,320],[1366,768]]){
-      await cdp.send('Emulation.setDeviceMetricsOverride',{width:w,height:h,deviceScaleFactor:1,mobile:w<600},session);
-      await evalJS('document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();__perfFixture.expand();__perfFixture.tick(1)');
-      await new Promise(r=>setTimeout(r,150));
-      ok(await evalJS('(()=>{const r=document.querySelector(".perfCard").getBoundingClientRect();const visible=document.elementFromPoint(r.left+r.width/2,r.top+10);return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&document.querySelector(".perfCard").contains(visible);})()'),`${lang}: warning fits ${w}×${h}`);
-      ok(await evalJS('(()=>{document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();const a=document.querySelector(".perfCard").getBoundingClientRect(),overlap=b=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;return ["btnBuild","btnUpgrade","btnAction","btnMine","btnPerfect"].map(id=>document.getElementById(id)).filter(e=>!e.hidden).map(e=>e.getBoundingClientRect()).filter(r=>r.height>0).every(b=>!overlap(b));})()'),`${lang}: warning leaves essential controls clear at ${w}×${h}`);
-      ok(await evalJS('(()=>{const p=document.querySelector(".perfPill");return p.getBoundingClientRect().height<=50&&p.scrollWidth<=p.clientWidth;})()'),`${lang}: compact pill stays readable at ${w}×${h}`);
+    ok(
+      await evalJS('!document.querySelector(".perfCard").hidden'),
+      lang + ': new expensive cause reopens'
+    );
+    for (const [w, h] of [
+      [320, 568],
+      [568, 320],
+      [1366, 768]
+    ]) {
+      await cdp.send(
+        'Emulation.setDeviceMetricsOverride',
+        { width: w, height: h, deviceScaleFactor: 1, mobile: w < 600 },
+        session
+      );
+      await evalJS(
+        'document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();__perfFixture.expand();__perfFixture.tick(1)'
+      );
+      await new Promise((r) => setTimeout(r, 150));
+      ok(
+        await evalJS(
+          '(()=>{const r=document.querySelector(".perfCard").getBoundingClientRect();const visible=document.elementFromPoint(r.left+r.width/2,r.top+10);return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&document.querySelector(".perfCard").contains(visible);})()'
+        ),
+        `${lang}: warning fits ${w}×${h}`
+      );
+      ok(
+        await evalJS(
+          '(()=>{document.getElementById("btnMine").hidden=false;document.getElementById("btnPerfect").hidden=false;MTE_GAME.hudLayout.tick();const a=document.querySelector(".perfCard").getBoundingClientRect(),overlap=b=>Math.min(a.right,b.right)-Math.max(a.left,b.left)>1&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>1;return ["btnBuild","btnUpgrade","btnAction","btnMine","btnPerfect"].map(id=>document.getElementById(id)).filter(e=>!e.hidden).map(e=>e.getBoundingClientRect()).filter(r=>r.height>0).every(b=>!overlap(b));})()'
+        ),
+        `${lang}: warning leaves essential controls clear at ${w}×${h}`
+      );
+      ok(
+        await evalJS(
+          '(()=>{const p=document.querySelector(".perfPill");return p.getBoundingClientRect().height<=50&&p.scrollWidth<=p.clientWidth;})()'
+        ),
+        `${lang}: compact pill stays readable at ${w}×${h}`
+      );
       await shot(`performance-${lang}-${w}.png`);
     }
     await evalJS('document.querySelector(".perfActions button").click();__perfFixture.details();');
-    await new Promise(r=>setTimeout(r,400));
-    ok(await evalJS('document.querySelectorAll(".perfPhase").length===8&&document.querySelectorAll(".perfIncident").length>0'),lang+': live sheet has phase timings and retained observations');
-    ok(await evalJS('!document.getElementById("performanceDetails").textContent.includes("perf.")'),lang+': labels resolve');
-    for(const [width,height] of [[1470,779],[320,568],[568,320],[1366,768]]){
-      await cdp.send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:width<600},session);
-      await new Promise(r=>setTimeout(r,180));
-      await evalJS('__perfFixture.details();document.getElementById("performancePanel").scrollTop=0');
-      const containment=await evalJS('(()=>{const s=document.getElementById("sheet"),p=document.getElementById("performancePanel"),a=s.getBoundingClientRect(),b=p.getBoundingClientRect(),head=document.getElementById("sheetHead").getBoundingClientRect();return {bounded:b.top>=head.bottom-1&&b.bottom<=a.bottom+1&&b.left>=a.left&&b.right<=a.right,scrollable:p.scrollHeight>p.clientHeight&&["auto","scroll"].includes(getComputedStyle(p).overflowY),horizontal:p.scrollWidth<=p.clientWidth+1,shell:s.scrollHeight<=s.clientHeight+1};})()');
-      ok(containment.bounded&&containment.scrollable&&containment.horizontal&&containment.shell,`${lang}: full details stay inside a scrollable sheet at ${width}×${height} ${JSON.stringify(containment)}`);
-      if(width===1470)await shot(`performance-details-${lang}-top.png`);
-      const reach=await evalJS('(()=>{const p=document.getElementById("performancePanel"),button=document.getElementById("btnClose"),before=button.getBoundingClientRect().top;p.scrollTop=p.scrollHeight;const last=document.querySelector(".perfIncident:last-child"),a=last.getBoundingClientRect(),b=p.getBoundingClientRect(),c=button.getBoundingClientRect();return p.scrollTop>0&&a.top>=b.top-1&&a.bottom<=b.bottom+1&&c.top===before&&button.contains(document.elementFromPoint(c.left+c.width/2,c.top+c.height/2));})()');
-      ok(reach,`${lang}: bottom observations and fixed Close remain reachable at ${width}×${height}`);
-      if(width===1470)await shot(`performance-details-${lang}-bottom.png`);
+    await new Promise((r) => setTimeout(r, 400));
+    ok(
+      await evalJS(
+        'document.querySelectorAll(".perfPhase").length===8&&document.querySelectorAll(".perfIncident").length>0'
+      ),
+      lang + ': live sheet has phase timings and retained observations'
+    );
+    ok(
+      await evalJS('!document.getElementById("performanceDetails").textContent.includes("perf.")'),
+      lang + ': labels resolve'
+    );
+    for (const [width, height] of [
+      [1470, 779],
+      [320, 568],
+      [568, 320],
+      [1366, 768]
+    ]) {
+      await cdp.send(
+        'Emulation.setDeviceMetricsOverride',
+        { width, height, deviceScaleFactor: 1, mobile: width < 600 },
+        session
+      );
+      await new Promise((r) => setTimeout(r, 180));
+      await evalJS(
+        '__perfFixture.details();document.getElementById("performancePanel").scrollTop=0'
+      );
+      const containment = await evalJS(
+        '(()=>{const s=document.getElementById("sheet"),p=document.getElementById("performancePanel"),a=s.getBoundingClientRect(),b=p.getBoundingClientRect(),head=document.getElementById("sheetHead").getBoundingClientRect();return {bounded:b.top>=head.bottom-1&&b.bottom<=a.bottom+1&&b.left>=a.left&&b.right<=a.right,scrollable:p.scrollHeight>p.clientHeight&&["auto","scroll"].includes(getComputedStyle(p).overflowY),horizontal:p.scrollWidth<=p.clientWidth+1,shell:s.scrollHeight<=s.clientHeight+1};})()'
+      );
+      ok(
+        containment.bounded &&
+          containment.scrollable &&
+          containment.horizontal &&
+          containment.shell,
+        `${lang}: full details stay inside a scrollable sheet at ${width}×${height} ${JSON.stringify(containment)}`
+      );
+      if (width === 1470) await shot(`performance-details-${lang}-top.png`);
+      const reach = await evalJS(
+        '(()=>{const p=document.getElementById("performancePanel"),button=document.getElementById("btnClose"),before=button.getBoundingClientRect().top;p.scrollTop=p.scrollHeight;const last=document.querySelector(".perfIncident:last-child"),a=last.getBoundingClientRect(),b=p.getBoundingClientRect(),c=button.getBoundingClientRect();return p.scrollTop>0&&a.top>=b.top-1&&a.bottom<=b.bottom+1&&c.top===before&&button.contains(document.elementFromPoint(c.left+c.width/2,c.top+c.height/2));})()'
+      );
+      ok(
+        reach,
+        `${lang}: bottom observations and fixed Close remain reachable at ${width}×${height}`
+      );
+      if (width === 1470) await shot(`performance-details-${lang}-bottom.png`);
     }
-    await evalJS('window.__perfReport=null;Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>{window.__perfReport=JSON.parse(text)}}});document.querySelector(".perfCopy").click()');
-    ok(await evalJS('__perfReport&&__perfReport.version&&Number.isFinite(__perfReport.diagnosticsDisplayMs)&&Number.isFinite(__perfReport.renderDpr)&&__perfReport.pacing.available===false&&__perfReport.cpuMs>0&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'),lang+': copied report includes timings, context and history');
-    ok(await evalJS('(()=>{const row=document.querySelector(".perfPhase");document.getElementById("btnClose").click();__perfFixture.tick(1);return row===document.querySelector(".perfPhase");})()'),lang+': closing details stops rebuilding hidden timing rows');
-    const before=await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
-    ok(await evalJS('(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);__perfFeed(50,100,30,{terrain:38});__perfFixture.snapshot();return before===MTE_GAME.core.serialize(s);})()'),lang+': observing diagnostics preserves the exact world save');
+    await evalJS(
+      'window.__perfReport=null;Object.defineProperty(navigator,"clipboard",{configurable:true,value:{writeText:async text=>{window.__perfReport=JSON.parse(text)}}});document.querySelector(".perfCopy").click()'
+    );
+    ok(
+      await evalJS(
+        '__perfReport&&__perfReport.version&&Number.isFinite(__perfReport.diagnosticsDisplayMs)&&Number.isFinite(__perfReport.renderDpr)&&__perfReport.pacing.available===false&&__perfReport.cpuMs>0&&__perfReport.context.layer===-4&&__perfReport.incidents.length>0&&__perfReport.history.length>0'
+      ),
+      lang + ': copied report includes timings, context and history'
+    );
+    ok(
+      await evalJS(
+        '(()=>{const row=document.querySelector(".perfPhase");document.getElementById("btnClose").click();__perfFixture.tick(1);return row===document.querySelector(".perfPhase");})()'
+      ),
+      lang + ': closing details stops rebuilding hidden timing rows'
+    );
+    const before = await evalJS('MTE_GAME.core.serialize(MTE_GAME.getState())');
+    ok(
+      await evalJS(
+        '(()=>{const s=MTE_GAME.getState(),before=MTE_GAME.core.serialize(s);__perfFeed(50,100,30,{terrain:38});__perfFixture.snapshot();return before===MTE_GAME.core.serialize(s);})()'
+      ),
+      lang + ': observing diagnostics preserves the exact world save'
+    );
     await evalJS('__perfFixture.toggle(false);__perfFeed(100,100,30,{terrain:90})');
-    ok(await evalJS('document.getElementById("perf").hidden'),lang+': disabling hides diagnostics');
+    ok(
+      await evalJS('document.getElementById("perf").hidden'),
+      lang + ': disabling hides diagnostics'
+    );
     // No gameplay commands or grants are used by the diagnostics fixture.
-    ok(typeof before==='string',lang+': world remains serializable');
+    ok(typeof before === 'string', lang + ': world remains serializable');
   }
 }

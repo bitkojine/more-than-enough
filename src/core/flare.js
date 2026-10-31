@@ -14,16 +14,19 @@ import { canAfford, spend, exploreRadius } from './economy.js';
 import { isDark, lightScale, activeCarriedLight, normalizeCarriedLight } from './light.js';
 import { lightCrystal } from './cultivation.js';
 
-export const flareLit = s => activeCarriedLight(s)==='flare';
-const FLARE_EPSILON=1e-9; // discard sub-nanosecond floating residue at burnout
-export const flareEndsWithin=(s,seconds)=>flareLit(s)&&s.flare<=seconds+FLARE_EPSILON;
+export const flareLit = (s) => activeCarriedLight(s) === 'flare';
+const FLARE_EPSILON = 1e-9; // discard sub-nanosecond floating residue at burnout
+export const flareEndsWithin = (s, seconds) => flareLit(s) && s.flare <= seconds + FLARE_EPSILON;
 
 // Makes and lights a flare, or puts out the one in your hand: 'lit', 'out',
 // 'materials' (no metal) or 'invalid' (a shared world: its room doesn't
 // check flares yet).
 export function useFlare(s) {
-  if (contentLocked(s,'flare')) return 'locked';
-  if (s.flare > 0) { s.flare = 0; return 'out'; }
+  if (contentLocked(s, 'flare')) return 'locked';
+  if (s.flare > 0) {
+    s.flare = 0;
+    return 'out';
+  }
   if (s.shared) return 'invalid';
   if (!canAfford(s.inv, FLARE_COST)) return 'materials';
   spend(s, FLARE_COST, 'tools');
@@ -36,7 +39,10 @@ export function useFlare(s) {
 
 // Burns the flare down by dt seconds of play; time away burns none.
 export function burnFlare(s, dt) {
-  if (flareLit(s)) {const left=s.flare-dt;s.flare=left<FLARE_EPSILON?0:left;}
+  if (flareLit(s)) {
+    const left = s.flare - dt;
+    s.flare = left < FLARE_EPSILON ? 0 : left;
+  }
 }
 
 // How far around you the land is uncovered, in tiles. In the dark a flare
@@ -46,6 +52,7 @@ export function burnFlare(s, dt) {
 // charge (light.js).
 export function sightRadius(s) {
   const flare = flareLit(s) && isDark(s) ? FLARE_LIGHT : 0;
-  if (s.cultivation && s.player.z < SURFACE && activeCarriedLight(s)!=='lantern') return Math.max(UNLIT_RADIUS, flare);
+  if (s.cultivation && s.player.z < SURFACE && activeCarriedLight(s) !== 'lantern')
+    return Math.max(UNLIT_RADIUS, flare);
   return Math.max(exploreRadius(s) * lightScale(s), flare);
 }

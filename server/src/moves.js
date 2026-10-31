@@ -30,7 +30,15 @@ export const CHEAT_FORGIVE_MS = 30_000;
 // A player's watch, the first time the room sees them (not kept: a restart
 // starts it again): {at, budget, fresh, placing, cheats, cheatAt, edits}.
 export function newWatch(now) {
-  return { at: now, budget: MOVE_BURST, fresh: true, placing: false, cheats: 0, cheatAt: 0, edits: editBucket(now) };
+  return {
+    at: now,
+    budget: MOVE_BURST,
+    fresh: true,
+    placing: false,
+    cheats: 0,
+    cheatAt: 0,
+    edits: editBucket(now)
+  };
 }
 
 // Whether a player on watch `w` could step from `from` (null: nowhere yet,
@@ -39,12 +47,15 @@ export function newWatch(now) {
 // after connecting starts somewhere else: not a cheat) or 'wait' (still
 // not where the room has them). A climb or fall keeps them on the same spot.
 export function step(w, from, to, lastAt, now) {
-  w.budget = Math.min(MOVE_BURST, w.budget + (now - w.at) / 1000 * MAX_SPEED);
+  w.budget = Math.min(MOVE_BURST, w.budget + ((now - w.at) / 1000) * MAX_SPEED);
   w.at = now;
-  if (!from) { w.fresh = w.placing = false; return 'ok'; }
+  if (!from) {
+    w.fresh = w.placing = false;
+    return 'ok';
+  }
   const dist = Math.hypot(to.x - from.x, to.y - from.y);
   if (w.fresh || w.placing) {
-    const since = Number.isSafeInteger(lastAt) ? Math.max(0, now - lastAt) / 1000 * MAX_SPEED : 0;
+    const since = Number.isSafeInteger(lastAt) ? (Math.max(0, now - lastAt) / 1000) * MAX_SPEED : 0;
     const ok = dist <= (w.placing ? w.budget : Math.max(w.budget, since));
     const was = w.fresh;
     w.fresh = false;

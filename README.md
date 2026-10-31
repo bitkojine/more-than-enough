@@ -183,7 +183,14 @@ and generated assets are excluded. CI uploads the same report on every run.
 `npm run lint` is the gate (in `npm run check` and CI): any ESLint error
 fails it, and so does a warning count above the budget in `package.json`
 (`--max-warnings`). The budget is a ratchet: when you clear warnings, lower
-it to the new count; never raise it. Complexity counts are investigation
+it to the new count; never raise it. It also fails on JavaScript that
+Prettier (`.prettierrc.json`: 100 columns, single quotes) would lay out
+differently; `npm run format` fixes that. A comment that marks a line, like
+`// i18n-ok: <why>`, may sit at the end of the line or alone on the line
+above it, so the formatter can move code without losing the mark. The
+one-time reformat is listed in `.git-blame-ignore-revs`; run
+`git config blame.ignoreRevsFile .git-blame-ignore-revs` once so
+`git blame` looks past it. Complexity counts are investigation
 signals, not proof of bugs or performance.
 This bounded analysis does not run simulations or ship dependencies to players.
 

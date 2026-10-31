@@ -4,210 +4,254 @@
  * exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  "wiki.article.cultivation.title": "Living crystal and the sleeping machine",
-  "wiki.article.cultivation": "<h1>Living crystal and the sleeping machine</h1><p>The familiar world now has a new underground chapter. Begin empty-handed with surface mycelium and stone, craft your pick, mine metal below, then descend again to discover wild crystal colonies and a dormant machine.</p><h2>The focused first chapter</h2><p>Gather supplies by hand. Keep the picks needed for metal and starters, first water-walking boots, lantern, solar panels, water wheels, carrier, chamber, cooling and heart shelters. Gardens, quarries, mines, Stoneworks, depots, vaults, conduits, baskets, flares, reinforcement and higher tool tiers show a lock until you activate the machine. Optional automation pauses, but owned items, stored output and routes are preserved. Activation restores their use. Legacy worlds keep their earlier progression.</p><h2>Grow in cold darkness</h2><p>Build a deep growing chamber and nearby cooling. Plant a wild starter. Chambers, vaults and the machine automatically block light inside; no open/close control is needed. Physical light damages wild colonies and unprotected cargo; fainter light damages it more slowly. Rock blocks light, open passages carry it around corners, and open ladder holes connect layers. A clear shaft to the surface carries sunlight to any depth. Facility interiors always protect their contents from light, including during planting and tending. Inspect a chamber to see outside light and its protection. Keep your lantern off during exposed handling, tend surviving injured colonies once they are cool. Wild colonies renew so you can recover from losing a cultivated colony.</p><p>Cooling towers lower local temperature by 12°C within three Manhattan steps. Growth needs at most 22°C. Mines add local heat. Heat and light damage crystal even after harvesting. Carriers block light, but do not defeat heat. {phone:Tap|laptop:Click} a placed light beside you to cover it when you need a dark work area.</p><h2>Protected construction</h2><p>Vaults store crystal; sealed conduits transfer output between a chamber and a vault, each within four steps of the conduit. Degraded crystal still reinforces chamber/vault capacity. Mixed batches use an amount-weighted quality.</p><div data-table=\"cultivation\"></div><h2>Restoration and completion</h2><p>Restore three physical machine sections: first 16 stone / 16 metal / 6 crystal, then 24 / 24 / 8, then 32 / 32 / 12. Crystal quality must be at least 60%. Build cooling nearby. Activate the restored machine while its crystal is viable and temperature is at most 22°C to complete the world. Installed crystal still needs protection, but an earned completion remains recorded. Beyond starts another empty-handed world and preserves the completed archive.</p><h2>The stolen heart</h2><p>The machine is a teleporter. Its heart was stolen and sent, in the last teleport it ever made, to a hiding place about 2.5 km away on the surface. Without its heart the machine and all teleportation went dark. The first repair shows where it went, and the world map marks the hiding place from the start, with its distance.</p><p>The second section needs the heart itself, at least 50% sound. Lift it into a sealed crystal carrier and walk it home. The sealed carrier blocks sunlight, lamps, lanterns and flares for the heart too. Heat over 22°C still damages it. Without carrier protection, light damage scales with intensity, up to 0.15% a second at full light. A heart shelter (6 mycelium, 10 stone) can stand on the surface or underground: a heart resting inside is safe and mends 0.25% a second. If the heart cracks right through, it falls apart and its light returns to the hiding place, so you can fetch it again.</p><p>{phone:Tap|laptop:Click} a facility beside you for its card: temperature, tolerance and output, and what you can do with it. Build only places things; Upgrade contains equipment. Once crafted, the lantern has its own button above Gather ({phone:tap it|laptop:or press <kbd>L</kbd>}) to switch it on and off. Settings → Nerds can start another archived solo world. Earlier worlds keep their original rules. AUTO and multiplayer are not yet connected to new-world cultivation.</p>",
-  "wiki.legacyRules": "These reference tables describe the earlier saved-world economy. For new worlds, see Living crystal and the sleeping machine.",
+  'wiki.article.cultivation.title': 'Living crystal and the sleeping machine',
+  'wiki.article.cultivation':
+    '<h1>Living crystal and the sleeping machine</h1><p>The familiar world now has a new underground chapter. Begin empty-handed with surface mycelium and stone, craft your pick, mine metal below, then descend again to discover wild crystal colonies and a dormant machine.</p><h2>The focused first chapter</h2><p>Gather supplies by hand. Keep the picks needed for metal and starters, first water-walking boots, lantern, solar panels, water wheels, carrier, chamber, cooling and heart shelters. Gardens, quarries, mines, Stoneworks, depots, vaults, conduits, baskets, flares, reinforcement and higher tool tiers show a lock until you activate the machine. Optional automation pauses, but owned items, stored output and routes are preserved. Activation restores their use. Legacy worlds keep their earlier progression.</p><h2>Grow in cold darkness</h2><p>Build a deep growing chamber and nearby cooling. Plant a wild starter. Chambers, vaults and the machine automatically block light inside; no open/close control is needed. Physical light damages wild colonies and unprotected cargo; fainter light damages it more slowly. Rock blocks light, open passages carry it around corners, and open ladder holes connect layers. A clear shaft to the surface carries sunlight to any depth. Facility interiors always protect their contents from light, including during planting and tending. Inspect a chamber to see outside light and its protection. Keep your lantern off during exposed handling, tend surviving injured colonies once they are cool. Wild colonies renew so you can recover from losing a cultivated colony.</p><p>Cooling towers lower local temperature by 12°C within three Manhattan steps. Growth needs at most 22°C. Mines add local heat. Heat and light damage crystal even after harvesting. Carriers block light, but do not defeat heat. {phone:Tap|laptop:Click} a placed light beside you to cover it when you need a dark work area.</p><h2>Protected construction</h2><p>Vaults store crystal; sealed conduits transfer output between a chamber and a vault, each within four steps of the conduit. Degraded crystal still reinforces chamber/vault capacity. Mixed batches use an amount-weighted quality.</p><div data-table="cultivation"></div><h2>Restoration and completion</h2><p>Restore three physical machine sections: first 16 stone / 16 metal / 6 crystal, then 24 / 24 / 8, then 32 / 32 / 12. Crystal quality must be at least 60%. Build cooling nearby. Activate the restored machine while its crystal is viable and temperature is at most 22°C to complete the world. Installed crystal still needs protection, but an earned completion remains recorded. Beyond starts another empty-handed world and preserves the completed archive.</p><h2>The stolen heart</h2><p>The machine is a teleporter. Its heart was stolen and sent, in the last teleport it ever made, to a hiding place about 2.5 km away on the surface. Without its heart the machine and all teleportation went dark. The first repair shows where it went, and the world map marks the hiding place from the start, with its distance.</p><p>The second section needs the heart itself, at least 50% sound. Lift it into a sealed crystal carrier and walk it home. The sealed carrier blocks sunlight, lamps, lanterns and flares for the heart too. Heat over 22°C still damages it. Without carrier protection, light damage scales with intensity, up to 0.15% a second at full light. A heart shelter (6 mycelium, 10 stone) can stand on the surface or underground: a heart resting inside is safe and mends 0.25% a second. If the heart cracks right through, it falls apart and its light returns to the hiding place, so you can fetch it again.</p><p>{phone:Tap|laptop:Click} a facility beside you for its card: temperature, tolerance and output, and what you can do with it. Build only places things; Upgrade contains equipment. Once crafted, the lantern has its own button above Gather ({phone:tap it|laptop:or press <kbd>L</kbd>}) to switch it on and off. Settings → Nerds can start another archived solo world. Earlier worlds keep their original rules. AUTO and multiplayer are not yet connected to new-world cultivation.</p>',
+  'wiki.legacyRules':
+    'These reference tables describe the earlier saved-world economy. For new worlds, see Living crystal and the sleeping machine.',
 
-  "wiki.depotCollection": "Collection Depots collect owned producer output within eight tiles on the same layer. Overlap never duplicates output; unserved producers retain their output. Depots use normal solo saves and archives. Earlier global-Logistics worlds keep their earned benefits.",
-  "wiki.area.look": "How things look",
-  "wiki.area.look.blurb": "The wanderer, items, buildings and the world itself.",
-  "wiki.area.depth": "Height and depth",
-  "wiki.area.depth.blurb": "Taking the clouds, the mine and the layers further.",
-  "wiki.area.mechanics": "Mechanics",
-  "wiki.area.mechanics.blurb": "New things to do with your hands and your head.",
-  "wiki.area.economy": "Economy and progression",
-  "wiki.area.economy.blurb": "What you build toward, and how the surplus grows.",
-  "wiki.area.big": "Big swings",
-  "wiki.area.big.blurb": "Changes that would make it a different game. Some of these are wild on purpose.",
-  "wiki.size.small": "Small",
-  "wiki.size.medium": "Medium",
-  "wiki.size.large": "Large",
-  "wiki.size.huge": "Huge",
-  "wiki.buildsOn": "Builds on: {builds}",
-  "wiki.idea.toolsYouCanSee.title": "Tools you can see",
-  "wiki.idea.toolsYouCanSee.pitch": "Each Basket and Pickaxe level changes what the wanderer holds: reed, willow, bronze, crystal. Progress shows on the character instead of only in the sheet.",
-  "wiki.idea.toolsYouCanSee.builds": "Tool levels in the upgrade registry.",
-  "wiki.idea.aPackThatFillsUp.title": "A pack that fills up",
-  "wiki.idea.aPackThatFillsUp.pitch": "Mushrooms, stones and glinting ore pile up on a backpack or a little sled behind you as your stock grows, and spill into a cart once it gets absurd. \"More than enough\" you can see.",
-  "wiki.idea.aPackThatFillsUp.builds": "Inventory totals and the flyers that already zip into your pack.",
-  "wiki.idea.buildingsThatGrow.title": "Buildings that grow",
-  "wiki.idea.buildingsThatGrow.pitch": "Extractors gain visible parts as you build more of the same kind: scaffolds, chimneys, conveyor stubs. A full one puffs smoke or glows, so you can read the whole camp at a glance with no ring overlays.",
-  "wiki.idea.buildingsThatGrow.builds": "Extractor counts and buffer fill.",
-  "wiki.idea.crystalsThatLightTheDark.title": "Crystals that light the dark",
-  "wiki.idea.crystalsThatLightTheDark.pitch": "Crystal tiles and seams glow at night and underground, lighting nearby ground and the cliff faces they sit in. Finding a crystal vein turns a dark corner of the map into a landmark.",
-  "wiki.idea.crystalsThatLightTheDark.builds": "Night lighting and crystal tiles.",
-  "wiki.idea.seasons.title": "Seasons",
-  "wiki.idea.seasons.pitch": "Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge swimming, but even purely visual it gives long sessions a sense of time.",
-  "wiki.idea.seasons.builds": "The day/night clock.",
-  "wiki.idea.distantPlateaus.title": "Distant plateaus",
-  "wiki.idea.distantPlateaus.pitch": "Far out in the dark, other islands of land hang at different heights, dimly lit, hinting at biomes you haven't reached. Walking toward one eventually joins it to your plateau.",
-  "wiki.idea.distantPlateaus.builds": "Clouds over unexplored land and endless terrain.",
-  "wiki.idea.waterfallsOffTheEdge.title": "Waterfalls off the edge",
-  "wiki.idea.waterfallsOffTheEdge.pitch": "Where a river or lake reaches the edge of the known world, water pours over the cliff into the dark, with spray catching the light. Underground, water that meets a hole falls to the layer below.",
-  "wiki.idea.waterfallsOffTheEdge.builds": "Water tiles, cliffs and holes.",
-  "wiki.idea.tunnelsInTheCliffFace.title": "Tunnels in the cliff face",
-  "wiki.idea.tunnelsInTheCliffFace.pitch": "Tunnels dug near the edge of the known world show as openings on the cliff below it, so from the surface you can see where your mine runs.",
-  "wiki.idea.tunnelsInTheCliffFace.builds": "Cliffs already show what you've found on each layer.",
-  "wiki.idea.turnTheView.title": "Turn the view",
-  "wiki.idea.turnTheView.pitch": "Rotate the camera in quarter turns to look at the plateau from another side. Needs east, west and north faces drawn, but makes the world feel like a real object you can walk around.",
-  "wiki.idea.turnTheView.builds": "The camera's project/unproject seam.",
-  "wiki.idea.deepBiomes.title": "Deep biomes",
-  "wiki.idea.deepBiomes.pitch": "Every few layers the rock changes character: root-tangled soil, glowing fungus caverns, cold blue ice, warm magma rock, and very deep, buried ruins. Each with its own colours, sounds and one new resource.",
-  "wiki.idea.deepBiomes.builds": "The geology table already unlocks rock types by depth.",
-  "wiki.idea.buildingUpward.title": "Building upward",
-  "wiki.idea.buildingUpward.pitch": "Layers above the surface: scaffolds, towers and lookout posts that reveal fog from far away. The coordinate system already allows z above 0.",
-  "wiki.idea.buildingUpward.builds": "Layered (x, y, z) world and explore radius.",
-  "wiki.idea.liftsInHoleColumns.title": "Lifts in hole columns",
-  "wiki.idea.liftsInHoleColumns.pitch": "Build a winch over a column of holes and it carries what your underground extractors make up to the surface, and you with it. Makes deep mining a logistics puzzle instead of a long climb.",
-  "wiki.idea.liftsInHoleColumns.builds": "Holes, columns and Logistics.",
-  "wiki.idea.minecartRails.title": "Minecart rails",
-  "wiki.idea.minecartRails.pitch": "Lay rails along tunnels; carts roll ore to a lift on their own. Laying track could reuse the Trail gesture: draw the route with your {phone:thumb|laptop:mouse}.",
-  "wiki.idea.minecartRails.builds": "Trails and dug tunnels.",
-  "wiki.idea.caveInsAndMyceliumProps.title": "Cave-ins and mycelium props",
-  "wiki.idea.caveInsAndMyceliumProps.pitch": "Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.",
-  "wiki.idea.caveInsAndMyceliumProps.builds": "Dug tiles and mycelium.",
-  "wiki.idea.glowOre.title": "Glow ore",
-  "wiki.idea.glowOre.pitch": "A rare ore you can only see at night or in the dark, shimmering faintly. Rewards being out at night and exploring the mine by feel.",
-  "wiki.idea.glowOre.builds": "Day/night and fog.",
-  "wiki.idea.littleDiggers.title": "Little diggers",
-  "wiki.idea.littleDiggers.pitch": "Small creatures living in the dark: moles that dig tunnels on their own, or thieves that nibble at full extractor buffers. A reason to keep the camp tidy and a bit of life in the world.",
-  "wiki.idea.littleDiggers.builds": "Extractor buffers and tunnels.",
-  "wiki.idea.weather.title": "Weather",
-  "wiki.idea.weather.pitch": "Rain fills ponds; dry spells shrink lakes and open new paths. Weather rolls in as visible clouds, so you see it coming.",
-  "wiki.idea.weather.builds": "Water tiles.",
-  "wiki.idea.visualRecipes.title": "Visual recipes",
-  "wiki.idea.visualRecipes.pitch": "A workbench where you drop resources in and see what comes out: icons only, no words, discovered by trying combinations. Fits the figure-it-out rule perfectly.",
-  "wiki.idea.visualRecipes.builds": "Converters and the no-text rule.",
-  "wiki.idea.roads.title": "Roads",
-  "wiki.idea.roads.pitch": "Paved paths you lay between buildings that make you walk faster along them. Turns the camp into a network you design.",
-  "wiki.idea.roads.builds": "Movement speed.",
-  "wiki.idea.caravansAtTheEdge.title": "Caravans at the edge",
-  "wiki.idea.caravansAtTheEdge.pitch": "Every so often a caravan appears at the edge of the known world and trades one resource for another. Exploring further brings bigger caravans.",
-  "wiki.idea.caravansAtTheEdge.builds": "Fog edges and resources.",
-  "wiki.idea.trophiesOnThePlateau.title": "Trophies on the plateau",
-  "wiki.idea.trophiesOnThePlateau.pitch": "Milestones leave a physical marker in the world: a cairn, a statue, a lit beacon, so your history stands on the map instead of in a list.",
-  "wiki.idea.trophiesOnThePlateau.builds": "Milestones (goals) and their celebration.",
-  "wiki.idea.insightAsConstellations.title": "Insight as constellations",
-  "wiki.idea.insightAsConstellations.pitch": "Perks bought with Insight appear as stars in the night sky, forming constellations over worlds you embark to. The prestige layer becomes something you look up at.",
-  "wiki.idea.insightAsConstellations.builds": "Insight, perks and night.",
-  "wiki.idea.aMountainColony.title": "A mountain colony",
-  "wiki.idea.aMountainColony.pitch": "Settlers arrive and live in the tunnels you dig; you assign them to jobs by placing tools near them. The game shifts from one wanderer to a small society inside the mountain.",
-  "wiki.idea.aMountainColony.builds": "Tunnels, buildings and production.",
-  "wiki.idea.everyEmbarkIsANewMountain.title": "Every embark is a new mountain",
-  "wiki.idea.everyEmbarkIsANewMountain.pitch": "Lean into the plateau: each world is one mountain with a summit, a shape and a depth limit, and Embark means climbing down and walking to the next peak. Short runs, strong meta-progression.",
-  "wiki.idea.everyEmbarkIsANewMountain.builds": "Embark and Insight.",
-  "wiki.idea.visitAFriendSPlateau.title": "Visit a friend's plateau",
-  "wiki.idea.visitAFriendSPlateau.pitch": "Share a link to your world; friends can walk your plateau, leave a gift at your camp, or dig a hole that appears in your mine. Asynchronous, no accounts, the save format already captures a whole world compactly.",
-  "wiki.idea.visitAFriendSPlateau.builds": "Seeded worlds and compact saves.",
-  "wiki.idea.theWorldThatRemembers.title": "The world that remembers",
-  "wiki.idea.theWorldThatRemembers.pitch": "When you embark, the old world stays behind and can be found again much later: overgrown camps, collapsed tunnels, your own trophies. Prestige becomes archaeology.",
-  "wiki.idea.theWorldThatRemembers.builds": "Seeds, saves and embark.",
-  "wiki.idea.downIsTheWholeGame.title": "Down is the whole game",
-  "wiki.idea.downIsTheWholeGame.pitch": "Flip the focus: the surface is a small starting meadow and the real game is the descent, layer after layer, each one a self-contained cave to light, mine and connect with holes. The surface becomes home base.",
-  "wiki.idea.downIsTheWholeGame.builds": "Layers, holes and mine fog.",
-  "wiki.idea.noNumbersAtAll.title": "No numbers at all",
-  "wiki.idea.noNumbersAtAll.pitch": "Go further than \"no tutorial\": hide all counters and let the size of your piles, the glow of buildings and the length of your tunnels tell you how you're doing. The wiki keeps the numbers for those who want them.",
-  "wiki.idea.noNumbersAtAll.builds": "The no-text rule and the wiki.",
-  "wiki.idea.aSharedBank.title": "A shared bank",
-  "wiki.idea.aSharedBank.pitch": "In a shared world, a bank everyone can put things into and take from, so friends can pool resources for something big or help a newcomer get started.",
-  "wiki.idea.aSharedBank.builds": "Shared worlds, the stockpile and the yard.",
-  "wiki.idea.playtesterBots.title": "Playtester bots",
-  "wiki.idea.playtesterBots.pitch": "Bots that join a shared world and play it while nobody's around: they gather, build, travel and report what got them stuck or broke, so problems turn up before players find them.",
-  "wiki.idea.playtesterBots.builds": "The bot playthrough test and shared worlds.",
-  "wiki.idea.creaturesOfDayAndNight.title": "Creatures of day and night",
-  "wiki.idea.creaturesOfDayAndNight.pitch": "Creatures to discover and learn from, drawn from the angels-and-demons tarot matrix: the 72 day angels of the Shem HaMephorash and the 72 night demons of the Ars Goetia, two of each on every minor-arcana card (36 decans). Which ones are out follows the day and the night.",
-  "wiki.idea.creaturesOfDayAndNight.builds": "The day and night cycle, and Wiki, who already tells you about what you point at.",
-  "wiki.search.head": "Search: “{query}”",
-  "wiki.search.none": "Not mentioned anywhere in the wiki.",
-  "wiki.search.mentions": { one: "{count} mention in {articles}.", other: "{count} mentions in {articles}." },
-  "wiki.search.articles": { one: "{count} article", other: "{count} articles" },
-  "wiki.packFailed": "The game's pictures didn't load ({status})",
-  "wiki.thingCount": { one: "{count} things in {groups} groups.", other: "{count} things in {groups} groups." },
-  "wiki.title": "Mica and Wiki: the wiki",
-  "wiki.description": "Everything about Mica and Wiki: controls, the world, the mine, buildings, upgrades and the prestige loop.",
-  "wiki.nav": "Wiki",
-  "wiki.brand": "MICA AND WIKI",
-  "wiki.play": "Play the game",
-  "wiki.searchBox": "Search the wiki",
-  "wiki.searchTitle": "Search – Mica and Wiki: the wiki",
-  "wiki.articleTitle": "{article} – Mica and Wiki: the wiki",
-  "wiki.forVersion": "for game v{version}",
-  "wiki.loadFailed": "The wiki couldn't load its tables: {error}",
-  "wiki.note.swim": "Swimmable, at {pct} speed",
-  "wiki.note.walk": "Walkable",
-  "wiki.note.solid": "Solid until dug",
-  "wiki.note.impassable": "Impassable",
-  "wiki.note.yields": "yields {res}",
-  "wiki.note.empty": "holds nothing: digging it only clears the way",
-  "wiki.note.neverRegrows": "never regrows",
-  "wiki.note.land": "converters can stand here",
-  "wiki.note.home": "your stockpile is kept here",
-  "wiki.note.descend": "drop to the layer below",
-  "wiki.note.rise": "climb to the layer above",
-  "wiki.note.shaft": "one dig opens it",
-  "wiki.note.find": "a find: glints in the dark, one dig pays its loot (see Finds)",
-  "wiki.note.bedrock": "cannot be dug",
-  "wiki.col.tile": "Tile",
-  "wiki.col.land": "Kind of land",
-  "wiki.col.music": "Music",
-  "wiki.biome.meadow": "Open grassland with copses, a little of everything",
-  "wiki.biome.woods": "Deep forest, mushrooms everywhere, few minerals",
-  "wiki.biome.lakes": "Lakes and islands; bring patience, or a boat",
-  "wiki.biome.highlands": "Mountains and rich mineral country, few trees",
-  "wiki.biome.fen": "Wet woods and pools, hardly any stone",
-  "wiki.biome.heath": "Bare, windswept and stony, almost treeless",
-  "wiki.col.richness": "Richness",
-  "wiki.col.notes": "Notes",
-  "wiki.col.share": "Share of tiles (shallow → deep)",
-  "wiki.col.foundOn": "Found on",
-  "wiki.col.mushroom": "Mushroom",
-  "wiki.col.grows": "Grows",
-  "wiki.col.howCommon": "How common",
-  "wiki.col.whatItIs": "What it is",
-  "wiki.col.thing": "Thing",
-  "wiki.col.cost": "Cost",
-  "wiki.col.light": "Light reach",
-  "wiki.col.whatItDoes": "What it does",
-  "wiki.col.find": "Find",
-  "wiki.col.loot": "Loot on layer 1, per point of tool yield",
-  "wiki.col.level": "Level",
-  "wiki.col.effect": "Effect",
-  "wiki.col.opens": "Opens",
-  "wiki.col.building": "Building",
-  "wiki.col.standsOn": "Stands on",
-  "wiki.col.makes": "Makes",
-  "wiki.col.baseRate": "Base rate",
-  "wiki.col.holds": "Holds",
-  "wiki.col.firstCosts": "First one costs",
-  "wiki.col.needs": "Needs",
-  "wiki.col.unlock": "Unlock",
-  "wiki.col.trickle": "Trickle",
-  "wiki.col.production": "Production",
-  "wiki.col.levelCost": "Cost of this level",
-  "wiki.col.step": "Step",
-  "wiki.col.total": "Total",
-  "wiki.col.perk": "Perk",
-  "wiki.col.insightCost": "Cost in Insight",
-  "wiki.col.pileIs": "Each pile is",
-  "wiki.col.ground": "Ground",
-  "wiki.everyLayer": "every layer",
-  "wiki.fromLayer": "layer {layer} and deeper",
-  "wiki.soilShare": "about {pct} on layer 1, less deeper down",
-  "wiki.common": "common",
-  "wiki.fairlyCommon": "fairly common",
-  "wiki.uncommon": "uncommon",
-  "wiki.rare": "rare",
-  "wiki.sporeBedsFrom": "spore beds, layer {layer} and deeper",
-  "wiki.sporeBeds": "spore beds",
-  "wiki.perSwing": "{n} per swing",
-  "wiki.startingTool": "legacy basic equipment",
-  "wiki.trickle": "+{n}/s each",
-  "wiki.perkRepeat": "{n}, then +1 per level owned",
-  "wiki.perkOnce": "{n} (once)",
-  "wiki.oneTile": "1 tile",
-  "wiki.tilesSquare": "{n} × {n} tiles",
-  "wiki.article.home.title": "Home",
-  "wiki.article.home": `      <h1>Mica and Wiki: the wiki</h1>
+  'wiki.depotCollection':
+    'Collection Depots collect owned producer output within eight tiles on the same layer. Overlap never duplicates output; unserved producers retain their output. Depots use normal solo saves and archives. Earlier global-Logistics worlds keep their earned benefits.',
+  'wiki.area.look': 'How things look',
+  'wiki.area.look.blurb': 'The wanderer, items, buildings and the world itself.',
+  'wiki.area.depth': 'Height and depth',
+  'wiki.area.depth.blurb': 'Taking the clouds, the mine and the layers further.',
+  'wiki.area.mechanics': 'Mechanics',
+  'wiki.area.mechanics.blurb': 'New things to do with your hands and your head.',
+  'wiki.area.economy': 'Economy and progression',
+  'wiki.area.economy.blurb': 'What you build toward, and how the surplus grows.',
+  'wiki.area.big': 'Big swings',
+  'wiki.area.big.blurb':
+    'Changes that would make it a different game. Some of these are wild on purpose.',
+  'wiki.size.small': 'Small',
+  'wiki.size.medium': 'Medium',
+  'wiki.size.large': 'Large',
+  'wiki.size.huge': 'Huge',
+  'wiki.buildsOn': 'Builds on: {builds}',
+  'wiki.idea.toolsYouCanSee.title': 'Tools you can see',
+  'wiki.idea.toolsYouCanSee.pitch':
+    'Each Basket and Pickaxe level changes what the wanderer holds: reed, willow, bronze, crystal. Progress shows on the character instead of only in the sheet.',
+  'wiki.idea.toolsYouCanSee.builds': 'Tool levels in the upgrade registry.',
+  'wiki.idea.aPackThatFillsUp.title': 'A pack that fills up',
+  'wiki.idea.aPackThatFillsUp.pitch':
+    'Mushrooms, stones and glinting ore pile up on a backpack or a little sled behind you as your stock grows, and spill into a cart once it gets absurd. "More than enough" you can see.',
+  'wiki.idea.aPackThatFillsUp.builds':
+    'Inventory totals and the flyers that already zip into your pack.',
+  'wiki.idea.buildingsThatGrow.title': 'Buildings that grow',
+  'wiki.idea.buildingsThatGrow.pitch':
+    'Extractors gain visible parts as you build more of the same kind: scaffolds, chimneys, conveyor stubs. A full one puffs smoke or glows, so you can read the whole camp at a glance with no ring overlays.',
+  'wiki.idea.buildingsThatGrow.builds': 'Extractor counts and buffer fill.',
+  'wiki.idea.crystalsThatLightTheDark.title': 'Crystals that light the dark',
+  'wiki.idea.crystalsThatLightTheDark.pitch':
+    'Crystal tiles and seams glow at night and underground, lighting nearby ground and the cliff faces they sit in. Finding a crystal vein turns a dark corner of the map into a landmark.',
+  'wiki.idea.crystalsThatLightTheDark.builds': 'Night lighting and crystal tiles.',
+  'wiki.idea.seasons.title': 'Seasons',
+  'wiki.idea.seasons.pitch':
+    'Over many in-game days the forest shifts from green to gold to bare and back. Each season could also nudge swimming, but even purely visual it gives long sessions a sense of time.',
+  'wiki.idea.seasons.builds': 'The day/night clock.',
+  'wiki.idea.distantPlateaus.title': 'Distant plateaus',
+  'wiki.idea.distantPlateaus.pitch':
+    "Far out in the dark, other islands of land hang at different heights, dimly lit, hinting at biomes you haven't reached. Walking toward one eventually joins it to your plateau.",
+  'wiki.idea.distantPlateaus.builds': 'Clouds over unexplored land and endless terrain.',
+  'wiki.idea.waterfallsOffTheEdge.title': 'Waterfalls off the edge',
+  'wiki.idea.waterfallsOffTheEdge.pitch':
+    'Where a river or lake reaches the edge of the known world, water pours over the cliff into the dark, with spray catching the light. Underground, water that meets a hole falls to the layer below.',
+  'wiki.idea.waterfallsOffTheEdge.builds': 'Water tiles, cliffs and holes.',
+  'wiki.idea.tunnelsInTheCliffFace.title': 'Tunnels in the cliff face',
+  'wiki.idea.tunnelsInTheCliffFace.pitch':
+    'Tunnels dug near the edge of the known world show as openings on the cliff below it, so from the surface you can see where your mine runs.',
+  'wiki.idea.tunnelsInTheCliffFace.builds': "Cliffs already show what you've found on each layer.",
+  'wiki.idea.turnTheView.title': 'Turn the view',
+  'wiki.idea.turnTheView.pitch':
+    'Rotate the camera in quarter turns to look at the plateau from another side. Needs east, west and north faces drawn, but makes the world feel like a real object you can walk around.',
+  'wiki.idea.turnTheView.builds': "The camera's project/unproject seam.",
+  'wiki.idea.deepBiomes.title': 'Deep biomes',
+  'wiki.idea.deepBiomes.pitch':
+    'Every few layers the rock changes character: root-tangled soil, glowing fungus caverns, cold blue ice, warm magma rock, and very deep, buried ruins. Each with its own colours, sounds and one new resource.',
+  'wiki.idea.deepBiomes.builds': 'The geology table already unlocks rock types by depth.',
+  'wiki.idea.buildingUpward.title': 'Building upward',
+  'wiki.idea.buildingUpward.pitch':
+    'Layers above the surface: scaffolds, towers and lookout posts that reveal fog from far away. The coordinate system already allows z above 0.',
+  'wiki.idea.buildingUpward.builds': 'Layered (x, y, z) world and explore radius.',
+  'wiki.idea.liftsInHoleColumns.title': 'Lifts in hole columns',
+  'wiki.idea.liftsInHoleColumns.pitch':
+    'Build a winch over a column of holes and it carries what your underground extractors make up to the surface, and you with it. Makes deep mining a logistics puzzle instead of a long climb.',
+  'wiki.idea.liftsInHoleColumns.builds': 'Holes, columns and Logistics.',
+  'wiki.idea.minecartRails.title': 'Minecart rails',
+  'wiki.idea.minecartRails.pitch':
+    'Lay rails along tunnels; carts roll ore to a lift on their own. Laying track could reuse the Trail gesture: draw the route with your {phone:thumb|laptop:mouse}.',
+  'wiki.idea.minecartRails.builds': 'Trails and dug tunnels.',
+  'wiki.idea.caveInsAndMyceliumProps.title': 'Cave-ins and mycelium props',
+  'wiki.idea.caveInsAndMyceliumProps.pitch':
+    'Big open caverns creak and may collapse unless propped with grown mycelium pillars, giving mycelium a reason to go underground and making mine layout a choice.',
+  'wiki.idea.caveInsAndMyceliumProps.builds': 'Dug tiles and mycelium.',
+  'wiki.idea.glowOre.title': 'Glow ore',
+  'wiki.idea.glowOre.pitch':
+    'A rare ore you can only see at night or in the dark, shimmering faintly. Rewards being out at night and exploring the mine by feel.',
+  'wiki.idea.glowOre.builds': 'Day/night and fog.',
+  'wiki.idea.littleDiggers.title': 'Little diggers',
+  'wiki.idea.littleDiggers.pitch':
+    'Small creatures living in the dark: moles that dig tunnels on their own, or thieves that nibble at full extractor buffers. A reason to keep the camp tidy and a bit of life in the world.',
+  'wiki.idea.littleDiggers.builds': 'Extractor buffers and tunnels.',
+  'wiki.idea.weather.title': 'Weather',
+  'wiki.idea.weather.pitch':
+    'Rain fills ponds; dry spells shrink lakes and open new paths. Weather rolls in as visible clouds, so you see it coming.',
+  'wiki.idea.weather.builds': 'Water tiles.',
+  'wiki.idea.visualRecipes.title': 'Visual recipes',
+  'wiki.idea.visualRecipes.pitch':
+    'A workbench where you drop resources in and see what comes out: icons only, no words, discovered by trying combinations. Fits the figure-it-out rule perfectly.',
+  'wiki.idea.visualRecipes.builds': 'Converters and the no-text rule.',
+  'wiki.idea.roads.title': 'Roads',
+  'wiki.idea.roads.pitch':
+    'Paved paths you lay between buildings that make you walk faster along them. Turns the camp into a network you design.',
+  'wiki.idea.roads.builds': 'Movement speed.',
+  'wiki.idea.caravansAtTheEdge.title': 'Caravans at the edge',
+  'wiki.idea.caravansAtTheEdge.pitch':
+    'Every so often a caravan appears at the edge of the known world and trades one resource for another. Exploring further brings bigger caravans.',
+  'wiki.idea.caravansAtTheEdge.builds': 'Fog edges and resources.',
+  'wiki.idea.trophiesOnThePlateau.title': 'Trophies on the plateau',
+  'wiki.idea.trophiesOnThePlateau.pitch':
+    'Milestones leave a physical marker in the world: a cairn, a statue, a lit beacon, so your history stands on the map instead of in a list.',
+  'wiki.idea.trophiesOnThePlateau.builds': 'Milestones (goals) and their celebration.',
+  'wiki.idea.insightAsConstellations.title': 'Insight as constellations',
+  'wiki.idea.insightAsConstellations.pitch':
+    'Perks bought with Insight appear as stars in the night sky, forming constellations over worlds you embark to. The prestige layer becomes something you look up at.',
+  'wiki.idea.insightAsConstellations.builds': 'Insight, perks and night.',
+  'wiki.idea.aMountainColony.title': 'A mountain colony',
+  'wiki.idea.aMountainColony.pitch':
+    'Settlers arrive and live in the tunnels you dig; you assign them to jobs by placing tools near them. The game shifts from one wanderer to a small society inside the mountain.',
+  'wiki.idea.aMountainColony.builds': 'Tunnels, buildings and production.',
+  'wiki.idea.everyEmbarkIsANewMountain.title': 'Every embark is a new mountain',
+  'wiki.idea.everyEmbarkIsANewMountain.pitch':
+    'Lean into the plateau: each world is one mountain with a summit, a shape and a depth limit, and Embark means climbing down and walking to the next peak. Short runs, strong meta-progression.',
+  'wiki.idea.everyEmbarkIsANewMountain.builds': 'Embark and Insight.',
+  'wiki.idea.visitAFriendSPlateau.title': "Visit a friend's plateau",
+  'wiki.idea.visitAFriendSPlateau.pitch':
+    'Share a link to your world; friends can walk your plateau, leave a gift at your camp, or dig a hole that appears in your mine. Asynchronous, no accounts, the save format already captures a whole world compactly.',
+  'wiki.idea.visitAFriendSPlateau.builds': 'Seeded worlds and compact saves.',
+  'wiki.idea.theWorldThatRemembers.title': 'The world that remembers',
+  'wiki.idea.theWorldThatRemembers.pitch':
+    'When you embark, the old world stays behind and can be found again much later: overgrown camps, collapsed tunnels, your own trophies. Prestige becomes archaeology.',
+  'wiki.idea.theWorldThatRemembers.builds': 'Seeds, saves and embark.',
+  'wiki.idea.downIsTheWholeGame.title': 'Down is the whole game',
+  'wiki.idea.downIsTheWholeGame.pitch':
+    'Flip the focus: the surface is a small starting meadow and the real game is the descent, layer after layer, each one a self-contained cave to light, mine and connect with holes. The surface becomes home base.',
+  'wiki.idea.downIsTheWholeGame.builds': 'Layers, holes and mine fog.',
+  'wiki.idea.noNumbersAtAll.title': 'No numbers at all',
+  'wiki.idea.noNumbersAtAll.pitch':
+    'Go further than "no tutorial": hide all counters and let the size of your piles, the glow of buildings and the length of your tunnels tell you how you\'re doing. The wiki keeps the numbers for those who want them.',
+  'wiki.idea.noNumbersAtAll.builds': 'The no-text rule and the wiki.',
+  'wiki.idea.aSharedBank.title': 'A shared bank',
+  'wiki.idea.aSharedBank.pitch':
+    'In a shared world, a bank everyone can put things into and take from, so friends can pool resources for something big or help a newcomer get started.',
+  'wiki.idea.aSharedBank.builds': 'Shared worlds, the stockpile and the yard.',
+  'wiki.idea.playtesterBots.title': 'Playtester bots',
+  'wiki.idea.playtesterBots.pitch':
+    "Bots that join a shared world and play it while nobody's around: they gather, build, travel and report what got them stuck or broke, so problems turn up before players find them.",
+  'wiki.idea.playtesterBots.builds': 'The bot playthrough test and shared worlds.',
+  'wiki.idea.creaturesOfDayAndNight.title': 'Creatures of day and night',
+  'wiki.idea.creaturesOfDayAndNight.pitch':
+    'Creatures to discover and learn from, drawn from the angels-and-demons tarot matrix: the 72 day angels of the Shem HaMephorash and the 72 night demons of the Ars Goetia, two of each on every minor-arcana card (36 decans). Which ones are out follows the day and the night.',
+  'wiki.idea.creaturesOfDayAndNight.builds':
+    'The day and night cycle, and Wiki, who already tells you about what you point at.',
+  'wiki.search.head': 'Search: “{query}”',
+  'wiki.search.none': 'Not mentioned anywhere in the wiki.',
+  'wiki.search.mentions': {
+    one: '{count} mention in {articles}.',
+    other: '{count} mentions in {articles}.'
+  },
+  'wiki.search.articles': { one: '{count} article', other: '{count} articles' },
+  'wiki.packFailed': "The game's pictures didn't load ({status})",
+  'wiki.thingCount': {
+    one: '{count} things in {groups} groups.',
+    other: '{count} things in {groups} groups.'
+  },
+  'wiki.title': 'Mica and Wiki: the wiki',
+  'wiki.description':
+    'Everything about Mica and Wiki: controls, the world, the mine, buildings, upgrades and the prestige loop.',
+  'wiki.nav': 'Wiki',
+  'wiki.brand': 'MICA AND WIKI',
+  'wiki.play': 'Play the game',
+  'wiki.searchBox': 'Search the wiki',
+  'wiki.searchTitle': 'Search – Mica and Wiki: the wiki',
+  'wiki.articleTitle': '{article} – Mica and Wiki: the wiki',
+  'wiki.forVersion': 'for game v{version}',
+  'wiki.loadFailed': "The wiki couldn't load its tables: {error}",
+  'wiki.note.swim': 'Swimmable, at {pct} speed',
+  'wiki.note.walk': 'Walkable',
+  'wiki.note.solid': 'Solid until dug',
+  'wiki.note.impassable': 'Impassable',
+  'wiki.note.yields': 'yields {res}',
+  'wiki.note.empty': 'holds nothing: digging it only clears the way',
+  'wiki.note.neverRegrows': 'never regrows',
+  'wiki.note.land': 'converters can stand here',
+  'wiki.note.home': 'your stockpile is kept here',
+  'wiki.note.descend': 'drop to the layer below',
+  'wiki.note.rise': 'climb to the layer above',
+  'wiki.note.shaft': 'one dig opens it',
+  'wiki.note.find': 'a find: glints in the dark, one dig pays its loot (see Finds)',
+  'wiki.note.bedrock': 'cannot be dug',
+  'wiki.col.tile': 'Tile',
+  'wiki.col.land': 'Kind of land',
+  'wiki.col.music': 'Music',
+  'wiki.biome.meadow': 'Open grassland with copses, a little of everything',
+  'wiki.biome.woods': 'Deep forest, mushrooms everywhere, few minerals',
+  'wiki.biome.lakes': 'Lakes and islands; bring patience, or a boat',
+  'wiki.biome.highlands': 'Mountains and rich mineral country, few trees',
+  'wiki.biome.fen': 'Wet woods and pools, hardly any stone',
+  'wiki.biome.heath': 'Bare, windswept and stony, almost treeless',
+  'wiki.col.richness': 'Richness',
+  'wiki.col.notes': 'Notes',
+  'wiki.col.share': 'Share of tiles (shallow → deep)',
+  'wiki.col.foundOn': 'Found on',
+  'wiki.col.mushroom': 'Mushroom',
+  'wiki.col.grows': 'Grows',
+  'wiki.col.howCommon': 'How common',
+  'wiki.col.whatItIs': 'What it is',
+  'wiki.col.thing': 'Thing',
+  'wiki.col.cost': 'Cost',
+  'wiki.col.light': 'Light reach',
+  'wiki.col.whatItDoes': 'What it does',
+  'wiki.col.find': 'Find',
+  'wiki.col.loot': 'Loot on layer 1, per point of tool yield',
+  'wiki.col.level': 'Level',
+  'wiki.col.effect': 'Effect',
+  'wiki.col.opens': 'Opens',
+  'wiki.col.building': 'Building',
+  'wiki.col.standsOn': 'Stands on',
+  'wiki.col.makes': 'Makes',
+  'wiki.col.baseRate': 'Base rate',
+  'wiki.col.holds': 'Holds',
+  'wiki.col.firstCosts': 'First one costs',
+  'wiki.col.needs': 'Needs',
+  'wiki.col.unlock': 'Unlock',
+  'wiki.col.trickle': 'Trickle',
+  'wiki.col.production': 'Production',
+  'wiki.col.levelCost': 'Cost of this level',
+  'wiki.col.step': 'Step',
+  'wiki.col.total': 'Total',
+  'wiki.col.perk': 'Perk',
+  'wiki.col.insightCost': 'Cost in Insight',
+  'wiki.col.pileIs': 'Each pile is',
+  'wiki.col.ground': 'Ground',
+  'wiki.everyLayer': 'every layer',
+  'wiki.fromLayer': 'layer {layer} and deeper',
+  'wiki.soilShare': 'about {pct} on layer 1, less deeper down',
+  'wiki.common': 'common',
+  'wiki.fairlyCommon': 'fairly common',
+  'wiki.uncommon': 'uncommon',
+  'wiki.rare': 'rare',
+  'wiki.sporeBedsFrom': 'spore beds, layer {layer} and deeper',
+  'wiki.sporeBeds': 'spore beds',
+  'wiki.perSwing': '{n} per swing',
+  'wiki.startingTool': 'legacy basic equipment',
+  'wiki.trickle': '+{n}/s each',
+  'wiki.perkRepeat': '{n}, then +1 per level owned',
+  'wiki.perkOnce': '{n} (once)',
+  'wiki.oneTile': '1 tile',
+  'wiki.tilesSquare': '{n} × {n} tiles',
+  'wiki.article.home.title': 'Home',
+  'wiki.article.home': `      <h1>Mica and Wiki: the wiki</h1>
       <p class="lede">The game tells you nothing. Poke at it, find out, and come here when you want the details.</p>
       <p><a class="play-hero" href="../"><span aria-hidden="true">&#9654;</span> Play now, free, in your browser</a></p>
       <p>Mica and Wiki is about turning a hostile wilderness into an absurd surplus. You start with nothing in an endless,
@@ -232,8 +276,8 @@ export default {
         <li><a href="#saving"><strong>Saving</strong><span>Where your progress lives.</span></a></li>
         <li><a href="#ideas"><strong>Ideas</strong><span>Not in the game: where it could go next.</span></a></li>
       </ul>`,
-  "wiki.article.controls.title": "Controls",
-  "wiki.article.controls": `      <h1>Controls</h1>
+  'wiki.article.controls.title': 'Controls',
+  'wiki.article.controls': `      <h1>Controls</h1>
       <p class="lede">{phone:Everything is reachable with one thumb.|laptop:Everything works with the mouse or trackpad, and the keyboard works too.}</p>
 
       <h2>Moving</h2>
@@ -322,8 +366,8 @@ export default {
           <tr><td><kbd>Esc</kbd></td><td>Close the sheet</td></tr>
         </tbody>
       </table></div>}`,
-  "wiki.article.perfect.title": "Auto-play",
-  "wiki.article.perfect": `      <h1>Auto-play</h1>
+  'wiki.article.perfect.title': 'Auto-play',
+  'wiki.article.perfect': `      <h1>Auto-play</h1>
       <p class="lede">Hold AUTO, the button above Gather, and the game plays itself, from the first step in a new world to the edge of Embark.</p>
       <p>AUTO is hidden until you turn on <strong>AUTO button</strong> under Settings, Nerds. It works in older worlds only: crystal worlds don't show it.</p>
 
@@ -375,8 +419,8 @@ export default {
         <li><strong>The pace</strong>: it plays well but not perfectly. From a new world to Embark takes it a day and a half to
           two days of holding, about what a steady player needs, partly because it only knows what it has seen.</li>
       </ul>`,
-  "wiki.article.screen.title": "The screen",
-  "wiki.article.screen": `      <h1>The screen</h1>
+  'wiki.article.screen.title': 'The screen',
+  'wiki.article.screen': `      <h1>The screen</h1>
       <p class="lede">There's no text to read in the game. Here's what everything you see means.</p>
 
       <h2>Resource counters</h2>
@@ -468,8 +512,8 @@ export default {
       <p>If the game hits an error it stops and shows a red <strong>The game broke</strong> panel saying what went wrong (the
         error, where in the code, the game version and your browser), with a Reload button. Errors from scripts that aren't the
         game, such as the ones Safari's Share menu runs, are ignored. If saving stops working (storage full or blocked), a message says so straight away.</p>`,
-  "wiki.article.world.title": "The world",
-  "wiki.article.world": `      <h1>The world</h1>
+  'wiki.article.world.title': 'The world',
+  'wiki.article.world': `      <h1>The world</h1>
       <p class="lede">Endless in every direction, different every time, and it goes down as well as out.</p>
 
       <h2>Layout</h2>
@@ -569,8 +613,8 @@ export default {
         show where the day is. Early morning already looks light, but a panel only charges once the sun reaches the gold.
         Beside a solar panel, under the gear, the time till it starts charging shows, and while it charges, the time it has
         left. In a crystal world the gold is the sun that cracks crystal and the heart in the open.</p>`,
-  "wiki.article.gathering.title": "Gathering",
-  "wiki.article.gathering": `      <h1>Gathering</h1>
+  'wiki.article.gathering.title': 'Gathering',
+  'wiki.article.gathering': `      <h1>Gathering</h1>
       <p class="lede">Four resources, two tools, and deposits that run dry.</p>
 
       <h2>Resources</h2>
@@ -597,8 +641,8 @@ export default {
       <p>Ore and crystal show up as rocks flecked with orange, and as pale blue crystal clusters. Ore runs in veins inside
         mineral country, and crystal sits at the heart of the richest veins, never close to home. If none is near, walk in a
         straight line; the fog hides a lot, and the further you go the richer it gets.</p>`,
-  "wiki.article.mine.title": "The mine",
-  "wiki.article.mine": `      <h1>The mine</h1>
+  'wiki.article.mine.title': 'The mine',
+  'wiki.article.mine': `      <h1>The mine</h1>
       <p class="lede">Solid rock under the forest, layer after layer, for as deep as you can find the way.</p>
 
       <h2>Ways down and back up</h2>
@@ -696,8 +740,8 @@ export default {
         <li>Logistics hauls from your surface camps down here too. Without it they simply fill up while you're below.</li>
         <li>Day and night carry on as usual: sunlight follows real open connections and fades at night. A hole below a dark room creates no light; a lamp above an open hole can illuminate below.</li>
       </ul>`,
-  "wiki.article.buildings.title": "Buildings",
-  "wiki.article.buildings": `      <h1>Buildings</h1>
+  'wiki.article.buildings.title': 'Buildings',
+  'wiki.article.buildings': `      <h1>Buildings</h1>
       <p class="lede">Make the world work for you.</p>
 
       <h2>Placing</h2>
@@ -735,8 +779,8 @@ export default {
       <p>Once you unlock <strong>Logistics</strong>, every building of yours sends its goods straight into your packs as
         they're made, wherever you are, underground too. There's no need to stand around your base: go and explore, gather
         or dig, and nothing your buildings make is lost.</p>`,
-  "wiki.article.stockpile.title": "The stockpile",
-  "wiki.article.stockpile": `      <h1>The stockpile</h1>
+  'wiki.article.stockpile.title': 'The stockpile',
+  'wiki.article.stockpile': `      <h1>The stockpile</h1>
       <p class="lede">Everything you own stands on the ground around home, and the richer you get, the grander it grows.</p>
       <p>Every world starts you on a square of <strong>home ground</strong>, <span data-k="HOME_SIDE"></span> tiles a side:
         packed earth where nothing grows, nothing can be gathered, nothing is built and no way between layers opens. It's
@@ -765,8 +809,8 @@ export default {
           left between the piles and the land around.</li>
       </ul>
       <p>What every kind of pile looks like is in <a href="#things">Everything in the game</a>.</p>`,
-  "wiki.article.upgrades.title": "Upgrades",
-  "wiki.article.upgrades": `      <h1>Upgrades</h1>
+  'wiki.article.upgrades.title': 'Upgrades',
+  'wiki.article.upgrades': `      <h1>Upgrades</h1>
       <p class="lede">Everything in the Upgrades tab, level by level.</p>
 
       <h2>Tools</h2>
@@ -799,8 +843,8 @@ export default {
         all building output by <span data-k="ABUNDANCE.prodMult"></span>. Each level costs
         &times;<span data-k="ABUNDANCE.growth"></span> more than the last. Your first few levels:</p>
       <div data-table="abundance"></div>`,
-  "wiki.article.beyond.title": "Beyond",
-  "wiki.article.beyond": `      <h1>Beyond</h1>
+  'wiki.article.beyond.title': 'Beyond',
+  'wiki.article.beyond': `      <h1>Beyond</h1>
       <p class="lede">Start another world empty-handed, with what you have learned.</p>
       <h2>Embarking</h2>
       <p>Complete every world upgrade and bring the Abundance Engine to level <span data-k="EMBARK_ABUNDANCE"></span>.
@@ -810,18 +854,18 @@ export default {
       <p>Existing saves keep their equipment, perks, Insight and earned progress. Their Beyond tab still offers the legacy
         perks below, but those bonuses do not follow you when you embark: the next world is a crystal world, and the old one stays saved as it was.</p>
       <div data-table="perks"></div>`,
-  "wiki.article.milestones.title": "Milestones",
-  "wiki.article.milestones": `      <h1>Milestones</h1>
+  'wiki.article.milestones.title': 'Milestones',
+  'wiki.article.milestones': `      <h1>Milestones</h1>
       <p class="lede">The game celebrates each one with a burst of sparks, a fanfare and a gold line in the message log naming it. The Awards tab shows the next one, what it still takes, and the last one far off;
         the trophy glows after you reach one, until you open the Awards.</p>
       <div data-table="milestones"></div>
       <p>A milestone counts the moment you do it, in any order; the next one shown is the first on this list you haven't reached. They start over when you embark. A shared world has no Embark, so there they end before Master the world.</p>`,
-  "wiki.article.things.title": "Everything in the game",
-  "wiki.article.things": `      <h1>Everything in the game</h1>
+  'wiki.article.things.title': 'Everything in the game',
+  'wiki.article.things': `      <h1>Everything in the game</h1>
       <p class="lede">Every thing you can see, what it is and what it does, with every picture the game draws it with.</p>
       <div data-things></div>`,
-  "wiki.article.saving.title": "Saving",
-  "wiki.article.saving": `      <h1>Saving</h1>
+  'wiki.article.saving.title': 'Saving',
+  'wiki.article.saving': `      <h1>Saving</h1>
       <p class="lede">Automatic, and kept in your browser.</p>
       <ul>
         <li>The game saves every few seconds, right after anything important, and when you leave the page.</li>
@@ -842,8 +886,8 @@ export default {
           the world you're in as a file before it, so neither is lost. A shared world has neither: its progress is kept by the
           world itself, and the moderator backs it up.</li>
       </ul>`,
-  "wiki.article.ideas.title": "Ideas",
-  "wiki.article.ideas": `      <h1>Ideas</h1>
+  'wiki.article.ideas.title': 'Ideas',
+  'wiki.article.ideas': `      <h1>Ideas</h1>
       <p class="lede">A sketchbook of where the game could go next: how things could look, new mechanics, and a few changes
         big enough to make it a different game.</p>
       <div class="note note-ideas"><strong>None of this is in the game.</strong> These are possibilities, not promises. Some

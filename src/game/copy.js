@@ -24,7 +24,14 @@ const SHOWN_RE = /^[a-z]{1,16}:\d+(\.\d+)?(e\d{1,3})?$/;
 function shownOn(raw) {
   const parts = (raw || '').split(',').filter(Boolean);
   if (!parts.length || parts.length > 8 || !parts.every((p) => SHOWN_RE.test(p))) return null;
-  return { inv: Object.fromEntries(parts.map((p) => { const [k, v] = p.split(':'); return [k, Number(v)]; })) };
+  return {
+    inv: Object.fromEntries(
+      parts.map((p) => {
+        const [k, v] = p.split(':');
+        return [k, Number(v)];
+      })
+    )
+  };
 }
 
 function linked() {
@@ -32,22 +39,43 @@ function linked() {
     const q = new URLSearchParams(location.hash.slice(1));
     const m = q.get('copy')?.match(COPY_RE);
     const of = q.get('of');
-    return m ? { room: m[1], key: m[2], of: of && /^[A-Za-z0-9_-]{22}$/.test(of) ? of : null, was: VERSION_RE.test(q.get('was') || '') ? q.get('was') : null, shown: shownOn(q.get('shown')) } : null;
-  } catch { return null; }
+    return m
+      ? {
+          room: m[1],
+          key: m[2],
+          of: of && /^[A-Za-z0-9_-]{22}$/.test(of) ? of : null,
+          was: VERSION_RE.test(q.get('was') || '') ? q.get('was') : null,
+          shown: shownOn(q.get('shown'))
+        }
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 // Storage that lives only as long as the page.
 function memoryStorage(from) {
   const m = new Map();
   for (const k of TAKEN) {
-    try { const v = from?.getItem(k); if (v !== null && v !== undefined) m.set(k, v); } catch { /* blocked */ }
+    try {
+      const v = from?.getItem(k);
+      if (v !== null && v !== undefined) m.set(k, v);
+    } catch {
+      /* blocked */
+    }
   }
   return {
-    get length() { return m.size; },
+    get length() {
+      return m.size;
+    },
     key: (i) => [...m.keys()][i] ?? null,
     getItem: (k) => (m.has(String(k)) ? m.get(String(k)) : null),
-    setItem: (k, v) => { m.set(String(k), String(v)); },
-    removeItem: (k) => { m.delete(String(k)); },
+    setItem: (k, v) => {
+      m.set(String(k), String(v));
+    },
+    removeItem: (k) => {
+      m.delete(String(k));
+    },
     clear: () => m.clear()
   };
 }
@@ -58,7 +86,11 @@ export const copy = (() => {
   const m = typeof location !== 'undefined' && linked();
   if (!m) return null;
   let real = null;
-  try { real = globalThis.localStorage; } catch { /* blocked */ }
+  try {
+    real = globalThis.localStorage;
+  } catch {
+    /* blocked */
+  }
   const store = memoryStorage(real);
   store.setItem('mte.key', m.key);
   store.setItem('mte.playing', m.room);

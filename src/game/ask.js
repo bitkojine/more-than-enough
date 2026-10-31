@@ -20,16 +20,20 @@ export function createAsk(box) {
   }
   no.addEventListener('click', () => close(false));
   yes.addEventListener('click', () => close(true));
-  box.addEventListener('click', (e) => { if (e.target === box) close(false); });
+  box.addEventListener('click', (e) => {
+    if (e.target === box) close(false);
+  });
   // Escape answers this question and nothing else (it would close the sheet too).
   window.addEventListener('keydown', (e) => {
-    if (!answer || e.key !== 'Escape') return;  // i18n-ok: a key name
+    if (!answer || e.key !== 'Escape') return; // i18n-ok: a key name
     e.stopImmediatePropagation();
     close(false);
   });
 
   return {
-    get open() { return !!answer; },
+    get open() {
+      return !!answer;
+    },
     // Says no, as Cancel does.
     cancel: () => close(false),
     // Resolves true if the player said yes. `danger` paints yes as destructive;
@@ -39,14 +43,19 @@ export function createAsk(box) {
       title.textContent = heading;
       text.textContent = body;
       link.hidden = !more;
-      if (more) { link.href = more.href; link.textContent = more.text + ' \u2197'; }
+      if (more) {
+        link.href = more.href;
+        link.textContent = more.text + ' \u2197';
+      }
       no.textContent = t('ask.cancel');
       yes.textContent = label;
       yes.classList.toggle('danger', danger);
       box.hidden = false;
       // The keyboard starts on the safe answer when yes destroys something.
       (danger ? no : yes).focus({ preventScroll: true });
-      return new Promise((resolve) => { answer = resolve; });
+      return new Promise((resolve) => {
+        answer = resolve;
+      });
     }
   };
 }

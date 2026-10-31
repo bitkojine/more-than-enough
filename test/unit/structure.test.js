@@ -27,14 +27,17 @@ function jsFiles(dir) {
 }
 
 // src/vendor/ holds other people's code, copied unchanged: not ours to check.
-const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].filter((f) => !f.includes(join('src', 'vendor')));
+const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].filter(
+  (f) => !f.includes(join('src', 'vendor'))
+);
 const rel = (p) => relative(ROOT, p);
 
 // Relative imports of a file, as absolute paths.
 function importsOf(file) {
   const src = readFileSync(file, 'utf8');
-  return [...src.matchAll(/^\s*(?:import|export)[^'"]*?from\s*['"](\.[^'"]+)['"]/gm)]
-    .map((m) => normalize(join(dirname(file), m[1])));
+  return [...src.matchAll(/^\s*(?:import|export)[^'"]*?from\s*['"](\.[^'"]+)['"]/gm)].map((m) =>
+    normalize(join(dirname(file), m[1]))
+  );
 }
 
 test('no merge-conflict markers are left in the code', () => {
@@ -47,7 +50,9 @@ test('no merge-conflict markers are left in the code', () => {
 
 test('no function name is declared twice in the same file', () => {
   for (const file of SOURCES) {
-    const names = [...readFileSync(file, 'utf8').matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)].map((m) => m[1]);
+    const names = [
+      ...readFileSync(file, 'utf8').matchAll(/\bfunction\s+([A-Za-z_$][\w$]*)\s*\(/g)
+    ].map((m) => m[1]);
     const twice = names.filter((n, i) => names.indexOf(n) !== i);
     assert.deepEqual(twice, [], `${rel(file)} declares ${twice.join(', ')} more than once`);
   }
@@ -69,7 +74,10 @@ test('source modules have no import cycles', () => {
 test('the core never imports game code', () => {
   for (const file of jsFiles(join(ROOT, 'src', 'core'))) {
     for (const dep of importsOf(file)) {
-      assert.ok(dep.startsWith(join(ROOT, 'src', 'core')) || dep.startsWith(join(ROOT, 'src', 'i18n')), `${rel(file)} imports ${rel(dep)}`);
+      assert.ok(
+        dep.startsWith(join(ROOT, 'src', 'core')) || dep.startsWith(join(ROOT, 'src', 'i18n')),
+        `${rel(file)} imports ${rel(dep)}`
+      );
     }
   }
   for (const file of jsFiles(join(ROOT, 'src', 'i18n'))) {
@@ -83,23 +91,33 @@ test('the core never imports game code', () => {
 // (AGENTS.md): no clock, no randomness, no page and no storage of the
 // browser's. Comments may name them; code may not.
 test('the core reads no clock, no randomness and nothing of the browser', () => {
-  const IMPURE = /\b(Date\.now|new Date\b|performance\.now|Math\.random|crypto\.|document\.|window\.|navigator\.|localStorage|sessionStorage|setTimeout|setInterval|requestAnimationFrame|fetch\()/;
+  const IMPURE =
+    /\b(Date\.now|new Date\b|performance\.now|Math\.random|crypto\.|document\.|window\.|navigator\.|localStorage|sessionStorage|setTimeout|setInterval|requestAnimationFrame|fetch\()/;
   for (const file of jsFiles(join(ROOT, 'src', 'core'))) {
-    const code = readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:\\])\/\/.*$/gm, '$1');
+    const code = readFileSync(file, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:\\])\/\/.*$/gm, '$1');
     const bad = code.split('\n').find((l) => IMPURE.test(l));
     assert.equal(bad, undefined, `${rel(file)} is not pure: ${bad && bad.trim()}`);
   }
 });
 
 test('the docs and the architecture model name only files that exist', () => {
-  const docs = ['README.md', 'AGENTS.md', 'server/README.md', 'structurizr/README.md',
-    ...readdirSync(join(ROOT, 'docs')).map((n) => 'docs/' + n)];
-  const ROOTS = /^(\.\.?\/|src\/|server\/|test\/|wiki\/|docs\/|scripts\/|packs\/|structurizr\/|icons\/|privacy\/|\.github\/)/;
+  const docs = [
+    'README.md',
+    'AGENTS.md',
+    'server/README.md',
+    'structurizr/README.md',
+    ...readdirSync(join(ROOT, 'docs')).map((n) => 'docs/' + n)
+  ];
+  const ROOTS =
+    /^(\.\.?\/|src\/|server\/|test\/|wiki\/|docs\/|scripts\/|packs\/|structurizr\/|icons\/|privacy\/|\.github\/)/;
   const missing = [];
   const check = (doc, path) => {
     if (!ROOTS.test(path) || /[<>*]/.test(path)) return;
     // A path in server/README.md may be from server/ or from the repo root.
-    if (![join(ROOT, dirname(doc), path), join(ROOT, path)].some((p) => existsSync(p))) missing.push(`${doc}: ${path}`);
+    if (![join(ROOT, dirname(doc), path), join(ROOT, path)].some((p) => existsSync(p)))
+      missing.push(`${doc}: ${path}`);
   };
   for (const doc of docs) {
     const text = readFileSync(join(ROOT, doc), 'utf8');

@@ -31,12 +31,12 @@
 
 import { cleanSoloAnswer, LINK_RE, randomHex } from '../net/protocol.js';
 
-const STORE = 'mte.sync';               // {key, w: {<seed>: {rev, dirty}}, meNo?: the other device's character, declined}
-const BEFORE = 'mte.sync.before.';      // a key this device had before a link brought another (kept)
-export const PUSH_EVERY = 20_000;       // ms between keeping the world being played
-export const IDLE_MS = 30_000;          // unplayed this long, a device asks for the newest before playing on
-export const LINK_PLAYED = 60_000;      // a world played less than this stays out of the vault when a device is linked
-const WAIT_MS = 15_000;                 // a request gives up after this
+const STORE = 'mte.sync'; // {key, w: {<seed>: {rev, dirty}}, meNo?: the other device's character, declined}
+const BEFORE = 'mte.sync.before.'; // a key this device had before a link brought another (kept)
+export const PUSH_EVERY = 20_000; // ms between keeping the world being played
+export const IDLE_MS = 30_000; // unplayed this long, a device asks for the newest before playing on
+export const LINK_PLAYED = 60_000; // a world played less than this stays out of the vault when a device is linked
+const WAIT_MS = 15_000; // a request gives up after this
 
 // The link that brings `key` to another device: in the fragment, which
 // browsers never send to any server.
@@ -72,33 +72,45 @@ export function linkFrom(hash) {
  */
 export function createSync(o) {
   const now = o.now || Date.now;
-  let flight = null;      // the seed a push is under way for: still played, if the game closes now
+  let flight = null; // the seed a push is under way for: still played, if the game closes now
   let playedInFlight = false; // and whether it was played after its save was taken
-  let busy = null;        // the request under way (one at a time)
-  let timer = null;       // the next push of the world being played
-  let paused = false;     // a question about which copy to keep is open
-  let idleCheck = false;  // asking for the newest after an unplayed spell
+  let busy = null; // the request under way (one at a time)
+  let timer = null; // the next push of the world being played
+  let paused = false; // a question about which copy to keep is open
+  let idleCheck = false; // asking for the newest after an unplayed spell
   let lastPlayed = now();
-  let okAt = 0, failed = false, saidFull = false;
-  let meAsking = false;   // the question about which character is open
-  let adopted = null;     // the world last replaced by the vault's copy
+  let okAt = 0,
+    failed = false,
+    saidFull = false;
+  let meAsking = false; // the question about which character is open
+  let adopted = null; // the world last replaced by the vault's copy
 
   function load() {
     try {
       const d = JSON.parse(o.store.getItem(STORE));
-      if (d && typeof d.key === 'string' && LINK_RE.test(d.key) && d.w && typeof d.w === 'object') return d;
-    } catch { /* unreadable: not linked */ }
+      if (d && typeof d.key === 'string' && LINK_RE.test(d.key) && d.w && typeof d.w === 'object')
+        return d;
+    } catch {
+      /* unreadable: not linked */
+    }
     return null;
   }
   function keep(d) {
     const copy = structuredClone(d);
     if (flight !== null && copy.w[flight]) copy.w[flight].dirty = true;
-    try { o.store.setItem(STORE, JSON.stringify(copy)); } catch { /* full or blocked: kept in the vault next time */ }
+    try {
+      o.store.setItem(STORE, JSON.stringify(copy));
+    } catch {
+      /* full or blocked: kept in the vault next time */
+    }
   }
   const dirty = (d, seed) => !d.w[seed] || d.w[seed].dirty === true;
 
   function mark(seed) {
-    if (flight === seed) { playedInFlight = true; return; }
+    if (flight === seed) {
+      playedInFlight = true;
+      return;
+    }
     const d = load();
     if (!d || (d.w[seed] && d.w[seed].dirty)) return;
     d.w[seed] = { rev: d.w[seed] ? d.w[seed].rev : 0, dirty: true };
@@ -110,8 +122,11 @@ export function createSync(o) {
     const stop = ctl && setTimeout(() => ctl.abort(), WAIT_MS);
     try {
       const res = await o.fetch(o.service + '/solo', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body), cache: 'no-store', ...(ctl ? { signal: ctl.signal } : {})
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        cache: 'no-store',
+        ...(ctl ? { signal: ctl.signal } : {})
       });
       const a = cleanSoloAnswer(await res.json());
       failed = !a;
@@ -137,7 +152,11 @@ export function createSync(o) {
     playedInFlight = false;
     keep(d);
     let a;
-    try { a = await request({ t: 'push', key: d.key, seed, base, save: raw, cur }); } finally { flight = null; }
+    try {
+      a = await request({ t: 'push', key: d.key, seed, base, save: raw, cur });
+    } finally {
+      flight = null;
+    }
     d = load();
     if (!d) return 'no';
     if (a && a.rev && !a.conflict) {
@@ -147,8 +166,14 @@ export function createSync(o) {
     }
     d.w[seed] = { rev: base, dirty: true };
     keep(d);
-    if (a && a.conflict) { ask(seed, raw, a, cur); return 'conflict'; }
-    if (a && a.error === 'full' && !saidFull) { saidFull = true; o.said?.('full'); }
+    if (a && a.conflict) {
+      ask(seed, raw, a, cur);
+      return 'conflict';
+    }
+    if (a && a.error === 'full' && !saidFull) {
+      saidFull = true;
+      o.said?.('full');
+    }
     return 'no';
   }
 
@@ -230,17 +255,27 @@ export function createSync(o) {
     const dd = load();
     if (!dd || dd.meNo === a.me.key) return; // said no before
     meAsking = true;
-    o.askMe().then((yes) => {
-      meAsking = false;
-      if (yes) return o.becomeMe(a.me);
-      const d2 = load();
-      if (d2) { d2.meNo = a.me.key; keep(d2); }
-    }, () => { meAsking = false; });
+    o.askMe().then(
+      (yes) => {
+        meAsking = false;
+        if (yes) return o.becomeMe(a.me);
+        const d2 = load();
+        if (d2) {
+          d2.meNo = a.me.key;
+          keep(d2);
+        }
+      },
+      () => {
+        meAsking = false;
+      }
+    );
   }
 
   function run(job) {
     if (busy) return busy.then(() => run(job));
-    busy = job().finally(() => { busy = null; });
+    busy = job().finally(() => {
+      busy = null;
+    });
     return busy;
   }
 
@@ -263,12 +298,17 @@ export function createSync(o) {
       if (dirty(d, s.seed) && (await pushRaw(s.seed, o.serialize(s), true)) !== 'ok') return;
       d = load();
       if (!d || !d.w[s.seed]) return;
-      const a = await request({ t: 'pull', key: d.key, have: { seed: s.seed, rev: d.w[s.seed].rev } });
+      const a = await request({
+        t: 'pull',
+        key: d.key,
+        have: { seed: s.seed, rev: d.w[s.seed].rev }
+      });
       if (!a || a.error) return;
       // Worlds kept there that this device lacks, or has older and hasn't
       // played since: copied here.
       for (const [k, rev] of Object.entries(a.worlds || {})) {
-        const seed = Number(k), r = load()?.w[seed];
+        const seed = Number(k),
+          r = load()?.w[seed];
         if (seed === a.cur || seed === s.seed || (r && (r.dirty || r.rev >= rev))) continue;
         if (!r && o.archived(seed)) continue; // this device's own, not kept yet: pushed next time
         const g = await request({ t: 'get', key: d.key, seed });
@@ -277,14 +317,18 @@ export function createSync(o) {
       if (a.same) return;
       d = load();
       if (paused || o.own() !== s || !d) return; // the world changed while asking
-      if (a.cur === null) { mark(s.seed); return pushRaw(s.seed, o.serialize(s), true); } // the vault has nothing: keep this
+      if (a.cur === null) {
+        mark(s.seed);
+        return pushRaw(s.seed, o.serialize(s), true);
+      } // the vault has nothing: keep this
       if (dirty(d, s.seed)) return; // played while asking: the next push sorts it out
       if (a.cur !== s.seed && d.w[a.cur]?.dirty) {
         // Your other device plays a world this device played too, unkept.
         const raw = o.archived(a.cur);
         if (raw) return ask(a.cur, raw, { rev: a.rev, save: a.save }, true);
       }
-      if (adopt(a.cur, a.rev, a.save, a.cur === s.seed ? null : o.archived(a.cur))) o.said?.('arrived');
+      if (adopt(a.cur, a.rev, a.save, a.cur === s.seed ? null : o.archived(a.cur)))
+        o.said?.('arrived');
     });
   }
 
@@ -292,23 +336,33 @@ export function createSync(o) {
     clearTimeout(timer);
     timer = null;
     return run(async () => {
-      const d = load(), s = o.own();
+      const d = load(),
+        s = o.own();
       if (!d || paused || !s || !dirty(d, s.seed)) return;
       await pushRaw(s.seed, o.serialize(s), true);
     });
   }
 
   return {
-    get linked() { return !!load(); },
+    get linked() {
+      return !!load();
+    },
     // When the vault last answered (0: not since this page opened), and
     // whether the last try failed.
-    get okAt() { return okAt; },
-    get failed() { return failed; },
+    get okAt() {
+      return okAt;
+    },
+    get failed() {
+      return failed;
+    },
     // The sync key, made now if this device has none (the screen that shows
     // the QR asks for it, then checks: the world being played is kept at once).
     start() {
       let d = load();
-      if (!d) { d = { key: randomHex(32), w: {} }; keep(d); }
+      if (!d) {
+        d = { key: randomHex(32), w: {} };
+        keep(d);
+      }
       return d.key;
     },
     // A link from your other device: plays the world kept there. The world
@@ -318,10 +372,16 @@ export function createSync(o) {
       if (!LINK_RE.test(key)) return false;
       const had = load();
       if (had && had.key === key) return false;
-      if (had) try { o.store.setItem(BEFORE + now(), JSON.stringify(had)); } catch { /* full: it goes */ }
+      if (had)
+        try {
+          o.store.setItem(BEFORE + now(), JSON.stringify(had));
+        } catch {
+          /* full: it goes */
+        }
       const d = { key, w: {} };
       const s = o.own();
-      if (s && !(s.stats && s.stats.playedMs >= LINK_PLAYED)) d.w[s.seed] = { rev: 0, dirty: false };
+      if (s && !(s.stats && s.stats.playedMs >= LINK_PLAYED))
+        d.w[s.seed] = { rev: 0, dirty: false };
       keep(d);
       if (s && d.w[s.seed] === undefined) await run(() => pushRaw(s.seed, o.serialize(s), false));
       await check();
@@ -330,7 +390,8 @@ export function createSync(o) {
     check,
     // The game saved: the world being played goes to the vault soon, if it was played.
     saved() {
-      const d = load(), s = o.own();
+      const d = load(),
+        s = o.own();
       if (d && s && dirty(d, s.seed) && !timer) timer = setTimeout(pushCurrent, PUSH_EVERY);
     },
     // The game goes to the background: keep it now.
@@ -339,9 +400,11 @@ export function createSync(o) {
     // the game saves for; opening a menu or the Another device screen isn't
     // playing). After an unplayed spell, the newest comes first.
     played() {
-      const t = now(), idle = t - lastPlayed >= IDLE_MS;
+      const t = now(),
+        idle = t - lastPlayed >= IDLE_MS;
       lastPlayed = t;
-      const d = load(), s = o.own();
+      const d = load(),
+        s = o.own();
       if (!d || !s || paused) return;
       // Played on while the newest is still on its way: this play counts,
       // so a newer copy from your other device asks instead of replacing it.

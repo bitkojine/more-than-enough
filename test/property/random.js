@@ -29,7 +29,8 @@ export function seeds(count = 12) {
   const env = process.env.PROP_SEEDS;
   if (env) {
     const n = Number(env);
-    if (Number.isFinite(n) && n > 0) return Array.from({ length: n }, (_, i) => 0x9e37 + i * 0x1000 + 1);
+    if (Number.isFinite(n) && n > 0)
+      return Array.from({ length: n }, (_, i) => 0x9e37 + i * 0x1000 + 1);
     return env.split(',').map((x) => Number(x) >>> 0);
   }
   return Array.from({ length: count }, (_, i) => 0x9e37 + i * 0x1000 + 1);

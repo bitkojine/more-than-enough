@@ -7,7 +7,7 @@ import { t, distance } from '../i18n/i18n.js';
 
 // DOM-scoped presentation state works in bundled and native-module hosts.
 const chipState = Symbol.for('mte.friend-chips');
-const MAX_CHIPS = 5;   // friends shown by name under the top bar, when they fit
+const MAX_CHIPS = 5; // friends shown by name under the top bar, when they fit
 
 /* ------------------------------------------------- chips under the top bar */
 
@@ -15,7 +15,10 @@ const MAX_CHIPS = 5;   // friends shown by name under the top bar, when they fit
 // chip, `more()` on the "+N", which opens the Players screen.
 export function setChipCompact(box, compact) {
   const state = box[chipState];
-  if (!state?.list) { box[chipState] = { compact }; return; }
+  if (!state?.list) {
+    box[chipState] = { compact };
+    return;
+  }
   if (state.compact === compact) return;
   renderChips(box, state.list, { ...state.handlers, compact });
 }
@@ -38,7 +41,10 @@ export function renderChips(box, list, { tap, more, compact = box[chipState]?.co
     plus.setAttribute('aria-label', t('together.more', { n: rest }));
   };
   box.replaceChildren(...chips);
-  if (rest > 0) { count(); box.append(plus); }
+  if (rest > 0) {
+    count();
+    box.append(plus);
+  }
   // On a narrow screen, fewer: the last chips fold into the "+N".
   while (chips.length && box.scrollWidth > box.clientWidth + 1) {
     chips.pop().remove();
@@ -58,27 +64,31 @@ export function renderPlayers(box, rows) {
   const head = document.createElement('p');
   head.className = 'count';
   head.textContent = t('players.count', { count: rows.length });
-  box.replaceChildren(head, ...rows.map((p) => {
-    const row = document.createElement('div');
-    row.className = 'player ' + p.st + (p.you ? ' you' : '');
-    row.style.setProperty('--friend', p.color);
-    const text = document.createElement('div');
-    const name = document.createElement('strong');
-    name.textContent = p.name;
-    if (p.you) {
-      const tag = document.createElement('span');
-      tag.textContent = t('players.you');
-      name.append(' ', tag);
-    }
-    const sub = document.createElement('small');
-    const where = [];
-    if (!p.you && p.far !== null) where.push(distance(p.far));
-    if (!p.you && p.dz) where.push(t(p.dz > 0 ? 'players.up' : 'players.down', { count: Math.abs(p.dz) }));
-    sub.textContent = [t('together.state.' + p.st), ...where].join(' · ');
-    text.append(name, sub);
-    row.append(document.createElement('i'), text);
-    return row;
-  }));
+  box.replaceChildren(
+    head,
+    ...rows.map((p) => {
+      const row = document.createElement('div');
+      row.className = 'player ' + p.st + (p.you ? ' you' : '');
+      row.style.setProperty('--friend', p.color);
+      const text = document.createElement('div');
+      const name = document.createElement('strong');
+      name.textContent = p.name;
+      if (p.you) {
+        const tag = document.createElement('span');
+        tag.textContent = t('players.you');
+        name.append(' ', tag);
+      }
+      const sub = document.createElement('small');
+      const where = [];
+      if (!p.you && p.far !== null) where.push(distance(p.far));
+      if (!p.you && p.dz)
+        where.push(t(p.dz > 0 ? 'players.up' : 'players.down', { count: Math.abs(p.dz) }));
+      sub.textContent = [t('together.state.' + p.st), ...where].join(' · ');
+      text.append(name, sub);
+      row.append(document.createElement('i'), text);
+      return row;
+    })
+  );
 }
 
 function button(label, cls, onClick) {

@@ -3,15 +3,31 @@ import { focusedChapter, effectiveToolLevel } from './progression.js';
 /* Time and motion: the per-tick simulation, movement and fog reveal.
  * Deterministic: no clocks, no Math.random. */
 
-import {stepCultivation} from './cultivation.js';
+import { stepCultivation } from './cultivation.js';
 import { SURFACE, tileDist2 } from './coords.js';
 import { noteWhere } from './acts.js';
 import { TILE_INFO, T, RESOURCES } from './tiles.js';
 import { tileAt, walkable, markExplored } from './world.js';
 import {
-  AWAY_CAP, AWAY_MIN, FREEZE_AWAY, BASE_SPEED, SWIM_SPEED, PLAYER_RADIUS, GEAR, EXTRACTORS
+  AWAY_CAP,
+  AWAY_MIN,
+  FREEZE_AWAY,
+  BASE_SPEED,
+  SWIM_SPEED,
+  PLAYER_RADIUS,
+  GEAR,
+  EXTRACTORS
 } from './content.js';
-import { extractorRate, supportMult, productionMult, abundanceTrickle, speedMult, exploreRadius, earn, ownBuilding } from './economy.js';
+import {
+  extractorRate,
+  supportMult,
+  productionMult,
+  abundanceTrickle,
+  speedMult,
+  exploreRadius,
+  earn,
+  ownBuilding
+} from './economy.js';
 import { tickBattery } from './light.js';
 import { burnFlare, sightRadius, flareEndsWithin } from './flare.js';
 import { economyForState } from './economy-context.js';
@@ -27,19 +43,37 @@ export function startEventEconomy(s) {
   bindSpending(s);
   const current = economyForState(s);
   if (current) return current;
-  if (!haulingEconomyAvailable(s) || !Number.isFinite(abundanceTrickle(s)) ||
-      s.extractors.some(e => ownBuilding(s, e) && (!Number.isFinite(e.buffer) || e.buffer < 0 || (!usesDepots(s) && e.buffer >= 1) ||
-        !Number.isFinite(extractorRate(s, e.key, e))))) return null;
+  if (
+    !haulingEconomyAvailable(s) ||
+    !Number.isFinite(abundanceTrickle(s)) ||
+    s.extractors.some(
+      (e) =>
+        ownBuilding(s, e) &&
+        (!Number.isFinite(e.buffer) ||
+          e.buffer < 0 ||
+          (!usesDepots(s) && e.buffer >= 1) ||
+          !Number.isFinite(extractorRate(s, e.key, e)))
+    )
+  )
+    return null;
   return createEventEconomy(s, {
-    rateFor: extractorRate, trickleFor: abundanceTrickle, owns: ownBuilding
+    rateFor: extractorRate,
+    trickleFor: abundanceTrickle,
+    owns: ownBuilding
   });
 }
 
-export function settleEconomy(s) { economyForState(s)?.settle(); }
+export function settleEconomy(s) {
+  economyForState(s)?.settle();
+}
 export function canBatchEconomy(s, count) {
   // A legacy lantern resumes on the exact tick its flare burns out.
   // Keep that boundary individual rather than applying one rate to a batch.
-  return !flareEndsWithin(s,count/60) && haulingEconomyAvailable(s) && !!economyForState(s)?.canAdvanceTicks(count);
+  return (
+    !flareEndsWithin(s, count / 60) &&
+    haulingEconomyAvailable(s) &&
+    !!economyForState(s)?.canAdvanceTicks(count)
+  );
 }
 
 /* --------------------------------------------------------------- step */
@@ -47,12 +81,18 @@ export function canBatchEconomy(s, count) {
 export function step(s, dt, { visualEvents = true } = {}) {
   if (dt > MAX_STEP) dt = MAX_STEP;
   burnFlare(s, dt);
-  if(s.cultivation)stepCultivation(s,dt);
+  if (s.cultivation) stepCultivation(s, dt);
   noteWhere(s); // a shared world's room follows where you are (acts.js)
-  const economy = economyForState(s) || (usesDepots(s) && Math.abs(dt*60-Math.round(dt*60))<1e-9 ? startEventEconomy(s) : null);
+  const economy =
+    economyForState(s) ||
+    (usesDepots(s) && Math.abs(dt * 60 - Math.round(dt * 60)) < 1e-9 ? startEventEconomy(s) : null);
   if (economy) {
     const ticks = Math.round(dt * 60);
-    if (haulingEconomyAvailable(s) && Math.abs(dt * 60 - ticks) < 1e-9 && economy.canAdvanceTicks(ticks)) {
+    if (
+      haulingEconomyAvailable(s) &&
+      Math.abs(dt * 60 - ticks) < 1e-9 &&
+      economy.canAdvanceTicks(ticks)
+    ) {
       economy.advanceTicks(ticks);
       tickBattery(s, dt);
       if (visualEvents) economy.emitVisualEvents();
@@ -80,7 +120,7 @@ export function step(s, dt, { visualEvents = true } = {}) {
 // yours, wherever you are, so walking off to do something never costs what
 // your buildings make (closing the game doesn't either, awayProduce).
 export function autoCollected(s, e) {
-  return haulsBuilding(s,e);
+  return haulsBuilding(s, e);
 }
 
 const SHOW2 = 12 * 12; // tiles away a haul is still shown flying in
@@ -98,10 +138,14 @@ function produce(s, dt, visualEvents) {
   if (!s.extractors.length) return;
   let scratch = productionScratch.get(s);
   if (!scratch) {
-    scratch = { groups: Object.fromEntries(RESOURCES.map((res) => [res, { indices: [], count: 0 }])), events: [] };
+    scratch = {
+      groups: Object.fromEntries(RESOURCES.map((res) => [res, { indices: [], count: 0 }])),
+      events: []
+    };
     productionScratch.set(s, scratch);
   }
-  const groups = scratch.groups, events = scratch.events;
+  const groups = scratch.groups,
+    events = scratch.events;
   for (const res of RESOURCES) groups[res].count = 0;
   // Rebuild membership every tick: appends, removals, replacement arrays,
   // same-length replacements and ownership changes all take effect now.
@@ -117,17 +161,23 @@ function produce(s, dt, visualEvents) {
     const group = groups[res];
     if (!group.count) continue;
     const m = productionMult(s, res);
-    let inv = s.inv[res], total = s.stats[res], income = s.sources[res].buildings;
+    let inv = s.inv[res],
+      total = s.stats[res],
+      income = s.sources[res].buildings;
     for (let j = 0; j < group.count; j++) {
-      const i = group.indices[j], e = s.extractors[i], def = EXTRACTORS[e.key];
+      const i = group.indices[j],
+        e = s.extractors[i],
+        def = EXTRACTORS[e.key];
       const boosted = m * supportMult(s, e);
       const cap = def.buffer * boosted;
       if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * boosted * dt);
-      if (e.buffer >= 1 && (usesDepots(s) ? haulsBuilding(s,e) : hauling)) {
+      if (e.buffer >= 1 && (usesDepots(s) ? haulsBuilding(s, e) : hauling)) {
         const amt = Math.floor(e.buffer);
         // Keep each resource's original building order and every addition.
         // Summing into a single gain would change floating-point rounding.
-        inv += amt; total += amt; income += amt;
+        inv += amt;
+        total += amt;
+        income += amt;
         e.buffer -= amt;
         if (visualEvents && tileDist2(s.player, e.x, e.y, e.z) <= SHOW2) {
           events[i] = { res, amt, x: e.x, y: e.y, z: e.z };
@@ -135,10 +185,16 @@ function produce(s, dt, visualEvents) {
         }
       }
     }
-    s.inv[res] = inv; s.stats[res] = total; s.sources[res].buildings = income;
+    s.inv[res] = inv;
+    s.stats[res] = total;
+    s.sources[res].buildings = income;
   }
   // Presentation events retain their original inter-resource order too.
-  for (let i = 0; i <= lastEvent; i++) if (events[i]) { s.events.push(events[i]); events[i] = undefined; }
+  for (let i = 0; i <= lastEvent; i++)
+    if (events[i]) {
+      s.events.push(events[i]);
+      events[i] = undefined;
+    }
 }
 
 // `seconds` away from a solo world: your buildings and the Abundance Engine
@@ -162,14 +218,20 @@ export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
     const amount = extractorRate(s, e.key, e) * sec;
     if (usesDepots(s)) {
       const total = e.buffer + amount;
-      if (haulsBuilding(s,e)) { const n=Math.floor(total); made[e.res]+=n; e.buffer=total-n; }
-      else e.buffer=Math.min(extractorCapacity(s,e.key,e),total);
+      if (haulsBuilding(s, e)) {
+        const n = Math.floor(total);
+        made[e.res] += n;
+        e.buffer = total - n;
+      } else e.buffer = Math.min(extractorCapacity(s, e.key, e), total);
     } else made[e.res] += amount;
   }
   const trickle = abundanceTrickle(s) * sec;
   for (const r of RESOURCES) {
     if (made[r] > 0) earn(s, r, made[r], 'buildings');
-    if (trickle > 0) { earn(s, r, trickle, 'engine'); made[r] += trickle; }
+    if (trickle > 0) {
+      earn(s, r, trickle, 'engine');
+      made[r] += trickle;
+    }
   }
   return made;
 }
@@ -177,10 +239,16 @@ export function produceAway(s, seconds, allowed = !FREEZE_AWAY) {
 /* --------------------------------------------------------------- move */
 
 function canStand(s, x, y) {
-  const w = s.world, z = s.player.z, r = PLAYER_RADIUS;
-  return walkable(w, Math.floor(x - r), Math.floor(y - r), z) && walkable(w, Math.floor(x + r), Math.floor(y - r), z) &&
-    walkable(w, Math.floor(x - r), Math.floor(y + r), z) && walkable(w, Math.floor(x + r), Math.floor(y + r), z) &&
-    walkable(w, Math.floor(x), Math.floor(y), z);
+  const w = s.world,
+    z = s.player.z,
+    r = PLAYER_RADIUS;
+  return (
+    walkable(w, Math.floor(x - r), Math.floor(y - r), z) &&
+    walkable(w, Math.floor(x + r), Math.floor(y - r), z) &&
+    walkable(w, Math.floor(x - r), Math.floor(y + r), z) &&
+    walkable(w, Math.floor(x + r), Math.floor(y + r), z) &&
+    walkable(w, Math.floor(x), Math.floor(y), z)
+  );
 }
 
 export function onWater(s) {
@@ -195,7 +263,7 @@ export function swimsAt(world, x, y, z) {
 
 // Whether your Boots take you onto water (see GEAR.water).
 export function canWade(s) {
-  return effectiveToolLevel(s,'boots') >= GEAR.water;
+  return effectiveToolLevel(s, 'boots') >= GEAR.water;
 }
 
 // Whether a step to (x, y) would take you from land onto water you can't
@@ -209,7 +277,7 @@ function shoreStops(s, x, y) {
 export function waterAhead(s, dx, dy) {
   const len = Math.hypot(dx, dy);
   if (canWade(s) || len < 0.0001) return false;
-  return shoreStops(s, s.player.x + dx / len * 0.6, s.player.y + dy / len * 0.6);
+  return shoreStops(s, s.player.x + (dx / len) * 0.6, s.player.y + (dy / len) * 0.6);
 }
 
 // How fast the player walks (or rows) where they are, in tiles a second.
@@ -224,7 +292,7 @@ function standsAt(s, x, y) {
 }
 
 const CORNER_SLIP = 0.45; // how far off a corner you're eased round it, in tiles
-const CORNER_AIM = 0.5;   // only when heading this close to straight at it (sine)
+const CORNER_AIM = 0.5; // only when heading this close to straight at it (sine)
 
 // Moves the player along (dx, dy), sliding along walls axis by axis.
 // Running into a corner you only clip eases you round it, as far as
@@ -234,22 +302,38 @@ const CORNER_AIM = 0.5;   // only when heading this close to straight at it (sin
 export function move(s, dx, dy, dt) {
   const len = Math.hypot(dx, dy);
   if (len < 0.0001) return false;
-  dx /= len; dy /= len;
+  dx /= len;
+  dy /= len;
   const step = walkSpeed(s) * dt;
-  const p = s.player, x0 = p.x, y0 = p.y;
-  let movedX = false, movedY = false;
+  const p = s.player,
+    x0 = p.x,
+    y0 = p.y;
+  let movedX = false,
+    movedY = false;
   const nx = p.x + dx * step;
-  if (standsAt(s, nx, p.y)) { p.x = nx; movedX = true; }
+  if (standsAt(s, nx, p.y)) {
+    p.x = nx;
+    movedX = true;
+  }
   const ny = p.y + dy * step;
-  if (standsAt(s, p.x, ny)) { p.y = ny; movedY = true; }
+  if (standsAt(s, p.x, ny)) {
+    p.y = ny;
+    movedY = true;
+  }
   const alongX = Math.abs(dx) >= Math.abs(dy);
-  if ((alongX ? movedX : movedY) || Math.abs(alongX ? dy : dx) > CORNER_AIM) return movedX || movedY;
+  if ((alongX ? movedX : movedY) || Math.abs(alongX ? dy : dx) > CORNER_AIM)
+    return movedX || movedY;
   // Blocked head on: find the smallest sidestep that clears the corner.
   const side = rounding(s, x0, y0, alongX, alongX ? dx : dy, alongX ? dy : dx, step);
   if (!side) return movedX || movedY;
   const slip = Math.min(step, Math.abs(side));
-  if (alongX) { p.x = x0; p.y = y0 + Math.sign(side) * slip; }
-  else { p.y = y0; p.x = x0 + Math.sign(side) * slip; }
+  if (alongX) {
+    p.x = x0;
+    p.y = y0 + Math.sign(side) * slip;
+  } else {
+    p.y = y0;
+    p.x = x0 + Math.sign(side) * slip;
+  }
   return true;
 }
 
@@ -257,7 +341,7 @@ export function move(s, dx, dy, dt) {
 // ahead through, or 0 when no sidestep up to CORNER_SLIP does. The nearer
 // side wins; on a tie, the side you lean toward.
 function rounding(s, x, y, alongX, ahead, lean, step) {
-  const at = (a, c) => alongX ? standsAt(s, x + a, y + c) : standsAt(s, x + c, y + a);
+  const at = (a, c) => (alongX ? standsAt(s, x + a, y + c) : standsAt(s, x + c, y + a));
   const first = lean < 0 ? -1 : 1;
   for (let off = 0.05; off <= CORNER_SLIP + 1e-9; off += 0.05) {
     for (const sign of [first, -first]) {
@@ -273,7 +357,7 @@ function rounding(s, x, y, alongX, ahead, lean, step) {
 export function clearLine(s, x0, y0, x1, y1) {
   const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 0.1);
   for (let i = 1; i <= n; i++) {
-    if (!standsAt(s, x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)) return false;
+    if (!standsAt(s, x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n)) return false;
   }
   return true;
 }
@@ -287,14 +371,26 @@ export function clearLine(s, x0, y0, x1, y1) {
 // only at their edges: O(radius + newly covered tiles), not O(radius²).
 const revealCoverage = new WeakMap();
 export function revealAround(s, radius = sightRadius(s), work = null) {
-  const p = s.player, w = s.world, r = Math.ceil(radius), r2 = radius * radius;
-  const px = Math.floor(p.x), py = Math.floor(p.y), top = py - r;
+  const p = s.player,
+    w = s.world,
+    r = Math.ceil(radius),
+    r2 = radius * radius;
+  const px = Math.floor(p.x),
+    py = Math.floor(p.y),
+    top = py - r;
   const revision = w.explored.revision;
   let cache = revealCoverage.get(s);
-  const reuse = cache && typeof revision === 'number' && cache.world === w &&
-    cache.fog === w.explored && cache.revision === revision && cache.z === p.z &&
-    (!cache.ore || s.discovered.ore) && (!cache.crystal || s.discovered.crystal);
-  const previous = reuse ? cache.rows : null, previousTop = cache?.top;
+  const reuse =
+    cache &&
+    typeof revision === 'number' &&
+    cache.world === w &&
+    cache.fog === w.explored &&
+    cache.revision === revision &&
+    cache.z === p.z &&
+    (!cache.ore || s.discovered.ore) &&
+    (!cache.crystal || s.discovered.crystal);
+  const previous = reuse ? cache.rows : null,
+    previousTop = cache?.top;
   const rows = cache?.spare || [];
   rows.length = (2 * r + 1) * 2;
   const reveal = (left, right, y) => {
@@ -309,8 +405,13 @@ export function revealAround(s, radius = sightRadius(s), work = null) {
   };
   for (let y = top; y <= py + r; y++) {
     if (work) work.rows = (work.rows || 0) + 1;
-    const index = (y - top) * 2, dy = y + 0.5 - p.y;
-    if (dy * dy > r2) { rows[index] = 1; rows[index + 1] = 0; continue; }
+    const index = (y - top) * 2,
+      dy = y + 0.5 - p.y;
+    if (dy * dy > r2) {
+      rows[index] = 1;
+      rows[index + 1] = 0;
+      continue;
+    }
     const span = Math.sqrt(r2 - dy * dy);
     // Widen by one, then use the original distance predicate at both ends:
     // rounding at an exact circular boundary must not reveal a different tile.
@@ -318,7 +419,8 @@ export function revealAround(s, radius = sightRadius(s), work = null) {
     let right = Math.min(px + r, Math.floor(p.x - 0.5 + span) + 1);
     while (left <= right && tileDist2(p, left, y, p.z) > r2) left++;
     while (right >= left && tileDist2(p, right, y, p.z) > r2) right--;
-    rows[index] = left; rows[index + 1] = right;
+    rows[index] = left;
+    rows[index + 1] = right;
     const old = (y - previousTop) * 2;
     if (!previous || old < 0 || old >= previous.length || previous[old] > previous[old + 1]) {
       reveal(left, right, y);
@@ -327,8 +429,17 @@ export function revealAround(s, radius = sightRadius(s), work = null) {
       reveal(Math.max(left, previous[old + 1] + 1), right, y);
     }
   }
-  if (!cache) { cache = {}; revealCoverage.set(s, cache); }
-  cache.spare = cache.rows; cache.rows = rows; cache.top = top;
-  cache.world = w; cache.fog = w.explored; cache.revision = w.explored.revision;
-  cache.z = p.z; cache.ore = s.discovered.ore; cache.crystal = s.discovered.crystal;
+  if (!cache) {
+    cache = {};
+    revealCoverage.set(s, cache);
+  }
+  cache.spare = cache.rows;
+  cache.rows = rows;
+  cache.top = top;
+  cache.world = w;
+  cache.fog = w.explored;
+  cache.revision = w.explored.revision;
+  cache.z = p.z;
+  cache.ore = s.discovered.ore;
+  cache.crystal = s.discovered.crystal;
 }

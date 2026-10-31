@@ -2,7 +2,16 @@ import { recordSpending, bindSpending } from './spending.js';
 import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 /* Costs, yields and production multipliers. */
 
-import { TOOLS, EXTRACTORS, REFINERIES, ABUNDANCE, EXTRACTOR_GROWTH, EXPLORE_RADIUS, MINE_EXPLORE_RADIUS, HAND_SHARE } from './content.js';
+import {
+  TOOLS,
+  EXTRACTORS,
+  REFINERIES,
+  ABUNDANCE,
+  EXTRACTOR_GROWTH,
+  EXPLORE_RADIUS,
+  MINE_EXPLORE_RADIUS,
+  HAND_SHARE
+} from './content.js';
 import { RESOURCES, RESOURCE_LABEL } from './tiles.js';
 import { t } from '../i18n/i18n.js';
 
@@ -11,7 +20,9 @@ import { economyForState, economyForInventory } from './economy-context.js';
 /* ------------------------------------------------------------- income */
 
 // Where resources come from, as counted in the earnings statement.
-export const SOURCES = Object.fromEntries(['hand', 'finds', 'buildings', 'engine'].map((k) => [k, t('source.' + k)]));
+export const SOURCES = Object.fromEntries(
+  ['hand', 'finds', 'buildings', 'engine'].map((k) => [k, t('source.' + k)])
+);
 
 // Adds `amount` of `res` to the packs, counted as gathered this world and as
 // coming from `source` (a key of SOURCES).
@@ -35,23 +46,26 @@ export function canAfford(inv, cost) {
 
 export function pay(inv, cost, category = 'other') {
   const indexed = economyForInventory(inv);
-  if (indexed) { if (!indexed.pay(cost)) return false; }
-  else {
+  if (indexed) {
+    if (!indexed.pay(cost)) return false;
+  } else {
     if (!canAfford(inv, cost)) return false;
     for (const r in cost) inv[r] -= cost[r];
   }
-  recordSpending(inv,cost,category);
+  recordSpending(inv, cost, category);
   return true;
 }
 
 // Commands carry state explicitly; this also supports cloned simulation states.
-export function spend(s,cost,category) {
+export function spend(s, cost, category) {
   bindSpending(s);
-  return pay(s.inv,cost,category);
+  return pay(s.inv, cost, category);
 }
 
 export function costText(cost) {
-  return Object.keys(cost || {}).map((r) => t('cost.item', { n: cost[r], res: RESOURCE_LABEL[r] })).join(', ');
+  return Object.keys(cost || {})
+    .map((r) => t('cost.item', { n: cost[r], res: RESOURCE_LABEL[r] }))
+    .join(', ');
 }
 
 export function scaleCost(cost, factor) {
@@ -65,7 +79,7 @@ export function scaleCost(cost, factor) {
 // Level zero is bare hands/barefoot/base machinery: no owned item.
 // Level one is retained for legacy basic equipment; first crafting reaches two.
 export function toolStat(s, id) {
-  return TOOLS[id].levels[Math.max(0, effectiveToolLevel(s,id) - 1)];
+  return TOOLS[id].levels[Math.max(0, effectiveToolLevel(s, id) - 1)];
 }
 
 // One gather of `res`: what the tool brings, plus HAND_SHARE seconds of your
@@ -73,7 +87,9 @@ export function toolStat(s, id) {
 // Plain rock (no resource) pays nothing, as harvestAt pays it.
 export function gatherYield(s, res) {
   if (!res) return 0;
-  return toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield + HAND_SHARE * buildingRate(s, res);
+  return (
+    toolStat(s, res === 'mycelium' ? 'basket' : 'pickaxe').yield + HAND_SHARE * buildingRate(s, res)
+  );
 }
 
 export function overclockMult(s) {
@@ -125,11 +141,14 @@ export function abundanceTrickle(s) {
 // Adjacency is indexed once per building layout, never searched each tick.
 // Canonical layout changes append a building or replace the shared-world array.
 const supportLayouts = new WeakMap();
-export function invalidateSupports(s) { supportLayouts.delete(s); }
+export function invalidateSupports(s) {
+  supportLayouts.delete(s);
+}
 function supportLayout(s) {
   const old = supportLayouts.get(s);
   if (old && old.list === s.extractors && old.n === s.extractors.length) return old;
-  const tiles = new Map(), links = new Map();
+  const tiles = new Map(),
+    links = new Map();
   for (const e of s.extractors) tiles.set(`${e.x},${e.y},${e.z}`, e);
   const layout = { list: s.extractors, n: s.extractors.length, tiles, links };
   supportLayouts.set(s, layout);
@@ -137,7 +156,11 @@ function supportLayout(s) {
     if (!EXTRACTORS[e.key].support) continue;
     for (const q of supportTargets(s, e)) {
       const before = links.get(q);
-      if (!before || (e.x-q.x)**2+(e.y-q.y)**2 < (before.x-q.x)**2+(before.y-q.y)**2) links.set(q, e);
+      if (
+        !before ||
+        (e.x - q.x) ** 2 + (e.y - q.y) ** 2 < (before.x - q.x) ** 2 + (before.y - q.y) ** 2
+      )
+        links.set(q, e);
     }
   }
   return layout;
@@ -148,24 +171,37 @@ function supportLayout(s) {
 export function supportTargets(s, at) {
   const def = EXTRACTORS[at.key || 'stoneworks'].support;
   if (!def) return [];
-  const { tiles } = supportLayout(s), out = [];
-  for (let dy = -def.radius; dy <= def.radius; dy++) for (let dx = -def.radius; dx <= def.radius; dx++) {
-    if (dx*dx + dy*dy > def.radius*def.radius) continue;
-    const q = tiles.get(`${at.x+dx},${at.y+dy},${at.z}`);
-    if (q?.key === def.target && q.owner === at.owner) out.push(q);
-  }
+  const { tiles } = supportLayout(s),
+    out = [];
+  for (let dy = -def.radius; dy <= def.radius; dy++)
+    for (let dx = -def.radius; dx <= def.radius; dx++) {
+      if (dx * dx + dy * dy > def.radius * def.radius) continue;
+      const q = tiles.get(`${at.x + dx},${at.y + dy},${at.z}`);
+      if (q?.key === def.target && q.owner === at.owner) out.push(q);
+    }
   return out;
 }
-export function supportingBuilding(s, e) { return supportLayout(s).links.get(e) || null; }
-export function supportMult(s, e) { return !focusedChapter(s) && e?.key === 'quarry' && supportingBuilding(s, e) ? EXTRACTORS.stoneworks.support.mult : 1; }
+export function supportingBuilding(s, e) {
+  return supportLayout(s).links.get(e) || null;
+}
+export function supportMult(s, e) {
+  return !focusedChapter(s) && e?.key === 'quarry' && supportingBuilding(s, e)
+    ? EXTRACTORS.stoneworks.support.mult
+    : 1;
+}
 export function supportGain(s, at) {
-  return supportTargets(s, { key: 'stoneworks', z: s.player.z, owner: s.me || undefined, ...at })
-    .filter(q => !supportingBuilding(s, q)).length * EXTRACTORS.quarry.rate * productionMult(s, 'stone');
+  return (
+    supportTargets(s, { key: 'stoneworks', z: s.player.z, owner: s.me || undefined, ...at }).filter(
+      (q) => !supportingBuilding(s, q)
+    ).length *
+    EXTRACTORS.quarry.rate *
+    productionMult(s, 'stone')
+  );
 }
 
 export function extractorRate(s, key, instance = null) {
   const def = EXTRACTORS[key];
-  if (contentLocked(s,key)) return 0;
+  if (contentLocked(s, key)) return 0;
   return def.rate * productionMult(s, def.res) * supportMult(s, instance);
 }
 
@@ -175,12 +211,14 @@ export function placementGain(s, key, at) {
   if (EXTRACTORS[key].support) return at ? supportGain(s, at) : 0;
   const base = extractorRate(s, key);
   if (key !== 'quarry' || !at) return base;
-  const def = EXTRACTORS.stoneworks.support, { tiles } = supportLayout(s);
-  for (let dy=-def.radius; dy<=def.radius; dy++) for (let dx=-def.radius; dx<=def.radius; dx++) {
-    if (dx*dx+dy*dy > def.radius*def.radius) continue;
-    const b = tiles.get(`${at.x+dx},${at.y+dy},${at.z ?? s.player.z}`);
-    if (b?.key === 'stoneworks' && b.owner === (s.me || undefined)) return base * def.mult;
-  }
+  const def = EXTRACTORS.stoneworks.support,
+    { tiles } = supportLayout(s);
+  for (let dy = -def.radius; dy <= def.radius; dy++)
+    for (let dx = -def.radius; dx <= def.radius; dx++) {
+      if (dx * dx + dy * dy > def.radius * def.radius) continue;
+      const b = tiles.get(`${at.x + dx},${at.y + dy},${at.z ?? s.player.z}`);
+      if (b?.key === 'stoneworks' && b.owner === (s.me || undefined)) return base * def.mult;
+    }
   return base;
 }
 
@@ -208,7 +246,8 @@ export function buildingRate(s, res) {
   const indexed = economyForState(s);
   if (indexed) return indexed.buildingRate(res);
   let rate = 0;
-  for (const e of s.extractors) if (e.res === res && ownBuilding(s, e)) rate += extractorRate(s, e.key, e);
+  for (const e of s.extractors)
+    if (e.res === res && ownBuilding(s, e)) rate += extractorRate(s, e.key, e);
   return rate;
 }
 
@@ -226,10 +265,12 @@ export function extractorCount(s, key) {
   return s.extractors.filter((e) => e.key === key && ownBuilding(s, e)).length;
 }
 
-export function extractorBaseCost(s,key) {
-  return s.cultivation&&key==='stoneworks'?{mycelium:20,stone:12,ore:4}:EXTRACTORS[key].baseCost;
+export function extractorBaseCost(s, key) {
+  return s.cultivation && key === 'stoneworks'
+    ? { mycelium: 20, stone: 12, ore: 4 }
+    : EXTRACTORS[key].baseCost;
 }
 
 export function extractorCost(s, key) {
-  return scaleCost(extractorBaseCost(s,key), Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
+  return scaleCost(extractorBaseCost(s, key), Math.pow(EXTRACTOR_GROWTH, extractorCount(s, key)));
 }

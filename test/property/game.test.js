@@ -38,7 +38,8 @@ function holds(s, where) {
 function walkTo(s, tx, ty, budget = 8) {
   const dt = 0.1;
   for (let t = 0; t < budget; t += dt) {
-    const dx = tx + 0.5 - s.player.x, dy = ty + 0.5 - s.player.y;
+    const dx = tx + 0.5 - s.player.x,
+      dy = ty + 0.5 - s.player.y;
     if (Math.hypot(dx, dy) < 0.3) return true;
     if (!C.move(s, dx, dy, dt)) return false;
     C.revealAround(s);
@@ -83,7 +84,12 @@ function oneAct(s, r) {
   if (choice === 8 && s.extractors.length && r.chance(0.3)) {
     // Move one of your buildings to a tile beside you (refused where it doesn't fit).
     const e = r.pick(s.extractors);
-    C.moveExtractor(s, e, Math.floor(s.player.x) + r.int(-2, 2), Math.floor(s.player.y) + r.int(-2, 2));
+    C.moveExtractor(
+      s,
+      e,
+      Math.floor(s.player.x) + r.int(-2, 2),
+      Math.floor(s.player.y) + r.int(-2, 2)
+    );
     C.step(s, 0.25);
     return;
   }
@@ -93,7 +99,10 @@ function oneAct(s, r) {
     for (let i = 0; i < 4; i++) {
       const x = Math.floor(s.player.x) + r.int(-2, 2);
       const y = Math.floor(s.player.y) + r.int(-2, 2);
-      if (C.place(s, key, { x, y })) { C.step(s, 0.25); return; }
+      if (C.place(s, key, { x, y })) {
+        C.step(s, 0.25);
+        return;
+      }
     }
     return;
   }
@@ -124,7 +133,7 @@ test('property: random play never breaks a game rule', () => {
   });
 });
 
-test('property: a mastered world\'s random play never breaks a rule', () => {
+test("property: a mastered world's random play never breaks a rule", () => {
   // Past the early game, where multipliers, refineries and the Engine are
   // live: a different arithmetic than a fresh world.
   property((r, seed) => {
@@ -141,7 +150,7 @@ test('property: a mastered world\'s random play never breaks a rule', () => {
   });
 });
 
-test('property: the room\'s round-trip never breaks a rule', () => {
+test("property: the room's round-trip never breaks a rule", () => {
   // A state goes to a room (worldOf + progressOf), a fresh phone joins from
   // what the room sends back (joinState), and the two must agree on the
   // world's land and on who owns what. This is the shared-world half of
@@ -163,8 +172,11 @@ test('property: the room\'s round-trip never breaks a rule', () => {
 
     const world = C.worldOf(s);
     const welcome = {
-      you: s.me, c: 0,
-      seed: world.seed, mods: world.mods, props: world.props,
+      you: s.me,
+      c: 0,
+      seed: world.seed,
+      mods: world.mods,
+      props: world.props,
       ext: world.ext.map((e) => [...e, s.me]),
       save: C.progressOf(s)
     };
@@ -179,7 +191,8 @@ test('property: the room\'s round-trip never breaks a rule', () => {
     const at = (e) => e.x + ',' + e.y + ',' + e.z;
     const mineBefore = new Set(s.extractors.filter((e) => !e.owner || e.owner === s.me).map(at));
     for (const e of back.extractors) {
-      if (mineBefore.has(at(e))) assert.equal(e.owner, s.me, `a building you own came back as someone else's at ${at(e)}`);
+      if (mineBefore.has(at(e)))
+        assert.equal(e.owner, s.me, `a building you own came back as someone else's at ${at(e)}`);
     }
   });
 });
@@ -192,7 +205,8 @@ test("property: gathering never raises a tile's richness", () => {
   property((r, seed) => {
     const s = C.createState(seed);
     const z = s.player.z;
-    const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
+    const px = Math.floor(s.player.x),
+      py = Math.floor(s.player.y);
     const before = new Map();
     for (let x = px - 6; x <= px + 6; x++) {
       for (let y = py - 6; y <= py + 6; y++) {
@@ -201,7 +215,8 @@ test("property: gathering never raises a tile's richness", () => {
       }
     }
     for (let i = 0; i < r.size(20, 60); i++) {
-      const x = px + r.int(-6, 6), y = py + r.int(-6, 6);
+      const x = px + r.int(-6, 6),
+        y = py + r.int(-6, 6);
       walkTo(s, x, y, 3);
       C.harvestAt(s, x, y);
       C.step(s, 0.05);

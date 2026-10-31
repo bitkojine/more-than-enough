@@ -22,13 +22,20 @@ export function renderDevices(box, { url, okAt, failed, now, t, ago }) {
   copy.className = 'deviceCopy';
   copy.textContent = t('devices.copy');
   copy.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(url); copy.textContent = t('devices.copied'); } catch { copy.textContent = t('devices.copyFailed'); }
+    try {
+      await navigator.clipboard.writeText(url);
+      copy.textContent = t('devices.copied');
+    } catch {
+      copy.textContent = t('devices.copyFailed');
+    }
   });
   const state = document.createElement('p');
   state.className = 'deviceState' + (okAt ? ' ok' : '');
   state.setAttribute('role', 'status');
   state.textContent = okAt
-    ? (now - okAt < 60_000 ? t('devices.keptNow') : t('devices.keptAgo', { time: ago((now - okAt) / 1000) }))
+    ? now - okAt < 60_000
+      ? t('devices.keptNow')
+      : t('devices.keptAgo', { time: ago((now - okAt) / 1000) })
     : t(failed ? 'devices.offline' : 'devices.keeping');
   const warn = document.createElement('p');
   warn.className = 'empty';

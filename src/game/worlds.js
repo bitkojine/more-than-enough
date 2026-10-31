@@ -11,20 +11,28 @@ import { ROOM_ID_RE } from '../net/protocol.js';
 import { worldWords } from '../net/naming.js';
 import { t } from '../i18n/i18n.js';
 
-const ROOMS_STORE = 'mte.rooms';      // shared worlds you've been in, newest first
+const ROOMS_STORE = 'mte.rooms'; // shared worlds you've been in, newest first
 // What this phone keeps for each of those worlds (together.js), dropped
 // with the world when it leaves the list.
 export const SAVE_PREFIX = 'mte.room.'; // your progress there (a copy)
-export const FOG_PREFIX = 'mte.fog.';   // the map you've explored there
-export const GEN_PREFIX = 'mte.gen.';   // which making of that world those are from (the nuke remade some before v0.117.0)
+export const FOG_PREFIX = 'mte.fog.'; // the map you've explored there
+export const GEN_PREFIX = 'mte.gen.'; // which making of that world those are from (the nuke remade some before v0.117.0)
 export const ACTS_PREFIX = 'mte.acts.'; // what you did there that the room may not have yet
 const COPIES = [SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX, ACTS_PREFIX];
 
 function read(key) {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 function write(key, value) {
-  try { localStorage.setItem(key, value); } catch { /* full or blocked */ }
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    /* full or blocked */
+  }
 }
 // Drops what's kept for worlds no longer on the list.
 function tidy() {
@@ -38,14 +46,20 @@ function tidy() {
       if (p && !keep.has(k.slice(p.length))) stale.push(k);
     }
     for (const k of stale) localStorage.removeItem(k);
-  } catch { /* storage blocked: nothing kept anyway */ }
+  } catch {
+    /* storage blocked: nothing kept anyway */
+  }
 }
 
 function readList(key) {
   try {
     const list = JSON.parse(read(key) || '[]');
-    return Array.isArray(list) ? list.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r)) : [];
-  } catch { return []; }
+    return Array.isArray(list)
+      ? list.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r))
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 // The world's name, from its id: the same id always gives the same name.
@@ -84,7 +98,8 @@ export function forget(room) {
 // A world that turned you away for now (it froze your character): last on the list.
 export function skip(room) {
   const list = knownRooms();
-  if (list.includes(room)) write(ROOMS_STORE, JSON.stringify([...list.filter((r) => r !== room), room]));
+  if (list.includes(room))
+    write(ROOMS_STORE, JSON.stringify([...list.filter((r) => r !== room), room]));
 }
 
 // How many play in a world now, or null if the room service doesn't say
@@ -95,7 +110,9 @@ export async function onlineIn(service, id) {
     const res = await fetch(service + '/rooms/' + id, { cache: 'no-store' });
     const d = res.ok ? await res.json() : null;
     return Number.isSafeInteger(d?.online) && d.online >= 0 ? d.online : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // A solo world's name, from its seed, in the same style as a shared one's.
@@ -115,7 +132,10 @@ export function soloName(seed) {
 // many play there now, or null if the room service didn't say;
 // `play(id)`; `playSolo(seed)`; `remove(id)`; `played(seconds)`: the time
 // in words; `done(state)`: whether that world is complete.
-export function renderWorlds(box, { here, seed, solo, rooms, online, play, playSolo, remove, played, done }) {
+export function renderWorlds(
+  box,
+  { here, seed, solo, rooms, online, play, playSolo, remove, played, done }
+) {
   const row = (name, sub, isHere, onPlay, onRemove) => {
     const r = document.createElement('div');
     r.className = 'world' + (isHere ? ' here' : '');
@@ -136,12 +156,26 @@ export function renderWorlds(box, { here, seed, solo, rooms, online, play, playS
     }
     return { r, small };
   };
-  const own = solo.map((w) => row(soloName(w.seed), soloLine(w.state, played, done), w.seed === seed, () => playSolo(w.seed)).r);
+  const own = solo.map(
+    (w) =>
+      row(soloName(w.seed), soloLine(w.state, played, done), w.seed === seed, () =>
+        playSolo(w.seed)
+      ).r
+  );
   const shared = rooms ? knownRooms() : [];
   const rows = shared.map((id) => {
     const whose = t('worlds.friends');
-    const x = row(worldName(id), whose, id === here, () => play(id), () => remove(id));
-    online(id).then((n) => { if (n !== null && x.r.isConnected) x.small.textContent = whose + ' · ' + t('worlds.online', { count: n }); });
+    const x = row(
+      worldName(id),
+      whose,
+      id === here,
+      () => play(id),
+      () => remove(id)
+    );
+    online(id).then((n) => {
+      if (n !== null && x.r.isConnected)
+        x.small.textContent = whose + ' · ' + t('worlds.online', { count: n });
+    });
     return x.r;
   });
   const hint = document.createElement('p');

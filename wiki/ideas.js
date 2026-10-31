@@ -61,12 +61,16 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 // The ideas grouped by area, as HTML.
 export function renderIdeas() {
   return AREAS.map((area) => {
-    const cards = IDEAS.filter((i) => i.area === area).map((i) => `
+    const cards = IDEAS.filter((i) => i.area === area)
+      .map(
+        (i) => `
       <li class="idea">
         <div class="idea-head"><strong>${esc(t(`wiki.idea.${i.id}.title`))}</strong><span class="size size-${i.size}">${t('wiki.size.' + i.size)}</span></div>
         <p>${esc(t(`wiki.idea.${i.id}.pitch`))}</p>
         <p class="builds">${esc(t('wiki.buildsOn', { builds: t(`wiki.idea.${i.id}.builds`) }))}</p>
-      </li>`).join('');
+      </li>`
+      )
+      .join('');
     return `<h2>${t('wiki.area.' + area)}</h2><p class="area-blurb">${t('wiki.area.' + area + '.blurb')}</p><ul class="ideas">${cards}</ul>`;
   }).join('');
 }

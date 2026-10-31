@@ -6,14 +6,18 @@
  * "mycelium" finds a cost shown as a mushroom icon. */
 
 const CARD = '.thing, .idea'; // a card is one passage: its name with what it says
-const PASSAGE = CARD + ', p, li, tbody tr, h2, h3, pre';  // i18n-ok: CSS selectors
+const PASSAGE = CARD + ', p, li, tbody tr, h2, h3, pre'; // i18n-ok: CSS selectors
 const SNIP = 220; // characters of context shown per hit
 
 import { t } from './strings.js';
 
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-export const words = (q) => q.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
+export const words = (q) =>
+  q
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
 
 // A passage's text, with pictures read as their names.
 function textOf(node) {
@@ -28,8 +32,9 @@ function textOf(node) {
 // The passages of an article, in reading order: cards whole, otherwise only
 // innermost ones, so a list item holding a paragraph counts once.
 export function passages(article) {
-  return [...article.querySelectorAll(PASSAGE)]
-    .filter((el) => el.matches(CARD) || (!el.closest(CARD) && !el.querySelector(PASSAGE)));
+  return [...article.querySelectorAll(PASSAGE)].filter(
+    (el) => el.matches(CARD) || (!el.closest(CARD) && !el.querySelector(PASSAGE))
+  );
 }
 
 // Every passage of every article that holds all the words.
@@ -49,10 +54,12 @@ export function find(articles, q) {
       const low = text.toLowerCase();
       if (!ws.every((w) => low.includes(w))) return;
       // A heading that matches: show what follows it, the explanation.
-      if (heading && list[n + 1] && !list[n + 1].matches('h2, h3')) text += ': ' + clean(list[n + 1]);
+      if (heading && list[n + 1] && !list[n + 1].matches('h2, h3'))
+        text += ': ' + clean(list[n + 1]);
       hits.push({ n, text, section: heading ? a.dataset.title : section });
     });
-    if (a.dataset.title.toLowerCase().includes(ws.join(' ')) || hits.length) groups.push({ article: a, hits });
+    if (a.dataset.title.toLowerCase().includes(ws.join(' ')) || hits.length)
+      groups.push({ article: a, hits });
   }
   return groups;
 }
@@ -61,14 +68,18 @@ export function find(articles, q) {
 function snippet(text, ws) {
   const low = text.toLowerCase();
   const first = Math.min(...ws.map((w) => low.indexOf(w)).filter((i) => i >= 0));
-  let from = 0, to = text.length;
+  let from = 0,
+    to = text.length;
   if (text.length > SNIP) {
     from = Math.max(0, first - 60);
     to = Math.min(text.length, from + SNIP);
     if (from > 0) from = text.indexOf(' ', from) + 1 || from;
   }
   let out = esc(text.slice(from, to));
-  const pattern = new RegExp('(' + ws.map((w) => esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+  const pattern = new RegExp(
+    '(' + ws.map((w) => esc(w).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')',
+    'gi'
+  );
   out = out.replace(pattern, '<mark>$1</mark>');
   return (from > 0 ? '…' : '') + out + (to < text.length ? '…' : '');
 }
@@ -79,13 +90,25 @@ export function renderResults(groups, q) {
   const head = `<h1>${t('wiki.search.head', { query: esc(q.trim()) })}</h1>`;
   if (!groups.length) return head + `<p class="lede">${t('wiki.search.none')}</p>`;
   const lede = `<p class="lede">${t('wiki.search.mentions', { count: total, articles: t('wiki.search.articles', { count: groups.length }) })}</p>`;
-  return head + lede + groups.map((g) => `
+  return (
+    head +
+    lede +
+    groups
+      .map(
+        (g) => `
     <section class="hit-group">
       <h2><a href="#${g.article.id}">${esc(g.article.dataset.title)}</a> <span class="hit-count">${g.hits.length}</span></h2>
-      <ul class="hits">${g.hits.map((h) => `
-        <li><a href="#${g.article.id}/${h.n}"><span class="where">${esc(h.section)}</span><span class="snip">${snippet(h.text, ws)}</span></a></li>`).join('')}
+      <ul class="hits">${g.hits
+        .map(
+          (h) => `
+        <li><a href="#${g.article.id}/${h.n}"><span class="where">${esc(h.section)}</span><span class="snip">${snippet(h.text, ws)}</span></a></li>`
+        )
+        .join('')}
       </ul>
-    </section>`).join('');
+    </section>`
+      )
+      .join('')
+  );
 }
 
 /* ------------------------------------------- marking words in an article */
@@ -102,7 +125,10 @@ export function unmark(root) {
 export function mark(root, q) {
   const ws = words(q);
   if (!ws.length) return;
-  const pattern = new RegExp(ws.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'), 'gi');
+  const pattern = new RegExp(
+    ws.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|'),
+    'gi'
+  );
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);

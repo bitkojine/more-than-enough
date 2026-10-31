@@ -6,10 +6,15 @@ import { RESOURCES } from './tiles.js';
 const SOURCES = ['hand', 'finds', 'buildings', 'engine'];
 
 export function createResourceLedger(state) {
-  const opening = {}, manual = {}, spent = {}, streams = new Map(), bySource = Object.fromEntries(SOURCES.map(source => [source, []]));
+  const opening = {},
+    manual = {},
+    spent = {},
+    streams = new Map(),
+    bySource = Object.fromEntries(SOURCES.map((source) => [source, []]));
   for (const r of RESOURCES) {
     opening[r] = { inv: state.inv[r], stats: state.stats[r], sources: { ...state.sources[r] } };
-    manual[r] = Object.fromEntries(SOURCES.map(s => [s, 0])); spent[r] = 0;
+    manual[r] = Object.fromEntries(SOURCES.map((s) => [s, 0]));
+    spent[r] = 0;
   }
   function materializeResource(r) {
     let gain = 0;
@@ -31,7 +36,8 @@ export function createResourceLedger(state) {
     if (!Number.isFinite(amount) || amount < 0) throw new Error('resource-ledger-amount');
   }
   function credit(source, resource, amount) {
-    if (!SOURCES.includes(source) || !RESOURCES.includes(resource)) throw new Error('resource-ledger-source');
+    if (!SOURCES.includes(source) || !RESOURCES.includes(resource))
+      throw new Error('resource-ledger-source');
     check(amount);
     manual[resource][source] += amount;
     materializeResource(resource);
@@ -45,7 +51,8 @@ export function createResourceLedger(state) {
       if (old && old.source !== source) throw new Error('resource-ledger-stream');
       const next = {};
       for (const r of RESOURCES) {
-        next[r] = totals[r] ?? 0; check(next[r]);
+        next[r] = totals[r] ?? 0;
+        check(next[r]);
         if (old && next[r] < old.totals[r]) throw new Error('resource-ledger-backwards');
       }
       pending.set(name, { name, source, totals: next });
@@ -54,15 +61,24 @@ export function createResourceLedger(state) {
       const old = streams.get(name);
       if (old) old.totals = next.totals;
       else {
-        streams.set(name, next); bySource[next.source].push(next);
-        bySource[next.source].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+        streams.set(name, next);
+        bySource[next.source].push(next);
+        bySource[next.source].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
       }
     }
     return materialize();
   }
-  function setStream(name, source, totals) { return setStreams([{ name, source, totals }]); }
+  function setStream(name, source, totals) {
+    return setStreams([{ name, source, totals }]);
+  }
   function canAfford(cost) {
-    return !!cost && Object.entries(cost).every(([r, amount]) => RESOURCES.includes(r) && Number.isFinite(amount) && amount >= 0 && state.inv[r] >= amount);
+    return (
+      !!cost &&
+      Object.entries(cost).every(
+        ([r, amount]) =>
+          RESOURCES.includes(r) && Number.isFinite(amount) && amount >= 0 && state.inv[r] >= amount
+      )
+    );
   }
   function pay(cost) {
     if (!canAfford(cost)) return false;

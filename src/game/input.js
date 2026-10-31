@@ -21,32 +21,34 @@
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'back')
  *   F3                       handlers.command('perf') */
 
-const JOY_MAX = 74;          // px from the stick origin to full speed
-const JOY_DEAD = 12;         // px of slack before the stick engages
-const TAP_MAX_MOVE = 14;     // px a tap may wander
+const JOY_MAX = 74; // px from the stick origin to full speed
+const JOY_DEAD = 12; // px of slack before the stick engages
+const TAP_MAX_MOVE = 14; // px a tap may wander
 const TAP_MAX_MS = 320;
-const LONG_PRESS_MS = 500;   // held this still this long: a long press
+const LONG_PRESS_MS = 500; // held this still this long: a long press
 const TRAIL_MIN_STEP = 0.12; // tiles between recorded Trail points
 
 export function createInput({ canvas, cam, el, handlers }) {
   const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0, pan: null };
-  const pointers = new Map();                     // pointerId -> {x, y}, for pinch
+  const pointers = new Map(); // pointerId -> {x, y}, for pinch
   const pinch = { active: false, dist: 0, zoom: 1 };
   let keys = {};
   let actionPointerId = null;
-  let longTimer = 0, longId = null;               // a press that may become long; the finger a long press took
-  let grabId = null;                              // the finger dragging what handlers.grab took
+  let longTimer = 0,
+    longId = null; // a press that may become long; the finger a long press took
+  let grabId = null; // the finger dragging what handlers.grab took
 
   const input = {
     joy,
-    held: false,   // Gather is held down (button or key)
+    held: false, // Gather is held down (button or key)
     perfect: false, // Perfect is held down (button or key)
-    trail: null,   // { id, points: [{x, y}] in world space, leftButton }
+    trail: null, // { id, points: [{x, y}] in world space, leftButton }
     invert: false, // drag pulls the map: you walk the other way from the finger
 
     // Desired movement direction, length 0..1. The joystick wins over keys.
     moveVector() {
-      if (joy.active && (joy.x || joy.y)) return input.invert ? { x: -joy.x, y: -joy.y } : { x: joy.x, y: joy.y };
+      if (joy.active && (joy.x || joy.y))
+        return input.invert ? { x: -joy.x, y: -joy.y } : { x: joy.x, y: joy.y };
       if (handlers.blocked()) return { x: 0, y: 0 };
       const x = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
       const y = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
@@ -94,7 +96,9 @@ export function createInput({ canvas, cam, el, handlers }) {
   function beginTrail(e) {
     if (!input.held || input.trail || handlers.blocked()) return;
     input.trail = { id: e.pointerId, points: [worldPoint(e)], leftButton: false };
-    joy.active = false; joy.x = 0; joy.y = 0;
+    joy.active = false;
+    joy.x = 0;
+    joy.y = 0;
     pointers.set(e.pointerId, canvasPoint(e));
     capture(canvas, e);
   }
@@ -134,7 +138,9 @@ export function createInput({ canvas, cam, el, handlers }) {
     // Scrolling and zooming are already off (touch-action: none).
     if (pinch.active || pointers.size >= 2) {
       // A second finger means zoom, not a joystick drag.
-      joy.active = false; joy.x = 0; joy.y = 0;
+      joy.active = false;
+      joy.x = 0;
+      joy.y = 0;
       clearTimeout(longTimer);
       if (!pinch.active) {
         Object.assign(pinch, { active: true, dist: pinchDistance() || 1, zoom: cam.zoom });
@@ -142,14 +148,38 @@ export function createInput({ canvas, cam, el, handlers }) {
       return;
     }
     const p = canvasPoint(e);
-    if (handlers.grab?.(p.x, p.y)) { grabId = e.pointerId; clearTimeout(longTimer); return; }
-    Object.assign(joy, { active: true, id: e.pointerId, ox: p.x, oy: p.y, x: 0, y: 0, moved: 0, t: performance.now(), pan: handlers.pans() ? { ...p } : null });
+    if (handlers.grab?.(p.x, p.y)) {
+      grabId = e.pointerId;
+      clearTimeout(longTimer);
+      return;
+    }
+    Object.assign(joy, {
+      active: true,
+      id: e.pointerId,
+      ox: p.x,
+      oy: p.y,
+      x: 0,
+      y: 0,
+      moved: 0,
+      t: performance.now(),
+      pan: handlers.pans() ? { ...p } : null
+    });
     clearTimeout(longTimer);
     longTimer = setTimeout(() => {
-      if (!joy.active || joy.id !== e.pointerId || joy.moved >= TAP_MAX_MOVE || pinch.active || handlers.blocked()) return;
+      if (
+        !joy.active ||
+        joy.id !== e.pointerId ||
+        joy.moved >= TAP_MAX_MOVE ||
+        pinch.active ||
+        handlers.blocked()
+      )
+        return;
       if (!handlers.longPress(joy.ox, joy.oy)) return;
       // The finger is the long press's now: it no longer steers.
-      longId = joy.id; joy.active = false; joy.x = 0; joy.y = 0;
+      longId = joy.id;
+      joy.active = false;
+      joy.x = 0;
+      joy.y = 0;
     }, LONG_PRESS_MS);
   }
 
@@ -172,14 +202,16 @@ export function createInput({ canvas, cam, el, handlers }) {
       if (pointers.size < 2) return;
       const d = pinchDistance();
       if (d > 1) {
-        const [a, b] = [...pointers.values()], was = cam.tilePx;
+        const [a, b] = [...pointers.values()],
+          was = cam.tilePx;
         cam.setZoom(pinch.zoom * (d / pinch.dist));
         handlers.zoomed(was, (a.x + b.x) / 2, (a.y + b.y) / 2);
       }
       handlers.viewChanged();
       return;
     }
-    if (input.held && !input.trail && e.pointerId === actionPointerId && outsideActionButton(e)) beginTrail(e);
+    if (input.held && !input.trail && e.pointerId === actionPointerId && outsideActionButton(e))
+      beginTrail(e);
     if (input.trail && input.trail.id === e.pointerId) {
       extendTrail(e);
       e.preventDefault();
@@ -187,7 +219,8 @@ export function createInput({ canvas, cam, el, handlers }) {
     }
     if (handlers.blocked() || !joy.active || e.pointerId !== joy.id) return;
     const p = canvasPoint(e);
-    let dx = p.x - joy.ox, dy = p.y - joy.oy;
+    let dx = p.x - joy.ox,
+      dy = p.y - joy.oy;
     const dist = Math.hypot(dx, dy);
     joy.moved = Math.max(joy.moved, dist);
     // On the world map the finger pans it, and you stay where you are.
@@ -195,17 +228,23 @@ export function createInput({ canvas, cam, el, handlers }) {
       if (joy.moved >= TAP_MAX_MOVE || joy.pan.moving) {
         joy.pan.moving = true;
         handlers.pan(p.x - joy.pan.x, p.y - joy.pan.y);
-        joy.pan.x = p.x; joy.pan.y = p.y;
+        joy.pan.x = p.x;
+        joy.pan.y = p.y;
       }
       e.preventDefault();
       return;
     }
-    if (dist < JOY_DEAD) { joy.x = 0; joy.y = 0; return; }
+    if (dist < JOY_DEAD) {
+      joy.x = 0;
+      joy.y = 0;
+      return;
+    }
     if (dist > JOY_MAX) {
       // Recentre so the stick follows the thumb.
       joy.ox += dx * (1 - JOY_MAX / dist);
       joy.oy += dy * (1 - JOY_MAX / dist);
-      dx = p.x - joy.ox; dy = p.y - joy.oy;
+      dx = p.x - joy.ox;
+      dy = p.y - joy.oy;
     }
     joy.x = dx / JOY_MAX;
     joy.y = dy / JOY_MAX;
@@ -233,7 +272,9 @@ export function createInput({ canvas, cam, el, handlers }) {
     }
     if (!joy.active || e.pointerId !== joy.id) return;
     const wasTap = joy.moved < TAP_MAX_MOVE && performance.now() - joy.t < TAP_MAX_MS;
-    joy.active = false; joy.x = 0; joy.y = 0;
+    joy.active = false;
+    joy.x = 0;
+    joy.y = 0;
     if (wasTap && !handlers.blocked()) {
       const p = canvasPoint(e);
       handlers.tap(p.x, p.y);
@@ -244,19 +285,28 @@ export function createInput({ canvas, cam, el, handlers }) {
   // Touch may stay implicitly captured by Gather; listen on the window so the
   // same thumb can drag from the button onto the map.
   window.addEventListener('pointermove', onMove, { capture: true, passive: false });
-  window.addEventListener('pointerup', (e) => {
-    if (input.trail && input.trail.id === e.pointerId) endTrail();
-  }, true);
+  window.addEventListener(
+    'pointerup',
+    (e) => {
+      if (input.trail && input.trail.id === e.pointerId) endTrail();
+    },
+    true
+  );
   canvas.addEventListener('pointerup', onCanvasUp, { passive: false });
   canvas.addEventListener('pointercancel', onCanvasUp, { passive: false });
-  canvas.addEventListener('wheel', (e) => {
-    if (handlers.blocked()) return;
-    e.preventDefault();
-    const p = canvasPoint(e), was = cam.tilePx;
-    cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
-    handlers.zoomed(was, p.x, p.y);
-    handlers.viewChanged();
-  }, { passive: false });
+  canvas.addEventListener(
+    'wheel',
+    (e) => {
+      if (handlers.blocked()) return;
+      e.preventDefault();
+      const p = canvasPoint(e),
+        was = cam.tilePx;
+      cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
+      handlers.zoomed(was, p.x, p.y);
+      handlers.viewChanged();
+    },
+    { passive: false }
+  );
 
   /* ------------------------------------------------------ Gather button */
 
@@ -291,14 +341,19 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   // Out on the world map the steps are bigger: it reaches far further.
   const step = () => (handlers.pans() ? 2 : 1.25);
-  const zoomBy = (f) => { const was = cam.tilePx; cam.setZoom(cam.zoom * f); handlers.zoomed(was, cam.width / 2, cam.height / 2); handlers.viewChanged(); };
+  const zoomBy = (f) => {
+    const was = cam.tilePx;
+    cam.setZoom(cam.zoom * f);
+    handlers.zoomed(was, cam.width / 2, cam.height / 2);
+    handlers.viewChanged();
+  };
   el.zoomOut.addEventListener('click', () => zoomBy(1 / step()));
   el.zoomIn.addEventListener('click', () => zoomBy(step()));
   el.zoomLevel.addEventListener('click', () => zoomBy(1 / cam.zoom));
 
   /* ---------------------------------------------------------- keyboard */
 
-  const isActionKey = (e) => e.key === ' ' || e.key === 'Enter';  // i18n-ok: a key name
+  const isActionKey = (e) => e.key === ' ' || e.key === 'Enter'; // i18n-ok: a key name
   window.addEventListener('keydown', (e) => {
     // Native focused controls own Space; it must not also trigger Gather.
     if (isActionKey(e) && e.target?.closest?.('button, [role="button"]')) return;
@@ -312,27 +367,46 @@ export function createInput({ canvas, cam, el, handlers }) {
       // holding is paced by the main loop's cooldown, like the touch button.
       if (!e.repeat) handlers.actionPressed();
     }
-    if (k === 'p' && !e.repeat && !handlers.blocked()) { input.perfect = true; handlers.perfectPressed(); }
+    if (k === 'p' && !e.repeat && !handlers.blocked()) {
+      input.perfect = true;
+      handlers.perfectPressed();
+    }
     if (k === 'escape') handlers.command('back');
     if (k === 'b') handlers.command('build');
     if (k === 'l' && !e.repeat) handlers.command('lantern');
     if (k === 'f' && !e.repeat) handlers.command('flare');
     if (k === 'u' || k === 'c') handlers.command('upgrades');
-    if (e.key === 'F3') { e.preventDefault(); if (!e.repeat) handlers.command('perf'); }
+    if (e.key === 'F3') {
+      e.preventDefault();
+      if (!e.repeat) handlers.command('perf');
+    }
   });
   window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
     if (isActionKey(e)) input.release();
     if (e.key.toLowerCase() === 'p') input.releasePerfect();
   });
-  window.addEventListener('blur', () => { input.release(); input.releasePerfect(); keys = {}; });
+  window.addEventListener('blur', () => {
+    input.release();
+    input.releasePerfect();
+    keys = {};
+  });
 
   // Block browser scrolling and zoom gestures outside the sheet, the
   // building card and the message log, which scroll themselves.
-  document.addEventListener('touchmove', (e) => {
-    if (e.target && e.target.closest && e.target.closest('#sheet, #buildingCard, #log, #equipmentTray')) return;
-    if (e.cancelable) e.preventDefault();
-  }, { passive: false });
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (
+        e.target &&
+        e.target.closest &&
+        e.target.closest('#sheet, #buildingCard, #log, #equipmentTray')
+      )
+        return;
+      if (e.cancelable) e.preventDefault();
+    },
+    { passive: false }
+  );
   document.addEventListener('gesturestart', (e) => e.preventDefault());
   document.addEventListener('dblclick', (e) => e.preventDefault());
 

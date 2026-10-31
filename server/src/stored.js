@@ -14,15 +14,34 @@ export const bucketOf = (key) => key % MOD_BUCKETS;
 const allBuckets = () => new Set(Array.from({ length: MOD_BUCKETS }, (_, i) => i));
 
 // Nothing changed.
-export const clean = () => ({ meta: false, buckets: new Set(), props: false, ext: false, players: new Set() });
+export const clean = () => ({
+  meta: false,
+  buckets: new Set(),
+  props: false,
+  ext: false,
+  players: new Set()
+});
 
 // Everything, for players `ids`: a world's first write, or a copy of all of it.
-export const everything = (ids) => ({ meta: true, buckets: allBuckets(), props: true, ext: true, players: new Set(ids) });
+export const everything = (ids) => ({
+  meta: true,
+  buckets: allBuckets(),
+  props: true,
+  ext: true,
+  players: new Set(ids)
+});
 
-export const isDirty = (d) => d.meta || d.props || d.ext || d.buckets.size > 0 || d.players.size > 0;
+export const isDirty = (d) =>
+  d.meta || d.props || d.ext || d.buckets.size > 0 || d.players.size > 0;
 
 // Every storage key a world with players `ids` takes.
-export const keysOf = (ids) => ['meta', 'props', 'ext', ...[...allBuckets()].map((i) => 'mods:' + i), ...[...ids].map((id) => 'p:' + id)];
+export const keysOf = (ids) => [
+  'meta',
+  'props',
+  'ext',
+  ...[...allBuckets()].map((i) => 'mods:' + i),
+  ...[...ids].map((id) => 'p:' + id)
+];
 
 // Marks in `d` the parts storage keys `keys` hold (a write that didn't land).
 export function markKeys(d, keys) {
@@ -52,7 +71,10 @@ export function modsIn(entries) {
   for (const [k, v] of entries) {
     if (!k.startsWith('mods:')) continue;
     const b = Number(k.slice(5));
-    for (const [key, rich] of v) { mods.set(key, rich); if (bucketOf(key) !== b) moved = true; }
+    for (const [key, rich] of v) {
+      mods.set(key, rich);
+      if (bucketOf(key) !== b) moved = true;
+    }
   }
   return { mods, moved };
 }

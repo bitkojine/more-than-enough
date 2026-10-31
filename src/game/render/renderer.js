@@ -10,21 +10,42 @@
  * Each part of the picture runs through `layer` (src/game/faults.js): one
  * that throws is noted and left out, and the rest of the frame still draws. */
 
-import {lightObject,litInk} from './lighting.js';
-import {cultivationRows,drawCultivation,drawCrystalCargo} from './cultivation.js';
+import { lightObject, litInk } from './lighting.js';
+import { cultivationRows, drawCultivation, drawCrystalCargo } from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawMerging, onGround } from './terrain.js';
 import { createAtlas } from './atlas.js';
-import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawNameTag, drawAutoTag, drawSign, signSide, drawProp, drawParticles, drawFloats, drawFlyers } from './sprites.js';
+import {
+  drawExtractor,
+  drawPlayer,
+  drawFriend,
+  drawGrave,
+  drawNameTag,
+  drawAutoTag,
+  drawSign,
+  signSide,
+  drawProp,
+  drawParticles,
+  drawFloats,
+  drawFlyers
+} from './sprites.js';
 import { scene } from './scene.js';
 import { drawFocus } from './focus.js';
 import { drawFits, drawGhostSpot, drawReach, ghostAlpha } from './reach.js';
-import { drawHighlights, drawTrail, drawLighting, drawGlints, drawBeacons, drawFriendMarkers, drawJoystick } from './overlay.js';
+import {
+  drawHighlights,
+  drawTrail,
+  drawLighting,
+  drawGlints,
+  drawBeacons,
+  drawFriendMarkers,
+  drawJoystick
+} from './overlay.js';
 
-const XRAY_ALPHA = 0.35;   // the player seen through whatever stands in front
-const SIGN_PAN = 0.22;       // of the screen's height: how far the view pans for your sign
-const BODY_MID = 0.47;       // tiles above the feet: the middle of you, centred when zoomed right in
+const XRAY_ALPHA = 0.35; // the player seen through whatever stands in front
+const SIGN_PAN = 0.22; // of the screen's height: how far the view pans for your sign
+const BODY_MID = 0.47; // tiles above the feet: the middle of you, centred when zoomed right in
 
 // The canvas as a frame starts: nothing saved, no fading or blending, the
 // screen's own scale. Puts it back after a part of the picture throws.
@@ -46,95 +67,165 @@ export const mapNames = () => atlas.names();
 export function render(cam, s, fx, view, look, guard = plain, timings = null) {
   const ctx = cam.ctx;
   const reset = () => resetCanvas(ctx, cam.dpr);
-  const stack=[];
-  const category=name=>name==='terrain'?'terrain':name==='row'||name==='xray'||name==='aloft'?'actors':name==='lighting'||name==='glints'?'lighting':name==='particles'||name==='floats'||name==='flyers'?'effects':'other';
+  const stack = [];
+  const category = (name) =>
+    name === 'terrain'
+      ? 'terrain'
+      : name === 'row' || name === 'xray' || name === 'aloft'
+        ? 'actors'
+        : name === 'lighting' || name === 'glints'
+          ? 'lighting'
+          : name === 'particles' || name === 'floats' || name === 'flyers'
+            ? 'effects'
+            : 'other';
   const layer = (name, draw) => {
-    if(!timings)return guard(name,draw,reset);
-    const started=performance.now(),entry={children:0};stack.push(entry);
-    try{return guard(name,draw,reset);}
-    finally{const duration=performance.now()-started;stack.pop();if(stack.length)stack.at(-1).children+=duration;const key=category(name);timings[key]=(timings[key]||0)+Math.max(0,duration-entry.children);}
+    if (!timings) return guard(name, draw, reset);
+    const started = performance.now(),
+      entry = { children: 0 };
+    stack.push(entry);
+    try {
+      return guard(name, draw, reset);
+    } finally {
+      const duration = performance.now() - started;
+      stack.pop();
+      if (stack.length) stack.at(-1).children += duration;
+      const key = category(name);
+      timings[key] = (timings[key] || 0) + Math.max(0, duration - entry.children);
+    }
   };
   cam.follow(s.player);
   // On the map, panned or on another layer: where it looks.
-  if (view.map) { cam.x = view.map.x; cam.y = view.map.y; cam.z = view.map.z; }
+  if (view.map) {
+    cam.x = view.map.x;
+    cam.y = view.map.y;
+    cam.z = view.map.z;
+  }
   if (cam.mapping()) return renderMap(cam, s, view, look, layer);
   // Zoomed in close, the view centres on your middle instead of your feet, so
   // all of you stays on screen. From 2x it eases in, in full by 5x.
   const close = Math.min(1, Math.max(0, (cam.zoom - 2) / 3));
-  if (close > 0) cam.y -= close * BODY_MID * cam.tilePx / cam.depthPx;
+  if (close > 0) cam.y -= (close * BODY_MID * cam.tilePx) / cam.depthPx;
   // Holding up your sign, the view pans so you stand low on the screen and
   // the sign is clear of the top bar and the messages under it.
   if (view.sign > 0) {
     const k = view.sign * view.sign * (3 - 2 * view.sign);
-    cam.y -= k * cam.height * SIGN_PAN / cam.depthPx;
+    cam.y -= (k * cam.height * SIGN_PAN) / cam.depthPx;
   }
   ctx.fillStyle = look.color('color.backdrop');
   ctx.fillRect(0, 0, cam.width, cam.height);
 
   // Props that light, as lights (a glowcap pulses slowly, like something
   // alive), and the beacons.
-  const sceneStart=timings?performance.now():0;
-  const { buildings, built, friends: friendRows, aloft, graves: graveRows, props: propRows, placed } = scene(s, view, cam.z);
+  const sceneStart = timings ? performance.now() : 0;
+  const {
+    buildings,
+    built,
+    friends: friendRows,
+    aloft,
+    graves: graveRows,
+    props: propRows,
+    placed
+  } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
-  const crystalRows=cultivationRows(s,cam.z);
+  const crystalRows = cultivationRows(s, cam.z);
   const beacons = [];
   for (const { x, y, kind } of placed) {
     const def = Core.PROPS[kind];
     if (def.beacon) beacons.push({ x, y, kind });
   }
 
-  if(timings)timings.scene=performance.now()-sceneStart;
-  let you = null;    // where your head and hands are, for your name and sign
-  const tags = [];   // friends' names, drawn last, over the night
+  if (timings) timings.scene = performance.now() - sceneStart;
+  let you = null; // where your head and hands are, for your name and sign
+  const tags = []; // friends' names, drawn last, over the night
   const friend = (f) => {
-    const at = onGround(ctx,cam,s,f.x,f.y,c=>drawFriend(c, cam, s, look, f, f.color),{lit:true});
+    const at = onGround(ctx, cam, s, f.x, f.y, (c) => drawFriend(c, cam, s, look, f, f.color), {
+      lit: true
+    });
     if (at) tags.push({ ...at, name: f.name, color: f.color });
   };
-  const standing=(x,y,draw,composite=false)=>onGround(ctx,cam,s,x,y,draw,{lit:composite?true:'sprites'});
+  const standing = (x, y, draw, composite = false) =>
+    onGround(ctx, cam, s, x, y, draw, { lit: composite ? true : 'sprites' });
   const ground = { built, yard: view.yard, shake: fx.shake, layer };
-  const tiles = layer('terrain', () => drawTerrain(ctx, cam, s, look, ground, (y) => layer('row', () => {
-    drawHighlights(ctx, cam, s, view, y);
-    drawFits(ctx, cam, s, view, y);
-    // A building being moved stands only as its ghost, where it would go.
-    const moving = view.placing?.from;
-    const row = buildings.get(y);
-    if (row) for (const e of row) if (e !== moving) standing(e.x+.5,e.y+.6,ctx=>drawExtractor(ctx, cam, s, look, e));
-    for(const b of crystalRows.get(y)||[])if(b!==moving)standing(b.x+.5,b.y+.65,ctx=>drawCultivation(ctx,cam,s,look,b));
-    const ghost = view.placing?.ghost;
-    if (ghost && ghost.y === y) {
-      drawGhostSpot(ctx, cam, ghost);
-      ctx.globalAlpha = ghostAlpha;
-      standing(ghost.x+.5,ghost.y+.6,ctx=>{if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false); else drawCultivation(ctx, cam, s, look, ghost);});
-      ctx.globalAlpha = 1;
-    }
-    const props = propRows.get(y);
-    if (props) for (const [x, kind] of props) {
-      standing(x+.5,y+.6,ctx=>{
-      drawProp(ctx,cam,s,look,kind,x,y);
-      if(s.cultivation?.shaded?.[Core.packKey(x,y,cam.z)]){
-        const p=cam.project(x+.5,y+.6,cam.z),u=cam.tilePx;
-        ctx.fillStyle=litInk(ctx,'#283337');ctx.strokeStyle=litInk(ctx,'#b8c7b2');ctx.lineWidth=1;
-        ctx.beginPath();ctx.moveTo(p.x-u*.23,p.y-u*.3);ctx.quadraticCurveTo(p.x,p.y-u*.95,p.x+u*.23,p.y-u*.3);ctx.closePath();ctx.fill();ctx.stroke();
-      }
-      });
-    }
-    const stones = graveRows.get(y);
-    if (stones) {
-      for (const g of stones) {
-        const at = standing(g.x,g.y,ctx=>drawGrave(ctx, cam, s, g),true);
-        if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
-      }
-    }
-    const friends = friendRows.get(y);
-    if (friends) for (const f of friends) friend(f);
-    if (y === playerRow) {you = standing(s.player.x,s.player.y,ctx=>{const at=drawPlayer(ctx,cam,s,look,view);drawCrystalCargo(ctx,cam,s,look,at);return at;},true);}
-  }))) || 0;
-  layer('aloft', () => { for (const f of aloft) friend(f); });
+  const tiles =
+    layer('terrain', () =>
+      drawTerrain(ctx, cam, s, look, ground, (y) =>
+        layer('row', () => {
+          drawHighlights(ctx, cam, s, view, y);
+          drawFits(ctx, cam, s, view, y);
+          // A building being moved stands only as its ghost, where it would go.
+          const moving = view.placing?.from;
+          const row = buildings.get(y);
+          if (row)
+            for (const e of row)
+              if (e !== moving)
+                standing(e.x + 0.5, e.y + 0.6, (ctx) => drawExtractor(ctx, cam, s, look, e));
+          for (const b of crystalRows.get(y) || [])
+            if (b !== moving)
+              standing(b.x + 0.5, b.y + 0.65, (ctx) => drawCultivation(ctx, cam, s, look, b));
+          const ghost = view.placing?.ghost;
+          if (ghost && ghost.y === y) {
+            drawGhostSpot(ctx, cam, ghost);
+            ctx.globalAlpha = ghostAlpha;
+            standing(ghost.x + 0.5, ghost.y + 0.6, (ctx) => {
+              if (ghost.key) drawExtractor(ctx, cam, s, look, ghost, false);
+              else drawCultivation(ctx, cam, s, look, ghost);
+            });
+            ctx.globalAlpha = 1;
+          }
+          const props = propRows.get(y);
+          if (props)
+            for (const [x, kind] of props) {
+              standing(x + 0.5, y + 0.6, (ctx) => {
+                drawProp(ctx, cam, s, look, kind, x, y);
+                if (s.cultivation?.shaded?.[Core.packKey(x, y, cam.z)]) {
+                  const p = cam.project(x + 0.5, y + 0.6, cam.z),
+                    u = cam.tilePx;
+                  ctx.fillStyle = litInk(ctx, '#283337');
+                  ctx.strokeStyle = litInk(ctx, '#b8c7b2');
+                  ctx.lineWidth = 1;
+                  ctx.beginPath();
+                  ctx.moveTo(p.x - u * 0.23, p.y - u * 0.3);
+                  ctx.quadraticCurveTo(p.x, p.y - u * 0.95, p.x + u * 0.23, p.y - u * 0.3);
+                  ctx.closePath();
+                  ctx.fill();
+                  ctx.stroke();
+                }
+              });
+            }
+          const stones = graveRows.get(y);
+          if (stones) {
+            for (const g of stones) {
+              const at = standing(g.x, g.y, (ctx) => drawGrave(ctx, cam, s, g), true);
+              if (at && g.name) tags.push({ ...at, name: g.name, color: g.color, grave: true });
+            }
+          }
+          const friends = friendRows.get(y);
+          if (friends) for (const f of friends) friend(f);
+          if (y === playerRow) {
+            you = standing(
+              s.player.x,
+              s.player.y,
+              (ctx) => {
+                const at = drawPlayer(ctx, cam, s, look, view);
+                drawCrystalCargo(ctx, cam, s, look, at);
+                return at;
+              },
+              true
+            );
+          }
+        })
+      )
+    ) || 0;
+  layer('aloft', () => {
+    for (const f of aloft) friend(f);
+  });
   // Unless zoomed far out, a wall in front can hide the player: show them faintly through it.
   if (cam.risePx > FLAT_RISE_PX) {
     layer('xray', () => {
       ctx.globalAlpha = XRAY_ALPHA;
-      lightObject(ctx,cam,s,s.player.x,s.player.y,c=>drawPlayer(c,cam,s,look,{...view,shadow:false}));
+      lightObject(ctx, cam, s, s.player.x, s.player.y, (c) =>
+        drawPlayer(c, cam, s, look, { ...view, shadow: false })
+      );
       ctx.globalAlpha = 1;
     });
   }
@@ -155,24 +246,55 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
   // already shown waits until its player steps clear.
   const taken = [];
   layer('names', () => {
-    if (view.me && you && !(view.sign > 0)) drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
+    if (view.me && you && !(view.sign > 0))
+      drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
     // While AUTO plays, its tag floats over you (over your name, if shown).
-    if (view.auto && you) drawAutoTag(ctx, you.x, you.top - cam.tilePx * 0.2 - (view.me && !(view.sign > 0) ? 22 : 0), view.auto, s.time, taken);
+    if (view.auto && you)
+      drawAutoTag(
+        ctx,
+        you.x,
+        you.top - cam.tilePx * 0.2 - (view.me && !(view.sign > 0) ? 22 : 0),
+        view.auto,
+        s.time,
+        taken
+      );
     if (tags.length > 1) {
-      const cx = you ? you.x : cam.width / 2, cy = you ? you.top : cam.height / 2;
+      const cx = you ? you.x : cam.width / 2,
+        cy = you ? you.top : cam.height / 2;
       for (const tag of tags) tag.d = Math.hypot(tag.x - cx, tag.y - cy) + (tag.grave ? 1e6 : 0);
       tags.sort((a, b) => a.d - b.d);
     }
     for (const tag of tags) drawNameTag(ctx, tag.x, tag.y, tag.name, tag.color, taken);
     // Badges at the edge for friends out of sight, kept off you, the names
     // shown and each other.
-    if (you) taken.push({ l: you.x - cam.tilePx * 0.5, r: you.x + cam.tilePx * 0.5, t: you.top - cam.tilePx * 0.2 - 11, b: you.foot });
-    if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
+    if (you)
+      taken.push({
+        l: you.x - cam.tilePx * 0.5,
+        r: you.x + cam.tilePx * 0.5,
+        t: you.top - cam.tilePx * 0.2 - 11,
+        b: you.foot
+      });
+    if (view.friends && view.friends.length)
+      drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
   });
   // Your sign last, over the dark and over every name and badge: a QR code
   // has to read at night too, and nothing may cover it.
   let sign = null;
-  if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
+  if (view.sign > 0 && view.signFace && you)
+    sign =
+      layer('sign', () =>
+        drawSign(
+          ctx,
+          you.handsX,
+          you.hands,
+          cam.tilePx,
+          view.sign,
+          s.time,
+          view.signFace,
+          signSide(cam),
+          view.signCaption
+        )
+      ) ?? null;
   layer('joystick', () => drawJoystick(ctx, cam, view));
   return { tiles, sign };
 }
@@ -182,12 +304,30 @@ function renderMap(cam, s, view, look, layer) {
   const ctx = cam.ctx;
   ctx.fillStyle = look.color('color.backdrop');
   ctx.fillRect(0, 0, cam.width, cam.height);
-  const drawn = layer('atlas', () => atlas.draw(ctx, cam, s, look, view)) || { you: null, taken: [] };
+  const drawn = layer('atlas', () => atlas.draw(ctx, cam, s, look, view)) || {
+    you: null,
+    taken: []
+  };
   const { you, taken } = drawn;
   layer('names', () => {
-    if (view.friends && view.friends.length) drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
+    if (view.friends && view.friends.length)
+      drawFriendMarkers(ctx, cam, s, look, view.friends, view.keepClear, taken);
   });
   let sign = null;
-  if (view.sign > 0 && view.signFace && you) sign = layer('sign', () => drawSign(ctx, you.handsX, you.hands, cam.tilePx, view.sign, s.time, view.signFace, signSide(cam), view.signCaption)) ?? null;
+  if (view.sign > 0 && view.signFace && you)
+    sign =
+      layer('sign', () =>
+        drawSign(
+          ctx,
+          you.handsX,
+          you.hands,
+          cam.tilePx,
+          view.sign,
+          s.time,
+          view.signFace,
+          signSide(cam),
+          view.signCaption
+        )
+      ) ?? null;
   return { tiles: 0, sign };
 }

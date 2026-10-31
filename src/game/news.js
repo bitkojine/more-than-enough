@@ -15,7 +15,7 @@ import { t, addStrings } from '../i18n/i18n.js';
 
 let history;
 export function loadNews() {
-  return history ||= import('./news-text.js').then(({ default: notes }) => addStrings(notes));
+  return (history ||= import('./news-text.js').then(({ default: notes }) => addStrings(notes)));
 }
 
 export const NEWS = [
@@ -271,12 +271,13 @@ export const IDEAS_URL = 'https://github.com/bitkojine/more-than-enough/issues';
 // Every change in technical detail, for developers.
 export const CHANGELOG_URL = 'https://github.com/bitkojine/more-than-enough/blob/main/CHANGELOG.md';
 
-const RAN_STORE = 'mte.ranVersion';    // the version this browser last played
-const SEEN_STORE = 'mte.newsSeen';     // the newest notes the player has looked at
+const RAN_STORE = 'mte.ranVersion'; // the version this browser last played
+const SEEN_STORE = 'mte.newsSeen'; // the newest notes the player has looked at
 
 // -1, 0 or 1, comparing two "major.minor.patch" versions.
 export function compareVersions(a, b) {
-  const pa = a.split('.').map(Number), pb = b.split('.').map(Number);
+  const pa = a.split('.').map(Number),
+    pb = b.split('.').map(Number);
   for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] < pb[i] ? -1 : 1;
   return 0;
 }
@@ -287,10 +288,29 @@ export function newsSince(from, to, news = NEWS) {
 }
 
 const isVersion = (v) => typeof v === 'string' && /^\d+\.\d+\.\d+$/.test(v);
-const read = (store, key) => { try { const v = store.getItem(key); return isVersion(v) ? v : null; } catch { return null; } };
-const write = (store, key, v) => { try { store.setItem(key, v); } catch { /* storage off: shown again next time */ } };
+const read = (store, key) => {
+  try {
+    const v = store.getItem(key);
+    return isVersion(v) ? v : null;
+  } catch {
+    return null;
+  }
+};
+const write = (store, key, v) => {
+  try {
+    store.setItem(key, v);
+  } catch {
+    /* storage off: shown again next time */
+  }
+};
 // Some private modes throw on merely touching localStorage.
-const localStore = () => { try { return globalThis.localStorage; } catch { return null; } };
+const localStore = () => {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+};
 
 /* Where this start stands: `from` is the older version just left behind
  * (null when the version didn't change, or on a first ever start), and
@@ -299,15 +319,29 @@ const localStore = () => { try { return globalThis.localStorage; } catch { retur
  * last played. A first ever start has nothing new: a new player isn't
  * handed a hundred releases. */
 export function newsState({ version, updatedFrom = null, ran = null, seen = null }) {
-  const before = [updatedFrom, ran].filter((v) => isVersion(v) && compareVersions(v, version) < 0)
-    .sort(compareVersions)[0] || null;
+  const before =
+    [updatedFrom, ran]
+      .filter((v) => isVersion(v) && compareVersions(v, version) < 0)
+      .sort(compareVersions)[0] || null;
   return { from: before, seen: isVersion(seen) ? seen : before || version };
 }
 
-export function createNews({ badge, panel, version, updatedFrom = null, store = localStore(), openIdeas = () => window.open(IDEAS_URL, '_blank', 'noopener') }) {
+export function createNews({
+  badge,
+  panel,
+  version,
+  updatedFrom = null,
+  store = localStore(),
+  openIdeas = () => window.open(IDEAS_URL, '_blank', 'noopener')
+}) {
   const now = badge.querySelector('.now');
   const was = badge.querySelector('.was');
-  const { from, seen: seenAtStart } = newsState({ version, updatedFrom, ran: read(store, RAN_STORE), seen: read(store, SEEN_STORE) });
+  const { from, seen: seenAtStart } = newsState({
+    version,
+    updatedFrom,
+    ran: read(store, RAN_STORE),
+    seen: read(store, SEEN_STORE)
+  });
   let seen = seenAtStart;
   write(store, RAN_STORE, version);
   write(store, SEEN_STORE, seen);
@@ -326,10 +360,12 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
     if (!from) return;
     was.textContent = from;
     badge.classList.remove('rolling');
-    void badge.offsetWidth;  // restart the animation
+    void badge.offsetWidth; // restart the animation
     badge.classList.add('rolling');
   }
-  badge.addEventListener('animationend', (e) => { if (e.animationName === 'ver-glow') badge.classList.remove('rolling'); });
+  badge.addEventListener('animationend', (e) => {
+    if (e.animationName === 'ver-glow') badge.classList.remove('rolling');
+  });
 
   // The whole changelog, newest first; what's new since they last looked
   // is marked. Looking at it counts as seen.
@@ -338,7 +374,7 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
     const fresh = new Set(unseen());
     const ideas = document.createElement('button');
     ideas.type = 'button';
-    ideas.className = 'setRow newsIdeas';  // i18n-ok: class names
+    ideas.className = 'setRow newsIdeas'; // i18n-ok: class names
     ideas.innerHTML = '<span></span><b aria-hidden="true">&#8599;</b>';
     ideas.firstChild.textContent = t('news.shareIdea');
     ideas.addEventListener('click', openIdeas);
@@ -347,24 +383,34 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
       if (fresh.has(v)) section.className = 'fresh';
       const head = document.createElement('h3');
       head.textContent = 'v' + v;
-      if (v === version) head.append(' ', Object.assign(document.createElement('small'), { textContent: t('news.playing') }));
+      if (v === version)
+        head.append(
+          ' ',
+          Object.assign(document.createElement('small'), { textContent: t('news.playing') })
+        );
       const items = document.createElement('ul');
-      items.append(...t('news.' + v).split('\n').map((line) => {
-        const li = document.createElement('li');
-        li.textContent = line;
-        return li;
-      }));
+      items.append(
+        ...t('news.' + v)
+          .split('\n')
+          .map((line) => {
+            const li = document.createElement('li');
+            li.textContent = line;
+            return li;
+          })
+      );
       section.append(head, items);
       return section;
     });
     const full = document.createElement('a');
-    full.className = 'setRow newsFull';  // i18n-ok: class names
+    full.className = 'setRow newsFull'; // i18n-ok: class names
     full.href = CHANGELOG_URL;
     full.target = '_blank';
     full.rel = 'noopener';
     full.innerHTML = '<span></span><b aria-hidden="true">&#8599;</b>';
     full.firstChild.textContent = t('news.full');
-    const group = (row) => Object.assign(document.createElement('div'), { className: 'setGroup' }).appendChild(row).parentNode;  // i18n-ok: a class name
+    const group = (row) =>
+      Object.assign(document.createElement('div'), { className: 'setGroup' }).appendChild(row)
+        .parentNode; // i18n-ok: a class name
     panel.replaceChildren(group(ideas), ...sections, group(full));
     panel.scrollTop = 0;
     seen = version;
@@ -372,5 +418,12 @@ export function createNews({ badge, panel, version, updatedFrom = null, store = 
     mark();
   }
 
-  return { play, render, get fresh() { return unseen().length > 0; }, from };
+  return {
+    play,
+    render,
+    get fresh() {
+      return unseen().length > 0;
+    },
+    from
+  };
 }

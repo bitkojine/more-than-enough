@@ -10,10 +10,17 @@ function fakeWindow() {
   return {
     entries: () => entries.length,
     history: {
-      get state() { return entries[at]; },
-      pushState(state) { entries.splice(at + 1, Infinity, state); at++; }
+      get state() {
+        return entries[at];
+      },
+      pushState(state) {
+        entries.splice(at + 1, Infinity, state);
+        at++;
+      }
     },
-    addEventListener(type, fn) { if (type === 'popstate') listeners.push(fn); },
+    addEventListener(type, fn) {
+      if (type === 'popstate') listeners.push(fn);
+    },
     // The phone's Back: false if it would leave the game.
     back() {
       if (at === 0) return false;
@@ -57,7 +64,7 @@ test('a menu closed by its own button leaves our entry for the next one', () => 
   const screens = ['build'];
   const { win, back } = setup(screens);
   back.tick();
-  screens.pop();           // ×
+  screens.pop(); // ×
   back.tick();
   screens.push('upgrades');
   back.tick();

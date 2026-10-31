@@ -19,13 +19,15 @@ const LAYER_BUTTON = {
 // Every <img data-look="id" [data-slot="slot"]> on the page shows that
 // thing's picture from the game's pack.
 export function paintIcons(look, root = document) {
-  for (const img of root.querySelectorAll('img[data-look]')) img.src = look.src(img.dataset.look, img.dataset.slot || 'icon');
+  for (const img of root.querySelectorAll('img[data-look]'))
+    img.src = look.src(img.dataset.look, img.dataset.slot || 'icon');
 }
 
 export function createHud(el, look, messages) {
   const chips = {};
   let autoTipLeft = 0;
-  let lastAction = '', lastPerfect = '';
+  let lastAction = '',
+    lastPerfect = '';
   let inSight = false; // something to gather in sight for Explore to head to
 
   // The plate under the big button is as wide as its words need, but it must
@@ -35,14 +37,19 @@ export function createHud(el, look, messages) {
   function fitCap() {
     const plate = el.actionLabel;
     const b = el.action.getBoundingClientRect();
-    if (!b.width) { plate.style.setProperty('--cap-scale', 1); return; }
+    if (!b.width) {
+      plate.style.setProperty('--cap-scale', 1);
+      return;
+    }
     const mid = b.left + b.width / 2;
     const top = plate.getBoundingClientRect().top;
     let room = 2 * Math.min(innerWidth - mid - 1, mid - 1);
-    for (const other of document.querySelectorAll('#controls button, #controls .cap')) { // i18n-ok: CSS selectors
+    // i18n-ok: CSS selectors
+    for (const other of document.querySelectorAll('#controls button, #controls .cap')) {
       if (other === el.action || other === plate) continue;
       const r = other.getBoundingClientRect();
-      if (r.width && r.right <= b.left && r.bottom > top) room = Math.min(room, 2 * (mid - r.right - 2));
+      if (r.width && r.right <= b.left && r.bottom > top)
+        room = Math.min(room, 2 * (mid - r.right - 2));
     }
     const w = plate.offsetWidth;
     plate.style.setProperty('--cap-scale', w > room ? Math.max(room, 1) / w : 1);
@@ -53,13 +60,15 @@ export function createHud(el, look, messages) {
   // most GAUGE_BARS, kept around you. Yours is lit, with a marker beside it.
   let lastGauge = '';
   function updateGauge(s) {
-    const deepest = s.underground.deepest, z = s.player.z;
+    const deepest = s.underground.deepest,
+      z = s.player.z;
     const key = z < Core.SURFACE ? deepest + ',' + z : '';
     if (key === lastGauge) return;
     lastGauge = key;
     el.depthGauge.hidden = !key;
     if (!key) return;
-    let top = Core.SURFACE, bottom = Math.max(Core.Z_MIN, deepest - 1);
+    let top = Core.SURFACE,
+      bottom = Math.max(Core.Z_MIN, deepest - 1);
     if (top - bottom + 1 > GAUGE_BARS) {
       top = Math.min(Core.SURFACE, z + (GAUGE_BARS >> 1));
       bottom = top - GAUGE_BARS + 1;
@@ -75,7 +84,8 @@ export function createHud(el, look, messages) {
   // The battery, once it isn't full: how much is left, and whether a
   // charger is filling it. The first time your light starts to shrink, one
   // line says where to charge it.
-  let lastBattery = '', warned = false;
+  let lastBattery = '',
+    warned = false;
   function updateBattery(s) {
     const pct = Math.round(s.battery * 100);
     const charging = !!Core.chargerNear(s) && pct < 100;
@@ -89,7 +99,10 @@ export function createHud(el, look, messages) {
     el.battery.classList.toggle('low', s.battery < Core.BATTERY_LOW);
     el.battery.classList.toggle('flat', s.battery < 0.1);
     el.battery.classList.toggle('charging', charging);
-    el.battery.setAttribute('aria-label', t(charging ? 'hud.batteryCharging' : 'hud.battery', { n: number(pct) }));
+    el.battery.setAttribute(
+      'aria-label',
+      t(charging ? 'hud.batteryCharging' : 'hud.battery', { n: number(pct) })
+    );
     if (s.battery < Core.BATTERY_LOW && !charging && !warned) {
       warned = true;
       hud.toast(t('toast.batteryLow'));
@@ -102,7 +115,8 @@ export function createHud(el, look, messages) {
     chip.className = 'chip';
     chip.dataset.res = r;
     chip.setAttribute('aria-label', t('hud.chip', { res: Core.RESOURCE_LABEL[r] }));
-    chip.innerHTML = `<span class="top"><img class="ic" data-look="${Core.resourceLook(r)}" alt=""><span class="val">0</span></span>` +
+    chip.innerHTML =
+      `<span class="top"><img class="ic" data-look="${Core.resourceLook(r)}" alt=""><span class="val">0</span></span>` +
       '<span class="rate"></span>';
     el.resources.appendChild(chip);
     chips[r] = { val: chip.querySelector('.val'), rate: chip.querySelector('.rate') };
@@ -112,7 +126,8 @@ export function createHud(el, look, messages) {
   ledger.type = 'button';
   ledger.className = 'chip ledger'; // i18n-ok: class names
   ledger.setAttribute('aria-label', t('hud.statement'));
-  ledger.innerHTML = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13.5h12M3.5 11l3-3.5 2.5 2 3.5-5" /><path d="M10 4.5h2.5V7" /></svg>';
+  ledger.innerHTML =
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 13.5h12M3.5 11l3-3.5 2.5 2 3.5-5" /><path d="M10 4.5h2.5V7" /></svg>';
   el.resources.appendChild(ledger);
 
   function setText(node, text) {
@@ -132,12 +147,18 @@ export function createHud(el, look, messages) {
   // riding the ring where the day is. Beside a solar panel, a pill under it
   // counts down to when the sun starts or stops charging.
   const RING = 19;
-  el.settings.insertAdjacentHTML('afterbegin', '<svg class="dayRing" viewBox="-22 -22 44 44" aria-hidden="true">' +
-    '<path class="day" /><path class="night" /><g class="body"><circle class="disc" cy="-19" r="4" /><circle class="shade" cx="1.9" cy="-20.3" r="3.2" /></g></svg>');
-  const ring = el.settings.querySelector('.dayRing'), body = ring.querySelector('.body');
+  el.settings.insertAdjacentHTML(
+    'afterbegin',
+    '<svg class="dayRing" viewBox="-22 -22 44 44" aria-hidden="true">' +
+      '<path class="day" /><path class="night" /><g class="body"><circle class="disc" cy="-19" r="4" /><circle class="shade" cx="1.9" cy="-20.3" r="3.2" /></g></svg>'
+  );
+  const ring = el.settings.querySelector('.dayRing'),
+    body = ring.querySelector('.body');
   const at = (a) => (RING * Math.sin(a)).toFixed(2) + ' ' + (-RING * Math.cos(a)).toFixed(2);
   const arc = (a0, a1) => `M${at(a0)} A${RING} ${RING} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${at(a1)}`;
-  let lastLevel = -1, lastTurn = '', lastSunTime = '';
+  let lastLevel = -1,
+    lastTurn = '',
+    lastSunTime = '';
   function updateSun(s) {
     const level = s.cultivation ? Core.SUN_CRACKS : Core.SOLAR_LIGHT;
     const sun = Core.sunWindow(s.time, level);
@@ -154,14 +175,19 @@ export function createHud(el, look, messages) {
       body.classList.toggle('sun', sun.up);
     }
     const solar = Core.solarInReach(s) ? Core.sunWindow(s.time) : null;
-    const text = solar ? t(solar.up ? 'hud.sunLeft' : 'hud.sunIn', { t: fmtClock(solar.left) }) : '';
+    const text = solar
+      ? t(solar.up ? 'hud.sunLeft' : 'hud.sunIn', { t: fmtClock(solar.left) })
+      : '';
     if (text === lastSunTime) return;
     lastSunTime = text;
     el.sunTime.hidden = !text;
     if (!text) return;
     el.sunTime.classList.toggle('up', solar.up);
     setText(el.sunTime.lastElementChild, text);
-    el.sunTime.setAttribute('aria-label', t(solar.up ? 'hud.sunLeft.aria' : 'hud.sunIn.aria', { t: fmtClock(solar.left) }));
+    el.sunTime.setAttribute(
+      'aria-label',
+      t(solar.up ? 'hud.sunLeft.aria' : 'hud.sunIn.aria', { t: fmtClock(solar.left) })
+    );
   }
 
   const hud = {
@@ -186,7 +212,10 @@ export function createHud(el, look, messages) {
       document.body.classList.toggle('below', below);
       if (below) {
         setText(el.depth.lastElementChild, number(Core.SURFACE - s.player.z));
-        el.depth.setAttribute('aria-label', t('hud.layerN', { n: Core.SURFACE - s.player.z }) + '. ' + t('map.title'));
+        el.depth.setAttribute(
+          'aria-label',
+          t('hud.layerN', { n: Core.SURFACE - s.player.z }) + '. ' + t('map.title')
+        );
       }
       updateGauge(s);
     },
@@ -206,18 +235,25 @@ export function createHud(el, look, messages) {
 
     // The big button shows what holding it will do right now.
     updateButtons(s) {
-      let icon = 'ui.gather', label = t('button.explore'), ready = false;
+      let icon = 'ui.gather',
+        label = t('button.explore'),
+        ready = false;
       const collect = Core.collectTarget(s);
       const harvest = !collect && Core.harvestTarget(s);
       if (collect) {
-        icon = 'ui.collect'; label = t('button.collect', { n: fmtShort(collect.total) }); ready = true;
+        icon = 'ui.collect';
+        label = t('button.collect', { n: fmtShort(collect.total) });
+        ready = true;
       } else if (harvest) {
         // Plain rock pays nothing, so it gets no "+n" (it once read +NaNeNaN).
         icon = harvest.res ? Core.resourceLook(harvest.res) : 'ui.gather';
-        label = harvest.res ? t('button.gatherYield', { n: fmtShort(Core.gatherYield(s, harvest.res)) }) : t('button.gather');
+        label = harvest.res
+          ? t('button.gatherYield', { n: fmtShort(Core.gatherYield(s, harvest.res)) })
+          : t('button.gather');
         ready = true;
       } else if (Core.isUnderground(s)) {
-        label = t('button.gather'); ready = true;
+        label = t('button.gather');
+        ready = true;
       }
       const key = icon + label + ready + inSight;
       if (key !== lastAction) {
@@ -244,29 +280,43 @@ export function createHud(el, look, messages) {
     view(cam) {
       // Zoom as a magnification (1×, 1.25×, 0.64×, 8.3×; out on the world
       // map two figures, 0.021×), beside a magnifier.
-      const zoom = number(+(cam.zoom < 0.1 ? cam.zoom.toPrecision(2) : cam.zoom.toFixed(cam.zoom >= 3 ? 1 : 2))) + '×';
+      const zoom =
+        number(
+          +(cam.zoom < 0.1 ? cam.zoom.toPrecision(2) : cam.zoom.toFixed(cam.zoom >= 3 ? 1 : 2))
+        ) + '×';
       setText(el.zoomText, zoom);
       el.zoomLevel.setAttribute('aria-label', t('hud.zoomLevel', { zoom }));
     },
 
     // The screen is a different size now: the plate under the big button may
     // no longer fit, so it is measured again.
-    fit() { fitCap(); },
+    fit() {
+      fitCap();
+    },
 
     // A milestone reached (the `number`th of `total`): a gold line in the
     // log, and the trophy counter glows until the Awards are looked at.
     // `then`: the milestone after it, if any.
     milestone(text, number, total, then = null) {
-      messages.add({ kind: 'milestone', text, of: t('hud.milestoneOf', { n: number, total }), then });
+      messages.add({
+        kind: 'milestone',
+        text,
+        of: t('hud.milestoneOf', { n: number, total }),
+        then
+      });
       el.awards.classList.add('new');
     },
 
     // The milestone to go for: a new character's first sight, so the first
     // thing they read is what to do.
-    nextUp(text) { messages.add({ kind: 'goal', text }); },
+    nextUp(text) {
+      messages.add({ kind: 'goal', text });
+    },
 
     // Another world swapped in (its log is its own).
-    newWorld() { el.awards.classList.remove('new'); },
+    newWorld() {
+      el.awards.classList.remove('new');
+    },
 
     // The Awards were looked at.
     awardsSeen() {
@@ -301,7 +351,9 @@ export function createHud(el, look, messages) {
     },
 
     // A notice from the game (status, never instructions): a line in the log.
-    toast(msg) { messages.add({ kind: 'game', text: msg }); },
+    toast(msg) {
+      messages.add({ kind: 'game', text: msg });
+    },
 
     tick(dt) {
       if (autoTipLeft > 0 && (autoTipLeft -= dt) <= 0) el.autoTip.hidden = true;

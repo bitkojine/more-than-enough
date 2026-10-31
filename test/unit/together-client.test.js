@@ -17,23 +17,48 @@ import { createBot } from './helpers.js';
 const store = new Map();
 globalThis.localStorage = {
   getItem: (k) => (store.has(k) ? store.get(k) : null),
-  setItem: (k, v) => { store.set(k, String(v)); },
-  removeItem: (k) => { store.delete(k); },
+  setItem: (k, v) => {
+    store.set(k, String(v));
+  },
+  removeItem: (k) => {
+    store.delete(k);
+  },
   key: (i) => [...store.keys()][i] ?? null,
-  get length() { return store.size; }
+  get length() {
+    return store.size;
+  }
 };
-globalThis.location = { origin: 'https://play.test', pathname: '/', search: '', hash: '', hostname: 'play.test' };
-globalThis.history = { replaceState() { location.hash = ''; } };
+globalThis.location = {
+  origin: 'https://play.test',
+  pathname: '/',
+  search: '',
+  hash: '',
+  hostname: 'play.test'
+};
+globalThis.history = {
+  replaceState() {
+    location.hash = '';
+  }
+};
 
 // An element that takes whatever the module does to it.
 function fakeEl() {
   const listeners = {};
   return {
-    hidden: false, textContent: '', style: { setProperty() {} },
+    hidden: false,
+    textContent: '',
+    style: { setProperty() {} },
     classList: { toggle() {}, add() {}, remove() {} },
-    setAttribute() {}, append() {}, appendChild() {}, replaceChildren() {},
-    addEventListener(type, fn) { (listeners[type] ||= []).push(fn); },
-    click() { for (const fn of listeners.click || []) fn({}); },
+    setAttribute() {},
+    append() {},
+    appendChild() {},
+    replaceChildren() {},
+    addEventListener(type, fn) {
+      (listeners[type] ||= []).push(fn);
+    },
+    click() {
+      for (const fn of listeners.click || []) fn({});
+    },
     getContext: () => ({ fillRect() {} })
   };
 }
@@ -61,8 +86,13 @@ class FakeSocket {
     this.closedWith = { code, reason };
     queueMicrotask(() => this.onclose?.({ code, reason }));
   }
-  open() { this.readyState = 1; this.onopen?.(); }
-  deliver(msg) { this.onmessage?.({ data: JSON.stringify(msg) }); }
+  open() {
+    this.readyState = 1;
+    this.onopen?.();
+  }
+  deliver(msg) {
+    this.onmessage?.({ data: JSON.stringify(msg) });
+  }
   // The far end closed it (or the network did).
   lose(code = 1006, reason = '') {
     if (this.readyState >= 2) return;
@@ -81,20 +111,30 @@ const open = () => sockets.filter((s) => s.readyState < 2);
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 function harness({ yes = true } = {}) {
-  const toasts = [], aways = [];
+  const toasts = [],
+    aways = [];
   const game = {
     state: Core.createState(7),
-    replace(next) { game.state = next; },
+    replace(next) {
+      game.state = next;
+    },
     arrived() {},
-    changedMode() {}, worldChanged() {}, moveTo() {},
-    facing: () => ({ x: 0, y: 1 }), moving: () => false, act: () => ({ a: null, n: 0 })
+    changedMode() {},
+    worldChanged() {},
+    moveTo() {},
+    facing: () => ({ x: 0, y: 1 }),
+    moving: () => false,
+    act: () => ({ a: null, n: 0 })
   };
   const asked = [];
   const el = new Proxy({}, { get: (o, k) => (o[k] ||= fakeEl()) });
   const together = createTogether({
     game,
     hud: { toast: (m) => toasts.push(m) },
-    ask: (q) => { asked.push(q); return Promise.resolve(typeof yes === 'function' ? yes(q) : yes); },
+    ask: (q) => {
+      asked.push(q);
+      return Promise.resolve(typeof yes === 'function' ? yes(q) : yes);
+    },
     el,
     fbi: { show() {} },
     onAway: (secs, made) => aways.push({ secs, made })
@@ -107,7 +147,18 @@ async function makeRoom() {
   const id = P.randomRoomId();
   const r = new Room(id, T0);
   const maker = P.randomHex(32);
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key: maker, world: { seed: 42, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
+  assert.equal(
+    await r.init(
+      JSON.stringify({
+        t: 'create',
+        key: maker,
+        world: { seed: 42, mods: [], props: [], ext: [] },
+        pos: { x: 0.5, y: 0.5, z: 0 }
+      }),
+      T0
+    ),
+    null
+  );
   const makerId = await P.playerId(id, maker);
   const code = r.message(makerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
   return { id, r, code };
@@ -120,7 +171,18 @@ async function madeWorld(seed = 42) {
   store.set('mte.key', key);
   const id = P.randomRoomId();
   const r = new Room(id, T0);
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world: { seed, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }), T0), null);
+  assert.equal(
+    await r.init(
+      JSON.stringify({
+        t: 'create',
+        key,
+        world: { seed, mods: [], props: [], ext: [] },
+        pos: { x: 0.5, y: 0.5, z: 0 }
+      }),
+      T0
+    ),
+    null
+  );
   const makerId = await P.playerId(id, key);
   const code = r.message(makerId, JSON.stringify({ t: 'invite' }), T0).toSelf[0].code;
   return { id, r, code };
@@ -131,7 +193,11 @@ async function serve(room, socket) {
   socket.open();
   const hello = socket.sent.find((m) => m.t === 'hello');
   const j = await room.join(hello.key, hello.code, T0);
-  if (j.error) { socket.deliver({ t: j.error, ...(j.why ? { why: j.why } : {}) }); socket.lose(1008, j.error); return null; }
+  if (j.error) {
+    socket.deliver({ t: j.error, ...(j.why ? { why: j.why } : {}) });
+    socket.lose(1008, j.error);
+    return null;
+  }
   socket.deliver(j.welcome);
   return j.id;
 }
@@ -167,7 +233,8 @@ test('client: a new connection always closes the one before it', async () => {
   // A connection to one world was still opening when the game went to
   // another (a link while reconnecting): the old socket must not stay open
   // as you, nor take the new one's place ("open on another screen").
-  const a = await makeRoom(), b = await makeRoom();
+  const a = await makeRoom(),
+    b = await makeRoom();
   store.set('mte.playing', a.id);
   const { together } = harness();
   together.resume();
@@ -184,7 +251,9 @@ test('client: a new connection always closes the one before it', async () => {
 test('client: a failed entry does not hold up the sign in the next world you enter', async () => {
   const { together, el } = harness();
   let up = 0;
-  el.invite.classList.toggle = (cls, on) => { if (cls === 'up' && on) up++; };
+  el.invite.classList.toggle = (cls, on) => {
+    if (cls === 'up' && on) up++;
+  };
   const a = await makeRoom();
   location.hash = '#join=' + a.id + '.' + a.code;
   together.joinFromLink();
@@ -204,7 +273,8 @@ test('client: a failed entry does not hold up the sign in the next world you ent
 });
 
 test('client: opening the game through a link and saying no goes back into your shared world', async () => {
-  const a = await makeRoom(), b = await makeRoom();
+  const a = await makeRoom(),
+    b = await makeRoom();
   store.set('mte.playing', a.id);
   location.hash = '#join=' + b.id + '.' + b.code;
   const { together } = harness({ yes: false });
@@ -215,7 +285,8 @@ test('client: opening the game through a link and saying no goes back into your 
 });
 
 test('client: opening the game through a dead link goes back into your shared world', async () => {
-  const a = await makeRoom(), b = await makeRoom();
+  const a = await makeRoom(),
+    b = await makeRoom();
   // You were in world a (so it knows you).
   const keyHolder = harness();
   location.hash = '#join=' + a.id + '.' + a.code;
@@ -246,7 +317,10 @@ function pump(room, id, socket, now = T0 + 1000) {
   socket.done ||= 1; // the hello
   for (; socket.done < socket.sent.length; socket.done++) {
     const m = socket.sent[socket.done];
-    if (m === 'ping') { socket.onmessage?.({ data: 'pong' }); continue; }
+    if (m === 'ping') {
+      socket.onmessage?.({ data: 'pong' });
+      continue;
+    }
     const r = room.message(id, JSON.stringify(m), now);
     for (const x of [...(r.toSelf || []), ...(r.toAll || [])]) socket.deliver(x);
   }
@@ -254,7 +328,11 @@ function pump(room, id, socket, now = T0 + 1000) {
 // The fake socket keeps what was sent as JSON; a ping is plain text.
 const parseSent = FakeSocket.prototype.send;
 FakeSocket.prototype.send = function (text) {
-  if (text === 'ping') { if (this.readyState !== 1) throw new Error('closed'); this.sent.push('ping'); return; }
+  if (text === 'ping') {
+    if (this.readyState !== 1) throw new Error('closed');
+    this.sent.push('ping');
+    return;
+  }
   parseSent.call(this, text);
 };
 
@@ -283,7 +361,10 @@ test('client: a connection that dies without closing is noticed, and the game re
   const { together, toasts } = await inWorld(w);
   const socket = open()[0];
   // Pings go out and are answered: all is well.
-  for (let i = 0; i < 100; i++) { together.tick(0.1); pump(w.r, null, socket); }
+  for (let i = 0; i < 100; i++) {
+    together.tick(0.1);
+    pump(w.r, null, socket);
+  }
   assert.ok(socket.sent.includes('ping'), 'it asks the room now and then');
   assert.equal(open().length, 1);
   assert.equal(socket.readyState, 1, 'answered pings keep it');
@@ -320,7 +401,7 @@ test('client: edits a dead connection swallowed are sent again once back', async
   together.tick(0.3);
   pump(w.r, id, first); // that one arrives and is answered
   const swallowed = mine(game, 2);
-  together.tick(0.3);   // sent into a connection that's already dead
+  together.tick(0.3); // sent into a connection that's already dead
   assert.ok(first.sent.some((m) => m.t === 'edits' && m.e[0][1] === swallowed));
   assert.ok(w.r.mods.has(kept) && !w.r.mods.has(swallowed), 'the room never got the second');
   first.lose(1006);
@@ -330,7 +411,14 @@ test('client: edits a dead connection swallowed are sent again once back', async
   together.tick(0.3);
   pump(w.r, id, again);
   assert.ok(w.r.mods.has(swallowed), 'the swallowed edit reached the room after all');
-  assert.equal(again.sent.filter((m) => m.t === 'edits').flatMap((m) => m.e).filter((e) => e[1] === kept).length, 0, 'the answered one is not sent twice');
+  assert.equal(
+    again.sent
+      .filter((m) => m.t === 'edits')
+      .flatMap((m) => m.e)
+      .filter((e) => e[1] === kept).length,
+    0,
+    'the answered one is not sent twice'
+  );
 });
 
 test('client: a lost edit where someone has changed the tile since is not sent over theirs', async () => {
@@ -362,7 +450,10 @@ test('client: what you did goes to the room before the edits it made, and before
   mine(game, 1);
   together.tick(0.3);
   const kinds = socket.sent.slice(socket.done).map((m) => m.t || m);
-  assert.ok(kinds.indexOf('acts') >= 0 && kinds.indexOf('acts') < kinds.indexOf('edits'), kinds.join());
+  assert.ok(
+    kinds.indexOf('acts') >= 0 && kinds.indexOf('acts') < kinds.indexOf('edits'),
+    kinds.join()
+  );
   Core.noteAct(game.state, 'c');
   together.save(game.state, true);
   const after = socket.sent.slice(socket.sent.length - 2).map((m) => m.t);
@@ -370,7 +461,7 @@ test('client: what you did goes to the room before the edits it made, and before
   pump(w.r, id, socket);
 });
 
-test('client: progress the room can\'t account for is set straight, and stays straight', async () => {
+test("client: progress the room can't account for is set straight, and stays straight", async () => {
   const w = await makeRoom();
   const { together, game, id } = await inWorld(w);
   const socket = open()[0];
@@ -380,7 +471,11 @@ test('client: progress the room can\'t account for is set straight, and stays st
   game.state.tools.pickaxe = 4;
   together.save(game.state, true);
   pump(w.r, id, socket, T0 + 2000);
-  assert.equal(game.state.inv.stone, 0, 'the room\'s numbers, answering the save they were sent for');
+  assert.equal(
+    game.state.inv.stone,
+    0,
+    "the room's numbers, answering the save they were sent for"
+  );
   assert.equal(game.state.tools.pickaxe, 1);
   const drifts = w.r.log.filter((e) => e.e === 'drift').length;
   together.save(game.state, true);
@@ -398,12 +493,19 @@ test('client: the maker of a new world plays it, and the room counts what they d
   const socket = open()[0];
   const me = await serve(w.r, socket);
   let now = T0;
-  const bot = createBot(42, game.state, () => { together.tick(0.1); pump(w.r, me, socket, now = T0 + Math.round(game.state.stats.playedMs) + 500); });
+  const bot = createBot(42, game.state, () => {
+    together.tick(0.1);
+    pump(w.r, me, socket, (now = T0 + Math.round(game.state.stats.playedMs) + 500));
+  });
   bot.gather('stone', 8);
   bot.gather('mycelium', 6);
   together.save(game.state, true);
   pump(w.r, me, socket, now + 100);
-  assert.deepEqual(w.r.log.filter((e) => e.e === 'drift'), [], 'the room agrees');
+  assert.deepEqual(
+    w.r.log.filter((e) => e.e === 'drift'),
+    [],
+    'the room agrees'
+  );
   assert.ok(game.state.inv.stone >= 8, 'and the stone stays');
 });
 
@@ -422,9 +524,14 @@ async function playing() {
   g.pump = (now = g.clock()) => {
     const socket = open()[0];
     if (socket && !g.swallowing) pump(g.r, g.me, socket, now);
-    for (const [k, v] of g.r.takeWrites()) if (v === null) g.stored.delete(k); else g.stored.set(k, structuredClone(v));
+    for (const [k, v] of g.r.takeWrites())
+      if (v === null) g.stored.delete(k);
+      else g.stored.set(k, structuredClone(v));
   };
-  g.bot = createBot(42, h.game.state, () => { h.together.tick(0.1); g.pump(); });
+  g.bot = createBot(42, h.game.state, () => {
+    h.together.tick(0.1);
+    g.pump();
+  });
   return g;
 }
 
@@ -446,12 +553,15 @@ test('client: what you did on a connection that was already dead is sent again o
   g.bot.gather('mycelium', 4);
   g.together.save(g.game.state, true);
   g.pump();
-  g.swallowing = true;        // sent, never arrives
+  g.swallowing = true; // sent, never arrives
   g.bot.gather('mycelium', 9);
   g.swallowing = false;
   await reconnect(g);
   assert.deepEqual(driftsIn(g.r), [], 'the room got all of it: no drift');
-  assert.ok(g.game.state.inv.mycelium >= 9, 'and nothing gathered is taken back (' + g.game.state.inv.mycelium + ')');
+  assert.ok(
+    g.game.state.inv.mycelium >= 9,
+    'and nothing gathered is taken back (' + g.game.state.inv.mycelium + ')'
+  );
   assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing done twice');
 });
 
@@ -464,8 +574,11 @@ test('client: a room that restarts (a deploy) between your saves loses nothing y
   g.bot.gather('stone', 3);
   g.r = Room.restore(g.r.id, new Map(g.stored), g.clock()); // ...then restarts from what it kept
   await reconnect(g);
-  assert.deepEqual(driftsIn(g.r), [], 'the room\'s copy is where the game is: no drift');
-  assert.ok(g.game.state.inv.mycelium >= 9 && g.game.state.inv.stone >= 3, 'and nothing gathered is taken back');
+  assert.deepEqual(driftsIn(g.r), [], "the room's copy is where the game is: no drift");
+  assert.ok(
+    g.game.state.inv.mycelium >= 9 && g.game.state.inv.stone >= 3,
+    'and nothing gathered is taken back'
+  );
 });
 
 // Plays on with no connection, then the game is gone before it reconnects
@@ -475,15 +588,15 @@ async function offlineThenClosed(g, bye) {
   g.bot.gather('mycelium', 4);
   g.together.save(g.game.state, true);
   g.pump();
-  open()[0].lose(1006);          // the network goes
-  g.bot.gather('mycelium', 9);   // played on regardless
+  open()[0].lose(1006); // the network goes
+  g.bot.gather('mycelium', 9); // played on regardless
   g.bot.gather('stone', 3);
   bye();
   const had = { ...g.game.state.inv };
-  g.together.online();           // its last try...
+  g.together.online(); // its last try...
   for (const s of open()) s.readyState = 3; // ...dies with the page
   const h = harness();
-  h.together.open();             // back into the world it was in
+  h.together.open(); // back into the world it was in
   const me = await serve(g.r, open()[0]);
   const now = T0 + Math.round(h.game.state.stats.playedMs) + 1000;
   h.together.tick(0.3);
@@ -497,16 +610,27 @@ test('client: what you did offline is kept when the game closes before it reconn
   const g = await playing();
   const { h, had } = await offlineThenClosed(g, () => g.together.away(true)); // hidden first, as phones do
   assert.ok(had.mycelium >= 9 && had.stone >= 3, 'it gathered while offline');
-  assert.ok(h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5,
-    'back in, nothing gathered offline is taken back (' + h.game.state.inv.mycelium + ' mycelium, ' + h.game.state.inv.stone + ' stone)');
+  assert.ok(
+    h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5,
+    'back in, nothing gathered offline is taken back (' +
+      h.game.state.inv.mycelium +
+      ' mycelium, ' +
+      h.game.state.inv.stone +
+      ' stone)'
+  );
   assert.deepEqual(driftsIn(g.r), [], 'the room did it all too: no drift');
   assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing refused or done twice');
 });
 
 test('client: offline acts reach the phone every few seconds, so even a game killed without warning keeps them', async () => {
   const g = await playing();
-  const { h, had } = await offlineThenClosed(g, () => { for (let i = 0; i < 6; i++) g.together.tick(1); });
-  assert.ok(h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5, 'nothing taken back');
+  const { h, had } = await offlineThenClosed(g, () => {
+    for (let i = 0; i < 6; i++) g.together.tick(1);
+  });
+  assert.ok(
+    h.game.state.inv.mycelium >= had.mycelium - 0.5 && h.game.state.inv.stone >= had.stone - 0.5,
+    'nothing taken back'
+  );
   assert.deepEqual(driftsIn(g.r), [], 'no drift');
 });
 
@@ -522,7 +646,7 @@ test('client: acts kept on the phone that the room already has are not done twic
   g.together.save(g.game.state, true);
   g.pump(g.clock() + 100);
   const had = { ...g.game.state.inv };
-  for (const s of open()) s.readyState = 3;          // closed with no warning
+  for (const s of open()) s.readyState = 3; // closed with no warning
   const h = harness();
   h.together.open();
   const me = await serve(g.r, open()[0]);
@@ -531,7 +655,10 @@ test('client: acts kept on the phone that the room already has are not done twic
   pump(g.r, me, open()[0], now);
   h.together.save(h.game.state, true);
   pump(g.r, me, open()[0], now + 100);
-  assert.ok(Math.abs(h.game.state.inv.mycelium - had.mycelium) < 0.5, 'the same mycelium, not more (' + h.game.state.inv.mycelium + ' vs ' + had.mycelium + ')');
+  assert.ok(
+    Math.abs(h.game.state.inv.mycelium - had.mycelium) < 0.5,
+    'the same mycelium, not more (' + h.game.state.inv.mycelium + ' vs ' + had.mycelium + ')'
+  );
   assert.equal(g.r.shadow.report(g.me).refused, 0, 'nothing sent again for the room to refuse');
   assert.deepEqual(driftsIn(g.r), [], 'no drift');
 });
@@ -543,17 +670,26 @@ test('client: a correction from the room keeps your buildings, and says what it 
   const g = await playing();
   const { s } = g.bot;
   assert.ok(g.bot.buildNow('garden').ok);
-  g.together.tick(0.3); g.pump();
-  g.together.save(s, true); g.pump();
+  g.together.tick(0.3);
+  g.pump();
+  g.together.save(s, true);
+  g.pump();
   const built = mineIn(s);
   assert.equal(built.length, 1);
   s.inv.stone += 5000; // the game counts more than the room
-  g.together.save(s, true); g.pump();
-  assert.ok(s.inv.stone < 5000, 'the room\'s numbers');
+  g.together.save(s, true);
+  g.pump();
+  assert.ok(s.inv.stone < 5000, "the room's numbers");
   assert.deepEqual(mineIn(s), built, 'your building still stands');
-  assert.ok(g.toasts.includes('Taken back: some of your stone. The world keeps count of what everyone has, and its count differed from your game\'s'), g.toasts.at(-1));
+  assert.ok(
+    g.toasts.includes(
+      "Taken back: some of your stone. The world keeps count of what everyone has, and its count differed from your game's"
+    ),
+    g.toasts.at(-1)
+  );
   const off = g.r.shadow.report(g.me).off;
-  g.together.save(s, true); g.pump(g.clock() + 70_000);
+  g.together.save(s, true);
+  g.pump(g.clock() + 70_000);
   assert.equal(g.r.shadow.report(g.me).off, off, 'and the next progress agrees');
 });
 
@@ -561,31 +697,42 @@ test('client: a building put up while the room was answering stays, and goes up 
   const g = await playing();
   const { s } = g.bot;
   g.bot.gather('mycelium', 40);
-  g.together.tick(0.3); g.pump();
-  s.inv.ore += 50;                 // a difference the room corrects...
+  g.together.tick(0.3);
+  g.pump();
+  s.inv.ore += 50; // a difference the room corrects...
   g.together.save(s, true);
   assert.ok(g.bot.standBy(g.bot.free(Core.T.FOREST)));
   assert.ok(Core.place(s, 'garden').ok); // ...and a building put up before its answer
   g.pump();
-  assert.equal(mineIn(s).length, 1, 'the answer doesn\'t take it down');
-  g.together.tick(0.3); g.pump();
-  assert.equal(mineIn(s).length, 1, 'and the room\'s word of it adds no second one');
+  assert.equal(mineIn(s).length, 1, "the answer doesn't take it down");
+  g.together.tick(0.3);
+  g.pump();
+  assert.equal(mineIn(s).length, 1, "and the room's word of it adds no second one");
   assert.equal(g.r.ext.length, 1);
 });
 
-test('client: a building the room couldn\'t pay for comes down, and the player is told why', async () => {
+test("client: a building the room couldn't pay for comes down, and the player is told why", async () => {
   const g = await playing();
   const { s } = g.bot;
-  g.together.tick(0.3); g.pump();
-  g.together.save(s, true); g.pump();
-  s.inv.mycelium += 200;           // more than the room counts
+  g.together.tick(0.3);
+  g.pump();
+  g.together.save(s, true);
+  g.pump();
+  s.inv.mycelium += 200; // more than the room counts
   assert.ok(g.bot.standBy(g.bot.free(Core.T.FOREST)));
   assert.ok(Core.place(s, 'garden').ok);
-  g.together.tick(0.3); g.pump();
-  g.together.save(s, true); g.pump();
+  g.together.tick(0.3);
+  g.pump();
+  g.together.save(s, true);
+  g.pump();
   assert.deepEqual(mineIn(s), [], 'not in the world, so not in your game');
   assert.equal(g.r.ext.length, 0);
-  assert.ok(g.toasts.includes('A building of yours was taken down. The world counted fewer resources for you than your game showed, so it couldn\'t be paid for'), g.toasts.at(-1));
+  assert.ok(
+    g.toasts.includes(
+      "A building of yours was taken down. The world counted fewer resources for you than your game showed, so it couldn't be paid for"
+    ),
+    g.toasts.at(-1)
+  );
 });
 
 /* ---------------------------------------------------- the Worlds list */
@@ -606,7 +753,8 @@ test('client: every world has a two-word name, the same each time, and the join 
 });
 
 test('client: a link to a world you are in already takes you there without asking, and you can switch back', async () => {
-  const a = await makeRoom(), b = await makeRoom();
+  const a = await makeRoom(),
+    b = await makeRoom();
   const { together, asked, toasts, game } = harness();
   // Into a, then b, through their links: one question each, each named.
   for (const w of [a, b]) {
@@ -647,7 +795,9 @@ test('client: what the room says your buildings made while away lands in your pa
   const before = game.state.inv.mycelium;
   socket.deliver({ t: 'away', secs: 3600, made: { mycelium: 50 } });
   assert.equal(game.state.inv.mycelium, before + 50);
-  assert.deepEqual(aways, [{ secs: 3600, made: { ...Object.fromEntries(Core.RESOURCES.map((r) => [r, 0])), mycelium: 50 } }]);
+  assert.deepEqual(aways, [
+    { secs: 3600, made: { ...Object.fromEntries(Core.RESOURCES.map((r) => [r, 0])), mycelium: 50 } }
+  ]);
   socket.deliver({ t: 'away', secs: 3600, made: { mycelium: -5 } }); // nonsense: ignored
   socket.deliver({ t: 'away', secs: 'soon', made: { mycelium: 5 } });
   assert.equal(game.state.inv.mycelium, before + 50);

@@ -1,11 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createAutoplaySession, playAutoplay, createProgressWatch, createMovementWatch, createLayerWatch } from '../../scripts/autoplay-driver.mjs';
+import {
+  createAutoplaySession,
+  playAutoplay,
+  createProgressWatch,
+  createMovementWatch,
+  createLayerWatch
+} from '../../scripts/autoplay-driver.mjs';
 import { createState, RESOURCES, serialize, deserialize } from '../../src/core/index.js';
 
 test('the shipped AUTO handler plays from spawn with only a held button and stops on release', () => {
   const actions = [];
-  const session = createAutoplaySession(78934561, (intent, result) => actions.push({ intent, result }));
+  const session = createAutoplaySession(78934561, (intent, result) =>
+    actions.push({ intent, result })
+  );
   for (let i = 0; i < 120; i++) session.tick();
   assert.equal(actions.length, 0, 'no AUTO actions without the button held');
   session.press();
@@ -33,7 +41,8 @@ test('AUTO games respect tick counts and report an unfinished game as a timeout'
 });
 
 test('looping through known land cannot hide a five-minute stall', () => {
-  const s = createState(12345), watch = createProgressWatch();
+  const s = createState(12345),
+    watch = createProgressWatch();
   assert.equal(watch.sample(1, s), false);
   s.player.x += 10; // walking alone is not productive progress
   assert.equal(watch.sample(300, s), false);
@@ -44,7 +53,8 @@ test('looping through known land cannot hide a five-minute stall', () => {
 });
 
 test('exploring or recharging counts as progress even before resources are earned', () => {
-  const s = createState(12345), watch = createProgressWatch();
+  const s = createState(12345),
+    watch = createProgressWatch();
   s.battery = 0;
   watch.sample(1, s);
   s.world.revealed++;
@@ -54,7 +64,8 @@ test('exploring or recharging counts as progress even before resources are earne
 });
 
 test('passive income cannot hide pacing between the same mine tiles', () => {
-  const s = createState(12345), watch = createMovementWatch();
+  const s = createState(12345),
+    watch = createMovementWatch();
   for (let second = 1; second <= 300; second++) {
     s.stats.mycelium += 100;
     s.player.x = second % 2;
@@ -66,7 +77,8 @@ test('passive income cannot hide pacing between the same mine tiles', () => {
 });
 
 test('a long route through known land does not count as pacing in a small area', () => {
-  const s = createState(12345), watch = createMovementWatch();
+  const s = createState(12345),
+    watch = createMovementWatch();
   for (let second = 1; second <= 600; second++) {
     s.player.x = second;
     assert.equal(watch.sample(second, s, 'moving'), false);
@@ -75,9 +87,14 @@ test('a long route through known land does not count as pacing in a small area',
 
 test('quiet-tick scheduling preserves the actual shipped AUTO command stream and saved world', () => {
   // Constructed integration fixture, not a fresh-seed win evaluation.
-  const fineActs = [], fastActs = [];
-  const fine = createAutoplaySession(78934563, intent => fineActs.push([fine.state.time, { ...intent }]));
-  const fast = createAutoplaySession(78934563, intent => fastActs.push([fast.state.time, { ...intent }]));
+  const fineActs = [],
+    fastActs = [];
+  const fine = createAutoplaySession(78934563, (intent) =>
+    fineActs.push([fine.state.time, { ...intent }])
+  );
+  const fast = createAutoplaySession(78934563, (intent) =>
+    fastActs.push([fast.state.time, { ...intent }])
+  );
   for (const session of [fine, fast]) {
     session.state.unlocks.logistics = true;
     for (const r of RESOURCES) session.state.inv[r] = 1e6;
@@ -93,7 +110,8 @@ test('quiet-tick scheduling preserves the actual shipped AUTO command stream and
 });
 
 test('passive income cannot hide repeated climbing and descending between samples', () => {
-  const s = createState(12345), watch = createLayerWatch();
+  const s = createState(12345),
+    watch = createLayerWatch();
   for (let second = 1; second <= 300; second++) {
     s.stats.mycelium += 1000;
     assert.equal(watch.sample(second, s, second * 2, second * 2), false);
@@ -104,8 +122,10 @@ test('passive income cannot hide repeated climbing and descending between sample
 });
 
 test('a one-way climb is not mistaken for a layer oscillation', () => {
-  const s = createState(12345), watch = createLayerWatch();
-  for (let second = 1; second <= 600; second++) assert.equal(watch.sample(second, s, second, 0), false);
+  const s = createState(12345),
+    watch = createLayerWatch();
+  for (let second = 1; second <= 600; second++)
+    assert.equal(watch.sample(second, s, second, 0), false);
 });
 
 test('a wall-time budget stops an unfinished world with its canonical state retained', () => {

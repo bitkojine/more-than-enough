@@ -32,11 +32,16 @@ export function findPath(s, sx, sy, tx, ty, pad = 10) {
 
 // Walks the path with real movement for up to `budget` seconds; returns time used.
 export function walkPath(s, path, dt, budget) {
-  let used = 0, i = 0;
+  let used = 0,
+    i = 0;
   while (i < path.length && used < budget) {
     const wp = path[i];
-    const dx = wp.x + 0.5 - s.player.x, dy = wp.y + 0.5 - s.player.y;
-    if (Math.hypot(dx, dy) < 0.25) { i++; continue; }
+    const dx = wp.x + 0.5 - s.player.x,
+      dy = wp.y + 0.5 - s.player.y;
+    if (Math.hypot(dx, dy) < 0.25) {
+      i++;
+      continue;
+    }
     const moved = C.move(s, dx, dy, dt);
     C.revealAround(s);
     C.step(s, dt); // walking takes play time, as in the game
@@ -68,7 +73,12 @@ export function master(s) {
 // The player moved to the nearest cave mouth (a way down into the mine; never
 // on home ground), with the view revealed around them.
 export function away(s) {
-  const t = C.nearestTile(s.player.x, s.player.y, 60, (x, y) => C.tileAt(s.world, x, y, C.SURFACE) === T.CAVE);
+  const t = C.nearestTile(
+    s.player.x,
+    s.player.y,
+    60,
+    (x, y) => C.tileAt(s.world, x, y, C.SURFACE) === T.CAVE
+  );
   standOn(s, t);
   C.revealAround(s);
   return s;
@@ -83,10 +93,19 @@ export function away(s) {
 export function createBot(seed, s = C.createState(seed), tick = () => {}) {
   const clock = { t: 0 };
   const timeline = {};
-  const mark = (name) => { if (timeline[name] === undefined) timeline[name] = +clock.t.toFixed(1); };
+  const mark = (name) => {
+    if (timeline[name] === undefined) timeline[name] = +clock.t.toFixed(1);
+  };
 
   function walkTowards(target, pad, budget) {
-    const path = findPath(s, Math.floor(s.player.x), Math.floor(s.player.y), target.x, target.y, pad);
+    const path = findPath(
+      s,
+      Math.floor(s.player.x),
+      Math.floor(s.player.y),
+      target.x,
+      target.y,
+      pad
+    );
     if (!path) return -1;
     const used = walkPath(s, path, 0.1, budget);
     clock.t += used;
@@ -99,7 +118,15 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
 
   function gather(res, need) {
     for (let guard = 0; s.inv[res] < need && guard < 6000; guard++) {
-      const t = findNear(s, (st, x, y) => C.TILE_INFO[typeAt(st, x, y)].res === res && richAt(st, x, y) > 0 && !C.gearNeeded(st, x, y) && !C.extractorAt(st, x, y, C.SURFACE) && reachable(x, y));
+      const t = findNear(
+        s,
+        (st, x, y) =>
+          C.TILE_INFO[typeAt(st, x, y)].res === res &&
+          richAt(st, x, y) > 0 &&
+          !C.gearNeeded(st, x, y) &&
+          !C.extractorAt(st, x, y, C.SURFACE) &&
+          reachable(x, y)
+      );
       if (!t) return false;
       if (!C.canHarvest(s, t.x, t.y)) {
         if (walkTowards(t, 10, 30) < 0) unreachable.add(t.x + ',' + t.y);
@@ -125,7 +152,11 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
     return false;
   }
 
-  const free = (type) => (st, x, y) => typeAt(st, x, y) === type && richAt(st, x, y) > 0 && !C.extractorAt(st, x, y, 0) && reachable(x, y);
+  const free = (type) => (st, x, y) =>
+    typeAt(st, x, y) === type &&
+    richAt(st, x, y) > 0 &&
+    !C.extractorAt(st, x, y, 0) &&
+    reachable(x, y);
 
   // Gathers what upgrade `id` costs by hand, then buys it.
   function buyNow(id) {
@@ -154,8 +185,13 @@ export function createBot(seed, s = C.createState(seed), tick = () => {}) {
 // every 0.25 s. `seen(intent, result)` hears each one, and `tick()` runs
 // after every step of play. Returns the time played and the last intent;
 // stops early at the Embark pause.
-export function holdPerfect(s, seconds, { mind = C.newMind(), seen = () => {}, tick = () => {} } = {}) {
-  let played = 0, last = null;
+export function holdPerfect(
+  s,
+  seconds,
+  { mind = C.newMind(), seen = () => {}, tick = () => {} } = {}
+) {
+  let played = 0,
+    last = null;
   // In steps the game takes (it caps each at a quarter second), so a second
   // spent waiting is a second of play.
   const pass = (dt) => {
@@ -174,9 +210,11 @@ export function holdPerfect(s, seconds, { mind = C.newMind(), seen = () => {}, t
       continue;
     }
     if (intent.type === 'walk') {
-      const tx = intent.x + 0.5, ty = intent.y + 0.5;
+      const tx = intent.x + 0.5,
+        ty = intent.y + 0.5;
       for (let k = 0; k < 20; k++) {
-        const dx = tx - s.player.x, dy = ty - s.player.y;
+        const dx = tx - s.player.x,
+          dy = ty - s.player.y;
         const d = Math.hypot(dx, dy);
         if (d < 0.18) break;
         const dt = Math.min(0.1, d / C.walkSpeed(s)); // no overshooting the step
@@ -197,14 +235,28 @@ export function holdPerfect(s, seconds, { mind = C.newMind(), seen = () => {}, t
 // Carries out one act intent through the core calls a press makes.
 export function performIntent(s, intent) {
   switch (intent.type) {
-    case 'harvestAt': return C.harvestAt(s, intent.x, intent.y);
-    case 'collect': return C.collect(s);
-    case 'buy': return C.buy(s, intent.id);
-    case 'place': return C.place(s, intent.key, { x: intent.x, y: intent.y });
-    case 'descend': { const r = C.descendAt(s, intent.x, intent.y); C.revealAround(s); return r; }
-    case 'climb': { const r = C.climbAt(s, intent.x, intent.y); C.revealAround(s); return r; }
-    case 'prop': return C.placeProp(s, intent.kind);
-    case 'charge': return !!C.chargerNear(s);
+    case 'harvestAt':
+      return C.harvestAt(s, intent.x, intent.y);
+    case 'collect':
+      return C.collect(s);
+    case 'buy':
+      return C.buy(s, intent.id);
+    case 'place':
+      return C.place(s, intent.key, { x: intent.x, y: intent.y });
+    case 'descend': {
+      const r = C.descendAt(s, intent.x, intent.y);
+      C.revealAround(s);
+      return r;
+    }
+    case 'climb': {
+      const r = C.climbAt(s, intent.x, intent.y);
+      C.revealAround(s);
+      return r;
+    }
+    case 'prop':
+      return C.placeProp(s, intent.kind);
+    case 'charge':
+      return !!C.chargerNear(s);
   }
   throw new Error('unknown intent ' + intent.type);
 }
@@ -212,9 +264,25 @@ export function performIntent(s, intent) {
 // Funded post-win test state, not a claim of playing a fresh world to completion.
 export function unlockOptional(s) {
   if (!s.cultivation) return s;
-  const c=s.cultivation;
-  let machine=c.facilities.find(b=>b.kind==='machine');
-  if(!machine){machine={kind:'machine',id:c.nextId++,x:900000,y:900000,z:-2,temperature:18,quality:100,health:100,buffer:0};c.facilities.push(machine);}
-  machine.sections=3;c.restored=true;c.completed=true;c.heart={where:'installed',health:100};
+  const c = s.cultivation;
+  let machine = c.facilities.find((b) => b.kind === 'machine');
+  if (!machine) {
+    machine = {
+      kind: 'machine',
+      id: c.nextId++,
+      x: 900000,
+      y: 900000,
+      z: -2,
+      temperature: 18,
+      quality: 100,
+      health: 100,
+      buffer: 0
+    };
+    c.facilities.push(machine);
+  }
+  machine.sections = 3;
+  c.restored = true;
+  c.completed = true;
+  c.heart = { where: 'installed', health: 100 };
   return s;
 }

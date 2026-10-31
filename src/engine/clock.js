@@ -4,15 +4,23 @@ export const TICK_HZ = 60;
 export const TICK_SECONDS = 1 / TICK_HZ;
 
 export function createTickClock(tick) {
-  let remainder = 0, ticks = 0;
+  let remainder = 0,
+    ticks = 0;
   function advanceTicks(count) {
     if (!Number.isSafeInteger(count) || count < 0) throw new Error('Invalid tick count'); // i18n-ok: invalid engine API arguments, a developer diagnostic
-    for (let i = 0; i < count; i++) { tick(); ticks++; }
+    for (let i = 0; i < count; i++) {
+      tick();
+      ticks++;
+    }
     return count;
   }
   return {
-    get ticks() { return ticks; },
-    get alpha() { return remainder; },
+    get ticks() {
+      return ticks;
+    },
+    get alpha() {
+      return remainder;
+    },
     advanceTicks,
     advance(elapsed) {
       if (!Number.isFinite(elapsed) || elapsed < 0) throw new Error('Invalid elapsed time'); // i18n-ok: invalid engine API arguments, a developer diagnostic
@@ -23,6 +31,8 @@ export function createTickClock(tick) {
       remainder = Math.max(0, remainder - count);
       return advanceTicks(count);
     },
-    reset() { remainder = 0; }
+    reset() {
+      remainder = 0;
+    }
   };
 }

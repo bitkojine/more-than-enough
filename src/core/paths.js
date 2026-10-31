@@ -21,7 +21,8 @@ import { gearNeeded } from './actions.js';
 import { packKey, SURFACE } from './coords.js';
 
 const DIG_COST = 3; // a dug tile costs as much as this many steps: dig, then walk
-const DX = [1, -1, 0, 0], DY = [0, 0, 1, -1];
+const DX = [1, -1, 0, 0],
+  DY = [0, 0, 1, -1];
 
 const routePositions = new WeakMap();
 
@@ -31,8 +32,10 @@ export function routePosition(r, x, y) {
   let cached = routePositions.get(r);
   if (!cached || cached.nodes !== r.nodes || cached.length !== r.nodes.length) {
     const positions = new Map([[packKey(r.from.x, r.from.y, r.z), 0]]);
-    for (let i = 0; i < r.nodes.length; i++) positions.set(packKey(r.nodes[i].x, r.nodes[i].y, r.z), i + 1);
-    cached = { nodes: r.nodes, length: r.nodes.length, positions }; routePositions.set(r, cached);
+    for (let i = 0; i < r.nodes.length; i++)
+      positions.set(packKey(r.nodes[i].x, r.nodes[i].y, r.z), i + 1);
+    cached = { nodes: r.nodes, length: r.nodes.length, positions };
+    routePositions.set(r, cached);
   }
   return cached.positions.get(packKey(x, y, r.z)) ?? -1;
 }
@@ -51,10 +54,29 @@ export function diggable(s, x, y) {
  * to dig into). With `dig`, each step says whether it must be dug first.
  * @returns {Array<{x: number, y: number, dig?: boolean}> | null}
  */
-export function findPath(s, sx, sy, tx, ty, { pad = 10, known = false, dig = false, unknownDig = false, fog = false, heuristic = true, work = null } = {}) {
-  const z = s.player.z, w = s.world, wade = canWade(s);
-  const minX = Math.min(sx, tx) - pad, maxX = Math.max(sx, tx) + pad;
-  const minY = Math.min(sy, ty) - pad, maxY = Math.max(sy, ty) + pad;
+export function findPath(
+  s,
+  sx,
+  sy,
+  tx,
+  ty,
+  {
+    pad = 10,
+    known = false,
+    dig = false,
+    unknownDig = false,
+    fog = false,
+    heuristic = true,
+    work = null
+  } = {}
+) {
+  const z = s.player.z,
+    w = s.world,
+    wade = canWade(s);
+  const minX = Math.min(sx, tx) - pad,
+    maxX = Math.max(sx, tx) + pad;
+  const minY = Math.min(sy, ty) - pad,
+    maxY = Math.max(sy, ty) + pad;
   const W = maxX - minX + 1;
   const at = (x, y) => (y - minY) * W + (x - minX);
   const cost = new Map([[at(sx, sy), 0]]);
@@ -63,8 +85,9 @@ export function findPath(s, sx, sy, tx, ty, { pad = 10, known = false, dig = fal
   // Integer A* buckets avoid heap/logarithmic overhead. LIFO ties follow a
   // promising route through an equal-priority open area instead of flooding
   // its entire rectangle. The compatibility mode retains original FIFO ties.
-  const estimate = (x, y) => heuristic ? Math.abs(tx - x) + Math.abs(ty - y) : 0;
-  const first = estimate(sx, sy), buckets = [];
+  const estimate = (x, y) => (heuristic ? Math.abs(tx - x) + Math.abs(ty - y) : 0);
+  const first = estimate(sx, sy),
+    buckets = [];
   buckets[first] = [[sx, sy, 0]];
   if (work) work.queued = (work.queued || 0) + 1;
   for (let priority = first; priority < buckets.length; priority++) {
@@ -77,18 +100,22 @@ export function findPath(s, sx, sy, tx, ty, { pad = 10, known = false, dig = fal
       if (cx === tx && cy === ty) return route(prev, at, sx, sy, tx, ty, s, dig, unknownDig);
       for (let direction = 0; direction < 4; direction++) {
         const d = heuristic ? 3 - direction : direction;
-        const nx = cx + DX[d], ny = cy + DY[d];
+        const nx = cx + DX[d],
+          ny = cy + DY[d];
         if (nx < minX || ny < minY || nx > maxX || ny > maxY) continue;
-        const k = at(nx, ny), old = cost.get(k);
+        const k = at(nx, ny),
+          old = cost.get(k);
         // Every edge costs at least one. A cheaper known route lets us
         // reject this edge before querying terrain, fog or digging gear.
         if (old !== undefined && old <= c + 1) continue;
         const goal = nx === tx && ny === ty;
         let step = 1;
         if (!goal) {
-          const seen = !known && !unknownDig || isExplored(w, nx, ny, z);
-          if (!seen && unknownDig && dig) step = DIG_COST; // belief, never inspect hidden rock
-          else if (!seen && fog) step = 1; // nor hidden ground: hoped walkable
+          const seen = (!known && !unknownDig) || isExplored(w, nx, ny, z);
+          if (!seen && unknownDig && dig)
+            step = DIG_COST; // belief, never inspect hidden rock
+          else if (!seen && fog)
+            step = 1; // nor hidden ground: hoped walkable
           else if (!seen) continue;
           else if (walkable(w, nx, ny, z)) {
             if (!wade && swimsAt(w, nx, ny, z)) continue;
@@ -110,9 +137,16 @@ export function findPath(s, sx, sy, tx, ty, { pad = 10, known = false, dig = fal
 
 function route(prev, at, sx, sy, tx, ty, s, dig, unknownDig) {
   const out = [];
-  for (let node = [tx, ty]; node && !(node[0] === sx && node[1] === sy); node = prev.get(at(node[0], node[1]))) {
+  for (
+    let node = [tx, ty];
+    node && !(node[0] === sx && node[1] === sy);
+    node = prev.get(at(node[0], node[1]))
+  ) {
     const p = { x: node[0], y: node[1] };
-    if (dig) p.dig = unknownDig && !isExplored(s.world, p.x, p.y, s.player.z) || !walkable(s.world, p.x, p.y, s.player.z);
+    if (dig)
+      p.dig =
+        (unknownDig && !isExplored(s.world, p.x, p.y, s.player.z)) ||
+        !walkable(s.world, p.x, p.y, s.player.z);
     out.push(p);
   }
   return out.reverse();
@@ -125,7 +159,8 @@ const LOOK_AHEAD = 6; // route tiles ahead a walk looks to cut straight across t
 // Whether the player could walk onto tile (x, y) of their layer, as far as
 // they know: ground not yet seen counts, on the surface.
 function passable(s, x, y) {
-  const w = s.world, z = s.player.z;
+  const w = s.world,
+    z = s.player.z;
   if (!isExplored(w, x, y, z)) return z === SURFACE;
   return walkable(w, x, y, z) && (canWade(s) || !swimsAt(w, x, y, z));
 }
@@ -137,9 +172,12 @@ function passable(s, x, y) {
  * @returns {{tx: number, ty: number, z: number, from: {x: number, y: number}, nodes: Array<{x: number, y: number}>, i: number} | null}
  */
 export function planWalk(s, tx, ty) {
-  const px = Math.floor(s.player.x), py = Math.floor(s.player.y);
+  const px = Math.floor(s.player.x),
+    py = Math.floor(s.player.y);
   const opts = { known: true, fog: s.player.z === SURFACE };
-  const nodes = findPath(s, px, py, tx, ty, { ...opts, pad: 16 }) || findPath(s, px, py, tx, ty, { ...opts, pad: 40 });
+  const nodes =
+    findPath(s, px, py, tx, ty, { ...opts, pad: 16 }) ||
+    findPath(s, px, py, tx, ty, { ...opts, pad: 40 });
   return nodes ? { tx, ty, z: s.player.z, from: { x: px, y: py }, nodes, i: 0 } : null;
 }
 
@@ -159,7 +197,8 @@ export function walkAim(s, w) {
   const n = w.nodes.length;
   if (!n) return 'done'; // planned from the goal's own tile: already there
   const end = Math.min(n - 1, w.i + LOOK_AHEAD);
-  for (let j = w.i; j <= end; j++) if (j < n - 1 && !passable(s, w.nodes[j].x, w.nodes[j].y)) return null;
+  for (let j = w.i; j <= end; j++)
+    if (j < n - 1 && !passable(s, w.nodes[j].x, w.nodes[j].y)) return null;
   const goal = w.nodes[n - 1];
   const last = passable(s, goal.x, goal.y) ? n - 1 : n - 2;
   if (w.i > last) return 'done';

@@ -22,9 +22,10 @@ const slotOf = (id, slot) => (pack.looks[id] || {})[slot];
 
 // Where a picture of the pack loads from: a file next to pack.json, or (in the
 // deployed site, which puts every picture inside pack.json) its own markup.
-const srcOf = (ref) => (ref.startsWith('<')
-  ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ref)  // i18n-ok: a URL
-  : PACK_DIR + ref);
+const srcOf = (ref) =>
+  ref.startsWith('<')
+    ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(ref) // i18n-ok: a URL
+    : PACK_DIR + ref;
 
 // The URL of the first picture in a thing's slot ('' if it has none).
 export function pictureUrl(id, slot = 'icon') {
@@ -60,25 +61,37 @@ function preview(thing) {
   const parts = [];
   for (const slot of SLOT_ORDER) {
     if (look[slot] === undefined) continue;
-    const imgs = pictures(look[slot]).filter((p, i, all) => all.indexOf(p) === i)
-      .map((p) => `<img src="${srcOf(p)}" alt="" loading="lazy" class="thumb thumb-${slot}">`).join('');
+    const imgs = pictures(look[slot])
+      .filter((p, i, all) => all.indexOf(p) === i)
+      .map((p) => `<img src="${srcOf(p)}" alt="" loading="lazy" class="thumb thumb-${slot}">`)
+      .join('');
     parts.push(`<span class="slotpics" title="${slot}">${imgs}</span>`);
   }
-  if (look.color) parts.push(`<span class="swatch" style="background:${look.color}" title="${look.color}"></span>`);
+  if (look.color)
+    parts.push(
+      `<span class="swatch" style="background:${look.color}" title="${look.color}"></span>`
+    );
   return parts.join('');
 }
 
 export function renderThings() {
   const count = `<p class="count">${t('wiki.thingCount', { count: Core.LOOKS.length, groups: Core.LOOK_GROUPS.length })}</p>`;
-  return count + Core.LOOK_GROUPS.map((g) => {
-    const rows = Core.LOOKS.filter((thing) => thing.group === g.id).map((thing) => `
+  return (
+    count +
+    Core.LOOK_GROUPS.map((g) => {
+      const rows = Core.LOOKS.filter((thing) => thing.group === g.id)
+        .map(
+          (thing) => `
       <li class="thing" id="look-${esc(thing.id)}">
         <div class="thing-pics">${preview(thing)}</div>
         <div class="thing-text">
           <div class="thing-head"><strong>${esc(thing.name)}</strong></div>
           <p>${esc(thing.does)}</p>
         </div>
-      </li>`).join('');
-    return `<h2 id="group-${g.id}">${esc(g.name)}</h2><p class="area-blurb">${esc(g.blurb)}</p><ul class="things">${rows}</ul>`;
-  }).join('');
+      </li>`
+        )
+        .join('');
+      return `<h2 id="group-${g.id}">${esc(g.name)}</h2><p class="area-blurb">${esc(g.blurb)}</p><ul class="things">${rows}</ul>`;
+    }).join('')
+  );
 }

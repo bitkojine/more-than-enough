@@ -29,15 +29,17 @@ export function generateChunk(seed, cx, cy, cz) {
  * far out (see `far`). */
 export const SURFACE_SHARE = {
   forest: { near: 0.4, far: 0.22 },
-  lode: { near: 1, far: 0.4 },     // mineral country
+  lode: { near: 1, far: 0.4 }, // mineral country
   stone: { near: 0.16, far: 0.2 }, // of mineral country
-  ore: { near: 0.05, far: 0.12 },  // of mineral country
-  crystal: { near: 0, far: 0.03 }  // of mineral country: the hearts of ore veins
+  ore: { near: 0.05, far: 0.12 }, // of mineral country
+  crystal: { near: 0, far: 0.03 } // of mineral country: the hearts of ore veins
 };
 // Distances from the origin, in tiles: within NEAR it's all `near`, beyond
 // FAR it's all `far`, and it shades between. Crystal never shows within
 // CRYSTAL_FROM.
-const NEAR = 20, FAR = 160, CRYSTAL_FROM = 40;
+const NEAR = 20,
+  FAR = 160,
+  CRYSTAL_FROM = 40;
 
 // How far out (x, y) is: 0 near home, 1 far out.
 export function farness(x, y) {
@@ -67,13 +69,22 @@ function surfaceType(seed, x, y) {
   const far = farness(x, y);
   // Mineral country shades in over a short way past home, not all of FAR.
   const lodeFar = Math.min(1, far * 5);
-  if (fbm(x * 0.02 + 90, y * 0.02 - 40, seed + 79, 3) > fbmAbove(share('lode', lodeFar) * biome.lode, 3)) {
+  if (
+    fbm(x * 0.02 + 90, y * 0.02 - 40, seed + 79, 3) >
+    fbmAbove(share('lode', lodeFar) * biome.lode, 3)
+  ) {
     const ore = fbm(x * 0.09 + 53, y * 0.09 + 71, seed + 53, 3);
-    if (x * x + y * y >= CRYSTAL_FROM * CRYSTAL_FROM && ore > fbmAbove(share('crystal', far), 3)) return T.CRYSTAL;
+    if (x * x + y * y >= CRYSTAL_FROM * CRYSTAL_FROM && ore > fbmAbove(share('crystal', far), 3))
+      return T.CRYSTAL;
     if (ore > fbmAbove(share('ore', far), 3)) return T.ORE;
-    if (fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3) > fbmAbove(share('stone', far), 3)) return T.STONE;
+    if (fbm(x * 0.075 + 17, y * 0.075 + 31, seed + 37, 3) > fbmAbove(share('stone', far), 3))
+      return T.STONE;
   }
-  if (fbm(x * 0.04, y * 0.04, seed + 23, 4) > fbmAbove(Math.min(0.85, share('forest', far) * biome.forest), 4)) return T.FOREST;
+  if (
+    fbm(x * 0.04, y * 0.04, seed + 23, 4) >
+    fbmAbove(Math.min(0.85, share('forest', far) * biome.forest), 4)
+  )
+    return T.FOREST;
   return T.GRASS;
 }
 
@@ -129,7 +140,10 @@ export const WAYS_APART = BAND_X[1] - (BAND_X[0] + BAND_W - 1);
 function wayCandidate(seed, cx, cy, z, i) {
   const span = CHUNK_SIZE - 4;
   return {
-    x: cx * CHUNK_SIZE + BAND_X[z & 1] + Math.floor(hash2(cx, cy, seed + 3701 + z * 31 + i * 7027) * BAND_W),
+    x:
+      cx * CHUNK_SIZE +
+      BAND_X[z & 1] +
+      Math.floor(hash2(cx, cy, seed + 3701 + z * 31 + i * 7027) * BAND_W),
     y: cy * CHUNK_SIZE + 2 + Math.floor(hash2(cx, cy, seed + 7919 + z * 31 + i * 7027) * span)
   };
 }
@@ -158,16 +172,25 @@ export function wayUpInChunk(seed, cx, cy, cz) {
 function generateSurface(seed, cx, cy) {
   const type = new Uint8Array(CHUNK_TILES);
   const rich = new Uint8Array(CHUNK_TILES);
-  const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
+  const ox = cx * CHUNK_SIZE,
+    oy = cy * CHUNK_SIZE;
   for (let ly = 0; ly < CHUNK_SIZE; ly++) {
     for (let lx = 0; lx < CHUNK_SIZE; lx++) {
-      const x = ox + lx, y = oy + ly, i = ly * CHUNK_SIZE + lx;
+      const x = ox + lx,
+        y = oy + ly,
+        i = ly * CHUNK_SIZE + lx;
       const t = surfaceType(seed, x, y);
       type[i] = t;
       const d = DEPOSIT[t];
       if (d) {
         const wealth = WEALTH.near + (WEALTH.far - WEALTH.near) * farness(x, y);
-        rich[i] = Math.max(1, Math.min(MAX_RICHNESS, Math.round((d.base + hash2(x, y, seed + d.salt) * d.spread) * wealth)));
+        rich[i] = Math.max(
+          1,
+          Math.min(
+            MAX_RICHNESS,
+            Math.round((d.base + hash2(x, y, seed + d.salt) * d.spread) * wealth)
+          )
+        );
       }
     }
   }
@@ -212,7 +235,8 @@ function undergroundType(seed, x, y, layer) {
       if (hash2(x + depth * 977, y - depth * 613, seed + depth * 7919) < share) return g.type;
     } else {
       const salt = seed + 307 + i * 131 + depth * 7919;
-      if (fbm(x * g.scale + depth * 37, y * g.scale - depth * 53, salt, 3) > fbmAbove(share, 3)) return g.type;
+      if (fbm(x * g.scale + depth * 37, y * g.scale - depth * 53, salt, 3) > fbmAbove(share, 3))
+        return g.type;
     }
   }
   return T.SOIL;
@@ -236,7 +260,12 @@ export function findsInChunk(seed, cx, cy, cz) {
     const salt = seed + 4241 + i * 97 + cz * 53;
     const x = cx * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt) * CHUNK_SIZE);
     const y = cy * CHUNK_SIZE + Math.floor(hash2(cx, cy, salt + 11) * CHUNK_SIZE);
-    if ((x === shaft.x && y === shaft.y) || (up && x === up.x && y === up.y) || out.some((f) => f.x === x && f.y === y)) continue;
+    if (
+      (x === shaft.x && y === shaft.y) ||
+      (up && x === up.x && y === up.y) ||
+      out.some((f) => f.x === x && f.y === y)
+    )
+      continue;
     const geode = layer >= FINDS[T.GEODE].from && hash2(cx, cy, salt + 23) < 0.4;
     out.push({ x, y, type: geode ? T.GEODE : T.CACHE });
   }
@@ -247,7 +276,8 @@ function generateUnderground(seed, cx, cy, cz) {
   const type = new Uint8Array(CHUNK_TILES);
   const rich = new Uint8Array(CHUNK_TILES).fill(1);
   const layer = SURFACE - cz; // 1 for the first layer below the forest
-  const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
+  const ox = cx * CHUNK_SIZE,
+    oy = cy * CHUNK_SIZE;
   for (let ly = 0; ly < CHUNK_SIZE; ly++) {
     for (let lx = 0; lx < CHUNK_SIZE; lx++) {
       type[ly * CHUNK_SIZE + lx] = undergroundType(seed, ox + lx, oy + ly, layer);
@@ -257,6 +287,7 @@ function generateUnderground(seed, cx, cy, cz) {
   if (up) type[(up.y - oy) * CHUNK_SIZE + (up.x - ox)] = T.RISE;
   const shaft = shaftInChunk(seed, cx, cy, cz);
   type[(shaft.y - oy) * CHUNK_SIZE + (shaft.x - ox)] = T.SHAFT;
-  for (const f of findsInChunk(seed, cx, cy, cz)) type[(f.y - oy) * CHUNK_SIZE + (f.x - ox)] = f.type;
+  for (const f of findsInChunk(seed, cx, cy, cz))
+    type[(f.y - oy) * CHUNK_SIZE + (f.x - ox)] = f.type;
   return { type, rich };
 }

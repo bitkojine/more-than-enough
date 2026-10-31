@@ -46,7 +46,10 @@ test('the Abundance Engine trickles resources and compounds production', () => {
   const before = s.inv.crystal;
   run(s, 5);
   assert.ok(Math.abs(s.inv.crystal - before - 5) < 0.5, '+1/s of each resource at level 1');
-  assert.equal(C.abundanceCost(s).mycelium, Math.ceil(C.ABUNDANCE.baseCost.mycelium * C.ABUNDANCE.growth));
+  assert.equal(
+    C.abundanceCost(s).mycelium,
+    Math.ceil(C.ABUNDANCE.baseCost.mycelium * C.ABUNDANCE.growth)
+  );
   assert.equal(C.buy(s, 'abundance').ok, true);
   assert.equal(C.abundanceMult(s), 2.25);
   const mycelium = s.inv.mycelium;
@@ -94,7 +97,10 @@ test('the progression map mirrors the upgrade registry', () => {
   assert.deepEqual(C.PATH_FAMILIES[1].nodes, C.RESOURCES);
   assert.deepEqual(C.PATH_FAMILIES[4].nodes, Object.keys(C.PERKS));
   for (const f of C.PATH_FAMILIES) {
-    assert.deepEqual(C.pathProgress(s, f.id).nodes.map((n) => n.key), f.nodes);
+    assert.deepEqual(
+      C.pathProgress(s, f.id).nodes.map((n) => n.key),
+      f.nodes
+    );
   }
 });
 
@@ -123,7 +129,14 @@ test('progression nodes report saving, ready, partial and owned', () => {
 
 test('a building shows waiting output only when nothing hauls it in', () => {
   const s = C.createState(3);
-  const e = { key: 'garden', res: 'mycelium', x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z, buffer: 0.6 };
+  const e = {
+    key: 'garden',
+    res: 'mycelium',
+    x: Math.floor(s.player.x),
+    y: Math.floor(s.player.y),
+    z: s.player.z,
+    buffer: 0.6
+  };
   s.extractors.push(e);
   assert.equal(C.holdsOutput(s, e), false, 'less than a unit is not worth collecting yet');
   e.buffer = 3;
@@ -144,7 +157,8 @@ test("in a shared world, friends' buildings don't count toward your 25 structure
   const s = C.createState(12345);
   s.me = 'a'.repeat(16);
   const structures = C.GOALS.find((g) => g.id === 'structures');
-  for (let i = 0; i < 25; i++) s.extractors.push({ ...mushroomGarden(40 + i, 50), owner: 'b'.repeat(16) });
+  for (let i = 0; i < 25; i++)
+    s.extractors.push({ ...mushroomGarden(40 + i, 50), owner: 'b'.repeat(16) });
   assert.equal(structures.done(s), false, "a friend's buildings");
   for (const e of s.extractors) e.owner = s.me;
   assert.equal(structures.done(s), true, 'your own');
@@ -167,10 +181,16 @@ test('an upgraded building holds as long a run of output, so its rate is what yo
   s.extractors.push(mushroomGarden(48, 50));
   s.abundanceLv = 20; // a big production multiplier
   const rate = C.extractorRate(s, 'garden');
-  assert.equal(C.extractorCapacity(s, 'garden'), C.EXTRACTORS.garden.buffer * C.productionMult(s, 'mycelium'));
+  assert.equal(
+    C.extractorCapacity(s, 'garden'),
+    C.EXTRACTORS.garden.buffer * C.productionMult(s, 'mycelium')
+  );
   standOn(s, { x: 100, y: 100 });
   run(s, 10);
-  assert.ok(Math.abs(s.extractors[0].buffer - rate * 10) < 1e-6 * rate, 'ten seconds of output, not the base buffer');
+  assert.ok(
+    Math.abs(s.extractors[0].buffer - rate * 10) < 1e-6 * rate,
+    'ten seconds of output, not the base buffer'
+  );
   run(s, 1000);
   assert.ok(s.extractors[0].buffer <= C.extractorCapacity(s, 'garden') + 1e-6);
 });
@@ -179,18 +199,29 @@ test('time away: buildings and the engine make their full rate into the packs, u
   const s = C.createState(5);
   s.extractors.push({ key: 'garden', res: 'mycelium', x: 0, y: 0, z: C.SURFACE, buffer: 0 });
   s.abundanceLv = 1;
-  const rate = C.extractorRate(s, 'garden'), trickle = C.abundanceTrickle(s);
-  assert.equal(C.awayProduce(s, C.AWAY_MIN - 1, true), null, 'a short gap is play time, not time away');
+  const rate = C.extractorRate(s, 'garden'),
+    trickle = C.abundanceTrickle(s);
+  assert.equal(
+    C.awayProduce(s, C.AWAY_MIN - 1, true),
+    null,
+    'a short gap is play time, not time away'
+  );
   const made = C.awayProduce(s, 3600, true);
   assert.ok(Math.abs(made.mycelium - (rate + trickle) * 3600) < 1e-6);
   assert.ok(Math.abs(s.inv.mycelium - made.mycelium) < 1e-6, 'straight into the packs');
-  assert.ok(Math.abs(s.sources.mycelium.buildings - rate * 3600) < 1e-6, 'counted as from buildings');
+  assert.ok(
+    Math.abs(s.sources.mycelium.buildings - rate * 3600) < 1e-6,
+    'counted as from buildings'
+  );
   assert.ok(Math.abs(made.stone - trickle * 3600) < 1e-6, 'the engine makes every resource');
   const capped = C.awayProduce(s, 30 * 24 * 3600, true);
-  assert.ok(Math.abs(capped.mycelium - (rate + trickle) * C.AWAY_CAP) < 1e-6, 'a month away counts as 8 hours');
+  assert.ok(
+    Math.abs(capped.mycelium - (rate + trickle) * C.AWAY_CAP) < 1e-6,
+    'a month away counts as 8 hours'
+  );
   assert.equal(C.awayProduce(s, -5000, true), null, 'a clock set back gives nothing');
   s.shared = 'room';
-  assert.equal(C.awayProduce(s, 3600, true), null, 'a shared world\'s room keeps its own time');
+  assert.equal(C.awayProduce(s, 3600, true), null, "a shared world's room keeps its own time");
 });
 
 test('freeze season: time away makes nothing unless the player turns it back on', () => {
@@ -201,7 +232,7 @@ test('freeze season: time away makes nothing unless the player turns it back on'
   assert.equal(C.FREEZE_AWAY, true, 'on by default');
   assert.equal(C.awayProduce(s, 3600), null, 'the default is frozen');
   assert.equal(s.inv.mycelium, before, 'and the packs do not change');
-  assert.equal(C.produceAway(s, 3600), null, 'the room\'s path is frozen too');
+  assert.equal(C.produceAway(s, 3600), null, "the room's path is frozen too");
   assert.ok(C.awayProduce(s, 3600, true), 'a player who turns it back on gets it');
 });
 
@@ -219,14 +250,35 @@ test('a gather by hand keeps up with your buildings at every stage', () => {
   const s = master(C.createState(12345));
   const base = C.gatherYield(s, 'stone');
   assert.equal(base, C.TOOLS.pickaxe.levels.at(-1).yield, 'no buildings: just the tool');
-  for (let i = 0; i < 6; i++) s.extractors.push({ key: 'quarry', res: 'stone', x: 40 + i, y: 40, z: C.SURFACE, buffer: 0 });
+  for (let i = 0; i < 6; i++)
+    s.extractors.push({ key: 'quarry', res: 'stone', x: 40 + i, y: 40, z: C.SURFACE, buffer: 0 });
   const rate = C.productionRates(s).stone - C.abundanceTrickle(s);
   assert.ok(rate > 1e5, 'a late-game quarry row: ' + rate);
   assert.equal(C.gatherYield(s, 'stone'), base + C.HAND_SHARE * rate);
-  assert.equal(C.gatherYield(s, 'mycelium'), C.TOOLS.basket.levels.at(-1).yield, 'only what makes that resource counts');
-  s.extractors.push({ key: 'quarry', res: 'stone', x: 60, y: 60, z: C.SURFACE, buffer: 0, owner: 'b'.repeat(16) });
+  assert.equal(
+    C.gatherYield(s, 'mycelium'),
+    C.TOOLS.basket.levels.at(-1).yield,
+    'only what makes that resource counts'
+  );
+  s.extractors.push({
+    key: 'quarry',
+    res: 'stone',
+    x: 60,
+    y: 60,
+    z: C.SURFACE,
+    buffer: 0,
+    owner: 'b'.repeat(16)
+  });
   s.me = 'a'.repeat(16);
-  assert.equal(C.gatherYield(s, 'stone'), base + C.HAND_SHARE * rate, "a friend's buildings don't count");
+  assert.equal(
+    C.gatherYield(s, 'stone'),
+    base + C.HAND_SHARE * rate,
+    "a friend's buildings don't count"
+  );
   const loot = C.findLoot(s, C.T.CACHE, C.SURFACE - 2);
-  assert.equal(loot.stone, C.FINDS[C.T.CACHE].loot.stone * 2 * C.gatherYield(s, 'stone'), 'finds scale with it too');
+  assert.equal(
+    loot.stone,
+    C.FINDS[C.T.CACHE].loot.stone * 2 * C.gatherYield(s, 'stone'),
+    'finds scale with it too'
+  );
 });

@@ -7,7 +7,7 @@ import { t } from '../i18n/i18n.js';
 
 export const EXPLORE_RADIUS = 6;
 export const MINE_EXPLORE_RADIUS = 3; // underground you only see the rock close by
-export const REACH = 1.2;             // contact broad phase; cardinal adjacency is also required
+export const REACH = 1.2; // contact broad phase; cardinal adjacency is also required
 export const COLLECT_RANGE = REACH;
 // Waiting must never beat doing something (Watch, 2026-10-18), so hands keep
 // up with buildings: each gather (and each find's loot) also brings in this
@@ -24,9 +24,9 @@ export const AWAY_MIN = 10;
 // Temporary, and meant to be lifted: flip this (or the per-player setting).
 export const FREEZE_AWAY = true;
 export const BASE_SPEED = 3.7;
-export const SWIM_SPEED = 0.75;       // multiplier on water
+export const SWIM_SPEED = 0.75; // multiplier on water
 export const PLAYER_RADIUS = 0.3;
-export const DAY_LENGTH = 240;        // seconds of game time per day-night cycle
+export const DAY_LENGTH = 240; // seconds of game time per day-night cycle
 export const EXTRACTOR_GROWTH = 2.2; // each extra extractor of a kind costs this much more
 // Historical resource scale for Insight rewards, retained for compatibility.
 // This is no longer a victory gate: finishing world mastery unlocks Embark.
@@ -43,11 +43,41 @@ export const EMBARK_ABUNDANCE = 5;
 // of anyone within CHARGE_RANGE: 'day' while the sun is up, 'always' at any
 // hour (see battery.js).
 export const PROPS = {
-  glowcap: { name: t('prop.glowcap'), cost: { mycelium: 3 }, on: 'tunnel', light: 4.5, does: t('prop.glowcap.does') },
-  lamp: { name: t('prop.lamp'), cost: { stone: 8, crystal: 1 }, on: 'tunnel', light: 8, does: t('prop.lamp.does') },
-  flag: { name: t('prop.flag'), cost: { mycelium: 2 }, on: 'tunnel', beacon: true, does: t('prop.flag.does') },
-  solar: { name: t('prop.solar'), cost: { stone: 30, ore: 6 }, on: 'water', charge: 'day', does: t('prop.solar.does') },
-  wheel: { name: t('prop.wheel'), cost: { stone: 60, ore: 20 }, on: 'river', charge: 'always', does: t('prop.wheel.does') }
+  glowcap: {
+    name: t('prop.glowcap'),
+    cost: { mycelium: 3 },
+    on: 'tunnel',
+    light: 4.5,
+    does: t('prop.glowcap.does')
+  },
+  lamp: {
+    name: t('prop.lamp'),
+    cost: { stone: 8, crystal: 1 },
+    on: 'tunnel',
+    light: 8,
+    does: t('prop.lamp.does')
+  },
+  flag: {
+    name: t('prop.flag'),
+    cost: { mycelium: 2 },
+    on: 'tunnel',
+    beacon: true,
+    does: t('prop.flag.does')
+  },
+  solar: {
+    name: t('prop.solar'),
+    cost: { stone: 30, ore: 6 },
+    on: 'water',
+    charge: 'day',
+    does: t('prop.solar.does')
+  },
+  wheel: {
+    name: t('prop.wheel'),
+    cost: { stone: 60, ore: 20 },
+    on: 'river',
+    charge: 'always',
+    does: t('prop.wheel.does')
+  }
 };
 
 /* ------------------------------------------------------------ battery */
@@ -58,11 +88,11 @@ export const PROPS = {
 // Below BATTERY_LOW your light starts to shrink, down to BATTERY_DIM of its
 // full reach when it's flat: you see and uncover less, but can still do
 // everything.
-export const BATTERY_LIFE = 900;   // seconds of dark a full battery lasts
+export const BATTERY_LIFE = 900; // seconds of dark a full battery lasts
 export const BATTERY_LOW = 0.3;
 export const BATTERY_DIM = 0.4;
-export const CHARGE_TIME = 10;     // seconds by a working charger from flat to full
-export const CHARGE_RANGE = 2.5;   // tiles from a charger it reaches
+export const CHARGE_TIME = 10; // seconds by a working charger from flat to full
+export const CHARGE_RANGE = 2.5; // tiles from a charger it reaches
 
 /* -------------------------------------------------------------- flares */
 
@@ -73,9 +103,9 @@ export const CHARGE_RANGE = 2.5;   // tiles from a charger it reaches
 // around you; in a crystal world a flare's light cracks crystal like the
 // lantern's, so you can put it out early (the rest of it is spent).
 export const FLARE_COST = { ore: 1 };
-export const FLARE_TIME = 120;     // seconds of play a flare burns
-export const FLARE_LIGHT = 8;      // tiles it lights and uncovers around you
-export const UNLIT_RADIUS = 1.5;   // tiles you uncover underground with no light at all
+export const FLARE_TIME = 120; // seconds of play a flare burns
+export const FLARE_LIGHT = 8; // tiles it lights and uncovers around you
+export const UNLIT_RADIUS = 1.5; // tiles you uncover underground with no light at all
 
 /* -------------------------------------------------------------- finds */
 
@@ -102,9 +132,13 @@ export const GEAR = {
   // the Pickaxe level that breaks each kind of rock
   rock: { [T.ORE]: 2, [T.ORE_SEAM]: 2, [T.CRYSTAL]: 3, [T.CRYSTAL_SEAM]: 3, [T.GEODE]: 3 },
   // the Pickaxe level that breaks the shafts down out of mine layer `from` and below
-  shafts: [{ from: 3, level: 4 }, { from: 6, level: 5 }, { from: 9, level: 6 }],
-  rare: 4,       // the Basket level that picks rare (magic) mushrooms
-  water: 2       // the Boots level that takes you onto water
+  shafts: [
+    { from: 3, level: 4 },
+    { from: 6, level: 5 },
+    { from: 9, level: 6 }
+  ],
+  rare: 4, // the Basket level that picks rare (magic) mushrooms
+  water: 2 // the Boots level that takes you onto water
 };
 // A rare mushroom pays this many times what a common one does.
 export const RARE_PAYS = 3;
@@ -114,7 +148,8 @@ export const RARE_PAYS = 3;
 // Level 1 is what you start with; each later level has a cost.
 export const TOOLS = {
   basket: {
-    name: t('tool.basket'), desc: t('tool.basket.desc'),
+    name: t('tool.basket'),
+    desc: t('tool.basket.desc'),
     levels: [
       { yield: 1 },
       { yield: 2, cost: { mycelium: 34 } },
@@ -125,7 +160,8 @@ export const TOOLS = {
     ]
   },
   pickaxe: {
-    name: t('tool.pickaxe'), desc: t('tool.pickaxe.desc'),
+    name: t('tool.pickaxe'),
+    desc: t('tool.pickaxe.desc'),
     levels: [
       { yield: 1 },
       { yield: 2, cost: { mycelium: 8, stone: 5 } },
@@ -136,7 +172,8 @@ export const TOOLS = {
     ]
   },
   boots: {
-    name: t('tool.boots'), desc: t('tool.boots.desc'),
+    name: t('tool.boots'),
+    desc: t('tool.boots.desc'),
     levels: [
       { mult: 1.0 },
       { mult: 1.3, cost: { mycelium: 32 } },
@@ -146,7 +183,8 @@ export const TOOLS = {
     ]
   },
   overclock: {
-    name: t('tool.overclock'), desc: t('tool.overclock.desc'),
+    name: t('tool.overclock'),
+    desc: t('tool.overclock.desc'),
     levels: [
       { mult: 1 },
       { mult: 2, cost: { stone: 21, ore: 3 } },
@@ -164,36 +202,139 @@ export const TOOLS = {
 // need a blueprint and synthesize their resource on any open land. Support
 // buildings have no output: their physical position improves nearby producers.
 export const EXTRACTORS = {
-  depot: { name: t('building.depot'), tile: null, res: 'stone', rate: 0, buffer: 0, depot: { radius: 8 }, baseCost: { stone: 110, ore: 28 } },
-  garden: { name: t('building.garden'), tile: T.FOREST, res: 'mycelium', rate: 0.45, buffer: 45, baseCost: { mycelium: 15 } },
-  quarry: { name: t('building.quarry'), tile: T.STONE, res: 'stone', rate: 0.34, buffer: 45, baseCost: { mycelium: 30, stone: 15 } },
-  mine: { name: t('building.mine'), tile: T.ORE, res: 'ore', rate: 0.24, buffer: 38, baseCost: { stone: 45, ore: 12 } },
-  resonator: { name: t('building.resonator'), tile: T.CRYSTAL, res: 'crystal', rate: 0.07, buffer: 22, baseCost: { stone: 140, ore: 70, crystal: 6 } },
-  compost: { name: t('building.compost'), tile: null, res: 'mycelium', rate: 0.375, buffer: 45, baseCost: { mycelium: 120, stone: 25 }, unlock: 'compost' },
-  brickyard: { name: t('building.brickyard'), tile: null, res: 'stone', rate: 0.285, buffer: 45, baseCost: { mycelium: 150, stone: 90 }, unlock: 'brickyard' },
-  foundry: { name: t('building.foundry'), tile: null, res: 'ore', rate: 0.225, buffer: 38, baseCost: { mycelium: 220, stone: 170, ore: 60 }, unlock: 'foundry' },
-  stoneworks: { name: t('building.stoneworks'), tile: null, res: 'stone', rate: 0, buffer: 0, support: { target: 'quarry', radius: 2, mult: 2 }, baseCost: { mycelium: 200000000, stone: 100000000, ore: 10000000 } },
-  observatory: { name: t('building.observatory'), tile: null, res: 'crystal', rate: 0.08, buffer: 22, baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 }, unlock: 'observatory' }
+  depot: {
+    name: t('building.depot'),
+    tile: null,
+    res: 'stone',
+    rate: 0,
+    buffer: 0,
+    depot: { radius: 8 },
+    baseCost: { stone: 110, ore: 28 }
+  },
+  garden: {
+    name: t('building.garden'),
+    tile: T.FOREST,
+    res: 'mycelium',
+    rate: 0.45,
+    buffer: 45,
+    baseCost: { mycelium: 15 }
+  },
+  quarry: {
+    name: t('building.quarry'),
+    tile: T.STONE,
+    res: 'stone',
+    rate: 0.34,
+    buffer: 45,
+    baseCost: { mycelium: 30, stone: 15 }
+  },
+  mine: {
+    name: t('building.mine'),
+    tile: T.ORE,
+    res: 'ore',
+    rate: 0.24,
+    buffer: 38,
+    baseCost: { stone: 45, ore: 12 }
+  },
+  resonator: {
+    name: t('building.resonator'),
+    tile: T.CRYSTAL,
+    res: 'crystal',
+    rate: 0.07,
+    buffer: 22,
+    baseCost: { stone: 140, ore: 70, crystal: 6 }
+  },
+  compost: {
+    name: t('building.compost'),
+    tile: null,
+    res: 'mycelium',
+    rate: 0.375,
+    buffer: 45,
+    baseCost: { mycelium: 120, stone: 25 },
+    unlock: 'compost'
+  },
+  brickyard: {
+    name: t('building.brickyard'),
+    tile: null,
+    res: 'stone',
+    rate: 0.285,
+    buffer: 45,
+    baseCost: { mycelium: 150, stone: 90 },
+    unlock: 'brickyard'
+  },
+  foundry: {
+    name: t('building.foundry'),
+    tile: null,
+    res: 'ore',
+    rate: 0.225,
+    buffer: 38,
+    baseCost: { mycelium: 220, stone: 170, ore: 60 },
+    unlock: 'foundry'
+  },
+  stoneworks: {
+    name: t('building.stoneworks'),
+    tile: null,
+    res: 'stone',
+    rate: 0,
+    buffer: 0,
+    support: { target: 'quarry', radius: 2, mult: 2 },
+    baseCost: { mycelium: 200000000, stone: 100000000, ore: 10000000 }
+  },
+  observatory: {
+    name: t('building.observatory'),
+    tile: null,
+    res: 'crystal',
+    rate: 0.08,
+    buffer: 22,
+    baseCost: { mycelium: 380, stone: 400, ore: 160, crystal: 22 },
+    unlock: 'observatory'
+  }
 };
 
-export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile !== null);
-export const CONVERTERS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].tile === null && !EXTRACTORS[k].support && !EXTRACTORS[k].depot);
-export const SUPPORT_BUILDINGS = Object.keys(EXTRACTORS).filter((k) => EXTRACTORS[k].support || EXTRACTORS[k].depot);
+export const DEPOSIT_EXTRACTORS = Object.keys(EXTRACTORS).filter(
+  (k) => EXTRACTORS[k].tile !== null
+);
+export const CONVERTERS = Object.keys(EXTRACTORS).filter(
+  (k) => EXTRACTORS[k].tile === null && !EXTRACTORS[k].support && !EXTRACTORS[k].depot
+);
+export const SUPPORT_BUILDINGS = Object.keys(EXTRACTORS).filter(
+  (k) => EXTRACTORS[k].support || EXTRACTORS[k].depot
+);
 
 /* ------------------------------------------------------------ unlocks */
 
 // One-time purchases.
 export const UNLOCKS = {
-  logistics: { name: t('unlock.logistics'), desc: t('unlock.logistics.desc'), cost: { stone: 110, ore: 28 } },
-  compost: { name: t('unlock.compost'), desc: t('unlock.compost.desc'), cost: { mycelium: 110, stone: 28 } },
-  brickyard: { name: t('unlock.brickyard'), desc: t('unlock.brickyard.desc'), cost: { mycelium: 150, stone: 84 } },
-  foundry: { name: t('unlock.foundry'), desc: t('unlock.foundry.desc'), cost: { stone: 130, ore: 42 } },
-  observatory: { name: t('unlock.observatory'), desc: t('unlock.observatory.desc'), cost: { stone: 240, ore: 110, crystal: 18 } }
+  logistics: {
+    name: t('unlock.logistics'),
+    desc: t('unlock.logistics.desc'),
+    cost: { stone: 110, ore: 28 }
+  },
+  compost: {
+    name: t('unlock.compost'),
+    desc: t('unlock.compost.desc'),
+    cost: { mycelium: 110, stone: 28 }
+  },
+  brickyard: {
+    name: t('unlock.brickyard'),
+    desc: t('unlock.brickyard.desc'),
+    cost: { mycelium: 150, stone: 84 }
+  },
+  foundry: {
+    name: t('unlock.foundry'),
+    desc: t('unlock.foundry.desc'),
+    cost: { stone: 130, ore: 42 }
+  },
+  observatory: {
+    name: t('unlock.observatory'),
+    desc: t('unlock.observatory.desc'),
+    cost: { stone: 240, ore: 110, crystal: 18 }
+  }
 };
 
 // Repeatable: every level adds +1/s of each resource and x1.5 to all production.
 export const ABUNDANCE = {
-  name: t('engine.abundance'), desc: t('engine.abundance.desc'),
+  name: t('engine.abundance'),
+  desc: t('engine.abundance.desc'),
   baseCost: { mycelium: 2300, stone: 2300, ore: 1100, crystal: 120 },
   growth: 27,
   prodMult: 1.5
@@ -217,8 +358,14 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 15000000, stone: 4900000, ore: 260000, crystal: 13000 } },
       { mult: 2, cost: { mycelium: 190000000, stone: 65000000, ore: 3100000, crystal: 180000 } },
       { mult: 2, cost: { mycelium: 1200000000, stone: 400000000, ore: 15000000, crystal: 930000 } },
-      { mult: 2, cost: { mycelium: 7300000000, stone: 2400000000, ore: 66000000, crystal: 4200000 } },
-      { mult: 2, cost: { mycelium: 10950000000, stone: 3600000000, ore: 99000000, crystal: 6300000 } }
+      {
+        mult: 2,
+        cost: { mycelium: 7300000000, stone: 2400000000, ore: 66000000, crystal: 4200000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 10950000000, stone: 3600000000, ore: 99000000, crystal: 6300000 }
+      }
     ]
   },
   stone: {
@@ -232,8 +379,14 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 27000000, stone: 12000000, ore: 660000, crystal: 16000 } },
       { mult: 2, cost: { mycelium: 390000000, stone: 160000000, ore: 8200000, crystal: 220000 } },
       { mult: 2, cost: { mycelium: 2000000000, stone: 870000000, ore: 35000000, crystal: 940000 } },
-      { mult: 2, cost: { mycelium: 13000000000, stone: 5500000000, ore: 180000000, crystal: 4200000 } },
-      { mult: 2, cost: { mycelium: 19500000000, stone: 8250000000, ore: 270000000, crystal: 6300000 } }
+      {
+        mult: 2,
+        cost: { mycelium: 13000000000, stone: 5500000000, ore: 180000000, crystal: 4200000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 19500000000, stone: 8250000000, ore: 270000000, crystal: 6300000 }
+      }
     ]
   },
   ore: {
@@ -246,9 +399,18 @@ export const REFINERIES = {
       { mult: 2, cost: { mycelium: 2400000, stone: 1800000, ore: 100000 } },
       { mult: 2, cost: { mycelium: 27000000, stone: 21000000, ore: 1100000, crystal: 13000 } },
       { mult: 2, cost: { mycelium: 420000000, stone: 310000000, ore: 15000000, crystal: 210000 } },
-      { mult: 2, cost: { mycelium: 1700000000, stone: 1300000000, ore: 49000000, crystal: 670000 } },
-      { mult: 2, cost: { mycelium: 13000000000, stone: 11000000000, ore: 350000000, crystal: 3300000 } },
-      { mult: 2, cost: { mycelium: 19500000000, stone: 16500000000, ore: 525000000, crystal: 4950000 } }
+      {
+        mult: 2,
+        cost: { mycelium: 1700000000, stone: 1300000000, ore: 49000000, crystal: 670000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 13000000000, stone: 11000000000, ore: 350000000, crystal: 3300000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 19500000000, stone: 16500000000, ore: 525000000, crystal: 4950000 }
+      }
     ]
   },
   crystal: {
@@ -260,10 +422,22 @@ export const REFINERIES = {
       { mult: 2, cost: { stone: 420000, ore: 150000, crystal: 5000 } },
       { mult: 2, cost: { stone: 8700000, ore: 3000000, crystal: 99000 } },
       { mult: 2, cost: { mycelium: 50000000, stone: 120000000, ore: 40000000, crystal: 1200000 } },
-      { mult: 2, cost: { mycelium: 240000000, stone: 670000000, ore: 220000000, crystal: 6300000 } },
-      { mult: 2, cost: { mycelium: 1600000000, stone: 4200000000, ore: 1400000000, crystal: 35000000 } },
-      { mult: 2, cost: { mycelium: 7100000000, stone: 20000000000, ore: 7100000000, crystal: 140000000 } },
-      { mult: 2, cost: { mycelium: 10650000000, stone: 30000000000, ore: 10650000000, crystal: 210000000 } }
+      {
+        mult: 2,
+        cost: { mycelium: 240000000, stone: 670000000, ore: 220000000, crystal: 6300000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 1600000000, stone: 4200000000, ore: 1400000000, crystal: 35000000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 7100000000, stone: 20000000000, ore: 7100000000, crystal: 140000000 }
+      },
+      {
+        mult: 2,
+        cost: { mycelium: 10650000000, stone: 30000000000, ore: 10650000000, crystal: 210000000 }
+      }
     ]
   }
 };
@@ -274,8 +448,25 @@ export const REFINERIES = {
 // Repeatable perks cost base + level; one-shots cost base.
 export const PERKS = {
   legacy: { name: t('perk.legacy'), base: 1, repeat: true, desc: t('perk.legacy.desc') },
-  memory: { retired: true, name: t('perk.memory'), base: 1, repeat: false, desc: t('perk.memory.desc') },
-  heirloom: { retired: true, name: t('perk.heirloom'), base: 1, repeat: false, desc: t('perk.heirloom.desc') },
-  cartographer: { name: t('perk.cartographer'), base: 2, repeat: false, desc: t('perk.cartographer.desc') },
+  memory: {
+    retired: true,
+    name: t('perk.memory'),
+    base: 1,
+    repeat: false,
+    desc: t('perk.memory.desc')
+  },
+  heirloom: {
+    retired: true,
+    name: t('perk.heirloom'),
+    base: 1,
+    repeat: false,
+    desc: t('perk.heirloom.desc')
+  },
+  cartographer: {
+    name: t('perk.cartographer'),
+    base: 2,
+    repeat: false,
+    desc: t('perk.cartographer.desc')
+  },
   nomad: { name: t('perk.nomad'), base: 2, repeat: true, desc: t('perk.nomad.desc') }
 };

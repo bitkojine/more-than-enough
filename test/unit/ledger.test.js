@@ -3,8 +3,11 @@ import assert from 'node:assert/strict';
 import { C, mushroomGarden } from './helpers.js';
 import { createIncome, MAX_SAMPLES } from '../../src/game/income.js';
 
-const near = (a, b, what) => assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
-const rich = (s) => { for (const r of C.RESOURCES) s.inv[r] = 1e15; };
+const near = (a, b, what) =>
+  assert.ok(Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(b)), `${what}: ${a} vs ${b}`);
+const rich = (s) => {
+  for (const r of C.RESOURCES) s.inv[r] = 1e15;
+};
 const held = (s) => ({ ...s.inv });
 
 // Puts up a building of `key` the way placing one pays for it.
@@ -19,7 +22,19 @@ test('spending adds up to exactly what buying took from your packs', () => {
   const before = held(s);
   for (let i = 0; i < 4; i++) build(s, 'garden', i);
   for (let i = 0; i < 2; i++) build(s, 'quarry', 10 + i);
-  for (const id of ['pickaxe', 'pickaxe', 'basket', 'overclock', 'mycelium', 'mycelium', 'stone', 'abundance', 'abundance', 'logistics', 'compost']) {
+  for (const id of [
+    'pickaxe',
+    'pickaxe',
+    'basket',
+    'overclock',
+    'mycelium',
+    'mycelium',
+    'stone',
+    'abundance',
+    'abundance',
+    'logistics',
+    'compost'
+  ]) {
     assert.ok(C.buy(s, id).ok, id);
   }
   s.world.props.set(C.packKey(3, 3, C.SURFACE), 'solar');
@@ -45,12 +60,25 @@ test('a new world has spent nothing and earns nothing but what hands gather', ()
 
 test('in a shared world only your own buildings count, and props are left out', () => {
   const s = C.createState(12345);
-  s.shared = 'room'; s.me = 'me';
-  s.extractors.push({ ...mushroomGarden(1, 1), owner: 'me' }, { ...mushroomGarden(2, 1), owner: 'friend' }, { ...mushroomGarden(3, 1), owner: 'friend' });
+  s.shared = 'room';
+  s.me = 'me';
+  s.extractors.push(
+    { ...mushroomGarden(1, 1), owner: 'me' },
+    { ...mushroomGarden(2, 1), owner: 'friend' },
+    { ...mushroomGarden(3, 1), owner: 'friend' }
+  );
   s.world.props.set(C.packKey(3, 3, C.SURFACE), 'solar');
   const spend = C.spendingStatement(s);
-  assert.deepEqual(spend.map((c) => c.id), ['buildings']);
-  assert.deepEqual(spend[0].cost, { mycelium: C.EXTRACTORS.garden.baseCost.mycelium, stone: 0, ore: 0, crystal: 0 });
+  assert.deepEqual(
+    spend.map((c) => c.id),
+    ['buildings']
+  );
+  assert.deepEqual(spend[0].cost, {
+    mycelium: C.EXTRACTORS.garden.baseCost.mycelium,
+    stone: 0,
+    ore: 0,
+    crystal: 0
+  });
   const line = C.incomeStatement(s).mycelium.lines[0];
   assert.equal(line.count, 1);
   near(line.rate, C.extractorRate(s, 'garden'), 'one garden');
@@ -61,14 +89,26 @@ test('income lines add up to the rates the resource bar shows, multipliers and a
   rich(s);
   for (let i = 0; i < 3; i++) build(s, 'garden', i);
   build(s, 'quarry', 5);
-  s.unlocks.compost = true; build(s, 'compost', 6);
-  s.resUp.mycelium = 3; s.tools.overclock = 3; s.abundanceLv = 2; s.perks.legacy = 1;
-  const inc = C.incomeStatement(s), rates = C.productionRates(s);
+  s.unlocks.compost = true;
+  build(s, 'compost', 6);
+  s.resUp.mycelium = 3;
+  s.tools.overclock = 3;
+  s.abundanceLv = 2;
+  s.perks.legacy = 1;
+  const inc = C.incomeStatement(s),
+    rates = C.productionRates(s);
   for (const r of C.RESOURCES) near(inc[r].rate, rates[r], r);
   const m = inc.mycelium.mult;
   near(m.total, m.refinery * m.overclock * m.abundance * m.legacy, 'multipliers');
   assert.equal(m.refinery, 8);
-  assert.deepEqual(inc.mycelium.lines.map((l) => [l.key, l.count]), [['garden', 3], ['compost', 1], ['engine', 2]]);
+  assert.deepEqual(
+    inc.mycelium.lines.map((l) => [l.key, l.count]),
+    [
+      ['garden', 3],
+      ['compost', 1],
+      ['engine', 2]
+    ]
+  );
   near(inc.mycelium.hand, C.gatherYield(s, 'mycelium'), 'a gather');
   near(inc.crystal.rate, C.abundanceTrickle(s), 'the engine alone');
 });
@@ -79,7 +119,8 @@ test('payback counts a price in seconds of your own income', () => {
   build(s, 'garden', 0);
   const rates = C.worthRates(s);
   // Costs and earns mycelium only: the price over what it adds.
-  const cost = C.extractorCost(s, 'garden'), gain = C.extractorRate(s, 'garden');
+  const cost = C.extractorCost(s, 'garden'),
+    gain = C.extractorRate(s, 'garden');
   near(C.payback(cost, { mycelium: gain }, rates), cost.mycelium / gain, 'garden');
   // Nothing made yet: worth what holding Gather brings.
   near(rates.ore, 4 * C.toolStat(s, 'pickaxe').yield, 'ore by hand');
@@ -95,12 +136,21 @@ test('best buys: quickest payback first, with what each would add', () => {
   const buys = C.bestBuys(s);
   for (let i = 1; i < buys.length; i++) assert.ok(buys[i - 1].payback <= buys[i].payback);
   const ids = buys.map((b) => b.id);
-  assert.ok(ids.includes('garden') && ids.includes('quarry') && ids.includes('mycelium') && ids.includes('abundance'));
+  assert.ok(
+    ids.includes('garden') &&
+      ids.includes('quarry') &&
+      ids.includes('mycelium') &&
+      ids.includes('abundance')
+  );
   assert.ok(!ids.includes('mine'), 'no Mine before ore is found');
   assert.ok(!ids.includes('compost'), 'no Compost Heap before its blueprint');
   assert.ok(!ids.includes('stone'), 'a refinery with nothing to refine adds nothing');
   const refine = buys.find((b) => b.id === 'mycelium');
-  near(refine.gain.mycelium, C.buildingRate(s, 'mycelium'), 'a level doubles what the buildings make');
+  near(
+    refine.gain.mycelium,
+    C.buildingRate(s, 'mycelium'),
+    'a level doubles what the buildings make'
+  );
   const engine = buys.find((b) => b.id === 'abundance');
   near(engine.gain.stone, 1, 'the engine adds a stone a second');
   near(engine.gain.mycelium, 1 + C.buildingRate(s, 'mycelium') * 0.5, 'and half again on mycelium');
@@ -120,7 +170,11 @@ test('what you own earns its price back in the same measure', () => {
 
 function memoryStore() {
   const m = new Map();
-  return { getItem: (k) => (m.has(k) ? m.get(k) : null), setItem: (k, v) => m.set(k, String(v)), m };
+  return {
+    getItem: (k) => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => m.set(k, String(v)),
+    m
+  };
 }
 
 test('income history: a sample a minute, sooner on a jump, kept per world', () => {
@@ -136,7 +190,10 @@ test('income history: a sample a minute, sooner on a jump, kept per world', () =
   assert.ok(!income.note(s, t0 + 61000), 'a jump waits a moment');
   assert.ok(income.note(s, t0 + 64000), 'then is noted');
   const h = income.history(s, 'mycelium');
-  assert.deepEqual(h.map((p) => p.at), [t0, t0 + 60000, t0 + 64000]);
+  assert.deepEqual(
+    h.map((p) => p.at),
+    [t0, t0 + 60000, t0 + 64000]
+  );
   near(h[2].rate, 2 * h[0].rate, 'doubled');
 
   const again = createIncome({ store });
@@ -156,7 +213,14 @@ test('income history thins its older half once full, and survives bad storage', 
   assert.equal(h[0].at, 0, 'still reaches back to the start');
   assert.equal(h[h.length - 1].at, (MAX_SAMPLES * 3 - 1) * 60000);
 
-  const broken = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('full'); } };
+  const broken = {
+    getItem: () => {
+      throw new Error('blocked');
+    },
+    setItem: () => {
+      throw new Error('full');
+    }
+  };
   const b = createIncome({ store: broken });
   assert.ok(b.note(s, 0));
   assert.equal(b.history(s, 'stone').length, 1, 'kept for this visit');

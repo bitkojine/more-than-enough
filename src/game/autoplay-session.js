@@ -8,15 +8,53 @@ const nothing = () => {};
 
 export function createAutoplaySession(seed, seen = () => {}) {
   const state = Core.createState(seed);
-  const game = { state, saveSoon: nothing, saveNow: nothing,
-    replace() { throw new Error('AUTO must not replace the world'); } }; // i18n-ok: invalid developer host operation
-  const fx = Object.fromEntries(['text', 'tally', 'celebrate', 'hit', 'found', 'gathered', 'dug', 'tossed', 'flyersFrom', 'clear', 'built'].map((k) => [k, nothing]));
-  const audio = Object.fromEntries(['fanfare', 'collect', 'gather', 'dig', 'upgrade', 'build'].map((k) => [k, nothing]));
-  const hud = Object.fromEntries(['update', 'updateButtons', 'milestone', 'toast'].map((k) => [k, nothing]));
-  const controller = createController({ game, fx, audio, hud,
-    cam: { unproject() { throw new Error('No manual map input'); } }, // i18n-ok: invalid developer host operation
-    look: { color: () => '#ffffff' }, actor: { act: nothing, busy: false },
-    ask() { throw new Error('AUTO must not confirm dialogs'); } // i18n-ok: invalid developer host operation
+  const game = {
+    state,
+    saveSoon: nothing,
+    saveNow: nothing,
+    replace() {
+      // i18n-ok: invalid developer host operation
+      throw new Error('AUTO must not replace the world');
+    }
+  };
+  const fx = Object.fromEntries(
+    [
+      'text',
+      'tally',
+      'celebrate',
+      'hit',
+      'found',
+      'gathered',
+      'dug',
+      'tossed',
+      'flyersFrom',
+      'clear',
+      'built'
+    ].map((k) => [k, nothing])
+  );
+  const audio = Object.fromEntries(
+    ['fanfare', 'collect', 'gather', 'dig', 'upgrade', 'build'].map((k) => [k, nothing])
+  );
+  const hud = Object.fromEntries(
+    ['update', 'updateButtons', 'milestone', 'toast'].map((k) => [k, nothing])
+  );
+  const controller = createController({
+    game,
+    fx,
+    audio,
+    hud,
+    cam: {
+      unproject() {
+        // i18n-ok: invalid developer host operation
+        throw new Error('No manual map input');
+      }
+    },
+    look: { color: () => '#ffffff' },
+    actor: { act: nothing, busy: false },
+    ask() {
+      // i18n-ok: invalid developer host operation
+      throw new Error('AUTO must not confirm dialogs');
+    }
   });
   const perform = controller.perform.bind(controller);
   controller.perform = (intent, held) => {
@@ -31,19 +69,34 @@ export function createAutoplaySession(seed, seen = () => {}) {
   Core.revealAround(state); // the normal initial reveal, never a world scan
   return {
     state,
-    get badge() { return auto.badge; },
-    get walking() { return controller.walking; },
-    get facing() { return controller.facing; },
-    get goal() { return auto.goal; },
-    press() { input.perfect = true; auto.press(); },
-    release() { input.perfect = false; auto.release(); },
+    get badge() {
+      return auto.badge;
+    },
+    get walking() {
+      return controller.walking;
+    },
+    get facing() {
+      return controller.facing;
+    },
+    get goal() {
+      return auto.goal;
+    },
+    press() {
+      input.perfect = true;
+      auto.press();
+    },
+    release() {
+      input.perfect = false;
+      auto.release();
+    },
     tick: simulation.tick,
     advanceChunk: simulation.advanceChunk,
-    get work() { return simulation.work; },
+    get work() {
+      return simulation.work;
+    },
     advanceTicks(count) {
       if (!Number.isSafeInteger(count) || count < 0) throw new Error('Invalid tick count'); // i18n-ok: invalid developer host operation
       return simulation.advanceTicks(count);
     }
   };
 }
-

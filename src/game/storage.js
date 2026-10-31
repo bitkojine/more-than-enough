@@ -6,7 +6,9 @@ import { serialize, deserialize, createState, SAVE_VERSION, OLDEST_SAVE } from '
 const SAVE_KEY = 'more-than-enough-save';
 // A save this version couldn't read, set aside rather than written over.
 const ASIDE_KEY = 'more-than-enough-save-aside';
-function freshWorld() { return createState(randomSeed(),{cultivation:true}); }
+function freshWorld() {
+  return createState(randomSeed(), { cultivation: true });
+}
 const VIEW_KEY = 'more-than-enough-view';
 const ARCHIVE_PREFIX = 'mte.solo.world.'; // every solo world's own copy, by seed
 // Saves set aside by loadGame when a world's own copy took over (one per seed,
@@ -14,21 +16,29 @@ const ARCHIVE_PREFIX = 'mte.solo.world.'; // every solo world's own copy, by see
 const KEPT_PREFIX = 'mte.solo.kept.';
 
 function read(key) {
-  try { return localStorage.getItem(key); } catch { return null; }
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
 // Returns the error if the write failed (full quota, storage blocked), else null.
 function write(key, value) {
-  try { localStorage.setItem(key, value); return null; } catch (err) { return err; }
+  try {
+    localStorage.setItem(key, value);
+    return null;
+  } catch (err) {
+    return err;
+  }
 }
 
 export function randomSeed() {
-  for(let i=0;i<100;i++){
-    const seed=(Math.random()*4294967295)>>>0;
-    if(!read(ARCHIVE_PREFIX+seed)&&!read('mte.depot-v1.world.'+seed))return seed;
+  for (let i = 0; i < 100; i++) {
+    const seed = (Math.random() * 4294967295) >>> 0;
+    if (!read(ARCHIVE_PREFIX + seed) && !read('mte.depot-v1.world.' + seed)) return seed;
   }
   throw new Error('No unused world seed'); // i18n-ok: diagnostic
-
 }
 
 // The save as this tab last read or wrote it. If what's stored differs, another
@@ -46,7 +56,7 @@ export function savedElsewhere() {
 // `conflict` holds that tab's save). `force` writes regardless.
 // Returns null when saved, { conflict } or { error }.
 export function saveGame(state, force = false) {
-  if (state.cultivation&&state.shared) return {error:new Error('Save slot mismatch')}; // i18n-ok: storage diagnostic
+  if (state.cultivation && state.shared) return { error: new Error('Save slot mismatch') }; // i18n-ok: storage diagnostic
   if (!force) {
     const other = savedElsewhere();
     if (other) return { conflict: other };
@@ -95,8 +105,9 @@ export function loadGame() {
   const aside = read(ASIDE_KEY);
   const back = aside && deserialize(aside);
   let state = raw && deserialize(raw);
-  if(state&&!state.cultivation){
-    const archived=read(ARCHIVE_PREFIX+state.seed),saved=archived&&deserialize(archived);
+  if (state && !state.cultivation) {
+    const archived = read(ARCHIVE_PREFIX + state.seed),
+      saved = archived && deserialize(archived);
     // The world's own copy took over: what was in use is kept under its own
     // name, never over the one save already set aside.
     if (saved?.cultivation && !write(KEPT_PREFIX + state.seed + '.' + Date.now(), raw)) {
@@ -108,7 +119,10 @@ export function loadGame() {
   if (back) {
     // Back in use first, then the other set aside: closing the game in
     // between loses neither.
-    if (!write(SAVE_KEY, aside)) { known = aside; write(ASIDE_KEY, raw ?? ''); }
+    if (!write(SAVE_KEY, aside)) {
+      known = aside;
+      write(ASIDE_KEY, raw ?? '');
+    }
     return { state: back, lost: false };
   }
   if (!raw) return { state: freshWorld(), lost: false };
@@ -122,7 +136,9 @@ export function loadGame() {
 // Whether world `a` has been played further than `b`: more Embarks (each
 // starts the play clock again), else more time played.
 function further(a, b) {
-  return a.prestiges !== b.prestiges ? a.prestiges > b.prestiges : a.stats.playedMs > b.stats.playedMs;
+  return a.prestiges !== b.prestiges
+    ? a.prestiges > b.prestiges
+    : a.stats.playedMs > b.stats.playedMs;
 }
 
 // The format version a save says it has, or null if it doesn't say one.
@@ -130,7 +146,9 @@ function formatOf(raw) {
   try {
     const v = JSON.parse(raw)?.v;
     return Number.isInteger(v) && (v > SAVE_VERSION || v < OLDEST_SAVE) ? v : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 // The viewer's zoom, drag direction, music choice, the tracks they have
@@ -154,7 +172,18 @@ export function loadView() {
       logOpen: v.logOpen !== false
     };
   } catch {
-    return { zoom: 1, invertDrag: false, music: true, heard: [], quality: 0, holdTip: false, awayProduce: false, showAuto: false, wiki: null, logOpen: true };
+    return {
+      zoom: 1,
+      invertDrag: false,
+      music: true,
+      heard: [],
+      quality: 0,
+      holdTip: false,
+      awayProduce: false,
+      showAuto: false,
+      wiki: null,
+      logOpen: true
+    };
   }
 }
 
@@ -169,20 +198,31 @@ export function saveView(view) {
 function soloRaws() {
   const bySeed = new Map();
   const take = (raw) => {
-    try { const seed = JSON.parse(raw)?.seed; if (Number.isInteger(seed) && !bySeed.has(seed)) bySeed.set(seed, raw); } catch { /* not a save */ }
+    try {
+      const seed = JSON.parse(raw)?.seed;
+      if (Number.isInteger(seed) && !bySeed.has(seed)) bySeed.set(seed, raw);
+    } catch {
+      /* not a save */
+    }
   };
   let keys = [];
-  try { keys = Object.keys(localStorage); } catch { /* storage blocked */ }
+  try {
+    keys = Object.keys(localStorage);
+  } catch {
+    /* storage blocked */
+  }
   const save = read(SAVE_KEY);
   if (save) take(save);
-  for (const prefix of [ARCHIVE_PREFIX, 'mte.depot-v1.world.']) for (const k of keys) if (k.startsWith(prefix)) take(read(k));
+  for (const prefix of [ARCHIVE_PREFIX, 'mte.depot-v1.world.'])
+    for (const k of keys) if (k.startsWith(prefix)) take(read(k));
   if (keys.includes('mte.depot-v1.save')) take(read('mte.depot-v1.save'));
   return bySeed;
 }
 
 // The solo worlds to list, last played first: { seed, state }.
 export function soloWorlds() {
-  return [...soloRaws()].map(([seed, raw]) => ({ seed, state: deserialize(raw) }))
+  return [...soloRaws()]
+    .map(([seed, raw]) => ({ seed, state: deserialize(raw) }))
     .filter((w) => w.state && !w.state.shared)
     .sort((a, b) => (b.state.seen || 0) - (a.state.seen || 0));
 }
@@ -195,7 +235,9 @@ export function soloSeeds() {
       const m = /^(?:mte\.solo\.world\.|mte\.depot-v1\.world\.)(\d+)$/.exec(k);
       if (m) seeds.add(Number(m[1]));
     }
-  } catch { /* storage blocked */ }
+  } catch {
+    /* storage blocked */
+  }
   return [...seeds];
 }
 
@@ -210,7 +252,9 @@ export function soloWorld(seed) {
   return raw ? deserialize(raw) : null;
 }
 
-export function newSoloWorld(){return freshWorld();}
+export function newSoloWorld() {
+  return freshWorld();
+}
 
 // This device's own copy of solo world `seed`, or null (sync.js).
 export function archivedSave(seed) {
@@ -244,7 +288,9 @@ export async function keepStorage(nav = globalThis.navigator) {
   try {
     const s = nav && nav.storage;
     if (!s || !s.persist) return null;
-    if (s.persisted && await s.persisted()) return true;
+    if (s.persisted && (await s.persisted())) return true;
     return await s.persist();
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }

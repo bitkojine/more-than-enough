@@ -7,7 +7,10 @@ import assert from 'node:assert/strict';
 import { C, T, typeAt, findNear, standOn, away } from './helpers.js';
 
 // Stands the player next to tile t, without caring what they stand on.
-const beside = (s, t) => { s.player.x = t.x - 0.5; s.player.y = t.y + 0.5; };
+const beside = (s, t) => {
+  s.player.x = t.x - 0.5;
+  s.player.y = t.y + 0.5;
+};
 
 test('crystal waits for Pickaxe III, and holding Gather passes it by', () => {
   const s = C.createState(12345);
@@ -42,10 +45,14 @@ test('the shafts below layer 3 wait for Pickaxe IV, deeper ones for V and VI', (
 
 test('rare mushrooms wait for Basket IV and pay three times over', () => {
   const s = C.createState(12345);
-  const rare = findNear(s, (st, x, y) => {
-    const k = C.mushroomAt(st.seed, typeAt(st, x, y), x, y, 0);
-    return !!(k && C.MUSHROOMS[k].magic) && C.richness(st.world, x, y, 0) > 0;
-  }, 400);
+  const rare = findNear(
+    s,
+    (st, x, y) => {
+      const k = C.mushroomAt(st.seed, typeAt(st, x, y), x, y, 0);
+      return !!(k && C.MUSHROOMS[k].magic) && C.richness(st.world, x, y, 0) > 0;
+    },
+    400
+  );
   standOn(s, rare);
   assert.deepEqual(C.gearNeeded(s, rare.x, rare.y), { tool: 'basket', level: 4 });
   assert.equal(C.harvestAt(s, rare.x, rare.y), null);
@@ -56,9 +63,16 @@ test('rare mushrooms wait for Basket IV and pay three times over', () => {
 
 test('without Boots II you stop at the shore; in the water you can always get out', () => {
   const s = C.createState(12345);
-  const water = findNear(s, (st, x, y) => typeAt(st, x, y) === T.WATER &&
-    C.walkable(st.world, x - 1, y, 0) && typeAt(st, x - 1, y) !== T.WATER, 400);
-  s.player.x = water.x - 0.5; s.player.y = water.y + 0.5;
+  const water = findNear(
+    s,
+    (st, x, y) =>
+      typeAt(st, x, y) === T.WATER &&
+      C.walkable(st.world, x - 1, y, 0) &&
+      typeAt(st, x - 1, y) !== T.WATER,
+    400
+  );
+  s.player.x = water.x - 0.5;
+  s.player.y = water.y + 0.5;
   assert.equal(C.waterAhead(s, 1, 0), true);
   for (let i = 0; i < 10; i++) C.move(s, 1, 0, 0.1);
   assert.ok(s.player.x < water.x, 'the shore stops you');
@@ -76,7 +90,8 @@ test('without Boots II you stop at the shore; in the water you can always get ou
 });
 
 test('each door opens at exactly one tool level', () => {
-  const doors = (tool) => C.TOOLS[tool].levels.map((_, i) => C.toolOpens(tool, i + 1).map((d) => d.id + (d.layer || '')));
+  const doors = (tool) =>
+    C.TOOLS[tool].levels.map((_, i) => C.toolOpens(tool, i + 1).map((d) => d.id + (d.layer || '')));
   assert.deepEqual(doors('pickaxe'), [[], ['ore'], ['crystal'], ['deep3'], ['deep6'], ['deep9']]);
   assert.deepEqual(doors('basket'), [[], [], [], ['rare'], [], []]);
   assert.deepEqual(doors('boots'), [[], ['water'], [], [], []]);

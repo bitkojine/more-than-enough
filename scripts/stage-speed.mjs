@@ -49,35 +49,62 @@ try {
   throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
 }
 const entry = path.join(OUT, 'src/game/main.js');
-for (const target of [entry, path.join(OUT, 'src/game/autoplay-lab.js'), path.join(OUT, 'src/game/perf.js'), path.join(OUT, 'src/game/news-text.js'), path.join(OUT,'src/game/statement.js'), path.join(OUT, 'src/game/sync-lazy.js'), path.join(OUT, 'src/game/render/rigged-character.js')]) await esbuild.build({
-  entryPoints: [target],
-  external: ['./perf.js', './statement.js', './autoplay-lab.js', './news-text.js', './sync-lazy.js', './render/rigged-character.js'],
-  outfile: target,          // in place: import.meta.url stays where main.js was
-  allowOverwrite: true,
-  bundle: true,
-  format: 'esm',
-  charset: 'utf8',         // module scripts are UTF-8; avoid escaping Lithuanian text
-  minify: true,
-  keepNames: true,         // so a crash report still names the functions
-  sourcemap: 'linked',     // for DevTools only; players never download it
-  sourcesContent: false,   // the staged site carries the sources themselves
-  legalComments: 'none',
-  logLevel: 'warning'
-});
+for (const target of [
+  entry,
+  path.join(OUT, 'src/game/autoplay-lab.js'),
+  path.join(OUT, 'src/game/perf.js'),
+  path.join(OUT, 'src/game/news-text.js'),
+  path.join(OUT, 'src/game/statement.js'),
+  path.join(OUT, 'src/game/sync-lazy.js'),
+  path.join(OUT, 'src/game/render/rigged-character.js')
+])
+  await esbuild.build({
+    entryPoints: [target],
+    external: [
+      './perf.js',
+      './statement.js',
+      './autoplay-lab.js',
+      './news-text.js',
+      './sync-lazy.js',
+      './render/rigged-character.js'
+    ],
+    outfile: target, // in place: import.meta.url stays where main.js was
+    allowOverwrite: true,
+    bundle: true,
+    format: 'esm',
+    charset: 'utf8', // module scripts are UTF-8; avoid escaping Lithuanian text
+    minify: true,
+    keepNames: true, // so a crash report still names the functions
+    sourcemap: 'linked', // for DevTools only; players never download it
+    sourcesContent: false, // the staged site carries the sources themselves
+    legalComments: 'none',
+    logLevel: 'warning'
+  });
 
 /* 3. The pack is named up front, so it downloads with the code. */
 const page = path.join(OUT, 'index.html');
 const html = fs.readFileSync(page, 'utf8');
 if (!html.includes('</head>')) throw new Error('no </head> in index.html');
-fs.writeFileSync(page, html.replace('</head>', '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'));
+fs.writeFileSync(
+  page,
+  html.replace(
+    '</head>',
+    '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'
+  )
+);
 
 /* 4. Minify the stylesheet. */
 for (const name of ['style.css', 'autoplay-lab.css']) {
-const sheet = path.join(OUT, name);
-const css = await esbuild.transform(fs.readFileSync(sheet, 'utf8'), {
-  loader: 'css', minify: true, legalComments: 'none', target: ['safari12', 'chrome70', 'firefox68']
-});
-fs.writeFileSync(sheet, css.code);
+  const sheet = path.join(OUT, name);
+  const css = await esbuild.transform(fs.readFileSync(sheet, 'utf8'), {
+    loader: 'css',
+    minify: true,
+    legalComments: 'none',
+    target: ['safari12', 'chrome70', 'firefox68']
+  });
+  fs.writeFileSync(sheet, css.code);
 }
 
-console.log(`Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(entry).size / 1024)} KB)`);
+console.log(
+  `Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(entry).size / 1024)} KB)`
+);

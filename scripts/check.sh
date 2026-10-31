@@ -8,7 +8,9 @@
 # What it runs, and why each is here:
 #   - npm run lint       ESLint: errors fail, and the warning count may only
 #                        go down (--max-warnings in package.json is a
-#                        ratchet: lower it when you clear warnings)
+#                        ratchet: lower it when you clear warnings). Then
+#                        Prettier: unformatted JavaScript fails; run
+#                        `npm run format` to fix it.
 #   - npm test           pages.yml and rooms.yml both run it (unit + property,
 #                        including the smoke test's checks against a local
 #                        Room: test/unit/smoke.test.js — the same assertions

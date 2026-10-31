@@ -39,40 +39,69 @@ test('the first load is few requests and fits the size budget', (t) => {
   assert.deepEqual(paths, [], 'pictures left as separate files in the staged pack');
 
   // Anything the game still imports is preloaded (the bundle leaves nothing).
-  const preloaded = new Set([...page.matchAll(/<link rel="(?:modulepreload|preload)" href="([^"]+)"/g)].map((m) => m[1]));
+  const preloaded = new Set(
+    [...page.matchAll(/<link rel="(?:modulepreload|preload)" href="([^"]+)"/g)].map((m) => m[1])
+  );
   const entry = page.match(/<script type="module" src="([^"]+)"/)[1];
   const modules = new Set();
   const walk = (url) => {
     if (modules.has(url)) return;
     modules.add(url);
     const [path] = url.split('?');
-    for (const m of file(url).toString().matchAll(/from '(\.{1,2}\/[^']+)'/g)) {
+    for (const m of file(url)
+      .toString()
+      .matchAll(/from '(\.{1,2}\/[^']+)'/g)) {
       const u = new URL(m[1], 'http://x/' + path);
       walk(u.pathname.slice(1) + u.search);
     }
   };
   walk(entry);
-  for (const m of modules) if (m !== entry) assert.ok(preloaded.has(m), `${m} is imported but neither bundled nor preloaded`);
-  assert.ok([...preloaded].some((u) => u.startsWith('packs/default/pack.json?v=')), 'the default pack is not preloaded');
+  for (const m of modules)
+    if (m !== entry)
+      assert.ok(preloaded.has(m), `${m} is imported but neither bundled nor preloaded`);
+  assert.ok(
+    [...preloaded].some((u) => u.startsWith('packs/default/pack.json?v=')),
+    'the default pack is not preloaded'
+  );
 
   // Size and count of everything a fresh browser fetches before the game starts.
   const css = [...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
   const urls = [...new Set([...css, ...modules, ...preloaded])];
-  const rigKB=gzipSync(file('src/game/render/rigged-character.js')).length/1024;
+  const rigKB = gzipSync(file('src/game/render/rigged-character.js')).length / 1024;
   t.diagnostic(`lazy 3D character: ${rigKB.toFixed(1)} KB gzipped`);
-  assert.ok(rigKB<=180, 'lazy 3D presentation module exceeds its 180 KB budget');
-  const kb = (gzipSync(page).length + urls.reduce((n, u) => n + gzipSync(file(u)).length, 0)) / 1024;
+  assert.ok(rigKB <= 180, 'lazy 3D presentation module exceeds its 180 KB budget');
+  const kb =
+    (gzipSync(page).length + urls.reduce((n, u) => n + gzipSync(file(u)).length, 0)) / 1024;
   t.diagnostic(`first load: ${urls.length + 1} requests, ${kb.toFixed(1)} KB gzipped`);
-  assert.ok(urls.length + 1 <= MAX_REQUESTS, `${urls.length + 1} requests at first load (max ${MAX_REQUESTS})`);
-  assert.ok(kb <= BUDGET_KB, `first load is ${kb.toFixed(1)} KB gzipped, over the ${BUDGET_KB} KB budget`);
+  assert.ok(
+    urls.length + 1 <= MAX_REQUESTS,
+    `${urls.length + 1} requests at first load (max ${MAX_REQUESTS})`
+  );
+  assert.ok(
+    kb <= BUDGET_KB,
+    `first load is ${kb.toFixed(1)} KB gzipped, over the ${BUDGET_KB} KB budget`
+  );
 });
 
 test('the default pack holds only files its pack.json uses, and all of them exist', () => {
   const dir = join(ROOT, 'packs', 'default');
-  const named = new Set(JSON.stringify(JSON.parse(readFileSync(join(dir, 'pack.json'), 'utf8')).looks)
-    .match(/[^"]+\.(svg|png|webp|jpe?g|gif)(?=")/g));
-  const files = readdirSync(dir, { recursive: true, withFileTypes: true }).filter((e) => e.isFile())
-    .map((e) => relative(dir, join(e.parentPath, e.name)).split(sep).join('/')).filter((f) => f !== 'pack.json');
-  assert.deepEqual(files.filter((f) => !named.has(f)), [], 'files in packs/default/ that pack.json never uses: delete them or use them');
-  assert.deepEqual([...named].filter((f) => !files.includes(f)), [], 'pack.json names files that do not exist');
+  const named = new Set(
+    JSON.stringify(JSON.parse(readFileSync(join(dir, 'pack.json'), 'utf8')).looks).match(
+      /[^"]+\.(svg|png|webp|jpe?g|gif)(?=")/g
+    )
+  );
+  const files = readdirSync(dir, { recursive: true, withFileTypes: true })
+    .filter((e) => e.isFile())
+    .map((e) => relative(dir, join(e.parentPath, e.name)).split(sep).join('/'))
+    .filter((f) => f !== 'pack.json');
+  assert.deepEqual(
+    files.filter((f) => !named.has(f)),
+    [],
+    'files in packs/default/ that pack.json never uses: delete them or use them'
+  );
+  assert.deepEqual(
+    [...named].filter((f) => !files.includes(f)),
+    [],
+    'pack.json names files that do not exist'
+  );
 });

@@ -1,4 +1,4 @@
-import {unlockOptional} from './helpers.js';
+import { unlockOptional } from './helpers.js';
 // Build offers only what can stand on the layer you're on (Watch, 2026-10-26).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -21,10 +21,30 @@ test('old worlds build every building and water power on the surface, mine props
 
 test('crystal worlds: garden and quarry up top, mine below, crystal rooms from layer 2 down', () => {
   const s = C.createState(7, { cultivation: true });
-  const all = ['garden', 'quarry', 'mine', 'stoneworks', 'depot', 'chamber', 'cooler', 'vault', 'conduit', 'shelter'];
+  const all = [
+    'garden',
+    'quarry',
+    'mine',
+    'stoneworks',
+    'depot',
+    'chamber',
+    'cooler',
+    'vault',
+    'conduit',
+    'shelter'
+  ];
   assert.deepEqual(kinds(s, 0, all), ['garden', 'quarry', 'stoneworks', 'depot', 'shelter']);
   assert.deepEqual(kinds(s, -1, all), ['mine', 'stoneworks', 'depot', 'shelter']);
-  assert.deepEqual(kinds(s, -2, all), ['mine', 'stoneworks', 'depot', 'chamber', 'cooler', 'vault', 'conduit', 'shelter']);
+  assert.deepEqual(kinds(s, -2, all), [
+    'mine',
+    'stoneworks',
+    'depot',
+    'chamber',
+    'cooler',
+    'vault',
+    'conduit',
+    'shelter'
+  ]);
   assert.equal(C.buildsOnLayer(s, 'nonsense', 0), false);
 });
 

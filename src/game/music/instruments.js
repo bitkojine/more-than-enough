@@ -73,7 +73,9 @@ function plucked(ctx, out, t, midi, dur, vol, ring, damp, bright, cutoff) {
   const end = t + Math.min(ring, Math.max(dur * 1.6, 0.4));
   g.gain.setValueAtTime(vol, end - 0.12);
   g.gain.exponentialRampToValueAtTime(0.0001, end);
-  src.connect(lp); lp.connect(g); g.connect(out);
+  src.connect(lp);
+  lp.connect(g);
+  g.connect(out);
   src.start(t);
   src.stop(end + 0.02);
 }
@@ -139,7 +141,12 @@ export const INSTRUMENTS = {
   bell(ctx, out, t, midi, dur, vel) {
     const f = hz(midi);
     const ring = Math.max(1.6, dur * 1.5);
-    for (const [mult, vol, len] of [[1, 0.5, 1], [2, 0.15, 0.5], [3.01, 0.07, 0.3], [5.4, 0.03, 0.12]]) {
+    for (const [mult, vol, len] of [
+      [1, 0.5, 1],
+      [2, 0.15, 0.5],
+      [3.01, 0.07, 0.3],
+      [5.4, 0.03, 0.12]
+    ]) {
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(vol * vel, t + 0.004);
@@ -153,7 +160,11 @@ export const INSTRUMENTS = {
   mallet(ctx, out, t, midi, dur, vel) {
     const f = hz(midi);
     const ring = Math.min(0.9, 0.35 + dur * 0.4);
-    for (const [mult, vol, len] of [[1, 0.36, 1], [3.9, 0.07, 0.25], [9.2, 0.03, 0.06]]) {
+    for (const [mult, vol, len] of [
+      [1, 0.36, 1],
+      [3.9, 0.07, 0.25],
+      [9.2, 0.03, 0.06]
+    ]) {
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(vol * vel, t + 0.003);

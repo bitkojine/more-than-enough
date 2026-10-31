@@ -1,7 +1,7 @@
 /* The game state, and the prestige loop that replaces it with a fresh world. */
 
 import { bindSpending } from './spending.js';
-import {newCultivation} from './cultivation.js';
+import { newCultivation } from './cultivation.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
@@ -58,11 +58,14 @@ function perResource(value) {
 }
 
 /** @returns {State} */
-export function createState(seed, {cultivation=false}={}) {
-  const world = createWorld(seed,cultivation);
+export function createState(seed, { cultivation = false } = {}) {
+  const world = createWorld(seed, cultivation);
   const spawn = findSpawn(world);
   const s = blankState(world, { x: spawn.x + 0.5, y: spawn.y + 0.5, z: SURFACE });
-  if(cultivation){s.cultivation=newCultivation();s.logisticsModel='depot-v1';}
+  if (cultivation) {
+    s.cultivation = newCultivation();
+    s.logisticsModel = 'depot-v1';
+  }
   // Home ground, where your stockpile stands, is in view from the start, and
   // the land just around it, so there's something to go and gather.
   const r = HOME_HALF + HOME_VIEW;
@@ -76,7 +79,7 @@ export function createState(seed, {cultivation=false}={}) {
 export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
   const state = {
     seed: world.seed,
-    spending: {since:0,complete:true,totals:{}},
+    spending: { since: 0, complete: true, totals: {} },
     emptyStart: true,
     world,
     player,
@@ -90,19 +93,30 @@ export function blankState(world, player = { x: 0.5, y: 0.5, z: SURFACE }) {
     totalEver: 0,
     perks: Object.fromEntries(Object.keys(PERKS).map((k) => [k, 0])),
     extractors: [],
-    stats: { ...perResource(0), foraged: 0, gathers: 0, finds: 0, collected: 0, built: 0, flares: 0, playedMs: 0 },
+    stats: {
+      ...perResource(0),
+      foraged: 0,
+      gathers: 0,
+      finds: 0,
+      collected: 0,
+      built: 0,
+      flares: 0,
+      playedMs: 0
+    },
     // Where this world's resources came from ({res: {source: amount}}), how
     // much of each kind of mushroom you've picked here, and every kind you've
     // ever found, in any world.
-    sources: Object.fromEntries(RESOURCES.map((r) => [r, Object.fromEntries(Object.keys(SOURCES).map((k) => [k, 0]))])),
+    sources: Object.fromEntries(
+      RESOURCES.map((r) => [r, Object.fromEntries(Object.keys(SOURCES).map((k) => [k, 0]))])
+    ),
     mushrooms: {},
     mushroomsEver: [],
     discovered: { ore: false, crystal: false },
-    goalsDone: [],  // milestone ids, in the order reached
-    goalIndex: 0,   // how many: goalsDone.length
+    goalsDone: [], // milestone ids, in the order reached
+    goalIndex: 0, // how many: goalsDone.length
     time: 0,
-    battery: 1,     // the lantern's charge, 0..1 (light.js)
-    flare: 0,       // seconds left of the flare in your hand, 0 when none (flare.js)
+    battery: 1, // the lantern's charge, 0..1 (light.js)
+    flare: 0, // seconds left of the flare in your hand, 0 when none (flare.js)
     underground: { deepest: SURFACE },
     events: []
   };
@@ -126,7 +140,7 @@ export function lifetimeTotal(s) {
 // Insight for embarking: 22 for one world's worth (EMBARK_MIN_TOTAL), and the
 // square root of the lifetime total in worlds' worth after that.
 export function embarkGain(s) {
-  return Math.floor(Math.sqrt(500 * lifetimeTotal(s) / EMBARK_MIN_TOTAL));
+  return Math.floor(Math.sqrt((500 * lifetimeTotal(s)) / EMBARK_MIN_TOTAL));
 }
 
 // Eligibility counts this world's upgrades only. Finishing mastery ends the
@@ -134,7 +148,7 @@ export function embarkGain(s) {
 // The Insight reward still uses the lifetime total.
 // Never in a shared world: Embark is for playing alone.
 export function canEmbark(s) {
-  return !s.shared && (s.cultivation ? s.cultivation.completed===true : worldMastered(s));
+  return !s.shared && (s.cultivation ? s.cultivation.completed === true : worldMastered(s));
 }
 
 // Starts empty-handed, keeping lifetime records and known mushroom kinds.
@@ -143,7 +157,7 @@ export function embark(s, seed) {
   const gained = embarkGain(s);
   // Every next world is a crystal world, an old-economy one's too (Watch,
   // 2026-10-26): the world left behind stays saved and playable as it was.
-  const fresh = createState(seed,{cultivation:true});
+  const fresh = createState(seed, { cultivation: true });
   // New worlds carry records and knowledge only, never equipment or bonuses.
   // The old world retains its Insight and perks in its preserved save.
   fresh.prestiges = s.prestiges + 1;

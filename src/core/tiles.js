@@ -28,41 +28,77 @@ export const RESOURCES = ['mycelium', 'stone', 'ore', 'crystal'];
 // Each resource's name, and its lowercase forms for use inside a sentence:
 // as the subject (`lower`) and "of it" (`of`, the Lithuanian genitive).
 export const RESOURCE_LABEL = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r)]));
-export const RESOURCE_LOWER = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r + '.lower')]));
+export const RESOURCE_LOWER = Object.fromEntries(
+  RESOURCES.map((r) => [r, t('res.' + r + '.lower')])
+);
 export const RESOURCE_OF = Object.fromEntries(RESOURCES.map((r) => [r, t('res.' + r + '.of')]));
 
 // Values are stable: the surface ids match older saves and tests refer to them.
 export const T = {
   // surface (z = 0)
-  GRASS: 0, FOREST: 1, STONE: 2, ORE: 3, CRYSTAL: 4, WATER: 5, ROCK: 6,
+  GRASS: 0,
+  FOREST: 1,
+  STONE: 2,
+  ORE: 3,
+  CRYSTAL: 4,
+  WATER: 5,
+  ROCK: 6,
   // underground (z < 0)
-  TUNNEL: 7, SOIL: 8, STONE_SEAM: 9, ORE_SEAM: 10, CRYSTAL_SEAM: 11, SPORE_BED: 12,
-  BEDROCK: 13, SHAFT: 14, SHAFT_OPEN: 15,
+  TUNNEL: 7,
+  SOIL: 8,
+  STONE_SEAM: 9,
+  ORE_SEAM: 10,
+  CRYSTAL_SEAM: 11,
+  SPORE_BED: 12,
+  BEDROCK: 13,
+  SHAFT: 14,
+  SHAFT_OPEN: 15,
   // surface again: the clearing every world starts in
   HOME: 16,
   // underground finds
-  CACHE: 17, GEODE: 18,
+  CACHE: 17,
+  GEODE: 18,
   // the generated ways between layers: a cave mouth in the forest, and the
   // foot of the ladder up beneath every way down
-  CAVE: 19, RISE: 20,
+  CAVE: 19,
+  RISE: 20,
   // surface: the borders between regions people built, a dry stone wall
   // and a living hedge (see regions.js)
-  WALL: 21, HEDGE: 22
+  WALL: 21,
+  HEDGE: 22
 };
 
 // Each type's name, and the key its pictures are kept under (look id "tile.<key>").
 export const TILE_NAME = [];
 export const TILE_KEY = [];
 [
-  [T.GRASS, 'grass'], [T.FOREST, 'forest'], [T.STONE, 'stone'],
-  [T.ORE, 'ore'], [T.CRYSTAL, 'crystal'], [T.WATER, 'water'],
-  [T.ROCK, 'mountain'], [T.TUNNEL, 'tunnel'], [T.SOIL, 'soil'],
-  [T.STONE_SEAM, 'stone-seam'], [T.ORE_SEAM, 'ore-seam'],
-  [T.CRYSTAL_SEAM, 'crystal-seam'], [T.SPORE_BED, 'spore-bed'],
-  [T.BEDROCK, 'bedrock'], [T.SHAFT, 'shaft'], [T.SHAFT_OPEN, 'shaft-open'],
-  [T.HOME, 'home'], [T.CACHE, 'cache'], [T.GEODE, 'geode'],
-  [T.CAVE, 'cave'], [T.RISE, 'rise'], [T.WALL, 'wall'], [T.HEDGE, 'hedge']
-].forEach(([type, key]) => { TILE_KEY[type] = key; TILE_NAME[type] = t('tile.' + key); });
+  [T.GRASS, 'grass'],
+  [T.FOREST, 'forest'],
+  [T.STONE, 'stone'],
+  [T.ORE, 'ore'],
+  [T.CRYSTAL, 'crystal'],
+  [T.WATER, 'water'],
+  [T.ROCK, 'mountain'],
+  [T.TUNNEL, 'tunnel'],
+  [T.SOIL, 'soil'],
+  [T.STONE_SEAM, 'stone-seam'],
+  [T.ORE_SEAM, 'ore-seam'],
+  [T.CRYSTAL_SEAM, 'crystal-seam'],
+  [T.SPORE_BED, 'spore-bed'],
+  [T.BEDROCK, 'bedrock'],
+  [T.SHAFT, 'shaft'],
+  [T.SHAFT_OPEN, 'shaft-open'],
+  [T.HOME, 'home'],
+  [T.CACHE, 'cache'],
+  [T.GEODE, 'geode'],
+  [T.CAVE, 'cave'],
+  [T.RISE, 'rise'],
+  [T.WALL, 'wall'],
+  [T.HEDGE, 'hedge']
+].forEach(([type, key]) => {
+  TILE_KEY[type] = key;
+  TILE_NAME[type] = t('tile.' + key);
+});
 
 export const TILE_INFO = [];
 TILE_INFO[T.GRASS] = { walk: true, land: true };
@@ -74,10 +110,28 @@ TILE_INFO[T.WATER] = { walk: true, swim: true, height: -0.15 };
 TILE_INFO[T.ROCK] = { height: 1, rough: 0.6 };
 TILE_INFO[T.TUNNEL] = { walk: true };
 TILE_INFO[T.SOIL] = { harvest: true, solid: true, cleared: T.TUNNEL, height: 1 };
-TILE_INFO[T.STONE_SEAM] = { harvest: true, solid: true, res: 'stone', cleared: T.TUNNEL, height: 1 };
+TILE_INFO[T.STONE_SEAM] = {
+  harvest: true,
+  solid: true,
+  res: 'stone',
+  cleared: T.TUNNEL,
+  height: 1
+};
 TILE_INFO[T.ORE_SEAM] = { harvest: true, solid: true, res: 'ore', cleared: T.TUNNEL, height: 1 };
-TILE_INFO[T.CRYSTAL_SEAM] = { harvest: true, solid: true, res: 'crystal', cleared: T.TUNNEL, height: 1 };
-TILE_INFO[T.SPORE_BED] = { harvest: true, solid: true, res: 'mycelium', cleared: T.TUNNEL, height: 1 };
+TILE_INFO[T.CRYSTAL_SEAM] = {
+  harvest: true,
+  solid: true,
+  res: 'crystal',
+  cleared: T.TUNNEL,
+  height: 1
+};
+TILE_INFO[T.SPORE_BED] = {
+  harvest: true,
+  solid: true,
+  res: 'mycelium',
+  cleared: T.TUNNEL,
+  height: 1
+};
 TILE_INFO[T.BEDROCK] = { cleared: T.TUNNEL, height: 1 };
 TILE_INFO[T.SHAFT] = { harvest: true, solid: true, sweep: false, cleared: T.SHAFT_OPEN, height: 1 };
 TILE_INFO[T.SHAFT_OPEN] = { walk: true, descend: true };

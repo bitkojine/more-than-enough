@@ -3,7 +3,8 @@
 
 // Uniform [0, 1) from an integer lattice point and a seed.
 export function hash2(x, y, seed) {
-  let h = Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(seed | 0, 2246822519);
+  let h =
+    Math.imul(x | 0, 374761393) ^ Math.imul(y | 0, 668265263) ^ Math.imul(seed | 0, 2246822519);
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   h ^= h >>> 16;
   return (h >>> 0) / 4294967296;
@@ -14,10 +15,14 @@ function smoothstep(t) {
 }
 
 export function valueNoise(x, y, seed) {
-  const x0 = Math.floor(x), y0 = Math.floor(y);
-  const fx = smoothstep(x - x0), fy = smoothstep(y - y0);
-  const v00 = hash2(x0, y0, seed), v10 = hash2(x0 + 1, y0, seed);
-  const v01 = hash2(x0, y0 + 1, seed), v11 = hash2(x0 + 1, y0 + 1, seed);
+  const x0 = Math.floor(x),
+    y0 = Math.floor(y);
+  const fx = smoothstep(x - x0),
+    fy = smoothstep(y - y0);
+  const v00 = hash2(x0, y0, seed),
+    v10 = hash2(x0 + 1, y0, seed);
+  const v01 = hash2(x0, y0 + 1, seed),
+    v11 = hash2(x0 + 1, y0 + 1, seed);
   const a = v00 + (v10 - v00) * fx;
   const b = v01 + (v11 - v01) * fx;
   return a + (b - a) * fy;
@@ -25,7 +30,10 @@ export function valueNoise(x, y, seed) {
 
 // Fractal Brownian motion: summed octaves of value noise, normalised to [0, 1).
 export function fbm(x, y, seed, octaves = 4) {
-  let amp = 0.5, freq = 1, sum = 0, norm = 0;
+  let amp = 0.5,
+    freq = 1,
+    sum = 0,
+    norm = 0;
   for (let i = 0; i < octaves; i++) {
     sum += amp * valueNoise(x * freq, y * freq, seed + i * 1013);
     norm += amp;
@@ -47,7 +55,8 @@ export function fbmAbove(share, octaves = 4) {
   let s = fbmSorted[octaves];
   if (!s) {
     s = fbmSorted[octaves] = new Float64Array(FBM_SAMPLE);
-    for (let i = 0; i < FBM_SAMPLE; i++) s[i] = fbm(hash2(i, 1, 9001) * 5000, hash2(i, 2, 9001) * 5000, 9002 + i, octaves);
+    for (let i = 0; i < FBM_SAMPLE; i++)
+      s[i] = fbm(hash2(i, 1, 9001) * 5000, hash2(i, 2, 9001) * 5000, 9002 + i, octaves);
     s.sort();
   }
   return s[Math.floor((1 - share) * (FBM_SAMPLE - 1))];

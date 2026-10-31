@@ -34,7 +34,23 @@ import { render, mapNames } from './render/renderer.js';
 import { groundHeight } from './render/terrain.js';
 import { createDescent } from './render/descent.js';
 import { createActor } from './render/motion.js';
-import { loadGame, saveGame, savedElsewhere, onSavedElsewhere, adopt, loadView, saveView, soloWorld, soloCount, newSoloWorld, soloSeeds, archivedSave, keepCopy, keepAside, keepStorage } from './storage.js';
+import {
+  loadGame,
+  saveGame,
+  savedElsewhere,
+  onSavedElsewhere,
+  adopt,
+  loadView,
+  saveView,
+  soloWorld,
+  soloCount,
+  newSoloWorld,
+  soloSeeds,
+  archivedSave,
+  keepCopy,
+  keepAside,
+  keepStorage
+} from './storage.js';
 import { roomService } from '../net/config.js';
 import { createFork } from './fork.js';
 import { createAsk } from './ask.js';
@@ -50,9 +66,9 @@ import { createPlacing } from './placing.js';
 import { fmt, fmtDuration, lockIcon } from './format.js';
 import { t, localizePage, setLanguage, nextLanguage, DEVICE, addStrings } from '../i18n/i18n.js';
 
-const SAVE_EVERY = 3;       // seconds between autosaves
-const WAKE_CHANCE = 0.35;   // boat ripples per moving frame
-const ON_SCREEN_PX = 40;    // margin around the screen a flyer still counts as seen in
+const SAVE_EVERY = 3; // seconds between autosaves
+const WAKE_CHANCE = 0.35; // boat ripples per moving frame
+const ON_SCREEN_PX = 40; // margin around the screen a flyer still counts as seen in
 
 // Every word on the page in the player's language first.
 localizePage();
@@ -74,7 +90,7 @@ if (window.top !== window.self) {
 
 const el = findElements();
 el.verText.textContent = 'v' + VERSION;
-window.MTE_VERSION = VERSION;  // for the crash report
+window.MTE_VERSION = VERSION; // for the crash report
 
 // Nothing is drawn until the game's pictures are in. If they can't load,
 // that's a crash: say exactly what broke.
@@ -93,10 +109,21 @@ try {
 // Until it settles Mica isn't drawn (render/sprites.js); if it fails, the
 // pack's 2D wanderer stands in.
 // Clipping is illegal: a local or ?clips build throws when Mica's parts cross.
-const checkClips=['localhost','127.0.0.1'].includes(location.hostname)||new URLSearchParams(location.search).has('clips');
-look.rigReady=import('./render/rigged-character.js').then(({createRiggedCharacter})=>{
-  look.rig=createRiggedCharacter({checkClips});return look.rig;
-}).catch(error=>{look.rigError=String(error);return null;}).finally(()=>{look.rigSettled=true;});
+const checkClips =
+  ['localhost', '127.0.0.1'].includes(location.hostname) ||
+  new URLSearchParams(location.search).has('clips');
+look.rigReady = import('./render/rigged-character.js')
+  .then(({ createRiggedCharacter }) => {
+    look.rig = createRiggedCharacter({ checkClips });
+    return look.rig;
+  })
+  .catch((error) => {
+    look.rigError = String(error);
+    return null;
+  })
+  .finally(() => {
+    look.rigSettled = true;
+  });
 
 // The developer viewer boots before loading or connecting any player world.
 if (new URLSearchParams(location.search).has('autoplay')) {
@@ -122,23 +149,47 @@ function keepView() {
 // What the game says, Wiki included, goes in the message log; whether it's
 // open is this browser's, and each world keeps its own lines.
 const messages = createMessages({
-  world: () => game.state ? game.state.shared || 'solo.' + game.state.seed : null,
-  open: savedView.logOpen, keepOpen: (on) => { savedView.logOpen = on; saveView(savedView); }
+  world: () => (game.state ? game.state.shared || 'solo.' + game.state.seed : null),
+  open: savedView.logOpen,
+  keepOpen: (on) => {
+    savedView.logOpen = on;
+    saveView(savedView);
+  }
 });
 // In Safari on an iPhone, once: add the game to the Home Screen, or Safari
 // may forget every world (home-hint.js).
 const homeHint = createHomeHint({
   store: localStore(),
-  standalone: navigator.standalone === true || !!window.matchMedia?.('(display-mode: standalone)').matches, // i18n-ok: a media query
+  standalone:
+    navigator.standalone === true || !!window.matchMedia?.('(display-mode: standalone)').matches, // i18n-ok: a media query
   say: () => messages.add({ kind: 'wiki', name: t('homeHint.title'), text: t('homeHint.text') })
 });
-const wiki = createWiki({ cam, state: () => game.state, saved: savedView.wiki, keep: (w) => { savedView.wiki = w; saveView(savedView); }, messages });
+const wiki = createWiki({
+  cam,
+  state: () => game.state,
+  saved: savedView.wiki,
+  keep: (w) => {
+    savedView.wiki = w;
+    saveView(savedView);
+  },
+  messages
+});
 // What you gather flies to its pile in the yard (yard and quality are made
 // just below), as many at once as the device's quality allows.
-const fx = createEffects(look, (res) => yard.landing(res), (x, y) => {
-  const p = cam.project(x, y);
-  return p.x > -ON_SCREEN_PX && p.y > -ON_SCREEN_PX && p.x < cam.width + ON_SCREEN_PX && p.y < cam.height + ON_SCREEN_PX;
-}, () => quality.flyers);
+const fx = createEffects(
+  look,
+  (res) => yard.landing(res),
+  (x, y) => {
+    const p = cam.project(x, y);
+    return (
+      p.x > -ON_SCREEN_PX &&
+      p.y > -ON_SCREEN_PX &&
+      p.x < cam.width + ON_SCREEN_PX &&
+      p.y < cam.height + ON_SCREEN_PX
+    );
+  },
+  () => quality.flyers
+);
 const yard = createYard({ fx, look });
 const hud = createHud(el, look, messages);
 // Fewer pixels and no frosted glass on a device that can't keep up.
@@ -156,25 +207,42 @@ const problems = createProblems({
   toast: (text) => hud.toast(text),
   list: el.problems,
   game: () => {
-    const s = game.state, w = s.world, m = perf.snapshot();
+    const s = game.state,
+      w = s.world,
+      m = perf.snapshot();
     return {
       world: `${s.shared ? 'shared' : 'solo'}, ${w.cultivation ? 'crystal' : 'old economy'}, seed ${w.seed}`, // i18n-ok: a report for developers, in English
       at: where(s.player),
       view: `zoom ${cam.zoom.toFixed(2)}x, tile ${cam.tilePx.toFixed(1)} CSS px, canvas ${el.canvas.width}x${el.canvas.height} at ${cam.dpr}x, quality ${quality.level}`, // i18n-ok: a report for developers, in English
       'game time': s.time.toFixed(1), // i18n-ok: a report for developers, in English
       frames: `${m.fps.toFixed(0)} fps, worst ${m.worstMs.toFixed(0)} ms`, // i18n-ok: a report for developers, in English
-      open: [sheet.isOpen && 'sheet ' + sheet.tab, descent.active && 'changing layer', fork.open && 'picking a world'].filter(Boolean).join(', ') || 'the map' // i18n-ok: a report for developers, in English
+      open:
+        [
+          sheet.isOpen && 'sheet ' + sheet.tab,
+          // i18n-ok: a report for developers, in English
+          descent.active && 'changing layer',
+          fork.open && 'picking a world'
+        ]
+          .filter(Boolean)
+          .join(', ') || 'the map' // i18n-ok: a report for developers, in English
     };
   }
 });
 // Plugging in the charger may give a hot or saving phone its speed back
 // (where the browser says so: not Safari).
 if (navigator.getBattery) {
-  navigator.getBattery().then((b) => b.addEventListener('chargingchange', () => { if (b.charging) quality.retry(); }), () => {});
+  navigator.getBattery().then(
+    (b) =>
+      b.addEventListener('chargingchange', () => {
+        if (b.charging) quality.retry();
+      }),
+    () => {}
+  );
 }
 const loaded = loadGame();
 
-let simulation = null, simulationClock = null;
+let simulation = null,
+  simulationClock = null;
 let saveDue = false;
 let saveError = null;
 let sync = null; // your own world on your other devices (sync.js), once loaded (loadSync)
@@ -182,7 +250,11 @@ let sync = null; // your own world on your other devices (sync.js), once loaded 
 // The one place the current state lives. Everything else reads game.state.
 const game = {
   state: loaded.state,
-  saveSoon() { saveDue = true; sync?.played(); keepStorage(); },
+  saveSoon() {
+    saveDue = true;
+    sync?.played();
+    keepStorage();
+  },
   saveNow(force = false) {
     saveDue = false;
     // A shared world is saved to its room (and a copy here), never over your own.
@@ -240,13 +312,17 @@ const game = {
     game.changedMode();
   },
   // Just arrived in a world new to you (a friend's): what to go for.
-  arrived() { showNext(); },
+  arrived() {
+    showNext();
+  },
   // For playing together (together.js).
   facing: () => controller.facing,
   moving: () => moving,
   act: () => actor.sent,
   // Friends changed the world: what's shown around you may differ now.
-  worldChanged() { hud.update(game.state); },
+  worldChanged() {
+    hud.update(game.state);
+  },
   // The room says you stand somewhere else (you came back from another
   // device, or after playing offline): you're moved there.
   moveTo(p) {
@@ -300,31 +376,52 @@ onSavedElsewhere(checkFork);
 
 const ask = createAsk(el.ask);
 // The version, always in view; tapping it shows what's new.
-const news = createNews({ badge: el.versionBtn, panel: el.newsPanel, version: VERSION, updatedFrom: takeUpdatedFrom() });
+const news = createNews({
+  badge: el.versionBtn,
+  panel: el.newsPanel,
+  version: VERSION,
+  updatedFrom: takeUpdatedFrom()
+});
 el.privacyLink.href = policyUrl(); // in the player's language
 const fbi = createFbi(el.fbi);
 // Never an old version: a new deploy saves and reloads the game at once.
 const updater = createUpdater({ save: () => game.saveNow() });
-const together = createTogether({ game, hud, ask: ask.ask, el, fbi, checkUpdate: updater.check, closeSheet: () => sheet.close(), showPlayers: () => sheet.show('players'), onAway: (secs, made, fixed) => sayAway(secs, made, fixed) });
+const together = createTogether({
+  game,
+  hud,
+  ask: ask.ask,
+  el,
+  fbi,
+  checkUpdate: updater.check,
+  closeSheet: () => sheet.close(),
+  showPlayers: () => sheet.show('players'),
+  onAway: (secs, made, fixed) => sayAway(secs, made, fixed)
+});
 const actor = createActor(); // what the wanderer is doing, to animate it
 const acted = actor.act.bind(actor);
-actor.act = (kind, context) => { problems.crumb('act ' + kind); return acted(kind, context); };
+actor.act = (kind, context) => {
+  problems.crumb('act ' + kind);
+  return acted(kind, context);
+};
 // Players who gather a tap at a time are told, once, that holding keeps going.
-const HOLD_TIP_AFTER = 8;   // single gathers before the tip
+const HOLD_TIP_AFTER = 8; // single gathers before the tip
 let singleGathers = 0;
 function gathered(held) {
   if (savedView.holdTip) return;
   if (!held && ++singleGathers < HOLD_TIP_AFTER) return;
-  savedView.holdTip = true;  // found it, or told now: never again
+  savedView.holdTip = true; // found it, or told now: never again
   saveView(savedView);
   if (!held) hud.toast(t('tip.hold'));
 }
 // Every quick tap on AUTO says, in a bubble over it, that it plays while held.
-const AUTO_TAP_S = 0.5;    // released sooner than this: a tap
+const AUTO_TAP_S = 0.5; // released sooner than this: a tap
 const AUTO_TIP_SECONDS = 4;
 let autoDownAt = 0;
 function autoPressed() {
-  if (!autoShown()) { input.perfect = false; return; }  // P with AUTO hidden does nothing
+  if (!autoShown()) {
+    input.perfect = false;
+    return;
+  } // P with AUTO hidden does nothing
   autoDownAt = performance.now();
   hud.autoTip(0);
   perfect.press();
@@ -341,10 +438,28 @@ function showNext() {
   const next = Core.nextGoal(game.state);
   if (next && game.state.goalIndex < NEXT_SHOWN_BELOW) hud.nextUp(next.text);
 }
-const controller = createController({ game, cam, fx, audio, hud, look, ask: ask.ask, actor, gathered });
+const controller = createController({
+  game,
+  cam,
+  fx,
+  audio,
+  hud,
+  look,
+  ask: ask.ask,
+  actor,
+  gathered
+});
 const perfect = createPerfect({ game, controller, hud });
 
-const mapView = createMapView({ cam, getState: () => game.state, el, changed: () => { hud.view(cam); keepView(); } });
+const mapView = createMapView({
+  cam,
+  getState: () => game.state,
+  el,
+  changed: () => {
+    hud.view(cam);
+    keepView();
+  }
+});
 const income = createIncome();
 const sheet = createSheet(el, {
   getState: () => game.state,
@@ -360,7 +475,17 @@ const sheet = createSheet(el, {
   },
   // Place (a building, or a crystal-world one) closes the sheet and stands
   // it on the map to be put where you like (placing.js).
-  actions: { cultivation: (cmd) => { if (cmd.type === 'build') return startPlacing({ kind: cmd.kind }); if (cmd.type !== 'craft') sheet.close(); return cultivate(cmd); }, buy: controller.buy, place: (key) => startPlacing({ key }), placeProp: controller.placeProp, embark: controller.embark }
+  actions: {
+    cultivation: (cmd) => {
+      if (cmd.type === 'build') return startPlacing({ kind: cmd.kind });
+      if (cmd.type !== 'craft') sheet.close();
+      return cultivate(cmd);
+    },
+    buy: controller.buy,
+    place: (key) => startPlacing({ key }),
+    placeProp: controller.placeProp,
+    embark: controller.embark
+  }
 });
 
 // A crystal-world command, from a sheet, a building's card or the lantern
@@ -368,21 +493,44 @@ const sheet = createSheet(el, {
 // "Done." after every press would bury what matters).
 function cultivate(cmd) {
   return controller.cultivation(cmd, (result) => {
-    if (result !== 'ok') hud.toast(t('cr.' + (result === 'discovery' ? 'discovery.' + Core.machineClue(game.state) : result === 'activated' ? 'activated' : 'reason.' + result)));
+    if (result !== 'ok')
+      hud.toast(
+        t(
+          'cr.' +
+            (result === 'discovery'
+              ? 'discovery.' + Core.machineClue(game.state)
+              : result === 'activated'
+                ? 'activated'
+                : 'reason.' + result)
+        )
+      );
     game.saveSoon();
     controller.checkGoals();
     hud.update(game.state);
   });
 }
 // A building's own card, over it in the world. Its Move starts placing it.
-const card = createBuildingCard({ cam, state: () => game.state, approach: (x,y,run) => controller.approach(x,y,run), walking: () => controller.walking, work: (x,y) => controller.perform({type:'harvestAt',x,y},false), run: (cmd) => {
-  if (cmd.type !== 'move') return cultivate(cmd);
-  const b = card.building();
-  if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);
-} });
+const card = createBuildingCard({
+  cam,
+  state: () => game.state,
+  approach: (x, y, run) => controller.approach(x, y, run),
+  walking: () => controller.walking,
+  work: (x, y) => controller.perform({ type: 'harvestAt', x, y }, false),
+  run: (cmd) => {
+    if (cmd.type !== 'move') return cultivate(cmd);
+    const b = card.building();
+    if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);
+  }
+});
 // Placing or moving a building on the map returns directly to play.
 // Its information/Move card opens only when the player selects it later.
-const placing = createPlacing({ cam, state: () => game.state, controller, cultivate, toast: (text) => hud.toast(text) });
+const placing = createPlacing({
+  cam,
+  state: () => game.state,
+  controller,
+  cultivate,
+  toast: (text) => hud.toast(text)
+});
 function startPlacing(what, from = null) {
   sheet.close();
   card.close();
@@ -390,10 +538,18 @@ function startPlacing(what, from = null) {
 }
 // The lantern you crafted: one button above Gather switches it (Watch,
 // 2026-10-25), there once it's made; AUTO never shows in a crystal world.
-const toggleLantern = () => { if (game.state.cultivation?.gear.lantern) { cultivate({ type: 'lantern' }); flareWas=game.state.flare; showLantern(game.state); showFlare(game.state); } };
+const toggleLantern = () => {
+  if (game.state.cultivation?.gear.lantern) {
+    cultivate({ type: 'lantern' });
+    flareWas = game.state.flare;
+    showLantern(game.state);
+    showFlare(game.state);
+  }
+};
 el.lantern.addEventListener('click', toggleLantern);
 function showLantern(s) {
-  const c = s.cultivation, on = Core.activeCarriedLight(s)==='lantern';
+  const c = s.cultivation,
+    on = Core.activeCarriedLight(s) === 'lantern';
   el.lantern.hidden = !c?.gear.lantern;
   if (el.lantern.hidden) return;
   el.lantern.classList.toggle('on', on);
@@ -406,7 +562,8 @@ function showLantern(s) {
 // one burns; never in a shared world, whose room doesn't check flares yet.
 let flareWas = 0;
 function useFlare() {
-  const s = game.state, result = Core.useFlare(s);
+  const s = game.state,
+    result = Core.useFlare(s);
   if (result === 'locked') hud.toast(t('progression.requirement'));
   else if (result === 'materials') hud.toast(t('toast.flare.materials'));
   else if (result === 'lit' && s.stats.flares === 1) hud.toast(t('toast.flare.first'));
@@ -419,27 +576,38 @@ el.flare.addEventListener('click', useFlare);
 let flareWorld = null;
 function showFlare(s) {
   if (flareWas > 0 && !(s.flare > 0) && flareWorld === s) hud.toast(t('toast.flare.burntOut'));
-  flareWas = s.flare; flareWorld = s;
-  const locked = Core.contentLocked(s,'flare'), on = Core.flareLit(s);
+  flareWas = s.flare;
+  flareWorld = s;
+  const locked = Core.contentLocked(s, 'flare'),
+    on = Core.flareLit(s);
   el.flare.disabled = locked;
   el.flare.hidden = !!s.shared;
   if (el.flare.hidden) return;
   el.flare.classList.toggle('on', on);
   el.flare.setAttribute('aria-pressed', String(on));
-  const left = Math.ceil(s.flare), time = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); // i18n-ok: a clock
+  const left = Math.ceil(s.flare),
+    time = Math.floor(left / 60) + ':' + String(left % 60).padStart(2, '0'); // i18n-ok: a clock
   el.flare.style.setProperty('--left', on ? (s.flare / Core.FLARE_TIME).toFixed(3) : '1');
   const label = locked ? t('progression.locked') : on ? time : t('button.flare');
-  el.flare.classList.toggle('progressionLocked',locked);
-  const labelState = (locked?'locked:':'')+label;
+  el.flare.classList.toggle('progressionLocked', locked);
+  const labelState = (locked ? 'locked:' : '') + label;
   if (el.flareLabel.dataset.state === labelState) return;
   el.flareLabel.dataset.state = labelState;
-  el.flareLabel.innerHTML = locked ? lockIcon+' '+t('button.flare') : label;
-  el.flare.setAttribute('aria-label', locked ? t('progression.requirement') : on ? t('button.flare.lit.aria', { time }) : t('button.flare.aria'));
+  el.flareLabel.innerHTML = locked ? lockIcon + ' ' + t('button.flare') : label;
+  el.flare.setAttribute(
+    'aria-label',
+    locked
+      ? t('progression.requirement')
+      : on
+        ? t('button.flare.lit.aria', { time })
+        : t('button.flare.aria')
+  );
 }
 
 const backup = createBackup({ el, game, ask: ask.ask, toast: hud.toast, version: VERSION });
 
-const trailTargets = (trail) => (trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : []);
+const trailTargets = (trail) =>
+  trail && trail.leftButton ? Core.sweepTargets(game.state, trail.points) : [];
 
 // Something on screen that needs the player: a sheet or a dialog. The
 // Perfect button waits while one is up.
@@ -453,9 +621,14 @@ function goBack() {
   else if (hudLayout.open) hudLayout.close();
   else sheet.back();
 }
-const back = createBack({ isOpen: () => sheet.isOpen || ask.open || card.open || placing.open || hudLayout.open, goBack });
+const back = createBack({
+  isOpen: () => sheet.isOpen || ask.open || card.open || placing.open || hudLayout.open,
+  goBack
+});
 const input = createInput({
-  canvas: el.canvas, cam, el,
+  canvas: el.canvas,
+  cam,
+  el,
   handlers: {
     blocked,
     dismiss: () => sheet.close(),
@@ -466,10 +639,13 @@ const input = createInput({
       if (r && x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) together.copyLink();
       else if (mapView.on() || placing.tap(x, y)) return;
       else {
-        const at=cam.unproject(x,y);problems.crumb(`map tap ${Math.floor(at.x)}, ${Math.floor(at.y)}, layer ${at.z}`); // i18n-ok: world coordinates in a developer report
+        const at = cam.unproject(x, y);
+        problems.crumb(`map tap ${Math.floor(at.x)}, ${Math.floor(at.y)}, layer ${at.z}`); // i18n-ok: world coordinates in a developer report
         const opened = card.tap(x, y);
-        if (opened === 'work') { const w = cam.unproject(x, y); controller.work(Math.floor(w.x), Math.floor(w.y)); }
-        else if (!opened) controller.tap(x, y);
+        if (opened === 'work') {
+          const w = cam.unproject(x, y);
+          controller.work(Math.floor(w.x), Math.floor(w.y));
+        } else if (!opened) controller.tap(x, y);
       }
     },
     // While placing, a finger on the ghost drags it.
@@ -488,7 +664,11 @@ const input = createInput({
     perfectPressed: autoPressed,
     perfectReleased: autoReleased,
     trailEnded: controller.trailEnded,
-    viewChanged: () => { hud.view(cam); keepView(); problems.crumb(`zoom ${cam.zoom.toFixed(2)}x`); },
+    viewChanged: () => {
+      hud.view(cam);
+      keepView();
+      problems.crumb(`zoom ${cam.zoom.toFixed(2)}x`);
+    },
     command(cmd) {
       if (cmd === 'perf') perf.toggle();
       else if (cmd === 'back') goBack();
@@ -500,15 +680,26 @@ const input = createInput({
   }
 });
 
-
 el.build.addEventListener('click', () => sheet.toggle('build'));
-const hudLayout = createHudLayout({ el, messages,
-  beforeOpen: () => { sheet.close(); card.close(); },
+const hudLayout = createHudLayout({
+  el,
+  messages,
+  beforeOpen: () => {
+    sheet.close();
+    card.close();
+  },
   openCrafting: () => sheet.show('upgrades')
 });
-const fullscreen = createFullscreen({ button: el.fullscreen, state: el.fullscreenState, hint: el.fullscreenHint,
-  changed: () => { resize(); hudLayout.invalidate(); hudLayout.tick(); },
-  report: error => problems.crumb('fullscreen: ' + String(error?.stack || error)) // i18n-ok: developer diagnostic breadcrumb.
+const fullscreen = createFullscreen({
+  button: el.fullscreen,
+  state: el.fullscreenState,
+  hint: el.fullscreenHint,
+  changed: () => {
+    resize();
+    hudLayout.invalidate();
+    hudLayout.tick();
+  },
+  report: (error) => problems.crumb('fullscreen: ' + String(error?.stack || error)) // i18n-ok: developer diagnostic breadcrumb.
 });
 el.depth.addEventListener('click', () => mapView.button());
 el.awards.addEventListener('click', () => sheet.toggle('awards'));
@@ -525,10 +716,16 @@ el.mine.addEventListener('click', controller.toggleMine);
 el.worldsBtn.addEventListener('click', () => sheet.show('worlds'));
 el.invitesBtn.addEventListener('click', () => sheet.show('invites'));
 el.playersBtn.addEventListener('click', () => sheet.show('players'));
-el.nerdsBtn.addEventListener('click', () => { problems.show(); sheet.show('nerds'); });
+el.nerdsBtn.addEventListener('click', () => {
+  problems.show();
+  sheet.show('nerds');
+});
 el.devicesBtn.addEventListener('click', () => sheet.show('devices'));
 el.perfBtn.addEventListener('click', () => perf.toggle());
-el.perf.addEventListener('perfdetails', () => { sheet.show('performance'); perf.details(); });
+el.perf.addEventListener('perfdetails', () => {
+  sheet.show('performance');
+  perf.details();
+});
 window.addEventListener('resize', together.refit);
 // Which way a drag moves you: toward the finger (a joystick), or away from it,
 // pulling the map along like scrolling.
@@ -537,7 +734,10 @@ function setDrag(invert) {
   el.dragMode.textContent = t(invert ? 'sheet.drag.pull' : 'sheet.drag.walk');
   el.drag.setAttribute('aria-pressed', String(invert));
 }
-el.drag.addEventListener('click', () => { setDrag(!input.invert); keepView(); });
+el.drag.addEventListener('click', () => {
+  setDrag(!input.invert);
+  keepView();
+});
 const showMute = () => {
   el.muteState.textContent = t(audio.muted ? 'settings.off' : 'settings.on');
   el.mute.setAttribute('aria-pressed', String(!audio.muted));
@@ -550,7 +750,11 @@ showMute();
 // Music: off, or the name of the track playing.
 const showMusic = () => {
   const track = audio.track();
-  el.musicState.textContent = !audio.music ? t('settings.off') : track ? t('music.' + track) : t('settings.on');
+  el.musicState.textContent = !audio.music
+    ? t('settings.off')
+    : track
+      ? t('music.' + track)
+      : t('settings.on');
   el.music.setAttribute('aria-pressed', String(audio.music));
 };
 el.music.addEventListener('click', () => {
@@ -573,12 +777,16 @@ el.away.addEventListener('click', () => {
 });
 // AUTO is hidden unless a player turns it on in Nerds (Watch, 2026-10-25),
 // and never in a crystal world, whose rules its planner doesn't know.
-function autoShown() { return savedView.showAuto && !game.state.cultivation; }
+function autoShown() {
+  return savedView.showAuto && !game.state.cultivation;
+}
 function showAuto() {
   el.perfect.hidden = !autoShown();
   el.autoTip.hidden = !autoShown();
   el.autoLab.hidden = !!game.state.cultivation;
-  el.autoState.textContent = game.state.cultivation ? t('nerds.auto.oldOnly') : t(savedView.showAuto ? 'settings.on' : 'settings.off');
+  el.autoState.textContent = game.state.cultivation
+    ? t('nerds.auto.oldOnly')
+    : t(savedView.showAuto ? 'settings.on' : 'settings.off');
   el.showAuto.setAttribute('aria-pressed', String(savedView.showAuto));
 }
 el.showAuto.addEventListener('click', () => {
@@ -587,7 +795,9 @@ el.showAuto.addEventListener('click', () => {
   showAuto();
 });
 // How much Wiki says on its own: chatty, only when asked, or not at all.
-const showWiki = () => { el.wikiState.textContent = t('settings.wiki.' + wiki.mode); };
+const showWiki = () => {
+  el.wikiState.textContent = t('settings.wiki.' + wiki.mode);
+};
 el.wikiMode.addEventListener('click', () => {
   wiki.setMode(WIKI_MODES[(WIKI_MODES.indexOf(wiki.mode) + 1) % WIKI_MODES.length]);
   showWiki();
@@ -614,7 +824,17 @@ el.language.addEventListener('click', () => {
 // Work that runs on its own cadence rather than every frame.
 const timers = [
   { every: SAVE_EVERY, run: () => game.saveNow() },
-  { every: 0.25, run: () => { hud.update(game.state); income.note(game.state, Date.now()); regionTick(game.state, 0.25); audio.scene(sceneHere(game.state)); messages.tick(); if (!copy) homeHint.check(game.state.goalIndex, performance.now()); } }
+  {
+    every: 0.25,
+    run: () => {
+      hud.update(game.state);
+      income.note(game.state, Date.now());
+      regionTick(game.state, 0.25);
+      audio.scene(sceneHere(game.state));
+      messages.tick();
+      if (!copy) homeHint.check(game.state.goalIndex, performance.now());
+    }
+  }
 ].map((t) => ({ ...t, left: t.every }));
 
 let moving = false;
@@ -624,12 +844,21 @@ let moving = false;
 // forth through a pass doesn't flash names), and its kind of land picks the
 // music. Underground you're still under the region above, but no names show.
 const REGION_SETTLE = 1;
-let region = null, shownRegion = null, regionHeld = 0;
+let region = null,
+  shownRegion = null,
+  regionHeld = 0;
 function regionTick(s, dt) {
   const here = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
-  if (!region || here.key !== region.key) { region = here; regionHeld = 0; }
+  if (!region || here.key !== region.key) {
+    region = here;
+    regionHeld = 0;
+  }
   regionHeld += dt;
-  if (s.player.z === Core.SURFACE && regionHeld >= REGION_SETTLE && (!shownRegion || shownRegion.key !== region.key)) {
+  if (
+    s.player.z === Core.SURFACE &&
+    regionHeld >= REGION_SETTLE &&
+    (!shownRegion || shownRegion.key !== region.key)
+  ) {
     shownRegion = region;
     hud.place(region.kind, region.name);
   }
@@ -639,7 +868,11 @@ function regionTick(s, dt) {
 // names the region, which then counts as shown.
 function layerArrived(s) {
   if (s.player.z === Core.SURFACE) {
-    shownRegion = region = Core.regionAt(s.world.seed, Math.floor(s.player.x), Math.floor(s.player.y));
+    shownRegion = region = Core.regionAt(
+      s.world.seed,
+      Math.floor(s.player.x),
+      Math.floor(s.player.y)
+    );
     hud.layer(s.player.z, region.name);
   } else hud.layer(s.player.z);
 }
@@ -661,15 +894,28 @@ function showCopy() {
   el.copyBadge.hidden = false;
 }
 
-let crystalWarning=0;
+let crystalWarning = 0;
 let autoPlaying = false; // AUTO is held and playing (its tag shows over you)
-simulation = createSimulation({ game, controller, autoplay: perfect, input,
-  canAutoplay: () => !blocked() && !placing.open, afterCore: (dt) => {
-    together.tick(dt);crystalWarning-=dt;
-    const c=game.state.cultivation;
-    if(c&&crystalWarning<=0){
-      crystalWarning=5;
-      if(c.starter?.health<35||(game.state.inv.crystal>0&&c.quality<35)||c.facilities.some(b=>b.health>0&&b.temperature>22)){hud.toast(t('cr.danger'));audio.dig();}
+simulation = createSimulation({
+  game,
+  controller,
+  autoplay: perfect,
+  input,
+  canAutoplay: () => !blocked() && !placing.open,
+  afterCore: (dt) => {
+    together.tick(dt);
+    crystalWarning -= dt;
+    const c = game.state.cultivation;
+    if (c && crystalWarning <= 0) {
+      crystalWarning = 5;
+      if (
+        c.starter?.health < 35 ||
+        (game.state.inv.crystal > 0 && c.quality < 35) ||
+        c.facilities.some((b) => b.health > 0 && b.temperature > 22)
+      ) {
+        hud.toast(t('cr.danger'));
+        audio.dig();
+      }
     }
   },
   onEvents(events, s) {
@@ -689,14 +935,18 @@ function updateView(dt) {
   Core.settleEconomy(s);
   if (copy) showCopy();
   if (moving && Core.onWater(s) && Math.random() < WAKE_CHANCE) {
-    const f = controller.facing, len = Math.hypot(f.x, f.y) || 1;
+    const f = controller.facing,
+      len = Math.hypot(f.x, f.y) || 1;
     fx.wake(s.player.x, s.player.y, f.x / len, f.y / len);
   }
   fx.update(dt);
 
   if (saveDue) game.saveNow();
   for (const t of timers) {
-    if ((t.left -= dt) <= 0) { t.left += t.every; t.run(); }
+    if ((t.left -= dt) <= 0) {
+      t.left += t.every;
+      t.run();
+    }
   }
   hud.tick(dt);
   hud.updateButtons(s);
@@ -704,7 +954,7 @@ function updateView(dt) {
   sheet.tick();
   back.tick();
   card.tick();
-  if (placing.open && blocked()) placing.cancel();   // a sheet or a question came up
+  if (placing.open && blocked()) placing.cancel(); // a sheet or a question came up
   placing.tick(dt);
   showLantern(s);
   showFlare(s);
@@ -714,7 +964,8 @@ function updateView(dt) {
 // Where the zoom pill sits on the canvas, so a friend's edge badge (and the
 // distance under it) never hides beneath it.
 function friendsClear() {
-  const r = el.zoomControls.getBoundingClientRect(), c = el.canvas.getBoundingClientRect();
+  const r = el.zoomControls.getBoundingClientRect(),
+    c = el.canvas.getBoundingClientRect();
   return r.width ? { left: r.left - c.left, top: r.top - c.top, bottom: r.bottom - c.top } : null;
 }
 
@@ -724,42 +975,51 @@ function view() {
   return {
     facing: controller.facing,
     moving,
-    actor: actor.view(moving,s.player),
+    actor: actor.view(moving, s.player),
     yard,
     harvestTarget: input.perfect ? perfect.target : Core.harvestTarget(s),
     auto: autoPlaying && perfect.badge !== 'ui.embark' ? t('button.perfect') : '',
     placing: placing.view(),
-    focus: placing.focus() || card.focus(),   // the building whose reach shows
+    focus: placing.focus() || card.focus(), // the building whose reach shows
     trail: input.trail,
     trailTargets: trailTargets(input.trail),
     underground,
     joy: input.joy,
     friends: together.view(),
     graves: together.graves(),
-    keepClear: friendsClear(),   // the zoom pill, which friends' edge badges move out from under
-    me: together.me,   // your name and colour in a shared world
+    keepClear: friendsClear(), // the zoom pill, which friends' edge badges move out from under
+    me: together.me, // your name and colour in a shared world
     sign: together.sign,
     signFace: together.signFace,
     signCaption: t('together.sign'),
     wiki: wiki.pose(),
-    map: mapView.look()   // zoomed out to the world map: where it looks, if not at you
+    map: mapView.look() // zoomed out to the world map: where it looks, if not at you
   };
 }
 
 // Local-only deterministic replay: the test drives normal commands and ticks.
-const playtestReplay=['localhost','127.0.0.1'].includes(location.hostname)&&new URLSearchParams(location.search).has('playtestReplay');
+const playtestReplay =
+  ['localhost', '127.0.0.1'].includes(location.hostname) &&
+  new URLSearchParams(location.search).has('playtestReplay');
 
-const frameTiming=createFrameTiming(), pacer=createFramePacer();
+const frameTiming = createFrameTiming(),
+  pacer = createFramePacer();
 // Every callback is an animation frame; the pacer picks which ones draw, by
 // their vsync timestamp. Diagnostics see the work done inside each callback.
 function requestFrame() {
-  requestAnimationFrame(stamp=>{
-    const now=performance.now();frameTiming.enter(now,stamp);
-    try{frame(now,stamp);}finally{frameTiming.leave(performance.now());}
+  requestAnimationFrame((stamp) => {
+    const now = performance.now();
+    frameTiming.enter(now, stamp);
+    try {
+      frame(now, stamp);
+    } finally {
+      frameTiming.leave(performance.now());
+    }
   });
 }
 let last = 0;
-let lastSimulationNow = 0, simulationMs = 0;
+let lastSimulationNow = 0,
+  simulationMs = 0;
 let lastWall = 0; // Date.now() at the last frame shown
 
 // Time away from a solo world (closed, asleep, in another app): what your
@@ -774,14 +1034,20 @@ function catchUp(seconds) {
 // `fixed`: arriving in a shared world also set your numbers straight
 // (together.js), so the note says that too.
 function sayAway(seconds, made, fixed = false) {
-  const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) => t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] }));
-  const away = t('toast.away', { time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)), made: parts.join(', ') });
+  const parts = Core.RESOURCES.filter((r) => made[r] >= 1).map((r) =>
+    t('cost.item', { n: fmt(made[r]), res: Core.RESOURCE_LABEL[r] })
+  );
+  const away = t('toast.away', {
+    time: fmtDuration(Math.min(seconds, Core.AWAY_CAP)),
+    made: parts.join(', ')
+  });
   if (parts.length) hud.toast(fixed ? away + '. ' + t('together.toast.fixed') : away);
   hud.update(game.state);
   game.saveSoon();
 }
-let shownState = null, shownZ = 0; // the world and layer the last frame showed
-let signRect = null;            // where your sign stood in the last frame, for taps on it
+let shownState = null,
+  shownZ = 0; // the world and layer the last frame showed
+let signRect = null; // where your sign stood in the last frame, for taps on it
 function frame(now, stamp = now) {
   try {
     const simStart = performance.now();
@@ -792,8 +1058,7 @@ function frame(now, stamp = now) {
       perf.suspend();
       frameTiming.reset();
       if (fork.open && !document.hidden) lastWall = Date.now();
-    }
-    else {
+    } else {
       const wall = Date.now();
       if (lastWall) catchUp((wall - lastWall) / 1000);
       lastWall = wall;
@@ -802,13 +1067,19 @@ function frame(now, stamp = now) {
       else simulationClock.advance(elapsed);
     }
     simulationMs += performance.now() - simStart;
-    if (!pacer.due(stamp)) { requestFrame(); return; }
+    if (!pacer.due(stamp)) {
+      requestFrame();
+      return;
+    }
     const intervalMs = last ? stamp - last : 0;
     const dt = Math.min(0.1, intervalMs / 1000); // the game never jumps more than this
     last = stamp;
-    const pacing=frameTiming.rendered(stamp);
+    const pacing = frameTiming.rendered(stamp);
     const t0 = performance.now();
-    if (!document.hidden && !fork.open) { updateView(dt); wiki.update(dt); }
+    if (!document.hidden && !fork.open) {
+      updateView(dt);
+      wiki.update(dt);
+    }
     mapView.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();
@@ -819,17 +1090,36 @@ function frame(now, stamp = now) {
       descent.start(shownZ, z);
       layerArrived(game.state);
     }
-    shownState = game.state; shownZ = z;
-    const phaseTimings=perf.visible?{}:null;
-    const stats = render(cam, game.state, fx, view(), look, problems.faults.layer,phaseTimings);
+    shownState = game.state;
+    shownZ = z;
+    const phaseTimings = perf.visible ? {} : null;
+    const stats = render(cam, game.state, fx, view(), look, problems.faults.layer, phaseTimings);
     signRect = stats.sign;
     descent.draw(cam, look, dt);
-    const drawMs=performance.now()-t1;
-    if(phaseTimings)phaseTimings.other=(phaseTimings.other||0)+Math.max(0,drawMs-Object.values(phaseTimings).reduce((a,b)=>a+b,0));
-    if (intervalMs > 0 && !document.hidden && !fork.open && !playtestReplay) perf.frame(intervalMs, simulationMs + t1 - t0, drawMs, stats.tiles,{
-      simulation:simulationMs,phases:phaseTimings,target:RENDER_FPS,pacing,
-      context:{seed:game.state.world.seed,layer:z,gameTime:game.state.time,daylight:Core.daylight(game.state.time),x:game.state.player.x,y:game.state.player.y,viewLayer:cam.z,zoom:cam.zoom,moving,quality:quality.level}
-    });
+    const drawMs = performance.now() - t1;
+    if (phaseTimings)
+      phaseTimings.other =
+        (phaseTimings.other || 0) +
+        Math.max(0, drawMs - Object.values(phaseTimings).reduce((a, b) => a + b, 0));
+    if (intervalMs > 0 && !document.hidden && !fork.open && !playtestReplay)
+      perf.frame(intervalMs, simulationMs + t1 - t0, drawMs, stats.tiles, {
+        simulation: simulationMs,
+        phases: phaseTimings,
+        target: RENDER_FPS,
+        pacing,
+        context: {
+          seed: game.state.world.seed,
+          layer: z,
+          gameTime: game.state.time,
+          daylight: Core.daylight(game.state.time),
+          x: game.state.player.x,
+          y: game.state.player.y,
+          viewLayer: cam.z,
+          zoom: cam.zoom,
+          moving,
+          quality: quality.level
+        }
+      });
     simulationMs = 0;
     quality.frame(intervalMs);
     perf.tick(dt);
@@ -853,7 +1143,10 @@ function resize() {
 window.addEventListener('resize', resize);
 window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
-window.addEventListener('pagehide', () => { game.saveNow(); sync?.flush(); });
+window.addEventListener('pagehide', () => {
+  game.saveNow();
+  sync?.flush();
+});
 // A QR scanned while the game is already open in this tab.
 // A copy link opened over this tab: copies start before anything reads
 // storage (copy.js), so the page loads again for it.
@@ -870,7 +1163,13 @@ document.addEventListener('visibilitychange', () => {
   lastSimulationNow = 0;
   together.away(document.hidden);
   quality.settle();
-  if (document.hidden) { game.saveNow(); sync?.flush(); } else { checkFork(); syncSoon(); }
+  if (document.hidden) {
+    game.saveNow();
+    sync?.flush();
+  } else {
+    checkFork();
+    syncSoon();
+  }
 });
 window.addEventListener('focus', () => syncSoon());
 
@@ -903,11 +1202,15 @@ if (loaded.lost) {
 const SYNC_STORE = 'mte.sync'; // sync.js keeps its key there
 const LINK_HASH = /(^#|&)link=[0-9a-f]{64}(&|$)/;
 function localStore() {
-  try { return localStorage; } catch { return null; }
+  try {
+    return localStorage;
+  } catch {
+    return null;
+  }
 }
 let syncModule = null;
 function loadSync() {
-  return syncModule ||= import('./sync-lazy.js').then((m) => {
+  return (syncModule ||= import('./sync-lazy.js').then((m) => {
     addStrings(m.strings);
     sync = m.createSync({
       store: localStore(),
@@ -926,13 +1229,15 @@ function loadSync() {
         input.releasePerfect();
         fork.show(mine, other, { keepMine, keepOther, reload: () => location.reload() }, 'device');
       },
-      said: (what) => hud.toast(t(what === 'arrived' ? 'sync.arrived' : what === 'me' ? 'sync.me' : 'sync.full')),
+      said: (what) =>
+        hud.toast(t(what === 'arrived' ? 'sync.arrived' : what === 'me' ? 'sync.me' : 'sync.full')),
       me: character,
       becomeMe: becomeCharacter,
-      askMe: () => ask.ask({ title: t('sync.me.title'), text: t('sync.me.text'), yes: t('sync.me.yes') })
+      askMe: () =>
+        ask.ask({ title: t('sync.me.title'), text: t('sync.me.text'), yes: t('sync.me.yes') })
     });
     return m;
-  });
+  }));
 }
 // Focus and coming back to the front come together: one check for both.
 let syncTimer = null;
@@ -945,9 +1250,20 @@ function syncSoon() {
 async function showDevices() {
   const m = await loadSync();
   const key = sync.start();
-  const draw = () => m.renderDevices(el.devicesPanel, { url: m.linkUrl(location, key), okAt: sync.okAt, failed: sync.failed, now: Date.now(), t, ago: fmtDuration, lockIcon });
+  const draw = () =>
+    m.renderDevices(el.devicesPanel, {
+      url: m.linkUrl(location, key),
+      okAt: sync.okAt,
+      failed: sync.failed,
+      now: Date.now(),
+      t,
+      ago: fmtDuration,
+      lockIcon
+    });
   draw();
-  sync.check().then(() => { if (!el.devicesPanel.hidden) draw(); });
+  sync.check().then(() => {
+    if (!el.devicesPanel.hidden) draw();
+  });
 }
 // Opened from the link on your other device (#link=<key>): play that world here.
 async function linkFromHash() {
@@ -956,13 +1272,21 @@ async function linkFromHash() {
   const key = m.linkFrom(location.hash);
   history.replaceState(null, '', location.pathname + location.search);
   if (copy || !key) return;
-  const yes = await ask.ask({ title: t('sync.link.title'), text: t('sync.link.text'), yes: t('sync.link.yes') });
+  const yes = await ask.ask({
+    title: t('sync.link.title'),
+    text: t('sync.link.text'),
+    yes: t('sync.link.yes')
+  });
   if (!yes) return;
   hud.toast(t((await sync.link(key)) ? 'sync.linked' : 'sync.already'));
 }
 // A device linked before: in step from the start.
 let linked = false;
-try { linked = !!localStore()?.getItem(SYNC_STORE); } catch { /* blocked: not linked */ }
+try {
+  linked = !!localStore()?.getItem(SYNC_STORE);
+} catch {
+  /* blocked: not linked */
+}
 if (!copy && linked) loadSync().then(syncSoon);
 
 game.changedMode();
@@ -979,31 +1303,40 @@ showAuto();
 requestFrame();
 
 // A fresh world of your own, on Nerds; the one you leave stays on Worlds.
-const soloControls=document.createElement('div');soloControls.className='setGroup';
-soloControls.innerHTML=`<button id="newSoloWorld" class="setRow">${t('cr.newWorld')}</button>`;
+const soloControls = document.createElement('div');
+soloControls.className = 'setGroup';
+soloControls.innerHTML = `<button id="newSoloWorld" class="setRow">${t('cr.newWorld')}</button>`;
 document.getElementById('nerdsPanel').append(soloControls);
-soloControls.addEventListener('click',e=>{
- if(!e.target.closest('button')||game.state.shared||!game.keep())return;
- game.replace(newSoloWorld());
+soloControls.addEventListener('click', (e) => {
+  if (!e.target.closest('button') || game.state.shared || !game.keep()) return;
+  game.replace(newSoloWorld());
 });
 
-createTooltips({canvas:el.canvas,cam,state:()=>game.state,world:()=>wiki.mode==='off'});
+createTooltips({
+  canvas: el.canvas,
+  cam,
+  state: () => game.state,
+  world: () => wiki.mode === 'off'
+});
 
 // A small hook so the browser tests can inspect and adjust the real game.
 
 window.MTE_GAME = {
   // No world replacement or grants: seed selection happens before boot via a
   // newly created, empty save. Production, movement and costs remain canonical.
-  playtest: playtestReplay ? {
-    perform: intent => controller.perform(intent,false),
-    cultivation: cmd => cultivate(cmd),
-    ticks(count) {
-      if(!Number.isSafeInteger(count)||count<0||count>6000)throw new Error('playtest-tick-count'); // i18n-ok: developer diagnostic
-      simulationClock.advanceTicks(count);
-    },
-    present: () => updateView(0),
-    faults: () => problems.faults.list()
-  } : null,
+  playtest: playtestReplay
+    ? {
+        perform: (intent) => controller.perform(intent, false),
+        cultivation: (cmd) => cultivate(cmd),
+        ticks(count) {
+          if (!Number.isSafeInteger(count) || count < 0 || count > 6000)
+            throw new Error('playtest-tick-count'); // i18n-ok: developer diagnostic
+          simulationClock.advanceTicks(count);
+        },
+        present: () => updateView(0),
+        faults: () => problems.faults.list()
+      }
+    : null,
   core: Core,
   look,
   yard,
@@ -1014,24 +1347,41 @@ window.MTE_GAME = {
   income,
   hud,
   save: () => game.saveNow(),
-  setPlayer(x, y) { game.state.player.x = x; game.state.player.y = y; controller.forget(); simulation.invalidate(); },
-  addRes(r, n) { game.state.inv[r] += n; hud.update(game.state); },
-  setAuto(on) { savedView.showAuto = on; showAuto(); },
+  setPlayer(x, y) {
+    game.state.player.x = x;
+    game.state.player.y = y;
+    controller.forget();
+    simulation.invalidate();
+  },
+  addRes(r, n) {
+    game.state.inv[r] += n;
+    hud.update(game.state);
+  },
+  setAuto(on) {
+    savedView.showAuto = on;
+    showAuto();
+  },
   openCard: (x, y) => card.openAt(x, y),
-  startPlacing: (what) => startPlacing(what),   // { key } or { kind }, as Place does
+  startPlacing: (what) => startPlacing(what), // { key } or { kind }, as Place does
   flyers: () => fx.flyers,
   audioState: () => audio.state(),
   audio,
   zoom: () => cam.zoom,
   tilePx: () => cam.tilePx,
-  setZoom(z) { cam.setZoom(z); hud.view(cam); },
+  setZoom(z) {
+    cam.setZoom(z);
+    hud.view(cam);
+  },
   pitch: () => cam.pitch(),
   perf: () => perf.snapshot(),
   // Draws n frames back to back and returns the average ms each took,
   // pixels included (reading one back makes the browser finish drawing).
   bench(n) {
     const t0 = performance.now();
-    for (let i = 0; i < n; i++) { render(cam, game.state, fx, view(), look); cam.ctx.getImageData(0, 0, 1, 1); }
+    for (let i = 0; i < n; i++) {
+      render(cam, game.state, fx, view(), look);
+      cam.ctx.getImageData(0, 0, 1, 1);
+    }
     return (performance.now() - t0) / n;
   },
   quality: () => quality.level,

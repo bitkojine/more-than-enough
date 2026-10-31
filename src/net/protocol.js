@@ -43,21 +43,21 @@
  */
 
 export const LIMITS = Object.freeze({
-  players: 100,          // in one room, ever
-  messageBytes: 16384,   // any message after hello
-  createBytes: 1048576,  // a whole world, when a room is made
-  saveBytes: 65536,      // one player's progress
+  players: 100, // in one room, ever
+  messageBytes: 16384, // any message after hello
+  createBytes: 1048576, // a whole world, when a room is made
+  saveBytes: 65536, // one player's progress
   editsPerMessage: 64,
-  actsPerMessage: 256,    // things a player did, in one 'acts' message (see src/core/acts.js)
-  mods: 1000000,         // richness edits in one world (nothing grows back: they're kept)
+  actsPerMessage: 256, // things a player did, in one 'acts' message (see src/core/acts.js)
+  mods: 1000000, // richness edits in one world (nothing grows back: they're kept)
   props: 20000,
   extractors: 4000,
-  ratePerSecond: 30,     // messages from one connection, on average
+  ratePerSecond: 30, // messages from one connection, on average
   rateBurst: 60,
-  editsPerSecond: 60,    // world edits from one player, on average
-  editsBurst: 400,       // (a Trail sweep makes many at once)
-  editReach: 24,         // tiles from where you stand that you can change
-  invitesPerDay: 5       // people a player may bring in through their links in a day
+  editsPerSecond: 60, // world edits from one player, on average
+  editsBurst: 400, // (a Trail sweep makes many at once)
+  editReach: 24, // tiles from where you stand that you can change
+  invitesPerDay: 5 // people a player may bring in through their links in a day
 });
 
 // What an invite link may be, like Discord's: how many people it lets in
@@ -79,7 +79,7 @@ export function cleanInviteAsk(d) {
 export const STATUS = Object.freeze(['online', 'away', 'lost', 'offline']);
 // What a player can be seen doing (src/game/render/motion.js animates them).
 export const ACTS = Object.freeze(['swing', 'pick', 'collect', 'build', 'cheer', 'down', 'up']);
-export const ACT_COUNT = 1000;  // acts are counted round this, so a new one shows
+export const ACT_COUNT = 1000; // acts are counted round this, so a new one shows
 // Is the connection still there? A game sends PING (plain text, not JSON)
 // and the room answers PONG without even waking up. A connection can die
 // without closing (a phone changing networks): only silence tells.
@@ -95,8 +95,9 @@ export const ID_RE = /^[0-9a-f]{16}$/;
 // Content names (buildings, props): the game checks them against its own tables.
 const NAME_RE = /^[a-z][a-zA-Z0-9]{0,23}$/;
 
-const XY_MAX = 2 ** 20 - 1;   // see src/core/coords.js packKey
-const Z_MIN = -512, Z_MAX = 0;
+const XY_MAX = 2 ** 20 - 1; // see src/core/coords.js packKey
+const Z_MIN = -512,
+  Z_MAX = 0;
 const KEY_MAX = 2 ** 52;
 
 const isInt = (v) => Number.isSafeInteger(v);
@@ -112,7 +113,7 @@ export function byteLength(str) {
   let n = 0;
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i);
-    n += c < 0x80 ? 1 : c < 0x800 ? 2 : (c >= 0xd800 && c < 0xdc00) ? (i++, 4) : 3;
+    n += c < 0x80 ? 1 : c < 0x800 ? 2 : c >= 0xd800 && c < 0xdc00 ? (i++, 4) : 3;
   }
   return n;
 }
@@ -122,7 +123,11 @@ export function byteLength(str) {
 export function parse(raw, maxBytes = LIMITS.messageBytes) {
   if (typeof raw !== 'string' || raw.length > maxBytes || byteLength(raw) > maxBytes) return null;
   let d;
-  try { d = JSON.parse(raw); } catch { return null; }
+  try {
+    d = JSON.parse(raw);
+  } catch {
+    return null;
+  }
   return isObj(d) && typeof d.t === 'string' ? d : null;
 }
 
@@ -135,9 +140,18 @@ export function parse(raw, maxBytes = LIMITS.messageBytes) {
 export function cleanPos(p) {
   if (!isObj(p) || !inXY(p.x) || !inXY(p.y) || !inZ(p.z)) return null;
   const f = (v) => (isNum(v) ? Math.max(-1, Math.min(1, round(v, 100))) : 0);
-  return { x: round(p.x, 1000), y: round(p.y, 1000), z: p.z, fx: f(p.fx), fy: f(p.fy), m: p.m === true, sign: p.sign === true,
+  return {
+    x: round(p.x, 1000),
+    y: round(p.y, 1000),
+    z: p.z,
+    fx: f(p.fx),
+    fy: f(p.fy),
+    m: p.m === true,
+    sign: p.sign === true,
     ...(isInt(p.gear) && p.gear >= 0 && p.gear <= 3 ? { gear: p.gear } : {}),
-    a: ACTS.includes(p.a) ? p.a : null, n: isInt(p.n) && p.n >= 0 && p.n < ACT_COUNT ? p.n : 0 };
+    a: ACTS.includes(p.a) ? p.a : null,
+    n: isInt(p.n) && p.n >= 0 && p.n < ACT_COUNT ? p.n : 0
+  };
 }
 
 // One world edit, or null:
@@ -147,15 +161,41 @@ export function cleanPos(p) {
 //   ['v', x, y, z, tx, ty]      the building on (x, y, z) moved to (tx, ty)
 export function cleanEdit(e) {
   if (!Array.isArray(e)) return null;
-  if (e[0] === 'm' && e.length === 3 && isKey(e[1]) && isInt(e[2]) && e[2] >= 0 && e[2] <= 255) return ['m', e[1], e[2]];
-  if (e[0] === 'p' && e.length === 3 && isKey(e[1]) && typeof e[2] === 'string' && NAME_RE.test(e[2])) return ['p', e[1], e[2]];
-  if (e[0] === 'x' && (e.length === 5 || e.length === 6) && typeof e[1] === 'string' && NAME_RE.test(e[1]) &&
-      isInt(e[2]) && Math.abs(e[2]) <= XY_MAX && isInt(e[3]) && Math.abs(e[3]) <= XY_MAX && inZ(e[4]) &&
-      (e.length === 5 || (typeof e[5] === 'string' && ID_RE.test(e[5])))) {
+  if (e[0] === 'm' && e.length === 3 && isKey(e[1]) && isInt(e[2]) && e[2] >= 0 && e[2] <= 255)
+    return ['m', e[1], e[2]];
+  if (
+    e[0] === 'p' &&
+    e.length === 3 &&
+    isKey(e[1]) &&
+    typeof e[2] === 'string' &&
+    NAME_RE.test(e[2])
+  )
+    return ['p', e[1], e[2]];
+  if (
+    e[0] === 'x' &&
+    (e.length === 5 || e.length === 6) &&
+    typeof e[1] === 'string' &&
+    NAME_RE.test(e[1]) &&
+    isInt(e[2]) &&
+    Math.abs(e[2]) <= XY_MAX &&
+    isInt(e[3]) &&
+    Math.abs(e[3]) <= XY_MAX &&
+    inZ(e[4]) &&
+    (e.length === 5 || (typeof e[5] === 'string' && ID_RE.test(e[5])))
+  ) {
     return e.slice(0, 6);
   }
   const tile = (v) => isInt(v) && Math.abs(v) <= XY_MAX;
-  if (e[0] === 'v' && e.length === 6 && tile(e[1]) && tile(e[2]) && inZ(e[3]) && tile(e[4]) && tile(e[5])) return e.slice();
+  if (
+    e[0] === 'v' &&
+    e.length === 6 &&
+    tile(e[1]) &&
+    tile(e[2]) &&
+    inZ(e[3]) &&
+    tile(e[4]) &&
+    tile(e[5])
+  )
+    return e.slice();
   return null;
 }
 
@@ -164,15 +204,28 @@ export function cleanEdit(e) {
 // against the game's tables where it's done (src/core/replay.js).
 const UPGRADE_RE = /^[a-z][a-zA-Z0-9]{0,23}$/;
 export function cleanAct(a) {
-  if (!Array.isArray(a) || !isInt(a[1]) || a[1] < 0 || !inXY(a[2]) || !inXY(a[3]) || !inZ(a[4])) return null;
+  if (!Array.isArray(a) || !isInt(a[1]) || a[1] < 0 || !inXY(a[2]) || !inXY(a[3]) || !inZ(a[4]))
+    return null;
   const head = [a[0], a[1], round(a[2], 1000), round(a[3], 1000), a[4]];
   const tile = (v) => isInt(v) && Math.abs(v) <= XY_MAX;
-  if ((a[0] === 'h' || a[0] === 'c') && a.length === 7 && tile(a[5]) && tile(a[6])) return [...head, a[5], a[6]];
+  if ((a[0] === 'h' || a[0] === 'c') && a.length === 7 && tile(a[5]) && tile(a[6]))
+    return [...head, a[5], a[6]];
   if ((a[0] === 'c' || a[0] === 'w') && a.length === 5) return head;
-  if (a[0] === 'b' && a.length === 8 && typeof a[5] === 'string' && NAME_RE.test(a[5]) && tile(a[6]) && tile(a[7])) return [...head, a[5], a[6], a[7]];
-  if (a[0] === 'v' && a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8])) return [...head, a[5], a[6], a[7], a[8]];
-  if (a[0] === 'p' && a.length === 6 && typeof a[5] === 'string' && NAME_RE.test(a[5])) return [...head, a[5]];
-  if (a[0] === 'u' && a.length === 6 && typeof a[5] === 'string' && UPGRADE_RE.test(a[5])) return [...head, a[5]];
+  if (
+    a[0] === 'b' &&
+    a.length === 8 &&
+    typeof a[5] === 'string' &&
+    NAME_RE.test(a[5]) &&
+    tile(a[6]) &&
+    tile(a[7])
+  )
+    return [...head, a[5], a[6], a[7]];
+  if (a[0] === 'v' && a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8]))
+    return [...head, a[5], a[6], a[7], a[8]];
+  if (a[0] === 'p' && a.length === 6 && typeof a[5] === 'string' && NAME_RE.test(a[5]))
+    return [...head, a[5]];
+  if (a[0] === 'u' && a.length === 6 && typeof a[5] === 'string' && UPGRADE_RE.test(a[5]))
+    return [...head, a[5]];
   return null;
 }
 
@@ -188,7 +241,8 @@ export function cleanActs(list) {
 }
 
 export function cleanEdits(list) {
-  if (!Array.isArray(list) || list.length === 0 || list.length > LIMITS.editsPerMessage) return null;
+  if (!Array.isArray(list) || list.length === 0 || list.length > LIMITS.editsPerMessage)
+    return null;
   const out = [];
   for (const e of list) {
     const c = cleanEdit(e);
@@ -205,7 +259,8 @@ export function cleanWorld(w) {
   const mods = Array.isArray(w.mods) ? w.mods : [];
   const props = Array.isArray(w.props) ? w.props : [];
   const ext = Array.isArray(w.ext) ? w.ext : [];
-  if (mods.length > LIMITS.mods || props.length > LIMITS.props || ext.length > LIMITS.extractors) return null;
+  if (mods.length > LIMITS.mods || props.length > LIMITS.props || ext.length > LIMITS.extractors)
+    return null;
   const out = { seed: w.seed, mods: [], props: [], ext: [] };
   for (const m of mods) {
     const c = Array.isArray(m) && cleanEdit(['m', m[0], m[1]]);
@@ -228,8 +283,13 @@ export function cleanWorld(w) {
 // A player's progress: an opaque JSON object, small enough to keep. The game
 // reads it back through its own save checks (src/core/save.js).
 export function cleanSave(s) {
-  if (typeof s !== 'string' || s.length > LIMITS.saveBytes || byteLength(s) > LIMITS.saveBytes) return null;
-  try { return isObj(JSON.parse(s)) ? s : null; } catch { return null; }
+  if (typeof s !== 'string' || s.length > LIMITS.saveBytes || byteLength(s) > LIMITS.saveBytes)
+    return null;
+  try {
+    return isObj(JSON.parse(s)) ? s : null;
+  } catch {
+    return null;
+  }
 }
 
 // The world's clock: seconds of game time since its first dawn. One clock per
@@ -244,7 +304,8 @@ export function cleanTime(v) {
 // before any creation quota is charged or any room is touched, so flooding
 // junk bodies costs nobody's quota and never reaches a room (server/src/worker.js).
 export function cleanCreate(d) {
-  if (!isObj(d) || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key)) return null;
+  if (!isObj(d) || d.t !== 'create' || typeof d.key !== 'string' || !KEY_RE.test(d.key))
+    return null;
   const world = cleanWorld(d.world);
   if (!world) return null;
   const time = d.time === undefined ? 0 : cleanTime(d.time);
@@ -263,7 +324,8 @@ export function cleanColor(c) {
 
 // A tile key's (x, y, z), as src/core/coords.js packs them.
 export function unpackKey(key) {
-  const SPAN = 2 ** 21, OFF = 2 ** 20;
+  const SPAN = 2 ** 21,
+    OFF = 2 ** 20;
   const y = (key % SPAN) - OFF;
   const rest = Math.floor(key / SPAN);
   return { x: (rest % SPAN) - OFF, y, z: Math.floor(rest / SPAN) - 512 };
@@ -274,7 +336,11 @@ export function unpackKey(key) {
 export function editInReach(e, p) {
   if (!p) return false;
   const t = e[0] === 'x' ? { x: e[2], y: e[3], z: e[4] } : unpackKey(e[1]);
-  return t.z === p.z && Math.abs(t.x + 0.5 - p.x) <= LIMITS.editReach && Math.abs(t.y + 0.5 - p.y) <= LIMITS.editReach;
+  return (
+    t.z === p.z &&
+    Math.abs(t.x + 0.5 - p.x) <= LIMITS.editReach &&
+    Math.abs(t.y + 0.5 - p.y) <= LIMITS.editReach
+  );
 }
 
 /* --------------------------------------------- your world, on every device */
@@ -287,9 +353,9 @@ export function editInReach(e, p) {
 // linked device plays as you there too: anyone holding the sync key can play
 // your own worlds and your character.
 export const SOLO = Object.freeze({
-  bytes: 1048576,  // one world's save (the same as a whole shared world)
-  worlds: 1000,    // worlds one key keeps, against abuse only: none is ever deleted, and past this a new one stays on its device
-  rooms: 100       // shared worlds kept with your character (there is one shared world now)
+  bytes: 1048576, // one world's save (the same as a whole shared world)
+  worlds: 1000, // worlds one key keeps, against abuse only: none is ever deleted, and past this a new one stays on its device
+  rooms: 100 // shared worlds kept with your character (there is one shared world now)
 });
 export const LINK_RE = /^[0-9a-f]{64}$/;
 const SEED_MAX = 2 ** 32;
@@ -301,7 +367,9 @@ export function cleanSoloSave(s, seed) {
   try {
     const d = JSON.parse(s);
     return isObj(d) && d.seed === seed ? s : null;
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 }
 
 const isSeed = (v) => isInt(v) && v >= 0 && v < SEED_MAX;
@@ -330,7 +398,9 @@ export function cleanSoloAsk(d) {
   if (d.t === 'push') {
     if (!isSeed(d.seed) || !isRev(d.base)) return null;
     const save = cleanSoloSave(d.save, d.seed);
-    return save ? { t: 'push', key: d.key, seed: d.seed, base: d.base, save, cur: d.cur !== false } : null;
+    return save
+      ? { t: 'push', key: d.key, seed: d.seed, base: d.base, save, cur: d.cur !== false }
+      : null;
   }
   return null;
 }
@@ -356,19 +426,28 @@ export function cleanSoloAnswer(d) {
   }
   if (d.conflict === true) {
     const save = isSeed(d.seed) ? cleanSoloSave(d.save, d.seed) : null;
-    return save && isRev(d.rev) ? { conflict: true, seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
+    return save && isRev(d.rev)
+      ? { conflict: true, seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save }
+      : null;
   }
   if ('cur' in d) {
     if (d.cur === null) return { cur: null };
     if (!isSeed(d.cur) || !isRev(d.rev)) return null;
-    const base = { cur: d.cur, rev: d.rev, at: isInt(d.at) ? d.at : 0, worlds: cleanRevs(d.worlds) };
+    const base = {
+      cur: d.cur,
+      rev: d.rev,
+      at: isInt(d.at) ? d.at : 0,
+      worlds: cleanRevs(d.worlds)
+    };
     if (d.same === true) return { ...base, same: true };
     const save = cleanSoloSave(d.save, d.cur);
     return save ? { ...base, save } : null;
   }
   if ('seed' in d) {
     const save = isSeed(d.seed) ? cleanSoloSave(d.save, d.seed) : null;
-    return save && isRev(d.rev) ? { seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save } : null;
+    return save && isRev(d.rev)
+      ? { seed: d.seed, rev: d.rev, at: isInt(d.at) ? d.at : 0, save }
+      : null;
   }
   return isRev(d.rev) && d.rev > 0 ? { rev: d.rev } : null;
 }
@@ -376,8 +455,11 @@ export function cleanSoloAnswer(d) {
 // Your character in shared worlds: its key and the worlds it plays in,
 // newest first (what fits).
 function cleanMe(m) {
-  if (!isObj(m) || typeof m.key !== 'string' || !KEY_RE.test(m.key) || !Array.isArray(m.rooms)) return null;
-  const rooms = [...new Set(m.rooms.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r)))].slice(0, SOLO.rooms);
+  if (!isObj(m) || typeof m.key !== 'string' || !KEY_RE.test(m.key) || !Array.isArray(m.rooms))
+    return null;
+  const rooms = [
+    ...new Set(m.rooms.filter((r) => typeof r === 'string' && ROOM_ID_RE.test(r)))
+  ].slice(0, SOLO.rooms);
   return { key: m.key, rooms };
 }
 

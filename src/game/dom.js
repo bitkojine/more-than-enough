@@ -2,7 +2,7 @@
 
 const byId = (id) => {
   const node = document.getElementById(id);
-  if (!node) throw new Error('Missing #' + id + ' in index.html');  // i18n-ok: a bug in the page, for its developers
+  if (!node) throw new Error('Missing #' + id + ' in index.html'); // i18n-ok: a bug in the page, for its developers
   return node;
 };
 

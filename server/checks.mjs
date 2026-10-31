@@ -38,12 +38,24 @@ export async function roomChecks(service, check, { rand, token, sleep }) {
   // says (`ack`), for a while.
   let makerKey, made, room, maker, hi;
   for (let i = 0; i < 5; i++) {
-    if (i) { maker.close(); await sleep(3000); }
+    if (i) {
+      maker.close();
+      await sleep(3000);
+    }
     makerKey = rand(32);
     // Under the admin token the room is marked as a smoke test (so it ages out
     // unvisited, like every deploy's room ever since): the token is the only
     // door to a world now, and the mark is the only kind that ages out.
-    made = await service.create({ t: 'create', key: makerKey, smoke: true, world: { seed: 12345, mods: [], props: [], ext: [] }, pos: { x: 0.5, y: 0.5, z: 0 } }, { token });
+    made = await service.create(
+      {
+        t: 'create',
+        key: makerKey,
+        smoke: true,
+        world: { seed: 12345, mods: [], props: [], ext: [] },
+        pos: { x: 0.5, y: 0.5, z: 0 }
+      },
+      { token }
+    );
     room = made.room;
     maker = service.connect(room, makerKey);
     hi = await maker.next('welcome');
@@ -57,8 +69,11 @@ export async function roomChecks(service, check, { rand, token, sleep }) {
   // (On the live service this waits out the rollout: for a few seconds after a
   // deploy the previous version may still answer; the loop above only ends on
   // a welcome from this version. Locally the first answer is already right.)
-  check((await service.post('https://play.robertasrudys.com', '{"t":"create","key":"short"}')).status === 403,
-    'a stranger cannot make a world');
+  check(
+    (await service.post('https://play.robertasrudys.com', '{"t":"create","key":"short"}'))
+      .status === 403,
+    'a stranger cannot make a world'
+  );
   if (token) {
     // Under the token, a body that couldn't make a world is still a plain 400.
     const bad = await service.create({ t: 'create', key: 'short' }, { token });
@@ -81,11 +96,17 @@ export async function roomChecks(service, check, { rand, token, sleep }) {
   check(!!inv, 'the maker gets an invite');
   const friend = service.connect(room, rand(32), inv && inv.code);
   const fw = await friend.next('welcome');
-  check(fw && fw.you !== hi.you && fw.players[hi.you], 'an invited friend joins and sees the maker');
+  check(
+    fw && fw.you !== hi.you && fw.players[hi.you],
+    'an invited friend joins and sees the maker'
+  );
   friend.send({ t: 'pos', p: { x: 2, y: 3, z: 0 } });
   const moved = await maker.next('pos');
   check(moved && moved.p.x === 2, 'the maker sees the friend move');
-  check(hi && hi.pong === true && hi.ack === true, 'the welcome says the room answers pings and acknowledges edits');
+  check(
+    hi && hi.pong === true && hi.ack === true,
+    'the welcome says the room answers pings and acknowledges edits'
+  );
   friend.send('ping');
   check(!!(await friend.next('pong')), 'the room answers a ping');
   friend.send({ t: 'edits', e: [['m', packKey(2, 3, 0), 1]], n: 1 });
@@ -99,11 +120,20 @@ export async function roomChecks(service, check, { rand, token, sleep }) {
 
   if (token) {
     const lines = await service.log(room, token);
-    check(lines[0]?.e === 'room' && lines.some((l) => l.e === 'join' && l.new), "the moderator reads the room's audit log");
+    check(
+      lines[0]?.e === 'room' && lines.some((l) => l.e === 'join' && l.new),
+      "the moderator reads the room's audit log"
+    );
     // The room was marked as a smoke test under the token, so the moderator's
     // world list hides it without "Test worlds" and shows it with them.
-    check(!(await service.players(false, token)).includes(room), "the smoke room's world stays out of the moderator's plain list");
-    check((await service.players(true, token)).includes(room), "and appears with 'Test worlds' ticked");
+    check(
+      !(await service.players(false, token)).includes(room),
+      "the smoke room's world stays out of the moderator's plain list"
+    );
+    check(
+      (await service.players(true, token)).includes(room),
+      "and appears with 'Test worlds' ticked"
+    );
   }
 
   maker.close();

@@ -4,7 +4,12 @@
 
 import { t, number } from '../i18n/i18n.js';
 
-const SUFFIX = { k: t('num.thousand'), M: t('num.million'), B: t('num.billion'), T: t('num.trillion') };
+const SUFFIX = {
+  k: t('num.thousand'),
+  M: t('num.million'),
+  B: t('num.billion'),
+  T: t('num.trillion')
+};
 
 export function fmt(n) {
   n = Math.floor(n);
@@ -19,13 +24,18 @@ export function fmt(n) {
 // Past a thousand trillion no word helps: 1.2e15.
 function sci(n) {
   const e = Math.floor(Math.log10(n));
-  return number(Math.floor(n / 10 ** e * 10) / 10, 1) + 'e' + e;
+  return number(Math.floor((n / 10 ** e) * 10) / 10, 1) + 'e' + e;
 }
 
 // The same, as short as it goes: for the resource bar, where every
 // character counts. Never more than three digits and a one-letter unit:
 // 9999, 45k, 4.7M, 459B, 12T; past a thousand trillion, 1e15.
-const SHORT = { k: t('num.short.thousand'), M: t('num.short.million'), B: t('num.short.billion'), T: t('num.short.trillion') };
+const SHORT = {
+  k: t('num.short.thousand'),
+  M: t('num.short.million'),
+  B: t('num.short.billion'),
+  T: t('num.short.trillion')
+};
 function short(x, unit) {
   return x < 10 ? number(Math.floor(x * 10) / 10, 1) + unit : number(Math.floor(x), 0) + unit;
 }
@@ -45,7 +55,10 @@ export function fmtShort(n) {
 function sciShort(n) {
   let e = Math.floor(Math.log10(n));
   let m = Math.round(n / 10 ** e);
-  if (m >= 10) { m = 1; e += 1; }
+  if (m >= 10) {
+    m = 1;
+    e += 1;
+  }
   return m + 'e' + e;
 }
 
@@ -86,4 +99,5 @@ export function fmtClock(seconds) {
 }
 
 // Shared monochrome lock for future progression, never an affordability badge.
-export const lockIcon = '<svg class="lockIcon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>';
+export const lockIcon =
+  '<svg class="lockIcon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="2"/><path d="M5 7V5a3 3 0 0 1 6 0v2"/></svg>';

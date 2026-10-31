@@ -1,7 +1,7 @@
 {
   "format": 1,
   "source": "src/game/render/resource-models.js",
-  "sourceSha256": "cc35b777ae85376c6eea5187af0b63da0e71d01cfcd10442e5b7bf636a573765",
+  "sourceSha256": "b9845cba978af0eb4297701f4300149399abc863df4494c35fab827489954156",
   "finish": "3D-authored faces and curves projected into flat outlined SVGs; no per-resource WebGL runtime",
   "assets": [
     {

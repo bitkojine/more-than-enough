@@ -17,26 +17,46 @@ export function invariants() {
   const invariant = (name, check) => list.push({ name, check });
 
   invariant('cultivation condition and completion records remain valid', (s) => {
-    if(s.cultivation&&!C.validCultivation(s.cultivation))throw new Error('Invalid cultivation state');
-    if(s.cultivation&&C.canEmbark(s)!==(!s.shared&&s.cultivation.completed===true))throw new Error('Cultivation completion mismatch');
+    if (s.cultivation && !C.validCultivation(s.cultivation))
+      throw new Error('Invalid cultivation state');
+    if (s.cultivation && C.canEmbark(s) !== (!s.shared && s.cultivation.completed === true))
+      throw new Error('Cultivation completion mismatch');
   });
 
   invariant('physical light is bounded and sealed carriers protect the heart', (s) => {
-    if(!s.cultivation)return;
-    const p=s.player,l=C.illuminationAt(s,p.x,p.y,p.z);
-    if(!Number.isInteger(l.sky)||!Number.isInteger(l.block)||!finite(l.level)||l.sky<0||l.block<0||l.level<0||l.sky>C.LIGHT_MAX||l.block>C.LIGHT_MAX||l.level>C.LIGHT_MAX)throw new Error('Invalid physical light');
-    if(s.cultivation.gear.carrier&&C.heartLight(s,{x:Math.floor(p.x),y:Math.floor(p.y),z:p.z})!==0)throw new Error('Sealed heart exposed to light');
+    if (!s.cultivation) return;
+    const p = s.player,
+      l = C.illuminationAt(s, p.x, p.y, p.z);
+    if (
+      !Number.isInteger(l.sky) ||
+      !Number.isInteger(l.block) ||
+      !finite(l.level) ||
+      l.sky < 0 ||
+      l.block < 0 ||
+      l.level < 0 ||
+      l.sky > C.LIGHT_MAX ||
+      l.block > C.LIGHT_MAX ||
+      l.level > C.LIGHT_MAX
+    )
+      throw new Error('Invalid physical light');
+    if (
+      s.cultivation.gear.carrier &&
+      C.heartLight(s, { x: Math.floor(p.x), y: Math.floor(p.y), z: p.z }) !== 0
+    )
+      throw new Error('Sealed heart exposed to light');
   });
 
   // --- a flare burns between none and one whole flare, and never in a
   // shared world, whose room doesn't check flares (flare.js).
   invariant('a flare burns between 0 and FLARE_TIME seconds, never in a shared world', (s) => {
-    if (!finite(s.flare) || s.flare < 0 || s.flare > C.FLARE_TIME) throw new Error(`flare = ${s.flare}`);
+    if (!finite(s.flare) || s.flare < 0 || s.flare > C.FLARE_TIME)
+      throw new Error(`flare = ${s.flare}`);
     if (s.shared && s.flare > 0) throw new Error('a flare burns in a shared world');
   });
 
-  invariant('Mica never has two active carried lights',s=>{
-    if(s.cultivation?.lantern&&C.flareLit(s))throw new Error('Lantern and flare are both active');
+  invariant('Mica never has two active carried lights', (s) => {
+    if (s.cultivation?.lantern && C.flareLit(s))
+      throw new Error('Lantern and flare are both active');
   });
 
   // --- resources and money: never negative, never NaN (economy.js: pay()
@@ -59,7 +79,11 @@ export function invariants() {
   invariant('paying a cost you cannot afford changes nothing', (s) => {
     // Pure function of the current inventory, checked directly: this is the
     // atomicity guarantee the room leans on (economy.pay).
-    for (const cost of [{ mycelium: s.inv.mycelium + 1 }, { crystal: s.inv.crystal + 1 }, { stone: 1e18 }]) {
+    for (const cost of [
+      { mycelium: s.inv.mycelium + 1 },
+      { crystal: s.inv.crystal + 1 },
+      { stone: 1e18 }
+    ]) {
       const before = { ...s.inv };
       const paid = C.pay(s.inv, cost);
       if (paid) {
@@ -67,7 +91,8 @@ export function invariants() {
         // undo, so the state is left as the check found it
         for (const r in before) s.inv[r] = before[r];
       } else {
-        for (const r in before) if (s.inv[r] !== before[r]) throw new Error('an unaffordable pay touched the packs');
+        for (const r in before)
+          if (s.inv[r] !== before[r]) throw new Error('an unaffordable pay touched the packs');
       }
     }
   });
@@ -77,13 +102,16 @@ export function invariants() {
   invariant('tool and refinery levels index their tables', (s) => {
     for (const k in s.tools) {
       if (!Number.isInteger(s.tools[k])) throw new Error(`tools.${k} = ${s.tools[k]}`);
-      if (s.tools[k] < 0 || s.tools[k] > C.TOOLS[k].levels.length) throw new Error(`tools.${k} = ${s.tools[k]}`);
+      if (s.tools[k] < 0 || s.tools[k] > C.TOOLS[k].levels.length)
+        throw new Error(`tools.${k} = ${s.tools[k]}`);
     }
     for (const k in s.resUp) {
       if (!Number.isInteger(s.resUp[k])) throw new Error(`resUp.${k} = ${s.resUp[k]}`);
-      if (s.resUp[k] < 0 || s.resUp[k] > C.REFINERIES[k].levels.length) throw new Error(`resUp.${k} = ${s.resUp[k]}`);
+      if (s.resUp[k] < 0 || s.resUp[k] > C.REFINERIES[k].levels.length)
+        throw new Error(`resUp.${k} = ${s.resUp[k]}`);
     }
-    if (!Number.isInteger(s.abundanceLv) || s.abundanceLv < 0) throw new Error(`abundanceLv = ${s.abundanceLv}`);
+    if (!Number.isInteger(s.abundanceLv) || s.abundanceLv < 0)
+      throw new Error(`abundanceLv = ${s.abundanceLv}`);
   });
 
   // --- one building per tile, and only on a tile a building can stand on
@@ -97,7 +125,8 @@ export function invariants() {
       if (!C.EXTRACTORS[e.key]) throw new Error(`unknown building ${e.key}`);
       if (!Number.isFinite(e.buffer) || e.buffer < 0) throw new Error(`buffer = ${e.buffer}`);
       // The index by tile follows a building that moved (actions.moveExtractor).
-      if (C.extractorAt(s, e.x, e.y, e.z) !== e) throw new Error(`the index lost the building at ${at}`);
+      if (C.extractorAt(s, e.x, e.y, e.z) !== e)
+        throw new Error(`the index lost the building at ${at}`);
     }
   });
 
@@ -114,7 +143,8 @@ export function invariants() {
   // --- every world is kept: the format is frozen, and neither a save nor a
   // shared-world round-trip may move it (format.js, worlds-kept.test.js).
   invariant('the world and economy formats never move', () => {
-    if (WORLD_FORMAT !== 11 || ECON_FORMAT !== 1) throw new Error(`formats moved: ${WORLD_FORMAT}/${ECON_FORMAT}`);
+    if (WORLD_FORMAT !== 11 || ECON_FORMAT !== 1)
+      throw new Error(`formats moved: ${WORLD_FORMAT}/${ECON_FORMAT}`);
   });
 
   // --- your buildings are yours and only yours after a round-trip through
@@ -122,7 +152,11 @@ export function invariants() {
   // them, correctProgress restores them as yours). The room's copy never
   // contains a building it doesn't know the owner of.
   invariant('progress sent to the room keeps your buildings yours', (s) => {
-    const mine = new Set(s.extractors.filter((e) => !e.owner || e.owner === s.me).map((e) => e.x + ',' + e.y + ',' + e.z));
+    const mine = new Set(
+      s.extractors
+        .filter((e) => !e.owner || e.owner === s.me)
+        .map((e) => e.x + ',' + e.y + ',' + e.z)
+    );
     const sent = JSON.parse(C.progressOf(s));
     if (Array.isArray(sent.extractors)) {
       for (const e of sent.extractors) {
@@ -145,17 +179,21 @@ export function invariants() {
   // --- the deepest layer only goes down as you dig, and never past the
   // mine's floor (underground.js, Z_MIN).
   invariant('the deepest layer stays within the mine', (s) => {
-    if (!Number.isInteger(s.underground.deepest)) throw new Error(`deepest = ${s.underground.deepest}`);
-    if (s.underground.deepest > C.SURFACE || s.underground.deepest < C.Z_MIN) throw new Error(`deepest = ${s.underground.deepest}`);
+    if (!Number.isInteger(s.underground.deepest))
+      throw new Error(`deepest = ${s.underground.deepest}`);
+    if (s.underground.deepest > C.SURFACE || s.underground.deepest < C.Z_MIN)
+      throw new Error(`deepest = ${s.underground.deepest}`);
     if (s.player.z > C.SURFACE || s.player.z < C.Z_MIN) throw new Error(`player.z = ${s.player.z}`);
   });
 
   // --- milestones count once each, in the order reached (goals.js; save.js
   // dedups a tampered list). goalIndex is goalsDone.length.
   invariant('milestones are reached once each, and counted', (s) => {
-    if (new Set(s.goalsDone).size !== s.goalsDone.length) throw new Error('a milestone was counted twice');
-    if (s.goalIndex !== s.goalsDone.length) throw new Error(`goalIndex ${s.goalIndex} != ${s.goalsDone.length} done`);
-    const ids = new Set((s.cultivation?C.CULTIVATION_GOALS:C.GOALS).map((g) => g.id));
+    if (new Set(s.goalsDone).size !== s.goalsDone.length)
+      throw new Error('a milestone was counted twice');
+    if (s.goalIndex !== s.goalsDone.length)
+      throw new Error(`goalIndex ${s.goalIndex} != ${s.goalsDone.length} done`);
+    const ids = new Set((s.cultivation ? C.CULTIVATION_GOALS : C.GOALS).map((g) => g.id));
     for (const id of s.goalsDone) if (!ids.has(id)) throw new Error(`unknown milestone ${id}`);
   });
 

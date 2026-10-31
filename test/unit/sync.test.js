@@ -42,10 +42,16 @@ function cloud() {
   const env = { VAULT, ALLOWED_ORIGINS: ORIGIN };
   return {
     storages,
-    set down(v) { down = v; },
+    set down(v) {
+      down = v;
+    },
     async fetch(url, init = {}) {
       if (down) throw new TypeError('Failed to fetch');
-      const req = new Request(url, { method: init.method, headers: { ...init.headers, Origin: ORIGIN }, body: init.body });
+      const req = new Request(url, {
+        method: init.method,
+        headers: { ...init.headers, Origin: ORIGIN },
+        body: init.body
+      });
       return worker.default.fetch(req, env);
     }
   };
@@ -55,8 +61,12 @@ function memoryStore() {
   const m = new Map();
   return {
     getItem: (k) => (m.has(k) ? m.get(k) : null),
-    setItem: (k, v) => { m.set(k, String(v)); },
-    removeItem: (k) => { m.delete(k); },
+    setItem: (k, v) => {
+      m.set(k, String(v));
+    },
+    removeItem: (k) => {
+      m.delete(k);
+    },
     clear: () => m.clear(),
     keys: () => [...m.keys()],
     map: m
@@ -80,20 +90,34 @@ function device(service, seed) {
     d.sync.saved();
   };
   d.sync = createSync({
-    store, fetch: (u, i) => service.fetch(u, i), service: SERVICE, now,
+    store,
+    fetch: (u, i) => service.fetch(u, i),
+    service: SERVICE,
+    now,
     own: () => (d.asked ? null : d.state),
-    serialize: C.serialize, deserialize: C.deserialize,
-    seeds: () => store.keys().filter((k) => k.startsWith('mte.solo.world.')).map((k) => Number(k.slice(15))),
+    serialize: C.serialize,
+    deserialize: C.deserialize,
+    seeds: () =>
+      store
+        .keys()
+        .filter((k) => k.startsWith('mte.solo.world.'))
+        .map((k) => Number(k.slice(15))),
     archived: (seed) => store.getItem('mte.solo.world.' + seed),
     copy: (seed, raw) => store.setItem('mte.solo.world.' + seed, raw),
     aside: (seed, raw) => store.setItem('mte.solo.kept.' + seed + '.' + clock, raw),
-    replace: (s) => { d.state = s; d.save(); },
-    conflict: (c) => { d.asked = c; },
+    replace: (s) => {
+      d.state = s;
+      d.save();
+    },
+    conflict: (c) => {
+      d.asked = c;
+    },
     said: (w) => d.said.push(w),
     // As together.js character and becomeCharacter: the key that is you in
     // shared worlds and the worlds you've been in.
     me: () => {
-      const key = store.getItem('mte.key'), rooms = JSON.parse(store.getItem('mte.rooms') || '[]');
+      const key = store.getItem('mte.key'),
+        rooms = JSON.parse(store.getItem('mte.rooms') || '[]');
       return key && rooms.length ? { key, rooms } : null;
     },
     becomeMe: (m) => {
@@ -101,9 +125,15 @@ function device(service, seed) {
       if (old && old !== m.key) store.setItem('mte.key.before.' + clock, old);
       store.setItem('mte.key', m.key);
       const list = JSON.parse(store.getItem('mte.rooms') || '[]');
-      store.setItem('mte.rooms', JSON.stringify([...list, ...m.rooms.filter((r) => !list.includes(r))]));
+      store.setItem(
+        'mte.rooms',
+        JSON.stringify([...list, ...m.rooms.filter((r) => !list.includes(r))])
+      );
     },
-    askMe: async () => { d.askedMe++; return d.meAnswer; }
+    askMe: async () => {
+      d.askedMe++;
+      return d.meAnswer;
+    }
   });
   d.askedMe = 0;
   d.meAnswer = false;
@@ -122,12 +152,17 @@ function device(service, seed) {
     d.save();
   };
   // Answers the open question.
-  d.pick = (which) => { const c = d.asked; d.asked = null; return which === 'mine' ? c.keepMine() : c.keepOther(); };
+  d.pick = (which) => {
+    const c = d.asked;
+    d.asked = null;
+    return which === 'mine' ? c.keepMine() : c.keepOther();
+  };
   return d;
 }
 
 async function linked(service) {
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   mac.play();
   const key = mac.sync.start();
   await mac.sync.check();
@@ -139,9 +174,10 @@ async function linked(service) {
 
 const played = (d) => d.state.stats.playedMs;
 
-test('a linked phone plays the computer\'s world, and its own stays on it', async () => {
+test("a linked phone plays the computer's world, and its own stays on it", async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   mac.play(120_000, 7);
   phone.play(LINK_PLAYED + 1000, 3); // the phone had a world of its own, played a while
   const phoneOwn = phone.state.seed;
@@ -149,10 +185,13 @@ test('a linked phone plays the computer\'s world, and its own stays on it', asyn
   await mac.sync.check();
   assert.ok(mac.sync.okAt > 0, 'the computer reached the vault');
   assert.equal(await phone.sync.link(key), true);
-  assert.equal(phone.state.seed, mac.state.seed, 'the phone plays the computer\'s world');
+  assert.equal(phone.state.seed, mac.state.seed, "the phone plays the computer's world");
   assert.equal(phone.state.inv.mycelium, mac.state.inv.mycelium);
   assert.deepEqual(phone.said, ['arrived']);
-  assert.ok(phone.store.getItem('mte.solo.world.' + phoneOwn), 'the phone\'s own world is still on the phone');
+  assert.ok(
+    phone.store.getItem('mte.solo.world.' + phoneOwn),
+    "the phone's own world is still on the phone"
+  );
   // ...and in the vault, without becoming the one played.
   const [storage] = service.storages.values();
   const meta = await storage.get('meta');
@@ -163,7 +202,8 @@ test('a linked phone plays the computer\'s world, and its own stays on it', asyn
 
 test('a world played less than a minute stays out of the vault when a device links', async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   mac.play();
   const key = mac.sync.start();
   await mac.sync.check();
@@ -181,13 +221,13 @@ test('whichever device was played last carries on, without a question', async ()
     phone.play(60_000, 2);
     await phone.sync.flush();
     await mac.sync.check(); // the Mac comes back to the front
-    assert.equal(played(mac), played(phone), 'the Mac took the phone\'s progress');
+    assert.equal(played(mac), played(phone), "the Mac took the phone's progress");
     assert.equal(mac.asked, null);
     clock += IDLE_MS * 2;
     mac.play(30_000, 4);
     await mac.sync.flush();
     await phone.sync.check();
-    assert.equal(played(phone), played(mac), 'and the phone the Mac\'s');
+    assert.equal(played(phone), played(mac), "and the phone the Mac's");
     assert.equal(phone.asked, null);
   }
   assert.equal(phone.state.inv.mycelium, mac.state.inv.mycelium);
@@ -204,9 +244,9 @@ test('a device left open and untouched takes the newest before it plays on', asy
   const before = played(mac);
   mac.sync.played();
   await mac.sync.check(); // the check that play started, then nothing new
-  assert.equal(played(mac), played(phone), 'the Mac took the phone\'s world first');
+  assert.equal(played(mac), played(phone), "the Mac took the phone's world first");
   assert.notEqual(played(mac), before);
-  assert.equal(mac.asked, null, 'no question: the Mac wasn\'t played since');
+  assert.equal(mac.asked, null, "no question: the Mac wasn't played since");
   // Its next play is kept over the phone's, as the newest.
   mac.play(10_000, 1);
   await mac.sync.flush();
@@ -228,13 +268,13 @@ test('both devices played the same world: the player picks, and the other copy i
   await mac.sync.check();
   assert.equal(played(mac), macPlayed, 'the Mac kept its own');
   const kept = mac.store.keys().filter((k) => k.startsWith('mte.solo.kept.' + mac.state.seed));
-  assert.equal(kept.length, 1, 'the phone\'s copy is kept on the Mac');
+  assert.equal(kept.length, 1, "the phone's copy is kept on the Mac");
   assert.equal(C.deserialize(mac.store.getItem(kept[0])).stats.playedMs, played(phone));
   await phone.sync.check();
   assert.equal(played(phone), macPlayed, 'and the phone now plays it');
 });
 
-test('picking the other device\'s copy plays it, and keeps this one aside', async () => {
+test("picking the other device's copy plays it, and keeps this one aside", async () => {
   const service = cloud();
   const { mac, phone } = await linked(service);
   phone.play(50_000, 1);
@@ -243,9 +283,13 @@ test('picking the other device\'s copy plays it, and keeps this one aside', asyn
   await mac.sync.flush();
   const mine = played(mac);
   mac.pick('other');
-  assert.equal(played(mac), played(phone), 'the Mac plays the phone\'s copy');
+  assert.equal(played(mac), played(phone), "the Mac plays the phone's copy");
   const kept = mac.store.keys().filter((k) => k.startsWith('mte.solo.kept.'));
-  assert.equal(C.deserialize(mac.store.getItem(kept[0])).stats.playedMs, mine, 'its own is kept aside');
+  assert.equal(
+    C.deserialize(mac.store.getItem(kept[0])).stats.playedMs,
+    mine,
+    'its own is kept aside'
+  );
   // Nothing more to ask: they agree now.
   await mac.sync.check();
   await phone.sync.check();
@@ -264,7 +308,10 @@ test('a new world on one device is the one the other plays next; the old one is 
   await mac.sync.flush();
   await phone.sync.check();
   assert.equal(phone.state.seed, 12345);
-  assert.ok(phone.store.getItem('mte.solo.world.' + first), 'the first world is still on the phone');
+  assert.ok(
+    phone.store.getItem('mte.solo.world.' + first),
+    'the first world is still on the phone'
+  );
   // The phone goes back to the first one and plays it: the Mac follows.
   phone.state = C.deserialize(phone.store.getItem('mte.solo.world.' + first));
   phone.sync.touched();
@@ -300,7 +347,8 @@ test('a world played on this device while another was on top is kept before swit
 
 test('every world a device has goes with it, not only the one played (Embark leaves worlds behind)', async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   // The Mac played three worlds before it was ever linked: two left behind.
   const left = [];
   for (const seed of [11, 22]) {
@@ -313,7 +361,11 @@ test('every world a device has goes with it, not only the one played (Embark lea
   const key = mac.sync.start();
   await mac.sync.check();
   const revs = (await [...service.storages.values()][0].get('meta')).revs;
-  assert.deepEqual(Object.keys(revs).map(Number).sort(), [11, 22, 33], 'all three reached the vault');
+  assert.deepEqual(
+    Object.keys(revs).map(Number).sort(),
+    [11, 22, 33],
+    'all three reached the vault'
+  );
   await phone.sync.link(key);
   assert.equal(phone.state.seed, 33);
   for (const seed of left) {
@@ -335,7 +387,8 @@ test('every world a device has goes with it, not only the one played (Embark lea
 
 test('a world left behind and played on both: the question keeps the one played now in play', async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   mac.state = C.createState(44, { cultivation: true });
   mac.play();
   mac.state = C.createState(55, { cultivation: true });
@@ -358,8 +411,15 @@ test('a world left behind and played on both: the question keeps the one played 
   assert.equal(mac.asked.mine.seed, 44);
   mac.pick('other');
   assert.equal(mac.state.seed, 55, 'it keeps playing 55');
-  assert.equal(C.deserialize(mac.store.getItem('mte.solo.world.44')).inv.mycelium, 7, 'the phone\'s 44 is the Mac\'s now');
-  assert.ok(mac.store.keys().some((k) => k.startsWith('mte.solo.kept.44.')), 'its own 44 is kept aside');
+  assert.equal(
+    C.deserialize(mac.store.getItem('mte.solo.world.44')).inv.mycelium,
+    7,
+    "the phone's 44 is the Mac's now"
+  );
+  assert.ok(
+    mac.store.keys().some((k) => k.startsWith('mte.solo.kept.44.')),
+    'its own 44 is kept aside'
+  );
 });
 
 test('out of reach: nothing is lost, it goes when the vault is back', async () => {
@@ -429,7 +489,14 @@ test('a question open or a shared world: sync stands still', async () => {
 
 /* -------------------------------------------------------- the vault */
 
-const ask = (seed, base, extra = {}) => ({ t: 'push', key: 'k', seed, base, save: JSON.stringify({ seed, v: 11, ...extra }), cur: true });
+const ask = (seed, base, extra = {}) => ({
+  t: 'push',
+  key: 'k',
+  seed,
+  base,
+  save: JSON.stringify({ seed, v: 11, ...extra }),
+  cur: true
+});
 
 test('the vault never writes over a newer copy, and answers with it', async () => {
   const s = new Storage();
@@ -440,16 +507,24 @@ test('the vault never writes over a newer copy, and answers with it', async () =
   assert.equal(stale.rev, 2);
   assert.equal(JSON.parse(stale.save).n, 2, 'the copy kept is the one it answers with');
   assert.equal(JSON.parse((await pull(s, null)).save).n, 2);
-  assert.deepEqual(await pull(s, { seed: 5, rev: 2 }), { cur: 5, rev: 2, at: 2, worlds: { 5: 2 }, same: true });
+  assert.deepEqual(await pull(s, { seed: 5, rev: 2 }), {
+    cur: 5,
+    rev: 2,
+    at: 2,
+    worlds: { 5: 2 },
+    same: true
+  });
   assert.deepEqual(await pull(new Storage(), null), { cur: null });
 });
 
 test('the vault keeps every world; a key that has its most gets no more, and loses none', async () => {
   const s = new Storage();
-  for (let seed = 0; seed < P.SOLO.worlds; seed++) assert.ok((await push(s, ask(seed, 0), seed)).rev);
+  for (let seed = 0; seed < P.SOLO.worlds; seed++)
+    assert.ok((await push(s, ask(seed, 0), seed)).rev);
   assert.deepEqual(await push(s, ask(P.SOLO.worlds + 7, 0), 1), { error: 'full' });
   assert.equal(Object.keys((await s.get('meta')).revs).length, P.SOLO.worlds);
-  for (let seed = 0; seed < P.SOLO.worlds; seed++) assert.ok(await s.get('w:' + seed), 'world ' + seed + ' still there');
+  for (let seed = 0; seed < P.SOLO.worlds; seed++)
+    assert.ok(await s.get('w:' + seed), 'world ' + seed + ' still there');
   assert.ok((await push(s, ask(3, 1), 100)).rev, 'worlds it has still save');
 });
 
@@ -463,12 +538,30 @@ test('a world kept but not played now leaves the played one on top', async () =>
 test('the route: only the game, only clean requests, and the key never stored', async () => {
   const service = cloud();
   const key = P.randomHex(32);
-  const post = (body, origin = ORIGIN) => worker.default.fetch(new Request(SERVICE + '/solo', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) }), { VAULT: { idFromName: (n) => n, get: () => new worker.Vault({ storage: s }, {}) }, ALLOWED_ORIGINS: ORIGIN });
+  const post = (body, origin = ORIGIN) =>
+    worker.default.fetch(
+      new Request(SERVICE + '/solo', {
+        method: 'POST',
+        headers: { Origin: origin, 'Content-Type': 'application/json' },
+        body: typeof body === 'string' ? body : JSON.stringify(body)
+      }),
+      {
+        VAULT: { idFromName: (n) => n, get: () => new worker.Vault({ storage: s }, {}) },
+        ALLOWED_ORIGINS: ORIGIN
+      }
+    );
   const s = new Storage();
   const save = JSON.stringify({ seed: 9, v: 11 });
-  assert.equal((await post({ t: 'push', key, seed: 9, base: 0, save }, 'https://evil.example')).status, 403);
+  assert.equal(
+    (await post({ t: 'push', key, seed: 9, base: 0, save }, 'https://evil.example')).status,
+    403
+  );
   assert.equal((await post({ t: 'push', key: 'short', seed: 9, base: 0, save })).status, 400);
-  assert.equal((await post({ t: 'push', key, seed: 9, base: 0, save: JSON.stringify({ seed: 10 }) })).status, 400, 'a save names its own seed');
+  assert.equal(
+    (await post({ t: 'push', key, seed: 9, base: 0, save: JSON.stringify({ seed: 10 }) })).status,
+    400,
+    'a save names its own seed'
+  );
   assert.equal((await post('not json')).status, 400);
   assert.equal((await post('x'.repeat(P.SOLO.bytes + 2048))).status, 413);
   const ok = await post({ t: 'push', key, seed: 9, base: 0, save });
@@ -482,18 +575,21 @@ test('the route: only the game, only clean requests, and the key never stored', 
   void service;
 });
 
-const KEY_A = 'a'.repeat(64), KEY_B = 'b'.repeat(64);
-const ROOM_1 = 'R'.repeat(22), ROOM_2 = 'S'.repeat(22);
+const KEY_A = 'a'.repeat(64),
+  KEY_B = 'b'.repeat(64);
+const ROOM_1 = 'R'.repeat(22),
+  ROOM_2 = 'S'.repeat(22);
 
 test('a linked device that never played a shared world becomes your character there', async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service);
+  const mac = device(service),
+    phone = device(service);
   mac.joined(ROOM_1, KEY_A);
   mac.play();
   const key = mac.sync.start();
   await mac.sync.check();
   await phone.sync.link(key);
-  assert.equal(phone.store.getItem('mte.key'), KEY_A, 'the phone plays as the Mac\'s character');
+  assert.equal(phone.store.getItem('mte.key'), KEY_A, "the phone plays as the Mac's character");
   assert.deepEqual(JSON.parse(phone.store.getItem('mte.rooms')), [ROOM_1], 'and knows its world');
   assert.ok(phone.said.includes('me'));
   assert.equal(phone.askedMe, 0, 'without a question');
@@ -509,7 +605,9 @@ test('a linked device that never played a shared world becomes your character th
 
 test('two devices with characters of their own: asked once, and neither character is lost', async () => {
   const service = cloud();
-  const mac = device(service), phone = device(service), pad = device(service);
+  const mac = device(service),
+    phone = device(service),
+    pad = device(service);
   mac.joined(ROOM_1, KEY_A);
   phone.joined(ROOM_1, KEY_B);
   pad.joined(ROOM_1, KEY_B);
@@ -528,8 +626,15 @@ test('two devices with characters of their own: asked once, and neither characte
   assert.equal(phone.askedMe, 1, 'asked once');
   const [storage] = service.storages.values();
   const box = await storage.get('me');
-  assert.ok(!JSON.stringify(box).includes(KEY_A) && !JSON.stringify([...box.data]).includes(KEY_A), 'the character is kept sealed');
-  assert.equal((await vaultMe(storage, key, null)).me.key, KEY_A, 'the vault keeps the first character, never another device\'s');
+  assert.ok(
+    !JSON.stringify(box).includes(KEY_A) && !JSON.stringify([...box.data]).includes(KEY_A),
+    'the character is kept sealed'
+  );
+  assert.equal(
+    (await vaultMe(storage, key, null)).me.key,
+    KEY_A,
+    "the vault keeps the first character, never another device's"
+  );
   // The pad says yes: it plays as the Mac's character, and keeps its own key.
   pad.meAnswer = true;
   await pad.sync.link(key);
@@ -538,9 +643,13 @@ test('two devices with characters of their own: asked once, and neither characte
   assert.equal(pad.store.getItem('mte.key.before.' + clock), KEY_B, 'the character it had is kept');
 });
 
-test('answers that don\'t fit are refused by the game', () => {
+test("answers that don't fit are refused by the game", () => {
   assert.equal(P.cleanSoloAnswer(null), null);
-  assert.equal(P.cleanSoloAnswer({ cur: 5, rev: 1, save: JSON.stringify({ seed: 6 }) }), null, 'a save for another seed');
+  assert.equal(
+    P.cleanSoloAnswer({ cur: 5, rev: 1, save: JSON.stringify({ seed: 6 }) }),
+    null,
+    'a save for another seed'
+  );
   assert.equal(P.cleanSoloAnswer({ rev: 0 }), null);
   assert.deepEqual(P.cleanSoloAnswer({ cur: null, extra: 1 }), { cur: null });
   assert.deepEqual(P.cleanSoloAnswer({ error: 'full' }), { error: 'full' });
@@ -551,11 +660,22 @@ test('answers that don\'t fit are refused by the game', () => {
 // A device on a slow connection: while held, its requests wait (the room
 // service gets them only once released), as on a phone with one bar.
 function slow(service) {
-  let gate = null, open = () => {};
+  let gate = null,
+    open = () => {};
   return {
-    hold() { gate ||= new Promise((r) => { open = r; }); },
-    release() { gate = null; open(); },
-    async fetch(u, i) { if (gate) await gate; return service.fetch(u, i); }
+    hold() {
+      gate ||= new Promise((r) => {
+        open = r;
+      });
+    },
+    release() {
+      gate = null;
+      open();
+    },
+    async fetch(u, i) {
+      if (gate) await gate;
+      return service.fetch(u, i);
+    }
   };
 }
 const settle = () => new Promise((r) => setTimeout(r));
@@ -563,14 +683,21 @@ const settle = () => new Promise((r) => setTimeout(r));
 function furthest(d, seed) {
   let most = d.state.seed === seed ? played(d) : 0;
   for (const raw of d.store.map.values()) {
-    try { const s = JSON.parse(raw); if (s && s.seed === seed && s.stats) most = Math.max(most, s.stats.playedMs); } catch { /* not a save */ }
+    try {
+      const s = JSON.parse(raw);
+      if (s && s.seed === seed && s.stats) most = Math.max(most, s.stats.playedMs);
+    } catch {
+      /* not a save */
+    }
   }
   return most;
 }
 
 test('played on while the newest is slow to come: asked, not replaced', async () => {
-  const service = cloud(), net = slow(service);
-  const mac = device(service), phone = device(net);
+  const service = cloud(),
+    net = slow(service);
+  const mac = device(service),
+    phone = device(net);
   mac.play();
   const key = mac.sync.start();
   await mac.sync.check();
@@ -580,17 +707,26 @@ test('played on while the newest is slow to come: asked, not replaced', async ()
   clock += IDLE_MS * 2;
   net.hold();
   phone.play(2_000, 1); // picked up again: the newest is asked for first...
-  for (let i = 0; i < 10; i++) { phone.play(3_000, 1); await settle(); } // ...and the answer is slow
+  for (let i = 0; i < 10; i++) {
+    phone.play(3_000, 1);
+    await settle();
+  } // ...and the answer is slow
   const mine = played(phone);
   net.release();
   await phone.sync.check();
   assert.ok(phone.asked, 'both were played: the phone asks');
-  assert.equal(furthest(phone, phone.state.seed), mine, 'and what was played meanwhile is still on the phone');
+  assert.equal(
+    furthest(phone, phone.state.seed),
+    mine,
+    'and what was played meanwhile is still on the phone'
+  );
 });
 
 test('the question offers the copy played now, not the one that was on its way', async () => {
-  const service = cloud(), net = slow(service);
-  const mac = device(service), phone = device(net);
+  const service = cloud(),
+    net = slow(service);
+  const mac = device(service),
+    phone = device(net);
   mac.play();
   const key = mac.sync.start();
   await mac.sync.check();
@@ -609,7 +745,11 @@ test('the question offers the copy played now, not the one that was on its way',
   phone.pick('other');
   const kept = phone.store.keys().filter((k) => k.startsWith('mte.solo.kept.'));
   assert.equal(kept.length, 1);
-  assert.equal(JSON.parse(phone.store.getItem(kept[0])).stats.playedMs, mine, 'the copy kept aside is the newest');
+  assert.equal(
+    JSON.parse(phone.store.getItem(kept[0])).stats.playedMs,
+    mine,
+    'the copy kept aside is the newest'
+  );
 });
 
 // Two linked devices played at random, on slow and quick answers: playing,
@@ -618,43 +758,79 @@ test('the question offers the copy played now, not the one that was on its way',
 // happens, every bit of play is still somewhere: on a device (kept aside
 // counts) or in the vault. The play that wakes a device after a spell
 // unplayed may give way to the newest (time away makes nothing): one act.
-test('random play on two devices never loses a world\'s play', async () => {
+test("random play on two devices never loses a world's play", async () => {
   for (const seed of seeds(12)) {
-    const r = rng(seed), service = cloud();
+    const r = rng(seed),
+      service = cloud();
     const nets = [slow(service), slow(service)];
     const devs = nets.map((n, i) => device(n, 1000 + i));
-    const best = new Map(), log = [];
+    const best = new Map(),
+      log = [];
     const note = (d) => best.set(d.state.seed, Math.max(best.get(d.state.seed) || 0, played(d)));
-    devs[0].play(); note(devs[0]);
+    devs[0].play();
+    note(devs[0]);
     const key = devs[0].sync.start();
     await devs[0].sync.check();
-    devs[1].play(LINK_PLAYED + 10_000); note(devs[1]);
+    devs[1].play(LINK_PLAYED + 10_000);
+    note(devs[1]);
     await devs[1].sync.link(key);
     const pending = [];
     for (let step = 0; step < 80; step++) {
-      const i = r.int(0, 1), d = devs[i], op = r.pick(['play', 'play', 'play', 'check', 'flush', 'idle', 'slow', 'new', 'back', 'pick', 'pick']);
+      const i = r.int(0, 1),
+        d = devs[i],
+        op = r.pick([
+          'play',
+          'play',
+          'play',
+          'check',
+          'flush',
+          'idle',
+          'slow',
+          'new',
+          'back',
+          'pick',
+          'pick'
+        ]);
       log.push(i + op);
       if (op === 'play' && !d.asked) {
-        for (let n = r.int(1, 12); n > 0 && !d.asked; n--) { d.play(r.int(1_000, 3_000), 1); note(d); if (r.chance(0.3)) await settle(); }
+        for (let n = r.int(1, 12); n > 0 && !d.asked; n--) {
+          d.play(r.int(1_000, 3_000), 1);
+          note(d);
+          if (r.chance(0.3)) await settle();
+        }
       } else if (op === 'check') pending.push(d.sync.check());
       else if (op === 'flush') pending.push(d.sync.flush());
       else if (op === 'idle') clock += IDLE_MS + 1_000;
-      else if (op === 'slow') { if (r.chance(0.5)) nets[i].hold(); else nets[i].release(); }
-      else if (op === 'new' && !d.asked) { d.state = C.createState(r.int(5, 2 ** 31), { cultivation: true }); d.save(); d.sync.touched(); }
-      else if (op === 'back' && !d.asked) {
+      else if (op === 'slow') {
+        if (r.chance(0.5)) nets[i].hold();
+        else nets[i].release();
+      } else if (op === 'new' && !d.asked) {
+        d.state = C.createState(r.int(5, 2 ** 31), { cultivation: true });
+        d.save();
+        d.sync.touched();
+      } else if (op === 'back' && !d.asked) {
         const raw = d.store.getItem('mte.solo.world.' + r.pick([...best.keys()]));
         const s = raw && C.deserialize(raw);
-        if (s && s.seed !== d.state.seed) { d.save(); d.state = s; d.save(); d.sync.touched(); }
+        if (s && s.seed !== d.state.seed) {
+          d.save();
+          d.state = s;
+          d.save();
+          d.sync.touched();
+        }
       } else if (op === 'pick' && d.asked) d.pick(r.chance(0.5) ? 'mine' : 'other');
       if (r.chance(0.5)) await settle(); // answers that came in meanwhile
       const vault = new Map();
-      for (const st of service.storages.values()) for (const s of best.keys()) {
-        const w = await st.get('w:' + s);
-        if (w) vault.set(s, Math.max(vault.get(s) || 0, JSON.parse(w.save).stats.playedMs));
-      }
+      for (const st of service.storages.values())
+        for (const s of best.keys()) {
+          const w = await st.get('w:' + s);
+          if (w) vault.set(s, Math.max(vault.get(s) || 0, JSON.parse(w.save).stats.playedMs));
+        }
       for (const [s, most] of best) {
         const now = Math.max(vault.get(s) || 0, ...devs.map((x) => furthest(x, s)));
-        assert.ok(now >= most - 3_000, `seed ${seed}: world ${s} was played to ${most} ms, now ${now} ms at most\n  ${log.join(' ')}`);
+        assert.ok(
+          now >= most - 3_000,
+          `seed ${seed}: world ${s} was played to ${most} ms, now ${now} ms at most\n  ${log.join(' ')}`
+        );
       }
     }
     for (const n of nets) n.release();

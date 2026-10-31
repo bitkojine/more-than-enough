@@ -16,10 +16,18 @@ export function step(s, dt) {
   for (const e of s.extractors) {
     if (!ownBuilding(s, e)) continue;
     const def = EXTRACTORS[e.key];
-    const base = mult[def.res] ??= productionMult(s, def.res);
+    const base = (mult[def.res] ??= productionMult(s, def.res));
     // Deliberately scan the whole layout: an independent slow oracle for the
     // indexed adjacency implementation, including same-length replacements.
-    const supported = e.key === 'quarry' && s.extractors.some(b => b.key === 'stoneworks' && b.z === e.z && b.owner === e.owner && (b.x-e.x)**2+(b.y-e.y)**2 <= 4);
+    const supported =
+      e.key === 'quarry' &&
+      s.extractors.some(
+        (b) =>
+          b.key === 'stoneworks' &&
+          b.z === e.z &&
+          b.owner === e.owner &&
+          (b.x - e.x) ** 2 + (b.y - e.y) ** 2 <= 4
+      );
     const m = base * (supported ? 2 : 1);
     const cap = def.buffer * m;
     if (e.buffer < cap) e.buffer = Math.min(cap, e.buffer + def.rate * m * dt);
@@ -27,7 +35,8 @@ export function step(s, dt) {
       const amt = Math.floor(e.buffer);
       earn(s, e.res, amt, 'buildings');
       e.buffer -= amt;
-      if (tileDist2(s.player, e.x, e.y, e.z) <= 144) s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
+      if (tileDist2(s.player, e.x, e.y, e.z) <= 144)
+        s.events.push({ res: e.res, amt, x: e.x, y: e.y, z: e.z });
     }
   }
   tickBattery(s, dt);

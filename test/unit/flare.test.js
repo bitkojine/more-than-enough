@@ -1,4 +1,4 @@
-import {unlockOptional} from './helpers.js';
+import { unlockOptional } from './helpers.js';
 /* Ore flares (core flare.js): made and lit in one go from metal, carried,
  * burning down; underground their light uncovers the rock, and in a crystal
  * world it cracks crystal like the lantern's (Watch, 2026-10-26). */
@@ -8,16 +8,22 @@ import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 
 const cmd = (s, type, kind, x = 0, y = 0) => C.cultivationCommand(s, { type, kind, x, y });
-const run = (s, secs) => { for (let i = 0; i < Math.round(secs * 4); i++) C.step(s, 0.25, { visualEvents: false }); };
+const run = (s, secs) => {
+  for (let i = 0; i < Math.round(secs * 4); i++) C.step(s, 0.25, { visualEvents: false });
+};
 // A crystal world with the player down on layer `z`, a cleared site round them.
 function deep(z = -2, { cultivation = true } = {}) {
   const s = unlockOptional(C.createState(7, { cultivation }));
   s.tools.pickaxe = 3;
   for (const r of C.RESOURCES) C.earn(s, r, 300, 'hand');
-  for (let y = -8; y <= 8; y++) for (let x = -8; x <= 8; x++) {
-    const t = C.tileAt(s.world, x, y, z);
-    if (!C.TILE_INFO[t].rise && !C.TILE_INFO[t].descend) { C.setRichness(s.world, x, y, z, 0); C.markExplored(s.world, x, y, z); }
-  }
+  for (let y = -8; y <= 8; y++)
+    for (let x = -8; x <= 8; x++) {
+      const t = C.tileAt(s.world, x, y, z);
+      if (!C.TILE_INFO[t].rise && !C.TILE_INFO[t].descend) {
+        C.setRichness(s.world, x, y, z, 0);
+        C.markExplored(s.world, x, y, z);
+      }
+    }
   s.player = { x: 0.5, y: 0.5, z };
   s.underground.deepest = z;
   return s;
@@ -68,7 +74,7 @@ test('underground in a crystal world light uncovers: none the tiles beside you, 
   assert.equal(C.sightRadius(s), C.MINE_EXPLORE_RADIUS);
   C.useFlare(s);
   assert.equal(C.sightRadius(s), C.FLARE_LIGHT);
-  assert.equal(s.cultivation.lantern,false,'lighting the flare switches off the lantern');
+  assert.equal(s.cultivation.lantern, false, 'lighting the flare switches off the lantern');
   assert.equal(C.sightRadius(s), C.FLARE_LIGHT, 'the flare alone reaches as far');
   // The reveal itself: a tile FLARE_LIGHT - 1 away is uncovered once the flare is lit.
   const far = { x: Math.floor(s.player.x) + C.FLARE_LIGHT - 1, y: Math.floor(s.player.y) + 12 };
@@ -84,13 +90,15 @@ test('older worlds keep their lantern reach; a flare adds its wide light in the 
   assert.equal(C.sightRadius(s), lantern);
   C.useFlare(s);
   assert.equal(C.sightRadius(s), Math.max(lantern, C.FLARE_LIGHT));
-  s.player.z = C.SURFACE; s.time = 0; // noon: a flare adds nothing to daylight
+  s.player.z = C.SURFACE;
+  s.time = 0; // noon: a flare adds nothing to daylight
   assert.equal(C.sightRadius(s), C.exploreRadius(s));
 });
 
 test('a flare illuminates a chamber without damaging its protected colony', () => {
   const s = deep();
-  s.player.x = 0.5; s.player.y = 0.5;
+  s.player.x = 0.5;
+  s.player.y = 0.5;
   assert.equal(cmd(s, 'build', 'chamber', 1, 0), 'ok');
   const b = C.cultivationAt(s, 1, 0);
   b.health = 100;
@@ -114,7 +122,7 @@ test('the heart and carried crystal feel a flare', () => {
   s.cultivation.heart = { where: 'carried', health: 100 };
   assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), 0);
   C.useFlare(s);
-  assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), (C.FLARE_LIGHT+1)/C.LIGHT_MAX);
+  assert.equal(C.heartLight(s, { x: 0, y: 0, z: s.player.z }), (C.FLARE_LIGHT + 1) / C.LIGHT_MAX);
   run(s, 1);
   assert.ok(s.cultivation.heart.health < 100);
 });
@@ -129,7 +137,11 @@ test('a burning flare is saved and loads with what is left of it; old saves have
   delete old.flare;
   assert.equal(C.deserialize(JSON.stringify(old)).flare, 0);
   old.flare = 1e9;
-  assert.equal(C.deserialize(JSON.stringify(old)).flare, C.FLARE_TIME, 'never more than a whole flare');
+  assert.equal(
+    C.deserialize(JSON.stringify(old)).flare,
+    C.FLARE_TIME,
+    'never more than a whole flare'
+  );
   assert.equal(back.inv.ore, s.inv.ore);
 });
 
@@ -143,4 +155,3 @@ test('a flare all but burnt out saves as none, so a save round-trips', () => {
   assert.equal(JSON.parse(once).flare, undefined);
   assert.equal(C.serialize(C.deserialize(once)), once);
 });
-

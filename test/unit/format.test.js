@@ -8,7 +8,10 @@ import assert from 'node:assert/strict';
 import { fmt, fmtShort } from '../../src/game/format.js';
 import { t, number } from '../../src/i18n/i18n.js';
 
-const K = t('num.short.thousand'), M = t('num.short.million'), B = t('num.short.billion'), T = t('num.short.trillion');
+const K = t('num.short.thousand'),
+  M = t('num.short.million'),
+  B = t('num.short.billion'),
+  T = t('num.short.trillion');
 
 // Every magnitude a world can reach, and a few numbers around each.
 function samples() {

@@ -7,9 +7,20 @@ import { edgePoint } from '../../src/game/render/atlas.js';
 
 // The map's HUD bits, as plain objects: the pill, its name and the map button.
 function fakeEl() {
-  const node = () => ({ hidden: false, disabled: false, textContent: '', innerHTML: '', attrs: {}, classList: { toggle() {} }, setAttribute(k, v) { this.attrs[k] = v; } });
+  const node = () => ({
+    hidden: false,
+    disabled: false,
+    textContent: '',
+    innerHTML: '',
+    attrs: {},
+    classList: { toggle() {} },
+    setAttribute(k, v) {
+      this.attrs[k] = v;
+    }
+  });
   const name = node();
-  name.firstElementChild = node(); name.lastElementChild = node();
+  name.firstElementChild = node();
+  name.lastElementChild = node();
   return { map: node(), mapLayer: node(), mapLayerName: name, mapUp: node(), mapDown: node() };
 }
 
@@ -22,7 +33,9 @@ function setup() {
   Core.markExplored(state.world, 0, 0, -2);
   const el = fakeEl();
   const mv = createMapView({ cam, getState: () => state, el, changed() {} });
-  const settle = () => { for (let i = 0; i < 200; i++) mv.tick(0.05); };
+  const settle = () => {
+    for (let i = 0; i < 200; i++) mv.tick(0.05);
+  };
   return { cam, state, el, mv, settle };
 }
 
@@ -61,7 +74,8 @@ test('zooming the map about its middle (the zoom pill) leaves it on you', () => 
 
 test('a drag pans the map without moving you; the button brings it back first', () => {
   const { cam, mv, state, el, settle } = setup();
-  mv.button(); settle();
+  mv.button();
+  settle();
   mv.pan(100, -50);
   mv.tick(0.016);
   const look = mv.look();
@@ -76,9 +90,17 @@ test('a drag pans the map without moving you; the button brings it back first', 
 
 test('zooming about a point keeps that point under the finger', () => {
   const { cam, mv } = setup();
-  mv.button(); for (let i = 0; i < 200; i++) mv.tick(0.05);
-  const at = (sx, sy) => { const l = mv.look() || { x: 10.5, y: 20.5 }; return { x: l.x + (sx - cam.width / 2) / cam.tilePx, y: l.y + (sy - cam.height / 2) / cam.depthPx }; };
-  const before = at(300, 200), was = cam.tilePx;
+  mv.button();
+  for (let i = 0; i < 200; i++) mv.tick(0.05);
+  const at = (sx, sy) => {
+    const l = mv.look() || { x: 10.5, y: 20.5 };
+    return {
+      x: l.x + (sx - cam.width / 2) / cam.tilePx,
+      y: l.y + (sy - cam.height / 2) / cam.depthPx
+    };
+  };
+  const before = at(300, 200),
+    was = cam.tilePx;
   cam.setZoom(cam.zoom / 2);
   mv.zoomed(was, 300, 200);
   const after = at(300, 200);
@@ -87,7 +109,8 @@ test('zooming about a point keeps that point under the finger', () => {
 
 test('the layer pill steps through explored layers, and zooming back in lets go', () => {
   const { cam, mv, el, settle } = setup();
-  mv.button(); settle();
+  mv.button();
+  settle();
   assert.equal(el.mapLayer.hidden, false, 'shown once you have been underground');
   assert.equal(el.mapUp.disabled, true);
   mv.layer(-1);
@@ -103,7 +126,8 @@ test('the layer pill steps through explored layers, and zooming back in lets go'
 
 test('an off-screen mark sits on the edge of the room left for it, on the way to it', () => {
   const room = { l: 18, t: 100, r: 372, b: 694 };
-  const cx = (room.l + room.r) / 2, cy = (room.t + room.b) / 2;
+  const cx = (room.l + room.r) / 2,
+    cy = (room.t + room.b) / 2;
   const right = edgePoint(5000, cy, cx, cy, room);
   assert.equal(right.x, room.r);
   assert.equal(right.y, cy);

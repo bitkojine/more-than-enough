@@ -17,7 +17,9 @@ export function createFbi(box) {
   });
 
   return {
-    get open() { return !box.hidden; },
+    get open() {
+      return !box.hidden;
+    },
     // Shows the notice; `then` runs when the player closes it.
     show(then = null) {
       done = then;

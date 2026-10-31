@@ -9,11 +9,12 @@ import { hash2, DEFAULT_TILE } from '../../core/index.js';
 import { pictures } from '../../core/index.js';
 import { t } from '../../i18n/i18n.js';
 import { esc } from '../format.js';
-import {hasSpriteLight,litPicture,lightingWork} from '../render/lighting.js';
+import { hasSpriteLight, litPicture, lightingWork } from '../render/lighting.js';
 
-const MIN_BUCKET = 4, MAX_BUCKET = 1024;
+const MIN_BUCKET = 4,
+  MAX_BUCKET = 1024;
 
-const svgUrl = (markup) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.trim());  // i18n-ok: a URL
+const svgUrl = (markup) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(markup.trim()); // i18n-ok: a URL
 
 // The URL to load a picture from. `base` is pack.json's own URL (its query
 // string carries the deploy's cache-busting hash on to every file).
@@ -28,13 +29,15 @@ function loadImage(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(t('pack.pictureFailed')+' — '+url.split('#')[0].slice(0,500))); // i18n-ok: asset URL in a diagnostic
+    img.onerror = () =>
+      reject(new Error(t('pack.pictureFailed') + ' — ' + url.split('#')[0].slice(0, 500))); // i18n-ok: asset URL in a diagnostic
     img.src = url;
   });
 }
 
 function makePicture(img, url, tile, pixelated) {
-  const w = img.naturalWidth, h = img.naturalHeight;
+  const w = img.naturalWidth,
+    h = img.naturalHeight;
   return { img, url, units: w / tile, aspect: h / w, pixelated, cache: new Map() };
 }
 
@@ -48,10 +51,14 @@ export async function loadPack(json, base) {
   const load = (ref) => {
     if (!loaded.has(ref)) {
       const url = urlFor(ref, base);
-      loaded.set(ref, loadImage(url).then((img) => {
-        if (!(img.naturalWidth > 0 && img.naturalHeight > 0)) throw new Error(t('pack.pictureNoSize'));
-        return makePicture(img, url, tile, pixelated);
-      }));
+      loaded.set(
+        ref,
+        loadImage(url).then((img) => {
+          if (!(img.naturalWidth > 0 && img.naturalHeight > 0))
+            throw new Error(t('pack.pictureNoSize'));
+          return makePicture(img, url, tile, pixelated);
+        })
+      );
     }
     return loaded.get(ref);
   };
@@ -62,14 +69,30 @@ export async function loadPack(json, base) {
     const out = {};
     slots.set(id, out);
     for (const [slot, value] of Object.entries(entry)) {
-      if (slot === 'color') { out.color = value.toLowerCase(); continue; }
+      if (slot === 'color') {
+        out.color = value.toLowerCase();
+        continue;
+      }
       const refs = Array.isArray(value) ? value : pictures(value);
-      const resolved = { variants: Array.isArray(value), fps: value.fps || 0, pics: refs.map(() => null) };
+      const resolved = {
+        variants: Array.isArray(value),
+        fps: value.fps || 0,
+        pics: refs.map(() => null)
+      };
       out[slot] = resolved;
       refs.forEach((ref, i) => {
         if (ref === null) return;
-        jobs.push(load(ref).then((pic) => { resolved.pics[i] = pic; },
-          (err) => problems.push(`${id} ${slot}: ${ref.startsWith('<') ? t('pack.inlineSvg') : `"${ref.slice(0, 80)}"`}: ${err.message}`)));
+        jobs.push(
+          load(ref).then(
+            (pic) => {
+              resolved.pics[i] = pic;
+            },
+            (err) =>
+              problems.push(
+                `${id} ${slot}: ${ref.startsWith('<') ? t('pack.inlineSvg') : `"${ref.slice(0, 80)}"`}: ${err.message}`
+              )
+          )
+        );
       });
     }
   }
@@ -138,7 +161,8 @@ export function createLook() {
     // stages when empty, the last when full, the ones between on the way
     // up.
     stage(id, share) {
-      const pics = entry(id, 'stages').pics, n = pics.length;
+      const pics = entry(id, 'stages').pics,
+        n = pics.length;
       if (share <= 0) return pics[0];
       if (share >= 1 || n <= 2) return pics[n - 1];
       return pics[Math.min(n - 2, 1 + Math.floor(share * (n - 2)))];
@@ -147,7 +171,9 @@ export function createLook() {
     // Exact physical tier/repair state.
     level(id, index, slot = 'image') {
       const stages = entry(id, 'stages');
-      return stages ? stages.pics[Math.max(0, Math.min(index, stages.pics.length - 1))] : look.pick(id, slot);
+      return stages
+        ? stages.pics[Math.max(0, Math.min(index, stages.pics.length - 1))]
+        : look.pick(id, slot);
     },
 
     // Every frame of (id, slot), for things that animate on their own clock.
@@ -158,7 +184,7 @@ export function createLook() {
 
     // A URL for an <img> (the first picture of the slot).
     src(id, slot = 'icon', level = null) {
-      if(level!==null)return look.level(id,level,slot)?.url||'';
+      if (level !== null) return look.level(id, level, slot)?.url || '';
       const e = entry(id, slot);
       const pic = e && e.pics.find(Boolean);
       return pic ? pic.url : '';
@@ -175,7 +201,7 @@ export function createLook() {
         c.height = Math.max(1, Math.round(bucket * pic.aspect));
         const g = c.getContext('2d');
         g.imageSmoothingEnabled = !pic.pixelated;
-        if(pic.rect)g.drawImage(pic.img,...pic.rect,0,0,c.width,c.height);
+        if (pic.rect) g.drawImage(pic.img, ...pic.rect, 0, 0, c.width, c.height);
         else g.drawImage(pic.img, 0, 0, c.width, c.height);
         pic.cache.set(bucket, c);
       }
@@ -184,16 +210,20 @@ export function createLook() {
 
     // Draws a picture into a rectangle.
     draw(ctx, pic, x, y, w, h) {
-      if(pic.rect&&!hasSpriteLight(ctx)){ctx.drawImage(pic.img,...pic.rect,x,y,w,h);return;}
+      if (pic.rect && !hasSpriteLight(ctx)) {
+        ctx.drawImage(pic.img, ...pic.rect, x, y, w, h);
+        return;
+      }
       if (pic.pixelated) ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(litPicture(ctx,look.bitmap(pic,w)),x,y,w,h);
+      ctx.drawImage(litPicture(ctx, look.bitmap(pic, w)), x, y, w, h);
       if (pic.pixelated) ctx.imageSmoothingEnabled = true;
     },
 
     // Draws a standing picture with its bottom centre at (fx, fy), `u` px per
     // tile, mirrored if `flip`. Returns its height on screen.
     stand(ctx, pic, fx, fy, u, flip = false) {
-      const w = pic.units * u, h = w * pic.aspect;
+      const w = pic.units * u,
+        h = w * pic.aspect;
       if (flip) {
         ctx.save();
         ctx.translate(fx, 0);
@@ -209,14 +239,26 @@ export function createLook() {
 
 // An <img> for a thing's icon (or `slot`), for HTML built as strings.
 export function iconHtml(look, id, cls = 'ico', slot = 'icon', level = null) {
-  let src,cause;
-  try{src=look.src(id,slot,level);}catch(err){cause=err;}
-  const attrs=`class="${esc(cls)}" data-help="${esc(id)}" data-picture-slot="${esc(slot)}"`;
-  if(typeof src!=='string'||!src.trim()){
-    const err=new Error(`Missing game picture: id=${id}, slot=${slot}, level=${level??'default'}${cause?'; lookup failed: '+cause.message:''}`); // i18n-ok: developer diagnostic
-    err.name='PictureUnavailableError';
-    if(typeof globalThis.MTE_FAULT==='function')globalThis.MTE_FAULT(err,'picture'); // i18n-ok: developer diagnostic location
-    else if(Array.isArray(globalThis.MTE_RESOURCE_ERRORS)&&globalThis.MTE_RESOURCE_ERRORS.length<8)globalThis.MTE_RESOURCE_ERRORS.push({error:err,where:'picture'}); // i18n-ok: developer diagnostic location
+  let src, cause;
+  try {
+    src = look.src(id, slot, level);
+  } catch (err) {
+    cause = err;
+  }
+  const attrs = `class="${esc(cls)}" data-help="${esc(id)}" data-picture-slot="${esc(slot)}"`;
+  if (typeof src !== 'string' || !src.trim()) {
+    const err = new Error(
+      // i18n-ok: developer diagnostic
+      `Missing game picture: id=${id}, slot=${slot}, level=${level ?? 'default'}${cause ? '; lookup failed: ' + cause.message : ''}`
+    );
+    err.name = 'PictureUnavailableError';
+    if (typeof globalThis.MTE_FAULT === 'function')
+      globalThis.MTE_FAULT(err, 'picture'); // i18n-ok: developer diagnostic location
+    else if (
+      Array.isArray(globalThis.MTE_RESOURCE_ERRORS) &&
+      globalThis.MTE_RESOURCE_ERRORS.length < 8
+    )
+      globalThis.MTE_RESOURCE_ERRORS.push({ error: err, where: 'picture' }); // i18n-ok: developer diagnostic location
     // No request to the document URL; retain layout, label and tooltip.
     return `<span ${attrs} data-picture-missing="true" aria-hidden="true"></span>`;
   }

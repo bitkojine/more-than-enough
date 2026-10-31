@@ -5,8 +5,12 @@ import { serialize } from '../../src/core/index.js';
 import { createAutoplaySession } from '../../scripts/autoplay-driver.mjs';
 
 test('wall-time adapters produce the same ticks at 10, 30, 60 and jittery render schedules', () => {
-  const schedules = [Array(10).fill(0.1), Array(30).fill(1 / 30), Array(60).fill(1 / 60),
-    Array.from({ length: 10 }, () => [0.01, 0.02, 0.03, 0.04]).flat()];
+  const schedules = [
+    Array(10).fill(0.1),
+    Array(30).fill(1 / 30),
+    Array(60).fill(1 / 60),
+    Array.from({ length: 10 }, () => [0.01, 0.02, 0.03, 0.04]).flat()
+  ];
   for (const schedule of schedules) {
     let calls = 0;
     const clock = createTickClock(() => calls++);
@@ -22,7 +26,11 @@ test('headless advancement has no frame budget, while browser catch-up is bounde
   const clock = createTickClock(() => calls++);
   clock.advanceTicks(3600);
   assert.equal(calls, 3600);
-  assert.equal(clock.advance(3600), 6, 'a long browser suspension cannot create a spiral of catch-up');
+  assert.equal(
+    clock.advance(3600),
+    6,
+    'a long browser suspension cannot create a spiral of catch-up'
+  );
   assert.equal(clock.advance(0), 0, 'discarded wall time does not remain queued');
   assert.throws(() => clock.advanceTicks(1.5));
   assert.throws(() => clock.advance(-1));

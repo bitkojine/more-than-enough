@@ -3,9 +3,20 @@ import assert from 'node:assert/strict';
 import * as esbuild from 'esbuild';
 import { decodeMappings, lookup, framesIn } from '../../scripts/decode-stack.mjs';
 
-test("a minified stack frame maps back to the source line it came from", async () => {
-  const source = ['export function drawFog(ctx) {', '  const a = 1;', '  return ctx.createPattern(a);', '}', ''].join('\n');
-  const out = await esbuild.transform(source, { minify: true, sourcemap: 'external', sourcefile: 'render/fog.js', format: 'esm' });
+test('a minified stack frame maps back to the source line it came from', async () => {
+  const source = [
+    'export function drawFog(ctx) {',
+    '  const a = 1;',
+    '  return ctx.createPattern(a);',
+    '}',
+    ''
+  ].join('\n');
+  const out = await esbuild.transform(source, {
+    minify: true,
+    sourcemap: 'external',
+    sourcefile: 'render/fog.js',
+    format: 'esm'
+  });
   const map = JSON.parse(out.map);
   const at = out.code.indexOf('createPattern');
   const line = out.code.slice(0, at).split('\n').length;

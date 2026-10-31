@@ -12,7 +12,9 @@ import { join } from 'node:path';
 
 const SERVICE = process.env.ROOMS_URL || 'https://rooms.robertasrudys.com';
 const dir = process.argv[2] || 'world-backups';
-const headers = process.env.ADMIN_TOKEN ? { Authorization: 'Bearer ' + process.env.ADMIN_TOKEN } : {};
+const headers = process.env.ADMIN_TOKEN
+  ? { Authorization: 'Bearer ' + process.env.ADMIN_TOKEN }
+  : {};
 
 async function get(path) {
   const res = await fetch(SERVICE + path, { headers });
@@ -26,7 +28,9 @@ let failed = 0;
 for (const w of rooms) {
   try {
     const res = await get('/admin/rooms/' + encodeURIComponent(w.id) + '/backup');
-    const name = (/filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '') || [])[1] || w.id + '.json';
+    const name =
+      (/filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') || '') || [])[1] ||
+      w.id + '.json';
     const text = await res.text();
     await writeFile(join(dir, name), text);
     console.log(name, (text.length / 1024).toFixed(0) + ' KB', w.name?.en ?? '');

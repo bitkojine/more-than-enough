@@ -27,34 +27,46 @@ import { sampleEdges, shownType, edgeTiles } from '../worldmap-layers.js';
 import { t, distance } from '../../i18n/i18n.js';
 
 const CS = Core.CHUNK_SIZE;
-const PAGE = 128;            // tiles a side of one page of the painted land
-const REFRESH_MS = 500;      // how often what you've explored is looked at again
-const PUFF_GAP = 3;          // CSS pixels between the edge's puffs, at least, far out
+const PAGE = 128; // tiles a side of one page of the painted land
+const REFRESH_MS = 500; // how often what you've explored is looked at again
+const PUFF_GAP = 3; // CSS pixels between the edge's puffs, at least, far out
 const LABEL_INK = '#fff6dc';
 const LABEL_EDGE = 'rgba(20, 16, 10, 0.85)';
 const KIND_FONT = '-apple-system, BlinkMacSystemFont, sans-serif'; // i18n-ok: a font list
 const NAME_FONT = "Georgia, 'Times New Roman', serif"; // i18n-ok: a font list
 // Clear of the top bar and the thumb cluster: where marks at the screen's
 // edge may sit (like friends' badges, overlay.js).
-const EDGE_TOP = 100, EDGE_BOTTOM = 150, EDGE = 18;
+const EDGE_TOP = 100,
+  EDGE_BOTTOM = 150,
+  EDGE = 18;
 
-const FADE = 0.65;           // how far an emptied deposit's colour fades to grey
+const FADE = 0.65; // how far an emptied deposit's colour fades to grey
 const DIM = 0.85;
 
-const bits = (mask) => mask.reduce((n, b) => { for (; b; b &= b - 1) n++; return n; }, 0);
+const bits = (mask) =>
+  mask.reduce((n, b) => {
+    for (; b; b &= b - 1) n++;
+    return n;
+  }, 0);
 const pageOf = (n) => Math.floor(n / PAGE);
 
 export function createAtlas() {
-  let layers = new Map();     // z -> what's painted of that layer; see layer()
-  let known = new Map();      // region key -> region (named on the map)
-  let seed = null, version = null, refreshed = -Infinity;
+  let layers = new Map(); // z -> what's painted of that layer; see layer()
+  let known = new Map(); // region key -> region (named on the map)
+  let seed = null,
+    version = null,
+    refreshed = -Infinity;
 
   // Layer z's painting: its pages (packed page key -> { canvas, ctx }), what
   // each chunk was when last painted (explored tiles and gathering), the
   // clouds' edge tiles per chunk, and those thinned out per step.
   function layer(z) {
     let L = layers.get(z);
-    if (!L) layers.set(z, L = { z, pages: new Map(), painted: new Map(), edges: new Map(), sampled: new Map() });
+    if (!L)
+      layers.set(
+        z,
+        (L = { z, pages: new Map(), painted: new Map(), edges: new Map(), sampled: new Map() })
+      );
     return L;
   }
 
@@ -64,32 +76,49 @@ export function createAtlas() {
     if (!P) {
       const canvas = document.createElement('canvas');
       canvas.width = canvas.height = PAGE;
-      L.pages.set(key, P = { canvas, ctx: canvas.getContext('2d'), px, py });
+      L.pages.set(key, (P = { canvas, ctx: canvas.getContext('2d'), px, py }));
     }
     return P;
   }
 
   function paintChunk(L, w, look, cx, cy) {
-    const x0 = cx * CS, y0 = cy * CS, z = L.z;
+    const x0 = cx * CS,
+      y0 = cy * CS,
+      z = L.z;
     const P = page(L, pageOf(x0), pageOf(y0));
     const img = P.ctx.createImageData(CS, CS);
     const px = img.data;
     for (let ly = 0; ly < CS; ly++) {
       for (let lx = 0; lx < CS; lx++) {
-        const x = x0 + lx, y = y0 + ly;
+        const x = x0 + lx,
+          y = y0 + ly;
         if (!Core.isExplored(w, x, y, z)) continue;
         const type = shownType(w, x, y, z);
         const hex = tileColor(look, type);
         if (!hex) continue;
         const o = (ly * CS + lx) * 4;
-        let r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-        if (Core.TILE_INFO[type].harvest && type === Core.tileAt(w, x, y, z) && Core.richness(w, x, y, z) <= 0) {
+        let r = parseInt(hex.slice(1, 3), 16),
+          g = parseInt(hex.slice(3, 5), 16),
+          b = parseInt(hex.slice(5, 7), 16);
+        if (
+          Core.TILE_INFO[type].harvest &&
+          type === Core.tileAt(w, x, y, z) &&
+          Core.richness(w, x, y, z) <= 0
+        ) {
           const grey = 0.3 * r + 0.59 * g + 0.11 * b;
-          r = (r + (grey - r) * FADE) * DIM; g = (g + (grey - g) * FADE) * DIM; b = (b + (grey - b) * FADE) * DIM;
+          r = (r + (grey - r) * FADE) * DIM;
+          g = (g + (grey - g) * FADE) * DIM;
+          b = (b + (grey - b) * FADE) * DIM;
         }
         // Underground, rock you've seen is darker than the floors, as in the game.
-        if (z < Core.SURFACE && !Core.TILE_INFO[type].walk) { r *= 1 - ROCK_SHADE; g *= 1 - ROCK_SHADE; b *= 1 - ROCK_SHADE; }
-        px[o] = r; px[o + 1] = g; px[o + 2] = b;
+        if (z < Core.SURFACE && !Core.TILE_INFO[type].walk) {
+          r *= 1 - ROCK_SHADE;
+          g *= 1 - ROCK_SHADE;
+          b *= 1 - ROCK_SHADE;
+        }
+        px[o] = r;
+        px[o + 1] = g;
+        px[o + 2] = b;
         px[o + 3] = 255;
       }
     }
@@ -101,7 +130,12 @@ export function createAtlas() {
   // On the surface, finds the clouds' edge again around each chunk that changed.
   function refresh(s, look) {
     const w = s.world;
-    if (seed !== w.seed || version !== look.version) { layers = new Map(); known = new Map(); seed = w.seed; version = look.version; }
+    if (seed !== w.seed || version !== look.version) {
+      layers = new Map();
+      known = new Map();
+      seed = w.seed;
+      version = look.version;
+    }
     const worked = gathered(w);
     const edged = new Set();
     for (const [key, mask] of w.explored) {
@@ -112,7 +146,14 @@ export function createAtlas() {
       L.painted.set(key, n);
       paintChunk(L, w, look, c.x, c.y);
       if (c.z !== Core.SURFACE) continue;
-      for (const [dx, dy] of [[0, 0], [-1, 0], [1, 0], [0, -1], [0, 1]]) edged.add(Core.packKey(c.x + dx, c.y + dy, c.z));
+      for (const [dx, dy] of [
+        [0, 0],
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1]
+      ])
+        edged.add(Core.packKey(c.x + dx, c.y + dy, c.z));
       const r = Core.regionAt(w.seed, c.x * CS + CS / 2, c.y * CS + CS / 2);
       if (!known.has(r.key)) known.set(r.key, r);
     }
@@ -121,7 +162,8 @@ export function createAtlas() {
     for (const key of edged) {
       const c = Core.unpackKey(key);
       const list = edgeTiles(w, c.x, c.y, c.z);
-      if (list.length) top.edges.set(key, list); else top.edges.delete(key);
+      if (list.length) top.edges.set(key, list);
+      else top.edges.delete(key);
     }
     top.sampled.clear();
   }
@@ -143,9 +185,18 @@ export function createAtlas() {
    * keepClear (the zoom pill). Returns what render() does. */
   function draw(ctx, cam, s, look, view) {
     const now = performance.now();
-    if (now - refreshed >= REFRESH_MS || seed !== s.world.seed || version !== look.version) { refreshed = now; refresh(s, look); }
-    const W = cam.width, H = cam.height, u = cam.tilePx, d = cam.depthPx, a = cam.dpr;
-    const z = cam.z, surface = z === Core.SURFACE, L = layer(z);
+    if (now - refreshed >= REFRESH_MS || seed !== s.world.seed || version !== look.version) {
+      refreshed = now;
+      refresh(s, look);
+    }
+    const W = cam.width,
+      H = cam.height,
+      u = cam.tilePx,
+      d = cam.depthPx,
+      a = cam.dpr;
+    const z = cam.z,
+      surface = z === Core.SURFACE,
+      L = layer(z);
     const at = (x, y) => cam.project(x, y, z);
     // What you haven't explored: on the surface the cloud bank, its
     // pictures fixed to the land; underground, unseen rock.
@@ -163,19 +214,26 @@ export function createAtlas() {
     // The pages on screen, their edges on whole device pixels so
     // neighbours meet without a seam.
     const snap = (v) => Math.round(v * a) / a;
-    const left = cam.x - W / 2 / u, top = cam.y - H / 2 / d;
-    const px0 = pageOf(left), px1 = pageOf(left + W / u), py0 = pageOf(top), py1 = pageOf(top + H / d);
+    const left = cam.x - W / 2 / u,
+      top = cam.y - H / 2 / d;
+    const px0 = pageOf(left),
+      px1 = pageOf(left + W / u),
+      py0 = pageOf(top),
+      py1 = pageOf(top + H / d);
     ctx.imageSmoothingEnabled = u < 1;
     for (const P of L.pages.values()) {
       if (P.px < px0 || P.px > px1 || P.py < py0 || P.py > py1) continue;
-      const p = at(P.px * PAGE, P.py * PAGE), q = at((P.px + 1) * PAGE, (P.py + 1) * PAGE);
-      const x = snap(p.x), y = snap(p.y);
+      const p = at(P.px * PAGE, P.py * PAGE),
+        q = at((P.px + 1) * PAGE, (P.py + 1) * PAGE);
+      const x = snap(p.x),
+        y = snap(p.y);
       ctx.drawImage(P.canvas, x, y, snap(q.x) - x, snap(q.y) - y);
     }
     ctx.imageSmoothingEnabled = true;
     // Labels never cover each other: the hiding place's first, then region
     // names, nearest you first.
-    const taken = [], clear = view.keepClear;
+    const taken = [],
+      clear = view.keepClear;
     // ...nor go under the zoom pill or the thumb cluster.
     if (clear) taken.push({ l: clear.left - 6, r: W, t: clear.top - 6, b: clear.bottom + 6 });
     taken.push({ l: 0, r: W, t: H - EDGE_BOTTOM + 30, b: H });
@@ -183,7 +241,8 @@ export function createAtlas() {
       drawPuffs(ctx, look, L, W, H, u, d, at);
       drawHome(ctx, at);
       const room = { l: EDGE, t: EDGE_TOP, r: W - EDGE, b: H - EDGE_BOTTOM };
-      if (s.cultivation && s.cultivation.heart?.where !== 'installed') drawHidingPlace(ctx, s, at, room, clear, W, H, taken);
+      if (s.cultivation && s.cultivation.heart?.where !== 'installed')
+        drawHidingPlace(ctx, s, at, room, clear, W, H, taken);
       drawRegions(ctx, W, H, at, taken);
     }
     // Friends on this layer: a dot in their colour with their name.
@@ -199,8 +258,10 @@ export function createAtlas() {
     if (s.player.z === z) {
       const p = at(s.player.x, s.player.y);
       const beat = 1 + 0.25 * Math.sin(now / 260);
-      ctx.beginPath(); ctx.arc(p.x, p.y, 9 * beat, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 90, 90, 0.3)'; ctx.fill();
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 9 * beat, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 90, 90, 0.3)';
+      ctx.fill();
       dot(ctx, p.x, p.y, '#ff5a5a', 4.5, 1, '#fff');
       if (view.me) drawNameTag(ctx, p.x, p.y - 12, view.me.name, view.me.color, taken);
       you = { x: p.x, top: p.y - 6, foot: p.y + 6, handsX: p.x, hands: p.y };
@@ -215,12 +276,15 @@ export function createAtlas() {
     const step = 2 ** Math.max(0, Math.ceil(Math.log2(PUFF_GAP / u)));
     let list = L.sampled.get(step);
     if (!list) {
-      const pairs = sampleEdges(L.edges.values(), step), order = [];
+      const pairs = sampleEdges(L.edges.values(), step),
+        order = [];
       for (let i = 0; i < pairs.length; i += 2) order.push([pairs[i], pairs[i + 1]]);
       order.sort((p, q) => p[1] - q[1]);
-      L.sampled.set(step, list = order);
+      L.sampled.set(step, (list = order));
     }
-    const span = puffSpan(u), pw = u * span, ph = d * span;
+    const span = puffSpan(u),
+      pw = u * span,
+      ph = d * span;
     for (const [x, y] of list) {
       const p = at(x + 0.5, y + 0.5);
       if (p.x < -pw || p.y < -ph || p.x > W + pw || p.y > H + ph) continue;
@@ -236,7 +300,9 @@ export function createAtlas() {
     ctx.lineJoin = 'round';
     const shown = [];
     for (const r of known.values()) {
-      const p = at(r.x, r.y), x = p.x, y = p.y - (r.key === '0,0' ? 22 : 0);
+      const p = at(r.x, r.y),
+        x = p.x,
+        y = p.y - (r.key === '0,0' ? 22 : 0);
       if (x < -200 || y < -60 || x > W + 200 || y > H + 60) continue;
       shown.push({ r, x, y, d: Math.hypot(x - W / 2, y - H / 2) });
     }
@@ -248,7 +314,8 @@ export function createAtlas() {
       if (overlaps(taken, box)) continue;
       taken.push(box);
       ctx.font = `800 9.5px ${KIND_FONT}`;
-      ctx.lineWidth = 3; ctx.strokeStyle = LABEL_EDGE;
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = LABEL_EDGE;
       ctx.strokeText(r.kind.toLocaleUpperCase(), x, y - 14);
       ctx.fillStyle = '#ffd166';
       ctx.fillText(r.kind.toLocaleUpperCase(), x, y - 14);
@@ -265,72 +332,132 @@ export function createAtlas() {
     // The names on the map (for the tests).
     names: () => [...known.values()].map((r) => r.name),
     // Forgets every page (a new world, or for the tests).
-    drop() { layers = new Map(); known = new Map(); seed = null; refreshed = -Infinity; }
+    drop() {
+      layers = new Map();
+      known = new Map();
+      seed = null;
+      refreshed = -Infinity;
+    }
   };
 }
 
 function dot(ctx, x, y, color, r, alpha = 1, ring = 'rgba(10,8,6,0.85)') {
   ctx.globalAlpha = alpha;
-  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
-  ctx.fillStyle = color; ctx.fill();
-  ctx.lineWidth = 2; ctx.strokeStyle = ring; ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = ring;
+  ctx.stroke();
   ctx.globalAlpha = 1;
 }
 
 // Home: a little roof.
 function drawHome(ctx, at) {
-  const p = at(0.5, 0.5), hx = p.x, hy = p.y, u = 7;
-  ctx.fillStyle = LABEL_INK; ctx.strokeStyle = LABEL_EDGE; ctx.lineWidth = 2;
+  const p = at(0.5, 0.5),
+    hx = p.x,
+    hy = p.y,
+    u = 7;
+  ctx.fillStyle = LABEL_INK;
+  ctx.strokeStyle = LABEL_EDGE;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(hx - u, hy); ctx.lineTo(hx, hy - u); ctx.lineTo(hx + u, hy); ctx.lineTo(hx + u * 0.7, hy);
-  ctx.lineTo(hx + u * 0.7, hy + u * 0.8); ctx.lineTo(hx - u * 0.7, hy + u * 0.8); ctx.lineTo(hx - u * 0.7, hy); ctx.closePath();
-  ctx.stroke(); ctx.fill();
+  ctx.moveTo(hx - u, hy);
+  ctx.lineTo(hx, hy - u);
+  ctx.lineTo(hx + u, hy);
+  ctx.lineTo(hx + u * 0.7, hy);
+  ctx.lineTo(hx + u * 0.7, hy + u * 0.8);
+  ctx.lineTo(hx - u * 0.7, hy + u * 0.8);
+  ctx.lineTo(hx - u * 0.7, hy);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.fill();
 }
 
 // The hiding place, where the last teleport took the machine's heart:
 // marked from the start in crystal worlds; off screen, an arrow to it at
 // the edge of `room` (clear of the top bar, the zoom pill and the thumbs).
 export function edgePoint(tx, ty, cx, cy, room) {
-  const dx = tx - cx, dy = ty - cy;
+  const dx = tx - cx,
+    dy = ty - cy;
   const f = Math.min(
     (dx > 0 ? room.r - cx : cx - room.l) / Math.abs(dx || 1e-9),
-    (dy > 0 ? room.b - cy : cy - room.t) / Math.abs(dy || 1e-9));
+    (dy > 0 ? room.b - cy : cy - room.t) / Math.abs(dy || 1e-9)
+  );
   return { x: cx + dx * f, y: cy + dy * f };
 }
 
 const overlaps = (boxes, b) => boxes.some((o) => o.l < b.r && b.l < o.r && o.t < b.b && b.t < o.b);
 
 function drawHidingPlace(ctx, s, at, room, clear, W, H, taken) {
-  const h = Core.hidingPlace(s.world.seed), u = 7;
+  const h = Core.hidingPlace(s.world.seed),
+    u = 7;
   const p = at(h.x + 0.5, h.y + 0.5);
   const inside = p.x > room.l && p.y > room.t && p.x < room.r && p.y < room.b;
-  const cx = (room.l + room.r) / 2, cy = (room.t + room.b) / 2;
+  const cx = (room.l + room.r) / 2,
+    cy = (room.t + room.b) / 2;
   let m = inside ? p : edgePoint(p.x, p.y, cx, cy, room);
   // Not under the zoom pill: beside it.
-  if (!inside && clear && m.x > clear.left - EDGE && m.y > clear.top - EDGE && m.y < clear.bottom + EDGE) {
+  if (
+    !inside &&
+    clear &&
+    m.x > clear.left - EDGE &&
+    m.y > clear.top - EDGE &&
+    m.y < clear.bottom + EDGE
+  ) {
     m = edgePoint(p.x, p.y, cx, cy, { ...room, r: clear.left - EDGE });
   }
   ctx.save();
   ctx.translate(m.x, m.y);
-  ctx.strokeStyle = '#eee9dc'; ctx.fillStyle = '#e995c4'; ctx.lineWidth = 2;
+  ctx.strokeStyle = '#eee9dc';
+  ctx.fillStyle = '#e995c4';
+  ctx.lineWidth = 2;
   if (inside) {
-    ctx.beginPath(); ctx.moveTo(0, -u); ctx.lineTo(u * 0.7, 0); ctx.lineTo(0, u); ctx.lineTo(-u * 0.7, 0); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.arc(0, 0, u * 1.7, 0, Math.PI * 2); ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(0, -u);
+    ctx.lineTo(u * 0.7, 0);
+    ctx.lineTo(0, u);
+    ctx.lineTo(-u * 0.7, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, 0, u * 1.7, 0, Math.PI * 2);
+    ctx.setLineDash([3, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
   } else {
     ctx.rotate(Math.atan2(p.y - cy, p.x - cx));
-    ctx.beginPath(); ctx.moveTo(u * 1.6, 0); ctx.lineTo(-u * 0.8, -u * 0.75); ctx.lineTo(-u * 0.3, 0); ctx.lineTo(-u * 0.8, u * 0.75); ctx.closePath();
-    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(u * 1.6, 0);
+    ctx.lineTo(-u * 0.8, -u * 0.75);
+    ctx.lineTo(-u * 0.3, 0);
+    ctx.lineTo(-u * 0.8, u * 0.75);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
   }
   ctx.restore();
-  const label = t('cr.station') + ' · ' + distance(Math.hypot(h.x + 0.5 - s.player.x, h.y + 0.5 - s.player.y));
-  ctx.font = `700 12px ${KIND_FONT}`; ctx.lineWidth = 3; ctx.strokeStyle = LABEL_EDGE; ctx.fillStyle = LABEL_INK;
-  const align = m.x < W / 3 ? 'left' : m.x > W * 2 / 3 ? 'right' : 'center';
+  const label =
+    t('cr.station') + ' · ' + distance(Math.hypot(h.x + 0.5 - s.player.x, h.y + 0.5 - s.player.y));
+  ctx.font = `700 12px ${KIND_FONT}`;
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = LABEL_EDGE;
+  ctx.fillStyle = LABEL_INK;
+  const align = m.x < W / 3 ? 'left' : m.x > (W * 2) / 3 ? 'right' : 'center';
   ctx.textAlign = align;
   ctx.textBaseline = 'alphabetic';
-  const ly = m.y + (m.y < H / 2 ? 24 : -18), w = ctx.measureText(label).width;
+  const ly = m.y + (m.y < H / 2 ? 24 : -18),
+    w = ctx.measureText(label).width;
   const l = align === 'left' ? m.x : align === 'right' ? m.x - w : m.x - w / 2;
-  taken.push({ l: Math.min(l, m.x - 12) - 4, r: Math.max(l + w, m.x + 12) + 4, t: Math.min(ly - 14, m.y - 12), b: Math.max(ly + 4, m.y + 12) });
-  ctx.strokeText(label, m.x, ly); ctx.fillText(label, m.x, ly);
+  taken.push({
+    l: Math.min(l, m.x - 12) - 4,
+    r: Math.max(l + w, m.x + 12) + 4,
+    t: Math.min(ly - 14, m.y - 12),
+    b: Math.max(ly + 4, m.y + 12)
+  });
+  ctx.strokeText(label, m.x, ly);
+  ctx.fillText(label, m.x, ly);
   ctx.textAlign = 'center';
 }

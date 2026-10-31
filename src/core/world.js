@@ -23,7 +23,8 @@ const observedTypes = new WeakMap();
 function noteObservation(w, z) {
   let entry = observationVersions.get(w);
   if (!entry || entry.fog !== w.explored) {
-    entry = { fog: w.explored, layers: new Map() }; observationVersions.set(w, entry);
+    entry = { fog: w.explored, layers: new Map() };
+    observationVersions.set(w, entry);
   }
   entry.layers.set(z, (entry.layers.get(z) || 0) + 1);
 }
@@ -31,7 +32,7 @@ export function observationVersion(w, z) {
   const entry = observationVersions.get(w);
   return entry?.fog === w.explored ? entry.layers.get(z) || 0 : 0;
 }
-const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
+const ROUGH_SALT = 9100; // hash salt for per-tile height variation
 
 /**
  * @typedef {object} World
@@ -48,8 +49,20 @@ const ROUGH_SALT = 9100;     // hash salt for per-tile height variation
  */
 
 /** @returns {World} */
-export function createWorld(seed, cultivation=false) {
-  return { cultivation, seed: (seed >>> 0) || 1, chunks: new Map(), mods: new VersionedMap(), explored: new ExploredChunks(), revealed: 0, holes: new VersionedSet(), props: new VersionedMap(), edits: null, hotKey: -1, hotChunk: null };
+export function createWorld(seed, cultivation = false) {
+  return {
+    cultivation,
+    seed: seed >>> 0 || 1,
+    chunks: new Map(),
+    mods: new VersionedMap(),
+    explored: new ExploredChunks(),
+    revealed: 0,
+    holes: new VersionedSet(),
+    props: new VersionedMap(),
+    edits: null,
+    hotKey: -1,
+    hotChunk: null
+  };
 }
 
 // Least-recently-used cache. Consecutive lookups usually hit the same chunk, so
@@ -62,12 +75,13 @@ function chunkAt(w, x, y, z) {
     w.chunks.delete(key);
   } else {
     chunk = generateChunk(w.seed, chunkCoord(x), chunkCoord(y), z);
-    if(w.cultivation)for(let i=0;i<chunk.type.length;i++){
-      const t=chunk.type[i];
-      if(z===0&&(t===T.ORE||t===T.CRYSTAL))chunk.type[i]=T.STONE;
-      if(z===-1&&(t===T.CRYSTAL_SEAM||t===T.GEODE))chunk.type[i]=T.STONE_SEAM;
-      if(z<=-2&&t===T.CRYSTAL_SEAM)chunk.type[i]=T.GEODE;
-    }
+    if (w.cultivation)
+      for (let i = 0; i < chunk.type.length; i++) {
+        const t = chunk.type[i];
+        if (z === 0 && (t === T.ORE || t === T.CRYSTAL)) chunk.type[i] = T.STONE;
+        if (z === -1 && (t === T.CRYSTAL_SEAM || t === T.GEODE)) chunk.type[i] = T.STONE_SEAM;
+        if (z <= -2 && t === T.CRYSTAL_SEAM) chunk.type[i] = T.GEODE;
+      }
     if (w.chunks.size >= MAX_CACHED_CHUNKS) w.chunks.delete(w.chunks.keys().next().value);
   }
   w.chunks.set(key, chunk);
@@ -153,11 +167,15 @@ export function wayUp(w, x, y, z) {
 // may be: every generated one, and the holes dug in older versions, in this
 // floor or this ceiling. Returns [{x, y}], each tile once.
 export function waysIn(w, z, x0, y0, x1, y1) {
-  const out = [], seen = new Set();
+  const out = [],
+    seen = new Set();
   const add = (p) => {
     if (!p || p.x < x0 || p.x > x1 || p.y < y0 || p.y > y1) return;
     const key = packKey(p.x, p.y, z);
-    if (!seen.has(key)) { seen.add(key); out.push({ x: p.x, y: p.y }); }
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push({ x: p.x, y: p.y });
+    }
   };
   for (let cy = chunkCoord(y0); cy <= chunkCoord(y1); cy++) {
     for (let cx = chunkCoord(x0); cx <= chunkCoord(x1); cx++) {
@@ -209,18 +227,25 @@ export function isValidFogMask(mask) {
 // Nearest tile on layer z satisfying pred(x, y), searching square rings outward
 // from (x, y). Returns the first ring's closest match, or null within maxR.
 export function nearestTile(x, y, maxR, pred) {
-  const px = Math.floor(x), py = Math.floor(y);
+  const px = Math.floor(x),
+    py = Math.floor(y);
   for (let r = 0; r <= maxR; r++) {
-    let best = null, bestD = Infinity;
+    let best = null,
+      bestD = Infinity;
     for (let dy = -r; dy <= r; dy++) {
       // Only the ring: every tile of the top and bottom rows, the two ends of the others.
       const edge = dy === -r || dy === r;
       for (let dx = -r; dx <= r; dx += edge ? 1 : 2 * r) {
-        const tx = px + dx, ty = py + dy;
+        const tx = px + dx,
+          ty = py + dy;
         if (!pred(tx, ty)) continue;
-        const ex = tx + 0.5 - x, ey = ty + 0.5 - y;
+        const ex = tx + 0.5 - x,
+          ey = ty + 0.5 - y;
         const d = ex * ex + ey * ey;
-        if (d < bestD) { bestD = d; best = { x: tx, y: ty }; }
+        if (d < bestD) {
+          bestD = d;
+          best = { x: tx, y: ty };
+        }
       }
     }
     if (best) return best;
@@ -233,39 +258,75 @@ export function nearestTile(x, y, maxR, pred) {
 // probing every tile of an empty search square (common while in a mine).
 export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = null, minimum = 0) {
   maxR = Math.floor(maxR);
-  const px = Math.floor(x), py = Math.floor(y);
-  const close = nearestTile(x, y, Math.min(4, maxR), (tx, ty) => isExplored(w, tx, ty, z) &&
-    (type === null || tileAt(w, tx, ty, z) === type) && (!minimum || richness(w, tx, ty, z) >= minimum) && pred(tx, ty));
+  const px = Math.floor(x),
+    py = Math.floor(y);
+  const close = nearestTile(
+    x,
+    y,
+    Math.min(4, maxR),
+    (tx, ty) =>
+      isExplored(w, tx, ty, z) &&
+      (type === null || tileAt(w, tx, ty, z) === type) &&
+      (!minimum || richness(w, tx, ty, z) >= minimum) &&
+      pred(tx, ty)
+  );
   if (close || maxR <= 4) return close;
-  let best = null, bestR = maxR + 1, bestD = Infinity;
+  let best = null,
+    bestR = maxR + 1,
+    bestD = Infinity;
   let index = w.explored;
   if (type !== null && z === SURFACE && w.explored instanceof ExploredChunks) {
     let typed = observedTypes.get(w);
     if (!typed || typed.fog !== w.explored || typed.version !== w.explored.revision) {
-      typed = createObservedTypes(w.explored, (tx, ty) => tileAt(w, tx, ty, SURFACE), (tx, ty) => richness(w, tx, ty, SURFACE)); observedTypes.set(w, typed);
+      typed = createObservedTypes(
+        w.explored,
+        (tx, ty) => tileAt(w, tx, ty, SURFACE),
+        (tx, ty) => richness(w, tx, ty, SURFACE)
+      );
+      observedTypes.set(w, typed);
     }
     index = typed.query(type, px, py, maxR, work, minimum === 1 || minimum === 2 ? minimum : 0);
   }
-  visitNearestExploredChunks(index, z, px, py, maxR, (cx, cy, mask) => {
-    const ox = cx * CHUNK_SIZE, oy = cy * CHUNK_SIZE;
-    const radius = Math.min(maxR, bestR);
-    const left = Math.max(ox, px - radius), right = Math.min(ox + CHUNK_SIZE - 1, px + radius);
-    const top = Math.max(oy, py - radius), bottom = Math.min(oy + CHUNK_SIZE - 1, py + radius);
-    for (let ty = top; ty <= bottom; ty++) for (let tx = left; tx <= right; tx++) {
-      const r = Math.max(Math.abs(tx - px), Math.abs(ty - py));
-      if (r <= 4 || r > bestR) continue;
-      if (work) work.cells++;
-      const i = (ty - oy) * CHUNK_SIZE + tx - ox;
-      if (!(mask[i >> 3] & (1 << (i & 7)))) continue;
-      if (type !== null && tileAt(w, tx, ty, z) !== type) continue;
-      if (minimum && richness(w, tx, ty, z) < minimum) continue;
-      const ex = tx + 0.5 - x, ey = ty + 0.5 - y, d = ex * ex + ey * ey;
-      if (r === bestR && (d > bestD || (d === bestD && best && (ty > best.y || (ty === best.y && tx >= best.x))))) continue;
-      if (!pred(tx, ty)) continue;
-      best = { x: tx, y: ty }; bestR = r; bestD = d;
-    }
-    return bestR;
-  }, work);
+  visitNearestExploredChunks(
+    index,
+    z,
+    px,
+    py,
+    maxR,
+    (cx, cy, mask) => {
+      const ox = cx * CHUNK_SIZE,
+        oy = cy * CHUNK_SIZE;
+      const radius = Math.min(maxR, bestR);
+      const left = Math.max(ox, px - radius),
+        right = Math.min(ox + CHUNK_SIZE - 1, px + radius);
+      const top = Math.max(oy, py - radius),
+        bottom = Math.min(oy + CHUNK_SIZE - 1, py + radius);
+      for (let ty = top; ty <= bottom; ty++)
+        for (let tx = left; tx <= right; tx++) {
+          const r = Math.max(Math.abs(tx - px), Math.abs(ty - py));
+          if (r <= 4 || r > bestR) continue;
+          if (work) work.cells++;
+          const i = (ty - oy) * CHUNK_SIZE + tx - ox;
+          if (!(mask[i >> 3] & (1 << (i & 7)))) continue;
+          if (type !== null && tileAt(w, tx, ty, z) !== type) continue;
+          if (minimum && richness(w, tx, ty, z) < minimum) continue;
+          const ex = tx + 0.5 - x,
+            ey = ty + 0.5 - y,
+            d = ex * ex + ey * ey;
+          if (
+            r === bestR &&
+            (d > bestD || (d === bestD && best && (ty > best.y || (ty === best.y && tx >= best.x))))
+          )
+            continue;
+          if (!pred(tx, ty)) continue;
+          best = { x: tx, y: ty };
+          bestR = r;
+          bestD = d;
+        }
+      return bestR;
+    },
+    work
+  );
   return best;
 }
 
@@ -274,7 +335,12 @@ export function nearestExploredTile(w, x, y, z, maxR, pred, work = null, type = 
 // (the middle, where the stockpile stands, is bare ground). No terrain is
 // sculpted and no resources are guaranteed.
 export function findSpawn(w) {
-  const f = nearestTile(0.5, 0.5, SPAWN_SEARCH_RADIUS, (x, y) => tileAt(w, x, y, SURFACE) === T.FOREST);
+  const f = nearestTile(
+    0.5,
+    0.5,
+    SPAWN_SEARCH_RADIUS,
+    (x, y) => tileAt(w, x, y, SURFACE) === T.FOREST
+  );
   if (!f) return { x: 0, y: 0 };
   const edge = (v) => Math.max(-HOME_HALF, Math.min(HOME_HALF, v));
   return { x: edge(f.x), y: edge(f.y) };
