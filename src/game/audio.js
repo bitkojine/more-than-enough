@@ -160,10 +160,12 @@ export function createAudio() {
       master = ctx.createGain();
       master.gain.value = 0.85;
       master.connect(ctx.destination);
-      // A meter on the output, so tests (and the perf panel) can tell that
-      // sound really comes out, not just that the context runs.
+      // A meter on the output, so tests can tell that sound really comes
+      // out, not just that the context runs. Its window is the largest an
+      // analyser keeps (~0.7 s): a 70 ms click still shows when the page is
+      // too busy to look more often than every few frames (browser.e2e.js).
       meter = ctx.createAnalyser();
-      meter.fftSize = 2048;
+      meter.fftSize = 32768;
       master.connect(meter);
       music = createMusic(ctx, master, {
         canPlay: () => !muted && ctx.state === 'running',

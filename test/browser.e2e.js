@@ -358,8 +358,11 @@ async function main() {
     await evalJS('document.getElementById("btnClose").click();' + entry);
   }
 
+  // Deadlines are wall time on a machine that draws 30 frames a second;
+  // `slow` (measured at boot) stretches them on one that draws fewer.
+  var slow = 1;
   async function waitFor(expr, timeout) {
-    var end = Date.now() + (timeout || 8000);
+    var end = Date.now() + (timeout || 8000) * slow;
     while (Date.now() < end) {
       try {
         if (await evalJS(expr)) return true;
@@ -3138,20 +3141,34 @@ async function main() {
   var pace = JSON.parse(
     await evalJS(
       'new Promise(function(done){var t0=MTE_GAME.getState().time,n=0,w0=performance.now();' +
-        '(function f(){n++;if(performance.now()-w0<1000)requestAnimationFrame(f);else done(JSON.stringify({fps:n,sim:MTE_GAME.getState().time-t0}));})();})'
+        '(function f(){n++;var w=performance.now()-w0;if(w<2000)requestAnimationFrame(f);else done(JSON.stringify({fps:Math.round(n*1000/w),sim:(MTE_GAME.getState().time-t0)*1000/w}));})();})'
     )
   );
-  ok(
-    pace.fps >= 20 && pace.sim >= 0.8,
-    'the game runs in real time (' +
-      pace.fps +
-      ' fps, ' +
-      pace.sim.toFixed(2) +
-      's of game time per second)' +
-      (pace.fps < 20
-        ? ' — FRAMES ARE STARVED: close other headless browsers or heavy apps; timing checks below will fail'
-        : '')
-  );
+  // Measured over two seconds: the clock only shows on drawn frames, so at
+  // ~10 a second a one-second window could read 0.1 s short on rounding.
+  // Game time runs on its own fixed-tick clock, so it keeps real time even
+  // when drawing is slow; that is what this checks. A headless browser
+  // without a GPU (CI, cloud containers) may draw only ~10 frames a second:
+  // input is handled once per frame there, so every waitFor deadline below
+  // stretches by `slow` instead of failing on the machine's speed.
+  // Below 20 frames a second the browser's bounded catch-up lets game time
+  // fall behind by design, so there the pace is reported, not judged.
+  if (pace.fps >= 20)
+    ok(
+      pace.sim >= 0.8,
+      'the game runs in real time (' + pace.sim.toFixed(2) + 's of game time per second)'
+    );
+  slow = Math.min(3, Math.max(1, 30 / Math.max(1, pace.fps), 1 / Math.max(0.1, pace.sim)));
+  if (slow > 1)
+    console.log(
+      '  note: ' +
+        pace.fps +
+        ' fps, ' +
+        pace.sim.toFixed(2) +
+        's of game time per second here; waits stretch ' +
+        slow.toFixed(1) +
+        'x (close other browsers for a faster run)'
+    );
   // Branding: a favicon, a home-screen icon and a manifest, all of which load.
   var icons = JSON.parse(
     await evalJS(
@@ -3209,10 +3226,21 @@ async function main() {
   );
 
   await evalJS('document.getElementById("btnClose").click()');
+  // Lantern and flare live in the Equipment card since its redesign
+  // (docs/ui.md); the dock keeps the five actions.
   eq(
-    await evalJS('document.querySelectorAll("#thumbDock .btn").length'),
-    7,
-    'Gather, Perfect, lantern, flare, build, upgrade and mine share the thumb dock'
+    await evalJS(
+      'Array.from(document.querySelectorAll("#thumbDock .btn")).map(function(b){return b.id;}).sort().join()'
+    ),
+    'btnAction,btnBuild,btnMine,btnPerfect,btnUpgrade',
+    'Gather, Perfect, build, equipment and mine share the thumb dock'
+  );
+  eq(
+    await evalJS(
+      'Array.from(document.querySelectorAll("#equipmentTray .btn")).map(function(b){return b.id;}).join()'
+    ),
+    'btnLantern,btnFlare',
+    'lantern and flare sit in the Equipment card'
   );
   // Sound: the context exists from load, and the first gesture of any kind
   // gets it running (it used to wait for certain controls).
@@ -3269,7 +3297,8 @@ async function main() {
         ')'
     );
   }
-  await sleep(800); // let the last notes ring out
+  // Let the last notes ring out and leave the meter's ~0.7 s window.
+  await sleep(1500);
   await startListening();
   ok((await heard(300)) < 0.002, 'and between sounds it is quiet');
   await evalJS('MTE_GAME.audio.muted = true');
@@ -3385,7 +3414,9 @@ async function main() {
   );
   eq(
     await evalJS(
-      '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,n=0;c.caveTiles(s.seed,Math.floor(p.x),Math.floor(p.y)).forEach(function(t){if(c.TILE_INFO[c.tileAt(s.world,t.x,t.y,-1)].walk)n++;});return n>=8;})()'
+      // The cave opens every plain soil tile in reach; seams stay standing,
+      // so how many open depends on the world, but never only one.
+      '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,n=0,soil=0;c.caveTiles(s.seed,Math.floor(p.x),Math.floor(p.y)).forEach(function(t){var k=c.tileAt(s.world,t.x,t.y,-1);if(c.TILE_INFO[k].walk)n++;if(k===c.T.SOIL)soil++;});return n>=2&&soil===0;})()'
     ),
     true,
     'arriving opens a small cave around you, never just the tile you stand on'
@@ -3428,9 +3459,10 @@ async function main() {
   );
   ok(!!wall, 'a diggable wall next to the wanderer');
   if (wall) {
-    await touch('touchStart', [{ x: 195, y: 500, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
+    // On open map, above the message log (which rises over AUTO when shown).
+    await touch('touchStart', [{ x: 195, y: 300, radiusX: 5, radiusY: 5, force: 1, id: 1 }]);
     await touch('touchMove', [
-      { x: 195 + wall.dx * 70, y: 500 + wall.dy * 70, radiusX: 5, radiusY: 5, force: 1, id: 1 }
+      { x: 195 + wall.dx * 70, y: 300 + wall.dy * 70, radiusX: 5, radiusY: 5, force: 1, id: 1 }
     ]);
     var drilled = await waitFor(
       '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' +
@@ -3460,11 +3492,11 @@ async function main() {
     1,
     'placing a glowcap leaves it in the tunnel'
   );
+  // Build lists only what stands on the layer you're on (sheet.js
+  // renderConstruction), so surface power isn't offered underground.
   ok(
-    await evalJS(
-      '!!document.querySelector("#sheetBody button[data-kind=prop][data-id=solar][disabled]")'
-    ),
-    'a solar panel is offered, but not down here'
+    await evalJS('!document.querySelector("#sheetBody button[data-kind=prop][data-id=solar]")'),
+    'a solar panel is not offered down here'
   );
   await evalJS('document.getElementById("btnClose").click()');
   // The battery: hidden while full, then a pill on the left edge that turns
@@ -3536,6 +3568,9 @@ async function main() {
     await evalJS('!!localStorage.getItem("more-than-enough-save")'),
     'autosave keeps running while Gather is held with no target'
   );
+  // Held Gather walks to the nearest resource, so step back under the shaft.
+  await evalJS('MTE_GAME.setPlayer(' + (shaftSpot.x + 0.5) + ',' + (shaftSpot.y + 0.5) + ')');
+  await sleep(200);
   mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
   eq(
@@ -3689,6 +3724,14 @@ async function main() {
   ok(
     perf && perf.w >= 44 && perf.y < act.y,
     'Perfect is a smaller button above Gather (' + (perf && perf.w) + 'px)'
+  );
+  // The open message log once covered AUTO, so the hold below fell on the log.
+  eq(
+    await evalJS(
+      '(function(){var r=document.getElementById("btnPerfect").getBoundingClientRect(),e=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return e&&e.closest("button")?e.closest("button").id:e&&e.id;})()'
+    ),
+    'btnPerfect',
+    'nothing covers AUTO, the message log included'
   );
   var p0 = JSON.parse(await stateSummary());
   await hold(perf.x, perf.y, 3600);
@@ -4815,53 +4858,9 @@ async function main() {
   );
   console.log('  screenshot: ' + (await shot('04-beyond.png')));
 
-  // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
-  // world's resource sprites across the screen.
-  await evalJS(
-    'MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})'
-  );
-  ok((await evalJS('MTE_GAME.flyers().length')) >= 1, 'a leftover flyer exists before embarking');
-  var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
-  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
-  await sleep(150);
-  ok(
-    await evalJS(
-      '!document.getElementById("ask").hidden && /empty-handed/.test(document.getElementById("ask").textContent)'
-    ),
-    'Embark asks first and explains the empty-handed start'
-  );
-  await evalJS('document.querySelector("#ask .secondary").click()');
-  await sleep(150);
-  ok(
-    await evalJS(
-      'document.getElementById("ask").hidden && MTE_GAME.getState().prestiges === ' + prestigeBefore
-    ),
-    'Cancel keeps the world'
-  );
-  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
-  await sleep(150);
-  await evalJS('document.querySelector("#ask .primary").click()');
-  await sleep(400);
-  var afterEmbark = JSON.parse(
-    await evalJS(
-      '(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'
-    )
-  );
-  eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
-  eq(afterEmbark.ext, 0, 'embark resets extractors');
-  eq(afterEmbark.insight, 0, 'new worlds carry no spendable Insight');
-  ok(
-    await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),
-    'carried lifetime progress cannot enable immediate re-embark'
-  );
-  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
-  ok(
-    await evalJS('!document.getElementById("btnBeyond").hidden'),
-    'after an Embark, Beyond stays for the perks'
-  );
-
   /* --------------------------- Logistics hauls from anywhere (v0.111.0) */
   console.log('\n== Logistics auto-collect works at any distance ==');
+  await evalJS('document.getElementById("btnClose").click()'); // Beyond was left open
   await evalJS(
     '(function(){var s=MTE_GAME.getState();s.unlocks.logistics=true;var ex={key:"garden",res:"mycelium",x:Math.floor(s.player.x),y:Math.floor(s.player.y),z:0,buffer:10};s.extractors.push(ex);MTE_GAME.setPlayer(ex.x+0.5,ex.y+0.5);})()'
   );
@@ -4906,6 +4905,11 @@ async function main() {
     di.len > 0 && di.noon === 1 && Math.round(di.mid) === 0,
     'daylight curve sane (cycle ' + di.len + 's, noon ' + di.noon + ', midnight ' + di.mid + ')'
   );
+  // Ground all round, not the clouds over unexplored land: the dark edge is
+  // sampled at the screen's left, halfway down.
+  await evalJS(
+    '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player;for(var dy=-20;dy<=20;dy++)for(var dx=-20;dx<=20;dx++)c.markExplored(s.world,Math.floor(p.x)+dx,Math.floor(p.y)+dy,p.z);})()'
+  );
   // This constructed visual fixture changes time directly. A variable-step
   // call settles and leaves the cumulative clock first, preserving balances.
   await evalJS(
@@ -4917,7 +4921,7 @@ async function main() {
   // Averaged over a patch, so whatever picture stands at the very centre doesn't decide it.
   var lum = JSON.parse(
     await evalJS(
-      '(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var t=0,n=0;for(var a=-4;a<=4;a++)for(var b=-4;b<=4;b++){var o=(Math.floor(h*(j+b*0.01))*w+Math.floor(w*(i+a*0.01)))*4;t+=(d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;n++;}return t/n;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'
+      '(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var t=0,n=0;for(var a=-4;a<=4;a++)for(var b=-4;b<=4;b++){var o=(Math.floor(h*(j+b*0.01))*w+Math.floor(w*(i+a*0.01)))*4;t+=(d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;n++;}return t/n;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.08,0.45).toFixed(3)});})()'
     )
   );
   console.log('  night luminance: center=' + lum.center + ' corner=' + lum.corner);
@@ -4933,11 +4937,63 @@ async function main() {
   await sleep(300);
   var dayLum = JSON.parse(
     await evalJS(
-      '(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.05,0.05).toFixed(3)});})()'
+      '(function(){var c=document.getElementById("game");var g=c.getContext("2d");var d=g.getImageData(0,0,c.width,c.height).data;var w=c.width,h=c.height;function lum(i,j){var o=(Math.floor(h*j)*w+Math.floor(w*i))*4;return (d[o]*0.3+d[o+1]*0.59+d[o+2]*0.11)/255;}return JSON.stringify({center:+lum(0.5,0.5).toFixed(3),corner:+lum(0.08,0.45).toFixed(3)});})()'
     )
   );
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
+
+  /* ------------------------------ Embark: it leaves the old world */
+  // Embark starts a crystal world (v0.160.0), whose rules differ: the
+  // old-economy sections above run before it, and the next one
+  // replaces the world anyway.
+  console.log('\n== Embark ==');
+  await openMenu('beyond');
+  await sleep(200);
+  // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
+  // world's resource sprites across the screen.
+  await evalJS(
+    'MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})'
+  );
+  ok((await evalJS('MTE_GAME.flyers().length')) >= 1, 'a leftover flyer exists before embarking');
+  var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
+  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
+  await sleep(150);
+  ok(
+    await evalJS(
+      '!document.getElementById("ask").hidden && /empty-handed/.test(document.getElementById("ask").textContent)'
+    ),
+    'Embark asks first and explains the empty-handed start'
+  );
+  await evalJS('document.querySelector("#ask .secondary").click()');
+  await sleep(150);
+  ok(
+    await evalJS(
+      'document.getElementById("ask").hidden && MTE_GAME.getState().prestiges === ' + prestigeBefore
+    ),
+    'Cancel keeps the world'
+  );
+  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
+  await sleep(150);
+  await evalJS('document.querySelector("#ask .primary").click()');
+  await sleep(400);
+  var afterEmbark = JSON.parse(
+    await evalJS(
+      '(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'
+    )
+  );
+  eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
+  eq(afterEmbark.ext, 0, 'embark resets extractors');
+  eq(afterEmbark.insight, 0, 'new worlds carry no spendable Insight');
+  ok(
+    await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),
+    'carried lifetime progress cannot enable immediate re-embark'
+  );
+  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
+  ok(
+    await evalJS('!document.getElementById("btnBeyond").hidden'),
+    'after an Embark, Beyond stays for the perks'
+  );
 
   /* ------------- a save it can't read: kept to one side, never a nuke */
   console.log("\n== A save it can't read is kept to one side ==");
@@ -5121,6 +5177,7 @@ async function main() {
     await waitFor('MTE_GAME.getState().player.z < 0', 5000),
     'went down a cave mouth into the mine'
   );
+  var arrival = JSON.parse(await evalJS('JSON.stringify(MTE_GAME.getState().player)'));
   // The camera moves to the new layer when it next draws: wait for a frame so
   // the wall's screen position below is projected from where it is now shown.
   await evalJS(
@@ -5174,6 +5231,9 @@ async function main() {
           )))
   );
   console.log('  screenshot: ' + (await shot('07-mine-wall.png')));
+  // The layer button shows only beside a way up: back to the ladder's foot.
+  await evalJS('MTE_GAME.setPlayer(' + arrival.x + ',' + arrival.y + ')');
+  await sleep(200);
   mineBtn = await rect('#btnMine');
   await tap(mineBtn.x, mineBtn.y);
   ok(await waitFor('MTE_GAME.getState().player.z === 0', 2000), 'back up on the surface');
