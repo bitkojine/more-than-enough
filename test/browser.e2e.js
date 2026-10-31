@@ -4293,12 +4293,16 @@ async function main() {
   await tap(doneButton.x, doneButton.y);
   await sleep(250);
   var collectBefore = JSON.parse(await stateSummary()).inv.mycelium;
+  // The camera follows the player when it next draws: project from there.
+  await evalJS(
+    'new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})'
+  );
   var campAt = await evalJS(
     '(function(){var e=MTE_GAME.getState().extractors[0];return JSON.stringify(MTE_GAME.project(e.x+0.5,e.y+0.5));})()'
   );
   campAt = JSON.parse(campAt);
   await tap(campAt.x, campAt.y);
-  await sleep(200);
+  await waitFor('MTE_GAME.getState().inv.mycelium > ' + collectBefore, 1500);
   var collectAfter = JSON.parse(await stateSummary());
   ok(
     collectAfter.inv.mycelium > collectBefore,
