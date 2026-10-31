@@ -292,8 +292,8 @@ export function cleanSave(s) {
   }
 }
 
-// The world's clock: seconds of game time since its first dawn. One clock per
-// The world's clock, kept by the room, so day and night are the same for everyone.
+// The world's clock: seconds of game time since its first dawn, kept by the
+// room so day and night are the same for everyone.
 const TIME_MAX = 1e10;
 export function cleanTime(v) {
   return isNum(v) && v >= 0 && v <= TIME_MAX ? round(v, 1000) : null;
