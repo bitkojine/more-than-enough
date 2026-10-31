@@ -1,0 +1,5 @@
+# Commits that only change layout. `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+# makes `git blame` look past them (GitHub does it on its own).
+
+# Format all JavaScript with Prettier (v0.181.12)
+8edcb69a4da4ff50c072a35fca9173d171bbbb85

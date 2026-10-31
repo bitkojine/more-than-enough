@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.181.12] - 2026-10-31
+
+- Format all JavaScript with Prettier (100 columns, single quotes, no
+  trailing commas; `.prettierrc.json`). `npm run format` writes it and
+  `npm run lint` fails on unformatted code. The reformat is one commit,
+  listed in `.git-blame-ignore-revs`. A bundle built from the source before
+  and after differs only in the one statement rewritten by hand below.
+- Make lint a gate in `npm run check` and CI: ESLint errors fail, and the
+  warning count may only fall (`--max-warnings` is a ratchet, now 249; the
+  formatter lengthened some functions past the 120-line warning). Fix the
+  six errors it found: dead initial values before `try` blocks and a
+  canvas reset written as a self-assignment.
+- `// i18n-ok:` marks may now stand alone on the line above the text they
+  excuse, since the formatter moves trailing comments to a statement's end.
+  The admin page names its game-link pattern (`gameLink`) so its test reads
+  it by name instead of by layout.
+
 ## [0.181.11] - 2026-10-31
 
 - Hold a steady 30 FPS. Frames are now drawn only on display refreshes, chosen

@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.181.12':
+    'Užkulisiuose: žaidimo kodą dabar automatiškai tvarko formatavimo įrankis, o prieš kiekvieną leidimą jis tikrinamas, ar nėra klaidų. Žaidime niekas nepasikeičia.',
   'news.0.181.11':
     'Sklandesnis vaizdas: žaidimas dabar tolygiai rodo 30 kadrų per sekundę ten, kur anksčiau jų būdavo šiek tiek mažiau. Našumo diagnostika taip pat atskiria žaidimo darbą nuo įprasto kadrų ribotuvo laukimo ir rodo tikrąjį drobės tankį.',
   'news.0.181.10':

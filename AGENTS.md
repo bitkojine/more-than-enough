@@ -15,6 +15,10 @@ kind of knowledge lives.
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
   notes as `news.<version>` in `src/i18n/en.js` and `lt.js`. On a version
   clash after a rebase take the next free number and keep both entries.
+- Code is laid out by Prettier: run `npm run format` before committing.
+  `npm run lint` (part of `npm run check`) fails on unformatted code, on any
+  ESLint error, and on more ESLint warnings than the budget in
+  `package.json`; when you clear warnings, lower the budget.
 - Before pushing changes to shipped code or build inputs: `npm run check`. It runs `npm test` and stages the site
   the way the deploy does, so a red deploy is caught here instead of after a
   push. `npm run check -- full` also runs the Perfect benchmark when the

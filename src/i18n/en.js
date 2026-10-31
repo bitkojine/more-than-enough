@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.181.12':
+    'Behind the scenes: the game’s code is now laid out by an automatic formatter and checked for mistakes before every release. Nothing changes in play.',
   'news.0.181.11':
     'Smoother pictures: the game now holds a steady 30 frames a second where it used to land a little under it. Performance diagnostics also separate game work from normal frame-cap waiting and report the actual canvas density.',
   'news.0.181.10':
