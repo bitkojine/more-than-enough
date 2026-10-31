@@ -4125,7 +4125,10 @@ async function main() {
   eq(u1.tools.basket, 2, 'basket upgraded to level 2');
   // Tapping the world past the sheet closes it, and does nothing else.
   var beforeTapOut = JSON.parse(await stateSummary());
-  await tap(195, 90);
+  // Open map just above the sheet, clear of the top bar and its zoom pill
+  // (a fixed spot here once landed on the pill and the sheet stayed open).
+  var sheetBox = await rect('#sheet');
+  await tap(sheetBox.x, sheetBox.y - sheetBox.h / 2 - 40);
   await sleep(300);
   ok(
     await evalJS('!document.getElementById("sheet").classList.contains("open")'),
