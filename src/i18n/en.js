@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.181.13':
+    'Behind the scenes: the invite links panel and the settings switches now live in their own tidy pieces of code, with new tests. Nothing changes in play.',
   'news.0.181.12':
     'Behind the scenes: the game’s code is now laid out by an automatic formatter and checked for mistakes before every release. Nothing changes in play.',
   'news.0.181.11':

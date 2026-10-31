@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.181.13':
+    'Užkulisiuose: kvietimų nuorodų skydelis ir nustatymų jungikliai dabar turi savo tvarkingas kodo dalis su naujais testais. Žaidime niekas nepasikeičia.',
   'news.0.181.12':
     'Užkulisiuose: žaidimo kodą dabar automatiškai tvarko formatavimo įrankis, o prieš kiekvieną leidimą jis tikrinamas, ar nėra klaidų. Žaidime niekas nepasikeičia.',
   'news.0.181.11':

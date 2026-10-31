@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.181.13] - 2026-10-31
+
+- Split the largest modules along their seams, behaviour unchanged:
+  `src/game/room-messages.js` (checks of what the room sends) and
+  `src/game/invite-list.js` (the Invite links panel) leave together.js
+  (1,486 -> 1,211 lines); `src/game/switches.js` (the Settings and Nerds
+  switches) leaves main.js (1,398 -> 1,318). The room-message checks and
+  the panel's wording are now tested in Node, adversarially for the former.
+- `test/unit/file-size.test.js`: no source file past 600 lines; the ones
+  already larger may only shrink. CI runs the tests with coverage and fails
+  under the line, branch and function floors (`npm run test:coverage`).
+- Commit messages must say why (AGENTS.md); `commits.yml` flags commits over
+  20 changed lines without a body, without holding up deploys.
+- The browser suite's tap-outside-the-sheet check tapped the zoom pill and
+  stopped the run halfway; it now taps just above the sheet.
+
 ## [0.181.12] - 2026-10-31
 
 - Format all JavaScript with Prettier (100 columns, single quotes, no
