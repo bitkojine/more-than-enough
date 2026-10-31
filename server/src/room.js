@@ -322,7 +322,7 @@ export class Room {
   // one out (newer than the last one kept), else the one kept.
   saveFor(id, me) {
     if (!this.shadow?.has(id)) return me.save;
-    let kept = null;
+    let kept;
     try { kept = me.save && JSON.parse(me.save); } catch { kept = null; }
     return cleanSave(this.shadow.saveOf(id, kept)) || me.save;
   }

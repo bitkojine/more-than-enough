@@ -91,7 +91,7 @@ export function lightObject(ctx,cam,s,x,y,draw,{width=2,height=4}={}) {
  g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-over';g.clearRect(0,0,sw,sh);
  g.save();g.setTransform(dpr,0,0,dpr,-left*dpr,-top*dpr);
  let result;
- try{result=draw(g);}catch(error){scratch.width=scratch.width;throw error;}finally{g.restore();}
+ try{result=draw(g);}catch(error){/* setting the width clears the canvas */const {width}=scratch;scratch.width=width;throw error;}finally{g.restore();}
  g.setTransform(1,0,0,1,0,0);g.globalAlpha=1;g.globalCompositeOperation='source-atop';
  g.fillStyle=`rgba(4,8,16,${opacity})`;g.fillRect(0,0,sw,sh);
  ctx.drawImage(scratch,0,0,sw,sh,left,top,w,hpx);

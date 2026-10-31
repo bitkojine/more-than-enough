@@ -6,6 +6,9 @@
 #   npm run check -- full    also run the long Perfect benchmark
 #
 # What it runs, and why each is here:
+#   - npm run lint       ESLint: errors fail, and the warning count may only
+#                        go down (--max-warnings in package.json is a
+#                        ratchet: lower it when you clear warnings)
 #   - npm test           pages.yml and rooms.yml both run it (unit + property,
 #                        including the smoke test's checks against a local
 #                        Room: test/unit/smoke.test.js — the same assertions
@@ -31,6 +34,9 @@ cd "$(dirname "$0")/.."
 QUICK="${1:-}"
 
 step() { printf '\n== %s\n' "$1"; }
+
+step 'lint (npm run lint)'
+npm run lint
 
 step 'unit and property tests (npm test)'
 npm test

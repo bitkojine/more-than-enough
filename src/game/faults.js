@@ -69,7 +69,7 @@ export function createFaults({ clock = () => Date.now(), context = () => ({}), o
     let fault = faults.find((f) => f.key === key);
     const first = !fault;
     if (fault) { fault.count++; fault.last = at; } else {
-      let about = {};
+      let about;
       try { about = context(); } catch (e) { about = { context: describe(e).head }; }
       fault = { key, where, head, stack, first: at, last: at, count: 1, context: about, crumbs: crumbs.map((c) => ({ ...c })) };
       faults.unshift(fault);

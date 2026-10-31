@@ -520,7 +520,7 @@ export function createTogether({ game, hud, ask, el, fbi, checkUpdate = () => {}
       // This phone last showed far more than the room counts (games before
       // v0.91.1 could run away): say the room's numbers are the real ones.
       const fixed = !renewed && Core.overCounted(kept, w.save);
-      let fog = null;
+      let fog;
       try { fog = JSON.parse(read(FOG_PREFIX + room) || 'null'); } catch { fog = null; }
       const mine = w.p || { x: 0, y: 0 };
       const near = [...w.players.values()].filter((f) => f.st === 'online' && f.p).map((f) => f.p)

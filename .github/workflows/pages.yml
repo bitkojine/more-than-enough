@@ -42,6 +42,9 @@ jobs:
           name: static-analysis
           path: /tmp/static-analysis
 
+      - name: Lint (errors fail; warnings may only go down)
+        run: npm run lint
+
       - name: Unit tests
         run: npm test
 

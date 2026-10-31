@@ -1,0 +1,10 @@
+# Prettier formats the JavaScript; everything else keeps its hand layout for now.
+*
+!*/
+!*.js
+!*.mjs
+node_modules/
+site/
+packs/
+structurizr/
+src/vendor/

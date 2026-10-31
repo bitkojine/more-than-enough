@@ -43,7 +43,7 @@ function detect() {
   if (env) return env;
   const asked = globalThis.location && new URLSearchParams(globalThis.location.search).get('lang');
   if (asked) return asked;
-  let saved = null;
+  let saved;
   try { saved = storage() && storage().getItem(LANGUAGE_KEY); } catch { saved = null; }
   if (saved && LANGUAGES[saved]) return saved;
   const nav = globalThis.navigator;

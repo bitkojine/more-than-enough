@@ -180,9 +180,11 @@ correctness checks, unused code, cyclomatic complexity (over 15), nesting
 The text report ranks files and lists exact source locations; JSON supports
 further investigation. Runtime globals are scoped by host; vendored libraries
 and generated assets are excluded. CI uploads the same report on every run.
-Existing findings are visible debt, not a lint-clean gate: only parse failures
-fail this command for now. Triage findings before choosing enforcement budgets;
-complexity counts are investigation signals, not proof of bugs or performance.
+`npm run lint` is the gate (in `npm run check` and CI): any ESLint error
+fails it, and so does a warning count above the budget in `package.json`
+(`--max-warnings`). The budget is a ratchet: when you clear warnings, lower
+it to the new count; never raise it. Complexity counts are investigation
+signals, not proof of bugs or performance.
 This bounded analysis does not run simulations or ship dependencies to players.
 
 Focused chapter availability is shared by menus and canonical actions in

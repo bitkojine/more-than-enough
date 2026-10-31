@@ -266,7 +266,7 @@ function client() {
             const text = await api(base + '/log?since=' + since);
             let more = null;
             for (const line of String(text).split('\n')) {
-              let e = null;
+              let e;
               try { e = JSON.parse(line); } catch { continue; }
               if (e.e === 'more') more = e.since;
               else if (e.p === r.id) lines.push(e);
