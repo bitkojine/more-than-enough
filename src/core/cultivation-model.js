@@ -15,7 +15,11 @@ export const CULTIVATION_RECIPES = {
   reinforce: { crystal: 2 },
   repair: { stone: 16, ore: 16, crystal: 6 },
   shade: { mycelium: 1 },
-  shelter: { mycelium: 6, stone: 10 }
+  shelter: { mycelium: 6, stone: 10 },
+  // The camp at the hiding place (Watch, 2026-11-01): a stone bench, and the
+  // woven mycelium lining it makes for the carrier.
+  bench: { mycelium: 4, stone: 12 },
+  lining: { mycelium: 10 }
 };
 // Each stage installs physical machine components; activation is a separate act.
 export const MACHINE_REPAIRS = [
@@ -41,7 +45,9 @@ export const CULTIVATION_LOOK = {
   carrier: 'tool.crystalCarrier',
   lantern: 'tool.hoodedLantern',
   station: 'building.hidingPlace',
-  shelter: 'building.heartShelter'
+  shelter: 'building.heartShelter',
+  bench: 'building.carrierBench',
+  lining: 'tool.carrierLining'
 };
 // A crystal world before anything is built: the heart still at its hiding place.
 export function newCultivation() {

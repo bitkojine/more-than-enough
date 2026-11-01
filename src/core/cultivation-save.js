@@ -11,6 +11,8 @@ import {
 } from './cultivation-model.js';
 
 const cell = (x, y, z) => `${x},${y},${z}`;
+// Facilities that may stand on the surface (the rest go from layer 2 down).
+const SURFACE_TOO = new Set(['shelter', 'bench']);
 // Recover saves produced by the earlier weighted-average rounding bug, while
 // keeping genuinely invalid condition values rejected by the validator.
 export function recoverCultivationRounding(c) {
@@ -66,12 +68,12 @@ export function validCultivation(c) {
   for (const b of c.facilities) {
     if (
       !b ||
-      !['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter'].includes(b.kind) ||
+      !['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter', 'bench'].includes(b.kind) ||
       !Number.isSafeInteger(b.id) ||
       b.id < 1 ||
       b.id >= c.nextId ||
       ids.has(b.id) ||
-      !pos(b, b.kind === 'shelter' ? 0 : -2) ||
+      !pos(b, SURFACE_TOO.has(b.kind) ? 0 : -2) ||
       !number(b.temperature, -1000, 1000) ||
       !number(b.buffer, 0, 40) ||
       !number(b.quality, 0, 100) ||
@@ -161,12 +163,13 @@ export function mendCultivation(c) {
   if (c.completedAt !== undefined && !Number.isFinite(c.completedAt)) delete c.completedAt;
   else if (c.completedAt !== undefined)
     c.completedAt = into(c.completedAt, 0, Number.MAX_SAFE_INTEGER, 0);
-  const kinds = ['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter'],
+  const kinds = ['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter', 'bench'],
     cells = new Set(),
     ids = new Map(),
     renumber = [];
   c.facilities = (Array.isArray(c.facilities) ? c.facilities : []).filter((b) => {
-    if (!obj(b) || !kinds.includes(b.kind) || !pos(b, b.kind === 'shelter' ? 0 : -2)) return false;
+    if (!obj(b) || !kinds.includes(b.kind) || !pos(b, SURFACE_TOO.has(b.kind) ? 0 : -2))
+      return false;
     const k = cell(b.x, b.y, b.z);
     if (cells.has(k)) return false;
     cells.add(k);

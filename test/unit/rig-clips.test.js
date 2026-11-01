@@ -118,7 +118,7 @@ test('Gather held: the tool stays in hand from stroke to stroke', () => {
 // walk blend settled while breathing. Gait-only samples at time 0 missed it.
 test('carrying arms clear the coat while breathing through walk-to-idle blends', () => {
   const times = [0, 17.2264, Math.PI / 4.2, (3 * Math.PI) / 4.2];
-  for (const cargo of ['sealed', 'specimen'])
+  for (const cargo of ['sealed', 'lined', 'specimen'])
     for (const blend of [0, 0.5, 1])
       for (const phase of [0, 0.25])
         for (const time of times) {

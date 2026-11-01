@@ -26,7 +26,8 @@ import {
   heartAt,
   heartLight,
   carrierSun,
-  warmCarrier
+  warmCarrier,
+  nearHidingPlace
 } from './cultivation-heart.js';
 export const CRYSTAL_GROWTH_RATE = 0.3;
 export function crystalCapacity(s, b) {
@@ -108,7 +109,7 @@ export function cultivationTarget(s, b) {
   );
 }
 export function cultivationStatus(s, b) {
-  if (b.kind === 'cooler' || b.kind === 'conduit' || b.kind === 'shelter') return 'ready';
+  if (['cooler', 'conduit', 'shelter', 'bench'].includes(b.kind)) return 'ready';
   if (b.health === 0) return 'dead';
   if (b.temperature > 22) return 'hot';
   if (b.needsTend) return 'injured';
@@ -166,7 +167,14 @@ export function takeStarter(s, x, y) {
 // Crystal rooms are dug in from this layer down; a heart shelter goes anywhere.
 export const DEEP = -2,
   DEEP_KINDS = ['chamber', 'cooler', 'vault', 'conduit'];
-export const BUILT_FACILITIES = Object.freeze(['chamber', 'cooler', 'vault', 'conduit', 'shelter']);
+export const BUILT_FACILITIES = Object.freeze([
+  'chamber',
+  'cooler',
+  'vault',
+  'conduit',
+  'shelter',
+  'bench'
+]);
 export const CONDUIT_REACH = 4; // tiles, along the grid, from a conduit to its chamber and vault
 // The chamber and vault a conduit at `at` would join, or null.
 function conduitRoute(s, at, moving = null) {
@@ -187,8 +195,10 @@ export function facilitySite(s, kind, x, y, moving = null) {
     z = s.player.z;
   if (!c || !BUILT_FACILITIES.includes(kind)) return 'invalid';
   if (!isExplored(s.world, x, y, z)) return 'unseen';
-  if (z > DEEP && kind !== 'shelter') return 'deep';
-  if (kind === 'shelter' && heartAt(s, x, y, z)) return 'occupied';
+  if (kind === 'bench') {
+    if (!nearHidingPlace(s, x, y, z)) return 'camp';
+  } else if (z > DEEP && kind !== 'shelter') return 'deep';
+  if (heartAt(s, x, y, z)) return 'occupied';
   const type = tileAt(s.world, x, y, z),
     b = cultivationAt(s, x, y, z);
   if (
@@ -313,6 +323,15 @@ export function cultivationCommand(s, cmd) {
   }
   if (!b) return 'building';
   if (contentLocked(s, b.kind)) return 'locked';
+  // The carrier bench weaves a mycelium lining into the carrier, once.
+  if (cmd.type === 'line' && b.kind === 'bench') {
+    if (!c.gear.carrier) return 'equipment';
+    if (c.gear.lining) return 'invalid';
+    if (!canPay(s, CULTIVATION_RECIPES.lining)) return 'materials';
+    pay(s, CULTIVATION_RECIPES.lining, 'tools');
+    c.gear.lining = true;
+    return 'ok';
+  }
   if (cmd.type === 'plant' && b.kind === 'chamber') {
     if (!c.starter) return 'starter';
     if (b.health > 0) return 'occupied';

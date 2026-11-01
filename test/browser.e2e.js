@@ -2080,7 +2080,7 @@ async function main() {
      const rig=await MTE_GAME.look.rigReady,c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d'),poses=[];
      for(let i=0;i<8;i++){const a=i*Math.PI/4;poses.push({facing:{x:Math.cos(a),y:Math.sin(a)}});}
      for(const phase of [0,.25,.5,.75])poses.push({facing:{x:1,y:0},walking:true,phase});
-     for(const cargo of ['specimen','sealed'])for(const x of [-1,1])poses.push({facing:{x,y:1},cargo,pickaxe:2});
+     for(const cargo of ['specimen','sealed','lined'])for(const x of [-1,1])poses.push({facing:{x,y:1},cargo,pickaxe:2});
      for(const action of ['pick','swing','build','cheer'])poses.push({facing:{x:0,y:1},action,progress:.4,pickaxe:2});poses.push({facing:{x:1,y:1},action:'pick',progress:.5,basket:5,lantern:true});
      const results=[];for(const pose of poses){g.clearRect(0,0,256,256);rig.draw(g,128,240,160,pose);const p=g.getImageData(0,0,256,256).data;let edges=0,gaps=0;
       for(let y=1;y<255;y++)for(let x=1;x<255;x++){const i=(y*256+x)*4;if(p[i+3]<128)continue;if(![-4,4,-1024,1024].some(d=>p[i+d+3]<128))continue;edges++;if(p[i]>38||p[i+1]>32||p[i+2]>27)gaps++;}

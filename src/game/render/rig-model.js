@@ -186,6 +186,8 @@ export function createRigModel() {
   mesh(new T.CylinderGeometry(0.13, 0.12, 0.2, 10), black, sealed);
   mesh(new T.CylinderGeometry(0.14, 0.14, 0.035, 10), linen, sealed, 0, 0.105, 0);
   mesh(new T.CylinderGeometry(0.133, 0.133, 0.018, 10), linen, sealed, 0, -0.1, 0);
+  // The carrier bench's woven mycelium lining (Watch, 2026-11-01): a pale band round the middle.
+  const lining = mesh(new T.CylinderGeometry(0.134, 0.128, 0.07, 10), linen, sealed, 0, 0, 0);
   const pickaxes = new Map();
   let equippedPickaxe = null;
   let cargoKind = null,
@@ -405,10 +407,12 @@ export function createRigModel() {
       renderedAction = action;
       renderedProgress = progress;
       renderedWork = work;
-      cargoKind = !steady && !action && ['specimen', 'sealed'].includes(cargo) ? cargo : null;
+      cargoKind =
+        !steady && !action && ['specimen', 'sealed', 'lined'].includes(cargo) ? cargo : null;
       cargoRoot.visible = !!cargoKind;
       specimen.visible = cargoKind === 'specimen';
-      sealed.visible = cargoKind === 'sealed';
+      sealed.visible = cargoKind === 'sealed' || cargoKind === 'lined';
+      lining.visible = cargoKind === 'lined';
       const forage = action === 'pick' && !['plant', 'tend', 'starter'].includes(work);
       // The basket is in hand only while the arm is out in front: hanging low
       // from a hand at Mica's side it would sweep through the flared skirt.

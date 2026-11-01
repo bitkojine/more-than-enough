@@ -41,7 +41,7 @@ export function rigPoses({ full = false } = {}) {
     for (const flare of FLARE) {
       poses.push({ ...GEAR, walking: true, phase, wiki, flare });
       poses.push({ ...GEAR, blend: 0.5, phase, flare });
-      for (const cargo of ['specimen', 'sealed'])
+      for (const cargo of ['specimen', 'sealed', 'lined'])
         poses.push({ ...GEAR, walking: true, phase, cargo, flare });
     }
   }

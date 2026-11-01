@@ -87,6 +87,21 @@ export function cardAt(s, x, y) {
       kind: b.kind
     };
   }
+  // The camp's carrier bench: line the carrier once (Watch, 2026-11-01).
+  if (b && b.kind === 'bench') {
+    const lined = c.gear.lining;
+    return {
+      look: Core.CULTIVATION_LOOK.bench,
+      name: name('bench'),
+      lines: [name(lined ? 'lined' : 'bench.desc')],
+      actions: [
+        ...(lined ? [] : [act('line', x, y, name('line'), Core.CULTIVATION_RECIPES.lining)]),
+        act('move', x, y, t('card.move'))
+      ],
+      building: b,
+      kind: b.kind
+    };
+  }
   if (b) {
     const lines = [
       name(Core.cultivationStatus(s, b)),

@@ -220,6 +220,14 @@ export default {
   'cr.station': 'Hiding place',
   'cr.station.desc':
     'Where the last teleport landed. The machine’s stolen heart waits here, far from home.',
+  'cr.bench': 'Carrier bench',
+  'cr.bench.desc':
+    'A stone bench for your camp at the hiding place. It weaves a mycelium lining into the heart’s carrier.',
+  'cr.lining': 'Carrier lining',
+  'cr.lining.desc': 'Woven mycelium round the carrier: the sun warms it half as fast.',
+  'cr.line': 'Line the carrier',
+  'cr.lined': 'Your carrier is lined: the sun warms it half as fast.',
+  'cr.reason.camp': 'Build this at your camp, near the heart’s hiding place.',
   'cr.shelter': 'Heart shelter',
   'cr.shelter.desc':
     'A cool, dark stone hut, on the surface or underground. A resting heart is safe from sun and slowly mends.',

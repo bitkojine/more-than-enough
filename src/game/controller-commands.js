@@ -16,6 +16,7 @@ const CULTIVATION_ACTS = {
   repair: 'build',
   reinforce: 'build',
   craft: 'build',
+  line: 'build',
   collect: 'collect',
   store: 'collect',
   shade: 'collect',

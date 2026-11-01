@@ -222,6 +222,14 @@ export default {
   'cr.station': 'Slėptuvė',
   'cr.station.desc':
     'Čia nusileido paskutinis teleportas. Pavogta mašinos širdis laukia čia, toli nuo namų.',
+  'cr.bench': 'Dėklo suolas',
+  'cr.bench.desc':
+    'Akmeninis suolas tavo stovyklai prie slėptuvės. Jame į širdies dėklą įaudžiamas grybienos pamušalas.',
+  'cr.lining': 'Dėklo pamušalas',
+  'cr.lining.desc': 'Grybienos pynė aplink dėklą: saulė jį šildo dvigubai lėčiau.',
+  'cr.line': 'Išklok dėklą',
+  'cr.lined': 'Tavo dėklas išklotas: saulė jį šildo dvigubai lėčiau.',
+  'cr.reason.camp': 'Statyk tai savo stovykloje, prie širdies slėptuvės.',
   'cr.shelter': 'Širdies pastogė',
   'cr.shelter.desc':
     'Vėsi, tamsi akmeninė trobelė paviršiuje arba po žeme. Čia padėta širdis saugi nuo saulės ir pamažu gyja.',

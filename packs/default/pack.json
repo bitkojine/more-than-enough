@@ -657,6 +657,16 @@
     "cultivation/shelter-heart.svg"
    ]
   },
+  "building.carrierBench": {
+   "image": "cultivation/bench.svg",
+   "stages": [
+    "cultivation/bench.svg"
+   ]
+  },
+  "tool.carrierLining": {
+   "icon": "cultivation/carrier-lined.svg",
+   "image": "cultivation/carrier-lined.svg"
+  },
   "tool.crystalCarrier": {
    "icon": "cultivation/carrier.svg",
    "image": "cultivation/carrier.svg",

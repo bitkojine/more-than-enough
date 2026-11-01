@@ -23,6 +23,8 @@ export const HEART_WARM_REST = 0.3; // °C per second resting in a shelter
 export const HEART_WARM_LINE = 4; // °C of sun warmth where cracking starts
 export const HEART_WARM_MAX = 10; // the most the sun can add
 export const HEART_BURN = 0.8; // % cracked per second per °C past the line
+export const HEART_LINING = 0.5; // a mycelium-lined carrier warms half as fast
+export const BENCH_RANGE = 24; // metres from the hiding place a carrier bench may stand
 const hideouts = new Map();
 // Where the last teleport landed: open grass about HEART_DISTANCE from home,
 // chosen from the seed alone so it is the same before and after anyone looks.
@@ -91,7 +93,14 @@ export function carrierShade(s, x, y, z = s.player.z) {
   return here === T.FOREST ? 0.5 : 0;
 }
 export function carrierSun(s, p) {
-  return p.z === SURFACE ? sunLightStrength(s) * (1 - carrierShade(s, p.x, p.y, p.z)) : 0;
+  if (p.z !== SURFACE) return 0;
+  const lined = s.cultivation?.gear.lining ? HEART_LINING : 1;
+  return sunLightStrength(s) * (1 - carrierShade(s, p.x, p.y, p.z)) * lined;
+}
+// Whether tile (x, y, z) is close enough to the hiding place for its camp.
+export function nearHidingPlace(s, x, y, z) {
+  const h = hidingPlace(s.world.seed);
+  return z === SURFACE && Math.hypot(x - h.x, y - h.y) <= BENCH_RANGE;
 }
 // One step of the carried heart's warmth; returns the % it cracks this step.
 export function warmCarrier(h, sun, seconds) {

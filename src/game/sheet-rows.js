@@ -211,11 +211,11 @@ export function cultivationUpgradeRows(s) {
 // Build in a crystal world places things; what a building beside you does
 // is on its own card, tapped in the world (building-card.js).
 // Only what goes on your layer: crystal rooms from layer 2 down (Core.DEEP),
-// a heart shelter anywhere.
+// a heart shelter anywhere, the carrier bench at the camp by the hiding place.
 export function cultivationBuildRows(s) {
   return (
     (s.player.z <= Core.DEEP ? `<div class="section">${crystalName('deep')}</div>` : '') +
-    ['chamber', 'cooler', 'vault', 'conduit', 'shelter']
+    ['chamber', 'cooler', 'vault', 'conduit', 'shelter', 'bench']
       .filter((k) => Core.buildsOnLayer(s, k))
       .map((k) => crystalRow(s, k, 'image', crystalButton(s, 'build', k, t('sheet.place'))))
       .join('')

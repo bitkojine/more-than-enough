@@ -174,9 +174,11 @@ function drawCharacter(
       flare,
       wiki,
       cargo:
-        cargo && (cargo.starter || crystal > 0)
+        cargo && (cargo.starter || crystal > 0 || cargo.heart?.where === 'carried')
           ? cargo.gear?.carrier
-            ? 'sealed'
+            ? cargo.gear.lining
+              ? 'lined'
+              : 'sealed'
             : 'specimen'
           : null
     });

@@ -491,6 +491,7 @@ export function buildsOnLayer(s, kind, z = s.player.z) {
   if (s.cultivation) {
     if (DEEP_KINDS.includes(kind)) return z <= DEEP;
     if (kind === 'shelter') return true;
+    if (kind === 'bench') return !under;
     if (kind === 'mine') return under;
     return Object.hasOwn(EXTRACTORS, kind) && (EXTRACTORS[kind].tile === null || !under);
   }
