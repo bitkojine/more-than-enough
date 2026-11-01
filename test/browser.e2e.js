@@ -3460,13 +3460,31 @@ async function main() {
   await evalJS(toWall);
   // Let the camera settle on the new spot (it moves when it next draws),
   // and leave the wall one swing from open, however rich the world made it.
-  await evalJS(
-    'new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})'
+  ok(
+    await waitFor(
+      '(()=>{const p=MTE_GAME.getState().player,v=MTE_GAME.project(p.x,p.y,p.z);return Math.abs(v.x-innerWidth/2)<.1&&Math.abs(v.y-innerHeight/2)<.1;})()',
+      2000
+    ),
+    'the mine camera follows the relocated player before choosing a tap'
   );
   var mineSpot = await evalJS(
-    '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM){c.setRichness(s.world,x,y,-1,1);return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()'
+    '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM){c.setRichness(s.world,x,y,-1,1);var point=MTE_GAME.project(x+.5,y+.5,p.z+c.tileHeight(s.world,x,y,p.z));return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:point.x,sy:point.y});}}return null;})()'
   );
   var ms = JSON.parse(mineSpot);
+  ok(
+    await evalJS(
+      '(()=>{const p=MTE_GAME.unproject(' +
+        ms.sx +
+        ',' +
+        ms.sy +
+        ');return Math.floor(p.x)===' +
+        ms.x +
+        '&&Math.floor(p.y)===' +
+        ms.y +
+        ';})()'
+    ),
+    'the projected mine tap actually picks the intended raised wall'
+  );
   await tap(ms.sx, ms.sy);
   eq(
     await waitFor(
@@ -3994,11 +4012,12 @@ async function main() {
     '(function(){var p=MTE_GAME.wiki.pose();return !!(p&&p.focus&&p.focus.alpha>=1);})()',
     1000
   );
-  await evalJS(
-    'new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})'
-  );
-  var ringShown = await evalJS(
-    '(function(){var f=MTE_GAME.wiki.focus,me=MTE_GAME.getState().player,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()'
+  // Two animation callbacks need not include a rendered frame at the 30 FPS
+  // cap. Wait for the actual teal pixels, retaining the same colour/count
+  // assertion rather than sampling an earlier, still-fading canvas once.
+  var ringShown = await waitFor(
+    '(function(){var f=MTE_GAME.wiki.focus,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()',
+    3000
   );
   ok(ringShown, 'the outline is drawn round it in Wiki teal');
   console.log('  screenshot: ' + (await shot('02c-wiki-long-press.png')));
