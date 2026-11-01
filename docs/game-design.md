@@ -242,6 +242,34 @@ played world changes where someone has been. Distances, recipes and how the lens
 degrades in transit are provisional playtest values. Whether the shared world
 gets this arc is undecided.
 
+### The trip home — confirmed, 2026-11-01
+The bot spent about 44 of a fresh world's 52 minutes walking to the hiding place
+and back with nothing to decide, because the sealed carrier blocked all light and
+the surface is cooler than the 22 °C heat line (Watch chose each answer on
+decision cards):
+
+1. **The sun heats the carrier.** It still blocks light, but in sun it warms,
+   and warmth past a line cracks the heart. Shade, night, the underground and
+   shelters cool it. (Shipped 0.183.0.)
+2. **Find shade, fill gaps with shelters.** Water, a riverbank and a cave mouth
+   are full shade; a forest lets half the sun through. Only land that
+   already exists decides, so no played world changes. (Shipped 0.183.0.)
+3. **The walk out is for scouting** the shade and building shelters ahead; the
+   hiding place stays about 2.5 km away.
+4. **A camp at the hiding place:** a heart shelter and a carrier bench that lines
+   the carrier with mycelium, so it warms more slowly. The lining shows on the
+   carrier; no new resource.
+5. **A heart cracked right through** returns whole to the hiding place, as
+   before; shelters, lining and mapped shade stay. Warnings come first.
+6. **The reward:** once the machine wakes, every heart shelter you built is a
+   teleport stop to and from the machine.
+7. **What next:** the woken machine shows where the thief went, a new far place.
+   That chapter is designed separately.
+
+Built in three releases: carrier heat and shade; the camp and lining; shelter
+teleports and the thief's clue. Warming rates are playtest values in
+`src/core/cultivation-heart.js`.
+
 ### Other design questions still open
 - Who stole the heart and why, and where can teleportation take players once the machine wakes?
 - How do players discover its parts and reveal its purpose while retaining agency?

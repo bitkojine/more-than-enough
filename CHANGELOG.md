@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.183.0] - 2026-11-01
+
+- The sun warms the sealed carrier, so carrying the heart home is a real
+  journey (Watch, 2026-11-01, first of three releases from the "trip home"
+  design in `docs/game-design.md`). Before, the carrier blocked all light and
+  the surface sat under the 22 °C heat line, so the 2.5 km walk home could
+  never hurt the heart. Now the carrier gains warmth in sun (0.1 °C a second
+  at noon) and loses it out of it (0.15 °C a second; 0.3 resting in a heart
+  shelter). Past 4 °C of warmth the heart cracks at the usual heat rate,
+  0.8% a second per degree. Water, a riverbank and a cave mouth are full
+  shade, and a forest lets half the sun through. Only the land
+  already generated decides, so no played world changes. The carrier still
+  blocks every light. Rules in `src/core/cultivation-heart.js`; the heart
+  saves its warmth (old saves load cool, and a value out of range is mended).
+- A bar above the heart shows the carrier's warmth, and the message log warns
+  once when it nears the line, once when the heart starts cracking, and when
+  it cracks right through. That last message existed but was never shown.
+- The crystal playtest bot steps into the nearest full shade it has seen when
+  the carrier is warm and waits for it to cool. Six fresh seeds all won with
+  the heart 100% sound, cooling three to eight times on the way home; walking
+  straight through the sun lost or cracked the heart on all six. Both are now
+  tests (`test/unit/cultivation-playthrough.test.js`).
+
 ## [0.182.3] - 2026-11-01
 
 - Every source file now fits the 600-line limit, so the list of files

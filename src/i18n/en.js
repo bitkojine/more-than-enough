@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.183.0':
+    'Carrying the heart home is now a real journey. The sealed carrier still blocks light, but the sun warms it, and a carrier that gets too hot cracks the heart. Cool it in water, on a riverbank, at a cave mouth or in a heart shelter; a forest lets half the sun through. A bar above the heart shows how warm the carrier is, and a message warns you in time.',
   'news.0.182.3':
     'Behind the scenes, every part of the game and of the shared-world service is now small enough to read in one go, and each has its own tests. Nothing changes in play.',
   'news.0.182.2':
@@ -123,7 +125,7 @@ export default {
   'cr.lantern.desc':
     'Works on every layer. Lights connected passages; rock blocks it. Switching on extinguishes your flare. Switching off conserves charge.',
   'cr.carrier.desc':
-    'Blocks light for crystal and the heart during transport. Heat still damages the contents.',
+    'Blocks light for crystal and the heart during transport. The sun still warms it, and heat damages the contents.',
   'cr.bed.desc': 'Surface fungi site. Stores mycelium for collection.',
   'cr.quarry.desc': 'Surface stone site. Stores stone for collection.',
   'cr.mine.desc': 'Shallow metal deposit. Produces metal and heats nearby structures.',
@@ -229,8 +231,11 @@ export default {
   'cr.heart.lost': 'The heart cracked right through. Its light fled back to the hiding place.',
   'cr.heart.home': 'The heart is home. The machine stirs.',
   'cr.goal.heart':
-    'Find the hiding place on your map and carry the heart home in a sealed carrier. It blocks light; keep the heart cool.',
-  'cr.reason.lifted': 'You lift the heart into the carrier, protected from light. Keep it cool.',
+    'Find the hiding place on your map and carry the heart home in a sealed carrier. The sun warms the carrier: cool it in water, shade or a shelter.',
+  'cr.reason.lifted':
+    'You lift the heart into the carrier, safe from light. The sun warms it, so cool off in water, shade or a shelter.',
+  'cr.heart.warm': 'The sun is warming the carrier. Find water, shade or a shelter.',
+  'cr.heart.cracking': 'The heart is cracking in the heat! Get out of the sun.',
   'cr.reason.gone': 'The heart isn’t here.',
   'cr.reason.heart':
     'This section needs the machine’s heart. It was teleported to a hiding place, marked on your map.',

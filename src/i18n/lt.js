@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.183.0':
+    'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
   'news.0.182.3':
     'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
   'news.0.182.2':
@@ -124,7 +126,7 @@ export default {
   'cr.lantern.desc':
     'Veikia visuose sluoksniuose. Apšviečia sujungtus praėjimus; uola užstoja. Įjungus užgęsta žiežirba. Išjungus taupomas įkrovimas.',
   'cr.carrier.desc':
-    'Pernešant saugo kristalus ir širdį nuo šviesos. Karštis vis dar žaloja turinį.',
+    'Pernešant saugo kristalus ir širdį nuo šviesos. Saulė vis tiek ją šildo, o karštis žaloja turinį.',
   'cr.bed.desc': 'Grybienos vieta paviršiuje. Kaupia grybieną surinkimui.',
   'cr.quarry.desc': 'Akmens vieta paviršiuje. Kaupia akmenį surinkimui.',
   'cr.mine.desc': 'Seklus metalo telkinys. Gamina metalą ir šildo aplinką.',
@@ -231,8 +233,11 @@ export default {
   'cr.heart.lost': 'Širdis perskilo kiaurai. Jos šviesa grįžo į slėptuvę.',
   'cr.heart.home': 'Širdis namie. Mašina sujuda.',
   'cr.goal.heart':
-    'Rask žemėlapyje pažymėtą slėptuvę ir parnešk širdį sandarioje nešyklėje. Ji užstoja šviesą; saugok širdį nuo karščio.',
-  'cr.reason.lifted': 'Įkeli širdį į dėklą, apsaugotą nuo šviesos. Saugok nuo karščio.',
+    'Rask žemėlapyje pažymėtą slėptuvę ir parnešk širdį sandarioje nešyklėje. Saulė ją šildo: atvėsink vandenyje, pavėsyje ar širdies pastogėje.',
+  'cr.reason.lifted':
+    'Įkeli širdį į dėklą, apsaugotą nuo šviesos. Saulė jį šildo, tad vėsink vandenyje, pavėsyje ar širdies pastogėje.',
+  'cr.heart.warm': 'Saulė šildo dėklą. Ieškok vandens, pavėsio ar širdies pastogės.',
+  'cr.heart.cracking': 'Širdis skilinėja nuo karščio! Trauk iš saulės.',
   'cr.reason.gone': 'Širdies čia nėra.',
   'cr.reason.heart':
     'Šiai daliai reikia mašinos širdies. Ji nuteleportuota į slėptuvę, pažymėtą žemėlapyje.',

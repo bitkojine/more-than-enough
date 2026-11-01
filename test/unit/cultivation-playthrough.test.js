@@ -30,6 +30,23 @@ test('empty-handed cultivation world reaches activation through shipped movement
   assert.ok(
     after.cultivation.facilities.every((b) => ['chamber', 'cooler', 'machine'].includes(b.kind))
   );
+  assert.ok(
+    run.stages.some((p) => p.name === 'cooled in shade'),
+    'the sun warmed the carrier on the way home, and shade cooled it'
+  );
+  assert.equal(after.cultivation.heartLost || 0, 0, 'cooling in shade kept the heart whole');
+});
+
+// The trip home is only a choice if ignoring the sun costs something (Watch,
+// 2026-11-01): the same strategy walking straight through it loses the heart.
+test('carrying the heart home straight through the sun cracks it', () => {
+  const careless = playCultivation(11, { wallSeconds: 300, shade: false }),
+    s = C.deserialize(careless.save);
+  assert.equal(careless.result, 'blocked');
+  assert.ok(
+    s.cultivation.heartLost > 0 || s.cultivation.heart.health < C.HEART_MIN,
+    'the heart reached home sound without ever leaving the sun'
+  );
 });
 
 // Every number a played world holds as a fraction (timers, charges, piles,

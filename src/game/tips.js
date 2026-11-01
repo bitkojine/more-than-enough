@@ -34,7 +34,9 @@ export function crystalDanger(s) {
 export function createTips({ hud, view, keep, now = () => performance.now() }) {
   let singles = 0,
     autoDownAt = 0,
-    dangerIn = 0;
+    dangerIn = 0,
+    heartWarned = 0,
+    heartLost = null;
   return {
     // Gathered once (`held` false) or by holding.
     gathered(held) {
@@ -58,6 +60,7 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
     },
     // Each tick of play; says whether it warned.
     danger(s, dt) {
+      if (heartWatch(s)) return true;
       dangerIn -= dt;
       if (!s.cultivation || dangerIn > 0) return false;
       dangerIn = DANGER_EVERY;
@@ -66,6 +69,29 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
       return true;
     }
   };
+  // The carried heart, said once each time it gets worse (Watch, 2026-11-01:
+  // warnings come before the heart cracks through, and when it does).
+  function heartWatch(s) {
+    const c = s.cultivation;
+    if (!c) return false;
+    const lost = c.heartLost || 0;
+    if (heartLost === null || lost < heartLost) heartLost = lost;
+    if (lost > heartLost) {
+      heartLost = lost;
+      heartWarned = 0;
+      hud.toast(t('cr.heart.lost'));
+      return true;
+    }
+    const w = c.heart?.where === 'carried' ? c.heart.warmth || 0 : 0,
+      level = w > Core.HEART_WARM_LINE ? 2 : w >= Core.HEART_WARM_LINE * 0.6 ? 1 : 0;
+    if (level <= heartWarned) {
+      if (w < Core.HEART_WARM_LINE * 0.3) heartWarned = 0;
+      return false;
+    }
+    heartWarned = level;
+    hud.toast(t(level === 2 ? 'cr.heart.cracking' : 'cr.heart.warm'));
+    return true;
+  }
 }
 
 // What your buildings made while you were away, as a note, or null when it

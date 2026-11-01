@@ -21,9 +21,12 @@ import {
   HEART_MIN,
   HEART_SUN,
   HEART_MEND,
+  HEART_WARM_REST,
   newHeart,
   heartAt,
-  heartLight
+  heartLight,
+  carrierSun,
+  warmCarrier
 } from './cultivation-heart.js';
 export const CRYSTAL_GROWTH_RATE = 0.3;
 export function crystalCapacity(s, b) {
@@ -461,14 +464,20 @@ export function stepCultivation(s, dt) {
   }
   if (s.inv.crystal) c.quality = Math.max(10, c.quality - carriedDamage * seconds);
   if (c.heart?.where === 'carried') {
-    c.heart.health -= (heat + HEART_SUN * heartLight(s, p)) * seconds;
+    c.heart.health -=
+      (heat + HEART_SUN * heartLight(s, p)) * seconds +
+      warmCarrier(c.heart, carrierSun(s, p), seconds);
     // A heart that cracks right through falls apart and its light returns to the hiding place.
     if (c.heart.health <= 0) {
       c.heart = newHeart();
       c.heartLost = (c.heartLost || 0) + 1;
     }
-  } else if (typeof c.heart?.where === 'number' && !contentLocked(s, 'shelter'))
-    c.heart.health = Math.min(100, c.heart.health + HEART_MEND * seconds);
+  } else if (typeof c.heart?.where === 'number') {
+    // A shelter is cool and dark: the carrier cools there even while mending is paused.
+    if (c.heart.warmth) c.heart.warmth = Math.max(0, c.heart.warmth - HEART_WARM_REST * seconds);
+    if (!contentLocked(s, 'shelter'))
+      c.heart.health = Math.min(100, c.heart.health + HEART_MEND * seconds);
+  }
   for (const w of Object.values(c.wild)) {
     if (w.regrow > 0) {
       w.regrow = Math.max(0, w.regrow - seconds);

@@ -21,16 +21,14 @@ commit. When you find something new, add it.
 
 **The game**
 
-- **Once you've settled in, the new-world game is mostly a long walk.** The
-  playtest bot (`node scripts/cultivation-playtest.mjs <dir>`) wins a fresh
-  world in about 52 game minutes. About 44 of those are walking roughly
-  2.5 km to the heart's hiding place and back across open land. The design
-  calls for a camp at the hiding place and a dark, cool route home
-  (`docs/game-design.md`, "Story arc"). Neither exists yet, so the trip is
-  distance with no decisions in it.
-- **The crystal danger never really threatens you.** Light and heat are meant
-  to be the drama, but the bot never loses a colony, and it brings the heart
-  home on its first try.
+- **The trip home is only partly a game yet.** The playtest bot
+  (`node scripts/cultivation-playtest.mjs <dir>`) wins a fresh world in about
+  30 to 45 game minutes, most of it walking about 2.5 km to the heart's hiding
+  place and back. Since 0.183.0 the sun warms the sealed carrier, so the way
+  home means ducking into water, shade or a shelter to cool it, and walking
+  straight through the sun cracks the heart (`docs/game-design.md`, "The trip
+  home"). The walk out still has little in it, and the camp, the carrier
+  lining and the shelter teleports aren't built yet.
 - **The ending is flat.** The last two repairs and the activation all happen
   in the same second. Waking the machine changes its picture and posts a
   message. The story promises that teleportation comes back, but it doesn't,

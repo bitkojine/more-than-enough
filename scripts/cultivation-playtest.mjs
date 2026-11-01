@@ -14,7 +14,8 @@ import { invariants } from '../test/property/invariants.js';
 import { reserveSeeds } from './playtest.mjs';
 
 // The wall budget only stops a hung run; the game-time budget is the check.
-export function playCultivation(seed, { wallSeconds = 300, log = () => {} } = {}) {
+// `shade: false` walks the heart home straight through the sun, to show the sun matters.
+export function playCultivation(seed, { wallSeconds = 300, log = () => {}, shade = true } = {}) {
   const hash = createHash('sha256');
   for (const name of readdirSync(new URL('../src/core/', import.meta.url))
     .filter((f) => f.endsWith('.js'))
@@ -299,7 +300,7 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {} } = {}
   // way is known, else to the edge of the known map that leads closest to it
   // (counting the way there), so a bay of water or rock is walked round
   // rather than paced along.
-  function toward(target) {
+  function toward(target, onStep = () => {}) {
     const aim = (p) => 2 * Math.hypot(p.x - target.x, p.y - target.y);
     for (let i = 0; i < 3000 && !near(target); i++) {
       const r =
@@ -312,6 +313,7 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {} } = {}
       for (const p of r.path.slice(0, 64)) {
         walkTile(p);
         if (near(target)) return;
+        if (onStep()) break; // stepped aside: plan the way again from here
       }
     }
     if (!near(target)) throw Error('journey stall');
@@ -322,6 +324,30 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {} } = {}
       act({ type: 'climb', ...up });
     }
   }
+  // The sun warms the sealed carrier (Watch, 2026-11-01): when it nears the
+  // line, step into the nearest full shade you've seen (water, a riverbank, a
+  // cave mouth) and let it cool before walking on.
+  const sunNow = () => C.carrierSun(state, { ...feet(), z: state.player.z });
+  function keepCool() {
+    const h = state.cultivation.heart;
+    if (!shade || h?.where !== 'carried' || h.warmth < C.HEART_WARM_LINE * 0.6 || !sunNow())
+      return false;
+    const spot = search((p) => C.carrierShade(state, p.x, p.y) === 1 && pass(p.x, p.y));
+    if (!spot) return false;
+    for (const p of spot.path) walkTile(p);
+    let n = 0;
+    while (
+      h.where === 'carried' &&
+      h.warmth > 0.5 &&
+      sunNow() === 0 &&
+      C.sunLightStrength(state) > 0
+    ) {
+      advance(15);
+      if (++n > 400) throw Error('shade stall');
+    }
+    stage('cooled in shade');
+    return true;
+  }
   let cave, shaft;
   function fetchHeart() {
     const hide = C.hidingPlace(state.world.seed);
@@ -331,7 +357,7 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {} } = {}
     go(hide);
     command('heart', null, hide);
     stage('heart taken');
-    toward(cave);
+    toward(cave, keepCool);
     go(cave);
     act({ type: 'descend', ...cave });
     stage('heart home');

@@ -2,7 +2,7 @@
  * it loads (mendCultivation), including saves from before the heart and
  * from the old rounding bug. save.js calls these; nothing here runs in play. */
 
-import { newHeart } from './cultivation-heart.js';
+import { newHeart, HEART_WARM_MAX } from './cultivation-heart.js';
 import {
   CULTIVATION_MODEL,
   MACHINE_REPAIRS,
@@ -106,6 +106,7 @@ export function validCultivation(c) {
     c.heart !== undefined &&
     (!c.heart ||
       !number(c.heart.health, 0, 100) ||
+      (c.heart.warmth !== undefined && !number(c.heart.warmth, 0, HEART_WARM_MAX)) ||
       !(
         ['station', 'carried', 'installed'].includes(c.heart.where) ||
         ids.get(c.heart.where)?.kind === 'shelter'
@@ -209,6 +210,7 @@ export function mendCultivation(c) {
         (['station', 'carried', 'installed'].includes(h.where) ||
           ids.get(h.where)?.kind === 'shelter');
     // A heart with nowhere it can be is where the machine says: in it, or still at the hiding place.
+    if (placed && h.warmth !== undefined) h.warmth = into(h.warmth, 0, HEART_WARM_MAX, 0);
     c.heart = placed
       ? ((h.health = into(h.health, 0, 100, 100)), h)
       : {
