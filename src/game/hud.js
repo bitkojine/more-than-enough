@@ -7,6 +7,7 @@
 import * as Core from '../core/index.js';
 import { fmtClock, fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
+import { batteryClock } from './cargo-clock.js';
 
 const GAUGE_BARS = 12; // the most layers the depth gauge shows at once
 
@@ -81,27 +82,26 @@ export function createHud(el, look, messages) {
     el.depthGauge.innerHTML = html;
   }
 
-  // The battery, once it isn't full: how much is left, and whether a
-  // charger is filling it. The first time your light starts to shrink, one
-  // line says where to charge it.
+  // The battery, once it isn't full, as a clock (Watch, 2026-11-01: timers,
+  // not bars): the dark time it has left, or by a charger the time to full.
+  // The first time your light starts to shrink, one line says where to charge it.
   let lastBattery = '',
     warned = false;
   function updateBattery(s) {
-    const pct = Math.round(s.battery * 100);
-    const charging = !!Core.chargerNear(s) && pct < 100;
-    const key = pct < 100 ? pct + (charging ? 'c' : '') : '';
+    const clock = batteryClock(s),
+      charging = !!clock?.charging;
+    const key = clock ? clock.text + (charging ? 'c' : '') : '';
     if (key === lastBattery) return;
     lastBattery = key;
     el.battery.hidden = !key;
     if (!key) return;
-    el.battery.querySelector('b').style.width = pct + '%';
-    setText(el.battery.querySelector('span'), number(pct) + '%');
+    setText(el.battery.querySelector('span'), clock.text);
     el.battery.classList.toggle('low', s.battery < Core.BATTERY_LOW);
     el.battery.classList.toggle('flat', s.battery < 0.1);
     el.battery.classList.toggle('charging', charging);
     el.battery.setAttribute(
       'aria-label',
-      t(charging ? 'hud.batteryCharging' : 'hud.battery', { n: number(pct) })
+      t(charging ? 'hud.batteryCharging' : 'hud.battery', { t: clock.text })
     );
     if (s.battery < Core.BATTERY_LOW && !charging && !warned) {
       warned = true;

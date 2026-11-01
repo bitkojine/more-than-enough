@@ -11,7 +11,13 @@
  * that throws is noted and left out, and the rest of the frame still draws. */
 
 import { lightObject, litInk } from './lighting.js';
-import { cultivationRows, drawCultivation, drawCrystalCargo } from './cultivation.js';
+import {
+  cultivationRows,
+  drawCultivation,
+  cargoClockAt,
+  facilityClockAt,
+  drawClock
+} from './cultivation.js';
 import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawMerging, onGround } from './terrain.js';
@@ -117,7 +123,8 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
     placed
   } = scene(s, view, cam.z);
   const playerRow = Math.floor(s.player.y);
-  const crystalRows = cultivationRows(s, cam.z);
+  const crystalRows = cultivationRows(s, cam.z),
+    clocks = []; // crystal clocks, drawn with the names, over the night
   const beacons = [];
   for (const { x, y, kind } of placed) {
     const def = Core.PROPS[kind];
@@ -151,7 +158,10 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
                 standing(e.x + 0.5, e.y + 0.6, (ctx) => drawExtractor(ctx, cam, s, look, e));
           for (const b of crystalRows.get(y) || [])
             if (b !== moving)
-              standing(b.x + 0.5, b.y + 0.65, (ctx) => drawCultivation(ctx, cam, s, look, b));
+              standing(b.x + 0.5, b.y + 0.65, (ctx) => {
+                const clock = facilityClockAt(s, b, drawCultivation(ctx, cam, s, look, b));
+                if (clock) clocks.push(clock);
+              });
           const ghost = view.placing?.ghost;
           if (ghost && ghost.y === y) {
             drawGhostSpot(ctx, cam, ghost);
@@ -196,9 +206,7 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
               s.player.x,
               s.player.y,
               (ctx) => {
-                const at = drawPlayer(ctx, cam, s, look, view);
-                drawCrystalCargo(ctx, cam, s, look, at);
-                return at;
+                return drawPlayer(ctx, cam, s, look, view);
               },
               true
             );
@@ -236,6 +244,11 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
   // already shown waits until its player steps clear.
   const taken = [];
   layer('names', () => {
+    // What you carry is running out of time for (or how sound it is), over
+    // your name; a hot chamber's or a heart shelter's clock over it.
+    const cargo = you && cargoClockAt(s, you, cam, view.me && !(view.sign > 0));
+    if (cargo) clocks.unshift(cargo);
+    for (const c of clocks) drawClock(ctx, c, taken);
     if (view.me && you && !(view.sign > 0))
       drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
     // While AUTO plays, its tag floats over you (over your name, if shown).

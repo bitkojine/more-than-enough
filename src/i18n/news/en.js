@@ -1,5 +1,17 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.185.1':
+    'At the woken machine, choose where to teleport on the world map: your heart shelters show there as stops, and {phone:tapping|laptop:clicking} one takes you beside it.',
+  'news.0.185.0':
+    'Wake the machine and every heart shelter you built becomes a teleport stop: a shelter’s card takes you to the machine, and the machine’s card takes you back out to any of them. Worlds you have already won get this too. The woken machine also shows where the thief went, marked on your map.',
+  'news.0.184.1':
+    'The shade at a forest’s edge is as deep as inside it: open land next to the trees no longer lights the ground under them when a lamp or glowcap is somewhere in your world.',
+  'news.0.184.0':
+    'Make camp at the heart’s hiding place: a carrier bench there lines your carrier with mycelium, so the sun warms it half as fast. The sun now warms the carrier whatever it holds, crystal and starters too, and above 22 °C what it holds cracks. Forests and cave mouths give real shade, which also shelters exposed crystal; water cools the carrier. A heart shelter feels its spot like any building: kept cool it mends the heart, but too hot it cracks it.',
+  'news.0.183.1':
+    "Opening the game just after your device wakes up, or soon after an update, no longer leaves a part of it unloaded: the game tries again, and moves to the newest version if that is why. Syncing with your other devices and the What's new list recover on their own.",
+  'news.0.183.0':
+    'Carrying the heart home is now a real journey. The sealed carrier still blocks light, but the sun warms it, and a carrier that gets too hot cracks the heart. Cool it in water, on a riverbank, at a cave mouth or in a heart shelter; a forest lets half the sun through. A bar above the heart shows how warm the carrier is, and a message warns you in time.',
   'news.0.182.3':
     'Behind the scenes, every part of the game and of the shared-world service is now small enough to read in one go, and each has its own tests. Nothing changes in play.',
   'news.0.182.2':

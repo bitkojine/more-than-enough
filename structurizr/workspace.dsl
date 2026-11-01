@@ -159,7 +159,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 cultivation = component "Living Crystal" "Extends the existing endless world, inventory, clock and commands. New-world geography, local indexed heat and shared propagated physical light, proportional exposure damage, tending, renewable wild colonies, a pure chapter-availability policy with effective tool caps and canonical action locks until activation, paused optional automation with preserved earned state, intrinsically lightproof facility interiors without shutter controls/state, heat-sensitive contents and exposed-cargo light damage, protected material condition/storage/transfer, and three physical dormant-machine repairs plus safe activation, permanent completion and empty-handed next worlds. Dedicated catalog identities provide bespoke chamber/cooler/vault/conduit/machine/equipment sprites and five machine restoration states in the existing row renderer. Legacy terrain/rules and saves are retained." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/cultivation.js, src/core/cultivation-model.js, src/core/cultivation-heart.js, src/core/cultivation-save.js, src/core/cultivation-travel.js, src/core/progression.js, src/game/render/cultivation.js"
+                        "ref" "src/core/cultivation.js, src/core/cultivation-model.js, src/core/cultivation-heart.js, src/core/cultivation-save.js, src/core/cultivation-travel.js, src/core/cultivation-forecast.js, src/core/progression.js, src/game/render/cultivation.js, src/game/cargo-clock.js"
                     }
                 }
 

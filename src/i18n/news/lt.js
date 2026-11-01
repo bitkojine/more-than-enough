@@ -1,5 +1,17 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.185.1':
+    'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
+  'news.0.185.0':
+    'Pažadink mašiną, ir kiekviena tavo pastatyta širdies pastogė tampa teleportacijos stotele: pastogės kortelė nuneša prie mašinos, o mašinos kortelė grąžina prie bet kurios iš jų. Tai gauna ir jau laimėti pasauliai. Pabudusi mašina dar parodo, kur dingo vagis, ir pažymi tai žemėlapyje.',
+  'news.0.184.1':
+    'Pavėsis miško pakraštyje toks pat gilus kaip viduje: atvira žemė šalia medžių nebešviečia po jais, kai kur nors tavo pasaulyje yra lempa ar švytintis grybas.',
+  'news.0.184.0':
+    'Įsikurk stovyklą prie širdies slėptuvės: dėklo suolas išklos dėklą grybiena, tad saulė jį šildys dvigubai lėčiau. Saulė dabar šildo dėklą, kad ir kas jame būtų, taip pat kristalus ir daigus, o virš 22 °C tai, kas jame, skilinėja. Miškai ir urvų angos meta tikrą pavėsį, saugantį ir neapsaugotus kristalus; vanduo vėsina dėklą. Širdies pastogė jaučia savo vietą kaip bet kuris pastatas: vėsioje širdis gyja, per karštoje skilinėja.',
+  'news.0.183.1':
+    'Atidarius žaidimą vos pabudus įrenginiui ar netrukus po atnaujinimo, kuri nors jo dalis nebelieka neįkelta: žaidimas bando dar kartą, o jei to priežastis atnaujinimas, pereina į naujausią versiją. Sinchronizavimas su kitais tavo įrenginiais ir sąrašas „Kas naujo“ atsigauna patys.',
+  'news.0.183.0':
+    'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
   'news.0.182.3':
     'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
   'news.0.182.2':

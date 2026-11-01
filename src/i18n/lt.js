@@ -2,18 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  'news.0.185.1':
-    'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
-  'news.0.185.0':
-    'Pažadink mašiną, ir kiekviena tavo pastatyta širdies pastogė tampa teleportacijos stotele: pastogės kortelė nuneša prie mašinos, o mašinos kortelė grąžina prie bet kurios iš jų. Tai gauna ir jau laimėti pasauliai. Pabudusi mašina dar parodo, kur dingo vagis, ir pažymi tai žemėlapyje.',
-  'news.0.184.1':
-    'Pavėsis miško pakraštyje toks pat gilus kaip viduje: atvira žemė šalia medžių nebešviečia po jais, kai kur nors tavo pasaulyje yra lempa ar švytintis grybas.',
-  'news.0.184.0':
-    'Įsikurk stovyklą prie širdies slėptuvės: dėklo suolas išklos dėklą grybiena, tad saulė jį šildys dvigubai lėčiau. Saulė dabar šildo dėklą, kad ir kas jame būtų, taip pat kristalus ir daigus, o virš 22 °C tai, kas jame, skilinėja. Miškai ir urvų angos meta tikrą pavėsį, saugantį ir neapsaugotus kristalus; vanduo vėsina dėklą. Širdies pastogė jaučia savo vietą kaip bet kuris pastatas: vėsioje širdis gyja, per karštoje skilinėja.',
-  'news.0.183.1':
-    'Atidarius žaidimą vos pabudus įrenginiui ar netrukus po atnaujinimo, kuri nors jo dalis nebelieka neįkelta: žaidimas bando dar kartą, o jei to priežastis atnaujinimas, pereina į naujausią versiją. Sinchronizavimas su kitais tavo įrenginiais ir sąrašas „Kas naujo“ atsigauna patys.',
-  'news.0.183.0':
-    'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
+  'news.0.186.0':
+    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek jam liko tamsos.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',
@@ -167,6 +157,7 @@ export default {
   'cr.selected': 'Pasirinkta · {x}, {y}',
   'cr.cost': 'Medžiagos: {cost}',
   'cr.danger': 'Kristalams gresia pavojus',
+  'cr.danger.chamber': 'Kameros kristalai žus po {t}. Atvėsink ją!',
   'cr.reason.ok': 'Atlikta.',
   'cr.reason.invalid': 'Šis veiksmas negalimas.',
   'cr.reason.unseen': 'Pirmiausia ištyrinėk vietą.',
@@ -829,8 +820,18 @@ export default {
   'button.climbUp.aria': 'Lipti aukštyn kopėčiomis',
 
   'hud.milestoneOf': '{n} iš {total}',
-  'hud.battery': 'Žibintas {n} %',
-  'hud.batteryCharging': 'Žibintas {n} %, kraunasi',
+  'clock.crackIn': 'Skils po {t}',
+  'clock.heart.lost': 'Širdis suskils po {t}',
+  'clock.starter.lost': 'Mėginys žus po {t}',
+  'clock.crystal.lost': 'Kristalai suges po {t}',
+  'clock.cooling': 'Skyla! Atvės po {t}',
+  'clock.heart': 'Širdis {n} %',
+  'clock.starter': 'Mėginys {n} %',
+  'clock.crystal': 'Kristalai {n} %',
+  'clock.dies': 'Žus po {t}',
+  'clock.mended': 'Sugis po {t}',
+  'hud.battery': 'Žibintas: liko {t} tamsos',
+  'hud.batteryCharging': 'Žibintas kraunasi, pilnas po {t}',
   'hud.sunIn': 'po {t}',
   'hud.sunLeft': 'liko {t}',
   'hud.sunIn.aria': 'Saulė pradės krauti saulės plokštę po {t}',

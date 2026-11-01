@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.186.0] - 2026-11-01
+
+- Timers, not bars (Watch, 2026-11-01: "all kind of bars suck … timers that
+  tick down"). The health bar and carrier warmth bar over Mica are now one
+  clock tag: in the sun "Cracks in 0:42" (amber), once cracking "Heart
+  breaks in 1:10" / "Starter dies in" / "Crystal spoils in" (red, crystal
+  spoils when it drops below the 60% the machine takes), "Cracking! Cool
+  in 0:08" when the carrier will cool first, and otherwise "Heart 82%".
+  A chamber over 22 °C shows "Dies in", a heart shelter "Mended in" (or
+  "Heart breaks in" when hot). The lantern battery shows its dark time
+  left, or by a charger the time to full, instead of an emptying bar.
+- The times come from the rules: `src/core/cultivation-forecast.js`
+  (`cargoForecast`, `facilityForecast`) plays the same steps forward on
+  copies of the few numbers involved, so walking into shade changes the
+  clock at once. Read-only; no rule changed. `test/unit/forecast.test.js`
+  checks each clock against the real rules to within one step.
+- The "Crystal at risk" warning names a dying chamber and its time.
+- `docs/ui.md` principle 10: timers, not bars.
+
 ## [0.185.1] - 2026-11-01
 
 - Choosing a teleport stop moved to the world map (Watch chose on a

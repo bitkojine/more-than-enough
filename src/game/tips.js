@@ -7,7 +7,7 @@
  * The words and the moments are here; `hud` shows them. */
 
 import * as Core from '../core/index.js';
-import { fmt, fmtDuration } from './format.js';
+import { fmt, fmtClock, fmtDuration } from './format.js';
 import { t } from '../i18n/i18n.js';
 
 export const HOLD_TIP_AFTER = 8; // single gathers before the tip
@@ -27,6 +27,15 @@ export function crystalDanger(s) {
     (s.inv.crystal > 0 && c.quality < WEAK) ||
     c.facilities.some((b) => b.health > 0 && b.temperature > HOT)
   );
+}
+
+// The warning says what is running out, and when, if a clock runs.
+function dangerLine(s) {
+  const dying = s.cultivation.facilities
+    .map((b) => Core.facilityForecast(s, b)?.dies)
+    .filter((d) => d !== undefined);
+  if (dying.length) return t('cr.danger.chamber', { t: fmtClock(Math.min(...dying)) });
+  return t('cr.danger');
 }
 
 // `view` is this browser's saved choices (holdTip is kept there), `keep()`
@@ -65,7 +74,7 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
       if (!s.cultivation || dangerIn > 0) return false;
       dangerIn = DANGER_EVERY;
       if (!crystalDanger(s)) return false;
-      hud.toast(t('cr.danger'));
+      hud.toast(dangerLine(s));
       return true;
     }
   };

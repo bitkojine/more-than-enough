@@ -15,6 +15,7 @@ place it belongs here rather than adding a button where there is room.
 7. **One visual language.** Shared tokens: surfaces, borders, radii, shadows, type scale; one round-button style, one pill style, one primary button style.
 8. **Every menu has its own entrance.** Dedicated buttons open a shared sheet with that menu's title, Close and a scrolling body. No cross-menu tabs. Swipe down or tap outside to close. A screen opened from Settings (Nerds, Worlds, Players, Invite links, Beyond) has ‹ before its title, back to Settings.
 9. **Back always steps back.** The phone's own Back and Escape go back one level: a screen inside Settings to Settings, a question says no, a sheet closes (`src/game/back.js`). Only with nothing open does Back leave the game.
+10. **Timers, not bars** (Watch, 2026-11-01). Anything running out or filling up shows the time left, ticking down ("Cracks in 0:42", the lantern's dark time, the flare's burn), never a progress, health or loading bar. A clock over Mica, a chamber or a heart shelter is a tag like a name tag; its times come from the rules (`src/core/cultivation-forecast.js`), worded by `src/game/cargo-clock.js`.
 
 ## The system
 
@@ -151,7 +152,7 @@ and opening a full sheet still close the compact Equipment card.
 
 ### The lantern's charge
 - Equipment offers carried light controls on every layer. Lantern and flare are mutually exclusive: lighting one switches off the other, and returning to the lantern spends the remaining flare. Controls and the character use the same canonical active-source query.
-- The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a battery that empties, its percent under it. It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
+- The charge of the lantern you carry sits at the top of the left edge, above the depth meter, as a small tile as narrow as the depth pill: a small battery with a clock under it: the dark time the lantern has left, or by a charger the time until it is full (timers, never bars: Watch, 2026-11-01). It shows only once it isn't full: green, amber below the level where your light starts to shrink, red when nearly flat, sky blue while a charger fills it. It's status, not a button.
 - The first time it gets low (and again after each charge back above that), one line in the log says the light is shrinking and where to charge it. Solar panels and water wheels are available before machine activation, in the Build sheet's own *On the water* section on the surface, saying where they go while you aren't on water; mine lights are in *In the mine*, underground.
 
 ### The sun clock

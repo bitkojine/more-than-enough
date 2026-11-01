@@ -322,10 +322,10 @@ canvas#game {
 #depth small { font-size: 8px; font-weight: 800; letter-spacing: .02em; text-transform: uppercase; opacity: .85; }
 #depth b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 2px; }
 #depth[hidden], #depthGauge[hidden], #battery[hidden] { display: none; }
-/* The charge of the lantern you carry, once it isn't full: a little
-   battery that empties, green, then amber when the light starts to shrink,
-   red when nearly flat. Narrow as the depth pill, so friends' chips keep
-   clear of it. */
+/* The charge of the lantern you carry, once it isn't full: the time it has
+   left in the dark (or, charging, till full) beside a little battery that
+   is green, then amber when the light starts to shrink, red when nearly
+   flat. A clock, not a bar (Watch, 2026-11-01). */
 #battery {
   display: flex; flex-direction: column; align-items: center; gap: 3px;
   min-width: 44px; max-width: 50px; padding: 5px 4px 4px;
@@ -344,10 +344,10 @@ canvas#game {
   content: ''; position: absolute; right: -4px; top: 3px;
   width: 2px; height: 4px; border-radius: 0 1px 1px 0; background: currentColor;
 }
-#battery b { display: block; height: 100%; border-radius: 1px; background: #7fd07a; }
-#battery.low b { background: #f0b552; }
-#battery.flat b { background: #ff6b5e; }
-#battery.charging b { background: #8fd6ff; }
+#battery i { color: #7fd07a; }
+#battery.low i { color: #f0b552; }
+#battery.flat i { color: #ff6b5e; }
+#battery.charging i { color: #8fd6ff; }
 #depthGauge {
   display: flex; flex-direction: column; gap: 2px;
   padding: 4px; border-radius: 8px;

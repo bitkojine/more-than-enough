@@ -3537,10 +3537,10 @@ async function main() {
   await evalJS('MTE_GAME.getState().battery = 0.2');
   ok(
     await waitFor(
-      '(function(){var b=document.getElementById("battery");return !b.hidden && b.classList.contains("low") && /20/.test(b.textContent);})()',
+      '(function(){var b=document.getElementById("battery");return !b.hidden && b.classList.contains("low") && /^3:00$/.test(b.textContent);})()',
       1500
     ),
-    'a low battery shows amber with its percent'
+    'a low battery shows amber with its dark time left (a fifth of 15:00)'
   );
   await evalJS('MTE_GAME.getState().battery = 1');
   var shaftSpot = JSON.parse(
