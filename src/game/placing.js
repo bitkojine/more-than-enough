@@ -12,7 +12,7 @@
 import * as Core from '../core/index.js';
 import { t } from '../i18n/i18n.js';
 import { esc, fmtRate } from './format.js';
-import { pic, price, icon } from './sheet.js';
+import { pic, price, icon } from './sheet-rows.js';
 import { reachOf } from './reach.js';
 
 const REFRESH_S = 0.3; // how often the lit tiles are found again

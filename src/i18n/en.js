@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.182.2':
+    'Behind the scenes, three more big pieces of the game are split into small parts with their own tests: the Build sheet, what your actions do, and the AUTO helper. Nothing changes in play.',
   'news.0.182.1':
     "The game opens a little faster: the QR code maker now loads only when you hold up an invite sign. Behind the scenes, the two biggest pieces of the game's code are split into small parts, each with its own tests. Nothing else changes in play.",
   'news.0.182.0':

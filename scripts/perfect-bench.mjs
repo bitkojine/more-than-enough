@@ -36,7 +36,7 @@ export function rulesFingerprint() {
   const root = new URL('../src/core/', import.meta.url),
     hash = createHash('sha256');
   for (const name of readdirSync(root)
-    .filter((n) => n.endsWith('.js') && n !== 'perfect.js')
+    .filter((n) => n.endsWith('.js') && !/^perfect(-[a-z]+)?\.js$/.test(n)) // the brain, in its parts
     .sort()) {
     hash
       .update(name)

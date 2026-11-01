@@ -2,7 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 import { cardAt } from '../../src/game/building-card.js';
-import { cultivationBuildRows, cultivationUpgradeRows, useLook } from '../../src/game/sheet.js';
+import {
+  cultivationBuildRows,
+  cultivationUpgradeRows,
+  useLook
+} from '../../src/game/sheet-rows.js';
 
 function site() {
   const s = C.createState(114, { cultivation: true });
@@ -187,4 +191,23 @@ test('retiring the producer milestone from guidance never removes an earned gard
   assert.ok(copy.goalsDone.includes('garden'));
   assert.ok(C.worldGoals(copy).some((g) => g.id === 'garden'));
   assert.equal(C.goalsTotal(copy), C.worldGoals(copy).length);
+});
+
+test('awards: the next milestone and what it takes, then the ones reached, newest first', async () => {
+  const { awardsRows } = await import('../../src/game/sheet-rows.js');
+  const { t } = await import('../../src/i18n/i18n.js');
+  useLook({ src: () => '', color: () => '#000' });
+  const s = C.createState(7);
+  const fresh = awardsRows(s);
+  assert.ok(fresh.includes(t('sheet.nextMilestone')));
+  assert.ok(fresh.includes('nextGoal'));
+  const goals = C.worldGoals(s);
+  s.goalsDone = [goals[0].id, goals[1].id];
+  s.goalIndex = 2;
+  const later = awardsRows(s);
+  assert.ok(later.includes(t('sheet.milestone', { n: 2 })));
+  assert.ok(
+    later.indexOf(t('sheet.milestone', { n: 2 })) < later.indexOf(t('sheet.milestone', { n: 1 })),
+    'newest first'
+  );
 });

@@ -48,7 +48,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 controller = component "Controller" "Applies intents to the game: tap (descend, harvest, collect, or walk there round obstacles: planWalk/walkAim in core paths.js, replanned when a hoped-open route through fog turns out blocked), Gather (collect, else harvest, else Explore walks to the nearest resource) and its hold, AUTO's intents (perform), Trail sweeps (every way of working a tile takes turns on one hand clock, core pace.js), going down and up between layers, buying, building, embarking, resetting. One queued approach/action routes observed cardinal contact sites once per order, faces the object, then calls the Core. New movement, orders or layer/world changes cancel it. Crafting and carried equipment need no destination. Each calls the Core, then triggers effects, sound, HUD and a save." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/controller.js"
+                        "ref" "src/game/controller.js, src/game/controller-commands.js, src/game/feedback.js"
                     }
                 }
 
@@ -83,7 +83,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 ui = component "HUD and Sheet" "Semantic HUD groups share a bounded space policy: resources and horizontal navigation at the top, a fixed version slot below Settings, world status and metadata in one row, and fixed essential action slots. Optional detail collapses in order: performance, friend names, status, Messages. Viewport-defined communication and action regions keep Messages and preview anchors stable when panels open. A separate panel policy lets roomy desktop left logs coexist with right-side Equipment cards or menu sheets; compact screens share expanded disclosure space. Explicit Equipment disclosure opens a compact lights card with a separate crafting view; Settlement combines construction and current-layer site improvements through approach-before-action controller commands. Automatic compaction preserves message preferences. Opt-in lazy performance diagnostics measure exclusive frame phases against intentional device/idle pacing, retain bounded incidents and open a compact warning card for new or substantially worse lag; reports distinguish CPU timings from unmeasured browser/GPU delay. Whole-client fullscreen uses explicit gestures and actual browser state, handles prefixed APIs and unsupported/installed-view help, refreshes the viewport without locking orientation, and never changes game saves. Localized inspection, persistent per-world messages, earnings and the shared sheet remain integrated." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/hud.js, src/game/hud-layout.js, src/game/hud-panels.js, src/game/fullscreen.js, src/game/switches.js, src/game/perf-host.js, src/game/perf.js, src/game/perf-monitor.js, src/game/messages.js, src/game/home-hint.js, src/game/sheet.js, src/game/building-card.js, src/game/placing.js, src/game/reach.js, src/game/statement.js, src/game/income.js, src/game/back.js, src/game/tooltips.js"
+                        "ref" "src/game/hud.js, src/game/hud-layout.js, src/game/hud-panels.js, src/game/fullscreen.js, src/game/switches.js, src/game/perf-host.js, src/game/perf.js, src/game/perf-monitor.js, src/game/messages.js, src/game/home-hint.js, src/game/sheet.js, src/game/sheet-rows.js, src/game/building-card.js, src/game/placing.js, src/game/reach.js, src/game/statement.js, src/game/income.js, src/game/back.js, src/game/tooltips.js"
                     }
                 }
 
@@ -194,7 +194,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 brain = component "AUTO Brain" "nextIntent(s, mind): legal player actions from explored terrain, remembered observations, visible mine glints, own resources and public rules. Integer A* treats unseen underground rock as an assumption and replans after normal revelation, without inspecting hidden geology. Unseen chargers, ladders, shores and tunnel props cannot steer decisions. Prices building repayment against required upgrades; mining is a fallback only when surface acquisition is unavailable, includes passive income and return travel and targets useful observed finds. Waits at Embark, and never spends Insight in shared worlds. Selected known chargers alone authorize charging decisions. Manual holds share AUTO cadence. Pure: mind caches observations and routes." "JavaScript" {
                     tags "Core Engine"
                     properties {
-                        "ref" "src/core/perfect.js, paths.js"
+                        "ref" "src/core/perfect.js, perfect-find.js, perfect-mine.js, perfect-walk.js, perfect-util.js, paths.js"
                     }
                 }
 

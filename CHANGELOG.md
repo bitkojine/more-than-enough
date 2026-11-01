@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.182.2] - 2026-11-01
+
+- Split three more oversized modules into parts that are tested on their
+  own (Watch, 2026-11-01: "the goal is highly testable code").
+  `src/game/sheet.js` (835 to 592 lines) keeps the sheets; the rows they
+  are built from moved to `sheet-rows.js`, and the unused `priceTag` went.
+  `src/game/controller.js` (694 to 542) keeps tapping, walking and
+  gathering; what the player sees and hears moved to `feedback.js`, and
+  buying, building, moving, crafting and Embark to `controller-commands.js`.
+  `src/core/perfect.js` (1,152 to 497) keeps the AUTO brain's choices; how
+  it finds things (`perfect-find.js`), walks (`perfect-walk.js`), goes
+  down and digs (`perfect-mine.js`) and its shared helpers
+  (`perfect-util.js`) are their own files. The bench's rules fingerprint
+  still leaves all the brain's files out. Play is unchanged; the AUTO
+  benchmark and the browser suite check that.
+
 ## [0.182.1] - 2026-11-01
 
 - Split the two biggest modules into parts that each run and are tested

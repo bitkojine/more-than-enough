@@ -20,14 +20,11 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MAX_LINES = 600;
 
 const OVERSIZED = {
-  'src/core/perfect.js': 1152,
   'server/src/room.js': 1006,
   'src/game/render/rig-model.js': 972,
   'server/src/worker.js': 947,
-  'src/game/sheet.js': 835,
   'src/core/cultivation.js': 825,
   'src/game/render/sprites.js': 735,
-  'src/game/controller.js': 694,
   'server/src/admin.js': 693
 };
 

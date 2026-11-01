@@ -6,7 +6,11 @@ import { unlockOptional } from './helpers.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
-import { cultivationUpgradeRows, cultivationBuildRows, useLook } from '../../src/game/sheet.js';
+import {
+  cultivationUpgradeRows,
+  cultivationBuildRows,
+  useLook
+} from '../../src/game/sheet-rows.js';
 
 useLook({ src: () => '', color: () => '#000' });
 

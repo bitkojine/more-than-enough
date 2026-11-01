@@ -3,9 +3,9 @@
  * schedules a save. Feedback is visual and audible only. */
 
 import * as Core from '../core/index.js';
-import { randomSeed } from './storage.js';
+import { createFeedback } from './feedback.js';
+import { createCommands } from './controller-commands.js';
 import { t } from '../i18n/i18n.js';
-import { fmt } from './format.js';
 
 const ARRIVE_DIST = 0.18; // tap-to-walk stops this close to the target
 const STALL_SECONDS = 0.35; // tap-to-walk gives up after this long blocked
@@ -37,17 +37,18 @@ export function createController({
 
   const state = () => game.state;
   const player = () => game.state.player;
-  const say = (text, color, icon) => fx.text(player().x, player().y - 0.4, text, color, icon);
-  // "+n" of a resource over your head, adding up with the gains just before it.
-  const tally = (res, amount) =>
-    fx.tally(
-      player().x,
-      player().y - 0.4,
-      amount,
-      look.color(Core.resourceLook(res)),
-      Core.resourceLook(res)
-    );
-  const toolLevel = (res) => state().tools[res === 'mycelium' ? 'basket' : 'pickaxe'];
+  // What the player sees and hears (feedback.js).
+  const feedback = createFeedback({
+    game,
+    fx,
+    audio,
+    hud,
+    look,
+    actor,
+    facing: () => controller.facing,
+    faceTile
+  });
+  const { tally, performAct, changed, checkGoals, harvested, needsGear } = feedback;
 
   function handFree() {
     if (handOf !== state()) {
@@ -59,70 +60,6 @@ export function createController({
     return Core.handReady(hand, state().stats.playedMs);
   }
   const handUsed = () => Core.useHand(hand, state().stats.playedMs);
-
-  function performAct(kind, detail = {}) {
-    actor.act(kind, { ...detail, facing: { ...controller.facing } });
-  }
-
-  function changed() {
-    hud.update(state());
-    game.saveSoon();
-  }
-
-  // Milestones are celebrated when reached: a burst, a fanfare and a banner
-  // naming each one. The Awards sheet shows the next one.
-  function checkGoals() {
-    const from = state().goalIndex;
-    const reached = Core.advanceGoals(state());
-    if (!reached.length) return;
-    const next = Core.nextGoal(state());
-    reached.forEach((g, i) =>
-      hud.milestone(
-        g.reached,
-        from + i + 1,
-        Core.goalsTotal(state()),
-        i === reached.length - 1 && next ? next.text : null
-      )
-    );
-    fx.celebrate(player().x, player().y);
-    performAct('cheer');
-    audio.fanfare();
-  }
-
-  // Every swing shakes what it hit and knocks chips off it. Plain dirt holds
-  // nothing: its clods are tossed aside and it says +0, so digging through it
-  // reads as clearing the way, not as gathering that failed.
-  function harvested(r) {
-    faceTile(r.x, r.y);
-    performAct(r.res === 'mycelium' || state().tools.pickaxe === 0 ? 'pick' : 'swing');
-    fx.hit(Core.packKey(r.x, r.y, r.z), r.x, r.y, look.color(Core.tileLook(r.type)));
-    if (r.found) {
-      fx.found(r.x, r.y, look.color(Core.tileLook(r.type)), r.found);
-      audio.collect();
-      return;
-    }
-    if (r.newKind) {
-      // A kind of mushroom never found before, in any world.
-      fx.text(
-        r.x + 0.5,
-        r.y - 1,
-        t('fx.newMushroom', { name: Core.MUSHROOMS[r.mushroom].name }),
-        '#c9a6ff',
-        null,
-        -0.5,
-        2.6
-      );
-      audio.collect();
-    }
-    if (r.res) {
-      fx.gathered(r.x, r.y, r.res, r.amount);
-      audio.gather(r.res, r.amount, toolLevel(r.res));
-      return;
-    }
-    fx.dug(r.x, r.y);
-    if (r.type === Core.T.SOIL) fx.tossed(r.x, r.y, look.color(Core.tileLook(r.type)));
-    audio.dig();
-  }
 
   function collectNearby(at = null) {
     if (!handFree()) return false;
@@ -148,11 +85,6 @@ export function createController({
     audio.collect();
     changed();
     return true;
-  }
-
-  // Says which tool level something takes, when that's all that's missing.
-  function needsGear(g) {
-    hud.toast(t('reason.gear', { tool: Core.TOOLS[g.tool].name, lv: g.level }));
   }
 
   // Works tile (tx, ty) if it's in reach: collect the building on it, or
@@ -351,46 +283,26 @@ export function createController({
     }
   }
 
+  // Buying, building and the other commands (controller-commands.js).
+  const commands = createCommands({
+    game,
+    feedback,
+    approach,
+    faceTile,
+    stopWalk: () => {
+      walkTo = null;
+    },
+    ask,
+    hud,
+    audio,
+    fx
+  });
+
   const controller = {
     facing: { x: 0, y: 1 },
     checkGoals,
     approach,
-    cultivation(cmd, finished = null) {
-      const x = cmd.x ?? Math.floor(player().x),
-        y = cmd.y ?? Math.floor(player().y);
-      if (!['craft', 'lantern'].includes(cmd.type)) {
-        if (!Core.atInteraction(state(), x, y)) {
-          const queued = approach(x, y, () => controller.cultivation(cmd, finished));
-          if (!queued) finished?.('reach');
-          return queued || 'reach';
-        }
-        walkTo = null;
-      }
-      const result = Core.cultivationCommand(state(), cmd);
-      if (['ok', 'lifted', 'discovery', 'activated'].includes(result)) {
-        faceTile(cmd.x ?? Math.floor(player().x), cmd.y ?? Math.floor(player().y));
-        const action = {
-          build: 'build',
-          repair: 'build',
-          reinforce: 'build',
-          craft: 'build',
-          collect: 'collect',
-          store: 'collect',
-          shade: 'collect',
-          lantern: 'collect',
-          plant: 'pick',
-          tend: 'pick',
-          starter: 'pick',
-          heart: 'pick',
-          activate: 'cheer'
-        }[cmd.type];
-        if (action) performAct(action, { work: cmd.type });
-        changed();
-        checkGoals();
-      }
-      finished?.(result);
-      return result;
-    },
+    cultivation: (cmd, finished = null) => commands.cultivation(cmd, finished),
 
     // Moves by the input vector, or else toward a tapped destination.
     // Returns true if the player moved.
@@ -595,58 +507,10 @@ export function createController({
       if (way) approach(way.x, way.y, () => passAt(way.x, way.y));
     },
 
-    buy(id) {
-      const s = state();
-      if (!Core.buy(s, id).ok) return false;
-      audio.upgrade();
-      performAct('cheer');
-      say('✦', Core.UPGRADES[id].currency === 'insight' ? '#cbb0f0' : '#9fe08a');
-      changed();
-      checkGoals();
-      return true;
-    },
-
-    placeProp(kind) {
-      const s = state();
-      const res = Core.placeProp(s, kind);
-      if (!res.ok) return false;
-      faceTile(res.x, res.y);
-      fx.built(res.x, res.y);
-      performAct('build');
-      audio.build();
-      changed();
-      return true;
-    },
-
-    // On the nearest free tile, or on `at` ({x, y}) when one is picked.
-    place(key, at = null) {
-      const s = state();
-      const res = Core.place(s, key, at);
-      if (!res.ok) return false;
-      faceTile(res.x, res.y);
-      fx.built(res.x, res.y);
-      performAct('build');
-      audio.build();
-      changed();
-      checkGoals();
-      return true;
-    },
-
-    // Moves your building `b` (one of your buildings, or a crystal-world
-    // facility) to tile `at` beside you: free (Watch, 2026-10-26).
-    move(b, at) {
-      const s = state();
-      const ok = s.extractors.includes(b)
-        ? Core.moveExtractor(s, b, at.x, at.y).ok
-        : Core.moveFacility(s, b, at.x, at.y) === 'ok';
-      if (!ok) return false;
-      faceTile(at.x, at.y);
-      fx.built(at.x, at.y);
-      performAct('build');
-      audio.build();
-      changed();
-      return true;
-    },
+    buy: (id) => commands.buy(id),
+    placeProp: (kind) => commands.placeProp(kind),
+    place: (key, at = null) => commands.place(key, at),
+    move: (b, at) => commands.move(b, at),
 
     // Walks to tile (x, y), finding the way round what's in the way.
     walk(x, y) {
@@ -660,23 +524,7 @@ export function createController({
       return !!done;
     },
 
-    // Embark starts another preserved world, so it asks first.
-    async embark() {
-      if (!Core.canEmbark(state())) return;
-      const yes = await ask({
-        title: t('ask.embark.title'),
-        text: t('ask.embark.empty'),
-        yes: t('ask.embark.yes')
-      });
-      const s = state();
-      if (!yes || !Core.canEmbark(s)) return;
-      // The world you leave is kept as it is now, or you don't leave it.
-      if (!game.keep()) return;
-      const res = Core.embark(s, randomSeed());
-      game.replace(res.state);
-      audio.fanfare();
-      hud.toast(t('world.emptyStart'));
-    },
+    embark: () => commands.embark(),
 
     // Forget per-world intents when the world itself is replaced.
     // Stops walking to wherever it was headed.

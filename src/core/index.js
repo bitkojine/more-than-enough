@@ -47,7 +47,16 @@ export * from './pace.js';
 export * from './acts.js';
 export * from './replay.js';
 export * from './paths.js';
-export * from './perfect.js';
+// The Perfect brain's own parts (perfect-find.js, perfect-mine.js) stay inside it.
+export {
+  KNOBS,
+  newMind,
+  nextIntent,
+  nextPerk,
+  candidates,
+  investmentPayback,
+  plan
+} from './perfect.js';
 export * from './ledger.js';
 
 export * from './cultivation.js';
