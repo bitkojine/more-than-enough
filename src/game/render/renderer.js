@@ -248,7 +248,7 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
     // your name; a hot chamber's or a heart shelter's clock over it.
     const cargo = you && cargoClockAt(s, you, cam, view.me && !(view.sign > 0));
     if (cargo) clocks.unshift(cargo);
-    for (const c of clocks) drawClock(ctx, c, taken);
+    for (const c of clocks) drawClock(ctx, look, c, taken);
     if (view.me && you && !(view.sign > 0))
       drawNameTag(ctx, you.x, you.top - cam.tilePx * 0.2, view.me.name, view.me.color, taken);
     // While AUTO plays, its tag floats over you (over your name, if shown).

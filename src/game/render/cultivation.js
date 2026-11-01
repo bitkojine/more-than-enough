@@ -2,7 +2,7 @@
  * cooling fans and condition marks added to the familiar buildings. */
 import * as Core from '../../core/index.js';
 import { litInk } from './lighting.js';
-import { cargoClock, facilityClock } from '../cargo-clock.js';
+import { cargoClock, facilityClock, clockIcon } from '../cargo-clock.js';
 export function cultivationRows(s, z) {
   const rows = new Map(),
     put = (b) => {
@@ -101,13 +101,16 @@ const TONE = { calm: '#7fd07a', warn: '#f0b552', danger: '#ff8a72' };
 // A clock tag, the same size at every zoom; danger is a filled red tag.
 // `taken`: boxes of the tags already drawn; one that would cover any of
 // them waits (as name tags do), so yours, drawn first, always shows.
-export function drawClock(ctx, { x, y, text, tone }, taken = []) {
+export function drawClock(ctx, look, { x, y, text, tone, icon }, taken = []) {
   ctx.save();
   ctx.font = '800 12px system-ui, sans-serif'; // i18n-ok: a font
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const w = Math.ceil(ctx.measureText(text).width) + 14,
-    box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 11, b: y + 11 };
+  const iconSize = 18,
+    gap = 5,
+    padding = 7;
+  const w = Math.ceil(ctx.measureText(text).width) + padding * 2 + iconSize + gap,
+    box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 14, b: y + 14 };
   if (taken.some((o) => o.l < box.r && box.l < o.r && o.t < box.b && box.t < o.b)) {
     ctx.restore();
     return;
@@ -117,10 +120,23 @@ export function drawClock(ctx, { x, y, text, tone }, taken = []) {
   ctx.strokeStyle = tone === 'danger' ? 'rgba(10,8,6,0.85)' : TONE[tone];
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  ctx.roundRect(x - w / 2, y - 9, w, 18, 9);
+  ctx.roundRect(x - w / 2, y - 12, w, 24, 12);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = tone === 'danger' ? '#1a0a06' : TONE[tone];
-  ctx.fillText(text, x, y + 0.5);
+  const pic = clockIcon(look, icon),
+    width = iconSize / Math.max(1, pic.aspect),
+    height = width * pic.aspect,
+    left = x - w / 2 + padding;
+  // Rasterize each tiny subject once per display density, not each frame.
+  ctx.drawImage(
+    look.bitmap(pic, width),
+    left + (iconSize - width) / 2,
+    y - height / 2,
+    width,
+    height
+  );
+  ctx.textAlign = 'left';
+  ctx.fillText(text, left + iconSize + gap, y + 0.5);
   ctx.restore();
 }

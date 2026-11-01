@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.189.1':
+    'Nešami kristalai dabar pažymėti „Kristalų kokybė“. Krovinio ir pastatų laikmačiai rodo atitinkamo daikto paveikslėlį, o žibinto ir dienos šviesos laikmačiai turi aiškias piktogramas.',
   'news.0.189.0':
     'Kristalų pasaulyje po žeme išsikrovęs žibintas užgęsta. Visiškoje tamsoje vis dar gali vaikščioti ir lipti, bet negali kasti ar rinkti, kol vėl neturėsi šviesos, tad stebėk jo laikrodį ir laiku lipk aukštyn jo įkrauti.',
   'news.0.188.1':

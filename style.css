@@ -157,7 +157,7 @@ canvas#game {
 }
 #sunTime[hidden] { display: none; }
 #sunTime.up { border-color: var(--gold); }
-#sunTime i { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 1px #14141a; }
+#sunTime svg { width: 15px; height: 15px; flex: none; fill: var(--gold); stroke: var(--gold); stroke-width: 1.5; stroke-linecap: round; }
 
 /* Friends in a shared world, under the top bar on the right: a chip each in
    their colour, showing how they're doing. */
@@ -336,18 +336,11 @@ canvas#game {
   font-size: 11px; font-weight: 800; line-height: 1; color: var(--ink);
   font-variant-numeric: tabular-nums; white-space: nowrap;
 }
-#battery i {
-  position: relative; display: block; width: 20px; height: 11px; padding: 1px;
-  border: 1.5px solid currentColor; border-radius: 3px;
-}
-#battery i::after {
-  content: ''; position: absolute; right: -4px; top: 3px;
-  width: 2px; height: 4px; border-radius: 0 1px 1px 0; background: currentColor;
-}
-#battery i { color: #7fd07a; }
-#battery.low i { color: #f0b552; }
-#battery.flat i { color: #ff6b5e; }
-#battery.charging i { color: #8fd6ff; }
+#battery img { display: block; width: 20px; height: 20px; object-fit: contain; }
+#battery { color: #7fd07a; }
+#battery.low { color: #f0b552; }
+#battery.flat { color: #ff6b5e; }
+#battery.charging { color: #8fd6ff; }
 #depthGauge {
   display: flex; flex-direction: column; gap: 2px;
   padding: 4px; border-radius: 8px;

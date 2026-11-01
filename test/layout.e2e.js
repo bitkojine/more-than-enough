@@ -337,8 +337,7 @@ async function enter(state) {
       document.body.classList.add('below');
       const battery = document.getElementById('battery');
       battery.className = 'low';
-      battery.querySelector('b').style.width = '23%';
-      battery.querySelector('span').textContent = '23%'; // i18n-ok: test fixture
+      battery.querySelector('span').textContent = '3:27'; // i18n-ok: test fixture
       for (const id of ['battery', 'depth', 'depthGauge', 'btnMine'])
         document.getElementById(id).hidden = false;
       document.getElementById('mineLabel').textContent = t('button.climbDown');

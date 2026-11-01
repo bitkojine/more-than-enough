@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.189.1':
+    'Carried crystal now says “Crystal quality”. Cargo and building clocks show the item they describe, and the lantern and daylight timers have clear subject icons.',
   'news.0.189.0':
     'In a crystal world, a lantern that runs flat underground goes out. In the pitch dark you can still walk and climb, but you can’t mine or gather until you have light again, so watch its clock and climb up to charge it in time.',
   'news.0.188.1':

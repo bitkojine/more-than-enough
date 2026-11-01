@@ -113,7 +113,7 @@ test('the clocks are worded as ticking times, never bars', async () => {
   const shelter = { kind: 'shelter', id: 77, x: 3, y: 3, z: 0, temperature: 18 };
   s.cultivation.facilities.push(shelter);
   s.cultivation.heart = { where: 77, health: 90 };
-  assert.equal(facilityClock(s, shelter).text, 'Mended in 0:40');
+  assert.equal(facilityClock(s, shelter).text, 'Heart mended in 0:40');
   s.battery = 0.5;
   assert.equal(batteryClock(s).text, '7:30', 'half of 15 minutes of dark');
   s.battery = 1;

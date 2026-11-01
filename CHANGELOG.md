@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.189.1] - 2026-11-01
+
+- Clarify the carried-crystal percentage as “Crystal quality” in both languages.
+  Cargo and building countdowns include cached pictures of their subjects;
+  colony death and heart recovery also name their subjects explicitly.
+- Give the lantern countdown its lantern picture and the daylight countdown
+  a recognizable sun. Keep the flare’s existing subject picture. Clock-tag
+  collision bounds include the complete icon and label.
+- Update the layout fixture left behind by the earlier battery-bar removal to
+  use a countdown instead of a missing fill element. No gameplay rules change.
+
 ## [0.189.0] - 2026-11-01
 
 - A flat lantern underground goes out (Watch chose on a decision card,
