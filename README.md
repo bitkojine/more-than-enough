@@ -12,6 +12,71 @@ rules they started with.
 The game was called More Than Enough until v0.149.0; the repository and the
 save keys keep that name.
 
+## What still needs work
+
+Checked at v0.182.3 (2026-11-01) against the code, a fresh playthrough and
+the live game. The first fifteen minutes are good. Most of what comes after
+them isn't yet. When you fix something here, update this list in the same
+commit. When you find something new, add it.
+
+**The game**
+
+- **Once you've settled in, the new-world game is mostly a long walk.** The
+  playtest bot (`node scripts/cultivation-playtest.mjs <dir>`) wins a fresh
+  world in about 52 game minutes. About 44 of those are walking roughly
+  2.5 km to the heart's hiding place and back across open land. The design
+  calls for a camp at the hiding place and a dark, cool route home
+  (`docs/game-design.md`, "Story arc"). Neither exists yet, so the trip is
+  distance with no decisions in it.
+- **The crystal danger never really threatens you.** Light and heat are meant
+  to be the drama, but the bot never loses a colony, and it brings the heart
+  home on its first try.
+- **The ending is flat.** The last two repairs and the activation all happen
+  in the same second. Waking the machine changes its picture and posts a
+  message. The story promises that teleportation comes back, but it doesn't,
+  and a finished world gives you nothing new to go after.
+- **There are two economies.** New solo worlds play the crystal chapter. Old
+  solo worlds and every shared world still run the old economy. There, 26 of
+  32 milestones arrive in the first 10 minutes, followed by about 17 hours of
+  holding AUTO and buying refinery levels (gameplay review, v0.145.0). The
+  shared world has no win at all, and crystal worlds can't be played
+  together. Whether the story arc comes to shared worlds is undecided.
+- **Core design questions are still open.** These include who stole the
+  heart, what tending a colony actually does, how wild colonies regrow, and
+  what a finished world leads to. See "Other design questions still open" in
+  `docs/game-design.md`.
+- **The first screen says what to do but not how.** A new player sees "Gather
+  mycelium and loose stone. Craft your first pick." Nothing on screen says
+  you drag to walk or hold the big button to gather.
+
+**The code**
+
+- **About 5,000 lines of browser code never run under the unit tests.** This
+  includes `main.js`, `sheet.js`, `hud.js`, `renderer.js`, `overlay.js`,
+  `audio.js` and `placing.js`. The 84.7% line coverage figure leaves them out.
+  Only the browser suite exercises them.
+- **The browser suite fails on timing, not bugs.** Two of the last eight
+  completed runs on `main` failed on slow CI runners (`browser.yml`). It
+  doesn't block deploys, so a red run is easy to ignore.
+- **Every file is now under 600 lines, but the biggest functions are not.**
+  The largest factory closures are still hundreds of lines each:
+  `createRigModel` (510), the admin page's `client` (501), `createSheet`
+  (486), `createController` (440) and `createTogether` (373).
+- **The lint budget is mostly complexity debt.** All 237 warnings that the
+  budget allows are real: 104 functions over complexity 15, 77 with more than
+  five parameters, 39 over 120 lines, 14 nested too deep and 3 unused
+  variables.
+- **The first download is nearly at its budget:** 295 KB gzipped of 300 KB.
+  Any new feature has to make room for itself.
+- **The coverage run takes about 4 minutes,** which is slow for a gate
+  that runs on every push.
+
+Already in decent shape: the unit and property tests pass, and their code
+comes to about 0.6 lines per line of source. The room's anti-cheat
+(`server/src/shadow.js`) is 96% line-covered. There are no open GitHub
+issues. The live game loads in about 1.7 seconds on a phone-sized browser
+with no console errors.
+
 ## How to play
 
 There is no tutorial. Drag anywhere on the map to walk (or use WASD / the arrow keys), hold
