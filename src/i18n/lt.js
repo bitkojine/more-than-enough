@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.182.3':
+    'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
   'news.0.182.2':
     'Užkulisiuose dar trys didelės žaidimo dalys išskaidytos į mažas, kiekviena su savo testais: statybų lapas, tai, ką daro tavo veiksmai, ir pagalbininkas AUTO. Žaidime niekas nepasikeičia.',
   'news.0.182.1':

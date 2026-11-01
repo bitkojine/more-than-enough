@@ -3,39 +3,28 @@
  * parts pass through each other, in tests and in the dev viewer.
  * Model faces +Z; +X is its anatomical left. */
 import * as T from '../../vendor/three/three.module.js';
-import { rigPose, LEG_LENGTH } from './rig-motion.js';
+import { rigPose } from './rig-motion.js';
 import { createPickaxeModel, pickaxeTier } from './pickaxe-model.js';
 import { characterDirection, CHARACTER_DIRECTIONS } from './character-direction.js';
-import {
-  UPPER_ARM,
-  FOREARM,
-  solveArm,
-  miningStroke,
-  workHands,
-  workWeight,
-  WORK_HANDS
-} from './work-motion.js';
+import { miningStroke, workHands, workWeight, WORK_HANDS } from './work-motion.js';
 import { createBasketModel, createLanternModel, createFlareModel } from './work-equipment.js';
 import { createWikiModel } from './wiki-model.js';
 import { wrapAngle } from './wiki-motion.js';
-const DOWN = new T.Vector3(0, -1, 0);
-// The coat's radius from hem (t=0) to collar (t=1). It narrows under the hood
-// so the sleeves hang outside it rather than through it.
-export const coatRadius = (t) =>
-  0.44 - 0.2 * t + 0.015 * Math.sin(t * Math.PI) - COAT_TAPER * t ** 3;
-const COAT_TAPER = 0.16;
-// A point just outside the coat, hips-local: around the body by `angle`
-// (0 = front, +PI/2 = Mica's left) at height `y` above the hips, `gap` out
-// from the cloth along the coat's horizontal normal. Below the hem the hem counts.
-const HIPS_REST = 0.51;
-export function besideCoat(angle, y, gap) {
-  const t = Math.max(0, Math.min(1, (y + HIPS_REST - 0.48) / 0.55)),
-    r = coatRadius(t),
-    s = Math.sin(angle),
-    c = Math.cos(angle);
-  const n = new T.Vector3(s / r, 0, c / (0.76 * r)).normalize();
-  return new T.Vector3(s * r, y, c * 0.76 * r).addScaledVector(n, gap);
-}
+import { poseArm, poseLeg, buildArm, buildLeg, REST_SPREAD } from './rig-limbs.js';
+import { solidsOf, contactsOf } from './rig-solids.js';
+import {
+  coatRadius,
+  besideCoat,
+  HIPS_REST,
+  hoodGeometry,
+  faceGeometry,
+  faceArchGeometry,
+  collarGeometry,
+  coatShellGeometry,
+  hemRibbonGeometry,
+  repairPatchGeometry
+} from './rig-geometry.js';
+export { coatRadius, besideCoat };
 // The lantern's ring sits this high on the hip; its widest part hangs this far
 // below the ring; the skirt sways about this much while walking.
 // The flare: where it sits in the left mitten and how it leans out of it,
@@ -52,17 +41,6 @@ const LANTERN_SIDE = 2.2,
   LANTERN_DROP = 0.22,
   LANTERN_RADIUS = 0.09,
   SKIRT_SWAY = 0.045;
-// The sleeve meets the coat within this distance of the shoulder joint.
-// Arms hang this far out (radians) so sleeves and mittens clear the coat.
-const REST_SPREAD = 0.76;
-const WIKI_ROOT = 0.13,
-  WIKI_NECK = 0.1,
-  SHOULDER = 0.17,
-  COWL = 0.21,
-  ELBOW = 0.13,
-  KNEE = 0.11,
-  ANKLE = 0.11,
-  NECK = 0.3;
 export function createRigModel() {
   const scene = new T.Scene(),
     model = new T.Group();
@@ -106,95 +84,11 @@ export function createRigModel() {
     o.scale.set(rx, ry, rz);
     return o;
   };
-  function hoodGeometry() {
-    const controls = [
-        [0.3, 0.39, 0.17, 0],
-        [0.33, 0.42, 0.12, 0],
-        [0.43, 0.47, 0.02, 0],
-        [0.45, 0.43, -0.2, 0],
-        [0.34, 0.31, -0.4, 0.13],
-        [0.12, 0.14, -0.5, 0.23],
-        [0.001, 0.001, -0.53, 0.25]
-      ],
-      pos = [],
-      idx = [],
-      segments = 64;
-    const interpolate = (a, b, c, d, t) =>
-      0.5 *
-      (2 * b +
-        (-a + c) * t +
-        (2 * a - 5 * b + 4 * c - d) * t * t +
-        (-a + 3 * b - 3 * c + d) * t * t * t);
-    const rings = Array.from({ length: 33 }, (_, i) => {
-      const f = (i / 32) * (controls.length - 1),
-        k = Math.min(controls.length - 2, Math.floor(f)),
-        t = f - k;
-      return controls[k].map((_, j) =>
-        interpolate(
-          controls[Math.max(0, k - 1)][j],
-          controls[k][j],
-          controls[k + 1][j],
-          controls[Math.min(controls.length - 1, k + 2)][j],
-          t
-        )
-      );
-    });
-    for (const [j, [rx, ry, z, cy]] of rings.entries())
-      for (let i = 0; i <= segments; i++) {
-        const a = (i / segments) * Math.PI * 2,
-          pear = 1 - 0.22 * Math.sin(a) * Math.max(0, 1 - j / 12);
-        pos.push(
-          rx * 1.1 * Math.cos(a) * pear + 0.045 * (j / 32) ** 2,
-          cy + ry * Math.sin(a) + 0.018 * Math.cos(a) * Math.min(1, rx / 0.12),
-          z
-        );
-      }
-    for (let j = 0; j < rings.length - 1; j++)
-      for (let i = 0; i < segments; i++) {
-        const a = j * (segments + 1) + i,
-          b = a + segments + 1;
-        idx.push(a, b, a + 1, b, b + 1, a + 1);
-      }
-    const g = new T.BufferGeometry();
-    g.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
-    g.setIndex(idx);
-    g.computeVertexNormals();
-    return g;
-  }
   const hood = hoodGeometry();
   mesh(hood, orange, head);
   const inside = inner.clone();
   inside.side = T.BackSide;
   mesh(hood, inside, head);
-  // The original art has a pointed arch, broad lower cheeks and flat oval
-  // eyes. A shallow pear-shaped mask avoids the former protruding egg shape.
-  function faceGeometry(size = 1, depth = 0.16, rows = 12) {
-    const positions = [],
-      uv = [],
-      indices = [],
-      segments = 64;
-    for (let j = 0; j <= rows; j++)
-      for (let i = 0; i <= segments; i++) {
-        const r = j / rows,
-          a = (i / segments) * Math.PI * 2,
-          x = size * r * 0.27 * Math.cos(a) * (1 - 0.22 * Math.sin(a)),
-          y = size * r * 0.32 * Math.sin(a);
-        positions.push(x, y, 0.18 + depth * (1 - r * r));
-        uv.push((x + 0.3) / 0.6, (y + 0.4) / 0.8);
-      }
-    for (let j = 0; j < rows; j++)
-      for (let i = 0; i < segments; i++) {
-        const a = j * (segments + 1) + i,
-          b = a + segments + 1;
-        indices.push(a, b, a + 1, b, b + 1, a + 1);
-      }
-    const g = new T.BufferGeometry();
-    g.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
-    g.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
-    g.setIndex(indices);
-    g.computeVertexNormals();
-    return g;
-  }
   const faceMaterial = material(0xefe1bc);
   mesh(faceGeometry(1.22, 0, 1), inner, head, 0, 0, -0.012);
   mesh(faceGeometry(), faceMaterial, head);
@@ -203,62 +97,10 @@ export function createRigModel() {
   const eyes = [-0.094, 0.094].map((x) =>
     ellipsoid(head, inner, x, 0.043, 0.324, 0.034, 0.046, 0.008)
   );
-  const arch = [];
-  for (let i = 0; i < 64; i++) {
-    const a = (i / 64) * Math.PI * 2;
-    arch.push(
-      new T.Vector3(
-        1.22 * 0.27 * Math.cos(a) * (1 - 0.22 * Math.sin(a)),
-        1.22 * 0.32 * Math.sin(a),
-        0.176
-      )
-    );
-  }
-  mesh(new T.TubeGeometry(new T.CatmullRomCurve3(arch, true), 128, 0.014, 8, true), inner, head);
-  // Soft collar joins hood and cloak rather than adding a floating costume icon.
-  const collarPath = [
-    [-0.24, 0, 0],
-    [-0.17, -0.015, 0.16],
-    [0, -0.1, 0.23],
-    [0.17, -0.015, 0.16],
-    [0.24, 0, 0],
-    [0.17, 0.02, -0.15],
-    [0, 0.025, -0.21],
-    [-0.17, 0.02, -0.15]
-  ].map((p) => new T.Vector3(...p));
-  mesh(
-    new T.TubeGeometry(new T.CatmullRomCurve3(collarPath, true), 64, 0.038, 10, true),
-    orange,
-    neck
-  );
+  mesh(faceArchGeometry(), inner, head);
+  mesh(collarGeometry(), orange, neck);
   const bodyMat = orange.clone();
   bodyMat.side = T.DoubleSide;
-  const positions = [],
-    indices = [],
-    segments = 64,
-    rows = 16;
-  for (let j = 0; j <= rows; j++) {
-    const t = j / rows,
-      y = 0.48 + t * 0.55,
-      r = coatRadius(t);
-    for (let i = 0; i <= segments; i++) {
-      const a = (i / segments) * Math.PI * 2,
-        x = Math.sin(a) * r,
-        z = Math.cos(a) * r * 0.76;
-      // A front V opens the overlapping hem instead of forming a rigid bell.
-      const notch =
-        Math.cos(a) > 0.6
-          ? 0.13 * Math.max(0, 1 - Math.abs(Math.sin(a)) / 0.32) * Math.max(0, 1 - t / 0.28)
-          : 0;
-      positions.push(x, y + notch, z);
-    }
-  }
-  for (let j = 0; j < rows; j++)
-    for (let i = 0; i < segments; i++) {
-      const a = j * (segments + 1) + i,
-        b = a + segments + 1;
-      indices.push(a, a + 1, b, a + 1, b + 1, b);
-    }
   // Four weighted skirt panels lag behind the torso. Outline and hem use
   // exactly the same weights, so decoration cannot float above moving cloth.
   function clothGeometry(g) {
@@ -285,178 +127,28 @@ export function createRigModel() {
     g.setAttribute('skinWeight', new T.Float32BufferAttribute(skinWeights, 4));
     return g;
   }
-  const coatGeometry = new T.BufferGeometry();
-  coatGeometry.setAttribute('position', new T.Float32BufferAttribute(positions, 3));
-  coatGeometry.setIndex(indices);
-  coatGeometry.computeVertexNormals();
+  const coatGeometry = coatShellGeometry();
   clothGeometry(coatGeometry);
   const coat = new T.SkinnedMesh(coatGeometry, bodyMat);
   model.add(coat);
   // A narrow skinned ribbon follows the split hem exactly, including its notch.
-  const hemPoints = [],
-    hemIndices = [];
-  for (let i = 0; i <= segments; i++) {
-    const a = (i / segments) * Math.PI * 2,
-      n = Math.cos(a) > 0.6 ? 0.13 * Math.max(0, 1 - Math.abs(Math.sin(a)) / 0.32) : 0;
-    for (const dy of [0, 0.009])
-      hemPoints.push(Math.sin(a) * 0.441, 0.484 + n + dy, Math.cos(a) * 0.441 * 0.76);
-    if (i < segments) {
-      const q = i * 2;
-      hemIndices.push(q, q + 1, q + 2, q + 1, q + 3, q + 2);
-    }
-  }
-  const hemGeometry = new T.BufferGeometry();
-  hemGeometry.setAttribute('position', new T.Float32BufferAttribute(hemPoints, 3));
-  hemGeometry.setIndex(hemIndices);
-  hemGeometry.computeVertexNormals();
+  const hemGeometry = hemRibbonGeometry();
   clothGeometry(hemGeometry);
   const hem = new T.SkinnedMesh(hemGeometry, thread);
   model.add(hem);
   // Broad, cloth-bound repair patch. Its geometry follows the coat surface and
   // uses the same skeleton; it is not a floating inventory badge.
-  const patchPoints = [],
-    patchIndices = [];
-  for (let j = 0; j <= 4; j++) {
-    const y = 0.62 + j * 0.027,
-      t = (y - 0.48) / 0.55,
-      r = coatRadius(t) + 0.006;
-    for (let i = 0; i <= 6; i++) {
-      const a = -0.63 + (i * 0.35) / 6;
-      patchPoints.push(Math.sin(a) * r, y, Math.cos(a) * r * 0.76);
-    }
-    if (j < 4)
-      for (let i = 0; i < 6; i++) {
-        const q = j * 7 + i;
-        patchIndices.push(q, q + 7, q + 1, q + 1, q + 7, q + 8);
-      }
-  }
-  const patchGeometry = new T.BufferGeometry();
-  patchGeometry.setAttribute('position', new T.Float32BufferAttribute(patchPoints, 3));
-  patchGeometry.setIndex(patchIndices);
-  patchGeometry.computeVertexNormals();
+  const patchGeometry = repairPatchGeometry();
   clothGeometry(patchGeometry);
   const patch = new T.SkinnedMesh(patchGeometry, material(0xd18b54));
   patch.material.side = T.DoubleSide;
   model.add(patch);
-  function arm(side) {
-    const upper = bone(side > 0 ? 'leftUpperArm' : 'rightUpperArm', spine, side * 0.26, 0.13, 0),
-      lower = bone(side > 0 ? 'leftForearm' : 'rightForearm', upper, 0, -UPPER_ARM, 0),
-      hand = bone(side > 0 ? 'leftHand' : 'rightHand', lower, 0, -FOREARM, 0);
-    upper.rotation.z = side * REST_SPREAD;
-    const sleeve = mesh(
-      new T.CylinderGeometry(0.095, 0.105, UPPER_ARM + 0.03, 32, 6),
-      orange,
-      upper,
-      0,
-      0.015 - (UPPER_ARM + 0.03) / 2,
-      0
-    );
-    sleeve.scale.z = 0.95;
-    const cuff = mesh(
-      new T.TorusGeometry(0.099, 0.006, 8, 32),
-      thread,
-      upper,
-      0,
-      -UPPER_ARM - 0.015,
-      0
-    );
-    cuff.rotation.x = Math.PI / 2;
-    mesh(
-      new T.CylinderGeometry(0.052, 0.055, FOREARM - 0.11, 16),
-      black,
-      lower,
-      0,
-      -0.04 - (FOREARM - 0.11) / 2,
-      0
-    );
-    ellipsoid(hand, black, 0, -0.02, 0, 0.108, 0.115, 0.087);
-    ellipsoid(hand, black, -side * 0.076, -0.005, 0.04, 0.04, 0.06, 0.04);
-    return { upper, lower, hand };
-  }
-  // Rounded boot lasts: broad toe, narrower heel and a curved instep. Rings
-  // replace the old extruded rectangle; all points stay inside the existing
-  // conservative ankle/sole clearance envelope used by the walk solver.
-  function shoeGeometry(width, length, height, { sole = false } = {}) {
-    const rings = sole
-      ? [
-          [0.96, 0, 0],
-          [1, 0.35, 0],
-          [0.99, 0.8, 0],
-          [0.96, 1, 0]
-        ]
-      : [
-          [1, 0, 0],
-          [0.99, 0.32, -0.005],
-          [0.88, 0.68, -0.03],
-          [0.63, 0.91, -0.09],
-          [0.31, 1, -0.12]
-        ];
-    const points = [],
-      indices = [],
-      segments = 32;
-    for (const [scale, h, shift] of rings)
-      for (let i = 0; i <= segments; i++) {
-        const a = (i / segments) * Math.PI * 2,
-          c = Math.cos(a),
-          heel = 0.78 + (0.22 * (c + 1)) / 2;
-        const x = Math.sin(a) * width * 0.5 * heel * scale,
-          z = length * (0.17 + shift) + c * length * 0.5 * scale;
-        points.push(x, h * height + (sole ? 0.006 * Math.max(0, c) ** 2 : 0), z);
-      }
-    for (let j = 0; j < rings.length - 1; j++)
-      for (let i = 0; i < segments; i++) {
-        const a = j * (segments + 1) + i,
-          b = a + segments + 1;
-        indices.push(a, a + 1, b, a + 1, b + 1, b);
-      }
-    const bottom = points.length / 3;
-    points.push(0, 0, length * 0.17);
-    const top = points.length / 3;
-    points.push(0, height, length * 0.05);
-    for (let i = 0; i < segments; i++) {
-      indices.push(bottom, i + 1, i);
-      const a = (rings.length - 1) * (segments + 1) + i;
-      indices.push(top, a, a + 1);
-    }
-    const g = new T.BufferGeometry();
-    g.setAttribute('position', new T.Float32BufferAttribute(points, 3));
-    g.setIndex(indices);
-    g.computeVertexNormals();
-    return g;
-  }
-  const soleMaterial = material(0x66503c);
-  function leg(side) {
-    const upper = bone(side > 0 ? 'leftThigh' : 'rightThigh', hips, side * 0.125, 0, 0),
-      lower = bone(side > 0 ? 'leftShin' : 'rightShin', upper, 0, -LEG_LENGTH, 0),
-      foot = bone(side > 0 ? 'leftFoot' : 'rightFoot', lower, 0, -LEG_LENGTH, 0);
-    mesh(new T.CylinderGeometry(0.083, 0.074, LEG_LENGTH, 24), black, upper, 0, -LEG_LENGTH / 2, 0);
-    mesh(
-      new T.CylinderGeometry(0.074, 0.066, LEG_LENGTH - 0.025, 24),
-      linen,
-      lower,
-      0,
-      -LEG_LENGTH / 2,
-      0
-    );
-    for (let i = 0; i < 4; i++) {
-      const band = mesh(
-        new T.TorusGeometry(0.073 - i * 0.0015, 0.0035, 6, 32),
-        cream,
-        lower,
-        0,
-        -0.045 - i * 0.05,
-        0
-      );
-      band.rotation.x = Math.PI / 2 + 0.04;
-    }
-    mesh(shoeGeometry(0.205, 0.3, 0.022, { sole: true }), soleMaterial, foot, 0, -0.086, 0);
-    mesh(shoeGeometry(0.19, 0.25, 0.062), black, foot, 0, -0.055, 0);
-    return { upper, lower, foot };
-  }
-  const leftArm = arm(1),
-    rightArm = arm(-1),
-    leftLeg = leg(1),
-    rightLeg = leg(-1);
+  const kit = { bone, mesh, ellipsoid, spine, hips, orange, thread, black, linen, cream };
+  kit.sole = material(0x66503c);
+  const leftArm = buildArm(kit, 1),
+    rightArm = buildArm(kit, -1),
+    leftLeg = buildLeg(kit, 1),
+    rightLeg = buildLeg(kit, -1);
   const toolGrip = new T.Group();
   toolGrip.position.set(0, -0.02, 0.025);
   toolGrip.rotation.set(1.9, 0, 0.12);
@@ -597,22 +289,6 @@ export function createRigModel() {
     const parent = held ? basketGrip : basketBack;
     if (equippedBasket.root.parent !== parent) parent.add(equippedBasket.root);
   }
-  function poseArm(rig, side, target, orientation, weight = 1) {
-    const shoulder = rig.upper.position.toArray(),
-      solution = solveArm(shoulder, target, side);
-    const q1 = new T.Quaternion().setFromUnitVectors(
-      DOWN,
-      solution.elbow.clone().sub(solution.shoulder).normalize()
-    );
-    const q2 = new T.Quaternion().setFromUnitVectors(
-      DOWN,
-      solution.hand.clone().sub(solution.elbow).normalize()
-    );
-    const qHand = q2.clone().invert().multiply(orientation);
-    rig.upper.quaternion.slerp(q1, weight);
-    rig.lower.quaternion.slerp(q1.clone().invert().multiply(q2), weight);
-    rig.hand.quaternion.slerp(qHand, weight);
-  }
   function constrainWork(
     action,
     progress,
@@ -664,19 +340,45 @@ export function createRigModel() {
     renderedAction = null,
     renderedProgress = 0,
     renderedWork = null;
-  function poseLeg(target, rig, hipY) {
-    const knee = new T.Vector3(0, target.knee.y - hipY, target.knee.z),
-      ankle = new T.Vector3(0, target.foot.y - target.knee.y, target.foot.z - target.knee.z);
-    const q1 = new T.Quaternion().setFromUnitVectors(DOWN, knee.normalize()),
-      q2 = new T.Quaternion().setFromUnitVectors(DOWN, ankle.normalize());
-    rig.upper.quaternion.copy(q1);
-    rig.lower.quaternion.copy(q1).invert().multiply(q2);
-    rig.foot.quaternion
-      .copy(q2)
-      .invert()
-      .multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(1, 0, 0), target.foot.pitch));
-  }
 
+  // What the clip test needs to know (rig-clips.js, rig-solids.js), read live.
+  const clipParts = {
+    coat,
+    hem,
+    patch,
+    neck,
+    head,
+    wiki,
+    leftArm,
+    rightArm,
+    leftLeg,
+    rightLeg,
+    toolGrip,
+    toolBack,
+    basketGrip,
+    basketBack,
+    lanternModel,
+    flareModel,
+    cargoRoot,
+    get equippedPickaxe() {
+      return equippedPickaxe;
+    },
+    get basketHeld() {
+      return basketHeld;
+    },
+    get cargoKind() {
+      return cargoKind;
+    },
+    get renderedAction() {
+      return renderedAction;
+    },
+    get renderedWork() {
+      return renderedWork;
+    },
+    get flareHand() {
+      return flareHand;
+    }
+  };
   return {
     scene,
     model,
@@ -853,99 +555,8 @@ export function createRigModel() {
         ]
       };
     },
-    // Every visible mesh, grouped into the solid things that must never pass
-    // through one another (rig-clips.js). A group is one rigid or jointed piece.
-    solids() {
-      const owner = new Map([
-        [coat, 'coat'],
-        [hem, 'coat'],
-        [patch, 'coat'],
-        [neck, 'collar'],
-        [head, 'head'],
-        [wiki.root, 'wiki'],
-        [wiki.body, 'wiki'],
-        [wiki.base, 'wikiFeet'],
-        [leftArm.upper, 'leftArm'],
-        [rightArm.upper, 'rightArm'],
-        [leftArm.hand, 'leftHand'],
-        [rightArm.hand, 'rightHand'],
-        [leftLeg.upper, 'leftLeg'],
-        [rightLeg.upper, 'rightLeg'],
-        [toolGrip, 'pickaxe'],
-        [toolBack, 'pickaxe'],
-        [basketGrip, 'basket'],
-        [basketBack, 'basket'],
-        [lanternModel.root, 'lantern'],
-        [flareModel.root, 'flare'],
-        [cargoRoot, 'cargo']
-      ]);
-      const groups = new Map();
-      scene.traverseVisible((o) => {
-        if (!o.isMesh) return;
-        let a = o;
-        while (a && !owner.has(a)) a = a.parent;
-        if (!a) return;
-        const name = owner.get(a);
-        if (!groups.has(name)) groups.set(name, []);
-        groups.get(name).push(o);
-      });
-      return [...groups].map(([name, meshes]) => ({ name, meshes }));
-    },
-    // Where two solids are meant to meet: a joint (the whole pair) or a seam
-    // near one point. A hand only meets the gear it is holding right now.
-    contacts() {
-      const at = (b) => b.getWorldPosition(new T.Vector3()),
-        list = [
-          ['leftArm', 'leftHand'],
-          ['rightArm', 'rightHand'],
-          ['collar', 'coat'],
-          ['collar', 'head']
-        ].map(([a, b]) => ({ a, b }));
-      // The coat and collar close over the shoulder, and the hood's cowl drapes
-      // a little further down over it.
-      for (const [side, arm] of [
-        ['left', leftArm],
-        ['right', rightArm]
-      ])
-        for (const [b, r] of [
-          ['coat', SHOULDER],
-          ['collar', SHOULDER],
-          ['head', COWL]
-        ])
-          list.push({ a: side + 'Arm', b, at: at(arm.upper), r }); // i18n-ok: solid names for the clip test.
-      // Bending joints: elbows, knees and ankles, where a limb's two segments meet.
-      for (const [side, arm] of [
-        ['left', leftArm],
-        ['right', rightArm]
-      ])
-        list.push({ a: side + 'Arm', b: side + 'Arm', at: at(arm.lower), r: ELBOW }); // i18n-ok: solid names for the clip test.
-      for (const [side, leg] of [
-        ['left', leftLeg],
-        ['right', rightLeg]
-      ])
-        list.push(
-          // i18n-ok: solid names for the clip test.
-          { a: side + 'Leg', b: side + 'Leg', at: at(leg.lower), r: KNEE },
-          // i18n-ok: solid names for the clip test.
-          { a: side + 'Leg', b: side + 'Leg', at: at(leg.foot), r: ANKLE }
-        );
-      // The hood's rim tucks into the coat around the neck.
-      list.push({ a: 'head', b: 'coat', at: at(neck), r: NECK });
-      // Wiki's fibre feet grow out of its stalk and hold onto the hood.
-      list.push(
-        { a: 'wikiFeet', b: 'head' },
-        { a: 'wikiFeet', b: 'wiki', at: at(wiki.base), r: WIKI_ROOT },
-        { a: 'wiki', b: 'wiki', at: at(wiki.cap), r: WIKI_NECK }
-      );
-      const held = equippedPickaxe && equippedPickaxe.root.parent === toolGrip;
-      if (held) list.push({ a: 'rightHand', b: 'pickaxe' });
-      if (basketHeld) list.push({ a: 'leftHand', b: 'basket' });
-      if (cargoKind) list.push({ a: 'leftHand', b: 'cargo' }, { a: 'rightHand', b: 'cargo' });
-      if (renderedAction === 'collect' && renderedWork === 'lantern')
-        list.push({ a: 'leftHand', b: 'lantern' });
-      if (flareHand && flareModel.root.visible) list.push({ a: flareHand + 'Hand', b: 'flare' }); // i18n-ok: solid names for the clip test.
-      return list;
-    },
+    solids: () => solidsOf(scene, clipParts),
+    contacts: () => contactsOf(clipParts),
     bones: bones.length + wiki.bones,
     dispose() {
       for (const asset of baskets.values()) {

@@ -16,20 +16,10 @@ import * as Core from '../../core/index.js';
 import { FLAT_RISE_PX } from '../camera.js';
 import { drawTerrain, drawMerging, onGround } from './terrain.js';
 import { createAtlas } from './atlas.js';
-import {
-  drawExtractor,
-  drawPlayer,
-  drawFriend,
-  drawGrave,
-  drawNameTag,
-  drawAutoTag,
-  drawSign,
-  signSide,
-  drawProp,
-  drawParticles,
-  drawFloats,
-  drawFlyers
-} from './sprites.js';
+import { drawExtractor, drawPlayer, drawFriend, drawGrave, drawProp } from './sprites.js';
+import { drawNameTag, drawAutoTag } from './sprites-tags.js';
+import { drawSign, signSide } from './sprites-sign.js';
+import { drawParticles, drawFloats, drawFlyers } from './sprites-fx.js';
 import { scene } from './scene.js';
 import { drawFocus } from './focus.js';
 import { drawFits, drawGhostSpot, drawReach, ghostAlpha } from './reach.js';

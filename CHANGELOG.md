@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.182.3] - 2026-11-01
+
+- Every source file now fits the 600-line limit, so the list of files
+  allowed over it is gone from `test/unit/file-size.test.js` (Watch,
+  2026-11-01: "the goal is highly testable code").
+  `src/core/cultivation.js` (825 to 515 lines) keeps the crystal rules; what
+  a crystal world is made of moved to `cultivation-model.js`, the stolen
+  heart to `cultivation-heart.js`, and checking and mending saves to
+  `cultivation-save.js`.
+  `server/src/room.js` (1,006 to 550) keeps joining and storage; what
+  messages do (`room-play.js`), anti-cheat and moderation (`room-watch.js`)
+  and the audit log (`room-log.js`) are Room's own methods kept in their
+  own files.
+  `server/src/worker.js` (947 to 574) keeps the Durable Objects. The HTTP
+  routes (`routes.js`, `admin-routes.js`, `http.js`) need no Cloudflare any
+  more, so `test/unit/http.test.js` runs them against stand-ins. The four
+  copies of the moderator routes' JSON body reading are now one `readJson`.
+  `server/src/admin.js` (693 to 166): the page's own script is
+  `admin-client.js`.
+  `src/game/render/rig-model.js` (972 to 583): Mica's shapes are in
+  `rig-geometry.js`, arms and legs in `rig-limbs.js`, and the clip test's
+  solids and contacts in `rig-solids.js`. Every mesh, bone, solid and
+  contact was checked identical to before, pose by pose.
+  `src/game/render/sprites.js` (735 to 498): the invite sign
+  (`sprites-sign.js`), name tags (`sprites-tags.js`) and effects
+  (`sprites-fx.js`) are their own files.
+
 ## [0.182.2] - 2026-11-01
 
 - Split three more oversized modules into parts that are tested on their

@@ -3,9 +3,10 @@
  * keep their full height while the ground is foreshortened; their shadows lie flat. */
 
 import * as Core from '../../core/index.js';
-import { rgba } from './palette.js';
 import { pose, ACT_TIME } from './motion.js';
 import { characterFrame } from './character-sprite.js';
+import { HANDS, drawSign } from './sprites-sign.js';
+import { drawSnore } from './sprites-tags.js';
 
 const TAU = Math.PI * 2;
 
@@ -15,7 +16,6 @@ const groundAt = (cam, s, x, y) =>
 
 const FOOT = 0.6; // where on a tile's depth standing things put their feet
 const SHADOW = 'rgba(0,0,0,0.38)';
-const FLOAT_FADE = 0.6; // seconds a floating label takes to fade out
 // The wanderer stands on the boat's deck at full size, so the boat (its hull
 // and mast) is drawn to the same scale as them.
 const BOAT_DECK = Core.BOAT_DECK;
@@ -267,86 +267,6 @@ function drawTool(ctx, look, body, u, tool, dir, level) {
 
 /* ------------------------------------------------------------ friends */
 
-const HANDS = 0.55; // how far up a figure their hands are, of its height
-const SIGN_COLOR = '#3f9bd6'; // the invite's friendly sky blue (style.css #btnInvite)
-const ease = (t) => 1 - (1 - t) ** 3 + Math.sin(t * Math.PI) * 0.15; // up with a little bounce
-
-// The sign you hold up to invite a friend: a board held in both hands in
-// front of you (hands at `hands` px down the screen), `side` px across.
-// Yours carries the real QR code (`face`, a canvas of its modules), big
-// enough for a friend's camera to scan; a friend's shows a small QR-like
-// pattern (`face` a number to vary it). `caption` is written along the
-// board's bottom edge. `t` 0..1 raises it from your hands' height.
-export function drawSign(ctx, x, hands, u, t, time, face, side = u * 0.62, caption = '') {
-  const lift = ease(t);
-  const rim = Math.max(u * 0.06, side * 0.05);
-  const foot = caption ? Math.round(side * 0.13) : 0; // room for the caption
-  const bottom = hands + rim * 0.5 + (1 - lift) * side * 0.3 + Math.sin(time * 3) * u * 0.02;
-  const left = x - side / 2,
-    upper = bottom - rim - foot - side;
-  ctx.save();
-  ctx.globalAlpha *= Math.min(1, t * 2);
-  ctx.fillStyle = SIGN_COLOR;
-  ctx.beginPath();
-  ctx.roundRect(left - rim, upper - rim, side + rim * 2, side + rim * 2 + foot, rim * 2);
-  ctx.fill();
-  if (caption) {
-    ctx.fillStyle = '#fff';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `800 ${Math.round(foot * 0.62)}px system-ui, sans-serif`; // i18n-ok: a font
-    ctx.fillText(caption, x, upper + side + rim * 0.4 + foot / 2, side);
-  }
-  // Both hands gripping its bottom edge.
-  const hr = Math.max(3, u * 0.08),
-    hx = Math.min(side * 0.3, u * 0.24);
-  ctx.fillStyle = '#f2c9a0';
-  ctx.strokeStyle = 'rgba(40,24,14,0.85)';
-  ctx.lineWidth = Math.max(1.5, u * 0.03);
-  for (const d of [-1, 1]) {
-    ctx.beginPath();
-    ctx.arc(x + d * hx, bottom - rim * 0.2, hr, 0, TAU);
-    ctx.fill();
-    ctx.stroke();
-  }
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(left, upper, side, side);
-  if (typeof face === 'object' && face) {
-    // The real code, square pixels and no blur, so cameras read it.
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(face, left, upper, side, side);
-  } else {
-    // A QR-ish pattern: three finder squares and some dots.
-    const seed = face || 0,
-      cell = side / 9;
-    ctx.fillStyle = '#111';
-    const finder = (cx, cy) => {
-      ctx.fillRect(left + cx * cell, upper + cy * cell, cell * 3, cell * 3);
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(left + (cx + 1) * cell, upper + (cy + 1) * cell, cell, cell);
-      ctx.fillStyle = '#111';
-    };
-    finder(0.5, 0.5);
-    finder(5.5, 0.5);
-    finder(0.5, 5.5);
-    for (let i = 0; i < 12; i++) {
-      const cx = 4 + ((i * 7 + seed) % 5),
-        cy = 4 + ((i * 3 + seed * 5) % 5);
-      if ((i + seed) % 3)
-        ctx.fillRect(left + cx * cell - cell / 2, upper + cy * cell - cell / 2, cell, cell);
-    }
-  }
-  ctx.restore();
-  // Where it stands on screen, to catch taps on it.
-  return { x: left - rim, y: upper - rim, w: side + rim * 2, h: side + rim * 2 + foot };
-}
-
-// How big your own sign is on screen: as big as fits above you, so a friend's
-// phone can scan it from a step away.
-export function signSide(cam) {
-  return Math.round(Math.min(cam.width * 0.62, cam.height * 0.36, 340));
-}
-
 // A friend, drawn like the wanderer (holding what they play on) with a ring
 // of their colour at their feet, on a boat on
 // water like you. How they're doing shows in how they look, always at full
@@ -570,166 +490,9 @@ const STILL = { act: null, t: 0, idle: 0 };
 // Whether a friend faces left (their sprite is mirrored).
 const facesLeft = (f) => f.fx < -0.01;
 
-// A player's name over their head: a tag in their colour, the same size at
-// every zoom, drawn over the night so it always reads. (x, y) is its centre.
-// `taken`: boxes of the tags already drawn; one that would cover any of
-// them isn't drawn (returns false), so a crowd's names stay readable.
-export function drawNameTag(ctx, x, y, name, color, taken = null) {
-  ctx.save();
-  ctx.font = '800 12px system-ui, sans-serif'; // i18n-ok: a font
-  const w = Math.ceil(ctx.measureText(name).width) + 14;
-  if (taken) {
-    const box = { l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 11, b: y + 11 };
-    if (taken.some((o) => o.l < box.r && box.l < o.r && o.t < box.b && box.t < o.b)) {
-      ctx.restore();
-      return false;
-    }
-    taken.push(box);
-  }
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = color;
-  ctx.strokeStyle = 'rgba(10,8,6,0.85)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x - w / 2, y - 9, w, 18, 9);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#0c0a08';
-  ctx.fillText(name, x, y + 0.5);
-  ctx.restore();
-  return true;
-}
-
-// AUTO's tag over your head while it plays: gold, with a star that slowly
-// turns, the same size at every zoom. (x, y) is its centre.
-export function drawAutoTag(ctx, x, y, label, time, taken = null) {
-  ctx.save();
-  ctx.font = '800 12px system-ui, sans-serif'; // i18n-ok: a font
-  const w = Math.ceil(ctx.measureText(label).width) + 30;
-  if (taken) taken.push({ l: x - w / 2 - 2, r: x + w / 2 + 2, t: y - 11, b: y + 11 });
-  ctx.shadowColor = 'rgba(255,209,102,0.7)';
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#33280f';
-  ctx.strokeStyle = '#ffe39a';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.roundRect(x - w / 2, y - 10, w, 20, 10);
-  ctx.fill();
-  ctx.stroke();
-  ctx.shadowBlur = 0;
-  // the star
-  const sx = x - w / 2 + 11,
-    r = 5.5,
-    a0 = time * 1.5 - Math.PI / 2;
-  ctx.fillStyle = '#ffd166';
-  ctx.beginPath();
-  for (let i = 0; i < 10; i++) {
-    const a = a0 + (i * Math.PI) / 5,
-      rr = i % 2 ? r * 0.45 : r;
-    ctx.lineTo(sx + Math.cos(a) * rr, y + Math.sin(a) * rr);
-  }
-  ctx.closePath();
-  ctx.fill();
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fbeec4';
-  ctx.fillText(label, x + 8, y + 0.5);
-  ctx.restore();
-}
-
-// Three letters drifting up and away from (x, y), fading in and out: a doze
-// (small z's) or deep sleep (big Z's). `dir` is which way they drift.
-function drawSnore(
-  ctx,
-  letter,
-  x,
-  y,
-  dir,
-  u,
-  time,
-  { speed, size, rise, drift, weight, outline = false }
-) {
-  ctx.save();
-  ctx.fillStyle = '#dfe9ff';
-  ctx.strokeStyle = 'rgba(10,8,6,0.6)';
-  ctx.lineWidth = 3;
-  for (let i = 0; i < 3; i++) {
-    const k = (time * speed + i / 3) % 1;
-    ctx.globalAlpha = Math.sin(k * Math.PI);
-    ctx.font = `${weight} ${Math.round(u * size * (1 + k))}px system-ui, sans-serif`; // i18n-ok: a font
-    const lx = x + dir * k * u * drift,
-      ly = y - k * u * rise;
-    if (outline) ctx.strokeText(letter, lx, ly);
-    ctx.fillText(letter, lx, ly);
-  }
-  ctx.restore();
-}
-
 // A prop (glowcap, lamp, flag) standing in a tunnel.
 export function drawProp(ctx, cam, s, look, kind, x, y) {
   const u = cam.tilePx;
   const at = cam.project(x + 0.5, y + FOOT, groundAt(cam, s, x, y));
   look.stand(ctx, look.pick('mark.' + kind, 'image', x, y, s.time), at.x, at.y, u);
-}
-
-export function drawParticles(ctx, cam, fx) {
-  for (const p of fx.particles) {
-    const a = Math.max(0, p.life / p.max);
-    const { x, y } = cam.project(p.x, p.y);
-    ctx.globalAlpha = a;
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(x, y, p.size * (0.5 + a * 0.7), 0, TAU);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-}
-
-// Floating numbers, with the icon of what they count after them.
-export function drawFloats(ctx, cam, look, fx) {
-  const font = (px) => '700 ' + px + 'px -apple-system, sans-serif'; // i18n-ok: a font
-  const size = Math.round(Math.max(14, cam.tilePx * 0.42));
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.font = font(size);
-  ctx.lineWidth = 4;
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = 'rgba(0,0,0,0.75)';
-  for (const f of fx.floats) {
-    const { x, y } = cam.project(f.x, f.y);
-    // A label that just grew pops a little bigger.
-    const px = f.pop > 0 ? Math.round(size * (1 + 0.3 * f.pop)) : size;
-    if (px !== size) ctx.font = font(px);
-    const tw = ctx.measureText(f.text).width;
-    const iw = f.icon ? px * 1.15 : 0;
-    const left = x - (tw + iw) / 2;
-    ctx.globalAlpha = Math.min(1, f.life / FLOAT_FADE);
-    ctx.strokeText(f.text, left, y);
-    ctx.fillStyle = f.color;
-    ctx.fillText(f.text, left, y);
-    if (f.icon)
-      look.draw(ctx, look.pick(f.icon, 'icon'), left + tw + px * 0.15, y - px / 2, px, px);
-    if (px !== size) ctx.font = font(size);
-  }
-  ctx.globalAlpha = 1;
-}
-
-// Gathered items floating home to the stockpile, as their resource's icon.
-export function drawFlyers(ctx, cam, look, fx) {
-  const size = Math.max(12, cam.tilePx * 0.36);
-  for (const f of fx.flyers) {
-    const { x, y } = cam.project(f.x, f.y);
-    if (x < -size || y < -size || x > cam.width + size || y > cam.height + size) continue;
-    ctx.globalAlpha = Math.min(1, 0.3 + f.t * 1.5);
-    look.draw(
-      ctx,
-      look.pick(Core.resourceLook(f.res), 'icon'),
-      x - size / 2,
-      y - size / 2,
-      size,
-      size
-    );
-  }
-  ctx.globalAlpha = 1;
 }

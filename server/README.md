@@ -8,11 +8,18 @@ It is built from smaller pieces, each tested on its own
 (`test/unit/room-parts.test.js`): where players may walk and how cheats
 count (`src/moves.js`), invite links (`src/invites.js`), how a world is laid
 out in storage (`src/stored.js`) and the per-connection rate limits
-(`src/limits.js`).
+(`src/limits.js`). The room's own methods are kept by subject: what each
+message does (`src/room-play.js`), anti-cheat and moderation
+(`src/room-watch.js`) and the audit log (`src/room-log.js`).
 The Durable Object itself, which writes every world to storage and reads it
 back, runs for real in Node too (`test/unit/worker.test.js`), on a stand-in
 for Cloudflare's runtime and storage (`test/support/durable.js`) that can
 fail a write and restart the object.
+The HTTP routes need no Cloudflare at all and are tested with stand-ins
+for the Durable Objects (`test/unit/http.test.js`): the front door
+(`src/routes.js`), the moderator's routes (`src/admin-routes.js`) and what
+they share, such as allowed origins, the token check and capped bodies
+(`src/http.js`). The moderator's page script is `src/admin-client.js`.
 The wire format and every check on it are in `../src/net/protocol.js`,
 shared with the game.
 

@@ -398,7 +398,8 @@ Idle breathing/head motion use explicit presentation time; steady sign/boat
 poses suppress idle motion. All curves are deterministic, bounded and evaluated
 from phase/action progress, without a cloth physics solver or simulation work.
 Walk follow-through fades through the existing start/stop blend.
-The model's source is `src/game/render/rig-model.js` (drawn by `src/game/render/rigged-character.js`); the pure motion
+The model's source is `src/game/render/rig-model.js`, with its shapes in
+`src/game/render/rig-geometry.js` and its arms and legs in `src/game/render/rig-limbs.js` (drawn by `src/game/render/rigged-character.js`); the pure motion
 functions are in `src/game/render/rig-motion.js`. Art guidance is in
 `art/characters/README.md`. Model polish and further equipment/cargo attachments remain work; this first version is not a claim of finished
 production character art or realistic cloth simulation.
@@ -419,7 +420,7 @@ real-client review at native/close scales and across the full motion loop.
 Clipping is an illegal state (Watch, 2026-10-25): no two solid parts of
 Mica, Wiki or their gear may pass through each other, and no model may pass
 through itself. Solids meet only at declared joints and grips
-(`contacts()` in `src/game/render/rig-model.js`). `test/unit/rig-clips.test.js`
+(`contactsOf()` in `src/game/render/rig-solids.js`). `test/unit/rig-clips.test.js`
 sweeps every pose and fails on a clip; the local dev build throws on one.
 New gear and poses must pass it; place stowed gear from the coat's shape
 rather than by eye, so it neither clips nor floats.
