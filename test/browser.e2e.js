@@ -826,6 +826,27 @@ async function main() {
     );
     process.exit(failures ? 1 : 0);
   }
+  if (process.env.MTE_MAP_ZOOM_ONLY === '1') {
+    const { checkMapZoom } = await import('./map-zoom.browser.js');
+    for (const [width, height] of [
+      [390, 844],
+      [320, 568]
+    ]) {
+      await cdp.send(
+        'Emulation.setDeviceMetricsOverride',
+        { width, height, deviceScaleFactor: 2, mobile: true },
+        session
+      );
+      await navigate('http://127.0.0.1:' + PORT + '/?playtestReplay');
+      await evalJS('document.getElementById("btnClose").click();MTE_GAME.setZoom(1)');
+      await evalJS('document.getElementById("btnMap").click()');
+      ok(await waitFor('MTE_GAME.mapOn()', 3000), 'the map opens at ' + width);
+      await checkMapZoom({ evalJS, waitFor, ok, touch, sleep });
+    }
+    eq(pageErrors.length, 0, 'one-hand map zoom has no browser exceptions');
+    console.log((failures ? 'MAP ZOOM FAILURES' : 'MAP ZOOM PASSED') + ' — ' + checks + ' checks');
+    process.exit(failures ? 1 : 0);
+  }
   if (process.env.MTE_MAP_EQUIPMENT_ONLY === '1') {
     const { checkMapEquipment } = await import('./map-equipment.browser.js');
     for (const lang of ['en', 'lt']) {
@@ -4721,6 +4742,14 @@ async function main() {
   ok(
     await waitFor('!MTE_GAME.mapOn() && Math.abs(MTE_GAME.zoom() - ' + zoomWas + ') < 0.02', 4000),
     'and then back to the zoom you had (' + (await evalJS('MTE_GAME.zoom()')) + ')'
+  );
+  await evalJS('document.getElementById("btnMap").click()');
+  ok(await waitFor('MTE_GAME.mapOn()', 3000), 'the map opens again for one-hand zoom');
+  const { checkMapZoom } = await import('./map-zoom.browser.js');
+  await checkMapZoom({ evalJS, waitFor, ok, touch, sleep });
+  await evalJS('MTE_GAME.setZoom(' + zoomWas + ')');
+  await evalJS(
+    'MTE_GAME.getState().player.z=' + was.z + ';MTE_GAME.setPlayer(' + was.x + ',' + was.y + ')'
   );
 
   /* -------------------------------------------------- late-game UI */

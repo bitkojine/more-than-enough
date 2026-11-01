@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.182.0':
+    'Zoom the world map with one hand, like in Google Maps: {phone:double tap, keep your finger down on the second tap|laptop:double-click, keep the button down on the second click} and drag down to zoom in or up to zoom out. A quick {phone:double tap|laptop:double-click} zooms in a step.',
   'news.0.181.14':
     'With AUTO switched on in Nerds, the open message log no longer covers its button: the log now sits just above it. Behind the scenes, the full browser test suite runs on every update again.',
   'news.0.181.13':
@@ -24,18 +26,6 @@ export default {
     'Long menu content now scrolls inside its panel instead of overflowing onto the game. Performance details keep their header and Close button fixed while you inspect every observation.',
   'news.0.181.6':
     'Performance warnings now leave the action buttons clear on short landscape layouts. The compact pill stays readable, with full-size inspection and collapse controls.',
-  'news.0.181.5':
-    'Performance diagnostics now show live timing breakdowns, warnings and copyable reports. Enable them in Nerds to automatically see a compact card when the game slows down.',
-  'news.0.181.4':
-    'Mica carries one active light at a time: flares switch the lantern off, and switching back extinguishes the flare. Both work on every layer. Solar panels and water wheels are back in surface Build, available before machine activation.',
-  'news.0.181.3':
-    'Equipment now stays open in world map view. Open the compact Equipment card and its full crafting menu without leaving the map.',
-  'news.0.181.2':
-    'Earnings now shows rates per second only. Removed the per-minute and per-hour selector.',
-  'news.0.181.1':
-    'Earnings now separates production, waiting stock and packs, includes crystal chambers and explains stopped production. Spending records actual payments; older holdings estimates are labelled. Recommendations match available menus, and charts preserve zero output and elapsed time.',
-  'news.0.181.0':
-    'Focus on gathering, crystal cultivation and restoring the machine. Optional buildings, baskets, flares and later tool upgrades show locks until activation. Existing equipment and buildings are kept; shelters remain available for heart recovery.',
   'fullscreen.label': 'Full screen',
   'fullscreen.changing': 'Changing…',
   'fullscreen.unsupported': 'Help',

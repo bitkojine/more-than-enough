@@ -3,7 +3,8 @@
  * to the view while it shows:
  *
  *   drag            pans it (you stay where you are); input.js asks pans()
- *   pinch, wheel    zoom about the finger or cursor (zoomed())
+ *   pinch, wheel    zoom about the finger or cursor (zoomed()); so does a
+ *                   double tap and drag (input.js), one-handed
  *   the layer pill  steps up and down through the layers you've explored,
  *                   in place of the depth pill (the map opens on yours)
  *   the map button  at the foot of the zoom pill: zooms all the way out in

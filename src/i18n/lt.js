@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.182.0':
+    'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
   'news.0.181.14':
     'Kai Moksliukų skiltyje įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
   'news.0.181.13':
@@ -24,18 +26,6 @@ export default {
     'Ilgas meniu turinys dabar slenka savo skydelyje, o ne išsilieja ant žaidimo. Peržiūrint našumo duomenis ir pastebėjimus, antraštė ir uždarymo mygtukas lieka vietoje.',
   'news.0.181.6':
     'Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.',
-  'news.0.181.5':
-    'Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.',
-  'news.0.181.4':
-    'Vienu metu Mica naudoja vieną šviesą: žiežirba išjungia žibintą, o įjungus žibintą žiežirba užgęsta. Abu veikia visuose sluoksniuose. Saulės plokštės ir vandens ratai vėl prieinami paviršiaus statybose dar prieš paleidžiant mašiną.',
-  'news.0.181.3':
-    'Įrangos meniu dabar lieka atvertas pasaulio žemėlapyje. Neišeidamas iš žemėlapio gali atverti mažąją įrangos kortelę ir visą gamybos meniu.',
-  'news.0.181.2':
-    'Pajamose našumas rodomas tik per sekundę. Pašalintas minučių ir valandų pasirinkimas.',
-  'news.0.181.1':
-    'Pajamose atskirta gamyba, laukiantys ištekliai ir atsargos, įtrauktos kristalų kameros ir paaiškintos gamybos sustojimo priežastys. Registruojami tikri mokėjimai, senesnio turto įverčiai pažymėti. Pasiūlymai atitinka meniu, grafikuose matyti nulinė gamyba ir tikras laikas.',
-  'news.0.181.0':
-    'Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žybsnius ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; slėptuvės lieka prieinamos širdžiai gydyti.',
   'fullscreen.label': 'Visas ekranas',
   'fullscreen.changing': 'Keičiama…',
   'fullscreen.unsupported': 'Pagalba',

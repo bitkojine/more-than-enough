@@ -321,6 +321,8 @@ export default {
 
       <h2>Zoom</h2>
       <p>Use the <strong>+ / &minus;</strong> column on the right edge, above the action buttons, or {phone:pinch with two fingers|laptop:scroll the mouse wheel or pinch on the trackpad}.
+        On the world map you can also zoom one-handed, as in Google Maps: {phone:double tap, keep your finger down on the second tap|laptop:double-click, keep the button down on the second click} and
+        drag down to zoom in or up to zoom out. A quick {phone:double tap|laptop:double-click} zooms in a step.
         You can zoom in to 3&times; and out until tiles are just a few pixels wide. Between the buttons
         is how far you're zoomed (<strong>1&times;</strong> is normal, <strong>2&times;</strong> twice as close); {phone:tap|laptop:click} it to go
         back to 1&times;.</p>

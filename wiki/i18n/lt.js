@@ -326,6 +326,8 @@ export default {
 
       <h2>Mastelis</h2>
       <p>Naudok <strong>+ / &minus;</strong> stulpelį dešiniajame krašte virš veiksmų mygtukų arba {phone:suimk dviem pirštais|laptop:sukiok pelės ratuką ar suimk ant jutiklinio kilimėlio}.
+        Pasaulio žemėlapį gali artinti ir viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir
+        vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.
         Priartinti gali iki 3&times;, o nutolinti tol, kol langeliai tampa vos kelių pikselių pločio. Tarp mygtukų
         matyti, kiek priartinta (<strong>1&times;</strong> – įprastai, <strong>2&times;</strong> – dvigubai arčiau); {phone:bakstelk|laptop:spustelk}, kad
         grįžtum prie 1&times;.</p>

@@ -1,5 +1,17 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.181.5':
+    'Performance diagnostics now show live timing breakdowns, warnings and copyable reports. Enable them in Nerds to automatically see a compact card when the game slows down.',
+  'news.0.181.4':
+    'Mica carries one active light at a time: flares switch the lantern off, and switching back extinguishes the flare. Both work on every layer. Solar panels and water wheels are back in surface Build, available before machine activation.',
+  'news.0.181.3':
+    'Equipment now stays open in world map view. Open the compact Equipment card and its full crafting menu without leaving the map.',
+  'news.0.181.2':
+    'Earnings now shows rates per second only. Removed the per-minute and per-hour selector.',
+  'news.0.181.1':
+    'Earnings now separates production, waiting stock and packs, includes crystal chambers and explains stopped production. Spending records actual payments; older holdings estimates are labelled. Recommendations match available menus, and charts preserve zero output and elapsed time.',
+  'news.0.181.0':
+    'Focus on gathering, crystal cultivation and restoring the machine. Optional buildings, baskets, flares and later tool upgrades show locks until activation. Existing equipment and buildings are kept; shelters remain available for heart recovery.',
   'news.0.180.9':
     'Removed building shutters. Chambers, vaults and the machine automatically protect their contents from light. Plant, tend and transfer without opening or closing anything. Cooling still matters; protect exposed cargo with a carrier.',
   'news.0.180.8':

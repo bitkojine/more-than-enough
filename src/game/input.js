@@ -18,6 +18,13 @@
  *                            main loop plays while held; perfectReleased)
  *   two fingers, wheel, +/-  zoom (tap the zoom readout for 1x); pinch and
  *                            wheel tell handlers.zoomed(was, x, y) about where
+ *   double tap the world map zoom with one hand, as in Google Maps (Watch,
+ *                            2026-10-31): hold the second tap and drag down
+ *                            to zoom in, up to zoom out, about where you
+ *                            tapped; let go without dragging to zoom in 2x.
+ *                            Only out on the map (handlers.pans()), where a
+ *                            tap does nothing; in the game a tap and a drag
+ *                            straight after it must still walk
  *   B, U / C, Escape         handlers.command('build' | 'upgrades' | 'back')
  *   F3                       handlers.command('perf') */
 
@@ -27,6 +34,9 @@ const TAP_MAX_MOVE = 14; // px a tap may wander
 const TAP_MAX_MS = 320;
 const LONG_PRESS_MS = 500; // held this still this long: a long press
 const TRAIL_MIN_STEP = 0.12; // tiles between recorded Trail points
+const DOUBLE_TAP_MS = 300; // the second press comes this soon after the first tap
+const DOUBLE_TAP_NEAR = 40; // px, and this close to it
+const DRAG_ZOOM_PX = 80; // px of one-finger drag for twice the zoom
 
 export function createInput({ canvas, cam, el, handlers }) {
   const joy = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0, moved: 0, t: 0, pan: null };
@@ -37,6 +47,8 @@ export function createInput({ canvas, cam, el, handlers }) {
   let longTimer = 0,
     longId = null; // a press that may become long; the finger a long press took
   let grabId = null; // the finger dragging what handlers.grab took
+  let lastTap = null; // { x, y, t }: the last tap on the world map, for a double tap
+  let dragZoom = null; // { id, x, y, oy, ly, moved, t }: a double tap's second press
 
   const input = {
     joy,
@@ -84,6 +96,14 @@ export function createInput({ canvas, cam, el, handlers }) {
   function pinchDistance() {
     const [a, b] = [...pointers.values()];
     return b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  }
+
+  // Zooms by `f` keeping screen point (x, y) where it is (on the map).
+  function zoomAbout(f, x, y) {
+    const was = cam.tilePx;
+    cam.setZoom(cam.zoom * f);
+    handlers.zoomed(was, x, y);
+    handlers.viewChanged();
   }
 
   function outsideActionButton(e) {
@@ -142,6 +162,7 @@ export function createInput({ canvas, cam, el, handlers }) {
       joy.x = 0;
       joy.y = 0;
       clearTimeout(longTimer);
+      dragZoom = null;
       if (!pinch.active) {
         Object.assign(pinch, { active: true, dist: pinchDistance() || 1, zoom: cam.zoom });
       }
@@ -151,6 +172,21 @@ export function createInput({ canvas, cam, el, handlers }) {
     if (handlers.grab?.(p.x, p.y)) {
       grabId = e.pointerId;
       clearTimeout(longTimer);
+      return;
+    }
+    const now = performance.now();
+    if (
+      lastTap &&
+      handlers.pans() &&
+      now - lastTap.t < DOUBLE_TAP_MS &&
+      Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < DOUBLE_TAP_NEAR
+    ) {
+      // The second press of a double tap: this finger zooms, it doesn't pan.
+      const at = lastTap;
+      lastTap = null;
+      joy.active = false;
+      clearTimeout(longTimer);
+      dragZoom = { id: e.pointerId, x: at.x, y: at.y, oy: p.y, ly: p.y, moved: 0, t: now };
       return;
     }
     Object.assign(joy, {
@@ -195,6 +231,17 @@ export function createInput({ canvas, cam, el, handlers }) {
       const p = canvasPoint(e);
       handlers.longPressMove(p.x, p.y);
       e.preventDefault();
+      return;
+    }
+    if (dragZoom && e.pointerId === dragZoom.id) {
+      e.preventDefault();
+      const y = canvasPoint(e).y;
+      dragZoom.moved = Math.max(dragZoom.moved, Math.abs(y - dragZoom.oy));
+      if (dragZoom.moved < TAP_MAX_MOVE) return;
+      // Step by step from the last move, so turning back at a zoom limit
+      // turns the zoom back at once.
+      zoomAbout(Math.pow(2, (y - dragZoom.ly) / DRAG_ZOOM_PX), dragZoom.x, dragZoom.y);
+      dragZoom.ly = y;
       return;
     }
     if (pinch.active) {
@@ -265,6 +312,18 @@ export function createInput({ canvas, cam, el, handlers }) {
       return;
     }
     if (e.pointerId === joy.id) clearTimeout(longTimer);
+    if (dragZoom && e.pointerId === dragZoom.id) {
+      const d = dragZoom;
+      dragZoom = null;
+      // A double tap that didn't drag zooms in a step.
+      if (
+        e.type !== 'pointercancel' &&
+        d.moved < TAP_MAX_MOVE &&
+        performance.now() - d.t < TAP_MAX_MS
+      )
+        zoomAbout(2, d.x, d.y);
+      return;
+    }
     if (pinch.active) {
       if (pointers.size < 2) pinch.active = false; // ignore the leftover finger
       e.preventDefault();
@@ -277,8 +336,9 @@ export function createInput({ canvas, cam, el, handlers }) {
     joy.y = 0;
     if (wasTap && !handlers.blocked()) {
       const p = canvasPoint(e);
+      lastTap = handlers.pans() ? { x: p.x, y: p.y, t: performance.now() } : null;
       handlers.tap(p.x, p.y);
-    }
+    } else lastTap = null;
   }
 
   canvas.addEventListener('pointerdown', onCanvasDown, { passive: false });
@@ -299,11 +359,8 @@ export function createInput({ canvas, cam, el, handlers }) {
     (e) => {
       if (handlers.blocked()) return;
       e.preventDefault();
-      const p = canvasPoint(e),
-        was = cam.tilePx;
-      cam.setZoom(cam.zoom * Math.pow(1.0015, -e.deltaY));
-      handlers.zoomed(was, p.x, p.y);
-      handlers.viewChanged();
+      const p = canvasPoint(e);
+      zoomAbout(Math.pow(1.0015, -e.deltaY), p.x, p.y);
     },
     { passive: false }
   );
@@ -341,12 +398,7 @@ export function createInput({ canvas, cam, el, handlers }) {
 
   // Out on the world map the steps are bigger: it reaches far further.
   const step = () => (handlers.pans() ? 2 : 1.25);
-  const zoomBy = (f) => {
-    const was = cam.tilePx;
-    cam.setZoom(cam.zoom * f);
-    handlers.zoomed(was, cam.width / 2, cam.height / 2);
-    handlers.viewChanged();
-  };
+  const zoomBy = (f) => zoomAbout(f, cam.width / 2, cam.height / 2);
   el.zoomOut.addEventListener('click', () => zoomBy(1 / step()));
   el.zoomIn.addEventListener('click', () => zoomBy(step()));
   el.zoomLevel.addEventListener('click', () => zoomBy(1 / cam.zoom));

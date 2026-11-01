@@ -1,5 +1,17 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.181.5':
+    'Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.',
+  'news.0.181.4':
+    'Vienu metu Mica naudoja vieną šviesą: žiežirba išjungia žibintą, o įjungus žibintą žiežirba užgęsta. Abu veikia visuose sluoksniuose. Saulės plokštės ir vandens ratai vėl prieinami paviršiaus statybose dar prieš paleidžiant mašiną.',
+  'news.0.181.3':
+    'Įrangos meniu dabar lieka atvertas pasaulio žemėlapyje. Neišeidamas iš žemėlapio gali atverti mažąją įrangos kortelę ir visą gamybos meniu.',
+  'news.0.181.2':
+    'Pajamose našumas rodomas tik per sekundę. Pašalintas minučių ir valandų pasirinkimas.',
+  'news.0.181.1':
+    'Pajamose atskirta gamyba, laukiantys ištekliai ir atsargos, įtrauktos kristalų kameros ir paaiškintos gamybos sustojimo priežastys. Registruojami tikri mokėjimai, senesnio turto įverčiai pažymėti. Pasiūlymai atitinka meniu, grafikuose matyti nulinė gamyba ir tikras laikas.',
+  'news.0.181.0':
+    'Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žybsnius ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; slėptuvės lieka prieinamos širdžiai gydyti.',
   'news.0.180.9':
     'Pašalintos statinių sklendės. Kameros, saugyklos ir mašina automatiškai saugo turinį nuo šviesos. Sodink, prižiūrėk ir perkelk nieko neatverdamas ir neužverdamas. Aušinimas lieka svarbus; atvirą krovinį saugok nešykle.',
   'news.0.180.8':

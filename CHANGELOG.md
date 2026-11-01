@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.182.0] - 2026-11-01
+
+- One-hand zoom on the world map, as in Google Maps (Watch, 2026-10-31):
+  double tap, hold the second tap and drag down to zoom in, up to zoom out
+  (twice the zoom per 80 px), about the spot you tapped. A double tap that
+  doesn't drag zooms in 2x. It only starts on the map, where taps do
+  nothing; in the game a tap followed by a drag still walks. Once started,
+  the finger keeps zooming until it lifts, so you can zoom straight in past
+  the map into the game. A second finger turns it into a pinch.
+  `src/game/input.js`; browser checks in `test/map-zoom.browser.js`
+  (`MTE_MAP_ZOOM_ONLY=1 npm run test:e2e` runs only them).
+
 ## [0.181.14] - 2026-10-31
 
 - Fix the open message log covering AUTO on phones (portrait): with AUTO
