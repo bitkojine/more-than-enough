@@ -262,13 +262,19 @@ decision cards):
 5. **A heart cracked right through** returns whole to the hiding place, as
    before; shelters, lining and mapped shade stay. Warnings come first.
 6. **The reward:** once the machine wakes, every heart shelter you built is a
-   teleport stop to and from the machine.
-7. **What next:** the woken machine shows where the thief went, a new far place.
-   That chapter is designed separately.
+   teleport stop to and from the machine. A shelter's card teleports you to the
+   machine; the machine's card lists the farthest five shelters with distance
+   and direction. Mica goes with everything she carries, as she is: a teleport
+   is a doorway, not a rest. Worlds won before 0.185.0 get it too.
+7. **What next:** the woken machine shows where the thief went, a new far place:
+   about 5 km from home on the surface, on the side away from the hiding place,
+   marked on the map (`thiefTrail`). That chapter is designed separately.
 
 Built in three releases: carrier heat and shade; the camp and lining; shelter
 teleports and the thief's clue. Warming rates are playtest values in
-`src/core/cultivation-heart.js`. The camp and lining shipped in 0.184.0.
+`src/core/cultivation-heart.js`. The camp and lining shipped in 0.184.0
+(live as 0.184.1), teleports and the clue in 0.185.0
+(`src/core/cultivation-travel.js`).
 
 ### One set of rules for light and heat — confirmed, 2026-11-01
 Watch asked for a world built from a few understandable rules that combine
@@ -290,7 +296,7 @@ first audit of light, heat, the carrier and shelters:
 
 
 ### Other design questions still open
-- Who stole the heart and why, and where can teleportation take players once the machine wakes?
+- Who stole the heart and why, and what waits where the thief went?
 - How do players discover its parts and reveal its purpose while retaining agency?
 - Which temperature conditions and machinery interactions create interesting layouts?
 - How do placement and cooling communicate safe conditions clearly now that facilities automatically protect their contents?

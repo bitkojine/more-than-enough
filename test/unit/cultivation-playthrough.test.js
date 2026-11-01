@@ -29,7 +29,7 @@ test('empty-handed cultivation world reaches activation through shipped movement
   assert.equal(after.extractors.length, 0, 'the focused route uses no optional producers');
   assert.ok(
     after.cultivation.facilities.every((b) =>
-      ['chamber', 'cooler', 'machine', 'bench'].includes(b.kind)
+      ['chamber', 'cooler', 'machine', 'bench', 'shelter'].includes(b.kind)
     )
   );
   assert.ok(
@@ -37,6 +37,10 @@ test('empty-handed cultivation world reaches activation through shipped movement
     'the sun warmed the carrier on the way home, and shade cooled it'
   );
   assert.equal(after.cultivation.heartLost || 0, 0, 'cooling in shade kept the heart whole');
+  assert.ok(
+    run.stages.some((p) => p.name === 'teleported to the farthest shelter and back'),
+    'the camp shelter is a teleport stop once the machine wakes'
+  );
 });
 
 // The trip home is only a choice if ignoring the sun costs something (Watch,

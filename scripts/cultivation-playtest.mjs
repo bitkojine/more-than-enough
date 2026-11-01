@@ -366,6 +366,8 @@ export function playCultivation(
       const benchAt = buildingSite(hide, 3);
       command('build', 'bench', benchAt);
       command('line', null, benchAt);
+      // ...and a heart shelter beside it, a teleport stop once the machine wakes.
+      command('build', 'shelter', buildingSite(hide, 4));
       go(hide);
       stage('camp made, carrier lined');
     }
@@ -440,6 +442,21 @@ export function playCultivation(
     activationSave = C.serialize(state);
     command('activate', null, machine);
     stage('machine activated');
+    // The reward: the shelters on the way home are teleport stops now.
+    const stops = C.teleportStops(state),
+      jump = (cmd, to) => {
+        const result = controller.cultivation(cmd);
+        trace.push({ cultivation: cmd, result });
+        actions++;
+        if (result !== 'teleported' || !C.atInteraction(state, to.x, to.y, to.z))
+          throw Error('teleport ' + result + ' ' + JSON.stringify(cmd));
+        advance(15);
+      };
+    if (camp && !stops.length) throw Error('no teleport stops after waking');
+    if (stops.length)
+      jump({ type: 'teleport', x: machine.x, y: machine.y, to: stops[0].id }, stops[0]);
+    if (stops.length) jump({ type: 'teleport', x: stops[0].x, y: stops[0].y }, machine);
+    if (stops.length) stage('teleported to the farthest shelter and back');
     if (!C.canEmbark(state)) throw Error('activation did not complete world');
     const saved = C.deserialize(C.serialize(state));
     if (!saved?.cultivation.completed || !C.canEmbark(saved))

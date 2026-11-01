@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.185.0] - 2026-11-01
+
+- Release 3 of the trip home (Watch, 2026-11-01, "Any of your heart
+  shelters", "Follow the thief"; `docs/game-design.md`, "The trip home"):
+  - Once the machine wakes, every heart shelter is a teleport stop
+    (`src/core/cultivation-travel.js`, a `teleport` crystal-world command). A
+    shelter's card teleports you to the machine; the machine's card lists
+    the five farthest shelters with distance and direction. You land on dry,
+    seen floor beside the stop with everything you carry, the carrier as
+    warm as it was. Worlds already won get the stops too; nothing new is
+    saved.
+  - The woken machine shows where the thief went (`thiefTrail`): open grass
+    about 5 km from home on the side away from the hiding place, from the
+    seed alone. The map marks it once the machine is awake, where the hiding
+    place mark was. Its chapter is designed later.
+  - The hiding place's search now shares `nearSurfaceGrass` with the trail;
+    the hiding place itself is unchanged (checked on 300 seeds).
+- The first load was 300.4 KB gzipped with this release, over the 300 KB
+  budget, so the release notes for 0.181.6 to 0.182.3 moved to the
+  What's new archive (`src/i18n/news/`), as earlier notes did: 298.5 KB.
+
 ## [0.184.1] - 2026-11-01
 
 - The surface sees its sky straight from above. In 0.184.0 a forest's

@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.185.0':
+    'Wake the machine and every heart shelter you built becomes a teleport stop: a shelter’s card takes you to the machine, and the machine’s card takes you back out to any of them. Worlds you have already won get this too. The woken machine also shows where the thief went, marked on your map.',
   'news.0.184.1':
     'The shade at a forest’s edge is as deep as inside it: open land next to the trees no longer lights the ground under them when a lamp or glowcap is somewhere in your world.',
   'news.0.184.0':
@@ -10,36 +12,10 @@ export default {
     "Opening the game just after your device wakes up, or soon after an update, no longer leaves a part of it unloaded: the game tries again, and moves to the newest version if that is why. Syncing with your other devices and the What's new list recover on their own.",
   'news.0.183.0':
     'Carrying the heart home is now a real journey. The sealed carrier still blocks light, but the sun warms it, and a carrier that gets too hot cracks the heart. Cool it in water, on a riverbank, at a cave mouth or in a heart shelter; a forest lets half the sun through. A bar above the heart shows how warm the carrier is, and a message warns you in time.',
-  'news.0.182.3':
-    'Behind the scenes, every part of the game and of the shared-world service is now small enough to read in one go, and each has its own tests. Nothing changes in play.',
-  'news.0.182.2':
-    'Behind the scenes, three more big pieces of the game are split into small parts with their own tests: the Build sheet, what your actions do, and the AUTO helper. Nothing changes in play.',
-  'news.0.182.1':
-    "The game opens a little faster: the QR code maker now loads only when you hold up an invite sign. Behind the scenes, the two biggest pieces of the game's code are split into small parts, each with its own tests. Nothing else changes in play.",
-  'news.0.182.0':
-    'Zoom the world map with one hand, like in Google Maps: {phone:double tap, keep your finger down on the second tap|laptop:double-click, keep the button down on the second click} and drag down to zoom in or up to zoom out. A quick {phone:double tap|laptop:double-click} zooms in a step.',
-  'news.0.181.14':
-    'With AUTO switched on in Nerds, the open message log no longer covers its button: the log now sits just above it. Behind the scenes, the full browser test suite runs on every update again.',
-  'news.0.181.13':
-    'Behind the scenes: the invite links panel and the settings switches now live in their own tidy pieces of code, with new tests. Nothing changes in play.',
-  'news.0.181.12':
-    'Behind the scenes: the game’s code is now laid out by an automatic formatter and checked for mistakes before every release. Nothing changes in play.',
-  'news.0.181.11':
-    'Smoother pictures: the game now holds a steady 30 frames a second where it used to land a little under it. Performance diagnostics also separate game work from normal frame-cap waiting and report the actual canvas density.',
-  'news.0.181.10':
-    'Scenery outside the screen is no longer drawn unnecessarily. Trees, mushrooms and resource piles keep their visible overhangs and shadows while rendering does less work.',
   'progression.furtherUpgrades': 'Later upgrades',
   'cr.reason.locked': 'Activate the machine to unlock this.',
   'progression.requirement': 'Activate the machine to unlock.',
   'progression.locked': 'Locked',
-  'news.0.181.9':
-    'The game now targets 30 FPS on every device even while standing still. Idle frame-rate reduction has been removed.',
-  'news.0.181.8':
-    'Game rendering is capped at 30 FPS on every device, including the super-speed viewer. Simulations retain their independent tick rate.',
-  'news.0.181.7':
-    'Long menu content now scrolls inside its panel instead of overflowing onto the game. Performance details keep their header and Close button fixed while you inspect every observation.',
-  'news.0.181.6':
-    'Performance warnings now leave the action buttons clear on short landscape layouts. The compact pill stays readable, with full-size inspection and collapse controls.',
   'fullscreen.label': 'Full screen',
   'fullscreen.changing': 'Changing…',
   'fullscreen.unsupported': 'Help',
@@ -82,6 +58,21 @@ export default {
   'cr.sections': 'Restored sections: {n}/{total}',
   'cr.activated':
     'The machine is awake, and teleportation with it. World complete. Keep exploring, or start another empty-handed world from Beyond.',
+  'cr.teleport.home': 'Teleport to the machine',
+  'cr.teleport.to': 'Teleport: shelter {where}',
+  'cr.reason.asleep': 'Shelters become teleport stops once the machine wakes.',
+  'cr.reason.landing': 'There is no dry ground beside that stop to step out on.',
+  'cr.thief': 'Where the thief went',
+  'cr.thief.clue':
+    'A second light glows on the machine’s map, far beyond the hiding place: where the thief went. Every heart shelter you built is now a teleport stop.',
+  'compass.0': 'E',
+  'compass.1': 'SE',
+  'compass.2': 'S',
+  'compass.3': 'SW',
+  'compass.4': 'W',
+  'compass.5': 'NW',
+  'compass.6': 'N',
+  'compass.7': 'NE',
   'cr.activate': 'Activate machine',
   'reason.depotUnavailable': 'Collection Depots require a solo world with local collection.',
   'reason.localLogistics': 'This world uses physical Collection Depots.',
@@ -101,6 +92,7 @@ export default {
   'cr.up': 'Passage up',
   'cr.wild': 'Wild crystal colony',
   'cr.machine': 'Dormant machine',
+  'cr.machine.awake': 'Woken machine',
   'cr.inspect': 'Inspect',
   'cr.build': 'Build',
   'cr.equipment': 'Equipment',

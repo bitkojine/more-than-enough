@@ -28,12 +28,11 @@ commit. When you find something new, add it.
   home means ducking into water, shade or a shelter to cool it, and walking
   straight through the sun cracks the heart (`docs/game-design.md`, "The trip
   home"). Since 0.184.0 a carrier bench at the hiding place lines the
-  carrier so it warms half as fast. The walk out still has little in it, and
-  the shelter teleports and the thief's clue aren't built yet.
-- **The ending is flat.** The last two repairs and the activation all happen
-  in the same second. Waking the machine changes its picture and posts a
-  message. The story promises that teleportation comes back, but it doesn't,
-  and a finished world gives you nothing new to go after.
+  carrier so it warms half as fast. The walk out still has little in it.
+- **The ending is thin.** The last two repairs and the activation all happen
+  in the same second. Since 0.185.0 waking the machine turns your heart
+  shelters into teleport stops and marks where the thief went, but the
+  thief's chapter isn't designed yet, so the mark leads nowhere.
 - **There are two economies.** New solo worlds play the crystal chapter. Old
   solo worlds and every shared world still run the old economy. There, 26 of
   32 milestones arrive in the first 10 minutes, followed by about 17 hours of

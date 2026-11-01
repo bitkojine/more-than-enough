@@ -9,6 +9,7 @@ import { tileAt, isExplored } from './world.js';
 import { packKey } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { PROPS } from './content.js';
+import { teleportFrom } from './cultivation-travel.js';
 import { illuminationAt, invalidateIllumination, LIGHT_MAX } from './illumination.js';
 import { earn, spend as payInventory, canAfford } from './economy.js';
 import {
@@ -298,6 +299,7 @@ export function cultivationCommand(s, cmd) {
     return 'ok';
   }
   if (cmd.type === 'starter') return takeStarter(s, x, y);
+  if (cmd.type === 'teleport') return b ? teleportFrom(s, b, cmd.to) : 'site';
   if (cmd.type === 'heart') return moveHeart(s, x, y, z);
   if (cmd.type === 'lantern') {
     if (!c.gear.lantern) return 'equipment';

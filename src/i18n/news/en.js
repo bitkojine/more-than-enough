@@ -1,5 +1,31 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.182.3':
+    'Behind the scenes, every part of the game and of the shared-world service is now small enough to read in one go, and each has its own tests. Nothing changes in play.',
+  'news.0.182.2':
+    'Behind the scenes, three more big pieces of the game are split into small parts with their own tests: the Build sheet, what your actions do, and the AUTO helper. Nothing changes in play.',
+  'news.0.182.1':
+    "The game opens a little faster: the QR code maker now loads only when you hold up an invite sign. Behind the scenes, the two biggest pieces of the game's code are split into small parts, each with its own tests. Nothing else changes in play.",
+  'news.0.182.0':
+    'Zoom the world map with one hand, like in Google Maps: {phone:double tap, keep your finger down on the second tap|laptop:double-click, keep the button down on the second click} and drag down to zoom in or up to zoom out. A quick {phone:double tap|laptop:double-click} zooms in a step.',
+  'news.0.181.14':
+    'With AUTO switched on in Nerds, the open message log no longer covers its button: the log now sits just above it. Behind the scenes, the full browser test suite runs on every update again.',
+  'news.0.181.13':
+    'Behind the scenes: the invite links panel and the settings switches now live in their own tidy pieces of code, with new tests. Nothing changes in play.',
+  'news.0.181.12':
+    'Behind the scenes: the game’s code is now laid out by an automatic formatter and checked for mistakes before every release. Nothing changes in play.',
+  'news.0.181.11':
+    'Smoother pictures: the game now holds a steady 30 frames a second where it used to land a little under it. Performance diagnostics also separate game work from normal frame-cap waiting and report the actual canvas density.',
+  'news.0.181.10':
+    'Scenery outside the screen is no longer drawn unnecessarily. Trees, mushrooms and resource piles keep their visible overhangs and shadows while rendering does less work.',
+  'news.0.181.9':
+    'The game now targets 30 FPS on every device even while standing still. Idle frame-rate reduction has been removed.',
+  'news.0.181.8':
+    'Game rendering is capped at 30 FPS on every device, including the super-speed viewer. Simulations retain their independent tick rate.',
+  'news.0.181.7':
+    'Long menu content now scrolls inside its panel instead of overflowing onto the game. Performance details keep their header and Close button fixed while you inspect every observation.',
+  'news.0.181.6':
+    'Performance warnings now leave the action buttons clear on short landscape layouts. The compact pill stays readable, with full-size inspection and collapse controls.',
   'news.0.181.5':
     'Performance diagnostics now show live timing breakdowns, warnings and copyable reports. Enable them in Nerds to automatically see a compact card when the game slows down.',
   'news.0.181.4':

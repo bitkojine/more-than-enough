@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.185.0':
+    'Pažadink mašiną, ir kiekviena tavo pastatyta širdies pastogė tampa teleportacijos stotele: pastogės kortelė nuneša prie mašinos, o mašinos kortelė grąžina prie bet kurios iš jų. Tai gauna ir jau laimėti pasauliai. Pabudusi mašina dar parodo, kur dingo vagis, ir pažymi tai žemėlapyje.',
   'news.0.184.1':
     'Pavėsis miško pakraštyje toks pat gilus kaip viduje: atvira žemė šalia medžių nebešviečia po jais, kai kur nors tavo pasaulyje yra lempa ar švytintis grybas.',
   'news.0.184.0':
@@ -10,36 +12,10 @@ export default {
     'Atidarius žaidimą vos pabudus įrenginiui ar netrukus po atnaujinimo, kuri nors jo dalis nebelieka neįkelta: žaidimas bando dar kartą, o jei to priežastis atnaujinimas, pereina į naujausią versiją. Sinchronizavimas su kitais tavo įrenginiais ir sąrašas „Kas naujo“ atsigauna patys.',
   'news.0.183.0':
     'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
-  'news.0.182.3':
-    'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
-  'news.0.182.2':
-    'Užkulisiuose dar trys didelės žaidimo dalys išskaidytos į mažas, kiekviena su savo testais: statybų lapas, tai, ką daro tavo veiksmai, ir pagalbininkas AUTO. Žaidime niekas nepasikeičia.',
-  'news.0.182.1':
-    'Žaidimas atsidaro šiek tiek greičiau: QR kodų kūrėjas dabar įkeliamas tik tada, kai iškeli kvietimo ženklą. Užkulisiuose dvi didžiausios žaidimo kodo dalys išskaidytos į mažas dalis, kiekviena su savo testais. Daugiau žaidime niekas nepasikeičia.',
-  'news.0.182.0':
-    'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
-  'news.0.181.14':
-    'Kai Moksliukų skiltyje įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
-  'news.0.181.13':
-    'Užkulisiuose: kvietimų nuorodų skydelis ir nustatymų jungikliai dabar turi savo tvarkingas kodo dalis su naujais testais. Žaidime niekas nepasikeičia.',
-  'news.0.181.12':
-    'Užkulisiuose: žaidimo kodą dabar automatiškai tvarko formatavimo įrankis, o prieš kiekvieną leidimą jis tikrinamas, ar nėra klaidų. Žaidime niekas nepasikeičia.',
-  'news.0.181.11':
-    'Sklandesnis vaizdas: žaidimas dabar tolygiai rodo 30 kadrų per sekundę ten, kur anksčiau jų būdavo šiek tiek mažiau. Našumo diagnostika taip pat atskiria žaidimo darbą nuo įprasto kadrų ribotuvo laukimo ir rodo tikrąjį drobės tankį.',
-  'news.0.181.10':
-    'Už ekrano ribų esantys objektai nebepiešiami be reikalo. Išsikišusios medžių, grybų ir išteklių krūvų dalys bei šešėliai lieka matomi, o piešimui reikia mažiau darbo.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',
   'progression.locked': 'Užrakinta',
-  'news.0.181.9':
-    'Žaidimas visuose įrenginiuose siekia 30 kadrų per sekundę net ir stovint vietoje. Pašalintas kadrų dažnio mažinimas ramybės metu.',
-  'news.0.181.8':
-    'Žaidimo vaizdas visuose įrenginiuose atnaujinamas ne dažniau kaip 30 kadrų per sekundę, taip pat ir pagreitintos peržiūros lange. Simuliacijos žingsniai nuo vaizdo atnaujinimo nepriklauso.',
-  'news.0.181.7':
-    'Ilgas meniu turinys dabar slenka savo skydelyje, o ne išsilieja ant žaidimo. Peržiūrint našumo duomenis ir pastebėjimus, antraštė ir uždarymo mygtukas lieka vietoje.',
-  'news.0.181.6':
-    'Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.',
   'fullscreen.label': 'Visas ekranas',
   'fullscreen.changing': 'Keičiama…',
   'fullscreen.unsupported': 'Pagalba',
@@ -82,6 +58,21 @@ export default {
   'cr.sections': 'Atkurtos dalys: {n}/{total}',
   'cr.activated':
     'Mašina pabudo, o su ja ir teleportacija. Pasaulis užbaigtas. Tyrinėk toliau arba skiltyje „Toliau“ pradėk naują pasaulį tuščiomis rankomis.',
+  'cr.teleport.home': 'Teleportuotis prie mašinos',
+  'cr.teleport.to': 'Teleportuotis: pastogė {where}',
+  'cr.reason.asleep': 'Pastogės tampa teleportacijos stotelėmis, kai mašina pabunda.',
+  'cr.reason.landing': 'Šalia tos stotelės nėra sausos žemės, kur išlipti.',
+  'cr.thief': 'Kur dingo vagis',
+  'cr.thief.clue':
+    'Mašinos žemėlapyje, toli už slėptuvės, sužimba antra šviesa: ten dingo vagis. Kiekviena tavo pastatyta širdies pastogė dabar yra teleportacijos stotelė.',
+  'compass.0': 'R',
+  'compass.1': 'PR',
+  'compass.2': 'P',
+  'compass.3': 'PV',
+  'compass.4': 'V',
+  'compass.5': 'ŠV',
+  'compass.6': 'Š',
+  'compass.7': 'ŠR',
   'cr.activate': 'Paleisti mašiną',
   'reason.depotUnavailable':
     'Surinkimo sandėliams reikia vieno žaidėjo pasaulio su vietiniu surinkimu.',
@@ -102,6 +93,7 @@ export default {
   'cr.up': 'Praėjimas aukštyn',
   'cr.wild': 'Laukinė kristalų kolonija',
   'cr.machine': 'Mieganti mašina',
+  'cr.machine.awake': 'Pabudusi mašina',
   'cr.inspect': 'Apžiūrėti',
   'cr.build': 'Statyti',
   'cr.equipment': 'Įranga',

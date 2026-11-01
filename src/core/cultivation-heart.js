@@ -35,10 +35,19 @@ const hideouts = new Map();
 export function hidingPlace(seed) {
   let at = hideouts.get(seed);
   if (at) return at;
-  const a = hash2((hash2(seed, 17, 7717) * 1e9) | 0, 29, seed) * Math.PI * 2,
-    bx = Math.round(Math.cos(a) * HEART_DISTANCE),
-    by = Math.round(Math.sin(a) * HEART_DISTANCE),
-    chunks = new Map();
+  const a = hash2((hash2(seed, 17, 7717) * 1e9) | 0, 29, seed) * Math.PI * 2;
+  at = nearSurfaceGrass(
+    seed,
+    Math.round(Math.cos(a) * HEART_DISTANCE),
+    Math.round(Math.sin(a) * HEART_DISTANCE)
+  );
+  hideouts.set(seed, at);
+  return at;
+}
+// The open grass nearest (bx, by) on the surface as generated, with dry floor
+// on every side: from the seed alone, before and after anyone has been there.
+export function nearSurfaceGrass(seed, bx, by) {
+  const chunks = new Map();
   const type = (x, y) => {
     const k = chunkCoord(x) + ',' + chunkCoord(y);
     let c = chunks.get(k);
@@ -55,9 +64,7 @@ export function hidingPlace(seed) {
     ].every(
       ([dx, dy]) => TILE_INFO[type(x + dx, y + dy)].walk && !TILE_INFO[type(x + dx, y + dy)].swim
     );
-  at = nearestGrass(bx, by, grass) ?? { x: bx, y: by };
-  hideouts.set(seed, at);
-  return at;
+  return nearestGrass(bx, by, grass) ?? { x: bx, y: by };
 }
 function nearestGrass(x, y, ok) {
   for (let r = 0; r <= 4 * CHUNK_SIZE; r++)

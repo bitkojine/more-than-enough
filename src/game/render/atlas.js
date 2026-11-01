@@ -230,7 +230,7 @@ export function createAtlas() {
       ctx.drawImage(P.canvas, x, y, snap(q.x) - x, snap(q.y) - y);
     }
     ctx.imageSmoothingEnabled = true;
-    // Labels never cover each other: the hiding place's first, then region
+    // Labels never cover each other: the far mark's first (hiding place or thief), then region
     // names, nearest you first.
     const taken = [],
       clear = view.keepClear;
@@ -241,8 +241,13 @@ export function createAtlas() {
       drawPuffs(ctx, look, L, W, H, u, d, at);
       drawHome(ctx, at);
       const room = { l: EDGE, t: EDGE_TOP, r: W - EDGE, b: H - EDGE_BOTTOM };
-      if (s.cultivation && s.cultivation.heart?.where !== 'installed')
-        drawHidingPlace(ctx, s, at, room, clear, W, H, taken);
+      // The heart's hiding place until it is home; then, once the machine
+      // wakes, where the thief went (Watch, 2026-11-01).
+      const c = s.cultivation;
+      if (c && c.heart?.where !== 'installed')
+        drawFarMark(ctx, s, at, room, clear, W, H, taken, Core.hidingPlace(s.world.seed));
+      else if (c?.completed)
+        drawFarMark(ctx, s, at, room, clear, W, H, taken, Core.thiefTrail(s.world.seed), true);
       drawRegions(ctx, W, H, at, taken);
     }
     // Friends on this layer: a dot in their colour with their name.
@@ -390,9 +395,8 @@ export function edgePoint(tx, ty, cx, cy, room) {
 
 const overlaps = (boxes, b) => boxes.some((o) => o.l < b.r && b.l < o.r && o.t < b.b && b.t < o.b);
 
-function drawHidingPlace(ctx, s, at, room, clear, W, H, taken) {
-  const h = Core.hidingPlace(s.world.seed),
-    u = 7;
+function drawFarMark(ctx, s, at, room, clear, W, H, taken, h, thief = false) {
+  const u = 7;
   const p = at(h.x + 0.5, h.y + 0.5);
   const inside = p.x > room.l && p.y > room.t && p.x < room.r && p.y < room.b;
   const cx = (room.l + room.r) / 2,
@@ -411,7 +415,7 @@ function drawHidingPlace(ctx, s, at, room, clear, W, H, taken) {
   ctx.save();
   ctx.translate(m.x, m.y);
   ctx.strokeStyle = '#eee9dc';
-  ctx.fillStyle = '#e995c4';
+  ctx.fillStyle = thief ? '#e9b44c' : '#e995c4';
   ctx.lineWidth = 2;
   if (inside) {
     ctx.beginPath();
@@ -440,7 +444,9 @@ function drawHidingPlace(ctx, s, at, room, clear, W, H, taken) {
   }
   ctx.restore();
   const label =
-    t('cr.station') + ' · ' + distance(Math.hypot(h.x + 0.5 - s.player.x, h.y + 0.5 - s.player.y));
+    t(thief ? 'cr.thief' : 'cr.station') +
+    ' · ' +
+    distance(Math.hypot(h.x + 0.5 - s.player.x, h.y + 0.5 - s.player.y));
   ctx.font = `700 12px ${KIND_FONT}`;
   ctx.lineWidth = 3;
   ctx.strokeStyle = LABEL_EDGE;

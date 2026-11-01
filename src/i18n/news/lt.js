@@ -1,5 +1,31 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.182.3':
+    'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
+  'news.0.182.2':
+    'Užkulisiuose dar trys didelės žaidimo dalys išskaidytos į mažas, kiekviena su savo testais: statybų lapas, tai, ką daro tavo veiksmai, ir pagalbininkas AUTO. Žaidime niekas nepasikeičia.',
+  'news.0.182.1':
+    'Žaidimas atsidaro šiek tiek greičiau: QR kodų kūrėjas dabar įkeliamas tik tada, kai iškeli kvietimo ženklą. Užkulisiuose dvi didžiausios žaidimo kodo dalys išskaidytos į mažas dalis, kiekviena su savo testais. Daugiau žaidime niekas nepasikeičia.',
+  'news.0.182.0':
+    'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
+  'news.0.181.14':
+    'Kai Moksliukų skiltyje įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
+  'news.0.181.13':
+    'Užkulisiuose: kvietimų nuorodų skydelis ir nustatymų jungikliai dabar turi savo tvarkingas kodo dalis su naujais testais. Žaidime niekas nepasikeičia.',
+  'news.0.181.12':
+    'Užkulisiuose: žaidimo kodą dabar automatiškai tvarko formatavimo įrankis, o prieš kiekvieną leidimą jis tikrinamas, ar nėra klaidų. Žaidime niekas nepasikeičia.',
+  'news.0.181.11':
+    'Sklandesnis vaizdas: žaidimas dabar tolygiai rodo 30 kadrų per sekundę ten, kur anksčiau jų būdavo šiek tiek mažiau. Našumo diagnostika taip pat atskiria žaidimo darbą nuo įprasto kadrų ribotuvo laukimo ir rodo tikrąjį drobės tankį.',
+  'news.0.181.10':
+    'Už ekrano ribų esantys objektai nebepiešiami be reikalo. Išsikišusios medžių, grybų ir išteklių krūvų dalys bei šešėliai lieka matomi, o piešimui reikia mažiau darbo.',
+  'news.0.181.9':
+    'Žaidimas visuose įrenginiuose siekia 30 kadrų per sekundę net ir stovint vietoje. Pašalintas kadrų dažnio mažinimas ramybės metu.',
+  'news.0.181.8':
+    'Žaidimo vaizdas visuose įrenginiuose atnaujinamas ne dažniau kaip 30 kadrų per sekundę, taip pat ir pagreitintos peržiūros lange. Simuliacijos žingsniai nuo vaizdo atnaujinimo nepriklauso.',
+  'news.0.181.7':
+    'Ilgas meniu turinys dabar slenka savo skydelyje, o ne išsilieja ant žaidimo. Peržiūrint našumo duomenis ir pastebėjimus, antraštė ir uždarymo mygtukas lieka vietoje.',
+  'news.0.181.6':
+    'Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.',
   'news.0.181.5':
     'Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.',
   'news.0.181.4':

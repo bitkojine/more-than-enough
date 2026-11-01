@@ -56,6 +56,16 @@ export function createCommands({
         stopWalk();
       }
       const result = Core.cultivationCommand(state(), cmd);
+      // Through the machine (Watch, 2026-11-01): you step out elsewhere, maybe
+      // on another layer, with nothing of where you were still showing.
+      if (result === 'teleported') {
+        fx.clear();
+        fx.celebrate(player().x, player().y);
+        audio.build();
+        hud.updateButtons(state());
+        changed();
+        game.saveNow();
+      }
       if (['ok', 'lifted', 'discovery', 'activated'].includes(result)) {
         faceTile(cmd.x ?? Math.floor(player().x), cmd.y ?? Math.floor(player().y));
         const action = CULTIVATION_ACTS[cmd.type];
