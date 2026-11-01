@@ -147,10 +147,14 @@ export function createHudLayout({ el, messages, openCrafting, beforeOpen = () =>
       .map((n) => n.getBoundingClientRect())
       .filter((r) => r.height > 0);
     const logBottom = clearOfActions(regions, logEl.getBoundingClientRect(), secondaryActions);
-    const logRoom = Math.max(
+    let logRoom = Math.max(
       40,
       innerHeight - logBottom - (regions.landscape ? topEnd + 8 : safeTop)
     );
+    // Raised over AUTO, a log of long lines could reach the middle of the
+    // screen, where Mica stands: it stops 40 px short and scrolls instead.
+    if (logBottom > regions.logBottom)
+      logRoom = Math.min(logRoom, Math.max(80, innerHeight / 2 - logBottom - 40));
     css('--hud-message-bottom', messageBottom + 'px');
     css('--hud-log-bottom', logBottom + 'px');
     css('--hud-message-room', logRoom + 'px');
