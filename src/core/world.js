@@ -36,6 +36,7 @@ const ROUGH_SALT = 9100; // hash salt for per-tile height variation
 
 /**
  * @typedef {object} World
+ * @property {boolean} cultivation           a crystal world (its land and rules differ)
  * @property {number} seed
  * @property {Map<number, {type: Uint8Array, rich: Uint8Array}>} chunks  generated-chunk cache (LRU)
  * @property {Map<number, number>} mods      tile key -> richness, only where it differs from generation
@@ -46,6 +47,8 @@ const ROUGH_SALT = 9100; // hash salt for per-tile height variation
  * @property {Map<number, string>} props     tile key (x, y, z) -> the prop you placed there (a PROPS key)
  * @property {Array|null} edits              in a shared world, every change to it, for the room
  *                                           (see shared.js); null when playing alone
+ * @property {number} hotKey                 chunkAt's last key, so a repeat lookup skips the Map
+ * @property {{type: Uint8Array, rich: Uint8Array} | null} hotChunk  that chunk
  */
 
 /** @returns {World} */

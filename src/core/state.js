@@ -25,7 +25,15 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {number} z
  * @property {number} buffer   produced units waiting to be collected
  * @typedef {object} State
+ * Every field a world's state can hold, in one place. blankState() sets the
+ * always-present ones; the groups below say who adds the rest and when.
+ * test/unit/state-shape.test.js fails when code writes a field not listed.
+ *
+ * Always present (blankState):
  * @property {number} seed
+ * @property {{since: number, complete: boolean, totals: Object<string, Object<string, number>>}} spending
+ *           what this world's resources were spent on since `since` (spending.js)
+ * @property {boolean} emptyStart                  started empty-handed (every world since v0.132)
  * @property {import('./world.js').World} world
  * @property {Position} player
  * @property {Record<string, number>} inv
@@ -38,19 +46,34 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {number} totalEver                    resources gathered in earlier worlds
  * @property {Record<string, number>} perks        perk levels (one-shots are 0 or 1)
  * @property {Extractor[]} extractors
- * @property {Record<string, number>} stats
+ * @property {Record<string, number>} stats        per resource, plus foraged, gathers, finds, collected, built, flares, playedMs
+ * @property {Record<string, Record<string, number>>} sources  where each resource came from: {res: {source: amount}}
+ * @property {Record<string, number>} mushrooms    each kind of mushroom picked in this world
+ * @property {string[]} mushroomsEver              every kind ever found, in any world
  * @property {{ore: boolean, crystal: boolean}} discovered
- * @property {string[]} goalsDone
- * @property {number} goalIndex
+ * @property {string[]} goalsDone                  milestone ids, in the order reached
+ * @property {number} goalIndex                    goalsDone.length
  * @property {number} time                         game seconds
  * @property {number} battery                      your lantern's charge, 0 (flat) to 1 (full)
  * @property {number} flare                        seconds left of the flare in your hand, 0 when none
- * @property {number} [seen]                     when this world was last open (ms since 1970, set by the game: core keeps no clock)
- * @property {{deepest: number}} underground     the deepest layer reached so far
- * @property {string} [shared]                   the room of a shared world (not set when alone)
- * @property {string} [me]                       your id in that room; your buildings carry it
+ * @property {{deepest: number}} underground       the deepest layer reached so far
  * @property {Array<{res: string, amt: number, x: number, y: number, z: number}>} events
  *           transient (never saved): auto-collections for the UI to animate
+ *
+ * Crystal worlds only (createState with cultivation, or loaded from a save):
+ * @property {object} [cultivation]                chambers, machine and heart (cultivation-model.js)
+ * @property {'depot-v1'} [logisticsModel]         how buildings hand over what they make
+ *
+ * Shared worlds only (src/game/together.js, arrival.js; the room's copy in server/src/shadow.js):
+ * @property {string} [shared]                     the room of a shared world (not set when alone)
+ * @property {string} [me]                         your id in that room; your buildings carry it
+ * @property {Array<Array<string|number>> | null} [acts]  acts waiting to be sent (acts.js); off when not an array
+ * @property {Position} [actedAt]                  where the last act was written down
+ * @property {boolean} [roomMoves]                 the room checks building moves (actions.js moveExtractor)
+ * @property {boolean} [roomCollectAt]             the room takes a collect's target tile
+ *
+ * Set by the game (core keeps no clock):
+ * @property {number} [seen]                       when this world was last open (ms since 1970)
  */
 
 function perResource(value) {
