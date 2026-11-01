@@ -1,0 +1,2028 @@
+{
+  "baselineCommit": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+  "method": "Three most recent completed main runs per workflow; mixed commits and runner conditions, not a controlled benchmark. Seconds are elapsed wall time, not billed CPU usage.",
+  "workflows": {
+    "Browser suite": [
+      {
+        "id": 41351705151,
+        "sha": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+        "conclusion": "success",
+        "created": "2026-11-01T21:22:45Z",
+        "started": "2026-11-01T21:22:45Z",
+        "updated": "2026-11-01T21:26:29Z",
+        "elapsed": 224.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "browser",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:48Z",
+            "end": "2026-11-01T21:26:28Z",
+            "seconds": 220.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Play the game in headless Chrome (re-run once if red)",
+                "conclusion": "success",
+                "seconds": 208.0
+              },
+              {
+                "name": "Keep the logs and screenshots",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41348923695,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "failure",
+        "created": "2026-11-01T20:50:40Z",
+        "started": "2026-11-01T20:50:40Z",
+        "updated": "2026-11-01T20:57:11Z",
+        "elapsed": 391.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "browser",
+            "conclusion": "failure",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:57:11Z",
+            "seconds": 388.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Play the game in headless Chrome (re-run once if red)",
+                "conclusion": "failure",
+                "seconds": 375.0
+              },
+              {
+                "name": "Keep the logs and screenshots",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344828744,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:07:40Z",
+        "elapsed": 270.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "browser",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:26Z",
+            "end": "2026-11-01T20:07:39Z",
+            "seconds": 253.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Play the game in headless Chrome (re-run once if red)",
+                "conclusion": "success",
+                "seconds": 239.0
+              },
+              {
+                "name": "Keep the logs and screenshots",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Commit messages": [
+      {
+        "id": 41351705098,
+        "sha": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+        "conclusion": "success",
+        "created": "2026-11-01T21:22:45Z",
+        "started": "2026-11-01T21:22:45Z",
+        "updated": "2026-11-01T21:22:54Z",
+        "elapsed": 9.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "messages",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:48Z",
+            "end": "2026-11-01T21:22:53Z",
+            "seconds": 5.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout with history",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Every commit over 20 changed lines explains why",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout with history",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41348923714,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T20:50:40Z",
+        "started": "2026-11-01T20:50:40Z",
+        "updated": "2026-11-01T20:50:50Z",
+        "elapsed": 10.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "messages",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:50:49Z",
+            "seconds": 6.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout with history",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Every commit over 20 changed lines explains why",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout with history",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344828737,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:03:19Z",
+        "elapsed": 9.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "messages",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:12Z",
+            "end": "2026-11-01T20:03:18Z",
+            "seconds": 6.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout with history",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Every commit over 20 changed lines explains why",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout with history",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Live check": [
+      {
+        "id": 41352189492,
+        "sha": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+        "conclusion": "success",
+        "created": "2026-11-01T21:28:34Z",
+        "started": "2026-11-01T21:28:34Z",
+        "updated": "2026-11-01T21:28:59Z",
+        "elapsed": 25.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "check",
+            "conclusion": "success",
+            "start": "2026-11-01T21:28:36Z",
+            "end": "2026-11-01T21:28:48Z",
+            "seconds": 12.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 4.0
+              },
+              {
+                "name": "Check",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Open, update or close the live-check issue",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41350874048,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T21:13:13Z",
+        "started": "2026-11-01T21:13:13Z",
+        "updated": "2026-11-01T21:13:31Z",
+        "elapsed": 18.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "check",
+            "conclusion": "success",
+            "start": "2026-11-01T21:13:15Z",
+            "end": "2026-11-01T21:13:30Z",
+            "seconds": 15.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Check",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Open, update or close the live-check issue",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41349397576,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T20:56:30Z",
+        "started": "2026-11-01T20:56:30Z",
+        "updated": "2026-11-01T20:56:45Z",
+        "elapsed": 15.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "check",
+            "conclusion": "success",
+            "start": "2026-11-01T20:56:33Z",
+            "end": "2026-11-01T20:56:44Z",
+            "seconds": 11.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 4.0
+              },
+              {
+                "name": "Check",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Open, update or close the live-check issue",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Set up Node (latest LTS, from .nvmrc)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout main (all history, to compare commits)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Test and deploy": [
+      {
+        "id": 41351705102,
+        "sha": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+        "conclusion": "success",
+        "created": "2026-11-01T21:22:45Z",
+        "started": "2026-11-01T21:22:45Z",
+        "updated": "2026-11-01T21:28:32Z",
+        "elapsed": 347.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "test",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:48Z",
+            "end": "2026-11-01T21:25:37Z",
+            "seconds": 169.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Node version",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Static analysis debt report",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Keep static analysis diagnostics",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Lint and formatting (errors fail; warnings may only go down)",
+                "conclusion": "success",
+                "seconds": 9.0
+              },
+              {
+                "name": "Unit tests with coverage",
+                "conclusion": "success",
+                "seconds": 145.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "render",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:47Z",
+            "end": "2026-11-01T21:28:09Z",
+            "seconds": 322.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Check rendering, HUD and fullscreen",
+                "conclusion": "success",
+                "seconds": 308.0
+              },
+              {
+                "name": "Keep visual and performance evidence",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "perfect",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:48Z",
+            "end": "2026-11-01T21:22:55Z",
+            "seconds": 7.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Did the rules or the brain change?",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "skipped",
+                "seconds": 0.0
+              },
+              {
+                "name": "Perfect benchmark against the baseline",
+                "conclusion": "skipped",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T21:28:12Z",
+            "end": "2026-11-01T21:28:31Z",
+            "seconds": 19.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Stage the site (bundled, cache-busted)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Upload artifact",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Deploy to GitHub Pages",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 1.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41348923674,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T20:50:40Z",
+        "started": "2026-11-01T20:50:40Z",
+        "updated": "2026-11-01T20:56:28Z",
+        "elapsed": 348.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "perfect",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:50:49Z",
+            "seconds": 6.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Did the rules or the brain change?",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "skipped",
+                "seconds": 0.0
+              },
+              {
+                "name": "Perfect benchmark against the baseline",
+                "conclusion": "skipped",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "render",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:55:51Z",
+            "seconds": 308.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Check rendering, HUD and fullscreen",
+                "conclusion": "success",
+                "seconds": 297.0
+              },
+              {
+                "name": "Keep visual and performance evidence",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "test",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:52:39Z",
+            "seconds": 116.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Node version",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Static analysis debt report",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Keep static analysis diagnostics",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Lint and formatting (errors fail; warnings may only go down)",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Unit tests with coverage",
+                "conclusion": "success",
+                "seconds": 95.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T20:55:55Z",
+            "end": "2026-11-01T20:56:28Z",
+            "seconds": 33.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Stage the site (bundled, cache-busted)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Upload artifact",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Deploy to GitHub Pages",
+                "conclusion": "success",
+                "seconds": 18.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344828848,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:08:30Z",
+        "elapsed": 320.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "perfect",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:13Z",
+            "end": "2026-11-01T20:03:49Z",
+            "seconds": 36.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Did the rules or the brain change?",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Perfect benchmark against the baseline",
+                "conclusion": "success",
+                "seconds": 24.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout (with history, to see what changed)",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "test",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:17Z",
+            "end": "2026-11-01T20:05:53Z",
+            "seconds": 156.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Node version",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Static analysis debt report",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Keep static analysis diagnostics",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Lint and formatting (errors fail; warnings may only go down)",
+                "conclusion": "success",
+                "seconds": 8.0
+              },
+              {
+                "name": "Unit tests with coverage",
+                "conclusion": "success",
+                "seconds": 132.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "render",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:12Z",
+            "end": "2026-11-01T20:08:07Z",
+            "seconds": 295.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Stage the site",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Check rendering, HUD and fullscreen",
+                "conclusion": "success",
+                "seconds": 282.0
+              },
+              {
+                "name": "Keep visual and performance evidence",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T20:08:10Z",
+            "end": "2026-11-01T20:08:30Z",
+            "seconds": 20.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Stage the site (bundled, cache-busted)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Upload artifact",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Deploy to GitHub Pages",
+                "conclusion": "success",
+                "seconds": 7.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Extended property checks": [
+      {
+        "id": 41344828741,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:07:33Z",
+        "elapsed": 263.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "properties",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:12Z",
+            "end": "2026-11-01T20:07:32Z",
+            "seconds": 260.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Run npm run test:extended",
+                "conclusion": "success",
+                "seconds": 248.0
+              },
+              {
+                "name": "Post Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41343095955,
+        "sha": "e22a430a2803b110d44302b1a48d832fb3406c56",
+        "conclusion": "success",
+        "created": "2026-11-01T19:42:37Z",
+        "started": "2026-11-01T19:42:37Z",
+        "updated": "2026-11-01T19:50:32Z",
+        "elapsed": 475.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "properties",
+            "conclusion": "success",
+            "start": "2026-11-01T19:42:40Z",
+            "end": "2026-11-01T19:50:31Z",
+            "seconds": 471.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Run npm run test:extended",
+                "conclusion": "success",
+                "seconds": 460.0
+              },
+              {
+                "name": "Post Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41341984722,
+        "sha": "eb2a06c9ae1c78587b163f15fd9941a923f4766a",
+        "conclusion": "success",
+        "created": "2026-11-01T19:29:30Z",
+        "started": "2026-11-01T19:29:30Z",
+        "updated": "2026-11-01T19:37:15Z",
+        "elapsed": 465.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "properties",
+            "conclusion": "success",
+            "start": "2026-11-01T19:29:33Z",
+            "end": "2026-11-01T19:37:14Z",
+            "seconds": 461.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Run npm run test:extended",
+                "conclusion": "success",
+                "seconds": 451.0
+              },
+              {
+                "name": "Post Run ./.github/actions/setup",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Run actions/checkout@v4",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "Room service": [
+      {
+        "id": 41348923681,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T20:50:40Z",
+        "started": "2026-11-01T20:50:40Z",
+        "updated": "2026-11-01T20:52:06Z",
+        "elapsed": 86.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:52:06Z",
+            "seconds": 83.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Unit tests (the room's rules among them)",
+                "conclusion": "success",
+                "seconds": 54.0
+              },
+              {
+                "name": "Install wrangler (exact versions from the lockfile)",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Deploy",
+                "conclusion": "success",
+                "seconds": 4.0
+              },
+              {
+                "name": "The moderator's token (the ROOMS_ADMIN_TOKEN secret, if set)",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Smoke test the live service",
+                "conclusion": "success",
+                "seconds": 8.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344828732,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:04:25Z",
+        "elapsed": 75.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:12Z",
+            "end": "2026-11-01T20:04:24Z",
+            "seconds": 72.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 5.0
+              },
+              {
+                "name": "Unit tests (the room's rules among them)",
+                "conclusion": "success",
+                "seconds": 44.0
+              },
+              {
+                "name": "Install wrangler (exact versions from the lockfile)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Deploy",
+                "conclusion": "success",
+                "seconds": 4.0
+              },
+              {
+                "name": "The moderator's token (the ROOMS_ADMIN_TOKEN secret, if set)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Smoke test the live service",
+                "conclusion": "success",
+                "seconds": 11.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344168522,
+        "sha": "4cab7c0b7883d3a8231e241665fafd4a24ede9b6",
+        "conclusion": "success",
+        "created": "2026-11-01T19:55:17Z",
+        "started": "2026-11-01T19:55:17Z",
+        "updated": "2026-11-01T19:56:50Z",
+        "elapsed": 93.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "deploy",
+            "conclusion": "success",
+            "start": "2026-11-01T19:55:20Z",
+            "end": "2026-11-01T19:56:50Z",
+            "seconds": 90.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 7.0
+              },
+              {
+                "name": "Unit tests (the room's rules among them)",
+                "conclusion": "success",
+                "seconds": 60.0
+              },
+              {
+                "name": "Install wrangler (exact versions from the lockfile)",
+                "conclusion": "success",
+                "seconds": 3.0
+              },
+              {
+                "name": "Deploy",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "The moderator's token (the ROOMS_ADMIN_TOKEN secret, if set)",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Smoke test the live service",
+                "conclusion": "success",
+                "seconds": 7.0
+              },
+              {
+                "name": "Post Set up Node and the dev dependencies",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "CodeQL": [
+      {
+        "id": 41351705254,
+        "sha": "d5f9677a56c39d3766c8db0898c34c44182b7d17",
+        "conclusion": "success",
+        "created": "2026-11-01T21:22:45Z",
+        "started": "2026-11-01T21:22:45Z",
+        "updated": "2026-11-01T21:25:20Z",
+        "elapsed": 155.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "Analyze (actions)",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:49Z",
+            "end": "2026-11-01T21:23:22Z",
+            "seconds": 33.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 19.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "Analyze (javascript-typescript)",
+            "conclusion": "success",
+            "start": "2026-11-01T21:22:49Z",
+            "end": "2026-11-01T21:25:19Z",
+            "seconds": 150.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 9.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 133.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41348923078,
+        "sha": "f6cd19170ab26e20adc7307afcb4ec93f04024f0",
+        "conclusion": "success",
+        "created": "2026-11-01T20:50:40Z",
+        "started": "2026-11-01T20:50:40Z",
+        "updated": "2026-11-01T20:53:12Z",
+        "elapsed": 152.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "Analyze (javascript-typescript)",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:53:11Z",
+            "seconds": 148.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 12.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 130.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "Analyze (actions)",
+            "conclusion": "success",
+            "start": "2026-11-01T20:50:43Z",
+            "end": "2026-11-01T20:51:22Z",
+            "seconds": 39.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 7.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 25.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": 41344829130,
+        "sha": "09890257bafad54ca98f797613376b7a751e4d16",
+        "conclusion": "success",
+        "created": "2026-11-01T20:03:10Z",
+        "started": "2026-11-01T20:03:10Z",
+        "updated": "2026-11-01T20:05:39Z",
+        "elapsed": 149.0,
+        "queue": 0.0,
+        "jobs": [
+          {
+            "name": "Analyze (javascript-typescript)",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:13Z",
+            "end": "2026-11-01T20:05:38Z",
+            "seconds": 145.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 8.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 130.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          },
+          {
+            "name": "Analyze (actions)",
+            "conclusion": "success",
+            "start": "2026-11-01T20:03:14Z",
+            "end": "2026-11-01T20:03:47Z",
+            "seconds": 33.0,
+            "steps": [
+              {
+                "name": "Set up job",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Checkout repository",
+                "conclusion": "success",
+                "seconds": 2.0
+              },
+              {
+                "name": "Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 6.0
+              },
+              {
+                "name": "Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 20.0
+              },
+              {
+                "name": "Post Perform CodeQL Analysis",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Initialize CodeQL",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Post Setup proxy for registries",
+                "conclusion": "success",
+                "seconds": 0.0
+              },
+              {
+                "name": "Post Checkout repository",
+                "conclusion": "success",
+                "seconds": 1.0
+              },
+              {
+                "name": "Complete job",
+                "conclusion": "success",
+                "seconds": 0.0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "latestRenderingGroupsSeconds": {
+    "ILLUMINATION": 26.94,
+    "LAYER": 43.26,
+    "RENDER_PERF": 95.18,
+    "HUD": 39.13,
+    "PERF": 37.26,
+    "FULLSCREEN": 17.82,
+    "PROGRESSION": 38.2,
+    "LAB_PACING": 10.91
+  },
+  "limitations": [
+    "Default CodeQL setup configuration endpoint returned 403 integration permission denial. Actual workflow runs and jobs were accessible.",
+    "Source build fingerprint is not a complete artifact/build-input identity."
+  ]
+}
