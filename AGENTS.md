@@ -11,6 +11,9 @@ kind of knowledge lives.
   and, when it touches `server/`, `src/net/`, `src/core/` or `src/i18n/`, the
   room service (`rooms.yml`). Rebase on `origin/main` first; other people push
   at the same time.
+- When the owner asks to save work in progress on a new branch, commit and
+  push that branch to the remote, then verify it is there. A local branch or
+  an uncommitted working tree is not a completed checkpoint or handoff.
 - Each release bumps `VERSION` in `src/version.js`, adds a `CHANGELOG.md`
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
   notes as `news.<version>` in `src/i18n/news/en.js` and `lt.js`
