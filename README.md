@@ -189,6 +189,18 @@ depths with tiny fixtures. Image-submission limits catch offscreen scenery work;
 canvas-allocation and cache-memory limits also gate deploy;
 frame timings are recorded without claiming hardware-independent FPS. Their failure captures are retained as CI artifacts. The
 broad browser suite and long property sweeps remain separate from quick iteration.
+Subject-icon checks run inside the existing foreground-compositing browser host,
+so they reuse that browser in CI. For a focused check of the real cargo caption,
+cached heart/colony/crystal pictures and lantern, flare and daylight subjects:
+
+```sh
+CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_TIMER_ICONS_ONLY=1 npm run test:e2e
+```
+
+The fixture checks both languages at small portrait, landscape and desktop sizes,
+and verifies that drawing the tags preserves the saved state. It is a presentation
+fixture, not a fresh-world completion run.
+
 The layout sweep reports each viewport as it finishes, including elapsed time
 and problems, so a long audit does not look like a silent hang.
 
