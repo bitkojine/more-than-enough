@@ -3446,19 +3446,24 @@ async function main() {
   var toWall =
     '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,d=[[1,0],[-1,0],[0,1],[0,-1]];var t=c.nearestTile(p.x,p.y,20,function(x,y){if(!c.TILE_INFO[c.tileAt(s.world,x,y,-1)].walk)return false;return d.some(function(v){var w=c.tileAt(s.world,x+v[0],y+v[1],-1);return w===c.T.SOIL||w===c.T.STONE_SEAM;});});MTE_GAME.setPlayer(t.x+0.5,t.y+0.5);return true;})()';
   await evalJS(toWall);
-  await sleep(120); // let the camera settle on the new layer
+  // Let the camera settle on the new spot (it moves when it next draws),
+  // and leave the wall one swing from open, however rich the world made it.
+  await evalJS(
+    'new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r);});})'
+  );
   var mineSpot = await evalJS(
-    '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM){return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()'
+    '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core,p=s.player,px=Math.floor(p.x),py=Math.floor(p.y);for(var i=0;i<4;i++){var x=px+[1,0,-1,0][i],y=py+[0,1,0,-1][i],t=c.tileAt(s.world,x,y,-1);if(t===c.T.SOIL||t===c.T.STONE_SEAM){c.setRichness(s.world,x,y,-1,1);return JSON.stringify({x:x,y:y,dx:x-px,dy:y-py,sx:innerWidth/2+(x+.5-p.x)*MTE_GAME.tilePx(),sy:innerHeight/2+(y+.5-p.y)*MTE_GAME.tilePx()});}}return null;})()'
   );
   var ms = JSON.parse(mineSpot);
   await tap(ms.sx, ms.sy);
   eq(
-    await evalJS(
+    await waitFor(
       '(function(){var s=MTE_GAME.getState(),c=MTE_GAME.core;return c.tileAt(s.world,' +
         ms.x +
         ',' +
         ms.y +
-        ',-1)===c.T.TUNNEL;})()'
+        ',-1)===c.T.TUNNEL;})()',
+      1500
     ),
     true,
     'tapping a nearby tile uses the same Gather action to dig'
@@ -3648,6 +3653,9 @@ async function main() {
 
   /* --------------------------------------------------------- movement */
   console.log('\n== Movement (keyboard) ==');
+  // Each section starts on the surface, whatever the one before left: one
+  // failed climb once kept every later section underground.
+  await evalJS('MTE_GAME.getState().player.z = 0');
   // Teleport to an open stretch (three clear tiles to the right) so a rock or
   // water tile near the random spawn can't stop the walk early.
   await evalJS(
@@ -3727,6 +3735,7 @@ async function main() {
 
   /* ------------------------------------------------------------ gather */
   console.log('\n== Gathering (touch the action button) ==');
+  await evalJS('MTE_GAME.getState().player.z = 0');
   var spot = await evalJS(
     '(function(){var s=MTE_GAME.getState();var c=MTE_GAME.core;for(var y=-60;y<60;y++){for(var x=-60;x<60;x++){if(c.tileAt(s.world,x,y,0)===1&&c.richness(s.world,x,y,0)>5){MTE_GAME.setPlayer(x+0.5,y+0.5);return x+","+y;}}}return null;})()'
   );
