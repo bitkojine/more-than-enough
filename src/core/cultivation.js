@@ -154,8 +154,19 @@ function exposeCargo(s) {
   const strength = c.gear.carrier ? 0 : cultivationExposure(s, p);
   if (strength) {
     if (c.starter) c.starter.health = Math.max(0, c.starter.health - strength);
-    if (s.inv.crystal) c.quality = Math.max(10, c.quality - strength);
+    crackCarriedCrystal(s, strength);
   }
+}
+// Carried crystal cracks all the way (Watch, 2026-11-01, "Quality falls to
+// 0, then all is lost"): at 0% the whole load crumbles and is gone.
+function crackCarriedCrystal(s, amount) {
+  const c = s.cultivation;
+  if (!s.inv.crystal || !(amount > 0)) return;
+  c.quality = Math.max(0, c.quality - amount);
+  if (c.quality > 0) return;
+  payInventory(s, { crystal: s.inv.crystal }, 'other');
+  c.quality = 100;
+  c.crystalLost = (c.crystalLost || 0) + 1;
 }
 
 export function wildColony(s, x, y, z = s.player.z) {
@@ -521,7 +532,7 @@ export function stepCultivation(s, dt) {
     c.starter.health -= carriedDamage * seconds;
     if (c.starter.health <= 0) c.starter = null;
   }
-  if (s.inv.crystal) c.quality = Math.max(10, c.quality - carriedDamage * seconds);
+  crackCarriedCrystal(s, carriedDamage * seconds);
   stepHeart(s, heat + HEART_SUN * heartLight(s, p), seconds);
   for (const w of Object.values(c.wild)) {
     if (w.regrow > 0) {

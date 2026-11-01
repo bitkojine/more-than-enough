@@ -2,8 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  'news.0.186.0':
-    'Bars are gone: things that run out now show a clock that ticks down. Over Mica, what you carry says “Cracks in 0:42” in the sun and “Heart breaks in 1:10” once it cracks. A hot chamber shows when its crystal dies, a heart shelter when the heart is mended, and the lantern the dark time it has left.',
+  'news.0.187.0':
+    'Crystal you carry can now be lost. Heat or light keeps cracking it past the old 10% floor, and at 0% the whole load crumbles to dust. The clock over Mica counts down to that moment, so get to shade in time.',
   'progression.furtherUpgrades': 'Later upgrades',
   'cr.reason.locked': 'Activate the machine to unlock this.',
   'progression.requirement': 'Activate the machine to unlock.',
@@ -220,6 +220,7 @@ export default {
   'cr.heart.installed': 'Home in the machine',
   'cr.heart.take': 'Take the heart',
   'cr.heart.rest': 'Rest the heart here',
+  'cr.crystal.lost': 'Your carried crystal cracked right through and crumbled to dust.',
   'cr.heart.lost': 'The heart cracked right through. Its light fled back to the hiding place.',
   'cr.heart.home': 'The heart is home. The machine stirs.',
   'cr.goal.heart':
@@ -812,7 +813,7 @@ export default {
   'clock.crackIn': 'Cracks in {t}',
   'clock.heart.lost': 'Heart breaks in {t}',
   'clock.starter.lost': 'Starter dies in {t}',
-  'clock.crystal.lost': 'Crystal spoils in {t}',
+  'clock.crystal.lost': 'Crystal crumbles in {t}',
   'clock.cooling': 'Cracking! Cool in {t}',
   'clock.heart': 'Heart {n}%',
   'clock.starter': 'Starter {n}%',

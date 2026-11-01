@@ -45,7 +45,8 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
     autoDownAt = 0,
     dangerIn = 0,
     heartWarned = 0,
-    heartLost = null;
+    heartLost = null,
+    crystalLost = null;
   return {
     // Gathered once (`held` false) or by holding.
     gathered(held) {
@@ -78,11 +79,21 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
       return true;
     }
   };
+  // Carried crystal that crumbled to dust, said once each time.
+  function crystalWatch(c) {
+    const crumbled = c.crystalLost || 0;
+    if (crystalLost === null || crumbled < crystalLost) crystalLost = crumbled;
+    if (crumbled <= crystalLost) return false;
+    crystalLost = crumbled;
+    hud.toast(t('cr.crystal.lost'));
+    return true;
+  }
   // The carried heart, said once each time it gets worse (Watch, 2026-11-01:
   // warnings come before the heart cracks through, and when it does).
   function heartWatch(s) {
     const c = s.cultivation;
     if (!c) return false;
+    if (crystalWatch(c)) return true;
     const lost = c.heartLost || 0;
     if (heartLost === null || lost < heartLost) heartLost = lost;
     if (lost > heartLost) {

@@ -2,8 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  'news.0.186.0':
-    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek jam liko tamsos.',
+  'news.0.187.0':
+    'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Mikos skaičiuoja iki tos akimirkos, tad spėk į pavėsį.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',
@@ -223,6 +223,7 @@ export default {
   'cr.heart.installed': 'Namie, mašinoje',
   'cr.heart.take': 'Paimti širdį',
   'cr.heart.rest': 'Padėti širdį čia',
+  'cr.crystal.lost': 'Nešti kristalai perskilo kiaurai ir subyrėjo į dulkes.',
   'cr.heart.lost': 'Širdis perskilo kiaurai. Jos šviesa grįžo į slėptuvę.',
   'cr.heart.home': 'Širdis namie. Mašina sujuda.',
   'cr.goal.heart':
@@ -823,7 +824,7 @@ export default {
   'clock.crackIn': 'Skils po {t}',
   'clock.heart.lost': 'Širdis suskils po {t}',
   'clock.starter.lost': 'Mėginys žus po {t}',
-  'clock.crystal.lost': 'Kristalai suges po {t}',
+  'clock.crystal.lost': 'Kristalai subyrės po {t}',
   'clock.cooling': 'Skyla! Atvės po {t}',
   'clock.heart': 'Širdis {n} %',
   'clock.starter': 'Mėginys {n} %',

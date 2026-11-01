@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.187.0] - 2026-11-01
+
+- Carried crystal can be lost (Watch chose on a decision card, 2026-11-01,
+  "Quality falls to 0, then all is lost"). Before, heat and light took
+  carried crystal's quality down to 10% and stopped, so "Crystal at risk"
+  never cost anything. Now quality keeps falling, and at 0% the whole
+  carried load crumbles: the crystal leaves the inventory (spent as
+  "other"), quality resets to 100 for the next crystal, and
+  `cultivation.crystalLost` counts it so the message log says so once.
+  The clock over Mica reads "Crystal crumbles in 0:20". Stored crystal in
+  chambers and vaults keeps its 10% floor.
+- Saves: `crystalLost` is optional, checked and mended like `heartLost`;
+  older saves load unchanged.
+- Checked: the forecast test plays carried crystal to 0% and the clock
+  matches the rules within a step; the careless-bot playthrough counts a
+  crumbled load as cracked; the crystal playtest bot still wins.
+
 ## [0.186.0] - 2026-11-01
 
 - Timers, not bars (Watch, 2026-11-01: "all kind of bars suck … timers that

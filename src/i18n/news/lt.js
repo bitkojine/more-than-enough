@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.186.0':
+    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek jam liko tamsos.',
   'news.0.185.1':
     'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
   'news.0.185.0':

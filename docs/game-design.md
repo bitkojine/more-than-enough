@@ -205,8 +205,8 @@ These are design recommendations, not approved rules:
 - Define physical tending as a meaningful action with observable results; avoid assuming a recurring click quota or abstract repair payment.
 
 ### Crystal condition and installed operation — confirmed decisions, 2026-10-23
-- Exposed carried crystal communicates damage through visible cracks and sound cues, plus a clear remaining-tolerance meter. This is a tolerance/condition indicator, not a promised fixed countdown. Its response to changing light and temperature remains to be specified.
-- Harvested crystal damaged by light or heat loses effectiveness but remains usable for less demanding construction. It is not automatically destroyed or assigned a restoration-facility loop. Exact quality requirements, degradation limits and eligible construction uses remain open.
+- Exposed carried crystal communicates damage through visible cracks and sound cues. Superseded 2026-11-01 (Watch: "all kind of bars suck… timers that tick down"): no meters or bars; what Mica carries shows a countdown clock read from the rules ("Cracks in 0:42", "Crystal crumbles in 0:20"), recomputed as Mica moves.
+- Harvested crystal damaged by light or heat loses effectiveness but remains usable for less demanding construction. Changed 2026-11-01 for crystal Mica carries (Watch chose "Quality falls to 0, then all is lost"): carried quality keeps falling past the old 10% floor, and at 0% the whole carried load crumbles and is gone, with a clock counting down to it. Stored crystal (chamber, vault) keeps its 10% floor for now. Exact quality requirements, degradation limits and eligible construction uses remain open.
 - Installed crystal in equipment and the underground machine still needs ongoing cooling and darkness supplied by settlement infrastructure. Installation does not permanently stabilize crystal or end the protection requirement.
 
 ### Consequences requiring further design

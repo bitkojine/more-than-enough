@@ -119,3 +119,21 @@ test('the clocks are worded as ticking times, never bars', async () => {
   s.battery = 1;
   assert.equal(batteryClock(s), null, 'full: nothing to show');
 });
+
+// Watch, 2026-11-01: "Quality falls to 0, then all is lost".
+test('carried crystal cracks to 0% and the whole load crumbles, when its clock said', () => {
+  const s = carrying();
+  const c = s.cultivation;
+  c.heart = { where: 'station', health: 100 };
+  s.inv.crystal = 12;
+  c.quality = 30;
+  c.carrierWarmth = C.HEART_WARM_LINE + 2;
+  const f = C.cargoForecast(s);
+  assert.equal(f.what, 'crystal');
+  assert.equal(f.state, 'cracking');
+  const real = timeTo(s, () => s.inv.crystal === 0);
+  assert.ok(Math.abs(real - f.lostIn) <= 0.5, `forecast ${f.lostIn} s, rules ${real} s`);
+  assert.equal(c.crystalLost, 1, 'counted, so the log can say so');
+  assert.equal(c.quality, 100, 'the next crystal starts sound');
+  assert.ok(C.validCultivation(c), 'and it saves');
+});

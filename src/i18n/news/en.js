@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.186.0':
+    'Bars are gone: things that run out now show a clock that ticks down. Over Mica, what you carry says “Cracks in 0:42” in the sun and “Heart breaks in 1:10” once it cracks. A hot chamber shows when its crystal dies, a heart shelter when the heart is mended, and the lantern the dark time it has left.',
   'news.0.185.1':
     'At the woken machine, choose where to teleport on the world map: your heart shelters show there as stops, and {phone:tapping|laptop:clicking} one takes you beside it.',
   'news.0.185.0':

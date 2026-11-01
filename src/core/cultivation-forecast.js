@@ -17,19 +17,16 @@ import { contentLocked } from './progression.js';
 
 export const FORECAST_STEP = 0.25; // seconds: the rules' own step (stepCultivation)
 export const FORECAST_HORIZON = 600; // seconds looked ahead; past it, no clock
-export const CRYSTAL_USABLE = 60; // % quality the machine still takes (cultivationCommand)
 
 // What Mica carries that can crack, most precious first, with the health it
 // has and the health at which it is lost: the heart cracks right through at
-// 0, a starter dies at 0, crystal stops being good enough for repairs at
-// CRYSTAL_USABLE (it can't fall lower than 10).
+// 0, a starter dies at 0, and carried crystal crumbles at 0% quality, the
+// whole load at once (Watch, 2026-11-01).
 function cargo(s) {
   const c = s.cultivation;
   if (c.heart?.where === 'carried') return { what: 'heart', health: c.heart.health, lostAt: 0 };
   if (c.starter) return { what: 'starter', health: c.starter.health, lostAt: 0 };
-  if (s.inv.crystal > 0 && c.quality > CRYSTAL_USABLE)
-    return { what: 'crystal', health: c.quality, lostAt: CRYSTAL_USABLE };
-  if (s.inv.crystal > 0) return { what: 'crystal', health: c.quality, lostAt: null };
+  if (s.inv.crystal > 0) return { what: 'crystal', health: c.quality, lostAt: 0 };
   return null;
 }
 
@@ -93,7 +90,6 @@ function playForward(item, damage) {
       run.cooled = t;
       break;
     }
-    if (item.lostAt === null) continue;
     health -= d * FORECAST_STEP;
     if (health <= item.lostAt) {
       run.lostIn = t + FORECAST_STEP;

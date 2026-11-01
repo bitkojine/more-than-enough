@@ -52,7 +52,8 @@ test('carrying the heart and crystal straight through the sun cracks them', () =
   assert.ok(
     s.cultivation.heartLost > 0 ||
       s.cultivation.heart.health < C.HEART_MIN ||
-      s.cultivation.quality < 60,
+      s.cultivation.quality < 60 ||
+      s.cultivation.crystalLost > 0,
     'what the carrier held reached home sound without ever leaving the sun'
   );
 });
