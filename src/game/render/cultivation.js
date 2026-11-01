@@ -95,13 +95,19 @@ export function drawCrystalCargo(ctx, cam, s, look, character) {
   ctx.beginPath();
   ctx.roundRect(x, y, Math.max(h, (w * Math.max(0, Math.min(100, quality))) / 100), h, h / 2);
   ctx.fill();
-  if (heart && c.heart.warmth > 0)
-    drawCarrierWarmth(ctx, c.heart.warmth, { x, y: y - h * 0.6 - 5, w, h: h * 0.6 });
+  const reading = Core.carrierReading(s);
+  if (reading?.loaded)
+    drawCarrierWarmth(ctx, reading.temperature, { x, y: y - h * 0.6 - 5, w, h: h * 0.6 });
 }
-// How warm the sun has made the carrier, above the heart's bar: full means it
-// has reached the line where the heart cracks (Watch, 2026-11-01).
-function drawCarrierWarmth(ctx, warmth, { x, y, w, h }) {
-  const k = Math.min(1, warmth / Core.HEART_WARM_LINE);
+// How warm the carrier is, above what it holds: empty at the surface's own
+// 18 °C, full at CRACK_ABOVE, where anything inside cracks (Watch, 2026-11-01).
+function drawCarrierWarmth(ctx, temperature, { x, y, w, h }) {
+  const line = Core.CRACK_ABOVE,
+    k = Math.max(
+      0,
+      Math.min(1, (temperature - (line - Core.HEART_WARM_LINE)) / Core.HEART_WARM_LINE)
+    );
+  if (!k) return;
   ctx.fillStyle = 'rgba(12,18,20,.85)';
   ctx.beginPath();
   ctx.roundRect(x - 2, y - 1, w + 4, h + 2, (h + 2) / 2);

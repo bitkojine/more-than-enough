@@ -15,6 +15,13 @@ const cell = (x, y, z) => `${x},${y},${z}`;
 const SURFACE_TOO = new Set(['shelter', 'bench']);
 // Recover saves produced by the earlier weighted-average rounding bug, while
 // keeping genuinely invalid condition values rejected by the validator.
+// 0.183.0 kept the sun's warmth on the heart; it belongs to the carrier.
+function carrierWarmthFromHeart(c) {
+  if (!c?.heart || typeof c.heart !== 'object' || !('warmth' in c.heart)) return;
+  const w = c.heart.warmth;
+  delete c.heart.warmth;
+  if (Number.isFinite(w) && w > 0) c.carrierWarmth = Math.max(c.carrierWarmth || 0, w);
+}
 export function recoverCultivationRounding(c) {
   // Worlds from before the heart: a machine already past its second section has it.
   if (c && typeof c === 'object' && !c.heart && Array.isArray(c.facilities))
@@ -22,6 +29,7 @@ export function recoverCultivationRounding(c) {
       c.completed || c.facilities.some((b) => b?.kind === 'machine' && (b.sections ?? 0) >= 2)
         ? { where: 'installed', health: 100 }
         : newHeart();
+  carrierWarmthFromHeart(c);
   const fix = (b) => {
     if (typeof b?.quality === 'number' && b.quality > 100 && b.quality <= 100 + 1e-9)
       b.quality = 100;
@@ -108,7 +116,6 @@ export function validCultivation(c) {
     c.heart !== undefined &&
     (!c.heart ||
       !number(c.heart.health, 0, 100) ||
-      (c.heart.warmth !== undefined && !number(c.heart.warmth, 0, HEART_WARM_MAX)) ||
       !(
         ['station', 'carried', 'installed'].includes(c.heart.where) ||
         ids.get(c.heart.where)?.kind === 'shelter'
@@ -117,6 +124,7 @@ export function validCultivation(c) {
     return false;
   if (c.heartLost !== undefined && !(Number.isSafeInteger(c.heartLost) && c.heartLost >= 0))
     return false;
+  if (c.carrierWarmth !== undefined && !number(c.carrierWarmth, 0, HEART_WARM_MAX)) return false;
   return Object.values(c.wild).every(
     (w) => pos(w) && number(w.health, 0, 100) && number(w.regrow, 0, 45)
   );
@@ -213,7 +221,6 @@ export function mendCultivation(c) {
         (['station', 'carried', 'installed'].includes(h.where) ||
           ids.get(h.where)?.kind === 'shelter');
     // A heart with nowhere it can be is where the machine says: in it, or still at the hiding place.
-    if (placed && h.warmth !== undefined) h.warmth = into(h.warmth, 0, HEART_WARM_MAX, 0);
     c.heart = placed
       ? ((h.health = into(h.health, 0, 100, 100)), h)
       : {
@@ -225,5 +232,6 @@ export function mendCultivation(c) {
   }
   if (c.heartLost !== undefined)
     c.heartLost = Math.floor(into(c.heartLost, 0, Number.MAX_SAFE_INTEGER, 0));
+  if (c.carrierWarmth !== undefined) c.carrierWarmth = into(c.carrierWarmth, 0, HEART_WARM_MAX, 0);
   return c;
 }

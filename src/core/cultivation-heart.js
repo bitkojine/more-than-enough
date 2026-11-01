@@ -13,16 +13,20 @@ export const HEART_DISTANCE = 2500; // metres from home to the hiding place
 export const HEART_MIN = 50; // the heart the machine accepts, % sound
 export const HEART_SUN = 0.15; // % lost per second carried in full sun
 export const HEART_MEND = 0.25; // % mended per second resting in a shelter
-// The sealed carrier blocks light but not heat (Watch, 2026-11-01): the sun
-// warms it, and warmth past HEART_WARM_LINE cracks the heart at the same rate
-// as any other heat. Shade, night, the underground and shelters cool it.
-// Playtest values: unshaded, the line comes after ~40 s of noon sun.
+// Every living crystal thing cracks above one temperature, at one rate per
+// degree past it: colonies, chambers, the machine, and whatever the carrier
+// holds (Watch, 2026-11-01: "same carrier, same rule").
+export const CRACK_ABOVE = 22; // °C
+export const HEAT_BURN = 0.8; // % cracked per second per °C past CRACK_ABOVE
+export const heatDamage = (temperature) => Math.max(0, temperature - CRACK_ABOVE) * HEAT_BURN;
+// The sealed carrier blocks light but not heat: the sun warms it while it
+// holds something, and its temperature is its surroundings plus that warmth.
+// Cool spots, night and the underground cool it. On the surface (18 °C) the
+// line comes after ~40 s of unshaded noon sun. Playtest values.
 export const HEART_WARM_RISE = 0.1; // °C per second in full sun
-export const HEART_WARM_COOL = 0.15; // °C per second out of the sun
-export const HEART_WARM_REST = 0.3; // °C per second resting in a shelter
-export const HEART_WARM_LINE = 4; // °C of sun warmth where cracking starts
+export const HEART_WARM_COOL = 0.15; // °C per second out of the sun or empty
+export const HEART_WARM_LINE = 4; // °C of warmth that takes the surface to CRACK_ABOVE
 export const HEART_WARM_MAX = 10; // the most the sun can add
-export const HEART_BURN = 0.8; // % cracked per second per °C past the line
 export const HEART_LINING = 0.5; // a mycelium-lined carrier warms half as fast
 export const BENCH_RANGE = 24; // metres from the hiding place a carrier bench may stand
 const hideouts = new Map();
@@ -62,7 +66,7 @@ function nearestGrass(x, y, ok) {
         if (ok(x + dx, y + dy)) return { x: x + dx, y: y + dy };
   return null;
 }
-export const newHeart = () => ({ where: 'station', health: 100, warmth: 0 });
+export const newHeart = () => ({ where: 'station', health: 100 });
 export function heartAt(s, x, y, z = s.player.z) {
   const h = hidingPlace(s.world.seed);
   return z === 0 && x === h.x && y === h.y;
@@ -74,42 +78,46 @@ export function heartLight(s, p) {
   return Math.min(1, illuminationAt(s, p.x, p.y, p.z).level / LIGHT_MAX);
 }
 
-// How much of the sun reaches the carrier where Mica stands, 0 to 1. Water,
-// a riverbank and a cave mouth are full shade; a forest is dappled
-// and lets half through. Only the land already there decides, so no played
-// world changes (AGENTS.md).
-const FULL_SHADE = new Set([T.WATER, T.CAVE, T.RISE]);
-export function carrierShade(s, x, y, z = s.player.z) {
-  if (z !== SURFACE) return 1;
-  const here = tileAt(s.world, x, y, z);
-  if (FULL_SHADE.has(here)) return 1;
-  for (const [dx, dy] of [
+// Water cools the carrier: standing in it or beside it stops the sun warming
+// it, whatever the light (Watch, 2026-11-01: water cools; shade is the light
+// field's own, see skyThrough in illumination.js).
+export function waterCools(s, x, y, z = s.player.z) {
+  if (tileAt(s.world, x, y, z) === T.WATER) return true;
+  return [
     [1, 0],
     [-1, 0],
     [0, 1],
     [0, -1]
-  ])
-    if (tileAt(s.world, x + dx, y + dy, z) === T.WATER) return 1;
-  return here === T.FOREST ? 0.5 : 0;
+  ].some(([dx, dy]) => tileAt(s.world, x + dx, y + dy, z) === T.WATER);
 }
+// How strongly the sun warms the carrier where Mica stands, 0 to 1: the
+// sunlight that physically reaches the tile (a forest's shade halves it, a
+// cave mouth or the underground stops it), unless water cools it. Lamps and
+// lanterns light but don't warm.
 export function carrierSun(s, p) {
-  if (p.z !== SURFACE) return 0;
+  const sky = illuminationAt(s, p.x, p.y, p.z).sky;
+  if (!sky || waterCools(s, p.x, p.y, p.z)) return 0;
   const lined = s.cultivation?.gear.lining ? HEART_LINING : 1;
-  return sunLightStrength(s) * (1 - carrierShade(s, p.x, p.y, p.z)) * lined;
+  return (sky / LIGHT_MAX) * sunLightStrength(s) * lined;
 }
 // Whether tile (x, y, z) is close enough to the hiding place for its camp.
 export function nearHidingPlace(s, x, y, z) {
   const h = hidingPlace(s.world.seed);
   return z === SURFACE && Math.hypot(x - h.x, y - h.y) <= BENCH_RANGE;
 }
-// One step of the carried heart's warmth; returns the % it cracks this step.
-export function warmCarrier(h, sun, seconds) {
-  const w = h.warmth || 0;
-  h.warmth =
-    sun > 0
+// Whether the carrier holds anything: the heart, a starter or crystal.
+export function carrierLoaded(s) {
+  const c = s.cultivation;
+  return !!c?.gear.carrier && (c.heart?.where === 'carried' || !!c.starter || s.inv.crystal > 0);
+}
+// One step of the carrier's sun warmth (°C added to its surroundings); it
+// warms only while loaded and in sun. Returns the average over the step, so
+// a 4 Hz step cracks as a smooth climb would.
+export function warmCarrier(c, sun, seconds, loaded = true) {
+  const w = c.carrierWarmth || 0;
+  c.carrierWarmth =
+    loaded && sun > 0
       ? Math.min(HEART_WARM_MAX, w + HEART_WARM_RISE * sun * seconds)
       : Math.max(0, w - HEART_WARM_COOL * seconds);
-  // The average over the step, so a 4 Hz step cracks as a smooth climb would.
-  const past = ((w + h.warmth) / 2 - HEART_WARM_LINE) * HEART_BURN;
-  return Math.max(0, past) * seconds;
+  return (w + c.carrierWarmth) / 2;
 }

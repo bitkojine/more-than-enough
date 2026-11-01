@@ -14,8 +14,12 @@ import { invariants } from '../test/property/invariants.js';
 import { reserveSeeds } from './playtest.mjs';
 
 // The wall budget only stops a hung run; the game-time budget is the check.
-// `shade: false` walks the heart home straight through the sun, to show the sun matters.
-export function playCultivation(seed, { wallSeconds = 300, log = () => {}, shade = true } = {}) {
+// `shade: false` walks the heart home straight through the sun, to show the
+// sun matters; `camp: false` skips the carrier bench at the hiding place.
+export function playCultivation(
+  seed,
+  { wallSeconds = 300, log = () => {}, shade = true, camp = true } = {}
+) {
   const hash = createHash('sha256');
   for (const name of readdirSync(new URL('../src/core/', import.meta.url))
     .filter((f) => f.endsWith('.js'))
@@ -324,21 +328,22 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {}, shade
       act({ type: 'climb', ...up });
     }
   }
-  // The sun warms the sealed carrier (Watch, 2026-11-01): when it nears the
-  // line, step into the nearest full shade you've seen (water, a riverbank, a
-  // cave mouth) and let it cool before walking on.
-  const sunNow = () => C.carrierSun(state, { ...feet(), z: state.player.z });
+  // The sun warms the loaded carrier (Watch, 2026-11-01): when it nears the
+  // line, step into the nearest cool spot you've seen (water, a riverbank or
+  // a cave mouth's full shade) and let it cool before walking on.
+  const sunAt = (p) => C.carrierSun(state, { ...p, z: state.player.z });
+  const sunNow = () => sunAt(feet());
+  const warmth = () => state.cultivation.carrierWarmth || 0;
   function keepCool() {
-    const h = state.cultivation.heart;
-    if (!shade || h?.where !== 'carried' || h.warmth < C.HEART_WARM_LINE * 0.6 || !sunNow())
+    if (!shade || !C.carrierLoaded(state) || warmth() < C.HEART_WARM_LINE * 0.6 || !sunNow())
       return false;
-    const spot = search((p) => C.carrierShade(state, p.x, p.y) === 1 && pass(p.x, p.y));
+    const spot = search((p) => pass(p.x, p.y) && sunAt(p) === 0);
     if (!spot) return false;
     for (const p of spot.path) walkTile(p);
     let n = 0;
     while (
-      h.where === 'carried' &&
-      h.warmth > 0.5 &&
+      C.carrierLoaded(state) &&
+      warmth() > 0.5 &&
       sunNow() === 0 &&
       C.sunLightStrength(state) > 0
     ) {
@@ -353,8 +358,17 @@ export function playCultivation(seed, { wallSeconds = 300, log = () => {}, shade
     const hide = C.hidingPlace(state.world.seed);
     climbHome();
     stage('surface again');
-    toward(hide);
+    toward(hide, keepCool);
     go(hide);
+    // Make camp: a carrier bench by the hiding place lines the carrier, so
+    // the sun warms it half as fast on the way home.
+    if (camp && !state.cultivation.gear.lining) {
+      const benchAt = buildingSite(hide, 3);
+      command('build', 'bench', benchAt);
+      command('line', null, benchAt);
+      go(hide);
+      stage('camp made, carrier lined');
+    }
     command('heart', null, hide);
     stage('heart taken');
     toward(cave, keepCool);

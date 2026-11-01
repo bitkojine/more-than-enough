@@ -27,8 +27,9 @@ commit. When you find something new, add it.
   place and back. Since 0.183.0 the sun warms the sealed carrier, so the way
   home means ducking into water, shade or a shelter to cool it, and walking
   straight through the sun cracks the heart (`docs/game-design.md`, "The trip
-  home"). The walk out still has little in it, and the camp, the carrier
-  lining and the shelter teleports aren't built yet.
+  home"). Since 0.184.0 a carrier bench at the hiding place lines the
+  carrier so it warms half as fast. The walk out still has little in it, and
+  the shelter teleports and the thief's clue aren't built yet.
 - **The ending is flat.** The last two repairs and the activation all happen
   in the same second. Waking the machine changes its picture and posts a
   message. The story promises that teleportation comes back, but it doesn't,

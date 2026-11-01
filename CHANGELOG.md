@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.184.0] - 2026-11-01
+
+- One set of rules for light and heat (Watch, 2026-11-01, "composable world
+  rules"; audit in project files `world-rules/`, decisions in
+  `docs/game-design.md`, "One set of rules for light and heat"):
+  - The carrier, not the heart, holds the sun's warmth (`carrierWarmth`), and
+    it warms while it holds anything. Its temperature is its surroundings
+    plus that warmth, and above 22 °C whatever it holds cracks at the same
+    0.8% a second per degree as everything else (`CRACK_ABOVE`,
+    `heatDamage`, now used by chambers, colonies, the machine and the
+    carrier alike). Before, a starter or crystal in the same carrier never
+    warmed, and the heart had two separate heat lines that didn't add up. On
+    the 18 °C surface the heart plays exactly as in 0.183.0.
+  - Shade is real shade: a forest canopy lets 8 of 15 sky light levels
+    through and a cave mouth none (`skyThrough`, `illumination.js`), so
+    exposed crystal cracks slower there too. Water and riverbanks still cool
+    the carrier but no longer pretend to be shade (`waterCools`).
+  - A heart shelter feels its spot: over 22 °C it cracks a resting heart
+    instead of mending it. Mines, the only heat on land, stay locked until
+    the machine wakes, so the win route is unchanged.
+  - The warmth bar shows for whatever the carrier holds, and the warnings
+    say "what you carry". `carrierReading` gives the temperature and the
+    cause acting now (sun, shade or water) for explanations.
+  - Saves from 0.183.0 move the heart's warmth to the carrier on load.
+- The camp at the hiding place (release 2 of "The trip home"): a carrier
+  bench (4 mycelium, 12 stone) within 24 m of the hiding place lines the
+  carrier with woven mycelium (10 mycelium), once, so the sun warms it half
+  as fast. New pictures for the bench and the lined carrier, and a pale band
+  on the 3D carrier. Mica now shows the sealed carrier while carrying the
+  heart; before it showed only for a starter or crystal.
+- The crystal playtest bot keeps the loaded carrier cool on both legs and
+  makes camp. Six fresh seeds (11, 42, 777, 12345, 99, 5) won with the heart
+  100% sound after 4 to 11 cooling stops; walking straight through the sun
+  now spoils the crystal it carries or cracks the heart.
 ## [0.183.1] - 2026-11-01
 
 - A lazy module that fails to load no longer breaks anything (Watch,

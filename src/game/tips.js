@@ -82,10 +82,12 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
       hud.toast(t('cr.heart.lost'));
       return true;
     }
-    const w = c.heart?.where === 'carried' ? c.heart.warmth || 0 : 0,
-      level = w > Core.HEART_WARM_LINE ? 2 : w >= Core.HEART_WARM_LINE * 0.6 ? 1 : 0;
+    // Whatever the carrier holds: one temperature, one line (CRACK_ABOVE).
+    const r = Core.carrierReading(s),
+      over = r?.loaded ? r.temperature - Core.CRACK_ABOVE : -Infinity,
+      level = over > 0 ? 2 : over >= -Core.HEART_WARM_LINE * 0.4 ? 1 : 0;
     if (level <= heartWarned) {
-      if (w < Core.HEART_WARM_LINE * 0.3) heartWarned = 0;
+      if (over < -Core.HEART_WARM_LINE * 0.7) heartWarned = 0;
       return false;
     }
     heartWarned = level;

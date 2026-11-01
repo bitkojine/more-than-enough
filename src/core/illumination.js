@@ -15,13 +15,22 @@ import {
   unpackKey
 } from './coords.js';
 import { tileAt, holeAbove, holeBelow } from './world.js';
-import { TILE_INFO } from './tiles.js';
+import { TILE_INFO, T } from './tiles.js';
 import { PROPS, FLARE_LIGHT } from './content.js';
 import { daylight, SUN_CRACKS, isDark, lightScale, activeCarriedLight } from './light.js';
 import { VersionedMap } from './versioned-map.js';
 import { VersionedSet } from './versioned-set.js';
 
 export const LIGHT_MAX = 15;
+// How much open sky reaches a surface tile (Watch, 2026-11-01: shade is real
+// shade). A forest canopy lets about half through and a cave mouth none;
+// everywhere else sees the whole sky. Tile types never change, so no cache
+// depends on more than the tile itself.
+const CANOPY = new Map([
+  [T.FOREST, 8],
+  [T.CAVE, 0]
+]);
+export const skyThrough = (type) => CANOPY.get(type) ?? LIGHT_MAX;
 export const LANTERN_LEVEL = 4; // source plus three open steps at full charge
 const MAX_FIELDS = 256;
 const contexts = new WeakMap();
@@ -153,7 +162,7 @@ function reader(c, deps, work) {
       }
       chain.push(key);
       if (z === SURFACE) {
-        lit = LIGHT_MAX;
+        lit = skyThrough(tileAt(c.world, x, y, z));
         break;
       }
       if (!read(x, y, z) || !above(x, y, z)) {
@@ -290,7 +299,7 @@ export function illuminationAt(s, x, y, z = s.player.z, work = null) {
   y = Math.floor(y);
   if (!valid(x, y, z)) return { sky: 0, block: 0, level: 0 };
   const c = context(s);
-  let sky = LIGHT_MAX,
+  let sky = z === SURFACE ? skyThrough(tileAt(s.world, x, y, z)) : LIGHT_MAX,
     block = 0;
   // Surface tiles see the sky directly. With no installed emitters there is
   // no reason to construct a static field while crossing kilometres of land.

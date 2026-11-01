@@ -268,7 +268,26 @@ decision cards):
 
 Built in three releases: carrier heat and shade; the camp and lining; shelter
 teleports and the thief's clue. Warming rates are playtest values in
-`src/core/cultivation-heart.js`.
+`src/core/cultivation-heart.js`. The camp and lining shipped in 0.184.0.
+
+### One set of rules for light and heat — confirmed, 2026-11-01
+Watch asked for a world built from a few understandable rules that combine
+(direction and audit: project files, `world-rules/`). Decisions from the
+first audit of light, heat, the carrier and shelters:
+
+1. **Same carrier, same rule.** The carrier, not the heart, holds the sun's
+   warmth, and it warms while it holds anything: the heart, a starter or
+   crystal. Its temperature is its surroundings plus that warmth, and above
+   22 °C whatever it holds cracks at the same 0.8 % a second per degree as a
+   chamber, a colony or the machine (`CRACK_ABOVE`, `heatDamage`).
+2. **Shade is real shade.** A forest canopy lets about half the sky's light
+   through and a cave mouth none, in the light field itself
+   (`skyThrough` in `src/core/illumination.js`), so it also slows the cracking
+   of exposed crystal. Water and riverbanks don't darken anything; they cool
+   the carrier, as water.
+3. **A shelter feels its spot.** It takes its surroundings' temperature like
+   every building: cool, it mends a resting heart; over 22 °C it cracks it.
+
 
 ### Other design questions still open
 - Who stole the heart and why, and where can teleportation take players once the machine wakes?

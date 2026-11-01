@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.184.0':
+    'Make camp at the heart’s hiding place: a carrier bench there lines your carrier with mycelium, so the sun warms it half as fast. The sun now warms the carrier whatever it holds, crystal and starters too, and above 22 °C what it holds cracks. Forests and cave mouths give real shade, which also shelters exposed crystal; water cools the carrier. A heart shelter feels its spot like any building: kept cool it mends the heart, but too hot it cracks it.',
   'news.0.183.1':
     "Opening the game just after your device wakes up, or soon after an update, no longer leaves a part of it unloaded: the game tries again, and moves to the newest version if that is why. Syncing with your other devices and the What's new list recover on their own.",
   'news.0.183.0':
@@ -244,8 +246,8 @@ export default {
     'Find the hiding place on your map and carry the heart home in a sealed carrier. The sun warms the carrier: cool it in water, shade or a shelter.',
   'cr.reason.lifted':
     'You lift the heart into the carrier, safe from light. The sun warms it, so cool off in water, shade or a shelter.',
-  'cr.heart.warm': 'The sun is warming the carrier. Find water, shade or a shelter.',
-  'cr.heart.cracking': 'The heart is cracking in the heat! Get out of the sun.',
+  'cr.heart.warm': 'The sun is warming the carrier. Find water, shade or a cave mouth.',
+  'cr.heart.cracking': 'What you carry is cracking in the heat! Get out of the sun.',
   'cr.reason.gone': 'The heart isn’t here.',
   'cr.reason.heart':
     'This section needs the machine’s heart. It was teleported to a hiding place, marked on your map.',

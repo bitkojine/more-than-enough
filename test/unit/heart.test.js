@@ -32,7 +32,7 @@ test('the hiding place is open grass far from home, fixed by the seed', () => {
 
 test('new worlds start with the heart at the hiding place; older saves keep their progress', () => {
   const s = C.createState(7, { cultivation: true });
-  assert.deepEqual(s.cultivation.heart, { where: 'station', health: 100, warmth: 0 });
+  assert.deepEqual(s.cultivation.heart, { where: 'station', health: 100 });
   const old = JSON.parse(JSON.stringify(s.cultivation));
   delete old.heart;
   C.recoverCultivationRounding(old);
@@ -111,87 +111,128 @@ test('a shelter keeps the heart safe and mends it; a heart cracked through retur
   s.cultivation.heart.health = 0.5;
   s.cultivation.gear.carrier = false;
   run(s, 10);
-  assert.deepEqual(s.cultivation.heart, { where: 'station', health: 100, warmth: 0 });
+  assert.deepEqual(s.cultivation.heart, { where: 'station', health: 100 });
   assert.equal(s.cultivation.heartLost, 1);
 });
 
-// Watch, 2026-11-01: the carrier blocks light but the sun warms it, and heat
-// cracks the heart. Shade, night, the underground and shelters cool it.
-test('the sun warms the sealed carrier until heat cracks the heart; shade and shelters cool it', () => {
+// Watch, 2026-11-01: the carrier blocks light but the sun warms it while it
+// holds something. Its temperature is its surroundings plus that warmth, and
+// whatever it holds cracks above CRACK_ABOVE ("same carrier, same rule").
+test('the loaded carrier warms in the sun until what it holds cracks; out of the sun it cools', () => {
+  const { s, h } = atHidingPlace();
+  unlockOptional(s);
+  s.cultivation.heart = C.newHeart();
+  s.inv.crystal = 0;
+  cmd(s, 'craft', 'carrier');
+  const c = s.cultivation;
+  s.time = 0;
+  assert.equal(C.carrierSun(s, { x: h.x, y: h.y, z: 0 }), 1, 'the hiding place is open grass');
+  // Empty, the carrier doesn't warm.
+  run(s, 20);
+  assert.equal(c.carrierWarmth || 0, 0);
+  assert.equal(cmd(s, 'heart', null, h.x, h.y), 'lifted');
+  s.player = { x: h.x + 0.5, y: h.y + 0.5, z: 0 };
+  // In the open at noon: no light gets in, but warmth builds; on the surface
+  // (18 °C) the heart starts cracking once the sun has added HEART_WARM_LINE.
+  run(s, C.HEART_WARM_LINE / C.HEART_WARM_RISE - 1);
+  assert.equal(c.heart.health, 100, 'nothing cracks below 22 °C');
+  assert.ok(C.carrierReading(s).temperature < C.CRACK_ABOVE);
+  run(s, 12);
+  assert.ok(c.heart.health < 99.5, 'past 22 °C the heart cracks: ' + c.heart.health);
+  assert.equal(C.carrierReading(s).cause, 'sun');
+  // Out of the sun it cools at the cooling rate.
+  const warm = c.carrierWarmth;
+  s.time = C.DAY_LENGTH / 2;
+  run(s, 4);
+  assert.ok(Math.abs(warm - c.carrierWarmth - C.HEART_WARM_COOL * 4) < 1e-9);
+  // Never warmer than the sun can make it.
+  c.carrierWarmth = C.HEART_WARM_MAX - 0.01;
+  C.warmCarrier(c, 1, 10);
+  assert.equal(c.carrierWarmth, C.HEART_WARM_MAX);
+  assert.ok(C.validCultivation(c), 'a warm carrier saves');
+  c.carrierWarmth = 99;
+  assert.equal(C.validCultivation(c), false, 'warmer than the sun can make is refused');
+  const mended = C.mendCultivation(JSON.parse(JSON.stringify(c)));
+  assert.equal(mended.carrierWarmth, C.HEART_WARM_MAX, 'and mended back inside on load');
+});
+
+test('crystal and a starter in the carrier warm and crack like the heart', () => {
   const { s, h } = atHidingPlace();
   unlockOptional(s);
   s.cultivation.heart = C.newHeart();
   cmd(s, 'craft', 'carrier');
-  assert.equal(cmd(s, 'heart', null, h.x, h.y), 'lifted');
-  const heart = s.cultivation.heart,
-    open = { x: h.x, y: h.y, z: 0 };
-  assert.equal(C.carrierShade(s, h.x, h.y), 0, 'the hiding place is open grass');
+  const c = s.cultivation;
+  s.player = { x: h.x + 0.5, y: h.y + 0.5, z: 0 };
+  s.inv.crystal = 5;
+  c.quality = 100;
   s.time = 0;
-  // Stand still in the open at noon: no light gets in, but warmth builds.
-  const sun = () => C.carrierSun(s, open);
-  assert.equal(sun(), 1);
-  const line = C.HEART_WARM_LINE / C.HEART_WARM_RISE;
-  for (let i = 0; i < line * 4 - 4; i++) heart.health -= C.warmCarrier(heart, 1, 0.25);
-  assert.equal(heart.health, 100, 'nothing cracks before the warmth line');
-  for (let i = 0; i < 40; i++) heart.health -= C.warmCarrier(heart, 1, 0.25);
-  assert.ok(heart.health < 99, 'past the line the heart cracks: ' + heart.health);
-  assert.ok(heart.warmth > C.HEART_WARM_LINE);
-  // Out of the sun it cools at the cooling rate, and cracks no further once under the line.
-  const warm = heart.warmth;
-  C.warmCarrier(heart, 0, 4);
-  assert.ok(Math.abs(warm - heart.warmth - C.HEART_WARM_COOL * 4) < 1e-9);
-  heart.warmth = C.HEART_WARM_LINE - 0.1;
-  const cracked = heart.health;
-  heart.health -= C.warmCarrier(heart, 0, 10);
-  assert.equal(heart.health, cracked);
-  // Never warmer than the sun can make it.
-  heart.warmth = C.HEART_WARM_MAX - 0.01;
-  C.warmCarrier(heart, 1, 10);
-  assert.equal(heart.warmth, C.HEART_WARM_MAX);
-  // A shelter cools it even at noon, faster than shade.
-  const at = { x: h.x + 1, y: h.y + 1 };
-  assert.equal(cmd(s, 'build', 'shelter', at.x, at.y), 'ok');
-  assert.equal(cmd(s, 'heart', null, at.x, at.y), 'ok');
-  heart.warmth = 3;
-  run(s, 5);
-  assert.ok(
-    Math.abs(heart.warmth - (3 - C.HEART_WARM_REST * 5)) < 1e-9,
-    'shelter: ' + heart.warmth
-  );
-  assert.ok(C.validCultivation(s.cultivation), 'a warm heart saves');
-  s.cultivation.heart.warmth = 99;
-  assert.equal(C.validCultivation(s.cultivation), false, 'warmer than the sun can make is refused');
-  const mended = C.mendCultivation(JSON.parse(JSON.stringify(s.cultivation)));
-  assert.equal(mended.heart.warmth, C.HEART_WARM_MAX, 'and mended back inside on load');
+  run(s, 80);
+  assert.ok(c.quality < 100, 'crystal in a sun-warmed carrier cracks: ' + c.quality);
+  s.inv.crystal = 0;
+  c.carrierWarmth = 0;
+  c.starter = { health: 100 };
+  run(s, 80);
+  assert.ok(c.starter.health < 100, 'so does a starter: ' + c.starter.health);
 });
 
-test('water, a riverbank and a cave mouth are full shade; a forest lets half the sun through', () => {
+test('the surroundings and the sun add up: a warm carrier cracks sooner by heat', () => {
+  const { s, h } = atHidingPlace();
+  unlockOptional(s);
+  cmd(s, 'craft', 'carrier');
+  const c = s.cultivation;
+  c.heart = { where: 'carried', health: 100 };
+  s.player = { x: h.x + 0.5, y: h.y + 0.5, z: 0 };
+  s.time = C.DAY_LENGTH / 2; // night: no sun warms it further
+  c.carrierWarmth = C.HEART_WARM_LINE + 2; // 24 °C on the 18 °C surface
+  run(s, 1);
+  const lost = 100 - c.heart.health;
+  // About 2 °C over the line, cooling a little through the second.
+  assert.ok(lost > 1 && lost < 2 * C.HEAT_BURN, 'lost ' + lost);
+});
+
+test('a forest canopy halves the sunlight, a cave mouth blocks it, water cools the carrier', () => {
   const s = C.createState(7, { cultivation: true }),
     find = (want) => {
       for (let y = -200; y < 200; y++)
         for (let x = -200; x < 200; x++) if (want(x, y)) return { x, y };
       throw Error('none near home');
     },
-    type = (x, y) => C.tileAt(s.world, x, y, 0);
+    type = (x, y) => C.tileAt(s.world, x, y, 0),
+    dry = (x, y) =>
+      [type(x + 1, y), type(x - 1, y), type(x, y + 1), type(x, y - 1)].every(
+        (t) => t !== C.T.WATER
+      );
   s.time = 0;
   const water = find((x, y) => type(x, y) === C.T.WATER),
-    forest = find(
-      (x, y) =>
-        type(x, y) === C.T.FOREST &&
-        [type(x + 1, y), type(x - 1, y), type(x, y + 1), type(x, y - 1)].every(
-          (t) => t !== C.T.WATER
-        )
-    ),
+    forest = find((x, y) => type(x, y) === C.T.FOREST && dry(x, y)),
+    grass = find((x, y) => type(x, y) === C.T.GRASS && dry(x, y)),
     bank = find((x, y) => type(x, y) !== C.T.WATER && type(x + 1, y) === C.T.WATER),
-    cave = find((x, y) => type(x, y) === C.T.CAVE);
-  assert.equal(C.carrierShade(s, water.x, water.y), 1);
-  assert.equal(C.carrierShade(s, bank.x, bank.y), 1);
-  assert.equal(C.carrierShade(s, cave.x, cave.y), 1);
-  assert.equal(C.carrierShade(s, forest.x, forest.y), 0.5);
-  assert.equal(C.carrierSun(s, { ...forest, z: 0 }), 0.5);
+    cave = find((x, y) => type(x, y) === C.T.CAVE && dry(x, y));
+  const light = (p) => C.illuminationAt(s, p.x, p.y, 0).level;
+  // Real shade: the light field itself, which also cracks exposed crystal.
+  assert.equal(light(grass), C.LIGHT_MAX);
+  assert.ok(light(forest) > 0 && light(forest) < C.LIGHT_MAX * 0.6, 'forest ' + light(forest));
+  assert.equal(light(cave), 0);
+  assert.ok(Math.abs(C.carrierSun(s, { ...forest, z: 0 }) - light(forest) / C.LIGHT_MAX) < 1e-9);
+  assert.equal(C.carrierSun(s, { ...cave, z: 0 }), 0);
+  // Water cools the carrier without making anywhere dark.
+  assert.equal(light(bank), C.LIGHT_MAX);
+  assert.equal(C.carrierSun(s, { ...water, z: 0 }), 0);
+  assert.equal(C.carrierSun(s, { ...bank, z: 0 }), 0);
   assert.equal(C.carrierSun(s, { ...forest, z: -1 }), 0, 'no sun underground');
   s.time = C.DAY_LENGTH / 2;
-  assert.equal(C.carrierSun(s, { ...forest, z: 0 }), 0, 'no sun at night');
+  assert.equal(C.carrierSun(s, { ...grass, z: 0 }), 0, 'no sun at night');
+});
+
+test('a heart saved by 0.183.0 with warmth on it loads with that warmth in the carrier', () => {
+  const s = C.createState(7, { cultivation: true }),
+    old = JSON.parse(JSON.stringify(s.cultivation));
+  old.heart = { where: 'carried', health: 80, warmth: 3.5 };
+  old.gear.carrier = true;
+  const c = C.mendCultivation(old);
+  assert.ok(C.validCultivation(c));
+  assert.equal(c.carrierWarmth, 3.5);
+  assert.deepEqual(c.heart, { where: 'carried', health: 80 });
 });
 
 test('the second machine section seats the heart', () => {
@@ -224,4 +265,57 @@ test('the second machine section seats the heart', () => {
   assert.equal(b.sections, 2);
   C.advanceGoals(s);
   assert.ok(s.goalsDone.includes('cultivationHeart'));
+});
+
+// The camp at the hiding place (Watch, 2026-11-01): a carrier bench there
+// lines the carrier with mycelium, once, and the sun warms it half as fast.
+test('a carrier bench stands only by the hiding place and lines the carrier once', () => {
+  const { s, h } = atHidingPlace();
+  s.cultivation.heart = C.newHeart();
+  const c = s.cultivation,
+    at = { x: h.x + 1, y: h.y + 1 };
+  assert.ok(C.buildsOnLayer(s, 'bench', 0));
+  assert.equal(C.buildsOnLayer(s, 'bench', -2), false);
+  assert.equal(C.facilitySite(s, 'bench', h.x, h.y), 'occupied', 'not on the hiding place itself');
+  const far = C.createState(7, { cultivation: true });
+  C.markExplored(far.world, 3, -10, 0);
+  assert.equal(C.facilitySite(far, 'bench', 3, -10), 'camp', 'not at home');
+  assert.equal(cmd(s, 'build', 'bench', at.x, at.y), 'ok');
+  const bench = C.cultivationAt(s, at.x, at.y, 0);
+  assert.equal(bench.kind, 'bench');
+  assert.equal(C.cultivationStatus(s, bench), 'ready');
+  assert.equal(cmd(s, 'line', null, at.x, at.y), 'equipment', 'needs a carrier to line');
+  cmd(s, 'craft', 'carrier');
+  const before = s.inv.mycelium;
+  assert.equal(cmd(s, 'line', null, at.x, at.y), 'ok');
+  assert.equal(before - s.inv.mycelium, C.CULTIVATION_RECIPES.lining.mycelium);
+  assert.equal(c.gear.lining, true);
+  assert.equal(cmd(s, 'line', null, at.x, at.y), 'invalid', 'only once');
+  s.time = 0;
+  assert.equal(C.carrierSun(s, { x: h.x, y: h.y, z: 0 }), C.HEART_LINING);
+  const saved = C.deserialize(C.serialize(s));
+  assert.equal(saved.cultivation.gear.lining, true);
+  assert.equal(C.cultivationAt(saved, at.x, at.y, 0).kind, 'bench');
+});
+
+// Watch, 2026-11-01: a shelter feels its spot like every other building.
+test('a cool shelter mends the heart; a hot one cracks it', () => {
+  const { s, h } = atHidingPlace();
+  unlockOptional(s);
+  s.cultivation.heart = C.newHeart();
+  cmd(s, 'craft', 'carrier');
+  cmd(s, 'heart', null, h.x, h.y);
+  const at = { x: h.x + 1, y: h.y + 1 };
+  cmd(s, 'build', 'shelter', at.x, at.y);
+  cmd(s, 'heart', null, at.x, at.y);
+  const shelter = C.cultivationAt(s, at.x, at.y, 0),
+    heart = s.cultivation.heart;
+  heart.health = 60;
+  shelter.temperature = C.CRACK_ABOVE + 5;
+  C.stepCultivation(s, 0.25);
+  assert.ok(heart.health < 60, 'hot: it cracks ' + heart.health);
+  shelter.temperature = 18;
+  const before = heart.health;
+  C.stepCultivation(s, 0.25);
+  assert.ok(heart.health > before, 'cool: it mends');
 });

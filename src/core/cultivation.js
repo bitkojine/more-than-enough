@@ -21,12 +21,14 @@ import {
   HEART_MIN,
   HEART_SUN,
   HEART_MEND,
-  HEART_WARM_REST,
   newHeart,
   heartAt,
   heartLight,
   carrierSun,
   warmCarrier,
+  carrierLoaded,
+  waterCools,
+  heatDamage,
   nearHidingPlace
 } from './cultivation-heart.js';
 export const CRYSTAL_GROWTH_RATE = 0.3;
@@ -107,6 +109,22 @@ export function cultivationTarget(s, b) {
       (b.kind === 'chamber' || b.kind === 'machine' ? 18 : 0) +
       (index(s).heat.get(cell(b.x, b.y, b.z)) || 0)
   );
+}
+// What the loaded carrier feels where Mica stands, and why: its temperature
+// (surroundings plus sun warmth) and the cause acting on it now. Explanations
+// read this, so they name only causes the rules use.
+export function carrierReading(s) {
+  const c = s.cultivation;
+  if (!c?.gear?.carrier) return null;
+  const p = { x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z },
+    warmth = c.carrierWarmth || 0,
+    sun = carrierSun(s, p);
+  return {
+    loaded: carrierLoaded(s),
+    warmth,
+    temperature: cultivationTarget(s, p) + warmth,
+    cause: sun > 0 ? 'sun' : waterCools(s, p.x, p.y, p.z) ? 'water' : 'shade'
+  };
 }
 export function cultivationStatus(s, b) {
   if (['cooler', 'conduit', 'shelter', 'bench'].includes(b.kind)) return 'ready';
@@ -463,6 +481,24 @@ function discoverMachine(s) {
       return;
     }
 }
+// The heart: carried, it takes `damage` % a second (heat and any light);
+// resting in a shelter, it mends or cracks with the shelter's temperature.
+function stepHeart(s, damage, seconds) {
+  const c = s.cultivation,
+    h = c.heart;
+  if (h?.where === 'carried') h.health -= damage * seconds;
+  else if (typeof h?.where === 'number' && !contentLocked(s, 'shelter')) {
+    // A shelter feels its spot like any building (Watch, 2026-11-01): cool, it
+    // mends the heart; over CRACK_ABOVE (beside a working mine, say) it cracks it.
+    const hot = heatDamage(index(s).ids.get(h.where)?.temperature ?? 0);
+    h.health = Math.min(100, h.health + (hot ? -hot : HEART_MEND) * seconds);
+  } else return;
+  // A heart that cracks right through falls apart and its light returns to the hiding place.
+  if (h.health <= 0) {
+    c.heart = newHeart();
+    c.heartLost = (c.heartLost || 0) + 1;
+  }
+}
 export function stepCultivation(s, dt) {
   const c = s.cultivation;
   if (!c) return;
@@ -475,28 +511,16 @@ export function stepCultivation(s, dt) {
   // Calls normally arrive at 60 Hz; only facility deadlines run at 4 Hz.
   // The host may batch a quiet interval without touching any terrain cells.
   const p = { x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z };
-  const heat = Math.max(0, cultivationTarget(s, p) - 22) * 0.8;
+  // What Mica carries feels the surroundings, plus the carrier's sun warmth.
+  const warmth = c.gear.carrier ? warmCarrier(c, carrierSun(s, p), seconds, carrierLoaded(s)) : 0;
+  const heat = heatDamage(cultivationTarget(s, p) + warmth);
   const carriedDamage = heat + (c.gear.carrier ? 0 : 9 * cultivationExposure(s, p));
   if (c.starter) {
     c.starter.health -= carriedDamage * seconds;
     if (c.starter.health <= 0) c.starter = null;
   }
   if (s.inv.crystal) c.quality = Math.max(10, c.quality - carriedDamage * seconds);
-  if (c.heart?.where === 'carried') {
-    c.heart.health -=
-      (heat + HEART_SUN * heartLight(s, p)) * seconds +
-      warmCarrier(c.heart, carrierSun(s, p), seconds);
-    // A heart that cracks right through falls apart and its light returns to the hiding place.
-    if (c.heart.health <= 0) {
-      c.heart = newHeart();
-      c.heartLost = (c.heartLost || 0) + 1;
-    }
-  } else if (typeof c.heart?.where === 'number') {
-    // A shelter is cool and dark: the carrier cools there even while mending is paused.
-    if (c.heart.warmth) c.heart.warmth = Math.max(0, c.heart.warmth - HEART_WARM_REST * seconds);
-    if (!contentLocked(s, 'shelter'))
-      c.heart.health = Math.min(100, c.heart.health + HEART_MEND * seconds);
-  }
+  stepHeart(s, heat + HEART_SUN * heartLight(s, p), seconds);
   for (const w of Object.values(c.wild)) {
     if (w.regrow > 0) {
       w.regrow = Math.max(0, w.regrow - seconds);
@@ -504,9 +528,7 @@ export function stepCultivation(s, dt) {
     } else {
       w.health = Math.max(
         0,
-        w.health -
-          (9 * cultivationExposure(s, w) + Math.max(0, cultivationTarget(s, w) - 22) * 0.8) *
-            seconds
+        w.health - (9 * cultivationExposure(s, w) + heatDamage(cultivationTarget(s, w))) * seconds
       );
       if (!w.health) w.regrow = 45;
     }
@@ -515,7 +537,7 @@ export function stepCultivation(s, dt) {
     if (contentLocked(s, b.kind)) continue;
     const target = cultivationTarget(s, b);
     b.temperature = target + (b.temperature - target) * Math.exp(-seconds / 6);
-    const damage = Math.max(0, b.temperature - 22) * 0.8;
+    const damage = heatDamage(b.temperature);
     if (b.buffer) b.quality = Math.max(10, b.quality - damage * seconds);
     if (b.health > 0) {
       if (damage) {

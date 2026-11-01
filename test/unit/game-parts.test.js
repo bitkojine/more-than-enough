@@ -326,24 +326,28 @@ test('tips: a quick tap on AUTO says it plays while held; a long hold does not',
   assert.deepEqual(shown, [0, 4, 0]);
 });
 
-test('tips: the carried heart warns once as the sun warms it, and says when it cracks through', () => {
+test('tips: the loaded carrier warns once as it nears 22 °C, and says when the heart cracks through', () => {
   const toasts = [];
   const tips = createTips({ hud: { toast: (m) => toasts.push(m) }, view: {}, keep() {} });
-  const heart = { where: 'carried', health: 100, warmth: 0 },
-    s = { inv: { crystal: 0 }, cultivation: { quality: 100, facilities: [], heart, heartLost: 2 } };
+  const s = Core.createState(7, { cultivation: true }),
+    c = s.cultivation;
+  c.gear.carrier = true;
+  c.heart = { where: 'carried', health: 100 };
+  c.heartLost = 2;
+  s.time = Core.DAY_LENGTH / 2;
   assert.equal(tips.danger(s, 0.1), false, 'a cool carrier says nothing, nor do earlier losses');
-  heart.warmth = Core.HEART_WARM_LINE * 0.7;
+  c.carrierWarmth = Core.HEART_WARM_LINE * 0.7;
   assert.equal(tips.danger(s, 0.1), true);
   assert.equal(tips.danger(s, 0.1), false, 'once, not every tick');
-  heart.warmth = Core.HEART_WARM_LINE + 1;
+  c.carrierWarmth = Core.HEART_WARM_LINE + 1;
   assert.equal(tips.danger(s, 0.1), true);
   assert.equal(tips.danger(s, 0.1), false);
-  heart.warmth = 0;
+  c.carrierWarmth = 0;
   assert.equal(tips.danger(s, 0.1), false);
-  heart.warmth = Core.HEART_WARM_LINE * 0.7;
+  c.carrierWarmth = Core.HEART_WARM_LINE * 0.7;
   assert.equal(tips.danger(s, 0.1), true, 'cooled right down, it warns again next time');
-  s.cultivation.heartLost = 3;
-  s.cultivation.heart = { where: 'station', health: 100, warmth: 0 };
+  c.heartLost = 3;
+  c.heart = { where: 'station', health: 100 };
   assert.equal(tips.danger(s, 0.1), true);
   assert.equal(toasts.length, 4);
   assert.notEqual(toasts[0], toasts[1]);

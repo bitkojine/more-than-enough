@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.184.0':
+    'Įsikurk stovyklą prie širdies slėptuvės: dėklo suolas išklos dėklą grybiena, tad saulė jį šildys dvigubai lėčiau. Saulė dabar šildo dėklą, kad ir kas jame būtų, taip pat kristalus ir daigus, o virš 22 °C tai, kas jame, skilinėja. Miškai ir urvų angos meta tikrą pavėsį, saugantį ir neapsaugotus kristalus; vanduo vėsina dėklą. Širdies pastogė jaučia savo vietą kaip bet kuris pastatas: vėsioje širdis gyja, per karštoje skilinėja.',
   'news.0.183.1':
     'Atidarius žaidimą vos pabudus įrenginiui ar netrukus po atnaujinimo, kuri nors jo dalis nebelieka neįkelta: žaidimas bando dar kartą, o jei to priežastis atnaujinimas, pereina į naujausią versiją. Sinchronizavimas su kitais tavo įrenginiais ir sąrašas „Kas naujo“ atsigauna patys.',
   'news.0.183.0':
@@ -246,8 +248,8 @@ export default {
     'Rask žemėlapyje pažymėtą slėptuvę ir parnešk širdį sandarioje nešyklėje. Saulė ją šildo: atvėsink vandenyje, pavėsyje ar širdies pastogėje.',
   'cr.reason.lifted':
     'Įkeli širdį į dėklą, apsaugotą nuo šviesos. Saulė jį šildo, tad vėsink vandenyje, pavėsyje ar širdies pastogėje.',
-  'cr.heart.warm': 'Saulė šildo dėklą. Ieškok vandens, pavėsio ar širdies pastogės.',
-  'cr.heart.cracking': 'Širdis skilinėja nuo karščio! Trauk iš saulės.',
+  'cr.heart.warm': 'Saulė šildo dėklą. Ieškok vandens, pavėsio ar urvo angos.',
+  'cr.heart.cracking': 'Tai, ką neši, skilinėja nuo karščio! Trauk iš saulės.',
   'cr.reason.gone': 'Širdies čia nėra.',
   'cr.reason.heart':
     'Šiai daliai reikia mašinos širdies. Ji nuteleportuota į slėptuvę, pažymėtą žemėlapyje.',
