@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.190.0':
+    'The game starts sooner and runs cooler: its pictures are prepared only when they are first needed, and Mica is redrawn less often while standing still. Screen readers now hear the counts on the resource bar and the milestones button.',
   'news.0.189.1':
     'Carried crystal now says “Crystal quality”. Cargo and building clocks show the item they describe, and the lantern and daylight timers have clear subject icons.',
   'news.0.189.0':

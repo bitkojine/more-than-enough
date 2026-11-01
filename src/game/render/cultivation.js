@@ -129,13 +129,8 @@ export function drawClock(ctx, look, { x, y, text, tone, icon }, taken = []) {
     height = width * pic.aspect,
     left = x - w / 2 + padding;
   // Rasterize each tiny subject once per display density, not each frame.
-  ctx.drawImage(
-    look.bitmap(pic, width),
-    left + (iconSize - width) / 2,
-    y - height / 2,
-    width,
-    height
-  );
+  const bitmap = look.bitmap(pic, width);
+  if (bitmap) ctx.drawImage(bitmap, left + (iconSize - width) / 2, y - height / 2, width, height);
   ctx.textAlign = 'left';
   ctx.fillText(text, left + iconSize + gap, y + 0.5);
   ctx.restore();

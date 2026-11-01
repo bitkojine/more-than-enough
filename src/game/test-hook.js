@@ -77,6 +77,7 @@ export function createTestHook(p) {
       return (performance.now() - t0) / n;
     },
     quality: () => quality.level,
+    rig: () => look.rig?.stats ?? null,
     mapNames: () => mapNames(),
     mapLayer: () => mapView.shown(),
     mapOn: () => mapView.on(),

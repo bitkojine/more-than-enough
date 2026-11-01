@@ -5,7 +5,7 @@
  * text (a one-line hint at most, see README); everything to read lives in the wiki. */
 
 import * as Core from '../core/index.js';
-import { fmtClock, fmtRate, fmtShort } from './format.js';
+import { esc, fmtClock, fmtRate, fmtShort } from './format.js';
 import { t, number } from '../i18n/i18n.js';
 import { batteryClock } from './cargo-clock.js';
 
@@ -114,8 +114,9 @@ export function createHud(el, look, messages) {
     chip.type = 'button';
     chip.className = 'chip';
     chip.dataset.res = r;
-    chip.setAttribute('aria-label', t('hud.chip', { res: Core.RESOURCE_LABEL[r] }));
+    // Named by its content, so what it shows (the count) is part of its name.
     chip.innerHTML =
+      `<span class="sr">${esc(t('hud.chip', { res: Core.RESOURCE_LABEL[r] }))} </span>` +
       `<span class="top"><img class="ic" data-look="${Core.resourceLook(r)}" alt=""><span class="val">0</span></span>` +
       '<span class="rate"></span>';
     el.resources.appendChild(chip);

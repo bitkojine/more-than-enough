@@ -60,6 +60,8 @@ test('timer subjects reuse world pictures and cache their cropped forms', () => 
       if (!sources.has(id))
         sources.set(id, {
           img: { naturalWidth: 96, naturalHeight: 100 },
+          width: 96,
+          height: 100,
           aspect: 100 / 96,
           cache: new Map()
         });

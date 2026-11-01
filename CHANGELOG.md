@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.190.0] - 2026-11-01
+
+Fixes from the Lighthouse audit of v0.189.0 (Watch picked 1, 2, 3 and 5,
+2026-11-01; report in the project files, not the repo). Mobile Lighthouse
+scored Performance 39 with 11.3 s of Total Blocking Time; a profile put it
+on Mica's WebGL render every frame and on decoding the pack at boot.
+
+- A still Mica is rendered at 15 frames a second instead of every frame
+  (`src/game/render/rig-hold.js`). Standing, with no action and Wiki not
+  talking, only slow idle motion changes, so the last picture is shown again
+  for one frame in two; the WebGL canvas keeps it (`preserveDrawingBuffer`).
+  Walking, working and talking still render every frame. The rig's stats
+  count `held` frames, and `MTE_GAME.rig()` reads them.
+- Pictures are decoded when first drawn (`src/game/look/look.js`). The
+  staged pack's 245 inline SVGs used to be parsed one by one before the game
+  started (a 1.5 to 1.7 s main-thread task on a 4x-slowed phone profile).
+  An inline picture that says its width and height is now decoded the first
+  time something draws it, and the rest in idle moments after boot
+  (`warmPictures`); a picture still decoding isn't drawn for that frame.
+  Pictures from files (the unstaged source pack, custom packs) load as
+  before, and a broken inline picture is reported as a fault instead of
+  stopping boot. `cargo-clock.js` crops by the picture's declared size and
+  shares its decoded image.
+- Boot JavaScript was measured, not split: the unused code at boot is
+  spread over every module (30 to 60% each, code for states not entered).
+  The largest UI-only module, the sheet, would save about 6 KB gzipped at
+  boot but its lazy bundle would carry another copy of `src/core` (about
+  45 KB gzipped) and make opening a menu depend on the network.
+- Accessibility and search: resource chips and the milestones button are
+  named by their content (a screen-reader-only label plus the visible count,
+  `.sr` in style.css), so voice control can say what is shown; the
+  earnings chart button is 24 px wide on phones from 360 px up; sheet and
+  card sub-lines are 12 px; the page has a localized meta description
+  (`game.description`); the ask dialog's link has an address before it is
+  filled. The viewport still disables browser zoom, since pinch zooms the
+  map.
+
 ## [0.189.1] - 2026-11-01
 
 - Clarify the carried-crystal percentage as “Crystal quality” in both languages.

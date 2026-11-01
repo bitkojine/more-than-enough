@@ -4,6 +4,7 @@
 import * as T from '../../vendor/three/three.module.js';
 import { createRigModel } from './rig-model.js';
 import { findClips } from './rig-clips.js';
+import { holdsPicture, poseShape } from './rig-hold.js';
 // The layout surface is 320 x 448 px; the top 64 px make room for Wiki on the hood.
 // A clip check costs about 25 ms, so the developer build samples frames.
 const CLIP_EVERY = 60;
@@ -17,7 +18,10 @@ export function createRiggedCharacter({ checkClips = false } = {}) {
   const context = canvas.getContext('webgl2', {
     alpha: true,
     antialias: true,
-    powerPreference: 'low-power'
+    powerPreference: 'low-power',
+    // Keeps the last picture between frames, so a still Mica can be shown
+    // again without rendering (rig-hold.js).
+    preserveDrawingBuffer: true
   });
   if (!context) return null;
   const renderer = new T.WebGLRenderer({
@@ -90,7 +94,10 @@ export function createRiggedCharacter({ checkClips = false } = {}) {
   let lost = false,
     renders = 0,
     reused = 0,
-    shown = null;
+    held = 0,
+    shown = null,
+    heldShape = null,
+    renderedAt = 0;
   canvas.addEventListener('webglcontextlost', (e) => {
     e.preventDefault();
     lost = true;
@@ -106,8 +113,13 @@ export function createRiggedCharacter({ checkClips = false } = {}) {
       // The same pose again in this frame (Mica seen faintly through a wall in
       // front) reuses the picture just rendered: both passes are the GPU's
       // biggest job in a frame, and doing them twice is what warms a phone.
+      // Standing still, the last picture is held for a few frames
+      // (rig-hold.js): only slow idle motion would change.
       const key = res + JSON.stringify(options);
-      if (key !== shown) {
+      const now = performance.now();
+      if (key === shown) reused++;
+      else if (holdsPicture(heldShape, res + poseShape(options), options, now - renderedAt)) held++;
+      else {
         rig.pose(options);
         if (checkClips && renders % CLIP_EVERY === 0) {
           const clips = findClips(rig);
@@ -126,12 +138,15 @@ export function createRiggedCharacter({ checkClips = false } = {}) {
         renderer.setRenderTarget(null);
         renderer.render(outlineScene, outlineCamera);
         renders++;
-        // The picture lasts only until this frame is shown, so forget it after.
+        renderedAt = now;
+        heldShape = res + poseShape(options);
+        // The exact pose is reused only within this frame; a still one is
+        // held for a few frames more by heldShape.
         shown = key;
         queueMicrotask(() => {
           shown = null;
         });
-      } else reused++;
+      }
       const scale = (u * 1.22) / 384;
       ctx.drawImage(canvas, x - ax * scale, y - ay * scale, W * scale, H * scale);
       const project = (b) => {
@@ -160,6 +175,7 @@ export function createRiggedCharacter({ checkClips = false } = {}) {
       return {
         renders,
         reused,
+        held,
         bones: rig.bones,
         skinnedMeshes: 5,
         triangles: renderer.info.render.triangles,

@@ -144,6 +144,7 @@ function drawThroughShaft(ctx, look, sx, sy, u, d, rise, strength) {
 function drawFace(ctx, look, pic, sx, top, u, faceH, layerPx) {
   const step = Math.max(1, layerPx);
   const bmp = look.bitmap(pic, u);
+  if (!bmp) return;
   for (let off = 0; off < faceH; off += step) {
     const part = Math.min(step, faceH - off);
     ctx.drawImage(

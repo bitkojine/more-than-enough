@@ -6,6 +6,8 @@
      inline script's hash in step). connect-src names the room service. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ysIZMaYoy11udIiKvc2F3SXt2jOED5ecEPe8qAvMtg8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="no-referrer" />
+<!-- What a search result says, in the player's language. -->
+<meta name="description" data-i18n-content="game.description" />
 <title data-i18n="game.title"></title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -152,7 +154,7 @@
        action in the bottom-right thumb cluster. See docs/ui.md. -->
   <div id="hud">
     <div id="topbar">
-      <button id="btnAwards" class="hudBtn" type="button" data-i18n-aria-label="hud.awards"><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
+      <button id="btnAwards" class="hudBtn" type="button"><span class="sr" data-i18n="hud.awards"></span><svg class="trophy" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v5a5 5 0 0 1-10 0z" /><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" /><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" /></svg><span id="awardCount">0</span></button>
       <div id="resources"></div>
       <div id="zoomControls" data-i18n-aria-label="hud.zoom">
         <button id="btnZoomIn" type="button" data-i18n-aria-label="hud.zoomIn">+</button>
@@ -335,7 +337,7 @@
     <div class="dialog">
       <strong id="askTitle"></strong>
       <p></p>
-      <a class="askLink" target="_blank" rel="noopener" hidden></a>
+      <a class="askLink" href="#" target="_blank" rel="noopener" hidden></a>
       <div class="choices"><button type="button" class="secondary"></button><button type="button" class="primary"></button></div>
     </div>
   </div>

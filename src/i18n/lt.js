@@ -674,6 +674,8 @@ export default {
 
   'language.name': 'Lietuvių',
 
+  'game.description':
+    'Naršyklės žaidimas: Mica ir grybienos dvasiukas Wiki per mišką, akmenis ir požemių tamsą neša pavogtą širdį namo.',
   'game.title': 'Mica ir Wiki',
   'game.shortTitle': 'Mica ir Wiki',
   'game.framed':

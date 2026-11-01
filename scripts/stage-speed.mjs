@@ -6,7 +6,9 @@
  *    packs/default/pack.json is replaced by the SVG itself (a pack may carry
  *    inline "<svg ...>" markup), so the game makes one request for its
  *    pictures instead of ~150. The source pack keeps its files, so it stays
- *    an easy example to copy for your own pack.
+ *    an easy example to copy for your own pack. Each picture keeps its
+ *    width and height, so the game decodes it only when first drawn
+ *    (src/game/look/look.js).
  * 2. The game's ~70 modules are bundled and minified (esbuild) into one
  *    file in place of src/game/main.js: one request, and about half the bytes,
  *    since the source is mostly comments. A source map is alongside for DevTools.

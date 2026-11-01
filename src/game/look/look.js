@@ -38,7 +38,89 @@ function loadImage(url) {
 function makePicture(img, url, tile, pixelated) {
   const w = img.naturalWidth,
     h = img.naturalHeight;
-  return { img, url, units: w / tile, aspect: h / w, pixelated, cache: new Map() };
+  return {
+    img,
+    url,
+    width: w,
+    height: h,
+    units: w / tile,
+    aspect: h / w,
+    pixelated,
+    cache: new Map(),
+    want: () => true
+  };
+}
+
+// The size an inline picture says it is: its root <svg>'s width and height
+// in pixels, or null when it doesn't say both.
+export function svgSize(markup) {
+  const head = /^\s*<svg\b[^>]*>/.exec(markup)?.[0];
+  if (!head) return null;
+  const read = (name) => {
+    const m = new RegExp('\\s' + name + '="(\\d+(?:\\.\\d+)?)(?:px)?"').exec(head);
+    return m ? Number(m[1]) : 0;
+  };
+  const width = read('width'),
+    height = read('height');
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+// Decoding a picture parses it as its own SVG document on the main thread
+// (Lighthouse, 2026-11-01: the staged pack's 245 pictures blocked boot for
+// 1.5 s on a slow phone). An inline picture that says its size is decoded
+// only when something first draws it (`want()` starts it and says whether it
+// is ready; until then nothing is drawn), and the rest in spare moments
+// after boot (warmPictures).
+const waiting = [];
+function lazyPicture(size, url, tile, pixelated) {
+  let img = null,
+    state = 'cold';
+  const pic = {
+    get img() {
+      return img;
+    },
+    url,
+    width: size.width,
+    height: size.height,
+    units: size.width / tile,
+    aspect: size.height / size.width,
+    pixelated,
+    cache: new Map(),
+    want() {
+      if (state === 'cold') {
+        state = 'loading';
+        loadImage(url).then(
+          (loaded) => {
+            img = loaded;
+            state = 'ready';
+          },
+          (err) => {
+            state = 'broken';
+            if (typeof globalThis.MTE_FAULT === 'function') globalThis.MTE_FAULT(err, 'picture'); // i18n-ok: developer diagnostic location
+          }
+        );
+      }
+      return state === 'ready';
+    }
+  };
+  waiting.push(pic);
+  return pic;
+}
+
+/* Decodes the pictures nothing has drawn yet, one at a time when the page
+ * has a spare moment, so a picture is seldom missing the first time it is
+ * needed. */
+export function warmPictures(win = globalThis) {
+  const idle = win.requestIdleCallback
+    ? (fn) => win.requestIdleCallback(fn)
+    : (fn) => win.setTimeout(fn, 50);
+  const next = () => {
+    const pic = waiting.shift();
+    if (!pic) return;
+    pic.want();
+    idle(next);
+  };
+  idle(next);
 }
 
 /* Loads every picture of the pack that came from `base`. Resolves to
@@ -51,6 +133,11 @@ export async function loadPack(json, base) {
   const load = (ref) => {
     if (!loaded.has(ref)) {
       const url = urlFor(ref, base);
+      const size = /^\s*<svg/.test(ref) ? svgSize(ref) : null;
+      if (size) {
+        loaded.set(ref, Promise.resolve(lazyPicture(size, url, tile, pixelated)));
+        return loaded.get(ref);
+      }
       loaded.set(
         ref,
         loadImage(url).then((img) => {
@@ -102,7 +189,9 @@ export async function loadPack(json, base) {
 }
 
 // Loads the game's pack from `url`; throws (naming every picture that broke)
-// if it is broken, which is a crash: a half-drawn world is never shown.
+// if it is broken, which is a crash: a half-drawn world is never shown. An
+// inline picture is checked when it is decoded instead, and a broken one is
+// reported as a fault (the staged pack's pictures are checked by npm test).
 export async function loadDefaultPack(url) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(t('pack.defaultHttp', { url, status: res.status }));
@@ -196,6 +285,7 @@ export function createLook() {
       const bucket = 2 ** Math.ceil(Math.log2(want));
       let c = pic.cache.get(bucket);
       if (!c) {
+        if (!pic.want()) return null;
         c = document.createElement('canvas');
         c.width = bucket;
         c.height = Math.max(1, Math.round(bucket * pic.aspect));
@@ -210,6 +300,7 @@ export function createLook() {
 
     // Draws a picture into a rectangle.
     draw(ctx, pic, x, y, w, h) {
+      if (!pic.want()) return;
       if (pic.rect && !hasSpriteLight(ctx)) {
         ctx.drawImage(pic.img, ...pic.rect, x, y, w, h);
         return;

@@ -76,10 +76,14 @@ export function clockIcon(look, subject) {
   if (!crop) return source;
   let picture = subjectPictures.get(source);
   if (!picture) {
-    const width = source.img.naturalWidth,
-      height = source.img.naturalHeight;
+    const { width, height } = source;
     const rect = [crop[0] * width, crop[1] * height, crop[2] * width, crop[3] * height];
-    picture = { ...source, rect, aspect: rect[3] / rect[2], cache: new Map() };
+    // On top of the source, so it shares its picture once that is decoded.
+    picture = Object.assign(Object.create(source), {
+      rect,
+      aspect: rect[3] / rect[2],
+      cache: new Map()
+    });
     subjectPictures.set(source, picture);
   }
   return picture;

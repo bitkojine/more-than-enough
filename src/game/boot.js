@@ -3,7 +3,7 @@
  * pictures and the 3D character, and what a problem report says about the
  * moment it happened. main.js runs these in order. */
 
-import { createLook, loadDefaultPack } from './look/look.js';
+import { createLook, loadDefaultPack, warmPictures } from './look/look.js';
 import { where } from './problems.js';
 import { t } from '../i18n/i18n.js';
 import { lazy } from './lazy.js';
@@ -43,6 +43,7 @@ export async function loadLook(packUrl, page = location) {
     window.MTE_CRASH(err.message);
     throw err;
   }
+  warmPictures();
   const checkClips = LOCAL.includes(page.hostname) || new URLSearchParams(page.search).has('clips');
   look.rigReady = lazy('./render/rigged-character.js')
     .then(({ createRiggedCharacter }) => {

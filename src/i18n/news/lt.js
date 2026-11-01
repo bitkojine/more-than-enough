@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.190.0':
+    'Žaidimas pasileidžia greičiau ir mažiau kaitina įrenginį: paveikslėliai paruošiami tik tada, kai jų pirmąkart prireikia, o stovinti Mica perpiešiama rečiau. Ekrano skaitytuvai dabar perskaito išteklių juostos skaičius ir etapų mygtuką.',
   'news.0.189.1':
     'Nešami kristalai dabar pažymėti „Kristalų kokybė“. Krovinio ir pastatų laikmačiai rodo atitinkamo daikto paveikslėlį, o žibinto ir dienos šviesos laikmačiai turi aiškias piktogramas.',
   'news.0.189.0':
