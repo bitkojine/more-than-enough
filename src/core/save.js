@@ -7,7 +7,7 @@ import { loadSpending, spendingSnapshot } from './spending.js';
  * worlds already replaced, and a save from a newer game than this one is set
  * aside until the update arrives (src/game/storage.js). */
 
-import { validCultivation, mendCultivation } from './cultivation.js';
+import { validCultivation, mendCultivation } from './cultivation-save.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { isValidFogMask } from './world.js';

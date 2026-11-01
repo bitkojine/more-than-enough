@@ -2,10 +2,9 @@
  * MAX_LINES (formatted lines, as Prettier lays them out) should be split
  * along its natural seams instead of growing further.
  *
- * Files already over the limit are listed in OVERSIZED with the size they
- * had when the check arrived. That is a ceiling, not an allowance: a listed
- * file may shrink (lower its number, or drop it once it fits) but never grow.
- * Splitting one is the way to make room in it.
+ * Every file fits since v0.182.3 (Watch, 2026-11-01: "the goal is highly
+ * testable code"); the list of files allowed over the limit is gone, and
+ * none comes back.
  *
  * The translation dictionaries are data, one key per string, and grow with
  * the game; they are not counted. */
@@ -18,15 +17,6 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MAX_LINES = 600;
-
-const OVERSIZED = {
-  'server/src/room.js': 1006,
-  'src/game/render/rig-model.js': 972,
-  'server/src/worker.js': 938,
-  'src/core/cultivation.js': 825,
-  'src/game/render/sprites.js': 735,
-  'server/src/admin.js': 693
-};
 
 const DATA = [/^src\/i18n\/(en|lt)\.js$/, /^src\/i18n\/news\//, /^wiki\/i18n\//];
 
@@ -44,24 +34,9 @@ const SOURCES = ['src', 'server/src', 'wiki', 'scripts']
   .flatMap(files)
   .filter((f) => !DATA.some((re) => re.test(f)));
 
-test(`no source file grows past ${MAX_LINES} lines; oversized ones only shrink`, () => {
-  const problems = [];
-  for (const f of SOURCES) {
-    const n = lineCount(f);
-    const ceiling = OVERSIZED[f] ?? MAX_LINES;
-    if (n > ceiling)
-      problems.push(
-        OVERSIZED[f]
-          ? `${f}: ${n} lines, was ${ceiling}. Split it rather than grow it.`
-          : `${f}: ${n} lines, over ${MAX_LINES}. Split it along a natural seam.`
-      );
-  }
+test(`no source file grows past ${MAX_LINES} lines`, () => {
+  const problems = SOURCES.filter((f) => lineCount(f) > MAX_LINES).map(
+    (f) => `${f}: ${lineCount(f)} lines, over ${MAX_LINES}. Split it along a natural seam.`
+  );
   assert.deepEqual(problems, [], problems.join('\n'));
-});
-
-test('the oversized list names only files that exist and are still oversized', () => {
-  const stale = Object.entries(OVERSIZED)
-    .filter(([f]) => !SOURCES.includes(f) || lineCount(f) <= MAX_LINES)
-    .map(([f]) => `${f}: fits now (or is gone), drop it from OVERSIZED`);
-  assert.deepEqual(stale, [], stale.join('\n'));
 });

@@ -22,7 +22,7 @@ import * as Core from '../../core/index.js';
 import { tileColor, ROCK_SHADE, UNSEEN_DIM } from './terrain.js';
 import { bankFills, puffFor, puffSpan } from './fog.js';
 import { shade } from './palette.js';
-import { drawNameTag } from './sprites.js';
+import { drawNameTag } from './sprites-tags.js';
 import { sampleEdges, shownType, edgeTiles } from '../worldmap-layers.js';
 import { t, distance } from '../../i18n/i18n.js';
 

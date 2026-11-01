@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.182.3':
+    'Behind the scenes, every part of the game and of the shared-world service is now small enough to read in one go, and each has its own tests. Nothing changes in play.',
   'news.0.182.2':
     'Behind the scenes, three more big pieces of the game are split into small parts with their own tests: the Build sheet, what your actions do, and the AUTO helper. Nothing changes in play.',
   'news.0.182.1':

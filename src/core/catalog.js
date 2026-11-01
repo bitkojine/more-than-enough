@@ -28,7 +28,7 @@
  * Required slots must be in the pack (test/unit/looks.test.js checks it).
  * Everything here is plain data so the wiki can list it. */
 
-import { CULTIVATION_LOOK } from './cultivation.js';
+import { CULTIVATION_LOOK } from './cultivation-model.js';
 import {
   T,
   TILE_INFO,

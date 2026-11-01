@@ -1,7 +1,7 @@
 /* The game state, and the prestige loop that replaces it with a fresh world. */
 
 import { bindSpending } from './spending.js';
-import { newCultivation } from './cultivation.js';
+import { newCultivation } from './cultivation-model.js';
 import { economyForState } from './economy-context.js';
 import { SURFACE } from './coords.js';
 import { RESOURCES } from './tiles.js';
