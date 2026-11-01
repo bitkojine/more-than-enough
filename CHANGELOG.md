@@ -36,6 +36,13 @@ on Mica's WebGL render every frame and on decoding the pack at boot.
   (`game.description`); the ask dialog's link has an address before it is
   filled. The viewport still disables browser zoom, since pinch zooms the
   map.
+- The first push of 0.190.0 did not deploy: the render job's lighting
+  check draws a hand-made picture with no `want()`, and `look.draw` threw.
+  Only the main browser journey had been run locally, not the render job
+  (`scripts/check-render-host.mjs`). A picture without `want()` now counts
+  as ready, the timer-icon browser check waits for its pictures to decode,
+  and `npm run check` runs the render job whenever code the browser loads
+  differs from origin/main (it needs Chrome; AGENTS.md says so).
 
 ## [0.189.1] - 2026-11-01
 

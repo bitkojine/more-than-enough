@@ -72,6 +72,9 @@ export function svgSize(markup) {
 // is ready; until then nothing is drawn), and the rest in spare moments
 // after boot (warmPictures).
 const waiting = [];
+// Whether a picture can be drawn now. A picture made elsewhere (a test, a
+// crop) without `want` is an image already.
+const ready = (pic) => !pic.want || pic.want();
 function lazyPicture(size, url, tile, pixelated) {
   let img = null,
     state = 'cold';
@@ -285,7 +288,7 @@ export function createLook() {
       const bucket = 2 ** Math.ceil(Math.log2(want));
       let c = pic.cache.get(bucket);
       if (!c) {
-        if (!pic.want()) return null;
+        if (!ready(pic)) return null;
         c = document.createElement('canvas');
         c.width = bucket;
         c.height = Math.max(1, Math.round(bucket * pic.aspect));
@@ -300,7 +303,7 @@ export function createLook() {
 
     // Draws a picture into a rectangle.
     draw(ctx, pic, x, y, w, h) {
-      if (!pic.want()) return;
+      if (!ready(pic)) return;
       if (pic.rect && !hasSpriteLight(ctx)) {
         ctx.drawImage(pic.img, ...pic.rect, x, y, w, h);
         return;

@@ -19,6 +19,14 @@
 #   - Perfect benchmark  explicit -- full, and pages.yml for rule/brain changes
 #   - stage-site.sh      pages.yml's deploy step: a staging break would only
 #                        show up live
+#   - render checks      pages.yml's render job (scripts/check-render-host.mjs
+#                        on the staged site, with WebGL), which blocks the
+#                        deploy. Run whenever code the browser loads differs
+#                        from origin/main. 0.190.0 was pushed with only the
+#                        main browser journey run, and the deploy stopped on
+#                        a lighting check that journey doesn't include.
+#                        Needs Chrome: google-chrome, or CHROME_PATH (a
+#                        wrapper adding --no-sandbox when running as root).
 #
 # Deliberately not in the gate, because each takes minutes and none is what
 # usually breaks a push — run them by hand when you touch what they cover:
@@ -58,5 +66,19 @@ fi
 step 'stage the deployable site (stage-site.sh)'
 sh scripts/stage-site.sh site >/dev/null
 echo "staged site/ OK"
+
+# Everything the staged site is built from, and the render checks themselves.
+BROWSER_INPUTS="index.html style.css packs src/game src/i18n src/core src/net src/vendor scripts/stage-site.sh scripts/stage-speed.mjs scripts/check-render-host.mjs test/browser.e2e.js test/*.browser.js"
+if [ -n "$BASE" ] && git diff --quiet "$BASE" -- $BROWSER_INPUTS &&
+   [ -z "$(git ls-files --others --exclude-standard -- $BROWSER_INPUTS)" ]; then
+  step 'render checks (skipped: nothing the browser loads changed)'
+else
+  step 'render checks, as the deploy runs them (check-render-host.mjs)'
+  if [ -z "${CHROME_PATH:-}" ] && ! command -v google-chrome >/dev/null 2>&1; then
+    echo 'No Chrome: set CHROME_PATH (see the top of this file). The deploy runs these checks and stops if they fail.' >&2
+    exit 1
+  fi
+  MTE_SITE=site MTE_WEBGL=1 node scripts/check-render-host.mjs
+fi
 
 step 'all green'

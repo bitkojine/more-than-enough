@@ -23,6 +23,11 @@ export async function checkTimerIcons({ evalJS, waitFor, ok, cdp, session, shot 
       await waitFor('__timer.texts.includes(__timer.expected)', 8000),
       lang + ': real world renderer paints the explicit crystal-quality caption'
     );
+    // A picture is decoded the first time it is asked for (look.js).
+    await waitFor(
+      "['heart','starter','crystal'].every(s=>MTE_GAME.look.bitmap(__timer.clockIcon(MTE_GAME.look,s),18))",
+      5000
+    );
     const assetCheck = await evalJS(`(()=>{
       const look=MTE_GAME.look,results={};
       for(const subject of ['heart','starter','crystal']){

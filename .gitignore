@@ -14,3 +14,4 @@ structurizr/workspace.json
 node_modules/
 .wrangler/
 .dev.vars
+render-checks/

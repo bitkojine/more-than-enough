@@ -30,9 +30,12 @@ kind of knowledge lives.
   `npm run lint` (part of `npm run check`) fails on unformatted code, on any
   ESLint error, and on more ESLint warnings than the budget in
   `package.json`; when you clear warnings, lower the budget.
-- Before pushing changes to shipped code or build inputs: `npm run check`. It runs `npm test` and stages the site
-  the way the deploy does, so a red deploy is caught here instead of after a
-  push. `npm run check -- full` also runs the Perfect benchmark when the
+- Before pushing changes to shipped code or build inputs: `npm run check`. It runs `npm test`, stages the site
+  the way the deploy does, and, when anything the browser loads changed,
+  runs the deploy's own render checks (`scripts/check-render-host.mjs`, needs
+  Chrome or `CHROME_PATH`), so a red deploy is caught here instead of after a
+  push. `npm run test:e2e` is not that gate: it runs one browser journey,
+  not the render job's lighting, layer, HUD and performance suites. `npm run check -- full` also runs the Perfect benchmark when the
   rules or the brain changed, as CI does. Two checks are
   run by hand, not in the gate, because each takes minutes and is not what
   usually breaks a push: `npm run test:layout` after a layout or text-length
