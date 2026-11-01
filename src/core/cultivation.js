@@ -157,6 +157,16 @@ function exposeCargo(s) {
     crackCarriedCrystal(s, strength);
   }
 }
+// Stored crystal cracks all the way too (Watch, 2026-11-01, "Yes, same
+// rule as carried"): at 0% a building's whole store crumbles and is gone.
+function crackStoredCrystal(c, b, amount) {
+  if (!b.buffer || !(amount > 0)) return;
+  b.quality = Math.max(0, b.quality - amount);
+  if (b.quality > 0) return;
+  b.buffer = 0;
+  b.quality = 100;
+  c.storeLost = (c.storeLost || 0) + 1;
+}
 // Carried crystal cracks all the way (Watch, 2026-11-01, "Quality falls to
 // 0, then all is lost"): at 0% the whole load crumbles and is gone.
 function crackCarriedCrystal(s, amount) {
@@ -551,7 +561,7 @@ export function stepCultivation(s, dt) {
     const target = cultivationTarget(s, b);
     b.temperature = target + (b.temperature - target) * Math.exp(-seconds / 6);
     const damage = heatDamage(b.temperature);
-    if (b.buffer) b.quality = Math.max(10, b.quality - damage * seconds);
+    crackStoredCrystal(c, b, damage * seconds);
     if (b.health > 0) {
       if (damage) {
         b.health = Math.max(0, b.health - damage * seconds);

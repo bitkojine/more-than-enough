@@ -83,7 +83,7 @@ export function createHud(el, look, messages) {
   }
 
   // The battery, once it isn't full, as a clock (Watch, 2026-11-01: timers,
-  // not bars): the dark time it has left, or by a charger the time to full.
+  // not bars): how long the lantern can keep shining, or by a charger the time to full.
   // The first time your light starts to shrink, one line says where to charge it.
   let lastBattery = '',
     warned = false;

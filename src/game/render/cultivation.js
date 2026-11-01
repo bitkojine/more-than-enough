@@ -68,10 +68,10 @@ export function drawCultivation(ctx, cam, s, look, b) {
   ctx.restore();
   return { x: p.x, y: p.y - h - u * 0.3 };
 }
-// A chamber's colony dying in the heat, or the heart mending in its
-// shelter, at `top` (from drawCultivation); null when no clock runs.
+// A chamber's colony dying in the heat, stored crystal crumbling, or the
+// heart mending in its shelter, at `top` (from drawCultivation); null when no clock runs.
 export function facilityClockAt(s, b, top) {
-  if (!top || (b.kind !== 'chamber' && b.kind !== 'shelter')) return null;
+  if (!top || b.kind === 'machine') return null;
   const clock = memo(s, b, 'facility', () => facilityClock(s, b));
   return clock && { ...clock, ...top };
 }

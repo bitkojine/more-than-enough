@@ -122,7 +122,7 @@ export function validCultivation(c) {
       ))
   )
     return false;
-  for (const k of ['heartLost', 'crystalLost'])
+  for (const k of ['heartLost', 'crystalLost', 'storeLost'])
     if (c[k] !== undefined && !(Number.isSafeInteger(c[k]) && c[k] >= 0)) return false;
   if (c.carrierWarmth !== undefined && !number(c.carrierWarmth, 0, HEART_WARM_MAX)) return false;
   return Object.values(c.wild).every(
@@ -230,7 +230,7 @@ export function mendCultivation(c) {
           health: into(h?.health, 0, 100, 100)
         };
   }
-  for (const k of ['heartLost', 'crystalLost'])
+  for (const k of ['heartLost', 'crystalLost', 'storeLost'])
     if (c[k] !== undefined) c[k] = Math.floor(into(c[k], 0, Number.MAX_SAFE_INTEGER, 0));
   if (c.carrierWarmth !== undefined) c.carrierWarmth = into(c.carrierWarmth, 0, HEART_WARM_MAX, 0);
   return c;

@@ -1,7 +1,9 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.187.0':
+    'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Mikos skaičiuoja iki tos akimirkos, tad spėk į pavėsį.',
   'news.0.186.0':
-    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek jam liko tamsos.',
+    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek dar gali šviesti.',
   'news.0.185.1':
     'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
   'news.0.185.0':

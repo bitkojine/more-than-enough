@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.188.0] - 2026-11-01
+
+- Stored crystal crumbles too (Watch chose on a decision card, 2026-11-01,
+  "Yes, same rule as carried"). A chamber or vault over 22 °C used to take
+  its store down to 10% quality and stop; now it keeps cracking, and at 0%
+  the whole store is gone (buffer 0, quality back to 100), counted in the
+  optional `cultivation.storeLost` so the log says so once. A clock over
+  the building reads "Crystal crumbles in"; a chamber shows whichever
+  comes first, that or its colony dying. The "at risk" warning names the
+  soonest.
+- The lantern battery's words: "Lantern shines for 6:18 more", not "of
+  dark left" (Watch, 2026-11-01: "does not read right").
+- First load is at the 300 KB budget (300.0 KB); the next release needs
+  room made, for example by loading only the active language's dictionary.
+
 ## [0.187.0] - 2026-11-01
 
 - Carried crystal can be lost (Watch chose on a decision card, 2026-11-01,
@@ -26,8 +41,8 @@
   spoils when it drops below the 60% the machine takes), "Cracking! Cool
   in 0:08" when the carrier will cool first, and otherwise "Heart 82%".
   A chamber over 22 °C shows "Dies in", a heart shelter "Mended in" (or
-  "Heart breaks in" when hot). The lantern battery shows its dark time
-  left, or by a charger the time to full, instead of an emptying bar.
+  "Heart breaks in" when hot). The lantern battery shows how long it can
+  keep shining, or by a charger the time to full, instead of an emptying bar.
 - The times come from the rules: `src/core/cultivation-forecast.js`
   (`cargoForecast`, `facilityForecast`) plays the same steps forward on
   copies of the few numbers involved, so walking into shade changes the

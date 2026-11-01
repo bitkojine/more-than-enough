@@ -31,10 +31,11 @@ export function crystalDanger(s) {
 
 // The warning says what is running out, and when, if a clock runs.
 function dangerLine(s) {
-  const dying = s.cultivation.facilities
-    .map((b) => Core.facilityForecast(s, b)?.dies)
-    .filter((d) => d !== undefined);
-  if (dying.length) return t('cr.danger.chamber', { t: fmtClock(Math.min(...dying)) });
+  const clocks = s.cultivation.facilities.map((b) => Core.facilityForecast(s, b));
+  const soonest = (k) => Math.min(...clocks.map((f) => f?.[k] ?? Infinity));
+  if (soonest('crumbles') < Infinity)
+    return t('cr.danger.store', { t: fmtClock(soonest('crumbles')) });
+  if (soonest('dies') < Infinity) return t('cr.danger.chamber', { t: fmtClock(soonest('dies')) });
   return t('cr.danger');
 }
 
@@ -46,7 +47,7 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
     dangerIn = 0,
     heartWarned = 0,
     heartLost = null,
-    crystalLost = null;
+    crumbled = null;
   return {
     // Gathered once (`held` false) or by holding.
     gathered(held) {
@@ -79,14 +80,19 @@ export function createTips({ hud, view, keep, now = () => performance.now() }) {
       return true;
     }
   };
-  // Carried crystal that crumbled to dust, said once each time.
+  // Crystal that crumbled to dust, carried or stored, said once each time.
   function crystalWatch(c) {
-    const crumbled = c.crystalLost || 0;
-    if (crystalLost === null || crumbled < crystalLost) crystalLost = crumbled;
-    if (crumbled <= crystalLost) return false;
-    crystalLost = crumbled;
-    hud.toast(t('cr.crystal.lost'));
-    return true;
+    const now = { carried: c.crystalLost || 0, stored: c.storeLost || 0 };
+    crumbled ??= { ...now };
+    let said = false;
+    for (const k of ['carried', 'stored']) {
+      if (now[k] > crumbled[k]) {
+        hud.toast(t(k === 'carried' ? 'cr.crystal.lost' : 'cr.store.lost'));
+        said = true;
+      }
+      crumbled[k] = now[k];
+    }
+    return said;
   }
   // The carried heart, said once each time it gets worse (Watch, 2026-11-01:
   // warnings come before the heart cracks through, and when it does).

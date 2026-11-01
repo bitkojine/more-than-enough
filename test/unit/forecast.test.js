@@ -137,3 +137,30 @@ test('carried crystal cracks to 0% and the whole load crumbles, when its clock s
   assert.equal(c.quality, 100, 'the next crystal starts sound');
   assert.ok(C.validCultivation(c), 'and it saves');
 });
+
+// Watch, 2026-11-01: stored crystal, "Yes, same rule as carried".
+test('a hot building cracks its store to 0% and it all crumbles, when its clock said', () => {
+  const s = C.createState(7, { cultivation: true });
+  // A chamber whose colony has died still stores what it grew; uncooled it is 30 °C.
+  const v = {
+    kind: 'chamber',
+    id: 50,
+    x: 0,
+    y: 0,
+    z: -2,
+    temperature: 34,
+    health: 0,
+    buffer: 8,
+    quality: 40
+  };
+  s.cultivation.facilities.push(v);
+  s.cultivation.nextId = 51;
+  const f = C.facilityForecast(s, v);
+  assert.ok(f?.crumbles > 0, JSON.stringify(f));
+  const real = timeTo(s, () => v.buffer === 0);
+  assert.ok(Math.abs(real - f.crumbles) <= 0.5, `forecast ${f.crumbles} s, rules ${real} s`);
+  assert.equal(s.cultivation.storeLost, 1);
+  assert.equal(v.quality, 100, 'the next crystal starts sound');
+  assert.ok(C.validCultivation(s.cultivation), 'and it saves');
+  assert.equal(C.facilityForecast(s, v), null, 'nothing left to crumble');
+});

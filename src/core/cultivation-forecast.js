@@ -100,7 +100,8 @@ function playForward(item, damage) {
 }
 
 /* A building's clock: a chamber hotter than CRACK_ABOVE cracks its colony
- * (`dies`: seconds until its health reaches 0); a shelter holding the heart
+ * (`dies`: seconds until its health reaches 0) and any building's stored
+ * crystal (`crumbles`: seconds until 0% quality); a shelter holding the heart
  * mends it when cool (`mended`: seconds until 100%) and cracks it when hot
  * (`breaks`). Null when no clock runs. Temperatures settle as the rules
  * settle them (stepCultivation: toward the spot's own, over ~6 s). */
@@ -108,7 +109,7 @@ export function facilityForecast(s, b) {
   const c = s.cultivation;
   if (!c || contentLocked(s, b.kind)) return null;
   const heart = b.kind === 'shelter' && c.heart?.where === b.id ? c.heart : null;
-  if (b.kind === 'chamber' && b.health > 0) return chamberClock(s, b);
+  if ((b.kind === 'chamber' && b.health > 0) || b.buffer > 0) return storeClock(s, b);
   return heart?.health > 0 ? shelterClock(s, b, heart.health) : null;
 }
 // Settles a building's temperature one step toward its spot's.
@@ -117,13 +118,20 @@ function settling(s, b) {
   let temperature = b.temperature ?? target;
   return () => (temperature = target + (temperature - target) * Math.exp(-FORECAST_STEP / 6));
 }
-function chamberClock(s, b) {
-  const next = settling(s, b);
-  let health = b.health;
+// A hot building: its colony dies at 0 health (a chamber), and the crystal
+// it stores crumbles at 0% quality (Watch, 2026-11-01, "same rule as
+// carried"); whichever comes first. Cool: no clock.
+function storeClock(s, b) {
+  const next = settling(s, b),
+    alive = b.kind === 'chamber' && b.health > 0;
+  let health = alive ? b.health : Infinity,
+    quality = b.buffer > 0 ? b.quality : Infinity;
   for (let t = 0; t < FORECAST_HORIZON; t += FORECAST_STEP) {
     const hot = heatDamage(next());
     if (!hot) return null; // cool: it heals, no clock
     health -= hot * FORECAST_STEP;
+    quality -= hot * FORECAST_STEP;
+    if (quality <= 0) return { crumbles: t + FORECAST_STEP };
     if (health <= 0) return { dies: t + FORECAST_STEP };
   }
   return null;

@@ -28,6 +28,8 @@ export function cargoClock(s) {
 export function facilityClock(s, b) {
   const f = Core.facilityForecast(s, b);
   if (!f) return null;
+  if (f.crumbles !== undefined)
+    return { text: t('clock.crystal.lost', { t: fmtClock(f.crumbles) }), tone: 'danger' };
   if (f.dies !== undefined)
     return { text: t('clock.dies', { t: fmtClock(f.dies) }), tone: 'danger' };
   if (f.breaks !== undefined)

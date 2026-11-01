@@ -2,8 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  'news.0.187.0':
-    'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Mikos skaičiuoja iki tos akimirkos, tad spėk į pavėsį.',
+  'news.0.188.0':
+    'Dabar byra ir sukaupti kristalai: per karšta kamera ar saugykla juos skaldo iki 0 % ir visus praranda. Laikrodis virš pastato skaičiuoja atgal.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',
@@ -157,6 +157,8 @@ export default {
   'cr.selected': 'Pasirinkta · {x}, {y}',
   'cr.cost': 'Medžiagos: {cost}',
   'cr.danger': 'Kristalams gresia pavojus',
+  'cr.danger.store': 'Sukaupti kristalai subyrės po {t}. Atvėsink!',
+  'cr.store.lost': 'Sukaupti kristalai perskilo kiaurai ir subyrėjo į dulkes.',
   'cr.danger.chamber': 'Kameros kristalai žus po {t}. Atvėsink ją!',
   'cr.reason.ok': 'Atlikta.',
   'cr.reason.invalid': 'Šis veiksmas negalimas.',
@@ -831,7 +833,7 @@ export default {
   'clock.crystal': 'Kristalai {n} %',
   'clock.dies': 'Žus po {t}',
   'clock.mended': 'Sugis po {t}',
-  'hud.battery': 'Žibintas: liko {t} tamsos',
+  'hud.battery': 'Žibintas švies dar {t}',
   'hud.batteryCharging': 'Žibintas kraunasi, pilnas po {t}',
   'hud.sunIn': 'po {t}',
   'hud.sunLeft': 'liko {t}',

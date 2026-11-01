@@ -2,8 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  'news.0.187.0':
-    'Crystal you carry can now be lost. Heat or light keeps cracking it past the old 10% floor, and at 0% the whole load crumbles to dust. The clock over Mica counts down to that moment, so get to shade in time.',
+  'news.0.188.0':
+    'Stored crystal now crumbles too: a chamber or vault left too hot cracks it to 0% and loses it all. A clock over the building counts down.',
   'progression.furtherUpgrades': 'Later upgrades',
   'cr.reason.locked': 'Activate the machine to unlock this.',
   'progression.requirement': 'Activate the machine to unlock.',
@@ -154,6 +154,8 @@ export default {
   'cr.selected': 'Selected · {x}, {y}',
   'cr.cost': 'Materials: {cost}',
   'cr.danger': 'Crystal at risk',
+  'cr.danger.store': 'Stored crystal crumbles in {t}. Cool it down!',
+  'cr.store.lost': 'Stored crystal cracked right through and crumbled to dust.',
   'cr.danger.chamber': 'A chamber’s crystal dies in {t}. Cool it down!',
   'cr.reason.ok': 'Done.',
   'cr.reason.invalid': 'That action is unavailable.',
@@ -820,7 +822,7 @@ export default {
   'clock.crystal': 'Crystal {n}%',
   'clock.dies': 'Dies in {t}',
   'clock.mended': 'Mended in {t}',
-  'hud.battery': 'Lantern: {t} of dark left',
+  'hud.battery': 'Lantern shines for {t} more',
   'hud.batteryCharging': 'Lantern charging, full in {t}',
   'hud.sunIn': 'in {t}',
   'hud.sunLeft': '{t} left',
