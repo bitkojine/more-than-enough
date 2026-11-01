@@ -16,10 +16,12 @@
  * your layer. */
 
 import * as Core from '../core/index.js';
+import { MAP_ZOOM } from './camera.js';
 import { mapLayers, stepLayer } from './worldmap-layers.js';
 import { t, number } from '../i18n/i18n.js';
 
 const MAP_TILE_PX = 1; // how far out the map button goes the first time, in CSS pixels a tile
+const FRAME = 0.6; // how much of the screen a framed set of places fills
 const GLIDE = 10; // how fast the zoom and the view glide to where they're going, per second
 const ICON_MAP = '<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z" /><path d="M9 4v14M15 6v14" />';
 const ICON_ME = '<circle cx="12" cy="12" r="3.5" /><path d="M12 2v4M12 18v4M2 12h4M18 12h4" />';
@@ -38,6 +40,14 @@ export function createMapView({ cam, getState, el, changed }) {
 
   function glideTo(zoom) {
     goal = zoom;
+  }
+  function goOut() {
+    before = cam.zoom;
+    glideTo(mapZoom ?? MAP_TILE_PX / cam.baseTilePx);
+  }
+  function goIn() {
+    mapZoom = cam.zoom;
+    glideTo(before);
   }
 
   const mv = {
@@ -73,16 +83,27 @@ export function createMapView({ cam, getState, el, changed }) {
 
     // The map button.
     button() {
-      if (!on()) {
-        before = cam.zoom;
-        glideTo(mapZoom ?? MAP_TILE_PX / cam.baseTilePx);
-      } else if (pan || z !== null) {
-        pan = null;
-        z = null;
-      } else {
-        mapZoom = cam.zoom;
-        glideTo(before);
-      }
+      if (!on()) goOut();
+      else if (pan || z !== null) pan = z = null;
+      else goIn();
+      mv.sync();
+    },
+
+    // Out to the map on `layer`, framing tiles `box` ({ x0, y0, x1, y1 }):
+    // the machine's teleport stops, wherever they are.
+    openOn(layer, box) {
+      if (!on()) before = cam.zoom;
+      const k = cam.depthPx / cam.tilePx,
+        fit = Math.min(cam.width / (box.x1 - box.x0 + 1), cam.height / (k * (box.y1 - box.y0 + 1)));
+      glideTo(Math.min((FRAME * fit) / cam.baseTilePx, MAP_ZOOM / 2));
+      pan = { x: (box.x0 + box.x1 + 1) / 2, y: (box.y0 + box.y1 + 1) / 2 };
+      z = layer === here().z ? null : layer;
+      mv.sync();
+    },
+    // Back in to where you are now (after a teleport from the map).
+    leave() {
+      pan = z = null;
+      if (on()) goIn();
       mv.sync();
     },
 
@@ -106,7 +127,8 @@ export function createMapView({ cam, getState, el, changed }) {
         if (done) goal = null;
         changed();
       }
-      if (!on()) {
+      // Not yet out on a map it is gliding out to: keep what it will show.
+      if (!on() && !(goal !== null && cam.mapping(goal))) {
         if (goal === null) before = cam.zoom;
         if (z !== null) z = null;
         if (pan) {
@@ -131,20 +153,7 @@ export function createMapView({ cam, getState, el, changed }) {
         lastPill = pill;
         el.mapLayer.hidden = !pill;
         document.body.classList.toggle('mapping', !!pill);
-        if (pill) {
-          const under = shown < Core.SURFACE;
-          el.mapLayer.classList.toggle('forest', !under);
-          el.mapLayerName.firstElementChild.textContent = under ? t('hud.layer') : '';
-          el.mapLayerName.lastElementChild.textContent = under
-            ? number(Core.SURFACE - shown)
-            : t('hud.forest');
-          el.mapLayerName.setAttribute(
-            'aria-label',
-            under ? t('hud.layerN', { n: Core.SURFACE - shown }) : t('hud.forest')
-          );
-          el.mapUp.disabled = stepLayer(all, shown, 1) === shown;
-          el.mapDown.disabled = stepLayer(all, shown, -1) === shown;
-        }
+        if (pill) showLayer(el, all, shown);
       }
       const away = map && (pan !== null || z !== null);
       const face = (map ? 'map' : '') + (away ? 'away' : '');
@@ -158,4 +167,20 @@ export function createMapView({ cam, getState, el, changed }) {
     }
   };
   return mv;
+}
+
+// The layer pill's face: which layer the map shows, and whether it can step.
+function showLayer(el, all, shown) {
+  const under = shown < Core.SURFACE;
+  el.mapLayer.classList.toggle('forest', !under);
+  el.mapLayerName.firstElementChild.textContent = under ? t('hud.layer') : '';
+  el.mapLayerName.lastElementChild.textContent = under
+    ? number(Core.SURFACE - shown)
+    : t('hud.forest');
+  el.mapLayerName.setAttribute(
+    'aria-label',
+    under ? t('hud.layerN', { n: Core.SURFACE - shown }) : t('hud.forest')
+  );
+  el.mapUp.disabled = stepLayer(all, shown, 1) === shown;
+  el.mapDown.disabled = stepLayer(all, shown, -1) === shown;
 }

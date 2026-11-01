@@ -8,7 +8,7 @@
  * reach walks you there and opens its card on arrival; walking away, tapping
  * elsewhere or Back closes it. The rules are the core's; this only shows them. */
 import * as Core from '../core/index.js';
-import { t, distance } from '../i18n/i18n.js';
+import { t } from '../i18n/i18n.js';
 import { esc, fmtRate, lockIcon } from './format.js';
 import { pic, price, icon } from './sheet-rows.js';
 import { reachOf } from './reach.js';
@@ -17,28 +17,6 @@ import { describeLight } from './light-info.js';
 const name = (k) => t('cr.' + k);
 const near = (s, x, y) => Core.atInteraction(s, x, y);
 const act = (type, x, y, label, cost = null) => ({ type, x, y, label, cost });
-// Teleports from the woken machine: the farthest shelters first, each with
-// how far and which way (Watch, 2026-11-01). A card holds a handful.
-const TELEPORT_CHOICES = 5;
-const compass = (dx, dy) =>
-  t('compass.' + ((Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) + 8) % 8));
-function teleports(s, b) {
-  return Core.teleportStops(s)
-    .slice(0, TELEPORT_CHOICES)
-    .map((to) => ({
-      ...act(
-        'teleport',
-        b.x,
-        b.y,
-        t('cr.teleport.to', {
-          where:
-            distance(Math.hypot(to.x - b.x, to.y - b.y)) + ' ' + compass(to.x - b.x, to.y - b.y)
-        })
-      ),
-      to: to.id
-    }));
-}
-
 // One of your buildings: what it makes, what it helps or what helps it, and Move.
 function extractorCard(s, e) {
   const def = Core.EXTRACTORS[e.key],
@@ -171,7 +149,9 @@ export function cardAt(s, x, y) {
         ),
         locked: Core.contentLocked(s, a)
       }));
-    if (b.kind === 'machine' && c.completed) actions.push(...teleports(s, b));
+    // Where to: the map, where every heart shelter is a stop (Watch, 2026-11-01).
+    if (b.kind === 'machine' && c.completed && Core.teleportStops(s).length)
+      actions.push(act('travel', x, y, name('teleport.pick')));
     if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(act('move', x, y, t('card.move')));
     if (b.kind === 'cooler')
       lines.push(
@@ -293,9 +273,9 @@ export function createBuildingCard({ cam, state, run, approach, walking, work })
     if (!btn || !open) return;
     const card = cardAt(state(), open.x, open.y),
       a = card?.actions[Number(btn.dataset.i)];
-    if (a) run({ type: a.type, x: a.x, y: a.y, ...(a.to === undefined ? {} : { to: a.to }) });
-    // A teleport leaves the building behind: its card goes with it.
-    if (a?.type === 'teleport') close();
+    if (a) run({ type: a.type, x: a.x, y: a.y });
+    // A teleport, or choosing one on the map, leaves the card behind.
+    if (a?.type === 'teleport' || a?.type === 'travel') close();
     else render();
   });
 

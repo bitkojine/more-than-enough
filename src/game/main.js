@@ -3,7 +3,6 @@
 
 // First: an admin's copy swaps this browser's storage before anything reads it.
 import { copy } from './copy.js';
-import * as Core from '../core/index.js';
 import { VERSION } from '../version.js';
 import { findElements } from './dom.js';
 import { createCamera } from './camera.js';
@@ -18,6 +17,7 @@ import { createMessages } from './messages.js';
 import { createHomeHint } from './home-hint.js';
 import { createSwitches, addNewWorldButton } from './switches.js';
 import { createInput } from './input.js';
+import { createTeleportMap } from './teleport-map.js';
 import { createSheet } from './sheet.js';
 import { createIncome } from './income.js';
 import { createMapView } from './mapview.js';
@@ -57,7 +57,7 @@ import { createBack } from './back.js';
 import { createProblems } from './problems.js';
 import { createBuildingCard } from './building-card.js';
 import { createPlacing } from './placing.js';
-import { createTips, cultivationNote } from './tips.js';
+import { createTips } from './tips.js';
 import { listenToPage } from './page-events.js';
 import { createLightButtons } from './light-buttons.js';
 import { createRegionWatch } from './region-watch.js';
@@ -280,6 +280,8 @@ const mapView = createMapView({
     keepView();
   }
 });
+const cultivate = controller.cultivate; // done, saved and said (controller-commands.js)
+const teleportMap = createTeleportMap({ cam, mapView, hud, cultivate, state: () => game.state });
 const income = createIncome();
 const sheet = createSheet(el, {
   getState: () => game.state,
@@ -308,18 +310,6 @@ const sheet = createSheet(el, {
   }
 });
 
-// A crystal-world command, from a sheet, a building's card or the lantern
-// button: done, saved, and said in the log, unless it just worked (a plain
-// "Done." after every press would bury what matters).
-function cultivate(cmd) {
-  return controller.cultivation(cmd, (result) => {
-    const note = cultivationNote(result, Core.machineClue(game.state));
-    if (note) hud.toast(note);
-    game.saveSoon();
-    controller.checkGoals();
-    hud.update(game.state);
-  });
-}
 // A building's own card, over it in the world. Its Move starts placing it.
 const card = createBuildingCard({
   cam,
@@ -328,6 +318,7 @@ const card = createBuildingCard({
   walking: () => controller.walking,
   work: (x, y) => controller.perform({ type: 'harvestAt', x, y }, false),
   run: (cmd) => {
+    if (cmd.type === 'travel') return teleportMap.open();
     if (cmd.type !== 'move') return cultivate(cmd);
     const b = card.building();
     if (b) startPlacing(b.key ? { key: b.key } : { kind: b.kind }, b);
@@ -391,6 +382,7 @@ const controls = {
   cam,
   sheet,
   mapView,
+  teleportMap,
   placing,
   card,
   controller,

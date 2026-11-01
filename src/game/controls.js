@@ -16,10 +16,12 @@ export function inputHandlers(p) {
     blocked: p.blocked,
     dismiss: () => sheet.close(),
     tap(x, y) {
-      // On your sign: copy its link. Anywhere else: the world (not the
-      // world map, which is only for looking).
+      // On your sign: copy its link. Anywhere else: the world. The world
+      // map is only for looking, except a teleport stop while you stand at
+      // the woken machine (teleport-map.js).
       if (inside(p.signRect(), x, y)) return p.together.copyLink();
-      if (mapView.on() || placing.tap(x, y)) return;
+      if (mapView.on()) return void p.teleportMap?.tap(x, y);
+      if (placing.tap(x, y)) return;
       const at = cam.unproject(x, y);
       problems.crumb(`map tap ${Math.floor(at.x)}, ${Math.floor(at.y)}, layer ${at.z}`); // i18n-ok: world coordinates in a developer report
       const opened = card.tap(x, y);

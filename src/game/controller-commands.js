@@ -9,6 +9,7 @@
 import * as Core from '../core/index.js';
 import { randomSeed } from './storage.js';
 import { t } from '../i18n/i18n.js';
+import { cultivationNote } from './tips.js';
 
 // What the wanderer does for each crystal-world command that worked.
 const CULTIVATION_ACTS = {
@@ -75,6 +76,19 @@ export function createCommands({
       }
       finished?.(result);
       return result;
+    },
+
+    // The same, from a sheet, a building's card, the lantern button or the
+    // map: saved, and said in the log unless it just worked (a plain "Done."
+    // after every press would bury what matters).
+    cultivate(cmd) {
+      return commands.cultivation(cmd, (result) => {
+        const note = cultivationNote(result, Core.machineClue(state()));
+        if (note) hud.toast(note);
+        game.saveSoon();
+        checkGoals();
+        hud.update(state());
+      });
     },
 
     buy(id) {

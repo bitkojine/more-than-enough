@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.185.1':
+    'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
   'news.0.185.0':
     'Pažadink mašiną, ir kiekviena tavo pastatyta širdies pastogė tampa teleportacijos stotele: pastogės kortelė nuneša prie mašinos, o mašinos kortelė grąžina prie bet kurios iš jų. Tai gauna ir jau laimėti pasauliai. Pabudusi mašina dar parodo, kur dingo vagis, ir pažymi tai žemėlapyje.',
   'news.0.184.1':
@@ -58,21 +60,15 @@ export default {
   'cr.sections': 'Atkurtos dalys: {n}/{total}',
   'cr.activated':
     'Mašina pabudo, o su ja ir teleportacija. Pasaulis užbaigtas. Tyrinėk toliau arba skiltyje „Toliau“ pradėk naują pasaulį tuščiomis rankomis.',
+  'cr.teleport.pick': 'Pasirinkti pastogę žemėlapyje',
+  'cr.teleport.hint':
+    '{phone:Bakstelėk|laptop:Spustelėk} širdies pastogę žemėlapyje ir atsidursi šalia jos.',
   'cr.teleport.home': 'Teleportuotis prie mašinos',
-  'cr.teleport.to': 'Teleportuotis: pastogė {where}',
   'cr.reason.asleep': 'Pastogės tampa teleportacijos stotelėmis, kai mašina pabunda.',
   'cr.reason.landing': 'Šalia tos stotelės nėra sausos žemės, kur išlipti.',
   'cr.thief': 'Kur dingo vagis',
   'cr.thief.clue':
     'Mašinos žemėlapyje, toli už slėptuvės, sužimba antra šviesa: ten dingo vagis. Kiekviena tavo pastatyta širdies pastogė dabar yra teleportacijos stotelė.',
-  'compass.0': 'R',
-  'compass.1': 'PR',
-  'compass.2': 'P',
-  'compass.3': 'PV',
-  'compass.4': 'V',
-  'compass.5': 'ŠV',
-  'compass.6': 'Š',
-  'compass.7': 'ŠR',
   'cr.activate': 'Paleisti mašiną',
   'reason.depotUnavailable':
     'Surinkimo sandėliams reikia vieno žaidėjo pasaulio su vietiniu surinkimu.',

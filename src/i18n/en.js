@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.185.1':
+    'At the woken machine, choose where to teleport on the world map: your heart shelters show there as stops, and {phone:tapping|laptop:clicking} one takes you beside it.',
   'news.0.185.0':
     'Wake the machine and every heart shelter you built becomes a teleport stop: a shelter’s card takes you to the machine, and the machine’s card takes you back out to any of them. Worlds you have already won get this too. The woken machine also shows where the thief went, marked on your map.',
   'news.0.184.1':
@@ -58,21 +60,14 @@ export default {
   'cr.sections': 'Restored sections: {n}/{total}',
   'cr.activated':
     'The machine is awake, and teleportation with it. World complete. Keep exploring, or start another empty-handed world from Beyond.',
+  'cr.teleport.pick': 'Choose a shelter on the map',
+  'cr.teleport.hint': '{phone:Tap|laptop:Click} a heart shelter on the map to teleport beside it.',
   'cr.teleport.home': 'Teleport to the machine',
-  'cr.teleport.to': 'Teleport: shelter {where}',
   'cr.reason.asleep': 'Shelters become teleport stops once the machine wakes.',
   'cr.reason.landing': 'There is no dry ground beside that stop to step out on.',
   'cr.thief': 'Where the thief went',
   'cr.thief.clue':
     'A second light glows on the machine’s map, far beyond the hiding place: where the thief went. Every heart shelter you built is now a teleport stop.',
-  'compass.0': 'E',
-  'compass.1': 'SE',
-  'compass.2': 'S',
-  'compass.3': 'SW',
-  'compass.4': 'W',
-  'compass.5': 'NW',
-  'compass.6': 'N',
-  'compass.7': 'NE',
   'cr.activate': 'Activate machine',
   'reason.depotUnavailable': 'Collection Depots require a solo world with local collection.',
   'reason.localLogistics': 'This world uses physical Collection Depots.',

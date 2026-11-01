@@ -303,6 +303,7 @@ export function createController({
     checkGoals,
     approach,
     cultivation: (cmd, finished = null) => commands.cultivation(cmd, finished),
+    cultivate: (cmd) => commands.cultivate(cmd),
 
     // Moves by the input vector, or else toward a tapped destination.
     // Returns true if the player moved.

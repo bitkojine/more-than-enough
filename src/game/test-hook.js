@@ -57,6 +57,8 @@ export function createTestHook(p) {
     audioState: () => audio.state(),
     audio,
     zoom: () => cam.zoom,
+    // Where world point (x, y) on layer z is on screen, in CSS pixels.
+    screenOf: (x, y, z) => cam.project(x, y, z),
     tilePx: () => cam.tilePx,
     setZoom(z) {
       cam.setZoom(z);

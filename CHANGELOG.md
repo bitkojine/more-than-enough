@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.185.1] - 2026-11-01
+
+- Choosing a teleport stop moved to the world map (Watch chose on a
+  decision card, 2026-11-01, "Tap a shelter on the map"). The woken
+  machine's card has one action, *Choose a shelter on the map*, which
+  opens the map on the layer with the most shelters; every heart shelter
+  is a teal stop there once the machine wakes, and while you stand at the
+  machine each wears a turning dashed ring. A tap within 28 px of one
+  teleports you beside it and the map glides back in
+  (`src/game/teleport-map.js`, `openOn`/`leave` in `mapview.js`). Anywhere
+  else a tap on the map still only looks. The 0.185.0 list of five
+  shelters and its compass words are gone.
+
 ## [0.185.0] - 2026-11-01
 
 - Release 3 of the trip home (Watch, 2026-11-01, "Any of your heart

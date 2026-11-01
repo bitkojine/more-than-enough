@@ -135,3 +135,68 @@ test('an off-screen mark sits on the edge of the room left for it, on the way to
   assert.equal(up.y, room.t);
   assert.ok(up.x > room.l && up.x < cx);
 });
+
+// Watch, 2026-11-01: at the woken machine, tap a heart shelter on the map.
+test('at the woken machine, the map opens on the shelters and a tap on one teleports you', async () => {
+  const { createTeleportMap } = await import('../../src/game/teleport-map.js');
+  globalThis.document = { body: { classList: { toggle() {} } } };
+  const cam = createCamera({ getContext: () => ({}) });
+  Object.assign(cam, { width: 390, height: 844, baseTilePx: 48 });
+  cam.setZoom(1.3);
+  const s = Core.createState(7, { cultivation: true }),
+    c = s.cultivation;
+  const see = (x, y, z) => {
+    for (let dy = -1; dy <= 1; dy++)
+      for (let dx = -1; dx <= 1; dx++) {
+        if (z < 0) Core.setRichness(s.world, x + dx, y + dy, z, 0);
+        Core.markExplored(s.world, x + dx, y + dy, z);
+      }
+  };
+  const machine = { kind: 'machine', id: c.nextId++, x: 3, y: 4, z: -2, temperature: 12 };
+  see(3, 4, -2);
+  c.facilities.push(machine);
+  let shelter = null;
+  for (let y = 30; !shelter && y < 200; y++)
+    for (let x = 30; !shelter && x < 200; x++)
+      if ([-1, 0, 1].every((d) => Core.tileAt(s.world, x + d, y + 1, 0) === Core.T.GRASS))
+        shelter = { kind: 'shelter', id: c.nextId++, x, y, z: 0, temperature: 18 };
+  see(shelter.x, shelter.y, 0);
+  c.facilities.push(shelter);
+  s.player = { x: 3.5, y: 5.5, z: -2 };
+  const el = fakeEl(),
+    toasts = [];
+  const mv = createMapView({ cam, getState: () => s, el, changed() {} });
+  const settle = () => {
+    for (let i = 0; i < 200; i++) mv.tick(0.05);
+  };
+  const travel = createTeleportMap({
+    cam,
+    state: () => s,
+    mapView: mv,
+    cultivate: (cmd) => Core.cultivationCommand(s, cmd),
+    hud: { toast: (text) => toasts.push(text) }
+  });
+  const look = () => {
+    const l = mv.look() || s.player;
+    cam.follow({ x: l.x, y: l.y, z: l.z ?? s.player.z });
+  };
+  assert.equal(travel.open(), false, 'nothing before the machine wakes');
+  c.completed = true;
+  assert.ok(travel.ready());
+  assert.equal(travel.open(), true);
+  settle();
+  look();
+  assert.ok(mv.on() && mv.shown() === Core.SURFACE, 'out on the surface map, where the stop is');
+  assert.equal(toasts.length, 1);
+  const off = cam.project(shelter.x + 0.5 + 200, shelter.y + 0.5, 0);
+  assert.equal(travel.tap(off.x, off.y), false, 'a tap far from any stop only looks');
+  const p = cam.project(shelter.x + 0.5, shelter.y + 0.5, 0);
+  assert.ok(p.x > 0 && p.x < cam.width && p.y > 0 && p.y < cam.height, 'the stop is in view');
+  assert.equal(travel.tap(p.x + 4, p.y - 3), true);
+  assert.equal(s.player.z, 0);
+  assert.ok(Core.atInteraction(s, shelter.x, shelter.y, 0), 'beside the shelter');
+  settle();
+  assert.ok(!mv.on(), 'back in to where you landed');
+  assert.equal(cam.zoom, 1.3);
+  assert.equal(travel.tap(p.x, p.y), false, 'away from the machine, a tap only looks');
+});

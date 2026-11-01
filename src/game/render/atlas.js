@@ -250,6 +250,7 @@ export function createAtlas() {
         drawFarMark(ctx, s, at, room, clear, W, H, taken, Core.thiefTrail(s.world.seed), true);
       drawRegions(ctx, W, H, at, taken);
     }
+    drawStops(ctx, s, at, z, now);
     // Friends on this layer: a dot in their colour with their name.
     for (const f of view.friends || []) {
       if (f.z !== z) continue;
@@ -378,6 +379,38 @@ function drawHome(ctx, at) {
   ctx.closePath();
   ctx.stroke();
   ctx.fill();
+}
+
+// Once the machine wakes, every heart shelter on this layer is a teleport
+// stop (Watch, 2026-11-01): a teal dot. Standing at the machine, where a tap
+// on one takes you there (teleport-map.js), each wears a slowly turning
+// dashed ring.
+function drawStops(ctx, s, at, z, now) {
+  const c = s.cultivation;
+  if (!c?.completed) return;
+  const m = c.facilities.find((b) => b.kind === 'machine'),
+    ready = !!m && Core.atInteraction(s, m.x, m.y, m.z);
+  ctx.save();
+  ctx.lineWidth = 2;
+  for (const b of c.facilities) {
+    if (b.kind !== 'shelter' || b.z !== z) continue;
+    const p = at(b.x + 0.5, b.y + 0.5);
+    ctx.fillStyle = '#6fcfbf';
+    ctx.strokeStyle = LABEL_EDGE;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    if (!ready) continue;
+    ctx.strokeStyle = '#6fcfbf';
+    ctx.setLineDash([4, 4]);
+    ctx.lineDashOffset = -now / 120;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
 }
 
 // The hiding place, where the last teleport took the machine's heart:
