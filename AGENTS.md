@@ -22,6 +22,9 @@ kind of knowledge lives.
   (`scripts/commit-messages.mjs`); trailers like `Co-Authored-By:` don't
   count as a body. A release commit says what it ships and why, not only
   its version.
+  Write `#N` only for an issue or pull request: GitHub links it to that
+  issue. Name a Dependabot or code-scanning alert as "Dependabot alert N"
+  or by its URL.
 - Code is laid out by Prettier: run `npm run format` before committing.
   `npm run lint` (part of `npm run check`) fails on unformatted code, on any
   ESLint error, and on more ESLint warnings than the budget in
