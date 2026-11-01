@@ -1783,6 +1783,15 @@ async function main() {
     );
     process.exit(failures ? 1 : 0);
   }
+  if (process.env.MTE_TIMER_ICONS_ONLY === '1') {
+    const { checkTimerIcons } = await import('./timer-icons.browser.js');
+    await checkTimerIcons({ evalJS, waitFor, ok, cdp, session, shot });
+    eq(pageErrors.length, 0, 'timer subject fixtures have no browser exceptions');
+    console.log(
+      (failures ? 'TIMER ICON FAILURES' : 'TIMER ICONS PASSED') + ' — ' + checks + ' checks'
+    );
+    process.exit(failures ? 1 : 0);
+  }
   if (process.env.MTE_LAYER_ONLY === '1') {
     console.log('\n== Ground/character compositing');
     await evalJS(`(async()=>{
@@ -1852,7 +1861,9 @@ async function main() {
     ok(masks.overlap, 'overlapping foreground masks leave no see-through hole');
     ok(masks.floor, 'equal-height ground does not occlude the figure');
     ok(masks.unknown, 'unexplored underground rock remains an opaque wall');
-    eq(pageErrors.length, 0, 'layering fixtures have no browser exceptions');
+    const { checkTimerIcons } = await import('./timer-icons.browser.js');
+    await checkTimerIcons({ evalJS, waitFor, ok, cdp, session, shot });
+    eq(pageErrors.length, 0, 'layering and timer fixtures have no browser exceptions');
     console.log(
       (failures ? 'LAYER BROWSER FAILURES' : 'LAYER BROWSER PASSED') + ' — ' + checks + ' checks'
     );
