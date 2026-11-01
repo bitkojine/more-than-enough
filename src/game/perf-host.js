@@ -1,13 +1,13 @@
 /* Keep diagnostics out of normal startup; a failed tool load never stops play. */
 import { t } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 const PREF = 'mte.performance.enabled'; // i18n-ok: device preference key.
 export function createPerf(el, canvas, audio, quality) {
   let active = null,
     loading = null,
     visible = false,
     samples = [],
-    last = {},
-    attempt = 0;
+    last = {};
   const host = {
     get visible() {
       return visible;
@@ -35,10 +35,7 @@ export function createPerf(el, canvas, audio, quality) {
       }
       if (!show || loading) return;
       el.perf.textContent = t('perf.loading');
-      const url = new URL('./perf.js', import.meta.url);
-      url.search = new URL(import.meta.url).search;
-      if (attempt++) url.searchParams.set('retry', String(attempt));
-      loading = import(url.href)
+      loading = lazy('./perf.js')
         .then(({ createPerf }) => {
           active = createPerf(el, canvas, audio, quality);
           active.toggle(visible);
@@ -46,8 +43,8 @@ export function createPerf(el, canvas, audio, quality) {
         .catch((error) => {
           el.perf.textContent = t('perf.unavailable');
           // i18n-ok: diagnostic context, never a fatal game error.
-          console.error('Performance diagnostics failed to load', url.href, error);
-          globalThis.MTE_FAULT?.(error, 'performance/load ' + url.href);
+          console.error('Performance diagnostics failed to load', error);
+          globalThis.MTE_FAULT?.(error, 'performance/load perf.js'); // i18n-ok: report context
         })
         .finally(() => {
           loading = null;

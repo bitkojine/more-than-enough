@@ -50,6 +50,7 @@ import { loadGame, soloWorlds } from './storage.js';
 import { createActor } from './render/motion.js';
 import { createOutbox, resync as resyncState } from './outbox.js';
 import { t } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 
 const WELCOME_BYTES = 8_000_000; // the most a room's welcome may be
 const FORMAT_RETRY = 60_000; // ms before trying a world again whose room service hasn't updated yet
@@ -102,7 +103,7 @@ export function createTogether({
   const sign = createInviteSign({
     el,
     body: document.body,
-    qr: (url) => import('./qr.js').then((m) => m.qrCanvas(url)), // the QR library loads only for a sign
+    qr: (url) => lazy('./qr.js').then((m) => m.qrCanvas(url)), // the QR library loads only for a sign
     copy: (text) => navigator.clipboard.writeText(text),
     page: location,
     room: () => room,

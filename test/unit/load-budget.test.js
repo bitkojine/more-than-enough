@@ -50,7 +50,7 @@ test('the first load is few requests and fits the size budget', (t) => {
     const [path] = url.split('?');
     for (const m of file(url)
       .toString()
-      .matchAll(/from '(\.{1,2}\/[^']+)'/g)) {
+      .matchAll(/from ?['"](\.{1,2}\/[^'"]+)['"]/g)) {
       const u = new URL(m[1], 'http://x/' + path);
       walk(u.pathname.slice(1) + u.search);
     }

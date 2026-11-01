@@ -26,6 +26,7 @@ import {
 } from './sheet-rows.js';
 
 import { t } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 
 const TITLES = Object.fromEntries(
   ['upgrades', 'build', 'beyond', 'awards', 'statement']
@@ -336,18 +337,11 @@ export function createSheet(
 
   // What a milestone still takes: a price as what's still needed, or a
   // number to reach.
-  let statement,
-    statementLoading,
-    statementResource,
-    statementError,
-    statementAttempts = 0;
+  let statement, statementLoading, statementResource, statementError;
   function loadStatement() {
     if (statementLoading) return statementLoading;
     statementError = null;
-    const url = new URL('./statement.js', import.meta.url);
-    url.search = new URL(import.meta.url).search;
-    if (statementAttempts++) url.searchParams.set('retry', String(statementAttempts));
-    return (statementLoading = import(url.href).then(
+    return (statementLoading = lazy('./statement.js').then(
       ({ createStatement }) => {
         statement = createStatement({ look: currentLook, pic, icon, price, row, income });
         statement.attach(el.sheetBody, { go: (next) => setTab(next) });
@@ -359,8 +353,8 @@ export function createSheet(
       (error) => {
         statementLoading = null;
         statementError = String(error);
-        globalThis.MTE_FAULT?.(error, 'earnings/load ' + url.href);
-        console.error('Earnings module failed to load', url.href, error);
+        globalThis.MTE_FAULT?.(error, 'earnings/load statement.js'); // i18n-ok: report context
+        console.error('Earnings module failed to load', error);
         if (open && tab === 'statement') render();
       }
     ));

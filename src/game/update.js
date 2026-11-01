@@ -12,6 +12,7 @@
  * Run from source there is no stamp, so nothing to compare: it stays off. */
 
 import { VERSION } from '../version.js';
+import { onLazyFailure } from './lazy.js';
 
 const CHECK_EVERY = 60_000; // ms between checks while the game is in view
 const RETRY_AFTER = 60_000; // ms before reloading for the same build again
@@ -114,6 +115,8 @@ export function createUpdater({
 
   function start() {
     if (!running) return;
+    // A lazy module that won't load may mean a deploy left this page behind.
+    onLazyFailure(check);
     check();
     setInterval(() => {
       if (!document.hidden) check();

@@ -30,8 +30,10 @@ node scripts/stage-speed.mjs "$OUT"
 find "$OUT" -name '*.html' -exec sed -i.bak -E "s#((href|src)=\"[^\":]+\\.(css|js|json|png|svg|webmanifest))\"#\\1?v=$HASH\"#g" {} +
 # Manifest: its icons' "src".
 sed -i.bak -E "s#(\"src\": *\"[^\":]+\\.(png|svg))\"#\\1?v=$HASH\"#g" "$OUT/manifest.webmanifest"
-# Modules: from './x.js' -> from './x.js?v=HASH'.
-find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(from '\\.{1,2}/[^']+\\.js)'#\\1?v=$HASH'#g" {} +
+# Modules: from './x.js' -> from './x.js?v=HASH'. The bundles esbuild writes
+# say from"./x.js" (double quotes, no space), so both forms count: an
+# unstamped import is a module that a deploy can mix with an older one.
+find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(from ?['\"]\\.{1,2}/[^'\"]+\\.js)(['\"])#\\1?v=$HASH\\2#g" {} +
 # Lazy developer modules get the same cache identity as the main bundle.
 find "$OUT" -name '*.js' -exec sed -i.bak -E "s#(import\\(['\"]\\.{1,2}/[^'\"]+\\.js)(['\"]\\))#\\1?v=$HASH\\2#g" {} +
 find "$OUT" -name '*.bak' -delete
@@ -50,7 +52,7 @@ printf '{"build":"%s"}\n' "$HASH" > "$OUT/build.json"
 
 echo "Staged $OUT/ (asset version $HASH)"
 grep -rEo '(href|src)="[^"]+\?v=[^"]+"' "$OUT" --include='*.html'
-if grep -rEn "from '\.{1,2}/[^']+\.js'" "$OUT" --include='*.js'; then
+if grep -rEn "(from ?|import\\()['\"]\.{1,2}/[^'\"]+\.js['\"]" "$OUT" --include='*.js'; then
   echo "error: unstamped module import left in $OUT" >&2
   exit 1
 fi

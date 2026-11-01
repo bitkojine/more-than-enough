@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.183.1] - 2026-11-01
+
+- A lazy module that fails to load no longer breaks anything (Watch,
+  2026-11-01: an iPhone on 0.182.0 reported "TypeError: Importing a module
+  script failed", an unhandled promise one second after the page opened,
+  over an hour after 0.183.0 went live). iOS Safari can bring back a page
+  from its cache after a deploy, or open one before the network is back;
+  the lazy imports then failed with nobody catching them. The likely one was
+  the sync with your other devices, started at boot on a linked device: it
+  had no catch and kept the failed load for good, so sync stayed off for
+  that visit. The What's new list did the same.
+- Every lazy import (3D character, sync, QR, What's new, Earnings,
+  performance panel) now goes through `src/game/lazy.js`: it keeps the
+  running build's `?v=`, tries once more a second later on a new URL (a
+  browser never refetches a module URL that failed), and if that fails too
+  asks `update.js` whether a new build is live, which saves and reloads into
+  it, never a dialog. Callers forget a failed load so the next use tries
+  again; the sync, What's new and the invite sign's QR note the failure in
+  the problem report instead of throwing at the page.
+- The staged site now stamps imports written `from"./x.js"`, the form
+  esbuild's minified bundles use: the sync bundle imported the QR library
+  without a `?v=` since 0.182.1, so a deploy could pair it with an older
+  copy. The staging check that should have caught it only knew single
+  quotes; it now knows both, and dynamic imports as well.
+
 ## [0.183.0] - 2026-11-01
 
 - The sun warms the sealed carrier, so carrying the heart home is a real

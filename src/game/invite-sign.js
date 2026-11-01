@@ -60,9 +60,12 @@ export function createInviteSign({
       invite = mine;
       face = null;
       render();
-      return Promise.resolve(qr(inviteUrl(page, room(), code))).then((canvas) => {
-        if (invite === mine) face = canvas;
-      });
+      return Promise.resolve(qr(inviteUrl(page, room(), code))).then(
+        (canvas) => {
+          if (invite === mine) face = canvas;
+        },
+        (error) => globalThis.MTE_FAULT?.(error, 'invite/qr')
+      );
     },
 
     // The sign goes down; its link keeps working (see Invite links).

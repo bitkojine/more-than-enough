@@ -12,6 +12,7 @@ import { soloSeeds, archivedSave, keepCopy, keepAside } from './storage.js';
 import { character, becomeCharacter } from './identity.js';
 import { fmtDuration, lockIcon } from './format.js';
 import { t, addStrings } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 
 export const SYNC_STORE = 'mte.sync'; // sync.js keeps its key there
 export const LINK_HASH = /(^#|&)link=[0-9a-f]{64}(&|$)/;
@@ -31,7 +32,7 @@ export function createSyncHost({
   copy,
   store,
   service,
-  load = () => import('./sync-lazy.js'),
+  load = () => lazy('./sync-lazy.js'),
   page = globalThis.location,
   history = globalThis.history
 }) {
@@ -40,33 +41,39 @@ export function createSyncHost({
   let timer = null;
 
   function loadSync() {
-    return (module ||= load().then((m) => {
-      addStrings(m.strings);
-      sync = m.createSync({
-        store,
-        fetch: (url, init) => fetch(url, init),
-        service,
-        own: () => (copy || game.state.shared || fork.open ? null : game.state),
-        serialize: Core.serialize,
-        deserialize: Core.deserialize,
-        seeds: soloSeeds,
-        archived: archivedSave,
-        copy: keepCopy,
-        aside: keepAside,
-        replace: (s) => game.replace(s, 'cloud'),
-        conflict: ({ mine, other, keepMine, keepOther }) => {
-          input.release();
-          input.releasePerfect();
-          fork.show(mine, other, { keepMine, keepOther, reload: () => page.reload() }, 'device');
-        },
-        said: (what) => toast(syncNote(what)),
-        me: character,
-        becomeMe: becomeCharacter,
-        askMe: () =>
-          ask({ title: t('sync.me.title'), text: t('sync.me.text'), yes: t('sync.me.yes') })
-      });
-      return m;
-    }));
+    return (module ||= load().then(
+      (m) => {
+        addStrings(m.strings);
+        sync = m.createSync({
+          store,
+          fetch: (url, init) => fetch(url, init),
+          service,
+          own: () => (copy || game.state.shared || fork.open ? null : game.state),
+          serialize: Core.serialize,
+          deserialize: Core.deserialize,
+          seeds: soloSeeds,
+          archived: archivedSave,
+          copy: keepCopy,
+          aside: keepAside,
+          replace: (s) => game.replace(s, 'cloud'),
+          conflict: ({ mine, other, keepMine, keepOther }) => {
+            input.release();
+            input.releasePerfect();
+            fork.show(mine, other, { keepMine, keepOther, reload: () => page.reload() }, 'device');
+          },
+          said: (what) => toast(syncNote(what)),
+          me: character,
+          becomeMe: becomeCharacter,
+          askMe: () =>
+            ask({ title: t('sync.me.title'), text: t('sync.me.text'), yes: t('sync.me.yes') })
+        });
+        return m;
+      },
+      (error) => {
+        module = null; // the next use tries again
+        throw error;
+      }
+    ));
   }
 
   function soon() {
@@ -92,7 +99,8 @@ export function createSyncHost({
     soon,
     // Starts syncing at once if this device was linked before.
     start() {
-      if (!copy && linked()) loadSync().then(soon);
+      if (!copy && linked())
+        loadSync().then(soon, (error) => globalThis.MTE_FAULT?.(error, 'sync/load'));
     },
 
     // The Another device screen: the QR, and whether the world is kept yet.

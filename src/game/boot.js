@@ -6,6 +6,7 @@
 import { createLook, loadDefaultPack } from './look/look.js';
 import { where } from './problems.js';
 import { t } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 
 const LOCAL = ['localhost', '127.0.0.1'];
 
@@ -43,7 +44,7 @@ export async function loadLook(packUrl, page = location) {
     throw err;
   }
   const checkClips = LOCAL.includes(page.hostname) || new URLSearchParams(page.search).has('clips');
-  look.rigReady = import('./render/rigged-character.js')
+  look.rigReady = lazy('./render/rigged-character.js')
     .then(({ createRiggedCharacter }) => {
       look.rig = createRiggedCharacter({ checkClips });
       return look.rig;

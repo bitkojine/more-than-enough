@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.183.1':
+    "Opening the game just after your device wakes up, or soon after an update, no longer leaves a part of it unloaded: the game tries again, and moves to the newest version if that is why. Syncing with your other devices and the What's new list recover on their own.",
   'news.0.183.0':
     'Carrying the heart home is now a real journey. The sealed carrier still blocks light, but the sun warms it, and a carrier that gets too hot cracks the heart. Cool it in water, on a riverbank, at a cave mouth or in a heart shelter; a forest lets half the sun through. A bar above the heart shows how warm the carrier is, and a message warns you in time.',
   'news.0.182.3':

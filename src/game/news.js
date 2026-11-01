@@ -12,13 +12,21 @@
  * so they don't weigh on the first load. */
 
 import { t, addStrings } from '../i18n/i18n.js';
+import { lazy } from './lazy.js';
 
 let history;
 export function loadNews() {
-  return (history ||= import('./news-text.js').then(({ default: notes }) => addStrings(notes)));
+  return (history ||= lazy('./news-text.js').then(
+    ({ default: notes }) => addStrings(notes),
+    (error) => {
+      history = null; // the next look tries again
+      throw error;
+    }
+  ));
 }
 
 export const NEWS = [
+  '0.183.1',
   '0.183.0',
   '0.182.3',
   '0.182.2',
@@ -378,7 +386,13 @@ export function createNews({
   // The whole changelog, newest first; what's new since they last looked
   // is marked. Looking at it counts as seen.
   async function render() {
-    await loadNews();
+    try {
+      await loadNews();
+    } catch (error) {
+      // Older notes stay unnamed until the next look; the newest are in
+      // the first load (en.js, lt.js), so the list still shows.
+      globalThis.MTE_FAULT?.(error, 'news/load');
+    }
     const fresh = new Set(unseen());
     const ideas = document.createElement('button');
     ideas.type = 'button';

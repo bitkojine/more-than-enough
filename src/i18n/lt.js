@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.183.1':
+    'Atidarius žaidimą vos pabudus įrenginiui ar netrukus po atnaujinimo, kuri nors jo dalis nebelieka neįkelta: žaidimas bando dar kartą, o jei to priežastis atnaujinimas, pereina į naujausią versiją. Sinchronizavimas su kitais tavo įrenginiais ir sąrašas „Kas naujo“ atsigauna patys.',
   'news.0.183.0':
     'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
   'news.0.182.3':

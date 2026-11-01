@@ -85,7 +85,7 @@ export async function checkProgression({
       await cdp.send('Network.setBlockedURLs', { urls: ['*statement.js*'] }, session);
       await evalJS('document.querySelector("#resources .chip.ledger").click()');
       ok(
-        await waitFor('!!document.querySelector("#sheetBody pre")', 2000),
+        await waitFor('!!document.querySelector("#sheetBody pre")', 5000), // two tries, a second apart
         'a failed Earnings download shows a recoverable explanation'
       );
       ok(
