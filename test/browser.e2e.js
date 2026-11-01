@@ -1783,6 +1783,21 @@ async function main() {
     );
     process.exit(failures ? 1 : 0);
   }
+  if (process.env.MTE_WORLD_INPUT_ONLY === '1') {
+    if (process.env.MTE_TEST_CPU_RATE)
+      await cdp.send(
+        'Emulation.setCPUThrottlingRate',
+        { rate: Number(process.env.MTE_TEST_CPU_RATE) },
+        session
+      );
+    const { checkWorldInput } = await import('./world-input.browser.js');
+    await checkWorldInput({ evalJS, waitFor, ok, cdp, session, tap, touch });
+    eq(pageErrors.length, 0, 'controlled world input has no browser exceptions');
+    console.log(
+      (failures ? 'WORLD INPUT FAILURES' : 'WORLD INPUT PASSED') + ' — ' + checks + ' checks'
+    );
+    process.exit(failures ? 1 : 0);
+  }
   if (process.env.MTE_TIMER_ICONS_ONLY === '1') {
     const { checkTimerIcons } = await import('./timer-icons.browser.js');
     await checkTimerIcons({ evalJS, waitFor, ok, cdp, session, shot });
@@ -1863,7 +1878,9 @@ async function main() {
     ok(masks.unknown, 'unexplored underground rock remains an opaque wall');
     const { checkTimerIcons } = await import('./timer-icons.browser.js');
     await checkTimerIcons({ evalJS, waitFor, ok, cdp, session, shot });
-    eq(pageErrors.length, 0, 'layering and timer fixtures have no browser exceptions');
+    const { checkWorldInput } = await import('./world-input.browser.js');
+    await checkWorldInput({ evalJS, waitFor, ok, cdp, session, tap, touch });
+    eq(pageErrors.length, 0, 'layering, timer and input fixtures have no browser exceptions');
     console.log(
       (failures ? 'LAYER BROWSER FAILURES' : 'LAYER BROWSER PASSED') + ' — ' + checks + ' checks'
     );
@@ -3555,11 +3572,13 @@ async function main() {
     'a solar panel is not offered down here'
   );
   await evalJS('document.getElementById("btnClose").click()');
-  // The battery: hidden while full, then a pill on the left edge that turns
-  // amber once the light starts to shrink.
+  // The battery: hidden while full, then an Equipment countdown that turns
+  // amber once the light starts to shrink. Let the HUD's next refresh paint
+  // the current state; the simulation can cross the full threshold first.
   ok(
-    await evalJS(
-      'document.getElementById("battery").hidden === (MTE_GAME.getState().battery >= 0.995)'
+    await waitFor(
+      'document.getElementById("battery").hidden === (MTE_GAME.getState().battery >= 0.995)',
+      1500
     ),
     'the battery shows once it is not full'
   );
@@ -4007,19 +4026,16 @@ async function main() {
       (await evalJS('JSON.stringify(MTE_GAME.wiki.line)')) +
       ')'
   );
-  // Once faded in, and where it is drawn: on top of the tile's own height.
-  await waitFor(
-    '(function(){var p=MTE_GAME.wiki.pose();return !!(p&&p.focus&&p.focus.alpha>=1);})()',
-    1000
+  // This journey checks input behavior. Isolated outline geometry at known
+  // scales is checked separately in world-input.browser.js, not by counting
+  // exact-color pixels among moving scenery in a random world.
+  ok(
+    await waitFor(
+      '(function(){var p=MTE_GAME.wiki.pose();return !!(p&&p.focus&&p.focus.alpha>=1);})()',
+      1000
+    ),
+    'the inspection focus reaches its fully visible pose'
   );
-  // Two animation callbacks need not include a rendered frame at the 30 FPS
-  // cap. Wait for the actual teal pixels, retaining the same colour/count
-  // assertion rather than sampling an earlier, still-fading canvas once.
-  var ringShown = await waitFor(
-    '(function(){var f=MTE_GAME.wiki.focus,C=MTE_GAME.core;if(!f)return false;var c=document.getElementById("game"),g=c.getContext("2d"),s=c.width/window.innerWidth,p=MTE_GAME.project(f.x+.5,f.y+.5,f.z+C.tileHeight(MTE_GAME.getState().world,f.x,f.y,f.z)),n=0;var d=g.getImageData(Math.max(0,Math.floor((p.x-MTE_GAME.tilePx()*1.5)*s)),Math.max(0,Math.floor((p.y-MTE_GAME.tilePx()*2.5)*s)),Math.floor(MTE_GAME.tilePx()*3*s),Math.floor(MTE_GAME.tilePx()*3.5*s)).data;for(var i=0;i<d.length;i+=4)if(Math.abs(d[i]-127)<8&&Math.abs(d[i+1]-230)<8&&Math.abs(d[i+2]-196)<8)n++;return n>40;})()',
-    3000
-  );
-  ok(ringShown, 'the outline is drawn round it in Wiki teal');
   console.log('  screenshot: ' + (await shot('02c-wiki-long-press.png')));
   await sleep(600);
   await touch('touchEnd', []);

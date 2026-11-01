@@ -53,9 +53,11 @@ commit. When you find something new, add it.
   includes `main.js`, `sheet.js`, `hud.js`, `renderer.js`, `overlay.js`,
   `audio.js` and `placing.js`. The 84.7% line coverage figure leaves them out.
   Only the browser suite exercises them.
-- **The browser suite fails on timing, not bugs.** Two of the last eight
-  completed runs on `main` failed on slow CI runners (`browser.yml`). It
-  doesn't block deploys, so a red run is easy to ignore.
+- **The long browser journey still contains historical fixed delays.**
+  These can confuse a slow renderer with a broken feature. World input and
+  outline checks now have isolated, controlled fixtures; migrate remaining
+  timing-sensitive checks the same way. The broad journey doesn't block
+  deploys, so a red run there still needs investigation.
 - **Every file is now under 600 lines, but the biggest functions are not.**
   The largest factory closures are still hundreds of lines each:
   `createRigModel` (510), the admin page's `client` (501), `createSheet`
@@ -200,6 +202,23 @@ CHROME_PATH=/path/to/chromium MTE_WEBGL=1 MTE_TIMER_ICONS_ONLY=1 npm run test:e2
 The fixture checks both languages at small portrait, landscape and desktop sizes,
 and verifies that drawing the tags preserves the saved state. It is a presentation
 fixture, not a fresh-world completion run.
+
+World input and outline checks also reuse the foreground-compositing host.
+For a quick standalone run:
+
+```sh
+CHROME_PATH=/path/to/chromium MTE_WORLD_INPUT_ONLY=1 npm run test:e2e
+```
+
+These use known terrain and equipment, real pointer input, and an isolated
+canvas for outline geometry at multiple scales and pixel densities. Input
+checks assert the selected tile and resulting action, not screenshot colors.
+Condition checks stop as soon as the expected state arrives, never repeat the
+action, propagate probe errors, and print the last observed state on timeout.
+Rendering checks run synchronously with explicit alpha and include empty and
+hidden negative controls. `MTE_TEST_CPU_RATE=4` exercises this focused fixture
+under CPU throttling; it is optional, not another default CI browser process.
+This separation tests correctness; performance budgets remain separate checks.
 
 The layout sweep reports each viewport as it finishes, including elapsed time
 and problems, so a long audit does not look like a silent hang.
