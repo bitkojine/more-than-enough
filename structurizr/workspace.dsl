@@ -142,7 +142,7 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                 }
             }
 
-            i18n = container "Translations" "Every word the player reads, in English and Lithuanian (src/i18n/, plus the wiki's own in wiki/i18n/). Historical release notes load on demand through news-text.js; startup retains current release prose. Code asks for text by key with t(); the language is picked once at load (the player's choice, else the browser's) and switching reloads the page. A missing key or placeholder throws, and the unit tests fail if either language lacks a key or any text bypasses t()." "JavaScript modules (browser + Node)" {
+            i18n = container "Translations" "Every word the player reads, in English and Lithuanian (src/i18n/, plus the wiki's own in wiki/i18n/). Historical release notes load on demand through news-text.js; startup retains current release prose. Code asks for text by key with t(); the language is picked once at load (language.js: the player's choice, else the browser's) and switching reloads the page. The deployed game carries one language: the page's first script (src/game/start.js) fetches that dictionary and then the game, whose bundles get dictionaries.js swapped for it (scripts/stage-speed.mjs). A missing key or placeholder throws, and the unit tests fail if either language lacks a key or any text bypasses t()." "JavaScript modules (browser + Node)" {
                 tags "Presentation"
                 properties {
                     "files" "src/i18n/, wiki/i18n/"

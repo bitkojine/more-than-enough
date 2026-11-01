@@ -14,6 +14,10 @@
  *    with the code instead of after it.
  * 4. The stylesheet is minified (esbuild): it is mostly comments too. Old
  *    browsers are the target, so nothing is rewritten into newer CSS.
+ * 5. One language at a time. The bundles hold no dictionary: each gets
+ *    src/i18n/dictionaries.js swapped for one that reads the dictionary
+ *    src/game/start.js (the page's first script) fetched for the player's
+ *    language, and the page preloads main.js so it downloads alongside.
  *
  * Usage: node scripts/stage-speed.mjs <staged site dir>  (before stamping) */
 
@@ -48,9 +52,32 @@ try {
 } catch {
   throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
 }
+// 5. The dictionary start.js fetched, set before any bundle runs. Each
+// bundle's copy of i18n.js gets its own copy of it, as a bundled dictionary
+// was its own before (perf.js adds its keys to its copy only).
+const oneLanguage = {
+  name: 'one-language',
+  setup(build) {
+    build.onResolve({ filter: /\/dictionaries\.js$/ }, (args) =>
+      /[\\/]src[\\/]i18n$/.test(args.resolveDir)
+        ? { path: 'dictionaries', namespace: 'one-language' }
+        : undefined
+    );
+    build.onLoad({ filter: /.*/, namespace: 'one-language' }, () => ({
+      resolveDir: path.join(OUT, 'src/i18n'),
+      contents: `import { CODES } from './language.js';
+const loaded = globalThis.MTE_DICTIONARY;
+if (!loaded) throw new Error('No dictionary: the game starts from src/game/start.js');
+export default Object.fromEntries(CODES.map((c) => [c, c === loaded.lang ? { ...loaded.strings } : {}]));`
+    }));
+  }
+};
 const entry = path.join(OUT, 'src/game/main.js');
 for (const target of [
   entry,
+  path.join(OUT, 'src/game/start.js'),
+  path.join(OUT, 'src/i18n/en.js'),
+  path.join(OUT, 'src/i18n/lt.js'),
   path.join(OUT, 'src/game/autoplay-lab.js'),
   path.join(OUT, 'src/game/perf.js'),
   path.join(OUT, 'src/game/news-text.js'),
@@ -80,10 +107,12 @@ for (const target of [
     sourcemap: 'linked', // for DevTools only; players never download it
     sourcesContent: false, // the staged site carries the sources themselves
     legalComments: 'none',
-    logLevel: 'warning'
+    logLevel: 'warning',
+    plugins: [oneLanguage]
   });
 
-/* 3. The pack is named up front, so it downloads with the code. */
+/* 3. The pack and the game are named up front, so they download with the
+ *    first script (start.js) instead of after it. */
 const page = path.join(OUT, 'index.html');
 const html = fs.readFileSync(page, 'utf8');
 if (!html.includes('</head>')) throw new Error('no </head> in index.html');
@@ -91,7 +120,8 @@ fs.writeFileSync(
   page,
   html.replace(
     '</head>',
-    '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'
+    '<link rel="modulepreload" href="src/game/main.js" />\n' +
+      '<link rel="preload" href="packs/default/pack.json" as="fetch" crossorigin />\n</head>'
   )
 );
 

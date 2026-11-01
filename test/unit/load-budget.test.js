@@ -4,7 +4,10 @@
  *  - the default pack's pictures arrive inside pack.json (one request, not
  *    one per picture);
  *  - the game's code is one bundled file (no module is left to fetch import
- *    by import), and the pack is named up front so it downloads alongside;
+ *    by import), and it and the pack are named up front so they download
+ *    alongside the page's first script (src/game/start.js);
+ *  - the bundles carry no dictionary: start.js fetches the one for the
+ *    player's language, and the budget counts the biggest of them;
  *  - the whole first load (page, stylesheet, modules, pack), gzipped as
  *    GitHub Pages serves it, stays under a budget. Raise BUDGET_KB only on
  *    purpose: every 10 KB is ~60 ms more on slow 3G before anyone can play;
@@ -20,6 +23,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import DICTIONARIES from '../../src/i18n/dictionaries.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const BUDGET_KB = 300; // v0.145.0: 262 KB once the painted poses (the 3D rig draws Mica) were dropped
@@ -64,9 +68,32 @@ test('the first load is few requests and fits the size budget', (t) => {
     'the default pack is not preloaded'
   );
 
-  // Size and count of everything a fresh browser fetches before the game starts.
+  assert.ok(
+    [...preloaded].some((u) => u.startsWith('src/game/main.js?v=')),
+    'the game bundle is not preloaded'
+  );
+
+  // One language at a time: no bundle holds a dictionary, and start.js
+  // fetches the player's own.
+  const bundles = ['src/game/main.js', ...modules].map((u) => file(u).toString());
+  const dictionaries = {};
+  for (const [code, strings] of Object.entries(DICTIONARIES)) {
+    const sample = strings['fullscreen.unsupportedHelp'];
+    assert.ok(
+      file(`src/i18n/${code}.js`).toString().includes(sample),
+      `${code}.js lacks its words`
+    );
+    for (const b of bundles)
+      assert.ok(!b.includes(sample), `a startup bundle carries the ${code} dictionary`);
+    dictionaries[code] = gzipSync(file(`src/i18n/${code}.js`)).length;
+  }
+  const words = Object.entries(dictionaries).sort((a, b) => b[1] - a[1])[0];
+  t.diagnostic(`biggest dictionary (${words[0]}): ${(words[1] / 1024).toFixed(1)} KB gzipped`);
+
+  // Size and count of everything a fresh browser fetches before the game
+  // starts: the page, its stylesheet and scripts, the pack and one dictionary.
   const css = [...page.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((m) => m[1]);
-  const urls = [...new Set([...css, ...modules, ...preloaded])];
+  const urls = [...new Set([...css, ...modules, ...preloaded, `src/i18n/${words[0]}.js`])];
   const rigKB = gzipSync(file('src/game/render/rigged-character.js')).length / 1024;
   t.diagnostic(`lazy 3D character: ${rigKB.toFixed(1)} KB gzipped`);
   assert.ok(rigKB <= 180, 'lazy 3D presentation module exceeds its 180 KB budget');

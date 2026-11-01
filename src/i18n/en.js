@@ -2,8 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  'news.0.188.0':
-    'Stored crystal now crumbles too: a chamber or vault left too hot cracks it to 0% and loses it all. A clock over the building counts down.',
+  'news.0.188.1':
+    'The game opens faster: it now downloads only the words of the language you play in, not every language, and the parts that load later got smaller too.',
   'progression.furtherUpgrades': 'Later upgrades',
   'cr.reason.locked': 'Activate the machine to unlock this.',
   'progression.requirement': 'Activate the machine to unlock.',

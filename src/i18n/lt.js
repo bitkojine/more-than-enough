@@ -2,8 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  'news.0.188.0':
-    'Dabar byra ir sukaupti kristalai: per karšta kamera ar saugykla juos skaldo iki 0 % ir visus praranda. Laikrodis virš pastato skaičiuoja atgal.',
+  'news.0.188.1':
+    'Žaidimas atsidaro greičiau: jis atsisiunčia tik tavo kalbos žodžius, ne visų kalbų, o vėliau įkeliamos dalys irgi sumažėjo.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',

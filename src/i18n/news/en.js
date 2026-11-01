@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.188.0':
+    'Stored crystal now crumbles too: a chamber or vault left too hot cracks it to 0% and loses it all. A clock over the building counts down.',
   'news.0.187.0':
     'Crystal you carry can now be lost. Heat or light keeps cracking it past the old 10% floor, and at 0% the whole load crumbles to dust. The clock over Mica counts down to that moment, so get to shade in time.',
   'news.0.186.0':

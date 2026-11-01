@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.188.0':
+    'Dabar byra ir sukaupti kristalai: per karšta kamera ar saugykla juos skaldo iki 0 % ir visus praranda. Laikrodis virš pastato skaičiuoja atgal.',
   'news.0.187.0':
     'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Mikos skaičiuoja iki tos akimirkos, tad spėk į pavėsį.',
   'news.0.186.0':

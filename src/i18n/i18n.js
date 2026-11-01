@@ -22,15 +22,16 @@
  * written as a choice, {phone:tap|laptop:click}, and only the one for this
  * device is shown; the tests reject words like "tap" or "phone" outside one. */
 
-import en from './en.js';
-import lt from './lt.js';
+import DICTIONARIES from './dictionaries.js';
+import { LANGUAGE_KEY, pickLanguage } from './language.js';
 
+// The deployed game holds only the dictionary of the language it plays in
+// (dictionaries.js); the others are empty there.
 export const LANGUAGES = {
-  en: { name: 'English', locale: 'en-US', strings: en },
-  lt: { name: 'Lietuvių', locale: 'lt-LT', strings: lt }
+  en: { name: 'English', locale: 'en-US', strings: DICTIONARIES.en },
+  lt: { name: 'Lietuvių', locale: 'lt-LT', strings: DICTIONARIES.lt }
 };
-export const LANGUAGE_KEY = 'mte.lang';
-const FALLBACK = 'en';
+export { LANGUAGE_KEY };
 
 function storage() {
   try {
@@ -38,31 +39,6 @@ function storage() {
   } catch {
     return null;
   }
-}
-
-// ?lang= in the address, else the player's choice, else the browser's
-// language, else English. Under Node (the tests), MTE_LANG picks it.
-function detect() {
-  const env = globalThis.process && globalThis.process.env && globalThis.process.env.MTE_LANG;
-  if (env) return env;
-  const asked = globalThis.location && new URLSearchParams(globalThis.location.search).get('lang');
-  if (asked) return asked;
-  let saved;
-  try {
-    saved = storage() && storage().getItem(LANGUAGE_KEY);
-  } catch {
-    saved = null;
-  }
-  if (saved && LANGUAGES[saved]) return saved;
-  const nav = globalThis.navigator;
-  const wanted = nav ? [...(nav.languages || []), nav.language] : [];
-  for (const w of wanted) {
-    const code = String(w || '')
-      .slice(0, 2)
-      .toLowerCase();
-    if (LANGUAGES[code]) return code;
-  }
-  return FALLBACK;
 }
 
 // What you play on: ?device= in the address, else a touch screen as the
@@ -81,7 +57,7 @@ function detectDevice() {
 }
 export const DEVICE = detectDevice();
 
-export const LANG = detect();
+export const LANG = pickLanguage();
 if (!LANGUAGES[LANG])
   throw new Error(`Unknown language "${LANG}" (known: ${Object.keys(LANGUAGES).join(', ')})`);
 export const LOCALE = LANGUAGES[LANG].locale;

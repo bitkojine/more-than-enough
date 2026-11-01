@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.188.1] - 2026-11-01
+
+- First load 300.0 → 284.7 KB gzipped (budget 300), back under budget with
+  room for the next releases. The game bundles carried every language's
+  dictionary (~17 KB English + ~18 KB Lithuanian gzipped) although a page
+  only ever plays in one; switching language already reloads the page.
+  Now the page's first script, `src/game/start.js`, picks the language
+  (`src/i18n/language.js`, the same question `i18n.js` asks), fetches that
+  one dictionary and then the game, which the page preloads so both
+  download side by side. The deploy (`scripts/stage-speed.mjs`) bundles
+  every module with `src/i18n/dictionaries.js` swapped for one that hands
+  over that dictionary; the source tree, tests, wiki and room service still
+  import every language from it. Six requests at first load (the most the
+  test allows).
+- Lazy bundles shrank with it, since each carried its own copy of both
+  dictionaries: performance panel 42 → 8 KB, earnings statement 58 → 23 KB,
+  autoplay lab 129 → 94 KB gzipped.
+- `test/unit/load-budget.test.js` now counts the biggest dictionary in the
+  first load and fails if any startup bundle carries a dictionary again.
+- Browsers without `modulepreload` (Safari before 17) fetch the game after
+  the tiny first script, one round trip later, alongside the dictionary.
+
 ## [0.188.0] - 2026-11-01
 
 - Stored crystal crumbles too (Watch chose on a decision card, 2026-11-01,
