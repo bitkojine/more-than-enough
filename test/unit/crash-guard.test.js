@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 const boot = readFileSync(new URL('../../index.html', import.meta.url), 'utf8').match(
-  /<script>([\s\S]*?)<\/script>/
+  /<script>([\s\S]*?)<\/script\s*>/i
 )[1];
 function setup() {
   const listeners = {},

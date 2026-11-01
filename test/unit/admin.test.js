@@ -53,7 +53,7 @@ test('admin: the page runs only its own script and style, and writes no HTML fro
   const { html, headers } = await adminPage();
   const csp = headers['Content-Security-Policy'];
   const hash = (text) => "'sha256-" + createHash('sha256').update(text).digest('base64') + "'";
-  const script = html.match(/<script>([\s\S]*)<\/script>/)[1];
+  const script = html.match(/<script>([\s\S]*)<\/script\s*>/i)[1];
   const style = html.match(/<style>([\s\S]*)<\/style>/)[1];
   assert.ok(csp.includes('script-src ' + hash(script)), "the script's hash is in the CSP");
   assert.ok(csp.includes('style-src ' + hash(style)), "the style's hash is in the CSP");

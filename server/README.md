@@ -261,7 +261,9 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `GET /admin/players[?tests=1]`: every world (`/admin/rooms`'s brief plus
   `name: {en, lt}`) with its players (as below, plus `name: {en, lt}`),
   named as the game names them (`src/net/naming.js`); the smoke test's
-  worlds only with `tests=1`. A room that can't answer comes with `error`.
+  worlds only with `tests=1`. A room that can't answer comes with `error: "unreachable"`; the cause is in
+  the service's log (`wrangler tail`). A moderator route that fails answers
+  `{"error":"internal"}` with status 500 and logs the cause the same way.
 - `GET /admin/rooms`: every world in brief (`id`, `seed`, `players`,
   `online`, `frozen`, `created`, `last`, `smk` — the last says
   whether it's the deploy's smoke test).

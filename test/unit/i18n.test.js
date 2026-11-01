@@ -262,9 +262,17 @@ test('no player-facing text is written straight into the code', () => {
 // (the author's mark) is marked translate="no".
 function markupWords(html) {
   const found = [];
-  const body = html
-    .replace(/<!--[\s\S]*?-->/g, '')
-    .replace(/<(script|style)\b[\s\S]*?<\/\1>/g, '')
+  // Stripped until nothing changes, so a removal can't join two halves
+  // into a new comment or script that then slips through.
+  let stripped = html,
+    before;
+  do {
+    before = stripped;
+    stripped = stripped
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, '');
+  } while (stripped !== before);
+  const body = stripped
     .replace(/<meta (http-equiv|name="referrer"|property="og:image|name="twitter:card")[^>]*>/g, '') // for browsers and link previews, not words
     .replace(/(<[^>]*\stranslate="no"[^>]*>)[^<]*/g, '$1');
   for (const m of body.matchAll(/>([^<]+)</g))

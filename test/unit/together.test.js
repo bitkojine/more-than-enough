@@ -641,7 +641,7 @@ test('shared world: your changes are recorded for the room', () => {
 test("the page's Content-Security-Policy allows exactly its own inline script", () => {
   const html = readFileSync(new URL('../../index.html', import.meta.url), 'utf8');
   const csp = html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/)[1];
-  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script\s*>/gi)].map((m) => m[1]);
   assert.equal(scripts.length, 1);
   const hash = createHash('sha256').update(scripts[0]).digest('base64');
   assert.ok(

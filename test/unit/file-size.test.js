@@ -22,7 +22,7 @@ const MAX_LINES = 600;
 const OVERSIZED = {
   'server/src/room.js': 1006,
   'src/game/render/rig-model.js': 972,
-  'server/src/worker.js': 947,
+  'server/src/worker.js': 938,
   'src/core/cultivation.js': 825,
   'src/game/render/sprites.js': 735,
   'server/src/admin.js': 693

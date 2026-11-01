@@ -6,6 +6,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { jsLiteral } from './support/js-literal.js';
 
 // MTE_SITE=<dir> tests a staged site (scripts/stage-site.sh: the bundled game
 // players get) instead of the source.
@@ -1668,7 +1669,7 @@ async function main() {
               .toString('base64')
         )
       : null;
-    await evalJS(`(async()=>{const before=${JSON.stringify(beforeIcons)},keys=['mycelium','stone','ore','crystal'],c=document.getElementById('__resourceReview'),g=c.getContext('2d');g.fillStyle='#eee6d4';g.fillRect(0,0,1440,1100);g.font='22px system-ui';g.fillStyle='#1d1712';g.fillText('Resource icon readability — actual display sizes',25,35);
+    await evalJS(`(async()=>{const before=${jsLiteral(beforeIcons)},keys=['mycelium','stone','ore','crystal'],c=document.getElementById('__resourceReview'),g=c.getContext('2d');g.fillStyle='#eee6d4';g.fillRect(0,0,1440,1100);g.font='22px system-ui';g.fillStyle='#1d1712';g.fillText('Resource icon readability — actual display sizes',25,35);
     const old=[];if(before)for(const src of before){const img=new Image();img.src=src;await img.decode();old.push(img);}
     for(let i=0;i<4;i++){const x=180+i*360;g.fillStyle='#1d1712';g.font='20px system-ui';g.fillText(keys[i],x-60,80);g.font='16px system-ui';g.fillText(before?'Before          Now':'Current',x-90,110);}
     for(let r=0;r<4;r++){const size=[24,32,48,128][r],y=200+r*240,bg=r%2?'#24312b':'#b69b6a';g.fillStyle=bg;g.fillRect(0,y-55,1440,190);g.fillStyle=r%2?'#eee6d4':'#1d1712';g.font='16px system-ui';g.fillText(size+'px'+(r===3?' · enlargement for diagnosis':''),20,y-25);
@@ -1919,7 +1920,7 @@ async function main() {
         lantern: { action: 'collect', work: 'lantern', lantern: true, lanternOn: true }
       })) {
         const frames =
-          await evalJS(`(async()=>{const rig=await MTE_GAME.look.rigReady,c=document.getElementById('__workReview');c.width=960;c.height=600;const g=c.getContext('2d'),frames=[],opts=${JSON.stringify(opts)};
+          await evalJS(`(async()=>{const rig=await MTE_GAME.look.rigReady,c=document.getElementById('__workReview');c.width=960;c.height=600;const g=c.getContext('2d'),frames=[],opts=${jsLiteral(opts)};
       for(let i=0;i<40;i++){g.fillStyle='#b69b6a';g.fillRect(0,0,960,600);g.fillStyle='#1d1712';g.font='22px system-ui';g.fillText('${key} — front, side and actual game scale',25,35);rig.draw(g,220,530,430,{...opts,progress:i/39,facing:{x:0,y:1}});rig.draw(g,610,530,430,{...opts,progress:i/39,facing:{x:1,y:0}});rig.draw(g,850,530,64,{...opts,progress:i/39,facing:{x:1,y:1}});frames.push(c.toDataURL().split(',')[1]);}return frames;})()`);
         const dir = path.join(SHOT_DIR, 'work-frames', key);
         fs.mkdirSync(dir, { recursive: true });

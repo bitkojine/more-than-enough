@@ -1,8 +1,10 @@
+import { jsLiteral } from './support/js-literal.js';
+
 /* Funded presentation/charging fixture, not a fresh-world win or fair bot run. */
 export async function checkLightControls({ evalJS, waitFor, ok, cdp, session, tap, rect, shot }) {
   const tapControl = async (selector) => {
     const hit = await waitFor(
-      `(()=>{const e=document.querySelector(${JSON.stringify(selector)});if(!e||e.hidden)return false;const r=e.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>0&&r.height>0&&!!at?.closest(${JSON.stringify(selector)});})()`,
+      `(()=>{const e=document.querySelector(${jsLiteral(selector)});if(!e||e.hidden)return false;const r=e.getBoundingClientRect(),at=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.width>0&&r.height>0&&!!at?.closest(${jsLiteral(selector)});})()`,
       2000
     );
     ok(hit, 'light control has an unobstructed pointer target: ' + selector);

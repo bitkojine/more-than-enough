@@ -172,9 +172,10 @@ async function admin(request, env, url) {
             if (!summary || (isSmokeTest(summary) && !tests)) return null;
             return worldOf(summary, (await room.roster(id)) || [], (await room.graves(id)) || []);
           } catch {
+            console.error('room overview failed', id, e); // cause in wrangler tail only
             return {
               id,
-              error: String((e && e.message) || e).slice(0, 200),
+              error: 'unreachable',
               players: [],
               name: { en: id, lt: id },
               last: 0
@@ -233,12 +234,7 @@ async function admin(request, env, url) {
   }
   if (m[2] === 'copy' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
-    let d = null;
-    try {
-      d = JSON.parse(body);
-    } catch {
-      /* below */
-    }
+    const d = parseJSON(body);
     if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
       return respond({ error: 'bad' }, 400, null);
     const entries = await room.snapshot(m[1]);
@@ -263,12 +259,7 @@ async function admin(request, env, url) {
   }
   if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
     const body = await readCapped(request, 1024);
-    let d = null;
-    try {
-      d = JSON.parse(body);
-    } catch {
-      /* below */
-    }
+    const d = parseJSON(body);
     if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
       return respond({ error: 'bad' }, 400, null);
     const why = typeof d.why === 'string' ? d.why : '';
@@ -281,12 +272,7 @@ async function admin(request, env, url) {
   // link that got out, without taking the person who made it along.
   if (m[2] === 'revoke' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
-    let d = null;
-    try {
-      d = JSON.parse(body);
-    } catch {
-      /* below */
-    }
+    const d = parseJSON(body);
     if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code))
       return respond({ error: 'bad' }, 400, null);
     const err = await room.modRevoke(m[1], d.code);
@@ -296,17 +282,21 @@ async function admin(request, env, url) {
   // only keeps it out of the moderator's lists; nothing deletes it.
   if (m[2] === 'smoke' && request.method === 'POST') {
     const body = await readCapped(request, 1024);
-    let d = null;
-    try {
-      d = JSON.parse(body);
-    } catch {
-      /* below */
-    }
+    const d = parseJSON(body);
     if (!d || typeof d.smoke !== 'boolean') return respond({ error: 'bad' }, 400, null);
     const err = await room.modSmoke(m[1], d.smoke);
     return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
   }
   return respond({ error: 'not found' }, 404, null);
+}
+
+// A request's JSON, or null when it isn't any.
+function parseJSON(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
 }
 
 function respond(body, status, origin) {
@@ -351,11 +341,12 @@ export default {
     // never an Origin's word. Anyone without the token sees nothing there at all.
     if (url.pathname.startsWith('/admin/')) {
       if (!(await isAdmin(request, env))) return respond({ error: 'not found' }, 404, null);
-      // A failure says what went wrong, to the moderator only.
+      // A failure is logged (wrangler tail); no exception text leaves the service.
       try {
         return await admin(request, env, url);
       } catch (e) {
-        return respond({ error: String((e && e.message) || e).slice(0, 300) }, 500, null);
+        console.error('admin route failed', url.pathname, e);
+        return respond({ error: 'internal' }, 500, null);
       }
     }
     // Browsers always send Origin on these; anything else isn't the game.

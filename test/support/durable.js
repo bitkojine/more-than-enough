@@ -15,6 +15,7 @@
 
 import { register } from 'node:module';
 import { DatabaseSync } from 'node:sqlite';
+import { jsLiteral } from './js-literal.js';
 
 // Call once, before importing worker.js.
 export function registerCloudflare() {
@@ -23,7 +24,7 @@ export function registerCloudflare() {
     encodeURIComponent(
       'export class DurableObject { constructor(ctx, env) { this.ctx = ctx; this.env = env; } }'
     );
-  const hooks = `export async function resolve(spec, ctx, next) { return spec === 'cloudflare:workers' ? { url: ${JSON.stringify(stub)}, shortCircuit: true } : next(spec, ctx); }`;
+  const hooks = `export async function resolve(spec, ctx, next) { return spec === 'cloudflare:workers' ? { url: ${jsLiteral(stub)}, shortCircuit: true } : next(spec, ctx); }`;
   register('data:text/javascript,' + encodeURIComponent(hooks));
   globalThis.WebSocketRequestResponsePair ??= class {
     constructor(request, response) {

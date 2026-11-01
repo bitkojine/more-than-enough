@@ -43,7 +43,7 @@ test('resource vector exports are deterministic, readable geometry in all eight 
         svg = resourceSVG(a, { heading });
       assert.equal(svg, resourceSVG(a, { heading }));
       assert.ok(svg.includes('<path'));
-      assert.doesNotMatch(svg, /NaN|Infinity|<script|<image|https?:\/\/(?!www.w3.org)/);
+      assert.doesNotMatch(svg, /NaN|Infinity|<script|<image|https?:\/\/(?!www\.w3\.org)/);
       a.dispose();
     }
   const a = createResourceModel('crystal'),
