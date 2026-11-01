@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.184.1] - 2026-11-01
+
+- The surface sees its sky straight from above. In 0.184.0 a forest's
+  canopy let 8 of 15 sky levels through only while no lamp or glowcap
+  existed anywhere in the world; once one did, the full light field was
+  built and open sky spread sideways into the forest (14, 13, ... at the
+  edge), so the same tile was shaded or not depending on unrelated lamps,
+  for the carrier and for exposed crystal alike. Sky light no longer
+  spreads along the surface (`propagate` in `illumination.js`); underground
+  it still spreads as before. The side effect was a ramp of light levels at
+  every forest edge, which tripled the art tinted per frame at sunset and
+  failed the render check, so 0.184.0 never deployed.
+
 ## [0.184.0] - 2026-11-01
 
 - One set of rules for light and heat (Watch, 2026-11-01, "composable world

@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.184.1':
+    'The shade at a forest’s edge is as deep as inside it: open land next to the trees no longer lights the ground under them when a lamp or glowcap is somewhere in your world.',
   'news.0.184.0':
     'Make camp at the heart’s hiding place: a carrier bench there lines your carrier with mycelium, so the sun warms it half as fast. The sun now warms the carrier whatever it holds, crystal and starters too, and above 22 °C what it holds cracks. Forests and cave mouths give real shade, which also shelters exposed crystal; water cools the carrier. A heart shelter feels its spot like any building: kept cool it mends the heart, but too hot it cracks it.',
   'news.0.183.1':

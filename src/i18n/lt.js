@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.184.1':
+    'Pavėsis miško pakraštyje toks pat gilus kaip viduje: atvira žemė šalia medžių nebešviečia po jais, kai kur nors tavo pasaulyje yra lempa ar švytintis grybas.',
   'news.0.184.0':
     'Įsikurk stovyklą prie širdies slėptuvės: dėklo suolas išklos dėklą grybiena, tad saulė jį šildys dvigubai lėčiau. Saulė dabar šildo dėklą, kad ir kas jame būtų, taip pat kristalus ir daigus, o virš 22 °C tai, kas jame, skilinėja. Miškai ir urvų angos meta tikrą pavėsį, saugantį ir neapsaugotus kristalus; vanduo vėsina dėklą. Širdies pastogė jaučia savo vietą kaip bet kuris pastatas: vėsioje širdis gyja, per karštoje skilinėja.',
   'news.0.183.1':

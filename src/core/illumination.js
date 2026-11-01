@@ -191,7 +191,9 @@ function propagate(nodes, channel, neighbours, work) {
       if (work) work.propagated = (work.propagated || 0) + 1;
       neighbours(p, (x, y, z) => {
         const next = nodes.get(packKey(x, y, z));
-        if (next && next[channel] < level - 1) {
+        // The surface sees its sky straight from above (skyThrough), never
+        // around a canopy: open land beside a forest must not light it.
+        if (next && next[channel] < level - 1 && (channel !== 'sky' || next.z !== SURFACE)) {
           next[channel] = level - 1;
           queue[level - 1].push(next);
         }

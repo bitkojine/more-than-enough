@@ -224,6 +224,22 @@ test('a forest canopy halves the sunlight, a cave mouth blocks it, water cools t
   assert.equal(C.carrierSun(s, { ...grass, z: 0 }), 0, 'no sun at night');
 });
 
+test('open land beside a forest does not light under the canopy, lamps or not', () => {
+  const s = C.createState(7, { cultivation: true }),
+    type = (x, y) => C.tileAt(s.world, x, y, 0);
+  s.time = 0;
+  let edge = null;
+  for (let y = -200; y < 200 && !edge; y++)
+    for (let x = -200; x < 200 && !edge; x++)
+      if (type(x, y) === C.T.FOREST && type(x + 1, y) === C.T.GRASS) edge = { x, y };
+  const sky = () => C.illuminationAt(s, edge.x, edge.y, 0).sky,
+    before = sky();
+  assert.equal(before, C.skyThrough(C.T.FOREST));
+  // Any lamp in the world builds the full light field; the canopy reads the same.
+  s.world.props.set(C.packKey(edge.x + 40, edge.y, 0), 'lamp');
+  assert.equal(sky(), before);
+});
+
 test('a heart saved by 0.183.0 with warmth on it loads with that warmth in the carrier', () => {
   const s = C.createState(7, { cultivation: true }),
     old = JSON.parse(JSON.stringify(s.cultivation));
