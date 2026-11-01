@@ -65,3 +65,34 @@ export function createFork(box) {
     }
   };
 }
+
+// Asks which world to keep when another tab saved this one since this tab
+// did (`raw` is its save). The other tab may still be open and saving while
+// this one asks, so the choice shows (and takes) its newest save, not the
+// one that started it: adopting an older copy would only conflict again on
+// the next save. `store` is storage.js's {adopt, savedElsewhere}; `release()`
+// lets go of anything held (a key, AUTO).
+export function createForkGuard({ fork, game, store, release, reload = () => location.reload() }) {
+  function forked(raw) {
+    release();
+    fork.show(game.state, Core.deserialize(raw), {
+      keepOther: () => {
+        const latest = store.adopt(store.savedElsewhere() || raw);
+        if (latest) game.replace(latest);
+        else reload(); // saved by a newer version of the game
+      },
+      keepMine: () => game.saveNow(true),
+      reload
+    });
+  }
+  return {
+    forked,
+    // Only while playing that world on screen: in a shared one this tab
+    // never writes it, so there's nothing to choose (leaving reads the
+    // newest save anyway).
+    check(hidden = document.hidden) {
+      const raw = !hidden && !game.state.shared && store.savedElsewhere();
+      if (raw) forked(raw);
+    }
+  };
+}

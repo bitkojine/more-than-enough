@@ -2,6 +2,8 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
+  'news.0.182.1':
+    'Žaidimas atsidaro šiek tiek greičiau: QR kodų kūrėjas dabar įkeliamas tik tada, kai iškeli kvietimo ženklą. Užkulisiuose dvi didžiausios žaidimo kodo dalys išskaidytos į mažas dalis, kiekviena su savo testais. Daugiau žaidime niekas nepasikeičia.',
   'news.0.182.0':
     'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
   'news.0.181.14':

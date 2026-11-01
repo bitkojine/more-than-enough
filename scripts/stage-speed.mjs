@@ -56,6 +56,7 @@ for (const target of [
   path.join(OUT, 'src/game/news-text.js'),
   path.join(OUT, 'src/game/statement.js'),
   path.join(OUT, 'src/game/sync-lazy.js'),
+  path.join(OUT, 'src/game/qr.js'),
   path.join(OUT, 'src/game/render/rigged-character.js')
 ])
   await esbuild.build({
@@ -66,6 +67,7 @@ for (const target of [
       './autoplay-lab.js',
       './news-text.js',
       './sync-lazy.js',
+      './qr.js',
       './render/rigged-character.js'
     ],
     outfile: target, // in place: import.meta.url stays where main.js was

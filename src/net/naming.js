@@ -81,7 +81,9 @@ export function nameNumbers(players) {
   const taken = new Set();
   const out = new Map();
   for (const [id] of [...players].sort((a, b) => a[1] - b[1])) {
-    let k = parseInt(id.slice(0, 8), 16) % PLAYER_NAMES.length;
+    // An id that isn't hex (the room only makes hex ones) counts as 0, so
+    // the search below always ends.
+    let k = (parseInt(id.slice(0, 8), 16) || 0) % PLAYER_NAMES.length;
     while (taken.has(k)) k++;
     taken.add(k);
     out.set(id, k);

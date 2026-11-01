@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.182.1] - 2026-11-01
+
+- Split the two biggest modules into parts that each run and are tested
+  under Node, so the code is easy to test (Watch, 2026-11-01).
+  `src/game/together.js` went from 1,211 to 542 lines: the connection
+  (`room-link.js`), what each room message does (`room-handlers.js`), what
+  is sent and when (`room-sender.js`), coming into a world (`arrival.js`),
+  the friends you see (`friends.js`), who you are (`identity.js`), the sign
+  (`invite-sign.js`) and the pure decisions (`together-rules.js`).
+  `src/game/main.js` went from 1,318 to 599 lines: the game state and its
+  saving (`game-host.js`), the frame loop (`frame-loop.js`), each frame's
+  presentation (`presenter.js`), what presses do (`controls.js`), the
+  page's events (`page-events.js`), the light buttons (`light-buttons.js`),
+  region names (`region-watch.js`), tips (`tips.js`), device sync's host
+  (`sync-host.js`), boot (`boot.js`) and the browser tests' hook
+  (`test-hook.js`). New tests: `test/unit/together-parts.test.js` and
+  `test/unit/game-parts.test.js`. Both files are off the oversized list.
+- The QR code library loads only when a sign goes up: the first load is
+  295.3 KB gzipped (was 299.5 KB, budget 300 KB). The split alone had
+  added about 4 KB.
+- Player names no longer loop forever on an id that isn't hex
+  (`src/net/naming.js`). The room only makes hex ids, so this couldn't
+  happen in play; the new tests found it.
+- The ESLint warning budget drops to 244.
+
 ## [0.182.0] - 2026-11-01
 
 - One-hand zoom on the world map, as in Google Maps (Watch, 2026-10-31):

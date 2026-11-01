@@ -3,83 +3,56 @@
  * with their phone's camera and lands next to you in your world.
  *
  * The room is the source of truth for the world and keeps each player's own
- * progress. This module talks to it, keeps the friends you see (and how
- * they're doing: online, away, connection lost, offline), and shows the QR.
- * Everything that arrives is checked (src/net/protocol.js, then the core's own
- * tables) before it touches the game; nothing from the network is ever put
- * into the page as HTML. */
+ * progress. This module decides what to do with what it says and sends it
+ * what you do. Its parts: the connection (room-link.js), the friends you see
+ * (friends.js), the sign (invite-sign.js), the invite links (invite-list.js),
+ * what waits to be sent (outbox.js), who you are (identity.js), and the pure
+ * decisions (together-rules.js, room-messages.js). Everything that arrives
+ * is checked (src/net/protocol.js, then the core's own tables) before it
+ * touches the game; nothing from the network is ever put into the page as
+ * HTML. */
 
 import * as Core from '../core/index.js';
-import {
-  LIMITS,
-  parse,
-  cleanPos,
-  cleanEdits,
-  cleanSave,
-  cleanStatus,
-  cleanColor,
-  ROOM_ID_RE,
-  KEY_RE,
-  ID_RE,
-  randomHex,
-  PING
-} from '../net/protocol.js';
+import { LIMITS, parse } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
-import { nameNumbers, nameWord } from '../net/naming.js';
 import { WORLD_FORMAT } from '../core/format.js';
-import { playedTime, cleanGraves, cleanWelcome, cleanAway } from './room-messages.js';
-import { qrCanvas } from './qr.js';
+import { playedTime, cleanWelcome } from './room-messages.js';
+import { closeReason } from './together-rules.js';
+import { createRoomHandlers } from './room-handlers.js';
+import { createRoomSender, createAwayTeller } from './room-sender.js';
+import { checkMaking, arrivalState } from './arrival.js';
 import {
   knownRooms,
   remember,
-  rememberAll,
   forget,
   skip,
   worldName,
   soloName,
-  renderWorlds,
-  onlineIn,
-  SAVE_PREFIX,
-  FOG_PREFIX,
-  GEN_PREFIX,
-  ACTS_PREFIX
+  listWorlds,
+  roomGone
 } from './worlds.js';
-import { renderChips, renderPlayers } from './players.js';
+import { createFriendsHud } from './players.js';
 import { createInviteList } from './invite-list.js';
+import { createInviteSign } from './invite-sign.js';
+import { createFriends, friendColor } from './friends.js';
+import { createRoomLink, socketUrl } from './room-link.js';
+import {
+  read,
+  write,
+  myKey,
+  playing,
+  agreedToPolicy,
+  agreeToPolicy,
+  askToPlayTogether,
+  PLAYING_STORE
+} from './identity.js';
 import { loadGame, soloWorlds } from './storage.js';
-import { fmtDuration } from './format.js';
 import { createActor } from './render/motion.js';
-import { createOutbox, keptActsFrom, catchUp, resync as resyncState } from './outbox.js';
-import { t, number, LANG } from '../i18n/i18n.js';
-
-const KEY_STORE = 'mte.key'; // your secret: who you are to every room
-const KEY_BEFORE = 'mte.key.before.'; // one this device had before your other device's came (kept)
-const PLAYING_STORE = 'mte.playing'; // the shared world you're in, if any
-const PRIVACY_STORE = 'mte.privacy'; // the version of the privacy policy the player agreed to
-// The privacy policy (privacy/index.html). Playing together means agreeing
-// to it; a new version (after a change that matters) asks everyone again.
-export const POLICY_VERSION = '2';
-export const policyUrl = () => 'privacy/#' + LANG;
+import { createOutbox, resync as resyncState } from './outbox.js';
+import { t } from '../i18n/i18n.js';
 
 const WELCOME_BYTES = 8_000_000; // the most a room's welcome may be
-const POS_EVERY = 0.125; // seconds between position updates
-const HEARTBEAT = 2; // seconds: say where you are even standing still
-const EDITS_EVERY = 0.25;
-const SAVE_EVERY = 10;
-const FOG_EVERY = 15;
-const QUIET_IS_LOST = 6; // seconds without a word: shown as lost
-const MAX_PENDING_EDITS = 20000; // kept while the connection is down
-const RECONNECT_MAX = 15; // seconds between tries, at most
-const PING_EVERY = 5; // seconds of play between asking the room if it's there
-const SILENT_IS_DEAD = 15; // seconds of play without a word from the room: the connection is gone
-const UNDONE_SECONDS = 8; // how long the note that the room took something back stays up
-const UNDONE_QUIET = 20; // seconds after one such note before the next
-// Why the room refused something (server/src/shadow.js whyNot), the most
-// telling first; 'count' when it said nothing (only the counts differed).
-const UNDONE_WHY = ['full', 'spot', 'cost', 'pace'];
-const ACTS_WRITE_EVERY = 5; // seconds of play between keeping unsent acts on the phone while offline
 const FORMAT_RETRY = 60_000; // ms before trying a world again whose room service hasn't updated yet
-const AWAY_EVERY = 2100; // ms between away/back changes (the room takes one per STATUS_MS)
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
 const INVITE_WHY = Object.freeze({
   expired: () => t('together.toast.inviteExpired'),
@@ -87,66 +60,10 @@ const INVITE_WHY = Object.freeze({
   stopped: () => t('together.toast.inviteStopped'),
   limit: () => t('together.toast.inviteLimit', { n: LIMITS.invitesPerDay })
 });
-const SIGN_SPEED = 3; // the sign goes up in a third of a second
 
 const JOIN_RE = /^([A-Za-z0-9_-]{22})\.([A-Za-z0-9_-]{22})$/;
 
-// Friends' colours, by the colour number the room gives them.
-const FRIEND_COLORS = [
-  '#7fd07a',
-  '#ffb347',
-  '#6fb7ff',
-  '#ff7aa8',
-  '#c9a6ff',
-  '#ffe066',
-  '#5fe0d0',
-  '#ff8a65'
-];
-// A player's colour, from their place in the world (it comes round again
-// after eight: the name tells players apart).
-export const friendColor = (c) => FRIEND_COLORS[c % FRIEND_COLORS.length];
-
-function read(key) {
-  try {
-    return localStorage.getItem(key);
-  } catch {
-    return null;
-  }
-}
-function write(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch {
-    /* full or blocked: the room still has it */
-  }
-}
-
-function myKey() {
-  let key = read(KEY_STORE);
-  if (!key || !KEY_RE.test(key)) {
-    key = randomHex(32);
-    write(KEY_STORE, key);
-  }
-  return key;
-}
-
-// Your character, if this device has played in a shared world: its key and
-// those worlds (sync.js keeps it for your other devices).
-export function character() {
-  const key = read(KEY_STORE),
-    rooms = knownRooms();
-  return key && KEY_RE.test(key) && rooms.length ? { key, rooms } : null;
-}
-
-// Plays as your character from your other device here (sync.js), and adds
-// the worlds it plays in. A different one this device had is kept beside it,
-// never dropped; it sleeps in its world as every character does.
-export function becomeCharacter(me) {
-  const old = read(KEY_STORE);
-  if (old && old !== me.key) write(KEY_BEFORE + Date.now(), old);
-  write(KEY_STORE, me.key);
-  rememberAll(me.rooms);
-}
+const seconds = () => performance.now() / 1000;
 
 /* ------------------------------------------------------------------ */
 
@@ -162,97 +79,68 @@ export function createTogether({
   onAway = () => {}
 }) {
   const service = roomService();
-  let ws = null;
   let room = null; // the shared world you're in (or joining)
   let back = null; // the shared world you're still in while a link takes you to another
   let code = null; // the invite you're joining with, used once
-  let me = null,
-    myColor = 0;
-  let welcomed = false; // the room has sent this connection its world
   let clock = null; // the world's clock: {t: its time, at: our time then}
-  let retry = 0,
-    retryTimer = null;
-  const friends = new Map(); // id -> {c, st, p, shown, heard, since, actor}
-  const timers = { pos: 0, beat: 0, edits: 0, save: 0, fog: 0 };
-  let lastPos = '',
-    lastSave = '',
-    sentZ = null; // sentZ: the layer the room last heard you on
-  let invite = null; // {code, until} while the QR is up
   let turnedAway = null; // why the room said your invite link no longer works
-  let signT = 0; // 0..1: how far up your sign is
-  let signFace = null; // the QR on it (a canvas), kept while it comes down
-  let graves = []; // tombstones of banned and frozen characters (see cleanGraves)
-  // Is the room still there? Seconds of play since it last said anything,
-  // and until the next ping; whether it answers pings at all.
-  let silence = 0,
-    pingT = 0;
   const outbox = createOutbox(); // edits, acts and progress sent, kept until the room has them (outbox.js)
-  let undoneAt = -Infinity; // when the player was last told the room took something back (seconds)
-  let actsT = 0; // seconds until unsent acts are next kept on the phone (offline)
-  let fixedNote = false; // arrived to smaller numbers than this phone showed: the away toast says so too
   // Whether this player's time away makes anything (freeze season defaults it
   // off). Their own Settings choice, told to the room on every join (hello),
   // which works out away production for them (server/src/shadow.js away).
   let awayProduce = false;
 
+  const friends = createFriends({ clock: seconds, actor: createActor, limit: LIMITS.players });
+  const link = createRoomLink({
+    hello: () => ({ t: 'hello', key: myKey(), away: awayProduce, ...(code ? { code } : {}) }),
+    onMessage: receive,
+    onClosed: closed
+  });
+  const send = link.send;
+  const sender = createRoomSender({ outbox, send, ready: () => link.ready, write });
+  const save = sender.save;
+  const sign = createInviteSign({
+    el,
+    body: document.body,
+    qr: (url) => import('./qr.js').then((m) => m.qrCanvas(url)), // the QR library loads only for a sign
+    copy: (text) => navigator.clipboard.writeText(text),
+    page: location,
+    room: () => room,
+    shown: () => !!service && !!game.state.shared,
+    toast: (text) => hud.toast(text)
+  });
+
   /* ---------------------------------------------------- the connection */
 
-  function send(msg) {
-    if (ws && ws.readyState === 1 && welcomed) ws.send(JSON.stringify(msg));
-  }
-
-  // One connection at a time: a newer one replaces any still open, so a
-  // forgotten socket can't stay in a world as you, or take this one's place
-  // there ("open on another screen").
   function connect() {
-    clearTimeout(retryTimer);
-    hangUp();
-    if (!room || !service) return;
-    const socket = new WebSocket(service.replace(/^http/, 'ws') + '/rooms/' + room + '/ws');
-    ws = socket;
-    welcomed = false;
     turnedAway = null;
-    silence = 0;
-    socket.onopen = () =>
-      socket.send(
-        JSON.stringify({ t: 'hello', key: myKey(), away: awayProduce, ...(code ? { code } : {}) })
-      );
-    socket.onmessage = (e) => {
-      if (ws === socket) {
-        silence = 0;
-        receive(e.data);
-      }
-    };
-    socket.onclose = (e) => {
-      if (ws === socket) closed(e.code, e.reason);
-    };
+    link.connect(room && service ? socketUrl(service, room) : null);
   }
 
   function closed(codeNum, reason) {
-    ws = null;
-    welcomed = false;
-    for (const f of friends.values()) f.heard = -Infinity;
+    friends.unheard();
+    const why = closeReason(codeNum, reason);
     // The newer screen plays this world now, and comes back to it next time.
-    if (codeNum === 4001) return stop(t('together.toast.elsewhere'), false);
-    if (codeNum === 4003) {
+    if (why === 'elsewhere') return stop(t('together.toast.elsewhere'), false);
+    if (why === 'removed') {
       forget(room);
       return stop(t('together.toast.removed'));
     }
-    // The moderator froze this character (its progress was hacked): the
-    // "FBI" notice, every time, and back to your own world.
-    if (codeNum === 4005 || reason === 'frozen') {
+    // The moderator froze this character: the "FBI" notice, every time,
+    // and back to your own world.
+    if (why === 'frozen') {
       skip(room);
       refused();
       return fbi.show();
     }
     // An admin's copy whose time was up (server/src/copy.js): it's gone.
-    if (codeNum === 4006) {
+    if (why === 'copyEnded') {
       forget(room);
       return stop(t('copy.ended'));
     }
-    if (reason === 'invite')
+    if (why === 'invite')
       return refused(turnedAway ? INVITE_WHY[turnedAway]() : t('together.toast.inviteOld'));
-    if (reason === 'full') return refused(t('together.toast.full'));
+    if (why === 'full') return refused(t('together.toast.full'));
     if (!room) return;
     // Never got in (the service is down or unreachable): say so, don't loop,
     // and try again next time the game opens.
@@ -261,41 +149,24 @@ export function createTogether({
       return refused(t('together.toast.unreachable'), false);
     }
     // Lost the connection: keep playing, and come back as soon as it can.
-    if (retry === 0) hud.toast(t('together.toast.reconnecting'));
-    const wait = Math.min(RECONNECT_MAX, 2 ** retry);
-    retry++;
-    retryTimer = setTimeout(connect, wait * 1000);
+    if (link.retryLater(connect)) hud.toast(t('together.toast.reconnecting'));
   }
 
   // The network is back (the phone found Wi-Fi again, or the game is back
   // on screen) while waiting to reconnect: try now, not after the wait.
   function retryNow() {
-    if (retryTimer && !ws && room) connect();
-  }
-
-  // The room has said nothing for too long (not even to a ping): the
-  // connection died without closing. Dropped, as if it had closed, so the
-  // game reconnects instead of playing on into nothing.
-  function dead() {
-    const s = ws;
-    ws = null;
-    try {
-      s.close(4000, 'silent');
-    } catch {
-      /* gone */
-    }
-    closed(1006, 'silent');
+    if (link.waiting && !link.open && room) connect();
   }
 
   // A world didn't let you in: back to the shared world you came from, if
   // a link was taking you elsewhere, else to your own.
   function refused(message, forget = true) {
     if (!back) return stop(message, forget);
-    hangUp();
+    link.hangUp();
     room = back;
     back = null;
     code = null;
-    retry = 0;
+    link.resetRetry();
     if (message) hud.toast(message);
     connect();
   }
@@ -315,22 +186,6 @@ export function createTogether({
     }, FORMAT_RETRY);
   }
 
-  // Closes the connection, saying goodbye.
-  function hangUp() {
-    clearTimeout(retryTimer);
-    retryTimer = null;
-    if (ws) {
-      const s = ws;
-      ws = null;
-      try {
-        s.close(1000, 'bye');
-      } catch {
-        /* closed */
-      }
-    }
-    welcomed = false;
-  }
-
   // Leaves the shared world for your own (saving your progress there first).
   // `forget`: the game no longer opens into it (not when another screen
   // took it over, or it couldn't be reached).
@@ -341,177 +196,40 @@ export function createTogether({
     room = null;
     back = null;
     code = null;
-    me = null;
     clock = null;
-    graves = [];
     outbox.reset();
-    hangUp();
+    link.hangUp();
     friends.clear();
-    roster = null;
-    closeQr();
+    sign.close();
     renderFriends();
     if (wasIn) game.replace(loadGame().state, 'back');
     if (message) hud.toast(message);
     game.changedMode();
   }
 
+  /* ------------------------------------------------- what the room says */
+
+  const handlers = createRoomHandlers({
+    game,
+    hud,
+    friends,
+    outbox,
+    sign,
+    here: () => room,
+    invites: () => invites,
+    onAway,
+    renderFriends: () => renderFriends(),
+    checkUpdate,
+    clock: seconds
+  });
+
   function receive(raw) {
     const d = parse(raw, WELCOME_BYTES);
     if (!d) return;
     if (d.t === 'welcome') return welcome(d);
     // Turned away at the door: why the link no longer works, said before the close.
-    if (!welcomed && d.t === 'invite' && Object.hasOwn(INVITE_WHY, d.why)) turnedAway = d.why;
-    if (!welcomed) return;
-    // The room has dealt with every batch of edits up to this one.
-    if (d.t === 'ack') {
-      outbox.acked(d.n);
-      return;
-    }
-    if (d.t === 'pos') {
-      const f = ID_RE.test(d.id) && friends.get(d.id),
-        p = cleanPos(d.p);
-      if (!f || !p) return;
-      if (f.st !== 'online') {
-        f.st = 'online';
-        f.since = 0;
-      }
-      f.p = p;
-      f.actor.heard(p.a, p.n);
-      f.heard = performance.now() / 1000;
-      return;
-    }
-    // The room has you somewhere else than this game does: go there.
-    // (Your game walked on while the room couldn't hear it, say offline.)
-    if (d.t === 'place') {
-      const p = cleanPos(d.p);
-      if (p) {
-        game.moveTo(p);
-        hud.toast(t('together.toast.placed'), UNDONE_SECONDS);
-      }
-      return;
-    }
-    if (d.t === 'econ') {
-      // What you really have, as the room works it out, as of the progress
-      // your game sent at play time `ms`: what you got since stays yours.
-      if (game.state.shared !== room || !Number.isSafeInteger(d.ms) || !cleanSave(d.s)) return;
-      // Which progress it answers, by its number (several can go at the
-      // same play time, say while the game is hidden).
-      const at = outbox.answered(d.n);
-      const was = Core.sentOf(game.state);
-      if (Core.correctProgress(game.state, d.s, at || null)) game.worldChanged();
-      const away = d.away && cleanAway(d.away);
-      if (away)
-        onAway(away.secs, away.made, takeFixed()); // already in what it sent
-      else sayUndone(Core.takenBack(was, game.state), d.why);
-      return;
-    }
-    if (d.t === 'away') {
-      // What your buildings made while you were away, as the room worked it
-      // out (server/src/shadow.js away): into your packs, as the room has it.
-      const away = cleanAway(d);
-      if (game.state.shared !== room || !away) return;
-      for (const r of Core.RESOURCES) {
-        if (!(away.made[r] > 0)) continue;
-        Core.earn(game.state, r, away.made[r], 'buildings');
-      }
-      outbox.earnedAway(away.made);
-      onAway(away.secs, away.made, takeFixed());
-      return;
-    }
-    if (d.t === 'edits') {
-      const list = cleanEdits(d.e);
-      if (list && game.state.shared === room && Core.applyEdits(game.state, list))
-        game.worldChanged();
-      return;
-    }
-    if (d.t === 'status') {
-      if (!ID_RE.test(d.id) || d.id === me) return;
-      const st = cleanStatus(d.st),
-        c = cleanColor(d.c);
-      if (st === null || c === null) return;
-      let f = friends.get(d.id);
-      const arrived = st === 'online' && (!f || f.st !== 'online');
-      if (!f) {
-        if (friends.size >= LIMITS.players) return;
-        f = { c, st, p: null, shown: null, heard: 0, since: 0, actor: createActor() };
-        friends.set(d.id, f);
-        roster = null;
-        if (st === 'online') hud.toast(t('together.toast.joined', { name: nameOf(d.id) }));
-      }
-      const back = st === 'online' && f.st !== 'online';
-      // They most likely just loaded the newest game: make sure this is it too.
-      if (arrived) checkUpdate();
-      if (f.c !== c) roster = null;
-      f.c = c;
-      f.st = st;
-      f.since = back ? 0 : f.since;
-      if (d.p) {
-        const p = cleanPos(d.p);
-        if (p) f.p = p;
-      }
-      f.heard = performance.now() / 1000;
-      renderFriends();
-      return;
-    }
-    if (d.t === 'removed') {
-      if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return; // the close that follows says so
-      if (friends.delete(d.id)) {
-        roster = null;
-        renderFriends();
-      }
-      // Their buildings go with them (the room has taken them down too).
-      const s = game.state;
-      const kept = s.extractors.filter((b) => b.owner !== d.id);
-      if (kept.length !== s.extractors.length) {
-        s.extractors = kept;
-        game.worldChanged();
-      }
-      return;
-    }
-    // Frozen (its progress was hacked): no longer asleep here, a tombstone
-    // instead (the 'graves' that follows); its buildings stay.
-    if (d.t === 'frozen') {
-      if (d.id === me || typeof d.id !== 'string' || !ID_RE.test(d.id)) return;
-      if (friends.delete(d.id)) renderFriends();
-      return;
-    }
-    if (d.t === 'graves') {
-      graves = cleanGraves(d.g);
-      roster = null;
-      return;
-    }
-    if (d.t === 'invite') {
-      if (typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code) || !Number.isSafeInteger(d.until))
-        return;
-      openQr(d.code, d.until);
-    }
-    if (d.t === 'invitesFull') hud.toast(t('invites.full'));
-    if (d.t === 'invites') invites.received(d.list);
-  }
-
-  // Whether the next away toast should also say your numbers were set straight (once).
-  function takeFixed() {
-    const was = fixedNote;
-    fixedNote = false;
-    return was;
-  }
-
-  // The room took back something your game showed (an 'econ' answer):
-  // what, and why as the room saw it (server/src/shadow.js whyNot), or that
-  // the counts differed. Calm: an honest game ends up here too, say after a
-  // weak connection or a friend building on the same spot first.
-  function sayUndone(lost, why) {
-    if (!lost) return;
-    const now = performance.now() / 1000;
-    if (now - undoneAt < UNDONE_QUIET) return;
-    undoneAt = now;
-    const what = lost.buildings
-      ? t('together.undone.buildings', { count: lost.buildings })
-      : lost.levels
-        ? t('together.undone.levels', { count: lost.levels })
-        : t('together.undone.res', { res: lost.res.map((r) => Core.RESOURCE_LOWER[r]).join(', ') });
-    const reason = UNDONE_WHY.find((w) => Array.isArray(why) && why.includes(w)) || 'count';
-    hud.toast(what + '. ' + t('together.why.' + reason), UNDONE_SECONDS);
+    if (!link.letIn && d.t === 'invite' && Object.hasOwn(INVITE_WHY, d.why)) turnedAway = d.why;
+    if (link.letIn) handlers.handle(d);
   }
 
   function welcome(raw) {
@@ -524,82 +242,15 @@ export function createTogether({
     // out): the same seed would grow different land here than for everyone
     // else, so not until both sides match.
     if (w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
-    welcomed = true;
-    retry = 0;
-    pingT = PING_EVERY;
+    link.welcome();
     code = null; // an invite is for getting in once
     back = null;
-    me = w.you;
-    myColor = w.c;
-    friends.clear();
-    roster = null;
-    for (const [id, p] of w.players)
-      friends.set(id, {
-        ...p,
-        shown: null,
-        heard: performance.now() / 1000,
-        since: 0,
-        actor: createActor()
-      });
-    graves = w.graves;
+    friends.welcome(w.you, w.c, w.players, w.graves);
     remember(room);
     write(PLAYING_STORE, room);
-    // The world was made again (by the nuke, before v0.117.0) since this
-    // phone was last in it:
-    // its copies of your progress and map are from a world that's gone.
-    const was = read(GEN_PREFIX + room);
-    const renewed = was !== null && was !== String(w.gen);
-    if (renewed) {
-      write(SAVE_PREFIX + room, '');
-      write(FOG_PREFIX + room, '');
-      write(ACTS_PREFIX + room, '');
-    }
-    write(GEN_PREFIX + room, String(w.gen));
-    if (game.state.shared === room && !renewed) {
-      resync(w);
-    } else {
-      outbox.newWorld(); // edits for another world, or one made again
-      // Arriving: your progress is the room's (it works it out from what you did).
-      const kept = cleanSave(read(SAVE_PREFIX + room));
-      const save = w.save;
-      // This phone last showed far more than the room counts (games before
-      // v0.91.1 could run away): say the room's numbers are the real ones.
-      const fixed = !renewed && Core.overCounted(kept, w.save);
-      let fog;
-      try {
-        fog = JSON.parse(read(FOG_PREFIX + room) || 'null');
-      } catch {
-        fog = null;
-      }
-      const mine = w.p || { x: 0, y: 0 };
-      const near =
-        [...w.players.values()]
-          .filter((f) => f.st === 'online' && f.p)
-          .map((f) => f.p)
-          .sort(
-            (a, b) =>
-              Math.hypot(a.x - mine.x, a.y - mine.y) - Math.hypot(b.x - mine.x, b.y - mine.y)
-          )[0] || w.p;
-      const state = Core.joinState({ ...w, save }, room, fog, near);
-      if (!state) {
-        stop(t('together.toast.broken'));
-        return;
-      }
-      // What you did here that the room never heard of (played offline,
-      // then the game closed): done again on its copy, and sent to it.
-      const behind = renewed ? [] : keptActs(room, playedTime(save));
-      if (behind.length) catchUp(state, behind, w.time);
-      state.acts = behind;
-      game.replace(state);
-      game.arrived();
-      fixedNote = fixed;
-      if (fixed)
-        hud.toast(
-          t('together.toast.in', { world: worldName(room) }) + '. ' + t('together.toast.fixed')
-        );
-      else hud.toast(t('together.toast.in', { world: worldName(room) }));
-      policyNotice();
-    }
+    const renewed = checkMaking(room, w, read, write);
+    if (game.state.shared === room && !renewed) resync(w);
+    else if (!arrive(w, renewed)) return;
     // The room works out your progress from what you do too (src/core/acts.js).
     if (game.state.shared === room) game.state.acts ||= [];
     // ...moves too, when it says so (src/core/actions.js moveExtractor).
@@ -607,34 +258,36 @@ export function createTogether({
       game.state.roomMoves = w.moves;
       game.state.roomCollectAt = w.collectAt;
     }
-    if (w.time !== null) clock = { t: w.time, at: performance.now() / 1000 };
+    if (w.time !== null) clock = { t: w.time, at: seconds() };
     keepTime();
-    lastPos = '';
-    lastSave = '';
-    sentZ = null;
+    sender.reset();
     if (document.hidden) sendAway(); // the room takes everyone in as here
     renderFriends();
     game.changedMode();
   }
 
-  // Acts kept on this phone for world `id` (keepActs) that the room hasn't
-  // done, its copy being as of play time `upTo` (outbox.js keptActsFrom).
-  function keptActs(id, upTo) {
-    return keptActsFrom(read(ACTS_PREFIX + id), upTo);
-  }
-
-  // What the room may not have yet (sent lately, or waiting to be sent),
-  // kept on this phone, so a game closed before it reconnects loses none of
-  // it (issue #4).
-  function keepActs(s) {
-    if (!s.shared || !s.acts) return;
-    write(ACTS_PREFIX + s.shared, outbox.kept(s));
+  // Arriving: your progress is the room's (it works it out from what you
+  // did). Says whether the world could be opened.
+  function arrive(w, renewed) {
+    outbox.newWorld(); // edits for another world, or one made again
+    const made = arrivalState(room, w, renewed, read);
+    if (!made) {
+      stop(t('together.toast.broken'));
+      return false;
+    }
+    game.replace(made.state);
+    game.arrived();
+    handlers.fixed = made.fixed;
+    const inWorld = t('together.toast.in', { world: worldName(room) });
+    hud.toast(made.fixed ? inWorld + '. ' + t('together.toast.fixed') : inWorld);
+    policyNotice();
+    return true;
   }
 
   // Back after a lost connection: the room's world wins, your progress stays,
   // and what you changed meanwhile is sent again (outbox.js resync).
   function resync(w) {
-    resyncState(game.state, w, me, outbox, playedTime(w.save));
+    resyncState(game.state, w, friends.me, outbox, playedTime(w.save));
     game.worldChanged();
   }
 
@@ -644,362 +297,91 @@ export function createTogether({
   // The room sends its clock on every welcome; between those it runs here.
   function keepTime() {
     const s = game.state;
-    if (s.shared === room && clock) s.time = clock.t + performance.now() / 1000 - clock.at;
+    if (s.shared === room && clock) s.time = clock.t + seconds() - clock.at;
   }
 
   function tick(dt) {
     const s = game.state;
-    signT = Math.max(0, Math.min(1, signT + (invite ? dt : -dt) * SIGN_SPEED));
-    if (signT === 0 && !invite) signFace = null;
-    if (invite && Date.now() > invite.until) closeQr();
+    sign.tick(dt);
     if (!s.shared) return;
     keepTime();
-    const w = s.world;
-    if (w.edits && w.edits.length > MAX_PENDING_EDITS)
-      w.edits.splice(0, w.edits.length - MAX_PENDING_EDITS);
-    const now = performance.now() / 1000;
-    for (const f of friends.values()) {
-      if (f.st === 'online' && now - f.heard > QUIET_IS_LOST) f.quiet = true;
-      else f.quiet = false;
-      f.since += dt;
-      if (f.p) {
-        // Glide toward where they are; jump if it's far or another layer.
-        if (!f.shown || f.shown.z !== f.p.z || Math.hypot(f.p.x - f.shown.x, f.p.y - f.shown.y) > 6)
-          f.shown = { ...f.p };
-        else {
-          const k = Math.min(1, dt * 12);
-          f.shown.x += (f.p.x - f.shown.x) * k;
-          f.shown.y += (f.p.y - f.shown.y) * k;
-          f.shown.fx = f.p.fx;
-          f.shown.m = f.p.m;
-          f.shown.sign = f.p.sign;
-          f.shown.gear = f.p.gear;
-        }
-      }
-    }
-    if (!ws || ws.readyState !== 1 || !welcomed) {
-      // No connection: what you do waits in memory, and on the phone too.
-      if ((actsT -= dt) <= 0) {
-        actsT = ACTS_WRITE_EVERY;
-        keepActs(s);
-      }
-      return;
-    }
-    // Counted in play time, so a game that was hidden doesn't come back
-    // thinking the room went quiet.
-    silence += dt;
-    if (silence > SILENT_IS_DEAD) return dead();
-    if ((pingT -= dt) <= 0) {
-      pingT = PING_EVERY;
-      ws.send(PING);
-    }
-    for (const k in timers) timers[k] -= dt;
-    // A new layer goes to the room at once, before any edit made there (an
-    // arrival opens a cave around you): edits are checked against where the
-    // room last had you.
-    if (timers.pos <= 0 || sentZ !== s.player.z) {
-      timers.pos = POS_EVERY;
-      const p = s.player,
-        f = game.facing();
-      const pos = {
-        x: p.x,
-        y: p.y,
-        z: p.z,
-        fx: f.x,
-        fy: f.y,
-        m: game.moving(),
-        sign: signT > 0,
-        gear: (s.tools.basket > 0 ? 1 : 0) | (s.tools.pickaxe > 0 ? 2 : 0),
-        ...game.act()
-      };
-      const text = JSON.stringify(cleanPos(pos));
-      if (text !== lastPos || timers.beat <= 0) {
-        lastPos = text;
-        sentZ = s.player.z;
-        timers.beat = HEARTBEAT;
-        send({ t: 'pos', p: cleanPos(pos) });
-      }
-    }
-    if (timers.edits <= 0) {
-      timers.edits = EDITS_EVERY;
-      sendActs(s); // before the edits they made: the room does them on the world as it was
-      const edits = Core.takeEdits(s);
-      // A few messages' worth now; the rest waits for the next turn.
-      const now2 = edits.splice(0, LIMITS.editsPerMessage * 3);
-      if (edits.length) s.world.edits.unshift(...edits);
-      for (let i = 0; i < now2.length; i += LIMITS.editsPerMessage) {
-        const batch = cleanEdits(now2.slice(i, i + LIMITS.editsPerMessage));
-        if (batch) sendEdits(batch);
-      }
-    }
-    if (timers.save <= 0) save(s);
-  }
-
-  // What you did since last time, with your play time now (see src/core/acts.js).
-  // Kept while there's no connection to send them on, and a long backlog
-  // goes ACTS_PER_TICK messages at a time, each as of its last act, so the
-  // room never runs ahead of what's still to come. Returns whether all went.
-  function sendActs(s) {
-    if (!ws || ws.readyState !== 1 || !welcomed || !s.acts) return false;
-    const { messages, done } = outbox.takeActs(s);
-    for (const m of messages) send({ t: 'acts', ...m });
-    if (messages.length && outbox.keptWaiting) keepActs(s);
-    return done;
-  }
-
-  function sendEdits(batch) {
-    send({ t: 'edits', e: batch, n: outbox.edit(batch) });
-  }
-
-  // Your progress: kept on this phone and sent to the room, and what you
-  // did that the room may not have yet kept too.
-  function save(s, force = false) {
-    if (!s.shared) return;
-    sendSave(s, force);
-    keepActs(s);
-  }
-
-  function sendSave(s, force) {
-    const progress = Core.progressOf(s);
-    write(SAVE_PREFIX + s.shared, progress);
-    if (force || timers.fog <= 0) {
-      timers.fog = FOG_EVERY;
-      write(FOG_PREFIX + s.shared, JSON.stringify(Core.fogOf(s)));
-    }
-    if (timers.save > 0 && !force) return;
-    timers.save = SAVE_EVERY;
-    if (progress === lastSave || !cleanSave(progress)) return;
-    lastSave = progress;
-    // The room checks this against what you did, so that goes first, all of it.
-    if (s.acts && !sendActs(s)) {
-      lastSave = '';
-      timers.save = 0;
-      return;
-    }
-    send({ t: 'save', s: progress, n: outbox.save(s) });
+    sender.trim(s);
+    friends.tick(dt);
+    if (!link.ready) return sender.offline(s, dt);
+    if (!link.tick(dt)) return; // the room went silent: dropped, and trying again
+    const you = { facing: game.facing(), moving: game.moving(), sign: sign.rise > 0 };
+    sender.tick(s, dt, { ...you, act: game.act() });
   }
 
   // Couldn't get into a world: the room service may be down, or the world
-  // gone (one nobody visits for 30 days is deleted). Gone, it's forgotten
-  // and the player told; down, nothing changes.
+  // gone. Gone, it's forgotten and the player told; down, nothing changes.
   async function gone(id) {
-    if (!service || !id) return;
-    try {
-      const res = await fetch(service + '/rooms/' + id, { cache: 'no-store' });
-      const d = res.ok ? await res.json() : null;
-      if (d?.exists !== false) return;
-    } catch {
-      return;
-    }
+    if (!(await roomGone(service, id))) return;
     forget(id);
     if (read(PLAYING_STORE) === id) write(PLAYING_STORE, '');
     if (!game.state.shared) game.changedMode();
     hud.toast(t('together.toast.gone'));
   }
 
-  // Away or back, as the screen is now. The room takes one change every
-  // STATUS_MS and ignores the rest, so one that comes too soon waits: a
-  // quick look away and back must not leave friends seeing the wrong one.
-  let awayAt = -Infinity,
-    awayTimer = 0;
-  function sendAway() {
-    clearTimeout(awayTimer);
-    const wait = awayAt + AWAY_EVERY - performance.now();
-    if (wait > 0) {
-      awayTimer = setTimeout(sendAway, wait);
-      return;
-    }
-    awayAt = performance.now();
-    send({ t: 'away', a: document.hidden });
-  }
+  const sendAway = createAwayTeller({ send, hidden: () => document.hidden });
 
-  /* -------------------------------------------------------- the QR sign */
+  /* ---------------------------------------------- the sign and its links */
 
   function showInvite() {
-    if (!game.state.shared || !welcomed) {
+    if (!game.state.shared || !link.letIn) {
       hud.toast(t('together.toast.offline'));
       return;
     }
     send({ t: 'invite', ...invites.asked() });
   }
 
-  // The room gave us an invite: up goes the sign with its code. Your
-  // wanderer holds it in the world (render/sprites.js drawSign).
-  function openQr(inviteCode, until) {
-    invite = { code: inviteCode, until };
-    signFace = qrCanvas(inviteUrl(inviteCode));
-    renderButton();
-  }
-
-  // The link on the sign. The invite is in the fragment (#), which browsers
-  // never send to any server: it reaches the friend's phone and nowhere else.
-  function inviteUrl(inviteCode) {
-    return location.origin + location.pathname + '#join=' + room + '.' + inviteCode;
-  }
-
-  // Tapping your sign copies its link, to send to a friend who isn't there.
-  async function copyLink() {
-    if (!invite) return;
-    try {
-      await navigator.clipboard.writeText(inviteUrl(invite.code));
-      hud.toast(t('together.toast.copied'));
-    } catch {
-      hud.toast(t('together.toast.copyFailed'));
-    }
-  }
-
-  // The sign goes down; its link keeps working (see Invite links).
-  function closeQr() {
-    invite = null;
-    renderButton();
-  }
-
-  /* ------------------------------------------------------ invite links */
-
   const invites = createInviteList({
     panel: el.invitesPanel,
-    online: () => !!ws && ws.readyState === 1 && welcomed,
+    online: () => link.ready,
     send,
     ask,
     read,
     write,
-    me: () => me,
-    colorOf: (id) => (id === me ? myColor : friends.get(id)?.c),
-    nameOf,
+    me: () => friends.me,
+    colorOf: friends.colorOf,
+    nameOf: friends.nameOf,
     paint: friendColor,
-    sign: () => invite,
-    dropSign: closeQr,
+    sign: () => sign.invite,
+    dropSign: sign.close,
     show(inviteCode, until) {
       closeSheet();
-      openQr(inviteCode, until);
+      sign.show(inviteCode, until);
     }
   });
 
   // The main Invite button: holds up your sign, or puts it down. It is only
   // there inside a shared world: worlds are made by Watch now, so there is
   // nothing here to start — you get into one through a friend's link.
-  function renderButton() {
-    const up = !!invite;
-    el.invite.hidden = !service || !game.state.shared;
-    el.invite.classList.toggle('up', up);
-    document.body.classList.toggle('signing', up); // clears the screen around the sign (style.css)
-    el.invite.setAttribute('aria-pressed', String(up));
-    el.inviteLabel.textContent = t(up ? 'together.button.down' : 'together.button');
-  }
   el.invite.addEventListener('click', () => {
-    if (invite) closeQr();
+    if (sign.invite) sign.close();
     else showInvite();
   });
 
-  /* ---------------------------------------------------- friends in the HUD */
-
-  // Everyone's name in this room, by id (src/net/naming.js), shown in the
-  // game's language. Worked out once per change of who's in the world.
-  let roster = null; // id -> name number, or null when it needs working out
-  function nameOf(id) {
-    if (!roster) {
-      const players = [...friends.entries()].map(([pid, f]) => [pid, f.c]);
-      if (me) players.push([me, myColor]);
-      // A tombstone keeps its character's name, so nobody else gets it.
-      for (const g of graves) if (g.id !== me && !friends.has(g.id)) players.push([g.id, g.c]);
-      roster = nameNumbers(players);
-    }
-    const k = roster.get(id);
-    if (k === undefined) return '';
-    const { key, n } = nameWord(k);
-    return n ? t(key) + ' ' + n : t(key);
-  }
-
-  function stateOf(f) {
-    return f.st === 'online' && f.quiet ? 'lost' : f.st;
-  }
-
-  // A chip per friend under the top bar (src/game/players.js): those awake
-  // first, and past what fits a "+N" that opens the Players screen.
-  let shownChips = '';
-  function renderFriends() {
-    const awake = (f) => (f.st === 'offline' ? 1 : 0);
-    const all = [...friends.entries()].sort(([, a], [, b]) => awake(a) - awake(b) || a.c - b.c);
-    const key =
-      all.map(([id, f]) => id + nameOf(id) + stateOf(f)).join('|') + (game.state.shared ? 1 : 0);
-    if (!el.playersPanel.hidden) listPlayers();
-    el.playersCount.textContent = number(friends.size + 1);
-    if (key === shownChips) return;
-    shownChips = key;
-    el.friends.hidden = !game.state.shared;
-    if (!game.state.shared) return el.friends.replaceChildren();
-    const list = all.map(([id, f]) => ({
-      id,
-      name: nameOf(id),
-      st: stateOf(f),
-      color: friendColor(f.c)
-    }));
-    renderChips(el.friends, list, { tap: friendTapped, more: showPlayers });
-  }
-
-  // The Players screen: everyone in the world.
-  function listPlayers() {
-    const s = game.state,
-      at = s.player;
-    const rows = [];
-    if (me)
-      rows.push({
-        id: me,
-        name: nameOf(me),
-        color: friendColor(myColor),
-        st: 'online',
-        you: true,
-        far: null,
-        dz: 0
-      });
-    for (const [id, f] of friends) {
-      const p = f.shown || f.p;
-      rows.push({
-        id,
-        name: nameOf(id),
-        color: friendColor(f.c),
-        st: stateOf(f),
-        you: false,
-        far: p ? Math.hypot(p.x - at.x, p.y - at.y) : null,
-        dz: p ? p.z - at.z : 0
-      });
-    }
-    const rank = { online: 0, lost: 1, away: 2, offline: 3 };
-    rows.sort(
-      (a, b) =>
-        b.you - a.you || rank[a.st] - rank[b.st] || (a.far ?? Infinity) - (b.far ?? Infinity)
-    );
-    renderPlayers(el.playersPanel, rows);
-  }
-
-  // Tapping a friend under the top bar says how they're doing there.
-  function friendTapped(id) {
-    const f = friends.get(id);
-    if (f) hud.toast(nameOf(id) + ': ' + t('together.state.' + stateOf(f)));
-  }
+  const hudFriends = createFriendsHud({
+    el,
+    friends,
+    shared: () => !!game.state.shared,
+    at: () => game.state.player,
+    tell: (text) => hud.toast(text),
+    more: showPlayers
+  });
+  const renderFriends = hudFriends.render;
 
   /* ---------------------------------------------------- joining a world */
 
-  // The question before going into a shared world says that playing
-  // together accepts the privacy policy and links to it: yes accepts it,
-  // Cancel keeps you playing alone. No extra step.
-  async function askTogether(kind, world = '') {
-    const yes = await ask({
-      title: t(`together.${kind}.title`, { world }),
-      text: t(`together.${kind}.text`) + ' ' + t(`privacy.${kind}`),
-      yes: t(`together.${kind}.yes`),
-      link: { href: policyUrl(), text: t('privacy.link') }
-    });
-    if (yes) write(PRIVACY_STORE, POLICY_VERSION);
-    return yes;
-  }
+  const askTogether = (kind, world) => askToPlayTogether(ask, kind, world);
 
   // Back in a shared world without that question (on opening the game, or
   // Back to the shared world) by someone who joined before the policy: once,
   // a toast says playing together accepts it.
   function policyNotice() {
-    if (read(PRIVACY_STORE) === POLICY_VERSION) return;
-    write(PRIVACY_STORE, POLICY_VERSION);
+    if (agreedToPolicy()) return;
+    agreeToPolicy();
     hud.toast(t('privacy.toast'));
   }
 
@@ -1024,7 +406,7 @@ export function createTogether({
     const here = game.state.shared || orBack;
     if (game.state.shared) save(game.state, true);
     back = here && here !== roomId ? here : null;
-    hangUp();
+    link.hangUp();
     room = roomId;
     code = inviteCode;
     connect();
@@ -1050,12 +432,6 @@ export function createTogether({
     return true;
   }
 
-  // The shared world the game opens into, or null.
-  function playing() {
-    const last = read(PLAYING_STORE);
-    return last && ROOM_ID_RE.test(last) ? last : null;
-  }
-
   // Back into the shared world you were in when the game closed.
   function resume() {
     const last = playing();
@@ -1074,45 +450,27 @@ export function createTogether({
     if (!id) return stop();
     if (!service) return;
     if (game.state.shared) save(game.state, true);
-    closeQr();
+    sign.close();
     back = game.state.shared || null;
-    hangUp();
+    link.hangUp();
     room = id;
     code = inviteCode;
-    retry = 0;
+    link.resetRetry();
     connect();
   }
 
-  function listWorlds() {
-    renderWorlds(el.worldsPanel, {
+  function showWorlds() {
+    listWorlds(el.worldsPanel, {
       here: game.state.shared || null,
       seed: game.state.shared ? null : game.state.seed,
       solo: soloWorlds(),
       // Shared worlds can't be reached from a crystal world (yet).
       rooms: !!game.state.shared || (!!service && !Core.usesDepots(game.state)),
-      online: (id) => onlineIn(service, id),
-      playSolo: (seed) => {
-        closeSheet();
-        game.playSolo(seed);
-      },
-      played: fmtDuration,
-      done: Core.canEmbark,
-      play: (id) => {
-        closeSheet();
-        switchTo(id);
-      },
-      remove: async (id) => {
-        const world = worldName(id);
-        const yes = await ask({
-          title: t('worlds.removeAsk.title', { world }),
-          text: t('worlds.removeAsk.text'),
-          yes: t('worlds.remove'),
-          danger: true
-        });
-        if (!yes) return;
-        forget(id);
-        listWorlds();
-      }
+      service,
+      close: closeSheet,
+      go: (id) => switchTo(id),
+      playSolo: (seed) => game.playSolo(seed),
+      ask
     });
   }
 
@@ -1128,21 +486,24 @@ export function createTogether({
       return game.state.shared ? worldName(game.state.shared) : soloName(game.state.seed);
     },
     get color() {
-      return myColor;
+      return friends.myColor;
     },
     get me() {
-      return game.state.shared && me ? { name: nameOf(me), color: friendColor(myColor) } : null;
+      const me = friends.me;
+      return game.state.shared && me
+        ? { name: friends.nameOf(me), color: friendColor(friends.myColor) }
+        : null;
     },
     get sign() {
-      return signT;
+      return sign.rise;
     },
     get signFace() {
-      return signFace;
+      return sign.face;
     },
     tick,
     save,
-    listWorlds,
-    listPlayers,
+    listWorlds: showWorlds,
+    listPlayers: hudFriends.list,
     switchTo,
     resume,
     joinFromLink,
@@ -1154,7 +515,7 @@ export function createTogether({
     },
     showInvite,
     listInvites: () => invites.open(),
-    copyLink,
+    copyLink: () => sign.copyLink(),
     away(hidden) {
       sendAway();
       if (hidden) save(game.state, true);
@@ -1166,46 +527,15 @@ export function createTogether({
     // toggling it while playing together takes effect without rejoining.
     setAwayProduce(on) {
       awayProduce = on === true;
-      if (ws && ws.readyState === 1 && welcomed) send({ t: 'awayProduce', a: awayProduce });
+      send({ t: 'awayProduce', a: awayProduce });
     },
-    // Friends as the renderer draws them (where they're shown, not where the
-    // last message said), with how long they've been in their state.
-    view() {
-      const out = [];
-      for (const [id, f] of friends) {
-        if (f.shown)
-          out.push({
-            id,
-            c: f.c,
-            color: friendColor(f.c),
-            name: nameOf(id),
-            st: stateOf(f),
-            since: f.since,
-            ...f.shown,
-            actor: f.actor.view(f.shown.m, f.shown)
-          });
-      }
-      return out;
-    },
-    // The tombstones, as the renderer draws them.
-    graves() {
-      return graves.map((g) => ({
-        x: g.x,
-        y: g.y,
-        z: g.z,
-        k: g.k,
-        color: friendColor(g.c),
-        name: nameOf(g.id)
-      }));
-    },
+    view: friends.view,
+    graves: friends.graves,
     refresh() {
       renderFriends();
-      renderButton();
+      sign.render();
     },
     // The screen changed size: as many chips as fit now.
-    refit() {
-      shownChips = '';
-      renderFriends();
-    }
+    refit: hudFriends.refit
   };
 }

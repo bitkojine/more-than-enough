@@ -3,7 +3,7 @@
  * Players screen (Settings) listing everyone. src/game/together.js keeps
  * who they are; this draws them, from elements and text only, never HTML. */
 
-import { t, distance } from '../i18n/i18n.js';
+import { t, distance, number } from '../i18n/i18n.js';
 
 // DOM-scoped presentation state works in bundled and native-module hosts.
 const chipState = Symbol.for('mte.friend-chips');
@@ -98,4 +98,46 @@ function button(label, cls, onClick) {
   b.textContent = label;
   b.addEventListener('click', onClick);
   return b;
+}
+
+/* ------------------------------------------------ friends, kept on screen */
+
+// The chips and the Players screen kept in step with `friends` (friends.js).
+// `shared()`: whether you're in a shared world; `at()`: where you stand;
+// `tell(text)`: a line in the message log; `more()` opens the Players screen.
+export function createFriendsHud({ el, friends, shared, at, tell, more }) {
+  let shown = ''; // what the chips show, to redraw only on a change
+
+  // The Players screen: everyone in the world.
+  const list = () => renderPlayers(el.playersPanel, friends.rows(at()));
+
+  // Tapping a friend under the top bar says how they're doing there.
+  function tapped(id) {
+    const f = friends.chips().find((c) => c.id === id);
+    if (f) tell(f.name + ': ' + t('together.state.' + f.st));
+  }
+
+  // A chip per friend under the top bar: those awake first, and past what
+  // fits a "+N" that opens the Players screen.
+  function render() {
+    const chips = friends.chips();
+    const key = chips.map((f) => f.id + f.name + f.st).join('|') + (shared() ? 1 : 0);
+    if (!el.playersPanel.hidden) list();
+    el.playersCount.textContent = number(friends.size + 1);
+    if (key === shown) return;
+    shown = key;
+    el.friends.hidden = !shared();
+    if (!shared()) return el.friends.replaceChildren();
+    renderChips(el.friends, chips, { tap: tapped, more });
+  }
+
+  return {
+    render,
+    list,
+    // The screen changed size: as many chips as fit now.
+    refit() {
+      shown = '';
+      render();
+    }
+  };
 }

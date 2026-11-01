@@ -111,3 +111,20 @@ export function createSwitches({
 
   return { setDrag, showMusic, showAway, showAuto, autoShown };
 }
+
+// A fresh world of your own, on Nerds; the one you leave stays on Worlds
+// (it's kept first, or you stay where you are).
+export function addNewWorldButton(panel, game, newWorld) {
+  const group = document.createElement('div');
+  group.className = 'setGroup';
+  const button = document.createElement('button');
+  button.id = 'newSoloWorld';
+  button.className = 'setRow';
+  button.textContent = t('cr.newWorld');
+  group.append(button);
+  panel.append(group);
+  button.addEventListener('click', () => {
+    if (game.state.shared || !game.keep()) return;
+    game.replace(newWorld());
+  });
+}

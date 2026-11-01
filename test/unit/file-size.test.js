@@ -20,8 +20,6 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MAX_LINES = 600;
 
 const OVERSIZED = {
-  'src/game/together.js': 1211,
-  'src/game/main.js': 1318,
   'src/core/perfect.js': 1152,
   'server/src/room.js': 1006,
   'src/game/render/rig-model.js': 972,

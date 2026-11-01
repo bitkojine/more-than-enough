@@ -2,6 +2,8 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
+  'news.0.182.1':
+    "The game opens a little faster: the QR code maker now loads only when you hold up an invite sign. Behind the scenes, the two biggest pieces of the game's code are split into small parts, each with its own tests. Nothing else changes in play.",
   'news.0.182.0':
     'Zoom the world map with one hand, like in Google Maps: {phone:double tap, keep your finger down on the second tap|laptop:double-click, keep the button down on the second click} and drag down to zoom in or up to zoom out. A quick {phone:double tap|laptop:double-click} zooms in a step.',
   'news.0.181.14':

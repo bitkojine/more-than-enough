@@ -9,6 +9,8 @@
 import { copy } from './copy.js';
 import { ROOM_ID_RE } from '../net/protocol.js';
 import { worldWords } from '../net/naming.js';
+import { canEmbark } from '../core/state.js';
+import { fmtDuration } from './format.js';
 import { t } from '../i18n/i18n.js';
 
 const ROOMS_STORE = 'mte.rooms'; // shared worlds you've been in, newest first
@@ -198,4 +200,58 @@ function button(label, cls, onClick) {
   b.textContent = label;
   b.addEventListener('click', onClick);
   return b;
+}
+
+// The Worlds screen, kept up to date: `here` the shared world you're in
+// (null alone), `seed` the solo world you're in, `rooms` whether shared
+// worlds can be reached from here, `service` the room service; `close()`
+// closes the sheet before going anywhere, `go(id)` into a shared world,
+// `playSolo(seed)` into one of yours; `ask` asks before a shared world is
+// taken off the list (it's only forgotten on this phone, never deleted).
+export function listWorlds(box, { here, seed, solo, rooms, service, close, go, playSolo, ask }) {
+  const again = () =>
+    listWorlds(box, { here, seed, solo, rooms, service, close, go, playSolo, ask });
+  renderWorlds(box, {
+    here,
+    seed,
+    solo,
+    rooms,
+    online: (id) => onlineIn(service, id),
+    playSolo: (s) => {
+      close();
+      playSolo(s);
+    },
+    played: (secs) => fmtDuration(secs),
+    done: (s) => canEmbark(s),
+    play: (id) => {
+      close();
+      go(id);
+    },
+    remove: async (id) => {
+      const world = worldName(id);
+      const yes = await ask({
+        title: t('worlds.removeAsk.title', { world }),
+        text: t('worlds.removeAsk.text'),
+        yes: t('worlds.remove'),
+        danger: true
+      });
+      if (!yes) return;
+      forget(id);
+      again();
+    }
+  });
+}
+
+// Whether the room service says shared world `id` is gone (one nobody
+// visits for 30 days is deleted). Down or unsure counts as not gone, so
+// nothing is forgotten because a network was.
+export async function roomGone(service, id, get = (url, init) => fetch(url, init)) {
+  if (!service || !id) return false;
+  try {
+    const res = await get(service + '/rooms/' + id, { cache: 'no-store' });
+    const d = res.ok ? await res.json() : null;
+    return d?.exists === false;
+  } catch {
+    return false;
+  }
 }

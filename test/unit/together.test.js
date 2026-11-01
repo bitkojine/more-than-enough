@@ -653,8 +653,24 @@ test("the page's Content-Security-Policy allows exactly its own inline script", 
 });
 
 test('nothing from the network is put into the page as HTML', () => {
-  const src = readFileSync(new URL('../../src/game/together.js', import.meta.url), 'utf8');
-  assert.doesNotMatch(src, /innerHTML|insertAdjacentHTML|outerHTML|document\.write/);
+  // together.js and the parts it is made of.
+  const parts = [
+    'together',
+    'room-link',
+    'room-handlers',
+    'room-sender',
+    'room-messages',
+    'friends',
+    'players',
+    'invite-sign',
+    'invite-list',
+    'arrival',
+    'worlds'
+  ];
+  for (const part of parts) {
+    const src = readFileSync(new URL(`../../src/game/${part}.js`, import.meta.url), 'utf8');
+    assert.doesNotMatch(src, /innerHTML|insertAdjacentHTML|outerHTML|document\.write/, part);
+  }
 });
 
 test('the vendored QR library is the published file, unchanged', () => {
