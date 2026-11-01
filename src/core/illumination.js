@@ -17,7 +17,14 @@ import {
 import { tileAt, holeAbove, holeBelow } from './world.js';
 import { TILE_INFO, T } from './tiles.js';
 import { PROPS, FLARE_LIGHT } from './content.js';
-import { daylight, SUN_CRACKS, isDark, lightScale, activeCarriedLight } from './light.js';
+import {
+  daylight,
+  SUN_CRACKS,
+  isDark,
+  lightScale,
+  activeCarriedLight,
+  lanternFlat
+} from './light.js';
 import { VersionedMap } from './versioned-map.js';
 import { VersionedSet } from './versioned-set.js';
 
@@ -255,6 +262,7 @@ function installed(c, cx, cy, z, work) {
 export function carriedLightLevel(s) {
   const source = activeCarriedLight(s);
   if (source === 'flare') return Math.min(LIGHT_MAX, FLARE_LIGHT + 1);
+  if (source === 'lantern' && lanternFlat(s)) return 0;
   return source === 'lantern' && (s.cultivation || isDark(s))
     ? Math.ceil(LANTERN_LEVEL * lightScale(s))
     : 0;
@@ -314,4 +322,10 @@ export function illuminationAt(s, x, y, z = s.player.z, work = null) {
   const moving = carried(c, s, work);
   block = Math.max(block, moving?.nodes.get(packKey(x, y, z))?.block || 0);
   return { sky, block, level: Math.max(sky * sunLightStrength(s), block) };
+}
+// Pitch dark where Mica stands: the lantern is flat underground and no other
+// light (a lamp, a glowcap, a shaft to the sky) reaches the tile. Mica can
+// still walk and climb, but can't mine or gather until lit again.
+export function pitchDark(s) {
+  return lanternFlat(s) && illuminationAt(s, s.player.x, s.player.y).level <= 0;
 }

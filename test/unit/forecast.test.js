@@ -164,3 +164,31 @@ test('a hot building cracks its store to 0% and it all crumbles, when its clock 
   assert.ok(C.validCultivation(s.cultivation), 'and it saves');
   assert.equal(C.facilityForecast(s, v), null, 'nothing left to crumble');
 });
+
+// Watch, 2026-11-01: "Pitch dark: walk, but can't mine".
+test('a flat lantern underground goes out, and in the pitch dark nothing can be mined', () => {
+  const s = C.createState(7, { cultivation: true });
+  s.player = { x: 0.5, y: 0.5, z: -1 };
+  s.cultivation.gear.lantern = true;
+  s.cultivation.lantern = true;
+  for (let y = -2; y <= 2; y++) for (let x = -2; x <= 2; x++) C.tileAt(s.world, x, y, -1);
+  const rock = { x: 1, y: 0 };
+  s.world.hotChunk.type[C.chunkIndex(0, 0)] = C.T.TUNNEL;
+  s.world.hotChunk.type[C.chunkIndex(rock.x, rock.y)] = C.T.STONE;
+  C.invalidateIllumination(s, 0, 0, -1);
+  s.battery = 0.5;
+  assert.ok(C.carriedLightLevel(s) > 0, 'a charged lantern lights');
+  assert.equal(C.pitchDark(s), false);
+  s.tools.pickaxe = 4;
+  assert.equal(C.canHarvest(s, rock.x, rock.y), true, 'lit, the rock can be mined');
+  s.battery = 0;
+  assert.equal(C.carriedLightLevel(s), 0, 'flat, it goes out');
+  assert.equal(C.pitchDark(s), true);
+  assert.equal(C.canHarvest(s, rock.x, rock.y), false, 'nothing can be mined in the pitch dark');
+  s.player.z = 0;
+  assert.equal(C.pitchDark(s), false, 'on the surface it is never pitch dark this way');
+  const old = C.createState(7);
+  old.player = { x: 0.5, y: 0.5, z: -1 };
+  old.battery = 0;
+  assert.equal(C.lanternFlat(old), false, 'older worlds keep the dim light');
+});

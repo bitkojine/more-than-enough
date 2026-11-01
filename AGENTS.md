@@ -13,7 +13,8 @@ kind of knowledge lives.
   at the same time.
 - Each release bumps `VERSION` in `src/version.js`, adds a `CHANGELOG.md`
   entry, and adds its version to `NEWS` in `src/game/news.js` with player
-  notes as `news.<version>` in `src/i18n/en.js` and `lt.js`. On a version
+  notes as `news.<version>` in `src/i18n/news/en.js` and `lt.js`
+  (loaded only with What's new, so they never weigh on the first load). On a version
   clash after a rebase take the next free number and keep both entries.
 - Commit messages explain why (Watch, 2026-10-31). Subject: what changed,
   in the imperative. Body: why it was needed, what was wrong before, how you

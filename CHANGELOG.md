@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.189.0] - 2026-11-01
+
+- A flat lantern underground goes out (Watch chose on a decision card,
+  2026-11-01, "Pitch dark: walk, but can't mine"). In a crystal world,
+  underground, with the battery at 0 and no flare burning
+  (`lanternFlat` in `src/core/light.js`), the lantern gives no light
+  (`carriedLightLevel` 0). If no other light reaches Mica's tile
+  (`pitchDark` in `illumination.js`: a lamp, a glowcap, a shaft to the
+  sky), `canHarvest` refuses, so Gather, a tap and a Trail do nothing and
+  the log says why at most every 4 s. Walking and climbing still work, so
+  nobody is trapped. Older and shared worlds keep the dim 40% light: the
+  room replays shared-world gathers, and changing what it accepts there
+  needs Watch's word and a rollout that tolerates the version gap.
+- Release notes now live only in `src/i18n/news/` (loaded with What's
+  new), the current one too; the panel lists a version without its notes
+  if they fail to load. AGENTS.md, README and docs/ui.md say so.
+- The six baked pickaxe icons in the default pack are recompressed
+  losslessly (same pixels, checked byte for byte after decoding; the
+  manifest in art/characters/pickaxe-model.json has their new hashes).
+  About 8 KB less to download on the first load.
+- The HUD check's reinforce test now carries crystal in a sealed carrier,
+  since unprotected carried crystal can crumble since 0.187.0 (it was why
+  0.187.0's deploy failed).
 ## [0.188.1] - 2026-11-01
 
 - First load 300.0 → 284.7 KB gzipped (budget 300), back under budget with

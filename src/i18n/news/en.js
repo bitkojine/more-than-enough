@@ -1,5 +1,9 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.189.0':
+    'In a crystal world, a lantern that runs flat underground goes out. In the pitch dark you can still walk and climb, but you can’t mine or gather until you have light again, so watch its clock and climb up to charge it in time.',
+  'news.0.188.1':
+    'The game opens faster: it now downloads only the words of the language you play in, not every language, and the parts that load later got smaller too.',
   'news.0.188.0':
     'Stored crystal now crumbles too: a chamber or vault left too hot cracks it to 0% and loses it all. A clock over the building counts down.',
   'news.0.187.0':

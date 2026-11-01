@@ -209,6 +209,9 @@ These are design recommendations, not approved rules:
 - Harvested crystal damaged by light or heat loses effectiveness but remains usable for less demanding construction. Changed 2026-11-01 for crystal Mica carries (Watch chose "Quality falls to 0, then all is lost"): carried quality keeps falling past the old 10% floor, and at 0% the whole carried load crumbles and is gone, with a clock counting down to it. Stored crystal follows the same rule (Watch, 2026-11-01, "Yes, same rule as carried"): a chamber or vault left over 22 °C cracks its store to 0%, then the whole store crumbles, with a clock over the building. Exact quality requirements, degradation limits and eligible construction uses remain open.
 - Installed crystal in equipment and the underground machine still needs ongoing cooling and darkness supplied by settlement infrastructure. Installation does not permanently stabilize crystal or end the protection requirement.
 
+### A flat lantern underground — confirmed, 2026-11-01
+- Watch chose "Pitch dark: walk, but can't mine": in a crystal world, a lantern whose battery runs flat underground goes out (a burning flare still lights). Where no other light reaches Mica, Gather does nothing and says why; walking and climbing still work, so nobody is trapped. Older and shared worlds keep the dim 40% light for now.
+
 ### Consequences requiring further design
 - Represent crystal condition within the existing four-resource economy; quality is not permission to add a fifth resource. Storage, selection and delivery rules must preserve condition without burdensome per-piece micromanagement.
 - Specify how construction selects suitable crystal, how degraded material is used, and whether installed quality affects capability or efficiency. No recipe thresholds or numerical penalties are agreed yet.

@@ -48,7 +48,7 @@ export function createController({
     facing: () => controller.facing,
     faceTile
   });
-  const { tally, performAct, changed, checkGoals, harvested, needsGear } = feedback;
+  const { tally, performAct, changed, checkGoals, harvested, needsGear, tooDark } = feedback;
 
   function handFree() {
     if (handOf !== state()) {
@@ -106,6 +106,10 @@ export function createController({
       harvested(r);
       changed();
       return true;
+    }
+    if (Core.harvestable(state(), tx, ty) && Core.pitchDark(state())) {
+      tooDark();
+      return false;
     }
     const gear = Core.gearBlocks(state(), tx, ty);
     if (gear) {
@@ -210,7 +214,10 @@ export function createController({
     if (!handFree() || walkTo?.action) return false;
     if (Core.collectTarget(state())) return collectNearby();
     const r = Core.harvest(state());
-    if (!r) return false;
+    if (!r) {
+      if (Core.pitchDark(state())) tooDark();
+      return false;
+    }
     handUsed();
     harvested(r);
     changed();

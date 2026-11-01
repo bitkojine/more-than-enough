@@ -592,7 +592,7 @@ export default {
         seconds with the lantern on in the dark, at night or in the mine. In crystal worlds, switching it off conserves charge. By day it doesn't drain, and nothing happens to it while you're away. Once
         it's down to <span data-k="BATTERY_LOW" data-f="pct"></span> your light starts to shrink, to
         <span data-k="BATTERY_DIM" data-f="pct"></span> of its reach when it's flat, so you see less and the fog lifts over less.
-        It never stops you doing anything. Its charge shows on the left edge once it isn't full.</p>
+        In older worlds it never stops you doing anything. In a crystal world, a lantern that runs flat underground goes out: in the pitch dark you can still walk and climb, but can't mine or gather until a lamp, a flare or the sky lights you again. Its charge shows as a clock, how long it can keep shining, once it isn't full.</p>
       <p>Only water power charges it: stand beside a floating solar panel while the
         sun is up, or of a water wheel at any hour, and it fills from flat in <span data-k="CHARGE_TIME"></span> seconds. Anyone's
         charger charges anyone.</p>

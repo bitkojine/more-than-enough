@@ -23,6 +23,7 @@ import {
 } from './economy.js';
 import { mushroomAt, MUSHROOMS } from './mushrooms.js';
 import { noteAct } from './acts.js';
+import { pitchDark } from './illumination.js';
 import { t } from '../i18n/i18n.js';
 
 // Trail sweeps take tiles whose centre lies within this distance of the stroke.
@@ -94,7 +95,7 @@ export function gearBlocks(s, x, y) {
 
 // A tile on the player's layer that Gather could work right now.
 export function canHarvest(s, x, y) {
-  return harvestable(s, x, y) && atInteraction(s, x, y) && !gearNeeded(s, x, y);
+  return harvestable(s, x, y) && atInteraction(s, x, y) && !gearNeeded(s, x, y) && !pitchDark(s);
 }
 
 // Tiles within reach of the player, nearest first.

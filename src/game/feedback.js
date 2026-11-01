@@ -92,5 +92,15 @@ export function createFeedback({ game, fx, audio, hud, look, actor, facing, face
     hud.toast(t('reason.gear', { tool: Core.TOOLS[g.tool].name, lv: g.level }));
   }
 
-  return { say, tally, performAct, changed, checkGoals, harvested, needsGear };
+  // Gather in the pitch dark: says why nothing happens, at most every few
+  // seconds while held (Watch, 2026-11-01: a flat lantern underground).
+  let darkSaidAt = -Infinity;
+  function tooDark() {
+    const now = performance.now();
+    if (now - darkSaidAt < 4000) return;
+    darkSaidAt = now;
+    hud.toast(t('reason.dark'));
+  }
+
+  return { say, tally, performAct, changed, checkGoals, harvested, needsGear, tooDark };
 }

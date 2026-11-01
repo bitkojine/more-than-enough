@@ -2,8 +2,6 @@
  * src/i18n/lt.js must have exactly the same keys (test/unit/i18n.test.js). */
 
 export default {
-  'news.0.188.1':
-    'The game opens faster: it now downloads only the words of the language you play in, not every language, and the parts that load later got smaller too.',
   'progression.furtherUpgrades': 'Later upgrades',
   'cr.reason.locked': 'Activate the machine to unlock this.',
   'progression.requirement': 'Activate the machine to unlock.',
@@ -154,9 +152,9 @@ export default {
   'cr.selected': 'Selected · {x}, {y}',
   'cr.cost': 'Materials: {cost}',
   'cr.danger': 'Crystal at risk',
-  'cr.danger.store': 'Stored crystal crumbles in {t}. Cool it down!',
-  'cr.store.lost': 'Stored crystal cracked right through and crumbled to dust.',
-  'cr.danger.chamber': 'A chamber’s crystal dies in {t}. Cool it down!',
+  'cr.danger.store': 'Stored crystal crumbles in {t}!',
+  'cr.store.lost': 'Stored crystal crumbled to dust.',
+  'cr.danger.chamber': 'A chamber’s colony dies in {t}!',
   'cr.reason.ok': 'Done.',
   'cr.reason.invalid': 'That action is unavailable.',
   'cr.reason.unseen': 'Explore that area first.',
@@ -222,7 +220,7 @@ export default {
   'cr.heart.installed': 'Home in the machine',
   'cr.heart.take': 'Take the heart',
   'cr.heart.rest': 'Rest the heart here',
-  'cr.crystal.lost': 'Your carried crystal cracked right through and crumbled to dust.',
+  'cr.crystal.lost': 'Your crystal crumbled to dust.',
   'cr.heart.lost': 'The heart cracked right through. Its light fled back to the hiding place.',
   'cr.heart.home': 'The heart is home. The machine stirs.',
   'cr.goal.heart':
@@ -528,6 +526,7 @@ export default {
 
   'tileDoes.walkSlow': 'Slow going: you float across in a boat.',
   'tileHint.find': 'A find: one dig pays out {loot} all at once.',
+  'reason.dark': 'Too dark to mine. Climb up and charge your lantern.',
   'reason.gear': 'Needs {tool} Lv {lv}',
   'sheet.opens': 'Opens {what}',
   'door.ore': 'ore',

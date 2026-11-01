@@ -593,7 +593,7 @@ export default {
         s tamsos, naktį ar kasykloje. Dieną ji neseka, o kol tavęs nėra, jai nieko nenutinka. Kai lieka
         <span data-k="BATTERY_LOW" data-f="pct"></span>, tavo šviesa ima trauktis, kol, baterijai išsikrovus, siekia tik
         <span data-k="BATTERY_DIM" data-f="pct"></span> įprasto atstumo: matai mažiau, o rūkas prasisklaido mažesniame plote.
-        Daryti nieko ji netrukdo. Kai žibintas nepilnai įkrautas, jo įkrova rodoma kairiajame ekrano krašte.</p>
+        Senesniuose pasauliuose daryti nieko ji netrukdo. Kristalų pasaulyje po žeme išsikrovęs žibintas užgęsta: visiškoje tamsoje vis dar gali vaikščioti ir lipti, bet negali kasti ar rinkti, kol tavęs vėl neapšvies lempa, žiežirba ar dangus. Kai žibintas nepilnai įkrautas, jo įkrova rodoma laikrodžiu – kiek dar jis gali šviesti.</p>
       <p>Ją įkrauna tik vandens energija: stovėk prie plaukiojančios
         saulės plokštės, kol šviečia saulė, arba nuo vandens rato bet kuriuo metu, ir ji nuo nulio prisipildo per
         <span data-k="CHARGE_TIME"></span> s. Kiekvieno įkroviklis įkrauna bet ką.</p>

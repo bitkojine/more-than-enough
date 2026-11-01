@@ -7,32 +7,32 @@
     {
       "tier": 1,
       "file": "packs/default/icons/pickaxe.svg",
-      "sha256": "278d77aa395ebdb00a90829599c577e3c6f0a1d2d816b27ab225d762e1ea1f44"
+      "sha256": "a26b5f88e062166a163816f8b5e25a860a5c03259a26555bcff39037bb177868"
     },
     {
       "tier": 2,
       "file": "packs/default/cultivation/pickaxe-2.svg",
-      "sha256": "37fceb17e66fd5a8222e884f6c662197ba330f4a257591c64a8426125faa00a7"
+      "sha256": "ae245e8345d8d2aa54126b703fbc5703b40b71870a250203368b3647fc1ad76d"
     },
     {
       "tier": 3,
       "file": "packs/default/cultivation/pickaxe-3.svg",
-      "sha256": "7fd7cb11e209ca5ab0f3366fc71c7a4972b8c37315b6b2999e145c3cd774e192"
+      "sha256": "2d1ad702898e1768b054cdb2e5f04affaf4ea5ecb8b74f4f3620e8ed921beb4c"
     },
     {
       "tier": 4,
       "file": "packs/default/cultivation/pickaxe-4.svg",
-      "sha256": "9723fe242bf288b1bb6d1cf6901543342ecb6864850c860349387f5f4da0ed8f"
+      "sha256": "a451313e72f3b490ce4c47774875b9204c0ec85d1ff7fb904420ef277d287d3a"
     },
     {
       "tier": 5,
       "file": "packs/default/cultivation/pickaxe-5.svg",
-      "sha256": "a47287c8bb0a02a71595cf96375804a6bb121724e5e4e58f4ad2ce9766451e8b"
+      "sha256": "18b0a8dbcc1fa403fb6baccd48a5e3cbb0692529ee317fc2c52c037a7f44ef49"
     },
     {
       "tier": 6,
       "file": "packs/default/cultivation/pickaxe-6.svg",
-      "sha256": "22d5906bd6a410de7ebadcb14e1de3015b64ccba832d2cc8620f4a4f51a8ff3b"
+      "sha256": "7cefae6b6f0de3980003612c05317c4c482021f6e1bd1f711f2bdc37c4c5d587"
     }
   ]
 }

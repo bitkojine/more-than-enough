@@ -194,6 +194,15 @@ function tickEventBattery(s, economy, count) {
   s.battery = epoch.value;
 }
 
+// A flat lantern underground in a crystal world goes out (Watch,
+// 2026-11-01, "Pitch dark: walk, but can't mine"); a flare still burns.
+// Older and shared worlds keep the dim light (lightScale).
+export function lanternFlat(s) {
+  return (
+    !!s.cultivation && s.player.z < SURFACE && s.battery <= 0 && activeCarriedLight(s) !== 'flare'
+  );
+}
+
 // How far your light reaches, as a share of a full battery's: 1 down to
 // BATTERY_LOW, then shrinking to BATTERY_DIM when it's flat. Daylight
 // needs no screen, so by day it's always 1.

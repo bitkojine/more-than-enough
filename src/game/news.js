@@ -6,12 +6,12 @@
  * newest first, with the ones they haven't seen yet marked new.
  *
  * Every release adds its version to NEWS (newest first) and its notes to the
- * dictionaries as "news.<version>": what a player will notice, one thing per
- * line, in plain words. npm test fails when the current VERSION has none.
- * Older releases' notes move to src/i18n/news/ (loaded only with this panel)
- * so they don't weigh on the first load. */
+ * release-notes dictionaries, src/i18n/news/en.js and lt.js, as
+ * "news.<version>": what a player will notice, one thing per line, in plain
+ * words. They load only with this panel, so they never weigh on the first
+ * load. npm test fails when the current VERSION has none. */
 
-import { t, addStrings } from '../i18n/i18n.js';
+import { t, has, addStrings } from '../i18n/i18n.js';
 import { lazy } from './lazy.js';
 
 let history;
@@ -26,6 +26,7 @@ export function loadNews() {
 }
 
 export const NEWS = [
+  '0.189.0',
   '0.188.1',
   '0.188.0',
   '0.187.0',
@@ -397,8 +398,7 @@ export function createNews({
     try {
       await loadNews();
     } catch (error) {
-      // Older notes stay unnamed until the next look; the newest are in
-      // the first load (en.js, lt.js), so the list still shows.
+      // The notes stay unnamed until the next look; the versions still list.
       globalThis.MTE_FAULT?.(error, 'news/load');
     }
     const fresh = new Set(unseen());
@@ -420,8 +420,9 @@ export function createNews({
         );
       const items = document.createElement('ul');
       items.append(
-        ...t('news.' + v)
+        ...(has('news.' + v) ? t('news.' + v) : '')
           .split('\n')
+          .filter(Boolean)
           .map((line) => {
             const li = document.createElement('li');
             li.textContent = line;

@@ -2,8 +2,6 @@
  * src/i18n/en.js (test/unit/i18n.test.js checks they match). */
 
 export default {
-  'news.0.188.1':
-    'Žaidimas atsidaro greičiau: jis atsisiunčia tik tavo kalbos žodžius, ne visų kalbų, o vėliau įkeliamos dalys irgi sumažėjo.',
   'progression.furtherUpgrades': 'Vėlesni patobulinimai',
   'cr.reason.locked': 'Paleisk mašiną, kad tai atrakintum.',
   'progression.requirement': 'Bus atrakinta paleidus mašiną.',
@@ -157,9 +155,9 @@ export default {
   'cr.selected': 'Pasirinkta · {x}, {y}',
   'cr.cost': 'Medžiagos: {cost}',
   'cr.danger': 'Kristalams gresia pavojus',
-  'cr.danger.store': 'Sukaupti kristalai subyrės po {t}. Atvėsink!',
-  'cr.store.lost': 'Sukaupti kristalai perskilo kiaurai ir subyrėjo į dulkes.',
-  'cr.danger.chamber': 'Kameros kristalai žus po {t}. Atvėsink ją!',
+  'cr.danger.store': 'Sukaupti kristalai subyrės po {t}!',
+  'cr.store.lost': 'Sukaupti kristalai subyrėjo į dulkes.',
+  'cr.danger.chamber': 'Kameros kolonija žus po {t}!',
   'cr.reason.ok': 'Atlikta.',
   'cr.reason.invalid': 'Šis veiksmas negalimas.',
   'cr.reason.unseen': 'Pirmiausia ištyrinėk vietą.',
@@ -225,7 +223,7 @@ export default {
   'cr.heart.installed': 'Namie, mašinoje',
   'cr.heart.take': 'Paimti širdį',
   'cr.heart.rest': 'Padėti širdį čia',
-  'cr.crystal.lost': 'Nešti kristalai perskilo kiaurai ir subyrėjo į dulkes.',
+  'cr.crystal.lost': 'Tavo kristalai subyrėjo į dulkes.',
   'cr.heart.lost': 'Širdis perskilo kiaurai. Jos šviesa grįžo į slėptuvę.',
   'cr.heart.home': 'Širdis namie. Mašina sujuda.',
   'cr.goal.heart':
@@ -535,6 +533,7 @@ export default {
 
   'tileDoes.walkSlow': 'Lėtai: per vandenį plauki valtimi.',
   'tileHint.find': 'Radinys: vienu kasimu iškart gausi {loot}.',
+  'reason.dark': 'Per tamsu kasti. Lipk aukštyn ir įkrauk žibintą.',
   'reason.gear': 'Reikia: {tool}, lyg. {lv}',
   'sheet.opens': 'Atveria: {what}',
   'door.ore': 'rūda',

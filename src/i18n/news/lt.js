@@ -1,5 +1,9 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.189.0':
+    'Kristalų pasaulyje po žeme išsikrovęs žibintas užgęsta. Visiškoje tamsoje vis dar gali vaikščioti ir lipti, bet negali kasti ar rinkti, kol vėl neturėsi šviesos, tad stebėk jo laikrodį ir laiku lipk aukštyn jo įkrauti.',
+  'news.0.188.1':
+    'Žaidimas atsidaro greičiau: jis atsisiunčia tik tavo kalbos žodžius, ne visų kalbų, o vėliau įkeliamos dalys irgi sumažėjo.',
   'news.0.188.0':
     'Dabar byra ir sukaupti kristalai: per karšta kamera ar saugykla juos skaldo iki 0 % ir visus praranda. Laikrodis virš pastato skaičiuoja atgal.',
   'news.0.187.0':

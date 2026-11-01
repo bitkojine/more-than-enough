@@ -204,7 +204,7 @@ and problems, so a long audit does not look like a silent hang.
   browser and the room service run the same rules.
 - **Versions.** `src/version.js` holds the version. Each release bumps it, adds
   a `CHANGELOG.md` entry, and adds its notes to `src/game/news.js` and
-  `news.<version>` in both dictionaries. Players always get the newest build:
+  `news.<version>` in both release-notes dictionaries (`src/i18n/news/`). Players always get the newest build:
   the game reloads itself when a deploy lands.
 - **Worlds are kept forever.** Saves always load; `src/core/format.js` is frozen.
 
