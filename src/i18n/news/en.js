@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.5':
+    'Behind the scenes, the card that pops up over a building is now put together from small parts, one for each kind of building. Every card shows and does exactly what it did before.',
   'news.0.193.4':
     'Behind the scenes, the moderator tools of the shared-world service now handle each request in their own small, separately checked part. Nothing changes in play.',
   'news.0.193.3':

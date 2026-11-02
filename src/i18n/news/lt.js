@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.5':
+    'Užkulisiuose kortelė, kuri iššoka virš pastato, dabar sudedama iš mažų dalių, po vieną kiekvienai pastato rūšiai. Kiekviena kortelė rodo ir daro lygiai tą patį, ką ir anksčiau.',
   'news.0.193.4':
     'Užkulisiuose bendrų pasaulių tarnybos moderatoriaus įrankiai dabar kiekvieną užklausą tvarko atskiroje mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
   'news.0.193.3':

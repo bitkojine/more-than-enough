@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.193.5] - 2026-11-02
+
+Watch asked for the building card next (2026-11-02): `cardAt` in
+`src/game/building-card.js`, which decides what the card over a tapped
+building, hiding place, light or wild colony shows and offers, scored 54 for
+complexity and ran 175 lines. Every card shows and does exactly what it did.
+
+- `cardAt` now only finds what's on the tile, then hands it to one builder
+  per card: `extractorCard` (old-economy buildings, as before),
+  `facilityCard` (crystal buildings: `lockedCard`, `shelterCard`,
+  `benchCard`, or `workingCard` with `facilityLines` and `facilityActions`),
+  `stationCard`, `lightCard` and `wildCard`. What a chamber, vault or machine
+  can be asked to do is the `WORK` table; what's already done (reinforced,
+  planted, tended) is `DONE`.
+- Checked by running the old and new `cardAt` side by side over every tile
+  within 12 m of the player: 600 states (every real save in
+  `test/fixtures/saves/` and new worlds, with random crystal buildings,
+  heart places, finished or restored machines, lined carriers, placed lamps
+  and glowcaps, covered or not, shared worlds with and without moves),
+  377,260 tiles and 5,426 cards of all 16 looks, all the same. Six planted
+  breaks were each caught. Lint budget 227 -> 225.
+
 ## [0.193.4] - 2026-11-02
 
 Watch asked for the admin routes next (2026-11-02): `admin` in

@@ -52,7 +52,9 @@ function extractorCard(s, e) {
 }
 
 // What the card for tile (x, y) on your layer shows, or null if nothing
-// there has a card. Pure: reads the state, changes nothing.
+// there has a card. Pure: reads the state, changes nothing. One of your
+// old-economy buildings first, then in a crystal world: a crystal building,
+// the heart's hiding place, a placed light, a wild colony.
 export function cardAt(s, x, y) {
   const c = s.cultivation,
     z = s.player.z;
@@ -60,150 +62,169 @@ export function cardAt(s, x, y) {
   const e = Core.extractorAt(s, x, y, z);
   if (e && (!e.owner || e.owner === s.me)) return extractorCard(s, e);
   if (!c) return null;
-  const h = c.heart,
-    b = Core.cultivationAt(s, x, y, z);
-  if (b && Core.contentLocked(s, b.kind))
-    return {
-      look: Core.CULTIVATION_LOOK[b.kind],
-      name: name(b.kind),
-      lines: [lockIcon + ' ' + t('progression.requirement'), name(b.kind + '.desc')],
-      actions:
-        b.kind === 'shelter' && h?.where === b.id ? [act('heart', x, y, name('heart.take'))] : [],
-      building: b,
-      kind: b.kind
-    };
-  if (b && b.kind === 'shelter') {
-    const what = h?.where === b.id ? 'heart.take' : h?.where === 'carried' ? 'heart.rest' : '';
-    return {
-      look: Core.CULTIVATION_LOOK.shelter,
-      name: name('shelter'),
-      lines: [name('shelter.desc')],
-      actions: [
-        ...(what ? [act('heart', x, y, name(what))] : []),
-        ...(c.completed ? [act('teleport', x, y, name('teleport.home'))] : []),
-        act('move', x, y, t('card.move'))
-      ],
-      building: b,
-      kind: b.kind
-    };
-  }
-  // The camp's carrier bench: line the carrier once (Watch, 2026-11-01).
-  if (b && b.kind === 'bench') {
-    const lined = c.gear.lining;
-    return {
-      look: Core.CULTIVATION_LOOK.bench,
-      name: name('bench'),
-      lines: [name(lined ? 'lined' : 'bench.desc')],
-      actions: [
-        ...(lined ? [] : [act('line', x, y, name('line'), Core.CULTIVATION_RECIPES.lining)]),
-        act('move', x, y, t('card.move'))
-      ],
-      building: b,
-      kind: b.kind
-    };
-  }
-  if (b) {
-    const lines = [
-      name(Core.cultivationStatus(s, b)),
-      t('cr.temperature', { n: b.temperature.toFixed(1) }),
-      t('cr.buffer', { n: b.buffer.toFixed(1) }) +
-        ' · ' +
-        t('cr.quality', { n: Math.floor(b.quality) })
-    ];
-    if (b.kind === 'machine')
-      lines.push(
-        t('cr.sections', { n: Core.machineSections(b), total: Core.MACHINE_REPAIRS.length })
-      );
-    if (b.health !== undefined) lines.push(t('cr.health', { n: Math.floor(b.health) }));
-    if (['chamber', 'vault', 'machine'].includes(b.kind))
-      lines.push(describeLight(s, x, y, z, true));
-    if (b.kind === 'machine' && c.restored && !c.completed)
-      lines.push(name('discovery.' + Core.machineClue(s)));
-    if (b.kind === 'machine' && c.completed) lines.push(name('activated'), name('thief.clue'));
-    const acts =
-      b.kind === 'chamber'
-        ? ['plant', 'tend', 'collect', 'reinforce']
-        : b.kind === 'vault'
-          ? ['collect', 'store', 'reinforce']
-          : b.kind === 'machine'
-            ? Core.machineRepairCost(b)
-              ? ['repair']
-              : c.completed
-                ? []
-                : ['activate']
-            : [];
-    const actions = acts
-      .filter(
-        (a) =>
-          !(a === 'reinforce' && b.reinforced) &&
-          !(a === 'plant' && b.health > 0) &&
-          !(a === 'tend' && !b.needsTend)
-      )
-      .map((a) => ({
-        ...act(
-          a,
-          x,
-          y,
-          name(a),
-          a === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES[a] || null
-        ),
-        locked: Core.contentLocked(s, a)
-      }));
-    // Where to: the map, where every heart shelter is a stop (Watch, 2026-11-01).
-    if (b.kind === 'machine' && c.completed && Core.teleportStops(s).length)
-      actions.push(act('travel', x, y, name('teleport.pick')));
-    if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(act('move', x, y, t('card.move')));
-    if (b.kind === 'cooler')
-      lines.push(
-        t('card.cooling', {
-          count: reachOf(s, { kind: 'cooler', x, y, z, building: b }).targets.length
-        })
-      );
-    return {
-      look: Core.CULTIVATION_LOOK[b.kind],
-      name: name(b.kind === 'machine' && c.completed ? 'machine.awake' : b.kind),
-      lines,
-      actions,
-      building: b,
-      kind: b.kind
-    };
-  }
-  if (Core.heartAt(s, x, y))
-    return {
-      look: Core.CULTIVATION_LOOK.station,
-      name: name('station'),
-      lines: [name('station.desc')],
-      actions: h?.where === 'station' ? [act('heart', x, y, name('heart.take'))] : []
-    };
-  const key = Core.packKey(x, y, z),
-    prop = Core.PROPS[s.world.props.get(key)];
-  if (prop?.light) {
-    const covered = !!c.shaded?.[key],
-      paid = c.shaded && key in c.shaded;
-    return {
-      look: 'mark.' + s.world.props.get(key),
-      name: esc(prop.name),
-      lines: [],
-      actions: [
-        act(
-          'shade',
-          x,
-          y,
-          t(covered ? 'cr.uncover' : 'cr.cover'),
-          paid ? null : Core.CULTIVATION_RECIPES.shade
-        )
-      ].map((a) => ({ ...a, locked: Core.contentLocked(s, a.type) }))
-    };
-  }
-  if (Core.wildColony(s, x, y))
-    return {
-      look: 'tile.geode',
-      slot: 'top',
-      name: name('wild'),
-      lines: [describeLight(s, x, y, z)],
-      actions: [act('starter', x, y, name('gather'))]
-    };
+  const at = { s, c, x, y, z, h: c.heart };
+  const b = Core.cultivationAt(s, x, y, z);
+  if (b) return facilityCard({ ...at, b });
+  if (Core.heartAt(s, x, y)) return stationCard(at);
+  const key = Core.packKey(x, y, z);
+  if (Core.PROPS[s.world.props.get(key)]?.light) return lightCard({ ...at, key });
+  if (Core.wildColony(s, x, y)) return wildCard(at);
   return null;
+}
+
+const move = ({ x, y }) => act('move', x, y, t('card.move'));
+const withLocks = (s, actions) =>
+  actions.map((a) => ({ ...a, locked: Core.contentLocked(s, a.type) }));
+
+// A crystal building: locked, or by its kind.
+function facilityCard(at) {
+  const { s, b } = at;
+  const card = Core.contentLocked(s, b.kind)
+    ? lockedCard(at)
+    : b.kind === 'shelter'
+      ? shelterCard(at)
+      : b.kind === 'bench'
+        ? benchCard(at)
+        : workingCard(at);
+  return { ...card, building: b, kind: b.kind };
+}
+
+function lockedCard({ b, h, x, y }) {
+  return {
+    look: Core.CULTIVATION_LOOK[b.kind],
+    name: name(b.kind),
+    lines: [lockIcon + ' ' + t('progression.requirement'), name(b.kind + '.desc')],
+    actions:
+      b.kind === 'shelter' && h?.where === b.id ? [act('heart', x, y, name('heart.take'))] : []
+  };
+}
+
+// A heart shelter: take the heart from it or rest it there, and after the
+// win, a teleport home.
+function shelterCard(at) {
+  const { c, b, h, x, y } = at;
+  const what = h?.where === b.id ? 'heart.take' : h?.where === 'carried' ? 'heart.rest' : '';
+  return {
+    look: Core.CULTIVATION_LOOK.shelter,
+    name: name('shelter'),
+    lines: [name('shelter.desc')],
+    actions: [
+      ...(what ? [act('heart', x, y, name(what))] : []),
+      ...(c.completed ? [act('teleport', x, y, name('teleport.home'))] : []),
+      move(at)
+    ]
+  };
+}
+
+// The camp's carrier bench: line the carrier once (Watch, 2026-11-01).
+function benchCard(at) {
+  const { c, x, y } = at;
+  const lined = c.gear.lining;
+  return {
+    look: Core.CULTIVATION_LOOK.bench,
+    name: name('bench'),
+    lines: [name(lined ? 'lined' : 'bench.desc')],
+    actions: [
+      ...(lined ? [] : [act('line', x, y, name('line'), Core.CULTIVATION_RECIPES.lining)]),
+      move(at)
+    ]
+  };
+}
+
+// A chamber, vault, machine, cooler and the rest: how it is, and its work.
+function workingCard(at) {
+  const { c, b } = at;
+  return {
+    look: Core.CULTIVATION_LOOK[b.kind],
+    name: name(b.kind === 'machine' && c.completed ? 'machine.awake' : b.kind),
+    lines: facilityLines(at),
+    actions: facilityActions(at)
+  };
+}
+
+function facilityLines({ s, c, b, x, y, z }) {
+  const lines = [
+    name(Core.cultivationStatus(s, b)),
+    t('cr.temperature', { n: b.temperature.toFixed(1) }),
+    t('cr.buffer', { n: b.buffer.toFixed(1) }) +
+      ' · ' +
+      t('cr.quality', { n: Math.floor(b.quality) })
+  ];
+  const machine = b.kind === 'machine';
+  if (machine)
+    lines.push(
+      t('cr.sections', { n: Core.machineSections(b), total: Core.MACHINE_REPAIRS.length })
+    );
+  if (b.health !== undefined) lines.push(t('cr.health', { n: Math.floor(b.health) }));
+  if (['chamber', 'vault', 'machine'].includes(b.kind)) lines.push(describeLight(s, x, y, z, true));
+  if (machine && c.restored && !c.completed) lines.push(name('discovery.' + Core.machineClue(s)));
+  if (machine && c.completed) lines.push(name('activated'), name('thief.clue'));
+  if (b.kind === 'cooler') {
+    const count = reachOf(s, { kind: 'cooler', x, y, z, building: b }).targets.length;
+    lines.push(t('card.cooling', { count }));
+  }
+  return lines;
+}
+
+// What each kind of building can be asked to do, before what's done already.
+const WORK = {
+  chamber: () => ['plant', 'tend', 'collect', 'reinforce'],
+  vault: () => ['collect', 'store', 'reinforce'],
+  machine: (b, c) => (Core.machineRepairCost(b) ? ['repair'] : c.completed ? [] : ['activate'])
+};
+const DONE = {
+  reinforce: (b) => b.reinforced,
+  plant: (b) => b.health > 0,
+  tend: (b) => !b.needsTend
+};
+
+function facilityActions(at) {
+  const { s, c, b, x, y } = at;
+  const work = (WORK[b.kind]?.(b, c) || []).filter((a) => !DONE[a]?.(b));
+  const cost = (a) =>
+    a === 'repair' ? Core.machineRepairCost(b) : Core.CULTIVATION_RECIPES[a] || null;
+  const actions = withLocks(
+    s,
+    work.map((a) => act(a, x, y, name(a), cost(a)))
+  );
+  // Where to: the map, where every heart shelter is a stop (Watch, 2026-11-01).
+  if (b.kind === 'machine' && c.completed && Core.teleportStops(s).length)
+    actions.push(act('travel', x, y, name('teleport.pick')));
+  if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(move(at));
+  return actions;
+}
+
+// Where the thief hid the heart.
+function stationCard({ h, x, y }) {
+  return {
+    look: Core.CULTIVATION_LOOK.station,
+    name: name('station'),
+    lines: [name('station.desc')],
+    actions: h?.where === 'station' ? [act('heart', x, y, name('heart.take'))] : []
+  };
+}
+
+// A light-giving prop: cover it (paid once) or uncover it.
+function lightCard({ s, c, x, y, key }) {
+  const covered = !!c.shaded?.[key],
+    paid = c.shaded && key in c.shaded;
+  const label = t(covered ? 'cr.uncover' : 'cr.cover');
+  return {
+    look: 'mark.' + s.world.props.get(key),
+    name: esc(Core.PROPS[s.world.props.get(key)].name),
+    lines: [],
+    actions: withLocks(s, [act('shade', x, y, label, paid ? null : Core.CULTIVATION_RECIPES.shade)])
+  };
+}
+
+function wildCard({ s, x, y, z }) {
+  return {
+    look: 'tile.geode',
+    slot: 'top',
+    name: name('wild'),
+    lines: [describeLight(s, x, y, z)],
+    actions: [act('starter', x, y, name('gather'))]
+  };
 }
 
 export function createBuildingCard({ cam, state, run, approach, walking, work }) {
