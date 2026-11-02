@@ -121,6 +121,10 @@ kind of knowledge lives.
   generation must fit worlds already played: touch only land nobody has
   generated yet, or keep the new thing in saved edits. Saves always load;
   anything that could lose a world needs Watch's word first.
+  `test/unit/old-saves.test.js` loads real saves that past releases wrote
+  (`test/fixtures/saves/`): when a release changes what a save holds, add
+  its saves with `node scripts/save-fixtures.mjs <commit> <version>`, and
+  list a field you retire on purpose in that test's `RETIRED`.
 - The game and the room service go live minutes apart. A wire change in
   `src/net/protocol.js` must work with the other side one version behind:
   add fields, tolerate missing or extra ones, and time out rather than wait
