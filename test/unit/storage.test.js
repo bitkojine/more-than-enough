@@ -23,7 +23,8 @@ globalThis.localStorage = {
     return store.size;
   }
 };
-const { loadGame, saveGame, keepStorage } = await import('../../src/game/storage.js');
+const { loadGame, saveGame, keepStorage, loadView, saveView } =
+  await import('../../src/game/storage.js');
 const { remember, forget, knownRooms, SAVE_PREFIX, FOG_PREFIX, GEN_PREFIX } =
   await import('../../src/game/worlds.js');
 
@@ -199,4 +200,12 @@ test('asks the browser once to keep the storage, and never throws', async () => 
   assert.equal(await keepStorage(nav), true);
   assert.equal(await keepStorage(nav), null); // once a session
   assert.equal(asked, 1);
+});
+
+test('view: Sound off and Music off are kept, and both start on for a new browser', () => {
+  assert.equal(loadView().sound, true);
+  assert.equal(loadView().music, true);
+  saveView({ ...loadView(), sound: false, music: false });
+  assert.equal(loadView().sound, false);
+  assert.equal(loadView().music, false);
 });

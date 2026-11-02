@@ -195,6 +195,9 @@ async function main() {
     CHROME,
     [
       '--headless=new',
+      // Under automation (navigator.webdriver), so the game never waits asleep
+      // for a tap (src/game/sleep.js) unless a test opens it with ?sleep.
+      '--enable-automation',
       ...(process.env.MTE_LAYER_ONLY === '1' ||
       process.env.MTE_WORK_ONLY === '1' ||
       process.env.MTE_RIG_ONLY === '1' ||
@@ -5711,6 +5714,37 @@ async function main() {
   }
   session = mainSession;
   await cdp.send('Page.bringToFront', {}, session);
+
+  console.log('\n== Asleep until a tap ==');
+  // Every load starts asleep (src/game/sleep.js); tests see it only with
+  // ?sleep. Grey, still, nothing pressable; one tap wakes it and does
+  // nothing else.
+  await navigate('http://127.0.0.1:' + PORT + '/?sleep');
+  ok(
+    await waitFor('MTE_GAME.sleep.asleep && !document.getElementById("wake").hidden', 4000),
+    'a fresh load is asleep, with the wake screen up'
+  );
+  ok(await evalJS('document.documentElement.classList.contains("asleep")'), 'everything is grey');
+  var sleptAt = JSON.parse(
+    await evalJS('JSON.stringify([MTE_GAME.getState().time, MTE_GAME.getState().player])')
+  );
+  await sleep(1200);
+  eq(await evalJS('MTE_GAME.getState().time'), sleptAt[0], 'asleep, the world stands still');
+  await tap(330, 200);
+  ok(await waitFor('!MTE_GAME.sleep.asleep', 2000), 'one tap anywhere wakes it');
+  ok(
+    await waitFor(
+      'document.getElementById("wake").hidden && !document.documentElement.classList.contains("asleep")',
+      2000
+    ),
+    'and the colour comes back'
+  );
+  eq(
+    JSON.stringify(await evalJS('JSON.stringify(MTE_GAME.getState().player)')),
+    JSON.stringify(JSON.stringify(sleptAt[1])),
+    'the waking tap does nothing else (Mica stays put)'
+  );
+  ok(await waitFor('MTE_GAME.getState().time > ' + sleptAt[0], 4000), 'awake, the world goes on');
 
   console.log('\n== Languages: English and Lithuanian ==');
   await navigate('http://127.0.0.1:' + PORT + '/');

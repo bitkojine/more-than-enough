@@ -678,6 +678,8 @@ export default {
     'Naršyklės žaidimas: Mica ir grybienos dvasiukas Wiki per mišką, akmenis ir požemių tamsą neša pavogtą širdį namo.',
   'game.title': 'Mica ir Wiki',
   'game.shortTitle': 'Mica ir Wiki',
+  'wake.tap':
+    '{phone:Paliesk, kad pažadintum|laptop:Spustelėk ar paspausk klavišą, kad pažadintum}',
   'game.framed':
     '„Mica ir Wiki“ veikia tik savo kortelėje: {phone:paliesk|laptop:spustelėk}, kad atidarytum',
 

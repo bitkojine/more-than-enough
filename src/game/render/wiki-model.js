@@ -3,7 +3,7 @@
  * Wiki gives off no light: it is cast in plain, non-emissive colours.
  * Model faces +Z, feet at the origin. */
 import * as T from '../../vendor/three/three.module.js';
-import { wikiPose } from './wiki-motion.js';
+import { wikiPose, wikiDoze } from './wiki-motion.js';
 const material = (color, side = T.FrontSide) =>
   new T.MeshBasicMaterial({ color, toneMapped: false, side });
 export const WIKI_HEIGHT = 0.31;
@@ -156,7 +156,7 @@ export function createWikiModel() {
   return {
     root,
     pose(options) {
-      const p = wikiPose(options);
+      const p = options.sleep ? wikiDoze(options) : wikiPose(options);
       base.position.y = p.bob;
       body.rotation.set(p.lean, p.turn, 0);
       body.scale.y = p.squash;

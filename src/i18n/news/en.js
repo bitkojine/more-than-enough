@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.192.0':
+    'The game now waits for you: after opening it or coming back to its tab, everything is grey and still while Wiki dozes on Mica’s hood. {phone:Tap|laptop:Click or press a key} anywhere to wake it, and the colour, the music-box hello and the music all come back at once. Nothing happens in the world while it sleeps. Sound off in Settings now also stays off after a reload.',
   'news.0.191.0':
     'The sound now says hello: a short music-box chime plays the moment the game’s sound wakes, on your first {phone:tap|laptop:click or key} (browsers keep a page silent until then), even while the game is still loading. The music then comes in at once instead of swelling up slowly.',
   'news.0.190.1':

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 import { createWikiMemory, UNPROMPTED_GAP_S, WIKI_MODES } from '../../src/game/wiki-memory.js';
-import { wikiPose, wrapAngle } from '../../src/game/render/wiki-motion.js';
+import { wikiPose, wikiDoze, wrapAngle } from '../../src/game/render/wiki-motion.js';
 import { describeWorld } from '../../src/game/tooltips.js';
 import { createWiki } from '../../src/game/wiki.js';
 
@@ -125,4 +125,14 @@ test('Wiki has no character pointer surface and inspects world contents on Micaâ
   wiki.update(0.5);
   wiki.update(0.5);
   assert.ok(wiki.pose().fold > 0, 'automatic crystal awareness still works');
+});
+
+test('while the game is asleep Wiki dozes: eyes shut, mouth still, cap nodding forward', () => {
+  for (const time of [0, 1.3, 7]) {
+    const p = wikiDoze({ time });
+    assert.ok(p.blink < 0.1);
+    assert.equal(p.mouth, 0);
+    assert.equal(p.turn, 0);
+    assert.ok(p.lean > 0 && p.capTilt > 0);
+  }
 });

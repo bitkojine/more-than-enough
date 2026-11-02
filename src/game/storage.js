@@ -151,7 +151,7 @@ function formatOf(raw) {
   }
 }
 
-// The viewer's zoom, drag direction, music choice, the tracks they have
+// The viewer's zoom, drag direction, sound and music choices, the tracks they have
 // heard, quality level, whether they know to hold Gather, what Wiki has
 // told them (src/game/wiki-memory.js), whether the message log is open, and
 // whether time away makes anything
@@ -162,6 +162,7 @@ export function loadView() {
     return {
       zoom: Number(v.zoom) || 1,
       invertDrag: v.invertDrag === true,
+      sound: v.sound !== false,
       music: v.music !== false,
       heard: Array.isArray(v.heard) ? v.heard.filter((x) => typeof x === 'string') : [],
       quality: Number(v.quality) || 0,
@@ -175,6 +176,7 @@ export function loadView() {
     return {
       zoom: 1,
       invertDrag: false,
+      sound: true,
       music: true,
       heard: [],
       quality: 0,

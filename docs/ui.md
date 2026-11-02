@@ -107,6 +107,17 @@ are in Equipment. Internal `build`/`upgrades` keys identify these screens.
 - Shadows: `--shadow-1` (HUD), `--shadow-2` (sheets/dialogs).
 - Touch targets ≥ 44px (the horizontal zoom row 40px); the main action 84px (76px under 375px wide, 72px on short landscape screens).
 
+### Asleep until a tap (Watch, 2026-11-02)
+After every load and every return to the tab, the game is asleep
+(`src/game/sleep.js`): everything stays where it is but goes grey, Wiki dozes on
+Mica's hood with a Zzz, and a "Tap to wake" pill (on a laptop "Click or press a
+key to wake") sits under Mica, ringed in Wiki's teal. A full-screen button
+covers the page, so nothing else can be pressed and keys go no further; a tap
+or key anywhere wakes the game and its sound together, and the music-box hello
+plays. Asleep is time away: the world stops (frame-loop.js), and a shared world
+counts you away. Browser tests never see it unless they open the game with
+`?sleep`.
+
 ### Other screens
 - **Zoom** (Watch, 2026-10-28): the +, magnification/reset, −, and map buttons always form one horizontal row directly beneath the four resource counters, in portrait, landscape, desktop, and building placement. The row is anchored to the resource bar rather than the thumb controls. Zoom (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
 - **Landscape phones** (height up to 500px): the thumb cluster shrinks; zoom stays horizontally beneath the resources. Status stays compact, Messages anchors at the lower left and Invite sits beside it. Previews have a reserved left column; the Equipment card sits to its right. The expanded log uses the card region, clearing Invite and the action dock. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.

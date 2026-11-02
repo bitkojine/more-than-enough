@@ -20,6 +20,7 @@ export function createFrameLoop({
   game,
   clock, // () -> the simulation's tick clock
   paused, // () -> whether play is held (a question about which world to keep)
+  asleep = () => false, // () -> asleep until a tap (sleep.js): time away, like a hidden page
   replaying, // the local deterministic replay drives ticks itself
   away, // (seconds) time away from a solo world
   present, // (dt) presentation after the simulation (main.js updateView)
@@ -65,11 +66,12 @@ export function createFrameLoop({
     const simStart = performance.now();
     const elapsed = lastSimulationNow ? (now - lastSimulationNow) / 1000 : 0;
     lastSimulationNow = now;
-    if (document.hidden || paused() || replaying) {
+    const gone = document.hidden || asleep(); // time away, not play
+    if (gone || paused() || replaying) {
       clock().reset();
       perf.suspend();
       frameTiming.reset();
-      if (paused() && !document.hidden) lastWall = Date.now();
+      if (paused() && !gone) lastWall = Date.now();
     } else {
       const wall = Date.now();
       if (lastWall) away((wall - lastWall) / 1000);
@@ -81,17 +83,22 @@ export function createFrameLoop({
     simulationMs += performance.now() - simStart;
   }
 
+  // Whether play shows on screen, after the HUD has kept its place: asleep,
+  // the HUD still does, but Wiki says nothing.
+  function showing(dt) {
+    if (document.hidden || paused()) return false;
+    present(dt);
+    return !asleep();
+  }
+
   function draw(stamp) {
     const intervalMs = last ? stamp - last : 0;
     const dt = Math.min(MAX_STEP, intervalMs / 1000);
     last = stamp;
     const pacing = frameTiming.rendered(stamp);
     const t0 = performance.now();
-    const playing = !document.hidden && !paused();
-    if (playing) {
-      present(dt);
-      wiki.update(dt);
-    }
+    const playing = showing(dt);
+    if (playing) wiki.update(dt);
     mapView.tick(dt);
     yard.update(game.state, dt);
     const t1 = performance.now();

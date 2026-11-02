@@ -477,7 +477,8 @@ export function createRigModel() {
           look,
           fold: wikiState.fold || 0,
           talk: wikiState.talk ?? null,
-          rest: !!wikiState.rest
+          rest: !!wikiState.rest,
+          sleep: !!wikiState.sleep
         });
       }
       drivingGrip = 0;

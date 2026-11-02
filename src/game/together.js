@@ -77,7 +77,8 @@ export function createTogether({
   checkUpdate = () => {},
   closeSheet = () => {},
   showPlayers = () => {},
-  onAway = () => {}
+  onAway = () => {},
+  asleep = () => false // the game is asleep until a tap (sleep.js): away, as when hidden
 }) {
   const service = roomService();
   let room = null; // the shared world you're in (or joining)
@@ -262,7 +263,7 @@ export function createTogether({
     if (w.time !== null) clock = { t: w.time, at: seconds() };
     keepTime();
     sender.reset();
-    if (document.hidden) sendAway(); // the room takes everyone in as here
+    if (document.hidden || asleep()) sendAway(); // the room takes everyone in as here
     renderFriends();
     game.changedMode();
   }
@@ -324,7 +325,7 @@ export function createTogether({
     hud.toast(t('together.toast.gone'));
   }
 
-  const sendAway = createAwayTeller({ send, hidden: () => document.hidden });
+  const sendAway = createAwayTeller({ send, hidden: () => document.hidden || asleep() });
 
   /* ---------------------------------------------- the sign and its links */
 

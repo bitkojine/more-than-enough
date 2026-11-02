@@ -20,7 +20,7 @@ const MAX_VOICES = 26;
 const rand = Math.random;
 const pick = (list) => list[(rand() * list.length) | 0];
 
-export function createAudio() {
+export function createAudio({ muted: startMuted = false } = {}) {
   let ctx = null;
   let master = null;
   let meter = null; // analyser on the output
@@ -28,7 +28,7 @@ export function createAudio() {
   let musicOn = true; // the player's choice, kept until music exists
   let onTrack = null; // told when a track starts
   let noise = null; // shared white-noise buffer for impact transients
-  let muted = false;
+  let muted = !!startMuted; // Sound off, kept per browser (storage.js)
   let scale = null;
   let noteStep = 0;
   let voices = 0;

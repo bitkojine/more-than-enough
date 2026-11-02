@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.192.0] - 2026-11-02
+
+Watch asked for the game to wake with one tap after a reload (2026-11-02):
+"keep the game in grayscale, paused looking, no other input; the only thing
+you can do after page reload is wake the game with a simple tap that would
+also wake sounds". Watch answered the design one question at a time and
+approved mock-ups before it was built.
+
+- Asleep until a tap (`src/game/sleep.js`): after every load and every
+  return to the tab (any time it was hidden), everything stays where it is
+  but goes grey, Wiki dozes on Mica's hood (eyes shut, cap nodding,
+  `wikiDoze` in `render/wiki-motion.js`) with a Zzz, and "Tap to wake"
+  (laptop: "Click or press a key to wake") sits under Mica in a pill ringed
+  in Wiki's teal. A full-screen button covers the page, so nothing else can
+  be pressed; keys are stopped in the capture phase, and Shift, Control and
+  the like don't wake. The wake press also wakes the sound (the sound's
+  listeners are registered first), so the music-box hello plays as the
+  colour comes back. A tap while the game still loads wakes it at once and
+  the game opens awake.
+- Asleep is time away (Watch chose): the frame loop treats it like a hidden
+  page, so the world stops and the gap is credited through the same
+  `away()` path; a shared world counts you away (`together.js` tells the
+  room through the same away flag). The HUD still lays itself out, but
+  Wiki says nothing.
+- Sound off in Settings is now kept (Watch asked after the sound
+  lifecycle review found it reset on every reload while Music off was
+  kept): `sound` in `loadView`/`saveView`, read before the sound is made,
+  so the hello stays quiet too.
+- Browser tests drive the game directly, so a browser run under automation
+  (`navigator.webdriver`) never sleeps unless it opens the game with
+  `?sleep`. The sound and the sleep are made together by `createWaking`,
+  which keeps `main.js` at 600 lines. `test/unit/sleep.test.js` covers
+  waking, keys, loading-time presses, hiding the tab and the switch;
+  `wiki.test.js` the dozing pose; `storage.test.js` the kept choices.
+
 ## [0.191.0] - 2026-11-02
 
 Watch asked for a short cute sound on every reload, because the game's audio

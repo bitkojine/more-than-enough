@@ -9,6 +9,7 @@ const byId = (id) => {
 export function findElements() {
   return {
     canvas: byId('game'),
+    wake: byId('wake'),
     verText: byId('verText'),
     perf: byId('perf'),
     performancePanel: byId('performancePanel'),

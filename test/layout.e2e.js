@@ -477,6 +477,9 @@ async function main() {
     CHROME,
     [
       '--headless=new',
+      // Under automation (navigator.webdriver), so the game never waits asleep
+      // for a tap (src/game/sleep.js) unless a test opens it with ?sleep.
+      '--enable-automation',
       '--disable-gpu',
       '--no-first-run',
       '--mute-audio',

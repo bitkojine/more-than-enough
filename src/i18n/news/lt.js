@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.192.0':
+    'Žaidimas dabar tavęs palaukia: atidarius jį ar grįžus į jo kortelę viskas pilka ir sustingę, o Wiki snaudžia ant Micos gobtuvo. {phone:Paliesk|laptop:Spustelėk ar paspausk klavišą} bet kur, kad pažadintum, ir spalvos, muzikinės dėžutės pasisveikinimas bei muzika sugrįžta iškart. Kol žaidimas miega, pasaulyje niekas nevyksta. Nustatymuose išjungtas garsas dabar lieka išjungtas ir perkrovus puslapį.',
   'news.0.191.0':
     'Žaidimo garsas dabar pasisveikina: trumpas muzikinės dėžutės skambesys nuskamba, vos tik garsas pabunda, kai pirmąkart {phone:paliesi ekraną|laptop:spustelėsi ar paspausi klavišą} (iki tol naršyklės puslapį laiko tylų), net kol žaidimas dar kraunasi. Tada muzika pasigirsta iškart, o ne pamažu stiprėja.',
   'news.0.190.1':

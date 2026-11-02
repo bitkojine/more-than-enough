@@ -149,6 +149,13 @@
 <body>
   <canvas id="game"></canvas>
 
+  <!-- Asleep until a tap (src/game/sleep.js): covers the page while the game
+       is grey, so the one press it takes wakes the game and its sound. -->
+  <button id="wake" type="button" hidden>
+    <span class="wakeZ" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="wakeTap" data-i18n="wake.tap"></span>
+  </button>
+
   <!-- The heads-up display. Status along the top (trophies, the resource
        bar, settings), situational status down the left edge (battery, depth), every
        action in the bottom-right thumb cluster. See docs/ui.md. -->

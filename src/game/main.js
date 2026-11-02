@@ -6,7 +6,7 @@ import { copy } from './copy.js';
 import { VERSION } from '../version.js';
 import { findElements } from './dom.js';
 import { createCamera } from './camera.js';
-import { createAudio } from './audio.js';
+import { createWaking } from './sleep.js';
 import { createEffects } from './effects.js';
 import { createHudLayout } from './hud-layout.js';
 import { createFullscreen } from './fullscreen.js';
@@ -93,11 +93,12 @@ const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 window.MTE_VERSION = VERSION; // for the crash report
 
-// The sound listens for the first tap from here on, before the pictures
-// load: iOS Safari wakes sound only inside a tap, so a tap while the game
-// loads would otherwise be lost and the sound wait for another.
-const audio = createAudio();
-audio.wakeOn(el.canvas);
+// This browser's own conveniences: zoom, drag direction, sound, music.
+const savedView = loadView();
+
+// The sound, and the game asleep until a tap, listen for the first press
+// from here on, before the pictures load (sleep.js).
+const { audio, sleep } = createWaking(el, savedView);
 
 // Nothing is drawn until the game's pictures are in (boot.js). The pack's
 // URL carries this module's ?v= cache-busting hash.
@@ -115,8 +116,6 @@ if (new URLSearchParams(location.search).has('autoplay')) {
 const cam = createCamera(el.canvas);
 const descent = createDescent(el.canvas);
 cam.relief = (x, y) => groundHeight(game.state.world, x, y, cam.z);
-// This browser's own conveniences: zoom, drag direction, music.
-const savedView = loadView();
 // Keeps one of those choices: `keepSaved('wiki')(value)`.
 const keepSaved = (key) => (value) => {
   savedView[key] = value;
@@ -126,6 +125,7 @@ function keepView() {
   savedView.zoom = cam.zoom;
   savedView.invertDrag = input.invert;
   savedView.music = audio.music;
+  savedView.sound = !audio.muted;
   saveView(savedView);
 }
 // Wiki, on Mica's hood, answers for the world; what it has told is kept here.
@@ -234,7 +234,8 @@ const together = createTogether({
   checkUpdate: updater.check,
   closeSheet: () => sheet.close(),
   showPlayers: () => sheet.show('players'),
-  onAway: (secs, made, fixed) => game.sayAway(secs, made, fixed)
+  onAway: (secs, made, fixed) => game.sayAway(secs, made, fixed),
+  asleep: () => sleep.asleep
 });
 const actor = createActor(); // what the wanderer is doing, to animate it
 const acted = actor.act.bind(actor);
@@ -514,6 +515,7 @@ const loop = createFrameLoop({
   perf,
   problems,
   paused: () => fork.open,
+  asleep: () => sleep.asleep,
   replaying: parts.playtest,
   away: (seconds) => game.catchUp(seconds),
   present: updateView,
@@ -583,6 +585,7 @@ news.play();
 if (game.state.seen) game.catchUp((Date.now() - game.state.seen) / 1000);
 showAuto();
 loop.start();
+sleep.attach({ game, cam, input, wiki, loop, together });
 
 addNewWorldButton(document.getElementById('nerdsPanel'), game, newSoloWorld);
 
@@ -594,4 +597,4 @@ createTooltips({
 });
 
 // A small hook so the browser tests can inspect and adjust the real game.
-window.MTE_GAME = createTestHook({ ...parts, game, view, present: updateView });
+window.MTE_GAME = createTestHook({ ...parts, game, view, present: updateView, sleep });

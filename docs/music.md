@@ -54,12 +54,15 @@ on a cheap sound card. What made it work, and what we copy:
 
 Browsers keep a page silent until the player has done something on it
 (iOS Safari counts only a tap that ends in a click, not a drag), so no sound
-can play on a plain reload. What happens instead:
+can play on a plain reload. So the game starts asleep (`src/game/sleep.js`,
+Watch 2026-11-02): grey and still, Wiki dozing on Mica's hood, "Tap to wake"
+under Mica. The one tap or key that wakes the game wakes its sound too.
 
-1. **Load.** `main.js` makes the sound before the pictures load, so taps
-   while the game is still loading count. It makes an audio context at
-   once: where the browser allows sound without a gesture (some desktop
-   browsers), the hello and the music start right away.
+1. **Load.** The sound and the sleep are made before the pictures load
+   (`createWaking` in `sleep.js`), so a tap while the game is still loading
+   counts: it wakes the sound, and the game opens awake. The sound makes an
+   audio context at once: where the browser allows sound without a gesture
+   (some desktop browsers), the hello and the music start right away.
 2. **First press.** Every kind of press (pointer, touch, mouse, key, click)
    tries to wake the context from inside the gesture, with the silent
    one-sample trick mobile Safari needs. A context made before any gesture
@@ -71,13 +74,15 @@ can play on a plain reload. What happens instead:
    swell in slowly when the place changes).
 3. **While playing.** The scene is told four times a second (presenter.js);
    a new place must hold 1.5 s before the music crossfades.
-4. **Tab hidden, phone call, the OS taking the audio.** The music stops
+4. **Tab hidden, phone call, the OS taking the audio.** Hiding the tab
+   puts the game back to sleep, so coming back takes the wake tap. The music stops
    queueing bars while the page is hidden or the context is not running,
    so nothing bursts out on return. Once the page has had a gesture, the
    context is nudged back on return, on focus and every second.
-5. **Settings.** Sound off silences everything, hello included, until the
-   page reloads (it isn't kept). Music off stops only the soundtrack and is
-   kept per browser.
+5. **Settings.** Sound off silences everything, hello included; Music off
+   stops only the soundtrack. Both are kept per browser (`loadView` in
+   `src/game/storage.js`), and Sound off holds from the moment the page
+   loads.
 
 ## Adding a track
 

@@ -1484,3 +1484,37 @@ body.placing #depthGauge { display: none; }
   .perfCard .perfGraph { display: none; }
   .perfActions { margin-top: 4px; }
 }
+
+/* Asleep until a tap (src/game/sleep.js, Watch 2026-11-02): everything grey
+   and still, Wiki's Zzz over Mica's hood, the words under Mica in a pill
+   ringed in Wiki's teal. The button covers the page so nothing else can be
+   pressed. */
+html.asleep body > :not(#wake) { filter: grayscale(1) brightness(0.78) contrast(0.92); }
+#wake {
+  --mica-x: 50vw; --mica-y: 50vh;
+  position: fixed; inset: 0; z-index: 2147483000; margin: 0; padding: 0; border: 0;
+  background: transparent; color: var(--ink); cursor: pointer; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+#wake[hidden] { display: none; }
+#wake:focus-visible { outline: none; }
+#wake:focus-visible .wakeTap { box-shadow: 0 0 0 2px #7fe6c4, 0 0 0 5px rgba(127, 230, 196, 0.45); }
+.wakeTap {
+  position: absolute; left: var(--mica-x); top: calc(var(--mica-y) + 34px); transform: translateX(-50%);
+  max-width: calc(100vw - 32px); padding: 10px 18px; border-radius: var(--r-pill);
+  background: rgba(20, 24, 20, 0.72); box-shadow: 0 0 0 2px #7fe6c4;
+  font: 600 17px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  text-align: center; white-space: normal; text-wrap: balance;
+}
+.wakeZ { position: absolute; left: calc(var(--mica-x) + 8px); top: calc(var(--mica-y) - 70px); }
+.wakeZ i {
+  position: absolute; font: 700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-style: normal; color: #f4f1e8; text-shadow: 0 1px 0 #1b1b1b, 0 0 6px rgba(0, 0, 0, 0.55);
+  animation: wakeZ 2.4s ease-in-out infinite;
+}
+.wakeZ i::before { content: "z"; }
+.wakeZ i:nth-child(3)::before { content: "Z"; }
+.wakeZ i:nth-child(2) { left: 10px; top: -16px; font-size: 18px; animation-delay: 0.4s; }
+.wakeZ i:nth-child(3) { left: 22px; top: -36px; font-size: 23px; animation-delay: 0.8s; }
+@keyframes wakeZ { 0%, 100% { opacity: 0.35; transform: translateY(2px); } 50% { opacity: 1; transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .wakeZ i { animation: none; opacity: 0.9; } }

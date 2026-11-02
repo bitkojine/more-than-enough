@@ -41,3 +41,17 @@ export function wikiPose({ time = 0, look = null, fold = 0, talk = null, rest = 
   }
   return p;
 }
+
+// Dozing while the game is asleep until a tap (sleep.js): eyes shut, cap
+// nodding forward, slow deep breaths. Takes the same options as wikiPose.
+export function wikiDoze({ time = 0 } = {}) {
+  const slow = Math.sin(time * 1.1);
+  return {
+    ...wikiPose({ time }),
+    lean: 0.16,
+    capTilt: 0.22,
+    blink: 0.06,
+    bob: 0.006 * slow,
+    squash: 1 + 0.025 * slow
+  };
+}

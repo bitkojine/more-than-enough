@@ -34,6 +34,7 @@ export function createSwitches({
   };
   el.mute.addEventListener('click', () => {
     audio.muted = !audio.muted;
+    keepView();
     showMute();
   });
   showMute();

@@ -55,6 +55,8 @@ export function createTestHook(p) {
     startPlacing: (what) => startPlacing(what), // { key } or { kind }, as Place does
     flyers: () => fx.flyers,
     audioState: () => audio.state(),
+    // Asleep until a tap (sleep.js); tests open with ?sleep to see it.
+    sleep: p.sleep,
     audio,
     zoom: () => cam.zoom,
     // Where world point (x, y) on layer z is on screen, in CSS pixels.

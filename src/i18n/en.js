@@ -674,6 +674,7 @@ export default {
   'game.description':
     'A browser game: Mica and Wiki, a mycelium sprite, carry a stolen heart home through forest, stone and the dark below.',
   'game.shortTitle': 'Mica & Wiki',
+  'wake.tap': '{phone:Tap to wake|laptop:Click or press a key to wake}',
   'game.framed': 'Mica and Wiki only runs in its own tab: {phone:tap|laptop:click} to open it',
 
   'toast.away': 'While you were away ({time}) your buildings made {made}',

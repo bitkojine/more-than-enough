@@ -32,6 +32,7 @@ export function createWiki({ cam, state, saved, keep, messages }) {
     hideAt = 0,
     talking = false,
     pressNo = 0;
+  let sleeping = false; // dozing while the game is asleep (sleep.js)
   let lookAt = null,
     lookedAt = -Infinity;
   let holding = false;
@@ -188,6 +189,13 @@ export function createWiki({ cam, state, saved, keep, messages }) {
       if (line && !holding && clock > hideAt) hush();
       if (lookAt && !holding && clock - lookedAt > LOOK_HOLD_S && !talking) lookAt = null;
     },
+    // Dozing on the hood while the game is asleep, until the wake tap.
+    get sleeping() {
+      return sleeping;
+    },
+    set sleeping(v) {
+      sleeping = !!v;
+    },
     // Wiki's pose for the rig (null hides Wiki).
     pose() {
       if (off()) return null;
@@ -197,6 +205,7 @@ export function createWiki({ cam, state, saved, keep, messages }) {
         fold,
         talk: line && talking ? clock - line.started : null,
         rest: !lookAt && clock - lookedAt > REST_AFTER_S,
+        sleep: sleeping,
         // What Wiki is talking about: a world tile, and how far faded in.
         focus:
           focus && talking
