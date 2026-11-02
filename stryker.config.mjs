@@ -30,6 +30,9 @@ export default {
   // index.html's inline script is hashed by a test: leave every file as is.
   disableTypeChecks: false,
   timeoutMS: 60000,
+  // The first run of every test file, before any bug is planted, takes about
+  // 2.5 minutes here and over 5 on a CI runner (Stryker's default limit).
+  dryRunTimeoutMinutes: 30,
   reporters: ['json', 'progress-append-only'],
   // Each part of the sweep names its own (MUTATION_REPORT).
   jsonReporter: { fileName: process.env.MUTATION_REPORT || 'reports/mutation/mutation.json' },
