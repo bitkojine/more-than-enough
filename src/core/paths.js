@@ -54,13 +54,19 @@ export function diggable(s, x, y) {
  * to dig into). With `dig`, each step says whether it must be dug first.
  * @returns {Array<{x: number, y: number, dig?: boolean}> | null}
  */
-export function findPath(
-  s,
-  sx,
-  sy,
-  tx,
-  ty,
-  {
+export function findPath(s, sx, sy, tx, ty, options = {}) {
+  const q = searchOf(s, { sx, sy, tx, ty }, options);
+  if (q.work) q.work.queued = (q.work.queued || 0) + 1;
+  for (let priority = q.first; priority < q.buckets.length; priority++) {
+    const bucket = q.buckets[priority];
+    if (bucket && settle(q, bucket)) return route(q);
+  }
+  return null;
+}
+
+// One search: its options, the box it stays in, and what it has found.
+function searchOf(s, { sx, sy, tx, ty }, options) {
+  const {
     pad = 10,
     known = false,
     dig = false,
@@ -68,85 +74,110 @@ export function findPath(
     fog = false,
     heuristic = true,
     work = null
-  } = {}
-) {
-  const z = s.player.z,
-    w = s.world,
-    wade = canWade(s);
+  } = options;
   const minX = Math.min(sx, tx) - pad,
-    maxX = Math.max(sx, tx) + pad;
-  const minY = Math.min(sy, ty) - pad,
-    maxY = Math.max(sy, ty) + pad;
-  const W = maxX - minX + 1;
-  const at = (x, y) => (y - minY) * W + (x - minX);
-  const cost = new Map([[at(sx, sy), 0]]);
-  const prev = new Map();
+    minY = Math.min(sy, ty) - pad;
+  const q = {
+    s,
+    w: s.world,
+    z: s.player.z,
+    wade: canWade(s),
+    sx,
+    sy,
+    tx,
+    ty,
+    minX,
+    minY,
+    maxX: Math.max(sx, tx) + pad,
+    maxY: Math.max(sy, ty) + pad,
+    W: Math.max(sx, tx) + pad - minX + 1,
+    // Tiles you must have seen to step on, unless planning to dig the unseen.
+    seenOnly: known || unknownDig,
+    dig,
+    unknownDig,
+    fog,
+    heuristic,
+    work,
+    cost: new Map(),
+    prev: new Map(),
+    buckets: []
+  };
+  q.cost.set(at(q, sx, sy), 0);
   // Manhattan distance is an admissible, consistent integer lower bound.
   // Integer A* buckets avoid heap/logarithmic overhead. LIFO ties follow a
   // promising route through an equal-priority open area instead of flooding
   // its entire rectangle. The compatibility mode retains original FIFO ties.
-  const estimate = (x, y) => (heuristic ? Math.abs(tx - x) + Math.abs(ty - y) : 0);
-  const first = estimate(sx, sy),
-    buckets = [];
-  buckets[first] = [[sx, sy, 0]];
-  if (work) work.queued = (work.queued || 0) + 1;
-  for (let priority = first; priority < buckets.length; priority++) {
-    const bucket = buckets[priority];
-    if (!bucket) continue;
-    for (let i = 0; heuristic ? bucket.length > 0 : i < bucket.length; i++) {
-      const [cx, cy, c] = heuristic ? bucket.pop() : bucket[i];
-      if (cost.get(at(cx, cy)) !== c) continue; // reached cheaper since
-      if (work) work.expanded = (work.expanded || 0) + 1;
-      if (cx === tx && cy === ty) return route(prev, at, sx, sy, tx, ty, s, dig, unknownDig);
-      for (let direction = 0; direction < 4; direction++) {
-        const d = heuristic ? 3 - direction : direction;
-        const nx = cx + DX[d],
-          ny = cy + DY[d];
-        if (nx < minX || ny < minY || nx > maxX || ny > maxY) continue;
-        const k = at(nx, ny),
-          old = cost.get(k);
-        // Every edge costs at least one. A cheaper known route lets us
-        // reject this edge before querying terrain, fog or digging gear.
-        if (old !== undefined && old <= c + 1) continue;
-        const goal = nx === tx && ny === ty;
-        let step = 1;
-        if (!goal) {
-          const seen = (!known && !unknownDig) || isExplored(w, nx, ny, z);
-          if (!seen && unknownDig && dig)
-            step = DIG_COST; // belief, never inspect hidden rock
-          else if (!seen && fog)
-            step = 1; // nor hidden ground: hoped walkable
-          else if (!seen) continue;
-          else if (walkable(w, nx, ny, z)) {
-            if (!wade && swimsAt(w, nx, ny, z)) continue;
-          } else if (dig && diggable(s, nx, ny)) step = DIG_COST;
-          else continue;
-        }
-        const nc = c + step;
-        if (old !== undefined && old <= nc) continue;
-        cost.set(k, nc);
-        prev.set(k, [cx, cy]);
-        const nextPriority = nc + estimate(nx, ny);
-        (buckets[nextPriority] || (buckets[nextPriority] = [])).push([nx, ny, nc]);
-        if (work) work.queued = (work.queued || 0) + 1;
-      }
-    }
-  }
-  return null;
+  q.first = estimate(q, sx, sy);
+  q.buckets[q.first] = [[sx, sy, 0]];
+  return q;
 }
 
-function route(prev, at, sx, sy, tx, ty, s, dig, unknownDig) {
+const at = (q, x, y) => (y - q.minY) * q.W + (x - q.minX);
+const estimate = (q, x, y) => (q.heuristic ? Math.abs(q.tx - x) + Math.abs(q.ty - y) : 0);
+
+// Works through one priority's tiles (newest first with the heuristic, in
+// order without); true once the goal is reached.
+function settle(q, bucket) {
+  const { cost, work, heuristic, tx, ty, minX, minY, maxX, maxY } = q;
+  for (let i = 0; heuristic ? bucket.length > 0 : i < bucket.length; i++) {
+    const node = heuristic ? bucket.pop() : bucket[i];
+    const [cx, cy, c] = node;
+    if (cost.get(at(q, cx, cy)) !== c) continue; // reached cheaper since
+    if (work) work.expanded = (work.expanded || 0) + 1;
+    if (cx === tx && cy === ty) return true;
+    for (let direction = 0; direction < 4; direction++) {
+      const d = heuristic ? 3 - direction : direction;
+      const nx = cx + DX[d],
+        ny = cy + DY[d];
+      if (nx >= minX && ny >= minY && nx <= maxX && ny <= maxY) relax(q, node, nx, ny);
+    }
+  }
+  return false;
+}
+
+// The step from `from` ([x, y, cost so far]) onto (nx, ny): kept if it's
+// the cheapest way yet to that tile.
+function relax(q, from, nx, ny) {
+  const c = from[2];
+  const k = at(q, nx, ny),
+    old = q.cost.get(k);
+  // Every edge costs at least one. A cheaper known route lets us
+  // reject this edge before querying terrain, fog or digging gear.
+  if (old !== undefined && old <= c + 1) return;
+  const step = nx === q.tx && ny === q.ty ? 1 : stepCost(q, nx, ny);
+  if (!step) return;
+  const nc = c + step;
+  if (old !== undefined && old <= nc) return;
+  q.cost.set(k, nc);
+  q.prev.set(k, from); // route() reads only its x and y
+  const priority = nc + estimate(q, nx, ny);
+  (q.buckets[priority] || (q.buckets[priority] = [])).push([nx, ny, nc]);
+  if (q.work) q.work.queued = (q.work.queued || 0) + 1;
+}
+
+// What stepping onto tile (x, y) costs, or 0 when you can't.
+function stepCost(q, x, y) {
+  const { w, z } = q;
+  if (q.seenOnly && !isExplored(w, x, y, z)) {
+    if (q.unknownDig && q.dig) return DIG_COST; // belief, never inspect hidden rock
+    return q.fog ? 1 : 0; // nor hidden ground: hoped walkable
+  }
+  if (walkable(w, x, y, z)) return q.wade || !swimsAt(w, x, y, z) ? 1 : 0;
+  return q.dig && diggable(q.s, x, y) ? DIG_COST : 0;
+}
+
+function route(q) {
+  const { prev, sx, sy, s } = q;
   const out = [];
   for (
-    let node = [tx, ty];
+    let node = [q.tx, q.ty];
     node && !(node[0] === sx && node[1] === sy);
-    node = prev.get(at(node[0], node[1]))
+    node = prev.get(at(q, node[0], node[1]))
   ) {
     const p = { x: node[0], y: node[1] };
-    if (dig)
+    if (q.dig)
       p.dig =
-        (unknownDig && !isExplored(s.world, p.x, p.y, s.player.z)) ||
-        !walkable(s.world, p.x, p.y, s.player.z);
+        (q.unknownDig && !isExplored(s.world, p.x, p.y, q.z)) || !walkable(s.world, p.x, p.y, q.z);
     out.push(p);
   }
   return out.reverse();

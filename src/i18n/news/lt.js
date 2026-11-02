@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.6':
+    'Užkulisiuose kodas, kuris randa kelią, kai {phone:bakstelėji|laptop:spusteli} kur nors eiti, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Mica eina lygiai tais pačiais keliais kaip anksčiau ir taip pat greitai.',
   'news.0.193.5':
     'Užkulisiuose kortelė, kuri iššoka virš pastato, dabar sudedama iš mažų dalių, po vieną kiekvienai pastato rūšiai. Kiekviena kortelė rodo ir daro lygiai tą patį, ką ir anksčiau.',
   'news.0.193.4':

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.6':
+    'Behind the scenes, the code that finds the way when you {phone:tap|laptop:click} somewhere to walk is now in small parts, each easy to check. Mica takes exactly the same routes as before, just as fast.',
   'news.0.193.5':
     'Behind the scenes, the card that pops up over a building is now put together from small parts, one for each kind of building. Every card shows and does exactly what it did before.',
   'news.0.193.4':

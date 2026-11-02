@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.193.6] - 2026-11-02
+
+Watch asked for pathfinding next (2026-11-02): `findPath` in
+`src/core/paths.js`, the search behind every tapped walk, the Perfect brain
+and the tests' bot, scored 49 for complexity, with the search loop, the
+neighbour step and the terrain rules nested four deep in one function.
+Every route is the same, found as fast.
+
+- `findPath` now sets up one search (`searchOf`: the options, the box it
+  stays in, the cost and bucket tables) and works through it a priority at a
+  time (`settle`), trying each neighbour (`relax`), with what a step onto a
+  tile costs in `stepCost` (seen or not, fog, water and Boots, digging) and
+  the route read back by `route`. The bounds check stays in the loop and a
+  step remembers the tile it came from as found, so the hot path does no
+  more work than before.
+- Checked by running the old and new search side by side: 12,000 searches
+  in every save in `test/fixtures/saves/` and new worlds, on the surface and
+  underground, with random starts, goals, box sizes, every mix of `known`,
+  `dig`, `unknownDig` and `fog`, with and without the heuristic: the same
+  routes, dig marks and work counts. Six planted breaks were each caught.
+  Timed with the world and JIT warm, alternating order: the same speed
+  within noise (about 950 to 980 ms for 19,200 searches each). The Perfect
+  benchmark's completion and behaviour checks pass. Lint budget 225 -> 221.
+
 ## [0.193.5] - 2026-11-02
 
 Watch asked for the building card next (2026-11-02): `cardAt` in
