@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.191.0':
+    'The sound now says hello: a short music-box chime plays the moment the game’s sound wakes, on your first {phone:tap|laptop:click or key} (browsers keep a page silent until then), even while the game is still loading. The music then comes in at once instead of swelling up slowly.',
   'news.0.190.1':
     'What’s new, the earnings statement and the performance panel open with less to download: they reuse the game already loaded instead of bringing their own copy, and What’s new loads only your language.',
   'news.0.190.0':

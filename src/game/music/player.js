@@ -15,6 +15,7 @@ import { INSTRUMENTS } from './instruments.js';
 const LOOKAHEAD = 0.6; // seconds of music queued ahead of the clock
 const SETTLE = 1.5; // seconds a new place must hold before the music changes
 const FADE_IN = 1.5;
+const FIRST_FADE_IN = 0.25; // the first track: in at once, the sound has just woken
 const FADE_OUT = 0.9; // time constant of the old track's fade
 const BREATH_BARS = 2; // accompaniment alone between rounds of a track
 
@@ -53,13 +54,18 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
   let current = null; // the track playing: see begin()
   let wanted = null,
     wantedAt = 0;
+  let begun = false; // a track has started on this context
 
+  // The first track comes straight in: the player has just tapped, and a
+  // slow swell from silence reads as the sound taking its time to start.
+  // Later tracks swell in slowly under the crossfade.
   function begin(id) {
     const track = TRACKS[id];
-    const at = ctx.currentTime + 0.1;
+    const at = ctx.currentTime + (begun ? 0.1 : 0.02);
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(track.gain || 1, at + FADE_IN);
+    gain.gain.exponentialRampToValueAtTime(track.gain || 1, at + (begun ? FADE_IN : FIRST_FADE_IN));
+    begun = true;
     gain.connect(bus);
     const send = ctx.createGain();
     send.gain.value = track.space;
@@ -282,12 +288,16 @@ export function createMusic(ctx, out, { canPlay, onStart }) {
       clearInterval(timer);
       end();
     },
-    // Where the player is now: the music follows once it holds.
+    // Where the player is now: the music follows once it holds (at once
+    // when nothing plays yet).
     want(id) {
       if (id === wanted || !TRACKS[id]) return;
       wanted = id;
       wantedAt = ctx.currentTime;
+      if (!current) tick();
     },
+    // The context has just started running: begin now, not at the next tick.
+    wake: tick,
     get enabled() {
       return enabled;
     },

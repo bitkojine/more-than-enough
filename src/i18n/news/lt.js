@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.191.0':
+    'Žaidimo garsas dabar pasisveikina: trumpas muzikinės dėžutės skambesys nuskamba, vos tik garsas pabunda, kai pirmąkart {phone:paliesi ekraną|laptop:spustelėsi ar paspausi klavišą} (iki tol naršyklės puslapį laiko tylų), net kol žaidimas dar kraunasi. Tada muzika pasigirsta iškart, o ne pamažu stiprėja.',
   'news.0.190.1':
     'Kas naujo, uždarbio ataskaita ir našumo skydelis atsidaro atsisiųsdami mažiau: jie naudoja jau įkeltą žaidimą, o ne atsineša savo kopiją, o Kas naujo įkelia tik tavo kalbą.',
   'news.0.190.0':

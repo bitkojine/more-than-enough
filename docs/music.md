@@ -47,6 +47,37 @@ on a cheap sound card. What made it work, and what we copy:
   and adds the room's reverb.
 - `src/game/audio.js`: owns the audio context; sound effects use the
   playing track's pentatonic scale, so gathering plays along in key.
+- `src/game/music/chime.js`: the hello, a short music-box chime played
+  once a page the moment the sound wakes (Watch picked it, 2026-11-02).
+
+## How the sound starts and stops
+
+Browsers keep a page silent until the player has done something on it
+(iOS Safari counts only a tap that ends in a click, not a drag), so no sound
+can play on a plain reload. What happens instead:
+
+1. **Load.** `main.js` makes the sound before the pictures load, so taps
+   while the game is still loading count. It makes an audio context at
+   once: where the browser allows sound without a gesture (some desktop
+   browsers), the hello and the music start right away.
+2. **First press.** Every kind of press (pointer, touch, mouse, key, click)
+   tries to wake the context from inside the gesture, with the silent
+   one-sample trick mobile Safari needs. A context made before any gesture
+   that has played nothing yet is swapped for a fresh one made inside the
+   gesture (Edge could leave the first one silent, issue #1). The hello is
+   queued on the waking context, so it plays the moment the audio runs,
+   however busy the page is; then the music for where Mica stands begins
+   at once and comes in within a quarter of a second (later tracks still
+   swell in slowly when the place changes).
+3. **While playing.** The scene is told four times a second (presenter.js);
+   a new place must hold 1.5 s before the music crossfades.
+4. **Tab hidden, phone call, the OS taking the audio.** The music stops
+   queueing bars while the page is hidden or the context is not running,
+   so nothing bursts out on return. Once the page has had a gesture, the
+   context is nudged back on return, on focus and every second.
+5. **Settings.** Sound off silences everything, hello included, until the
+   page reloads (it isn't kept). Music off stops only the soundtrack and is
+   kept per browser.
 
 ## Adding a track
 

@@ -6,6 +6,7 @@
  * Knows nothing about game state: callers pass in what each sound needs. */
 
 import { createMusic } from './music/player.js';
+import { chime } from './music/chime.js';
 
 // Pentatonic keys the melody can drift into (all consonant, no wrong notes).
 const SCALES = [
@@ -35,6 +36,7 @@ export function createAudio() {
   let early = false; // the context was made before any gesture
   let gestured = false;
   let played = false; // a sound effect has played on this context
+  let greeted = false; // the hello chime has played (music/chime.js)
 
   function currentScale() {
     const inKey = music && music.scale();
@@ -77,7 +79,9 @@ export function createAudio() {
     }
     early = !gestured;
     ctx.onstatechange = () => {
-      if (ctx.state !== 'running') nudge();
+      if (ctx.state !== 'running') return nudge();
+      greet();
+      if (music) music.wake();
     };
     return true;
   }
@@ -143,6 +147,22 @@ export function createAudio() {
     meter = null;
     music = null;
     noise = null;
+    greeted = false; // a hello on the swapped-out context may not have been heard
+  }
+
+  // Once a page, the moment the sound wakes: a short hello, so the player
+  // hears at once that the sound is on. Inside the first gesture it is
+  // queued on the context that is just resuming, so it plays as soon as the
+  // audio runs, however busy the page is. Doesn't count as `played`: a
+  // context made at load must still be swapped at the first gesture.
+  function greet() {
+    if (greeted || !master || muted) return;
+    greeted = true;
+    try {
+      chime(ctx, master, ctx.currentTime + 0.02);
+    } catch {
+      /* a lost hello is no loss */
+    }
   }
 
   function init(e) {
@@ -150,8 +170,9 @@ export function createAudio() {
       gestured = true;
       fresh();
     }
-    if (!unlock(e) || master) return;
-    wire();
+    if (!unlock(e)) return;
+    if (!master) wire();
+    if (master) greet();
   }
 
   // The output chain, and the soundtrack on it.
@@ -395,6 +416,7 @@ export function createAudio() {
   setInterval(nudge, 1000);
   if (create()) {
     wire();
+    if (ctx && ctx.state === 'running') greet();
     nudge();
   }
 

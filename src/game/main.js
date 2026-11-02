@@ -93,6 +93,12 @@ const el = findElements();
 el.verText.textContent = 'v' + VERSION;
 window.MTE_VERSION = VERSION; // for the crash report
 
+// The sound listens for the first tap from here on, before the pictures
+// load: iOS Safari wakes sound only inside a tap, so a tap while the game
+// loads would otherwise be lost and the sound wait for another.
+const audio = createAudio();
+audio.wakeOn(el.canvas);
+
 // Nothing is drawn until the game's pictures are in (boot.js). The pack's
 // URL carries this module's ?v= cache-busting hash.
 const packUrl = new URL('../../packs/default/pack.json', import.meta.url);
@@ -109,8 +115,6 @@ if (new URLSearchParams(location.search).has('autoplay')) {
 const cam = createCamera(el.canvas);
 const descent = createDescent(el.canvas);
 cam.relief = (x, y) => groundHeight(game.state.world, x, y, cam.z);
-const audio = createAudio();
-audio.wakeOn(el.canvas);
 // This browser's own conveniences: zoom, drag direction, music.
 const savedView = loadView();
 // Keeps one of those choices: `keepSaved('wiki')(value)`.

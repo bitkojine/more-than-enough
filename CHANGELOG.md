@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.191.0] - 2026-11-02
+
+Watch asked for a short cute sound on every reload, because the game's audio
+seemed to take a while to start. Browsers keep a page silent until its first
+tap or key press, so a sound on load alone can't play on phones or Safari;
+this makes the sound plainly start on that first press instead.
+
+- A hello chime (`src/game/music/chime.js`): four music-box tines up a D
+  major chord over a soft harp string, about 1.5 s, once a page, the moment
+  the sound wakes. Watch picked it from three tried. It is queued on the
+  context inside the waking gesture, so it plays as soon as the audio runs
+  even when the page is busy. Where a browser allows sound at load, it plays
+  at load. Sound off silences it. It doesn't count as a played sound, so a
+  context made at load is still swapped at the first gesture (issue #1).
+- The first track comes straight in. Before, after the first tap the music
+  waited for the next 200 ms tick, then swelled from silence over 1.5 s
+  through an accompaniment-only intro: measured in headless Chrome, 0.5 to
+  2 s before anything was audible. Now the player starts it as soon as the
+  context runs and fades it in over 0.25 s; later tracks still crossfade
+  slowly when the place changes.
+- The sound listens from before the pictures load (`main.js`). A tap during
+  loading used to be lost: Chrome then woke the sound about 3 s later
+  through the once-a-second nudge, and iOS Safari, which only wakes sound
+  inside a tap, needed another tap. Now that tap plays the hello.
+- `docs/music.md` describes how the sound starts and stops through the
+  page's life; the architecture model's Audio component no longer mentions
+  the extractor hum removed long ago. `test/unit/music-start.test.js` checks
+  the quick first fade, the slow later one, and the chime's timing on a
+  stand-in audio context.
+
 ## [0.190.1] - 2026-11-02
 
 Watch chose "Fix sharing, split news text" after the boot-JavaScript

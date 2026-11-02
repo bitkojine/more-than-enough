@@ -87,10 +87,10 @@ workspace "MORE THAN ENOUGH" "C4 model for the MTE idle/survival browser game. T
                     }
                 }
 
-                audio = component "Audio" "A small WebAudio synth unlocked by the first gesture: per-material gather voices, collect/build/upgrade/fanfare cues and an extractor hum. Takes parameters, never reads game state." "JavaScript" {
+                audio = component "Audio" "The game's sound, all synthesized in WebAudio, unlocked by the first gesture (or at load where the browser allows): a short music-box hello once a page as the sound wakes, the composed soundtrack per place (music/), and per-material gather voices and collect/build/upgrade/fanfare cues in the music's key. Takes parameters, never reads game state." "JavaScript" {
                     tags "Presentation"
                     properties {
-                        "ref" "src/game/audio.js"
+                        "ref" "src/game/audio.js, src/game/music/"
                     }
                 }
 
