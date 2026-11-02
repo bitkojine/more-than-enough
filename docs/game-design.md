@@ -50,6 +50,9 @@ No wood or tree cutting. Each purchased equipment or building tier needs a disti
 
 No world is ever lost (Watch, 2026-10-26): Embark never loses or destroys anything, the world left behind stays saved as it was, and the player can always return to any world from Settings → Worlds. Every new world starts empty-handed; only knowledge and records carry over. Embark from an old-economy world starts a crystal world too (Watch, 2026-10-26); the old world stays saved and playable. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
+### The old economy is frozen as legacy — confirmed, 2026-11-02
+Old solo worlds and every shared world keep the old economy (refineries, Abundance, AUTO). It stays fully loadable and playable, with every earned building, tool and record kept, and it still gets fixes for bugs, saves and safety. New features, content and rules target only the crystal economy; nothing new is built for the old one. Bringing the crystal chapter to shared worlds stays open for later. Freezing deletes nothing: no world, building or progress is removed or migrated away (Watch chose this over keeping both alive or moving shared worlds to crystal now).
+
 ### No phones or laptops in the world — confirmed, 2026-10-24
 Characters no longer carry a phone or laptop, in any world. A device in hand
 and a "battery low" warning made players think of their real device (Watch).

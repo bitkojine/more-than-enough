@@ -38,7 +38,9 @@ commit. When you find something new, add it.
   32 milestones arrive in the first 10 minutes, followed by about 17 hours of
   holding AUTO and buying refinery levels (gameplay review, v0.145.0). The
   shared world has no win at all, and crystal worlds can't be played
-  together. Whether the story arc comes to shared worlds is undecided.
+  together. Since 2026-11-02 the old economy is frozen as legacy: it keeps
+  working and gets fixes, but new work targets the crystal economy only.
+  Whether the story arc comes to shared worlds is undecided.
 - **Core design questions are still open.** These include who stole the
   heart, what tending a colony actually does, how wild colonies regrow, and
   what a finished world leads to. See "Other design questions still open" in
