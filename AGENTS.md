@@ -129,6 +129,10 @@ kind of knowledge lives.
   `src/net/protocol.js` must work with the other side one version behind:
   add fields, tolerate missing or extra ones, and time out rather than wait
   forever.
+  `test/unit/old-wire.test.js` plays what past releases' game and room
+  said to each other (`test/fixtures/wire/`) against today's room and game;
+  add a release's session with `node scripts/wire-fixtures.mjs <commit> <version>`
+  when it changes the wire.
 - New things the player sees or presses go where `docs/ui.md` puts them.
 
 ## Where knowledge lives
