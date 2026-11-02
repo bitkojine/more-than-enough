@@ -328,8 +328,9 @@ After the first full run only what changed is run again. One file by hand:
 npx stryker run --mutate src/core/paths.js
 ```
 
-`test/unit/i18n.test.js` reads the source as text, which Stryker's rewritten
-copy trips, so it is left out of the sweep. Some survivors can't be caught
+Three test files read or measure the source as text, which Stryker's
+rewritten copy trips: `i18n`, `file-size` and `load-budget` are left out of
+the sweep and were proven instead by planting a violation each. Some survivors can't be caught
 because the change makes no difference (a shortcut that only saves time); mark
 those in the code with `// Stryker disable next-line <mutator>: <why>`.
 

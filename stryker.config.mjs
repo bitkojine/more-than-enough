@@ -6,10 +6,12 @@
 //   npx stryker run --mutate src/core/paths.js
 import { readdirSync } from 'node:fs';
 
-// Every unit and property test file, but the ones that read the source as
-// text: Stryker's rewritten copy of a file trips them (i18n checks no player
-// text is written into the code). Those are proven by planting a violation.
-const READS_SOURCE = new Set(['i18n.test.js']);
+// Every unit and property test file, but the ones that read or measure the
+// source as text: Stryker's rewritten copy of a file trips them (i18n checks
+// no player text is written into the code; file-size and load-budget measure
+// files, and instrumenting makes every file bigger). Those are proven by
+// planting a violation instead.
+const READS_SOURCE = new Set(['i18n.test.js', 'file-size.test.js', 'load-budget.test.js']);
 const testFiles = ['test/unit', 'test/property'].flatMap((dir) =>
   readdirSync(dir)
     .filter((f) => f.endsWith('.test.js') && !READS_SOURCE.has(f))
