@@ -32,12 +32,17 @@ const SOURCES = [...jsFiles(join(ROOT, 'src')), ...jsFiles(join(ROOT, 'wiki'))].
 );
 const rel = (p) => relative(ROOT, p);
 
-// Relative imports of a file, as absolute paths.
-function importsOf(file) {
+// Relative imports of a file, as absolute paths: `import … from`, `export …
+// from` and bare `import './x.js'`; with `lazy`, `import('./x.js')` too (a
+// lazy import is no load-time cycle, but it is still a dependency).
+function importsOf(file, { lazy = false } = {}) {
   const src = readFileSync(file, 'utf8');
-  return [...src.matchAll(/^\s*(?:import|export)[^'"]*?from\s*['"](\.[^'"]+)['"]/gm)].map((m) =>
-    normalize(join(dirname(file), m[1]))
-  );
+  const found = [
+    ...src.matchAll(/^\s*(?:import|export)[^'"]*?from\s*['"](\.[^'"]+)['"]/gm),
+    ...src.matchAll(/^\s*import\s*['"](\.[^'"]+)['"]/gm),
+    ...(lazy ? src.matchAll(/\bimport\(\s*['"](\.[^'"]+)['"]\s*\)/g) : [])
+  ];
+  return found.map((m) => normalize(join(dirname(file), m[1])));
 }
 
 test('no merge-conflict markers are left in the code', () => {
@@ -73,7 +78,7 @@ test('source modules have no import cycles', () => {
 
 test('the core never imports game code', () => {
   for (const file of jsFiles(join(ROOT, 'src', 'core'))) {
-    for (const dep of importsOf(file)) {
+    for (const dep of importsOf(file, { lazy: true })) {
       assert.ok(
         dep.startsWith(join(ROOT, 'src', 'core')) || dep.startsWith(join(ROOT, 'src', 'i18n')),
         `${rel(file)} imports ${rel(dep)}`
@@ -81,7 +86,7 @@ test('the core never imports game code', () => {
     }
   }
   for (const file of jsFiles(join(ROOT, 'src', 'i18n'))) {
-    for (const dep of importsOf(file)) {
+    for (const dep of importsOf(file, { lazy: true })) {
       assert.ok(dep.startsWith(join(ROOT, 'src', 'i18n')), `${rel(file)} imports ${rel(dep)}`);
     }
   }
