@@ -3,8 +3,30 @@
  * each test file catches. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { shards } from '../../scripts/mutation-shard.mjs';
 import { merge, testValue, summary } from '../../scripts/mutation-report.mjs';
+
+// Files of known sizes, to check exactly how they are dealt out.
+function sized(lines) {
+  const dir = mkdtempSync(join(tmpdir(), 'mutation-parts-'));
+  return Object.entries(lines).map(([name, n]) => {
+    const f = join(dir, name);
+    writeFileSync(f, 'x\n'.repeat(n - 1) + 'x');
+    return f;
+  });
+}
+
+test('mutation parts: biggest file first, each to the part with the fewest lines so far', () => {
+  const [a, b, c, d, e] = sized({ 'a.js': 50, 'b.js': 40, 'c.js': 30, 'd.js': 20, 'e.js': 20 });
+  // a -> 1 (50); b -> 2 (40); c -> 3 (30); d -> 3 (50); e (tied 20 with d,
+  // after it by name) -> 2 (60); ties between parts go to the first.
+  assert.deepEqual(shards([e, d, c, b, a], 3), [[a], [b, e], [c, d]]);
+  assert.deepEqual(shards([a, b], 4), [[a], [b], [], []], 'more parts than files');
+});
 
 test('mutation parts: every file in exactly one part, biggest first to the lightest part', () => {
   const files = [
@@ -18,6 +40,23 @@ test('mutation parts: every file in exactly one part, biggest first to the light
   assert.deepEqual(parts.flat().sort(), [...files].sort());
   assert.deepEqual(shards(files, 3), parts, 'the same every time');
   assert.deepEqual(shards(files, 1), [[...files].sort()]);
+});
+
+test('mutation parts: the command prints one part, and refuses a part that does not exist', () => {
+  const run = (...args) =>
+    execFileSync(process.execPath, ['scripts/mutation-shard.mjs', ...args], { encoding: 'utf8' });
+  const all = Array.from({ length: 3 }, (_, i) =>
+    run(String(i + 1), '3')
+      .trim()
+      .split(',')
+  );
+  assert.ok(all.every((p) => p.length > 0 && p.every((f) => f.endsWith('.js'))));
+  const every = all.flat();
+  assert.equal(new Set(every).size, every.length, 'no file in two parts');
+  assert.ok(every.includes('src/core/paths.js') && every.includes('server/src/room.js'));
+  assert.ok(every.includes('src/game/hud.js') && every.includes('src/net/protocol.js'));
+  for (const bad of [['0', '3'], ['4', '3'], ['1', '0'], []])
+    assert.throws(() => run(...bad), /usage/, JSON.stringify(bad));
 });
 
 const mutant = (id, status, coveredBy, killedBy) => ({

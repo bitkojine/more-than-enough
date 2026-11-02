@@ -31,6 +31,12 @@
     "prettier": "3.9.10"
   },
   "overrides": {
-    "minimatch": "^11.0.1"
+    "minimatch": "^11.0.1",
+    "typed-rest-client": {
+      "qs": "6.17.1"
+    },
+    "@stryker-mutator/tap-runner": {
+      "glob": "14.0.3"
+    }
   }
 }
