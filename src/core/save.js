@@ -83,6 +83,8 @@ export function serialize(s) {
 
 const isNum = (v) => typeof v === 'number' && Number.isFinite(v);
 const isInt = (v) => Number.isInteger(v);
+// A list read from a save, or none if it isn't one.
+const list = (v) => (Array.isArray(v) ? v : []);
 const clampInt = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.floor(v)));
 
 // Copies numeric fields of `from` onto the matching keys of `into`.
@@ -93,35 +95,66 @@ function copyNumbers(into, from) {
 
 // Returns the restored state, or null if the save is unreadable or too old.
 // `make(seed)` makes the state it fills in (the room's copies use a cheap one).
+// Each part is read on its own (below), mended where it can be: one bad
+// field never refuses the whole save.
 export function deserialize(str, make = createState) {
-  let d;
   try {
-    d = JSON.parse(str);
+    return read(JSON.parse(str), make);
   } catch {
+    // Damaged past what the readers mend: unreadable, so the game sets it
+    // aside (storage.js loadGame) instead of failing to start.
     return null;
   }
+}
+
+function read(d, make) {
   if (!d || typeof d !== 'object') return null;
   if (!isInt(d.v) || d.v < OLDEST_SAVE || d.v > SAVE_VERSION || !isNum(d.seed)) return null;
+  if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
 
   const s = make(d.seed);
   s.emptyStart = d.emptyStart === true;
-  if (d.logisticsModel && d.logisticsModel !== 'depot-v1') return null;
   if (d.logisticsModel) s.logisticsModel = d.logisticsModel;
-  if (d.cultivation) {
-    // Mended, never refused for one bad field (cultivation.js).
-    const c = mendCultivation(d.cultivation);
-    if (!c || !validCultivation(c)) return null;
-    s.cultivation = c;
-    s.world.cultivation = true;
-    s.world.chunks.clear();
-    s.world.hotKey = -1;
-    s.world.hotChunk = null;
-  }
-  const w = s.world;
-  w.mods = new VersionedMap((d.mods || []).filter(([k, v]) => isInt(k) && isInt(v) && v >= 0));
+  if (d.cultivation && !readCultivation(s, d.cultivation)) return null;
+  readLand(s.world, d);
+  readPlayer(s, d.player);
+  readKit(s, d);
+  readProgress(s, d);
+  readLight(s, d);
+  readGoals(s, d);
+  s.extractors = readExtractors(d.extractors);
+  s.underground = { deepest: Math.min(s.player.z, deepestOf(d.underground)) };
+  return s;
+}
+
+// The deepest layer you've been to.
+function deepestOf(u) {
+  const z = u?.deepest;
+  return isInt(z) && z <= SURFACE && z >= Z_MIN ? z : SURFACE;
+}
+
+// Mended, never refused for one bad field (cultivation-save.js); false if
+// even that can't make it whole.
+function readCultivation(s, raw) {
+  const c = mendCultivation(raw);
+  if (!c || !validCultivation(c)) return false;
+  s.cultivation = c;
+  s.world.cultivation = true;
+  s.world.chunks.clear();
+  s.world.hotKey = -1;
+  s.world.hotChunk = null;
+  return true;
+}
+
+// What was done to the land: mined tiles, fog lifted, holes and props.
+function readLand(w, d) {
+  w.mods = new VersionedMap(
+    list(d.mods).filter((e) => Array.isArray(e) && isInt(e[0]) && isInt(e[1]) && e[1] >= 0)
+  );
   w.explored = new ExploredChunks();
-  for (const [k, b64] of d.explored || []) {
+  for (const e of list(d.explored)) {
     try {
+      const [k, b64] = e;
       const mask = b64ToBytes(b64);
       if (isInt(k) && isValidFogMask(mask)) w.explored.set(k, mask);
     } catch {
@@ -132,7 +165,7 @@ export function deserialize(str, make = createState) {
     const z = unpackKey(k).z;
     return z <= SURFACE && z > Z_MIN;
   };
-  w.holes = new VersionedSet((d.holes || []).filter((k) => isInt(k) && holeLayerOk(k)));
+  w.holes = new VersionedSet(list(d.holes).filter((k) => isInt(k) && holeLayerOk(k)));
   // Tunnel props in the mine, water power on the surface.
   const propOk = ([k, kind]) =>
     isInt(k) &&
@@ -140,25 +173,34 @@ export function deserialize(str, make = createState) {
     (PROPS[kind].on === 'tunnel'
       ? unpackKey(k).z < SURFACE && unpackKey(k).z >= Z_MIN
       : unpackKey(k).z === SURFACE);
-  w.props = new VersionedMap((d.props || []).filter((p) => Array.isArray(p) && propOk(p)));
+  w.props = new VersionedMap(list(d.props).filter((p) => Array.isArray(p) && propOk(p)));
+}
 
-  if (d.player && isNum(d.player.x) && isNum(d.player.y)) {
-    s.player = {
-      x: d.player.x,
-      y: d.player.y,
-      z: isInt(d.player.z) && d.player.z <= SURFACE && d.player.z >= Z_MIN ? d.player.z : SURFACE
-    };
-  }
+function readPlayer(s, p) {
+  if (!p || !isNum(p.x) || !isNum(p.y)) return;
+  s.player = {
+    x: p.x,
+    y: p.y,
+    z: isInt(p.z) && p.z <= SURFACE && p.z >= Z_MIN ? p.z : SURFACE
+  };
+}
+
+// What you carry and own: packs, tools, refinery levels, perks.
+function readKit(s, d) {
   copyNumbers(s.inv, d.inv);
   // Missing old fields mean legacy basic equipment, not a new empty start.
-  for (const k in s.tools) s.tools[k] = s.emptyStart ? 0 : 1;
+  const least = s.emptyStart ? 0 : 1;
+  for (const k in s.tools) s.tools[k] = least;
   copyNumbers(s.tools, d.tools);
   copyNumbers(s.resUp, d.resUp);
   // Levels index content tables, so keep them inside those tables.
-  for (const k in s.tools)
-    s.tools[k] = clampInt(s.tools[k], s.emptyStart ? 0 : 1, TOOLS[k].levels.length);
+  for (const k in s.tools) s.tools[k] = clampInt(s.tools[k], least, TOOLS[k].levels.length);
   for (const k in s.resUp) s.resUp[k] = clampInt(s.resUp[k], 0, REFINERIES[k].levels.length);
   copyNumbers(s.perks, d.perks);
+}
+
+// Records and running totals: stats, mushrooms, unlocks, spending.
+function readProgress(s, d) {
   copyNumbers(s.stats, d.stats);
   for (const r in s.sources) copyNumbers(s.sources[r], d.sources && d.sources[r]);
   for (const k in d.mushrooms || {})
@@ -167,23 +209,25 @@ export function deserialize(str, make = createState) {
     ? d.mushroomsEver.filter((k, i, all) => MUSHROOMS[k] && all.indexOf(k) === i)
     : [];
   for (const k in s.unlocks) s.unlocks[k] = !!(d.unlocks && d.unlocks[k]);
-  for (const k of [
-    'abundanceLv',
-    'insight',
-    'prestiges',
-    'totalEver',
-    'goalIndex',
-    'time',
-    'seen'
-  ]) {
+  for (const k of ['abundanceLv', 'insight', 'prestiges', 'totalEver', 'goalIndex', 'time', 'seen'])
     if (isNum(d[k])) s[k] = d[k];
-  }
   loadSpending(s, d.spending);
+  s.discovered = {
+    ore: !!(d.discovered && d.discovered.ore),
+    crystal: !!(d.discovered && d.discovered.crystal)
+  };
+}
+
+// The light in your hand: the lantern's charge and a burning flare.
+function readLight(s, d) {
   if (isNum(d.battery)) s.battery = Math.max(0, Math.min(1, d.battery)); // a save from before it: full
   if (isNum(d.flare)) s.flare = Math.max(0, Math.min(FLARE_TIME, d.flare)); // the flare in your hand, still burning
   normalizeCarriedLight(s);
-  // Milestones reached; a save from before they counted in any order has
-  // only how many, which were the first ones listed.
+}
+
+// Milestones reached; a save from before they counted in any order has
+// only how many, which were the first ones listed.
+function readGoals(s, d) {
   const goalIds = (s.cultivation ? CULTIVATION_GOALS : GOALS).map((g) => g.id);
   s.goalsDone = Array.isArray(d.goalsDone)
     ? d.goalsDone.filter((id, i, all) => goalIds.includes(id) && all.indexOf(id) === i)
@@ -194,11 +238,10 @@ export function deserialize(str, make = createState) {
       s.goalsDone.push('cultivationRepair');
   }
   s.goalIndex = s.goalsDone.length;
-  s.discovered = {
-    ore: !!(d.discovered && d.discovered.ore),
-    crystal: !!(d.discovered && d.discovered.crystal)
-  };
-  s.extractors = (d.extractors || [])
+}
+
+function readExtractors(raw) {
+  return list(raw)
     .filter((e) => e && EXTRACTORS[e.k] && isInt(e.x) && isInt(e.y))
     .map((e) => ({
       key: e.k,
@@ -209,13 +252,4 @@ export function deserialize(str, make = createState) {
       buffer: isNum(e.b) ? e.b : 0,
       ...(typeof e.o === 'string' && /^[0-9a-f]{16}$/.test(e.o) ? { owner: e.o } : {})
     }));
-
-  const u = d.underground || {};
-  s.underground = {
-    deepest: Math.min(
-      s.player.z,
-      isInt(u.deepest) && u.deepest <= SURFACE && u.deepest >= Z_MIN ? u.deepest : SURFACE
-    )
-  };
-  return s;
 }

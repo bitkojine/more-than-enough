@@ -2,24 +2,15 @@
  * separate map, movement system or renderer; no DOM or wall-time dependency.
  * Its parts: what it's made of (cultivation-model.js), the stolen heart
  * (cultivation-heart.js) and saves (cultivation-save.js). */
-import { activeCarriedLight, normalizeCarriedLight } from './light.js';
 import { focusedChapter, contentLocked, effectiveToolLevel } from './progression.js';
 import { atInteraction } from './interaction.js';
 import { tileAt, isExplored } from './world.js';
 import { packKey } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
-import { PROPS } from './content.js';
-import { teleportFrom } from './cultivation-travel.js';
-import { illuminationAt, invalidateIllumination, LIGHT_MAX } from './illumination.js';
-import { earn, spend as payInventory, canAfford } from './economy.js';
+import { illuminationAt, LIGHT_MAX } from './illumination.js';
+import { earn, spend as payInventory } from './economy.js';
+import { MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
 import {
-  CULTIVATION_RECIPES,
-  MACHINE_REPAIRS,
-  machineSections,
-  machineRepairCost
-} from './cultivation-model.js';
-import {
-  HEART_MIN,
   HEART_SUN,
   HEART_MEND,
   newHeart,
@@ -41,7 +32,8 @@ export function crystalGrowthRate(b) {
     ? CRYSTAL_GROWTH_RATE
     : 0;
 }
-const qualityMean = (a, an, b, bn) => Math.max(0, Math.min(100, a + (b - a) * (bn / (an + bn))));
+export const qualityMean = (a, an, b, bn) =>
+  Math.max(0, Math.min(100, a + (b - a) * (bn / (an + bn))));
 const distance = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const nearby = (a, b, r) => a.z === b.z && distance(a, b) <= r;
 const cell = (x, y, z) => `${x},${y},${z}`;
@@ -135,7 +127,6 @@ export function cultivationStatus(s, b) {
   if (b.kind === 'chamber' && b.health === undefined) return 'empty';
   return 'growing';
 }
-const canPay = (s, cost) => canAfford(s.inv, cost);
 function pay(s, cost, category = 'buildings') {
   payInventory(s, cost, category);
   if (!s.inv.crystal) s.cultivation.quality = 100;
@@ -143,12 +134,15 @@ function pay(s, cost, category = 'buildings') {
 function earned(s, res, n) {
   earn(s, res, n, 'buildings');
 }
+// For the commands (cultivation-commands.js).
+export { pay as payCultivation, earned as earnCultivation };
+export const forgetCultivationIndex = (c) => indexCache.delete(c);
 // Built facilities always protect their contents from light. Lighting changes
 // still expose unprotected cargo; wild colonies use the physical light field.
 export function lightCrystal(s) {
   exposeCargo(s);
 }
-function exposeCargo(s) {
+export function exposeCargo(s) {
   const c = s.cultivation,
     p = { x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z };
   const strength = c.gear.carrier ? 0 : cultivationExposure(s, p);
@@ -217,7 +211,7 @@ export const BUILT_FACILITIES = Object.freeze([
 ]);
 export const CONDUIT_REACH = 4; // tiles, along the grid, from a conduit to its chamber and vault
 // The chamber and vault a conduit at `at` would join, or null.
-function conduitRoute(s, at, moving = null) {
+export function conduitRoute(s, at, moving = null) {
   const c = s.cultivation,
     from = c.facilities.find(
       (a) => a !== moving && a.kind === 'chamber' && nearby(a, at, CONDUIT_REACH)
@@ -287,185 +281,6 @@ export function moveFacility(s, b, x, y) {
   b.x = x;
   b.y = y;
   indexCache.delete(c);
-  return 'ok';
-}
-export function cultivationCommand(s, cmd) {
-  const c = s.cultivation;
-  if (!c || s.shared) return 'invalid';
-  if (contentLocked(s, cmd.type) || (cmd.type === 'build' && contentLocked(s, cmd.kind)))
-    return 'locked';
-  const x = cmd.x ?? Math.floor(s.player.x),
-    y = cmd.y ?? Math.floor(s.player.y),
-    z = s.player.z;
-  if (!Number.isInteger(x) || !Number.isInteger(y) || !isExplored(s.world, x, y, z))
-    return 'unseen';
-  if (cmd.type === 'build') {
-    const why = facilitySite(s, cmd.kind, x, y);
-    if (why) return why;
-  }
-  if (!atInteraction(s, x, y)) return 'reach';
-  const b = cultivationAt(s, x, y, z),
-    cost = CULTIVATION_RECIPES[cmd.kind || cmd.type];
-  if (cmd.type === 'shade') {
-    const k = packKey(x, y, z);
-    if (!PROPS[s.world.props.get(k)]?.light) return 'site';
-    c.shaded ??= {};
-    if (!(k in c.shaded)) {
-      if (!canPay(s, CULTIVATION_RECIPES.shade)) return 'materials';
-      pay(s, CULTIVATION_RECIPES.shade);
-    }
-    c.shaded[k] = !c.shaded[k];
-    indexCache.delete(c);
-    invalidateIllumination(s, x, y, z);
-    return 'ok';
-  }
-  if (cmd.type === 'starter') return takeStarter(s, x, y);
-  if (cmd.type === 'teleport') return b ? teleportFrom(s, b, cmd.to) : 'site';
-  if (cmd.type === 'heart') return moveHeart(s, x, y, z);
-  if (cmd.type === 'lantern') {
-    if (!c.gear.lantern) return 'equipment';
-    c.lantern = activeCarriedLight(s) !== 'lantern';
-    if (c.lantern) {
-      if (!contentLocked(s, 'flare')) s.flare = 0;
-      lightCrystal(s);
-    } else exposeCargo(s);
-    return 'ok';
-  }
-  if (cmd.type === 'craft') {
-    if (!['carrier', 'lantern'].includes(cmd.kind) || c.gear[cmd.kind]) return 'invalid';
-    if (!canPay(s, cost)) return 'materials';
-    pay(s, cost, 'tools');
-    c.gear[cmd.kind] = true;
-    return 'ok';
-  }
-  if (cmd.type === 'build') {
-    const why = facilitySite(s, cmd.kind, x, y);
-    if (why) return why;
-    if (!canPay(s, cost)) return 'materials';
-    const next = {
-      kind: cmd.kind,
-      id: c.nextId,
-      x,
-      y,
-      z,
-      temperature: 12,
-      buffer: 0,
-      quality: 100
-    };
-    if (cmd.kind === 'conduit') {
-      const r = conduitRoute(s, next);
-      next.from = r.from.id;
-      next.to = r.to.id;
-    }
-    pay(s, cost);
-    c.nextId++;
-    c.facilities.push(next);
-    return 'ok';
-  }
-  if (!b) return 'building';
-  if (contentLocked(s, b.kind)) return 'locked';
-  // The carrier bench weaves a mycelium lining into the carrier, once.
-  if (cmd.type === 'line' && b.kind === 'bench') {
-    if (!c.gear.carrier) return 'equipment';
-    if (c.gear.lining) return 'invalid';
-    if (!canPay(s, CULTIVATION_RECIPES.lining)) return 'materials';
-    pay(s, CULTIVATION_RECIPES.lining, 'tools');
-    c.gear.lining = true;
-    return 'ok';
-  }
-  if (cmd.type === 'plant' && b.kind === 'chamber') {
-    if (!c.starter) return 'starter';
-    if (b.health > 0) return 'occupied';
-    b.health = c.starter.health;
-    b.needsTend = b.health < 100;
-    b.temperature = cultivationTarget(s, b);
-    c.starter = null;
-    return 'ok';
-  }
-  if (cmd.type === 'tend' && b.kind === 'chamber') {
-    if (!b.health) return 'dead';
-    if (b.temperature > 22) return 'unsafe';
-    if (!canPay(s, CULTIVATION_RECIPES.tend)) return 'materials';
-    pay(s, CULTIVATION_RECIPES.tend, 'care');
-    b.needsTend = false;
-    return 'ok';
-  }
-  if (cmd.type === 'collect' && ['chamber', 'vault'].includes(b.kind)) {
-    if (b.buffer < 1) return 'empty';
-    c.quality = s.inv.crystal
-      ? qualityMean(c.quality, s.inv.crystal, b.quality, b.buffer)
-      : b.quality;
-    earned(s, 'crystal', b.buffer);
-    b.buffer = 0;
-    exposeCargo(s);
-    return 'ok';
-  }
-  if (cmd.type === 'store' && b.kind === 'vault') {
-    const n = Math.min(s.inv.crystal, (b.reinforced ? 40 : 20) - b.buffer);
-    if (n <= 0) return 'empty';
-    b.quality = b.buffer ? qualityMean(b.quality, b.buffer, c.quality, n) : c.quality;
-    b.buffer += n;
-    pay(s, { crystal: n }, null);
-    return 'ok';
-  }
-  if (cmd.type === 'reinforce' && ['chamber', 'vault'].includes(b.kind)) {
-    if (b.reinforced) return 'occupied';
-    if (!canPay(s, CULTIVATION_RECIPES.reinforce)) return 'materials';
-    pay(s, CULTIVATION_RECIPES.reinforce);
-    b.reinforced = true;
-    return 'ok';
-  }
-  if (cmd.type === 'repair' && b.kind === 'machine') {
-    const recipe = machineRepairCost(b);
-    if (!recipe) return 'repaired';
-    if (c.quality < 60) return 'quality';
-    if (cultivationTarget(s, b) > 22) return 'cooling';
-
-    const heart = machineSections(b) === 1;
-    if (heart && c.heart?.where !== 'carried') return 'heart';
-    if (heart && c.heart.health < HEART_MIN) return 'cracked';
-    if (!canPay(s, recipe)) return 'materials';
-    const quality = c.quality;
-    pay(s, recipe, 'restoration');
-    if (heart) c.heart = { where: 'installed', health: c.heart.health };
-    b.sections = Math.min(MACHINE_REPAIRS.length, machineSections(b) + 1);
-    b.health = 100;
-    b.quality = quality;
-    b.temperature = cultivationTarget(s, b);
-    c.restored = true;
-    return 'discovery';
-  }
-  if (cmd.type === 'activate' && b.kind === 'machine') {
-    if (c.completed) return 'completed';
-    if (machineSections(b) < MACHINE_REPAIRS.length) return 'sections';
-    if (b.health <= 0 || b.quality < 60) return 'quality';
-    if (cultivationTarget(s, b) > 22 || b.temperature > 22) return 'cooling';
-    c.completed = true;
-    normalizeCarriedLight(s);
-    c.completedAt = s.time;
-    return 'activated';
-  }
-  return 'invalid';
-}
-// Takes the heart from the hiding place or a shelter, or rests it in a shelter.
-function moveHeart(s, x, y, z) {
-  const c = s.cultivation,
-    h = (c.heart ??= newHeart()),
-    b = cultivationAt(s, x, y, z);
-  if (heartAt(s, x, y, z)) {
-    if (h.where !== 'station') return 'gone';
-    if (!c.gear.carrier) return 'equipment';
-    h.where = 'carried';
-    return 'lifted';
-  }
-  if (b?.kind !== 'shelter') return 'site';
-  if (h.where === b.id) {
-    h.where = 'carried';
-    return 'lifted';
-  }
-  if (contentLocked(s, 'shelter')) return 'locked';
-  if (h.where !== 'carried') return 'gone';
-  h.where = b.id;
   return 'ok';
 }
 // Which clue the machine shows: one per restored section, 0 before any.
@@ -575,10 +390,7 @@ export function stepCultivation(s, dt) {
     }
   }
   for (const { from, to } of index(s).routes) {
-    const n = Math.max(
-      0,
-      Math.min(from.buffer, 0.8 * seconds, (to.reinforced ? 40 : 20) - to.buffer)
-    );
+    const n = Math.max(0, Math.min(from.buffer, 0.8 * seconds, crystalCapacity(s, to) - to.buffer));
     if (n) {
       to.quality = to.buffer ? qualityMean(to.quality, to.buffer, from.quality, n) : from.quality;
       to.buffer += n;

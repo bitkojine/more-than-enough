@@ -115,3 +115,25 @@ test('corrupt fields fall back to defaults instead of breaking the game', () => 
   assert.equal(r.underground.deepest, 0);
   assert.equal(r.world.holes.size, 0);
 });
+
+test("a save whose lists aren't lists loads with those parts empty, and one damaged past mending is unreadable, never a crash", () => {
+  const s = C.createState(42);
+  s.inv.stone = 77;
+  const good = JSON.parse(C.serialize(s));
+  for (const key of ['mods', 'explored', 'holes', 'props', 'extractors'])
+    for (const bad of [5, true, {}, 'x', [7], [[1]]]) {
+      let back;
+      assert.doesNotThrow(
+        () => {
+          back = C.deserialize(JSON.stringify({ ...good, [key]: bad }));
+        },
+        key + ' ' + JSON.stringify(bad)
+      );
+      assert.ok(back, key + ' ' + JSON.stringify(bad) + ' still loads');
+      assert.equal(back.inv.stone, 77);
+    }
+  assert.equal(
+    C.deserialize(JSON.stringify({ ...good, stats: { get: 1 }, spending: 7 }))?.inv.stone,
+    77
+  );
+});

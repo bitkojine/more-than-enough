@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.1':
+    'A save damaged in a way the game didn’t expect no longer stops it from starting: what can be read loads as before, and a save that can’t be read is set aside and kept, as always.',
   'news.0.193.0':
     'Settings → Worlds now also lists older copies of your worlds that were kept on this device, for example the copy you didn’t pick when two devices had played the same world. Each shows the day it was kept, and Play goes back to it. The copy it takes over from is kept as an older copy in turn, so you can always switch back.',
   'news.0.192.0':

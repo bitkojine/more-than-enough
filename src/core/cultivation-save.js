@@ -42,93 +42,108 @@ export function recoverCultivationRounding(c) {
       if (b?.kind === 'machine' && b.sections === undefined) b.sections = c.restored ? 1 : 0;
     });
 }
+const number = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
+const count = (n) => n === undefined || (Number.isSafeInteger(n) && n >= 0);
+// A whole tile position no deeper than the deepest layer and no higher than `top`.
+const pos = (b, top = -2) =>
+  !!b &&
+  Number.isInteger(b.x) &&
+  Number.isInteger(b.y) &&
+  Math.abs(b.x) < 2 ** 20 &&
+  Math.abs(b.y) < 2 ** 20 &&
+  Number.isInteger(b.z) &&
+  b.z >= -512 &&
+  b.z <= top;
+const KINDS = ['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter', 'bench'];
+
+// Whether a loaded (mended) cultivation is whole: the game only plays one
+// that is. Each part has its own check below.
 export function validCultivation(c) {
-  const number = (n, min, max) => Number.isFinite(n) && n >= min && n <= max;
-  const pos = (b, top = -2) =>
-    !!b &&
-    Number.isInteger(b.x) &&
-    Number.isInteger(b.y) &&
-    Math.abs(b.x) < 2 ** 20 &&
-    Math.abs(b.y) < 2 ** 20 &&
-    Number.isInteger(b.z) &&
-    b.z >= -512 &&
-    b.z <= top;
-  if (
-    !c ||
-    c.model !== CULTIVATION_MODEL ||
-    !Array.isArray(c.facilities) ||
-    !c.wild ||
-    Array.isArray(c.wild) ||
-    typeof c.wild !== 'object' ||
-    !c.gear ||
-    !number(c.quality, 0, 100) ||
-    !number(c.phase, 0, 0.25 - 1e-10) ||
-    !Number.isSafeInteger(c.nextId) ||
-    !number(c.clock, 0, Number.MAX_SAFE_INTEGER)
-  )
-    return false;
-  if (c.starter && !number(c.starter.health, 0, 100)) return false;
-  if (c.completed !== undefined && typeof c.completed !== 'boolean') return false;
-  if (c.completedAt !== undefined && !number(c.completedAt, 0, Number.MAX_SAFE_INTEGER))
-    return false;
+  if (!validCore(c)) return false;
+  const ids = facilityIds(c);
+  return (
+    !!ids &&
+    c.facilities.every((b) => b.kind !== 'conduit' || validRoute(b, ids)) &&
+    (!c.completed || c.facilities.some(isRepaired)) &&
+    (c.heart === undefined || validHeart(c.heart, ids)) &&
+    ['heartLost', 'crystalLost', 'storeLost'].every((k) => count(c[k])) &&
+    (c.carrierWarmth === undefined || number(c.carrierWarmth, 0, HEART_WARM_MAX)) &&
+    Object.values(c.wild).every(
+      (w) => pos(w) && number(w.health, 0, 100) && number(w.regrow, 0, 45)
+    )
+  );
+}
+
+// The model, gear, clock and what Mica carries.
+function validCore(c) {
+  return (
+    !!c &&
+    c.model === CULTIVATION_MODEL &&
+    Array.isArray(c.facilities) &&
+    !!c.wild &&
+    !Array.isArray(c.wild) &&
+    typeof c.wild === 'object' &&
+    !!c.gear &&
+    number(c.quality, 0, 100) &&
+    number(c.phase, 0, 0.25 - 1e-10) &&
+    Number.isSafeInteger(c.nextId) &&
+    number(c.clock, 0, Number.MAX_SAFE_INTEGER) &&
+    validProgress(c)
+  );
+}
+
+const validProgress = (c) =>
+  (!c.starter || number(c.starter.health, 0, 100)) &&
+  (c.completed === undefined || typeof c.completed === 'boolean') &&
+  (c.completedAt === undefined || number(c.completedAt, 0, Number.MAX_SAFE_INTEGER));
+
+// The facilities by id, or null if one isn't whole, or two share an id or a tile.
+function facilityIds(c) {
   const ids = new Map(),
     cells = new Set();
   for (const b of c.facilities) {
-    if (
-      !b ||
-      !['chamber', 'cooler', 'vault', 'conduit', 'machine', 'shelter', 'bench'].includes(b.kind) ||
-      !Number.isSafeInteger(b.id) ||
-      b.id < 1 ||
-      b.id >= c.nextId ||
-      ids.has(b.id) ||
-      !pos(b, SURFACE_TOO.has(b.kind) ? 0 : -2) ||
-      !number(b.temperature, -1000, 1000) ||
-      !number(b.buffer, 0, 40) ||
-      !number(b.quality, 0, 100) ||
-      (b.health !== undefined && !number(b.health, 0, 100))
-    )
-      return false;
-    if (
-      b.sections !== undefined &&
-      (b.kind !== 'machine' ||
-        !Number.isInteger(b.sections) ||
-        b.sections < 0 ||
-        b.sections > MACHINE_REPAIRS.length)
-    )
-      return false;
+    if (!validFacility(b, c.nextId) || ids.has(b.id)) return null;
     const k = cell(b.x, b.y, b.z);
-    if (cells.has(k)) return false;
+    if (cells.has(k)) return null;
     cells.add(k);
     ids.set(b.id, b);
   }
-  for (const b of c.facilities)
-    if (
-      b.kind === 'conduit' &&
-      (ids.get(b.from)?.kind !== 'chamber' || ids.get(b.to)?.kind !== 'vault')
-    )
-      return false;
-  if (
-    c.completed &&
-    !c.facilities.some((b) => b.kind === 'machine' && machineSections(b) === MACHINE_REPAIRS.length)
-  )
-    return false;
-  if (
-    c.heart !== undefined &&
-    (!c.heart ||
-      !number(c.heart.health, 0, 100) ||
-      !(
-        ['station', 'carried', 'installed'].includes(c.heart.where) ||
-        ids.get(c.heart.where)?.kind === 'shelter'
-      ))
-  )
-    return false;
-  for (const k of ['heartLost', 'crystalLost', 'storeLost'])
-    if (c[k] !== undefined && !(Number.isSafeInteger(c[k]) && c[k] >= 0)) return false;
-  if (c.carrierWarmth !== undefined && !number(c.carrierWarmth, 0, HEART_WARM_MAX)) return false;
-  return Object.values(c.wild).every(
-    (w) => pos(w) && number(w.health, 0, 100) && number(w.regrow, 0, 45)
+  return ids;
+}
+
+function validFacility(b, nextId) {
+  return (
+    !!b &&
+    KINDS.includes(b.kind) &&
+    Number.isSafeInteger(b.id) &&
+    b.id >= 1 &&
+    b.id < nextId &&
+    pos(b, SURFACE_TOO.has(b.kind) ? 0 : -2) &&
+    number(b.temperature, -1000, 1000) &&
+    number(b.buffer, 0, 40) &&
+    number(b.quality, 0, 100) &&
+    (b.health === undefined || number(b.health, 0, 100)) &&
+    validSections(b)
   );
 }
+
+// Only the machine counts restored sections.
+const validSections = (b) =>
+  b.sections === undefined ||
+  (b.kind === 'machine' &&
+    Number.isInteger(b.sections) &&
+    b.sections >= 0 &&
+    b.sections <= MACHINE_REPAIRS.length);
+
+// A conduit runs from a chamber to a vault.
+const validRoute = (b, ids) =>
+  ids.get(b.from)?.kind === 'chamber' && ids.get(b.to)?.kind === 'vault';
+const isRepaired = (b) => b.kind === 'machine' && machineSections(b) === MACHINE_REPAIRS.length;
+// The heart is at the hiding place, carried, installed, or resting in a shelter.
+const validHeart = (h, ids) =>
+  !!h &&
+  number(h.health, 0, 100) &&
+  (['station', 'carried', 'installed'].includes(h.where) || ids.get(h.where)?.kind === 'shelter');
 /* A saved cultivation mended so it loads: a number out of range goes back
  * inside it, a part that can't be placed (no position, an unknown kind, a
  * second one on the same cell, a conduit to nothing) is dropped, and the rest

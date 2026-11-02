@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.1':
+    'Netikėtai sugadintas išsaugojimas nebetrukdo žaidimui pasileisti: tai, ką galima perskaityti, įkeliama kaip anksčiau, o neperskaitomas išsaugojimas, kaip visada, atidedamas ir paliekamas.',
   'news.0.193.0':
     'Nustatymuose → Pasauliai dabar matai ir senesnes savo pasaulių kopijas, išsaugotas šiame įrenginyje, pavyzdžiui, kopiją, kurios nepasirinkai, kai tą patį pasaulį žaidė du įrenginiai. Prie kiekvienos parašyta, kurią dieną ji išsaugota, o Žaisti grąžina į ją. Kopija, kurią ji pakeičia, savo ruožtu lieka išsaugota kaip senesnė, tad visada gali sugrįžti.',
   'news.0.192.0':

@@ -64,10 +64,12 @@ commit. When you find something new, add it.
   The largest factory closures are still hundreds of lines each:
   `createRigModel` (510), the admin page's `client` (501), `createSheet`
   (486), `createController` (440) and `createTogether` (373).
-- **The lint budget is mostly complexity debt.** All 237 warnings that the
-  budget allows are real: 104 functions over complexity 15, 77 with more than
-  five parameters, 39 over 120 lines, 14 nested too deep and 3 unused
-  variables.
+- **The lint budget is mostly complexity debt.** All 231 warnings that the
+  budget allows are real: 99 functions over complexity 15, 77 with more than
+  five parameters, 38 over 120 lines, 14 nested too deep and 3 unused
+  variables. The worst rule functions (the crystal commands and save
+  loading) were split in 0.193.1; the worst left are `drawCharacter` (66),
+  the admin routes (57) and `Room.message` (56).
 - **The first download is nearly at its budget:** 295 KB gzipped of 300 KB.
   Any new feature has to make room for itself.
 - **The coverage run takes about 4 minutes,** which is slow for a gate

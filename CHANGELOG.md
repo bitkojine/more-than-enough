@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.193.1] - 2026-11-02
+
+Watch asked (2026-11-02, tech-debt review) to split the most complex rule
+functions now that real saves from past releases are tested. Behaviour is
+unchanged except for one fix the splitting turned up.
+
+- `cultivationCommand` (complexity 86) moved to
+  `src/core/cultivation-commands.js`: shared checks first
+  (`cantDoThere`), then one handler per command, either one that needs no
+  building (`FREE`) or one done at a building of the kinds it takes
+  (`AT_BUILDING`). `moveHeart` moved with it. A vault's room when you store
+  crystal, and a conduit's room when it fills one, now use the one
+  `crystalCapacity` rule, with the same result in every state, since
+  vaults, conduits and reinforcing all unlock together.
+- `deserialize` (62) reads each part on its own (`readCultivation`,
+  `readLand`, `readPlayer`, `readKit`, `readProgress`, `readLight`,
+  `readGoals`, `readExtractors`), and `validCultivation` (58) checks each part
+  on its own (`validCore`, `validFacility`, `validRoute`, `validHeart`).
+- Fixed: a save whose lists weren't lists (mined tiles, fog, holes, props,
+  buildings as a number or an object, say) made `deserialize` throw, so the
+  game failed to start instead of setting that save aside. Such a list now
+  reads as empty, and anything else that throws reads as unreadable, so it
+  is set aside and kept.
+- Checked by running the old and new code side by side: 57,600 random
+  commands on real crystal saves, 20,000 randomly damaged saves and 120,000
+  damaged crystal sections gave the same results, apart from the saves that
+  used to throw. Lint budget 235 -> 231.
+
 ## [0.193.0] - 2026-11-02
 
 Watch chose (2026-11-02, tech-debt review) to list kept extra copies of a
