@@ -1049,6 +1049,8 @@ export default {
   'worlds.kept':
     'Kiekvienas pasaulis lieka išsaugotas toks, kokį palikai, su savo veikėju ir pažanga.',
   'worlds.here': 'Tu čia',
+  'worlds.olderCopy': 'Senesnė kopija, išsaugota {date}',
+  'worlds.olderCopyUndated': 'anksčiau',
   'worlds.play': 'Žaisti',
   'worlds.remove': 'Pašalinti',
   'worlds.removeAsk.title': 'Pašalinti „{world}“?',

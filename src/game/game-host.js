@@ -65,6 +65,15 @@ export function createGame({ state, store, copy = null }) {
       const next = store.soloWorld(seed);
       if (next) game.replace(next);
     },
+    // Plays an older copy of one of your worlds (Settings → Worlds): `take`
+    // (storage.js takeKept) makes it its world's own copy, keeping the one
+    // it takes over from, and only once the world you leave is kept.
+    playKept(take) {
+      if (game.state.shared) p.together.switchTo(null);
+      if (game.state.shared || !game.keep()) return;
+      const next = take();
+      if (next) game.replace(next);
+    },
     // Swaps in a different world (embark, a shared world). `why`: 'cloud'
     // (your other device's, sync.js) or 'back' (your own again, after a
     // shared one); otherwise the player picked it, so it counts as played.

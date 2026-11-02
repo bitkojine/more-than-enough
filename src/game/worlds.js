@@ -11,7 +11,7 @@ import { ROOM_ID_RE } from '../net/protocol.js';
 import { worldWords } from '../net/naming.js';
 import { canEmbark } from '../core/state.js';
 import { fmtDuration } from './format.js';
-import { t } from '../i18n/i18n.js';
+import { t, LOCALE } from '../i18n/i18n.js';
 
 const ROOMS_STORE = 'mte.rooms'; // shared worlds you've been in, newest first
 // What this phone keeps for each of those worlds (together.js), dropped
@@ -130,13 +130,15 @@ export function soloName(seed) {
 // about it, and Play (or "You're here").
 // `here`: the shared world you're in (null alone); `seed`: the solo world
 // you're in (null in a shared one); `solo`: [{ seed, state }];
+// `kept`: older copies of solo worlds [{ key, seed, at, state }], each
+// listed under its world; `playKept(key)` plays one;
 // `rooms`: whether to list shared worlds; `online(id)`: a promise of how
 // many play there now, or null if the room service didn't say;
 // `play(id)`; `playSolo(seed)`; `remove(id)`; `played(seconds)`: the time
 // in words; `done(state)`: whether that world is complete.
 export function renderWorlds(
   box,
-  { here, seed, solo, rooms, online, play, playSolo, remove, played, done }
+  { here, seed, solo, kept = [], rooms, online, play, playSolo, playKept, remove, played, done }
 ) {
   const row = (name, sub, isHere, onPlay, onRemove) => {
     const r = document.createElement('div');
@@ -158,12 +160,20 @@ export function renderWorlds(
     }
     return { r, small };
   };
-  const own = solo.map(
-    (w) =>
-      row(soloName(w.seed), soloLine(w.state, played, done), w.seed === seed, () =>
-        playSolo(w.seed)
-      ).r
-  );
+  const copyRow = (c) =>
+    row(
+      soloName(c.seed),
+      t('worlds.olderCopy', { date: keptDate(c.at) }) + ' · ' + soloLine(c.state, played, done),
+      false,
+      () => playKept(c.key)
+    ).r;
+  const listed = new Set(solo.map((w) => w.seed));
+  const own = solo.flatMap((w) => [
+    row(soloName(w.seed), soloLine(w.state, played, done), w.seed === seed, () => playSolo(w.seed))
+      .r,
+    ...kept.filter((c) => c.seed === w.seed).map(copyRow)
+  ]);
+  own.push(...kept.filter((c) => !listed.has(c.seed)).map(copyRow));
   const shared = rooms ? knownRooms() : [];
   const rows = shared.map((id) => {
     const whose = t('worlds.friends');
@@ -186,6 +196,14 @@ export function renderWorlds(
   box.replaceChildren(...own, ...rows, hint);
 }
 
+// When an older copy was kept: "November 2", with the year if it was another.
+function keptDate(ms, now = Date.now()) {
+  if (!ms) return t('worlds.olderCopyUndated');
+  const d = new Date(ms);
+  const year = d.getFullYear() === new Date(now).getFullYear() ? undefined : 'numeric';
+  return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'long', year });
+}
+
 // "Just you · 2 h 5 min played", and "Complete" once it's done.
 function soloLine(s, played, done) {
   const parts = [t('worlds.alone'), t('worlds.played', { time: played(s.stats.playedMs / 1000) })];
@@ -206,20 +224,26 @@ function button(label, cls, onClick) {
 // (null alone), `seed` the solo world you're in, `rooms` whether shared
 // worlds can be reached from here, `service` the room service; `close()`
 // closes the sheet before going anywhere, `go(id)` into a shared world,
-// `playSolo(seed)` into one of yours; `ask` asks before a shared world is
+// `playSolo(seed)` into one of yours, `kept`/`playKept(key)` its older
+// copies (renderWorlds); `ask` asks before a shared world is
 // taken off the list (it's only forgotten on this phone, never deleted).
-export function listWorlds(box, { here, seed, solo, rooms, service, close, go, playSolo, ask }) {
-  const again = () =>
-    listWorlds(box, { here, seed, solo, rooms, service, close, go, playSolo, ask });
+export function listWorlds(box, opts) {
+  const { here, seed, solo, kept, rooms, service, close, go, playSolo, playKept, ask } = opts;
+  const again = () => listWorlds(box, opts);
   renderWorlds(box, {
     here,
     seed,
     solo,
+    kept,
     rooms,
     online: (id) => onlineIn(service, id),
     playSolo: (s) => {
       close();
       playSolo(s);
+    },
+    playKept: (key) => {
+      close();
+      playKept(key);
     },
     played: (secs) => fmtDuration(secs),
     done: (s) => canEmbark(s),

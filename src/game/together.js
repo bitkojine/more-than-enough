@@ -46,7 +46,7 @@ import {
   askToPlayTogether,
   PLAYING_STORE
 } from './identity.js';
-import { loadGame, soloWorlds } from './storage.js';
+import { loadGame, soloWorlds, keptCopies, takeKept } from './storage.js';
 import { createActor } from './render/motion.js';
 import { createOutbox, resync as resyncState } from './outbox.js';
 import { t } from '../i18n/i18n.js';
@@ -466,12 +466,14 @@ export function createTogether({
       here: game.state.shared || null,
       seed: game.state.shared ? null : game.state.seed,
       solo: soloWorlds(),
+      kept: keptCopies(),
       // Shared worlds can't be reached from a crystal world (yet).
       rooms: !!game.state.shared || (!!service && !Core.usesDepots(game.state)),
       service,
       close: closeSheet,
       go: (id) => switchTo(id),
       playSolo: (seed) => game.playSolo(seed),
+      playKept: (key) => game.playKept(() => takeKept(key)),
       ask
     });
   }

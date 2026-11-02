@@ -1002,6 +1002,8 @@ export default {
   'worlds.kept':
     'Every world stays saved, just as you left it, with its own character and progress.',
   'worlds.here': "You're here",
+  'worlds.olderCopy': 'Older copy from {date}',
+  'worlds.olderCopyUndated': 'an earlier day',
   'worlds.play': 'Play',
   'worlds.remove': 'Remove',
   'worlds.removeAsk.title': 'Remove {world}?',

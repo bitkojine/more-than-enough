@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.193.0] - 2026-11-02
+
+Watch chose (2026-11-02, tech-debt review) to list kept extra copies of a
+world on Settings → Worlds. The rule is that a player can always go back to
+any world, but two kinds of copy were kept under `mte.solo.kept.*` and never
+shown: the copy not picked when two linked devices had both played a world
+(`sync.js` keepAside), and a save in play that a world's own copy took over
+from on load (`loadGame`). They were never deleted, only unreachable.
+
+- Worlds lists each readable older copy under its world, newest first, as
+  "Older copy from November 2 · Just you · 1 h played", with Play
+  (`storage.js` keptCopies; copies the same as their world's own copy, and
+  ones this version can't read, stay stored but aren't listed). They count
+  toward showing the Worlds button.
+- Playing one (`takeKept`, `game-host.js` playKept) first keeps the world
+  you leave, then keeps the world's current own copy as an older copy, and
+  only then makes the chosen copy the world's own copy, so every copy stays
+  and you can switch back. Storage that can't take it changes nothing.
+- `test/unit/old-saves.test.js` covers listing, the swap both ways, and a
+  full storage, using real saves from past releases.
+
 ## [0.192.0] - 2026-11-02
 
 Watch asked for the game to wake with one tap after a reload (2026-11-02):

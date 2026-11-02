@@ -243,9 +243,57 @@ export function soloSeeds() {
   return [...seeds];
 }
 
-// How many solo worlds there are, without reading each one.
+// How many solo worlds there are, older copies included, without reading each one.
 export function soloCount() {
-  return Math.max(soloSeeds().length, read(SAVE_KEY) ? 1 : 0);
+  return Math.max(soloSeeds().length, read(SAVE_KEY) ? 1 : 0) + keptKeys().length;
+}
+
+function keptKeys() {
+  try {
+    return Object.keys(localStorage).filter((k) => k.startsWith(KEPT_PREFIX));
+  } catch {
+    return []; // storage blocked
+  }
+}
+
+// The older copies of solo worlds kept on this device (loadGame when a
+// world's own copy took over, keepAside when another device's copy was
+// picked), newest first: { key, seed, at, state }. A copy the same as its
+// world's own one, or one this version can't read, isn't listed (it stays
+// stored all the same).
+export function keptCopies() {
+  const own = soloRaws();
+  const copies = [];
+  for (const key of keptKeys()) {
+    const raw = read(key);
+    const state = raw && deserialize(raw);
+    if (!state || state.shared || own.get(state.seed) === raw) continue;
+    const at = Number(key.slice(key.lastIndexOf('.') + 1));
+    copies.push({ key, seed: state.seed, at: Number.isFinite(at) ? at : 0, state });
+  }
+  return copies.sort((a, b) => b.at - a.at);
+}
+
+// Makes older copy `key` its world's own copy again, to play: the copy it
+// takes over from is kept as an older copy first, so both stay. Returns
+// the copy's state, or null (nothing changed) if it can't be read or
+// storage can't take it. The caller then plays it (game.replace).
+export function takeKept(key, now = Date.now()) {
+  const raw = read(key);
+  const state = raw && deserialize(raw);
+  if (!state || state.shared) return null;
+  const cur = read(ARCHIVE_PREFIX + state.seed);
+  let aside = KEPT_PREFIX + state.seed + '.' + now;
+  while (read(aside) !== null) aside = KEPT_PREFIX + state.seed + '.' + ++now;
+  if (cur && cur !== raw && write(aside, cur)) return null;
+  if (write(ARCHIVE_PREFIX + state.seed, raw)) return null;
+  // Its content is the world's own copy now: this key would only repeat it.
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    /* stays listed until the own copy moves on; nothing is lost */
+  }
+  return state;
 }
 
 // One solo world by seed, read fresh, or null.

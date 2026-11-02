@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.0':
+    'Nustatymuose → Pasauliai dabar matai ir senesnes savo pasaulių kopijas, išsaugotas šiame įrenginyje, pavyzdžiui, kopiją, kurios nepasirinkai, kai tą patį pasaulį žaidė du įrenginiai. Prie kiekvienos parašyta, kurią dieną ji išsaugota, o Žaisti grąžina į ją. Kopija, kurią ji pakeičia, savo ruožtu lieka išsaugota kaip senesnė, tad visada gali sugrįžti.',
   'news.0.192.0':
     'Žaidimas dabar tavęs palaukia: atidarius jį ar grįžus į jo kortelę viskas pilka ir sustingę, o Wiki snaudžia ant Micos gobtuvo. {phone:Paliesk|laptop:Spustelėk ar paspausk klavišą} bet kur, kad pažadintum, ir spalvos, muzikinės dėžutės pasisveikinimas bei muzika sugrįžta iškart. Kol žaidimas miega, pasaulyje niekas nevyksta. Nustatymuose išjungtas garsas dabar lieka išjungtas ir perkrovus puslapį.',
   'news.0.191.0':

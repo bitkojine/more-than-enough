@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.0':
+    'Settings → Worlds now also lists older copies of your worlds that were kept on this device, for example the copy you didn’t pick when two devices had played the same world. Each shows the day it was kept, and Play goes back to it. The copy it takes over from is kept as an older copy in turn, so you can always switch back.',
   'news.0.192.0':
     'The game now waits for you: after opening it or coming back to its tab, everything is grey and still while Wiki dozes on Mica’s hood. {phone:Tap|laptop:Click or press a key} anywhere to wake it, and the colour, the music-box hello and the music all come back at once. Nothing happens in the world while it sleeps. Sound off in Settings now also stays off after a reload.',
   'news.0.191.0':

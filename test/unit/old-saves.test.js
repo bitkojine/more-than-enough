@@ -179,3 +179,63 @@ test('worlds list: blocked storage lists nothing and throws nothing', () => {
     globalThis.localStorage = saved;
   }
 });
+
+test('worlds list: older copies kept on this device are listed, newest first, and the same as their own copy is not', () => {
+  const late = raw('0.185.1-crystal-late.json'),
+    mid = raw('0.185.1-crystal-mid.json');
+  store.set('mte.solo.world.4242', late);
+  store.set('mte.solo.kept.4242.1000', mid);
+  store.set('mte.solo.kept.4242.3000', raw('0.175.0-crystal-mid.json'));
+  store.set('mte.solo.kept.4242.2000', late); // the same as its own copy
+  store.set('mte.solo.kept.aside.4000', '{"v":99}'); // unreadable: kept, not listed
+  const copies = storage.keptCopies();
+  assert.deepEqual(
+    copies.map((c) => [c.key, c.seed, c.at]),
+    [
+      ['mte.solo.kept.4242.3000', 4242, 3000],
+      ['mte.solo.kept.4242.1000', 4242, 1000]
+    ]
+  );
+  assert.equal(storage.soloCount(), 1 + 4, 'Settings offers Worlds when there are copies');
+});
+
+test('worlds list: playing an older copy keeps the copy it takes over from, so both stay', () => {
+  const late = raw('0.185.1-crystal-late.json'),
+    mid = raw('0.185.1-crystal-mid.json');
+  store.set('mte.solo.world.4242', late);
+  store.set('mte.solo.kept.4242.1000', mid);
+  const before = new Set(store.values());
+  const s = storage.takeKept('mte.solo.kept.4242.1000', 5000);
+  assert.equal(s.seed, 4242);
+  assert.equal(store.get('mte.solo.world.4242'), mid, 'the copy is the world now');
+  assert.equal(store.get('mte.solo.kept.4242.5000'), late, 'and the one it took over from is kept');
+  assert.equal(store.has('mte.solo.kept.4242.1000'), false, 'without a second key repeating it');
+  for (const v of before) assert.ok([...store.values()].includes(v), 'nothing is lost');
+  assert.deepEqual(
+    storage.keptCopies().map((c) => c.key),
+    ['mte.solo.kept.4242.5000']
+  );
+  // And back again.
+  storage.takeKept('mte.solo.kept.4242.5000', 6000);
+  assert.equal(store.get('mte.solo.world.4242'), late);
+  assert.equal(store.get('mte.solo.kept.4242.6000'), mid);
+});
+
+test("worlds list: an older copy storage can't take changes nothing", () => {
+  const late = raw('0.185.1-crystal-late.json'),
+    mid = raw('0.185.1-crystal-mid.json');
+  store.set('mte.solo.world.4242', late);
+  store.set('mte.solo.kept.4242.1000', mid);
+  const saved = globalThis.localStorage.setItem;
+  globalThis.localStorage.setItem = () => {
+    throw new DOMException('full', 'QuotaExceededError');
+  };
+  try {
+    assert.equal(storage.takeKept('mte.solo.kept.4242.1000', 5000), null);
+  } finally {
+    globalThis.localStorage.setItem = saved;
+  }
+  assert.equal(store.get('mte.solo.world.4242'), late);
+  assert.equal(store.get('mte.solo.kept.4242.1000'), mid);
+  assert.equal(storage.takeKept('mte.solo.kept.nothing.1', 5000), null);
+});
