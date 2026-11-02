@@ -28,6 +28,7 @@ if (process.platform === 'darwin' && process.env.CODEX_SANDBOX === 'seatbelt') {
 }
 
 var CDP_TIMEOUT_MS = 15000; // any single DevTools call
+var CHROME_START_MS = 60000; // Chrome opening its DevTools port, cold start included
 var STALL_MS = 60000; // no output at all for this long means the run is stuck
 
 var failures = 0,
@@ -153,7 +154,8 @@ CDP.prototype.close = function () {
 /* --------------------------------------------------------------- helpers */
 
 async function httpJson(url) {
-  var r = await fetch(url);
+  // A port that accepts but never answers mustn't hold a poll loop forever.
+  var r = await fetch(url, { signal: AbortSignal.timeout(2000) });
   return r.json();
 }
 
@@ -252,8 +254,13 @@ async function main() {
     });
   });
 
+  // A fresh CI runner's first Chrome can take well over 15 s to open its
+  // DevTools port (cold disk, first-run font and GPU caches); later launches
+  // take about a second. So wait by the clock, long enough for a cold start,
+  // and say how long it took when it was slow.
   var version = null;
-  for (var i = 0; i < 60; i++) {
+  var launched = Date.now();
+  while (Date.now() - launched < CHROME_START_MS) {
     if (chrome.exitCode !== null || chrome.signalCode) {
       var details = chromeStderr.trim();
       console.error(
@@ -271,9 +278,13 @@ async function main() {
       await sleep(250);
     }
   }
+  if (version && Date.now() - launched > 5000)
+    console.log('Chrome took ' + ((Date.now() - launched) / 1000).toFixed(1) + ' s to start.');
   if (!version) {
     console.error(
-      'Chrome did not expose its DevTools endpoint within 15 seconds.' +
+      'Chrome did not expose its DevTools endpoint within ' +
+        CHROME_START_MS / 1000 +
+        ' seconds.' +
         (chromeStderr.trim() ? '\n' + chromeStderr.trim() : '')
     );
     process.exit(2);

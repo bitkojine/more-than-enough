@@ -500,16 +500,22 @@ async function main() {
   };
   process.on('exit', cleanup);
 
+  // Wait by the clock: a fresh machine's first Chrome can take well over
+  // 15 s to open its DevTools port (see test/browser.e2e.js).
   let version = null;
-  for (let i = 0; i < 60 && !version; i++) {
+  const launched = Date.now();
+  while (!version && Date.now() - launched < 60000) {
     try {
-      version = await (await fetch('http://127.0.0.1:' + CDP_PORT + '/json/version')).json();
+      const r = await fetch('http://127.0.0.1:' + CDP_PORT + '/json/version', {
+        signal: AbortSignal.timeout(2000)
+      });
+      version = await r.json();
     } catch {
       await sleep(250);
     }
   }
   if (!version) {
-    console.error('Chrome did not start (set CHROME_PATH).');
+    console.error('Chrome did not start within 60 s (set CHROME_PATH).');
     process.exit(2);
   }
   const cdp = await connect(version.webSocketDebuggerUrl);
