@@ -90,9 +90,13 @@ test('live check accepts manual recovery and still reports subsequent failures',
   );
 });
 
-test('a flagged commit message or browser run is not a failed deploy', async () => {
+test('a flagged commit message, browser run or mutation sweep is not a failed deploy', async () => {
   const request = async () => ({
-    workflow_runs: [run('Commit messages', 'failure'), run('Browser suite', 'failure')]
+    workflow_runs: [
+      run('Commit messages', 'failure'),
+      run('Browser suite', 'failure'),
+      run('Mutation sweep', 'failure')
+    ]
   });
   assert.deepEqual(await latestWorkflowRuns('bitkojine/more-than-enough', request), []);
 });

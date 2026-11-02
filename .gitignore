@@ -15,3 +15,8 @@ node_modules/
 .wrangler/
 .dev.vars
 render-checks/
+
+# The mutation sweep's working copy and reports (stryker.config.mjs)
+.stryker-tmp/
+reports/
+parts/

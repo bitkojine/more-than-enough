@@ -1,0 +1,120 @@
+# The mutation sweep (Watch, 2026-11-02: proof that our tests test things of
+# value). Stryker plants one small bug at a time in the code and runs the
+# test files that reach it; a planted bug no test catches has survived.
+# stryker.config.mjs says how; this runs it in PARTS parts side by side
+# (scripts/mutation-shard.mjs deals the files out by size), then joins them
+# (scripts/mutation-report.mjs) into one report: which planted bugs survived,
+# what each test file catches, which test files catch nothing.
+#
+# By hand (Actions -> Mutation sweep -> Run workflow) and weekly. After the
+# first full run each part starts from the last joined report (Stryker's
+# incremental mode), so only code and tests that changed are run again.
+# Its own workflow: it never holds up a deploy, and scripts/live-check.mjs
+# leaves it out of the deploy check.
+name: Mutation sweep
+
+on:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Run every planted bug again, not only what changed'
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 2 * * 0' # Sundays, 02:17 UTC
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mutation
+  cancel-in-progress: false
+
+env:
+  PARTS: 30
+
+jobs:
+  part:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
+
+      - name: Start from the last joined report
+        if: ${{ !inputs.full }}
+        uses: actions/cache/restore@v4
+        with:
+          path: reports/mutation/baseline.json
+          key: mutation-baseline-${{ github.run_id }}
+          restore-keys: mutation-baseline-
+
+      - name: Plant bugs in this part's files and run the tests
+        run: |
+          files=$(node scripts/mutation-shard.mjs ${{ matrix.part }} "$PARTS")
+          echo "Part ${{ matrix.part }} of $PARTS: $files" | tr ',' '\n' | head -40
+          incremental=""
+          if [ -f reports/mutation/baseline.json ]; then
+            incremental="--incremental --incrementalFile reports/mutation/baseline.json"
+          fi
+          MUTATION_REPORT=reports/mutation/part-${{ matrix.part }}.json \
+            npx stryker run --mutate "$files" --concurrency 4 $incremental
+
+      - name: Keep this part's report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-part-${{ matrix.part }}
+          path: reports/mutation/part-${{ matrix.part }}.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  report:
+    needs: part
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
+
+      - name: Fetch every part's report
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mutation-part-*
+          path: parts
+          merge-multiple: true
+
+      - name: Join the parts
+        run: |
+          node scripts/mutation-report.mjs reports/mutation parts/*.json
+          cat reports/mutation/summary.md >> "$GITHUB_STEP_SUMMARY"
+          cp reports/mutation/mutation.json reports/mutation/baseline.json
+
+      - name: Keep the joined report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: |
+            reports/mutation/mutation.html
+            reports/mutation/mutation.json
+            reports/mutation/summary.md
+          retention-days: 90
+
+      # Only a run with every part in it may be the next run's baseline.
+      - name: Save it as the next run's starting point
+        if: ${{ needs.part.result == 'success' }}
+        uses: actions/cache/save@v4
+        with:
+          path: reports/mutation/baseline.json
+          key: mutation-baseline-${{ github.run_id }}

@@ -112,11 +112,12 @@ you can open it on your phone. Saves live in the browser's `localStorage`.
 
 ## Test
 
-Node 24 or newer (`.nvmrc` tracks the latest LTS). Two dev-only packages,
+Node 24 or newer (`.nvmrc` tracks the latest LTS). Dev-only packages,
 pinned in their lockfiles: esbuild (`package.json`), which the deploy uses to
-bundle and minify the copy players download, and wrangler
+bundle and minify the copy players download, wrangler
 (`server/package.json`), which runs and deploys the room service on
-Cloudflare.
+Cloudflare, and Stryker, for the mutation sweep (below). Players download
+none of them.
 
 ```sh
 npm ci
@@ -309,6 +310,28 @@ coverage (no extra tools) and fails under the line, branch and function
 floors in `package.json`; CI runs it in place of `npm test`. Raise a floor
 when coverage grows, never lower it. It counts only modules the tests load:
 browser-only files such as `src/game/main.js` are not in the number yet.
+
+### Mutation sweep
+
+Coverage says a line ran; it doesn't say a test would notice if the line were
+wrong. The mutation sweep does: Stryker (`stryker.config.mjs`) plants one
+small bug at a time (`<` for `<=`, `||` for `&&`, a call deleted, a condition
+always true) and runs the test files that reach it. A planted bug no test
+catches has survived, and shows a behaviour nothing checks.
+`.github/workflows/mutation.yml` runs it weekly and by hand in 30 parts,
+then joins them (`scripts/mutation-report.mjs`) into a report: the score per
+file, every survivor, and for each test file how many planted bugs it
+catches, how many only it catches, and which test files catch nothing.
+After the first full run only what changed is run again. One file by hand:
+
+```sh
+npx stryker run --mutate src/core/paths.js
+```
+
+`test/unit/i18n.test.js` reads the source as text, which Stryker's rewritten
+copy trips, so it is left out of the sweep. Some survivors can't be caught
+because the change makes no difference (a shortcut that only saves time); mark
+those in the code with `// Stryker disable next-line <mutator>: <why>`.
 
 `test/unit/file-size.test.js` keeps source files at 600 lines or fewer.
 Files already larger are listed with their size when the check arrived; they

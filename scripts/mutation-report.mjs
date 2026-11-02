@@ -1,0 +1,152 @@
+#!/usr/bin/env node
+/* Joins the mutation sweep's parts (.github/workflows/mutation.yml) into one
+ * report: mutation.json (Stryker's format, also the next run's incremental
+ * baseline), mutation.html (Stryker's own viewer) and summary.md, which says
+ * for each source file how many planted bugs the tests caught and, for each
+ * test file, how many it catches, how many only it catches, and which catch
+ * nothing at all.
+ *   node scripts/mutation-report.mjs <out dir> <part.json>...            */
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import path from 'node:path';
+
+const CAUGHT = new Set(['Killed', 'Timeout']);
+const COUNTED = new Set(['Killed', 'Timeout', 'Survived', 'NoCoverage']);
+
+// One report from many: files side by side, and each part's test ids (which
+// each part numbers its own way) replaced by the test file's name.
+export function merge(parts) {
+  const out = { schemaVersion: '2', thresholds: { high: 80, low: 60 }, files: {}, testFiles: {} };
+  for (const part of parts) {
+    const name = new Map();
+    for (const [file, t] of Object.entries(part.testFiles || {})) {
+      out.testFiles[file] ??= { source: t.source, tests: [] };
+      for (const x of t.tests) {
+        const id = x.name || file;
+        name.set(x.id, id);
+        if (!out.testFiles[file].tests.some((y) => y.id === id))
+          out.testFiles[file].tests.push({ ...x, id, name: id });
+      }
+    }
+    const rename = (ids) => ids && ids.map((id) => name.get(id) ?? id);
+    for (const [file, f] of Object.entries(part.files)) {
+      out.files[file] = {
+        ...f,
+        mutants: f.mutants.map((m) => ({
+          ...m,
+          coveredBy: rename(m.coveredBy),
+          killedBy: rename(m.killedBy)
+        }))
+      };
+    }
+    out.projectRoot ??= part.projectRoot;
+    out.framework ??= part.framework;
+  }
+  return out;
+}
+
+const score = (ms) => {
+  const counted = ms.filter((m) => COUNTED.has(m.status));
+  const caught = counted.filter((m) => CAUGHT.has(m.status)).length;
+  return {
+    caught,
+    counted: counted.length,
+    pct: counted.length ? (100 * caught) / counted.length : null
+  };
+};
+const pct = (s) => (s.pct === null ? 'n/a' : s.pct.toFixed(1) + ' %');
+
+// What each test file is worth: planted bugs it reaches, catches, and is the
+// only one to catch.
+export function testValue(report) {
+  const value = new Map();
+  const row = (t) => {
+    if (!value.has(t)) value.set(t, { covered: 0, caught: 0, only: 0 });
+    return value.get(t);
+  };
+  for (const t of Object.keys(report.testFiles)) row(t);
+  for (const f of Object.values(report.files))
+    for (const m of f.mutants) {
+      for (const t of m.coveredBy || []) row(t).covered++;
+      const by = CAUGHT.has(m.status) ? m.killedBy || [] : [];
+      for (const t of by) row(t).caught++;
+      if (by.length === 1) row(by[0]).only++;
+    }
+  return [...value].map(([test, v]) => ({ test, ...v })).sort((a, b) => a.caught - b.caught);
+}
+
+export function summary(report) {
+  const files = Object.entries(report.files).map(([file, f]) => ({ file, ...score(f.mutants) }));
+  const all = score(Object.values(report.files).flatMap((f) => f.mutants));
+  const area = (root) =>
+    score(
+      Object.entries(report.files)
+        .filter(([f]) => f.startsWith(root))
+        .flatMap(([, f]) => f.mutants)
+    );
+  const tests = testValue(report);
+  const lines = [
+    '# Mutation sweep',
+    '',
+    `Planted bugs the tests caught: **${pct(all)}** (${all.caught} of ${all.counted}).`,
+    '',
+    '| Code | Caught |',
+    '| --- | --- |',
+    ...['src/core', 'src/net', 'server/src', 'src/game'].map((r) => `| ${r} | ${pct(area(r))} |`),
+    '',
+    '## Test files that catch nothing',
+    '',
+    'Each reaches planted bugs but catches none of them: either it checks',
+    'nothing that matters, or what it checks is text, pictures or timing.',
+    '',
+    ...tests
+      .filter((t) => t.covered > 0 && t.caught === 0)
+      .map((t) => `- \`${t.test}\` (reaches ${t.covered})`),
+    '',
+    '## What each test file catches',
+    '',
+    '| Test file | Reaches | Catches | Only it catches |',
+    '| --- | --- | --- | --- |',
+    ...[...tests]
+      .sort((a, b) => b.caught - a.caught)
+      .map((t) => `| \`${t.test}\` | ${t.covered} | ${t.caught} | ${t.only} |`),
+    '',
+    '## Source files, worst first',
+    '',
+    '| File | Caught | Of |',
+    '| --- | --- | --- |',
+    ...files
+      .filter((f) => f.counted)
+      .sort((a, b) => a.pct - b.pct || b.counted - a.counted)
+      .map((f) => `| \`${f.file}\` | ${pct(f)} | ${f.counted} |`),
+    ''
+  ];
+  return lines.join('\n');
+}
+
+// Stryker's own viewer, the way its html reporter builds it.
+function html(report) {
+  const require = createRequire(import.meta.url);
+  const app = readFileSync(
+    require.resolve('mutation-testing-elements/dist/mutation-test-elements.js'),
+    'utf8'
+  );
+  const data = JSON.stringify(report).replace(/</g, '<"+"');
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Mutation sweep</title><script>${app}</script></head><body>
+<mutation-test-report-app titlePostfix="Mutation sweep"></mutation-test-report-app>
+<script>document.querySelector('mutation-test-report-app').report = ${data};</script></body></html>`;
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const [dir, ...parts] = process.argv.slice(2);
+  if (!dir || !parts.length) {
+    console.error('usage: node scripts/mutation-report.mjs <out dir> <part.json>...');
+    process.exit(2);
+  }
+  const report = merge(parts.map((p) => JSON.parse(readFileSync(p, 'utf8'))));
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(path.join(dir, 'mutation.json'), JSON.stringify(report));
+  writeFileSync(path.join(dir, 'mutation.html'), html(report));
+  writeFileSync(path.join(dir, 'summary.md'), summary(report));
+  console.log(summary(report).split('\n').slice(0, 10).join('\n'));
+}

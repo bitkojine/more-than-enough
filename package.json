@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@stryker-mutator/core": "10.1.1",
+    "@stryker-mutator/tap-runner": "10.1.1",
     "esbuild": "0.25.10",
     "eslint": "^10.13.0",
     "globals": "^17.13.0",

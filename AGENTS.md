@@ -52,6 +52,11 @@ kind of knowledge lives.
   explicit long sweep of arithmetic, saves or shared-world round-trips.
   Local feedback uses 12 seeds per family; the 1,500-seed sweep runs separately
   in CI and manually, never as a prerequisite for interactive iteration.
+- Tests must prove their worth (Watch, 2026-11-02): the mutation sweep
+  (`.github/workflows/mutation.yml`, README "Mutation sweep") plants bugs
+  and reports which ones no test catches and which test files catch
+  nothing. A new test should catch the bugs planted in what it tests; check
+  with `npx stryker run --mutate <file>` before relying on it.
 - Keep verification proportional to impact (owner, 2026-10-29). Use focused
   checks while editing and broaden for shared rules, saves, rendering or
   uncertain dependencies. Reuse passing results while their inputs remain
