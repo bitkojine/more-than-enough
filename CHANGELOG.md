@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.193.3] - 2026-11-02
+
+Watch asked for the 2D character drawing next (2026-11-02): `drawCharacter`
+in `src/game/render/sprites.js` scored 66 for complexity, mostly from its
+seventeen defaulted options and two whole ways of drawing in one function.
+Everyone looks exactly as before.
+
+- `drawCharacter` fills in what it isn't told from `CHARACTER` (only for
+  options left undefined, as the old defaults did), then draws Mica through
+  the rig (`drawRigged`, with `rigPose`, `toolsInHand` and `cargoLook` for
+  the carrier on their back) or the pack's 2D wanderer (`drawWanderer`,
+  `standWanderer`), falling back to the wanderer when the rig draws nothing.
+- Checked by running the old and new code side by side with a recording
+  canvas and look: 40,000 random characters (rig or not, settled or
+  loading, on water, every action, tools, carrier, lantern, flare, Wiki,
+  options missing or null) made the same drawing calls with the same
+  numbers and returned the same anchors. A planted swap of the carrier's
+  sealed and lined looks gave 328 differences. Lint budget 230 -> 229.
+
 ## [0.193.2] - 2026-11-02
 
 Watch chose the room's message handler as the next complex function to

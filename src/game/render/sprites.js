@@ -109,89 +109,119 @@ export function drawPlayer(ctx, cam, s, look, view) {
 // hand. `nod` tips them forward a little more (dozing). Everyone (you and
 // friends, awake, dozing or asleep) is drawn at one size, `u` px per tile.
 // Returns where their head is ({x, top}) and their hands ({handsX, hands}).
-function drawCharacter(
-  ctx,
-  cam,
-  s,
-  look,
-  {
-    x,
-    sx,
-    sy,
-    mica = false,
-    facingVector = null,
-    flip,
-    moving,
-    water,
-    actor,
-    steady = false,
-    seed = 0,
-    nod = 0,
-    equipment = null,
-    cargo = null,
-    crystal = 0,
-    lantern = { has: false, on: false },
-    flare = false,
-    wiki = null,
-    castShadow = true
-  }
-) {
+function drawCharacter(ctx, cam, s, look, who) {
+  const c = { ...who };
+  for (const k in CHARACTER) if (c[k] === undefined) c[k] = CHARACTER[k];
+  const location = look.rig && c.mica ? drawRigged(ctx, cam, s, look, c) : null;
+  return location || drawWanderer(ctx, cam, s, look, c);
+}
+
+// What drawCharacter is told when nothing says otherwise.
+const CHARACTER = Object.freeze({
+  mica: false,
+  facingVector: null,
+  steady: false,
+  seed: 0,
+  nod: 0,
+  equipment: null,
+  cargo: null,
+  crystal: 0,
+  lantern: Object.freeze({ has: false, on: false }),
+  flare: false,
+  wiki: null,
+  castShadow: true
+});
+
+// Mica through the 3D rig (see rigged-character.js): their boat or shadow,
+// then the rig's own picture. Returns the rig's anchors, or null if it drew
+// nothing yet.
+function drawRigged(ctx, cam, s, look, c) {
+  const { x, sx, sy, flip, moving, water, actor, steady, castShadow } = c;
   const u = cam.tilePx;
-  if (look.rig && mica) {
-    const motion = pose(actor, {
-      moving,
-      boat: water,
-      steady,
-      time: actor.clock ?? s.time,
-      seed,
-      equipment
-    });
-    const deck = water
-      ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, motion.rock, actor.clock ?? s.time, castShadow)
-      : 0;
-    if (!deck && castShadow) shadow(ctx, cam, sx, sy, u * 0.26);
-    ctx.save();
-    if (motion.clip) {
-      ctx.beginPath();
-      ctx.rect(sx - u * 2, sy - u * 4, u * 4, u * 4);
-      ctx.clip();
-    }
-    const location = look.rig.draw(ctx, sx, sy - deck + (actor.act ? motion.dy * u : 0), u, {
-      facing: facingVector ?? { x: 0, y: 1 },
-      phase: actor.rigStride ?? actor.stride ?? 0,
-      walking: moving && !water,
-      blend: water ? 0 : (actor.walkBlend ?? null),
-      action: actor.act,
-      progress: actor.t / (ACT_TIME[actor.act] || 1),
-      flow: actor.flow ?? null,
-      time: actor.clock ?? 0,
-      steady: steady || water,
-      pickaxe: equipment?.pickaxe ?? 0,
-      basket: equipment?.basket ?? 0,
-      work: actor.work ?? null,
-      lantern: lantern.has,
-      lanternOn: lantern.on,
-      flare,
-      wiki,
-      cargo:
-        cargo && (cargo.starter || crystal > 0 || cargo.heart?.where === 'carried')
-          ? cargo.gear?.carrier
-            ? cargo.gear.lining
-              ? 'lined'
-              : 'sealed'
-            : 'specimen'
-          : null
-    });
-    ctx.restore();
-    if (location) return location;
+  const motion = pose(actor, {
+    moving,
+    boat: water,
+    steady,
+    time: actor.clock ?? s.time,
+    seed: c.seed,
+    equipment: c.equipment
+  });
+  const deck = water
+    ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, motion.rock, actor.clock ?? s.time, castShadow)
+    : 0;
+  if (!deck && castShadow) shadow(ctx, cam, sx, sy, u * 0.26);
+  ctx.save();
+  if (motion.clip) {
+    ctx.beginPath();
+    ctx.rect(sx - u * 2, sy - u * 4, u * 4, u * 4);
+    ctx.clip();
   }
+  const lift = actor.act ? motion.dy * u : 0;
+  const location = look.rig.draw(ctx, sx, sy - deck + lift, u, rigPose(c));
+  ctx.restore();
+  return location;
+}
+
+// What the rig is told to show: where Mica faces, what they're doing, and
+// what they carry.
+function rigPose({
+  facingVector,
+  moving,
+  water,
+  actor,
+  steady,
+  equipment,
+  lantern,
+  flare,
+  wiki,
+  cargo,
+  crystal
+}) {
+  return {
+    facing: facingVector ?? { x: 0, y: 1 },
+    phase: actor.rigStride ?? actor.stride ?? 0,
+    walking: moving && !water,
+    blend: water ? 0 : (actor.walkBlend ?? null),
+    action: actor.act,
+    progress: actor.t / (ACT_TIME[actor.act] || 1),
+    flow: actor.flow ?? null,
+    time: actor.clock ?? 0,
+    steady: steady || water,
+    ...toolsInHand(equipment),
+    work: actor.work ?? null,
+    lantern: lantern.has,
+    lanternOn: lantern.on,
+    flare,
+    wiki,
+    cargo: cargoLook(cargo, crystal)
+  };
+}
+
+const toolsInHand = (equipment) => ({
+  pickaxe: equipment?.pickaxe ?? 0,
+  basket: equipment?.basket ?? 0
+});
+
+// The crystal carrier on Mica's back: none, an open specimen, sealed, or
+// sealed and lined.
+function cargoLook(cargo, crystal) {
+  if (!cargo || !(cargo.starter || crystal > 0 || cargo.heart?.where === 'carried')) return null;
+  if (!cargo.gear?.carrier) return 'specimen';
+  return cargo.gear.lining ? 'lined' : 'sealed';
+}
+
+// The 2D wanderer from the look's pack: friends, and Mica without WebGL or
+// with a player's own pack (while the rig loads, only their shadow).
+function drawWanderer(ctx, cam, s, look, c) {
+  const { x, sx, sy, flip, moving, water, actor, steady, equipment, castShadow } = c;
+  const u = cam.tilePx;
   const id = 'character.wanderer';
   const planted = !moving || water || actor.walking === false;
   const walk = look.frames(id, planted && look.has(id, 'stand') ? 'stand' : 'image');
   const time = actor.clock ?? s.time;
   const body = walk.pics[characterFrame(walk, actor, { moving, water, time })];
-  const loading = mica && !look.rigSettled;
-  const p = pose(actor, { moving, boat: water, steady, time, seed, equipment });
+  const loading = c.mica && !look.rigSettled;
+  const p = pose(actor, { moving, boat: water, steady, time, seed: c.seed, equipment });
   const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time, castShadow) : 0;
   // Off the ground (a hop, a fall) their shadow stays down and shrinks.
   if (!deck && castShadow)
@@ -200,7 +230,7 @@ function drawCharacter(
     feet = sy - deck;
   const fx = sx + p.dx * u * dir,
     fy = feet + p.dy * u,
-    rot = (p.rot + nod) * dir;
+    rot = (p.rot + c.nod) * dir;
   ctx.save();
   if (p.clip) {
     ctx.beginPath();
@@ -209,10 +239,7 @@ function drawCharacter(
   }
   ctx.translate(fx, fy);
   ctx.rotate(rot);
-  const facing = p.turn ? !flip : flip;
-  const tall = loading ? body.units * body.aspect * u : look.stand(ctx, body, 0, 0, u, facing);
-  if (!loading && p.tool && (!equipment || equipment[p.tool.kind] > 0))
-    drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1, equipment?.[p.tool.kind] ?? 1);
+  const tall = standWanderer(ctx, look, body, p, { u, flip, loading, equipment });
   ctx.restore();
   const sin = Math.sin(rot),
     cos = Math.cos(rot);
@@ -223,6 +250,15 @@ function drawCharacter(
     handsX: fx + sin * tall * HANDS,
     hands: fy - cos * tall * HANDS
   };
+}
+
+// The wanderer's picture and tool, drawn at the origin; returns how tall it stands.
+function standWanderer(ctx, look, body, p, { u, flip, loading, equipment }) {
+  const facing = p.turn ? !flip : flip;
+  const tall = loading ? body.units * body.aspect * u : look.stand(ctx, body, 0, 0, u, facing);
+  if (!loading && p.tool && (!equipment || equipment[p.tool.kind] > 0))
+    drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1, equipment?.[p.tool.kind] ?? 1);
+  return tall;
 }
 
 // The boat under someone on water, bobbing and rocking by `rock` radians,

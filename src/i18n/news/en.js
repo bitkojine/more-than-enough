@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.3':
+    'Behind the scenes, the code that draws Mica and your friends is now in small parts, each easy to check. Everyone looks exactly as before.',
   'news.0.193.2':
     'Behind the scenes, the shared-world service now handles each kind of message from your game in its own small, separately checked part. Nothing changes in play.',
   'news.0.193.1':
