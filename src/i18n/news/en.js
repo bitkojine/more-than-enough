@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.2':
+    'Behind the scenes, the shared-world service now handles each kind of message from your game in its own small, separately checked part. Nothing changes in play.',
   'news.0.193.1':
     'A save damaged in a way the game didn’t expect no longer stops it from starting: what can be read loads as before, and a save that can’t be read is set aside and kept, as always.',
   'news.0.193.0':

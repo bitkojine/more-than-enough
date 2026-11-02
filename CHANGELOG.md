@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.193.2] - 2026-11-02
+
+Watch chose the room's message handler as the next complex function to
+split (2026-11-02): `Room.message` in `server/src/room-play.js` scored 56
+for complexity, and it is the room's authority over every player message,
+anti-cheat included. Nothing changes in play.
+
+- `message` now only parses and guards (unreadable, unknown player, too
+  big), then looks the type up in `ON_MESSAGE` and calls one method per
+  kind: `onPos`, `onEdits`, `onSave`, `onActs`, `onAway`, `onAwayProduce`,
+  `onInvite`, `onInvites`, `onRevoke`, `onNuke`. Each takes only the parts it
+  uses. Unknown kinds, `constructor` and `__proto__` included, are dropped
+  as before (`Object.hasOwn`).
+- Checked by running the old and new handler side by side on two rooms:
+  the recorded 0.182.1 and 0.191.0 sessions (`test/fixtures/wire/`) with
+  about 15% extra hostile messages mixed in (wrong kinds, junk fields, bad
+  JSON, out-of-order times): 10,982 messages, identical answers and room
+  state. Lint budget 231 -> 230.
+
 ## [0.193.1] - 2026-11-02
 
 Watch asked (2026-11-02, tech-debt review) to split the most complex rule

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.2':
+    'Užkulisiuose bendrų pasaulių tarnyba dabar kiekvienos rūšies žinutę iš tavo žaidimo tvarko atskiroje mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
   'news.0.193.1':
     'Netikėtai sugadintas išsaugojimas nebetrukdo žaidimui pasileisti: tai, ką galima perskaityti, įkeliama kaip anksčiau, o neperskaitomas išsaugojimas, kaip visada, atidedamas ir paliekamas.',
   'news.0.193.0':

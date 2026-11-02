@@ -22,6 +22,19 @@ export const FAR_MS = 2000; // everyone else hears where you are this often
 export const STATUS_MS = 2000; // a player's away/back changes, at most this often (the game waits it out)
 export const DRIFT_LOG_MS = 60_000; // a player's drift goes in the log at most this often
 
+const ON_MESSAGE = Object.freeze({
+  pos: 'onPos',
+  edits: 'onEdits',
+  save: 'onSave',
+  acts: 'onActs',
+  away: 'onAway',
+  awayProduce: 'onAwayProduce',
+  invite: 'onInvite',
+  invites: 'onInvites',
+  revoke: 'onRevoke',
+  nuke: 'onNuke'
+});
+
 export class RoomPlay {
   /* -------------------------------------------------------- messages */
 
@@ -32,136 +45,151 @@ export class RoomPlay {
     const d = parse(raw, LIMITS.saveBytes + 1024);
     const pl = this.players.get(id);
     if (!d || !pl || (d.t !== 'save' && raw.length > LIMITS.messageBytes)) return { drop: true };
-    if (d.t === 'pos') {
-      const p = cleanPos(d.p);
-      if (!p) return { drop: true };
-      const step = this.canStep(id, pl, p, now);
-      if (step === 'place') return { toSelf: [{ t: 'place', p: pl.p }] };
-      if (step === 'wait') return {};
-      if (step === 'far') {
-        return this.cheat(id, now, 'speed', {
-          from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z],
-          to: [Math.round(p.x), Math.round(p.y), p.z]
-        });
-      }
-      pl.at = now;
-      const act = this.actOf(id, now);
-      if (pl.p && pl.p.z === p.z) act.dist += Math.hypot(p.x - pl.p.x, p.y - pl.p.y);
-      else if (pl.p) act.layers++;
-      pl.p = p;
-      this.sample(id, now);
-      if (pl.st !== 'online') return this.setStatus(id, 'online', { t: 'pos', id, p });
-      // Players near you hear every step; everyone else every FAR_MS, enough
-      // for the pins at the edge of their screen. (With a hundred players,
-      // relaying every step to everyone would swamp every phone.)
-      const far = now - (pl.farAt || 0) >= FAR_MS;
-      if (far) pl.farAt = now;
-      return { toOthers: [{ t: 'pos', id, p }], near: far ? null : p };
+    const on = Object.hasOwn(ON_MESSAGE, d.t) && ON_MESSAGE[d.t];
+    return on ? this[on]({ id, pl, d, now, edits }) : { drop: true };
+  }
+
+  onPos({ id, pl, d, now }) {
+    const p = cleanPos(d.p);
+    if (!p) return { drop: true };
+    const step = this.canStep(id, pl, p, now);
+    if (step === 'place') return { toSelf: [{ t: 'place', p: pl.p }] };
+    if (step === 'wait') return {};
+    if (step === 'far') {
+      return this.cheat(id, now, 'speed', {
+        from: pl.p && [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z],
+        to: [Math.round(p.x), Math.round(p.y), p.z]
+      });
     }
-    if (d.t === 'edits') {
-      // Numbered edits are answered with their number once the room has
-      // dealt with them (applied or not), so the game knows which never
-      // arrived and sends those again after a lost connection.
-      const out = this.editBatch(id, pl, d.e, now, edits);
-      if (Number.isSafeInteger(d.n) && !out.drop && !out.kick) out.toSelf = [{ t: 'ack', n: d.n }];
-      return out;
+    pl.at = now;
+    const act = this.actOf(id, now);
+    if (pl.p && pl.p.z === p.z) act.dist += Math.hypot(p.x - pl.p.x, p.y - pl.p.y);
+    else if (pl.p) act.layers++;
+    pl.p = p;
+    this.sample(id, now);
+    if (pl.st !== 'online') return this.setStatus(id, 'online', { t: 'pos', id, p });
+    // Players near you hear every step; everyone else every FAR_MS, enough
+    // for the pins at the edge of their screen. (With a hundred players,
+    // relaying every step to everyone would swamp every phone.)
+    const far = now - (pl.farAt || 0) >= FAR_MS;
+    if (far) pl.farAt = now;
+    return { toOthers: [{ t: 'pos', id, p }], near: far ? null : p };
+  }
+
+  onEdits({ id, pl, d, now, edits }) {
+    // Numbered edits are answered with their number once the room has
+    // dealt with them (applied or not), so the game knows which never
+    // arrived and sends those again after a lost connection.
+    const out = this.editBatch(id, pl, d.e, now, edits);
+    if (Number.isSafeInteger(d.n) && !out.drop && !out.kick) out.toSelf = [{ t: 'ack', n: d.n }];
+    return out;
+  }
+
+  onSave({ id, pl, d, now }) {
+    // Their game's progress is only compared: the room keeps its own.
+    const save = cleanSave(d.s);
+    if (!save) return { drop: true };
+    const {
+      drift,
+      why,
+      save: ours,
+      ms,
+      away
+    } = this.shadowOf().settle(id, save, now, this, pl.gone, pl.awayProduce === true);
+    const kept = ours && cleanSave(ours);
+    if (!kept) return {};
+    pl.save = kept;
+    pl.savedAt = now;
+    delete pl.gone;
+    this.dirty.players.add(id);
+    this.progress(id, kept, now);
+    if (away) this.audit(now, id, 'away', { secs: away.secs });
+    // What their buildings made while they were away: their game adds it
+    // and says so ('away', src/game/together.js)...
+    const said = away && { secs: away.secs, made: away.made };
+    if (!drift) return said ? { toSelf: [{ t: 'away', ...said }] } : {};
+    this.logDrift(id, drift, now);
+    // ...unless their game is off: then it's told what they really have
+    // (that included), as of the progress it sent, and why, if the room
+    // refused something (shadow.js whyNot): the game tells the player.
+    return {
+      toSelf: [
+        {
+          t: 'econ',
+          ms,
+          s: kept,
+          ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}),
+          ...(said ? { away: said } : {}),
+          ...(why.length ? { why } : {})
+        }
+      ]
+    };
+  }
+
+  onActs({ id, d, now }) {
+    const list = cleanActs(d.a);
+    if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
+    const { made } = this.shadowOf().acts(id, d.ms, list, now, this);
+    return this.made(id, made, now);
+  }
+
+  onAway({ id, pl, d, now }) {
+    const st = d.a === true ? 'away' : 'online';
+    if (pl.st === st) return {};
+    // At most one change every STATUS_MS: each one goes to every player
+    // and into the log, so flicking it can't flood either. (A step brings
+    // a player back online anyway.)
+    if (now - (pl.stAt || 0) < STATUS_MS) return {};
+    pl.stAt = now;
+    this.audit(now, id, 'st', { st });
+    return this.setStatus(id, st);
+  }
+
+  onAwayProduce({ pl, d }) {
+    // Their freeze-season choice changed while playing (Settings). Off
+    // is the default; nothing to tell anyone else, only what the room works
+    // out for them (shadow.js away). A copy plays the copied player, so
+    // their own rule stands there and the admin's own setting is ignored.
+    if (!this.copy) pl.awayProduce = d.a === true;
+    return {};
+  }
+
+  onInvite({ id, d, now }) {
+    // Anyone in the world may hold up the QR, choosing how many people its
+    // link lets in and for how long. It shows your newest link made that
+    // way while that still has a while to go and room for someone, else a
+    // new one.
+    if (this.copy) return { toSelf: [{ t: 'invitesFull' }] }; // nobody else comes into a copy
+    const ask = cleanInviteAsk(d);
+    const { code, made, full } = Invites.linkFor(this.invites, id, ask, now);
+    if (full) return { toSelf: [{ t: 'invitesFull' }] };
+    if (made) {
+      this.dirty.meta = true;
+      this.audit(now, id, 'invite', { code: codeTag(code), uses: ask.uses, life: ask.life });
     }
-    if (d.t === 'save') {
-      // Their game's progress is only compared: the room keeps its own.
-      const save = cleanSave(d.s);
-      if (!save) return { drop: true };
-      const {
-        drift,
-        why,
-        save: ours,
-        ms,
-        away
-      } = this.shadowOf().settle(id, save, now, this, pl.gone, pl.awayProduce === true);
-      const kept = ours && cleanSave(ours);
-      if (!kept) return {};
-      pl.save = kept;
-      pl.savedAt = now;
-      delete pl.gone;
-      this.dirty.players.add(id);
-      this.progress(id, kept, now);
-      if (away) this.audit(now, id, 'away', { secs: away.secs });
-      // What their buildings made while they were away: their game adds it
-      // and says so ('away', src/game/together.js)...
-      const said = away && { secs: away.secs, made: away.made };
-      if (!drift) return said ? { toSelf: [{ t: 'away', ...said }] } : {};
-      this.logDrift(id, drift, now);
-      // ...unless their game is off: then it's told what they really have
-      // (that included), as of the progress it sent, and why, if the room
-      // refused something (shadow.js whyNot): the game tells the player.
-      return {
-        toSelf: [
-          {
-            t: 'econ',
-            ms,
-            s: kept,
-            ...(Number.isSafeInteger(d.n) ? { n: d.n } : {}),
-            ...(said ? { away: said } : {}),
-            ...(why.length ? { why } : {})
-          }
-        ]
-      };
+    return { toSelf: [{ t: 'invite', code, until: this.invites.get(code).until }] };
+  }
+
+  onInvites({ id }) {
+    return { toSelf: [this.inviteList(id)] };
+  }
+
+  onRevoke({ id, d, now }) {
+    // Each player stops only the links they made; Watch stops any of them
+    // through the admin route (modRevoke).
+    const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
+    if (!inv || inv.by !== id) return { drop: true };
+    if (!inv.off) {
+      inv.off = true;
+      this.dirty.meta = true;
+      this.audit(now, id, 'revoke', { code: codeTag(d.code) });
     }
-    if (d.t === 'acts') {
-      const list = cleanActs(d.a);
-      if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
-      const { made } = this.shadowOf().acts(id, d.ms, list, now, this);
-      return this.made(id, made, now);
-    }
-    if (d.t === 'away') {
-      const st = d.a === true ? 'away' : 'online';
-      if (pl.st === st) return {};
-      // At most one change every STATUS_MS: each one goes to every player
-      // and into the log, so flicking it can't flood either. (A step brings
-      // a player back online anyway.)
-      if (now - (pl.stAt || 0) < STATUS_MS) return {};
-      pl.stAt = now;
-      this.audit(now, id, 'st', { st });
-      return this.setStatus(id, st);
-    }
-    if (d.t === 'awayProduce') {
-      // Their freeze-season choice changed while playing (Settings). Off
-      // is the default; nothing to tell anyone else, only what the room works
-      // out for them (shadow.js away). A copy plays the copied player, so
-      // their own rule stands there and the admin's own setting is ignored.
-      if (!this.copy) pl.awayProduce = d.a === true;
-      return {};
-    }
-    if (d.t === 'invite') {
-      // Anyone in the world may hold up the QR, choosing how many people its
-      // link lets in and for how long. It shows your newest link made that
-      // way while that still has a while to go and room for someone, else a
-      // new one.
-      if (this.copy) return { toSelf: [{ t: 'invitesFull' }] }; // nobody else comes into a copy
-      const ask = cleanInviteAsk(d);
-      const { code, made, full } = Invites.linkFor(this.invites, id, ask, now);
-      if (full) return { toSelf: [{ t: 'invitesFull' }] };
-      if (made) {
-        this.dirty.meta = true;
-        this.audit(now, id, 'invite', { code: codeTag(code), uses: ask.uses, life: ask.life });
-      }
-      return { toSelf: [{ t: 'invite', code, until: this.invites.get(code).until }] };
-    }
-    if (d.t === 'invites') return { toSelf: [this.inviteList(id)] };
-    if (d.t === 'revoke') {
-      // Each player stops only the links they made; Watch stops any of them
-      // through the admin route (modRevoke).
-      const inv = typeof d.code === 'string' ? this.invites.get(d.code) : undefined;
-      if (!inv || inv.by !== id) return { drop: true };
-      if (!inv.off) {
-        inv.off = true;
-        this.dirty.meta = true;
-        this.audit(now, id, 'revoke', { code: codeTag(d.code) });
-      }
-      return { toSelf: [this.inviteList(id)] };
-    }
-    // There is no nuke any more: an old game pressing it changes nothing.
-    if (d.t === 'nuke') return {};
-    return { drop: true };
+    return { toSelf: [this.inviteList(id)] };
+  }
+
+  // There is no nuke any more: an old game pressing it changes nothing.
+  onNuke() {
+    return {};
   }
 
   // A batch of edits from player `id` (see message).
