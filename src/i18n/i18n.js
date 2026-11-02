@@ -70,7 +70,11 @@ export function addStrings(byLang) {
   for (const code of Object.keys(LANGUAGES)) {
     if (!byLang[code]) throw new Error(`addStrings: no "${code}" strings`);
     for (const key of Object.keys(byLang[code])) {
-      if (key in LANGUAGES[code].strings) throw new Error(`addStrings: "${key}" is defined twice`);
+      // The same words again are fine: a lazy module loaded a second time
+      // (by another URL) adds its strings again. Different words are a clash.
+      const known = LANGUAGES[code].strings[key];
+      if (known !== undefined && known !== byLang[code][key])
+        throw new Error(`addStrings: "${key}" is defined twice`);
       LANGUAGES[code].strings[key] = byLang[code][key];
     }
   }

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.190.1':
+    'What’s new, the earnings statement and the performance panel open with less to download: they reuse the game already loaded instead of bringing their own copy, and What’s new loads only your language.',
   'news.0.190.0':
     'The game starts sooner and runs cooler: its pictures are prepared only when they are first needed, and Mica is redrawn less often while standing still. Screen readers now hear the counts on the resource bar and the milestones button.',
   'news.0.189.1':

@@ -69,6 +69,8 @@ import { inputHandlers, wireButtons, goBack } from './controls.js';
 import { createPresenter } from './presenter.js';
 import { refuseFraming, loadLook, replaying, onCharging, reportContext, onScreen } from './boot.js';
 import { t, localizePage } from '../i18n/i18n.js';
+// Last: shares what the lazy modules need with them (the deployed game).
+import './share.js';
 
 const ON_SCREEN_PX = 40; // margin around the screen a flyer still counts as seen in
 

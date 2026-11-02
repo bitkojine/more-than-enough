@@ -8,16 +8,21 @@
  * Every release adds its version to NEWS (newest first) and its notes to the
  * release-notes dictionaries, src/i18n/news/en.js and lt.js, as
  * "news.<version>": what a player will notice, one thing per line, in plain
- * words. They load only with this panel, so they never weigh on the first
- * load. npm test fails when the current VERSION has none. */
+ * words. Only the player's language loads, and only with this panel, so they
+ * never weigh on the first load. npm test fails when the current VERSION has none. */
 
-import { t, has, addStrings } from '../i18n/i18n.js';
+import { t, has, addStrings, LANG, LANGUAGES } from '../i18n/i18n.js';
 import { lazy } from './lazy.js';
 
+// Only the language this page plays in: every release's notes in both
+// languages were about 45 KB gz, loaded each time What's new opened.
 let history;
 export function loadNews() {
-  return (history ||= lazy('./news-text.js').then(
-    ({ default: notes }) => addStrings(notes),
+  return (history ||= lazy(`../i18n/news/${LANG}.js`).then(
+    ({ default: notes }) =>
+      addStrings(
+        Object.fromEntries(Object.keys(LANGUAGES).map((c) => [c, c === LANG ? notes : {}]))
+      ),
     (error) => {
       history = null; // the next look tries again
       throw error;
@@ -26,6 +31,7 @@ export function loadNews() {
 }
 
 export const NEWS = [
+  '0.190.1',
   '0.190.0',
   '0.189.1',
   '0.189.0',

@@ -14,7 +14,7 @@ import {
   compareVersions
 } from '../../src/game/news.js';
 import { VERSION } from '../../src/version.js';
-import { LANGUAGES } from '../../src/i18n/i18n.js';
+import { LANGUAGES, LANG, addStrings } from '../../src/i18n/i18n.js';
 
 function memoryStore() {
   const m = new Map();
@@ -39,7 +39,17 @@ function setup({ running = 'aaa', site = 'aaa', at = 1_000_000 } = {}) {
   return { u, log, clock };
 }
 
-await loadNews();
+// What's new loads only the page's language (here English); the other
+// languages' notes are added the same way, so every language can be checked.
+async function loadAllNews() {
+  await loadNews();
+  for (const code of Object.keys(LANGUAGES)) {
+    if (code === LANG) continue;
+    const notes = (await import(`../../src/i18n/news/${code}.js`)).default;
+    addStrings(Object.fromEntries(Object.keys(LANGUAGES).map((c) => [c, c === code ? notes : {}])));
+  }
+}
+await loadAllNews();
 
 test('the build comes from the ?v= stamped on the module URL', () => {
   assert.equal(stampOf('https://x.test/src/game/update.js?v=71935c7990'), '71935c7990');

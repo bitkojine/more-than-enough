@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.190.1] - 2026-11-02
+
+Watch chose "Fix sharing, split news text" after the boot-JavaScript
+investigation (2026-11-01; the report is in the project files, not the repo).
+
+- Lazy bundles share main.js's modules instead of each carrying its own
+  copy (`scripts/stage-speed.mjs` step 6, `src/game/share.js`). The staged
+  `main.js` now ends its imports with `share.js`, filled in at staging to put
+  every module a lazy bundle needs from it in `globalThis.MTE_SHARED`,
+  before main.js's own code runs. Each lazy bundle reads those modules from
+  there. It doesn't import `main.js`, because main.js awaits at top level
+  and the autoplay viewer never finishes, so an import of it could wait
+  forever. Gzipped: `statement.js` goes from 23.0 to 9.6 KB (it was 75% a
+  second `src/core`), `autoplay-lab.js` from 94 to 7.7 KB, and `perf.js` and
+  `sync-lazy.js` shrink a little. More important, there is now one
+  instance of each shared module. The strings `statement.js` and `perf.js`
+  add go into the game's own i18n, the same as in the source tree.
+  `main.js` grows by about 2 KB gz, because the exports it shares are kept
+  whole. The first load is 280.6 KB gz in 6 requests (budget 300).
+  `load-budget.test.js` fails if a lazy bundle stops sharing or grows back
+  toward a second copy.
+- What's new loads only the page's language (`src/i18n/news/<lang>.js`,
+  through `lazy()`), about 21 KB gz instead of 45. `news-text.js` is gone.
+  Unit tests load the other language's notes themselves, so both are still
+  checked.
+- Not changed: the boot bundle's unused code (about 46% of `main.js`, spread
+  thinly; a download cost, not CPU) and the rules' translated tables built
+  at import time. That cleanup is issue #20.
+
 ## [0.190.0] - 2026-11-01
 
 Fixes from the Lighthouse audit of v0.189.0 (Watch picked 1, 2, 3 and 5,

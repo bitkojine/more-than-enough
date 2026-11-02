@@ -97,6 +97,20 @@ test('the first load is few requests and fits the size budget', (t) => {
   const rigKB = gzipSync(file('src/game/render/rigged-character.js')).length / 1024;
   t.diagnostic(`lazy 3D character: ${rigKB.toFixed(1)} KB gzipped`);
   assert.ok(rigKB <= 180, 'lazy 3D presentation module exceeds its 180 KB budget');
+  // Lazy bundles take what main.js has from main.js (stage-speed.mjs, 6.):
+  // statement.js was 75% a second copy of src/core before (66 KB raw).
+  for (const [lazy, maxKB] of [
+    ['src/game/statement.js', 15],
+    ['src/game/perf.js', 10],
+    ['src/game/sync-lazy.js', 8],
+    ['src/game/autoplay-lab.js', 15]
+  ]) {
+    const code = file(lazy);
+    const lazyKB = gzipSync(code).length / 1024;
+    assert.ok(code.toString().includes('MTE_SHARED'), `${lazy} does not use main.js's modules`);
+    assert.ok(lazyKB <= maxKB, `${lazy} is ${lazyKB.toFixed(1)} KB gzipped: a second copy?`);
+  }
+  assert.ok(file('src/game/main.js').toString().includes('MTE_SHARED='), 'main.js shares nothing');
   const kb =
     (gzipSync(page).length + urls.reduce((n, u) => n + gzipSync(file(u)).length, 0)) / 1024;
   t.diagnostic(`first load: ${urls.length + 1} requests, ${kb.toFixed(1)} KB gzipped`);

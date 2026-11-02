@@ -19,7 +19,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { LANGUAGES, DEVICE_CHOICE } from '../../src/i18n/i18n.js';
+import { LANGUAGES, LANG, DEVICE_CHOICE } from '../../src/i18n/i18n.js';
 import labEn from '../../src/i18n/autoplay/en.js';
 import labLt from '../../src/i18n/autoplay/lt.js';
 import wikiEn from '../../wiki/i18n/en.js';
@@ -27,7 +27,17 @@ import wikiLt from '../../wiki/i18n/lt.js';
 
 import { loadNews } from '../../src/game/news.js';
 import { addStrings } from '../../src/i18n/i18n.js';
-await loadNews();
+// What's new loads only the page's language (here English); the other
+// languages' notes are added the same way, so every language can be checked.
+async function loadAllNews() {
+  await loadNews();
+  for (const code of Object.keys(LANGUAGES)) {
+    if (code === LANG) continue;
+    const notes = (await import(`../../src/i18n/news/${code}.js`)).default;
+    addStrings(Object.fromEntries(Object.keys(LANGUAGES).map((c) => [c, c === code ? notes : {}])));
+  }
+}
+await loadAllNews();
 await import('../../src/game/statement.js');
 await import('../../src/game/perf.js');
 // Loaded with your world on another device, as main.js does (loadSync).
@@ -396,4 +406,12 @@ test('distances read as metres, then kilometres (a tile is 1 m)', async () => {
   assert.equal(nb(distance(1234)), '1.2 km');
   assert.equal(nb(distance(9960)), '10 km');
   assert.equal(nb(distance(42100)), '42 km');
+});
+
+test('adding the same words again is fine, different words for a key are a clash', () => {
+  const words = (text) =>
+    Object.fromEntries(Object.keys(LANGUAGES).map((c) => [c, { 'test.addTwice': text }]));
+  addStrings(words('once'));
+  addStrings(words('once')); // a lazy module evaluated a second time
+  assert.throws(() => addStrings(words('other')), /defined twice/);
 });

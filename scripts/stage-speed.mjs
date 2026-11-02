@@ -20,6 +20,9 @@
  *    src/i18n/dictionaries.js swapped for one that reads the dictionary
  *    src/game/start.js (the page's first script) fetched for the player's
  *    language, and the page preloads main.js so it downloads alongside.
+ * 6. One copy of shared code. A lazy bundle (statement.js, perf.js, ...)
+ *    takes the modules main.js also has from main.js (globalThis.MTE_SHARED,
+ *    filled in by src/game/share.js) instead of carrying its own copy.
  *
  * Usage: node scripts/stage-speed.mjs <staged site dir>  (before stamping) */
 
@@ -54,9 +57,9 @@ try {
 } catch {
   throw new Error('esbuild is missing: run `npm ci` first (it is only used to stage the site)');
 }
-// 5. The dictionary start.js fetched, set before any bundle runs. Each
-// bundle's copy of i18n.js gets its own copy of it, as a bundled dictionary
-// was its own before (perf.js adds its keys to its copy only).
+// 5. The dictionary start.js fetched, set before any bundle runs. There is
+// one i18n.js, main.js's: lazy bundles use it (6.), so the strings perf.js
+// or statement.js add are added to the game's own, as in the source tree.
 const oneLanguage = {
   name: 'one-language',
   setup(build) {
@@ -74,44 +77,142 @@ export default Object.fromEntries(CODES.map((c) => [c, c === loaded.lang ? { ...
     }));
   }
 };
-const entry = path.join(OUT, 'src/game/main.js');
-for (const target of [
-  entry,
-  path.join(OUT, 'src/game/start.js'),
+const game = (name) => path.join(OUT, 'src/game', name);
+// Loaded by main.js when needed. Each is bundled on its own (6., below).
+const LAZY = [
+  'autoplay-lab.js',
+  'perf.js',
+  'statement.js',
+  'sync-lazy.js',
+  'qr.js',
+  'render/rigged-character.js'
+];
+const options = {
+  external: LAZY.map((name) => './' + name),
+  allowOverwrite: true,
+  bundle: true,
+  format: 'esm',
+  charset: 'utf8', // module scripts are UTF-8; avoid escaping Lithuanian text
+  minify: true,
+  keepNames: true, // so a crash report still names the functions
+  sourcemap: 'linked', // for DevTools only; players never download it
+  sourcesContent: false, // the staged site carries the sources themselves
+  legalComments: 'none',
+  logLevel: 'warning'
+};
+
+/* 6. One copy of the code main.js and a lazy module share. Bundled on its
+ *    own, a lazy module used to carry its own copy of everything it
+ *    imports: statement.js was 75% a second src/core, and every copy was a
+ *    second instance (its own i18n, its own caches). Now main.js puts those
+ *    modules in globalThis.MTE_SHARED before any of its own code runs, and
+ *    the lazy bundle reads them from there. It doesn't import main.js:
+ *    main.js awaits at top level (the autoplay viewer never finishes), so a
+ *    module importing it could wait for ever. No module exports a `let`, so
+ *    reading the exports once is the same as importing them. */
+const SHARED = 'mte-shared';
+const key = (file) => path.relative(OUT, file).split(path.sep).join('/');
+const mainDry = await esbuild.build({
+  ...options,
+  entryPoints: [game('main.js')],
+  outfile: game('main.js'),
+  write: false,
+  metafile: true,
+  plugins: [oneLanguage]
+});
+const inMain = new Set(Object.keys(mainDry.metafile.inputs).map((file) => path.resolve(file)));
+const exportsOf = new Map();
+async function namesOf(file) {
+  if (!exportsOf.has(file)) {
+    const r = await esbuild.build({
+      entryPoints: [file],
+      bundle: true,
+      format: 'esm',
+      write: false,
+      metafile: true,
+      outdir: path.join(OUT, '.names'),
+      logLevel: 'silent',
+      plugins: [oneLanguage]
+    });
+    exportsOf.set(file, Object.values(r.metafile.outputs).find((o) => o.entryPoint).exports);
+  }
+  return exportsOf.get(file);
+}
+const shared = new Set();
+const fromMain = (entryFile) => ({
+  name: 'from-main',
+  setup(build) {
+    build.onResolve({ filter: /^\./ }, async (args) => {
+      if (args.pluginData === SHARED || args.namespace === SHARED) return undefined;
+      const found = await build.resolve(args.path, {
+        kind: args.kind,
+        resolveDir: args.resolveDir,
+        importer: args.importer,
+        pluginData: SHARED
+      });
+      if (found.errors.length || found.external || found.path === entryFile) return undefined;
+      if (!inMain.has(found.path)) return undefined;
+      shared.add(found.path);
+      return { path: found.path, namespace: SHARED };
+    });
+    build.onLoad({ filter: /.*/, namespace: SHARED }, async (args) => {
+      const names = await namesOf(args.path);
+      const named = names.filter((n) => n !== 'default');
+      return {
+        contents:
+          `const m = globalThis.MTE_SHARED && globalThis.MTE_SHARED[${JSON.stringify(key(args.path))}];\n` +
+          `if (!m) throw new Error('main.js has not shared ${key(args.path)}: lazy modules load after it');\n` +
+          (named.length ? `export const { ${named.join(', ')} } = m;\n` : '') +
+          (names.includes('default') ? 'export default m.default;\n' : ''),
+        loader: 'js'
+      };
+    });
+  }
+});
+for (const name of LAZY)
+  await esbuild.build({
+    ...options,
+    entryPoints: [game(name)],
+    outfile: game(name), // in place: import.meta.url stays where it was
+    plugins: [oneLanguage, fromMain(path.resolve(game(name)))]
+  });
+
+// main.js, with src/game/share.js (its last import) filled in to register
+// the shared modules before main.js's own code runs.
+const sharedList = [...shared].sort();
+await esbuild.build({
+  ...options,
+  entryPoints: [game('main.js')],
+  outfile: game('main.js'), // in place: import.meta.url stays where main.js was
+  plugins: [
+    oneLanguage,
+    {
+      name: 'share',
+      setup(build) {
+        build.onLoad({ filter: /[\\/]src[\\/]game[\\/]share\.js$/ }, () => ({
+          contents:
+            sharedList
+              .map((file, i) => `import * as s${i} from ${JSON.stringify(file)};`)
+              .join('\n') +
+            `\nglobalThis.MTE_SHARED = Object.freeze({ ${sharedList
+              .map((file, i) => `${JSON.stringify(key(file))}: s${i}`)
+              .join(', ')} });\n`,
+          loader: 'js'
+        }));
+      }
+    }
+  ]
+});
+
+// Run before main.js, or on their own: nothing to share.
+for (const file of [
+  game('start.js'),
   path.join(OUT, 'src/i18n/en.js'),
   path.join(OUT, 'src/i18n/lt.js'),
-  path.join(OUT, 'src/game/autoplay-lab.js'),
-  path.join(OUT, 'src/game/perf.js'),
-  path.join(OUT, 'src/game/news-text.js'),
-  path.join(OUT, 'src/game/statement.js'),
-  path.join(OUT, 'src/game/sync-lazy.js'),
-  path.join(OUT, 'src/game/qr.js'),
-  path.join(OUT, 'src/game/render/rigged-character.js')
+  path.join(OUT, 'src/i18n/news/en.js'),
+  path.join(OUT, 'src/i18n/news/lt.js')
 ])
-  await esbuild.build({
-    entryPoints: [target],
-    external: [
-      './perf.js',
-      './statement.js',
-      './autoplay-lab.js',
-      './news-text.js',
-      './sync-lazy.js',
-      './qr.js',
-      './render/rigged-character.js'
-    ],
-    outfile: target, // in place: import.meta.url stays where main.js was
-    allowOverwrite: true,
-    bundle: true,
-    format: 'esm',
-    charset: 'utf8', // module scripts are UTF-8; avoid escaping Lithuanian text
-    minify: true,
-    keepNames: true, // so a crash report still names the functions
-    sourcemap: 'linked', // for DevTools only; players never download it
-    sourcesContent: false, // the staged site carries the sources themselves
-    legalComments: 'none',
-    logLevel: 'warning',
-    plugins: [oneLanguage]
-  });
+  await esbuild.build({ ...options, entryPoints: [file], outfile: file, plugins: [oneLanguage] });
 
 /* 3. The pack and the game are named up front, so they download with the
  *    first script (start.js) instead of after it. */
@@ -140,5 +241,5 @@ for (const name of ['style.css', 'autoplay-lab.css']) {
 }
 
 console.log(
-  `Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(entry).size / 1024)} KB)`
+  `Inlined the default pack's pictures; bundled the game (${Math.round(fs.statSync(game('main.js')).size / 1024)} KB)`
 );
