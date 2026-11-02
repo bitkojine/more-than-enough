@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.193.4] - 2026-11-02
+
+Watch asked for the admin routes next (2026-11-02): `admin` in
+`server/src/admin-routes.js`, the moderator's routes behind the token, scored
+57 for complexity and ran 131 lines, one `if` per route. Nothing changes for
+players or for the moderator's page.
+
+- `admin` now looks the route up: `LISTS` holds the two lists of every world
+  (`/admin/rooms`, `/admin/players`, whose per-world row with its fallback for
+  a room still on older code is `worldFrom`), and `ROOM_ROUTES` holds one
+  handler per `"METHOD name"` for one world (players, graves, log, backup,
+  restore, copy, ban, freeze, thaw, revoke, smoke). A wrong method, an unknown
+  name or a bad room id is still a 404. `playerBody` reads the `{ id }` body
+  that copy, freeze and thaw share.
+- Checked by running the old and new routes side by side on stub worlds that
+  record every call: 30,000 random and hostile requests (every route and
+  method, bad ids, junk, oversized and real backup bodies, rooms that are
+  gone, refuse, or still run older code) gave the same status, headers, body
+  and calls to the world. Five planted breaks (a freeze's reason, the copy
+  link, restoring without listing the world, the unreachable row, a renamed
+  route) were each caught. Lint budget 229 -> 227.
+
 ## [0.193.3] - 2026-11-02
 
 Watch asked for the 2D character drawing next (2026-11-02): `drawCharacter`

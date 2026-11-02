@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.4':
+    'Užkulisiuose bendrų pasaulių tarnybos moderatoriaus įrankiai dabar kiekvieną užklausą tvarko atskiroje mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
   'news.0.193.3':
     'Užkulisiuose kodas, kuris piešia Micą ir tavo draugus, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Visi atrodo lygiai taip pat kaip anksčiau.',
   'news.0.193.2':

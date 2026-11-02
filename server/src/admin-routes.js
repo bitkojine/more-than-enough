@@ -10,10 +10,35 @@ import { worldOf, isSmokeTest } from './admin.js';
 import { backupOf, backupName, entriesOf, BACKUP_MAX } from './backup.js';
 import { SECURITY_HEADERS, readCapped, readJson, respond } from './http.js';
 
-// The moderator's routes (see the top of this file).
+const registryOf = (env) => env.REGISTRY.get(env.REGISTRY.idFromName('*'));
+const ok = () => respond({ ok: true }, 200, null);
+const done = (err) => (err ? respond({ error: err }, 409, null) : ok());
+const notFound = () => respond({ error: 'not found' }, 404, null);
+const bad = () => respond({ error: 'bad' }, 400, null);
+const noRoom = () => respond({ error: 'room' }, 404, null);
+
+// A small JSON body naming a player by id, or null.
+async function playerBody(request) {
+  const d = await readJson(request, 1024);
+  return d && typeof d.id === 'string' && ID_RE.test(d.id) ? d : null;
+}
+
+// The moderator's routes (see the top of this file): the two lists of every
+// world, then the routes about one world (ROOM_ROUTES, by "METHOD name").
 export async function admin(request, env, url) {
-  if (url.pathname === '/admin/rooms' && request.method === 'GET') {
-    const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
+  const list = request.method === 'GET' && LISTS[url.pathname];
+  if (list) return list(env, url);
+  const m = url.pathname.match(/^\/admin\/rooms\/([^/]+)\/([a-z]+)$/);
+  const route = m && Object.hasOwn(ROOM_ROUTES, request.method + ' ' + m[2]);
+  if (!route || !ROOM_ID_RE.test(m[1])) return notFound();
+  const id = m[1];
+  const room = env.ROOMS.get(env.ROOMS.idFromName(id));
+  return ROOM_ROUTES[request.method + ' ' + m[2]]({ request, env, url, id, room });
+}
+
+const LISTS = {
+  async '/admin/rooms'(env) {
+    const registry = registryOf(env);
     const rooms = [];
     for (const id of await registry.list()) {
       const s = await env.ROOMS.get(env.ROOMS.idFromName(id)).summary();
@@ -21,90 +46,83 @@ export async function admin(request, env, url) {
       else await registry.remove(id);
     }
     return respond({ rooms }, 200, null);
-  }
-  if (url.pathname === '/admin/players' && request.method === 'GET') {
+  },
+  async '/admin/players'(env, url) {
     const tests = url.searchParams.get('tests') === '1';
-    const registry = env.REGISTRY.get(env.REGISTRY.idFromName('*'));
+    const ids = await registryOf(env).list();
     const rooms = await Promise.all(
-      (await registry.list()).map(async (id) => {
-        const room = env.ROOMS.get(env.ROOMS.idFromName(id));
-        try {
-          const o = await room.overview(id, tests);
-          return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
-        } catch (e) {
-          // A busy room can run the code from before a deploy for a while:
-          // asked the older way; failing that, it says so and the rest still shows.
-          try {
-            const summary = await room.summary();
-            if (!summary || (isSmokeTest(summary) && !tests)) return null;
-            return worldOf(summary, (await room.roster(id)) || [], (await room.graves(id)) || []);
-          } catch {
-            console.error('room overview failed', id, e); // cause in wrangler tail only
-            return {
-              id,
-              error: 'unreachable',
-              players: [],
-              name: { en: id, lt: id },
-              last: 0
-            };
-          }
-        }
-      })
+      ids.map((id) => worldFrom(env.ROOMS.get(env.ROOMS.idFromName(id)), id, tests))
     );
     return respond({ rooms: rooms.filter(Boolean) }, 200, null);
   }
-  const m = url.pathname.match(
-    /^\/admin\/rooms\/([^/]+)\/(players|log|ban|freeze|thaw|revoke|graves|copy|backup|restore|smoke)$/
-  );
-  if (!m || !ROOM_ID_RE.test(m[1])) return respond({ error: 'not found' }, 404, null);
-  const room = env.ROOMS.get(env.ROOMS.idFromName(m[1]));
-  if (m[2] === 'players' && request.method === 'GET') {
-    const players = await room.roster(m[1]);
-    return players ? respond({ players }, 200, null) : respond({ error: 'room' }, 404, null);
+};
+
+// One world's row on the players page, or null to leave it out.
+async function worldFrom(room, id, tests) {
+  try {
+    const o = await room.overview(id, tests);
+    return o && (o.players ? worldOf(o.summary, o.players, o.graves) : null);
+  } catch (e) {
+    // A busy room can run the code from before a deploy for a while:
+    // asked the older way; failing that, it says so and the rest still shows.
+    try {
+      const summary = await room.summary();
+      if (!summary || (isSmokeTest(summary) && !tests)) return null;
+      return worldOf(summary, (await room.roster(id)) || [], (await room.graves(id)) || []);
+    } catch {
+      console.error('room overview failed', id, e); // cause in wrangler tail only
+      return { id, error: 'unreachable', players: [], name: { en: id, lt: id }, last: 0 };
+    }
   }
-  if (m[2] === 'graves' && request.method === 'GET') {
-    const graves = await room.graves(m[1]);
-    return graves ? respond({ graves }, 200, null) : respond({ error: 'room' }, 404, null);
-  }
-  if (m[2] === 'log' && request.method === 'GET') {
+}
+
+const ROOM_ROUTES = {
+  async 'GET players'({ id, room }) {
+    const players = await room.roster(id);
+    return players ? respond({ players }, 200, null) : noRoom();
+  },
+  async 'GET graves'({ id, room }) {
+    const graves = await room.graves(id);
+    return graves ? respond({ graves }, 200, null) : noRoom();
+  },
+  async 'GET log'({ url, id, room }) {
     const since = Math.max(0, Number(url.searchParams.get('since')) || 0);
-    const text = await room.exportLog(m[1], since);
-    if (text === null) return respond({ error: 'room' }, 404, null);
+    const text = await room.exportLog(id, since);
+    if (text === null) return noRoom();
     return new Response(text, {
       status: 200,
       headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/x-ndjson; charset=utf-8' }
     });
-  }
-  if (m[2] === 'backup' && request.method === 'GET') {
-    const entries = await room.snapshot(m[1]);
-    if (!entries) return respond({ error: 'room' }, 404, null);
+  },
+  async 'GET backup'({ id, room }) {
+    const entries = await room.snapshot(id);
+    if (!entries) return noRoom();
     const now = Date.now();
-    return new Response(backupOf(entries, m[1], now, VERSION), {
+    return new Response(backupOf(entries, id, now, VERSION), {
       status: 200,
       headers: {
         ...SECURITY_HEADERS,
         'Content-Type': 'application/json',
-        'Content-Disposition': 'attachment; filename="' + backupName(m[1], now) + '"'
+        'Content-Disposition': 'attachment; filename="' + backupName(id, now) + '"'
       }
     });
-  }
-  if (m[2] === 'restore' && request.method === 'POST') {
+  },
+  async 'POST restore'({ request, env, id, room }) {
     const body = await readCapped(request, BACKUP_MAX);
     if (body === null) return respond({ error: 'size' }, 413, null);
-    const entries = entriesOf(body, m[1]);
-    if (!entries) return respond({ error: 'bad' }, 400, null);
+    const entries = entriesOf(body, id);
+    if (!entries) return bad();
     // adopt refuses a room that's there ('exists'): a live world is never written over.
-    const err = await room.adopt(m[1], entries);
+    const err = await room.adopt(id, entries);
     if (err) return respond({ error: err }, 409, null);
-    await env.REGISTRY.get(env.REGISTRY.idFromName('*')).add(m[1]);
-    return respond({ room: m[1] }, 200, null);
-  }
-  if (m[2] === 'copy' && request.method === 'POST') {
-    const d = await readJson(request, 1024);
-    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
-      return respond({ error: 'bad' }, 400, null);
-    const entries = await room.snapshot(m[1]);
-    if (!entries) return respond({ error: 'room' }, 404, null);
+    await registryOf(env).add(id);
+    return respond({ room: id }, 200, null);
+  },
+  async 'POST copy'({ request, env, id, room }) {
+    const d = await playerBody(request);
+    if (!d) return bad();
+    const entries = await room.snapshot(id);
+    if (!entries) return noRoom();
     // A key of its own for the copy, handed to the moderator only: the
     // player's own never leaves their phone (the room has its hash).
     const copy = randomRoomId(),
@@ -117,38 +135,35 @@ export async function admin(request, env, url) {
     const game = String(env.ALLOWED_ORIGINS || '')
       .split(',')[0]
       .trim();
-    return respond(
-      { room: copy, key, until, link: game + '/#copy=' + copy + '.' + key + '&of=' + m[1] },
-      200,
-      null
-    );
-  }
-  if ((m[2] === 'ban' || m[2] === 'freeze' || m[2] === 'thaw') && request.method === 'POST') {
-    const d = await readJson(request, 1024);
-    if (!d || typeof d.id !== 'string' || !ID_RE.test(d.id))
-      return respond({ error: 'bad' }, 400, null);
-    const why = typeof d.why === 'string' ? d.why : '';
-    // 'ban' is kept for old tools and freezes: nothing deletes a player.
-    const err =
-      m[2] === 'thaw' ? await room.modThaw(m[1], d.id) : await room.modFreeze(m[1], d.id, why);
-    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
-  }
+    const link = game + '/#copy=' + copy + '.' + key + '&of=' + id;
+    return respond({ room: copy, key, until, link }, 200, null);
+  },
+  // 'ban' is kept for old tools and freezes: nothing deletes a player.
+  'POST ban': (at) => freeze(at),
+  'POST freeze': (at) => freeze(at),
+  async 'POST thaw'({ request, id, room }) {
+    const d = await playerBody(request);
+    return d ? done(await room.modThaw(id, d.id)) : bad();
+  },
   // Stopping any invite link (only its maker can in the game itself): for a
   // link that got out, without taking the person who made it along.
-  if (m[2] === 'revoke' && request.method === 'POST') {
+  async 'POST revoke'({ request, id, room }) {
     const d = await readJson(request, 1024);
-    if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code))
-      return respond({ error: 'bad' }, 400, null);
-    const err = await room.modRevoke(m[1], d.code);
-    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
-  }
+    if (!d || typeof d.code !== 'string' || !ROOM_ID_RE.test(d.code)) return bad();
+    return done(await room.modRevoke(id, d.code));
+  },
   // Marking a room as the deploy's smoke test (or unmarking one): the mark
   // only keeps it out of the moderator's lists; nothing deletes it.
-  if (m[2] === 'smoke' && request.method === 'POST') {
+  async 'POST smoke'({ request, id, room }) {
     const d = await readJson(request, 1024);
-    if (!d || typeof d.smoke !== 'boolean') return respond({ error: 'bad' }, 400, null);
-    const err = await room.modSmoke(m[1], d.smoke);
-    return err ? respond({ error: err }, 409, null) : respond({ ok: true }, 200, null);
+    if (!d || typeof d.smoke !== 'boolean') return bad();
+    return done(await room.modSmoke(id, d.smoke));
   }
-  return respond({ error: 'not found' }, 404, null);
+};
+
+async function freeze({ request, id, room }) {
+  const d = await playerBody(request);
+  if (!d) return bad();
+  const why = typeof d.why === 'string' ? d.why : '';
+  return done(await room.modFreeze(id, d.id, why));
 }
