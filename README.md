@@ -318,7 +318,11 @@ wrong. The mutation sweep does: Stryker (`stryker.config.mjs`) plants one
 small bug at a time (`<` for `<=`, `||` for `&&`, a call deleted, a condition
 always true) and runs the test files that reach it. A planted bug no test
 catches has survived, and shows a behaviour nothing checks.
-`.github/workflows/mutation.yml` runs it weekly and by hand in 90 parts.
+`.github/workflows/mutation.yml` runs it weekly and by hand in 240 small
+parts. GitHub shuts a runner down now and then, and Stryker saves a part
+only when it ends, so each part is about half an hour and a run that lost
+parts starts the next one itself, which reuses every finished part and
+redoes only the lost ones (up to four runs in a row).
 A planted bug costs the time of every test file that runs its line, so
 `scripts/mutation-plan.mjs` first times each test file with Node's coverage
 and cuts the code, between top-level statements, into parts that cost about
