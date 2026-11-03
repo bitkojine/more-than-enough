@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadPack, svgSize } from '../../src/game/look/look.js';
+import {
+  loadPack,
+  svgSize,
+  setPictureRetryPause,
+  PICTURE_TRIES
+} from '../../src/game/look/look.js';
 
 const svg = (attrs) => `<svg xmlns="http://www.w3.org/2000/svg" ${attrs}><rect/></svg>`;
 
@@ -53,10 +58,11 @@ test('inline pictures are decoded only when first drawn', async () => {
   }
 });
 
-test('a picture that fails to decode is tried again, and reported only when every try fails', async () => {
+test('a picture that fails to load is tried again, and reported only when every try fails', async () => {
   let fail = 2;
   const made = [];
   const faults = [];
+  const waits = [];
   const previous = { Image: globalThis.Image, fault: globalThis.MTE_FAULT };
   globalThis.MTE_FAULT = (err, where) => faults.push(where);
   globalThis.Image = class {
@@ -67,22 +73,19 @@ test('a picture that fails to decode is tried again, and reported only when ever
       queueMicrotask(() => (fail-- > 0 ? this.onerror() : this.onload()));
     }
   };
+  setPictureRetryPause(async (ms) => waits.push(ms));
   const settle = () => new Promise((r) => setTimeout(r, 0));
   try {
-    const json = { tile: 64, looks: { 'a.thing': { image: svg('width="64" height="64"') } } };
-    const { pack } = await loadPack(json, 'https://example.test/pack.json');
+    const { pack } = await loadPack(
+      { tile: 64, looks: { 'a.thing': { image: svg('width="64" height="64"') } } },
+      'https://example.test/pack.json'
+    );
     const a = pack.slots.get('a.thing').image.pics[0];
-    const later = Date.now() + 60_000;
     assert.equal(a.want(), false);
     await settle();
-    assert.equal(a.want(), false, 'waits before trying again');
-    assert.equal(made.length, 1);
-    assert.equal(a.want(later), false, 'second try');
-    await settle();
-    assert.equal(a.want(later), false, 'third try');
-    await settle();
-    assert.equal(made.length, 3);
-    assert.equal(a.want(later), true, 'the third try drew it');
+    assert.equal(made.length, 3, 'two failures, then a third try');
+    assert.deepEqual(waits, [1000, 2000], 'each wait twice as long');
+    assert.equal(a.want(), true, 'the third try drew it');
     assert.deepEqual(faults, [], 'a failure that recovered is not a problem');
 
     fail = Infinity;
@@ -91,14 +94,27 @@ test('a picture that fails to decode is tried again, and reported only when ever
       'https://example.test/pack.json'
     );
     const b = other.slots.get('b.thing').image.pics[0];
-    for (let i = 0; i < 10; i++) {
-      b.want(later);
+    for (let i = 0; i < 5; i++) {
+      b.want();
       await settle();
     }
     assert.deepEqual(faults, ['picture'], 'reported once, after the last try');
-    assert.equal(made.length, 3 + 4, 'four tries, then it stops asking');
+    assert.equal(made.length, 3 + PICTURE_TRIES, 'four tries, then it stops asking');
+
+    // A picture loaded at boot (a file, or one that doesn't say its size)
+    // gets the same tries before the pack counts as broken.
+    fail = 3;
+    made.length = 0;
+    const { pack: eager, problems } = await loadPack(
+      { tile: 64, looks: { 'c.thing': { image: 'c.svg' } } },
+      'https://example.test/pack.json'
+    );
+    assert.deepEqual(problems, []);
+    assert.ok(eager);
+    assert.equal(made.length, 4);
   } finally {
     globalThis.Image = previous.Image;
     globalThis.MTE_FAULT = previous.fault;
+    setPictureRetryPause((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 });

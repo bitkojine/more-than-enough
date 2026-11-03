@@ -25,7 +25,22 @@ function urlFor(ref, base) {
   return url.href;
 }
 
-function loadImage(url) {
+// Every picture is loaded through here, and a load that fails is tried
+// again: iOS Safari fails a perfectly good picture now and then, when the
+// page is being hidden or put to sleep or the phone is short of memory (a
+// 64-pixel ground tile, 2026-11-02), and a cancelled load fires `error` just
+// like a broken file. Each try waits twice as long (1 s, 2 s, 4 s); a failure
+// while the page is hidden is not counted, and only a picture that fails
+// every try is an error.
+export const PICTURE_TRIES = 4;
+const RETRY_MS = 500;
+let pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Tests wait without a clock.
+export function setPictureRetryPause(fn) {
+  pause = fn;
+}
+
+function loadOnce(url) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
@@ -33,6 +48,18 @@ function loadImage(url) {
       reject(new Error(t('pack.pictureFailed') + ' — ' + url.split('#')[0].slice(0, 500))); // i18n-ok: asset URL in a diagnostic
     img.src = url;
   });
+}
+
+async function loadImage(url) {
+  for (let failures = 0; ;) {
+    try {
+      return await loadOnce(url);
+    } catch (err) {
+      if (!globalThis.document?.hidden) failures++;
+      if (failures >= PICTURE_TRIES) throw err;
+      await pause(RETRY_MS * 2 ** failures);
+    }
+  }
 }
 
 function makePicture(img, url, tile, pixelated) {
@@ -72,21 +99,12 @@ export function svgSize(markup) {
 // is ready; until then nothing is drawn), and the rest in spare moments
 // after boot (warmPictures).
 const waiting = [];
-// A decode that fails is tried again: iOS Safari fails a perfectly good
-// picture now and then, when the page is being hidden or put to sleep or the
-// phone is short of memory (a 64-pixel ground tile, 2026-11-02). Each try
-// waits longer; only a picture that fails every try is reported, and a
-// failure while the page is hidden is not counted at all.
-export const PICTURE_TRIES = 4;
-const RETRY_MS = 500;
 // Whether a picture can be drawn now. A picture made elsewhere (a test, a
 // crop) without `want` is an image already.
 const ready = (pic) => !pic.want || pic.want();
 function lazyPicture(size, url, tile, pixelated) {
   let img = null,
-    state = 'cold',
-    failures = 0,
-    retryAt = 0;
+    state = 'cold';
   const pic = {
     get img() {
       return img;
@@ -98,8 +116,8 @@ function lazyPicture(size, url, tile, pixelated) {
     aspect: size.height / size.width,
     pixelated,
     cache: new Map(),
-    want(now = Date.now()) {
-      if (state === 'cold' && now >= retryAt) {
+    want() {
+      if (state === 'cold') {
         state = 'loading';
         loadImage(url).then(
           (loaded) => {
@@ -107,12 +125,6 @@ function lazyPicture(size, url, tile, pixelated) {
             state = 'ready';
           },
           (err) => {
-            if (!globalThis.document?.hidden) failures++;
-            if (failures < PICTURE_TRIES) {
-              state = 'cold';
-              retryAt = Date.now() + RETRY_MS * 2 ** failures;
-              return;
-            }
             state = 'broken';
             if (typeof globalThis.MTE_FAULT === 'function') globalThis.MTE_FAULT(err, 'picture'); // i18n-ok: developer diagnostic location
           }

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.8':
+    'Pataisyta: iPhone mygtuko ar skydelio ženkliukas kartais likdavo tuščias. Dabar jis vėl įsikelia pats, kaip ir žemėlapio paveikslėliai.',
   'news.0.193.7':
     'Pataisyta: iPhone žemės langelis kartais neparodydavo paveikslėlio ir palikdavo pranešimą apie klaidą. Dabar žaidimas tiesiog bando tą paveikslėlį įkelti dar kartą.',
   'news.0.193.6':

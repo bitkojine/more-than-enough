@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <!-- What the page may load and run (test/unit/security.test.js keeps the
      inline script's hash in step). connect-src names the room service. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-ysIZMaYoy11udIiKvc2F3SXt2jOED5ecEPe8qAvMtg8='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-js2Uoxftz6+2HufVc5YYO0izvnzkG/0YrxSP9Cn4LrY='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://rooms.robertasrudys.com wss://rooms.robertasrudys.com http://localhost:8787 ws://localhost:8787; object-src 'none'; base-uri 'none'; form-action 'none'" />
 <meta name="referrer" content="no-referrer" />
 <!-- What a search result says, in the player's language. -->
 <meta name="description" data-i18n-content="game.description" />
@@ -103,6 +103,20 @@
       var el = e.target;
       if (el && el !== window && (el.src || el.href || el.tagName === 'IMG')) {
         var tag = String(el.tagName || 'resource').toUpperCase();
+        // iOS Safari fails a good picture now and then while the page is
+        // being hidden, put to sleep or is short of memory. Try it again,
+        // each wait twice as long (1, 2, 4 s; a hidden page's failure is not
+        // counted), and report only a picture that fails every try, as
+        // src/game/look/look.js does for the map's pictures.
+        if (tag === 'IMG' && el.getAttribute('src')) {
+          var tries = Number(el.getAttribute('data-load-tries') || 0) + (document.hidden ? 0 : 1);
+          if (tries < 4) {
+            el.setAttribute('data-load-tries', String(tries));
+            var again = el.getAttribute('src');
+            setTimeout(function () { if (el.getAttribute('src') === again) { el.removeAttribute('src'); el.setAttribute('src', again); } }, 500 * Math.pow(2, Math.max(1, tries)));
+            return;
+          }
+        }
         var attr = tag === 'LINK' ? 'href' : 'src';
         var raw = el.getAttribute ? el.getAttribute(attr) : null;
         var url = el.currentSrc || el.src || el.href || '(empty)';

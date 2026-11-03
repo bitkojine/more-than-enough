@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.8':
+    'Fixed: on an iPhone an icon on a button or panel could now and then go blank. It now loads again by itself, just like the map’s pictures.',
   'news.0.193.7':
     'Fixed: on an iPhone a ground tile could now and then fail to show and leave a problem report behind. The game now simply tries that picture again.',
   'news.0.193.6':

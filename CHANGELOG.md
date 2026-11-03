@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.193.8] - 2026-11-03
+
+Watch asked whether 0.193.7 fixed every case of the iPhone picture failure,
+not only the map's. It did not: 0.193.7 retried only pictures decoded on
+first draw. Two other paths load pictures and had the same weakness.
+
+- Every pack picture now loads through one `loadImage` in
+  `src/game/look/look.js` that tries again (up to `PICTURE_TRIES`, 4, waits
+  of 1 s, 2 s, 4 s; a failure while the page is hidden is not counted). That
+  covers the lazy map pictures and the pictures loaded up front (a file in
+  the pack, or an inline SVG without a size), where one failure made the
+  whole pack broken: a crash at boot. The staged pack has none of those
+  today, but development and custom packs do.
+- Icons in HTML (`iconHtml` `<img>`s on buttons and panels) were hidden and
+  reported on their first failure by the page's error handler in
+  `index.html`. That handler now reloads a failed `<img>` with the same
+  waits and only hides and reports it after the last try. The CSP hash for
+  the inline script is updated.
+- Checked: `test/unit/look-lazy.test.js` covers a lazy picture that
+  recovers, one that never does, and an up-front picture that recovers
+  after three failures; in Chromium against the staged site, an `<img>` that
+  failed twice loaded on its third try with no report, and one that always
+  fails was tried four times and reported once.
+
 ## [0.193.7] - 2026-11-03
 
 Watch sent an iPhone problem report (2026-11-03, v0.193.4, iOS 18.7 Safari):
