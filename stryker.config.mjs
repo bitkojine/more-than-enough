@@ -22,7 +22,12 @@ const testFiles = ['test/unit', 'test/property'].flatMap((dir) =>
 export default {
   testRunner: 'tap',
   plugins: ['@stryker-mutator/tap-runner'],
-  tap: { testFiles },
+  // A planted bug that loops while it allocates can grow a test process to
+  // several GB before its timeout; four at once starved GitHub's 16 GB
+  // runners until they dropped ("lost communication", 9 of 90 parts on
+  // 2026-11-03). Capped, such a process runs out of memory and fails at once,
+  // which counts as caught. Every test passes with 1 GB.
+  tap: { testFiles, nodeArgs: ['--max-old-space-size=1536'] },
   mutate: ['src/core/**/*.js', 'src/net/**/*.js', 'server/src/**/*.js', 'src/game/**/*.js'],
   // Run each planted bug only against the test files that reach it, and all
   // of them (not just the first to catch it), so the report says which test
