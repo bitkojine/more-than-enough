@@ -52,3 +52,53 @@ test('inline pictures are decoded only when first drawn', async () => {
     globalThis.Image = previous;
   }
 });
+
+test('a picture that fails to decode is tried again, and reported only when every try fails', async () => {
+  let fail = 2;
+  const made = [];
+  const faults = [];
+  const previous = { Image: globalThis.Image, fault: globalThis.MTE_FAULT };
+  globalThis.MTE_FAULT = (err, where) => faults.push(where);
+  globalThis.Image = class {
+    set src(url) {
+      made.push(url);
+      this.naturalWidth = 64;
+      this.naturalHeight = 64;
+      queueMicrotask(() => (fail-- > 0 ? this.onerror() : this.onload()));
+    }
+  };
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+  try {
+    const json = { tile: 64, looks: { 'a.thing': { image: svg('width="64" height="64"') } } };
+    const { pack } = await loadPack(json, 'https://example.test/pack.json');
+    const a = pack.slots.get('a.thing').image.pics[0];
+    const later = Date.now() + 60_000;
+    assert.equal(a.want(), false);
+    await settle();
+    assert.equal(a.want(), false, 'waits before trying again');
+    assert.equal(made.length, 1);
+    assert.equal(a.want(later), false, 'second try');
+    await settle();
+    assert.equal(a.want(later), false, 'third try');
+    await settle();
+    assert.equal(made.length, 3);
+    assert.equal(a.want(later), true, 'the third try drew it');
+    assert.deepEqual(faults, [], 'a failure that recovered is not a problem');
+
+    fail = Infinity;
+    const { pack: other } = await loadPack(
+      { tile: 64, looks: { 'b.thing': { image: svg('width="32" height="32"') } } },
+      'https://example.test/pack.json'
+    );
+    const b = other.slots.get('b.thing').image.pics[0];
+    for (let i = 0; i < 10; i++) {
+      b.want(later);
+      await settle();
+    }
+    assert.deepEqual(faults, ['picture'], 'reported once, after the last try');
+    assert.equal(made.length, 3 + 4, 'four tries, then it stops asking');
+  } finally {
+    globalThis.Image = previous.Image;
+    globalThis.MTE_FAULT = previous.fault;
+  }
+});

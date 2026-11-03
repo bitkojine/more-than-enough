@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.7':
+    'Pataisyta: iPhone žemės langelis kartais neparodydavo paveikslėlio ir palikdavo pranešimą apie klaidą. Dabar žaidimas tiesiog bando tą paveikslėlį įkelti dar kartą.',
   'news.0.193.6':
     'Užkulisiuose kodas, kuris randa kelią, kai {phone:bakstelėji|laptop:spusteli} kur nors eiti, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Mica eina lygiai tais pačiais keliais kaip anksčiau ir taip pat greitai.',
   'news.0.193.5':

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.7':
+    'Fixed: on an iPhone a ground tile could now and then fail to show and leave a problem report behind. The game now simply tries that picture again.',
   'news.0.193.6':
     'Behind the scenes, the code that finds the way when you {phone:tap|laptop:click} somewhere to walk is now in small parts, each easy to check. Mica takes exactly the same routes as before, just as fast.',
   'news.0.193.5':

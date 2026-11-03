@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.193.7] - 2026-11-03
+
+Watch sent an iPhone problem report (2026-11-03, v0.193.4, iOS 18.7 Safari):
+"the picture failed to load or decode" for `ground/home-1.svg`, one second
+into a returning solo world with the map open and no frame drawn yet. The
+picture is a valid 64 x 64 SVG that decodes everywhere else, so the failure
+was Safari's, not the picture's: WebKit cancels or fails image loads when the
+page is being hidden, suspended or is short of memory, and an `<img>` whose
+load is cancelled fires `error`. Since 0.190.0 an inline picture is decoded
+on first draw (`lazyPicture` in `src/game/look/look.js`); one failed decode
+marked it broken for the rest of the visit, so that ground tile was never
+drawn again, and it was reported as a problem.
+
+- A failed decode is now tried again, up to `PICTURE_TRIES` (4) times, each
+  wait twice as long (1 s, 2 s, 4 s); a failure while `document.hidden` does
+  not count. Only a picture that fails every try is reported.
+- `test/unit/look-lazy.test.js` covers a picture that recovers on the third
+  try (no report) and one that never does (four tries, one report).
+
 ## [0.193.6] - 2026-11-02
 
 Watch asked for pathfinding next (2026-11-02): `findPath` in
