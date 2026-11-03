@@ -28,40 +28,44 @@ export function assignedTo(entries, file, m) {
   });
 }
 
-/* One report from many: files side by side, and each part's test ids (which
- * each part numbers its own way) replaced by the test file's name. `parts`
- * may be any iterable (read one at a time, so 90 parts fit in memory);
- * `plan`, when given, is the plan's list of entries per part, in order. */
+const tally = (ms) => {
+  const t = {};
+  for (const m of ms) t[m.status] = (t[m.status] || 0) + 1;
+  return JSON.stringify(t);
+};
+
+// Adds a part's test files to the joined report; returns its test ids, which
+// each part numbers its own way, renamed to the test file's name.
+function joinTests(out, part) {
+  const name = new Map();
+  for (const [file, t] of Object.entries(part.testFiles || {})) {
+    out.testFiles[file] ??= { source: t.source, tests: [] };
+    for (const x of t.tests) {
+      const id = x.name || file;
+      name.set(x.id, id);
+      if (!out.testFiles[file].tests.some((y) => y.id === id))
+        out.testFiles[file].tests.push({ ...x, id, name: id });
+    }
+  }
+  return (ids) => ids && ids.map((id) => name.get(id) ?? id);
+}
+
+/* One report from many: files side by side, test ids named. `parts` may be
+ * any iterable (read one at a time, so many parts fit in memory); `plan`,
+ * when given, is the plan's list of entries per part, in order. */
 export function merge(parts, plan = null) {
   const out = { schemaVersion: '2', thresholds: { high: 80, low: 60 }, files: {}, testFiles: {} };
-  let n = 0;
   out.log = [];
+  let n = 0;
   for (const part of parts) {
     n++;
-    const tally = (ms) => {
-      const t = {};
-      for (const m of ms) t[m.status] = (t[m.status] || 0) + 1;
-      return JSON.stringify(t);
-    };
-    const all = Object.values(part.files).flatMap((f) => f.mutants);
+    const entries = plan ? plan[n - 1] || [] : null;
+    const rename = joinTests(out, part);
     let kept = [];
-    const name = new Map();
-    for (const [file, t] of Object.entries(part.testFiles || {})) {
-      out.testFiles[file] ??= { source: t.source, tests: [] };
-      for (const x of t.tests) {
-        const id = x.name || file;
-        name.set(x.id, id);
-        if (!out.testFiles[file].tests.some((y) => y.id === id))
-          out.testFiles[file].tests.push({ ...x, id, name: id });
-      }
-    }
-    const rename = (ids) => ids && ids.map((id) => name.get(id) ?? id);
     // A costly file is split over several parts by line range: its pieces
     // join, and each part's mutant ids (which restart at 0) get its number.
     for (const [file, f] of Object.entries(part.files)) {
-      const mine = plan
-        ? f.mutants.filter((m) => assignedTo(plan[n - 1] || [], file, m))
-        : f.mutants;
+      const mine = entries ? f.mutants.filter((m) => assignedTo(entries, file, m)) : f.mutants;
       kept = kept.concat(mine);
       if (!mine.length) continue;
       const mutants = mine.map((m) => ({
@@ -73,8 +77,9 @@ export function merge(parts, plan = null) {
       if (out.files[file]) out.files[file].mutants.push(...mutants);
       else out.files[file] = { ...f, mutants };
     }
+    const all = Object.values(part.files).flatMap((f) => f.mutants);
     out.log.push(
-      `part ${n}: ${plan ? (plan[n - 1] || []).join(',') : '-'} | in report ${tally(all)} | kept ${tally(kept)}`
+      `part ${n}: ${entries ? entries.join(',') : '-'} | in report ${tally(all)} | kept ${tally(kept)}`
     );
     out.projectRoot ??= part.projectRoot;
     out.framework ??= part.framework;
