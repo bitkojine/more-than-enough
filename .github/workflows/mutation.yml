@@ -25,6 +25,10 @@ on:
         description: 'Start from the joined report of this run id instead of the last saved one'
         type: string
         default: ''
+      join_run:
+        description: 'Only join again the parts (and plan) of this earlier run id'
+        type: string
+        default: ''
   schedule:
     - cron: '17 2 * * 0' # Sundays, 02:17 UTC
 
@@ -43,6 +47,7 @@ env:
 
 jobs:
   plan:
+    if: ${{ !inputs.join_run }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -64,6 +69,7 @@ jobs:
 
   part:
     needs: plan
+    if: ${{ !inputs.join_run }}
     runs-on: ubuntu-latest
     timeout-minutes: 340
     strategy:
@@ -128,7 +134,7 @@ jobs:
           retention-days: 14
 
   report:
-    needs: part
+    needs: [plan, part]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -145,10 +151,22 @@ jobs:
           pattern: mutation-part-*
           path: parts
           merge-multiple: true
+          run-id: ${{ inputs.join_run || github.run_id }}
+          github-token: ${{ github.token }}
 
+      - name: Fetch the plan
+        uses: actions/download-artifact@v4
+        with:
+          name: mutation-plan
+          run-id: ${{ inputs.join_run || github.run_id }}
+          github-token: ${{ github.token }}
+
+      # Each part's report also carries the whole report it started from, so
+      # the join keeps from each only the code the plan gave it, reading one
+      # part at a time (all at once ran out of memory on 85 parts).
       - name: Join the parts
         run: |
-          node scripts/mutation-report.mjs reports/mutation parts/*.json
+          node --max-old-space-size=12288 scripts/mutation-report.mjs reports/mutation --plan plan.json parts/*.json
           cat reports/mutation/summary.md >> "$GITHUB_STEP_SUMMARY"
           # Also in the log, which can be read where the artifacts can't.
           cat reports/mutation/summary.md reports/mutation/survivors.txt

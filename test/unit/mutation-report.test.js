@@ -5,7 +5,17 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { cutPoints, linesRun, plan } from '../../scripts/mutation-plan.mjs';
-import { merge, testValue, summary, survivors } from '../../scripts/mutation-report.mjs';
+import {
+  merge,
+  testValue,
+  summary,
+  survivors,
+  assignedTo
+} from '../../scripts/mutation-report.mjs';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 // n lines of one statement (indented, so no cut point inside).
 const lines = (n) => Array.from({ length: n }, (_, i) => (i ? '  x' : 'x') + i).join('\n');
@@ -211,4 +221,74 @@ test('mutation report: survivors are listed by file and line, worst files first'
     'server/src/b.js:1 x (no test runs it)',
     'src/core/a.js:1 x -> !x'
   ]);
+});
+
+const at = (line, status = 'Killed') => ({
+  ...mutant(String(line), status, ['0'], status === 'Killed' ? ['0'] : []),
+  location: { start: { line, column: 1 }, end: { line, column: 5 } }
+});
+// A part's report also carries the files of the report it started from.
+const carrying = (mutants) => ({
+  files: { 'src/core/a.js': { language: 'javascript', source: 'a', mutants } },
+  testFiles: { 'test/unit/a.test.js': { tests: [{ id: '0', name: 'test/unit/a.test.js' }] } }
+});
+
+test('mutation report: each part counts only the code the plan gave it', () => {
+  assert.ok(assignedTo(['src/core/a.js'], 'src/core/a.js', at(7)));
+  assert.ok(assignedTo(['src/core/a.js:5-9'], 'src/core/a.js', at(9)));
+  assert.ok(!assignedTo(['src/core/a.js:5-9'], 'src/core/a.js', at(10)));
+  assert.ok(!assignedTo(['src/core/b.js'], 'src/core/a.js', at(7)));
+  const both = [at(2), at(8, 'Survived')];
+  const r = merge([carrying(both), carrying(both)], [['src/core/a.js:1-4'], ['src/core/a.js:5-9']]);
+  assert.deepEqual(
+    r.files['src/core/a.js'].mutants.map((m) => [m.location.start.line, m.status]),
+    [
+      [2, 'Killed'],
+      [8, 'Survived']
+    ],
+    'one copy of each, not one per part'
+  );
+});
+
+test('mutation report: the command joins named parts by the plan, filling a lost part from what the others carry', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mutation-join-'));
+  const all = [at(2), at(8, 'Survived'), at(20)];
+  writeFileSync(
+    join(dir, 'plan.json'),
+    JSON.stringify({
+      parts: [['src/core/a.js:1-4'], ['src/core/a.js:5-9'], ['src/core/a.js:10-30']]
+    })
+  );
+  writeFileSync(join(dir, 'part-1.json'), JSON.stringify(carrying(all)));
+  writeFileSync(join(dir, 'part-3.json'), JSON.stringify(carrying(all))); // part 2 was lost
+  const out = join(dir, 'out');
+  execFileSync(process.execPath, [
+    'scripts/mutation-report.mjs',
+    out,
+    '--plan',
+    join(dir, 'plan.json'),
+    join(dir, 'part-1.json'),
+    join(dir, 'part-3.json')
+  ]);
+  const r = JSON.parse(readFileSync(join(out, 'mutation.json'), 'utf8'));
+  assert.deepEqual(
+    r.files['src/core/a.js'].mutants.map((m) => m.location.start.line).sort((a, b) => a - b),
+    [2, 8, 20]
+  );
+  assert.match(readFileSync(join(out, 'survivors.txt'), 'utf8'), /src\/core\/a\.js:8/);
+  assert.throws(
+    () =>
+      execFileSync(
+        process.execPath,
+        [
+          'scripts/mutation-report.mjs',
+          out,
+          '--plan',
+          join(dir, 'plan.json'),
+          join(dir, 'plan.json')
+        ],
+        { stdio: 'pipe' }
+      ),
+    /part-N/
+  );
 });

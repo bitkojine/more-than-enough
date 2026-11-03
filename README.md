@@ -330,7 +330,8 @@ catches, how many only it catches, and which test files catch nothing
 (also printed in the run's log, with every survivor by file and line).
 After the first full run only what changed is run again; a part that
 failed is simply tested from scratch next time, and `from_run` starts a run
-from another run's report. One file by hand:
+from another run's report (`join_run` only joins an earlier run's parts
+again). One file by hand:
 
 ```sh
 npx stryker run --mutate src/core/paths.js

@@ -14,11 +14,29 @@ import path from 'node:path';
 const CAUGHT = new Set(['Killed', 'Timeout']);
 const COUNTED = new Set(['Killed', 'Timeout', 'Survived', 'NoCoverage']);
 
-// One report from many: files side by side, and each part's test ids (which
-// each part numbers its own way) replaced by the test file's name.
-export function merge(parts) {
+// Whether a mutant lies in what its part was given to test: a whole file,
+// or a line range of one ("src/core/sim.js:200-339"). A part's report also
+// carries every file of the report it started from (incremental), so a
+// file can turn up in many parts; only the part that was given it counts.
+export function assignedTo(entries, file, m) {
+  return entries.some((e) => {
+    const [f, range] = e.split(':');
+    if (f !== file) return false;
+    if (!range) return true;
+    const [a, b] = range.split('-').map(Number);
+    return m.location.start.line >= a && m.location.end.line <= b;
+  });
+}
+
+/* One report from many: files side by side, and each part's test ids (which
+ * each part numbers its own way) replaced by the test file's name. `parts`
+ * may be any iterable (read one at a time, so 90 parts fit in memory);
+ * `plan`, when given, is the plan's list of entries per part, in order. */
+export function merge(parts, plan = null) {
   const out = { schemaVersion: '2', thresholds: { high: 80, low: 60 }, files: {}, testFiles: {} };
+  let n = 0;
   for (const part of parts) {
+    n++;
     const name = new Map();
     for (const [file, t] of Object.entries(part.testFiles || {})) {
       out.testFiles[file] ??= { source: t.source, tests: [] };
@@ -32,9 +50,12 @@ export function merge(parts) {
     const rename = (ids) => ids && ids.map((id) => name.get(id) ?? id);
     // A costly file is split over several parts by line range: its pieces
     // join, and each part's mutant ids (which restart at 0) get its number.
-    const n = parts.indexOf(part) + 1;
     for (const [file, f] of Object.entries(part.files)) {
-      const mutants = f.mutants.map((m) => ({
+      const mine = plan
+        ? f.mutants.filter((m) => assignedTo(plan[n - 1] || [], file, m))
+        : f.mutants;
+      if (!mine.length) continue;
+      const mutants = mine.map((m) => ({
         ...m,
         id: `${n}-${m.id}`,
         coveredBy: rename(m.coveredBy),
@@ -168,12 +189,35 @@ function html(report) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [dir, ...parts] = process.argv.slice(2);
-  if (!dir || !parts.length) {
-    console.error('usage: node scripts/mutation-report.mjs <out dir> <part.json>...');
+  const args = process.argv.slice(2);
+  const at = args.indexOf('--plan');
+  const plan = at >= 0 ? JSON.parse(readFileSync(args.splice(at, 2)[1], 'utf8')).parts : null;
+  const [dir, ...files] = args;
+  if (!dir || !files.length) {
+    console.error(
+      'usage: node scripts/mutation-report.mjs <out dir> [--plan plan.json] <part-N.json>...'
+    );
     process.exit(2);
   }
-  const report = merge(parts.map((p) => JSON.parse(readFileSync(p, 'utf8'))));
+  // With a plan, part-N.json is the report of part N. For a part that was
+  // lost, any other part's report still carries what the report it started
+  // from knew about that code; code nobody knew is missing, and is tested
+  // next time.
+  const number = (f) => Number(/part-(\d+)\.json$/.exec(f)?.[1]);
+  if (plan && files.some((f) => !number(f))) {
+    console.error('with --plan, part reports must be named part-N.json');
+    process.exit(2);
+  }
+  const ordered = plan
+    ? Array.from(
+        { length: plan.length },
+        (_, i) => files.find((f) => number(f) === i + 1) || files[0]
+      )
+    : files;
+  function* read() {
+    for (const f of ordered) yield JSON.parse(readFileSync(f, 'utf8'));
+  }
+  const report = merge(read(), plan);
   mkdirSync(dir, { recursive: true });
   writeFileSync(path.join(dir, 'mutation.json'), JSON.stringify(report));
   writeFileSync(path.join(dir, 'mutation.html'), html(report));
