@@ -31,7 +31,10 @@ export default {
   disableBail: true,
   // index.html's inline script is hashed by a test: leave every file as is.
   disableTypeChecks: false,
-  timeoutMS: 60000,
+  // A planted bug that makes a test loop forever is stopped after the test
+  // file's own time x 1.5 plus this; a minute each was most of some parts'
+  // time.
+  timeoutMS: 15000,
   // The first run of every test file, before any bug is planted, takes about
   // 2.5 minutes here and over 5 on a CI runner (Stryker's default limit).
   dryRunTimeoutMinutes: 30,

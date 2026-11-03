@@ -318,7 +318,7 @@ wrong. The mutation sweep does: Stryker (`stryker.config.mjs`) plants one
 small bug at a time (`<` for `<=`, `||` for `&&`, a call deleted, a condition
 always true) and runs the test files that reach it. A planted bug no test
 catches has survived, and shows a behaviour nothing checks.
-`.github/workflows/mutation.yml` runs it weekly and by hand in 30 parts,
+`.github/workflows/mutation.yml` runs it weekly and by hand in 90 small parts,
 then joins them (`scripts/mutation-report.mjs`) into a report: the score per
 file, every survivor, and for each test file how many planted bugs it
 catches, how many only it catches, and which test files catch nothing.
