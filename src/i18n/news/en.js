@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.9':
+    'What’s new reads better in both languages: spelling, grammar and wording are fixed in older notes, and the Lithuanian ones now spell Mica and name things the way the game does.',
   'news.0.193.8':
     'Fixed: on an iPhone an icon on a button or panel could now and then go blank. It now loads again by itself, just like the map’s pictures.',
   'news.0.193.7':
@@ -105,7 +107,7 @@ export default {
   'news.0.180.2':
     'Menus no longer share tabs. Use Equipment → Craft, Settlement or the trophy to open each menu directly. Beyond appears in Settings when unlocked, with Back returning to Settings.',
   'news.0.180.1':
-    'Equipment now has a clear heading, a labeled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.',
+    'Equipment now has a clear heading, a labelled Close control and separate crafting navigation. Messages stays available while Equipment is open; open it to return to the log. Back also closes Equipment.',
   'news.0.180.0':
     'Equipment opens a compact tray for lights, with crafting one step deeper. Settlement brings construction and building improvements together. On crowded screens, optional HUD details collapse in a fixed order while essential controls stay in place.',
   'news.0.179.4':
@@ -241,11 +243,11 @@ export default {
   'news.0.148.0':
     'Underground, holding Gather now mines the rock around you, finds and seams first, just like it gathers on the surface. And wherever you climb down, a small cave opens around you, so you are never stuck on the one tile you landed on.',
   'news.0.147.0':
-    'You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see their face, hands and stitching up close. Mica stays sharp that close, and the view centres on them so none of them is cut off.',
+    'You can zoom in much closer now, until Mica fills more than half the screen: {phone:spread two fingers|laptop:scroll} or press + to see his face, hands and stitching up close. Mica stays sharp that close, and the view centres on him so no part of him is cut off.',
   'news.0.146.0':
     'Pointing at things in the world is quieter: plain ground and the tunnels you dig no longer pop up a note. Only deposits, finds, ways between layers and buildings say something, in plain words, and a deposit tells you when you still need a better tool for it.',
   'news.0.145.0':
-    "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen anymore. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up by floating solar panels and water wheels.",
+    "The game opens much faster: it now downloads about a quarter of what it did, after old character drawings were cleared out. Nobody in the game carries a screen any more. In older worlds Mica carries a lantern instead, and the battery is now the lantern's charge: it still runs down in the dark and fills up at floating solar panels and water wheels.",
   'news.0.144.0':
     'Mica now mines with both hands gripping the handle, gathers into an earned basket, and frees his hands for construction. His lantern is visible when owned. Repeated gathering finishes each work cycle instead of restarting halfway through.',
   'news.0.143.2':
@@ -311,7 +313,7 @@ export default {
   'news.0.131.5':
     'Exploration, charger checks and production accounting now do less repeated work, keeping the same visibility, battery and resource rules.',
   'news.0.131.4':
-    'Game updates now run at a steady pace independently of drawing, with faster production calculations. Auto-play favors surface gathering and production, and weighs building repayment before buying more buildings. Auto-play no longer sees hidden rock or unseen chargers. Auto-play remembers finds while walking around rock instead of turning back when their glint leaves view. Auto-play no longer paces at the wrong mine shaft when it needs to return to the surface. Auto-play keeps its pace and moves on without pausing at each step. It looks for ordinary forage instead of waiting beside rare mushrooms, switches resources once a price is covered, and retries routes after a gear upgrade.',
+    'Game updates now run at a steady pace independently of drawing, with faster production calculations. Auto-play favours surface gathering and production, weighs building repayment before buying more buildings, and no longer sees hidden rock or unseen chargers. It remembers finds while walking around rock instead of turning back when their glint leaves view, no longer paces at the wrong mine shaft when it needs to return to the surface, and keeps its pace without pausing at each step. It looks for ordinary forage instead of waiting beside rare mushrooms, switches resources once a price is covered, and retries routes after a gear upgrade.',
   'news.0.131.3':
     'It’s freeze season, so nothing is made while the game isn’t the open screen: close it, come back tomorrow, and your buildings kept your pace but made nothing. If you’d rather have them work while you’re away, turn on “Produce while away” in Settings. Very big numbers fit too: past a trillion the counts in the bar go scientific (1e15) instead of being cut short, and the Gather button’s label stays on the screen.',
   'news.0.131.2':
@@ -366,7 +368,7 @@ export default {
   'news.0.116.0':
     'Your {phone:phone|laptop:laptop} now has a battery. Lighting the dark at night or in the mine runs it down, and when it gets low your light shrinks.\nCharge it with water power: put a floating solar panel on a lake (it works while the sun is up) or a water wheel on a river (day and night), both in Build, On the water.\nYour worlds and everything in them are kept, as they will be from now on.',
   'news.0.115.0':
-    "Changed: a tile with a building on it is the building's now. You can't gather from it by hand anymore; {phone:tapping|laptop:clicking} it collects from the building instead.",
+    "Changed: a tile with a building on it is the building's now. You can't gather from it by hand any more; {phone:tapping|laptop:clicking} it collects from the building instead.",
   'news.0.114.0':
     "Gather is the big button again. Hold it and you keep gathering right where you stand: it collects from buildings beside you, works the deposit you're among, or with nothing in reach walks you to the nearest resource. {phone:Slide off it|laptop:Drag off it} to draw a Trail, as before.\nPerfect is still here, as a smaller button just above Gather: hold it and the game plays itself.{phone:|laptop: Space is Gather again, and P holds Perfect.}",
   'news.0.113.1':
@@ -422,7 +424,7 @@ export default {
   'news.0.99.0':
     'Every shared world now has its own name, like Fern Valley, so you always know which world you are joining. Settings has a new Worlds list with your own world and every shared world you have joined, and how many are playing in each. {phone:Tap|laptop:Click} Play to switch between them.',
   'news.0.98.0':
-    'Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. Losing the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.',
+    'Lists and Settings are solid now, with nothing showing through. On a short sideways screen the milestone banner no longer covers your character. If you lose the connection in a shared world, the game is back the moment you are online again, and friends joining together each get their own spot.',
   'news.0.97.0':
     'A new milestone marks the long middle of a world: every refinery at level 9, about halfway between the Abundance Engine at V and every refinery at level 10.',
   'news.0.96.0':
@@ -529,7 +531,7 @@ export default {
   'news.0.59.2': 'A redrawn pickaxe: steel head, steel handle, wrapped grip.',
   'news.0.59.1': 'Friends have names like Moss, Fern and Fox instead of numbers.',
   'news.0.59.0':
-    'Resources come in clusters, so you have to explore: richer deposits further from home, crystal only far out.\nUnderground, ore and crystal run in veins and get commoner the deeper you go.\nThis update starts a new world.',
+    'Resources come in clusters, so you have to explore: richer deposits further from home, crystal only far out.\nUnderground, ore and crystal run in veins and get more common the deeper you go.\nThis update starts a new world.',
   'news.0.58.0':
     'Characters act out what they do: swinging the pickaxe, foraging, building, hopping for joy, climbing between layers.',
   'news.0.57.2': 'Friends off screen show as a badge at the edge, pointing their way.',

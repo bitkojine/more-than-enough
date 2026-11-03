@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.193.9] - 2026-11-03
+
+Watch asked for a proofread of What's new in both languages. Only wording
+changes; no note changes what it says happened.
+
+- Lithuanian (`src/i18n/news/lt.js`): fixed garbled words in 0.131.2–0.131.3
+  ("išteklų", "pavidinį", "nebecutami") and broken sentences in 0.130.1,
+  0.131.0 and 0.131.1; spelled Mica one way (Mica, Micos, Micą, never Mika);
+  formal "jūs" forms in 0.142–0.181 now use "tu" like every other note; used
+  the game's own names: Moksliukams for Nerds, žiežirba for a flare, širdies
+  pastogė for a heart shelter, dėklas for the heart's carrier, krumpliaratis
+  for the gear, Žinynas for the wiki; one imperative form (bakstelėk,
+  spustelėk); "iPhone įrenginyje" instead of a bare "iPhone" as a place.
+- English (`src/i18n/news/en.js`): Mica is "he" in 0.147.0 like everywhere
+  else; British "any more", "labelled", "favours" as elsewhere; a dangling
+  phrase in 0.98.0; the five-times-repeated "Auto-play" in 0.131.4 merged
+  into two sentences.
+- The game's own Lithuanian (`src/i18n/lt.js`): "Mika eina ten…" and "Mika
+  ten nenueina." now say Mica, and the Home Screen hint says "Pridėk Micą".
+
 ## [0.193.8] - 2026-11-03
 
 Watch asked whether 0.193.7 fixed every case of the iPhone picture failure,

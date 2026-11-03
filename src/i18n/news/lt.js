@@ -1,23 +1,25 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.193.9':
+    'Skiltis „Kas naujo“ abiem kalbomis skaitosi geriau: senesniuose įrašuose pataisyta rašyba, gramatika ir formuluotės, o lietuviškuose Mica ir kiti dalykai dabar vadinami taip pat, kaip žaidime.',
   'news.0.193.8':
-    'Pataisyta: iPhone mygtuko ar skydelio ženkliukas kartais likdavo tuščias. Dabar jis vėl įsikelia pats, kaip ir žemėlapio paveikslėliai.',
+    'Pataisyta: iPhone įrenginyje ženkliukas ant mygtuko ar skydelio kartais likdavo tuščias. Dabar jis vėl įsikelia pats, kaip ir žemėlapio paveikslėliai.',
   'news.0.193.7':
-    'Pataisyta: iPhone žemės langelis kartais neparodydavo paveikslėlio ir palikdavo pranešimą apie klaidą. Dabar žaidimas tiesiog bando tą paveikslėlį įkelti dar kartą.',
+    'Pataisyta: iPhone įrenginyje žemės langelis kartais nepasirodydavo ir palikdavo pranešimą apie klaidą. Dabar žaidimas tiesiog bando tą paveikslėlį įkelti dar kartą.',
   'news.0.193.6':
-    'Užkulisiuose kodas, kuris randa kelią, kai {phone:bakstelėji|laptop:spusteli} kur nors eiti, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Mica eina lygiai tais pačiais keliais kaip anksčiau ir taip pat greitai.',
+    'Užkulisiuose kodas, kuris randa kelią, kai {phone:bakstelėji|laptop:spusteli} vietą, į kurią nori nueiti, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Mica eina lygiai tais pačiais keliais kaip anksčiau ir taip pat greitai.',
   'news.0.193.5':
     'Užkulisiuose kortelė, kuri iššoka virš pastato, dabar sudedama iš mažų dalių, po vieną kiekvienai pastato rūšiai. Kiekviena kortelė rodo ir daro lygiai tą patį, ką ir anksčiau.',
   'news.0.193.4':
-    'Užkulisiuose bendrų pasaulių tarnybos moderatoriaus įrankiai dabar kiekvieną užklausą tvarko atskiroje mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
+    'Užkulisiuose bendrų pasaulių tarnybos moderatoriaus įrankiai dabar kiekvieną užklausą tvarko savo mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
   'news.0.193.3':
     'Užkulisiuose kodas, kuris piešia Micą ir tavo draugus, dabar suskaidytas į mažas, lengvai patikrinamas dalis. Visi atrodo lygiai taip pat kaip anksčiau.',
   'news.0.193.2':
-    'Užkulisiuose bendrų pasaulių tarnyba dabar kiekvienos rūšies žinutę iš tavo žaidimo tvarko atskiroje mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
+    'Užkulisiuose bendrų pasaulių tarnyba dabar kiekvienos rūšies žinutę iš tavo žaidimo tvarko savo mažoje, atskirai patikrinamoje dalyje. Žaidime niekas nesikeičia.',
   'news.0.193.1':
     'Netikėtai sugadintas išsaugojimas nebetrukdo žaidimui pasileisti: tai, ką galima perskaityti, įkeliama kaip anksčiau, o neperskaitomas išsaugojimas, kaip visada, atidedamas ir paliekamas.',
   'news.0.193.0':
-    'Nustatymuose → Pasauliai dabar matai ir senesnes savo pasaulių kopijas, išsaugotas šiame įrenginyje, pavyzdžiui, kopiją, kurios nepasirinkai, kai tą patį pasaulį žaidė du įrenginiai. Prie kiekvienos parašyta, kurią dieną ji išsaugota, o Žaisti grąžina į ją. Kopija, kurią ji pakeičia, savo ruožtu lieka išsaugota kaip senesnė, tad visada gali sugrįžti.',
+    'Skiltyje Nustatymai → Pasauliai dabar matysi ir senesnes savo pasaulių kopijas, išsaugotas šiame įrenginyje, pavyzdžiui, kopiją, kurios nepasirinkai, kai tą patį pasaulį žaidė du įrenginiai. Prie kiekvienos parašyta, kurią dieną ji išsaugota, o Žaisti grąžina į ją. Kopija, kurią ji pakeičia, savo ruožtu lieka išsaugota kaip senesnė, tad visada gali sugrįžti.',
   'news.0.192.0':
     'Žaidimas dabar tavęs palaukia: atidarius jį ar grįžus į jo kortelę viskas pilka ir sustingę, o Wiki snaudžia ant Micos gobtuvo. {phone:Paliesk|laptop:Spustelėk ar paspausk klavišą} bet kur, kad pažadintum, ir spalvos, muzikinės dėžutės pasisveikinimas bei muzika sugrįžta iškart. Kol žaidimas miega, pasaulyje niekas nevyksta. Nustatymuose išjungtas garsas dabar lieka išjungtas ir perkrovus puslapį.',
   'news.0.191.0':
@@ -25,7 +27,7 @@ export default {
   'news.0.190.1':
     'Kas naujo, uždarbio ataskaita ir našumo skydelis atsidaro atsisiųsdami mažiau: jie naudoja jau įkeltą žaidimą, o ne atsineša savo kopiją, o Kas naujo įkelia tik tavo kalbą.',
   'news.0.190.0':
-    'Žaidimas pasileidžia greičiau ir mažiau kaitina įrenginį: paveikslėliai paruošiami tik tada, kai jų pirmąkart prireikia, o stovinti Mica perpiešiama rečiau. Ekrano skaitytuvai dabar perskaito išteklių juostos skaičius ir etapų mygtuką.',
+    'Žaidimas pasileidžia greičiau ir mažiau kaitina įrenginį: paveikslėliai paruošiami tik tada, kai jų pirmąkart prireikia, o stovintis Mica perpiešiamas rečiau. Ekrano skaitytuvai dabar perskaito išteklių juostos skaičius ir etapų mygtuką.',
   'news.0.189.1':
     'Nešami kristalai dabar pažymėti „Kristalų kokybė“. Krovinio ir pastatų laikmačiai rodo atitinkamo daikto paveikslėlį, o žibinto ir dienos šviesos laikmačiai turi aiškias piktogramas.',
   'news.0.189.0':
@@ -35,9 +37,9 @@ export default {
   'news.0.188.0':
     'Dabar byra ir sukaupti kristalai: per karšta kamera ar saugykla juos skaldo iki 0 % ir visus praranda. Laikrodis virš pastato skaičiuoja atgal.',
   'news.0.187.0':
-    'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Mikos skaičiuoja iki tos akimirkos, tad spėk į pavėsį.',
+    'Nešamus kristalus dabar galima prarasti. Karštis ar šviesa juos skaldo ir žemiau buvusių 10 %, o ties 0 % visas krovinys subyra į dulkes. Laikrodis virš Micos skaičiuoja iki tos akimirkos, tad suspėk į pavėsį.',
   'news.0.186.0':
-    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Mikos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek dar gali šviesti.',
+    'Juostų nebėra: tai, kas senka, dabar rodo atgal tiksintį laikrodį. Virš Micos tai, ką neši, saulėje rodo „Skils po 0:42“, o jau skylant – „Širdis suskils po 1:10“. Įkaitusi kamera rodo, kada žus jos kristalai, širdies pastogė – kada širdis sugis, o žibintas – kiek dar gali šviesti.',
   'news.0.185.1':
     'Prie pabudusios mašinos kelionės tikslą rinkis pasaulio žemėlapyje: tavo širdies pastogės ten rodomos kaip stotelės, ir {phone:bakstelėjus|laptop:spustelėjus} vieną atsiduri šalia jos.',
   'news.0.185.0':
@@ -51,15 +53,15 @@ export default {
   'news.0.183.0':
     'Širdies parnešimas namo dabar tikra kelionė. Sandarus dėklas vis dar užstoja šviesą, bet saulė jį šildo, o per daug įkaitęs dėklas skaldo širdį. Vėsink jį vandenyje, ant upės kranto, prie urvo angos ar širdies pastogėje; miškas praleidžia pusę saulės. Juosta virš širdies rodo, kiek dėklas įšilęs, o žinutė laiku įspėja.',
   'news.0.182.3':
-    'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti iš karto, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
+    'Užkulisiuose kiekviena žaidimo ir bendrų pasaulių tarnybos dalis dabar tokia maža, kad ją galima perskaityti vienu ypu, ir kiekviena turi savo testus. Žaidime niekas nepasikeičia.',
   'news.0.182.2':
-    'Užkulisiuose dar trys didelės žaidimo dalys išskaidytos į mažas, kiekviena su savo testais: statybų lapas, tai, ką daro tavo veiksmai, ir pagalbininkas AUTO. Žaidime niekas nepasikeičia.',
+    'Užkulisiuose dar trys didelės žaidimo dalys išskaidytos į mažas dalis, kiekviena su savo testais: statybų lapas, tai, ką daro tavo veiksmai, ir pagalbininkas AUTO. Žaidime niekas nepasikeičia.',
   'news.0.182.1':
     'Žaidimas atsidaro šiek tiek greičiau: QR kodų kūrėjas dabar įkeliamas tik tada, kai iškeli kvietimo ženklą. Užkulisiuose dvi didžiausios žaidimo kodo dalys išskaidytos į mažas dalis, kiekviena su savo testais. Daugiau žaidime niekas nepasikeičia.',
   'news.0.182.0':
-    'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelk dukart, antrą kartą nepakelk piršto|laptop:spustelk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
+    'Pasaulio žemėlapį dabar gali artinti viena ranka, kaip „Google Maps“: {phone:bakstelėk dukart, antrą kartą nepakelk piršto|laptop:spustelėk dukart, antrą kartą neatleisk mygtuko} ir vesk žemyn, kad priartintum, arba aukštyn, kad nutolintum. Greitas {phone:dvigubas bakstelėjimas|laptop:dvigubas spustelėjimas} priartina vienu žingsniu.',
   'news.0.181.14':
-    'Kai Moksliukų skiltyje įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
+    'Kai skiltyje Moksliukams įjungtas AUTO, atvertas pranešimų žurnalas nebeuždengia jo mygtuko: žurnalas dabar rodomas virš jo. Užkulisiuose visas naršyklės testų rinkinys vėl paleidžiamas po kiekvieno atnaujinimo.',
   'news.0.181.13':
     'Užkulisiuose: kvietimų nuorodų skydelis ir nustatymų jungikliai dabar turi savo tvarkingas kodo dalis su naujais testais. Žaidime niekas nepasikeičia.',
   'news.0.181.12':
@@ -77,29 +79,29 @@ export default {
   'news.0.181.6':
     'Našumo įspėjimai nebeuždengia veiksmų mygtukų žemame gulsčiame ekrane. Trumpas indikatorius išlieka įskaitomas, o išsamios peržiūros ir suskleidimo mygtukai – patogaus dydžio.',
   'news.0.181.5':
-    'Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunkite ją skiltyje Moksliukams: žaidimui sulėtėjus atsivers nedidelė kortelė.',
+    'Našumo diagnostika rodo atnaujinamus darbo laikus, įspėjimus ir kopijuojamas ataskaitas. Įjunk ją skiltyje Moksliukams: žaidimui sulėtėjus, atsivers nedidelė kortelė.',
   'news.0.181.4':
     'Vienu metu Mica naudoja vieną šviesą: žiežirba išjungia žibintą, o įjungus žibintą žiežirba užgęsta. Abu veikia visuose sluoksniuose. Saulės plokštės ir vandens ratai vėl prieinami paviršiaus statybose dar prieš paleidžiant mašiną.',
   'news.0.181.3':
     'Įrangos meniu dabar lieka atvertas pasaulio žemėlapyje. Neišeidamas iš žemėlapio gali atverti mažąją įrangos kortelę ir visą gamybos meniu.',
   'news.0.181.2':
-    'Pajamose našumas rodomas tik per sekundę. Pašalintas minučių ir valandų pasirinkimas.',
+    'Pajamos dabar rodomos tik per sekundę. Pašalintas minučių ir valandų pasirinkimas.',
   'news.0.181.1':
     'Pajamose atskirta gamyba, laukiantys ištekliai ir atsargos, įtrauktos kristalų kameros ir paaiškintos gamybos sustojimo priežastys. Registruojami tikri mokėjimai, senesnio turto įverčiai pažymėti. Pasiūlymai atitinka meniu, grafikuose matyti nulinė gamyba ir tikras laikas.',
   'news.0.181.0':
-    'Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žybsnius ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; slėptuvės lieka prieinamos širdžiai gydyti.',
+    'Susitelk į rinkimą, kristalų auginimą ir mašinos atkūrimą. Papildomus statinius, krepšius, žiežirbas ir vėlesnius įrankių patobulinimus atrakinsi paleidęs mašiną. Turima įranga ir statiniai išsaugomi; širdies pastogės lieka prieinamos širdžiai gydyti.',
   'news.0.180.9':
     'Pašalintos statinių sklendės. Kameros, saugyklos ir mašina automatiškai saugo turinį nuo šviesos. Sodink, prižiūrėk ir perkelk nieko neatverdamas ir neužverdamas. Aušinimas lieka svarbus; atvirą krovinį saugok nešykle.',
   'news.0.180.8':
-    'Versijos numeris kartu su rėmeliu ir tašku lieka auksinis, kol perskaitote leidimo aprašymą.',
+    'Versijos numeris kartu su rėmeliu ir tašku lieka auksinis, kol perskaitysi leidimo aprašymą.',
   'news.0.180.7':
     'Pašalintos NAUJA žymos nuo valdiklių, gamybos ir statybos sąrašų bei leidimo aprašymų. Kainos ir galimi veiksmai tebėra matomi meniu.',
   'news.0.180.6':
-    'Nustatymuose galite įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.',
+    'Nustatymuose gali įjungti viso ekrano režimą arba rasti instrukcijas, kaip pridėti žaidimą prie pradžios ekrano, jei naršyklė šio režimo nepalaiko. Neperskaitytus leidimo aprašymus žymi auksinis versijos juostelės rėmelis.',
   'news.0.180.5':
     'Auksinis taškas, žymintis naują versiją, dabar matomas visas ant versijos juostelės, o ne nukirptas jos kampe.',
   'news.0.180.4':
-    'Versijos numeris dabar yra tvarkinga apvalių galų juostelė tiesiai po Nustatymų ratuku, su tarpu aplink skaičius ir tuo pačiu auksiniu švytėjimu po atnaujinimo.',
+    'Versijos numeris dabar yra tvarkinga apvalių galų juostelė tiesiai po Nustatymų krumpliaračiu, su tarpu aplink skaičius ir tuo pačiu auksiniu švytėjimu po atnaujinimo.',
   'news.0.180.3':
     'Atvėrus Įrangą, Žinučių mygtukas ir peržiūros lieka vietoje. Didesniuose ekranuose žinutės lieka kairėje, o meniu atsidaro dešinėje. Versijos numeris visada yra po Nustatymais; saulės būsena jo nebepakeičia.',
   'news.0.180.2':
@@ -107,7 +109,7 @@ export default {
   'news.0.180.1':
     'Įrangos skydelyje aiškiau atskirti pavadinimas, uždarymas, šviesos priemonės ir gamyba. Žinučių mygtukas lieka pasiekiamas: atvėrus jį, įranga užsidaro ir atsiveria žinutės. Grįžimo mygtukas taip pat uždaro įrangą.',
   'news.0.180.0':
-    'Įranga atveria nedidelį šviesos priemonių skydelį, iš kurio galima pereiti prie gamybos. Gyvenvietėje rasite statybą ir pastatų gerinimą. Kai ekrane ankšta, papildoma informacija suskleidžiama nustatyta tvarka, o pagrindiniai mygtukai lieka vietoje.',
+    'Įranga atveria nedidelį šviesos priemonių skydelį, iš kurio galima pereiti prie gamybos. Gyvenvietėje rasi statybą ir pastatų gerinimą. Kai ekrane ankšta, papildoma informacija suskleidžiama nustatyta tvarka, o pagrindiniai mygtukai lieka vietoje.',
   'news.0.179.4':
     'Vaizdo mastelio mygtukai dabar visada išdėstyti horizontaliai po keturiais ištekliais, bet kokio dydžio ekrane.',
   'news.0.179.3':
@@ -119,33 +121,33 @@ export default {
   'news.0.179.0':
     'Šviesa sklinda praėjimais ir pro atviras kopėčių angas, o uola ją užstoja. Silpna šviesa kristalus žaloja lėčiau. Kamerų kortelės rodo apšvietimą; sandarūs dėklai saugo ir širdį. Žemėlapį vis tiek atranda pats Mica.',
   'news.0.178.0':
-    'Prieš rinkdamas, statydamas, paimdamas produkciją, lipdamas kopėčiomis ar prižiūrėdamas kristalus, Mica prieina prie objekto ir į jį atsisuka. Vienas pasirinkimas apima ėjimą ir veiksmą; judėjimas jį atšaukia. Gaminti galima bet kur, o infrastruktūra veikia ir jums tyrinėjant.',
+    'Prieš rinkdamas, statydamas, paimdamas produkciją, lipdamas kopėčiomis ar prižiūrėdamas kristalus, Mica prieina prie objekto ir į jį atsisuka. Vienas pasirinkimas apima ėjimą ir veiksmą; judėjimas jį atšaukia. Gaminti galima bet kur, o infrastruktūra veikia ir tau tyrinėjant.',
   'news.0.177.6':
     'Pastačius ar perkėlus pastatą galima iškart žaisti toliau. Informacijos kortelė su perkėlimo veiksmu atsidaro tik vėliau pasirinkus pastatą.',
   'news.0.177.5':
-    'Mica ir Wiki nebeperima valdymo gestų. Jie pasiekia po veikėjais esantį pasaulį. Palaikykite nuspaudę pasaulio objektą, kad Wiki jį paaiškintų; automatinės pastabos lieka.',
+    'Mica ir Wiki nebeperima valdymo gestų. Visi gestai pasiekia po jais esantį pasaulį. Palaikyk nuspaudęs pasaulio objektą, kad Wiki jį paaiškintų; automatinės pastabos lieka.',
   'news.0.177.4':
     'Geodų kortelės dabar atsidaro nesustabdydamos žaidimo. Neįkelti paveikslėliai nebetrukdo naudoti valdiklių, o klaidos ataskaitoje nurodomas paveikslėlis, užklausa ir vieta pasaulyje.',
   'news.0.177.3':
     'Nešdamas kristalus Mica nebekiša dešinės rankos pro apsiaustą, kai sulėtina žingsnį ar sustoja.',
   'news.0.177.2':
-    'Mica batai ir šešėlis nebekarpomi einant per žemės langelių kraštus. Aukštesnės sienos jį vis dar tinkamai užstoja, o blankus vaizdas pro kliūtis nebeprideda antro šešėlio.',
+    'Micos batai ir šešėlis nebekarpomi einant per žemės langelių kraštus. Aukštesnės sienos jį vis dar tinkamai užstoja, o blankus vaizdas pro kliūtis nebeprideda antro šešėlio.',
   'news.0.177.1':
-    'Žaidi vieną pasaulį dviejuose įrenginiuose: tai, ką nuveiki, kol žaidimas dar parsisiunčia naujausią kopiją iš kito įrenginio, dabar išsaugoma. Jei žaista abiejuose, paklausiama, kurią kopiją palikti, ir klausime rodoma tai, ką žaidei paskiausiai.',
+    'Kai žaidi vieną pasaulį dviejuose įrenginiuose: tai, ką nuveiki, kol žaidimas dar parsisiunčia naujausią kopiją iš kito įrenginio, dabar išsaugoma. Jei žaista abiejuose, paklausiama, kurią kopiją palikti, ir klausime rodoma tai, ką žaidei paskiausiai.',
   'news.0.177.0':
     'Pasaulio žemėlapį dabar gali priartinti daug labiau ir tyrinėti langelis po langelio: žemėlapis lieka iki 0,37×, o nuo ten vėl rodomas žaidimo vaizdas.',
   'news.0.176.1':
     '{phone:Brauk žemyn|laptop:Slink aukštyn} žinučių žurnale ir skaityk senesnes žinutes; nauja žinutė nebetraukia tavęs atgal žemyn. Žurnale virš viršutinės eilutės dabar tiek pat vietos, kiek šonuose, o pasiektas etapas, kuris jau pasako, kas toliau, nebegauna antros eilutės su tuo pačiu.',
   'news.0.176.0':
-    'iPhone ar iPad Safari naršyklėje Wiki dabar vieną kartą primena pridėti Mica prie pradžios ekrano, kad Safari niekada nepamirštų tavo pasaulio.',
+    'iPhone ar iPad Safari naršyklėje Wiki dabar vieną kartą primena pridėti Micą prie pradžios ekrano, kad Safari niekada nepamirštų tavo pasaulio.',
   'news.0.175.0':
-    'Tavo veikėjas bendrame pasaulyje dabar keliauja kartu į įrenginį, kurį susieji per Nustatymai, Kitas įrenginys, tad ir jame ten žaidi tuo pačiu veikėju.',
+    'Tavo veikėjas bendrame pasaulyje dabar keliauja kartu į įrenginį, kurį susieji skiltyje Nustatymai → Kitas įrenginys, tad ir ten žaidi tuo pačiu veikėju.',
   'news.0.174.1':
     'Žaidimas dabar prašo naršyklės išsaugoti jo įrašus, o ne ištrinti juos, kai įrenginyje pritrūksta vietos.',
   'news.0.174.0':
-    'Žaisk savo pasaulį ne viename įrenginyje: Nustatymai, Kitas įrenginys rodo QR kodą ir nuorodą kitam įrenginiui. Tęsiasi tas, kurį žaidei paskutinį, o kopija debesyje grąžina pasaulį, jei naršyklė jį pamiršta.',
+    'Žaisk savo pasaulį ne viename įrenginyje: skiltis Nustatymai → Kitas įrenginys rodo QR kodą ir nuorodą kitam įrenginiui. Tęsiasi tas, kurį žaidei paskutinį, o kopija debesyje grąžina pasaulį, jei naršyklė jį pamiršta.',
   'news.0.173.0':
-    'Žinutės: viskas, ką sako Wiki ir žaidimas, dabar patenka į žurnalą apačioje kairėje ir lieka ten, kol perskaitysi. Patempk jį senesnėms eilutėms; Slėpti suskleidžia jį į Žinučių mygtuką, rodantį, kiek naujų.',
+    'Žinutės: viskas, ką sako Wiki ir žaidimas, dabar patenka į žurnalą apačioje kairėje ir lieka ten, kol perskaitysi. Patempk jį, kad pamatytum senesnes eilutes; Slėpti suskleidžia jį į Žinučių mygtuką, rodantį, kiek naujų.',
   'news.0.172.0':
     'Kiekvienas tavo žaistas pasaulis lieka tavo. Nustatymai → Pasauliai dabar rodo juos visus pagal pavadinimą ir kiek kiekviename žaidei, o „Žaisti“ sugrąžina tave ten, kur palikai. Iškeliavus joks pasaulis neprarandamas.',
   'news.0.171.4':
@@ -167,7 +169,7 @@ export default {
   'news.0.169.0':
     'Perkelti dabar galima ir bendruose pasauliuose: {phone:bakstelėk|laptop:spustelėk} savo pastatą, tada kortelėje „Perkelti“. Pasaulis patikrina kiekvieną perkėlimą, tad visi mato tavo pastatą ten, kur jį padėjai.',
   'news.0.168.0':
-    'Statoma dabar žemėlapyje. „Padėti“ skiltyje Statyti uždaro sąrašą, o pastatas atsistoja ten, kur bus, kaip permatomas šešėlis: {phone:bakstelėk|laptop:spustelėk} bet kurį nušvitusį langelį arba nutempk jį, ir Mika nueis ten ir pastatys. {phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė: „Perkelti“ vėl jį pakelia, nemokamai. Akmens dirbtuvės ir sandėlis vietoj brūkšninių linijų rodo, kiek toli siekia, ir mažą ženkliuką ant kiekvieno pastato, kuriam padeda.',
+    'Statoma dabar žemėlapyje. „Padėti“ skiltyje Statyti uždaro sąrašą, o pastatas atsistoja ten, kur bus, kaip permatomas šešėlis: {phone:bakstelėk|laptop:spustelėk} bet kurį nušvitusį langelį arba nutempk jį, ir Mica nueis ten ir pastatys. {phone:Bakstelėk|laptop:Spustelėk} savo pastatą ir atsivers jo kortelė: „Perkelti“ vėl jį pakelia, nemokamai. Akmens dirbtuvės ir sandėlis vietoj brūkšninių linijų rodo, kiek toli siekia, ir mažą ženkliuką ant kiekvieno pastato, kuriam padeda.',
   'news.0.167.2':
     'Pataisyta: kristalų pasaulyje Apdovanojimai nustodavo atsidaryti, kai pasiekdavai giliąsias kameras. Dabar jie vėl atsidaro su visais etapais, o paskutinis rodomas yra mašina.',
   'news.0.167.1':
@@ -181,7 +183,7 @@ export default {
   'news.0.165.0':
     'Rinkimas visada vienodo tempo: spaudinėti Rinkti ar tarpą, {phone:baksnoti|laptop:spaudinėti} langelius ar piešti Takus niekada nebus greičiau nei tiesiog laikyti Rinkti. Tiesiog laikyk.',
   'news.0.164.0':
-    'Savo tekstūrų paketo įkėlimo nebeliko, kartu ir Tekstūrų Moksliukams: beveik niekas jo nenaudojo. Žaidimas lieka vienos išvaizdos, kurią nupiešė jo kūrėjai, o tavo pasauliai lieka tokie, kokie buvo.',
+    'Savo tekstūrų paketo įkėlimo nebeliko, kartu ir Tekstūrų skilties Moksliukams: beveik niekas jo nenaudojo. Žaidimas lieka vienos išvaizdos, kurią nupiešė jo kūrėjai, o tavo pasauliai lieka tokie, kokie buvo.',
   'news.0.163.0':
     'Milijardai visomis kalbomis rašomi B, todėl išteklių juosta visur skaitoma vienodai: k, M, B, T.',
   'news.0.162.0':
@@ -189,15 +191,15 @@ export default {
   'news.0.161.0':
     '{phone:Telefonai ir planšetės dabar piešia žaidimą 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl mažiau kaista, o baterija ilgiau laiko.|laptop:Telefonuose ir planšetėse žaidimas dabar piešiamas 30 kartų per sekundę, kai žaidi, ir apie 10, kai niekas nejuda, todėl jie mažiau kaista. Kompiuteryje niekas nesikeičia.}',
   'news.0.160.1':
-    'Žaidimas mažiau apkrauna {phone:telefoną|laptop:kompiuterį}, ir šis mažiau kaista: Miką piešiame vieną kartą per kadrą, o ne du, ir žaidimo išvaizda nė kiek nepasikeitė.',
+    'Žaidimas mažiau apkrauna {phone:telefoną|laptop:kompiuterį}, ir šis mažiau kaista: Mica piešiamas vieną kartą per kadrą, o ne du, ir žaidimo išvaizda nė kiek nepasikeitė.',
   'news.0.160.0':
-    'Iškeliavus iš senesnio pasaulio dabar pradedamas kristalų pasaulis, kaip ir visi kiti nauji pasauliai. Paliktas pasaulis lieka išsaugotas su viskuo, ką turėjo, ir į jį gali grįžti per Nustatymai, Moksliukams.',
+    'Iškeliavus iš senesnio pasaulio dabar pradedamas kristalų pasaulis, kaip ir visi kiti nauji pasauliai. Paliktas pasaulis lieka išsaugotas su viskuo, ką turėjo, ir į jį gali grįžti skiltyje Nustatymai → Moksliukams.',
   'news.0.159.0':
-    'Mikos daiktai nebelenda kiaurai apsiausto: kirtiklis, krepšys ir žibintas laikosi prigludę prie jo, kirtikliu mojuojama viena ranka, o Wiki sėdi ant gobtuvo, užuot į jį grimzdęs.',
+    'Micos daiktai nebelenda kiaurai apsiausto: kirtiklis, krepšys ir žibintas laikosi prigludę prie jo, kirtikliu mojuojama viena ranka, o Wiki sėdi ant gobtuvo, užuot į jį grimzdęs.',
   'news.0.158.0':
-    'Pasaulio žemėlapis dabar yra pats žaidimas: nutolink iki galo (arba {phone:bakstelk|laptop:spustelk} žemėlapio mygtuką po mastelio valdikliu) ir matysi viską, ką ištyrinėjai, su kraštų vardais, namais ir slėptuve. Tempk, kad apsidairytum, o tu liksi vietoje, rodyklėmis viršutiniame kampe pereik per sluoksnius, o dar kartą {phone:bakstelėjęs|laptop:spustelėjęs} mygtuką grįši atgal.',
+    'Pasaulio žemėlapis dabar yra pats žaidimas: nutolink iki galo (arba {phone:bakstelėk|laptop:spustelėk} žemėlapio mygtuką po mastelio valdikliu) ir matysi viską, ką ištyrinėjai, su kraštų vardais, namais ir slėptuve. Tempk, kad apsidairytum, o tu liksi vietoje, rodyklėmis viršutiniame kampe pereik per sluoksnius, o dar kartą {phone:bakstelėjęs|laptop:spustelėjęs} mygtuką grįši atgal.',
   'news.0.157.0':
-    'Žibintas turi savo mygtuką virš „Rinkti“. {phone:Bakstelėk|laptop:Spustelėk} statinį šalia savęs ir atsivers jo kortelė: sklendės, sodinimas, rinkimas ir taisymas dabar ten, o Statyba skirta tik statyti. AUTO paslėptas; senesniame pasaulyje jį įjungsi skiltyje Nustatymai, Moksliukams.',
+    'Žibintas turi savo mygtuką virš „Rinkti“. {phone:Bakstelėk|laptop:Spustelėk} statinį šalia savęs ir atsivers jo kortelė: sklendės, sodinimas, rinkimas ir taisymas dabar ten, o Statyba skirta tik statyti. AUTO paslėptas; senesniame pasaulyje jį įjungsi skiltyje Nustatymai → Moksliukams.',
   'news.0.156.3':
     'Kristalų pasaulis, kurio išsaugojime sugadinta viena smulkmena, dabar įsikelia su pataisyta smulkmena, užuot buvęs atidėtas ir pakeistas nauju pasauliu.',
   'news.0.156.2': 'Pasaulio žemėlapyje rodyklė į slėptuvę nebelenda po sluoksnių mygtukais.',
@@ -214,7 +216,7 @@ export default {
   'news.0.155.0':
     'Niekas daugiau nepraranda veikėjo. Bendrame pasaulyje sukčiaujantis žaidėjas nebepašalinamas, o užšaldomas: veikėjas miega po antkapiu su viskuo, ką turėjo ir pastatė, o Watch gali jį vėl pažadinti. Kartu su juo niekas kitas nenukenčia.',
   'news.0.154.0':
-    '{phone:Bakstelk|laptop:Spustelk} vietą, ir Mika pats ras kelią ten: aplink uolas, sienas ir vandenį. Užkliudęs kampą tik kraštu, dabar jį apeini palei sieną, o ne sustoji.',
+    '{phone:Bakstelėk|laptop:Spustelėk} vietą, ir Mica pats ras kelią ten: aplink uolas, sienas ir vandenį. Užkliudęs kampą tik kraštu, dabar jį apeini palei sieną, o ne sustoji.',
   'news.0.153.3':
     'Nutolus toli, debesų kraštas lieka minkštas ir purus, o ne susitraukia į ploną liniją.',
   'news.0.153.2': 'Debesyse nebeliko blankių skersinių linijų.',
@@ -225,14 +227,14 @@ export default {
   'news.0.152.2':
     'Ant pastatų nebėra prilipdyto išteklių paveikslėlio. Pats pastatas parodo, ką gamina, o Wiki pasakys, jei į jį parodysi.',
   'news.0.152.1':
-    'Baltos kreidos žymių nebeliko: piešiamas takas vėl šviečia, statybų peržiūros ir jungtys yra paprastos punktyrinės linijos, o mašinos, įrankiai ir slėptuvės nebeturi atsitiktinių baltų brūkšnių.',
+    'Baltos kreidos žymių nebeliko: piešiamas takas vėl šviečia, statybų peržiūros ir jungtys yra paprastos punktyrinės linijos, o mašinos, įrankiai ir pastogės nebeturi atsitiktinių baltų brūkšnių.',
   'news.0.152.0':
     'Kai kas nors nepavyksta, žaidimas nebesustoja, o tęsiasi: sugedusi dalis praleidžiama. Nustatymų skiltyje „Moksliukams“ kiekviena klaida turi mygtuką „Kopijuoti“, tad gali nusiųsti visą ataskaitą, kad ją sutaisytume.',
-  'news.0.151.1': 'Priartinus vaizdą prie Micos, žaidimas iPhone nebesugenda.',
+  'news.0.151.1': 'Priartinus vaizdą prie Micos, žaidimas iPhone įrenginyje nebeužlūžta.',
   'news.0.151.0':
-    'Užkasta mašina yra teleportas, o jos širdis pavogta. Po pirmojo remonto surask slėptuvę toli paviršiuje (ji pažymėta pasaulio žemėlapyje), įkelk širdį į nešiklį ir parnešk namo. Saulė ją skaldo, tad dieną laikyk ją širdies pastogėse.',
+    'Užkasta mašina yra teleportas, o jos širdis pavogta. Po pirmojo remonto surask slėptuvę toli paviršiuje (ji pažymėta pasaulio žemėlapyje), įkelk širdį į dėklą ir parnešk namo. Saulė ją skaldo, tad dieną laikyk ją širdies pastogėse.',
   'news.0.150.1':
-    'Po žeme mygtukas „Rinkti“ prie paprastos uolienos nebe rodo „+NaNeNaN“. Paprasta uoliena nieko neduoda, todėl mygtukas tiesiog sako „Rinkti“.',
+    'Po žeme mygtukas „Rinkti“ prie paprastos uolienos neberodo „+NaNeNaN“. Paprasta uoliena nieko neduoda, todėl mygtukas tiesiog sako „Rinkti“.',
   'news.0.150.0':
     'Akmenys, rūda, kristalai, grybai ir kirtikliai nebeatskleidžia savo 3D sienelių linijų. Dabar kiekvienas nuspalvintas vientisomis spalvomis su vienu tamsiu kontūru aplink visą daiktą, kaip piešinys.',
   'news.0.149.0':
@@ -250,11 +252,11 @@ export default {
   'news.0.143.2':
     'Mica dabar turi vientisą tamsų viso silueto kontūrą, įskaitant rankas, kojų apvijas, apvalius batus ir nešamus daiktus. Kontūras išlieka nuoseklus sukantis, einant ir dirbant.',
   'news.0.143.1':
-    'Mica batai dabar turi apvalius priekius, siauresnius kulnus ir išlenktą keltį. Kvadratines šviesias platformas pakeitė ploni rudi padai.',
+    'Micos batai dabar turi apvalius priekius, siauresnius kulnus ir išlenktą keltį. Kvadratines šviesias platformas pakeitė ploni rudi padai.',
   'news.0.143.0':
-    'Susipažinkite su Mica, Taisytoju. Minkštesnis gobtuvas, kompaktiškos proporcijos, tvirti batai ir lopytas apsiaustas priartina klajūną prie piešto pasaulio. Smalsūs judesiai ramybės metu, mirksėjimas ir atsargus kristalo nešimas suteikia jam charakterio. Apžiūrėkite jį, kad sužinotumėte daugiau.',
+    'Susipažink su Mica, Taisytoju. Minkštesnis gobtuvas, kompaktiškos proporcijos, tvirti batai ir lopytas apsiaustas priartina klajūną prie piešto pasaulio. Smalsūs judesiai ramybės metu, mirksėjimas ir atsargus kristalo nešimas suteikia jam charakterio. Apžiūrėk jį, kad sužinotum daugiau.',
   'news.0.142.2':
-    'Viršutinės juostos išteklių ikonos didesnės. Užvedę žymeklį ant ikonų, valdiklių ar ištirtos vietovės matysite pavadinimus ir paaiškinimus. Jie rodomi ir pasirinkus valdiklį. Jutikliniame ekrane palaikykite ištekliaus laukelį ar parduotuvės iliustraciją.',
+    'Viršutinės juostos išteklių ikonos didesnės. Užvedęs žymeklį ant ikonų, valdiklių ar ištirtos vietovės matysi pavadinimus ir paaiškinimus. Jie rodomi ir pasirinkus valdiklį. Jutikliniame ekrane palaikyk nuspaudęs ištekliaus laukelį ar parduotuvės iliustraciją.',
   'news.0.142.1':
     'Mažos išteklių ikonos aiškesnės: aiškios grybų kepurėlės ir kotai, netaisyklingesnis akmuo, vienas pagrindinis metalo gabalas ir paprastesnė kristalo šaka. Kiekviena ikona turi atskirą rakursą; smulkias briaunų linijas keičia aiškios šviesios ir tamsios plokštumos.',
   'news.0.142.0':
@@ -273,7 +275,7 @@ export default {
     'Keliautojo veidas artimesnis originaliam piešiniui: arkinė gobtuvo anga, šilta dramblio kaulo kaukė ir didesnės ovalios akys. Ėjimo animacija dešimt kartų greitesnė, judėjimo greitis toks pat.',
   'news.0.139.0':
     'Oranžinis keliautojas dabar turi trimatį skeletą: sklandžiai eina ir sukasi visomis kryptimis tame pačiame pasaulyje. Ši pirmoji versija be įrangos modelių; jie bus pridėti vėliau.',
-  'news.0.138.2': 'Ėjimo animacija dar dešimt kartų lėtesnė. Judėjimo greitis nepasikeitė.',
+  'news.0.138.2': 'Ėjimo animacija vėl dešimt kartų lėtesnė. Judėjimo greitis nepasikeitė.',
   'news.0.138.1':
     'Ėjimo animacija dabar atkuriama perpus lėčiau, todėl žingsniai ramesni. Judėjimo greitis nepasikeitė.',
   'news.0.138.0':
@@ -299,32 +301,32 @@ export default {
   'news.0.133.1':
     'Baltos kreidos statybų planai, aptarnavimo linijos ir piešiami takai, su kreidos akcentais statybų lange.',
   'news.0.133.0':
-    'Išbandyk fizinį surinkimo sandėlį kūrėjų skiltyje. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.',
+    'Išbandyk fizinį surinkimo sandėlį skiltyje Moksliukams. Prototipas naudoja atskirą vieno žaidėjo išsaugojimą; esama logistika nesikeičia.',
 
   'news.0.131.8':
     'Paskutinių perdirbimo lygių kainos auga lėčiau. Užbaigus visus pasaulio patobulinimus galima iš karto iškeliauti, be papildomo surinktų išteklių reikalavimo.',
   'news.0.131.7':
     'Ieškodamas išteklių AUTO praleidžia išsemtas vietas. Simuliacijos pasiekimų patikros išvengia nereikalingų gamybos atnaujinimų.',
   'news.0.131.6':
-    'Laikomas rinkimo mygtukas dabar veikia tokiu pačiu tempu kaip automatinis žaidimas. Automatinis žaidimas renkasi tik žinomus įkroviklius, sustabdo savo ėjimą atidarius meniu ir paleidus mygtuką neatšaukia rankiniu būdu pasirinkto maršruto. Galima stebėti itin greitą AUTO.',
+    'Laikomas rinkimo mygtukas dabar veikia tokiu pačiu tempu kaip automatinis žaidimas. Automatinis žaidimas renkasi tik žinomus įkroviklius, sustabdo savo ėjimą atidarius meniu ir paleidus mygtuką neatšaukia rankiniu būdu pasirinkto maršruto. Skiltyje Moksliukams galima stebėti itin greitą AUTO.',
   'news.0.131.5':
     'Tyrinėjimas, įkroviklių patikros ir gamybos apskaita dabar atlieka mažiau pasikartojančio darbo. Matomumo, baterijos ir išteklių taisyklės lieka tokios pačios.',
   'news.0.131.4':
     'Žaidimo eiga dabar atnaujinama pastoviu tempu nepriklausomai nuo vaizdo piešimo, o gamyba skaičiuojama sparčiau. Automatinis žaidimas pirmenybę teikia išteklių rinkimui ir gamybai paviršiuje, o prieš statydamas daugiau pastatų įvertina jų atsipirkimą. Automatinis žaidimas nebežino, kokios uolienos ir įkrovikliai slypi už neatskleistų plotų. Automatinis žaidimas prisimena radinius eidamas aplink uolienas ir nebegrįžta atgal, kai jų žybsnis dingsta iš akiračio. Automatinis žaidimas nebevaikšto pirmyn ir atgal prie netinkamos šachtos, kai reikia grįžti į paviršių. Automatinis žaidimas išlaiko tempą ir nebestabteli po kiekvieno žingsnio. Jis ieško paprastų grybų, užuot laukęs prie retų, keičia renkamą išteklių, kai jo kainai jau pakanka, ir po įrangos patobulinimo vėl tikrina anksčiau neprieinamus kelius.',
   'news.0.131.3':
-    'Atėjo šaltasis metas, todėl kol žaidimas nėra atvirame ekrane, nieko negaminama: uždaryk žaidimą, grįžk rytoj, o tavo pastatai laikė savo tempą, bet nieko neuždirbo. Jei nori, kad jie dirbtų, kol esi toli, įjunk „Gaminti, kai toli“ nustatymuose. Didelės skaitos irgi telpa: virš trilijono juostos skaičiai pereina į mokslinį pavidinį (1e15) nebecutami, o mygtuko „Rinkti“ užrašas lieka ekrane.',
+    'Atėjo šaltasis metas, todėl kol žaidimas nėra atvirame ekrane, nieko negaminama: uždaryk žaidimą, grįžk rytoj, o tavo pastatai laikė savo tempą, bet nieko neuždirbo. Jei nori, kad jie dirbtų, kol esi toli, įjunk „Gaminti, kai toli“ nustatymuose. Telpa ir labai dideli skaičiai: virš trilijono juostos skaičiai rodomi moksliniu pavidalu (1e15) ir nebenukerpami, o mygtuko „Rinkti“ užrašas lieka ekrane.',
   'news.0.131.2':
-    'Pilna atsarga dabar telpa išteklų juostoje siaurame ekrane — didžiausiems kiekiams buvo nukerpama paskutinė raidė.',
+    'Pilna atsarga dabar telpa išteklių juostoje siaurame ekrane — didžiausiems kiekiams buvo nukerpama paskutinė raidė.',
   'news.0.131.1':
-    'Bendriems pasauliams priklauso visiems juose esantiems: savininkų nebeliko. Žaidėjų sąraše nebeliko žymos „savininkas“, kvietimų sąraše matosi tik tavo pačių sukurtos nuorodos, ir niekas nebepašalina žaidėjo iš vidaus. Watch rūpinasi kiekvienu pasauliu — stabdo pasklidusias nuorodas ir pašalina sukčiaujančius žaidėjus.',
+    'Bendri pasauliai dabar priklauso visiems juose žaidžiantiems: savininkų nebeliko. Žaidėjų sąraše nebeliko žymos „savininkas“, kvietimų sąraše matyti tik tavo paties sukurtos nuorodos, ir niekas nebepašalina žaidėjo iš vidaus. Watch rūpinasi kiekvienu pasauliu — stabdo pasklidusias nuorodas ir pašalina sukčiaujančius žaidėjus.',
   'news.0.131.0':
-    'Pasauliai žaisti kartu dabar kuriami Watch, po vieną, kai jų prireikia: mygtuko „į internetą“ nebeliko. Kvietimo ženklas vis dar pakyla, kai esi bendrame pasaulyje, o draugo nuoroda tave į jį nuveda. Vieno žaidimo nepasikeitė — tavo pasaulis lieka tavo.',
+    'Pasaulius žaisti kartu dabar kuria Watch, po vieną, kai jų prireikia: mygtuko „į internetą“ nebeliko. Kvietimo ženklas vis dar pakyla, kai esi bendrame pasaulyje, o draugo nuoroda tave į jį nuveda. Žaidimas vienam nepasikeitė — tavo pasaulis lieka tavo.',
   'news.0.130.2':
     'Kas valandą galimų naujų kambarių limitai dabar skaičiuoja tik tikrai sukurtus kambarius: nesėkmingas ar bevertis bandymas nieko neatima nei iš tavęs, nei iš kitų.',
   'news.0.130.1':
-    'Daliniai pasauliai dabar saugesni: paslauga pati žymėdama savo bandomuosius kambarius, todėl tavo pasaulis niekada negali būti supainiotas su vienu iš jų ir saugomas kiekvienas. Kiekvienas pasaulis saugomas amžinai.',
+    'Bendri pasauliai dabar saugesni: kambarių tarnyba pati žymi savo bandomuosius kambarius, todėl tavo pasaulis niekada nebus su jais supainiotas ir saugomas mažiau rūpestingai. Kiekvienas pasaulis saugomas amžinai.',
   'news.0.130.0':
-    '{phone:Bakstelk|laptop:Spustelėk} išteklių juostą (ar mažą grafiką jos gale) ir pamatysi savo uždarbį: kiek kiekvieno ištekliaus uždirbi per sekundę, minutę ar valandą, iš kurių pastatų, per kiek laiko kiekvienas atsiperka, pajamų grafiką žaidžiant, geriausius kitus pirkinius ir kiek šis pasaulis tau davė ir kainavo.',
+    '{phone:Bakstelėk|laptop:Spustelėk} išteklių juostą (ar mažą grafiką jos gale) ir pamatysi savo uždarbį: kiek kiekvieno ištekliaus uždirbi per sekundę, minutę ar valandą, iš kurių pastatų, per kiek laiko kiekvienas atsiperka, pajamų grafiką žaidžiant, geriausius kitus pirkinius ir kiek šis pasaulis tau davė ir kainavo.',
   'news.0.129.0':
     'Ant STATYTI ir TOBULINTI dabar rašoma NAUJA, kai ten atsiranda kažkas, ką gali įpirkti, ir užrašas lieka, kol pažiūri, o ne žalias taškelis, kuris dingdavo ir vėl atsirasdavo vaikštant. Naujos eilutės irgi taip pažymėtos.',
   'news.0.128.0':
@@ -340,7 +342,7 @@ export default {
   'news.0.125.0':
     'Neištyrinėta žemė dabar slypi po debesimis, kaip karo rūkas strateginiuose žaidimuose. Jie pasitraukia tau tyrinėjant, naktį patamsėja kartu su viskuo ir uždengia pasaulio žemėlapio tuščias vietas.',
   'news.0.124.0':
-    'Atnaujinimai daugiau nebestabdo žaidimo: nebėra lango, kurį reikėtų skaityti ar uždaryti. Versijos numeris po krumpliaračiu visada matomas, žaidimui atsinaujinus persisuka į naują ir rodo auksinį tašką, kol pažiūrėsi.\n{phone:Paliesk|laptop:Spustelėk} versiją ir pamatysi viską, kas keitėsi, nuo naujausio, o tai, kas nauja nuo paskutinio karto, pažymėta „Nauja“.',
+    'Atnaujinimai nebestabdo žaidimo: nebėra lango, kurį reikėtų skaityti ar uždaryti. Versijos numeris po krumpliaračiu visada matomas, žaidimui atsinaujinus persisuka į naują ir rodo auksinį tašką, kol pažiūrėsi.\n{phone:Paliesk|laptop:Spustelėk} versiją ir pamatysi viską, kas keitėsi, nuo naujausio, o tai, kas nauja nuo paskutinio karto, pažymėta „Nauja“.',
   'news.0.123.0':
     'Pasiektas etapas dabar sveikinamas kaip padarytas, būtuoju laiku: „Pastatei Grybų daržą“, o ne „Pastatyk Grybų daržą“. Pasiektų etapų sąrašas skamba taip pat. Kas toliau, vis dar skamba kaip užduotis.',
   'news.0.122.0':
@@ -379,7 +381,7 @@ export default {
   'news.0.110.1':
     '„Idealiai“ nebestringa lipdamas kasyklos kopėčiomis aukštyn ir žemyn. Prie urvo angos jis vis nusileisdavo akimirkai ir iškart grįždavo; dabar leidžiasi tik tada, kai kelionė verta lipimo atgal, ir lieka pakasti.',
   'news.0.110.0':
-    'Susipažink su „Idealiai“, naujuoju didžiuoju mygtuku. Laikyk jį ir žaidimas žais pats: tyrinės, rinks, paims produkciją, pirks, statys ir leisis į kasyklą, nuo pat pirmo žingsnio. Atleisk ir jis sustos. Mažas paveiksliukas ant mygtuko rodo, ką jis daro.\nViskas, ką darei rankomis, veikia ir toliau: vairuok, {phone:bakstelk|laptop:spustelk} ar laikyk langelį, piešk Taką, ir „Idealiai“ palauks, kol baigsi.\nJis žino tik tai, ką ištyrinėjai, ir niekada nespaudžia Iškeliauti: kai pasaulis paruoštas, jis sustoja, mygtukas šviečia auksu, o Iškeliauti spaudi tu.',
+    'Susipažink su „Idealiai“, naujuoju didžiuoju mygtuku. Laikyk jį ir žaidimas žais pats: tyrinės, rinks, paims produkciją, pirks, statys ir leisis į kasyklą, nuo pat pirmo žingsnio. Atleisk ir jis sustos. Mažas paveiksliukas ant mygtuko rodo, ką jis daro.\nViskas, ką darei rankomis, veikia ir toliau: vairuok, {phone:bakstelėk|laptop:spustelėk} ar laikyk langelį, piešk Taką, ir „Idealiai“ palauks, kol baigsi.\nJis žino tik tai, ką ištyrinėjai, ir niekada nespaudžia Iškeliauti: kai pasaulis paruoštas, jis sustoja, mygtukas šviečia auksu, o Iškeliauti spaudi tu.',
   'news.0.109.0':
     'Namai dabar – kvadratinis miestelis, 23 langelių kraštinės, ir tavo atsargos lieka jo viduje. Viduryje susikerta du keliai, o kiekvienas išteklius turi savo kvartalą: grybiena šiaurės vakaruose, akmuo šiaurės rytuose, rūda pietryčiuose, kristalai pietvakariuose. Kiekviena krūva turi savo vietą, tad niekas niekada neišsilieja į žemę aplink namus ir nestovi ant kitos krūvos, o vieniša sostinė gauna visą kampą sau.\nPradedi kvadrato pakraštyje, prie artimiausio miško.\nDėl to pasaulis kuriamas šiek tiek kitaip, tad vieno žaidėjo pasauliai prasideda iš naujo, o bendruose pasauliuose laukia sprogdinimas.',
   'news.0.108.0':
@@ -413,7 +415,7 @@ export default {
   'news.0.101.1':
     'Išsaugotas pasaulis, kurio ši žaidimo versija negali atverti, dabar padedamas į šalį, o ne perrašomas, kad pataisymas galėtų jį sugrąžinti. Jei po atnaujinimo svetainė trumpam pateikia senesnį puslapį, tavo pasaulis grįžta kitą kartą įkėlus, o ne dingsta.',
   'news.0.101.0':
-    'Bendri pasauliai su daug žaidėjų lieka aiškūs: Nustatymuose skiltis Žaidėjai rodo visus, kaip jiems sekasi ir kaip toli jie yra, o pasaulio savininkas ten gali bet kurį pašalinti. {phone:Bakstelk|laptop:Spustelėk} +N šalia draugų, kad ją atvertum.\nVardai virš galvų minioje nebesikrauna vienas ant kito, o ženkliukai ekrano krašte nebeuždengia vienas kito ir tavęs.',
+    'Bendri pasauliai su daug žaidėjų lieka aiškūs: Nustatymuose skiltis Žaidėjai rodo visus, kaip jiems sekasi ir kaip toli jie yra, o pasaulio savininkas ten gali bet kurį pašalinti. {phone:Bakstelėk|laptop:Spustelėk} +N šalia draugų, kad ją atvertum.\nVardai virš galvų minioje nebesikrauna vienas ant kito, o ženkliukai ekrano krašte nebeuždengia vienas kito ir tavęs.',
   'news.0.100.1':
     'Bendrame pasaulyje kitų žaidėjų pastatai, lempos, vėliavos ir antkapiai lieka paslėpti tamsoje, kol neištyrinėji tos žemės, o ne kybo tuštumoje.',
   'news.0.100.0':
@@ -425,7 +427,7 @@ export default {
   'news.0.97.0':
     'Naujas etapas žymi ilgą pasaulio vidurį: kiekvienas perdirbimas iki 9 lygio, maždaug pusiaukelėje tarp Gausos variklio V ir kiekvieno perdirbimo iki 10 lygio.',
   'news.0.96.0':
-    'Tavo pastatai dirba ir tada, kai tavęs nėra. Uždaryk žaidimą, sugrįžk vėliau, ir tai, ką jie pagamino per iki 8 valandų, lauks tavo kuprinėje, kartu su tuo, ką pagamino Gausos variklis. Tai veikia tavo paties pasaulyje; bendruose pasauliuose to dar nėra.',
+    'Tavo pastatai dirba ir tada, kai tavęs nėra. Uždaryk žaidimą, sugrįžk vėliau, ir tai, ką jie pagamino per ne daugiau kaip 8 valandas, lauks tavo kuprinėje, kartu su tuo, ką pagamino Gausos variklis. Tai veikia tavo paties pasaulyje; bendruose pasauliuose to dar nėra.',
   'news.0.95.0':
     'Naujas pasaulis dabar prasideda parodydamas pirmąjį etapą, o kiekvienas pasiektas etapas pasako, kas toliau.\nDidysis mygtukas „Tyrinėti“ visada ką nors daro: kai šalia nieko nėra, jis nuveda prie artimiausių grybų ar akmenų ir juos surenka.\nPrisijungęs prie draugo pasaulio atsiduri šalia jo, o ne jame.',
   'news.0.94.0':
@@ -433,7 +435,7 @@ export default {
   'news.0.93.0':
     'Kiekvieno dydžio ekranas dabar atrodo tvarkingai: žemame plačiame ekrane mastelio mygtukai išsirikiuoja eile ir nebeužlenda ant Nustatymų, o kiekvienas langas telpa su mygtukais matomoje vietoje.\nNustatymai žemuose ekranuose nebeslepia Kalbos ir privatumo politikos.\nSiauriausiuose ekranuose mygtukas Kviesti nebeliečia Statyti.\nSkirtukų pavadinimai (Patobulinimai, Apdovanojimai) telpa visi, o labai dideli skaičiai lieka įskaitomi: milijardai rodomi kaip G, o po jų eina trilijonai (T).',
   'news.0.92.0':
-    'Žaidimas vėl atsisiunčia mažiau ir atsidaro greičiau: prieš pradedant žaisti reikia atsisiųsti apie 40 % mažiau.\nVikis vėl rodo savo paveikslėlius.',
+    'Žaidimas vėl atsisiunčia mažiau ir atsidaro greičiau: prieš pradedant žaisti reikia atsisiųsti apie 40 % mažiau.\nŽinynas vėl rodo savo paveikslėlius.',
   'news.0.91.1':
     'Bendruose pasauliuose, kai tavo žaidimo skaičiai nesutampa su pasaulio skaičiavimu, žaidimas dabar iš karto perima pasaulio skaičius ir jų laikosi, užuot vis labiau nutolęs.',
   'news.0.91.0':
@@ -451,7 +453,7 @@ export default {
   'news.0.86.0':
     'Įrankiai dabar atveria naujų dalykų, ne tik didina skaičius. Rūdai reikia 2 lygio Kirtiklio, kristalams ir geodoms – 3 lygio, o šachtoms žemyn iš gilių sluoksnių – dar geresnio. 2 lygio Batai nuneša ant vandens, taip pat per upes. 4 lygio Krepšys renka retus grybus, kurie duoda tris kartus daugiau.\nPatobulinimų skirtuke parašyta, ką atveria kiekvienas lygis, o {phone:bakstelėjus|laptop:spustelėjus} tai, ko tavo įrankiai dar neįveikia, pasakoma, ko reikia.',
   'news.0.84.0':
-    'Taurė dabar rodo kitą etapą: {phone:bakstelk|laptop:spustelk} ją ir pamatysi, ko dar trūksta, pavyzdžiui, kiek akmens reikia geresniam kirtikliui. Žalias taškas ant jos reiškia, kad turi viską, ko reikia kitam etapui.\nEtapai dabar įskaitomi bet kuria tvarka, tad anksti pastatytas sodas nebepamirštamas.',
+    'Taurė dabar rodo kitą etapą: {phone:bakstelėk|laptop:spustelėk} ją ir pamatysi, ko dar trūksta, pavyzdžiui, kiek akmens reikia geresniam kirtikliui. Žalias taškas ant jos reiškia, kad turi viską, ko reikia kitam etapui.\nEtapai dabar įskaitomi bet kuria tvarka, tad anksti pastatytas sodas nebepamirštamas.',
   'news.0.85.0':
     'Žaidimas kartu geriau susitvarko su prastu ryšiu: kai ryšys tyliai nutrūksta (pavyzdžiui, persijungus į kitą tinklą), žaidimas tai pastebi per kelias sekundes ir prisijungia iš naujo, o tai, ką tuo metu iškasei ir pastatei, vis tiek pasiekia bendrą pasaulį.\nDu kartus paspaudus „Grįžti į bendrą pasaulį“ arba „Kviesti“, kol jungiamasi, niekas nebesusipainioja.\nAtidarius draugo nuorodą ir atsisakius arba jei nuoroda nebeveikia, grįžti į bendrą pasaulį, kuriame buvai, o ne žaisti vienas.\nKai žaidimas atidarytas dviejuose skirtukuose, tas, kuris yra bendrame pasaulyje, nebeklausia, kurį vieno žaidėjo pasaulį palikti.',
   'news.0.83.0':
@@ -459,7 +461,7 @@ export default {
   'news.0.82.2':
     'Kol diegiamas atnaujinimas, bendras pasaulis palaukia, kol ir tavo žaidimas bus atnaujintas, kad visi matytų tą pačią žemę.\n„Grįžti į bendrą pasaulį“ pamiršta nebeegzistuojantį pasaulį ir pirma bando kitus tavo pasaulius, o tik tada tą, kuriame tavo veikėjas užšaldytas.',
   'news.0.82.1':
-    'Atidarius žaidimą antrame skirtuke ar jam strigtelėjus paleidžiant, jis nebepamiršta bendro pasaulio, kuriame žaidi.\nNebegaliojanti pakvietimo nuoroda palieka tave bendrame pasaulyje, kuriame buvai, o ne nusiunčia į tavo paties pasaulį.\nPašalintam iš bendro pasaulio žaidėjui, bandančiam grįžti, dabar taip ir pasakoma, užuot liepus prašyti naujos nuorodos, o mygtukas „Grįžti į bendrą pasaulį“ jo ten nebeveda.\nTrumpam pažvelgus į kitą programėlę, draugai nebemato, kad praradai ryšį.\nPasiekimas „25 statiniai“ skaičiuoja tik tavo paties pastatus.',
+    'Atidarius žaidimą antrame skirtuke ar jam strigtelėjus paleidžiant, jis nebepamiršta bendro pasaulio, kuriame žaidi.\nNebegaliojanti kvietimo nuoroda palieka tave bendrame pasaulyje, kuriame buvai, o ne nusiunčia į tavo paties pasaulį.\nPašalintam iš bendro pasaulio žaidėjui, bandančiam grįžti, dabar taip ir pasakoma, užuot liepus prašyti naujos nuorodos, o mygtukas „Grįžti į bendrą pasaulį“ jo ten nebeveda.\nTrumpam pažvelgus į kitą programėlę, draugai nebemato, kad praradai ryšį.\nPasiekimas „25 statiniai“ skaičiuoja tik tavo paties pastatus.',
   'news.0.82.0':
     'Užblokuotas ar užšaldytas veikėjas dabar palieka antkapį ten, kur stovėjo paskutinį kartą, su savo vardu, kad visi žinotų, kur jis buvo. Užšaldytųjų antkapiai įšalę į ledą.',
   'news.0.81.0':
@@ -507,7 +509,7 @@ export default {
   'news.0.69.0':
     'Kraštai didesni: kiekvieną pereiti užtrunka daugiau nei dvi minutes.\nŠis atnaujinimas pradeda naują pasaulį.',
   'news.0.68.0':
-    '{phone:Bakstelk|laptop:Spustelėk} kvietimo lentelę, kad nukopijuotum nuorodą ir nusiųstum ją draugui.',
+    '{phone:Bakstelėk|laptop:Spustelėk} kvietimo lentelę, kad nukopijuotum nuorodą ir nusiųstum ją draugui.',
   'news.0.67.0':
     'Viename pasaulyje dabar gali žaisti iki 100 žaidėjų.\nViršutinėje juostoje matyti penki draugai ir +N likusiems; prie ekrano krašto ženkleliai rodomi tik artimiausiems draugams.',
   'news.0.66.0':

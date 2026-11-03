@@ -32,7 +32,7 @@ export default {
   'light.protected': 'Vidus automatiškai apsaugotas nuo šviesos',
   'homeHint.title': 'Išsaugok šį pasaulį',
   'homeHint.text':
-    'Pridėk Mica prie pradžios ekrano (Bendrinti, tada Pridėti prie pradžios ekrano): Safari pamiršta savaitę neatidarytą svetainę, bet niekada žaidimo pradžios ekrane.',
+    'Pridėk Micą prie pradžios ekrano (Bendrinti, tada Pridėti prie pradžios ekrano): Safari pamiršta savaitę neatidarytą svetainę, bet niekada žaidimo pradžios ekrane.',
   'help.resource.mycelium':
     'Paviršiuje augantys pluoštai rišimui, auginimo lysvėms ir lanksčioms statinių dalims.',
   'help.resource.stone': 'Paviršiuje rinkite akmenį pamatams, dirbtuvėms ir kamerų sienoms.',
@@ -885,9 +885,9 @@ export default {
   'sheet.place': 'Padėti',
   'place.hint': '{phone:Bakstelėk|laptop:Spustelėk} mėlyną langelį ir pastatysi ten',
   'place.hint.move': '{phone:Bakstelėk|laptop:Spustelėk} mėlyną langelį ir perkelsi ten',
-  'place.walking': 'Mika eina ten…',
+  'place.walking': 'Mica eina ten…',
   'place.none': 'Matomoje vietoje jam nėra kur stovėti. Nueik ten, kur jį galima statyti.',
-  'place.far': 'Mika ten nenueina.',
+  'place.far': 'Mica ten nenueina.',
   'place.here': 'Statyti čia',
   'place.moveHere': 'Perkelti čia',
   'place.cancel': 'Atšaukti',
