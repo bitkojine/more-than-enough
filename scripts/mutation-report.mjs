@@ -35,8 +35,16 @@ export function assignedTo(entries, file, m) {
 export function merge(parts, plan = null) {
   const out = { schemaVersion: '2', thresholds: { high: 80, low: 60 }, files: {}, testFiles: {} };
   let n = 0;
+  out.log = [];
   for (const part of parts) {
     n++;
+    const tally = (ms) => {
+      const t = {};
+      for (const m of ms) t[m.status] = (t[m.status] || 0) + 1;
+      return JSON.stringify(t);
+    };
+    const all = Object.values(part.files).flatMap((f) => f.mutants);
+    let kept = [];
     const name = new Map();
     for (const [file, t] of Object.entries(part.testFiles || {})) {
       out.testFiles[file] ??= { source: t.source, tests: [] };
@@ -54,6 +62,7 @@ export function merge(parts, plan = null) {
       const mine = plan
         ? f.mutants.filter((m) => assignedTo(plan[n - 1] || [], file, m))
         : f.mutants;
+      kept = kept.concat(mine);
       if (!mine.length) continue;
       const mutants = mine.map((m) => ({
         ...m,
@@ -64,6 +73,9 @@ export function merge(parts, plan = null) {
       if (out.files[file]) out.files[file].mutants.push(...mutants);
       else out.files[file] = { ...f, mutants };
     }
+    out.log.push(
+      `part ${n}: ${plan ? (plan[n - 1] || []).join(',') : '-'} | in report ${tally(all)} | kept ${tally(kept)}`
+    );
     out.projectRoot ??= part.projectRoot;
     out.framework ??= part.framework;
   }
@@ -216,6 +228,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const report = merge(read(), plan);
   mkdirSync(dir, { recursive: true });
+  // What each part held and what the join kept from it, for the log.
+  writeFileSync(path.join(dir, 'parts.txt'), report.log.join('\n') + '\n');
+  delete report.log;
   writeFileSync(path.join(dir, 'mutation.json'), JSON.stringify(report));
   writeFileSync(path.join(dir, 'mutation.html'), html(report));
   writeFileSync(path.join(dir, 'summary.md'), summary(report));
