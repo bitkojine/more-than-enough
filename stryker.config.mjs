@@ -27,7 +27,11 @@ export default {
   // runners until they dropped ("lost communication", 9 of 90 parts on
   // 2026-11-03). Capped, such a process runs out of memory and fails at once,
   // which counts as caught. Every test passes with 1 GB.
-  tap: { testFiles, nodeArgs: ['--max-old-space-size=1536'] },
+  // Node 26 (CI's) no longer writes TAP when its output is piped, only its
+  // own readable format, so the TAP runner could not read a failing test
+  // file and called every caught bug a RuntimeError (run 41666543632: 1.1 %
+  // "caught"). Ask for TAP.
+  tap: { testFiles, nodeArgs: ['--max-old-space-size=1536', '--test-reporter=tap'] },
   mutate: ['src/core/**/*.js', 'src/net/**/*.js', 'server/src/**/*.js', 'src/game/**/*.js'],
   // Run each planted bug only against the test files that reach it, and all
   // of them (not just the first to catch it), so the report says which test

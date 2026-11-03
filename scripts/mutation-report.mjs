@@ -91,6 +91,16 @@ const score = (ms) => {
     pct: counted.length ? (100 * caught) / counted.length : null
   };
 };
+const ERRORS = new Set(['RuntimeError', 'CompileError']);
+export const errors = (report) =>
+  Object.values(report.files).reduce(
+    (n, f) => n + f.mutants.filter((m) => ERRORS.has(m.status)).length,
+    0
+  );
+// More than this share of errors means the sweep itself is broken (Node 26
+// once turned every caught bug into a RuntimeError), not the tests.
+export const TOO_MANY_ERRORS = 0.1;
+
 const pct = (s) => (s.pct === null ? 'n/a' : s.pct.toFixed(1) + ' %');
 
 // What each test file is worth: planted bugs it reaches, catches, and is the
@@ -126,6 +136,7 @@ export function summary(report) {
     '# Mutation sweep',
     '',
     `Planted bugs the tests caught: **${pct(all)}** (${all.caught} of ${all.counted}).`,
+    `Bugs whose test run broke instead of passing or failing (not counted): ${errors(report)}.`,
     '',
     '| Code | Caught |',
     '| --- | --- |',
@@ -236,4 +247,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   writeFileSync(path.join(dir, 'summary.md'), summary(report));
   writeFileSync(path.join(dir, 'survivors.txt'), survivors(report) + '\n');
   console.log(summary(report).split('\n').slice(0, 10).join('\n'));
+  const total = Object.values(report.files).reduce((n, f) => n + f.mutants.length, 0);
+  if (errors(report) > TOO_MANY_ERRORS * total) {
+    console.error(
+      `${errors(report)} of ${total} planted bugs broke their test run: the sweep is broken, not the tests.`
+    );
+    process.exitCode = 1;
+  }
 }

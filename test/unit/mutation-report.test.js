@@ -327,3 +327,22 @@ test('mutation plan: one long function too costly whole is cut between its own s
     assert.ok(a === 1 || [2, ...innerCutPoints(text)].includes(a), e);
   }
 });
+
+test('mutation report: a sweep where test runs break is reported broken, not scored', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'mutation-broken-'));
+  const broken = carrying([at(1, 'RuntimeError'), at(2, 'RuntimeError'), at(3, 'Survived')]);
+  writeFileSync(join(dir, 'part-1.json'), JSON.stringify(broken));
+  assert.match(
+    summary(merge([broken])),
+    /broke instead of passing or failing \(not counted\): 2\./
+  );
+  assert.throws(
+    () =>
+      execFileSync(
+        process.execPath,
+        ['scripts/mutation-report.mjs', join(dir, 'out'), join(dir, 'part-1.json')],
+        { stdio: 'pipe' }
+      ),
+    /sweep is broken/
+  );
+});
