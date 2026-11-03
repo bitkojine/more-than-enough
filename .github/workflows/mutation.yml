@@ -20,11 +20,16 @@ on:
         description: 'Run every planted bug again, not only what changed'
         type: boolean
         default: false
+      from_run:
+        description: 'Start from the joined report of this run id instead of the last saved one'
+        type: string
+        default: ''
   schedule:
     - cron: '17 2 * * 0' # Sundays, 02:17 UTC
 
 permissions:
   contents: read
+  actions: read # from_run: fetch another run's report
 
 concurrency:
   group: mutation
@@ -48,8 +53,21 @@ jobs:
       - name: Set up Node and the dev dependencies
         uses: ./.github/actions/setup
 
+      - name: Start from the joined report of the run named
+        if: ${{ !inputs.full && inputs.from_run != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: mutation-report
+          path: reports/from-run
+          run-id: ${{ inputs.from_run }}
+          github-token: ${{ github.token }}
+
+      - name: Use it as the baseline
+        if: ${{ !inputs.full && inputs.from_run != '' }}
+        run: mkdir -p reports/mutation && cp reports/from-run/mutation.json reports/mutation/baseline.json
+
       - name: Start from the last joined report
-        if: ${{ !inputs.full }}
+        if: ${{ !inputs.full && inputs.from_run == '' }}
         uses: actions/cache/restore@v4
         with:
           path: reports/mutation/baseline.json
@@ -111,9 +129,9 @@ jobs:
             reports/mutation/summary.md
           retention-days: 90
 
-      # Only a run with every part in it may be the next run's baseline.
+      # A part that failed is missing from the report, so the next run tests
+      # its files from scratch; every other file starts from here.
       - name: Save it as the next run's starting point
-        if: ${{ needs.part.result == 'success' }}
         uses: actions/cache/save@v4
         with:
           path: reports/mutation/baseline.json

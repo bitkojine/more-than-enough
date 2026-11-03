@@ -10,6 +10,9 @@ import {
   resourcePileSVG,
   RESOURCE_MODEL_KEYS
 } from '../../src/game/render/resource-models.js';
+// The mutation sweep (stryker.config.mjs) runs this on its rewritten copy of
+// the source, so a check that reads the source file as text can't hold there.
+const MUTATING = Boolean(process.env.STRYKER_NAMESPACE);
 const file = (p) => readFileSync(new URL('../../' + p, import.meta.url));
 test('all four material models have real finite volume and explicit collection anchors', () => {
   assert.deepEqual(RESOURCE_MODEL_KEYS, ['mycelium', 'stone', 'ore', 'crystal']);
@@ -73,7 +76,7 @@ test('small stockpiles instance shared geometry and preserve their declared foot
 test('every baked resource asset is reproducible from the recorded canonical source', () => {
   const manifest = JSON.parse(file('art/resources/models.json')),
     sha = (b) => createHash('sha256').update(b).digest('hex');
-  assert.equal(sha(file(manifest.source)), manifest.sourceSha256);
+  if (!MUTATING) assert.equal(sha(file(manifest.source)), manifest.sourceSha256);
   assert.equal(manifest.assets.length, 28);
   for (const r of manifest.assets) {
     const a =

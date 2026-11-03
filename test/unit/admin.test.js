@@ -10,6 +10,9 @@ import en from '../../src/i18n/en.js';
 import lt from '../../src/i18n/lt.js';
 
 const ROOM = 'ZixSTX1BMH-ibklLzCMCqA';
+// The mutation sweep (stryker.config.mjs) runs this on its rewritten copy of
+// the source, so a check that reads the source file as text can't hold there.
+const MUTATING = Boolean(process.env.STRYKER_NAMESPACE);
 
 test('admin: worlds and players are named in English and Lithuanian, as in the game', () => {
   // Two ids that pick the same name: the lower colour keeps it, the other takes the next.
@@ -75,12 +78,16 @@ test('admin: the page runs only its own script and style, and writes no HTML fro
   assert.doesNotMatch(html, /[0-9a-f]{32,}/, 'nothing token-like in the page');
 });
 
-test('admin: the page opens the copy links the room service makes', async () => {
-  const { html } = await adminPage();
-  const re = new RegExp(html.match(/const gameLink =\s*\/(\^https.*?\$)\/;/)[1]);
-  const link = 'https://play.robertasrudys.com/#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64);
-  assert.match(link, re);
-  assert.match(link + '&of=' + ROOM, re, 'with the real world (v0.103.2)');
-  assert.doesNotMatch('javascript:alert(1)//#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64), re);
-  assert.doesNotMatch(link + '&of=<b>', re);
-});
+test(
+  'admin: the page opens the copy links the room service makes',
+  { skip: MUTATING },
+  async () => {
+    const { html } = await adminPage();
+    const re = new RegExp(html.match(/const gameLink =\s*\/(\^https.*?\$)\/;/)[1]);
+    const link = 'https://play.robertasrudys.com/#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64);
+    assert.match(link, re);
+    assert.match(link + '&of=' + ROOM, re, 'with the real world (v0.103.2)');
+    assert.doesNotMatch('javascript:alert(1)//#copy=' + 'a'.repeat(22) + '.' + 'f'.repeat(64), re);
+    assert.doesNotMatch(link + '&of=<b>', re);
+  }
+);

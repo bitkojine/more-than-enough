@@ -4,14 +4,18 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { createPickaxeModel } from '../../src/game/render/pickaxe-model.js';
 const file = (p) => readFileSync(new URL('../../' + p, import.meta.url));
+// The mutation sweep (stryker.config.mjs) runs this on its rewritten copy of
+// the source, so a check that reads the source file as text can't hold there.
+const MUTATING = Boolean(process.env.STRYKER_NAMESPACE);
 test('baked pickaxe icons match the canonical model and recorded tier images', () => {
   const manifest = JSON.parse(file('art/characters/pickaxe-model.json'));
   const sha = (p) => createHash('sha256').update(file(p)).digest('hex');
-  assert.equal(
-    sha(manifest.source),
-    manifest.sourceSha256,
-    'regenerate icons when the canonical model changes'
-  );
+  if (!MUTATING)
+    assert.equal(
+      sha(manifest.source),
+      manifest.sourceSha256,
+      'regenerate icons when the canonical model changes'
+    );
   assert.deepEqual(
     manifest.assets.map((a) => a.tier),
     [1, 2, 3, 4, 5, 6]

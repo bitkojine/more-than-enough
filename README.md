@@ -322,7 +322,9 @@ catches has survived, and shows a behaviour nothing checks.
 then joins them (`scripts/mutation-report.mjs`) into a report: the score per
 file, every survivor, and for each test file how many planted bugs it
 catches, how many only it catches, and which test files catch nothing.
-After the first full run only what changed is run again. One file by hand:
+After the first full run only what changed is run again; a part that
+failed is simply tested from scratch next time, and `from_run` starts a run
+from another run's report. One file by hand:
 
 ```sh
 npx stryker run --mutate src/core/paths.js
@@ -330,7 +332,9 @@ npx stryker run --mutate src/core/paths.js
 
 Three test files read or measure the source as text, which Stryker's
 rewritten copy trips: `i18n`, `file-size` and `load-budget` are left out of
-the sweep and were proven instead by planting a violation each. Some survivors can't be caught
+the sweep and were proven instead by planting a violation each. Three more
+check a baked picture or the admin page against the source text; under the
+sweep (`STRYKER_NAMESPACE` is set) they skip just that check. Some survivors can't be caught
 because the change makes no difference (a shortcut that only saves time); mark
 those in the code with `// Stryker disable next-line <mutator>: <why>`.
 
