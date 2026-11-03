@@ -199,23 +199,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     );
     process.exit(2);
   }
-  // With a plan, part-N.json is the report of part N. For a part that was
-  // lost, any other part's report still carries what the report it started
-  // from knew about that code; code nobody knew is missing, and is tested
-  // next time.
+  // With a plan, part-N.json is the report of part N. A lost part's code is
+  // left out, so the next run tests it: the copies other parts carry of the
+  // report they started from are partial for code nobody had finished
+  // (run 41664879261 showed src/core/actions.js as 126 bugs, 4 % caught).
   const number = (f) => Number(/part-(\d+)\.json$/.exec(f)?.[1]);
   if (plan && files.some((f) => !number(f))) {
     console.error('with --plan, part reports must be named part-N.json');
     process.exit(2);
   }
   const ordered = plan
-    ? Array.from(
-        { length: plan.length },
-        (_, i) => files.find((f) => number(f) === i + 1) || files[0]
-      )
+    ? Array.from({ length: plan.length }, (_, i) => files.find((f) => number(f) === i + 1))
     : files;
   function* read() {
-    for (const f of ordered) yield JSON.parse(readFileSync(f, 'utf8'));
+    for (const f of ordered) yield f ? JSON.parse(readFileSync(f, 'utf8')) : { files: {} };
   }
   const report = merge(read(), plan);
   mkdirSync(dir, { recursive: true });

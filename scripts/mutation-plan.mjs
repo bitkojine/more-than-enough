@@ -43,6 +43,28 @@ export function cutPoints(text) {
   return out;
 }
 
+// Inside a top-level function, the lines that start one of its own
+// statements (indented once, after a line that ends a statement or opens
+// the body). Cutting there keeps every bug but one per function cut: the
+// one that empties the whole body, which no range then holds. Used only for
+// a file the top-level cuts leave too costly (createRigModel is one
+// 545-line function that the 97-second rig test runs entirely).
+export function innerCutPoints(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let prev = '';
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (!/\S/.test(l)) continue;
+    const opens = /^(export )?(default )?(async )?function\b.*\{$/.test(prev);
+    const ended =
+      opens || (/^ {2}\S/.test(prev) && /([;}]|\*\/)\s*(\/\/.*)?$|^ {2}\/\//.test(prev));
+    if (i > 0 && ended && /^ {2}[A-Za-z_$@/]/.test(l) && !/^ {2}\*/.test(l)) out.push(i + 1);
+    prev = l;
+  }
+  return out;
+}
+
 // One test file's coverage, from Node's lcov report: source file -> lines run.
 export function linesRun(lcov) {
   const run = new Map();
@@ -85,19 +107,27 @@ export function plan(files, tests, n, atLoad = new Map()) {
       pieces.push({ entry: file, cost: sum });
       continue;
     }
-    const cuts = new Set(cutPoints(text));
-    let start = 1,
-      acc = 0;
-    for (let ln = 1; ln <= cost.length; ln++) {
-      if (cuts.has(ln) && acc > 0 && acc + cost[ln - 1] > share) {
-        pieces.push({ entry: `${file}:${start}-${ln - 1}`, cost: acc });
-        start = ln;
+    const cut = (points) => {
+      const cuts = new Set(points);
+      const out = [];
+      let start = 1,
         acc = 0;
+      for (let ln = 1; ln <= cost.length; ln++) {
+        if (cuts.has(ln) && acc > 0 && acc + cost[ln - 1] > share) {
+          out.push({ entry: `${file}:${start}-${ln - 1}`, cost: acc });
+          start = ln;
+          acc = 0;
+        }
+        acc += cost[ln - 1];
       }
-      acc += cost[ln - 1];
-    }
-    // A file with no cut point left is one piece, named as the whole file.
-    pieces.push({ entry: start === 1 ? file : `${file}:${start}-${cost.length}`, cost: acc });
+      // A file with no cut point left is one piece, named as the whole file.
+      out.push({ entry: start === 1 ? file : `${file}:${start}-${cost.length}`, cost: acc });
+      return out;
+    };
+    let mine = cut(cutPoints(text));
+    if (mine.some((p) => p.cost > 1.5 * share))
+      mine = cut([...cutPoints(text), ...innerCutPoints(text)]);
+    pieces.push(...mine);
   }
   pieces.sort((a, b) => b.cost - a.cost || a.entry.localeCompare(b.entry));
   const parts = Array.from({ length: n }, () => ({ cost: 0, entries: [] }));

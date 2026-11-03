@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cutPoints, linesRun, plan } from '../../scripts/mutation-plan.mjs';
+import { cutPoints, innerCutPoints, linesRun, plan } from '../../scripts/mutation-plan.mjs';
 import {
   merge,
   testValue,
@@ -250,7 +250,7 @@ test('mutation report: each part counts only the code the plan gave it', () => {
   );
 });
 
-test('mutation report: the command joins named parts by the plan, filling a lost part from what the others carry', () => {
+test("mutation report: the command joins named parts by the plan, leaving out a lost part's code", () => {
   const dir = mkdtempSync(join(tmpdir(), 'mutation-join-'));
   const all = [at(2), at(8, 'Survived'), at(20)];
   writeFileSync(
@@ -273,9 +273,10 @@ test('mutation report: the command joins named parts by the plan, filling a lost
   const r = JSON.parse(readFileSync(join(out, 'mutation.json'), 'utf8'));
   assert.deepEqual(
     r.files['src/core/a.js'].mutants.map((m) => m.location.start.line).sort((a, b) => a - b),
-    [2, 8, 20]
+    [2, 20],
+    'line 8 was part 2, which was lost'
   );
-  assert.match(readFileSync(join(out, 'survivors.txt'), 'utf8'), /src\/core\/a\.js:8/);
+  assert.doesNotMatch(readFileSync(join(out, 'survivors.txt'), 'utf8'), /src\/core\/a\.js:8/);
   assert.throws(
     () =>
       execFileSync(
@@ -291,4 +292,38 @@ test('mutation report: the command joins named parts by the plan, filling a lost
       ),
     /part-N/
   );
+});
+
+test('mutation plan: one long function too costly whole is cut between its own statements', () => {
+  const text = [
+    'import x from "y";', // 1
+    'export function big() {', // 2
+    '  const a = 1;', // 3
+    '  if (a) {', // 4
+    '    x(a);', // 5
+    '  }', // 6
+    '  // why', // 7
+    '  return f(a,', // 8
+    '    2);', // 9
+    '}' // 10
+  ].join('\n');
+  // Not inside the if (5), nor after a line that runs on (9).
+  assert.deepEqual(innerCutPoints(text), [3, 4, 7, 8]);
+  const tests = [{ seconds: 10, run: ran('a.js', 1, 10) }];
+  const whole = plan(
+    [
+      { file: 'a.js', text },
+      { file: 'b.js', text: lines(3) }
+    ],
+    tests,
+    4
+  );
+  assert.ok(
+    whole.parts.flat().filter((e) => e.startsWith('a.js:')).length >= 3,
+    JSON.stringify(whole.parts)
+  );
+  for (const e of whole.parts.flat().filter((x) => x.startsWith('a.js:'))) {
+    const a = Number(e.split(':')[1].split('-')[0]);
+    assert.ok(a === 1 || [2, ...innerCutPoints(text)].includes(a), e);
+  }
 });
