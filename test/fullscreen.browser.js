@@ -109,9 +109,12 @@ export async function checkFullscreen({ evalJS, waitFor, ok, eq, cdp, session, t
     await evalJS('document.getElementById("btnFullscreen").scrollIntoView({block:"center"})');
     const help = await rect('#btnFullscreen');
     await tap(help.x, help.y);
+    // A tap is handled a frame or more later on a loaded machine, and help
+    // is a toggle, so wait for each tap to land before the next one.
     ok(
-      await evalJS(
-        '!document.fullscreenElement&&!document.getElementById("fullscreenHint").hidden&&document.getElementById("btnFullscreen").getAttribute("aria-expanded")==="true"'
+      await waitFor(
+        '!document.fullscreenElement&&!document.getElementById("fullscreenHint").hidden&&document.getElementById("btnFullscreen").getAttribute("aria-expanded")==="true"',
+        2000
       ),
       'unsupported fullscreen opens real Settings help at ' + width + '×' + height
     );
@@ -123,6 +126,10 @@ export async function checkFullscreen({ evalJS, waitFor, ok, eq, cdp, session, t
     );
     await shot('fullscreen-help-' + width + 'x' + height + '.png');
     await tap(help.x, help.y);
+    ok(
+      await waitFor('document.getElementById("fullscreenHint").hidden', 2000),
+      'a second tap closes the fullscreen help at ' + width + '×' + height
+    );
   }
   await evalJS(
     'if(window.fullscreenEnabledDescriptor)Object.defineProperty(document,"fullscreenEnabled",window.fullscreenEnabledDescriptor);else delete document.fullscreenEnabled;delete window.fullscreenEnabledDescriptor;MTE_GAME.fullscreen.sync()'

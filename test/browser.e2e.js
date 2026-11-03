@@ -797,7 +797,12 @@ async function main() {
       rect,
       shot: (name) => shot('lt-' + name)
     });
-    eq(pageErrors.length, 0, 'fullscreen has no browser exceptions');
+    eq(
+      pageErrors.length,
+      0,
+      'fullscreen has no browser exceptions' +
+        (pageErrors.length ? ': ' + pageErrors.join(' | ').slice(0, 1500) : '')
+    );
     console.log(
       (failures ? 'FULLSCREEN BROWSER FAILURES' : 'FULLSCREEN BROWSER PASSED') +
         ' — ' +
