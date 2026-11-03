@@ -103,6 +103,9 @@ jobs:
         with:
           name: mutation-plan
 
+      # 3 test runs at once on a 4-core runner: at 4, 12 of 90 parts were
+      # dropped by GitHub ("lost communication", "shutdown signal"), even on
+      # light files and with the memory cap; one core is left to the runner.
       - name: Plant bugs in this part's files and run the tests
         run: |
           files=$(node -e "console.log(require('./plan.json').parts[process.argv[1] - 1].join(','))" ${{ matrix.part }})
@@ -113,7 +116,7 @@ jobs:
             incremental="--incremental --incrementalFile reports/mutation/baseline.json"
           fi
           MUTATION_REPORT=reports/mutation/part-${{ matrix.part }}.json \
-            npx stryker run --mutate "$files" --concurrency 4 $incremental
+            npx stryker run --mutate "$files" --concurrency 3 $incremental
 
       - name: Keep this part's report
         if: always()
