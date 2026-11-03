@@ -20,3 +20,4 @@ render-checks/
 .stryker-tmp/
 reports/
 parts/
+plan.json

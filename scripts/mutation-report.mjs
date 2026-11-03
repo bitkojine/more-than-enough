@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Joins the mutation sweep's parts (.github/workflows/mutation.yml) into one
  * report: mutation.json (Stryker's format, also the next run's incremental
- * baseline), mutation.html (Stryker's own viewer) and summary.md, which says
+ * baseline), mutation.html (Stryker's own viewer), survivors.txt (every bug
+ * no test caught, by file and line) and summary.md, which says
  * for each source file how many planted bugs the tests caught and, for each
  * test file, how many it catches, how many only it catches, and which catch
  * nothing at all.
@@ -29,15 +30,18 @@ export function merge(parts) {
       }
     }
     const rename = (ids) => ids && ids.map((id) => name.get(id) ?? id);
+    // A costly file is split over several parts by line range: its pieces
+    // join, and each part's mutant ids (which restart at 0) get its number.
+    const n = parts.indexOf(part) + 1;
     for (const [file, f] of Object.entries(part.files)) {
-      out.files[file] = {
-        ...f,
-        mutants: f.mutants.map((m) => ({
-          ...m,
-          coveredBy: rename(m.coveredBy),
-          killedBy: rename(m.killedBy)
-        }))
-      };
+      const mutants = f.mutants.map((m) => ({
+        ...m,
+        id: `${n}-${m.id}`,
+        coveredBy: rename(m.coveredBy),
+        killedBy: rename(m.killedBy)
+      }));
+      if (out.files[file]) out.files[file].mutants.push(...mutants);
+      else out.files[file] = { ...f, mutants };
     }
     out.projectRoot ??= part.projectRoot;
     out.framework ??= part.framework;
@@ -124,6 +128,32 @@ export function summary(report) {
   return lines.join('\n');
 }
 
+// Every planted bug no test caught, one per line, the files with most first:
+// what to write tests for (or mark as harmless).
+export function survivors(report) {
+  const rows = Object.entries(report.files).map(([file, f]) => [
+    file,
+    f.mutants.filter((m) => m.status === 'Survived' || m.status === 'NoCoverage')
+  ]);
+  return rows
+    .filter(([, ms]) => ms.length)
+    .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+    .flatMap(([file, ms]) =>
+      ms
+        .sort((a, b) => a.location.start.line - b.location.start.line)
+        .map(
+          (m) =>
+            `${file}:${m.location.start.line} ${m.mutatorName}` +
+            (m.status === 'NoCoverage'
+              ? ' (no test runs it)'
+              : m.replacement
+                ? ' -> ' + m.replacement.replace(/\s+/g, ' ').slice(0, 80)
+                : '')
+        )
+    )
+    .join('\n');
+}
+
 // Stryker's own viewer, the way its html reporter builds it.
 function html(report) {
   const require = createRequire(import.meta.url);
@@ -148,5 +178,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   writeFileSync(path.join(dir, 'mutation.json'), JSON.stringify(report));
   writeFileSync(path.join(dir, 'mutation.html'), html(report));
   writeFileSync(path.join(dir, 'summary.md'), summary(report));
+  writeFileSync(path.join(dir, 'survivors.txt'), survivors(report) + '\n');
   console.log(summary(report).split('\n').slice(0, 10).join('\n'));
 }

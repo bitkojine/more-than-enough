@@ -1,62 +1,105 @@
 /* The mutation sweep's own scripts (.github/workflows/mutation.yml): parts
- * dealt out evenly, and a joined report that keeps every part and counts what
+ * planned by what they cost, and a joined report that keeps every part and counts what
  * each test file catches. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
-import { shards } from '../../scripts/mutation-shard.mjs';
-import { merge, testValue, summary } from '../../scripts/mutation-report.mjs';
+import { readFileSync } from 'node:fs';
+import { cutPoints, linesRun, plan } from '../../scripts/mutation-plan.mjs';
+import { merge, testValue, summary, survivors } from '../../scripts/mutation-report.mjs';
 
-// Files of known sizes, to check exactly how they are dealt out.
-function sized(lines) {
-  const dir = mkdtempSync(join(tmpdir(), 'mutation-parts-'));
-  return Object.entries(lines).map(([name, n]) => {
-    const f = join(dir, name);
-    writeFileSync(f, 'x\n'.repeat(n - 1) + 'x');
-    return f;
-  });
-}
+// n lines of one statement (indented, so no cut point inside).
+const lines = (n) => Array.from({ length: n }, (_, i) => (i ? '  x' : 'x') + i).join('\n');
+const ran = (file, from, to) =>
+  new Map([[file, new Set(Array.from({ length: to - from + 1 }, (_, i) => from + i))]]);
 
-test('mutation parts: biggest file first, each to the part with the fewest lines so far', () => {
-  const [a, b, c, d, e] = sized({ 'a.js': 50, 'b.js': 40, 'c.js': 30, 'd.js': 20, 'e.js': 20 });
-  // a -> 1 (50); b -> 2 (40); c -> 3 (30); d -> 3 (50); e (tied 20 with d,
-  // after it by name) -> 2 (60); ties between parts go to the first.
-  assert.deepEqual(shards([e, d, c, b, a], 3), [[a], [b, e], [c, d]]);
-  assert.deepEqual(shards([a, b], 4), [[a], [b], [], []], 'more parts than files');
-});
-
-test('mutation parts: every file in exactly one part, biggest first to the lightest part', () => {
+test('mutation plan: a line costs the time of the test files that run it', () => {
   const files = [
-    'src/core/paths.js',
-    'src/core/save.js',
-    'src/net/protocol.js',
-    'server/src/room.js'
+    { file: 'a.js', text: lines(10) },
+    { file: 'b.js', text: lines(10) }
   ];
-  const parts = shards(files, 3);
-  assert.equal(parts.length, 3);
-  assert.deepEqual(parts.flat().sort(), [...files].sort());
-  assert.deepEqual(shards(files, 3), parts, 'the same every time');
-  assert.deepEqual(shards(files, 1), [[...files].sort()]);
+  // A slow test runs all of a.js, a quick one all of b.js: a.js goes alone.
+  const p = plan(
+    files,
+    [
+      { seconds: 100, run: ran('a.js', 1, 10) },
+      { seconds: 1, run: ran('b.js', 1, 10) }
+    ],
+    2
+  );
+  assert.deepEqual(p.parts, [['a.js'], ['b.js']]);
+  assert.ok(p.cost[0] > 50 * p.cost[1], JSON.stringify(p.cost));
+  // Lines no test runs, and lines that only run as the module loads (which
+  // Stryker leaves out), cost next to nothing.
+  const idle = plan(files, [{ seconds: 100, run: ran('a.js', 1, 10) }], 2, ran('a.js', 1, 10));
+  assert.ok(
+    idle.cost.every((c) => c < 2),
+    JSON.stringify(idle.cost)
+  );
 });
 
-test('mutation parts: the command prints one part, and refuses a part that does not exist', () => {
-  const run = (...args) =>
-    execFileSync(process.execPath, ['scripts/mutation-shard.mjs', ...args], { encoding: 'utf8' });
-  const all = Array.from({ length: 3 }, (_, i) =>
-    run(String(i + 1), '3')
-      .trim()
-      .split(',')
+test('mutation plan: a costly file is cut between top-level statements, never inside one', () => {
+  const text = [
+    'import x from "y";', // 1
+    'export function f() {', // 2
+    '  return 1;', // 3
+    '}', // 4
+    '/* a comment', // 5
+    ' * more */', // 6
+    'const g = () =>', // 7
+    '  2;', // 8
+    'export { g };' // 9
+  ].join('\n');
+  assert.deepEqual(cutPoints(text), [2, 5, 7, 9]);
+  const p = plan([{ file: 'a.js', text }], [{ seconds: 10, run: ran('a.js', 1, 9) }], 3);
+  const pieces = p.parts.flat().sort();
+  assert.ok(pieces.length >= 3, JSON.stringify(pieces));
+  // The pieces cover every line once, and each starts at a cut point.
+  const covered = pieces.flatMap((e) => {
+    const [a, b] = e.split(':')[1].split('-').map(Number);
+    assert.ok(a === 1 || cutPoints(text).includes(a), e);
+    return Array.from({ length: b - a + 1 }, (_, i) => a + i);
+  });
+  assert.deepEqual(
+    covered.sort((x, y) => x - y),
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
   );
-  assert.ok(all.every((p) => p.length > 0 && p.every((f) => f.endsWith('.js'))));
-  const every = all.flat();
-  assert.equal(new Set(every).size, every.length, 'no file in two parts');
-  assert.ok(every.includes('src/core/paths.js') && every.includes('server/src/room.js'));
-  assert.ok(every.includes('src/game/hud.js') && every.includes('src/net/protocol.js'));
-  for (const bad of [['0', '3'], ['4', '3'], ['1', '0'], []])
-    assert.throws(() => run(...bad), /usage/, JSON.stringify(bad));
+});
+
+test('mutation plan: every source file in exactly one part, the same every time', () => {
+  const files = ['p.js', 'q.js', 'r.js', 's.js'].map((file) => ({ file, text: lines(5) }));
+  const tests = [{ seconds: 3, run: ran('p.js', 1, 5) }];
+  const p = plan(files, tests, 3);
+  assert.equal(p.parts.length, 3);
+  assert.deepEqual(p.parts.flat().sort(), ['p.js', 'q.js', 'r.js', 's.js']);
+  assert.deepEqual(plan(files, tests, 3), p);
+  assert.deepEqual(
+    plan(files, tests, 6).parts.filter((x) => x.length).length,
+    4,
+    'more parts than files'
+  );
+});
+
+test("mutation plan: reads which lines a test file ran from Node's lcov report", () => {
+  const lcov =
+    'TN:\nSF:src/core/a.js\nDA:1,1\nDA:2,0\nDA:3,4\nend_of_record\nSF:src/core/b.js\nDA:1,0\nend_of_record\n';
+  const r = linesRun(lcov);
+  assert.deepEqual([...r.get('src/core/a.js')], [1, 3]);
+  assert.deepEqual([...r.get('src/core/b.js')], []);
+});
+
+test('mutation plan: in real source, a cut point always follows a finished statement', () => {
+  for (const file of ['src/core/terrain.js', 'src/core/sim.js', 'src/game/controller.js']) {
+    const all = readFileSync(file, 'utf8').split('\n');
+    for (const n of cutPoints(all.join('\n'))) {
+      let k = n - 2;
+      while (k > 0 && !/\S/.test(all[k])) k--;
+      assert.match(
+        all[k].replace(/\s+\/\/.*$/, ''),
+        /[;})\]]$|\*\/$|^\/\/|^\s*$/,
+        `${file}:${n} follows "${all[k]}"`
+      );
+    }
+  }
 });
 
 const mutant = (id, status, coveredBy, killedBy) => ({
@@ -113,6 +156,27 @@ test('mutation report: parts join with test files named, not numbered', () => {
   assert.equal(r.testFiles['test/unit/b.test.js'].tests.length, 1, 'one entry per test file');
 });
 
+test('mutation report: a file split over two parts keeps the bugs of both', () => {
+  const half = (ids) => ({
+    files: {
+      'src/core/a.js': {
+        language: 'javascript',
+        source: 'a',
+        mutants: ids.map((id) => mutant(id, 'Killed', ['0'], ['0']))
+      }
+    },
+    testFiles: { 'test/unit/a.test.js': { tests: [{ id: '0', name: 'test/unit/a.test.js' }] } }
+  });
+  const r = merge([half(['0', '1']), half(['0'])]);
+  const ms = r.files['src/core/a.js'].mutants;
+  assert.equal(ms.length, 3);
+  assert.equal(new Set(ms.map((m) => m.id)).size, 3, 'ids stay apart');
+  assert.deepEqual(
+    ms.map((m) => m.killedBy),
+    [['test/unit/a.test.js'], ['test/unit/a.test.js'], ['test/unit/a.test.js']]
+  );
+});
+
 test('mutation report: what each test file reaches, catches and alone catches', () => {
   const v = Object.fromEntries(testValue(merge(parts)).map((t) => [t.test, t]));
   assert.deepEqual(v['test/unit/a.test.js'], {
@@ -138,4 +202,13 @@ test('mutation report: the score counts caught, timed out, survived and never ru
   const nothing = md.split('## Test files that catch nothing')[1].split('##')[0];
   assert.doesNotMatch(nothing, /a\.test\.js|b\.test\.js/, 'both catch something');
   assert.doesNotMatch(nothing, /c\.test\.js/, 'and c reaches nothing, so it is not blamed');
+});
+
+test('mutation report: survivors are listed by file and line, worst files first', () => {
+  const r = merge(parts);
+  r.files['src/core/a.js'].mutants[2].replacement = '!x';
+  assert.deepEqual(survivors(r).split('\n'), [
+    'server/src/b.js:1 x (no test runs it)',
+    'src/core/a.js:1 x -> !x'
+  ]);
 });

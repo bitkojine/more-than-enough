@@ -1,8 +1,8 @@
 // Mutation testing (Watch, 2026-11-02: proof that our tests test things of
 // value). Stryker plants one small bug at a time in the code and runs the
 // tests that reach it; a bug no test catches has "survived". Run in parts by
-// .github/workflows/mutation.yml (scripts/mutation-shard.mjs picks each
-// part's files, scripts/mutation-report.mjs joins them). By hand, one file:
+// .github/workflows/mutation.yml (scripts/mutation-plan.mjs picks each
+// part's code, scripts/mutation-report.mjs joins them). By hand, one file:
 //   npx stryker run --mutate src/core/paths.js
 import { readdirSync } from 'node:fs';
 
@@ -34,6 +34,11 @@ export default {
   // files catch what, and which catch nothing.
   coverageAnalysis: 'perTest',
   disableBail: true,
+  // A bug in code that runs as a module loads (the tables in content.js,
+  // goals.js) is run against every test file, minutes each, since every test
+  // loads it; those were most of the sweep's time. Left out, and counted as
+  // "Ignored" in the report.
+  ignoreStatic: true,
   // index.html's inline script is hashed by a test: leave every file as is.
   disableTypeChecks: false,
   // A planted bug that makes a test loop forever is stopped after the test

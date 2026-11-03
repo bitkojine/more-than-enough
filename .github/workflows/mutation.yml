@@ -2,7 +2,8 @@
 # value). Stryker plants one small bug at a time in the code and runs the
 # test files that reach it; a planted bug no test catches has survived.
 # stryker.config.mjs says how; this runs it in PARTS parts side by side
-# (scripts/mutation-shard.mjs deals the files out by size), then joins them
+# (scripts/mutation-plan.mjs times each test file and splits the code so the
+# parts cost about the same), then joins them
 # (scripts/mutation-report.mjs) into one report: which planted bugs survived,
 # what each test file catches, which test files catch nothing.
 #
@@ -41,7 +42,28 @@ env:
   PARTS: 90
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node and the dev dependencies
+        uses: ./.github/actions/setup
+
+      - name: Time every test file and plan the parts
+        run: node scripts/mutation-plan.mjs "$PARTS" plan.json
+
+      - name: Keep the plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-plan
+          path: plan.json
+          retention-days: 14
+
   part:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 340
     strategy:
@@ -76,10 +98,16 @@ jobs:
           key: mutation-baseline-${{ github.run_id }}
           restore-keys: mutation-baseline-
 
+      - name: Fetch the plan
+        uses: actions/download-artifact@v4
+        with:
+          name: mutation-plan
+
       - name: Plant bugs in this part's files and run the tests
         run: |
-          files=$(node scripts/mutation-shard.mjs ${{ matrix.part }} "$PARTS")
+          files=$(node -e "console.log(require('./plan.json').parts[process.argv[1] - 1].join(','))" ${{ matrix.part }})
           echo "Part ${{ matrix.part }} of $PARTS: $files" | tr ',' '\n' | head -40
+          if [ -z "$files" ]; then echo "Nothing to do in this part."; exit 0; fi
           incremental=""
           if [ -f reports/mutation/baseline.json ]; then
             incremental="--incremental --incrementalFile reports/mutation/baseline.json"
@@ -119,6 +147,8 @@ jobs:
         run: |
           node scripts/mutation-report.mjs reports/mutation parts/*.json
           cat reports/mutation/summary.md >> "$GITHUB_STEP_SUMMARY"
+          # Also in the log, which can be read where the artifacts can't.
+          cat reports/mutation/summary.md reports/mutation/survivors.txt
           cp reports/mutation/mutation.json reports/mutation/baseline.json
 
       - name: Keep the joined report
@@ -129,6 +159,7 @@ jobs:
             reports/mutation/mutation.html
             reports/mutation/mutation.json
             reports/mutation/summary.md
+            reports/mutation/survivors.txt
           retention-days: 90
 
       # A part that failed is missing from the report, so the next run tests
