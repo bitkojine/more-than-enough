@@ -107,6 +107,21 @@ test('the core reads no clock, no randomness and nothing of the browser', () => 
   }
 });
 
+// Every secret is made in the room service or the wire code: player keys,
+// room ids, invite codes, admin copies, vault IVs. Math.random is guessable,
+// so they come from crypto.getRandomValues only (CodeQL js/insecure-randomness).
+// Game-side Math.random (sound, sparkles, solo world seeds) protects nothing.
+test('secrets come from secure randomness, never Math.random', () => {
+  const files = [...jsFiles(join(ROOT, 'server', 'src')), ...jsFiles(join(ROOT, 'src', 'net'))];
+  for (const file of files) {
+    const code = readFileSync(file, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:\\])\/\/.*$/gm, '$1');
+    const bad = code.split('\n').find((l) => /\bMath\.random\b/.test(l));
+    assert.equal(bad, undefined, `${rel(file)} uses Math.random: ${bad && bad.trim()}`);
+  }
+});
+
 test('the docs and the architecture model name only files that exist', () => {
   const docs = [
     'README.md',
