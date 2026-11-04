@@ -188,35 +188,38 @@ jobs:
       - name: Set up Node and the dev dependencies
         uses: ./.github/actions/setup
 
-      - name: Fetch every part's report
-        uses: actions/download-artifact@v4
-        with:
-          pattern: mutation-part-*
-          path: parts
-          merge-multiple: true
-          run-id: ${{ inputs.join_run || github.run_id }}
-          github-token: ${{ github.token }}
-
-      - name: Fetch the plan
-        uses: actions/download-artifact@v4
-        with:
-          name: mutation-plan
-          run-id: ${{ inputs.join_run || github.run_id }}
-          github-token: ${{ github.token }}
-
-      # Parts an earlier run of a resumed sweep finished, newest run first.
-      - name: Fetch the parts earlier runs finished
-        if: ${{ inputs.resume_runs }}
+      # One artifact at a time, with retries: download-artifact fetches them
+      # all at once, and 240 at once hit GitHub's secondary rate limit
+      # (run 41781106641, 2026-11-04), losing a whole night's report. This
+      # run first, then the earlier runs of a resumed sweep, newest first;
+      # a part already fetched is not fetched again.
+      - name: Fetch every part's report and the plan
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          for id in $(echo "${{ inputs.resume_runs }}" | tr ',' ' '); do
-            gh run download "$id" --repo "${{ github.repository }}" -p 'mutation-part-*' -D "earlier/$id" || true
-            for f in earlier/$id/*/part-*.json; do
-              [ -e "$f" ] && [ ! -e "parts/$(basename "$f")" ] && cp "$f" parts/
+          fetch() { # run name dir
+            for wait in 5 15 45 120 0; do
+              gh run download "$1" --repo "$REPO" -n "$2" -D "$3" && return 0
+              [ "$wait" = 0 ] || sleep "$wait"
             done
+            return 1
+          }
+          first="${{ inputs.join_run || github.run_id }}"
+          fetch "$first" mutation-plan .
+          mkdir -p parts
+          for id in $first $(echo "${{ inputs.resume_runs }}" | tr ',' ' '); do
+            gh api --paginate "repos/$REPO/actions/runs/$id/artifacts?per_page=100" \
+              --jq '.artifacts[] | select(.expired | not) | .name' |
+              grep '^mutation-part-' | sort -u > names.txt || true
+            while read -r name; do
+              n=${name#mutation-part-}
+              [ -e "parts/part-$n.json" ] && continue
+              fetch "$id" "$name" "got/$name" || { echo "::warning::could not fetch $name from run $id"; continue; }
+              cp got/"$name"/part-*.json parts/ && rm -rf got/"$name"
+            done < names.txt
           done
-          ls parts | wc -l
+          echo "$(ls parts | wc -l) parts fetched"
 
       # Each part's report also carries the whole report it started from, so
       # the join keeps from each only the code the plan gave it, reading one
