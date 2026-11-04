@@ -121,11 +121,13 @@ export function byteLength(str) {
 // A JSON object from a message, or null if it's too big, not JSON, or not an
 // object with a string type.
 export function parse(raw, maxBytes = LIMITS.messageBytes) {
+  // Stryker disable next-line ConditionalExpression,LogicalOperator: a non-string has no bytes and doesn't parse to an object, and byteLength >= length, so each quick check only saves work
   if (typeof raw !== 'string' || raw.length > maxBytes || byteLength(raw) > maxBytes) return null;
   let d;
   try {
     d = JSON.parse(raw);
   } catch {
+    // Stryker disable next-line BlockStatement: an empty catch leaves d undefined, which isn't an object either
     return null;
   }
   return isObj(d) && typeof d.t === 'string' ? d : null;
@@ -150,6 +152,7 @@ export function cleanPos(p) {
     sign: p.sign === true,
     ...(isInt(p.gear) && p.gear >= 0 && p.gear <= 3 ? { gear: p.gear } : {}),
     a: ACTS.includes(p.a) ? p.a : null,
+    // Stryker disable next-line EqualityOperator: n = 0 gives 0 either way
     n: isInt(p.n) && p.n >= 0 && p.n < ACT_COUNT ? p.n : 0
   };
 }
