@@ -321,8 +321,9 @@ catches has survived, and shows a behaviour nothing checks.
 `.github/workflows/mutation.yml` runs it weekly and by hand in 240 small
 parts. GitHub shuts a runner down now and then, and Stryker saves a part
 only when it ends, so each part is about half an hour and a run that lost
-parts starts the next one itself, which reuses every finished part and
-redoes only the lost ones (up to four runs in a row).
+parts starts the next one itself, which keeps the same plan, runs only the
+lost parts and joins them with the parts earlier runs finished (up to four
+runs in a row), so a lost machine costs one part, never the sweep.
 A planted bug costs the time of every test file that runs its line, so
 `scripts/mutation-plan.mjs` first times each test file with Node's coverage
 and cuts the code, between top-level statements, into parts that cost about

@@ -29,6 +29,10 @@ on:
         description: 'Only join again the parts (and plan) of this earlier run id'
         type: string
         default: ''
+      resume_runs:
+        description: 'Earlier runs of this sweep, newest first, comma-separated: keep their plan and finished parts, run only the lost parts (set by the sweep itself)'
+        type: string
+        default: ''
       attempt:
         description: 'How many runs in a row this sweep has taken (set by the sweep itself)'
         type: string
@@ -49,8 +53,9 @@ env:
   # shutdown signal", "lost communication"), at any load and any point in a
   # job, and Stryker saves a part's results only when the part ends. So the
   # parts are small (about half an hour each, so a lost one costs little),
-  # and the resume job starts the next run, which reuses every finished part
-  # and redoes only the lost ones, until none is lost (at most MAX_ATTEMPTS
+  # and the resume job starts the next run (resume_runs), which keeps the
+  # first run's plan, runs only the parts no earlier run finished, and joins
+  # them with the finished ones, until none is lost (at most MAX_ATTEMPTS
   # runs in a row).
   PARTS: 240
   MAX_ATTEMPTS: 4
@@ -68,7 +73,17 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Time every test file and plan the parts
+        if: ${{ !inputs.resume_runs }}
         run: node scripts/mutation-plan.mjs "$PARTS" plan.json
+
+      # A resumed sweep keeps the first run's plan, so finished parts fit.
+      - name: Keep the plan of the sweep being resumed
+        if: ${{ inputs.resume_runs }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          first=$(echo "${{ inputs.resume_runs }}" | tr ',' '\n' | tail -1)
+          gh run download "$first" --repo "${{ github.repository }}" -n mutation-plan -D .
 
       - name: Keep the plan
         uses: actions/upload-artifact@v4
@@ -90,14 +105,27 @@ jobs:
       matrix:
         part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240]
     steps:
+      # In a resumed sweep, a part an earlier run finished is not run again.
+      - name: Finished in an earlier run?
+        id: earlier
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(echo "${{ inputs.resume_runs }}" | tr ',' ' '); do
+            n=$(gh api "repos/${{ github.repository }}/actions/runs/$id/artifacts?name=mutation-part-${{ matrix.part }}" --jq .total_count)
+            if [ "$n" -gt 0 ]; then echo "Part ${{ matrix.part }} was finished in run $id."; echo "done=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          done
+
       - name: Checkout
+        if: ${{ !steps.earlier.outputs.done }}
         uses: actions/checkout@v4
 
       - name: Set up Node and the dev dependencies
+        if: ${{ !steps.earlier.outputs.done }}
         uses: ./.github/actions/setup
 
       - name: Start from the joined report of the run named
-        if: ${{ !inputs.full && inputs.from_run != '' }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run != '' }}
         uses: actions/download-artifact@v4
         with:
           name: mutation-report
@@ -106,11 +134,11 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Use it as the baseline
-        if: ${{ !inputs.full && inputs.from_run != '' }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run != '' }}
         run: mkdir -p reports/mutation && cp reports/from-run/mutation.json reports/mutation/baseline.json
 
       - name: Start from the last joined report
-        if: ${{ !inputs.full && inputs.from_run == '' }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run == '' && !inputs.resume_runs }}
         uses: actions/cache/restore@v4
         with:
           path: reports/mutation/baseline.json
@@ -118,6 +146,7 @@ jobs:
           restore-keys: mutation-baseline-
 
       - name: Fetch the plan
+        if: ${{ !steps.earlier.outputs.done }}
         uses: actions/download-artifact@v4
         with:
           name: mutation-plan
@@ -126,6 +155,7 @@ jobs:
       # dropped by GitHub ("lost communication", "shutdown signal"), even on
       # light files and with the memory cap; one core is left to the runner.
       - name: Plant bugs in this part's files and run the tests
+        if: ${{ !steps.earlier.outputs.done }}
         run: |
           files=$(node -e "console.log(require('./plan.json').parts[process.argv[1] - 1].join(','))" ${{ matrix.part }})
           echo "Part ${{ matrix.part }} of $PARTS: $files" | tr ',' '\n' | head -40
@@ -138,7 +168,7 @@ jobs:
             npx stryker run --mutate "$files" --concurrency 3 $incremental
 
       - name: Keep this part's report
-        if: always()
+        if: ${{ always() && !steps.earlier.outputs.done }}
         uses: actions/upload-artifact@v4
         with:
           name: mutation-part-${{ matrix.part }}
@@ -174,6 +204,20 @@ jobs:
           run-id: ${{ inputs.join_run || github.run_id }}
           github-token: ${{ github.token }}
 
+      # Parts an earlier run of a resumed sweep finished, newest run first.
+      - name: Fetch the parts earlier runs finished
+        if: ${{ inputs.resume_runs }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for id in $(echo "${{ inputs.resume_runs }}" | tr ',' ' '); do
+            gh run download "$id" --repo "${{ github.repository }}" -p 'mutation-part-*' -D "earlier/$id" || true
+            for f in earlier/$id/*/part-*.json; do
+              [ -e "$f" ] && [ ! -e "parts/$(basename "$f")" ] && cp "$f" parts/
+            done
+          done
+          ls parts | wc -l
+
       # Each part's report also carries the whole report it started from, so
       # the join keeps from each only the code the plan gave it, reading one
       # part at a time (all at once ran out of memory on 85 parts).
@@ -204,7 +248,7 @@ jobs:
           path: reports/mutation/baseline.json
           key: mutation-baseline-${{ github.run_id }}
 
-  # Lost parts are run again, starting from this run's joined report.
+  # Lost parts are run again with the same plan; finished ones are kept.
   resume:
     needs: [part, report]
     if: ${{ !cancelled() && !inputs.join_run && needs.part.result != 'success' && needs.report.result == 'success' }}
@@ -220,6 +264,7 @@ jobs:
             echo "Parts were lost in $ATTEMPT runs in a row; stopping. Run it again by hand with from_run=${{ github.run_id }}."
             exit 1
           fi
+          runs="${{ github.run_id }}${{ inputs.resume_runs && format(',{0}', inputs.resume_runs) || '' }}"
           gh workflow run mutation.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}" \
-            -f from_run=${{ github.run_id }} -f attempt=$((ATTEMPT + 1))
+            -f resume_runs="$runs" -f attempt=$((ATTEMPT + 1))
           echo "Started run $((ATTEMPT + 1)) from ${{ github.run_id }}."
