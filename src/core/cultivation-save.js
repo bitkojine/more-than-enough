@@ -138,6 +138,7 @@ const validSections = (b) =>
 // A conduit runs from a chamber to a vault.
 const validRoute = (b, ids) =>
   ids.get(b.from)?.kind === 'chamber' && ids.get(b.to)?.kind === 'vault';
+// Stryker disable next-line ConditionalExpression: only a machine may have sections (validSections), and without them nothing reaches MACHINE_REPAIRS.length
 const isRepaired = (b) => b.kind === 'machine' && machineSections(b) === MACHINE_REPAIRS.length;
 // The heart is at the hiding place, carried, installed, or resting in a shelter.
 const validHeart = (h, ids) =>
