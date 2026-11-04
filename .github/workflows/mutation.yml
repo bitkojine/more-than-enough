@@ -151,9 +151,15 @@ jobs:
         with:
           name: mutation-plan
 
-      # 3 test runs at once on a 4-core runner: at 4, 12 of 90 parts were
-      # dropped by GitHub ("lost communication", "shutdown signal"), even on
-      # light files and with the memory cap; one core is left to the runner.
+      # 3 test runs at once on a 4-core runner, leaving the runner a core.
+      # Each process may hold at most 4 GB (ulimit -v). The parts GitHub
+      # "dropped" ("shutdown signal", "lost communication") were mostly not
+      # GitHub's doing: some planted bugs (one in src/core/world.js:256-332,
+      # under bot.test.js) make a test fill typed arrays without end, which
+      # live outside the 1.5 GB heap cap, so one test process grew to 6.6 GB
+      # in 25 s and took the runner's 16 GB down with it. The same 19 parts
+      # were lost again and again (runs 41781106641, 41801883266). Now the
+      # allocation fails, the test fails, and the bug counts as caught.
       - name: Plant bugs in this part's files and run the tests
         if: ${{ !steps.earlier.outputs.done }}
         run: |
@@ -164,6 +170,7 @@ jobs:
           if [ -f reports/mutation/baseline.json ]; then
             incremental="--incremental --incrementalFile reports/mutation/baseline.json"
           fi
+          ulimit -v 4194304
           MUTATION_REPORT=reports/mutation/part-${{ matrix.part }}.json \
             npx stryker run --mutate "$files" --concurrency 3 $incremental
 
