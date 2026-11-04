@@ -336,7 +336,10 @@ catches, how many only it catches, and which test files catch nothing
 After the first full run only what changed is run again; a part that
 failed is simply tested from scratch next time, and `from_run` starts a run
 from another run's report (`join_run` only joins an earlier run's parts
-again). One file by hand:
+again). A deep sweep (`deep`, by hand) tests every bug 10x harder: the
+random-game property tests play 120 seeds per family instead of 12, the
+build and check scripts in `scripts/` get bugs planted too, and nothing
+earlier is reused. One file by hand:
 
 ```sh
 npx stryker run --mutate src/core/paths.js

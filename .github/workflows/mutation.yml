@@ -33,6 +33,10 @@ on:
         description: 'Earlier runs of this sweep, newest first, comma-separated: keep their plan and finished parts, run only the lost parts (set by the sweep itself)'
         type: string
         default: ''
+      deep:
+        description: 'Deep sweep: the random-game tests at 120 seeds (10x), bugs in scripts/ too, every bug from scratch'
+        type: boolean
+        default: false
       attempt:
         description: 'How many runs in a row this sweep has taken (set by the sweep itself)'
         type: string
@@ -59,6 +63,16 @@ env:
   # runs in a row).
   PARTS: 240
   MAX_ATTEMPTS: 4
+  # A deep sweep (Watch, 2026-11-04: "a 10x larger mutation testing
+  # effort"). Sweep 1 already planted every bug Stryker can make in the
+  # game and the room (44,974 of 45,040; the rest run as a module loads,
+  # and each of those would rerun every test file, 20 minutes a bug), so a
+  # deep one tests each bug 10x harder instead: the random-game property
+  # tests play 120 seeds per family, not 12; bugs in scripts/ are planted
+  # too (stryker.config.mjs); and no earlier result is reused, nor is its
+  # report saved for the weekly one.
+  MUTATION_DEEP: ${{ inputs.deep && '1' || '' }}
+  PROP_SEEDS: ${{ inputs.deep && '120' || '' }}
 
 jobs:
   plan:
@@ -125,7 +139,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Start from the joined report of the run named
-        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run != '' }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && !inputs.deep && inputs.from_run != '' }}
         uses: actions/download-artifact@v4
         with:
           name: mutation-report
@@ -134,11 +148,11 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Use it as the baseline
-        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run != '' }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && !inputs.deep && inputs.from_run != '' }}
         run: mkdir -p reports/mutation && cp reports/from-run/mutation.json reports/mutation/baseline.json
 
       - name: Start from the last joined report
-        if: ${{ !steps.earlier.outputs.done && !inputs.full && inputs.from_run == '' && !inputs.resume_runs }}
+        if: ${{ !steps.earlier.outputs.done && !inputs.full && !inputs.deep && inputs.from_run == '' && !inputs.resume_runs }}
         uses: actions/cache/restore@v4
         with:
           path: reports/mutation/baseline.json
@@ -253,6 +267,7 @@ jobs:
       # A part that failed is missing from the report, so the next run tests
       # its files from scratch; every other file starts from here.
       - name: Save it as the next run's starting point
+        if: ${{ !inputs.deep }}
         uses: actions/cache/save@v4
         with:
           path: reports/mutation/baseline.json
@@ -276,5 +291,5 @@ jobs:
           fi
           runs="${{ github.run_id }}${{ inputs.resume_runs && format(',{0}', inputs.resume_runs) || '' }}"
           gh workflow run mutation.yml --repo "${{ github.repository }}" --ref "${{ github.ref_name }}" \
-            -f resume_runs="$runs" -f attempt=$((ATTEMPT + 1))
+            -f resume_runs="$runs" -f attempt=$((ATTEMPT + 1)) -f deep=${{ inputs.deep && 'true' || 'false' }}
           echo "Started run $((ATTEMPT + 1)) from ${{ github.run_id }}."

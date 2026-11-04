@@ -22,13 +22,15 @@ import { mkdtempSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync
 import path from 'node:path';
 
 export const ROOTS = ['src/core', 'src/net', 'server/src', 'src/game'];
+// A deep sweep (MUTATION_DEEP, stryker.config.mjs) plants bugs in these too.
+export const DEEP_ROOTS = ['scripts'];
 // Every planted bug costs at least starting its test run.
 const BASE = 0.5;
 
 export function sourceFiles(dir) {
   return readdirSync(dir).flatMap((f) => {
     const p = path.posix.join(dir, f);
-    return statSync(p).isDirectory() ? sourceFiles(p) : p.endsWith('.js') ? [p] : [];
+    return statSync(p).isDirectory() ? sourceFiles(p) : /\.m?js$/.test(p) ? [p] : [];
   });
 }
 
@@ -199,8 +201,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       while (queue.length) tests.push(await runWithCoverage(queue.shift(), dir));
     })
   );
-  const names = ROOTS.flatMap(sourceFiles);
-  const atLoad = await atLoadRun(names, dir);
+  const deep = Boolean(process.env.MUTATION_DEEP);
+  const names = [...ROOTS, ...(deep ? DEEP_ROOTS : [])].flatMap(sourceFiles);
+  // Scripts do their work when started, so only the game's and the room's
+  // modules are loaded to see what runs at load.
+  const atLoad = await atLoadRun(ROOTS.flatMap(sourceFiles), dir);
   rmSync(dir, { recursive: true, force: true });
   const files = names.map((file) => ({ file, text: readFileSync(file, 'utf8') }));
   const result = plan(files, tests, n, atLoad);

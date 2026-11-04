@@ -11,6 +11,7 @@ import { readdirSync } from 'node:fs';
 // no player text is written into the code; file-size and load-budget measure
 // files, and instrumenting makes every file bigger). Those are proven by
 // planting a violation instead.
+const DEEP = Boolean(process.env.MUTATION_DEEP);
 const READS_SOURCE = new Set(['i18n.test.js', 'file-size.test.js', 'load-budget.test.js']);
 const testFiles = ['test/unit', 'test/property'].flatMap((dir) =>
   readdirSync(dir)
@@ -32,7 +33,15 @@ export default {
   // file and called every caught bug a RuntimeError (run 41666543632: 1.1 %
   // "caught"). Ask for TAP.
   tap: { testFiles, nodeArgs: ['--max-old-space-size=1536', '--test-reporter=tap'] },
-  mutate: ['src/core/**/*.js', 'src/net/**/*.js', 'server/src/**/*.js', 'src/game/**/*.js'],
+  // A deep sweep (MUTATION_DEEP, .github/workflows/mutation.yml) plants bugs
+  // in the build and check scripts too.
+  mutate: [
+    'src/core/**/*.js',
+    'src/net/**/*.js',
+    'server/src/**/*.js',
+    'src/game/**/*.js',
+    ...(DEEP ? ['scripts/**/*.js', 'scripts/**/*.mjs'] : [])
+  ],
   // Run each planted bug only against the test files that reach it, and all
   // of them (not just the first to catch it), so the report says which test
   // files catch what, and which catch nothing.

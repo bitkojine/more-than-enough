@@ -145,7 +145,10 @@ export function summary(report) {
     '',
     '| Code | Caught |',
     '| --- | --- |',
-    ...['src/core', 'src/net', 'server/src', 'src/game'].map((r) => `| ${r} | ${pct(area(r))} |`),
+    // scripts/ only in a deep sweep (.github/workflows/mutation.yml).
+    ...['src/core', 'src/net', 'server/src', 'src/game', 'scripts']
+      .filter((r) => area(r).pct !== null)
+      .map((r) => `| ${r} | ${pct(area(r))} |`),
     '',
     '## Test files that catch nothing',
     '',
