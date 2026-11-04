@@ -266,22 +266,43 @@ test('no player-facing text is written straight into the code', () => {
 
 /* ---------------------------------------------- no words in the markup */
 
+// Comments, scripts and styles, cut out in one pass over the page. A space
+// stands where each one was, so the text on its two sides can never join
+// into a new comment or tag that then slips through.
+function withoutHidden(html) {
+  const lower = html.toLowerCase();
+  let out = '',
+    i = 0;
+  for (;;) {
+    const lt = html.indexOf('<', i);
+    if (lt < 0) return out + html.slice(i);
+    out += html.slice(i, lt);
+    const tag = /^<(script|style)\b/.exec(lower.slice(lt, lt + 7));
+    let end = -1;
+    if (html.startsWith('<!--', lt)) {
+      end = html.indexOf('-->', lt + 4);
+      end = end < 0 ? html.length : end + 3;
+    } else if (tag) {
+      const close = lower.indexOf('</' + tag[1], lt);
+      end = close < 0 ? html.length : html.indexOf('>', close) + 1 || html.length;
+    }
+    if (end < 0) {
+      out += '<';
+      i = lt + 1;
+    } else {
+      out += ' ';
+      i = end;
+    }
+  }
+}
+
 // The text a page shows that doesn't come from data-i18n: text between
 // tags, and the attributes people read. Inline scripts and styles are left
 // to the checks above and below. A name that is the same in every language
 // (the author's mark) is marked translate="no".
 function markupWords(html) {
   const found = [];
-  // Stripped until nothing changes, so a removal can't join two halves
-  // into a new comment or script that then slips through.
-  let stripped = html,
-    before;
-  do {
-    before = stripped;
-    stripped = stripped
-      .replace(/<!--[\s\S]*?-->/g, '')
-      .replace(/<(script|style)\b[\s\S]*?<\/\1\s*>/gi, '');
-  } while (stripped !== before);
+  const stripped = withoutHidden(html);
   const body = stripped
     .replace(/<meta (http-equiv|name="referrer"|property="og:image|name="twitter:card")[^>]*>/g, '') // for browsers and link previews, not words
     .replace(/(<[^>]*\stranslate="no"[^>]*>)[^<]*/g, '$1');
