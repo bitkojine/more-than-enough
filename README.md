@@ -44,6 +44,14 @@ commit. When you find something new, add it.
   crystal chapter; what players share there (machines side by side,
   shelters, crystal, teleport stops) is still to come (`docs/game-design.md`,
   "Bot players and crystal shared worlds").
+- **Online only is half done.** Since 0.197.0 no new solo world is made: a
+  device with no world shows an invite-only page and joins the one public
+  crystal world through an invite link, and Embark is gone (`docs/game-design.md`,
+  "Online only"). Solo worlds already on a device still run their own code
+  path, frozen like the old economy, so two ways of playing remain until
+  nobody plays solo. Invites are the only way in, so a stranger who finds
+  the game can't play yet. One live session in the public world drifted
+  from the room for a reason not yet found.
 - **Core design questions are still open.** These include who stole the
   heart, what tending a colony actually does, how wild colonies regrow, and
   what a finished world leads to. See "Other design questions still open" in
