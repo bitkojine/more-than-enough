@@ -115,7 +115,8 @@ ws.onmessage = ({ data }) => {
   if (m.id && waiting.has(m.id)) {
     waiting.get(m.id)(m);
     waiting.delete(m.id);
-  } else if (m.method === 'Runtime.exceptionThrown')
+  } else if (m.method === 'Network.webSocketFrameReceived') heard(m.params.response.payloadData);
+  else if (m.method === 'Runtime.exceptionThrown')
     pageErrors.push(
       m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text
     );
@@ -143,7 +144,25 @@ async function waitFor(expression, ms) {
   }
   return false;
 }
+// The room setting the game straight ('econ'), and why: what it refused.
+const corrections = [];
+function heard(data) {
+  let d;
+  try {
+    d = JSON.parse(data);
+  } catch {
+    return;
+  }
+  if (d?.t !== 'econ') return;
+  corrections.push(d.why || []);
+  if (corrections.length <= 5)
+    say(
+      `The room set the game straight (why: ${JSON.stringify(d.why || [])}): ` +
+        `room has tools ${JSON.stringify(d.s?.tools)}, holding ${JSON.stringify(d.s?.inv)}`
+    );
+}
 await send('Runtime.enable');
+await send('Network.enable');
 await send('Page.enable');
 await send('Page.addScriptToEvaluateOnNewDocument', {
   source: `try { localStorage.setItem('mte.key', ${JSON.stringify(key)}); } catch {}`
@@ -230,6 +249,10 @@ if (!(await waitFor(inShared, 90_000))) {
     for (const [k, n] of Object.entries(held.inv))
       if ((back.inv[k] ?? 0) < n) fail(`coming back, ${n - (back.inv[k] ?? 0)} ${k} was gone`);
   }
+}
+if (corrections.length) {
+  const why = [...new Set(corrections.flat())];
+  say(`The room set the game straight ${corrections.length} times, why: ${JSON.stringify(why)}`);
 }
 const errors = [...new Set(pageErrors)];
 if (errors.length) fail('the page threw: ' + errors.slice(0, 5).join(' | '));
