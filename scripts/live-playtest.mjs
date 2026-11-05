@@ -177,12 +177,11 @@ say(
 const before = await roster();
 const { code } = await admin(`/admin/rooms/${ROOM}/invite`, { uses: 1, life: 30 });
 await send('Page.navigate', { url: `${GAME}/#join=${ROOM}.${code}` });
-// Someone new is asked first (the privacy policy goes with it): yes.
-if (!before) {
-  const asked = await waitFor(`!document.getElementById('ask').hidden`, 60_000);
-  if (asked) await js(`document.querySelector('#ask .primary').click(), true`);
-  else fail('the game never asked to join');
-}
+// A browser that hasn't been in this world before asks first (the privacy
+// policy goes with it), even for a character the room knows: yes.
+const asking = `!document.getElementById('ask')?.hidden`;
+if (await waitFor(`${asking} || ${inShared}`, 60_000))
+  if (await js(asking)) await js(`document.querySelector('#ask .primary').click(), true`);
 if (!(await waitFor(inShared, 90_000))) {
   fail('the game never got into the shared world');
 } else {
