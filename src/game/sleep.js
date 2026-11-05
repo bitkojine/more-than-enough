@@ -16,7 +16,10 @@
  * `enabled` false (browser tests, which drive the game directly) never
  * sleeps.
  *
- * Held (Watch, 2026-11-05): a crystal shared world plays only while its
+ * Held (Watch, 2026-11-05), for one of three reasons the screen says: a
+ * device with no world of its own and no invite gets the invite-only page
+ * ('invite'), one getting in by an invite link waits ('joining'), and a
+ * crystal shared world plays only while its
  * room hears you, so with no connection the game greys the same way, says
  * it's waiting to be back online, and stays so whatever is pressed until
  * the room answers (`together.paused`, looked at each frame by `rest`). A press
@@ -62,9 +65,17 @@ function stopKeys(stopped, rise) {
   }
 }
 
+// Why the world is held, or false: no connection to a crystal world's room,
+// an invite link getting in, or no world of your own and no invite.
+function holdOf(game, together, visiting) {
+  if (together.paused) return 'offline';
+  if (!visiting(game.state)) return false;
+  return together.joining ? 'joining' : 'invite';
+}
+
 export function createSleep({ root, wake, enabled = true, doc = document }) {
   let asleep = enabled;
-  let held = () => false; // the room can't be reached: paused until it answers
+  let held = () => false; // why the world is held (below), or false
   let holding = false; // what the screen shows of `held`
   let shown = false; // the game is drawn, so the wake screen can show
   let micaAt = () => null; // where Mica stands on screen, in CSS pixels
@@ -107,12 +118,14 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
   function check() {
     const now = held();
     if (now === holding) return;
+    const was = holding;
     holding = now;
-    wake.classList.toggle('held', now);
-    if (now) {
+    wake.classList.toggle('held', !!now);
+    wake.dataset.held = now || '';
+    if (now && !was) {
       if (onSleep) onSleep();
       show();
-    } else if (!asleep) {
+    } else if (!now && !asleep) {
       root.classList.remove('asleep');
       wake.hidden = true;
       if (onWake) onWake();
@@ -156,19 +169,23 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
 
   return {
     get asleep() {
-      return asleep || held();
+      return asleep || !!held();
     },
     // Each frame (frame-loop.js): whether the world stops, asleep or held.
     rest() {
       check();
-      return asleep || held();
+      return asleep || !!held();
     },
     check,
     // The game is running. Asleep, nothing held carries over and Wiki
     // dozes; awake, the clock goes on from here and a shared world hears
     // you're back. The wake screen shows after the first frames, with Mica
     // where the camera put them.
-    attach({ game, cam, input, wiki, loop, together, frame = requestAnimationFrame }) {
+    // `visiting(s)`: a world nobody keeps (storage.js), drawn behind the
+    // invite-only page, or behind "Joining…" while an invite link gets in.
+    attach(parts) {
+      const { game, cam, input, wiki, loop, together } = parts;
+      const { visiting = () => false, frame = requestAnimationFrame } = parts;
       micaAt = () => {
         const p = game.state.player;
         return cam.project(p.x, p.y, p.z);
@@ -178,7 +195,7 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
         input.releasePerfect();
         wiki.sleeping = true;
       };
-      held = () => together.paused;
+      held = () => holdOf(game, together, visiting);
       onWake = () => {
         wiki.sleeping = false;
         loop.resume();

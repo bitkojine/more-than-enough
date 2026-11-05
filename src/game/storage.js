@@ -9,6 +9,13 @@ const ASIDE_KEY = 'more-than-enough-save-aside';
 function freshWorld() {
   return createState(randomSeed(), { cultivation: true });
 }
+// Online only (Watch, 2026-11-05): no new world of your own is made any
+// more. A device with none gets one to draw behind the invite-only page
+// (sleep.js) that is never saved: a visit. `visits` is off for browser tests,
+// which play a fresh world of their own unless they open the game with ?visit.
+const visits = new WeakSet();
+let visitsOn = false;
+export const visiting = (s) => visits.has(s);
 const VIEW_KEY = 'more-than-enough-view';
 const ARCHIVE_PREFIX = 'mte.solo.world.'; // every solo world's own copy, by seed
 // Saves set aside by loadGame when a world's own copy took over (one per seed,
@@ -56,6 +63,7 @@ export function savedElsewhere() {
 // `conflict` holds that tab's save). `force` writes regardless.
 // Returns null when saved, { conflict } or { error }.
 export function saveGame(state, force = false) {
+  if (visits.has(state)) return null; // nobody's world: nothing to keep
   if (state.cultivation && state.shared) return { error: new Error('Save slot mismatch') }; // i18n-ok: storage diagnostic
   if (!force) {
     const other = savedElsewhere();
@@ -99,7 +107,10 @@ export function onSavedElsewhere(fn) {
 // so is one played further than the save in use (v0.109.0, the last format
 // change ever, set format 10 worlds aside and started new ones): every
 // world is kept (src/core/format.js).
-export function loadGame() {
+// `withVisits`: a device with no world gets a visit (above); kept for the
+// next call (together.js goes back to your own world this way).
+export function loadGame(withVisits = visitsOn) {
+  visitsOn = withVisits;
   const raw = read(SAVE_KEY);
   known = raw;
   const aside = read(ASIDE_KEY);
@@ -125,7 +136,11 @@ export function loadGame() {
     }
     return { state: back, lost: false };
   }
-  if (!raw) return { state: freshWorld(), lost: false };
+  if (!raw) {
+    const fresh = freshWorld();
+    if (visitsOn) visits.add(fresh);
+    return { state: fresh, lost: false };
+  }
   // One already set aside (unreadable too, or it would be in use) keeps its
   // own name before this one takes the slot.
   if (aside && aside !== raw) write(KEPT_PREFIX + 'aside.' + Date.now(), aside);
@@ -300,10 +315,6 @@ export function takeKept(key, now = Date.now()) {
 export function soloWorld(seed) {
   const raw = soloRaws().get(seed);
   return raw ? deserialize(raw) : null;
-}
-
-export function newSoloWorld() {
-  return freshWorld();
 }
 
 // This device's own copy of solo world `seed`, or null (sync.js).

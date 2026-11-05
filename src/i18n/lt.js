@@ -137,7 +137,6 @@ export default {
   'cr.specimen': 'Nešamas mėginys: {n}% atsparumo',
   'cr.emptyHands': 'Tuščiomis rankomis',
   'cr.owned': 'Pagaminta',
-  'cr.newWorld': 'Pradėti naują pasaulį',
   'cr.export': 'Eksportuoti išsaugotus pasaulius',
   'cr.saveError': 'Išsaugoti nepavyko. Prieš išeidamas eksportuok pasaulį.',
   'cr.conflict': 'Kitoje kortelėje pasaulis išsaugotas. Saugiai tęsk perkrovęs.',
@@ -678,6 +677,9 @@ export default {
     'Naršyklės žaidimas: Mica ir grybienos dvasiukas Wiki per mišką, akmenis ir požemių tamsą neša pavogtą širdį namo.',
   'game.title': 'Mica ir Wiki',
   'game.shortTitle': 'Mica ir Wiki',
+  'wake.joining': 'Jungiamasi prie pasaulio…',
+  'wake.invite':
+    '„Mica ir Wiki“ kol kas žaidžiama tik su pakvietimu. Paprašyk žaidėjo pakvietimo nuorodos.',
   'wake.offline': 'Nėra ryšio. Mica palauks čia, kol vėl prisijungsi.',
   'wake.tap':
     '{phone:Paliesk, kad pažadintum|laptop:Spustelėk ar paspausk klavišą, kad pažadintum}',
@@ -943,9 +945,10 @@ export default {
   'sheet.section.water': 'Ant vandens',
   'sheet.goesOn.water': 'Statoma ant vandens, kur stovi (ant jo nuneša: {tool}, lyg. {lv}).',
   'sheet.goesOn.river': 'Statoma ant upės tarp regionų, kur stovi.',
-  'sheet.embark': 'Iškeliauti',
+  'sheet.mastery': 'Visi etapai',
+  'sheet.won': 'Įveikta: šis pasaulis lieka tavo',
   'sheet.embarks': 'Iškeliavimų: {n} &middot; Iš viso: {total}',
-  'sheet.section.newWorld': 'Naujas pasaulis',
+  'sheet.section.mastery': 'Šis pasaulis',
   'sheet.milestones': 'Etapai {n} / {total}',
   'sheet.milestone': '{n} etapas',
   'sheet.nextMilestone': 'Toliau',
@@ -973,11 +976,6 @@ export default {
   'fx.newMushroom': 'Nauja: {name}!',
 
   'ask.cancel': 'Atšaukti',
-  'ask.embark.title': 'Iškeliauti į naują pasaulį?',
-  'world.emptyStart': 'Pradėti tuščiomis rankomis',
-  'ask.embark.empty':
-    'Pradėk tuščiomis rankomis. Išlieka žinios ir įrašai. Šis pasaulis lieka išsaugotas toks, koks yra: sugrįžk bet kada per Pasaulius nustatymuose.',
-  'ask.embark.yes': 'Iškeliauti',
   'fbi.badge': 'FBI',
   'fbi.bureau': 'Fair-play tyrimų biuras',
   'fbi.title': 'Žinome, kad sukčiavai',
@@ -1161,7 +1159,7 @@ export default {
     '{phone:Laikyk nuspaudęs – žais pats|laptop:Laikyk nuspaudęs (ar laikyk P) – žais pats}',
   'tip.hold':
     'Patarimas: {phone:laikyk nuspaudęs „Rinkti“|laptop:laikyk nuspaudęs „Rinkti“ ar tarpo klavišą} – rinksi be paliovos',
-  'toast.perfect.embark': 'Šis pasaulis baigtas: iškeliauti skiltyje „Anapus“ gali tik tu',
+  'toast.perfect.embark': 'Šis pasaulis baigtas: pasiekti visi etapai',
   'tip.walk':
     'Arti nėra ką rinkti: {phone:vilk pirštu per žemėlapį arba bakstelk vietą|laptop:spausk WASD ar rodykles arba spustelk vietą} – eisi ir apsidairysi',
   'together.toast.inviteExpired': 'Šios kvietimo nuorodos laikas baigėsi – paprašyk naujos',

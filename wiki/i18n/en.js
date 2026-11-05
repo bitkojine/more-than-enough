@@ -407,9 +407,7 @@ export default {
       <h2>What it leaves to you</h2>
       <p>Some things are always yours:</p>
       <ul>
-        <li><strong>Embark</strong>. When the world is ready, Auto-play stops and waits: its picture turns to Embark, the button
-          glows gold, and a message says Embark is yours to press. Embark yourself, and if you're still holding, it carries
-          on in the new world.</li>
+        <li><strong>A world won</strong>. When every milestone is reached, Auto-play stops and waits, and a message says the world is done.</li>
         <li><strong>Anything that asks first</strong>: it never answers a question, so it never does anything you couldn't take back.</li>
         <li><strong>Every sheet and dialog</strong>: while Build, Upgrades, Settings or any question is open, it waits.</li>
         <li>Joining a shared world and its privacy policy, the
@@ -847,14 +845,14 @@ export default {
       <div data-table="abundance"></div>`,
   'wiki.article.beyond.title': 'Beyond',
   'wiki.article.beyond': `      <h1>Beyond</h1>
-      <p class="lede">Start another world empty-handed, with what you have learned.</p>
-      <h2>Embarking</h2>
-      <p>Complete every world upgrade and bring the Abundance Engine to level <span data-k="EMBARK_ABUNDANCE"></span>.
-        Embark then opens immediately. Confirming starts a new crystal world, whatever kind of world you leave, without tools, inventory, buildings, perks,
-        Insight or automatic Logistics. Lifetime records and known mushroom kinds carry over. Previous worlds remain saved.</p>
+      <p class="lede">Where a world of your own ends: won, and still yours to play.</p>
+      <h2>A world won</h2>
+      <p>Complete every world upgrade and bring the Abundance Engine to level <span data-k="EMBARK_ABUNDANCE"></span>, or wake the machine in a crystal world,
+        and the world is won. It stays saved and yours to play, as it is. There is no Embark any more: new games are played online, in the shared crystal world, through an invite link.
+        Every world you played before stays in Settings → Worlds.</p>
       <h2>Legacy worlds</h2>
       <p>Existing saves keep their equipment, perks, Insight and earned progress. Their Beyond tab still offers the legacy
-        perks below, but those bonuses do not follow you when you embark: the next world is a crystal world, and the old one stays saved as it was.</p>
+        perks below; they stay with that world.</p>
       <div data-table="perks"></div>`,
   'wiki.article.milestones.title': 'Milestones',
   'wiki.article.milestones': `      <h1>Milestones</h1>

@@ -109,10 +109,15 @@ kind of knowledge lives.
   of each player's progress is the truth (`server/src/shadow.js`).
 - **No world is ever lost** (Watch, 2026-10-26): players grow attached to the
   worlds they play in, so the time they put into making one theirs is saved
-  and protected. Embark and starting a new world never lose or destroy
-  anything: the world left behind stays saved exactly as it was, and the
-  player can always go back to it (Settings → Worlds lists every world on
-  the device). Never add a cap, clean-up or path that drops a solo world.
+  and protected. Leaving a world never loses or destroys anything: it
+  stays saved exactly as it was, and the player can always go back to it
+  (Settings → Worlds lists every world on the device). Never add a cap,
+  clean-up or path that drops a solo world.
+- **Online only** (Watch, 2026-11-05, `docs/game-design.md`): new games are
+  played in the one public crystal world, by invite link. Solo worlds
+  already on a device stay playable but are frozen like the old economy:
+  no new solo world is made (no Embark, no new-world button), and new
+  features go only to the shared crystal game.
 - **Time away makes nothing** (Watch, 2026-10-21, "freeze season"): a game
   that isn't the active screen is time away, and time away is worth nothing,
   in solo and shared worlds alike. It lives in one place, `FREEZE_AWAY` in

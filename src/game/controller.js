@@ -534,8 +534,6 @@ export function createController({
       return !!done;
     },
 
-    embark: () => commands.embark(),
-
     // Forget per-world intents when the world itself is replaced.
     // Stops walking to wherever it was headed.
     stop() {

@@ -48,7 +48,7 @@ The earlier alternative of intermediate repairs primarily activating useful lift
 ### Retained requirements
 No wood or tree cutting. Each purchased equipment or building tier needs a distinct physical visual identity.
 
-No world is ever lost (Watch, 2026-10-26): Embark never loses or destroys anything, the world left behind stays saved as it was, and the player can always return to any world from Settings → Worlds, older copies kept on the device included (0.193.0). Every new world starts empty-handed; only knowledge and records carry over. Embark from an old-economy world starts a crystal world too (Watch, 2026-10-26); the old world stays saved and playable. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
+No world is ever lost (Watch, 2026-10-26): leaving a world never loses or destroys anything, the world left behind stays saved as it was, and the player can always return to any world from Settings → Worlds, older copies kept on the device included (0.193.0). Every new world starts empty-handed; only knowledge and records carry over. Embark is gone since 0.197.0 (online only, below): a won solo world stays won and playable. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
 ### The old economy is frozen as legacy — confirmed, 2026-11-02
 Old solo worlds and every shared world keep the old economy (refineries, Abundance, AUTO). It stays fully loadable and playable, with every earned building, tool and record kept, and it still gets fixes for bugs, saves and safety. New features, content and rules target only the crystal economy; nothing new is built for the old one. Bringing the crystal chapter to shared worlds is now planned as new crystal rooms (below); existing shared worlds stay on the old economy. Freezing deletes nothing: no world, building or progress is removed or migrated away (Watch chose this over keeping both alive or moving shared worlds to crystal now).
@@ -58,11 +58,12 @@ Every new game is played online, in one public crystal world, so there is one ga
 
 - **Old worlds change nothing.** Old solo worlds, old shared worlds and the old economy stay exactly as they are (no pitch-dark rule for them either).
 - **One big public world.** New players land in the crystal shared world the bots play in, with everyone. Crystal stays fully shared there, strangers included.
-- **Solo worlds already on a device stay playable**, from Settings → Worlds, as they are; no new solo world is made any more (no Embark, no new world). Solo is frozen like the old economy: kept, fixed, never grown.
+- **Solo worlds already on a device stay playable**, from Settings → Worlds, as they are; no new solo world is made any more (no new-world button). Solo is frozen like the old economy: kept, fixed, never grown.
+- **Embark goes; the world stays won.** A solo world that is finished stays playable and won; nothing in it starts another world.
 - **Invite links only.** A new player gets in through an invite link (a few uses, up to 7 days, as now); there is no open door. Someone who opens the game with no invite and no world on the device sees a calm invite-only page: Mica and Wiki asleep, one line saying the game is invite only and to ask a player for a link.
 - **Offline pauses.** With the connection lost the game pauses until the room answers (0.196.0), instead of playing on to be checked later.
 - **After the machine wakes you stay** in the world, keep your character, teleport between shelters and help others, until the next chapter ships. No Embark in the public world.
-- New players are not sent online until the public world's room agrees with the game on a live playtest (no refused acts, no drift).
+- New players are not sent online until the public world's room agrees with the game on a live playtest (no refused acts, no drift): met on 0.196.0 (three clean live sessions of four; the one bad session followed a crashed run of the same character and is still being looked into).
 
 ### Bot players and crystal shared worlds — confirmed, 2026-11-05
 

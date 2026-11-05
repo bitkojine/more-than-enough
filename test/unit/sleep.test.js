@@ -3,7 +3,8 @@
  * do nothing else while asleep, a press while loading opens it awake, and
  * it falls asleep again whenever the tab is hidden; held while a crystal
  * world's room can't be reached, no press lifts it, and play goes on as the
- * room answers. Run on stand-in page objects. */
+ * room answers; a device with no world of its own shows the invite-only
+ * page, and "Joining…" while a link gets in. Run on stand-in page objects. */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -47,6 +48,7 @@ function page() {
     hidden: true,
     style: { setProperty() {} },
     classList: { toggle: (c, on) => (on ? held.add(c) : held.delete(c)) },
+    dataset: {},
     held
   };
   const doc = { ...target(), hidden: false };
@@ -144,6 +146,7 @@ test('held while the room is out of reach: no press lifts it, the room answering
   p.parts.together.paused = true;
   assert.equal(sleep.rest(), true, 'the connection is lost: the world stops');
   assert.ok(p.wake.held.has('held'), 'the screen says it is waiting');
+  assert.equal(p.wake.dataset.held, 'offline', 'for the connection');
   assert.equal(p.wake.hidden, false);
   assert.ok(p.classes.has('asleep'), 'the page goes grey');
   p.wake.fire('click');
@@ -181,4 +184,23 @@ test('switched off (browser tests), it still holds while the room is out of reac
   p.parts.together.paused = true;
   assert.equal(sleep.rest(), true);
   assert.equal(p.wake.hidden, false);
+});
+
+test('a world nobody keeps is the invite-only page, and joining while a link gets in', () => {
+  const p = page();
+  const sleep = createSleep({ root: p.root, wake: p.wake, doc: p.doc });
+  let visit = true;
+  sleep.attach({ ...p.parts, visiting: () => visit });
+  p.drawn();
+  p.wake.fire('click');
+  assert.equal(sleep.rest(), true, 'no invite: nothing to play');
+  assert.equal(p.wake.dataset.held, 'invite');
+  p.parts.together.joining = true;
+  assert.equal(sleep.rest(), true);
+  assert.equal(p.wake.dataset.held, 'joining', 'an invite link is getting in');
+  assert.equal(p.wake.hidden, false, 'the screen stays up between the two');
+  visit = false; // the welcome: a shared world now
+  p.parts.together.joining = false;
+  assert.equal(sleep.rest(), false, 'in: play, the tap before counted');
+  assert.equal(p.wake.hidden, true);
 });

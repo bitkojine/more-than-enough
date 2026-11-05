@@ -15,7 +15,7 @@ import { createTooltips } from './tooltips.js';
 import { createWiki } from './wiki.js';
 import { createMessages } from './messages.js';
 import { createHomeHint } from './home-hint.js';
-import { createSwitches, addNewWorldButton } from './switches.js';
+import { createSwitches } from './switches.js';
 import { createInput } from './input.js';
 import { createTeleportMap } from './teleport-map.js';
 import { createSheet } from './sheet.js';
@@ -41,7 +41,7 @@ import {
   saveView,
   soloWorld,
   soloCount,
-  newSoloWorld,
+  visiting,
   keepStorage
 } from './storage.js';
 import { roomService } from '../net/config.js';
@@ -186,7 +186,7 @@ const problems = createProblems({
     })
 });
 onCharging(() => quality.retry());
-const loaded = loadGame();
+const loaded = loadGame(!navigator.webdriver || location.search.includes('visit'));
 
 let simulation = null,
   simulationClock = null;
@@ -312,8 +312,7 @@ const sheet = createSheet(el, {
     },
     buy: controller.buy,
     place: (key) => startPlacing({ key }),
-    placeProp: controller.placeProp,
-    embark: controller.embark
+    placeProp: controller.placeProp
   }
 });
 
@@ -585,9 +584,7 @@ news.play();
 if (game.state.seen) game.catchUp((Date.now() - game.state.seen) / 1000);
 showAuto();
 loop.start();
-sleep.attach({ game, cam, input, wiki, loop, together });
-
-addNewWorldButton(document.getElementById('nerdsPanel'), game, newSoloWorld);
+sleep.attach({ game, cam, input, wiki, loop, together, visiting });
 
 createTooltips({
   canvas: el.canvas,

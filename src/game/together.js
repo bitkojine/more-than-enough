@@ -45,7 +45,7 @@ import {
   askToPlayTogether,
   PLAYING_STORE
 } from './identity.js';
-import { loadGame, soloWorlds, keptCopies, takeKept } from './storage.js';
+import { loadGame, soloWorlds, keptCopies, takeKept, visiting } from './storage.js';
 import { createActor } from './render/motion.js';
 import { createOutbox, resync as resyncState } from './outbox.js';
 import { t } from '../i18n/i18n.js';
@@ -407,7 +407,8 @@ export function createTogether({
       } else switchTo(roomId, inviteCode);
       return;
     }
-    if (!(await askTogether('join', worldName(roomId)))) {
+    // With no world of your own there is nothing to leave: no question.
+    if (!visiting(game.state) && !(await askTogether('join', worldName(roomId)))) {
       if (orBack && !game.state.shared && !room) resume();
       return;
     }
@@ -509,6 +510,10 @@ export function createTogether({
     // A crystal world plays only while its room hears you (Watch,
     // 2026-11-05): with the connection lost the game pauses (sleep.js)
     // rather than playing on to be checked later. Old worlds play on.
+    // An invite link is getting you into a world.
+    get joining() {
+      return !!room && !game.state.shared;
+    },
     get paused() {
       const s = game.state;
       return !!s.shared && !!s.cultivation && !link.ready;

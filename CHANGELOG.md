@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.197.0] - 2026-11-05
+
+No new world of your own is made any more: release 2 of Watch's online-only
+plan (`docs/game-design.md`, "Online only"). Watch wants every new game in
+the one public crystal world, by invite link only, so the game and the room
+are one game that can't drift apart. Before, every device without a save
+made a solo world and kept it, Nerds could start another, and Embark at the
+end of a world started the next.
+
+- **A visit** (`src/game/storage.js`): a device with no world gets one to
+  draw behind the invite-only page that `saveGame` never writes.
+  `loadGame(withVisits)`: browser tests (navigator.webdriver) still get a
+  world to keep, unless they open the game with `?visit`.
+- **The invite-only page** (`src/game/sleep.js`): the held screen now says
+  why it holds: `invite` ("Mica and Wiki is invite only for now. Ask a
+  player for an invite link."), `joining` while an invite link gets in, and
+  `offline` (0.196.0). With no world of your own an invite link joins
+  without the join question (`src/game/together.js`).
+- **No Embark** (Watch chose, 2026-11-05): a won solo world stays won and
+  playable; Beyond shows it won instead of an Embark button, AUTO says the
+  world is done. The Embark command, its question and Nerds' "Start a fresh
+  world" are gone; `Core.embark` stays for old saves and tests.
+- **Kept as they are**: every solo world on a device, old or crystal, plays
+  as before from Settings → Worlds; old shared worlds don't change.
+- **The gate**: this waited until the public world's room agreed with the
+  game on a live playtest (0.196.0: three clean live sessions of four, the
+  machine woken with no refused act and no drift).
+- The wake screen gets no hover tooltip any more (it showed every hidden
+  line of its text on a laptop). AGENTS.md, `docs/ui.md` and the wiki's
+  Beyond and AUTO pages say solo is frozen and Embark gone.
+- **Checked**: `sleep.test.js` (the three reasons), `depot-storage.test.js`
+  (a visit writes nothing; a saved world is no visit), a together-client
+  test (an invite link from a visit joins with no question), the browser
+  journey's Beyond checks, phone screenshots in both languages.
+
 ## [0.196.0] - 2026-11-05
 
 A crystal shared world pauses while its room can't be reached: the first

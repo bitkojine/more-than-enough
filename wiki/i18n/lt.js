@@ -410,8 +410,7 @@ export default {
       <h2>Ką jis palieka tau</h2>
       <p>Kai kas visada lieka tau:</p>
       <ul>
-        <li><strong>Iškeliauti</strong>. Kai pasaulis paruoštas, Autožaidimas sustoja ir laukia: paveiksliukas tampa Iškeliavimu,
-          mygtukas šviečia auksu, o žinutė sako, kad Iškeliauti spaudi tu. Iškeliauk pats, ir jei vis dar laikai, jis tęs naujame pasaulyje.</li>
+        <li><strong>Įveiktas pasaulis</strong>. Kai pasiekti visi etapai, Autožaidimas sustoja ir laukia, o žinutė sako, kad pasaulis baigtas.</li>
         <li><strong>Viskas, kas pirma klausia</strong>: jis niekada neatsako į klausimus, tad nedaro nieko, ko negalėtum atšaukti.</li>
         <li><strong>Visi lapai ir langai</strong>: kol atvertas Statyti, Patobulinimai, Nustatymai ar koks klausimas, jis laukia.</li>
         <li>Prisijungimas prie bendro pasaulio ir jo privatumo politika,
@@ -845,14 +844,14 @@ export default {
       <div data-table="abundance"></div>`,
   'wiki.article.beyond.title': 'Anapus',
   'wiki.article.beyond': `      <h1>Anapus</h1>
-      <p class="lede">Pradėk kitą pasaulį tuščiomis rankomis, su įgytomis žiniomis.</p>
-      <h2>Iškeliavimas</h2>
-      <p>Užbaik visus pasaulio patobulinimus ir pasiek Gausos variklio <span data-k="EMBARK_ABUNDANCE"></span> lygį.
-        Tuomet gali iš karto iškeliauti. Patvirtinus pradedamas naujas kristalų pasaulis, kad ir kokį pasaulį palieki; jame nėra įrankių, išteklių, pastatų, privalumų,
-        Įžvalgos ar automatinės Logistikos. Išlieka viso laiko įrašai ir žinomos grybų rūšys. Ankstesni pasauliai išsaugomi.</p>
+      <p class="lede">Kur baigiasi tavo paties pasaulis: įveiktas, bet vis dar tavo.</p>
+      <h2>Įveiktas pasaulis</h2>
+      <p>Užbaik visus pasaulio patobulinimus ir pasiek Gausos variklio <span data-k="EMBARK_ABUNDANCE"></span> lygį arba kristalų pasaulyje pažadink mašiną,
+        ir pasaulis įveiktas. Jis lieka išsaugotas ir tavo, toks, koks yra. Iškeliauti nebegalima: nauji žaidimai žaidžiami internetu, bendrame kristalų pasaulyje, su pakvietimo nuoroda.
+        Visi anksčiau žaisti pasauliai lieka Nustatymai → Pasauliai.</p>
       <h2>Senieji pasauliai</h2>
       <p>Seni įrašai išlaiko įrankius, privalumus, Įžvalgą ir uždirbtą pažangą. Jų skirtuke Anapus lieka senieji
-        privalumai, tačiau iškeliavus jų poveikis nepersikelia: kitas pasaulis bus kristalų pasaulis, o senasis lieka išsaugotas toks, koks buvo.</p>
+        privalumai; jie lieka tame pasaulyje.</p>
       <div data-table="perks"></div>`,
   'wiki.article.milestones.title': 'Etapai',
   'wiki.article.milestones': `      <h1>Etapai</h1>

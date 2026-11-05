@@ -96,8 +96,8 @@ are in Equipment. Internal `build`/`upgrades` keys identify these screens.
 - **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) in its fixed developer-control slot above Equipment. It's hidden unless the player turns on *AUTO button* on Nerds (off by default, kept on the device; Watch, 2026-10-25) In a crystal world it plays with the crystal brain (`src/core/crystal-brain.js`): the chapter from empty hands to the machine woken, the heart carried home in the shade. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
 - **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up and a dashed gold ring turns round it (still under reduced motion).
 - **Holding is taught on every tap**: each quick tap (under 0.5 s) pops a bubble over the button, *Hold me down to auto-play* (phone or laptop wording, `tip.auto`), for 4 s (Watch: keep tapping, keep getting the hint).
-- **In the world**: while it's actually playing (held, not paused by your own play, a sheet or Embark) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
-- **Embark is yours**: when the world is ready, AUTO stops, its badge turns to Embark and the button pulses gold, with a line in the log once per world. It never presses Embark, nor anything that asks first, and waits while any sheet or dialog is up.
+- **In the world**: while it's actually playing (held, not paused by your own play or a sheet) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
+- **A world won**: when every milestone is reached, AUTO stops, its badge turns gold and the button pulses, with a line in the log once per world. It never presses anything that asks first, and waits while any sheet or dialog is up.
 
 ### Tokens
 - Surfaces: `--surface` (glass panel), `--surface-raised`, `--line`.
@@ -157,7 +157,7 @@ and opening a full sheet still close the compact Equipment card.
 - **Dedicated entrances, no tab bar** (Watch, 2026-10-28): Equipment → Craft opens the Equipment list; Settlement opens construction and improvements; the trophy opens Awards. Each sheet always displays its own localized title.
 - **Beyond** has a dedicated Settings row only once unlocked in a solo world. Back returns to Settings. The legacy progression family's existing shortcut remains available and returns to the menu it came from.
 - **Upgrades is a progression map**, not a shop list: one row per family (`PATH_FAMILIES` in `src/core/upgrades.js`) with its count (`3/8`); tapping a family opens its buy rows, and families with something to buy start open. Rows and the map read the same upgrade registry, so they can't disagree.
-- **Beyond** (perks and Embark) stays hidden until the world is mastered, and never shows in a shared world. There are no in-world refunds: Embark is the respec.
+- **Beyond** (perks, and the world shown won) stays hidden until the world is mastered, and never shows in a shared world. There is no Embark (Watch, 2026-11-05): no new world of your own is made, so a won world stays yours to play.
 
 ### What's new on Build and Upgrade
 - The trophy has no such tag: it glows gold after a milestone until the Awards are opened.
@@ -233,8 +233,8 @@ first paid craft; the existing Craft action makes the first basket/pick from
 fungi and loose surface stone. Bare-handed surface gathering uses a picking
 pose; a basket or pick appears only when owned. No character holds a phone or
 laptop (Watch, 2026-10-24): older worlds carry a lantern instead. Legacy saves retain their existing equipment.
-The new-world Beyond panel shows lifetime records and an empty-handed Embark
-action, without legacy Insight/perk purchases. Legacy worlds keep their perk UI.
+The new-world Beyond panel shows lifetime records and the world's milestones
+(won once all are reached), without legacy Insight/perk purchases. Legacy worlds keep their perk UI.
 
 ### Physical identity of purchases
 Every purchased item, building and individual upgrade level must have a unique

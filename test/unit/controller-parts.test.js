@@ -132,9 +132,7 @@ test('commands: a purchase that cannot be paid for changes nothing', () => {
   assert.deepEqual(p.audio.calls, []);
 });
 
-test('commands: Embark is not offered before the world allows it', async () => {
-  const s = C.createState(12345);
-  const p = parts(s);
-  await commands(p).cmds.embark();
-  assert.equal(p.game.state, s);
+// Online only (Watch, 2026-11-05): no command starts a new world of your own.
+test('commands: there is no Embark, even in a won world', () => {
+  assert.equal(commands(parts(C.createState(12345))).cmds.embark, undefined);
 });

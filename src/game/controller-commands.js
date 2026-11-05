@@ -7,8 +7,6 @@
  * `stopWalk()` ends a walk in progress; `faceTile(x, y)` turns the wanderer. */
 
 import * as Core from '../core/index.js';
-import { randomSeed } from './storage.js';
-import { t } from '../i18n/i18n.js';
 import { cultivationNote } from './tips.js';
 
 // What the wanderer does for each crystal-world command that worked.
@@ -142,24 +140,6 @@ export function createCommands({
       audio.build();
       changed();
       return true;
-    },
-
-    // Embark starts another preserved world, so it asks first.
-    async embark() {
-      if (!Core.canEmbark(state())) return;
-      const yes = await ask({
-        title: t('ask.embark.title'),
-        text: t('ask.embark.empty'),
-        yes: t('ask.embark.yes')
-      });
-      const s = state();
-      if (!yes || !Core.canEmbark(s)) return;
-      // The world you leave is kept as it is now, or you don't leave it.
-      if (!game.keep()) return;
-      const res = Core.embark(s, randomSeed());
-      game.replace(res.state);
-      audio.fanfare();
-      hud.toast(t('world.emptyStart'));
     }
   };
   return commands;

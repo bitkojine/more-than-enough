@@ -104,7 +104,8 @@ export function createTooltips({ canvas, cam, state, world = () => true }) {
     const id = picture?.dataset.help || picture?.dataset.look;
     if (id) return describeLook(id);
     const control = target.closest('button, a, [role="button"]');
-    if (!control) return null;
+    // The wake screen says what it is already, and covers the whole page.
+    if (!control || control.id === 'wake') return null;
     const row = control.closest('.row,.setRow'),
       label =
         control.getAttribute('aria-label') ||

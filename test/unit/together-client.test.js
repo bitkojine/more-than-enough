@@ -178,6 +178,24 @@ test('client: a crystal world pauses while its room is out of reach, an old one 
   await serve(old.r, open()[0]);
 });
 
+test('client: with no world of its own, an invite link joins without a question', async (t) => {
+  const storage = await import('../../src/game/storage.js');
+  t.after(() => storage.loadGame(false));
+  const w = await makeRoom('crystal');
+  const h = harness({ yes: false });
+  h.game.state = storage.loadGame(true).state;
+  assert.ok(storage.visiting(h.game.state), "nobody's world, behind the invite page");
+  location.hash = '#join=' + w.id + '.' + w.code;
+  h.together.joinFromLink(true);
+  await tick();
+  assert.equal(h.asked.length, 0, 'nothing to leave, so nothing to ask');
+  assert.equal(h.together.joining, true, 'joining…');
+  await serve(w.r, open()[0]);
+  assert.equal(h.game.state.shared, w.id, 'in the public world');
+  assert.equal(h.together.joining, false);
+  assert.ok(!storage.visiting(h.game.state));
+});
+
 test('client: when the network comes back, the game reconnects at once, not after its wait', async () => {
   const w = await makeRoom();
   const { together } = await inWorld(w);

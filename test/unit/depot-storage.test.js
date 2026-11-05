@@ -34,3 +34,19 @@ test('future capabilities are retained aside and a fresh normal world uses culti
   assert.equal(values.get('more-than-enough-save-aside'), raw);
   assert.equal(storage.adopt(C.serialize(loaded.state)).seed, loaded.state.seed);
 });
+test('online only: a device with no world gets a visit that is never saved, and a saved world is not one', () => {
+  values.clear();
+  const visit = storage.loadGame(true).state;
+  assert.ok(storage.visiting(visit), 'nothing on the device: a visit');
+  assert.equal(storage.saveGame(visit), null);
+  assert.equal(values.size, 0, 'a visit writes nothing');
+  assert.ok(storage.visiting(storage.loadGame().state), 'the choice holds for the next load');
+  const mine = C.createState(31, { cultivation: true });
+  assert.equal(storage.saveGame(mine), null);
+  const back = storage.loadGame().state;
+  assert.equal(back.seed, 31);
+  assert.ok(!storage.visiting(back), 'a world already on the device plays as before');
+  values.clear();
+  assert.ok(!storage.visiting(storage.loadGame(false).state), 'browser tests get a world to keep');
+  assert.ok(storage.saveGame(storage.loadGame().state) === null && values.size > 0);
+});

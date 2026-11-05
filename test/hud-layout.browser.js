@@ -388,9 +388,9 @@ export async function checkHudLayout({ evalJS, waitFor, ok, eq, cdp, session, sh
   await tap(beyond.x, beyond.y);
   ok(
     await evalJS(
-      'document.getElementById("sheet").dataset.tab==="beyond"&&!document.getElementById("btnBack").hidden&&!!document.querySelector("#sheetBody [data-kind=embark]")'
+      'document.getElementById("sheet").dataset.tab==="beyond"&&!document.getElementById("btnBack").hidden&&!document.querySelector("#sheetBody [data-kind=embark]")'
     ),
-    'Beyond opens through its dedicated button and retains next-world access'
+    'Beyond opens through its dedicated button and shows the world won, with no Embark'
   );
   const back = await rect('#btnBack');
   await tap(back.x, back.y);

@@ -305,18 +305,19 @@ export function createSheet(
   }
 
   function renderBeyond(s) {
+    // No Embark any more (Watch, 2026-11-05): no new world of your own is
+    // made, so a finished world stays yours to play, won.
     const can = Core.canEmbark(s);
     const m = Core.worldMastery(s);
-    const progress = `${m.done} / ${m.total}`;
     const embark = row(
       pic('ui.embark'),
-      t('sheet.embark'),
-      can ? t('world.emptyStart') : progress,
-      button('data-kind="embark"', t('sheet.embark'), can)
+      t('sheet.mastery'),
+      can ? t('sheet.won') : `${m.done} / ${m.total}`,
+      ''
     );
     if (s.emptyStart)
       return (
-        `<div class="section">${t('sheet.section.newWorld')}</div>` +
+        `<div class="section">${t('sheet.section.mastery')}</div>` +
         embark +
         row('', t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }), '', '')
       );
@@ -328,7 +329,7 @@ export function createSheet(
         t('sheet.embarks', { n: s.prestiges, total: fmt(Core.lifetimeTotal(s)) }),
         ''
       ) +
-      `<div class="section">${t('sheet.section.newWorld')}</div>` +
+      `<div class="section">${t('sheet.section.mastery')}</div>` +
       embark +
       `<div class="section">${t('path.perks')}</div>` +
       PERK_FAMILY.nodes.map((id) => upgradeRow(s, id)).join('')
@@ -517,7 +518,6 @@ export function createSheet(
       });
     } else if (kind === 'build') actions.place(id);
     else if (kind === 'prop') actions.placeProp(id);
-    else if (kind === 'embark') actions.embark();
     else if (kind) actions.buy(id);
     if (open) render();
   });

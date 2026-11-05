@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.197.0':
+    'Mica and Wiki is now played online: new players join the shared crystal world through an invite link from someone already in it. Every world you already have stays yours to play, as it is. A finished world now stays won instead of offering Embark.',
   'news.0.196.0':
     'In a crystal shared world the game now pauses when your connection drops, greyed with Mica waiting, and goes on by itself as soon as you are back online. Nothing happens to your world while you are away from it.',
   'news.0.195.1':

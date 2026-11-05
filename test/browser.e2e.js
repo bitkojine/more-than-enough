@@ -2383,59 +2383,17 @@ async function main() {
       'completed Lithuanian sheet fits a phone'
     );
     await shot('cultivation-win-phone-lt.png');
+    // No Embark (Watch, 2026-11-05): a won world stays won, and yours to play.
     await openMenu('beyond');
     ok(
-      await evalJS('!document.querySelector("[data-kind=embark]").disabled'),
-      'Beyond offers an empty-handed next world'
-    );
-    await evalJS('document.querySelector("[data-kind=embark]").click()');
-    ok(await waitFor('!document.getElementById("ask").hidden'), 'next world asks for confirmation');
-    await evalJS('document.querySelector("#ask button.primary").click()');
-    ok(await waitFor('MTE_GAME.getState().seed!==' + run.seed), 'confirmed next world opens');
-    ok(
-      await evalJS(
-        'Object.values(MTE_GAME.getState().tools).every(n=>n===0)&&Object.values(MTE_GAME.getState().inv).every(n=>n===0)'
-      ),
-      'next world starts empty-handed'
+      await evalJS('!document.querySelector("[data-kind=embark]")'),
+      'Beyond offers no next world'
     );
     ok(
-      await evalJS(
-        '!!MTE_GAME.getState().cultivation&&!MTE_GAME.core.canEmbark(MTE_GAME.getState())'
-      ),
-      'next world keeps new rules and earns its own victory'
+      await evalJS('/Won|Įveikta/.test(document.getElementById("sheetBody").textContent)'),
+      'Beyond says the world is won'
     );
-    ok(
-      await evalJS(
-        'MTE_GAME.core.canEmbark(MTE_GAME.core.deserialize(localStorage.getItem("mte.solo.world.' +
-          run.seed +
-          '")))'
-      ),
-      'completed world remains in its archive'
-    );
-    // No world is ever lost: the one left is on Worlds, and Play goes back to it as it was.
-    await evalJS('document.getElementById("btnSettings").click()');
-    await sleep(200);
-    ok(
-      await evalJS('!document.getElementById("btnWorlds").hidden'),
-      'Settings offers Worlds once there are two worlds'
-    );
-    await evalJS('document.getElementById("btnWorlds").click()');
-    await sleep(200);
-    eq(
-      await evalJS('document.querySelectorAll("#worldsPanel .world").length'),
-      2,
-      'Worlds lists the new world and the one left'
-    );
-    await shot('worlds-after-embark-lt.png');
-    await evalJS('document.querySelector("#worldsPanel .world:not(.here) button").click()');
-    ok(
-      await waitFor('MTE_GAME.getState().seed===' + run.seed),
-      'Play goes back to the world left by Embark'
-    );
-    ok(
-      await evalJS('MTE_GAME.core.canEmbark(MTE_GAME.getState())'),
-      'the world comes back as it was left, complete'
-    );
+    await shot('cultivation-won-beyond-lt.png');
     eq(pageErrors.length, 0, 'no browser runtime errors');
     console.log(
       (failures ? 'CULTIVATION WIN FAILURES' : 'CULTIVATION WIN PASSED') +
@@ -4946,10 +4904,8 @@ async function main() {
     'three active legacy perks offered in the Beyond button'
   );
   ok(
-    await evalJS(
-      '(function(){var b=document.querySelector("#sheetBody button[data-kind=embark]");return b?!b.disabled:false;})()'
-    ),
-    'Embark is enabled in a mastered world with enough gathered'
+    await evalJS('!document.querySelector("#sheetBody button[data-kind=embark]")'),
+    'a mastered world offers no Embark: it stays won'
   );
   await evalJS('(function(){var s=MTE_GAME.getState();s.insight=5;})()');
   await openMenu('beyond');
@@ -5050,58 +5006,6 @@ async function main() {
   );
   console.log('  day luminance: center=' + dayLum.center + ' corner=' + dayLum.corner);
   ok(dayLum.center > lum.corner, 'daytime is brighter than the dark edges of night');
-
-  /* ------------------------------ Embark: it leaves the old world */
-  // Embark starts a crystal world (v0.160.0), whose rules differ: the
-  // old-economy sections above run before it, and the next one
-  // replaces the world anyway.
-  console.log('\n== Embark ==');
-  await openMenu('beyond');
-  await sleep(200);
-  // Inject a leftover flyer so we can prove a fresh world doesn't drag the old
-  // world's resource sprites across the screen.
-  await evalJS(
-    'MTE_GAME.flyers().push({x:-999,y:-999,res:"mycelium",seed:0,delay:0.16,t:0,vx:0,vy:0})'
-  );
-  ok((await evalJS('MTE_GAME.flyers().length')) >= 1, 'a leftover flyer exists before embarking');
-  var prestigeBefore = await evalJS('MTE_GAME.getState().prestiges');
-  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
-  await sleep(150);
-  ok(
-    await evalJS(
-      '!document.getElementById("ask").hidden && /empty-handed/.test(document.getElementById("ask").textContent)'
-    ),
-    'Embark asks first and explains the empty-handed start'
-  );
-  await evalJS('document.querySelector("#ask .secondary").click()');
-  await sleep(150);
-  ok(
-    await evalJS(
-      'document.getElementById("ask").hidden && MTE_GAME.getState().prestiges === ' + prestigeBefore
-    ),
-    'Cancel keeps the world'
-  );
-  await evalJS('document.querySelector("#sheetBody button[data-kind=embark]").click()');
-  await sleep(150);
-  await evalJS('document.querySelector("#ask .primary").click()');
-  await sleep(400);
-  var afterEmbark = JSON.parse(
-    await evalJS(
-      '(function(){var s=MTE_GAME.getState();return JSON.stringify({prestiges:s.prestiges,insight:s.insight,ext:s.extractors.length});})()'
-    )
-  );
-  eq(afterEmbark.prestiges, prestigeBefore + 1, 'embark increments the prestige count');
-  eq(afterEmbark.ext, 0, 'embark resets extractors');
-  eq(afterEmbark.insight, 0, 'new worlds carry no spendable Insight');
-  ok(
-    await evalJS('!MTE_GAME.core.canEmbark(MTE_GAME.getState())'),
-    'carried lifetime progress cannot enable immediate re-embark'
-  );
-  eq(await evalJS('MTE_GAME.flyers().length'), 0, 'embarking clears leftover resource flyers');
-  ok(
-    await evalJS('!document.getElementById("btnBeyond").hidden'),
-    'after an Embark, Beyond stays for the perks'
-  );
 
   /* ------------- a save it can't read: kept to one side, never a nuke */
   console.log("\n== A save it can't read is kept to one side ==");
@@ -5261,8 +5165,8 @@ async function main() {
   );
 
   // Underground: a tap on the top of a wall digs that wall.
-  // Embark above created another empty-handed world. This later fixture
-  // must make its own pick as well; no equipment carries over.
+  // The unreadable save above started another empty-handed world. This
+  // later fixture must make its own pick as well; no equipment carries over.
   await evalJS(
     'MTE_GAME.addRes("mycelium",8);MTE_GAME.addRes("stone",5);document.getElementById("btnUpgrade").click();document.getElementById("btnEquipmentCraft").click()'
   );

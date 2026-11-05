@@ -1506,10 +1506,13 @@ html.asleep body > :not(#wake) { filter: grayscale(1) brightness(0.78) contrast(
   font: 600 17px/1.25 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   text-align: center; white-space: normal; text-wrap: balance;
 }
-/* Held while a crystal world's room can't be reached: the same screen says so. */
+/* Held (no connection, joining, invite only): the same screen says why. */
 #wake .wakeHeld, #wake.held .wakeTap:not(.wakeHeld) { display: none; }
 #wake.held { cursor: default; }
-#wake.held .wakeHeld { display: block; }
+#wake .wakeHeld { width: max-content; max-width: min(22rem, calc(100vw - 32px)); border-radius: var(--r-lg); }
+#wake[data-held="offline"] .wakeHeld[data-for="offline"],
+#wake[data-held="joining"] .wakeHeld[data-for="joining"],
+#wake[data-held="invite"] .wakeHeld[data-for="invite"] { display: block; }
 .wakeZ { position: absolute; left: calc(var(--mica-x) + 8px); top: calc(var(--mica-y) - 70px); }
 .wakeZ i {
   position: absolute; font: 700 14px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
