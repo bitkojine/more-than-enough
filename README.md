@@ -323,7 +323,9 @@ parts. GitHub shuts a runner down now and then, and Stryker saves a part
 only when it ends, so each part is about half an hour and a run that lost
 parts starts the next one itself, which keeps the same plan, runs only the
 lost parts and joins them with the parts earlier runs finished (up to four
-runs in a row), so a lost machine costs one part, never the sweep.
+runs in a row), so a lost machine costs one part, never the sweep. A part
+lost because it is too slow for GitHub's 6 hours is cut smaller when the
+sweep resumes, into spare slots (256 in all).
 A planted bug costs the time of every test file that runs its line, so
 `scripts/mutation-plan.mjs` first times each test file with Node's coverage
 and cuts the code, between top-level statements, into parts that cost about

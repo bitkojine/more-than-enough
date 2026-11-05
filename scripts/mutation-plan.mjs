@@ -144,6 +144,49 @@ export function plan(files, tests, n, atLoad = new Map()) {
   };
 }
 
+/* A resumed sweep's lost parts, cut smaller. A part lost twice is usually
+ * not bad luck but too slow: planted bugs in a hot loop (rig-clips.js
+ * crossing) make the test run time out again and again, and the part ran
+ * past GitHub's 6 hours (run 41863840820, part 81). Each lost part's entries
+ * are cut, at statements, into up to `ways` ranges of about the same length;
+ * the first stays in its slot, the rest go into the slots after the plan's
+ * own, up to `slots` parts in all. Parts already finished keep their slot
+ * and entries, so their reports still fit.
+ *   lost: part numbers (1-based); text(file): the file's source. */
+export function resplit(parts, lost, slots, text) {
+  const out = parts.map((p) => p.slice());
+  const free = Math.max(0, slots - out.length);
+  const ways = Math.min(4, 1 + Math.floor(free / Math.max(1, lost.length)));
+  const pieces = (entry) => {
+    const [file, range] = entry.split(':');
+    const src = text(file);
+    const n = src.split('\n').length;
+    const [a, b] = range ? range.split('-').map(Number) : [1, n];
+    const cuts = [...new Set([...cutPoints(src), ...innerCutPoints(src)])]
+      .filter((l) => l > a && l <= b)
+      .sort((x, y) => x - y);
+    const starts = [a];
+    for (let k = 1; k < ways; k++) {
+      const want = a + Math.round(((b - a + 1) * k) / ways);
+      const c = cuts.find((l) => l >= want && l > starts.at(-1));
+      if (c !== undefined) starts.push(c);
+    }
+    return starts.map((s, i) => `${file}:${s}-${i + 1 < starts.length ? starts[i + 1] - 1 : b}`);
+  };
+  for (const n of lost) {
+    const entries = out[n - 1] || [];
+    if (!entries.length) continue;
+    const split = entries.map(pieces);
+    const most = Math.max(...split.map((x) => x.length));
+    const groups = Array.from({ length: most }, (_, i) => split.flatMap((x) => x[i] ?? []));
+    out[n - 1] = groups[0];
+    for (const g of groups.slice(1))
+      if (out.length < slots) out.push(g);
+      else out[n - 1].push(...g);
+  }
+  return out;
+}
+
 // What runs when every module is only loaded: a test file that imports them
 // all and does nothing else (a browser module that can't load in Node is
 // skipped; its bugs are then costed as if tests ran them).
@@ -186,7 +229,18 @@ function runWithCoverage(file, dir) {
   );
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+//   node scripts/mutation-plan.mjs --resplit <plan.json> <slots> <lost part>...
+// cuts a resumed sweep's lost parts smaller, in place (resplit above).
+if (import.meta.url === `file://${process.argv[1]}` && process.argv[2] === '--resplit') {
+  const [file, slots, ...lost] = process.argv.slice(3);
+  const p = JSON.parse(readFileSync(file, 'utf8'));
+  const before = p.parts.length;
+  p.parts = resplit(p.parts, lost.map(Number), Number(slots), (f) => readFileSync(f, 'utf8'));
+  writeFileSync(file, JSON.stringify(p));
+  for (const n of lost.map(Number)) console.log(`part ${n}:`, p.parts[n - 1].join(', '));
+  for (let i = before; i < p.parts.length; i++)
+    console.log(`part ${i + 1}:`, p.parts[i].join(', '));
+} else if (import.meta.url === `file://${process.argv[1]}`) {
   const [n, out] = [Number(process.argv[2]), process.argv[3]];
   if (!(n >= 1) || !out) {
     console.error('usage: node scripts/mutation-plan.mjs <parts> <plan.json>');

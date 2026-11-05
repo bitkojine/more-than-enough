@@ -90,14 +90,25 @@ jobs:
         if: ${{ !inputs.resume_runs }}
         run: node scripts/mutation-plan.mjs "$PARTS" plan.json
 
-      # A resumed sweep keeps the first run's plan, so finished parts fit.
-      - name: Keep the plan of the sweep being resumed
+      # A resumed sweep keeps the last run's plan, so finished parts fit,
+      # but cuts each part no run finished smaller into the spare slots: a
+      # part lost again and again is too slow, not unlucky (run 41863840820,
+      # part 81 ran out of GitHub's 6 hours).
+      - name: Keep the plan of the sweep being resumed, lost parts cut smaller
         if: ${{ inputs.resume_runs }}
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
         run: |
-          first=$(echo "${{ inputs.resume_runs }}" | tr ',' '\n' | tail -1)
-          gh run download "$first" --repo "${{ github.repository }}" -n mutation-plan -D .
+          last=$(echo "${{ inputs.resume_runs }}" | cut -d, -f1)
+          gh run download "$last" --repo "$REPO" -n mutation-plan -D .
+          for id in $(echo "${{ inputs.resume_runs }}" | tr ',' ' '); do
+            gh api --paginate "repos/$REPO/actions/runs/$id/artifacts?per_page=100" \
+              --jq '.artifacts[] | select(.expired | not) | .name'
+          done | sed -n 's/^mutation-part-//p' | sort -un > done.txt
+          lost=$(node -e "const p = require('./plan.json').parts, done = new Set(require('fs').readFileSync('done.txt', 'utf8').split('\n').map(Number)); console.log(p.map((e, i) => (e.length && !done.has(i + 1) ? i + 1 : 0)).filter(Boolean).join(' '))")
+          echo "Lost parts: ${lost:-none}"
+          [ -z "$lost" ] || node scripts/mutation-plan.mjs --resplit plan.json 256 $lost
 
       - name: Keep the plan
         uses: actions/upload-artifact@v4
@@ -117,7 +128,9 @@ jobs:
       # so a push still deploys while the sweep runs.
       max-parallel: 12
       matrix:
-        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240]
+        # PARTS, and room for a resumed sweep's lost parts cut smaller
+        # (scripts/mutation-plan.mjs resplit); GitHub runs at most 256.
+        part: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 256]
     steps:
       # In a resumed sweep, a part an earlier run finished is not run again.
       - name: Finished in an earlier run?
@@ -177,7 +190,7 @@ jobs:
       - name: Plant bugs in this part's files and run the tests
         if: ${{ !steps.earlier.outputs.done }}
         run: |
-          files=$(node -e "console.log(require('./plan.json').parts[process.argv[1] - 1].join(','))" ${{ matrix.part }})
+          files=$(node -e "console.log((require('./plan.json').parts[process.argv[1] - 1] || []).join(','))" ${{ matrix.part }})
           echo "Part ${{ matrix.part }} of $PARTS: $files" | tr ',' '\n' | head -40
           if [ -z "$files" ]; then echo "Nothing to do in this part."; exit 0; fi
           incremental=""

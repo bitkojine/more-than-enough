@@ -4,7 +4,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { cutPoints, innerCutPoints, linesRun, plan } from '../../scripts/mutation-plan.mjs';
+import {
+  cutPoints,
+  innerCutPoints,
+  linesRun,
+  plan,
+  resplit
+} from '../../scripts/mutation-plan.mjs';
 import {
   merge,
   testValue,
@@ -345,4 +351,40 @@ test('mutation report: a sweep where test runs break is reported broken, not sco
       ),
     /sweep is broken/
   );
+});
+
+test("resplit: a resumed sweep's lost parts are cut smaller; finished ones stay as they were", () => {
+  const src = [
+    'const a = 1;',
+    'function f() {',
+    '  const x = 1;',
+    '  return x;',
+    '}',
+    'function g() {',
+    '  return 2;',
+    '}',
+    'export const h = 3;',
+    ''
+  ].join('\n');
+  const parts = [['done.js'], ['lost.js:2-9'], ['other.js']];
+  const out = resplit(parts, [2], 5, () => src);
+  assert.deepEqual(out[0], ['done.js'], 'a finished part keeps its slot and entries');
+  assert.deepEqual(out[2], ['other.js']);
+  assert.equal(out.length, 5, 'no more parts than slots');
+  const pieces = [out[1], ...out.slice(3)].flat();
+  assert.ok(pieces.length > 1, 'the lost part is cut');
+  // The pieces cover lines 2-9 once each, in order, cut only at statements.
+  const ranges = pieces.map((e) => e.split(':')[1].split('-').map(Number));
+  assert.equal(ranges[0][0], 2);
+  assert.equal(ranges.at(-1)[1], 9);
+  for (let i = 1; i < ranges.length; i++) {
+    assert.equal(ranges[i][0], ranges[i - 1][1] + 1);
+    assert.ok([...cutPoints(src), ...innerCutPoints(src)].includes(ranges[i][0]));
+  }
+  assert.deepEqual(
+    resplit(parts, [2], 3, () => src)[1].length > 0,
+    true,
+    'no free slot: kept whole'
+  );
+  assert.equal(resplit(parts, [2], 3, () => src).length, 3);
 });
