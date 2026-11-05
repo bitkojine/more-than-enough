@@ -1,6 +1,6 @@
 # A playtest of the live game in a live shared world (scripts/live-playtest.mjs):
-# headless Chrome joins the room by a moderator invite, plays a few minutes
-# through the game's own buttons, leaves and comes back, and the room is asked
+# headless Chrome joins the room by a moderator invite, holds AUTO down (the
+# crystal brain in a crystal room) for a while, leaves and comes back, and the room is asked
 # whether it refused, counted or froze anything. Run by hand (or by an agent,
 # whose own machine can't open WebSockets): Actions → Live playtest → Run.
 
@@ -14,9 +14,9 @@ on:
         required: true
         type: string
       minutes:
-        description: 'Minutes to play (0.5 to 30)'
+        description: 'Minutes of AUTO (0.5 to 60)'
         required: false
-        default: '3'
+        default: '20'
         type: string
 
 permissions:
@@ -29,7 +29,7 @@ concurrency:
 jobs:
   play:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 80
     steps:
       - uses: actions/checkout@v4
 
@@ -45,6 +45,4 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
           ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
           CHROME_PATH: /usr/bin/google-chrome
-        run: |
-          echo "::add-mask::$ROOM"
-          node scripts/live-playtest.mjs
+        run: node scripts/live-playtest.mjs

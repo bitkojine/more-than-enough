@@ -66,18 +66,17 @@ export function createSwitches({
     together.setAwayProduce(savedView.awayProduce);
     showAway();
   });
-  // AUTO is hidden unless a player turns it on in Nerds (Watch, 2026-10-25),
-  // and never in a crystal world, whose rules its planner doesn't know.
+  // AUTO is hidden unless a player turns it on in Nerds (Watch, 2026-10-25).
+  // In a crystal world it plays with the crystal brain (core crystal-brain.js);
+  // the AUTO lab measures the old economy only.
   function autoShown() {
-    return savedView.showAuto && !game.state.cultivation;
+    return savedView.showAuto;
   }
   function showAuto() {
     el.perfect.hidden = !autoShown();
     el.autoTip.hidden = !autoShown();
     el.autoLab.hidden = !!game.state.cultivation;
-    el.autoState.textContent = game.state.cultivation
-      ? t('nerds.auto.oldOnly')
-      : t(savedView.showAuto ? 'settings.on' : 'settings.off');
+    el.autoState.textContent = t(savedView.showAuto ? 'settings.on' : 'settings.off');
     el.showAuto.setAttribute('aria-pressed', String(savedView.showAuto));
   }
   el.showAuto.addEventListener('click', () => {

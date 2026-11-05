@@ -6,8 +6,10 @@ import { createPerfect } from './perfect.js';
 import { createSimulation } from '../engine/simulation.js';
 const nothing = () => {};
 
-export function createAutoplaySession(seed, seen = () => {}) {
-  const state = Core.createState(seed);
+// `state`: a world to play instead of a new old-economy one (a crystal
+// world, or a crystal room's copy as a game holds it).
+export function createAutoplaySession(seed, seen = () => {}, { state: given = null } = {}) {
+  const state = given ?? Core.createState(seed);
   const game = {
     state,
     saveSoon: nothing,
@@ -66,7 +68,7 @@ export function createAutoplaySession(seed, seen = () => {}) {
   const zero = { x: 0, y: 0 };
   const input = { held: false, trail: null, perfect: false, moveVector: () => zero };
   const simulation = createSimulation({ game, controller, autoplay: auto, input });
-  Core.revealAround(state); // the normal initial reveal, never a world scan
+  if (!given) Core.revealAround(state); // the normal initial reveal, never a world scan
   return {
     state,
     get badge() {

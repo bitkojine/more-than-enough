@@ -36,8 +36,8 @@ import {
 } from './cultivation.js';
 
 const canPay = (s, cost) => canAfford(s.inv, cost);
-const COOL = 22; // °C: warmer than this and crystal work is unsafe
-const MIN_QUALITY = 60; // % crystal quality the machine needs
+export const COOL = 22; // °C: warmer than this and crystal work is unsafe
+export const MIN_QUALITY = 60; // % crystal quality the machine needs
 
 // What a command returns when it changed something.
 export const COMMAND_DONE = Object.freeze(['ok', 'lifted', 'discovery', 'activated', 'teleported']);

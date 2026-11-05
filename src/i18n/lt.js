@@ -716,7 +716,6 @@ export default {
   },
   'lab.title': 'Itin greitas AUTO',
   'nerds.auto': 'AUTO mygtukas',
-  'nerds.auto.oldOnly': 'tik senuose',
   'nerds.title': 'Moksliukams',
   'nerds.perf': 'Našumo skydelis',
   'problems.title': 'Klaidos, kurias žaidimas apėjo',

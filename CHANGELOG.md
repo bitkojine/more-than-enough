@@ -1,5 +1,39 @@
 # Changelog
 
+## [0.195.0] - 2026-11-05
+
+AUTO plays crystal worlds. Watch saw the live playtest press one button
+every few seconds and asked it to play as well as AUTO does, the new game,
+not the old one. AUTO's brain (`src/core/perfect.js`) only knew the old
+economy, so AUTO stayed hidden in crystal worlds; this gives it a crystal
+brain, which the live playtest (and, later, the bot players) hold down.
+
+- **`src/core/crystal-brain.js`**, `nextCrystalIntent(s, mind)`: one step at
+  a time, read afresh from the world, so it picks up wherever a world is (a
+  reload, a world played by hand, a shared world). What it still needs comes
+  from what isn't built yet: tools, then stone and mycelium up top, metal
+  below, then deep down a chamber by a wild colony and its cooler, the
+  starter planted and tended, the carrier, a cooler by the machine, crystal
+  for the next repair only (crystal carried into the sun goes dull), the
+  heart fetched home with a camp at the hiding place and shade on the way,
+  the last repairs and the waking. It routes only over what has been seen,
+  digs through rock it can, and heads for far places by the edge of the map
+  that leads closest.
+- **AUTO in crystal worlds**: `src/game/perfect.js` asks the crystal brain
+  there; a crystal command is a new intent (`cultivate`) the controller
+  carries out like a press on a building's card. The AUTO button shows in
+  crystal worlds when it is on in Nerds (the lantern and flare moved to the
+  Equipment tray earlier, so the slot is free); the AUTO lab still measures
+  the old economy only.
+- **Checked**: 19 fresh worlds won in 25 to 40 game minutes with no act
+  refused (the old manual playtest took about 52); `test/unit/crystal-brain.test.js`
+  wins one, wins another after a reload halfway, and wins one in a crystal
+  room with the room agreeing on every act (0 refused, 0 drift). In a
+  browser, holding P plays a new crystal world with no page errors.
+- **Live playtest** (`scripts/live-playtest.mjs`): it now turns AUTO on and
+  holds it, 20 minutes by default (up to 60), and logs where it is in the
+  chapter every half minute; it fails when nothing moved on.
+
 ## [0.194.0] - 2026-11-05
 
 The crystal chapter can be played in a shared world: release 1 of Watch's

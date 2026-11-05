@@ -705,7 +705,6 @@ export default {
   'log.unread': { one: 'Messages, {count} new', other: 'Messages, {count} new' },
   'lab.title': 'Super-speed AUTO',
   'nerds.auto': 'AUTO button',
-  'nerds.auto.oldOnly': 'older worlds only',
   'nerds.title': 'Nerds',
   'nerds.perf': 'Performance panel',
   'problems.title': 'Problems the game got past',

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.195.0':
+    'AUTO dabar žaidžia ir kristalų pasauliuose. Įjunk AUTO mygtuką skiltyje „Nerdams“ ir laikyk jį nuspaudęs: Mica renka, perka įrankius, leidžiasi žemyn, augina kristalus, šešėliais parneša širdį namo ir pažadina mašiną, matydama tik tai, ką matei tu, ir pagal tas pačias taisykles kaip tu.',
   'news.0.194.0':
     'Kristalų skyrių dabar galima žaisti ir bendrame pasaulyje. Watch gali tokį sukurti, o jame kiekvienas turi savo mašiną ir savo pavogtą širdį, kurią reikia parnešti namo, pagal tas pačias taisykles kaip ir savo pasaulyje. Anksčiau sukurti bendri pasauliai ir toliau žaidžiami kaip visada.',
   'news.0.193.9':

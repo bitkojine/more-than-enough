@@ -85,8 +85,7 @@ are in Equipment. Internal `build`/`upgrades` keys identify these screens.
 │ │ Milestone reached 3 of 12: │       │
 │ └────────────────── Hide ✕ ──┘       │
 │                      [CLIMB] [AUTO]  │  layer button pops in; AUTO only if on in Nerds
-│                              [FLARE] │  underground or while one burns; above LIGHT/AUTO
-│                              [LIGHT] │  (crystal worlds: the lantern in AUTO's place)
+│                                      │  (the lantern and the flare are in the Equipment tray)
 │ ( QR )   [SETTLEMENT] [EQUIPMENT] ( GATHER )│  invite (left thumb) · thumb cluster
 └──────────────────────────────────────┘
 ```
@@ -94,7 +93,7 @@ are in Equipment. Internal `build`/`upgrades` keys identify these screens.
 ### Gather, the main action, and AUTO above it
 - **Gather** is the big round button. It shows what holding it does right where you stand: *COLLECT n* beside a building with goods, *GATHER +n* among a deposit (its picture is the resource), plain *GATHER* underground beside rock that pays nothing, *EXPLORE* with nothing in reach (one press walks to the nearest resource), dimmed with nothing around. Holding it repeats four times a second, and that is the fastest any control works a tile: pressing it again and again, tapping tiles or drawing Trails all take turns on the same clock (`src/core/pace.js`; Watch, 2026-10-26). Sliding off it draws a Trail.
 - **The number on its plate is the short one** (9999, 4.7M, 1e15): a button has little room, and the earnings statement has the exact figures. The plate grows into the free space between the buttons and shrinks to fit when it has to — it never reaches past the screen's edge or over the plate beside it (`--cap-scale`, measured by the HUD).
-- **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) in its fixed developer-control slot above Equipment. It's hidden unless the player turns on *AUTO button* on Nerds (off by default, kept on the device; Watch, 2026-10-25), and never shows in a crystal world, whose rules its planner doesn't know. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
+- **AUTO** (Auto-play in longer text; *Perfect* in the code) is a smaller round button (the size of Build) in its fixed developer-control slot above Equipment. It's hidden unless the player turns on *AUTO button* on Nerds (off by default, kept on the device; Watch, 2026-10-25) In a crystal world it plays with the crystal brain (`src/core/crystal-brain.js`): the chapter from empty hands to the machine woken, the heart carried home in the shade. Its plate says AUTO in both languages. Holding it plays the game for you (`src/core/perfect.js` decides, `src/game/perfect.js` carries it out through the same calls a tap makes); letting go stops it. Manual play is untouched: steering, Gather, a tap, a finger held on a tile or a Trail take over while you do them, and it picks up again after. On a keyboard it's <kbd>P</kbd>; Space is Gather.
 - **Its badge** (top-right of the button, a small circle) shows the picture of what it's doing or would do: a resource, Explore, Collect, Build, Upgrade, Wait, a layer arrow. No words: the badge is the status. Held, the button lights up and a dashed gold ring turns round it (still under reduced motion).
 - **Holding is taught on every tap**: each quick tap (under 0.5 s) pops a bubble over the button, *Hold me down to auto-play* (phone or laptop wording, `tip.auto`), for 4 s (Watch: keep tapping, keep getting the hint).
 - **In the world**: while it's actually playing (held, not paused by your own play, a sheet or Embark) a gold **AUTO tag** with a turning star floats over your character, above your name tag in a shared world (`drawAutoTag`).
@@ -312,9 +311,8 @@ Equipment lives in Upgrade, including crafted lanterns and sealed carriers.
 No separate map or client is used.
 
 ### The lantern button and building cards
-- **The lantern** has its own round button above Gather (Build-sized, where
-  AUTO sits in an older world; AUTO never shows in a crystal world), there
-  once the lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
+- **The lantern** has its own button in the Equipment tray, there once the
+  lantern is crafted. Dark grey with *LIGHT OFF*, lit gold with
   *LIGHT ON*; tapping it, or <kbd>L</kbd>, switches the light. Nothing in the log.
 - **The ore flare** (Watch, 2026-10-26) has its own Build-sized round
   button in the same column: in the LIGHT/AUTO slot above Gather when that

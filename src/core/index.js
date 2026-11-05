@@ -57,6 +57,8 @@ export {
   investmentPayback,
   plan
 } from './perfect.js';
+// AUTO in a crystal world.
+export { newCrystalMind, nextCrystalIntent } from './crystal-brain.js';
 export * from './ledger.js';
 
 export * from './cultivation.js';

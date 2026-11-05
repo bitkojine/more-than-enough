@@ -18,6 +18,7 @@ const PEEK_EVERY = 0.5; // seconds between looks at what holding would do, while
 
 export function createPerfect({ game, controller, hud }) {
   let mind = Core.newMind();
+  let crystalMind = Core.newCrystalMind();
   let cooldown = 0,
     peekIn = 0;
   let badge = 'ui.explore';
@@ -33,9 +34,15 @@ export function createPerfect({ game, controller, hud }) {
     target = intent.type === 'harvestAt' ? { x: intent.x, y: intent.y } : null;
   };
 
+  // The brain for this world: the crystal one in a crystal world.
+  const think = (options) =>
+    state().cultivation
+      ? Core.nextCrystalIntent(state(), crystalMind)
+      : Core.nextIntent(state(), mind, options);
+
   // One step of the brain: what it wants, done. `held`: a hold repeated it.
   function act(held, overdue = 0) {
-    const intent = Core.nextIntent(state(), mind);
+    const intent = think();
     see(intent);
     if (intent.type === 'wait') {
       if (intent.why === 'embark' && embarkSaid !== state()) {
@@ -97,7 +104,6 @@ export function createPerfect({ game, controller, hud }) {
 
     // Pressed: act at once; holding repeats it in tick().
     press() {
-      if (state().cultivation) return;
       keepAwake(true);
       if (cooldown <= CLOCK_EPSILON && !controller.walking) act(false);
     },
@@ -116,7 +122,6 @@ export function createPerfect({ game, controller, hud }) {
     // Every frame. `holding`: the button is held, nothing in the way (no
     // dialog, no sheet) and the player isn't steering or working a tile.
     tick(dt, holding) {
-      if (state().cultivation) return;
       const remaining = cooldown;
       cooldown -= dt;
       if (holding) {
@@ -129,12 +134,14 @@ export function createPerfect({ game, controller, hud }) {
       }
       if ((peekIn -= dt) > 0) return;
       peekIn = PEEK_EVERY;
-      see(Core.nextIntent(state(), mind, { peek: true }));
+      // The crystal brain plans as it goes, so it isn't asked just to look.
+      if (!state().cultivation) see(think({ peek: true }));
     },
 
     // A new world: the brain starts afresh in it.
     forget() {
       mind = Core.newMind();
+      crystalMind = Core.newCrystalMind();
       cooldown = 0;
       target = null;
     }

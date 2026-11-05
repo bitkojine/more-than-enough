@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.195.0':
+    'AUTO now plays crystal worlds too. Turn the AUTO button on in Nerds and hold it down: Mica gathers, buys tools, goes down, grows crystal, fetches the heart home through the shade and wakes the machine, seeing only what you have seen and by the same rules as you.',
   'news.0.194.0':
     'The crystal chapter can now be played in a shared world. Watch can make one, and everyone in it has their own machine and their own stolen heart to bring home, by the same rules as in a world of your own. Shared worlds made before keep playing as they always have.',
   'news.0.193.9':

@@ -4,16 +4,19 @@
  * and says in its log what happened.
  *
  *   ROOM=<room id> ADMIN_TOKEN=<moderator token> node scripts/live-playtest.mjs
- *   (optional: MINUTES=3, GAME=https://play.robertasrudys.com,
+ *   (optional: MINUTES=20, GAME=https://play.robertasrudys.com,
  *    ROOMS=https://rooms.robertasrudys.com, CHROME_PATH=google-chrome)
  *
- * It plays as a person would, through the game's own buttons and nothing
- * else: headless Chrome opens an invite link the moderator made, says yes,
- * presses the main button (Explore, then Gather) for a few minutes, then
- * leaves and comes back. It fails when the game didn't get in, a crystal
- * room didn't open the crystal chapter, the room refused an act, counted a
- * cheat or saw the game's numbers drift, what was gathered wasn't there on
- * coming back, or the page threw.
+ * It plays through the game's own controls and nothing else: headless
+ * Chrome opens an invite link the moderator made, says yes, turns the AUTO
+ * button on (Nerds) and holds it down (the P key), so AUTO plays the way it
+ * would for anyone: in a crystal room, the crystal brain
+ * (src/core/crystal-brain.js) carries on with the chapter from wherever the
+ * playtester got to last time. Every half minute the log says where it is.
+ * Then it lets go, leaves and comes back. It fails when the game didn't get
+ * in, a crystal room didn't open the crystal chapter, nothing moved on, the
+ * room refused an act, counted a cheat or saw the game's numbers drift,
+ * anything was gone on coming back, or the page threw.
  *
  * The playtester is one character per room, always the same one: its key is
  * made from the room and the moderator token, so nobody else holds it and a
@@ -32,9 +35,9 @@ const GAME = env.GAME || 'https://play.robertasrudys.com';
 const ROOMS = env.ROOMS || 'https://rooms.robertasrudys.com';
 const ROOM = env.ROOM || '';
 const TOKEN = env.ADMIN_TOKEN || '';
-const MINUTES = Math.min(30, Math.max(0.5, Number(env.MINUTES) || 3));
+const MINUTES = Math.min(60, Math.max(0.5, Number(env.MINUTES) || 20));
 const CHROME = env.CHROME_PATH || 'google-chrome';
-const PRESS_MS = 4000; // between two presses of the main button
+const LOG_MS = 30_000; // between two lines on where it is
 
 if (!ROOM_ID_RE.test(ROOM) || TOKEN.length < 32) {
   console.error('usage: ROOM=<room id> ADMIN_TOKEN=<token> node scripts/live-playtest.mjs');
@@ -150,12 +153,27 @@ await send('Page.addScriptToEvaluateOnNewDocument', {
 
 const state = 'MTE_GAME.getState()';
 const inShared = `(typeof MTE_GAME === 'object' && ${state}.shared === ${JSON.stringify(ROOM)})`;
-const gathered = `(() => { const i = ${state}.inv; return Object.values(i).reduce((a, b) => a + b, 0); })()`;
-const press = `(() => { const b = document.getElementById('btnAction');
-  b.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 7 }));
-  b.dispatchEvent(new PointerEvent('pointerup', { pointerId: 7 })); return true; })()`;
+// Where the playtester is in the chapter, and a number that only grows as it gets on.
+const where = `(() => { const s = ${state}, c = s.cultivation;
+  const m = c?.facilities.find((b) => b.kind === 'machine');
+  const inv = Object.fromEntries(Object.entries(s.inv).map(([k, v]) => [k, Math.floor(v)]));
+  const built = c ? c.facilities.length : s.extractors.length;
+  const tools = Object.values(s.tools).reduce((a, b) => a + b, 0);
+  return { layer: -s.player.z, tools: s.tools.pickaxe + '/' + s.tools.boots, built,
+    kinds: c ? c.facilities.map((b) => b.kind).join(' ') : '', repairs: m ? (m.sections ?? 0) : null,
+    heart: c?.heart?.where ?? null, woken: !!c?.completed, inv, gathers: s.stats.gathers,
+    progress: s.stats.gathers + tools * 50 + built * 100 + (m ? (m.sections ?? 0) * 500 : 0) +
+      (c?.completed ? 5000 : 0) };
+})()`;
+const pressP = (down) =>
+  `window.dispatchEvent(new KeyboardEvent('${down ? 'keydown' : 'keyup'}', { key: 'p' })), true`;
+const told = (w) =>
+  `layer ${w.layer}, tools ${w.tools}, built [${w.kinds}], repairs ${w.repairs ?? '-'}, ` +
+  `heart ${w.heart ?? '-'}${w.woken ? ', MACHINE AWAKE' : ''}, holding ${JSON.stringify(w.inv)}`;
 
-say(`Live playtest of ${GAME} in room ${ROOM.slice(0, 6)}…, as player ${me}, ${MINUTES} min`);
+say(
+  `Live playtest of ${GAME} in room ${ROOM.slice(0, 6)}…, as player ${me}, ${MINUTES} min of AUTO`
+);
 const before = await roster();
 const { code } = await admin(`/admin/rooms/${ROOM}/invite`, { uses: 1, life: 30 });
 await send('Page.navigate', { url: `${GAME}/#join=${ROOM}.${code}` });
@@ -175,17 +193,23 @@ if (!(await waitFor(inShared, 90_000))) {
     `In: game ${info.version}, plays the ${info.eco} economy` + (before ? ', coming back' : ', new')
   );
   if (info.crystal !== info.land) fail('the crystal chapter and the land disagree');
-  const start = await js(gathered);
+  const start = await js(where);
+  say('Start: ' + told(start));
+  await js(`MTE_GAME.setAuto(true), true`);
+  await js(pressP(true));
   const end = Date.now() + MINUTES * 60_000;
-  while (Date.now() < end) {
-    await js(press);
-    await sleep(PRESS_MS);
+  let last = start;
+  while (Date.now() < end && !last.woken) {
+    await sleep(Math.min(LOG_MS, Math.max(0, end - Date.now())));
+    last = await js(where);
+    say(`${Math.round((MINUTES * 60_000 - (end - Date.now())) / 60_000)} min: ` + told(last));
+    await js(pressP(true)); // held again, should anything have let go of it
   }
-  const got = await js(gathered);
-  const inv = await js(`${state}.inv`);
-  say(`Played ${MINUTES} min: ${got - start} gathered, holding ${JSON.stringify(inv)}`);
-  if (got <= start) fail('nothing was gathered');
+  await js(pressP(false));
+  if (last.woken && !start.woken) say('AUTO woke the machine');
+  if (last.progress <= start.progress && !start.woken) fail('AUTO got nowhere');
   await sleep(15_000); // its progress goes to the room every few seconds
+  const held = await js(where);
   const after = await roster();
   say('The room on this player: ' + JSON.stringify(after));
   if (!after) fail('the room does not know this player');
@@ -201,9 +225,11 @@ if (!(await waitFor(inShared, 90_000))) {
   if (!(await waitFor(inShared, 90_000)))
     fail('coming back, the game did not open the shared world');
   else {
-    const back = await js(gathered);
-    say(`Back: holding ${back} (had ${got})`);
-    if (back < got) fail(`coming back, ${got - back} of what was gathered was gone`);
+    const back = await js(where);
+    say('Back: ' + told(back));
+    if (back.progress < held.progress) fail('coming back, some of the progress was gone');
+    for (const [k, n] of Object.entries(held.inv))
+      if ((back.inv[k] ?? 0) < n) fail(`coming back, ${n - (back.inv[k] ?? 0)} ${k} was gone`);
   }
 }
 const errors = [...new Set(pageErrors)];

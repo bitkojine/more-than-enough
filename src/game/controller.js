@@ -468,6 +468,8 @@ export function createController({
           return controller.placeProp(intent.kind);
         case 'charge':
           return !!Core.chargerNear(state());
+        case 'cultivate':
+          return Core.COMMAND_DONE.includes(controller.cultivate(intent.cmd));
         default:
           return false;
       }

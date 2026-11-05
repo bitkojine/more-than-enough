@@ -353,8 +353,9 @@ whole-character raster poses now cover the current stone-tool win route; later
 equipment-specific body variations remain to be expanded. Cultivation
 facilities and all five machine repair/activation states also have dedicated
 slate-and-steel sprites. AUTO
-and multiplayer are not yet adapted to cultivation; no fair new-model AUTO win
-or final-game duration is claimed. Fresh-world manual-strategy playtests reach activation in minutes of game time; this is an early playable chapter, far below the eventual meaningful-content goal. Transfers are currently direct sealed links
+plays crystal worlds with its own brain (`src/core/crystal-brain.js`, 0.195.0),
+following the same rules and seeing only what a player has seen; no
+final-game duration is claimed. Fresh-world manual-strategy playtests reach activation in minutes of game time; this is an early playable chapter, far below the eventual meaningful-content goal. Transfers are currently direct sealed links
 of bounded reach/throughput, not a finished multi-layer transport network.
 
 Environment work runs at 250ms deadlines using derived local spatial indexes;
