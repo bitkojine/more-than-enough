@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.196.0':
+    'Bendrame kristalų pasaulyje žaidimas dabar sustoja, kai nutrūksta ryšys: viskas papilkėja, Mica laukia, o vos vėl prisijungi, žaidimas tęsiasi pats. Kol tavęs nėra, tavo pasaulyje niekas nevyksta.',
   'news.0.195.1':
     'AUTO kristalų pasaulyje nebestovi prie mašinos, kai taisymui reikia daugiau metalo, nei turi: pirma nueina jo prikasti.',
   'news.0.195.0':

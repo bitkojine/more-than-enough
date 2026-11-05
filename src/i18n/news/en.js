@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.196.0':
+    'In a crystal shared world the game now pauses when your connection drops, greyed with Mica waiting, and goes on by itself as soon as you are back online. Nothing happens to your world while you are away from it.',
   'news.0.195.1':
     'AUTO in a crystal world no longer stands at the machine when a repair needs more metal than you carry: it goes and mines some first.',
   'news.0.195.0':

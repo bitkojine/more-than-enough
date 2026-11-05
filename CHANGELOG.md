@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.196.0] - 2026-11-05
+
+A crystal shared world pauses while its room can't be reached: the first
+release of Watch's online-only plan (`docs/game-design.md`, "Online only").
+Watch wants every new game online, with the room checking every act, and
+chose that a lost connection pauses the game rather than playing on to be
+checked later. Before, a crystal world played on offline like an old one,
+its acts waiting on the phone for the room to replay, and anything it then
+refused was taken back.
+
+- **Held** (`src/game/sleep.js`): `together.paused` is true in a crystal
+  shared world whose link isn't ready. Each frame the frame loop asks the
+  sleep (`rest()`), which then shows the grey wake screen with "No
+  connection. Mica waits here until you are back online." No tap or key
+  lifts it (a tap still wakes the sound); it lifts by itself when the room
+  answers, straight into play if the player tapped meanwhile, else back to
+  "Tap to wake". The world stops as when asleep, so no acts are made while
+  offline. The reconnecting toast stays for old worlds only.
+- **Old worlds change nothing**: an old shared world plays on offline as
+  before (Watch, 2026-11-05).
+- **Checked**: `test/unit/sleep.test.js` (no press lifts the hold, the room
+  answering does, held while asleep goes back to the wake screen, holds in
+  browser tests too); `together-client.test.js` drops a crystal room's
+  connection (paused, no toast, plays again on the welcome) and an old
+  room's (plays on). The test helper now passes the game's `crystal` hello
+  flag to the room, as the Worker does.
+
 ## [0.195.1] - 2026-11-05
 
 AUTO stood at the machine forever in the live crystal room: back from the

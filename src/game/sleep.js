@@ -14,7 +14,14 @@
  * it at once (the game then opens awake); `attach()` hands it the game once
  * that is running and shows the wake screen after the first frames.
  * `enabled` false (browser tests, which drive the game directly) never
- * sleeps. */
+ * sleeps.
+ *
+ * Held (Watch, 2026-11-05): a crystal shared world plays only while its
+ * room hears you, so with no connection the game greys the same way, says
+ * it's waiting to be back online, and stays so whatever is pressed until
+ * the room answers (`together.paused`, looked at each frame by `rest`). A press
+ * meanwhile still wakes the sound, so play goes straight on when the
+ * connection is back. Held is time away too, and holds in browser tests. */
 
 import { createAudio } from './audio.js';
 
@@ -39,8 +46,26 @@ export function createWaking(el, savedView, win = window) {
 // Pressed on the way to something else (a screenshot, switching apps).
 const MODIFIERS = new Set(['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Fn', 'OS']); // i18n-ok: key names
 
+// Registered after the sound's own listener, so that runs first and wakes
+// the sound with the key. While `stopped()`, keys go no further.
+function stopKeys(stopped, rise) {
+  for (const type of KEY_EVENTS) {
+    window.addEventListener(
+      type,
+      (e) => {
+        if (!stopped()) return;
+        e.stopImmediatePropagation();
+        if (type === 'keydown' && !e.repeat && !MODIFIERS.has(e.key)) rise();
+      },
+      { capture: true }
+    );
+  }
+}
+
 export function createSleep({ root, wake, enabled = true, doc = document }) {
   let asleep = enabled;
+  let held = () => false; // the room can't be reached: paused until it answers
+  let holding = false; // what the screen shows of `held`
   let shown = false; // the game is drawn, so the wake screen can show
   let micaAt = () => null; // where Mica stands on screen, in CSS pixels
   let onSleep = null,
@@ -71,9 +96,27 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
   function rise() {
     if (!asleep) return;
     asleep = false;
+    if (holding) return; // the screen stays until the room answers
     root.classList.remove('asleep');
     wake.hidden = true;
     if (onWake) onWake();
+  }
+
+  // The waiting screen goes up as the hold starts and comes down as it
+  // ends (back to asleep if nobody pressed meanwhile).
+  function check() {
+    const now = held();
+    if (now === holding) return;
+    holding = now;
+    wake.classList.toggle('held', now);
+    if (now) {
+      if (onSleep) onSleep();
+      show();
+    } else if (!asleep) {
+      root.classList.remove('asleep');
+      wake.hidden = true;
+      if (onWake) onWake();
+    }
   }
 
   // A click wakes (on a phone it's the end of a tap, which iOS Safari
@@ -92,19 +135,8 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
     'contextmenu'
   ])
     wake.addEventListener(type, (e) => e.stopPropagation(), { passive: type.startsWith('touch') });
-  // Any key wakes too; asleep, keys do nothing else. Registered after the
-  // sound's own listener, so that runs first and wakes the sound with it.
-  for (const type of KEY_EVENTS) {
-    window.addEventListener(
-      type,
-      (e) => {
-        if (!asleep) return;
-        e.stopImmediatePropagation();
-        if (type === 'keydown' && !e.repeat && !MODIFIERS.has(e.key)) rise();
-      },
-      { capture: true }
-    );
-  }
+  // Any key wakes too; asleep or held, keys do nothing else.
+  stopKeys(() => asleep || holding, rise);
   // While the game still loads there's no wake screen yet: a press anywhere
   // wakes it, so it opens awake (the press woke the sound already).
   for (const type of ['pointerup', 'touchend', 'click'])
@@ -124,8 +156,14 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
 
   return {
     get asleep() {
-      return asleep;
+      return asleep || held();
     },
+    // Each frame (frame-loop.js): whether the world stops, asleep or held.
+    rest() {
+      check();
+      return asleep || held();
+    },
+    check,
     // The game is running. Asleep, nothing held carries over and Wiki
     // dozes; awake, the clock goes on from here and a shared world hears
     // you're back. The wake screen shows after the first frames, with Mica
@@ -140,6 +178,7 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
         input.releasePerfect();
         wiki.sleeping = true;
       };
+      held = () => together.paused;
       onWake = () => {
         wiki.sleeping = false;
         loop.resume();
@@ -149,7 +188,7 @@ export function createSleep({ root, wake, enabled = true, doc = document }) {
       frame(() =>
         frame(() => {
           shown = true;
-          if (asleep) show();
+          if (asleep || holding) show();
         })
       );
     },

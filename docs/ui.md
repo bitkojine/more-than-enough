@@ -117,6 +117,15 @@ plays. Asleep is time away: the world stops (frame-loop.js), and a shared world
 counts you away. Browser tests never see it unless they open the game with
 `?sleep`.
 
+Held while offline (Watch, 2026-11-05): a crystal shared world plays only
+while its room hears you, so when the connection is lost the same grey screen
+comes up with "No connection. Mica waits here until you are back online." in
+the pill instead of "Tap to wake". No press lifts it (a tap still wakes the
+sound); it lifts by itself when the room answers, straight into play if the
+player tapped meanwhile, else back to "Tap to wake". It is time away like
+asleep, and browser tests see it too. Old shared worlds play on offline and
+show the reconnecting toast, as before.
+
 ### Other screens
 - **Zoom** (Watch, 2026-10-28): the +, magnification/reset, −, and map buttons always form one horizontal row directly beneath the four resource counters, in portrait, landscape, desktop, and building placement. The row is anchored to the resource bar rather than the thumb controls. Zoom (pinch, wheel, the pill's + and −; tap the readout for 1×) reaches in until a tile is 62% of the screen's height (at least 3×), so Mica fills over half of it, close enough to see face, grips and stitching. From 2× the view eases from Mica's feet to their middle (in full by 5×), so all of them stays on screen, and the 3D rig renders at up to 4× its usual pixels so it stays sharp.
 - **Landscape phones** (height up to 500px): the thumb cluster shrinks; zoom stays horizontally beneath the resources. Status stays compact, Messages anchors at the lower left and Invite sits beside it. Previews have a reserved left column; the Equipment card sits to its right. The expanded log uses the card region, clearing Invite and the action dock. Dialogs shrink their big pictures (the FBI badge) and never grow taller than the screen.

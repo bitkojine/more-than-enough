@@ -53,6 +53,17 @@ No world is ever lost (Watch, 2026-10-26): Embark never loses or destroys anythi
 ### The old economy is frozen as legacy — confirmed, 2026-11-02
 Old solo worlds and every shared world keep the old economy (refineries, Abundance, AUTO). It stays fully loadable and playable, with every earned building, tool and record kept, and it still gets fixes for bugs, saves and safety. New features, content and rules target only the crystal economy; nothing new is built for the old one. Bringing the crystal chapter to shared worlds is now planned as new crystal rooms (below); existing shared worlds stay on the old economy. Freezing deletes nothing: no world, building or progress is removed or migrated away (Watch chose this over keeping both alive or moving shared worlds to crystal now).
 
+### Online only — confirmed, 2026-11-05
+Every new game is played online, in one public crystal world, so there is one game to keep up to date instead of a solo game and a shared one drifting apart (Watch). Watch's answers, chosen on decision cards; the plan with its releases is kept outside the repo:
+
+- **Old worlds change nothing.** Old solo worlds, old shared worlds and the old economy stay exactly as they are (no pitch-dark rule for them either).
+- **One big public world.** New players land in the crystal shared world the bots play in, with everyone. Crystal stays fully shared there, strangers included.
+- **Solo worlds already on a device stay playable**, from Settings → Worlds, as they are; no new solo world is made any more (no Embark, no new world). Solo is frozen like the old economy: kept, fixed, never grown.
+- **Invite links only.** A new player gets in through an invite link (a few uses, up to 7 days, as now); there is no open door. Someone who opens the game with no invite and no world on the device sees a calm invite-only page: Mica and Wiki asleep, one line saying the game is invite only and to ask a player for a link.
+- **Offline pauses.** With the connection lost the game pauses until the room answers (0.196.0), instead of playing on to be checked later.
+- **After the machine wakes you stay** in the world, keep your character, teleport between shelters and help others, until the next chapter ships. No Embark in the public world.
+- New players are not sent online until the public world's room agrees with the game on a live playtest (no refused acts, no drift).
+
 ### Bot players and crystal shared worlds — confirmed, 2026-11-05
 
 Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Design only; nothing is built yet.

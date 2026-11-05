@@ -515,7 +515,7 @@ const loop = createFrameLoop({
   perf,
   problems,
   paused: () => fork.open,
-  asleep: () => sleep.asleep,
+  asleep: sleep.rest, // asleep, or held while a crystal world's room can't be reached
   replaying: parts.playtest,
   away: (seconds) => game.catchUp(seconds),
   present: updateView,

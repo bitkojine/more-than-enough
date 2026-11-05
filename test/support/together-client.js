@@ -148,7 +148,7 @@ export function harness({ yes = true } = {}) {
 }
 
 // A real room with its maker in it, and a link for friends.
-export async function makeRoom() {
+export async function makeRoom(eco = undefined) {
   const id = P.randomRoomId();
   const r = new Room(id, T0);
   const maker = P.randomHex(32);
@@ -158,7 +158,8 @@ export async function makeRoom() {
         t: 'create',
         key: maker,
         world: { seed: 42, mods: [], props: [], ext: [] },
-        pos: { x: 0.5, y: 0.5, z: 0 }
+        pos: { x: 0.5, y: 0.5, z: 0 },
+        ...(eco ? { eco } : {})
       }),
       T0
     ),
@@ -197,7 +198,7 @@ export async function madeWorld(seed = 42) {
 export async function serve(room, socket) {
   socket.open();
   const hello = socket.sent.find((m) => m.t === 'hello');
-  const j = await room.join(hello.key, hello.code, T0);
+  const j = await room.join(hello.key, hello.code, T0, undefined, hello.crystal === true);
   if (j.error) {
     socket.deliver({ t: j.error, ...(j.why ? { why: j.why } : {}) });
     socket.lose(1008, j.error);

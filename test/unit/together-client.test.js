@@ -151,6 +151,33 @@ test('client: a connection that dies without closing is noticed, and the game re
   assert.equal(open().length, 1, 'and it tries again');
 });
 
+test('client: a crystal world pauses while its room is out of reach, an old one plays on', async () => {
+  const w = await makeRoom('crystal');
+  const { together, game, toasts } = await inWorld(w);
+  assert.ok(game.state.cultivation, 'a crystal world');
+  assert.equal(together.paused, false, 'connected: it plays');
+  open()[0].lose();
+  await tick();
+  assert.equal(together.paused, true, 'connection lost: it pauses');
+  assert.ok(
+    !toasts.includes('Connection lost, reconnecting…'),
+    'the paused screen says it, not a toast'
+  );
+  together.online();
+  assert.equal(together.paused, true, 'still waiting for the room');
+  await serve(w.r, open()[0]);
+  assert.equal(together.paused, false, 'the room answered: it plays again');
+
+  reset();
+  const old = await makeRoom();
+  const second = await inWorld(old);
+  open()[0].lose();
+  await tick();
+  assert.equal(second.together.paused, false, 'an old world plays on offline, as before');
+  second.together.online(); // back in, so no retry is left waiting for the next test
+  await serve(old.r, open()[0]);
+});
+
 test('client: when the network comes back, the game reconnects at once, not after its wait', async () => {
   const w = await makeRoom();
   const { together } = await inWorld(w);

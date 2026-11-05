@@ -157,7 +157,9 @@ export function createTogether({
       return refused(t('together.toast.unreachable'), false);
     }
     // Lost the connection: keep playing, and come back as soon as it can.
-    if (link.retryLater(connect)) hud.toast(t('together.toast.reconnecting'));
+    // A crystal world says so on its paused screen instead (sleep.js).
+    if (link.retryLater(connect) && !game.state.cultivation)
+      hud.toast(t('together.toast.reconnecting'));
   }
 
   // The network is back (the phone found Wi-Fi again, or the game is back
@@ -503,6 +505,13 @@ export function createTogether({
       return game.state.shared && me
         ? { name: friends.nameOf(me), color: friendColor(friends.myColor) }
         : null;
+    },
+    // A crystal world plays only while its room hears you (Watch,
+    // 2026-11-05): with the connection lost the game pauses (sleep.js)
+    // rather than playing on to be checked later. Old worlds play on.
+    get paused() {
+      const s = game.state;
+      return !!s.shared && !!s.cultivation && !link.ready;
     },
     get sign() {
       return sign.rise;
