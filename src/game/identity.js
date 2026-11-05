@@ -19,7 +19,15 @@ export const PRIVACY_STORE = 'mte.privacy'; // the version of the privacy policy
 export const POLICY_VERSION = '2';
 export const policyUrl = () => 'privacy/#' + LANG;
 
-const page = () => globalThis.localStorage;
+// The page's storage, or null where even reaching it throws (storage blocked
+// in some private modes): every read and write below then quietly does nothing.
+const page = () => {
+  try {
+    return globalThis.localStorage;
+  } catch {
+    return null;
+  }
+};
 
 export function read(key, store = page()) {
   try {

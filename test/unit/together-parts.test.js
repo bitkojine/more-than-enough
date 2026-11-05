@@ -708,3 +708,22 @@ test('handlers: the room moving you is said, and notes of things taken back are 
   assert.deepEqual(toasts, [t('together.toast.placed')]);
   assert.ok(UNDONE_QUIET > 0);
 });
+
+// Some private modes throw on the very mention of localStorage. Since 0.194.0
+// the game asks for the shared world it was in from a crystal world too, at
+// boot: that must give "none", not stop the game (test/browser.e2e.js, storage off).
+test('identity: storage that throws when reached gives nothing and keeps nothing, quietly', (t) => {
+  const was = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', {
+    configurable: true,
+    get() {
+      throw new DOMException('denied', 'SecurityError');
+    }
+  });
+  t.after(() =>
+    was ? Object.defineProperty(globalThis, 'localStorage', was) : delete globalThis.localStorage
+  );
+  assert.equal(playing(), null);
+  assert.equal(read(PLAYING_STORE), null);
+  assert.doesNotThrow(() => write(PLAYING_STORE, 'x'));
+});

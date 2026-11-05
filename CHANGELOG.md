@@ -41,6 +41,11 @@ game Watch develops, and every shared world ran the frozen old economy.
   (`src/core/illumination.js`) is worked out there as in the game.
 - **A way in.** `POST /admin/rooms/<id>/invite` makes an invite link as the
   moderator, so Watch can get into a world made by hand.
+- **Storage blocked.** Some private modes throw on the very mention of
+  `localStorage`. The game now asks for the shared world it was in from a
+  crystal world at boot too, and `src/game/identity.js` reached storage
+  outside its `try`, so the game didn't boot there (caught by the browser
+  journey's "storage off" check). Reaching it is guarded now.
 - ESLint warnings budget 221 → 220.
 
 ## [0.193.9] - 2026-11-03
