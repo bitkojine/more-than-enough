@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.195.1':
+    'AUTO kristalų pasaulyje nebestovi prie mašinos, kai taisymui reikia daugiau metalo, nei turi: pirma nueina jo prikasti.',
   'news.0.195.0':
     'AUTO dabar žaidžia ir kristalų pasauliuose. Įjunk AUTO mygtuką skiltyje „Nerdams“ ir laikyk jį nuspaudęs: Mica renka, perka įrankius, leidžiasi žemyn, augina kristalus, šešėliais parneša širdį namo ir pažadina mašiną, matydama tik tai, ką matei tu, ir pagal tas pačias taisykles kaip tu.',
   'news.0.194.0':

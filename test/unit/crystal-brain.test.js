@@ -11,7 +11,7 @@ import { Room, Bucket } from '../../server/src/room.js';
 import { createAutoplaySession } from '../../src/game/autoplay-session.js';
 
 const T0 = 1_700_000_000_000;
-const LIMIT = 90 * 60; // game seconds: a win takes about half an hour
+const LIMIT = 90 * 60; // game seconds held at most: a win takes about half an hour
 
 // Holds AUTO in world `state` until `until(state)` or the time limit, `tick`
 // after every 15 frames. Returns what it did.
@@ -27,7 +27,8 @@ function hold(state, { until = (s) => s.cultivation.completed, tick = () => {} }
     { state }
   );
   auto.press();
-  while (!until(state) && state.time < LIMIT) {
+  const end = state.time + LIMIT;
+  while (!until(state) && state.time < end) {
     auto.advanceTicks(15);
     tick();
   }
@@ -55,22 +56,25 @@ test('AUTO picks a crystal world up where it was: a reload on the way to the hea
   assert.deepEqual(run.refused, []);
 });
 
-test('AUTO in a crystal room: the room agrees with every act, start to the machine woken', async () => {
-  const r = new Room(P.randomRoomId(), T0);
-  const key = P.randomHex(32);
-  const world = { seed: 15, mods: [], props: [], ext: [] };
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world, eco: 'crystal' }), T0), null);
-  const j = await r.join(key, undefined, T0, false, true);
+// A game in crystal room `r` as key `key`, sending what it did the way together.js does.
+async function roomGame(r, key, now) {
+  const j = await r.join(key, undefined, now, false, true);
   const s = C.joinState(j.welcome, r.id, null, null);
   s.time = j.welcome.time;
   s.acts = [];
-  const edits = new Bucket(T0, 1e9, 1e9);
-  let savedAt = 0;
+  const edits = new Bucket(now, 1e9, 1e9);
+  const base = s.stats.playedMs;
+  let savedAt = base;
   const send = (m) => {
-    const out = r.message(j.id, JSON.stringify(m), T0 + Math.round(s.stats.playedMs), edits);
+    const out = r.message(
+      j.id,
+      JSON.stringify(m),
+      now + Math.round(s.stats.playedMs - base),
+      edits
+    );
     assert.ok(!out.drop, 'the room took ' + m.t);
   };
-  const sync = () => {
+  const sync = (force = false) => {
     r.players.get(j.id).p = P.cleanPos(s.player);
     const acts = C.takeActs(s);
     for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage)
@@ -78,23 +82,54 @@ test('AUTO in a crystal room: the room agrees with every act, start to the machi
     const list = C.takeEdits(s);
     for (let i = 0; i < list.length; i += P.LIMITS.editsPerMessage)
       send({ t: 'edits', e: list.slice(i, i + P.LIMITS.editsPerMessage) });
-    if (s.stats.playedMs - savedAt >= 10_000) {
+    if (force || s.stats.playedMs - savedAt >= 10_000) {
       savedAt = s.stats.playedMs;
       send({ t: 'save', s: C.progressOf(s) });
     }
   };
-  const run = hold(s, { tick: sync });
-  sync();
-  assert.equal(s.cultivation.completed, true);
-  assert.deepEqual(run.refused, []);
-  const report = r.shadowOf().report(j.id);
+  return { s, id: j.id, sync };
+}
+
+test('AUTO in a crystal room: the room agrees with every act, and coming back it carries on', async () => {
+  const r = new Room(P.randomRoomId(), T0);
+  const key = P.randomHex(32);
+  const world = { seed: 15, mods: [], props: [], ext: [] };
+  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world, eco: 'crystal' }), T0), null);
+  const g = await roomGame(r, key, T0);
+  // Home with the heart, deep down: there it leaves.
+  const run = hold(g.s, {
+    until: (t) => t.cultivation.heart.where === 'carried' && t.player.z === -2,
+    tick: g.sync
+  });
+  g.sync(true);
+  assert.equal(g.s.cultivation.heart.where, 'carried');
+  // Back later: the room keeps no fog, so nothing around is seen yet.
+  const T1 = T0 + 1e7;
+  const back = await roomGame(r, key, T1);
+  assert.equal(back.s.cultivation.heart.where, 'carried');
+  const p = back.s.player;
+  assert.equal(C.isExplored(back.s.world, Math.floor(p.x) + 1, Math.floor(p.y), p.z), false);
+  const rest = hold(back.s, { tick: back.sync });
+  back.sync(true);
+  assert.equal(back.s.cultivation.completed, true);
+  assert.deepEqual([...run.refused, ...rest.refused], []);
+  const report = r.shadowOf().report(back.id);
   assert.deepEqual({ off: report.off, refused: report.refused }, { off: 0, refused: 0 });
   assert.deepEqual(
     r.log.filter((e) => e.e === 'drift'),
     []
   );
-  const copy = JSON.parse(r.saveFor(j.id, r.players.get(j.id)));
+  const copy = JSON.parse(r.saveFor(back.id, r.players.get(back.id)));
   assert.equal(copy.cultivation.completed, true, 'the machine woke in the room too');
+});
+
+test('AUTO short of metal for a repair gets it first, never asking the machine for nothing', () => {
+  const s = C.createState(3, { cultivation: true });
+  hold(s, { until: (t) => t.cultivation.heart.where === 'carried' && t.player.z === -2 });
+  s.inv.ore = 0;
+  const run = hold(s);
+  assert.equal(s.cultivation.completed, true);
+  assert.deepEqual(run.refused, []);
 });
 
 test('AUTO in a crystal world with nothing left to do waits, and says so', () => {

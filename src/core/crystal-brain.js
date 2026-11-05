@@ -29,7 +29,12 @@ import { canWade } from './sim.js';
 import { canDescendAt } from './underground.js';
 import { atInteraction } from './interaction.js';
 import { canBuy, upgradeCost } from './upgrades.js';
-import { CULTIVATION_RECIPES as R, MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
+import {
+  CULTIVATION_RECIPES as R,
+  MACHINE_REPAIRS,
+  machineSections,
+  machineRepairCost
+} from './cultivation-model.js';
 import { hidingPlace, carrierSun, carrierLoaded, HEART_WARM_LINE } from './cultivation-heart.js';
 import { cultivationAt, cultivationTarget, facilitySite, DEEP } from './cultivation.js';
 import { COOL, MIN_QUALITY } from './cultivation-commands.js';
@@ -189,6 +194,10 @@ class Brain {
 
   // Work `type` at the machine once it's cool enough.
   atMachine(machine, type) {
+    const cost = type === 'repair' ? machineRepairCost(machine) || {} : {};
+    const res = ['ore', 'stone', 'mycelium'].find((k) => (this.s.inv[k] || 0) < (cost[k] || 0));
+    if (res === 'ore') return this.gather('ore');
+    if (res) return this.z < SURFACE ? this.climb() : this.gather(res);
     if (this.ready(machine)) return this.command({ type }, machine);
     return this.near(machine) ? wait('cooling') : this.go(machine, true);
   }
@@ -425,8 +434,26 @@ class Brain {
 
   explore() {
     const r = this.route('explore', () => false, { frontier: true });
-    if (!r) return null;
+    if (!r) return this.nudge();
     return this.stepOn(r);
+  }
+
+  // Nothing seen to go by (back in a shared world, whose room keeps no fog):
+  // a step into what's unseen beside you shows what's there.
+  nudge() {
+    const f = this.feet;
+    const k = (this.mind.nudges = (this.mind.nudges || 0) + 1);
+    for (let i = 0; i < 4; i++) {
+      const [dx, dy] = [
+        [1, 0],
+        [0, 1],
+        [-1, 0],
+        [0, -1]
+      ][(k + i) % 4];
+      if (!this.seen(f.x + dx, f.y + dy))
+        return { type: 'walk', x: f.x + dx, y: f.y + dy, badge: 'ui.explore' };
+    }
+    return null;
   }
 
   // A route for `purpose`, kept while it is followed (or made afresh).

@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.195.1] - 2026-11-05
+
+AUTO stood at the machine forever in the live crystal room: back from the
+hiding place with the heart, it asked for the next repair with 20 metal
+where 24 were needed, and the room refused it 7,200 times in half an hour.
+What the rest of the chapter needs is checked before going home with the
+heart, but not once home, so a world that came back with less (the live
+room's copy had less than the game) never got it.
+
+- `src/core/crystal-brain.js`: a repair it can't pay for sends it to mine
+  metal (or up for stone and mycelium) first. With nothing seen around it
+  and nowhere to explore to, it steps into the fog beside it instead of
+  waiting.
+- Found by the live playtest, which now logs why the room corrects the game.
+  Reproduced from the room's backup: the stuck player now wakes the machine
+  in 3 minutes with no act refused. `test/unit/crystal-brain.test.js` adds a
+  repair short of metal (fails without the fix) and a crystal room left
+  with the heart and come back to, won with 0 refused and 0 drift.
+
 ## [0.195.0] - 2026-11-05
 
 AUTO plays crystal worlds. Watch saw the live playtest press one button
