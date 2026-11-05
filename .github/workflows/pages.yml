@@ -128,11 +128,17 @@ jobs:
       - name: Stage the site (bundled, cache-busted)
         run: sh scripts/stage-site.sh site
 
+      # One artifact name per attempt: a re-run keeps the earlier attempt's
+      # artifact, and deploy-pages refuses a run holding two of one name, so
+      # "Re-run jobs" after a stuck deploy could never deploy (2026-11-05).
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
+          name: github-pages-${{ github.run_attempt }}
 
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
