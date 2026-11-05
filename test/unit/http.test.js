@@ -15,6 +15,7 @@ import {
 } from '../../server/src/http.js';
 import { route } from '../../server/src/routes.js';
 import { admin } from '../../server/src/admin-routes.js';
+import * as P from '../../src/net/protocol.js';
 
 const TOKEN = 'x'.repeat(40);
 const GAME = 'https://play.example';
@@ -145,6 +146,27 @@ test('moderator routes: freeze and thaw check the body, then ask the room', asyn
     ['freeze', 'thaw', 'freeze']
   );
   assert.equal((await admin(get(''), env, at('nothing'))).status, 404);
+});
+
+test('moderator routes: an invite link takes its uses and life, or the defaults', async () => {
+  const asked = [];
+  const room = {
+    modInvite: async (id, ask) => (
+      asked.push(ask),
+      id === ROOM ? { code: 'C', until: 9 } : { error: 'room' }
+    )
+  };
+  const env = envWith(room);
+  const at = new URL('https://rooms.example/admin/rooms/' + ROOM + '/invite');
+  let r = await admin(post('', { uses: 1, life: 60 }), env, at);
+  assert.equal(r.status, 200);
+  assert.deepEqual(await r.json(), { code: 'C', until: 9 });
+  r = await admin(post('', '{nope'), env, at);
+  assert.equal(r.status, 200, 'a body it cannot read asks for the defaults');
+  await admin(post('', { uses: 1e9, life: -1 }), env, at);
+  assert.deepEqual(asked.slice(1), [P.cleanInviteAsk({}), P.cleanInviteAsk({})]);
+  assert.deepEqual(asked[0], { uses: 1, life: 60 });
+  assert.equal((await admin(get(''), env, at)).status, 404, 'only POST');
 });
 
 test('moderator routes: the room list drops rooms that are gone from the registry', async () => {

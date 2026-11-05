@@ -281,6 +281,24 @@ test('worker moderator: a stopped invite link is written', async () => {
   assert.equal(back.room.invites.get(code).off, true);
 });
 
+// How Watch gets into a world made by hand (a crystal room, 0.194.0).
+test('worker moderator: an invite link from the moderator lets someone in, and is written', async () => {
+  const g = await twoPlayers();
+  assert.deepEqual(await g.room.modInvite('another', { uses: 3, life: 60 }), { error: 'room' });
+  const made = await g.room.modInvite(g.id, { uses: 1, life: 60 });
+  assert.match(made.code, /^[A-Za-z0-9_-]{22}$/);
+  assert.ok(made.until > Date.now());
+  const back = await start(Rooms, g.storage, g.env);
+  assert.equal(back.room.invites.get(made.code).by, 'mod', 'kept, made by the moderator');
+  const joined = await back.room.join('cd'.repeat(32), made.code, Date.now());
+  assert.ok(joined.id, 'it lets someone in');
+  assert.equal(
+    (await back.room.join('ef'.repeat(32), made.code, Date.now())).error,
+    'invite',
+    'once'
+  );
+});
+
 test('worker moderator: the brief counts who is in, away and frozen', async () => {
   const g = await twoPlayers();
   const [a, b] = [idOf(g.a), idOf(g.b)];

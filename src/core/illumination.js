@@ -81,8 +81,10 @@ function context(s) {
   if (c) for (const off of c.off) off();
   // Shared snapshots and older saves may provide ordinary Maps/Sets. Adopt
   // observable equivalents without changing any contents or save shape.
-  if (!(w.mods instanceof VersionedMap)) w.mods = new VersionedMap(w.mods);
-  if (!(w.props instanceof VersionedMap)) w.props = new VersionedMap(w.props);
+  // (A room's own copy keeps its writes over the room's world: observable already.)
+  const observable = (m) => m instanceof VersionedMap || typeof m?.observe === 'function';
+  if (!observable(w.mods)) w.mods = new VersionedMap(w.mods);
+  if (!observable(w.props)) w.props = new VersionedMap(w.props);
   if (!(w.holes instanceof VersionedSet)) w.holes = new VersionedSet(w.holes);
   c = {
     world: w,

@@ -12,6 +12,7 @@ import { PROPS } from './content.js';
 import { teleportFrom } from './cultivation-travel.js';
 import { invalidateIllumination } from './illumination.js';
 import { canAfford } from './economy.js';
+import { noteIf } from './acts.js';
 import {
   CULTIVATION_RECIPES,
   MACHINE_REPAIRS,
@@ -38,11 +39,30 @@ const canPay = (s, cost) => canAfford(s.inv, cost);
 const COOL = 22; // °C: warmer than this and crystal work is unsafe
 const MIN_QUALITY = 60; // % crystal quality the machine needs
 
+// What a command returns when it changed something.
+export const COMMAND_DONE = Object.freeze(['ok', 'lifted', 'discovery', 'activated', 'teleported']);
+const done = (result) => COMMAND_DONE.includes(result);
+
+// Does crystal command `cmd` ({type, x?, y?, kind?, to?}). In a crystal room
+// it is noted as an act (acts.js 'k') so the room does the same.
 export function cultivationCommand(s, cmd) {
-  const c = s.cultivation;
-  if (!c || s.shared) return 'invalid';
+  if (!s.cultivation) return 'invalid';
   const x = cmd.x ?? Math.floor(s.player.x),
-    y = cmd.y ?? Math.floor(s.player.y),
+    y = cmd.y ?? Math.floor(s.player.y);
+  const arg = typeof cmd.kind === 'string' ? cmd.kind : Number.isInteger(cmd.to) ? cmd.to : 0;
+  return noteIf(s, done, () => command(s, cmd, x, y), 'k', cmd.type, x, y, arg);
+}
+
+// The command written down as act `a` (['k', ms, x, y, z, type, tx, ty, arg]), back.
+export function commandOfAct(a) {
+  const cmd = { type: a[5], x: a[6], y: a[7] };
+  if (typeof a[8] === 'string') cmd.kind = a[8];
+  else if (a[8]) cmd.to = a[8];
+  return cmd;
+}
+
+function command(s, cmd, x, y) {
+  const c = s.cultivation,
     z = s.player.z;
   const why = cantDoThere(s, cmd, x, y, z);
   if (why) return why;

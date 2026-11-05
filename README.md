@@ -37,10 +37,13 @@ commit. When you find something new, add it.
   solo worlds and every shared world still run the old economy. There, 26 of
   32 milestones arrive in the first 10 minutes, followed by about 17 hours of
   holding AUTO and buying refinery levels (gameplay review, v0.145.0). The
-  shared world has no win at all, and crystal worlds can't be played
-  together. Since 2026-11-02 the old economy is frozen as legacy: it keeps
-  working and gets fixes, but new work targets the crystal economy only.
-  Whether the story arc comes to shared worlds is undecided.
+  old shared world has no win at all. Since 2026-11-02 the old economy is
+  frozen as legacy: it keeps working and gets fixes, but new work targets
+  the crystal economy only. Since 0.194.0 Watch can make a crystal shared
+  world (server/README.md, "Crystal rooms"), where everyone plays their own
+  crystal chapter; what players share there (machines side by side,
+  shelters, crystal, teleport stops) is still to come (`docs/game-design.md`,
+  "Bot players and crystal shared worlds").
 - **Core design questions are still open.** These include who stole the
   heart, what tending a colony actually does, how wild colonies regrow, and
   what a finished world leads to. See "Other design questions still open" in

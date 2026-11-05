@@ -318,7 +318,14 @@ export const CULTIVATION_GOALS = [
     reached: t('cr.heart.home'),
     done: (s) => s.cultivation.heart?.where === 'installed'
   },
-  { id: 'master', text: t('cr.goal.activate'), reached: t('cr.goal.done'), done: canEmbark }
+  // The machine woken: in your own world that's when Embark opens; a crystal
+  // room has no Embark, and waking it is still the milestone.
+  {
+    id: 'master',
+    text: t('cr.goal.activate'),
+    reached: t('cr.goal.done'),
+    done: (s) => s.cultivation.completed === true
+  }
 ];
 
 // How many milestones there are to reach: every one but the last, which goes

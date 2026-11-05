@@ -75,6 +75,10 @@ export class Room {
     this.fmt = 0;
     this.ef = 0;
     this.gen = 0;
+    // How the world plays (protocol.js ECONOMIES): 'old' for every room made
+    // before 0.194.0, which keeps the old economy for good; 'crystal' for a
+    // room Watch makes to play the crystal chapter together.
+    this.eco = 'old';
     // Whether the server made this room as the deploy's smoke test (set only under
     // the admin token, see init): marked rooms stay out of the moderator's
     // lists. Nothing deletes them, or any other room (Watch, 2026-10-20).
@@ -119,6 +123,7 @@ export class Room {
       gen: meta.gen ?? 0,
       fmt: meta.fmt ?? 0,
       ef: meta.ef ?? 0,
+      eco: meta.eco === 'crystal' ? 'crystal' : 'old',
       smoke: meta.smk === true,
       ready: true
     });
@@ -169,6 +174,7 @@ export class Room {
         gen: this.gen,
         fmt: this.fmt,
         ef: this.ef,
+        ...(this.eco === 'crystal' ? { eco: this.eco } : {}),
         smk: this.smoke === true,
         gv: this.graves,
         ...(this.copy ? { copy: this.copy } : {})
@@ -230,6 +236,7 @@ export class Room {
     this.smoke = trusted === true && d.smoke === true;
     this.fmt = WORLD_FORMAT;
     this.ef = ECON_FORMAT;
+    this.eco = c.eco;
     const first = await playerId(this.id, d.key);
     this.seed = world.seed;
     for (const [k, v] of world.mods) this.mods.set(k, v);
@@ -246,6 +253,7 @@ export class Room {
     this.audit(now, first, 'create', {
       seed: this.seed,
       fmt: this.fmt,
+      eco: this.eco,
       mods: this.mods.size,
       props: this.props.size,
       ext: this.ext.length
@@ -259,10 +267,11 @@ export class Room {
   // A connection proved its key (and, the first time, brought an invite).
   // `awayProduce` is the player's own freeze-season choice, told on the
   // hello: undefined means the game didn't say (one from before the
-  // setting), and then the room keeps what it knows.
+  // setting), and then the room keeps what it knows. `crystal`: the game
+  // can play a crystal room (its hello says so since 0.194.0).
   // Returns {id, welcome} or
   // {error}.
-  async join(key, code, now, awayProduce = undefined) {
+  async join(key, code, now, awayProduce = undefined, crystal = false) {
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     let id = await playerId(this.id, key);
     // An admin's copy lets in only its own key, as the player it copies.
@@ -333,7 +342,7 @@ export class Room {
       at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null,
       online: this.online()
     });
-    return { id, welcome: this.welcome(id, now) };
+    return { id, welcome: this.welcome(id, now, crystal) };
   }
 
   // The invite links someone may see and stop (invites.js listFor).
@@ -346,7 +355,7 @@ export class Room {
     return Math.max(0, (now - this.dawn) / 1000);
   }
 
-  welcome(id, now) {
+  welcome(id, now, crystal = true) {
     const others = {};
     for (const [pid, p] of this.players)
       if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
@@ -367,8 +376,12 @@ export class Room {
       nuke: null,
       graves: this.graves,
       // The world format it plays by: a game on another one can't grow the
-      // same land (src/game/together.js).
-      fmt: this.fmt,
+      // same land (src/game/together.js). A game too old to play a crystal
+      // room is told of a newer one, so it updates first (its own words for
+      // that: "a newer game is out") instead of growing the old land here.
+      fmt: this.eco === 'crystal' && !crystal ? this.fmt + 1 : this.fmt,
+      // How this world plays: the old economy or the crystal chapter.
+      eco: this.eco,
       // This room answers PING (worker.js) and acknowledges numbered edits
       // ('ack'): games only rely on either when the room says so.
       pong: true,

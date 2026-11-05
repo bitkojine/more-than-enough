@@ -12,7 +12,6 @@
  * touches the game; nothing from the network is ever put into the page as
  * HTML. */
 
-import * as Core from '../core/index.js';
 import { LIMITS, parse } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
 import { WORLD_FORMAT } from '../core/format.js';
@@ -94,7 +93,14 @@ export function createTogether({
 
   const friends = createFriends({ clock: seconds, actor: createActor, limit: LIMITS.players });
   const link = createRoomLink({
-    hello: () => ({ t: 'hello', key: myKey(), away: awayProduce, ...(code ? { code } : {}) }),
+    // `crystal`: this game can play a crystal room (0.194.0).
+    hello: () => ({
+      t: 'hello',
+      key: myKey(),
+      away: awayProduce,
+      crystal: true,
+      ...(code ? { code } : {})
+    }),
     onMessage: receive,
     onClosed: closed
   });
@@ -426,7 +432,7 @@ export function createTogether({
       hud.toast(t('together.toast.badLink'));
       return false;
     }
-    if (!service || Core.usesDepots(game.state)) {
+    if (!service) {
       hud.toast(t('together.toast.unavailable'));
       return false;
     }
@@ -467,8 +473,8 @@ export function createTogether({
       seed: game.state.shared ? null : game.state.seed,
       solo: soloWorlds(),
       kept: keptCopies(),
-      // Shared worlds can't be reached from a crystal world (yet).
-      rooms: !!game.state.shared || (!!service && !Core.usesDepots(game.state)),
+      // Shared worlds, from any world (crystal rooms since 0.194.0).
+      rooms: !!game.state.shared || !!service,
       service,
       close: closeSheet,
       go: (id) => switchTo(id),
@@ -480,7 +486,7 @@ export function createTogether({
 
   return {
     get available() {
-      return !!service && !Core.usesDepots(game.state);
+      return !!service;
     },
     get active() {
       return !!game.state.shared;
@@ -514,7 +520,6 @@ export function createTogether({
     // The game opened: through a friend's link, else back into the shared
     // world you were in, if any.
     open() {
-      if (Core.usesDepots(game.state)) return;
       if (!joinFromLink(true)) resume();
     },
     showInvite,

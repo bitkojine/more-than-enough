@@ -89,12 +89,16 @@ export function createState(seed, { cultivation = false } = {}) {
     s.cultivation = newCultivation();
     s.logisticsModel = 'depot-v1';
   }
-  // Home ground, where your stockpile stands, is in view from the start, and
-  // the land just around it, so there's something to go and gather.
-  const r = HOME_HALF + HOME_VIEW;
-  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) markExplored(world, x, y, SURFACE);
-  revealAround(s);
+  revealHome(s);
   return s;
+}
+
+// Home ground, where your stockpile stands, is in view from the start, and
+// the land just around it, so there's something to go and gather.
+export function revealHome(s) {
+  const r = HOME_HALF + HOME_VIEW;
+  for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) markExplored(s.world, x, y, SURFACE);
+  revealAround(s);
 }
 
 // A state with nothing done yet, in `world`, standing at `player`. Cheap: it

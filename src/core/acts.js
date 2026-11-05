@@ -11,9 +11,15 @@
  *   ['v', …, fx, fy, tx, ty] moved their building on (fx, fy) to (tx, ty)
  *   ['p', …, kind]         set down prop `kind` where they stand
  *   ['u', …, id]           bought upgrade `id`
- *   ['w', …]               walked here (every WHERE_STEP tiles) */
+ *   ['w', …]               walked here (every WHERE_STEP tiles)
+ * and in a crystal room (0.194.0), where they stood before it:
+ *   ['k', …, type, tx, ty, arg]  crystal command `type` (cultivation-commands.js)
+ *                          at tile (tx, ty); arg: a building or tool kind, the
+ *                          stop to teleport to, or 0
+ *   ['m', …, fx, fy, tx, ty] moved their crystal building on (fx, fy) to (tx, ty)
+ *   ['f', …]               made and lit a flare, or put out the one burning */
 
-export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'v', 'p', 'u', 'w']);
+export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'v', 'p', 'u', 'w', 'k', 'm', 'f']);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
 const WHERE_STEP = 0.5; // tiles walked between two 'w' acts
 
@@ -25,6 +31,17 @@ export function noteAct(s, kind, ...args) {
   const p = s.player;
   s.acts.push([kind, Math.round(s.stats.playedMs), r3(p.x), r3(p.y), p.z, ...args]);
   s.actedAt = { x: p.x, y: p.y, z: p.z };
+}
+
+// Notes act `kind` as done from where the player stands now, before it is
+// done (a teleport moves them), and takes it back if it then didn't work.
+// Returns what `run` returned.
+export function noteIf(s, worked, run, kind, ...args) {
+  noteAct(s, kind, ...args);
+  const a = Array.isArray(s.acts) ? s.acts.at(-1) : null;
+  const result = run();
+  if (a && !worked(result) && s.acts.at(-1) === a) s.acts.pop();
+  return result;
 }
 
 // Where the player is now, if they've walked WHERE_STEP since the last act.

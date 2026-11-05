@@ -1,5 +1,48 @@
 # Changelog
 
+## [0.194.0] - 2026-11-05
+
+The crystal chapter can be played in a shared world: release 1 of Watch's
+plan for bot players (`docs/game-design.md`, "Bot players and crystal shared
+worlds"). Bots that keep Watch company need a shared world that plays the
+game Watch develops, and every shared world ran the frozen old economy.
+
+- **Crystal rooms.** `POST /rooms` takes `eco` (`old` or `crystal`,
+  `src/net/protocol.js` `ECONOMIES`); the room keeps it in its meta (only a
+  crystal room writes it, so an old room's storage is as before) and says it
+  in the welcome. Every room made before is `old`, for good. The room's own
+  copy grows crystal land (`Shadow(seed, crystal)`).
+- **Crystal acts.** A crystal command (`k`), a crystal building moved (`m`)
+  and a flare lit or put out (`f`) are noted as acts when shared
+  (`src/core/acts.js` `noteIf`: noted from where the player stood, taken back
+  if refused) and replayed by the room (`src/core/replay.js`, now one handler
+  per kind). Crystal commands, facility moves and flares no longer refuse in
+  a shared world; flares still do in an old one.
+- **Old games stay out of crystal rooms.** The hello says `crystal: true`; a
+  game that doesn't is sent a world format one higher, so it says a newer
+  game is out and updates instead of growing the old land there.
+- **Starting.** Someone new in a crystal room starts the chapter
+  empty-handed and sees home ground, as in a new world (`revealHome`). A
+  save of the other economy doesn't make a world in a room (`joinState`).
+  Shared worlds are offered from a crystal world too (Settings → Worlds, join
+  links, reopening the game).
+- **The room agrees.** `test/unit/shadow-crystal.test.js` plays the whole
+  chapter in a crystal room through the shipped controller (the playtest
+  script now takes a `state` and a `tick`), from nothing to the machine
+  woken and a teleport there and back: no act refused, no drift, the same
+  heart, machine, gear, buildings and resources in the room as in the game.
+- **Two rules changed so the room can check them.** A teleport no longer
+  asks that the tile beside the stop was seen (you built or found what you
+  teleport to, so you stood there; the room doesn't keep your map). The
+  crystal chapter's last milestone is the machine woken, not "can Embark",
+  which a shared world never can.
+- **The room's light.** The room's view of the world over its edits now
+  counts its changes and tells observers like the game's maps, so light
+  (`src/core/illumination.js`) is worked out there as in the game.
+- **A way in.** `POST /admin/rooms/<id>/invite` makes an invite link as the
+  moderator, so Watch can get into a world made by hand.
+- ESLint warnings budget 221 → 220.
+
 ## [0.193.9] - 2026-11-03
 
 Watch asked for a proofread of What's new in both languages. Only wording

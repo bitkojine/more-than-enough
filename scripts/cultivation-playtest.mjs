@@ -16,9 +16,19 @@ import { reserveSeeds } from './playtest.mjs';
 // The wall budget only stops a hung run; the game-time budget is the check.
 // `shade: false` walks the heart home straight through the sun, to show the
 // sun matters; `camp: false` skips the carrier bench at the hiding place.
+// `state`: a crystal world to play instead of a new one (a crystal room's,
+// test/unit/shadow-crystal.test.js), and `tick` runs after every frame, as a
+// room connection would (say where you are, what you did).
 export function playCultivation(
   seed,
-  { wallSeconds = 300, log = () => {}, shade = true, camp = true } = {}
+  {
+    wallSeconds = 300,
+    log = () => {},
+    shade = true,
+    camp = true,
+    state: given = null,
+    tick = () => {}
+  } = {}
 ) {
   const hash = createHash('sha256');
   for (const name of readdirSync(new URL('../src/core/', import.meta.url))
@@ -34,7 +44,7 @@ export function playCultivation(
     hash.update(name).update(readFileSync(new URL(name, import.meta.url)));
   const sourceHash = hash.digest('hex');
   const started = performance.now(),
-    state = C.createState(seed, { cultivation: true }),
+    state = given ?? C.createState(seed, { cultivation: true }),
     initialSave = C.serialize(state),
     trace = [],
     stages = [];
@@ -78,6 +88,7 @@ export function playCultivation(
     else trace.push({ ticks: n });
     for (let i = 0; i < n; i++) {
       simulation.tick();
+      tick();
       ticks++;
     }
   }
@@ -457,6 +468,11 @@ export function playCultivation(
       jump({ type: 'teleport', x: machine.x, y: machine.y, to: stops[0].id }, stops[0]);
     if (stops.length) jump({ type: 'teleport', x: stops[0].x, y: stops[0].y }, machine);
     if (stops.length) stage('teleported to the farthest shelter and back');
+    // A crystal room has no Embark: the machine woken is the win there.
+    if (state.shared) {
+      if (!state.cultivation.completed) throw Error('activation did not complete world');
+      return finish('won');
+    }
     if (!C.canEmbark(state)) throw Error('activation did not complete world');
     const saved = C.deserialize(C.serialize(state));
     if (!saved?.cultivation.completed || !C.canEmbark(saved))

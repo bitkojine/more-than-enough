@@ -16,6 +16,7 @@
  *   POST /admin/rooms/<id>/ban         the same as freeze (no ban deletes anyone since v0.155.0)
  *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
  *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
+ *   POST /admin/rooms/<id>/invite      an invite link into it: {"uses", "life"} (both optional)
  *   POST /admin/rooms/<id>/revoke      stop an invite link: {"code"}
  *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
  *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
@@ -202,6 +203,7 @@ export class Rooms extends DurableObject {
       seed: r.seed,
       gen: r.gen,
       fmt: r.fmt,
+      ...(r.eco === 'crystal' ? { eco: r.eco } : {}),
       players: r.players.size,
       online,
       frozen,
@@ -296,6 +298,13 @@ export class Rooms extends DurableObject {
     if (err) return err;
     await this.persist();
     return null;
+  }
+  // An invite link from the moderator (Room.inviteAny): {code, until} or {error}.
+  async modInvite(id, ask) {
+    if (!this.room.ready || this.room.id !== id) return { error: 'room' };
+    const r = this.room.inviteAny(ask, Date.now());
+    if (!r.error) await this.persist();
+    return r;
   }
   // The moderator stops any invite link (Room.revokeAny). Error string or null.
   async modRevoke(id, code) {
@@ -439,7 +448,8 @@ export class Rooms extends DurableObject {
     // and then the room keeps what it knows: frozen, unless this player
     // turned it on before (src/net/protocol.js).
     const away = d.away === undefined ? undefined : d.away === true;
-    const r = await this.room.join(d.key, d.code, now, away);
+    // Whether the game can play a crystal room (0.194.0): only `true` counts.
+    const r = await this.room.join(d.key, d.code, now, away, d.crystal === true);
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error, ...(r.why ? { why: r.why } : {}) }));
       return ws.close(1008, r.error);

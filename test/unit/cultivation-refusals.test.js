@@ -125,14 +125,30 @@ test('crystal commands: covering needs a light there', () => {
   assert.equal(cmd(s, 'shade'), 'site', 'an unknown prop is no light');
 });
 
-test('crystal commands: refused in a shared world and in a world without crystal', () => {
-  const s = world();
-  give(s, R.lantern);
-  s.shared = 'W'.repeat(22);
-  assert.equal(cmd(s, 'craft', { kind: 'lantern' }), 'invalid');
-  assert.equal(s.cultivation.gear.lantern, false);
+// A crystal room (0.194.0) plays them, and hears of each one that worked.
+test('crystal commands: refused in a world without crystal; in a crystal room each one done is an act', () => {
   const old = C.createState(7);
+  old.acts = [];
   assert.equal(C.cultivationCommand(old, { type: 'craft', kind: 'lantern' }), 'invalid');
+  assert.deepEqual(old.acts, [], 'nothing to tell a room');
+  const s = world();
+  s.shared = 'W'.repeat(22);
+  s.acts = [];
+  assert.equal(cmd(s, 'craft', { kind: 'lantern' }), 'materials');
+  assert.deepEqual(s.acts, [], 'a refused command is no act');
+  give(s, R.lantern);
+  assert.equal(cmd(s, 'craft', { kind: 'lantern' }), 'ok');
+  assert.equal(s.cultivation.gear.lantern, true);
+  const p = s.player;
+  assert.deepEqual(s.acts, [
+    ['k', 0, p.x, p.y, p.z, 'craft', Math.floor(p.x), Math.floor(p.y), 'lantern']
+  ]);
+  assert.deepEqual(C.commandOfAct(s.acts[0]), {
+    type: 'craft',
+    x: Math.floor(p.x),
+    y: Math.floor(p.y),
+    kind: 'lantern'
+  });
 });
 
 test('crystal commands: a tile you have not seen, or not a whole tile, is refused', () => {

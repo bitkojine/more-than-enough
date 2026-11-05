@@ -45,12 +45,17 @@ const HAND_SLACK_MS = 2;
 const STRIDE = 40; // tiles a second anyone may cover between acts (room.js MAX_SPEED)
 const STRIDE_SLACK = 4; // tiles: rounding, a boat's drift
 
-// A map that reads through to `base` and keeps its own writes.
+// A map that reads through to `base` and keeps its own writes. Like the
+// core's VersionedMap (src/core/versioned-map.js), it counts its changes and
+// tells observers, so what light reaches (src/core/illumination.js) is worked
+// out on it as in the game.
 class Overlay {
+  #listeners = new Set();
   constructor(base) {
     this.base = base;
     this.own = new Map();
     this.gone = new Set();
+    this.revision = 0;
   }
   get(k) {
     return this.own.has(k) ? this.own.get(k) : this.gone.has(k) ? undefined : this.base.get(k);
@@ -59,20 +64,46 @@ class Overlay {
     return this.own.has(k) || (!this.gone.has(k) && this.base.has(k));
   }
   set(k, v) {
+    const before = this.get(k),
+      changed = !this.has(k) || before !== v;
     this.own.set(k, v);
     this.gone.delete(k);
+    if (changed) this.#changed(k, v, before);
     return this;
   }
   delete(k) {
+    const before = this.get(k),
+      had = this.has(k);
     this.own.delete(k);
     this.gone.add(k);
-    return true;
+    if (had) this.#changed(k, undefined, before);
+    return had;
+  }
+  observe(fn) {
+    this.#listeners.add(fn);
+    return () => this.#listeners.delete(fn);
+  }
+  #changed(k, after, before) {
+    this.revision++;
+    for (const fn of this.#listeners) fn(k, after, before);
+  }
+  *entries() {
+    for (const e of this.own) yield e;
+    for (const e of this.base) if (!this.own.has(e[0]) && !this.gone.has(e[0])) yield e;
+  }
+  *values() {
+    for (const [, v] of this.entries()) yield v;
+  }
+  [Symbol.iterator]() {
+    return this.entries();
   }
 }
 
 export class Shadow {
-  constructor(seed) {
-    this.base = createWorld(seed); // its generated land, cached for every player
+  // `crystal`: a crystal room's land (it grows differently) and rules.
+  constructor(seed, crystal = false) {
+    this.crystal = crystal;
+    this.base = createWorld(seed, crystal); // its generated land, cached for every player
     this.players = new Map(); // id -> {s, at, hand, last, checks, off, refused, why}
     this.bare = {
       ...this.base,
@@ -112,7 +143,15 @@ export class Shadow {
         props: new Map()
       });
     const s = joinState(
-      { save, seed: this.base.seed, mods: [], props: [], ext: room.ext, you: id },
+      {
+        save,
+        seed: this.base.seed,
+        mods: [],
+        props: [],
+        ext: room.ext,
+        you: id,
+        eco: this.crystal ? 'crystal' : 'old'
+      },
       room.id,
       null,
       null,
@@ -206,11 +245,12 @@ export class Shadow {
         continue;
       }
       this.until(s, a[1]);
-      sh.last = { x: a[2], y: a[3], z: a[4], ms: a[1] };
       if (!replayAct(s, a)) {
         refused++;
         sh.why.add(whyNot(s, a));
       }
+      // Where they are after it: where they stood, or where a teleport took them.
+      sh.last = { x: s.player.x, y: s.player.y, z: s.player.z, ms: a[1] };
     }
     this.until(s, to);
     sh.bank = Math.max(-SLACK_MS, bank - (s.stats.playedMs - from));

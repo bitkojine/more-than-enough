@@ -13,21 +13,31 @@ import { FLARE_COST, FLARE_TIME, FLARE_LIGHT, UNLIT_RADIUS } from './content.js'
 import { canAfford, spend, exploreRadius } from './economy.js';
 import { isDark, lightScale, activeCarriedLight, normalizeCarriedLight } from './light.js';
 import { lightCrystal } from './cultivation.js';
+import { noteIf } from './acts.js';
 
 export const flareLit = (s) => activeCarriedLight(s) === 'flare';
 const FLARE_EPSILON = 1e-9; // discard sub-nanosecond floating residue at burnout
 export const flareEndsWithin = (s, seconds) => flareLit(s) && s.flare <= seconds + FLARE_EPSILON;
 
 // Makes and lights a flare, or puts out the one in your hand: 'lit', 'out',
-// 'materials' (no metal) or 'invalid' (a shared world: its room doesn't
-// check flares yet).
+// 'materials' (no metal) or 'invalid' (an old-economy shared world: its room
+// doesn't check flares). A crystal room does (acts.js 'f').
 export function useFlare(s) {
+  if (!s.cultivation) return flare(s);
+  return noteIf(
+    s,
+    (r) => r === 'lit' || r === 'out',
+    () => flare(s),
+    'f'
+  );
+}
+function flare(s) {
   if (contentLocked(s, 'flare')) return 'locked';
   if (s.flare > 0) {
     s.flare = 0;
     return 'out';
   }
-  if (s.shared) return 'invalid';
+  if (s.shared && !s.cultivation) return 'invalid';
   if (!canAfford(s.inv, FLARE_COST)) return 'materials';
   spend(s, FLARE_COST, 'tools');
   s.flare = FLARE_TIME;

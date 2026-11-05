@@ -244,7 +244,7 @@ export class RoomPlay {
   }
 
   shadowOf() {
-    return (this.shadow ||= new Shadow(this.seed));
+    return (this.shadow ||= new Shadow(this.seed, this.eco === 'crystal'));
   }
 
   // Buildings and props player `id` put up, as the room's copy of their

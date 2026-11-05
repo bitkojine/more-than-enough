@@ -119,7 +119,9 @@ export function cleanWelcome(d) {
     fmt,
     // The room checks moves (v0.169.0): only then may a building move here.
     moves: d.moves === true,
-    collectAt: d.collectAt === true
+    collectAt: d.collectAt === true,
+    // How the world plays (0.194.0): a room from before says nothing, and plays the old economy.
+    eco: d.eco === 'crystal' ? 'crystal' : 'old'
   };
 }
 

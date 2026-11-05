@@ -12,7 +12,7 @@
 import { hash2 } from './noise.js';
 import { SURFACE } from './coords.js';
 import { TILE_INFO } from './tiles.js';
-import { tileAt, isExplored } from './world.js';
+import { tileAt } from './world.js';
 import { hidingPlace, nearSurfaceGrass } from './cultivation-heart.js';
 
 export const THIEF_DISTANCE = 5000; // metres from home to where the thief went
@@ -47,13 +47,14 @@ export function teleportStops(s) {
   return c.facilities.filter((f) => f.kind === 'shelter').sort((a, b) => far(b) - far(a));
 }
 
-// Where you land beside building `b`: a seen, dry floor tile next to it, one
-// that no other building stands on if there is one.
+// Where you land beside building `b`: a dry floor tile next to it, one that
+// no other building stands on if there is one. You built it or found it, so
+// you have seen beside it: that is not asked again (a room, doing the same,
+// doesn't keep the map you saw: src/game/together.js).
 function landing(s, b) {
   const w = s.world,
     taken = (x, y) => s.cultivation.facilities.some((f) => f.x === x && f.y === y && f.z === b.z),
     floor = (x, y) => {
-      if (!isExplored(w, x, y, b.z)) return false;
       const info = TILE_INFO[tileAt(w, x, y, b.z)];
       return info.walk && !info.swim;
     };

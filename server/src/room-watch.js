@@ -4,6 +4,7 @@
 
 import { codeTag } from './audit.js';
 import { newWatch, step, countCheat, CHEATS_TO_FREEZE } from './moves.js';
+import * as Invites from './invites.js';
 
 export const MAX_GRAVES = 300; // tombstones a world keeps (the oldest go first)
 
@@ -29,6 +30,26 @@ export class RoomWatch {
     if (w.cheats >= CHEATS_TO_FREEZE && this.players.has(id) && !this.players.get(id).frozen)
       return this.freeze(id, now, 'anti-cheat: ' + why, 'auto');
     return {}; // refused quietly: a socket isn't cut for it (see Bucket strikes)
+  }
+
+  // An invite link from Watch, through the moderator's route (0.194.0): how
+  // anyone, Watch included, first gets into a world Watch made (a crystal
+  // room, say) without holding its creator's key. Made by 'mod', like any
+  // other link otherwise. {code, until} or {error}.
+  inviteAny(ask, now) {
+    if (this.copy) return { error: 'copy' }; // nobody else comes into a copy
+    const { code, made, full } = Invites.linkFor(this.invites, 'mod', ask, now);
+    if (full) return { error: 'full' };
+    if (made) {
+      this.dirty.meta = true;
+      this.audit(now, null, 'invite', {
+        code: codeTag(code),
+        uses: ask.uses,
+        life: ask.life,
+        by: 'mod'
+      });
+    }
+    return { code, until: this.invites.get(code).until };
   }
 
   // Watch stops any invite link, through the moderator's route. The room's

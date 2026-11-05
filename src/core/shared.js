@@ -8,8 +8,9 @@ import { SURFACE, Z_MIN, unpackKey } from './coords.js';
 import { putRichness, walkable } from './world.js';
 import { EXTRACTORS, PROPS } from './content.js';
 import { serialize, deserialize, SAVE_VERSION } from './save.js';
-import { blankState } from './state.js';
+import { blankState, revealHome } from './state.js';
 import { RESOURCES } from './tiles.js';
+import { newCultivation } from './cultivation-model.js';
 
 // The world part of a state, as a room is made from it: the seed and every
 // edit. Your buildings come along; the room marks them as yours.
@@ -47,6 +48,8 @@ const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 // A playable state from what the room sent (its welcome) and the explored
 // map this phone kept, or null if it doesn't make a world. A new player
 // starts fresh, next to `near` if given (a friend, wherever they are).
+// A crystal room's player always plays the crystal chapter, an old room's
+// never: a save of the other kind (a mended or edited one) doesn't make a world.
 export function joinState(welcome, room, fog, near, make = undefined) {
   let mine = {};
   if (typeof welcome.save === 'string') {
@@ -79,16 +82,35 @@ export function joinState(welcome, room, fog, near, make = undefined) {
       b: e[4] === welcome.you ? waiting.get(e[1] + ',' + e[2] + ',' + e[3]) || 0 : 0
     }))
   };
+  if (welcome.eco === 'crystal') startCrystal(d, mine);
   const s = deserialize(JSON.stringify(d), make);
-  if (!s) return null;
+  if (!fitsRoom(s, welcome)) return null;
   s.shared = room;
   s.me = welcome.you;
   if (!mine.player && near && near.z <= SURFACE && near.z >= Z_MIN) {
     s.player = beside(s.world, near, playersIn(welcome));
     s.underground.deepest = Math.min(s.underground.deepest, near.z);
   }
+  if (!mine.player) seeHome(s);
   s.world.edits = [];
   return s;
+}
+
+// A crystal room (welcome.eco, 0.194.0) plays the crystal chapter: a
+// newcomer starts it empty-handed, as in a new world of their own.
+function startCrystal(d, mine) {
+  if (isObj(mine.cultivation)) return;
+  d.cultivation = newCultivation();
+  d.logisticsModel = 'depot-v1';
+}
+
+// Whether state `s` (or none) plays as the room does: the crystal chapter in a
+// crystal room, the old economy in any other.
+const fitsRoom = (s, welcome) => !!s && !s.cultivation === (welcome.eco !== 'crystal');
+
+// Someone new in a crystal room sees home ground, as in a new world of their own.
+function seeHome(s) {
+  if (s.cultivation) revealHome(s);
 }
 
 // Where a newcomer arrives: a step beside the friend they join, so the two

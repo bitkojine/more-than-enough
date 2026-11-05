@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.194.0':
+    'Kristalų skyrių dabar galima žaisti ir bendrame pasaulyje. Watch gali tokį sukurti, o jame kiekvienas turi savo mašiną ir savo pavogtą širdį, kurią reikia parnešti namo, pagal tas pačias taisykles kaip ir savo pasaulyje. Anksčiau sukurti bendri pasauliai ir toliau žaidžiami kaip visada.',
   'news.0.193.9':
     'Skiltis „Kas naujo“ abiem kalbomis skaitosi geriau: senesniuose įrašuose pataisyta rašyba, gramatika ir formuluotės, o lietuviškuose Mica ir kiti dalykai dabar vadinami taip pat, kaip žaidime.',
   'news.0.193.8':

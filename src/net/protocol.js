@@ -229,7 +229,26 @@ export function cleanAct(a) {
     return [...head, a[5]];
   if (a[0] === 'u' && a.length === 6 && typeof a[5] === 'string' && UPGRADE_RE.test(a[5]))
     return [...head, a[5]];
-  return null;
+  return cleanCrystalAct(a, head, tile);
+}
+
+// A crystal room's acts (0.194.0): a command with its tile and its one
+// argument (a kind's name, a stop's number or 0), a building moved, a flare.
+const STOP_MAX = 1_000_000;
+const NAME = (v) => typeof v === 'string' && NAME_RE.test(v);
+const CRYSTAL_ACTS = {
+  k: (a, tile) =>
+    a.length === 9 &&
+    NAME(a[5]) &&
+    tile(a[6]) &&
+    tile(a[7]) &&
+    (NAME(a[8]) || (isInt(a[8]) && a[8] >= 0 && a[8] <= STOP_MAX)),
+  m: (a, tile) => a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8]),
+  f: (a) => a.length === 5
+};
+function cleanCrystalAct(a, head, tile) {
+  const ok = Object.hasOwn(CRYSTAL_ACTS, a[0]) && CRYSTAL_ACTS[a[0]](a, tile);
+  return ok ? [...head, ...a.slice(5)] : null;
 }
 
 export function cleanActs(list) {
@@ -312,8 +331,13 @@ export function cleanCreate(d) {
   const world = cleanWorld(d.world);
   if (!world) return null;
   const time = d.time === undefined ? 0 : cleanTime(d.time);
-  return time === null ? null : { key: d.key, world, time };
+  if (time === null || (d.eco !== undefined && !ECONOMIES.includes(d.eco))) return null;
+  return { key: d.key, world, time, eco: d.eco ?? 'old' };
 }
+
+// How a shared world plays (0.194.0): the old economy, as every room made
+// before, or the crystal chapter.
+export const ECONOMIES = Object.freeze(['old', 'crystal']);
 
 export function cleanStatus(st) {
   return STATUS.includes(st) ? st : null;

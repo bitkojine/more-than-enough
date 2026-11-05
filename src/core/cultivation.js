@@ -10,6 +10,7 @@ import { T, TILE_INFO } from './tiles.js';
 import { illuminationAt, LIGHT_MAX } from './illumination.js';
 import { earn, spend as payInventory } from './economy.js';
 import { MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
+import { noteIf } from './acts.js';
 import {
   HEART_SUN,
   HEART_MEND,
@@ -259,16 +260,23 @@ export function facilitySite(s, kind, x, y, moving = null) {
 }
 // Moves facility `b` to tile (x, y) of its layer, in reach: free, and all it
 // holds goes with it (Watch, 2026-10-26). A conduit joins what is near it there.
+// In a crystal room it is noted as an act (acts.js 'm').
 export function moveFacility(s, b, x, y) {
+  return noteIf(
+    s,
+    (r) => r === 'ok',
+    () => move(s, b, x, y),
+    'm',
+    b?.x,
+    b?.y,
+    x,
+    y
+  );
+}
+function move(s, b, x, y) {
   if (contentLocked(s, b?.kind)) return 'locked';
   const c = s.cultivation;
-  if (
-    !c ||
-    s.shared ||
-    !c.facilities.includes(b) ||
-    !BUILT_FACILITIES.includes(b.kind) ||
-    b.z !== s.player.z
-  )
+  if (!c || !c.facilities.includes(b) || !BUILT_FACILITIES.includes(b.kind) || b.z !== s.player.z)
     return 'invalid';
   if (!atInteraction(s, x, y)) return 'reach';
   const why = facilitySite(s, b.kind, x, y, b);

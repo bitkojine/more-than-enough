@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.194.0':
+    'The crystal chapter can now be played in a shared world. Watch can make one, and everyone in it has their own machine and their own stolen heart to bring home, by the same rules as in a world of your own. Shared worlds made before keep playing as they always have.',
   'news.0.193.9':
     'What’s new reads better in both languages: spelling, grammar and wording are fixed in older notes, and the Lithuanian ones now spell Mica and name things the way the game does.',
   'news.0.193.8':

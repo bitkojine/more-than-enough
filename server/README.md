@@ -85,7 +85,16 @@ shared with the game.
    with the world edits they made (whenever it writes them), so a room
    that restarts (a deploy) never has the world ahead of their progress,
    and the acts it hadn't stored come again the same way.
-9. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
+9. **Crystal rooms** (0.194.0): a world Watch makes with `"eco": "crystal"`
+   in the create plays the crystal chapter instead of the old economy (every
+   room made before stays `old`, for good: `eco` in the welcome says which).
+   Its land grows as a crystal world's does, everyone in it has their own
+   machine and stolen heart, and the room replays crystal commands (`k`),
+   crystal buildings moved (`m`) and flares (`f`) like every other act. A
+   game says it can play one with `"crystal": true` in its hello; one that
+   doesn't is told of a newer world format (`fmt` one higher) and updates
+   first, so an old game never grows the old land in a crystal room.
+10. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
    and, if it does, how many play there now (`online`, a count, never who):
    a game that couldn't get in asks, so it stops offering a world that is
    gone (an admin copy whose time is up), and the Worlds list shows who's playing.
@@ -233,7 +242,7 @@ enter a shared world, and in Settings.
 
 | `e` | when | fields |
 | --- | --- | --- |
-| `create` | the room is made | `seed`, `fmt`, how many `mods`, `props`, `ext` it came with |
+| `create` | the room is made | `seed`, `fmt`, `eco` (`old` or `crystal`), how many `mods`, `props`, `ext` it came with |
 | `join` | a player comes in | `new` (first time), `c` (their colour), `via` (first 6 characters of the invite), `at` [x, y, z], `online` (players in now) |
 | `deny` | someone is turned away | `why`: `frozen`, `invite` (none, or not working), `full`, `limit` (the link's maker brought in `LIMITS.invitesPerDay` people today) |
 | `at` | every 15 s while a player moves, and when they leave | `x`, `y`, `z`, `act` (what they're doing), `secs` since the last one, `walked` tiles, `layers` changed, `dug`, `props`, `built`, `refused` edits, `drops` (messages the service threw away) |
@@ -242,7 +251,7 @@ enter a shared world, and in Settings.
 | `prog` | their progress changed (at most once a minute, at once for a new goal) | `goal`, `ever` (all-time total), `pres`, `ins`, `ab`, `deep`, `tools`, `perks`, `inv`, `built`, `played` (seconds), `nU` (unlocks), `gained` (new unlocks) |
 | `st` | away or back | `st` |
 | `leave` | a connection ends | `clean` (left on purpose), `secs` in this visit, `at` |
-| `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes) |
+| `invite`, `revoke` | a link is made or stopped | `code` (first 6 characters), `uses`, `life` (minutes); `by: 'mod'` for one the moderator made |
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
 | `away` | a player's first progress after coming back, when their buildings made something while they were away (stage 3: up to 8 hours, worked out by the room) | `secs` away |
 | `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
@@ -284,6 +293,11 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
+- `POST /admin/rooms/<id>/invite` with `{"uses", "life"}` (both optional,
+  as a sign offers them; 3 people for a week otherwise): an invite link made
+  by the moderator, answered `{code, until}`. The link is
+  `<game>#join=<room>.<code>`. It's how Watch gets into a world made by hand
+  (the creator's key is only the create's), a crystal room included.
 - `POST /admin/rooms/<id>/revoke` with `{"code": "<invite code>"}`: stops
   an invite link (the code after the dot in the link); anyone may stop
   their own in the game, the moderator any of them here.

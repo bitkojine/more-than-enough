@@ -136,9 +136,15 @@ test('protocol: a create is only real once the key, world and time check out', (
   assert.deepEqual(P.cleanCreate({ t: 'create', key, world: { seed: 7 }, time: 5 }), {
     key,
     world: { seed: 7, mods: [], props: [], ext: [] },
-    time: 5
+    time: 5,
+    eco: 'old'
   });
   assert.equal(P.cleanCreate({ t: 'create', key, world: { seed: 7 } }).time, 0, 'time is optional');
+  assert.equal(
+    P.cleanCreate({ t: 'create', key, world: { seed: 7 }, eco: 'crystal' }).eco,
+    'crystal',
+    'a crystal room'
+  );
   for (const bad of [
     null,
     'junk',
@@ -147,7 +153,9 @@ test('protocol: a create is only real once the key, world and time check out', (
     { t: 'create', key: 'short', world: { seed: 7 } },
     { t: 'create', key, world: null },
     { t: 'create', key, world: { seed: 0 } },
-    { t: 'create', key, world: { seed: 7 }, time: -1 }
+    { t: 'create', key, world: { seed: 7 }, time: -1 },
+    { t: 'create', key, world: { seed: 7 }, eco: 'gold' },
+    { t: 'create', key, world: { seed: 7 }, eco: null }
   ]) {
     assert.equal(P.cleanCreate(bad), null, JSON.stringify(bad));
   }

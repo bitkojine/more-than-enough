@@ -3,7 +3,14 @@
  * and thawing, invite links, copies, backups and restores. `env` holds the
  * Durable Object namespaces, so the unit tests pass stand-ins. */
 
-import { ROOM_ID_RE, ID_RE, randomRoomId, randomHex, playerId } from '../../src/net/protocol.js';
+import {
+  ROOM_ID_RE,
+  ID_RE,
+  randomRoomId,
+  randomHex,
+  playerId,
+  cleanInviteAsk
+} from '../../src/net/protocol.js';
 import { VERSION } from '../../src/version.js';
 import { copyEntries, COPY_MS } from './copy.js';
 import { worldOf, isSmokeTest } from './admin.js';
@@ -144,6 +151,13 @@ const ROOM_ROUTES = {
   async 'POST thaw'({ request, id, room }) {
     const d = await playerBody(request);
     return d ? done(await room.modThaw(id, d.id)) : bad();
+  },
+  // An invite link into a world (0.194.0): how Watch gets into a world made
+  // by hand. The link is <game>#join=<room>.<code>, as a sign's QR.
+  async 'POST invite'({ request, id, room }) {
+    const d = (await readJson(request, 1024)) ?? {};
+    const r = await room.modInvite(id, cleanInviteAsk(d));
+    return r.error ? done(r.error) : respond({ code: r.code, until: r.until }, 200, null);
   },
   // Stopping any invite link (only its maker can in the game itself): for a
   // link that got out, without taking the person who made it along.
