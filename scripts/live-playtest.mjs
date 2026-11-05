@@ -179,7 +179,7 @@ const { code } = await admin(`/admin/rooms/${ROOM}/invite`, { uses: 1, life: 30 
 await send('Page.navigate', { url: `${GAME}/#join=${ROOM}.${code}` });
 // A browser that hasn't been in this world before asks first (the privacy
 // policy goes with it), even for a character the room knows: yes.
-const asking = `!document.getElementById('ask')?.hidden`;
+const asking = `document.getElementById('ask')?.hidden === false`;
 if (await waitFor(`${asking} || ${inShared}`, 60_000))
   if (await js(asking)) await js(`document.querySelector('#ask .primary').click(), true`);
 if (!(await waitFor(inShared, 90_000))) {
