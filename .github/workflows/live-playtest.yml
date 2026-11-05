@@ -1,0 +1,50 @@
+# A playtest of the live game in a live shared world (scripts/live-playtest.mjs):
+# headless Chrome joins the room by a moderator invite, plays a few minutes
+# through the game's own buttons, leaves and comes back, and the room is asked
+# whether it refused, counted or froze anything. Run by hand (or by an agent,
+# whose own machine can't open WebSockets): Actions → Live playtest → Run.
+
+name: Live playtest
+
+on:
+  workflow_dispatch:
+    inputs:
+      room:
+        description: 'Room id (22 characters) of the shared world to play in'
+        required: true
+        type: string
+      minutes:
+        description: 'Minutes to play (0.5 to 30)'
+        required: false
+        default: '3'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-playtest-${{ inputs.room }}
+  cancel-in-progress: false
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node (latest LTS, from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+
+      - name: Play
+        env:
+          ROOM: ${{ inputs.room }}
+          MINUTES: ${{ inputs.minutes }}
+          ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
+          CHROME_PATH: /usr/bin/google-chrome
+        run: |
+          echo "::add-mask::$ROOM"
+          node scripts/live-playtest.mjs

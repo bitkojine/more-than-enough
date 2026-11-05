@@ -298,6 +298,10 @@ The moderator's routes (`Authorization: Bearer <token>`):
   by the moderator, answered `{code, until}`. The link is
   `<game>#join=<room>.<code>`. It's how Watch gets into a world made by hand
   (the creator's key is only the create's), a crystal room included.
+  The live playtest (`.github/workflows/live-playtest.yml`, run by hand
+  with a room id) uses it too: `scripts/live-playtest.mjs` joins as one fixed
+  playtester character per room, plays a few minutes in headless Chrome,
+  comes back, and fails if the room refused, counted or froze anything.
 - `POST /admin/rooms/<id>/revoke` with `{"code": "<invite code>"}`: stops
   an invite link (the code after the dot in the link); anyone may stop
   their own in the game, the moderator any of them here.
