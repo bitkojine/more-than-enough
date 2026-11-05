@@ -51,7 +51,22 @@ No wood or tree cutting. Each purchased equipment or building tier needs a disti
 No world is ever lost (Watch, 2026-10-26): Embark never loses or destroys anything, the world left behind stays saved as it was, and the player can always return to any world from Settings → Worlds, older copies kept on the device included (0.193.0). Every new world starts empty-handed; only knowledge and records carry over. Embark from an old-economy world starts a crystal world too (Watch, 2026-10-26); the old world stays saved and playable. Every purchase and upgrade needs a physical identity. Building functions and outputs must be visually understandable. Avoid filler, forced waiting and maintenance click taxes; forty meaningful hours is a future content goal, not a reason to stretch prices or timers. AUTO remains a fair development tool subject to human rules and information. Preserve all existing worlds and earned progress; multiplayer hardening remains deferred.
 
 ### The old economy is frozen as legacy — confirmed, 2026-11-02
-Old solo worlds and every shared world keep the old economy (refineries, Abundance, AUTO). It stays fully loadable and playable, with every earned building, tool and record kept, and it still gets fixes for bugs, saves and safety. New features, content and rules target only the crystal economy; nothing new is built for the old one. Bringing the crystal chapter to shared worlds stays open for later. Freezing deletes nothing: no world, building or progress is removed or migrated away (Watch chose this over keeping both alive or moving shared worlds to crystal now).
+Old solo worlds and every shared world keep the old economy (refineries, Abundance, AUTO). It stays fully loadable and playable, with every earned building, tool and record kept, and it still gets fixes for bugs, saves and safety. New features, content and rules target only the crystal economy; nothing new is built for the old one. Bringing the crystal chapter to shared worlds is now planned as new crystal rooms (below); existing shared worlds stay on the old economy. Freezing deletes nothing: no world, building or progress is removed or migrated away (Watch chose this over keeping both alive or moving shared worlds to crystal now).
+
+### Bot players and crystal shared worlds — confirmed, 2026-11-05
+
+Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Design only; nothing is built yet.
+
+- Bots are company first: the world feels lived in and bots invite you to play. Bugs they find are a side effect.
+- They play the crystal game in a new crystal shared world. Existing shared worlds keep the old economy.
+- They play only while a person (Watch or anyone invited) is in the world, and sleep when it is empty.
+- They run as a separate program on GitHub Actions that joins like any player, started by the room when a person joins. Every act goes through the same rules and anti-cheat as a person's; bots get no exceptions.
+- The game's own brain plays every step; Cloudflare Workers AI picks each bot's next goal now and then, within the free daily allowance. Bots never show text the model wrote, only fixed phrases in English and Lithuanian.
+- They are clearly marked as bots (a tag by the name, and in Players).
+- Each works on its own story and sometimes helps someone nearby.
+- They invite you with a line in the message log when you open the game, at most once a day, one tap to join.
+
+In a crystal shared world every player, bot or person, has their own machine and stolen heart. The machines stand side by side at spawn and every heart hides in the same direction, so the trips are shared. Any heart shelter or camp cools anyone's carrier. Crystal is fully shared: anyone can tend, harvest or move anyone's crystal, and anyone's light hurts all of it. Once your machine is awake, every heart shelter in the world is a teleport stop for you.
 
 ### No phones or laptops in the world — confirmed, 2026-10-24
 Characters no longer carry a phone or laptop, in any world. A device in hand
