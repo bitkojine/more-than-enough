@@ -22,12 +22,16 @@ on:
         description: 'Ten distinct bot players, each required to wake their machine'
         type: boolean
         default: false
+      slots:
+        description: 'Optional JSON list of bot slots to resume, e.g. [1,2]'
+        type: string
+        default: ''
 
 permissions:
   contents: read
 
 concurrency:
-  group: live-playtest-${{ inputs.room }}
+  group: live-playtest-${{ inputs.room }}-${{ inputs.slots }}
   cancel-in-progress: false
 
 jobs:
@@ -36,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        bot: ${{ fromJSON(inputs.bots && '[1,2,3,4,5,6,7,8,9,10]' || '[0]') }}
+        bot: ${{ fromJSON(inputs.slots || (inputs.bots && '[1,2,3,4,5,6,7,8,9,10]' || '[0]')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 80
     steps:
