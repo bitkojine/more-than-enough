@@ -309,6 +309,12 @@ The moderator's routes (`Authorization: Bearer <token>`):
   with a room id) uses it too: `scripts/live-playtest.mjs` joins as one fixed
   playtester character per room, plays a few minutes in headless Chrome,
   comes back, and fails if the room refused, counted or froze anything.
+  The workflow's `bots` option starts ten distinct, stable bot characters on
+  separate runners. Each uses the game's AUTO controls and must wake its own
+  machine before the time limit, then reconnect with the chapter still complete.
+  Use a crystal room and `minutes: 60`; rerunning resumes those same characters.
+  Locally, `BOT_SLOT=1` through `10` selects a character and `REQUIRE_WIN=1`
+  requires completion. The default playtester keeps its existing identity.
 - `POST /admin/rooms/<id>/revoke` with `{"code": "<invite code>"}`: stops
   an invite link (the code after the dot in the link); anyone may stop
   their own in the game, the moderator any of them here.

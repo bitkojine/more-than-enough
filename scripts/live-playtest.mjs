@@ -38,14 +38,18 @@ const TOKEN = env.ADMIN_TOKEN || '';
 const MINUTES = Math.min(60, Math.max(0.5, Number(env.MINUTES) || 20));
 const CHROME = env.CHROME_PATH || 'google-chrome';
 const LOG_MS = 30_000; // between two lines on where it is
+// Stable slots resume the same ten characters on subsequent runs.
+const BOT = env.BOT_SLOT || '';
+const REQUIRE_WIN = env.REQUIRE_WIN === '1';
 
 if (!ROOM_ID_RE.test(ROOM) || TOKEN.length < 32) {
   console.error('usage: ROOM=<room id> ADMIN_TOKEN=<token> node scripts/live-playtest.mjs');
   process.exit(2);
 }
+if (BOT && !/^(?:[1-9]|10)$/.test(BOT)) throw Error('BOT_SLOT must be 1 to 10');
 
 const key = createHash('sha256')
-  .update('mte live playtester|' + ROOM + '|' + TOKEN)
+  .update('mte live playtester|' + ROOM + '|' + TOKEN + (BOT ? '|bot|' + BOT : ''))
   .digest('hex');
 const me = await playerId(ROOM, key);
 const report = [];
@@ -191,7 +195,7 @@ const told = (w) =>
   `heart ${w.heart ?? '-'}${w.woken ? ', MACHINE AWAKE' : ''}, holding ${JSON.stringify(w.inv)}`;
 
 say(
-  `Live playtest of ${GAME} in room ${ROOM.slice(0, 6)}…, as player ${me}, ${MINUTES} min of AUTO`
+  `Live playtest${BOT ? ' bot ' + BOT : ''} of ${GAME} in room ${ROOM.slice(0, 6)}…, as player ${me}, ${MINUTES} min of AUTO`
 );
 const before = await roster();
 const { code } = await admin(`/admin/rooms/${ROOM}/invite`, { uses: 1, life: 30 });
@@ -211,6 +215,7 @@ if (!(await waitFor(inShared, 90_000))) {
     `In: game ${info.version}, plays the ${info.eco} economy` + (before ? ', coming back' : ', new')
   );
   if (info.crystal !== info.land) fail('the crystal chapter and the land disagree');
+  if (REQUIRE_WIN && !info.crystal) throw Error('Winning bots require a crystal room');
   const start = await js(where);
   say('Start: ' + told(start));
   await js(`MTE_GAME.setAuto(true), true`);
@@ -225,6 +230,7 @@ if (!(await waitFor(inShared, 90_000))) {
   }
   await js(pressP(false));
   if (last.woken && !start.woken) say('AUTO woke the machine');
+  if (REQUIRE_WIN && !last.woken) fail('the machine was not awake before the time limit');
   if (last.progress <= start.progress && !start.woken) fail('AUTO got nowhere');
   await sleep(15_000); // its progress goes to the room every few seconds
   const held = await js(where);
@@ -245,6 +251,7 @@ if (!(await waitFor(inShared, 90_000))) {
   else {
     const back = await js(where);
     say('Back: ' + told(back));
+    if (REQUIRE_WIN && !back.woken) fail('the room did not retain the completed chapter');
     if (back.progress < held.progress) fail('coming back, some of the progress was gone');
     for (const [k, n] of Object.entries(held.inv))
       if ((back.inv[k] ?? 0) < n) fail(`coming back, ${n - (back.inv[k] ?? 0)} ${k} was gone`);
