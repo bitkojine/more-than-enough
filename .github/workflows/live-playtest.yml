@@ -26,16 +26,58 @@ on:
         description: 'Optional JSON list of bot slots to resume, e.g. [1,2]'
         type: string
         default: ''
+      diagnose_run:
+        description: 'Inspect failed jobs from an earlier run without starting players'
+        type: string
+        default: ''
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: live-playtest-${{ inputs.room }}-${{ inputs.slots }}
+  group: live-playtest-${{ inputs.room }}-${{ inputs.slots }}-${{ inputs.diagnose_run }}
   cancel-in-progress: false
 
 jobs:
+  diagnose:
+    if: inputs.diagnose_run != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read failed job logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.diagnose_run }}
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/jobs?per_page=100" \
+            --jq '.jobs[] | select(.conclusion == "failure") | .id' > job-ids.txt
+          while read -r job; do
+            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job/logs" > job.log
+            python3 - "$job" <<'PY'
+          import sys
+          from pathlib import Path
+          log = Path('job.log').read_text()
+          categories = {
+              'CHROME_START_FAILED': 'Chrome did not open DevTools',
+              'JOIN_FAILED': 'the game never got into the shared world',
+              'WRONG_ECONOMY': 'Winning bots require a crystal room',
+              'WIN_TIMEOUT': 'the machine was not awake before the time limit',
+              'PAGE_ERROR': 'the page threw:',
+              'JS_TYPE_ERROR': 'TypeError:',
+              'HTTP_403': 'HTTP 403',
+              'HTTP_429': 'HTTP 429',
+              'HTTP_500': 'HTTP 500',
+              'BOT_FROZEN': 'the room froze the playtester',
+              'NO_PROGRESS': 'AUTO got nowhere',
+          }
+          found = [name for name, pattern in categories.items() if pattern in log]
+          # Only these fixed labels leave the runner; no log text is published.
+          print('::warning title=Bot failure categories::' + ', '.join(found or ['UNCLASSIFIED']))
+          PY
+          done < job-ids.txt
   play:
+    if: inputs.diagnose_run == ''
     name: Play ${{ matrix.bot }}
     strategy:
       fail-fast: false
@@ -69,6 +111,17 @@ jobs:
           from pathlib import Path
           log = Path('playtest.log')
           if log.exists():
-              for line in log.read_text().splitlines()[-20:]:
-                  safe = line.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
-                  print('::error title=Bot playtest::' + safe)
+              text = log.read_text()
+              labels = {
+                  'CHROME_START_FAILED': 'Chrome did not open DevTools',
+                  'JOIN_FAILED': 'the game never got into the shared world',
+                  'WRONG_ECONOMY': 'Winning bots require a crystal room',
+                  'WIN_TIMEOUT': 'the machine was not awake before the time limit',
+                  'PAGE_ERROR': 'the page threw:',
+                  'JS_TYPE_ERROR': 'TypeError:',
+                  'HTTP_403': 'HTTP 403',
+                  'HTTP_429': 'HTTP 429',
+                  'HTTP_500': 'HTTP 500',
+              }
+              found = [name for name, pattern in labels.items() if pattern in text]
+              print('::error title=Bot failure categories::' + ', '.join(found or ['UNCLASSIFIED']))
