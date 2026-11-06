@@ -50,10 +50,22 @@ jobs:
           RUN_ID: ${{ inputs.diagnose_run }}
         run: |
           [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          echo '::notice::DIAGNOSIS_STARTED'
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/jobs?per_page=100" \
-            --jq '.jobs[] | select(.conclusion == "failure") | .id' > job-ids.txt
+            --jq '.jobs[] | select(.conclusion == "failure") | .id' > job-ids.txt || {
+              echo '::error::JOB_LIST_UNAVAILABLE'
+              exit 1
+            }
           while read -r job; do
-            gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job/logs" > job.log
+            if ! gh api "repos/$GITHUB_REPOSITORY/actions/jobs/$job/logs" > job.log 2> fetch-error.log; then
+              python3 - <<'PY'
+          from pathlib import Path
+          text = Path('fetch-error.log').read_text()
+          codes = [str(code) for code in (401, 403, 404, 410, 429, 500, 502, 503) if str(code) in text]
+          print('::warning::JOB_LOG_UNAVAILABLE ' + ','.join(codes))
+          PY
+              continue
+            fi
             python3 - "$job" <<'PY'
           import sys
           from pathlib import Path
