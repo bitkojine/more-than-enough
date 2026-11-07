@@ -11,6 +11,14 @@
 
 import { CULTIVATION_LOOK, machineSections } from './cultivation-model.js';
 
+// What may be done at someone else's building, and the kinds it takes.
+// A move (0.201.0) takes the tile it goes to as well (tx, ty), on the same layer.
+export const SHARED_JOBS = Object.freeze({
+  tend: ['chamber'],
+  collect: ['chamber', 'vault'],
+  move: ['chamber', 'cooler', 'vault']
+});
+
 export const THEIRS_EACH = 200; // one player's buildings anyone else is told of, at most
 const ID = /^[0-9a-f]{16}$/;
 

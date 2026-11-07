@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.201.0':
+    'Bendrame kristalų pasaulyje dabar gali perkelti ir kito žaidėjo kristalų kamerą, aušintuvą ar saugyklą: atidaryk jo kortelę, pasirink „Perkelti“ ir padėk netoliese, kur nori. Jo žaidimas jį perkelia, o žinutė jam pasako, kas tai padarė.',
   'news.0.200.1':
     'Kai skiltyje „Moksliukams“ įjungtas AUTO mygtukas, virš jo nebekabo tuščias burbulas. Burbulas „Laikyk nuspaudęs – žais pats“ rodomas tik po trumpo paspaudimo, kaip anksčiau.',
   'news.0.200.0':

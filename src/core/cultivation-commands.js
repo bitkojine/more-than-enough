@@ -14,7 +14,6 @@ import { invalidateIllumination } from './illumination.js';
 import { canAfford } from './economy.js';
 import { noteIf } from './acts.js';
 import { theirsAt } from './cultivation-theirs.js';
-import { askShared } from './cultivation-share.js';
 import {
   CULTIVATION_RECIPES,
   MACHINE_REPAIRS,
@@ -36,7 +35,8 @@ import {
   qualityMean,
   payCultivation as pay,
   earnCultivation as earned,
-  forgetCultivationIndex
+  forgetCultivationIndex,
+  askShared
 } from './cultivation.js';
 
 const canPay = (s, cost) => canAfford(s.inv, cost);

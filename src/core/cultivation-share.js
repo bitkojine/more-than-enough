@@ -22,28 +22,18 @@ import { CULTIVATION_RECIPES, COOL } from './cultivation-model.js';
 import {
   qualityMean,
   exposeCargo,
-  payCultivation as pay,
-  earnCultivation as earned
+  earnCultivation as earned,
+  forgetCultivationIndex,
+  askShared
 } from './cultivation.js';
-import { canAfford } from './economy.js';
 import { noteAct } from './acts.js';
+import { TILE_INFO } from './tiles.js';
+import { tileAt } from './world.js';
+import { packKey } from './coords.js';
+import { theirsAt, SHARED_JOBS } from './cultivation-theirs.js';
+import { seatAt } from './cultivation-seats.js';
 
-// What may be done at someone else's building, and the kinds it takes.
-export const SHARED_JOBS = Object.freeze({ tend: ['chamber'], collect: ['chamber', 'vault'] });
-
-// Asks for job `type` at someone else's building `b` (theirsAt): pays a
-// tend's cost and puts the ask where the room picks it up (s.asked).
-// Returns a command's result.
-export function askShared(s, type, b) {
-  if (!SHARED_JOBS[type]?.includes(b.kind)) return 'invalid';
-  if (type === 'tend') {
-    if (!canAfford(s.inv, CULTIVATION_RECIPES.tend)) return 'materials';
-    pay(s, CULTIVATION_RECIPES.tend, 'care');
-  }
-  // The room's copy of you hands it on (a game's acts carry it there).
-  if (!Array.isArray(s.acts)) (s.asked ||= []).push({ type, x: b.x, y: b.y, z: b.z, by: b.by });
-  return 'asked';
-}
+export { SHARED_JOBS, askShared };
 
 // The asks made since last taken, taken (the room's copy of a player).
 export function takeAsked(s) {
@@ -62,6 +52,13 @@ export function doShared(s, req) {
     b.needsTend = false;
     return { ok: true, n: 0, q: 0 };
   }
+  if (req.type === 'move') {
+    if (!freeFor(s, req.tx, req.ty, b.z)) return { ok: false, n: 0, q: 0 };
+    b.x = req.tx;
+    b.y = req.ty;
+    forgetCultivationIndex(s.cultivation);
+    return { ok: true, n: 0, q: 0 };
+  }
   const n = Math.floor(b.buffer || 0);
   if (n < 1) return { ok: false, n: 0, q: 0 };
   b.buffer -= n;
@@ -75,7 +72,7 @@ export function gotShared(s, req, got) {
     if (!got.ok) for (const [r, n] of Object.entries(CULTIVATION_RECIPES.tend)) earned(s, r, n);
     return;
   }
-  if (!got.ok || !(got.n > 0) || !s.cultivation) return;
+  if (req.type === 'move' || !got.ok || !(got.n > 0) || !s.cultivation) return;
   const c = s.cultivation;
   c.quality = s.inv.crystal ? qualityMean(c.quality, s.inv.crystal, got.q, got.n) : got.q;
   earned(s, 'crystal', got.n);
@@ -98,11 +95,26 @@ export function receiveShared(s, n, req, got) {
   gotShared(s, req, got);
 }
 
-// A job's message parts, checked: {type, x, y, z}, or null.
+// A job's message parts, checked: {type, x, y, z, tx?, ty?}, or null.
 export function cleanJob(d) {
   if (!d || !Object.hasOwn(SHARED_JOBS, d.k)) return null;
   if (![d.x, d.y, d.z].every(Number.isSafeInteger)) return null;
-  return { type: d.k, x: d.x, y: d.y, z: d.z };
+  const job = { type: d.k, x: d.x, y: d.y, z: d.z };
+  if (d.k !== 'move') return job;
+  return [d.tx, d.ty].every(Number.isSafeInteger) ? { ...job, tx: d.tx, ty: d.ty } : null;
+}
+
+// Whether the owner's building may stand on tile (x, y, z) of their world as
+// it is: open ground nothing else stands on (facilitySite's tile checks; the
+// owner needn't have seen it, or stand there).
+function freeFor(s, x, y, z) {
+  const info = TILE_INFO[tileAt(s.world, x, y, z)];
+  if (!info?.walk || info.rise || info.descend) return false;
+  const c = s.cultivation;
+  if (c.facilities.some((f) => f.x === x && f.y === y && f.z === z)) return false;
+  if (s.extractors.some((e) => e.x === x && e.y === y && e.z === z)) return false;
+  if (s.world.props.has(packKey(x, y, z))) return false;
+  return !theirsAt(s, x, y, z) && !(s.shared && seatAt(s.world, x, y, z));
 }
 // What came of one, checked: {ok, n, q}, or null.
 export function cleanGot(d) {

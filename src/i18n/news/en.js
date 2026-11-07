@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.201.0':
+    'In the shared crystal world you can now move another player’s crystal chamber, cooler or vault too: open its card, choose Move and put it where you like nearby. Their game moves it, and the log tells them who did.',
   'news.0.200.1':
     'With the AUTO button turned on in Nerds, an empty bubble no longer floats above it. The “Hold me down” bubble shows only after a {phone:quick tap|laptop:quick click}, as before.',
   'news.0.200.0':

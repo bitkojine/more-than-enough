@@ -14,6 +14,7 @@ import { cultivationCommand, commandOfAct, COMMAND_DONE } from './cultivation-co
 import { moveFacility } from './cultivation.js';
 import { useFlare } from './flare.js';
 import { doShared, gotShared } from './cultivation-share.js';
+import { theirsAt } from './cultivation-theirs.js';
 
 const STEP = 0.25; // seconds per step, as the game's longest frame
 
@@ -48,8 +49,10 @@ const DO = {
   // A crystal room's (0.194.0): a command, a crystal building moved, a flare.
   k: (s, a) => COMMAND_DONE.includes(cultivationCommand(s, commandOfAct(a))),
   m(s, a) {
-    const b = s.cultivation?.facilities.find((f) => f.x === a[5] && f.y === a[6] && f.z === a[4]);
-    return !!b && moveFacility(s, b, a[7], a[8]) === 'ok';
+    const b =
+      s.cultivation?.facilities.find((f) => f.x === a[5] && f.y === a[6] && f.z === a[4]) ||
+      (s.shared && theirsAt(s, a[5], a[6], a[4]));
+    return !!b && ['ok', 'asked'].includes(moveFacility(s, b, a[7], a[8]));
   },
   f: (s) => ['lit', 'out'].includes(useFlare(s)),
   // Someone else's crystal shared (0.200.0): the job as the room put it

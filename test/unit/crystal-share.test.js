@@ -80,6 +80,37 @@ test('share: a friend tends your chamber with what they carry; one that couldn�
   for (const g of [a, b]) assert.deepEqual(clean(r, g), { off: 0, refused: 0 });
 });
 
+test('share: a friend moves your chamber; your game moves it, and everyone sees it there', async () => {
+  const { r, a, b, crop } = await besideACrop();
+  const theirs = C.theirsAt(b.s, crop.x, crop.y, crop.z);
+  // A free tile in the friend's reach, the chamber's old one aside.
+  let to = null;
+  for (let dy = -2; dy <= 2 && !to; dy++)
+    for (let dx = -2; dx <= 2 && !to; dx++) {
+      const x = crop.x + dx,
+        y = crop.y + dy;
+      C.markExplored(b.s.world, x, y, crop.z);
+      if ((dx || dy) && !C.facilitySite(b.s, 'chamber', x, y, theirs) && C.atInteraction(b.s, x, y))
+        to = { x, y };
+    }
+  assert.ok(to, 'somewhere to put it');
+  const from = { x: crop.x, y: crop.y };
+  assert.equal(C.moveFacility(b.s, theirs, to.x, to.y), 'asked');
+  b.sync();
+  assert.deepEqual([r.heard.at(-1).m.tx, r.heard.at(-1).m.ty], [to.x, to.y]);
+  assert.deepEqual([crop.x, crop.y], [to.x, to.y], 'moved in the owner’s game');
+  a.sync(true);
+  b.sync(true);
+  const copied = chamberOf(copyOf(r, a.id));
+  assert.deepEqual([copied.x, copied.y], [to.x, to.y], 'and in the room’s copy of them');
+  assert.equal(C.theirsAt(b.s, to.x, to.y, crop.z)?.kind, 'chamber', 'the friend sees it there');
+  assert.equal(C.theirsAt(b.s, from.x, from.y, crop.z), null);
+  for (const g of [a, b]) assert.deepEqual(clean(r, g), { off: 0, refused: 0 });
+  // A move with nowhere to go is no job.
+  assert.equal(C.cleanJob({ k: 'move', x: 1, y: 2, z: -2 }), null);
+  assert.equal(C.askShared(b.s, 'move', C.theirsAt(b.s, to.x, to.y, crop.z)), 'invalid');
+});
+
 test('share: an owner who isn’t there has it done in the room’s copy, and comes back to it', async () => {
   const { r, a, b, crop } = await besideACrop();
   const had = Math.floor(crop.buffer);

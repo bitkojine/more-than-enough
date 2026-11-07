@@ -923,6 +923,9 @@ export default {
   'shared.not.tend':
     'Žaidėjo {name} kameros dabar prižiūrėti nepavyko: tai, ką sumokėjai, grįžo tau.',
   'shared.not.collect': 'Žaidėjo {name} pastate dabar nebuvo kristalų.',
+  'shared.took.move': '{name} perkėlė vieną tavo kristalų pastatą.',
+  'shared.got.move': 'Perkėlei žaidėjo {name} pastatą.',
+  'shared.not.move': 'Žaidėjo {name} pastato ten perkelti nepavyko: kažkas trukdo.',
   'card.doubling': {
     one: 'Dvigubina {count} karjerą',
     few: 'Dvigubina {count} karjerus',

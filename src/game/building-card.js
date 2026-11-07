@@ -197,16 +197,20 @@ function facilityActions(at) {
 }
 
 // Someone else's crystal building: tend or harvest it, as yours (0.200.0).
-function theirsCard({ s, b, x, y }) {
-  const jobs = Object.keys(Core.SHARED_JOBS).filter((j) => Core.SHARED_JOBS[j].includes(b.kind));
+function theirsCard(at) {
+  const { s, b, x, y } = at;
+  const can = (j) => Core.SHARED_JOBS[j].includes(b.kind);
+  const jobs = ['tend', 'collect'].filter(can);
+  const actions = withLocks(
+    s,
+    jobs.map((j) => act(j, x, y, name(j), Core.CULTIVATION_RECIPES[j] || null))
+  );
+  if (can('move')) actions.push(move(at));
   return {
     look: Core.CULTIVATION_LOOK[b.kind],
     name: name(b.kind),
     lines: [t('card.theirs')],
-    actions: withLocks(
-      s,
-      jobs.map((j) => act(j, x, y, name(j), Core.CULTIVATION_RECIPES[j] || null))
-    ),
+    actions,
     building: b,
     kind: b.kind
   };

@@ -8,11 +8,11 @@ import { tileAt, isExplored } from './world.js';
 import { packKey } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
 import { illuminationAt, LIGHT_MAX } from './illumination.js';
-import { earn, spend as payInventory } from './economy.js';
-import { MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
+import { earn, spend as payInventory, canAfford } from './economy.js';
+import { MACHINE_REPAIRS, machineSections, CULTIVATION_RECIPES } from './cultivation-model.js';
 import { noteIf } from './acts.js';
 import { machineSeat, seatAt } from './cultivation-seats.js';
-import { theirsAt } from './cultivation-theirs.js';
+import { theirsAt, SHARED_JOBS } from './cultivation-theirs.js';
 import {
   HEART_SUN,
   HEART_MEND,
@@ -269,7 +269,7 @@ export function facilitySite(s, kind, x, y, moving = null) {
 export function moveFacility(s, b, x, y) {
   return noteIf(
     s,
-    (r) => r === 'ok',
+    (r) => r === 'ok' || r === 'asked',
     () => move(s, b, x, y),
     'm',
     b?.x,
@@ -280,6 +280,8 @@ export function moveFacility(s, b, x, y) {
 }
 function move(s, b, x, y) {
   if (contentLocked(s, b?.kind)) return 'locked';
+  // Someone else's, in a crystal room: asked of their game (cultivation-share.js).
+  if (b?.by && s.shared) return moveTheirs(s, b, x, y);
   const c = s.cultivation;
   if (!c || !c.facilities.includes(b) || !BUILT_FACILITIES.includes(b.kind) || b.z !== s.player.z)
     return 'invalid';
@@ -296,6 +298,27 @@ function move(s, b, x, y) {
   indexCache.delete(c);
   return 'ok';
 }
+function moveTheirs(s, b, x, y) {
+  if (theirsAt(s, b.x, b.y, b.z) !== b || b.z !== s.player.z) return 'invalid';
+  if (!atInteraction(s, x, y)) return 'reach';
+  return facilitySite(s, b.kind, x, y, b) || askShared(s, 'move', b, { x, y });
+}
+// Asks for job `type` at someone else's building `b` (theirsAt): pays a
+// tend's cost and puts the ask where the room picks it up (s.asked).
+// Returns a command's result.
+export function askShared(s, type, b, to = null) {
+  if (!SHARED_JOBS[type]?.includes(b.kind) || (type === 'move') !== !!to) return 'invalid';
+  if (type === 'tend') {
+    if (!canAfford(s.inv, CULTIVATION_RECIPES.tend)) return 'materials';
+    pay(s, CULTIVATION_RECIPES.tend, 'care');
+  }
+  // The room's copy of you hands it on (a game's acts carry it there).
+  if (!Array.isArray(s.acts))
+    (s.asked ||= []).push({ type, x: b.x, y: b.y, z: b.z, by: b.by, ...(to ? where(to) : {}) });
+  return 'asked';
+}
+
+const where = ({ x, y }) => ({ tx: x, ty: y });
 // Which clue the machine shows: one per restored section, 0 before any.
 export function machineClue(s) {
   const b = s.cultivation?.facilities.find((f) => f.kind === 'machine');

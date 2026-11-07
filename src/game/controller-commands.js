@@ -132,7 +132,7 @@ export function createCommands({
       const s = state();
       const ok = s.extractors.includes(b)
         ? Core.moveExtractor(s, b, at.x, at.y).ok
-        : Core.moveFacility(s, b, at.x, at.y) === 'ok';
+        : ['ok', 'asked'].includes(Core.moveFacility(s, b, at.x, at.y)); // 'asked': someone else's
       if (!ok) return false;
       faceTile(at.x, at.y);
       fx.built(at.x, at.y);

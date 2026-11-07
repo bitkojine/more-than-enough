@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.201.0] - 2026-11-07
+
+Anyone can move anyone's chamber, cooler or vault in a crystal shared world:
+the last of the three shared jobs Watch confirmed ("anyone can tend, harvest
+or move anyone's crystal", 2026-11-05). Before, Move on someone else's
+building's card wasn't offered.
+
+- **A third job** (`src/core/cultivation-share.js`): `move` goes the same
+  three ways as tend and collect (0.200.0). Moving someone else's building
+  (`moveFacility` on one in `s.theirs`) checks reach and the site the way
+  your own does, then asks (result `asked`, act `m` as for your own). The
+  owner's game moves its building on `take` if the tile is still free in
+  its own world (open ground, nothing of its own, of anyone else's, an
+  extractor, a prop or a seat there), and everyone sees the new spot by
+  the next `built`. Conduits and shelters aren't moved by others.
+- **Wire**: `take` and `given` carry `tx` and `ty` for a move; a move
+  without them is no job (`cleanJob`). `askShared` lives in
+  `cultivation.js` and `SHARED_JOBS` in `cultivation-theirs.js`, so there's
+  no import cycle.
+- **In the game**: someone else's chamber, cooler or vault card has Move,
+  which places it the way your own does. The log says who moved what.
+- **Checked**: `test/unit/crystal-share.test.js` adds a friend moving an
+  AUTO player's chamber. It moves in the owner's game and in the room's
+  copy, the friend sees it at its new spot and not at its old one, and the
+  room counts 0 refused and 0 off.
+
 ## [0.200.1] - 2026-11-07
 
 An empty cream bubble with its pointer floated above the AUTO button

@@ -109,7 +109,7 @@ shared with the game.
    Jobs at someone else's crystal (0.200.0, `server/src/room-jobs.js`,
    `src/core/cultivation-share.js`): a game whose hello says `"shares":
    true` may be sent `{"t": "take", "n", "k", "x", "y", "z", "by"}` (someone
-   asked for tend or collect at its building: it does it and writes down
+   asked for tend, collect or, with `tx`/`ty`, move at its building: it does it and writes down
    act `t` with `n`), and `{"t": "given", "n", "k", "x", "y", "z", "by", "ok",
    "c", "q"}` (what came of its own ask: `c` crystal of quality `q`; it
    writes down act `g` with `n`). The room's copy of each does the same

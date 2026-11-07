@@ -23,7 +23,7 @@ export class RoomJobs {
     this.jobs ||= new Map();
     this.jobNo = (this.jobNo || 0) + 1;
     const n = this.jobNo,
-      job = { n, from, owner: req.by, req: { type: req.type, x: req.x, y: req.y, z: req.z } };
+      job = { n, from, owner: req.by, req: jobOf(req) };
     const owner = this.players.has(job.owner) && this.shadowOf().of(job.owner, this, now);
     if (!owner?.s.cultivation || job.owner === from) {
       this.jobs.set(n, job);
@@ -67,4 +67,12 @@ export class RoomJobs {
   }
 }
 
-const at = ({ x, y, z }) => ({ x, y, z });
+// A job's parts, as its owner's game is told them (cleanJob takes them in).
+const jobOf = ({ type, x, y, z, tx, ty }) => ({
+  type,
+  x,
+  y,
+  z,
+  ...(type === 'move' ? { tx, ty } : {})
+});
+const at = ({ x, y, z, tx, ty }) => ({ x, y, z, ...(tx === undefined ? {} : { tx, ty }) });

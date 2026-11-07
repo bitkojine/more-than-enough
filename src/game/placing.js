@@ -277,7 +277,8 @@ export function createPlacing({ cam, state, controller, cultivate, toast }) {
         s.player.z !== job.z ||
         (job.from &&
           !s.extractors.includes(job.from) &&
-          !s.cultivation?.facilities.includes(job.from))
+          !s.cultivation?.facilities.includes(job.from) &&
+          !s.theirs?.includes(job.from))
       )
         return end();
       if ((age += dt) >= REFRESH_S) {
