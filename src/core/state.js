@@ -67,6 +67,8 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * Shared worlds only (src/game/together.js, arrival.js; the room's copy in server/src/shadow.js):
  * @property {string} [shared]                     the room of a shared world (not set when alone)
  * @property {string} [me]                         your id in that room; your buildings carry it
+ * @property {Array<{kind: string, x: number, y: number, z: number, look: number, by: string}>} [theirs]
+ *           a crystal room: everyone else's buildings, as the room tells of them (cultivation-theirs.js); never saved
  * @property {number} [seat]                       a crystal room: your machine's place in the row (cultivation-seats.js)
  * @property {Array<Array<string|number>> | null} [acts]  acts waiting to be sent (acts.js); off when not an array
  * @property {Position} [actedAt]                  where the last act was written down

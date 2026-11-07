@@ -424,6 +424,8 @@ export class Room {
       // Your machine lies at your seat in the row (src/core/cultivation-seats.js):
       // only to a game that said it knows of seats, and the room plays it so too.
       ...(me.seats === true ? { seats: true } : {}),
+      // Everyone's crystal buildings (0.199.0): yours come back with your progress.
+      ...(this.eco === 'crystal' ? { built: this.allBuilt().filter((e) => e[5] !== id) } : {}),
       // ...and that copy is what you have: `save` is it, and 'econ' sets
       // your game straight when it's off (src/game/together.js).
       econ: true

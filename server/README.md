@@ -98,6 +98,14 @@ shared with the game.
    and the room then look for its machine at that seat, the player's colour
    number in a row under spawn. Anyone else keeps the first-tunnel rule on
    both sides, so a game or room one version behind never disagrees. A
+   Everyone's crystal buildings (0.199.0, `src/core/cultivation-theirs.js`):
+   the welcome lists everyone else's as `built` ([kind, x, y, z, look,
+   owner]), and after an acts message that changed someone's, the room
+   sends everyone `{"t": "built", "id", "b": [[kind, x, y, z, look]...]}`,
+   that player's whole list as its copy of them has it. A game from
+   before ignores both. The room's copy of each player sees them in its
+   way too, and after a restart lists them from each player's kept
+   progress until it has a copy of them. A
    game says it can play one with `"crystal": true` in its hello; one that
    doesn't is told of a newer world format (`fmt` one higher) and updates
    first, so an old game never grows the old land in a crystal room.

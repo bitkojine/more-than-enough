@@ -671,6 +671,35 @@ test('handlers: a friend coming online is announced once and makes the game chec
   assert.equal(updates(), 1);
 });
 
+test('handlers: someone’s crystal buildings replace theirs, only in this crystal world and only when they fit', () => {
+  const x = handlerHarness();
+  const s = Core.createState(7, { cultivation: true });
+  Object.assign(s, { shared: 'roomA', acts: [], me: pid(0) });
+  x.game.state = s;
+  x.h.handle({ t: 'built', id: pid(1), b: [['chamber', 3, 4, -2, 1]] });
+  assert.deepEqual(
+    s.theirs.map((b) => [b.kind, b.x, b.by]),
+    [['chamber', 3, pid(1)]]
+  );
+  assert.equal(x.changed(), 1);
+  x.h.handle({ t: 'built', id: pid(1), b: [['vault', 5, 4, -2, 0]] });
+  assert.deepEqual(
+    s.theirs.map((b) => b.kind),
+    ['vault']
+  );
+  for (const bad of [
+    { t: 'built', id: 'nobody', b: [] },
+    { t: 'built', id: pid(1), b: [['tower', 5, 4, -2, 0]] },
+    { t: 'built', id: pid(1), b: 'vault' }
+  ])
+    x.h.handle(bad);
+  assert.equal(s.theirs[0].kind, 'vault', 'a malformed one changes nothing');
+  s.shared = 'roomB';
+  x.h.handle({ t: 'built', id: pid(1), b: [] });
+  assert.equal(s.theirs.length, 1, 'not for another world');
+  assert.equal(x.changed(), 2);
+});
+
 test('handlers: a removed player takes their buildings; a frozen one leaves them', () => {
   const { h, game, friends, changed } = handlerHarness();
   const a = pid('a'),

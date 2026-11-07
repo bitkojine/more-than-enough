@@ -14,6 +14,7 @@ import {
   cleanActs
 } from '../../src/net/protocol.js';
 import { baseRichness } from '../../src/core/world.js';
+import { builtOf, theirsFrom } from '../../src/core/cultivation-theirs.js';
 import { Shadow } from './shadow.js';
 import { codeTag, kindTag } from './audit.js';
 import * as Invites from './invites.js';
@@ -34,6 +35,16 @@ const ON_MESSAGE = Object.freeze({
   revoke: 'onRevoke',
   nuke: 'onNuke'
 });
+
+// A player's crystal buildings from their kept progress ([] for none, or one unread).
+function keptBuilt(save) {
+  try {
+    const c = save && JSON.parse(save).cultivation;
+    return c ? builtOf({ cultivation: c }) : [];
+  } catch {
+    return [];
+  }
+}
 
 export class RoomPlay {
   /* -------------------------------------------------------- messages */
@@ -130,7 +141,49 @@ export class RoomPlay {
     const list = cleanActs(d.a);
     if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
     const { made } = this.shadowOf().acts(id, d.ms, list, now, this);
-    return this.made(id, made, now);
+    const out = this.made(id, made, now);
+    const built = this.rebuilt(id);
+    if (built) out.toAll = [...(out.toAll || []), built];
+    return out;
+  }
+
+  /* ------------------------------- a crystal room: everyone's buildings */
+
+  // Player `id`'s crystal buildings as the room's copy of them has them,
+  // to tell everyone else (src/core/cultivation-theirs.js): a 'built'
+  // message when they changed since last told, else null.
+  rebuilt(id) {
+    const s = this.shadow?.players.get(id)?.s;
+    if (this.eco !== 'crystal' || !s?.cultivation) return null;
+    const list = builtOf(s);
+    const json = JSON.stringify(list);
+    this.built ||= new Map();
+    if (this.built.get(id)?.json === json) return null;
+    this.built.set(id, { list, json });
+    this.spreadBuilt();
+    return { t: 'built', id, b: list };
+  }
+
+  // Everyone's crystal buildings, [kind, x, y, z, look, owner] each: what
+  // the room's copies of them hold, or for one it has no copy of yet, what
+  // their kept progress holds.
+  allBuilt() {
+    if (this.eco !== 'crystal') return [];
+    this.built ||= new Map();
+    const out = [];
+    for (const [id, pl] of this.players) {
+      if (!this.built.has(id)) this.built.set(id, { list: keptBuilt(pl.save), json: null });
+      for (const e of this.built.get(id).list) out.push([...e, id]);
+    }
+    return out;
+  }
+
+  // Each of the room's copies sees everyone else's buildings in its way, as
+  // the game does (facilitySite); returns them all.
+  spreadBuilt() {
+    const all = theirsFrom(this.allBuilt(), null);
+    for (const sh of this.shadow?.players.values() || []) if (sh.s.cultivation) sh.s.theirs = all;
+    return all;
   }
 
   onAway({ id, pl, d, now }) {

@@ -11,6 +11,8 @@ export function cultivationRows(s, z) {
     };
   for (const b of s.cultivation?.facilities || [])
     if (b.z === z && Core.isExplored(s.world, b.x, b.y, z)) put(b);
+  // Everyone else's, in a crystal room: as the room says they look.
+  for (const b of s.theirs || []) if (b.z === z && Core.isExplored(s.world, b.x, b.y, z)) put(b);
   // The hiding place is drawn like a building, though nobody built it.
   if (s.cultivation && z === 0) {
     const h = Core.hidingPlace(s.world.seed);
@@ -18,17 +20,9 @@ export function cultivationRows(s, z) {
   }
   return rows;
 }
-// Which look a crystal building wears: the machine by its sections, the
-// hiding place and a shelter lit while the heart is there, the rest by
-// whether they hold anything alive.
-function facilityPhase(s, b) {
-  const heart = s.cultivation.heart?.where;
-  if (b.kind === 'machine') return s.cultivation.completed ? 4 : Core.machineSections(b);
-  if (b.kind === 'station') return heart === 'station' ? 1 : 0;
-  if (b.kind === 'shelter') return heart === b.id ? 1 : 0;
-  if (b.kind === 'chamber') return b.health > 0 ? 1 : 0;
-  return b.buffer > 0 ? 1 : 0;
-}
+// Which look a crystal building wears (Core.lookOf); someone else's as the
+// room said.
+const facilityPhase = (s, b) => (b.by ? b.look : Core.lookOf(s, b));
 // Draws a crystal building; returns where a clock over it goes, or nothing
 // when it is off screen.
 export function drawCultivation(ctx, cam, s, look, b) {
@@ -71,7 +65,7 @@ export function drawCultivation(ctx, cam, s, look, b) {
 // A chamber's colony dying in the heat, stored crystal crumbling, or the
 // heart mending in its shelter, at `top` (from drawCultivation); null when no clock runs.
 export function facilityClockAt(s, b, top) {
-  if (!top || b.kind === 'machine') return null;
+  if (!top || b.kind === 'machine' || b.by) return null;
   const clock = memo(s, b, 'facility', () => facilityClock(s, b));
   return clock && { ...clock, ...top };
 }

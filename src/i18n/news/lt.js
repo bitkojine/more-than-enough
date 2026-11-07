@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.199.0':
+    'Bendrame kristalų pasaulyje dabar matai visų kristalų pastatus: kameras, aušintuvus, saugyklas ir mašinas, kur jie stovi ir ar juose kas auga, ar mašina taisyta. Niekas negali statyti ant kito pastato.',
   'news.0.198.0':
     'Bendrame kristalų pasaulyje kiekvieno naujoko mašina dabar užkasta vienoje eilėje gelmėje po pradžios vieta, keli žingsniai nuo kito žaidėjo mašinos: pakask savo vietoje ir ją rasi, tad visi savo mašinas taiso greta. Jau rasta mašina lieka ten, kur buvo.',
   'news.0.197.1':

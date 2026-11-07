@@ -123,7 +123,9 @@ export function cleanWelcome(d) {
     // How the world plays (0.194.0): a room from before says nothing, and plays the old economy.
     eco: d.eco === 'crystal' ? 'crystal' : 'old',
     // Machines side by side (0.198.0): a room from before says nothing.
-    seats: d.seats === true
+    seats: d.seats === true,
+    // Everyone else's crystal buildings (0.199.0): none when a room from before says nothing.
+    theirs: Core.theirsFrom(d.built, d.you)
   };
 }
 

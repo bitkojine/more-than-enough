@@ -8,59 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as C from '../../src/core/index.js';
 import * as P from '../../src/net/protocol.js';
-import { Room, Bucket } from '../../server/src/room.js';
-import { createAutoplaySession } from '../../src/game/autoplay-session.js';
-import { cleanWelcome } from '../../src/game/room-messages.js';
-
-const T0 = 1_700_000_000_000;
-const machine = (s) => s.cultivation.facilities.find((b) => b.kind === 'machine');
-
-// Holds AUTO in `s` until its machine shows (at most an hour of game time).
-function untilMachine(s, tick) {
-  const refused = [];
-  const auto = createAutoplaySession(0, (intent, ok) => ok || refused.push(intent), { state: s });
-  auto.press();
-  const end = s.time + 3600;
-  while (!machine(s) && s.time < end) {
-    auto.advanceTicks(15);
-    tick();
-  }
-  return refused;
-}
-
-// A game in room `r`, the way together.js plays one; `seats`: a game that knows of seats.
-async function play(r, key, code, now, seats) {
-  const j = await r.join(key, code, now, false, { crystal: true, seats });
-  assert.ok(j.welcome, 'let in: ' + j.error);
-  const s = C.joinState(cleanWelcome(j.welcome), r.id, null, null);
-  s.time = j.welcome.time;
-  s.acts = [];
-  const edits = new Bucket(now, 1e9, 1e9);
-  const base = s.stats.playedMs;
-  const send = (m) => {
-    const at = now + Math.round(s.stats.playedMs - base);
-    assert.ok(!r.message(j.id, JSON.stringify(m), at, edits).drop, 'the room took ' + m.t);
-  };
-  const sync = (save = false) => {
-    r.players.get(j.id).p = P.cleanPos(s.player);
-    const acts = C.takeActs(s);
-    for (let i = 0; i < acts.length; i += P.LIMITS.actsPerMessage)
-      send({ t: 'acts', ms: Math.round(s.stats.playedMs), a: acts.slice(i, i + 256) });
-    const list = C.takeEdits(s);
-    for (let i = 0; i < list.length; i += P.LIMITS.editsPerMessage)
-      send({ t: 'edits', e: list.slice(i, i + P.LIMITS.editsPerMessage) });
-    if (save) send({ t: 'save', s: C.progressOf(s) });
-  };
-  return { s, id: j.id, sync, invite: () => r.message(j.id, '{"t":"invite"}', now).toSelf[0].code };
-}
-
-async function crystalRoom(seed) {
-  const r = new Room(P.randomRoomId(), T0);
-  const key = P.randomHex(32);
-  const world = { seed, mods: [], props: [], ext: [] };
-  assert.equal(await r.init(JSON.stringify({ t: 'create', key, world, eco: 'crystal' }), T0), null);
-  return { r, key };
-}
+import { T0, machine, holdAuto as untilMachine, crystalRoom, play } from './crystal-room.js';
 
 test('seats: one place a player, in plain rock in the deep, the same for every copy of the land', () => {
   const w = C.createWorld(15, true),

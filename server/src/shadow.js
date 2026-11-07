@@ -160,6 +160,8 @@ export class Shadow {
     );
     if (!s) return null;
     s.world.edits = null;
+    // Everyone else's crystal buildings stand in the way, as in the game.
+    if (s.cultivation && room.spreadBuilt) s.theirs = room.spreadBuilt();
     s.roomMoves = true; // this room checks moves (src/core/actions.js moveExtractor)
     const old = this.players.get(id);
     // Where they were last: where their progress says, or anywhere for the

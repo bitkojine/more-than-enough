@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.199.0':
+    'In the shared crystal world you now see everyone’s crystal buildings, their chambers, coolers, vaults and machines, where they stand and whether they are growing or repaired, and nobody can build on top of anyone else’s.',
   'news.0.198.0':
     'In the shared crystal world every newcomer’s machine now lies buried in one row in the deep under spawn, a few steps from the next player’s: dig at your place and there it is, so everyone works on their machines side by side. A machine you already found stays where it is.',
   'news.0.197.1':

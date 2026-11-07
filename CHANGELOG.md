@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.199.0] - 2026-11-07
+
+Everyone sees everyone's crystal buildings in a crystal shared world: the
+next part of release 2 of the bot-players plan, which goes on now that Watch
+said the ten-bot run was a test and the plan stands (2026-11-07). Before,
+each player saw only their own chambers, coolers, vaults and machine, so the
+machines side by side (0.198.0) stood in a row nobody could see, and a
+player could build on a tile where someone else's building stood.
+
+- **What others are told** (`src/core/cultivation-theirs.js`): a player's
+  buildings as [kind, x, y, z, look], where look is the picture's phase
+  (`lookOf`, which the renderer now uses too): a machine by its repairs, a
+  chamber by whether it holds anything alive.
+- **The room** (`server/src/room-play.js`): after an acts message it
+  compares the player's buildings as its copy has them with what it last
+  told, and on a change sends everyone `built`, that player's whole list.
+  The welcome lists everyone else's. After a restart it reads them from
+  each player's kept progress. Nothing new is stored.
+- **The game** keeps them as `s.theirs` (never saved), draws them like its
+  own without a clock, and `facilitySite` won't build on them. The room's
+  copy of each player sees them in its way too, so the two agree.
+- **One version behind**: a game from before ignores `built`, and a room
+  from before sends none (there are no others' buildings then).
+- **Checked**: `test/unit/crystal-theirs.test.js` (what fits and what's
+  refused; one player's list replaced at a time; two AUTO players in one
+  room each see where the other's buildings stand, neither builds on
+  them, and the room counts 0 refused and 0 off; a restarted room lists
+  them from what it kept). The room-test helpers moved to
+  `test/unit/crystal-room.js`.
+
 ## [0.198.0] - 2026-11-07
 
 Machines side by side in a crystal shared world: the first part of release 2

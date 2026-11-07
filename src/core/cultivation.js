@@ -12,6 +12,7 @@ import { earn, spend as payInventory } from './economy.js';
 import { MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
 import { noteIf } from './acts.js';
 import { machineSeat, seatAt } from './cultivation-seats.js';
+import { theirsAt } from './cultivation-theirs.js';
 import {
   HEART_SUN,
   HEART_MEND,
@@ -236,7 +237,8 @@ export function facilitySite(s, kind, x, y, moving = null) {
   } else if (z > DEEP && kind !== 'shelter') return 'deep';
   if (heartAt(s, x, y, z)) return 'occupied';
   // A machine's place in a shared world's row is kept for it.
-  if (s.shared && seatAt(s.world, x, y, z)) return 'occupied';
+  // ...and so is a tile where someone else's building stands.
+  if (s.shared && (seatAt(s.world, x, y, z) || theirsAt(s, x, y, z))) return 'occupied';
   const type = tileAt(s.world, x, y, z),
     b = cultivationAt(s, x, y, z);
   if (

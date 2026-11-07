@@ -269,6 +269,8 @@ export function createTogether({
     if (game.state.shared === room) {
       game.state.roomMoves = w.moves;
       game.state.roomCollectAt = w.collectAt;
+      // Everyone else's crystal buildings, as the room has them.
+      if (game.state.cultivation) game.state.theirs = w.theirs;
     }
     if (w.time !== null) clock = { t: w.time, at: seconds() };
     keepTime();

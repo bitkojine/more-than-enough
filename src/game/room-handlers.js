@@ -107,6 +107,12 @@ export function createRoomHandlers({
       outbox.earnedAway(away.made);
       onAway(away.secs, away.made, takeFixed());
     },
+    // Someone's crystal buildings, as they stand now (a crystal room, 0.199.0).
+    built(d) {
+      const list = ID_RE.test(d.id) && Core.cleanBuilt(d.b, d.id);
+      if (list && game.state.shared === here() && Core.setTheirs(game.state, d.id, list))
+        game.worldChanged();
+    },
     edits(d) {
       const list = cleanEdits(d.e);
       if (list && game.state.shared === here() && Core.applyEdits(game.state, list))
