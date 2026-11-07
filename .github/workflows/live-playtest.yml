@@ -19,7 +19,7 @@ on:
         default: '20'
         type: string
       bots:
-        description: 'Ten distinct bot players, each required to wake their machine'
+        description: 'Load test: ten distinct bot players, each required to wake their machine (throwaway crystal room only, never the public world)'
         type: boolean
         default: false
       slots:
@@ -112,8 +112,9 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
           ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
           CHROME_PATH: /usr/bin/google-chrome
-          BOT_SLOT: ${{ inputs.bots && matrix.bot || '' }}
-          REQUIRE_WIN: ${{ inputs.bots && '1' || '' }}
+          # A slots rerun resumes bot slots too, even with bots left off.
+          BOT_SLOT: ${{ (inputs.bots || inputs.slots != '') && matrix.bot || '' }}
+          REQUIRE_WIN: ${{ (inputs.bots || inputs.slots != '') && '1' || '' }}
         run: node scripts/live-playtest.mjs 2>&1 | tee playtest.log
 
       - name: Report failure details

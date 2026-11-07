@@ -47,6 +47,15 @@ if (!ROOM_ID_RE.test(ROOM) || TOKEN.length < 32) {
   process.exit(2);
 }
 if (BOT && !/^(?:[1-9]|10)$/.test(BOT)) throw Error('BOT_SLOT must be 1 to 10');
+// The ten bot slots are a load test (Watch, 2026-11-07): they run in a
+// throwaway crystal room, never the public world every new player joins,
+// where the company bots are to be three and marked as bots. The public
+// room is named by its hash only; the repo is public and its id is masked.
+const PUBLIC_WORLD = '0455a2a646e48dc8d7eab711773f57529a4318f4aea14e11a8dabbb67d6be6b5';
+if (BOT && createHash('sha256').update(ROOM).digest('hex') === PUBLIC_WORLD) {
+  console.error('Bot slots run in a throwaway crystal room, not the public world');
+  process.exit(2);
+}
 
 const key = createHash('sha256')
   .update('mte live playtester|' + ROOM + '|' + TOKEN + (BOT ? '|bot|' + BOT : ''))
