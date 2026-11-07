@@ -30,7 +30,8 @@ import {
   extractorCost,
   EXTRACTORS,
   RESOURCES,
-  AWAY_CAP
+  AWAY_CAP,
+  takeAsked
 } from '../../src/core/index.js';
 
 const SLACK_MS = 2000; // play time a game may be ahead of the room's clock (a late message)
@@ -270,7 +271,12 @@ export class Shadow {
         .map(([k, kind]) => ['p', k, kind])
     ];
     sh.refused += refused;
-    return { refused, made };
+    // Jobs asked at someone else's crystal, and ones done for others
+    // (src/core/cultivation-share.js): the room passes them on.
+    const asked = takeAsked(s),
+      taken = s.taken || [];
+    s.taken = [];
+    return { refused, made, asked, taken };
   }
 
   // Whether act `a` could have happened: in play-time order, no later than

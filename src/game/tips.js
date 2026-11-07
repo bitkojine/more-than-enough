@@ -144,6 +144,6 @@ export function cultivationNote(result, clue) {
   if (result === 'ok') return null;
   if (result === 'discovery') return t('cr.discovery.' + clue);
   if (result === 'activated') return t('cr.activated');
-  if (result === 'teleported') return null;
+  if (result === 'teleported' || result === 'asked') return null; // 'asked': the answer says
   return t('cr.reason.' + result);
 }

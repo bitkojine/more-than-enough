@@ -34,17 +34,26 @@ export async function crystalRoom(seed) {
   return { r, key };
 }
 
-// What each game in the room hears of a message the room sends everyone.
+// What each game in the room hears of what the room sends, as
+// room-handlers.js takes it in: others' buildings, and jobs at crystal.
 function hear(r, from, out) {
   for (const m of [...(out.toAll || []), ...(out.toOthers || [])])
     for (const g of r.games)
       if (m.t === 'built' && g.id !== from) C.setTheirs(g.s, m.id, C.cleanBuilt(m.b, m.id) || []);
+  for (const { id, m } of out.to || []) {
+    const g = r.games.find((o) => o.id === id && o.online);
+    if (!g) continue;
+    (r.heard ||= []).push({ id, m });
+    if (m.t === 'take') C.takeShared(g.s, m.n, C.cleanJob(m));
+    if (m.t === 'given') C.receiveShared(g.s, m.n, C.cleanJob(m), C.cleanGot(m));
+  }
 }
 
 // A game in crystal room `r`; `seats`: a game that knows of seats (0.198.0).
 export async function play(r, key, code, now, seats = true) {
-  const j = await r.join(key, code, now, false, { crystal: true, seats });
+  const j = await r.join(key, code, now, false, { crystal: true, seats, shares: true });
   assert.ok(j.welcome, 'let in: ' + j.error);
+  hear(r, j.id, j);
   const w = cleanWelcome(j.welcome);
   const s = C.joinState(w, r.id, null, null);
   s.time = j.welcome.time;
@@ -70,6 +79,8 @@ export async function play(r, key, code, now, seats = true) {
   const g = {
     s,
     id: j.id,
+    online: true,
+    send,
     welcome: w,
     sync,
     invite: () => r.message(j.id, '{"t":"invite"}', now).toSelf[0].code

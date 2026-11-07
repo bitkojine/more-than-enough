@@ -244,7 +244,10 @@ const CRYSTAL_ACTS = {
     tile(a[7]) &&
     (NAME(a[8]) || (isInt(a[8]) && a[8] >= 0 && a[8] <= STOP_MAX)),
   m: (a, tile) => a.length === 9 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8]),
-  f: (a) => a.length === 5
+  f: (a) => a.length === 5,
+  // Someone else's crystal shared (0.200.0): a job done, what came of an ask.
+  t: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0,
+  g: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0
 };
 function cleanCrystalAct(a, head, tile) {
   const ok = Object.hasOwn(CRYSTAL_ACTS, a[0]) && CRYSTAL_ACTS[a[0]](a, tile);

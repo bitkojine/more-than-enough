@@ -65,6 +65,8 @@ export function cardAt(s, x, y) {
   const at = { s, c, x, y, z, h: c.heart };
   const b = Core.cultivationAt(s, x, y, z);
   if (b) return facilityCard({ ...at, b });
+  const theirs = Core.theirsAt(s, x, y, z);
+  if (theirs) return theirsCard({ ...at, b: theirs });
   if (Core.heartAt(s, x, y)) return stationCard(at);
   const key = Core.packKey(x, y, z);
   if (Core.PROPS[s.world.props.get(key)]?.light) return lightCard({ ...at, key });
@@ -192,6 +194,22 @@ function facilityActions(at) {
     actions.push(act('travel', x, y, name('teleport.pick')));
   if (Core.BUILT_FACILITIES.includes(b.kind)) actions.push(move(at));
   return actions;
+}
+
+// Someone else's crystal building: tend or harvest it, as yours (0.200.0).
+function theirsCard({ s, b, x, y }) {
+  const jobs = Object.keys(Core.SHARED_JOBS).filter((j) => Core.SHARED_JOBS[j].includes(b.kind));
+  return {
+    look: Core.CULTIVATION_LOOK[b.kind],
+    name: name(b.kind),
+    lines: [t('card.theirs')],
+    actions: withLocks(
+      s,
+      jobs.map((j) => act(j, x, y, name(j), Core.CULTIVATION_RECIPES[j] || null))
+    ),
+    building: b,
+    kind: b.kind
+  };
 }
 
 // Where the thief hid the heart.

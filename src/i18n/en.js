@@ -894,6 +894,13 @@ export default {
     other: 'Here it cools {count} buildings'
   },
   'card.move': 'Move',
+  'card.theirs': 'Someone else’s. You may tend it or take its crystal: they’ll see who did.',
+  'shared.took.tend': '{name} tended your crystal chamber.',
+  'shared.took.collect': '{name} took {n} crystal from your building.',
+  'shared.got.tend': 'You tended {name}’s crystal chamber.',
+  'shared.got.collect': 'You took {n} crystal from {name}’s building.',
+  'shared.not.tend': '{name}’s chamber couldn’t be tended just now: what it cost is back with you.',
+  'shared.not.collect': 'There was no crystal to take from {name}’s building just now.',
   'card.doubling': { one: 'Doubling {count} quarry', other: 'Doubling {count} quarries' },
   'card.collecting': {
     one: 'Collecting from {count} building',

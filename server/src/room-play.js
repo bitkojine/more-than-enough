@@ -140,10 +140,16 @@ export class RoomPlay {
   onActs({ id, d, now }) {
     const list = cleanActs(d.a);
     if (!list || !Number.isSafeInteger(d.ms) || d.ms < 0) return { drop: true };
-    const { made } = this.shadowOf().acts(id, d.ms, list, now, this);
+    const { made, asked = [], taken = [] } = this.shadowOf().acts(id, d.ms, list, now, this);
     const out = this.made(id, made, now);
     const built = this.rebuilt(id);
     if (built) out.toAll = [...(out.toAll || []), built];
+    // Someone else's crystal shared (room-jobs.js): asks passed on, jobs answered.
+    const to = [
+      ...asked.flatMap((req) => this.askJob(id, req, now)),
+      ...taken.flatMap((t) => this.jobDone(t.n, t.got, now))
+    ];
+    if (to.length) out.to = to;
     return out;
   }
 

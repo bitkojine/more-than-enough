@@ -1,5 +1,42 @@
 # Changelog
 
+## [0.200.0] - 2026-11-07
+
+Anyone can tend or harvest anyone's crystal in a crystal shared world: the
+next part of release 2 of the bot-players plan (Watch, 2026-11-05: "crystal
+is fully shared"). Before, you saw others' buildings (0.199.0) but could do
+nothing at them.
+
+- **The way a job goes** (`src/core/cultivation-share.js`): each player's
+  crystal stays in their own progress, so a job at someone else's building
+  has three steps. Each one is written down as an act, so the room's copy
+  of each player does it at the same point in their play as their game.
+  (1) You ask, with crystal command `tend` or `collect` at their building
+  (result `asked`, act `k`), and pay for a tend there and then. (2) The
+  room sends the owner's game `take`; it does the job to its own building
+  as it is now and writes down `t`. (3) The room sends your game `given`
+  with what came of it; it takes that in and writes down `g`: the crystal
+  collected, or a tend's cost back when the chamber couldn't be tended.
+- **Nobody there** (`server/src/room-jobs.js`): an owner who isn't there,
+  or whose game is from before, has the job done in the room's copy at
+  once. The same goes for an asker. Jobs still waiting on someone's game
+  are done in the room's copy when that player comes back. Waiting jobs
+  are kept in memory only, so a restart forgets them (at worst one
+  tend's cost).
+- **In the game**: someone else's chamber or vault gets a card saying it's
+  theirs, with Tend and Collect. The log says who did what, on both sides.
+- **Wire**: hello `shares`, room messages `take` and `given`, acts `t` and
+  `g`. A game from before never gets `take` or `given`. Messages for one
+  player go out as `to` from the room (worker.js `sendTo`). `COOL` and
+  `MIN_QUALITY` moved to `cultivation-model.js`, so no import cycle.
+- **Checked**: `test/unit/crystal-share.test.js`. A friend takes crystal
+  from an AUTO player's chamber: the owner's game and the room's copy lose
+  it, the friend's gain it, and the room counts 0 refused and 0 off. A
+  friend tends, and a chamber too warm to tend gives the cost back. An
+  owner who isn't there has the job done in the room's copy and their kept
+  progress. Job parts are checked, nothing is taken twice, and the
+  handlers are tested in `together-parts`.
+
 ## [0.199.0] - 2026-11-07
 
 Everyone sees everyone's crystal buildings in a crystal shared world: the

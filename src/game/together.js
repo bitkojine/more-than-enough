@@ -101,6 +101,8 @@ export function createTogether({
       crystal: true,
       // ...and puts machines side by side in it (cultivation-seats.js, 0.198.0).
       seats: true,
+      // ...and does jobs others ask at its crystal (cultivation-share.js, 0.200.0).
+      shares: true,
       ...(code ? { code } : {})
     }),
     onMessage: receive,

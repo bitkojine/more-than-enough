@@ -28,6 +28,7 @@ import { SEAT_LAYER } from '../../src/core/cultivation-seats.js';
 import { RoomPlay } from './room-play.js';
 import { RoomWatch } from './room-watch.js';
 import { RoomLog } from './room-log.js';
+import { RoomJobs } from './room-jobs.js';
 
 // Split out of this file, and still importable from it.
 export { FAR_MS, STATUS_MS, DRIFT_LOG_MS } from './room-play.js';
@@ -280,13 +281,13 @@ export class Room {
   // `awayProduce` is the player's own freeze-season choice, told on the
   // hello: undefined means the game didn't say (one from before the
   // setting), and then the room keeps what it knows. `can`: what the game
-  // says it can do, `{crystal, seats}` (a bare `true`: crystal only): play a
-  // crystal room (0.194.0), put machines side by side in one (0.198.0).
+  // says it can do ({crystal, seats, shares}; a bare `true`: crystal only).
   // Returns {id, welcome} or
   // {error}.
   async join(key, code, now, awayProduce = undefined, can = false) {
     const crystal = can === true || can?.crystal === true,
-      seats = can?.seats === true;
+      seats = can?.seats === true,
+      shares = can?.shares === true;
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     let id = await playerId(this.id, key);
     // An admin's copy lets in only its own key, as the player it copies.
@@ -370,7 +371,10 @@ export class Room {
       at: pl.p ? [Math.round(pl.p.x), Math.round(pl.p.y), pl.p.z] : null,
       online: this.online()
     });
-    return { id, welcome: this.welcome(id, now, crystal) };
+    // Does this game do jobs asked at its crystal (room-jobs.js)? Waiting ones are done now.
+    pl.shares = shares;
+    const to = this.settleJobs(id, now);
+    return { id, welcome: this.welcome(id, now, crystal), ...(to.length ? { to } : {}) };
   }
 
   // The invite links someone may see and stop (invites.js listFor).
@@ -424,7 +428,6 @@ export class Room {
       // Your machine lies at your seat in the row (src/core/cultivation-seats.js):
       // only to a game that said it knows of seats, and the room plays it so too.
       ...(me.seats === true ? { seats: true } : {}),
-      // Everyone's crystal buildings (0.199.0): yours come back with your progress.
       ...(this.eco === 'crystal' ? { built: this.allBuilt().filter((e) => e[5] !== id) } : {}),
       // ...and that copy is what you have: `save` is it, and 'econ' sets
       // your game straight when it's off (src/game/together.js).
@@ -586,7 +589,7 @@ export class Room {
 // Room's methods by subject, each in its own file: what messages do
 // (room-play.js), anti-cheat and moderation (room-watch.js) and the audit
 // log (room-log.js). They are Room's own methods, as if written here.
-for (const part of [RoomPlay, RoomWatch, RoomLog])
+for (const part of [RoomPlay, RoomWatch, RoomLog, RoomJobs])
   for (const name of Object.getOwnPropertyNames(part.prototype))
     if (name !== 'constructor')
       Object.defineProperty(

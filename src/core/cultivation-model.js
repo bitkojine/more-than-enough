@@ -22,6 +22,8 @@ export const CULTIVATION_RECIPES = {
   lining: { mycelium: 10 }
 };
 // Each stage installs physical machine components; activation is a separate act.
+export const COOL = 22; // °C: warmer than this and crystal work is unsafe
+export const MIN_QUALITY = 60; // % crystal quality the machine needs
 export const MACHINE_REPAIRS = [
   CULTIVATION_RECIPES.repair,
   { stone: 24, ore: 24, crystal: 8 },

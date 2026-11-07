@@ -27,6 +27,37 @@ import { cleanGraves, cleanAway } from './room-messages.js';
 import { undoneText } from './together-rules.js';
 import { t } from '../i18n/i18n.js';
 
+// What the log says of a shared crystal job: `side` 'took' (someone did it
+// at yours), 'got' (you did it at theirs), 'not' (it couldn't be done).
+const sharedText = (side, req, got, name) =>
+  t(`shared.${side}.${req.type}`, { name, n: Math.floor(got.n) });
+
+// Jobs at someone else's crystal (src/core/cultivation-share.js, 0.200.0).
+function jobHandlers({ game, hud, friends, here }) {
+  return {
+    // Someone asked for a job at your crystal ('take', 0.200.0): done to
+    // your building as it is, and said in the log.
+    take(d) {
+      const req = Core.cleanJob(d);
+      if (!req || !Number.isSafeInteger(d.n) || !ID_RE.test(d.by)) return;
+      if (game.state.shared !== here() || !game.state.cultivation) return;
+      const got = Core.takeShared(game.state, d.n, req);
+      game.worldChanged();
+      if (got.ok) hud.toast(sharedText('took', req, got, friends.nameOf(d.by)));
+    },
+    // What came of a job you asked at someone's crystal ('given').
+    given(d) {
+      const req = Core.cleanJob(d),
+        got = Core.cleanGot(d);
+      if (!req || !got || !Number.isSafeInteger(d.n) || !ID_RE.test(d.by)) return;
+      if (game.state.shared !== here() || !game.state.cultivation) return;
+      Core.receiveShared(game.state, d.n, req, got);
+      game.worldChanged();
+      hud.toast(sharedText(got.ok ? 'got' : 'not', req, got, friends.nameOf(d.by)));
+    }
+  };
+}
+
 export const UNDONE_SECONDS = 8; // how long the note that the room took something back stays up
 export const UNDONE_QUIET = 20; // seconds after one such note before the next
 
@@ -113,6 +144,7 @@ export function createRoomHandlers({
       if (list && game.state.shared === here() && Core.setTheirs(game.state, d.id, list))
         game.worldChanged();
     },
+    ...jobHandlers({ game, hud, friends, here }),
     edits(d) {
       const list = cleanEdits(d.e);
       if (list && game.state.shared === here() && Core.applyEdits(game.state, list))

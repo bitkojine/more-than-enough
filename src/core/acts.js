@@ -17,9 +17,25 @@
  *                          at tile (tx, ty); arg: a building or tool kind, the
  *                          stop to teleport to, or 0
  *   ['m', …, fx, fy, tx, ty] moved their crystal building on (fx, fy) to (tx, ty)
- *   ['f', …]               made and lit a flare, or put out the one burning */
+ *   ['f', …]               made and lit a flare, or put out the one burning
+ * and when someone else's crystal is shared (0.200.0, cultivation-share.js):
+ *   ['t', …, n]            did job number `n` someone asked of their building
+ *   ['g', …, n]            took in what came of their ask number `n` */
 
-export const ACT_KINDS = Object.freeze(['h', 'c', 'b', 'v', 'p', 'u', 'w', 'k', 'm', 'f']);
+export const ACT_KINDS = Object.freeze([
+  'h',
+  'c',
+  'b',
+  'v',
+  'p',
+  'u',
+  'w',
+  'k',
+  'm',
+  'f',
+  't',
+  'g'
+]);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
 const WHERE_STEP = 0.5; // tiles walked between two 'w' acts
 

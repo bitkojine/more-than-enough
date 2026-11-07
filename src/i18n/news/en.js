@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.200.0':
+    'In the shared crystal world you can now tend another player’s crystal chamber or take the crystal it grew: {phone:tap|laptop:click} their building and choose. Their game does it to their own building, both of you see who did what in the log, and the crystal you take is yours.',
   'news.0.199.0':
     'In the shared crystal world you now see everyone’s crystal buildings, their chambers, coolers, vaults and machines, where they stand and whether they are growing or repaired, and nobody can build on top of anyone else’s.',
   'news.0.198.0':

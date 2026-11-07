@@ -13,6 +13,7 @@ import { advanceGoals } from './goals.js';
 import { cultivationCommand, commandOfAct, COMMAND_DONE } from './cultivation-commands.js';
 import { moveFacility } from './cultivation.js';
 import { useFlare } from './flare.js';
+import { doShared, gotShared } from './cultivation-share.js';
 
 const STEP = 0.25; // seconds per step, as the game's longest frame
 
@@ -50,7 +51,23 @@ const DO = {
     const b = s.cultivation?.facilities.find((f) => f.x === a[5] && f.y === a[6] && f.z === a[4]);
     return !!b && moveFacility(s, b, a[7], a[8]) === 'ok';
   },
-  f: (s) => ['lit', 'out'].includes(useFlare(s))
+  f: (s) => ['lit', 'out'].includes(useFlare(s)),
+  // Someone else's crystal shared (0.200.0): the job as the room put it
+  // down for this copy (s.toTake), what came of it (s.toGet).
+  t(s, a) {
+    const req = s.toTake?.get(a[5]);
+    if (!req) return false;
+    s.toTake.delete(a[5]);
+    (s.taken ||= []).push({ n: a[5], req, got: doShared(s, req) });
+    return true;
+  },
+  g(s, a) {
+    const e = s.toGet?.get(a[5]);
+    if (!e) return false;
+    s.toGet.delete(a[5]);
+    gotShared(s, e.req, e.got);
+    return true;
+  }
 };
 
 // Does act `a` on state `s` (time already brought up to the act's). Returns

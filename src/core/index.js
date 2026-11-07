@@ -70,6 +70,7 @@ export * from './cultivation-travel.js';
 export * from './cultivation-forecast.js';
 export * from './cultivation-seats.js';
 export * from './cultivation-theirs.js';
+export * from './cultivation-share.js';
 
 export * from './progression.js';
 

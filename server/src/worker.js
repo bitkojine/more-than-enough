@@ -407,6 +407,7 @@ export class Rooms extends DurableObject {
     if (r.toSelf) for (const msg of r.toSelf) ws.send(JSON.stringify(msg));
     if (r.toOthers) for (const msg of r.toOthers) this.send(msg, att.id, r.near);
     if (r.toAll) for (const msg of r.toAll) this.send(msg, null);
+    this.sendTo(r.to);
     // The anti-cheat froze them: their game shows the notice, as for the moderator's freeze.
     if (r.kick) this.kick(r.kick, 4005, 'frozen', { t: 'frozen' });
     if (this.room.log.length >= LOG_FLUSH_EVENTS) await this.flushLog(now);
@@ -451,7 +452,8 @@ export class Rooms extends DurableObject {
     // Whether the game can play a crystal room (0.194.0): only `true` counts.
     const r = await this.room.join(d.key, d.code, now, away, {
       crystal: d.crystal === true,
-      seats: d.seats === true
+      seats: d.seats === true,
+      shares: d.shares === true
     });
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error, ...(r.why ? { why: r.why } : {}) }));
@@ -467,6 +469,7 @@ export class Rooms extends DurableObject {
     ws.serializeAttachment({ id: r.id, at: now, v: (ws.deserializeAttachment() || {}).v });
     ws.send(JSON.stringify(r.welcome));
     this.send(this.room.statusOf(r.id), r.id);
+    this.sendTo(r.to);
     await this.schedule();
   }
 
@@ -507,11 +510,16 @@ export class Rooms extends DurableObject {
   // Sends to every player's socket except `except` (a player id), or to all.
   // To every player but `except`; with `near` (a position), only to those
   // close to it (see Room's pos).
-  send(msg, except, near = null) {
+  // Messages for one player each ([{id, m}], room-jobs.js).
+  sendTo(list) {
+    for (const { id, m } of list || []) this.send(m, null, null, id);
+  }
+
+  send(msg, except, near = null, only = null) {
     const text = JSON.stringify(msg);
     for (const ws of this.ctx.getWebSockets()) {
       const id = (ws.deserializeAttachment() || {}).id;
-      if (!id || id === except) continue;
+      if (!id || id === except || (only && id !== only)) continue;
       if (near && !isNear(this.room.players.get(id)?.p, near)) continue;
       try {
         ws.send(text);

@@ -69,6 +69,11 @@ const HOME_VIEW = 6; // tiles of land around home ground in view from the start
  * @property {string} [me]                         your id in that room; your buildings carry it
  * @property {Array<{kind: string, x: number, y: number, z: number, look: number, by: string}>} [theirs]
  *           a crystal room: everyone else's buildings, as the room tells of them (cultivation-theirs.js); never saved
+ * @property {Array<{type: string, x: number, y: number, z: number, by: string}>} [asked]
+ *           jobs asked at someone else's building, for the room to pick up (cultivation-share.js)
+ * @property {Map<number, object>} [toTake]        the room's copy: jobs asked of this player, by number
+ * @property {Map<number, object>} [toGet]         the room's copy: what came of this player's asks, by number
+ * @property {Array<object>} [taken]               the room's copy: jobs just done, for the room to pass on
  * @property {number} [seat]                       a crystal room: your machine's place in the row (cultivation-seats.js)
  * @property {Array<Array<string|number>> | null} [acts]  acts waiting to be sent (acts.js); off when not an array
  * @property {Position} [actedAt]                  where the last act was written down

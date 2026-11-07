@@ -700,6 +700,48 @@ test('handlers: someone’s crystal buildings replace theirs, only in this cryst
   assert.equal(x.changed(), 2);
 });
 
+test('handlers: a job asked at your crystal is done and written down; what came of yours is taken in', () => {
+  const x = handlerHarness();
+  const s = Core.createState(7, { cultivation: true });
+  Object.assign(s, { shared: 'roomA', acts: [], me: pid(0) });
+  s.cultivation.facilities.push({
+    kind: 'chamber',
+    id: 1,
+    x: 3,
+    y: 4,
+    z: -2,
+    buffer: 4,
+    quality: 80
+  });
+  x.game.state = s;
+  x.h.handle({ t: 'take', n: 7, k: 'collect', x: 3, y: 4, z: -2, by: pid(1) });
+  assert.equal(s.cultivation.facilities[0].buffer, 0);
+  assert.deepEqual(s.acts.at(-1).slice(0, 1).concat(s.acts.at(-1).slice(5)), ['t', 7]);
+  assert.equal(x.toasts.length, 1, 'said who took it');
+  x.h.handle({
+    t: 'given',
+    n: 8,
+    k: 'collect',
+    x: 9,
+    y: 9,
+    z: -2,
+    by: pid(1),
+    ok: true,
+    c: 3,
+    q: 90
+  });
+  assert.equal(s.inv.crystal, 3);
+  assert.deepEqual(s.acts.at(-1).slice(0, 1).concat(s.acts.at(-1).slice(5)), ['g', 8]);
+  for (const bad of [
+    { t: 'take', n: 9, k: 'repair', x: 3, y: 4, z: -2, by: pid(1) },
+    { t: 'given', n: 9, k: 'collect', x: 3, y: 4, z: -2, by: pid(1), ok: true, c: -3, q: 90 },
+    { t: 'given', n: 'x', k: 'collect', x: 3, y: 4, z: -2, by: pid(1), ok: true, c: 3, q: 90 }
+  ])
+    x.h.handle(bad);
+  assert.equal(s.inv.crystal, 3, 'a malformed one changes nothing');
+  assert.equal(s.acts.length, 2);
+});
+
 test('handlers: a removed player takes their buildings; a frozen one leaves them', () => {
   const { h, game, friends, changed } = handlerHarness();
   const a = pid('a'),

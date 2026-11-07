@@ -13,11 +13,15 @@ import { teleportFrom } from './cultivation-travel.js';
 import { invalidateIllumination } from './illumination.js';
 import { canAfford } from './economy.js';
 import { noteIf } from './acts.js';
+import { theirsAt } from './cultivation-theirs.js';
+import { askShared } from './cultivation-share.js';
 import {
   CULTIVATION_RECIPES,
   MACHINE_REPAIRS,
   machineSections,
-  machineRepairCost
+  machineRepairCost,
+  COOL,
+  MIN_QUALITY
 } from './cultivation-model.js';
 import { HEART_MIN, newHeart, heartAt } from './cultivation-heart.js';
 import {
@@ -36,11 +40,18 @@ import {
 } from './cultivation.js';
 
 const canPay = (s, cost) => canAfford(s.inv, cost);
-export const COOL = 22; // °C: warmer than this and crystal work is unsafe
-export const MIN_QUALITY = 60; // % crystal quality the machine needs
+export { COOL, MIN_QUALITY };
 
 // What a command returns when it changed something.
-export const COMMAND_DONE = Object.freeze(['ok', 'lifted', 'discovery', 'activated', 'teleported']);
+// ('asked': at someone else's building, for their game to do, cultivation-share.js)
+export const COMMAND_DONE = Object.freeze([
+  'ok',
+  'lifted',
+  'discovery',
+  'activated',
+  'teleported',
+  'asked'
+]);
 const done = (result) => COMMAND_DONE.includes(result);
 
 // Does crystal command `cmd` ({type, x?, y?, kind?, to?}). In a crystal room
@@ -69,7 +80,11 @@ function command(s, cmd, x, y) {
   const at = { s, c, cmd, x, y, z, b: cultivationAt(s, x, y, z) };
   if (Object.hasOwn(FREE, cmd.type)) return FREE[cmd.type](at);
   const { b } = at;
-  if (!b) return 'building';
+  if (!b) {
+    // Someone else's, in a crystal room: asked of their game.
+    const theirs = s.shared && theirsAt(s, x, y, z);
+    return theirs ? askShared(s, cmd.type, theirs) : 'building';
+  }
   if (contentLocked(s, b.kind)) return 'locked';
   const job = Object.hasOwn(AT_BUILDING, cmd.type) && AT_BUILDING[cmd.type];
   return job && job.kinds.includes(b.kind) ? job.run(at) : 'invalid';

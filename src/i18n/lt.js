@@ -914,6 +914,15 @@ export default {
     other: 'Čia vėsintų {count} statinių'
   },
   'card.move': 'Perkelti',
+  'card.theirs':
+    'Tai kito žaidėjo. Gali jį prižiūrėti ar pasiimti kristalų: jis matys, kas tai padarė.',
+  'shared.took.tend': '{name} prižiūrėjo tavo kristalų kamerą.',
+  'shared.took.collect': '{name} pasiėmė kristalų iš tavo pastato: {n}.',
+  'shared.got.tend': 'Prižiūrėjai žaidėjo {name} kristalų kamerą.',
+  'shared.got.collect': 'Pasiėmei kristalų iš žaidėjo {name} pastato: {n}.',
+  'shared.not.tend':
+    'Žaidėjo {name} kameros dabar prižiūrėti nepavyko: tai, ką sumokėjai, grįžo tau.',
+  'shared.not.collect': 'Žaidėjo {name} pastate dabar nebuvo kristalų.',
   'card.doubling': {
     one: 'Dvigubina {count} karjerą',
     few: 'Dvigubina {count} karjerus',
