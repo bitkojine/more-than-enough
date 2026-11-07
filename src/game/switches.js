@@ -74,7 +74,10 @@ export function createSwitches({
   }
   function showAuto() {
     el.perfect.hidden = !autoShown();
-    el.autoTip.hidden = !autoShown();
+    // The hold-me bubble shows only after a quick tap (tips.js); showing or
+    // hiding AUTO never shows it, or it appears empty (it gets its words
+    // only from hud.autoTip).
+    hud.autoTip(0);
     el.autoLab.hidden = !!game.state.cultivation;
     el.autoState.textContent = t(savedView.showAuto ? 'settings.on' : 'settings.off');
     el.showAuto.setAttribute('aria-pressed', String(savedView.showAuto));

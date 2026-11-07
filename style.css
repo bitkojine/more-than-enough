@@ -553,7 +553,7 @@ body.placing #thumbDock, body.placing #btnInvite { visibility: hidden; }
   content: ''; position: absolute; right: 28px; bottom: -8px;
   border: 8px solid transparent; border-bottom: 0; border-top-color: #fbeec4;
 }
-#btnPerfect .tip[hidden] { display: none; }
+#btnPerfect .tip[hidden], #btnPerfect .tip:empty { display: none; }
 #btnPerfect.embark { border-color: var(--gold); animation: embarkPulse 1.6s ease-in-out infinite; }
 #btnPerfect.embark .badge { border-color: var(--gold); }
 @keyframes embarkPulse {

@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.200.1] - 2026-11-07
+
+An empty cream bubble with its pointer floated above the AUTO button
+(Watch's iPhone screenshot). It was AUTO's "hold me down" bubble with no
+words: `showAuto()` in `src/game/switches.js` set the bubble's `hidden` to
+match AUTO's, so turning AUTO on in Nerds, every boot and every world change
+(`game-host.js` `changedMode`) showed it. Its words are set only by
+`hud.autoTip()` after a quick tap, so it showed empty.
+
+- `showAuto()` now always puts the bubble away (`hud.autoTip(0)`); only a
+  quick tap shows it, with its words.
+- `style.css`: an empty bubble never draws (`.tip:empty`), in case anything
+  else unhides it.
+- `test/unit/switches.test.js`: boot, Nerds on/off and world changes keep
+  the bubble hidden (fails on 0.200.0).
+
 ## [0.200.0] - 2026-11-07
 
 Anyone can tend or harvest anyone's crystal in a crystal shared world: the

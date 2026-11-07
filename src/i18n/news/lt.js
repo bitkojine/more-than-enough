@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.200.1':
+    'Kai skiltyje „Moksliukams“ įjungtas AUTO mygtukas, virš jo nebekabo tuščias burbulas. Burbulas „Laikyk nuspaudęs – žais pats“ rodomas tik po trumpo paspaudimo, kaip anksčiau.',
   'news.0.200.0':
     'Bendrame kristalų pasaulyje dabar gali prižiūrėti kito žaidėjo kristalų kamerą arba pasiimti joje užaugusių kristalų: {phone:paliesk|laptop:spustelėk} jo pastatą ir pasirink. Jo žaidimas tai padaro jo pastatui, abu žinutėse matote, kas ką padarė, o paimti kristalai tampa tavo.',
   'news.0.199.0':

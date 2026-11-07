@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.200.1':
+    'With the AUTO button turned on in Nerds, an empty bubble no longer floats above it. The “Hold me down” bubble shows only after a {phone:quick tap|laptop:quick click}, as before.',
   'news.0.200.0':
     'In the shared crystal world you can now tend another player’s crystal chamber or take the crystal it grew: {phone:tap|laptop:click} their building and choose. Their game does it to their own building, both of you see who did what in the log, and the crystal you take is yours.',
   'news.0.199.0':
