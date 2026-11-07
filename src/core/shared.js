@@ -50,6 +50,11 @@ const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 // starts fresh, next to `near` if given (a friend, wherever they are).
 // A crystal room's player always plays the crystal chapter, an old room's
 // never: a save of the other kind (a mended or edited one) doesn't make a world.
+// Your seat from a welcome ({seat}, or nothing): only in a crystal world, and
+// only if the room said `seats`.
+const seatIn = (s, w) =>
+  s.cultivation && w.seats === true && Number.isSafeInteger(w.c) ? { seat: w.c } : {};
+
 export function joinState(welcome, room, fog, near, make = undefined) {
   let mine = {};
   if (typeof welcome.save === 'string') {
@@ -87,6 +92,9 @@ export function joinState(welcome, room, fog, near, make = undefined) {
   if (!fitsRoom(s, welcome)) return null;
   s.shared = room;
   s.me = welcome.you;
+  // Your machine's place in a crystal room's row: your colour's number,
+  // when the room puts machines side by side (it says `seats`, 0.198.0).
+  Object.assign(s, seatIn(s, welcome));
   if (!mine.player && near && near.z <= SURFACE && near.z >= Z_MIN) {
     s.player = beside(s.world, near, playersIn(welcome));
     s.underground.deepest = Math.min(s.underground.deepest, near.z);

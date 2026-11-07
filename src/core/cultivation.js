@@ -11,6 +11,7 @@ import { illuminationAt, LIGHT_MAX } from './illumination.js';
 import { earn, spend as payInventory } from './economy.js';
 import { MACHINE_REPAIRS, machineSections } from './cultivation-model.js';
 import { noteIf } from './acts.js';
+import { machineSeat, seatAt } from './cultivation-seats.js';
 import {
   HEART_SUN,
   HEART_MEND,
@@ -234,6 +235,8 @@ export function facilitySite(s, kind, x, y, moving = null) {
     if (!nearHidingPlace(s, x, y, z)) return 'camp';
   } else if (z > DEEP && kind !== 'shelter') return 'deep';
   if (heartAt(s, x, y, z)) return 'occupied';
+  // A machine's place in a shared world's row is kept for it.
+  if (s.shared && seatAt(s.world, x, y, z)) return 'occupied';
   const type = tileAt(s.world, x, y, z),
     b = cultivationAt(s, x, y, z);
   if (
@@ -296,9 +299,14 @@ export function machineClue(s) {
   const b = s.cultivation?.facilities.find((f) => f.kind === 'machine');
   return b ? Math.min(MACHINE_REPAIRS.length, machineSections(b)) : 0;
 }
+// The machine shows itself as you come near it: in a crystal shared world at
+// your seat in the row under spawn (cultivation-seats.js), alone in the
+// first tunnel you come by down there.
 function discoverMachine(s) {
   const c = s.cultivation;
   if (s.player.z > -2 || c.facilities.some((b) => b.kind === 'machine')) return;
+  const seat = s.shared && machineSeat(s.world, s.seat);
+  if (seat) return discoverAtSeat(s, seat);
   const x = Math.floor(s.player.x),
     y = Math.floor(s.player.y),
     z = s.player.z;
@@ -312,21 +320,32 @@ function discoverMachine(s) {
         cultivationAt(s, px, py, z)
       )
         continue;
-      c.facilities.push({
-        kind: 'machine',
-        sections: 0,
-        id: c.nextId++,
-        x: px,
-        y: py,
-        z,
-        temperature: 30,
-        health: 0,
-        quality: 100,
-        buffer: 0
-      });
+      c.facilities.push(newMachine(c, px, py, z));
       return;
     }
 }
+// At your seat: once its rock is dug out and you stand by it.
+function discoverAtSeat(s, { x, y, z }) {
+  const near =
+    s.player.z === z &&
+    Math.abs(Math.floor(s.player.x) - x) <= 2 &&
+    Math.abs(Math.floor(s.player.y) - y) <= 2;
+  const dug = tileAt(s.world, x, y, z) === T.TUNNEL;
+  if (near && dug && isExplored(s.world, x, y, z) && !cultivationAt(s, x, y, z))
+    s.cultivation.facilities.push(newMachine(s.cultivation, x, y, z));
+}
+const newMachine = (c, x, y, z) => ({
+  kind: 'machine',
+  sections: 0,
+  id: c.nextId++,
+  x,
+  y,
+  z,
+  temperature: 30,
+  health: 0,
+  quality: 100,
+  buffer: 0
+});
 // The heart: carried, it takes `damage` % a second (heat and any light);
 // resting in a shelter, it mends or cracks with the shelter's temperature.
 function stepHeart(s, damage, seconds) {

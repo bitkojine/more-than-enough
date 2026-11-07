@@ -433,6 +433,15 @@ export function playCultivation(
     if (room.needsTend) command('tend', null, roomAt);
     stage('colony growing');
     command('craft', 'carrier');
+    // In a crystal room your machine lies buried at your seat in the row
+    // under spawn: dig it out.
+    const seat = state.shared && C.machineSeat(state.world, state.seat);
+    if (seat && !state.cultivation.facilities.some((b) => b.kind === 'machine')) {
+      toward(seat);
+      if (C.tileAt(state.world, seat.x, seat.y, seat.z) !== C.T.TUNNEL)
+        act({ type: 'harvestAt', x: seat.x, y: seat.y });
+      advance(1);
+    }
     const machine = state.cultivation.facilities.find((b) => b.kind === 'machine');
     if (!machine) throw Error('machine not discovered');
     const machineCool = buildingSite(machine, 3);

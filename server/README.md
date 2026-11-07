@@ -91,6 +91,13 @@ shared with the game.
    Its land grows as a crystal world's does, everyone in it has their own
    machine and stolen heart, and the room replays crystal commands (`k`),
    crystal buildings moved (`m`) and flares (`f`) like every other act. A
+   Machines lie side by side (0.198.0, `src/core/cultivation-seats.js`):
+   a game that says `"seats": true` in its hello is, if the room's copy of
+   that player hasn't been down to layer 2 yet, given a seat for good
+   (`seats` on the player, `seats: true` in the welcome), and both the game
+   and the room then look for its machine at that seat, the player's colour
+   number in a row under spawn. Anyone else keeps the first-tunnel rule on
+   both sides, so a game or room one version behind never disagrees. A
    game says it can play one with `"crystal": true` in its hello; one that
    doesn't is told of a newer world format (`fmt` one higher) and updates
    first, so an old game never grows the old land in a crystal room.

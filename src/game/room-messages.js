@@ -121,7 +121,9 @@ export function cleanWelcome(d) {
     moves: d.moves === true,
     collectAt: d.collectAt === true,
     // How the world plays (0.194.0): a room from before says nothing, and plays the old economy.
-    eco: d.eco === 'crystal' ? 'crystal' : 'old'
+    eco: d.eco === 'crystal' ? 'crystal' : 'old',
+    // Machines side by side (0.198.0): a room from before says nothing.
+    seats: d.seats === true
   };
 }
 

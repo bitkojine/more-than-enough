@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.198.0] - 2026-11-07
+
+Machines side by side in a crystal shared world: the first part of release 2
+of the bot-players plan, which Watch told to go on with (2026-11-05). Before,
+each player in a crystal room found their machine in whatever tunnel they
+first came by underground, so players' machines were scattered and nobody
+worked near anyone else.
+
+- **Seats** (`src/core/cultivation-seats.js`): a row in layer 2 under spawn,
+  a machine every `SEAT_GAP` (3) tiles, each in the plain diggable rock
+  nearest its column, worked out from the land as generated (`baseTile` in
+  `world.js`), so a seat never moves whatever anyone digs. A player's seat is
+  their colour number `c` in the room, given once and never reused.
+- **Finding it** (`cultivation.js discoverMachine`): with a seat, the machine
+  shows itself once its rock is dug out and you stand within two tiles.
+  `facilitySite` keeps the first 100 seats free of buildings in a shared
+  world. AUTO (`crystal-brain.js findMachine`) walks to its seat and digs.
+- **Rollout without drift**: the game says `seats: true` in its hello; the
+  room gives the player a seat (`pl.seats`) only if its copy of them hasn't
+  been down to layer 2 yet, and says `seats: true` in the welcome; the shadow
+  then plays the seat too. A game or room one version behind, or someone who
+  was down there before, keeps the first-tunnel rule on both sides, so no
+  machine anyone found moves and the two sides never disagree on where it is.
+- **Checked**: `test/unit/crystal-seats.test.js` (two players dig out their
+  machines at seats 0 and 1 with no act refused and no drift; nobody builds
+  on a seat; a game from before seats still agrees with the room, and on
+  coming back with a seat-aware game keeps its tunnel rule);
+  the crystal-room and AUTO room tests now play with seats
+  (`scripts/cultivation-playtest.mjs` digs its seat).
 ## [0.197.1] - 2026-11-07
 
 The invite-only page no longer leaves something new on the device each

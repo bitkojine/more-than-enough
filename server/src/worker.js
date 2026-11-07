@@ -449,7 +449,10 @@ export class Rooms extends DurableObject {
     // turned it on before (src/net/protocol.js).
     const away = d.away === undefined ? undefined : d.away === true;
     // Whether the game can play a crystal room (0.194.0): only `true` counts.
-    const r = await this.room.join(d.key, d.code, now, away, d.crystal === true);
+    const r = await this.room.join(d.key, d.code, now, away, {
+      crystal: d.crystal === true,
+      seats: d.seats === true
+    });
     if (r.error) {
       ws.send(JSON.stringify({ t: r.error, ...(r.why ? { why: r.why } : {}) }));
       return ws.close(1008, r.error);

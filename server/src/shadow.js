@@ -150,6 +150,7 @@ export class Shadow {
         props: [],
         ext: room.ext,
         you: id,
+        ...(room.players.get(id)?.seats === true ? { c: room.players.get(id).c, seats: true } : {}),
         eco: this.crystal ? 'crystal' : 'old'
       },
       room.id,

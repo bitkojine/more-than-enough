@@ -58,7 +58,7 @@ test('AUTO picks a crystal world up where it was: a reload on the way to the hea
 
 // A game in crystal room `r` as key `key`, sending what it did the way together.js does.
 async function roomGame(r, key, now) {
-  const j = await r.join(key, undefined, now, false, true);
+  const j = await r.join(key, undefined, now, false, { crystal: true, seats: true });
   const s = C.joinState(j.welcome, r.id, null, null);
   s.time = j.welcome.time;
   s.acts = [];

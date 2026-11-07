@@ -28,7 +28,7 @@ async function crystalRoom(seed) {
 
 // A game in crystal room `r`, sending what it did the way together.js does.
 async function crystalGame(r, key) {
-  const j = await r.join(key, undefined, T0, false, true);
+  const j = await r.join(key, undefined, T0, false, { crystal: true, seats: true });
   assert.equal(j.welcome.eco, 'crystal');
   assert.equal(j.welcome.fmt, WORLD_FORMAT);
   const s = C.joinState(j.welcome, r.id, null, null);
@@ -106,7 +106,7 @@ test("crystal room: the room's copy holds the same crystal chapter as the game",
 });
 
 test('crystal room: coming back, the game opens the crystal chapter where it was', async () => {
-  const back = await r.join(key, undefined, T0 + 1e7, false, true);
+  const back = await r.join(key, undefined, T0 + 1e7, false, { crystal: true, seats: true });
   const s = C.joinState(back.welcome, r.id, null, null);
   assert.equal(s.cultivation.completed, true);
   assert.equal(s.world.cultivation, true, 'crystal land');

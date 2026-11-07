@@ -93,6 +93,12 @@ function chunkAt(w, x, y, z) {
   return chunk;
 }
 
+// The tile as generated, before anyone dug or gathered it (the same for
+// everyone, whenever asked: shared places are worked out from it).
+export function baseTile(w, x, y, z) {
+  return chunkAt(w, x, y, z).type[chunkIndex(x, y)];
+}
+
 // Richness as generated, before any player edits. Nothing grows back: once
 // gathered, a tile stays as it was left, for good.
 export function baseRichness(w, x, y, z) {

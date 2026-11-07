@@ -39,6 +39,7 @@ import { hidingPlace, carrierSun, carrierLoaded, HEART_WARM_LINE } from './culti
 import { cultivationAt, cultivationTarget, facilitySite, DEEP } from './cultivation.js';
 import { COOL, MIN_QUALITY } from './cultivation-commands.js';
 import { sunLightStrength } from './illumination.js';
+import { machineSeat } from './cultivation-seats.js';
 
 // The tools bought first, in order, and the level each is bought to.
 const TOOLS = [
@@ -180,7 +181,7 @@ class Brain {
     const growing = this.grow(chamber);
     if (growing) return growing;
     if (!c.gear.carrier) return { type: 'cultivate', cmd: { type: 'craft', kind: 'carrier' } };
-    if (!machine) return this.explore();
+    if (!machine) return this.findMachine();
     if (!this.coolerBy(machine)) return this.build('cooler', machine, 3);
     if (sections >= MACHINE_REPAIRS.length) return this.atMachine(machine, 'activate');
     // Only what the next repair takes: crystal carried up into the sun goes
@@ -190,6 +191,15 @@ class Brain {
       return this.near(chamber) ? wait('growing') : this.go(chamber, true);
     }
     return this.atMachine(machine, 'repair');
+  }
+
+  // In a shared world the machine waits at your seat in the row: go there.
+  findMachine() {
+    const seat = this.s.shared && machineSeat(this.s.world, this.s.seat);
+    if (!seat || seat.z !== this.z) return this.explore();
+    if (!this.near(seat)) return this.go(seat, true);
+    // It lies buried in the rock: dig it out.
+    return this.info(seat.x, seat.y).walk ? this.explore() : this.harvest(seat);
   }
 
   // Work `type` at the machine once it's cool enough.

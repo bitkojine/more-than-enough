@@ -80,7 +80,9 @@ Watch plays mostly alone, so multiplayer gets little use. Three AI bot players w
 
 Release 1 shipped in 0.194.0: Watch can make a crystal shared world, and each player in it plays their own crystal chapter, checked by the room like every other act. Every heart hides at the same hiding place (it comes from the world's seed), and each player finds their own machine underground. What players share comes in the next releases.
 
-In a crystal shared world every player, bot or person, has their own machine and stolen heart. The machines stand side by side at spawn and every heart hides in the same direction, so the trips are shared. Any heart shelter or camp cools anyone's carrier. Crystal is fully shared: anyone can tend, harvest or move anyone's crystal, and anyone's light hurts all of it. Once your machine is awake, every heart shelter in the world is a teleport stop for you.
+Release 2 began in 0.198.0 with the machines side by side: each player's machine lies buried at their seat in one row in the deep (layer 2) under spawn, a machine every three tiles, so everyone repairs theirs next to everyone else's. Your seat is your colour's number in the room, given once and never reused; nobody can build on a seat. A player who had been down to layer 2 before keeps the machine they found in a tunnel. Seeing and sharing each other's crystal buildings comes next.
+
+In a crystal shared world every player, bot or person, has their own machine and stolen heart. The machines stand side by side in the deep under spawn and every heart hides in the same direction, so the trips are shared. Any heart shelter or camp cools anyone's carrier. Crystal is fully shared: anyone can tend, harvest or move anyone's crystal, and anyone's light hurts all of it. Once your machine is awake, every heart shelter in the world is a teleport stop for you.
 
 ### No phones or laptops in the world — confirmed, 2026-10-24
 Characters no longer carry a phone or laptop, in any world. A device in hand

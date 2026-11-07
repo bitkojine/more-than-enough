@@ -24,6 +24,7 @@ import {
   modsIn
 } from './stored.js';
 import * as Invites from './invites.js';
+import { SEAT_LAYER } from '../../src/core/cultivation-seats.js';
 import { RoomPlay } from './room-play.js';
 import { RoomWatch } from './room-watch.js';
 import { RoomLog } from './room-log.js';
@@ -37,6 +38,17 @@ export { MAX_SPEED, MOVE_BURST, CHEATS_TO_FREEZE, CHEAT_FORGIVE_MS } from './mov
 export { visitor, Bucket, STRIKE_FORGIVE_MS, editBucket } from './limits.js';
 
 export const LOST_TO_OFFLINE_MS = 60_000; // connection lost this long: offline
+// The deepest layer a kept save went down to (the surface for none, or one unread).
+function deepestIn(save) {
+  try {
+    const d = save ? JSON.parse(save) : {};
+    const zs = [d.underground?.deepest, d.player?.z].filter(Number.isSafeInteger);
+    return Math.min(0, ...zs);
+  } catch {
+    return 0;
+  }
+}
+
 export const SMOKE_SEED = 12345; // the seed the deploy's smoke test sends (server/smoke.mjs); never used to classify a room
 export const NEAR = 48; // tiles: players this close hear each other's every step
 // Steps and edits are watched (moves.js): enough cheats freeze a character.
@@ -267,11 +279,14 @@ export class Room {
   // A connection proved its key (and, the first time, brought an invite).
   // `awayProduce` is the player's own freeze-season choice, told on the
   // hello: undefined means the game didn't say (one from before the
-  // setting), and then the room keeps what it knows. `crystal`: the game
-  // can play a crystal room (its hello says so since 0.194.0).
+  // setting), and then the room keeps what it knows. `can`: what the game
+  // says it can do, `{crystal, seats}` (a bare `true`: crystal only): play a
+  // crystal room (0.194.0), put machines side by side in one (0.198.0).
   // Returns {id, welcome} or
   // {error}.
-  async join(key, code, now, awayProduce = undefined, crystal = false) {
+  async join(key, code, now, awayProduce = undefined, can = false) {
+    const crystal = can === true || can?.crystal === true,
+      seats = can?.seats === true;
     if (typeof key !== 'string' || !KEY_RE.test(key)) return { error: 'bad' };
     let id = await playerId(this.id, key);
     // An admin's copy lets in only its own key, as the player it copies.
@@ -328,6 +343,19 @@ export class Room {
     // knows: frozen, unless this player turned it on before. A copy plays the
     // copied player, so their own rule stands there too.
     if (!this.copy && awayProduce !== undefined) pl.awayProduce = awayProduce === true;
+    // A game that puts machines side by side (0.198.0), in a crystal room:
+    // from then on the room's copy of this player looks for their machine
+    // at their seat too. Only for someone who hasn't been down to the
+    // machine's layer yet: who has may have found theirs in a tunnel
+    // already, and keeps it there (`seats` false, for good). A game from
+    // before seats looks in the first tunnel, and so does the room for it,
+    // so the two never disagree on where it is.
+    if (seats && pl.seats === undefined && this.eco === 'crystal' && !this.copy) {
+      const sh = this.shadow?.players.get(id);
+      pl.seats = (sh ? sh.s.underground.deepest : deepestIn(pl.save)) > SEAT_LAYER;
+      if (pl.seats && sh?.s.cultivation) sh.s.seat = pl.c;
+      this.dirty.players.add(id);
+    }
     // A new connection may stand anywhere its game remembers: its first step is free.
     this.watchOf(id, now).fresh = true;
     pl.st = 'online';
@@ -393,6 +421,9 @@ export class Room {
       // shared world only when it says so (src/core/actions.js moveExtractor).
       moves: true,
       collectAt: true, // targeted single-building collections (optional c coordinates)
+      // Your machine lies at your seat in the row (src/core/cultivation-seats.js):
+      // only to a game that said it knows of seats, and the room plays it so too.
+      ...(me.seats === true ? { seats: true } : {}),
       // ...and that copy is what you have: `save` is it, and 'econ' sets
       // your game straight when it's off (src/game/together.js).
       econ: true

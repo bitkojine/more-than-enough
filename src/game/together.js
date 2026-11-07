@@ -99,6 +99,8 @@ export function createTogether({
       key: myKey(),
       away: awayProduce,
       crystal: true,
+      // ...and puts machines side by side in it (cultivation-seats.js, 0.198.0).
+      seats: true,
       ...(code ? { code } : {})
     }),
     onMessage: receive,
