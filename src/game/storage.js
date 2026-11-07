@@ -13,6 +13,9 @@ function freshWorld() {
 // more. A device with none gets one to draw behind the invite-only page
 // (sleep.js) that is never saved: a visit. `visits` is off for browser tests,
 // which play a fresh world of their own unless they open the game with ?visit.
+// Always the same world, so the message log and earnings the page keeps per
+// world (messages.js, income.js) stay one entry however often it opens.
+const VISIT_SEED = 20261105;
 const visits = new WeakSet();
 let visitsOn = false;
 export const visiting = (s) => visits.has(s);
@@ -137,9 +140,10 @@ export function loadGame(withVisits = visitsOn) {
     return { state: back, lost: false };
   }
   if (!raw) {
-    const fresh = freshWorld();
-    if (visitsOn) visits.add(fresh);
-    return { state: fresh, lost: false };
+    if (!visitsOn) return { state: freshWorld(), lost: false };
+    const visit = createState(VISIT_SEED, { cultivation: true });
+    visits.add(visit);
+    return { state: visit, lost: false };
   }
   // One already set aside (unreadable too, or it would be in use) keeps its
   // own name before this one takes the slot.

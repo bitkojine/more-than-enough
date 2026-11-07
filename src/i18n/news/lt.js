@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.197.1':
+    'Puslapis „tik su pakvietimu“ kaskart rodo tą pačią ramią pievą ir kaskart nebeprideda nieko naujo tavo įrenginyje.',
   'news.0.197.0':
     '„Mica ir Wiki“ dabar žaidžiama internetu: nauji žaidėjai prisijungia prie bendro kristalų pasaulio su pakvietimo nuoroda iš to, kas jau jame žaidžia. Visi tavo pasauliai lieka tavo, tokie, kokie yra. Baigtas pasaulis dabar lieka įveiktas, o ne siūlo iškeliauti.',
   'news.0.196.0':

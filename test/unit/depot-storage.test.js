@@ -40,7 +40,13 @@ test('online only: a device with no world gets a visit that is never saved, and 
   assert.ok(storage.visiting(visit), 'nothing on the device: a visit');
   assert.equal(storage.saveGame(visit), null);
   assert.equal(values.size, 0, 'a visit writes nothing');
-  assert.ok(storage.visiting(storage.loadGame().state), 'the choice holds for the next load');
+  const again = storage.loadGame().state;
+  assert.ok(storage.visiting(again), 'the choice holds for the next load');
+  assert.equal(
+    again.seed,
+    visit.seed,
+    'always the same world, so what it keeps per world never piles up'
+  );
   const mine = C.createState(31, { cultivation: true });
   assert.equal(storage.saveGame(mine), null);
   const back = storage.loadGame().state;

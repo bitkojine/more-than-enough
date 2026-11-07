@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.197.1] - 2026-11-07
+
+The invite-only page no longer leaves something new on the device each
+time it opens. Its world (a visit, 0.197.0) was made from a random seed
+every time, and the message log and earnings the page keeps per world
+(`mte.log.solo.<seed>`, `mte.income.v2.solo.<seed>`) made two new storage
+entries on every open, so someone opening the game again and again
+without an invite piled them up. A visit is now always the same world
+(`VISIT_SEED` in `src/game/storage.js`), so those stay one entry each.
+Checked: `depot-storage.test.js` (two loads give the same visit), the
+invite page on a phone in both languages after two opens (the same two
+keys), and the live site's invite page on 0.197.0 before the change.
+
 ## [0.197.0] - 2026-11-05
 
 No new world of your own is made any more: release 2 of Watch's online-only

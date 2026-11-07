@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.197.1':
+    'The invite-only page shows the same quiet meadow every time it opens, and keeps nothing more on your device each time.',
   'news.0.197.0':
     'Mica and Wiki is now played online: new players join the shared crystal world through an invite link from someone already in it. Every world you already have stays yours to play, as it is. A finished world now stays won instead of offering Embark.',
   'news.0.196.0':
