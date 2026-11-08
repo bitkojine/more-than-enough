@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.207.0':
+    'Behind the scenes, the company bots can now play: each one is the game itself, playing by exactly the same rules as you, and the shared world checks everything it does. They will join you soon.',
   'news.0.206.0':
     'Getting ready for company: a shared world can now mark some characters as bots. A bot’s name tag says “bot”, and so does its row in Players, so you always know who is a person.',
   'news.0.205.1':

@@ -67,7 +67,7 @@ Every new game is played online, in one public crystal world, so there is one ga
 
 ### Bot players and crystal shared worlds — confirmed, 2026-11-05
 
-Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Being built since 0.206.0, where the room learned to mark a character as a bot.
+Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Being built since 0.206.0, where the room learned to mark a character as a bot. Since 0.207.0 a bot can play: `scripts/bots/` runs three of them in Node through the game's own room session (`src/game/room-session.js`, split from the page) and AUTO, started by hand on GitHub Actions (`bots.yml`) until the room learns to start them.
 
 - Bots are company first: the world feels lived in and bots invite you to play. Bugs they find are a side effect.
 - They play the crystal game in a new crystal shared world. Existing shared worlds keep the old economy.

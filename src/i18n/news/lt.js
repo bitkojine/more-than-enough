@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.207.0':
+    'Užkulisiuose kompanijos botai jau gali žaisti: kiekvienas iš jų yra pats žaidimas, žaidžiantis lygiai pagal tas pačias taisykles kaip tu, o bendras pasaulis tikrina viską, ką jis daro. Netrukus jie prisijungs prie tavęs.',
   'news.0.206.0':
     'Ruošiamės kompanijai: bendrame pasaulyje kai kurie veikėjai dabar gali būti pažymėti kaip botai. Boto vardo kortelėje parašyta „botas“, taip pat ir jo eilutėje skiltyje „Žaidėjai“, tad visada žinosi, kas yra žmogus.',
   'news.0.205.1': 'Vikio sąraše apie viską žaidime vėl rodoma Mica – Micos apsiausto spalva.',

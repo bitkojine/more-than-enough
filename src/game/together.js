@@ -3,23 +3,20 @@
  * with their phone's camera and lands next to you in your world.
  *
  * The room is the source of truth for the world and keeps each player's own
- * progress. This module decides what to do with what it says and sends it
- * what you do. Its parts: the connection (room-link.js), the friends you see
- * (friends.js), the sign (invite-sign.js), the invite links (invite-list.js),
- * what waits to be sent (outbox.js), who you are (identity.js), and the pure
- * decisions (together-rules.js, room-messages.js). Everything that arrives
+ * progress. This module puts the page around being in a room
+ * (room-session.js: the connection, the friends you see, what waits to be
+ * sent, what the room says, the welcome): the sign (invite-sign.js), the
+ * invite links (invite-list.js), who you are (identity.js), Worlds, and the
+ * pure decisions (together-rules.js). Everything that arrives
  * is checked (src/net/protocol.js, then the core's own tables) before it
  * touches the game; nothing from the network is ever put into the page as
  * HTML. */
 
-import { LIMITS, parse } from '../net/protocol.js';
+import { LIMITS } from '../net/protocol.js';
 import { roomService } from '../net/config.js';
-import { WORLD_FORMAT } from '../core/format.js';
-import { playedTime, cleanWelcome } from './room-messages.js';
 import { closeReason } from './together-rules.js';
-import { createRoomHandlers } from './room-handlers.js';
-import { createRoomSender, createAwayTeller } from './room-sender.js';
-import { checkMaking, arrivalState } from './arrival.js';
+import { arrivalState } from './arrival.js';
+import { createRoomSession } from './room-session.js';
 import {
   knownRooms,
   remember,
@@ -33,8 +30,8 @@ import {
 import { createFriendsHud } from './players.js';
 import { createInviteList } from './invite-list.js';
 import { createInviteSign } from './invite-sign.js';
-import { createFriends, friendColor } from './friends.js';
-import { createRoomLink, socketUrl } from './room-link.js';
+import { friendColor } from './friends.js';
+import { socketUrl } from './room-link.js';
 import {
   read,
   write,
@@ -47,11 +44,9 @@ import {
 } from './identity.js';
 import { loadGame, soloWorlds, keptCopies, takeKept, visiting } from './storage.js';
 import { createActor } from './render/motion.js';
-import { createOutbox, resync as resyncState } from './outbox.js';
 import { t } from '../i18n/i18n.js';
 import { lazy } from './lazy.js';
 
-const WELCOME_BYTES = 8_000_000; // the most a room's welcome may be
 const FORMAT_RETRY = 60_000; // ms before trying a world again whose room service hasn't updated yet
 // Why a link turned you away (the room says, see server/src/room.js whyNot).
 const INVITE_WHY = Object.freeze({
@@ -83,34 +78,12 @@ export function createTogether({
   let room = null; // the shared world you're in (or joining)
   let back = null; // the shared world you're still in while a link takes you to another
   let code = null; // the invite you're joining with, used once
-  let clock = null; // the world's clock: {t: its time, at: our time then}
   let turnedAway = null; // why the room said your invite link no longer works
-  const outbox = createOutbox(); // edits, acts and progress sent, kept until the room has them (outbox.js)
   // Whether this player's time away makes anything (freeze season defaults it
   // off). Their own Settings choice, told to the room on every join (hello),
   // which works out away production for them (server/src/shadow.js away).
   let awayProduce = false;
 
-  const friends = createFriends({ clock: seconds, actor: createActor, limit: LIMITS.players });
-  const link = createRoomLink({
-    // `crystal`: this game can play a crystal room (0.194.0).
-    hello: () => ({
-      t: 'hello',
-      key: myKey(),
-      away: awayProduce,
-      crystal: true,
-      // ...and puts machines side by side in it (cultivation-seats.js, 0.198.0).
-      seats: true,
-      // ...and does jobs others ask at its crystal (cultivation-share.js, 0.200.0).
-      shares: true,
-      ...(code ? { code } : {})
-    }),
-    onMessage: receive,
-    onClosed: closed
-  });
-  const send = link.send;
-  const sender = createRoomSender({ outbox, send, ready: () => link.ready, write });
-  const save = sender.save;
   const sign = createInviteSign({
     el,
     body: document.body,
@@ -121,6 +94,44 @@ export function createTogether({
     shown: () => !!service && !!game.state.shared,
     toast: (text) => hud.toast(text)
   });
+  // Being in the room, the page aside (room-session.js): what the bots play through too.
+  const session = createRoomSession({
+    game,
+    hud,
+    read,
+    write,
+    room: () => room,
+    hello: () => ({ key: myKey(), ...(code ? { code } : {}) }),
+    seconds,
+    hidden: () => document.hidden || asleep(),
+    actor: createActor,
+    sign,
+    invites: () => invites,
+    awayProduce: () => awayProduce,
+    renderFriends: () => renderFriends(),
+    checkUpdate,
+    onAway,
+    turnedAway: (why) => {
+      if (Object.hasOwn(INVITE_WHY, why)) turnedAway = why;
+    },
+    on: {
+      closed,
+      broken: () => stop(t('together.toast.broken')),
+      mismatched,
+      entered() {
+        code = null; // an invite is for getting in once
+        back = null;
+        remember(room);
+        write(PLAYING_STORE, room);
+      },
+      arrive,
+      welcomed() {
+        renderFriends();
+        game.changedMode();
+      }
+    }
+  });
+  const { link, send, friends, save, sendAway } = session;
 
   /* ---------------------------------------------------- the connection */
 
@@ -130,7 +141,6 @@ export function createTogether({
   }
 
   function closed(codeNum, reason) {
-    friends.unheard();
     const why = closeReason(codeNum, reason);
     // The newer screen plays this world now, and comes back to it next time.
     if (why === 'elsewhere') return stop(t('together.toast.elsewhere'), false);
@@ -210,10 +220,7 @@ export function createTogether({
     room = null;
     back = null;
     code = null;
-    clock = null;
-    outbox.reset();
-    link.hangUp();
-    friends.clear();
+    session.reset();
     sign.close();
     renderFriends();
     if (wasIn) game.replace(loadGame().state, 'back');
@@ -223,69 +230,9 @@ export function createTogether({
 
   /* ------------------------------------------------- what the room says */
 
-  const handlers = createRoomHandlers({
-    game,
-    hud,
-    friends,
-    outbox,
-    sign,
-    here: () => room,
-    invites: () => invites,
-    onAway,
-    renderFriends: () => renderFriends(),
-    checkUpdate,
-    clock: seconds
-  });
-
-  function receive(raw) {
-    const d = parse(raw, WELCOME_BYTES);
-    if (!d) return;
-    if (d.t === 'welcome') return welcome(d);
-    // Turned away at the door: why the link no longer works, said before the close.
-    if (!link.letIn && d.t === 'invite' && Object.hasOwn(INVITE_WHY, d.why)) turnedAway = d.why;
-    if (link.letIn) handlers.handle(d);
-  }
-
-  function welcome(raw) {
-    const w = cleanWelcome(raw);
-    if (!w) {
-      stop(t('together.toast.broken'));
-      return;
-    }
-    // Made another way than this game makes worlds (an update is rolling
-    // out): the same seed would grow different land here than for everyone
-    // else, so not until both sides match.
-    if (w.fmt !== WORLD_FORMAT) return mismatched(w.fmt > WORLD_FORMAT);
-    link.welcome();
-    code = null; // an invite is for getting in once
-    back = null;
-    friends.welcome(w.you, w.c, w.players, w.graves);
-    remember(room);
-    write(PLAYING_STORE, room);
-    const renewed = checkMaking(room, w, read, write);
-    if (game.state.shared === room && !renewed) resync(w);
-    else if (!arrive(w, renewed)) return;
-    // The room works out your progress from what you do too (src/core/acts.js).
-    if (game.state.shared === room) game.state.acts ||= [];
-    // ...moves too, when it says so (src/core/actions.js moveExtractor).
-    if (game.state.shared === room) {
-      game.state.roomMoves = w.moves;
-      game.state.roomCollectAt = w.collectAt;
-      // Everyone else's crystal buildings, as the room has them.
-      if (game.state.cultivation) game.state.theirs = w.theirs;
-    }
-    if (w.time !== null) clock = { t: w.time, at: seconds() };
-    keepTime();
-    sender.reset();
-    if (document.hidden || asleep()) sendAway(); // the room takes everyone in as here
-    renderFriends();
-    game.changedMode();
-  }
-
   // Arriving: your progress is the room's (it works it out from what you
   // did). Says whether the world could be opened.
   function arrive(w, renewed) {
-    outbox.newWorld(); // edits for another world, or one made again
     const made = arrivalState(room, w, renewed, read);
     if (!made) {
       stop(t('together.toast.broken'));
@@ -293,40 +240,17 @@ export function createTogether({
     }
     game.replace(made.state);
     game.arrived();
-    handlers.fixed = made.fixed;
+    session.handlers.fixed = made.fixed;
     const inWorld = t('together.toast.in', { world: worldName(room) });
     hud.toast(made.fixed ? inWorld + '. ' + t('together.toast.fixed') : inWorld);
     policyNotice();
     return true;
   }
 
-  // Back after a lost connection: the room's world wins, your progress stays,
-  // and what you changed meanwhile is sent again (outbox.js resync).
-  function resync(w) {
-    resyncState(game.state, w, friends.me, outbox, playedTime(w.save));
-    game.worldChanged();
-  }
-
-  /* ------------------------------------------------------- each frame */
-
-  // The world's time of day is the room's: everyone in it sees the same sun.
-  // The room sends its clock on every welcome; between those it runs here.
-  function keepTime() {
-    const s = game.state;
-    if (s.shared === room && clock) s.time = clock.t + seconds() - clock.at;
-  }
-
   function tick(dt) {
-    const s = game.state;
     sign.tick(dt);
-    if (!s.shared) return;
-    keepTime();
-    sender.trim(s);
-    friends.tick(dt);
-    if (!link.ready) return sender.offline(s, dt);
-    if (!link.tick(dt)) return; // the room went silent: dropped, and trying again
     const you = { facing: game.facing(), moving: game.moving(), sign: sign.rise > 0 };
-    sender.tick(s, dt, { ...you, act: game.act() });
+    session.tick(dt, { ...you, act: game.act() });
   }
 
   // Couldn't get into a world: the room service may be down, or the world
@@ -338,8 +262,6 @@ export function createTogether({
     if (!game.state.shared) game.changedMode();
     hud.toast(t('together.toast.gone'));
   }
-
-  const sendAway = createAwayTeller({ send, hidden: () => document.hidden || asleep() });
 
   /* ---------------------------------------------- the sign and its links */
 

@@ -1,0 +1,52 @@
+# The company bots (scripts/bots/run.mjs, bot plan phase 3): three marked
+# bots play in one shared crystal world for as long as a person is awake
+# there, and leave, asleep, two minutes after the last one goes. Each bot is
+# the game itself in Node (Watch chose that over a browser, 2026-11-08).
+# Started by hand for now (Actions → Company bots → Run); the room starting
+# it when a person comes in is the next step.
+
+name: Company bots
+
+on:
+  workflow_dispatch:
+    inputs:
+      room:
+        description: 'Room id (22 characters) of the shared crystal world'
+        required: true
+        type: string
+      minutes:
+        description: 'Most minutes to stay (1 to 340)'
+        required: false
+        default: '340'
+        type: string
+
+permissions:
+  contents: read
+
+# One run of bots per world at a time; a second waits for the first.
+concurrency:
+  group: bots-${{ inputs.room }}
+  cancel-in-progress: false
+
+jobs:
+  play:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node (latest LTS, from .nvmrc)
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          check-latest: true
+
+      - name: Play
+        env:
+          ROOM: ${{ inputs.room }}
+          MINUTES: ${{ inputs.minutes }}
+          ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
+        # The world's id stays out of the public log.
+        run: |
+          echo "::add-mask::$ROOM"
+          node scripts/bots/run.mjs

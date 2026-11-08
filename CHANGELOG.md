@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.207.0] - 2026-11-08
+
+The company bots can play: each is the game itself in Node, no browser, as
+Watch chose (2026-11-08), so it says exactly what a game says and every act
+goes through the room's checks like a person's. Before, the only way to
+play a shared world without a person was the live playtest in headless
+Chrome, one character at a time.
+
+- **The game's room connection, split from the page**
+  (`src/game/room-session.js`): the connection, the friends you see, what
+  waits to be sent, what the room says, the welcome and each frame's part
+  now live in one module with no DOM, storage or clock of its own.
+  `together.js` puts the page around it (the sign, invite links, Worlds,
+  toasts) and behaves as before.
+- **A bot** (`scripts/bots/bot.mjs`): that session, an in-memory store, and
+  AUTO held down (`autoplay-session.js`, the crystal brain), played in real
+  time frame by frame. It goes back in after a lost connection as a game
+  does, and leaves asleep where it stands.
+- **The runner** (`scripts/bots/run.mjs`, `.github/workflows/bots.yml`,
+  run by hand): three bots in one crystal world, each always the same
+  character (its key comes from the room and the moderator token), in by
+  a one-use invite and then marked as bots (0.206.0). They stay while a
+  person is awake there and leave two minutes after the last one, at most
+  340 minutes, and the run fails if the room refused or froze anything.
+  Node's WebSocket sends the game's Origin, which the room requires.
+- **Checked**: `test/unit/bots.test.js` runs a bot against a crystal room in
+  the same process, through a socket that hands what it says to the room
+  as the worker does. It comes in by an invite, plays two minutes with
+  AUTO and the room checks every act (0 off, 0 refused). It leaves asleep
+  and comes back as the same character with all it had. `npm run check`
+  and `test:e2e` pass with `together.js` on the new session.
+
 ## [0.206.0] - 2026-11-08
 
 The room can mark a character as one of its company bots, and every game
