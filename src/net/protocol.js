@@ -60,6 +60,22 @@ export const LIMITS = Object.freeze({
   invitesPerDay: 5 // people a player may bring in through their links in a day
 });
 
+// What a company bot may say (0.210.0): a line from this fixed list, by its
+// id, never words of its own; every game has each line in every language
+// (bots.say.<id> in src/i18n). Only a bot the room marked may say one
+// ('say' -> 'said'), at most one every SAY_MS.
+export const BOT_LINES = Object.freeze([
+  'hello',
+  'down',
+  'crystal',
+  'chamber',
+  'shelter',
+  'heart',
+  'home',
+  'woke'
+]);
+export const SAY_MS = 20_000;
+
 // What an invite link may be, like Discord's: how many people it lets in
 // (never unlimited) and for how many minutes it works. The player picks
 // them in Invite links; the defaults are a few people for a day.

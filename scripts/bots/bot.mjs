@@ -15,6 +15,7 @@ import { createAutoplaySession } from '../../src/game/autoplay-session.js';
 import { arrivalState } from '../../src/game/arrival.js';
 import { socketUrl } from '../../src/game/room-link.js';
 import { TICK_HZ } from '../../src/engine/clock.js';
+import { createLines } from './lines.mjs';
 
 // An actor that keeps nothing: a bot draws nobody.
 const actor = () => ({ heard() {}, view: () => ({ kind: null }) });
@@ -41,12 +42,15 @@ export function createBot({
   let idle = wait;
   let closedWhy = null;
   const toasts = [];
+  const lines = createLines(); // what it says (lines.mjs)
+  const said = [];
   const game = {
     state: { shared: null },
     replace(state) {
       game.state = state;
       auto = createAutoplaySession(0, quiet, { state });
       auto.press(); // AUTO held down, as a person's held key
+      lines.start(state);
     },
     worldChanged: quiet,
     changedMode: quiet,
@@ -111,6 +115,7 @@ export function createBot({
       return game.state.shared === room && session.link.ready;
     },
     toasts,
+    said, // the lines it said, in order
     // Plays `dt` seconds: AUTO and the rules, then what the room is told.
     // A crystal world plays only while the room hears it (Watch, 2026-11-05).
     frame(dt) {
@@ -122,6 +127,12 @@ export function createBot({
         if (n) auto.advanceTicks(n);
       }
       session.tick(dt, { facing: game.facing(), moving: game.moving(), sign: false, act: null });
+      if (!auto || !session.link.ready) return;
+      const k = lines.seen(game.state, session.friends.rows(game.state.player), seconds());
+      if (!k) return;
+      session.send({ t: 'say', k });
+      said.push(k);
+      log('says ' + k);
     },
     // Leaves, saying goodbye: it sleeps where it stands.
     leave() {

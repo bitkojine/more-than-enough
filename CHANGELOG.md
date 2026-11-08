@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.210.0] - 2026-11-08
+
+The company bots say things (bot plan phase 5): until now a bot was a
+silent figure with a tag, and the plan has it share its story with whoever
+is near.
+
+- **Fixed lines only** (`BOT_LINES` in `src/net/protocol.js`): hello, going
+  deeper, a first crystal, a chamber, a heart shelter, carrying the heart,
+  the heart home, the machine awake. A bot sends a line's id (`say`); the
+  room passes it on (`said`) only from a character it marked as a bot, at
+  most one every 20 s, and drops any other id, so no words of a bot's own
+  (or of whoever holds its key) ever reach a player. Each game shows the
+  line in its own language (`bots.say.*`, English and Lithuanian).
+- **In the message log**, as *Name: line*, only for a bot within 24 m on
+  your layer (`room-handlers.js` `said`).
+- **What a bot says** (`scripts/bots/lines.mjs`): a line when its own story
+  moves on, never for what it already had when it came in, hello the first
+  time a person comes near on a visit, and only the latest three when much
+  happens at once.
+- **Checked**: `bots-lines.test.js` (the room's rules, and what a bot says
+  when), `together-parts.test.js` (a near bot's line in the log; a person,
+  a far bot, another layer or made-up words not), and `bots.test.js` (a
+  marked bot in a crystal room says lines the room passes to everyone).
+
 ## [0.209.0] - 2026-11-08
 
 A crystal world calls its company bots itself (bot plan phase 3): until

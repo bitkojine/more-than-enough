@@ -839,3 +839,26 @@ test('identity: storage that throws when reached gives nothing and keeps nothing
   assert.equal(read(PLAYING_STORE), null);
   assert.doesNotThrow(() => write(PLAYING_STORE, 'x'));
 });
+
+test('handlers: a company bot near you says its line into the message log; far, or a person, not', () => {
+  const { h, game, friends, toasts } = handlerHarness();
+  const at = game.state.player;
+  const near = { x: at.x + 10, y: at.y, z: at.z, a: 0, n: 0 };
+  h.handle({ t: 'status', id: pid(1), st: 'online', c: 1, p: near, bot: true });
+  h.handle({ t: 'status', id: pid(2), st: 'online', c: 2, p: near });
+  h.handle({
+    t: 'status',
+    id: pid(3),
+    st: 'online',
+    c: 3,
+    p: { ...near, x: at.x + 40 },
+    bot: true
+  });
+  h.handle({ t: 'status', id: pid(4), st: 'online', c: 4, p: { ...near, z: at.z - 1 }, bot: true });
+  toasts.length = 0;
+  assert.equal(h.handle({ t: 'said', id: pid(1), k: 'woke' }), true);
+  assert.deepEqual(toasts, [friends.nameOf(pid(1)) + ': ' + t('bots.say.woke')]);
+  for (const id of [pid(2), pid(3), pid(4)]) h.handle({ t: 'said', id, k: 'woke' });
+  h.handle({ t: 'said', id: pid(1), k: 'Free crystal at spawn!' });
+  assert.equal(toasts.length, 1, 'a person, a bot far off or on another layer, made-up words');
+});

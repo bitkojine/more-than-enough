@@ -21,7 +21,8 @@ import {
   cleanStatus,
   cleanColor,
   ROOM_ID_RE,
-  ID_RE
+  ID_RE,
+  BOT_LINES
 } from '../net/protocol.js';
 import { cleanGraves, cleanAway } from './room-messages.js';
 import { undoneText } from './together-rules.js';
@@ -29,8 +30,25 @@ import { t } from '../i18n/i18n.js';
 
 // What the log says of a shared crystal job: `side` 'took' (someone did it
 // at yours), 'got' (you did it at theirs), 'not' (it couldn't be done).
+export const HEAR_BOT = 24; // m: a company bot this close, on your layer, is heard
+
 const sharedText = (side, req, got, name) =>
   t(`shared.${side}.${req.type}`, { name, n: Math.floor(got.n) });
+
+// What the room passes on from its company bots.
+function botHandlers({ game, hud, friends, here }) {
+  return {
+    // A company bot said one of its lines (0.210.0): into the message log,
+    // if it is near you.
+    said(d) {
+      if (!BOT_LINES.includes(d.k) || game.state.shared !== here()) return;
+      const at = game.state.player;
+      const row = friends.rows(at).find((r) => r.id === d.id);
+      if (!row?.bot || row.far === null || row.far > HEAR_BOT || row.dz !== 0) return;
+      hud.toast(t('bots.say', { name: row.name, line: t('bots.say.' + d.k) }));
+    }
+  };
+}
 
 // Jobs at someone else's crystal (src/core/cultivation-share.js, 0.200.0).
 function jobHandlers({ game, hud, friends, here, clock }) {
@@ -159,6 +177,7 @@ export function createRoomHandlers({
         game.worldChanged();
     },
     ...jobHandlers({ game, hud, friends, here, clock }),
+    ...botHandlers({ game, hud, friends, here }),
     edits(d) {
       const list = cleanEdits(d.e);
       if (list && game.state.shared === here() && Core.applyEdits(game.state, list))

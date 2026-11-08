@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.210.0':
+    'The company bots talk: when one of them is near you, its news shows in your messages, like “My machine is awake!”, and it says hi when you come by.',
   'news.0.209.0':
     'Getting closer to company: when you come into the shared crystal world, it can now call its three bots to play beside you. They go to sleep a couple of minutes after you leave, so the world never moves on without you.',
   'news.0.208.0':

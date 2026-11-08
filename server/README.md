@@ -127,6 +127,13 @@ shared with the game.
    game says it can play one with `"crystal": true` in its hello; one that
    doesn't is told of a newer world format (`fmt` one higher) and updates
    first, so an old game never grows the old land in a crystal room.
+   A character the moderator marked as a company bot may send
+   `{"t": "say", "k"}` with `k` one of `BOT_LINES` (`src/net/protocol.js`,
+   0.210.0), at most once every 20 s; everyone else gets
+   `{"t": "said", "id", "k"}` and each game shows the line, in its own
+   language, to whoever is within 24 m on the bot's layer. A `say` from
+   anyone else, or too soon, is refused quietly; one with any other `k` is
+   dropped. Bots never send words of their own.
 10. `GET /rooms/<id>` says whether a world still exists (`{"exists": bool}`)
    and, if it does, how many play there now (`online`, a count, never who):
    a game that couldn't get in asks, so it stops offering a world that is

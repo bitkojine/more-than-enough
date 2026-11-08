@@ -179,3 +179,17 @@ test('bots: three started a little apart play side by side', async () => {
     assert.equal(r.players.get(id).frozen, undefined);
   }
 });
+
+test('bots: a marked bot says its lines, and the room passes them on', async () => {
+  const { r, bot, net, run } = await botInRoom();
+  bot.connect();
+  await net.pump();
+  r.markBot(bot.session.friends.me, true, T0);
+  const heard = [];
+  const ear = net.open();
+  ear.onmessage = ({ data }) => JSON.parse(data).t === 'said' && heard.push(JSON.parse(data).k);
+  await run(180);
+  assert.ok(bot.said.length > 0, 'it said something');
+  assert.deepEqual(heard, bot.said, 'everyone else heard each line');
+  for (const k of bot.said) assert.ok(P.BOT_LINES.includes(k), k);
+});

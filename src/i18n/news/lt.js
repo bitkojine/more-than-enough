@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.210.0':
+    'Kompanijos botai kalba: kai kuris nors iš jų yra šalia tavęs, jo naujienos rodomos tavo žinutėse, pavyzdžiui, „Mano mašina pabudo!“, o kai prieini, jis pasisveikina.',
   'news.0.209.0':
     'Kompanija vis arčiau: kai ateini į bendrą kristalų pasaulį, jis dabar gali pakviesti savo tris botus žaisti šalia tavęs. Jie užmiega praėjus porai minučių po to, kai išeini, tad pasaulis niekada nenueina toliau be tavęs.',
   'news.0.208.0':

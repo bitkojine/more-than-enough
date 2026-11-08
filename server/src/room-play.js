@@ -11,7 +11,9 @@ import {
   editInReach,
   cleanInviteAsk,
   unpackKey,
-  cleanActs
+  cleanActs,
+  BOT_LINES,
+  SAY_MS
 } from '../../src/net/protocol.js';
 import { baseRichness } from '../../src/core/world.js';
 import { builtOf, theirsFrom } from '../../src/core/cultivation-theirs.js';
@@ -33,8 +35,11 @@ const ON_MESSAGE = Object.freeze({
   invite: 'onInvite',
   invites: 'onInvites',
   revoke: 'onRevoke',
+  say: 'onSay',
   nuke: 'onNuke'
 });
+
+const saidAt = new WeakMap(); // a bot's player -> when it last said a line (ms)
 
 // A player's crystal buildings from their kept progress ([] for none, or one unread).
 function keptBuilt(save) {
@@ -255,6 +260,16 @@ export class RoomPlay {
   }
 
   // There is no nuke any more: an old game pressing it changes nothing.
+  // A company bot says one of the fixed lines (BOT_LINES, 0.210.0): everyone
+  // else hears it, and each game shows it to whoever is near. Anyone else, or
+  // too soon after the last, is refused quietly.
+  onSay({ id, pl, d, now }) {
+    if (!BOT_LINES.includes(d.k)) return { drop: true };
+    if (!pl.bot || now - (saidAt.get(pl) ?? -Infinity) < SAY_MS) return {};
+    saidAt.set(pl, now);
+    return { toOthers: [{ t: 'said', id, k: d.k }] };
+  }
+
   onNuke() {
     return {};
   }
