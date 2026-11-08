@@ -73,31 +73,38 @@ function sockets(r, now) {
   return { open, pump };
 }
 
-async function botInRoom() {
+// `n` bots in a crystal room with a person, each `wait` seconds after the last
+// to start playing; run(seconds) plays them all, the room's clock with them.
+async function botsInRoom(n = 1, wait = 0) {
   const { r, key } = await crystalRoom(15);
   const person = await play(r, key, undefined, T0);
   let secs = 0;
   const now = () => T0 + Math.round(secs * 1000);
   const net = sockets(r, now);
   const timers = { set: () => 0, clear: () => {} };
-  const bot = createBot({
-    service: 'https://rooms.example',
-    room: r.id,
-    key: P.randomHex(32),
-    code: person.invite(),
-    open: net.open,
-    seconds: () => secs,
-    timers
-  });
+  const bots = Array.from({ length: n }, (_, i) =>
+    createBot({
+      service: 'https://rooms.example',
+      room: r.id,
+      key: P.randomHex(32),
+      code: person.invite(),
+      open: net.open,
+      seconds: () => secs,
+      timers,
+      wait: i * wait
+    })
+  );
   const run = async (seconds) => {
     for (let t = 0; t < seconds; t += 0.1) {
       secs += 0.1;
-      bot.frame(0.1);
+      for (const b of bots) b.frame(0.1);
       await net.pump();
     }
   };
-  return { r, bot, net, run, person };
+  return { r, bots, bot: bots[0], net, run, person };
 }
+
+const botInRoom = () => botsInRoom(1);
 
 test('bots: a bot comes in by an invite, plays the crystal chapter with AUTO, and the room agrees', async () => {
   const { r, bot, net, run } = await botInRoom();
@@ -137,4 +144,38 @@ test('bots: a bot that leaves sleeps where it stood, and comes back as it was', 
   await run(10);
   const rep = r.shadowOf().report(id);
   assert.deepEqual({ off: rep.off, refused: rep.refused }, { off: 0, refused: 0 });
+});
+
+// Two that do the same thing at the same moment go for the same tiles: the
+// room takes the first and refuses the other, whose game then takes the
+// room's numbers back (shadow.js 'econ', correctProgress) and is right again.
+test('bots: two that race for every tile are set straight by the room', async () => {
+  const { r, bots, net, run } = await botsInRoom(2, 0);
+  for (const b of bots) {
+    b.connect();
+    await net.pump();
+  }
+  await run(150);
+  const [first, second] = bots.map((b) => r.shadowOf().report(b.session.friends.me));
+  assert.deepEqual({ off: first.off, refused: first.refused }, { off: 0, refused: 0 });
+  assert.ok(second.refused > 0, 'it lost a race');
+  assert.ok(second.off <= second.checks / 3, 'off ' + second.off + ' of ' + second.checks);
+});
+
+// Started 20 s apart (run.mjs), they hardly ever race.
+test('bots: three started a little apart play side by side', async () => {
+  const { r, bots, net, run } = await botsInRoom(3, 20);
+  for (const b of bots) {
+    b.connect();
+    await net.pump();
+    assert.ok(b.inWorld, 'let in: ' + JSON.stringify(b.closed));
+  }
+  await run(150);
+  for (const b of bots) {
+    const id = b.session.friends.me;
+    const rep = r.shadowOf().report(id);
+    assert.ok(rep.off <= 2 && rep.refused <= 5, id + ': ' + JSON.stringify(rep));
+    assert.ok(b.game.state.stats.playedMs > 90_000, 'played');
+    assert.equal(r.players.get(id).frozen, undefined);
+  }
 });

@@ -14,8 +14,8 @@
  * marks it as a bot (POST /admin/rooms/<id>/bots), so every game tags it.
  * Bots play only while a person is awake in the world (time away makes
  * nothing): with nobody there for LINGER seconds they leave, asleep where
- * they stand, and the run ends. It fails if the room refused what a bot did,
- * found its numbers off, or froze it. */
+ * they stand, and the run ends. It fails if the room froze a bot or kept
+ * finding its numbers off. */
 
 import { createHash } from 'node:crypto';
 import { performance } from 'node:perf_hooks';
@@ -33,6 +33,7 @@ const MINUTES = Math.min(340, Math.max(1, Number(env.MINUTES) || 340)); // under
 const LINGER = Math.max(10, Number(env.LINGER) || 120); // seconds with nobody there before leaving
 const FRAME = 0.1; // seconds between frames
 const LOG_EVERY = 60; // seconds between lines on how they're doing
+const STAGGER = 20; // seconds between one bot starting to play and the next
 
 if (!ROOM_ID_RE.test(ROOM) || TOKEN.length < 32) {
   console.error('usage: ROOM=<room id> ADMIN_TOKEN=<token> node scripts/bots/run.mjs');
@@ -71,7 +72,8 @@ for (let n = 1; n <= COUNT; n++) {
     open,
     seconds,
     timers,
-    log: (line) => console.log('bot ' + n + ': ' + line)
+    log: (line) => console.log('bot ' + n + ': ' + line),
+    wait: (n - 1) * STAGGER
   });
   bot.connect();
   bots.push(bot);
@@ -124,17 +126,20 @@ while (seconds() < end) {
 for (const b of bots) b.leave();
 await sleep(2000);
 
-// What the room made of it: nothing refused, nothing off, nobody frozen.
+// What the room made of it: nobody frozen, and each game set straight when
+// it was off. A refusal on its own is no failure: two players going for the
+// same tile is honest, the room takes the first, and the other's game takes
+// the room's numbers ('econ'). A game that stays off didn't.
 const { players } = await admin('/players');
 let bad = 0;
 for (const id of ids) {
   const p = players.find((q) => q.id === id);
   const rep = p?.shadow || {};
   console.log(`${id}: checks ${rep.checks}, off ${rep.off}, refused ${rep.refused}, bot ${p?.bot}`);
-  if (!p || p.frozen || rep.off > 0 || rep.refused > 0) bad++;
+  if (!p || p.frozen || rep.off > Math.max(2, rep.checks / 10)) bad++;
 }
 if (bad) {
-  console.error('FAIL: the room refused, found off or froze ' + bad + ' bot(s)');
+  console.error('FAIL: the room froze, or kept finding off, ' + bad + ' bot(s)');
   process.exit(1);
 }
 console.log('done');

@@ -59,7 +59,7 @@ async function crystalGame(r, key) {
       send({ t: 'save', s: C.progressOf(s) });
     }
   }
-  return { s, id, sync, now };
+  return { s, id, sync, now, welcomeOf: () => j.welcome };
 }
 
 const { r, key } = await crystalRoom(11);
@@ -247,4 +247,14 @@ test('protocol: crystal acts keep their fields, and nothing else gets through', 
     ['f', ...head, 1]
   ])
     assert.equal(P.cleanAct(bad), null, JSON.stringify(bad));
+});
+
+test("crystal room: a game ahead of the room takes the room's numbers back (0.208.0)", () => {
+  const s = C.joinState({ ...g.welcomeOf(), save: JSON.stringify(copy) }, r.id, null, null);
+  s.tools.pickaxe += 2; // the game bought what the room refused
+  s.inv.stone = 0;
+  assert.ok(C.correctProgress(s, JSON.stringify(copy)), 'a crystal save is read');
+  assert.equal(s.tools.pickaxe, copy.tools.pickaxe);
+  assert.equal(s.inv.stone, copy.inv.stone);
+  assert.ok(s.cultivation, 'still the crystal chapter');
 });

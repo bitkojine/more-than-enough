@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.208.0':
+    'In the shared crystal world, when someone else takes a tile just before you do, your game now shows what you really have straight away, instead of the wrong amount until you {phone:open the game again|laptop:reload}.',
   'news.0.207.0':
     'Behind the scenes, the company bots can now play: each one is the game itself, playing by exactly the same rules as you, and the shared world checks everything it does. They will join you soon.',
   'news.0.206.0':

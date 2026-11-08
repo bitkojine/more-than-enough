@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.208.0] - 2026-11-08
+
+The first live run of the company bots found that in a crystal world a game
+never took the room's corrections. When the room refused something (two
+players going for the same tile, the room takes the first), it sent the
+game its real numbers ('econ'), but the game couldn't read them and kept
+showing what it thought it had until it was opened again. Two of the three
+bots raced each other for every tile and stayed off for the whole run.
+
+- **Corrections in a crystal world** (`src/core/shared.js`
+  `correctProgress`): it read the room's copy into land without chunks, and
+  a crystal save clears the land's chunks as it loads, so reading threw and
+  the correction was dropped. This has been so since crystal rooms
+  (0.194.0), for people as well as bots. The land it reads into now has
+  them.
+- **Bots start 20 seconds apart** (`scripts/bots/bot.mjs` `wait`), so three
+  that come in together don't walk to the same tile at the same moment; and
+  the runner asks for each one-use invite only after the last bot is in,
+  since the room hands out the same unused link until it is used.
+- **The runner fails** when the room freezes a bot or keeps finding it off,
+  no longer on any one refusal: losing a race for a tile is honest.
+- **Checked**: `shadow-crystal.test.js` has a crystal game ahead of the
+  room take the room's numbers back (it fails without the fix), and
+  `bots.test.js` has two bots racing for every tile set straight by the
+  room (off 14 of 15 checks before, now at most a third) and three started
+  apart playing side by side.
+
 ## [0.207.0] - 2026-11-08
 
 The company bots can play: each is the game itself in Node, no browser, as

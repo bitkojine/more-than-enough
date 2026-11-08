@@ -176,8 +176,18 @@ function playersIn(welcome) {
 // changed since it was sent (the room hasn't heard of that yet: it's on its
 // way, and the room answers it on its own). False if it can't be read.
 export function correctProgress(s, save, sent = null) {
+  // Only its numbers are read, but a crystal save clears the land's chunks
+  // as it loads, so the land it's read into has them (0.208.0: without them
+  // no correction in a crystal world was ever taken in).
   const r = deserialize(save, (seed) =>
-    blankState({ seed, mods: new Map(), explored: new Map(), holes: new Set(), props: new Map() })
+    blankState({
+      seed,
+      chunks: new Map(),
+      mods: new Map(),
+      explored: new Map(),
+      holes: new Set(),
+      props: new Map()
+    })
   );
   if (!r) return false;
   for (const k of RESOURCES) {

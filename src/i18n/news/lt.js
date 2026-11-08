@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.208.0':
+    'Bendrame kristalų pasaulyje, kai kas nors kitas akimirką anksčiau už tave pasiima langelį, tavo žaidimas dabar iškart parodo, ką iš tikrųjų turi, užuot rodęs neteisingą kiekį, kol {phone:vėl atidarysi žaidimą|laptop:perkrausi puslapį}.',
   'news.0.207.0':
     'Užkulisiuose kompanijos botai jau gali žaisti: kiekvienas iš jų yra pats žaidimas, žaidžiantis lygiai pagal tas pačias taisykles kaip tu, o bendras pasaulis tikrina viską, ką jis daro. Netrukus jie prisijungs prie tavęs.',
   'news.0.206.0':

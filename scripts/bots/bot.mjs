@@ -20,11 +20,25 @@ import { TICK_HZ } from '../../src/engine/clock.js';
 const actor = () => ({ heard() {}, view: () => ({ kind: null }) });
 const quiet = () => {};
 
-export function createBot({ service, room, key, code = null, open, seconds, timers, log = quiet }) {
+export function createBot({
+  service,
+  room,
+  key,
+  code = null,
+  open,
+  seconds,
+  timers,
+  log = quiet,
+  wait = 0
+}) {
   const kept = new Map(); // what the game would keep in the page's storage
   let auto = null; // AUTO, on the world the bot is in
   let invite = code; // the link it came in by, used once
   let ticks = 0; // play owed to the rules, in 1/TICK_HZ s
+  // Seconds in the world before AUTO starts, so bots that came in together
+  // don't walk to the same tile at the same moment: the room takes the first
+  // and refuses the rest, who hadn't heard of it yet.
+  let idle = wait;
   let closedWhy = null;
   const toasts = [];
   const game = {
@@ -100,7 +114,8 @@ export function createBot({ service, room, key, code = null, open, seconds, time
     // Plays `dt` seconds: AUTO and the rules, then what the room is told.
     // A crystal world plays only while the room hears it (Watch, 2026-11-05).
     frame(dt) {
-      if (auto && session.link.ready) {
+      if (auto && session.link.ready && (idle -= dt) < 0) {
+        idle = 0;
         ticks += dt * TICK_HZ;
         const n = Math.floor(ticks);
         ticks -= n;
