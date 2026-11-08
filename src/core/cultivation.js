@@ -7,7 +7,7 @@ import { atInteraction } from './interaction.js';
 import { tileAt, isExplored } from './world.js';
 import { packKey } from './coords.js';
 import { T, TILE_INFO } from './tiles.js';
-import { illuminationAt, LIGHT_MAX } from './illumination.js';
+import { illuminationAt, lightFrom, LIGHT_MAX } from './illumination.js';
 import { earn, spend as payInventory, canAfford } from './economy.js';
 import { MACHINE_REPAIRS, machineSections, CULTIVATION_RECIPES } from './cultivation-model.js';
 import { noteIf } from './acts.js';
@@ -152,6 +152,31 @@ export function exposeCargo(s) {
   if (strength) {
     if (c.starter) c.starter.health = Math.max(0, c.starter.health - strength);
     crackCarriedCrystal(s, strength);
+  }
+}
+// Someone else's carried light (a lantern or flare, `src` {x, y, z, level})
+// shone on you for `seconds` in a crystal room (Watch, 2026-11-07: anyone's
+// light hurts all of it): it cracks what you carry outside a carrier and
+// the wild colonies it reaches, as your own light would. The room says when
+// (cultivation-share.js takeLight), so your game and its copy agree.
+export function litBy(s, src, seconds) {
+  const c = s.cultivation;
+  if (!c || !(seconds > 0)) return;
+  const exposure = (p) => lightFrom(s, src, p) / LIGHT_MAX;
+  const here = { x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z };
+  const damage = c.gear.carrier ? 0 : 9 * exposure(here) * seconds;
+  if (damage && c.starter) {
+    c.starter.health -= damage;
+    if (c.starter.health <= 0) c.starter = null;
+  }
+  crackCarriedCrystal(s, damage);
+  // A carried heart feels it as it feels sun (heartLight); one resting isn't reached.
+  if (c.heart?.where === 'carried' && !c.gear.carrier)
+    stepHeart(s, HEART_SUN * exposure(here), seconds);
+  for (const w of Object.values(c.wild)) {
+    if (w.regrow > 0) continue;
+    w.health = Math.max(0, w.health - 9 * exposure(w) * seconds);
+    if (!w.health) w.regrow = 45;
   }
 }
 // Stored crystal cracks all the way too (Watch, 2026-11-01, "Yes, same

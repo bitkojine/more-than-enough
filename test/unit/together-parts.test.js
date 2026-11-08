@@ -742,6 +742,24 @@ test('handlers: a job asked at your crystal is done and written down; what came 
   assert.equal(s.acts.length, 2);
 });
 
+test('handlers: someone’s light that shone on what you carry cracks it, once said, and is written down', () => {
+  const x = handlerHarness();
+  const s = Core.createState(7, { cultivation: true });
+  Object.assign(s, { shared: 'roomA', acts: [], me: pid(0) });
+  Core.earn(s, 'crystal', 4, 'buildings');
+  x.game.state = s;
+  const p = s.player;
+  const lit = { t: 'lit', x: Math.floor(p.x), y: Math.floor(p.y), z: p.z, lv: 6, s: 2, by: pid(1) };
+  x.h.handle({ ...lit, n: 3 });
+  assert.ok(s.cultivation.quality < 100, 'cracked');
+  assert.deepEqual([s.acts.at(-1)[0], s.acts.at(-1)[5]], ['l', 3]);
+  x.h.handle({ ...lit, n: 4 });
+  assert.equal(x.toasts.length, 1, 'said once, not with every message');
+  const q = s.cultivation.quality;
+  x.h.handle({ ...lit, n: 5, lv: 99 });
+  assert.equal(s.cultivation.quality, q, 'a malformed one does nothing');
+});
+
 test('handlers: a removed player takes their buildings; a frozen one leaves them', () => {
   const { h, game, friends, changed } = handlerHarness();
   const a = pid('a'),

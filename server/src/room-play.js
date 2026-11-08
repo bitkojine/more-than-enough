@@ -96,7 +96,14 @@ export class RoomPlay {
     return out;
   }
 
-  onSave({ id, pl, d, now }) {
+  // Progress, compared (kept); and someone's light near them since, told (room-jobs.js).
+  onSave(m) {
+    const out = this.kept(m);
+    const to = out.drop ? [] : this.shine(m.id);
+    return to.length ? { ...out, to } : out;
+  }
+
+  kept({ id, pl, d, now }) {
     // Their game's progress is only compared: the room keeps its own.
     const save = cleanSave(d.s);
     if (!save) return { drop: true };
@@ -147,7 +154,8 @@ export class RoomPlay {
     // Someone else's crystal shared (room-jobs.js): asks passed on, jobs answered.
     const to = [
       ...asked.flatMap((req) => this.askJob(id, req, now)),
-      ...taken.flatMap((t) => this.jobDone(t.n, t.got, now))
+      ...taken.flatMap((t) => this.jobDone(t.n, t.got, now)),
+      ...this.shine(id)
     ];
     if (to.length) out.to = to;
     return out;

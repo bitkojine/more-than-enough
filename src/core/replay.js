@@ -11,7 +11,7 @@ import { EXTRACTORS, PROPS } from './content.js';
 import { step, revealAround } from './sim.js';
 import { advanceGoals } from './goals.js';
 import { cultivationCommand, commandOfAct, COMMAND_DONE } from './cultivation-commands.js';
-import { moveFacility } from './cultivation.js';
+import { moveFacility, litBy } from './cultivation.js';
 import { useFlare } from './flare.js';
 import { doShared, gotShared } from './cultivation-share.js';
 import { theirsAt } from './cultivation-theirs.js';
@@ -62,6 +62,14 @@ const DO = {
     if (!req) return false;
     s.toTake.delete(a[5]);
     (s.taken ||= []).push({ n: a[5], req, got: doShared(s, req) });
+    return true;
+  },
+  // Someone else's light that shone on them (0.202.0), as the room put it down (s.toLight).
+  l(s, a) {
+    const e = s.toLight?.get(a[5]);
+    if (!e) return false;
+    s.toLight.delete(a[5]);
+    litBy(s, e.src, e.secs);
     return true;
   },
   g(s, a) {

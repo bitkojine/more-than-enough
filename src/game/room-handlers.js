@@ -33,8 +33,22 @@ const sharedText = (side, req, got, name) =>
   t(`shared.${side}.${req.type}`, { name, n: Math.floor(got.n) });
 
 // Jobs at someone else's crystal (src/core/cultivation-share.js, 0.200.0).
-function jobHandlers({ game, hud, friends, here }) {
+function jobHandlers({ game, hud, friends, here, clock }) {
+  let litSaid = -Infinity; // when the log last said someone's light cracked what you carry
   return {
+    // Someone else's lantern or flare shone on what you carry ('lit', 0.202.0).
+    lit(d) {
+      const light = Core.cleanLit(d);
+      if (!light || !Number.isSafeInteger(d.n) || !ID_RE.test(d.by)) return;
+      const s = game.state;
+      if (s.shared !== here() || !s.cultivation) return;
+      const was = s.cultivation.quality;
+      Core.takeLight(s, d.n, light.src, light.secs);
+      game.worldChanged();
+      if (s.cultivation.quality >= was || clock() - litSaid < UNDONE_QUIET) return;
+      litSaid = clock();
+      hud.toast(t('shared.lit', { name: friends.nameOf(d.by) }));
+    },
     // Someone asked for a job at your crystal ('take', 0.200.0): done to
     // your building as it is, and said in the log.
     take(d) {
@@ -144,7 +158,7 @@ export function createRoomHandlers({
       if (list && game.state.shared === here() && Core.setTheirs(game.state, d.id, list))
         game.worldChanged();
     },
-    ...jobHandlers({ game, hud, friends, here }),
+    ...jobHandlers({ game, hud, friends, here, clock }),
     edits(d) {
       const list = cleanEdits(d.e);
       if (list && game.state.shared === here() && Core.applyEdits(game.state, list))

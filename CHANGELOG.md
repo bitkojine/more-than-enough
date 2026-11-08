@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.202.0] - 2026-11-08
+
+Anyone's carried light hurts anyone's crystal in a crystal shared world, as
+Watch chose on 2026-11-07 ("also carried lanterns"): someone else's lit
+lantern or flare near you cracks the crystal and heart you carry outside a
+carrier, and your wild colonies nearby, as your own light does. Before,
+only your own light and placed lamps (shared through the world's props)
+did; another player could stand beside you with a lantern and nothing
+happened, which broke "anyone's light hurts all of it".
+
+- **The room sees it** (`server/src/room-jobs.js` `shine`): with each of a
+  player's acts and saves it looks at how long they played since last
+  looked (at most 10 s) and at every other online player's lit carried
+  light. Seconds gather per light while it could reach anything of theirs
+  it hurts; at 2 s their game is told (`lit`: the light's tile, level and
+  seconds). Looking on the victim's side means a light held still still
+  counts, since the victim's game keeps sending acts.
+- **Your game takes it** (`litBy` in `src/core/cultivation.js`, light from
+  `lightFrom` in `src/core/illumination.js`, the same field your own
+  lantern casts, rock blocking it) and writes it down (act `l`), so the
+  room's copy of you cracks the same at the same point. The log says whose
+  light it was, at most once a while.
+- **Wire**: `lit` is new; a game from before ignores it, and a room from
+  before never sends it. A `lit` message's parts are checked (`cleanLit`,
+  at most 30 s each).
+- **Checked**: `test/unit/crystal-light.test.js` plays an AUTO player with
+  a lit lantern deep down beside a friend carrying crystal: the friend is
+  told, their crystal cracks in their game and in the room's copy alike,
+  and the room counts 0 off and 0 refused for both. In a carrier, or out
+  of reach, nothing happens; a carried heart cracks, one resting or in a
+  carrier doesn't.
+
 ## [0.201.0] - 2026-11-07
 
 Anyone can move anyone's chamber, cooler or vault in a crystal shared world:

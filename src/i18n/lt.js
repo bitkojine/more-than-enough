@@ -923,6 +923,8 @@ export default {
   'shared.not.tend':
     'Žaidėjo {name} kameros dabar prižiūrėti nepavyko: tai, ką sumokėjai, grįžo tau.',
   'shared.not.collect': 'Žaidėjo {name} pastate dabar nebuvo kristalų.',
+  'shared.lit':
+    'Žaidėjo {name} šviesa skaldo tavo nešamus kristalus: laikykis atokiau arba įdėk juos į nešyklę.',
   'shared.took.move': '{name} perkėlė vieną tavo kristalų pastatą.',
   'shared.got.move': 'Perkėlei žaidėjo {name} pastatą.',
   'shared.not.move': 'Žaidėjo {name} pastato ten perkelti nepavyko: kažkas trukdo.',

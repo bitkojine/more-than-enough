@@ -46,6 +46,10 @@ function hear(r, from, out) {
     (r.heard ||= []).push({ id, m });
     if (m.t === 'take') C.takeShared(g.s, m.n, C.cleanJob(m));
     if (m.t === 'given') C.receiveShared(g.s, m.n, C.cleanJob(m), C.cleanGot(m));
+    if (m.t === 'lit') {
+      const light = C.cleanLit(m);
+      C.takeLight(g.s, m.n, light.src, light.secs);
+    }
   }
 }
 

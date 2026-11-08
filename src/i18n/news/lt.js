@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.202.0':
+    'Bendrame kristalų pasaulyje kito žaidėjo uždegtas žibintas ar žiežirba dabar kenkia tavo nešamiems kristalams ir širdžiai bei laukiniams kristalams netoliese, kaip ir tavo paties šviesa. Gelmėse laikykis nuo jų atokiau arba nešk viską nešyklėje.',
   'news.0.201.0':
     'Bendrame kristalų pasaulyje dabar gali perkelti ir kito žaidėjo kristalų kamerą, aušintuvą ar saugyklą: atidaryk jo kortelę, pasirink „Perkelti“ ir padėk netoliese, kur nori. Jo žaidimas jį perkelia, o žinutė jam pasako, kas tai padarė.',
   'news.0.200.1':

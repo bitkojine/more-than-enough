@@ -281,7 +281,13 @@ function carried(c, s, work) {
   drop(c, 'carried');
   if (work) work.carriedBuilds = (work.carriedBuilds || 0) + 1;
   const deps = new Set(),
-    { read, neighbours } = reader(c, deps, work),
+    nodes = sourceField(c, { x, y, z, level }, deps, work);
+  return keep(c, 'carried', { deps, nodes, signature });
+}
+// The light one source of `level` at (x, y, z) spreads through the land:
+// the tiles it reaches, each with its block light.
+function sourceField(c, { x, y, z, level }, deps, work) {
+  const { read, neighbours } = reader(c, deps, work),
     nodes = new Map();
   const initial = { x, y, z, open: read(x, y, z), block: level };
   nodes.set(packKey(x, y, z), initial);
@@ -300,7 +306,16 @@ function carried(c, s, work) {
     });
   }
   propagate(nodes, 'block', neighbours, work);
-  return keep(c, 'carried', { deps, nodes, signature });
+  return nodes;
+}
+// How much of someone else's carried light `src` ({x, y, z, level}, tiles)
+// reaches tile `p` of world `s` (cultivation-light.js): 0 to LIGHT_MAX.
+export function lightFrom(s, src, p) {
+  if (src.z !== p.z || !(src.level > 0)) return 0;
+  const reach = Math.abs(src.x - p.x) + Math.abs(src.y - p.y);
+  if (reach >= src.level) return 0;
+  const nodes = sourceField(context(s), src, new Set(), null);
+  return nodes.get(packKey(Math.floor(p.x), Math.floor(p.y), p.z))?.block || 0;
 }
 // Sky strength changes with the sun, but the cached connectivity never does.
 export function sunLightStrength(s) {

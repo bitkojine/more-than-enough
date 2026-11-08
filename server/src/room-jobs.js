@@ -10,6 +10,10 @@
  * once (their next welcome has it). */
 
 import { doShared, gotShared } from '../../src/core/cultivation-share.js';
+import { carriedLightLevel } from '../../src/core/illumination.js';
+
+const SHINE_EVERY = 2; // seconds of someone's light near you gathered before you're told
+const SHINE_GAP = 10; // seconds of play one acts message may count, at most
 
 export class RoomJobs {
   // Whether player `id`'s game is there and takes jobs (its hello says `shares`).
@@ -51,6 +55,50 @@ export class RoomJobs {
     return [{ id: job.from, m: { ...m, ok: got.ok, c: got.n, q: got.q } }];
   }
 
+  // Player `by`'s carried light as a source {x, y, z, level}, or null when
+  // they carry none lit, or aren't someone the room shares with.
+  lightOf(by, other) {
+    const level = this.takesJobs(by) && other.s.cultivation ? carriedLightLevel(other.s) : 0;
+    if (!level) return null;
+    const p = other.s.player;
+    return { x: Math.floor(p.x), y: Math.floor(p.y), z: p.z, level };
+  }
+
+  // Someone else's lantern or flare, lit near player `id` while they played
+  // since last looked (0.202.0, Watch: anyone's light hurts all of it), when
+  // they carry crystal outside a carrier or have wild colonies near it:
+  // their game is told ('lit') once SHINE_EVERY seconds gathered. Looked at
+  // with each of their acts and saves, so standing still counts too.
+  shine(id) {
+    const sh = this.shadow?.players.get(id);
+    if (this.eco !== 'crystal' || !sh?.s.cultivation || !this.takesJobs(id)) return [];
+    const secs = playedSince(sh);
+    if (!secs) return [];
+    const out = [];
+    for (const [by, other] of this.shadow.players) {
+      const src = by === id ? null : this.lightOf(by, other);
+      if (!src || !lightReaches(sh.s, src)) continue;
+      sh.shone ||= new Map();
+      const gathered = (sh.shone.get(by) || 0) + secs;
+      sh.shone.set(by, gathered);
+      if (gathered < SHINE_EVERY) continue;
+      sh.shone.delete(by);
+      out.push(this.litMessage(id, sh, by, src, gathered));
+    }
+    return out;
+  }
+
+  // Tells player `id` (shadow `sh`) that `by`'s light shone on them for
+  // `gathered` seconds, kept so the room's copy of them takes it with theirs.
+  litMessage(id, sh, by, src, gathered) {
+    this.jobNo = (this.jobNo || 0) + 1;
+    const n = this.jobNo,
+      s = Math.round(gathered * 100) / 100;
+    (sh.s.toLight ||= new Map()).set(n, { src, secs: s });
+    const { x, y, z, level: lv } = src;
+    return { id, m: { t: 'lit', n, x, y, z, lv, s, by } };
+  }
+
   // Player `id` comes in: jobs still waiting on their game are done in the
   // room's copy of them now, so their welcome has them. Returns messages
   // for others (a job done for someone who asked).
@@ -63,6 +111,7 @@ export class RoomJobs {
     for (const { req, got } of sh.s.toGet?.values() || []) gotShared(sh.s, req, got);
     sh.s.toTake = new Map();
     sh.s.toGet = new Map();
+    sh.s.toLight = new Map(); // light that shone while they were gone did nothing
     return out;
   }
 }
@@ -75,4 +124,23 @@ const jobOf = ({ type, x, y, z, tx, ty }) => ({
   z,
   ...(type === 'move' ? { tx, ty } : {})
 });
+// Whether light `src` could reach anything of `s`'s it hurts: what they
+// carry outside a carrier, or one of their wild colonies (litBy does the rest).
+function lightReaches(s, { x, y, z, level }) {
+  const near = (p) => p.z === z && Math.abs(p.x - x) + Math.abs(p.y - y) < level;
+  const c = s.cultivation,
+    p = { x: Math.floor(s.player.x), y: Math.floor(s.player.y), z: s.player.z };
+  const carried = s.inv.crystal > 0 || c.starter || c.heart?.where === 'carried';
+  if (!c.gear.carrier && carried && near(p)) return true;
+  return Object.values(c.wild).some((w) => !(w.regrow > 0) && near(w));
+}
 const at = ({ x, y, z, tx, ty }) => ({ x, y, z, ...(tx === undefined ? {} : { tx, ty }) });
+
+// Seconds player shadow `sh` played since last looked at (at most
+// SHINE_GAP), and looked at now.
+function playedSince(sh) {
+  const ms = sh.s.stats.playedMs;
+  const secs = Math.min(SHINE_GAP, Math.max(0, ms - (sh.litAt ?? ms)) / 1000);
+  sh.litAt = ms;
+  return secs;
+}

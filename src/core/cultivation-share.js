@@ -24,7 +24,8 @@ import {
   exposeCargo,
   earnCultivation as earned,
   forgetCultivationIndex,
-  askShared
+  askShared,
+  litBy
 } from './cultivation.js';
 import { noteAct } from './acts.js';
 import { TILE_INFO } from './tiles.js';
@@ -94,6 +95,20 @@ export function receiveShared(s, n, req, got) {
   noteAct(s, 'g', n);
   gotShared(s, req, got);
 }
+
+// Someone else's carried light shone on you ('lit', number `n`, 0.202.0):
+// what it cracked, and written down ('l') for the room's copy to do the same.
+export function takeLight(s, n, src, seconds) {
+  noteAct(s, 'l', n);
+  litBy(s, src, seconds);
+}
+// A 'lit' message's light, checked: {src: {x, y, z, level}, secs}, or null.
+export function cleanLit(d) {
+  if (!d || ![d.x, d.y, d.z, d.lv].every(Number.isSafeInteger)) return null;
+  if (d.lv < 1 || d.lv > 15 || !Number.isFinite(d.s) || d.s <= 0 || d.s > LIT_MAX) return null;
+  return { src: { x: d.x, y: d.y, z: d.z, level: d.lv }, secs: d.s };
+}
+export const LIT_MAX = 30; // seconds of someone's light one message may say
 
 // A job's message parts, checked: {type, x, y, z, tx?, ty?}, or null.
 export function cleanJob(d) {
