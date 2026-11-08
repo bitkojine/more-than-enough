@@ -105,6 +105,7 @@ export class RoomLog {
         at: p.p ? [Math.round(p.p.x), Math.round(p.p.y), p.p.z] : null,
         cheats: w ? w.cheats : 0,
         frozen: !!p.frozen,
+        bot: !!p.bot,
         via: codeTag(p.via),
         sessionSecs:
           a && (p.st === 'online' || p.st === 'away') ? Math.round((now - a.since) / 1000) : null,

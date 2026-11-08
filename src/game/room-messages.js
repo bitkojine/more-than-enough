@@ -65,7 +65,7 @@ export function cleanPlayers(players) {
     const c = cleanColor(p.c),
       st = cleanStatus(p.st);
     if (c === null || st === null) return null;
-    out.set(id, { c, st, p: p.p ? cleanPos(p.p) : null });
+    out.set(id, { c, st, p: p.p ? cleanPos(p.p) : null, bot: p.bot === true });
   }
   return out;
 }

@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.206.0':
+    'Getting ready for company: a shared world can now mark some characters as bots. A bot’s name tag says “bot”, and so does its row in Players, so you always know who is a person.',
   'news.0.205.1':
     'The wiki’s list of everything in the game shows Mica again, in the colour of Mica’s coat.',
   'news.0.205.0':

@@ -8,6 +8,9 @@ import * as Invites from './invites.js';
 
 export const MAX_GRAVES = 300; // tombstones a world keeps (the oldest go first)
 
+// What everyone is told of a character the moderator marked as a bot.
+export const botMark = (pl) => (pl.bot ? { bot: true } : {});
+
 export class RoomWatch {
   /* ------------------------------------------------------- anti-cheat */
 
@@ -115,6 +118,19 @@ export class RoomWatch {
     if (pl.p) this.graves.push([id, pl.c, pl.p.x, pl.p.y, pl.p.z, kind]);
     if (this.graves.length > MAX_GRAVES) this.graves.shift();
     this.dirty.meta = true;
+  }
+
+  // The moderator marks a character as one of the room's company bots (or
+  // takes the mark off, 0.206.0): everyone's game tags it 'bot', so the tag
+  // comes from the room and nobody can claim it. Returns {toAll} or {error}.
+  markBot(id, bot, now) {
+    const pl = this.players.get(id);
+    if (!pl) return { error: 'player' };
+    if (bot) pl.bot = true;
+    else delete pl.bot;
+    this.dirty.players.add(id);
+    this.audit(now, id, 'bot', { bot: !!bot });
+    return { toAll: [this.statusOf(id)] };
   }
 
   gravesMsg() {

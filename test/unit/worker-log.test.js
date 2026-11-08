@@ -271,6 +271,31 @@ test('worker moderator: a freeze closes the player with the notice and is writte
   assert.equal(thawed.room.players.get(id).frozen, undefined, 'the thaw is written too');
 });
 
+test('worker moderator: a bot mark reaches everyone, is written, and comes off again', async () => {
+  const g = await twoPlayers();
+  const id = idOf(g.b);
+  assert.equal(await g.room.modBot('another', id, true), 'room');
+  assert.equal(await g.room.modBot(g.id, 'nobody', true), 'player');
+  assert.equal(await g.room.modBot(g.id, id, true), null);
+  assert.ok(
+    g.a.got('status').some((m) => m.id === id && m.bot === true),
+    'the others are told'
+  );
+  const back = await start(Rooms, g.storage, g.env);
+  assert.equal(back.room.players.get(id).bot, true, 'written');
+  assert.equal(back.room.welcome(idOf(g.a), Date.now()).players[id].bot, true, 'in a welcome');
+  assert.equal(
+    back.room.roster(Date.now()).find((p) => p.id === id).bot,
+    true,
+    'on the moderator page'
+  );
+  assert.equal(await g.room.modBot(g.id, id, false), null);
+  assert.equal(g.a.got('status').at(-1).bot, undefined);
+  const off = await start(Rooms, g.storage, g.env);
+  assert.equal(off.room.players.get(id).bot, undefined, 'unmarked is written too');
+  assert.equal(off.room.statusOf(idOf(g.a)).bot, undefined, 'nobody else is marked');
+});
+
 test('worker moderator: a stopped invite link is written', async () => {
   const g = await twoPlayers();
   const [{ code }] = g.a.got('invite');

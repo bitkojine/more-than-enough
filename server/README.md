@@ -326,6 +326,10 @@ The moderator's routes (`Authorization: Bearer <token>`):
 - `POST /admin/rooms/<id>/freeze` with `{"id": "<player id>", "why": "..."}`:
   freezes a character whose progress was hacked (see Security); its game
   shows the "FBI" notice. `POST /admin/rooms/<id>/thaw` with `{"id"}` undoes it.
+  `POST /admin/rooms/<id>/bots` with `{"id", "bot": true}` marks a character as one
+  of the room's company bots (0.206.0; `false` takes the mark off): its `status`
+  and welcome entry carry `"bot": true`, so every game tags it, and nobody can
+  claim the tag themselves.
 - `POST /admin/rooms/<id>/invite` with `{"uses", "life"}` (both optional,
   as a sign offers them; 3 people for a week otherwise): an invite link made
   by the moderator, answered `{code, until}`. The link is

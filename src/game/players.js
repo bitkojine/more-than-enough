@@ -13,7 +13,7 @@ export const awakeCount = (chips) => 1 + chips.filter((f) => f.st !== 'offline')
 
 // Everyone in the world, you first, then those awake, then those asleep,
 // nearest first: their colour, name, how they're doing and how far away
-// they are. `rows`: [{id, name, color, st, you, far, dz}] (far in
+// they are. `rows`: [{id, name, color, st, you, bot, far, dz}] (far in
 // tiles, dz layers up (+) or down (-), both null if not known).
 export function renderPlayers(box, rows) {
   const head = document.createElement('p');
@@ -28,9 +28,10 @@ export function renderPlayers(box, rows) {
       const text = document.createElement('div');
       const name = document.createElement('strong');
       name.textContent = p.name;
-      if (p.you) {
+      // You, or one of the room's company bots (0.206.0): a small tag after the name.
+      if (p.you || p.bot) {
         const tag = document.createElement('span');
-        tag.textContent = t('players.you');
+        tag.textContent = t(p.you ? 'players.you' : 'players.bot');
         name.append(' ', tag);
       }
       const sub = document.createElement('small');

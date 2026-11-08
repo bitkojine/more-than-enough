@@ -1133,6 +1133,7 @@ export default {
   'players.title': 'Players',
   'players.count': { one: '{count} player in this world', other: '{count} players in this world' },
   'players.you': 'you',
+  'players.bot': 'bot',
   'players.up': { one: '{count} layer up', other: '{count} layers up' },
   'players.down': { one: '{count} layer down', other: '{count} layers down' },
   'together.toast.copied': 'Invite link copied. Send it to a friend.',

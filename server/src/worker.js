@@ -6,23 +6,8 @@
  *   GET  /rooms/<id>/ws         join it (WebSocket)
  *   POST /solo                  your own world (and your character), kept for every device you link: pull, get, push, me (vault.js)
  *
- * and, for the moderator only (a bearer token, the ADMIN_TOKEN secret):
- *
- *   GET  /admin                        the moderator's page (admin.js): holds nothing, asks for the token
- *   GET  /admin/players?tests=         every world with everyone in it, named (not the smoke test's)
- *   GET  /admin/rooms                  every world, in brief
- *   GET  /admin/rooms/<id>/players     who is in one, and how far along
- *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
- *   POST /admin/rooms/<id>/ban         the same as freeze (no ban deletes anyone since v0.155.0)
- *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
- *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
- *   POST /admin/rooms/<id>/invite      an invite link into it: {"uses", "life"} (both optional)
- *   POST /admin/rooms/<id>/revoke      stop an invite link: {"code"}
- *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
- *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
- *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
- *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
- *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (kept out of the lists)
+ * and the moderator's routes (a bearer token, the ADMIN_TOKEN secret), listed
+ * in admin-routes.js.
  *
  * Only the game's own pages may call the rest (ALLOWED_ORIGINS), worlds are
  * Watch's to make (the admin token), and everything else is refused. The
@@ -284,14 +269,22 @@ export class Rooms extends DurableObject {
     return null;
   }
 
-  async modThaw(id, player) {
+  // A moderator's change everyone is told of: a thaw, a bot mark. Error string or null.
+  async modToAll(id, run) {
     if (!this.room.ready || this.room.id !== id) return 'room';
-    const r = this.room.thaw(player, Date.now());
+    const r = run(Date.now());
     if (r.error) return r.error;
     for (const msg of r.toAll) this.send(msg, null);
     await this.persist();
     await this.schedule();
     return null;
+  }
+  // (Methods, not fields: only methods are reached through the room's stub.)
+  modThaw(id, player) {
+    return this.modToAll(id, (now) => this.room.thaw(player, now));
+  }
+  modBot(id, player, bot) {
+    return this.modToAll(id, (now) => this.room.markBot(player, bot, now));
   }
   async modSmoke(id, smoke) {
     const err = this.room.markSmoke(smoke, Date.now());

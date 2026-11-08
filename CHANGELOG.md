@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.206.0] - 2026-11-08
+
+The room can mark a character as one of its company bots, and every game
+tags it: the first step of the bots (plan phases 3 to 5, Watch said start,
+2026-11-08). The plan says bots are clearly marked, and the mark must come
+from the room so nobody can claim it or hide it. Before, the room had no
+idea who was a bot; the ten-bot load test's characters looked like people.
+
+- **The room** (`server/src/room-watch.js` `markBot`): the moderator's
+  `POST /admin/rooms/<id>/bots` with `{"id", "bot"}` marks or unmarks a
+  character. It is kept with the character, written to the log, and
+  everyone is told at once (`status` carries `"bot": true`, as does the
+  welcome's list of players). The moderator page shows it and has a
+  Mark as bot button. The route list moved from the top of `worker.js` to
+  `admin-routes.js` to keep the worker under 600 lines; `modThaw` and
+  the new `modBot` share one method.
+- **The game** (`src/game/friends.js`, `players.js`): a marked character's
+  name tag reads "Name · bot" ("botas" in Lithuanian), and Players shows a
+  small *bot* tag after its name, as it does *you* on your own row. An
+  older game ignores the field, and an older room never sends it.
+- **Checked**: worker tests mark, persist, welcome and unmark a bot; the
+  route checks its body; the game's friends tag a bot from the welcome
+  and from a status, and drop the tag when the mark comes off.
+
 ## [0.205.1] - 2026-11-08
 
 The wiki's "Everything in the game" list showed Mica with no picture: 0.204.0

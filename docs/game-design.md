@@ -67,14 +67,14 @@ Every new game is played online, in one public crystal world, so there is one ga
 
 ### Bot players and crystal shared worlds — confirmed, 2026-11-05
 
-Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Design only; nothing is built yet.
+Watch plays mostly alone, so multiplayer gets little use. Three AI bot players will keep Watch company in shared worlds. Being built since 0.206.0, where the room learned to mark a character as a bot.
 
 - Bots are company first: the world feels lived in and bots invite you to play. Bugs they find are a side effect.
 - They play the crystal game in a new crystal shared world. Existing shared worlds keep the old economy.
 - They play only while a person (Watch or anyone invited) is in the world, and sleep when it is empty.
-- They run as a separate program on GitHub Actions that joins like any player, started by the room when a person joins. Every act goes through the same rules and anti-cheat as a person's; bots get no exceptions.
+- They run as a separate program on GitHub Actions that joins like any player (a slim Node player with the game's own rules and wire, no browser: Watch chose, 2026-11-08), started by the room when a person joins. Every act goes through the same rules and anti-cheat as a person's; bots get no exceptions.
 - The game's own brain plays every step; Cloudflare Workers AI picks each bot's next goal now and then, within the free daily allowance. Bots never show text the model wrote, only fixed phrases in English and Lithuanian.
-- They are clearly marked as bots (a tag by the name, and in Players).
+- They are clearly marked as bots (a tag by the name, and in Players). The mark is the room's, set by the moderator, so no player can claim it (0.206.0).
 - Each works on its own story and sometimes helps someone nearby.
 - They invite you with a line in the message log when you open the game, at most once a day, one tap to join.
 

@@ -148,6 +148,17 @@ test('moderator routes: freeze and thaw check the body, then ask the room', asyn
   assert.equal((await admin(get(''), env, at('nothing'))).status, 404);
 });
 
+test('moderator routes: a bot mark needs an id and a yes or no', async () => {
+  const asked = [];
+  const env = envWith({ modBot: async (id, p, bot) => (asked.push([id, p, bot]), null) });
+  const at = new URL('https://rooms.example/admin/rooms/' + ROOM + '/bots');
+  const id = 'a'.repeat(16);
+  assert.equal((await admin(post('', { id, bot: true }), env, at)).status, 200);
+  assert.equal((await admin(post('', { id, bot: 'yes' }), env, at)).status, 400);
+  assert.equal((await admin(post('', { bot: true }), env, at)).status, 400);
+  assert.deepEqual(asked, [[ROOM, id, true]]);
+});
+
 test('moderator routes: an invite link takes its uses and life, or the defaults', async () => {
   const asked = [];
   const room = {

@@ -33,6 +33,7 @@ import {
   MAX_PENDING_EDITS
 } from '../../src/game/room-sender.js';
 import { createInviteSign, inviteUrl } from '../../src/game/invite-sign.js';
+import { cleanPlayers } from '../../src/game/room-messages.js';
 import {
   read,
   write,
@@ -116,6 +117,28 @@ test('friends: a status brings someone in once, says when they come online, and 
   assert.ok(f.nameOf(pid(1)).length > 0);
   assert.notEqual(f.nameOf(pid(1)), f.nameOf(pid(0)), 'two players never share a name');
   assert.equal(f.nameOf(pid(9)), '');
+});
+
+test('friends: the room’s bot mark tags a bot in Players and over its head, and comes off', () => {
+  const clock = manualClock(100);
+  const f = createFriends({ clock, actor: quietActor });
+  const welcomed = cleanPlayers({ [pid(2)]: { c: 3, st: 'offline', bot: true } });
+  f.welcome(pid(0), 0, welcomed, []);
+  f.status(pid(1), 'online', 2, { x: 1, y: 1, z: 0 }, true);
+  f.tick(0.1);
+  const row = (id) => f.rows({ x: 0, y: 0 }).find((r) => r.id === id);
+  assert.equal(row(pid(1)).bot, true);
+  assert.equal(row(pid(2)).bot, true, 'from the welcome');
+  assert.ok(!row(pid(0)).bot, 'not you');
+  const tag = f.view().find((v) => v.id === pid(1));
+  assert.ok(tag.name.endsWith(' · bot') && tag.name.startsWith(f.nameOf(pid(1))), tag.name);
+  f.status(pid(1), 'online', 2, null, false);
+  assert.equal(row(pid(1)).bot, false, 'unmarked');
+  assert.equal(f.view()[0].name, f.nameOf(pid(1)));
+  assert.equal(
+    cleanPlayers({ [pid(3)]: { c: 1, st: 'online', bot: 'yes' } }).get(pid(3)).bot,
+    false
+  );
 });
 
 test('names: ids the room never makes still get names, and the search for a free one ends', () => {

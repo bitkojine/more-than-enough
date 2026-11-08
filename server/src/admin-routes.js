@@ -1,7 +1,25 @@
-/* The moderator's routes (the list at the top of worker.js), once the
- * token is checked: every world and its players, a world's log, freezing
- * and thawing, invite links, copies, backups and restores. `env` holds the
- * Durable Object namespaces, so the unit tests pass stand-ins. */
+/* The moderator's routes, once the token is checked: every world and its
+ * players, a world's log, freezing and thawing, bot marks, invite links,
+ * copies, backups and restores. `env` holds the Durable Object namespaces,
+ * so the unit tests pass stand-ins.
+ *
+ *   GET  /admin                        the moderator's page (admin.js): holds nothing, asks for the token
+ *   GET  /admin/players?tests=         every world with everyone in it, named (not the smoke test's)
+ *   GET  /admin/rooms                  every world, in brief
+ *   GET  /admin/rooms/<id>/players     who is in one, and how far along
+ *   GET  /admin/rooms/<id>/log?since=  its audit log as JSON lines (audit.js)
+ *   POST /admin/rooms/<id>/ban         the same as freeze (no ban deletes anyone since v0.155.0)
+ *   POST /admin/rooms/<id>/freeze      freeze a hacked character: {"id", "why"}
+ *   POST /admin/rooms/<id>/thaw        undo that: {"id"}
+ *   POST /admin/rooms/<id>/bots        mark (or unmark) a company bot: {"id", "bot": bool}
+ *   POST /admin/rooms/<id>/invite      an invite link into it: {"uses", "life"} (both optional)
+ *   POST /admin/rooms/<id>/revoke      stop an invite link: {"code"}
+ *   GET  /admin/rooms/<id>/graves      its tombstones, as players receive them
+ *   POST /admin/rooms/<id>/copy        a copy to play as one player: {"id"} (copy.js)
+ *   GET  /admin/rooms/<id>/backup      the whole world as one file, to keep on disk (backup.js)
+ *   POST /admin/rooms/<id>/restore     put a world that's gone back from that file (never over one that's there)
+ *   POST /admin/rooms/<id>/smoke       mark (or unmark) a deploy smoke-test room: {"smoke": bool} (kept out of the lists)
+ */
 
 import {
   ROOM_ID_RE,
@@ -151,6 +169,11 @@ const ROOM_ROUTES = {
   async 'POST thaw'({ request, id, room }) {
     const d = await playerBody(request);
     return d ? done(await room.modThaw(id, d.id)) : bad();
+  },
+  // Marking a character as one of the room's company bots (0.206.0), or not.
+  async 'POST bots'({ request, id, room }) {
+    const d = await playerBody(request);
+    return d && typeof d.bot === 'boolean' ? done(await room.modBot(id, d.id, d.bot)) : bad();
   },
   // An invite link into a world (0.194.0): how Watch gets into a world made
   // by hand. The link is <game>#join=<room>.<code>, as a sign's QR.

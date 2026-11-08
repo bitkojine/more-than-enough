@@ -66,7 +66,9 @@ export function client() {
       key: 'status',
       label: 'Status',
       value: (r) => STATUS_ORDER[r.status],
-      text: (r) => [el('span', { className: 'st-' + r.status, textContent: r.status })]
+      text: (r) => [
+        el('span', { className: 'st-' + r.status, textContent: r.status + (r.bot ? ' · bot' : '') })
+      ]
     },
     { key: 'goal', label: 'Milestones', value: (r) => r.goal },
     { key: 'res', label: 'Resources', value: (r) => r.res, text: (r) => short(r.res) },
@@ -338,6 +340,12 @@ export function client() {
               await api(base + '/freeze', { id: r.id, why: why.trim().slice(0, 200) });
               await load();
             }),
+        // One of the room's company bots: everyone's game tags it 'bot'.
+        act(r.bot ? 'Unmark bot' : 'Mark as bot', '', async () => {
+          if (!window.confirm((r.bot ? 'Unmark ' : 'Mark ') + r.name.en + ' as a bot?')) return;
+          await api(base + '/bots', { id: r.id, bot: !r.bot });
+          await load();
+        }),
         act('Stop a link…', '', async () => {
           const code = window.prompt(
             'Stop an invite link of ' +

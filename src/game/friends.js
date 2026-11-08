@@ -54,7 +54,7 @@ export function glide(shown, p, dt) {
 }
 
 export function createFriends({ clock, actor, limit = Infinity }) {
-  const friends = new Map(); // id -> {c, st, p, shown, heard, since, quiet, actor}
+  const friends = new Map(); // id -> {c, st, p, bot, shown, heard, since, quiet, actor}
   let me = null,
     myColor = 0;
   let graves = []; // tombstones of banned and frozen characters (room-messages.js cleanGraves)
@@ -142,7 +142,8 @@ export function createFriends({ clock, actor, limit = Infinity }) {
     // How a player is doing (a 'status'). Says whether they're new here and
     // whether they've just come online; null when it was dropped (yourself,
     // or a full world).
-    status(id, st, c, p = null) {
+    // `bot`: the room marked them as one of its company bots (0.206.0).
+    status(id, st, c, p = null, bot = false) {
       if (id === me) return null;
       let f = friends.get(id);
       const isNew = !f;
@@ -157,6 +158,7 @@ export function createFriends({ clock, actor, limit = Infinity }) {
       f.since = arrived ? 0 : f.since;
       f.c = c;
       f.st = st;
+      f.bot = bot;
       if (p) f.p = p;
       f.heard = clock();
       return { isNew, arrived };
@@ -192,7 +194,13 @@ export function createFriends({ clock, actor, limit = Infinity }) {
       const awake = (f) => (f.st === 'offline' ? 1 : 0);
       return [...friends.entries()]
         .sort(([, a], [, b]) => awake(a) - awake(b) || a.c - b.c)
-        .map(([id, f]) => ({ id, name: nameOf(id), st: stateOf(f), color: friendColor(f.c) }));
+        .map(([id, f]) => ({
+          id,
+          name: nameOf(id),
+          st: stateOf(f),
+          color: friendColor(f.c),
+          bot: !!f.bot
+        }));
     },
 
     // The Players screen: you first, then by how they're doing and how far
@@ -216,6 +224,7 @@ export function createFriends({ clock, actor, limit = Infinity }) {
           name: nameOf(id),
           color: friendColor(f.c),
           st: stateOf(f),
+          bot: !!f.bot,
           you: false,
           far: p ? Math.hypot(p.x - at.x, p.y - at.y) : null,
           dz: p ? p.z - at.z : 0
@@ -237,8 +246,10 @@ export function createFriends({ clock, actor, limit = Infinity }) {
             id,
             c: f.c,
             color: friendColor(f.c),
-            name: nameOf(id),
+            // A company bot's name tag says so (the room's mark, 0.206.0).
+            name: f.bot ? nameOf(id) + ' · ' + t('players.bot') : nameOf(id),
             st: stateOf(f),
+            bot: !!f.bot,
             since: f.since,
             ...f.shown,
             actor: f.actor.view(f.shown.m, f.shown)

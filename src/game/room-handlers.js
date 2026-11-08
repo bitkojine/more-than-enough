@@ -169,7 +169,7 @@ export function createRoomHandlers({
       const st = cleanStatus(d.st),
         c = cleanColor(d.c);
       if (st === null || c === null) return;
-      const said = friends.status(d.id, st, c, d.p ? cleanPos(d.p) : null);
+      const said = friends.status(d.id, st, c, d.p ? cleanPos(d.p) : null, d.bot === true);
       if (!said) return;
       if (said.isNew && st === 'online')
         hud.toast(t('together.toast.joined', { name: friends.nameOf(d.id) }));

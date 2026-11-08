@@ -26,7 +26,7 @@ import {
 import * as Invites from './invites.js';
 import { SEAT_LAYER } from '../../src/core/cultivation-seats.js';
 import { RoomPlay } from './room-play.js';
-import { RoomWatch } from './room-watch.js';
+import { RoomWatch, botMark } from './room-watch.js';
 import { RoomLog } from './room-log.js';
 import { RoomJobs } from './room-jobs.js';
 
@@ -390,7 +390,7 @@ export class Room {
   welcome(id, now, crystal = true) {
     const others = {};
     for (const [pid, p] of this.players)
-      if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p };
+      if (pid !== id && !p.frozen) others[pid] = { c: p.c, st: p.st, p: p.p, ...botMark(p) };
     const me = this.players.get(id);
     return {
       t: 'welcome',
@@ -450,7 +450,7 @@ export class Room {
 
   statusOf(id) {
     const p = this.players.get(id);
-    return { t: 'status', id, st: p.st, c: p.c, p: p.p };
+    return { t: 'status', id, st: p.st, c: p.c, p: p.p, ...botMark(p) };
   }
 
   // A connection closed: `clean` when the player left on purpose.

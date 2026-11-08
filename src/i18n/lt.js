@@ -1195,6 +1195,7 @@ export default {
     other: 'Šiame pasaulyje {count} žaidėjų'
   },
   'players.you': 'tu',
+  'players.bot': 'botas',
   'players.up': {
     one: '{count} sluoksniu aukščiau',
     few: '{count} sluoksniais aukščiau',
