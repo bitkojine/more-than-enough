@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.205.1':
+    'The wiki’s list of everything in the game shows Mica again, in the colour of Mica’s coat.',
   'news.0.205.0':
     'Who’s playing now sits at the end of the zoom bar: a person with a green dot and how many players are awake, you included. {phone:Tap|laptop:Click} it to see everyone in the world. The “+10” pill and the name chips under the top bar are gone; names still show over heads and at the screen’s edge.',
   'news.0.204.0':

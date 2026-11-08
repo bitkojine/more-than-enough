@@ -1,5 +1,6 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.205.1': 'Vikio sąraše apie viską žaidime vėl rodoma Mica – Micos apsiausto spalva.',
   'news.0.205.0':
     'Kas dabar žaidžia, matai mastelio juostos gale: žmogeliukas su žaliu tašku ir kiek žaidėjų nemiega, tu irgi. {phone:Paliesk|laptop:Spustelėk} jį ir pamatysi visus pasaulio žaidėjus. „+10“ ženkliukas ir vardų ženkliukai po viršutine juosta dingo; vardai vis dar matosi virš galvų ir ekrano krašte.',
   'news.0.204.0':

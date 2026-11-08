@@ -211,13 +211,14 @@ for (const [kind, id] of Object.entries(CULTIVATION_LOOK)) {
 }
 
 // Mica is drawn by the 3D rig (src/game/render/rigged-character.js), never
-// from the pack; the entry names and describes them for inspection.
+// from the pack; the entry names and describes them for inspection, and its
+// colour (the coat's orange) is their swatch in the wiki's list.
 add(
   'character',
   'wanderer',
   t('look.character.wanderer'),
   t('look.character.wanderer.does'),
-  opt('color')
+  req('color')
 );
 add('character', 'light', t('look.character.light'), t('look.character.light.does'), req('color'));
 add(

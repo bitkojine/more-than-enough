@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.205.1] - 2026-11-08
+
+The wiki's "Everything in the game" list showed Mica with no picture: 0.204.0
+deleted the 2D wanderer pictures, and the catalog entry was left with an
+optional colour the pack didn't fill, so the browser suite's "each one shows
+its default picture or colour" check failed twice on CI (browser.yml) from
+0.204.0 on. The entry now requires a colour and the pack gives it the coat's
+orange (`#c8743a`), shown as Mica's swatch. Checked with the browser suite
+locally (348 checks pass).
+
 ## [0.205.0] - 2026-11-08
 
 Who's playing is now part of the zoom bar, as Watch asked on 2026-11-08

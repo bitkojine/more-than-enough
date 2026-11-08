@@ -413,6 +413,9 @@
    ]
   },
 
+  "character.wanderer": {
+   "color": "#c8743a"
+  },
   "character.light": {
    "color": "#cfe6ff"
   },
