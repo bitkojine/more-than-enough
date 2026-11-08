@@ -4,7 +4,6 @@
 
 import * as Core from '../../core/index.js';
 import { pose, ACT_TIME } from './motion.js';
-import { characterFrame } from './character-sprite.js';
 import { HANDS, drawSign } from './sprites-sign.js';
 import { drawSnore } from './sprites-tags.js';
 
@@ -68,10 +67,9 @@ export function drawExtractor(ctx, cam, s, look, e, shade = true) {
 }
 
 // Mica faces movement and work targets, acting through the 3D rig. While
-// the rig is still loading Mica isn't drawn (only their shadow), so no other
-// figure flashes up first; without WebGL, and with a player's own pack, the
-// pack's 2D wanderer stands in. Wiki rides on the 3D hood (view.wiki).
-// Returns head/hand anchors for signs, and Wiki's.
+// the rig is still loading (or without WebGL) Mica isn't drawn, only their
+// shadow, so no other figure flashes up first. Wiki rides on the 3D hood
+// (view.wiki). Returns head/hand anchors for signs, and Wiki's.
 export function drawPlayer(ctx, cam, s, look, view) {
   const p = s.player;
   const facing = view.actor?.act && view.actor.facing ? view.actor.facing : view.facing;
@@ -80,13 +78,15 @@ export function drawPlayer(ctx, cam, s, look, view) {
     x: p.x,
     sx,
     sy,
-    mica: true,
     facingVector: facing,
     flip: facing.x < -0.01,
     moving: view.moving,
     water: Core.onWater(s),
     actor: view.actor,
     steady: view.sign > 0,
+    sign: view.sign > 0,
+    // In a shared world your coat is your player colour, as others see it.
+    coat: view.me?.color ?? null,
     equipment: {
       basket: Core.effectiveToolLevel(s, 'basket'),
       pickaxe: Core.effectiveToolLevel(s, 'pickaxe'),
@@ -104,21 +104,40 @@ export function drawPlayer(ctx, cam, s, look, view) {
   });
 }
 
-// Someone standing at (sx, sy) on screen, or on their boat on water: their
-// picture posed for what they're doing (see motion.js), with any tool in
-// hand. `nod` tips them forward a little more (dozing). Everyone (you and
-// friends, awake, dozing or asleep) is drawn at one size, `u` px per tile.
-// Returns where their head is ({x, top}) and their hands ({handsX, hands}).
+// Someone standing at (sx, sy) on screen, or on their boat on water: 3D
+// Mica posed for what they're doing (see motion.js), with what they carry.
+// `nod` tips them forward a little more (dozing). Everyone (you and friends,
+// awake, dozing or asleep) is drawn at one size, `u` px per tile, by the one
+// rig (`id` tells it who, so each keeps their own picture). Returns where
+// their head is ({x, top}) and their hands ({handsX, hands}).
 function drawCharacter(ctx, cam, s, look, who) {
   const c = { ...who };
   for (const k in CHARACTER) if (c[k] === undefined) c[k] = CHARACTER[k];
-  const location = look.rig && c.mica ? drawRigged(ctx, cam, s, look, c) : null;
-  return location || drawWanderer(ctx, cam, s, look, c);
+  if (!look.rig) return standIn(ctx, cam, s, look, c);
+  return drawRigged(ctx, cam, s, look, c) || anchors(c.sx, c.sy, cam.tilePx);
+}
+
+// Where a figure's head and hands are, standing with their feet at (sx, foot).
+function anchors(sx, foot, u) {
+  const tall = u * 1.1;
+  return { x: sx, top: foot - tall, foot, handsX: sx, hands: foot - tall * HANDS };
+}
+
+// Before the rig has drawn them (it's loading, or there's no WebGL): only
+// their shadow, or their boat, where they stand.
+function standIn(ctx, cam, s, look, c) {
+  const { x, sx, sy, flip, water, castShadow } = c;
+  const u = cam.tilePx;
+  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, 0, s.time, castShadow) : 0;
+  if (!deck && castShadow) shadow(ctx, cam, sx, sy, u * 0.26);
+  return anchors(sx, sy - deck, u);
 }
 
 // What drawCharacter is told when nothing says otherwise.
 const CHARACTER = Object.freeze({
-  mica: false,
+  id: undefined,
+  coat: null,
+  sign: false,
   facingVector: null,
   steady: false,
   seed: 0,
@@ -157,14 +176,38 @@ function drawRigged(ctx, cam, s, look, c) {
     ctx.clip();
   }
   const lift = actor.act ? motion.dy * u : 0;
-  const location = look.rig.draw(ctx, sx, sy - deck + lift, u, rigPose(c));
+  const feet = sy - deck + lift;
+  // Dozing on their feet: the whole figure leans forward from the feet.
+  const nod = c.nod * (c.facingVector && c.facingVector.x < -0.01 ? -1 : 1);
+  if (nod) {
+    ctx.translate(sx, feet);
+    ctx.rotate(nod);
+    ctx.translate(-sx, -feet);
+  }
+  const location = look.rig.draw(ctx, sx, feet, u, rigPose(c));
   ctx.restore();
+  if (location && nod) {
+    // The anchors lean with them.
+    const turn = (px, py) => {
+      const dx = px - sx,
+        dy = py - feet;
+      return [
+        sx + dx * Math.cos(nod) - dy * Math.sin(nod),
+        feet + dx * Math.sin(nod) + dy * Math.cos(nod)
+      ];
+    };
+    [location.x, location.top] = turn(location.x, location.top);
+    [location.handsX, location.hands] = turn(location.handsX, location.hands);
+  }
   return location;
 }
 
 // What the rig is told to show: where Mica faces, what they're doing, and
 // what they carry.
 function rigPose({
+  id,
+  coat,
+  sign,
   facingVector,
   moving,
   water,
@@ -193,7 +236,10 @@ function rigPose({
     lanternOn: lantern.on,
     flare,
     wiki,
-    cargo: cargoLook(cargo, crystal)
+    cargo: cargoLook(cargo, crystal),
+    sign: !!sign,
+    coat,
+    ...(id === undefined ? {} : { who: id })
   };
 }
 
@@ -208,57 +254,6 @@ function cargoLook(cargo, crystal) {
   if (!cargo || !(cargo.starter || crystal > 0 || cargo.heart?.where === 'carried')) return null;
   if (!cargo.gear?.carrier) return 'specimen';
   return cargo.gear.lining ? 'lined' : 'sealed';
-}
-
-// The 2D wanderer from the look's pack: friends, and Mica without WebGL or
-// with a player's own pack (while the rig loads, only their shadow).
-function drawWanderer(ctx, cam, s, look, c) {
-  const { x, sx, sy, flip, moving, water, actor, steady, equipment, castShadow } = c;
-  const u = cam.tilePx;
-  const id = 'character.wanderer';
-  const planted = !moving || water || actor.walking === false;
-  const walk = look.frames(id, planted && look.has(id, 'stand') ? 'stand' : 'image');
-  const time = actor.clock ?? s.time;
-  const body = walk.pics[characterFrame(walk, actor, { moving, water, time })];
-  const loading = c.mica && !look.rigSettled;
-  const p = pose(actor, { moving, boat: water, steady, time, seed: c.seed, equipment });
-  const deck = water ? drawBoat(ctx, cam, s, look, x, sx, sy, flip, p.rock, time, castShadow) : 0;
-  // Off the ground (a hop, a fall) their shadow stays down and shrinks.
-  if (!deck && castShadow)
-    shadow(ctx, cam, sx, sy, body.units * u * 0.42 * Math.max(0.5, 1 + Math.min(0, p.dy) * 0.6));
-  const dir = flip ? -1 : 1,
-    feet = sy - deck;
-  const fx = sx + p.dx * u * dir,
-    fy = feet + p.dy * u,
-    rot = (p.rot + c.nod) * dir;
-  ctx.save();
-  if (p.clip) {
-    ctx.beginPath();
-    ctx.rect(sx - u * 2, feet - u * 4, u * 4, u * 4);
-    ctx.clip();
-  }
-  ctx.translate(fx, fy);
-  ctx.rotate(rot);
-  const tall = standWanderer(ctx, look, body, p, { u, flip, loading, equipment });
-  ctx.restore();
-  const sin = Math.sin(rot),
-    cos = Math.cos(rot);
-  return {
-    x: fx + sin * tall,
-    top: fy - cos * tall,
-    foot: fy,
-    handsX: fx + sin * tall * HANDS,
-    hands: fy - cos * tall * HANDS
-  };
-}
-
-// The wanderer's picture and tool, drawn at the origin; returns how tall it stands.
-function standWanderer(ctx, look, body, p, { u, flip, loading, equipment }) {
-  const facing = p.turn ? !flip : flip;
-  const tall = loading ? body.units * body.aspect * u : look.stand(ctx, body, 0, 0, u, facing);
-  if (!loading && p.tool && (!equipment || equipment[p.tool.kind] > 0))
-    drawTool(ctx, look, body, u, p.tool, facing ? -1 : 1, equipment?.[p.tool.kind] ?? 1);
-  return tall;
 }
 
 // The boat under someone on water, bobbing and rocking by `rock` radians,
@@ -277,35 +272,9 @@ function drawBoat(ctx, cam, s, look, x, sx, sy, flip, rock = 0, time = s.time, c
   return h * BOAT_DECK - bob;
 }
 
-// Where the wanderer's front hand is on their picture, as a share of its
-// width from the middle and of its height from the feet.
-const HAND = { x: 0.35, y: 0.43 };
-
-// A tool in their front hand (`dir` 1 facing right, -1 left), drawn from the
-// tool's icon: the pickaxe held by the grip near its handle's end and
-// turned by `angle` (0 points it up and forward), the basket hanging from
-// the hand.
-function drawTool(ctx, look, body, u, tool, dir, level) {
-  const w = body.units * u,
-    h = w * body.aspect;
-  const pic = look.level('tool.' + tool.kind, Math.max(0, level - 2), 'icon');
-  ctx.save();
-  ctx.translate(dir * w * HAND.x, -h * HAND.y);
-  ctx.scale(dir, 1);
-  ctx.rotate(tool.angle);
-  if (tool.kind === 'basket') {
-    const size = u * 0.42;
-    look.draw(ctx, pic, -size / 2, -size * 0.15, size, size);
-  } else {
-    const size = u * 0.6;
-    look.draw(ctx, pic, -size * 0.27, -size * 0.78, size, size);
-  }
-  ctx.restore();
-}
-
 /* ------------------------------------------------------------ friends */
 
-// A friend, drawn like the wanderer (holding what they play on) with a ring
+// A friend, drawn as 3D Mica like you, with a ring
 // of their colour at their feet, on a boat on
 // water like you. How they're doing shows in how they look, always at full
 // size: online as normal; away dozing on their feet, head nodding, with a
@@ -319,9 +288,8 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   const flip = facesLeft(f);
   const water = Core.swimsAt(s.world, f.x, f.y, cam.z);
   if (f.st === 'offline') {
-    const body = look.frames('character.wanderer', 'image').pics[0];
     const deck = water ? drawBoat(ctx, cam, s, look, f.x, sx, sy, flip) : 0;
-    return drawSleeper(ctx, cam, s, look, body, f, color, sx, sy - deck, !deck);
+    return drawSleeper(ctx, cam, s, look, f, color, sx, sy - deck, !deck);
   }
   const time = s.time;
   ctx.save();
@@ -334,27 +302,31 @@ export function drawFriend(ctx, cam, s, look, f, color) {
   ctx.stroke();
   // Away: dozing on their feet, leaning forward a little and nodding.
   const nod = f.st === 'away' ? 0.1 + 0.05 * Math.sin(time * 1.3) : 0;
-  const {
-    x: hx,
-    top: head,
-    handsX,
-    hands
-  } = drawCharacter(ctx, cam, s, look, {
+  const held = drawCharacter(ctx, cam, s, look, {
+    id: rigId(f),
+    coat: color,
     x: f.x,
     sx,
     sy,
     flip,
+    facingVector: { x: f.fx ?? 0, y: f.fy ?? 1 },
     moving: f.st === 'online' && f.m,
     water,
     nod,
-    equipment: f.gear === undefined ? null : { basket: f.gear & 1, pickaxe: f.gear & 2 },
+    // The room says only whether they carry each tool, not its level.
+    equipment: { basket: f.gear & 1 ? 1 : 0, pickaxe: f.gear & 2 ? 1 : 0 },
     actor: f.st === 'online' ? f.actor : STILL,
     steady: f.sign,
+    sign: f.sign && f.st === 'online',
     seed: f.c * 2.3 + 1
   });
   ctx.restore();
   const sign =
-    f.sign && f.st === 'online' ? drawSign(ctx, handsX, hands, u, 1, time, f.c + 1) : null;
+    f.sign && f.st === 'online'
+      ? drawSign(ctx, held.handsX, held.hands, u, 1, time, f.c + 1)
+      : null;
+  if (sign) look.rig?.drawHands(ctx, held, u, rigId(f));
+  const { x: hx, top: head } = held;
   const my = head - u * (sign ? 0.6 : 0.2);
   const r = Math.max(5, u * 0.12);
   // Away: little z's drifting up.
@@ -403,46 +375,33 @@ export function drawFriend(ctx, cam, s, look, f, color) {
 }
 
 // An offline friend, asleep where they left like a sleeper in Rust: lying on
-// the ground, tucked under a blanket in their colour that rises and falls,
+// the ground, on a bedroll in their colour,
 // with slow big Z's floating up. Always solid, in the world and at full size,
 // never a ghost, so everyone can see where a friend will wake up.
-function drawSleeper(ctx, cam, s, look, body, f, color, sx, sy, onGround) {
+function drawSleeper(ctx, cam, s, look, f, color, sx, sy, onGround) {
   const u = cam.tilePx,
     time = s.time;
-  const len = body.units * u * body.aspect; // their height, now lying down
-  const thick = body.units * u;
+  const len = u * 1.15; // their height, now lying down
+  const thick = u * 0.5;
   const head = facesLeft(f) ? 1 : -1; // which side their head lies
   const feet = sx - (head * len) / 2;
-  const breath = 1 + 0.06 * Math.sin(time * 1.8);
   if (onGround) shadow(ctx, cam, sx, sy, len * 0.55);
   // A bedroll under them, in their colour.
   ctx.save();
   ctx.fillStyle = color;
-  ctx.globalAlpha = 0.35;
+  ctx.globalAlpha = 0.6;
   ctx.beginPath();
   ctx.ellipse(sx, sy - thick * 0.12, len * 0.62, thick * 0.32, 0, 0, TAU);
   ctx.fill();
   ctx.restore();
-  // The body on its side: feet at one end, head at the other.
-  ctx.save();
-  ctx.translate(feet, sy - thick * 0.22);
-  ctx.rotate((head * Math.PI) / 2);
-  look.stand(ctx, body, 0, 0, u, head > 0);
-  ctx.restore();
-  // The blanket over their legs, breathing; the head stays out on the pillow.
-  ctx.save();
-  ctx.fillStyle = color;
-  ctx.strokeStyle = 'rgba(10,8,6,0.7)';
-  ctx.lineWidth = Math.max(1.5, u * 0.03);
-  const bx = feet + head * len * 0.3,
-    bw = len * 0.32,
-    by = sy - thick * 0.12;
-  ctx.beginPath();
-  ctx.ellipse(bx, by, bw, thick * 0.3 * breath, 0, Math.PI, TAU);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
+  // Mica on their side, eyes shut: feet at one end, head at the other.
+  if (look.rig) {
+    ctx.save();
+    ctx.translate(feet, sy - thick * 0.22);
+    ctx.rotate((head * Math.PI) / 2);
+    look.rig.draw(ctx, 0, 0, u, { ...SLEEPING, coat: color, who: rigId(f) });
+    ctx.restore();
+  }
   // Big slow Z's over the pillow end, where their name goes.
   const mx = sx + head * len * 0.42,
     my = sy - thick * 0.75;
@@ -522,8 +481,14 @@ export function drawGrave(ctx, cam, s, g) {
   return { x: sx, y: top - u * (g.k === 'ice' ? 0.32 : 0.22) };
 }
 
+// How the rig shows a sleeper: facing you, still, eyes shut.
+const SLEEPING = Object.freeze({ facing: { x: 0, y: 1 }, steady: true, asleep: true });
+
 // Someone doing nothing in particular (a friend away or out of touch).
 const STILL = { act: null, t: 0, idle: 0 };
+
+// Who a friend is to the rig, never mistaken for you.
+const rigId = (f) => 'player:' + f.id;
 
 // Whether a friend faces left (their sprite is mirrored).
 const facesLeft = (f) => f.fx < -0.01;

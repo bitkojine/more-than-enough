@@ -8,10 +8,12 @@ import { createPickaxeModel, pickaxeTier } from './pickaxe-model.js';
 import { characterDirection, CHARACTER_DIRECTIONS } from './character-direction.js';
 import { miningStroke, workHands, workWeight, WORK_HANDS } from './work-motion.js';
 import { createBasketModel, createLanternModel, createFlareModel } from './work-equipment.js';
+import { FLARE_AT as FLARE, LANTERN_AT as LANTERN } from './work-equipment.js';
 import { createWikiModel } from './wiki-model.js';
 import { wrapAngle } from './wiki-motion.js';
 import { poseArm, poseLeg, buildArm, buildLeg, REST_SPREAD } from './rig-limbs.js';
 import { solidsOf, contactsOf } from './rig-solids.js';
+import { COAT, PATCH, coatColours } from './rig-colours.js';
 import {
   coatRadius,
   besideCoat,
@@ -25,22 +27,6 @@ import {
   repairPatchGeometry
 } from './rig-geometry.js';
 export { coatRadius, besideCoat };
-// The lantern's ring sits this high on the hip; its widest part hangs this far
-// below the ring; the skirt sways about this much while walking.
-// The flare: where it sits in the left mitten and how it leans out of it,
-// and where it tucks into the belt while that hand is busy.
-const FLARE_SIZE = 0.7,
-  FLARE_GRIP = [0, -0.03, 0.02],
-  FLARE_TILT = [0.8, 0, -1.2],
-  FLARE_BELT_SIDE = -1.55,
-  FLARE_BELT_Y = 0.05,
-  FLARE_BELT_GAP = 0.11,
-  FLARE_BELT_TILT = [0, 0, 0];
-const LANTERN_SIDE = 2.2,
-  LANTERN_RING = 0.16,
-  LANTERN_DROP = 0.22,
-  LANTERN_RADIUS = 0.09,
-  SKIRT_SWAY = 0.045;
 export function createRigModel() {
   const scene = new T.Scene(),
     model = new T.Group();
@@ -49,7 +35,7 @@ export function createRigModel() {
   // responses to curved surfaces. The world's day/night overlay still applies
   // to the composited character together with trees, rocks and buildings.
   const material = (color) => new T.MeshBasicMaterial({ color, toneMapped: false });
-  const orange = material(0xc8743a),
+  const orange = material(COAT),
     inner = material(0x1d1712),
     black = material(0x3a2a1c),
     cream = material(0xeeeadf),
@@ -140,7 +126,7 @@ export function createRigModel() {
   // uses the same skeleton; it is not a floating inventory badge.
   const patchGeometry = repairPatchGeometry();
   clothGeometry(patchGeometry);
-  const patch = new T.SkinnedMesh(patchGeometry, material(0xd18b54));
+  const patch = new T.SkinnedMesh(patchGeometry, material(PATCH));
   patch.material.side = T.DoubleSide;
   model.add(patch);
   const kit = { bone, mesh, ellipsoid, spine, hips, orange, thread, black, linen, cream };
@@ -226,8 +212,8 @@ export function createRigModel() {
   const lanternHip = new T.Group();
   lanternHip.name = 'lanternHip';
   lanternHip.position
-    .copy(besideCoat(LANTERN_SIDE, LANTERN_RING - LANTERN_DROP, LANTERN_RADIUS + SKIRT_SWAY))
-    .setY(LANTERN_RING);
+    .copy(besideCoat(LANTERN.side, LANTERN.ring - LANTERN.drop, LANTERN.radius + LANTERN.sway))
+    .setY(LANTERN.ring);
   hips.add(lanternHip);
   const baskets = new Map();
   let equippedBasket = null,
@@ -248,21 +234,21 @@ export function createRigModel() {
   // it rides tucked in the belt instead.
   const flareGrip = new T.Group();
   flareGrip.name = 'flareGrip';
-  flareGrip.position.set(...FLARE_GRIP);
-  flareGrip.rotation.set(...FLARE_TILT);
-  flareGrip.scale.setScalar(FLARE_SIZE);
+  flareGrip.position.set(...FLARE.grip);
+  flareGrip.rotation.set(...FLARE.tilt);
+  flareGrip.scale.setScalar(FLARE.size);
   leftArm.hand.add(flareGrip);
   const flareRight = new T.Group();
   flareRight.name = 'flareRight';
-  flareRight.position.set(-FLARE_GRIP[0], FLARE_GRIP[1], FLARE_GRIP[2]);
-  flareRight.rotation.set(FLARE_TILT[0], -FLARE_TILT[1], -FLARE_TILT[2]);
-  flareRight.scale.setScalar(FLARE_SIZE);
+  flareRight.position.set(-FLARE.grip[0], FLARE.grip[1], FLARE.grip[2]);
+  flareRight.rotation.set(FLARE.tilt[0], -FLARE.tilt[1], -FLARE.tilt[2]);
+  flareRight.scale.setScalar(FLARE.size);
   rightArm.hand.add(flareRight);
   const flareBelt = new T.Group();
   flareBelt.name = 'flareBelt';
-  flareBelt.position.copy(besideCoat(FLARE_BELT_SIDE, FLARE_BELT_Y, FLARE_BELT_GAP));
-  flareBelt.rotation.set(...FLARE_BELT_TILT);
-  flareBelt.scale.setScalar(FLARE_SIZE);
+  flareBelt.position.copy(besideCoat(FLARE.beltSide, FLARE.beltY, FLARE.beltGap));
+  flareBelt.rotation.set(...FLARE.beltTilt);
+  flareBelt.scale.setScalar(FLARE.size);
   hips.add(flareBelt);
   const flareModel = createFlareModel();
   flareModel.root.name = 'flare';
@@ -326,12 +312,14 @@ export function createRigModel() {
           flow,
           lantern: spine.worldToLocal(lanternModel.root.getWorldPosition(new T.Vector3())).toArray()
         });
-    if (hands) {
-      const orientation = new T.Quaternion(),
-        leftOrientation = basket ? spine.quaternion.clone().invert() : orientation;
-      poseArm(leftArm, 1, hands.left, leftOrientation, hands.weight);
-      poseArm(rightArm, -1, hands.right, orientation, hands.weight);
-    }
+    if (hands) poseArms(hands, basket);
+  }
+  function poseArms({ left, right, weight = 1, turn = 0 }, basket = false) {
+    model.updateMatrixWorld(true);
+    const orientation = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), turn),
+      leftOrientation = basket ? spine.quaternion.clone().invert() : orientation;
+    poseArm(leftArm, 1, left, leftOrientation, weight);
+    poseArm(rightArm, -1, right, orientation, weight);
   }
   model.updateMatrixWorld(true);
   const skeleton = new T.Skeleton(bones);
@@ -384,6 +372,14 @@ export function createRigModel() {
   return {
     scene,
     model,
+    // Which of the eight ways the figure last faced: kept per figure when
+    // one rig draws several people (rigged-character.js).
+    get direction() {
+      return direction;
+    },
+    set direction(d) {
+      direction = d;
+    },
     // Poses every bone and carried thing for one frame; the same options as draw().
     pose({
       facing = { x: 0, y: 1 },
@@ -402,8 +398,14 @@ export function createRigModel() {
       lanternOn = false,
       flare = false,
       cargo = null,
+      asleep = false,
+      sign = false,
+      coat = null,
       wiki: wikiState = null
     } = {}) {
+      const colours = coatColours(coat);
+      for (const m of [orange, bodyMat]) m.color.setHex(colours.coat);
+      patch.material.color.setHex(colours.patch);
       renderedAction = action;
       renderedProgress = progress;
       renderedWork = work;
@@ -443,7 +445,7 @@ export function createRigModel() {
           Math.sin(Math.PI * progress) ** 2;
       }
       head.rotation.set(p.headPitch, p.headYaw, p.headRoll);
-      for (const eye of eyes) eye.scale.y = 0.046 * p.blink;
+      for (const eye of eyes) eye.scale.y = 0.046 * (asleep ? 0.12 : p.blink);
       clothFront.rotation.x = p.clothFront;
       clothBack.rotation.x = p.clothBack;
       clothLeft.rotation.z = p.clothLeft;
@@ -493,7 +495,8 @@ export function createRigModel() {
             ? 'right'
             : 'left'
       );
-      if (!steady)
+      if (sign || asleep) poseArms(sign ? WORK_HANDS.sign : WORK_HANDS.sleep);
+      else if (!steady)
         constrainWork(action, progress, { basket: basketHeld, work, flow, carrying: !!cargoKind });
       scene.updateMatrixWorld(true);
       basketGrip.quaternion
@@ -502,11 +505,14 @@ export function createRigModel() {
         .multiply(model.getWorldQuaternion(new T.Quaternion()));
       scene.updateMatrixWorld(true);
     },
-    // World points the 2D world needs: the top of the hood, the tool hand, Wiki's cap.
+    // World points the 2D world needs: the top of the hood, between the two
+    // mittens (where a sign is held), Wiki's cap.
     marks() {
       return {
         head: new T.Vector3(0, 0.48, 0).applyMatrix4(head.matrixWorld),
-        hand: rightArm.hand.getWorldPosition(new T.Vector3()),
+        hand: rightArm.hand
+          .getWorldPosition(new T.Vector3())
+          .lerp(leftArm.hand.getWorldPosition(new T.Vector3()), 0.5),
         wiki: wiki.root.visible ? wiki.top() : null
       };
     },

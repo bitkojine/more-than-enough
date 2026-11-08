@@ -189,8 +189,8 @@ export function drawBeacons(ctx, cam, s, look, beacons) {
 }
 
 // Friends you can't see (off screen, or on another layer): their badge at
-// the screen's edge on the way to them. A circle in their colour with their
-// wanderer's face in it and their name on a tag, an arrow on the rim
+// the screen's edge on the way to them. A circle in their colour with 3D
+// Mica's face in it and their name on a tag, an arrow on the rim
 // pointing at them, and a small up or down arrow when they're on another
 // layer. Under the name, how far away they are (a tile is 1 m), and for
 // another layer how many layers up or down. Asleep (offline) friends' badges are faded and grey. With a crowd
@@ -201,7 +201,6 @@ const BADGE = 22; // the badge's radius, in CSS pixels
 const MAX_BADGES = 6;
 export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = []) {
   const edge = BADGE + 14;
-  const face = look.pick('character.wanderer', 'image');
   const cx = cam.width / 2,
     cy = cam.height / 2;
   const away = [];
@@ -263,9 +262,9 @@ export function drawFriendMarkers(ctx, cam, s, look, friends, clear, taken = [])
     ctx.save();
     ctx.clip();
     if (asleep && 'filter' in ctx) ctx.filter = 'grayscale(1)';
-    // Their head fills the circle: the figure, big, with its top near the rim.
-    const size = (BADGE * 4.6) / (face.units * face.aspect);
-    look.stand(ctx, face, x, y - BADGE * 0.9 + BADGE * 4.6, size);
+    // Their head fills the circle: 3D Mica's, facing you.
+    const face = look.rig?.portrait(color);
+    if (face) ctx.drawImage(face, x - BADGE, y - BADGE, BADGE * 2, BADGE * 2);
     ctx.restore();
     // Their name on a tag, as on their chip in the top bar: under the badge,
     // or over it when the arrow points down.

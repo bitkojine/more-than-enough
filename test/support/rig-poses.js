@@ -75,6 +75,13 @@ export function rigPoses({ full = false } = {}) {
   }
   for (const time of steps(full ? 12 : 4))
     for (const flare of FLARE) poses.push({ ...GEAR, time: time * 9, steady: time > 0.5, flare });
+  // Holding the invite sign up (other players too, who carry no lantern),
+  // and asleep (a sleeper lies on their side, the rig still upright).
+  for (const time of steps(full ? 12 : 4))
+    for (const gear of [GEAR, { pickaxe: 1, basket: 1 }]) {
+      poses.push({ ...gear, time: time * 9, steady: true, sign: true, wiki });
+      poses.push({ ...gear, time: time * 9, steady: true, asleep: true });
+    }
   // Wiki breathes and blinks on its own clock, so sweep a whole cycle of it.
   for (const time of steps(full ? 40 : 10))
     for (const look of [null, { x: 1, y: 0 }])

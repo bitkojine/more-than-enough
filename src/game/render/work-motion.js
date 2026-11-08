@@ -88,7 +88,13 @@ export const WORK_HANDS = {
   // The left hand meets the lantern's ring from outside, so the arm stays clear of the coat.
   lantern: { right: [-0.192, -0.075, 0.342], reach: [0.16, 0.06, 0] },
   // Keep the driving elbow outside the breathing coat when the gait settles.
-  carry: { left: [0.17, -0.043, 0.365], right: [-0.18, -0.088, 0.416] }
+  carry: { left: [0.17, -0.043, 0.365], right: [-0.18, -0.088, 0.416] },
+  // Holding the invite sign up: both mittens out in front at chest height,
+  // gripping its bottom edge (sprites-sign.js draws the board above them).
+  // Mittens turned up, thumbs in, as if gripping the edge from below.
+  sign: { left: [0.22, 0.03, 0.42], right: [-0.22, 0.03, 0.42], turn: Math.PI },
+  // Asleep: mittens folded on the belly.
+  sleep: { left: [0.22, -0.089, 0.351], right: [-0.207, -0.098, 0.378] }
 };
 export function workHands(
   action,

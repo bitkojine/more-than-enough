@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.204.0':
+    'Dabar visi yra trimatė Mica: kiti žaidėjai, kompanijos robotai ir miegantieji piešiami taip pat kaip tu, nebe sena plokščia figūrėlė, ir kiekvienas vilki savo žaidėjo spalvos apsiaustą, kad juos atskirtum (tavo – irgi tavo spalvos). Miegantieji guli ant šono užsimerkę, o ženkliukuose ekrano krašte irgi Micos veidas. Kai iškeli kvietimo lentelę, Mica ją laiko savo trimatėmis rankomis, nebe senomis plokščiomis.',
   'news.0.203.0':
     'Bendrame kristalų pasaulyje kiekviena širdies pastogė yra ir tavo: palik širdį bet kieno pastogėje, kad ji gytų, ir išklok dėklą prie bet kieno dėklo suolo. Pabudus tavo mašinai, kiekvieno žaidėjo širdies pastogė pasaulio žemėlapyje tampa tavo teleportacijos stotele.',
   'news.0.202.0':

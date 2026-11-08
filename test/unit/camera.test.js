@@ -85,31 +85,38 @@ test('the visible range covers tall tops in front and low ones behind', () => {
   assert.ok(v.x1 - v.x0 >= cols && v.x1 - v.x0 <= cols + 3, 'and just the columns on screen');
 });
 
-test('a layer stands taller than the wanderer, so tunnels and cliffs read to scale', async () => {
-  const { readFileSync } = await import('node:fs');
-  const svg = readFileSync(
-    new URL('../../packs/default/characters/wanderer.svg', import.meta.url),
-    'utf8'
-  );
-  const tall = Number(svg.match(/height="([\d.]+)"/)[1]) / DEFAULT_TILE; // in tiles, as drawn
+// How tall 3D Mica stands on screen, in tiles: the top of the hood.
+async function micaTall() {
+  const { createRigModel } = await import('../../src/game/render/rig-model.js');
+  const { tilesAboveFeet } = await import('../../src/game/render/rigged-character.js');
+  const rig = createRigModel();
+  rig.pose({ steady: true });
+  return tilesAboveFeet(rig.marks().head);
+}
+
+test('a layer stands taller than Mica, so tunnels and cliffs read to scale', async () => {
+  const tall = await micaTall();
+  assert.ok(tall > 0.8 && tall < 1.6, `Mica stands about a tile tall (${tall.toFixed(2)})`);
   assert.ok(
     LAYER_HEIGHT > tall * 1.15,
-    `a layer (${LAYER_HEIGHT} tiles) fits the wanderer (${tall.toFixed(2)}) with headroom`
+    `a layer (${LAYER_HEIGHT} tiles) fits Mica (${tall.toFixed(2)}) with headroom`
   );
 });
 
-test('the boat is to scale: its mast stands above the wanderer standing on its deck', async () => {
+test('the boat is to scale: its mast stands above Mica standing on its deck', async () => {
   const { readFileSync } = await import('node:fs');
   const { BOAT_DECK } = await import('../../src/core/catalog.js');
-  const size = (f) =>
+  const boat =
     Number(
-      readFileSync(new URL('../../packs/default/characters/' + f, import.meta.url), 'utf8').match(
-        /height="([\d.]+)"/
-      )[1]
-    );
-  const aboveDeck = size('boat.svg') * (1 - BOAT_DECK);
+      readFileSync(
+        new URL('../../packs/default/characters/boat.svg', import.meta.url),
+        'utf8'
+      ).match(/height="([\d.]+)"/)[1]
+    ) / DEFAULT_TILE;
+  const aboveDeck = boat * (1 - BOAT_DECK),
+    tall = await micaTall();
   assert.ok(
-    aboveDeck > size('wanderer.svg') * 1.3,
-    `mast and sail (${aboveDeck}) tower over the wanderer (${size('wanderer.svg')})`
+    aboveDeck > tall * 1.3,
+    `mast and sail (${aboveDeck.toFixed(2)} tiles) tower over Mica (${tall.toFixed(2)})`
   );
 });

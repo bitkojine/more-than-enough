@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.204.0':
+    'Everyone is 3D Mica now: other players, the company bots and sleepers are drawn just like you, no longer as the old flat figure, each in a coat of their own player colour so you can tell them apart (yours is yours too). Sleepers lie on their side with their eyes shut, and the faces in the badges at the screen’s edge are Mica’s too. When you hold up your invite sign, Mica grips it in their own mittens.',
   'news.0.203.0':
     'In the shared crystal world every heart shelter is yours too: rest your heart in anyone’s shelter to mend it, and line your carrier at anyone’s carrier bench. Once your machine is awake, every player’s heart shelter is a teleport stop for you on the world map.',
   'news.0.202.0':

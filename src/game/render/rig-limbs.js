@@ -9,6 +9,8 @@ import { shoeGeometry } from './rig-geometry.js';
 const DOWN = new T.Vector3(0, -1, 0);
 // Arms hang this far out (radians) so sleeves and mittens clear the coat.
 export const REST_SPREAD = 0.76;
+// The render layer holding only the mittens (rigged-character.js drawHands).
+export const MITTENS = 1;
 
 // An arm and a leg, built onto Mica's skeleton. `k` is rig-model.js's kit:
 // its bone() and mesh() makers, the spine and hips bones and the materials.
@@ -43,8 +45,12 @@ export function buildArm(k, side) {
     -0.04 - (FOREARM - 0.11) / 2,
     0
   );
-  k.ellipsoid(hand, k.black, 0, -0.02, 0, 0.108, 0.115, 0.087);
-  k.ellipsoid(hand, k.black, -side * 0.076, -0.005, 0.04, 0.04, 0.06, 0.04);
+  // The mitten and its thumb are also drawn on their own, over a sign held up.
+  for (const mitten of [
+    k.ellipsoid(hand, k.black, 0, -0.02, 0, 0.108, 0.115, 0.087),
+    k.ellipsoid(hand, k.black, -side * 0.076, -0.005, 0.04, 0.04, 0.06, 0.04)
+  ])
+    mitten.layers.enable(MITTENS);
   return { upper, lower, hand };
 }
 

@@ -1,14 +1,14 @@
 /* The invite sign a player holds up in a shared world (sprites.js draws
- * the players; renderer.js the sign): a board in both hands carrying the
- * invite's QR code, and how big it is on screen. */
+ * the players; renderer.js the sign): a board carrying the invite's QR code,
+ * and how big it is on screen. Mica's own 3D mittens are drawn over its
+ * bottom edge after it (rigged-character.js drawHands). */
 
-const TAU = Math.PI * 2;
 export const HANDS = 0.55; // how far up a figure their hands are, of its height
 const SIGN_COLOR = '#3f9bd6'; // the invite's friendly sky blue (style.css #btnInvite)
 const ease = (t) => 1 - (1 - t) ** 3 + Math.sin(t * Math.PI) * 0.15; // up with a little bounce
 
 // The sign you hold up to invite a friend: a board held in both hands in
-// front of you (hands at `hands` px down the screen), `side` px across.
+// front of you (its bottom edge at `hands` px down the screen), `side` px across.
 // Yours carries the real QR code (`face`, a canvas of its modules), big
 // enough for a friend's camera to scan; a friend's shows a small QR-like
 // pattern (`face` a number to vary it). `caption` is written along the
@@ -17,7 +17,8 @@ export function drawSign(ctx, x, hands, u, t, time, face, side = u * 0.62, capti
   const lift = ease(t);
   const rim = Math.max(u * 0.06, side * 0.05);
   const foot = caption ? Math.round(side * 0.13) : 0; // room for the caption
-  const bottom = hands + rim * 0.5 + (1 - lift) * side * 0.3 + Math.sin(time * 3) * u * 0.02;
+  // Steady in both mittens, so it never slides under them.
+  const bottom = hands + (1 - lift) * side * 0.3;
   const left = x - side / 2,
     upper = bottom - rim - foot - side;
   ctx.save();
@@ -32,18 +33,6 @@ export function drawSign(ctx, x, hands, u, t, time, face, side = u * 0.62, capti
     ctx.textBaseline = 'middle';
     ctx.font = `800 ${Math.round(foot * 0.62)}px system-ui, sans-serif`; // i18n-ok: a font
     ctx.fillText(caption, x, upper + side + rim * 0.4 + foot / 2, side);
-  }
-  // Both hands gripping its bottom edge.
-  const hr = Math.max(3, u * 0.08),
-    hx = Math.min(side * 0.3, u * 0.24);
-  ctx.fillStyle = '#f2c9a0';
-  ctx.strokeStyle = 'rgba(40,24,14,0.85)';
-  ctx.lineWidth = Math.max(1.5, u * 0.03);
-  for (const d of [-1, 1]) {
-    ctx.beginPath();
-    ctx.arc(x + d * hx, bottom - rim * 0.2, hr, 0, TAU);
-    ctx.fill();
-    ctx.stroke();
   }
   ctx.fillStyle = '#fff';
   ctx.fillRect(left, upper, side, side);

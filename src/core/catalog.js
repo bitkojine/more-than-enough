@@ -13,7 +13,7 @@
  *          other ground, so nothing shown is decoration you can't pick up; bottom
  *          centre on the tile's centre; it never squashes
  *   cut    what stands there once the tile has been worked out
- *   image  a thing standing on the map (buildings, the wanderer, the boat);
+ *   image  a thing standing on the map (buildings, the boat);
  *          also its picture in the sheet
  *   icon   a square picture for the buttons, counters and lists
  *   stages a building on the map as its output builds up: a list of
@@ -210,10 +210,15 @@ for (const [kind, id] of Object.entries(CULTIVATION_LOOK)) {
   );
 }
 
-add('character', 'wanderer', t('look.character.wanderer'), t('look.character.wanderer.does'), {
-  ...req('image'),
-  ...opt('stand')
-});
+// Mica is drawn by the 3D rig (src/game/render/rigged-character.js), never
+// from the pack; the entry names and describes them for inspection.
+add(
+  'character',
+  'wanderer',
+  t('look.character.wanderer'),
+  t('look.character.wanderer.does'),
+  opt('color')
+);
 add('character', 'light', t('look.character.light'), t('look.character.light.does'), req('color'));
 add(
   'character',

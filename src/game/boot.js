@@ -32,8 +32,8 @@ export function refuseFraming(win = window) {
 // place, so it resolves the same there).
 //
 // The 3D character is a lazy presentation module, shared with the dev
-// viewer. Until it settles Mica isn't drawn (render/sprites.js); if it
-// fails, the pack's 2D wanderer stands in. Clipping is illegal: a local or
+// viewer, and it draws every player. Until it settles nobody is drawn but
+// their shadow (render/sprites.js), and if it fails that stays so. Clipping is illegal: a local or
 // ?clips build throws when Mica's parts cross.
 export async function loadLook(packUrl, page = location) {
   const look = createLook();

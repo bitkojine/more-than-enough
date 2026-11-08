@@ -285,8 +285,8 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
   let sign = null;
   if (view.sign > 0 && view.signFace && you)
     sign =
-      layer('sign', () =>
-        drawSign(
+      layer('sign', () => {
+        const board = drawSign(
           ctx,
           you.handsX,
           you.hands,
@@ -296,8 +296,11 @@ export function render(cam, s, fx, view, look, guard = plain, timings = null) {
           view.signFace,
           signSide(cam),
           view.signCaption
-        )
-      ) ?? null;
+        );
+        // Mica's own mittens grip its bottom edge, in front of it.
+        look.rig?.drawHands(ctx, you, cam.tilePx);
+        return board;
+      }) ?? null;
   layer('joystick', () => drawJoystick(ctx, cam, view));
   return { tiles, sign };
 }

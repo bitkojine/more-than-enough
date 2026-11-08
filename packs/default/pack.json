@@ -412,17 +412,7 @@
     "buildings/observatory.svg"
    ]
   },
-  "character.wanderer": {
-   "image": {
-    "frames": [
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-1.svg",
-     "characters/wanderer.svg",
-     "characters/wanderer-walk-2.svg"
-    ],
-    "fps": 8
-   }
-  },
+
   "character.light": {
    "color": "#cfe6ff"
   },

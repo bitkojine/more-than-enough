@@ -1,6 +1,29 @@
 /* Cached physical work props. Their visibility is driven by earned gear;
  * none of these meshes emits gameplay light or grants carrying capacity. */
 import * as T from '../../vendor/three/three.module.js';
+
+// Where carried light rides on Mica (rig-model.js). The lantern: its ring's
+// angle round the coat and height on the hip, how far its widest part hangs
+// below the ring, its radius, and how far the skirt sways while walking. The
+// flare: where it sits in the left mitten and how it leans out of it, and
+// where it tucks into the belt while that hand is busy.
+export const LANTERN_AT = Object.freeze({
+  side: 2.2,
+  ring: 0.16,
+  drop: 0.22,
+  radius: 0.09,
+  sway: 0.045
+});
+export const FLARE_AT = Object.freeze({
+  size: 0.7,
+  grip: [0, -0.03, 0.02],
+  tilt: [0.8, 0, -1.2],
+  beltSide: -1.55,
+  beltY: 0.05,
+  beltGap: 0.11,
+  beltTilt: [0, 0, 0]
+});
+
 const material = (color) => new T.MeshBasicMaterial({ color, toneMapped: false });
 export function createBasketModel(level) {
   const tier = Math.max(0, Math.min(5, Math.floor(Number(level) || 0)));

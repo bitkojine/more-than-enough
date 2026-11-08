@@ -1,5 +1,44 @@
 # Changelog
 
+## [0.204.0] - 2026-11-08
+
+Every player is 3D Mica, as Watch asked on 2026-11-08 ("totally remove all
+the 2D character stuff. All players should be shown as 3D"). Before, only
+you were drawn by the 3D rig: other players, the company bots and sleepers
+were the old flat 2D wanderer, edge badges showed its face, and the invite
+sign was held by two round peach 2D hands painted over 3D Mica.
+
+- **One rig draws everyone** (`src/game/render/rigged-character.js`): each
+  other player keeps their own facing and a copy of their last picture, so a
+  still one costs a copy (redrawn at most four times a second) and at most
+  three are rendered live in a frame; pictures of players out of view for
+  10 s are let go. Friends pose from what the room already sends (facing,
+  walking, action, basket and pickaxe), so the wire is unchanged.
+- **Coats in player colours** (Watch chose on 2026-11-08 to tell players
+  apart this way): in a shared world each player's coat, hood and sleeves
+  are their player colour a shade darker (`rig-colours.js`), and so is
+  yours; Mica alone (a solo world) keeps the orange coat. Edge-badge faces
+  wear the same colour.
+- **Sleepers** are the rig turned on its side, eyes shut (`asleep`) and
+  mittens folded (`WORK_HANDS.sleep`), on the bedroll in their colour. The
+  flat 2D blanket that covered the old figure's legs is gone: over the 3D
+  body it read as a semicircle cut through it (Watch asked what it was).
+  Dozing (away) leans the whole figure forward.
+- **The invite sign**: Mica raises both arms (`WORK_HANDS.sign`) and, after
+  the board is drawn, a second pass draws only the mittens (render layer
+  `MITTENS`) over its bottom edge. The board no longer bobs, so it never
+  slides under them. Friends' small signs get the same.
+- **Edge badges** show 3D Mica's face, rendered once (`portrait()`).
+- **Retired**: the pack's `character.wanderer` pictures (three SVGs), the
+  2D walk-frame picker (`character-sprite.js`) and the 2D tool-in-hand
+  drawing. Without WebGL, or while the rig loads, a player is only their
+  shadow and name. The catalog keeps the entry so Wiki can still name Mica.
+- **Checked**: `test/unit/rig-sign.test.js` (mittens raised, level and
+  apart; only the mittens on the layer drawn over the sign; eyes shut
+  asleep), the clip sweep covers holding the sign and sleeping, the scale
+  tests measure the rig instead of the old SVG, and screenshots of friends
+  walking, signing, dozing and asleep. Lint budget 220 -> 219.
+
 ## [0.203.0] - 2026-11-08
 
 Heart shelters, camp benches and teleport stops are shared in a crystal

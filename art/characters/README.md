@@ -21,8 +21,9 @@ dark-brown palette, with bold silhouette contours matching trees and rocks.
 No directional light bands, gradients, specular highlights or filmic tone mapping.
 The shared world lighting overlay still applies after compositing. Contours
 share the cloak skeleton; geometry and movement remain unchanged. References:
-`packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
-`packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
+`packs/default/props/oak.svg`, `packs/default/props/birch.svg` and the
+original ivory-mask turnaround (the 2D wanderer pictures were retired in
+0.204.0: every player is the 3D rig).
 
 The model is authored as procedural geometry, not a finished imported production
 asset. Three.js r180 is vendored unchanged with its MIT license. One reused
@@ -55,7 +56,7 @@ command reviews held tiers, eight facing directions and swing key poses.
 Review native game scale and icon sizes, the hand grip, face clearance and
 stowed tools; numerical attachment checks do not establish visual quality.
 
-## Facing and the 2D fallback
+## Facing, and drawing everyone
 
 Walk facing comes from actual movement. Actions face the actual resource or
 structure target. Stopping preserves facing. A zero-length target vector keeps
@@ -65,9 +66,13 @@ timing, position or visibility.
 The painted sprite workflow that came before the rig (frame-by-frame poses,
 eight-direction walk sheets and their packers) was retired in v0.145.0; it is
 in git history before that release. `turnaround-v2.png` stays as the look
-reference. While the rig loads Mica is not drawn; without WebGL, with a
-player's own pack, and for friends, the pack's 2D `character.wanderer` stands
-in.
+reference. Every player is drawn by the rig (0.204.0), in a coat of their player
+colour in a shared world (`rig-colours.js`): you, other players
+and bots, sleepers (the rig turned on its side, eyes shut) and the faces in
+edge badges. One rig draws them all: each other player keeps their facing
+and a copy of their last picture, so a still one costs a copy and at most
+three are rendered live a frame. While the rig loads, or without WebGL, a
+player is only their shadow (and name); there is no 2D figure any more.
 
 ## Mica identity pass
 

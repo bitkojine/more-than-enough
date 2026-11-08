@@ -472,8 +472,9 @@ dark-brown palette, with bold silhouette contours matching trees and rocks.
 No directional light bands, gradients, specular highlights or filmic tone mapping.
 The shared world lighting overlay still applies after compositing. Contours
 share the cloak skeleton; geometry and movement remain unchanged. References:
-`packs/default/props/oak.svg`, `packs/default/props/birch.svg`,
-`packs/default/characters/wanderer.svg` and the original ivory-mask turnaround.
+`packs/default/props/oak.svg`, `packs/default/props/birch.svg` and the
+original ivory-mask turnaround (the 2D wanderer pictures were retired in
+0.204.0: every player is the 3D rig).
 
 The first integrated version is an empty-handed rig: twenty-one bones, a skinned
 cloak, rounded hood and mask, jointed arms, and two-bone leg IK with alternating
