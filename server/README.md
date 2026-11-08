@@ -118,7 +118,10 @@ shared with the game.
    carried light of level `lv` at that tile shone on this player for `s`
    seconds (at most 30); the game takes it as its own light (`litBy`) and
    writes down act `l` with `n`. It is looked at with each of the player's
-   acts and saves, and sent once 2 s have gathered. A player who isn't there, or whose game can't,
+   acts and saves, and sent once 2 s have gathered. Act `j` (0.203.0) is a
+   teleport from the machine on (fx, fy) to someone else's shelter on
+   (tx, ty, tz); the room's copy does it with that player's view of
+   everyone's buildings. A player who isn't there, or whose game can't,
    has their part done in the room's copy at once. Jobs waiting on a game
    are kept in memory only. A
    game says it can play one with `"crystal": true` in its hello; one that

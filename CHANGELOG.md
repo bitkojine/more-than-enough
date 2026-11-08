@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.203.0] - 2026-11-08
+
+Heart shelters, camp benches and teleport stops are shared in a crystal
+shared world, as Watch answered for the bot plan ("your shelters protect
+anyone's heart", "teleport to any shelter, once your machine is awake").
+Before, you could see someone else's shelter or bench but do nothing with
+it, and only your own shelters were stops.
+
+- **Your heart in someone else's shelter** (`src/core/cultivation-commands.js`):
+  Rest the heart there and it is kept as `{where: 'theirs', x, y, z}`. It
+  mends or cracks by that spot's temperature in your own world
+  (`stepHeart`), since the shelter itself lives in its owner's progress.
+  You lift it from that tile even if the owner has since moved the
+  shelter; a card there says it was left behind. Saves keep it
+  (`cultivation-save.js`), and AUTO goes back for it.
+- **Anyone's carrier bench** lines your carrier, paid from what you carry.
+- **Anyone's shelter is a stop** (`src/core/cultivation-travel.js`): once
+  your machine is awake, `teleportStops` lists everyone's shelters. From
+  theirs you go to your machine; from your machine you pick theirs on the
+  world map. A teleport to someone else's stop is its own act, `j` (from
+  the machine's tile to the stop's tile), since it has no id of yours.
+- **Wire**: act `j` is new. The room goes live first and knows it; a game
+  from before never sends it.
+- **Checked**: `test/unit/crystal-shelters.test.js` plays two players in a
+  crystal room. One rests a heart in the other's shelter, it mends, they
+  lift it, and the room's copy agrees (0 off, 0 refused). The save holds
+  it and AUTO fetches it. A friend's bench lines a carrier. A friend's
+  shelter is a stop both ways with the room agreeing, and a tile that
+  isn't a stop is refused.
+
 ## [0.202.0] - 2026-11-08
 
 Anyone's carried light hurts anyone's crystal in a crystal shared world, as

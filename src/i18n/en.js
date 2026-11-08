@@ -218,6 +218,8 @@ export default {
   'cr.heart.resting': 'Resting in a shelter · {n}% sound',
   'cr.heart.installed': 'Home in the machine',
   'cr.heart.take': 'Take the heart',
+  'cr.heart.left': 'Your heart',
+  'cr.heart.left.desc': 'Left where someone’s shelter stood, waiting for you to take it.',
   'cr.heart.rest': 'Rest the heart here',
   'cr.crystal.lost': 'Your crystal crumbled to dust.',
   'cr.heart.lost': 'The heart cracked right through. Its light fled back to the hiding place.',

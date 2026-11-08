@@ -21,7 +21,9 @@
  * and when someone else's crystal is shared (0.200.0, cultivation-share.js):
  *   ['t', …, n]            did job number `n` someone asked of their building
  *   ['g', …, n]            took in what came of their ask number `n`
- *   ['l', …, n]            someone else's light number `n` shone on them (0.202.0) */
+ *   ['l', …, n]            someone else's light number `n` shone on them (0.202.0)
+ *   ['j', …, fx, fy, tx, ty, tz] teleported from the machine on (fx, fy) to
+ *                          someone else's shelter on (tx, ty, tz) (0.203.0) */
 
 export const ACT_KINDS = Object.freeze([
   'h',
@@ -36,7 +38,8 @@ export const ACT_KINDS = Object.freeze([
   'f',
   't',
   'g',
-  'l'
+  'l',
+  'j'
 ]);
 const MAX_WAITING = 6000; // acts kept while they wait to be sent (minutes of walking)
 const WHERE_STEP = 0.5; // tiles walked between two 'w' acts

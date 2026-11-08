@@ -263,6 +263,8 @@ class Brain {
       if (shelter && shelter.z === this.z) return this.command({ type: 'heart' }, shelter);
       if (shelter && this.z < shelter.z) return this.climb();
     }
+    // Or in someone else's, in a shared world, where it was left.
+    if (c.heart?.where === 'theirs') return this.command({ type: 'heart' }, c.heart);
     const top = this.topUp();
     if (top) return top;
     if (this.z < SURFACE) return this.climb();

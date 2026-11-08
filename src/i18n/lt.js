@@ -221,6 +221,8 @@ export default {
   'cr.heart.resting': 'Ilsisi pastogėje · sveika {n}%',
   'cr.heart.installed': 'Namie, mašinoje',
   'cr.heart.take': 'Paimti širdį',
+  'cr.heart.left': 'Tavo širdis',
+  'cr.heart.left.desc': 'Palikta ten, kur stovėjo kažkieno pastogė. Laukia, kol ją paimsi.',
   'cr.heart.rest': 'Padėti širdį čia',
   'cr.crystal.lost': 'Tavo kristalai subyrėjo į dulkes.',
   'cr.heart.lost': 'Širdis perskilo kiaurai. Jos šviesa grįžo į slėptuvę.',

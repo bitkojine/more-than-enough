@@ -61,7 +61,9 @@ export function createTeleportMap({ cam, state, mapView, cultivate, hud }) {
         }
       }
       if (!best) return false;
-      const result = cultivate({ type: 'teleport', x: m.x, y: m.y, to: best.id });
+      // Yours by id; someone else's by where it stands (0.203.0).
+      const to = best.by ? { at: { x: best.x, y: best.y, z: best.z } } : { to: best.id };
+      const result = cultivate({ type: 'teleport', x: m.x, y: m.y, ...to });
       if (result !== 'teleported') return false;
       mapView.leave();
       return true;

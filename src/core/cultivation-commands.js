@@ -60,9 +60,20 @@ export function cultivationCommand(s, cmd) {
   if (!s.cultivation) return 'invalid';
   const x = cmd.x ?? Math.floor(s.player.x),
     y = cmd.y ?? Math.floor(s.player.y);
+  // To someone else's stop, written as its own act (acts.js 'j', 0.203.0).
+  const at = cmd.type === 'teleport' && cmd.at;
+  if (at) return noteIf(s, done, () => command(s, cmd, x, y), 'j', x, y, at.x, at.y, at.z);
   const arg = typeof cmd.kind === 'string' ? cmd.kind : Number.isInteger(cmd.to) ? cmd.to : 0;
   return noteIf(s, done, () => command(s, cmd, x, y), 'k', cmd.type, x, y, arg);
 }
+
+// The teleport written down as act `a` (['j', ms, x, y, z, fx, fy, tx, ty, tz]), back.
+export const teleportOfAct = (a) => ({
+  type: 'teleport',
+  x: a[5],
+  y: a[6],
+  at: { x: a[7], y: a[8], z: a[9] }
+});
 
 // The command written down as act `a` (['k', ms, x, y, z, type, tx, ty, arg]), back.
 export function commandOfAct(a) {
@@ -83,7 +94,11 @@ function command(s, cmd, x, y) {
   if (!b) {
     // Someone else's, in a crystal room: asked of their game.
     const theirs = s.shared && theirsAt(s, x, y, z);
-    return theirs ? askShared(s, cmd.type, theirs) : 'building';
+    if (!theirs) return 'building';
+    // Anyone's camp bench lines your carrier, as yours does (0.203.0).
+    if (cmd.type === 'line' && theirs.kind === 'bench')
+      return contentLocked(s, 'bench') ? 'locked' : AT_BUILDING.line.run(at);
+    return askShared(s, cmd.type, theirs);
   }
   if (contentLocked(s, b.kind)) return 'locked';
   const job = Object.hasOwn(AT_BUILDING, cmd.type) && AT_BUILDING[cmd.type];
@@ -119,7 +134,11 @@ const FREE = {
     return 'ok';
   },
   starter: ({ s, x, y }) => takeStarter(s, x, y),
-  teleport: ({ s, b, cmd }) => (b ? teleportFrom(s, b, cmd.to) : 'site'),
+  teleport({ s, b, cmd, x, y, z }) {
+    // From someone else's shelter too, in a shared world (0.203.0).
+    const from = b || (s.shared && theirsAt(s, x, y, z));
+    return from ? teleportFrom(s, from, cmd.at || cmd.to) : 'site';
+  },
   heart: ({ s, x, y, z }) => moveHeart(s, x, y, z),
   lantern({ s, c }) {
     if (!c.gear.lantern) return 'equipment';
@@ -282,6 +301,7 @@ function moveHeart(s, x, y, z) {
     h.where = 'carried';
     return 'lifted';
   }
+  if (!b && s.shared) return theirsHeart(s, h, { x, y, z });
   if (b?.kind !== 'shelter') return 'site';
   if (h.where === b.id) {
     h.where = 'carried';
@@ -290,5 +310,20 @@ function moveHeart(s, x, y, z) {
   if (contentLocked(s, 'shelter')) return 'locked';
   if (h.where !== 'carried') return 'gone';
   h.where = b.id;
+  return 'ok';
+}
+// The heart and someone else's shelter on tile `at` ({x, y, z}, 0.203.0,
+// Watch: "anyone's heart"): rested there, or lifted where it was left, even
+// if the shelter has since moved on.
+function theirsHeart(s, h, at) {
+  if (h.where === 'theirs' && h.x === at.x && h.y === at.y && h.z === at.z) {
+    for (const k of ['x', 'y', 'z']) delete h[k];
+    h.where = 'carried';
+    return 'lifted';
+  }
+  if (theirsAt(s, at.x, at.y, at.z)?.kind !== 'shelter') return 'site';
+  if (contentLocked(s, 'shelter')) return 'locked';
+  if (h.where !== 'carried') return 'gone';
+  Object.assign(h, { where: 'theirs' }, at);
   return 'ok';
 }

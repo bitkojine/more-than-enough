@@ -10,7 +10,12 @@ import { buy, UPGRADES } from './upgrades.js';
 import { EXTRACTORS, PROPS } from './content.js';
 import { step, revealAround } from './sim.js';
 import { advanceGoals } from './goals.js';
-import { cultivationCommand, commandOfAct, COMMAND_DONE } from './cultivation-commands.js';
+import {
+  cultivationCommand,
+  commandOfAct,
+  teleportOfAct,
+  COMMAND_DONE
+} from './cultivation-commands.js';
 import { moveFacility, litBy } from './cultivation.js';
 import { useFlare } from './flare.js';
 import { doShared, gotShared } from './cultivation-share.js';
@@ -55,6 +60,7 @@ const DO = {
     return !!b && ['ok', 'asked'].includes(moveFacility(s, b, a[7], a[8]));
   },
   f: (s) => ['lit', 'out'].includes(useFlare(s)),
+  j: (s, a) => cultivationCommand(s, teleportOfAct(a)) === 'teleported',
   // Someone else's crystal shared (0.200.0): the job as the room put it
   // down for this copy (s.toTake), what came of it (s.toGet).
   t(s, a) {

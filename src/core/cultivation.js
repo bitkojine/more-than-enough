@@ -407,6 +407,10 @@ function stepHeart(s, damage, seconds) {
     // mends the heart; over CRACK_ABOVE (beside a working mine, say) it cracks it.
     const hot = heatDamage(index(s).ids.get(h.where)?.temperature ?? 0);
     h.health = Math.min(100, h.health + (hot ? -hot : HEART_MEND) * seconds);
+  } else if (h?.where === 'theirs' && !contentLocked(s, 'shelter')) {
+    // In someone else's shelter (0.203.0): its spot as your own world has it.
+    const hot = heatDamage(cultivationTarget(s, { kind: 'shelter', x: h.x, y: h.y, z: h.z }));
+    h.health = Math.min(100, h.health + (hot ? -hot : HEART_MEND) * seconds);
   } else return;
   // A heart that cracks right through falls apart and its light returns to the hiding place.
   if (h.health <= 0) {

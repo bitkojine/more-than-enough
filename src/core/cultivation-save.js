@@ -3,6 +3,7 @@
  * from the old rounding bug. save.js calls these; nothing here runs in play. */
 
 import { newHeart, HEART_WARM_MAX } from './cultivation-heart.js';
+import { SURFACE, Z_MIN } from './coords.js';
 import {
   CULTIVATION_MODEL,
   MACHINE_REPAIRS,
@@ -140,11 +141,19 @@ const validRoute = (b, ids) =>
   ids.get(b.from)?.kind === 'chamber' && ids.get(b.to)?.kind === 'vault';
 // Stryker disable next-line ConditionalExpression: only a machine may have sections (validSections), and without them nothing reaches MACHINE_REPAIRS.length
 const isRepaired = (b) => b.kind === 'machine' && machineSections(b) === MACHINE_REPAIRS.length;
+// Resting in someone else's shelter (0.203.0): where, a tile of the deep or the surface.
+const restsAway = (h) =>
+  h.where === 'theirs' &&
+  [h.x, h.y, h.z].every(Number.isSafeInteger) &&
+  h.z <= SURFACE &&
+  h.z >= Z_MIN;
 // The heart is at the hiding place, carried, installed, or resting in a shelter.
 const validHeart = (h, ids) =>
   !!h &&
   number(h.health, 0, 100) &&
-  (['station', 'carried', 'installed'].includes(h.where) || ids.get(h.where)?.kind === 'shelter');
+  (['station', 'carried', 'installed'].includes(h.where) ||
+    ids.get(h.where)?.kind === 'shelter' ||
+    restsAway(h));
 /* A saved cultivation mended so it loads: a number out of range goes back
  * inside it, a part that can't be placed (no position, an unknown kind, a
  * second one on the same cell, a conduit to nothing) is dropped, and the rest
@@ -235,7 +244,8 @@ export function mendCultivation(c) {
       placed =
         obj(h) &&
         (['station', 'carried', 'installed'].includes(h.where) ||
-          ids.get(h.where)?.kind === 'shelter');
+          ids.get(h.where)?.kind === 'shelter' ||
+          restsAway(h));
     // A heart with nowhere it can be is where the machine says: in it, or still at the hiding place.
     c.heart = placed
       ? ((h.health = into(h.health, 0, 100, 100)), h)

@@ -392,8 +392,8 @@ function drawStops(ctx, s, at, z, now) {
     ready = !!m && Core.atInteraction(s, m.x, m.y, m.z);
   ctx.save();
   ctx.lineWidth = 2;
-  for (const b of c.facilities) {
-    if (b.kind !== 'shelter' || b.z !== z) continue;
+  for (const b of Core.teleportStops(s)) {
+    if (b.z !== z) continue;
     const p = at(b.x + 0.5, b.y + 0.5);
     ctx.fillStyle = '#6fcfbf';
     ctx.strokeStyle = LABEL_EDGE;

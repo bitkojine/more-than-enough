@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.203.0':
+    'In the shared crystal world every heart shelter is yours too: rest your heart in anyone’s shelter to mend it, and line your carrier at anyone’s carrier bench. Once your machine is awake, every player’s heart shelter is a teleport stop for you on the world map.',
   'news.0.202.0':
     'In the shared crystal world another player’s lit lantern or flare now hurts the crystal and heart you carry, and wild crystal nearby, just as your own light does. Keep away from them in the deep, or keep what you carry in a carrier.',
   'news.0.201.0':

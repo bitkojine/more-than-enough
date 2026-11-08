@@ -21,8 +21,10 @@ export function cultivationRows(s, z) {
   return rows;
 }
 // Which look a crystal building wears (Core.lookOf); someone else's as the
-// room said.
-const facilityPhase = (s, b) => (b.by ? b.look : Core.lookOf(s, b));
+// room said, but a shelter your own heart rests in is lit for you (0.203.0).
+const restsHere = (h, b) => h?.where === 'theirs' && h.x === b.x && h.y === b.y && h.z === b.z;
+const facilityPhase = (s, b) =>
+  b.by ? (restsHere(s.cultivation?.heart, b) ? 1 : b.look) : Core.lookOf(s, b);
 // Draws a crystal building; returns where a clock over it goes, or nothing
 // when it is off screen.
 export function drawCultivation(ctx, cam, s, look, b) {

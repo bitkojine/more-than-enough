@@ -248,7 +248,10 @@ const CRYSTAL_ACTS = {
   // Someone else's crystal shared (0.200.0): a job done, what came of an ask.
   t: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0,
   g: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0,
-  l: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0
+  l: (a) => a.length === 6 && isInt(a[5]) && a[5] >= 0,
+  // A teleport to someone else's shelter (0.203.0): from (fx, fy), to (tx, ty, tz).
+  j: (a, tile) =>
+    a.length === 10 && tile(a[5]) && tile(a[6]) && tile(a[7]) && tile(a[8]) && inZ(a[9])
 };
 function cleanCrystalAct(a, head, tile) {
   const ok = Object.hasOwn(CRYSTAL_ACTS, a[0]) && CRYSTAL_ACTS[a[0]](a, tile);

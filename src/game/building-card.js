@@ -66,6 +66,7 @@ export function cardAt(s, x, y) {
   const b = Core.cultivationAt(s, x, y, z);
   if (b) return facilityCard({ ...at, b });
   const theirs = Core.theirsAt(s, x, y, z);
+  if (restsAt(c.heart, x, y, z) && theirs?.kind !== 'shelter') return leftHeartCard(at);
   if (theirs) return theirsCard({ ...at, b: theirs });
   if (Core.heartAt(s, x, y)) return stationCard(at);
   const key = Core.packKey(x, y, z);
@@ -206,6 +207,7 @@ function theirsCard(at) {
     jobs.map((j) => act(j, x, y, name(j), Core.CULTIVATION_RECIPES[j] || null))
   );
   if (can('move')) actions.push(move(at));
+  actions.push(...sharedCamp(at));
   return {
     look: Core.CULTIVATION_LOOK[b.kind],
     name: name(b.kind),
@@ -213,6 +215,31 @@ function theirsCard(at) {
     actions,
     building: b,
     kind: b.kind
+  };
+}
+
+// Someone else's heart shelter or bench, as good as yours (0.203.0): your
+// heart rests in it, it is a stop once your machine wakes, a bench lines
+// your carrier.
+const restsAt = (h, x, y, z) => h?.where === 'theirs' && h.x === x && h.y === y && h.z === z;
+function sharedCamp({ c, b, h, x, y, z }) {
+  if (b.kind === 'bench')
+    return c.gear.lining ? [] : [act('line', x, y, name('line'), Core.CULTIVATION_RECIPES.lining)];
+  if (b.kind !== 'shelter') return [];
+  const what = restsAt(h, x, y, z) ? 'heart.take' : h?.where === 'carried' ? 'heart.rest' : '';
+  return [
+    ...(what ? [act('heart', x, y, name(what))] : []),
+    ...(c.completed ? [act('teleport', x, y, name('teleport.home'))] : [])
+  ];
+}
+
+// Your heart, left where someone else's shelter stood before it was moved.
+function leftHeartCard({ x, y }) {
+  return {
+    look: Core.CULTIVATION_LOOK.station,
+    name: name('heart.left'),
+    lines: [name('heart.left.desc')],
+    actions: [act('heart', x, y, name('heart.take'))]
   };
 }
 

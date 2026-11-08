@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.203.0':
+    'Bendrame kristalų pasaulyje kiekviena širdies pastogė yra ir tavo: palik širdį bet kieno pastogėje, kad ji gytų, ir išklok dėklą prie bet kieno dėklo suolo. Pabudus tavo mašinai, kiekvieno žaidėjo širdies pastogė pasaulio žemėlapyje tampa tavo teleportacijos stotele.',
   'news.0.202.0':
     'Bendrame kristalų pasaulyje kito žaidėjo uždegtas žibintas ar žiežirba dabar kenkia tavo nešamiems kristalams ir širdžiai bei laukiniams kristalams netoliese, kaip ir tavo paties šviesa. Gelmėse laikykis nuo jų atokiau arba nešk viską nešyklėje.',
   'news.0.201.0':
