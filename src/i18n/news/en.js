@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.209.0':
+    'Getting closer to company: when you come into the shared crystal world, it can now call its three bots to play beside you. They go to sleep a couple of minutes after you leave, so the world never moves on without you.',
   'news.0.208.0':
     'In the shared crystal world, when someone else takes a tile just before you do, your game now shows what you really have straight away, instead of the wrong amount until you {phone:open the game again|laptop:reload}.',
   'news.0.207.0':

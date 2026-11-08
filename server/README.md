@@ -288,6 +288,8 @@ enter a shared world, and in Settings.
 | `cheat` | a step too far or an edit out of reach | `why` (`speed`, `reach`), `n` (cheats counted now), `from`, `to` or `at` |
 | `away` | a player's first progress after coming back, when their buildings made something while they were away (stage 3: up to 8 hours, worked out by the room) | `secs` away |
 | `drift` | the progress a player's game sent differs from the room's own copy, worked out from what they did; the room kept its own and set the game straight (at most once a minute; security trail) | `res` ([resource, game's, room's]), `levels` ([what, game's, room's]) |
+| `bot` | the moderator marks a character as one of the company bots, or takes the mark off (0.206.0) | `bot` |
+| `bots` | a person came into a crystal world with no bot awake, and the room asked GitHub to start the company bots (0.209.0, at most every 10 minutes) | `ok` (GitHub took it) |
 | `cut` | a connection was closed for breaking the limits | `why` |
 | `ban` | only in logs from before v0.155.0: a player was deleted from the world | `by` (`auto`, `mod`), `why` |
 | `freeze`, `thaw` | a character is frozen (by the anti-cheat or the moderator), or thawed | `by` (`auto`, `mod`), `why` |
@@ -329,7 +331,12 @@ The moderator's routes (`Authorization: Bearer <token>`):
   `POST /admin/rooms/<id>/bots` with `{"id", "bot": true}` marks a character as one
   of the room's company bots (0.206.0; `false` takes the mark off): its `status`
   and welcome entry carry `"bot": true`, so every game tags it, and nobody can
-  claim the tag themselves.
+  claim the tag themselves. The room calls the bots itself: when a person
+  comes into a crystal world and none of its bots is awake, it starts
+  `.github/workflows/bots.yml` for that world (`server/src/bots.js`, at most
+  every 10 minutes), if the Worker has the `BOTS_GITHUB_TOKEN` secret (from
+  the repository secret of that name, a token with Actions: read and write on
+  this repository only; `BOTS_REPO` names a fork's own).
 - `POST /admin/rooms/<id>/invite` with `{"uses", "life"}` (both optional,
   as a sign offers them; 3 people for a week otherwise): an invite link made
   by the moderator, answered `{code, until}`. The link is

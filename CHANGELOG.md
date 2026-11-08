@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.209.0] - 2026-11-08
+
+A crystal world calls its company bots itself (bot plan phase 3): until
+now the bots' workflow could only be started by hand, and the plan has
+them come when a person does.
+
+- **The call** (`server/src/bots.js`): when a person (not a bot) is let into
+  a crystal world and none of its bots is awake, the room asks GitHub to run
+  `.github/workflows/bots.yml` for that world, at most once in ten minutes
+  (the bots take about a minute to come in). It is logged as `bots` with
+  whether GitHub took it. The bots then stay while a person is awake there
+  and leave asleep two minutes after the last one, as before.
+- **Off until the token is there**: the Worker needs the `BOTS_GITHUB_TOKEN`
+  secret, which `rooms.yml` copies from the repository secret of that name
+  (a token with Actions: read and write on this repository only).
+  `BOTS_REPO` names a fork's own repository.
+- **Checked**: `test/unit/bots-call.test.js` covers when a world calls (a
+  person, no bot awake, not lately, not an old world or a copy), what it
+  sends GitHub, and the worker calling once for a person and again only
+  after ten minutes, never without the token.
+
 ## [0.208.0] - 2026-11-08
 
 The first live run of the company bots found that in a crystal world a game

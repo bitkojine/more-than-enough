@@ -2,8 +2,9 @@
 # bots play in one shared crystal world for as long as a person is awake
 # there, and leave, asleep, two minutes after the last one goes. Each bot is
 # the game itself in Node (Watch chose that over a browser, 2026-11-08).
-# Started by hand for now (Actions → Company bots → Run); the room starting
-# it when a person comes in is the next step.
+# A crystal world starts it when a person comes in and none of its bots is
+# awake (server/src/bots.js, with the BOTS_GITHUB_TOKEN secret); it can also
+# be run by hand (Actions → Company bots → Run).
 
 name: Company bots
 

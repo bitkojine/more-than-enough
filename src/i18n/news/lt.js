@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.209.0':
+    'Kompanija vis arčiau: kai ateini į bendrą kristalų pasaulį, jis dabar gali pakviesti savo tris botus žaisti šalia tavęs. Jie užmiega praėjus porai minučių po to, kai išeini, tad pasaulis niekada nenueina toliau be tavęs.',
   'news.0.208.0':
     'Bendrame kristalų pasaulyje, kai kas nors kitas akimirką anksčiau už tave pasiima langelį, tavo žaidimas dabar iškart parodo, ką iš tikrųjų turi, užuot rodęs neteisingą kiekį, kol {phone:vėl atidarysi žaidimą|laptop:perkrausi puslapį}.',
   'news.0.207.0':

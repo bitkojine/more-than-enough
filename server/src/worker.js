@@ -13,6 +13,7 @@
  * Watch's to make (the admin token), and everything else is refused. The
  * rules of a room are in room.js; the wire format is src/net/protocol.js. */
 
+import { botsWanted, callBots } from './bots.js';
 import { DurableObject } from 'cloudflare:workers';
 import { Room, Bucket, NEAR } from './room.js';
 import {
@@ -464,6 +465,15 @@ export class Rooms extends DurableObject {
     this.send(this.room.statusOf(r.id), r.id);
     this.sendTo(r.to);
     await this.schedule();
+    this.callBots(r.id, now);
+  }
+
+  // A person in a crystal world with no bot awake: the company bots come (bots.js).
+  callBots(id, now) {
+    if (!this.env.BOTS_GITHUB_TOKEN || !botsWanted(this.room, id, now, this.botsAt || 0)) return;
+    this.botsAt = now;
+    const call = callBots(this.env, this.room.id);
+    this.ctx.waitUntil(call.then((ok) => this.room.audit(now, null, 'bots', { ok })));
   }
 
   async webSocketClose(ws, code, reason) {

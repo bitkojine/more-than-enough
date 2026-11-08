@@ -161,6 +161,8 @@ export function makeCtx(storage, sockets = new Set()) {
       ctx.sockets.add(ws);
     },
     setWebSocketAutoResponse: () => {},
+    waiting: [], // what was handed to waitUntil
+    waitUntil: (p) => ctx.waiting.push(p),
     blockConcurrencyWhile: (fn) => (ctx.ready = fn())
   };
   return ctx;

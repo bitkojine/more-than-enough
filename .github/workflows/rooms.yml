@@ -54,6 +54,16 @@ jobs:
         run: |
           if [ -n "$ROOMS_ADMIN_TOKEN" ]; then printf '%s' "$ROOMS_ADMIN_TOKEN" | npx wrangler secret put ADMIN_TOKEN; else echo "No ROOMS_ADMIN_TOKEN: the moderator routes stay off."; fi
 
+      - name: The bots' GitHub token (the BOTS_GITHUB_TOKEN secret, if set)
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          BOTS_GITHUB_TOKEN: ${{ secrets.BOTS_GITHUB_TOKEN }}
+        # Lets a crystal world start the company bots (server/src/bots.js).
+        run: |
+          if [ -n "$BOTS_GITHUB_TOKEN" ]; then printf '%s' "$BOTS_GITHUB_TOKEN" | npx wrangler secret put BOTS_GITHUB_TOKEN; else echo "No BOTS_GITHUB_TOKEN: worlds don't call the company bots."; fi
+
       - name: Smoke test the live service
         env:
           ROOMS_ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
