@@ -23,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  actions: write # to start the next run when this one's time is up
 
 # One run of bots per world at a time; a second waits for the first.
 concurrency:
@@ -47,6 +48,7 @@ jobs:
           ROOM: ${{ inputs.room }}
           MINUTES: ${{ inputs.minutes }}
           ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         # The world's id stays out of the public log.
         run: |
           echo "::add-mask::$ROOM"

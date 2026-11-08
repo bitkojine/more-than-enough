@@ -95,6 +95,30 @@ const peopleIn = () =>
     b.session.friends.rows({ x: 0, y: 0 }).some((r) => !r.you && !r.bot && r.st !== 'offline')
   );
 
+// GitHub stops a run after six hours: one that is still wanted when its
+// time is up starts the next, which waits for this one to end (bots.yml's
+// concurrency) and comes back as the same three bots.
+async function startNext() {
+  const repo = env.GITHUB_REPOSITORY,
+    token = env.GITHUB_TOKEN;
+  if (!repo || !token) return console.log('time is up, and no token to start the next run');
+  const res = await fetch(
+    `https://api.github.com/repos/${repo}/actions/workflows/bots.yml/dispatches`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        Accept: 'application/vnd.github+json',
+        'User-Agent': 'mica-and-wiki-bots'
+      },
+      body: JSON.stringify({ ref: 'main', inputs: { room: ROOM, minutes: String(MINUTES) } })
+    }
+  ).catch(() => null);
+  console.log(
+    'time is up: the next run ' + (res?.status === 204 ? 'is on its way' : 'did not start')
+  );
+}
+
 const end = seconds() + MINUTES * 60;
 let last = seconds(),
   alone = 0,
@@ -123,6 +147,8 @@ while (seconds() < end) {
     }
   }
 }
+// Only with a person awake there now: no run starts the next for nobody.
+if (peopleIn()) await startNext();
 for (const b of bots) b.leave();
 await sleep(2000);
 
