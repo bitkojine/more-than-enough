@@ -57,6 +57,9 @@ const keyOf = (n) =>
     .update('mte company bot|' + ROOM + '|' + TOKEN + '|' + n)
     .digest('hex');
 
+// One at a time: the room hands out the same unused link again until it is
+// used (server/src/invites.js linkFor), so each bot is in, or turned away,
+// before the next one asks for a link.
 const bots = [];
 for (let n = 1; n <= COUNT; n++) {
   const { code } = await admin('/invite', { uses: 1, life: 30 });
@@ -72,10 +75,10 @@ for (let n = 1; n <= COUNT; n++) {
   });
   bot.connect();
   bots.push(bot);
+  for (let t = 0; t < 30 && !bot.inWorld && bot.closed?.code !== 1008; t++) await sleep(1000);
 }
 
-// Waits until every bot is in (or a minute has gone), then marks them.
-for (let t = 0; t < 60 && !bots.every((b) => b.inWorld); t++) await sleep(1000);
+// Marks the bots that got in.
 const ids = bots.map((b) => b.session.friends.me).filter(Boolean);
 if (!ids.length) {
   console.error('FAIL: no bot got into the world');
@@ -110,6 +113,7 @@ while (seconds() < end) {
     for (const [i, b] of bots.entries()) {
       const s = b.game.state,
         p = s.player;
+      if (!p) continue; // never got in
       console.log(
         `bot ${i + 1}: (${Math.round(p.x)}, ${Math.round(p.y)}, layer ${-p.z}) ` +
           `${b.inWorld ? 'in' : 'out'}, played ${Math.round((s.stats?.playedMs || 0) / 60000)} min`
