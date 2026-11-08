@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.211.0':
+    'Each company bot has a character now: an explorer, a builder and a helper. Now and then, when you’re near, one comes over to keep you company for a while before going back to its own machine.',
   'news.0.210.0':
     'The company bots talk: when one of them is near you, its news shows in your messages, like “My machine is awake!”, and it says hi when you come by.',
   'news.0.209.0':

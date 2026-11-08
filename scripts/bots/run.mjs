@@ -5,7 +5,7 @@
  *
  *   ROOM=<room id> ADMIN_TOKEN=<moderator token> node scripts/bots/run.mjs
  *   (optional: BOTS=3, MINUTES=340, LINGER=120, ROOMS=https://rooms.robertasrudys.com,
- *    GAME=https://play.robertasrudys.com)
+ *    GAME=https://play.robertasrudys.com, CF_ACCOUNT and CF_AI_TOKEN for Workers AI)
  *
  * Each bot is always the same character in that world: its key comes from
  * the room and the moderator token, so nobody else holds it and a new run
@@ -22,6 +22,7 @@ import { performance } from 'node:perf_hooks';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { ROOM_ID_RE } from '../../src/net/protocol.js';
 import { createBot } from './bot.mjs';
+import { createMind, workersAI, PERSONAS, MAX_AI_CALLS } from './mind.mjs';
 
 const env = process.env;
 const ROOMS = env.ROOMS || 'https://rooms.robertasrudys.com';
@@ -58,6 +59,12 @@ const keyOf = (n) =>
     .update('mte company bot|' + ROOM + '|' + TOKEN + '|' + n)
     .digest('hex');
 
+// Workers AI picks each bot's goals when the run has a token for it
+// (CF_ACCOUNT, CF_AI_TOKEN); without one, each bot's character does.
+const ask = workersAI({ account: env.CF_ACCOUNT, token: env.CF_AI_TOKEN });
+const budget = { left: MAX_AI_CALLS };
+console.log(ask ? 'Workers AI picks their goals' : 'no Workers AI token: their characters pick');
+
 // One at a time: the room hands out the same unused link again until it is
 // used (server/src/invites.js linkFor), so each bot is in, or turned away,
 // before the next one asks for a link.
@@ -73,7 +80,8 @@ for (let n = 1; n <= COUNT; n++) {
     seconds,
     timers,
     log: (line) => console.log('bot ' + n + ': ' + line),
-    wait: (n - 1) * STAGGER
+    wait: (n - 1) * STAGGER,
+    mind: createMind({ persona: PERSONAS[(n - 1) % PERSONAS.length], ask, budget })
   });
   bot.connect();
   bots.push(bot);
@@ -168,5 +176,6 @@ if (bad) {
   console.error('FAIL: the room froze, or kept finding off, ' + bad + ' bot(s)');
   process.exit(1);
 }
+console.log('Workers AI calls: ' + (MAX_AI_CALLS - budget.left));
 console.log('done');
 process.exit(0);

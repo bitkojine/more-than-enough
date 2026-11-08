@@ -16,6 +16,7 @@ import { arrivalState } from '../../src/game/arrival.js';
 import { socketUrl } from '../../src/game/room-link.js';
 import { TICK_HZ } from '../../src/engine/clock.js';
 import { createLines } from './lines.mjs';
+import { createCompany } from './company.mjs';
 
 // An actor that keeps nothing: a bot draws nobody.
 const actor = () => ({ heard() {}, view: () => ({ kind: null }) });
@@ -30,7 +31,8 @@ export function createBot({
   seconds,
   timers,
   log = quiet,
-  wait = 0
+  wait = 0,
+  mind = null
 }) {
   const kept = new Map(); // what the game would keep in the page's storage
   let auto = null; // AUTO, on the world the bot is in
@@ -51,6 +53,7 @@ export function createBot({
       auto = createAutoplaySession(0, quiet, { state });
       auto.press(); // AUTO held down, as a person's held key
       lines.start(state);
+      company?.reset();
     },
     worldChanged: quiet,
     changedMode: quiet,
@@ -97,6 +100,8 @@ export function createBot({
     }
   });
 
+  const company = mind && createCompany({ mind, session, game, seconds, log, auto: () => auto });
+
   function connect() {
     closedWhy = null;
     session.link.connect(socketUrl(service, room));
@@ -107,6 +112,9 @@ export function createBot({
     session,
     get game() {
       return game;
+    },
+    get company() {
+      return company?.with ?? null;
     },
     get closed() {
       return closedWhy;
@@ -121,6 +129,7 @@ export function createBot({
     frame(dt) {
       if (auto && session.link.ready && (idle -= dt) < 0) {
         idle = 0;
+        company?.tick();
         ticks += dt * TICK_HZ;
         const n = Math.floor(ticks);
         ticks -= n;

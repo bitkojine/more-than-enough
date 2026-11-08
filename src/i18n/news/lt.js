@@ -1,5 +1,7 @@
 /* Historical release notes, loaded only when opening What’s new. */
 export default {
+  'news.0.211.0':
+    'Kiekvienas kompanijos botas dabar turi savo būdą: tyrinėtojas, statytojas ir pagalbininkas. Kartais, kai esi šalia, kuris nors ateina tau palaikyti kompanijos, o paskui grįžta prie savo mašinos.',
   'news.0.210.0':
     'Kompanijos botai kalba: kai kuris nors iš jų yra šalia tavęs, jo naujienos rodomos tavo žinutėse, pavyzdžiui, „Mano mašina pabudo!“, o kai prieini, jis pasisveikina.',
   'news.0.209.0':

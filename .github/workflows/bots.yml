@@ -49,6 +49,10 @@ jobs:
           MINUTES: ${{ inputs.minutes }}
           ADMIN_TOKEN: ${{ secrets.ROOMS_ADMIN_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
+          # Workers AI picks the bots' goals (scripts/bots/mind.mjs); without
+          # the CLOUDFLARE_AI_TOKEN secret their characters do.
+          CF_ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
         # The world's id stays out of the public log.
         run: |
           echo "::add-mask::$ROOM"

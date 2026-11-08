@@ -66,7 +66,8 @@ export function createAutoplaySession(seed, seen = () => {}, { state: given = nu
   };
   const auto = createPerfect({ game, controller, hud });
   const zero = { x: 0, y: 0 };
-  const input = { held: false, trail: null, perfect: false, moveVector: () => zero };
+  let dir = zero; // where it is steered by hand (steer), or nowhere
+  const input = { held: false, trail: null, perfect: false, moveVector: () => dir };
   const simulation = createSimulation({ game, controller, autoplay: auto, input });
   if (!given) Core.revealAround(state); // the normal initial reveal, never a world scan
   return {
@@ -90,6 +91,12 @@ export function createAutoplaySession(seed, seen = () => {}, { state: given = nu
     release() {
       input.perfect = false;
       auto.release();
+    },
+    // Walks the way `v` ({x, y}, at most 1 long) points, as a held stick
+    // does, AUTO waiting meanwhile; nothing (or zero) stops (the company
+    // bots, scripts/bots/bot.mjs).
+    steer(v = null) {
+      dir = v && (v.x || v.y) ? { x: v.x, y: v.y } : zero;
     },
     tick: simulation.tick,
     advanceChunk: simulation.advanceChunk,

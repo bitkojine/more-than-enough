@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.211.0] - 2026-11-08
+
+The company bots choose what to do (bot plan phase 4): until now each bot
+only ever worked on its own machine, three of the same, and the plan has
+them keep people company, each with its own character, with Workers AI
+picking their goals.
+
+- **A mind for each bot** (`scripts/bots/mind.mjs`): an explorer, a builder
+  and a helper, each with its own odds of going to someone. About once a
+  minute, when a person is awake within 80 m on its layer, it picks between
+  its story and that person's company. With the `CLOUDFLARE_AI_TOKEN`
+  secret (Workers AI, Llama 3.1 8B, at most 400 calls a run), the model
+  picks from a short summary of only what the bot has seen; only `story` or
+  `company` ever comes of its answer, no model text reaches a player and
+  nothing a person writes goes into the prompt. Without the token, with
+  the calls used up or no answer, the character's odds pick.
+- **Keeping company** (`scripts/bots/company.mjs`): the bot lets go of AUTO,
+  walks to the person as a held stick would (`steer` in
+  `src/game/autoplay-session.js`), and stays within 3 m, until its mind says
+  its story again, the person goes, or it can't get closer for 8 s.
+- **Invites dropped** from phase 5 (Watch chose, 2026-11-08): everyone plays
+  in the one public world.
+- **Checked**: `bots-mind.test.js` (who counts as near, the model's answer,
+  the Workers AI call, odds, timing and the call budget) and `bots.test.js`
+  (a bot whose mind says company follows a person who walks 12 m off and
+  stays beside them, with the room agreeing: 0 off, 0 refused; it fails
+  when the bot isn't steered).
+
 ## [0.210.0] - 2026-11-08
 
 The company bots say things (bot plan phase 5): until now a bot was a

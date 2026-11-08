@@ -9,6 +9,8 @@ import assert from 'node:assert/strict';
 import * as P from '../../src/net/protocol.js';
 import { Bucket } from '../../server/src/room.js';
 import { createBot } from '../../scripts/bots/bot.mjs';
+import { createMind, PERSONAS } from '../../scripts/bots/mind.mjs';
+import { BESIDE_M } from '../../scripts/bots/company.mjs';
 import { T0, crystalRoom, play } from './crystal-room.js';
 
 // Sockets into room `r`, at the time `now()` says, as the worker would run them.
@@ -70,12 +72,14 @@ function sockets(r, now) {
       }
     }
   }
-  return { open, pump };
+  // Player `id` (not on a socket here) says `m`, and every socket hears what comes of it.
+  const say = (id, m) => deliver({ hear() {} }, r.message(id, JSON.stringify(m), now()));
+  return { open, pump, say };
 }
 
 // `n` bots in a crystal room with a person, each `wait` seconds after the last
 // to start playing; run(seconds) plays them all, the room's clock with them.
-async function botsInRoom(n = 1, wait = 0) {
+async function botsInRoom(n = 1, wait = 0, mind = () => null) {
   const { r, key } = await crystalRoom(15);
   const person = await play(r, key, undefined, T0);
   let secs = 0;
@@ -91,12 +95,21 @@ async function botsInRoom(n = 1, wait = 0) {
       open: net.open,
       seconds: () => secs,
       timers,
-      wait: i * wait
+      wait: i * wait,
+      mind: mind(i),
+      log: process.env.BOTLOG ? (l) => console.log(secs.toFixed(1), l) : undefined
     })
   );
-  const run = async (seconds) => {
+  // The person stands where they are, and their game says so now and then.
+  let heard = 0;
+  const run = async (seconds, step = () => {}) => {
     for (let t = 0; t < seconds; t += 0.1) {
       secs += 0.1;
+      step();
+      if (secs - heard >= 1) {
+        heard = secs;
+        net.say(person.id, { t: 'pos', p: P.cleanPos(person.s.player) });
+      }
       for (const b of bots) b.frame(0.1);
       await net.pump();
     }
@@ -192,4 +205,24 @@ test('bots: a marked bot says its lines, and the room passes them on', async () 
   assert.ok(bot.said.length > 0, 'it said something');
   assert.deepEqual(heard, bot.said, 'everyone else heard each line');
   for (const k of bot.said) assert.ok(P.BOT_LINES.includes(k), k);
+});
+
+// Its mind says company whenever it can (odds of 1, no AI).
+const keen = () => createMind({ persona: PERSONAS[2], random: () => 0 });
+
+test('bots: one whose mind says company goes after the person and stays beside them, the room agreeing', async () => {
+  const { r, bot, net, run, person } = await botsInRoom(1, 0, keen);
+  bot.connect();
+  await net.pump();
+  await run(5);
+  assert.equal(bot.company, person.id, 'its mind said company');
+  // The person walks off along the way into the world, at a stroll.
+  const q = person.s.player;
+  await run(12, () => (q.x += 0.1));
+  await run(15);
+  assert.equal(bot.company, person.id, 'still with them');
+  const p = bot.game.state.player;
+  assert.ok(Math.hypot(p.x - q.x, p.y - q.y) <= BESIDE_M + 0.5, JSON.stringify({ p, q }));
+  const rep = r.shadowOf().report(bot.session.friends.me);
+  assert.deepEqual({ off: rep.off, refused: rep.refused }, { off: 0, refused: 0 });
 });
